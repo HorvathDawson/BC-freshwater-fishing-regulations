@@ -192,10 +192,14 @@ function checkPayload(P: Payload): Payload {
 const closureNote = (P: Payload, c: Chain, id: string): SalmonNote | undefined =>
   c.r.flatMap((r) => P.regions[r]?.notes ?? []).find((n) => n.id === id);
 
-/** One region's slice (`salmon-<r>`): its runs. */
+/**
+ * One region's slice (`salmon-<r>`): its runs. (T360) Held at 8 bytes a run — the first section (u32), the run's length
+ * and its chain (u16 each) — not 20 (two f64 and an i32): ~790k runs, 15.8 MB → 6.3 MB. The file is unchanged; a run
+ * longer or a chain higher than 16 bits is refused on decode, never wrapped.
+ */
 export interface SalmonShard {
   readonly region: string;
-  readonly starts: Float64Array; readonly ends: Float64Array; readonly chain: Int32Array;
+  readonly starts: Uint32Array; readonly lens: Uint16Array; readonly chain: Uint16Array;
 }
 
 export function decodeSalmonShard(b: Uint8Array, handles: string): SalmonShard {
@@ -227,16 +231,17 @@ export function* salmonShardSteps(b: Uint8Array, handles: string): Steps<SalmonS
     }
   };
   const count = varint();
-  const starts = new Float64Array(count), ends = new Float64Array(count), chain = new Int32Array(count);
+  const starts = new Uint32Array(count), lens = new Uint16Array(count), chain = new Uint16Array(count);
   let end = 0;
   for (let r = 0; r < count; r++) {
     if ((r & (YIELD_EVERY - 1)) === YIELD_EVERY - 1) yield;
-    const s0 = end + varint(), c = varint();
-    starts[r] = s0; ends[r] = s0 + c; chain[r] = varint();
+    const s0 = end + varint(), c = varint(), ch = varint();
+    if (s0 + c > 0xffffffff || c > 0xffff || ch > 0xffff) throw new SalmonError(`salmon: run ${r} (${s0}+${c}, chain ${ch}) over 32/16 bits`);
+    starts[r] = s0; lens[r] = c; chain[r] = ch;
     end = s0 + c;
   }
   if (i !== b.length) throw new SalmonError(`salmon: ${b.length - i} trailing bytes`);
-  return { region, starts, ends, chain };
+  return { region, starts, lens, chain };
 }
 
 /** The head with the slices read: a section's chain is the first slice holding it, else chain 0 (closed). */
@@ -245,12 +250,12 @@ export function salmonFacts(payload: Payload, handles: string, shards: readonly 
   return {
     handles, chains: payload.chains.length, payload, loaded: shards.map((s) => s.region),
     chainOf(sid) {
-      for (const { starts, ends, chain } of shards) {
+      for (const { starts, lens, chain } of shards) {
         let lo = 0, hi = starts.length - 1;
         while (lo <= hi) {
           const mid = (lo + hi) >> 1;
           if (sid < starts[mid]!) hi = mid - 1;
-          else if (sid >= ends[mid]!) lo = mid + 1;
+          else if (sid >= starts[mid]! + lens[mid]!) lo = mid + 1;
           else return chain[mid]!;
         }
       }

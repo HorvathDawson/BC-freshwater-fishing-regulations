@@ -78,6 +78,14 @@ describe("salmon/4", () => {
     expect([r6.chainOf(101), r6.chainOf(200)]).toEqual([1, 0]);
   });
 
+  it("(T360) holds a slice at 8 bytes a run, and refuses a run or chain over 16 bits rather than wrap it", () => {
+    const big = shard("6", [[4_000_000_000, 65_535, 65_535]]);
+    const f = decodeSalmon(FILE, HANDLES, [big]);
+    expect([f.chainOf(4_000_000_000 + 65_534), f.chainOf(4_000_000_000 + 65_535)]).toEqual([65_535, 0]);
+    expect(() => decodeSalmon(FILE, HANDLES, [shard("6", [[100, 65_536, 1]])])).toThrow(/over 32\/16 bits/);
+    expect(() => decodeSalmon(FILE, HANDLES, [shard("6", [[100, 1, 65_536]])])).toThrow(/over 32\/16 bits/);
+  });
+
   it("refuses another file, another atlas's handles, and trailing bytes", () => {
     expect(() => decodeSalmon(new Uint8Array([1, 2, 3]), HANDLES)).toThrow(SalmonError);
     expect(() => decodeSalmon(FILE, "0".repeat(16))).toThrow(/built for handles 147b20dce7d8576c/);
