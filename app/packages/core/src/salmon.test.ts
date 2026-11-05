@@ -270,11 +270,16 @@ describe("(T227) region notes about a species sit with that species", () => {
       n("6:facility:e", "facility", "No fishing within 100 m of a government facility.", { fold: "drop" }),
     ], sizes: [{ sp: ["CH"], adult: { min_cm: 50 } }, { sp: ["CO"], min: { min_cm: 25 } }] } } } } as never;
   };
-  it("an open coho row carries its annual note (its size is the sizes line); a closed chinook's note stays in the block", () => {
+  it("an open coho row carries its annual note (its size is the sizes line); (T393) a closed chinook's size is on its own row, not in the block", () => {
     const c = salmonCard(withNotes(), { sids: [101], item: null }, JUL20);
     const coho = c.rows.find((r) => r.species.includes("CO"))!;
     expect([coho.sizes, coho.speciesNotes]).toEqual(["Sizes (DFO): coho 25 cm or more to keep", ["The annual coho limit is 10."]]);
-    expect(c.regionRules.map(({ label, notes }) => ({ label, notes }))).toEqual([{ label: "Region 6 Skeena", notes: ["Daylight only.", "An \"adult chinook\" is over 50 cm."] }]);
+    const chinook = c.rows.find((r) => r.species.includes("CH"))!;
+    expect([chinook.status, chinook.sizesBy]).toEqual(["closed", { CH: "Sizes (DFO): adult chinook over 50 cm" }]);
+    expect(salmonTable(c).species.map((r) => [r.code, r.limit])).toEqual([
+      ["CH", "Sizes (DFO): adult chinook over 50 cm"], ["CO", "Sizes (DFO): coho 25 cm or more to keep"],
+      ["SK", null], ["PK", null], ["CM", null]]);
+    expect(c.regionRules.map(({ label, notes }) => ({ label, notes }))).toEqual([{ label: "Region 6 Skeena", notes: ["Daylight only."] }]);
   });
   it("(T343) a folded note is said by its structure: a dropped one never shows, a bucket one not beside its bucket", () => {
     const f = withNotes() as unknown as { payload: { regions: Record<string, { notes: unknown[] }> } };

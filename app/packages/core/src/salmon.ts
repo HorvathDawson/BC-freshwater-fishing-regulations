@@ -453,6 +453,9 @@ export interface SalmonRowVM {
   readonly notes: readonly string[];
   /** (owner 2026-10-28) the header's sizes for the row's species on an open / release-only row, else null */
   readonly sizes?: string | null;
+  /** (T393, owner 2026-11-05) each species' own sizes line, on EVERY row (closed too): the size rules live on the species
+   *  row, not as loose region lines */
+  readonly sizesBy?: Readonly<Partial<Record<SalmonSpecies, string>>>;
   /** (T227, owner 2026-10-28) the region header's notes about this row's species (what an "adult chinook" is, an annual
    *  limit …), DFO's words, beside the species — not repeated in the region block. A size the `sizes` line already says
    *  is left out. Only on a row that may be fished (open, release, check, varies). */
@@ -669,8 +672,18 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   // with that species' row, the way steelhead's sits with steelhead; the region block keeps only what no row took
   const speciesWise = hn.region.filter((n) => n.sp?.length);
   const placedRegion = new Set<string>(closedWords.map((n) => n.id));
-  const rows = block.rows.map((r) => {
-    if (block.allClosed || r.status === "closed") return r;
+  // (T393, owner 2026-11-05: "should live on the species row itself?" — yes) every species' sizes, closed rows too
+  const sizesByOf = (r: SalmonRowVM) => {
+    const by = Object.fromEntries(r.species.flatMap((sp) => {
+      const line = sizesOf(P, regionsUsed, page.item, day, [sp]);
+      return line ? [[sp, line]] : [];
+    })) as Partial<Record<SalmonSpecies, string>>;
+    return Object.keys(by).length ? { sizesBy: by } : {};
+  };
+  const rows = block.rows.map((row) => {
+    if (block.allClosed) return row;
+    const r = { ...row, ...sizesByOf(row) };
+    if (r.status === "closed") return r;
     const ofRow = (n: SalmonNote) => !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies));
     const regionMine = speciesWise.filter(ofRow);
     regionMine.forEach((n) => placedRegion.add(n.id));
@@ -687,7 +700,7 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     return { ...r, notes: [...r.notes, ...mine.filter((n) => asWords(n, sized)).map((n) => n.t)], sizes,
              ...(speciesNotes.length ? { speciesNotes } : {}) };
   });
-  const sizesShown: ReadonlySet<string> = new Set(rows.flatMap((r) => (r.sizes ? r.species : [])));
+  const sizesShown: ReadonlySet<string> = new Set(rows.flatMap((r) => [...(r.sizes ? r.species : []), ...Object.keys(r.sizesBy ?? {})]));
   const regionRules = regionsUsed.map((r) => {
     const mine = hn.region.filter((n) => n.id.startsWith(`${r}:`) && !placedRegion.has(n.id) && asWords(n, sizesShown));
     return {
@@ -1022,7 +1035,7 @@ const tableRows = (rows: readonly SalmonRowVM[]): SalmonTableRowVM[] =>
     const q = r.status === "open" ? r.quota?.[code] : undefined;
     const runs = quotaLine(q);
     return [{ code, name: cap(SPECIES_NAME[code]), status: r.status, statusLabel: r.statusLabel,
-              limit: r.species.length === 1 ? r.sizes ?? null : null,
+              limit: r.sizesBy?.[code] ?? (r.species.length === 1 ? r.sizes ?? null : null),
               quota: runs ? lineText(runs) : null, quotaRuns: runs, ...(q?.u ? { quotaUnread: true } : {}) }];
   });
 /** (T320) the bucket line, when a species of the table may be kept today: its total tier by the trout presenter */
@@ -1033,7 +1046,7 @@ const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM
   return { line: lineText(runs), runs, words: [b.t, ...(b.tp ? [b.tp] : [])] };
 };
 const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSaysVM[] =>
-  rows.map((r) => ({ label: allClosed || rows.length === 1 ? null : r.label, lines: [...r.notes, ...(r.species.length > 1 && r.sizes ? [r.sizes] : []), ...(r.speciesNotes ?? [])] }))
+  rows.map((r) => ({ label: allClosed || rows.length === 1 ? null : r.label, lines: [...r.notes, ...(r.species.length > 1 && r.sizes && !r.sizesBy ? [r.sizes] : []), ...(r.speciesNotes ?? [])] }))
     .filter((x) => x.lines.length);
 
 /**
