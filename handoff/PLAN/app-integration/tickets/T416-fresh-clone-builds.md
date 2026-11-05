@@ -54,3 +54,11 @@ clone cannot build today.**
   `FWA_README.pdf` (2026-08-21) pointing at `https://nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/` (same zips;
   FWA_BC.zip 2.47 GB and FWA_STREAM_NETWORKS_SP.zip 1.52 GB, data 2024-03-26). `data/fetch_data.py` now uses it. A
   `--missing-only` rerun in the fresh clone fetches those layers (log `~/t416-fresh.log`).
+- **FWA rerun: 6.6 min, rc 0, gpkg 9.54 GB** (Mac 9.7 GB). Layer compare (fiona, Mac vs fresh):
+  - every FWA layer has the same feature count (the 2024 data);
+  - **live layers drift** (the sources changed since the Mac's fetch): forest_service_roads 284,669→286,638,
+    water_access_points 16,704→15,821, waterfalls 2,411→2,433, historic_sites, land_access, wma. A fresh build will NOT
+    be byte-identical unless these are pinned: mirror the Mac's copies (sha256) as the build's inputs, or accept and
+    explain the diff;
+  - only on the Mac: `land_parcels_private`, `osm_admin_boundaries` (no fetch path now; check whether anything reads
+    them); only fresh: `bathymetry_contours`, `dams`, `obstacles` (added to the script after the Mac's fetch).
