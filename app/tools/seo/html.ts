@@ -156,7 +156,10 @@ export function privacyBody(site: Site, asOf: string): string {
     `or the system closing the app for memory or resource use, the app sends that reason, how busy the app was (foreground or background), ` +
     `how much memory it was using, the exit code and the time. It reads no crash dump or memory contents, and no screen or water is named for it. ` +
     `When the phone closed the app in the background to free memory, the report says so and is not counted as a crash. ` +
-    `This follows the same switch and the same rules below. iPhones send no crash reports yet.</p>` +
+    `This follows the same switch and the same rules below.</p>` +
+    `<p>An iPhone keeps no such record for the app, so when the app itself crashes on an iPhone it writes a short note on the device at that moment: ` +
+    `the kind of fault (its signal, or the error’s type and message), whether the app was in front, how much memory it was using and the time. ` +
+    `The next time it starts, the app sends that note under the same switch and the same rules below; it holds no crash dump, memory contents, screen or water.</p>` +
     `<p>It never includes your location, spots, photos, notes, searches, e-mail address or any device or advertising identifier (only the random install id above). ` +
     `Each different error is sent once per time the app runs, and only while you are online; an error that happens offline is not saved to send later, ` +
     `except one that stops the app, which is kept on your device and sent the next time the app starts (and deleted from your device if you have switched crash reports off). ` +
