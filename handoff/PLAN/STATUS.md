@@ -20,6 +20,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   [T403], plus keeping source maps per release [T352]. No 0.5.0 native crash yet [T351 waits].
 - **Then, in order:** map feel + performance (T312, T287, T245, T360) → SEO (T188–T198) → iOS (T88, T313, T336,
   T362–T365) → **0.6.0 release** (with T234 notifications, T390 update prompt and the 0.5.0 fixes).
+- **T234 notifications v1.1 + changelog built** (665dcb49b, 3dbc91380, 981c60cf5): above/below/±% in a day, one per
+  water per day (or a set gap), More → Notifications cards + editor, new-version notice, "What's new". Phone checklist
+  in the ticket; your calls in OWNER-TODO (changelog drafts, held-back alerts). Map feel + performance lane started.
 - **Deferred, thought later:** T383, T389, T304, T401 (waits on your recording), T307/T308/T310 sign-offs.
 - **Next chat after 0.6.0:** data + build (T164, T178, T239, T266, T295, T297, T324–T326, T337) and launch + hygiene
   (T86, T240, T244, T371, T305, T306, T331, T341, T402, T333–T335).
