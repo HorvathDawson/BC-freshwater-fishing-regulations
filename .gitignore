@@ -66,3 +66,7 @@ curation-review/frontend/dist/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# PSF run-timing pages: fetched, never committed (owner 2026-11-05: in git only the parsed timing.json; PSF grants no reuse, T162)
+data/source/runtiming/*.html
+data/source/runtiming/fetched.json
