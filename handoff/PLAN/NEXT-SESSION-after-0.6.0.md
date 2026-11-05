@@ -40,7 +40,8 @@ in order: **Data and build** first, then **Launch and hygiene**. Each is one cha
 4. **T239** — annual synopsis update runbook + dry run.
 5. **T266, T295, T297** — marks/exporter, faster rebuild, build clean-up (all IN REVIEW; finish together).
 6. **T324, T325, T326** — one clean data flow, write-through, tidal lock.
-7. **T337** — DFO water bindings refresh inside the build.
+7. **T337** — DFO water bindings refresh inside the build. (DONE 11-05)
+8. **T416** — a fresh clone can build: every non-git input has a source + hash, one bootstrap, timed proof (owner 11-05).
 
 ## Chat 2 — Launch and hygiene (in order)
 1. **T86, T240, T244** — production hosting, launch checklist, store readiness.

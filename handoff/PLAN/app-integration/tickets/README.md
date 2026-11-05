@@ -459,6 +459,7 @@ use that as the sole source of future work."
 | T413 | The feeds worker starts the HYDAT workflow on a new HYDAT (staging) | OPEN | — | owner 11-05 (T408); owner makes the token |
 | T414 | Review app: "only these entries" filter for the yearly synopsis diff | OPEN | — | from T239 11-05 |
 | T415 | Extraction regression: Heber River's text (found by T239's dry run) | OPEN | — | from T239 11-05; before the next book |
+| T416 | A fresh clone can build: inventory non-git inputs, mirror what only lives on the Mac, one bootstrap, timed clone→build proof | OPEN | — | owner 11-05; after T324 |
 
 ## Order for open tickets
 
