@@ -1113,7 +1113,7 @@ def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     (`same_anchor`), in the order first proposed: {id, split (the FIRST proposal's `NewSplit`),
     members (every `NewSplit` that named it), marks: [{target, ref, reviewer, date}]}. `id` is the
     first proposal's ref, made unique with a `-2` suffix when another cut already holds it. What
-    `review.export` writes (T266); `proposals` adds the confidence."""
+    `review.export.decide` holds (T266); `proposals` adds the confidence."""
     out: list[dict] = []
     for m in uncleared(marks):              # a cleared mark's proposals are taken back with it
         for n in m.new_splits:

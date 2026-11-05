@@ -3,12 +3,12 @@
     python -m pipeline.regs.review.apply_proposals --dry-run     # what would land, as diffs
     python -m pipeline.regs.review.apply_proposals [--only ID]   # land each, `git commit -- <paths>`
 
-The ONE documented command over this is `python -m pipeline.regs.review.apply [domain]` (T325): export, then the
-domain's writer — for tidal / dfo / entries / splits, this, with `--scope` naming the domain's mark scopes.
+The ONE documented command over this is `python -m pipeline.regs.review.apply [domain]` (T325): the domain's
+writer — for tidal / dfo / entries / splits, this, with `--scope` naming the domain's mark scopes.
 
 THE MARKS ARE THE DECISIONS (owner 2026-10-27): there is no accept step. Every applicable proposal
-the marks in force make is landed — read from their export (`review.export`, T266: data/curated/decided/,
-refused while it is behind marks.jsonl), never from the marks store itself — rebuilt from the marks and the curated files NOW
+the marks in force make is landed — the decisions computed in memory from marks.jsonl (`review.export.load`, T408:
+no intermediate file; a closed domain's marks left out) — rebuilt from the marks and the curated files NOW
 (`proposals.build`), never read from the written patches. To change or stop one, the owner changes
 the mark. New splits land first; a proposal naming a new split lands only once that split is in
 splits.json (applied in this run, or before). After each commit the proposals are rebuilt, so the
@@ -118,22 +118,17 @@ def main(argv: list[str] | None = None) -> int:
     return run(argv)[0]
 
 
-def run(argv: list[str] | None = None, *, fresh: bool = False) -> tuple[int, list[dict]]:
+def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
     """`main`, returning (rc, events): one event per proposal it landed, refused or left waiting —
     {id, status: applied | refused | waiting | would, why, sha, marks: [{scope, target, rule_id}]} — so the review
-    app's write-through (T325) can say on each marked item what became of its mark. `fresh`: the caller has just
-    exported the decided data under its own read of the marks (`review.apply.run`), so the "behind" check is skipped
-    (a mark appended since is the next run's)."""
+    app's write-through (T325) can say on each marked item what became of its mark."""
     from pipeline.regs.parsing.io import atomic_write
     from pipeline.regs.review import export as E
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.apply_proposals",
                                  description="apply the owner's marks (T185 proposals), one commit "
                                              "each, after the binding check")
-    ap.add_argument("--decided", type=Path, default=None,
-                    help="the decided-data dir (`review.export`, T266; default CURATED.decided)")
     ap.add_argument("--marks", type=Path, default=None,
-                    help="the marks store the decided data must be the export of (default CURATED's); "
-                         "only checked, never applied from")
+                    help="the marks store whose decisions land (default CURATED's)")
     ap.add_argument("--build", type=Path, help="the atlas whose registry names new anchors")
     ap.add_argument("--only", action="append", default=[], metavar="ID",
                     help="land only these proposals (repeatable)")
@@ -144,14 +139,8 @@ def run(argv: list[str] | None = None, *, fresh: bool = False) -> tuple[int, lis
                          "diff read elsewhere (its side atlas is not at the default path)")
     ap.add_argument("--dry-run", action="store_true", help="print the diffs and checks, write nothing")
     a = ap.parse_args(argv)
-    # T266: the decided data is what lands; marks the owner made since its export are not in it yet
     events: list[dict] = []
-    behind = [] if fresh else E.stale(a.decided, a.marks)
-    if behind:
-        print(f"apply_proposals: the decided data is behind the marks ({', '.join(behind)}) — export first:\n"
-              "    python -m pipeline.regs.review.export", file=sys.stderr)
-        return 2, events
-    decided = E.load(a.decided)
+    decided = E.load(a.marks)
     tried: set[str] = set()
     landed_sids: set[str] = set()
     landed, rc, blocked = [], 0, []

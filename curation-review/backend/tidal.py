@@ -69,13 +69,6 @@ def groups(rows: list[dict]) -> dict:
 _FOLLOWUPS: dict = {"key": None, "why": {}, "error": None}
 
 
-def _decided_dir() -> Path:
-    """The decided data the tidal writer reads — `CURATION_DECIDED` (the write-through's own override), else
-    the curated decided dir."""
-    from pipeline.regs.review import export as E
-    return Path(os.environ["CURATION_DECIDED"]) if os.environ.get("CURATION_DECIDED") else E.default_dir()
-
-
 def _mtimes(paths) -> tuple:
     return tuple((str(p), p.stat().st_mtime_ns if p.exists() else None) for p in paths)
 
@@ -83,21 +76,19 @@ def _mtimes(paths) -> tuple:
 def followups() -> tuple[dict[str, str], str | None]:
     """THE TIDAL FOLLOW-UPS (T359): {target: why} for every tidal mark the tidal writer leaves out of
     waters/tidal.json — its own `skipped` list (`tools.tidal_limits.build`), never a second classifier — and the
-    error that stopped it (None). Cached on the marks store's, the decided files', tidal.json's and
-    splits.json's mtimes (a build takes ~0.3 s)."""
+    error that stopped it (None). The writer takes the marks' decisions in memory (`review.export.load`, T408).
+    Cached on the marks store's, tidal.json's and splits.json's mtimes (a build takes ~0.3 s)."""
     from pipeline.common.curated import CURATED
-    d = _decided_dir()
-    key = _mtimes([Path(reuse.MARKS_PATH), Path(CURATED.waters.tidal), Path(CURATED.waters.splits),
-                   *sorted(d.glob("*.json"))])
+    key = _mtimes([Path(reuse.MARKS_PATH), Path(CURATED.waters.tidal), Path(CURATED.waters.splits)])
     if _FOLLOWUPS["key"] != key:
         from pipeline.regs.review import export as E
         from pipeline.tools import tidal_limits as TL
         why: dict[str, str] = {}
         err = None
         try:
-            for s in TL.build(E.load(d))[1]:
+            for s in TL.build(E.load(Path(reuse.MARKS_PATH)))[1]:
                 why[s["target"]] = f"{why[s['target']]}; {s['why']}" if s["target"] in why else s["why"]
-        except (FileNotFoundError, SystemExit, ValueError) as e:      # no decided data / no tidal.json
+        except (FileNotFoundError, SystemExit, ValueError) as e:      # no marks store / no tidal.json
             err = f"the tidal writer could not run: {e}"
         _FOLLOWUPS.update(key=key, why=why, error=err)
     return _FOLLOWUPS["why"], _FOLLOWUPS["error"]

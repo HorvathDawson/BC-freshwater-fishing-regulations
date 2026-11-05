@@ -39,10 +39,9 @@ successful key and the digest of each INPUT, so the plan says WHY a stage runs (
 changed: code, curated"). Durations are never part of a key. The run ends with a timings table and
 the strict vintage check: tiles and bundle from one atlas and one registry.
 
-THE MARKS ARE NOT A BUILD INPUT (T266): `marks.jsonl` is the review log and `data/curated/decided/`
-its export (`pipeline.regs.review.export`); both feed the apply paths, which land the decided edits in
-the curated files the stages read. Neither is in any key (`NOT_BUILD_INPUTS`), and a build runs with
-marks.jsonl absent.
+THE MARKS ARE NOT A BUILD INPUT (T266): `marks.jsonl` is the review log; it feeds the apply paths
+(`pipeline.regs.review.apply`, which compute its decisions in memory), and they land the decided edits in the
+curated files the stages read. It is in no key (`NOT_BUILD_INPUTS`), and a build runs with marks.jsonl absent.
 
 SIDE RUNS (`--side DIR`, T297): every stage writes under DIR (atlas/<build>_next, reaches/, tiles/,
 clim.json, deliver/ with its release/) with its own manifest; reach, tiles and deliver read the side
@@ -109,7 +108,7 @@ STAGES = tuple(st.name for st in STAGE_GRAPH)
 CODE = {st.name: st.code for st in STAGE_GRAPH}
 #: (T266) curated paths that are REVIEW STATE or its export, read by the apply paths and never by a stage: in no key
 #: (T325) + the closed-domains list beside the marks: review state too, read by the exporter / apply / review app only
-NOT_BUILD_INPUTS = ("regulations.review.marks", "regulations.review.closed", "decided")
+NOT_BUILD_INPUTS = ("regulations.review.marks", "regulations.review.closed")
 
 
 def _sha(obj) -> str:
@@ -181,7 +180,7 @@ def _files_under(root: Path, skip: set[Path]) -> list[Path]:
 
 
 def not_build_inputs(dotted_keys: tuple[str, ...] | None = None) -> set[Path]:
-    """The curated paths in no stage key (`NOT_BUILD_INPUTS`): the marks store and the decided-data dir (T266).
+    """The curated paths in no stage key (`NOT_BUILD_INPUTS`): the marks store and the closed list (T266).
     `dotted_keys`: resolve another list instead (`NOT_DELIVER_INPUTS`, T331)."""
     out = set()
     for dotted in (NOT_BUILD_INPUTS if dotted_keys is None else dotted_keys):

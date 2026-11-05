@@ -1,6 +1,6 @@
 """T185: REVIEW MARKS -> PROPOSED EDITS -> applied by Claude, never by the review tool.
 
-    marks.jsonl -> `review.export` -> data/curated/decided/ (read only, T266)  ->  proposals (one per mark, one per new split)  ->  the review app's
+    marks.jsonl -> `review.export.load` (in memory, T408)  ->  proposals (one per mark, one per new split)  ->  the review app's
     read-only "waiting to apply" list  ->  `apply_proposals` (Claude runs it) lands each as its own
     commit, after the binding check (and the side rebuild where a cut changes)
 
@@ -786,8 +786,8 @@ def place_groups(rows: Iterable[tuple], src: Sources, splits_doc: Optional[Mappi
 
 def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]:
     """EVERY PROPOSAL the decided data makes against the files NOW, new splits first. Pure: reads `src`.
-    `decided`: the exported decided data (`review.export.load`, T266 — what apply paths read), or an
-    iterable of marks, exported in memory first (`review.export.decide`, the owner's earlier tidal
+    `decided`: the marks' decisions (`review.export.load` — what apply paths read), or an
+    iterable of marks, decided first (`review.export.decide`, the owner's earlier tidal
     calls `src.tidal_decisions` folded in before them, so a mark made since supersedes one).
     `applied`, when given, collects the key of every mark whose extent / tributary fix the files
     already say (landed: no proposal is made for it) — `applied_keys`."""
@@ -1284,15 +1284,16 @@ def main(argv: list[str] | None = None) -> int:
                               "(T166: one side atlas for all the tidal boundaries)")
     s.add_argument("--out", type=Path, required=True)
     for x in (b, s):
-        x.add_argument("--decided", type=Path, default=None,
-                       help="the decided-data dir (`review.export`, T266; default CURATED.decided)")
+        x.add_argument("--marks", type=Path, default=None,
+                       help="the marks store whose decisions are proposed (default CURATED's)")
         x.add_argument("--build", type=Path, help="the atlas whose registry names new anchors")
         x.add_argument("--dir", type=Path, default=OUT_DIR, help="the proposals dir")
     a = ap.parse_args(argv)
     from pipeline.regs.review import export as E
     src = Sources.live(a.build)
-    decided_dir = Path(a.decided or E.default_dir())
-    props = build(E.load(decided_dir), src)
+    from pipeline.common.curated import CURATED
+    marks_path = Path(a.marks or CURATED.regulations.review.marks)
+    props = build(E.load(marks_path), src)
     if a.cmd == "side" and a.id == "tidal":
         tid = tidal_props(props)
         if not tid:
@@ -1313,7 +1314,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if a.check:
         check(props, src)
-    idx = write(props, a.dir, src, marks_path=decided_dir)
+    idx = write(props, a.dir, src, marks_path=marks_path)
     print(_summary(props))
     print(f"{len(props)} proposal(s) -> {_rel(idx)}", file=sys.stderr)
     return 0

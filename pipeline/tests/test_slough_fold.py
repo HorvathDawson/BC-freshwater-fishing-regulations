@@ -1,5 +1,5 @@
 """T322: the owner-confirmed slough calls — the apply step (`tools.slough_calls`) and the registry fold
-(`registry.flowing.fold_confirmed_sloughs`). Synthetic graphs; the committed file is checked against the decided data.
+(`registry.flowing.fold_confirmed_sloughs`). Synthetic graphs; the committed file is checked against what the marks decide.
 
 Owner 2026-10-30 (corrected): only an ISOLATED confirmed polygon (no line touches it) is skipped. A named stream
 through it, or on only one side of it, takes it; with only unnamed lines, the item holding it becomes a stream on that
@@ -195,8 +195,8 @@ def test_load_round_trips_and_refuses_a_missing_file(tmp_path):
         SC.load(tmp_path / "nope.json")
 
 
-def test_the_committed_file_is_apply_of_the_decided_data():
-    """`--check`: data/curated/waters/slough_calls.json == apply(decided/sloughs.json)."""
+def test_the_committed_file_is_apply_of_the_marks():
+    """`--check`: data/curated/waters/slough_calls.json == apply(the slough marks' decisions, in memory)."""
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import export as E
     rows, _ = SC.build(E.load())

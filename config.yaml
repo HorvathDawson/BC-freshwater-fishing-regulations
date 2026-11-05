@@ -110,9 +110,6 @@ data_tree:
 
 curated:
   base: "data/curated"
-  # T266: what the review marks decide, per domain with provenance — written ONLY by
-  # `python -m pipeline.regs.review.export` from marks.jsonl (the review log); apply paths read it
-  decided: "data/curated/decided"
 
   # --- the shape of the atlas itself ---------------------------------------------
   waters:
@@ -123,7 +120,7 @@ curated:
     areas: "data/curated/waters/areas.json"                        # authored
     continuations: "data/curated/waters/continuations.json"        # authored (owner-reviewed / refused water_continue links)
     tidal: "data/curated/waters/tidal.json"                        # T326: THE tidal limit of every ocean water (mouth | split | cut | whole); written by pipeline.tools.tidal_limits, read by the atlas only
-    slough_calls: "data/curated/waters/slough_calls.json"          # applied (T322: owner-confirmed slough calls, from decided/sloughs.json)
+    slough_calls: "data/curated/waters/slough_calls.json"          # applied (T322: owner-confirmed slough calls, from the slough marks)
     # Hand-drawn ADMIN polygons: closure zones a regulation states as an area, not a reach.
     # An areas.json def names this file in `file` instead of naming a fetched gpkg `layer`.
     added_areas: "data/curated/waters/added_areas.geojson"         # authored — hand-drawn polygons

@@ -1,6 +1,6 @@
-"""T322: WRITE THE OWNER'S CONFIRMED SLOUGH / CANAL CALLS (`data/curated/waters/slough_calls.json`) from the decided
-data (`data/curated/decided/sloughs.json`, `review.export`, T266) — the apply step. The registry reads this file
-(`registry.flowing.fold_confirmed_sloughs`), never `decided/` or marks.jsonl.
+"""T322: WRITE THE OWNER'S CONFIRMED SLOUGH / CANAL CALLS (`data/curated/waters/slough_calls.json`) from the marks'
+decisions (`review.export.load`, computed in memory from marks.jsonl, T408) — the apply step. The registry reads this
+file (`registry.flowing.fold_confirmed_sloughs`), never marks.jsonl.
 
 A call is applied when the mark in force on `slough:<wbk>` is VERIFIED, `call` "stream", `P` y, and still holds
 against the candidate it was made on (`slough.prints_of`; a redrawn outline makes it stale -> reported, not written).
@@ -10,7 +10,7 @@ What the fold does with each written wbk (owner 2026-10-30): a polygon with a st
 stream; with no stream through it, it is IGNORED (it is not a stream then). A new unnamed stream is never made.
 
     python -m pipeline.tools.slough_calls            # write the file
-    python -m pipeline.tools.slough_calls --check    # exit 1 when the file is not apply(decided)
+    python -m pipeline.tools.slough_calls --check    # exit 1 when the file is not what the marks say
 """
 from __future__ import annotations
 

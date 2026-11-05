@@ -3,7 +3,7 @@ decisions. Deterministic; rerun after the owner marks more rows in the review ap
 
 Accepted = (the auto-accepted rows, owner 2026-10-28) + (the owner's single-row calls, `waters/name_calls.json`
 via `names.owner_calls`, T327) + (every row whose latest name mark is verified `accept`) − (every row whose latest name mark is verified `reject`). The name
-marks are read from their export (`data/curated/decided/names.json`, `review.export`, T266), never marks.jsonl.
+marks' decisions are computed in memory from marks.jsonl (`review.export.load`, T408).
 
 Each accepted row becomes a `name_variants`-shaped entry: its target and one name per source, each with its REAL
 source code, label, ref and evidence (`names.name_records`). Nothing else is written.
@@ -22,8 +22,8 @@ from pipeline.regs.review import names as N
 
 
 def decisions(decided) -> dict[str, tuple[str, str]]:
-    """candidate id -> (call, who) from the latest VERIFIED, non-stale name mark — read from the decided data
-    (`review.export`, T266; a marks path is exported in memory first)."""
+    """candidate id -> (call, who) from the latest VERIFIED, non-stale name mark — the marks' decisions
+    (`review.export.load`; a marks path is decided in memory first)."""
     from pipeline.regs.review import export as E
     if not isinstance(decided, E.Decided):
         decided = E.decide(M.load(decided))

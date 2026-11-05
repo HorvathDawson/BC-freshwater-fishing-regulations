@@ -12,7 +12,7 @@ Each Place y tidal mark in force (`proposals._tidal_decides`) becomes the row of
                                                                      (the review app's Tidal follow-ups, T359)
 
 Rows WITHOUT a mark are the owner's own calls (the whole Fraser delta channels) and are kept, unless a LATER
-decision on the same water replaces them (a mark made the same day or after the call's `decided` date). The atlas reads the file (`atlas.splits.tidal`); nothing reads decided/ or marks.
+decision on the same water replaces them (a mark made the same day or after the call's `decided` date). The atlas reads the file (`atlas.splits.tidal`); nothing in the build reads the marks.
 
     python -m pipeline.tools.tidal_limits            # write the file
     python -m pipeline.tools.tidal_limits --check    # exit 1 when the file is not what the marks say
@@ -143,7 +143,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     a = ap.parse_args(argv)
     from pipeline.common.curated import CURATED
     from pipeline.regs.review import export as E
-    rows, skipped = build(E.load(E.default_dir()))
+    rows, skipped = build(E.load())
     text = document(rows)
     path = Path(CURATED.waters.tidal)
     counts = {k: sum(1 for r in rows if r.limit == k) for k in T.LIMITS}

@@ -21,16 +21,16 @@ time; heavy.sh is re-entrant for its own lock holder). Each stage is skipped whi
 (atlas, corpus, curated tree, source stamps, its own code) match its last successful run
 (`data/generated/build-manifest.json`). With `--jobs 2` a stage logs to `build-logs/<run>/<stage>.log`.
 
-## Review marks → decided data → curated files (T266)
+## Review marks → curated files (T266, T408)
 
 ```bash
-python -m pipeline.regs.review.export            # marks.jsonl (review log) -> data/curated/decided/*.json
-python -m pipeline.regs.review.export --check    # is the export current?
-python -m pipeline.regs.review.apply_proposals   # land the decided edits (reads decided/, never the marks)
-python -m pipeline.tools.mined_names             # accepted names (reads decided/names.json)
+python -m pipeline.regs.review.apply             # every open domain: marks.jsonl -> its final curated file
+python -m pipeline.regs.review.apply --dry-run   # what would land; writes nothing
+python -m pipeline.regs.review.export            # print the decisions in force per domain (in memory, no files)
 ```
 
-No build stage reads `marks.jsonl` or `decided/`; they read the curated files the apply paths write.
+The writers compute the marks' decisions in memory (`review.export.load`); there is no intermediate
+`decided/` copy. No build stage reads `marks.jsonl`; they read the curated files the apply paths write.
 
 ## The stages alone
 

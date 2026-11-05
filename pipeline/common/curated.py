@@ -93,7 +93,7 @@ class Waters(BaseModel):
     #: on an existing `split`, a new `cut`, or the `whole` water. Written by `pipeline.tools.tidal_limits` (review
     #: write-through); read by the ATLAS only (`atlas.splits.tidal.load`), which writes `tidal.resolved.json`.
     tidal: FilePath
-    #: T322 (owner 2026-10-30): the owner-CONFIRMED slough / canal polygons, applied from `decided/sloughs.json` by
+    #: T322 (owner 2026-10-30): the owner-CONFIRMED slough / canal polygons, applied from the slough marks by
     #: `pipeline.tools.slough_calls`; the registry folds each into the one stream through it, else ignores it
     #: (`registry.flowing.fold_confirmed_sloughs`).
     slough_calls: FilePath
@@ -156,8 +156,8 @@ class Review(BaseModel):
     """The curation review's REVIEWED data (T97): `marks` is the append-only store of every
     reviewer's mark (`pipeline.regs.review.marks`), checked in empty before the first mark.
 
-    T266: the marks are REVIEW STATE. No build reads them: what they decide is exported to
-    `Curated.decided` (`pipeline.regs.review.export`), so the path is NOT required to exist here
+    T266: the marks are REVIEW STATE. No build reads them: what they decide lands in the curated files via the
+    apply paths (`pipeline.regs.review.apply`, decisions in memory, T408), so the path is NOT required to exist here
     (a build runs with it absent); `marks.load` still raises on a missing store for its readers."""
 
     model_config = ConfigDict(frozen=True)
@@ -259,11 +259,8 @@ class Curated(BaseModel):
     inseason: InSeason
     dfo_salmon: DfoSalmon
     sloughs: Sloughs
-    #: T266: WHAT THE REVIEW MARKS DECIDE, one file per domain with provenance — written only by
-    #: `python -m pipeline.regs.review.export`, read by the apply paths (never marks.jsonl)
-    decided: DirectoryPath
 
-    _abs = field_validator("base", "decided", mode="before")(_absolute)
+    _abs = field_validator("base", mode="before")(_absolute)
 
     def domain(self, name: str) -> Domain:
         """`c.domain("gauges")` — for tools that loop over all three."""

@@ -8,10 +8,9 @@ locks nothing. This command is the same apply by hand — a catch-up after marks
     python -m pipeline.regs.review.apply dfo             # one domain (or several: dfo tidal)
     python -m pipeline.regs.review.apply dfo --dry-run   # what would land; writes nothing
 
-Marking is unchanged: one click in the review app appends a mark to marks.jsonl. This command then
-
-  1. EXPORTS the marks (`review.export` -> data/curated/decided/; a closed domain is skipped), and
-  2. runs the domain's WRITER, which puts what the marks decide into the domain's final curated file:
+Marking is unchanged: one click in the review app appends a mark to marks.jsonl. This command then reads what the
+marks decide IN MEMORY (`review.export.load`: the marks in force, a closed domain's left out — no intermediate file,
+T408) and runs each domain's WRITER, which puts it into the domain's final curated file:
 
      domain    writer                                        final file
      tidal     tools.tidal_limits                            waters/tidal.json (T326: mouth | split | cut | whole)
@@ -24,7 +23,7 @@ Marking is unchanged: one click in the review app appends a mark to marks.jsonl.
 
 `apply_proposals` keeps every guard it had: the binding check, one commit per proposal (`git commit -- <paths>`), a
 cut that changes waits for its side rebuild (the commands are printed). The file writers write their file; commit
-it yourself. `--dry-run` exports into a temp dir and prints what would change.
+it yourself. `--dry-run` prints what would change and writes nothing.
 
 A CLOSED domain (`review.closed`: one that feeds nothing — ponds, T329) is skipped with a line saying so.
 """
@@ -33,7 +32,6 @@ from __future__ import annotations
 import argparse
 import difflib
 import sys
-import tempfile
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -107,20 +105,16 @@ def domain_of(scope: str) -> Optional[str]:
     return next((d for d, sc in E.DOMAINS.items() if scope in sc), None)
 
 
-def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None, decided_dir: Optional[Path] = None,
-        build: Optional[Path] = None, side_checked: tuple = (), dry_run: bool = False, fresh: bool = False) -> dict:
-    """Export, then each asked domain's writer (every open one when `domains` is empty). Returns
+def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
+        build: Optional[Path] = None, side_checked: tuple = (), dry_run: bool = False) -> dict:
+    """The marks' decisions (in memory), then each asked domain's writer (every open one when `domains` is empty). Returns
     {rc, domains, skipped: {domain: why}, files: [changed final files], events: [...]}, where an event is one
     outcome on the marks behind it — {domain, status: applied | written | refused | waiting | would, why,
     marks: [{scope, target, rule_id}]} — the review app's write-through shows each on its item.
 
-    `fresh` (the write-through): skip apply_proposals' "decided data behind the marks" check — this run has just
-    exported them; a mark appended meanwhile triggers its own run. A failed export (conflicting decisions) writes
-    nothing and is one refused event."""
-    from pipeline.common.curated import CURATED
+    Conflicting decisions (`export.refusals`) write nothing and are one refused event."""
     from pipeline.regs.review import apply_proposals as A
     from pipeline.regs.review import closed as C
-    from pipeline.regs.review import marks as M
     shut = C.entries(C.path(marks))
     want = list(dict.fromkeys(domains or E.DOMAINS))
     out = {"rc": 0, "domains": [], "skipped": {}, "files": [], "events": []}
@@ -133,66 +127,53 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None, de
     if not want:
         return out
 
-    # 1. export (dry: into a temp dir, so nothing is written)
-    tmp = tempfile.TemporaryDirectory(prefix="review-apply-") if dry_run else None
     try:
-        dest = Path(tmp.name) if tmp else Path(decided_dir or E.default_dir())
-        try:
-            decided_mem = E.decide(M.load(marks or CURATED.regulations.review.marks))
-        except ValueError as ex:                                   # conflicting decisions: nothing exported
-            print(str(ex))
-            out["rc"] = 2
-            out["events"].append({"domain": "export", "status": "refused", "why": str(ex), "marks": []})
-            return out
-        got = E.write(decided_mem, dest, set(shut))
-        if not dry_run:
-            print(f"export: {len(got)} decided file(s) changed in {_rel(dest)}"
-                  + (f" — commit them: git commit -- {_rel(dest)}" if got else ""))
-        decided = E.load(dest, closed=set(shut))
+        decided = E.load(marks, closed=set(shut))
+    except ValueError as ex:                                       # conflicting decisions: nothing written
+        print(str(ex))
+        out["rc"] = 2
+        out["events"].append({"domain": "export", "status": "refused", "why": str(ex), "marks": []})
+        return out
 
-        # 2a. the file writers
-        for d in want:
-            if d in WRITERS:
-                if d == "sloughs":
-                    from pipeline.tools import slough_calls as S
-                    for s in S.build(decided)[1]:
-                        out["events"].append({"domain": d, "status": "refused", "why": s["why"],
-                                              "marks": [{"scope": "slough", "target": s["wbk"], "rule_id": None}]})
-                if d == "tidal":                  # T326: a mark that sets no limit says why, on its item
-                    from pipeline.tools import tidal_limits as TL
-                    for s in TL.build(decided)[1]:
-                        out["events"].append({"domain": d, "status": "waiting", "why": s["why"],
-                                              "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
-                changed = write_files(d, decided, dry_run=dry_run)
-                out["files"] += [str(p) for p in changed]
-                out["events"].append({"domain": d, "status": "would" if dry_run else "written",
-                                      "why": ", ".join(_rel(p) for p in changed) or "current", "marks": []})
-        # 2b. the proposal writer, once, over every proposal domain asked for
-        scopes = [s for d in want if d in PROPOSAL_DOMAINS for s in E.DOMAINS[d]]
-        if scopes:
-            args = ["--decided", str(dest)] + (["--marks", str(marks)] if marks else [])
-            args += [x for s in scopes for x in ("--scope", s)]
-            args += (["--build", str(build)] if build else []) + [x for i in side_checked for x in ("--side-checked", i)]
-            args += ["--dry-run"] if dry_run else []
-            print(f"proposals ({', '.join(d for d in want if d in PROPOSAL_DOMAINS)}): apply_proposals {' '.join(args)}")
-            rc, events = A.run(args, fresh=fresh)
-            out["rc"] = rc
-            for e in events:
-                sc = {m.get("scope") for m in e.get("marks") or ()}
-                e["domain"] = next((domain_of(x) for x in sc if domain_of(x)), None)
-            out["events"] += events
-    finally:
-        if tmp:
-            tmp.cleanup()
+    # the file writers
+    for d in want:
+        if d in WRITERS:
+            if d == "sloughs":
+                from pipeline.tools import slough_calls as S
+                for s in S.build(decided)[1]:
+                    out["events"].append({"domain": d, "status": "refused", "why": s["why"],
+                                          "marks": [{"scope": "slough", "target": s["wbk"], "rule_id": None}]})
+            if d == "tidal":                  # T326: a mark that sets no limit says why, on its item
+                from pipeline.tools import tidal_limits as TL
+                for s in TL.build(decided)[1]:
+                    out["events"].append({"domain": d, "status": "waiting", "why": s["why"],
+                                          "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
+            changed = write_files(d, decided, dry_run=dry_run)
+            out["files"] += [str(p) for p in changed]
+            out["events"].append({"domain": d, "status": "would" if dry_run else "written",
+                                  "why": ", ".join(_rel(p) for p in changed) or "current", "marks": []})
+    # the proposal writer, once, over every proposal domain asked for
+    scopes = [s for d in want if d in PROPOSAL_DOMAINS for s in E.DOMAINS[d]]
+    if scopes:
+        args = ["--marks", str(marks)] if marks else []
+        args += [x for s in scopes for x in ("--scope", s)]
+        args += (["--build", str(build)] if build else []) + [x for i in side_checked for x in ("--side-checked", i)]
+        args += ["--dry-run"] if dry_run else []
+        print(f"proposals ({', '.join(d for d in want if d in PROPOSAL_DOMAINS)}): apply_proposals {' '.join(args)}")
+        rc, events = A.run(args)
+        out["rc"] = rc
+        for e in events:
+            sc = {m.get("scope") for m in e.get("marks") or ()}
+            e["domain"] = next((domain_of(x) for x in sc if domain_of(x)), None)
+        out["events"] += events
     return out
 
 
 def main(argv: Optional[list[str]] = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.apply", description=__doc__.split("\n")[0])
     ap.add_argument("domains", nargs="*", metavar="DOMAIN", help=f"one of {', '.join(E.DOMAINS)} (default: every open one)")
-    ap.add_argument("--dry-run", action="store_true", help="export into a temp dir and print what would land; write nothing")
+    ap.add_argument("--dry-run", action="store_true", help="print what would land; write nothing")
     ap.add_argument("--marks", type=Path, default=None, help="the marks store (default: CURATED's)")
-    ap.add_argument("--decided", type=Path, default=None, help="the decided-data dir (default: CURATED.decided)")
     ap.add_argument("--build", type=Path, help="apply_proposals: the atlas whose registry names new anchors")
     ap.add_argument("--side-checked", action="append", default=[], metavar="ID",
                     help="apply_proposals: this cut-changing proposal's side rebuild was made and read elsewhere")
@@ -200,7 +181,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     bad = [d for d in a.domains if d not in E.DOMAINS]
     if bad:
         ap.error(f"unknown domain(s) {', '.join(bad)} — one of {', '.join(E.DOMAINS)}")
-    return run(a.domains, marks=a.marks, decided_dir=a.decided, build=a.build, side_checked=tuple(a.side_checked),
+    return run(a.domains, marks=a.marks, build=a.build, side_checked=tuple(a.side_checked),
                dry_run=a.dry_run)["rc"]
 
 

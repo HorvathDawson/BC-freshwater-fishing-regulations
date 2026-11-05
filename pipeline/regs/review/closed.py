@@ -1,11 +1,11 @@
-"""T325: THE CLOSED REVIEW DOMAINS — domains that FEED NOTHING, which the exporter and the review app skip.
+"""T325: THE CLOSED REVIEW DOMAINS — domains that FEED NOTHING, which the decisions (`review.export.load`) and the review app skip.
 
 Owner 2026-10-30: there is no lock step. Every domain whose marks feed a curated file stays open and its marks reach
 that file by write-through (the review app runs `review.apply.run` after each save); a domain whose queue is empty
 just shows "done". This list is ONLY for a domain nothing reads (ponds, T329: a pond call only confirms the lake
 default). marks.jsonl is never edited. A closed domain:
 
-  * is not exported (`review.export` writes no `decided/<domain>.json`, and removes a leftover one);
+  * is left out of the decisions (`review.export.load` drops its marks, so no writer sees them);
   * is not applied (`review.apply` skips it);
   * is read-only in the review app (its queue answers 423, a mark on its scopes is refused, the tab shows a
     "closed" notice).

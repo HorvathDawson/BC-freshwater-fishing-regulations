@@ -1,14 +1,12 @@
-"""T266: ONE EXPORTER — the marks in force -> per-domain decided-data files, which the apply paths read.
+"""T266 / T408: what the marks decide, computed in memory (no decided-data files) — what the apply paths read.
 
-  committed   export(marks.jsonl) == the committed data/curated/decided/ files (the export is never stale)
-  round trip  load(files) is decide(marks): the marks in force (in `latest` order) and the shared cuts
+  no files    there is no data/curated/decided/ and no `CURATED.decided` (owner 2026-11-05: dropped)
+  load        load(marks) is decide(marks) with a CLOSED domain's marks left out (in `latest` order) + the shared cuts
   cleared     a CLEARED key decides nothing, and its proposed cuts are taken back with it
-  conflict    two tidal decisions cutting one water at different points are refused, nothing written
+  conflict    two tidal decisions cutting one water at different points are refused
   provenance  every record names its mark (line sha), line, reviewer and date
 """
 from __future__ import annotations
-
-import json
 
 import pytest
 
@@ -32,15 +30,17 @@ def _cleared(m, date="2026-10-29"):
     return M.cleared_mark(m, reviewer="dawson", note="taken back", date=date)
 
 
-def test_the_committed_files_are_the_export_of_the_marks():
-    assert E.stale() == [], "python -m pipeline.regs.review.export"
+def test_there_is_no_decided_data_directory():
+    from pipeline.common.curated import REPO_ROOT
+    assert not (REPO_ROOT / "data" / "curated" / "decided").exists()
+    assert not hasattr(CURATED, "decided")
 
 
-def test_loading_the_files_gives_back_what_the_marks_decide():
+def test_load_is_what_the_marks_decide_less_the_closed_domains():
     from pipeline.regs.review import closed as C
     want = E.decide(M.load(CURATED.regulations.review.marks))
     got = E.load()
-    shut = C.scopes()                     # T325: a CLOSED domain (ponds, T329) is not exported, so not loaded
+    shut = C.scopes()                     # T325: a CLOSED domain (ponds, T329) is left out
     open_ = [m for m in want.inforce if m.scope not in shut]
     assert [m.key for m in got.inforce] == [m.key for m in open_]
     assert list(got.inforce) == open_
@@ -62,8 +62,9 @@ def test_a_cleared_key_decides_nothing_and_takes_its_cut_back(tmp_path):
     d = E.decide([a, b, _cleared(a)], tidal_decisions=None)
     assert [m.target for m in d.inforce] == ["tidal:2"]
     assert [g["id"] for g in d.groups] == ["tidal-2"]
-    E.write(d, tmp_path)
-    back = E.load(tmp_path)
+    store = tmp_path / "marks.jsonl"
+    store.write_text("".join(M.line(m) + "\n" for m in (a, b, _cleared(a))))
+    back = E.load(store)
     assert back.inforce == d.inforce and [g["id"] for g in back.groups] == ["tidal-2"]
 
 
@@ -72,26 +73,32 @@ def test_conflicting_tidal_decisions_are_refused(tmp_path):
     b = _tidal("tidal:2", "gnis:7", (-123.5, 49.5))         # the same water, 50 km away
     with pytest.raises(ValueError, match="conflicting decisions"):
         E.decide([a, b], tidal_decisions=None)
-    assert not list(tmp_path.iterdir())
+    store = tmp_path / "marks.jsonl"
+    store.write_text("".join(M.line(m) + "\n" for m in (a, b)))
+    with pytest.raises(ValueError, match="conflicting decisions"):
+        E.load(store)
 
 
 def test_every_record_carries_its_provenance(tmp_path):
     a = _tidal("tidal:1", "gnis:1", (-123.0, 49.0), date="2026-10-27")
     a2 = _tidal("tidal:1", "gnis:1", (-123.0, 49.0), date="2026-10-28", note="again")
-    E.write(E.decide([a, a2], tidal_decisions=None), tmp_path)
-    doc = json.loads((tmp_path / "tidal.json").read_text())
-    [r] = doc["decisions"]
-    assert r["provenance"] == {"mark": E._sha(M.line(a2)), "line": 2, "reviewer": "dawson",
-                               "date": "2026-10-28", "source": "marks.jsonl"}
-    assert r["mark"]["note"] == "again"
+    d = E.decide([a, a2], tidal_decisions=None)
+    [m] = d.inforce
+    assert d.provenance[m.key] == {"mark": E._sha(M.line(a2)), "line": 2, "reviewer": "dawson",
+                                   "date": "2026-10-28", "source": "marks.jsonl"}
+    assert m.note == "again"
 
 
-def test_the_export_is_idempotent(tmp_path):
-    d = E.decide([_tidal("tidal:1", "gnis:1", (-123.0, 49.0))], tidal_decisions=None)
-    assert len(E.write(d, tmp_path)) == len(E.FILES)
-    assert E.write(d, tmp_path) == []
+def test_a_closed_domain_is_left_out(tmp_path):
+    a = _tidal("tidal:1", "gnis:1", (-123.0, 49.0))
+    store = tmp_path / "marks.jsonl"
+    store.write_text(M.line(a) + "\n")
+    assert [m.key for m in E.load(store, closed=()).inforce] == [a.key]
+    shut = E.load(store, closed={"tidal"})
+    assert shut.inforce == () and dict(shut.provenance) == {}
+    assert E.load(store).inforce == E.load(store, closed=()).inforce   # no closed.json beside a temp store
 
 
-def test_a_missing_file_raises_naming_the_command(tmp_path):
-    with pytest.raises(FileNotFoundError, match="pipeline.regs.review.export"):
-        E.load(tmp_path)
+def test_load_with_no_store_raises(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        E.load(tmp_path / "absent.jsonl")

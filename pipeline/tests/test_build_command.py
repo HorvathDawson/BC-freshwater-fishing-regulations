@@ -267,11 +267,12 @@ def test_a_side_run_writes_nothing_live(monkeypatch, tmp_path):
 
 
 def test_the_marks_are_in_no_stage_key(monkeypatch):
-    """T266: the review log and its export feed the apply paths, never a stage — not even through `base`, the
+    """T266: the review log (and its closed list) feed the apply paths, never a stage — not even through `base`, the
     whole curated tree: the digest never opens them."""
     from pipeline.common.curated import CURATED
     nb = B.not_build_inputs()
-    assert Path(CURATED.regulations.review.marks) in nb and Path(CURATED.decided) in nb
+    assert Path(CURATED.regulations.review.marks) in nb and Path(CURATED.regulations.review.closed) in nb
+    assert not hasattr(CURATED, "decided")                 # T408: no decided-data dir
     opened = []
     real = Path.read_bytes
     monkeypatch.setattr(Path, "read_bytes", lambda self: (opened.append(self), real(self))[1])

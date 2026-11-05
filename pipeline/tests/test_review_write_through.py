@@ -9,7 +9,7 @@ itself; there is no lock step. Closed = a domain that feeds nothing (ponds, T329
   atomic       a write that fails half way leaves the old file whole and no temp file behind
   closed       a closed domain is not exported, not applied, 423 in the app; removing the entry restores it
 
-Every store, decided dir, curated file and git repo is a temp copy (a closed list lives beside its marks store).
+Every store, curated file and git repo is a temp copy (a closed list lives beside its marks store).
 """
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ NAMES = [{"target": {"kind": "stream", "blk": "2"}, "current_names": [], "regist
 
 @pytest.fixture()
 def wt(tmp_path, monkeypatch):
-    """The review app over a temp store with WRITE-THROUGH ON: temp decided dir, temp slough / name final files, a
+    """The review app over a temp store with WRITE-THROUGH ON: temp slough / name final files, a
     temp git repo holding copies of the DFO / catalogue / splits files the proposal writer edits."""
     (tmp_path / "automark.json").write_text(json.dumps({"rows": SLOUGHS}))
     with gzip.open(tmp_path / "finder.json.gz", "wt") as f:
@@ -83,7 +83,7 @@ def wt(tmp_path, monkeypatch):
     for k, v in {"CURATION_SLOUGH_PAGE_MARKS": "page.json", "CURATION_SLOUGH_AUTOMARK": "automark.json",
                  "CURATION_SLOUGH_FINDER": "finder.json.gz", "CURATION_NAME_CANDIDATES": "cands.json",
                  "CURATION_MARKS": "review/marks.jsonl", "CURATION_BACKUP_DIR": "backups",
-                 "CURATION_DECIDED": "review/decided", "CURATION_WRITE_THROUGH_LOG": "write-through.jsonl",
+                 "CURATION_WRITE_THROUGH_LOG": "write-through.jsonl",
                  "CURATION_REFUSED_LOG": "refused.jsonl"}.items():
         monkeypatch.setenv(k, str(tmp_path / v))
     monkeypatch.setenv("CURATION_WRITE_THROUGH", "1")
@@ -161,7 +161,7 @@ def test_a_slough_mark_writes_slough_calls_in_the_request(wt):
     got = r.json()["write_through"]
     assert got["domain"] == "sloughs" and got["state"] == "done", got
     assert _waters(tmp / "slough_calls.json") == ["1"]
-    assert json.loads((tmp / "review/decided/sloughs.json").read_text())["decisions"][0]["key"][1] == "1"
+    assert [m.target for m in E.load(tmp / "review/marks.jsonl").scope("slough")] == ["1"]
     # a clear takes it back out
     r = c.post("/api/marks", json={"scope": "slough", "verdict": "cleared", "answers": {}, "reviewer": "test",
                                    "target": "1", "note": "oops"})
@@ -239,7 +239,7 @@ def test_an_entry_mark_lands_in_its_catalogue_file_in_the_background(wt):
 
 
 def test_a_tidal_mark_writes_waters_tidal_json_in_the_request(wt, monkeypatch):
-    """T326: tidal is a FILE domain — the mark is exported to decided/tidal.json and its row lands in
+    """T326: tidal is a FILE domain — the mark's row lands in
     waters/tidal.json in the same request (a new cut keeps its point; the atlas mints its id)."""
     cid = "tidal:354154938"
     cands = wt["tmp"] / "tidal-candidates.json"
@@ -262,7 +262,7 @@ def test_a_tidal_mark_writes_waters_tidal_json_in_the_request(wt, monkeypatch):
     wt_ = r.json()["write_through"]
     assert wt_["domain"] == "tidal" and wt_["state"] == "done", wt_
     T._load.cache_clear()
-    assert json.loads((wt["tmp"] / "review/decided/tidal.json").read_text())["decisions"][0]["key"][1] == cid
+    assert [m.target for m in E.load(wt["tmp"] / "review/marks.jsonl").scope("tidal")] == [cid]
     doc = json.loads((wt["tmp"] / "tidal.json").read_text())
     assert doc["format"] == "tidal/1"
     [w] = doc["waters"]
@@ -312,7 +312,7 @@ def test_curated_writes_are_atomic(wt, monkeypatch):
     monkeypatch.setattr(IO.os, "replace", real)
     assert r.status_code == 200 and r.json()["write_through"]["state"] == "refused"
     assert (tmp / "slough_calls.json").read_bytes() == before                     # the old file, whole
-    assert not list(tmp.glob("*.tmp")) and not list((tmp / "review/decided").glob("*.tmp"))
+    assert not list(tmp.glob("*.tmp"))
     # the next save lands both
     assert c.post("/api/marks", json={**SLOUGH, "target": "3", "call": "stream"}).json()["write_through"]["state"] == "done"
     assert _waters(tmp / "slough_calls.json") == ["1", "2", "3"]
@@ -355,25 +355,22 @@ def app_env(tmp_path):
     Q._load.cache_clear()
     import app as app_mod                                                  # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "store": store, "decided": tmp_path / "decided"}
+    yield {"client": TestClient(app_mod.app), "store": store}
     mp.undo()
     for mod in MODS:
         sys.modules.pop(mod, None)
 
 
 def test_a_closed_domain_is_skipped_and_removing_the_entry_restores_it(app_env):
-    c, store, decided = app_env["client"], app_env["store"], app_env["decided"]
-    E.main(["--marks", str(store), "--out", str(decided)])
-    assert (decided / "ponds.json").exists()
+    c, store = app_env["client"], app_env["store"]
+    assert len(E.load(store).scope("q154")) == 2
     assert c.get("/api/q154/queue").status_code == 200 and c.get("/api/review/closed").json() == {"closed": {}}
     before = store.read_bytes()
     C.write({"ponds": {"domain": "ponds", "scopes": ["q154"], "date": "2026-10-30", "by": "owner",
                        "why": "feeds nothing", "final": None}}, C.path(store))
-    # the exporter skips it and removes its leftover file; apply skips it
-    E.main(["--marks", str(store), "--out", str(decided)])
-    assert not (decided / "ponds.json").exists() and E.stale(decided, store) == []
-    assert not E.load(decided, closed={"ponds"}).scope("q154")
-    assert AP.main(["ponds", "--marks", str(store), "--decided", str(decided)]) == 0
+    # the decisions leave it out (the closed list beside the store); apply skips it
+    assert not E.load(store).scope("q154")
+    assert AP.main(["ponds", "--marks", str(store)]) == 0
     # the app: 423 on its queue / tally / pond, a mark refused, the closed list served
     for url in ("/api/q154/queue", "/api/q154/tally", "/api/q154/ponds/lake:1"):
         r = c.get(url)
@@ -382,26 +379,21 @@ def test_a_closed_domain_is_skipped_and_removing_the_entry_restores_it(app_env):
                                      "answers": {"P": "y"}, "reviewer": "test"})
     assert got.status_code == 423 and "closed.json" in json.dumps(got.json())
     assert store.read_bytes() == before
-    (decided / "ponds.json").write_text("{}")
-    assert E.stale(decided, store) == ["ponds.json (closed: remove it)"]
-    (decided / "ponds.json").unlink()
-    # reopen: remove the entry -> served, exported and markable again
+    # reopen: remove the entry -> served, decided and markable again
     C.write({}, C.path(store))
     assert c.get("/api/q154/queue").status_code == 200
-    E.main(["--marks", str(store), "--out", str(decided)])
-    assert len(json.loads((decided / "ponds.json").read_text())["decisions"]) == 2
+    assert len(E.load(store).scope("q154")) == 2
 
 
-def test_closing_one_domain_moves_no_byte_of_another(tmp_path):
+def test_closing_one_domain_moves_no_other_decision(tmp_path):
     store = _store(tmp_path, [_pond("lake:1")])
-    d = E.decide(M.load(store), tidal_decisions=None)
-    a, b = E.documents(d), E.documents(d, {"ponds"})
-    assert set(a) - set(b) == {"ponds.json"} and all(a[n] == b[n] for n in b)
+    a, b = E.load(store, closed=()), E.load(store, closed={"ponds"})
+    assert [m.scope for m in a.inforce] == ["q154"] and b.inforce == ()
+    assert [m for m in a.inforce if m.scope != "q154"] == list(b.inforce) and a.groups == b.groups
 
 
 def test_only_ponds_are_closed_in_the_curated_list():
     got = C.entries()
     assert set(got) == {"ponds", "proposals"} and got["ponds"]["scopes"] == ["q154"] and got["ponds"]["final"] is None
     assert got["proposals"]["scopes"] == ["proposal"] and got["proposals"]["final"] is None   # T331 item 6
-    assert not (Path(CURATED.decided) / "ponds.json").exists()
     assert C.path() == Path(CURATED.regulations.review.marks).parent / "closed.json"

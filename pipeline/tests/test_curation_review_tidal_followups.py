@@ -1,6 +1,6 @@
 """T359: the review app's Tidal follow-ups — the queue's `followup` filter and each row's `followup_why`, taken from the
 tidal writer's own `skipped` list (`tools.tidal_limits.build`), never a second classifier; a "whole water is tidal" mark
-leaves the follow-ups. Temp candidates, marks store and decided dir; the live tidal.json / splits.json are not read."""
+leaves the follow-ups. Temp candidates and marks store; the live tidal.json / splits.json are not read."""
 from __future__ import annotations
 
 import json
@@ -10,8 +10,6 @@ from pathlib import Path
 import pytest
 
 from pipeline.atlas.splits import tidal as TA
-from pipeline.regs.review import export as E
-from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
 from pipeline.regs.review import tidal as T
 from pipeline.tests import test_tidal_limits as TT
@@ -28,7 +26,6 @@ def app(tmp_path, monkeypatch):
     marks = tmp_path / "marks.jsonl"
     marks.write_text("")
     monkeypatch.setenv("CURATION_MARKS", str(marks))
-    monkeypatch.setenv("CURATION_DECIDED", str(tmp_path / "decided"))
     T._load.cache_clear()
     (tmp_path / "cat").mkdir()
     (tmp_path / "dfo").mkdir()
@@ -44,11 +41,10 @@ def app(tmp_path, monkeypatch):
     monkeypatch.setattr(BT.preverify, "tidal", lambda _id: None)
 
     def mark(*ms):
-        """Append marks (the store is append-only) and export the decided data, as the write-through does."""
+        """Append marks (the store is append-only); the writer decides from the store in memory."""
         with marks.open("a") as f:
             for m in ms:
                 f.write(m.model_dump_json(exclude_none=False) + "\n")
-        E.write(E.decide(M.load(marks)), tmp_path / "decided")
     mark()
     yield BT, mark
     T._load.cache_clear()
@@ -79,9 +75,12 @@ def test_the_follow_ups_are_the_writers_skipped_list_with_the_last_note(app):
     assert (row["followup_why"], row["mark_verdict"], row["mark_call"]) == (None, "verified", "whole")
 
 
-def test_no_decided_data_is_said_not_hidden(app, tmp_path):
+def test_a_writer_that_cannot_run_is_said_not_hidden(app, monkeypatch):
     BT, _ = app
-    for p in (tmp_path / "decided").glob("*.json"):
-        p.unlink()
+    from pipeline.regs.review import export as E
+
+    def refuse(*_a, **_k):
+        raise ValueError("review.export: conflicting decisions")
+    monkeypatch.setattr(E, "load", refuse)
     p = BT.progress()
     assert p["followups"] == 0 and p["followups_error"].startswith("the tidal writer could not run: ")

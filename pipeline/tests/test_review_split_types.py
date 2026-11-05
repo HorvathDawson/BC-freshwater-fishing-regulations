@@ -2,7 +2,7 @@
 
   round trip   each anchor type — point (+offset), confluence (+offset), lake both ends (+offset), lake
                outlet, area boundary (any layer, end, WSC subtree, waters left uncut), border — goes
-               mark line -> decided export -> proposal -> splits.json record with every field kept,
+               mark line -> decisions (in memory) -> proposal -> splits.json record with every field kept,
                the record the build's own `SplitDef.from_dict` accepts
   offsets      on every type the build can offset; an area boundary / the border refuse one (the build
                cannot), in the mark model as in `SplitAnchor`
@@ -80,9 +80,10 @@ def test_every_anchor_type_round_trips_mark_to_curated_split(src, tmp_path, case
     line_split = json.loads(M.line(mark))["new_splits"][0]
     assert {k for k, v in fields.items() if v is not None} <= set(line_split)
     assert not [k for k in M.NEW_SPLIT_OPTIONAL if k in line_split and line_split[k] is None]
-    # ... and the decided export (what apply reads), written and loaded
-    E.write(E.decide([back], tidal_decisions=None), tmp_path / "decided")
-    decided = E.load(tmp_path / "decided")
+    # ... and the decisions as apply reads them: the line in a store, loaded (`export.load`, in memory)
+    store = tmp_path / "marks.jsonl"
+    store.write_text(M.line(back) + "\n")
+    decided = E.load(store)
     props = {p["kind"]: p for p in P.build(decided, src)}
     new, ext = props["new_split"], props["extent"]
     assert new["applicable"], new["problems"]

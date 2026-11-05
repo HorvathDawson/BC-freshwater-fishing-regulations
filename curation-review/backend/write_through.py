@@ -4,7 +4,7 @@
      reviewing items it should take my reviews and add to the curated items."
 
 After the server appends a mark (one, or a batch: one request), it runs THAT DOMAIN's apply — the same
-`pipeline.regs.review.apply.run` the command line runs: export the marks to decided/, then the domain's writer.
+`pipeline.regs.review.apply.run` the command line runs: the marks' decisions (in memory), then the domain's writer.
 
   domain               writer                                   when
   sloughs, names,      file writer (slough_calls / mined_names / IN THE REQUEST (< 1 s) — the response says done
@@ -24,8 +24,7 @@ item in the app, and logged (`log_path`, one JSON line per run with a refusal). 
 rename (`parsing.io.atomic_write`); apply_proposals puts a file back when its commit fails.
 
 ON BY DEFAULT only when the server writes the curated marks store; a server over a temp store (every test, a second
-copy of the tool) writes no curated file unless `CURATION_WRITE_THROUGH=1` (`CURATION_DECIDED` then names its
-decided dir). `CURATION_WRITE_THROUGH=0` turns it off.
+copy of the tool) writes no curated file unless `CURATION_WRITE_THROUGH=1`. `CURATION_WRITE_THROUGH=0` turns it off.
 """
 from __future__ import annotations
 
@@ -56,13 +55,13 @@ def key(scope: str, target: str, rule_id: Optional[str] = None) -> str:
 
 
 class WriteThrough:
-    def __init__(self, marks: Path, *, enabled: bool, decided_dir: Optional[Path] = None,
+    def __init__(self, marks: Path, *, enabled: bool,
                  log_path: Optional[Path] = None, debounce: float = DEBOUNCE_S,
                  runner: Optional[Callable[..., dict]] = None):
-        self.marks, self.enabled, self.decided_dir = Path(marks), enabled, decided_dir
+        self.marks, self.enabled = Path(marks), enabled
         self.log_path, self.debounce = log_path, debounce
         self.runner = runner
-        self._apply = threading.Lock()            # one apply at a time: the export writes every decided file
+        self._apply = threading.Lock()            # one apply at a time: two writers never race on one curated file
         self._cv = threading.Condition()
         self._pending: dict[str, list[str]] = {}  # domain -> keys of the marks waiting for it
         self._last = 0.0                          # when the last background request came in
@@ -144,7 +143,7 @@ class WriteThrough:
         run = self.runner or AP.run
         t0 = time.monotonic()
         try:
-            got = run(domains, marks=self.marks, decided_dir=self.decided_dir, fresh=True)
+            got = run(domains, marks=self.marks)
             err = None
         except Exception as ex:                                    # noqa: BLE001 — a refusal, said on the item
             _log.exception("write-through: apply %s failed", domains)
@@ -209,7 +208,6 @@ def from_env(marks: Path, root: Path) -> WriteThrough:
     flag = os.environ.get("CURATION_WRITE_THROUGH")
     curated = Path(marks).resolve() == Path(CURATED.regulations.review.marks).resolve()
     enabled = flag == "1" or (flag is None and curated)
-    decided = os.environ.get("CURATION_DECIDED")
     log = os.environ.get("CURATION_WRITE_THROUGH_LOG")
-    return WriteThrough(marks, enabled=enabled, decided_dir=Path(decided) if decided else None,
+    return WriteThrough(marks, enabled=enabled,
                         log_path=Path(log) if log else root / "data" / "generated" / "review" / "write-through.jsonl")

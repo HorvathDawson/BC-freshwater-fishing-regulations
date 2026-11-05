@@ -28,15 +28,11 @@ from pipeline.common.curated import CURATED
 from pipeline.regs.review import apply_proposals as A
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
-from pipeline.regs.review import export as E
 
 
 def _decided_args(store: Path) -> list[str]:
-    """T266: apply_proposals reads the EXPORT of the marks (never the store): export `store` beside it (no
-    pre-Tab tidal calls in a test) and name both — the store only for the "export is current" guard."""
-    d = store.parent / "decided"
-    E.write(E.decide(M.load(store), tidal_decisions=None), d)
-    return ["--marks", str(store), "--decided", str(d)]
+    """T408: apply_proposals computes the marks' decisions in memory from the store it is given."""
+    return ["--marks", str(store)]
 from pipeline.regs.review.tickets import ticketed
 
 SHA = "0" * 64

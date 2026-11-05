@@ -1096,7 +1096,7 @@ def run(out_dir: Path = OUT_DIR, *, marks_path: Optional[Path] = None, gpkg: Opt
     smeta = {sp["id"]: sp for wb in sj.get("waterbodies") or [] for sp in wb.get("splits") or []
              if isinstance(sp, dict) and sp.get("id")}
     from pipeline.regs.review import export as E
-    # T266: the proposed cuts from the decided data (`review.export`); a marks path given is exported in memory
+    # the proposed cuts the marks decide (`review.export.load`, in memory from marks.jsonl, T408)
     decided = E.decide(M.load(Path(marks_path))) if marks_path else E.load()
     props = [{"id": p["id"], "split": json.loads(p["split"].model_dump_json()),
               "confidence": p["confidence"]}
