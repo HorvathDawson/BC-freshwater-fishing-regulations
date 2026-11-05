@@ -61,10 +61,10 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   const parts: string[] = [];
   let offline = false;
   const failed: string[] = [];
+  /** logged; `reportFailure` (at the catch) says nothing of the environment's */
   const fail = (e: unknown) => {
-    if (isEnvironment(e)) { offline = true; return; }
-    reportFailure(e);
-    failed.push(said(e));
+    if (isEnvironment(e)) offline = true;
+    else failed.push(said(e));
   };
   let fired = 0;
   let told = false;
@@ -94,7 +94,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
       // only the rules still there (a rule deleted while the check ran stays deleted)
       d.settings.update((s) => ({ ...s, ruleState: { ...s.ruleState,
         ...Object.fromEntries(Object.entries(next).filter(([id]) => s.rules.some((r) => r.id === id))) } }));
-    } catch (e) { fail(e); }
+    } catch (e) { reportFailure(e); fail(e); }
   }
 
   if (s0.on && s0.updateReady && s0.held !== null) {
@@ -106,7 +106,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
         d.settings.update((s) => ({ ...s, toldRelease: m.data_release }));
         told = true;
       }
-    } catch (e) { fail(e); }
+    } catch (e) { reportFailure(e); fail(e); }
   }
 
   const W = NOTIFY_WORDS.run;

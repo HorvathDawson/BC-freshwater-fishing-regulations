@@ -169,7 +169,7 @@ export function dataVM(s: DataInput): DataBlockVM {
 // ── the More tab ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** The pages listed as rows on the More tab, in order — Sources and credits among them, linked once. */
-export const MORE_ROWS: readonly MenuPageKey[] = ["offline", "help", "glossary", "sources", "about", "report"];
+export const MORE_ROWS: readonly MenuPageKey[] = ["offline", "notifications", "help", "glossary", "sources", "about", "report"];
 
 export interface MenuItemVM { readonly k: MenuPageKey; readonly label: string; readonly hint: string }
 
@@ -188,14 +188,16 @@ export interface MoreVM {
  * THE MORE TAB, whole. `back`: the name of the tab the back control returns to (the route's `prev`, else the Map tab).
  * Drawn ONLY by the More tab (tools/one-menu.test.ts: one list of the menu's pages in the app).
  */
-export function menuVM(i: { data: DataInput; back: string; contact: string | null }): MoreVM {
+export function menuVM(i: { data: DataInput; back: string; contact: string | null;
+                             /** (T234) the app can notify (a phone): the Notifications row is listed */
+                             notifications?: boolean }): MoreVM {
   const d = MENU_WORDS.display;
   return {
     title: MENU_WORDS.title,
     back: { to: i.back, label: MORE_WORDS.back(i.back) },
     data: dataVM(i.data),
     display: { title: d.title, palette: d.palette, note: d.cvd, options: d.options },
-    rows: MORE_ROWS.map((k) => ({ k, ...MENU_WORDS.items[k] })),
+    rows: MORE_ROWS.filter((k) => k !== "notifications" || i.notifications).map((k) => ({ k, ...MENU_WORDS.items[k] })),
     contact: { title: MENU_WORDS.contact.title, vm: contactVM(i.contact) },
   };
 }

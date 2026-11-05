@@ -119,9 +119,6 @@ const unitOf = (q: AlertQuantity) => CONDITIONS_WORDS.unit[q];
 const quantityWord = (q: AlertQuantity) => CONDITIONS_WORDS.quantity[q].toLowerCase();
 
 export const NOTIFY_WORDS = {
-  /** the More tab's row and the page's title */
-  title: "Notifications",
-  hint: "Gauge alerts and new regulations data",
   intro: "Notifications are made on this phone. Nothing is sent to a server: the app checks the gauges and the data "
     + "itself, about every 15 minutes at best. Android may check less often while the phone is idle.",
   master: { label: "Notifications", on: "On", off: "Off", hint: "Turn every notification from this app on or off." },

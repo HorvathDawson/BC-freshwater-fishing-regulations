@@ -23,6 +23,7 @@ import { changeChartModel, changeView, chartParameter, forecastDrawn, useChartVi
          usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
+import { AlertMe } from "./AlertMe";
 import { Icon } from "./icons";
 import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
@@ -46,7 +47,7 @@ const W = CONDITIONS_WORDS;
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer, credits, horizon = 0, onHorizon, day = null, waterLine, waterBox }: {
+                                  footer, credits, horizon = 0, onHorizon, day = null, waterLine, waterBox, alertWater }: {
   source: WaterSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: PanelFeed;
@@ -75,6 +76,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   waterLine?: readonly SectionId[];
   /** (T175) The water's box, framed with the gauges when there is no tap (`DonorViewOptions.place`). */
   waterBox?: readonly [number, number, number, number] | null;
+  /** (T234) The water a gauge alert set here opens (its durable item, its name); absent: the alert names the gauge. */
+  alertWater?: { item: string | null; name: string } | null;
 }) {
   /*
    * THE SAME QUANTITY THE MAP IS PAINTING. `parameter` is undefined only under
@@ -275,6 +278,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           {foot && <Text style={{ ...TYPE.meta, color: palette.sub }}>{foot}</Text>}
           {view?.asOf && <Text testID="chart-kept-as-of" style={{ ...TYPE.meta, color: palette.sub }}>{view.asOf}</Text>}
         </View>
+      )}
+      {/* (T234) ALERT ME: a line on this gauge's quantity, told by the phone's background check (none on the web) */}
+      {available.includes(shown) && (
+        <AlertMe palette={palette} target={{ station, stationName: title, quantity: shown,
+                                             current: reading && reading.quantity === shown ? reading.figure : null,
+                                             water: alertWater ?? null }} />
       )}
     </View>
   ) : null;

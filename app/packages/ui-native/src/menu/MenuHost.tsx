@@ -14,13 +14,14 @@ import { Platform } from "react-native";
 import { getSynopsisSource } from "../regs/synopsisSource";
 import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
-import { ERROR_LOG, routeWhere, useGlossary, type MenuControls, type OfflineControls, type ReportSender, type Route } from "@app/ui";
+import { ERROR_LOG, routeWhere, useGlossary, useNotifications, type MenuControls, type OfflineControls, type ReportSender, type Route } from "@app/ui";
 import type { Palette } from "../theme";
 import { HelpPage } from "./HelpPage";
 import { GlossaryPage } from "./GlossaryPage";
 import { AboutPage, SourcesPage } from "./InfoPages";
 import { MenuPage } from "./MenuPage";
 import { OfflinePage } from "./OfflinePage";
+import { NotificationsPage } from "./NotificationsPage";
 import { ReportPage } from "./ReportPage";
 import { UpdatesLogPage, type UpdatesLogControls } from "./UpdatesLogPage";
 
@@ -79,6 +80,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
     : undefined;
   const where = routeWhere(route, day ? dayLabel(day) : null);
   const glossary = useGlossary(loader, s.page === "glossary");
+  const notifications = useNotifications();
   const m = loader?.manifest ?? null;
   const term = s.page === "glossary" && s.term ? glossary.value?.terms.find((t) => t.id === s.term) ?? null : null;
 
@@ -99,7 +101,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "offline" | "help" | "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
+  const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -117,6 +119,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
         )}
       </MenuPage>
       {page("offline", offline ? <OfflinePage c={offline} palette={palette} /> : null)}
+      {notifications && page("notifications", <NotificationsPage n={notifications} palette={palette} />)}
       {page("help", <HelpPage palette={palette} theme={theme}
                               onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined}
                               onTabTour={onTabTour ? (k) => { menu.closePage(); onTabTour(k); } : undefined}

@@ -106,6 +106,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
                            tiles={tiles} theme={theme} feed={feed}
                            parameter={parameter} onParameter={onParameter} from={here}
                            credits={credits} horizon={horizon} onHorizon={onHorizon} waterLine={line} waterBox={box}
+                           alertWater={name ? { item, name } : null}
                            footer={<BasinDays state={days} palette={palette} theme={theme ?? "light"} onPick={onHorizon}
                                               layout="rows" testID="water-basin-days" />} />
         </>

@@ -2,7 +2,7 @@
 import { IMAGERY_ATTRIBUTION } from "../imagery";
 
 /** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
-export type MenuPageKey = "offline" | "help" | "glossary" | "sources" | "about" | "report" | "updates";
+export type MenuPageKey = "offline" | "notifications" | "help" | "glossary" | "sources" | "about" | "report" | "updates";
 
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
 export const APP_NAME = "Can I Fish This?";
@@ -36,6 +36,8 @@ export const MENU_WORDS = {
   items: {
     // (T238) each region's size, kept on this device or not, save / remove, storage used
     offline: { label: "Offline maps", hint: "What is kept on this device, region by region" },
+    // (T234) a phone only: the switches, the gauge alerts, the last background checks (`@app/core` alerts.ts words)
+    notifications: { label: "Notifications", hint: "Gauge alerts and new regulations data" },
     // (T248) what the colours, lines, badges, bell and refresh button mean; re-opens the first-run walkthrough
     help: { label: "Help", hint: "What the colours, lines and symbols mean" },
     glossary: { label: "Glossary", hint: "What the regulations' words mean" },

@@ -20,7 +20,7 @@ import { createContext, useContext } from "react";
 import { Platform, ScrollView, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { useCrashSetting, useLayoutClass, useNet, useNetBps } from "@app/ui";
+import { useCrashSetting, useLayoutClass, useNet, useNetBps, useNotifications } from "@app/ui";
 import { CRASH_WORDS, dataModeLine, menuVM, MOBILE_DATA_WORDS, NET_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MobileDataSetting, type MoreVM, type SyncVM } from "@app/core";
 import { SyncButton } from "../TopBar";
 import { TYPE } from "../type";
@@ -62,7 +62,8 @@ export interface MobileDataControl { value: MobileDataSetting; set: (s: MobileDa
 const Wide = createContext(false);
 
 export function MoreScreen({ palette, data, back, onBack, contact, theme, onTheme, onPick, metered = null, sync = null, onSync }: MoreScreenProps) {
-  const vm = menuVM({ data, back, contact });
+  // (T234) a phone that can notify lists More → Notifications
+  const vm = menuVM({ data, back, contact, notifications: useNotifications() !== null });
   const wide = useLayoutClass() !== "phone";
   const dataBlock = <DataBlock vm={vm.data} palette={palette} metered={metered} sync={sync} onSync={onSync} />;
   const rest = (

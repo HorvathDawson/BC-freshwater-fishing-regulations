@@ -11,7 +11,7 @@
  * with the app in the background) and the settings page write the same file, and neither may undo the other's change.
  * A write that fails throws to whoever asked (the page shows it).
  */
-import type { AlertRuleState, GaugeAlertRule } from "@app/core";
+import { reportOnce, type AlertRuleState, type GaugeAlertRule } from "@app/core";
 
 export interface BgRun {
   /** when it started (epoch ms, this device's clock) */
@@ -54,7 +54,8 @@ export function notifyActive(s: Pick<NotifyState, "on" | "updateReady" | "rules"
 function parse(text: string | null): NotifyState {
   if (!text) return NOTIFY_DEFAULT;
   let j: Partial<NotifyState> | null;
-  try { j = JSON.parse(text) as Partial<NotifyState>; } catch { return NOTIFY_DEFAULT; }
+  // unreadable: the defaults (nothing on), and said — the reader's alerts were lost, which is a defect
+  try { j = JSON.parse(text) as Partial<NotifyState>; } catch (e) { reportOnce("notify-settings", e); return NOTIFY_DEFAULT; }
   if (!j || j.v !== 1) return NOTIFY_DEFAULT;
   return {
     v: 1,
