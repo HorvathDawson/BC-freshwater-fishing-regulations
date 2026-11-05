@@ -210,7 +210,7 @@ export function appDocument(template: string, d: AppDocument): string {
     .replace(/<noscript>[\s\S]*?<\/noscript>/, "")
     .replace(/<script src="([^"]+)" defer><\/script>/g, (_, src: string) => afterPaint(src))
     .replace(/<\/head>/, `${d.head}<meta name="cift:item" content="${d.item}">` +
-      d.preload.map((f) => `<link rel="preload" href="${f}" as="font" type="font/ttf" crossorigin>`).join("") +
+      d.preload.map((f) => `<link rel="preload" href="${f}" as="font" type="font/woff2" crossorigin>`).join("") +
       `<style>${d.critical}</style><link rel="stylesheet" href="${d.cssHref}"></head>`)
     .replace(/<div id="root"><\/div>/, `<div id="prerender">${d.pane}</div><div id="root"></div>${HANDOFF}`);
   return t;

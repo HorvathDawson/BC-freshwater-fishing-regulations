@@ -26,8 +26,9 @@ import type { ItemId } from "@app/data";
 import { makeReleaseSource } from "@app/data/release";
 import type { AdiposeImages, FishImages } from "@app/ui-native";
 import { readAppExport, type AppExport } from "./appExport";
+import { webFonts } from "./webFonts";
 import { BUDGET, checkBudget, lighthouseConfig, measure, type Measured } from "./budget";
-import { fontFaceCss, paneCss as paneCss_, PaneRenderer, type PaneCssParts } from "./pane";
+import { FACES_REQUIRED, fontFaceCss, paneCss as paneCss_, PaneRenderer, type PaneCssParts } from "./pane";
 import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
@@ -85,7 +86,7 @@ export const BARE_APP = `<!DOCTYPE html><html lang="en"><head><meta charset="utf
   `<body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>`;
 const sha = (s: string) => createHash("sha256").update(s).digest("hex").slice(0, 12);
 /** bumped when the pane stylesheet's makeup changes without its inputs changing */
-const PANE_CSS_VERSION = 1;
+const PANE_CSS_VERSION = 2;   // 2 (T409): the faces as WOFF2
 /** (T279) the water pages as stored: raw, gzip and brotli totals (the upload is the two compressed sets) */
 function compressedTotals(b: SiteBuild): { pages: number; rawBytes: number; gzipBytes: number; brBytes: number } {
   let pages = 0, rawBytes = 0, gzipBytes = 0, brBytes = 0;
@@ -110,9 +111,11 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   // the water pages: the app's document, its pane prerendered; one stylesheet for all of them, named before any is made
   // (a page is written as soon as it is made) by what decides its content: the release, the app, the day
   const template = a.app?.template ?? BARE_APP;
-  const fonts = fontFaceCss((f) => a.app?.font(f) ?? null);
+  // (T409) the faces as WOFF2 at /assets/fonts/ (webFonts.ts), checked against the app's own TTF
+  const web = a.app ? webFonts(a.app, FACES_REQUIRED) : null;
+  const fonts = fontFaceCss((f) => (a.app?.font(f) ? web!.url(f) : null));
   const paneHref = `/assets/pane.${sha(`${PANE_CSS_VERSION}|${store.meta.release}|${template}|${a.on.iso}`)}.css`;
-  const preload = ["Archivo_400Regular", "BricolageGrotesque_800ExtraBold"].map((f) => a.app?.font(f)).filter((u): u is string => !!u);
+  const preload = ["Archivo_400Regular", "BricolageGrotesque_800ExtraBold"].map((f) => web?.url(f)).filter((u): u is string => !!u);
   const doc = { critical: PaneRenderer.critical(), cssHref: paneHref, preload };
   let waterPage: (m: WaterModel, head: string, file: string) => Promise<WaterMade>;
   let cssParts: () => Promise<PaneCssParts[]>;
@@ -153,6 +156,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     files.delete(name);
     if (!a.bare) binary.set(name.replace(/\.svg$/, ".png"), sharePng(svg));
   }
+  for (const [name, bytes] of web?.files ?? []) binary.set(name, bytes);
   const paneCss = paneCss_(fonts.css, parts);
   const unmerged = parts.flatMap((p) => p.unmerged);
   files.set(paneHref.slice(1), paneCss);
@@ -171,10 +175,12 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const sizes = build.pages.map((p) => p.size);
   const measured = measure(sizes, [files.get(build.cssHref.slice(1))!, paneCss]);
   const problems = checkBudget(measured, sizes);
-  const cards = [...binary.values()].map((b) => b.length);
+  const cards = [...binary].filter(([n]) => n.startsWith("share/")).map(([, b]) => b.length);
   const share = { files: cards.length, bytes: cards.reduce((x, y) => x + y, 0), largest: Math.max(0, ...cards) };
   if (share.largest > BUDGET.sharePngBytes) problems.push(`a share card is ${share.largest} B, over ${BUDGET.sharePngBytes}`);
-  if (a.app && fonts.missing.length) problems.push(`the app's web export has no file for the face(s) ${fonts.missing.join(", ")}`);
+  if (web) problems.push(...web.problems);
+  const noTtf = a.app ? FACES_REQUIRED.filter((f) => !a.app!.font(f)) : [];
+  if (noTtf.length) problems.push(`the app's web export has no file for the face(s) ${noTtf.join(", ")}`);
   if (unmerged.length) problems.push(`${unmerged.length} pane(s) whose light and dark renders differ beyond colour, shipped twice: ${unmerged.slice(0, 5).join(", ")}`);
   // the page count, the sitemap's count and the bundle's waters with rules are one number
   const listed = [...files.get("sitemap-1.xml")!.matchAll(/<loc>/g)].length - 1;   // minus the app's own "/"

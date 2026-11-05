@@ -74,9 +74,9 @@ describe("the header's controls and the document", () => {
      "(T405) the app's script asked for after the first paint", () => {
     const t = '<html lang="en"><head><title>canifishthis</title><link rel="preload" href="/m.css" as="style">\n<link rel="stylesheet" href="/m.css"></head>' +
       '<body><noscript>JS</noscript><div id="root"></div><script src="/app.js" defer></script></body></html>';
-    const d = appDocument(t, { head: "<title>X</title>", critical: "#prerender{}", cssHref: "/assets/pane.1.css", preload: ["/f.ttf"], item: "gnis:1", pane: "<div>pane</div>" });
+    const d = appDocument(t, { head: "<title>X</title>", critical: "#prerender{}", cssHref: "/assets/pane.1.css", preload: ["/f.woff2"], item: "gnis:1", pane: "<div>pane</div>" });
     expect(d).toBe('<html lang="en-CA"><head>\n<link rel="stylesheet" href="/m.css" media="print" onload="this.media=\'all\'"><title>X</title>' +
-      '<meta name="cift:item" content="gnis:1"><link rel="preload" href="/f.ttf" as="font" type="font/ttf" crossorigin><style>#prerender{}</style>' +
+      '<meta name="cift:item" content="gnis:1"><link rel="preload" href="/f.woff2" as="font" type="font/woff2" crossorigin><style>#prerender{}</style>' +
       '<link rel="stylesheet" href="/assets/pane.1.css"></head><body><div id="prerender"><div>pane</div></div><div id="root"></div>' +
       `${HANDOFF}${afterPaint("/app.js")}</body></html>`);
     expect(() => appDocument("<html></html>", { head: "", critical: "", cssHref: "", preload: [], item: "", pane: "" })).toThrow(/no <title>/);

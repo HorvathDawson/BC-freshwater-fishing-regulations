@@ -1,0 +1,42 @@
+{
+ "Archivo_400Regular": {
+  "ttf_sha256": "36ce8e83756505d014a7353ae332abc19740448fba9a67007b54923ed2899bfd",
+  "woff2_sha256": "1fc9bf8606e941cce76364028455137487d44e392f114f84b095b8de8358c463",
+  "bytes": 29952
+ },
+ "Archivo_500Medium": {
+  "ttf_sha256": "b044b2cd6831a5671bd86e98a87912b5754314d8b2bda279abb3a91ca794e1b1",
+  "woff2_sha256": "853ca9a04504bb9e731a7bf765b6c9dbd8d1b8d17f1a16f5d2cd4b4ebf3b9d0a",
+  "bytes": 30060
+ },
+ "Archivo_600SemiBold": {
+  "ttf_sha256": "6e897cf60256b823bd1c69d62aab9c2950a5ad08ca4f4effd47cc911ce7b54c4",
+  "woff2_sha256": "af7b826f7455c134ea1450dfcffa2ad53769095db3b7910903264a896c6fd4cd",
+  "bytes": 28164
+ },
+ "Archivo_700Bold": {
+  "ttf_sha256": "fb0d3a7cf205466ed1147911f81dc80788b8e42b8b3b7602f25937a9224654f6",
+  "woff2_sha256": "80c4d1e135ad6ccbe3ae2febdeb1dbf06f16b045bf0279ac8fea8f4fbf703a7b",
+  "bytes": 30008
+ },
+ "Archivo_800ExtraBold": {
+  "ttf_sha256": "5c1ec76c6dfe0a41da6720bb0d26584cf59ee134aba61fa01e12736d2f2e94b8",
+  "woff2_sha256": "74f726f531c4505c8303e4f0f22995044556f664faf2127446219c431fdf0cfb",
+  "bytes": 30052
+ },
+ "BricolageGrotesque_700Bold": {
+  "ttf_sha256": "a737b146fe0d77ffe8a86e3cd16700dd431d3b1e420d4fd80e142cd68a1cb50d",
+  "woff2_sha256": "3a5dd1dbc07d646c662077d18a7839c8c0d053529f3e82260cddefe93c6f4528",
+  "bytes": 37696
+ },
+ "BricolageGrotesque_800ExtraBold": {
+  "ttf_sha256": "1b388794a690020404db308fc090729c4cc1ada08088771597dc3f7360ea1db5",
+  "woff2_sha256": "de293c440fffca959a341fb4fdb62a4642ec39ecf648433467393fa252f45566",
+  "bytes": 37000
+ },
+ "JetBrainsMono_500Medium": {
+  "ttf_sha256": "23d57b8a635d023c3717a9c7ac1721199d0f8c6fe4b06d4d5ba3af2170fcbaa2",
+  "woff2_sha256": "3b2490a3ae57ca93bca0870525792548f5560753f3efa5a5c9264365ddde1f8a",
+  "bytes": 40228
+ }
+}

@@ -149,13 +149,16 @@ export class PaneRenderer {
   static critical(): string { return PRERENDER_CSS; }
 }
 
-/** The @font-face rules for the app's faces, at the web export's own URLs (`font` maps a face to its served path). */
+/** the faces the app loads (T409: build.ts makes their WOFF2 urls; @app/ui-native needs ./globals first, so it is had here) */
+export { FACES_REQUIRED };
+
+/** The @font-face rules for the app's faces (`font` maps a face to its served path: T409, the WOFF2 `webFonts` serves). */
 export function fontFaceCss(font: (face: string) => string | null): { css: string; missing: string[] } {
   const missing: string[] = [];
   const css = FACES_REQUIRED.map((f) => {
     const url = font(f);
     if (!url) { missing.push(f); return ""; }
-    return `@font-face{font-family:"${f}";src:url(${url}) format("truetype");font-display:swap}`;
+    return `@font-face{font-family:"${f}";src:url(${url}) format("woff2");font-display:swap}`;
   }).join("");
   return { css, missing };
 }

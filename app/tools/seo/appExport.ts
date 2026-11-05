@@ -15,6 +15,8 @@ export interface AppExport {
   readonly template: string;
   /** a face's served URL (`Archivo_400Regular` → `/assets/__node_modules/@expo-google-fonts/…/Archivo_400Regular.<hash>.ttf`) */
   font(face: string): string | null;
+  /** (T409) a face's TTF file in the export, on disk (what `font` serves), to check the WOFF2 made from it */
+  fontFile(face: string): string | null;
   /** a picture `apps/mobile` requires (its source path), as the export serves it */
   asset(source: string): Served | null;
 }
@@ -48,6 +50,7 @@ export function readAppExport(dir: string): AppExport {
   return {
     template,
     font: (face) => fonts.get(face) ?? null,
+    fontFile: (face) => { const u = fonts.get(face); return u ? join(root, u) : null; },
     asset: (source) => {
       const rel = relative(MOBILE, source).split("\\").join("/");
       const uri = byPath.get(`/assets/${rel}`);
