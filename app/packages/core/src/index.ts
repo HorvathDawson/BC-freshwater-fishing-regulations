@@ -88,3 +88,5 @@ export * from "./dayPicker";
 export * from "./net";
 // (T368) one way a caught failure is reported, from every package; the environment (offline, a refused permission) never
 export * from "./failure";
+// (T234) phone-only notifications: gauge alerts (once per crossing) and new data ready, their words
+export * from "./alerts";

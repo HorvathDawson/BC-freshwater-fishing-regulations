@@ -52,3 +52,5 @@ export declare function openInstallIdStore(): { read(): string | null; write(tex
 export declare function openDataModeStore(): { read(): string | null; write(text: string): void };
 /** (T261) The species the Runs tab paints (a JSON list of names), as whole text; device-only. */
 export declare function openRunSpeciesStore(): { read(): string | null; write(text: string): void };
+/** (T234) The notification settings, alert rules and background-check log, as whole text; device-only. */
+export declare function openNotifyStore(): { read(): string | null; write(text: string): void };

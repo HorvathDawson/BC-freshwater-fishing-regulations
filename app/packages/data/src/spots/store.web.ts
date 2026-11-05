@@ -133,6 +133,11 @@ export function openRunSpeciesStore(): { read(): string | null; write(text: stri
   return keyStore("canifishthis.runSpecies.v1");
 }
 
+/** (T234) The notification settings, alert rules and background-check log (`@app/data` `NotifySettings`), as whole text. */
+export function openNotifyStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.notify.v1");
+}
+
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), one key of its own. */
 export function openDataModeStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.lowData.v1");

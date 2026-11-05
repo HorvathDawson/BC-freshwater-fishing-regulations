@@ -20,7 +20,7 @@ export type { WaterSource } from "./source";
 /** The driver seam (`Db`: four methods), for the layers that hand one to `@app/data` (T03). */
 export type { Db, Row } from "./sql/db";
 
-export { FEED_TTL_MS, httpFeed, type GaugeFeed } from "./feed/http";
+export { FEED_TTL_MS, fetchObs, httpFeed, type GaugeFeed } from "./feed/http";
 // (T315) the gauges' last week, kept on the phone for offline
 export { gaugeHistory } from "./feed/history";
 // (T256) the Conditions chart before its envelope: the observations and forecast, no normal range
@@ -51,3 +51,5 @@ export * from "./update";
 export * from "./net";
 // (T286) the open probe: a map tap to its drawn regulations, timed (test bed only; a no-op elsewhere)
 export { openProbe } from "./openProbe";
+// (T234) phone-only notifications: gauge alerts and new data ready, the settings kept on the phone, the background check
+export * from "./notify";

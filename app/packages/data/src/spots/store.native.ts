@@ -132,6 +132,11 @@ export function openRunSpeciesStore(): { read(): string | null; write(text: stri
   return fileStore("run-species.json");
 }
 
+/** (T234) The notification settings, alert rules and background-check log (`@app/data` `NotifySettings`), as whole text. */
+export function openNotifyStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("notify.json");
+}
+
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), a small file of its own. */
 export function openDataModeStore(): { read(): string | null; write(text: string): void } {
   return fileStore("low-data.txt");

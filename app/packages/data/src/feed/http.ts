@@ -253,6 +253,22 @@ export function lastReportAt(f: { now?: { at?: string | null } | null; recent?: 
 /** (T254) A feed file is small (a station's ≈ 50 kB, the index ≈ 130 kB on the wire): 45 s for the whole of it. */
 const FEED_LIMITS = { firstByteMs: 45_000, stallMs: 45_000, totalMs: 45_000 };
 
+/**
+ * (T315, T234) THE PUBLISHER'S FEED-WIDE NEWEST ROWS (`obs.json`, every station's latest `[time, level, discharge]`),
+ * read the one way: the phone's kept week takes it (`syncObservations`) and so does the background alert check
+ * (`notify/check.ts`). Throws: the network (offline is the environment's, `NetError`), an HTTP status, or a file that
+ * is not the feed's.
+ */
+export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
+                               limits: typeof FEED_LIMITS = FEED_LIMITS): Promise<ObsFile> {
+  const url = `${base.replace(/\/+$/, "")}/obs.json`;
+  const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store" });
+  if (!got.ok) throw new Error(`${url}: HTTP ${got.status}`);
+  if (!got.value || typeof got.value.stations !== "object" || got.value.stations === null)
+    throw new Error(`${url}: not the feed's observations (no stations)`);
+  return got.value;
+}
+
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
                          opts: { indexHeld?: boolean; limits?: { firstByteMs: number; stallMs: number; totalMs: number };
                                  /** (T315) the phone's kept week: fed by every station file read, answering offline */
@@ -337,11 +353,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
 
     async syncObservations() {
       if (!opts.history || (opts.online && !opts.online())) return;
-      const url = `${trimmed}/obs.json`;
       try {
-        const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits: opts.limits ?? FEED_LIMITS,
-                                                              cache: "no-store" });
-        if (got.ok && got.value && typeof got.value.stations === "object") opts.history.noteObs(got.value);
+        opts.history.noteObs(await fetchObs(trimmed, fetchImpl, opts.limits ?? FEED_LIMITS));
       } catch { /* offline or not published yet: the next feed update asks again */ }
     },
 
