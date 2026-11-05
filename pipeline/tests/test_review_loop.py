@@ -162,7 +162,7 @@ def _run_exporter(monkeypatch, work: Path) -> dict:
         return {"pending_count": len(only_ids or ()), "batches": [], "no_registry_count": 0,
                 "unmatched": [], "excluded_empty": [], "skipped_existing": []}
 
-    monkeypatch.setattr(be, "load_synopsis_rows", lambda: [])
+    monkeypatch.setattr(be, "load_synopsis_rows", lambda *_: [])
     monkeypatch.setattr(be, "load_registry", lambda *_: {})
     monkeypatch.setattr(be, "load_overrides", lambda *_: {})
     monkeypatch.setattr(be, "export", fake_export)
