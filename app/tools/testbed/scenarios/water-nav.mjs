@@ -65,8 +65,8 @@ export const waterNav = {
         ctx.device.sh(`input tap ${at.x} ${at.y}`);
         // (0.5.0 drift) beside the tap: the section the probe hit there (a confluence tap
         // opened the unnamed tributary)
-        const hit = /\[target\] (\{.*\})/.exec(ctx.device.logcatJs())?.[1];
-        console.log(`  tap ${at.x},${at.y} px; probe hit ${hit ?? '?'}`);
+        const hits = [...ctx.device.logcatJs().matchAll(/\[target\] (\{.*\})/g)].map((m) => m[1]);
+        console.log(`  tap ${at.x},${at.y} px; ${hits.length} probe line(s), the last (tapped) ${hits.at(-1) ?? '?'}; first ${hits[0] ?? '?'}`);
       }
       // the water's own screen (its view strip), and the water tapped is the one searched (not a neighbour; the search
       // field keeps the query, so the title alone proves nothing)

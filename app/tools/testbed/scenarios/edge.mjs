@@ -17,6 +17,9 @@ const ROW = process.env.EDGE_ROW ?? '.* · Region 2 · MU 2-8.*';
 const SWIPES = Number(process.env.EDGE_SWIPES ?? 8);
 const SHARE = Number(process.env.EDGE_SHARE ?? 0.4);
 const WATCH = Number(process.env.EDGE_WATCH ?? 4000);
+/** EDGE_MS: the swipe's duration (900 a deliberate drag; ~120 a fling, which coasts on); EDGE_ZOOMIN: double-taps in first */
+const SWIPE_MS = Number(process.env.EDGE_MS ?? 900);
+const ZOOMIN = Number(process.env.EDGE_ZOOMIN ?? 0);
 const DONE = 0.03;          // the strip counts as drawn when under 3 % of it still differs from the settled frame
 // the swipe directions in turn: left, up, right, down (the map shows what lay right, below, left, above)
 const DIRS = ['left', 'up', 'right', 'down'];
@@ -37,7 +40,13 @@ export const edge = {
       await d.sleep(3500);
       d.sh('input keyevent 4');
       await d.sleep(8000);                                     // the frame's tiles and colours in
-      return `${size.w}x${size.h}`;
+      // closer in (the deepest tiles carry the small streams): double-taps in the map's middle
+      for (let z = 0; z < ZOOMIN; z++) {
+        const x = size.w >> 1, y = Math.round(size.h * 0.45);
+        d.sh(`input tap ${x} ${y} && input tap ${x} ${y}`);
+        await d.sleep(3000);
+      }
+      return `${size.w}x${size.h}, ${ZOOMIN} double-taps in, swipes of ${SWIPE_MS} ms`;
     }, { stop: true });
     // the map's open area: under the search bar, over the bottom bar and its legend
     const area = { x: 0, y: Math.round(size.h * 0.16), w: size.w, h: Math.round(size.h * 0.56) };
@@ -53,7 +62,9 @@ export const edge = {
                          : { x: area.x, y: dy < 0 ? area.y + Math.round(area.h * (1 - SHARE)) : area.y, w: area.w, h: Math.round(area.h * SHARE) };
         d.logcatClear();
         // a slow, deliberate drag (no fling): the map stops where the finger lifts
-        d.sh(`input swipe ${Math.round(cx - hx)} ${Math.round(cy - hy)} ${Math.round(cx + hx)} ${Math.round(cy + hy)} 900`);
+        d.sh(`input swipe ${Math.round(cx - hx)} ${Math.round(cy - hy)} ${Math.round(cx + hx)} ${Math.round(cy + hy)} ${SWIPE_MS}`);
+        // (the first look is taken while the camera may still be coasting: an offset frame reads as "unlike settled";
+        // the curve's later points, and the kept first/last pictures, tell the two apart)
         const t0 = Date.now(), shots = [];
         while (Date.now() - t0 < WATCH) {
           const f = path.join(ctx.dir, `T401-${i + 1}-${shots.length}.png`);
@@ -62,19 +73,25 @@ export const edge = {
         }
         await d.sleep(4000);
         const settled = readPng(d.screenshot(path.join(ctx.dir, `T401-${i + 1}-settled.png`)));
-        const curve = shots.map((s) => ({ t: s.t, left: changed(readPng(s.f), settled, strip) }));
+        const imgs = shots.map((s) => readPng(s.f));
+        // THE CAMERA AT REST: the first shot that matches the one before it over the whole map (a fling coasts on after
+        // the finger lifts; a frame mid-glide is offset, not missing anything). What the new strip lacks from then on is
+        // what pops in.
+        const still = imgs.findIndex((im, k) => k > 0 && changed(imgs[k - 1], im, area) < 0.02);
+        const curve = shots.map((s, k) => ({ t: s.t, left: changed(imgs[k], settled, strip) }));
         for (const s of shots.slice(1, -1)) fs.rmSync(s.f);   // keep the first and last look, and the settled frame
-        const first = curve[0]?.left ?? 0;
-        const drawnAt = curve.find((c) => c.left < DONE)?.t ?? null;
+        const first = still >= 0 ? curve[still].left : curve.at(-1)?.left ?? 0;
+        const stillAt = still >= 0 ? shots[still].t : null;
+        const drawnAt = curve.find((c, k) => k >= Math.max(0, still) && c.left < DONE)?.t ?? null;
         const pans = d.logcatJs().split('\n').filter((l) => l.includes('[pan] ')).map((l) => {
           try { return JSON.parse(l.slice(l.indexOf('[pan] ') + 6)); } catch { return null; }
         }).filter(Boolean);
         const tiles = pans.reduce((n, p) => n + p.tiles, 0), labels = pans.reduce((n, p) => n + p.labels, 0);
         const sends = pans.reduce((n, p) => n + p.sends, 0), ackMax = Math.max(0, ...pans.map((p) => p.ackMax));
-        const row = { swipe: i + 1, dir, firstMissing: +(first * 100).toFixed(1), drawnMs: drawnAt ?? `>${WATCH}`,
+        const row = { swipe: i + 1, dir, stillMs: stillAt ?? `>${WATCH}`, firstMissing: +(first * 100).toFixed(1), drawnMs: drawnAt ?? `>${WATCH}`,
                       curve: curve.map((c) => `${c.t}:${(c.left * 100).toFixed(0)}`).join(' '), tiles, labels, sends, ackMax };
         rows.push(row);
-        return `first look ${row.firstMissing} % of the new strip unlike settled; drawn at ${row.drawnMs} ms; ` +
+        return `camera at rest at ${row.stillMs} ms, then ${row.firstMissing} % of the new strip still missing; drawn at ${row.drawnMs} ms; ` +
                `tiles ${tiles}, sections coloured ${labels}, colour sends ${sends} (ack max ${ackMax} ms)`;
       });
     }
@@ -83,7 +100,7 @@ export const edge = {
       const firsts = rows.map((r) => r.firstMissing).sort((a, b) => a - b);
       const med = (xs) => xs[Math.floor(xs.length / 2)];
       fs.writeFileSync(path.join(ctx.dir, 'T401-edge.txt'), rows.map((r) => JSON.stringify(r)).join('\n') + '\n');
-      return `median: ${med(firsts)} % missing at the first look, drawn at ${med(drawn)} ms ` +
+      return `median: ${med(firsts)} % of the new strip missing once the camera rests, drawn at ${med(drawn)} ms ` +
              `(worst ${drawn.at(-1)} ms); ${rows.filter((r) => typeof r.drawnMs !== 'number').length}/${rows.length} not drawn within ${WATCH} ms`;
     });
   },

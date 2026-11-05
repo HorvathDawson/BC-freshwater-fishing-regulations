@@ -16,3 +16,6 @@ phone the ceiling is data now, not a style swap (`Map.native.tsx` no longer swap
 
 **Left:** the owner's look on the phone (next APK). If MapLibre Native ever ignored `zoom` in the filter, the copy
 would show at every zoom again — check Coquitlam part 1 at z12–15.
+
+**Emulator 2026-11-05 (test bed r1105d, T345-04-pick-lowest.png):** Coquitlam part 1 — casing and line on one path, no
+zigzag. The owner's phone check still stands.

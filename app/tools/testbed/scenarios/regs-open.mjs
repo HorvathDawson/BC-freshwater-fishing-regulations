@@ -43,18 +43,25 @@ export async function settledTarget(ctx, ms = 30_000, quietMs = 5000) {
 }
 
 function targetPoint(ctx) {
-  const t = targets(ctx).at(-1);
+  // (0.5.0) more than one map logs a probe (the browse map and a water's small map, `win` 388 dp tall): the tap is for
+  // the tallest one on screen, its latest line
+  const all = targets(ctx);
+  const tall = Math.max(0, ...all.map((x) => x.win?.h ?? 0));
+  const t = all.filter((x) => (x.win?.h ?? 0) === tall).at(-1);
   if (!t || t.none) return null;
-  // the map view's top-left on screen, px: from the accessibility tree (MapLibre's view names itself), else the app's
-  // own measure (dp)
+  // the map view's top-left on screen, px: the app's own measure of THIS map (`win`, dp) first; the accessibility tree's
+  // first "Showing a Map" only without it (0.5.0: that matched another map view mounted off screen, y −428 px, and the
+  // tap opened a neighbouring stream)
   const k = density(ctx);
-  let org = null;
-  try {
-    ctx.device.sh('uiautomator dump /sdcard/tb-map.xml');
-    const m = /content-desc="Showing a Map[^"]*"[^>]*bounds="\[(\d+),(\d+)\]/.exec(ctx.device.sh('cat /sdcard/tb-map.xml'));
-    if (m) org = { x: Number(m[1]), y: Number(m[2]) };
-  } catch { /* no dump */ }
-  org ??= { x: (t.win?.x ?? 0) * k, y: (t.win?.y ?? 0) * k };
+  let org = t.win ? { x: t.win.x * k, y: t.win.y * k } : null;
+  if (!org) {
+    try {
+      ctx.device.sh('uiautomator dump /sdcard/tb-map.xml');
+      const m = /content-desc="Showing a Map[^"]*"[^>]*bounds="\[(\d+),(\d+)\]/.exec(ctx.device.sh('cat /sdcard/tb-map.xml'));
+      if (m) org = { x: Number(m[1]), y: Number(m[2]) };
+    } catch { /* no dump */ }
+  }
+  org ??= { x: 0, y: 0 };
   return { x: Math.round(org.x + t.x * k), y: Math.round(org.y + t.y * k) };
 }
 
