@@ -78,6 +78,11 @@ interface Held {
   properties: Record<string, unknown>;
   /** the camera zoom the pass that took it was made at */
   zoom: number;
+  /**
+   * (T411) ITS CEILING: the SHALLOWEST tile zoom any pass found it at — the atlas holds it there and at every deeper
+   * zoom. Lowered by a shallower pass, never raised by a deeper one (a deeper pass may still replace the geometry).
+   */
+  until: number;
   /** the pieces' extent, degrees² — a later pass that saw MORE of the section replaces a partial first one */
   extent: number;
 }
@@ -163,29 +168,39 @@ export class WaterCopy {
   /**
    * Keep what one settle's pick found at `zoom`. Only this water's ids, only a stream's line or a lake's polygon. A
    * section is kept the FIRST time a zoom has it; a later pass replaces it only when it saw more of it (a section half
-   * off screen the first time). Returns the ids newly kept or replaced, in order.
+   * off screen the first time). (T411) Its ceiling only ever comes DOWN: a pass found it at this zoom, so the atlas draws
+   * it here and deeper. Returns the ids newly kept, replaced or given a lower ceiling, in order.
    */
   take(found: readonly LitFeature[], zoom: number): number[] {
     const pass = new Map<number, { layer: CopyLayer; pieces: unknown[]; properties: Record<string, unknown>;
-                                   box: Bbox | null }>();
+                                   box: Bbox | null; cut: number }>();
     for (const f of found) {
       if (!this.ids_.has(f.id) || !f.geometry) continue;
       const layer = f.layer as CopyLayer;
       if (!(COPY_SOURCE_LAYERS as readonly string[]).includes(layer)) continue;
       const pieces = piecesOf(layer, f.geometry);
       if (!pieces.length) continue;
-      const p = pass.get(f.id) ?? { layer, pieces: [], properties: { ...(f.properties ?? {}) }, box: null };
+      const p = pass.get(f.id) ?? { layer, pieces: [], properties: { ...(f.properties ?? {}) }, box: null, cut: Infinity };
       if (p.layer !== layer) continue;            // one section, one source-layer: never mix two shapes in one feature
       p.pieces.push(...pieces);
+      for (const piece of pieces) p.cut = Math.min(p.cut, cutZoom(piece, Math.floor(zoom)) ?? Infinity);
       p.box = unionBbox(p.box, bboxOfGeometry(f.geometry as never));
       pass.set(f.id, p);
     }
     const fresh: number[] = [];
+    const z = Math.floor(zoom);
     for (const [id, p] of [...pass].sort((a, b) => a[0] - b[0])) {
       const was = this.held.get(id);
       const extent = areaOf(p.box);
-      if (was && extent <= was.extent * 1.0001) continue;
-      this.held.set(id, { layer: p.layer, pieces: p.pieces, properties: p.properties, zoom, extent });
+      // (T411) one pass can hand back a section's pieces from tiles of MORE THAN ONE zoom (the source still holds another
+      // zoom's tiles: Part 1's pass at z11.6 had Coquitlam pieces from z11 AND z7 tiles), so the ceiling also comes down
+      // to the shallowest zoom a piece itself was cut at
+      const until = Math.min(was?.until ?? z, z, p.cut);
+      if (was && extent <= was.extent * 1.0001) {
+        if (until < was.until) { was.until = until; fresh.push(id); }
+        continue;
+      }
+      this.held.set(id, { layer: p.layer, pieces: p.pieces, properties: p.properties, zoom, until, extent });
       fresh.push(id);
     }
     return fresh;
@@ -193,10 +208,14 @@ export class WaterCopy {
 
   /**
    * The kept sections as the copy source's data. (T399) Each carries `COPY_UNTIL`, ITS OWN ceiling: the zoom the atlas
-   * draws that section from (the tile zoom it was kept at; past the atlas's deepest tiles, those overzoomed), or the view's floor for its layer (`floorOf`), whichever is
-   * deeper. The copy layers' filter reads it, so a section is drawn from the copy only where the atlas does not draw it.
+   * draws that section from (the shallowest tile zoom a pass found it at; past the atlas's deepest tiles, those
+   * overzoomed), or the view's floor for its layer (`floorOf`), whichever is deeper. The copy layers' filter reads it,
+   * so a section is drawn from the copy only where the atlas does not draw it.
    * One ceiling for the whole copy (the deepest kept zoom) drew a section kept at z9 — z9's coarse tile line — on top
    * of the atlas's own line up to the zoom some other section was first seen at: the casing zigzagged across the river.
+   * (T411) And a ceiling RAISED by a deeper pass did the same on a step back: Coquitlam Part 1 at z11.6 saw Part 2's
+   * section whole in its z11 tiles (a wider box than z9's line), so it was kept again "at z11"; ▲ to Part 2 (z10.9, its
+   * z10 tiles already held, so no full render and no pass) drew that z11 line under the atlas's z10 one.
    */
   collection(floorOf: (layer: CopyLayer) => number = () => 0): CopyCollection {
     if (!this.held.size) return EMPTY_COPY;
@@ -205,7 +224,7 @@ export class WaterCopy {
       features: [...this.held].sort((a, b) => a[0] - b[0]).map(([id, h]) => ({
         type: "Feature" as const, id,
         properties: { ...h.properties, layer: h.layer,
-                      [COPY_UNTIL]: Math.max(Math.min(Math.floor(h.zoom), ATLAS_MAX_ZOOM), floorOf(h.layer)) },
+                      [COPY_UNTIL]: Math.max(Math.min(h.until, ATLAS_MAX_ZOOM), floorOf(h.layer)) },
         geometry: { type: h.layer === "stream" ? "MultiLineString" as const : "MultiPolygon" as const,
                     coordinates: h.pieces },
       })),
@@ -221,9 +240,46 @@ export class WaterCopy {
    */
   ceiling(layer: CopyLayer, floor: number): number | null {
     let z: number | null = null;
-    for (const h of this.held.values()) if (h.layer === layer) z = Math.max(z ?? 0, Math.floor(h.zoom));
+    for (const h of this.held.values()) if (h.layer === layer) z = Math.max(z ?? 0, h.until);
     return z === null ? null : Math.min(24, Math.max(z, floor));
   }
+}
+
+/**
+ * (T411) THE TILE ZOOM A PIECE WAS CUT AT, read off its coordinates: a tile's geometry is on a grid of `extent` units
+ * per tile, so every vertex of a z`k` piece is a whole number of z`k` grid steps in Web Mercator — the coarsest `k`
+ * that fits them all is the piece's tile zoom (null: none up to the atlas's deepest, or no vertex).
+ */
+export function pieceGridZoom(piece: unknown, extent = ATLAS_TILE_EXTENT): number | null {
+  const pts = pointsOf(piece);
+  if (!pts.length) return null;
+  const on = (v: number, n: number) => Math.abs(v * n - Math.round(v * n)) < 0.02;
+  for (let k = 0; k <= ATLAS_MAX_ZOOM; k++) {
+    const n = extent * 2 ** k;
+    if (pts.every(([lon, lat]) => on(toX(lon), n) && on(toY(lat), n))) return k;
+  }
+  return null;
+}
+
+/** The atlas's tile grid below z13: tippecanoe `--low-detail` 11 (`pipeline/deliver/tiles/tippe.py` LOW_DETAIL). */
+export const ATLAS_TILE_EXTENT = 2048;
+
+/**
+ * The tile zoom one piece was cut at when it is SHALLOWER than the pass's own tile zoom `z` and its vertices say so
+ * beyond chance, else null. A piece of n vertices sits on a grid d zooms coarser than its own by chance one time in
+ * 4^(n·d), so it is believed from n·d ≥ 4 (1 in 256): a 2-vertex clip two zooms out, a 4-vertex piece one zoom out.
+ */
+function cutZoom(piece: unknown, z: number): number | null {
+  const g = pieceGridZoom(piece, ATLAS_TILE_EXTENT);
+  return g !== null && g < z && pointsOf(piece).length * (z - g) >= 4 ? g : null;
+}
+
+/** Every [lon, lat] of a piece (a line's vertices, a polygon's rings'). */
+function pointsOf(c: unknown, out: [number, number][] = []): [number, number][] {
+  if (!Array.isArray(c)) return out;
+  if (typeof c[0] === "number" && typeof c[1] === "number") out.push([c[0], c[1]]);
+  else for (const x of c) pointsOf(x, out);
+  return out;
 }
 
 /** A tile piece's coordinates as the parts of a multi-geometry of its kind (a stream: lines; a lake: polygons). */

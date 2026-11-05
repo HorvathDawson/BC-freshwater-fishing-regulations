@@ -39,6 +39,16 @@ export const camProbe = {
     if (!on()) return;
     console.log(`[move] ${JSON.stringify({ t: now(), why, round, h: Math.round(h) })}`);
   },
+  /**
+   * (T411) the water copy, measured: `[copy] {zoom, kept: [{id, until, grid}]}` after each pass that took something
+   * (`grid`: the tile zooms its pieces were cut at, `pieceGridZoom`), and `[copydraw] {zoom, both, copyOnly}` after each
+   * full render — the water's sections drawn by the copy AND the atlas at once (`both`: two lines, the zigzag).
+   */
+  copy(kind: "copy" | "copydraw", o: Record<string, unknown>): void {
+    if (!on()) return;
+    console.log(`[${kind}] ${JSON.stringify({ t: now(), ...o })}`);
+  },
+  on,
   /** A map's camera, for the link; returns its unmount. No-op (and nothing subscribed) outside the test bed. */
   mount(go: (c: CameraTo) => void): () => void {
     if (!on()) return () => {};

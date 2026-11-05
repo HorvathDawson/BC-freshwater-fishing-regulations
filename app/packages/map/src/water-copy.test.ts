@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { onceSink, type StateSink } from "./sections";
-import { COPY_UNTIL, WaterCopy, copyFilter, copyIds, mirrorSink, probeZoom, zoomAround, type CopyTarget, type LitFeature } from "./water-copy";
+import { ATLAS_TILE_EXTENT, COPY_UNTIL, WaterCopy, pieceGridZoom, copyFilter, copyIds, mirrorSink, probeZoom, zoomAround, type CopyTarget, type LitFeature } from "./water-copy";
 import { baseAdapter, type MapHandle } from "./adapters/contract";
 import { copyFillPaint, copyLinePaint, paintFor } from "./paint";
 import { resolveTheme } from "./style";
@@ -93,6 +93,53 @@ describe("WaterCopy: kept from the tiles, the first time a zoom has them", () =>
     expect(until()).toEqual({ 501: 13, 502: 13, 700: 8, 900: 9 });
     // the view's floor for the layer (Conditions stands the rivers down below z9): carried on to it, per kind
     expect(until((l) => (l === "stream" ? 11 : 10))).toEqual({ 501: 13, 502: 13, 700: 10, 900: 11 });
+  });
+
+  it("(T411) a step to a deeper part never raises a section's ceiling — ▼ to Part 1, ▲ to Part 2 draws one line", () => {
+    // Coquitlam, 0.6.0 on a phone: Map opens on Part 2 at z9.9 (the river kept at z9); ▼ to Part 1 (z11.6) sees Part 2's
+    // section whole in its z11 tiles — a wider box than z9's simplified line — so it was kept again AT z11; ▲ back to
+    // Part 2 (z10.9: tile z10, already held, so no full render and no pass) then drew that z11 line under the atlas's z10
+    const z11: LitFeature = { ...RIVER, geometry: { type: "LineString", coordinates: [[-121.61, 49.09], [-121.49, 49.21]] } };
+    const c = new WaterCopy();
+    c.reset([900]);
+    const until = () => c.collection().features.map((f) => f.properties[COPY_UNTIL]);
+    expect(c.take([RIVER], 9.89)).toEqual([900]);                  // opened on Part 2
+    expect(c.take([z11], 11.6)).toEqual([900]);                    // ▼ to Part 1: more of it seen, the line replaced…
+    expect(c.collection().features[0]!.geometry.coordinates).toEqual([z11.geometry!.coordinates]);
+    expect(until()).toEqual([9]);                                  // …but its ceiling stays where the atlas has it
+    // the copy layers draw it below z9 only: at Part 2's z10.9 (tile z10) the atlas's line is the only one
+    expect(Number(until()[0]) > Math.floor(10.9)).toBe(false);
+    // the same water opened on Part 1 first and then stepped up: the shallower pass brings the ceiling down
+    const d = new WaterCopy();
+    d.reset([900]);
+    d.take([z11], 11.6);
+    expect(d.take([RIVER], 10.9)).toEqual([900]);                  // no wider box, but a shallower zoom: ceiling lowered
+    expect(d.collection().features.map((f) => f.properties[COPY_UNTIL])).toEqual([10]);
+    expect(d.take([RIVER], 12.2)).toEqual([]);                     // a deeper pass changes nothing
+  });
+
+  it("(T411) a pass holding pieces from another zoom's tiles: the ceiling comes down to the shallowest piece's zoom", () => {
+    // the emulator, Coquitlam Part 1 at z11.6: section 316506's pieces came back from z11 AND z7 tiles in one pass
+    const onGrid = (z: number, cells: [number, number][]) => cells.map(([x, y]) => {
+      const n = ATLAS_TILE_EXTENT * 2 ** z;
+      return [x / n * 360 - 180, Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n))) * 180 / Math.PI];
+    });
+    const z11 = onGrid(11, [[700001, 1500003], [700005, 1500011], [700013, 1500020], [700019, 1500031]]);
+    const z7 = onGrid(7, [[43750, 93750], [43751, 93753], [43753, 93755], [43755, 93757]]);
+    expect([pieceGridZoom(z11), pieceGridZoom(z7)]).toEqual([11, 7]);
+    const c = new WaterCopy();
+    c.reset([900]);
+    c.take([{ ...RIVER, geometry: { type: "MultiLineString", coordinates: [z11, z7] } }], 11.6);
+    expect(c.collection().features.map((f) => f.properties[COPY_UNTIL])).toEqual([7]);
+    // a short piece is believed only far enough out that chance cannot put it there (n vertices, d zooms: n·d ≥ 4)
+    const one = (coords: unknown[], z: number) => {
+      const d = new WaterCopy();
+      d.reset([900]);
+      d.take([{ ...RIVER, geometry: { type: "LineString", coordinates: coords } }], z);
+      return d.collection().features[0]!.properties[COPY_UNTIL];
+    };
+    expect([one(z7.slice(0, 2), 11.6), one(z7.slice(0, 2), 8.5), one(z7.slice(0, 3), 8.5), one(z7, 8.5)])
+      .toEqual([7, 8, 8, 7]);
   });
 
   it("(T399) the copy layers' filter: their kind, below each feature's own ceiling", () => {

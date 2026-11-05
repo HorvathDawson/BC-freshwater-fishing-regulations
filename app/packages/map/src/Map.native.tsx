@@ -62,7 +62,7 @@ import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { ESRI_BADGE, SHOW_SCALE } from "./chrome";
 import type { MapProps } from "./map-props";
-import { COPY_SOURCE, WaterCopy, copyIds, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
+import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
 import { ME_SOURCE, meData, mePaint } from "./native/me";
 import { camProbe } from "./native/camProbe";
@@ -299,12 +299,24 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    */
   const settleAsk = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (settleAsk.current) clearTimeout(settleAsk.current); }, []);
+  /** (T411, test bed only) which of the water's sections the copy AND the atlas both draw now (`camProbe.copy`) */
+  const copyDraw = useRef(async () => {
+    const m = mapRef.current;
+    if (!camProbe.on() || !m || !copy.current.ids.size) return;
+    const ids = new Set(copy.current.ids);
+    const drawn = async (layers: string[]) => new Set(visibleSections(
+      await m.queryRenderedFeatures({ layers }).catch(() => [])).filter((id) => ids.has(id)));
+    const byCopy = await drawn([COPY_LINE]), byAtlas = await drawn(["stream"]);
+    camProbe.copy("copydraw", { zoom: camNow.current.zoom, both: [...byCopy].filter((id) => byAtlas.has(id)).sort(),
+                                copyOnly: [...byCopy].filter((id) => !byAtlas.has(id)).sort() });
+  });
   const onRendered = useCallback(() => {
     rendered.current = true;
     setDrawn(true);
     void reportVisible();
     void refine.current?.().catch(report);
     void keepCopy.current?.().catch(report);
+    void copyDraw.current().catch(report);
   }, [reportVisible, report]);
 
   /*
@@ -364,6 +376,19 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             if (st) void copyRef.current?.setFeatureState({ id }, st as never).catch(report);
           }
           setCopyData(c.collection(floorOf));
+        }
+        if (camProbe.on()) {
+          // a z<13 atlas tile is a 2,048 grid (tippe LOW_DETAIL): the zoom of the tile each piece was cut from
+          const grids = (g: { type?: string; coordinates?: unknown } | null | undefined) => {
+            const c = Array.isArray(g?.coordinates) ? g!.coordinates as unknown[] : [];
+            const pieces = g?.type === "LineString" || g?.type === "Polygon" ? [c] : c;
+            return [...new Set(pieces.map((p) => pieceGridZoom(p)))].sort();
+          };
+          const foundBy: Record<number, (number | null)[]> = {};
+          for (const f of found) for (const z of grids(f.geometry)) (foundBy[f.id] ??= []).includes(z) || foundBy[f.id]!.push(z);
+          camProbe.copy("copy", { zoom: at0.zoom, fresh,
+            found: Object.entries(foundBy).map(([id, zs]) => ({ id: Number(id), grid: zs.sort() })),
+            kept: c.collection(floorOf).features.map((f) => ({ id: f.id, until: f.properties[COPY_UNTIL], grid: grids(f.geometry) })) });
         }
         const next = clamps.current
           ? probeZoom({ zoom: at0.zoom, found: found.some((f) => lineIds.current.has(f.id)),
@@ -572,10 +597,16 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     stale.current = true;
     copyStale.current = true;
     if (settleAsk.current) clearTimeout(settleAsk.current);
-    settleAsk.current = setTimeout(() => { settleAsk.current = null; void reportVisible(); }, SETTLE_ASK_MS);
+    // (T411) …and the water copy's pass with it: a settle over held tiles fires no full render, and the copy kept what
+    // the last one saw (the step back to a part already drawn)
+    settleAsk.current = setTimeout(() => {
+      settleAsk.current = null; void reportVisible();
+      void keepCopy.current?.().catch(report)
+        .then(() => { if (camProbe.on()) setTimeout(() => void copyDraw.current().catch(report), 400); });
+    }, SETTLE_ASK_MS);
     // (T175) the reader's own pan or pinch: the copy never steps in against it
     if (ne?.userInteraction) copyTouched.current = true;
-  }, [shiftMarks, reportVisible]);
+  }, [shiftMarks, reportVisible, report]);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
