@@ -21,6 +21,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.1", date: "2026-11-05", notes: [
+      "Stepping up or down a river no longer draws its highlighted part as two crossing lines",
+    ],
+  },
+  {
     version: "0.6.0", date: "2026-11-05", notes: [
       "Gauge alerts you set yourself: when a river rises or falls past a level, or by a % in a day",
       "Choose how often an alert may ring; by default at most once a day per river",
