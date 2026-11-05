@@ -26,7 +26,9 @@ in order: **Data and build** first, then **Launch and hygiene**. Each is one cha
 1. **Read the reports.** `GET /reports?since=…` and `GET /crashes?since=…&background=1` on
    https://bc-fishing-feeds-staging.horvath-dawson.workers.dev (Bearer token in `app/workers/feeds/.run-token`). Turn each real
    problem from 0.6.0 testing into a ticket. "App bug" and "Feature request" reports are the owner's own test notes.
-2. **`graphify update .`** (not run after the 0.6.0 changes).
+2. **T411** — the part highlight still zigzags after stepping (Coquitlam: Downstream to the bottom, then Upstream
+   once). An app bug from testing: fix it before 0.6.0 goes to Closed testing, or ship it in 0.6.1.
+3. **`graphify update .`** (not run after the 0.6.0 changes).
 
 ## Chat 1 — Data and build (in order)
 1. **T408** — walk the owner through the data flow, ONE question at a time, write down the answers, then simplify. The

@@ -454,6 +454,7 @@ use that as the sole source of future work."
 | T408 | Walk the owner through the data flow one question at a time, then simplify it to match (first task of the data-and-build chat) | OPEN | — | owner 11-05 |
 | T409 | Water pages: next Lighthouse wins (fonts, WebCrypto/DecompressionStream verify, code splitting, sql.js after paint, cache headers) | PARTIAL | e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 | staging 0457d354: WOFF2 faces + WebCrypto verify kept, water 77-83 (were 67-83), hubs 100; rest of TBT = warm map (no-map bound 93) — owner decision |
 | T410 | One clear web / native split in the app code (platform files, a written rule, a guard) | OPEN | — | owner 11-05, hygiene chat |
+| T411 | The highlighted part still zigzags after stepping Downstream to the bottom, then Upstream once (Coquitlam part 2) | OPEN | — | owner 11-05, screenshot in T411-shots; first in the next chat |
 
 ## Order for open tickets
 
