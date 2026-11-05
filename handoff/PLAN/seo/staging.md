@@ -113,3 +113,9 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
   10,878 B, 19,635 share PNGs 531 MB, budget problems 0), `deploy/staging/site.sh` → version ffb4f71f (upload 292 s), smoke 18/18.
 - Lighthouse mobile (water pages): Performance 76-82 (was 40-45), LCP 2.2-3.7 s, CLS 0.002, TBT 350-520 ms, A11y 100. Record and
   the owner's options: T405.
+
+## Phase E (2026-11-05 UTC): T405 fish thumbnails + T406 region map button and when-open bar
+- Clean worktree at 7b20ec0da: `export:web:staging`, `build-seo.mjs` as Phase D (983 s; 19,927 pages, largest 13,184 B gzip,
+  p95 10,889 B, css 4,686 B gzip), `deploy/staging/site.sh` → version fc215b52, smoke 18/18.
+- Water pages draw 240 px fish thumbnails (Vedder fish bytes 306,592 → 54,251 B), Lighthouse 77-88, LCP 2.1-2.5 s: T405.
+  Region hubs: map card + when-open bar, Perf 97-100, LCP 1.2-2.4 s (LCP element moved to the bar's caption): T406.

@@ -1,6 +1,6 @@
 # T406 — SEO: raster share images and a species-by-region season calendar
 
-Status: PARTIAL — 08837f197 (part 1, a proposal for review); part 2 (species calendar) not started: needs a decision.
+Status: PARTIAL — 08837f197 (part 1, a proposal for review); 7b20ec0da part 2 cheap version (a proposal, on staging fc215b52): owner reviews; the LCP gate result is mixed (below).
 
 Source: T195 leftovers (2026-11-05). Share cards are SVG (`/share/<slug>.svg`); Facebook, X and most chat apps do not
 render an SVG `og:image`, so a shared water link shows no picture. The species season-start calendar needs the
@@ -26,3 +26,19 @@ Depends: T195. Size: M. Owner: no. Default: PNG via a rasteriser package; one ca
 - **Part 2 not done — needs a decision:** the app has no per-species year strips (only the water's game-fish strip and the
   salmon strip, `core/regs/strip.ts`, `core/salmon.ts`), so "dates by species" needs a source: build one from the rules'
   per-species seasons (new core logic) or limit the calendar to game fish vs salmon per water.
+
+## Part 2, the cheap version (owner 2026-11-05; 7b20ec0da, a PROPOSAL; staging fc215b52)
+- Every region hub (`/region/<n>`) has two new cards (app tokens, square corners): **"For a more visual experience, open
+  the map"** with an "Open the map" button, and **"When waters are open in Region N"**: one bar per kind (streams; lakes
+  with wetlands), each week's column = the share of that kind's parts open (lower, `--open`) vs closed (upper, `--closed`),
+  folded from the water pages' own game-fish strips (`PartModel.year`, `tools/seo/regionYear.ts`; no new season logic),
+  plus a sentence per row ("Streams (1546): 71% open at most; fewest open in the week of Apr 30, 60%.").
+- The map button opens `/` (the app's map). The app takes no region or bbox in a link (`startLink.ts` ROUTE_KEYS: water
+  place keys, `browse`, `spot`, `date`), so it is not framed on the region; framing it needs a new start-link key (owner).
+- **Salmon strip left out:** it is the live DFO feed per water (rules turn over ~50 %/yr), so a region roll-up baked at build
+  time would be stale; only the game-fish strip is folded.
+- **Load gate (Lighthouse mobile, staging):** before /region/2 99 / LCP 1.68 s, /region/4 99 / 1.69 s (one run each);
+  after, 4 runs: /region/2 97, 100, 98, 99 / LCP 2.43, 1.23, 2.15, 1.69 s; /region/4 98, 100, 100, 99 / LCP 2.24, 1.24,
+  1.25, 1.55 s; CLS 0, TBT 0 throughout; HTML +1.3 KB transfer. Perf stays >= 95 every run, but the LCP element is now the
+  year card's caption (`p.small`, it is in the first phone screen) and the runs spread 1.2-2.4 s: not provably unchanged.
+  Owner: keep, move the card below the waters list (out of the first screen), or drop it — one line in `site.ts`.

@@ -1,6 +1,6 @@
 # T405 — Water pages fail the Lighthouse gate when the app takes over the prerendered pane
 
-Status: PARTIAL — 5ba3155e5, db643ad12; CLS and A11y met, Performance 76-82 / LCP 2.2-3.7 s short of the gate: owner decides the water-page target (below).
+Status: PARTIAL — 5ba3155e5, db643ad12, f32ddb13a; CLS and A11y met; fish thumbnails (owner 11-05) took LCP to 2.1-2.5 s, Performance 77-88; TBT (app boot) still stops 95: owner decides the water-page target (below).
 
 Source: T196 gate on staging 2026-11-05 (release r-5a5999c94588, staging version 965c01af, lighthouse 12.8.2 mobile,
 simulated 4G). Hubs and About score Performance 100 / A11y 100 / LCP 1.3-1.4 s / CLS 0. `/water/vedder-river`:
@@ -59,3 +59,27 @@ not blocked — only the Core Web Vitals score.
   drawn at ~40 px) and 6 font files. Thumbnail-size fish images (~3 KB each) would take most of it; that is an app asset change.
 - Options: (a) lower the water-page target to Performance ≥ 75 (hubs stay ≥ 95); (b) boot-at-first-touch + thumbnail images
   (expected ≥ 90, 95 not proven); (c) app-boot work (WebCrypto/DecompressionStream for verify, code split) — larger.
+
+## Fish thumbnails (owner decision 2026-11-05; f32ddb13a, 55bd79424; staging fc215b52, release r-5a5999c94588)
+- `tools/emit-fish-thumbs.mjs` draws a 240 px WebP thumbnail of every coded fish picture in headless Chrome (deterministic;
+  39 files, 254 KB in all, 5-10 KB each vs 25-72 KB), `thumbs.json` records the source and thumbnail sha256; `pnpm fish`
+  refuses a missing or stale thumbnail (no fall back to the full picture). `FishImages` is `{ thumb, full }` per picture:
+  every row, chip and card (rows, Pictures, salmon table, Runs chips/sheet) draws `thumb`, only the fish sheet's
+  `FishImage` draws `full` (loaded when the sheet opens; nothing preloads it). Native uses the same map (decoded bitmaps
+  240x120 instead of 800x400). The full picture keeps one size: the sheet draws it at most 360 px wide (`FISH_PICTURE`),
+  so 800 px is already the 2x size on every layout; a phone/desktop srcset would buy nothing.
+- Fish image bytes on first view (Lighthouse, transfer): vedder 306,592 → 54,251 B (7 pictures), skeena 349,742 → 65,507 B
+  (9), cowichan 44,849 → 6,780 B (1). No full picture is requested by any of the three pages.
+- Lighthouse mobile (12.8.2), two runs after, one before (before = staging ffb4f71f today; Vedder's LCP varies with the
+  live DFO strip):
+
+| page | Perf before | Perf after | LCP before | LCP after | CLS | TBT after | A11y |
+|---|---|---|---|---|---|---|---|
+| vedder-river | 48 (76 on 11-05 am) | 88 / 86 | 12.4 s (3.7) | 2.4 / 2.3 s | 0.002 | 276 / 383 ms | 100 |
+| cowichan-river | 76 | 82 / 85 | 2.7 s | 2.3 / 2.1 s | 0.002 | 468 / 425 ms | 100 |
+| skeena-river | 66 | 77 / 78 | 4.1 s | 2.2 / 2.5 s | 0.002 | 686 / 643 ms | 100 |
+
+- T269 pairs (page JS off vs landed app, staging fc215b52, 390x844 and 1440x900): skeena phone 0.03 %, cowichan phone
+  0.03 % / desktop 0.16 %, vedder phone 14.7 % / desktop 4.9 % (the live DFO salmon strip, as before), skeena desktop
+  9.2 % (the desktop header offset + Share button, as before). None worse; the thumbnails draw identically in both.
+- What is left: LCP 2.1-2.5 s (gate 1.8) and TBT 280-690 ms are the app's boot; boot-at-first-touch is NOT done (owner).

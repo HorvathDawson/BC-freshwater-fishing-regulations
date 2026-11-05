@@ -448,8 +448,8 @@ use that as the sole source of future work."
 | T402 | Two tests fail only in the full suites: split_preview real_ids empty (memo/module leak), back.test day sheet under load | OPEN (item 1 fixed; 2–3 load-only) | 93d274234 | full run 2026-11-05 |
 | T403 | A 0.5.0 phone opened the 0.4.0 data release it held (salmon/3, no lines): a release the app cannot read is never opened, installed or rolled back to | DONE 11-05 | 62d96721d, 1473f95c7 | staging crashes 2026-11-05 |
 | T404 | One switch to production (every origin from one setting) + the prod release runbook and transition workflow | OPEN | — | owner 2026-11-05 (later, with T86/T240) |
-| T405 | Water pages fail Lighthouse when the app takes over the prerendered pane (LCP 3-39 s, CLS 0.15-0.72; hubs score 100) | PARTIAL | 5ba3155e5, db643ad12 | staging ffb4f71f: perf 45 → 76-82, CLS 0.002, A11y 100, LCP 2.2-3.7 s; TBT (app boot) stops 95 — owner picks target/option |
-| T406 | SEO: raster (PNG) share images + species-by-region season calendar | PARTIAL | 08837f197 | PNG cards (proposal) on staging; calendar needs a per-species source decision |
+| T405 | Water pages fail Lighthouse when the app takes over the prerendered pane (LCP 3-39 s, CLS 0.15-0.72; hubs score 100) | PARTIAL | 5ba3155e5, db643ad12, f32ddb13a | staging fc215b52: fish thumbnails (fish bytes 307 → 54 KB on Vedder), perf 77-88, LCP 2.1-2.5 s, CLS 0.002, A11y 100; TBT (app boot) stops 95 — owner picks target/option |
+| T406 | SEO: raster (PNG) share images + species-by-region season calendar | PARTIAL | 08837f197, 7b20ec0da | PNG cards + region map button + region when-open bar (proposals) on staging; region LCP gate mixed — owner keeps/moves/drops the bar |
 | T407 | Report a problem: "App bug" and "Feature request" reasons (for testing) | IN PROGRESS | — | owner 11-05; worker deploys with 0.6.0 |
 | T408 | Walk the owner through the data flow one question at a time, then simplify it to match (first task of the data-and-build chat) | OPEN | — | owner 11-05 |
 
