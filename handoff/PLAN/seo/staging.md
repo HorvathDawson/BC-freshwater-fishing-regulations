@@ -119,3 +119,8 @@ Release **r-46be3c135e68** (LATEST; tiles db853e9556df81a6.16b3906b04bf, basemap
   p95 10,889 B, css 4,686 B gzip), `deploy/staging/site.sh` → version fc215b52, smoke 18/18.
 - Water pages draw 240 px fish thumbnails (Vedder fish bytes 306,592 → 54,251 B), Lighthouse 77-88, LCP 2.1-2.5 s: T405.
   Region hubs: map card + when-open bar, Perf 97-100, LCP 1.2-2.4 s (LCP element moved to the bar's caption): T406.
+
+## Phase F (2026-11-05 UTC): T409 WOFF2 faces + WebCrypto release check
+- Clean worktree at 4ee7e67d6 (= e843253e7 + 011c8a8b8 before they were applied to the branch): `export:web:staging`, `build-seo.mjs`
+  as Phase D (1,008 s; 19,927 pages, largest 13,184 B gzip, p95 10,822 B), `deploy/staging/site.sh` → version 0457d354, smoke 18/18.
+- Water pages Perf 77-83 (vedder 83, cowichan 83, skeena 77), hubs 100; T269 pairs unchanged. Record: T409.

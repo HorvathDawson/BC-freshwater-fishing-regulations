@@ -6,9 +6,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Water-page speed target (T405, 2026-11-05):** thumbnails done (staging fc215b52): water pages Perf 77–88, LCP 2.1–2.5 s,
-  CLS 0.002, A11y 100. 95 still needs app-boot work: (a) lower the water-page target to ~80 (hubs stay ≥ 95); (b) start the
-  app at the reader's first touch (you said not now); (c) boot work (WebCrypto / DecompressionStream verify, code splitting).
+- **Water-page speed target (T405/T409, 2026-11-05):** T409 kept WOFF2 faces + WebCrypto verify (staging 0457d354): water
+  pages Perf 77–83, hubs 100. What is left is mostly the WARM MAP behind the page (maplibre ~1.5 s of main thread at load):
+  without it the sample pages score 93 (measured locally). Options: (a) lower the water-page target to ~80; (b) build the
+  map only when it is first seen (phone: "back to map" waits ~1–2 s once; desktop unchanged) — web-only; (c) leave as is.
+  Also yours: Cloudflare injects JS detections + the Web Analytics beacon on prod and staging (zone settings; T409 item 6).
+
 - **Region hub cards (T406 part 2): answered 11-05 — keep both as they are** (the bar where it is; the map button opens
   the whole map, no region link).
 - **Changelog drafts: approved (owner 11-05, "I'm sure they are good")** — `draft` cleared on 0.1.0–0.5.0; 0.6.0 stays a
