@@ -46,7 +46,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Release command built (T295/T297):** `python -m pipeline release --staging` runs build → checks (binding diff, app
   gate, manifest) → promote → staging upload. It stops on a failure and resumes where it stopped. Prod is a separate
   human-only command. Runbook: `handoff/PLAN/runbooks/release.md`. Not run end to end yet.
-- **Running now:** T411 (highlight zigzag, for 0.6.1) and T324 (curated renames + clean-up).
+- **T324 done:** curated files renamed (one consistent naming, each with an `_about` and a folder README). Machine
+  files moved out of curated. Hand-edited waters files are checked in under a second as the build's first step.
+  Worker inputs sync to staging on push. `data-flow.md` is rewritten. The renames rerun no atlas: the build now hashes
+  content, not paths. **Restart the review app after pulling** (it reads its paths at start).
+- **Ticket audit applied** (`ticket-audit-2026-11-05.md`); both next-session lists rewritten.
+- **Running now:** T411 (highlight zigzag, for 0.6.1); the T416 source fetch (`~/t416-fresh.log`).
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json
