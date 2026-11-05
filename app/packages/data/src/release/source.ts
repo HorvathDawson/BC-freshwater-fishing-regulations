@@ -271,6 +271,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
   let classes: Promise<StandingClasses> | null = null;
 
   return {
+    ...(loader.handles ? { handles: loader.handles } : {}),
     async info(): Promise<BundleInfo> {
       const meta = new Map((await all(META)).map((r) => [str(r.k), str(r.v)]));
       return { version: loader.release, validUntil: loader.manifest.regulations.valid_until ?? null,

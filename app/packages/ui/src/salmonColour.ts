@@ -15,7 +15,7 @@ import type { MethodFacts, SalmonFacts } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { useFeedVersion } from "./feedVersion";
-import { sourceKey } from "./conditionsColour";
+import { sameFacts, sourceKey } from "./conditionsColour";
 import { bcNow } from "@app/core";
 
 /** Which regulations the Map tab paints: the provincial day's status (bait ban / fly only marked on it, T213), or DFO's
@@ -50,7 +50,8 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   // (owner 2026-10-29) a DFO feed the update service took recolours the map in place (the loader's salmon is keyed on
   // the feed's version, `withLiveSalmon`): a refresh, the last colours stay meanwhile
   const dfo = useFeedVersion("dfo");
-  const facts = useAsync(() => i.source.salmonFacts(), `${key}#${dfo}`, asked === key, key);
+  // (T287) and an applied update in the same section numbering is a refresh too (`sameFacts`)
+  const facts = useAsync(() => i.source.salmonFacts(), `${key}#${dfo}`, asked === key, sameFacts("salmonfacts", i.source) ?? key);
   const f = facts.state === "ready" ? facts.value : null;
   const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
@@ -80,7 +81,8 @@ export function useMethodColour(i: { source: WaterSource; paired: boolean; statu
   const [asked, setAsked] = useState<string | null>(null);
   const key = `methodfacts:${sourceKey(i.source)}`;
   if (on && asked !== key) setAsked(key);
-  const facts = useAsync(() => i.source.methodFacts?.() ?? Promise.resolve(null), key, asked === key);
+  const facts = useAsync(() => i.source.methodFacts?.() ?? Promise.resolve(null), key, asked === key,
+                         sameFacts("methodfacts", i.source));
   const f = facts.state === "ready" ? facts.value : null;
   const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object

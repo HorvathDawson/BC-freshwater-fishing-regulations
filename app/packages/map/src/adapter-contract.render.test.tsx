@@ -15,6 +15,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { useEffect, useImperativeHandle, type ReactNode } from "react";
 import { MAP_GESTURES } from "@app/core";
 import type { MapProps } from "./map-props";
+import type { StatusIndex } from "@app/core";
 import { maplibreGestures, nativeMapGestures } from "./gestures";
 import { colour } from "./chrome";
 import { MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_DOT, PIN_SOURCE } from "./point-marks";
@@ -854,6 +855,20 @@ it("no listener, no long press: the binding is handed no handler (its long press
     r.rerender(<NativeMap {...base({ data: undefined, highlight: undefined, fit: { ...fit } })} />);
     await act(async () => {});
     expect(log.filter((l) => l.startsWith("fit"))).toEqual(["fit [-123,49,-122,50]"]);
+  });
+  it("(T287) a new status index with the same day's profiles (an applied update) swaps no style", async () => {
+    const index = (): StatusIndex => ({
+      handles: "0".repeat(16), reachDigest: "0".repeat(16), sections: 2, waters: 0, profiles: 2,
+      profileOf: (s) => ({ 10: 0, 11: 1 } as Record<number, number>)[Number(s)] ?? null,
+      profileCodeOn: (p) => (p === 0 ? "closed" : "own"), codeOn: () => "base", waterCodeOn: () => "base",
+    });
+    const day = new Date(2026, 5, 1);
+    const r = render(<NativeMap {...base({ status: { index: index(), day } })} />);
+    await waitFor(() => expect(JSON.stringify(native.props?.mapStyle)).toContain("closed"));
+    const style1 = native.props!.mapStyle;
+    r.rerender(<NativeMap {...base({ status: { index: index(), day } })} />);
+    await act(async () => {});
+    expect(native.props!.mapStyle).toBe(style1);
   });
   it("new gauge readings go to the style's own gauges source, not a style swap", async () => {
     const g1 = '{"type":"FeatureCollection","features":[]}';

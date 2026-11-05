@@ -125,6 +125,7 @@ export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener):
   let lakes: Promise<LakeFacts | null> | null = null;
   let salmonHead: Promise<SalmonFacts["payload"]> | null = null;
   const slices = new Map<string, Promise<SalmonShard>>();
+  const salmonMemo = new Map<string, { head: SalmonFacts["payload"]; read: SalmonShard[]; facts: SalmonFacts }>();
   let method: Promise<MethodFacts | null> | null = null;
   let access: Promise<SectionAccess | null> | null = null;
   let regions: Promise<Map<number, Region[]>> | null = null;
@@ -196,7 +197,8 @@ const WATER_SHARED: DbName = "water-shared";
         salmonHead = source.bytes("salmon").then((b) => openProbe.work("decode salmon", () => decodeSalmonHead(b, handles)));
         salmonHead.catch(() => { salmonHead = null; });
       }
-      const head = await salmonHead;
+      const headP = salmonHead;
+      const head = await headP;
       const all = (head.shards ?? []) as readonly string[];
       const asked = want ? all.filter((r) => want.includes(r as Region)) : all;
       const read = await Promise.all(asked.map((r) => {
@@ -210,7 +212,12 @@ const WATER_SHARED: DbName = "water-shared";
         }
         return p;
       }));
-      return salmonFacts(head, handles, read);
+      // (T287) the same head and slices answer with the same object: a map handed it again relabels nothing
+      const memo = salmonMemo.get(asked.join(","));
+      if (memo && memo.head === head && memo.read.length === read.length && memo.read.every((x, i) => x === read[i])) return memo.facts;
+      const facts = salmonFacts(head, handles, read);
+      salmonMemo.set(asked.join(","), { head, read, facts });
+      return facts;
     },
     method() {
       if (!method) {
@@ -298,7 +305,63 @@ const WATER_SHARED: DbName = "water-shared";
       return source.stored(name);
     },
   };
+  /*
+   * (T287) THE DECODES ANOTHER SET OF THE SAME FILES MAY TAKE OVER (`adoptDecoded`): a file is the same when its
+   * manifest entry is (sha256 and section numbering); flow-area also needs the same paint (its length is paint's).
+   */
+  HELD.set(loader, {
+    m,
+    take(prev) {
+      const same = (n: string) => !!m.files[n] && m.files[n]!.sha256 === prev.m.files[n]?.sha256
+        && m.files[n]!.section_handles === prev.m.files[n]?.section_handles;
+      const took: FileName[] = [];
+      const p = prev.slots();
+      if (p.paint && same("paint")) { paint = p.paint; took.push("paint"); }
+      if (p.area && same("flow-area") && took.includes("paint")) { area = p.area; took.push("flow-area"); }
+      if (p.lakes && same("lakes")) { lakes = p.lakes; took.push("lakes"); }
+      if (p.method && same("method")) { method = p.method; took.push("method"); }
+      if (p.access && same("access")) { access = p.access; took.push("access"); }
+      if (p.salmonHead && same("salmon")) {
+        salmonHead = p.salmonHead; took.push("salmon");
+        for (const [r, sp] of p.slices) if (same(`salmon-${r}`)) { slices.set(r, sp); took.push(`salmon-${r}` as FileName); }
+        for (const [k, v] of p.salmonMemo) salmonMemo.set(k, v);
+      }
+      for (const n of took) touch(n);
+      return took;
+    },
+    slots: () => ({ paint, area, lakes, method, access, salmonHead, slices, salmonMemo }),
+  });
   return loader;
+}
+
+/** What `adoptDecoded` reads and writes on a loader made here (a fake loader has none, and adopts nothing). */
+interface Held {
+  m: Manifest;
+  take(prev: Held): FileName[];
+  slots(): { paint: Promise<Paint> | null; area: Promise<Float64Array> | null; lakes: Promise<LakeFacts | null> | null;
+             method: Promise<MethodFacts | null> | null; access: Promise<SectionAccess | null> | null;
+             salmonHead: Promise<SalmonFacts["payload"]> | null; slices: ReadonlyMap<string, Promise<SalmonShard>>;
+             salmonMemo: ReadonlyMap<string, { head: SalmonFacts["payload"]; read: SalmonShard[]; facts: SalmonFacts }> };
+}
+const HELD = new WeakMap<ReleaseLoader, Held>();
+/** A loader's own, or the one it is laid over (`withLiveSalmon` makes its loader with `Object.create`). */
+function heldOf(l: ReleaseLoader): Held | undefined {
+  for (let o: object | null = l; o; o = Object.getPrototypeOf(o) as object | null) {
+    const h = HELD.get(o as ReleaseLoader);
+    if (h) return h;
+  }
+  return undefined;
+}
+
+/**
+ * (T287) AN APPLIED UPDATE KEEPS WHAT DID NOT CHANGE: every decoded file of the set on screen (paint, method, lakes,
+ * access, flow-area, the salmon head and slices) whose manifest entry the new set repeats — same sha256, same section
+ * numbering — is handed over as it is, the same objects. The screens then re-key onto the very answers they were
+ * drawing, and the map relabels nothing for them. Returns the files taken.
+ */
+export function adoptDecoded(next: ReleaseLoader, prev: ReleaseLoader): FileName[] {
+  const n = heldOf(next), p = heldOf(prev);
+  return n && p ? n.take(p) : [];
 }
 
 /**
@@ -309,6 +372,7 @@ const WATER_SHARED: DbName = "water-shared";
  * screen that asks (it says so, as it would have).
  */
 export async function warmLike(next: ReleaseLoader, prev: ReleaseLoader): Promise<void> {
+  adoptDecoded(next, prev);
   const had = new Set(prev.opened());
   const regions = [...had].filter((n) => n.startsWith("salmon-")).map((n) => n.slice("salmon-".length) as Region);
   // one after another: each is sliced, and two at once would only interleave their slices

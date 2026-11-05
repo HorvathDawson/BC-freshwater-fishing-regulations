@@ -10,6 +10,12 @@ import type {
 import type { Basin } from "./basinGrid";
 
 export interface WaterSource {
+  /**
+   * (T287) The section numbering every answer is in (the release's `section_handles`), when the source knows it. Two
+   * sources with the same numbering answer about the same sections: an applied update re-asks its map facts as a REFRESH
+   * (the colours on screen stay until the new ones are in), never as a blank map for a frame.
+   */
+  readonly handles?: string;
   info(): Promise<BundleInfo>;
   /** How much this bundle holds. Read, never asserted by a screen. */
   counts(): Promise<BundleCounts>;

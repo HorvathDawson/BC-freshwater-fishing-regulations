@@ -71,6 +71,19 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
  * (`source.salmonFacts()`) read ONE answer. Asked once per loader: the Standard / Salmon toggle never re-fetches. Every
  * other read is the loader's own (delegated, not copied).
  */
+/**
+ * (T287) The same release facts under the same capture answer with the same object: an applied update that kept the
+ * salmon files (`adoptDecoded`) hands the map the facts it is drawing, and nothing is relabelled.
+ */
+const PICKED = new WeakMap<SalmonFacts, { live: unknown; out: SalmonFacts }>();
+function picked(f: SalmonFacts, live: Parameters<typeof pickSalmon>[1]): SalmonFacts {
+  const was = PICKED.get(f);
+  if (was && was.live === live) return was.out;
+  const out = pickSalmon(f, live);
+  PICKED.set(f, { live, out });
+  return out;
+}
+
 export function withLiveSalmon<L extends { salmon(regions?: readonly Region[]): Promise<SalmonFacts | null> }>(
   loader: L, feed?: SalmonFeedSource): L {
   if (!feed) return loader;
@@ -82,7 +95,7 @@ export function withLiveSalmon<L extends { salmon(regions?: readonly Region[]): 
     const key = `${feed.version?.() ?? 0}:${regions ? [...regions].sort().join(",") : "*"}`;
     let p = live.get(key);
     if (!p) {
-      p = loader.salmon(regions).then(async (f) => (f ? pickSalmon(f, await feed.latest().catch(() => null)) : f));
+      p = loader.salmon(regions).then(async (f) => (f ? picked(f, await feed.latest().catch(() => null)) : f));
       p.catch(() => live.delete(key));
       live.set(key, p);
     }

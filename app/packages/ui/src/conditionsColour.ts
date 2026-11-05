@@ -44,6 +44,15 @@ export const sourceKey = (s: object): number => {
   return k;
 };
 
+/**
+ * (T287) A map fact's REFRESH key across sources: two sources in the same section numbering (an applied update's new
+ * set and the one on screen) answer about the same sections, so the new answer is a refresh — the colours on screen
+ * stay until it is in (`useAsync`'s `sameAs`) instead of a blank map for a frame (a relabel and a style swap, twice).
+ * Undefined where the source does not say its numbering: a new source is then a new question, as before.
+ */
+export const sameFacts = (kind: string, s: { handles?: string }): string | undefined =>
+  s.handles ? `${kind}~${s.handles}` : undefined;
+
 /** How often the map re-asks the feed: the feed's own cache life, so a published refresh lands within one. */
 export const FEED_POLL_MS = FEED_TTL_MS;
 

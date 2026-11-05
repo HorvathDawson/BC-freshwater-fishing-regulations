@@ -12,11 +12,18 @@ import { offlineAs } from "@app/core";
 import { pair, type Held, type Manifest } from "@app/data";
 import { releaseTiles, type Booted } from "@app/data/release";
 import type { StatusIndex } from "@app/core";
+import { useMemo } from "react";
 import { useAsync } from "./async";
 
 /** Where the day's status index comes from. `key` names it (one load per key). */
 export interface StatusSource {
   readonly key: string;
+  /**
+   * (T287) The section numbering its index is in (the release's `section_handles`). An applied update with the same
+   * numbering is a REFRESH of the index, not a new question: the index on screen stays until the new one is in, so the
+   * map is never uncoloured for a frame between the two (a relabel and two style swaps, mid-commit).
+   */
+  readonly same?: string;
   load(): Promise<StatusIndex>;
 }
 
@@ -34,8 +41,10 @@ export function statusOf(src: StatusSource): Promise<StatusIndex> {
 }
 
 /** The release's status: paint's status half (decoded once by the loader, checked against the release's handles). */
-export function releaseStatus(loader: { release: string; paint(): Promise<{ status: StatusIndex }> }): StatusSource {
-  return { key: `paint:${loader.release}`, load: async () => (await loader.paint()).status };
+export function releaseStatus(loader: { release: string; handles?: string; paint(): Promise<{ status: StatusIndex }> }):
+    StatusSource {
+  return { key: `paint:${loader.release}`, ...(loader.handles ? { same: loader.handles } : {}),
+           load: async () => (await loader.paint()).status };
 }
 
 /**
@@ -44,7 +53,8 @@ export function releaseStatus(loader: { release: string; paint(): Promise<{ stat
  * A failure is not kept (`statusOf`), so a later mount asks again.
  */
 export function useStatusIndex(status: StatusSource | null): StatusIndex | null {
-  const got = useAsync(async () => (status ? statusOf(status) : null), `status-index:${status?.key ?? ""}`, !!status);
+  const got = useAsync(async () => (status ? statusOf(status) : null), `status-index:${status?.key ?? ""}`, !!status,
+                       status?.same ? `status-index~${status.same}` : undefined);
   return got.state === "ready" ? got.value : null;
 }
 
@@ -133,6 +143,10 @@ export function releaseMapInput(b: Pick<Booted, "manifest" | "held" | "locate">,
 export function usePairing(input: PairingInput | null): PairingView {
   const key = !input ? "none"
     : `release:${input.manifest.data_release}:${input.manifest.tiles.current?.id ?? ""}:${input.atlasUrl ?? ""}`;
-  const got = useAsync(() => pairingOf(input), `pairing:${key}`);
+  // (T287) a manifest that names its tiles is proven without a fetch: answered in the very render the release changes, so
+  // an applied update never shows the map one "not proven" frame (every colour off, then on again)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the key names the input
+  const known = useMemo(() => (input?.manifest.tiles.current ? pairingView(input) : null), [key]);
+  const got = useAsync(() => pairingOf(input), `pairing:${key}`, true, undefined, () => (known ? { value: known } : null));
   return got.state === "ready" ? got.value : UNKNOWN;
 }

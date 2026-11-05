@@ -18,7 +18,7 @@ import { useMemo } from "react";
 import { dayNumber, type LakeFacts } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
-import { sourceKey } from "./conditionsColour";
+import { sameFacts, sourceKey } from "./conditionsColour";
 
 /** What the map is handed (`MapProps.lakes`): the release's facts, and today as a day number (the stocked bands). */
 export interface LakeFeedVM {
@@ -29,7 +29,7 @@ export interface LakeFeedVM {
 export function useLakeColour(i: { source: WaterSource; paired: boolean; today: Date }):
     LakeFeedVM | null {
   const on = i.paired;
-  const facts = useAsync(() => i.source.lakeFacts(), `lakefacts:${sourceKey(i.source)}`, on);
+  const facts = useAsync(() => i.source.lakeFacts(), `lakefacts:${sourceKey(i.source)}`, on, sameFacts("lakefacts", i.source));
   const f = on && facts.state === "ready" ? facts.value : null;
   const day = dayNumber(i.today);
   return useMemo(() => (f ? { facts: f, day } : null), [f, day]);

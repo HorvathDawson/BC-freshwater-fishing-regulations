@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../sha256";
 import { parseManifest, type Manifest } from "../manifest";
-import { releaseLoader, ReleaseError, type DbName } from "./loader";
+import { adoptDecoded, releaseLoader, ReleaseError, type DbName } from "./loader";
 import { heldFrom, heldPath, install, POINTER, prune, type ReleaseFs } from "./install";
 import type { Db } from "../sql/db";
 
@@ -74,6 +74,23 @@ describe("releaseLoader", () => {
     const other = lakes.slice(); other[5] = 0;
     const R = releaseLoader(manifest({ lakes: "l" }), { bytes: async () => other }, fakeOpen());
     await expect(R.lakes()).rejects.toThrow("lake facts: built for handles 0068d6e135e62b99, not d768d6e135e62b99");
+  });
+  it("(T287) an applied update takes over the decodes of the files it did not change — the same objects, nothing read", async () => {
+    const lakes = Uint8Array.from([0x42, 0x43, 0x4c, 0x4b, 1, 0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99, 0, 1, 12, 2, 0]);
+    const asked: string[] = [];
+    const src = { bytes: async (n: string) => { asked.push(n); return lakes; } };
+    const prev = releaseLoader(manifest({ core: "c", lakes: "l" }, "r-1"), src, fakeOpen());
+    const f = await prev.lakes();
+    // a new release id, the lakes file unchanged (same sha256, same handles); the booted loader is a wrapper (withLiveSalmon)
+    const next = releaseLoader(manifest({ core: "c2", lakes: "l" }, "r-2"), src, fakeOpen());
+    expect(adoptDecoded(Object.create(next) as typeof next, prev)).toEqual(["lakes"]);
+    expect([await next.lakes() === f, asked, next.opened()]).toEqual([true, ["lakes"], ["lakes"]]);
+    // a changed file is decoded anew; a file the old set never decoded is not taken
+    const changed = releaseLoader(manifest({ core: "c", lakes: "l2" }, "r-3"), src, fakeOpen());
+    expect(adoptDecoded(changed, prev)).toEqual([]);
+    expect(await changed.lakes() === f).toBe(false);
+    // a fake loader (no decodes of its own) adopts nothing
+    expect(adoptDecoded({} as typeof next, prev)).toEqual([]);
   });
   it("refuses a file whose meta is not the manifest's, and does not cache the failure", async () => {
     const L = releaseLoader(m, src, fakeOpen("core/0"));
