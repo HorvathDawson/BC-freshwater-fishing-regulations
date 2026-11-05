@@ -1,0 +1,122 @@
+[
+ {
+  "step": "boot",
+  "footprint": 147,
+  "malloc": 58.1,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 496.5,
+  "js": 40,
+  "ext": 46.9
+ },
+ {
+  "step": "pan x8",
+  "footprint": 170,
+  "malloc": 61.2,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 541,
+  "js": 44,
+  "ext": 57
+ },
+ {
+  "step": "satellite on",
+  "footprint": 178,
+  "malloc": 62.2,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 561,
+  "js": 52,
+  "ext": 60.4
+ },
+ {
+  "step": "water page",
+  "footprint": 232,
+  "malloc": 60.3,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 669.7,
+  "js": 108,
+  "ext": 29.9
+ },
+ {
+  "step": "rule book open",
+  "footprint": 290,
+  "malloc": 121.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 884.2,
+  "js": 108,
+  "ext": 29.9
+ },
+ {
+  "step": "rule book closed",
+  "footprint": 241,
+  "malloc": 64.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 866.1,
+  "js": 108,
+  "ext": 29.9
+ },
+ {
+  "step": "rule book (2nd) open",
+  "footprint": 238,
+  "malloc": 69.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 896.1,
+  "js": 108,
+  "ext": 29.9
+ },
+ {
+  "step": "rule book (2nd) closed",
+  "footprint": 241,
+  "malloc": 64.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 876.7,
+  "js": 108,
+  "ext": 29.9
+ },
+ {
+  "step": "conditions",
+  "footprint": 265,
+  "malloc": 70.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 913.9,
+  "js": 108,
+  "ext": 43.4
+ },
+ {
+  "step": "map after conditions",
+  "footprint": 270,
+  "malloc": 69.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 923.4,
+  "js": 116,
+  "ext": 44.6
+ },
+ {
+  "step": "salmon",
+  "footprint": 273,
+  "malloc": 68.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 928.2,
+  "js": 116,
+  "ext": 49.7
+ },
+ {
+  "step": "after memory warning",
+  "footprint": 273,
+  "malloc": 68.5,
+  "graphics": 0,
+  "mapped": 0,
+  "rss": 928.1,
+  "js": 116,
+  "ext": 50.2
+ }
+]

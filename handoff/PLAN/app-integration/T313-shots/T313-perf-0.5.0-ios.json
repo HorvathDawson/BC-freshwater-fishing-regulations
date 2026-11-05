@@ -1,0 +1,262 @@
+{
+ "device": "E95647E8-3BF3-4E3E-B00A-C2258D2F0894 · iPhone 17 · iOS-26-5",
+ "note": "iOS Simulator on the Mac: regressions / iOS-only stalls, not phone speed",
+ "cold": [
+  {
+   "mapDrawnMs": 646,
+   "rssMb": 454
+  },
+  {
+   "mapDrawnMs": 625,
+   "rssMb": 449
+  },
+  {
+   "mapDrawnMs": 641,
+   "rssMb": 453
+  }
+ ],
+ "open": [
+  {
+   "what": "sid 205058",
+   "marks": {
+    "hit": [
+     0.2,
+     0
+    ],
+    "go": [
+     12.1,
+     11
+    ],
+    "screen": [
+     13.2,
+     11
+    ],
+    "sheet": [
+     13.2,
+     11
+    ],
+    "shell": [
+     16.8,
+     11
+    ],
+    "store": [
+     23.7,
+     13
+    ],
+    "inputs": [
+     23.7,
+     13
+    ],
+    "page": [
+     23.7,
+     13
+    ],
+    "regsRender": [
+     24.3,
+     13
+    ],
+    "layout": [
+     45.1,
+     13
+    ],
+    "commit": [
+     48,
+     13
+    ],
+    "target": [
+     270.6,
+     15
+    ],
+    "salmon": [
+     270.6,
+     15
+    ],
+    "frame": [
+     278.4,
+     16
+    ],
+    "access": [
+     301.7,
+     19
+    ]
+   },
+   "spans": {
+    "build": 5.7
+   },
+   "sql": 19,
+   "sqlWait": 533.6,
+   "sqlRun": 303.3,
+   "sqlMax": 261,
+   "sqlMaxWhat": "core: SELECT ord FROM item WHERE item_id = ?",
+   "lagMax": 262.1,
+   "lagAt": 278.4,
+   "named": "Hope Slough"
+  },
+  {
+   "what": "sid 205058",
+   "marks": {
+    "hit": [
+     0.2,
+     0
+    ],
+    "go": [
+     0.7,
+     1
+    ],
+    "screen": [
+     1.7,
+     1
+    ],
+    "sheet": [
+     1.8,
+     1
+    ],
+    "shell": [
+     4.9,
+     1
+    ],
+    "store": [
+     6.4,
+     2
+    ],
+    "target": [
+     6.4,
+     2
+    ],
+    "inputs": [
+     6.4,
+     2
+    ],
+    "page": [
+     6.4,
+     2
+    ],
+    "regsRender": [
+     6.9,
+     2
+    ],
+    "layout": [
+     17,
+     2
+    ],
+    "commit": [
+     17.5,
+     2
+    ],
+    "salmon": [
+     26,
+     2
+    ],
+    "access": [
+     26,
+     2
+    ],
+    "frame": [
+     33.9,
+     3
+    ]
+   },
+   "spans": {
+    "build": 0.6
+   },
+   "sql": 3,
+   "sqlWait": 0,
+   "sqlRun": 29.5,
+   "sqlMax": 28.8,
+   "sqlMaxWhat": "core: SELECT ord FROM item WHERE item_id = ?",
+   "lagMax": 17.7,
+   "lagAt": 33.9,
+   "named": "Hope Slough"
+  },
+  {
+   "what": "sid 205058",
+   "marks": {
+    "hit": [
+     0.2,
+     0
+    ],
+    "go": [
+     0.6,
+     1
+    ],
+    "screen": [
+     1.7,
+     1
+    ],
+    "sheet": [
+     1.7,
+     1
+    ],
+    "shell": [
+     4,
+     1
+    ],
+    "store": [
+     6.3,
+     2
+    ],
+    "target": [
+     6.3,
+     2
+    ],
+    "inputs": [
+     6.3,
+     2
+    ],
+    "page": [
+     6.3,
+     2
+    ],
+    "regsRender": [
+     6.9,
+     2
+    ],
+    "layout": [
+     16.2,
+     2
+    ],
+    "commit": [
+     16.6,
+     2
+    ],
+    "salmon": [
+     28.6,
+     2
+    ],
+    "access": [
+     28.6,
+     2
+    ],
+    "frame": [
+     38.1,
+     3
+    ]
+   },
+   "spans": {
+    "build": 0.6
+   },
+   "sql": 3,
+   "sqlWait": 0,
+   "sqlRun": 36.8,
+   "sqlMax": 33.3,
+   "sqlMaxWhat": "core: SELECT ord FROM item WHERE item_id = ?",
+   "lagMax": 21.9,
+   "lagAt": 38.1,
+   "named": "Hope Slough"
+  }
+ ],
+ "pan": {
+  "seconds": 111,
+  "lagMax": 18,
+  "late": 0,
+  "tiles": 11,
+  "labels": 278,
+  "sends": 10,
+  "ackMax": 12,
+  "renders": 8,
+  "stalls": 0,
+  "stallMax": 0,
+  "stallP95": 0
+ },
+ "rssPeakMb": 609
+}

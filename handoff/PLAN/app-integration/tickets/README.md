@@ -132,7 +132,7 @@ use that as the sole source of future work."
 | T85 | native install size: z13 overzoom + landuse filter (D32) | DONE | aeba83ca, b17dfa1f, d4589cb5, 6f25c3c9 | atlas z13 + basemap landuse filter + basemap z13 under the owner 2026-10-27 rule, all via T202 (basemap 918 -> 274.5 MB; audit clean on 6 extents; shots 8cc3af7e) |
 | T86 | production hosting + ship config | POSTPONED | — | parked by owner 2026-10-28 (prod a while off; SEO prod too); includes the data-worker double-gzip fix before any prod release |
 | T87 | owner sign-off walk, then final clean-up | PARTIAL | 1267d358, 8a043348, 7e656fcb | sign-off walk (owner); clean-up done 2026-10-28 |
-| T88 | iOS: signed build + TestFlight upload (re-scoped; the simulator half is T313) | OPEN | — | all (owner timing) |
+| T88 | iOS: signed build + TestFlight upload (re-scoped; the simulator half is T313) | PARTIAL | eb2405de0 | build-ios-testflight.sh written; --unsigned device archive builds (80 s); the owner's account + signed run left (OWNER-TODO iOS) |
 | T89 | rules that bind no water (10 unmatched + 3 no extent) | DONE | 010b5c28, 1ea79ca0, 894854c0, d47a38cd, 5f1eec34 | 6 rows / 21 rules await a located water: proposals in curation-review/t89-awaiting-water.json (Q45) |
 | T90 | Chehalis closure reaches Harrison side channels | DONE | ca9aa451, 9eb7d92f, 9d305ebf, 8fa32076, c8c72d6f | live; T102 part B |
 | T91 | Atnarko campsite split location | DONE | c357fcdb 94599d8b | closed under the lake-boundary rule: campsite end = owner pin; Tenas Lake outlet @630.47 (edge facing the extent); 96/96 ambiguous_cut picks nearest the other end, nothing moved |
@@ -354,7 +354,7 @@ use that as the sole source of future work."
 | T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | PARTIAL (in review, phone shots pending) | fd36533e3 | owner 2026-10-31 |
 | T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | 60c285d22 | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
 | T312 | Map panning feels slow: 1:1 finger tracking, natural fling, no JS work per camera tick | DONE | d91f300f6 | drag 1:1 after MapLibre's 5 dp slop; fling glide per release speed = Android's own (2286 dp/s: 235 default → 389 → 780 dp); no per-tick JS; owner feel check on the APK |
-| T313 | iOS simulator build + basic tests (install, map/regs, offline, satellite, location, walkthrough, PDF) | IN PROGRESS (sim build works; scenarios to run) | — | owner 2026-10-31 |
+| T313 | iOS simulator build + basic tests (install, map/regs, offline, satellite, location, walkthrough, PDF) | DONE 11-05 | 089c8a00f, 35699d3e5, bf8ca3820 | ios-t313g 11/11 on 0.5.0 (crash, memory, perf incl.); real phone = T364 |
 | T314 | Spot data refresh doesn't work in 0.3.0 (pending weather/flow never fill) | DONE (emulator 10-31: spots 15/15 on the Vedder, gauges + weather filled on reconnect; 0.4.0) | 21d047df8, 9ce7f4079, d67341585 | owner 2026-10-31 |
 | T315 | Offline: keep the last week of gauge readings so charts still show the measured line | IN REVIEW (emulator 10-31 PASS: offline cold start draws the kept measured line; left: owner deploys the feeds worker for obs.json) | b1827b9d0 | owner 2026-10-31 |
 | T316 | Spot + parking pins as map-engine GeoJSON layers (no lag on pan), clustering in the source | DONE | 55c09f699 | owner 2026-10-31 |
@@ -377,7 +377,7 @@ use that as the sole source of future work."
 | T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | POSTPONED (next credit cycle) | T324, T331 | owner 2026-10-30 |
 | T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | POSTPONED (next credit cycle) | T333 | owner 2026-10-30 |
 | T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | POSTPONED (next credit cycle, with T333/T334) | T333 | owner 2026-10-30 |
-| T336 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | OPEN | — | T313 2026-10-30 |
+| T336 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | DONE 11-05 | ed1cf4a81 | sim walk 25 of 25 |
 | T337 | DFO water bindings refresh inside the build — `match apply` is a manual step today; deliver reads a cache that an atlas rebuild can leave stale | OPEN | — | 2026-10-31 |
 | T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | 01919949f, 7a4d3faec | 2026-11-03 (01919949f; ships with batch 3 release) |
 | T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | DONE (live with the next bundle + release) 11-04 | e21cdbeac | 2026-10-31 |
@@ -405,10 +405,10 @@ use that as the sole source of future work."
 | T359 | Tidal follow-ups visible in the review app: a Follow-ups filter with each row's why, a "whole water is tidal" answer | DONE | c16f72eba | owner 2026-11-03; item 4 (DEM point → cut?) owner decision |
 | T360 | App memory footprint: measure Android RSS by screen/feature, find what grows past ~400 MB (T351 crashes at 406/435 MB) | PARTIAL | 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931 | 11-05: Conditions 442 → 412, map after it 446 → 389, rule book 2nd open no growth; JS externals recorded; left: real-phone GPU + Vulkan/OpenGL, salmon-on-demand (owner) |
 | T361 | Six region-1 DFO owner marks read "rule changed" after the 11-03 region-1 re-queue (test_marks_never_orphaned red) | DROPPED (folded into T366, owner 11-03: historic places, marks stand; rule changes go to the digest) | — | owner re-reviews the six |
-| T362 | iOS crash reports: no exit-info twin on iOS, so an iOS crash leaves no record (MetricKit or equivalent, into the T242 path) | OPEN | — | owner 2026-11-03 (0.5.0 plan, iOS next) |
-| T363 | iOS memory: T360's per-screen method on the Simulator, then a real iPhone (sim 420 MB, 665 MB peak panning) | OPEN | T360 | owner 2026-11-03 |
-| T364 | Real-iPhone run: location prompt, offline first download, edge-back gesture, gauge pill padding | OPEN | T313, T88 | owner 2026-11-03 |
-| T365 | App Review compliance: privacy manifest, tracking declaration, final bundle id + name (CanIFish vs Can I Fish?) | OPEN | T244 | owner 2026-11-03 |
+| T362 | iOS crash reports: no exit-info twin on iOS, so an iOS crash leaves no record (MetricKit or equivalent, into the T242 path) | DONE 11-05 | 5b832c347, 59fc7bb24, 5918cfa45 | signal/exception record → sent at next start, verified on the sim; system kills (jetsam/SIGKILL) not caught (MetricKit follow-up if needed) |
+| T363 | iOS memory: T360's per-screen method on the Simulator, then a real iPhone (sim 420 MB, 665 MB peak panning) | PARTIAL | 089c8a00f, bf8ca3820 | sim footprint 147–290 MB, rule book no leak, memory warning frees nothing; real iPhone left (T364) |
+| T364 | Real-iPhone run: location prompt, offline first download, edge-back gesture, gauge pill padding | OPEN | T313, T88 | owner: steps in OWNER-TODO iOS |
+| T365 | App Review compliance: privacy manifest, tracking declaration, final bundle id + name (CanIFish vs Can I Fish?) | PARTIAL | f74621e99, 38de56f81 | manifest + encryption flag in; met/missing list in the ticket; name, ASC forms, account = owner |
 | T366 | DFO live refresh made clean: dry-run preview of changed rows + marks it stales, typed stamped with its page, fetched pages archived, rule-only changes re-checked in one click; then region 2 (FN1179 Fraser chum) | IN REVIEW | — | b71bbcd11; refresh run 11-03 (regions 1, 2, 6; no marks moved); owner confirms 2 Fraser places in DFO mode |
 | T367 | UI text clean-up as an owner back-and-forth (regs, conditions map, More): bad formatting, debloat top-level text; dev web app first, then the 0.5.0 APK | DONE 11-04 (owner call; leftovers → T377) | d3577f2e3 | owner 2026-11-03 (batch 6b) |
 | T368 | Failures, fallbacks and reporting app-wide: rethrow, or show + `reportFailure`, or list; one failure face; scan net (split from T333) | DONE | 6fed147f1, 84dfd1098 | — (T369 lane: openWater/place sites the net flags; owner: "today" is the device's day) |

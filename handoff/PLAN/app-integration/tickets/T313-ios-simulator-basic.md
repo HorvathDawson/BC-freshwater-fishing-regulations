@@ -1,6 +1,6 @@
 # T313 — iOS: build for the simulator and run the basic tests
 
-Status: IN PROGRESS — build + 5/8 scenarios pass; one final run (with perf) held behind the APK 0.4.0 chain (owner 2026-10-31: "Xcode is installed. Could you set it up and do basic iOS tests and make sure it works as expected?").
+Status: DONE 2026-11-05 — 089c8a00f, 35699d3e5, bf8ca3820 (test bed), ed1cf4a81 (T336), 5b832c347 + 59fc7bb24 (T362); run ios-t313g: 11/11 scenarios pass on 0.5.0 (f74621e99).
 
 ## Work
 1. `expo prebuild --platform ios` in a temp worktree (like build-apk.sh), pods, build a Debug/Release app for the iOS
@@ -104,3 +104,36 @@ after the edge-back step, which logged "y 50% 400 ms: stayed": the app was most 
 every later flow started from the wrong screen (a cascade, not new app bugs). Next: make each scenario start from the
 map (reset/relaunch between scenarios) and settle edge-back (fast mid-height swipe stays put). Report:
 app/tools/testbed/out/runs/ios-t313e/.
+
+## Run ios-t313g (2026-11-05, 0.5.0 build f74621e99 --probes, iPhone 17 sim iOS 26.5, staging) — 11/11 PASS
+Report: app/tools/testbed/out/runs/ios-t313g/index.html; shots T313-shots/10–14 (+ the earlier pairs); numbers
+T313-shots/T313-perf-0.5.0-ios.json, T363-memory-ios.json.
+| scenario | result |
+|---|---|
+| first-open (fresh install) | PASS — 168 s to the map (whole staging release), About "Data source: Staging" |
+| map | PASS |
+| tap-water | PASS 3/3 — search → page; edge-back; framed + map tap → Cultus page |
+| offline (Simulate offline) | PASS 3/3 — Check now "failed (offline)", regs from the installed set, switch back off |
+| satellite | PASS — light grey 10.1 % → 3.9 %, Map base put back |
+| location | PASS (1 skip: no "At my location" row in iOS search — as before) |
+| walkthrough | PASS — **25 of 25** (T336 fixed) |
+| pdf | PASS — the in-app viewer (PDFKit, T354) at "Page 11 of 88" |
+| crash (T362) | PASS — SIGSEGV → next start "sent 1 exit record (CRASH_NATIVE)"; a normal restart sends 0 |
+| memory (T363) | PASS — see T363 |
+| perf | PASS — below |
+- **Edge-back verdict**: the same in every run (t313d/e/f/g): a fast mid-height drag (50 %, 400 ms) stays, a slower higher
+  one (30 %, 900 ms) goes back. Not ticketed: a real thumb is the judge (T364 lists it).
+- Test-bed causes of the earlier failures (none were app bugs): the text "Map" is also a water page's back link (Maestro tapped
+  the first one and reopened the page) → the Map tab is tapped by place; a water's page is found by its back link's id;
+  each scenario starts from the map. **Environment:** Maestro probes localhost:5555–5585 for Android emulators even with
+  `--platform ios` and waits forever when something else listens there (a VS Code helper held 5555/5556 on 11-05): on iOS it
+  now runs under a sandbox profile refusing those ports (lib/maestro.mjs).
+- Gap: the memory scenario's "Trout & more" tap is not found by its text after Salmon (the run leaves the simulator on Salmon).
+
+### Perf, 0.5.0 (iOS simulator on the Mac — regressions / iOS-only stalls, not phone speed) vs Android emulator
+| measure | iOS sim 0.5.0 | iOS sim 0.4.0 (t313e) | Android emulator |
+|---|---|---|---|
+| cold start → map drawn | 625–646 ms | 596–619 ms | map up 3.8 s (0.4.0) |
+| map tap → page first frame ([open]) | 278 ms cold, 34–38 ms warm | 268 / 28–30 ms | lake 247 ms cold, 53–78 ms warm |
+| pan, 8 swipes: JS lag max / stalls > 50 ms | 18 ms / 0 | 17 ms / 0 | 23–24 ms |
+| RSS (cold / pan peak) | 449–454 / 609 MB | 421–424 / 613 MB | PSS 255–289 MB (RSS ≠ PSS) |
