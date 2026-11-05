@@ -1,6 +1,6 @@
 # T287 — No freeze when a download finishes: updates apply in the background
 
-Status: PARTIAL 2026-10-30 — a3cc1f269, b3ca664cf, f1e2d5abc (left: the commit's re-render + the map's relabel; see "Swap work cut") (owner 2026-10-29: "after a download finishes the app freezes for a tiny bit. this feels really bad. it should
+Status: PARTIAL 2026-11-05 — a3cc1f269, b3ca664cf, f1e2d5abc, 2bdcc1931 (update apply: no stall left; first-install mount not re-measured)
 not freeze. it should update in background cleanly").
 
 ## Work
@@ -70,3 +70,25 @@ were not measured here.
   and split the commit (map colouring first, the rest a turn later).
 - Test bed: `install` now records the first-install finish (`T287-first-install.txt`, note `install finish → map`) and
   dismisses T303's locate hint ("Got it") — it covered the map and failed `install` / smoke taps.
+
+## The commit's map work removed (2026-11-05, 2bdcc1931; test bed `update-freeze`, runs t287-base / t312-b)
+Cause read off the log: at the commit every map input went BLANK for a frame and came back — the pairing (new release
+key → "not proven"), the status index, lake / method / salmon facts (new source → loading) — so the map cleared, swapped
+its style twice and relabelled everything; and every salmon slice was decoded again (Promise.all, a 69 ms stall) and the
+salmon facts rebuilt (157 ms).
+- `adoptDecoded` (data/release/loader.ts, called by `warmLike`): a file the new set repeats (same sha256, same handles)
+  is handed over decoded — the same objects (paint, method, lakes, access, flow-area, salmon head + slices, facts memo).
+- The pairing of a manifest that names its tiles is answered in the render the release changes (`usePairing` peek).
+- Status index, lake / method / salmon facts: a new source in the same section numbering (`WaterSource.handles`) is a
+  REFRESH (`useAsync` sameAs) — the old answer stays until the new one is in; failures still reported.
+- The native style keys on its values' CONTENT (Map.native.tsx `valuesKey`, d91f300f6): equal values, no style swap.
+- Tests: loader.test (adoption), release.render.test (no blank frame), adapter-contract (no style swap).
+
+| same-files update (test channel) | while panning | map still, at the swap | apply → committed |
+|---|---|---|---|
+| before (t287-base) | 1 × 64 ms | **69 · 157 · 162 ms** | 1139 ms |
+| after (t312-b) | 1 × 63 ms (before the swap) | **0** | 586 ms |
+
+Left (why PARTIAL): a release whose paint/salmon files DID change still relabels once (necessary; no blank frame, one
+style swap at most) — the test channel publishes the same files, so that case is unmeasured; the first-install first map
+mount (275 ms, 2026-10-30) was not re-measured.

@@ -1,6 +1,6 @@
 # T360 — App memory footprint
 
-Status: PARTIAL — code read done (findings + corrections below); measurement on the emulator is next (RESUME)
+Status: PARTIAL 2026-11-05 — 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931 (Conditions still peaks ~410 MB on the emulator; real-phone GPU memory + Vulkan/OpenGL left)
 
 Owner 2026-11-03: "could we look into the memory footprint of the app". Evidence: the two 0.4.0 foreground native
 crashes (T351) happened at 406 MB and 435 MB in use (one SIGSEGV); background LOW_MEMORY kills at 169 MB (0.3.0, 0.4.0).
@@ -142,3 +142,24 @@ patch also logged one recycle for two closes) — check the scenario's second op
   legend's fishery bar, where the old `tap-text Salmon` found nothing. The bar shows only when salmon is offered: the
   b5-before shots (staging data, pre-`n` salmon file) show no fishery bar — check on the next sitting.
 - "One viewer per trace": still to check on the emulator (the second open's shot + its `drawPdf` lines), next sitting.
+
+## Round 6 (2026-11-05; runs t287-base = before, t312-c = after the T287 change; one sample each)
+| step | PSS before | PSS after | native after | JS external after |
+|---|---|---|---|---|
+| boot | 274 | 257 | 150 | 63 |
+| water page (Cultus) | 275 | 269 | 101 | 33 |
+| rule book, closed (2nd time) | 339 | **302** | 122 | 33 |
+| Conditions | 442 | **412** | 226 | 52 |
+| Map tab after Conditions | 446 | **389** | 184 | 43 |
+| Salmon | 432 | 418 | 193 | 67 |
+| after trim (CRITICAL) | 414 | 379 | 168 | 39 |
+- JS EXTERNAL bytes (typed arrays: decoded release files; malloc'd, so inside "native") are 33–67 MB of it, now
+  recorded per step. Measured in node over r-5a5999c94588: the salmon slices decode to 15.8 MB, paint 1.5 MB; an applied
+  update used to hold the old and new sets together (ext 50 → 148 MB at the swap) — `adoptDecoded` (T287) keeps one copy
+  for unchanged files.
+- The rule book no longer grows on a second open (302 after the 2nd close, was 339): the PDF fix holds.
+- Conditions still adds ~100 MB native over a water page. heapprofd (t360-hp) sees only ~28 MB LIVE growth (Hermes 11.6,
+  MapLibre 11.3): the rest is pages the allocator keeps after MapLibre's churn, and a trim's M_PURGE_ALL gives back only
+  20–40 MB. No app-side fix found that is not a visual/behaviour change.
+- Left: a real phone's numbers (GPU memory is 0 on the emulator) and the Vulkan → OpenGL question on that phone; option
+  to put to the owner: decode salmon slices only when Salmon is chosen (−16 MB, first toggle ~0.7 s slower).

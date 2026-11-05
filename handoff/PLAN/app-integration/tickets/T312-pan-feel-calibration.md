@@ -1,6 +1,6 @@
 # T312 — Map panning feels slow: calibrate gesture speed and fling
 
-Status: OPEN (owner 2026-10-31: "the app panning feels slow almost too. Like we need to calibrate how fast the panning is
+Status: DONE 2026-11-05 — d91f300f6 (owner feel check on the next APK: OWNER-TODO phone checks)
 for gestures").
 
 ## Work
@@ -43,3 +43,23 @@ batch 5 of RELEASE-PLAN-0.5.0.md.
   `v × time × 0.28 / 1000` — distance grows with the base time. Patched (MLRNMapView.onMapReady, the maplibre patch):
   base 450 ms, threshold 500. ~+70 % distance at 2000 dp/s; gentler swipes fling. After-numbers on the next emulator
   sitting (testbed `pan`, a scripted fast swipe's travel), feel on the owner's phone.
+
+## Measured + fixed (2026-11-05, test bed `feel` + `perf`, runs t312-a / t312-b / t312-c, emulator n1_pixel)
+- **1:1 tracking:** a slow 400 px drag (1500 ms, no fling) moves the map 147 of the finger's 152 dp (×0.97, three drags):
+  the 5 dp are MapLibre's touch slop before a move starts; after it the map is exactly under the finger. Nothing to fix.
+- **No JS per camera tick:** confirmed (no `onRegionIsChanging`; `[cam]` is one line per settle).
+- **Fling:** MapLibre's glide is `v × (v/10.5 + base) × 0.28` ms·dp — at 2000–5000 dp/s it stops at 1/2–1/2.5 of Android's
+  own fling (OverScroller, what a list or Google Maps gives). The patch (MLRNMapView.`tuneFling`) now tracks the finger's
+  velocity and, as it lifts, sets MapLibre's base time so the glide covers OverScroller's spline distance; threshold 500.
+
+| release speed (300 px flick) | defaults (formula) | fixed 450 ms base (1777a16cb) | per-fling base (now) | Android's own |
+|---|---|---|---|---|
+| 2286 dp/s | 235 dp | 389 dp | **779–782 dp** | 816 dp |
+| 1429 dp/s | 114 dp | 193 dp | **318–348 dp** | 361 dp |
+| 952 dp/s | 0 (no fling) | 130 dp | **145–160 dp** | 178 dp |
+| 571 dp/s | 0 (no fling) | 61 dp | **55–65 dp** | 73 dp |
+
+- Web untouched (maplibre-gl's own inertia; the owner's complaint was Android). iOS not measured (no iOS fling patch).
+- Test bed: `@app/map` native/camProbe.ts (`[cam]` settles, `[move]` app camera moves, the camera link
+  `canifishthis://testbed/camera?lon&lat&zoom`, all inert outside the pan-probe build), scenario `feel`.
+- Phone: the fling's length and glide on the owner's phone (OWNER-TODO).

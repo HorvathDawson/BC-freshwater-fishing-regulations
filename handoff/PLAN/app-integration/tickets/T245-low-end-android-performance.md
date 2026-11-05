@@ -1,6 +1,6 @@
 # T245 — low-end Android performance
 
-Status: PARTIAL 2026-10-29 (49e303e96) — budgets + repeatable check built and measured; no app change (no clear low-end offender); pan at z8/z12 and a real phone left.
+Status: PARTIAL 2026-11-05 — 49e303e96, d91f300f6 (z8/z12 measured; pan fps fails on the emulator; a real low-end phone left)
 
 Source: owner 2026-10-28 — approved proposal P11 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -42,3 +42,14 @@ Left (follow-up):
    framing is undone when the search closes. Needs a camera deep link or a test-bed-only zoom hook.
 2. The same `perf` run on a real low-end phone (or an Android 10/11, 2 GB AVD) on an idle host. Pan fps can only be
    judged there.
+
+## Pan at z8 and z12 (2026-11-05, `perf`, run t312-a; camera link d91f300f6)
+| where (Fraser Valley, 8 travelling swipes) | fps moving | p50 / p95 / p99 | frames > 50 ms | PSS peak |
+|---|---|---|---|---|
+| start view (z 9.9) | 44.6 | 16.9 / 35.4 / 65.2 ms | 15 | 294 MB |
+| **z8** | **29.4** | 33.3 / 51.4 / 117 ms | 50 | 326 MB |
+| z12 | 44.8 | 16.8 / 35.1 / 51 ms | 13 | 318 MB |
+Cold start 3.9 s (budget 4 s), memory peak 326 MB (budget 400). z9.9 and z12 sit at the budget line (45 fps); **z8 is the
+slow zoom** — many basemap/atlas features per tile (T273: the basemap's green-space polygons were the hitch). Lowering it
+is a visual change (e.g. no wood/forest fill below z9, or the atlas's small streams from z9): the owner's choice, and
+only worth deciding after the same `perf` run on a real low-end phone (emulator fps is not a phone's).
