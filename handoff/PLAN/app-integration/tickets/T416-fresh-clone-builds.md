@@ -29,3 +29,9 @@ A fresh clone + bootstrap + build reproduces the live release; every non-git inp
 nothing is "only on this Mac". Time to first build recorded.
 
 Size: M–L (the proof is a full build). Owner: provide credentials on the test machine if a second machine is used.
+
+## 2026-11-05: started
+- GitHub was 868 commits behind this branch: pushed by the owner's OK (22fcc3c41). The real proof clones from GitHub.
+- The repo is PUBLIC; the PSF run-timing pages are in git (owner question in OWNER-TODO).
+- Fetch started on a local clone: `~/t416-fresh` (clone → venv → `data/fetch_data.py` under heavy.sh → parsing
+  backup), timed in `~/t416-fresh.log`. Script: the session scratchpad `t416-fetch.sh` (copy it into the runbook).

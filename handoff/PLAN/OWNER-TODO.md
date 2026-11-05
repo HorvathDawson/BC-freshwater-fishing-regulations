@@ -6,6 +6,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **PSF run-timing files in a PUBLIC repo (found 11-05, T416):** `data/source/runtiming/` (the PSF pages + `timing.json`)
+  is in git and on GitHub (public). T162 found PSF's terms give no reuse grant ("© PSF, all rights reserved"). Options:
+  keep as is, or remove them from git going forward (git-ignored, re-fetched by the run-timing workflow, T412) and ask
+  PSF for permission. History already holds them either way. Not blocking.
+
 - **Optional, GitHub token for the feeds worker (T413):** a fine-grained token on this repo, *Actions: write* only,
   set as the staging worker's secret, so the worker starts the HYDAT workflow itself. Until then, its email tells you to press
   the button. Not blocking.
@@ -47,7 +52,7 @@ with the default Claude uses until you answer). Newest first inside each section
   marks moved) found the Fraser mainstem reworded twice; FN1179 (chum 2/day Nov 3–30) is on one of them. Open the
   review app in DFO mode, region 2, and confirm the two Fraser places: the queue proposed "upstream of the CPR Bridge"
   as a variant of the existing upstream place, and DFO's "downstream of the CPR Bridge at Mission to … Hope" as the
-  dormant Mission→Hope place (made active). `data/curated/regulations/entries/dfo_salmon/region-2.json` is left
+  dormant Mission→Hope place (made active). `data/curated/dfo_salmon/places/region-2.json` is left
   uncommitted until you have. Also yours: the staleness warning window, 7 days in Apr–Dec (`refresh.STALE_DAYS`).
 - **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
   (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy: now Claude's
