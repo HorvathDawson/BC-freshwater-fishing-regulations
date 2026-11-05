@@ -25,7 +25,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   - One `pipeline release --staging` command, the same for you and me.
   - Curated files get clearer, consistent names.
 - **Tickets:** T324, T325, T266, T295, T297, T337 re-scoped to those answers; T412, T413 new.
-- **Next:** T164 (DFO salmon dossier), then the rest of the data-and-build list in order.
+- **T164 (salmon):** the dossier is clean and every live DFO rule lands on a place. Your part: 179 places still need an
+  extent. I refreshed each proposal against today's build (OWNER-TODO has the steps).
+- **T178:** waits for the worker's first monthly score on 2026-12-01.
+- **Running now (2 lanes):** T239 (yearly synopsis runbook + a book-vs-book diff, dry run with no credits) and dropping
+  `decided/` (T266/T325).
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json
