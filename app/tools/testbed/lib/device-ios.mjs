@@ -71,16 +71,45 @@ export function screenText() {
     const json = execFileSync(bin, ['--device', udid(), 'hierarchy'], {
       encoding: 'utf8', timeout: 90_000, maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'],
       env: { ...process.env, MAESTRO_CLI_NO_ANALYTICS: '1', JAVA_HOME: process.env.JAVA_HOME ?? '/Applications/Android Studio.app/Contents/jbr/Contents/Home' } });
-    const out = [];
+    const out = [], ids = [];
     const walk = (n) => {
       const a = n.attributes ?? {};
       for (const k of ['text', 'accessibilityText', 'hintText', 'value']) if (a[k] && !out.includes(a[k])) out.push(a[k]);
+      if (a['resource-id']) ids.push(a['resource-id']);
       (n.children ?? []).forEach(walk);
     };
     walk(JSON.parse(json.slice(json.indexOf('{'))));
+    // (T313) the RN testIDs on screen ride along (not words: a scenario's text match never sees them)
+    Object.defineProperty(out, 'ids', { value: ids, enumerable: false });
     return out;
-  } catch { return []; }
+  } catch { return Object.defineProperty([], 'ids', { value: [], enumerable: false }); }
 }
+
+/** (T363) The app's memory as iOS counts it (`footprint`, the host's view of the simulator process; MB): the footprint
+ *  (what iOS's memory limit reads), MALLOC (the native heap: Hermes' external bytes, MapLibre, SQLite), graphics
+ *  (IOSurface / IOAccelerator / Metal: on the simulator the Mac's GPU, so a lower bound), mapped files, RSS. */
+export function memory() {
+  const pid = pidOf();
+  if (!pid) return null;
+  try {
+    const t = execFileSync('footprint', [pid], { encoding: 'utf8', timeout: 60_000, maxBuffer: 16 << 20 });
+    const mb = (v, u) => Math.round(Number(v) * ({ B: 1 / 1048576, KB: 1 / 1024, MB: 1, GB: 1024 }[u] ?? 0) * 10) / 10;
+    const head = /Footprint:\s+([\d.]+)\s+(B|KB|MB|GB)/.exec(t);
+    const cat = { malloc: 0, graphics: 0, mapped: 0 };
+    for (const m of t.matchAll(/^\s*([\d.]+)\s+(B|KB|MB|GB)\s+[\d.]+\s+(?:B|KB|MB|GB)\s+[\d.]+\s+(?:B|KB|MB|GB)\s+\d+\s+(.+)$/gm)) {
+      const v = mb(m[1], m[2]), c = m[3].trim();
+      if (/^MALLOC/.test(c)) cat.malloc += v;
+      else if (/IOSurface|IOAccelerator|Metal|IOKit/.test(c)) cat.graphics += v;
+      else if (/^mapped file/.test(c)) cat.mapped += v;
+    }
+    let rss = null;
+    try { rss = Math.round(Number(execFileSync('ps', ['-o', 'rss=', '-p', pid], { encoding: 'utf8' }).trim()) / 102.4) / 10; } catch { /* gone */ }
+    const r1 = (x) => Math.round(x * 10) / 10;
+    return { footprint: head ? mb(head[1], head[2]) : null, malloc: r1(cat.malloc), graphics: r1(cat.graphics), mapped: r1(cat.mapped), rss };
+  } catch { return null; }
+}
+/** (T363) iOS's memory warning, as the Simulator's menu sends it */
+export const memoryWarning = () => simctl(['spawn', udid(), 'notifyutil', '-p', 'UISimulatedMemoryWarningNotification']);
 
 /** The app's log lines (os_log, the simulator's unified log) since `since` (a Date), matching `re`. */
 export function logSince(since, re) {

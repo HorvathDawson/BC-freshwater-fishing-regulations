@@ -5,7 +5,8 @@
 // app's own "Simulate offline" (Updates log, staging builds), said as such in the report.
 //
 //   node app/tools/testbed/run-ios.mjs [all | <scenario id>…] [--out <dir>]
-//   scenarios: first-open map tap-water offline satellite location walkthrough pdf perf (perf: a --probes build)
+//   scenarios: first-open map tap-water offline satellite location walkthrough pdf crash perf memory
+//   (perf, memory: a --probes build — the app's [open] [pan] [heap] lines)
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -28,6 +29,8 @@ const hasTabs = (w) => w.some((x) => /^MORE$|^More$/.test(x)) && w.some((x) => /
 const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
 /** the walkthrough card's count line ("FIND A WATER · 1 OF 25") */
 const GUIDE = /\d+ of \d+$/i;
+/** a water's page is up: its back link by id (iOS reads "‹ Map" as the label "Back"; the tab bar can stay in the tree) */
+const onPage = (w) => (w.ids ?? []).includes('water-back') || (w.includes('Regulations') && w.includes('Conditions') && !hasTabs(w));
 
 /** The app in front with the map drawn: the first-run notice, the tour and system prompts closed as a reader would. */
 async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}) {
@@ -40,7 +43,7 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
       ctx.flow('ios-alert', { BUTTON: alerts === 'Allow' ? 'Allow.*' : "Don.t Allow" });
     } else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x) || GUIDE.test(x))) {
       ctx.flow('dismiss-first-run');                     // the notice, the walkthrough (it reopens itself until skipped)
-    } else if (w.includes('Regulations') && w.includes('Conditions') && !hasTabs(w)) {
+    } else if (onPage(w)) {
       ctx.flow('tap-point', { POINT: PAGE_BACK });          // a cold start reopened the water's page: back to the map
     } else if (!hasTabs(w) && w.includes('Layers') && w.includes('Done')) {
       // (T313 finding, T332) a walk left at its Layers step reopens the sheet, and the card over it is not in the
@@ -62,11 +65,12 @@ async function appUp(ctx, { launch = true, ms = 180_000, alerts = 'Allow' } = {}
 async function coldStart(ctx, opts) { device.stop(); await sleep(1000); return appUp(ctx, opts); }
 /** Back to the Map tab: the edge-back (iOS has no system Back) until the tab bar shows, then the tab. */
 async function toMap(ctx) {
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     const w = device.screenText();
-    // a water's page ("‹ Map" over Regulations · Conditions): its own back link (the tab bar may still be in the tree)
-    if (w.includes('Regulations') && w.includes('Conditions') && w.includes('Map')) {
-      ctx.flow('tap-point', { POINT: PAGE_BACK }); await sleep(1500); continue;
+    // a water's page ("‹ Map" over Regulations · Conditions): its own back link, by id (the tab bar may still be in the tree)
+    if (onPage(w)) {
+      try { ctx.flow('tap-id', { ID: 'water-back' }); } catch { ctx.flow('tap-point', { POINT: PAGE_BACK }); }
+      await sleep(1500); continue;
     }
     if (hasTabs(w)) break;
     // a menu page (a Modal from below: no edge swipe) has its own "‹ Back"; a water's page the edge-back
@@ -75,7 +79,8 @@ async function toMap(ctx) {
     else ctx.flow('edge-back');
     await sleep(1000);
   }
-  if (!hasTabs(device.screenText())) await coldStart(ctx);
+  const w = device.screenText();
+  if (!hasTabs(w) || onPage(w)) await coldStart(ctx);
   ctx.flow('tab', { TAB: 'Map' });
   await sleep(1000);
 }
@@ -141,8 +146,10 @@ const SCENARIOS = [
         for (const [f, Y, MS] of [['edge-back', '50%', 400], ['edge-back-high', '30%', 900], ['edge-back-low', '80%', 400]]) {
           ctx.flow(f);
           await sleep(1500);
+          // an empty read is not "back", nor is one taken mid-slide: back only when two reads 1.5 s apart both show no page
           const w = device.screenText();
-          const back = w.length > 0 && !(w.includes('Regulations') && w.includes('Conditions'));   // an empty read is not "back"
+          let back = w.length > 0 && !onPage(w);
+          if (back) { await sleep(1500); const w2 = device.screenText(); back = w2.length > 0 && !onPage(w2); }
           tried.push(`y ${Y} ${MS} ms: ${back ? 'back' : 'stayed'}`);
           if (back) return tried.join(' · ');
         }
@@ -302,11 +309,11 @@ const SCENARIOS = [
             const w2 = device.screenText();
             c = w2.find((x) => COUNT.test(x));
             if (!c && w2.includes('Layers') && w2.includes('Done')) {
-              // (T332) the card over the Layers sheet is not in the accessibility tree: the walk cannot be driven on
+              // (T336, fixed) the card over the Layers sheet missing from the accessibility tree: a failure again
               shot(ctx, 'walk-hidden');
-              ctx.finding(`T332: after ${reached} of ${total} the walkthrough card over the Layers sheet is missing from the accessibility tree`);
+              ctx.finding(`T336: after ${reached} of ${total} the walkthrough card over the Layers sheet is missing from the accessibility tree`);
               await coldStart(ctx);                         // appUp closes the sheet and skips the walk
-              ctx.skip(`walked 1–${reached} of ${total}; step ${reached + 1} (over the Layers sheet) is unreachable by accessibility (T332)`);
+              throw new Error(`walked 1–${reached} of ${total}; step ${reached + 1} (over the Layers sheet) is unreachable by accessibility (T336)`);
             }
             if (!c) { closed = true; break; }
           }
@@ -344,7 +351,127 @@ const SCENARIOS = [
         if (failed) throw new Error(failed);
         const page = w.find((x) => /^Page \d+ of \d+$/.test(x));
         if (!page) throw new Error(`the in-app viewer did not open (words: ${w.slice(0, 6).join(' | ').slice(0, 200)})`);
+        ctx.flow('tap-id', { ID: 'pdf-viewer-close' });
         return `shown in the app: ${page}`;
+      });
+    } },
+  { id: 'crash', title: 'A native crash is reported on the next start (T362: the app\'s own record, iOS keeps none), once',
+    // The app is crashed the way a native fault does it: SIGSEGV to its process (a simulator app is a Mac process). The
+    // next start reads modules/exit-info's record and sends it (POST /crash, tagged `test` on a --probes build); the app
+    // logs "[crash-reports] sent N exit record(s)", streamed to app-os.log. A start after a normal stop sends none.
+    async run(ctx) {
+      const sent = (mark) => { const l = logLines(mark, '[crash-reports] sent').at(-1); const m = l && /sent (\d+) exit record[^\n]*/.exec(l); return m ? { n: Number(m[1]), line: m[0] } : null; };
+      const waitSent = async (mark, ms) => { const end = Date.now() + ms; let r = null; while (Date.now() < end && !(r = sent(mark))) await sleep(2000); return r; };
+      await ctx.step('the app up, then crashed (SIGSEGV to its process)', async () => {
+        await toMap(ctx);
+        const pid = device.pidOf();
+        if (!pid) throw new Error('the app is not running');
+        process.kill(Number(pid), 'SIGSEGV');
+        const end = Date.now() + 15_000;
+        while (Date.now() < end && device.pidOf() === pid) await sleep(500);
+        if (device.pidOf() === pid) throw new Error('the app did not die');
+        await sleep(4000); ctx.expectCrash();                    // this crash is the test, not a finding
+        return `pid ${pid} gone`;
+      });
+      await ctx.step('the next start sends 1 exit record', async () => {
+        const mark = logMark();
+        await appUp(ctx);
+        const r = await waitSent(mark, 90_000);
+        if (!r) throw new Error('no "[crash-reports] sent" line in 90 s');
+        if (r.n < 1) throw new Error(`the record was not sent: ${r.line}`);
+        return r.line;
+      });
+      await ctx.step('a start after a normal stop sends none', async () => {
+        const mark = logMark();
+        await coldStart(ctx);
+        const r = await waitSent(mark, 60_000);
+        if (!r) throw new Error('no "[crash-reports] sent" line in 60 s');
+        if (r.n !== 0) throw new Error(`sent again: ${r.line}`);
+        return r.line;
+      });
+    } },
+  { id: 'memory', title: 'Memory per screen (T363, T360\'s method on iOS): footprint, MALLOC, graphics, JS heap + external',
+    // `footprint` of the simulator process (the Mac's view): the footprint is what iOS's memory limit reads; graphics is
+    // the Mac's GPU here, so the phone's is not known (T364). JS: the build's [heap] probe (--probes), from app-os.log.
+    async run(ctx) {
+      const rows = [];
+      const keep = () => fs.writeFileSync(path.join(ctx.dir, 'T363-memory.json'), `${JSON.stringify(rows, null, 1)}\n`);
+      const measure = async (what, settle = 3000) => {
+        await sleep(settle);
+        const m = device.memory();
+        const h = logLines(-1, '[heap] ').at(-1);
+        let js = null, ext = null;
+        try { const j = JSON.parse(h.slice(h.indexOf('[heap] ') + 7)); js = Math.round(j.size / 104857.6) / 10; ext = j.ext == null ? null : Math.round(j.ext / 104857.6) / 10; } catch { /* no probe line */ }
+        rows.push({ step: what, ...m, js, ext }); keep();
+        return m ? `footprint ${m.footprint} · malloc ${m.malloc} · graphics ${m.graphics} · mapped ${m.mapped} · RSS ${m.rss} · js heap ${js ?? '?'} · js external ${ext ?? '?'}` : 'not running';
+      };
+      const layer = (id) => {
+        ctx.flow('tap-text', { TEXT: 'Choose layers.*' }); await_(1200);
+        ctx.flow('tap-id', { ID: id.startsWith('ground.') ? `option-${id.replace('.', '\\.')}` : `layer-${id.replace('.', '\\.')}` });
+        ctx.flow('tap-text', { TEXT: 'Done' }); await_(1200);
+      };
+      await ctx.step('boot: cold start → the map drawn', async () => { await coldStart(ctx); return measure('boot', 8000); });
+      await ctx.step('8 pans', async () => {
+        for (const f of ['pan-left', 'pan-left', 'pan-down', 'pan-down', 'pan-right', 'pan-right', 'pan-up', 'pan-up']) ctx.flow(f);
+        return measure('pan x8');
+      });
+      await ctx.step('satellite on, 4 pans (then the Map base)', async () => {
+        await toMap(ctx);
+        layer('ground.satellite');
+        for (const f of ['pan-left', 'pan-right', 'pan-left', 'pan-right']) ctx.flow(f);
+        const r = await measure('satellite on', 5000);
+        layer('ground.map');
+        return r;
+      });
+      await ctx.step("a water's page (Cultus Lake)", async () => {
+        await toMap(ctx);
+        ctx.flow('search', { Q: 'Cultus' });
+        ctx.flow('open-result', { LINE: '.*Lindell Beach.*' });
+        await ctx.waitText(/Regulations/, 30_000);
+        return measure('water page');
+      });
+      const LINK = process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*';
+      const book = async (label) => {
+        ctx.flow('scroll-to', { TEXT: LINK });
+        const t0 = Date.now();
+        ctx.flow('tap-text', { TEXT: LINK });
+        let page = null, failed = null;
+        while (Date.now() - t0 < 60_000) {
+          const w = device.screenText();
+          failed = w.find((x) => /Couldn.t (show|load) the (rule book|synopsis)/.test(x)) ?? null;
+          page = w.find((x) => /^Page \d+ of \d+$/.test(x)) ?? null;
+          if (failed || page) break;
+          await sleep(500);
+        }
+        const ms = Date.now() - t0;
+        if (failed) throw new Error(`the viewer said: ${failed}`);
+        if (!page) throw new Error(`the viewer never said its page in ${ms} ms`);
+        const open = await measure(`${label} open`, 2000);
+        ctx.flow('tap-id', { ID: 'pdf-viewer-close' });
+        await sleep(1500);
+        if (device.screenText().some((x) => /^Page \d+ of \d+$/.test(x))) throw new Error('the viewer did not close');
+        return `${page} in ${ms} ms · open: ${open} · closed: ${await measure(`${label} closed`, 5000)}`;
+      };
+      await ctx.step('the rule book: open in the app, closed', async () => book('rule book'));
+      await ctx.step('the rule book again: open, closed (a second close that keeps more is a leak)', async () => book('rule book (2nd)'));
+      await ctx.step('Conditions', async () => {
+        await toMap(ctx); ctx.flow('tab', { TAB: 'Conditions' });
+        await sleep(2000);
+        if (device.screenText().includes('Skip')) ctx.flow('tap-text', { TEXT: 'Skip' });   // its first-use tour
+        return measure('conditions', 6000);
+      });
+      await ctx.step('the Map tab after Conditions', async () => { ctx.flow('tab', { TAB: 'Map' }); return measure('map after conditions', 6000); });
+      await ctx.step('Salmon (the map coloured by salmon)', async () => {
+        await toMap(ctx);
+        ctx.flow('tap-text', { TEXT: 'Salmon' });
+        const r = await measure('salmon', 6000);
+        let back = 'Trout & more put back';
+        try { ctx.flow('tap-text', { TEXT: 'Trout & more' }); } catch { back = 'left on Salmon (Trout & more not found)'; }
+        return `${r} · ${back}`;
+      });
+      await ctx.step('iOS memory warning (the Simulator\'s "Simulate Memory Warning")', async () => {
+        device.memoryWarning();
+        return measure('after memory warning', 5000);
       });
     } },
   { id: 'perf', title: 'Performance, the Android measures (T245 / T286 / T273): cold start → map drawn, a map tap → its page, pan; memory',
@@ -486,6 +613,8 @@ function makeCtx(sc) {
       return s;
     },
     finding(text) { rec.findings.push(text); console.log(`  FINDING ${text}`); },
+    /** a crash the scenario caused on purpose: its report is not a finding */
+    expectCrash() { for (const f of crashList()) crashSeen.add(f); },
     skip(msg) { throw Object.assign(new Error(msg), { skip: true }); },
   };
   return ctx;
@@ -522,11 +651,24 @@ function logSince(mark, tag) {
 }
 
 function execSleep(s) { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, s * 1000); }
+function await_(ms) { execSleep(ms / 1000); }
+/** The raw app-os.log lines holding `tag` since `mark` (-1: the whole log; only its last 8 MB are read). */
+function logLines(mark, tag) {
+  try {
+    const f = path.join(dir, 'app-os.log'), size = fs.statSync(f).size;
+    const from = mark >= 0 ? mark : Math.max(0, size - (8 << 20));
+    const fd = fs.openSync(f, 'r'), buf = Buffer.alloc(size - from);
+    fs.readSync(fd, buf, 0, buf.length, from); fs.closeSync(fd);
+    return buf.toString('utf8').split('\n').filter((l) => l.includes(tag));
+  } catch { return []; }
+}
 
 for (const sc of SCENARIOS.filter((s) => want.includes(s.id))) {
   console.log(`[testbed-ios] ${sc.id} — ${sc.title}`);
   const ctx = makeCtx(sc);
   const t0 = Date.now();
+  // (T313) every scenario after the first starts from the map: one left on a page must not cascade into the next
+  if (sc.id !== 'first-open' && device.pidOf()) { try { await toMap(ctx); } catch (e) { console.log(`  (reset) ${e.message}`); try { await coldStart(ctx); } catch { /* the scenario says */ } } }
   try { await sc.run(ctx); }
   catch (e) { ctx.rec.result = 'fail'; ctx.rec.findings.push(`runner: ${e.message}`); console.log(`  ERROR ${e.stack}`); }
   ctx.rec.ms = Date.now() - t0;
