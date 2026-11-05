@@ -1112,6 +1112,8 @@ def fetch_bathymetry_pdfs(
             print(f"       - {fname}: {msg}")
         if len(failures) > 20:
             print(f"       … and {len(failures) - 20} more.")
+        raise RuntimeError(f"{len(failures)} bathymetry PDF(s) failed (the rest are saved; "
+                           f"`--layers {short_name}` retries only these)")
 
 
 # What a person types into a search box when they mean "near here".
@@ -1274,8 +1276,7 @@ def fetch_hydat(short_name: str, dest_path: Path) -> None:
         with zipfile.ZipFile(zip_path) as zf:
             inner = next((n for n in zf.namelist() if n.lower().endswith(".sqlite3")), None)
             if not inner:
-                print(f"  ❌ {short_name}: no .sqlite3 inside {url}")
-                return
+                raise RuntimeError(f"no .sqlite3 inside {url}")
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             with zf.open(inner) as src, dest_path.open("wb") as out:
                 shutil.copyfileobj(src, out)
@@ -1898,6 +1899,7 @@ def main():
             print(f"--missing-only: skipping {len(skipped)} already-fetched layer(s): "
                   f"{', '.join(sorted(skipped))}")
 
+    failed: list[tuple[str, str]] = []
     for name, cfg in tqdm(
         to_fetch.items(), total=len(to_fetch), desc="Datasets", unit="layer"
     ):
@@ -1945,8 +1947,16 @@ def main():
             elif cfg["type"] == "BATHY_SHEETS":
                 fetch_bathymetry_sheets(name, gpkg_out.parent / cfg["dest"])
         except Exception as e:
+            # One layer's failure never stops the others, but the run fails at the end (T416: it used to exit 0).
             print(f"❌ Error on {name}: {e}")
+            failed.append((name, str(e)))
 
+    if failed:
+        print(f"\n❌ {len(failed)} of {len(to_fetch)} layer(s) failed:")
+        for name, msg in failed:
+            print(f"   - {name}: {msg}")
+        print("Rerun with --missing-only (or --layers <name>) to retry just these.")
+        sys.exit(1)
     print("\n✅ Data fetch complete!")
 
 
