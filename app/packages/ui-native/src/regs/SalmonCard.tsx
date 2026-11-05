@@ -33,17 +33,18 @@ function Chip({ status, label, palette }: { status: SalmonRowVM["status"]; label
   );
 }
 
-/** The species' OCEAN picture only (the spawning look, and the tips, are in its fish sheet); null when it has none. */
-function oceanOf(code: SalmonSpecies, images?: FishImages) {
+/** The species' SPAWNING picture (T394, owner 2026-10-31 via T343 item 6: the look it has in a river; the ocean look and
+ *  the tips are in its fish sheet); null when it has none. */
+function spawningOf(code: SalmonSpecies, images?: FishImages) {
   const looks = FISH[code] ?? [];
-  const i = Math.max(0, looks.findIndex((l) => l.phase === "ocean"));
+  const i = Math.max(0, looks.findIndex((l) => l.phase === "spawning"));
   return { look: looks[i], src: images?.[code]?.[i], name: looks[i]?.caption ?? code };
 }
 
-/** One species of the table: its ocean picture (opens its fish sheet, both looks), its name, today's status, its sizes. */
+/** One species of the table: its spawning picture (opens its fish sheet, both looks), its name, today's status, its sizes. */
 function SpeciesRow({ r, palette, actions, images, pictures }: {
   r: SalmonTableRowVM; palette: Palette; actions?: KeepActions; images?: FishImages; pictures: boolean }) {
-  const o = oceanOf(r.code, images);
+  const o = spawningOf(r.code, images);
   const body = (
     <View style={{ flexDirection: "row", alignItems: "center", columnGap: 10, flex: 1 }}>
       {pictures && (o.src ? <Image source={o.src} testID="salmon-look" style={{ width: 56, height: 30 }} resizeMode="contain" accessibilityIgnoresInvertColors />
@@ -105,7 +106,7 @@ function Words({ head, rows, palette, strong, testID }: {
 }
 
 /**
- * (T318, owner 2026-10-31) THE TABLE: one row per species (its ocean picture, today's status, sizes), DFO's words said once
+ * (T318, owner 2026-10-31) THE TABLE: one row per species (its spawning picture (T394), today's status, sizes), DFO's words said once
  * under it, the blocks' gear lines, then the places not drawn yet each folded to one line. Core `salmonTable`'s.
  */
 function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette: Palette; actions?: KeepActions; images?: FishImages }) {
@@ -138,7 +139,7 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
 export function SalmonCard({ card, palette, actions, images }: {
   card: SalmonCardVM & { readonly checked?: string | null }; palette: Palette; actions?: KeepActions; images?: FishImages }) {
   // every outside picture is credited where shown (T43): the looks drawn here, once each
-  const shown = [...new Set(salmonTable(card).species.flatMap((r) => { const l = oceanOf(r.code).look; return l ? [`${l.credit} (${l.source})`] : []; }))];
+  const shown = [...new Set(salmonTable(card).species.flatMap((r) => { const l = spawningOf(r.code).look; return l ? [`${l.credit} (${l.source})`] : []; }))];
   return (
     <WaterInset style={{ paddingTop: SPACE.s4 }}>
       <View testID="salmon-card" accessibilityLabel={`${card.title}, ${card.badge}: ${card.headline}`}>

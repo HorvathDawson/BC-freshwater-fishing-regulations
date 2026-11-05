@@ -6,7 +6,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { salmonCard, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
+import { FISH, salmonCard, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SPINNER_TIMING } from "../LoadingState";
 import { RegsScreen } from "./RegsScreen";
@@ -69,7 +69,7 @@ describe("the Salmon card", () => {
     // ABOVE the Keep tab (owner 2026-10-28)
     expect(screen.getByTestId("keep-tab").compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     expect(el.getAttribute("aria-label")).toBe("Salmon, DFO: Open today");
-    // (T318) ONE row per species, today's status; DFO's words once under the table; ONE picture each (the ocean look)
+    // (T318) ONE row per species, today's status; DFO's words once under the table; ONE picture each (T394: the spawning look)
     const rows = screen.getAllByTestId("salmon-species-row").map((r) => r.textContent!);
     expect(rows.map((r, i) => [r.startsWith(["Chinook", "Coho", "Sockeye", "Pink", "Chum"][i]!), r.endsWith(["Closed", "Open", "Closed", "Closed", "Closed"][i]!)]))
       .toEqual([[true, true], [true, true], [true, true], [true, true], [true, true]]);
@@ -88,6 +88,14 @@ describe("the Salmon card", () => {
     const card = { ...salmonCard(FACTS, { sids: [101], item: null }, JUL20), checked: "Checked with DFO Oct 27, 2026, 11:04 am" };
     render(<SalmonCard card={card} palette={LIGHT} />);
     expect(screen.getByTestId("salmon-checked").textContent).toBe("Checked with DFO Oct 27, 2026, 11:04 am");
+  });
+
+  it("(T394) each species row wears its SPAWNING look (owner 2026-10-31, T343 item 6), never the ocean one", () => {
+    const images = Object.fromEntries(Object.entries(FISH).map(([code, looks]) => [code, looks.map((l) => ({ uri: l.file }))]));
+    render(<SalmonCard card={salmonCard(FACTS, { sids: [101], item: null }, JUL20)} palette={LIGHT} images={images as never} />);
+    const looks = screen.getAllByTestId("salmon-look").map((e) => e.outerHTML);
+    expect(looks.length).toBe(5);
+    expect(looks.every((h) => h.includes("-spawning-phase.webp") && !h.includes("-ocean-phase.webp"))).toBe(true);
   });
 
   it("every species closed: five closed species rows and DFO's closed words said ONCE (not per picture)", () => {
