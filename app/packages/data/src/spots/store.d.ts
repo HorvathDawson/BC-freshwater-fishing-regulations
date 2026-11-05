@@ -34,6 +34,8 @@ export declare function openFirstRunStore(): { read(): string | null; write(text
 export declare function openWalkthroughStore(): { read(): string | null; write(text: string): void };
 /** (T384) Whether the first open has asked for the reader's location ("asked"), as whole text. */
 export declare function openLocationAskStore(): { read(): string | null; write(text: string): void };
+/** (T390) The once-a-day newer-app check (`@app/core` `AppUpdateSaved`), a small file of its own. */
+export declare function openAppUpdateStore(): { read(): string | null; write(text: string): void };
 /** (T247) The recent searches, a JSON list as whole text; device-only. */
 export declare function openRecentSearchStore(): { read(): string | null; write(text: string): void };
 /** (T237) Problem reports waiting to be sent (offline), as whole text (a JSON list). */

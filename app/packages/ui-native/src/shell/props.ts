@@ -53,6 +53,13 @@ export interface ShellProps {
   inSeason?: import("@app/data").InSeasonSource | null;
   /** (T230) the in-season row ids this device has been shown in the notice (once per row per device). */
   inSeasonSeen?: import("@app/ui").InSeasonSeenStore | null;
+  /**
+   * (T390) the platform's way to a newer app (`apps/mobile` `appUpdater`: Play's in-app update, the App Store page, the
+   * staging APK page) and where its once-a-day check is kept. Absent: no gentle prompt; a release refused for an old
+   * app still says so (the strong prompt), with no button.
+   */
+  appUpdater?: import("@app/ui").AppUpdatePort | null;
+  appUpdateStore?: import("@app/ui").AppUpdateStore | null;
   /** (T236) where the first-run notice's acceptance is kept (`openFirstRunStore`). Absent: the notice never opens. */
   firstRun?: import("../FirstRunNotice").FirstRunStore | null;
   /** (T247) where recent searches are kept (`openRecentSearchStore`, device-only). Absent: kept for this run. */

@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
-import { INSEASON_WORDS, syncErrorVM, UPDATE_WORDS, type InSeasonNoticeRow, type ReleaseNoticeVM,
+import { INSEASON_WORDS, syncErrorVM, UPDATE_WORDS, type AppUpdateVM, type InSeasonNoticeRow, type ReleaseNoticeVM,
          type UpdateSourceInput, now } from "@app/core";
 import { SyncFailures } from "./SyncErrorSheet";
 import { Button } from "./Button";
@@ -17,7 +17,7 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { linkTo } from "./openLink";
 
-export function InSeasonNotice({ open, rows, palette, onClose, sync = null, release = null }: {
+export function InSeasonNotice({ open, rows, palette, onClose, sync = null, release = null, app = null }: {
   open: boolean; rows: readonly InSeasonNoticeRow[]; palette: Palette; onClose: () => void;
   /**
    * (T231, owner 2026-10-28) THE BELL'S SYNC SECTION: the update service's failed sources (what failed, when each last
@@ -28,21 +28,47 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
    * (T263) THE BELL'S "DATA UPDATE" SECTION, first: the release's state (core `releaseNoticeVM`) and its one button —
    * `onAction` is told which (download after its confirm, apply, update the app).
    */
-  release?: { vm: ReleaseNoticeVM; onAction: (kind: "download" | "apply" | "update-app") => void } | null;
+  release?: { vm: ReleaseNoticeVM; onAction: (kind: "download" | "apply") => void } | null;
+  /**
+   * (T390) THE BELL'S "APP UPDATE" SECTION, first of all: a newer app (the gentle prompt) or new data that needs one
+   * (the strong prompt), core `appUpdateVM`, and its one Update button (`@app/ui` `useAppUpdate`).
+   */
+  app?: { vm: AppUpdateVM; onUpdate: () => void } | null;
 }) {
   const [asking, setAsking] = useState(false);
   const rel = release?.vm ?? null;
+  const upd = app?.vm ?? null;
   const others = rows.length > 0 || !!(sync && sync.failed.length);
   const failed = sync && sync.failed.length ? syncErrorVM(sync.failed, now()) : null;
   // (owner 2026-10-29) the bell is always drawn, so it can open on nothing: "No notifications"
-  const empty = !rel && !failed && rows.length === 0;
-  const title = empty ? UPDATE_WORDS.bell.noneTitle : rel && !others ? rel.title
+  const empty = !upd && !rel && !failed && rows.length === 0;
+  const title = empty ? UPDATE_WORDS.bell.noneTitle : upd && !rel && !others ? upd.title
+    : upd ? UPDATE_WORDS.bell.title : rel && !others ? rel.title
     : failed && rows.length || rel && others ? UPDATE_WORDS.bell.title
     : failed ? failed.title : INSEASON_WORDS.noticeTitle;
   return (
     <Sheet open={open} onClose={onClose} title={title} sub={null} palette={palette} scroll dialog>
       <View testID="inseason-notice" style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, gap: 14 }}>
         {empty && <Text testID="notice-empty" style={{ ...TYPE.body, color: palette.sub }}>{UPDATE_WORDS.bell.none}</Text>}
+        {upd && app && (
+          <View testID="notice-app" style={{ gap: 8 }}>
+            {(rel || others) && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{upd.title}</Text>}
+            <Text testID="notice-app-text"
+                  style={{ ...(upd.strength === "strong" ? TYPE.bodyStrong : TYPE.body),
+                           color: upd.failed && !upd.button && !upd.said ? palette.closed : palette.ink }}>
+              {upd.text}
+            </Text>
+            {!!upd.sub && <Text style={{ ...TYPE.small, color: palette.sub }}>{upd.sub}</Text>}
+            {upd.button && (
+              <Button palette={palette} label={upd.button.label} testID="notice-app-action" onPress={app.onUpdate} />
+            )}
+            {!!upd.said && (
+              <Text testID="notice-app-said" accessibilityLiveRegion="polite"
+                    style={{ ...TYPE.small, color: upd.failed ? palette.closed : palette.sub }}>{upd.said}</Text>
+            )}
+          </View>
+        )}
+        {upd && (rel || others) && <View style={{ height: 1, backgroundColor: palette.line }} />}
         {rel && release && (
           <View testID="notice-release" style={{ gap: 8 }}>
             {others && <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{rel.title}</Text>}

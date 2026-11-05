@@ -3,7 +3,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { bellLabel, inSeasonBanner, inSeasonNoticeRows, releaseNoticeVM } from "@app/core";
+import { appUpdateVM, bellLabel, inSeasonBanner, inSeasonNoticeRows, releaseNoticeVM } from "@app/core";
 import { InSeasonBanners } from "./regs/InSeasonBanner";
 import { InSeasonNotice } from "./InSeasonNotice";
 import { TopBar } from "./TopBar";
@@ -54,8 +54,8 @@ describe("in-season", () => {
 
 describe("T263: the bell's Data update row", () => {
   const MB = 1048576;
-  const vm = (phase: "waiting-wifi" | "downloading" | "ready" | "app-too-old", progress: { bytes: number; of: number } | null = null, devBuild = false) =>
-    releaseNoticeVM({ phase, progress }, { devBuild })!;
+  const vm = (phase: "waiting-wifi" | "downloading" | "ready", progress: { bytes: number; of: number } | null = null) =>
+    releaseNoticeVM({ phase, progress })!;
   const draw = (v: ReturnType<typeof vm>, onAction: (k: string) => void = () => {}) =>
     render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} release={{ vm: v, onAction }} />);
 
@@ -63,10 +63,10 @@ describe("T263: the bell's Data update row", () => {
     expect(vm("waiting-wifi", { bytes: 0, of: 120 * MB }).text).toBe("New regulations ready to download — waiting for Wi-Fi (120 MB).");
     expect(vm("downloading", { bytes: 30, of: 100 }).text).toBe("Downloading new regulations… 30%");
     expect(vm("ready").text).toBe("New regulations downloaded — they'll apply next time you return to the map.");
-    expect(vm("app-too-old").text).toBe("New regulations need a newer version of the app.");
-    expect([vm("waiting-wifi").counts, vm("downloading").counts, vm("ready").counts, vm("app-too-old").counts])
-      .toEqual([true, false, true, true]);
+    expect([vm("waiting-wifi").counts, vm("downloading").counts, vm("ready").counts]).toEqual([true, false, true]);
     expect(releaseNoticeVM({ phase: "current", progress: null })).toBeNull();
+    // (T390) a release refused for an old app is the App update section's strong prompt, not this row
+    expect(releaseNoticeVM({ phase: "app-too-old", progress: null })).toBeNull();
     expect(bellLabel("2 in-season changes", 1, vm("ready"))).toBe("New regulations ready to apply; 2 in-season changes; 1 update failed");
   });
   it("waiting for Wi-Fi: Download now asks first, then acts; Not now does not", () => {
@@ -80,7 +80,7 @@ describe("T263: the bell's Data update row", () => {
     fireEvent.click(screen.getByLabelText("Download"));
     expect(seen).toEqual(["download"]);
   });
-  it("downloading: progress, no button; ready: Apply now; too old: Update the app / the test build", () => {
+  it("downloading: progress, no button; ready: Apply now", () => {
     const { unmount } = draw(vm("downloading", { bytes: 1, of: 4 }));
     expect(screen.getByTestId("notice-release-text").textContent).toBe("Downloading new regulations… 25%");
     expect(screen.queryByTestId("notice-release-action")).toBeNull();
@@ -89,11 +89,42 @@ describe("T263: the bell's Data update row", () => {
     const r = draw(vm("ready"), (k) => seen.push(k));
     fireEvent.click(screen.getByLabelText("Apply now"));
     r.unmount();
-    draw(vm("app-too-old"), (k) => seen.push(k));
-    fireEvent.click(screen.getByLabelText("Update the app"));
-    expect(seen).toEqual(["apply", "update-app"]);
-    cleanup();
-    draw(vm("app-too-old", null, true));
+    expect(seen).toEqual(["apply"]);
+  });
+});
+
+describe("T390: the bell's App update section", () => {
+  const draw = (app: Parameters<typeof InSeasonNotice>[0]["app"], extra: Partial<Parameters<typeof InSeasonNotice>[0]> = {}) =>
+    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} app={app} {...extra} />);
+
+  it("the strong prompt: its words, the data kept, one Update button", () => {
+    let pressed = 0;
+    draw({ vm: appUpdateVM({ channel: "play", check: { state: "current" }, tooOld: true, start: "idle" })!,
+           onUpdate: () => { pressed++; } });
+    expect(screen.getByText("App update")).toBeTruthy();
+    expect(screen.getByTestId("notice-app-text").textContent).toBe("New data needs the latest app.");
+    expect(screen.getByText("The app keeps using the data it has until it is updated.")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Update"));
+    expect(pressed).toBe(1);
+  });
+  it("the gentle prompt sits first, above the data update; a failed start is said under the button", () => {
+    draw({ vm: appUpdateVM({ channel: "play", check: { state: "available", version: "0.6.0" }, tooOld: false, start: "failed" })!,
+           onUpdate: () => {} },
+         { release: { vm: releaseNoticeVM({ phase: "ready", progress: null })!, onAction: () => {} } });
+    expect(screen.getByText("Notices")).toBeTruthy();
+    expect(screen.getByTestId("notice-app-text").textContent).toBe("Version 0.6.0 of the app is available.");
+    expect(screen.getByTestId("notice-app-said").textContent).toBe("The update could not start.");
+    expect(screen.getByLabelText("Update")).toBeTruthy();
+    const order = screen.getAllByTestId(/^notice-(app|release)$/).map((e) => e.getAttribute("data-testid"));
+    expect(order).toEqual(["notice-app", "notice-release"]);
+  });
+  it("downloading: said, no button; the staging test build: its own label", () => {
+    const r = draw({ vm: appUpdateVM({ channel: "play", check: { state: "available", version: null }, tooOld: false, start: "downloading" })!,
+                     onUpdate: () => {} });
+    expect(screen.queryByTestId("notice-app-action")).toBeNull();
+    expect(screen.getByTestId("notice-app-said").textContent).toBe("Downloading the update. The app restarts when it is ready.");
+    r.unmount();
+    draw({ vm: appUpdateVM({ channel: "apk-page", check: { state: "current" }, tooOld: true, start: "idle" })!, onUpdate: () => {} });
     expect(screen.getByLabelText("Get the new test build")).toBeTruthy();
   });
 });

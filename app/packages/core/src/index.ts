@@ -58,6 +58,8 @@ export * from "./help";
 export * from "./updates";
 // (T251) the app's version (one source, the release gate) and the Updates log's events and words
 export * from "./appVersion";
+// (T390) a newer app: the channel, once a day, the gentle and the strong prompt
+export * from "./appUpdate";
 export * from "./updateLog";
 export * from "./imagery";
 export * from "./staleness";

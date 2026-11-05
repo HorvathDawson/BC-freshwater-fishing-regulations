@@ -48,3 +48,4 @@ export type { UpdatesLogControls, UpdateChannelKey } from "./menu/UpdatesLogPage
 export { ReportLink } from "./menu/ReportLink";
 export * from "./theme";
 export { preloadParts } from "./part";
+export { openLinkShown } from "./openLink";

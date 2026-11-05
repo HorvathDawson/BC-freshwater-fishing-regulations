@@ -78,12 +78,9 @@ export const UPDATE_WORDS = {
       downloading: (pct: number) => `Downloading new regulations… ${pct}%`,
       ready: "New regulations downloaded — they'll apply next time you return to the map.",
       apply: "Apply now",
-      tooOld: "New regulations need a newer version of the app.",
-      updateApp: "Update the app",
-      getBuild: "Get the new test build",
-      /** the bell's label aloud for this section (it is a count of one) */
-      label: { waiting: "New regulations waiting for Wi-Fi", ready: "New regulations ready to apply",
-               tooOld: "The app needs an update for new regulations" },
+      /** the bell's label aloud for this section (it is a count of one); a release refused for an old app is T390's
+       *  "App update" section (`APP_UPDATE_WORDS.needed`) */
+      label: { waiting: "New regulations waiting for Wi-Fi", ready: "New regulations ready to apply" },
     },
   },
   /** (T253) More → Data's quiet line: the regions the background prefetch holds for an unnamed-stream tap */
@@ -209,13 +206,15 @@ export function updatedToast(day: string | null): string {
  * (T231, owner 2026-10-28: "the notification bell should also list sync failures") The bell's label aloud, over its two
  * sections: the in-season changes not on the map (`inseason`: T230's own words for them) and the sources that failed.
  */
-export function bellLabel(inseason: string | null, failed: number, release: ReleaseNoticeVM | null = null): string {
-  return [release?.label ?? null, inseason, failed > 0 ? UPDATE_WORDS.bell.count(failed) : null]
+export function bellLabel(inseason: string | null, failed: number, release: ReleaseNoticeVM | null = null,
+                          app: { readonly label: string } | null = null): string {
+  // (T390) a newer app, or new data that needs one, is said first
+  return [app?.label ?? null, release?.label ?? null, inseason, failed > 0 ? UPDATE_WORDS.bell.count(failed) : null]
     .filter(Boolean).join("; ") || UPDATE_WORDS.bell.none;
 }
 
 export interface ReleaseNoticeVM {
-  readonly phase: "waiting-wifi" | "downloading" | "ready" | "app-too-old";
+  readonly phase: "waiting-wifi" | "downloading" | "ready";
   readonly title: string;
   readonly text: string;
   /** the bell's label aloud */
@@ -223,7 +222,7 @@ export interface ReleaseNoticeVM {
   /** counts toward the bell (a plain download under way does not) */
   readonly counts: boolean;
   /** the one button, or null */
-  readonly action: { readonly kind: "download" | "apply" | "update-app"; readonly label: string;
+  readonly action: { readonly kind: "download" | "apply"; readonly label: string;
                      /** download only: asked first, in these words */
                      readonly confirm?: { readonly text: string; readonly yes: string; readonly no: string } } | null;
 }
@@ -231,12 +230,12 @@ export interface ReleaseNoticeVM {
 /**
  * (T263, owner 2026-10-29: Claude decides the wording) THE BELL'S "DATA UPDATE" ROW: the release's state in plain
  * words — waiting for Wi-Fi (Download now, asked first because it spends mobile data), downloading (progress only),
- * downloaded and waiting for a pause (Apply now), or needing a newer app (Update the app). Null for a release in use
- * or none. `devBuild`: the staging test APK's page rather than the store.
+ * or downloaded and waiting for a pause (Apply now). Null for a release in use or none, and for one refused because it
+ * needs a newer app: that is the "App update" section's strong prompt (T390, `appUpdateVM`), with its one Update button.
  */
-export function releaseNoticeVM(r: UpdateReleaseInput | null, o: { devBuild?: boolean } = {}): ReleaseNoticeVM | null {
+export function releaseNoticeVM(r: UpdateReleaseInput | null): ReleaseNoticeVM | null {
   const B = UPDATE_WORDS.bell.release;
-  if (!r || r.phase === "current") return null;
+  if (!r || r.phase === "current" || r.phase === "app-too-old") return null;
   const mb = Math.max(1, Math.round((r.progress?.of ?? 0) / 1048576));
   switch (r.phase) {
     case "waiting-wifi":
@@ -251,9 +250,6 @@ export function releaseNoticeVM(r: UpdateReleaseInput | null, o: { devBuild?: bo
     case "ready":
       return { phase: r.phase, title: B.title, text: B.ready, label: B.label.ready, counts: true,
                action: { kind: "apply", label: B.apply } };
-    case "app-too-old":
-      return { phase: r.phase, title: B.title, text: B.tooOld, label: B.label.tooOld, counts: true,
-               action: { kind: "update-app", label: o.devBuild ? B.getBuild : B.updateApp } };
   }
 }
 

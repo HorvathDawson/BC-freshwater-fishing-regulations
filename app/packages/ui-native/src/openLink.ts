@@ -13,5 +13,16 @@ export function openLink(url: string): Promise<void> {
   });
 }
 
+/**
+ * (T390) The same open for a caller that SHOWS its own failure (the bell's Update button: "The update could not
+ * start"): a refused open is logged and handed back — the caller says it and reports it (`@app/ui` `useAppUpdate`).
+ */
+export function openLinkShown(url: string): Promise<void> {
+  return Linking.openURL(url).then(() => undefined, (e: unknown) => {
+    console.warn(`openLink: could not open ${url.split("?")[0]}`, e);
+    throw e;
+  });
+}
+
 /** `onPress={linkTo(url)}`: a tap that opens `url` through `openLink`. */
 export const linkTo = (url: string) => () => { void openLink(url); };

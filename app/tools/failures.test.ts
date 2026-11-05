@@ -131,6 +131,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "apps/mobile/src/splash.ts": { n: 1, why: "the splash hides early; nothing lost" },
   "apps/mobile/src/startLink.web.ts": { n: 1, why: "a bad start link opens the plain map (owner Q9: acceptable), named in the Updates log" },
   "apps/mobile/src/waterSlugs.ts": { n: 1, why: "URL cosmetics: the water still opens under its id" },
+  "packages/core/src/appUpdate.ts": { n: 1, why: "T390: the kept once-a-day check, unreadable → asked again today" },
   "packages/core/src/layers.ts": { n: 1, why: PREF },
   "packages/core/src/paint.ts": { n: 1, why: "turned into the reader's typed failure (`r.fail`)" },
   "packages/core/src/recentSearches.ts": { n: 1, why: PREF },

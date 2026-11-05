@@ -117,6 +117,11 @@ export function openLocationAskStore(): { read(): string | null; write(text: str
   return fileStore("location-ask.txt");
 }
 
+/** (T390) The once-a-day newer-app check: the device day it was asked and the answer (`@app/core` `AppUpdateSaved`). */
+export function openAppUpdateStore(): { read(): string | null; write(text: string): void } {
+  return fileStore("app-update.json");
+}
+
 /** (T247) The recent searches (a JSON list), a small file of its own; device-only. */
 export function openRecentSearchStore(): { read(): string | null; write(text: string): void } {
   return fileStore("recent-searches.json");

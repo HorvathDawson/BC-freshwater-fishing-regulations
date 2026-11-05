@@ -118,6 +118,11 @@ export function openLocationAskStore(): { read(): string | null; write(text: str
   return keyStore("canifishthis.locationAsk.v1");
 }
 
+/** (T390) The once-a-day newer-app check (the web has no channel today; kept for the identical export surface). */
+export function openAppUpdateStore(): { read(): string | null; write(text: string): void } {
+  return keyStore("canifishthis.appUpdate.v1");
+}
+
 /** (T247) The recent searches (a JSON list of what the reader looked for), one key of its own; a cache, device-only. */
 export function openRecentSearchStore(): { read(): string | null; write(text: string): void } {
   return keyStore("canifishthis.recentSearches.v1");

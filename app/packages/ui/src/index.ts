@@ -51,6 +51,8 @@ export * from "./mapRail";
 export * from "./layerChoice";
 export * from "./imagery";
 export * from "./sync";
+// (T390) a newer app: the store asked once a day, the bell's "App update" section and its one button
+export * from "./appUpdate";
 // (owner 2026-10-29) the open page follows the feeds: their versions
 export * from "./feedVersion";
 export * from "./inseason";
