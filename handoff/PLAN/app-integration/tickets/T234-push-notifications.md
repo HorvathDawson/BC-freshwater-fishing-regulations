@@ -1,6 +1,6 @@
 # T234 — Push notifications: regulation changes and condition alerts
 
-Status: PARTIAL 2026-11-05 — phone-only v1 built (13b963619, 77790b907, 8b7b45866, + this ticket's commit); phone checks pending (next APK, checklist below).
+Status: PARTIAL 2026-11-05 — phone-only v1 built (13b963619, 77790b907, 8b7b45866, dd0a49dde); phone checks pending (next APK, checklist below).
 
 Source: owner 2026-10-28: "add ability to have push notifications for regulation changes too, or set push
 notifications for specific condition changes or forecasted changes."
