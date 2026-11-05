@@ -42,6 +42,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Also 11-05:** Report a problem takes "App bug" / "Feature request" [T407]; salmon memory 15.8 → 6.3 MB, same files
   [T360; 6.3 MB is fine, no lazy decode]; changelog 0.1.0–0.5.0 approved; no lighter z8 map [T245].
 - **Now:** SEO speed on staging [T405, T406]; then the 0.6.0 release.
+- **Next chat starts with T408:** an agent walks you through the data flow one question at a time, records your
+  answers, then simplifies the pipeline to match (T324–T326, T266, T295, T297, T337).
 - **Running:** map feel + performance; SEO (T188–T198) started.
 - **Deferred, thought later:** T383, T389, T304, T401 (waits on your recording), T307/T308/T310 sign-offs.
 - **Next chat after 0.6.0:** data + build (T164, T178, T239, T266, T295, T297, T324–T326, T337) and launch + hygiene

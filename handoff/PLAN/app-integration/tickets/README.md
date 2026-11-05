@@ -451,6 +451,7 @@ use that as the sole source of future work."
 | T405 | Water pages fail Lighthouse when the app takes over the prerendered pane (LCP 3-39 s, CLS 0.15-0.72; hubs score 100) | PARTIAL | 5ba3155e5, db643ad12 | staging ffb4f71f: perf 45 → 76-82, CLS 0.002, A11y 100, LCP 2.2-3.7 s; TBT (app boot) stops 95 — owner picks target/option |
 | T406 | SEO: raster (PNG) share images + species-by-region season calendar | PARTIAL | 08837f197 | PNG cards (proposal) on staging; calendar needs a per-species source decision |
 | T407 | Report a problem: "App bug" and "Feature request" reasons (for testing) | IN PROGRESS | — | owner 11-05; worker deploys with 0.6.0 |
+| T408 | Walk the owner through the data flow one question at a time, then simplify it to match (first task of the data-and-build chat) | OPEN | — | owner 11-05 |
 
 ## Order for open tickets
 
