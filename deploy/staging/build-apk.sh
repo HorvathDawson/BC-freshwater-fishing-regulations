@@ -22,6 +22,14 @@
 # emails the owner the tester link (~/.canifishthis/play-test-url, else the store page). --no-upload keeps the AAB at
 # app/dist/aab/ (the FIRST upload must be done by hand in Play Console). Without --play nothing here changes: the APK is
 # still debug-signed for sideloading.
+#
+# (T234 v1.1) A RELEASE ADDS ITS CHANGELOG ENTRY FIRST: app/packages/core/src/changelog.ts (the one changelog: 3–5 plain
+# bullets for anglers, never commit subjects), for app.json's version. This script copies that version's bullets into the
+# VERSION FILE our server publishes for the build's channel, which the app reads to tell a reader a newer version is out
+# and to show "What's new in <version>" before it is installed:
+#   sideload  app/android/latest.json  {version, build, sha, date, notes}  (beside the APK page, as before + notes)
+#   --play    app/android/play.json    {version, build, sha, date, notes}  (after the Play upload; the Play build reads it)
+# A version with no entry warns here and the app says "No notes were published for version …".
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO=$PWD
@@ -84,6 +92,11 @@ CODE=$(node -p "require('./$M/app.json').expo.android.versionCode")
 SHA=$(git rev-parse --short HEAD)
 export EXPO_PUBLIC_GIT_SHA=$SHA_FULL
 DATE=$(date -u +%F)
+# (T234 v1.1) this version's changelog bullets, as JSON (node strips the file's types; the file has no imports)
+NOTES=$(node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)=>x.version===process.argv[2]);process.stdout.write(JSON.stringify(e?e.notes:[]))})' \
+  "$PWD/app/packages/core/src/changelog.ts" "$VER")
+[[ $NOTES == "[]" ]] && echo "WARNING: no changelog entry for $VER in app/packages/core/src/changelog.ts — the app will say no notes were published" >&2
+VERSION_JSON=$(printf '{"version":"%s","build":%s,"sha":"%s","date":"%s","notes":%s}' "$VER" "$CODE" "$SHA" "$DATE" "$NOTES")
 OUT=$REPO/app/dist/apk; [[ -n $DRY ]] || mkdir -p "$OUT"
 NAME="canifishthis-staging-$VER-$SHA.apk"
 [[ -n $PLAY ]] && { OUT=$REPO/app/dist/aab; [[ -n $DRY ]] || mkdir -p "$OUT"; NAME="canifishthis-$VER-$CODE-$SHA.aab"; }
@@ -92,6 +105,7 @@ if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] (cd \$WT/$M/android && CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties ./gradlew bundleRelease)"
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
   echo "[dry-run] upload to Play track internal with notes from git log (unless --no-upload); email (unless --no-email)"
+  echo "[dry-run] publish app/android/play.json: $VERSION_JSON"
   exit 0
 fi
 if [[ -n $DRY ]]; then
@@ -100,6 +114,7 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] cp $REPO/$M/android/app/debug.keystore \$WT/$M/android/app/; sdk.dir=$ANDROID_HOME > android/local.properties"
   echo "[dry-run] (cd \$WT/$M/android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4)"
   echo "[dry-run] copy app-release.apk -> $OUT/$NAME, latest.apk, index.html; upload (unless --no-upload), email (unless --no-email)"
+  echo "[dry-run] latest.json: $VERSION_JSON"
   exit 0
 fi
 KS="$REPO/$M/android/app/debug.keystore"
@@ -128,6 +143,10 @@ if [[ -n $PLAY ]]; then
   NOTES=$OUT/notes-$CODE.txt; { echo "Staging build $VER ($CODE), $SHA"; echo "$CH" | sed 's/^/- /'; } | cut -c1-500 > "$NOTES"
   "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --package $PKG --track internal --notes-file "$NOTES"
   echo "$SHA_FULL" > "$OUT/last-play-sha"
+  # (T234 v1.1) what a Play build reads to learn of this version (its background check + the bell's "What's new")
+  echo "$VERSION_JSON" > "$OUT/play.json"
+  npx --prefix app wrangler r2 object put --remote "$BUCKET/app/android/play.json" --file "$OUT/play.json" \
+    --content-type "application/json" --cache-control "no-cache"
   TEST_URL=$(tr -d '\n' < "$SECRETS/play-test-url" 2>/dev/null || echo "$PLAY_STORE_URL")
   if [[ " $* " != *" --no-email "* ]]; then
     export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$TEST_URL" CH
@@ -162,7 +181,8 @@ Pinned copy: <a href="$NAME">$NAME</a></p>
 </body>
 HTML
 # (T390) what the sideloaded app reads to know a newer build is here (core apkIsNewer: version, build, sha, day)
-printf '{"version":"%s","build":%s,"sha":"%s","date":"%s"}\n' "$VER" "$CODE" "$SHA" "$DATE" > "$OUT/latest.json"
+# (T234 v1.1) + this version's changelog bullets (`notes`), shown before the update is installed
+echo "$VERSION_JSON" > "$OUT/latest.json"
 [[ " $* " == *" --no-upload "* ]] && { echo "built $OUT/$NAME ($MB MB)"; exit 0; }
 W="npx --prefix app wrangler r2 object put --remote"
 APK=application/vnd.android.package-archive

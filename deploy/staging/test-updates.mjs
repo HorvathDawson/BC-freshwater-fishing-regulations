@@ -17,6 +17,12 @@
 //   node deploy/staging/test-updates.mjs gauge <station> <flow|level> <value>   (T234) the gauge alerts' feed (the
 //                                                              background check reads test/feeds/live/obs.json on this
 //                                                              channel): that station's newest reading set to <value>, now
+//   node deploy/staging/test-updates.mjs gauge-day <station> <flow|level> <then> <now>   (T234 v1.1) the ±% alerts' feed:
+//                                                              test/feeds/live/<station>.json, the live file with two rows
+//                                                              added — <then> 24 h ago and <now> now (and obs.json's row)
+//   node deploy/staging/test-updates.mjs app-version <semver> [build] [notes…]   (T234 v1.1) the new-app-version notice:
+//                                                              test/app/android/latest.json and play.json name that version
+//                                                              (a build on the test channel reads them in its background check)
 //   node deploy/staging/test-updates.mjs status                what test/ holds now
 //   node deploy/staging/test-updates.mjs clean                 remove test/
 //
@@ -117,6 +123,30 @@ export async function gauge(station, quantity, value) {
   return { station, row: j.stations[station][0] };
 }
 
+/** (T234 v1.1) A gauge's own file with a day's change: `<then>` 24 h ago, `<now>` now, on the test channel. */
+export async function gaugeDay(station, quantity, then, now) {
+  const a = Number(then), b = Number(now);
+  if (!station || !['flow', 'level'].includes(quantity) || !Number.isFinite(a) || !Number.isFinite(b))
+    throw new Error('gauge-day <station> <flow|level> <then> <now>, e.g. gauge-day 08MH001 flow 20 31');
+  const file = JSON.parse(await get(`feeds/live/${station}.json`));
+  const t1 = new Date(), t0 = new Date(t1.getTime() - 24 * 3_600_000);
+  const row = (t, v) => [t.toISOString(), quantity === 'level' ? v : null, quantity === 'flow' ? v : null];
+  const recent = (file.recent ?? []).filter((r) => Date.parse(r[0]) < t0.getTime() - 3 * 3_600_000);
+  file.recent = [...recent, row(t0, a), row(t1, b)];
+  put(`test/feeds/live/${station}.json`, JSON.stringify(file));
+  await gauge(station, quantity, String(b));
+  return { station, then: file.recent.at(-2), now: file.recent.at(-1) };
+}
+
+/** (T234 v1.1) A "newer" app version on the test channel (both the sideload and the Play file names). */
+export async function appVersion(version, build = '999', ...notes) {
+  if (!/^\d+\.\d+\.\d+/.test(version ?? '')) throw new Error('app-version <semver> [build] [notes…], e.g. app-version 0.9.0 99 "Alerts"');
+  const j = { version, build: Number(build), sha: 'test', date: new Date().toISOString().slice(0, 10),
+              notes: notes.length ? notes : ['A test version from the staging test channel'] };
+  for (const f of ['latest.json', 'play.json']) put(`test/app/android/${f}`, JSON.stringify(j));
+  return j;
+}
+
 export async function status() {
   const out = {};
   try { const m = await testManifest(); out.release = { data_release: m.data_release, minAppVersion: m.minAppVersion ?? null, basemap: m.basemap?.id ?? null }; }
@@ -133,7 +163,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, gauge, 'feed-bump': feedBump, 'feed-404': feed404, release, big, corrupt, missing, 'min-app': minApp, status, clean };
+const CMDS = { reset, gauge, 'gauge-day': gaugeDay, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, corrupt, missing, 'min-app': minApp, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...args] = process.argv.slice(2);

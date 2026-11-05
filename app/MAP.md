@@ -35,9 +35,13 @@ data/release/r-*/ (R2 in production)
 gauge feed (index.json, per-station) ─▶ data/src/feed/http.ts ─▶ panels / conditions
 in-season feed + links (feeds/inseason/, T230) ─▶ data/src/feed/inseason.ts ─▶ ui inseason.ts ─▶ banners, notice
 background check (T234, phone only: apps/mobile notify.native.ts, expo-background-task ~15 min) ─▶ data/src/notify/check.ts
-                   (obs.json via feed/http.ts `fetchObs`, the release manifest) ─▶ core alerts.ts (once per crossing) ─▶
-                   local notification (expo-notifications); settings + rules + run log: data/src/notify/settings.ts ─▶
-                   ui notify.ts ─▶ More → Notifications, a gauge card's "Alert me"
+                   (obs.json via feed/http.ts `fetchObs`; a gauge's own file `fetchStationRows` for the ±% alerts; the
+                   release manifest; our version file, core appUpdate.ts `appVersionFileUrl`) ─▶ core alerts.ts
+                   (`evaluateAlerts`: four kinds, once per crossing, cadence) ─▶ local notification (expo-notifications);
+                   settings v2 + alerts + run log: data/src/notify/settings.ts ─▶ ui notify.ts ─▶ More → Notifications
+                   (cards by water, Add an alert), a gauge card's "Alert me" (ui-native AlertMe.tsx `AlertEditor`)
+changelog (T234 v1.1): core changelog.ts (the one source) ─▶ About → What's new (`changelogVM`); build-apk.sh copies a
+                   version's bullets into latest.json / play.json ─▶ the bell's App update "What's new in …"
 tiles (atlas.pmtiles + basemap) ─▶ @app/map
 ```
 
