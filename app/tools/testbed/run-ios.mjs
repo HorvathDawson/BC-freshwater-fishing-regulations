@@ -27,6 +27,9 @@ const sleep = device.sleep;
 const hasTabs = (w) => w.some((x) => /^MORE$|^More$/.test(x)) && w.some((x) => /^MAP$|^Map$/.test(x));
 // (iPhone 17 layout) the search bar's "‹" and a water page's "‹ Map": neither has words Maestro can match on iOS
 const SEARCH_BACK = '9%,11%', PAGE_BACK = '10%,10%';
+// the Map tab, by place: the text "Map" is also a water page's back link and a Layers tile, and Maestro took the first
+// one it found (ios-t313g: the page reopened and every later scenario started on it)
+const MAP_TAB = '10%,92%';
 /** the walkthrough card's count line ("FIND A WATER · 1 OF 25") */
 const GUIDE = /\d+ of \d+$/i;
 /** a water's page is up: its back link by id (iOS reads "‹ Map" as the label "Back"; the tab bar can stay in the tree) */
@@ -81,7 +84,7 @@ async function toMap(ctx) {
   }
   const w = device.screenText();
   if (!hasTabs(w) || onPage(w)) await coldStart(ctx);
-  ctx.flow('tab', { TAB: 'Map' });
+  ctx.flow('tap-point', { POINT: MAP_TAB });
   await sleep(1000);
 }
 /** The share of the map area (below the top bar, above the tab bar) that is drawn: not the blank/grey ground. */
@@ -370,7 +373,8 @@ const SCENARIOS = [
         const end = Date.now() + 15_000;
         while (Date.now() < end && device.pidOf() === pid) await sleep(500);
         if (device.pidOf() === pid) throw new Error('the app did not die');
-        await sleep(4000); ctx.expectCrash();                    // this crash is the test, not a finding
+        // this crash is the test, not a finding: its report (DiagnosticReports) is written some seconds later
+        for (let i = 0; i < 20 && !ctx.expectCrash(); i++) await sleep(1500);
         return `pid ${pid} gone`;
       });
       await ctx.step('the next start sends 1 exit record', async () => {
@@ -460,7 +464,7 @@ const SCENARIOS = [
         if (device.screenText().includes('Skip')) ctx.flow('tap-text', { TEXT: 'Skip' });   // its first-use tour
         return measure('conditions', 6000);
       });
-      await ctx.step('the Map tab after Conditions', async () => { ctx.flow('tab', { TAB: 'Map' }); return measure('map after conditions', 6000); });
+      await ctx.step('the Map tab after Conditions', async () => { ctx.flow('tap-point', { POINT: MAP_TAB }); return measure('map after conditions', 6000); });
       await ctx.step('Salmon (the map coloured by salmon)', async () => {
         await toMap(ctx);
         ctx.flow('tap-text', { TEXT: 'Salmon' });
@@ -614,7 +618,7 @@ function makeCtx(sc) {
     },
     finding(text) { rec.findings.push(text); console.log(`  FINDING ${text}`); },
     /** a crash the scenario caused on purpose: its report is not a finding */
-    expectCrash() { for (const f of crashList()) crashSeen.add(f); },
+    expectCrash() { let n = 0; for (const f of crashList()) if (!crashSeen.has(f)) { crashSeen.add(f); n++; } return n; },
     skip(msg) { throw Object.assign(new Error(msg), { skip: true }); },
   };
   return ctx;
