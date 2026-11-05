@@ -35,7 +35,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **SEO done on staging** [T192–T195, T197 done; T196, T188 partial; T198 yours] (21a2d17ff, b1a5c7fa8, c237502d3):
   19,927 pages, sitemap clean, every old link one 301. Water pages score low on Lighthouse (the app taking over the
   page shifts it) → T405. Your steps (www rule drops the path, Search Console, Bing, prod deploy) in OWNER-TODO.
-- **Now: iOS lane** (T313, T336, T362, T363, T365, T88 prep; T364 real iPhone is yours).
+- **iOS lane done (simulator)** [T313, T336, T362 done; T363, T365, T88 partial; T364 yours after the hygiene chat]:
+  11/11 simulator scenarios on 0.5.0; walkthrough card no longer hidden behind the Layers sheet; iOS crashes reported
+  on the next start (same path as Android); privacy manifest; signed-build + TestFlight script ready for your Apple
+  account. Memory 147–273 MB footprint, lower than Android. Your steps: OWNER-TODO "iOS".
+- **Also 11-05:** Report a problem takes "App bug" / "Feature request" [T407]; salmon memory 15.8 → 6.3 MB, same files
+  [T360; 6.3 MB is fine, no lazy decode]; changelog 0.1.0–0.5.0 approved; no lighter z8 map [T245].
+- **Now:** SEO speed on staging [T405, T406]; then the 0.6.0 release.
 - **Running:** map feel + performance; SEO (T188–T198) started.
 - **Deferred, thought later:** T383, T389, T304, T401 (waits on your recording), T307/T308/T310 sign-offs.
 - **Next chat after 0.6.0:** data + build (T164, T178, T239, T266, T295, T297, T324–T326, T337) and launch + hygiene
