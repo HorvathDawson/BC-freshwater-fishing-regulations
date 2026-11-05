@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import initSqlJs from "sql.js";
 
 /** a stored .gz body, by the platform's own CompressionStream (the boundary keeps fflate out of the web adapters) */
-const gz = async (b: Uint8Array): Promise<Uint8Array> =>
+const gz = async (b: Uint8Array): Promise<Uint8Array<ArrayBuffer>> =>
   new Uint8Array(await new Response(new Blob([b as BlobPart]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
 
 const reported: unknown[] = [];
@@ -101,7 +101,7 @@ describe("source.web: cache, else fetchVerified into the cache", () => {
                      format: "core/1", section_handles: "d768d6e135e62b99" } },
     regulations: { valid_until: null, versions: null },
   });
-  const server = (log: string[], body = raw) => (async (url: string) => {
+  const server = (log: string[], body: Uint8Array = raw) => (async (url: string) => {
     log.push(url);
     return { ok: true, status: 200, arrayBuffer: async () => body.slice().buffer };
   }) as unknown as typeof fetch;
