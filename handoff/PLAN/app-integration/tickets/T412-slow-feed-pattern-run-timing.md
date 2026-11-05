@@ -16,3 +16,7 @@ it is producing same output … deployed to R2 directly".
 5. Write the pattern down so HYDAT clim and bathymetry follow it when they are next touched.
 
 Depends: T297 (release command). Size: M. Owner: no (prod enable is theirs).
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T199, T225 — read each file's open items and finish them here; each closes pointing here.

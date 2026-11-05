@@ -1,6 +1,6 @@
 # T287 — No freeze when a download finishes: updates apply in the background
 
-Status: PARTIAL 2026-11-05 — a3cc1f269, b3ca664cf, f1e2d5abc, 2bdcc1931 (update apply: no stall left; first-install mount not re-measured)
+Status: MERGED into T360 (2026-11-05 audit) — was: PARTIAL 2026-11-05 — a3cc1f269, b3ca664cf, f1e2d5abc, 2bdcc1931 (update apply: no stall left; first-install mount not re-measured)
 not freeze. it should update in background cleanly").
 
 ## Work

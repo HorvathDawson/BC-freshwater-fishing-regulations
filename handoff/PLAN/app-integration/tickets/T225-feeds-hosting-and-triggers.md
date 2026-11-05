@@ -1,6 +1,6 @@
 # T225 — Feeds: where they live, how they are triggered, how they fail (design, then build)
 
-Status: OPEN — STAGING SCHEDULE ON (2026-10-28, Phase A below); acceptance = a week with no hand runs; prod switch-on is the owner's. Was: design first; owner picks the host (owner 2026-10-28: "how to make the feeds work the best as possible,
+Status: MERGED into T412 (2026-11-05 audit) — was: OPEN — STAGING SCHEDULE ON (2026-10-28, Phase A below); acceptance = a week with no hand runs; prod switch-on is the owner's. Was: design first; owner picks the host (owner 2026-10-28: "how to make the feeds work the best as possible,
 where they should live, how they are triggered etc").
 
 Source: owner 2026-10-28. Today every feed runs only when someone runs it on this Mac; OWNER-TODO carries "set up the

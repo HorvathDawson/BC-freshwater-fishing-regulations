@@ -23,3 +23,7 @@ little better … not sure the standard here but seems like something to clean u
 The rule is written; the guard passes; Android, iOS and web tests green; web and APK bundle contents listed before/after.
 
 Links: T409 (web speed work stays in web files), T333 (hygiene sweep). Size: M. Owner: no.
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T258, T260 — read each file's open items and finish them here; each closes pointing here.

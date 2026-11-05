@@ -63,3 +63,7 @@ against last year's and lets the owner handle each change (review queue of diffe
    id. This is a `curation-review` change: the other lane's area.
 2. The extraction regression on Heber River line 3 (character order). Fix it before the next book; check the
    Chilliwack hyphen and the Coquihalla truncation at the same time.
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T414, T415 — read each file's open items and finish them here; each closes pointing here.

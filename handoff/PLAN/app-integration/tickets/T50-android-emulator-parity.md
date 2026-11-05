@@ -1,6 +1,6 @@
 # T50 — Android emulator: the app matches the phone web app, and the system bars never cover the UI
 
-Status: OPEN — ticket 7da6deff, 294dd4d5. Runs after the mass cleanup (T61–T63), heavy, alone.
+Status: MERGED into T240 (2026-11-05 audit) — was: OPEN — ticket 7da6deff, 294dd4d5. Runs after the mass cleanup (T61–T63), heavy, alone.
 
 Phase 4 · After the mass cleanup (owner 2026-10-22) · Depends on T48 (new top/bottom bars) merged · HEAVY (emulator + Gradle): run alone through heavy.sh · Size 1–2 days
 

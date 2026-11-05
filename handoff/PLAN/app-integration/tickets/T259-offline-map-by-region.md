@@ -1,6 +1,6 @@
 # T259 — offline map by region (T238 leftovers)
 
-Status: OPEN — deferred by owner 2026-10-29 to after this APK.
+Status: DROPPED (owner 2026-11-05: "doesn't save much space and I think it is not necessary") — was: OPEN — deferred by owner 2026-10-29 to after this APK.
 
 Source: T238 (2026-10-29 overnight) "Left"; owner 2026-10-29: regulations are never per region — only the MAP may be
 chosen per region.

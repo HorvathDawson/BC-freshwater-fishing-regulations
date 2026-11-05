@@ -59,3 +59,7 @@ No native file changed (source.web.ts is web-only; the rest is tools/seo).
   (DecompressionStream has no dictionary); a smaller yield slice there would cut its long tasks — touches native.
 - LCP 2.2-2.8 s (gate 1.8): the first view still carries 6 faces + the fish thumbnails before the largest paint.
 - Cloudflare's injected JS detections + RUM beacon (item 6): zone settings, owner.
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T188, T196, T405, T198 — read each file's open items and finish them here; each closes pointing here.

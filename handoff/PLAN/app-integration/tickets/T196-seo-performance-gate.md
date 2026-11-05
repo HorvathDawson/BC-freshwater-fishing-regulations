@@ -1,6 +1,6 @@
 # T196 — SEO page performance budget and Lighthouse CI
 
-Status: PARTIAL — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); budget gate passes on the real release; Lighthouse: hubs/About 100, water pages fail (hand-over LCP/CLS) -> T405.
+Status: MERGED into T409 (2026-11-05 audit) — was: PARTIAL — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); budget gate passes on the real release; Lighthouse: hubs/About 100, water pages fail (hand-over LCP/CLS) -> T405.
 
 Source: T188 plan, handoff/PLAN/seo/PLAN.md section 6.
 ## Work

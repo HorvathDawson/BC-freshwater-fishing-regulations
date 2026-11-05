@@ -1,6 +1,6 @@
 # T405 — Water pages fail the Lighthouse gate when the app takes over the prerendered pane
 
-Status: PARTIAL — 5ba3155e5, db643ad12, f32ddb13a; CLS and A11y met; fish thumbnails (owner 11-05) took LCP to 2.1-2.5 s, Performance 77-88; TBT (app boot) still stops 95: owner decides the water-page target (below).
+Status: MERGED into T409 (2026-11-05 audit) — was: PARTIAL — 5ba3155e5, db643ad12, f32ddb13a; CLS and A11y met; fish thumbnails (owner 11-05) took LCP to 2.1-2.5 s, Performance 77-88; TBT (app boot) still stops 95: owner decides the water-page target (below).
 
 Source: T196 gate on staging 2026-11-05 (release r-5a5999c94588, staging version 965c01af, lighthouse 12.8.2 mobile,
 simulated 4G). Hubs and About score Performance 100 / A11y 100 / LCP 1.3-1.4 s / CLS 0. `/water/vedder-river`:

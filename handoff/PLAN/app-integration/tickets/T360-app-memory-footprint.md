@@ -170,3 +170,7 @@ The release files were already split per region (~800 KB gz, 2.8 MB raw). The 15
 8,495 and 284 chains today): **15.8 → 6.3 MB**, no file or format change, same answer for every section 0–2,000,000
 against the old decoder on r-5a5999c94588 (0 differences). A run or chain over 16 bits is refused on decode, never
 wrapped. Owner 11-05: 6.3 MB is fine for now — salmon stays decoded at map load (no lazy decode).
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T245, T287, T317 — read each file's open items and finish them here; each closes pointing here.

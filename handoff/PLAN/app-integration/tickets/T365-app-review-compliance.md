@@ -1,6 +1,6 @@
 # T365 — App Review compliance
 
-Status: PARTIAL 2026-11-05 — f74621e99, 38de56f (privacy manifest, encryption flag); the rest is the owner's (OWNER-TODO "iOS").
+Status: MERGED into T88 (2026-11-05 audit) — was: PARTIAL 2026-11-05 — f74621e99, 38de56f (privacy manifest, encryption flag); the rest is the owner's (OWNER-TODO "iOS").
 (owner 2026-11-03: Android 0.5.0 first, iOS next; from the ticket check's iOS gaps.)
 
 Before the first TestFlight/App Store submit: `PrivacyInfo.xcprivacy` (required-reason APIs), the tracking

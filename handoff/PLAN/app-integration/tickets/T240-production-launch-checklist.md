@@ -128,3 +128,7 @@ The app a closed tester installs reads STAGING (`apps/mobile/src/env.ts`: a phon
 - [ ] ★ T371: the Closed track, the tester list (12 testers, 14 days), the app-content forms (Claude drafts data safety
       and listing text from the code), rollout, every requirement the Console raises written down there.
 - [ ] Privacy page live on staging (T352 wording) — its URL is the app-content form's privacy policy.
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T50, T75, T80, T87 — read each file's open items and finish them here; each closes pointing here.

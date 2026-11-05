@@ -65,3 +65,7 @@ Owner rule 2026-10-29: NO third-party crash service; everything from our own ser
 - Re-run the `crash` scenario (worker already redeployed); read `GET /crashes` (run token) once.
 - Privacy wording is Claude's draft (owner to approve, like the report wording).
 - Review-app tab for crashes (the digest + `GET /crashes` are the v1 reading).
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T291, T407 — read each file's open items and finish them here; each closes pointing here.

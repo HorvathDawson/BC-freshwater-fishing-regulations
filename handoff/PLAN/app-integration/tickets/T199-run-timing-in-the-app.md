@@ -1,6 +1,6 @@
 # T199 — run timing in the app: implement and refine
 
-Status: PARTIAL — feed + Run timing mode built and on staging (owner 2026-10-28); data refinement (step 2) open
+Status: MERGED into T412 (2026-11-05 audit) — was: PARTIAL — feed + Run timing mode built and on staging (owner 2026-10-28); data refinement (step 2) open
 
 Source: owner 2026-10-25 — "implementing and refining the run timings into the app. will be at end, alongside the
 stocked and bathy maps." Follows T162 (data + plan), MERGED into this ticket 2026-11-03 (owner): T162 is closed and its

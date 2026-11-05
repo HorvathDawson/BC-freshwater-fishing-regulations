@@ -27,3 +27,7 @@ missing (both, today). `--unsigned` builds the device archive with no signing: C
 compiles and links without the account (result below).
 - `--unsigned` run 2026-11-05 at eb2405de0 (0.5.0): the device (iphoneos, arm64) Release archive compiled and linked in 80 s,
   build number 9 (worktree only). Nothing signed, installed or uploaded. Left: the owner's account + the signed run.
+
+
+## Merged in (ticket audit 2026-11-05, owner)
+This ticket now also carries the leftovers of: T363, T364, T365 — read each file's open items and finish them here; each closes pointing here.
