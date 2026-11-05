@@ -76,7 +76,7 @@ function carried(el: Element | null): number | string {
 /** What a reader would see move: the shared rows, the regs header's own rows, and the view's content. */
 function where(view: View3): Record<string, number | string> {
   const out: Record<string, number | string> = {
-    back: carried(screen.getAllByLabelText("Back")[0] ?? null),
+    back: carried(screen.getAllByLabelText(/^Back( to .+)?$/)[0] ?? null),
     strip: carried(screen.queryByRole("tablist", { name: "Views of this water" })),
     name: carried(screen.queryByTestId("water-title")),
   };

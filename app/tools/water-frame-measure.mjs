@@ -27,7 +27,7 @@ const MEASURE = `(() => {
     for (const r of range.getClientRects())
       if (r.width > 0 && r.top >= below && r.top < innerHeight) left = Math.min(left, r.left);
   }
-  return JSON.stringify({ back: box(document.querySelector('[aria-label="Back"]')),
+  return JSON.stringify({ back: box(document.querySelector('[data-testid="water-back"]')),
                           strip: box(document.querySelector('[role=tablist][aria-label="Views of this water"]')),
                           title: box(title), left: left === Infinity ? null : left });
 })()`;

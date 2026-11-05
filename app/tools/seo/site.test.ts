@@ -14,6 +14,7 @@ import { openRegsFixture } from "@app/data/release/node";
 import { BUDGET, blockingScripts, checkBudget, measure, pageSize } from "./budget";
 import { buildAll, readConfig, writeSite, type Built } from "./build";
 import { pngSize } from "./share";
+import { SHARE_H, SHARE_W } from "./html";
 import { TODAY } from "./fixture";
 import { headersFile, hostWorker, HSTS, redirectFor, redirectsFile } from "./hosting";
 import { checkJsonLd } from "./jsonld";
@@ -347,7 +348,7 @@ describe("the static output", () => {
     // (T406) the card a water's head names is on disk, a 1200 x 630 PNG; its SVG source is not shipped
     const card = /<meta property="og:image" content="https:\/\/[^/]+(\/share\/vedder-river\.png)">/.exec(readFileSync(join(OUT, "water/vedder-river/index.html"), "utf8"))?.[1];
     expect([card, pngSize(readFileSync(join(OUT, card ?? "-"))), existsSync(join(OUT, "share/vedder-river.svg"))])
-      .toEqual(["/share/vedder-river.png", { width: 1200, height: 630 }, false]);
+      .toEqual(["/share/vedder-river.png", { width: SHARE_W, height: SHARE_H }, false]);
     expect(readFileSync(join(OUT, "robots.txt"), "utf8")).toContain("Sitemap:");
     expect(existsSync(join(OUT, cssPath()))).toBe(true);
     expect(() => writeSite(join(APP, "seo-out"), built.files)).toThrow(/inside a dist folder/);
