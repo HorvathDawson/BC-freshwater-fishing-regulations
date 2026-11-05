@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { maestroCmd } from './maestro.mjs';
 
 export const APP_ID = 'ca.canifishthis.app';
 const OUT = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'out');
@@ -68,7 +69,8 @@ export function screenshot(file) {
 export function screenText() {
   try {
     const bin = process.env.MAESTRO_BIN ?? path.join(os.homedir(), '.maestro/maestro/bin/maestro');
-    const json = execFileSync(bin, ['--device', udid(), 'hierarchy'], {
+    const [cmd, argv] = maestroCmd(bin, ['--device', udid(), 'hierarchy']);   // off the emulator ports (lib/maestro.mjs)
+    const json = execFileSync(cmd, argv, {
       encoding: 'utf8', timeout: 90_000, maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'],
       env: { ...process.env, MAESTRO_CLI_NO_ANALYTICS: '1', JAVA_HOME: process.env.JAVA_HOME ?? '/Applications/Android Studio.app/Contents/jbr/Contents/Home' } });
     const out = [], ids = [];
