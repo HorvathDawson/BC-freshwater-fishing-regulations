@@ -707,6 +707,11 @@ def main(argv: list[str] | None = None) -> int:
         # without promoting it.
         build_dir = SIDE / "atlas" / (build_dir.name + "_next")
         prepare_side(build_dir)
+    if a.dry_run and not (build_dir / "registry.json").exists():
+        # (T416) a fresh clone has no atlas: the stages after it are keyed by it, so there is nothing more to plan
+        print(f"build: no atlas at {build_dir} — " + ("--atlas builds it, then every stage RUNs" if a.atlas else
+                                                      "run with --atlas --promote first"))
+        return 0
     why: dict = {}
     rows = plan(build_dir, set(a.force) | ({"tiles"} if a.labels else set()), why)
     cmds = commands(build_dir)
