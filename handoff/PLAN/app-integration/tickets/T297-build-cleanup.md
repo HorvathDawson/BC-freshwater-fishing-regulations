@@ -11,3 +11,8 @@ helpers, one entry point, clear stage graph, docs). One full rebuild at the end 
 difference explained) against the release before.
 
 Depends: T266, T295. Size: L. Owner: no.
+
+## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
+Owner: Claude runs the build batched after curated changes land, and the human runs the SAME command with a
+short runbook. `pipeline release --prod <r-id>` re-uploads the same checked bytes (human-only): build once, promote the
+same artifact. Run timing leaves deliver (T412).

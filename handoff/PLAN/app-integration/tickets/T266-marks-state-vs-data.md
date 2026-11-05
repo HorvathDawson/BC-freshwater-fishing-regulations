@@ -28,3 +28,7 @@ mark-health 0 orphans.
 Depends: none. Size: M. Owner: confirm the file split (default as above).
 
 - Owner 2026-10-31: one `data/curated/decided/` folder is fine (approved).
+
+## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
+`decided/` is dropped (owner 2026-11-05): the exporter's per-domain copy goes; the apply paths read the marks
+directly (with T325). The rest (build never reads marks) stands.

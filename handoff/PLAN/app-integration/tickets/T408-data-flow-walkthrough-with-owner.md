@@ -1,6 +1,6 @@
 # T408 — Walk the owner through the data flow, one question at a time, then simplify it to match
 
-Status: OPEN — FIRST task of the next chat (data and build), before T324–T326, T266, T295, T297, T337.
+Status: PARTIAL (2026-11-05) — walkthrough done, every stream decided (`handoff/PLAN/data-flow-decisions.md`); T324, T325, T266, T295, T297, T337 re-scoped, T412 + T413 filed. Left: data-flow.md rewritten to the pipeline as built (with T324). Was: OPEN — FIRST task of the next chat.
 
 Source: owner 2026-11-05: wants an agent that asks them about the pipeline cleanup "to really understand what we want in
 the data flow and how we want it simplified … then implements", and "at least i will learn then too". T324's design

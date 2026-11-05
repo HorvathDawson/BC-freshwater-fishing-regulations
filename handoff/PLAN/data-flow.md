@@ -1,5 +1,9 @@
 # Data flow — every stream, end to end (T324 steps 1, 2, 4)
 
+> **2026-11-05 (T408):** the owner decided every stream — `data-flow-decisions.md` wins where this file differs
+> (`decided/` goes, the naming pass, the slow-feed pattern, DFO bindings checked in the build). This file is rewritten
+> to the pipeline as built when T324 lands.
+
 2026-10-30. For the owner. Planning only: nothing was moved, built or changed to write this.
 In flight while this was written: **T322** (slough files moved to `data/curated/sloughs/` and
 `data/generated/sloughs/`; `waters/slough_calls.json` + the registry fold added, fold **OFF** until its own side build).

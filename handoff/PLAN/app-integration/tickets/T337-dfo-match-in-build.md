@@ -16,3 +16,8 @@ Size: S–M.
 ## T322 check (2026-11-03): no stale binding
 `match apply --registry <t322b full_next registry>` into a scratch copy of the DFO entries: 161/161 bound, `diff -r`
 empty. The slough fold left every DFO place on a live item. The fix (the match inside the build) is still open.
+
+## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
+Owner: the 162 DFO matches are done and verified = owner decisions. Keep the ids; every build checks each one
+resolves in that build's registry and **fails naming the place** if not. No re-match by name, no manual `match apply`.
+New DFO names are already handled by the worker (`unplaced.json` + notice email).

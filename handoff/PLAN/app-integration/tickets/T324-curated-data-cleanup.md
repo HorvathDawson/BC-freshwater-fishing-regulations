@@ -27,3 +27,15 @@ feels really shitty and awkward.")
 4. **Cleanup list:** stray files, duplicate paths, dead readers — ticket each.
 
 Depends: T266, T322. Size: M (doc + plan), then per-domain lock tickets. Owner: approve the end-state shapes.
+
+## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
+Now the cleanup change set for the curated layer:
+1. **Naming pass** (the decisions table, "Naming pass"): `git mv` every file once; code, config, docs, tests together;
+   every JSON keeps an `_about` header, every curated folder a short README. Conventions: `*_calls` / `*_waters` / `*_stations`.
+2. **Out of curated:** `decided/` (with T325), `waters/sub_lake_areas.json` → the deferred lake-splits ticket,
+   `review/dfo_fix_proposals.json` → `data/generated/review/`, `gauges/candidates.json` → `data/generated/gauges/`.
+3. **Fast curated check** (schema + references) for the hand-edited waters files, on commit and as the build's first step.
+4. **Steelhead accept command:** prints the list diff (added / dropped) and writes the curated file; no hand copy.
+5. **Worker wording: one copy** — drop the compiled-in `wording.json`; missing/invalid R2 copy fails the DFO job loudly.
+6. **Sync inputs on push to STAGING** (`feeds-sync-inputs.yml` push trigger); prod stays manual.
+7. Rewrite `data-flow.md` to match the result.

@@ -451,10 +451,12 @@ use that as the sole source of future work."
 | T405 | Water pages fail Lighthouse when the app takes over the prerendered pane (LCP 3-39 s, CLS 0.15-0.72; hubs score 100) | PARTIAL | 5ba3155e5, db643ad12, f32ddb13a | staging fc215b52: fish thumbnails (fish bytes 307 → 54 KB on Vedder), perf 77-88, LCP 2.1-2.5 s, CLS 0.002, A11y 100; TBT (app boot) stops 95 — owner picks target/option |
 | T406 | SEO: raster (PNG) share images + species-by-region season calendar | DONE 11-05 | 08837f197, 7b20ec0da | owner accepted region bar + map button as they are |
 | T407 | Report a problem: "App bug" and "Feature request" reasons (for testing) | IN PROGRESS | — | owner 11-05; worker deploys with 0.6.0 |
-| T408 | Walk the owner through the data flow one question at a time, then simplify it to match (first task of the data-and-build chat) | OPEN | — | owner 11-05 |
+| T408 | Walk the owner through the data flow one question at a time, then simplify it to match (first task of the data-and-build chat) | PARTIAL | — | walkthrough done 11-05: data-flow-decisions.md; T324–T337 re-scoped, T412/T413 filed; data-flow.md rewrite with T324 |
 | T409 | Water pages: next Lighthouse wins (fonts, WebCrypto/DecompressionStream verify, code splitting, sql.js after paint, cache headers) | PARTIAL | e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 | staging 0457d354: WOFF2 faces + WebCrypto verify kept, water 77-83 (were 67-83), hubs 100; rest of TBT = warm map (no-map bound 93) — owner decision |
 | T410 | One clear web / native split in the app code (platform files, a written rule, a guard) | OPEN | — | owner 11-05, hygiene chat |
 | T411 | The highlighted part still zigzags after stepping Downstream to the bottom, then Upstream once (Coquitlam part 2) | OPEN | — | owner 11-05, screenshot in T411-shots; first in the next chat |
+| T412 | One slow-feed pattern (run timing first; HYDAT clim + bathymetry follow): workflow, auto binding base, same-bytes check | OPEN | — | owner 11-05 (T408) |
+| T413 | The feeds worker starts the HYDAT workflow on a new HYDAT (staging) | OPEN | — | owner 11-05 (T408); owner makes the token |
 
 ## Order for open tickets
 

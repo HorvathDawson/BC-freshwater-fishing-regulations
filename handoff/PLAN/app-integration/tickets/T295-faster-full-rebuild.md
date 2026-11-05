@@ -20,3 +20,7 @@ it ran twice (tiles had started before a tile-attribute commit) and queued behin
 Before/after stage timings on a full run; an unchanged-input rerun skips cached stages; outputs byte-identical (or explained).
 
 Depends: none. Size: M. Owner: no.
+
+## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
+Part of one command, `pipeline release --staging`: build → checks → promote LATEST → upload staging; stop at the
+first failure; **resumable** (finished stages cached); stage-by-stage progress; a plain failure message.

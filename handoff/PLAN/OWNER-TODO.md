@@ -6,6 +6,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **GitHub token for the worker (T413, filed 11-05):** a fine-grained token on this repo with *Actions: write* only,
+  set as the staging feeds worker's secret, so the worker can start the HYDAT workflow itself. Not blocking yet.
+
 - **Water-page speed (T405/T409): ANSWERED 2026-11-05.** Build the map only when it is first seen, web-only (local 93·93·93;
   a phone's "back to map" waits ~1–2 s once). Next chat, launch and hygiene, before the prod SEO launch. Keep Cloudflare's
   JS detections and Web Analytics beacon (0 ms blocking).

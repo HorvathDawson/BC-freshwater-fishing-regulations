@@ -54,3 +54,7 @@ items it should take my reviews and add to the curated items." Done:
   `apply dfo` (temp git repo). Also run: review_export, review_loop, review_proposals, slough_fold, build_command,
   name_sources_t224, curation_review_{q154,writes}, review_marks. All pass; frontend `tsc` clean.
 - Not run (heavy, human): the byte-identical side build. The queued batch rebuild can serve as the proof for ponds.
+
+## T408 re-scope (owner walkthrough 2026-11-05, `handoff/PLAN/data-flow-decisions.md`)
+Drop `decided/`: each domain's writer reads `marks.jsonl` directly and writes only its final file (owner: drop the
+middle copy). Supersedes the 10-31 "one decided/ folder is fine".

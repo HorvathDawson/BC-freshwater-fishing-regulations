@@ -13,6 +13,20 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-05: data flow walkthrough done (T408)
+- **Every stream decided.** Your answers are in `handoff/PLAN/data-flow-decisions.md`. In short:
+  - `decided/` goes; marks write straight to the final file.
+  - Hand-edited waters files get a seconds-fast check.
+  - Machine-made files leave curated.
+  - DFO matches are final, and the build fails if one breaks.
+  - Worker wording has one copy.
+  - Worker inputs sync to staging on push.
+  - Run timing becomes a "slow feed" workflow (T412), and the worker triggers HYDAT itself (T413).
+  - One `pipeline release --staging` command, the same for you and me.
+  - Curated files get clearer, consistent names.
+- **Tickets:** T324, T325, T266, T295, T297, T337 re-scoped to those answers; T412, T413 new.
+- **Next:** T164 (DFO salmon dossier), then the rest of the data-and-build list in order.
+
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json
   published, tester link emailed. Then 2–3 days of internal testing → Closed testing (T371).
