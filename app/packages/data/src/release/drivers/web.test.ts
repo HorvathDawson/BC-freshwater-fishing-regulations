@@ -4,7 +4,10 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import initSqlJs from "sql.js";
-import { gzipSync } from "fflate";
+
+/** a stored .gz body, by the platform's own CompressionStream (the boundary keeps fflate out of the web adapters) */
+const gz = async (b: Uint8Array): Promise<Uint8Array> =>
+  new Uint8Array(await new Response(new Blob([b as BlobPart]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
 
 const reported: unknown[] = [];
 vi.mock("@app/core", async (orig) => ({ ...(await orig<typeof import("@app/core")>()), reportFailure: (e: unknown) => { reported.push(e); } }));
@@ -130,12 +133,12 @@ describe("source.web: cache, else fetchVerified into the cache", () => {
   // (T409) the check is the browser's own: WebCrypto's sha256, DecompressionStream for a stored .gz body
   it("a stored .gz body (no Content-Encoding) is ungzipped by DecompressionStream and checked; a damaged one is refused", async () => {
     const cache = await withCaches(undefined, () => releaseCache());
-    const s = releaseSource(m, { base: "https://r2/release/", cache, held: null, fetch: server([], gzipSync(raw)) });
+    const s = releaseSource(m, { base: "https://r2/release/", cache, held: null, fetch: server([], await gz(raw)) });
     expect(await s.bytes("core")).toEqual(raw);
     const bad = releaseSource(m, { base: "https://r2/y/", cache, held: null,
-                                   fetch: server([], gzipSync(new TextEncoder().encode("SQLite format 3\u0000 cor!"))) });
+                                   fetch: server([], await gz(new TextEncoder().encode("SQLite format 3\u0000 cor!"))) });
     await expect(bad.bytes("core")).rejects.toThrow(/sha256 .*the manifest says/);
-    const short = releaseSource(m, { base: "https://r2/z/", cache, held: null, fetch: server([], gzipSync(raw.subarray(1))) });
+    const short = releaseSource(m, { base: "https://r2/z/", cache, held: null, fetch: server([], await gz(raw.subarray(1))) });
     await expect(short.bytes("core")).rejects.toThrow(`${raw.length - 1} bytes, the manifest says ${raw.length}`);
   });
   it("a browser without WebCrypto or DecompressionStream: an error, reported — never the JS hash instead", async () => {
@@ -151,7 +154,7 @@ describe("source.web: cache, else fetchVerified into the cache", () => {
     const ds = g.DecompressionStream;
     delete g.DecompressionStream;
     try {
-      const s = releaseSource(m, { base: "https://r2/b/", cache, held: null, fetch: server([], gzipSync(raw)) });
+      const s = releaseSource(m, { base: "https://r2/b/", cache, held: null, fetch: server([], await gz(raw)) });
       await expect(s.bytes("core")).rejects.toThrow("no DecompressionStream");
     } finally { g.DecompressionStream = ds; }
     expect(reported.map((e) => (e as Error).message)).toEqual([
