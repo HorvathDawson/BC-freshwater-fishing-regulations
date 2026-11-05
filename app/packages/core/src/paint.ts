@@ -114,13 +114,16 @@ export function decodePaintAsync(bytes: Uint8Array, expectHandles: string | null
   return runSliced(paintSteps(bytes, expectHandles, expectReach));
 }
 
+/** (T403) The paint formats this decoder reads: a release naming another is refused before it is opened. */
+export const PAINT_READS: readonly string[] = ["paint/4", "paint/5"];
+
 /** The decoder as steps (`runNow` / `runSliced`). */
 export function* paintSteps(bytes: Uint8Array, expectHandles: string | null, expectReach: string | null = null): Steps<Paint> {
   if (bytes[0] !== 0x42 || bytes[1] !== 0x43 || bytes[2] !== 0x50 || bytes[3] !== 0x54) throw new PaintError("paint: not a paint file");
   // paint/2 added each member's `lead`, paint/3 the access half, paint/4 the record per quantity (T110), paint/5 each
   // member's `lake` (T296): 4 and 5 are read (4 says nothing of lakes), another version is refused here
   const version = bytes[4];
-  if (version !== 4 && version !== 5) throw new PaintError(`paint: version ${version} is not 4 or 5`);
+  if (!PAINT_READS.includes(`paint/${version}`)) throw new PaintError(`paint: version ${version} is not 4 or 5`);
   const lakes = version === 5;
   const r = new Reader(bytes, 5);
   const n = r.u32();

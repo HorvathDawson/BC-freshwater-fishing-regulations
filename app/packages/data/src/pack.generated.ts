@@ -2489,6 +2489,12 @@ export const PACK_FILES: Record<string, PackFile> = {
   }
 };
 
+/** (T403) The files a release may omit (contract OPTIONAL); every other file is in every published release. */
+export const PACK_OPTIONAL: readonly string[] = ["lakes"];
+
+/** (T403) The files only the web fetches (the answer slices and contract WEB_ONLY): a phone never installs or holds one. */
+export const PACK_WEB_ONLY: readonly string[] = ["core-1", "core-2", "core-3", "core-4", "core-5", "core-6", "core-7a", "core-7b", "core-8", "water-1", "water-2", "water-3", "water-4", "water-5", "water-6", "water-7a", "water-7b", "water-8", "water-shared"];
+
 /**
  * (T129) THE WEB REQUEST BUDGET: per moment of a first web visit, the release files it fetches (manifest names;
  * "manifest" is manifest.json, "mask" the tile set's bc_outside.geojson, "regs-{region}" the largest region file) and

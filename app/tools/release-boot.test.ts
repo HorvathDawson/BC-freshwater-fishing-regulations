@@ -500,6 +500,59 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect([...fs.files.keys()].some((k) => k.startsWith(`release/${first.held.release}/`))).toBe(false);
     });
 
+  /** (T403) The held set made an OLDER APP's: its kept manifest names a format this app does not read (salmon/3 then). */
+  const makeOld = async (fs: ReturnType<typeof memFs>, h: { manifest?: string }) => {
+    const path = h.manifest!;
+    const m = JSON.parse(new TextDecoder().decode(await fs.read(path))) as Manifest;
+    m.files.access = { ...m.files.access!, format: "access/0" };
+    await fs.write(path, new TextEncoder().encode(JSON.stringify(m)));
+  };
+
+  it("(T403) a held set this app cannot read is never opened: the manifest's set is installed over it first, then pruned",
+    async () => {
+      const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+      const fs = memFs(), stages: string[] = [];
+      const boot = (f: typeof fetch) => bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
+                                                       platform: phone(fs), fetch: f, manifestTimeoutMs: 1000,
+                                                       onStage: (s) => stages.push(s) });
+      const first = await boot(releaseFetch(BASE, r1.dir, []));
+      await makeOld(fs, first.held);
+      // offline: nothing this app reads is on the phone, so the start fails and says it needs a connection
+      await expect(boot(offline)).rejects.toMatchObject({ firstRunOffline: true, message: expect.stringContaining("access is access/0") });
+      // online: installed BEFORE the map, as a first run is (not in the background for the next launch)
+      stages.length = 0;
+      const b = await boot(releaseFetch(BASE, r2.dir, []));
+      expect(stages).toEqual(["manifest", "install", "paint"]);
+      expect(b.held.release).not.toBe(first.held.release);
+      expect(b.rolledBack).toBeNull();
+      expect(await b.update).toBeNull();
+      expect(await b.source.water("gnis:8634" as ItemId)).not.toBeNull();
+      // the old set is gone once the new one has opened
+      expect([...fs.files.keys()].some((k) => k.startsWith(`release/${first.held.release}/`))).toBe(false);
+      expect(fs.files.has("release/previous")).toBe(false);
+    });
+
+  it("(T403) a manifest this app cannot read is never installed: a first run fails saying why, an update is refused",
+    async () => {
+      const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+      const m2 = JSON.parse(readFileSync(join(r2.dir, "manifest.json"), "utf8")) as Manifest;
+      m2.files.salmon = { ...m2.files.core!, format: "salmon/3" };
+      const bad = join(r2.root, "manifest-salmon3");
+      mkdirSync(bad, { recursive: true });
+      writeFileSync(join(bad, "manifest.json"), JSON.stringify(m2));
+      const at = (dir: string) => releaseFetch(BASE, dir, []);
+      const boot = (fs: ReturnType<typeof memFs>, f: typeof fetch) => bootRelease({
+        manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
+        manifestTimeoutMs: 1000 });
+      await expect(boot(memFs(), at(bad))).rejects.toThrow("salmon is salmon/3, not salmon/4");
+      const fs = memFs();
+      const first = await boot(fs, at(r1.dir));
+      const second = await boot(fs, at(bad));
+      expect(second.held).toEqual(first.held);
+      await expect(second.update).rejects.toThrow("salmon is salmon/3");
+      await expect(second.stage(m2)).rejects.toThrow("is not one this app reads");
+    });
+
   it("a first run with no network says so, rather than opening nothing", async () => {
     await expect(bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "",
                                platform: phone(memFs()), fetch: offline, manifestTimeoutMs: 1000 }))

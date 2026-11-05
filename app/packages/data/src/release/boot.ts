@@ -16,11 +16,15 @@
  *            it for good: the pointer goes back, the set is deleted and not installed again until the manifest names
  *            another. Anything else (an IO or opener failure) is rolled back for THIS launch only: the pointer, the
  *            set and the set it replaced all stay, and the next launch tries it again.
+ *            (T403) A held set THIS app cannot read (`readsRelease`: kept from an older app, say 0.4.0's after an update
+ *            to 0.5.0) is never opened: the manifest's set is installed over it before the map, like a first run, and
+ *            with no manifest the start fails and says so. No set this app cannot read is installed, opened or rolled
+ *            back to.
  */
 import { PaintError, releaseAllowed, reportFailure, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint, now as clockNow } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { fetchResilient, NetError, type Net } from "../net";
-import { compatible, loadManifest, ManifestError, parseManifest, type Held, type Manifest } from "../manifest";
+import { compatible, loadManifest, ManifestError, parseManifest, readsRelease, type Held, type Manifest } from "../manifest";
 import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
@@ -209,6 +213,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     // (T254) on a bad line the manifest is a resilient download: a stalled request is cut and tried again, and while
     // the device is offline the boot waits for it to come back rather than failing
     const m = o.net ? await resilientManifest(o.manifestUrl, f, o.net) : await loadManifest(o.manifestUrl, undefined, f);
+    const readable = readsRelease(m, "web");
+    if (!readable.ok) throw new BootError(readable.reason);
     const cache = await o.platform.releaseCache();
     const loader = withLiveSalmon(
       releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
@@ -223,6 +229,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
                          assets: m.tiles.assets?.id ?? null, release: m.data_release, files: {} };
     const stage = async (next: Manifest, onProgress?: (p: Progress) => void): Promise<Held | null> => {
       if (sameSet(pointerFor(next), pointerFor(m))) return null;
+      const r = readsRelease(next, "web");
+      if (!r.ok) throw new ReleaseError(r.reason);
       // the files this session has opened that the new release changed: warmed in the release cache, verified
       const names = loader.opened().filter((n) => next.files[n] && next.files[n]!.sha256 !== m.files[n]?.sha256);
       const ahead = releaseLoader(next, o.platform.releaseSource(next, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
@@ -252,9 +260,34 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     .catch((e: unknown) => { unread = e instanceof Error ? e.message : String(e); return null; });
   if (unread) console.warn(`[boot] the manifest could not be read: ${unread}`);
   const allowed = (m: Manifest) => !o.appVersion || releaseAllowed(m.minAppVersion, o.appVersion).ok;
+  /** (T403) Can this app read the set `h` holds? (a manifest that will not read is openSet's to refuse) */
+  const heldReads = async (h: Held) => {
+    const hm = await heldManifest(dev.fs, h).catch(() => null);
+    return hm ? readsRelease(hm, "phone") : { ok: true as const };
+  };
+  const stale = held ? await heldReads(held) : null;
+  if (held && stale && !stale.ok) {
+    // (T403) THE HELD SET IS AN OLDER APP'S: installed over before anything opens it (it is kept until the new one has
+    // opened, then pruned, as an update's); without a manifest this app reads, the start fails and says why
+    console.warn(`[boot] ${stale.reason}: the manifest's set is installed before the map opens`);
+    if (!latest) throw new BootError(`${stale.reason}, and the manifest could not be read (${unread ?? "no answer"})`, true);
+    if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
+    const fresh = readsRelease(latest, "phone");
+    if (!fresh.ok) throw new BootError(`${stale.reason}; and the manifest's ${fresh.reason}`);
+    const old = held;
+    if (o.mobileData && await o.mobileData.decide(installBytes(latest, old)) === "wifi") {
+      o.onStage?.("wifi");
+      await o.mobileData.untilAllowed();
+    }
+    o.onStage?.("install");
+    held = await install(latest, dev.fs, dev.download, o.releaseBase, old, (p) => o.onProgress?.(p), dev.toDisk,
+                         () => writeHeld(dev.fs, PREVIOUS, old), rawFetch(f));
+  }
   if (!held) {
     if (!latest) throw new BootError(`first run: the manifest could not be read (${unread ?? "no answer"})`, true);
     if (!allowed(latest)) throw new BootError(UPDATE_WORDS.row.appTooOld);
+    const fresh = readsRelease(latest, "phone");
+    if (!fresh.ok) throw new BootError(fresh.reason);
     // (T298) every big file handed to the system's downloader BEFORE anything else downloads, so closing the app a moment
     // later still fetches all of them; on mobile data the reader's setting decides first (ask / go / wait for Wi-Fi)
     const big: BgItem[] = bigFiles(latest, null).map((b) => ({ url: `${o.releaseBase}${b.url}`, file: b.file,
@@ -291,6 +324,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const t0 = clockNow();
     openStep(0);
     const m = await heldManifest(dev.fs, h);
+    const r = readsRelease(m, "phone");
+    if (!r.ok) throw new ReleaseError(r.reason);              // (T403) never opened: its readers would throw later
     openStep(1);
     const t = m.tiles.current;
     if (t && !(t.id && compatible(m.tiles.compatible, t.id)))
@@ -324,7 +359,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     set = await openSet(held);
   } catch (e) {
     // ROLLBACK: the set this one replaced is still on disk (nothing is pruned before success); open it instead
-    if (!previous || sameSet(previous, held)) throw e;
+    // (T403) never back to a set this app cannot read (an older app's, just installed over): the failure stands
+    if (!previous || sameSet(previous, held) || !(await heldReads(previous)).ok) throw e;
     reportFailure(e);   // (T368) shown (`rolledBackLine`) and reported
     const bad = held, badM = await heldManifest(dev.fs, bad).catch(() => null);
     const defect = await provenDefect(e, dev.fs, bad);
@@ -363,6 +399,9 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const target = pointerFor(next);
     if (staged || sameSet(target, now) || (refused && sameSet(target, refused))
         || (retrying && sameSet(target, retrying.h))) return Promise.resolve(null);
+    // (T403) a set this app cannot read is never installed: refused, and the reason is the update's failure
+    const r = readsRelease(next, "phone");
+    if (!r.ok) return Promise.reject(new ReleaseError(r.reason));
     staging = (async () => {
       // a newer set replaces the one being retried: what of it the held set does not name goes first
       if (retrying) { await prune(dev.fs, retrying.h, retrying.m, now, set.m); retrying = null; }

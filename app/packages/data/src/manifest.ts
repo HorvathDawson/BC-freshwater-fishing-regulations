@@ -9,7 +9,8 @@
  *                  On a mismatch, or a manifest that cannot be read, the LAST GOOD PAIR is kept and said so; tiles are
  *                  never coloured from an incompatible file.
  */
-import { MANIFEST_FORMAT, type Manifest } from "./pack.generated";
+import { PAINT_READS } from "@app/core";
+import { MANIFEST_FORMAT, PACK_FILES, PACK_OPTIONAL, PACK_WEB_ONLY, type Manifest } from "./pack.generated";
 
 export type { Manifest, SynopsisAppend } from "./pack.generated";
 export type FileName = string;
@@ -46,6 +47,34 @@ export async function loadManifest(url: string, signal?: AbortSignal,
   const res = await fetchImpl(url, { signal });
   if (!res.ok) throw new ManifestError(`manifest: HTTP ${res.status} for ${url}`);
   return parseManifest(await res.json());
+}
+
+/** (T403) Formats a reader takes beside the contract's own (an older one it still decodes). */
+const ALSO_READS: Readonly<Record<string, readonly string[]>> = { paint: PAINT_READS };
+
+type Readable = { ok: true } | { ok: false; reason: string };
+
+/**
+ * (T403) CAN THIS APP READ THIS RELEASE? Every file the manifest names that this app's contract knows must be in a format
+ * its reader takes (`PACK_FILES`, and `ALSO_READS`); and a PUBLISHED release (stamped `published`: a fixture or a local
+ * build is a partial set) must name every file of the contract but the optional ones — and, on a phone (`where`), the
+ * web's own. A release made for an older app fails here (measured 2026-11-05: a phone updated to 0.5.0 opened the
+ * r-4e709418ebd8 it held from 0.4.0 — salmon/3, no `lines` — and its readers threw on the map and the regs page).
+ * Files the contract does not know are a newer release's and are not read: they pass.
+ */
+export function readsRelease(m: Manifest, where: "web" | "phone"): Readable {
+  const wrong: string[] = [];
+  for (const [name, f] of Object.entries(m.files)) {
+    const want = PACK_FILES[name]?.format;
+    if (want && f.format !== want && !(ALSO_READS[name] ?? []).includes(f.format)) wrong.push(`${name} is ${f.format}, not ${want}`);
+  }
+  const missing = m.published
+    ? Object.keys(PACK_FILES).filter((n) => !m.files[n] && !PACK_OPTIONAL.includes(n)
+                                            && !(where === "phone" && PACK_WEB_ONLY.includes(n))).sort()
+    : [];
+  if (!wrong.length && !missing.length) return { ok: true };
+  return { ok: false, reason: `release ${m.data_release} is not one this app reads: `
+    + [...wrong, ...(missing.length ? [`it has no ${missing.join(", ")}`] : [])].join("; ") };
 }
 
 /** Whether a PHONE holds this file: not an answer slice (T256, `slice_of`) and not a web-only file (T369, `web_only`:
