@@ -14,8 +14,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
-- **0.6.0:** version + changelog committed (1590e08d6). The AAB is being built and uploaded to Play internal
-  (`build-apk.sh --play`); the tester link comes by email. Then 2–3 days of internal testing → Closed testing (T371).
+- **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json
+  published, tester link emailed. Then 2–3 days of internal testing → Closed testing (T371).
 - **Staging feeds worker** deployed with it (b960604d): "App bug" / "Feature request" reports (T407), the monthly
   forecast score (T178), the version notices. All three feed jobs ran clean.
 - **Website speed (T409):** water pages 77–83 (were 40–45), hubs 100. Web-only. The rest is the map warm-up (left, owner).
