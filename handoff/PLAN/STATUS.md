@@ -55,7 +55,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   "file not found". The Mac's 9.7 GB copy is the only copy. Five other inputs have no fetch path at all. Details in
   T416.
 - **staging-security.yml:** button only (your call). No workflow has a GitHub schedule now.
-- **Running now:** T411 (highlight zigzag, for 0.6.1).
+- **T411 fixed in code** (0.6.1 batch): stepping between parts no longer leaves the highlight's copy on an old zoom's line.
+  The emulator scenario failed before the fix and passes after. Your phone check comes with the next APK
+  (say "build").
+- **FWA is not lost:** it moved to the government's cloud storage. The fetch is fixed, and a fresh fetch of every source
+  works (about 55 min).
+- **This chat is done.** The next chat starts from `NEXT-SESSION-after-0.6.0.md`: T416, T412, T413, then launch and hygiene.
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json

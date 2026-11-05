@@ -5,9 +5,9 @@ in order: **Data and build** first, then **Launch and hygiene**. Each is one cha
 
 ## Paste this to start the chat
 
-> Read `handoff/PLAN/NEXT-SESSION-after-0.6.0.md`, then the STATUS.md top entry. 0.6.0 is on Play internal. Start
-> with T408: walk me through the data flow one question at a time. Then do the Data and build list in order. Start
-> ticket work without asking; ask me only for decisions. Keep replies short and STATUS.md current.
+> Read `handoff/PLAN/NEXT-SESSION-after-0.6.0.md`, then the STATUS.md top entry. 0.6.0 is on Play internal. Finish
+> the Chat 1 list (T416, T412, T413), then do the Launch and hygiene list in order. Start ticket work without asking;
+> ask me only for decisions. Keep replies short and STATUS.md current.
 
 (For the second chat, swap the T408 lines for: "Do the Launch and hygiene list in order.")
 
@@ -31,15 +31,17 @@ in order: **Data and build** first, then **Launch and hygiene**. Each is one cha
 3. **`graphify update .`** (not run after the 0.6.0 changes).
 
 ## Chat 1 — Data and build (in order)
-Done 11-05: T408 walkthrough (`data-flow-decisions.md`), T239, T266/T325, T295/T297 (`pipeline release`), T337.
-Owner-gated: T164 (179 DFO places to review), T326 (3 DFO items). Waits: T178 (first monthly score 2026-12-01).
-Left, in order:
-1. **T324** — curated renames + clean-up (a lane ran it 11-05; check its proof: no atlas rerun from renames alone).
-2. **T416** — a fresh clone can build. The fetch started 11-05 in `~/t416-fresh` (log `~/t416-fresh.log`); the branch is
-   pushed (GitHub was 868 commits behind). Finish: inventory + mirror + bootstrap + timed clone→build proof.
-3. **T412** — one slow-feed pattern (carries T199, T225); never a GitHub schedule.
-4. **T413** — the worker starts the HYDAT workflow (owner's optional token); until then its email.
-5. `graphify update .`
+Done 11-05: T408 walkthrough (`data-flow-decisions.md`), T239, T266/T325, T295/T297 (`pipeline release`), T324
+(renames; restart the review app after pulling), T337, ticket audit (`ticket-audit-2026-11-05.md`), T411 in code
+(0.6.1 batch), graphify updated. Owner-gated: T164 (179 DFO places), T326 (3 DFO items). Waits: T178 (2026-12-01).
+Left, in order (a short "Chat 1b" before chat 2):
+1. **T416** — a fresh clone can build. State in the ticket: the fresh clone is at `~/t416-fresh` with every source
+   fetched (log `~/t416-fresh.log`; FWA moved to the gov object store, fixed). Left: fetch_data exits non-zero on
+   errors; a source for the 5 inputs with no fetch path; pin the drifting live layers (mirror to R2 with sha256) or
+   explain them; one bootstrap command; the timed clone→`pipeline release --staging --dry-run`→build proof;
+   `handoff/PLAN/runbooks/fresh-machine.md`.
+2. **T412** — one slow-feed pattern (carries T199, T225); never a GitHub schedule.
+3. **T413** — the worker starts the HYDAT workflow (owner's optional token); until then its email.
 
 ## Chat 2 — Launch and hygiene (in order; ticket audit 2026-11-05 in `ticket-audit-2026-11-05.md`)
 1. **0.6.1 batch** if not shipped yet: T411 (highlight zigzag), T417 (watershed flicker), T418 (style assets) → one APK
