@@ -51,7 +51,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   Worker inputs sync to staging on push. `data-flow.md` is rewritten. The renames rerun no atlas: the build now hashes
   content, not paths. **Restart the review app after pulling** (it reads its paths at start).
 - **Ticket audit applied** (`ticket-audit-2026-11-05.md`); both next-session lists rewritten.
-- **Running now:** T411 (highlight zigzag, for 0.6.1); the T416 source fetch (`~/t416-fresh.log`).
+- **T416 first fetch: a fresh clone cannot build today.** The government's FWA download (the core map data) answers
+  "file not found". The Mac's 9.7 GB copy is the only copy. Five other inputs have no fetch path at all. Details in
+  T416.
+- **staging-security.yml:** button only (your call). No workflow has a GitHub schedule now.
+- **Running now:** T411 (highlight zigzag, for 0.6.1).
 
 ## 2026-11-05: 0.6.0 built for Play internal; handoff ready
 - **0.6.0:** version + changelog committed (1590e08d6). On Play internal: versionCode 9 (97459e986), play.json
