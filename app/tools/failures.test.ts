@@ -148,7 +148,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/data/src/regs/reads.ts": { n: 2, why: `${UNCACHE}; a batch failure rejects every waiter` },
   "packages/data/src/release/assets.ts": { n: 3, why: "verified either way (re-download / VerifyError); a bounded retry whose failure is thrown" },
   "packages/data/src/release/background.ts": { n: 3, why: `${PROBE}; a prefetch failure goes to the Updates log as an event` },
-  "packages/data/src/release/boot.ts": { n: 8, why: "typed rethrows / defect classification; the manifest unread offline (the held set opens; a first run throws BootError); a permission prompt; cleanup without a manifest; the update service owns staging failures" },
+  "packages/data/src/release/boot.ts": { n: 9, why: "typed rethrows / defect classification; the manifest unread offline (the held set opens; a first run throws BootError); a permission prompt; cleanup without a manifest; the update service owns staging failures; (T403) a held manifest that will not read is left to openSet, which refuses it" },
   "packages/data/src/release/drivers/cache.web.ts": { n: 4, why: "Cache Storage refused → a session copy in memory (a best-effort cache)" },
   "packages/data/src/release/drivers/install.native.ts": { n: 1, why: "a bounded retry, thrown at the end" },
   "packages/data/src/release/drivers/open.web.ts": { n: 1, why: UNCACHE },
