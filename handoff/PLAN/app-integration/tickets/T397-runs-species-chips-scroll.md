@@ -10,5 +10,5 @@ Cause: the map foot (legend / Runs bar) hung from a ZERO-HEIGHT row (`map-foot`,
 Android hands a native touch only to a view inside its parent's bounds: taps still worked (React Native hit-tests in
 JS) and the slider is a PanResponder (JS), but the species row is a native horizontal ScrollView and never got the drag.
 Fix: the foot is an absolute block at the bottom of the map area (same place on screen, same paint order). Guard in
-Runs.shell.test.tsx: no ancestor of the species row is zero-height (fails on the old layout). Any other native scroller
-in the foot (the Conditions forecast-day list) had the same problem and is fixed with it.
+Runs.shell.test.tsx: no ancestor of the species row is zero-height (fails on the old layout). No other native scroller sits
+in the foot today.
