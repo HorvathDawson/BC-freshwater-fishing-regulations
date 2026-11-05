@@ -8,13 +8,17 @@
  *              button opens the listing. Until then there is no channel (STUB until T88).
  *   apk-page   a sideloaded staging APK: `latest.json` beside the APK page (`deploy/staging/build-apk.sh`) for the
  *              version, the button opens the page.
+ * (T234 v1.1) The incoming version's "What's new" bullets come from the version file on our server (`latest.json` /
+ * `play.json`, core `appVersionFileUrl`): with the apk-page check itself; for Play, read after Play says a newer
+ * version is there (a missing or failed file: no bullets — the prompt says none were published; a failure is reported).
  *
  * The store package is loaded only on the first Play / App Store call, never for the APK page.
  */
 import { Platform } from "react-native";
-import { apkIsNewer, appUpdateChannel, type AppVersion } from "@app/core";
+import { apkIsNewer, appUpdateChannel, appVersionFileUrl, reportFailure, type AppVersion, type AppVersionFile } from "@app/core";
 import type { AppUpdatePort } from "@app/ui";
 import { openLinkShown } from "@app/ui-native";
+import { ENDPOINTS } from "./config";
 
 const store = () => import("expo-in-app-updates");
 
@@ -35,8 +39,8 @@ export function makeAppUpdater(own: AppVersion): AppUpdatePort | null {
         check: async () => {
           const r = await fetch(latest, { cache: "no-store" });
           if (!r.ok) throw new Error(`HTTP ${r.status} for ${latest}`);
-          const l = await r.json() as { version?: string };
-          return { available: apkIsNewer(l, own), version: l.version ?? null };
+          const l = await r.json() as Partial<AppVersionFile>;
+          return { available: apkIsNewer(l, own), version: l.version ?? null, notes: l.notes ?? null };
         },
         start: () => open(page),
       };
@@ -55,7 +59,18 @@ export function makeAppUpdater(own: AppVersion): AppUpdatePort | null {
         channel,
         check: async () => {
           const u = await (await store()).checkForUpdate();
-          return { available: u.updateAvailable, version: u.storeVersion ?? null };
+          if (!u.updateAvailable) return { available: false, version: u.storeVersion ?? null };
+          // Play names a version CODE; our play.json names the version and its bullets
+          const file = appVersionFileUrl("play", { apkPage: null, dataBase: ENDPOINTS.base })!;
+          try {
+            const r = await fetch(file, { cache: "no-store" });
+            if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
+            const l = await r.json() as Partial<AppVersionFile>;
+            return { available: true, version: typeof l.version === "string" ? l.version : u.storeVersion ?? null, notes: l.notes ?? null };
+          } catch (e) {
+            reportFailure(e);
+            return { available: true, version: u.storeVersion ?? null };
+          }
         },
         start: async ({ immediate }) => {
           const m = await store();

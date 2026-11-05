@@ -154,7 +154,9 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/HelpPage.tsx#HelpPage: draws HelpPage": "(T248) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/NotificationsPage.tsx#NotificationsPage: draws NotificationsPage": "(T234) a menu page's CONTENT: MenuHost draws it as page(\"notifications\") inside <MenuPage>, which registers (useBackLayer)",
-  "packages/ui-native/src/AlertMe.tsx#AlertForm: takes onCancel": "(T234) an inline form in a gauge card or a page's row, not an overlay: Cancel puts it away; back leaves the view or page it sits in",
+  "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel": "(T234) an inline form in a gauge card or a page's row, not an overlay: Cancel puts it away; back leaves the view or page it sits in",
+  "packages/ui-native/src/menu/NotificationsPage.tsx#AddAlert: takes onCancel": "(T234 v1.1) an inline card on More → Notifications, not an overlay: Cancel puts it away; back leaves the page (its <MenuPage> registers)",
+  "packages/ui-native/src/menu/InfoPages.tsx#ChangelogPage: draws ChangelogPage": "(T234 v1.1) a menu page's CONTENT: MenuHost draws it as page(\"changelog\") inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/OfflinePage.tsx#OfflinePage: draws OfflinePage": "(T238) a menu page's CONTENT: MenuHost draws it as page(\"offline\") inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage": "a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
   "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage": "(T251) a menu page's CONTENT: MenuHost draws it inside <MenuPage>, which registers (useBackLayer)",
@@ -211,7 +213,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
     }));
     expect(found).toEqual([
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
-      "packages/ui-native/src/AlertMe.tsx#AlertForm: takes onCancel",
+      "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",
       // (T257) the first-run tour: its own Modal, registered (useBackLayer)
       "packages/ui-native/src/CoachMarks.tsx#CoachTour: a Modal",
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
@@ -249,9 +251,11 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/HelpPage.tsx#HelpPage: draws HelpPage",
       "packages/ui-native/src/menu/InfoPages.tsx#AboutPage: draws AboutPage",
       "packages/ui-native/src/menu/InfoPages.tsx#SourcesPage: draws SourcesPage",
+      "packages/ui-native/src/menu/InfoPages.tsx#ChangelogPage: draws ChangelogPage",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPage: a Modal",
       "packages/ui-native/src/menu/MenuPage.tsx#MenuPageHead: takes onBack",
       "packages/ui-native/src/menu/MoreScreen.tsx#Head: takes onBack",
+      "packages/ui-native/src/menu/NotificationsPage.tsx#AddAlert: takes onCancel",
       "packages/ui-native/src/menu/NotificationsPage.tsx#NotificationsPage: draws NotificationsPage",
       "packages/ui-native/src/menu/OfflinePage.tsx#OfflinePage: draws OfflinePage",
       "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage",

@@ -17,7 +17,7 @@ import { appUpdateVM, isEnvironment, now, readAppUpdateSaved, reportFailure, sho
 export interface AppUpdatePort {
   readonly channel: AppUpdateChannel;
   /** Is a newer version there? `version`: what the store says (a semver, a Play version code), or null. */
-  check(): Promise<{ available: boolean; version: string | null }>;
+  check(): Promise<{ available: boolean; version: string | null; notes?: readonly string[] | null }>;
   /**
    * Start it: Play's in-app update (`immediate`: the full-screen flow, for data that needs the app; else the flexible
    * download), the store page, or the test-build page. "downloading" | "opened" | "none" (nothing newer to install).
@@ -43,23 +43,29 @@ function readSaved(store: AppUpdateStore | null): AppUpdateSaved | null {
 }
 
 function asCheck(s: AppUpdateSaved | null): AppUpdateCheck {
-  return !s ? { state: "unknown" } : s.available ? { state: "available", version: s.version } : { state: "current" };
+  return !s ? { state: "unknown" } : s.available ? { state: "available", version: s.version, notes: s.notes ?? null }
+    : { state: "current" };
 }
 
 export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore | null,
-                             o: { offline: boolean; tooOld: boolean }): AppUpdateControl | null {
+                             o: { offline: boolean; tooOld: boolean;
+                                  /** (T234 v1.1) a new-version notification was tapped: ask now, whatever the day */
+                                  ask?: number }): AppUpdateControl | null {
   const channel = port?.channel ?? "none";
   const [check, setCheck] = useState<AppUpdateCheck>(() => asCheck(readSaved(store)));
   const [start, setStart] = useState<AppUpdateStart>("idle");
   const asking = useRef(false);
   const today = deviceDay();
+  const asked = useRef(0);
   useEffect(() => {
     if (!port || asking.current) return;
     const saved = readSaved(store);
-    if (!shouldCheckAppUpdate({ channel, saved, today, offline: o.offline })) return;
+    const tapped = (o.ask ?? 0) > asked.current && !o.offline && channel !== "none";
+    if (!tapped && !shouldCheckAppUpdate({ channel, saved, today, offline: o.offline })) return;
+    asked.current = o.ask ?? 0;
     asking.current = true;
     port.check().then((r) => {
-      const next: AppUpdateSaved = { day: today, available: r.available, version: r.version };
+      const next: AppUpdateSaved = { day: today, available: r.available, version: r.version, notes: r.notes ?? null };
       try { store?.write(JSON.stringify(next)); } catch (e) { reportFailure(e); }   // asked again next opening
       setCheck(asCheck(next));
     }, (e: unknown) => {
@@ -72,7 +78,7 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
       }
       setCheck({ state: "failed", offline });
     }).finally(() => { asking.current = false; });
-  }, [port, store, channel, today, o.offline]);
+  }, [port, store, channel, today, o.offline, o.ask]);
 
   const update = useCallback(() => {
     if (!port) return;

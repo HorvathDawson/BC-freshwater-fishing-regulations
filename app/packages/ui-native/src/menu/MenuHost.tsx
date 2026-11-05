@@ -14,11 +14,12 @@ import { Platform } from "react-native";
 import { getSynopsisSource } from "../regs/synopsisSource";
 import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
+import type { WaterSource } from "@app/data";
 import { ERROR_LOG, routeWhere, useGlossary, useNotifications, type MenuControls, type OfflineControls, type ReportSender, type Route } from "@app/ui";
 import type { Palette } from "../theme";
 import { HelpPage } from "./HelpPage";
 import { GlossaryPage } from "./GlossaryPage";
-import { AboutPage, SourcesPage } from "./InfoPages";
+import { AboutPage, ChangelogPage, SourcesPage } from "./InfoPages";
 import { MenuPage } from "./MenuPage";
 import { OfflinePage } from "./OfflinePage";
 import { NotificationsPage } from "./NotificationsPage";
@@ -29,6 +30,8 @@ import { UpdatesLogPage, type UpdatesLogControls } from "./UpdatesLogPage";
 export interface MenuInfo {
   /** the app build, e.g. "1.2.0 (34)"; null when the build states none */
   readonly appBuild: string | null;
+  /** (T234 v1.1) the installed version (semver), marked on About → What's new; absent: none marked */
+  readonly appVersion?: string | null;
   /** THE ONE CONTACT VALUE: an email address or a web link; null until the owner supplies one (a placeholder shows) */
   readonly contact: string | null;
   /**
@@ -49,7 +52,11 @@ export interface MenuInfo {
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
 export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabTour, loader, info = NO_MENU_INFO, tiles, route, day, mode = null,
-                           map = null, offline = null }: {
+                           map = null, offline = null, source = null, onOpenConditions }: {
+  /** (T234 v1.1) the waters: the alert editor's reading and normal range, "Add an alert"'s search; null: neither */
+  source?: WaterSource | null;
+  /** (T234 v1.1) "Add an alert": open the picked water's Conditions (where its gauge card has "Alert me") */
+  onOpenConditions?: (item: string) => void;
   /** (T352) the map as the reader has it — layer, forecast offset, zoom and centre (the Shell's): a report lists them */
   map?: ReportMap | null;
   /** (T238) the Offline maps page's view and actions (`useOfflineMaps`); null: no release open, the page says nothing */
@@ -101,7 +108,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "updates", node: React.ReactNode) => (
+  const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "updates" | "changelog", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -119,7 +126,8 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
         )}
       </MenuPage>
       {page("offline", offline ? <OfflinePage c={offline} palette={palette} /> : null)}
-      {notifications && page("notifications", <NotificationsPage n={notifications} palette={palette} />)}
+      {notifications && page("notifications", <NotificationsPage n={notifications} palette={palette} source={source}
+                                                                 onFindWater={onOpenConditions ? (item) => { menu.closePage(); onOpenConditions(item); } : undefined} />)}
       {page("help", <HelpPage palette={palette} theme={theme}
                               onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined}
                               onTabTour={onTabTour ? (k) => { menu.closePage(); onTabTour(k); } : undefined}
@@ -131,11 +139,13 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
         appBuild: info.appBuild, release: loader?.release ?? null, tiles, dataEnv,
         edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} onEnv={pickEnv}
                                    onUpdatesLog={info.updatesLog ? () => menu.show("updates") : undefined}
+                                   onChangelog={() => menu.show("changelog")}
                                    onReport={() => menu.report(where)}
                                    onSources={() => menu.show("sources")} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics}
                                   sender={info.report ?? null} />)}
       {info.updatesLog && page("updates", <UpdatesLogPage c={info.updatesLog} palette={palette} />)}
+      {page("changelog", <ChangelogPage palette={palette} installed={info.appVersion ?? null} />)}
     </>
   );
 }

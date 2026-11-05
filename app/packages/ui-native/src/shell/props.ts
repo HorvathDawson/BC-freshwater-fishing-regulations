@@ -89,6 +89,8 @@ export interface ShellProps {
    * reach's alert (the Conditions map); `n` counts taps, so the same water asked again opens again.
    */
   openRequest?: { item: string | null; n: number } | null;
+  /** (T234 v1.1) a new-app-version notification was tapped (a count): the bell opens on its "App update", checked now */
+  openUpdate?: number;
   /** (T50) every route the Shell moves to, for an app that must put the reader back after Android recreates the
    *  activity (a font-size or display change) — the JS outlives the React tree, so the app holds the last one. */
   onRoute?: (r: Route) => void;

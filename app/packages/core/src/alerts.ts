@@ -334,6 +334,8 @@ export const NOTIFY_WORDS = {
     kinds: { above: "Rises above", below: "Falls below", rise: "Rises by % in 24 h", fall: "Falls by % in 24 h" } as Record<AlertKind, string>,
     value: (kind: AlertKind, q: AlertQuantity) => (isChangeKind(kind) ? "Percent change" : `Value in ${unitOf(q)}`),
     cadence: "How often at most",
+    /** beside the value: the unit, or a percent for the change kinds */
+    unit: (kind: AlertKind, q: AlertQuantity) => (isChangeKind(kind) ? "%" : unitOf(q)),
     cadenceDefault: "Once a day for this water",
     cadenceGap: (h: number) => (h === 24 ? "Once a day (this alert)" : h === 48 ? "Every 2 days" : `Every ${h} h`),
     save: "Save alert",

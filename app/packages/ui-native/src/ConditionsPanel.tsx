@@ -287,9 +287,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       )}
       {/* (T234) ALERT ME: a line on this gauge's quantity, told by the phone's background check (none on the web) */}
       {available.includes(shown) && (
-        <AlertMe palette={palette} target={{ station, stationName: title, quantity: shown,
-                                             current: reading && reading.quantity === shown ? reading.figure : null,
-                                             water: alertWater ?? null }} />
+        <AlertMe palette={palette} source={source}
+                 target={{ station, stationName: title, quantity: shown, quantities: available,
+                           current: reading && reading.quantity === shown ? reading.figure : null,
+                           water: alertWater ?? null }} />
       )}
     </View>
   ) : null;

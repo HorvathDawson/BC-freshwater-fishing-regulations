@@ -5,7 +5,7 @@
 import { Platform, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
+import { CHANGELOG_WORDS, changelogVM, LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
@@ -25,7 +25,8 @@ const openOfficial = (url: string) => () => { if (Platform.OS === "web") open(ur
 /** (T243) a link on its own line is a 44 px row (the touch-target floor), its words centred in it */
 const LINK_ROW = { minHeight: 44, justifyContent: "center" } as const;
 
-export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onReport }: { vm: AboutVM; palette: Palette;
+export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onReport, onChangelog }: { vm: AboutVM; palette: Palette;
+                            /** (T234 v1.1) open What's new (every version) */ onChangelog?: () => void;
                             onEnv?: (env: AppEnv) => void;
                             /** (T237) open Report a problem */ onReport?: () => void;
                             /** (T235) open Sources and licences */ onSources?: () => void;
@@ -67,6 +68,13 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onRepor
           </View>
         ))}
       </View>
+      {/* (T234 v1.1) every version's changes, tucked under the versions (never a More row) */}
+      {onChangelog && (
+        <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-changelog" onPress={onChangelog} accessibilityRole="link"
+                   accessibilityLabel={CHANGELOG_WORDS.open} accessibilityHint={CHANGELOG_WORDS.openHint} style={LINK_ROW}>
+          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{CHANGELOG_WORDS.open}</Text>
+        </Pressable>
+      )}
       {vm.env && <EnvBlock vm={vm.env} palette={palette} onEnv={onEnv} />}
       {onUpdatesLog && (
         <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-updates-log" onPress={onUpdatesLog} accessibilityRole="link"
@@ -153,5 +161,34 @@ export function SourcesPage({ vm, palette }: { vm: SourcesVM; palette: Palette }
         <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${MENU_WORDS.about.privacy} ${WORDS.LINK_OUT}`}</Text>
       </Pressable>
     </>
+  );
+}
+
+/**
+ * (T234 v1.1) WHAT'S NEW — every version, newest first (core `changelogVM` over THE ONE changelog, `@app/core`
+ * changelog.ts): a card per version, its date (or "Coming next"), the installed one marked, its bullets; a version with
+ * none says so.
+ */
+export function ChangelogPage({ palette, installed }: { palette: Palette; installed: string | null }) {
+  const rows = changelogVM(installed);
+  return (
+    <View testID="changelog" style={{ gap: SPACE.s3 }}>
+      {rows.map((r) => (
+        <View key={r.version} testID={`changelog-${r.version}`}
+              style={{ gap: SPACE.s1, padding: SPACE.s3, borderWidth: r.installed ? 1.5 : 1,
+                       borderColor: r.installed ? palette.ink : palette.line2, backgroundColor: palette.card }}>
+          <View style={{ flexDirection: "row", alignItems: "baseline", gap: SPACE.s2, flexWrap: "wrap" }}>
+            <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{r.title}</Text>
+            <Text style={{ ...TYPE.small, color: palette.sub }}>{r.when}</Text>
+            {r.installed && (
+              <Text testID="changelog-installed" style={{ ...TYPE.metaBold, color: palette.accent }}>{CHANGELOG_WORDS.installed}</Text>
+            )}
+          </View>
+          {r.missing
+            ? <Text style={{ ...TYPE.small, color: palette.sub }}>{r.missing}</Text>
+            : r.notes.map((n, i) => <Text key={i} style={{ ...TYPE.small, color: palette.ink }}>{`• ${n}`}</Text>)}
+        </View>
+      ))}
+    </View>
   );
 }

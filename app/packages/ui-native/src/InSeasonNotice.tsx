@@ -59,6 +59,18 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
               {upd.text}
             </Text>
             {!!upd.sub && <Text style={{ ...TYPE.small, color: palette.sub }}>{upd.sub}</Text>}
+            {/* (T234 v1.1) the incoming version's bullets, before it is installed; none published: said, never blank */}
+            {upd.whatsNew && (
+              <View testID="notice-app-whatsnew" style={{ gap: 4, borderLeftWidth: 2, borderLeftColor: palette.line2,
+                                                          paddingLeft: 10 }}>
+                <Text accessibilityRole="header" style={{ ...TYPE.metaBold, color: palette.ink }}>{upd.whatsNew.title}</Text>
+                {upd.whatsNew.notes
+                  ? upd.whatsNew.notes.map((n, i) => (
+                    <Text key={i} testID="notice-app-note" style={{ ...TYPE.small, color: palette.ink }}>{`• ${n}`}</Text>
+                  ))
+                  : <Text testID="notice-app-notes-missing" style={{ ...TYPE.small, color: palette.sub }}>{upd.whatsNew.missing}</Text>}
+              </View>
+            )}
             {upd.button && (
               <Button palette={palette} label={upd.button.label} testID="notice-app-action" onPress={app.onUpdate} />
             )}

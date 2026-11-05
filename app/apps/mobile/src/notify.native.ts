@@ -12,14 +12,18 @@
  *   permission  Android 13+ POST_NOTIFICATIONS: read without a dialog, asked only through `ask` (the reader turned
  *               something on, `@app/ui` `useNotifications`).
  *   taps        a tap hands its data to the app (`onTap`): a gauge alert opens that water's Conditions; "new data ready"
- *               just opens the app, which applies the update as it always does.
+ *               just opens the app, which applies the update as it always does; (v1.1) "a new version of the app" opens
+ *               the bell on its App update (what's new + Update, T390).
+ *   versions    (v1.1) the new-version notice reads the version file OUR server publishes for this build's channel
+ *               (core `appVersionFileUrl`: `latest.json` beside the staging APK page, `play.json` for a Play build).
+ *               Never Play's own check: Play's in-app update API needs the app in the foreground.
  */
 import { Linking, Platform } from "react-native";
 import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
-import { NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
-import { createNotifySettings, fetchObs, parseManifest, runBackgroundCheck, versionedFetch,
+import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
+import { createNotifySettings, fetchObs, fetchStationRows, parseManifest, runBackgroundCheck, versionedFetch,
          type Notice, type NotifyData } from "@app/data";
 import { openNotifyStore } from "@app/data/spots";
 import type { NotifyControls, NotifyPermission } from "@app/ui";
@@ -30,6 +34,13 @@ const TASK = "canifishthis-background-check";
 const EVERY_MIN = 15;
 
 const settings = createNotifySettings(openNotifyStore());
+/** (v1.1) this build's version file on our server, or null (no channel: a local build, iOS before T88) */
+const VERSION_FILE = appVersionFileUrl(
+  appUpdateChannel({ os: Platform.OS, env: process.env.EXPO_PUBLIC_APP_ENV || "",
+                     distribution: process.env.EXPO_PUBLIC_APP_DISTRIBUTION || null,
+                     apkPage: process.env.EXPO_PUBLIC_DEV_APK_URL || null,
+                     appStoreUrl: process.env.EXPO_PUBLIC_APP_STORE_URL || null }),
+  { apkPage: process.env.EXPO_PUBLIC_DEV_APK_URL || null, dataBase: ENDPOINTS.base });
 const FETCH = versionedFetch((u, i) => fetch(u, i),
                              versionHeaders(APP_VERSION, { platform: `${Platform.OS} ${Platform.Version}`, ua: true }));
 
@@ -41,6 +52,8 @@ function ensureChannels(): Promise<void> {
       description: NOTIFY_WORDS.channels.gauges.description, importance: Notifications.AndroidImportance.HIGH }),
     Notifications.setNotificationChannelAsync("updates", { name: NOTIFY_WORDS.channels.updates.name,
       description: NOTIFY_WORDS.channels.updates.description, importance: Notifications.AndroidImportance.DEFAULT }),
+    Notifications.setNotificationChannelAsync("app", { name: NOTIFY_WORDS.channels.app.name,
+      description: NOTIFY_WORDS.channels.app.description, importance: Notifications.AndroidImportance.DEFAULT }),
   ]).then(() => undefined, (e: unknown) => { channels = null; throw e; });
   return channels;
 }
@@ -58,6 +71,12 @@ TaskManager.defineTask(TASK, async () => {
     await runBackgroundCheck({
       settings, now, appVersion: APP_VERSION, notify: raise,
       obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
+      stationRows: (station) => fetchStationRows(ENDPOINTS.alertFeed, station, FETCH),
+      latestApp: VERSION_FILE ? async () => {
+        const res = await FETCH(VERSION_FILE, { cache: "no-store" });
+        if (!res.ok) throw new Error(`${VERSION_FILE}: HTTP ${res.status}`);
+        return res.json();
+      } : null,
       manifest: async () => {
         const res = await FETCH(ENDPOINTS.manifest, { cache: "no-store" });
         if (!res.ok) throw new Error(`${ENDPOINTS.manifest}: HTTP ${res.status}`);
@@ -82,6 +101,7 @@ const permissionOf = (p: { status: string }): NotifyPermission =>
 
 export const notifications: NotifyControls | null = {
   settings,
+  appVersion: VERSION_FILE !== null,
   platform: {
     permission: async () => permissionOf(await Notifications.getPermissionsAsync()),
     ask: async () => {
@@ -98,7 +118,7 @@ export const notifications: NotifyControls | null = {
 };
 
 const isData = (d: unknown): d is NotifyData =>
-  !!d && typeof d === "object" && ((d as NotifyData).kind === "gauge" || (d as NotifyData).kind === "update");
+  !!d && typeof d === "object" && ["gauge", "update", "app"].includes((d as NotifyData).kind);
 
 /** Tell `on` of every tap on one of our notifications: the one that started the app first, then each later one. */
 export function onTap(on: (d: NotifyData) => void): () => void {

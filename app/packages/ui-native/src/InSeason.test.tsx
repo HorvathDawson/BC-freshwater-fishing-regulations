@@ -128,3 +128,20 @@ describe("T390: the bell's App update section", () => {
     expect(screen.getByLabelText("Get the new test build")).toBeTruthy();
   });
 });
+
+describe("T234 v1.1: what's new in the incoming version, under the bell's App update", () => {
+  const draw = (app: Parameters<typeof InSeasonNotice>[0]["app"]) =>
+    render(<InSeasonNotice open rows={[]} palette={LIGHT} onClose={() => {}} app={app} />);
+  it("the version file's bullets, before the update is installed", () => {
+    draw({ vm: appUpdateVM({ channel: "apk-page", check: { state: "available", version: "0.6.0", notes: ["Gauge alerts", "A changelog"] },
+                             tooOld: false, start: "idle" })!, onUpdate: () => {} });
+    expect(screen.getByText("What's new in 0.6.0")).toBeTruthy();
+    expect(screen.getAllByTestId("notice-app-note").map((e) => e.textContent)).toEqual(["• Gauge alerts", "• A changelog"]);
+  });
+  it("a version with no notes anywhere is said missing, never a blank list", () => {
+    draw({ vm: appUpdateVM({ channel: "apk-page", check: { state: "available", version: "9.9.9" }, tooOld: false, start: "idle" })!,
+           onUpdate: () => {} });
+    expect(screen.getByTestId("notice-app-notes-missing").textContent).toBe("No notes were published for version 9.9.9.");
+    expect(screen.queryAllByTestId("notice-app-note")).toEqual([]);
+  });
+});

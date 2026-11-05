@@ -64,6 +64,8 @@ export const UPDATES_LOG = SWITCHABLE || APP_ENV.env !== "production";
 export const MENU_INFO = {
   appBuild: [versionLine(APP_VERSION), process.env.EXPO_PUBLIC_APP_BUILD?.trim() || null].filter(Boolean).join(" · "),
   contact: process.env.EXPO_PUBLIC_CONTACT?.trim() || null,
+  // (T234 v1.1) the installed version, marked on About → What's new
+  appVersion: APP_VERSION.version,
   // (T232) About's data-source badge and, in a development build, its switch (kept; applied on the next start)
   env: {
     about: { env: APP_ENV.env, built: APP_ENV.built, origin: APP_ENV.origin, switchable: APP_ENV.switchable },

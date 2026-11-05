@@ -119,7 +119,7 @@ function useGuideWater(source: ShellProps["source"], wanted: boolean): { item: s
 }
 
 /** (T234) The last notification tap opened, outside React: it outlives a remount of the Shell. */
-const openedTap = { n: 0 };
+const openedTap = { n: 0, update: 0 };
 
 /** (T287) How long the map must stand still before a downloaded release is swapped in. */
 const APPLY_STILL_MS = 3000;
@@ -315,7 +315,8 @@ export function Shell(p: ShellProps) {
    * APK page (`p.appUpdater`). Checked at most once a device day, never offline.
    */
   const appUpdate = useAppUpdate(p.appUpdater ?? null, p.appUpdateStore ?? null,
-                                 { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old" });
+                                 { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old",
+                                   ask: p.openUpdate ?? 0 });
   const appVM = appUpdate?.vm ?? null;
   const releaseCount = (releaseVM?.counts ? 1 : 0) + (appVM?.counts ? 1 : 0);
   const onReleaseAction = (kind: "download" | "apply") => {
@@ -374,6 +375,13 @@ export function Shell(p: ShellProps) {
     if (openReq.item) nav.opener.item(openReq.item as ItemId, "conditions");
     else { go({ type: "close" }); nav.toTab("conditions"); }
   }, [openReq?.n]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per tap
+  // (T234 v1.1) A NEW-APP-VERSION TAP: the bell opens on its "App update" (with what's new), the version asked now
+  useEffect(() => {
+    const n = p.openUpdate ?? 0;
+    if (n <= openedTap.update) return;
+    openedTap.update = n;
+    setBellOpen(true);
+  }, [p.openUpdate]);
   const guideActs: GuideActs = {
     search: () => { go({ type: "close" }); if (tab !== "map") nav.toTab("map"); go({ type: "search", open: true });
                     search.searchType(guideWater?.name ?? GUIDE_WATER.name); },
@@ -654,7 +662,7 @@ export function Shell(p: ShellProps) {
                    setRunsAt(null);
                    void nav.opener.tap(sid as never, runsPoint, "regs");
                  }} />
-      <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo}
+      <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo} source={source}
                    mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState}
                    // (T352) where the map was looking, read at this render (a report freezes it when it opens): the water's
                    // own map while it is in front, else the browse map's

@@ -6,6 +6,7 @@
  */
 import { Platform } from "react-native";
 import type { ReleaseLoader } from "@app/data/release";
+import type { WaterSource } from "@app/data";
 import type { ReportMap } from "@app/core";
 import type { Camera } from "@app/map";
 import { useOfflineMaps, type MapRail, type MenuControls, type SyncState } from "@app/ui";
@@ -31,7 +32,9 @@ function reportMapOf(col: Pick<MapColouring, "flowParam" | "horizon" | "layers" 
 }
 
 export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null,
-                              camera = null }: {
+                              camera = null, source = null }: {
+  /** (T234 v1.1) the waters, for More → Notifications (the editor's context, "Add an alert") */
+  source?: WaterSource | null;
   /** (T352) the camera of the map in front (the Shell's ref, read at its render) */
   camera?: Camera | null;
   theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions" | "salmon") => void;
@@ -51,7 +54,8 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} onTabTour={onTabTour} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
-                route={route} day={mapDay} mode={col.regsLayer} map={reportMapOf(col, nav.mapTab, camera)} offline={offline} />
+                route={route} day={mapDay} mode={col.regsLayer} map={reportMapOf(col, nav.mapTab, camera)} offline={offline}
+                source={source} onOpenConditions={(item) => nav.opener.item(item as never, "conditions")} />
     </>
   );
 }

@@ -306,8 +306,11 @@ export default function App() {
   }, [heldRelease]);
   // (T234) a notification's tap: a gauge alert opens its water's Conditions (the one that started the app too)
   const [openRequest, setOpenRequest] = useState<{ item: string | null; n: number } | null>(null);
+  // (T234 v1.1) a new-app-version tap: the bell opens on its App update, the version asked now
+  const [openUpdate, setOpenUpdate] = useState(0);
   useEffect(() => onTap((d) => {
     if (d.kind === "gauge") setOpenRequest((r) => ({ item: d.item, n: (r?.n ?? 0) + 1 }));
+    if (d.kind === "app") setOpenUpdate((n) => n + 1);
   }), []);
 
   /*
@@ -612,7 +615,7 @@ export default function App() {
                fishImages={FISH_IMAGES}
                adiposeImages={ADIPOSE_IMAGES}
                systemBack={systemBack}
-               initialRoute={place.route ?? start?.route} onRoute={holdPlace} openRequest={openRequest}
+               initialRoute={place.route ?? start?.route} onRoute={holdPlace} openRequest={openRequest} openUpdate={openUpdate}
                initialDay={place.address ? place.address.day : start?.day ?? null}
                initialHorizon={place.address ? place.address.horizon : start?.horizon ?? null} onAddress={holdAddress}
                cameraHold={place.cameras} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}

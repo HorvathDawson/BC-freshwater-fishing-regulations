@@ -38,7 +38,7 @@ describe("useAppUpdate", () => {
     await flush();
     expect(calls.check).toBe(1);
     expect(out.c!.vm).toMatchObject({ strength: "gentle", text: "Version 0.6.0 of the app is available." });
-    expect(JSON.parse(store.read()!)).toEqual({ day: today, available: true, version: "0.6.0" });
+    expect(JSON.parse(store.read()!)).toEqual({ day: today, available: true, version: "0.6.0", notes: null });
     first.unmount();
     render(<Probe p={p} store={store} out={out} />);
     await flush();

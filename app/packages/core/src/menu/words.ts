@@ -2,7 +2,8 @@
 import { IMAGERY_ATTRIBUTION } from "../imagery";
 
 /** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
-export type MenuPageKey = "offline" | "notifications" | "help" | "glossary" | "sources" | "about" | "report" | "updates";
+export type MenuPageKey = "offline" | "notifications" | "help" | "glossary" | "sources" | "about" | "report" | "updates"
+  | "changelog";
 
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
 export const APP_NAME = "Can I Fish This?";
@@ -47,6 +48,8 @@ export const MENU_WORDS = {
     report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
     // (T251) development and staging builds only: reached from About, never listed on the More tab
     updates: { label: "Updates log", hint: "Every check for new data on this device" },
+    // (T234 v1.1) every version's changes, newest first: reached from About, never listed on the More tab
+    changelog: { label: "What's new", hint: "Every version of the app, newest first" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
   /**
    * THE APP'S COLOURS (owner 2026-10-21 late: the palette left the Layers menu for the hamburger) — a whole-app setting,
