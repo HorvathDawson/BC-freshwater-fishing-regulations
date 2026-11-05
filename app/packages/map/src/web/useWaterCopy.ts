@@ -46,7 +46,7 @@ export function useWaterCopy({ map, renderer, copy }: WebMapRefs,
       if (line !== null) for (const id of [COPY_CASING, COPY_LINE]) if (m.getLayer(id)) m.setLayerZoomRange(id, 0, line);
       if (fill !== null && m.getLayer(COPY_FILL)) m.setLayerZoomRange(COPY_FILL, 0, fill);
     };
-    const draw = () => whenCopy(m, () => { source()?.setData?.(c.collection({ stream: floorOf("stream"), lake: floorOf("lake") })); ceilings(); });
+    const draw = () => whenCopy(m, () => { source()?.setData?.(c.collection(floorOf)); ceilings(); });
     let pending = changed
       ? whenCopy(m, () => {
           if (m.getSource(COPY_SOURCE)) m.removeFeatureState({ source: COPY_SOURCE });

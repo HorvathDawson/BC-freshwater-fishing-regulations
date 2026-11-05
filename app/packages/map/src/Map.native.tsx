@@ -349,7 +349,6 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         // the view's floor for its layer (the Conditions view's z9 for streams). Data only: no style swap mid-flight.
         const floorOf = (id: string) =>
           ((lookNow.current.style.layers as { id: string; minzoom?: number }[]).find((l) => l.id === id)?.minzoom) ?? 0;
-        const floors = { stream: floorOf("stream"), lake: floorOf("lake") };
         if (fresh.length) {
           // what the atlas features hold now goes on the copy first (later writes are mirrored as they are made)
           for (const id of fresh) {
@@ -357,7 +356,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             const st = c.fresh(id, (held ?? {}) as Record<string, unknown>);
             if (st) void copyRef.current?.setFeatureState({ id }, st as never).catch(report);
           }
-          setCopyData(c.collection(floors));
+          setCopyData(c.collection(floorOf));
         }
         const next = clamps.current
           ? probeZoom({ zoom: at0.zoom, found: found.some((f) => lineIds.current.has(f.id)),

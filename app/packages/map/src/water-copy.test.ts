@@ -92,7 +92,7 @@ describe("WaterCopy: kept from the tiles, the first time a zoom has them", () =>
       Object.fromEntries(c.collection(floors).features.map((f) => [f.id, f.properties[COPY_UNTIL]]));
     expect(until()).toEqual({ 501: 13, 502: 13, 700: 8, 900: 9 });
     // the view's floor for the layer (Conditions stands the rivers down below z9): carried on to it, per kind
-    expect(until({ stream: 11, lake: 10 })).toEqual({ 501: 13, 502: 13, 700: 10, 900: 11 });
+    expect(until((l) => (l === "stream" ? 11 : 10))).toEqual({ 501: 13, 502: 13, 700: 10, 900: 11 });
   });
 
   it("(T399) the copy layers' filter: their kind, below each feature's own ceiling", () => {

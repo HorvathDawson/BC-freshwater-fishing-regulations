@@ -193,19 +193,19 @@ export class WaterCopy {
 
   /**
    * The kept sections as the copy source's data. (T399) Each carries `COPY_UNTIL`, ITS OWN ceiling: the zoom the atlas
-   * draws that section from (the tile zoom it was kept at; past the atlas's deepest tiles, those overzoomed), or the view's floor for its layer (`floors`), whichever is
+   * draws that section from (the tile zoom it was kept at; past the atlas's deepest tiles, those overzoomed), or the view's floor for its layer (`floorOf`), whichever is
    * deeper. The copy layers' filter reads it, so a section is drawn from the copy only where the atlas does not draw it.
    * One ceiling for the whole copy (the deepest kept zoom) drew a section kept at z9 — z9's coarse tile line — on top
    * of the atlas's own line up to the zoom some other section was first seen at: the casing zigzagged across the river.
    */
-  collection(floors: Partial<Record<CopyLayer, number>> = {}): CopyCollection {
+  collection(floorOf: (layer: CopyLayer) => number = () => 0): CopyCollection {
     if (!this.held.size) return EMPTY_COPY;
     return {
       type: "FeatureCollection",
       features: [...this.held].sort((a, b) => a[0] - b[0]).map(([id, h]) => ({
         type: "Feature" as const, id,
         properties: { ...h.properties, layer: h.layer,
-                      [COPY_UNTIL]: Math.max(Math.min(Math.floor(h.zoom), ATLAS_MAX_ZOOM), floors[h.layer] ?? 0) },
+                      [COPY_UNTIL]: Math.max(Math.min(Math.floor(h.zoom), ATLAS_MAX_ZOOM), floorOf(h.layer)) },
         geometry: { type: h.layer === "stream" ? "MultiLineString" as const : "MultiPolygon" as const,
                     coordinates: h.pieces },
       })),
