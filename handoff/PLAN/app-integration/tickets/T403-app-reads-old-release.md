@@ -1,6 +1,6 @@
 # T403 — A 0.5.0 phone ran on 0.4.0's data release (r-4e709418ebd8) and its readers threw
 
-Status: DONE 2026-11-05 — 62d96721d (the fix) — staging needs no republish.
+Status: DONE 2026-11-05 — 62d96721d (the fix), 1473f95c7 (failures gate) — staging needs no republish.
 
 Evidence (staging crash store, 2026-11-05 00:00–00:01 UTC, owner's phone, 0.5.0 build 8 9813980, android 37, one
 install, release r-4e709418ebd8, non-fatal JS):

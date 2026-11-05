@@ -446,7 +446,7 @@ use that as the sole source of future work."
 | T400 | Camera moves choppy on the phone: fitBounds flew (the binding's default "fly" easing); now eased. Left: search refine rounds / probe steps are extra moves | PARTIAL | adfbe330e | owner 2026-11-04 (0.5.0 phone) |
 | T401 | Streams pop in at the edges while panning: MapLibre Native has no viewport prefetch; parent tiles lack small streams. Measure, then prefetch-delta patch or render margin (no tile buffer rebuild) | OPEN | — | owner 2026-11-04 (0.5.0 phone) |
 | T402 | Two tests fail only in the full suites: split_preview real_ids empty (memo/module leak), back.test day sheet under load | OPEN (item 1 fixed; 2–3 load-only) | 93d274234 | full run 2026-11-05 |
-| T403 | A 0.5.0 phone opened the 0.4.0 data release it held (salmon/3, no lines): a release the app cannot read is never opened, installed or rolled back to | DONE 11-05 | 62d96721d | staging crashes 2026-11-05 |
+| T403 | A 0.5.0 phone opened the 0.4.0 data release it held (salmon/3, no lines): a release the app cannot read is never opened, installed or rolled back to | DONE 11-05 | 62d96721d, 1473f95c7 | staging crashes 2026-11-05 |
 
 ## Order for open tickets
 
