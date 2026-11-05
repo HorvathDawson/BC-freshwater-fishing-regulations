@@ -1,6 +1,6 @@
 # T234 — Push notifications: regulation changes and condition alerts
 
-Status: PARTIAL 2026-11-05 — phone-only v1 built (13b963619, 77790b907, 8b7b45866, dd0a49dde); phone checks pending (next APK, checklist below).
+Status: PARTIAL 2026-11-05 — phone-only v1 built (13b963619, 77790b907, 8b7b45866, dd0a49dde); v1.1 reader-configured alerts, cadence, new-app-version notice and changelog built (665dcb49b, 3dbc91380, 981c60cf5); phone checks pending (next APK, checklist below).
 
 Source: owner 2026-10-28: "add ability to have push notifications for regulation changes too, or set push
 notifications for specific condition changes or forecasted changes."
@@ -97,6 +97,52 @@ Size: L. Owner: questions above.
   `test/feeds/live/obs.json` (the background check reads `ENDPOINTS.alertFeed`, under `test/` on the test channel);
   `reset` copies the live obs.json there; `release [tag]` makes a "new" release for the update-ready notice.
 
+## Owner 2026-11-05 (v1.1): the reader configures the alerts
+"on x gauge if it rises to y point or z times then send notifications … they wanna know when a river rises or falls past
+a point. Only should notify once on a river per day, or user can set max cadence … Make the UI for this nice please, and
+in a menu in More." "z times" = a % change within a day. Also asked whether app updates notify, and (coordinator, same
+day) a small changelog: "What's new in <version>" in the update prompt, every version on a page tucked away in More.
+
+## Built (v1.1, 2026-11-05: 665dcb49b core + data, 3dbc91380 UI + phone glue, 981c60cf5 build/test scripts)
+- **Four kinds** (`@app/core` alerts.ts), on flow or level, units as the app shows: rises above Y · falls below Y ·
+  rises by Z % within 24 h · falls by Z % within 24 h. The % kinds compare the newest reading with the gauge's reading
+  nearest 24 h before it (within 2 h, `dayAgoReading`) from the gauge's OWN station file (`fetchStationRows`,
+  `<feed>/<station>.json` `recent`: a week in 30-min steps; `obs.json` holds only 6 h). No such reading, or a zero base:
+  no fire, no error. Hysteresis kept for all four: a % alert re-arms once the change is 2 points back under its line.
+- **Cadence:** each alert has a gap; the DEFAULT (`gapH: null`) is at most one notification per WATER per 24 h across all
+  its alerts (`waterFired`, keyed by the durable item id, an unnamed reach by its gauge); or the alert's own gap: 1, 3,
+  6, 12 h, 1 day, 2 days. A crossing the cadence holds back is kept PENDING and told at the first check the gap allows
+  if still past (dropped once back inside) — owner to confirm (OWNER-TODO). One alert's switch; an edit keeps when it
+  last fired.
+- **Migration:** notify.json is now `v: 2`; a v1 file reads whole (direction → kind, default cadence, on, state kept);
+  an alert that cannot be read is reported (`reportOnce`), never dropped quietly.
+- **More → Notifications** (cards): the switch + permission (+ "Open the phone's settings"); Gauge alerts as one card per
+  water, each alert its gauge, its line ("Flow above 30 m³/s · at most once a day for this water · last sent …"), its
+  switch, Edit (the editor in place), Delete; "Add an alert" finds a water by name and opens its Conditions, where the
+  gauge card's "Alert me" sets it (the gauge is chosen on the water, not in a second gauge list); Other notifications:
+  New regulations data, New app version (only where the build has a version file); Last background checks in a fold,
+  closed. Every control 44 px with a unique spoken label.
+- **The editor** (`AlertEditor`, the gauge card's "Alert me" and Edit): quantity (the ones the gauge has), condition (the
+  four kinds), value with "Now 31.2 m³/s · normal today 12–25 m³/s" (the same 72 h series the card draws: `useAlertContext`,
+  p25–p75 of today's band), how often at most, and ONE plain line (`alertSummary`). Prefilled from the card: its gauge,
+  the chart's quantity, the reading now.
+- **New app version** (opt-in): the background check reads OUR version file for the build's channel (core
+  `appVersionFileUrl`): sideload `app/android/latest.json` beside the staging APK page (already written, now with
+  `notes`); **Play: `app/android/play.json` on the data origin, written by `build-apk.sh --play` after the upload** (the
+  Play build reads staging today; production needs the same file put on prod R2 — owner's). Newer than this install
+  (`apkIsNewer`) → once per version (`toldAppVersion`, "0.6.0+14"). Never Play's own check in the background: Play's
+  in-app update API needs the app in the foreground (an Activity). Tap → the app opens with the bell on "App update",
+  the version asked again at once (`useAppUpdate` `ask`), Update as T390.
+- **Changelog:** ONE source, `app/packages/core/src/changelog.ts` (no imports, so build-apk.sh reads it with node);
+  About → "What's new in each version" (`ChangelogPage`, newest first by semver, installed marked, a version without
+  notes says so); the bell's App update shows "What's new in <version>" from the version file's `notes` (else the
+  bundled entry; neither: "No notes were published for version …"). Entries 0.1.0–0.6.0 are a DRAFT for the owner
+  (`draft: true`); build-apk.sh's header: a release adds its entry first, and the script warns when it is missing.
+- Tests: core alerts.test.ts (kinds, ±% and the missing day-ago reading, cadence default/per-alert/hysteresis, migration,
+  words), appUpdate.test.ts (changelog order, missing notes, once per version), data check.test.ts (the check end to end,
+  v1 file migration), ui-native Notifications.test.tsx (cards, switch, fold, Add an alert, editor summary + prefill),
+  Changelog.test.tsx, InSeason.test.tsx (What's new under the bell).
+
 ## Emulator / phone checklist (next APK — the APK is held for the batch)
 Build on the staging **test** update channel (Updates log → channel), Android 13+ image; `reset` first.
 1. Fresh install: More shows **Notifications**; the page says everything Off and "The phone will ask you…"; no system
@@ -123,8 +169,29 @@ Build on the staging **test** update channel (Updates log → channel), Android 
 10. Leave the phone idle overnight with an alert set: "Last background checks" gives the real cadence under Doze (the
     owner's measurement for the push-or-not decision below).
 
+v1.1 (same build):
+11. Upgrade over a build that has a v1 alert saved: the alert is still listed (its kind, "at most once a day for this
+    water"), and still fires.
+12. More → Notifications: cards per water; an alert's own switch off → no notification for it, the master switch stays
+    on; Edit opens the editor in place; "Last background checks" is closed until tapped; TalkBack reads each switch as
+    "Alert on: <water> · <gauge>, <line>".
+13. Alert me on a gauged water: the editor shows "Now … · normal today …", the quantity chips (flow / level where the
+    gauge has both), the four conditions, the cadence chips, and the summary line changes with each choice.
+14. ±%: "Rises by % in 24 h", 50 → Save. `test-updates.mjs gauge-day <station> flow 20 25` + force (+25 %, sets the
+    side); `gauge-day <station> flow 20 31` + force → ONE "<water>: flow up 55 % in a day". A station with no row 24 h
+    back → nothing, no crash report.
+15. Default cadence: two alerts on one water both crossing → one notification; the card of the other says "waiting for
+    its gap". An alert set to "Every 1 h": a re-crossing after an hour (`gauge` well under, then over) → a second one.
+16. New app version: More → Notifications → "New app version" On (permission once). `test-updates.mjs app-version 0.9.0
+    99 "Alerts" "Changelog"` + force → ONE "A new version of the app is out / Version 0.9.0 is ready…"; force again →
+    none; `app-version 0.9.1 100` → one more. Tap → the app opens with the bell on App update, "What's new in 0.9.0"
+    and its bullets, Update (the APK page). A local build (no channel): no "New app version" switch at all.
+17. About → "What's new in each version" → every version newest first, the installed one marked "Installed".
+
 ## Left
 - The phone checks above (needs the batch APK).
+- Owner: review the changelog draft; confirm the cadence readings (OWNER-TODO); production `app/android/play.json`
+  (prod R2) once a Play build reads production data.
 - Measure real delays on the owner's phone (the runs log); FCM push only if alerts arrive too late (owner 2026-11-05).
 - Later kinds (not v1): forecast crossings, in-season / DFO changes on followed waters, quiet hours; web push.
 
