@@ -52,7 +52,7 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
   };
   const statusDay = status ? readingDayOf(status.day) : 0;
   useEffect(() => toChannel("status", status ? statusInput(status) : null, `status:${statusDay}`),
-            [status?.index, statusDay, at.atlas]);
+            [status?.index, statusDay, status?.only, at.atlas]);
   useEffect(() => toChannel("standing", standing ? standingInput(standing) : null, "standing"),
             [standing?.labels, standing?.values, at.atlas]);
   // the lake modes (Depth, Stocked): the release's lake facts — a new release relabels both, a new day the stocked bands
@@ -62,7 +62,7 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
   // (T211) the Salmon colouring: chain labels once per release, the day in the style — the toggle never reaches here
   const salmonDay = salmon ? salmonDayIndex(salmon.day) : -1;
   useEffect(() => toChannel("salmon", salmon ? salmonInput(salmon) : null, `salmon:${salmonDay}`),
-            [salmon?.facts, salmonDay, at.atlas]);
+            [salmon?.facts, salmonDay, salmon?.only, at.atlas]);
   // (T213) the gear marks: profile labels once per release, the day in the gear layers' paint
   const methodDay = method ? readingDayOf(method.day) : -1;
   useEffect(() => toChannel("method", method ? methodInput(method) : null, `method:${methodDay}`),

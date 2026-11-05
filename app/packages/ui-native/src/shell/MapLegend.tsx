@@ -48,14 +48,18 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
     <LegendCount key={m} palette={palette} colour={gearEdgeColour(theme)} edge={m === "fly" ? "solid" : "dashed"} tight
                  label={MAP_KEY.gear[m]} />
   )) : [];
+  // (T377) A CLASS IS TAPPABLE while the map draws it: a tap shows it alone, again (or the one shown) shows all
+  const tap = (cls: string) => (col.statusOk
+    ? { onPress: () => col.isolate(cls), alone: col.isolated === cls, faded: col.isolated != null && col.isolated !== cls }
+    : {});
   const statusRows = WATER_STATUSES.map((s) => (
     <LegendCount key={s} palette={palette} colour={palette.waterStatus[s]} tight
                  line dotted={WATER_STATUS_LINE[s] === "dotted"}
-                 label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} />
+                 label={s === "closed" ? closedKey(mapDay) : MAP_KEY.status[s]} {...tap(s)} />
   ));
   const salmonRows = salmonLegend().map((r) => (
     <LegendCount key={r.status} palette={palette} colour={salmonStatusColour(theme, r.status)} line tight
-                 label={MAP_KEY.salmon[r.status]} />
+                 label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>

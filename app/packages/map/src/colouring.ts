@@ -36,8 +36,8 @@
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */
-import { readingDayOf, dayProfiles, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
-         salmonLabel, stockRecency, type LakeFacts, type MethodFacts, type RunTimingFacts, type SalmonFacts,
+import { readingDayOf, dayProfiles, isolateDay, methodDayProfiles, methodLabel, profileLabel, salmonDayIndex, salmonDayProfiles,
+         salmonLabel, stockRecency, type LakeFacts, type SalmonMapStatus, type WaterStatus, type MethodFacts, type RunTimingFacts, type SalmonFacts,
          type StatusIndex } from "@app/core";
 import type { ChannelValues, MapAdapter, MapHandle } from "./adapters/contract";
 import type { StandingValues, Tokens } from "./style";
@@ -47,6 +47,8 @@ import { perSectionLayers, spreadSections, type PerSectionLayer } from "./sectio
 export interface ProfileStatus {
   readonly index: StatusIndex;
   readonly day: Date;
+  /** (T377) the class the legend's tap shows alone (@app/core `isolateDay`); absent or null, every class */
+  readonly only?: WaterStatus | null;
 }
 
 /**
@@ -80,6 +82,8 @@ export type Channel = "status" | "standing" | "stocked" | "survey" | "salmon" | 
 export interface SalmonFeed {
   readonly facts: SalmonFacts;
   readonly day: Date;
+  /** (T377) the salmon class the legend's tap shows alone; absent or null, every class */
+  readonly only?: SalmonMapStatus | null;
 }
 
 /** The salmon channel: chain labels in feature-state `sp`, the day in the style (`salmonDayProfiles`) — status's shape. */
@@ -87,8 +91,8 @@ export function salmonInput(s: SalmonFeed): ChannelInput {
   const f = s.facts;
   return {
     labels: { key: "sp", of: f, label: (id) => salmonLabel(f, id) },
-    valuesKey: salmonDayIndex(s.day),
-    values: () => salmonDayProfiles(f, s.day),
+    valuesKey: `${salmonDayIndex(s.day)}:${s.only ?? ""}`,
+    values: () => isolateDay(salmonDayProfiles(f, s.day), s.only ?? null),
   };
 }
 
@@ -171,8 +175,8 @@ export function statusInput(s: ProfileStatus): ChannelInput {
   const index = s.index;
   return {
     labels: { key: "p", of: index, label: (id) => profileLabel(index, id) },
-    valuesKey: readingDayOf(s.day),
-    values: () => dayProfiles(index, s.day),
+    valuesKey: `${readingDayOf(s.day)}:${s.only ?? ""}`,
+    values: () => isolateDay(dayProfiles(index, s.day), s.only ?? null),
   };
 }
 

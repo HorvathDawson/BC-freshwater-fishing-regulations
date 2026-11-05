@@ -215,7 +215,7 @@ export function useNativeColouring(o: {
   const statusDay = status ? readingDayOf(status.day) : 0;
   useEffect(() => toChannel("status", status ? statusInput(status) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [status?.index, statusDay, o.atlasUrl]);
+    [status?.index, statusDay, status?.only, o.atlasUrl]);
   useEffect(() => toChannel("standing", standing ? standingInput(standing) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [standing?.labels, standing?.values, o.atlasUrl]);
@@ -228,7 +228,7 @@ export function useNativeColouring(o: {
   const salmonDay = salmon ? salmonDayIndex(salmon.day) : -1;
   useEffect(() => toChannel("salmon", salmon ? salmonInput(salmon) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [salmon?.facts, salmonDay, o.atlasUrl]);
+    [salmon?.facts, salmonDay, salmon?.only, o.atlasUrl]);
   const methodDay = method ? readingDayOf(method.day) : -1;
   useEffect(() => toChannel("method", method ? methodInput(method) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps

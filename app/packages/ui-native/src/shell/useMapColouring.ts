@@ -2,7 +2,8 @@
  * WHAT EVERY MAP IS COLOURED BY: the layers choice, the tiles/data pair, the day's status, the lake values, the
  * Conditions colouring and its horizon — decided in `@app/ui` hooks and only gathered here for the Shell (T62 3.4).
  */
-import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SectionKey, bcNow } from "@app/core";
+import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SalmonMapStatus, type SectionKey,
+         type WaterStatus, bcNow } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
@@ -219,16 +220,33 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    * the index and the day and labels each tile as it arrives (colour-latency AP — no `idle`, no round trip through
    * here per pan).
    */
-  const mapStatus = useMemo(() => statusFeed({ statusOk, index: statusIndex, day: mapDay ?? bcNow() }),
-                            [statusOk, statusIndex, mapDay]);
+  /*
+   * (T377) THE KEY'S TAP: one regulations class shown alone (the rest drawn the neutral grey, @app/core `isolateDay`).
+   * Held with the colouring it was picked in (Standard or Salmon), so it lapses — nothing to undo — the moment the map
+   * shows another colouring, another tab, or water coloured by something else.
+   */
+  const [picked, setPicked] = useState<{ layer: RegsLayer; cls: string } | null>(null);
+  const regsDrawn = mapTab === "map" && statusOk && layers.effective.water === "regulations";
+  const isolated = regsDrawn && picked && picked.layer === regsShown ? picked.cls : null;
+  const isolate = useCallback((cls: string) =>
+    setPicked((p) => (p && p.layer === regsShown && p.cls === cls ? null : { layer: regsShown, cls })), [regsShown]);
+  const statusOnly = regsShown === "standard" ? isolated as WaterStatus | null : null;
+  const mapStatus = useMemo(() => {
+    const f = statusFeed({ statusOk, index: statusIndex, day: mapDay ?? bcNow() });
+    return f && { ...f, only: statusOnly };
+  }, [statusOk, statusIndex, mapDay, statusOnly]);
   // the map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
-  const salmonFeed = mapTab === "map" ? salmon.feed : null;
+  const salmonOnly = regsShown === "salmon" ? isolated as SalmonMapStatus | null : null;
+  const salmonFeed = useMemo(() => (mapTab === "map" && salmon.feed ? { ...salmon.feed, only: salmonOnly } : null),
+                                [mapTab, salmon.feed, salmonOnly]);
   const methodFeed = mapTab === "map" ? method.feed : null;
   return { pickedHorizon: hz.horizon, noteVisible, setZoomedOut, zoomedOut, vintage, mixedPair, unproven, statusIndex, statusOk, lakeFeed, imagery, layers,
            flowParam, horizon, horizonChipsShown, setFlowParam, pickDay, onChooseLayer, mm, credits, cond, gauges,
            mapStatus, salmonFeed, salmonOffered, salmonLoading, methodFeed, gearMarked,
            regsLayer: salmonLoading ? "salmon" as RegsLayer : regsShown,
            setRegsLayer, salmonFacts: salmon.facts,
+           // (T377) the regulations class the key shows alone (null: all), and the key's tap
+           isolated, isolate,
            // (T199, T261) the run timing: offered (the Runs tab), its state, and what the map paints (on Runs only)
            runsOffered, runs, runsFeed: runsShown ? runs.feed : null,
            // (T367) on the Runs tab, why nothing is painted: the bar over the map (`PairBanner`)

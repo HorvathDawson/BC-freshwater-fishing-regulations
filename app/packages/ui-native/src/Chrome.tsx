@@ -4,9 +4,11 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
-import { FLOW_LEGEND, legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
+import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
 import { ScrollView, View } from "react-native";
 import { Text } from "./Text";
+import { Pressable } from "./Pressable";
+import { hitProps } from "./regs/hit";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { LEGEND_TEXT, TYPE } from "./type";
 import type { Palette } from "./theme";
@@ -104,7 +106,7 @@ export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
 }
 
 /** One "29 closed" entry. The count is the point — it says how much map is that colour. */
-export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim, tight }:
+export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim, tight, onPress, alone, faded }:
   { palette: Palette; colour: string; n?: number; label: string;
     /**
      * Draw the swatch as a LINE instead of a square — for a key to lines. Every line swatch is
@@ -121,10 +123,15 @@ export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim
     /** (T292) a DASHED RIM round the square in this colour, as the map draws not-fishing water's edge */
     rim?: string;
     /** (T396) the regulations key's narrower swatches and closer label (`LEGEND_ROWS`), so its rows fit a phone */
-    tight?: boolean }) {
+    tight?: boolean;
+    /** (T377) a TAPPABLE class: a tap shows it alone on the map (`isolate`), again shows every class */
+    onPress?: () => void;
+    /** (T377) this class is the one shown alone (its label in ink, the same width); `faded`: another one is (the entry dimmed, as its water) */
+    alone?: boolean; faded?: boolean }) {
   const lineW = tight ? LEGEND_ROWS.line : 20;
-  return (
-    <View testID="legend-entry" style={{ flexDirection: "row", alignItems: "center", gap: tight ? LEGEND_ROWS.gap : 7 }}>
+  const row = { flexDirection: "row" as const, alignItems: "center" as const, gap: tight ? LEGEND_ROWS.gap : 7,
+                opacity: faded ? 0.4 : 1 };
+  const body = (<>
       {edge ? <View testID={`legend-edge-${edge}`}
                     style={{ width: tight ? LEGEND_ROWS.edge : 22, height: 10, borderWidth: 1.5, borderColor: colour,
                              borderStyle: edge }} />
@@ -136,8 +143,14 @@ export function LegendCount({ palette, colour, n, label, line, dotted, edge, rim
       {n !== undefined && (
         <Text style={{ ...TYPE.figure, fontSize: LEGEND_TEXT, color: palette.ink }}>{n}</Text>
       )}
-      <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: palette.sub }}>{label}</Text>
-    </View>
+      <Text style={{ ...TYPE.small, fontSize: LEGEND_TEXT, lineHeight: 20, color: alone ? palette.ink : palette.sub }}>{label}</Text>
+  </>);
+  if (!onPress) return <View testID="legend-entry" style={row}>{body}</View>;
+  return (
+    <Pressable testID="legend-entry" onPress={onPress} accessibilityRole="button" aria-pressed={!!alone}
+               accessibilityLabel={KEY_ISOLATE_WORDS.entry(label, !!alone)} {...hitProps({ w: 44, h: 20 })} style={row}>
+      {body}
+    </Pressable>
   );
 }
 

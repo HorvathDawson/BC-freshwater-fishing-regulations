@@ -47,3 +47,32 @@ export function waterKeyWords(drawn: WaterColour): readonly string[] {
   if (drawn === "depth") return [MAP_KEY.depth.digitised, MAP_KEY.depth.sheet, MAP_KEY.depth.none];
   return [];
 }
+
+/**
+ * (T377) A TAPPABLE KEY: a tap on a regulations class shows that class alone on the map, a second tap (or a tap on the one
+ * shown) shows them all again. What a reader of the screen hears for an entry, whole.
+ */
+export const KEY_ISOLATE_WORDS = {
+  /** the entry's name, then what a tap does from here (`alone`: this class is the one shown) */
+  entry: (label: string, alone: boolean) =>
+    alone ? `${label}, shown alone on the map. Tap to show every class.` : `${label}. Tap to show only this on the map.`,
+} as const;
+
+/**
+ * (T377) THE DAY WITH ONE CLASS ALONE: every other class's labels move to `none`, which the map paints its neutral
+ * "not asked" grey (the profile modes' `missing`), and which the gear marks and the no-access dots never ride. `only`
+ * null (or a class the day does not hold) returns the day unchanged. For the status day and the salmon day alike.
+ */
+export function isolateDay<K extends string>(day: Readonly<Record<K | "none", readonly string[]>>, only: NoInfer<K> | null):
+    Readonly<Record<K | "none", readonly string[]>> {
+  if (only === null || !(only in day) || only === "none") return day;
+  const out = {} as Record<K | "none", readonly string[]>;
+  const none: string[] = [...day.none];
+  for (const k of Object.keys(day) as (K | "none")[]) {
+    if (k === "none") continue;
+    if (k === only) out[k] = day[k];
+    else { out[k] = []; none.push(...day[k]); }
+  }
+  out.none = none;
+  return out;
+}

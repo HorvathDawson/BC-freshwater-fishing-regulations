@@ -196,8 +196,9 @@ export function gearShown(layerId: "stream" | "lake", mode: string, mark: GearMa
   if (!day) return null;
   const labels = v.method[mark];
   if (!labels.length) return null;
-  const off = mode === "salmon" ? [...(v.salmon?.closed ?? [])]
-    : [...(v.status?.closed ?? []), ...(v.status?.no_access ?? [])];
+  // (T377) and none: a section the day gives no answer — or one a legend tap has greyed (`isolateDay`)
+  const off = mode === "salmon" ? [...(v.salmon?.closed ?? []), ...(v.salmon?.none ?? [])]
+    : [...(v.status?.closed ?? []), ...(v.status?.no_access ?? []), ...(v.status?.none ?? [])];
   const marked = ["in", ["coalesce", ["feature-state", "gm"], ""], ["literal", [...labels]]];
   return off.length
     ? ["all", marked, ["!", ["in", ["coalesce", ["feature-state", m.property], ""], ["literal", off]]]]
