@@ -42,9 +42,13 @@ export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}   # the store contact (T244)
 # (T263) "Get the new test build" (Update the app, in a staging build) opens this page
 export EXPO_PUBLIC_DEV_APK_URL=${EXPO_PUBLIC_DEV_APK_URL:-$BASE/index.html}
+# (T390) how this build updates itself (core appUpdateChannel): the sideloaded APK reads latest.json beside the page
+export EXPO_PUBLIC_APP_DISTRIBUTION=apk-page
 M=app/apps/mobile
 if [[ -n $PLAY ]]; then
   export EXPO_PUBLIC_DEV_APK_URL=$PLAY_STORE_URL
+  # (T390) a Play install: Google Play's in-app update
+  export EXPO_PUBLIC_APP_DISTRIBUTION=play
   PROPS=$SECRETS/upload-keystore.properties
   [[ -f $PROPS && -f $SECRETS/upload_certificate.pem ]] || { echo "missing $PROPS or upload_certificate.pem (T267)" >&2; exit 1; }
   git diff --quiet HEAD -- "$M/app.json" || { echo "$M/app.json has uncommitted edits; commit them first (the bump commits only app.json)" >&2; exit 1; }
@@ -157,12 +161,15 @@ Pinned copy: <a href="$NAME">$NAME</a></p>
 <li>Updates: install a newer APK from this page over the old one; your saved spots stay. The app also updates its data by itself.</li></ol>
 </body>
 HTML
+# (T390) what the sideloaded app reads to know a newer build is here (core apkIsNewer: version, build, sha, day)
+printf '{"version":"%s","build":%s,"sha":"%s","date":"%s"}\n' "$VER" "$CODE" "$SHA" "$DATE" > "$OUT/latest.json"
 [[ " $* " == *" --no-upload "* ]] && { echo "built $OUT/$NAME ($MB MB)"; exit 0; }
 W="npx --prefix app wrangler r2 object put --remote"
 APK=application/vnd.android.package-archive
 $W "$BUCKET/app/android/$NAME" --file "$OUT/$NAME" --content-type $APK --content-disposition "attachment; filename=\"$NAME\"" --cache-control "public, max-age=31536000, immutable"
 $W "$BUCKET/app/android/latest.apk" --file "$OUT/latest.apk" --content-type $APK --content-disposition "attachment; filename=\"canifishthis-staging.apk\"" --cache-control "no-cache"
 $W "$BUCKET/app/android/index.html" --file "$OUT/index.html" --content-type "text/html; charset=utf-8" --cache-control "no-cache"
+$W "$BUCKET/app/android/latest.json" --file "$OUT/latest.json" --content-type "application/json" --cache-control "no-cache"
 curl -sI "$BASE/latest.apk" | head -8
 if [[ " $* " != *" --no-email "* ]]; then
   PREV=$(cat "$OUT/last-sha" 2>/dev/null || true)

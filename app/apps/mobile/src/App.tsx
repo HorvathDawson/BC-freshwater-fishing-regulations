@@ -28,17 +28,20 @@ import { createNet, shareFetch, createReportOutbox, createUpdateLog, createUpdat
          type UpdateService, type WaterSource } from "@app/data";
 import type { MobileDataGate, ReleaseLoader } from "@app/data/release";
 import * as platform from "@app/data/release/platform";
-import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
+import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
-         type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource } from "@app/ui";
+         type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
+         useAppUpdate } from "@app/ui";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
 import { share } from "./share";
+// (T390) the platform's way to a newer app: Play's in-app update, the App Store page, the staging APK page; none on the web
+import { makeAppUpdater } from "./appUpdater";
 import { resolveStart, startLink } from "./startLink";
 import { exitSource } from "./exitInfo";
 import { trimOnPressure } from "./memoryTrim";
@@ -225,6 +228,9 @@ export default function App() {
   const walkthrough = useMemo(() => openWalkthroughStore(), []);
   // (T384) the first open asks for the reader's location once; this keeps that it has
   const locationAsk = useMemo(() => openLocationAskStore(), []);
+  // (T390) a newer app, asked at most once a device day (the bell's "App update" section)
+  const appUpdater = useMemo(() => makeAppUpdater(APP_VERSION), []);
+  const appUpdateStore = useMemo(() => (appUpdater ? openAppUpdateStore() : null), [appUpdater]);
   const recentSearches = useMemo(() => openRecentSearchStore(), []);
   // (T261) the species the Runs tab paints, kept between visits
   const runSpeciesStore = useMemo(() => openRunSpeciesStore(), []);
@@ -473,6 +479,9 @@ export default function App() {
     return () => clearTimeout(t);
   }, [boot, tooOld, autoTries]);
   const failed = boot.state === "failed" && (tooOld || autoTries >= 2) ? boot.error.message : null;
+  // (T390) a first start refused for an old app: the strong prompt and the same Update button as the bell's
+  const bootUpdate = useAppUpdate(tooOld ? appUpdater : null, appUpdateStore, { offline: false, tooOld });
+  const bootUpdateVM = tooOld ? bootUpdate?.vm ?? null : null;
   const firstRunOffline = boot.state === "failed" && boot.firstRunOffline;
   const retryBoot = useCallback(() => setAttempt((a) => a + 1), []);
   const stage = boot.state === "loading" ? boot.stage : boot.state === "failed" ? "manifest" : "paint";
@@ -543,9 +552,16 @@ export default function App() {
           <Text style={{ color: palette.ink, fontSize: 16, textAlign: "center" }}>
             {INSTALL_WORDS.failed}
           </Text>
-          <ErrorState palette={palette} size="body" style={{ textAlign: "center" }}
-                      message={tooOld ? failed : firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again}
-                      onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
+          {bootUpdateVM ? (
+            <ErrorState palette={palette} size="body" style={{ textAlign: "center" }} testID="boot-app-update"
+                        message={[bootUpdateVM.text, bootUpdateVM.said].filter(Boolean).join(" ")}
+                        onRetry={bootUpdateVM.button ? bootUpdate!.update : undefined}
+                        retryLabel={bootUpdateVM.button?.label} retryTestID="boot-app-update-action" />
+          ) : (
+            <ErrorState palette={palette} size="body" style={{ textAlign: "center" }}
+                        message={tooOld ? failed : firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again}
+                        onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
+          )}
           {APP_ENV.env === "local" && (
             <Text style={{ color: palette.faint, fontSize: 12, textAlign: "center" }}>
               {failed} {INSTALL_WORDS.serve}
@@ -587,6 +603,7 @@ export default function App() {
                initialHorizon={place.address ? place.address.horizon : start?.horizon ?? null} onAddress={holdAddress}
                cameraHold={place.cameras} regsStart={start?.regs ?? null} arriveAt={start?.arrive ?? null}
                locate={locate} locationAsk={locationAsk} share={share}
+               appUpdater={appUpdater} appUpdateStore={appUpdateStore}
                weather={weather}
                photos={photos}
                onSaveSpot={spotsHook.save}

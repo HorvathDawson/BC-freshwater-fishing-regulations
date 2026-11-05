@@ -79,7 +79,8 @@
         "react-native-gesture-handler",
         "react-native-safe-area-context",
         "expo-file-system",
-        "expo-splash-screen"
+        "expo-splash-screen",
+        "expo-in-app-updates"
       ],
       "banned": [
         "maplibre-gl",

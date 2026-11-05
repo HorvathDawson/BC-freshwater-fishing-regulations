@@ -189,6 +189,18 @@ Expo project starts failing in ways whose stack traces point nowhere. `npx expo 
   tap (`requestForegroundPermissionsAsync`) and never before. Used ONLY by `apps/mobile/src/locate.native.ts`; the web
   side is the browser's geolocation (`locate.web.ts`). Its config plugin in `apps/mobile/app.json` carries the
   when-in-use permission string; background location is off. Native code: it needs a rebuilt development build.
+- `expo-in-app-updates` — pinned 0.13.0 (T390, owner 2026-11-04). The app's own newer version, from inside it: Google
+  Play's in-app update (Play Core `app-update` 2.1.0 — flexible download, immediate when new data needs the app) on a
+  Play install, and the App Store lookup on iOS. Used ONLY by `apps/mobile/src/appUpdater.native.ts`, loaded on the first
+  Play / App Store call (`import()`); `appUpdater.web.ts` imports nothing, so the web bundle carries none of it.
+  Chosen over `sp-react-native-in-app-updates` 2.0.0 (the older name, 261k downloads/month vs 472k): that one pulls two
+  more native modules (`react-native-device-info` pinned at 10.3.0 from 2022, and `react-native-siren` for iOS) plus
+  `underscore`; this one is an Expo module (Expo Modules API: new architecture native, autolinked, no config plugin),
+  no runtime dependencies, a web stub of its own, active (0.13.0 2026-10-20). Caveats, checked in its source: 0.13 is
+  built against SDK 58 — the SDK 57 core it needs (`Coroutine`, `expo-module-gradle-plugin`, `ModuleDefinition`) is
+  present, but the first APK build is the proof; and a FLEXIBLE download completes itself (`completeUpdate` on
+  DOWNLOADED: Play restarts the app once the download is done, after the reader pressed Update) — there is no separate
+  "Restart to update" step. Native code: it needs a rebuilt development build.
 - `react-native-safe-area-context` — **5.7.0, exact: the version Expo SDK 57's `bundledNativeModules.json` names**
   (`~5.7.0`; pinned in the root `overrides`, native code). (T50, owner 2026-10-27) The system bars' real insets: Android
   draws edge-to-edge (API 35), so the status bar sat over the top bar and the gesture handle over the tab bar, and RN's own
