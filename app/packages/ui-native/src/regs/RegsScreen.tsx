@@ -33,7 +33,6 @@ import { type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
 import { TermTitles, type KeepActions } from "./LineText";
 import { createPinStore, type PinStore } from "./pinStore";
-import { BoatsLine } from "./BoatsLine";
 import { SunCard } from "./SunCard";
 import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
@@ -238,7 +237,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
         </WaterInset>
       )}
       <SunCard line={sun} palette={palette} />
-      <BoatsLine boats={page.boats} palette={palette} onSheet={openSheet} />
+      {/* (T395) the vessel restrictions are no longer here: their own section under Methods (`MethodsTab` boats) */}
       {/* (T387 review) the glance folds the card into its table only when it has the card's row: a card still coming, or
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}

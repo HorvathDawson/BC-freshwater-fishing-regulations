@@ -345,6 +345,8 @@ export const BOATS = Object.freeze({
 
 export const METHODS = Object.freeze({
   WAYS: "Ways to fish", BOATS: "Boats", REFERENCE: "Reference", HANDLING: "Handling fish",
+  /** (T395) the section under Methods that holds the water's vessel restrictions (they sat at the top of the page) */
+  VESSELS: "Vessel restrictions",
   RULES_EVERYWHERE: (n: number) => `${n} rules that apply everywhere`,
   NOT_GAME: " — not for trout or other game fish",
   NOT_FOR: (t: string) => `not for ${t}`, FOR: (t: string) => `${t} allowed`,

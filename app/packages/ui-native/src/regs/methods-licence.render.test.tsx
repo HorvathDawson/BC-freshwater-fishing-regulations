@@ -7,7 +7,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { LIC as LICW, type LicenceVM, type MethodsVM, type RegsPage, type SheetKey, type Who } from "@app/core";
+import { LIC as LICW, METHODS, type LicenceVM, type MethodsVM, type RegsPage, type SheetKey, type Who } from "@app/core";
 import { LIGHT } from "../theme";
 import type { KeepActions } from "./LineText";
 import { LicenceTab } from "./LicenceTab";
@@ -49,6 +49,12 @@ function mountLicence(vm: LicenceVM, who: Who = ADULT) {
   return { ...a, whos, lines: () => domLines(screen.getByTestId("licence-tab")) };
 }
 
+/** (T395, owner 2026-11-05) the boat rules are their own section under Methods: the golden's lines, its heading before Boats */
+const vesselsHead = (lines: readonly string[] | undefined) => {
+  const at = (lines ?? []).indexOf(METHODS.BOATS);
+  return at < 0 ? lines : [...lines!.slice(0, at), METHODS.VESSELS, ...lines!.slice(at)];
+};
+
 /** (owner 2026-11-04) the guiding block is folded, closed by default: the golden's lines are drawn once it is opened */
 function openGuiding(): void {
   const fold = screen.queryByTestId("licence-guiding-fold");
@@ -67,6 +73,32 @@ describe("<MethodsTab>", () => {
       "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
     fireEvent.click(within(screen.getByTestId("methods-boats")).getByRole("button", { name: "Sources: This water’s" }));
     expect(sheets).toEqual(["srcs:boats"]);
+  });
+
+  it("(T395) the vessel restrictions: their own section under Methods — one row per kind opening its rule, then Boats", () => {
+    const vm = methodsOf(bc1501);
+    const a = acts();
+    const boats = [{ kind: "unpowered", text: "No powered boats (in part)", rule: "r1" },
+                   { kind: "speed", text: "Speed limit 8 km/h", rule: "r2" }] as unknown as RegsPage["boats"];
+    render(<MethodsTab vm={vm} palette={LIGHT} actions={a.actions} boats={boats} />);
+    const section = screen.getByTestId("methods-vessels");
+    expect(domLines(section)).toEqual([METHODS.VESSELS, "No powered boats (in part)", "Speed limit 8 km/h", "Boats",
+      "No powered boats — between the Goat Creek confluence and the Talchako River confluence", "This water’s › Rule book p.43 ↗"]);
+    // under Methods: after its Ways to fish
+    const ways = screen.getByTestId("methods-ways");
+    expect(ways.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(screen.getByTestId("boat:speed"));
+    expect(a.sheets).toEqual(["rule:r2"]);
+  });
+
+  it("(T395) a closed day keeps the vessel restrictions under its sentence; none at all draws no section", () => {
+    const a = acts();
+    const boats = [{ kind: "towing", text: "No towing", rule: "r9" }] as unknown as RegsPage["boats"];
+    render(<MethodsTab vm={methodsOf(vedder615)} palette={LIGHT} actions={a.actions} boats={boats} />);
+    expect(domLines(screen.getByTestId("methods-tab"))).toEqual(["No fishing here until Jul 1.", METHODS.VESSELS, "No towing"]);
+    cleanup();
+    render(<MethodsTab vm={{ ...methodsOf(bc1501), boats: null }} palette={LIGHT} actions={a.actions} boats={[]} />);
+    expect(screen.queryByTestId("methods-vessels")).toBeNull();
   });
 
   it("the Reference fold: closed by default (its body not drawn); a tap opens it — the five heads and Province ›", () => {
@@ -94,7 +126,7 @@ describe("<MethodsTab>", () => {
   it("golden mounts (fold opened: the golden reads the folded text): vedder_1010, vedder_515, bc1_501", () => {
     for (const [id, f] of [["vedder_1010", vedder1010], ["vedder_515", vedder515], ["bc1_501", bc1501]] as const) {
       const { lines } = mountMethods(methodsOf(f), true);
-      expect([id, lines()]).toEqual([id, GL[id]!.methods]);
+      expect([id, lines()]).toEqual([id, vesselsHead(GL[id]!.methods)]);
       cleanup();
     }
   });
@@ -115,7 +147,7 @@ describe("<MethodsTab>", () => {
   });
 
   it("mutation pins: a lost note, a dropped boat or a reordered group fails the golden mount", () => {
-    const vm = methodsOf(bc1501), ways = vm.ways!, ref = vm.reference!, golden = GL.bc1_501!.methods;
+    const vm = methodsOf(bc1501), ways = vm.ways!, ref = vm.reference!, golden = vesselsHead(GL.bc1_501!.methods);
     const muts: Record<string, MethodsVM> = {
       note: { ...vm, ways: { ...ways, list: ways.list.map((c) => ({ ...c, items: c.items.map((i) => ({ ...i, note: null })) })) } },
       boats: { ...vm, boats: null },

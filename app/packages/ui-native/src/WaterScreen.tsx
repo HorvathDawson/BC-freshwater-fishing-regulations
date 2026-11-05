@@ -261,7 +261,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
                   // Gear / Methods / Licence (T34/T35); each is null only outside B.C. (T42: no key, so the page has
                   // none and the Keep tab's foot line is the page)
                   gear={tabs.gear ? (a) => <GearTab vm={tabs.gear!} palette={palette} actions={a} salmonGear={tabs.salmonGear} /> : undefined}
-                  methods={tabs.methods ? (a) => <MethodsTab vm={tabs.methods!} palette={palette} actions={a} /> : undefined}
+                  methods={tabs.methods ? (a) => <MethodsTab vm={tabs.methods!} palette={palette} actions={a} boats={regs.boats} /> : undefined}
                   licence={regs.licence ? (a) => <LicenceTab vm={regs.licence!} who={regs.who} palette={palette} actions={a} onWho={setWho} />
                     : undefined} />
       ))}
