@@ -8,6 +8,10 @@
     python -m pipeline build --force reach      # rerun a stage (and everything after it)
     python -m pipeline build --graph            # the stage graph: what each stage reads, runs and writes
     python -m pipeline build --side DIR [--atlas]   # EVERY stage into DIR, nothing live touched (a proof run)
+    python -m pipeline build --hold-latest      # the new release waits in data/release/CANDIDATE (LATEST untouched)
+
+A RELEASE is `python -m pipeline release --staging` (`pipeline/release.py`, T408): this build with --hold-latest, then
+the checks, then LATEST, then the staging upload. Run that, not this, to ship.
 
 THE STAGE GRAPH (`STAGE_GRAPH`, T297): clim, reach and tiles read only the atlas and the curated / source
 data, so they are independent; deliver reads the reach run and the tiles (and clim.json by content):
@@ -69,6 +73,8 @@ from pipeline.gauges.consume.bundle_tables import CLIM_PATH
 MANIFEST = GENERATED.bundle.parent / "build-manifest.json"
 #: `--side DIR` (T297): every stage's outputs go under it; None = the live homes
 SIDE: Path | None = None
+#: (T408) `--hold-latest`: deliver names its new release in CANDIDATE, not LATEST (`pipeline release` promotes it)
+HOLD_LATEST = False
 #: at most this many stages at once (memory `heavy-jobs-one-at-a-time`: <= 4 workers)
 MAX_JOBS = 4
 
@@ -345,7 +351,8 @@ def commands(build_dir: Path) -> dict[str, list[str]]:
                       "--out", str(h.clim)],
         "reach": py + ["pipeline.atlas.reach.cli", "--build", str(build_dir), "--out", str(h.reaches)],
         "deliver": py + ["pipeline.deliver", "all", "--build", str(build_dir)]
-        + (["--reaches", str(h.reaches), "--tiles", str(h.tiles), "--out-dir", str(h.deliver)] if side else []),
+        + (["--reaches", str(h.reaches), "--tiles", str(h.tiles), "--out-dir", str(h.deliver)] if side else [])
+        + (["--hold-latest"] if HOLD_LATEST else []),
         "tiles": py + ["pipeline.deliver.tiles", "--build", str(build_dir), "--out", str(h.tiles)]
         + (["--release-root", str(h.release)] if side else []),
     }
@@ -629,11 +636,15 @@ def main(argv: list[str] | None = None) -> int:
                     help=f"independent stages at once (default 2, at most {MAX_JOBS}; 1 = one after another)")
     ap.add_argument("--side", type=Path, default=None, metavar="DIR",
                     help="every stage into DIR with its own manifest; the live outputs and LATEST are not touched")
+    ap.add_argument("--hold-latest", action="store_true",
+                    help="(T408) deliver names its new release in data/release/CANDIDATE and leaves LATEST alone; "
+                         "`python -m pipeline release` runs this, checks, then promotes")
     ap.add_argument("--graph", action="store_true", help="print the stage graph and stop")
     ap.add_argument("--status", action="store_true",
                     help="the last run: each stage's time, memory and status, and its logs (with --side: that run's)")
     a = ap.parse_args(argv)
-    global SIDE, MANIFEST
+    global SIDE, MANIFEST, HOLD_LATEST
+    HOLD_LATEST = a.hold_latest
     if a.graph:
         print(graph_text())
         return 0

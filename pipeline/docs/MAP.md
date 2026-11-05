@@ -20,6 +20,12 @@ The atlas is built only on request (`--atlas`, into `<build>_next`) and adopted 
 immutable (AGENTS 56). The run ends with the strict vintage check (`pipeline/common/vintage.py`): tiles and bundle from
 one atlas and one registry. Heavy: one at a time through `scripts/heavy.sh`.
 
+`python -m pipeline release --staging` (`pipeline/release.py`, T408) wraps it: preflight (committed code + curated) →
+a copy of the live release's reach run → `pipeline build --hold-latest` via heavy.sh (the release waits in
+`data/release/CANDIDATE`) → checks (manifest sanity, `deliver/release/app_gate.py`, `atlas/reach/binding_diff.py`
+against the live release) → LATEST → `deploy/staging/upload.sh`. Its ledger is `data/generated/release/ledger.json`;
+`--prod <r-id>` (human-only) re-uploads that same release through `deliver/release/publish.py`.
+
 ## Stages and where they live
 
 | stage | code | reads | writes (`GENERATED.*`, `pipeline/common/curated.py`) |
@@ -28,7 +34,7 @@ one atlas and one registry. Heavy: one at a time through `scripts/heavy.sh`.
 | **clim** | `gauges/feed/climatology.py` | HYDAT | `clim.json` (the gauge envelope) |
 | **reach** | `atlas/reach/` (`cli.py`, `build.py`, `classify.py`, `extent.py`, `licensing.py`, `steelhead.py`, `cache.py`) | atlas, the catalogue corpus (`data/curated/regulations/entries/catalogue/`) | `data/generated/reaches/<run>/`: per-rule bindings, `report.json`, diagnostics |
 | **tiles** | `deliver/tiles/` (`tippe.py`, `layers.py`, `names.py`, `basemap.py`) | atlas | `data/generated/tiles/`: `atlas.pmtiles` (z4–13, T85), `atlas.meta.json`, `layers/` + `layers/undrawn.json` (the sections left out on purpose, T64; the bundle's `bundle/undrawn.py` proves none was needed), never the basemap |
-| **deliver** | `deliver/__main__.py` `all` | atlas, reach run, tiles, curated corpus, `clim.json` | `data/release/r-<id>/` + `LATEST` |
+| **deliver** | `deliver/__main__.py` `all` | atlas, reach run, tiles, curated corpus, `clim.json` | `data/release/r-<id>/` + `LATEST` (or `CANDIDATE` with `--hold-latest`) |
 
 **Deliver, step by step** (`python -m pipeline.deliver all`; each step its own process, each reads only the previous
 step's output; nothing is promoted unless every step and the vintage check pass):

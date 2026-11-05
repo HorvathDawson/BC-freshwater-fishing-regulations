@@ -3,7 +3,8 @@
     python -m pipeline.deliver.release.prune            # the list, nothing removed
     python -m pipeline.deliver.release.prune --yes      # remove them
 
-Kept: the release `LATEST` names, the one `PUBLISHED` names (what R2 serves), the newest other release (one to go
+Kept: the release `LATEST` names, the one `PUBLISHED` names (what R2 serves), the one `CANDIDATE` names (built,
+waiting for `pipeline release`'s checks), the newest other release (one to go
 back to), and any `--keep <id>`. Everything else `r-*` under data/release goes. `tiles/` and the pointers are never
 touched. A release is a cut of the pipeline's outputs, so a removed one is rebuilt, not restored.
 """
@@ -28,7 +29,7 @@ def plan(root: Path, keep: Iterable[str] = ()) -> Tuple[List[Path], List[Path]]:
     left alone."""
     dirs = releases(root)
     cur = latest(root)
-    named = _named(root, "PUBLISHED") | set(keep) | ({cur.name} if cur else set())
+    named = _named(root, "PUBLISHED") | _named(root, "CANDIDATE") | set(keep) | ({cur.name} if cur else set())
     previous = next((d.name for d in dirs if d.name not in named), None)
     held = named | ({previous} if previous else set())
     return [d for d in dirs if d.name in held], [d for d in dirs if d.name not in held]

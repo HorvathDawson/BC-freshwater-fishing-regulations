@@ -74,6 +74,17 @@ def write_latest(release_root, rid: str) -> None:
     tmp.replace(Path(release_root) / LATEST)
 
 
+CANDIDATE = "CANDIDATE"
+
+
+def write_candidate(release_root, rid: str) -> None:
+    """(T408) Name `rid` as the release WAITING for its checks (`deliver all --hold-latest`, written by `pipeline
+    release`). LATEST is untouched; `pipeline release` promotes it (`write_latest`) once every check passes."""
+    tmp = Path(release_root) / f".{CANDIDATE}.tmp"
+    tmp.write_text(rid + "\n")
+    tmp.replace(Path(release_root) / CANDIDATE)
+
+
 def latest(release_root) -> Optional[Path]:
     """THE RELEASE ON DISK: the release `release_root/LATEST` names (T72), else — a root the release step never wrote
     a pointer into (a test's, an old checkout's) — the newest `r-*` folder holding a manifest (by the manifest's

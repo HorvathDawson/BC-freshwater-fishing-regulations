@@ -214,7 +214,8 @@ The app reads both and draws a banner. Nothing in the build reads in-season (inf
 | file | written by | read by | refreshed | human time |
 |---|---|---|---|---|
 | `data/release/<r-id>/*` + `manifest.json` | deliver | `upload.sh` | each build | none |
-| `data/release/LATEST` | promote step (Claude may, owner 10-28) | `upload.sh` | each promote | a decision |
+| `data/release/LATEST` | `pipeline release` promote stage, after its checks (Claude may, owner 10-28) | `upload.sh` | each promote | a decision |
+| `data/release/CANDIDATE` | `pipeline build --hold-latest` (inside `pipeline release`, T408) | `pipeline release` checks | each held build | none |
 | R2 `release/` + `map-assets/` | `upload.sh` (staging: Claude; prod: owner) | app boot (`app/packages/data/src/release/boot.ts`): manifest → install → paint | each upload | none |
 
 ---

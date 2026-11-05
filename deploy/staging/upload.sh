@@ -12,28 +12,10 @@ D="r2:$BUCKET"
 REL=${1:-$(cat data/release/LATEST)}
 R=data/release; M=$R/$REL/manifest.json
 q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]))" "$1"; }
-# (guard, 2026-10-30) an unstamped paint/5 release reached staging and broke 0.2.0, which reads paint/4 at most: refuse a
-# release whose paint format needs a newer app than the oldest the manifest lets apply it. PAINT_NEEDS: format -> first
-# app that reads it (add a row whenever paint.py's FORMAT moves); SALMON_NEEDS the same for salmon.py's FORMAT. MIN_APP_VERSION (or an existing stamp) must reach it.
-MIN_APP_VERSION=${MIN_APP_VERSION-} python3 - "$M" <<'PY'
-import json, os, sys
-PAINT_NEEDS = {5: "0.3.0"}
-# (T332/T349) salmon/3 = salmon quotas in the game-fish quota tree; (T356) salmon/4 = header closure, shared limits and sizes
-# resolved in the file. No shipped app reads either yet (0.4.0 reads salmon/2); 0.5.0 reads salmon/4 only
-SALMON_NEEDS = {3: "0.5.0", 4: "0.5.0"}
-m = json.load(open(sys.argv[1]))
-have = os.environ.get("MIN_APP_VERSION") or m.get("minAppVersion")
-ver = lambda s: tuple(int(x) for x in s.split("-")[0].split("+")[0].split("."))
-for key, needs in (("paint", PAINT_NEEDS), ("salmon", SALMON_NEEDS)):
-    f = m["files"].get(key)
-    if not f:
-        continue
-    fmt = int(f["format"].split("/")[1])
-    need = max((v for k, v in needs.items() if fmt >= k), default=None, key=ver)
-    if need and (not have or ver(have) < ver(need)):
-        sys.exit(f"upload: refused — {key}/{fmt} needs app >= {need} but the oldest app allowed is {have or 'any'}; "
-                 f"rerun with MIN_APP_VERSION={need} (or newer)")
-PY
+# (guard, 2026-10-30) refuse a release whose paint/salmon format needs a newer app than the oldest the manifest lets apply
+# it (MIN_APP_VERSION, or the manifest's stamp). The table and the rule: pipeline/deliver/release/app_gate.py (one copy:
+# `pipeline release` runs the same check before it promotes).
+MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release.app_gate "$M"
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket "${@:3}"; }
 # (T199) runtiming/ is the run-timing feed's (feeds-runtiming.yml / pipeline.runtiming.feed.publish): never cleared here

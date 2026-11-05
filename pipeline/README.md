@@ -3,6 +3,19 @@
 Run everything with the venv: `.venv/bin/python`. The whole rebuild is one command; the steps below
 are what it runs, for when you need one alone.
 
+## A release (T408): build once, promote the same artifact
+
+```bash
+python -m pipeline release --staging --dry-run   # the plan: preflight, baseline, build plan, checks, promote, upload
+python -m pipeline release --staging             # build -> checks -> promote LATEST -> deploy/staging/upload.sh
+python -m pipeline release --staging --accept-diff data/generated/release/checks/<r-id>/binding_diff.json
+python -m pipeline release --prod <r-id>         # HUMAN-ONLY: the same release to production (refuses an agent)
+```
+
+`pipeline/release.py`; the runbook is `handoff/PLAN/runbooks/release.md`. The build runs with `--hold-latest`: the new
+release waits in `data/release/CANDIDATE` and LATEST moves only after the checks pass. This replaces the hand steps
+(build, binding diff, upload guard, `upload.sh`).
+
 ## The rebuild
 
 ```bash
@@ -14,6 +27,7 @@ python -m pipeline build --status         # the last run: per-stage time, peak m
 python -m pipeline build --atlas          # + a side atlas data/generated/atlas/<build>_next and its parity
 python -m pipeline build --promote        # adopt <build>_next, then rebuild against it
 python -m pipeline build --side DIR [--atlas]   # every stage into DIR; nothing live, no LATEST (a proof run)
+python -m pipeline build --hold-latest    # the new release named in data/release/CANDIDATE, LATEST untouched
 ```
 
 See `pipeline/build.py` and AGENTS rule 62. Heavy: run it through `scripts/heavy.sh` (one heavy job at a

@@ -9,6 +9,7 @@
     python -m pipeline.deliver store [--bundle FILE] [--export-dir DIR] [--out FILE] [--blobs CODEC]
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
     python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR] [--entries DIR] [--tiles DIR] [--debug-json]
+                                            [--hold-latest]   (T408: the new release waits in CANDIDATE)
 
 The artifacts a client reads — the bundle, the status index, and the export pair
 (`ui-rules-export.json` + `ui-rules-guide.json`, one run) — are three commands
@@ -169,8 +170,13 @@ def _all(a) -> int:
                 shutil.rmtree(rel_root / r.name)
             os.replace(r, rel_root / r.name)
         if releases:
-            from pipeline.deliver.release.manifest import write_latest
-            write_latest(rel_root, releases[-1].name)
+            from pipeline.deliver.release.manifest import write_candidate, write_latest
+            if getattr(a, "hold_latest", False):
+                # (T297/T408) `pipeline release`: the new release waits as CANDIDATE; LATEST moves only after its checks
+                write_candidate(rel_root, releases[-1].name)
+            else:
+                write_latest(rel_root, releases[-1].name)
+                (rel_root / "CANDIDATE").unlink(missing_ok=True)     # a direct build supersedes a held one
         # (T373) the run-timing feed of this release, whole, where the data server and the upload read it
         rt_home = (dest / "runtiming") if dest else GENERATED.runtiming / "feed" / "out"
         if (d / "runtiming").exists():
@@ -253,12 +259,16 @@ def main(argv=None) -> int:
     al.add_argument("--debug-json", action="store_true",
                     help="also keep the regs store the release was cut from (regs.sqlite: in --out-dir, else "
                          "pipeline.deliver.store.DEBUG_OUT); by default none is kept (P20)")
+    al.add_argument("--hold-latest", action="store_true",
+                    help="(T408) name the new release in CANDIDATE, not LATEST: `pipeline release` moves LATEST "
+                         "only after its checks pass")
     a = ap.parse_args(argv)
     if a.step in (None, "all"):
         if a.step is None:
             a.build = a.reaches = a.entries = a.tiles = None
             a.out_dir = None
             a.debug_json = False
+            a.hold_latest = False
         return _all(a)
     if a.step == "runtiming":
         from pipeline.runtiming.feed.release import bind

@@ -80,6 +80,15 @@ bash pipeline/regs/parsing/run_parse.sh               # rows → data/curated/re
 
 The parse runs Claude and spends credits: **a person runs it**, never an agent.
 
+### Release (build → checks → LATEST → staging)
+
+```bash
+python -m pipeline release --staging --dry-run   # the plan
+python -m pipeline release --staging             # one command; stops at the first failure, a rerun resumes
+```
+
+Production re-uploads the same checked release and is the owner's: `handoff/PLAN/runbooks/release.md`.
+
 ### Rebuild
 
 ```bash

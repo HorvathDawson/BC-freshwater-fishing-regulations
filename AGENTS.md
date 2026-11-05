@@ -669,6 +669,12 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     2026-11-05), and the writers (`review.apply`: `apply_proposals`, `tools.mined_names` / `slough_calls` /
     `tidal_limits`) write only their final curated file. No stage reads the marks (in no key —
     `build.NOT_BUILD_INPUTS`); a build runs with marks.jsonl absent.
+    **T408 (2026-11-05): ONE RELEASE COMMAND**, `python -m pipeline release --staging` (`pipeline/release.py`): preflight
+    (code + curated committed) → keep the live release's reach run → `pipeline build --hold-latest` through heavy.sh (the
+    release waits in `data/release/CANDIDATE`) → checks (manifest, `release.app_gate` — the one upload.sh runs — and the
+    binding diff vs the live release; a diff STOPS until `--accept-diff <its json>`) → LATEST → staging upload; resumable,
+    ledger `data/generated/release/ledger.json`. `--prod <r-id>` re-uploads that same checked release and refuses an agent:
+    agents never run it. Runbook `handoff/PLAN/runbooks/release.md`.
 63. **A tributary walk never enters the entry's own water** (`tributaries.THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`,
     2026-10-11). Every non-area item the entry matches is governed by the rule's extents, never collected by the walk —
     even when FWA codes it as a tributary (the Chilliwack is a "tributary" of the Vedder: after the Vedder's cut moved
