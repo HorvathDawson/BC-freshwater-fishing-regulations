@@ -111,8 +111,6 @@ export interface DfoResult {
   sent: { sent: string[]; failed: string[]; off: boolean };
   /** change-aware: the regions whose typing was skipped (page + entries unchanged) */
   skipped?: string[];
-  /** non-fatal problems this run (e.g. the R2 wording registry missing / invalid → compiled-in copy used) */
-  warnings?: string[];
 }
 
 type Json = any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -155,7 +153,7 @@ export function liveFetcher(
 }
 
 /** The page → (typed feed, locations, structure). Throws when the page does not parse or verify. */
-export function typePage(html: string, slug: string, robust = false, reg?: Registry): [TypedFeed, Location[], Structure] {
+export function typePage(html: string, slug: string, robust: boolean, reg: Registry): [TypedFeed, Location[], Structure] {
   const parsed = parseRegion(html, slug);
   const u = untangle(parsed);
   verify(parsed, u);
@@ -306,14 +304,10 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
         meter: deps.meter,
       })
     : deps.feed;
-  // T321: the wording registry is a runtime input (priv `wording.json`), read once per run; missing / invalid → the compiled-in copy
+  // T321: the wording registry is a runtime input (priv `wording.json`), read once per run. T324: its ONLY copy —
+  // missing / invalid THROWS before anything is written, so the job fails and is reported and the last good feed stands
   const wordingText = await deps.priv.get("wording.json");
-  const { reg: wordingReg, warning: wordingWarning } = readRegistry(wordingText);
-  const warnings: string[] = [];
-  if (wordingWarning) {
-    warnings.push(wordingWarning);
-    log(`warning: ${wordingWarning}`);
-  }
+  const wordingReg = readRegistry(wordingText);
   const wordingHash = contentHash(wordingText ?? "");
   let inputs: { rev?: string; wording?: string; regions?: Record<string, { page: string; entries: string }> } = {};
   if (aware)
@@ -554,7 +548,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     messageOf: (n) => n.text,
     log,
   });
-  return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped, ...(warnings.length ? { warnings } : {}) };
+  return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped };
 }
 
 /** live.words_by_location (T321): location id → the rows its card shows in DFO's words, `{k, sp, d, t}` (`locs[lid].x`) */

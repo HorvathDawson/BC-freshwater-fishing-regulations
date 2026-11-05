@@ -571,7 +571,7 @@ export interface ScrapedRule {
  * dates.readDates — "until further notice", "To", "until", day-month order, ordinals, years, typos — and a cell it
  * still cannot read KEEPS the row's typed rules (never the advisory that dropped the limit), each carrying
  * `when.unparsed` and `check: DATES_UNPARSED`, which the calendar shows as a `check` verdict on every day. */
-export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robust = false, reg?: Registry): TypedRule[] {
+export function toRules(rec: ScrapedRule, ruleBase: string, order: number, robust: boolean, reg: Registry): TypedRule[] {
   const gear = strip(rec.limits_gear || "");
   const says = decode(gear);
   const codes = speciesFor(rec.species || "");

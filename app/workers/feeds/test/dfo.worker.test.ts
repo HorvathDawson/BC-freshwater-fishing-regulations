@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { runDfo } from "../src/dfo";
 import { fetchRegion } from "../src/dfo/fetch";
-import { MemStore, REPO } from "./dfo.scenario";
+import { MemStore, privStore, REPO } from "./dfo.scenario";
 
 const FIX = join(REPO, "app/workers/feeds/test/fixtures/dfo");
 const page = (slug: string) => readFileSync(join(FIX, `pages/region${slug}-eng.html`), "utf-8");
@@ -39,7 +39,7 @@ describe("fetchRegion", () => {
 describe("runDfo in the Worker shape", () => {
   it("live fetch: publishes only index/unplaced; raw, manifest, history, entries and notified stay private", async () => {
     const feed = new MemStore();
-    const priv = new MemStore();
+    const priv = privStore();
     for (const s of ["4", "7"]) priv.m.set(`entries/region-${s}.json`, readFileSync(join(FIX, `entries/region-${s}.json`), "utf-8"));
     const posted: string[] = [];
     const fetch = async (url: string, init?: RequestInit) => {
@@ -63,6 +63,7 @@ describe("runDfo in the Worker shape", () => {
         "manifest.json",
         "notified.json",
         "raw/region4-eng.html",
+        "wording.json",                     // (T324) the synced registry, read only
         "writes.json",
       ]);
       const r7 = (got.index.regions as Record<string, { stale: boolean; failures: number }>)["7"]!;
@@ -89,7 +90,7 @@ describe("one bad row holds only its location", () => {
   // a hook gap of 5 mm fails the catalogue (smaller than any gap the book prints) → ValidationError on that row
   const bad = clean.replace("<td>4 per day, only 2 over 50&nbsp;cm.</td>", "<td>4 per day, single barbless hook less than 5mm from point to shank</td>"); // (T321) spelled as DFO does: no new-wording notice
   const run = (feed: MemStore, html: string, extra: Partial<Parameters<typeof runDfo>[0]> = {}) =>
-    runDfo({ fetch: async () => new Response(""), feed, priv: new MemStore(), entries, now: "2026-10-28T12:00:00Z", regions: ["8"], fetcher: async () => [html, null], ...extra });
+    runDfo({ fetch: async () => new Response(""), feed, priv: privStore(), entries, now: "2026-10-28T12:00:00Z", regions: ["8"], fetcher: async () => [html, null], ...extra });
 
   it("robust: the region publishes, the bad row's location keeps its last answers and is listed", async () => {
     expect(bad).not.toBe(clean);
@@ -136,7 +137,7 @@ describe("change-aware DFO runs", () => {
   it("unchanged pages: typing skipped, answers identical to a full run, feed writes skipped until the heartbeat", async () => {
     const { newMeter } = await import("../src/io");
     const feed = new MemStore();
-    const priv = new MemStore();
+    const priv = privStore();
     await run(feed, priv, "2026-10-28T12:00:00Z", pages);
     const first = feed.m.get("index.json")!;
     const m = newMeter();
@@ -148,7 +149,7 @@ describe("change-aware DFO runs", () => {
     expect(puts).toEqual([]); // neither index.json nor unplaced.json rewritten
     expect(m.writesSkipped).toBe(2);
     // the carried answers ARE the full run's answers
-    const full = await run(new MemStore(), new MemStore(), "2026-10-28T18:00:00Z", pages, { changeAware: false });
+    const full = await run(new MemStore(), privStore(), "2026-10-28T18:00:00Z", pages, { changeAware: false });
     const { feedText } = await import("../src/dfo/pyjson");
     const { stableIndex } = await import("../src/dfo/live");
     const strip = (x: unknown) => stableIndex(feedText(x)).replace(/"changed":"[^"]*"/g, "");
@@ -162,7 +163,7 @@ describe("change-aware DFO runs", () => {
 
   it("a changed page re-types only its region", async () => {
     const feed = new MemStore();
-    const priv = new MemStore();
+    const priv = privStore();
     await run(feed, priv, "2026-10-28T12:00:00Z", pages);
     const changed = { ...pages, "8": pages["8"]!.replace("4 per day, only 2 over 50&nbsp;cm.", "3 per day, only 2 over 50&nbsp;cm.") };
     const got = await run(feed, priv, "2026-10-28T18:00:00Z", changed);
@@ -171,7 +172,7 @@ describe("change-aware DFO runs", () => {
 
   it("a new entry file (curation) re-types its region even on the same page", async () => {
     const feed = new MemStore();
-    const priv = new MemStore();
+    const priv = privStore();
     await run(feed, priv, "2026-10-28T12:00:00Z", pages);
     const got = await run(feed, priv, "2026-10-28T18:00:00Z", pages, {
       entries: async (s) => (await entries(s)) + (s === "6" ? "\n" : ""),

@@ -1,14 +1,14 @@
 // T321 port of pipeline/regs/dfo_salmon/wording.py: DFO's limits wording as a CLOSED REGISTRY. Every clause of a limits
-// cell must be one DFO has printed before (data/curated/dfo_salmon/wording.json — the ONE file both readers load; this
-// one bundles it at build). A clause the registry does not hold is NEW WORDING: the row's rules carry review_reason
+// cell must be one DFO has printed before (data/curated/dfo_salmon/wording.json — the ONE file both readers load; the
+// Worker reads the copy `pipeline.deliver.sync_inputs` puts at R2 private/feeds/dfo/wording.json, and nothing else:
+// T324, owner 2026-11-05 "one copy, fail loud" — no compiled-in copy, a missing / invalid one FAILS the DFO job). A clause the registry does not hold is NEW WORDING: the row's rules carry review_reason
 // "new wording: '…'" (no number in the app), the card shows the row in DFO's words, and the owner is emailed URGENTLY,
 // once per new template (live.ts `wordingNotices`, email.ts). Parity with the Python: test/dfo.wording.test.ts.
-import doc from "../../../../../data/curated/dfo_salmon/wording.json";
 import { finditer, lstrip, repr, pyRe, strip, sub } from "./py";
 import { unreadReason } from "./typed";
 
-// T332: /2 — the clause split changed; a /1 registry in R2 (or a /2 one read by a pre-T332 Worker) is refused and the
-// compiled-in copy answers, so a deploy and an inputs sync in either order never flag the other split's clauses as new
+// T332: /2 — the clause split changed; a registry of another format in R2 is refused (T324: the DFO job fails and
+// reports, the app keeps the last good feed) — never read with the wrong split, which would flag every clause as new
 export const FORMAT = "dfo-wording/2";
 export const NEW_WORDING = "new wording: ";
 export const REGISTRY_PATH = "data/curated/dfo_salmon/wording.json";
@@ -73,17 +73,16 @@ export function loadRegistry(d: { format?: string; entries: WordingEntry[] }): R
   if (!d || d.format !== FORMAT || !Array.isArray(d.entries)) throw new Error(`not a ${FORMAT} registry`);
   return new Map(d.entries.map((e) => [e.template, e]));
 }
-/** the bundled registry */
-export const REGISTRY: Registry = loadRegistry(doc as { format: string; entries: WordingEntry[] });
-
-/** The registry from the R2 copy (priv `wording.json`, put there by deploy/staging/sync-inputs.sh), or the compiled-in
- *  one with the reason it fell back. Read once per run: a missing / invalid copy never stops the run. */
-export function readRegistry(text: string | null): { reg: Registry; warning?: string } {
-  if (text === null) return { reg: REGISTRY, warning: "wording.json missing in R2: using the compiled-in registry" };
+/** The registry from THE copy, R2 private/feeds/dfo/wording.json (put there by `pipeline.deliver.sync_inputs`: the
+ *  feeds-sync-inputs workflow on push, or deploy/staging/sync-inputs.sh). Read once per run. Missing or invalid THROWS
+ *  (T324): the DFO job fails and is reported; nothing is typed with a registry nobody reviewed. */
+export function readRegistry(text: string | null): Registry {
+  if (text === null)
+    throw new Error(`wording registry missing: no R2 private/feeds/dfo/wording.json — sync it (python -m pipeline.deliver.sync_inputs, the feeds-sync-inputs workflow) from ${REGISTRY_PATH}`);
   try {
-    return { reg: loadRegistry(JSON.parse(text)) };
+    return loadRegistry(JSON.parse(text));
   } catch (e) {
-    return { reg: REGISTRY, warning: `wording.json in R2 invalid (${e instanceof Error ? e.message : String(e)}): using the compiled-in registry` };
+    throw new Error(`wording registry invalid: R2 private/feeds/dfo/wording.json (${e instanceof Error ? e.message : String(e)}) — re-sync it from ${REGISTRY_PATH}`);
   }
 }
 
@@ -93,15 +92,15 @@ const known = (t: string, reg: Registry): WordingEntry | null => {
 };
 
 /** wording.unknown: the clauses DFO has not used before, as printed, once each */
-export const unknown = (cell: string, reg: Registry = REGISTRY): string[] =>
+export const unknown = (cell: string, reg: Registry): string[] =>
   [...new Set(clauses(cell).filter((c) => !known(template(c), reg)))];
 
 /** wording.notes: the clauses whose meaning is a note in DFO's words */
-export const notes = (cell: string, reg: Registry = REGISTRY): string[] =>
+export const notes = (cell: string, reg: Registry): string[] =>
   clauses(cell).filter((c) => known(template(c), reg)?.kind === "note");
 
 /** wording.reason: "" or the rule's review_reason, "new wording: '…'; '…'" */
-export function reason(cell: string, reg: Registry = REGISTRY): string {
+export function reason(cell: string, reg: Registry): string {
   const n = unknown(cell, reg);
   return n.length ? NEW_WORDING + n.map((c) => repr(c)).join("; ") : "";
 }
@@ -114,7 +113,7 @@ export interface RowWords {
   t: string;
   new?: string[];
 }
-export function rowWords(rec: { species?: string; dates?: string; limits_gear?: string }, reg: Registry = REGISTRY): RowWords | null {
+export function rowWords(rec: { species?: string; dates?: string; limits_gear?: string }, reg: Registry): RowWords | null {
   const cell = strip(rec.limits_gear || "");
   const out = { sp: strip(rec.species || ""), d: strip(rec.dates || ""), t: cell };
   const n = unknown(cell, reg);

@@ -10,12 +10,13 @@ import { bucket, headerAnswers, headerClosure, sharedBuckets, sizes, speciesTree
 import { parseHeader } from "../src/dfo/header";
 import { toRules } from "../src/dfo/typed";
 import { REPO } from "./dfo.scenario";
+import { REG } from "./wording.fixture";
 
 const T320 = JSON.parse(readFileSync(join(REPO, "pipeline/tests/fixtures/dfo_salmon/t320_words.json"), "utf-8")) as Record<string, string | null>;
 const SPECIES = ["CH", "CO", "SK", "PK", "CM"];
 
 function openVerdict(species: string, sp: string, cell: string): Verdict {
-  const rules = toRules({ species, dates: "Apr 1 to Mar 31", limits_gear: cell } as never, "x", 0) as never[];
+  const rules = toRules({ species, dates: "Apr 1 to Mar 31", limits_gear: cell } as never, "x", 0, false, REG) as never[];
   const verdicts = new Interner<unknown>();
   const cal = locationCalendar(rules, verdicts, new Interner<unknown>());
   const runs = cal.sp[SPECIES.indexOf(sp)]!;
@@ -59,7 +60,7 @@ describe("(T332) DFO quotas in the game-fish quota tree", () => {
 
 describe("(T349 / T350) non-retention is closed; release only where DFO says catch and release", () => {
   const verdictOf = (cell: string): string | undefined => {
-    const rules = toRules({ species: "Coho", dates: "Apr 1 to Mar 31", limits_gear: cell } as never, "x", 0) as never[];
+    const rules = toRules({ species: "Coho", dates: "Apr 1 to Mar 31", limits_gear: cell } as never, "x", 0, false, REG) as never[];
     const verdicts = new Interner<unknown>();
     const runs = locationCalendar(rules, verdicts, new Interner<unknown>()).sp[SPECIES.indexOf("CO")]!;
     return runs[1]! >= 0 ? (verdicts.items[runs[1]!] as Verdict).s : undefined;

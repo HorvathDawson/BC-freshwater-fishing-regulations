@@ -12,6 +12,7 @@ import { Interner, locationCalendar, NOT_LISTED } from "../src/dfo/salmon";
 import { DATES_UNPARSED, LAST_DAY, parseDateRange, toRules, type DateRange } from "../src/dfo/typed";
 import { untangle } from "../src/dfo/untangle";
 import { REPO } from "./dfo.scenario";
+import { REG } from "./wording.fixture";
 
 const FIX = join(REPO, "app/workers/feeds/test/fixtures/dfo");
 const corpus: string[] = JSON.parse(readFileSync(join(FIX, "date-cells.json"), "utf-8")).cells;
@@ -162,7 +163,7 @@ describe("readDates: seeded fuzz", () => {
 
 describe("downstream: an unreadable cell is `check`, never a dropped limit", () => {
   const cal = (rows: { species: string; dates: string; limits_gear: string }[]) => {
-    const rules = rows.flatMap((r, i) => toRules(r, "fp000000", i, true));
+    const rules = rows.flatMap((r, i) => toRules(r, "fp000000", i, true, REG));
     const verdicts = new Interner<unknown>();
     verdicts.add(NOT_LISTED);
     const gears = new Interner<unknown>();
@@ -181,9 +182,9 @@ describe("downstream: an unreadable cell is `check`, never a dropped limit", () 
   };
 
   it("the Python made an unreadable row an advisory with no limit; robust keeps the limit, flagged check", () => {
-    const py = toRules({ species: "Coho", dates: "1 Oct to 31 Dec", limits_gear: "2 per day" }, "fp", 0);
+    const py = toRules({ species: "Coho", dates: "1 Oct to 31 Dec", limits_gear: "2 per day" }, "fp", 0, false, REG);
     expect(py.map((r) => r.type)).toEqual(["advisory"]); // the limit was gone
-    const ours = toRules({ species: "Coho", dates: "Oct 1 to Dec 31 (subject to review)", limits_gear: "2 per day" }, "fp", 0, true);
+    const ours = toRules({ species: "Coho", dates: "Oct 1 to Dec 31 (subject to review)", limits_gear: "2 per day" }, "fp", 0, true, REG);
     expect(ours).toMatchObject([{ type: "retention_limit", take: 2, species: ["CO"], check: DATES_UNPARSED, when: { unparsed: ["Oct 1 to Dec 31 (subject to review)"] } }]);
   });
 

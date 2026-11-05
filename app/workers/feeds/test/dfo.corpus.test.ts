@@ -12,6 +12,7 @@ import { parseHeader } from "../src/dfo/header";
 import { pyStrOf, pyTypeName } from "../src/dfo/py";
 import { dumps } from "../src/dfo/pyjson";
 import { REPO } from "./dfo.scenario";
+import { REG } from "./wording.fixture";
 
 const FIXDIR = join(REPO, "app/workers/feeds/test/fixtures/dfo");
 const DIRS = (process.env.DFO_CORPUS ?? ["pages", "history", "broken"].map((d) => join(FIXDIR, d)).join(":")).split(":");
@@ -75,7 +76,7 @@ describe.skip("DFO typed corpus parity", () => {
       const html = readFileSync(p, "utf-8").replace(/\r\n?/g, "\n");
       const row: Record<string, unknown> = { page: name, slug };
       try {
-        const [typed, locations, structure] = typePage(html, slug);
+        const [typed, locations, structure] = typePage(html, slug, false, REG);
         Object.assign(row, { typed, locations, structure });
       } catch (e) {
         row.error = `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 120).join("")}`;

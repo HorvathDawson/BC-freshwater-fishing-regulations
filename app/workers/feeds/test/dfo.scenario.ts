@@ -40,12 +40,22 @@ export class MemStore implements Store {
   }
 }
 
+/** (T324) THE wording registry the Worker reads from R2 (priv `wording.json`): the curated file, the bytes
+ *  `pipeline.deliver.sync_inputs` uploads. There is no compiled-in copy; a run without it fails. */
+export const REGISTRY_TEXT = readFileSync(join(REPO, "data/curated/dfo_salmon/wording.json"), "utf-8");
+/** A private store as R2 holds it after an inputs sync: the wording registry in place. */
+export function privStore(): MemStore {
+  const s = new MemStore();
+  s.m.set("wording.json", REGISTRY_TEXT);
+  return s;
+}
+
 /** `pythonParity` (default true): the Python's behaviour byte for byte; false = the Worker's robust mode. */
 export async function runTs(scenarioPath: string, pythonParity = true): Promise<StepOut[]> {
   const base = dirname(scenarioPath);
   const sc: Scenario = JSON.parse(readFileSync(scenarioPath, "utf-8"));
   const feed = new MemStore();
-  const priv = new MemStore();
+  const priv = privStore();
   for (const name of ["index", "unplaced"] as const) {
     const p = sc.initial?.[name];
     if (p) feed.m.set(`${name}.json`, readFileSync(join(base, p), "utf-8"));

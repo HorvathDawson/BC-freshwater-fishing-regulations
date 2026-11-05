@@ -8,9 +8,10 @@ import { compose } from "../src/events";
 import { type RenderCtx } from "../src/email";
 import { dfoEvents } from "../src/index";
 import { runDfo } from "../src/dfo";
-import { clauses, REGISTRY, rowWords, template, unknown } from "../src/dfo/wording";
+import { clauses, rowWords, template, unknown } from "../src/dfo/wording";
 import { toRules } from "../src/dfo/typed";
-import { MemStore, REPO } from "./dfo.scenario";
+import { MemStore, privStore, REPO } from "./dfo.scenario";
+import { REG as REGISTRY } from "./wording.fixture";
 
 const PY = join(REPO, ".venv/bin/python");
 const FIX = join(REPO, "app/workers/feeds/test/fixtures/dfo");
@@ -44,8 +45,8 @@ print(json.dumps(out))`;
       const [species, dates, cell] = x.rec;
       expect(clauses(cell)).toEqual(x.clauses);
       expect(clauses(cell).map(template)).toEqual(x.templates);
-      expect(unknown(cell)).toEqual(x.unknown);
-      expect(rowWords({ species, dates, limits_gear: cell })).toEqual(x.words);
+      expect(unknown(cell, REGISTRY)).toEqual(x.unknown);
+      expect(rowWords({ species, dates, limits_gear: cell }, REGISTRY)).toEqual(x.words);
       expect(REGISTRY.size).toBe(x.n);
     }
   });
@@ -53,9 +54,9 @@ print(json.dumps(out))`;
 
 describe("new wording in the Worker", () => {
   it("an unseen clause flags the row: review_reason, no number", () => {
-    const rules = toRules({ species: "Coho", dates: "Sep 1 to Oct 31", limits_gear: `4 per day, only 2 over 50 cm, ${NEW}` }, "x", 0, true);
+    const rules = toRules({ species: "Coho", dates: "Sep 1 to Oct 31", limits_gear: `4 per day, only 2 over 50 cm, ${NEW}` }, "x", 0, true, REGISTRY);
     expect(rules[0]!.review_reason).toBe(`new wording: '${NEW}'`);
-    const solar = toRules({ species: "Pink", dates: "Aug 22 to Sep 30", limits_gear: MUTANTS[1]! }, "x", 0, true);
+    const solar = toRules({ species: "Pink", dates: "Aug 22 to Sep 30", limits_gear: MUTANTS[1]! }, "x", 0, true, REGISTRY);
     expect(solar[0]!.when?.hours).toEqual({ start: { solar: "sunrise", offset_min: -60 }, end: { solar: "sunset", offset_min: 60 } });
     expect(solar[0]!.review_reason).toBeUndefined();
   });
@@ -63,7 +64,7 @@ describe("new wording in the Worker", () => {
   it("a live run: the card's rows carry it, the owner is emailed URGENTLY once per template, never again", async () => {
     const entries = async (slug: string) => readFileSync(join(FIX, `entries/region-${slug}.json`), "utf-8");
     const bad = page("8").replace("<td>4 per day, only 2 over 50&nbsp;cm.</td>", `<td>4 per day, only 2 over 50&nbsp;cm, ${NEW}.</td>`);
-    const priv = new MemStore();
+    const priv = privStore();
     const run = (now: string) =>
       runDfo({ fetch: async () => new Response("ok"), notifyUrl: "http://n", feed: new MemStore(), priv, entries, now, regions: ["8"], fetcher: async () => [bad, null] });
     const got = await run("2026-10-31T12:00:00Z");
@@ -89,50 +90,47 @@ describe("new wording in the Worker", () => {
   });
 });
 
-describe("the registry as a runtime input (priv wording.json)", () => {
+describe("the registry as a runtime input (priv wording.json) — T324: the ONLY copy", () => {
   const entries = async (slug: string) => readFileSync(join(FIX, `entries/region-${slug}.json`), "utf-8");
   const bad = page("8").replace("<td>4 per day, only 2 over 50&nbsp;cm.</td>", `<td>4 per day, only 2 over 50&nbsp;cm, ${NEW}.</td>`);
-  const run = (priv: MemStore, now = "2026-10-31T12:00:00Z") =>
-    runDfo({ fetch: async () => new Response("ok"), notifyUrl: "http://n", feed: new MemStore(), priv, entries, now, regions: ["8"], fetcher: async () => [bad, null] });
+  const run = (priv: MemStore, now = "2026-10-31T12:00:00Z", feed = new MemStore()) =>
+    runDfo({ fetch: async () => new Response("ok"), notifyUrl: "http://n", feed, priv, entries, now, regions: ["8"], fetcher: async () => [bad, null] });
   const wordingKeys = (r: Awaited<ReturnType<typeof run>>) => r.notices.filter((n) => n.key.startsWith("dfo-wording:")).map((n) => n.key);
-  const compiled = () => ({ format: "dfo-wording/2", entries: [...REGISTRY.values()] });
+  const curated = () => ({ format: "dfo-wording/2", entries: [...REGISTRY.values()] });
 
-  it("the R2 copy wins over the compiled-in one", async () => {
+  it("the R2 copy decides", async () => {
     const priv = new MemStore();
-    // an R2 copy that rejects a template the compiled-in one accepts: the R2 copy decides
+    // an R2 copy that rejects a template the curated file accepts: the R2 copy decides
     const t = template("4 per day");
-    const d = compiled();
+    const d = curated();
     d.entries = d.entries.map((e) => (e.template === t ? { ...e, status: "rejected" as const } : e));
     priv.m.set("wording.json", JSON.stringify(d));
     expect(REGISTRY.get(t)?.status).not.toBe("rejected");
     const got = await run(priv);
     expect(wordingKeys(got)).toContain(`dfo-wording:${t}`);
-    expect(got.warnings).toBeUndefined();
   });
 
-  it("a missing R2 copy falls back to the compiled-in one, with a warning", async () => {
-    const got = await run(new MemStore());
-    expect(wordingKeys(got)).toEqual([`dfo-wording:${template(NEW)}`]);
-    expect(got.warnings).toHaveLength(1);
-    expect(got.warnings![0]).toContain("compiled-in");
+  it("a missing R2 copy FAILS the job before anything is written (no compiled-in fallback)", async () => {
+    const feed = new MemStore();
+    await expect(run(new MemStore(), undefined, feed)).rejects.toThrow(/wording registry missing/);
+    expect(feed.m.size).toBe(0);                                  // the last good feed stands
+  });
+
+  it("an invalid R2 copy FAILS the job", async () => {
     const priv = new MemStore();
     priv.m.set("wording.json", "{not json");
-    const inv = await run(priv);
-    expect(wordingKeys(inv)).toEqual([`dfo-wording:${template(NEW)}`]);
-    expect(inv.warnings![0]).toContain("invalid");
+    await expect(run(priv)).rejects.toThrow(/wording registry invalid/);
   });
 
-  it("(T332) a dfo-wording/1 copy in R2 (the old clause split's templates) is refused: the compiled-in one answers", async () => {
+  it("(T332) a dfo-wording/1 copy in R2 (the old clause split's templates) is refused: the job fails", async () => {
     const priv = new MemStore();
-    priv.m.set("wording.json", JSON.stringify({ ...compiled(), format: "dfo-wording/1" }));
-    const got = await run(priv);
-    expect(wordingKeys(got)).toEqual([`dfo-wording:${template(NEW)}`]);           // only the real new wording, no split scrap
-    expect(got.warnings![0]).toContain("invalid");
+    priv.m.set("wording.json", JSON.stringify({ ...curated(), format: "dfo-wording/1" }));
+    await expect(run(priv)).rejects.toThrow(/not a dfo-wording\/2 registry/);
   });
 
   it("a new entry in the R2 copy stops the alert for that template", async () => {
     const priv = new MemStore();
-    const d = compiled();
+    const d = curated();
     d.entries.push({ template: template(NEW), kind: "structure", reads: ["test"], status: "accepted" });
     priv.m.set("wording.json", JSON.stringify(d));
     const got = await run(priv);
@@ -140,7 +138,7 @@ describe("the registry as a runtime input (priv wording.json)", () => {
     // registry edits re-type regions whose page + entries did not change: the same priv, now without the entry, alerts again
     const priv2 = new MemStore();
     priv2.m = new Map(priv.m);
-    priv2.m.set("wording.json", JSON.stringify(compiled()));
+    priv2.m.set("wording.json", JSON.stringify(curated()));
     expect(wordingKeys(await run(priv2, "2026-11-01T00:00:00Z"))).toEqual([`dfo-wording:${template(NEW)}`]);
   });
 });

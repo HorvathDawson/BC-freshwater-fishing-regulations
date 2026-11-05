@@ -27,8 +27,8 @@ export interface TypedFeed {
 
 export function build(
   scraped: { region: string; date_modified: string | null; preamble: string[]; rules: RuleRecord[] },
-  robust = false,
-  reg?: Registry,
+  robust: boolean,
+  reg: Registry,
 ): TypedFeed {
   const byFp = new Map<string, RuleRecord[]>();
   for (const rec of scraped.rules) {
