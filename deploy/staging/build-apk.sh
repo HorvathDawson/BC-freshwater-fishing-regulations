@@ -98,11 +98,17 @@ NOTES=$(node -e 'import(process.argv[1]).then((m)=>{const e=m.CHANGELOG.find((x)
 [[ $NOTES == "[]" ]] && echo "WARNING: no changelog entry for $VER in app/packages/core/src/changelog.ts — the app will say no notes were published" >&2
 VERSION_JSON=$(printf '{"version":"%s","build":%s,"sha":"%s","date":"%s","notes":%s}' "$VER" "$CODE" "$SHA" "$DATE" "$NOTES")
 OUT=$REPO/app/dist/apk; [[ -n $DRY ]] || mkdir -p "$OUT"
+# (T352) the Hermes source map of this build, kept on this machine (data/sourcemaps/<key>/android/, gitignored, never
+# uploaded) under the key a crash's `app` names ("0.5.0 (build 8, 9813980, …)" -> 0.5.0-b8-9813980):
+# `node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a stack back with it. No map: the build stops here.
+HERMES_MAP=$M/android/app/build/generated/sourcemaps/react/release/index.android.bundle.map
+keep_map() { node "$REPO/app/tools/sourcemaps.mjs" keep-android "$HERMES_MAP" "$VER-b$CODE-${SHA:0:7}"; }
 NAME="canifishthis-staging-$VER-$SHA.apk"
 [[ -n $PLAY ]] && { OUT=$REPO/app/dist/aab; [[ -n $DRY ]] || mkdir -p "$OUT"; NAME="canifishthis-$VER-$CODE-$SHA.aab"; }
 if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] (cd \$WT/app && pnpm install --offline --frozen-lockfile); expo prebuild (plugins/with-upload-signing.js)"
   echo "[dry-run] (cd \$WT/$M/android && CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties ./gradlew bundleRelease)"
+  echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
   echo "[dry-run] upload to Play track internal with notes from git log (unless --no-upload); email (unless --no-email)"
   echo "[dry-run] publish app/android/play.json: $VERSION_JSON"
@@ -113,6 +119,7 @@ if [[ -n $DRY ]]; then
   echo "[dry-run] (cd \$WT/$M && npx expo prebuild --platform android --no-install)"
   echo "[dry-run] cp $REPO/$M/android/app/debug.keystore \$WT/$M/android/app/; sdk.dir=$ANDROID_HOME > android/local.properties"
   echo "[dry-run] (cd \$WT/$M/android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4)"
+  echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
   echo "[dry-run] copy app-release.apk -> $OUT/$NAME, latest.apk, index.html; upload (unless --no-upload), email (unless --no-email)"
   echo "[dry-run] latest.json: $VERSION_JSON"
   exit 0
@@ -127,6 +134,7 @@ echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 if [[ -n $PLAY ]]; then
   (cd android && CANIFISHTHIS_UPLOAD_PROPERTIES=$PROPS ./gradlew bundleRelease -PreactNativeArchitectures=${PLAY_ABIS:-arm64-v8a} --max-workers=4 -Dorg.gradle.workers.max=4)
   cd "$WT"
+  keep_map
   AAB=$M/android/app/build/outputs/bundle/release/app-release.aab
   KT="$JAVA_HOME/bin/keytool"
   want=$("$KT" -printcert -file "$SECRETS/upload_certificate.pem" | awk '/SHA256:/{print $2; exit}')
@@ -161,6 +169,7 @@ if [[ -n $PLAY ]]; then
 fi
 (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4 -Dorg.gradle.workers.max=4)
 cd "$WT"
+keep_map
 cp "$M/android/app/build/outputs/apk/release/app-release.apk" "$OUT/$NAME"
 cp "$OUT/$NAME" "$OUT/latest.apk"
 SIZE=$(stat -f%z "$OUT/$NAME"); MB=$(awk "BEGIN{printf \"%.1f\", $SIZE/1048576}")

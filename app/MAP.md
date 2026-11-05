@@ -81,6 +81,10 @@ the local server (`serve-tiles.mjs`, `pnpm tiles`), and the browser drivers for 
 fetches per moment, `request-walk.pin.json`, priced against the release's `WEB_BUDGET` by `release-budget.test.ts`, and `a11y-walk.mjs` (T243: axe-core WCAG A/AA + a Tab focus walk per scene); they
 need Chrome and the running app).
 
+Source maps (T352, `sourcemaps.mjs`): the web export (`export:web*`, `--source-maps`) and `deploy/staging/build-apk.sh`
+(the Hermes map) keep their maps per build in `data/sourcemaps/<version>-b<build>-<sha7>/` (gitignored, never served);
+`node app/tools/sourcemaps.mjs symbolicate <crash json>` reads a crash's stack back with them.
+
 The SEO site (`build-seo.mjs` over `seo/`, T192–T198): hub pages, sitemap, slugs (`app/seo/slug-map.json`), v1 301s. **A water
 page is the app (T269):** `seo/pane.tsx` server-renders the real `Shell` on that water's Regulations view (react-native-web;
 the hooks answered first through `@app/ui` `setPrerenderAnswers`), `seo/prerender.ts` + `seo/layouts.ts` merge the light/dark

@@ -9,8 +9,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "prebuild": "expo prebuild --clean",
-    "export:web": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca expo export --platform web",
-    "export:web:staging": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=staging expo export --clear --platform web --output-dir ../../dist/web-staging"
+    "export:web": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca expo export --platform web --source-maps && node ../../tools/sourcemaps.mjs keep-web dist",
+    "export:web:staging": "EXPO_PUBLIC_CONTACT=support@canifishthis.ca EXPO_PUBLIC_APP_ENV=staging expo export --clear --platform web --output-dir ../../dist/web-staging --source-maps && node ../../tools/sourcemaps.mjs keep-web ../../dist/web-staging"
   },
   "dependencies": {
     "@app/core": "workspace:*",
