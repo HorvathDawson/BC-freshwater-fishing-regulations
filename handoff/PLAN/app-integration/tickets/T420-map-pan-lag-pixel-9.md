@@ -1,6 +1,6 @@
 # T420 — Panning the map feels laggy, even on a Pixel 9: streams load in slowly, then the pan stutters
 
-Status: OPEN (owner 2026-11-05, on 0.6.x: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
+Status: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
 like the streams load in slow then lag").
 
 Two symptoms, maybe one cause: (1) the stream lines arrive late after a pan (tiles or their layers decoding/painting
