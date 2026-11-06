@@ -450,6 +450,25 @@ def test_a_row_carries_the_printed_page_and_keeps_the_pdf_index(parser, pdf):
     assert result.metadata.page_number == 49
 
 
+#: PDF p.18 as the 2025-27 book prints it (T415, in T239). Heber's last line "open" sits 5.0 pt under
+#: "...confluence when" (tight leading); the 5 pt line rule joined them and the x sort interleaved the
+#: two: "Folpye fnishing only ... when". The neighbours pin that the stacked-glyph rule moved nothing else.
+HEBER_P18 = ("**No Fishing** upstream of top of lower canyon, located 1.3km upstream of the Gold River "
+             "confluence Nov 1-Sept 14\n**No Fishing **downstream of top of lower canyon, located 1.3km "
+             "upstream of the Gold River confluence\nFly fishing only downstream of Saunders Creek to the top "
+             "of the lower canyon, located 1.3km upstream of the Gold River confluence when\nopen")
+
+
+def test_heber_river_tight_last_line_is_its_own_line(parser, pdf):
+    rows = parser.extract_rows(pdf.pages[17]).rows
+    assert len(rows) == 43
+    by = {r.water: r for r in rows}
+    assert by["HEBER RIVER"].raw_regs == HEBER_P18
+    assert by["GOLD RIVER"].raw_regs.endswith(
+        "fishing\nboundary signs approximately 80 m downstream\nNo powered boats")
+    assert by["HEMMINGSEN CREEK"].raw_regs.startswith("**No Fishing**")
+
+
 def test_unnumbered_pages_have_no_printed_number(pdf):
     from pipeline.regs.extraction.extract_synopsis import printed_page_number
     assert printed_page_number(pdf.pages[44]) is None      # the centre gloss (PDF 45)

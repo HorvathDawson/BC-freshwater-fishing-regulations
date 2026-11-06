@@ -59,6 +59,23 @@ def _normalize_unicode(text: str) -> str:
 from pipeline.common.synopsis_pages import _FOOTER_PAGE, printed_page_number  # noqa: E402,F401
 
 
+def _stacked_under(char: Dict[str, Any], line: List[Dict[str, Any]]) -> bool:
+    """True when `char` sits under a glyph already on `line`: more than half its own size lower AND
+    overlapping it horizontally. Two glyphs stacked like that are on two lines, however close.
+
+    The 5 pt line rule alone missed this: a cell's last line set in tight leading (Heber River,
+    PDF p.18, "...confluence when" / "open" 5.0 pt lower, not > 5) joined the line above, and the x
+    sort interleaved it — "Folpye fnishing only ... when". Glyphs of one line do not overlap at
+    different heights (faux-bold doubles share their top). Every garble back to 2026-09-03 had this
+    cause; the 09-24 file's clean Heber text was a hand fix. Verified on PDF pp.17-19, 21, 24, 26, 60:
+    only Heber changes (T415, in T239)."""
+    half = char.get("size", 0) * 0.5
+    if half <= 0 or char.get("top", 0) - min(c.get("top", 0) for c in line) <= half:
+        return False
+    return any(o.get("x0", 0) < char.get("x1", 0) and char.get("x0", 0) < o.get("x1", 0)
+               and abs(o.get("top", 0) - char.get("top", 0)) > half for o in line)
+
+
 class FishingSynopsisParser:
     def __init__(self, output_dir: str = "output", debug_dir: str = "debug", audit_dir: str = "debug") -> None:
         # Use extraction subfolder for all output
@@ -639,7 +656,8 @@ class FishingSynopsisParser:
             # Check if this character is on a new line
             if current_line_top is None:
                 current_line_top = char_top
-            elif abs(char_top - current_line_top) > line_height_threshold:
+            elif (abs(char_top - current_line_top) > line_height_threshold
+                  or _stacked_under(char, current_line)):
                 # Process the completed line - IMPORTANT: sort by x0 before processing
                 if current_line:
                     current_line.sort(key=lambda c: c.get("x0", 0))
