@@ -22,11 +22,12 @@
  * follow and does not move, however sideways the drag. The text, the estimate and the reading around them still swipe.
  */
 import { createContext, useContext, useMemo, useRef, type ComponentProps } from "react";
-import { Animated, Platform, View, useWindowDimensions } from "react-native";
+import { Animated, View, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import type { WaterView } from "@app/core";
 import type { ViewSwipe as ViewSwipeState } from "@app/ui";
 import { NATIVE_DRIVER } from "./motion";
+import { activateByHand } from "./swipeActivation";
 import { now } from "@app/core";
 
 export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill = true, still = false }: {
@@ -57,24 +58,8 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
     const home = () => Animated.spring(x, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 4 }).start();
     const pan = Gesture.Pan().runOnJS(true).enabled(swipe.enabled)
       .activeOffsetX([-15, 15]).failOffsetY([-12, 12]);
-    /*
-     * (T300) ON A PHONE THE SHIELD MUST KEEP THE SWIPE FROM ACTIVATING, not only from moving. A recogniser that goes
-     * active takes the touch: the native root view then cancels the map under the finger, so a sideways drag on a gauge
-     * pane's map stopped dead 15 px in and a pinch lost its second finger — the "glitchy" pan. The shield only set a flag
-     * (`held`), too late: the pan was already active. So on a device the pan is activated by hand, and a press that began on
-     * a shielded thing fails it instead (the browser has no such cancel: its map keeps the pointer; `touch-action` is its half).
-     */
-    if (Platform.OS !== "web") {
-      let sx = 0, sy = 0;
-      pan.manualActivation(true)
-        .onTouchesDown((e) => { const t = e.allTouches[0]; sx = t?.absoluteX ?? 0; sy = t?.absoluteY ?? 0; })
-        .onTouchesMove((e, mgr) => {
-          const t = e.allTouches[0];
-          if (!t) return;
-          if (held() || e.numberOfTouches > 1 || Math.abs(t.absoluteY - sy) > 12) { mgr.fail(); return; }
-          if (Math.abs(t.absoluteX - sx) > 15) mgr.activate();
-        });
-    }
+    // (T300) a phone activates the pan by hand, so a shielded press fails it before it takes the touch (swipeActivation)
+    activateByHand(pan, held);
     return pan
       .onBegin((e) => { begun = now(); live = swipe.starts(e.absoluteX, width.current); })
       .onUpdate((e) => { if (live && held()) live = false; if (live) x.setValue(swipe.offset(e.translationX)); })
