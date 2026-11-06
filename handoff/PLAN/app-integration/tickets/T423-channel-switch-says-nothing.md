@@ -1,4 +1,4 @@
-# T421 — The update-channel (and environment) switch gives no feedback in an installed build
+# T423 — The update-channel (and environment) switch gives no feedback in an installed build
 
 Status: OPEN (owner 2026-11-05, 0.6.2 from Play internal: "won't let me click button to change update log … button in
 about won't change it").
