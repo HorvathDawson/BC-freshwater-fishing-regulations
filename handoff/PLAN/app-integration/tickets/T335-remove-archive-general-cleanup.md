@@ -1,6 +1,6 @@
 # T335 — Remove archive/ and general cleanup
 
-Status: DONE 2026-11-06 (chat 3, HASH) — scope approved by the owner (below).
+Status: DONE 2026-11-06 (chat 3, a40989161) — scope approved by the owner (below).
 
 1. Delete `archive/` (211 tracked files, 22 MB: old cron-runner, mobile, pipeline, r2-worker, scripts, webapp) and
    `pipeline/docs/archive/`. First move anything still READ by live code (several app/tools/*.mjs, the feeds worker,

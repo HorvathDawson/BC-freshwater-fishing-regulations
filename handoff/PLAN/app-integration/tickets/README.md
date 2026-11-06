@@ -377,7 +377,7 @@ use that as the sole source of future work."
 | T332 | DFO salmon quotas in the same quota/lengths model as game-fish rules; wording list tidied, checked, accepted | DONE (merged by T349 2026-11-02; staging guard SALMON_NEEDS) | a618808c2, 29ddde218, 616a3ec93, 0c276aa10 | merge; release with minAppVersion, then feeds worker deploy + sync-inputs; owner: 1 doubtful wording entry (Fort Babine) |
 | T333 | Big Fable audit: duplicate data types / pathways / bad practices, verified + ranked → cleanup tickets | DONE | 86a5a4ebf | owner 2026-10-30 |
 | T334 | Audit all tests and documentation (dead tests, gaps, stale/duplicate docs) → fix tickets | DONE | 86a5a4ebf | owner 2026-10-30 |
-| T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | IN PROGRESS (scope approved 11-05; archive/ deletion after T437) | T333 | owner 2026-10-30 |
+| T335 | Remove archive/ + general cleanup (stray files, old side builds, releases to live+previous, dead scripts) | DONE | a40989161 | owner 2026-10-30 |
 | T336 | iOS: walkthrough card over the Layers sheet missing from the accessibility tree (VoiceOver can't reach it) | DONE 11-05 | ed1cf4a81 | sim walk 25 of 25 |
 | T337 | DFO water bindings refresh inside the build — `match apply` is a manual step today; deliver reads a cache that an atlas rebuild can leave stale | DONE | 94795b3ff | 2026-10-31 |
 | T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | 01919949f, 7a4d3faec | 2026-11-03 (01919949f; ships with batch 3 release) |

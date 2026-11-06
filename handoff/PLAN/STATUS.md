@@ -46,7 +46,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T437 done:** docs and ticket statuses made true; the ticket check now refuses a ticket whose file and ledger row
   disagree. New `handoff/PLAN/START-HERE.md`; 5 old handoff pages deleted.
 - **T438 done:** the stale 1.4 GB agent worktree removed (clean, merged, unused).
-- **All 10 audit fix tickets (T429–T438) done.** Next: T335 (delete `archive/`).
+- **All 10 audit fix tickets (T429–T438) done.**
+- **T335 done:** `archive/` is gone (the old v1 code; any file a comment names is still readable from git history,
+  as README says). The 4 old docs that code still points at moved to `pipeline/docs/`. About 25 GB of old side builds
+  and scratch removed; the two still needed for T322 / T326 kept.
+- Next on the list: whatever chat 2's heavy run leaves (still running its Mac deliver), then the APK batch when you
+  say "build".
 
 ## 2026-11-05 (late): chat 2 started — launch prep, CI back on
 - **T416 proof is running** (fresh clone, then a Mac build at the same commit; verdict in `~/t416-repro.json`, ~23:15).
