@@ -29,7 +29,7 @@ if [[ ! -x .venv/bin/python ]]; then
   "$PY" -m venv .venv
   .venv/bin/pip install -q --upgrade pip
 fi
-.venv/bin/pip install -q -r requirements.txt
+.venv/bin/pip install -q -r requirements.txt -c constraints.txt     # pinned: the live release's exact versions
 
 t "pinned inputs (data/source/pins.json)"
 .venv/bin/python -m pipeline.tools.source_pins fetch

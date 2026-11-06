@@ -1,5 +1,5 @@
 # Python Requirements for BC Freshwater Fishing Regulations Project
-# Install with: pip install -r requirements.txt
+# Install with: pip install -r requirements.txt -c constraints.txt   (the pinned versions, T416)
 
 # PDF Processing
 pdfplumber
