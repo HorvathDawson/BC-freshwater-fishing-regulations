@@ -78,8 +78,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   reproduced (peak 385 MB). T410 native pass 6/6. New T440: first-run notice missing from the Android a11y tree.
 - **0.6.3 on Play internal (versionCode 12, 12f3dd109):** `pnpm check` 6674 pass after re-cutting every fixture on
   r-4230bc0c1dd5 (taps, fixture release, VM fixtures, section-lines, pinned ids — four rounds; T441 filed to make it one
-  step). **In flight:** emulator walk (install, walkthrough, regs-open, water-nav; `~/walk-063.log`), then the staging
-  feeds worker deploy (`deploy/staging/feeds.sh`).
+  step). **Emulator walk FAILED 0/4** (`app/tools/testbed/out/walk-063/`): a fresh install cannot finish the first-run
+  download ("The map data could not be loaded"); staging files all answer 200, web smoke passes. Agent diagnosing
+  (does a Play install of 0.6.3 hit it? fix + pin). Feeds worker deploy held until that is known.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
