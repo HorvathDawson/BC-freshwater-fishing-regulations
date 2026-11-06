@@ -1,6 +1,6 @@
 # T371 — 0.5.0 to Play CLOSED testing (start the clock for a production release)
 
-Status: IN PROGRESS — the Claude drafts are done (data-safety + listing, 2026-11-04). The Console steps are the owner's. Batch 7 of RELEASE-PLAN-0.5.0 (owner 2026-11-03: "release 0.5.0 to closed testing from internal testing so
+Status: IN PROGRESS — 2026-11-05: the build to promote is now **0.6.2, versionCode 11** (on internal since 11-05), not 0.5.0; promote after 2–3 clean internal days. Drafts re-checked 11-05: data-safety current; the Apple/store privacy draft caught up (T244). — the Claude drafts are done (data-safety + listing, 2026-11-04). The Console steps are the owner's. Batch 7 of RELEASE-PLAN-0.5.0 (owner 2026-11-03: "release 0.5.0 to closed testing from internal testing so
 we can start getting requirements for google play release").
 
 ## Why
@@ -14,7 +14,7 @@ closed track's first rollout, so 0.5.0 should go there, not only to internal tes
 2. Store listing + content: the minimum Play requires before a closed rollout — app content forms (privacy policy URL:
    the privacy page (T352 reworded it), data safety form matching what the app sends (crash/2, report/2, install id,
    location stays on device), target audience, ads: none, content rating), listing text and graphics (T244).
-3. Roll 0.5.0 (the batch-7 AAB, same build as internal) out to Closed testing; share the opt-in link; track 12 testers × 14 days.
+3. Roll the current internal build (0.6.2, versionCode 11 as of 11-05; same AAB, no rebuild) out to Closed testing; share the opt-in link; track 12 testers × 14 days.
 4. Write down every requirement the Console raises (a checklist here) — that list is the production-release work.
 
 Owner-only steps: the Console clicks, the tester list, any form that states policy. Claude: drafts the data-safety
