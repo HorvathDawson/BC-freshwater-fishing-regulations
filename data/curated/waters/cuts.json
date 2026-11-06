@@ -2363,6 +2363,26 @@
       -124.980378,
       49.339481
      ]
+    },
+    {
+     "id": "stamp_river__stamp_river_powerline_crossing_b",
+     "label": "Stamp River powerline crossing (BC Hydro 1L127)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -124.991707,
+       49.337999
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-06] proposed in review marks on 1:stamp-river:from-the-powerline-crossing-downst",
+     "_coord": [
+      -124.991707,
+      49.337999
+     ]
     }
    ]
   },
