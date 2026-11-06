@@ -21,6 +21,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.3", date: "2026-11-06", notes: [
+      "Map credits sit in one small button, off the scale bar, and show in full when the map opens",
+      "More → Updates syncs the regulations, the same as the sync button on the map",
+      "Winding rivers draw smoother when zoomed out",
+      "Changing the update channel says what happens and tells you if it could not be saved",
+    ],
+  },
+  {
     version: "0.6.2", date: "2026-11-05", notes: [
       "A new version of the app shows in the bell as soon as it is out, not a day later",
       "Watershed conditions no longer go blank while you pan; they follow the watershed most on screen",
