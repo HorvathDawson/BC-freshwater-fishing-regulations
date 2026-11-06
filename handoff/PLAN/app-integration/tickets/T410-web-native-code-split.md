@@ -1,6 +1,6 @@
 # T410 — One clear web / native split in the app code
 
-Status: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
+Status: PARTIAL — items 1-3 done (8374cae0d..cd2be0916); item 4 (web + APK bundle listings) and the one full check wait for a free machine (heavy-job lock); T258/T260 owner items listed below. Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
 little better … not sure the standard here but seems like something to clean up").
 
 ## Today (2026-11-05)
@@ -27,3 +27,55 @@ Links: T409 (web speed work stays in web files), T333 (hygiene sweep). Size: M. 
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T258, T260 — read each file's open items and finish them here; each closes pointing here.
+
+## Outcome (2026-11-05)
+1. **The rule** — app/README.md "Web and native code" (and MAP.md's gate line): logic that differs is a `foo.web.ts` +
+   `foo.native.ts` pair typed by one `foo.d.ts`; a one-value difference (a size, a flag, a word) may stay inline
+   (`Platform.select`, or one `Platform.OS` in an allow-listed file); core reads no platform.
+2. **Moved into pairs** (one commit per area, no behaviour change intended on either platform):
+   - `SpotPickBanner` Escape listener → `useEscapeKey` in `escapeCloses.web/.native` (8374cae0d)
+   - `window.innerWidth/innerHeight` reads (Shell tour fit, CoachMarks, Walkthrough) → `windowSize.web/.native`; the
+     Walkthrough's spoken step → `announce.native` (web no-op: its live region) (05b08c549)
+   - ViewSwipe's by-hand pan activation (T300) → `swipeActivation.native` (450489c8b)
+   - the regs prewarm effect (T286) → `shell/prewarm.native`; `memoryTrim.ts` → `memoryTrim.native` + web no-op (34e71f6a5)
+   - About's official Synopsis link → `menu/openOfficial.web` (its link) / `.native` (our copy, `openBook`) (f24c83200)
+   - GroupCard's pinned size header → `regs/stickyHead.web` (CSS sticky) / `.native` (scroll-driven translate) (005346269)
+   - `part()`'s ask → `partAsk.web` (idle, `unguarded`) / `.native` (at once); `unguarded` in its own file (2f48f6623)
+   Inline checks: 43 `Platform.OS` in 30 files + `typeof window/document` in 10 → 24 reads in 17 allow-listed files, all
+   one-value (variant files and comments aside). Platform pairs 27 → 35.
+3. **The guard** — `pnpm platform` (`tools/check-platform.mjs` §4): `Platform.OS` / `typeof window|document|navigator`
+   in a shared file (ui, ui-native, core, map, data, apps/mobile; not a variant, test or .d.ts) is refused unless
+   `INLINE_ALLOWED` names the file with its exact count and reason (above: new branch; below: lower the line; a
+   listed file that is gone: remove it). Tests in `check-boundaries.test.ts` (refused in 4 packages; variant / comment /
+   `Platform.select` pass; an allow-listed file held to its count both ways) (cd2be0916).
+4. **Not done: the bundle listings** (web export + APK, before/after) need `expo export` / an APK build — the machine
+   was held by a heavy job. Expected by construction: each moved native half (`InteractionManager` prewarm,
+   `requireOptionalNativeModule("MemoryTrim")`, `AccessibilityInfo.announceForAccessibility`, the manual pan) leaves the
+   web bundle, and the DOM listeners leave the APK. Run when free: `pnpm -C app/apps/mobile exec expo export -p web` and
+   `-p android` at 79e7f2d2f (before) and cd2be0916 (after), diff the module lists.
+
+One deliberate edge: Walkthrough's no-size fallback on a PHONE (reached only when `useWindowDimensions` reports width 0)
+was `{ w: undefined, h: undefined }` (RN's `window` has no `innerWidth`) and is now `{ w: 0, h: 0 }`, the web's
+no-window value. Web behaviour unchanged.
+
+Verified: `pnpm typecheck`, `pnpm platform`, `pnpm boundaries`, `pnpm knip` clean; vitest (unfiltered) — 20 render files
+(part, a11y.shell, Walkthrough, SpotsScreen, SwipeShield, WaterMode, gestures, Menu, Changelog, regs a11y / rowFrame /
+useAnchors / SheetWide / RuleBookLink, Search.shell, MapRail.shell, escapeBack.web, ConditionsPanel, Faces.share,
+motion) 271/271, and 31 tools files (check-boundaries, failures, back-layers, the one-* / source-scanning gates) green.
+NOT run: the full suite, `pnpm check`, an export, a device. The `.native` halves are proved by tsc only (vitest runs the
+web half) — a phone pass over the spot pick, the guide, a water's view swipe, the size header pin, About → Synopsis and
+a memory trim is the owner's next APK.
+
+## T258 / T260 leftovers (merged here)
+- **T258**: items 1-3 were done in T258 (2d60c72cb). Left, OWNER: the TalkBack + VoiceOver phone walk (map → water →
+  regs → conditions → salmon → menu) and 200 % text (the tab-bar 1.3× cap). Findings become tickets.
+- **T260**: Chip, EmptyState/NoneLine, caption token, Runs radii done in T260. Every item left is a look decision, so
+  none was typed here — OWNER:
+  - Badge (env badge, count badges, "no photo" look different on purpose; unifying changes one of them)
+  - SegmentedControl: one selected-state language (accent frame, ink fill or tint) — owner Q
+  - Banner / Notice and SectionHeader (NetBanner, PartPending, SyncErrorSheet rows, SpotPickBanner, InSeasonBanner;
+    the kicker overrides in LayersSheet / SpotCapture / spot parts)
+  - `fontWeight` literals (a synthesized bold on the web; each needs its face picked, then widen the regs-tokens check);
+    App.tsx boot lines and MapLegend's raw sizes with it
+  - the icon ladder (close icons 20 vs 22, chevrons 14/16/18) and IconButton (Hydrograph ±, DayCalendar Btn,
+    SpotCapture Step)
