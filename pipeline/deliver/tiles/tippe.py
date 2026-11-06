@@ -65,8 +65,9 @@ shared-node set is right at every zoom (not only at z4-z8), and the stream lines
 DRAWN AT (`smooth.py`), which one pass across several zooms could not do. Measured on a Fraser Valley clip (4,577
 stream features), stream vertices per zoom, two bands at S=5 -> per-zoom at S=5 -> per-zoom + smoothing:
     z9  1,697 -> 987 -> 648      z10  3,903 -> 2,871 -> 1,770      z12  16,636 -> 15,508 -> 11,437
-Each pass reads the layer files again (minutes on the province), and tile-join merges 10 passes instead of 2; the
-passes still hold disjoint (layer, zoom) pairs.
+Each zoom is two passes — the water (`WATER_PASS`, at `WATER_SIMPLIFICATION`) and the rest — and each reads the
+layer files again (the province build took 573 s with one pass per zoom); the passes still hold disjoint (layer,
+zoom) pairs.
 
 TWO TRAPS, both of which produced a wrong measurement before producing a right one:
 
@@ -126,12 +127,19 @@ LOW_BAND_MAX = 8
 #:     -S(max) 14        z14  1.944 MiB   -32.1%
 #: z14 is 68% of the province archive, so -28.7% there is about 139 MiB off the download
 #: -- for a tolerance nobody can see at the only scale it is ever drawn at.
-#: (T419, 2026-11-06) 5 -> 10 -> 5 again. 10 (b40de633d, staging r-4230bc0c1dd5) took points off the meandering
-#: rivers but left every meander's apex — DP keeps the furthest point — so the Salmon River stayed a sawtooth while
-#: gentle streams lost real shape (owner: "the bending oxbows dont become a straight line ... other streams got over
-#: simplified"). The meanders are now smoothed away per zoom BEFORE tippecanoe (`smooth.py`, `SMOOTH_STREAMS`) and the
-#: tolerance is back at 5 units (~0.6 px), which keeps a smoothed line on its course.
-SIMPLIFICATION = 5
+#: (T419, 2026-11-06) 5 -> 10 below the top zoom, for every layer but the water (`WATER_SIMPLIFICATION`): measured on
+#: the full build, the polygons (parcels above all) at 5 cost +37% bytes at z11 in the Fraser Valley against 10.
+SIMPLIFICATION = 10
+
+#: (T419) THE WATER'S TOLERANCE below the top zoom, and the layers built at it, in a pass of their own per zoom.
+#: 10 (b40de633d, staging r-4230bc0c1dd5) took points off the meandering rivers but left every meander's apex — DP
+#: keeps the furthest point — so the Salmon River stayed a sawtooth while gentle streams lost real shape (owner: "the
+#: bending oxbows dont become a straight line ... other streams got over simplified"). The meanders are now smoothed
+#: away per zoom BEFORE tippecanoe (`smooth.py`, `SMOOTH_STREAMS`), and at 5 units (~0.6 px) a smoothed line stays on
+#: its course (95th pct ~1.5 px from the true line; at 10, ~2.2 px). The routes through lakes and the water polygons
+#: the streams end on ride the same pass, so a stream's end and the lake's edge stay one shared node.
+WATER_SIMPLIFICATION = 5
+WATER_PASS = ("stream", "under_lake", "lake", "wetland", "tidal_water", "not_fishing_water")
 
 #: (T419) Stream lines below the top zoom are smoothed for the zoom they are drawn at (`smooth.py`): a meander a few
 #: pixels across collapses onto the river's course instead of drawing as a sawtooth. Ids, properties and every shared
@@ -345,15 +353,23 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
             stream = zdir / "stream.geojsonl"
             if SMOOTH_STREAMS and stream in zfiles:
                 smooth.smooth_file(stream, z)
-            mb = Path(tmp) / f"z{z}.mbtiles"
-            print(f"  tippecanoe -> z{z}  ({len(zfiles)} layers, {kept:,} features drawn there)")
-            # `--simplification-at-maximum-zoom=SIMPLIFICATION`, NOT 1: this pass's maximum is an ordinary zoom of
-            # the finished archive and is simplified like one, on the same grid. See the docstring.
-            _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
-                  f"--attribution={attribution}",
-                  *_common(z, z, SIMPLIFICATION, verbose, full_detail=LOW_DETAIL),
-                  *[str(f) for f in zfiles]])
-            passes.append(mb)
+            # (T419) two passes per zoom: the WATER (smoothed streams, their routes, the water polygons they end on, so
+            # those nodes are still shared) at `WATER_SIMPLIFICATION`, everything else at `SIMPLIFICATION`.
+            groups = (("water", [f for f in zfiles if f.stem in WATER_PASS], WATER_SIMPLIFICATION),
+                      ("other", [f for f in zfiles if f.stem not in WATER_PASS], SIMPLIFICATION))
+            for tag, gfiles, tol in groups:
+                if not gfiles:
+                    continue
+                mb = Path(tmp) / f"z{z}-{tag}.mbtiles"
+                print(f"  tippecanoe -> z{z} {tag}  ({len(gfiles)} layers)")
+                # `--simplification-at-maximum-zoom` = the same tolerance, NOT 1: this pass's maximum is an
+                # ordinary zoom of the finished archive and is simplified like one, on the same grid. See the docstring.
+                _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
+                      f"--attribution={attribution}",
+                      *_common(z, z, tol, verbose, full_detail=LOW_DETAIL, simplification=tol),
+                      *[str(f) for f in gfiles]])
+                passes.append(mb)
+            print(f"     z{z}: {kept:,} features drawn")
 
         top_dir = Path(tmp) / "top"
         top_dir.mkdir()

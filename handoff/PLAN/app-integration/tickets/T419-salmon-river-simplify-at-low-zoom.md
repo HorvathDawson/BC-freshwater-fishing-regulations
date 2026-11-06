@@ -48,6 +48,14 @@ distance from the true line: A ~0.8 px, B ~1.4–1.7 px (chorded), L ~1.5 px (ro
 Visvalingam keeps the zigzag (DP's problem is not the fix). Pan frame time at 4× CPU throttle (800×600, z9–z11):
 8.3 ms for A, B and L alike — at the vsync cap; this stream layer alone is not the frame-time cost in GL JS, the gain
 is vertices/bytes per tile (parse, upload, memory).
-**Chosen: L.** In the pipeline: `SIMPLIFICATION` 10 → 5, `SMOOTH_STREAMS`, one tippecanoe pass per zoom below the top
-(the module docstring's "per-zoom split"), the top zoom unsmoothed. App complement (not done; app/packages/map not
+**Chosen: L.** In the pipeline: `SMOOTH_STREAMS`, per zoom below the top a WATER pass (stream, under_lake, lake,
+wetland, tidal_water, not_fishing_water; `WATER_SIMPLIFICATION` 5) and an OTHER pass (`SIMPLIFICATION` stays 10 — at 5
+the parcels cost +37% bytes at z11), the top zoom unsmoothed. (L at S=10 measured too: gentle streams stray ~2.2 px.)
+
+## Full build (2026-11-06, heavy.sh, NOT promoted/uploaded)
+`data/generated/side/t419/tiles/atlas.pmtiles`, tile version 269777be890cc2b3.55f8a4cfc1b5 (same section handles as
+the live r-4230bc0c1dd5 bundle), 194.3 MB (staging 194.1, before T419 202.8), 721 s. Fraser Valley tiles
+(-122.75..-121.50 x 48.98..49.36), staging → this: stream vertices z8 1,161→1,110 · z9 3,496→1,047 · z10 4,577→2,245 ·
+z11 6,338→4,676 · z12 13,769→12,804 · z13 unchanged; all layers z9 6,749→4,666, z10 12,224→10,811, z11/z12 flat;
+bytes z9 21.5→18.7 KB, z10 61.4→59.3 KB, z11/z12 ±1%. Left: promote with the next release, owner look on staging. App complement (not done; app/packages/map not
 touched): the `stream` layer has no `line-join` (miter); round joins soften what kinks are left (last row of each sheet).

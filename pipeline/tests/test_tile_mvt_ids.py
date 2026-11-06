@@ -92,8 +92,9 @@ def _captured_build(tmp_path, monkeypatch, **kw):
 def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id(tmp_path, monkeypatch, bands):
     calls = _captured_build(tmp_path, monkeypatch, **bands)
     runs = [(cmd, files) for cmd, files in calls if cmd[0] == "tippecanoe"]
-    # T419: one pass per zoom below the top (z4-z12) and one for the top (z13)
-    assert runs and len(runs) == (10 if not bands else 1)
+    # T419: per zoom below the top (z4-z12) a water pass and, where the zoom draws any, an other pass; one top pass
+    assert runs and (len(runs) == 1 if bands else
+                     {Path(c[c.index("-o") + 1]).name for c, _ in runs} >= {f"z{z}-water.mbtiles" for z in range(4, 13)})
     for cmd, files in runs:
         # the id is stamped and checked per feature — see the module docstring
         assert not any(a.startswith(("--use-attribute-for-id", "-ai", "--generate-ids")) for a in cmd)
@@ -109,11 +110,16 @@ def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id
                     assert "id" not in f, f"{layer} must not get an MVT id: {f}"
         assert seen & {"stream", "park"}
     if not bands:
+        by = {Path(c[c.index("-o") + 1]).name: (c, fs) for c, fs in runs}
+
         def streams(run):
             return [f["id"] for fs in run[1].values() for f in fs if f["tippecanoe"]["layer"] == "stream"]
-        assert streams(runs[0]) == [11], "a zoom's pass holds only what that zoom draws"
-        assert streams(runs[8]) == [11, 12] and "--maximum-zoom=12" in runs[8][0]
-        assert streams(runs[-1]) == [11, 12] and "--maximum-zoom=13" in runs[-1][0]
+        assert streams(by["z4-water.mbtiles"]) == [11], "a zoom's pass holds only what that zoom draws"
+        assert streams(by["z12-water.mbtiles"]) == [11, 12]
+        assert f"--simplification={tippe.WATER_SIMPLIFICATION}" in by["z12-water.mbtiles"][0]
+        assert f"--simplification={tippe.SIMPLIFICATION}" in by["z12-other.mbtiles"][0]
+        assert not streams(by["z12-other.mbtiles"])
+        assert streams(by["high.mbtiles"]) == [11, 12] and "--maximum-zoom=13" in by["high.mbtiles"][0]
 
 
 def test_the_tile_carries_only_what_a_reader_needs(tmp_path, monkeypatch):
@@ -149,17 +155,19 @@ def test_mu_is_its_own_pass_to_z12_and_the_high_band_never_holds_it(tmp_path, mo
     monkeypatch.setattr(tippe, "check", lambda: None)
     tippe.build(d, tmp_path / "atlas.pmtiles")
     runs = [(c, fs) for c, fs in calls if c[0] == "tippecanoe"]
-    assert len(runs) == 11  # T419: z4-z12 one pass each, the top, mu's own
-    *zooms, (high, high_in), (mu, mu_in) = runs
+    *zooms, (high, high_in), (mu, mu_in) = runs  # T419: z4-z12 water/other passes, the top, mu's own
+    held = {}
     for c, fs in zooms:
         z = int(next(a for a in c if a.startswith("--maximum-zoom=")).split("=")[1])
-        assert any(f.endswith("mu.geojsonl") for f in fs) == (7 <= z <= tippe.LOW_BAND_MAX), z
+        held[z] = held.get(z, False) or any(f.endswith("mu.geojsonl") for f in fs)
+    assert held == {z: 7 <= z <= tippe.LOW_BAND_MAX for z in range(4, 13)}
+    assert not any(f.endswith("mu.geojsonl") for f in high_in)
     assert [Path(f).name for f in mu_in] == ["mu.geojsonl"]
     assert "--maximum-zoom=12" in mu and "--full-detail=12" in mu
     assert f"--simplification-at-maximum-zoom={tippe.OWN_PASS_SIMPLIFICATION_AT_MAX}" in mu
     assert f"--full-detail={tippe.TOP_DETAIL}" in high and "--maximum-zoom=13" in high
     join = [c for c, _ in calls if c[0] == "tile-join"][0]
-    assert sum(a.endswith(".mbtiles") for a in join) == 11
+    assert sum(a.endswith(".mbtiles") for a in join) == len(runs)
 
 
 def test_tile_join_is_not_told_to_drop_ids(tmp_path, monkeypatch):
