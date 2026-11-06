@@ -4,7 +4,8 @@ Package `ca.canifishthis.app`. Same text serves Google Play and the App Store; l
 a catch or legal advice (the app's own disclaimer applies: it is a reading aid, the printed synopsis and DFO notices rule).
 
 ## Name
-canifishthis  (App Store subtitle / Play short title: "BC fishing rules, by the water")
+Can I Fish This?  (owner 2026-11-06; the home-screen label is "Can I Fish?") — App Store subtitle / Play short title:
+"BC fishing rules, by the water"
 
 ## Short + full description
 Moved to `handoff/PLAN/play/listing.md` (2026-11-04, T371). That file is the one copy, and the App Store uses the same

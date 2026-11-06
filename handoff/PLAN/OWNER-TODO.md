@@ -214,7 +214,8 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q27 sign-off walk.
 
 ## Things only you can run or provide
-- **Store listing sign-off (T244, 2026-10-29)**: read `app-integration/store/listing-draft.md` and `store/privacy-labels-draft.md`
+- **Store listing sign-off (T244)**: privacy drafts APPROVED and the name DECIDED (owner 2026-11-06: "Can I Fish?" on the
+  icon only, "Can I Fish This?" everywhere else). Still open from the 10-29 list: `app-integration/store/listing-draft.md` and `store/privacy-labels-draft.md`
   (nothing is submitted). Decide: the **app icon / adaptive icon / feature graphic** (DONE from the favicon, per your answer: `T244-shots/icons-preview.png`; add words to the feature graphic if you want), the support URL, categories. Contact = support@canifishthis.ca and the Location row (declared: collected + shared with Open-Meteo) are decided.
   Look at the new splash: `app-integration/T244-shots/` (web boot screen light/dark, native art); it shows on the next native build.
 - **Production run (T240 section 11, 2026-10-29)**: the prod commands for map-assets (T270), HYDAT day flow (T274), the report-purge deploy (T271),
@@ -272,8 +273,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
      Membership details) and `asc-api-key.json` `{"key_id","issuer_id","key_path"}` for an App Store Connect API key
      (Users and Access → Integrations → Team key, role App Manager; keep the .p8 outside the repo).
   2. App Store Connect → My Apps → + New App: iOS, bundle id `ca.canifishthis.app`, the name, English (Canada), any SKU.
-  3. Decide THE NAME once (T365, same question as Play T371): home screen "Can I Fish?" vs "Can I Fish This?" in the
-     permission prompts and the web.
+  3. The name (DECIDED 2026-11-06): "Can I Fish This?" in App Store Connect; the home-screen label stays "Can I Fish?".
   4. Run `deploy/staging/build-ios-testflight.sh` (staging data, for you + testers; `--dry-run` first lists what is
      missing). It uploads to TestFlight; install TestFlight on the iPhone and accept the build.
   5. **Real iPhone run (T364)** on that build: the location prompt on the first "My location" tap; the first offline

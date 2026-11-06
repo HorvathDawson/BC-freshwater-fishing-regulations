@@ -94,5 +94,5 @@ one small code change plus a weather test. It would be a new ticket. Nothing has
   reports (and the id with them) off; on by default.
 - **App interactions: Yes** (the screen / last steps in a crash report) — optional the same way.
 - **App name:** "Can I Fish This?" (web tab: app.json `web.name`; permission prompts; the SEO pages already). The
-  Android launcher label stays "Can I Fish?" until the emulator shows the full name fits without clipping.
+  Android launcher label is "Can I Fish?" (owner 2026-11-06: the short name only where the icon shows it).
 - **Build:** the staging build (ENV staging, reports on) goes to internal + Closed testing.

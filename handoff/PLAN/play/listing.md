@@ -9,10 +9,10 @@ location (T384), it can share a water (T385), and it sends an install id and the
 sign off on the wording.
 
 ## App name
-The code uses three names today. The phone's app name is "Can I Fish?" (`app/apps/mobile/app.json:3`, also the
-permission strings). The in-app name is "Can I Fish This?" (`app/packages/core/src/menu/words.ts:8`, used for the share
-sheet title). The 10-29 draft said "canifishthis". **OWNER:** pick one, and make the app match. T365 has the same open
-question. Play allows 30 characters. The text below says "Can I Fish?".
+**Decided (owner 2026-11-06):** "Can I Fish?" only where the icon shows it (the phone's home-screen label,
+`app/apps/mobile/app.json:3`; the web app's `shortName`); **"Can I Fish This?" everywhere else** — the store listing
+name, the in-app name (`core/src/menu/words.ts`), the permission prompts, the feature graphic, the web tab. The app
+already matches. Play allows 30 characters.
 
 ## Short description (Play, 80 max; this is 78)
 BC freshwater fishing rules for any river or lake: map, seasons, limits, flows.
@@ -35,7 +35,7 @@ No account, no ads, no tracking. Your photos, notes and saved spots stay on your
 Privacy policy: https://canifishthis.ca/privacy
 
 FREE AND NON-PROFIT
-Can I Fish? is free and not run for profit. It is not an official BC Government or DFO product.
+Can I Fish This? is free and not run for profit. It is not an official BC Government or DFO product.
 
 IMPORTANT
 The app is a reading aid built from the BC Freshwater Fishing Regulations Synopsis and DFO notices. Regulations change; always check the current printed synopsis, the BC Fisheries website and DFO notices before you fish, and carry the licences you need.

@@ -1,7 +1,6 @@
 # T383 — Per-water time zones (later)
 
-Status: OPEN — after 0.5.0 (owner 2026-11-04: "this seems too confusing could be make fixing time zones to be a ticket
-then we just set it to constant bc time for now? with labelled timezone in the sunrise/set").
+Status: DROPPED (owner 2026-11-06: the one B.C. clock stays). Was: OPEN — after 0.5.0 (owner 2026-11-04: "this seems too confusing could be make fixing time zones to be a ticket then we just set it to constant bc time for now? with labelled timezone in the sunrise/se
 
 For 0.5.0 (T382): one constant B.C. clock, UTC−7 ("PT"), for the regulations' day and for sunrise / sunset, the zone
 labelled on the sun line.

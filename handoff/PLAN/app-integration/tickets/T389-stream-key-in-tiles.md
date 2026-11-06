@@ -1,6 +1,6 @@
 # T389 — Unnamed reach links without downloading `lines`: the stream key in the map tiles
 
-Status: OPEN (owner 2026-11-04, after 0.5.0; needs an atlas/tiles rebuild).
+Status: POSTPONED (deferred, owner 2026-11-06: "might wanna do in future"; needs an atlas/tiles rebuild). Was: OPEN (owner 2026-11-04, after 0.5.0; needs an atlas/tiles rebuild).
 
 T388 took `lines` (1.2 MB gz) off every NAMED water's link. An UNNAMED reach still fetches all of `lines` to WRITE its
 address (tapped section → stream key + metres). If each stream feature in the tiles carried its stream key (`blk`) and

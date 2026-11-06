@@ -383,7 +383,7 @@ use that as the sole source of future work."
 | T338 | DFO part-closure in a limits cell (Fort Babine) reads as whole river closed | DONE | 01919949f, 7a4d3faec | 2026-11-03 (01919949f; ships with batch 3 release) |
 | T339 | 08MH044 cut still labelled Whonock; Bedford Channel lost its gauge — confirm | DONE (live with the next bundle + release) 11-04 | e21cdbeac | 2026-10-31 |
 | T340 | Test bed regs-open stream taps fail (known since 0.3.0) | DONE | 2c96522 | 2026-10-31 |
-| T341 | release-perf A5 search p95 ~9 ms vs 8 ms ceiling — machine calibration, not a raise | OPEN | — | 2026-10-31 |
+| T341 | release-perf A5 search p95 ~9 ms vs 8 ms ceiling — machine calibration, not a raise | DROPPED (owner 2026-11-06: measurement noise on this laptop) | — | 2026-10-31 |
 | T342 | Pane text copyable with the phone's own long-press controls; remove the salmon-only Copy button; map stays non-selectable | DONE in code (device check in the batch 5 emulator sitting) 11-04 | e604eb5ae | owner 2026-10-31 |
 | T343 | Regional salmon rules cleanup: drop facility-100 m dup + measuring notes, fresh+tidal daily into the bucket line, adult-chinook size per water (default 50 cm), fold or drop every header note; spawning salmon image | DONE 11-04 (data side; items 6–7 → T367) | 561115e24, c706d67ac, ec5b37257 | owner 2026-10-31 |
 | T344 | Species ID: a grouped species line (e.g. whitefish → lake + mountain) opens a swipeable set, one page per fish | DONE in code (device check in the batch 5 emulator sitting) 11-04 | 09d2d845e | owner 2026-10-31 |
@@ -427,13 +427,13 @@ use that as the sole source of future work."
 | T380 | Change: percentile today and at the peak beside the ratio ("from the 5th to about the 95th, about 3× today's flow"); publisher + worker carry the peak percentile from the combined series | DONE in code (worker deploy) | 528620c65 | owner 2026-11-04 (in 0.5.0) |
 | T381 | A water with no splits is one section over all its geometry (Nicomen Slough: polygons + lines) | DONE (folded into T387) | 1f08e9936 | owner 2026-11-04 (in 0.5.0) |
 | T382 | The regulations' today is B.C.'s (bcNow everywhere a day is decided); sunrise / sunset on the B.C. clock at the water | DONE | 93b7cde1b | owner 2026-11-04 (in 0.5.0) |
-| T383 | Per-water time zones (coords → zone at build, the app's own offset rule per zone); 0.5.0 keeps one B.C. clock | OPEN | — | owner 2026-11-04 (after 0.5.0) |
+| T383 | Per-water time zones (coords → zone at build, the app's own offset rule per zone); 0.5.0 keeps one B.C. clock | DROPPED (owner 2026-11-06: one B.C. clock stays) | — | owner 2026-11-04 (after 0.5.0) |
 | T384 | The app opens on the reader's current location (a start link still wins; asks once; denied → today's default) | DONE | a4873c54e | owner 2026-11-04 (in 0.5.0) |
 | T385 | Share a water: the share sheet with its website link (the reload address) | DONE | a4873c54e | owner 2026-11-04 (in 0.5.0) |
 | T386 | An unnamed reach survives a data update and opens from a link on the phone too (section_measure in the release) | DONE in code (rebuild) | fc37636d5 | owner 2026-11-04 (in 0.5.0) |
 | T387 | Every tap on a part gives the same page: per-section facts (access first) become part-level; a net over every part | DONE (point-bound: sun line, scroll memory — owner) | 2a9bd4aed, 47c5b66f0 | owner 2026-11-04 (in 0.5.0) |
 | T388 | A named water's link place never fetches `lines`: each part's runs in the water file (`part_line`, by ord, in the region slice); unnamed reaches keep `lines` | DONE | dfe887d6a | owner 2026-11-04 |
-| T389 | Unnamed reach links write their place from the tiles' stream key (no `lines` download); `lines` only to open a shared unnamed link | OPEN | — | owner 2026-11-04 (after 0.5.0) |
+| T389 | Unnamed reach links write their place from the tiles' stream key (no `lines` download); `lines` only to open a shared unnamed link | POSTPONED (deferred, owner 2026-11-06: maybe later; needs an atlas rebuild) | — | owner 2026-11-04 (after 0.5.0) |
 | T390 | The app notices a newer version of itself and offers an Update button (Play in-app update; strong prompt when a release needs a newer app) | PARTIAL (code + tests merged; the phone check waits for the next APK) | 0798fd27b, c62aeb4b8 | owner 2026-11-04 (after 0.5.0); expo-in-app-updates; iOS stub until T88; left: emulator/phone checks with the next APK (ticket test bed) |
 | T391 | Every web water page filed a fatal "Requiring unknown module": Metro reports the lazy-chunk miss as fatal while ErrorUtils is set; the asking moment runs without it | DONE 11-04 | 191953b4b | crash reports 2026-11-04 |
 | T392 | A feeds worker release reruns the feeds: the deployed version is in every reuse key; deploy/staging/feeds.sh deploys then runs every job | DONE 11-05 | 6f0a04a1c | owner 2026-11-05 |
@@ -483,6 +483,7 @@ use that as the sole source of future work."
 | T436 | Dead code and duplicate helpers (tidy-up) (low) | DONE | 971f40575 817b52a99 | audit 11-05 |
 | T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | DONE | d9a72c206 | audit 11-05 |
 | T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | DONE | ed591aa70 |  audit 11-05 |
+| T439 | Retire golden.json and the tests that only compare against it | OPEN | — | owner 2026-11-06 |
 
 ## Order for open tickets
 
