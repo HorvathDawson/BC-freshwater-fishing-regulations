@@ -470,6 +470,7 @@ use that as the sole source of future work."
 | T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | DONE | 5820c2ae4 | T331 leftover 11-05; `CURATED_ROOT` + `curated.make_root`, old four refused, grep gate test_curated_root.py |
 | T425 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | DONE | 0178b4301 | option A (fish art + small-caps word); shots owed, owner reviews look |
 | T426 | A changed synopsis extractor must still read the current book the same way (baseline + row diff + fast pages) | OPEN | — | owner 11-05 |
+| T427 | Conditions legend's watershed forecast: leaner (about 4 rows, merged title/verdict, labels on the ramp) | OPEN | — | owner 11-05 (screenshot) |
 
 ## Order for open tickets
 
