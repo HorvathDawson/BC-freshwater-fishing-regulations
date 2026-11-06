@@ -13,6 +13,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-06: chat 4 — zoomed-out lag, then the list
+- **Zoomed-out lag (T420), your call:** the lag agent's one fix is ready but not shipped: the basemap's green/land fills
+  stop drawing a soft 1-px edge outline (a second pass over the most detailed shapes zoomed out). On a slow-GPU proxy of
+  your Pixel 9 that is 14–15 % less frame time at z5–z9; the picture changes ≤ 1.3 % of pixels. Shots sent (today left,
+  proposed right). Hiding parks would save about as much but changes the map a lot, so it is not proposed.
+- **Running:** T448 (phone map draws at ≤ 2 pixels per dp like the web). Found: MapLibre's own pixel-ratio switch on
+  Android may only shrink the map, not save drawing; the agent checks that before changing anything.
+
 ## 2026-11-06: chat 2 heavy runner — T416 closed
 - **A fresh clone now rebuilds the release exactly** (T416): the fresh copy and this Mac, same code, made the same release
   (r-0fd5c0e4e8b8), every file the same. Two last gaps were found and fixed: the basemap (a fresh machine shipped none)

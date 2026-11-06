@@ -153,3 +153,11 @@ CPU (the native emulator's remaining cost), which this web proxy does not stress
 **Native (same GPU on the Pixel 9).** MapLibre Native draws at the device density (2.625); the RN binding exposes no pixel
 ratio, so the same cap natively needs a patch (`MapLibreMapOptions.pixelRatio` on Android). Not built. The style JSON is
 shared, and was not changed.
+
+## Zoomed out (z5–z9): the basemap's fill outlines (2026-11-06, owner approved)
+Owner: zoomed in "way better", zoomed out still laggy (suspected parks/polygons). Same SwiftShader Pixel 9 proxy, one
+change at a time: `fill-antialias` off on the basemap's fills saves 14–15 % of the frame at z7/z9 (on our own fills:
+0–1 %); skipping `landuse_park` saves 11–17 % but removes parks (not proposed); making it opaque saves ~0. Picture:
+≤ 1.33 % of pixels move (>24/255) over 9 places z5–z11, under T280's 2 % gate. Owner saw the side-by-sides and chose
+to ship it (`runtime-style.ts`, both maps). Stressed-emulator runs (`runs/t420low-*`) were too noisy to show it: the
+emulator's GPU is the Mac's. Proof stays the owner's phone.
