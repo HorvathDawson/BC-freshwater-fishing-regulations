@@ -377,9 +377,9 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     const g = await loadWaterGroup(st, "gnis:19986");
     const parts = g.parts.map((_, i) => { const v = view(g, waterMapStart(i)); return [v.current.name, v.selected]; });
     expect(parts).toEqual([
-      ["Mary Hill Bypass Bridge → Lougheed Highway Bridge", [316504, 316505]],
-      ["Lougheed Highway Bridge → Coquitlam Watershed boundary", [316506]],
-      ["Coquitlam Watershed boundary → A lake outlet", [60536, 62474, 62912, 63390, 63452, 316507, 316508, 316509, 316510]],
+      ["Mary Hill Bypass Bridge → Lougheed Highway Bridge", [316510, 316511]],
+      ["Lougheed Highway Bridge → Coquitlam Watershed boundary", [316512]],
+      ["Coquitlam Watershed boundary → A lake outlet", [60542, 62480, 62918, 63396, 63458, 316513, 316514, 316515, 316516]],
     ]);
     // never one section in two parts, and every part's `water` is exactly the others' sections
     const all = g.parts.flatMap((p) => p.sids);
@@ -389,7 +389,7 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     const lougheed = g.marks.find((m) => m.label === "Lougheed Highway Bridge")!;
     expect([lougheed.down, lougheed.up]).toEqual([0, [1]]);
     // the list's pick lights the same part a step does
-    expect(view(g, run(g, { ...waterMapStart(1), list: true }, { type: "part", ix: 0 })).selected).toEqual([316504, 316505]);
+    expect(view(g, run(g, { ...waterMapStart(1), list: true }, { type: "part", ix: 0 })).selected).toEqual([316510, 316511]);
   });
 
   it("the mouth part says 'Flows into the tidal Fraser River' and offers nothing to open", async () => {

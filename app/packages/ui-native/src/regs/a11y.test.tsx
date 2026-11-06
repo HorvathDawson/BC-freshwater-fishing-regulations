@@ -55,7 +55,7 @@ const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
 /** vedder_1010's runs inside a sentence, every fold open: a new one (or a press that turned back into a run) shows here */
 const VEDDER_INLINE: string[] = [
   "button What does Anglers under 16 mean?", "button What does Catch and release (release) mean?",
-  "button What does Conservation Surcharge Stamp mean?", "button What does Fly fishing only mean?",
+  "button What does Conservation Surcharge Stamp for salmon mean?", "button What does Fly fishing only mean?",
   "button What does No fishing for (closed) mean?", "button What does Single barbless hook mean?",
   "button What does Steelhead Stamp mean?", "button What does Steelhead mean?",
   "link How to tell ›",   // the page's own link run in a hatchery-only line (Line `link`), not GroupCard's HowTell press

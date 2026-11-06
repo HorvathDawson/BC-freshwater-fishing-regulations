@@ -33,8 +33,9 @@ const at = liveReleaseAt();
 // 20f93c1ffb5fd829: all three 2 lines EARLIER
 // (r-4e709418ebd8, the 08MH044 Albion cut: Bedford Channel + two braid tributaries gain a section each) 822db448a2851809:
 // salmon 1 line later, eve and base unchanged
-const H_ATLAS = "822db448a2851809";
-const H = { eve: 1355, salmon: 64095, base: 59465 } as const;
+// (r-4230bc0c1dd5) 269777be890cc2b3: salmon and base 6 lines later, eve unchanged
+const H_ATLAS = "269777be890cc2b3";
+const H = { eve: 1355, salmon: 64101, base: 59471 } as const;
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 

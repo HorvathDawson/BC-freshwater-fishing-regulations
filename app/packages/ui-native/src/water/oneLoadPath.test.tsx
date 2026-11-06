@@ -44,7 +44,7 @@ const itemFor = { itemForSection: async (sid: SectionId) => {
   return r ? (String(r.item_id) as ItemId) : null;
 } };
 const C = "gnis:19986" as ItemId;          // the Coquitlam: part_ix 2 is Mary Hill → Lougheed (316504, 316505)
-const TAP = 316504 as SectionId;
+const TAP = 316510 as SectionId;
 const AT = { lat: 49.23, lon: -122.79 };
 const DAY = new Date(2026, 6, 15, 12);
 
@@ -114,7 +114,7 @@ describe("(T369) the net: every way into a water's Regulations and Conditions vi
     }
   }, 120_000);
 
-  it("the same part TAPPED (316504): from the Map tab, from the Conditions map, from the Runs sheet — and each reloaded", async () => {
+  it("the same part TAPPED (316510): from the Map tab, from the Conditions map, from the Runs sheet — and each reloaded", async () => {
     const ways: Record<string, Route> = {
       "a tap on the Map tab": await viaOpener(HOME, (o) => o.tap(TAP, AT, "regs")),
       "the same tap on the Conditions map": await viaOpener(run(HOME, { type: "tab", tab: "conditions" }), (o) => o.tap(TAP, AT, "conditions")),
