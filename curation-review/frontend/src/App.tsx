@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import type {
-  EntryDetail as EntryDetailT, Mode, PendingBuild, Progress, QueueOrder, QueueRow, RegionSummary,
+  EntryDetail as EntryDetailT, IdList, Mode, PendingBuild, Progress, QueueOrder, QueueRow, RegionSummary,
   ReviewFilter, EntrySeverity, SeverityFilter, Status, Tier,
 } from "./types";
 import { ALL_REGIONS, FilterBar } from "./components/FilterBar";
@@ -19,6 +19,7 @@ import { INSEASON_HASH, InSeasonReview } from "./components/InSeasonReview";
 import { REPORTS_HASH, ReportsView } from "./components/ReportsView";
 import { TopNav } from "./components/TopNav";
 import { P1_HASH, P1Quick } from "./components/P1Quick";
+import { clearIdsParam, idsParam, IdsBar } from "./components/IdsBar";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
@@ -73,8 +74,22 @@ export default function App() {
   const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
   // T89: only the entries whose rules bind no water (owner Q45), listed with their leads
   const [t89Only, setT89Only] = useState(false);
-  const rows = useMemo(() => applyPv(allRows.filter((r) => (!t89Only || r.t89)), pvf),
-    [allRows, pvf, t89Only]);
+  // T414: `/?ids=<file>` — only the entries that file lists (the yearly diff's review list). A list
+  // that cannot be read shows nothing (and says why), never the whole queue.
+  const [idsPath, setIdsPath] = useState<string | null>(idsParam);
+  const [idList, setIdList] = useState<IdList | null>(null);
+  const [idsError, setIdsError] = useState("");
+  const loadIds = useCallback(() => {
+    if (!idsPath) { setIdList(null); setIdsError(""); return; }
+    api.idList(idsPath).then((l) => { setIdList(l); setIdsError(""); })
+      .catch((e) => { setIdList(null); setIdsError(e instanceof Error ? e.message : String(e)); });
+  }, [idsPath]);
+  useEffect(() => { loadIds(); }, [loadIds]);
+  const idSet = useMemo(() => (idList ? new Set(idList.ids) : null), [idList]);
+  const rows = useMemo(() => applyPv(allRows.filter((r) => (!t89Only || r.t89)
+    && (!idsPath || (idSet !== null && idSet.has(r.entry_id)))), pvf),
+    [allRows, pvf, t89Only, idsPath, idSet]);
+  const idsHidden = idList ? idList.found - rows.length : 0;
   const [loadingRows, setLoadingRows] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<EntryDetailT | null>(null);
@@ -219,11 +234,12 @@ export default function App() {
     if (final) setSamples(recordPace((Date.now() - openedAt.current) / 1000));
     loadRows();
     loadProgress();
+    loadIds();
     api.regions().then(setRegions).catch(() => {});
     if (!selected) return;
     if (final && navRef.current.nav.onNext) navRef.current.nav.onNext();
     else api.entry(selected).then(setDetail).catch(() => {});
-  }, [loadRows, loadProgress, selected]);
+  }, [loadRows, loadProgress, loadIds, selected]);
 
   if (cascade) {
     return <CascadeView />;
@@ -278,6 +294,7 @@ export default function App() {
         onRefresh={() => {
           loadRows();
           loadProgress();
+          loadIds();
           api.regions().then(setRegions).catch(() => {});
           if (selected) api.entry(selected).then(setDetail).catch(() => {});
           loadPending();
@@ -313,6 +330,10 @@ export default function App() {
           </>
         }
       />
+      {idsPath && (
+        <IdsBar path={idsPath} list={idList} error={idsError} hidden={idsHidden}
+          onClear={() => { clearIdsParam(); setIdsPath(null); }} />
+      )}
       {pending && waiting > 0 && (
         <div className="pending-build" data-testid="pending-build" style={{ margin: 8 }}>
           <strong>Awaiting build:</strong>{" "}

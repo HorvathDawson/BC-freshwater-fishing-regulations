@@ -782,6 +782,14 @@ export interface QueueFacts {
 export interface TierProgress { tier: Tier | "all"; total: number; done: number; stale: number; todo: number }
 export interface Progress { tiers: TierProgress[]; overall: TierProgress; facts?: QueueFacts }
 
+/** T414 (`GET /api/review/ids`): the review list an ids file names (the yearly diff's `--ids-out`) —
+ *  progress over the list, and every id no entry has (shown, never dropped) */
+export interface IdList {
+  path: string; ids: string[]; total: number; found: number;
+  /** a mark in force (verified, wrong, unsure, deferred) */
+  reviewed: number; verified: number; missing: string[]; repeats: number;
+}
+
 /** What the reviewer sends (`POST /api/marks`); the server stamps the rest. No `verdict`: the
  *  answers decide it (`marks.verdict_from_answers`) — except `deferred`, which is the reviewer's own call. */
 export interface MarkPost {

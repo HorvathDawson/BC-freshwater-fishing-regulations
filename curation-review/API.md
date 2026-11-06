@@ -283,6 +283,12 @@ still to verify (`tiers.splits_to_verify`, the `split_to_verify` pre-check).
 - `GET /api/review/progress` → `{tiers: [{tier, total, done, stale, todo}], overall, facts}` (done =
   a mark in force: verified, wrong, unsure, deferred; `facts` = `{run, why}`, the reach run the
   risk factors were read from). Entries only: the tiers are P1 Z P2 P3 P4 sweep.
+- `GET /api/review/ids?path=FILE` (T414) → ONLY THESE ENTRIES: `{path, ids, total, found, reviewed,
+  verified, missing, repeats}` for an ids file (one entry id per line, `#` comments and blank lines
+  skipped; the yearly `synopsis_diff --ids-out`), repo-relative or absolute inside the repo.
+  `reviewed` = a mark in force (as progress's done), `missing` = every id no entry has (shown by the
+  screen, never dropped). `422` naming why when the file is missing, outside the repo or unreadable.
+  The screen opens it as `/?ids=FILE`: the queue lists only those ids, with "N of M reviewed".
 - `GET /api/entries/{id}/splits` (T184) → EVERY SPLIT THE ENTRY'S RULES NAME (its scope and
   licensing records too), as a FeatureCollection of Points: `properties` `{split_id, label (the
   built label, else splits.json's, else the boundary's), water (its splits.json waterbody; a lake

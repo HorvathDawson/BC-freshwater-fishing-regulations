@@ -20,6 +20,7 @@ import type {
   Mode,
   ReviewView,
   Progress,
+  IdList,
   SeverityFilter,
   Tier,
   ExtentFix,
@@ -172,6 +173,15 @@ export const api = {
     getJSON<ReviewView>(`/api/entries/${encodeURIComponent(entryId)}/review` +
       (date ? `?date=${encodeURIComponent(date)}` : "")),
   progress: () => getJSON<Progress>("/api/review/progress"),
+  /** T414: the ids file `path` names, its progress, and the ids no entry has; a refusal says why */
+  idList: async (path: string): Promise<IdList> => {
+    const res = await fetch(`/api/review/ids?path=${encodeURIComponent(path)}`);
+    const body = await res.json().catch(() => null);
+    if (!res.ok)
+      throw new Error(asFieldErrors((body as { detail?: unknown } | null)?.detail ?? res.statusText)
+        .map((e) => e.msg).join("; "));
+    return body as IdList;
+  },
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),
   /** owner 2026-10-28: every mark in force accounted for — orphaned / stale ones listed */

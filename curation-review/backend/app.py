@@ -438,6 +438,19 @@ def review_progress():
     return review.progress()
 
 
+@app.get("/api/review/ids")
+def review_ids(path: str = ""):
+    """ONLY THESE ENTRIES (T414): the ids file `path` names (the yearly diff's `--ids-out`, under the
+    repo), its progress over the list, and every id that matches no entry (`idlist.view`). A file
+    that cannot be read is a 422 that says why — never an empty list."""
+    import idlist
+    import review
+    try:
+        return idlist.view(path, reuse._ROOT, reuse.queue(), review.DONE)
+    except idlist.Refused as ex:
+        raise HTTPException(422, [{"path": "path", "msg": str(ex)}]) from ex
+
+
 @app.get("/api/review/p1")
 def review_p1():
     """THE P1 PASS (owner 2026-10-28, `p1.view`): counts by risk and by the second check, the

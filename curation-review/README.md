@@ -101,6 +101,10 @@ Evidence first, then the checklist, with the verdict bar always visible:
   hints (a cut picked by hand, a quote not in the row, more than 15 characters no rule quotes).
   Each entry's are listed under its evidence, with every ambiguous cut's candidates and the one taken.
 - **Statuses** say what the parse left, not review progress: `parser-uncertain` and `plain`.
+- **Only these entries** (T414): open `http://127.0.0.1:5173/?ids=<file>` (a file of entry ids, one per
+  line, under the repo — the yearly `synopsis_diff --ids-out`). The queue lists only those ids, the bar
+  above it says "N of M reviewed", how many the other filters hide, and every id that matches no entry.
+  A list it cannot read shows nothing and says why. "× show all" drops it. The hash stays the open entry.
 - **Output** ("output" beside the progress bar): the wrong and unsure marks as ticket text
   (`/api/review/tickets.md`; files: `python -m pipeline.regs.review.tickets --out <dir>`), and the
   command that commits the marks file and nothing else: `python -m pipeline.regs.review.commit_marks`.

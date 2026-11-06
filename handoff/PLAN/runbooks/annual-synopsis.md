@@ -126,8 +126,10 @@ note it for hand curation.
 - The province/zone tables are not parsed: the owner compares the new book's region pages (and
   `data/curated/regulations/reference/*.md`, the hand transcriptions) with last year's by eye; Claude edits the `z…`
   entries and reference files to match, each edit a reviewed change.
-- Review in the app happens after step 10 builds the new book (the app reviews built entries only, AGENTS 65). It has
-  no "only these ids" filter yet: open each id in `review_ids.txt` (follow-up in T239).
+- Review in the app happens after step 10 builds the new book (the app reviews built entries only, AGENTS 65): start it
+  as usual (`bash curation-review/run.sh`) and open `http://127.0.0.1:5173/?ids=$W/review_ids.txt` ($W spelled out,
+  e.g. `?ids=data/generated/scratch/synopsis-2027-29/review_ids.txt`; any path under the repo). The queue lists only those entries, with "N of M reviewed"; an id that matches no entry is
+  listed in the bar above the queue (a row the build dropped: check it against `removed`).
 
 ## 9. Adopt the new book — Claude, after the owner says go
 
@@ -149,7 +151,8 @@ bash scripts/heavy.sh build 50 -- .venv/bin/python -m pipeline build      # reac
 
 Stages skip what is up to date; the corpus changed, so reach and deliver run. The release stamps the new
 `valid_until` from the cover. Check `python -m pipeline build --status` and the card check (problems 0).
-Then the owner reviews the `review_ids.txt` entries in the review app (step 8).
+Then the owner reviews the `review_ids.txt` entries in the review app: `http://127.0.0.1:5173/?ids=$W/review_ids.txt`
+(step 8).
 
 ## 11. Staging — Claude
 
