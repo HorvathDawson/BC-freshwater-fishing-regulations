@@ -13,6 +13,22 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-05 (late): chat 2 started — launch prep, CI back on
+- **T416 proof is running** (fresh clone, then a Mac build at the same commit; verdict in `~/t416-repro.json`, ~23:15).
+  It holds the heavy slot, so everything below is light work.
+- **CI was red since 10-29 and nobody saw it.** Fixed:
+  - app: the loading-fish and splash pictures were saved with bytes that differ by computer, so the check failed on
+    GitHub. Same pictures, now saved the same way everywhere (1b6cd7283). CI also uses the Mac's Node (25b07f669).
+  - pipeline: 29 tests read local build data without saying so, and some needed tools or git history (897984554).
+  - Waiting on GitHub to prove both green.
+- **T86:** a production build with no contact address is now refused.
+- **T240:** secrets list written (`handoff/PLAN/runbooks/secrets.md`). One GitHub secret, `CLOUDFLARE_API_TOKEN`, is used
+  by nothing: yours to delete or keep. The prod configs and scripts are T404's, for when prod is near.
+- **T244 / T371:** the store privacy draft now lists the install id and the report's map centre (the privacy page
+  already did). Apple "Device ID": a proposal for you. T371 now says promote **0.6.2 (build 11)**.
+- **T409:** the "map only when first seen" change is being written (web only); measuring waits for the heavy slot.
+- New: T421 (a silent fallback found while fixing CI).
+
 ## 2026-11-05: 0.6.1 on Play internal
 - **0.6.1** (9e610a6f2, versionCode 10, 40741d6de): the T411 highlight fix. Tester email sent; play.json published.
   T417 (watershed flicker) and T418 (style assets) go in the next APK.
