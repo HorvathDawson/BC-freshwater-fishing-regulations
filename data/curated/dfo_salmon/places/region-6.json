@@ -3443,7 +3443,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "sheldens_creek__spur_19_bridge_site"
+            ],
+            "item_id": "blk:360846083"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
