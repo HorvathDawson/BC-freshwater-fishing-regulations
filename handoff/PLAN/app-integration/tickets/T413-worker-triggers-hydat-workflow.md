@@ -1,6 +1,6 @@
 # T413 — A new HYDAT starts the HYDAT workflow: from the worker, or the owner after the email
 
-Status: DONE in code 2026-11-05 (goes live with the next worker deploy + the owner's token) — was OPEN (owner 2026-11-05). Owner: "I don't want GitHub to be the scheduler — it is flaky and unpaid, it will
+Status: DONE in code 2026-11-05 — a355ed884, d0e0e45f9 (goes live with the next worker deploy + the owner's token) — was OPEN (owner 2026-11-05). Owner: "I don't want GitHub to be the scheduler — it is flaky and unpaid, it will
 disappear after a while. Either trigger it when needed from R2 [the worker] or assume a human sees the email then
 triggers it manually." **No GitHub schedule, for this or any feed.**
 
