@@ -1,6 +1,6 @@
 # T331 — Curated config hygiene (small items from data-flow.md §5)
 
-Status: PARTIAL (34d25bfd0, e5e34c238) — DONE except 2 (partial) and 8 (2026-10-30, branch cleanup/t327-t331) — 1, 3–7 done; 2 done for the two named overrides,
+Status: DONE 2026-11-05 — item 8 holds (data/release = live r-5a5999c94588 + previous r-d458fbe165ac); item 2's sandbox leftover is T422. Was: PARTIAL (34d25bfd0, e5e34c238) — DONE except 2 (partial) and 8 (2026-10-30, branch cleanup/t327-t331) — 1, 3–7 done; 2 done for the two named overrides,
 the review-app sandbox overrides left (below); 8 for after the batch, in the main checkout. Was OPEN (owner
 2026-10-30; T324 design approved, plan in handoff/PLAN/data-flow.md §4–5).
 
