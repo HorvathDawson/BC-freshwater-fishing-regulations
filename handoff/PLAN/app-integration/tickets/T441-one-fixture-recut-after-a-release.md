@@ -1,6 +1,6 @@
 # T441 — One re-cut of every release-backed test fixture after a release
 
-Status: OPEN.
+Status: PARTIAL (deef924da): one-step re-cut + section-lines writer done; raw ids in tests left.
 
 Source: 2026-11-06, release r-4230bc0c1dd5. `pnpm check` needed four rounds before the 0.6.3 build, each finding the
 next frozen set still cut from the previous release (handles 822db… → 269777…):
@@ -19,3 +19,15 @@ The fixes this time: taps.json (2026-11-06 "fixtures: taps.json re-cut"), fixtur
    up in the fixture, so a renumbering is not a test edit.
 3. The release runbook says to run it after a promote, before an APK build.
 Size: M.
+
+## Done in part (2026-11-06, chat 4)
+Work 1 and 3 done: `node app/tools/regs-recut/sync.mjs` runs taps → hydrate → regs-fixture → VM fixtures in one step,
+and `regs_fixture` now WRITES `dev/section-lines.json` from the release's own `lines` file (`fixture_lines`): the
+fixture's stream sections plus the one unnamed reach, named by `unnamed_at` = [blue_line_key, from_m] and looked up, so
+a renumbering finds it again. Against the hand-made file (r-67b456b5e64b): every handle, line and start identical; ends
+are now the release's (903 open ends instead of the hand's "2 m" guesses); 10 more rows. The in-memory `lines` writer
+for tests (`releaseDir.ts` `sectionLineDb`) learned to fill a gap after an open line. Run end to end on LATEST: fixture
+release re-cut (r-313224f5908f → r-5afbbf9bec7a), taps/hydrate/VM fixtures unchanged; data, ui, ui-native, conformance
+suites 4290/4290. Runbook + AGENTS rule 46 say the one command.
+Left (Work 2): section ids still written raw in tests (`waterGroup.fixture`, `waterMap`, `WaterMapView`, `oneLoadPath`,
+`unnamed.release`) — re-mapped by hand on a renumbering.
