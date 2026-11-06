@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 
 export const APP = fileURLToPath(new URL("..", import.meta.url));
 export const ROOTS = ["packages/core/src", "packages/data/src", "packages/ui/src", "packages/ui-native/src",
-  "packages/map/src", "apps/mobile/src"];
+  "packages/map/src", "apps/mobile/src", "workers/feeds/src"];
 
 function sources(dir: string, out: string[] = []): string[] {
   let names: string[];
@@ -105,7 +105,14 @@ function secondArg(args: string): string | null {
 
 /** The sites in `src` that neither throw nor report: each must be listed as FINE (with its reason) or fixed. */
 export const unhandled = (src: string, path = ""): Site[] =>
-  catchSites(code(src)).filter((s) => !HANDLES.test(s.handler) && !(path.startsWith("packages/map/") && MAP_HANDLES.test(s.handler)));
+  catchSites(code(src)).filter((s) => !HANDLES.test(s.handler) && !(path.startsWith("packages/map/") && MAP_HANDLES.test(s.handler))
+    && !(path.startsWith("workers/feeds/") && WORKER_HANDLES.test(s.handler)));
+
+/** (T431) In the feeds worker (no core reporter: it is a server) a failure is handled when it is LOGGED (`log(…)`,
+ *  console.error / warn: the run's log lines, `wrangler tail`), ANSWERED as an HTTP error (`json({ ok: false, … })`), or
+ *  RECORDED in the job's result (an `error` field, `res.ok = false`, a `failed` count) — the run's status page and the
+ *  owner's email carry those. */
+export const WORKER_HANDLES = /\blog\(|\bconsole\.(?:error|warn)\(|\bjson\(\{ ok: false|\berror\s*[=:]|\.ok = false|\.failed\+\+|\bfailed\.push\(|\bhold\(|\browHolds\.set\(|\bnotices\.push\(/;
 
 /** In the map package a failure goes to the map's own `report` / `fail` / `onError`, which is the host's `onError` —
  *  `mapError` (reported) unless a host passes its own (MapScreen defaults to it; pinned in the test). */
@@ -121,6 +128,9 @@ const WARM = "warming / prefetch: the real ask shows and reports its own failure
 const PROBE = "a test-bed probe or instrumentation";
 const CAP = "a capability the platform may not have (shown as that state)";
 const ENV = "the environment (offline, no fix, a refused permission, a share sheet closed): shown, never reported (owner Q1)";
+const W_STATE = "the worker's own kept state in R2: unreadable → started fresh this run (as the Python publisher does)";
+const W_TORN = "a torn or unreadable stored object or line is skipped (the next write replaces it)";
+const W_ABSENT = "a station or source that did not answer is absent this run (the run's source health counts it)";
 export const FINE: Record<string, { n: number; why: string }> = {
   "apps/mobile/src/App.tsx": { n: 3, why: `the Updates-log tools' cache delete / copy (shown: copyFailed; ${ENV}); a spots refresh shown by spotsHook.error, reported in ui/spots.ts` },
   "apps/mobile/src/envStore.native.ts": { n: 4, why: PREF },
@@ -211,6 +221,23 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/runTiming.ts": { n: 3, why: PREF },
   "packages/ui/src/spots.ts": { n: 2, why: "T314: one spot's fill kept and asked again next refresh; the retry runner (write() shows and reports)" },
   "packages/ui/src/sync.ts": { n: 2, why: "stamps: the update service shows these failures (SyncErrorSheet) and reports them (failSource)" },
+  // (T431) the feeds worker: a server job, so "handled" is WORKER_HANDLES (logged / answered / recorded); what is left is
+  "workers/feeds/src/crashes.ts": { n: 4, why: W_TORN },
+  "workers/feeds/src/dfo/live.ts": { n: 5, why: `${W_STATE}; stableIndex compares the raw text when it is not JSON; page texts unread leave only the text-change notice out (the header parse failure has its own notice)` },
+  "workers/feeds/src/dispatch.ts": { n: 2, why: `${W_STATE}; GitHub's reply shown as its text when it is not JSON` },
+  "workers/feeds/src/events.ts": { n: 1, why: W_STATE },
+  "workers/feeds/src/gauges/forecast.ts": { n: 1, why: W_ABSENT },
+  "workers/feeds/src/gauges/publish.ts": { n: 10, why: `${W_ABSENT}; ${W_STATE}; an unreadable forecast file is skipped as the Python skips it` },
+  "workers/feeds/src/gauges/score.ts": { n: 4, why: `${W_STATE}; ${W_TORN}` },
+  "workers/feeds/src/gauges/skill.ts": { n: 2, why: `${W_STATE}; ${W_TORN}` },
+  "workers/feeds/src/guard.ts": { n: 1, why: "the edge rate limiter failing opens (T249): the R2 per-IP gate still holds" },
+  "workers/feeds/src/health.ts": { n: 3, why: "a URL that will not parse gets the unknown source's policy (the fetch itself then throws and is counted); freeing a retried connection" },
+  "workers/feeds/src/index.ts": { n: 6, why: `${W_STATE} (no-data stations); the status page shows a job status not yet written as none; a bad POST body is answered 400` },
+  "workers/feeds/src/inseason.ts": { n: 3, why: W_STATE },
+  "workers/feeds/src/io.ts": { n: 1, why: `${W_STATE} (the write manifest: unreadable → every file written again)` },
+  "workers/feeds/src/notify.ts": { n: 1, why: `${W_STATE} (what was sent: unreadable → may be sent again, never lost)` },
+  "workers/feeds/src/reports.ts": { n: 6, why: `${W_TORN}; ${W_STATE} (the per-IP gate); the edge limiter failing never blocks (the R2 gate holds); a test-report delete the next day's purge tries again` },
+  "workers/feeds/src/status.ts": { n: 1, why: W_STATE },
 };
 
 const sites = () => files().map((f) => [f, unhandled(read(f), f)] as const).filter(([, u]) => u.length);
@@ -283,6 +310,14 @@ describe("the scan itself (mutation pins)", () => {
     expect(FINE[f]).toBeUndefined();
     expect(unhandled(read(f), f)).toEqual([]);
     expect(unhandled(read(f).replace("reportFailure(e);", ""), f).length).toBe(1);
+  });
+
+  it("(T431) the feeds worker is scanned: a 'logged below' catch is named, a logged one passes", () => {
+    expect(files().some((f) => f.startsWith("workers/feeds/src/"))).toBe(true);
+    const w = "workers/feeds/src/x.ts";
+    expect(unhandled("try { await deliver(e); } catch { /* logged below */ }", w).length).toBe(1);
+    expect(unhandled("try { await deliver(e); } catch (e) { console.error(String(e)); }", w)).toEqual([]);
+    expect(unhandled("try { await deliver(e); } catch (e) { console.error(String(e)); }", "packages/ui/src/x.ts").length).toBe(1);
   });
 
   it("map handlers count only in the map package", () => {

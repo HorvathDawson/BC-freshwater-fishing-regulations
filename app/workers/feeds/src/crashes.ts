@@ -21,7 +21,7 @@
 //   purge               kinds not seen for CRASH_RETENTION_DAYS are deleted (privacy page: "90 days after the last time").
 import type { FeedEvent } from "./events";
 import type { R2BucketLike } from "./io";
-import { CORS, listKeys, rateLimit, sha256hex, type ReportEnv } from "./reports";
+import { CORS, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
 
 export const CRASHES_PREFIX = "private/crashes/";
 const LIMITS_PREFIX = `${CRASHES_PREFIX}limits/`;
@@ -158,6 +158,8 @@ export const crashKey = (hash: string) => `${CRASHES_PREFIX}${hash}.json`;
 
 /** POST /crash */
 export async function handleCrash(req: Request, env: ReportEnv, now: Date = new Date()): Promise<Response> {
+  const unset = noSalt(env);
+  if (unset) return unset;
   const len = Number(req.headers.get("Content-Length") ?? NaN);
   if (Number.isFinite(len) && len > CRASH_LIMITS.bytes) return json({ ok: false, error: "too large" }, 413);
   let raw: string;

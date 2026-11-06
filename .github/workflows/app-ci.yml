@@ -41,6 +41,13 @@ jobs:
       - name: pnpm check (every app gate + tests + conformance)
         run: pnpm check
 
+      # (T431) THE FEEDS WORKER'S OWN SUITES. The worker is not in the pnpm workspace, so `pnpm check` never ran them:
+      # the DFO and gauge parity with the Python (the venv above), the report / crash endpoints, the cron dispatcher.
+      # deploy/staging/feeds.sh runs the same command before it deploys.
+      - name: Feeds worker tests
+        working-directory: app/workers/feeds
+        run: npx vitest run --root .
+
       # Nothing above bundles anything. Metro's monorepo resolution, the react-native-web
       # aliasing and the single-React pin are exactly the things that break silently and
       # are only observable in a bundle — a workspace link can typecheck and still fail to

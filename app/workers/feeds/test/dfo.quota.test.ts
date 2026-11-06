@@ -1,7 +1,7 @@
 // T332: a species' numbers are a node of the GAME-FISH QUOTA TREE (the answers model's TreeTier), in the Worker as in the
 // Python (pipeline/regs/dfo_salmon/quota.py). Held to the words T320 gave every open cell of the tracked DFO pages
 // (pipeline/tests/fixtures/dfo_salmon/t320_words.json — recorded before the change, read by the Python test too), so the
-// TS port, the Python and the T320 words agree on every saved cell; the full feed is byte-compared in dfo.parity.test.ts.
+// TS port, the Python and the T320 words agree on every saved cell; (T431) the full-feed byte comparison was retired with T350 (cascade resolved in Python only).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";

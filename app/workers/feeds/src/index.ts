@@ -376,35 +376,47 @@ export function dfoHeld(regions: Record<string, any>): Held[] {
 // (T249) constant-time compare (src/guard.ts)
 const authed = (req: Request, env: Env) => bearerOk(req, env.RUN_TOKEN);
 
+/**
+ * (T431) An owner message from a daily / weekly / monthly job. A send that fails (counted by `deliver`, retried next run) or
+ * an outbox that cannot be read or written is LOGGED with the job's name (console.error: the worker's logs, `wrangler
+ * tail`), never swallowed: it used to be a bare catch "logged below" with nothing below logging it.
+ */
+async function tell(job: string, env: Env, now: Date, events: FeedEvent[]): Promise<{ failed: number; error?: string }> {
+  if (!events.length) return { failed: 0 };
+  try {
+    const r = await deliver(events, { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now,
+                                      log: (s) => console.log(JSON.stringify({ job, notify: s })) });
+    if (r.failed) console.error(JSON.stringify({ job, notifyFailed: r.failed }));
+    return { failed: r.failed };
+  } catch (e) {
+    const error = String((e as Error)?.message ?? e).slice(0, 500);
+    console.error(JSON.stringify({ job, notifyError: error }));
+    return { failed: events.length, error };
+  }
+}
+
 /** (T246) the daily backup; a failure is told at once (urgent health event) */
 async function backup(env: Env, now = new Date()) {
   if (!env.BACKUP) return { ok: false, error: "no BACKUP binding" };
   const r = await runBackup(env.BUCKET as unknown as SrcBucket, env.BACKUP, now);
-  if (!r.ok) {
-    try {
-      await deliver([{ key: `backup:${r.day}`, kind: "health", title: `Backup ${r.day} failed`, urgent: true, at: r.at,
-        text: `The daily R2 backup (daily/${r.day}/ in bc-fishing-regulations-staging-backup) failed after ${r.copied} objects:\n${r.error}\n\nRetry: POST /run/backup on the feeds worker (Bearer RUN_TOKEN).` }],
-        { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
-    } catch { /* logged below */ }
-  }
-  console.log(JSON.stringify({ job: "backup", ok: r.ok, copied: r.copied, bytes: r.bytes, skipped: r.skipped.length, wallMs: r.wallMs }));
+  const told = r.ok ? null : await tell("backup", env, now, [{ key: `backup:${r.day}`, kind: "health", title: `Backup ${r.day} failed`, urgent: true, at: r.at,
+    text: `The daily R2 backup (daily/${r.day}/ in bc-fishing-regulations-staging-backup) failed after ${r.copied} objects:\n${r.error}\n\nRetry: POST /run/backup on the feeds worker (Bearer RUN_TOKEN).` }]);
+  console.log(JSON.stringify({ job: "backup", ok: r.ok, copied: r.copied, bytes: r.bytes, skipped: r.skipped.length, wallMs: r.wallMs, told }));
   return r;
 }
 
 /** (T271) the daily report purge (reports older than 180 days); the count is kept for /status, a failure rides the daily digest */
 async function purge(env: Env, now = new Date()) {
   const r = await purgeReports(env.BUCKET, now);
-  try { await purgeTestReports(env.BUCKET, now); } catch { /* the next day's run tries again */ }   // (T291) test reports after 7 days
-  try { await purgeCrashes(env.BUCKET, now); } catch { /* the next day's run tries again */ }   // (T242) error kinds unseen for 90 days
+  // (T291) test reports after 7 days, (T242) error kinds unseen for 90 days: a failure is logged, the next day's run tries again
+  try { await purgeTestReports(env.BUCKET, now); } catch (e) { console.error(JSON.stringify({ job: "purge-test-reports", error: String(e) })); }
+  try { await purgeCrashes(env.BUCKET, now); } catch (e) { console.error(JSON.stringify({ job: "purge-crashes", error: String(e) })); }
   try {
     await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(r), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
-    if (!r.ok) {
-      await deliver([{ key: `report-purge:${r.at.slice(0, 10)}`, kind: "health", title: `Report purge ${r.at.slice(0, 10)} failed`, urgent: false, at: r.at,
-        text: `The daily deletion of problem reports older than ${RETENTION_DAYS} days failed (${r.deleted} deleted, ${r.failed} not): ${r.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }],
-        { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
-    }
-  } catch { /* logged below */ }
-  console.log(JSON.stringify({ job: "purge-reports", ok: r.ok, deleted: r.deleted, kept: r.kept, failed: r.failed }));
+  } catch (e) { console.error(JSON.stringify({ job: "purge-reports", statusError: String(e) })); }
+  const told = r.ok ? null : await tell("purge-reports", env, now, [{ key: `report-purge:${r.at.slice(0, 10)}`, kind: "health", title: `Report purge ${r.at.slice(0, 10)} failed`, urgent: false, at: r.at,
+    text: `The daily deletion of problem reports older than ${RETENTION_DAYS} days failed (${r.deleted} deleted, ${r.failed} not): ${r.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]);
+  console.log(JSON.stringify({ job: "purge-reports", ok: r.ok, deleted: r.deleted, kept: r.kept, failed: r.failed, told }));
   return r;
 }
 
@@ -430,17 +442,18 @@ async function skill(env: Env, now = new Date(), month?: string): Promise<{ ok: 
   try {
     await env.BUCKET.put(SKILL_STATUS_KEY, JSON.stringify(report ? { ok: true, ...report, meter: m } : { ok: false, at, month: month ?? null, error, meter: m }),
       { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
-    const ev: FeedEvent = report
-      ? { key: `skill:${report.month}`, kind: "skill", at, title: `Forecast model scores for ${report.month}: ${report.differs ? "a verdict differs from the shipped weights" : "no change"}`, text: skillText(report) }
-      : { key: `skill-failed:${at.slice(0, 7)}`, kind: "skill", at, title: "The monthly forecast model score failed", text: `${error}\n\nRetry: POST /run/skill on the feeds worker (Bearer RUN_TOKEN).` };
-    await deliver([ev], { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
-  } catch { /* logged below */ }
-  console.log(JSON.stringify({ job: "skill", ok: !!report, month: report?.month, runs: report?.runs, cases: report?.cases, meter: m }));
+  } catch (e) { console.error(JSON.stringify({ job: "skill", statusError: String(e) })); }
+  const ev: FeedEvent = report
+    ? { key: `skill:${report.month}`, kind: "skill", at, title: `Forecast model scores for ${report.month}: ${report.differs ? "a verdict differs from the shipped weights" : "no change"}`, text: skillText(report) }
+    : { key: `skill-failed:${at.slice(0, 7)}`, kind: "skill", at, title: "The monthly forecast model score failed", text: `${error}\n\nRetry: POST /run/skill on the feeds worker (Bearer RUN_TOKEN).` };
+  const told = await tell("skill", env, now, [ev]);
+  console.log(JSON.stringify({ job: "skill", ok: !!report, month: report?.month, runs: report?.runs, cases: report?.cases, meter: m, told }));
   return report ? { ok: true, report } : { ok: false, error };
 }
 
-/** (T412) the weekly run-timing source check (src/runtiming.ts): a newer NuSEDS starts its workflow and tells the owner */
-async function runTimingCheck(env: Env, now = new Date()): Promise<{ ok: boolean; error?: string; event?: FeedEvent | null }> {
+/** (T412) the weekly run-timing source check (src/runtiming.ts): a newer NuSEDS starts its workflow and tells the owner;
+ *  a failed check is told too (`runtiming-failed:<day>`). (T431) `told` says whether that message went out. */
+async function runTimingCheck(env: Env, now = new Date()): Promise<{ ok: boolean; error?: string; event?: FeedEvent | null; told: { failed: number; error?: string } }> {
   let event: FeedEvent | null = null;
   let error: string | undefined;
   try {
@@ -453,11 +466,17 @@ async function runTimingCheck(env: Env, now = new Date()): Promise<{ ok: boolean
     ? { key: `runtiming-failed:${at.slice(0, 10)}`, kind: "runtiming", at, title: "The weekly run-timing source check failed",
         text: `${error}\n\nRetry: POST /run/runtiming on the feeds worker (Bearer RUN_TOKEN).` }
     : null);
-  try {
-    if (ev) await deliver([ev], { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
-  } catch { /* logged below */ }
-  console.log(JSON.stringify({ job: "runtiming", ok: !error, event: event?.key ?? null, error }));
-  return error ? { ok: false, error } : { ok: true, event };
+  const told = await tell("runtiming", env, now, ev ? [ev] : []);
+  console.log(JSON.stringify({ job: "runtiming", ok: !error, event: event?.key ?? null, error, told }));
+  return error ? { ok: false, error, told } : { ok: true, event, told };
+}
+
+/** (T431) which job a cron string starts: its minute field names it (wrangler.toml [triggers]; test/scheduled.test.ts). */
+export function cronJob(cron: string): Job | "backup" | "skill" | "runtiming" {
+  if (cron.startsWith("25 ")) return "backup";   // + the report purge
+  if (cron.startsWith("55 ")) return "skill";
+  if (cron.startsWith("40 ")) return "runtiming";
+  return cron.startsWith("15 ") ? "dfo" : cron.startsWith("45 ") ? "inseason" : "gauges";
 }
 
 export default {
@@ -572,10 +591,10 @@ export default {
     // cron strings are in wrangler.toml [triggers]: the minute field names the job
     //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246) + report purge (T271), "55 …" the monthly model
     //   score (T178), "40 …" the weekly run-timing source check (T412), anything else the gauges
-    if (ev.cron.startsWith("25 ")) { ctx.waitUntil(Promise.allSettled([backup(env), purge(env)])); return; }
-    if (ev.cron.startsWith("55 ")) { ctx.waitUntil(skill(env)); return; }
-    if (ev.cron.startsWith("40 ")) { ctx.waitUntil(runTimingCheck(env)); return; }
-    const job: Job = ev.cron.startsWith("15 ") ? "dfo" : ev.cron.startsWith("45 ") ? "inseason" : "gauges";
+    const job = cronJob(ev.cron);
+    if (job === "backup") { ctx.waitUntil(Promise.allSettled([backup(env), purge(env)])); return; }
+    if (job === "skill") { ctx.waitUntil(skill(env)); return; }
+    if (job === "runtiming") { ctx.waitUntil(runTimingCheck(env)); return; }
     ctx.waitUntil(run(job, env).then((r) => console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter }))));
   },
 };

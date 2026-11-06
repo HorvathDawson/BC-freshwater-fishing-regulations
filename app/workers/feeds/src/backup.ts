@@ -92,6 +92,6 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date): Prom
   res.wallMs = Date.now() - t0;
   try {
     await src.put(BACKUP_STATUS_KEY, JSON.stringify(res), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
-  } catch { /* the result is also logged by the caller */ }
+  } catch (e) { console.error(JSON.stringify({ job: "backup", statusError: String(e) })); }   // (T431) the caller logs the run, not this write
   return res;
 }

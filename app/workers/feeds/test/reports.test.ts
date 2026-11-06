@@ -8,6 +8,9 @@ import { compose } from "../src/events";
 import { handleReport, LIMITS, reportEvents, validateReport } from "../src/reports";
 import type { R2BucketLike } from "../src/io";
 
+/** (T431) the required secret (a worker without it answers 503) */
+const SALT = "test-salt";
+
 class MemBucket implements R2BucketLike {
   m = new Map<string, string>();
   async get(k: string) { const v = this.m.get(k); return v === undefined ? null : { text: async () => v }; }
@@ -31,9 +34,16 @@ const post = (body: unknown, ip = "203.0.113.5", extra: Record<string, string> =
 const at = (s: string) => new Date(s);
 
 describe("POST /report (T237)", () => {
+  it("(T431) without REPORT_SALT: 503, nothing stored (the per-IP key never hashes with a constant)", async () => {
+    const BUCKET = new MemBucket();
+    const r = await handleReport(post(report()), { BUCKET }, at("2026-10-29T20:00:05Z"));
+    expect(r.status).toBe(503);
+    expect([...BUCKET.m.keys()]).toEqual([]);
+  });
+
   it("stores a valid report privately, by day and id, without the IP or the user agent; answers only the id", async () => {
     const BUCKET = new MemBucket();
-    const r = await handleReport(post(report()), { BUCKET }, at("2026-10-28T20:00:05Z"));
+    const r = await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:05Z"));
     expect(r.status).toBe(201);
     expect(await r.json()).toEqual({ ok: true, id: "0123456789abcdef" });
     expect(r.headers.get("Access-Control-Allow-Origin")).toBe("*");
@@ -55,12 +65,12 @@ describe("POST /report (T237)", () => {
 
   it("refuses a 2nd report from one IP within 10 s (429), not from another IP, and again after 10 s", async () => {
     const BUCKET = new MemBucket();
-    expect((await handleReport(post(report()), { BUCKET }, at("2026-10-28T20:00:00Z"))).status).toBe(201);
-    const second = await handleReport(post(report({ id: "1111111111111111" })), { BUCKET }, at("2026-10-28T20:00:09Z"));
+    expect((await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:00Z"))).status).toBe(201);
+    const second = await handleReport(post(report({ id: "1111111111111111" })), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:09Z"));
     expect(second.status).toBe(429);
     expect(await second.json()).toEqual({ ok: false, error: "too many reports; try again in a minute" });
-    expect((await handleReport(post(report({ id: "2222222222222222" }), "198.51.100.7"), { BUCKET }, at("2026-10-28T20:00:09Z"))).status).toBe(201);
-    expect((await handleReport(post(report({ id: "1111111111111111" })), { BUCKET }, at("2026-10-28T20:00:11Z"))).status).toBe(201);
+    expect((await handleReport(post(report({ id: "2222222222222222" }), "198.51.100.7"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:09Z"))).status).toBe(201);
+    expect((await handleReport(post(report({ id: "1111111111111111" })), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:11Z"))).status).toBe(201);
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("limits/")).length).toBe(3);
   });
 
@@ -69,9 +79,9 @@ describe("POST /report (T237)", () => {
     let t = Date.parse("2026-10-28T00:00:00Z");
     for (let i = 0; i < 30; i++) {
       t += 11_000;
-      expect((await handleReport(post(report({ id: i.toString(16).padStart(16, "0") })), { BUCKET }, new Date(t))).status).toBe(201);
+      expect((await handleReport(post(report({ id: i.toString(16).padStart(16, "0") })), { BUCKET, REPORT_SALT: SALT }, new Date(t))).status).toBe(201);
     }
-    const r = await handleReport(post(report({ id: "ffffffffffffffff" })), { BUCKET }, new Date(t + 11_000));
+    const r = await handleReport(post(report({ id: "ffffffffffffffff" })), { BUCKET, REPORT_SALT: SALT }, new Date(t + 11_000));
     expect(r.status).toBe(429);
     expect(await r.json()).toEqual({ ok: false, error: "too many reports today" });
   });
@@ -79,14 +89,14 @@ describe("POST /report (T237)", () => {
   it("the edge limiter, when bound, refuses first", async () => {
     const BUCKET = new MemBucket();
     const REPORT_LIMITER = { limit: async () => ({ success: false }) };
-    expect((await handleReport(post(report()), { BUCKET, REPORT_LIMITER }, at("2026-10-28T20:00:00Z"))).status).toBe(429);
+    expect((await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT, REPORT_LIMITER }, at("2026-10-28T20:00:00Z"))).status).toBe(429);
     expect(BUCKET.m.size).toBe(0);
   });
 
   it("the same id re-sent (the app's outbox after a lost answer) is stored once and not counted", async () => {
     const BUCKET = new MemBucket();
-    await handleReport(post(report()), { BUCKET }, at("2026-10-28T20:00:00Z"));
-    const again = await handleReport(post(report()), { BUCKET }, at("2026-10-28T20:00:02Z"));
+    await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:00Z"));
+    const again = await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:02Z"));
     expect(again.status).toBe(200);
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("limits/"))).toHaveLength(1);
   });
@@ -108,7 +118,7 @@ describe("POST /report (T237)", () => {
       [JSON.stringify(report()) + " ".repeat(LIMITS.bytes), 413, "report too large"],
     ];
     for (const [body, status, error] of cases) {
-      const r = await handleReport(post(body), { BUCKET }, now);
+      const r = await handleReport(post(body), { BUCKET, REPORT_SALT: SALT }, now);
       expect([r.status, ((await r.json()) as { error: string }).error]).toEqual([status, error]);
     }
     expect(BUCKET.m.size).toBe(0);
@@ -125,7 +135,7 @@ describe("POST /report (T237)", () => {
 
   it("the digest says reply not allowed when the box was not ticked (and never the address)", async () => {
     const BUCKET = new MemBucket();
-    await handleReport(post(report({ contact: false })), { BUCKET }, at("2026-10-28T20:00:00Z"));
+    await handleReport(post(report({ contact: false })), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:00Z"));
     const ev = await reportEvents(BUCKET, () => false, at("2026-10-28T20:30:00Z"), "x");
     expect(ev[0]!.title).not.toMatch(/reply allowed/);
     expect(ev[0]!.text).toMatch(/Reply: not allowed/);
@@ -136,7 +146,7 @@ describe("POST /report (T237)", () => {
 describe("the worker's routes (T237)", () => {
   it("preflight, POST, and GET /reports behind the run token, newest first", async () => {
     const BUCKET = new MemBucket();
-    const env = { BUCKET, RUN_TOKEN: "tok" } as any;
+    const env = { BUCKET, REPORT_SALT: SALT, RUN_TOKEN: "tok" } as any;
     const pre = await worker.fetch(new Request("https://w.example/report", { method: "OPTIONS" }), env);
     expect(pre.status).toBe(204);
     expect(pre.headers.get("Access-Control-Allow-Methods")).toBe("POST, OPTIONS");
@@ -155,7 +165,7 @@ describe("the worker's routes (T237)", () => {
 describe("the owner's digest (T237: a report is a digest line, never urgent)", () => {
   it("a new report becomes one line, once; the email is never in it", async () => {
     const BUCKET = new MemBucket();
-    await handleReport(post(report()), { BUCKET }, at("2026-10-28T20:00:00Z"));
+    await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:00Z"));
     const ev = await reportEvents(BUCKET, () => false, at("2026-10-28T20:30:00Z"), "2026-10-28T20:30:00Z");
     expect(ev).toHaveLength(1);
     expect(ev[0]!.key).toBe("report:0123456789abcdef");
@@ -177,7 +187,7 @@ describe("the test tag (T291)", () => {
   it("staging stores a tagged report under reports-test/, outside the digest and the default list; production ignores the tag", async () => {
     const { purgeTestReports, listReports } = await import("../src/reports");
     const BUCKET = new MemBucket();
-    expect((await handleReport(post(report({ test: true })), { BUCKET, FEEDS_ENV: "staging" }, at("2026-10-29T20:00:05Z"))).status).toBe(201);
+    expect((await handleReport(post(report({ test: true })), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" }, at("2026-10-29T20:00:05Z"))).status).toBe(201);
     expect([...BUCKET.m.keys()].some((k) => k.startsWith("private/reports-test/2026-10-29/"))).toBe(true);
     expect([...BUCKET.m.keys()].some((k) => /^private\/reports\/2026/.test(k))).toBe(false);
     expect(await reportEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toEqual([]);
@@ -187,7 +197,7 @@ describe("the test tag (T291)", () => {
     expect(all[0]!.test).toBe(true);
     expect(await purgeTestReports(BUCKET, at("2026-11-10T00:00:00Z"))).toBe(1);
     const P = new MemBucket();
-    await handleReport(post(report({ test: true }), "198.51.100.7"), { BUCKET: P, FEEDS_ENV: "production" }, at("2026-10-29T20:00:05Z"));
+    await handleReport(post(report({ test: true }), "198.51.100.7"), { BUCKET: P, REPORT_SALT: SALT, FEEDS_ENV: "production" }, at("2026-10-29T20:00:05Z"));
     expect([...P.m.keys()].some((k) => k.includes("reports-test"))).toBe(false);
     expect(await reportEvents(P, () => false, at("2026-10-29T21:00:00Z"), "x")).toHaveLength(1);
     const stored = JSON.parse([...P.m.entries()].find(([k]) => /private\/reports\/2026/.test(k))![1]);
@@ -201,7 +211,7 @@ describe("report/2 (T352)", () => {
     layer: "regulations · map", horizon: "3", zoom: 9.4, lat: 49.123, lon: -121.957, install: "0123456789abcdef", ...ctx } });
   it("is stored as sent, beside report/1", async () => {
     const BUCKET = new MemBucket();
-    expect((await handleReport(post(v2()), { BUCKET }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
+    expect((await handleReport(post(v2()), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
     const stored = JSON.parse(BUCKET.m.get("private/reports/2026-11-03/0123456789abcdef.json")!);
     expect(stored).toEqual({ ...v2(), received: "2026-11-03T10:00:00.000Z" });
     expect(validateReport(report()).ok).toBe(true);

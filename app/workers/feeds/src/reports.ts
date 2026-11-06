@@ -136,6 +136,17 @@ export async function sha256hex(s: string): Promise<string> {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * (T431) REPORT_SALT is a REQUIRED secret (runbooks/secrets.md; `wrangler secret put REPORT_SALT`): without it the per-IP
+ * key would be hashed with a constant from the repo. A report or crash is then answered 503 (the app's outbox keeps a
+ * report and sends it again) and the miss is logged; `deploy/staging/feeds.sh` refuses to deploy a worker without it.
+ */
+export function noSalt(env: ReportEnv): Response | null {
+  if (env.REPORT_SALT) return null;
+  console.error(JSON.stringify({ job: "reports", error: "REPORT_SALT is not set" }));
+  return json({ ok: false, error: "the report endpoint is not configured" }, 503);
+}
+
 /** The per-IP gate: null = allowed (and recorded), else the refusal. */
 export async function rateLimit(env: ReportEnv, ip: string, now: Date,
   o: { prefix?: string; gapMs?: number; perDay?: number; edge?: boolean } = {}): Promise<string | null> {
@@ -145,7 +156,8 @@ export async function rateLimit(env: ReportEnv, ip: string, now: Date,
       if (!(await env.REPORT_LIMITER.limit({ key: `report:${ip}` })).success) return "too many reports; try again in a minute";
     } catch { /* the binding failing never blocks a report: the R2 gate still holds */ }
   }
-  const key = `${prefix}${(await sha256hex(`${env.REPORT_SALT ?? "bc-fishing-report"}:${ip}`)).slice(0, 32)}.json`;
+  if (!env.REPORT_SALT) throw new Error("REPORT_SALT is not set");
+  const key = `${prefix}${(await sha256hex(`${env.REPORT_SALT}:${ip}`)).slice(0, 32)}.json`;
   const day = now.toISOString().slice(0, 10);
   let st: { last: number; day: string; n: number } = { last: 0, day, n: 0 };
   try {
@@ -163,6 +175,8 @@ export const reportKey = (day: string, id: string) => `${REPORTS_PREFIX}${day}/$
 
 /** POST /report */
 export async function handleReport(req: Request, env: ReportEnv, now: Date = new Date()): Promise<Response> {
+  const unset = noSalt(env);
+  if (unset) return unset;
   const len = Number(req.headers.get("Content-Length") ?? NaN);
   if (Number.isFinite(len) && len > LIMITS.bytes) return json({ ok: false, error: "report too large" }, 413);
   let raw: string;

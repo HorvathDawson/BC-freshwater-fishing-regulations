@@ -6,6 +6,9 @@ import { compose } from "../src/events";
 import { crashEvents, crashHash, handleCrash, purgeCrashes, validateCrash, CRASH_PER_DAY } from "../src/crashes";
 import type { R2BucketLike } from "../src/io";
 
+/** (T431) the required secret (a worker without it answers 503) */
+const SALT = "test-salt";
+
 class MemBucket implements R2BucketLike {
   m = new Map<string, string>();
   async get(k: string) { const v = this.m.get(k); return v === undefined ? null : { text: async () => v }; }
@@ -27,9 +30,16 @@ const post = (body: unknown, ip = "203.0.113.5") =>
 const at = (s: string) => new Date(s);
 
 describe("POST /crash (T242)", () => {
-  it("stores one object per kind with no IP or user agent; a repeat and a new version fold into it", async () => {
+  it("(T431) without REPORT_SALT: 503, nothing stored (the per-IP key never hashes with a constant)", async () => {
     const BUCKET = new MemBucket();
     const r = await handleCrash(post(crash()), { BUCKET }, at("2026-10-29T20:00:05Z"));
+    expect(r.status).toBe(503);
+    expect([...BUCKET.m.keys()]).toEqual([]);
+  });
+
+  it("stores one object per kind with no IP or user agent; a repeat and a new version fold into it", async () => {
+    const BUCKET = new MemBucket();
+    const r = await handleCrash(post(crash()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:05Z"));
     expect(r.status).toBe(201);
     expect(await r.json()).toEqual({ ok: true });
     const keys = [...BUCKET.m.keys()].filter((k) => !k.includes("/limits/"));
@@ -38,7 +48,7 @@ describe("POST /crash (T242)", () => {
     expect(stored).toMatchObject({ format: "crash-kind/1", count: 1, first: "2026-10-29T20:00:05.000Z", versions: { "0.1.0+12": 1 } });
     expect(JSON.stringify(stored)).not.toMatch(/203\.0\.113|UA\/1/);
     // the same error from another build (line/column moved) and another person: the same kind
-    const r2 = await handleCrash(post(crash({ app: "0.1.0+13", stack: crash().stack.replace("123456", "654321") }), "198.51.100.9"), { BUCKET }, at("2026-10-30T09:00:00Z"));
+    const r2 = await handleCrash(post(crash({ app: "0.1.0+13", stack: crash().stack.replace("123456", "654321") }), "198.51.100.9"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-30T09:00:00Z"));
     expect(r2.status).toBe(201);
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("/limits/"))).toEqual(keys);
     expect(JSON.parse(BUCKET.m.get(keys[0]!)!)).toMatchObject({ count: 2, first: "2026-10-29T20:00:05.000Z", last: "2026-10-30T09:00:00.000Z",
@@ -53,11 +63,11 @@ describe("POST /crash (T242)", () => {
 
   it("refuses a 2nd POST from one IP within the gap and the daily cap, but not another IP", async () => {
     const BUCKET = new MemBucket();
-    expect((await handleCrash(post(crash()), { BUCKET }, at("2026-10-29T20:00:00Z"))).status).toBe(201);
-    expect((await handleCrash(post(crash()), { BUCKET }, at("2026-10-29T20:00:00.500Z"))).status).toBe(429);
-    expect((await handleCrash(post(crash(), "198.51.100.9"), { BUCKET }, at("2026-10-29T20:00:01Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:00Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:00.500Z"))).status).toBe(429);
+    expect((await handleCrash(post(crash(), "198.51.100.9"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:01Z"))).status).toBe(201);
     let t = Date.parse("2026-10-29T21:00:00Z"), last = 201;
-    for (let i = 0; i < CRASH_PER_DAY + 1; i++) { last = (await handleCrash(post(crash(), "192.0.2.1"), { BUCKET }, new Date(t))).status; t += 1500; }
+    for (let i = 0; i < CRASH_PER_DAY + 1; i++) { last = (await handleCrash(post(crash(), "192.0.2.1"), { BUCKET, REPORT_SALT: SALT }, new Date(t))).status; t += 1500; }
     expect(last).toBe(429);
   });
 
@@ -68,7 +78,7 @@ describe("POST /crash (T242)", () => {
       [crash({ lat: 49.1 }), 400], [crash({ stack: "x".repeat(2001) }), 400], [crash({ message: "m".repeat(201) }), 400],
       [crash({ fatal: "yes" }), 400], [crash({ name: " " }), 400], ["x".repeat(9000), 413],
     ] as const) {
-      expect((await handleCrash(post(body, `10.0.0.${status + String(body).length % 200}`), { BUCKET }, at("2026-10-29T20:00:00Z"))).status).toBe(status);
+      expect((await handleCrash(post(body, `10.0.0.${status + String(body).length % 200}`), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:00Z"))).status).toBe(status);
     }
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("/limits/"))).toEqual([]);
     expect(validateCrash(crash()).ok).toBe(true);
@@ -76,7 +86,7 @@ describe("POST /crash (T242)", () => {
 
   it("the worker routes it: OPTIONS 204, GET /crash 405, GET /crashes needs the token", async () => {
     const BUCKET = new MemBucket();
-    const env = { BUCKET, RUN_TOKEN: "tok" } as never;
+    const env = { BUCKET, REPORT_SALT: SALT, RUN_TOKEN: "tok" } as never;
     expect((await worker.fetch(new Request("https://w.example/crash", { method: "OPTIONS" }), env)).status).toBe(204);
     expect((await worker.fetch(new Request("https://w.example/crash"), env)).status).toBe(405);
     expect((await worker.fetch(new Request("https://w.example/crashes"), env)).status).toBe(403);
@@ -88,7 +98,7 @@ describe("POST /crash (T242)", () => {
 
   it("the digest tells a new kind once, a known one never, and the line has no IP", async () => {
     const BUCKET = new MemBucket();
-    await handleCrash(post(crash()), { BUCKET }, at("2026-10-29T20:00:00Z"));
+    await handleCrash(post(crash()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:00Z"));
     const ev = await crashEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "2026-10-29T21:00:00Z");
     expect(ev).toHaveLength(1);
     expect(ev[0]!.kind).toBe("crash");
@@ -102,8 +112,8 @@ describe("POST /crash (T242)", () => {
 
   it("the purge deletes kinds unseen for 90 days and keeps limits and recent kinds", async () => {
     const BUCKET = new MemBucket();
-    await handleCrash(post(crash()), { BUCKET }, at("2026-06-01T00:00:00Z"));
-    await handleCrash(post(crash({ name: "RangeError" }), "198.51.100.9"), { BUCKET }, at("2026-10-20T00:00:00Z"));
+    await handleCrash(post(crash()), { BUCKET, REPORT_SALT: SALT }, at("2026-06-01T00:00:00Z"));
+    await handleCrash(post(crash({ name: "RangeError" }), "198.51.100.9"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-20T00:00:00Z"));
     const r = await purgeCrashes(BUCKET, at("2026-10-29T00:00:00Z"));
     expect(r).toEqual({ ok: true, deleted: 1, failed: 0 });
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("/limits/"))).toHaveLength(1);
@@ -113,11 +123,11 @@ describe("POST /crash (T242)", () => {
 describe("the test tag (T291)", () => {
   it("is honoured on staging only: stored apart, not in the digest, listed with ?test=1, purged after 7 days", async () => {
     const BUCKET = new MemBucket();
-    await handleCrash(post(crash({ test: true })), { BUCKET, FEEDS_ENV: "staging" }, at("2026-10-29T20:00:00Z"));
+    await handleCrash(post(crash({ test: true })), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" }, at("2026-10-29T20:00:00Z"));
     expect([...BUCKET.m.keys()].filter((k) => k.startsWith("private/crashes-test/"))).toHaveLength(1);
     expect([...BUCKET.m.keys()].filter((k) => /^private\/crashes\/[0-9a-f]{16}/.test(k))).toEqual([]);
     expect(await crashEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toEqual([]);
-    const env = { BUCKET, RUN_TOKEN: "tok", FEEDS_ENV: "staging" } as never;
+    const env = { BUCKET, REPORT_SALT: SALT, RUN_TOKEN: "tok", FEEDS_ENV: "staging" } as never;
     const get = async (q: string) => ((await (await worker.fetch(new Request(`https://w.example/crashes?since=2000-01-01${q}`, { headers: { authorization: "Bearer tok" } }), env)).json()) as { crashes: { test?: boolean }[] }).crashes;
     expect(await get("")).toHaveLength(0);
     expect((await get("&test=1"))[0]!.test).toBe(true);
@@ -125,7 +135,7 @@ describe("the test tag (T291)", () => {
   });
   it("a production worker (or none) ignores the tag: the kind is an ordinary one and the digest tells it", async () => {
     const BUCKET = new MemBucket();
-    await handleCrash(post(crash({ test: true })), { BUCKET, FEEDS_ENV: "production" }, at("2026-10-29T20:00:00Z"));
+    await handleCrash(post(crash({ test: true })), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "production" }, at("2026-10-29T20:00:00Z"));
     expect([...BUCKET.m.keys()].filter((k) => k.includes("crashes-test"))).toEqual([]);
     expect(await crashEvents(BUCKET, () => false, at("2026-10-29T21:00:00Z"), "x")).toHaveLength(1);
   });
@@ -163,10 +173,10 @@ describe("crash/2 (T352)", () => {
 
   it("stores the richer sample and counts distinct installs; crash/1 and crash/2 of one error are one kind", async () => {
     const BUCKET = new MemBucket();
-    expect((await handleCrash(post(crash()), { BUCKET }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
-    expect((await handleCrash(post(crash2(), "198.51.100.1"), { BUCKET }, at("2026-11-03T10:00:01Z"))).status).toBe(201);
-    expect((await handleCrash(post(crash2({ install: "fedcba9876543210" }), "198.51.100.2"), { BUCKET }, at("2026-11-03T10:00:02Z"))).status).toBe(201);
-    expect((await handleCrash(post(crash2(), "198.51.100.3"), { BUCKET }, at("2026-11-03T10:00:03Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash()), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash2(), "198.51.100.1"), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:01Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash2({ install: "fedcba9876543210" }), "198.51.100.2"), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:02Z"))).status).toBe(201);
+    expect((await handleCrash(post(crash2(), "198.51.100.3"), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:03Z"))).status).toBe(201);
     expect(kinds(BUCKET)).toHaveLength(1);
     const k = JSON.parse(BUCKET.m.get(kinds(BUCKET)[0]!)!);
     expect(k).toMatchObject({ count: 4, installs: ["0123456789abcdef", "fedcba9876543210"] });
@@ -194,10 +204,10 @@ describe("background OS kills (T352)", () => {
     const BUCKET = new MemBucket();
     const kill = crash2({ kind: "native", fatal: false, background: true, name: "NativeExit", stack: "", message: "LOW_MEMORY while background, 412 MB in use",
                           route: "other", water: null, view: null, part: null });
-    expect((await handleCrash(post(kill), { BUCKET }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
+    expect((await handleCrash(post(kill), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:00Z"))).status).toBe(201);
     expect(JSON.parse(BUCKET.m.get(kinds(BUCKET)[0]!)!).background).toBe(true);
     expect(await crashEvents(BUCKET, () => false, at("2026-11-03T11:00:00Z"), "x")).toEqual([]);
-    const env = { BUCKET, RUN_TOKEN: "tok" } as never;
+    const env = { BUCKET, REPORT_SALT: SALT, RUN_TOKEN: "tok" } as never;
     const get = async (q: string) => ((await (await worker.fetch(new Request(`https://w.example/crashes?since=2000-01-01${q}`, { headers: { authorization: "Bearer tok" } }), env)).json()) as { crashes: unknown[] }).crashes;
     expect(await get("")).toHaveLength(0);
     expect(await get("&background=1")).toHaveLength(1);
@@ -205,8 +215,8 @@ describe("background OS kills (T352)", () => {
   it("a crash/1 (0.4.0) kill is read from its exit line; a foreground one stays a crash", async () => {
     const BUCKET = new MemBucket();
     const v1 = (message: string) => crash({ kind: "native", name: "NativeExit", stack: "", route: "other", message });
-    await handleCrash(post(v1("SIGNALED while background, 300 MB in use, status 9")), { BUCKET }, at("2026-11-03T10:00:00Z"));
-    await handleCrash(post(v1("LOW_MEMORY while foreground, 900 MB in use"), "198.51.100.1"), { BUCKET }, at("2026-11-03T10:00:01Z"));
+    await handleCrash(post(v1("SIGNALED while background, 300 MB in use, status 9")), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:00Z"));
+    await handleCrash(post(v1("LOW_MEMORY while foreground, 900 MB in use"), "198.51.100.1"), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:01Z"));
     const ev = await crashEvents(BUCKET, () => false, at("2026-11-03T11:00:00Z"), "x");
     expect(ev).toHaveLength(1);
     expect(ev[0]!.title).toMatch(/LOW_MEMORY while foreground/);
@@ -218,7 +228,7 @@ describe("env local (T352)", () => {
     for (const FEEDS_ENV of ["staging", "production"]) {
       const BUCKET = new MemBucket();
       for (const body of [crash({ env: "local" }), crash2({ env: "local" }), crash2({ env: "local", test: true })]) {
-        const r = await handleCrash(post(body, `10.1.0.${Math.random() * 200 | 0}`), { BUCKET, FEEDS_ENV }, at("2026-11-03T10:00:00Z"));
+        const r = await handleCrash(post(body, `10.1.0.${Math.random() * 200 | 0}`), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV }, at("2026-11-03T10:00:00Z"));
         expect(r.status).toBe(202);
         expect(await r.json()).toEqual({ ok: true, stored: false });
       }

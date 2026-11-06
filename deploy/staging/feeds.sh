@@ -7,6 +7,15 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 URL=https://bc-fishing-feeds-staging.horvath-dawson.workers.dev
+# (T431) the worker's own tests first (DFO + gauge parity with the Python, the endpoints, the crons): a red suite deploys
+# nothing. The same command as app-ci.yml's "Feeds worker tests".
+(cd app/workers/feeds && npx vitest run --root .)
+# (T431) REPORT_SALT is a required secret (src/reports.ts `noSalt`: without it every report and crash is answered 503)
+if ! npx --prefix app wrangler secret list -c app/workers/feeds/wrangler.toml 2>/dev/null | grep -q 'REPORT_SALT'; then
+  echo "REPORT_SALT is not set on the staging feeds worker. Set it once (runbooks/secrets.md), then re-run:" >&2
+  echo "  openssl rand -hex 32 | npx --prefix app wrangler secret put REPORT_SALT -c app/workers/feeds/wrangler.toml" >&2
+  exit 1
+fi
 npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml 2>&1 | grep -v "npm warn" | tail -4
 T=$(tr -d '\n' < app/workers/feeds/.run-token)
 sleep 10   # the new version reaches every location
