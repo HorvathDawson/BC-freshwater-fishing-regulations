@@ -1792,6 +1792,28 @@
       -127.50633,
       50.67421
      ]
+    },
+    {
+     "id": "quatse_river__quatse_river_hatchery_weir_100_m_2",
+     "label": "Quatse River Hatchery weir (100 m upstream)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -127.485538,
+       50.689494
+      ],
+      "is_lonlat": true,
+      "offset_m": 100.0,
+      "offset_dir": "upstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-06] proposed in review marks on 1:quatse-river:100m-upstream-and-downstream-of-th — \"100m upstream and downstream of the Quatse River Hatchery weir\"",
+     "_coord": [
+      -127.485538,
+      50.689494
+     ]
     }
    ]
   },
