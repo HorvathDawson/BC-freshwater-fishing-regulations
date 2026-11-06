@@ -1,8 +1,8 @@
 """The curation-review app reviews the CURRENT catalogue model, end to end, through its HTTP API.
 
 Runs the FastAPI app (curation-review/backend) with `TestClient` against a TEMP COPY of the
-catalogue region files (`CURATION_ENTRIES_DIR`), splits.json and the marks store — never the real
-ones. It proves:
+curated tree (`conftest.curated_root`, `CURATED_ROOT`: the catalogue region files, the cuts and the marks
+store) — never the real ones. It proves:
 
   GET        the entry is served with a generated `label` on every rule and record, the same
              string `catalogue.label` / `catalogue.licensing_label` produce (one entry of every
@@ -17,7 +17,6 @@ That no route writes under data/curated (T185) is `test_curation_review_screen.p
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 from pathlib import Path
 
@@ -25,11 +24,10 @@ import pytest
 
 from pipeline.common.curated import CURATED, GENERATED
 from pipeline.regs.parsing import catalogue as C
-from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT
+from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-REAL = CURATED.regulations.synopsis
 
 #: the review app serves the built registry (data/generated/atlas/full)
 pytestmark = pytest.mark.needs_atlas
@@ -38,16 +36,10 @@ pytestmark = pytest.mark.needs_atlas
 @pytest.fixture(scope="module")
 def env(request, tmp_path_factory):
     need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
-    tmp = tmp_path_factory.mktemp("catalogue")
-    for p in sorted(REAL.glob("region-*.json")):
-        shutil.copy2(p, tmp / p.name)
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_ENTRIES_DIR", str(tmp))
-    shutil.copy2(CURATED.waters.cuts, tmp / "splits.json")
-    mp.setenv("CURATION_SPLITS_JSON", str(tmp / "splits.json"))
-    # the reviewer's marks go to a temp store, never the real one
-    (tmp / "marks.jsonl").write_text("")
-    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
+    # the whole curated tree is a temp copy (the reviewer's marks go to its empty store, never the real one)
+    curated_root(mp, tmp_path_factory.mktemp("curated"))
+    tmp = Path(CURATED.regulations.synopsis)
     # a mark backs the store up first (`writes.py`) — into a temp dir, never data/generated
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
@@ -210,7 +202,7 @@ def as_built(env, monkeypatch):
 
 @pytest.fixture
 def fresh_marks(env):
-    store = env["dir"] / "marks.jsonl"
+    store = Path(env["reuse"].MARKS_PATH)
     store.write_text("")
     yield store
     store.write_text("")

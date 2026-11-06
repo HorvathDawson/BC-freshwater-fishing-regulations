@@ -203,10 +203,11 @@ class WriteThrough:
 
 
 def from_env(marks: Path, root: Path) -> WriteThrough:
-    """The server's write-through: on when it writes the curated marks store (or `CURATION_WRITE_THROUGH=1`)."""
-    from pipeline.common.curated import CURATED
+    """The server's write-through: on when it writes the LIVE curated marks store (or `CURATION_WRITE_THROUGH=1`).
+    A sandbox (`CURATED_ROOT`, T422) is off by default, as a copied store was before it."""
+    from pipeline.common.curated import load_repo
     flag = os.environ.get("CURATION_WRITE_THROUGH")
-    curated = Path(marks).resolve() == Path(CURATED.review.marks).resolve()
+    curated = Path(marks).resolve() == Path(load_repo().review.marks).resolve()
     enabled = flag == "1" or (flag is None and curated)
     log = os.environ.get("CURATION_WRITE_THROUGH_LOG")
     return WriteThrough(marks, enabled=enabled,

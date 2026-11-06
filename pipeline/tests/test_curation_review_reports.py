@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
-from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, need
+from pipeline.common.curated import load_repo
+from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -30,9 +30,8 @@ def _stamps(root: Path) -> dict[str, str]:
 @pytest.fixture(scope="module")
 def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("reports")
-    (tmp / "marks.jsonl").write_text("")
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
+    curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp / "backups"))
     mp.setenv("CURATION_REPORTS_TOKEN", "tok")
     mp.setenv("CURATION_REPORTS_URL", "https://worker.invalid/reports")
@@ -42,9 +41,9 @@ def env(tmp_path_factory):
     import app as app_mod                                     # noqa: E402
     import reports                                            # noqa: E402
     from fastapi.testclient import TestClient
-    curated = _stamps(CURATED.base)
+    curated = _stamps(load_repo().base)
     yield {"client": TestClient(app_mod.app), "reports": reports, "mp": mp}
-    assert _stamps(CURATED.base) == curated, "a reports route wrote under data/curated"
+    assert _stamps(load_repo().base) == curated, "a reports route wrote under data/curated"
     mp.undo()
     for mod in _MODS:
         sys.modules.pop(mod, None)

@@ -10,9 +10,11 @@ from pathlib import Path
 import pytest
 
 from pipeline.atlas.splits import tidal as TA
+from pipeline.common.curated import CURATED
 from pipeline.regs.review import proposals as P
 from pipeline.regs.review import tidal as T
 from pipeline.tests import test_tidal_limits as TT
+from pipeline.tests.conftest import curated_root
 
 BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
 
@@ -23,9 +25,8 @@ def app(tmp_path, monkeypatch):
     cands.write_text(json.dumps({"coverage": {}, "candidates": [{"enters": "ocean", "agreement": "-", **c}
                                                                 for c in TT.CANDS]}))
     monkeypatch.setenv("CURATION_TIDAL_CANDIDATES", str(cands))
-    marks = tmp_path / "marks.jsonl"
-    marks.write_text("")
-    monkeypatch.setenv("CURATION_MARKS", str(marks))
+    curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
+    marks = Path(CURATED.review.marks)
     T._load.cache_clear()
     (tmp_path / "cat").mkdir()
     (tmp_path / "dfo").mkdir()

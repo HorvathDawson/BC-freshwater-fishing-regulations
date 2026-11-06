@@ -77,6 +77,29 @@ def need(request_or_node, kind: str, path, hint: str) -> Path:
     return p
 
 
+def sandbox_tree(dst: Path, *, fresh_review: bool = True) -> Path:
+    """T422: a whole copy of the live curated tree at `dst` (`curated.make_root`). `fresh_review` (the default) makes
+    it a review with nothing in it, as the per-file temp stores were: the marks store empty and no closed list
+    (`CURATED.review.closed` absent = nothing closed). Returns the root."""
+    from pipeline.common import curated as C
+    root = C.make_root(dst)
+    if fresh_review:
+        live = C.load_repo()
+        (root / Path(live.review.marks).relative_to(live.base)).write_text("", encoding="utf-8")
+        (root / Path(live.review.closed).relative_to(live.base)).unlink(missing_ok=True)
+    return root
+
+
+def curated_root(mp: pytest.MonkeyPatch, dst: Path, *, fresh_review: bool = True) -> Path:
+    """T422: THE review-app sandbox — `sandbox_tree(dst)` and `CURATED_ROOT` pointed at it through `mp`, so every
+    curated path the process reads is the copy (never a mix). Returns the root; a test reads the copy's paths
+    through `CURATED` AFTER this call."""
+    from pipeline.common.curated import ROOT_ENV
+    root = sandbox_tree(dst, fresh_review=fresh_review)
+    mp.setenv(ROOT_ENV, str(root))
+    return root
+
+
 @pytest.fixture(autouse=True)
 def _refused_saves_to_temp(tmp_path, monkeypatch):
     """No test writes the review app's real refused-saves log (owner 2026-10-28)."""

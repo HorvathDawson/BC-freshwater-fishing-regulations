@@ -9,6 +9,9 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.common.curated import CURATED
+from pipeline.tests.conftest import curated_root
+
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
 
@@ -26,10 +29,9 @@ def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("q154")
     (tmp / "sample.json").write_text(json.dumps({"cutoff": {"max_ha": 1.0}, "rows": [
         _pond(1, True), _pond(2, False), _pond(3, True, "sample")]}))
-    (tmp / "marks.jsonl").write_text("")
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_Q154_SAMPLE", str(tmp / "sample.json"))
-    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
+    curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
     for mod in ("app", "reuse", "ponds", "writes", "review"):
@@ -38,7 +40,7 @@ def env(tmp_path_factory):
     Q._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp}
+    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(CURATED.review.marks)}
     mp.undo()
 
 
@@ -62,7 +64,7 @@ def test_prediction_is_not_a_mark_and_calls_are_tallied(env):
         assert r.status_code == 200, r.text
     r = c.post("/api/marks", json={"scope": "q154", "target": "lake:3", "answers": {"P": "?"}, "reviewer": "test"})
     assert r.status_code == 200, r.text
-    lines = [json.loads(x) for x in (env["dir"] / "marks.jsonl").read_text().splitlines()]
+    lines = [json.loads(x) for x in env["marks"].read_text().splitlines()]
     assert [(m["target"], m.get("call"), m["verdict"]) for m in lines] == [
         ("lake:1", "pool", "verified"), ("lake:2", "pool", "verified"), ("lake:3", None, "unsure")]
     t = c.get("/api/q154/tally").json()

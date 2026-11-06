@@ -125,8 +125,9 @@ caches drop themselves when the served files change, with no restart.
   with the served reach run's; only a typed cause explains a difference (`parity.EXPLAINED`).
 - **False stale.** `python -m pipeline.regs.review.gate stale` reads every mark in force: held,
   stale by an edit, stale by a rebuild alone (`build_only` — the false stales; the gate is 0).
-- **A rehearsal on copies.** Every path the tool reads can point at a copy: `CURATION_ENTRIES_DIR`,
-  `CURATION_SPLITS_JSON`, `CURATION_MARKS`, `CURATION_BACKUP_DIR` (inputs) and `CURATION_BUILD`,
+- **A rehearsal on copies.** Every path the tool reads can point at a copy: `CURATED_ROOT` (the WHOLE curated tree —
+  corpus, cuts, marks, DFO places — one root, never a file at a time, T422), `CURATION_BACKUP_DIR` (inputs) and
+  `CURATION_BUILD`,
   `CURATION_REACH_DIR`, `CURATION_BUNDLE`, `CURATION_RELEASE_ROOT` (= the bundle's directory +
   `/release`), `CURATION_TILES` (outputs). The pending-build panel then prints the rebuild ON THOSE
   COPIES, step by step (`vintage.Target`, `rebuild_commands`) — never a live path. A tool serving
@@ -144,7 +145,7 @@ restriction missed). A human checks each entry against the book, and signs it of
 ## Marks
 
 - **Marks (T97)** live in the append-only store `data/curated/review/marks.jsonl`
-  (`CURATED.review.marks`; `CURATION_MARKS` overrides it), never inside an entry. Each
+  (`CURATED.review.marks`; a sandbox's copy under `CURATED_ROOT`), never inside an entry. Each
   mark names its reviewer, date, the book's sha256 and the printed pages, and holds the target's
   FINGERPRINTS (`pipeline.regs.review.fingerprint`: text, meaning, binding + its bundle half,
   answer). When something it was held against changes, the mark reads **changed since marked** with
@@ -203,15 +204,16 @@ BROWSER test `test_curation_review_browser.py` (`-m slow`: the real backend and 
 port of its own, driven by Playwright — `j` moves on, and Enter after clicking an answer records the
 mark). The frontend has no unit runner: `npx tsc -p tsconfig.json --noEmit` in `frontend/`.
 
-To run the app against a copy (never the real files): `CURATION_ENTRIES_DIR=<copy>` (and
-`CURATION_MARKS=<copy>`) on the backend, and `CURATION_API=http://127.0.0.1:<port>` on `vite` when
-the backend is on another port:
+To run the app against a copy (never the real files): a whole copy of the curated tree
+(`pipeline.common.curated.make_root`) named by `CURATED_ROOT`, and `PORT` / `CURATION_VITE_PORT` for a second copy
+beside the owner's. The old per-file `CURATION_ENTRIES_DIR` / `CURATION_SPLITS_JSON` / `CURATION_MARKS` /
+`CURATION_DFO_DIR` are REFUSED at start (T422): one root means the app reads all real files or all copies, never a mix.
+A sandbox's write-through is off unless `CURATION_WRITE_THROUGH=1`.
 
 ```bash
-# backend on :8791 against a copy, frontend on :5181 pointed at it
-(cd curation-review/backend && CURATION_ENTRIES_DIR=/tmp/cat CURATION_MARKS=/tmp/marks.jsonl \
-   CURATION_VITE_PORT=5181 PYTHONPATH="$PWD/../.." ../../.venv/bin/uvicorn app:app --port 8791) &
-(cd curation-review/frontend && CURATION_API=http://127.0.0.1:8791 CURATION_VITE_PORT=5181 npx vite)
+# a copy of data/curated at /tmp/cur, backend on :8791, frontend on :5181 pointed at it
+.venv/bin/python -c "from pipeline.common.curated import make_root; make_root('/tmp/cur')"
+CURATED_ROOT=/tmp/cur PORT=8791 CURATION_VITE_PORT=5181 bash curation-review/run.sh
 ```
 
 The first requests after a start load the graph and geometry (~20 s; `CURATION_WARM=1` does it at

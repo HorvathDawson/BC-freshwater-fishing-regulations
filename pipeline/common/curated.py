@@ -34,11 +34,20 @@ A CURATED PATH IS NEVER OVERRIDABLE BY AN ENVIRONMENT VARIABLE. That is the
 `review_build` failure with a new coat of paint — the app rebuilt one directory and read
 another and neither said so. There is one answer to "where is the curated data" and it
 lives in `config.yaml`. Generated paths live there too, under `generated:` — see `GENERATED`.
+
+THE ONE EXCEPTION IS THE WHOLE TREE, NEVER A FILE (T422). `CURATED_ROOT=<dir>` moves EVERY curated path under
+`<dir>` (the layout of `data/curated`; `make_root` copies the live tree there): the review app's tests, a side
+rebuild's app (`proposals.side_commands`) and the parity / gate side loads run on such a copy. One root means a
+process reads all real files or all copies — the per-file overrides it replaced (`CURATION_MARKS`,
+`CURATION_SPLITS_JSON`, `CURATION_ENTRIES_DIR`, `CURATION_DFO_DIR`, …) let a test or a side build read a mix
+without noticing, so they are REFUSED when set (`RETIRED_ENV`), never ignored.
 """
 
 from __future__ import annotations
 
 import functools
+import os
+import shutil
 from pathlib import Path
 
 import yaml
@@ -387,18 +396,102 @@ class Generated(BaseModel):
         return p
 
 
-@functools.lru_cache(maxsize=2)
+#: T422: THE sandbox — the one variable that moves curated data, and it moves ALL of it (module docstring).
+ROOT_ENV = "CURATED_ROOT"
+
+#: The per-file overrides `CURATED_ROOT` replaced, and the key each one repointed. Set (even empty) = refused:
+#: honouring one would read a mix of real and copied files; ignoring one would run a "sandboxed" test on the
+#: real files with nothing saying so.
+RETIRED_ENV = {
+    "CURATION_MARKS": "review.marks",
+    "CURATION_SPLITS_JSON": "waters.cuts",
+    "CURATION_ENTRIES_DIR": "regulations.synopsis",
+    "CURATION_DFO_DIR": "dfo_salmon.places",
+    "CURATION_INSEASON_MATCHES": "inseason.notice_waters",
+    "CURATION_SLOUGH_PAGE_MARKS": "waters.slough_page_calls",
+}
+
+
+def refuse_retired_env() -> None:
+    """Raise when a retired per-file override is set (`RETIRED_ENV`)."""
+    bad = sorted(k for k in RETIRED_ENV if k in os.environ)
+    if bad:
+        raise RuntimeError(
+            "retired curated-path override(s) set: " + ", ".join(f"{k} (was {RETIRED_ENV[k]})" for k in bad)
+            + f" — unset them; point {ROOT_ENV} at a whole copy of the curated tree instead "
+              "(pipeline.common.curated.make_root, T422)")
+
+
+def sandbox_root() -> Path | None:
+    """The curated root `CURATED_ROOT` names, or None for the live tree. Refuses a retired override, an empty
+    value and a root that is not a directory."""
+    refuse_retired_env()
+    v = os.environ.get(ROOT_ENV)
+    if v is None:
+        return None
+    return _checked_root(v)
+
+
+@functools.lru_cache(maxsize=16)
+def _checked_root(v: str) -> Path | None:
+    if not v.strip():
+        raise RuntimeError(f"{ROOT_ENV} is set but empty — unset it for the live tree, or name a root")
+    p = Path(v).resolve()
+    if not p.is_dir():
+        raise FileNotFoundError(f"{ROOT_ENV}={v}: no such directory (make one with curated.make_root)")
+    return None if p == _load(None, None).base.resolve() else p
+
+
+def _rebase(node: object, base: Path, root: Path, key: str = "curated") -> object:
+    """Every path string of the `curated:` blob moved from under `base` to under `root`."""
+    if isinstance(node, dict):
+        return {k: _rebase(v, base, root, f"{key}.{k}") for k, v in node.items()}
+    if isinstance(node, str):
+        p = Path(_absolute(node))
+        if p != base and base not in p.parents:
+            raise ValueError(f"{key} = {node} is outside curated.base ({base}): {ROOT_ENV} cannot move it")
+        return str(root / p.relative_to(base))
+    return node
+
+
 def load(config: Path | None = None) -> Curated:
-    """The validated curated tree. Cached, because validation stats every file.
+    """The validated curated tree — the live one, or the whole copy `CURATED_ROOT` names (T422). Cached, because
+    validation stats every file.
 
     Raises `pydantic.ValidationError` naming the offending key when a path is wrong — which
     is the whole point, and is why nothing here has a fallback default.
     """
+    return _load(config, sandbox_root())
+
+
+def load_repo(config: Path | None = None) -> Curated:
+    """The LIVE tree whatever `CURATED_ROOT` says — for the guards that must name the real files (a side copy is
+    refused under it; a test checks the real tree was not written)."""
+    return _load(config, None)
+
+
+@functools.lru_cache(maxsize=8)
+def _load(config: Path | None, root: Path | None) -> Curated:
     path = config or CONFIG
     blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if "curated" not in blob:
         raise KeyError(f"{path} has no `curated:` tree — see the restructure plan")
-    return Curated.model_validate(blob["curated"])
+    cur = blob["curated"]
+    if root is not None:
+        cur = _rebase(cur, Path(_absolute(cur["base"])), root)
+    return Curated.model_validate(cur)
+
+
+def make_root(dst: Path) -> Path:
+    """A whole copy of the LIVE curated tree at `dst` (created; existing files there are overwritten), for
+    `CURATED_ROOT`. A copy, never links: a write through the sandbox must not reach a real file. Refuses a `dst`
+    inside the live tree (or the tree itself)."""
+    live = load_repo().base.resolve()
+    dst = Path(dst).resolve()
+    if dst == live or live in dst.parents or dst in live.parents:
+        raise ValueError(f"{dst} overlaps the live curated tree ({live}): a sandbox root goes elsewhere")
+    shutil.copytree(live, dst, dirs_exist_ok=True)
+    return dst
 
 
 @functools.lru_cache(maxsize=2)

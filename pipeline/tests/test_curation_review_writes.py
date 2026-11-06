@@ -15,13 +15,13 @@ writes under data/curated.
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 from pathlib import Path
 
 import pytest
 
 from pipeline.common.curated import CURATED
+from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -33,20 +33,11 @@ _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes",
 def env(tmp_path):
     """A fresh temp copy of the curated files the app reads, the marks store, and the app pointed
     at them."""
-    cat, bak = tmp_path / "catalogue", tmp_path / "backups"
-    cat.mkdir()
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
-        shutil.copy2(p, cat / p.name)
-    splits = tmp_path / "waters" / "splits.json"
-    splits.parent.mkdir()
-    shutil.copy2(CURATED.waters.cuts, splits)
+    bak = tmp_path / "backups"
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_ENTRIES_DIR", str(cat))
-    marks = tmp_path / "review" / "marks.jsonl"          # the store is checked in, empty
-    marks.parent.mkdir()
-    marks.write_text("")
-    mp.setenv("CURATION_MARKS", str(marks))
-    mp.setenv("CURATION_SPLITS_JSON", str(splits))
+    curated_root(mp, tmp_path / "curated")                    # T422: the whole curated tree, its marks store empty
+    cat, splits, marks = (Path(CURATED.regulations.synopsis), Path(CURATED.waters.cuts),
+                          Path(CURATED.review.marks))
     mp.setenv("CURATION_BACKUP_DIR", str(bak))
     mp.syspath_prepend(str(BACKEND))
     for mod in _MODS:

@@ -20,13 +20,13 @@ from __future__ import annotations
 import ast
 import json
 import re
-import shutil
 import sys
 from pathlib import Path
 
 import pytest
 
 from pipeline.common.curated import CURATED
+from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
 TOOL = REPO / "curation-review"
@@ -38,17 +38,9 @@ _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo
 @pytest.fixture(scope="module")
 def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("curation")
-    cat = tmp / "catalogue"
-    cat.mkdir()
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
-        shutil.copy2(p, cat / p.name)
-    splits = tmp / "splits.json"
-    shutil.copy2(CURATED.waters.cuts, splits)
     mp = pytest.MonkeyPatch()
-    mp.setenv("CURATION_ENTRIES_DIR", str(cat))
-    (tmp / "marks.jsonl").write_text("")
-    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
-    mp.setenv("CURATION_SPLITS_JSON", str(splits))
+    curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
+    splits = Path(CURATED.waters.cuts)
     mp.setenv("CURATION_BACKUP_DIR", str(tmp / "backups"))
     mp.syspath_prepend(str(BACKEND))
     for mod in _MODS:
@@ -57,7 +49,7 @@ def env(tmp_path_factory):
     import reuse                                              # noqa: E402
     assert reuse.SPLITS_JSON_PATH == splits
     from fastapi.testclient import TestClient
-    yield {"app": app_mod, "client": TestClient(app_mod.app), "reuse": reuse}
+    yield {"app": app_mod, "client": TestClient(app_mod.app), "reuse": reuse, "tmp": tmp}
     mp.undo()
     for mod in _MODS:
         sys.modules.pop(mod, None)
@@ -263,7 +255,7 @@ def test_a_retired_editor_request_is_refused_and_writes_nothing(env):
     """Every retired editor's request is refused by the router (404/405) and leaves every byte of
     the catalogue, splits.json, the marks store and the backups as it was."""
     c = env["client"]
-    root = Path(env["reuse"].SPLITS_JSON_PATH).parent
+    root = env["tmp"]                                         # the sandbox curated tree + the backups
     before = _snapshot(root)
     eid, sid = "r1:adam_river_except_eve_river@1-10", "adam_river__hwy_19_bridge"
     sent = [c.post("/api/check", json={"entry": {}}),

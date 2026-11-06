@@ -10,7 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.common.curated import load_repo
+from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -55,22 +56,21 @@ def env(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("inseason")
     (tmp / "feed.json").write_text(json.dumps(FEED))
     (tmp / "matches.json").write_text(json.dumps(MATCHES))
-    (tmp / "marks.jsonl").write_text("")
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_INSEASON_FEED", str(tmp / "feed.json"))
     # T331: a curated path is never env-overridable — the test points the one reader at a temp copy
     from pipeline.regs.inseason import matches as _M
     mp.setattr(_M, "default_path", lambda: tmp / "matches.json")
-    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
+    curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp / "backups"))
     mp.syspath_prepend(str(BACKEND))
     for mod in _MODS:
         sys.modules.pop(mod, None)
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    curated = _stamps(CURATED.base)
+    curated = _stamps(load_repo().base)
     yield {"client": TestClient(app_mod.app), "dir": tmp}
-    assert _stamps(CURATED.base) == curated, "an in-season route wrote under data/curated"
+    assert _stamps(load_repo().base) == curated, "an in-season route wrote under data/curated"
     mp.undo()
     for mod in _MODS:
         sys.modules.pop(mod, None)

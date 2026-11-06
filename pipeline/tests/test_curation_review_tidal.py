@@ -8,14 +8,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import sys
 from pathlib import Path
 
 import pytest
 
 from pipeline.common.curated import CURATED, GENERATED
-from pipeline.tests.conftest import ATLAS_HINT, need
+from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -43,12 +42,9 @@ def env(request, tmp_path_factory):
     assert rows, f"{PITT} is not in {CANDIDATES}"
     (tmp / "tidal-candidates.json").write_text(json.dumps({"coverage": {"named_ocean_entering_total": 1},
                                                            "candidates": rows}))
-    (tmp / "marks.jsonl").write_text("")
-    shutil.copy2(CURATED.waters.cuts, tmp / "splits.json")
     mp = pytest.MonkeyPatch()
     mp.setenv("CURATION_TIDAL_CANDIDATES", str(tmp / "tidal-candidates.json"))
-    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
-    mp.setenv("CURATION_SPLITS_JSON", str(tmp / "splits.json"))
+    curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
     for mod in ("app", "reuse", "dfo", "tidal", "writes", "review"):
@@ -57,7 +53,7 @@ def env(request, tmp_path_factory):
     T._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp}
+    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(CURATED.review.marks)}
     mp.undo()
 
 
@@ -99,7 +95,7 @@ def test_accepting_records_one_mark_and_no_curated_write(env):
     assert got["scope"] == "tidal" and got["verdict"] == "verified"
     ns = got["new_splits"][0]
     assert ns["blk"] == cand["blk"] and abs(ns["measure"] - cand["proposed"]["measure"]) < 25
-    lines = (env["dir"] / "marks.jsonl").read_text().splitlines()
+    lines = env["marks"].read_text().splitlines()
     assert len(lines) == 1
     q = c.get("/api/tidal/queue").json()
     assert q[0]["verify"] == "verified"

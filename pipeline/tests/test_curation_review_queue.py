@@ -9,14 +9,13 @@ queue says of the run is pinned whatever the live run is doing.
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
-from pipeline.tests.conftest import ATLAS_HINT, need
+from pipeline.common.curated import GENERATED
+from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -33,12 +32,6 @@ pytestmark = [pytest.mark.needs_atlas, pytest.mark.needs_source]
 def env(request, tmp_path_factory):
     need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     root = tmp_path_factory.mktemp("queue")
-    cat = root / "catalogue"
-    cat.mkdir()
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
-        shutil.copy2(p, cat / p.name)
-    shutil.copy2(CURATED.waters.cuts, root / "splits.json")
-    (root / "marks.jsonl").write_text("")
     run = root / "run"
     run.mkdir()
     (run / "report.json").write_text(json.dumps({"digest": "fixture-run"}))
@@ -50,9 +43,8 @@ def env(request, tmp_path_factory):
          "reason": "no_sections_for_items", "rule_id": rid}) + "\n"
         for rid in ("frog_lake.r1", "frog_lake.r2")))
     mp = pytest.MonkeyPatch()
-    for k, v in {"CURATION_ENTRIES_DIR": cat,
-                 "CURATION_SPLITS_JSON": root / "splits.json", "CURATION_MARKS": root / "marks.jsonl",
-                 "CURATION_BACKUP_DIR": root / "backups", "CURATION_REACH_DIR": run}.items():
+    curated_root(mp, root / "curated")                        # T422: the whole curated tree is a temp copy
+    for k, v in {"CURATION_BACKUP_DIR": root / "backups", "CURATION_REACH_DIR": run}.items():
         mp.setenv(k, str(v))
     mp.syspath_prepend(str(BACKEND))
     for mod in _MODS:

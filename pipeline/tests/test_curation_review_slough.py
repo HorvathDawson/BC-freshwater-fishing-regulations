@@ -11,6 +11,9 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.common.curated import CURATED
+from pipeline.tests.conftest import curated_root
+
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
 
@@ -52,7 +55,6 @@ def env(tmp_path_factory):
     with gzip.open(tmp / "finder.json.gz", "wt") as f:
         json.dump({"candidates": [{"id": r["id"], "outline": [[-120, 50], [-120.001, 50.001], [-120, 50]]}
                                   for r in ROWS]}, f)
-    (tmp / "marks.jsonl").write_text("")
     (tmp / "page.json").write_text(json.dumps({"verdicts": {
         "5": {"verdict": "stream", "note": "part of a slough nearby"},
         "6": {"verdict": None, "note": "similar this can be on a lake"},     # verdict cleared, note kept
@@ -63,7 +65,7 @@ def env(tmp_path_factory):
     mp.setattr(_S, "PAGE_MARKS", tmp / "page.json")
     mp.setenv("CURATION_SLOUGH_AUTOMARK", str(tmp / "automark.json"))
     mp.setenv("CURATION_SLOUGH_FINDER", str(tmp / "finder.json.gz"))
-    mp.setenv("CURATION_MARKS", str(tmp / "marks.jsonl"))
+    curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
     for mod in ("app", "reuse", "sloughs", "writes", "review"):
@@ -72,7 +74,7 @@ def env(tmp_path_factory):
     S._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp}
+    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(CURATED.review.marks)}
     mp.undo()
 
 
@@ -84,7 +86,7 @@ def test_premarks_are_proposals_in_review_order(env):
     assert g == {"1": ("premark", "narrow"), "3": ("premark", "wide marsh"), "4": ("owner list", None),
                  "2": ("owner list", None), "5": ("owner", None), "6": ("default", None)}
     assert all(r["verify"] == "unmarked" for r in q)          # a pre-mark is never a mark
-    assert (env["dir"] / "marks.jsonl").read_text() == ""
+    assert env["marks"].read_text() == ""
     assert [r["id"] for r in c.get("/api/sloughs/queue", params={"basis": "intermittent"}).json()] == ["2"]
     assert c.get("/api/sloughs/queue", params={"group": "nope"}).status_code == 422
     d = c.get("/api/sloughs/candidates/3").json()
@@ -109,7 +111,7 @@ def test_one_call_and_accept_all_visible_are_marks(env):
     r = c.post("/api/marks", json={**base, "targets": ["1", "3"], "call": "stream"})
     assert r.status_code == 200 and r.json()["n"] == 2
     assert c.post("/api/marks", json={**base, "targets": ["1", "nope"], "call": "stream"}).status_code == 404
-    lines = [json.loads(x) for x in (env["dir"] / "marks.jsonl").read_text().splitlines()]
+    lines = [json.loads(x) for x in env["marks"].read_text().splitlines()]
     assert [(m["target"], m["call"]) for m in lines] == [("4", "not stream"), ("1", "stream"), ("3", "stream")]
     q = {r["id"]: r for r in c.get("/api/sloughs/queue").json()}
     assert q["1"]["verify"] == "verified" and q["1"]["call"] == "stream" and q["4"]["call"] == "not stream"
@@ -121,7 +123,7 @@ def test_clear_and_undo_batch(env):
     """Owner 2026-10-29: a mark is CLEARED through the app (a newer line; the store is never edited) — one
     target, or an Undo of an accept-all batch that clears only targets whose mark in force is that batch's."""
     c = env["client"]
-    store = env["dir"] / "marks.jsonl"
+    store = env["marks"]
     base = {"scope": "slough", "answers": {"P": "y"}, "reviewer": "test"}
     clr = {"scope": "slough", "verdict": "cleared", "answers": {}, "reviewer": "test"}
     assert c.post("/api/marks", json={**base, "targets": ["2", "6"], "call": "stream",

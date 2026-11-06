@@ -1062,6 +1062,10 @@ def chain_of(p: Mapping, props: Iterable[Mapping]) -> list[Mapping]:
 
 # --------------------------------------------------------------------------- the side rebuild
 
+#: a side directory's curated root (`write_side`): `<side>/curated`, the layout of data/curated
+SIDE_ROOT = "curated"
+
+
 def side_dir(p: Mapping) -> str:
     """A proposal's side-rebuild directory (repo-relative): named by its id AND digest, so a side
     rebuild made for one state of the proposal never vouches for another."""
@@ -1089,25 +1093,30 @@ def side_commands(p: Mapping, props: Iterable[Mapping]) -> list[str]:
     live_build = _rel(GENERATED.build())
     live_reach = _rel(GENERATED.reaches / GENERATED.build().name)
     side = side_dir(p)
+    root = f"{side}/{SIDE_ROOT}"
+    from pipeline.common.curated import load_repo
+    live = load_repo()
+    cuts = f"{root}/{Path(live.waters.cuts).relative_to(live.base)}"
+    corpus = f"{root}/{Path(live.regulations.synopsis).relative_to(live.base)}"
     splits = changes_cuts(p, props)
     dfo = any(ed["kind"] in ("dfo", "dfo_loc") for ed in p["edits"])
     cmds = [f"python -m pipeline.regs.review.proposals side {p['id']} --out {side}"]
     build = live_build
     if splits:
         cmds.append(f"scripts/heavy.sh atlas 30 -- python -m pipeline.atlas.build --full "
-                    f"--splits {side}/splits.json --out {side}/atlas")
+                    f"--splits {cuts} --out {side}/atlas")
         build = f"{side}/atlas"
     if dfo:
         if not splits:
             return ["# a DFO location is not in the reach run: the in-memory check above IS its "
                     "binding (no side rebuild)"]
-        cmds.append(f"CURATION_BUILD={side}/atlas CURATION_SPLITS_JSON={side}/splits.json "
-                    f"CURATION_DFO_DIR={side}/dfo_salmon bash curation-review/backend/run.sh"
+        cmds.append(f"CURATION_BUILD={side}/atlas CURATED_ROOT={root} "
+                    "bash curation-review/backend/run.sh"
                     "   # the DFO location on the side atlas (stop the live app first, or set "
                     "its port)")
         return cmds
     cmds += [f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {build} "
-             f"--entries {side}/catalogue --out {side}/reach",
+             f"--entries {corpus} --out {side}/reach",
              f"python -m pipeline.atlas.reach.binding_diff {live_reach} {side}/reach"
              "   # per-rule bindings, live vs side — read it before applying (AGENTS 63)"]
     return cmds
@@ -1127,23 +1136,29 @@ def write_side_many(chain: list[Mapping], src: Sources, out: Path) -> list[Path]
 
 def write_side(p: Mapping, props: Iterable[Mapping], src: Sources, out: Path,
                chain: Optional[list] = None) -> list[Path]:
-    """PATCHED COPIES for a side rebuild: the catalogue, splits.json and the DFO files, copied into
-    `out` with the proposal (and the new splits it names) applied. Refuses a directory under
-    data/curated: the curated files are only ever written by `apply_proposals`."""
-    from pipeline.common.curated import CURATED
+    """PATCHED COPIES for a side rebuild: a whole curated root at `out/curated` (`curated.make_root`, the root a
+    side app runs on with `CURATED_ROOT`, T422) with the proposal (and the new splits it names) applied to its
+    catalogue, cuts and DFO files. Returns the patched files. Refuses a directory under data/curated: the curated
+    files are only ever written by `apply_proposals`."""
+    from pipeline.common import curated as C
     from pipeline.regs.parsing.io import atomic_write
     out = Path(out).resolve()
-    cur = Path(CURATED.waters.cuts).resolve().parents[1]
+    live = C.load_repo()
+    cur = Path(live.base).resolve()
     if out == cur or cur in out.parents:
         raise ValueError(f"{out} is under the curated data ({cur}): a side copy goes elsewhere")
     texts = materialize(chain if chain is not None else chain_of(p, props), src)
+    root = C.make_root(out / SIDE_ROOT)
+
+    def at(key: Path) -> Path:
+        return root / Path(key).resolve().relative_to(cur)
     written = []
-    for name, d in (("catalogue", src.entries_dir), ("dfo_salmon", src.dfo_dir)):
+    for d, key in ((src.entries_dir, live.regulations.synopsis), (src.dfo_dir, live.dfo_salmon.places)):
         for f in _region_files(d):
-            dst = out / name / f.name
+            dst = at(key) / f.name
             atomic_write(dst, texts.get(f, src.text(f)))
             written.append(dst)
-    dst = out / "splits.json"
+    dst = at(live.waters.cuts)
     atomic_write(dst, texts.get(Path(src.splits_path), src.text(src.splits_path)))
     written.append(dst)
     return written

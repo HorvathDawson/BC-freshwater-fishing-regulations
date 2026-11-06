@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.common.curated import CURATED
+from pipeline.tests.conftest import curated_root
 from pipeline.common.models import NameRecord, NameSource, NameTuple, RegistryItem
 from pipeline.common.name_sources import LABELS, CITY_LABELS, is_official, label_of
 
@@ -161,9 +163,8 @@ CANDS = [
 @pytest.fixture()
 def env(tmp_path, monkeypatch):
     (tmp_path / "cands.json").write_text(json.dumps({"candidates": CANDS}))
-    (tmp_path / "marks.jsonl").write_text("")
     monkeypatch.setenv("CURATION_NAME_CANDIDATES", str(tmp_path / "cands.json"))
-    monkeypatch.setenv("CURATION_MARKS", str(tmp_path / "marks.jsonl"))
+    curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree is a temp copy
     monkeypatch.setenv("CURATION_BACKUP_DIR", str(tmp_path / "backups"))
     monkeypatch.syspath_prepend(str(BACKEND))
     for mod in ("app", "reuse", "variants", "writes", "review"):
@@ -172,7 +173,7 @@ def env(tmp_path, monkeypatch):
     N._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp_path, "N": N}
+    yield {"client": TestClient(app_mod.app), "dir": tmp_path, "N": N, "marks": Path(CURATED.review.marks)}
     for mod in ("app", "reuse", "variants", "writes", "review"):
         sys.modules.pop(mod, None)
 
@@ -197,13 +198,13 @@ def test_a_name_mark_is_one_commit_and_decides_acceptance(env):
     r = c.post("/api/marks", json={**base, "target": "blk:1~auto-creek", "call": "reject"})
     assert r.status_code == 200, r.text
     assert c.post("/api/marks", json={**base, "targets": ["blk:9~nope"], "call": "accept"}).status_code == 404
-    lines = [json.loads(x) for x in (env["dir"] / "marks.jsonl").read_text().splitlines()]
+    lines = [json.loads(x) for x in env["marks"].read_text().splitlines()]
     assert [(m["target"], m["call"]) for m in lines] == [
         ("blk:2~review-creek", "accept"), ("blk:1~auto-creek", "accept"), ("blk:1~auto-creek", "reject")]
     assert _digest(REPO / "data/curated") == curated
     # the tool: auto + owner + accepted marks − rejected marks; every name with its real source
     from pipeline.tools.mined_names import build
-    got = build(env["dir"] / "marks.jsonl")
+    got = build(env["marks"])
     names = {(tuple(e["target"]["blks"]), n["name"]): n for e in got for n in e["names"]}
     assert set(names) == {(("356314888",), "Kilgard Creek"), (("356314888",), "Lonzo Creek (North Fork)"),
                           (("2",), "Review Creek")}

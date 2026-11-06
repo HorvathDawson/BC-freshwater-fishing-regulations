@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import socket
 import subprocess
 import sys
@@ -27,8 +26,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
-from pipeline.tests.conftest import ATLAS_HINT, need
+from pipeline.common.curated import GENERATED, ROOT_ENV, load_repo
+from pipeline.tests.conftest import ATLAS_HINT, need, sandbox_tree
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -67,16 +66,13 @@ def site(request, tmp_path_factory):
     if not vite.exists():
         pytest.fail(f"missing {vite} — run `npm install` in {FRONTEND}", pytrace=False)
     root = tmp_path_factory.mktemp("browser")
-    cat = root / "catalogue"
-    cat.mkdir()
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
-        shutil.copy2(p, cat / p.name)
-    shutil.copy2(CURATED.waters.cuts, root / "splits.json")
-    (root / "marks.jsonl").write_text("")
+    # T422: the whole curated tree is a temp copy (its marks store empty), named to the app by `CURATED_ROOT`
+    cur = sandbox_tree(root / "curated")
+    live = load_repo()
+    store = cur / Path(live.review.marks).relative_to(live.base)
     (root / "run").mkdir()
     api_port, vite_port = _free_port(), _free_port()
-    env = {**os.environ, "CURATION_ENTRIES_DIR": str(cat),
-           "CURATION_SPLITS_JSON": str(root / "splits.json"), "CURATION_MARKS": str(root / "marks.jsonl"),
+    env = {**os.environ, ROOT_ENV: str(cur),
            "CURATION_BACKUP_DIR": str(root / "backups"), "CURATION_REACH_DIR": str(root / "run"),
            "CURATION_VITE_PORT": str(vite_port), "CURATION_API": f"http://127.0.0.1:{api_port}",
            "PYTHONPATH": str(REPO)}
@@ -93,7 +89,7 @@ def site(request, tmp_path_factory):
         from playwright.sync_api import sync_playwright
         with sync_playwright() as pw:
             browser = pw.chromium.launch()
-            yield {"browser": browser, "url": f"http://127.0.0.1:{vite_port}/", "root": root}
+            yield {"browser": browser, "url": f"http://127.0.0.1:{vite_port}/", "root": root, "marks": store}
             browser.close()
     finally:
         for p in procs:              # our own two processes, by handle — nothing else is touched
@@ -145,7 +141,7 @@ def test_enter_after_clicking_an_answer_records_the_mark(site):
     page.click('button[aria-label="R ?"]')
     assert page.evaluate("document.activeElement === document.body")
     page.keyboard.press("Enter")
-    store = site["root"] / "marks.jsonl"
+    store = site["marks"]
     end = time.time() + 60                    # the mark is written, then the screen moves on
     while time.time() < end and not store.read_text().strip():
         if page.locator('[data-testid="mark-errors"]').count():

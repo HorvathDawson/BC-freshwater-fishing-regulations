@@ -41,10 +41,10 @@ from pipeline.atlas.splits.splits import splits_on
 from pipeline.common.models.splits import confidence_of, confidence_words
 
 _ROOT = Path(__file__).resolve().parents[2]
-#: The catalogue region files the app reads (never writes). `CURATION_ENTRIES_DIR` points it at a
-#: copy — the API tests and a headless click-through run against a temp copy.
-ENTRIES_DIR = (Path(os.environ["CURATION_ENTRIES_DIR"]) if os.environ.get("CURATION_ENTRIES_DIR")
-               else CURATED.regulations.synopsis)
+#: The catalogue region files the app reads (never writes). EVERY curated path here comes from `CURATED`; a test or
+#: a side rebuild moves them ALL at once with `CURATED_ROOT` (a whole copy, `pipeline.common.curated.make_root`,
+#: T422) — the old per-file overrides are refused (`curated.RETIRED_ENV`).
+ENTRIES_DIR = CURATED.regulations.synopsis
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it — see
 # config.yaml `generated.atlas.default_build`. Hard-coding it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
@@ -59,15 +59,12 @@ GRAPH_PKL_PATH = _BUILD / "graph.pkl"
 GEOMS_PKL_PATH = _BUILD / "geometries.pkl"
 WBK_POLYS_PKL_PATH = _BUILD / "waterbody_polys.pkl"
 BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
-#: THE hand-curated split source (read here, never written). `CURATION_SPLITS_JSON` points it at a
-#: copy (tests).
-SPLITS_JSON_PATH = (Path(os.environ["CURATION_SPLITS_JSON"]) if os.environ.get("CURATION_SPLITS_JSON")
-                    else CURATED.waters.cuts)
+#: THE hand-curated split source (read here, never written).
+SPLITS_JSON_PATH = CURATED.waters.cuts
 ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
 #: THE REVIEWERS' MARKS (T97): the append-only store `pipeline.regs.review.marks` reads — never a
-#: field of an entry. `CURATION_MARKS` points it at a copy (tests).
-MARKS_PATH = (Path(os.environ["CURATION_MARKS"]) if os.environ.get("CURATION_MARKS")
-              else CURATED.review.marks)
+#: field of an entry (a sandbox's copy under `CURATED_ROOT`).
+MARKS_PATH = CURATED.review.marks
 #: THE BUILT VINTAGE the tool holds each entry against (T133): the reach run of the served build
 #: and the release root (the bundle is `pipeline.deliver.bundle.read.BUNDLE`). `CURATION_REACH_DIR`
 #: / `CURATION_RELEASE_ROOT` point them at copies (tests).
@@ -1086,8 +1083,7 @@ def _mark_view(m, now) -> dict:
 
 def _dfo_dir() -> Path:
     from pipeline.regs.review import dfo as D
-    return (Path(os.environ["CURATION_DFO_DIR"]) if os.environ.get("CURATION_DFO_DIR")
-            else D.default_dir())
+    return D.default_dir()
 
 
 def _dir_stamp(d: Path) -> tuple:

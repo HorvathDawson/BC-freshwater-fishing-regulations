@@ -32,7 +32,7 @@ import pytest
 from pipeline.common.curated import CURATED, GENERATED
 from pipeline.regs.parsing import io
 from pipeline.regs.review import vintage as V
-from pipeline.tests.conftest import ATLAS_HINT, need
+from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -47,12 +47,6 @@ pytestmark = pytest.mark.needs_atlas
 def app_env(request, tmp_path_factory):
     need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
     tmp = tmp_path_factory.mktemp("vintage")
-    cat = tmp / "catalogue"
-    cat.mkdir()
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
-        shutil.copy2(p, cat / p.name)
-    shutil.copy2(CURATED.waters.cuts, tmp / "splits.json")
-    (tmp / "marks.jsonl").write_text("")
     # the served atlas as the vintage reads it: the real registry and handles, and the split
     # record a build of the temp splits.json would write
     real = GENERATED.build()
@@ -62,9 +56,9 @@ def app_env(request, tmp_path_factory):
         os.symlink(real / name, atlas / name)
     shutil.copy2(real / "splits.resolved.json", atlas / "splits.resolved.json")
     mp = pytest.MonkeyPatch()
-    for k, v in {"CURATION_ENTRIES_DIR": cat,
-                 "CURATION_SPLITS_JSON": tmp / "splits.json",
-                 "CURATION_MARKS": tmp / "marks.jsonl", "CURATION_BACKUP_DIR": tmp / "backups",
+    curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
+    cat, splits = Path(CURATED.regulations.synopsis), Path(CURATED.waters.cuts)
+    for k, v in {"CURATION_BACKUP_DIR": tmp / "backups",
                  "CURATION_REACH_DIR": tmp / "reach", "CURATION_RELEASE_ROOT": tmp / "release",
                  "CURATION_TILES": tmp / "tiles"}.items():
         mp.setenv(k, str(v))
@@ -81,7 +75,7 @@ def app_env(request, tmp_path_factory):
     from fastapi.testclient import TestClient
     from pipeline.common.section_handles import digest_for, registry_digest_for
     env = {"client": TestClient(app_mod.app), "reuse": reuse, "tmp": tmp, "atlas": atlas,
-           "cat": cat, "handles": digest_for(atlas), "registry": registry_digest_for(atlas)}
+           "cat": cat, "splits": splits, "handles": digest_for(atlas), "registry": registry_digest_for(atlas)}
     record_atlas(env)
     run_reach(env)
     deliver(env)
@@ -99,7 +93,7 @@ def _corpus(env) -> dict:
 def record_atlas(env) -> None:
     """The atlas holds splits.json as it is now (an atlas build + promote)."""
     from pipeline.atlas.splits import splits as S
-    doc = json.loads((env["tmp"] / "splits.json").read_text())
+    doc = json.loads((env["splits"]).read_text())
     S.write_anchor_record(doc, env["atlas"])
     rows = json.loads((env["atlas"] / "splits.resolved.json").read_text())
     have = {r["split_id"] for r in rows}
@@ -221,7 +215,7 @@ def test_a_split_added_mid_review_clears_after_the_rebuild_without_a_restart(app
     from pipeline.regs.review import fingerprint as F
     env = app_env
     reuse = env["reuse"]
-    splits_path = env["tmp"] / "splits.json"
+    splits_path = env["splits"]
     original = splits_path.read_text()
     doc = json.loads(original)
     # a water carrying a point split, and the entries whose binding reads it

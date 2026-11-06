@@ -18,14 +18,13 @@ import hashlib
 import io
 import json
 import re
-import shutil
 import sys
 from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
-from pipeline.tests.conftest import ATLAS_HINT, need
+from pipeline.common.curated import CURATED, GENERATED, load_repo
+from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -48,12 +47,6 @@ def env(request, tmp_path_factory):
     raw = need(request, "source", GENERATED.regs.extraction / "synopsis_raw_data.json",
                EXTRACTION_HINT)
     root = tmp_path_factory.mktemp("screen")
-    cat = root / "catalogue"
-    cat.mkdir()
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
-        shutil.copy2(p, cat / p.name)
-    shutil.copy2(CURATED.waters.cuts, root / "splits.json")
-    (root / "marks.jsonl").write_text("")
     # the sidecar, made by the helper itself for page 16 (Adam River's page)
     from pipeline.common.synopsis_pages import default_pdf
     from pipeline.regs.extraction.row_boxes import VERSION, _page_boxes
@@ -64,9 +57,9 @@ def env(request, tmp_path_factory):
                                    "pdf_sha256": hashlib.sha256(default_pdf().read_bytes()).hexdigest(),
                                    "raw_data_sha256": hashlib.sha256(raw.read_bytes()).hexdigest()}))
     mp = pytest.MonkeyPatch()
-    for k, v in {"CURATION_ENTRIES_DIR": cat,
-                 "CURATION_SPLITS_JSON": root / "splits.json", "CURATION_MARKS": root / "marks.jsonl",
-                 "CURATION_BACKUP_DIR": root / "backups", "CURATION_ROW_BOXES": sidecar}.items():
+    curated_root(mp, root / "curated")                        # T422: the whole curated tree is a temp copy
+    cat = Path(CURATED.regulations.synopsis)
+    for k, v in {"CURATION_BACKUP_DIR": root / "backups", "CURATION_ROW_BOXES": sidecar}.items():
         mp.setenv(k, str(v))
     mp.syspath_prepend(str(BACKEND))
     for mod in _MODS:
@@ -253,7 +246,7 @@ def test_no_request_writes_anything_but_a_mark(env):
               if m not in ("GET", "HEAD")}
     # T230 (owner 2026-10-28): the in-season matches route is the one non-mark write; not called here
     assert writes == {("POST", "/api/marks"), ("POST", "/api/inseason/matches")}, writes
-    curated = _stamps(CURATED.base)
+    curated = _stamps(load_repo().base)
     before = _snapshot(env["root"])
     called = []
     for r in app.routes:
@@ -270,11 +263,12 @@ def test_no_request_writes_anything_but_a_mark(env):
     assert r.status_code == 200 and r.json()["verdict"] == "unsure", r.text
     after = _snapshot(env["root"])
     changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
-    backups = [k for k in changed if k != "marks.jsonl"]
-    assert "marks.jsonl" in changed and len(backups) == 1, changed
+    store = "curated/review/marks.jsonl"                       # the sandbox's store (T422)
+    backups = [k for k in changed if k != store]
+    assert store in changed and len(backups) == 1, changed
     assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-mark/[^/]+/marks\.jsonl", backups[0]), changed
-    assert json.loads(after["marks.jsonl"].decode().strip())["target"] == ADAM
-    assert _stamps(CURATED.base) == curated, "a route wrote under data/curated"
+    assert json.loads(after[store].decode().strip())["target"] == ADAM
+    assert _stamps(load_repo().base) == curated, "a route wrote under data/curated"
 
 
 # --------------------------------------------------------------------------- T164: DFO mode
@@ -311,7 +305,7 @@ def test_a_dfo_anchor_is_checked_and_a_new_split_rides_the_mark_only(env):
     detail = c.get(f"/api/dfo/locations/{CAMPBELL}").json()
     assert detail["verbatim"]["specific_area"].startswith("downstream of the confluence")
     assert any(h["name"] == "Quinsam River" for h in detail["hints"])
-    curated = _stamps(CURATED.base)
+    curated = _stamps(load_repo().base)
     body = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "n"},
             "problem": "split missing", "note": "no Quinsam cut", "reviewer": "tester",
             "new_splits": [_QUINSAM],
@@ -325,7 +319,7 @@ def test_a_dfo_anchor_is_checked_and_a_new_split_rides_the_mark_only(env):
     assert c.post("/api/marks", json=bad).status_code == 422
     dangling = {**body, "new_splits": []}
     assert c.post("/api/marks", json=dangling).status_code == 422
-    assert _stamps(CURATED.base) == curated, "a DFO mark wrote under data/curated"
+    assert _stamps(load_repo().base) == curated, "a DFO mark wrote under data/curated"
     row = next(x for x in c.get("/api/dfo/queue", params={"q": "quinsam"}).json() if x["id"] == CAMPBELL)
     assert row["verify"] == "wrong" and row["new_splits"] == 1
     assert c.get("/api/dfo/progress").json()["all"]["new_splits"] >= 1
@@ -337,7 +331,7 @@ def test_a_dfo_suggestion_is_served_read_only_and_its_new_splits_land(env):
     check on the real atlas (so accepting it and saving is not refused); reading writes nothing."""
     c = env["client"]
     doc = json.loads((REPO / "data/generated/review/dfo-suggestions.json").read_text())
-    curated = _stamps(CURATED.base)
+    curated = _stamps(load_repo().base)
     # a "between" suggestion with new splits; campbell, then nanaimo (the earlier pins) were placed by the owner
     lid = "1:puntledge-river:from-the-weir-at-the-lower-hatcher"
     got = c.get(f"/api/dfo/locations/{lid}").json()["suggestion"]
@@ -349,7 +343,7 @@ def test_a_dfo_suggestion_is_served_read_only_and_its_new_splits_land(env):
     for k, n in news:
         res = c.get(f"/api/dfo/locations/{k}/anchor", params={"split": json.dumps(n)}).json()
         assert res["ok"], (k, n, res)
-    assert _stamps(CURATED.base) == curated
+    assert _stamps(load_repo().base) == curated
 
 
 # --------------------------------------------------------------------------- progress
@@ -441,7 +435,7 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     c = env["client"]
     other = CAMPBELL + "~2"
     assert c.get(f"/api/dfo/locations/{other}").status_code == 200
-    curated = _stamps(CURATED.base)
+    curated = _stamps(load_repo().base)
     first = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "n"},
              "problem": "split missing", "note": "no Quinsam cut", "reviewer": "tester",
              "new_splits": [{**_QUINSAM, "ref": "n1"}]}
@@ -475,7 +469,7 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     r = c.post("/api/marks", json=yes)
     assert r.status_code == 200 and r.json()["verdict"] == "verified", r.text
     assert c.post("/api/marks", json={**yes, "new_splits": [_QUINSAM]}).status_code == 422
-    assert _stamps(CURATED.base) == curated, "a DFO mark wrote under data/curated"
+    assert _stamps(load_repo().base) == curated, "a DFO mark wrote under data/curated"
 
 
 def test_a_dfo_reach_skips_the_tributary_walk_unless_asked(env):

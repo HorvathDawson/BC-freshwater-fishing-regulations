@@ -31,9 +31,8 @@ import preverify
 import reuse
 from pipeline.regs.review import dfo as D
 
-#: the DFO entry files and typed feed the app reads; `CURATION_DFO_DIR` / `CURATION_DFO_TYPED` point
-#: them at copies (tests)
-DFO_DIR = Path(os.environ["CURATION_DFO_DIR"]) if os.environ.get("CURATION_DFO_DIR") else None
+#: the typed feed the app reads (generated); `CURATION_DFO_TYPED` points it at a copy (tests). The DFO entry files are
+#: curated: `reuse._dfo_dir()` (`CURATED.dfo_salmon.places`, moved only with the whole tree by `CURATED_ROOT`, T422)
 DFO_TYPED = Path(os.environ["CURATION_DFO_TYPED"]) if os.environ.get("CURATION_DFO_TYPED") else None
 
 #: THE SUGGESTED EXTENTS (`pipeline.regs.dfo_salmon.suggest`, a frozen, reviewed file): shown on each
@@ -57,7 +56,7 @@ LAKE_RE = re.compile(r"\b([A-Z][A-Za-z'\-]*(?:\s+[A-Z][A-Za-z'\-]*)*\s+Lake)\b")
 
 
 def _locations():
-    return D.locations(DFO_DIR)
+    return D.locations(reuse._dfo_dir())
 
 
 def _states() -> dict:
@@ -256,7 +255,7 @@ def _rows_inputs() -> tuple:
     from pipeline.common.curated import CURATED
     return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
                           CURATED.review.proposal_overrides)),
-            D.regions(DFO_DIR), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
+            D.regions(reuse._dfo_dir()), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
             _locations, _states, _groups, _row)
 
 

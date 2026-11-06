@@ -2,7 +2,7 @@
 rule exactly as the reach run that ships did?
 
     python -m pipeline.regs.review.parity --reach data/generated/reaches/full [--json out.json]
-        [--build data/generated/atlas/full] [--entries data/curated/regulations/synopsis]
+        [--build data/generated/atlas/full] [--root <a curated root: the corpus it read>]
 
 A reviewer signs off on what the review app shows (`reuse.entry_reaches` -> `reach.build.build_reach`,
 one entry at a time); the bundle ships what the reach run bound (`reach.build.build_reaches`, the
@@ -186,17 +186,19 @@ def check_vintage(report_json: Mapping, corpus_digest: str, handles: str, regist
     out = []
     if report_json.get("entries_digest") != corpus_digest:
         out.append(f"the run's corpus {report_json.get('entries_digest')} is not the app's "
-                   f"{corpus_digest} (rerun reach, or point --entries at the corpus it read)")
+                   f"{corpus_digest} (rerun reach, or point --root at the curated tree it read)")
     if (report_json.get("handles"), report_json.get("registry_digest")) != (handles, registry):
         out.append("the run was made on another atlas than --build")
     return out
 
 
-def _load_app(build: Path, entries: Path):
-    """The review app's data layer (`curation-review/backend/reuse.py`) over `build` and `entries` —
-    the code a reviewer's screen runs, imported as the app imports it."""
+def _load_app(build: Path, root: Path | None):
+    """The review app's data layer (`curation-review/backend/reuse.py`) over `build` and the curated tree at `root`
+    (a whole copy, `CURATED_ROOT`, T422; None = the live tree) — the code a reviewer's screen runs, imported as the
+    app imports it."""
     os.environ["CURATION_BUILD"] = str(build)
-    os.environ["CURATION_ENTRIES_DIR"] = str(entries)
+    if root is not None:
+        os.environ["CURATED_ROOT"] = str(root)
     backend = Path(__file__).resolve().parents[3] / "curation-review" / "backend"
     sys.path.insert(0, str(backend))
     import reuse                                               # noqa: E402
@@ -207,19 +209,21 @@ def _load_app(build: Path, entries: Path):
 
 
 def main(argv: list[str] | None = None) -> int:
-    from pipeline.common.curated import CURATED, GENERATED
+    from pipeline.common.curated import GENERATED
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.parity",
                                  description=__doc__.split("\n\n")[0])
     ap.add_argument("--build", type=Path, default=GENERATED.build(), help="the atlas (default: the live one)")
     ap.add_argument("--reach", type=Path, default=None,
                     help="the reach run made on it (default: data/generated/reaches/<build name>)")
-    ap.add_argument("--entries", type=Path, default=CURATED.regulations.synopsis)
+    ap.add_argument("--root", type=Path, default=None,
+                    help="a curated root (pipeline.common.curated.make_root; a side's `<side>/curated`) whose "
+                         "corpus the run read (default: the live tree)")
     ap.add_argument("--json", type=Path, help="write every difference and the summary here")
     ap.add_argument("--only", nargs="*", help="these entry ids only (a spot check)")
     a = ap.parse_args(argv)
     reach_dir = a.reach or (GENERATED.reaches / a.build.name)
     rep = json.loads((reach_dir / "report.json").read_text(encoding="utf-8"))
-    reuse = _load_app(a.build, a.entries)
+    reuse = _load_app(a.build, a.root)
     from pipeline.common.section_handles import digest_for, registry_digest_for
     from pipeline.regs.parsing import io
     corpus = {e["entry_id"]: e for _, e in reuse._all_entries()}

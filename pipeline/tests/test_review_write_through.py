@@ -27,6 +27,7 @@ from pipeline.regs.review import closed as C
 from pipeline.regs.review import export as E
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
+from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -75,14 +76,12 @@ def wt(tmp_path, monkeypatch):
     with gzip.open(tmp_path / "finder.json.gz", "wt") as f:
         json.dump({"candidates": [{"id": r["id"], "outline": [[-120, 50], [-120.001, 50.001], [-120, 50]]}
                                   for r in SLOUGHS]}, f)
-    (tmp_path / "page.json").write_text(json.dumps({"verdicts": {}}))
     (tmp_path / "cands.json").write_text(json.dumps({"candidates": NAMES}))
-    store = tmp_path / "review" / "marks.jsonl"
-    store.parent.mkdir()
-    store.write_text("")
-    for k, v in {"CURATION_SLOUGH_PAGE_MARKS": "page.json", "CURATION_SLOUGH_AUTOMARK": "automark.json",
+    curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
+    store = Path(CURATED.review.marks)
+    for k, v in {"CURATION_SLOUGH_AUTOMARK": "automark.json",
                  "CURATION_SLOUGH_FINDER": "finder.json.gz", "CURATION_NAME_CANDIDATES": "cands.json",
-                 "CURATION_MARKS": "review/marks.jsonl", "CURATION_BACKUP_DIR": "backups",
+                 "CURATION_BACKUP_DIR": "backups",
                  "CURATION_WRITE_THROUGH_LOG": "write-through.jsonl",
                  "CURATION_REFUSED_LOG": "refused.jsonl"}.items():
         monkeypatch.setenv(k, str(tmp_path / v))
@@ -161,7 +160,7 @@ def test_a_slough_mark_writes_slough_calls_in_the_request(wt):
     got = r.json()["write_through"]
     assert got["domain"] == "sloughs" and got["state"] == "done", got
     assert _waters(tmp / "slough_calls.json") == ["1"]
-    assert [m.target for m in E.load(tmp / "review/marks.jsonl").scope("slough")] == ["1"]
+    assert [m.target for m in E.load(wt["store"]).scope("slough")] == ["1"]
     # a clear takes it back out
     r = c.post("/api/marks", json={"scope": "slough", "verdict": "cleared", "answers": {}, "reviewer": "test",
                                    "target": "1", "note": "oops"})
@@ -262,7 +261,7 @@ def test_a_tidal_mark_writes_waters_tidal_json_in_the_request(wt, monkeypatch):
     wt_ = r.json()["write_through"]
     assert wt_["domain"] == "tidal" and wt_["state"] == "done", wt_
     T._load.cache_clear()
-    assert [m.target for m in E.load(wt["tmp"] / "review/marks.jsonl").scope("tidal")] == [cid]
+    assert [m.target for m in E.load(wt["store"]).scope("tidal")] == [cid]
     doc = json.loads((wt["tmp"] / "tidal.json").read_text())
     assert doc["format"] == "tidal/1"
     [w] = doc["waters"]
@@ -325,6 +324,9 @@ def test_write_through_is_off_over_a_temp_store_unless_asked(tmp_path, monkeypat
     monkeypatch.delenv("CURATION_WRITE_THROUGH", raising=False)
     assert not W.from_env(tmp_path / "marks.jsonl", tmp_path).enabled
     assert W.from_env(Path(CURATED.review.marks), tmp_path).enabled
+    curated_root(monkeypatch, tmp_path / "curated")           # T422: a sandbox's store is not the live one
+    assert not W.from_env(Path(CURATED.review.marks), tmp_path).enabled
+    monkeypatch.delenv("CURATED_ROOT")
     monkeypatch.setenv("CURATION_WRITE_THROUGH", "0")
     assert not W.from_env(Path(CURATED.review.marks), tmp_path).enabled
     monkeypatch.setenv("CURATION_WRITE_THROUGH", "1")
@@ -343,10 +345,11 @@ def app_env(tmp_path):
            "man_made": False, "caught": True, "md_read": None, "lat": 55.0, "lon": -125.0,
            "rings": [[[-125, 55], [-125.001, 55.001], [-125, 55]]], "lines": []}
     sample.write_text(json.dumps({"cutoff": {"max_ha": 1.0}, "rows": [{**row, "id": "lake:1"}, {**row, "id": "lake:2"}]}))
-    store = _store(tmp_path, [_pond("lake:1"), _pond("lake:2")])
     mp = pytest.MonkeyPatch()
+    curated_root(mp, tmp_path / "curated")                    # T422: the whole curated tree, nothing closed
+    store = Path(CURATED.review.marks)
+    store.write_text("".join(M.line(m) for m in (_pond("lake:1"), _pond("lake:2"))))
     mp.setenv("CURATION_Q154_SAMPLE", str(sample))
-    mp.setenv("CURATION_MARKS", str(store))
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path / "backups"))
     mp.syspath_prepend(str(BACKEND))
     for mod in MODS:

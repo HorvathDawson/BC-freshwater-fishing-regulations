@@ -213,7 +213,7 @@ T and R can be answered and "all fine" waits for the build (wrong / unsure / def
 every check" (`unanswered_words(scope, awaiting=reuse.awaiting_build(...))`).
 The server stamps `date`, `pdf_sha256` (the repo PDF) and the target's fingerprints
 (`pipeline.regs.review.fingerprint`), and APPENDS the mark to `data/curated/review/marks.jsonl`
-(or `CURATION_MARKS`) through the backed-up commit. `422` for a mark the model refuses (`verified`
+(a sandbox's copy under `CURATED_ROOT`) through the backed-up commit. `422` for a mark the model refuses (`verified`
 needs every check `y`; `wrong` a `n`, a problem and a note; no reviewer; an unknown field) or an
 entry that FAILS THE GATE; `404` for an unknown entry or rule. → the mark with `status` and
 `reasons`. **T133:** also `422` ("awaiting build …", with the command to run) when the target is

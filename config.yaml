@@ -106,7 +106,8 @@ data_accessor:
 # Reach every one of these through `pipeline.common.curated` — never as a literal, never as
 # `parents[N] / "..."`. A curated path is NEVER overridable by an environment variable:
 # that is the `review_build` failure again, where the app rebuilt one directory and read
-# another and neither said so.
+# another and neither said so. The one exception moves the WHOLE tree: `CURATED_ROOT=<a copy>`
+# (tests, side apps; `pipeline.common.curated.make_root`, T422) — per-file overrides are refused.
 data_tree:
   source: "data/source"
   generated: "data/generated"

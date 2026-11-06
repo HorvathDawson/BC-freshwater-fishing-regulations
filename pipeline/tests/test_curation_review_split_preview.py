@@ -27,7 +27,7 @@ def _the_gpkg(request):
 def sp():
     mp = pytest.MonkeyPatch()
     mp.syspath_prepend(str(BACKEND))
-    # (T402) a backend module imported by an earlier file under its temp env (CURATION_MARKS …) keeps those paths for the
+    # (T402) a backend module imported by an earlier file under its sandbox (`CURATED_ROOT`) keeps those paths for the
     # session — `reuse.MARKS_PATH` is read at import — and `dfo` / `split_preview` hold that `reuse`: this file reads the
     # live store, so every backend module is imported fresh here
     for name, mod in list(sys.modules.items()):

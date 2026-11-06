@@ -1,7 +1,7 @@
 """T230: THE IN-SEASON TAB — the provincial in-season feed's rows and WHERE each applies.
 
 The feed is the T225 worker's `inseason-feed/1` (`GENERATED.inseason / "feed" / "index.json"`, or
-`CURATION_INSEASON_FEED`); the matches are `data/curated/inseason/notice_waters.json` (`CURATION_INSEASON_MATCHES`),
+`CURATION_INSEASON_FEED`); the matches are `data/curated/inseason/notice_waters.json` (`CURATED.inseason.notice_waters`),
 read and edited only through `pipeline.regs.inseason.matches`.
 
     queue()                    every feed row (and removed row, and a match on a row the feed no longer holds:
@@ -64,7 +64,7 @@ def _feed_rows(feed: dict) -> dict[str, dict]:
 
 
 def split_ids() -> set[str]:
-    """Every split id in the splits.json the app reads (`CURATION_SPLITS_JSON` honoured)."""
+    """Every split id in the cuts file the app reads (`reuse.SPLITS_JSON_PATH`)."""
     return set(reuse._split_records())
 
 

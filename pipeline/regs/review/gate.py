@@ -168,10 +168,10 @@ def pilot_markdown(picked: Mapping, *, url: str = "http://127.0.0.1:5173/") -> s
 # --------------------------------------------------------------------------------------------
 
 def _app(a):
-    """The review app's data layer over the paths given (as the parity gate loads it)."""
+    """The review app's data layer over the paths given (as the parity gate loads it): the curated files all from
+    one tree (`--root`, `CURATED_ROOT`, T422), the generated ones each from its flag."""
     import os
-    for env, v in (("CURATION_BUILD", a.build), ("CURATION_ENTRIES_DIR", a.entries),
-                   ("CURATION_SPLITS_JSON", a.splits), ("CURATION_MARKS", a.marks),
+    for env, v in (("CURATION_BUILD", a.build), ("CURATED_ROOT", a.root),
                    ("CURATION_REACH_DIR", a.reach), ("CURATION_BUNDLE", a.bundle),
                    ("CURATION_RELEASE_ROOT", a.release)):
         if v is not None:
@@ -189,9 +189,9 @@ def main(argv: list[str] | None = None) -> int:
                        ("pilot", "the 30-entry pilot list from the review queue"),
                        ("pilot-report", "the pilot's time per entry, defects and tool blockers")):
         p = sub.add_parser(name, help=what)
-        p.add_argument("--marks", type=Path, default=None, help="default: the curated store")
-        p.add_argument("--entries", type=Path, default=None)
-        p.add_argument("--splits", type=Path, default=None)
+        p.add_argument("--root", type=Path, default=None,
+                       help="a curated root (marks, corpus, cuts — a whole copy, pipeline.common.curated.make_root); "
+                            "default: the live tree")
         p.add_argument("--build", type=Path, default=None)
         p.add_argument("--reach", type=Path, default=None)
         p.add_argument("--bundle", type=Path, default=None)

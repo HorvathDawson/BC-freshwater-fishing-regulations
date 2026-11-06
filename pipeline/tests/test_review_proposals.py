@@ -25,6 +25,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.curated import CURATED
+from pipeline.tests.conftest import curated_root
 from pipeline.regs.review import apply_proposals as A
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
@@ -353,9 +354,8 @@ def test_the_app_refuses_a_proposal_decision(src, tmp_path, monkeypatch):
     props = P.build(owner_marks(), src)
     out = tmp_path / "proposals"
     P.write(props, out, src, marks_path=tmp_path / "marks.jsonl")
-    store = tmp_path / "marks.jsonl"
-    store.write_text("")
-    monkeypatch.setenv("CURATION_MARKS", str(store))
+    curated_root(monkeypatch, tmp_path / "curated")           # T422: the whole curated tree, its marks store empty
+    store = Path(CURATED.review.marks)
     monkeypatch.setenv("CURATION_PROPOSALS_DIR", str(out))
     monkeypatch.setenv("CURATION_BACKUP_DIR", str(tmp_path / "backups"))
     monkeypatch.syspath_prepend(str(BACKEND))
