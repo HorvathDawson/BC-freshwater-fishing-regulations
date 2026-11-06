@@ -60,6 +60,19 @@ is verified safe once 4 cited docs move.
    the feeds worker with it.
 5. T404 (prod switch) when the owner says prod is near.
 
+## 0.6.3 (chat 3 owns it; owner 2026-11-06: "who will release 0.6.3?")
+After chat 2's heavy run lands (its full check must be green) and only when the owner says **"build"**:
+1. Carries: T409 lazy map · T304 region focus · T410 split · T425 rail switch · T427 leaner forecast · T421 · and from
+   the audit T430 (report-format parity) + T431 (worker tests/salt) if done — they touch the worker, which ships with
+   the app. Changelog: 3–5 plain bullets.
+2. Staging data release from the new deliver (`pipeline release --staging`; the release refuses a missing basemap now).
+3. Full SEO build against the new web export, then the staging site deploy (`deploy/staging/site.sh` refuses pages
+   without `cift:region`); then T304's Fast-3G measurement on staging.
+4. `deploy/staging/build-apk.sh --play` (bumps versionCode) → Play internal; `play.json` names 0.6.3.
+5. The staging feeds worker deployed WITH it (`deploy/staging/feeds.sh`; T431: it runs the worker tests first and
+   needs `REPORT_SALT` set — check `wrangler secret list` before).
+6. Phone checks for the owner: T425 rail, T427 forecast, T409 back-to-map wait, T410 moved native halves.
+
 ## Waiting on the owner
 - Look at: T425 shot (`.playwright-mcp/t425-phone-light.png`), T427 shots (`.playwright-mcp/T427-after-*-390.png`),
   the store shots + titles (T319, `app/tools/store-shots.json`; images in `store/graphics/store/light/`).
