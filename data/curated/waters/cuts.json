@@ -10439,6 +10439,34 @@
      ]
     }
    ]
+  },
+  {
+   "name": "SHELDENS CREEK",
+   "applies_to": {
+    "blk": "360846083"
+   },
+   "splits": [
+    {
+     "id": "sheldens_creek__spur_19_bridge_site",
+     "label": "Spur 19 Bridge site",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -131.78224,
+       53.12968
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-06] proposed in review marks on 6:sheldens-creek:upstream-of-white-triangular-fishi — \"upstream of white triangular fishing boundary signs located at the Spur 19 Bridge site.\"",
+     "_coord": [
+      -131.78224,
+      53.12968
+     ]
+    }
+   ]
   }
  ]
 }
