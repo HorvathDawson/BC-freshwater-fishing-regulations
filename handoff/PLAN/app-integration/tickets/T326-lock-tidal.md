@@ -1,7 +1,10 @@
 # T326 — Lock tidal: `waters/tidal.json` is the one tidal truth
 
-Status: PARTIAL (151b9f76a, dc93125ab: tidal.json, write-through, mouth aliases; release r-d0ad76a6e6a1). Left: the 8
-follow-up marks + Mamquam (owner), and folding proposal_overrides.json into splits.json.
+Status: PARTIAL (151b9f76a, dc93125ab: tidal.json, write-through, mouth aliases; release r-d0ad76a6e6a1). Mamquam
+DECIDED (owner 2026-11-06: NO — "Mamquam Blind Channel Wetland" is not tidal; the real blind channel already lies in the
+tidal polygon with no streams in it). The 8 follow-up marks: owner 11-06 "probably good". Left: the owner accepts or
+rejects the 3 proposed cuts in the DFO tab (Quatse weir, Stamp lagoon outlet, Little Qualicum Falls park boundary,
+below), then fold proposal_overrides.json into splits.json and retire it.
 
 Replaces `tidal_waters.json`, the splits tidal flag, `decided/tidal.json` and handoff
 `curation-review/tidal/owner-decisions.json` (4 records of one fact). Also fold `review/proposal_overrides.json` (split
