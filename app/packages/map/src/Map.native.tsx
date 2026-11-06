@@ -39,7 +39,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
-  Camera, GeoJSONSource, Images, Layer, Map as MLMap, VectorSource,
+  Camera, GeoJSONSource, Images, Layer, LogManager, Map as MLMap, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, fitAtMost, padBbox, refineFit, spotMarkers,
@@ -66,6 +66,7 @@ import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, 
 import { cameraMs, setReducedMotion } from "./motion";
 import { ME_SOURCE, meData, mePaint } from "./native/me";
 import { camProbe } from "./native/camProbe";
+import { watchStyleAssets } from "./native/styleAssets";
 
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = React.ComponentProps<typeof Layer>;
@@ -133,6 +134,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onVisible, onLongPress };
   const report = useCallback((e: unknown) =>
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e))), []);
+  // (T418) a sprite, glyph range or source that would not load is reported once, not only logged (MapLibre's log)
+  useEffect(() => { watchStyleAssets(LogManager); }, []);
   /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`shiftMarks`) */
   const marksNow = useRef(marks);
   marksNow.current = marks;

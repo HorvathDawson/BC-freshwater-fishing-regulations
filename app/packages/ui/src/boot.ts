@@ -49,6 +49,8 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
     bootRelease({
       ...opts,
       ...(regsFirst ? { paintFirst: false } : {}),
+      // (T418) an applied update: the set on screen stays whole (its tiles, mask and map assets) until the next launch
+      ...(again ? { keepReplaced: true } : {}),
       onStage: (st) => { stage = st; if (live && !again) set({ state: "loading", stage, progress }); },
       onProgress: (p) => {
         progress = p;
