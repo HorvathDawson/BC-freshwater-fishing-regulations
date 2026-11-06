@@ -36,6 +36,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Running now:** a T401 agent (prefetch: more detailed stand-in tiles while panning, measured before it ships). Earlier: a T449 agent (the Nanaimo's tidal DFO places get a "tidal water"
   state, as a proposal for you; plus a sweep of other regions). Next: T446 emulator repro, T441 one-step fixture
   re-cut, then the APK + staging site (T420 basemap fix, T448, T443, T444, T445).
+- **T441 mostly done** (d2a5c59): after a release, `node app/tools/regs-recut/sync.mjs` now re-cuts every test fixture in
+  one step (it was four rounds of `pnpm check` before 0.6.3); the stream-lines fixture is written from the release
+  instead of by hand. Re-cut on today's release: 4290 tests pass. Left: section ids still typed into a few tests.
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
   retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
   repro once T448 frees the emulator.
