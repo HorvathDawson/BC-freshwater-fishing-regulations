@@ -181,7 +181,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/data/src/update/check.ts": { n: 2, why: "a value, not a swallow: `{kind: failed}` goes to failSource (shown on the sync badge; reported unless offline)" },
   "packages/data/src/update/log.ts": { n: 2, why: "the Updates log's own storage" },
   "packages/data/src/update/service.ts": { n: 8, why: "an event listener's guard; validator caches; a refused feed / an unparsable manifest go to failSource (shown on the sync badge, reported there); a staging failure emitted as an event (shown); the outbox keeps and shows what is queued" },
-  "packages/map/src/Map.native.tsx": { n: 5, why: "a fresh copy starts clean (mirrored after); label placement (project/unproject); a test-bed target finder" },
+  "packages/map/src/Map.native.tsx": { n: 6, why: "a fresh copy starts clean (mirrored after); label placement (project/unproject); a test-bed target finder; (T445) an atlas source not yet mounted has no tag yet (learnt on its next attach)" },
   "packages/map/src/native/probe.ts": { n: 1, why: PROBE },
   "packages/map/src/native/useColouring.ts": { n: 2, why: "the native tag before mount: not mounted yet" },
   "packages/map/src/web/tileIds.ts": { n: 1, why: "the next tile event asks again" },
