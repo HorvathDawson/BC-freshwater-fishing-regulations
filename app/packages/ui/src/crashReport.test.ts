@@ -166,6 +166,19 @@ describe("the reporter (T242)", () => {
     expect(await next.flush()).toBe(false);
     expect(t.mem.v).toBe("");
   });
+  it("(T242 test bed) a fatal error sent before the app died: the next start knows it was told (the system's CRASH is the same death)", async () => {
+    const t = rig();
+    t.r.report(boom(), { kind: "js", fatal: true });
+    await tick();
+    expect(t.sent).toHaveLength(1);
+    expect(t.mem.v).toBe("sent");
+    const next = createCrashReporter({ url: "https://w.example/crash", setting: t.setting, online: () => true, context: () => ctx,
+                                       store: t.store, fetch: t.fetch as never, now: () => NOW });
+    expect(await next.flush()).toBe(true);
+    expect(t.sent).toHaveLength(1);                     // nothing sent again
+    expect(t.mem.v).toBe("");
+    expect(await next.flush()).toBe(false);
+  });
   it("at most maxPerRun different errors a run; a server failure never throws", async () => {
     const t = rig({ maxPerRun: 2, fetch: (async () => { throw new Error("net"); }) as never });
     for (const m of ["a", "b", "c"]) t.r.report(new Error(m), { kind: "js", fatal: false });
@@ -245,11 +258,15 @@ describe("background OS kills (T352)", () => {
 
 describe("why the last run ended (Android exit records, T242)", () => {
   const rec = (reason: string, t: number, over = {}) => ({ timestamp: t, reason, importance: "FOREGROUND", status: 0, rssKb: 524288, description: "", ...over });
-  const setup = async (recs: ReturnType<typeof rec>[], over: { online?: boolean; on?: boolean; jsFatalSent?: boolean; seen?: string | null } = {}) => {
+  const setup = async (recs: ReturnType<typeof rec>[], over: { online?: boolean; on?: boolean; jsFatalSent?: boolean; seen?: string | null; fail?: (p: any) => boolean } = {}) => {
     const sent: any[] = [];
     const setting = createCrashSetting(null); if (over.on === false) setting.set(false);
     const mem = { v: over.seen ?? null as string | null };
-    const fetch = vi.fn(async (_u: unknown, i?: RequestInit) => { sent.push(JSON.parse(String(i?.body))); return new Response("{}", { status: 201 }); });
+    const fetch = vi.fn(async (_u: unknown, i?: RequestInit) => {
+      const p = JSON.parse(String(i?.body));
+      if (over.fail?.(p)) return new Response("{}", { status: 503 });
+      sent.push(p); return new Response("{}", { status: 201 });
+    });
     const reporter = createCrashReporter({ url: "u", setting, online: () => over.online !== false, context: () => ctx, fetch: fetch as never, now: () => NOW });
     const { reportPastExits } = await import("./crashReport");
     const n = await reportPastExits({ reporter, source: { recent: async (s) => recs.filter((r) => r.timestamp > s) }, seen: { read: () => mem.v, write: (t) => { mem.v = t; } },
@@ -277,5 +294,10 @@ describe("why the last run ended (Android exit records, T242)", () => {
     expect(off.n).toBe(0); expect(off.mem.v).toBeNull();
     const net = await setup([rec("ANR", 5)], { online: false });
     expect(net.n).toBe(0); expect(net.mem.v).toBeNull();
+  });
+  it("(T242 test bed) a record whose send failed is looked at again: the mark stops just before it", async () => {
+    const t = await setup([rec("CRASH_NATIVE", 3000, { status: 11 }), rec("ANR", 2000), rec("ANR", 1000, { status: 3 })], { fail: (p) => /ANR/.test(p.message) && !/status/.test(p.message) });
+    expect(t.n).toBe(2);
+    expect(t.mem.v).toBe("1999");
   });
 });

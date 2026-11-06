@@ -37,6 +37,8 @@ export interface UpdatesLogControls {
   apply(): void;
   /** the platform's copy (the web's clipboard, a phone's share sheet); false: it failed */
   copy(text: string): Promise<boolean>;
+  /** (T242) a tool's build only (the test bed): fire an uncaught JS error / an unhandled rejection; null or absent: no row */
+  readonly crashTest?: { js(): void; promise(): void } | null;
 }
 
 const W = UPDATE_LOG_WORDS;
@@ -118,6 +120,16 @@ export function UpdatesLogPage({ c, palette }: { c: UpdatesLogControls; palette:
         <Act id="clear-cache" label={W.actions.clearCache} palette={palette} onPress={busy ? undefined : run(c.clearCache)} />
         <Act id="apply" label={W.actions.apply} palette={palette} onPress={r?.phase === "ready" ? c.apply : undefined} />
       </View>
+
+      {c.crashTest && (
+        <View style={{ gap: SPACE.s1 }}>
+          <Text style={{ ...TYPE.section, color: palette.sub }}>{W.crashTest.label}</Text>
+          <View style={{ flexDirection: "row", gap: SPACE.s2 }}>
+            <Act id="crash-js" label={W.crashTest.js} palette={palette} onPress={c.crashTest.js} />
+            <Act id="crash-promise" label={W.crashTest.promise} palette={palette} onPress={c.crashTest.promise} />
+          </View>
+        </View>
+      )}
 
       <View style={{ flexDirection: "row", gap: SPACE.s2, alignItems: "center" }}>
         <Act id="copy" label={W.actions.copy} palette={palette}

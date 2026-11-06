@@ -104,6 +104,8 @@ export const UPDATE_LOG_WORDS = {
     /** (T423) the choice could not be kept */
     failed: (to: string) => `Could not save ${to}; the channel is unchanged.`,
   },
+  /** (T242) a tool's build only: the crash test bed fires each kind of app error from here */
+  crashTest: { label: "Crash test (tool builds)", js: "Throw a JS error", promise: "Reject a promise" },
   empty: "No checks logged yet.",
   /** the tester's actions, as the log notes them */
   notes: {

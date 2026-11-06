@@ -1,0 +1,8 @@
+# (T242) On the Updates log page (a tool's build): press a crash-test button (KIND = js | promise).
+appId: ca.canifishthis.app
+---
+- scrollUntilVisible:
+    element: { id: "updates-log-crash-${KIND}" }
+    direction: DOWN
+    timeout: 10000
+- tapOn: { id: "updates-log-crash-${KIND}" }

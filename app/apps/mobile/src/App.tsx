@@ -430,6 +430,12 @@ export default function App() {
         return true;
       } catch { return false; }
     },
+    // (T242) the crash test bed's levers, in a tool's build only (never a store build): each goes the way a real one would,
+    // a throw outside React (the global handler: fatal, kept, the app ends) and a rejection nobody handles (Hermes' tracker)
+    crashTest: TEST_REPORTS ? {
+      js: () => { setTimeout(() => { throw new Error("T242 test bed: JS error"); }, 0); },
+      promise: () => { void Promise.reject(new Error("T242 test bed: unhandled rejection")); },
+    } : null,
   }), [updateLog, updates, apply]);
   const menuInfo = useMemo(() => ({ ...MENU_INFO, updatesLog, report: reportOutbox, install: INSTALL.id }), [updatesLog, reportOutbox]);
 

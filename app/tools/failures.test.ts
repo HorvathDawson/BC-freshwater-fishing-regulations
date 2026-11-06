@@ -203,7 +203,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui-native/src/shell/SpotHost.tsx": { n: 1, why: `no fix for parking: said (parkingNoFix); ${ENV}` },
   "packages/ui-native/src/shell/prewarm.native.ts": { n: 1, why: WARM },
   "packages/ui/src/chart.ts": { n: 2, why: `${WARM} (askOnce keeps no failure; the chart's own ask shows and reports)` },
-  "packages/ui/src/crashReport.ts": { n: 14, why: "the reporter's own guards: reporting cannot report itself" },
+  "packages/ui/src/crashReport.ts": { n: 15, why: "the reporter's own guards: reporting cannot report itself" },
   "packages/ui/src/errorLog.ts": { n: 2, why: "logging never breaks logging" },
   "packages/ui/src/hooks/water.ts": { n: 2, why: `${UNCACHE}; ${WARM}` },
   "packages/ui/src/imagery.ts": { n: 1, why: `the imagery probe: shown as the imagery state (${ENV})` },

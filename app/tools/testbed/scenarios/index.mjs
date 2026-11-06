@@ -8,6 +8,7 @@ import { offline } from './offline.mjs';
 import { spots } from './spots.mjs';
 import { report } from './report.mjs';
 import { crash } from './crash.mjs';
+import { crashBed } from './crash-bed.mjs';
 import { nearCold } from './near-cold.mjs';
 import { pan } from './pan.mjs';
 import { perf } from './perf.mjs';
@@ -26,4 +27,4 @@ import { edge } from './edge.mjs';
 import { feel } from './feel.mjs';
 import { partSteps } from './part-steps.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps];

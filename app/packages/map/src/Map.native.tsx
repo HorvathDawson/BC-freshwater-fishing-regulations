@@ -56,6 +56,7 @@ import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
+import { panProbe } from "./native/panProbe";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
          marksLayers, pinDotLayer, pinsData, shiftedLabels } from "./point-marks";
 import { pngDataUri } from "./png";
@@ -567,6 +568,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // a section the day's index labels (the Map tab's status; nothing is wanted where no status is handed over)
     wanted: (id) => { const st = statusNow.current; return !!st && profileLabel(st.index, id) !== undefined; },
   }), [colouring.coloured]);
+  /** (T420/T401) the pan probe's build (the test bed): frames full/partial and the camera's rest, for "streams drawn" */
+  const PAN_PROBE = panProbe.on();
 
   /** (T50) where each mark's label is centred, kept inside the map as the web's `markers.ts` does (`labelShift`):
    *  measured where the camera settles, from each ring's screen x, and moved as a point of the marks' source (T317) */
@@ -584,6 +587,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   const onRegionDidChange = useCallback((e: RegionEvent) => {
     probe?.settled();
+    panProbe.settled();
     const ne = e.nativeEvent;          // before anything async, as with a press
     if (ne?.center && ne.zoom !== undefined) {
       const b = ne.bounds;
@@ -669,8 +673,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onPress={onPress as never}
         onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
-        onRegionWillChange={probe || me?.on ? ((e: RegionEvent) => { probe?.moving(); onRegionWillChange(e); }) as never : undefined}
-        onDidFinishRenderingFrame={probe ? (() => probe.frame()) as never : undefined}
+        onRegionWillChange={probe || me?.on || PAN_PROBE ? ((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never : undefined}
+        onDidFinishRenderingFrame={probe || PAN_PROBE ? (() => { probe?.frame(); panProbe.frame(false); }) as never : undefined}
+        // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"
+        onDidFinishRenderingFrameFully={PAN_PROBE ? (() => panProbe.frame(true)) as never : undefined}
         onDidFinishLoadingStyle={onStyle}
         onDidFinishRenderingMapFully={onRendered}
         // an empty map and a map whose tiles failed look the same: say so

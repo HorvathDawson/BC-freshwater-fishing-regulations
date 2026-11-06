@@ -1,9 +1,10 @@
 /**
  * (T423) The update-channel switch in an installed build: the picked channel shows at once as "applies when you reopen
  * the app" (the running one stays what it is), the kept choice is read when the page opens, and a write that fails is
- * shown under the switch and reported (no-silent-fallbacks).
+ * shown under the switch and reported (no-silent-fallbacks). (T242) The crash-test row: drawn only when the shell hands
+ * it levers (a tool's build), each button fires its own.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { setFailureSink, UPDATE_LOG_WORDS } from "@app/core";
 import { createUpdateLog } from "@app/data";
@@ -48,5 +49,22 @@ describe("T423: the update-channel switch says what it did", () => {
     expect([text("updates-log-channel-failed"), seen, screen.queryByTestId("updates-log-channel-pending")])
       .toEqual([UPDATE_LOG_WORDS.channel.failed(UPDATE_LOG_WORDS.channel.test), [boom], null]);
     off();
+  });
+});
+
+describe("Updates log: crash test row (T242)", () => {
+  it("is drawn with its levers; each button fires its own", () => {
+    const js = vi.fn(), promise = vi.fn();
+    render(<UpdatesLogPage palette={LIGHT} c={{ ...controls(null), crashTest: { js, promise } }} />);
+    expect(screen.getByText(UPDATE_LOG_WORDS.crashTest.label)).toBeTruthy();
+    fireEvent.click(screen.getByTestId("updates-log-crash-js"));
+    expect([js.mock.calls.length, promise.mock.calls.length]).toEqual([1, 0]);
+    fireEvent.click(screen.getByTestId("updates-log-crash-promise"));
+    expect([js.mock.calls.length, promise.mock.calls.length]).toEqual([1, 1]);
+  });
+  it("is not drawn without levers (every store build)", () => {
+    render(<UpdatesLogPage palette={LIGHT} c={{ ...controls(null), crashTest: null }} />);
+    expect(screen.queryByText(UPDATE_LOG_WORDS.crashTest.label)).toBeNull();
+    expect(screen.queryByTestId("updates-log-crash-js")).toBeNull();
   });
 });

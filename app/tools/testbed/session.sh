@@ -10,6 +10,8 @@
 #                  the emulator's own name for this machine)
 #   --opengl       (T360) build with MapLibre's OpenGL variant instead of Vulkan (app.json changed for the build only)
 #                  instead of staging: for a release that is promoted locally but not uploaded (SALMON_NEEDS)
+#   --crash-stub   (T242) the APK's crash reports go to http://localhost:39256/crash on the phone, `adb reverse`d to this
+#                  machine, where `crash-stub/server.mjs` (the worker's own handler, in memory) takes them: never staging
 #   -- <command>   run it with the emulator up (e.g. `node app/tools/testbed/run.mjs feeds offline`), then shut down
 #
 # BOUNDED, NEVER IDLE (coordinator 2026-10-29): one scenario batch per heavy.sh job; the lock is released between
@@ -21,10 +23,11 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../.." && pwd)
 OUT="$HERE/out"; mkdir -p "$OUT"
 AVD=${TESTBED_AVD:-n1_pixel}
-BUILD=0; MAX_MIN=45; CMD=(); ENV=staging; VARIANT=
+BUILD=0; MAX_MIN=45; CMD=(); ENV=staging; VARIANT=; STUB=; STUB_PORT=${TESTBED_STUB_PORT:-39256}
 while (( $# )); do
   case $1 in
     --build) BUILD=1 ;;
+    --crash-stub) STUB=1 ;;
     --local) ENV=local ;;
     --opengl) VARIANT=opengl ;;
     --max-min) MAX_MIN=$2; shift ;;
@@ -32,7 +35,7 @@ while (( $# )); do
     *) echo "session.sh: unknown $1" >&2; exit 2 ;;
   esac; shift
 done
-APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}.apk"
+APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}${STUB:+-stub}.apk"
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
@@ -66,10 +69,12 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
   if [[ -n $VARIANT ]]; then cp "$OUT/app.json.keep" "$MJSON"; trap cleanup EXIT INT TERM; fi   # restored: the plain trap again
   # --local reads http://localhost:39217: a release build refuses cleartext unless the manifest allows it. Patched AFTER
   # prebuild (which regenerates android/), so it never reaches a store build.
-  if [[ $ENV == local ]]; then
+  if [[ $ENV == local || -n $STUB ]]; then
     sed -i '' 's/<application /<application android:usesCleartextTraffic="true" /' android/app/src/main/AndroidManifest.xml
-    grep -q 'usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml || { log "--local: cleartext patch failed"; exit 1; }
+    grep -q 'usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml || { log "cleartext patch failed"; exit 1; }
   fi
+  # (T242) --crash-stub: crash reports go to the local stub (crash-stub/server.mjs, the worker's own handler), never staging
+  [[ -n $STUB ]] && export EXPO_PUBLIC_CRASH_URL="http://localhost:$STUB_PORT/crash"
   # (T360) every test-bed APK is profileable from the shell, so Perfetto's heapprofd can say where native memory goes
   # (`app/tools/testbed/heapprof.sh`). Patched after prebuild like the cleartext line: never in a store build.
   sed -i '' 's#</application>#<profileable android:shell="true"/></application>#' android/app/src/main/AndroidManifest.xml
@@ -95,7 +100,10 @@ fi
 PORT=${TESTBED_PORT:-5580}
 SERIAL="emulator-$PORT"
 if adb devices | grep -q "^$SERIAL"; then log "$SERIAL already up (not ours: left running at the end)"; else
-  emulator -avd "$AVD" -port "$PORT" -no-window -no-audio -no-boot-anim -no-snapshot-save -gpu host >"$OUT/emulator.log" 2>&1 &
+  # (T420) TESTBED_EMU_ARGS: extra emulator flags (e.g. `-cores 2`); TESTBED_EMU_ECORES=1: the emulator runs at background
+  # QoS (macOS `taskpolicy -b`: the efficiency cores only), a slower CPU for the whole phone — the low-end stress run
+  ${TESTBED_EMU_ECORES:+taskpolicy -b} emulator -avd "$AVD" -port "$PORT" -no-window -no-audio -no-boot-anim -no-snapshot-save -gpu host \
+    ${TESTBED_EMU_ARGS:-} >"$OUT/emulator.log" 2>&1 &
   EMU_PID=$!
   log "emulator pid $EMU_PID on $SERIAL"
 fi
@@ -106,6 +114,9 @@ log "booted"
 adb -s "$SERIAL" shell cmd connectivity airplane-mode disable >/dev/null 2>&1   # the AVD was left in airplane mode by N1
 adb -s "$SERIAL" shell svc wifi enable; adb -s "$SERIAL" shell svc data enable
 adb -s "$SERIAL" install -r "$APK" >/dev/null && log "installed $APK"
+# (T242) the stub APK's crash address is the phone's localhost:<port>, carried to this machine's stub
+if [[ -n $STUB ]]; then adb -s "$SERIAL" reverse "tcp:$STUB_PORT" "tcp:$STUB_PORT" >/dev/null && log "crash stub: phone localhost:$STUB_PORT → this machine"; fi
+export TESTBED_STUB_PORT=$STUB_PORT TESTBED_STUB=${STUB:-}
 if [[ $ENV == local ]]; then
   curl -sf -o /dev/null http://localhost:39217/release/LATEST || { log "--local: no data server on :39217 (pnpm tiles)"; exit 1; }
   log "local data: http://10.0.2.2:39217 (this machine)"

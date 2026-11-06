@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { coldStart, openLog, toMap } from './common.mjs';
 import { capture, LAKE } from './spots.mjs';
+import { cameraTo } from './perf.mjs';
 
 const SWIPES = Number(process.env.PAN_SWIPES ?? 16);
 const ROUNDS = Number(process.env.PAN_ROUNDS ?? 2);
@@ -18,6 +19,27 @@ const UPDATE = process.env.PAN_UPDATE === '1';
 /** PAN_SPOTS=n (T316): first save n spots round Cultus Lake (offline capture: instant) and pan from "Show on map" over
  *  them — the spot marks are what lagged a pan (view annotations); deleted again after the rounds. */
 const SPOTS = Number(process.env.PAN_SPOTS ?? 0);
+/** (T420) PAN_AT=lon,lat,zoom: start there (the camera link) — e.g. the Fraser Valley at z11, Coquitlam at z13 */
+const AT = process.env.PAN_AT ? process.env.PAN_AT.split(',').map(Number) : null;
+/** (T420) PAN_COLD=1: the kernel's page cache dropped before the cold start (root), so every tile is read from flash */
+const COLD = process.env.PAN_COLD === '1';
+/** (T420) PAN_MS: each swipe's duration (default 350; 120 is a fling) */
+const SWIPE_MS = Number(process.env.PAN_MS ?? 350);
+
+/** (T420/T401) the pan probe's `[drawn]` lines (`native/panProbe.ts`): per camera move, frames missing tiles while it
+ *  moved, and rest → first full frame */
+export function drawnSummary(js) {
+  const ds = js.split('\n').filter((l) => l.includes('[drawn] ')).map((l) => { try { return JSON.parse(l.slice(l.indexOf('[drawn] ') + 8)); } catch { return null; } }).filter(Boolean);
+  if (!ds.length) return { moves: 0, text: 'no [drawn] lines' };
+  const ms = ds.filter((d) => d.ms !== null).map((d) => d.ms).sort((a, b) => a - b);
+  const q = (p) => (ms.length ? ms[Math.min(ms.length - 1, Math.floor(p * ms.length))] : null);
+  const frames = ds.reduce((n, d) => n + d.frames, 0), partial = ds.reduce((n, d) => n + d.partial, 0);
+  const never = ds.filter((d) => d.never).length, over500 = ms.filter((m) => m > 500).length;
+  const s = { moves: ds.length, frames, partial, partialPct: frames ? Math.round((partial / frames) * 1000) / 10 : 0,
+              restToFull: { p50: q(0.5), p95: q(0.95), max: ms.at(-1) ?? null }, over500, never };
+  return { ...s, text: `DRAWN ${s.moves} moves: frames missing tiles while moving ${partial}/${frames} (${s.partialPct} %), ` +
+    `rest → full p50 ${s.restToFull.p50} / p95 ${s.restToFull.p95} / max ${s.restToFull.max} ms, >500 ms ${over500}, never ${never}` };
+}
 
 /** `dumpsys gfxinfo <app>`'s summary: frames, janky share, the 50/90/95/99th percentile frame times (ms). */
 function gfx(t) {
@@ -56,8 +78,16 @@ export const pan = {
   async run(ctx) {
     await ctx.step('the map up on Wi-Fi (cold start)', async () => {
       await ctx.device.net('wifi'); ctx.device.link('full', 'none');
+      let cold = '';
+      if (COLD) {
+        ctx.device.stop();
+        try { ctx.device.sh(`su 0 sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches' && echo dropped`); cold = 'page cache dropped'; }
+        catch (e) { cold = `page cache NOT dropped (${String(e.message).split('\n')[0]})`; }
+      }
       await coldStart(ctx, { ms: 90_000 });
+      if (AT) { cameraTo(ctx, { lon: AT[0], lat: AT[1], zoom: AT[2] }); }
       await ctx.device.sleep(5000);                                  // the first screen's tiles and colours in
+      return [cold, AT ? `at ${AT.join(',')}` : 'start view', `swipe ${SWIPE_MS} ms`].filter(Boolean).join(' · ');
     });
     if (UPDATE) {
       await ctx.step('the live staging release taken (PAN_UPDATE): staged, applied at the next pause', async () => {
@@ -128,15 +158,18 @@ export const pan = {
         const layer = mapLayer(ctx), times = [];
         for (let i = 0; i < SWIPES; i++) {
           const [mx, my] = moves[i % moves.length];
-          ctx.device.sh(`input swipe ${cx} ${cy} ${cx + mx} ${cy + my} 350`);
+          ctx.device.sh(`input swipe ${cx} ${cy} ${cx + mx} ${cy + my} ${SWIPE_MS}`);
           await ctx.device.sleep(900);
           if (layer) times.push(...presents(ctx, layer));            // each swipe's frames (the layer keeps ~128)
         }
         await ctx.device.sleep(2500);                                // the last settle's colours
         const mf = mapFrames(times);
         const g = gfx(ctx.device.sh(`dumpsys gfxinfo ${ctx.device.APP_ID}`));
-        const js = ctx.device.logcatJs().split('\n').filter((l) => /\[pan\]|T74PROBE/.test(l));
-        fs.writeFileSync(path.join(ctx.dir, `T273-pan-${r}.txt`), `${JSON.stringify(g)}\n${JSON.stringify(mf)}\n${js.join('\n')}\n`);
+        const all = ctx.device.logcatJs();
+        const js = all.split('\n').filter((l) => /\[pan\]|T74PROBE/.test(l));
+        const dr = drawnSummary(all);
+        fs.writeFileSync(path.join(ctx.dir, `T273-pan-${r}.txt`), `${JSON.stringify(g)}\n${JSON.stringify(mf)}\n${JSON.stringify(dr)}\n${js.join('\n')}\n` +
+          `${all.split('\n').filter((l) => l.includes('[drawn] ')).join('\n')}\n`);
         // the pan probe's busy seconds (T273, `native/panProbe.ts`): JS lag, tiles labelled, feature-state round trips
         const ps = js.map((l) => { try { return JSON.parse(l.slice(l.indexOf('[pan] ') + 6)); } catch { return null; } })
           .filter(Boolean);
@@ -149,7 +182,7 @@ export const pan = {
         return `${Math.round((Date.now() - t0) / 1000)} s · MAP SURFACE ${layer ? `${mf.frames} frames, >20 ms ${mf.over20}, >50 ms ${mf.over50}, ` +
           `p50 ${mf.p50} / p95 ${mf.p95} / p99 ${mf.p99} / max ${mf.max} ms` : 'not found'} · UI (gfxinfo) frames ${g.frames}, janky ${g.janky} (${jank}), ` +
           `p50 ${g.p50} / p90 ${g.p90} / p95 ${g.p95} / p99 ${g.p99} ms, slow UI ${g.slowUi}, slow draw ${g.slowDraw}` +
-          probe;
+          probe + ` · ${dr.text}`;
       });
     }
     if (made.length) {

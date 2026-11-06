@@ -216,11 +216,15 @@ export function useCrashSetting(): { on: boolean; set: (on: boolean) => void } |
 export interface CrashReporter {
   /** Report one error. Never throws, never waits. */
   report(error: unknown, o: { kind: CrashKind; fatal: boolean }): void;
-  /** Send a fatal error kept from the last run (at start). Resolves true when one went. */
+  /** Send a fatal error kept from the last run (at start). Resolves true when the last run's fatal error was told: now, or
+   *  (T242) already, before the app died. */
   flush(): Promise<boolean>;
   /** (Android, T362 iOS) Send why the last run ended, as read from the system (iOS: the app's own record). Resolves true when sent; false = not sent (off, offline, repeat, refused). */
   sendExit(r: ExitRecord): Promise<boolean>;
 }
+
+/** (T242) the fatal slot's word for "the last run's fatal error was sent before the app died" */
+const FATAL_SENT = "sent";
 
 export function createCrashReporter(o: {
   url: string;
@@ -261,7 +265,9 @@ export function createCrashReporter(o: {
         // a fatal error is kept for the next start: the app is dying while it is caught
         if (opt.fatal && o.store) { try { o.store.write(JSON.stringify(p)); } catch { /* sent now, if it can be */ } }
         if (!o.online()) return;                        // offline: dropped (a kept fatal one goes at the next start)
-        void post(p).then((ok) => { if (ok && opt.fatal) clearKept(); });
+        // (T242 test bed) sent before the app died: the slot now says so, so the next start knows the system's record of
+        // this death (a plain CRASH) is the same event and does not send it again
+        void post(p).then((ok) => { if (ok && opt.fatal) { try { o.store?.write(FATAL_SENT); } catch { /* it may go twice */ } } });
       } catch { /* reporting never breaks the app */ }
     },
     async sendExit(r) {
@@ -279,6 +285,7 @@ export function createCrashReporter(o: {
       try {
         const text = o.store?.read();
         if (!text) return false;
+        if (text === FATAL_SENT) { clearKept(); return true; }    // told before it died
         if (!o.setting.get()) { clearKept(); return false; }      // switched off: forgotten, nothing sent
         if (!o.online()) return false;
         let p: { format: string };
@@ -403,13 +410,16 @@ export async function reportPastExits(o: { reporter: CrashReporter; source: Exit
     const since = Number(o.seen?.read() ?? 0) || 0;
     const list = (await o.source.recent(since)).filter((r) => r.timestamp > since && BAD_EXITS.includes(r.reason))
       .sort((a, b) => b.timestamp - a.timestamp);
-    let sent = 0;
+    let sent = 0, failedAt = Infinity;
     for (const r of list.slice(0, o.max ?? 3)) {
       if (r.reason === "CRASH" && o.jsFatalSent) continue;
       if (await o.reporter.sendExit(r)) sent++;
+      else failedAt = Math.min(failedAt, r.timestamp);
     }
     const all = await o.source.recent(since);
-    const newest = all.reduce((m, r) => Math.max(m, r.timestamp), since);
+    // (T242 test bed) a record whose send FAILED (server unreachable or refusing) is looked at again at the next start: the
+    // mark stops just before the oldest one that failed
+    const newest = Math.min(all.reduce((m, r) => Math.max(m, r.timestamp), since), failedAt - 1);
     try { o.seen?.write(String(newest)); } catch { /* looked at again next start */ }
     console.info(`[crash-reports] sent ${sent} exit record(s); ${all.length} new in the system's record (${all.map((r) => r.reason).join(",")}), ${list.length} bad`);   // the test bed reads this line (logcat)
     return sent;

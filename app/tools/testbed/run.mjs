@@ -25,6 +25,8 @@ const flag = (k) => { const i = args.indexOf(k); if (i >= 0) args.splice(i, 1); 
 const SYNC = opt('--sync', 'local');
 const OUTDIR = opt('--out', null);
 const KEEP_GOING = flag('--keep-going');
+/** --no-r2: nothing is written to the staging bucket (no test-channel reset at the end; a scenario asking for the channel fails) */
+const NO_R2 = flag('--no-r2');
 const want = args.length && !args.includes('all') ? args : SCENARIOS.map((s) => s.id);
 for (const w of want) if (!SCENARIOS.some((s) => s.id === w)) { console.error(`no scenario ${w}: ${SCENARIOS.map((s) => s.id).join(', ')}`); process.exit(2); }
 
@@ -46,6 +48,7 @@ console.log(`[testbed] report → ${dir}`);
 
 /** The staging test channel (deploy/staging/test-updates.mjs); an R2/rclone hiccup is tried again (3 tries). */
 function updates(cmd, arg) {
+  if (NO_R2) throw new Error(`test-updates ${cmd}: refused (--no-r2)`);
   let last;
   for (let i = 0; i < 3; i++) {
     try {
@@ -151,7 +154,7 @@ for (const sc of SCENARIOS.filter((s) => want.includes(s.id))) {
   if (ctx.rec.result === 'fail' && !KEEP_GOING && want.length > 1) console.log('  (continuing with the next scenario; each starts from a clean app)');
 }
 // a `session.sh --local` APK reads this machine's release: staging's test channel is not touched
-if (process.env.TESTBED_ENV !== 'local') try { updates('reset'); } catch (e) { console.log(`[testbed] reset of test/ failed: ${e.message}`); }
+if (process.env.TESTBED_ENV !== 'local' && !NO_R2) try { updates('reset'); } catch (e) { console.log(`[testbed] reset of test/ failed: ${e.message}`); }
 run.finished = new Date().toISOString();
 writeReport(dir, run);
 const bad = run.scenarios.filter((s) => s.result === 'fail');
