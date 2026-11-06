@@ -1,6 +1,6 @@
 # T401 — Streams pop in at the screen edges while panning (phone)
 
-Status: OPEN (owner 2026-11-04, 0.5.0 Play internal: "panning doesn't load enough of a buffer of streams outside the
+Status: PARTIAL — 2026-11-06 reproduced in simulation DURING the glide (stressed emulator: 20–36 % of moving frames lack tiles, 0 % at rest), measured with the new `[drawn]` probe (eca309749); not fixed (see the end). Was: OPEN (owner 2026-11-04, 0.5.0 Play internal: "panning doesn't load enough of a buffer of streams outside the
 view").
 
 **What the code says:** nothing in the app can widen the area loaded. MapLibre Native loads only the tiles that cover
@@ -34,3 +34,12 @@ phone, so no network wait). A first attempt read "25–66 % missing" — that wa
 missing). Not reproduced, so no fix chosen. What could differ on the owner's phone: a slower GPU/CPU decoding tiles
 during the glide, or the pop-in is seen DURING the glide (this measures at rest). Next: a screen recording from the
 owner's phone of one pan where it happens (which area, zoom, mode), then measure on that.
+
+## Measured DURING the glide (2026-11-06, eca309749; numbers and runs in T420 "Measured in simulation")
+The pan probe now reads MapLibre's own word per frame (fully vs partially rendered), so pop-in is counted while the camera
+moves, not only at rest. Normal emulator: ~5 % of moving frames lack a tile (2.3–7 %), the edge strip 0 % missing at rest,
+camera at rest 630–674 ms. **Stressed** emulator (2 efficiency cores): **20–36 % of moving frames lack tiles** on z13/z11
+flings, the edge still 0 % missing once at rest (camera at rest 1.1–1.7 s). So the pop-in reproduces in simulation, and it is
+DURING the glide on a slow CPU — the at-rest measure of 11-05 could not see it. Switching the colouring's per-tile events
+off cut it 30 → 21 % (travelling); the rest is MapLibre parsing new tiles behind the glide. Not fixed: the T420 tile-event
+fix first (measured lever), then option 2 (`setPrefetchZoomDelta`) if the parent placeholders are still too bare.

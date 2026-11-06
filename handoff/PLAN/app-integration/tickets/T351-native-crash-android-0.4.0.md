@@ -16,3 +16,13 @@ Size: M.
 
 - 2026-11-05: no foreground native crash from 0.5.0 yet (the store holds only a 0.4.0 LOW_MEMORY background kill since);
   stays OPEN waiting for a 0.5.0 report.
+- 2026-11-06, simulation (owner rule): NOT reproduced. Test-bed APK of redesign/stream-sections @ bccf9f668 (Expo 58), n1_pixel
+  (2 GB) both normal and stressed (2 efficiency cores, `TESTBED_EMU_ECORES=1 -cores 2`): ~25 pan sessions (16–160 swipes,
+  z10–z13, flings, a cold page cache), the guided walk ×3, `memory` (boot, pans, zoom, Cultus Lake, the rule book twice,
+  Conditions, Salmon, RUNNING_CRITICAL trim), the crash bed. No foreground native crash, no tombstone, nothing in the crash
+  buffer but the crash bed's own (`out/runs/stress*/exits.txt`: only force-stops and the test's JS crash). Peak PSS on the
+  stressed `memory` run 385 MB (Conditions; native 231), under the reports' 406/435 MB. What the test bed can now do for a
+  real one: a native SIGSEGV is reported end to end as `CRASH_NATIVE … status 11` (T242 `crash-bed`), so the next phone crash
+  arrives in the same shape — still no stack (Android gives none to the app; a tombstone needs the device). Stays OPEN.
+  Test-bed drift seen on the way: `layers-satellite` / "Choose layers" flows no longer find the Layers button (memory's
+  satellite + Conditions-layer steps and `PAN_GROUND=satellite` fail) — a flow to update, not an app crash.
