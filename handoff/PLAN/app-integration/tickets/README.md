@@ -483,7 +483,7 @@ use that as the sole source of future work."
 | T436 | Dead code and duplicate helpers (tidy-up) (low) | DONE | 971f40575 817b52a99 | audit 11-05 |
 | T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | DONE | d9a72c206 | audit 11-05 |
 | T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | DONE | ed591aa70 |  audit 11-05 |
-| T439 | Retire golden.json and the tests that only compare against it | OPEN | — | owner 2026-11-06 |
+| T439 | Retire golden.json and the tests that only compare against it | DONE | cc8b6b63d | — (states.json holds the tap questions; uncovered items listed in the ticket) |
 
 ## Order for open tickets
 
