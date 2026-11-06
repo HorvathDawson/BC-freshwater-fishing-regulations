@@ -93,10 +93,8 @@ def _path() -> Path:
 
 @lru_cache(maxsize=2)
 def _load(p: str, _m: float) -> dict:
-    try:
-        doc = json.loads(Path(p).read_text())
-    except OSError:
-        return {"by_id": {}, "order": [], "spot": set()}
+    # a missing input RAISES (T429): an empty set would write an empty found_names.json on the next mark
+    doc = json.loads(Path(p).read_text())
     rows = doc.get("candidates") or []
     by_id = {}
     for c in rows:

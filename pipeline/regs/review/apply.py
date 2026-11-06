@@ -82,13 +82,41 @@ def _diff(path: Path, new: str) -> str:
                                         f"a/{_rel(path)}", f"b/{_rel(path)}", n=1))
 
 
-def write_files(domain: str, decided: E.Decided, *, dry_run: bool) -> list[Path]:
-    """Run a file domain's writer; write (or, dry, print) what changed. Returns the files that differ."""
+#: a write may drop this many rows at most without `--accept-shrink` (T429): an un-mark drops a few; a missing or
+#: moved input drops them all
+SHRINK_LIMIT = 10
+
+
+def rows_in(text: str) -> int:
+    """The rows of a file domain's document: `entries` (found names) or `waters` (sloughs, tidal)."""
+    import json
+    doc = json.loads(text)
+    return len(doc.get("entries") or doc.get("waters") or ())
+
+
+def shrink_refusal(path: Path, text: str) -> Optional[str]:
+    """Why writing `text` over `path` is refused (T429): it drops more than `SHRINK_LIMIT` rows; None when it may
+    land."""
+    if not path.exists():
+        return None
+    old, new = rows_in(path.read_text(encoding="utf-8")), rows_in(text)
+    if old - new > SHRINK_LIMIT:
+        return (f"{_rel(path)}: would drop {old - new} of {old} rows (to {new}) — refused; a review input missing or "
+                f"moved? If meant: python -m pipeline.regs.review.apply --accept-shrink")
+    return None
+
+
+def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink: bool = False) -> list[Path]:
+    """Run a file domain's writer; write (or, dry, print) what changed. Returns the files that differ. A write that
+    drops more than `SHRINK_LIMIT` rows RAISES unless `accept_shrink` (T429)."""
     changed = []
     for path, text in WRITERS[domain](decided).items():
         if path.exists() and path.read_text(encoding="utf-8") == text:
             print(f"{domain}: {_rel(path)} is current")
             continue
+        why = None if accept_shrink else shrink_refusal(path, text)
+        if why:
+            raise ValueError(why)
         changed.append(path)
         if dry_run:
             print(f"== {domain}: would write {_rel(path)}")
@@ -106,7 +134,8 @@ def domain_of(scope: str) -> Optional[str]:
 
 
 def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
-        build: Optional[Path] = None, side_checked: tuple = (), dry_run: bool = False) -> dict:
+        build: Optional[Path] = None, side_checked: tuple = (), dry_run: bool = False,
+        accept_shrink: bool = False) -> dict:
     """The marks' decisions (in memory), then each asked domain's writer (every open one when `domains` is empty). Returns
     {rc, domains, skipped: {domain: why}, files: [changed final files], events: [...]}, where an event is one
     outcome on the marks behind it — {domain, status: applied | written | refused | waiting | would, why,
@@ -148,7 +177,13 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
                 for s in TL.build(decided)[1]:
                     out["events"].append({"domain": d, "status": "waiting", "why": s["why"],
                                           "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
-            changed = write_files(d, decided, dry_run=dry_run)
+            try:
+                changed = write_files(d, decided, dry_run=dry_run, accept_shrink=accept_shrink)
+            except ValueError as ex:                               # T429: a shrink refused, said on the domain
+                print(str(ex))
+                out["rc"] = 2
+                out["events"].append({"domain": d, "status": "refused", "why": str(ex), "marks": []})
+                continue
             out["files"] += [str(p) for p in changed]
             out["events"].append({"domain": d, "status": "would" if dry_run else "written",
                                   "why": ", ".join(_rel(p) for p in changed) or "current", "marks": []})
@@ -177,12 +212,14 @@ def main(argv: Optional[list[str]] = None) -> int:
     ap.add_argument("--build", type=Path, help="apply_proposals: the atlas whose registry names new anchors")
     ap.add_argument("--side-checked", action="append", default=[], metavar="ID",
                     help="apply_proposals: this cut-changing proposal's side rebuild was made and read elsewhere")
+    ap.add_argument("--accept-shrink", action="store_true",
+                    help=f"write a file even when it drops more than {SHRINK_LIMIT} rows (T429)")
     a = ap.parse_args(argv)
     bad = [d for d in a.domains if d not in E.DOMAINS]
     if bad:
         ap.error(f"unknown domain(s) {', '.join(bad)} — one of {', '.join(E.DOMAINS)}")
     return run(a.domains, marks=a.marks, build=a.build, side_checked=tuple(a.side_checked),
-               dry_run=a.dry_run)["rc"]
+               dry_run=a.dry_run, accept_shrink=a.accept_shrink)["rc"]
 
 
 if __name__ == "__main__":

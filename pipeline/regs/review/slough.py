@@ -103,14 +103,9 @@ def group(row: dict) -> str:
 
 @lru_cache(maxsize=2)
 def _load(a: str, f: str, _ma: float, _mf: float) -> dict:
-    try:
-        doc = json.loads(Path(a).read_text())
-    except OSError:
-        return {"by_id": {}, "order": [], "finder": {}}
-    try:
-        fin = {c["id"]: c for c in json.load(gzip.open(f)).get("candidates") or []}
-    except OSError:
-        fin = {}
+    # a missing input RAISES (T429): an empty set would write an empty slough_calls.json on the next mark
+    doc = json.loads(Path(a).read_text())
+    fin = {c["id"]: c for c in json.load(gzip.open(f)).get("candidates") or []}
     rows = doc.get("rows") or []
     rank = {g: i for i, g in enumerate(GROUPS)}
     # review order: group; within the owner list its own rank; else the narrowest first

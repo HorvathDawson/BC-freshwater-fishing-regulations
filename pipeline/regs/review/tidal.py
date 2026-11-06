@@ -400,13 +400,10 @@ def _load(p: str, _mtime: float, p2: str | None = None, _mtime2: float | None = 
 
 
 def load(p: Path | None = None) -> dict:
-    """{coverage, about, by_id, order} — empty when the file is absent (no proposals yet); the pass-2
-    evidence merged in when its file is there (`merge_pass2`)."""
+    """{coverage, about, by_id, order}; a missing file RAISES (T429: an empty set would write an empty tidal file on
+    the next mark); the pass-2 evidence merged in when its file is there (`merge_pass2`)."""
     p = Path(p or path())
-    try:
-        mt = p.stat().st_mtime
-    except OSError:
-        return {"coverage": {}, "about": "", "by_id": {}, "order": []}
+    mt = p.stat().st_mtime
     p2 = pass2_path()
     try:
         mt2 = p2.stat().st_mtime if p2 is not None else None

@@ -472,7 +472,7 @@ use that as the sole source of future work."
 | T426 | A changed synopsis extractor must still read the current book the same way (baseline + row diff + fast pages) | DONE | aad8f7313 | whole-book --check-against owed (heavy); Heber = first accepted diff |
 | T427 | Conditions legend's watershed forecast: leaner (about 4 rows, merged title/verdict, labels on the ramp) | DONE (needs owner look at the shots) | 9e865e284 | owner 11-05 (screenshot) |
 | T428 | One sync control in More (the "Updates" row really syncs, same look as the map sync button) | OPEN | — | owner 11-05 |
-| T429 | A missing review input can empty a curated file (high) | OPEN | — | audit 11-05 |
+| T429 | A missing review input can empty a curated file (high) | DONE | — | audit 11-05 |
 | T430 | The crash and problem-report formats have no parity test (one field loses every report) (high) | OPEN | — | audit 11-05 |
 | T431 | The feeds worker's own tests run nowhere; its silent catches (high) | OPEN | — | audit 11-05 |
 | T432 | The app's golden parity passes green on zero cases; no app skip gate (high) | OPEN | — | audit 11-05 |

@@ -13,6 +13,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-05 (night): chat 3 — the audit's fix tickets
+- Chat 2's heavy run is still going; nothing heavy started here.
+- **T429 done:** a missing review input can no longer empty a curated file. The name / slough / tidal lists now stop
+  with an error if their input is missing, and a write that would drop more than 10 rows is refused unless you say
+  `--accept-shrink` (the review app shows the refusal on the item).
+- T430–T432 in progress.
+
 ## 2026-11-05 (late): chat 2 started — launch prep, CI back on
 - **T416 proof is running** (fresh clone, then a Mac build at the same commit; verdict in `~/t416-repro.json`, ~23:15).
   It holds the heavy slot, so everything below is light work.
