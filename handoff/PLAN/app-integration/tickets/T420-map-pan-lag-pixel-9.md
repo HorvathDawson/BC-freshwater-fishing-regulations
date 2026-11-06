@@ -161,3 +161,59 @@ change at a time: `fill-antialias` off on the basemap's fills saves 14–15 % of
 ≤ 1.33 % of pixels move (>24/255) over 9 places z5–z11, under T280's 2 % gate. Owner saw the side-by-sides and chose
 to ship it (`runtime-style.ts`, both maps). Stressed-emulator runs (`runs/t420low-*`) were too noisy to show it: the
 emulator's GPU is the Mac's. Proof stays the owner's phone.
+
+## Zoomed out, z5–z9 (2026-11-06 late, a893b06fe; owner: "still a bit laggy when zoomed out … parks and other polygons?")
+Release r-67b456b5e64b (T419 smoothed STREAMS only; polygons untouched).
+
+**Tile volume (release tiles, Lower Mainland bbox −123.3…−121.3, 49.0…49.8; one z7 tile, 8 at z9).** The basemap carries
+3–10× the atlas's vertices zoomed out, and its `landuse` (wood/forest/park greens) is most of it:
+| zoom | atlas KiB / top layers (vertices) | basemap KiB / landuse · water · roads (vertices) |
+|---|---|---|
+| z5 (1 tile) | 17 · basin 2.2k, region 0.8k, stream 0.6k | 31 · 6.5k · 0.4k · 0.9k (landcover 3.3k) |
+| z7 (1) | 20 · basin 1.1k, mu 1.0k, stream 0.9k, **park 0.5k** | 83 · **15.1k** · 3.9k · 2.7k |
+| z9 (8) | 67 · stream 2.6k, tidal 1.8k, mu 1.6k, **park 1.2k** | 283 · **44.6k** · 25.3k · 20.2k |
+Province z6 (17 tiles): atlas 29k vertices (basin 16k, park 3.9k); basemap 212k (landuse 76k, water 70k, earth 32k).
+`parcel` (T419's ~113k vertices at z11) is `visibility: none`: no bucket is built for a hidden layer, so it draws nothing.
+
+**Draw work per layer (dev web, Pixel 9 viewport, z7 Lower Mainland; deterministic: draws, triangles, share of the screen
+each layer paints alone).** 103 layers, 231 draw calls, 95.5k triangles, 5.4 screens of pixels: backgrounds 2.35 (opaque:
+cheap, depth-rejected), basemap land fills 1.38 screens / 31k triangles (`landuse_park` alone 0.53 / 25.8k), admin fills
+(region + mu 4 % tints) 1.33 / 2.3k, basemap water 0.18 / 12k, **our parks 0.10 / 2.4k**, streams 0.03 / 13k.
+
+**Cost, interleaved A/B of forced full frames (SwiftShader; machine load cancels; % of the frame saved):**
+| candidate | z5 prov. | z6 | z7 | z8 | z9 |
+|---|---|---|---|---|---|
+| `fill-antialias` off on every fill | 13 | 15 | 22 | 21 | 13 |
+| … on the basemap's fills only | — | — | **15** | — | **14** |
+| … on our fills that have an edge layer | — | — | 0 | — | 1 |
+| basemap `landuse_park` not drawn | 2 | −1 | 16 | 17 | 14 |
+| `landuse_park` made opaque (no blending) | — | — | −2 | — | 3 |
+| region + mu 4 % tints not drawn | 7 | 5 | 4 | 7 | 6 |
+| our park fill not drawn | 5 | 2 | 1 | −1 | 1 |
+| outside mask not drawn | 4 | 3 | 1 | 1 | 0 |
+| every fill not drawn (upper bound) | 32 | 39 | 37 | 40 | 32 |
+So the owner's suspicion is half right: POLYGONS are the zoomed-out cost (up to ~40 % of a frame), but it is the BASEMAP's
+green fills — their geometry (opaque vs blended made no difference) and their antialias outline pass — not our parks
+(≤ 1–5 %) nor the region/MU tints (4–7 %).
+
+**Fixed (a893b06fe, style, both platforms):** the basemap's fills draw no antialias outline (`runtime-style.ts`). Looks:
+≤ 1.33 % of pixels move (>24/255) over 9 places z5–z11, under the basemap's own 2 % render gate (T280). Same pan script
+(4 pans, Pixel 9 viewport, SwiftShader, interleaved A/B ×3): z5 22.6 → 20.4 ms mean frame (332 → 369 frames), z7 26.6 →
+23.1 (280 → 320), z9 30.1 → 27.0 (243 → 272).
+
+**Native emulator (stressed, `pan` PAN_AT −122.5,49.3 z7 / z9 and −125,54 z5; runs `t420low-{before,after}-{lm7,lm9,bc5}`):**
+INCONCLUSIVE. Before vs after moved both ways by more than any plausible effect (z7 circling p50 83 → 153 ms, travelling
+33 → 24; z9 travelling 102 → 135; z5 travelling 18.8 → 19.5): the 2-E-core emulator's own noise, and its GPU is the Mac's
+through `goldfish_pipe`, so a Mali's fill and geometry cost cannot show there. The style change applies to native too.
+Seen on the way: low zoom moves are heavy on native even without our JS (z9 travelling: 38–58 % of moving frames lack a
+tile; JS lag ≤ 250 ms; map renders 16 per round after the earlier fix).
+
+**Next (not done; proposals change what shows — owner's call):**
+1. **Tiles:** simplify basemap `landuse` harder at z ≤ 9 (`basemap_grid.SIMPLIFY`, e.g. 4.0 below z10). It was tuned
+   against the 2 % render gate in T280 and 4.0 measured 3.3 % worst shot there, so it is a look change → owner. A basemap
+   tile build through heavy.sh, then `app/tools/basemap-shots.mjs`; not started.
+2. **Proposal:** start `landuse_park`'s fade later (it ramps 0 → 1 over z6–z11; drawing it from z8 removes 16 % of a z7
+   frame, but the green ground disappears at z7).
+3. **Proposal:** drop the region and MU 4 % tints (keep their outlines and taps): 4–7 % of a low-zoom frame.
+4. Native pixel-ratio cap (T448) — the same GPU on the Pixel 9.
+Scripts (session scratchpad, not kept): `tilestats.py`, `drawwork.py`, `abcost.py`, `aadiff.py`, `layercost.py --aab`.

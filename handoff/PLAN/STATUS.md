@@ -116,6 +116,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   (logs `~/site-1106b-*.log`, `~/check-1106h.log`, `~/apk-1106c.log`); if the check fails on release fixtures, re-cut per
   rule 46 / T441. (2) lag agent: zoomed-out lag z5–z9, polygon layers cost, fix + numbers (proposals for anything that
   changes what shows). **Then:** emulator walk incl. fresh install on 0.6.5, NEXT-SESSION file, new chat.
+  T420 zoomed out (a893b06fe): the low-zoom cost is the BASEMAP's green fills (geometry + antialias outline), not our parks
+  (≤5 %); basemap fill antialias off = −10–13 % frame z5–z9 (proxy), looks ≤1.33 % px; next = harder landuse simplify
+  (tile build) + 2 look proposals, in T420 "Zoomed out".
 - **Chat 3 closed:** staging site rebuilt with the web cap (smoke 18/18). Check: one load flake (Walkthrough test,
   fixed c35b0866e), rest green. **0.6.5 (versionCode 14) on Play internal**; fresh-install emulator walk 5/5.
   Zoomed-out lag findings: see T420. Next chat: `handoff/PLAN/NEXT-SESSION-after-chat3.md`.
