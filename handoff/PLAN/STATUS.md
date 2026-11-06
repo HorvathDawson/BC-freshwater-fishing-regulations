@@ -28,7 +28,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   already did). Apple "Device ID": a proposal for you. T371 now says promote **0.6.2 (build 11)**.
 - **T409:** water pages no longer build the hidden map until you go back to it, at every width (your call: desktop
   too). Code + tests in (a2946f62e, 99574d8c8). The score measurement waits for the heavy slot.
-- New: T421 (a silent fallback found while fixing CI).
+- **T331 closed; T422 done** (5820c2ae4): the review app's sandbox is now one folder (`CURATED_ROOT`) instead of four
+  path settings; the old settings are refused if set. How you start the app is unchanged — **restart it after pulling.**
+  Side builds made before today have the old layout.
+- **CI:** pipeline green (first since 10-20). App: 38 failures were BC-time vs UTC (all tests now run in BC time); the
+  last 3 fixes are on GitHub now.
+- New: T421 (a silent fallback found while fixing CI), T422.
 
 ## 2026-11-05: 0.6.1 on Play internal
 - **0.6.1** (9e610a6f2, versionCode 10, 40741d6de): the T411 highlight fix. Tester email sent; play.json published.
