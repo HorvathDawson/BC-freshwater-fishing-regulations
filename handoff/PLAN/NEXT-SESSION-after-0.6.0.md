@@ -50,6 +50,8 @@ Left, in order (a short "Chat 1b" before chat 2):
    version, the GitHub token check). Phone checks for the owner are in each ticket. Chat 1b also did T412, T413, T416
    (STATUS). T419 (Salmon River simplification) is checked with the UI work; a fix is a tiles change (rides a data
    release). The first staging release after this runs the new run-timing workflow for real (T412): watch it.
+1b. **T420** — map panning laggy on a Pixel 9 (streams load slowly, then the pan stutters); owner 11-05. Measure on a
+   device first; with T401 (pan buffer) since both are the pan. Before Closed testing if it is cheap to fix.
 2. **T86, T240, T244** — production hosting, launch checklist (now carries T50, T75, T80, T87), store readiness.
 3. **T409** — SEO launch pass (carries T188, T196, T405; T198 owner-blocked): incl. the map built when first seen on
    `/water/*` (owner 11-05). Measure as T409 did (local, 3 runs, median); no native diff. Before the prod SEO launch.
