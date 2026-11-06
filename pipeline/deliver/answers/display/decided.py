@@ -249,21 +249,30 @@ _BOXES: dict = {}
 def _row_boxes() -> dict:
     """T215: the synopsis rows' boxes, `{(printed page, water): [{pdf, box, size}]}`, from the extractor's own
     `row_boxes.json` sidecar (`pipeline.regs.extraction.row_boxes`) — and only when it was cut from THE synopsis PDF the
-    release ships (its `pdf_sha256`); a sidecar of another PDF, or none, gives no boxes (the page opens unhighlighted)."""
+    release ships (its `pdf_sha256`). A missing sidecar, or one cut from another PDF, is REFUSED (T416): it used to give
+    no boxes silently, and a fresh clone (no sidecar) shipped every rule without its highlight. Bootstrap fetches the
+    pinned sidecar; after a new PDF, `python -m pipeline.regs.extraction.row_boxes`."""
     if "rows" in _BOXES:
         return _BOXES["rows"]
     out: dict = {}
+    from pipeline.common.synopsis_pages import default_pdf
+    from pipeline.regs.extraction.row_boxes import default_out, sha256
+    path, fix = default_out(), "python -m pipeline.regs.extraction.row_boxes (no credits), or scripts/bootstrap.sh"
+    if not path.exists():
+        raise AnswersError(f"display: no synopsis row boxes ({path} is missing) — every rule would lose its "
+                           f"highlight; {fix}")
     try:
-        from pipeline.common.synopsis_pages import default_pdf
-        from pipeline.regs.extraction.row_boxes import default_out, sha256
-        side = json.loads(default_out().read_text(encoding="utf-8"))
-        if side.get("pdf_sha256") == sha256(default_pdf()):
-            for r in side["rows"].values():
-                out.setdefault((int(r["printed"]), r["water"]), []).append(
-                    {"pdf": int(r["pdf_page"]), "box": [float(v) for v in r["box"]],
-                     "size": [float(v) for v in r["page_size"]]})
-    except (OSError, ValueError, KeyError):
-        out = {}
+        side = json.loads(path.read_text(encoding="utf-8"))
+        rows = side["rows"].values()
+    except (ValueError, KeyError, AttributeError, TypeError) as e:
+        raise AnswersError(f"display: {path} is not a row-boxes sidecar ({e}); {fix}") from e
+    if side.get("pdf_sha256") != sha256(default_pdf()):
+        raise AnswersError(f"display: {path} was cut from another synopsis PDF (pdf_sha256 "
+                           f"{str(side.get('pdf_sha256'))[:16]}), not the one the release ships; {fix}")
+    for r in rows:
+        out.setdefault((int(r["printed"]), r["water"]), []).append(
+            {"pdf": int(r["pdf_page"]), "box": [float(v) for v in r["box"]],
+             "size": [float(v) for v in r["page_size"]]})
     _BOXES["rows"] = out
     return out
 

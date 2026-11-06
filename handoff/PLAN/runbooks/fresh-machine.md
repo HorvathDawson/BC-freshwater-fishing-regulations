@@ -21,7 +21,8 @@ or for the app), makes `.venv`, then fetches:
 | `hydat.sqlite3` (HYDAT 20261019) | same bucket | 1.3 GB | sha256 |
 | `fish_obstacles/fish_obstacles.gpkg` | same bucket | 33 MB | sha256 |
 | `bc.pmtiles` (basemap, Protomaps 2026-03-05, pruned upstream) | `data.canifishthis.ca/bc.pmtiles` | 4.4 GB | sha256 |
-| synopsis extraction backup | `build.canifishthis.ca/extraction/` | small | — |
+| `basemap.pmtiles` (the RELEASED basemap, basemap-6960ed933a82: the live release's ground) | `build.canifishthis.ca/source/<sha16>/` | 225 MB | sha256; bootstrap then releases it (`pipeline.deliver.tiles.basemap --release-only`) |
+| `generated/regs/extraction/{synopsis_raw_data,row_boxes}.json` (the synopsis extraction and its row boxes: the PDF highlight of every rule) | `build.canifishthis.ca/source/<sha16>/` | 0.8 MB | sha256 (the old `extraction/` backup was stale; a release without the row boxes is refused) |
 | DFO salmon pages, typed | DFO's live pages (`pipeline.regs.dfo_salmon.live`) | small | today's pages |
 
 Downloads resume (`curl -C -`); rerun the script after a drop. A file whose sha256 differs is deleted and the run fails.
@@ -47,8 +48,10 @@ bash scripts/heavy.sh first-build 50 -- .venv/bin/python -m pipeline build --atl
 
 The machine needs about 24 GB of free memory for the atlas. About 1h15 in all.
 
-**The basemap is not a build stage.** A fresh machine has no released basemap, so its release says `basemap: null`
-(T416 found it). Before the first release, build it: `python -m pipeline.deliver.tiles.basemap` (from `bc.pmtiles`). After this first build, `python -m pipeline release
+**The basemap is not a build stage**; bootstrap releases the pinned one (above), so the release names the same
+ground as the live one. **A release without a basemap is refused** (`basemap_block`: no `basemap.meta.json` beside the
+tiles is an error, T416 — it used to ship `basemap: null` silently). To move to a newer OSM ground instead, build it
+from `bc.pmtiles`: `python -m pipeline.deliver.tiles.basemap` (then pin it again). After this first build, `python -m pipeline release
 --staging` works as in `release.md` (the first release has no live baseline; fetch `data/release/` from R2 or accept the
 first binding diff).
 

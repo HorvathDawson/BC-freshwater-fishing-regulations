@@ -221,9 +221,10 @@ def tiles_block(release_root, handles16: str, tiles_meta) -> Optional[dict]:
     return out
 
 
-def basemap_block(release_root, basemap_meta) -> Optional[dict]:
-    """`basemap`: `{id, url, bytes, sha256}` of the released basemap (T75), or None when none has been released yet
-    (no `basemap.meta.json` beside the tiles: the app then keeps the ground it holds, or none).
+def basemap_block(release_root, basemap_meta) -> dict:
+    """`basemap`: `{id, url, bytes, sha256}` of the released basemap (T75). A release WITHOUT one is refused (T416):
+    no `basemap.meta.json` beside the tiles used to give `basemap: null`, and a fresh machine then shipped a release
+    with no ground at all, silently. Release one first (bootstrap does: the pinned `data/source/basemap.pmtiles`).
 
     Which basemap is current is what the sidecar the basemap step wrote says (`tiles.basemap.to_release`), never "the
     last folder". Its released copy is hashed again here, so a manifest can never name bytes it does not point at; a
@@ -231,12 +232,14 @@ def basemap_block(release_root, basemap_meta) -> Optional[dict]:
     import json
     from pipeline.deliver.tiles.version import sha256_file
     meta = Path(basemap_meta)
+    fix = ("release one first: scripts/bootstrap.sh (the pinned basemap), or "
+           "python -m pipeline.deliver.tiles.basemap --release-only --out <tiles>/basemap.pmtiles")
     if not meta.exists():
-        return None
+        raise SystemExit(f"release: no released basemap ({meta} is missing) — a release must name its ground; {fix}")
     m = json.loads(meta.read_text())
     vid = m.get("basemap_version")
     if not vid:
-        return None
+        raise SystemExit(f"release: {meta} names no basemap_version — {fix}")
     p = Path(release_root) / "basemap" / vid / f"{vid}.pmtiles"
     if not p.exists():
         raise SystemExit(f"release: the basemap is {vid} but {p} is missing — "

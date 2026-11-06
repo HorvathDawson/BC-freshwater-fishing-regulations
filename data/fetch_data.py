@@ -1585,20 +1585,12 @@ def fetch_parsing_backup(config):
     That parser is retired: parsed entries are curated files
     (`data/curated/regulations/synopsis`), in git, and need no restore.
     """
-    from pipeline.common.curated import GENERATED
-    restores = [
-        (
-            "extraction/synopsis_raw_data.json",
-            GENERATED.regs.extraction / "synopsis_raw_data.json",
-        ),
-    ]
-    print(f"\n[Backup] Restoring extraction data from {BUILD_ASSETS_BASE_URL}")
-    for key, dest in restores:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        _download_with_progress(
-            f"{BUILD_ASSETS_BASE_URL}/{key}", dest, desc=dest.name
-        )
-        print(f"  ✅ {key} → {dest}")
+    # T416: the extraction lives in data/source/pins.json now (`generated/regs/extraction/…`, by sha256): the fixed
+    # `extraction/synopsis_raw_data.json` key held a STALE copy (3bbf3b3c, not the 5786254f the release was cut from)
+    # and the row boxes were not backed up at all. Restore through the pins, verified.
+    import subprocess
+    print("\n[Backup] Restoring the synopsis extraction + row boxes from the pins (python -m pipeline.tools.source_pins fetch)")
+    subprocess.run([sys.executable, "-m", "pipeline.tools.source_pins", "fetch"], check=True)
 
 
 def _layer_already_fetched(name: str, cfg: dict, gpkg_out: Path, existing_layers: set) -> bool:

@@ -19,9 +19,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from pipeline.common.curated import SOURCE
+from pipeline.common.curated import ROOT, SOURCE
 
 MANIFEST = SOURCE / "pins.json"
+#: a pin keyed `generated/<path>` is a git-ignored GENERATED input the build reads (T416: the synopsis extraction and
+#: its row boxes, which no build stage makes); every other key is under data/source
+GENERATED_PREFIX = "generated/"
+GENERATED_ROOT = ROOT / "data" / "generated"
 BUCKET = "r2:bc-fishing-build-assets"
 BASE_URL = "https://build.canifishthis.ca"
 
@@ -38,9 +42,23 @@ def load() -> dict:
     return json.loads(MANIFEST.read_text(encoding="utf-8"))
 
 
+def local(rel: str) -> Path:
+    """Where a pin's key lives on disk."""
+    return GENERATED_ROOT / rel[len(GENERATED_PREFIX):] if rel.startswith(GENERATED_PREFIX) else SOURCE / rel
+
+
+def key_of(p: Path) -> str:
+    """A file's pin key: its path under data/source, or `generated/<path>` under data/generated (else refused)."""
+    p = p.resolve()
+    for root, prefix in ((Path(SOURCE).resolve(), ""), (GENERATED_ROOT.resolve(), GENERATED_PREFIX)):
+        if p.is_relative_to(root):
+            return prefix + p.relative_to(root).as_posix()
+    raise SystemExit(f"pins: {p} is under neither {SOURCE} nor {GENERATED_ROOT}")
+
+
 def off(rel: str, pin: dict) -> str | None:
     """Why the local copy is not the pin (None when it is). Size first: a full hash of 10 GB takes a minute."""
-    p = SOURCE / rel
+    p = local(rel)
     if not p.exists():
         return "missing"
     if p.stat().st_size != pin["bytes"]:
@@ -64,7 +82,7 @@ def fetch() -> int:
         if not off(rel, pin):
             print(f"  ✓ {rel}")
             continue
-        dest = SOURCE / rel
+        dest = local(rel)
         part = dest.with_name(dest.name + ".part")
         dest.parent.mkdir(parents=True, exist_ok=True)
         print(f"  ↓ {rel} ({pin['bytes'] / 1e9:.2f} GB) <- {pin['url']}")
@@ -87,7 +105,7 @@ def pin(paths: list[str], upstream: str | None) -> int:
     man = load() if MANIFEST.exists() else {"files": {}}
     for raw in paths:
         p = Path(raw).resolve()
-        rel = p.relative_to(Path(SOURCE).resolve()).as_posix()
+        rel = key_of(p)
         digest = sha256(p)
         key = f"source/{digest[:16]}/{p.name}"
         print(f"  ↑ {rel} -> {BUCKET}/{key}")

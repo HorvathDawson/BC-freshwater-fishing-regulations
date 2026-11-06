@@ -39,8 +39,39 @@ def test_the_manifest_names_the_released_basemap(tmp_path):
     vid = meta["basemap_version"]
     assert got == {"id": vid, "url": f"basemap/{vid}/{vid}.pmtiles", "bytes": meta["bytes"], "sha256": meta["sha256"]}
     assert manifest("r-1", {}, "d768d6e135e62b99", basemap=got)["basemap"] == got
-    # none released yet: null, and the app keeps the ground it holds
-    assert basemap_block(rel, tmp_path / "nowhere.json") is None
+
+
+def test_a_release_without_a_basemap_is_refused(tmp_path):
+    # T416: a fresh machine had no basemap.meta.json and shipped `basemap: null` silently — now it is an error
+    rel = tmp_path / "release"
+    with pytest.raises(SystemExit, match="no released basemap"):
+        basemap_block(rel, tmp_path / "nowhere.json")
+    (tmp_path / "empty.json").write_text("{}")
+    with pytest.raises(SystemExit, match="names no basemap_version"):
+        basemap_block(rel, tmp_path / "empty.json")
+
+
+def test_the_release_command_refuses_to_run_without_a_basemap(tmp_path, monkeypatch):
+    # the release entry point reaches the refusal before it packages anything
+    import sqlite3
+    from pipeline.deliver.release import __main__ as RM
+    from pipeline.deliver.release import build as RB
+    from pipeline.deliver.release import manifest as M
+    bundle = tmp_path / "bundle.sqlite"
+    con = sqlite3.connect(bundle)
+    con.execute("CREATE TABLE meta (k TEXT, v TEXT)")
+    con.execute("INSERT INTO meta VALUES ('section_handles', 'd768d6e135e62b99')")
+    con.commit()
+    con.close()
+    built = []
+    monkeypatch.setattr(RB, "build", lambda **kw: built.append(kw) or tmp_path)
+    monkeypatch.setattr(M, "tiles_block", lambda *a: None)
+    tiles = tmp_path / "tiles"
+    tiles.mkdir()
+    with pytest.raises(SystemExit, match="no released basemap"):
+        RM.main(["--bundle", str(bundle), "--store", str(tmp_path / "regs.sqlite"), "--tiles", str(tiles),
+                 "--tiles-release-root", str(tmp_path / "release"), "--synopsis", str(tmp_path / "none.pdf")])
+    assert built == []
 
 
 def test_a_sidecar_that_does_not_describe_the_released_copy_is_refused(tmp_path):

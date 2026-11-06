@@ -81,9 +81,7 @@ def main(argv=None) -> int:
     ap.add_argument("--basemap-meta", type=Path, default=GENERATED.tiles / "basemap.meta.json")
     a = ap.parse_args(argv)
     src = a.release_root / a.src if a.src else latest(a.release_root)
-    bm = basemap_block(a.release_root, a.basemap_meta)
-    if bm is None:
-        raise SystemExit(f"rebase: no released basemap at {a.basemap_meta}")
+    bm = basemap_block(a.release_root, a.basemap_meta)        # refuses a missing basemap itself (T416)
     out = rebase(src, bm, a.release_root)
     print(f"{src.name} -> {out.name}  (basemap {bm['id']}, {bm['bytes']:,} bytes)")
     return 0

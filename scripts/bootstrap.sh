@@ -34,8 +34,15 @@ fi
 t "pinned inputs (data/source/pins.json)"
 .venv/bin/python -m pipeline.tools.source_pins fetch
 
-t "synopsis extraction backup"
-PYTHONPATH="$PWD" .venv/bin/python data/fetch_data.py --add-parsing-data
+# (T416) the released basemap: the pinned bytes are the live release's ground; releasing them writes
+# data/release/basemap/<id>/ and the sidecar beside the tiles, which the release refuses to go without
+t "basemap (pinned, released)"
+mkdir -p data/generated/tiles
+cmp -s data/source/basemap.pmtiles data/generated/tiles/basemap.pmtiles || cp data/source/basemap.pmtiles data/generated/tiles/basemap.pmtiles
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.deliver.tiles.basemap --release-only --out data/generated/tiles/basemap.pmtiles
+
+# (the synopsis extraction + its row boxes are pins too, `generated/…`: the old `fetch_data.py --add-parsing-data`
+#  backup was a stale copy, and without the row boxes every rule shipped without its highlight — T416)
 
 # the DFO salmon pages, typed (git-ignored; the bundle reads them): today's pages, ~15 s, no credits, no secrets
 t "DFO salmon feed"

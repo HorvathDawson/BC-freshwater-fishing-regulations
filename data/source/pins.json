@@ -1,6 +1,12 @@
 {
   "_about": "T416: the build's big inputs that are not in git, pinned by sha256 (python -m pipeline.tools.source_pins fetch|check|pin). url = where a fresh clone downloads them; upstream = where the bytes first came from. A pin's key holds its hash, so it never changes; refresh with data/fetch_data.py, then pin again.",
   "files": {
+    "basemap.pmtiles": {
+      "bytes": 225356297,
+      "sha256": "6960ed933a82f6f6833ebfc64438a629f0bcdab84109286b204ff8f253e4874b",
+      "url": "https://build.canifishthis.ca/source/6960ed933a82f6f6/basemap.pmtiles",
+      "upstream": "the released basemap (python -m pipeline.deliver.tiles.basemap from bc.pmtiles, z13 cap, T202): basemap-6960ed933a82, the live release's ground. bootstrap releases it (--release-only) so a fresh release names it"
+    },
     "bc.pmtiles": {
       "bytes": 4360240464,
       "sha256": "53aec653a5314e4d7405b479909ed6f1524023a14432495e966491c64ed06aac",
@@ -18,6 +24,18 @@
       "sha256": "73befc72a74a08778dbf03d25ec3a8bd54adda397f13193199e40161e7c52574",
       "url": "https://build.canifishthis.ca/source/73befc72a74a0877/fish_obstacles.gpkg",
       "upstream": "data/fetch_data.py WFS (fish_obstacles_fiss/dams/pscis), Mac copy of 2026-10"
+    },
+    "generated/regs/extraction/row_boxes.json": {
+      "bytes": 320063,
+      "sha256": "5cdef13c55a5b2017e377bbe85b422c6e09ebc61b8acd362f4e7efd9912f9f92",
+      "url": "https://build.canifishthis.ca/source/5cdef13c55a5b201/row_boxes.json",
+      "upstream": "python -m pipeline.regs.extraction.row_boxes over the repo synopsis PDF + this extraction (T215 highlight boxes; no stage makes it)"
+    },
+    "generated/regs/extraction/synopsis_raw_data.json": {
+      "bytes": 532252,
+      "sha256": "5786254f0e5ac8720827a02fe4cf97dab9a16aa1078ff33869f7e0e54bcdbbc6",
+      "url": "https://build.canifishthis.ca/source/5786254f0e5ac872/synopsis_raw_data.json",
+      "upstream": "the synopsis extraction (pipeline.regs.extraction.extract_synopsis), the Mac's current copy (the older build-assets extraction/ backup is 3bbf3b3c, stale)"
     },
     "hydat.sqlite3": {
       "bytes": 1302107136,

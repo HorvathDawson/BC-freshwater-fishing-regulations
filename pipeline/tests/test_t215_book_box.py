@@ -5,6 +5,9 @@ from __future__ import annotations
 import hashlib
 import json
 
+import pytest
+
+from pipeline.deliver.answers.common import AnswersError
 from pipeline.deliver.answers.display import decided as DEC
 from pipeline.deliver.release import publish
 from pipeline.deliver.release.manifest import manifest
@@ -22,7 +25,8 @@ def test_a_rule_gets_its_entrys_row_box_by_printed_page_and_name(monkeypatch):
     assert DEC.book_boxes({"entry_id": "e1"}, _doc(pages=(15,))) == []
 
 
-def test_a_sidecar_cut_from_another_pdf_gives_no_boxes(monkeypatch, tmp_path):
+def test_a_sidecar_cut_from_another_pdf_or_none_is_refused(monkeypatch, tmp_path):
+    # T416: a fresh clone had no row_boxes.json and shipped every rule without its highlight, silently
     from pipeline.regs.extraction import row_boxes as RB
     from pipeline.common import synopsis_pages as SP
     pdf = tmp_path / "s.pdf"
@@ -36,7 +40,14 @@ def test_a_sidecar_cut_from_another_pdf_gives_no_boxes(monkeypatch, tmp_path):
     assert DEC._row_boxes() == {(14, "A"): [{"pdf": 16, "box": [1.0, 2.0, 3.0, 4.0], "size": [576.0, 756.0]}]}
     pdf.write_bytes(b"%PDF two")                                   # the PDF moved on: the boxes are stale
     monkeypatch.setattr(DEC, "_BOXES", {})
-    assert DEC._row_boxes() == {}
+    with pytest.raises(AnswersError, match="another synopsis PDF"):
+        DEC._row_boxes()
+    side.unlink()                                                  # none at all
+    with pytest.raises(AnswersError, match="no synopsis row boxes"):
+        DEC._row_boxes()
+    side.write_text("[]")                                          # not a sidecar
+    with pytest.raises(AnswersError, match="not a row-boxes sidecar"):
+        DEC._row_boxes()
 
 
 def test_the_manifest_names_our_copy_and_publish_uploads_it_raw(tmp_path):
