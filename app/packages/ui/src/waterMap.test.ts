@@ -6,7 +6,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, type RegsStore } from "@app/data/regs";
-import { openRegsFixture } from "@app/data/release/node";
+import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/data/release/node";
 import type { ItemId } from "@app/data";
 import { HOME, reduce, type Route } from "./route";
 import {
@@ -16,7 +16,8 @@ import {
 } from "./waterMap";
 
 let st: RegsStore;
-beforeAll(async () => { st = await openRegsStore(openRegsFixture()); });
+let sec: SectionNames;
+beforeAll(async () => { const loader = openRegsFixtureWithLines(); st = await openRegsStore(loader); sec = sectionNames(loader); });
 
 const run = (g: WaterGroup, s: WaterMapState, ...as: WaterMapAction[]) => as.reduce((x, a) => waterMapStep(g, x, a), s);
 const view = (g: WaterGroup, s: WaterMapState) => waterMapView(g, s)!;
@@ -322,19 +323,20 @@ describe("leaving the map, through the route (P13)", () => {
     expect(top(reduce(onMap, exitAction("gnis:3062" as ItemId, null)))?.part).toBeNull();
   });
 
-  it("ONE WATER SCREEN: a step on the map is the frame's part, so Regulations opens on the stepped part", () => {
+  it("ONE WATER SCREEN: a step on the map is the frame's part, so Regulations opens on the stepped part", async () => {
     const stepped = reduce(onMap, partAction(CHW, CHW, 2));
     expect(stepped).toEqual({ ...onMap, stack: [{ item: CHW, part: 2, tapSid: null, at: null, view: "map" }] });
     expect(top(reduce(stepped, { type: "view", view: "regs" }))).toEqual(
       { item: CHW, part: 2, tapSid: null, at: null, view: "regs" });
     // (T369 D1/D2) a tap lies in ONE part: a step to another part (or a split lake's other area) leaves it behind, so
     // the stepped frame is exactly the part's — what a reload of its address draws; the same part again keeps it
-    const tapped: Route = { ...onMap, stack: [{ item: CHW, part: 1, tapSid: 62453 as never, at: { lat: 49, lon: -121 }, view: "map" }] };
+    const TAPPED = await sec.stream(355999283, 0);   // a Chilliwack section (355999283:0)
+    const tapped: Route = { ...onMap, stack: [{ item: CHW, part: 1, tapSid: TAPPED as never, at: { lat: 49, lon: -121 }, view: "map" }] };
     expect([top(reduce(tapped, partAction(CHW, CHW, 2))), top(reduce(tapped, partAction(CHW, "wbk:-21" as ItemId, 0))),
             top(reduce(tapped, partAction(CHW, CHW, 1)))])
       .toEqual([{ item: CHW, part: 2, tapSid: null, at: null, view: "map" },
                 { item: "wbk:-21", part: 0, tapSid: null, at: null, view: "map" },
-                { item: CHW, part: 1, tapSid: 62453, at: { lat: 49, lon: -121 }, view: "map" }]);
+                { item: CHW, part: 1, tapSid: TAPPED, at: { lat: 49, lon: -121 }, view: "map" }]);
   });
 
   it("across waters (owner 2026-10-22 late: a river that changes its name is ONE system): ▲ from the Vedder is the " +
@@ -372,14 +374,21 @@ describe("leaving the map, through the route (P13)", () => {
 // Mary Hill → Lougheed is sections 316504 (312 → 6590, the gauge 08MH002 cut) and 316505 (6590 → 7028); Lougheed → the
 // watershed boundary is 316506 (7028 → 16309) alone. And its mouth meets the Fraser's TIDAL part (16), so "Flows into"
 // is said, never a way into a part no Fraser map lists (which opened the Fraser on "2 stretches · stretch 1 of 2").
+// (T441) the Coquitlam's sections as [stream key, start metre] (the fixture's `lines`), never as ids: Mary Hill → Lougheed
+// is two sections (312 → 6590, the gauge 08MH002 cut, and 6590 → 7028), Lougheed → the watershed boundary one (7028 →
+// 16309), and the rest the lake-outlet part's
+const COQ_MARY_HILL = [[356364584, 312], [356364584, 6590]] as const;
+const COQ_LOUGHEED = [[356364584, 7028]] as const;
+const COQ_UPPER = [[355994322, 0], [355999215, 0], [356000341, 0], [356001729, 0], [356001891, 0], [356364584, 16309],
+                   [356364584, 32218], [356364584, 36910], [356364584, 46864]] as const;
 describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fraser is said, not opened", () => {
   it("each part lights its own sections only, and the Lougheed mark sits between the two parts that meet there", async () => {
     const g = await loadWaterGroup(st, "gnis:19986");
     const parts = g.parts.map((_, i) => { const v = view(g, waterMapStart(i)); return [v.current.name, v.selected]; });
     expect(parts).toEqual([
-      ["Mary Hill Bypass Bridge → Lougheed Highway Bridge", [316510, 316511]],
-      ["Lougheed Highway Bridge → Coquitlam Watershed boundary", [316512]],
-      ["Coquitlam Watershed boundary → A lake outlet", [60542, 62480, 62918, 63396, 63458, 316513, 316514, 316515, 316516]],
+      ["Mary Hill Bypass Bridge → Lougheed Highway Bridge", await sec.streams(COQ_MARY_HILL)],
+      ["Lougheed Highway Bridge → Coquitlam Watershed boundary", await sec.streams(COQ_LOUGHEED)],
+      ["Coquitlam Watershed boundary → A lake outlet", await sec.streams(COQ_UPPER)],
     ]);
     // never one section in two parts, and every part's `water` is exactly the others' sections
     const all = g.parts.flatMap((p) => p.sids);
@@ -389,7 +398,7 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     const lougheed = g.marks.find((m) => m.label === "Lougheed Highway Bridge")!;
     expect([lougheed.down, lougheed.up]).toEqual([0, [1]]);
     // the list's pick lights the same part a step does
-    expect(view(g, run(g, { ...waterMapStart(1), list: true }, { type: "part", ix: 0 })).selected).toEqual([316510, 316511]);
+    expect(view(g, run(g, { ...waterMapStart(1), list: true }, { type: "part", ix: 0 })).selected).toEqual(await sec.streams(COQ_MARY_HILL));
   });
 
   it("the mouth part says 'Flows into the tidal Fraser River' and offers nothing to open", async () => {

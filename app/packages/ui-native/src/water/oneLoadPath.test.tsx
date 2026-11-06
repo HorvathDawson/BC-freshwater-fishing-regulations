@@ -15,7 +15,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import type { ItemId, SectionId } from "@app/data";
 import { makeReleaseSource } from "@app/data/release";
-import { openRegsFixtureWithLines } from "@app/data/release/node";
+import { openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
 import { openRegsStore } from "@app/data/regs";
 import { HOME, parseStartLink, partAction, partOfTap, reduce, regsPartOf, waterFrame, waterOpener, type Route,
          type RouteAction, type View } from "@app/ui";
@@ -35,6 +35,7 @@ const { WaterScreen } = await import("../WaterScreen");
 afterEach(cleanup);
 
 const lined = openRegsFixtureWithLines();
+const sections = sectionNames(lined);
 const store = openRegsStore(lined);
 const source = makeReleaseSource(lined);
 const places = store.then((st) => placeReads(st, lined));
@@ -43,8 +44,9 @@ const itemFor = { itemForSection: async (sid: SectionId) => {
     "SELECT i.item_id FROM item_section s JOIN item i ON i.ord = s.ord WHERE s.sid = ? LIMIT 1", sid);
   return r ? (String(r.item_id) as ItemId) : null;
 } };
-const C = "gnis:19986" as ItemId;          // the Coquitlam: part_ix 2 is Mary Hill → Lougheed (316504, 316505)
-const TAP = 316510 as SectionId;
+const C = "gnis:19986" as ItemId;          // the Coquitlam: part_ix 2 is Mary Hill → Lougheed (356364584 at 312 and 6590)
+/** (T441) named by what it IS — the Coquitlam's section on stream 356364584 that starts at 312 m — never by id */
+const TAP = await sections.stream(356364584, 312) as SectionId;
 const AT = { lat: 49.23, lon: -122.79 };
 const DAY = new Date(2026, 6, 15, 12);
 
@@ -114,7 +116,7 @@ describe("(T369) the net: every way into a water's Regulations and Conditions vi
     }
   }, 120_000);
 
-  it("the same part TAPPED (316510): from the Map tab, from the Conditions map, from the Runs sheet — and each reloaded", async () => {
+  it("the same part TAPPED (356364584:312): from the Map tab, from the Conditions map, from the Runs sheet — and each reloaded", async () => {
     const ways: Record<string, Route> = {
       "a tap on the Map tab": await viaOpener(HOME, (o) => o.tap(TAP, AT, "regs")),
       "the same tap on the Conditions map": await viaOpener(run(HOME, { type: "tab", tab: "conditions" }), (o) => o.tap(TAP, AT, "conditions")),

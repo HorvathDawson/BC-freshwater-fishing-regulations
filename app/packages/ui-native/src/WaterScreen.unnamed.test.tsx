@@ -5,8 +5,7 @@
  * core builds from the same store's inputs, the rule keys from the store's own rule set — never a hand copy.
  *
  * The ticket's own examples (handles 1408, 64035, 59506) are not in the committed fixture (it was cut for the golden
- * states); they run on the live release in conformance/src/regs/unnamed.release.test.ts. Here: 576 (354088147:0; 578 until T289, was 634 until T220, 638 until T222's
- * r-445850b69ae1 shifted handles +1; Region 1, bound by
+ * states); they run on the live release in conformance/src/regs/unnamed.release.test.ts. Here: 354088147:0 (found by its stream key + start, T441; Region 1, bound by
  * tributary rules of named waters) and the fixture's first unnamed section answered by its region's base alone
  * (`baseOnlyUnnamed`, chosen by that property: the fixture keeps taps.json's evenly spaced unnamed sample, whose handles
  * move with every build — T56 / r-2f33edfe8452 took 817454 out of it for 817700).
@@ -17,7 +16,7 @@ import { buildRegsPage, plain, WORDS, type RegsPage } from "@app/core";
 import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import { BLOCK_BITS, loadRegsInputs, type RegsStore } from "@app/data/regs";
-import { openRegsFixture } from "@app/data/release/node";
+import { openRegsFixture, openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
 import { DEFAULT_WHO, LayoutWidthContext, loadRegsStore } from "@app/ui";
 import { WaterScreen } from "./WaterScreen";
 import { LIGHT } from "./theme";
@@ -26,13 +25,13 @@ afterEach(cleanup);
 
 const DAY = new Date(2026, 9, 10, 12);   // Sat Oct 10
 const HARRIS = "Harris Creek";
-/** (T278, regs fixture on r-62e2f3a8c81e) the same section 354088147:0 is handle 578 (639 before: the city lines ahead of it are gone).
- *  (T289, r-ce76b4ed3624) 576: the Thomas / Angelo lake stubs re-joined, two lines fewer ahead of it.
- *  The fixture source, with flow pointers for the tapped reach: 576 → 9001 (unnamed) → 9002 (a named water). */
+/** (T441) the tapped reach, named by what it IS — stream 354088147 from 0 m — never by id (a re-cut renumbers it).
+ *  The fixture source, with flow pointers for the tapped reach: it → 9001 (unnamed) → 9002 (a named water). */
+const TRIB = await sectionNames(openRegsFixtureWithLines()).stream(354088147, 0);
 function sourceFlowing(): WaterSource {
   const base = makeFixtureSource();
   return { ...base,
-    traceToGauge: async (from: SectionId) => (from === 576 ? [576, 9001, 9002] as SectionId[] : [from]),
+    traceToGauge: async (from: SectionId) => (from === TRIB ? [TRIB, 9001, 9002] as SectionId[] : [from]),
     waterFor: async (s: SectionId) => (s === 9002 ? { item: "gnis:9" as ItemId, name: HARRIS, kind: "stream" } : base.waterFor(s)),
   };
 }
@@ -74,9 +73,9 @@ async function open(handle: number, source: WaterSource = makeFixtureSource(), w
 }
 
 describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tapped section", () => {
-  it("576, bound by tributary rules: the store's name, \"Tributary of …\", and the closure the tributary rule makes", async () => {
-    const { page, trib } = await storePage(576, HARRIS);
-    await open(576, sourceFlowing());
+  it("354088147:0, bound by tributary rules: the store's name, \"Tributary of …\", and the closure the tributary rule makes", async () => {
+    const { page, trib } = await storePage(TRIB, HARRIS);
+    await open(TRIB, sourceFlowing());
     await waitFor(() => expect(screen.getByTestId("regs-place").textContent).not.toBe(""));
     const header = screen.getByTestId("regs-header");
     // the header: the store's place name (core wording), the downstream water in the label slot, no Map / Parts action
@@ -122,9 +121,9 @@ describe("(T53) <WaterScreen> for an unnamed reach: the store's page for the tap
       .toBe(w.heading + (w.scope ?? "") + w.items.map((x) => plain(x.text)).join(""));
   }, 30_000);
 
-  it("576 on a desktop window: the same name and \"Tributary of …\" over the side column and the page", async () => {
-    const { page } = await storePage(576, HARRIS);
-    await open(576, sourceFlowing(), 1400);
+  it("354088147:0 on a desktop window: the same name and \"Tributary of …\" over the side column and the page", async () => {
+    const { page } = await storePage(TRIB, HARRIS);
+    await open(TRIB, sourceFlowing(), 1400);
     await waitFor(() => expect(screen.getByTestId("regs-place").textContent).not.toBe(""));
     const side = screen.getByTestId("regs-side");
     expect([within(screen.getByTestId("regs-header")).getByRole("heading").textContent, screen.getByTestId("regs-place").textContent,

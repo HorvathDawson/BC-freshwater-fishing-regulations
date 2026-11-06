@@ -8,7 +8,7 @@ import { useState } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
-import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines } from "@app/data/release/node";
+import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines, sectionNames } from "@app/data/release/node";
 import { openRegsStore } from "@app/data/regs";
 import { setFailureSink } from "@app/core";
 import { BackLayerContext, HOME, openWater, parseStartLink, partAction, partOfTap, reduce, useBack, useRoute,
@@ -26,6 +26,15 @@ const { WaterMapView } = await import("./WaterMapView");
 afterEach(() => { cleanup(); seen.props = null; });
 
 const loader = openRegsFixture();
+/** (T441) a section is named by what it IS (stream key + start metre), never by id: a re-cut renumbers them */
+const sections = sectionNames(openRegsFixtureWithLines());
+// the Chilliwack part 1's lit sections and the rest of the river's (the same part's `highlight` and `water`)
+const CHW1_LIT = [[355993454, 0], [355993455, 0], [355993456, 0], [355998527, 0], [355999283, 0], [355999620, 0], [356000264, 0],
+                  [380887781, 0], [380887781, 200], [380887817, 0]] as const;
+const CHW1_WATER = [[380887781, 11988], [380887818, 0], [380887822, 0], [355992631, 0], [355992677, 0], [355995896, 0],
+                   [356000359, 0], [380887781, 23325], [380887781, 28231], [380887781, 57967], [380887781, 58646]] as const;
+/** the Chilliwack's part 4 (the source): 380887781 from 58646 m */
+const CHW_SOURCE = [380887781, 58646] as const;
 const MAP = { at: { atlas: "a", basemap: "b" } as never, theme: "light", camera: { lon: -122, lat: 49, zoom: 8 }, view: "plain" };
 
 function mount(item: string, part: number | null, tapSid: number | null = null, withLoader = true) {
@@ -99,9 +108,7 @@ describe("<WaterMapView>", () => {
     expect(bar()).toBe("Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge"
       + " | Downstream into Vedder River | Upstream | Flows into Vedder River ›");
     expect(lit()).toEqual({
-      // (T278, regs fixture on r-62e2f3a8c81e) re-pinned by section id (atlas full.prev -> full section_handles.txt): the same sections
-      highlight: [60206, 60207, 60208, 62219, 62515, 62634, 62888, 1236858, 1236859, 1236904],   // (regs fixture on r-4e709418ebd8: the 08MH044 Albion cut) same sections, handles +1..+2
-      water: [1236860, 1236905, 1236906, 59879, 59885, 61207, 62924, 1236861, 1236862, 1236863, 1236864] });
+      highlight: await sections.streams(CHW1_LIT), water: await sections.streams(CHW1_WATER) });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false,
       maxZoom: 12, zoomInAtMost: 2 });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
@@ -113,7 +120,7 @@ describe("<WaterMapView>", () => {
       + " | Downstream | Highest part (off)");
     // the committed regs fixture's handle of the Chilliwack's part 4 (frozen until `pnpm regs-fixture` re-cuts it; T206,
     // r-f6918815ca78: 380887781:58646; T220 re-cut it to 1236842; T222 r-445850b69ae1 to 1236847, handles +5; T289 r-ce76b4ed3624: handles -2, the Thomas / Angelo lake stubs re-joined)
-    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[1236864], "gnis:8634:3"]);
+    expect([lit().highlight, seen.props?.fit?.key]).toEqual([[await sections.stream(...CHW_SOURCE)], "gnis:8634:3"]);
     // the disabled end does nothing
     fireEvent.click(screen.getByRole("button", { name: "Highest part" }));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
@@ -185,11 +192,12 @@ describe("<WaterMapView>", () => {
     expect(seen.props?.marks?.[2]?.on).toBe(true);
     fireEvent.click(pop.getByRole("button", { name: "Close" }));
     expect(screen.queryByTestId("water-map-mark")).toBeNull();
-    act(() => seen.props!.onPressFeature!("stream", 1236864));
+    const SOURCE = await sections.stream(...CHW_SOURCE), VEDDER = await sections.stream(355999181, 0);   // the Vedder's stretch
+    act(() => seen.props!.onPressFeature!("stream", SOURCE));
     expect(screen.getByTestId("water-map-where").textContent).toBe("Part 4 of 4 · Chilliwack River");
-    act(() => seen.props!.onPressFeature!("stream", 62471));   // the Vedder's 355999181:0 (T206)
+    act(() => seen.props!.onPressFeature!("stream", VEDDER));
     expect([screen.getByTestId("water-map-where").textContent, calls]).toEqual(["Part 4 of 4 · Chilliwack River",
-      ["part gnis:8634 3", "other 62471"]]);
+      ["part gnis:8634 3", `other ${VEDDER}`]]);
   }, 30_000);
 
   // (T67, r-0ed3c2b2a0a7) the Zymoetz's canyon side channel is no part of its own any more (E15's mark is gone); the
@@ -303,10 +311,11 @@ describe("<WaterMapView>", () => {
   }, 30_000);
 
   it("opened by a tap: starts on the tapped section's part (the Regulations view's part)", async () => {
-    mount("gnis:12227", null, 59253);   // (T289 r-ce76b4ed3624: -> 59247; T278 r-62e2f3a8c81e: same section, -> 59249) CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
+    const CNR_TO_GREENDALE = await sections.stream(354155148, 41391);
+    mount("gnis:12227", null, CNR_TO_GREENDALE);   // (T289 r-ce76b4ed3624: -> 59247; T278 r-62e2f3a8c81e: same section, -> 59249) CNR Bridge -> Greendale (354155148:41391; T206, r-f6918815ca78; T185 r-ea426985a467: two cuts ahead, +2; T220 r-46be3c135e68: 59296 -> 59304; T222 r-445850b69ae1: -> 59305)
     await ready();
     expect(bar()).toBe("Part 3 of 4 · Cowichan River | CNR Bridge (mile 70.2) → Greendale Trestle | Downstream | Upstream");
-    expect(lit().highlight).toEqual([59253]);   // the tapped handle given to mount()
+    expect(lit().highlight).toEqual([CNR_TO_GREENDALE]);   // the tapped section given to mount()
   }, 30_000);
 
   it("KLWA from the Main Body: the three closure areas; Show regulations for another area names that water", async () => {
@@ -459,20 +468,20 @@ describe("<WaterMapView>", () => {
     const C = "gnis:19986" as ItemId;
 
     it("the Coquitlam's Mary Hill → Lougheed part (part_ix 2): reload, search Open + pick, tap, ▼, list pick", async () => {
+      const MARY_HILL = await sections.streams([[356364584, 312], [356364584, 6590]]);   // the part's two sections
       const ways: Record<string, [string, string]> = {
         // (T369) the part's own address — a place (its midpoint section's middle), never `part=2`
         reload: await wayIn((await opened(await addressOf(open({ item: C, part: 2, view: "map" })))).route),
         "search Open, then the list": await wayIn(open({ item: C, view: "map", whole: true, fromSearch: true }), [pick(0)]),
-        "tap (316510)": await wayIn(await tap(C, 316510)),
+        "tap (356364584:312)": await wayIn(await tap(C, MARY_HILL[0]!)),
         "▼ from Lougheed → boundary": await wayIn(open({ item: C, part: 0, view: "map" }), [down]),
         "the list, from the top part": await wayIn(open({ item: C, part: 1, view: "map" }), [pick(0)]),
-        "tap, ▲, the list's lowest (the owner's)": await wayIn(await tap(C, 316510), [up, pick(0)]),
+        "tap, ▲, the list's lowest (the owner's)": await wayIn(await tap(C, MARY_HILL[0]!), [up, pick(0)]),
         // (T369 D7) ⤢ on and off again is the part's frame; ⤢ on is the route's, reloaded the same (below)
         "⤢ twice": await wayIn(open({ item: C, part: 2, view: "map" }), [whole, whole]),
       };
       const first = ways.reload![0];
-      // the atlas's section handles (822db448…): they move with a new ATLAS, not a new release
-      expect(JSON.parse(first)).toMatchObject({ where: "Part 1 of 3 · Coquitlam River", highlight: [316510, 316511],
+            expect(JSON.parse(first)).toMatchObject({ where: "Part 1 of 3 · Coquitlam River", highlight: MARY_HILL,
                                                 fit: { key: "gnis:19986:2", bbox: [-122.808104, 49.226226, -122.78, 49.269798] } });
       for (const [way, [drew, reloaded]] of Object.entries(ways)) expect({ way, drew, reloaded }).toEqual({ way, drew: first, reloaded: first });
       // the tapped frame OPENED at its part (T369 D3: no adopting); no URL ever held a section id

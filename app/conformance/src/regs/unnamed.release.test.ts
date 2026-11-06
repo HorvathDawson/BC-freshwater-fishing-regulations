@@ -8,34 +8,22 @@
  *   356003196:0  Region 2, flows into the Salmon River (Langley): the Salmon's tributary closure shows.
  *   355991549:0  Region 6, flows into another unnamed section: the region's base alone, no downstream line.
  *
- * A HANDLE IS NOT DURABLE (AGENTS 5): `H` holds the three sections' handles in the atlas whose section-handle digest is
- * `H_ATLAS`, and the suite refuses another atlas by name rather than tapping whatever section now has the number. On a
- * new atlas: look the three section ids up in its `section_handles.txt` (the handle is the line number) and re-pin.
+ * A HANDLE IS NOT DURABLE (AGENTS 5): `UNNAMED` names the three sections by stream key + start metre and `H` is looked up
+ * in the release's `lines` file (`sectionNames`), so a new atlas needs no edit; a section that moved fails by name.
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { buildRegsPage, type RegsPage, type Weekday } from "@app/core";
 import { loadRegsInputs, openRegsStore, type RegsStore } from "@app/data/regs";
 import { makeReleaseSource } from "@app/data/release";
 import { downstreamWater, type WaterSource, type SectionId } from "@app/data";
+import { sectionNames } from "@app/data/release/node";
 import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
 
 const at = liveReleaseAt();
-/** The three sections' handles in atlas `H_ATLAS` (section_handles.txt line numbers; r-46a602244714, T179: the one
- * placement pass dropped a sliver ahead of the Salmon / base sections, each one line earlier; T206, r-f6918815ca78: the
- * atlas rebuild put two sections ahead of them, each two lines later). */
-// (2026-10-27, r-8b43fb267199: Chapman/Deena/Mamin cuts) the three keep their line numbers in atlas 52c5cff7ba8b6313
-// (2026-10-27, r-ea426985a467: T185 Quinsam + Sandy Pool cuts) salmon and base are two lines later in b6b5000e171023c9
-// (2026-10-28, r-46be3c135e68: T220 restored braid pieces) all three later in db853e9556df81a6: 8, 105 and 11 lines
-// (T222, r-0fa7927b16e5: the Ruskin/Northrop channels + T224 own-item names) 10cbcb72e9f907cf: 1, 5 and 1 lines later
-// (T278, r-62e2f3a8c81e: the tidal cuts + the FWA restore of the city streams) 07f861e5422be466: 61, 55 and 56 lines EARLIER
-// (atlas full.prev -> full section_handles.txt: the city's minted lines that sorted ahead of them are gone)
-// (T289, r-ce76b4ed3624: the Thomas / Angelo lake stubs re-joined, -2000000382 and -2000000096 one section each, not two)
-// 20f93c1ffb5fd829: all three 2 lines EARLIER
-// (r-4e709418ebd8, the 08MH044 Albion cut: Bedford Channel + two braid tributaries gain a section each) 822db448a2851809:
-// salmon 1 line later, eve and base unchanged
-// (r-4230bc0c1dd5) 269777be890cc2b3: salmon and base 6 lines later, eve unchanged
-const H_ATLAS = "269777be890cc2b3";
-const H = { eve: 1355, salmon: 64101, base: 59471 } as const;
+/** The three sections, named by what they ARE (T441): stream key + start metre, looked up in the release's own `lines`
+ * file — a handle is not durable (AGENTS 5), so none is typed here and a new atlas needs no re-pin. */
+const UNNAMED = { eve: [354089558, 0], salmon: [356003196, 0], base: [355991549, 0] } as const;
+let H: { eve: number; salmon: number; base: number };
 /** The page's default angler (decisions.md D8, `@app/ui` DEFAULT_WHO). */
 const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
@@ -49,10 +37,9 @@ describe.skipIf(!at.dir)(`T53 an unnamed stream's regulations on the live releas
     const loader = openReleaseDir(at.dir!);
     st = await openRegsStore(loader);
     src = makeReleaseSource(loader);
-  });
-
-  it("the pinned handles are this atlas's (else re-pin H from section_handles.txt)", () => {
-    expect(st.meta.sectionHandles).toBe(H_ATLAS);
+    const names = sectionNames(loader);
+    H = { eve: await names.stream(...UNNAMED.eve), salmon: await names.stream(...UNNAMED.salmon),
+          base: await names.stream(...UNNAMED.base) };
   });
 
   /** The page for a tap on `handle` on a day, as the water screen builds it; the store's trib / reach rule keys. */

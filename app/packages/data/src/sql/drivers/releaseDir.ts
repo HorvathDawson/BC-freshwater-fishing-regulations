@@ -19,6 +19,7 @@ import { verify } from "../../fetchVerified";
 import { parseManifest, type Manifest } from "../../manifest";
 import { releaseLoader, type DbName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
 import { encodeLineBlock, LINE_OPEN, type SectionLine } from "../../regs/line";
+import { openLineReads } from "../../regs/place";
 import { BLOCK_BITS } from "../../regs/reads";
 
 /**
@@ -164,4 +165,46 @@ export function openRegsFixtureWithLines(rows: readonly LineRow[] = regsFixtureL
       const m = tamper.manifest ? tamper.manifest(m0) : m0;
       return { ...m, files: { ...m.files, lines: { ...sid, url: "lines-fixture.sqlite.gz", format: "lines/1" } } };
     } });
+}
+
+/**
+ * (T441) A release's section ids BY WHAT THEY ARE, so no test types a raw id (a re-cut renumbers them; the test must not
+ * notice). A stream section is named by its stream key and where it STARTS (`stream`: the release's own `lines` file);
+ * a lake's section, which has no line, by its water and part (`lake`: the part's one section that is no stream line).
+ * Each throws naming what it was asked for when the release has no such section — a re-cut that MOVES a section's start
+ * or part is a real change and fails there, loudly; only the renumbering is absorbed.
+ */
+export interface SectionNames {
+  /** the stream section of stream key `blk` that starts at metre `from` */
+  stream(blk: number, from: number): Promise<number>;
+  /** `stream` for each [stream key, start metre], in order */
+  streams(at: readonly (readonly [number, number])[]): Promise<number[]>;
+  /** the one non-stream section of water `item`'s part `part` (a lake's) */
+  lake(item: string, part: number): Promise<number>;
+}
+
+/** `loader`'s section names; it must carry a `lines` file for `stream` (`openRegsFixtureWithLines`, a live release). */
+export function sectionNames(loader: ReleaseLoader): SectionNames {
+  const lines = openLineReads(loader);
+  const stream = async (blk: number, from: number) => {
+    const h = await lines.sectionAt(blk, from), l = h === null ? null : await lines.sectionLine(h);
+    if (h === null || !l || l.blk !== blk || l.from !== from)
+      throw new Error(`section names: no stream section starts at ${blk}:${from} in release ${loader.manifest.data_release}`);
+    return h;
+  };
+  return {
+    stream,
+    streams: (at) => Promise.all(at.map(([blk, from]) => stream(blk, from))),
+    async lake(item, part) {
+      const water = await loader.db("water");
+      const rows = await water.all(
+        "SELECT ps.sid FROM part_section ps JOIN item i ON i.item_ord = ps.ord JOIN str s ON s.id = i.item_id " +
+        "WHERE s.text = ? AND ps.part_ix = ? ORDER BY ps.sid", item, part);
+      const own: number[] = [];
+      for (const r of rows) if (!(await lines.sectionLine(Number(r.sid)))) own.push(Number(r.sid));
+      if (own.length !== 1)
+        throw new Error(`section names: ${item} part ${part} has ${own.length} non-stream sections, not 1`);
+      return own[0]!;
+    },
+  };
 }
