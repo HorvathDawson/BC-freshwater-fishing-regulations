@@ -37,6 +37,20 @@ T432 golden parity passes on zero cases · T433 staging scripts fail-safe · T43
 pipeline paths/determinism · T437 docs + tickets drift · T436 dead code · T438 stale worktree. T335 (delete archive/)
 is verified safe once 4 cited docs move.
 
+## Still running FROM CHAT 2 when chat 3 starts (do not disturb)
+- **The combined heavy run** (chat 2's agent, steps above) holds `scripts/heavy.sh`'s lock until about 02:00–03:00
+  11-06. Chat 3: start NO heavy job until it ends (heavy.sh would queue it anyway); don't kill its PIDs; don't edit
+  the files it writes: T416, T305, T409, T410, T304 tickets, `pipeline/deliver/release/manifest.py`/basemap code,
+  `handoff/PLAN/runbooks/fresh-machine.md`, STATUS.md's top entry. It writes its results into those tickets + STATUS.md
+  and pushes; read them there. Chat 2's window stays open until it reports.
+- **Safe to start at once:** T429–T438 (they touch none of the above), T335 prep (moving the 4 docs).
+- **Ticket numbers:** another chat also files tickets (T423, T424, T428 were theirs). Take the highest number + 1 from
+  `ls handoff/PLAN/app-integration/tickets` right before writing one; `node app/tools/check-tickets.mjs` must pass.
+- **Never commit:** `data/generated/review/pfma_basin_areas.json`, `data/generated/review/write-through.jsonl`
+  (untracked, generated); the store images (gitignored).
+- **T434 note:** T421's refusal (applied_keys names a missing build) is swallowed again in `curation-review/backend/
+  reuse.py:1139-1149` — fix both together.
+
 ## Next, in order (to finalise)
 1. The audit's fix tickets T429–T438, in the order the owner picks (default: the table order).
 2. T335: move what live code reads from archive/, delete archive/.
