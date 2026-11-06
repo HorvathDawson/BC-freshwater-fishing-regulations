@@ -1,6 +1,6 @@
 /**
  * T30 unit cases over hand-built rules and gear answers (the golden-driven cases are app/conformance/src/regs/
- * gear.parity.test.ts): the level words, the chip words, the source line, the day line, closedUntil, changeVM, the
+ * gear.parity.test.ts (retired, T439)): the level words, the chip words, the source line, the day line, closedUntil, changeVM, the
  * summary's part selection, the change routing and the rest-terms splice.
  */
 import { describe, expect, it } from "vitest";

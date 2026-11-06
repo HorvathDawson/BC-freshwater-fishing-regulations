@@ -53,7 +53,7 @@ function drawTab(tab: Tab, page: RegsPage, palette: Palette): HTMLElement {
   return render(el).container;
 }
 
-/** The pin bar over vedder_1010's deepest golden bar (fixtures/golden-pins.json), its size line marked as v38 marks it. */
+/** The pin bar over vedder_1010's deepest bar (PinBar.test.tsx, scroll 240), its size line marked as v38 marks it. */
 const PIN_LINES: PinLine[] = [
   { cls: "g two", text: "Trout and char · 2 a day from streams", sub: "(of 4 across Region 2)" },
   { cls: "c", text: "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)", sub: null, tier: "size" },

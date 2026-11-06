@@ -1,21 +1,22 @@
 /**
- * T12: the first parity test — the harness itself. Every golden state's inputs (T09 over `parityStore()`: the province
+ * T12: the first parity test — the harness itself. Every state's inputs (T09 over `parityStore()`: the province
  * release, else the committed fixture) tap to taps.json's key, segment, cell and per-day display frames (all store
  * answers; nothing here is computed in TS), the request mapping is the oracle's, the two oracles are from one sync, the
  * inputs cache memoises, a case builds its page (T21), and the frozen VM fixtures are fresh. REGS_PARITY=fixture is the CI path.
  */
+import { readFileSync } from "node:fs";
 import { afterAll, describe, expect, it } from "vitest";
 import type { DisplayFrame, RegsInputs } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
 import { syncFixtures } from "./fixtures";
-import {
-  caseIds, cases, golden, inputsOf, parityGate, parityMode, parityStore, releasePairing, requestOf, storeLabel, taps,
-} from "./golden";
+import { cases, inputsOf, parityGate, parityMode, parityStore, releasePairing, requestOf, storeLabel, taps } from "./golden";
+import { GOLDEN_DIR } from "./oracles";
 
 const T = taps();
 const gate = await parityGate();
 const label = await storeLabel();
-const ids = caseIds("keep");
+const ids = Object.keys(T.states);
+const STATES = JSON.parse(readFileSync(`${GOLDEN_DIR}states.json`, "utf8")) as { meta: { sha: string; version: string }; states: Record<string, unknown> };
 
 
 it(`the harness runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"reason" in gate ? gate.reason : gate.fail}` : ` (${label})`}`, () => {
@@ -23,15 +24,14 @@ it(`the harness runs against a paired regs store${gate.skip ? ` — SKIPPED: ${"
   if ("reason" in gate) console.warn(`harness parity skipped: ${gate.reason}`);
 });
 
-it("7. golden.json and taps.json are from one sync", () => {
-  expect(golden().meta.sha, "golden.json and taps.json differ — re-run app/tools/regs-recut/sync.mjs").toBe(T.meta.golden);
-  // (T115) 4 Fraser states' parts merged away and (T67) 2 closed states re-cut (taps.json `gone`, excluded in every block),
-  // (T183) and the West Road's x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake
-  // speed limit; T220 x13p2 + x9p2: 124 tapped + 10 gone = 134
-  expect([T.meta.golden, golden().meta.version, ids.length, Object.keys(T.gone).length, Object.keys(golden().states).length])
-    .toEqual(["d7b1ed353", "v38", 121, 11, 134]);   // (T278) x15p3 + x37p1 tidal now (taps.json `tidal`): the tidal cuts took their whole parts   // (T228) x37p0 gone: 123 tapped + 11 gone
-  expect([...Object.keys(T.states), ...Object.keys(T.gone), ...Object.keys(T.tidal)].sort())   // (T278) + 2 tidal
-   .toEqual(Object.keys(golden().states).sort());
+it("7. states.json and taps.json are from one sync, and taps.json answers every question", () => {
+  expect(STATES.meta.sha, "states.json and taps.json differ — re-run app/tools/regs-recut/sync.mjs").toBe(T.meta.golden);
+  // (T115) 4 Fraser states' parts merged away and (T67) 2 closed states re-cut (taps.json `gone`), (T183) the West Road's
+  // x27p1 merged into part 0, (2026-10-27) the Columbia's x18p3 split in two by its Mud Lake speed limit; T220 x13p2 + x9p2;
+  // (T278) x15p3 + x37p1 tidal now (taps.json `tidal`): 121 tapped + 11 gone + 2 tidal = 134
+  expect([T.meta.golden, STATES.meta.version, ids.length, Object.keys(T.gone).length, Object.keys(T.tidal).length, Object.keys(STATES.states).length])
+    .toEqual(["d7b1ed353", "v38", 121, 11, 2, 134]);
+  expect([...Object.keys(T.states), ...Object.keys(T.gone), ...Object.keys(T.tidal)].sort()).toEqual(Object.keys(STATES.states).sort());
 });
 
 it("6. requestOf: the tap's item, part, date and weekday as taps.json gives them; today is Oct 10", () => {
@@ -69,12 +69,12 @@ describe.skipIf(gate.skip)(`T12 harness parity (store: ${label})`, () => {
     ]);
   });
 
-  it("cases('keep') yields every state with its golden state, tap and inputs", async () => {
+  it("cases() yields every tapped state with its tap and inputs", async () => {
     const seen: string[] = [];
-    for await (const c of cases("keep")) {
+    for await (const c of cases()) {
       seen.push(c.id);
       if (c.id === "vedder_515") {
-        expect([c.g.id, c.g.water, c.tap.akey, (await c.inputs()).key!.akey]).toEqual(["vedder_515", "Vedder River", T.states.vedder_515!.akey, T.states.vedder_515!.akey]);
+        expect([c.id, c.tap.akey, (await c.inputs()).key!.akey]).toEqual(["vedder_515", T.states.vedder_515!.akey, T.states.vedder_515!.akey]);
         const p = await c.page();
         expect([p.version, p.target, p.day, p.keep.order[0]]).toEqual(["regs-v38", c.tap && requestOf(c.id).target, { month: 5, day: 15 }, "strip"]);
       }

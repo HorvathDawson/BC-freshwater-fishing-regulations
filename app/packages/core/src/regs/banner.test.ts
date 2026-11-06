@@ -1,6 +1,6 @@
 /**
  * banner.ts over hand-built inputs (no store, no golden). The 134-state parity against the golden keep.banner is
- * app/conformance/src/regs/banner.parity.test.ts.
+ * app/conformance/src/regs/banner.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import { bannerOf, chainOf, chainText, closersAt, mergedOf, rawBanner, sayOnce, type RawBanner } from "./banner";

@@ -1,5 +1,5 @@
 /**
- * T41 (A) — the browser tools' state table: every golden state id maps to ONE prototype hash and ONE app start link, and
+ * T41 (A) — the browser tools' state table: every state id (states.json) maps to ONE prototype hash and ONE app start link, and
  * the start link reads back (through the app's own parser) as that state's water, part, day, tab, sheet and angler.
  */
 import { describe, expect, it } from "vitest";
@@ -7,9 +7,9 @@ import { appKeyOf as coreAppKeyOf } from "@app/core";
 import { parseStartLink } from "@app/ui";
 // @ts-expect-error — a plain .mjs module of the node tools (no declaration file)
 import { appKeyOf, GONE, IDS, PROTO_TODAY, REF, stateOf, urlsOf, WALK_STATES } from "./states.mjs";
-import golden from "../../fixtures/golden/golden.json";
+import golden from "../../fixtures/golden/states.json";
 
-const G = golden as unknown as { meta: { ref: string }; states: Record<string, { sheets?: Record<string, unknown> }> };
+const G = golden as unknown as { meta: { ref: string }; states: Record<string, { sheets?: string[] }> };
 const NOW = new Date(2026, 9, 22, 9);
 
 describe("regs-web states", () => {
@@ -51,7 +51,7 @@ describe("regs-web states", () => {
 
   it("the tools' appKeyOf is core's over every golden sheet key of every state, and the start link accepts each", () => {
     const diff: string[] = [];
-    for (const id of IDS as string[]) for (const k of Object.keys(G.states[id]!.sheets ?? {})) {
+    for (const id of IDS as string[]) for (const k of G.states[id]!.sheets ?? []) {
       let core: string; try { core = coreAppKeyOf(k, id); } catch { core = "(throws)"; }
       const ours = appKeyOf(k, id) ?? "(throws)";   // null: a removed sheet (licsrc:, owner 2026-11-04)
       if (ours !== core) diff.push(`${id} ${k}: ${ours} ≠ ${core}`);

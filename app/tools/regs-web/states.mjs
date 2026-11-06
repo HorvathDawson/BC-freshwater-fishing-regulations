@@ -1,26 +1,23 @@
-// T41 — THE STATE TABLE of the browser tools: a golden state id → the same state in the prototype (its #hash) and in the
+// T41 — THE STATE TABLE of the browser tools: a state id → the same state in the prototype (its #hash) and in the
 // app (the web start link, `@app/ui` parseStartLink). The prototype's (w, d, p) and the app's (item, part, date) both come
-// from the committed port goldens (app/fixtures/golden/golden.json + taps.json, generated at the port target's ref), never typed.
+// from the committed tap questions and answers (app/fixtures/golden/states.json + taps.json), never typed. (T439: states.json
+// replaces golden.json here; it holds the questions and each state's sheet keys, no prototype text.)
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const GOLDEN_DIR = path.resolve(HERE, '../../fixtures/golden');
 const load = (f) => JSON.parse(fs.readFileSync(path.join(GOLDEN_DIR, f), 'utf8'));
-const GOLDEN = load('golden.json'), TAPS = load('taps.json');
+const GOLDEN = load('states.json'), TAPS = load('taps.json');
 
 /** The phone the tools shoot: 390 × 844 CSS px at DPR 2 (tests.md §4). */
 export const PHONE = { width: 390, height: 844, dpr: 2 };
-/** The port target's ref (the goldens' own `meta.ref`): the prototype is staged there, never read from the working tree. */
+/** The port target's ref (states.json `meta.ref`): the prototype is staged there, never read from the working tree. */
 export const REF = GOLDEN.meta.ref;
 export const APP_URL = process.env.REGS_APP_URL || 'http://localhost:8081';
 export const TABS = ['keep', 'gear', 'methods', 'licence'];
-/** The prototype's "today": the day its golden headers call Today (its snapshot's day). The tools put the app's clock there,
- *  so both say "Today" on the same day and a weekday on every other. */
-export const PROTO_TODAY = (() => {
-  const id = Object.keys(GOLDEN.states).find((k) => GOLDEN.states[k].header?.day === 'Today');
-  if (!id) throw new Error('no golden state is Today');
-  return TAPS.states[id].date;
-})();
+/** The prototype's "today": the day its snapshot called Today (states.json `meta.today` names a state on it). The tools put
+ *  the app's clock there, so both say "Today" on the same day and a weekday on every other. */
+export const PROTO_TODAY = TAPS.states[GOLDEN.meta.today].date;
 
 /** (T115) the golden states whose part the release merged away (taps.json `gone`), and (T278) those whose whole part is
  *  tidal now (taps.json `tidal`, off the map): the app has no part to open for them */
@@ -31,7 +28,7 @@ export const stateOf = (id) => {
   const g = GOLDEN.states[id], t = TAPS.states[id];
   const why = TAPS.gone?.[id] ?? TAPS.tidal?.[id];
   if (!g || !t) throw new Error(why ? `golden state ${id} has no part in the store: ${why.reason}` : `no golden state ${id}`);
-  return { id, w: g.w, d: g.d, p: g.p, water: g.water, item: t.item, part: t.partIx, date: t.date, sheets: Object.keys(g.sheets || {}) };
+  return { id, w: g.w, d: g.d, p: g.p, water: g.water, item: t.item, part: t.partIx, date: t.date, sheets: g.sheets ?? [] };
 };
 
 /** golden → app sheet key (core `appKeyOf`, the only bridge: T36) — mirrored here for the .mjs tools; states.test.ts

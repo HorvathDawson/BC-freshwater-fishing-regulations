@@ -18,12 +18,12 @@
  * salmon asked by the tapped section) fails the comparison, on Nicomen Slough first.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { buildRegsPage, methodClassOn, parseSheetKey, type RegsPage } from "@app/core";
+import { buildRegsPage, methodClassOn, type RegsPage } from "@app/core";
 import { loadRegsInputs, openRegsStore, targetFor, type RegsStore } from "@app/data/regs";
 import type { ReleaseLoader } from "@app/data/release";
 import { pageSubjectOf, regsAccessNotices, salmonCardFor, type PageSubject } from "@app/ui";
 import { liveReleaseAt, openReleaseDir } from "../conformance/src/fixtureRelease";
-import { freezePage, stableJson } from "../conformance/src/regs/fixtures";
+import { freezePage, sheetKeysOf, stableJson } from "../conformance/src/regs/fixtures";
 
 const at = liveReleaseAt();
 const DAY = { month: 10, day: 22 } as const;
@@ -41,18 +41,6 @@ it(`T387 one part, one page on the live release${at.dir ? "" : ` — SKIPPED: ${
 });
 
 interface Part { item: string; ord: number; partIx: number; sids: number[] }
-
-/** Every sheet key a page names anywhere in its view model (the keys its presses open). */
-function sheetKeysOf(page: RegsPage): string[] {
-  const out = new Set<string>(["hatch", "parts", "pos:pos"]);
-  const walk = (v: unknown): void => {
-    if (typeof v === "string") { if (parseSheetKey(v)) out.add(v); return; }
-    if (Array.isArray(v)) { v.forEach(walk); return; }
-    if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "sheet") walk(x);
-  };
-  walk(page);
-  return [...out];
-}
 
 describe.skipIf(!at.dir)("(T387) every tap on a part gives the same page", () => {
   let loader: ReleaseLoader, st: RegsStore, parts: Part[];

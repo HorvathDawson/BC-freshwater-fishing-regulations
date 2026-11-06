@@ -1,11 +1,11 @@
 /**
- * The golden parity harness (tests.md §1.2; T05 → T09 → T12): the oracles (oracles.ts: golden.json, taps.json,
- * hydrate.json), the store a parity suite reads, the per-state `RegsInputs` cache, and `cases(block)`.
+ * The parity harness (tests.md §1.2; T05 → T09 → T12; T439 retired golden.json): the oracles (oracles.ts: taps.json,
+ * hydrate.json), the store a parity suite reads, the per-state `RegsInputs` cache, and `cases()`.
  *
  * WHICH STORE (`paritySource`, REGS_PARITY=province|fixture|auto, default auto):
  * - province: the LIVE RELEASE on this machine (`releasePairing`): its water file must carry the answers the oracles were
  *   cut from (taps.json `meta.store.answers_sha256` — taps.py reads the release's own store, P20: no regs.sqlite).
- * - fixture: the COMMITTED regs fixture release (T10, packages/data/dev/regs-release; all 134 golden states), held to
+ * - fixture: the COMMITTED regs fixture release (T10, packages/data/dev/regs-release; every state in taps.json), held to
  *   taps.json's section_handles / reach_digest / rule_ids_sha256 and answers_sha256. This is the CI path.
  * - auto: province when paired, else the fixture when paired, else none.
  * None is a SKIP with its reason, never a wall of false failures — unless REGS_STORE_REQUIRED=1 (`paritySkip`).
@@ -17,17 +17,14 @@
  */
 import { existsSync } from "node:fs";
 import { buildRegsPage, type Day, type RegsInputs, type RegsPage, type RegsTarget, type Weekday, type Who } from "@app/core";
-import type { Block, GoldenState, Tap, TapsFile } from "@app/core/regs/testing";
+import type { Tap, TapsFile } from "@app/core/regs/testing";
 import { loadRegsInputs, openRegsStore, RegsStoreError, type RegsLoader, type RegsStore } from "@app/data/regs";
 import { regsFixtureDir } from "@app/data/release/node";
 import { liveRelease, liveReleaseAt, openReleaseDir } from "../fixtureRelease";
-import { EXCLUDE, excluded } from "./exclusions";
-import { golden, oracleRixOver, tapsOnce } from "./oracles";
-import { subcapRuled } from "./subcapTotal";
-import { t100Ruled } from "./t100MapPage";
+import { oracleRixOver, tapsOnce } from "./oracles";
 
-export { golden, REPO, taps } from "./oracles";
-export type { Block, GoldenState, Tap, TapsFile } from "@app/core/regs/testing";
+export { REPO, taps } from "./oracles";
+export type { Tap, TapsFile } from "@app/core/regs/testing";
 
 /** Is the release at `dir` (its water file's `answers_sha256`, `got`) the build the oracles were cut from (`want`, taps.json
  *  `meta.store.answers_sha256`)? null when it is; else why not. taps.py reads the release's own regs store (P20: no
@@ -201,10 +198,6 @@ export async function storeLabel(): Promise<"province" | "fixture" | null> {
 export async function parityGate(env: Env = process.env): Promise<ReturnType<typeof paritySkip>> {
   const s = await paritySource(env);
   const gate = paritySkip(s.dir === null ? { path: null, reason: s.reason } : { path: s.dir, reason: null }, env);
-  // (T128) the owner's sub-cap wording, applied to the golden once the paired store is open (subcapTotal.ts)
-  if (!gate.skip && !gate.fail) await subcapRuled(inputsOf);
-  // (T100) a map-cited rule's book cites the map's page too, applied the same way (t100MapPage.ts)
-  if (!gate.skip && !gate.fail) await t100Ruled(inputsOf);
   return gate;
 }
 
@@ -251,21 +244,15 @@ export async function baseUnnamedStream(st: RegsStore): Promise<TapsFile["unname
 export const ADULT_RESIDENT: Who = { age: "adult", residency: "resident" };
 
 export interface Case {
-  readonly id: string; readonly g: GoldenState; readonly tap: Tap;
+  readonly id: string; readonly tap: Tap;
   /** = inputsOf(id), never null inside cases */
   inputs(): Promise<RegsInputs>;
   /** buildRegsPage(inputs, {today: requestOf(id).today, who, tot, pid: id}) (T21) */
   page(who?: Who, tot?: "a" | "b"): Promise<RegsPage>;
 }
 
-/** The state ids for it.each (sync): every GOLDEN state minus the block's whole-state exclusions (keyed ones stay). A
- *  golden state taps.json neither taps nor declares gone (and excludes) is a case, and its `requestOf` throws. */
-export function caseIds(block: Block): readonly string[] {
-  return Object.keys(golden().states).filter((id) => excluded(block, id) === null);
-}
-
-const caseOf = (id: string, g: GoldenState): Case => ({
-  id, g, tap: tapsOnce().states[id]!,
+const caseOf = (id: string): Case => ({
+  id, tap: tapsOnce().states[id]!,
   async inputs() {
     const inp = await inputsOf(id);
     if (!inp) throw new Error(`inputsOf(${id}): no paired regs store`);
@@ -278,32 +265,16 @@ const caseOf = (id: string, g: GoldenState): Case => ({
 
 const warned = new Set<string>();
 /**
- * Every case for a block (`caseIds`), with its golden state. Yields nothing when there is no paired store — the reason
- * printed once; under REGS_STORE_REQUIRED=1 that throws instead (a parity machine must not pass on zero cases).
+ * Every tapped state of taps.json as a case. Yields nothing when there is no paired store — the reason printed once;
+ * under REGS_STORE_REQUIRED=1 that throws instead (a parity machine must not pass on zero cases).
  */
-export async function* cases(block: Block): AsyncIterable<Case> {
+export async function* cases(): AsyncIterable<Case> {
   const gate = await parityGate();
   if (gate.fail) throw new Error(gate.fail);
   if (gate.skip) {
-    const msg = `${block} parity skipped: ${"reason" in gate ? gate.reason : ""}`;
+    const msg = `parity skipped: ${"reason" in gate ? gate.reason : ""}`;
     if (!warned.has(msg)) { warned.add(msg); console.warn(msg); }
     return;
   }
-  const G = golden();
-  for (const id of caseIds(block)) yield caseOf(id, G.states[id]!);
-}
-
-/**
- * The afterAll line: "<block> parity: P/T states equal", then " · N excluded (ids)" for whole-state exclusions and
- * " · <key> not compared (<until>)" for each keyed one, and " · lines /<re>/ dropped from <key> (<until>)" for each entry that
- * drops golden lines from a key it still compares.
- */
-export function summary(block: Block, passed: number, total: number): string {
-  const ids = Object.keys(golden().states).filter((id) => excluded(block, id) !== null);
-  const keyed = EXCLUDE.filter((e) => e.block === block && e.key);
-  return `${block} parity: ${passed}/${total} states equal`
-    + (ids.length ? ` · ${ids.length} excluded (${ids.join(", ")})` : "")
-    + keyed.map((e) => e.lines
-      ? ` · lines /${e.lines.source}/ dropped from ${e.key!.source} in ${e.ids === "*" ? "every state" : `${e.ids.length} states`} (${e.until ?? "permanent"})`
-      : ` · ${e.key!.source} not compared (${e.until ?? "permanent"})`).join("");
+  for (const id of Object.keys(tapsOnce().states)) yield caseOf(id);
 }

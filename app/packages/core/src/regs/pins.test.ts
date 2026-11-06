@@ -1,6 +1,6 @@
 /**
  * T28 units: the pin bar (prototype regs v38 pinUpdate / mini / tab press, round UR6). The golden replay over every state
- * lives in conformance (pins.parity.test.ts); here every expected value is a literal.
+ * lives in conformance (pins.parity.test.ts (retired, T439)); here every expected value is a literal.
  */
 import { describe, expect, it } from "vitest";
 import {

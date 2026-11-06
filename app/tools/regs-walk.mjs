@@ -1,6 +1,6 @@
 // T41 (layer D, release gate) — THE WALK: every state of WALK_STATES on Expo web at 390 × 844, light and dark: the px
 // checks tests.md §2 routes to the browser (the check.mjs names, so a reader can match them), every tab pressed, every
-// golden sheet of the state opened and closed, and no console error anywhere. Prints `PASS|FAIL <name> <state> — why`.
+// sheet of the state (states.json) opened and closed, and no console error anywhere. Prints `PASS|FAIL <name> <state> — why`.
 //
 //   Expo web (`pnpm -C app/apps/mobile web`, or `EXPO_PUBLIC_DATA_BASE=http://localhost:<tiles> npx expo start --web --port <yours>`)
 //   node app/tools/regs-walk.mjs [--url http://localhost:8081] [--states vedder_1010,…] [--theme light|dark] [--clock proto|real]
@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import { RECT, SCROLL, openApp, scrollTo, sleep, tap, tid, until } from './regs-web/drive.mjs';
 import { APP_URL, METHODS_COMPACT, PHONE, PROTO_TODAY, WALK_STATES, appKeyOf, urlsOf } from './regs-web/states.mjs';
-import golden from '../fixtures/golden/golden.json' with { type: 'json' };
+import states from '../fixtures/golden/states.json' with { type: 'json' };
 import manifest from '../apps/mobile/assets/fish/manifest.json' with { type: 'json' };
 
 const args = process.argv.slice(2);
@@ -27,8 +27,6 @@ const results = [];
 const say = (ok, name, state, why) => { results.push({ ok, name, state, why }); console.log(`${ok ? 'PASS' : 'FAIL'} ${name} ${state} — ${why}`); };
 const TAB_NAMES = { keep: 'What you can keep', gear: 'Gear', methods: 'Methods', licence: 'Licence' };
 const ASPECT = Object.fromEntries(manifest.images.map((m) => [m.file, m.width / m.height]));
-/** a golden sheet's title ("@": the shared one in golden.sheets) */
-const titleOf = (id, k) => { const s = golden.states[id].sheets[k]; return (s === '@' ? golden.sheets[k] : s)?.title ?? null; };
 
 // ── the page's geometry, read in the page ────────────────────────────────────────────────────────────────────────
 const HEADER = `(() => { ${RECT} const h = ${tid('regs-header')}, n = ${tid('water-title')}, d = ${tid('regs-date')}, a = ${tid('regs-action')}, p = ${tid('regs-place')}, s = ${SCROLL};
@@ -146,22 +144,22 @@ async function walkState(id, theme) {
     }
     await scrollTo(b, 0);
 
-    // 8 sheets open: every golden sheet of the state, by its app key, through the dev hook (no reload); Done closes it
+    // 8 sheets open: every sheet key of the state (states.json), by its app key, through the dev hook (no reload); Done closes it
     if (SHEETS) {
       await until(b, '!!globalThis.__regsDebug', 5000, 'the dev walk hook');
-      const keys = Object.keys(golden.states[id].sheets || {}).filter((k) => appKeyOf(k, id) !== null);   // less removed sheets (licsrc:)
+      const keys = (states.states[id].sheets || []).filter((k) => appKeyOf(k, id) !== null);   // less removed sheets (licsrc:)
       const bad = [];
       for (const k of keys) {
-        const ak = appKeyOf(k, id), want = titleOf(id, k);
+        const ak = appKeyOf(k, id);
         const ok = await b.evaluate(`globalThis.__regsDebug.openSheet(${JSON.stringify(ak)})`);
         if (!ok) { bad.push(`${ak}: not a key`); continue; }
         try { await until(b, `!!(${SHEET})`, 5000, `sheet ${ak}`); } catch { bad.push(`${ak}: did not open`); continue; }
         const sh = await b.evaluate(SHEET);
-        if (want !== null && sh.title !== want) bad.push(`${ak}: “${sh.title}” ≠ “${want}”`);
+        if (!sh.title) bad.push(`${ak}: no heading`);
         await tap(b, `[...document.querySelectorAll('[role=button]')].find((e) => /^Done$/.test(e.innerText.trim()) || e.getAttribute('aria-label') === 'Done')`, 'Done');
         try { await until(b, `!(${SHEET})`, 4000, 'the sheet to close'); } catch { bad.push(`${ak}: Done did not close it`); await b.evaluate(`globalThis.__regsDebug && 0`); }
       }
-      say(bad.length === 0, 'sheets open', tag, bad.length ? `${bad.length}/${keys.length}: ${bad.slice(0, 4).join(' · ')}` : `${keys.length} sheets: heading = golden title, Done closes`);
+      say(bad.length === 0, 'sheets open', tag, bad.length ? `${bad.length}/${keys.length}: ${bad.slice(0, 4).join(' · ')}` : `${keys.length} sheets: has a heading, Done closes`);
     }
     // 10 no console errors
     say(b.errors.length === 0, 'no console errors', tag, b.errors.length ? b.errors.slice(0, 3).join(' | ').slice(0, 300) : 'none');
@@ -175,7 +173,7 @@ async function possession(theme) {
   try {
     await until(b, `!!(${SHEET})`, 8000, 'the possession sheet');
     const sh = await b.evaluate(SHEET);
-    say(sh.body && sh.body.h < 300 && sh.title === titleOf(id, `pos:${id}|pos`), 'r20g-possession-fold', `${id}/${theme}`,
+    say(sh.body && sh.body.h < 300 && sh.title === 'Possession', 'r20g-possession-fold', `${id}/${theme}`,
       `“${sh.title}” body ${sh.body ? sh.body.h.toFixed(1) : '–'} px (< 300), opened by the start link`);
     say(b.errors.length === 0, 'no console errors', `${id}/${theme} start-link sheet`, b.errors.join(' | ').slice(0, 300) || 'none');
   } finally { await b.close(); }

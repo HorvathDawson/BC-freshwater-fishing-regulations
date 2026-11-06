@@ -1,55 +1,26 @@
 /**
- * T22: the app's theme and type scale carry what the Regulations page paints with, read from the prototype's computed
- * tokens (app/fixtures/golden/tokens.json), never retyped. A prototype bump that moves a token fails here.
+ * T22: the app's type scale and spacing carry what the Regulations page paints with (the prototype's --t1..--t4 and --s1..--s4,
+ * pinned here as the numbers they computed to), and no regs component sets a weight, a folded colour or a literal radius.
+ * (T439: the colours were compared with app/fixtures/golden/tokens.json; the palette is now the map's tokens.json alone,
+ * held by check-colours / one-colour-pathway, and that file is gone.)
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { DARK, LIGHT, SPACE, GUTTER, type Palette } from "../packages/ui-native/src/theme";
+import { SPACE, GUTTER } from "../packages/ui-native/src/theme";
 import { FACE, FACES_REQUIRED, TYPE } from "../packages/ui-native/src/type";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
-const tokens = JSON.parse(readFileSync(here("../fixtures/golden/tokens.json"), "utf8")) as {
-  tokens: { light: Record<string, string>; dark: Record<string, string> };
-  compare: { token: string; light: string; dark: string; same: boolean }[];
-};
-const px = (rem: string) => parseFloat(rem) * 16;
-
-/** tokens.md §1.1: the prototype token -> the Palette field it lands in. */
-const FIELD: Record<string, keyof Palette> = {
-  "--page": "page", "--card": "card", "--tint": "tint", "--line": "line", "--line2": "line2", "--ink": "ink",
-  "--accent": "accent", "--open": "open", "--restricted": "restricted", "--closed": "closed",
-};
-const lower = (v: unknown) => String(v).toLowerCase();
+const px = (rem: number) => rem * 16;
 
 describe("T22 tokens", () => {
-  it("the theme's sub is the prototype's (D3 a)", () => {
-    expect(LIGHT.sub).toBe(tokens.tokens.light["--sub"]);
-    expect(DARK.sub).toBe(tokens.tokens.dark["--sub"]);
-  });
-
-  it("(T21) the size section's rule is the prototype's (--rule, round UR7)", () => {
-    expect([LIGHT.rule, DARK.rule]).toEqual([tokens.tokens.light["--rule"], tokens.tokens.dark["--rule"]]);
-  });
-
-  it("every token the prototype and the app share still agrees", () => {
-    const rows = tokens.compare.filter((r) => r.same && FIELD[r.token]);
-    expect(rows.length).toBeGreaterThanOrEqual(8);
-    for (const r of rows) {
-      expect([r.token, lower(LIGHT[FIELD[r.token]!])]).toEqual([r.token, lower(r.light)]);
-      expect([r.token, lower(DARK[FIELD[r.token]!])]).toEqual([r.token, lower(r.dark)]);
-    }
-  });
-
   it("the type scale is the prototype's (--t1..--t4)", () => {
-    const L = tokens.tokens.light;
+    // --t1 1.625rem, --t2 1.0625rem, --t3 .9375rem, --t4 .78rem
     expect([TYPE.answer.fontSize, TYPE.lead.fontSize, TYPE.regsBody.fontSize, TYPE.meta.fontSize])
-      .toEqual([px(L["--t1"]!), px(L["--t2"]!), px(L["--t3"]!), px(L["--t4"]!)]);
+      .toEqual([px(1.625), px(1.0625), px(0.9375), px(0.78)]);
     expect([TYPE.regsBody.lineHeight, TYPE.meta.lineHeight]).toEqual([21.3, 17.72]);
-    const len = (v: string) => (v.endsWith("rem") ? px(v) : parseFloat(v));
-    expect([SPACE.s1, SPACE.s2, SPACE.s3, SPACE.s4])
-      .toEqual([len(L["--s1"]!), len(L["--s2"]!), len(L["--s3"]!), len(L["--s4"]!)]);
+    expect([SPACE.s1, SPACE.s2, SPACE.s3, SPACE.s4]).toEqual([4, 8, 12, 16]);   // --s1..--s4
     expect(GUTTER).toBe(16);
   });
 

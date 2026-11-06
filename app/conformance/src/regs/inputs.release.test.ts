@@ -9,7 +9,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import type { DisplayFrame, RegsInputs } from "@app/core";
 import { loadRegsInputs, RegsInputsError, targetFor, type RegsStore } from "@app/data/regs";
-import { baseUnnamedStream, golden, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
+import { baseUnnamedStream, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
 
 const T = taps();
 const ids = Object.keys(T.states);
@@ -110,16 +110,14 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
     expect(m.map((p) => p.broad!.rank).sort()).toEqual([-1, 0]);
   });
 
-  it("7b. mergedParts on every golden state: present exactly where page v36 draws its banner, with its stretches and sections", async () => {
-    const G = golden().states;
-    const banner = (id: string) => /Closed all year on (\d+) stretches \((\d+) sections\)/.exec(JSON.stringify(G[id]!.keep));
+  it("7b. mergedParts on every tapped state: present exactly on the four closed-all-year groups, with their stretches and sections", async () => {
+    // (was: held to the prototype's "Closed all year on N stretches (M sections)" banner on every state; the prototype's
+    // three other banners (x9p2, x13p2, x22p2) are taps.json `gone` and never tapped — T439 pinned the four literally)
     const got = await Promise.all(ids.map(async (id) => {
       const m = (await inputsOf(id))!.mergedParts;
       return [id, m && [m.length, m.reduce((a, p) => a + p.sections, 0)]] as const;
     }));
-    const want = ids.map((id) => { const b = banner(id); return [id, b && [Number(b[1]), Number(b[2])]] as const; });
-    expect(got).toEqual(want);
-    expect(got.filter(([, m]) => m !== null).length).toBe(4);   // (T67) x22p2, one of the 7, is a PART_GONE state now; (T220) x13p2 and x9p2 too
+    expect(got.filter(([, m]) => m !== null)).toEqual([["chw0_1010", [2, 8]], ["x15p9_1010", [2, 2]], ["x16p7_1010", [2, 2]], ["x17p5_1010", [2, 2]]]);
   });
 
   it("8. an unnamed section: no item, the key, and the place's name; a handle outside B.C. has neither", async () => {

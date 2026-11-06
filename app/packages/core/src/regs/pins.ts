@@ -5,7 +5,7 @@
  * section's LAST row has gone up under the stack, whose height is MEASURED, not guessed), `mini` 1752–1760, the tab press
  * 2000 and the round 20i scroll margins (872). The v33 rule the ticket text describes (`nextHead`, DROP 110) is gone from
  * the prototype; port/pins.mjs records exactly what v38 reads (`end` per tier, each drawn line's height) and
- * conformance/src/regs/pins.parity.test.ts replays every golden state through `pinChain`.
+ * conformance/src/regs/pins.parity.test.ts (retired, T439) replays every golden state through `pinChain`.
  *
  * IMPLEMENT-HANDOFF C5 (UI-NOTES v35 integration 1): a ledger article whose row has no group pins NOTHING — the prototype no
  * longer throws there, so there is no "keep the previous lines" state to reproduce.

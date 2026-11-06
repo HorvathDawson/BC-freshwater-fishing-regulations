@@ -1,0 +1,187 @@
+{
+ "heights": {
+  "c|↳ 1 of them (Dolly Varden/bull trout) under this lake’s rule|": 22,
+  "c|↳ 1 of them (brook, brown, cutthroat, lake or rainbow trout) under this river’s rule|": 38,
+  "c|↳ 1 of them (lake trout) under this lake’s rule|": 22,
+  "c|↳ 1 of them under this lake’s rule|": 22,
+  "c|↳ 1 of them under this river’s rule|": 22,
+  "c|↳ 2 of them (hatchery brook, brown, cutthroat or rainbow trout) under this river’s rule|": 38,
+  "c|↳ 2 of them (hatchery steelhead) under this river’s rule|": 22,
+  "c|↳ 2 of them (lake trout) under this lake’s rule|": 22,
+  "c|↳ 2 of them (rainbow trout) under this lake’s rule|": 22,
+  "c|↳ 2 of them (rainbow trout) under this river’s rule|": 22,
+  "c|↳ 2 of them under this river’s rule|": 22,
+  "c|↳ 3 of them (lake trout) under this lake’s rule|": 22,
+  "c|↳ 4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams|": 38,
+  "c|↳ 5 a day under the Duncan River’s rule, not part of the 2 from streams|": 38,
+  "c|↳ 5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams|": 38,
+  "c|↳ of those, 1 brown trout, cutthroat trout, rainbow trout or steelhead in all|": 38,
+  "c|↳ of those, 1 cutthroat or rainbow trout in all|": 22,
+  "c|↳ of those, 1 over 40 cm|": 22,
+  "c|↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)|": 22,
+  "c|↳ of those, 1 over 50 cm|": 22,
+  "g two|Trout and char · 1 a day from streams|(of 5 across Region 4)": 42,
+  "g two|Trout and char · 1 a day from streams|(of 5 across Region 5)": 42,
+  "g two|Trout and char · 1 a day from streams|(of 5 across Region 6)": 42,
+  "g two|Trout and char · 1 a day from streams|(of 5 across Zone A)": 42,
+  "g two|Trout and char · 2 a day from streams|(of 4 across Region 2)": 42,
+  "g two|Trout and char · 2 a day from streams|(of 5 across Region 4)": 42,
+  "g two|Trout and char · 2 a day from streams|(of 5 across Region 5)": 42,
+  "g two|Trout and char · 2 a day from streams|(of 5 across Zone A)": 42,
+  "g two|Trout and char · 2 a day from streams|(of 5 across Zone B)": 42,
+  "g two|Trout and char · 4 a day from streams|(of 5 across Region 3)": 42,
+  "g two|Trout · 2 a day from streams|(of 4 across Region 1, excluding Haida Gwaii)": 42,
+  "g|Rainbow trout and steelhead · This lake’s rule: 6 a day|": 26,
+  "g|Trout and char · 4 a day across Region 2|": 26,
+  "g|Trout and char · 5 a day across Region 3|": 26,
+  "g|Trout and char · 5 a day across Region 4|": 26,
+  "g|Trout and char · 5 a day across Region 5|": 26,
+  "g|Trout and char · 5 a day across Region 6|": 26,
+  "g|Trout and char · 5 a day across Region 8|": 26,
+  "g|Trout and char · The Bella Coola River’s rule: 1 a day|": 45,
+  "g|Trout and char · This lake’s rule: 2 a day|": 26,
+  "g|Trout and char · This lake’s rule: 4 a day|": 26,
+  "g|Trout and char · This river’s rule: 1 a day|": 26,
+  "g|Trout and char · Upper Arrow Lake’s rule: 2 a day|": 26
+ },
+ "states": {
+  "vedder_1010": {
+   "viewport": {
+    "header": 119,
+    "height": 584
+   },
+   "anchors": [
+    {
+     "formA": true,
+     "group": true,
+     "groupLine": {
+      "cls": "g two",
+      "sub": "(of 4 across Region 2)",
+      "text": "Trout and char · 2 a day from streams"
+     },
+     "headlineN": 2,
+     "height": 1526.83,
+     "pin": {
+      "height": 76.58,
+      "top": 121.88
+     },
+     "row": "r0",
+     "tiers": [
+      {
+       "end": 986.27,
+       "head": {
+        "height": 64.44,
+        "top": 206.45
+       },
+       "n": 2,
+       "short": "2 of them from streams",
+       "tid": "t3",
+       "tier": "share"
+      },
+      {
+       "end": 986.27,
+       "head": {
+        "height": 60.5,
+        "top": 279.89
+       },
+       "n": 1,
+       "short": "of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "tid": "t4",
+       "tier": "size"
+      },
+      {
+       "end": 1218.92,
+       "head": {
+        "height": 105.19,
+        "top": 1003.27
+       },
+       "n": 4,
+       "short": "4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams",
+       "tid": "t2",
+       "tier": "own"
+      }
+     ],
+     "top": 121.88,
+     "tree": true
+    }
+   ]
+  },
+  "glenn_501": {
+   "viewport": {
+    "header": 119,
+    "height": 584
+   },
+   "anchors": [
+    {
+     "formA": true,
+     "group": true,
+     "groupLine": {
+      "cls": "g two",
+      "sub": "(of 5 across Region 4)",
+      "text": "Trout and char · 2 a day from streams"
+     },
+     "headlineN": 2,
+     "height": 1251.3,
+     "pin": {
+      "height": 76.58,
+      "top": 277.92
+     },
+     "row": "r0",
+     "tiers": [
+      {
+       "end": 753.19,
+       "head": {
+        "height": 78.72,
+        "top": 457.22
+       },
+       "n": 2,
+       "short": "2 of them from streams",
+       "tid": "t3",
+       "tier": "share"
+      },
+      {
+       "end": 997.69,
+       "head": {
+        "height": 126.03,
+        "top": 761.19
+       },
+       "n": 5,
+       "short": "5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams",
+       "tid": "t2",
+       "tier": "own"
+      }
+     ],
+     "top": 277.92,
+     "tree": true
+    }
+   ]
+  },
+  "klwa_1010": {
+   "viewport": {
+    "header": 119,
+    "height": 584
+   },
+   "anchors": [
+    {
+     "formA": false,
+     "group": true,
+     "groupLine": {
+      "cls": "g",
+      "sub": null,
+      "text": "Trout and char · This lake’s rule: 2 a day"
+     },
+     "headlineN": 2,
+     "height": 646.27,
+     "pin": {
+      "height": 57.36,
+      "top": 121.88
+     },
+     "row": "r0",
+     "tiers": [],
+     "top": 121.88,
+     "tree": true
+    }
+   ]
+  }
+ }
+}

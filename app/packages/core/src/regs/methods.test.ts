@@ -1,6 +1,6 @@
 /**
  * T32 unit cases over hand-built rules and gear answers (the golden-driven cases are app/conformance/src/regs/
- * methods.parity.test.ts): countTxt, tgtTxt, the way chips (limited way, clauses, conduct, crayfish rule, devices), the ways
+ * methods.parity.test.ts (retired, T439)): countTxt, tgtTxt, the way chips (limited way, clauses, conduct, crayfish rule, devices), the ways
  * list and its source order, boats, the reference fold.
  */
 import { describe, expect, it } from "vitest";

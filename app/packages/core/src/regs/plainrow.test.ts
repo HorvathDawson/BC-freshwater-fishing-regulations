@@ -1,7 +1,7 @@
 /**
  * plainrow.ts, store-free: the year's words over canned runs (the T13 `runOf` seam faked per call — what is tested is the
  * wording of the stored strip, not the run finding), the pill, names, release line, week split and VM shape. The 31-row
- * parity is app/conformance/src/regs/plainrow.parity.test.ts.
+ * parity is app/conformance/src/regs/plainrow.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import type { CardModel, HydRow, YearRun } from "./card";

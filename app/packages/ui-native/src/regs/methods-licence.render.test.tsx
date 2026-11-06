@@ -1,9 +1,9 @@
 /**
- * T35 render: the Methods and Licence tabs drawn from the FROZEN golden pages (fixtures/*.json and, for all six anglers of
+ * T35 render: the Methods and Licence tabs drawn from the FROZEN pages (fixtures/*.json and, for all six anglers of
  * vedder_1010, x5p1_1010 (a classified water: the class box, D17) and klmb_1010 (the not-yet-mapped box),
  * fixtures/licence_<id>.json — written by `UPDATE_REGS_FIXTURES=1` from buildRegsPage over the parity
- * store, never hand-edited) and compared line for line to the golden's own drawn lines (fixtures/golden_lines.json, copied
- * from golden.json by the same writer). Components draw the VM: every word, option and key is core's.
+ * store, never hand-edited). Components draw the VM: every word, option and key is core's. (T439: the line-for-line
+ * "golden mounts" against golden.json's drawn lines are gone.)
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -13,18 +13,14 @@ import type { KeepActions } from "./LineText";
 import { LicenceTab } from "./LicenceTab";
 import { MethodsTab } from "./MethodsTab";
 import { domLines } from "./testing/domLines";
-import vedder1010 from "./fixtures/vedder_1010.json";
 import vedder615 from "./fixtures/vedder_615.json";
-import vedder515 from "./fixtures/vedder_515.json";
 import bc1501 from "./fixtures/bc1_501.json";
 import licences from "./fixtures/licence_vedder_1010.json";
 import licencesX5p1 from "./fixtures/licence_x5p1_1010.json";
 import licencesKlmb from "./fixtures/licence_klmb_1010.json";
-import goldenLines from "./fixtures/golden_lines.json";
 
 afterEach(cleanup);
 
-const GL = goldenLines as Record<string, { gear?: string[]; methods?: string[]; licence: Record<string, string[]> }>; // licence-only states carry no gear/methods
 const LIC = licences as unknown as Record<string, LicenceVM>;
 const LIC_X5P1 = licencesX5p1 as unknown as Record<string, LicenceVM>;
 const LIC_KLMB = licencesKlmb as unknown as Record<string, LicenceVM>;
@@ -49,13 +45,7 @@ function mountLicence(vm: LicenceVM, who: Who = ADULT) {
   return { ...a, whos, lines: () => domLines(screen.getByTestId("licence-tab")) };
 }
 
-/** (T395, owner 2026-11-05) the boat rules are their own section under Methods: the golden's lines, its heading before Boats */
-const vesselsHead = (lines: readonly string[] | undefined) => {
-  const at = (lines ?? []).indexOf(METHODS.BOATS);
-  return at < 0 ? lines : [...lines!.slice(0, at), METHODS.VESSELS, ...lines!.slice(at)];
-};
-
-/** (owner 2026-11-04) the guiding block is folded, closed by default: the golden's lines are drawn once it is opened */
+/** (owner 2026-11-04) the guiding block is folded, closed by default: its lines are drawn once it is opened */
 function openGuiding(): void {
   const fold = screen.queryByTestId("licence-guiding-fold");
   if (fold) fireEvent.click(within(fold).getByRole("button"));
@@ -123,17 +113,9 @@ describe("<MethodsTab>", () => {
     expect(marks()).toEqual([false, true]);
   });
 
-  it("golden mounts (fold opened: the golden reads the folded text): vedder_1010, vedder_515, bc1_501", () => {
-    for (const [id, f] of [["vedder_1010", vedder1010], ["vedder_515", vedder515], ["bc1_501", bc1501]] as const) {
-      const { lines } = mountMethods(methodsOf(f), true);
-      expect([id, lines()]).toEqual([id, vesselsHead(GL[id]!.methods)]);
-      cleanup();
-    }
-  });
-
   it("vedder_615 (closed): only the sentence", () => {
     const { lines } = mountMethods(methodsOf(vedder615));
-    expect([lines(), GL.vedder_615!.methods]).toEqual([["No fishing here until Jul 1."], ["No fishing here until Jul 1."]]);
+    expect(lines()).toEqual(["No fishing here until Jul 1."]);
     expect(screen.queryByRole("heading")).toBeNull();
   });
 
@@ -144,17 +126,6 @@ describe("<MethodsTab>", () => {
     expect(domLines(screen.getByTestId("methods-ways")).slice(0, 3)).toEqual(["Ways to fish", "Allowed", "✓ Set lines ⓘ"]);
     fireEvent.click(within(screen.getByTestId("methods-ways")).getByText("ⓘ"));
     expect(sheets).toEqual(["gl:set_line"]);
-  });
-
-  it("mutation pins: a lost note, a dropped boat or a reordered group fails the golden mount", () => {
-    const vm = methodsOf(bc1501), ways = vm.ways!, ref = vm.reference!, golden = vesselsHead(GL.bc1_501!.methods);
-    const muts: Record<string, MethodsVM> = {
-      note: { ...vm, ways: { ...ways, list: ways.list.map((c) => ({ ...c, items: c.items.map((i) => ({ ...i, note: null })) })) } },
-      boats: { ...vm, boats: null },
-      groups: { ...vm, reference: { ...ref, groups: [...ref.groups].reverse() } },
-    };
-    const same = Object.entries(muts).filter(([, m]) => { const { lines } = mountMethods(m, true), eq = JSON.stringify(lines()) === JSON.stringify(golden); cleanup(); return eq; });
-    expect(same.map(([k]) => k)).toEqual([]);
   });
 });
 
@@ -211,18 +182,6 @@ describe("<LicenceTab>", () => {
       needs.includes("Also, only if…")]).toEqual([true, true, false]);
   });
 
-  it("golden mounts: all six anglers of vedder_1010, x5p1_1010 (class box) and klmb_1010 (not-yet-mapped box) draw the golden's lines", () => {
-    for (const [id, all] of [["vedder_1010", LIC], ["x5p1_1010", LIC_X5P1], ["klmb_1010", LIC_KLMB]] as const) {
-      for (const [k, vm] of Object.entries(all)) {
-        const { lines } = mountLicence(vm, whoOf(k));
-        openGuiding();
-        expect([id, k, lines()]).toEqual([id, k, GL[id]!.licence[k]]);
-        cleanup();
-      }
-      expect([id, Object.keys(all).sort()]).toEqual([id, Object.keys(GL[id]!.licence).sort()]);
-    }
-  });
-
   it("(owner 2026-11-04) guiding is folded, closed: its summary shows, its cards only once opened", () => {
     const vm = Object.values(LIC).find((v) => JSON.stringify(v).includes("lostlist lopen"))!;
     const { lines } = mountLicence(vm);
@@ -259,29 +218,8 @@ describe("<LicenceTab>", () => {
     expect(within(screen.getByTestId("licence-answer")).queryByRole("button", { name: "Source" })).toBeNull();
   });
 
-  it("vedder_615 (closed): no Licence section at all (owner 2026-11-04; the golden drew only its heading, D16 a)", () => {
-    expect([(vedder615 as unknown as RegsPage).licence, GL.vedder_615!.licence["adult|resident"]]).toEqual([null, ["Licence"]]);
+  it("vedder_615 (closed): no Licence section at all (owner 2026-11-04; the prototype drew only its heading, D16 a)", () => {
+    expect((vedder615 as unknown as RegsPage).licence).toBeNull();
   });
 
-  it("mutation pins: a lost price, a dropped 'only if' head or an unchecked option fails the golden mount", () => {
-    const vm = LIC["adult|resident"]!, golden = GL.vedder_1010!.licence["adult|resident"];
-    const needs = vm.blocks[0] as Extract<LicenceVM["blocks"][number], { cls: "needs" }>;
-    const muts: Record<string, LicenceVM> = {
-      price: { ...vm, blocks: [{ ...needs, items: needs.items.map((i) => ({ ...i, price: null })) }, ...vm.blocks.slice(1)] },
-      onlyIf: { ...vm, blocks: [{ ...needs, onlyIf: needs.onlyIf && { ...needs.onlyIf, label: "" } }, ...vm.blocks.slice(1)] },
-      label: { ...vm, label: "" },
-    };
-    const same = Object.entries(muts).filter(([, m]) => { const { lines } = mountLicence(m), eq = JSON.stringify(lines()) === JSON.stringify(golden); cleanup(); return eq; });
-    expect(same.map(([k]) => k)).toEqual([]);
-  });
-
-  it("mutation pins: a class box without its Source, or a dropped not-yet-mapped box, fails its golden mount", () => {
-    const x5 = LIC_X5P1["adult|resident"]!, kl = LIC_KLMB["adult|resident"]!;
-    const muts: [string, LicenceVM, string[] | undefined][] = [
-      ["source", { ...x5, blocks: x5.blocks.map((b) => (b.cls === "classbox" ? { ...b, source: null } : b)) }, GL.x5p1_1010!.licence["adult|resident"]],
-      ["nymbox", { ...kl, blocks: kl.blocks.filter((b) => b.cls !== "nymbox") }, GL.klmb_1010!.licence["adult|resident"]],
-    ];
-    const same = muts.filter(([, m, golden]) => { const { lines } = mountLicence(m), eq = JSON.stringify(lines()) === JSON.stringify(golden); cleanup(); return eq; });
-    expect(same.map(([k]) => k)).toEqual([]);
-  });
 });

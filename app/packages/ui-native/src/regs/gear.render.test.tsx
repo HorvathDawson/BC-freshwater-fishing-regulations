@@ -1,7 +1,7 @@
 /**
- * T34 render: the Gear tab drawn from the FROZEN golden pages (fixtures/*.json, written by `UPDATE_REGS_FIXTURES=1` from
- * buildRegsPage over the parity store — never hand-edited) and compared, line for line, to the golden's own drawn lines
- * (fixtures/golden_lines.json, copied from golden.json by the same writer). Components draw the VM: every word is core's.
+ * T34 render: the Gear tab drawn from the FROZEN pages (fixtures/*.json, written by `UPDATE_REGS_FIXTURES=1` from
+ * buildRegsPage over the parity store — never hand-edited). Components draw the VM: every word is core's. (T439: the
+ * line-for-line "golden mounts" against golden.json's drawn lines are gone.)
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
@@ -13,13 +13,10 @@ import { domLines } from "./testing/domLines";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import vedder515 from "./fixtures/vedder_515.json";
 import vedder615 from "./fixtures/vedder_615.json";
-import bc1501 from "./fixtures/bc1_501.json";
-import goldenLines from "./fixtures/golden_lines.json";
 
 afterEach(cleanup);
 
 const gearOf = (f: unknown) => (f as RegsPage).gear as GearVM;
-const GL = goldenLines as Record<string, { gear?: string[]; methods?: string[]; licence: Record<string, string[]> }>; // licence-only states carry no gear/methods
 
 function mount(vm: GearVM) {
   const sheets: SheetKey[] = [], books: number[] = [];
@@ -76,10 +73,6 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
     expect(sheets).toEqual(["srcs:bait"]);
   });
 
-  it("golden mount: every drawn line equals golden.states.vedder_1010.gear.lines_", () => {
-    const { lines } = mount(vm);
-    expect(lines()).toEqual(GL.vedder_1010!.gear);
-  });
 });
 
 describe("<GearTab> other states", () => {
@@ -94,22 +87,9 @@ describe("<GearTab> other states", () => {
     expect(within(screen.getByTestId("gear-line-weight")).queryByTestId("regs-src")).toBeNull();
   });
 
-  it("vedder_515 golden mount: every drawn line equals the golden's", () => {
-    const { lines } = mount(gearOf(vedder515));
-    expect(lines()).toEqual(GL.vedder_515!.gear);
-  });
-
-  it("bc1_501 golden mount: equal but for the keyed bait source (exclusions.ts SNAPSHOT_SUB_IDS: a prototype snapshot artifact)", () => {
-    const { lines } = mount(gearOf(bc1501));
-    const want = GL.bc1_501!.gear!.map((l) => (l === "Bella Coola River › Rule book p.43 ↗" ? "This water’s › Rule book p.43 ↗" : l));
-    expect(want).not.toEqual(GL.bc1_501!.gear);
-    expect(lines()).toEqual(want);
-  });
-
   it("vedder_615 (closed): only the sentence — no heading, no day line, no rows, no bait", () => {
     const { lines } = mount(gearOf(vedder615));
     expect(lines()).toEqual(["No fishing here until Jul 1."]);
-    expect(lines()).toEqual(GL.vedder_615!.gear);
     expect([screen.queryByRole("heading"), screen.queryByTestId("gear-bait"), screen.queryByTestId("gear-line-lines")]).toEqual([null, null, null]);
   });
 
@@ -120,15 +100,4 @@ describe("<GearTab> other states", () => {
     expect(screen.getByTestId("gear-tab").textContent).not.toMatch(/No fishing/);
   });
 
-  it("mutation pins: a lost value ⓘ, a dropped change or a reordered row fails the golden mount", () => {
-    const vm = gearOf(vedder1010), golden = GL.vedder_1010!.gear;
-    const muts: Record<string, GearVM> = {
-      term: { ...vm, lines: vm.lines.map((l) => ({ ...l, valueTerms: l.valueTerms.map(() => []) })) },
-      change: { ...vm, lines: vm.lines.map((l) => ({ ...l, changes: [] })) },
-      order: { ...vm, lines: [...vm.lines].reverse() },
-      inForce: { ...vm, bait: { ...vm.bait!, dated: vm.bait!.dated.map((c) => ({ ...c, inForce: true })) } },
-    };
-    const same = Object.entries(muts).filter(([, m]) => { const { lines } = mount(m), eq = JSON.stringify(lines()) === JSON.stringify(golden); cleanup(); return eq; });
-    expect(same.map(([k]) => k)).toEqual([]);
-  });
 });

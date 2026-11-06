@@ -1,30 +1,20 @@
 /**
- * The frozen golden pages the RN render tests mount (jsdom cannot open a store): one `RegsPage` per tab-worthy state, its
- * lazy `sheet` function replaced by every sheet the golden state can open. Written by `UPDATE_REGS_FIXTURES=1`, checked
- * otherwise (harness.parity.test.ts). The page is `buildRegsPage` over the parity store's inputs — never hand-edited.
+ * The frozen pages the RN render tests mount (jsdom cannot open a store): one `RegsPage` per tab-worthy state, its
+ * lazy `sheet` function replaced by every sheet the committed file already holds (a new state: every sheet key its page
+ * names, `sheetKeysOf`). Written by `UPDATE_REGS_FIXTURES=1`, checked otherwise (harness.parity.test.ts). The page is
+ * `buildRegsPage` over the parity store's inputs — never hand-edited. (T439: the sheet keys no longer come from golden.json.)
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { buildRegsPage, type RegsPage, type SheetKey, type SheetVM, type Who } from "@app/core";
+import { buildRegsPage, parseSheetKey, type RegsPage, type SheetKey, type SheetVM, type Who } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
-import { GOLDEN_LICSRC_KEY, goldenLicenceUnsourced } from "./exclusions";
 import { ADULT_RESIDENT, baseUnnamedStream, inputsOf, parityStore, requestOf } from "./golden";
-import { golden, REPO } from "./oracles";
+import { REPO } from "./oracles";
 
 export const FIXTURE_STATES = ["vedder_1010", "vedder_615", "vedder_515", "klwa_1010", "bc1_501", "glenn_501"] as const;
 export const FIXTURE_DIR = `${REPO}app/packages/ui-native/src/regs/fixtures`;
 export const UPDATE_HINT = "run UPDATE_REGS_FIXTURES=1 pnpm -C app exec vitest run conformance/src/regs/harness";
 
 export type FrozenRegsPage = Omit<RegsPage, "sheet"> & { readonly sheets: Readonly<Record<string, SheetVM | null>> };
-
-/**
- * A golden sheet key → the app's (contracts §6 #1: the app's keys carry no state id). `other:<id>|o0` → `other:o0`;
- * `srcs:gl|<id>|hook` → `srcs:gl|hook`; `srcs:bait|<id>` → `srcs:bait`. (A `licsrc:` key has no app key: the licence sources
- * sheet is removed, owner 2026-11-04 — `goldenSheetKeys` leaves them out.) Key plumbing only, until T36's `appKeyOf` (core
- * sheetKey.ts) replaces it.
- */
-export function appSheetKey(goldenKey: string, id: string): string {
-  return goldenKey.replace(`${id}|`, "").replace(`|${id}`, "");
-}
 
 /** The page minus `sheet`, plus `sheets`: each key (deduplicated, sorted) through `page.sheet(key)`. */
 export function freezePage(page: RegsPage, sheetKeys: readonly string[]): FrozenRegsPage {
@@ -45,23 +35,35 @@ export function stableJson(v: unknown): string {
   return `${JSON.stringify(sort(v, ""), null, 1)}\n`;
 }
 
-/** A golden state's sheet keys, as the app's, less the licsrc: ones (exclusions LICSRC_REASON: owner 2026-11-04, licence
- *  sources sheet removed). */
-export const goldenSheetKeys = (id: string): string[] =>
-  Object.keys(golden().states[id]!.sheets).filter((k) => !GOLDEN_LICSRC_KEY.test(k)).map((k) => appSheetKey(k, id));
+/** Every sheet key a page names anywhere in its view model (the keys its presses open). */
+export function sheetKeysOf(page: RegsPage): string[] {
+  const out = new Set<string>(["hatch", "parts", "pos:pos"]);
+  const walk = (v: unknown): void => {
+    if (typeof v === "string") { if (parseSheetKey(v)) out.add(v); return; }
+    if (Array.isArray(v)) { v.forEach(walk); return; }
+    if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (k !== "sheet") walk(x);
+  };
+  walk(page);
+  return [...out];
+}
+
+/** The sheet keys of a state's committed fixture file `file` (the set it was frozen with), else the page's own. */
+function frozenKeys(file: string, page: RegsPage): string[] {
+  return existsSync(file) ? Object.keys((JSON.parse(readFileSync(file, "utf8")) as { sheets: Record<string, unknown> }).sheets) : sheetKeysOf(page);
+}
 
 /** The frozen page of one fixture state, as JSON text. */
-export async function frozenJson(id: string): Promise<string> {
+export async function frozenJson(id: string, file = `${FIXTURE_DIR}/${id}.json`): Promise<string> {
   const inp = await inputsOf(id);
   if (!inp) throw new Error(`frozen page ${id}: no paired regs store`);
   const page = buildRegsPage(inp, { today: requestOf(id).today, who: ADULT_RESIDENT, pid: id });
-  return stableJson(freezePage(page, goldenSheetKeys(id)));
+  return stableJson(freezePage(page, frozenKeys(file, page)));
 }
 
 /**
- * (T35) The states whose Licence tab the render test mounts for all six anglers (golden `licence["<age>|<res>"]`):
+ * (T35) The states whose Licence tab the render test mounts for all six anglers (`licence["<age>|<res>"]`):
  * vedder_1010, x5p1_1010 (a classified water — the class box, D17) and klmb_1010 (the not-yet-mapped box).
- * Between them they draw every licence block class the golden draws.
+ * Between them they draw every licence block class.
  */
 export const LICENCE_FIXTURE_STATES = ["vedder_1010", "x5p1_1010", "klmb_1010"] as const;
 export const LICENCE_FIXTURE_PROFILES = ["adult|resident", "adult|non_resident", "adult|non_resident_alien", "u16|resident", "u16|non_resident",
@@ -78,37 +80,17 @@ export async function licenceJson(id: string): Promise<string> {
 }
 
 /**
- * (T34/T35) `golden_lines.json`: the golden's drawn lines of the Gear / Methods / Licence tabs for the fixture states,
- * copied verbatim from golden.json (a render test may not read files: layers.json) — the oracle the render mounts compare —
- * except the Licence lines' sources (exclusions `goldenLicenceUnsourced`: owner 2026-11-04, licence sources sheet removed).
- */
-export function goldenLinesJson(): string {
-  const G = golden().states;
-  type GLic = Parameters<typeof goldenLicenceUnsourced>[0] & { lines: string[] };
-  const licence = (id: string) => Object.fromEntries(Object.entries(G[id]!.licence)
-    .map(([k, l]) => [k, (l as GLic).blocks ? goldenLicenceUnsourced(l as GLic).lines : (l as GLic).lines]));
-  return stableJson(Object.fromEntries([
-    ...FIXTURE_STATES.map((id) => {
-      const s = G[id]!;
-      return [id, { gear: (s.gear as { lines_: string[] }).lines_, methods: (s.methods as { lines: string[] }).lines, licence: licence(id) }];
-    }),
-    // licence-only states: the render test mounts only their Licence tab
-    ...LICENCE_FIXTURE_STATES.filter((id) => !(FIXTURE_STATES as readonly string[]).includes(id)).map((id) => [id, { licence: licence(id) }]),
-  ]));
-}
-
-/**
  * (T42) The edge states the render test mounts (Edges.test.tsx): tidal water (x31p_1010) and the hours window's timed
- * caveat (x15p2_1010) — each `edge_<id>.json`, a frozen golden page as above — and an unnamed section
+ * caveat (x15p2_1010) — each `edge_<id>.json`, a frozen page as above — and an unnamed section
  * (`edge_unnamed.json`, golden.ts `baseUnnamedStream`: taps.json's first sampled unnamed stream on its region's base —
- * chosen by that property, since the sample's handles move with every build; no golden state, so no sheets). Outside B.C. needs no store (core
+ * chosen by that property, since the sample's handles move with every build; no sheets). Outside B.C. needs no store (core
  * `buildRegsPage` over no key).
  */
 export const EDGE_FIXTURE_STATES = ["x31p_1010", "x15p2_1010"] as const;
 
 /**
  * (T40) The style-token gate's states (check.mjs `r20c-style-tokens`: vedder_1010, x35p_1010, klwa_1012, glenn_615 — the
- * Keep tab of each): `<id>.json`, a frozen golden page as above, beside the fixture states it does not already share.
+ * Keep tab of each): `<id>.json`, a frozen page as above, beside the fixture states it does not already share.
  */
 export const STYLE_FIXTURE_STATES = ["x35p_1010", "klwa_1012", "glenn_615"] as const;
 export async function unnamedJson(): Promise<string> {
@@ -127,8 +109,7 @@ export async function syncFixtures(env: Readonly<Record<string, string | undefin
   const files: [string, string, () => Promise<string>][] = [
     ...FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
     ...LICENCE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`licence_${id}`, `${FIXTURE_DIR}/licence_${id}.json`, () => licenceJson(id)]),
-    ["golden_lines", `${FIXTURE_DIR}/golden_lines.json`, async () => goldenLinesJson()],
-    ...EDGE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`edge_${id}`, `${FIXTURE_DIR}/edge_${id}.json`, () => frozenJson(id)]),
+    ...EDGE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [`edge_${id}`, `${FIXTURE_DIR}/edge_${id}.json`, () => frozenJson(id, `${FIXTURE_DIR}/edge_${id}.json`)]),
     ["edge_unnamed", `${FIXTURE_DIR}/edge_unnamed.json`, () => unnamedJson()],
     ...STYLE_FIXTURE_STATES.map((id): [string, string, () => Promise<string>] => [id, `${FIXTURE_DIR}/${id}.json`, () => frozenJson(id)]),
   ];

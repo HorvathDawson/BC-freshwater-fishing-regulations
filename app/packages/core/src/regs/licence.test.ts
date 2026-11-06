@@ -1,5 +1,5 @@
 /**
- * T33 unit cases over hand-built licence answers (the golden parity is conformance/src/regs/licence.parity.test.ts):
+ * T33 unit cases over hand-built licence answers (the golden parity is conformance/src/regs/licence.parity.test.ts (retired, T439)):
  * the word helpers (priceTxt, actTxt, whoTxt), the angler (profileOf), patchNeeds (the kokanee words and the
  * "Also, only if…" split — and that it never DROPS a document), and buildLicence over a small LicenceValue: draw order,
  * the youth path selecting the stored 16+ profile, asNeeds, no source line (owner 2026-11-04), closed / outside / tidal.

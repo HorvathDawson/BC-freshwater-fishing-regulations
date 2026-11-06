@@ -1,4 +1,4 @@
-// The hydrate oracle for the app port: what page v36's OWN decode layer says of every golden state — describe() of every
+// The hydrate oracle for the app port: what page v36's OWN decode layer says of every state (states.json) — describe() of every
 // rule a state cites, settle() (the day's ladder context) and buildModel() (the card's rows) — so the TS port of page_v36.js
 // lines 1–242 (tickets T06–T08) is tested against the page's code, not against a re-reading of it.
 //   node app/tools/regs-recut/hydrate.mjs [--out dir]
@@ -9,7 +9,7 @@
 // (item id, part index, md); each state's `s` must equal taps.json's — printed, and a mismatch exits 1. The page's parts are
 // the PROTOTYPE's: a state the release renumbered is hydrated at taps.json `goldenPartIx`, and a state whose part the release
 // merged away (taps.json `gone`, T115) or that became tidal (taps.json `tidal`, T278) is hydrated too (the page still has it; there is no store `s` to check it against),
-// all in golden.json's order.
+// all in states.json's order.
 // Rule numbers are the export's rix (page_data.py: D.rid = rix of the full export = the store's rule.rix).
 import fs from 'node:fs'; import path from 'node:path'; import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -46,10 +46,10 @@ try {
   for (const r of Object.values(P.D.rules)) { describe[r.ix] = P.describe(r); rules[r.ix] = ruleFacts(r); }
 
   const states = {}; let same = 0; const bad = [];
-  const order = Object.keys(JSON.parse(fs.readFileSync(path.join(A.out, 'golden.json'), 'utf8')).states);
+  const order = Object.keys(JSON.parse(fs.readFileSync(path.join(A.out, 'states.json'), 'utf8')).states);
   for (const id of order) {
     const t = taps.states[id] ?? taps.gone?.[id] ?? taps.tidal?.[id];
-    if (!t) { bad.push(`${id}: in golden.json, neither tapped nor gone nor tidal in taps.json`); continue; }
+    if (!t) { bad.push(`${id}: in states.json, neither tapped nor gone nor tidal in taps.json`); continue; }
     const wi = P.D.waters.findIndex(w => w.id === t.item);
     if (wi < 0) { bad.push(`${id}: no water ${t.item} in page_v36.html`); continue; }
     const w = P.makePlace(wi, t.goldenPartIx ?? t.partIx);

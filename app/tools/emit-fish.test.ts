@@ -3,8 +3,7 @@
  * app (the literal `require()` map Metro resolves statically).
  *
  * Every assertion is on a WHOLE value: a full caption, a full credit, the full key list, the
- * full set of files. The golden cross-check proves the core manifest against the
- * prototype's OUTPUT (golden.json), not against the manifest it was emitted from.
+ * full set of files. (T439: the cross-check against the prototype's OUTPUT, golden.json, is gone.)
  */
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -113,14 +112,6 @@ describe("emit-fish: the look-for tips (T36, contracts §3 FISH_TIPS)", () => {
     const src = readFileSync(TIPS_SOURCE, "utf8").replace("'Pink or red band along the side'", "'Mutated band'");
     expect(fishTips(src).RB![0]).toBe("Mutated band");
   });
-  it("every golden sp: sheet's \"What to look for\" list equals FISH_TIPS[code]", () => {
-    const g = JSON.parse(readFileSync(`${app}fixtures/golden/golden.json`, "utf8")) as { sheets: Record<string, { lines: string[] }> };
-    const sp = Object.entries(g.sheets).filter(([k]) => k.startsWith("sp:"));
-    expect(sp.length).toBe(19);
-    const bad = sp.filter(([k, v]) => { const i = v.lines.indexOf("What to look for");
-      return JSON.stringify(i < 0 ? [] : v.lines.slice(i + 1)) !== JSON.stringify(FISH_TIPS[k.slice(3)] ?? []); }).map(([k]) => k);
-    expect(bad).toEqual([]);
-  });
 });
 
 describe("emit-fish: the mobile require map", () => {
@@ -179,29 +170,5 @@ describe("emit-fish: the committed files are current (--check)", () => {
   it("--check exits 0 on the committed tree", () => {
     const out = execFileSync("node", [`${app}tools/emit-fish.mjs`, "--check"], { encoding: "utf8" });
     expect(out).toBe("✓ fish.generated.ts current\n");
-  });
-});
-
-describe("emit-fish: golden cross-check", () => {
-  type Pic = { code?: string | null; caption?: string };
-  const golden = JSON.parse(readFileSync(`${app}fixtures/golden/golden.json`, "utf8"));
-  const pics: Pic[] = [];
-  const walk = (o: unknown): void => {
-    if (Array.isArray(o)) { o.forEach(walk); return; }
-    if (o && typeof o === "object") {
-      const rec = o as Record<string, unknown>;
-      if (Array.isArray(rec.pics)) pics.push(...(rec.pics as Pic[]));
-      Object.values(rec).forEach(walk);
-    }
-  };
-  for (const s of Object.values(golden.states)) walk((s as { keep: unknown }).keep);
-  const norm = (s: string) => s.replace(/\s+/g, " ").trim();
-
-  it("every pictured code in golden has FISH[code], captioned by its first image + \" ›\"", () => {
-    const coded = pics.filter((p) => p.code);
-    expect(coded.length).toBeGreaterThan(0);
-    const bad = coded.filter((p) => !FISH[p.code!] ||
-      norm(p.caption ?? "") !== norm(`${FISH[p.code!][0].caption} ›`));
-    expect(bad).toEqual([]);
   });
 });

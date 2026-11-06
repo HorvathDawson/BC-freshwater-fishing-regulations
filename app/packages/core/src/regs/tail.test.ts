@@ -1,6 +1,6 @@
 /**
  * tail.ts, store-free, over the hand-built Vedder-like group (testing/keepFixtures.ts; sentences copied from golden
- * vedder_515 / vedder_1010 / x15p0_1010). Golden parity on all 97 groups is app/conformance/src/regs/tail.parity.test.ts.
+ * vedder_515 / vedder_1010 / x15p0_1010). Golden parity on all 97 groups is app/conformance/src/regs/tail.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import type { FishManifest } from "./fish.generated";

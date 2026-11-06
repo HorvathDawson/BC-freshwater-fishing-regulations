@@ -1,7 +1,7 @@
 /**
  * caveats.ts, store-free, over hand-built inputs (real rule rows from testing/ruleRows.ts where a rule's words matter).
  * No v38 state draws a boat-only or not-today in-part block, or the timed (b)/(c) items — they are
- * pinned here. The 134-state parity against the golden is app/conformance/src/regs/caveats.parity.test.ts.
+ * pinned here. The 134-state parity against the golden is app/conformance/src/regs/caveats.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import type { Moment } from "../answers.generated";

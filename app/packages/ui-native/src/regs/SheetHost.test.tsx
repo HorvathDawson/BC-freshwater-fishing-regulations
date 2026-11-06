@@ -1,13 +1,13 @@
 /**
  * T37 render: the one sheet over the Regulations view, mounted over the FROZEN pages (fixtures/*.json — buildRegsPage over
- * the parity store, each golden sheet key through `page.sheet`; `UPDATE_REGS_FIXTURES=1` writes them, never by hand).
- * Then the golden mount: every sheet vedder_1010 can open draws every line the golden holds for it, in order.
+ * the parity store, each sheet key through `page.sheet`; `UPDATE_REGS_FIXTURES=1` writes them, never by hand).
+ * (T439: the golden mount, every vedder_1010 sheet against golden.json's lines, is gone.)
  *
  * react-native-web's Modal renders into a portal: queries go to `screen` (the document), not the container.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { appKeyOf, type RegsPage, type SheetKey, type SheetVM } from "@app/core";
+import type { RegsPage, SheetKey, SheetVM } from "@app/core";
 import { BackLayerContext, type BackLayers } from "@app/ui";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { SheetHost } from "./SheetHost";
@@ -16,8 +16,6 @@ import { LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
-// (T206) the golden's vedder_1010 sheets as the conformance oracle reads them (goldenSlices.ts: its load-time rulings applied)
-import goldenSheets from "./fixtures/golden-sheets-vedder_1010.json";
 
 afterEach(cleanup);
 
@@ -165,41 +163,4 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByTestId("sheet-sub").textContent).toBe(
       "Vedder River · Oct 10. The more specific rule speaks first: this water, then from downstream, a named area, the region, then the province.");
   });
-});
-
-/** whitespace dropped: the golden joins separate elements with one space, the components draw them as separate Text */
-// curly quotes dropped on both sides: the prototype's `q.sq` draws its quotes in CSS (not in the golden's textContent), the
-// app draws them as text (T41: a source row's book words, quoted under its title)
-const bare = (s: string) => s.replace(/\s+/g, "").replace(/[“”]/g, "");
-/** (T288, r-ce76b4ed3624) the glossary transcription now says the rule book's p.80 words; page v36 quoted the old one */
-const t288 = (l: string) => l.replace("ordinary residence. In most", "ordinary residence (see above). In most")
-  .replace("adipose fin. Therefore", "adipose fin (see centre colour section). Therefore")
-  .replace("normal adipose fin, or will", "normal adipose fin (see illustration on page 13), or will");
-
-describe("C. golden mount: every vedder_1010 sheet draws every golden line, in order", () => {
-  type G = { title: string; lines: string[] };
-  const keys = Object.entries(goldenSheets as Record<string, G>);
-  it(`all ${keys.length} sheet keys`, () => {
-    const missing: string[] = [];
-    for (const [gk, want] of keys) {
-      const r = host(appKeyOf(gk, "vedder_1010"));
-      // open every fold, nested ones too (a closed fold draws no body)
-      for (let k = 0; k < 20; k++) {
-        const closed = screen.queryAllByRole("button").filter((b) => b.getAttribute("aria-expanded") === "false");
-        if (!closed.length) break;
-        closed.forEach((b) => fireEvent.click(b));
-      }
-      const text = bare(screen.getByRole("heading", { name: want.title }).textContent! + screen.getByTestId("sheet-body").textContent!);
-      let at = 0;
-      for (const line of want.lines) {
-        // the release ships the printed → PDF map (export.pdf_pages): glossary and hatch pages are links, as on the page
-        const l = bare(t288(line));
-        const i = text.indexOf(l, at);
-        if (i < 0) { missing.push(`${gk}: ${line}`); continue; }
-        at = i + l.length;
-      }
-      r.r.unmount();
-    }
-    expect(missing).toEqual([]);
-  }, 30_000);   // 65 mounts in one test: under the full suite's load the default 5 s is too short
 });

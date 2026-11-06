@@ -1,6 +1,6 @@
 /**
  * others.ts, store-free, over hand-built rows (testing/keepFixtures.ts). Golden parity on all 134 states is
- * app/conformance/src/regs/others.parity.test.ts.
+ * app/conformance/src/regs/others.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import type { FishManifest } from "./fish.generated";

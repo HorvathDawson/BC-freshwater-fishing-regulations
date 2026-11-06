@@ -1,6 +1,6 @@
 /**
  * grouphead.ts, store-free, over the hand-built Vedder-like group (testing/keepFixtures.ts). Golden parity on all 97
- * groups is app/conformance/src/regs/grouphead.parity.test.ts. Form b and the origin tag are drawn by no golden state
+ * groups is app/conformance/src/regs/grouphead.parity.test.ts (retired, T439). Form b and the origin tag are drawn by no golden state
  * (golden meta.misses `[data-share-of]`, `.gtag`) — they are pinned here.
  */
 import { describe, expect, it } from "vitest";

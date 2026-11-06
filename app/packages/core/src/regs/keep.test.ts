@@ -2,7 +2,7 @@
  * T21 unit: the Keep composition over small hand-built inputs (no golden, no store) — the draw order of every block
  * combination the goldens show and the ones they do not (the unplaced-rules caveat after the rows), the outside-B.C. foot,
  * the Other fish key, and the plain-row seams bound to the merged presenters. The 134-state golden parity is
- * conformance/src/regs/keep.parity.test.ts.
+ * conformance/src/regs/keep.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import { keepOf, keepOrder, plainRowSeams, type KeepEnv } from "./keep";

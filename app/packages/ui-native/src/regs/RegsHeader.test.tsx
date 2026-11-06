@@ -1,33 +1,34 @@
 /**
- * T23 — the regs header drawn over the golden headers (fixtures/golden-headers.json, copied from golden.json by
- * conformance/src/regs/goldenSlices.ts): the name, the date pill, the place label and the four tabs, on every golden
- * state; then the presses, the label fit and the one-shape rule.
+ * T23 — the regs header drawn over the header of every frozen page (fixtures/<id>.json, written from buildRegsPage over
+ * the parity store): the name, the date pill, the place label and the four tabs, on every frozen state; then the presses,
+ * the label fit and the one-shape rule. (T439: it was drawn over golden.json's headers; the VM is now the app's own.)
  *
- * (Owner call 3) The golden's header action is NOT drawn: its Map button (T71 — the water's one Map entry is the view
- * strip) nor its Parts button (T150 — the water's Map view lists the parts). No golden header's action reaches the app.
+ * (Owner call 3) The header has no action: not a Map button (T71 — the water's one Map entry is the view strip) nor a
+ * Parts button (T150 — the water's Map view lists the parts).
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import type { HeaderVM, Tab } from "@app/core";
+import type { HeaderVM } from "@app/core";
 import { LIGHT } from "../theme";
 import { pickPlace, RegsHeader, type TabSource } from "./RegsHeader";
 import { createPinStore } from "./pinStore";
-import headers from "./fixtures/golden-headers.json";
+import bc1501 from "./fixtures/bc1_501.json";
+import glenn501 from "./fixtures/glenn_501.json";
+import glenn615 from "./fixtures/glenn_615.json";
+import klwa1010 from "./fixtures/klwa_1010.json";
+import klwa1012 from "./fixtures/klwa_1012.json";
+import vedder1010 from "./fixtures/vedder_1010.json";
+import vedder515 from "./fixtures/vedder_515.json";
+import vedder615 from "./fixtures/vedder_615.json";
+import x351010 from "./fixtures/x35p_1010.json";
 
 afterEach(cleanup);
 
-type GHeader = { name: string; day: string; date: string; dateAria: string; dot: "open" | "closed" | "faint";
-  place: { shown: string; full: string; short: string } | null; action: { kind: "map" | "parts"; label: "Map" | "Parts"; aria: string } | null;
-  tabs: { sec: Tab; text: string }[] };
-const G = headers as unknown as Record<string, GHeader>;
+const PAGES: Record<string, unknown> = { bc1_501: bc1501, glenn_501: glenn501, glenn_615: glenn615, klwa_1010: klwa1010, klwa_1012: klwa1012,
+  vedder_1010: vedder1010, vedder_515: vedder515, vedder_615: vedder615, x35p_1010: x351010 };
 
-/** the golden header as the app's HeaderVM (T16 field names; its action dropped — owner call 3, T71 / T150) */
-const headerOf = (id: string): HeaderVM => {
-  const g = G[id]!;
-  return { name: g.name, dayWord: g.day, date: g.date, dateAria: g.dateAria, dot: g.dot,
-    place: g.place && { full: g.place.full, short: g.place.short },
-    tabs: g.tabs.map((t) => ({ tab: t.sec, label: t.text })) };
-};
+/** a frozen page's header (the app's HeaderVM) */
+const headerOf = (id: string): HeaderVM => (PAGES[id] as { header: HeaderVM }).header;
 const rgb = (hex: string) => {
   const n = parseInt(hex.slice(1), 16);
   return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
@@ -51,16 +52,16 @@ const drawn = () => {
   };
 };
 
-describe("<RegsHeader> over every golden header", () => {
-  it.each(Object.keys(G))("%s: name, pill, no action button, place (full while unmeasured), tabs", (id) => {
-    const g = G[id]!;
-    mount(headerOf(id));
+describe("<RegsHeader> over every frozen page's header", () => {
+  it.each(Object.keys(PAGES))("%s: name, pill, no action button, place (full while unmeasured), tabs", (id) => {
+    const h = headerOf(id);
+    mount(h);
     expect(drawn()).toEqual({
-      name: g.name,
-      pill: [g.dateAria, `${g.day}${g.date}`],
+      name: h.name,
+      pill: [h.dateAria, `${h.dayWord}${h.date}`],
       buttons: 0,
-      place: g.place?.full ?? "",
-      tabs: g.tabs.map((t, i) => [t.text, i === 0 ? "true" : "false"]),
+      place: h.place?.full ?? "",
+      tabs: h.tabs.map((x, i) => [x.label, i === 0 ? "true" : "false"]),
     });
   });
 });
@@ -70,7 +71,7 @@ describe("<RegsHeader>", () => {
     mount(headerOf("vedder_1010"));
     expect(drawn()).toEqual({
       name: "Vedder River",
-      pill: ["Change date, now Oct 10", "TodayOct 10"],
+      pill: ["Today Oct 10, change date", "TodayOct 10"],
       buttons: 0,
       place: "Mouth → Vedder Crossing Bridge",
       tabs: [["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]],
@@ -122,7 +123,7 @@ describe("<RegsHeader>", () => {
   it("presses: a tab, the pill; no Map button to press (T71)", () => {
     const { calls } = mount(headerOf("vedder_1010"));
     fireEvent.click(screen.getByRole("tab", { name: "Gear" }));
-    fireEvent.click(screen.getByRole("button", { name: "Change date, now Oct 10" }));
+    fireEvent.click(screen.getByRole("button", { name: "Today Oct 10, change date" }));
     expect([calls, screen.queryAllByRole("button", { name: /map/i }).length]).toEqual([["tab:gear", "date"], 0]);
   });
 

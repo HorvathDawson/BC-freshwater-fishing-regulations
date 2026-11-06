@@ -1,7 +1,7 @@
 /**
  * The word table: frozen, and every fixed word a presenter may say is in ALL_WORDS (the set the no-hand-facts render
  * test subtracts against). The tab labels are also compared with every golden state in
- * conformance/src/regs/line.golden.test.ts (core cannot read files).
+ * conformance/src/regs/line.golden.test.ts (retired, T439) (core cannot read files).
  */
 import { describe, expect, it } from "vitest";
 import { MONTHS, WEEKDAYS } from "../calendar.generated";

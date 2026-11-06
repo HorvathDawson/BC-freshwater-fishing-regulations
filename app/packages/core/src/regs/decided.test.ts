@@ -1,6 +1,6 @@
 /**
  * decided.ts ("How this was decided"), store-free, over hand-built rules, rows answers and lifts. The 134-state parity is
- * app/conformance/src/regs/plainrow.parity.test.ts (every non-pool plain row's ladder).
+ * app/conformance/src/regs/plainrow.parity.test.ts (retired, T439) (every non-pool plain row's ladder).
  */
 import { describe, expect, it } from "vitest";
 import type { CardModel, HydRow } from "./card";

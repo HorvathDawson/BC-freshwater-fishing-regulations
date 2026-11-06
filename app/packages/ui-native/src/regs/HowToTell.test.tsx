@@ -1,5 +1,5 @@
 /**
- * T38 — the "Hatchery or wild?" sheet (golden `sheets.hatch`, regs-v11 sheetHtml hatch over page v36 adiposeHtml):
+ * T38 — the "Hatchery or wild?" sheet (regs-v11 sheetHtml hatch over page v36 adiposeHtml; T439: its lines are typed here, no longer read from golden.json):
  * the two rainbow-trout drawings (`AdiposeArt`), the plain line, then the hatchery_wild term with its closed fold and
  * its pages. Mounted over the FROZEN vedder_1010 page (fixtures/vedder_1010.json), the images handed down as the app
  * hands them (apps/mobile `ADIPOSE_IMAGES`; here two stand-in sources).
@@ -17,7 +17,6 @@ import { RegsScreen } from "./RegsScreen";
 import { AdiposeArt } from "./AdiposeArt";
 import { DARK, LIGHT } from "../theme";
 import vedder1010 from "./fixtures/vedder_1010.json";
-import golden from "../../../../fixtures/golden/golden.json";
 
 afterEach(cleanup);
 
@@ -25,11 +24,19 @@ type Frozen = Omit<RegsPage, "sheet"> & { sheets: Record<string, SheetVM | null>
 const sheetPage = (f: unknown): RegsPage => { const p = f as Frozen; return { ...p, sheet: (k: SheetKey) => p.sheets[k] ?? null } as RegsPage; };
 const VEDDER = sheetPage(vedder1010);
 const ADIPOSE = { wild: { uri: "adipose-wild.webp" }, clipped: { uri: "adipose-clipped.webp" } };
-const G = (golden as unknown as { sheets: Record<string, { lines: string[]; pages: { text: string; pdf: number }[]; folds: { summary: string; open: boolean }[] }> }).sheets.hatch!;
-/** (T288, r-ce76b4ed3624) the glossary transcription now says the rule book's p.80 words; page v36 quoted the old one */
-const t288 = (l: string) => l.replace("ordinary residence. In most", "ordinary residence (see above). In most")
-  .replace("adipose fin. Therefore", "adipose fin (see centre colour section). Therefore")
-  .replace("normal adipose fin, or will", "normal adipose fin (see illustration on page 13), or will");
+/** the sheet's lines, in order (the book's words are the glossary transcription: the rule book's p.13 and p.80 words) */
+const G = {
+  lines: [
+    "Wild · adipose fin there",
+    "Hatchery · clipped, a healed scar instead",
+    "Look on the back, just in front of the tail. A small fin there means wild. Only a scar means hatchery. If you can’t tell, treat the fish as wild.",
+    "Hatchery or wild (adipose fin)",
+    "Hatchery trout and steelhead are marked before release by removing the adipose fin — the small fleshy fin on the back between the dorsal fin and the tail — so a hatchery fish has a healed scar there. A fish with its adipose fin (or a fresh, unhealed wound) is wild. Where only hatchery fish may be kept, every wild one goes back.",
+    "In the book’s words",
+    "hatchery trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, hatchery trout are marked before stocking by removal of their adipose fin (see centre colour section). Therefore, these hatchery trout must have a healed scar in place of the missing fin. wild trout: in some waters, hatchery trout may be harvested but wild trout must be released. In these waters, wild trout will not be marked as hatchery fish and will have a normal adipose fin (see illustration on page 13), or will have an unhealed scar in place of that fin, if missing.",
+  ],
+  pages: [{ text: "p.13 ↗", pdf: 15 }, { text: "p.80 ↗", pdf: 86 }],
+};
 
 function hatch({ adipose = ADIPOSE as typeof ADIPOSE | null, palette = LIGHT } = {}) {
   const onBook = vi.fn(), opened: SheetKey[] = [];
@@ -68,7 +75,7 @@ describe("T38 How to tell: the hatch sheet", () => {
     expect(caps.map((c) => c.querySelector("*")!.getAttribute("style")!.includes("font-family"))).toEqual([true, true]);
   });
 
-  it("2. the sheet's lines, in order: golden lines 0–4", () => {
+  it("2. the sheet's lines, in order", () => {
     hatch();
     expect(G.lines.slice(0, 4)).toEqual([
       "Wild · adipose fin there",
@@ -86,7 +93,7 @@ describe("T38 How to tell: the hatch sheet", () => {
 
   it("3. the term's fold starts closed: the book's words appear only when pressed", () => {
     hatch();
-    const quote = t288(G.lines[6]!);
+    const quote = G.lines[6]!;
     expect(quote.startsWith("hatchery trout: in some waters, hatchery trout may be harvested")).toBe(true);
     const fold = screen.getByRole("button", { name: "In the book’s words" });
     expect([fold.getAttribute("aria-expanded"), screen.queryByText(quote)]).toEqual(["false", null]);

@@ -1,5 +1,5 @@
 /**
- * T21 property tests over every golden state's Keep VM (`buildRegsPage(…).keep` on the paired store, T12 `cases("keep")`)
+ * T21 property tests over every state's Keep VM (`buildRegsPage(…).keep` on the paired store, T12 `cases()`)
  * and over every state the T10 fixture release holds (REGS_PARITY=fixture runs this same file on it): the three owner
  * rules the readers fought for, and that the Keep slice says nothing but data and words.ts.
  * 1. number once (r20b): a folded kind says nothing of its own; a tier's only kind never repeats the tier's number; a
@@ -112,10 +112,10 @@ function keepStrings(k: KeepVM): string[] {
 let states = 0, groupsSeen = 0, formsA = 0;
 afterAll(() => { if (states) console.info(`keep props: ${states} states, ${groupsSeen} groups, ${formsA} with a share lead (form a)`); });
 
-describe("T21 Keep properties (every golden state)", () => {
+describe("T21 Keep properties (every state)", () => {
   it("1–4 hold on every state", async () => {
     const bad: string[] = [];
-    for await (const c of cases("keep")) {
+    for await (const c of cases()) {
       states++;
       const inp = await c.inputs(), a = (await c.page()).keep, b = (await c.page(undefined, "b")).keep;
       a.groups.forEach((g, i) => {
@@ -131,7 +131,7 @@ describe("T21 Keep properties (every golden state)", () => {
   }, 120_000);
 
   it("3. vedder_1010 literally: form a leads with the share, of the region's total; form b flips", async () => {
-    for await (const c of cases("keep")) {
+    for await (const c of cases()) {
       if (c.id !== "vedder_1010") continue;
       const a = (await c.page()).keep.groups[0]!.head, b = (await c.page(undefined, "b")).keep.groups[0]!.head;
       expect([a.form, plain(a.lead), a.ofTotal, plain(a.words), nums(a.lead)[0]]).toEqual(
@@ -141,7 +141,7 @@ describe("T21 Keep properties (every golden state)", () => {
   });
 
   it("2. glenn_501 literally: the region tag moved to the share ('All Region 4 streams'), the head scope empty", async () => {
-    for await (const c of cases("keep")) {
+    for await (const c of cases()) {
       if (c.id !== "glenn_501") continue;
       const g = (await c.page()).keep.groups[0]!;
       const share = (g.tree ?? []).find((x) => x.t === "tier" && x.tier === "share");
@@ -151,7 +151,7 @@ describe("T21 Keep properties (every golden state)", () => {
   });
 
   it("the property checkers fail on a broken group (mutation pins)", async () => {
-    for await (const c of cases("keep")) {
+    for await (const c of cases()) {
       if (c.id !== "glenn_501") continue;
       const g = (await c.page()).keep.groups[0]!, b = (await c.page(undefined, "b")).keep.groups[0]!;
       const tier = (g.tree ?? []).find((x) => x.t === "tier")!;

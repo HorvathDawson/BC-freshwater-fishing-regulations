@@ -1,17 +1,16 @@
 /**
- * T43 over the store (vedder_1010, regs v38 goldens): (1) every book run in every sheet the state opens reads as one
- * spelling ("Rule book p.N ↗" / bare "p.N ↗") and opens the PDF page the RELEASE stores for that printed page (the
- * synopsis is not byte-identical to the repo copy: the page is never computed — check.mjs `rule-book-label`,
- * `sheet-book-words`); the glossary pages equal the golden's in order. (2) the foot's "Fish pictures" lines for the page.
+ * T43 over the store (vedder_1010): (1) every book run in every sheet the state opens (the sheet keys vedder_1010's frozen
+ * page holds) reads as one spelling ("Rule book p.N ↗" / bare "p.N ↗") and opens the PDF page the RELEASE stores for that
+ * printed page (the synopsis is not byte-identical to the repo copy: the page is never computed — check.mjs
+ * `rule-book-label`, `sheet-book-words`). (2) the foot's "Fish pictures" lines for the page. (T439: the sheet list and the
+ * glossary-pages-equal-the-golden's check came from golden.json; both are gone.)
  */
 import { describe, expect, it } from "vitest";
-import { appKeyOf, bookText, buildRegsPage, creditsFor, sheetLines, type Run, type SheetVM } from "@app/core";
-import type { GoldenSheet } from "@app/core/regs/testing";
-import { ADULT_RESIDENT, golden, inputsOf, parityGate, requestOf } from "./golden";
-import { groupLines } from "./keepPage";
-import { GOLDEN_LICSRC_KEY } from "./exclusions";
+import { readFileSync } from "node:fs";
+import { bookText, buildRegsPage, creditsFor, sheetLines, type Run, type SheetVM } from "@app/core";
+import { FIXTURE_DIR } from "./fixtures";
+import { ADULT_RESIDENT, inputsOf, parityGate, requestOf } from "./golden";
 
-const G = golden();
 const gate = await parityGate();
 const ID = "vedder_1010";
 
@@ -35,22 +34,18 @@ describe.skipIf(gate.skip)(`T43 ${ID}`, () => {
     return { inp, page: buildRegsPage(inp, { today: requestOf(ID).today, who: ADULT_RESIDENT, pid: ID }) };
   };
 
-  it("every book run in every sheet: one spelling, linked to the stored PDF page; glossary pages = the golden's, in order", async () => {
+  it("every book run in every sheet: one spelling, linked to the stored PDF page", async () => {
     const { inp, page } = await pageOf();
-    const sheets = Object.entries(G.states[ID]!.sheets as Record<string, GoldenSheet | "@">)
-      .map(([k, v]) => [k, v === "@" ? G.sheets[k] as GoldenSheet : v] as const);
-    expect(sheets.length).toBe(65);   // the ticket's 63 was v33; the v38 golden holds 65
-    // (owner 2026-11-04) the licence sources sheet is removed: the golden's `licsrc:` sheets have no app twin
-    expect(sheets.filter(([k]) => GOLDEN_LICSRC_KEY.test(k)).length).toBeGreaterThan(0);
+    const keys = Object.keys((JSON.parse(readFileSync(`${FIXTURE_DIR}/${ID}.json`, "utf8")) as { sheets: Record<string, unknown> }).sheets);
+    expect(keys.length).toBe(59);   // the 65 golden keys less the 6 licsrc: ones (owner 2026-11-04)
     let runs = 0;
-    for (const [gk, want] of sheets.filter(([k]) => !GOLDEN_LICSRC_KEY.test(k))) {
-      const vm = page.sheet(appKeyOf(gk, ID)) as SheetVM;
+    for (const key of keys) {
+      const vm = page.sheet(key as Parameters<typeof page.sheet>[0]) as SheetVM;
       for (const r of bookRuns(vm.blocks)) {
         runs++;
-        expect(bookText(r), `${gk} p.${r.printed}`).toMatch(/^(Rule book )?p\.\d+ ↗$/);
-        expect(r.pdf, `${gk} p.${r.printed}: the release's own printed → PDF page`).toBe(inp.statics.pdfPages[r.printed]);
+        expect(bookText(r), `${key} p.${r.printed}`).toMatch(/^(Rule book )?p\.\d+ ↗$/);
+        expect(r.pdf, `${key} p.${r.printed}: the release's own printed → PDF page`).toBe(inp.statics.pdfPages[r.printed]);
       }
-      expect(sheetLines(vm, { groupLines }).pages.map((p) => p.pdf), gk).toEqual(want.pages.map((p) => p.pdf));
     }
     expect(runs).toBeGreaterThan(65);
   });

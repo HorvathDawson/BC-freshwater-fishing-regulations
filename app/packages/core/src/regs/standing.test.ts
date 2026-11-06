@@ -1,6 +1,6 @@
 /**
  * standing.ts and book.ts, store-free, over hand-built inputs (real rule rows from testing/ruleRows.ts where a rule's words
- * matter). The 134-state parity against the golden is app/conformance/src/regs/standing.parity.test.ts.
+ * matter). The 134-state parity against the golden is app/conformance/src/regs/standing.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import type { CardModel } from "./card";

@@ -1,17 +1,18 @@
 /**
- * T29 — the pin bar through the component: RegsScreen mounted over a frozen golden page with a pin store holding that
- * state's golden anchors and measured line heights (fixtures/golden-pins.json, app coordinates: jsdom has no layout), the
- * ScrollView scrolled by DOM events to each golden sample offset, the bar's drawn words compared with the golden bar.
+ * T29 — the pin bar through the component: RegsScreen mounted over a frozen page with a pin store holding that state's
+ * anchors and measured line heights (fixtures/pin-geometry.json, app coordinates: jsdom has no layout), the ScrollView
+ * scrolled by DOM events to chosen offsets, the bar's drawn words compared with what is written here. (T439: the replay of
+ * every golden bar is gone, with golden-pins.json; the geometry fixture holds three states' inputs, no expected bars.)
  * Then the drawing: the bold first numbers, the surface, aria-hidden, wrapping lines, and that a scroll re-renders the
  * bar and the tabs but never the Keep tab.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { PinAnchor, PinLine, RegsPage } from "@app/core";
+import type { PinAnchor, RegsPage } from "@app/core";
 import { FACE } from "../type";
 import { LIGHT } from "../theme";
 import { createPinStore } from "./pinStore";
-import slice from "./fixtures/golden-pins.json";
+import slice from "./fixtures/pin-geometry.json";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import glenn501 from "./fixtures/glenn_501.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
@@ -24,7 +25,7 @@ vi.mock("./KeepTab", async (importOriginal) => {
 const { RegsScreen } = await import("./RegsScreen");
 
 type Slice = { heights: Record<string, number>;
-  states: Record<string, { viewport: { height: number }; anchors: PinAnchor[]; samples: { y: number; lines: PinLine[] }[] }> };
+  states: Record<string, { viewport: { height: number }; anchors: PinAnchor[] }> };
 const P = slice as unknown as Slice;
 const PAGES: Record<string, unknown> = { vedder_1010: vedder1010, glenn_501: glenn501, klwa_1010: klwa1010 };
 
@@ -49,17 +50,7 @@ const bar = () => {
   if (!b) return [];
   return [...b.children].map((line) => [...line.children].map((t) => t.textContent));
 };
-const want = (lines: readonly PinLine[]) => lines.map((l) => (l.sub === null ? [l.text] : [l.text, l.sub]));
-
-describe("<PinBar> replays the golden bars through the ScrollView", () => {
-  it.each(Object.keys(PAGES))("%s: every golden sample offset draws the golden bar", (id) => {
-    mount(id);
-    for (const x of P.states[id]!.samples) {
-      scrollTo(x.y);
-      expect([x.y, bar()]).toEqual([x.y, want(x.lines)]);
-    }
-  });
-
+describe("<PinBar> through the ScrollView", () => {
   it("vedder_1010 in words: nothing at the top; the group line and its total; + the size line; + the rainbow line; nothing past the group", () => {
     mount("vedder_1010");
     const seen: unknown[] = [];
@@ -120,9 +111,7 @@ describe("<PinBar> drawing", () => {
       .toEqual(["3px", toRgb(LIGHT.rule), "13px", toRgb(LIGHT.rule)]);
   });
 
-  it("r20d-pinned-stack (render form): at most 3 lines on any golden bar, and no line is clamped (v33: lines wrap)", () => {
-    const most = Math.max(...Object.values(P.states).flatMap((s) => s.samples.map((x) => x.lines.length)));
-    expect(most).toBeLessThanOrEqual(3);
+  it("r20d-pinned-stack (render form): no line is clamped (v33: lines wrap)", () => {
     mount("vedder_1010");
     scrollTo(240);
     const clamped = [...screen.getByTestId("pin-bar").querySelectorAll<HTMLElement>("*")].filter((e) => e.style.webkitLineClamp || e.style.textOverflow);

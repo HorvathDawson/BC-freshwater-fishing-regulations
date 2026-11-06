@@ -1,6 +1,6 @@
 """The phase-0 parity oracle: for every golden state, what the Python reference decoder says the app's tap must resolve.
 
-    .venv/bin/python app/tools/regs-recut/taps.py [--release data/release/r-…] [--golden app/fixtures/golden/golden.json]
+    .venv/bin/python app/tools/regs-recut/taps.py [--release data/release/r-…] [--states app/fixtures/golden/states.json]
     -> app/fixtures/golden/taps.json
 
 Per state: the water's item id (page v36's export ids, by the snapshot's water name), the part index, the date (2026, the
@@ -243,7 +243,7 @@ def same_part(golden, store):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--release", default=None, help="the release folder whose regs store to read (default: data/release/LATEST)")
-    ap.add_argument("--golden", default=str(REPO / "app/fixtures/golden/golden.json"))
+    ap.add_argument("--states", default=str(REPO / "app/fixtures/golden/states.json"))
     ap.add_argument("--page", default=str(REPO / "app/fixtures/reference/page_v36.html"))
     ap.add_argument("--out", default=str(REPO / "app/fixtures/golden/taps.json"))
     ap.add_argument("--unnamed", type=int, default=20)
@@ -252,7 +252,7 @@ def main():
     html = Path(a.page).read_text()
     D = json.loads(re.search(r'<script[^>]*id="data"[^>]*>([\s\S]*?)</script>', html).group(1))
     by_name = {w["name"]: w["id"] for w in D["waters"]}
-    G = json.loads(Path(a.golden).read_text())
+    G = json.loads(Path(a.states).read_text())
     s = province_store(Path(a.release) if a.release else None)   # the release IS the store (P20: no regs.sqlite)
     c = s.con
     meta = dict(c.execute("select k, v from meta").fetchall())

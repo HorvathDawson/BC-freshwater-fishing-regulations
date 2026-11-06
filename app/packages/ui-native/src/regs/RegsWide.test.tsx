@@ -21,7 +21,7 @@ import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { RegsScreen, type RegsScreenProps } from "./RegsScreen";
 import { createPinStore } from "./pinStore";
-import slice from "./fixtures/golden-pins.json";
+import slice from "./fixtures/pin-geometry.json";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import klwa1010 from "./fixtures/klwa_1010.json";
 import bc1501 from "./fixtures/bc1_501.json";
@@ -137,13 +137,14 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
   });
 });
 
-/* THE PIN BAR STILL WORKS: the golden bars replayed through the page's scroll, drawn in the side column (desktop) and over
-   the reading column (tablet) — the same lines at the same offsets as on a phone (PinBar.test.tsx). */
+/* THE PIN BAR STILL WORKS: the bars at chosen offsets through the page's scroll, drawn in the side column (desktop) and over
+   the reading column (tablet) — the lines the pin store holds at each offset (PinBar.test.tsx pins them in words). */
 type Slice = { heights: Record<string, number>;
-  states: Record<string, { viewport: { height: number }; anchors: PinAnchor[]; samples: { y: number; lines: PinLine[] }[] }> };
+  states: Record<string, { viewport: { height: number }; anchors: PinAnchor[] }> };
+const OFFSETS: Record<string, readonly number[]> = { vedder_1010: [0, 128, 240, 912, 968, 1128, 1624], klwa_1010: [0, 128, 744] };
 const P = slice as unknown as Slice;
 
-describe("T45 the pin bar on a wide screen replays the golden bars", () => {
+describe("T45 the pin bar on a wide screen", () => {
   beforeEach(() => { vi.useFakeTimers(); });
   const bar = () => {
     const b = screen.queryByTestId("pin-bar");
@@ -157,14 +158,14 @@ describe("T45 the pin bar on a wide screen replays the golden bars", () => {
     render(<RegsScreen page={PAGES[id]!} palette={LIGHT} actions={NOOP} onDate={() => {}} store={store} layout={layout} />);
     act(() => { store.setViewport(s.viewport.height); store.setAnchors(s.anchors); });
     let drawn = 0;
-    for (const x of s.samples) {
-      act(() => { fireEvent.scroll(screen.getByTestId("regs-scroll"), { target: { scrollTop: x.y } }); vi.advanceTimersByTime(200); });
-      expect([x.y, bar()]).toEqual([x.y, want(x.lines)]);
+    for (const y of OFFSETS[id]!) {
+      act(() => { fireEvent.scroll(screen.getByTestId("regs-scroll"), { target: { scrollTop: y } }); vi.advanceTimersByTime(200); });
+      expect([y, bar()]).toEqual([y, want(store.getLines())]);
       const b = screen.queryByTestId("pin-bar");
       if (b) {
         drawn++;
-        expect([x.y, layout === "desktop" ? ids(b).includes("regs-side") : getComputedStyle(b).position])
-          .toEqual([x.y, layout === "desktop" ? true : "absolute"]);
+        expect([y, layout === "desktop" ? ids(b).includes("regs-side") : getComputedStyle(b).position])
+          .toEqual([y, layout === "desktop" ? true : "absolute"]);
       }
     }
     expect(drawn).toBeGreaterThan(0);

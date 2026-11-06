@@ -2,7 +2,7 @@
  * T43 — the regs page foot's "Fish pictures" credits: the pictures THIS page can show (its Keep pictures, its Other fish
  * thumbs, and the pictures inside the Other fish rows' sheets), every picture of each such fish (its sp: sheet shows them
  * all), as the manifest's credit lines — sorted, unique. Over hand-built pages; the vedder_1010 store page is
- * conformance/src/regs/credits.parity.test.ts.
+ * conformance/src/regs/credits.parity.test.ts (retired, T439).
  */
 import { describe, expect, it } from "vitest";
 import { creditsFor } from "./credits";

@@ -1,6 +1,6 @@
 /**
  * T31 unit cases over hand-built gear answers and 365-day strips (the golden-driven cases are app/conformance/src/regs/
- * bait.parity.test.ts): the item words, note2, the allowance move, the dated ban runs and the all-year line.
+ * bait.parity.test.ts (retired, T439)): the item words, note2, the allowance move, the dated ban runs and the all-year line.
  */
 import { describe, expect, it } from "vitest";
 import { allYearBan, baitItems, datedBans, moveAllowances, note2, type BaitItem } from "./bait";

@@ -4,7 +4,7 @@
 // `btn:`; the four sections `keep-tab`, `regs-gear`, `regs-methods`, `regs-licence`). It drives the app as a reader would:
 // the menu's Display page picks the palette, Search finds the water, the eye frames it on the map, a tap on the framed
 // water opens its Regulations. Colours are named by the THEME'S TOKENS (packages/map/style/themes/<theme>.json), never by
-// a hex typed here, and printed per tab next to the prototype's bound and its census (app/fixtures/golden/tokens.json .census).
+// a hex typed here, and printed per tab next to the prototype's bound (BOUND below; T439 retired tokens.json's full census).
 //
 //   pnpm -C app/apps/mobile web          (or: EXPO_PUBLIC_DATA_BASE=… npx expo start --web --port <yours>)
 //   node app/tools/regs-census.mjs [--url http://localhost:8081] [--theme light|dark|cvd] [--water "Vedder River" …] [--shot keep.png] [out.json]
@@ -137,12 +137,7 @@ try {
   }
 } finally { await b.close(); }
 
-// the prototype's census for the same theme (light for cvd, which the prototype has no column for): the tokens its text wears
-const proto = JSON.parse(fs.readFileSync(path.join(HERE, '../fixtures/golden/tokens.json'), 'utf8'));
-const pc = proto.census[theme === 'dark' ? 'dark' : 'light'] ?? [];
-const pt = [...new Set(pc.filter((r) => r.n > 0 && r.color).map((r) => { const n = r.color.split('|').map((c) => c.replace('--', '').replace('on-accent', 'onAccent')); return ['ink', 'sub', 'accent', 'open', 'closed', 'restricted', 'rule', 'onAccent', 'card'].find((p) => n.includes(p)) ?? n[0]; }))].sort();
-console.log(`\nprototype ${proto.meta.version} census (${theme === 'dark' ? 'dark' : 'light'}): text tokens ${pt.join(' ')} · bound per tab ${JSON.stringify(BOUND)}`);
-result.prototype = { version: proto.meta.version, textTokens: pt, bound: BOUND };
+result.prototype = { bound: BOUND };
 if (out) fs.writeFileSync(out, JSON.stringify(result, null, 1));
 const faults = result.states.flatMap((s) => ['keep', 'gear', 'methods', 'licence'].flatMap((t) => s[t]?.bad ?? []));
 console.log(faults.length ? `\n${faults.length} fault(s)` : '\nno faults');

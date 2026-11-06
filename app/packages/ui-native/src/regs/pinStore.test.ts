@@ -1,52 +1,17 @@
 /**
- * T29 — the pin store over EVERY golden state (fixtures/golden-pins.json: the prototype's anchors, bars and measured line
- * heights in the app's coordinates, conformance/src/regs/goldenSlices.ts): `setScroll` at each golden sample offset
- * gives that sample's bar. Then the store's own contract: notify only on a change, a stable lines reference, the tab in
- * view, a press, the stack height.
+ * T29 — the pin store's own contract, over vedder_1010's anchors and measured line heights (fixtures/pin-geometry.json, app
+ * coordinates): notify only on a change, a stable lines reference, the tab in view, a press, the stack height. (T439: the
+ * replay of every golden state's bars, with golden-pins.json, is gone; core pinChain's own tests are core/src/regs/pins.test.ts.)
  */
 import { describe, expect, it } from "vitest";
-import type { PinAnchor, PinLine } from "@app/core";
+import type { PinAnchor } from "@app/core";
 import { createPinStore, pinLineKey } from "./pinStore";
-import slice from "./fixtures/golden-pins.json";
+import slice from "./fixtures/pin-geometry.json";
 
 type Slice = { heights: Record<string, number>;
-  states: Record<string, { viewport: { height: number }; anchors: PinAnchor[]; samples: { y: number; lines: PinLine[] }[] }> };
+  states: Record<string, { viewport: { height: number }; anchors: PinAnchor[] }> };
 const P = slice as unknown as Slice;
 const HEIGHTS = new Map(Object.entries(P.heights));
-const ids = Object.keys(P.states);
-const words = (ls: readonly PinLine[]) => ls.map((l) => [l.cls, l.text, l.sub]);
-
-/** every sample of a state through a store: the first sample whose bar differs, or null */
-function replay(id: string, o: { heights?: Map<string, number>; anchors?: (a: PinAnchor[]) => PinAnchor[] } = {}) {
-  const s = P.states[id]!, store = createPinStore({ heights: o.heights ?? HEIGHTS });
-  store.setViewport(s.viewport.height);
-  store.setAnchors(o.anchors ? o.anchors(s.anchors) : s.anchors);
-  for (const x of s.samples) {
-    store.setScroll(x.y);
-    if (JSON.stringify(words(store.getLines())) !== JSON.stringify(words(x.lines))) return { y: x.y, got: words(store.getLines()) };
-  }
-  return null;
-}
-
-describe("pin store: every golden state's bars", () => {
-  it.each(ids)("%s", (id) => {
-    expect(replay(id)).toBeNull();
-  });
-
-  it(`all ${ids.length} golden states, every sample (whole-bar compare)`, () => {
-    expect(ids.length).toBe(134);
-    expect(ids.filter((id) => replay(id) !== null)).toEqual([]);
-  });
-
-  it("mutation pins: without the measured heights, the form-a skip or the section ends, states fail", () => {
-    const failing = (o: Parameters<typeof replay>[1]) => ids.filter((id) => replay(id, o) !== null).length;
-    expect({
-      estimated: failing({ heights: new Map() }) > 0,
-      noFormA: failing({ anchors: (as) => as.map((a) => ({ ...a, formA: false })) }) > 0,
-      noEnd: failing({ anchors: (as) => as.map((a) => ({ ...a, tiers: a.tiers.map((t) => ({ ...t, end: 1e9 })) })) }) > 0,
-    }).toEqual({ estimated: true, noFormA: true, noEnd: true });
-  });
-});
 
 describe("pin store contract", () => {
   const vedder = P.states.vedder_1010!;
