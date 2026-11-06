@@ -62,3 +62,29 @@ clone cannot build today.**
     explain the diff;
   - only on the Mac: `land_parcels_private`, `osm_admin_boundaries` (no fetch path now; check whether anything reads
     them); only fresh: `bathymetry_contours`, `dams`, `obstacles` (added to the script after the Mac's fetch).
+
+## 2026-11-05 (late): pins, bootstrap, the timed build — it builds; byte identity still being proven
+- **Pins** (`data/source/pins.json`, `python -m pipeline.tools.source_pins fetch|check|pin`): the gpkg (10.2 GB), HYDAT
+  20261019 (1.3 GB) and fish_obstacles uploaded to `r2:bc-fishing-build-assets/source/<sha16>/` (~21 MB/s up); the
+  basemap source is recorded at its existing `data.canifishthis.ca/bc.pmtiles` with its sha256. A pinned key holds its
+  hash, so it never changes; `fetch_data.py` is the refresh path (its live layers drift — explained, not pinned).
+- **`fetch_data.py` fails the run** when any layer fails (exit 1, listing them); bathymetry PDF / HYDAT failures raise.
+- **`scripts/bootstrap.sh`**: tools check → venv (`-c constraints.txt`) → pins (resumable, verified) → synopsis
+  extraction backup → the typed DFO salmon feed (`dfo_salmon.live`, ~15 s). ~7 min on a fresh clone at ~24 MB/s.
+- **The build from the fresh clone** (`pipeline build --atlas --promote`): atlas 25m56s (23.2 GB peak) · clim 24 s ·
+  tiles 8m54s · reach 11m24s · deliver failed once: **the typed DFO feed is a git-ignored input** (now in bootstrap);
+  rerun: reach 10m29s · deliver 11m52s, vintage OK. **About 1h15 of build after a 7-minute bootstrap.**
+- **Same atlas:** section handles 822db448a2851809, the live release's.
+- **Not byte-identical yet:** 38 of 52 release files match; `water-*`, `access`, `paint`, `salmon`, the synopsis
+  and the tiles id differ. Causes found so far:
+  1. **Unpinned Python libraries**: the fresh venv got Pillow 13.0 / shapely 2.2 / numpy 2.5.4 (Mac: 12.3 / 2.1.2 /
+     2.5.1). Fixed: `constraints.txt` (the Mac venv's freeze) and bootstrap installs with it.
+  2. `salmon`: today's DFO pages vs the live release's (expected; the live feed serves today's anyway).
+  3. The live release (11-04) was cut from older code than HEAD, so code changes since then also differ.
+- **The fair proof is queued** (`~/t416-repro.log`, verdict `~/t416-repro.json`): the fresh clone rebuilt with
+  pinned libs and a Mac `--side` build, both at the same commit, compared file by file.
+- **Gap found: a fresh machine's release ships NO basemap** (`basemap: null`). The basemap is not a `pipeline build`
+  stage; `basemap_block` returns None without `basemap.meta.json`, and the app then keeps the ground it has, or none.
+  That is a silent fallback. To do: the release refuses a missing basemap, and the runbook adds `python -m
+  pipeline.deliver.tiles.basemap` (or pins the released basemap).
+- Runbook: `handoff/PLAN/runbooks/fresh-machine.md`.
