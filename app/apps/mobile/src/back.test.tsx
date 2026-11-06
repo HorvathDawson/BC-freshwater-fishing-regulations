@@ -189,7 +189,8 @@ function backs(n: number): string[] {
   return out;
 }
 const click = async (label: string) => { await act(async () => { fireEvent.click(screen.getByLabelText(label)); }); };
-const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true));
+// a 10 s ceiling, not waitFor's 1 s: CI's runner is several times slower than a laptop (T80 item 6); it only waits longer
+const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), { timeout: 10_000 });
 
 /** A water's view strip (the bottom bar is hidden in water mode, so these tabs are the strip's). */
 const view = async (name: string) => { await act(async () => { fireEvent.click(screen.getByRole("tab", { name })); }); };
