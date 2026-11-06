@@ -1,0 +1,75 @@
+{
+  "when": "2026-11-06T13:19:56.925Z",
+  "steps": [
+    {
+      "name": "cold start: the map is drawn",
+      "ok": true,
+      "said": "tab bar up",
+      "shot": "01-cold-start-the-map-is-drawn.png",
+      "ms": 10828
+    },
+    {
+      "name": "spot pick banner: Spots → Pick on the map puts the banner up",
+      "ok": true,
+      "said": "banner up over the Map tab",
+      "shot": "02-spot-pick-banner-spots-pick-on-the-map-p.png",
+      "ms": 22398
+    },
+    {
+      "name": "spot pick banner: Android back leaves pick mode (one step, app stays)",
+      "ok": true,
+      "said": "banner gone, search field back: true",
+      "shot": "03-spot-pick-banner-android-back-leaves-pic.png",
+      "ms": 5715
+    },
+    {
+      "name": "walkthrough: replayed from Help, the card inside the window",
+      "ok": true,
+      "said": "FIND A WATER · 1 OF 25; primary button at [787,1993,968,2101] inside 1080x2400",
+      "shot": "04-walkthrough-replayed-from-help-the-card-.png",
+      "ms": 51398
+    },
+    {
+      "name": "walkthrough: the next step (spoken step: announceForAccessibility, no TalkBack on this AVD)",
+      "ok": true,
+      "said": "FIND A WATER · 2 OF 25, button at [703,666,968,774]; skipped",
+      "shot": "05-walkthrough-the-next-step-spoken-step-an.png",
+      "ms": 24629
+    },
+    {
+      "name": "a water's page (Cultus Lake)",
+      "ok": true,
+      "said": "open on water-view-regs",
+      "shot": "06-a-water-s-page-cultus-lake-.png",
+      "ms": 39968
+    },
+    {
+      "name": "view swipe: a finger-left swipe on the body moves to the next view (swipeActivation)",
+      "ok": true,
+      "said": "water-view-regs -> water-view-conditions",
+      "shot": "07-view-swipe-a-finger-left-swipe-on-the-bo.png",
+      "ms": 17600
+    },
+    {
+      "name": "size header pin: scrolling the Regulations keeps the species header (stickyHead)",
+      "ok": false,
+      "said": "no khead on the Regulations",
+      "shot": "08-size-header-pin-scrolling-the-regulation.png",
+      "ms": 12798
+    },
+    {
+      "name": "About → Open the official Synopsis opens OUR copy in the app (openOfficial)",
+      "ok": true,
+      "said": "Page 1 of 88; front ca.canifishthis.app/.MainActivity",
+      "shot": "09-about-open-the-official-synopsis-opens-o.png",
+      "ms": 58080
+    },
+    {
+      "name": "memory trim: RUNNING_CRITICAL reaches the app (memoryTrim)",
+      "ok": true,
+      "said": "[trim] level 15: 0 map(s), purge 2, 14 database(s) shrunk",
+      "shot": "10-memory-trim-running-critical-reaches-the.png",
+      "ms": 5823
+    }
+  ]
+}

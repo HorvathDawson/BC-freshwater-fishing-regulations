@@ -1,6 +1,6 @@
 # T410 — One clear web / native split in the app code
 
-Status: PARTIAL — items 1-4 done (8374cae0d..cd2be0916; listings 2026-11-06 below; full `pnpm -C app check` green 2026-11-06); left: the owner's phone pass over the moved `.native` halves and the T258/T260 owner items listed below. Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
+Status: PARTIAL — items 1-4 done (8374cae0d..cd2be0916; listings 2026-11-06 below; full `pnpm -C app check` green 2026-11-06); the pass over the moved `.native` halves done on the emulator 2026-11-06 ("Native pass" below: 6/6, the spoken step not heard, no TalkBack); left: the T258/T260 owner items listed below. Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
 little better … not sure the standard here but seems like something to clean up").
 
 ## Today (2026-11-05)
@@ -107,3 +107,20 @@ Result: 35 platform pairs complete; inline checks only in the 16 allow-listed fi
 clean. T250's new `ui-native/src/gestureWeb.ts` is not a platform branch (it adds three detector props that native
 ignores), so it stays shared. Left as before: the pass over the moved `.native` halves — per the owner's 11-06 rule, on
 the emulator with the next APK, not the owner's phone.
+
+## Native pass (2026-11-06, emulator: the owner's rule is simulation, not the phone)
+Release test-bed APK (`session.sh --build --crash-stub`, assembleRelease, JS bundled) of redesign/stream-sections @ bccf9f668
++ the T242/T420 lane, n1_pixel (Android 15, 1080x2400). Shots + `walk.json`: `../T410-shots/android/`, `../T410-shots/android-sticky/`.
+- **Spot pick banner** (escapeCloses.native, back layer): Spots → Pick on the map puts `spot-pick-banner` up; Android back takes it
+  down, one step, the search field back and the app still up (shots 02, 03). PASS.
+- **Walkthrough** (windowSize.native + announce.native): replayed from Help, the card's button at [787,1993,968,2101], on step 2 at
+  [703,666,968,774], inside the 1080x2400 window (shots 04, 05). PASS for the window size; the spoken step was NOT heard (no
+  TalkBack on this AVD), only that stepping on works.
+- **A water's view swipe** (swipeActivation.native): Cultus Lake, Regulations, a finger-left swipe on the body →
+  `water-view-regs -> water-view-conditions` (shot 07). PASS.
+- **Size-header pin** (stickyHead.native): Cultus Lake → Trout and char → Details, three 500 px scrolls: `khead` top 1807 → 1296 →
+  777 → 784, so it travels with the page, then holds while the page moves on (android-sticky shots 03–05). PASS.
+- **About → Open the official Synopsis** (openOfficial.native): our copy in the app's viewer, "Page 1 of 88", the front activity
+  still `ca.canifishthis.app/.MainActivity` (no browser) (shot 09). PASS.
+- **Memory trim** (memoryTrim.native): `am send-trim-memory … RUNNING_CRITICAL` → `[trim] level 15: 0 map(s), purge 2, 14
+  database(s) shrunk`, the app alive (shot 10). PASS ("0 map(s)": the About page was in front, no map mounted).

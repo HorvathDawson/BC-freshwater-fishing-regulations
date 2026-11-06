@@ -1,0 +1,40 @@
+{
+  "when": "2026-11-06T13:22:10.293Z",
+  "steps": [
+    {
+      "name": "cold start: the map is drawn",
+      "ok": true,
+      "said": "tab bar up",
+      "shot": "01-cold-start-the-map-is-drawn.png",
+      "ms": 9490
+    },
+    {
+      "name": "a water's page (Cultus Lake), Regulations, Trout and char → Details",
+      "ok": true,
+      "said": "khead at [42,1807,1038,1942]",
+      "shot": "02-a-water-s-page-cultus-lake-regulations-t.png",
+      "ms": 48881
+    },
+    {
+      "name": "size header pin: scroll 1 (500 px)",
+      "ok": true,
+      "said": "khead top 1807 → 1296 (the page moved 500 px)",
+      "shot": "03-size-header-pin-scroll-1-500-px-.png",
+      "ms": 6459
+    },
+    {
+      "name": "size header pin: scroll 2 (500 px)",
+      "ok": true,
+      "said": "khead top 1296 → 777 (the page moved 500 px)",
+      "shot": "04-size-header-pin-scroll-2-500-px-.png",
+      "ms": 6493
+    },
+    {
+      "name": "size header pin: scroll 3 (500 px)",
+      "ok": true,
+      "said": "khead top 777 → 784 (the page moved 500 px)",
+      "shot": "05-size-header-pin-scroll-3-500-px-.png",
+      "ms": 6500
+    }
+  ]
+}
