@@ -30,14 +30,18 @@ Written 2026-11-06, as chat 4 closed. It replaces `NEXT-SESSION-after-chat3.md`.
 - Section ids typed into tests: owner says they should not be there (T441 Work 2).
 - **T441 DONE** (23c9aed6a, d03aab79e): tests name sections by stream key + start (`sectionNames` in
   `@app/data/release/node`); no raw ids left.
-- **One agent was still running when chat 4 closed** (it dies with it): the flicker + fling stutter (new tickets,
-  emulator). Check `git log` / the tickets README for what it committed; redo what is missing.
+- **T451 DONE** (e63c921c3): the map-switch flicker — each tab switch handed MapLibre two styles (new modes, then
+  the values a render later); now one style per switch (32 switches: 0 stray frames, was 21).
+- **T452 IN REVIEW** (e63c921c3): the fling stutter — MapLibre's fling set the camera off the screen's frame timing;
+  the binding now runs its own frame-timed glide (gaps > 20 ms 51 → 0; starts at finger speed). It FEELS different:
+  ~1.25 s, softer ease-out (was 0.67 s) — a proposal for the owner; length is `platformFlingDp`. Not yet checked: the
+  camera reported at the glide's end (rerun the test bed's `feel` scenario).
 
 ## The list, in order
-1. **Map-switch flicker and fling stutter** (owner, 0.6.6): file/finish their tickets; measure on the emulator, fix,
-   before/after numbers.
-2. **Next APK** (0.6.7) with T443's floor and whatever of 1 lands: `pnpm check` once, `sync.mjs` if a release moved,
-   `deploy/staging/build-apk.sh --play`, fresh-install walk.
+1. **Next APK (0.6.7)** with T443's floor, T451, T452: first rerun the test bed `feel` scenario (T452's unchecked end
+   camera), then `pnpm check` once, `deploy/staging/build-apk.sh --play`, fresh-install walk (memory: walk = session.sh
+   --build … run.mjs install pan regs-open walkthrough water-nav). Ask the owner about T452's glide feel on the phone.
+2. Rebuild the staging site for the web side of T443 (export:web:staging → build-seo → site.sh).
 3. If streams still pop in while panning: a delta-2 APK side by side on the phone (T401).
 4. **T351** native foreground crash (read the staging worker's `/crashes` for anything new since 0.6.6 first).
 5. **T446** reopen only if a new report arrives (it now says short file vs other bytes).
