@@ -1,14 +1,14 @@
 /**
  * (T303) THE READER'S OWN LOCATION on the web map: the blue dot and its accuracy circle, drawn from the browser's reading
  * (`MapProps.me.fix`), centred when asked and kept in view while following. (T317) The phone's GeoJSON point and two
- * circle layers (`../native/me.ts`), added over the map — not a DOM marker moved every frame, and the circle's size is a
+ * circle layers (`../me.ts`), added over the map — not a DOM marker moved every frame, and the circle's size is a
  * zoom expression in the layer, not a style write on every `zoom` event.
  */
 import { useEffect, useRef } from "react";
 import type * as maplibregl from "maplibre-gl";
 import type { MapProps } from "../map-props";
 import { cameraMs } from "../motion";
-import { ME_SOURCE, meData, mePaint } from "../native/me";
+import { ME_SOURCE, meData, mePaint } from "../me";
 import { afterLoad } from "./ready";
 import type { WebMapRefs } from "./refs";
 

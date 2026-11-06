@@ -15,16 +15,14 @@ from __future__ import annotations
 import math
 from typing import Iterable, List, Sequence, Tuple
 
+from pipeline.common.section_handles import parse_section_id
+
 Row = Tuple[int, int, int, int]     # (sid, blk, from_m, to_m)
 
 
 def stream_head(node_id: str):
     """`(blk, measure)` of a stream section id `{blk}:{measure}`; None for a namespaced id (`lake:<wbk>`)."""
-    head, _, tail = node_id.rpartition(":")
-    try:
-        return int(head), int(tail)
-    except ValueError:
-        return None
+    return parse_section_id(node_id)
 
 
 def rows(handle_ids: Sequence[str], nodes) -> List[Row]:

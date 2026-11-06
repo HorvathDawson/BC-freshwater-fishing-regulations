@@ -221,12 +221,15 @@ export const gaugePlaces = (n: number) =>
  * `stock_water`, `chart` and `release` tables hold them. No release file carries these tables yet, so the reader
  * answers `lakeInfo` null and `stockingHistory` empty (`../release/source.ts`); the SQL is kept for when one does.
  */
+/** @public PREPARED, NOT FED (owner 2026-10-22): kept for when a release carries the table (T436: the one knip allowance) */
 export const STOCKED_ON_ITEM =
   "SELECT lat, lon FROM stock_water WHERE item_id = ? AND lat IS NOT NULL AND lon IS NOT NULL";
 
+/** @public PREPARED, NOT FED (owner 2026-10-22): kept for when a release carries the table (T436: the one knip allowance) */
 export const CHARTS_FOR_ITEM =
   "SELECT chart_id, title, kind, drafted, scale, area_km2, pdf FROM chart WHERE item_id = ?";
 
+/** @public PREPARED, NOT FED (owner 2026-10-22): kept for when a release carries the table (T436: the one knip allowance) */
 export const RELEASES_FOR_NAME =
   "SELECT date, species, count, stage FROM release WHERE name = ? ORDER BY date DESC";
 

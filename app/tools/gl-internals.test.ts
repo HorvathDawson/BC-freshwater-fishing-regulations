@@ -1,7 +1,7 @@
 /**
  * THE GL INTERNALS THE WEB MAP READS, PINNED (colour-latency AP; the verifier's condition 4).
  *
- * `tile-ids.web.ts` reads a tile's ids and the source's tile list out of maplibre-gl's private fields. A minor release
+ * `web/tileIds.ts` reads a tile's ids and the source's tile list out of maplibre-gl's private fields. A minor release
  * may rename any of them, and the failure would be quiet: the map would fall back to the public route (correct, and
  * slower) and nobody would know. So this fails on ANY other installed version, and checks that every private name the
  * reader relies on is still in the shipped bundle and its source — bump `GL_INTERNALS` only after re-reading them.
@@ -10,8 +10,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
-import { GL_INTERNALS, sourceTiles, tileIds } from "../packages/map/src/tile-ids.web";
-import * as native from "../packages/map/src/tile-ids.native";
+import { GL_INTERNALS, sourceTiles, tileIds } from "../packages/map/src/web/tileIds";
 
 const require = createRequire(import.meta.url);
 const GL = dirname(require.resolve("maplibre-gl/package.json"));
@@ -62,11 +61,5 @@ describe("reading a tile shaped like 5.24's", () => {
       _inViewTiles: { getAllTiles: () => [tile, { state: "loading" }] },
       _outOfViewCache: { data: { k: [{ value: { state: "loaded", n: 2 } }] } } } } } };
     expect(sourceTiles(map, "atlas")).toEqual([tile, { state: "loaded", n: 2 }]);
-  });
-
-  it("the native half reads nothing, with the same exports", () => {
-    expect(Object.keys(native).sort()).toEqual(["GL_INTERNALS", "sourceTiles", "tileIds"]);
-    expect(native.tileIds(tile, ["stream"])).toBeNull();
-    expect(native.sourceTiles({}, "atlas")).toBeNull();
   });
 });

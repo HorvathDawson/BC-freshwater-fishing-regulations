@@ -13,7 +13,7 @@
  * these return null and the map takes the PUBLIC route instead (`querySourceFeatures`, in web/handles.ts) — heavier,
  * measured in the colour-latency README, never wrong.
  *
- * Web only: the native binding has no per-tile event at all (`tile-ids.native.ts`).
+ * Web only: the native binding has no per-tile event at all (T436: its empty twin was deleted; nothing on the phone imported it).
  */
 
 /** The maplibre-gl minor these internals were read from. */

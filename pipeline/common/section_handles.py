@@ -36,6 +36,16 @@ from typing import Iterable, Mapping
 FILENAME = "section_handles.txt"
 
 
+def parse_section_id(node_id: str) -> tuple[int, int] | None:
+    """`'380887781:0'` -> `(380887781, 0)`: a stream section's blue line and measure. A namespaced id (`lake:<wbk>`) or
+    a malformed one -> None. (T436) THE one parser of a section id; the bundle's helpers call it."""
+    head, _, tail = node_id.rpartition(":")
+    try:
+        return int(head), int(tail)
+    except ValueError:
+        return None
+
+
 def sort_key(node_id: str) -> tuple:
     """Blue line, then measure AS A NUMBER — the water's own order, mouth to source.
 

@@ -26,7 +26,10 @@ export default {
     if (slow) return slow;
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method Not Allowed", { status: 405, headers: CORS });
-    const key = decodeURIComponent(new URL(request.url).pathname.slice(1));
+    // (T436) a bad escape (`%zz`) is Not Found with CORS, not a URIError's bare 500
+    let key;
+    try { key = decodeURIComponent(new URL(request.url).pathname.slice(1)); }
+    catch { return new Response("Not Found", { status: 404, headers: CORS }); }
     // (T251) which app asked, in `wrangler tail` / Workers Logs: the update checks (manifests, feed indexes) only
     const ver = request.headers.get("X-App-Version");
     if (ver && (key.endsWith("manifest.json") || key.endsWith("index.json"))) console.log(`${key} app=${ver}`);

@@ -1,32 +1,19 @@
-"""Run timing: when each salmon and steelhead run enters fresh water, and on which reach.
+"""Run timing: when each salmon and steelhead run is in fresh water, and on which reach — FED AS ITS OWN STREAM
+(T162 parse, T199 feed; `README.md` is the map).
 
-THE THREE-WAY SPLIT IS BY WHAT EACH HALF NEEDS, exactly as `pipeline/gauges` splits, and
-for the same reason — so "do not re-run the join on every build" is a fact about the import
-graph rather than something to remember.
+    fetch/      HTTP only: the PSF pages, the CU tiles and NuSEDS, saved under data/source/runtiming/ (owner-run,
+                about once a year).
+    parse.py    seconds, no atlas: the fetched pages -> data/source/runtiming/timing.json (tracked source data).
+    feed/       base -> build -> publish: the run-timing feed the app's Map tab reads from R2 `runtiming/`
+                (`.github/workflows/feeds-runtiming.yml`; the data contract is `feed/__init__.py`).
+    generate/extract.py   `runs_from_page`, what `parse` reads the PSF page with.
 
-    fetch/      needs HTTP and nothing else. Three pages and a tile cache, saved verbatim
-                to data/source/runtiming/. Runs about once a year, because that is how
-                often the Pacific Salmon Foundation revises the averages.
-
-    generate/   needs the atlas: 2.6 GB of stream geometry. Runs by hand after a fetch,
-                on a machine that can hold it. Writes the frozen index.
-
-    consume/    needs only the frozen index. Runs on every build. Cannot reach `generate`.
-
-`runs.py` sits at the top rather than in a subpackage because it belongs to both halves:
-the record `generate` writes and `consume` reads, plus the run-label derivation that turns
-"Skeena Coastal Winters" into a winter run.
-
-WHAT MAKES THIS DIFFERENT FROM GAUGES. A gauge answers with one reading. A reach answers
-with a LIST of runs — 4.45 species on average, and on the Skeena mainstem two steelhead
-runs six months apart. Nothing here may collapse that list to one curve; see
-`generate/profiles.py` for where the map is allowed to, and why the sheet is not.
+`runs.py` is the run record and the label derivation ("Skeena Coastal Winters" -> a winter run). A reach answers with a
+LIST of runs (the Skeena carries two steelhead runs six months apart); nothing here collapses it to one curve.
+(T436) The 2026-09-08 frozen-index path (`generate/{index,passage,profiles,indicators,crosswalk}`, `consume/bundle`)
+had no importer and was deleted; git keeps it.
 """
 
 from pipeline.runtiming.runs import Run, derive_form, derive_label, read_runs, write_runs
 
 __all__ = ["Run", "derive_form", "derive_label", "read_runs", "write_runs"]
-
-# `generate.index` and `generate.profiles` are DELIBERATELY not re-exported: importing them
-# pulls in shapely's STRtree, mapbox_vector_tile and the expectation of a completed tile
-# build. Reach for them explicitly when you mean to rebuild the index — a few times a year.

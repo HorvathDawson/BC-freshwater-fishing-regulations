@@ -36,7 +36,7 @@ let gl: FakeGl | null = null;
 class FakeGl {
   private on_ = new Map<string, Set<Handler>>();
   private json: { layers: { id: string; source?: string }[] };
-  /** GL 5.24's internals as `tile-ids.web.ts` reads them. */
+  /** GL 5.24's internals as `web/tileIds.ts` reads them. */
   style = { tileManagers: { atlas: { _inViewTiles: { getAllTiles: () => held }, _outOfViewCache: { data: {} } } } };
   touchZoomRotate = { disableRotation: () => {} };
   keyboard = { disableRotation: () => {} };

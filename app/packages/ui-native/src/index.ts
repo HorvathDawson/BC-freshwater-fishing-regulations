@@ -49,3 +49,4 @@ export { ReportLink } from "./menu/ReportLink";
 export * from "./theme";
 export { preloadParts } from "./part";
 export { openLinkShown } from "./openLink";
+export { platformLine } from "./platformLine";

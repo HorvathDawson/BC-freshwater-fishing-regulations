@@ -35,8 +35,8 @@ The Skeena carries a summer and a winter steelhead run six months apart, so a re
 and Pink (odd) are separate slots (they never share a year). Run labels come from the CU's name (`runs.derive_label`)
 or NuSEDS's `RUN_TYPE`; `data/curated/runtiming/run_calls.json` is AUTHORED (labels, coverage gaps): keep it.
 
-## Older code kept
+## Older code (deleted, T436)
 
-`generate/` (`index`, `passage`, `profiles`) and `consume/bundle.py` are the 2026-09-08 frozen-index path. The plan
-replaces it with a binding made at delivery (section ids moved under the frozen index); `generate/extract.py`'s
-`runs_from_page` is what `parse` reads the PSF page with.
+The 2026-09-08 frozen-index path (`generate/{index,passage,profiles,indicators,crosswalk}.py`, `consume/bundle.py`) had
+no importer once the feed replaced it, and was deleted (git keeps it). `generate/extract.py`'s `runs_from_page` stays:
+it is what `parse` reads the PSF page with.

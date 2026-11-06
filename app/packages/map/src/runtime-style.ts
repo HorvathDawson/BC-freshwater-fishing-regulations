@@ -16,7 +16,7 @@
  * real URL.
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
-import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM } from "@app/core";
+import { ATLAS_MAX_ZOOM, BASEMAP_MAX_ZOOM, GEAR_LEGEND } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, defaultView, resolveTheme, withFollowers, type Tokens } from "./style";
 import { OUR_ASSETS, type TileEndpoints } from "./endpoints";
 import { gaugeLayers, gaugeSource } from "./gaugeDots";
@@ -170,7 +170,7 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
      * ban, over the lake's own outline and under the selection's ring. Built with no day: nothing is marked until the
      * adapter paints them with the status and method days.
      */
-    const gear = (lid: "stream" | "lake", widthOf?: unknown) => (["fly", "bait"] as const).map((mark) => ({
+    const gear = (lid: "stream" | "lake", widthOf?: unknown) => GEAR_LEGEND.map((mark) => ({
       id: GEAR_LAYERS[lid][mark], type: "line" as const, source: "atlas", "source-layer": lid,
       layout: { "line-cap": "butt" as const, "line-join": "round" as const },
       paint: gearPaint(lid, layerModes[lid] ?? view?.modes[lid] ?? "plain", mark, resolveTheme(theme), NO_VALUES, widthOf),

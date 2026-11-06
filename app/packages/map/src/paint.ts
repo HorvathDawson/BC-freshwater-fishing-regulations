@@ -3,6 +3,7 @@
  * style composer (`runtime-style.ts`, the first frame) and the adapter (`adapters/contract.ts`, every frame after it)
  * share. One module, so the first frame and every frame after it are painted the same way.
  */
+import type { GearMark } from "@app/core";
 import { MAP_STYLE, NO_VALUES, STYLE_META, colorExpression, profileChannel, profileDay, type ChannelValues, type Tokens }
   from "./style";
 
@@ -146,8 +147,9 @@ export function noaccessPaint(mode: string, tokens: Tokens, values: ChannelValue
 export const GEAR_LAYERS = {
   stream: { fly: "stream-gear-fly", bait: "stream-gear-bait" },
   lake: { fly: "lake-gear-fly", bait: "lake-gear-bait" },
-} as const;
-export type GearMark = "fly" | "bait";
+} as const satisfies Record<"stream" | "lake", Record<GearMark, string>>;
+// (T436) the marks are core's (`GEAR_LEGEND` / `GearMark`): a new class is a legend row AND a layer, or tsc refuses this
+export type { GearMark };
 /** The edge each side of a marked stream line, and a marked lake's ring, in px. */
 export const GEAR_EDGE_PX = 1.5;
 export const GEAR_RING_PX = 1.6;

@@ -10,7 +10,7 @@
  * Each open level is a back layer (G1): back closes a glossary term, then the page.
  */
 import { useMemo, useState } from "react";
-import { Platform } from "react-native";
+import { platformLine } from "../platformLine";
 import { getSynopsisSource } from "../regs/synopsisSource";
 import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
@@ -98,7 +98,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
     env: info.env?.about.env ?? null,
     // the OS and its version on a phone; on the web react-native-web's Version is a placeholder ("0.0.0"), so the
     // platform alone — the browser is not read (nothing the reader did not choose to share)
-    platform: Platform.OS === "web" ? "web" : `${Platform.OS} ${Platform.Version}`,
+    platform: platformLine(),
     release: loader?.release ?? null,
     tiles,
     // (T352) the route's facts under a page's own (a regulations tab's report names its water, part and section itself)

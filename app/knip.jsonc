@@ -65,9 +65,6 @@
     // type or constant the app has not reached yet is still part of the contract, and `--check` pins the file whole.
     "packages/core/src/*.generated.ts": ["exports", "types"],
     "packages/data/src/*.generated.ts": ["exports", "types"],
-    // PREPARED, NOT FED (owner 2026-10-22): the stocking / charts / releases queries wait for their data
-    // (pipeline/stocking/README.md, pipeline/bathymetry); kept on purpose, not dead.
-    "packages/data/src/sql/queries.ts": ["exports"],
     // FIT_MAX_ZOOM = ATLAS_MAX_ZOOM is a second NAME on purpose: "the closest a fit goes" and "the atlas's deepest
     // zoom" are two questions that happen to share an answer today (ladder.test.ts pins both).
     "packages/core/src/ladder.ts": ["duplicates"]

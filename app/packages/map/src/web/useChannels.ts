@@ -12,7 +12,7 @@ import type { WebRenderer } from "../adapters/web";
 import { LABEL_SOURCE_LAYERS, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput, withoutEngineKeys,
          type Channel, type ChannelInput, type TileRenderer, type TileSections } from "../colouring";
 import type { MapProps } from "../map-props";
-import { sourceTiles, tileIds } from "../tile-ids.web";
+import { sourceTiles, tileIds } from "./tileIds";
 import { atlasTarget, copyTarget, layerHandle, publicSections } from "./handles";
 import { devCost, forcePublic, whenAtlas } from "./ready";
 import type { WebMapRefs } from "./refs";

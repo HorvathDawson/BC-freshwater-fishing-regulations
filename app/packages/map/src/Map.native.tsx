@@ -64,7 +64,7 @@ import { ESRI_BADGE, SHOW_SCALE } from "./chrome";
 import type { MapProps } from "./map-props";
 import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
-import { ME_SOURCE, meData, mePaint } from "./native/me";
+import { ME_SOURCE, meData, mePaint } from "./me";
 import { camProbe } from "./native/camProbe";
 import { watchStyleAssets } from "./native/styleAssets";
 
@@ -424,7 +424,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const refine = useRef<(() => Promise<void>) | null>(null);
   const fitted = useRef<string | null>(null);
   // (T303) My location: the camera goes to the fix each time the button asks and, while following, to each new fix (as
-  // the web's `useMe`). The dot is ours (`native/me.ts`), not MapLibre's UserLocation, which drew nothing on Android.
+  // the web's `useMe`). The dot is ours (`me.ts`), not MapLibre's UserLocation, which drew nothing on Android.
   const centred = useRef(0);
   useEffect(() => {
     if (!me?.on || !me.fix) return;

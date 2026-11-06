@@ -6,7 +6,7 @@
  * trackUserLocation` never moved the map, though expo-location had the fix. Our own fix is what the button already holds,
  * so the dot is where the app thinks you are, on every platform, and following is the camera going to each new fix.
  */
-import { colour } from "../chrome";
+import { colour } from "./chrome";
 
 export const ME_SOURCE = "me";
 /** the dot's fill radius and its ring: 18 px across, as the web's */

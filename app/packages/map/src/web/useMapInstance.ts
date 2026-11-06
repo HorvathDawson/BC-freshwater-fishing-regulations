@@ -13,7 +13,7 @@ import type { MapProps } from "../map-props";
 import { SHOW_SCALE } from "../chrome";
 import { runtimeStyle } from "../runtime-style";
 import { followSize } from "../size";
-import { sourceTiles, tileIds } from "../tile-ids.web";
+import { sourceTiles, tileIds } from "./tileIds";
 import { atlasTarget, copyTarget, publicSections } from "./handles";
 import { addImages, isGeneratedImage } from "./images";
 import { devCost, EMPTY_FC, forcePublic, registerPMTiles, styledOnce } from "./ready";
@@ -159,7 +159,7 @@ export function useMapInstance(refs: WebMapRefs,
      * The status used to arrive after `idle` (every tile in, the 300 ms symbol fade over) and a React round trip —
      * half a second of grey on every new tile. Synchronous, no React, ids already seen skipped: about 0.1 ms a pan.
      *
-     * The ids come from 5.24's internals (`tile-ids.web.ts`, pinned by a test). Where they are not there, the PUBLIC
+     * The ids come from 5.24's internals (`web/tileIds.ts`, pinned by a test). Where they are not there, the PUBLIC
      * route: one `querySourceFeatures` scan per burst of tile events, in a microtask — still before the next frame —
      * and on `moveend` as well, because the public route cannot see a cached tile coming back into view.
      */

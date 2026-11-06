@@ -32,7 +32,7 @@
  * every sequence is tested as plain code (`colouring.test.ts`), not through a browser.
  *
  * ONE PATH ON BOTH PLATFORMS (T74 removed the native "status" mode and its pushed data). The map hands the engine each
- * tile's section ids as the tile arrives: the web from GL JS's `sourcedata` (`tile-ids.web.ts`), the phone from the
+ * tile's section ids as the tile arrives: the web from GL JS's `sourcedata` (`web/tileIds.ts`), the phone from the
  * patched binding's per-tile event (`native/useColouring.ts`, deps.md). Only how a channel's style-borne values reach
  * the style differs: a paint call on the web, a style swap on the phone (`nativeStyle`'s `values`).
  */

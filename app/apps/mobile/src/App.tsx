@@ -31,7 +31,7 @@ import * as platform from "@app/data/release/platform";
 import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeStore, openSalmonFeedStore, openGaugeHistoryStore, openInSeasonStore, openInSeasonSeenStore, openFirstRunStore, openDataModeStore, openWalkthroughStore, openLocationAskStore, openAppUpdateStore, openRecentSearchStore, openRunSpeciesStore, openUpdateStore, openUpdateLogStore, openReportOutboxStore, openCrashSettingStore, openCrashPendingStore, openCrashExitStore, openInstallIdStore, openMeteo, openPhotos, openSpots, needsRefresh, refreshSpot,
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
-         type ShellProps, type UpdatesLogControls } from "@app/ui-native";
+         platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
 import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
@@ -95,7 +95,7 @@ const FEED = ENDPOINTS.feed;
 const WEB = Platform.OS === "web";
 const VERSION_HEADERS = WEB
   ? (APP_ENV.env === "local" ? {} : versionHeaders(APP_VERSION, { platform: "web", ua: false }))
-  : versionHeaders(APP_VERSION, { platform: `${Platform.OS} ${Platform.Version}`, ua: true });
+  : versionHeaders(APP_VERSION, { platform: platformLine(), ua: true });
 // (T265) one request per URL in the air: the update service's check and the feed loader's read of the same index share it
 const SHARED_FETCH = shareFetch((u, i) => fetch(u, i));
 const DATA_FETCH: typeof fetch = Object.keys(VERSION_HEADERS).length
@@ -114,7 +114,7 @@ if (!INSTALL.kept) console.warn("[crash-reports] the install id could not be sto
 if (CRASH_URL) {
   const reporter = createCrashReporter({
     url: CRASH_URL, test: TEST_REPORTS, setting: crashSetting, online: () => connectivity.online(), store: openCrashPendingStore(),
-    context: () => ({ app: MENU_INFO.appBuild, env: APP_ENV.env, platform: WEB ? "web" : `${Platform.OS} ${Platform.Version}`,
+    context: () => ({ app: MENU_INFO.appBuild, env: APP_ENV.env, platform: platformLine(),
                      release: crashContext.release, install: INSTALL.id, ...crashWhere(place.route) }),
   });
   installCrashHandlers(reporter);
@@ -405,7 +405,7 @@ export default function App() {
   releaseRef.current = releaseNow;
   const updatesLog = useMemo((): UpdatesLogControls | null => updateLog && ({
     log: updateLog, updates,
-    header: () => ({ version: versionLine(APP_VERSION), platform: WEB ? "web" : `${Platform.OS} ${Platform.Version}`,
+    header: () => ({ version: versionLine(APP_VERSION), platform: platformLine(),
                      env: APP_ENV.env, origin: APP_ENV.origin, channel: UPDATE_CHANNEL, release: releaseRef.current }),
     channel: APP_ENV.switchable ? { current: UPDATE_CHANNEL, pick: pickChannel } : null,
     offline: { get: () => devOffline.on,

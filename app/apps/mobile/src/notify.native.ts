@@ -19,6 +19,7 @@
  *               Never Play's own check: Play's in-app update API needs the app in the foreground.
  */
 import { Linking, Platform } from "react-native";
+import { platformLine } from "@app/ui-native";
 import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
@@ -45,7 +46,7 @@ const OWN_VERSION_FILE = appVersionFileUrl(
 const VERSION_FILE = OWN_VERSION_FILE && ENDPOINTS.channel === "test"
   ? `${ENDPOINTS.base}/test/app/android/${OWN_VERSION_FILE.split("/").pop()}` : OWN_VERSION_FILE;
 const FETCH = versionedFetch((u, i) => fetch(u, i),
-                             versionHeaders(APP_VERSION, { platform: `${Platform.OS} ${Platform.Version}`, ua: true }));
+                             versionHeaders(APP_VERSION, { platform: platformLine(), ua: true }));
 
 let channels: Promise<void> | null = null;
 function ensureChannels(): Promise<void> {

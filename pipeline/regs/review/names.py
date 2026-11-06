@@ -27,7 +27,6 @@ from typing import Optional
 
 from pipeline.common.curated import CURATED, GENERATED
 
-ROOT = Path(__file__).resolve().parents[3]
 CANDIDATES = GENERATED.review / "name-variants/candidates.json"
 SPOT_SAMPLE = 30
 

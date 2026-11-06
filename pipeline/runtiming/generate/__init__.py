@@ -1,6 +1,4 @@
-"""Turning fetched pages and 2.6 GB of stream geometry into a frozen index.
+"""`extract.runs_from_page`: the PSF run-timing page read into runs (`pipeline.runtiming.parse` calls it).
 
-NEEDS THE ATLAS — `data/generated/tiles/layers/stream.geojsonl`, 1.2 million sections — so
-nothing on the build path may import from here. Runs about once a year, by hand, after a
-fetch. Same rule as `pipeline/gauges/generate`, for the same reason.
+(T436) The frozen-index modules that lived here were deleted (no importer); git keeps them.
 """

@@ -7,7 +7,7 @@
  * colouring comes from a view. That is what keeps the platforms looking the same.
  * What each layer is painted with is `../paint.ts`, shared with the style composer.
  */
-import type { Bbox, NotFishingKind, SectionKey } from "@app/core";
+import { GEAR_LEGEND, type Bbox, type NotFishingKind, type SectionKey } from "@app/core";
 import { pinCollection, TRACE_PINS_SOURCE, TRACE_SOURCE, type TracePin } from "../trace-overlay";
 import type { TraceCollection } from "../trace-geometry";
 import { COPY_CASING, COPY_FILL, COPY_LINE, type LitFeature } from "../water-copy";
@@ -203,7 +203,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       // (T165) and so do the no-access dots: shown where this mode (and its day) paints a section no_access
       for (const [prop, value] of Object.entries(noaccessPaint(mode, tokens, values))) h.setPaint(NOACCESS_LAYER, prop, value);
       // (T213) the gear edges: the stream's mode, its width, the status and method days
-      for (const mark of ["fly", "bait"] as const)
+      for (const mark of GEAR_LEGEND)
         for (const [prop, value] of Object.entries(gearPaint("stream", mode, mark, tokens, values, out["line-width"])))
           h.setPaint(GEAR_LAYERS.stream[mark], prop, value);
       // (T199) a passing run's dash: the stream's mode and width
@@ -226,7 +226,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     if (layerId === "lake") {
       for (const [prop, value] of Object.entries(copyFillPaint(out))) h.setPaint(COPY_FILL, prop, value);
       // (T213) and its gear rings
-      for (const mark of ["fly", "bait"] as const)
+      for (const mark of GEAR_LEGEND)
         for (const [prop, value] of Object.entries(gearPaint("lake", mode, mark, tokens, values)))
           h.setPaint(GEAR_LAYERS.lake[mark], prop, value);
     }

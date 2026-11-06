@@ -24,6 +24,11 @@ describe("staging data worker (T249)", () => {
                      "/./private/feeds/status.json", "/PRIVATE/a", "/private", "/private/", "/feeds/%2e%2e/private/feeds/status.json"])
       expect((await get(p, env)).status, p).toBe(404);
   });
+  it("(T436) a bad escape is a 404 with CORS, not a bare 500", async () => {
+    const r = await get("/feeds/%zz.json", { BUCKET: bucket(KEYS) });
+    expect(r.status).toBe(404);
+    expect(r.headers.get("Access-Control-Allow-Origin")).toBe("*");
+  });
   it("a flood from one IP gets 429 + Retry-After; other IPs are served; no binding = no limit", async () => {
     const seen = new Map<string, number>();
     const RL = { async limit({ key }: { key: string }) { const n = (seen.get(key) ?? 0) + 1; seen.set(key, n); return { success: n <= 3 }; } };

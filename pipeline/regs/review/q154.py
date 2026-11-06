@@ -21,7 +21,6 @@ from typing import Optional
 
 from pipeline.common.curated import GENERATED
 
-ROOT = Path(__file__).resolve().parents[3]
 SAMPLE = GENERATED.review / "q154/sample.json"
 MEANING = ("ha", "avg_width_m", "river_width_m", "ratio", "man_made", "caught")
 

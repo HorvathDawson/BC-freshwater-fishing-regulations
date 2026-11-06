@@ -21,7 +21,6 @@ from typing import Optional
 
 from pipeline.common.curated import GENERATED
 
-ROOT = Path(__file__).resolve().parents[3]
 #: the candidates file; `CURATION_TIDAL_CANDIDATES` points it at a copy (tests)
 DEFAULT_PATH = GENERATED.review / "tidal/tidal-candidates.json"
 

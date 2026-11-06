@@ -191,6 +191,14 @@ describe("platform parity", () => {
       .toContain("clean");
   });
 
+  it("(T436) catches shared map code importing a platform folder; the platform's own files may", () => {
+    expect(checkPlatform({ "packages/map/src/_shared.ts": 'import { x } from "./web/thing";\nexport const y = x;\n' })).not.toBe(0);
+    expect(checkPlatform({ "packages/map/src/_shared.ts": 'import { x } from "./native/thing";\nexport const y = x;\n' })).not.toBe(0);
+    expect(checkPlatform({ "packages/map/src/web/_a.ts": 'import { x } from "../native/thing";\nexport const y = x;\n' })).not.toBe(0);
+    expect(checkPlatform({ "packages/map/src/web/_a.ts": 'import { x } from "./thing";\nexport const y = x;\n',
+                           "packages/map/src/_b.ts": 'export const z = 1;\n' })).toBe(0);
+  });
+
   it("catches a banned API in shared code", () => {
     expect(checkPlatform({ "packages/ui-native/src/_plat.ts":
       'export const el = document.createElement("canvas");\n' })).not.toBe(0);
