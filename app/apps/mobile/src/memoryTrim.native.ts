@@ -2,7 +2,7 @@
  * (T360) THE OS ASKING FOR MEMORY BACK. Android: `onTrimMemory`, from modules/memory-trim (Kotlin), which has already told
  * every MapLibre map to drop what it is not drawing. iOS: React Native's `memoryWarning` (MapLibre's iOS map listens for
  * the same warning itself). Either way the release's open databases give back their page caches (`ReleaseLoader.trim`).
- * Nothing on the web.
+ * Nothing on the web (memoryTrim.web.ts).
  */
 import { AppState, Platform } from "react-native";
 import { requireOptionalNativeModule } from "expo";

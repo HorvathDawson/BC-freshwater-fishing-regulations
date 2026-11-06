@@ -4,10 +4,10 @@
  */
 import { soloWater, waterExit } from "@app/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { InteractionManager, Platform } from "react-native";
+import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { carryRoute, frameViews, loadRegsStore, prewarmRegs, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore,
+import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore,
          useRoute, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { useRegulationKeys } from "@app/ui";
@@ -15,9 +15,7 @@ import { placeReads } from "@app/ui/place";
 import { TABS, type TabKey } from "../TabBar";
 import type { WaterViews } from "../ViewSwipe";
 import { isTouchDevice } from "../touchDevice";
-
-/** (T286) How long after the release is up the regulations are made ready (the map draws first). */
-const PREWARM_MS = 1500;
+import { usePrewarmRegs } from "./prewarm";
 
 export function useShellNav({ source, loader, systemBack, initialRoute, onRoute }: {
   source: WaterSource; loader: ReleaseLoader | null; systemBack: SystemBack | null; initialRoute?: Route;
@@ -99,20 +97,8 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
    * the frame is told (`solo`), and its Map view goes (Regulations in front if the Map was).
    */
   const regsStore = useRegsStore(route.mode === "water" ? loader : null);
-  // (T286) the regulations made ready while the reader looks at the map (idle, a moment after the release is up): the
-  // first tap of a session then costs what every later one does. A PHONE ONLY: it holds every file, so this reads
-  // nothing from the network. The web fetches its files (the water file, region files) and must fetch nothing unasked
-  // (T254: low-bandwidth mode, Save-Data; T256 routes it by region), so there the first tap opens the store as before.
-  useEffect(() => {
-    if (!loader || Platform.OS === "web") return;
-    let task: { cancel(): void } | null = null;
-    const t = setTimeout(() => {
-      task = InteractionManager.runAfterInteractions(() => {
-        void prewarmRegs(loader, { files: true }).catch(() => {});
-      });
-    }, PREWARM_MS);
-    return () => { clearTimeout(t); task?.cancel(); };
-  }, [loader]);
+  // (T286) the regulations made ready while the reader looks at the map: a phone only (prewarm.native.ts)
+  usePrewarmRegs(loader);
   const soloGroup = useWaterGroup(regsStore.value ?? null, frame?.solo ? null : item);
   useEffect(() => {
     const g = soloGroup.value;
