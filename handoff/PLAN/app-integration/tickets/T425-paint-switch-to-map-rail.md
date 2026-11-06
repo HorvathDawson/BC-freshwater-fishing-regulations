@@ -1,6 +1,6 @@
 # T425 — The Trout / Salmon switch moves to the map rail, with clearer icons or words
 
-Status: OPEN — owner 2026-11-05, an addition (screenshot on the Map tab, phone width).
+Status: DONE (code 0178b4301; shots owed) — owner 2026-11-05, an addition (screenshot on the Map tab, phone width).
 
 ## Ask (owner 2026-11-05)
 "Move this like in the picture and change the icon or words that are used to show the 2 options."
@@ -38,3 +38,18 @@ The switch is on the rail under layers, the owner's chosen icons/words, the lege
 and shots as above; the layout rule note updated.
 
 Links: T367 (the layout rule), T409 (water pages; unaffected). Size: S–M. Owner: picks the icons/words (item 2).
+
+## Outcome (2026-11-05)
+Code `0178b4301`. `shell/RegsLayerToggle.tsx` is now the rail control (same file, same `col.setRegsLayer` handler, same
+`regs-paint` / `regs-paint-standard|salmon` test ids): a radiogroup card under locate + layers (MapScreen `railExtra` ->
+MapRail children, from BrowseHost, only when the regulations map is drawn and Salmon is offered). Each button 44x44: the app's
+own fish art (`FISH_IMAGES` thumbs, rainbow trout `RB` / chinook `CH`, handed down as `fishImages`; the `fish` icon when the
+art is absent; the spinner while Salmon loads) over a small-caps word ("TROUT", "SALMON"). Square corners, rail card + lift.
+Chosen = the rail's tint + a 3 px accent bar + bolder word (not the old filled accent: the art is a picture). Names "Colour by
+trout and other species' rules" / "Colour by salmon openings", hint "Changes the colours and the key on the map"; words in
+`SALMON_WORDS.toggle` (`rail`, `said`, `hint`, `art`). The legend bar holds the key, DFO's source line and the fold only; its
+head has a fixed min height so the bar does not move between modes. No new image assets. Tests: SalmonCard (switch), T377.legend
+(no switch in the bar), MapScreen (railExtra stacks after the tools) pass; typecheck, platform, boundaries, colours, knip clean.
+No Shell-level test (the fixture has no paired status index, so the regs map never draws there).
+Owed: before/after shots at 390x844 and 1440x900, light + dark (not taken: no dev server run); owner reviews the look.
+The `map-ui-layout-rule` memory already carries the new placement.
