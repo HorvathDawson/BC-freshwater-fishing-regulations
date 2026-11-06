@@ -204,6 +204,17 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     by a background colour. `aria-checked` (role=radio) / `aria-selected` (role=tab) /
     `aria-disabled` work on BOTH targets. `app/tools/check-platform.mjs` fails on the old
     spelling.
+34a. **Web and native code are split by FILE, never by branch (T410, owner 2026-11-06: "so it doesn't diverge").**
+    Code that differs by platform lives in a pair, `foo.web.ts(x)` + `foo.native.ts(x)`, typed by one `foo.d.ts`; the
+    bundler picks one, so the other platform's code is not in the bundle. Both halves export the same surface and do the
+    same job; a fix to one half is checked against the other in the same commit (say so in the message when the other
+    needs nothing). In shared files: no `Platform.OS`, no `typeof window / document / navigator` — a one-value difference
+    (a size, a flag, a word) may use `Platform.select`, or one `Platform.OS` in a file `INLINE_ALLOWED` lists with its
+    reason. `packages/core` stays platform-free (rule 22); the map's `src/web/` and `src/native/` folders are imported
+    only from their own platform. A behaviour fix (lag, gestures, a11y) that only one platform needs still goes in that
+    platform's file, never as a branch in shared code. Enforced by `pnpm platform` (`app/tools/check-platform.mjs`, in
+    `pnpm check` and CI) — fix the code, never widen `INLINE_ALLOWED` to pass; a new entry needs the owner's reason.
+    Details: `app/README.md` "Web and native code".
 
 ## Curated data, and the artifacts you must not regenerate casually
 
@@ -291,6 +302,20 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
 43. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
 44. **Report honestly what you did not verify.** An unverified claim is worse than a known
     gap. Say "scaffolded, not run" when that is what happened.
+45. **Spend the owner's credits on the work, not on a long context (owner 2026-11-06).** Every turn re-reads the
+    whole conversation, so a long chat costs more per step and remembers worse.
+    - **Start a new chat** at a natural break: after a release ships, after a lane merges, when the next item is
+      unrelated to what is in context. Before it: STATUS.md top entry current, a short
+      `handoff/PLAN/NEXT-SESSION-*.md` (what is in flight, what is next, in order, with ticket ids), commits pushed
+      where allowed. Then tell the owner it is a good moment for a new chat.
+    - **Compact** (rather than a new chat) when mid-task with live context worth keeping — a background build or
+      agent still running, a half-merged lane. Write STATUS first so the summary loses nothing.
+    - Say so early, not at the limit: when the context is large and the next step is a fresh topic, propose the new
+      chat instead of continuing.
+    - Delegate wide reads, long measurement loops and emulator work to agents (their file dumps stay out of the main
+      context); keep the main chat for decisions, merges and the owner. Agents report briefly.
+    - Avoid re-reading big files and logs: grep for the lines needed; tail logs; do not re-run full suites per
+      iteration (once at the end).
 
 ## Reading the regulations
 
