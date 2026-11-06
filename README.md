@@ -8,8 +8,8 @@ licensing schedules. This project reads them once, binds every rule to the stret
 covers, and decides every answer ahead of time, so the app only looks answers up.
 
 > This branch (`redesign/stream-sections`) is **v2**. `main` still runs v1, which is archived here
-> under `archive/`. Nothing is merged to `main` until the feed crons are reworked
-> (see `pipeline/docs/` and the P3 note).
+> under `archive/`. Nothing is merged to `main` until the owner decides to (an owner call, not a build step);
+> the dev branch is where all work lands.
 
 ## How it works
 
@@ -93,7 +93,7 @@ Production re-uploads the same checked release and is the owner's: `handoff/PLAN
 
 ```bash
 python -m pipeline build --dry-run        # the plan: each stage, its key, run or up to date
-python -m pipeline build                  # reach → tiles → deliver, whatever is out of date
+python -m pipeline build                  # every stage that is out of date (the order: pipeline/docs/MAP.md)
 python -m pipeline build --atlas          # also build a side atlas (<build>_next) + parity report
 python -m pipeline build --promote        # promote <build>_next, then rebuild against it
 python -m pipeline build --force reach    # rerun a stage and everything after it
@@ -102,7 +102,7 @@ python -m pipeline build --force reach    # rerun a stage and everything after i
 A stage reruns when anything it reads changed (curated data, source stamps, the corpus, its own
 code) or its outputs are missing. Each run is recorded in `data/generated/build-manifest.json`, and
 the run ends with a strict check that the tiles and the bundle come from one atlas and one
-registry. Peak memory is about 12 GB.
+registry. How long and how much memory each stage took: `python -m pipeline build --status`.
 
 ### Tests
 

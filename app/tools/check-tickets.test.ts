@@ -104,9 +104,11 @@ describe("the guard fires (mutation)", () => {
     ]);
   });
 
-  it("allows a ledger status that lags its ticket file (the lane closes the file, the merger the row)", () => {
-    const input = withTicket(real, "T84", (t) => t.replace(/^Status:.*$/m, "Status: DONE — abc1234."));
-    expect(checkLedger(input)).toEqual([]);
+  it("(T437) on a ticket file whose status differs from its ledger row's", () => {
+    const row = rowOf(real.readme, "T84");
+    const readme = real.readme.replace(row, withStatus(row, "OPEN"));
+    const input = withTicket({ ...noGit, readme }, "T84", (t) => t.replace(/^Status:.*$/m, "Status: DONE — abc1234."));
+    expect(checkLedger(input)).toEqual(["T84: the ticket file says DONE, its ledger row OPEN (close both together)"]);
   });
 
   it("on a duplicated row and an unknown status", () => {
@@ -120,6 +122,12 @@ describe("the guard fires (mutation)", () => {
 });
 
 describe("statusKeyword", () => {
+  it("(T437) knows exactly the statuses the README defines", async () => {
+    const { STATUSES } = await import("./check-tickets.mjs");
+    const defined = [...real.readme.matchAll(/^  - `([A-Z ]+?)(?: \(owner\))?` — /gm)].map((m) => m[1]);
+    expect([...defined].sort()).toEqual([...STATUSES].sort());
+  });
+
   it("reads the leading keyword of every status the README defines", () => {
     expect(["OPEN.", "IN PROGRESS — lane x", "PARTIAL — a", "BLOCKED (owner)", "POSTPONED — hold",
       "DONE — 40b2c67d", "DROPPED — why", "DONE (in T21)", "Open"].map(statusKeyword)).toEqual(

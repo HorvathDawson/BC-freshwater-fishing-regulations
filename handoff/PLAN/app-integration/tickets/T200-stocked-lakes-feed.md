@@ -1,6 +1,6 @@
 # T200 — stocked lakes: feed the prepared Stocked mode
 
-Status: OPEN
+Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) — was: OPEN
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet".

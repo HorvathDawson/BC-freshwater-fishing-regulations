@@ -11,10 +11,9 @@
  *   2. a ticket file is missing from the README ledger table, or a ledger row has no ticket file, or two files share an id
  *      (or a row is repeated);
  *   3. a T-number named in a commit subject (since the tickets folder began) is not in the ledger;
- *   4. a ticket is DONE — in its file or in its ledger row — with no commit hash.
- *
- * It does NOT require a row's status to equal its file's: a lane closes its ticket file and the merger updates the
- * ledger row afterwards, so the two legitimately differ between those commits.
+ *   4. a ticket is DONE — in its file or in its ledger row — with no commit hash;
+ *   5. (T437) a ticket file's leading status keyword differs from its ledger row's. Twelve had drifted (OPEN in the
+ *      file, POSTPONED in the ledger; PARTIAL vs "DONE locally"): a lane closes the file AND the row in one commit.
  *
  * `checkLedger` is pure (the test feeds it mutated copies); the CLI below reads the repo and git.
  */
@@ -84,6 +83,13 @@ export function checkLedger({ tickets, readme, subjects }) {
     if (kw === "DONE" && !HASH.test(value)) problems.push(`${id}: Status DONE names no commit hash in ${name}`);
   }
 
+  const fileKw = new Map();
+  for (const { name, text } of tickets) {
+    const line = text.split("\n").slice(0, STATUS_WITHIN).find((l) => /^Status:/.test(l));
+    const kw = line ? statusKeyword(line.replace(/^Status:\s*/, "")) : null;
+    if (kw && idOfFile(name)) fileKw.set(idOfFile(name), kw);
+  }
+
   const rows = ledgerRows(readme);
   const seen = new Set();
   for (const row of rows) {
@@ -92,6 +98,8 @@ export function checkLedger({ tickets, readme, subjects }) {
     const kw = statusKeyword(row.status);
     if (!kw) problems.push(`${row.id}: ledger status "${row.status}" is not one of ${STATUSES.join(", ")}`);
     if (kw === "DONE" && !HASH.test(row.commits)) problems.push(`${row.id}: ledger row is DONE with no commit hash`);
+    const fk = fileKw.get(row.id);
+    if (kw && fk && kw !== fk) problems.push(`${row.id}: the ticket file says ${fk}, its ledger row ${kw} (close both together)`);
   }
 
   const namesById = new Map();

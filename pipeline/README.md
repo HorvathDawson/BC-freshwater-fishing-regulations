@@ -21,7 +21,7 @@ release waits in `data/release/CANDIDATE` and LATEST moves only after the checks
 ```bash
 python -m pipeline build --graph          # the stage graph: what each stage reads, runs, writes
 python -m pipeline build --dry-run        # each stage, its key, run or up to date — and WHY it runs
-python -m pipeline build                  # clim + reach + tiles side by side (--jobs 2), then deliver
+python -m pipeline build                  # every stage out of date (--jobs 2; the stage order is docs/MAP.md)
 python -m pipeline build --jobs 1         # one stage after another, output on the console
 python -m pipeline build --status         # the last run: per-stage time, peak memory, status, logs
 python -m pipeline build --atlas          # + a side atlas data/generated/atlas/<build>_next and its parity

@@ -117,7 +117,7 @@ bindings landed) + 49 dormant.
   Whitebottom bridge (LAKELSE MAIN passes 30 m away).
 - **Sheldens Creek (dossier's 1 open), proposed:** the unnamed FWA line blk 360846083 (950-016367) into Sheldens Bay.
   Its roads are all named for it (FTEN R06206 "SP 19(1) TO SHELDONS", SHEL100–103). It is a REVIEW row in the
-  **Names** mode (`blk:360846083~sheldens-creek`, medium, never auto-accepted; mine.py `DFO_UNMATCHED_LEADS`).
+  **Names** mode (`blk:360846083~sheldens-creek`, medium, never auto-accepted; `handoff/PLAN/curation-review/name-variants/mine.py` `DFO_UNMATCHED_LEADS`).
   Accepting it names the line, and the matcher can then bind the water. The cut is ready: "SP 19(1) TO SHELDONS"
   crosses the line at 53.12968,-131.78224, FWA measure 3402 m (exact road × stream intersection).
 - **Unplaced, active (6):** Kasiks ×2 (the "Upper Pool" is named nowhere public; ask DFO Terrace) · Sheldens

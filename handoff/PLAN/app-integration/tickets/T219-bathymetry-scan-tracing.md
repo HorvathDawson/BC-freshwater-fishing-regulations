@@ -1,6 +1,6 @@
 # T219 — bathymetry: trace contours from the open scanned charts for the top-fished lakes
 
-Status: OPEN. Not to be implemented yet (owner 2026-10-27).
+Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) — was: OPEN. Not to be implemented yet (owner 2026-10-27).
 
 Source: owner 2026-10-27 on T201's research (handoff/PLAN/bathymetry/SOURCES.md, source 1). The input is the OGL-BC
 "Bathymetric Maps - Open" set: 2,741 CSV rows, 2,246 WSA waterbodies (2,216 by name). T218 ships the 28 lakes that

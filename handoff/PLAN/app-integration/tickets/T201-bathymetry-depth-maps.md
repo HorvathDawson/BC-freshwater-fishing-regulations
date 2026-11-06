@@ -1,6 +1,6 @@
 # T201 — bathymetry: feed the prepared Depth mode and draw contours
 
-Status: OPEN
+Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) — was: OPEN
 
 Source: owner 2026-10-25 ("at the end, alongside the stocked and bathy maps"); decisions.md "OWNER 2026-10-21 — lake
 Stocked / Depth modes: prepared, not fed yet"; T158 (tiles carry no contour layer — a follow-up of its own).

@@ -1,6 +1,6 @@
 # T223 — user accounts shared between the web app and the phone app
 
-Status: OPEN — FAR FUTURE (owner 2026-10-28); default plan below; owner answers the questions first (no build yet).
+Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) — was: OPEN — FAR FUTURE (owner 2026-10-28); default plan below; owner answers the questions first (no build yet).
 
 Source: owner 2026-10-28: one account a person can use in both the web app and the native app.
 

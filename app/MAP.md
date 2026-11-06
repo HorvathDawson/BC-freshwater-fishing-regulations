@@ -1,6 +1,6 @@
 # The app, as it is (map)
 
-The one current map of `app/` (T63, checked against the code 2026-10-24). Why the layers are shaped this way is
+The one current map of `app/` (T63). Why the layers are shaped this way is
 [`README.md`](README.md); the binding app rules are [`AGENTS.md`](../AGENTS.md) 21–34; every dependency's reason is
 [`deps.md`](deps.md). When this map and the code disagree, the code wins — fix the map.
 

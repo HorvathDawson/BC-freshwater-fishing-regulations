@@ -62,7 +62,7 @@ with the default Claude uses until you answer). Newest first inside each section
   as a variant of the existing upstream place, and DFO's "downstream of the CPR Bridge at Mission to … Hope" as the
   dormant Mission→Hope place (made active). `data/curated/dfo_salmon/places/region-2.json` is left
   uncommitted until you have. Also yours: the staleness warning window, 7 days in Apr–Dec (`refresh.STALE_DAYS`).
-- **Plan to 0.5.0 approved (2026-11-03):** `handoff/PLAN/RELEASE-PLAN-0.5.0.md`. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
+- **Plan to 0.5.0 approved (2026-11-03):** the plan file (`RELEASE-PLAN-0.5.0.md`) is in git history since T437. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
   (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy: now Claude's
   (owner 2026-11-03), when it makes sense (with 0.5.0: dfo-feed/3 + the ten forecast days).
 - **0.4.0 on Play internal (versionCode 7, 2026-10-31, `89ebd94bf`; release r-4e709418ebd8 on staging, smoke 18/18):**

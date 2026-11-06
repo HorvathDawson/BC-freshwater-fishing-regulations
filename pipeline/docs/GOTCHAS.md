@@ -158,7 +158,7 @@ alongside an identical one that has "appeared", on the same water, in the same r
 
 ## Sheldens Creek is a name we assumed
 
-**2026-10-29 · names / DFO salmon · `data/curated/waters/found_name_calls.json` (was `names.OWNER`, T327), `pipeline/atlas/registry/mine.py` (`DFO_UNMATCHED_LEADS`)**
+**2026-10-29 · names / DFO salmon · `data/curated/waters/found_name_calls.json` (was `names.OWNER`, T327), `handoff/PLAN/curation-review/name-variants/mine.py` (`DFO_UNMATCHED_LEADS`, a one-off miner; T437 repointed)**
 
 DFO's Region 6 rules name "Sheldens Creek" (Moresby Island, Haida Gwaii), but no Freshwater Atlas water carries that
 name. We named the unnamed FWA line blk 360846083 (code 950-016367) into Sheldens Bay "Sheldens Creek" because the

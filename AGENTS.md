@@ -115,22 +115,22 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     `no_extents` rules whose rule or entry asks for tributaries (no seed to walk from). A
     binding flagged pending is still never complete; nothing downstream may treat it so.
 16. **The review app and the builder share one implementation.** `entry_reaches` calls
-    `pipeline.atlas.reach.classify`; covered items come from `pipeline.atlas.reach.covered`. Verified
-    once: **3,038 of 3,038 rules identical** — a number that predates the current corpus (3,317
-    rules, `rest`, `Extent.watershed`) and has **not been re-run since**; re-run it before relying
-    on it. If you change one, re-run that parity check — the app is where a human signs off, so
-    divergence is invisible until a user hits it.
+    `pipeline.atlas.reach.classify`; covered items come from `pipeline.atlas.reach.covered`. That is enforced BY
+    CONSTRUCTION (one module; `test_review_reaches.py` drives `entry_reaches` through `reach.extent`), not by a
+    whole-corpus comparison: no current run proves every rule identical. Never give the review app its own copy of
+    a resolver — the app is where a human signs off, so divergence is invisible until a user hits it.
 
 ## Builds and tests
 
-17. **Full builds take ~18 min and ~9 GB.** Never rebuild to test a change. Build to a new
-    `--out` and compare with `pipeline/tools/audit/build_parity.py`. `data/generated/atlas/full` and
-    `data/generated/atlas/full_new` already exist.
+17. **Never rebuild the live atlas to test a change.** Build beside it (`python -m pipeline build --atlas` writes
+    `<build>_next`; `--side DIR` for a side build, `pipeline/README.md`) and compare with
+    `pipeline/tools/audit/build_parity.py`. How long a stage takes is `python -m pipeline build --status`, not a
+    number written here.
 18. **`pytest.ini` deselects the `slow` tests by default** (㊷) — 197 of 2,263 on
     2026-09-29 (`pytest --collect-only -q -m slow`, run unfiltered, not through rtk). Determinism and full-build
     guards live there, so CI must run `-m slow` explicitly or they never run.
     **Test tiers (P00, 2026-10-20):** Tier 0 is the one file you touched; Tier 1 is `scripts/test-smoke.sh`, run per
-    commit (≈ 75 s: app check, `pytest -m smoke` from `pipeline/tests/smoke.txt`, check.mjs `ONLY=smoke`); Tier 2 is
+    commit (≈ 75 s: `pnpm -C app check`, `pytest -m smoke` from `pipeline/tests/smoke.txt`); Tier 2 is
     `scripts/test-full.sh` via `scripts/heavy.sh`, once per phase or before a merge. **Heavy jobs** (atlas build, reach run,
     `pipeline.deliver`, tile builds, full pytest, the Android emulator) go through `scripts/heavy.sh <label> <min free %> --
     <cmd>`: one at a time machine-wide, waits for free memory, kills the job if free memory falls under 6 %.
@@ -249,7 +249,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     without `--accept-demotions`, which is the owner's call after reading the list (T94).
 
 39. **The two tiers are not interchangeable.** The *mill* (fetch → build → match → bundle →
-    tiles) is ~27 min and ~10 GB and runs by hand a few times a year. The *guards*
+    tiles) is heavy (minutes and gigabytes: `python -m pipeline build --status`) and runs by hand a few times a year. The *guards*
     (`pipeline-ci.yml`, `app-ci.yml`) are seconds and run on every push. Never add a step
     to CI that needs `graph.pkl` — a hosted runner has 14 GB of disk and one build directory
     is 10, and a job that fails for unrelated reasons is one people learn to ignore.
@@ -444,7 +444,8 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
     rules apply) in `steelhead_presence`; the bundle READS them (`section_home`, `tidal`, `outside_bc`,
     `steelhead_known.rules`, `item.part_of`, cut labels and offsets) and proves the stored form
     reproduces the run — it opens NO curated waters file (`CURATED.` under `pipeline/deliver/bundle`
-    may name only the corpus). "Closure" is `rules.closure_grade`, asked by the status index, the
+    may name only `regulations.synopsis` (the corpus), `regulations.reference` (the glossary's book text) and
+    `waters.continuations` (the owner-reviewed links); `test_one_data_flow.py`). "Closure" is `rules.closure_grade`, asked by the status index, the
     competition and the export. A PROMOTED ATLAS IS IMMUTABLE: `pipeline.atlas.build` refuses an
     `--out` whose handle digest a shipped bundle or tile set carries; the review app builds to
     `<build>_next` and promotes by `pipeline.atlas.promote`. `python -m pipeline.deliver` chains

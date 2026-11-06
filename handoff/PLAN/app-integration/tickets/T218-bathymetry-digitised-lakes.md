@@ -1,6 +1,6 @@
 # T218 — bathymetry: ship depth figures + contours for the already-digitised lakes
 
-Status: OPEN. Not to be implemented yet (owner 2026-10-27).
+Status: POSTPONED (deferred, owner 2026-11-05; T437 aligned with the ledger) — was: OPEN. Not to be implemented yet (owner 2026-10-27).
 
 Source: owner 2026-10-27 on T201's research (handoff/PLAN/bathymetry/SOURCES.md). The "Bathymetric Maps of Surveyed
 Lakes" layer is in the BC Data Catalogue, so it is OGL-BC; no licence email needed.

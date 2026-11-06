@@ -1,6 +1,6 @@
 # T319 — Store screenshots that sell the app, generated automatically (for the real launch)
 
-Status: IN PROGRESS 2026-11-05 — the generator is built (one command, every size); the shot list + titles wait for the owner; the saved-spot shot needs the phone build. Was: POSTPONED (owner 2026-10-31: "make it so the screenshots for promotion on app store are better … optimal pictures of
+Status: POSTPONED (the ledger's call, owner 2026-11-05; T437 aligned) — where it stood: IN PROGRESS 2026-11-05 — the generator is built (one command, every size); the shot list + titles wait for the owner; the saved-spot shot needs the phone build. Was: POSTPONED (owner 2026-10-31: "make it so the screenshots for promotion on app store are better … optimal pictures of
 the app and how it is used. Making it look good? Then we can have a way to auto generate it? This is a ticket for later
 don't start it now add to stuff needed for real deploy").
 

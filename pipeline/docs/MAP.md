@@ -1,6 +1,6 @@
 # The pipeline, as it is (map)
 
-The one current map of `pipeline/` (T63, checked against the code 2026-10-24). How the book is *read* is
+The one current map of `pipeline/` (T63). How the book is *read* is
 [`RULINGS.md`](RULINGS.md); the rules for working here are the root [`AGENTS.md`](../../AGENTS.md); commands are in
 [`pipeline/README.md`](../README.md). When this map and the code disagree, the code wins — fix the map.
 
