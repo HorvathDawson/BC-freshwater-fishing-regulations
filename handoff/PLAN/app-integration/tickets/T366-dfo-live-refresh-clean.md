@@ -1,6 +1,6 @@
 # T366 — DFO live refresh that is clean to run (region 2 FN1179 first)
 
-Status: DONE (2026-11-05) — items 1–5 built and run. The feeds-worker half (row digest) ships WITH the next app
+Status: DONE (2026-11-05) — 770a4aaa9, abed46e5f, 9d5d52553 — items 1–5 built and run. The feeds-worker half (row digest) ships WITH the next app
 deploy, never ahead (owner 2026-11-03: "make it so that this command works cleaner in future too"; batch 3 of
 RELEASE-PLAN-0.5.0.md).
 

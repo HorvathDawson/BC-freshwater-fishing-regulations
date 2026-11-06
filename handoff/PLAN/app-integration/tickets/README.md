@@ -409,7 +409,7 @@ use that as the sole source of future work."
 | T363 | iOS memory: T360's per-screen method on the Simulator, then a real iPhone (sim 420 MB, 665 MB peak panning) | DROPPED — merged into T88 (2026-11-05) | 089c8a00f, bf8ca3820 | sim footprint 147–290 MB, rule book no leak, memory warning frees nothing; real iPhone left (T364) |
 | T364 | Real-iPhone run: location prompt, offline first download, edge-back gesture, gauge pill padding | DROPPED — merged into T88 (2026-11-05) | T313, T88 | owner: steps in OWNER-TODO iOS |
 | T365 | App Review compliance: privacy manifest, tracking declaration, final bundle id + name (CanIFish vs Can I Fish?) | DROPPED — merged into T88 (2026-11-05) | f74621e99, 38de56f81 | manifest + encryption flag in; met/missing list in the ticket; name, ASC forms, account = owner |
-| T366 | DFO live refresh made clean: dry-run preview of changed rows + marks it stales, typed stamped with its page, fetched pages archived, rule-only changes re-checked in one click; then region 2 (FN1179 Fraser chum) | DONE | — | b71bbcd11; refresh run 11-03 (regions 1, 2, 6; no marks moved; 9d5d52553 Fraser variants); 11-05 review-app vintage banner + worker row digest (urgent: false → NOTIFY_DIGEST); worker deploys WITH the next app |
+| T366 | DFO live refresh made clean: dry-run preview of changed rows + marks it stales, typed stamped with its page, fetched pages archived, rule-only changes re-checked in one click; then region 2 (FN1179 Fraser chum) | DONE | 770a4aaa9, abed46e5f, 9d5d52553 | b71bbcd11; refresh run 11-03 (regions 1, 2, 6; no marks moved; 9d5d52553 Fraser variants); 11-05 review-app vintage banner + worker row digest (urgent: false → NOTIFY_DIGEST); worker deploys WITH the next app |
 | T367 | UI text clean-up as an owner back-and-forth (regs, conditions map, More): bad formatting, debloat top-level text; dev web app first, then the 0.5.0 APK | DONE 11-04 (owner call; leftovers → T377) | d3577f2e3 | owner 2026-11-03 (batch 6b) |
 | T368 | Failures, fallbacks and reporting app-wide: rethrow, or show + `reportFailure`, or list; one failure face; scan net (split from T333) | DONE | 6fed147f1, 84dfd1098 | — (T369 lane: openWater/place sites the net flags; owner: "today" is the device's day) |
 | T369 | One load path per screen: same output whatever the way in (refresh, tab/view switch, search, map tap, step, list pick); a net comparing every way in | DONE | 75a907e3b | owner 2026-11-03 (batch 6c, in 0.5.0); left: unnamed reach across a data update needs native `section_measure` (owner) |
@@ -468,7 +468,7 @@ use that as the sole source of future work."
 | T424 | Map attribution: our own credits (every source on screen), the same on web and app, no longer on top of the scale bar | OPEN | — | owner 11-05 |
 | T421 | Review proposals: a missing build reads as "binding moved" (silent registry fallback) | DONE | f29410a41 | CI fix 11-05 |
 | T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | DONE | 5820c2ae4 | T331 leftover 11-05; `CURATED_ROOT` + `curated.make_root`, old four refused, grep gate test_curated_root.py |
-| T423 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | OPEN | — | owner 11-05 (screenshot); owner picks icons/words |
+| T425 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | OPEN | — | owner 11-05 (screenshot); owner picks icons/words |
 
 ## Order for open tickets
 

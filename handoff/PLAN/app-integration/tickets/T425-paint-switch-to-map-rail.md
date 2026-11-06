@@ -1,4 +1,4 @@
-# T423 — The Trout / Salmon switch moves to the map rail, with clearer icons or words
+# T425 — The Trout / Salmon switch moves to the map rail, with clearer icons or words
 
 Status: OPEN — owner 2026-11-05, an addition (screenshot on the Map tab, phone width).
 
