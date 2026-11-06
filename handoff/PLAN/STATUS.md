@@ -76,9 +76,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   PARTIAL: owner reads `GET /crashes`, privacy wording, T407). T420/T401 reproduce only on a CPU-starved emulator;
   lever = the colouring's per-tile events (fix proposed: send each tile's ids once per watch, native patch). T351 not
   reproduced (peak 385 MB). T410 native pass 6/6. New T440: first-run notice missing from the Android a11y tree.
-- **Release prep:** app 0.6.3 + changelog (ece6cf2b7); fixtures re-cut on r-4230bc0c1dd5; test source walks skip the
-  generated native dirs (5af27a6d8). **In flight:** full `pnpm check` → `build-apk.sh --play` (log `~/apk-1106.log`),
-  then the emulator walk on that build and the feeds worker deploy.
+- **0.6.3 on Play internal (versionCode 12, 12f3dd109):** `pnpm check` 6674 pass after re-cutting every fixture on
+  r-4230bc0c1dd5 (taps, fixture release, VM fixtures, section-lines, pinned ids — four rounds; T441 filed to make it one
+  step). **In flight:** emulator walk (install, walkthrough, regs-open, water-nav; `~/walk-063.log`), then the staging
+  feeds worker deploy (`deploy/staging/feeds.sh`).
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
