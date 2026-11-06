@@ -1,6 +1,6 @@
 # T444 — Crash: "water map: part 0 of gnis:3062 is not in its group" (Chilliwack map view)
 
-Status: DONE (2026-11-06). Cause: `useAsync` hands back the LAST key's answer for the one render after a key change, so a frame moved to the Vedder met the Chilliwack's group in `waterMapStartIx`. `useWaterGroups` now tags each answer with its key; another key's answer reads as loading. Pinned in `WaterMapView.test.tsx` (fails without the fix with the exact staging report).
+Status: DONE (2026-11-06, 6ea40732d). Cause: `useAsync` hands back the LAST key's answer for the one render after a key change, so a frame moved to the Vedder met the Chilliwack's group in `waterMapStartIx`. `useWaterGroups` now tags each answer with its key; another key's answer reads as loading. Pinned in `WaterMapView.test.tsx` (fails without the fix with the exact staging report).
 
 Source: staging worker `GET /crashes` (read 2026-11-06), kind 446ddf96b4937153: 0.6.2 (build 11, d6deee4), Android 37
 (owner's phone), route water, water gnis:8634 (Chilliwack River), view map, part 1; non-fatal JS error thrown in
