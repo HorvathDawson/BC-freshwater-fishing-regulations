@@ -1,12 +1,12 @@
 {
  "_about": "DFO extent SUGGESTIONS (T164 / T210 follow-up) — never applied. The review app's DFO mode shows each one; 'accept suggestion' pre-fills the extent-fix editor and the owner saves it as their mark. Regenerate: python -m pipeline.regs.dfo_salmon.suggest",
- "generated": "2026-11-05",
+ "generated": "2026-11-06",
  "counts": {
   "existing": 52,
   "new_high": 24,
-  "new_low": 20,
-  "new_medium": 21,
-  "none": 15,
+  "new_low": 18,
+  "new_medium": 20,
+  "none": 14,
   "whole": 47
  },
  "outcomes": {
@@ -14,20 +14,19 @@
   "existing_low": 4,
   "existing_medium": 16,
   "new_high": 24,
-  "new_low": 20,
-  "new_medium": 21,
-  "unresolvable": 15,
+  "new_low": 18,
+  "new_medium": 20,
+  "unresolvable": 14,
   "whole": 47
  },
  "why": {
   "lake_area": 12,
-  "needs_split": 57,
-  "no_water": 1,
+  "needs_split": 56,
   "review_pending": 80,
   "side_channel": 3,
   "tributary_set": 3,
   "unknown_landmark": 2,
-  "variant": 15,
+  "variant": 13,
   "variant_of_placed": 6
  },
  "suggestions": {
@@ -199,116 +198,6 @@
    "status": "active",
    "why": "review_pending",
    "outcome": "whole"
-  },
-  "1:little-qualicum-river:from-the-falls-in-little-qualicum": {
-   "location_id": "1:little-qualicum-river:from-the-falls-in-little-qualicum",
-   "water": "Little Qualicum River",
-   "text": "from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence",
-   "notice_op": "between",
-   "items": [
-    "gnis:10886"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "sg1"
-     },
-     {
-      "kind": "split",
-      "split_id": "little_qualicum_river__hatchery_fence"
-     }
-    ],
-    "items": [
-     "gnis:10886"
-    ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "sg1",
-      "anchor": "coord",
-      "name": "Little Qualicum Falls",
-      "coord": [
-       -124.555642,
-       49.3177
-      ],
-      "on_item": "gnis:10886",
-      "blk": "354154742",
-      "measure": 12583.3,
-      "quote": "the falls in Little Qualicum Falls Provincial Park",
-      "confidence": "medium"
-     }
-    ],
-    "words": "between Little Qualicum Falls and hatchery fence"
-   },
-   "confidence": "medium",
-   "matched": "new",
-   "reason": "medium: Little Qualicum Falls: the OSM waterfall 0 m from the water; medium: \"fence, hatchery\" -> the curated cut `little_qualicum_river__hatchery_fence` (hatchery fence)",
-   "endpoints": [
-    {
-     "phrase": "the falls in Little Qualicum Falls Provincial Park",
-     "kind": "new",
-     "confidence": "medium",
-     "reason": "Little Qualicum Falls: the OSM waterfall 0 m from the water",
-     "label": "Little Qualicum Falls",
-     "fix": {
-      "kind": "new",
-      "split_id": "sg1"
-     },
-     "new_split": {
-      "ref": "sg1",
-      "anchor": "coord",
-      "name": "Little Qualicum Falls",
-      "coord": [
-       -124.555642,
-       49.3177
-      ],
-      "on_item": "gnis:10886",
-      "blk": "354154742",
-      "measure": 12583.3,
-      "quote": "the falls in Little Qualicum Falls Provincial Park"
-     },
-     "coord": [
-      -124.555642,
-      49.3177
-     ],
-     "item_id": "gnis:10886"
-    },
-    {
-     "phrase": "the hatchery fence",
-     "kind": "split",
-     "confidence": "medium",
-     "reason": "\"fence, hatchery\" -> the curated cut `little_qualicum_river__hatchery_fence` (hatchery fence)",
-     "label": "hatchery fence",
-     "fix": {
-      "kind": "split",
-      "split_id": "little_qualicum_river__hatchery_fence"
-     },
-     "item_id": "gnis:10886"
-    }
-   ],
-   "points": [
-    {
-     "label": "Little Qualicum Falls",
-     "coord": [
-      -124.555642,
-      49.3177
-     ],
-     "kind": "new",
-     "split_id": "sg1"
-    },
-    {
-     "label": "hatchery fence",
-     "coord": null,
-     "kind": "split",
-     "split_id": "little_qualicum_river__hatchery_fence"
-    }
-   ],
-   "state": "needs_cut",
-   "status": "active",
-   "why": "needs_split",
-   "outcome": "new_medium"
   },
   "1:nanaimo-river:including-tributaries-except-in-th": {
    "location_id": "1:nanaimo-river:including-tributaries-except-in-th",
@@ -724,25 +613,25 @@
    "endpoints": [
     {
      "phrase": "100m upstream of the Quatse River Hatchery weir",
-     "kind": "proposed",
-     "confidence": "high",
-     "reason": "\"100m-up, hatchery, quatse, upstream, weir\" -> the proposed cut `n2-2-u100` (Quatse River Hatchery weir (100 m upstream) (medium confidence))",
-     "label": "Quatse River Hatchery weir (100 m upstream) (medium confidence)",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"100m-up, hatchery, quatse, upstream, weir\" -> the curated cut `quatse_river__quatse_river_hatchery_weir_100_m_2` (Quatse River Hatchery weir (100 m upstream)); as close: `n2-2-u100` (Quatse River Hatchery weir (100 m upstream) (medium confidence))",
+     "label": "Quatse River Hatchery weir (100 m upstream)",
      "fix": {
-      "kind": "new",
-      "split_id": "n2-2-u100"
+      "kind": "split",
+      "split_id": "quatse_river__quatse_river_hatchery_weir_100_m_2"
      },
      "item_id": "gnis:32101"
     },
     {
      "phrase": "100m downstream of the Quatse River Hatchery weir",
-     "kind": "proposed",
-     "confidence": "high",
-     "reason": "\"100m-down, downstream, hatchery, quatse, weir\" -> the proposed cut `n2-2-d100` (Quatse River Hatchery weir (100 m downstream) (medium confidence))",
-     "label": "Quatse River Hatchery weir (100 m downstream) (medium confidence)",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"100m-down, downstream, hatchery, quatse, weir\" -> the curated cut `quatse_river__quatse_river_hatchery_weir_100_m` (Quatse River Hatchery weir (100 m downstream)); as close: `n2-2-d100` (Quatse River Hatchery weir (100 m downstream) (medium confidence))",
+     "label": "Quatse River Hatchery weir (100 m downstream)",
      "fix": {
-      "kind": "new",
-      "split_id": "n2-2-d100"
+      "kind": "split",
+      "split_id": "quatse_river__quatse_river_hatchery_weir_100_m"
      },
      "item_id": "gnis:32101"
     }
@@ -822,7 +711,7 @@
     ],
     "matcher": {
      "matched": "existing",
-     "reason": "high: \"100m-up, hatchery, quatse, upstream, weir\" -> the proposed cut `n2-2-u100` (Quatse River Hatchery weir (100 m upstream) (medium confidence)); high: \"100m-down, downstream, hatchery, quatse, weir\" -> the proposed cut `n2-2-d100` (Quatse River Hatchery weir (100 m downstream) (medium confidence))"
+     "reason": "low: \"100m-up, hatchery, quatse, upstream, weir\" -> the curated cut `quatse_river__quatse_river_hatchery_weir_100_m_2` (Quatse River Hatchery weir (100 m upstream)); as close: `n2-2-u100` (Quatse River Hatchery weir (100 m upstream) (medium confidence)); low: \"100m-down, downstream, hatchery, quatse, weir\" -> the curated cut `quatse_river__quatse_river_hatchery_weir_100_m` (Quatse River Hatchery weir (100 m downstream)); as close: `n2-2-d100` (Quatse River Hatchery weir (100 m downstream) (medium confidence))"
     }
    },
    "state": "needs_cut",
@@ -1616,20 +1505,7 @@
    },
    "state": "needs_cut",
    "status": "dormant",
-   "cluster": {
-    "id": "1:stamp-river#6",
-    "members": [
-     "1:stamp-river:from-the-inlet-upstream-of-roberst",
-     "1:stamp-river:hatchery-lagoon-from-fishing-bound"
-    ],
-    "placed": [],
-    "canonical": "1:stamp-river:from-the-inlet-upstream-of-roberst",
-    "role": "agrees",
-    "links": {
-     "1:stamp-river:from-the-inlet-upstream-of-roberst": "same extent 0.50"
-    }
-   },
-   "why": "variant",
+   "why": "needs_split",
    "outcome": "new_low"
   },
   "1:stamp-river:powerline-crossing-from-boundary-s": {
@@ -1784,20 +1660,7 @@
    },
    "state": "needs_cut",
    "status": "dormant",
-   "cluster": {
-    "id": "1:stamp-river#7",
-    "members": [
-     "1:stamp-river:from-the-powerline-crossing-downst",
-     "1:stamp-river:powerline-crossing-from-boundary-s"
-    ],
-    "placed": [],
-    "canonical": "1:stamp-river:from-the-powerline-crossing-downst",
-    "role": "agrees",
-    "links": {
-     "1:stamp-river:from-the-powerline-crossing-downst": "same extent 0.64"
-    }
-   },
-   "why": "variant",
+   "why": "needs_split",
    "outcome": "new_low"
   },
   "1:stamp-river:upstream-of-signs-located-at-girl": {
@@ -2066,340 +1929,6 @@
    "why": "needs_split",
    "outcome": "new_high"
   },
-  "1:stamp-river:from-the-inlet-upstream-of-roberst": {
-   "location_id": "1:stamp-river:from-the-inlet-upstream-of-roberst",
-   "water": "Stamp River",
-   "text": "From the inlet upstream of Roberston Creek Hatchery Lagoon downstream to the outlet of the Hatchery lagoon. Square boundary signs may be present to delineate these boundaries.",
-   "notice_op": "between",
-   "items": [
-    "gnis:14533"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "stamp_lagoon_inlet"
-     },
-     {
-      "kind": "new",
-      "split_id": "stamp_lagoon_outlet"
-     }
-    ],
-    "items": [
-     "gnis:14533"
-    ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "blk": "354154793",
-      "measure": 18376.3,
-      "note": "[split hunt low] boundary signs at the inlet of the Robertson Creek Hatchery lagoon. Sources: https://www.openstreetmap.org/way/650430279. the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped."
-     },
-     {
-      "ref": "stamp_lagoon_outlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon outlet",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.982162,
-       49.339141
-      ],
-      "blk": "354154793",
-      "measure": 17990.9,
-      "note": "[split hunt low] the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters. Sources: https://www.openstreetmap.org/way/650430279. guess: the lagoon's outlet sits near the Robertson Creek mouth; not mapped."
-     }
-    ],
-    "words": "between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet"
-   },
-   "confidence": "low",
-   "matched": "new",
-   "reason": "split hunt: lagoon inlet to lagoon outlet.; low: boundary signs at the inlet of the Robertson Creek Hatchery lagoon; low: the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters",
-   "endpoints": [
-    {
-     "phrase": "the inlet upstream of Roberston Creek Hatchery Lagoon",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    },
-    {
-     "phrase": "the outlet of the Hatchery lagoon",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    }
-   ],
-   "points": [
-    {
-     "label": "Robertson Creek Hatchery lagoon inlet",
-     "coord": [
-      -124.987101,
-      49.339393
-     ],
-     "kind": "new",
-     "split_id": "stamp_lagoon_inlet"
-    },
-    {
-     "label": "Robertson Creek Hatchery lagoon outlet",
-     "coord": [
-      -124.982162,
-      49.339141
-     ],
-     "kind": "new",
-     "split_id": "stamp_lagoon_outlet"
-    }
-   ],
-   "hunt": {
-    "status": "found",
-    "notes": "lagoon inlet to lagoon outlet.",
-    "proposals": [
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "confidence": "low",
-      "description": "boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
-      "sources": [
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped.",
-      "lat": 49.3394,
-      "lon": -124.9871,
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.8,
-      "blk": "354154793",
-      "measure": 18376.3
-     },
-     {
-      "ref": "stamp_lagoon_outlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon outlet",
-      "confidence": "low",
-      "description": "the marker at the outlet of the hatchery lagoon, taken near where Robertson Creek enters",
-      "sources": [
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "guess: the lagoon's outlet sits near the Robertson Creek mouth; not mapped.",
-      "lat": 49.3391,
-      "lon": -124.9822,
-      "coord": [
-       -124.982162,
-       49.339141
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 5.4,
-      "blk": "354154793",
-      "measure": 17990.9
-     }
-    ],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
-    ],
-    "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place; none: no curated cut, proposal or data point names this place"
-    }
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "1:stamp-river#6",
-    "members": [
-     "1:stamp-river:from-the-inlet-upstream-of-roberst",
-     "1:stamp-river:hatchery-lagoon-from-fishing-bound"
-    ],
-    "placed": [],
-    "canonical": "1:stamp-river:from-the-inlet-upstream-of-roberst",
-    "role": "canonical",
-    "links": {
-     "1:stamp-river:hatchery-lagoon-from-fishing-bound": "same extent 0.50"
-    }
-   },
-   "why": "needs_split",
-   "outcome": "new_low"
-  },
-  "1:stamp-river:from-the-powerline-crossing-downst": {
-   "location_id": "1:stamp-river:from-the-powerline-crossing-downst",
-   "water": "Stamp River",
-   "text": "From the powerline crossing downstream approximately 500m to the inlet of Roberston Creek Hatchery Lagoon. Square boundary signs may be present to delineate the downstream boundary.",
-   "notice_op": "between",
-   "items": [
-    "gnis:14533"
-   ],
-   "suggestion": {
-    "op": "between",
-    "points": [
-     {
-      "kind": "new",
-      "split_id": "stamp_powerline"
-     },
-     {
-      "kind": "new",
-      "split_id": "stamp_lagoon_inlet"
-     }
-    ],
-    "items": [
-     "gnis:14533"
-    ],
-    "tributaries": null,
-    "new_splits": [
-     {
-      "ref": "stamp_powerline",
-      "anchor": "coord",
-      "name": "Stamp River powerline crossing (BC Hydro 1L127)",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.991707,
-       49.337999
-      ],
-      "blk": "354154793",
-      "measure": 18870.8,
-      "note": "[split hunt medium] where BC Hydro line 1L127 crosses the Stamp above Robertson Creek Hatchery. Sources: https://www.openstreetmap.org/way/204089495 ; https://www.openstreetmap.org/way/156725624 ; https://www.openstreetmap.org/way/650430279. exact OSM crossing of the river and the power line; medium because the notice's line could be another span."
-     },
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "on_item": "gnis:14533",
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "blk": "354154793",
-      "measure": 18376.3,
-      "note": "[split hunt low] boundary signs at the inlet of the Robertson Creek Hatchery lagoon. Sources: https://www.openstreetmap.org/way/650430279. the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped."
-     }
-    ],
-    "words": "between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet"
-   },
-   "confidence": "low",
-   "matched": "new",
-   "reason": "split hunt: the powerline crossing down ~500 m to the lagoon inlet.; medium: where BC Hydro line 1L127 crosses the Stamp above Robertson Creek Hatchery; low: boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
-   "endpoints": [
-    {
-     "phrase": "the powerline crossing",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    },
-    {
-     "phrase": "the inlet of Roberston Creek Hatchery Lagoon",
-     "kind": "none",
-     "confidence": "none",
-     "reason": "no curated cut, proposal or data point names this place"
-    }
-   ],
-   "points": [
-    {
-     "label": "Stamp River powerline crossing (BC Hydro 1L127)",
-     "coord": [
-      -124.991707,
-      49.337999
-     ],
-     "kind": "new",
-     "split_id": "stamp_powerline"
-    },
-    {
-     "label": "Robertson Creek Hatchery lagoon inlet",
-     "coord": [
-      -124.987101,
-      49.339393
-     ],
-     "kind": "new",
-     "split_id": "stamp_lagoon_inlet"
-    }
-   ],
-   "hunt": {
-    "status": "found",
-    "notes": "the powerline crossing down ~500 m to the lagoon inlet.",
-    "proposals": [
-     {
-      "ref": "stamp_powerline",
-      "anchor": "coord",
-      "name": "Stamp River powerline crossing (BC Hydro 1L127)",
-      "confidence": "medium",
-      "description": "where BC Hydro line 1L127 crosses the Stamp above Robertson Creek Hatchery",
-      "sources": [
-       "https://www.openstreetmap.org/way/204089495",
-       "https://www.openstreetmap.org/way/156725624",
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "exact OSM crossing of the river and the power line; medium because the notice's line could be another span.",
-      "lat": 49.338,
-      "lon": -124.9917,
-      "coord": [
-       -124.991707,
-       49.337999
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.5,
-      "blk": "354154793",
-      "measure": 18870.8
-     },
-     {
-      "ref": "stamp_lagoon_inlet",
-      "anchor": "sign",
-      "name": "Robertson Creek Hatchery lagoon inlet",
-      "confidence": "low",
-      "description": "boundary signs at the inlet of the Robertson Creek Hatchery lagoon",
-      "sources": [
-       "https://www.openstreetmap.org/way/650430279"
-      ],
-      "notes": "the powerline crossing moved ~500 m downstream (the notice: 'powerline crossing downstream approximately 500m to the inlet'); the lagoon itself is not mapped.",
-      "lat": 49.3394,
-      "lon": -124.9871,
-      "coord": [
-       -124.987101,
-       49.339393
-      ],
-      "offset_m": null,
-      "split_id": null,
-      "snap_m": 0.8,
-      "blk": "354154793",
-      "measure": 18376.3
-     }
-    ],
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region1-eng.html"
-    ],
-    "matcher": {
-     "matched": "none",
-     "reason": "none: no curated cut, proposal or data point names this place; none: no curated cut, proposal or data point names this place"
-    }
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "cluster": {
-    "id": "1:stamp-river#7",
-    "members": [
-     "1:stamp-river:from-the-powerline-crossing-downst",
-     "1:stamp-river:powerline-crossing-from-boundary-s"
-    ],
-    "placed": [],
-    "canonical": "1:stamp-river:from-the-powerline-crossing-downst",
-    "role": "canonical",
-    "links": {
-     "1:stamp-river:powerline-crossing-from-boundary-s": "same extent 0.64"
-    }
-   },
-   "why": "needs_split",
-   "outcome": "new_low"
-  },
   "1:stamp-river:from-the-southern-portion-of-the-r": {
    "location_id": "1:stamp-river:from-the-southern-portion-of-the-r",
    "water": "Stamp River",
@@ -2460,13 +1989,13 @@
    "endpoints": [
     {
      "phrase": "the southern portion of the Robertson Creek Hatchery Lagoon, east of a line drawn from the southern shoreline at the inlet",
-     "kind": "proposed",
-     "confidence": "medium",
-     "reason": "\"hatchery, inlet, lagoon, robertson\" -> the proposed cut `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence))",
-     "label": "Robertson Creek Hatchery lagoon inlet (medium confidence)",
+     "kind": "split",
+     "confidence": "low",
+     "reason": "\"hatchery, inlet, lagoon, robertson\" -> the curated cut `stamp_river__robertson_creek_hatchery_lagoon_2` (Robertson Creek Hatchery lagoon inlet); as close: `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence))",
+     "label": "Robertson Creek Hatchery lagoon inlet",
      "fix": {
-      "kind": "new",
-      "split_id": "stamp_lagoon_inlet"
+      "kind": "split",
+      "split_id": "stamp_river__robertson_creek_hatchery_lagoon_2"
      },
      "item_id": "gnis:14533"
     },
@@ -2551,7 +2080,7 @@
     ],
     "matcher": {
      "matched": "partial",
-     "reason": "medium: \"hatchery, inlet, lagoon, robertson\" -> the proposed cut `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence)); none: no curated cut, proposal or data point names this place"
+     "reason": "low: \"hatchery, inlet, lagoon, robertson\" -> the curated cut `stamp_river__robertson_creek_hatchery_lagoon_2` (Robertson Creek Hatchery lagoon inlet); as close: `stamp_lagoon_inlet` (Robertson Creek Hatchery lagoon inlet (medium confidence)); none: no curated cut, proposal or data point names this place"
     }
    },
    "state": "needs_cut",
@@ -8874,53 +8403,6 @@
    "why": "review_pending",
    "outcome": "existing_medium"
   },
-  "6:sheldens-creek:upstream-of-white-triangular-fishi": {
-   "location_id": "6:sheldens-creek:upstream-of-white-triangular-fishi",
-   "water": "Sheldens Creek",
-   "text": "upstream of white triangular fishing boundary signs located at the Spur 19 Bridge site.",
-   "notice_op": "upstream_of",
-   "items": [
-    "blk:360846083"
-   ],
-   "suggestion": null,
-   "confidence": "none",
-   "matched": "none",
-   "reason": "high: \"19, bridge, spur\" -> the proposed cut `sheldens_creek__spur_19_bridge_site` (Spur 19 Bridge site (medium confidence))",
-   "endpoints": [
-    {
-     "phrase": "upstream of white triangular fishing boundary signs located at the Spur 19 Bridge site",
-     "kind": "proposed",
-     "confidence": "high",
-     "reason": "\"19, bridge, spur\" -> the proposed cut `sheldens_creek__spur_19_bridge_site` (Spur 19 Bridge site (medium confidence))",
-     "label": "Spur 19 Bridge site (medium confidence)",
-     "fix": {
-      "kind": "new",
-      "split_id": "sheldens_creek__spur_19_bridge_site"
-     },
-     "item_id": "blk:360846083"
-    }
-   ],
-   "points": [
-    {
-     "label": "Spur 19 Bridge site (medium confidence)",
-     "coord": null,
-     "kind": "proposed",
-     "split_id": "sheldens_creek__spur_19_bridge_site"
-    }
-   ],
-   "hunt": {
-    "status": "not_found",
-    "why": "(T164 2026-10-29) the WATER is the open question, not the cut. Proposed match: the unnamed FWA stream blk 360846083 (code 950-016367) into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677) — the forest roads around it are all named for it (FTEN R06206 'SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100–SHEL103). The cut: FTEN road 'SP 19(1) TO SHELDONS' (R06206 sec 331, ACTIVE) crosses that line at 53.12968,-131.78224, FWA measure 3402 m (exact road×stream intersection) — the Spur 19 bridge site, medium. The name is a REVIEW row in the Names mode (candidate `blk:360846083~sheldens-creek`, never auto-accepted): accepting it names the line, the DFO matcher then binds the water, and this cut becomes placeable here.",
-    "sources": [
-     "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region6-eng.html"
-    ],
-    "category": "no_water"
-   },
-   "state": "needs_cut",
-   "status": "active",
-   "why": "no_water",
-   "outcome": "unresolvable"
-  },
   "6:bish-creek:including-tributaries": {
    "location_id": "6:bish-creek:including-tributaries",
    "water": "Bish Creek",
@@ -14026,8 +13508,8 @@
      -124.983276,
      51.986316
     ],
-    "down_sid": 1235562,
-    "up_sid": 766564,
+    "down_sid": 1235569,
+    "up_sid": 766570,
     "places": {
      "below": [
       [
@@ -14075,8 +13557,8 @@
       -124.983276,
       51.986316
      ],
-     "down_sid": 1235562,
-     "up_sid": 766564,
+     "down_sid": 1235569,
+     "up_sid": 766570,
      "places": {
       "below": [
        [

@@ -142,3 +142,10 @@ bindings landed) + 49 dormant.
 - **Left — owner time:** the 179 in the review app's DFO mode (accept suggestion → Save extent), incl. T229 Q3
   (Skeena "mainstem waters only" clipped to B(i)) and the 3 DFO items T326 waits on. Then Claude: a reach-only rerun
   (memory reach-only-rerun) + the measured binding diff (step 5) and the acceptance check on Skeena/Fraser/Cowichan.
+
+## 2026-11-06 (chat 4): proposals refreshed on r-67b456b5e64b
+`suggest` on today's build (T326's 7 cuts in, T449 skips tidal places): 177 proposals (was 181). 4 dropped because
+they now bind or resolved (Little Qualicum falls, Stamp inlet + powerline downstream — the T326 cuts — and Sheldens
+Creek); 5 re-proposed around the new cuts (Quatse ±100 m, three Stamp places, 5b region section). Counts: 52 on existing
+cuts, 47 whole water, 62 new splits (24 high / 20 medium / 18 low), 14 unresolvable. Owner time left as before: the
+177 in the review app's DFO mode; then Claude's reach-only rerun + binding diff.

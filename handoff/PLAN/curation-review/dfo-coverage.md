@@ -1,6 +1,6 @@
 # DFO extent coverage — every historic location (owner 2026-10-27)
 
-352 historic DFO salmon locations (all scrapes, active + dormant); 173 have a curated extent; the other **179** are below — each with a proposal + confidence + evidence in the review app's DFO mode (`accept suggestion` pre-fills the editor; **Save extent** — your mark — is the only write). Nothing touched splits.json, the catalogue or marks.jsonl.
+352 historic DFO salmon locations (all scrapes, active + dormant); 177 have a curated extent; the other **175** are below — each with a proposal + confidence + evidence in the review app's DFO mode (`accept suggestion` pre-fills the editor; **Save extent** — your mark — is the only write). Nothing touched splits.json, the catalogue or marks.jsonl.
 
 Regenerate: `python -m pipeline.regs.dfo_salmon.suggest` (matcher → split hunt `dfo-split-hunt.json` → this pass, `pipeline/regs/dfo_salmon/coverage.py`).
 
@@ -10,24 +10,23 @@ Regenerate: `python -m pipeline.regs.dfo_salmon.suggest` (matcher → split hunt
 |---|---|---|---|---|
 | matched to EXISTING cuts | 32 | 16 | 4 | 52 |
 | the whole water (no cut) | | | | 47 |
-| NEW split proposed | 24 | 21 | 20 | 65 |
-| unresolvable (why below) | | | | 15 |
+| NEW split proposed | 24 | 20 | 18 | 62 |
+| unresolvable (why below) | | | | 14 |
 
-Clusters of rewordings with an unplaced member: **25** (covering 58 locations, placed members included). Unplaced members: inherit a curated extent 6, adopt the cluster's better suggestion 1, already agree 20, canonical 20, member (own reading kept — differs in meaning) 5.
+Clusters of rewordings with an unplaced member: **23** (covering 54 locations, placed members included). Unplaced members: inherit a curated extent 6, adopt the cluster's better suggestion 1, already agree 18, canonical 18, member (own reading kept — differs in meaning) 5.
 
 ## Why each was unplaced
 
 | why | n | meaning |
 |---|---|---|
 | review_pending | 80 | existing cuts (or the whole water) say it — never curated, owner review pending |
-| needs_split | 57 | the water lacks a cut it needs — a NEW split is proposed |
-| variant | 15 | a rewording of another unplaced location (one decision covers the cluster) |
+| needs_split | 56 | the water lacks a cut it needs — a NEW split is proposed |
+| variant | 13 | a rewording of another unplaced location (one decision covers the cluster) |
 | lake_area | 12 | a part of a lake (a line across it / a radius) — not a cut on a line; lake splits are deferred |
 | variant_of_placed | 6 | a rewording of a location that already has a curated extent |
 | side_channel | 3 | a side channel FWA does not draw — needs an added stream or an area |
 | tributary_set | 3 | tributaries only — a mark cannot say tributaries-only |
 | unknown_landmark | 2 | the notice's landmark is named nowhere public |
-| no_water | 1 | the location's water is not matched to the registry |
 
 ## Unresolvable
 
@@ -42,7 +41,6 @@ Clusters of rewordings with an unplaced member: **25** (covering 58 locations, p
 | `8:mabel-lake:northerly-of-a-line-drawn-from-a-w` | lake_area | lake areas (a line from Mabel Lake Provincial Park's north edge to a western point; signs ~1 km from Wap Creek) — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
 | `8:osoyoos-lake:in-the-waters-in-the-portion-of-os` | lake_area | Osoyoos Lake north of the Hwy 3 bridge (the North Basin): a lake part — the bridge (Hwy 3, Osoyoos narrows) is a line across the lake, curate as a lake split by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
 | `8:osoyoos-lake:in-the-waters-in-the-portion-of-os~2` | lake_area | same North Basin lake part — curate by hand. Owner rule (lake-splits-deferred): a lake divided into closure areas is deferred — curate later as a lake split / sign-zone area. |
-| `6:sheldens-creek:upstream-of-white-triangular-fishi` | no_water | (T164 2026-10-29) the WATER is the open question, not the cut. Proposed match: the unnamed FWA stream blk 360846083 (code 950-016367) into Sheldens Bay, Moresby Island (mouth 53.14874,-131.76677) — the forest roads around it are all named for it (FTEN R06206 'SP 19(1) TO SHELDONS', 'SP 19H TO SHELDONS', SHEL100–SHEL103). The cut: FTEN road 'SP 19(1) TO SHELDONS' (R06206 sec 331, ACTIVE) crosses that line at 53.12968,-131.78224, FWA measure 3402 m (exact road×stream intersection) — the Spur 19 bridge site, medium. The name is a REVIEW row in the Names mode (candidate `blk:360846083~sheldens-creek`, never auto-accepted): accepting it names the line, the DFO matcher then binds the water, and this cut becomes placeable here. |
 | `2:stave-river:in-that-portion-of-the-stave-river` | side_channel | Ruskin + Northrop spawning channels — both side channels off the FWA Stave (Ruskin: OSM 1485091713, inlet 49.1950,-122.4085; Northrop: OSM 72823766, intake 49.1938,-122.4120, joins the mainstem ≈ 49.1892,-122.4121). |
 | `2:stave-river:that-portion-of-the-stave-river-kn` | side_channel | the Ruskin Spawning Channel is a side channel on the east bank, not on the FWA Stave line. Mapped (OSM 1485091713 'Ruskin Channel'): inlet near the dam 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070, joins the Stave ≈ 49.1864,-122.4092 — needs an added channel or an area, by hand. |
 | `2:stave-river:the-ruskin-spawning-channel-on-the` | side_channel | same Ruskin Spawning Channel (side channel, not on the FWA Stave): inlet 49.1950,-122.4085, boat-ramp crossing ≈ 49.1921,-122.4070 (OSM 1485091713). |
@@ -69,8 +67,6 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 - `1:sproat-river:from-sproat-lake-to-approx-300m-be` (placed) · `1:sproat-river:sproat-river-from-sproat-lake-to-f` (inherits)
 - `1:stamp-river:stamp-river-downstream-of-girl-gui` (placed) · `1:stamp-river:downstream-of-signs-at-girl-guide` (inherits)
 - `1:stamp-river:from-the-confluence-of-the-ash-riv~2` (placed) · `1:stamp-river:from-the-confluence-of-the-ash-riv` (inherits)
-- `1:stamp-river:from-the-inlet-upstream-of-roberst` (canonical) · `1:stamp-river:hatchery-lagoon-from-fishing-bound` (agrees)
-- `1:stamp-river:from-the-powerline-crossing-downst` (canonical) · `1:stamp-river:powerline-crossing-from-boundary-s` (agrees)
 - `2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f` (canonical) · `2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis` (agrees)
 - `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3` (canonical) · `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun` (agrees) · `2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2` (agrees) · `2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2` (agrees)
 - `2:fraser-river:mainstem-waters-from-the-downstrea` (canonical) · `2:fraser-river:from-the-downstream-side-of-the-cp` (member) · `2:fraser-river:from-the-downstream-side-of-the-cp~2` (member) · `2:fraser-river:mainstem-waters-downstream-of-the` (adopts)
@@ -99,7 +95,6 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s` | dormant | needs_split | between CNR Bridge (mile 70.2) and Skutz Falls | high |
 | `1:cowichan-river:including-tributaries-and-cowichan` | dormant | review_pending | the whole water | medium |
 | `1:koksilah-river:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
-| `1:little-qualicum-river:from-the-falls-in-little-qualicum` | active | needs_split | between Little Qualicum Falls and hatchery fence | medium |
 | `1:nanaimo-river:cedar-road-bridge-upstream-approx` | dormant | variant_of_placed | between Cedar Road bridge and Hwy 19 bridge | high |
 | `1:nanaimo-river:in-subarea-17-14-tidal-portions-of` | active | review_pending | downstream of Cedar Road bridge | high |
 | `1:nanaimo-river:in-subarea-17-14-tidal-portions-of~2` | active | needs_split | between Cedar Road bridge and signs 400 m below the Cedar Road bridge | medium |
@@ -114,12 +109,10 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `1:stamp-river:between-fishing-boundary-signs-app` | dormant | review_pending | between fishing boundary signs 200 m upstream of Stamp Falls and signs 500 m downstream of Stamp Falls | high |
 | `1:stamp-river:downstream-of-signs-at-girl-guide` | dormant | variant_of_placed | downstream of Girl Guide Falls signs | medium |
 | `1:stamp-river:from-the-confluence-of-the-ash-riv` | dormant | variant_of_placed | upstream of Ash River → Stamp River | high |
-| `1:stamp-river:from-the-inlet-upstream-of-roberst` | active | needs_split | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low |
-| `1:stamp-river:from-the-powerline-crossing-downst` | active | needs_split | between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet | low |
 | `1:stamp-river:from-the-southern-portion-of-the-r` | dormant | needs_split | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low |
 | `1:stamp-river:hatchery-lagoon-from-boundary-sign` | dormant | needs_split | between Robertson Creek Hatchery lagoon inlet and Stamp River cable car crossing | low |
-| `1:stamp-river:hatchery-lagoon-from-fishing-bound` | dormant | variant | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low |
-| `1:stamp-river:powerline-crossing-from-boundary-s` | dormant | variant | between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet | low |
+| `1:stamp-river:hatchery-lagoon-from-fishing-bound` | dormant | needs_split | between Robertson Creek Hatchery lagoon inlet and Robertson Creek Hatchery lagoon outlet | low |
+| `1:stamp-river:powerline-crossing-from-boundary-s` | dormant | needs_split | between Stamp River powerline crossing (BC Hydro 1L127) and Robertson Creek Hatchery lagoon inlet | low |
 | `1:stamp-river:upstream-of-signs-located-at-girl` | dormant | review_pending | upstream of Girl Guide Falls signs | medium |
 | `2:alouette-river-and-tributaries:above-216th-street-including-the-n` | dormant | review_pending | upstream of 216 Street bridge | low |
 | `2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis` | dormant | variant | downstream of Allco Park boundary signs (Allco hatchery fence) | medium |
@@ -245,7 +238,6 @@ Canonical first; **placed** = has a curated extent; role of each unplaced member
 | `6:redsand-lake:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
 | `6:scotia-river:including-tributaries` | active | review_pending | the whole water with its tributaries | high |
 | `6:shegunia-river:between-fishing-boundary-signs-loc` | active | needs_split | between signs above the Shegunia logging road bridge and signs below the Shegunia logging road bridge | low |
-| `6:sheldens-creek:upstream-of-white-triangular-fishi` | active | no_water | — | none |
 | `6:skeena-river:from-lakelse-river-mouth-upstream` | dormant | needs_split | between confluence of Lakelse River and Skeena River Overpass (Dudley Little Bridge) at Ferry Island | high |
 | `6:skeena-river:from-the-confluence-with-the-babin` | dormant | variant_of_placed | between CNR Railway Bridge at Terrace and gauge__08EB005 | high |
 | `6:skeena-river:upstream-of-cnr-bridge-at-terrace` | dormant | variant_of_placed | between CNR Railway Bridge at Terrace and gauge__08EB005 | high |
