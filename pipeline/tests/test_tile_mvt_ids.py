@@ -88,11 +88,12 @@ def _captured_build(tmp_path, monkeypatch, **kw):
     return calls
 
 
-@pytest.mark.parametrize("bands", [dict(), dict(minzoom=9, maxzoom=14)], ids=["two-band", "single-pass"])
+@pytest.mark.parametrize("bands", [dict(), dict(minzoom=9, maxzoom=14)], ids=["per-zoom", "single-pass"])
 def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id(tmp_path, monkeypatch, bands):
     calls = _captured_build(tmp_path, monkeypatch, **bands)
     runs = [(cmd, files) for cmd, files in calls if cmd[0] == "tippecanoe"]
-    assert runs and len(runs) == (2 if not bands else 1)
+    # T419: one pass per zoom below the top (z4-z12) and one for the top (z13)
+    assert runs and len(runs) == (10 if not bands else 1)
     for cmd, files in runs:
         # the id is stamped and checked per feature — see the module docstring
         assert not any(a.startswith(("--use-attribute-for-id", "-ai", "--generate-ids")) for a in cmd)
@@ -106,13 +107,13 @@ def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id
                     assert "section_id" not in f["properties"], f"{layer}: the id ships twice: {f}"
                 else:
                     assert "id" not in f, f"{layer} must not get an MVT id: {f}"
-        assert {"stream", "park"} <= seen
+        assert seen & {"stream", "park"}
     if not bands:
-        low, high = runs
-        low_streams = [f for fs in low[1].values() for f in fs if f["tippecanoe"]["layer"] == "stream"]
-        assert [f["id"] for f in low_streams] == [11], "the low band still holds only what it draws"
-        high_streams = [f for fs in high[1].values() for f in fs if f["tippecanoe"]["layer"] == "stream"]
-        assert [f["id"] for f in high_streams] == [11, 12]
+        def streams(run):
+            return [f["id"] for fs in run[1].values() for f in fs if f["tippecanoe"]["layer"] == "stream"]
+        assert streams(runs[0]) == [11], "a zoom's pass holds only what that zoom draws"
+        assert streams(runs[8]) == [11, 12] and "--maximum-zoom=12" in runs[8][0]
+        assert streams(runs[-1]) == [11, 12] and "--maximum-zoom=13" in runs[-1][0]
 
 
 def test_the_tile_carries_only_what_a_reader_needs(tmp_path, monkeypatch):
@@ -148,16 +149,17 @@ def test_mu_is_its_own_pass_to_z12_and_the_high_band_never_holds_it(tmp_path, mo
     monkeypatch.setattr(tippe, "check", lambda: None)
     tippe.build(d, tmp_path / "atlas.pmtiles")
     runs = [(c, fs) for c, fs in calls if c[0] == "tippecanoe"]
-    assert len(runs) == 3
-    (low, low_in), (high, high_in), (mu, mu_in) = runs
-    assert any(f.endswith("mu.geojsonl") for f in low_in)
-    assert not any(f.endswith("mu.geojsonl") for f in high_in)
+    assert len(runs) == 11  # T419: z4-z12 one pass each, the top, mu's own
+    *zooms, (high, high_in), (mu, mu_in) = runs
+    for c, fs in zooms:
+        z = int(next(a for a in c if a.startswith("--maximum-zoom=")).split("=")[1])
+        assert any(f.endswith("mu.geojsonl") for f in fs) == (7 <= z <= tippe.LOW_BAND_MAX), z
     assert [Path(f).name for f in mu_in] == ["mu.geojsonl"]
     assert "--maximum-zoom=12" in mu and "--full-detail=12" in mu
     assert f"--simplification-at-maximum-zoom={tippe.OWN_PASS_SIMPLIFICATION_AT_MAX}" in mu
     assert f"--full-detail={tippe.TOP_DETAIL}" in high and "--maximum-zoom=13" in high
     join = [c for c, _ in calls if c[0] == "tile-join"][0]
-    assert sum(a.endswith(".mbtiles") for a in join) == 3
+    assert sum(a.endswith(".mbtiles") for a in join) == 11
 
 
 def test_tile_join_is_not_told_to_drop_ids(tmp_path, monkeypatch):

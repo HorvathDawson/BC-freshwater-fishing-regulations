@@ -19,8 +19,8 @@ Two flags carry the whole policy and both are the opposite of tippecanoe's defau
       features stop sharing a node, so a trace that walks downstream through the tile
       jumps. Shared nodes are pinned; only the points BETWEEN them simplify.
 
-WHY THE BUILD IS TWO PASSES
-===========================
+WHY THE BUILD IS ONE PASS PER ZOOM (it was two bands until T419)
+=================================================================
 
 `--no-simplification-of-shared-nodes` is a good flag applied to the wrong set. Tippecanoe
 computes its shared-node set ONCE, over the whole input, before tiling. The per-feature
@@ -59,6 +59,15 @@ the same effect survives in miniature — at z4, features with minzoom 5-8 are i
 and dropped — and the measurement says that costs 7% at z4 and under 2% by z6, which is not
 worth another pass.
 
+PER-ZOOM PASSES (T419, 2026-11-06). The split above is now taken all the way: every zoom below the top is its own
+pass fed only the features drawn at that zoom, and the top zoom one pass of everything. Two things ride on it: the
+shared-node set is right at every zoom (not only at z4-z8), and the stream lines can be SMOOTHED FOR THE ZOOM THEY ARE
+DRAWN AT (`smooth.py`), which one pass across several zooms could not do. Measured on a Fraser Valley clip (4,577
+stream features), stream vertices per zoom, two bands at S=5 -> per-zoom at S=5 -> per-zoom + smoothing:
+    z9  1,697 -> 987 -> 648      z10  3,903 -> 2,871 -> 1,770      z12  16,636 -> 15,508 -> 11,437
+Each pass reads the layer files again (minutes on the province), and tile-join merges 10 passes instead of 2; the
+passes still hold disjoint (layer, zoom) pairs.
+
 TWO TRAPS, both of which produced a wrong measurement before producing a right one:
 
   * `--simplification-at-maximum-zoom` applies at the band's OWN maximum, not the
@@ -81,9 +90,11 @@ from pathlib import Path
 
 import orjson
 
+from pipeline.deliver.tiles import smooth
 from pipeline.deliver.tiles.layers import ALL, BY_NAME, tile_attrs
 
-#: The last zoom built from a pre-filtered input. See the module docstring for why 8.
+#: The last zoom at which the own-pass layers (`OWN_PASS`) ride the per-zoom passes; above it they are built in their
+#: own pass. (Before T419 this was the top of the pre-filtered low band — see the module docstring.)
 LOW_BAND_MAX = 8
 
 #: Douglas-Peucker tolerance, in tile units. AT EVERY ZOOM, the maximum included.
@@ -115,11 +126,17 @@ LOW_BAND_MAX = 8
 #:     -S(max) 14        z14  1.944 MiB   -32.1%
 #: z14 is 68% of the province archive, so -28.7% there is about 139 MiB off the download
 #: -- for a tolerance nobody can see at the only scale it is ever drawn at.
-#: (T419, 2026-11-06) 5 -> 10 below the top zoom: at 5 units of the 2,048 low grid the tolerance was ~0.6 px, so every
-#: meander bend bigger than a pixel survived and a tightly meandering lowland river (the Langley Salmon River: 108
-#: points at z10, one every ~230 m) drew as a sawtooth at z9-z11; 10 units is ~1.2 px. z13 keeps its own
-#: `SIMPLIFICATION_AT_MAX` (the overzoomed top, unchanged). Shared nodes stay pinned, so sections still meet.
-SIMPLIFICATION = 10
+#: (T419, 2026-11-06) 5 -> 10 -> 5 again. 10 (b40de633d, staging r-4230bc0c1dd5) took points off the meandering
+#: rivers but left every meander's apex — DP keeps the furthest point — so the Salmon River stayed a sawtooth while
+#: gentle streams lost real shape (owner: "the bending oxbows dont become a straight line ... other streams got over
+#: simplified"). The meanders are now smoothed away per zoom BEFORE tippecanoe (`smooth.py`, `SMOOTH_STREAMS`) and the
+#: tolerance is back at 5 units (~0.6 px), which keeps a smoothed line on its course.
+SIMPLIFICATION = 5
+
+#: (T419) Stream lines below the top zoom are smoothed for the zoom they are drawn at (`smooth.py`): a meander a few
+#: pixels across collapses onto the river's course instead of drawing as a sawtooth. Ids, properties and every shared
+#: node are unchanged. False builds the unsmoothed lines (the per-zoom passes stay).
+SMOOTH_STREAMS = True
 
 #: THE GRID BELOW THE TOP ZOOM (T202, owner 2026-10-27): 2^11 = 2,048 units across a tile, not tippecanoe's 4,096.
 #: A z<=12 tile is drawn at most 2x (from z.0 to z.99), so a 2,048 grid snaps by at most half a pixel there, and
@@ -316,41 +333,47 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
         return out
 
     with tempfile.TemporaryDirectory(prefix="tiles-lowband-") as tmp:
-        low_dir = Path(tmp) / "low"
-        high_dir = Path(tmp) / "high"
-        low_dir.mkdir()
-        high_dir.mkdir()
+        # (T419) ONE PASS PER ZOOM below the top, each fed only what that zoom draws, with the stream lines smoothed
+        # for that zoom (`smooth.py`); then the top zoom from everything, unsmoothed. See "PER-ZOOM PASSES" above.
         banded = [f for f in files if f.stem not in ALONE]
-        low_files, kept_total = _inputs(banded, low_dir, LOW_BAND_MAX)
-        high_all, _ = _inputs(banded, high_dir, None)
-        own = [f for f in high_all if f.stem in OWN_PASS]
-        high_files = [f for f in high_all if f.stem not in OWN_PASS]
+        passes = []
+        for z in range(minzoom, maxzoom):
+            zdir = Path(tmp) / f"z{z}"
+            zdir.mkdir()
+            layers = [f for f in banded if z <= LOW_BAND_MAX or f.stem not in OWN_PASS]
+            zfiles, kept = _inputs(layers, zdir, z)
+            stream = zdir / "stream.geojsonl"
+            if SMOOTH_STREAMS and stream in zfiles:
+                smooth.smooth_file(stream, z)
+            mb = Path(tmp) / f"z{z}.mbtiles"
+            print(f"  tippecanoe -> z{z}  ({len(zfiles)} layers, {kept:,} features drawn there)")
+            # `--simplification-at-maximum-zoom=SIMPLIFICATION`, NOT 1: this pass's maximum is an ordinary zoom of
+            # the finished archive and is simplified like one, on the same grid. See the docstring.
+            _run(["tippecanoe", "-o", str(mb), "--force", f"--name={name}",
+                  f"--attribution={attribution}",
+                  *_common(z, z, SIMPLIFICATION, verbose, full_detail=LOW_DETAIL),
+                  *[str(f) for f in zfiles]])
+            passes.append(mb)
+
+        top_dir = Path(tmp) / "top"
+        top_dir.mkdir()
+        top_all, _ = _inputs(banded, top_dir, None)
+        own = [f for f in top_all if f.stem in OWN_PASS]
+        top_files = [f for f in top_all if f.stem not in OWN_PASS]
         alone_dir = Path(tmp) / "alone"
         alone_dir.mkdir()
         alone, _ = _inputs([f for f in files if f.stem in ALONE], alone_dir, None)
 
-        low = Path(tmp) / "low.mbtiles"
         high = Path(tmp) / "high.mbtiles"
-
-        print(f"  tippecanoe -> z{minzoom}-{LOW_BAND_MAX}  "
-              f"({len(low_files)} layers, {kept_total:,} features drawn there)")
-        # `--simplification-at-maximum-zoom=SIMPLIFICATION`, NOT 1: this band's maximum is
-        # z8, which in the finished archive is an ordinary zoom and must be simplified like
-        # one — on the same grid as every other zoom below the top. See the docstring.
-        _run(["tippecanoe", "-o", str(low), "--force", f"--name={name}",
-              f"--attribution={attribution}",
-              *_common(minzoom, LOW_BAND_MAX, SIMPLIFICATION, verbose, full_detail=LOW_DETAIL),
-              *[str(f) for f in low_files]])
-
-        print(f"  tippecanoe -> z{LOW_BAND_MAX + 1}-{maxzoom}  ({len(high_files)} layers, all features)")
-        # The band's maximum IS the archive's maximum, and the camera overzooms it (T85), so it
-        # takes `SIMPLIFICATION_AT_MAX` on `TOP_DETAIL` — never 1 (see the constants).
+        print(f"  tippecanoe -> z{maxzoom}  ({len(top_files)} layers, all features)")
+        # The archive's maximum, and the camera overzooms it (T85), so it takes `SIMPLIFICATION_AT_MAX` on
+        # `TOP_DETAIL` — never 1 (see the constants). Its lines are NOT smoothed: overzoomed to z18, they are the map.
         _run(["tippecanoe", "-o", str(high), "--force", f"--name={name}",
               f"--attribution={attribution}",
-              *_common(LOW_BAND_MAX + 1, maxzoom, SIMPLIFICATION_AT_MAX, verbose, full_detail=TOP_DETAIL),
-              *[str(f) for f in high_files]])
+              *_common(maxzoom, maxzoom, SIMPLIFICATION_AT_MAX, verbose, full_detail=TOP_DETAIL),
+              *[str(f) for f in top_files]])
+        passes.append(high)
 
-        passes = [low, high]
         for f in own:
             top = BY_NAME[f.stem].maxzoom
             mb = Path(tmp) / f"{f.stem}.mbtiles"
