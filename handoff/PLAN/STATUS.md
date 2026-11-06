@@ -20,6 +20,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   `scripts/bootstrap.sh`, and a release that lacks either one stops with an error instead of shipping without it.
 - Next in this run: this Mac's own export, the full test suites, the web measurements (T409/T410/T304), the tile id check (T305).
 
+## 2026-11-06: chat 3 — your calls, then the next build
+- **Your calls recorded:** golden.json is retired (new T439, in progress); T383 and T341 dropped; T389 deferred;
+  the name is "Can I Fish?" on the icon only and "Can I Fish This?" everywhere else (the app already matched; store
+  texts updated); privacy drafts approved. Salmon (T164) is next on data; sloughs (T322/T55) on hold.
+- **Running:** T250 Expo SDK 57 → 58 upgrade (React Native 0.88, gesture handler 3) in its own copy of the repo, so
+  chat 2's test run is not disturbed; T439 in another lane.
+- **Next, before the build:** T423 (dead switch), T428 (one sync control), T424 (attribution), T419 (Salmon River
+  detail), T402 (flaky tests), T306 re-check; the "phone" bugs (pan lag T420/T401, crash T242, walkthrough T293)
+  reproduced on the emulator, not your phone. Then an APK + staging release (you're the only user).
+- **Waiting on you:** Mamquam Blind Channel — make it one whole tidal water (yes/no)? Then T326 closes.
+
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
 - **T429 done:** a missing review input can no longer empty a curated file. The name / slough / tidal lists now stop
