@@ -20,6 +20,27 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   clean. In-season links re-synced: same 32 links, new checksum.
 - **Your phone check:** Coquitlam → Map → Downstream to the bottom → Upstream once. The highlight should be one line.
 
+## 2026-11-05 (night): 0.6.2 on Play internal; chat 1b done
+- **0.6.2 (versionCode 11) is on Play internal.** It holds T390 (a new version shows as soon as it is out), T417
+  (watershed conditions don't blank, and follow the watershed most on screen) and T418 (the map keeps its labels and
+  symbols while an update applies). `play.json` names 0.6.2 build 11. App check before it: 8,662 tests pass, 0 fail.
+  - Your phone checks: in each ticket.
+  - T417/T418 were not tried on the emulator.
+- **Staging feeds worker deployed** (version ab249a19). All jobs ran ok.
+  - Your GitHub token works: the worker read the HYDAT workflow with it (200).
+  - The weekly NuSEDS check runs. Nothing is new yet.
+- **Prod feeds worker placeholder** `bc-fishing-feeds` exists, with its 4 secrets (you ran it). It is for T404.
+- **T416:**
+  - A fresh clone builds with no hand steps: about 7 min of bootstrap, then about 1h15 of build. Runbook:
+    `handoff/PLAN/runbooks/fresh-machine.md`.
+  - It is not yet byte-identical to live. Unpinned Python libraries (now pinned in `constraints.txt`), today's DFO
+    pages, and newer code explain it so far.
+  - The fair proof is running now: the fresh clone vs a Mac build at the same commit, ~1.5 h. The verdict lands in
+    `~/t416-repro.json`, and the next chat closes T416 from it.
+  - Gap found: a fresh machine's release ships no basemap, and nothing says so. To fix in T416.
+- **New tickets:** T419 (Salmon River simplification), T420 (map panning laggy on a Pixel 9, on 0.6.1).
+- **Next chat:** Launch and hygiene (`NEXT-SESSION-after-0.6.0.md`, Chat 2).
+
 ## 2026-11-05 (late): Chat 1b — T416, T412, T413; next APK batch started
 - **Pushed:** every commit is on GitHub (one at a time; no "commit_refs" errors this time).
 - **T416 (a fresh clone can build):**
