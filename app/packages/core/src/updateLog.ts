@@ -97,7 +97,13 @@ export const UPDATE_LOG_WORDS = {
     copyFailed: "Copy failed",
     clear: "Clear log",
   },
-  channel: { label: "Update channel", live: "Live", test: "Test (staging test/)" },
+  channel: {
+    label: "Update channel", live: "Live", test: "Test (staging test/)",
+    /** (T423) shown at once under the switch in an installed build, which only reads the choice on the next start */
+    pending: (to: string) => `${to} applies when you reopen the app.`,
+    /** (T423) the choice could not be kept */
+    failed: (to: string) => `Could not save ${to}; the channel is unchanged.`,
+  },
   empty: "No checks logged yet.",
   /** the tester's actions, as the log notes them */
   notes: {

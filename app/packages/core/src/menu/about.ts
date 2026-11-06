@@ -23,6 +23,8 @@ export interface AboutEnvInput {
   switchable: boolean;
   /** a source picked here that the next start will use; null: none pending */
   pending: AppEnv | null;
+  /** (T423) the source whose choice could not be saved; null: none */
+  failed?: AppEnv | null;
 }
 
 export interface AboutInput {
@@ -50,6 +52,8 @@ export interface AboutEnvVM {
                      readonly choices: readonly { readonly k: AppEnv; readonly label: string; readonly on: boolean }[] } | null;
   /** a sentence under the switch: the pending change, or that this run differs from the build; null: nothing to say */
   readonly note: string | null;
+  /** (T423) a choice that could not be kept, said under the switch; null: none */
+  readonly failed: string | null;
 }
 
 export interface AboutVM {
@@ -76,6 +80,7 @@ export function aboutEnvVM(e: AboutEnvInput | null | undefined): AboutEnvVM | nu
       ? { title: w.choose, choices: APP_ENVS.map((k) => ({ k, label: w.names[k], on: k === target })) }
       : null,
     note,
+    failed: e.failed ? w.failed(w.names[e.failed]) : null,
   };
 }
 

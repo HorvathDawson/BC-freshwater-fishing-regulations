@@ -119,6 +119,7 @@ function EnvBlock({ vm, palette, onEnv }: { vm: AboutEnvVM; palette: Palette; on
         </View>
       )}
       {vm.note && <Text testID="about-env-note" style={{ ...TYPE.small, color: palette.sub }}>{vm.note}</Text>}
+      {vm.failed && <Text testID="about-env-failed" style={{ ...TYPE.small, color: palette.closed }}>{vm.failed}</Text>}
     </View>
   );
 }

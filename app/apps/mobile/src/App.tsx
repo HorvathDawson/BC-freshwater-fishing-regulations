@@ -50,7 +50,7 @@ import { releaseSplash } from "./splash";
 // (T234) the phone's local notifications (gauge alerts, new data ready) and their background check; none on the web
 import { notifications, onTap } from "./notify";
 
-import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
+import { APP_ENV, APP_VERSION, ENDPOINTS, IMAGERY_TILES, MENU_INFO, CRASH_URL, TEST_REPORTS, pickChannel, storedChannel, REPORT_URL, UPDATE_CHANNEL, UPDATES_LOG } from "./config";
 
 /*
  * THE RECENT ERROR LOG (menu: Report a problem): every console.error the app already logs is also kept in a small
@@ -407,7 +407,7 @@ export default function App() {
     log: updateLog, updates,
     header: () => ({ version: versionLine(APP_VERSION), platform: platformLine(),
                      env: APP_ENV.env, origin: APP_ENV.origin, channel: UPDATE_CHANNEL, release: releaseRef.current }),
-    channel: APP_ENV.switchable ? { current: UPDATE_CHANNEL, pick: pickChannel } : null,
+    channel: APP_ENV.switchable ? { current: UPDATE_CHANNEL, stored: storedChannel(), pick: pickChannel } : null,
     offline: { get: () => devOffline.on,
                set: (on) => { devOffline.on = on; updateLog.append({ at: clockNow(), source: "app", kind: "action",
                                                                        note: UPDATE_LOG_WORDS.notes.offline(on) }); } },

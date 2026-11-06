@@ -133,8 +133,8 @@ const W_TORN = "a torn or unreadable stored object or line is skipped (the next 
 const W_ABSENT = "a station or source that did not answer is absent this run (the run's source health counts it)";
 export const FINE: Record<string, { n: number; why: string }> = {
   "apps/mobile/src/App.tsx": { n: 3, why: `the Updates-log tools' cache delete / copy (shown: copyFailed; ${ENV}); a spots refresh shown by spotsHook.error, reported in ui/spots.ts` },
-  "apps/mobile/src/envStore.native.ts": { n: 4, why: PREF },
-  "apps/mobile/src/envStore.web.ts": { n: 4, why: PREF },
+  "apps/mobile/src/envStore.native.ts": { n: 2, why: PREF },
+  "apps/mobile/src/envStore.web.ts": { n: 2, why: PREF },
   "apps/mobile/src/locate.native.ts": { n: 2, why: ENV },
   "apps/mobile/src/locate.web.ts": { n: 1, why: CAP },
   "apps/mobile/src/memoryTrim.native.ts": { n: 1, why: "hands the failure to `failed` (App.tsx passes reportFailure)" },

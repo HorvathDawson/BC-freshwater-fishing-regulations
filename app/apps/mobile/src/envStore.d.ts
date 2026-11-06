@@ -3,7 +3,7 @@
  * the device and read SYNCHRONOUSLY at start (`config.ts` resolves the endpoints before anything renders). Bundlers
  * pick by platform extension, TypeScript does not.
  */
-export declare const envStore: { read(): string | null; write(env: string): void };
+export declare const envStore: { read(): string | null; write(env: string): void /* throws when the write fails (T423) */ };
 
 /** (T251) The update channel (`live` / `test`), kept the same way. */
 export declare const channelStore: { read(): string | null; write(channel: string): void };

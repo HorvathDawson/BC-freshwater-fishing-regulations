@@ -13,9 +13,9 @@
  * and feed join on section and station ids, and a mixed set colours nothing.
  */
 import { Platform } from "react-native";
-import { resolveAppVersion, versionLine, type AppEnv } from "@app/core";
+import { APP_ENVS, resolveAppVersion, versionLine, type AppEnv } from "@app/core";
 import { imageryTiles } from "@app/map/colours";
-import { crashUrlFor, endpointsFor, reportUrlFor, resolveChannel, resolveEnv } from "./env";
+import { crashUrlFor, endpointsFor, reportUrlFor, resolveChannel, resolveEnv, UPDATE_CHANNELS, type UpdateChannel } from "./env";
 import { channelStore, envStore, restart } from "./envStore";
 
 const SWITCHABLE = __DEV__ || process.env.EXPO_PUBLIC_ENV_SWITCH === "1";
@@ -28,6 +28,17 @@ export const APP_ENV = resolveEnv({
   switchable: SWITCHABLE,
   override: SWITCHABLE ? envStore.read() : null,
 });
+
+function storedEnv(): AppEnv | null {
+  const v = envStore.read();
+  return v && (APP_ENVS as readonly string[]).includes(v) && v !== APP_ENV.env ? (v as AppEnv) : null;
+}
+
+/** (T423) The kept update channel (what the next start will read), or null. */
+export function storedChannel(): UpdateChannel | null {
+  const v = channelStore.read();
+  return v && (UPDATE_CHANNELS as readonly string[]).includes(v) ? (v as UpdateChannel) : null;
+}
 
 /**
  * (T251) THE APP'S VERSION: app.json's semver and build number, the commit and the build day, stamped into the bundle
@@ -69,7 +80,8 @@ export const MENU_INFO = {
   // (T232) About's data-source badge and, in a development build, its switch (kept; applied on the next start)
   env: {
     about: { env: APP_ENV.env, built: APP_ENV.built, origin: APP_ENV.origin, switchable: APP_ENV.switchable },
-    pending: null,
+    // (T423) a choice kept earlier but not yet in force (an installed build reads it on the next start)
+    pending: SWITCHABLE ? storedEnv() : null,
     pick: (env: AppEnv) => { envStore.write(env); if (env !== APP_ENV.env) restart(); },
   },
 } as const;
@@ -94,7 +106,7 @@ export const TEST_REPORTS = process.env.EXPO_PUBLIC_TEST_REPORTS === "1" || APP_
 /** (T242) where an app error is sent (the same worker); null: none */
 export const CRASH_URL = crashUrlFor(REPORT_URL, process.env.EXPO_PUBLIC_CRASH_URL);
 
-/** (T251) Pick the update channel (a switchable build): kept, applied on the next start. */
+/** (T251) Pick the update channel (a switchable build): kept, applied on the next start. Throws when it cannot be kept (T423). */
 export function pickChannel(c: string): void {
   channelStore.write(c);
   if (c !== UPDATE_CHANNEL) restart();

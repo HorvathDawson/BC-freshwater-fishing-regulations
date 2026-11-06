@@ -100,6 +100,8 @@ export const MENU_WORDS = {
       names: { local: "Local", staging: "Staging", production: "Production" },
       choose: "Read data from (development builds only)",
       pending: (to: string) => `${to} is used from the next start. Close and reopen the app.`,
+      /** (T423) the choice could not be kept: shown under the switch (and reported) */
+      failed: (to: string) => `Could not save ${to}. The data source is unchanged.`,
       overridden: (built: string) => `Chosen here; this build was made for ${built}.`,
     },
   },

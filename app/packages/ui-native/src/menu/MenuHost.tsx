@@ -12,7 +12,7 @@
 import { useMemo, useState } from "react";
 import { platformLine } from "../platformLine";
 import { getSynopsisSource } from "../regs/synopsisSource";
-import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
+import { aboutVM, dayLabel, MENU_WORDS, reportFailure, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import type { WaterSource } from "@app/data";
 import { ERROR_LOG, routeWhere, useGlossary, useNotifications, type MenuControls, type OfflineControls, type ReportSender, type Route } from "@app/ui";
@@ -82,9 +82,13 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
   const s = menu.state;
   // (T232) a source picked on About waits for the next start; the page says so until then
   const [pendingEnv, setPendingEnv] = useState<AppEnv | null>(info.env?.pending ?? null);
-  const dataEnv = info.env ? { ...info.env.about, pending: pendingEnv } : null;
-  const pickEnv = info.env ? (k: AppEnv) => { info.env!.pick(k); setPendingEnv(k === info.env!.about.env ? null : k); }
-    : undefined;
+  const [failedEnv, setFailedEnv] = useState<AppEnv | null>(null);
+  const dataEnv = info.env ? { ...info.env.about, pending: pendingEnv, failed: failedEnv } : null;
+  // (T423) a write that fails is SHOWN under the switch and reported; the choice stays what it was
+  const pickEnv = info.env ? (k: AppEnv) => {
+    try { info.env!.pick(k); setFailedEnv(null); setPendingEnv(k === info.env!.about.env ? null : k); }
+    catch (e) { reportFailure(e); setFailedEnv(k); }
+  } : undefined;
   const where = routeWhere(route, day ? dayLabel(day) : null);
   const glossary = useGlossary(loader, s.page === "glossary");
   const notifications = useNotifications();

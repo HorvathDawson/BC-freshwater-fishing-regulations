@@ -135,7 +135,7 @@ describe("about", () => {
                 pending: null } as const;
   it("a staging build shows a badge and the origin, and no switch unless the build has one", () => {
     expect(aboutEnvVM(ENV)).toEqual({ badge: "STAGING", label: "Data source",
-      value: "Staging · data-staging.canifishthis.ca", choose: null, note: null });
+      value: "Staging · data-staging.canifishthis.ca", choose: null, note: null, failed: null });
   });
   it("a production build reading production says nothing; one with a switch does", () => {
     const prod = { ...ENV, env: "production", built: "production", origin: "https://data.canifishthis.ca" } as const;

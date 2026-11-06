@@ -9,7 +9,7 @@ import { useState, useSyncExternalStore } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { UPDATE_LOG_CAP, UPDATE_LOG_WORDS, UPDATE_WORDS, updateLogHead, updateLogStatus, updateLogText, updateLogVM,
+import { reportFailure, UPDATE_LOG_CAP, UPDATE_LOG_WORDS, UPDATE_WORDS, updateLogHead, updateLogStatus, updateLogText, updateLogVM,
          type UpdateLogHeader, now as clockNow } from "@app/core";
 import type { UpdateLog, UpdateService } from "@app/data";
 import { TYPE } from "../type";
@@ -25,7 +25,8 @@ export interface UpdatesLogControls {
   /** the build and data source, for the page's head and the export */
   header(): UpdateLogHeader;
   /** the update channel and its switch (kept; applied on the next start); null: the build cannot switch */
-  readonly channel: { readonly current: UpdateChannelKey; pick(c: UpdateChannelKey): void } | null;
+  readonly channel: { readonly current: UpdateChannelKey; /** the kept choice (T423): differs from `current` until the app is reopened */ readonly stored?: UpdateChannelKey | null;
+                      pick(c: UpdateChannelKey): void } | null;
   /** the service is told the network is down (no request is made) while on */
   readonly offline: { get(): boolean; set(on: boolean): void };
   /** forget every validator, then check: each object downloaded whole */
@@ -59,6 +60,15 @@ export function UpdatesLogPage({ c, palette }: { c: UpdatesLogControls; palette:
   const snap = useSyncExternalStore(c.updates.subscribe, c.updates.snapshot, c.updates.snapshot);
   const [offline, setOffline] = useState(c.offline.get());
   const [busy, setBusy] = useState(false);
+  // (T423) the picked channel shows at once; an installed build reads it only on the next start
+  const [picked, setPicked] = useState<UpdateChannelKey | null>(c.channel?.stored ?? null);
+  const [channelFailed, setChannelFailed] = useState<UpdateChannelKey | null>(null);
+  const live = c.channel?.current ?? "live";
+  const shown = picked ?? live;
+  const pickChannel = (k: UpdateChannelKey) => {
+    try { c.channel!.pick(k); setChannelFailed(null); setPicked(k); }
+    catch (e) { reportFailure(e); setChannelFailed(k); }
+  };
   const [copied, setCopied] = useState<boolean | null>(null);
   const rows = updateLogVM(events);
   const h = c.header();
@@ -88,9 +98,15 @@ export function UpdatesLogPage({ c, palette }: { c: UpdatesLogControls; palette:
         <View accessibilityRole="radiogroup" accessibilityLabel={W.channel.label} style={{ flexDirection: "row", gap: SPACE.s2 }}>
           {(["live", "test"] as const).map((k) => (
             <Act key={k} id={`channel-${k}`} label={W.channel[k]} palette={palette}
-                 on={(c.channel?.current ?? "live") === k} onPress={c.channel ? () => c.channel!.pick(k) : undefined} />
+                 on={shown === k} onPress={c.channel ? () => pickChannel(k) : undefined} />
           ))}
         </View>
+        {shown !== live && !channelFailed && (
+          <Text testID="updates-log-channel-pending" style={{ ...TYPE.small, color: palette.sub }}>{W.channel.pending(W.channel[shown])}</Text>
+        )}
+        {channelFailed && (
+          <Text testID="updates-log-channel-failed" style={{ ...TYPE.small, color: palette.closed }}>{W.channel.failed(W.channel[channelFailed])}</Text>
+        )}
       </View>
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
