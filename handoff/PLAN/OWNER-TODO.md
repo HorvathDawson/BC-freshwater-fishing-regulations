@@ -6,6 +6,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Looks, not blocking (11-05, T410 → T260 leftovers):** each changes how something looks, so nothing was typed: one
+  Badge style; the SegmentedControl's selected look (accent frame, ink fill, or tint?); one Banner/Notice and
+  SectionHeader; the font-weight and icon-size ladders. Default: as they are. Also T258: the TalkBack/VoiceOver walk.
+- **Store screenshot titles (T319):** `app/tools/store-shots.json` — pick, reorder or reword; images in
+  `handoff/PLAN/app-integration/store/graphics/store/`.
+
 - **Small, not blocking (11-05, T240/T244):** (1) GitHub secret `CLOUDFLARE_API_TOKEN` is read by no workflow (set in
   March, v1 era): delete it, or keep it for T404's deploys. Default: keep until T404. (2) Apple App Privacy → declare
   Identifiers → Device ID for the random install id? Default: yes (`store/privacy-labels-draft.md`; settles at T365).

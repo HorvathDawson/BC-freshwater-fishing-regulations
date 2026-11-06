@@ -33,7 +33,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   Side builds made before today have the old layout.
 - **CI:** pipeline green (first since 10-20). App: 38 failures were BC-time vs UTC (all tests now run in BC time); the
   last 3 fixes are on GitHub now.
-- New: T421 (a silent fallback found while fixing CI), T422.
+- **CI green on both** (app + pipeline) since c1ae5d734.
+- **T421 done:** without a build, the review app now says so instead of calling your marks "binding moved".
+- **T304 done (code):** a water page names its region, so a landing loads that region's files, not the whole province.
+  The next staging site deploy needs a full SEO build (site.sh now refuses old pages). Speed measurement owed.
+- **T410 partial:** web-only and phone-only code now sit in their own files (27 → 35 pairs), and a check refuses new
+  mixed code. Owed: the bundle listings + one full check (heavy), and a phone pass on the next APK.
+- **T366 done:** the review app shows when DFO rows are older than the pages (DFO mode), and the worker sends DFO row
+  changes in the daily digest instead of at once. The worker ships with the next app (not deployed).
+- **T319 started:** store screenshots in every Play / App Store size from one command (`node app/tools/store-shots.mjs`),
+  framed with a title and a line. The titles are a proposal for you (`app/tools/store-shots.json`). The saved-spot shot
+  needs the phone build (the web shows "get the app" there).
+- New: T421, T422.
 
 ## 2026-11-05: 0.6.1 on Play internal
 - **0.6.1** (9e610a6f2, versionCode 10, 40741d6de): the T411 highlight fix. Tester email sent; play.json published.
