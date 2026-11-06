@@ -495,8 +495,8 @@ use that as the sole source of future work."
 | T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | PARTIAL | 26c59849f | T420 follow-up 2026-11-06; Android: binding `maxPixelRatio` → the map SurfaceView a fixed smaller buffer (823×1567 vs 1080×2057), compositor scales; same scale/taps (shots out/t448). Stressed emulator frame times mixed (Mac GPU passthrough, fill free). Left: owner phone check, iOS |
 | T449 | A DFO place wholly in tidal water (Nanaimo below Cedar Bridge): a "tidal water" state, proposed, binds nothing | IN REVIEW | e83f7811e | owner 2026-11-06; rule proposes (tidal words + tidal-limit cut named, op downstream); owner's DFO mark accepts ("tidal water") / rejects; sweep: only the 2 Nanaimo places |
 | T450 | Two pipeline "live" tests still read the retired golden.json (collection error) | OPEN | — | chat 4 2026-11-06 |
-| T451 | Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6) | OPEN | — | owner 2026-11-06 |
-| T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | OPEN | — | owner 2026-11-06 |
+| T451 | Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6) | DONE | e63c921c3 | owner phone check |
+| T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | IN REVIEW | e63c921c3 | owner feel check (glide shape changed: proposal) |
 
 ## Order for open tickets
 
