@@ -50,8 +50,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T250 merged (in review):** Expo SDK 58 (React Native 0.88, React 19.3, gesture handler 3); full app check green;
   the release APK starts and walks on the emulator. Release-build shrinking (R8) stays off as before — SDK 58 turned
   it on and the app crashed at start.
-- **Running:** T423 / T428 / T424 in one lane; the "phone" bugs (pan lag, crash test bed, walkthrough, T351) being
-  reproduced on the emulator in another.
+- **T423 / T428 / T424 in (in review, need an emulator look):** the switches now say "applies when you reopen the
+  app" and show a failed save; More → Data has ONE sync control; the map credits are one © chip + card, the same on
+  web and phone, and no longer on the scale bar. OpenStreetMap's licence wants its credit SHOWN FIRST, so the first map
+  of a session shows "© OpenStreetMap contributors" for 5 s, then folds to the chip.
+- **T402 done:** the two tests that failed only under load have wait ceilings that fit a full run.
+- **T419 cause found:** below z12 the tiles kept every meander bend bigger than a pixel, so meandering rivers like the
+  Langley Salmon River drew as a sawtooth (a class, not one water). The tolerance there is doubled; it lands with the
+  build below, then before/after shots for you.
+- **Building now:** new atlas (the 7 DFO cuts) + tiles (T419) + deliver, the new release held as a candidate until
+  checked. Then the APK + staging release.
+- **Running:** the "phone" bugs (pan lag, crash test bed, walkthrough, T351) on the emulator; T306's 6 slow-suite
+  failures (the main one: the map's status index disagrees with the rules on 198 of 6,000 section-days).
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
