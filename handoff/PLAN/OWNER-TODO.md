@@ -109,10 +109,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Tidal follow-ups (T359, 2026-11-03):** review app → Tidal → Follow-ups (8). Decide: does a DEM point you
   confirmed become a cut (Caycuse 1,925 m, Dempster 550 m)? Re-mark Annacis/Cannery/Morey/Parsons "whole water";
   look at Skagit (US border) and Bear River (bridge).
-- **DFO tab (2026-11-03):** accept the proposed Sheldens Spur 19 cut; review the two Nanaimo "tidal portions" places.
-- **Tidal close-out (T326):** Mamquam DONE (owner 2026-11-06: not tidal). Left: in the review app's DFO tab, accept or
-  reject the 3 proposed cuts — Quatse River Hatchery weir (±100 m), the Stamp lagoon-outlet move, the Little Qualicum
-  Falls park boundary. Then T326 closes.
+- **DFO tab (2026-11-03):** review the two Nanaimo "tidal portions" places (Sheldens Spur 19: accepted + applied 11-06).
 - **T227 DFO places not on the map (2026-10-28): review app → DFO, open each, "accept suggestion", Save extent.**
   - accept in review app → DFO: Cowichan — Sandy Pool sign → tidal boundary (= FWA mouth; active, high); weir/Cowichan Lake → 66 Mile Trestle (high); CNR mile 70.2 → Skutz Falls (high, new Skutz cut); "incl. tributaries and Cowichan Lake" = whole river + lake + tributaries (medium: lake's inflows counted). Last three dormant.
   - accept in review app → DFO: Capilano — "including tributaries" = whole + tributaries (high).

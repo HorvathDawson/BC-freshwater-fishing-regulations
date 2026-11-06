@@ -1,10 +1,7 @@
 # T326 — Lock tidal: `waters/tidal.json` is the one tidal truth
 
-Status: PARTIAL (151b9f76a, dc93125ab: tidal.json, write-through, mouth aliases; release r-d0ad76a6e6a1). Mamquam
-DECIDED (owner 2026-11-06: NO — "Mamquam Blind Channel Wetland" is not tidal; the real blind channel already lies in the
-tidal polygon with no streams in it). The 8 follow-up marks: owner 11-06 "probably good". Left: the owner accepts or
-rejects the 3 proposed cuts in the DFO tab (Quatse weir, Stamp lagoon outlet, Little Qualicum Falls park boundary,
-below), then fold proposal_overrides.json into splits.json and retire it.
+Status: DONE 2026-11-06 (chat 3; 151b9f76a, dc93125ab, 9567f95b6..7db9105ee) — tidal.json is the one tidal truth; Mamquam
+not tidal (owner 11-06); the 3 proposed DFO cuts accepted by the owner and applied; proposal_overrides.json KEPT (below).
 
 Replaces `tidal_waters.json`, the splits tidal flag, `decided/tidal.json` and handoff
 `curation-review/tidal/owner-decisions.json` (4 records of one fact). Also fold `review/proposal_overrides.json` (split
@@ -82,3 +79,15 @@ Sandy Pool's call (medium) is already on its splits.json record (`cowichan_river
 `confidence: medium`). The other three overrides (Quatse weir ±100 m, Stamp lagoon-outlet move, Little Qualicum
 Falls park boundary) are Claude's PROPOSALS from the owner's notes, not yet accepted, so they cannot be folded into
 splits.json. Left: owner accepts/rejects those three in the DFO tab; then fold and retire the override file.
+
+## Close-out (2026-11-06)
+- Mamquam: owner — not tidal (the real blind channel already lies in the tidal polygon, no streams in it).
+- The owner accepted every proposed cut in the DFO tab ("accept all cuts there"): 7 cuts (Quatse weir ±100 m,
+  Stamp lagoon inlet + outlet + powerline, Little Qualicum Falls park boundary, Sheldens Spur 19) and the 4 DFO extents
+  waiting on them. One side atlas for all (`proposals side a,b,c`, new); binding diff: 109 rules, every one +N −0 (the
+  new pieces carry the same rules; nothing lost or moved); applied 9567f95b6..7db9105ee, one commit per proposal.
+- **No fold of proposal_overrides.json:** tested — with the file emptied, the marks re-propose the ORIGINAL points
+  (the weir itself, the old outlet spot, the hand-placed park point). The marks store is append-only, so this file is
+  where the owner's corrections to those marks live; it stays (its 3 entries now say "ACCEPTED by the owner").
+- The live atlas gains the 7 cuts on the next atlas build (the side atlas was built from exactly the committed
+  cuts.json).
