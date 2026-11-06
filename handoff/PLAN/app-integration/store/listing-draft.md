@@ -19,7 +19,7 @@ fishing,BC,regulations,rules,freshwater,river,lake,trout,salmon,steelhead,anglin
 - App Store: Sports (alt: Navigation)
 
 ## Support
-- Support URL: https://canifishthis.ca/about   (confirm; or a mailto page)
+- Support URL: https://canifishthis.ca/about (owner 2026-11-06)
 - Contact email: support@canifishthis.ca (owner 2026-10-29; the build's EXPO_PUBLIC_CONTACT is the same: eas.json profiles, build-apk.sh, export:web scripts; the privacy page keeps privacy@canifishthis.ca)
 - Privacy policy URL: https://canifishthis.ca/privacy  (live when the prod site is up, T240 section 5)
 - Marketing URL (App Store): https://canifishthis.ca

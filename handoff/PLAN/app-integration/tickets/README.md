@@ -469,9 +469,9 @@ use that as the sole source of future work."
 | T424 | Map attribution: our own credits (every source on screen), the same on web and app, no longer on top of the scale bar | IN REVIEW — phone look | cfffecd69 | owner 11-05 |
 | T421 | Review proposals: a missing build reads as "binding moved" (silent registry fallback) | DONE | f29410a41 | CI fix 11-05 |
 | T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | DONE | 5820c2ae4 | T331 leftover 11-05; `CURATED_ROOT` + `curated.make_root`, old four refused, grep gate test_curated_root.py |
-| T425 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | DONE | 0178b4301 | option A (fish art + small-caps word); shots owed, owner reviews look |
+| T425 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | DONE | 0178b4301 | option A (fish art + small-caps word); owner look 2026-11-06: good |
 | T426 | A changed synopsis extractor must still read the current book the same way (baseline + row diff + fast pages) | DONE | aad8f7313 | whole-book --check-against owed (heavy); Heber = first accepted diff |
-| T427 | Conditions legend's watershed forecast: leaner (about 4 rows, merged title/verdict, labels on the ramp) | DONE (needs owner look at the shots) | 9e865e284 | owner 11-05 (screenshot) |
+| T427 | Conditions legend's watershed forecast: leaner (about 4 rows, merged title/verdict, labels on the ramp) | DONE (owner look 2026-11-06: good) | 9e865e284 | owner 11-05 (screenshot) |
 | T428 | One sync control in More (the "Updates" row really syncs, same look as the map sync button) | IN REVIEW — phone look | e8f72da1c | owner 11-05 |
 | T429 | A missing review input can empty a curated file (high) | DONE | 467affc51 | audit 11-05; GENERATED_ROOT: no (test hooks only) |
 | T430 | The crash and problem-report formats have no parity test (one field loses every report) (high) | DONE | 1f0b8b7e8 | audit 11-05 |
@@ -491,6 +491,8 @@ use that as the sole source of future work."
 | T444 | Crash: "water map: part 0 of gnis:3062 is not in its group" (Chilliwack map view, 0.6.2) | OPEN | — | worker /crashes 2026-11-06 |
 | T445 | Map error "… resolved to … null which is null or a wrong type" (Android 0.6.1/0.6.2; names scrubbed) | OPEN | — | worker /crashes 2026-11-06 |
 | T446 | First install: a release file "does not match the manifest" (resume / partial file) | OPEN | — | worker /crashes 2026-11-06 |
+| T447 | An app icon made by an artist (the favicon-derived set ships until then) | POSTPONED | — | owner 2026-11-06 |
+| T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | OPEN | — | T420 follow-up 2026-11-06 |
 
 ## Order for open tickets
 

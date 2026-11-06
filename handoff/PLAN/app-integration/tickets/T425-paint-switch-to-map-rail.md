@@ -1,6 +1,6 @@
 # T425 — The Trout / Salmon switch moves to the map rail, with clearer icons or words
 
-Status: DONE (code 0178b4301; shots owed) — owner 2026-11-05, an addition (screenshot on the Map tab, phone width).
+Status: DONE (code 0178b4301; owner look 2026-11-06: good) — owner 2026-11-05, an addition (screenshot on the Map tab, phone width).
 
 ## Ask (owner 2026-11-05)
 "Move this like in the picture and change the icon or words that are used to show the 2 options."

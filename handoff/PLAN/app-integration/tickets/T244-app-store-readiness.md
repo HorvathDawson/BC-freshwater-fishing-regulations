@@ -60,3 +60,9 @@ are in OWNER-TODO.
   missing from its table and Apple section; Apple → Identifiers → Device ID is a proposal (**OWNER**).
 - Left, all owner or later: listing + labels sign-off, the support mailbox, store screenshots (T319), TestFlight (T88,
   needs the Apple account), the production build (T404), Closed testing (T371).
+
+## Owner 2026-11-06
+- App icon / adaptive icon / feature graphic: the favicon-derived set (`T244-shots/icons-preview.png`) ships as is;
+  an artist-made icon later → T447 (POSTPONED).
+- Support URL: https://canifishthis.ca/about.
+- Store screenshot titles (T319, `app/tools/store-shots.json`): kept as they are.
