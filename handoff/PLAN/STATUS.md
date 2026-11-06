@@ -58,10 +58,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T419 cause found:** below z12 the tiles kept every meander bend bigger than a pixel, so meandering rivers like the
   Langley Salmon River drew as a sawtooth (a class, not one water). The tolerance there is doubled; it lands with the
   build below, then before/after shots for you.
-- **Building now:** new atlas (the 7 DFO cuts) + tiles (T419) + deliver, the new release held as a candidate until
-  checked. Then the APK + staging release.
-- **Running:** the "phone" bugs (pan lag, crash test bed, walkthrough, T351) on the emulator; T306's 6 slow-suite
-  failures (the main one: the map's status index disagrees with the rules on 198 of 6,000 section-days).
+- **New release built: r-4230bc0c1dd5** (held as a candidate; LATEST still r-5a5999c94588). 51 min; tiles, bundle
+  and every file agree on one vintage; the 7 DFO cuts are on the map. **Tiles 8.8 MB smaller** (202.8 → 194.1 MB) from
+  T419; the Salmon River drops a third of its points at z9–z12 (z13 unchanged). Next: the release's own rule check
+  against the live release, then staging.
+- **T306 done:** all 6 slow-suite failures were tests pinned to values your later calls changed (mostly the sloughs);
+  the status-index one was already fixed on 10-30, so the shipped map was right. No pipeline code changed.
+- **Running:** the "phone" bugs (pan lag, crash test bed, walkthrough, T351) on the emulator.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
