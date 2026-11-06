@@ -1,6 +1,6 @@
 # T239 — annual synopsis update: runbook + dry run
 
-Status: PARTIAL (2df8add7b) 2026-11-05 — left: T414 + T415 (merged in, before the next book); done: runbook, diff tool, carry/replay tool, dry run (diff explained). Two follow-ups below, to ticket.
+Status: PARTIAL (2df8add7b, 4ac91de6f) 2026-11-05 — left: T415 (merged in, before the next book); done: runbook, diff tool, carry/replay tool, dry run (diff explained), T414 (the review app's "only these entries" list).
 
 Source: owner 2026-10-28 — approved proposal P5 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -67,3 +67,16 @@ against last year's and lets the owner handle each change (review queue of diffe
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T414, T415 — read each file's open items and finish them here; each closes pointing here.
+
+## T414 part DONE 2026-11-05 (4ac91de6f)
+- The owner opens `http://127.0.0.1:5173/?ids=<file>` (`run.sh` unchanged; a search param, so the hash stays the open
+  entry). `GET /api/review/ids?path=` (`backend/idlist.py`) reads the `--ids-out` file (repo-relative or absolute,
+  inside the repo; blank lines and `#` comments skipped, repeats listed once).
+- The queue lists only those ids, in the queue's own order. The bar above it says "N of M reviewed" (a mark in force,
+  as the progress bar counts it) and how many are verified. It also says how many the other filters hide, and names
+  every id that matches no entry.
+- A file it cannot read is a 422 with the reason. The bar shows the reason and the queue shows nothing, never the
+  whole queue.
+- Runbook step 8 and step 10 use the URL.
+- Tests: `pipeline/tests/test_curation_review_ids.py` (3), plus `test_curation_review_safety.py` (32, CI filter);
+  frontend `tsc --noEmit` clean. Not yet seen in a browser.
