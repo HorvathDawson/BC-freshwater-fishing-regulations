@@ -10,6 +10,8 @@
 //   node deploy/staging/test-updates.mjs corrupt               a release whose paint file's sha256 is wrong (sha mismatch)
 //   node deploy/staging/test-updates.mjs missing               a release whose paint file is not there (HTTP 404)
 //   node deploy/staging/test-updates.mjs feed-404 [gauges|dfo|inseason]    that index removed (HTTP 404)
+//   node deploy/staging/test-updates.mjs tiles [tag]           (T418) the tile folder moves (same files): the in-session
+//                                                              update that broke the map's labels on 0.5.0
 //   node deploy/staging/test-updates.mjs min-app <semver>      a release that needs app >= <semver> (minAppVersion)
 //   node deploy/staging/test-updates.mjs big [tag]             (T255) a LARGE release: the basemap's id moves (same file,
 //                                                              same sha), so a phone re-downloads it whole (~270 MB) —
@@ -104,6 +106,15 @@ export const big = (tag = String(Date.now() % 100000)) => synthetic(`big${tag}`,
   m.basemap = { ...m.basemap, id: `${m.basemap.id}-t${tag}` };
   return m;
 });
+// (T418) the map's TILE FOLDER moves: a new tiles id (same handles, so the data still pairs; same urls and sha) makes the
+// phone install the same tiles into a new folder and drop the old one — the in-session update that left the 0.5.0 map
+// without its sprite, glyphs and `outside` source. Apply it while the map is open: the labels and the shading must stay.
+export const tiles = (tag = String(Date.now() % 100000)) => synthetic(`tiles${tag}`, (m) => {
+  const [h] = m.tiles.current.id.split('.');
+  const build = ('7e57' + Number(tag).toString(16)).padEnd(12, '0').slice(0, 12);
+  m.tiles = { ...m.tiles, current: { ...m.tiles.current, id: `${h}.${build}` } };
+  return m;
+});
 export const minApp = (v) => {
   if (!/^\d+\.\d+\.\d+/.test(v ?? '')) throw new Error('min-app <semver>, e.g. min-app 99.0.0');
   return synthetic(`needs-${v}`, (m) => ({ ...m, minAppVersion: v }));
@@ -149,7 +160,7 @@ export async function appVersion(version, build = '999', ...notes) {
 
 export async function status() {
   const out = {};
-  try { const m = await testManifest(); out.release = { data_release: m.data_release, minAppVersion: m.minAppVersion ?? null, basemap: m.basemap?.id ?? null }; }
+  try { const m = await testManifest(); out.release = { data_release: m.data_release, minAppVersion: m.minAppVersion ?? null, basemap: m.basemap?.id ?? null, tiles: m.tiles?.current?.id ?? null }; }
   catch (e) { out.release = String(e.message); }
   for (const [k, dir] of Object.entries(FEEDS)) {
     try { const j = JSON.parse(await get(`test/${dir}/index.json`)); out[k] = j._testBump ? `bumped ${j._testBump}` : 'live copy'; }
@@ -163,7 +174,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, gauge, 'gauge-day': gaugeDay, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, corrupt, missing, 'min-app': minApp, status, clean };
+const CMDS = { reset, gauge, 'gauge-day': gaugeDay, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, tiles, corrupt, missing, 'min-app': minApp, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...args] = process.argv.slice(2);
