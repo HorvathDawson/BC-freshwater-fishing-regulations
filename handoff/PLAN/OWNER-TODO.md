@@ -6,6 +6,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Small, not blocking (11-05, T240/T244):** (1) GitHub secret `CLOUDFLARE_API_TOKEN` is read by no workflow (set in
+  March, v1 era): delete it, or keep it for T404's deploys. Default: keep until T404. (2) Apple App Privacy → declare
+  Identifiers → Device ID for the random install id? Default: yes (`store/privacy-labels-draft.md`; settles at T365).
+
 - **PSF run-timing files: ANSWERED 11-05** — fine as is; only the parsed `timing.json` stays in git, the PSF pages and their
   fetch record are git-ignored from now on (772fbf4f0).
 
