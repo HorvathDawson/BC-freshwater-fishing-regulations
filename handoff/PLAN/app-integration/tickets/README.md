@@ -464,6 +464,7 @@ use that as the sole source of future work."
 | T418 | Map style assets failed on 0.5.0: a real gap, not a one-off. The in-session update (r-4e70 → r-5a59, new tile folder) pruned the old set's atlas, mask and map assets while its map was still drawn. The replaced set is now kept until the next launch or stage, and a failed style asset is reported once (MapLibre log watch) | DONE in code — phone check with the next APK | 370731ad3 | from reports 11-05; re-read the report feed after 2–3 days of 0.6.x |
 | T419 | Salmon River (Region 2) keeps too much detail when zoomed out; check stream simplification | OPEN — UI check | — | owner 11-05 |
 | T420 | Map panning laggy even on a Pixel 9: streams load in slowly, then the pan stutters | OPEN | — | owner 11-05 |
+| T421 | Update-channel / environment switch looks dead in an installed build (applies on reopen, says nothing); its write fails silently | OPEN | — | owner 11-05 |
 | T421 | Review proposals: a missing build reads as "binding moved" (silent registry fallback) | OPEN | — | CI fix 11-05 |
 | T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | OPEN | — | T331 leftover 11-05 |
 

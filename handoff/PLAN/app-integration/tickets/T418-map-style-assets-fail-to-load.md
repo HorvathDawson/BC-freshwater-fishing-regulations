@@ -46,3 +46,9 @@ is ignored; the line is still printed.
 
 **Left.** Read the crash/report feed again after 2–3 days of 0.6.x testing: no `map-style-asset:` report should appear,
 including after an in-session update that changes the tile folder. Not checked on a device.
+
+## Phone check 2026-11-05 (owner, 0.6.2 from Play internal): PASS
+`node deploy/staging/test-updates.mjs tiles` (new scenario: the tile folder moves, same files) on the test channel;
+the owner applied it with the map open ("Apply now"): labels, symbols and the outside shading stayed. The reports and
+crashes feeds hold nothing since (no `map-style-asset:` report). The apply-on-return path was not tried separately.
+Test channel reset after.
