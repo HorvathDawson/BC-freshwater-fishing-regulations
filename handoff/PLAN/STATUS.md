@@ -60,8 +60,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   build below, then before/after shots for you.
 - **New release built: r-4230bc0c1dd5** (held as a candidate; LATEST still r-5a5999c94588). 51 min; tiles, bundle
   and every file agree on one vintage; the 7 DFO cuts are on the map. **Tiles 8.8 MB smaller** (202.8 → 194.1 MB) from
-  T419; the Salmon River drops a third of its points at z9–z12 (z13 unchanged). Next: the release's own rule check
-  against the live release, then staging.
+  T419; the Salmon River drops a third of its points at z9–z12 (z13 unchanged).
+- **r-4230bc0c1dd5 is LATEST and on staging** (data). Its rule check against the live release: exactly the 7 cuts,
+  109 rules each GAIN the new pieces, nothing lost or moved — the same diff the side rebuild showed. Staging smoke:
+  17 of 18; the one failure is the credits check looking for the new © chip on the OLD staging website, so the site
+  is being rebuilt now (new web app + every water page, T304), which reruns the smoke test.
 - **T306 done:** all 6 slow-suite failures were tests pinned to values your later calls changed (mostly the sloughs);
   the status-index one was already fixed on 10-30, so the shipped map was right. No pipeline code changed.
 - **Running:** the "phone" bugs (pan lag, crash test bed, walkthrough, T351) on the emulator.
