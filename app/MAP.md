@@ -12,7 +12,7 @@ The one current map of `app/` (T63, checked against the code 2026-10-24). Why th
 | `packages/data` | the data seam: the release loader + install (`src/release/`), the regs store reader (`src/regs/`), `WaterSource` over the release (`src/release/source.ts`), SQL drivers (`src/sql/`), spots (`src/spots/`), the gauge feed (`src/feed/`) | core |
 | `packages/ui` | headless React hooks — data, never elements: boot, search session, water/regs/route hooks, layout class | core, data, react |
 | `packages/ui-native` | every component (RN primitives) and every layout: `Shell.tsx` + `shell/`, water screen, regs screen (`src/regs/`), sheets, panels | core, data, ui, map |
-| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`), the generated style (`style/`, from `layers.source.json`) | core |
+| `packages/map` | the ONE `<Map/>` (`Map.web.tsx` / `Map.native.tsx`; T409: the web map is built when first seen, `web/firstSeen.ts` — the warm map behind a water's page waits below desktop width), the generated style (`style/`, from `layers.source.json`) | core |
 | `apps/mobile` | the one shell for native and web (Expo + react-native-web): `src/App.tsx`, config (`config.ts` + `env.ts`: the data environment local / staging / production, T232; `eas.json` profiles), platform glue | all |
 | `conformance` | suites run against every `WaterSource` and the regs store: the fixture releases, the live release, the oracle parities (`src/regs/`) | all |
 

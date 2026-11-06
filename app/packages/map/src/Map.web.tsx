@@ -18,7 +18,7 @@
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { ESRI_BADGE, mapChrome } from "./chrome";
@@ -38,8 +38,21 @@ import { useWaterCopy } from "./web/useWaterCopy";
 import { useRegion, useVisible } from "./web/useVisible";
 import { useWebMapRefs } from "./web/refs";
 import { useMe } from "./web/useMe";
+import { useFirstSeen } from "./web/firstSeen";
 
-export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing,
+/**
+ * (T409, owner 2026-11-05) BUILT WHEN FIRST SEEN: until the map's box is seen (`web/firstSeen.ts`: under the Shell's
+ * opacity-0 warm map behind a water's own page, below desktop width) only an empty box of the same size is drawn; then
+ * the one map below mounts with the props of that moment — the same mount a map shown at once gets.
+ */
+export function Map(props: MapProps) {
+  const probe = useRef<HTMLDivElement | null>(null);
+  const seen = useFirstSeen(probe);
+  if (seen) return <SeenMap {...props} />;
+  return <div ref={probe} data-map-unbuilt="" style={{ position: "absolute", inset: 0, ...(props.style as object) }} />;
+}
+
+function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing,
                      chrome,
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
                       style,

@@ -1,6 +1,6 @@
 # T409 — Water pages: the next Lighthouse wins (later)
 
-Status: PARTIAL — e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 (staging 0457d354): fonts + WebCrypto verify kept, water pages 77-83 (were 67-83); the rest of TBT is the warm map behind the page (owner decision, below). OWNER 2026-11-05: build the map only when it is first seen on water pages (web-only), next chat; keep the Cloudflare scripts.
+Status: PARTIAL — e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 (staging 0457d354): fonts + WebCrypto verify kept, water pages 77-83 (were 67-83); the rest of TBT is the warm map behind the page (owner decision, below). OWNER 2026-11-05: build the map only when it is first seen on water pages (web-only), next chat; keep the Cloudflare scripts. Lazy map DONE in code 2026-11-05 (below); its measurement is owed (heavy lock).
 
 Source: T405 outcome on staging (fc215b52): water pages Perf 77–88, LCP 2.1–2.5 s, CLS 0.002, A11y 100; region hubs
 97–100. What is left is the app's boot (TBT 350–520 ms) and bytes before first paint. Measure each item alone
@@ -60,6 +60,31 @@ No native file changed (source.web.ts is web-only; the rest is tools/seo).
 - LCP 2.2-2.8 s (gate 1.8): the first view still carries 6 faces + the fish thumbnails before the largest paint.
 - Cloudflare's injected JS detections + RUM beacon (item 6): zone settings, owner.
 
+
+## Lazy map 2026-11-05
+**What changed (web only):** `Map.web.tsx`'s `Map` is now a gate: until its box is seen it draws only an empty box of the
+same size (`data-map-unbuilt`); once seen it mounts the one map (`SeenMap`, the old body, unchanged) with the props of that
+moment, and stays built. "Seen" (`packages/map/src/web/firstSeen.ts`): no ancestor at computed `opacity: 0` (the Shell's
+`BEHIND`, used only for the warm map behind a landing), re-checked on any ancestor class/style change and on resize; a
+window ≥ 1280 px (`LAYOUT_BREAKPOINTS.desktop`, pinned by the test) builds at once, as before. So a phone/tablet landing on
+`/water/<slug>` still mounts the warm BrowseHost when idle (the map chunk is still fetched), but maplibre is not built until
+back; the first back then builds it (~1-2 s once, accepted). Every visible map (tap, search, step, refresh, Conditions,
+MiniMap) is built in the same commit as before (layout effect, before paint). No native file, no Shell change.
+**Note for the owner:** on desktop the map is NOT beside the pane today — the water frame is opaque across the whole window
+(1280 column centred on `palette.card`), so at 1440 the warm map is also unseen and still costs its build. Dropping the width
+rule (one line, `wide()` in `firstSeen.ts`) would make desktop lazy too; kept as decided.
+**Files:** `app/packages/map/src/Map.web.tsx`, `app/packages/map/src/web/firstSeen.ts`, `app/MAP.md`.
+**Tests:** `app/packages/map/src/firstSeen.render.test.tsx` (7: phone + behind → nothing built, shown → built once and kept;
+shown by a class change; desktop → at once; visible → at once; widened to desktop → built; one load path: hidden → props
+changed → shown builds the same constructor options + the same call log as a visible mount of those props; the breakpoint
+pin). Mutation-checked (gate off → 4 fail; width rule off → 2 fail). Also run: one-engine, adapter-contract, water-copy,
+pill-theme, parity, `WarmMap.shell.test.tsx` (116 pass); typecheck, platform, boundaries clean. Not run (heavy lock): `pnpm
+check` (knip), full suite.
+**Owed (when the heavy lock is free):** export + build-seo, then the local rig exactly as in Outcome (lighthouse 12.8.2 mobile,
+3 runs each, median) on vedder-river / cowichan-river / skeena-river: Perf / LCP / TBT vs the kept set 88·85·78 (TBT
+297·386·608 ms); expect near the no-map bound 93·93·93. Then the T269 page-vs-tap pairs (390x844 / 1440x900) must be unchanged
+to the hundredth, and a phone-width manual check: land on a water page, back → the map appears framed on the water, coloured;
+tap a water → map at once. Then staging.
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T188, T196, T405, T198 — read each file's open items and finish them here; each closes pointing here.
