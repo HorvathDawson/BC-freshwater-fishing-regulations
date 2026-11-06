@@ -484,7 +484,7 @@ use that as the sole source of future work."
 | T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | DONE | d9a72c206 | audit 11-05 |
 | T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | DONE | ed591aa70 |  audit 11-05 |
 | T439 | Retire golden.json and the tests that only compare against it | DONE | 9fc2a3953 | — (states.json holds the tap questions; uncovered items listed in the ticket) |
-| T440 | Android: the first-run notice's body (and "I understand") is missing from the accessibility tree (Sheet scroll dialog) | OPEN | — | found 2026-11-06 by the T293/T420 emulator runs; the test bed cannot dismiss the notice |
+| T440 | Android: the first-run notice's body (and "I understand") is missing from the accessibility tree (Sheet scroll dialog) | DONE | 48efaa5fb 6c48c1047 | found 2026-11-06 by the T293/T420 emulator runs; the test bed cannot dismiss the notice |
 | T441 | One re-cut of every release-backed test fixture after a release (taps, fixture release, VM fixtures, section-lines, pinned ids) | OPEN | — | 2026-11-06: four check rounds before 0.6.3 |
 | T442 | A staging upload left test/ on a cleared release: fresh test-bed installs 404 (walk-063) | DONE | 51e05a4ef | 2026-11-06: not an app bug; live/Play builds unaffected |
 | T443 | Stepping ▲/▼ between a big part and a tiny one jumps the camera (Fraser): bound the zoom change per step | OPEN | — | owner report b48c0e 2026-11-06 |
