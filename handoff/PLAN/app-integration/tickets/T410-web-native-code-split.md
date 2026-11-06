@@ -1,6 +1,6 @@
 # T410 — One clear web / native split in the app code
 
-Status: PARTIAL — items 1-3 done (8374cae0d..cd2be0916); item 4 (web + APK bundle listings) and the one full check wait for a free machine (heavy-job lock); T258/T260 owner items listed below. Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
+Status: PARTIAL — items 1-4 done (8374cae0d..cd2be0916; listings 2026-11-06 below; full `pnpm -C app check` green 2026-11-06); left: the owner's phone pass over the moved `.native` halves and the T258/T260 owner items listed below. Was: OPEN — with the launch-and-hygiene chat (owner 2026-11-05: "make it so the web and app code are split out a
 little better … not sure the standard here but seems like something to clean up").
 
 ## Today (2026-11-05)
@@ -83,3 +83,18 @@ a memory trim is the owner's next APK.
 ## Owner 2026-11-05 (T260 look)
 The SegmentedControl's selected look everywhere = **ink fill** (white text), as Now | Forecast | Change today. The other T260
 look items (Badge, Banner/Notice, SectionHeader, weight/icon ladders) stay as they are until asked.
+
+## Item 4: the bundle listings (2026-11-06)
+Module lists from the source maps of `expo export --platform web|android --source-maps` (staging env), before = 79e7f2d2f,
+after = e8ebf21f4 (HEAD; includes T436's tile-ids/me moves). node_modules: identical on both platforms.
+- **Web** (1,158 → 1,167 modules; index 3,488 → 3,492 kB raw): gone `memoryTrim.ts`, `map/native/me.ts`,
+  `map/tile-ids.web.ts`; new `memoryTrim.web`, `announce.web`, `openOfficial.web`, `partAsk.web`, `platformLine.web`,
+  `stickyHead.web`, `prewarm.web`, `swipeActivation.web`, `windowSize.web`, `unguarded.ts`, `map/me.ts`,
+  `map/web/tileIds.ts`. **No `.native.` file in the web bundle**, before or after.
+- **Android** (1,689 → 1,698 modules; hbc 4,560,260 → 4,564,888 B): gone `memoryTrim.ts`, `map/native/me.ts`; new
+  `memoryTrim.native`, `announce.native`, `openOfficial.native`, `partAsk.native`, `platformLine.native`,
+  `stickyHead.native`, `prewarm.native`, `swipeActivation.native`, `windowSize.native`, `unguarded.ts`, `map/me.ts`.
+  **No `.web.` file in the APK bundle**, before or after.
+So each moved half lands only in its platform's bundle, as built. The web bundle grew 4 kB (the web no-op halves and
+`unguarded.ts`, which both platforms carry); the native halves add ~4.6 kB of bytecode. Listings: the session scratchpad
+`{web,android}-{before,after}.mods`.
