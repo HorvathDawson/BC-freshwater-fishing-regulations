@@ -1,4 +1,4 @@
-# T420 — Panning the map feels laggy, even on a Pixel 9: streams load in slowly, then the pan stutters
+# T420 — Panning the map feels laggy on web AND app (even a Pixel 9): streams load in slowly, then the pan stutters
 
 Status: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
 like the streams load in slow then lag").
@@ -6,6 +6,11 @@ like the streams load in slow then lag").
 Two symptoms, maybe one cause: (1) the stream lines arrive late after a pan (tiles or their layers decoding/painting
 slowly), and (2) the pan itself stutters once they arrive (frame drops while the new tiles are styled — main-thread or
 render-thread work on tile load: paint-index lookups, feature-state, filter expressions, a re-render from React).
+
+**On the web too** (owner 2026-11-05): the same lag on the web map, so the cause is likely shared — the tiles
+(size, layer count, data-driven paint over stream features) or our style/JS — rather than MapLibre Native alone.
+Measure both: the web with the Performance panel / MapLibre's `map.showTileBoundaries` + frame timing on the same pan
+script, the phone as below.
 
 ## Work
 1. Measure on a real device class (the owner's Pixel 9 report; emulator numbers are not enough): a scripted pan over a
