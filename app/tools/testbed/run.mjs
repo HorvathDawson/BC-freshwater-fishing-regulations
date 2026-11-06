@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as device from './lib/device.mjs';
+import { checkChannel } from './lib/channel.mjs';
 import { flow } from './lib/maestro.mjs';
 import { writeReport } from './lib/report.mjs';
 import { SCENARIOS } from './scenarios/index.mjs';
@@ -25,7 +26,8 @@ const flag = (k) => { const i = args.indexOf(k); if (i >= 0) args.splice(i, 1); 
 const SYNC = opt('--sync', 'local');
 const OUTDIR = opt('--out', null);
 const KEEP_GOING = flag('--keep-going');
-/** --no-r2: nothing is written to the staging bucket (no test-channel reset at the end; a scenario asking for the channel fails) */
+/** --no-r2: nothing is written to the staging bucket (no test-channel reset at the end; a scenario asking for the channel
+ *  fails; `ctx.resetChannel` then only checks that test/ is already the live release, T442) */
 const NO_R2 = flag('--no-r2');
 const want = args.length && !args.includes('all') ? args : SCENARIOS.map((s) => s.id);
 for (const w of want) if (!SCENARIOS.some((s) => s.id === w)) { console.error(`no scenario ${w}: ${SCENARIOS.map((s) => s.id).join(', ')}`); process.exit(2); }
@@ -79,6 +81,8 @@ function makeCtx(sc) {
   run.scenarios.push(rec);
   const ctx = {
     device, updates, sync: null, rec, dir,
+    /** (T442) test/ = the live release before a fresh install: reset, or with --no-r2 checked read only (throws if not) */
+    resetChannel: () => (NO_R2 ? checkChannel() : updates('reset')),
     /** A UI flow; throws its Maestro words when it fails (the step then fails). */
     flow(name, env) {
       let r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });

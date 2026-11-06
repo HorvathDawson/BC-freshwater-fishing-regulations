@@ -8,10 +8,11 @@ export const install = {
   id: 'install',
   title: 'First run downloads the release and opens the map',
   async run(ctx) {
-    await ctx.step('test channel reset to the live release', () => {
-      const s = ctx.updates('reset');
-      return `test/ = ${s.release.data_release}`;
-    }, { shot: false });
+    // (T442) stops the scenario when test/ is not the live release: a fresh install from a cleared release only 404s
+    await ctx.step('test channel reset to the live release', async () => {
+      const s = await ctx.resetChannel();
+      return `test/ = ${s.release.data_release}${s.checked ? ` (${s.checked})` : ''}`;
+    }, { shot: false, stop: true });
     await ctx.step('clean app on Wi-Fi', async () => {
       ctx.device.stop(); ctx.device.clearData();
       try { ctx.device.adb(['logcat', '-G', '16M']); ctx.device.logcatClear(); } catch { /* none yet */ }

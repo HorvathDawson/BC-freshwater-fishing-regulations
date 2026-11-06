@@ -91,6 +91,9 @@ echo "clear $D of what $REL does not name (except feeds/, private/, runtiming/, 
 rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**" --exclude "test/**" --exclude "app/android/**" \
   --exclude "release/manifest.json" --exclude "release/tiles/$TILES/**" --exclude "release/$REL/**" --exclude "release/$BM" \
   --exclude "release/$SYN" --exclude "map-assets/v1/**" --exclude "/*.wasm"
+# (T442) test/ is spared, but its manifest names the release just cleared: pointed at this one, or a test-channel
+# build's fresh install 404s on every file ("The map data could not be loaded"; walk-063)
+node deploy/staging/test-updates.mjs reset >/dev/null || echo "upload: WARNING test/ was not reset (node deploy/staging/test-updates.mjs reset)"
 echo "uploaded $REL to $D"; rclone size "$D"
 # (T241) the smoke test against the live staging site + this bucket; SMOKE=0 skips it
 if [[ "${SMOKE:-1}" != 0 ]]; then node app/tools/smoke-staging.mjs --shots "${SMOKE_SHOTS:-app/dist/smoke-staging}"; fi

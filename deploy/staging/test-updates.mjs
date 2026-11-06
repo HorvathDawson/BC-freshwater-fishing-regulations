@@ -29,7 +29,8 @@
 //   node deploy/staging/test-updates.mjs clean                 remove test/
 //
 // Each prints the new state. Scenarios build on what the app already holds (a release it applied stays its set), so
-// `reset` between runs. deploy/staging/upload.sh's clear also removes test/ (its manifest would name deleted files).
+// `reset` between runs. deploy/staging/upload.sh resets test/ after its clear (T442: a test/ manifest naming a cleared
+// release 404s a fresh install).
 import { execFileSync } from 'node:child_process';
 
 const BUCKET = 'bc-fishing-regulations-staging';      // hardcoded: this script must never name a production bucket

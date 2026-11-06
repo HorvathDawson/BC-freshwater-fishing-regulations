@@ -21,7 +21,8 @@ export const bgInstall = {
     // what the system's downloader has on disk for us (its folder in the app's external files)
     const onDisk = () => { try { return d.sh('ls -l /sdcard/Android/data/ca.canifishthis.app/files/bg-download/ 2>&1').trim().split('\n')
       .map((l) => l.trim().split(/\s+/)).filter((c) => c.length > 5).map((c) => `${c.at(-1)} ${Math.round(Number(c[4]) / 1e6)} MB`).join(', '); } catch { return '?'; } };
-    await ctx.step('test channel reset to the live release', () => `test/ = ${ctx.updates('reset').release.data_release}`, { shot: false });
+    await ctx.step('test channel reset to the live release', async () => `test/ = ${(await ctx.resetChannel()).release.data_release}`,
+                   { shot: false, stop: true });   // (T442) a stale test/ only 404s
     await ctx.step('clean app on MOBILE DATA: asked before the download', async () => {
       d.stop(); d.clearData();
       try { d.adb(['logcat', '-G', '16M']); d.logcatClear(); } catch { /* none yet */ }

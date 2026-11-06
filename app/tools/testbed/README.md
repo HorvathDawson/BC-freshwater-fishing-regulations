@@ -23,7 +23,8 @@ and recorded; the report is `out/runs/<stamp>/index.html` (plus `report.md`, `re
 Stress knobs (T420): `TESTBED_EMU_ECORES=1` runs the emulator on the Mac's efficiency cores (`taskpolicy -b`), `TESTBED_EMU_ARGS="-cores 2"`
 adds emulator flags; `pan` takes `PAN_AT=lon,lat,zoom`, `PAN_COLD=1` (page cache dropped first), `PAN_MS` (120 = a fling) and
 reports the pan probe's `[drawn]` lines (frames missing tiles while moving; camera at rest → first fully drawn frame).
-`run.mjs --no-r2` writes nothing to the staging bucket (no test-channel reset at the end).
+`run.mjs --no-r2` writes nothing to the staging bucket (no test-channel reset at the end); `install` then only checks that
+test/ already names the live release and stops if not (T442: a stale test/ names cleared files, so a fresh install 404s).
 
 `install` runs first and leaves the app holding the current staging release; the others build on it (none clears the
 app again: a fresh install is ~500 MB).
