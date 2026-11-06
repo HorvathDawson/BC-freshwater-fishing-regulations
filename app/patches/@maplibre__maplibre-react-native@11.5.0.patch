@@ -1,3 +1,24 @@
+diff --git a/android/src/main/java/org/maplibre/android/maps/MLRNCameraCache.java b/android/src/main/java/org/maplibre/android/maps/MLRNCameraCache.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..60c11af7f0d49544f212738e69914877753a30da
+--- /dev/null
++++ b/android/src/main/java/org/maplibre/android/maps/MLRNCameraCache.java
+@@ -0,0 +1,15 @@
++package org.maplibre.android.maps;
++
++/**
++ * (canifishthis T452 patch) In MapLibre's package for its package-private camera cache: the binding's own glide moves the
++ * camera with {@code scrollBy} steps, which do not refresh {@code Transform}'s cached position, so the settle it reports
++ * at the end would read the position from before the glide. Pinned to MapLibre Android 13.6.1 (Transform's
++ * {@code invalidateCameraPosition}, MapLibreMap's {@code getTransform}); a rename fails the build, not the app.
++ */
++public final class MLRNCameraCache {
++  private MLRNCameraCache() {}
++
++  public static void refresh(MapLibreMap map) {
++    map.getTransform().invalidateCameraPosition();
++  }
++}
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt b/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt
 index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b3628671272 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/images/MLRNImagesManager.kt
@@ -33,12 +54,16 @@ index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b36
  
                      else -> {
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda276a4ef6 100644
+index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de15764c1bb 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-@@ -10,6 +10,9 @@ import android.os.Looper
+@@ -8,8 +8,13 @@ import android.graphics.RectF
+ import android.os.Handler
+ import android.os.Looper
  import android.util.AttributeSet
++import android.view.Choreographer
  import android.view.Gravity
++import android.util.Log
  import android.view.MotionEvent
 +import android.view.SurfaceView
 +import android.view.VelocityTracker
@@ -46,7 +71,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
  import android.view.View
  import android.view.ViewGroup
  import android.widget.FrameLayout
-@@ -69,6 +72,9 @@ import org.maplibre.reactnative.events.MapPressEvent
+@@ -69,6 +74,9 @@ import org.maplibre.reactnative.events.MapPressEvent
  import org.maplibre.reactnative.utils.BitmapUtils
  import org.maplibre.reactnative.utils.ConvertUtils
  import org.maplibre.reactnative.utils.GeoJSONUtils
@@ -56,7 +81,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
  import kotlin.math.roundToInt
  
  sealed class MapChild {
-@@ -458,8 +464,15 @@ open class MLRNMapView(
+@@ -458,8 +466,19 @@ open class MLRNMapView(
  
      override fun onMapReady(mapLibreMap: MapLibreMap) {
          this.mapLibreMap = mapLibreMap
@@ -69,10 +94,34 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
 +        // is set per fling, as the finger lifts (`tuneFling`), so the glide goes as far as Android's own fling would.
 +        uiSettings.flingAnimationBaseTime = 450L
 +        uiSettings.flingThreshold = 500L
++        // (T452) the glide is the binding's own (`startGlide`, on the display's frame clock): MapLibre's fling animation is
++        // off; its base time and threshold above stay as they were in case it is ever switched back on
++        uiSettings.isFlingVelocityAnimationEnabled = false
++        camProbe(mapLibreMap)
          if (attributionGravity == null) attributionGravity = Gravity.END or Gravity.BOTTOM
          if (attributionMargin == null) {
              attributionMargin =
-@@ -610,8 +623,43 @@ open class MLRNMapView(
+@@ -519,6 +538,8 @@ open class MLRNMapView(
+         updateScaleBar()
+ 
+         mapLibreMap.addOnCameraMoveStartedListener { reason ->
++            // (T452) a camera move the app asks for (a fit, an ease) takes over from a glide still running
++            if (reason != MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE && glide != null) endGlide()
+             cameraChangeTracker.setReason(reason)
+             handleMapChangedEvent("onRegionWillChange", true)
+         }
+@@ -543,7 +564,9 @@ open class MLRNMapView(
+             },
+         )
+ 
+-        mapLibreMap.addOnCameraIdleListener { sendRegionDidChangeEvent() }
++        // (T452) while the binding's own glide runs, the camera is not at rest: the finger's lift (MapLibre's move end) is
++        // not a settle; the glide reports one when it stops (`endGlide`)
++        mapLibreMap.addOnCameraIdleListener { if (glide == null) sendRegionDidChangeEvent() }
+     }
+ 
+     fun reflow() {
+@@ -610,8 +633,53 @@ open class MLRNMapView(
          }
      }
  
@@ -83,11 +132,15 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
 +     * (T312) THE FLING GOES AS FAR AS ANDROID'S OWN. MapLibre's glide moves `v * time * 0.28 / 1000` dp, `time` being
 +     * `v / 7 / 1.5 + base` ms: under Android's scroller (the fling a list or Google Maps gives) by 2x at 2000 dp/s and
 +     * 2.5x at 5000 (testbed `feel`, owner 2026-11-02: "stops too soon"). As the finger lifts — before MapLibre's detector
-+     * reads the base — the base is set so the glide covers OverScroller's spline distance for this release speed.
++     * sees it — the release speed starts the binding's own glide over OverScroller's spline distance (`startGlide`, T452;
++     * T312 set MapLibre's base time per fling here, until T452 measured that glide's uneven steps).
 +     */
 +    private fun tuneFling(ev: MotionEvent) {
 +        when (ev.actionMasked) {
 +            MotionEvent.ACTION_DOWN -> {
++                probeOn = Log.isLoggable(CAM_TAG, Log.DEBUG)
++                // a finger on the map stops the glide where it is (and that is where the camera rests)
++                if (glide != null) endGlide()
 +                flingVelocity?.recycle()
 +                flingVelocity = VelocityTracker.obtain().also { it.addMovement(ev) }
 +            }
@@ -104,8 +157,14 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
 +                vt.computeCurrentVelocity(1000, ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat())
 +                val density = resources.displayMetrics.density
 +                val vDp = hypot(vt.xVelocity.toDouble(), vt.yVelocity.toDouble()) / density
++                val vx = vt.xVelocity
++                val vy = vt.yVelocity
 +                vt.recycle()
-+                if (vDp > 0) mapLibreMap?.uiSettings?.flingAnimationBaseTime = flingBaseTime(vDp, density)
++                if (probeOn) Log.d(CAM_TAG, "u ${System.nanoTime()} ${ev.eventTime} $vDp")
++                // before MapLibre's detector sees the lift: its move end is then not reported as a settle
++                if (vDp >= FLING_THRESHOLD_DP && mapLibreMap?.uiSettings?.isScrollGesturesEnabled == true) {
++                    startGlide(vx, vy, ev.eventTime * 1_000_000L)
++                }
 +            }
 +        }
 +    }
@@ -116,10 +175,111 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
          val result = super.onTouchEvent(ev)
  
          if (result && scrollEnabled == true) {
-@@ -871,6 +919,71 @@ open class MLRNMapView(
+@@ -871,6 +939,172 @@ open class MLRNMapView(
          updateInsets()
      }
  
++    /** (T452) the camera probe's switch (`adb shell setprop log.tag.CifCam D`), read at each touch-down */
++    private var probeOn = false
++
++    /** (T452) the glide running, if any (a frame callback) */
++    private var glide: Choreographer.FrameCallback? = null
++    private var probeVsync: Choreographer.FrameCallback? = null
++    private var probeUntil = 0L
++
++    /**
++     * (T452) THE CAMERA PROBE — test-bed measurement only, off unless `log.tag.CifCam` is DEBUG (then read at each
++     * touch-down): `m` each camera sample (time ns, centre, zoom), `f` each frame rendered, `v` each vsync while the
++     * camera moves, `u` the finger's lift, `d` each `onRegionDidChange` sent. Read by app/tools/testbed `glide`.
++     */
++    private fun camProbe(map: MapLibreMap) {
++        addOnCameraIsChangingListener { if (probeOn && glide == null) probeSample(map) }
++        addOnDidFinishRenderingFrameListener { fully, enc, rend ->
++            if (probeOn) Log.d(CAM_TAG, "f ${System.nanoTime()} ${if (fully) 1 else 0} $enc $rend")
++        }
++    }
++
++    private fun probeSample(map: MapLibreMap) {
++        val c = map.projection.fromScreenLocation(android.graphics.PointF(width / 2f, height / 2f))
++        Log.d(CAM_TAG, "m ${System.nanoTime()} ${c.longitude} ${c.latitude} ${map.zoom}")
++        probeUntil = System.nanoTime() + 600_000_000L
++        if (probeVsync != null) return
++        val cb =
++            object : Choreographer.FrameCallback {
++                override fun doFrame(ft: Long) {
++                    Log.d(CAM_TAG, "v $ft ${System.nanoTime()}")
++                    if (System.nanoTime() < probeUntil) Choreographer.getInstance().postFrameCallback(this) else probeVsync = null
++                }
++            }
++        probeVsync = cb
++        Choreographer.getInstance().postFrameCallback(cb)
++    }
++
++    /**
++     * (T452, owner 2026-11-06: "if you flick the screen the way it moves stutters a bit as it goes") THE GLIDE ON THE
++     * DISPLAY'S FRAME CLOCK. MapLibre's own fling (`moveBy` with a duration) places the camera at the moment the map
++     * thread happens to run, not at the frame's: measured on the emulator its samples fell 2–16 ms after their vsync,
++     * 1 in 7 sample gaps was over 20 ms and 15 % of its steps were more than 25 % off their neighbours — a judder even when
++     * every frame is drawn — and the glide began at half the finger's speed. Here each frame's camera is computed from that
++     * frame's vsync time (`Choreographer`) and set at once (`scrollBy`, no animation): steps even by construction, the glide
++     * starting at the finger's release speed and decaying exponentially over Android's own fling distance (OverScroller's
++     * spline, `platformFlingDp`, T312's length). It ends with one `onRegionDidChange`, as MapLibre's did.
++     */
++    private fun startGlide(
++        vx: Float,
++        vy: Float,
++        upNanos: Long,
++    ) {
++        val map = mapLibreMap ?: return
++        val density = resources.displayMetrics.density
++        val vPx = hypot(vx.toDouble(), vy.toDouble())
++        if (vPx <= 0.0) return
++        val vDp = vPx / density
++        val distDp = platformFlingDp(vDp, density)
++        if (distDp <= 0.0) return
++        val k = vDp / distDp
++        val ux = vx / vPx
++        val uy = vy / vPx
++        var done = 0.0
++        stopGlide()
++        val cb =
++            object : Choreographer.FrameCallback {
++                override fun doFrame(ft: Long) {
++                    if (glide !== this) return
++                    if (mapLibreMap == null || !isAttachedToWindow) {
++                        glide = null
++                        return
++                    }
++                    val t = (ft - upNanos) / 1e9
++                    val s = if (t <= 0) 0.0 else distDp * (1 - exp(-k * t))
++                    val end = distDp - s < GLIDE_END_DP || t > GLIDE_MAX_S
++                    val target = if (end) distDp else s
++                    val step = (target - done) * density
++                    done = target
++                    if (step != 0.0) map.scrollBy((ux * step).toFloat(), (uy * step).toFloat(), 0)
++                    if (probeOn) probeSample(map)
++                    if (end) endGlide() else Choreographer.getInstance().postFrameCallback(this)
++                }
++            }
++        glide = cb
++        Choreographer.getInstance().postFrameCallback(cb)
++    }
++
++    private fun stopGlide() {
++        glide?.let { Choreographer.getInstance().removeFrameCallback(it) }
++        glide = null
++    }
++
++    /** (T452) the glide stopped (its end, a finger, a camera move of the app's): the camera rests here — one settle */
++    private fun endGlide() {
++        stopGlide()
++        val map = mapLibreMap ?: return
++        // the camera cache MapLibre reports from was not refreshed by the glide's steps
++        org.maplibre.android.maps.MLRNCameraCache.refresh(map)
++        cameraChangeTracker.setReason(CameraChangeTracker.USER_GESTURE)
++        sendRegionDidChangeEvent()
++    }
++
 +    /** (T448) the most device pixels per dp the map draws; 0 = the device density */
 +    private var maxPixelRatio = 0f
 +
@@ -188,7 +348,15 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
      fun setReactPreferredFramesPerSecond(preferredFramesPerSecond: Int?) {
          this.preferredFramesPerSecond = preferredFramesPerSecond
          updatePreferredFramesPerSecond()
-@@ -1613,6 +1726,22 @@ open class MLRNMapView(
+@@ -1565,6 +1799,7 @@ open class MLRNMapView(
+         eventName: String,
+         withViewState: Boolean? = null,
+     ) {
++        if (probeOn && eventName == "onRegionDidChange") Log.d(CAM_TAG, "d ${System.nanoTime()}")
+         val event =
+             if (withViewState == true) {
+                 MapChangeEvent(surfaceId, id, eventName, makeViewState(null))
+@@ -1613,6 +1848,26 @@ open class MLRNMapView(
      }
  
      companion object {
@@ -202,13 +370,17 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda
 +            return friction * coef * exp(decel / (decel - 1.0) * l) / density
 +        }
 +
-+        /** (T312) MapLibre's fling base time (ms) that makes its glide at `vDp` cover `platformFlingDp`. */
-+        fun flingBaseTime(vDp: Double, density: Float): Long {
-+            val glideMs = platformFlingDp(vDp, density) / (0.28 * vDp) * 1000.0
-+            return (glideMs - vDp / 7.0 / 1.5).coerceIn(300.0, 2500.0).toLong()
-+        }
-+
          const val LOG_TAG: String = "MLRNMapView"
++
++        /** (T452) the camera probe's log tag (`camProbe`) */
++        const val CAM_TAG: String = "CifCam"
++
++        /** (T312/T452) the slowest release (dp/s) that glides: MapLibre's threshold as T312 set it */
++        const val FLING_THRESHOLD_DP = 500.0
++
++        /** (T452) the glide stops within this of its end (dp), or after this long (s) */
++        const val GLIDE_END_DP = 0.3
++        const val GLIDE_MAX_S = 4.0
      }
  }
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt

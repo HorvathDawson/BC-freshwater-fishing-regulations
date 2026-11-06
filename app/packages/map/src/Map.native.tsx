@@ -241,6 +241,16 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                               stretchX: g.stretchX, stretchY: g.stretchY, content: g.content } };
   }, [theme, markBoxName, spotColourKey]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
+  // (T451, the pan probe's build) each style handed to the binding, and what changed since the last one
+  const lookWas = useRef<Record<string, string> | null>(null);
+  useEffect(() => {
+    if (!panProbe.on()) return;
+    const now: Record<string, string> = { view: String(view), theme, modes: JSON.stringify(modes ?? {}), hide: JSON.stringify(hide ?? []),
+      show: JSON.stringify(show ?? []), groups: JSON.stringify(groups ?? {}), basemap: String(basemap), area: areaKey, values: valuesKey };
+    const was = lookWas.current;
+    lookWas.current = now;
+    panProbe.styleHanded(was ? Object.keys(now).filter((k) => now[k] !== was[k]).join("+") || "same" : "first");
+  }, [look]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const gaugeData = useMemo(() => JSON.parse(gauges ?? EMPTY_FC) as GeoJSON.FeatureCollection, [gauges]);
   const camera0 = useRef({ center: [initial.lon, initial.lat] as [number, number], zoom: initial.zoom });
@@ -646,6 +656,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
+    panProbe.styleLoaded();
     renderer.forget();
     colouringSwapped();
     copy.current.forgetStates();

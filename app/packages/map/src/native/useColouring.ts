@@ -14,13 +14,13 @@
  *                style swap, as every look change is on a phone, and a swap drops every feature-state: `swapped()`
  *                makes the engine forget what it labelled and labels the tiles it holds again.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { DeviceEventEmitter } from "react-native";
 import { Colouring, LABEL_SOURCE_LAYERS, methodInput, runsInput, runsKeyOf, salmonInput, standingInput, statusInput, stockedInput, surveyInput,
          type Channel, type ChannelInput, type LabelTarget, type TileRenderer } from "../colouring";
 import type { MapAdapter } from "../adapters/contract";
 import type { MapProps } from "../map-props";
-import { NO_VALUES, type ChannelValues } from "../style";
+import type { ChannelValues } from "../style";
 import { TILE_IDS_EVENT, TileHold, type TileIdsEvent } from "../tile-hold";
 import type { CopyTarget, WaterCopy } from "../water-copy";
 import { readingDayOf, salmonDayIndex } from "@app/core";
@@ -102,12 +102,9 @@ export function useNativeColouring(o: {
   report: (e: unknown) => void;
 } & Channels): NativeColouring {
   panProbe.render();                   // (T273) this hook runs on every render of the native map
-  const [values, setValues] = useState<ChannelValues>(NO_VALUES);
-  // the engine's adapter on a phone: a channel's values go to the style through state (the only call it makes)
-  const adapter = useMemo(() => ({
-    setChannel: (_h: unknown, ch: Channel, v: ChannelValues[Channel]) =>
-      setValues((was) => (was[ch] === v ? was : { ...was, [ch]: v })),
-  }) as unknown as MapAdapter, []);
+  // the engine's adapter on a phone: its one call (`setChannel`) writes nothing — the style's values are read from the
+  // same inputs in the render that hands them over (`values`, T451)
+  const adapter = useMemo(() => ({ setChannel: () => {} }) as unknown as MapAdapter, []);
   const engine = useRef<Colouring | null>(null);
   engine.current ??= new Colouring(adapter);
   const hold = useRef(new TileHold());
@@ -136,6 +133,9 @@ export function useNativeColouring(o: {
   /** (T273) labels queued so far (the pan probe's count per tile) */
   const labelled = useRef(0);
   const queued = useRef(false);
+  /** (T451, the pan probe's build) a style load's relabel not yet acknowledged; a section acknowledged before it */
+  const swapPending = useRef(false);
+  const lastAck = useRef<{ layer: string; id: string } | null>(null);
   const flush = useCallback(() => {
     queued.current = false;
     const src = ref.current.atlas();
@@ -143,7 +143,14 @@ export function useNativeColouring(o: {
     for (const [layer, ids, states] of queue.current.drain()) {
       const sent = panProbe.send();
       void src.setFeatureStates(layer, ids, states)
-        .then(() => { sent(); for (const id of ids) ack(Number(id)); })
+        .then(() => {
+          sent();
+          for (const id of ids) ack(Number(id));
+          if (panProbe.on() && ids.length) {
+            lastAck.current = { layer, id: ids[0]! };
+            if (swapPending.current) { swapPending.current = false; panProbe.acked(); }
+          }
+        })
         .catch(ref.current.report);
     }
   }, []);
@@ -226,42 +233,74 @@ export function useNativeColouring(o: {
   const attached = rewatch;
   const swapped = useCallback(() => {
     const c = engine.current!;
+    if (panProbe.on()) {
+      // (T451) does a section labelled before the load still wear its state? (asked before the relabel is sent)
+      swapPending.current = true;
+      const was = lastAck.current, src = ref.current.atlas() as unknown as
+        { getFeatureState?: (f: { id: string; sourceLayer: string }) => Promise<Record<string, unknown>> } | null;
+      if (was && src?.getFeatureState)
+        void src.getFeatureState({ id: was.id, sourceLayer: was.layer })
+          .then((st) => panProbe.kept(Object.keys(st ?? {}).length > 0), () => panProbe.kept(null));
+    }
     c.reset();
     queue.current.forget();
     acked.current = new Uint8Array(0);
     if (c.active) for (const t of hold.current.all()) c.label(target, t);
   }, [target]);
 
-  /** One channel's input, to the engine — the web's `useChannels`, the same calls. */
-  const toChannel = (channel: Channel, input: ChannelInput | null) =>
-    engine.current!.set({} as never, target, renderer, channel, input, ref.current.theme);
+  /*
+   * (T451) EACH CHANNEL'S INPUT, made once per change and handed to the engine (the web's `useChannels`, the same calls)
+   * — and its STYLE-BORNE VALUES read from the same input IN THIS RENDER (`values` below). They were the engine's
+   * `setChannel` through state, one render after the tab's modes: a tab switch handed the binding the new modes with the
+   * old (or no) day profiles first and the values a render later — two style swaps, the first drawing the streams
+   * without their colours (the flicker going to the Map tab).
+   */
   const { status, standing, lakes, salmon, method, runs } = o;
   const statusDay = status ? readingDayOf(status.day) : 0;
-  useEffect(() => toChannel("status", status ? statusInput(status) : null),
+  const statusIn = useMemo(() => (status ? statusInput(status) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [status?.index, statusDay, status?.only, o.atlasUrl]);
-  useEffect(() => toChannel("standing", standing ? standingInput(standing) : null),
+  const standingIn = useMemo(() => (standing ? standingInput(standing) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [standing?.labels, standing?.values, o.atlasUrl]);
-  useEffect(() => toChannel("survey", lakes ? surveyInput(lakes) : null),
+  const surveyIn = useMemo(() => (lakes ? surveyInput(lakes) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [lakes?.facts, o.atlasUrl]);
-  useEffect(() => toChannel("stocked", lakes ? stockedInput(lakes) : null),
+  const stockedIn = useMemo(() => (lakes ? stockedInput(lakes) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [lakes?.facts, lakes?.day, o.atlasUrl]);
   const salmonDay = salmon ? salmonDayIndex(salmon.day) : -1;
-  useEffect(() => toChannel("salmon", salmon ? salmonInput(salmon) : null),
+  const salmonIn = useMemo(() => (salmon ? salmonInput(salmon) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [salmon?.facts, salmonDay, salmon?.only, o.atlasUrl]);
   const methodDay = method ? readingDayOf(method.day) : -1;
-  useEffect(() => toChannel("method", method ? methodInput(method) : null),
+  const methodIn = useMemo(() => (method ? methodInput(method) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [method?.facts, methodDay, o.atlasUrl]);
   // (T199) the run timing: the state IS the label, a species or month change relabels
   const runsKey = runsKeyOf(runs);
-  useEffect(() => toChannel("runs", runs ? runsInput(runs) : null),
+  const runsIn = useMemo(() => (runs ? runsInput(runs) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [runs?.facts, runsKey, o.atlasUrl]);
+  const toChannel = (channel: Channel, input: ChannelInput | null) =>
+    engine.current!.set({} as never, target, renderer, channel, input, ref.current.theme);
+  useEffect(() => toChannel("status", statusIn), [statusIn]);        // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("standing", standingIn), [standingIn]);  // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("survey", surveyIn), [surveyIn]);        // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("stocked", stockedIn), [stockedIn]);     // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("salmon", salmonIn), [salmonIn]);        // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("method", methodIn), [methodIn]);        // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => toChannel("runs", runsIn), [runsIn]);              // eslint-disable-line react-hooks/exhaustive-deps
+  /** What the engine's `setChannel` would write for each channel (`Colouring.set`: `input.values()`, or null). */
+  const values = useMemo<ChannelValues>(() => ({
+    status: (statusIn?.values() ?? null) as ChannelValues["status"],
+    standing: (standingIn?.values() ?? null) as ChannelValues["standing"],
+    survey: (surveyIn?.values() ?? null) as ChannelValues["survey"],
+    stocked: (stockedIn?.values() ?? null) as ChannelValues["stocked"],
+    salmon: (salmonIn?.values() ?? null) as ChannelValues["salmon"],
+    method: (methodIn?.values() ?? null) as ChannelValues["method"],
+    runs: (runsIn?.values() ?? null) as ChannelValues["runs"],
+  }), [statusIn, standingIn, surveyIn, stockedIn, salmonIn, methodIn, runsIn]);
 
   const coloured = useCallback((id: number) =>
     (id >> 3) < acked.current.length && (acked.current[id >> 3]! & (1 << (id & 7))) !== 0, []);

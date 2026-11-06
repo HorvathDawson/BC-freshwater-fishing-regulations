@@ -26,5 +26,7 @@ import { heapprof } from './heapprof.mjs';
 import { edge } from './edge.mjs';
 import { feel } from './feel.mjs';
 import { partSteps } from './part-steps.mjs';
+import { tabSwitch } from './switch.mjs';
+import { glide } from './glide.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide];

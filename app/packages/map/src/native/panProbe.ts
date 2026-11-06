@@ -60,8 +60,47 @@ export const panProbe = {
   /** (T420/T401) the camera came to rest (`onRegionDidChange`) */
   settled(): void { if (!on()) return; drawn.settled(clockNow()); },
   /** (T420/T401) a frame drawn; `full`: every tile the view needs was in it (MapLibre's "fully rendered") */
-  frame(full: boolean): void { if (!on()) return; drawn.frame(full, clockNow()); },
+  frame(full: boolean): void { if (!on()) return; const t = clockNow(); drawn.frame(full, t); swaps.frame(t); },
+  /** (T451) a new style handed to the binding (`why`: what changed since the last one) */
+  styleHanded(why: string): void { if (!on()) return; swaps.handed(why, clockNow()); },
+  /** (T451) a style finished loading */
+  styleLoaded(): void { if (!on()) return; swaps.loaded(clockNow()); },
+  /** (T451) the first labels after a style load acknowledged on the map */
+  acked(): void { if (!on()) return; swaps.acked(clockNow()); },
+  /** (T451) what a section labelled before the swap holds right after it */
+  kept(held: boolean | null): void { if (!on()) return; swaps.kept(held); },
 };
+
+/**
+ * (T451) STYLE SWAPS, measured: one `[swap] {…}` line per style load —
+ *   handed    styles handed to the binding since the last load (2+: a switch that swapped twice), and why each was
+ *   loadMs    first hand-over → loaded
+ *   bare      frames drawn between the load and the first labels' acknowledgement (drawn without the engine's colours)
+ *   bareMs    load → acknowledgement
+ *   kept      a section labelled before the load still wore its state after it (feature-state survived the swap)
+ */
+export function swapTracker(log: (line: string) => void = (l) => console.log(l)) {
+  let why: string[] = [], firstAt = -1, loadAt = -1, bare = 0, kept: boolean | null = null, open = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const done = (ackAt: number | null) => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    log(`[swap] ${JSON.stringify({ t: loadAt, handed: why.length, why, loadMs: firstAt >= 0 ? loadAt - firstAt : null, bare,
+                                   bareMs: ackAt === null ? null : ackAt - loadAt, kept })}`);
+    open = false; why = []; firstAt = -1; kept = null;
+  };
+  return {
+    handed(w: string, t: number): void { if (open) done(null); if (firstAt < 0) firstAt = t; why.push(w); },
+    loaded(t: number): void {
+      if (open) done(null);
+      loadAt = t; bare = 0; open = true;
+      timer = setTimeout(() => { if (open) done(null); }, 4000);
+    },
+    frame(_t: number): void { if (open) bare += 1; },
+    acked(t: number): void { if (open) done(t); },
+    kept(h: boolean | null): void { kept = h; },
+  };
+}
+const swaps = swapTracker();
 
 /**
  * (T420/T401) STREAMS DRAWN, from MapLibre's own word: each frame is drawn either FULLY (every tile the view needs is
