@@ -16,7 +16,7 @@ describe("openBook with a box (T215)", () => {
   });
   it("no box: still OUR copy, at its page; no copy in the release: the plain link", async () => {
     setSynopsisSource({ url: "http://x/s.pdf", sha256: "a".repeat(64), bytes: 1 });
-    const link = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const link = vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     const open = vi.fn().mockResolvedValue(undefined);
     await openBook(23, undefined, "web", open);
     expect(open).toHaveBeenCalledWith(expect.anything(), 23, [], expect.anything());

@@ -9,7 +9,7 @@
  * The open key lives with the caller (RegsView; T23's RegsScreen when it lands). No logic: `page.sheet` is core's (T36).
  */
 import { useEffect, useMemo, useRef } from "react";
-import type { ScrollView } from "react-native";
+import type { ScrollViewInstance } from "react-native";
 import type { RegsPage, SheetKey, SourceBox, Tab } from "@app/core";
 import { useLayoutClass, type LayoutClass } from "@app/ui";
 import { Sheet } from "../Sheet";
@@ -37,7 +37,7 @@ export function SheetHost(p: SheetHostProps) {
   const shell = useLayoutClass();
   const layout = p.layout ?? shell;
   const vm = useMemo(() => (p.open ? p.page.sheet(p.open) : null), [p.page, p.open]);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   // a sheet opened in another's place starts at its top
   useEffect(() => { scroll.current?.scrollTo({ y: 0, animated: false }); }, [p.open]);
   // (refinement pass) the last sheet drawn stays mounted, closed, so the one Sheet can slide it away (its scrim fading in

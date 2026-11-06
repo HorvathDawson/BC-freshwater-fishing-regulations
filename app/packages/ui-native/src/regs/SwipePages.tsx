@@ -5,7 +5,7 @@
  * block decides the pages; this draws them.
  */
 import { useState, type ReactNode } from "react";
-import { ScrollView, View, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import { ScrollView, View, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent, type ScrollViewInstance } from "react-native";
 import { WORDS } from "@app/core";
 import { Text } from "../Text";
 import { TYPE } from "../type";
@@ -15,7 +15,7 @@ export function SwipePages({ titles, palette, children }: {
   titles: readonly string[]; palette: Palette; children: (i: number) => ReactNode }) {
   const [w, setW] = useState(0);
   const [at, setAt] = useState(0);
-  const [ref, setRef] = useState<ScrollView | null>(null);
+  const [ref, setRef] = useState<ScrollViewInstance | null>(null);
   const go = (i: number) => {
     const j = Math.max(0, Math.min(titles.length - 1, i));
     setAt(j);

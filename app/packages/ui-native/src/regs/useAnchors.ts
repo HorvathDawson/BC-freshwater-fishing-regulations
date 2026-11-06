@@ -15,7 +15,7 @@
  * anchors itself).
  */
 import { createContext, useCallback, useEffect, useMemo, useRef } from "react";
-import { Animated, Dimensions, type LayoutChangeEvent, type View } from "react-native";
+import { Animated, Dimensions, type LayoutChangeEvent, type ViewInstance } from "react-native";
 import type { GroupVM, PinAnchor, PinTierAnchor, RegsPage, Tab, TreeNodeVM } from "@app/core";
 import type { PinSections, PinStore } from "./pinStore";
 
@@ -32,7 +32,7 @@ export type AnchorKey =
 
 export interface AnchorSink {
   /** a stable ref callback for the element `id` (unique on the page) */
-  ref(id: string, key: AnchorKey): (node: View | null) => void;
+  ref(id: string, key: AnchorKey): (node: ViewInstance | null) => void;
   /** an anchored element laid out: measure again soon */
   changed(): void;
 }
@@ -101,16 +101,16 @@ export function sectionsOf(boxes: Boxes): PinSections {
  * The anchor sink for the page's Keep tab and the section wrappers' ref + layout handler. `contentRef` wraps every
  * anchored element (measureLayout against a non-ancestor fails on native).
  */
-export function useAnchors(page: RegsPage, contentRef: React.RefObject<View | null>, store: PinStore): {
+export function useAnchors(page: RegsPage, contentRef: React.RefObject<ViewInstance | null>, store: PinStore): {
   sink: AnchorSink;
-  section: (tab: SectionTab) => { ref: (node: View | null) => void; onLayout: (e: LayoutChangeEvent) => void };
+  section: (tab: SectionTab) => { ref: (node: ViewInstance | null) => void; onLayout: (e: LayoutChangeEvent) => void };
   remeasure: () => void;
 } {
-  const nodes = useRef(new Map<string, View>()).current;
+  const nodes = useRef(new Map<string, ViewInstance>()).current;
   // the key each id was LAST registered with: an id comes back on another page (day, part) with other tier nesting,
   // and its ref callback is stable (React does not call it again), so the key is looked up at measure time
   const keys = useRef(new Map<string, AnchorKey>()).current;
-  const refs = useRef(new Map<string, (node: View | null) => void>()).current;
+  const refs = useRef(new Map<string, (node: ViewInstance | null) => void>()).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const groupsRef = useRef(page.keep.groups);
   groupsRef.current = page.keep.groups;

@@ -17,7 +17,7 @@ import { SourceLine } from "./SourceLine";
 
 const OS = Platform.OS;
 afterEach(() => { cleanup(); vi.restoreAllMocks(); (Platform as { OS: string }).OS = OS; });
-const spyOpen = () => vi.spyOn(Linking, "openURL").mockResolvedValue(true);
+const spyOpen = () => vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
 
 describe("<RuleBookLink> label", () => {
   it("printed 21, pdf 23 → \"Rule book p.21 ↗\", a link named for a screen reader", () => {

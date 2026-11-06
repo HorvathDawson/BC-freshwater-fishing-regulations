@@ -111,7 +111,7 @@ not a separate app, so the web app — phone, tablet and desktop widths alike �
 
 ## One React
 
-**react 19.2.3, react-dom 19.2.3, react-native 0.86.3, Expo SDK 57** — pinned as exact
+**react 19.3.0, react-dom 19.3.0, react-native 0.88.0, Expo SDK 58** (T250) — pinned as exact
 versions, not ranges, and pinned *again* as `pnpm.overrides` in the root `package.json`.
 
 Why twice: `packages/ui` and `packages/map` declare `react` as a peer with range `*`, and
@@ -120,7 +120,7 @@ pnpm's `auto-install-peers` cheerfully satisfied that with 19.2.8 while `apps/mo
 `pnpm ls -r` showed both; after, one. The override makes the pin structural instead of a
 thing six `package.json` files have to agree about.
 
-**19.2.3 specifically because Expo SDK 57 pins it.** The React version is not an independent
+**19.3.0 specifically because Expo SDK 58 pins it** (SDK 57 pinned 19.2.3). The React version is not an independent
 choice — Expo's Metro config, `babel-preset-expo` and the native modules are built against
 one triple. `npx expo install --check` is the authority; bump the three together with the SDK
 or not at all. §4.3 rule 1 exists because the two v1 apps drifted to React 19 vs 18.3.1 by

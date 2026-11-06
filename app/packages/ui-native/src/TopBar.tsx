@@ -28,8 +28,8 @@
  */
 import { LoadingState } from "./LoadingState";
 import { useCoachTarget } from "./CoachMarks";
-import { forwardRef, useState } from "react";
-import { TextInput, View, useWindowDimensions } from "react-native";
+import { forwardRef, useState, type ForwardRefExoticComponent, type RefAttributes } from "react";
+import { TextInput, View, useWindowDimensions, type TextInputInstance } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { SEARCH_BAR, type SyncVM } from "@app/core";
@@ -76,7 +76,7 @@ export interface TopBarProps {
   onClose: () => void;
 }
 
-export const TopBar = forwardRef<TextInput, TopBarProps>(function TopBar(
+export const TopBar: ForwardRefExoticComponent<TopBarProps & RefAttributes<TextInputInstance>> = forwardRef<TextInputInstance, TopBarProps>(function TopBar(
   { palette, placeholder, sync, onSync, notices = null, open, query, onQuery, onOpen, onClose }, ref) {
   const panel = searchPanelWidth(useWindowDimensions().width);
   // the field holds the focus (open, or focused but closed): its edge turns accent either way — its one focus mark

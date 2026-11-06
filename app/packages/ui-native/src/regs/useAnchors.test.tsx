@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import { useRef } from "react";
-import type { View } from "react-native";
+import type { ViewInstance } from "react-native";
 import type { PinAnchor } from "@app/core";
 import type { RegsPage } from "@app/core";
 import { LIGHT } from "../theme";
@@ -89,14 +89,14 @@ describe("anchors", () => {
       measureLayout: (_c: unknown, ok: (x: number, y: number, w: number, h: number) => void) => {
         const b = geo(id); ok(0, b.top, 0, b.height);
       },
-    }) as unknown as View;
+    }) as unknown as ViewInstance;
     let last: readonly PinAnchor[] = [];
     const store = { setSections() {}, setBoxes() {}, setAnchors(a: readonly PinAnchor[]) { last = a; } } as unknown as PinStore;
     function Harness({ p }: { p: RegsPage }) {
-      const content = useRef<View | null>({} as View);
+      const content = useRef<ViewInstance | null>({} as ViewInstance);
       const { sink } = useAnchors(p, content, store);
       // hands the real sink a node with a layout (jsdom has none); one wrapper per id, like a stable ref
-      const wrap = useRef(new Map<string, (n: View | null) => void>()).current;
+      const wrap = useRef(new Map<string, (n: ViewInstance | null) => void>()).current;
       const faked: AnchorSink = {
         ref(id, key) {
           const f = sink.ref(id, key);

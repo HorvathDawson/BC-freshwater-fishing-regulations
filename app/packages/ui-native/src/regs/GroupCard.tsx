@@ -5,7 +5,7 @@
  * line and "See every regulation line ›". tokens.md §5 GroupHead … HowItAddsUp. No logic.
  */
 import { Fragment, useContext, useSyncExternalStore } from "react";
-import { Image, View } from "react-native";
+import { Image, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { WORDS, type FishPicVM, type GroupVM, type KindVM, type NotKeptVM, type TierVM, type TreeNodeVM } from "@app/core";
 import { TYPE } from "../type";
@@ -20,7 +20,7 @@ import type { FishImages } from "./types";
 interface At { readonly row: number; readonly tids: readonly string[]; readonly path: string }
 
 /** (T29) the ref + onLayout an anchored element reports through (`useAnchors`); nothing outside a RegsScreen. */
-function useAnchor(id: string, key: AnchorKey): { ref?: (n: View | null) => void; onLayout?: () => void } {
+function useAnchor(id: string, key: AnchorKey): { ref?: (n: ViewInstance | null) => void; onLayout?: () => void } {
   const sink = useContext(AnchorContext);
   return sink ? { ref: sink.ref(id, key), onLayout: sink.changed } : {};
 }

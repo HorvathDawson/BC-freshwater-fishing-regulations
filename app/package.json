@@ -51,15 +51,16 @@
     "pnpm": ">=9"
   },
   "pnpm": {
-    "$comment": "ONE React for the whole workspace. packages/ui and packages/map declare react as a peer with range '*'; pnpm's auto-install-peers happily satisfied that with a DIFFERENT patch than the one Expo SDK 57 pins, which puts two Reacts in one bundle ('Invalid hook call'). These overrides make the pin structural rather than a convention. Bump them together with the Expo SDK, never alone. react-native-svg is pinned here for the same reason: it ships native code that Expo SDK 57 builds against, and two copies in one bundle is a silent render failure rather than an error. react-native-gesture-handler (G1) is pinned for the same reason: native code, the version Expo SDK 57's bundledNativeModules names (~2.32.0, of which 2.32.0 is the only release). @react-native-community/netinfo is pinned for the same reason: native code, the version Expo SDK 57's bundledNativeModules names (12.0.1). react-native-safe-area-context is pinned for the same reason (T50): native code, the version Expo SDK 57's bundledNativeModules names (~5.7.0, of which 5.7.0 is the only release).",
+    "$comment": "ONE React for the whole workspace. packages/ui and packages/map declare react as a peer with range '*'; pnpm's auto-install-peers happily satisfied that with a DIFFERENT patch than the one Expo SDK 58 pins, which puts two Reacts in one bundle ('Invalid hook call'). These overrides make the pin structural rather than a convention. Bump them together with the Expo SDK, never alone (T250: SDK 58, every version exact and at least two weeks old; deps.md). react-native-svg is pinned here for the same reason: it ships native code that Expo SDK 58 builds against, and two copies in one bundle is a silent render failure rather than an error. react-native-gesture-handler (G1) is pinned for the same reason: native code, the version Expo SDK 58's bundledNativeModules names (~3.3.0, of which 3.3.0 is the only release). @react-native-community/netinfo is pinned for the same reason: native code, the version Expo SDK 58's bundledNativeModules names (12.0.1). react-native-safe-area-context is pinned for the same reason (T50): native code, the version Expo SDK 58's bundledNativeModules names (~5.10.1, of which 5.10.1 is the only release). expo-file-system is pinned for the same reason (T250): @app/data and @app/ui-native take it as a peer ('*'), and auto-install-peers kept the SDK 57 copy (57.0.6) beside apps/mobile's 58.0.11.",
     "overrides": {
-      "react": "19.2.3",
-      "react-dom": "19.2.3",
-      "react-native": "0.86.3",
-      "react-native-svg": "15.15.4",
-      "react-native-gesture-handler": "2.32.0",
+      "react": "19.3.0",
+      "react-dom": "19.3.0",
+      "react-native": "0.88.0",
+      "react-native-svg": "15.16.0",
+      "react-native-gesture-handler": "3.3.0",
       "@react-native-community/netinfo": "12.0.1",
-      "react-native-safe-area-context": "5.7.0"
+      "react-native-safe-area-context": "5.10.1",
+      "expo-file-system": "58.0.11"
     },
     "patchedDependencies": {
       "@maplibre/maplibre-react-native@11.5.0": "patches/@maplibre__maplibre-react-native@11.5.0.patch",

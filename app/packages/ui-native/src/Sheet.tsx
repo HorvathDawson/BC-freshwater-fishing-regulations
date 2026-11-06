@@ -9,10 +9,10 @@
  * visible above it (T45 review: a 640 px dialog's scrim covered the middle of the map the Layers choices recolour).
  */
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Modal, ScrollView, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Modal, ScrollView, View, useWindowDimensions, type ScrollViewInstance } from "react-native";
 import { Selectable, Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { GestureDetector, GestureHandlerRootView, ScrollView as GHScrollView, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import { useBackLayer, useLayoutClass, useSheetDrag, type LayoutClass } from "@app/ui";
 import { SHEET_WORDS } from "@app/core";
 import { TYPE } from "./type";
@@ -60,7 +60,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   /** (T37) a small line under the title row (a rule's level, a row's water and day) */
   sub?: string | null;
   /** (T37) the inner ScrollView, so a sheet opened in this one's place can start at its top */
-  scrollRef?: React.Ref<ScrollView>;
+  scrollRef?: React.Ref<ScrollViewInstance>;
   /** (T45) the layout class; absent → the app's (`useLayoutClass`). A phone: the bottom sheet; wider: a centred dialog. */
   layout?: LayoutClass;
   /** (T45) on a wide layout, a centred dialog instead of the bottom sheet; default false: a bottom sheet at every width */
@@ -81,40 +81,17 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
   const y = useRef(new Animated.Value(0)).current;
   const height = useRef(0);
   useEffect(() => { if (open) y.setValue(0); }, [open, y]);
-  const pull = useMemo(() => Gesture.Pan().runOnJS(true)
-    .activeOffsetY(6).failOffsetX([-24, 24])
-    .onUpdate((e) => y.setValue(drag.offset(e.translationY)))
-    // `success` is false when the system cancelled the drag after it went active: not a release, so it springs back
-    .onEnd((e, success) => {
-      if (!success || !drag.release(e.translationY, e.velocityY, height.current))
+  // (T250) RNGH 3's hook API: one memoised config per recogniser (a new object reconfigures the native handler)
+  const pull = usePanGesture(useMemo((): PanGestureConfig => ({
+    runOnJS: true, disableReanimated: true, testID: "sheet-drag",
+    activeOffsetY: 6, failOffsetX: [-24, 24],
+    onUpdate: (e) => y.setValue(drag.offset(e.translationY)),
+    // `canceled` when the system cancelled the drag after it went active: not a release, so it springs back
+    onDeactivate: (e) => {
+      if (e.canceled || !drag.release(e.translationY, e.velocityY, height.current))
         Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();
-    })
-    .withTestId("sheet-drag"), [drag, y]);
-  /*
-   * THE CONTENT-AT-TOP DRAG (G1 "or when the content is at its top"). The body's own scroll is a native gesture that
-   * runs alongside this pan (`simultaneousWithExternalGesture`), so neither cancels the other. The pan only activates
-   * downward (`activeOffsetY(6)`), and it moves the sheet only when the content was at its top when the finger went
-   * down: a drag that starts scrolled down scrolls the content and never the sheet, so content keeps scrolling. Upward
-   * from the top, the pan never activates and the content scrolls as usual.
-   */
-  const scrollTop = useRef(0);
-  useEffect(() => { if (open) scrollTop.current = 0; }, [open]);
-  const scrollNative = useMemo(() => Gesture.Native(), []);
-  const bodyPull = useMemo(() => {
-    let armed = false;
-    return Gesture.Pan().runOnJS(true)
-      .activeOffsetY(6).failOffsetX([-24, 24])
-      .simultaneousWithExternalGesture(scrollNative)
-      .onBegin(() => { armed = scrollTop.current <= 0; })
-      .onUpdate((e) => { if (armed) y.setValue(drag.offset(e.translationY)); })
-      .onEnd((e, success) => {
-        if (!armed) return;
-        armed = false;
-        if (!success || !drag.release(e.translationY, e.velocityY, height.current))
-          Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();
-      })
-      .withTestId("sheet-body-drag");
-  }, [drag, y, scrollNative]);
+    },
+  }), [drag, y]));
   /*
    * BACK CLOSES AN OPEN SHEET FIRST, on every platform (G1): while open the sheet is a back layer of the one back
    * (`useBackLayer`) — on the web one history entry, so the browser's back and a phone browser's swipe-back close it
@@ -276,15 +253,9 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
           {scroll
             // SHEET_BODY_CAP (0.68), not the ticket's 0.82: with the title row and a sub line on top, 0.82 covered the water's
             // header on a 390 × 844 phone (howtell-current-water: the header stays visible above the scrim)
-            // `bounces={false}`: at the top a downward pull moves the sheet, not an iOS overscroll of the content
-            ? <GestureDetector gesture={bodyPull}>
-                <GestureDetector gesture={scrollNative}>
-                  <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ maxHeight: windowHeight * SHEET_BODY_CAP }}
-                              keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
-                              onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
-                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{shown.children}</Selectable></ScrollView>
-                </GestureDetector>
-              </GestureDetector>
+            ? <PullScroll open={open} drag={drag} y={y} height={height} scrollRef={scrollRef} maxHeight={windowHeight * SHEET_BODY_CAP}>
+                {shown.children}
+              </PullScroll>
             : <Selectable>{shown.children}</Selectable>}
           {footer}
           {/* (T50) 28 px below the content, or the window's bottom inset where that is taller: a Modal is its own window,
@@ -294,6 +265,49 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
         {overlay}
       </GestureHandlerRootView>
     </Modal>
+  );
+}
+
+/**
+ * The scrolling body with its own drag (T250: a component of its own, so a sheet without a scrolling body registers no
+ * body recogniser at all — RNGH 3's hook gestures exist from the hook call, not from a detector being drawn).
+ */
+function PullScroll({ open, drag, y, height, scrollRef, maxHeight, children }: {
+  open: boolean; drag: ReturnType<typeof useSheetDrag>; y: Animated.Value; height: React.RefObject<number>;
+  scrollRef?: React.Ref<ScrollViewInstance>; maxHeight: number; children: React.ReactNode;
+}) {
+  /*
+   * THE CONTENT-AT-TOP DRAG (G1 "or when the content is at its top"). The body's own scroll is a native gesture that
+   * runs alongside this pan (RNGH's ScrollView, `simultaneousWith` this pan — T250, RNGH 3), so neither cancels the other. The pan only activates
+   * downward (`activeOffsetY(6)`), and it moves the sheet only when the content was at its top when the finger went
+   * down: a drag that starts scrolled down scrolls the content and never the sheet, so content keeps scrolling. Upward
+   * from the top, the pan never activates and the content scrolls as usual.
+   */
+  const scrollTop = useRef(0);
+  useEffect(() => { if (open) scrollTop.current = 0; }, [open]);
+  const bodyPull = usePanGesture(useMemo((): PanGestureConfig => {
+    let armed = false;
+    return {
+      runOnJS: true, disableReanimated: true, testID: "sheet-body-drag",
+      activeOffsetY: 6, failOffsetX: [-24, 24],
+      onBegin: () => { armed = scrollTop.current <= 0; },
+      onUpdate: (e) => { if (armed) y.setValue(drag.offset(e.translationY)); },
+      onDeactivate: (e) => {
+        if (!armed) return;
+        armed = false;
+        if (e.canceled || !drag.release(e.translationY, e.velocityY, height.current))
+          Animated.spring(y, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 0 }).start();
+      },
+    };
+  }, [drag, y]));
+  return (
+    // `bounces={false}`: at the top a downward pull moves the sheet, not an iOS overscroll of the content
+    <GestureDetector gesture={bodyPull}>
+      <GHScrollView ref={scrollRef} simultaneousWith={bodyPull} testID="sheet-scroll" style={{ maxHeight }}
+                    keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
+                    onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
+                    contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{children}</Selectable></GHScrollView>
+    </GestureDetector>
   );
 }
 

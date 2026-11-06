@@ -19,7 +19,7 @@
  */
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
-import { AccessibilityInfo, Animated, Platform, ScrollView, View } from "react-native";
+import { AccessibilityInfo, Animated, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
@@ -142,8 +142,8 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
   const store = useMemo(() => injected ?? createPinStore(), [injected]);
-  const scroll = useRef<ScrollView>(null);
-  const content = useRef<View>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
+  const content = useRef<ViewInstance>(null);
   const { sink, section, remeasure } = useAnchors(page, content, store);
   const scrollY = useRef(new Animated.Value(0)).current;
   const sticky = useMemo(() => ({ store, overlay: layout !== "desktop", scrollY }), [store, layout, scrollY]);

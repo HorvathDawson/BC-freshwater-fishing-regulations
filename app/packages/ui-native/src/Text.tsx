@@ -6,8 +6,8 @@
  * it. An explicit `selectable` on one Text still wins. Every ui-native component takes `Text` from here
  * (`tools/selectable-text.test.ts` refuses react-native's `Text` elsewhere).
  */
-import { createContext, forwardRef, useContext, type ReactNode } from "react";
-import { Text as RNText, type TextProps } from "react-native";
+import { createContext, forwardRef, useContext, type ForwardRefExoticComponent, type ReactNode, type RefAttributes } from "react";
+import { Text as RNText, type TextProps, type TextInstance } from "react-native";
 
 /** undefined outside any pane: no opinion, the platform's own default (and unchanged markup) */
 const SelectableContext = createContext<boolean | undefined>(undefined);
@@ -17,7 +17,7 @@ export function Selectable({ on = true, children }: { on?: boolean; children?: R
   return <SelectableContext.Provider value={on}>{children}</SelectableContext.Provider>;
 }
 
-export const Text = forwardRef<RNText, TextProps>(function Text(p, ref) {
+export const Text: ForwardRefExoticComponent<TextProps & RefAttributes<TextInstance>> = forwardRef<TextInstance, TextProps>(function Text(p, ref) {
   const on = useContext(SelectableContext);
   return <RNText ref={ref} {...p} selectable={p.selectable ?? on} />;
 });

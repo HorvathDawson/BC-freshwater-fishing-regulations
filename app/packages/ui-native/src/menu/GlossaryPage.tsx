@@ -14,7 +14,7 @@
  * names the term and its ‹ returns to the list.
  */
 import { useMemo, useRef, useState } from "react";
-import { FlatList, ScrollView, TextInput, View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
+import { FlatList, ScrollView, TextInput, View, type GestureResponderEvent, type LayoutChangeEvent, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { glossaryRows, glossarySections, glossBlocks, markedRuns, MENU_WORDS, type GlossaryRowVM,
@@ -117,7 +117,7 @@ function Lettered({ sections, rail, palette, onTerm }: {
   sections: readonly { letter: string; rows: readonly GlossaryRowVM[] }[];
   rail: readonly { letter: string; has: boolean }[]; palette: Palette; onTerm: (id: string) => void;
 }) {
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
   const at = useRef<Record<string, number>>({});
   const head = useRef(0);
   const [showing, setShowing] = useState<string | null>(null);
@@ -177,7 +177,7 @@ function Rail({ rail, palette, onLetter, onEnd }: {
   rail: readonly { letter: string; has: boolean }[]; palette: Palette; onLetter: (l: string) => void; onEnd: () => void;
 }) {
   const box = useRef({ top: 0, height: 1 });
-  const strip = useRef<View>(null);
+  const strip = useRef<ViewInstance>(null);
   const last = useRef<string | null>(null);
   const pick = (e: GestureResponderEvent) => {
     const { pageY } = e.nativeEvent;

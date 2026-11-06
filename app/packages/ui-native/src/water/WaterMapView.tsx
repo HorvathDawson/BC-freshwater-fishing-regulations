@@ -15,7 +15,7 @@
  */
 import { LoadingState } from "../LoadingState";
 import { useRef, type ComponentProps } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { WATER_MAP_WORDS } from "@app/core";
@@ -175,7 +175,7 @@ function PartsList({ list, palette, act }: {
   useBackLayer(list.open, () => act({ type: "list" }));
   // a pick closes the list, so the row that had focus is gone: focus goes back to the toggle (still drawn), not to the
   // top of the page — a keyboard or screen-reader reader stays where they were (T150 review)
-  const toggle = useRef<View>(null);
+  const toggle = useRef<ViewInstance>(null);
   const pick = (ix: number) => { act({ type: "part", ix }); (toggle.current as { focus?: () => void } | null)?.focus?.(); };
   return (
     <View style={{ marginTop: -4, marginBottom: 6 }} testID="water-map-parts">

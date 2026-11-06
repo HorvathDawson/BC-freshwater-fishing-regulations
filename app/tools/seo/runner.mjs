@@ -59,6 +59,8 @@ export async function makeRunner() {
       alias: [
         { find: /^react-native$/, replacement: "react-native-web" },
         { find: /^react-native-svg$/, replacement: `${app}node_modules/react-native-svg/lib/module/ReactNativeSVG.web.js` },
+        // (T250) as vitest.config.ts: react-native-svg's web build names the registry RN 0.87+ dropped (Expo's Metro maps it)
+        { find: /^@react-native\/assets-registry\/registry(\.js)?$/, replacement: "react-native-web/asset-registry" },
         { find: /^react-native-gesture-handler$/, replacement: `${app}node_modules/react-native-gesture-handler/lib/module/index.js` },
         ...workspaceAliases(app),
       ],

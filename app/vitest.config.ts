@@ -38,6 +38,9 @@ const alias = [
   { find: /^react-native-svg$/,
     replacement: fileURLToPath(new URL(
       "node_modules/react-native-svg/lib/module/ReactNativeSVG.web.js", import.meta.url)) },
+  // (T250) RN 0.87+ dropped `@react-native/assets-registry`; react-native-svg's web build still imports it. Expo's Metro
+  // resolver hands the web bundle `react-native-web/asset-registry` for it (withMetroMultiPlatform), so the tests do too.
+  { find: /^@react-native\/assets-registry\/registry(\.js)?$/, replacement: "react-native-web/asset-registry" },
   // G1: the ES-module build, not `main` (CommonJS, whose `require("react-native")` no alias reaches). Its `.web.js`
   // siblings are picked by `extensions` below, as Metro picks them for mobile web.
   { find: /^react-native-gesture-handler\/jest-utils$/,

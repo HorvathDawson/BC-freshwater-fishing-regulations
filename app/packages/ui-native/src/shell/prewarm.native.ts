@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { InteractionManager } from "react-native";
 import type { ReleaseLoader } from "@app/data/release";
 import { prewarmRegs } from "@app/ui";
 
@@ -14,12 +13,13 @@ const PREWARM_MS = 1500;
 export function usePrewarmRegs(loader: ReleaseLoader | null): void {
   useEffect(() => {
     if (!loader) return;
-    let task: { cancel(): void } | null = null;
+    // (T250) RN 0.88 removed InteractionManager; requestIdleCallback is its named successor (same "after the frame" wait)
+    let idle: number | null = null;
     const t = setTimeout(() => {
-      task = InteractionManager.runAfterInteractions(() => {
+      idle = requestIdleCallback(() => {
         void prewarmRegs(loader, { files: true }).catch(() => {});
       });
     }, PREWARM_MS);
-    return () => { clearTimeout(t); task?.cancel(); };
+    return () => { clearTimeout(t); if (idle !== null) cancelIdleCallback(idle); };
   }, [loader]);
 }

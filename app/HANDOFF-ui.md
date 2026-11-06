@@ -111,7 +111,7 @@ reaches paint in `color.highlight` with downstream arrowheads.
 **Satellite and the phone's connection (owner 2026-10-21, late).** Esri World Imagery ships KEYLESS, as the original
 app did ("this is a non profit app"); `EXPO_PUBLIC_ARCGIS_API_KEY` is optional config (`apps/mobile/src/config.ts`,
 `handoff/PLAN/app-data/satellite/esri/README.md`). A phone hears itself go offline through
-`@react-native-community/netinfo` 12.0.1 (Expo SDK 57's version; why it is worth a native module: `deps.md`): one file
+`@react-native-community/netinfo` 12.0.1 (Expo SDK 57's and 58's version; why it is worth a native module: `deps.md`): one file
 names it (`ui-native/src/connectivity.native.ts`, loaded lazily), `netInfoConnectivity.ts` reads it (offline only on a
 definite no; each change said once). The one-tile probe stays as the fallback (`useImageryReach`: on choosing, on
 coming back, and every 120 s while up on a phone, whose map reports no failed tile — `Connectivity.probeWhileUp`), and

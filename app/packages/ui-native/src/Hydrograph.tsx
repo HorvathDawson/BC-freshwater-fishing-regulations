@@ -12,12 +12,14 @@
  * is core's (`chartZoom.ts`), the state is @app/ui's (`useChartView`), and the words are core's.
  */
 import { useId, useMemo, useRef } from "react";
+import { withWebProps } from "./gestureWeb";
 import { CONDITIONS_WORDS, wheelFactor } from "@app/core";
 import { forecastDash, type ChartView, type Hydrograph as Shape } from "@app/ui";
-import { View } from "react-native";
+import { View, type ViewInstance } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { GestureDetector, useExclusiveGestures, usePanGesture, usePinchGesture, useSimultaneousGestures, useTapGesture,
+         type PanGestureConfig, type PinchGestureConfig, type TapGestureConfig } from "react-native-gesture-handler";
 import Svg, { Circle, ClipPath, Defs, G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { chartPointer, useChartHover, useChartWheel } from "./chartInput";
 import { TYPE } from "./type";
@@ -281,8 +283,11 @@ function ZoomButton({ palette, label, glyph, onPress }: {
  * the value under it; a double-tap shows the whole chart; a mouse reads as it moves and its wheel zooms where it
  * points — only while there is zoom left to do, else the page scrolls (both `chartInput.web.ts`). `touchAction` leaves vertical scrolling to the browser.
  */
+/** The browser keeps vertical scrolling over the chart (every recogniser carries it: see gestureWeb.ts). */
+const CHART_WEB = { touchAction: "pan-y" } as const;
+
 function Gestures({ view, plotX, children }: { view: ChartActions; plotX: number; children: React.ReactNode }) {
-  const ref = useRef<View>(null);
+  const ref = useRef<ViewInstance>(null);
   // The latest actions, read at event time: the gestures are rebuilt per zoom state, not per render.
   const live = useRef(view);
   live.current = view;
@@ -298,35 +303,46 @@ function Gestures({ view, plotX, children }: { view: ChartActions; plotX: number
   const hover = useMemo(() => (x: number | null) => live.current.probeAt(x === null || x < plotX ? null : x), [plotX]);
   useChartHover(ref, hover, true);
   const zoomed = view.zoomed;
-  const gesture = useMemo(() => {
+  // (T250) RNGH 3's hook API: each recogniser a hook over one memoised config (a new object reconfigures the native
+  // handler); `onStart`/`onEnd` are `onActivate`/`onDeactivate`, and a failed or cancelled end says `canceled`
+  const pinchConfig = useMemo((): PinchGestureConfig => {
     let lastScale = 1;
-    let lastX = 0;
-    const pinch = Gesture.Pinch().runOnJS(true)
-      .onStart(() => { lastScale = 1; })
-      .onUpdate((e) => {
+    return withWebProps({
+      runOnJS: true, disableReanimated: true, testID: "chart-pinch",
+      onActivate: () => { lastScale = 1; },
+      onUpdate: (e) => {
         const f = e.scale / (lastScale || 1);
         lastScale = e.scale;
         live.current.zoomAt(e.focalX, f);
-      })
-      .withTestId("chart-pinch");
-    const pan = Gesture.Pan().runOnJS(true).enabled(zoomed).maxPointers(1)
-      .activeOffsetX([-8, 8]).failOffsetY([-12, 12])
-      .onStart(() => { lastX = 0; })
-      .onUpdate((e) => { live.current.panBy(e.translationX - lastX); lastX = e.translationX; })
-      .withTestId("chart-pan");
-    const double = Gesture.Tap().numberOfTaps(2).runOnJS(true)
-      .onEnd((_e, ok) => { if (ok) live.current.fit(); })
-      .withTestId("chart-double-tap");
-    const tap = Gesture.Tap().runOnJS(true)
-      .onEnd((e, ok) => { if (ok && e.x >= plotX) live.current.probeAt(e.x); })
-      .withTestId("chart-tap");
-    return Gesture.Simultaneous(pinch, pan, Gesture.Exclusive(double, tap));
-  }, [zoomed, plotX]);
+      },
+    } satisfies PinchGestureConfig, CHART_WEB);
+  }, []);
+  const panConfig = useMemo((): PanGestureConfig => {
+    let lastX = 0;
+    return withWebProps({
+      runOnJS: true, disableReanimated: true, testID: "chart-pan", enabled: zoomed, maxPointers: 1,
+      activeOffsetX: [-8, 8], failOffsetY: [-12, 12],
+      onActivate: () => { lastX = 0; },
+      onUpdate: (e) => { live.current.panBy(e.translationX - lastX); lastX = e.translationX; },
+    } satisfies PanGestureConfig, CHART_WEB);
+  }, [zoomed]);
+  const doubleConfig = useMemo((): TapGestureConfig => withWebProps({
+    runOnJS: true, disableReanimated: true, testID: "chart-double-tap", numberOfTaps: 2,
+    onDeactivate: (e) => { if (!e.canceled) live.current.fit(); },
+  } satisfies TapGestureConfig, CHART_WEB), []);
+  const tapConfig = useMemo((): TapGestureConfig => withWebProps({
+    runOnJS: true, disableReanimated: true, testID: "chart-tap",
+    onDeactivate: (e) => { if (!e.canceled && e.x >= plotX) live.current.probeAt(e.x); },
+  } satisfies TapGestureConfig, CHART_WEB), [plotX]);
+  const pinch = usePinchGesture(pinchConfig);
+  const pan = usePanGesture(panConfig);
+  const taps = useExclusiveGestures(useTapGesture(doubleConfig), useTapGesture(tapConfig));
+  const gesture = useSimultaneousGestures(pinch, pan, taps);
   return (
     // The browser listeners hang on an OUTER view: GestureDetector takes its child's ref for its own handlers, and a ref
     // shared with it was never set here (the wheel and the mouse read-out did nothing in a browser).
     <View ref={ref} collapsable={false}>
-      <GestureDetector gesture={gesture} touchAction="pan-y">
+      <GestureDetector gesture={gesture} {...CHART_WEB}>
         <View collapsable={false}>{children}</View>
       </GestureDetector>
     </View>

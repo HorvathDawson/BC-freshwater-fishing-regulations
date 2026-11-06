@@ -144,7 +144,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
   });
 
   it("(T167) the in-season warning's link opens the Province's in-season changes", () => {
-    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     render(<App out={{}} />);
     press("Province's in-season changes");
     expect(open.mock.calls).toEqual([[
@@ -222,7 +222,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
 describe("a page", () => {
   it("About: what the app is, the authority disclaimer, the official synopsis and every version", () => {
     const out: { back?: Back } = {};
-    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     render(<App out={out} />);
     pick("menu-item-about");
     expect(text("about-not-official")).toBe(MENU_WORDS.about.notOfficial);
@@ -325,7 +325,7 @@ describe("a page", () => {
 
 describe("report a problem", () => {
   it("sends nothing until the reader writes and presses; shows exactly what will go, without what they switched off", () => {
-    const share = vi.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction" });
+    const share = vi.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction", activityType: undefined });
     ERROR_LOG.record("map:", new Error("style failed"));
     const errorLine = ERROR_LOG.recent()[0]!;
     render(<App out={{}} />);
@@ -349,7 +349,7 @@ describe("report a problem", () => {
   });
 
   it("with a contact address, Send by email opens a mailto of the same message", () => {
-    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(true);
+    const open = vi.spyOn(Linking, "openURL").mockResolvedValue(undefined);
     render(<App out={{}} info={{ appBuild: null, contact: "hello@example.org" }} />);
     pick("menu-item-report");
     act(() => { fireEvent.change(screen.getByTestId("report-what"), { target: { value: "Typo" } }); });

@@ -7,7 +7,7 @@
  * grid of numbers.
  */
 import { useRef } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, type ScrollViewInstance } from "react-native";
 import { Text } from "./Text";
 import { LEAD_UP_WORDS } from "@app/data/spots";
 import type { LeadUpView } from "@app/ui";
@@ -69,7 +69,7 @@ const COL = 64, LABEL = 58, ROW = 34;
  */
 function WeatherTable({ days, palette }: { days: NonNullable<LeadUpView["weather"]>["days"]; palette: Palette }) {
   const R = LEAD_UP_WORDS.rows;
-  const scroller = useRef<ScrollView>(null);
+  const scroller = useRef<ScrollViewInstance>(null);
   const cell = (h: number) => ({ height: h, justifyContent: "center", alignItems: "center" } as const);
   const rowLine = { borderTopWidth: 1, borderTopColor: palette.line } as const;
   return (

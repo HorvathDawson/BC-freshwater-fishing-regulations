@@ -6,13 +6,17 @@
  * Shell, unchanged).
  */
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
-import { Keyboard, useWindowDimensions, type TextInput } from "react-native";
+import { Keyboard, useWindowDimensions, type TextInputInstance } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import { NO_SEARCH, reportFailure, searchStep, useRecentSearches, useSearchSession, type SearchAction, type SearchMemory } from "@app/ui";
 import type { Camera } from "@app/map";
 import { searchPanelWidth } from "../TopBar";
 import { CLOSE_KEEPS_FOCUS } from "../searchFocus";
 import type { ShellNav } from "./useShellNav";
+
+/** (T250) the search field's handle. RN 0.88's `TextInputInstance` is an alias of a class its types do not export, so a
+ *  hook returning a ref to it cannot have its type written out (TS2742); a local interface over it can. */
+export interface SearchField extends TextInputInstance {}
 
 export function useShellSearch({ source, nav, camera, recentStore }: {
   source: WaterSource; nav: ShellNav; camera: MutableRefObject<Camera>;
@@ -25,7 +29,7 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
   const screenWidth = useWindowDimensions().width;
   const [searchMemory, setSearchMemory] = useState<SearchMemory>(NO_SEARCH);
   const session = useSearchSession(source, searchMemory, searching);
-  const field = useRef<TextInput>(null);
+  const field = useRef<SearchField>(null);
   // (T247) a search the reader picked a result from is a recent search
   const recents = useRecentSearches(recentStore);
   /*

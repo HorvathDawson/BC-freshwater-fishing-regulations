@@ -27,7 +27,7 @@
     "sql.js": "*"
   },
   "devDependencies": {
-    "expo-sqlite": "57.0.2",
+    "expo-sqlite": "58.0.14",
     "sql.js": "^1.14.2"
   }
 }

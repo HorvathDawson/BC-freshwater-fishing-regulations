@@ -23,11 +23,12 @@
  */
 import { createContext, useContext, useMemo, useRef, type ComponentProps } from "react";
 import { Animated, View, useWindowDimensions } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { GestureDetector, usePanGesture, type PanGestureConfig } from "react-native-gesture-handler";
 import type { WaterView } from "@app/core";
 import type { ViewSwipe as ViewSwipeState } from "@app/ui";
 import { NATIVE_DRIVER } from "./motion";
 import { activateByHand } from "./swipeActivation";
+import { withWebProps } from "./gestureWeb";
 import { now } from "@app/core";
 
 export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill = true, still = false }: {
@@ -49,25 +50,27 @@ export function ViewSwipe({ swipe, children, style, testId = "view-swipe", fill 
   // the edge zones are the SCREEN's (the system's edge gestures), so a start is measured against the window
   const width = useRef(0);
   width.current = useWindowDimensions().width;
-  const gesture = useMemo(() => {
+  // (T250) RNGH 3's hook API: one config object, memoised (a new object reconfigures the native handler)
+  const config = useMemo((): PanGestureConfig => {
     let live = false;
     let begun = 0;
     // the shield's press and the recogniser's begin arrive in either order (on the web the detector's own listener runs
     // first, React's after; on a device it is not promised), so a press within a moment of the begin counts
     const held = () => heldAt.current >= begun - SHIELD_MS;
     const home = () => Animated.spring(x, { toValue: 0, useNativeDriver: NATIVE_DRIVER, bounciness: 4 }).start();
-    const pan = Gesture.Pan().runOnJS(true).enabled(swipe.enabled)
-      .activeOffsetX([-15, 15]).failOffsetY([-12, 12]);
-    // (T300) a phone activates the pan by hand, so a shielded press fails it before it takes the touch (swipeActivation)
-    activateByHand(pan, held);
-    return pan
-      .onBegin((e) => { begun = now(); live = swipe.starts(e.absoluteX, width.current); })
-      .onUpdate((e) => { if (live && held()) live = false; if (live) x.setValue(swipe.offset(e.translationX)); })
-      // `success` is false when the system cancelled the swipe after it went active: that is not a release
-      .onEnd((e, success) => { if (live && success && !held()) swipe.release(e.translationX, e.translationY, e.velocityX); })
-      .onFinalize(() => { live = false; home(); })
-      .withTestId(testId);
+    return withWebProps({
+      runOnJS: true, disableReanimated: true, enabled: swipe.enabled, testID: testId,
+      activeOffsetX: [-15, 15], failOffsetY: [-12, 12],
+      // (T300) a phone activates the pan by hand, so a shielded press fails it before it takes the touch (swipeActivation)
+      ...activateByHand(held),
+      onBegin: (e) => { begun = now(); live = swipe.starts(e.absoluteX, width.current); },
+      onUpdate: (e) => { if (live && held()) live = false; if (live) x.setValue(swipe.offset(e.translationX)); },
+      // `canceled` when the system cancelled the swipe after it went active: that is not a release
+      onDeactivate: (e) => { if (live && !e.canceled && !held()) swipe.release(e.translationX, e.translationY, e.velocityX); },
+      onFinalize: () => { live = false; home(); },
+    } satisfies PanGestureConfig, WEB_PAGE_PROPS);
   }, [swipe, x, testId]);
+  const gesture = usePanGesture(config);
   return (
     <GestureDetector gesture={gesture} {...WEB_PAGE_PROPS}>
       <Animated.View style={[fill ? { flex: 1 } : null, still ? null : { transform: [{ translateX: x }] }, style]}>

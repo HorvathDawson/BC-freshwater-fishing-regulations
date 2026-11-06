@@ -63,7 +63,7 @@ const fs: ReleaseFs & PartFs = {
     const h = f.open(FileMode.ReadWrite);
     try {
       h.offset = h.size ?? 0;
-      h.writeBytes(bytes);
+      h.writeBytesSync(bytes);
     } finally {
       h.close();
     }
@@ -72,7 +72,7 @@ const fs: ReleaseFs & PartFs = {
     const h = fileAt(path).open(FileMode.ReadOnly);
     try {
       const size = h.size ?? 0;
-      for (let at = 0; at < size; at += CHUNK) each(h.readBytes(Math.min(CHUNK, size - at)));
+      for (let at = 0; at < size; at += CHUNK) each(h.readBytesSync(Math.min(CHUNK, size - at)));
     } finally {
       h.close();
     }
@@ -83,7 +83,7 @@ const fs: ReleaseFs & PartFs = {
     try {
       const size = h.size ?? 0;
       h.offset = offset;
-      return h.readBytes(Math.max(0, Math.min(length, size - offset)));
+      return h.readBytesSync(Math.max(0, Math.min(length, size - offset)));
     } finally {
       h.close();
     }
@@ -98,7 +98,7 @@ function appendFile(from: string, to: string): void {
   try {
     const size = src.size ?? 0;
     dst.offset = dst.size ?? 0;
-    for (let at = 0; at < size; at += CHUNK) dst.writeBytes(src.readBytes(Math.min(CHUNK, size - at)));
+    for (let at = 0; at < size; at += CHUNK) dst.writeBytesSync(src.readBytesSync(Math.min(CHUNK, size - at)));
   } finally {
     src.close(); dst.close();
   }
