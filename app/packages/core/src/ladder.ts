@@ -75,19 +75,37 @@ export const FIT_MAX_ZOOM = 14;
  * disorienting. Every water map: a part is framed no closer than `PART_FIT_MAX_ZOOM`, and a step (any fit after the map's
  * first) zooms IN at most `STEP_ZOOM_IN` levels from where the camera is. Zooming out to fit a big part is not bounded:
  * the part must be seen whole.
+ *
+ * (owner 2026-11-06, on 0.6.6) BUT A PART IS ALWAYS SEEN: the Fraser's smallest part, held at z12 (or 2 levels in from a
+ * z9 camera), was a dot under overlapping labels. So neither bound may leave a part smaller than half the screen across
+ * (`PART_MIN_FILL` levels out from the zoom that frames it), up to `FIT_MAX_ZOOM`.
  */
 export const PART_FIT_MAX_ZOOM = 12;
 export const STEP_ZOOM_IN = 2;
+export const PART_MIN_FILL = 1;
+
+/** (T443) The zoom that frames `b` in a `width` x `height` map with `padding` on every side (512 px world tiles). */
+export function fitZoomOf(b: readonly [number, number, number, number], width: number, height: number,
+                          padding: number): number {
+  const w = Math.max(1, (width || 400) - 2 * padding), h = Math.max(1, (height || 800) - 2 * padding);
+  const sx = Math.max(1e-12, (b[2] - b[0]) / 360), sy = Math.max(1e-12, mercY(b[1]) - mercY(b[3]));
+  return Math.min(Math.log2(w / (512 * sx)), Math.log2(h / (512 * sy)));
+}
 
 /**
  * The closest a fit may land: `FIT_MAX_ZOOM`, or the fit's own `maxZoom` if lower, and — `zoomInAtMost` given and
  * `current` known (the camera's zoom, passed only for a fit that follows another on the same map) — no more than that
- * many levels in from it. Both maps widen the box to it (`fitAtMost`).
+ * many levels in from it. With `fitZoom` (the zoom that frames the box, `fitZoomOf`) and either bound set, never so far
+ * out that the subject is under half the screen (`PART_MIN_FILL`). Both maps widen the box to it (`fitAtMost`).
  */
-export function fitZoomLimit(fit: { maxZoom?: number; zoomInAtMost?: number }, current: number | null): number {
-  const cap = Math.min(FIT_MAX_ZOOM, fit.maxZoom ?? FIT_MAX_ZOOM);
-  if (fit.zoomInAtMost === undefined || current === null || !Number.isFinite(current)) return cap;
-  return Math.min(cap, current + fit.zoomInAtMost);
+export function fitZoomLimit(fit: { maxZoom?: number; zoomInAtMost?: number }, current: number | null,
+                             fitZoom: number | null = null): number {
+  let limit = Math.min(FIT_MAX_ZOOM, fit.maxZoom ?? FIT_MAX_ZOOM);
+  if (fit.zoomInAtMost !== undefined && current !== null && Number.isFinite(current))
+    limit = Math.min(limit, current + fit.zoomInAtMost);
+  const bounded = fit.maxZoom !== undefined || fit.zoomInAtMost !== undefined;
+  if (bounded && fitZoom !== null && Number.isFinite(fitZoom)) limit = Math.max(limit, fitZoom - PART_MIN_FILL);
+  return Math.min(FIT_MAX_ZOOM, limit);
 }
 
 /**

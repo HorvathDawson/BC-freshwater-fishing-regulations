@@ -26,3 +26,10 @@ Fraser (gnis:39325), 19 map parts mouth up, each part's fit zoom: 8.1 · 14 · 9
 fit that FOLLOWS another on the same map: the props are the same whatever the way in (rule: one load path), and a reload
 or a first open frames the part whole. Zooming out to fit a big part is never bounded. Fraser steps from the mouth now
 land ≤ 2 levels in each time and never past z12. Left: owner look on the phone (Fraser R2, Coquitlam).
+
+## Owner on 0.6.6 (2026-11-06): the small Fraser part was too small
+"so small labels overlap and you can't see it; should allow zooming in a bit more." New floor (`PART_MIN_FILL` = 1):
+neither bound may leave a part under half the screen across (one level out from the zoom that frames it), up to z14
+(`fitZoomOf` + `fitZoomLimit(fit, current, fitZoom)`, both maps). Fraser from the mouth, step by step, before → after:
+tiny parts 10.1 / 11.1 / 11.0 → 13 / 13 / 13; parts of z12–13.4 → 12–12.4; big parts unchanged. The tiny parts still
+take a big step in (≈ 5 levels from z8–9): seeing the part won over the smaller step.

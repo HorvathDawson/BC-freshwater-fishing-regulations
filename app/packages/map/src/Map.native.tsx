@@ -42,7 +42,7 @@ import {
   Camera, GeoJSONSource, Images, Layer, LogManager, Map as MLMap, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
-import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitAtMost, fitZoomLimit, padBbox, refineFit, spotMarkers,
+import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, MIN_ZOOM, fitAtMost, fitZoomLimit, fitZoomOf, padBbox, refineFit, spotMarkers,
          spotUnder, profileLabel, type Bbox, type SpotMarker, type SectionKey, now as clockNow } from "@app/core";
 import { pressSpot, spotsKey } from "./spots";
 import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLayers } from "./spot-marks";
@@ -480,13 +480,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     let moved = false;
     // (T443) the closest this fit lands: a fit that follows another, from where the camera is as it starts (a refine
     // round keeps it)
-    const limit = fitZoomLimit(fit, follows ? camNow.current.zoom : null);
+    const from = follows ? camNow.current.zoom : null;
     const go = (b: Bbox) => {
       const { width, height } = size.current;
       const p = Math.max(8, Math.round(Math.min(56, (width || 400) * 0.12, (height || 800) * 0.12)));
       moved = true;
       camProbe.move(rounds ? "refine" : "fit", rounds, height);
       // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what the limit shows
+      const limit = fitZoomLimit(fit, from, fitZoomOf(b, width, height, p));
       renderer.fitBounds(fitAtMost(b, limit, width, height, p), { padding: p, duration: cameraMs(450) });
     };
     // (T48) an exact camera to return to (search's cancel): put back as it was, nothing measured

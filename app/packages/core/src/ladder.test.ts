@@ -82,4 +82,13 @@ describe("(T443) a water's part in its country; a step does not lunge", () => {
     expect([core.fitZoomLimit(f, null), core.fitZoomLimit(f, 9), core.fitZoomLimit(f, 11.5), core.fitZoomLimit({}, 3),
             core.fitZoomLimit({ maxZoom: 16 }, null)]).toEqual([12, 11, 12, 14, 14]);
   });
+
+  it("(owner 2026-11-06) never leaves a part under half the screen: a tiny part is framed past z12, up to z14", () => {
+    const f = { maxZoom: core.PART_FIT_MAX_ZOOM, zoomInAtMost: core.STEP_ZOOM_IN };
+    // fit zoom 13.6 (a small Fraser part) from a z9 camera: not z11, but 12.6 (one level out from its frame)
+    expect([core.fitZoomLimit(f, 9, 13.6), core.fitZoomLimit(f, null, 13.6), core.fitZoomLimit(f, 9, 17),
+            core.fitZoomLimit(f, 9, 10), core.fitZoomLimit({}, 9, 17)]).toEqual([12.6, 12.6, 14, 11, 14]);
+    const b: [number, number, number, number] = [-122, 49, -121.9, 49.05];
+    expect(Math.abs(core.fitZoomOf(b, 400, 800, 8) - fitZoom(b, 400, 800, 8))).toBeLessThan(1e-9);
+  });
 });

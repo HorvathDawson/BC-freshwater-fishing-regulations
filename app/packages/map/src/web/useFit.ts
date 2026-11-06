@@ -1,7 +1,7 @@
 /**
  * THE CAMERA SENT TO A SUBJECT (`fit`) on the web map, refined to the water's own shape as its tiles arrive.
  */
-import { fitAtMost, fitZoomLimit, padBbox, refineFit, unionBbox, type Bbox } from "@app/core";
+import { fitAtMost, fitZoomLimit, fitZoomOf, padBbox, refineFit, unionBbox, type Bbox } from "@app/core";
 import { useEffect, useRef, type MutableRefObject } from "react";
 import type { MapProps } from "../map-props";
 import { syncSize } from "../size";
@@ -43,7 +43,7 @@ export function useFit({ map, renderer, refit }: WebMapRefs, fit: MapProps["fit"
     refit.current = () => { if (alive && last && !moved) go(last); };
     // (T443) the closest this fit lands: a fit that follows another, from where the camera is as it starts (a refine
     // round or a refit keeps it)
-    const limit = fitZoomLimit(fit, fittedOnce.current ? m.getZoom() : null);
+    const from = fittedOnce.current ? m.getZoom() : null;
     if (fit.bbox) fittedOnce.current = true;
     const go = (b: Bbox) => {
       last = b;
@@ -52,6 +52,7 @@ export function useFit({ map, renderer, refit }: WebMapRefs, fit: MapProps["fit"
       const el = m.getContainer();
       const pad = Math.round(Math.min(56, el.clientWidth * 0.12, el.clientHeight * 0.12));
       const padding = Math.max(pad, 8);
+      const limit = fitZoomLimit(fit, from, fitZoomOf(b, el.clientWidth, el.clientHeight, padding));
       r.fitBounds(fitAtMost(b, limit, el.clientWidth, el.clientHeight, padding), { padding, duration: cameraMs(450) });
     };
     const done = () => { alive = false; m.off("movestart", touched); };
