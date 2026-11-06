@@ -27,21 +27,21 @@ describe("section_line (T369)", () => {
     const { unnamed } = regsFixtureLines();
     expect(await st.hasLines()).toBe(true);
     // (T369) the atlas's handles (822db448…) and the Coquitlam's metres: they move with a new ATLAS, not a new release
-    expect(await st.sectionLine(316504)).toEqual({ blk: COQ, from: 312, to: 6590 });
+    expect(await st.sectionLine(316510)).toEqual({ blk: COQ, from: 312, to: 6590 });
     // (T369) the atlas's handles (822db448…) and the Coquitlam's metres: they move with a new ATLAS, not a new release
     expect(await Promise.all([st.sectionAt(COQ, 3451), st.sectionAt(COQ, 0), st.sectionAt(COQ, 6600),
                               st.sectionAt(COQ, 20_000), st.sectionAt(COQ - 7, 0)]))
       // (T369) the atlas's handles (822db448…) and the Coquitlam's metres: they move with a new ATLAS, not a new release
-      .toEqual([316504, 316503, 316505, null, null]);
+      .toEqual([316510, 316509, 316511, null, null]);
     const u = (await st.sectionLine(unnamed))!;
     expect(await st.sectionAt(u.blk, lineMid(u).m)).toBe(unnamed);
     // a lake's handle has no line
-    expect(await st.sectionLine(1236911)).toBeNull();
+    expect(await st.sectionLine(1236918)).toBeNull();
   }, 30_000);
 
   it("a release cut before the lines file: no lines, no place — never an error", async () => {
     const st = openLineReads(openRegsFixture());
     // (T369) the atlas's handles (822db448…) and the Coquitlam's metres: they move with a new ATLAS, not a new release
-    expect([await st.hasLines(), await st.sectionLine(316504), await st.sectionAt(COQ, 3451)]).toEqual([false, null, null]);
+    expect([await st.hasLines(), await st.sectionLine(316510), await st.sectionAt(COQ, 3451)]).toEqual([false, null, null]);
   }, 30_000);
 });
