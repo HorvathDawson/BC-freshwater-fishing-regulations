@@ -40,11 +40,11 @@ from collections import Counter, defaultdict
 from html.parser import HTMLParser
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = GENERATED.review / "tidal/pass2"
-CACHE = ROOT / "data/source/dfo_tidal_areas/2026-10-28"
+CACHE = SOURCE / "dfo_tidal_areas/2026-10-28"
 HOST = "https://www.pac.dfo-mpo.gc.ca"
 PFMA_URL = "https://laws-lois.justice.gc.ca/eng/regulations/SOR-2007-77/FullText.html"
 #: within this (m) a located point agrees with the T212 proposal / an owner mark
@@ -749,7 +749,7 @@ def locate(e: dict, blk: str, st: Streams, basemap, named: bool = False, primary
 
 def _marks() -> dict:
     from pipeline.regs.review import marks as M
-    p = ROOT / "data/curated/review/marks.jsonl"
+    p = CURATED.review.marks
     out = {}
     for m in M.latest(M.load(p)).values():
         if m.scope != "tidal":
@@ -762,7 +762,7 @@ def _marks() -> dict:
 
 
 def _registry_items() -> dict[str, list[str]]:
-    reg = json.loads((ROOT / "data/generated/atlas/full/registry.json").read_text())["items"]
+    reg = json.loads((GENERATED.build() / "registry.json").read_text())["items"]
     out: dict[str, list[str]] = defaultdict(list)
     for it in reg:
         if it["kind"] != "stream":
@@ -1057,7 +1057,7 @@ def main(argv=None) -> None:
     a1.add_argument("--cache", type=Path, default=CACHE)
     a1.add_argument("--out", type=Path, default=OUT)
     a2 = sub.add_parser("propose")
-    a2.add_argument("--gpkg", type=Path, default=ROOT / "data/source/bc_fisheries_data.gpkg")
+    a2.add_argument("--gpkg", type=Path, default=SOURCE / "bc_fisheries_data.gpkg")
     a2.add_argument("--basemap", type=Path, default=None)
     a2.add_argument("--out", type=Path, default=OUT)
     a = ap.parse_args(argv)

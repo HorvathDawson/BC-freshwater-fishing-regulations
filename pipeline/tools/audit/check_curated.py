@@ -99,7 +99,7 @@ class Artifact:
             "stations.station"    `blob["stations"]` is a LIST; take this field
             "stations.*"          `blob["stations"]` is a MAP; the ids are its keys
         """
-        if not path.exists():
+        if path is None or not path.exists():          # None: not declared in config.yaml yet (T435: no made-up path)
             return None
         blob = json.loads(path.read_text(encoding="utf-8"))
         container, _, field = spec.partition(".")
@@ -126,7 +126,7 @@ ARTIFACTS = [
     Artifact(
         name="gauge match",
         roster=SOURCE / "bc_hydrometric_stations.json",
-        frozen=_C.gauges.matches or ROOT / "pipeline" / "gauge_match.json",
+        frozen=_C.gauges.matches,
         # SURGICAL (T94): match into the generated file, then promote ONLY the stations the gate
         # found. A full promote rewrote 1,042 rows and demoted 25 on 2026-10-10.
         regenerate=("python -m pipeline.gauges.generate.match --build data/generated/atlas/full"
@@ -149,7 +149,7 @@ ARTIFACTS = [
     Artifact(
         name="stocking waterbody match",
         roster=SOURCE / "bc_stocked_waterbodies.json",
-        frozen=_C.stocking.matches or ROOT / "data/curated/stocking/matches.json",
+        frozen=_C.stocking.matches,
         regenerate="python -m pipeline.stocking.generate.match  (not wired yet)",
         roster_ids="waterbody_id",
         frozen_ids="waterbodies.waterbody_id",
@@ -157,7 +157,7 @@ ARTIFACTS = [
     Artifact(
         name="bathymetry sheet match",
         roster=SOURCE / "bc_bathymetry_sheets.json",
-        frozen=_C.bathymetry.matches or ROOT / "data/curated/bathymetry/matches.json",
+        frozen=_C.bathymetry.matches,
         regenerate="no matcher yet: write pipeline/bathymetry/generate/match.py (pipeline/bathymetry/README.md)",
         roster_ids="waterbody_identifier",
         frozen_ids="sheets.waterbody_identifier",
@@ -167,6 +167,8 @@ ARTIFACTS = [
 
 def _short(p: Path) -> str:
     """Repo-relative when it can be — a test's tmp_path is not, and must not crash."""
+    if p is None:
+        return "(not declared in config.yaml)"
     try:
         return str(p.relative_to(ROOT))
     except ValueError:

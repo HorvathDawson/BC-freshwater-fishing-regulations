@@ -35,7 +35,7 @@ import sqlite3
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 import numpy as np
 import shapely
@@ -455,7 +455,7 @@ def _dfo_sources() -> dict[str, list[dict]]:
 def _catalogue_sources() -> dict[str, list[dict]]:
     """name key -> synopsis rows (the catalogue's verbatim) that name a tidal boundary."""
     out: dict[str, list[dict]] = defaultdict(list)
-    for f in sorted((ROOT / "data/curated/regulations/synopsis").glob("region-*.json")):
+    for f in sorted(Path(CURATED.regulations.synopsis).glob("region-*.json")):
         doc = json.loads(f.read_text())
         for e in doc.get("entries") or []:
             words = " ".join(str(e.get("regs_verbatim") or "").split())
@@ -823,8 +823,8 @@ def build(gpkg: Path, atlas: Path, osm_paths: list[Path], basemap: Path | None =
                                               "measure": float(r["route_measure"])})
     to_albers = _to_albers()
     loose = [{**p, "pt": Point(*to_albers(*p["coord"]))}
-             for p in curated_points(ROOT / "data/curated/waters/cuts.json", resolved)]
-    tidal_gauges = set(json.loads((ROOT / "data/curated/gauges/tidal_stations.json").read_text())["stations"])
+             for p in curated_points(CURATED.waters.cuts, resolved)]
+    tidal_gauges = set(json.loads(Path(CURATED.gauges.tidal_stations).read_text())["stations"])
     tidal_gauges |= {"08MH024", "08MH126"}             # HYDAT's own remarks (pipeline/gauges/consume/tidal.py)
     dfo_src = _dfo_sources()
     cat_src = _catalogue_sources()
@@ -1158,8 +1158,8 @@ def summary_md(doc: dict) -> str:
 
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--gpkg", type=Path, default=ROOT / "data/source/bc_fisheries_data.gpkg")
-    ap.add_argument("--atlas", type=Path, default=ROOT / "data/generated/atlas/full")
+    ap.add_argument("--gpkg", type=Path, default=SOURCE / "bc_fisheries_data.gpkg")
+    ap.add_argument("--atlas", type=Path, default=GENERATED.build())
     ap.add_argument("--osm", type=Path, action="append", default=[], help="Overpass JSON (out geom tags)")
     ap.add_argument("--basemap", type=Path, default=None, help="bc.pmtiles: OSM roads + rail from the app basemap")
     ap.add_argument("--out", type=Path, default=GENERATED.review / "tidal")

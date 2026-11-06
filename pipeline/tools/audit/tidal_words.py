@@ -40,7 +40,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 import shapely
 from shapely.geometry import LineString, Point
@@ -52,7 +52,7 @@ from pipeline.tools.audit.tidal_preverify import geoms_of, load_lines
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = GENERATED.review / "tidal"
-GPKG = ROOT / "data/source/bc_fisheries_data.gpkg"
+GPKG = SOURCE / "bc_fisheries_data.gpkg"
 OSM_CACHE = "tidal-osm-landmarks.json"
 OVERPASS = "https://overpass-api.de/api/interpreter"
 #: how far above the furthest point of interest the line is read (m)
@@ -287,7 +287,7 @@ def _split_labels() -> dict:
     """splits.json id -> label (read only)."""
     global _LABELS
     if _LABELS is None:
-        doc = json.loads((ROOT / "data/curated/waters/cuts.json").read_text())
+        doc = json.loads(Path(CURATED.waters.cuts).read_text())
         _LABELS = {sp["id"]: sp.get("label") or sp["id"] for wb in doc.get("waterbodies") or []
                    for sp in wb.get("splits") or [] if sp.get("id")}
     return _LABELS

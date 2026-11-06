@@ -120,28 +120,20 @@ def _reach_run(build_dir: Path) -> Path | None:
     # the pairing this function exists to replace. It stops, naming the file (the bundle needs it anyway).
     want = digest_for(build_dir)
 
-    runs, by_name = [], []
+    # (T435) DIGEST ONLY: a run is this atlas's when its `handles` digest is this atlas's. The old by-NAME pairing (runs
+    # written before the digest) is gone — promotion renames folders, and every run on disk now carries a digest. An
+    # unreadable report is refused, not skipped (it could be the run this atlas needs).
+    runs = []
     for report in sorted((GENERATED.reaches).glob("*/report.json")):
         try:
             got = json.loads(report.read_text())
-        except (OSError, ValueError):
-            continue
-        if want and got.get("handles") == want:
+        except (OSError, ValueError) as ex:
+            raise SystemExit(f"bundle: reach report {report} cannot be read ({ex}); remove or rerun it")
+        if got.get("handles") == want:
             runs.append((report.stat().st_mtime, report.parent))
-        elif not got.get("handles") and got.get("build") == build_dir.name:
-            # A run written before the digest existed. Matched by folder name, which is what
-            # this always did — kept so an older run still pairs rather than vanishing.
-            by_name.append((report.stat().st_mtime, report.parent))
-    # CONTENT BEATS NAME, ALWAYS. Promotion renames directories, so a run built against a
-    # scratch path (`full_next`) stops matching the moment its atlas becomes `full` — while
-    # the stale run that was renamed to `full.prev` still carries `build: "full"` and wins.
-    # That happened: the bundle was handed the previous run's rule->section rows, and only
-    # the handle-table check in `rules.write` stopped it shipping rules bound to sections
-    # that no longer exist. A digest of `section_handles.txt` cannot be renamed.
-    chosen = runs or by_name
-    if not chosen:
+    if not runs:
         return None
-    return max(chosen)[1]
+    return max(runs)[1]
 
 
 def _lake_parts(items: list[dict]) -> dict[str, str]:

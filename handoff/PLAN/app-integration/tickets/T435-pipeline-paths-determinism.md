@@ -1,6 +1,6 @@
 # T435 — Pipeline: hard-coded data paths, mtime staleness, two release-id formulas
 
-Status: OPEN — from the audit (T333–T335, 2026-11-05). Severity: **medium**. Verified by a second reader.
+Status: DONE 2026-11-06 (chat 3, HASH) — from the audit (T333–T335, 2026-11-05). Severity: **medium**. Verified by a second reader.
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: pipeline 3, 5, 6, 8, 9, 11, 15, 16, V1; `*.verified.md` has the evidence per finding).
 
@@ -25,3 +25,21 @@ Each listed defect fixed with a test that fails without the fix (or a recorded "
 when; no fix in the audit run.
 
 Size: M. Owner: no (picks the order).
+
+## Result (2026-11-06)
+- Paths: 23 one-string `ROOT / "data/…"` literals now read `CURATED` / `GENERATED` / `SOURCE` (new `generated.sloughs`);
+  `check_curated`'s three `or ROOT/…` fallbacks dropped (an undeclared file says "not declared"). CI gate: a new
+  one-string pattern (tests exempt; mutation: HEAD's slough.py → 2 hits). **No** for `proposals.side_dir` (a printed,
+  repo-relative command path), `tidal.DEFAULT_CACHE` (a citation label, never opened), `review/dfo.py`'s `cache/`
+  (the DFO scrape cache, outside the data trees like `fetch.DEFAULT_CACHE`).
+- Gauge staleness: the gate (`check_record`) was already content-only; the two mtime tools (`--stamp-atlas`,
+  `--record-cuts`, for atlases older than the record) are deleted — the live atlas carries a build-time record. Test:
+  no `st_mtime` / `build_ts` left in `gauges/matches.py`.
+- Release id: one formula, `rebase.id_of`, used by `build.ship` and `rebase.release_id`; the built-release recompute
+  test already existed (`test_release_basemap.py`); the live release recomputes to its own id.
+- `_reach_run`: digest only; an unreadable report is refused (every run on disk has a digest).
+- `vintage`: an unreadable tiles `atlas.meta.json` is refused (strict) / said "not checked" — no silent skip.
+- `get_path` raises `KeyError`; DFO `save()` validates (reads back as itself) and writes atomically (live files
+  round-trip byte-identical); `page-defaults` refuses a missing scrape / preamble; slough `_page_notes` raises.
+  Not changed: `presence.py` (fails loudly already, per the second reader).
+Tests: `test_pipeline_refusals_t435.py`, `test_reach_run_pairing.py`, `test_gauge_matches_record.py`.

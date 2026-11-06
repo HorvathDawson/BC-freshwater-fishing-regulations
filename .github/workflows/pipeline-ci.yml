@@ -125,5 +125,8 @@ jobs:
           check "quoted data/<file> as a value"     '[=(,]\s*"data/[a-z_]+\.(json|sqlite3|geojson|gpkg|csv|pmtiles)"'
           # the repo's top-level data/ only (a root then "data"): app/packages/data is a package, data/fetch_data.py code
           check "ROOT / \"data\" / a bare file"      '(ROOT|REPO|parents\[[0-9]\])\s*/\s*"data"\s*/\s*"[a-z]' '"(source|curated|generated)"|project_config\.py|"fetch_data\.py"'
+          # (T435) the ONE-STRING form, `ROOT / "data/curated/…"`, which the check above (separate parts) missed 23 times;
+          # tests are exempt (they pin the real files on purpose)
+          check "ROOT / \"data/<tree>/…\" one string"   '(ROOT|REPO|parents\[[0-9]\]|\.parent)\s*/\s*"data/(curated|generated|source)/' '^pipeline/tests/'
           check "/ \"entries\" outside a tmp fixture" '(_ROOT|__file__|parents\[[0-9]\])[^\n]*/ "entries"'
           exit $fail

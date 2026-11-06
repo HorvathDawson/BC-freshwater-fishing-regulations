@@ -22,11 +22,12 @@ from pathlib import Path
 
 import preverify
 import reuse
+from pipeline.common.curated import SOURCE
 from pipeline.regs.review import tidal as T
 
 #: the build gpkg the polygon's edge is drawn from (read only); `CURATION_TIDAL_GPKG` overrides
 GPKG = (Path(os.environ["CURATION_TIDAL_GPKG"]) if os.environ.get("CURATION_TIDAL_GPKG")
-        else reuse._ROOT / "data/source/bc_fisheries_data.gpkg")
+        else SOURCE / "bc_fisheries_data.gpkg")
 #: how far (m) an accepted point may sit from the stream it cuts
 SNAP_MAX_M = 500.0
 #: the polygon's edge is drawn within this box (m) around the candidate

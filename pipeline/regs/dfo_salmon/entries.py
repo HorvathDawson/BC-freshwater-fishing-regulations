@@ -663,6 +663,10 @@ def load(slug: str, entries_dir: Path = ENTRIES_DIR, registry=None) -> EntryFile
     if registry is not None and d.get("waters"):
         from pipeline.atlas.registry.flowing import canonical_ids
         d = {**d, "waters": [canonical_ids(w, registry) for w in d["waters"]]}
+    return _from_dict(d)
+
+
+def _from_dict(d: dict) -> EntryFile:
     return EntryFile(
         region=d["region"], region_number=d["region_number"], region_name=d["region_name"],
         structure=d.get("structure") or {},
@@ -673,9 +677,15 @@ def load(slug: str, entries_dir: Path = ENTRIES_DIR, registry=None) -> EntryFile
 
 
 def save(ef: EntryFile, entries_dir: Path = ENTRIES_DIR) -> Path:
+    """(T435) VALIDATED, THEN ATOMIC: the file must read back as itself (`load`'s parse of `to_dict`) before it is
+    written, and it lands by temp + replace — a crash or a bad entry never leaves a half or unreadable region file."""
+    from pipeline.regs.parsing.io import atomic_write
+    d = ef.to_dict()
+    if _from_dict(json.loads(json.dumps(d))).to_dict() != d:
+        raise ValueError(f"dfo entries region {ef.region}: does not read back as itself; nothing written")
     p = path_for(ef.region, entries_dir)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(ef.to_dict(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    atomic_write(p, json.dumps(d, indent=2, ensure_ascii=False) + "\n")
     return p
 
 
@@ -1114,7 +1124,12 @@ def main(argv: Optional[List[str]] = None) -> int:
             slug = normalize_slug(slug)
             ef = load(slug, args.entries_dir)
             src = Path(args.scrape) / "rules" / f"region-{slug}.json"
-            pre = json.loads(src.read_text(encoding="utf-8")).get("preamble") or [] if src.exists() else []
+            # (T435) a missing scrape file or preamble is refused, never "+0 page defaults"
+            if not src.exists():
+                raise SystemExit(f"page-defaults: no scrape file {src} (scrape region {slug} first)")
+            pre = json.loads(src.read_text(encoding="utf-8")).get("preamble")
+            if pre is None:
+                raise SystemExit(f"page-defaults: {src} has no preamble (a scrape that predates it?)")
             added = seed_page_defaults(ef, statements(pre))
             if added and not args.dry_run:
                 save(ef, args.entries_dir)

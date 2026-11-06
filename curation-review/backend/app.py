@@ -299,7 +299,7 @@ def _log_refused(body: "MarkPayload | InSeasonMatchPayload", status: int, detail
     reasons = ([d.get("msg", str(d)) if isinstance(d, dict) else str(d) for d in detail]
                if isinstance(detail, list) else [str(detail)])
     row = {"at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
-           "scope": getattr(body, "scope", "inseason"), "target": getattr(body, "target", None) or body.id,
+           "scope": getattr(body, "scope", "inseason"), "target": body.target if hasattr(body, "scope") else body.id,
            "rule_id": getattr(body, "rule_id", None), "targets": list(getattr(body, "targets", ())),
            "status": status, "reasons": reasons,
            "reviewer": getattr(body, "reviewer", None) or getattr(body, "by", ""), "payload": body.model_dump()}

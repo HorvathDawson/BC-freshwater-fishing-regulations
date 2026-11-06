@@ -57,7 +57,7 @@ import sqlite3
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 
 import numpy as np
 import shapely
@@ -720,12 +720,12 @@ def main(argv=None) -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     e = sub.add_parser("edits")
     e.add_argument("--dfo-gpkg", type=Path, required=True)
-    e.add_argument("--gpkg", type=Path, default=ROOT / "data/source/bc_fisheries_data.gpkg")
+    e.add_argument("--gpkg", type=Path, default=SOURCE / "bc_fisheries_data.gpkg")
     e.add_argument("--out", type=Path, default=OUT)
     w = sub.add_parser("web")
     w.add_argument("found", type=Path, nargs="+", help="research findings JSON ({findings, searched_nothing_found})")
-    w.add_argument("--gpkg", type=Path, default=ROOT / "data/source/bc_fisheries_data.gpkg")
-    w.add_argument("--basemap", type=Path, default=ROOT / "data/source/bc.pmtiles")
+    w.add_argument("--gpkg", type=Path, default=SOURCE / "bc_fisheries_data.gpkg")
+    w.add_argument("--basemap", type=Path, default=SOURCE / "bc.pmtiles")
     w.add_argument("--out", type=Path, default=OUT)
     t = sub.add_parser("triage")
     t.add_argument("--out", type=Path, default=OUT)

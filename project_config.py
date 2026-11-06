@@ -67,13 +67,17 @@ class ProjectConfig:
 
         Returns:
             Path object (relative to project root if not absolute)
+
+        Raises:
+            KeyError: (T435) the keys name no string and no default is given — never `Path()` (the cwd)
         """
         value = self._config
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key, {})
             else:
-                return Path(default) if default else Path()
+                value = None
+                break
 
         if isinstance(value, str):
             path = Path(value)
@@ -82,7 +86,9 @@ class ProjectConfig:
                 path = self.project_root / path
             return path
 
-        return Path(default) if default else Path()
+        if default:
+            return Path(default)
+        raise KeyError(f"config.yaml has no path at {'.'.join(keys)}")
 
     def get_str_path(self, *keys: str, default: str = "") -> str:
         """Get a path as string (useful for config values that expect strings)."""

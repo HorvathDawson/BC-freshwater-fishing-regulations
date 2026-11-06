@@ -35,7 +35,7 @@ import sqlite3
 from collections import defaultdict
 from pathlib import Path
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import GENERATED, SOURCE
 
 import numpy as np
 
@@ -45,7 +45,7 @@ import shapely
 ROOT = Path(__file__).resolve().parents[3]
 CANDIDATES = GENERATED.review / "tidal/tidal-candidates.json"
 OUT = GENERATED.review / "tidal/tidal-preverify.json"
-GPKG = ROOT / "data/source/bc_fisheries_data.gpkg"
+GPKG = SOURCE / "bc_fisheries_data.gpkg"
 
 THRESHOLD_M = 4.0
 THRESHOLD_ERR_M = 1.5          # how wrong the threshold (datum + DEM bias) may be

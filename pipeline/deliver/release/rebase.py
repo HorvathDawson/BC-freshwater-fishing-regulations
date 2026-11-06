@@ -35,10 +35,16 @@ def said_of(m: dict) -> dict:
     return said
 
 
+def id_of(files: dict, said: dict) -> str:
+    """THE RELEASE ID FORMULA, the one copy (T435): `build.ship` mints with it, `release_id` recomputes with it.
+    `files` = {name: {sha256, ...}}; `said` = everything else the manifest says (`said_of`)."""
+    return "r-" + hashlib.sha256(json.dumps({"files": {k: v["sha256"] for k, v in sorted(files.items())},
+                                             "said": said}, sort_keys=True).encode()).hexdigest()[:12]
+
+
 def release_id(m: dict) -> str:
     """The id `build.ship` gives the release `m` describes."""
-    return "r-" + hashlib.sha256(json.dumps({"files": {k: v["sha256"] for k, v in sorted(m["files"].items())},
-                                             "said": said_of(m)}, sort_keys=True).encode()).hexdigest()[:12]
+    return id_of(m["files"], said_of(m))
 
 
 def rebase(src: Path, basemap: dict, out_root: Path | None = None) -> Path:

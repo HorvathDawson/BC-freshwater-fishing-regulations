@@ -501,8 +501,8 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 | GET | `/api/items/search` | Registry items whose name contains `q` (a tributary, a lake, an item the extent holds on). |
 | GET | `/api/items/{item_id}/geojson` | Stream sections + curated split points for the map, in EPSG:4326 (lon/lat) to overlay the |
 | GET | `/api/items/{item_id}/tributaries/geojson` | One level of tributaries as map geometry — what `includes_tributaries` actually covers. |
-| POST | `/api/marks` | A reviewer's mark (one of the app's two writes), with every refusal logged (`REFUSED_LOG`) before it is |
 | GET | `/api/marks` | The marks in force (the last one on each target), each with its `status` and typed stale |
+| POST | `/api/marks` | A reviewer's mark (one of the app's two writes), with every refusal logged (`REFUSED_LOG`) before it is |
 | GET | `/api/marks/health` | EVERY OWNER MARK ACCOUNTED FOR (owner 2026-10-28, `marks.health`): per scope held / landed / |
 | GET | `/api/marks/splits` | Every split in splits.json -> its old split mark's status now (`unmarked` for most). Split |
 | GET | `/api/mode` | What this server is: the app the answer is checked in, the checks each scope answers and the |

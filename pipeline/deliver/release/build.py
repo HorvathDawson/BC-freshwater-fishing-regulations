@@ -609,9 +609,8 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
     # manifest-only change (valid_until, a source date, the tiles pairing) under the same id would never be fetched.
     said = {"tiles": tiles, "basemap": basemap, "valid_until": valid_until, "regs_versions": regs_versions,
             "sources": sources, "synopsis": said_synopsis, **({"bundle": said_bundle} if said_bundle is not None else {})}
-    rid = data_release or "r-" + hashlib.sha256(
-        json.dumps({"files": {k: v["sha256"] for k, v in sorted(entries.items())}, "said": said},
-                   sort_keys=True).encode()).hexdigest()[:12]
+    from pipeline.deliver.release.rebase import id_of            # (T435) the one formula; rebase recomputes with it
+    rid = data_release or id_of(entries, said)
     for e in entries.values():
         e["url"] = f"{rid}/{e['url']}"
     if said_synopsis is not None:

@@ -72,12 +72,22 @@ def test_the_newest_still_wins_among_runs_of_the_same_atlas(world):
     assert B._reach_run(atlas / "full") == new
 
 
-def test_a_run_written_before_the_digest_existed_still_pairs(world):
-    """The field is new. A run without it must keep pairing by name rather than disappearing,
-    or every bundle stops building the day this lands."""
+def test_a_run_without_a_digest_never_pairs_by_name(world):
+    """(T435) DIGEST ONLY: a run with no `handles` digest is no atlas's run, whatever its folder name says (every
+    run on disk carries one since the field landed)."""
     atlas, reaches, run = world
-    legacy = run("legacy", "full", with_digest=False)
-    assert B._reach_run(atlas / "full") == legacy
+    run("legacy", "full", with_digest=False)
+    assert B._reach_run(atlas / "full") is None
+
+
+def test_an_unreadable_report_is_refused_not_skipped(world):
+    """(T435) a report that cannot be read could be this atlas's run: refused, naming it."""
+    atlas, reaches, run = world
+    run("full", "full")
+    (reaches / "broken").mkdir()
+    (reaches / "broken" / "report.json").write_text("{not json")
+    with pytest.raises(SystemExit, match="broken/report.json cannot be read"):
+        B._reach_run(atlas / "full")
 
 
 def test_a_digested_run_beats_a_legacy_one_for_the_same_name(world):

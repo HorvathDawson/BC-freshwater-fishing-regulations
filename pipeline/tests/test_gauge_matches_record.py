@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import inspect
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -46,9 +45,9 @@ def test_a_changed_file_is_refused_with_both_digests_and_the_fix(world):
     assert "pipeline.atlas.build" in msg and M.matches_digest(matches) in msg
 
 
-def test_an_atlas_without_the_record_is_refused_with_the_stamp_command(world):
+def test_an_atlas_without_the_record_is_refused_with_the_rebuild(world):
     matches, atlas = world
-    with pytest.raises(SystemExit, match="--stamp-atlas"):
+    with pytest.raises(SystemExit, match="Rebuild the atlas"):
         M.check_record(atlas, matches)
 
 
@@ -60,22 +59,12 @@ def test_an_atlas_that_cut_at_no_gauge_accepts_any_matches(world):
     M.check_record(atlas, matches)
 
 
-def test_stamping_an_older_atlas_needs_the_file_to_predate_it(world):
-    """An atlas built before N8 carries no record. It may be stamped with today's file ONLY when that file
-    is older than the atlas build — otherwise the atlas may have cut at an earlier version."""
-    matches, atlas = world
-    (atlas / "graph.pkl.meta.json").write_text(json.dumps({"build_ts": 2_000_000_000.0}))
-    os.utime(matches, (1_900_000_000, 1_900_000_000))
-    M.stamp_atlas(atlas, matches)
-    rec = json.loads((atlas / M.RECORD).read_text())
-    assert rec["matches_sha256"] == M.matches_digest(matches) and rec["cut"] is True
-    assert rec["stamped_after_build"] is True
-    M.check_record(atlas, matches)
-    (atlas / M.RECORD).unlink()
-    os.utime(matches, (2_100_000_000, 2_100_000_000))
-    with pytest.raises(SystemExit, match="newer than the atlas"):
-        M.stamp_atlas(atlas, matches)
-    assert not (atlas / M.RECORD).exists()
+def test_no_file_time_decides_staleness():
+    """(T435) the record is content: no mtime / build_ts comparison is left (a copied atlas refused falsely, a touched
+    file passed), and the tools that used one are gone."""
+    src = (Path(M.__file__)).read_text()
+    assert "st_mtime" not in src and "build_ts" not in src
+    assert not hasattr(M, "stamp_atlas") and not hasattr(M, "record_cuts")
 
 
 def test_the_atlas_build_writes_the_record_and_the_bundle_checks_it_first():
@@ -119,13 +108,3 @@ def test_a_change_that_moves_no_cut_passes_and_one_that_does_is_refused(tmp_path
     monkeypatch.setattr(cuts, "speaks_now", lambda s: True)
     with pytest.raises(SystemExit, match="did not cut"):
         M.check_record(atlas, matches, roster)
-
-
-def test_record_cuts_needs_the_file_the_atlas_read(tmp_path, world):
-    matches, atlas = world
-    (atlas / "graph.pkl.meta.json").write_text(json.dumps({"build_ts": 4_000_000_000.0}))
-    M.write_record(atlas, cut=True, sha=M.matches_digest(matches))
-    other = tmp_path / "other.json"
-    other.write_text(json.dumps({"stations": []}))
-    with pytest.raises(SystemExit, match="not the"):
-        M.record_cuts(atlas, other)

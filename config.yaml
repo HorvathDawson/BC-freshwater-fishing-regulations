@@ -66,6 +66,8 @@ generated:
   # sample, the mined name candidates, the T185 proposals). Moved here from handoff/PLAN/curation-review/; committed
   # (data/.gitignore) because the review app reads them. Nothing human-made lives here.
   review: "data/generated/review"
+  # T435: the slough finder's output (automark + candidates), read by the slough review (regs/review/slough.py)
+  sloughs: "data/generated/sloughs"
   # THE SHIPPED SET (MINIMAL-PACKAGING §1; P08/P18), apart from every build artifact: data/release/<data_release>/,
   # data/release/tiles/<tile_version>/ (geometry-only atlas, the outside-BC mask, map assets), data/release/basemap/.
   release: "data/release"

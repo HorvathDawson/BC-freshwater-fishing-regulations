@@ -357,6 +357,8 @@ class Generated(BaseModel):
     #: T330: the curation review's machine-written inputs (candidates, pre-verify, suggestions, the Q154 sample, the
     #: mined name candidates, the T185 proposals) — moved out of handoff/; the review app and `regs/review/*` read them
     review: Path
+    #: (T435) the slough finder's output (`slough-automark.json`, `candidates_v2.json.gz`) the slough review reads
+    sloughs: Path
     #: The shipped set (`data/release`), NOT a build artifact: only what an app downloads (P08/P18).
     release: Path
 

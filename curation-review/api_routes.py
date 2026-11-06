@@ -24,7 +24,7 @@ def table(app) -> str:
             continue
         doc = (getattr(r, "endpoint", None).__doc__ or "").strip().split("\n")[0].replace("|", "\\|")
         rows.append(f"| {' '.join(m for m in methods if m != 'HEAD')} | `{r.path}` | {doc} |")
-    return "\n".join([START, "| method | path | what |", "|---|---|---|", *sorted(set(rows), key=lambda x: x.split("`")[1]),
+    return "\n".join([START, "| method | path | what |", "|---|---|---|", *sorted(set(rows), key=lambda x: (x.split("`")[1], x)),
                       END])
 
 

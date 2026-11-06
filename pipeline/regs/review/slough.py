@@ -23,11 +23,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
-from pipeline.common.curated import CURATED
+from pipeline.common.curated import CURATED, GENERATED
 
 ROOT = Path(__file__).resolve().parents[3]
-AUTOMARK = ROOT / "data/generated/sloughs/slough-automark.json"
-FINDER = ROOT / "data/generated/sloughs/candidates_v2.json.gz"
+AUTOMARK = GENERATED.sloughs / "slough-automark.json"
+FINDER = GENERATED.sloughs / "candidates_v2.json.gz"
 #: the retired review page's database, read once (2026-10-28): the owner's free-text notes live only here
 PAGE_MARKS = CURATED.waters.slough_page_calls          # T331: declared in config.yaml; never env-overridable
 #: the width rule's cut (slough-automark.md): at or under this the owner called it stream 96% of the time
@@ -148,10 +148,7 @@ def prints(row: dict) -> dict:
 
 @lru_cache(maxsize=2)
 def _page_notes(p: str, _m: float) -> dict:
-    try:
-        v = json.loads(Path(p).read_text()).get("verdicts") or {}
-    except OSError:
-        return {}
+    v = json.loads(Path(p).read_text()).get("verdicts") or {}       # (T435) a missing file raises, never "no notes"
     # "complex:cx-…" is the page's own bulk-mark tag (carried as `complex`), not the owner's words
     return {k: d["note"].strip() for k, d in v.items()
             if (d.get("note") or "").strip() and not d["note"].startswith("complex:")}

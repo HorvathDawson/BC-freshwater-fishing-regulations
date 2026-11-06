@@ -45,13 +45,13 @@ from typing import Optional
 
 from pyproj import Transformer
 
-from pipeline.common.curated import GENERATED
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.regs.dfo_salmon.suggest import GENERIC, TYPE_WORDS, _norm, coords_in, tokens
 
 ROOT = Path(__file__).resolve().parents[3]
 SUGG = GENERATED.review / "dfo-suggestions.json"
 OUT = GENERATED.review / "dfo-preverify.json"
-GPKG = ROOT / "data/source/bc_fisheries_data.gpkg"
+GPKG = SOURCE / "bc_fisheries_data.gpkg"
 TIDAL = GENERATED.review / "tidal/tidal-candidates.json"
 API = os.environ.get("CURATION_API", "http://127.0.0.1:8787")
 CACHE = Path(os.environ.get("PREVERIFY_CACHE", Path.home() / ".cache" / "bcfish-preverify"))
@@ -595,7 +595,7 @@ _REG: dict[str, list[str]] = {}
 def _names(item_ids: list[str]) -> list[str]:
     """Every name (and variant) of these registry items (the served registry, read once)."""
     if not _REG:
-        reg = json.loads((ROOT / "data/generated/atlas/full/registry.json").read_text())["items"]
+        reg = json.loads((GENERATED.build() / "registry.json").read_text())["items"]
         for it in reg:
             _REG[it["id"]] = [it.get("name") or ""] + [v if isinstance(v, str) else (v or {}).get("name", "")
                                                        for v in it.get("variants") or []]
@@ -608,7 +608,7 @@ _LABELS: dict[str, str] = {}
 
 def _split_label(sid: str) -> str:
     if not _LABELS:
-        doc = json.loads((ROOT / "data/curated/waters/cuts.json").read_text())
+        doc = json.loads(Path(CURATED.waters.cuts).read_text())
         for wb in (doc.get("waterbodies") or {}).values() if isinstance(doc.get("waterbodies"), dict) else doc.get("waterbodies") or []:
             for sp in (wb.get("splits") or []) if isinstance(wb, dict) else []:
                 if isinstance(sp, dict) and sp.get("id"):
@@ -619,7 +619,7 @@ def _split_label(sid: str) -> str:
 def _split_coord(sid: str) -> Optional[list[float]]:
     """A curated cut the location's detail does not draw: its served route measure on the FWA line."""
     if not _RESOLVED:
-        for r in json.loads((ROOT / "data/generated/atlas/full/splits.resolved.json").read_text()):
+        for r in json.loads((GENERATED.build() / "splits.resolved.json").read_text()):
             _RESOLVED[r["split_id"]] = r
     r = _RESOLVED.get(sid)
     if not r or not r.get("blk") or r.get("route_measure") is None:

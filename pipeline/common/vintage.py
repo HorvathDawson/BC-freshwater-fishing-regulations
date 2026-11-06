@@ -291,8 +291,10 @@ def report_all(tiles_dir: Path, arts: Artifacts, *, strict: bool = False) -> tup
             tv = None
             try:
                 tv = json.loads((Path(tiles_dir) / "atlas.meta.json").read_text(encoding="utf-8")).get("tile_version")
-            except (OSError, ValueError):
-                pass
+            except (OSError, ValueError) as ex:
+                # (T435) an unreadable tiles meta is said (strict: refused), never a silently skipped check
+                (fail if strict else lambda n, w: lines.append(f"  vintage: not checked — {w}"))(
+                    "runtiming", f"the tiles' atlas.meta.json cannot be read ({ex}): tile_version not checked")
             if rt.get("section_handles") != want["section_handles"]:
                 fail("runtiming", f"bound to {rt.get('section_handles')!r}, the bundle's {want['section_handles']!r}")
             elif tv and rt.get("tile_version") != tv:

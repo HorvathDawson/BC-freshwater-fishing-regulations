@@ -227,10 +227,9 @@ def check_record(build_dir: Path, path: Path | None = None, stations_path: Path 
     if not rec_path.exists():
         raise SystemExit(
             f"gauge matches: {build_dir} records no {RECORD} — the atlas predates the record (N8), so "
-            f"which matches.json it cut its rivers at is unknown.\n"
-            f"  If {path} has not changed since that atlas was built, stamp it (refused otherwise):\n"
-            f"    python -m pipeline.gauges.matches --stamp-atlas {build_dir}\n"
-            f"  else rebuild the atlas: python -m pipeline build --atlas --promote")
+            f"which matches.json it cut its rivers at is unknown. Rebuild the atlas: "
+            f"python -m pipeline build --atlas --promote\n"
+            f"  (T435: the old --stamp-atlas / --record-cuts judged by file times and are gone)")
     rec = json.loads(rec_path.read_text(encoding="utf-8"))
     if not rec.get("cut"):
         return
@@ -243,80 +242,9 @@ def check_record(build_dir: Path, path: Path | None = None, stations_path: Path 
         print(f"gauge matches: {path} is {now}, not the {rec.get('matches_sha256')} the atlas read, "
               f"but its cut set is the atlas's ({cuts_now}) — no boundary moves")
         return
-    hint = ("" if cuts_rec else
-            f"\n  The record carries no cut digest: if only non-cut rows changed, record the cut set "
-            f"from the file the atlas read (its bytes must hash to {rec.get('matches_sha256')}):\n"
-            f"    python -m pipeline.gauges.matches --record-cuts {build_dir} --from <that file>")
     raise SystemExit(
         f"gauge matches: the atlas at {build_dir} cut its rivers at matches.json "
         f"{rec.get('matches_sha256')} (cuts {cuts_rec}), but {path} is now {now} (cuts {cuts_now}) — "
         f"the bundle would place stations where the atlas did not cut. Rebuild the atlas "
         f"(python -m pipeline.atlas.build, via `python -m pipeline build --atlas --promote`), or "
-        f"restore the matches it was built with.{hint}")
-
-
-def record_cuts(build_dir: Path, source: Path, stations_path: Path | None = None) -> Path:
-    """Add `cuts_sha256` to an atlas record written before it existed, from `source` — the matches
-    file the atlas read, proven by its bytes hashing to the recorded `matches_sha256` (e.g.
-    `git show <commit>:data/curated/gauges/matches.json`). The roster must predate the build, or
-    the liveness that picked the cuts may since have changed. Refused otherwise."""
-    from pipeline.common.curated import SOURCE
-    build_dir = Path(build_dir)
-    rec_path = build_dir / RECORD
-    if not rec_path.exists():
-        raise SystemExit(f"gauge matches: {build_dir} records no {RECORD}; stamp it first (--stamp-atlas)")
-    rec = json.loads(rec_path.read_text(encoding="utf-8"))
-    if not rec.get("cut"):
-        raise SystemExit(f"gauge matches: the atlas at {build_dir} cut at no gauge; nothing to record")
-    if matches_digest(source) != rec.get("matches_sha256"):
-        raise SystemExit(f"gauge matches: {source} is {matches_digest(source)}, not the "
-                         f"{rec.get('matches_sha256')} the atlas at {build_dir} read")
-    roster = Path(stations_path or SOURCE / "bc_hydrometric_stations.json")
-    meta = build_dir / "graph.pkl.meta.json"
-    built = (float(json.loads(meta.read_text(encoding="utf-8"))["build_ts"]) if meta.exists()
-             else (build_dir / "graph.pkl").stat().st_mtime)
-    if roster.stat().st_mtime > built:
-        raise SystemExit(f"gauge matches: {roster} is newer than the atlas at {build_dir} — the cuts it "
-                         f"made may have been picked by an earlier roster; rebuild the atlas instead")
-    return write_record(build_dir, cut=True, sha=rec["matches_sha256"],
-                        cuts_sha=cuts_digest(source, roster),
-                        stamped_after_build=bool(rec.get("stamped_after_build")))
-
-
-def stamp_atlas(build_dir: Path, path: Path | None = None) -> Path:
-    """Write RECORD for an atlas built BEFORE the record existed, from today's matches file — only when
-    that file is older than the atlas build (its `graph.pkl.meta.json` build_ts, else graph.pkl's
-    mtime): then the atlas cannot have cut at a later version. Refused otherwise."""
-    path = Path(path or MATCH_FILE)
-    build_dir = Path(build_dir)
-    meta = build_dir / "graph.pkl.meta.json"
-    if meta.exists():
-        built = float(json.loads(meta.read_text(encoding="utf-8"))["build_ts"])
-    elif (build_dir / "graph.pkl").exists():
-        built = (build_dir / "graph.pkl").stat().st_mtime
-    else:
-        raise SystemExit(f"gauge matches: {build_dir} is not an atlas build (no graph.pkl)")
-    if path.stat().st_mtime > built:
-        raise SystemExit(f"gauge matches: {path} is newer than the atlas at {build_dir} — it may have cut "
-                         f"at an earlier version; rebuild the atlas instead of stamping it")
-    return write_record(build_dir, cut=True, sha=matches_digest(path), cuts_sha=cuts_digest(path),
-                        stamped_after_build=True)
-
-
-if __name__ == "__main__":
-    import argparse
-    ap = argparse.ArgumentParser(description="the atlas's gauge-match record (N8)")
-    g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--stamp-atlas", type=Path,
-                   help="an atlas build that predates the record; stamped only if matches.json is older")
-    g.add_argument("--record-cuts", type=Path,
-                   help="an atlas build whose record lacks cuts_sha256; needs --from")
-    ap.add_argument("--from", dest="source", type=Path,
-                    help="the matches file that atlas read (must hash to its matches_sha256)")
-    a = ap.parse_args()
-    if a.stamp_atlas:
-        print(f"wrote {stamp_atlas(a.stamp_atlas)}")
-    else:
-        if not a.source:
-            ap.error("--record-cuts needs --from <the matches file the atlas read>")
-        print(f"wrote {record_cuts(a.record_cuts, a.source)}")
+        f"restore the matches it was built with.")
