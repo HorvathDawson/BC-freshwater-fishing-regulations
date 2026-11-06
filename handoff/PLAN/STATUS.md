@@ -89,7 +89,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   read from the staging worker: T242 DONE (privacy wording approved), new T443 (Fraser step camera), T444 (part not in
   its group crash), T445 (MapLibre null expression), T446 (first-install file mismatch). **T440 DONE** (48efaa5fb: RNGH detector
   directly around RNGH's ScrollView drops the subtree from Android's a11y tree; an unflattened View between them;
-  test-bed walk 4/4 incl. install + walkthrough 25/25). Next APK (0.6.4) waits for the lag fix.
+  test-bed walk 4/4 incl. install + walkthrough 25/25).
+- **0.6.4 on Play internal (versionCode 13):** T420 native lag fix (deb635819: colouring re-watched every tile on each
+  camera settle; ids now once per watch) — stressed emulator p50 84→50 ms, tile events 958→37; T440. Check 6678 pass
+  (swipe test load flake fixed). **Lag agent resumed** on mobile-Chrome lag (owner: web lag is ONLY Pixel 9 Chrome):
+  pixel ratio cap + per-layer overdraw; parcel layer is 113k/132k vertices at z11. **T419 rework done, not shipped**
+  (2d62d60ff, 49ab00cd5: per-zoom smoothing in pipeline/deliver/tiles/smooth.py; stream vertices z9 −70 %, z10 −51 %;
+  full build data/generated/side/t419/tiles/atlas.pmtiles, same handles as r-4230bc0c1dd5): owner picks from the sent
+  sheets, then a tiles release to staging.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
