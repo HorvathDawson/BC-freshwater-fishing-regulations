@@ -21,6 +21,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.2", date: "2026-11-05", notes: [
+      "A new version of the app shows in the bell as soon as it is out, not a day later",
+      "Watershed conditions no longer go blank while you pan; they follow the watershed most on screen",
+      "The map keeps its labels and symbols while new regulations are applied",
+    ],
+  },
+  {
     version: "0.6.1", date: "2026-11-05", notes: [
       "Stepping up or down a river no longer draws its highlighted part as two crossing lines",
     ],
