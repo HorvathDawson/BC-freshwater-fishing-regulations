@@ -1,6 +1,6 @@
 # T86 — Production hosting and ship config
 
-Status: POSTPONED (owner 2026-10-28: prod is a while off). Owner needed (credentials, billing, name).
+Status: POSTPONED (owner 2026-10-28: prod is a while off). Owner needed (credentials, billing, name). 2026-11-05: the contact guard is DONE (e45841b85); the hosting work is done with T404's switch; T240 tracks the list.
 
 Source: needed to ship, tracked nowhere: "The feed only stays current with a SCHEDULED publisher (owner)"
 (implement_progress; P04 removed the old workflows); the R2 bucket (D1b; publish.py is human-run); `EXPO_PUBLIC_CONTACT`

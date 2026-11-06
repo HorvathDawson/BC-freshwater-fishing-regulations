@@ -76,8 +76,8 @@ against staging) and the owner runs on prod.
 - [ ] The About page shows no environment badge on a production build reading production (T232 `aboutEnvVM`).
 
 ## 9. Secrets inventory (with T249)
-- [ ] One table (name, where set, who rotates): feeds `RUN_TOKEN`, `NOTIFY_EMAIL_TO`; GitHub `CLOUDFLARE_ACCOUNT_ID`,
-      R2 key pairs (staging + prod); EAS / store credentials (T244); none in the repo (`.run-token` stays gitignored).
+- [x] One table (2026-11-05): `handoff/PLAN/runbooks/secrets.md` (feeds worker, GitHub, the Mac's Play keys, who
+      rotates each). Found: GitHub `CLOUDFLARE_API_TOKEN` is read by no workflow (owner: delete, or keep for T404).
 
 ## 10. Smoke tests + go
 - [ ] T241's smoke test pointed at prod (`--base https://canifishthis.ca --data https://data.canifishthis.ca`): map paints,
@@ -113,7 +113,9 @@ Owner: yes — every ★ line. Default: the defaults stated on each line.
 checklist only (Play Closed track, staging data, the feeds worker on staging); the production switch-on list stays as
 written for later.
 
-## 0.5.0 CLOSED TESTING checklist (written 2026-11-04; the Play Console side is T371)
+## CLOSED TESTING checklist (written 2026-11-04 for 0.5.0; the Play Console side is T371)
+State 2026-11-05: 0.6.2 (versionCode 11) is on Play internal; Closed testing promotes that SAME build after 2–3 clean
+days (T371). The 0.5.0 boxes below were done for 0.5.0–0.6.2 (STATUS 11-05); what is left is ★ T371 and T420 if cheap.
 The app a closed tester installs reads STAGING (`apps/mobile/src/env.ts`: a phone build is staging unless made with
 `EXPO_PUBLIC_APP_ENV=production`), so closed testing needs no production hosting. ★ = owner.
 - [ ] The one 0.5.0 rebuild promoted locally (bundle → release: T372 `n`, T376 basins, T339 names, T370 `water-shared`,
@@ -132,3 +134,18 @@ The app a closed tester installs reads STAGING (`apps/mobile/src/env.ts`: a phon
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T50, T75, T80, T87 — read each file's open items and finish them here; each closes pointing here.
+
+## Leftovers carried here (2026-11-05)
+- **T50:** the gesture/back walk on a real device (back table via `adb input keyevent 4` + the edge gesture, view-swipe
+  vs system edge gesture, sheet pan vs scroll, predictive back is off: `enableOnBackInvokedCallback=false`). Rides the
+  owner's Closed-testing phone walk.
+- **T75:** an offline native launch draws the ground map (phone). Same walk. Plus the T416 gap: a release with no
+  basemap must be refused (T416 does that).
+- **T80:** item 4 (the Map → Conditions flash on a tab switch: per-frame look at `applyLook` order, `packages/map`);
+  item 3's two open shapes (needs a deliver); **item 6 done 2026-11-05**: CI runs on every push to the branch and has
+  been RED since 10-29 — app: the spinner PNG deflates differently on CI's Node 22 (fixed: `app/.nvmrc` = the Mac's
+  25.9.0, 25b07f669); pipeline: 29 failed + 27 errors, tests reading local data without a `needs_*` marker and a
+  shallow clone for `git show` (fix in progress). Owner calls Q-T80a/b/c keep their built defaults.
+- **T87:** the owner's sign-off walk (web + phone), recorded in decisions.md. Owner.
+- **T86:** contact guard done (e45841b85: `app.config.js` refuses a production build without `EXPO_PUBLIC_CONTACT`).
+  Its prod hosting is T404's (prod twins of the deploy scripts and worker configs, when prod is near).
