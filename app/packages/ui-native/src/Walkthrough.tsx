@@ -24,7 +24,7 @@
  * (and, on a phone, announced), so a screen reader hears every step; focus is never moved or trapped.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Platform, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { Platform, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { GUIDE_WATER, TAB_TOUR_WORDS, TAB_TOURS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, guideSteps, guideText,
@@ -37,6 +37,8 @@ import { SHEET_TITLE } from "./Sheet";
 import { GUTTER, SPACE, type Palette } from "./theme";
 import { TYPE } from "./type";
 import { hitProps } from "./regs/hit";
+import { announce } from "./announce";
+import { windowSize } from "./windowSize";
 
 /** Where the seen version is kept (`@app/data` `openWalkthroughStore`). */
 export interface WalkthroughStore { read(): string | null; write(text: string): void }
@@ -292,7 +294,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   const [laid, setLaid] = useState<{ w: number; h: number } | null>(null);
   const win = laid ?? (dims.width > 0 ? { w: dims.width, h: dims.height }
     // a document that reports no size of its own (a test's): the window's
-    : typeof window !== "undefined" ? { w: window.innerWidth, h: window.innerHeight } : { w: 0, h: 0 });
+    : windowSize() ?? { w: 0, h: 0 });
   const origin = useRef<Measurable | null>(null);
   const [hole, setHole] = useState<Rect | null>(null);
   const scrolled = useRef<string | null>(null);
@@ -327,7 +329,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
 
   // (a phone) each step said aloud as it comes up; on the web the live region says it
   useEffect(() => {
-    if (guide.open && Platform.OS !== "web") AccessibilityInfo.announceForAccessibility?.(`${title}. ${body}`);
+    if (guide.open) announce(`${title}. ${body}`);
   }, [guide.open, guide.at]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per step
 
   const [cardH, setCardH] = useState(0);

@@ -23,6 +23,10 @@ import { SHEET_TITLE } from "./Sheet";
 import { GUTTER, SPACE, type Palette } from "./theme";
 import { TYPE } from "./type";
 import { hitProps } from "./regs/hit";
+import { windowSize } from "./windowSize";
+
+/** the browser window's size when it reports one (null: none, or a phone) */
+const windowOwn = () => { const s = windowSize(); return s && s.w > 0 ? s : null; };
 
 export interface Rect { x: number; y: number; w: number; h: number }
 
@@ -152,7 +156,7 @@ export function CoachTour({ open, steps, palette, registry, onFinish, words, onS
   const [laid, setWin] = useState<{ w: number; h: number } | null>(null);
   const win = laid ?? (dims.width > 0 ? { w: dims.width, h: dims.height }
     // a document that reports no size of its own (a test's): the window's
-    : typeof window !== "undefined" && window.innerWidth > 0 ? { w: window.innerWidth, h: window.innerHeight } : null);
+    : windowOwn());
   const origin = useRef<Measurable | null>(null);
   // the steps that have something on screen, each with its spotlight; null until measured
   const [shown, setShown] = useState<{ step: CoachStep; hole: Rect | null }[] | null>(null);

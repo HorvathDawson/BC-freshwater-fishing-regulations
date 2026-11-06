@@ -59,6 +59,7 @@ import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideA
 import { CoachContext, useCoachRegistry } from "./CoachMarks";
 import { part, preloadParts } from "./part";
 import { LoadingState } from "./LoadingState";
+import { windowSize } from "./windowSize";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const SpotCapture = part(() => import("./later").then((m) => m.SpotCapture));
@@ -458,7 +459,7 @@ export function Shell(p: ShellProps) {
     tourGauge.current ??= nearGauge(source, camera.current);
     void tourGauge.current.then((g) => {
       if (!g) return;
-      const width = Math.max(320, Platform.OS === "web" && typeof window !== "undefined" ? window.innerWidth : 390);
+      const width = Math.max(320, windowSize()?.w ?? 390);
       const spanM = 2.2 * Math.sqrt(g.km2) * 1000;
       const fitZ = Math.log2((156543 * Math.cos((g.lat * Math.PI) / 180) * width) / spanM);
       const zoom = kind === "watershed" ? Math.max(6, Math.min(8.5, fitZ)) : 10.5;
