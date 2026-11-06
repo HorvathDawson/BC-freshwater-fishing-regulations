@@ -64,7 +64,7 @@ The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps 
 
 ## Gates (`pnpm check`, the order is `package.json` `scripts.check`)
 
-tickets → boundaries → platform → style → colours → spinner → gauge-policy / calendar / fish / answers / pack
+tickets → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → gauge-policy / calendar / fish / answers / pack
 (generated files current) → deps → **knip** (no unused file, export or dependency; allowances with reasons in
 `knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → test (vitest: packages, conformance, `tools/*.test.ts`).
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk; the strict run

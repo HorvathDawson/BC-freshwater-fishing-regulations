@@ -15,6 +15,12 @@
  * 3. BANNED APIS IN SHARED CODE. Things that exist in react-native-web but not React
  *    Native, or vice versa. Shared phone components must use neither.
  *
+ * 4. NO INLINE PLATFORM BRANCH (T410). Code that differs by platform lives in a platform file (`foo.web.ts` +
+ *    `foo.native.ts`, typed by one `foo.d.ts`): the bundler picks one, so the other platform's code is not even in
+ *    the bundle. `Platform.OS` and `typeof window / document / navigator` in a shared file are refused, except where
+ *    INLINE_ALLOWED says why — a one-value difference (a size, a flag, a word), at most the count given.
+ *    `Platform.select` is the other one-value form and is not counted. (app/README.md "Web and native code".)
+ *
  * Not detectable here, and still needs a real device: gesture feel, font metrics,
  * map SDK rendering. See README.
  */
@@ -178,5 +184,54 @@ for (const scope of SHARED) {
   }
 }
 
+// --- 4: inline platform branches (T410) ---
+/**
+ * The files that may still read the platform inline, each with how many reads and why. Every one is a ONE-VALUE
+ * difference: a size, a flag that gates a call or a row, a word in a report. Logic that differs (a listener, a gesture,
+ * an effect, a loader) goes into a `.web` / `.native` pair instead — never a new line here to make the gate pass.
+ * A count above is refused (a new branch); a count below must be lowered here (the list stays exact).
+ */
+const INLINE_ALLOWED = {
+  "packages/ui-native/src/MapRail.tsx": [2, "two sizes: the rail clears MapLibre's web zoom stack (84 / 10 on the web, 8 / 14 on a phone)"],
+  "packages/ui-native/src/MiniMap.tsx": [1, "one style value: the browser's `touchAction` on the minimap"],
+  "packages/ui-native/src/NetBanner.tsx": [1, "a flag: the phone's banner says loading and takes no press"],
+  "packages/ui-native/src/Shell.tsx": [1, "a flag: the web preloads its later parts when idle (the phone has them at once)"],
+  "packages/ui-native/src/Walkthrough.tsx": [1, "a word: which guide (web / app) the steps are written for"],
+  "packages/ui-native/src/WebSpotsNotice.tsx": [1, "a flag: the web shows the notice in place of spots"],
+  "packages/ui-native/src/menu/HelpPage.tsx": [1, "a word: which help (web / app) is shown"],
+  "packages/ui-native/src/menu/MenuHost.tsx": [2, "a word: the platform line of a report (`web` / `ios 18`)"],
+  "packages/ui-native/src/menu/MoreScreen.tsx": [1, "a flag: the low-bandwidth row is a website setting"],
+  "packages/ui-native/src/motion.ts": [1, "a flag: the native animation driver (none on the web)"],
+  "packages/ui-native/src/regs/RegsScreen.tsx": [1, "a flag: the dev-only debug hook (`RegsDebug`) is web-only"],
+  "packages/ui-native/src/regs/openBook.ts": [1, "a value: the os handed to core's `bookUrl` (a parameter's default, tests pass it)"],
+  "packages/ui-native/src/shell/BrowseHost.tsx": [2, "two flags: the mobile-data setting and the Map tab's regs read-ahead are the phone's"],
+  "packages/ui-native/src/shell/ShellSheets.tsx": [1, "a word: the offline-maps page's platform (web / phone)"],
+  "packages/ui-native/src/shell/useShellNav.ts": [1, "a value: the os handed to `useEdgeBack` (the iOS edge swipe)"],
+  "apps/mobile/src/App.tsx": [5, "a flag (`WEB`: version headers, the mobile-data gate, the release gate, the clipboard, the cache note; the Shell's `prefetch`) and the platform line of a report / header"],
+  "apps/mobile/src/config.ts": [1, "a flag: `APP_ENV.web`, the one place config reads the platform"],
+};
+const INLINE = /Platform\.OS\b|typeof\s+(?:window|document|navigator)\b/g;
+for (const scope of [...SHARED, "packages/data", "apps/mobile"]) {
+  const dir = join(root, scope);
+  if (!existsSync(dir)) continue;
+  for (const file of walk(dir)) {
+    if (/\.(ios|android|native|web)\.tsx?$/.test(file) || /\.test\.tsx?$/.test(file) || /\.d\.ts$/.test(file)) continue;
+    const rel = relative(root, file);
+    const n = (stripComments(readFileSync(file, "utf8")).match(INLINE) ?? []).length;
+    const allowed = INLINE_ALLOWED[rel]?.[0] ?? 0;
+    if (n > allowed)
+      fail(`${rel}: ${n} inline platform check(s) (\`Platform.OS\` / \`typeof window|document|navigator\`), ${allowed} allowed.\n` +
+           `    Code that differs by platform goes in a .web.ts / .native.ts pair (app/README.md "Web and native code");\n` +
+           `    a one-value difference may use Platform.select.`);
+    else if (n < allowed)
+      fail(`${rel}: ${n} inline platform check(s), INLINE_ALLOWED says ${allowed} — lower it in tools/check-platform.mjs.`);
+  }
+}
+// a line for a file that is gone is stale (not checked over a scratch tree, CHECK_ROOT, which holds only its fixtures)
+if (!process.env.CHECK_ROOT)
+  for (const rel of Object.keys(INLINE_ALLOWED))
+    if (!existsSync(join(root, rel))) fail(`${rel}: listed in INLINE_ALLOWED but not there — remove its line.`);
+
 if (failed) { console.error(`\n${failed} platform-parity problem(s).`); process.exit(1); }
-console.log(`✓ platform parity: ${seen.size} variant set(s) complete, shared code clean`);
+console.log(`✓ platform parity: ${seen.size} variant set(s) complete, shared code clean, ` +
+            `inline platform checks only where INLINE_ALLOWED says (${Object.keys(INLINE_ALLOWED).length} files)`);

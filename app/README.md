@@ -53,13 +53,34 @@ inversion is why `ui/` exists as a separate package from the component set.
 renderers. `<div>` and `<View>` do not. This is the opposite of where most teams draw
 the line and it is why this works without committing to react-native-web up front.
 
+## Web and native code (T410)
+
+One app, one component set — and where the two platforms really differ, the difference is a FILE, never a branch:
+
+- **Logic that differs lives in a platform pair**: `foo.web.ts` + `foo.native.ts`, typed by one `foo.d.ts` (TypeScript
+  does not pick by platform; the bundler does). Callers import `./foo`. Metro bundles only the half for its platform,
+  so the web bundle never carries the phone's code and the APK never the browser's. vitest runs the `.web` half
+  (react-native-web is the test renderer, `vitest.config.ts`), so a `.native` half is proved by tsc and on a device.
+- **A one-value difference may stay inline** — a size, a flag that gates a call or a row, a word in a report:
+  `Platform.select({ web: …, default: … })`, or one `Platform.OS` comparison in a file on the allow-list.
+- **`core` reads no platform at all** (`check-boundaries`); `ui` hooks take the platform as an argument.
+- **The guard is `pnpm platform`** (`tools/check-platform.mjs`): a pair must be complete with equal exports; DOM APIs
+  are refused in shared files; and `Platform.OS` / `typeof window|document|navigator` outside a platform file is
+  refused except in `INLINE_ALLOWED` (each file, its count and why). A new branch is a new pair, not a new line there.
+
+Where it lives today: `ui-native/src` (`escapeBack`, `escapeCloses`, `searchFocus`, `touchDevice`, `connectivity`,
+`chartInput`, `windowSize`, `announce`, `swipeActivation`, `partAsk`, `FishSpinner`, `WindowInset`; `regs/` `PdfViewer`,
+`synopsisPdf`, `stickyHead`; `menu/openOfficial`; `shell/prewarm`), `map/src` (`Map`, `tile-ids`), `data/src` (the
+release drivers, the spots stores), `apps/mobile/src` (`appUpdater`, `envStore`, `locate`, `memoryTrim`, `notify`,
+`pickPhoto`, `share`, `startLink`, `systemBack`). The SEO site's own tools are `tools/seo/` (web only by nature).
+
 ## Commands
 
 ```bash
 pnpm install
 pnpm check        # every gate, knip, typecheck, vitest — what CI runs (the steps: package.json scripts.check)
 pnpm boundaries   # layer rules (layers.json)
-pnpm platform     # variant sets complete, shared code portable
+pnpm platform     # variant sets complete, shared code portable, no inline platform branch (T410)
 pnpm style        # rebuild the style, verify hash, fail if it was stale
 pnpm style:build  # after editing layers.source.json
 pnpm colours      # no colour literal outside tokens.json + themes/ (the one palette)

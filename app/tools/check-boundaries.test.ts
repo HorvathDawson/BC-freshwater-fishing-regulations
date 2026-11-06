@@ -254,6 +254,36 @@ describe("platform parity", () => {
     })).not.toBe(0);
   });
 
+  it("refuses an inline platform branch in shared code (T410): it goes in a .web / .native pair", () => {
+    // mutation: the INLINE scan dropped, or a pattern removed from it -> each case passes and fails here
+    expect(checkPlatform({ "packages/ui-native/src/_plat.ts":
+      'import { Platform } from "react-native";\nexport const w = Platform.OS === "web";\n' })).not.toBe(0);
+    expect(checkPlatform({ "packages/ui-native/src/_plat.ts":
+      'export const w = typeof window !== "undefined";\n' })).not.toBe(0);
+    expect(checkPlatform({ "packages/data/src/_plat.ts":
+      'export const d = typeof document === "undefined";\n' })).not.toBe(0);
+    expect(checkPlatform({ "apps/mobile/src/_plat.ts":
+      'export const n = typeof navigator === "undefined";\n' })).not.toBe(0);
+  });
+
+  it("lets a variant file, a comment and Platform.select read the platform", () => {
+    expect(checkPlatform({
+      "packages/ui-native/src/_plat.web.ts": 'export const w = typeof window !== "undefined";\n',
+      "packages/ui-native/src/_plat.native.ts": 'import { Platform } from "react-native";\nexport const w = Platform.OS === "ios";\n',
+      "packages/ui-native/src/_said.ts": '// on the web (`Platform.OS`, `typeof window`) it differs\nexport const s = 1;\n',
+      "packages/ui-native/src/_select.ts": 'import { Platform } from "react-native";\nexport const s = Platform.select({ web: 1, default: 2 });\n',
+    })).toBe(0);
+  });
+
+  it("holds an allow-listed file to its count, both ways", () => {
+    // motion.ts may read the platform once (INLINE_ALLOWED): twice is a new branch, none is a stale line
+    const motion = (n: number) => ({ "packages/ui-native/src/motion.ts":
+      'import { Platform } from "react-native";\n' + 'export const a = Platform.OS;\n'.repeat(n) });
+    expect(checkPlatform(motion(1))).toBe(0);
+    expect(checkPlatform(motion(2))).not.toBe(0);
+    expect(checkPlatform(motion(0))).not.toBe(0);
+  });
+
   it("catches variants whose export surfaces differ", () => {
     // A complete set still diverges if one side exports a helper the other does not —
     // callers compile on one platform and fail on the other.
