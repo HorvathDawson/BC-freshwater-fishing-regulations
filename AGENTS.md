@@ -7,8 +7,8 @@ re-litigating them costs trust.
 **Maps of what exists now:** `pipeline/docs/MAP.md` (the pipeline) and `app/MAP.md` (the app). Fix a map when the code
 moves under it.
 
-Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (delivery), `pipeline/docs/archive/10-plan.md`
-(issues ①–㊸), `pipeline/docs/archive/REACH-BUILDER.md`, `pipeline/docs/archive/RESOLVER-HANDOFF.md`.
+Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-plan`, `10-plan` issues ①–㊸,
+`RESOLVER-HANDOFF`) and the v1 code were removed with `archive/` (T335); read them with `git show d1b36ca44:<path>`.
 
 **How the book is read — every user interpretation ruling — is `pipeline/docs/RULINGS.md`; it is the source of truth for interpretation and wins over any other note.**
 
@@ -142,7 +142,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 ## The app (`app/`)
 
-21. **Greenfield. Inherits nothing from `archive/webapp` or `archive/mobile`.** Those are
+21. **Greenfield. Inherits nothing from v1's webapp or mobile (the removed `archive/`, T335).** Those are
     prior art: four shared-logic files there diverged completely (`waterbodyDataService.ts`
     is 1,157 lines on web, 116 on mobile) because two apps were built independently and
     neither was ever the shared source.
@@ -234,7 +234,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 37. **A loader for a curated file must RAISE on a missing file, never return `[]`.**
     Absent curated data is a bug, never an empty set. This is the same failure as ㉟ one
-    layer down, and the grep gate in `pipeline/docs/archive/HANDOFF-curated-layout.md` §3.3 is what
+    layer down, and the grep gate in `pipeline/docs/HANDOFF-curated-layout.md` §3.3 is what
     keeps it from creeping back.
 
 38. **Never regenerate a reviewed artifact to "check something".** Regenerating
@@ -296,7 +296,7 @@ Deep context (historical, archived): `pipeline/docs/archive/13-build-plan.md` (d
 
 <!-- 45-53: rulings from 2026-09-25 to 2026-09-29 that were only in commit messages and memory.
      Appended, not interleaved, so the numbers above stay stable. The mechanics are in
-     pipeline/docs/archive/2026-10-CURRENT-STATE.md (history); the reference reader is read/ladder.py `effective_rules`. -->
+     2026-10-CURRENT-STATE.md (history: `git show d1b36ca44:pipeline/docs/archive/…`); the reference reader is read/ladder.py `effective_rules`. -->
 
 45. **The book's species list (p.80) is closed, and a bull trout IS a Dolly Varden.** 22 fish
     in TROUT/CHAR/WHITEFISH/BASS/OTHER (`catalogue.BOOK_FAMILIES`); any other code is refused.

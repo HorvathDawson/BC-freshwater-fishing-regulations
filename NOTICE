@@ -90,7 +90,6 @@ here relicenses it. This is a record of what the repository contains, not legal 
       licence.
     - npm and pip dependencies are not vendored. Each is installed from its registry under its own licence
       (see package.json, app/pnpm-lock.yaml, requirements.txt); there is no committed copy to list.
-    - archive/ holds retired code; it may carry dependencies under their own licences.
 
 12. Fonts
     No font files are committed. The app uses system fonts; nothing to attribute.

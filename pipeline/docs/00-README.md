@@ -18,17 +18,15 @@ rules for working here). The root `README.md` has the layout and the rebuild com
 | [18-how-regulations-are-stored](18-how-regulations-are-stored.md) | The catalogue format the parser writes |
 | [19-dfo-salmon-pipeline](19-dfo-salmon-pipeline.md) | DFO salmon: fetch, parse, untangle, curate |
 
-Numbering has gaps because superseded docs moved to `archive/`; the numbers are kept so links resolve.
+Numbering has gaps because superseded docs were archived; the numbers are kept so links resolve.
 
-## `archive/`
+## History (removed in T335)
 
-Superseded designs, kept for provenance; nothing reads them. Among them: the v1 pipeline map (`02`),
-`10-plan` and `13-build-plan` (the delivery plan, done), `REACH-BUILDER` and `RESOLVER-HANDOFF` (the
-reach builder is built), `12-testing`, `05-table-generation` (the table was removed 2026-09-22),
-`16-curated-data-layout` and `HANDOFF-curated-layout` (done), `HANDOFF-data`, `HANDOFF-dfo-curation`
-(the curation sitting guide), `curation-review-queue.md` (an old work list), `06-ui-data-contract` (the client
-contract before answers/2), and the September–October state notes `2026-10-CURRENT-STATE` and `2026-10-NEXT` (T63;
-the work list is now `handoff/PLAN/app-integration/tickets/`).
+The superseded designs under `archive/` (the v1 pipeline map, the delivery plans `10-plan` / `13-build-plan`, the
+September–October state notes, the old work lists) and the v1 code (`archive/`) were deleted on 2026-11-06. Any path a
+comment still names reads with `git show d1b36ca44:<path>`. Moved up because live code cites them: `REACH-BUILDER`,
+`HANDOFF-curated-layout`, `HANDOFF-dfo-curation` (the curation sitting guide), `06-ui-data-contract`. Kept in place:
+`archive/waterbody-splits.json`, which the curated `data/curated/waters/cuts.json` names as its research source.
 
 ## Where the work is
 

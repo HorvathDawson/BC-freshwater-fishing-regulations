@@ -1,6 +1,6 @@
 # T335 — Remove archive/ and general cleanup
 
-Status: IN PROGRESS 2026-11-05 — scope approved by the owner (below); POSTPONED — next credit cycle, together with the T333/T334 audits (owner 2026-10-30: "the clean up was for with the audit for next credit cycle not now"; original: "we can remove archive and do any more general cleanup").
+Status: DONE 2026-11-06 (chat 3, HASH) — scope approved by the owner (below).
 
 1. Delete `archive/` (211 tracked files, 22 MB: old cron-runner, mobile, pipeline, r2-worker, scripts, webapp) and
    `pipeline/docs/archive/`. First move anything still READ by live code (several app/tools/*.mjs, the feeds worker,
@@ -37,3 +37,19 @@ workflow or agent fan-out until that scope is approved here.
   `waterbody-splits.json`, which the CURATED file `data/curated/waters/cuts.json:10023,10045` names as its research
   source — move the file and keep the path working, never reword curated notes without asking the owner.
 - AGENTS header + rule 37 cite archive/: rewrite with T437.
+
+## Result (2026-11-06)
+- `archive/` deleted (211 tracked files + 17 MB of untracked v1 cache/pycache). `pipeline/docs/archive/`: the 4 docs
+  live code cites moved up to `pipeline/docs/` (`REACH-BUILDER`, `HANDOFF-curated-layout`, `HANDOFF-dfo-curation`,
+  `06-ui-data-contract`), references rewritten; the rest deleted. **Kept in place:** `waterbody-splits.json`, which
+  curated `cuts.json` names (no curated note reworded). Every remaining "archive/…" mention (provenance comments in
+  app/pipeline) reads with `git show d1b36ca44:<path>` — said once in README, AGENTS, `pipeline/docs/00-README.md`.
+- `audit_split_binding.py` lost its only citation with the archive docs; listed in `pipeline/docs/MAP.md`.
+- Cleanup: side builds and scratch of DONE tickets removed (~25 GB; side 34 → 9.9 GB, scratch 1.3 GB → 98 MB). Kept:
+  side `t322b`, `t326` (T322/T326 still PARTIAL), `scratch/answers_reference` (a test reads it),
+  `scratch/slough_fold_preview.json` (T322). Releases already live + previous. `play-shots.mjs` /
+  `build-play-graphics.mjs` are tracked now; `store/graphics/` stays gitignored. The root `__pycache__/` regenerates
+  (`project_config` is a root module) and is ignored.
+- Proof: the 26 test files that name archive paths (575 pass; the 1 failure is `test_export_codec`'s
+  files-on-disk-pair, a data-state test while chat 2's Mac deliver rewrites the bundle), the orphan gate, app typecheck,
+  `pipeline build --graph --dry-run` (rc 0).

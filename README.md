@@ -7,8 +7,8 @@ BC's rules are spread across the synopsis PDF, its zone and water tables, DFO in
 licensing schedules. This project reads them once, binds every rule to the stretches of water it
 covers, and decides every answer ahead of time, so the app only looks answers up.
 
-> This branch (`redesign/stream-sections`) is **v2**. `main` still runs v1, which is archived here
-> under `archive/`. Nothing is merged to `main` until the owner decides to (an owner call, not a build step);
+> This branch (`redesign/stream-sections`) is **v2**. `main` still runs v1 (its copy here,
+> `archive/`, was removed in T335: `git show d1b36ca44:archive/…`). Nothing is merged to `main` until the owner decides to (an owner call, not a build step);
 > the dev branch is where all work lands.
 
 ## How it works
@@ -57,7 +57,6 @@ data/
   source/            fetched inputs (FWA GeoPackage, gauges, synopsis PDF, …)
   curated/           human-owned decisions — never regenerable
   generated/         everything the pipeline writes
-archive/             v1 (pipeline, webapp, worker, crons, deploy docs)
 ```
 
 ## Getting started

@@ -1,8 +1,8 @@
 # canifishthis — app workspace
 
-Greenfield, mobile-first. Inherits **no code** from `archive/webapp` or `archive/mobile`; those are prior art.
+Greenfield, mobile-first. Inherits **no code** from v1's webapp or mobile (the removed `archive/`, T335); those are prior art.
 **What is where today: [`MAP.md`](MAP.md).** This file is the WHY of the layers, the one React and the one map style.
-History: [`pipeline/docs/archive/13-build-plan.md`](../pipeline/docs/archive/13-build-plan.md) §4.
+History: `13-build-plan.md` §4 (removed with archive/, T335: `git show d1b36ca44:pipeline/docs/archive/13-build-plan.md`).
 
 ## Why the layers are shaped this way
 
