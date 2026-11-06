@@ -37,4 +37,8 @@ t "pinned inputs (data/source/pins.json)"
 t "synopsis extraction backup"
 PYTHONPATH="$PWD" .venv/bin/python data/fetch_data.py --add-parsing-data
 
+# the DFO salmon pages, typed (git-ignored; the bundle reads them): today's pages, ~15 s, no credits, no secrets
+t "DFO salmon feed"
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.dfo_salmon.live
+
 t "done ($((SECONDS - t0)) s). Next: python -m pipeline build --atlas --promote   (the atlas is not in git)"
