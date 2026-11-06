@@ -39,6 +39,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T441 mostly done** (d2a5c59): after a release, `node app/tools/regs-recut/sync.mjs` now re-cuts every test fixture in
   one step (it was four rounds of `pnpm check` before 0.6.3); the stream-lines fixture is written from the release
   instead of by hand. Re-cut on today's release: 4290 tests pass. Left: section ids still typed into a few tests.
+- **T401 measured, not shipped** (29b1e561b): a smaller prefetch delta is now possible but its gain stayed inside
+  run-to-run noise on the emulator, so the app keeps MapLibre's default. If streams still look bare while panning on
+  the Pixel 9, a side-by-side APK on the phone is the real test.
+- **T446:** the next such report will say whether the file was cut short or overwritten (cddfdbe); not reproduced.
+- **T164 proposals refreshed** on today's release: 177 waiting for you in the review app's DFO mode (4 fewer: placed
+  by the T326 cuts).
+- **Running:** T420 iOS half (compiling the patched map binding in the iOS simulator for the first time). Then the APK.
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
   retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
   repro once T448 frees the emulator.
