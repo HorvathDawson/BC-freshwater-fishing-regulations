@@ -2,7 +2,7 @@
  * The menu's reading pages — About, Sources and credits. Each draws one VM from core/menu/ and decides nothing; a link
  * only says where it goes. (Owner 2026-10-22) Display and Contact are drawn on the More tab itself (`MoreScreen`).
  */
-import { Platform, View } from "react-native";
+import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { CHANGELOG_WORDS, changelogVM, LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
@@ -11,16 +11,12 @@ import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
-import { openBook } from "../regs/openBook";
+import { openOfficial } from "./openOfficial";
 import { openLink } from "../openLink";
 
 const open = (url: string) => { void openLink(url); };
-/**
- * (T285) the official Synopsis: on the web its link as ever; on a phone OUR copy of it through `openBook` (the system's PDF
- * viewer on the downloaded file, offline once held, the loading card and its failure words) — Android refuses to render a
- * PDF URL in the browser it was handed to. No release copy: `openBook` opens the plain link.
- */
-const openOfficial = (url: string) => () => { if (Platform.OS === "web") open(url); else void openBook(1); };
+/** (T285) the official Synopsis: its link on the web, our copy on a phone (openOfficial.web / .native) */
+const officialAt = (url: string) => () => openOfficial(url);
 
 /** (T243) a link on its own line is a 44 px row (the touch-target floor), its words centred in it */
 const LINK_ROW = { minHeight: 44, justifyContent: "center" } as const;
@@ -40,7 +36,7 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onRepor
                                                  backgroundColor: palette.tint }}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.notOfficial}</Text>
       </View>
-      <Pressable {...hitProps({ w: 120, h: 44 })} onPress={openOfficial(vm.official.url)} accessibilityRole="link" accessibilityLabel={vm.official.label} style={LINK_ROW}>
+      <Pressable {...hitProps({ w: 120, h: 44 })} onPress={officialAt(vm.official.url)} accessibilityRole="link" accessibilityLabel={vm.official.label} style={LINK_ROW}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{`${vm.official.label} ${WORDS.LINK_OUT}`}</Text>
       </Pressable>
       {onSources && (
