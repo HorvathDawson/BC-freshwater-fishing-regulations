@@ -31,6 +31,18 @@ export const walkthrough = {
       if (!c) throw new Error(`no walkthrough card (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
       return c;
     });
+    // (T293) Android back steps back ONE step (never out of the app, never past the first step)
+    await ctx.step('Android back steps back one step', async () => {
+      const at = () => { const c = ctx.device.screenText().find((x) => COUNT.test(x)); return c ? Number(COUNT.exec(c)[1]) : null; };
+      ctx.device.screenshot(path.join(ctx.dir, 'T293-step-01.png'));
+      ctx.flow('tap-id', { ID: 'guide-primary' }); await ctx.device.sleep(2500);
+      ctx.flow('tap-id', { ID: 'guide-primary' }); await ctx.device.sleep(3500);
+      const before = at();
+      ctx.device.sh('input keyevent 4'); await ctx.device.sleep(2500);
+      const after = at();
+      if (before === null || after !== before - 1) throw new Error(`back from step ${before} left the card at ${after}`);
+      return `step ${before} → back → step ${after}`;
+    });
     await ctx.step('every step: its primary button, until the card closes', async () => {
       const seen = [];
       let last = null, same = 0, total = 0, reached = 0, closed = false;

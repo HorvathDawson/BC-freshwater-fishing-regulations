@@ -18,6 +18,13 @@ and recorded; the report is `out/runs/<stamp>/index.html` (plus `report.md`, `re
 | `near-cold` | (T264) ten cold starts (offline/online alternating), a town tapped FIRST: its waters are listed every time and no failed near read is logged (`NEAR_COLD_RUNS=n`) |
 | `part-steps` | (T411) Coquitlam → Map → ▼ to Part 1 → ▲ once: no section of the water drawn by the water copy AND the atlas at once (`[copydraw]`); each kept section's `copy_until` in `T411-copy-log.txt` (`STEPS_VIA=tap` for the map-tap way in) |
 
+| `crash-bed` | (T242) an unhandled promise rejection, an uncaught JS error (fatal: kept, sent at the next start, its exit record not sent again) and a native crash (SIGSEGV via `adb root`, Android's CRASH_NATIVE record) each reach the feeds worker's OWN `POST /crash` handler, run locally by `crash-stub/server.mjs` over an in-memory bucket. Needs `session.sh --crash-stub`; run with `run.mjs --no-r2`. Nothing goes to staging |
+
+Stress knobs (T420): `TESTBED_EMU_ECORES=1` runs the emulator on the Mac's efficiency cores (`taskpolicy -b`), `TESTBED_EMU_ARGS="-cores 2"`
+adds emulator flags; `pan` takes `PAN_AT=lon,lat,zoom`, `PAN_COLD=1` (page cache dropped first), `PAN_MS` (120 = a fling) and
+reports the pan probe's `[drawn]` lines (frames missing tiles while moving; camera at rest → first fully drawn frame).
+`run.mjs --no-r2` writes nothing to the staging bucket (no test-channel reset at the end).
+
 `install` runs first and leaves the app holding the current staging release; the others build on it (none clears the
 app again: a fresh install is ~500 MB).
 

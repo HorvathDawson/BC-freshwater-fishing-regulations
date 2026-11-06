@@ -120,8 +120,13 @@ export const crashBed = {
         return ks.map((k) => `${k.sample.kind}:${k.sample.name} ×${k.count}`).join(', ');
       }, { shot: false });
     } finally {
-      try { ctx.device.adb(['unroot'], { timeout: 30_000 }); await ctx.device.sleep(3000); ctx.device.adb(['wait-for-device'], { timeout: 60_000 });
-            ctx.device.adb(['reverse', `tcp:${PORT}`, `tcp:${PORT}`]); } catch { /* was not root */ }
+      try { ctx.device.adb(['unroot'], { timeout: 30_000 }); } catch { /* was not root */ }
+      // adbd restarts: until the device answers again (a slow emulator takes a while), the next scenario would find none
+      for (let i = 0; i < 60; i++) {
+        try { if (ctx.device.adb(['get-state'], { timeout: 5000 }).toString().trim() === 'device') break; } catch { /* not back yet */ }
+        await ctx.device.sleep(2000);
+      }
+      try { ctx.device.adb(['reverse', `tcp:${PORT}`, `tcp:${PORT}`]); } catch { /* the next run sets it again */ }
       stub.kill();
     }
   },
