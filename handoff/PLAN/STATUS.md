@@ -18,7 +18,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T429 done:** a missing review input can no longer empty a curated file. The name / slough / tidal lists now stop
   with an error if their input is missing, and a write that would drop more than 10 rows is refused unless you say
   `--accept-shrink` (the review app shows the refusal on the item).
-- T430–T432 in progress.
+- **T433 done:** the staging upload no longer takes staging dark if it fails half way (the old files are cleared only
+  after the new pointer is up); the inputs sync stops on a failed copy instead of saying "in sync"; HYDAT has one
+  checked downloader; the secret scan fails when it cannot read a secret; a production TestFlight build needs
+  `CONFIRM_PROD=canifishthis.ca`.
+- T430–T432 in progress (side lane).
 
 ## 2026-11-05 (late): chat 2 started — launch prep, CI back on
 - **T416 proof is running** (fresh clone, then a Mac build at the same commit; verdict in `~/t416-repro.json`, ~23:15).
