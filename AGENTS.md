@@ -27,6 +27,11 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
 3. **Prefix shell commands with `rtk`.** Token-optimised proxy; passes through when it has
    no filter.
 4. **Run `graphify query "<question>"` before grepping the codebase.**
+5. **Kill only what you started** (its PID, its port). Never `pkill` / `killall` by pattern: one took down the owner's
+   tile server. Heavy jobs go through `scripts/heavy.sh`, one at a time.
+6. **Commit only your own paths: `git commit -- <paths>`.** Several agents share this checkout; `git add -A` or a bare
+   `git commit` takes another lane's half-done edits. Never commit `data/generated/review/pfma_basin_areas.json`,
+   `data/generated/review/write-through.jsonl`, or store images.
 
 ---
 
@@ -316,6 +321,42 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
       context); keep the main chat for decisions, merges and the owner. Agents report briefly.
     - Avoid re-reading big files and logs: grep for the lines needed; tail logs; do not re-run full suites per
       iteration (once at the end).
+46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that trips one fixes the cause; it never
+    loosens, skips, or works around the guard.** Each was added after real damage or a hidden failure:
+    - **No silent fallbacks, anywhere** (owner 2026-11-03): no `try/catch` that turns an error into an empty answer, no
+      `or ROOT` / default-path fallback, no `|| []` over a failed read. A failure is shown AND reported
+      (`reportFailure` in the app, a 503 naming the cause in the review backend, a raise naming the file and the
+      command that makes it in the pipeline). Deploy/staging scripts fail on any tool error (rclone, wrangler) —
+      never `|| true`, never a pipe that hides the exit code (`set -o pipefail`).
+    - **Review write-through refuses a big shrink** (`pipeline/regs/review/apply.py` SHRINK_LIMIT): a write that drops
+      more than 10 rows from a curated file is refused. `--accept-shrink` is for a shrink the OWNER asked for, never to
+      get a run through. Review loaders raise on a missing input.
+    - **Paths come from `config.yaml`** (CURATED / GENERATED / SOURCE, `pipeline/project_config.get_path`, which raises
+      on an unknown key): no literal `"data/..."` path in pipeline code (CI greps for it; tests are exempt).
+    - **Review app API**: the route table in `curation-review/API.md` is generated (`python curation-review/api_routes.py
+      --write`); a route added or removed regenerates it in the same commit. No "splits" domain (lake splits are
+      deferred).
+    - **Ticket ledger**: `node app/tools/check-tickets.mjs` must pass (in `pnpm check`): every ticket file has a Status
+      line and a ledger row that agree; DONE names its commit hashes (commit the code first, then the ledger). After a
+      cherry-pick, remap the hashes the tickets cite.
+    - **Smoke coverage gate** (`pipeline/tests/smoke_pending.txt`): the list only shrinks; a new module gets a smoke
+      test, not a line in the file. Golden parity is strict.
+    - **No frozen prototype oracles**: `golden.json` and its tests were retired (T439); the regs oracles are
+      release-backed (`app/fixtures/golden/taps.json`, re-cut by `node app/tools/regs-recut/sync.mjs`). After a release
+      is promoted, re-cut EVERY release-backed fixture before an app build (T441 lists them: taps, `pnpm regs-fixture`,
+      `UPDATE_REGS_FIXTURES=1 … harness`, `dev/section-lines.json`, ids pinned in tests) — a renumbering is a re-cut,
+      never a weakened assertion.
+    - **Feeds worker**: its tests gate every deploy (`deploy/staging/feeds.sh`); `REPORT_SALT` is a required secret
+      (no salt = 503, never an unsalted report). Crash/report enums match the app (wire parity test).
+    - **Staging**: `deploy/staging/upload.sh` refuses commits not on GitHub, clears old releases only after the
+      pointer flips, and re-points the test channel (`test/`, T442). Production builds/uploads need
+      `CONFIRM_PROD=canifishthis.ca` and stay human-only.
+    - **Test bed**: a walk that matters includes a FRESH install (`install` first): today's walks passed on an app
+      that already held data and hid a broken first run. `--no-r2` runs check `test/` is the live release and stop
+      if not.
+    - **Dead code stays dead** (knip in `pnpm check`): no unused file/export/dependency; an allowance needs a reason
+      in `app/knip.jsonc`. Generated native projects (`apps/mobile/ios|android`) are not source: tools walking the
+      tree skip them.
 
 ## Reading the regulations
 
