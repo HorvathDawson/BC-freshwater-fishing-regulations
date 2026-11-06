@@ -8,7 +8,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 - **ANSWERED 11-05:** T260 switches = ink fill; CF token kept until prod (T404); Apple install id declared as Device ID
   (not linked); Heber: carry ignores whitespace-only changes; audits T333–T335 scoped (all areas, report + fix tickets,
-  medium, delete archive/). Still yours: the T425/T427 shots, the T419 Salmon River look (`tickets/T419-shots/t419-out2-compare.png`, or staging) and the T319 titles (`app/tools/store-shots.json`).
+  medium, delete archive/). Still yours: the T425/T427 shots and the T319 titles (`app/tools/store-shots.json`).
 - **PSF run-timing files: ANSWERED 11-05** — fine as is; only the parsed `timing.json` stays in git, the PSF pages and their
   fetch record are git-ignored from now on (772fbf4f0).
 

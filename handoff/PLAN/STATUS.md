@@ -83,6 +83,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   live manifest: 0.6.3 is fine. Rerun (`out/walk-063b`): download ok, regs taps 73–250 ms; the rest blocked by T440
   (first-run notice body missing from the Android a11y tree since SDK 58 — agent fixing in Sheet's RNGH ScrollView).
   **Staging feeds worker deployed** (5dc96631; 218 worker tests; gauges/dfo/inseason ok).
+- **Owner 11-06 (late):** lag is THE priority → agent on T420/T401 (native tile-id dedupe + JS/web costs, stressed
+  emulator). T419 verdict: better but meanders stay kinked and gentle streams over-simplified → agent comparing
+  visvalingam / smoothing variants (images get SENT to the owner; they cannot open repo files). Crash + problem reports
+  read from the staging worker: T242 DONE (privacy wording approved), new T443 (Fraser step camera), T444 (part not in
+  its group crash), T445 (MapLibre null expression), T446 (first-install file mismatch). T440 agent still running.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
