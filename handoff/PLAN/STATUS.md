@@ -87,7 +87,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   emulator). T419 verdict: better but meanders stay kinked and gentle streams over-simplified → agent comparing
   visvalingam / smoothing variants (images get SENT to the owner; they cannot open repo files). Crash + problem reports
   read from the staging worker: T242 DONE (privacy wording approved), new T443 (Fraser step camera), T444 (part not in
-  its group crash), T445 (MapLibre null expression), T446 (first-install file mismatch). T440 agent still running.
+  its group crash), T445 (MapLibre null expression), T446 (first-install file mismatch). **T440 DONE** (48efaa5fb: RNGH detector
+  directly around RNGH's ScrollView drops the subtree from Android's a11y tree; an unflattened View between them;
+  test-bed walk 4/4 incl. install + walkthrough 25/25). Next APK (0.6.4) waits for the lag fix.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
