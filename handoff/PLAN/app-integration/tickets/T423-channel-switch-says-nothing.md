@@ -1,7 +1,6 @@
 # T423 — The update-channel (and environment) switch gives no feedback in an installed build
 
-Status: OPEN (owner 2026-11-05, 0.6.2 from Play internal: "won't let me click button to change update log … button in
-about won't change it").
+Status: IN REVIEW — c48d4190a; proof pending: phone check (installed build, tap Test / another source: "applies when you reopen the app" shows at once; force a failed write if possible). Web shots in T423-shots/ (failed-write state at 390 and 1440; pending needs the native build, web reloads at once).
 
 In a non-`__DEV__` build `restart()` does nothing, so tapping Test (Updates log) or another environment (About) writes
 the choice and leaves the button on the running one: it looks dead until the app is closed and reopened (that worked).
