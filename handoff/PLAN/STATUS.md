@@ -13,6 +13,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-06: chat 2 heavy runner — T416 closed
+- **A fresh clone now rebuilds the release exactly** (T416): the fresh copy and this Mac, same code, made the same release
+  (r-0fd5c0e4e8b8), every file the same. Two last gaps were found and fixed: the basemap (a fresh machine shipped none)
+  and the PDF highlight boxes (a fresh machine shipped every rule without its highlight). Both are now downloaded by
+  `scripts/bootstrap.sh`, and a release that lacks either one stops with an error instead of shipping without it.
+- Next in this run: this Mac's own export, the full test suites, the web measurements (T409/T410/T304), the tile id check (T305).
+
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
 - **T429 done:** a missing review input can no longer empty a curated file. The name / slough / tidal lists now stop

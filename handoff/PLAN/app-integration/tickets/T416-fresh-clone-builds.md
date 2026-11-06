@@ -1,6 +1,6 @@
 # T416 — A fresh clone can build: nothing important lives only on this Mac
 
-Status: DONE 2026-11-05 — 758041595, ead5863c6, 1ff647888, c691175, dd4e9240e (follow-ups: basemap gap, synopsis cache key) — was OPEN (owner 2026-11-05: "find out if everything in the repo saved is enough to clone and then be able to run a
+Status: DONE 2026-11-06 — 758041595, ead5863c6, 1ff647888, c691175, dd4e9240e, 4978e58f4, b53af411a. Final proof: the fresh clone and a Mac `--side` build give the SAME release, r-0fd5c0e4e8b8, byte for byte (below) — was OPEN (owner 2026-11-05: "find out if everything in the repo saved is enough to clone and then be able to run a
 build in a short amount of time … all external bigger data is fetchable from r2 assets bucket"). After T324 (the
 renames move the files this inventories).
 
@@ -103,3 +103,25 @@ Fresh clone (pinned libs) vs a Mac `--side` build of the same pipeline code (`~/
 So a fresh machine rebuilds the live release; the only expected difference is DFO's salmon pages of the day.
 Left (small, own follow-ups): the basemap gap above (release refuses a missing basemap); the synopsis cache key should
 include the library versions (or the code digest) so a library change cannot reuse an old copy.
+
+## Final proof 2026-11-06: byte-identical (same release id)
+Both at b53af411a, deliver only (reach reran for code), through heavy.sh. Fresh clone (`~/t416-fresh`, holding the Mac's
+typed DFO feed) vs `pipeline build --side ~/t416-mac-side --force deliver`: **both r-0fd5c0e4e8b8** — 52/52 files, tiles
+822db448a2851809.a4c3f4eb02bd, synopsis 80614b20045f, basemap basemap-6960ed933a82; no manifest key differs
+(`~/t416-final.json`; logs `~/t416-final-{fresh,mac}2.log`).
+How it got there (the first final run, at 0152c48b6, differed in 11 water files + `basemap`):
+- **basemap: null** on the fresh clone (expected gap). Fixed: `basemap_block` REFUSES a missing sidecar / a sidecar with
+  no version (it returned None); the released basemap is pinned (`data/source/basemap.pmtiles`, 225 MB,
+  `source/6960ed933a82f6f6/`) and bootstrap releases it (`basemap --release-only`).
+- **water-***: every `display_rule` decoded equal except `book_box` (the T215 PDF highlight) — missing on all 3,401
+  fresh rules. Cause: `row_boxes.json` is git-ignored, no stage makes it, bootstrap never fetched it, and
+  `decided._row_boxes` turned a missing sidecar into "no boxes" silently. Fixed: it refuses a missing / other-PDF /
+  malformed sidecar (AnswersError naming the fix); `row_boxes.json` and the Mac's `synopsis_raw_data.json` are pinned as
+  `generated/…` keys (`source_pins` now takes data/generated inputs). The old `extraction/synopsis_raw_data.json`
+  backup was STALE (3bbf3b3c vs the 5786254f the release was cut from): `fetch_data --add-parsing-data` restores through
+  the pins now, and bootstrap no longer calls it.
+- **salmon**: identical this time (both read the Mac's typed DFO pages). On a real fresh machine it is today's DFO
+  pages — the one input meant to be of the day.
+Tests: `test_release_basemap.py` (missing / versionless sidecar refused; the release command stops before packaging),
+`test_t215_book_box.py` (missing / other PDF / malformed refused), `test_source_pins.py` (generated keys round-trip; the
+inputs a fresh clone lacked are pinned).
