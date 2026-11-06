@@ -303,10 +303,19 @@ function PullScroll({ open, drag, y, height, scrollRef, maxHeight, children }: {
   return (
     // `bounces={false}`: at the top a downward pull moves the sheet, not an iOS overscroll of the content
     <GestureDetector gesture={bodyPull}>
-      <GHScrollView ref={scrollRef} simultaneousWith={bodyPull} testID="sheet-scroll" style={{ maxHeight }}
-                    keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
-                    onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
-                    contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{children}</Selectable></GHScrollView>
+      {/*
+        (T440) A REAL VIEW BETWEEN THE TWO DETECTORS. RNGH 3's ScrollView is itself a gesture detector (its own native
+        detector view, `display: contents`); drawn as the pan detector's direct child, Android left the whole body out of
+        the accessibility tree — drawn, but no ScrollView, no text, no "I understand" for TalkBack, uiautomator or Maestro
+        (emulator 2026-11-06: detector › GH ScrollView missing; detector › View › GH ScrollView, GH ScrollView alone and
+        detector › RN ScrollView all present). `collapsable={false}`: a style-less View is flattened away otherwise.
+      */}
+      <View testID="sheet-scroll-frame" collapsable={false}>
+        <GHScrollView ref={scrollRef} simultaneousWith={bodyPull} testID="sheet-scroll" style={{ maxHeight }}
+                      keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
+                      onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
+                      contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{children}</Selectable></GHScrollView>
+      </View>
     </GestureDetector>
   );
 }

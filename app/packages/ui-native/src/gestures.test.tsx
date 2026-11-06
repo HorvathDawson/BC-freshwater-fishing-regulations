@@ -278,6 +278,14 @@ describe("the Sheet drag (Layers, and the sheets to come)", () => {
     expect([await run([]), await run([120]), await run([120, 0])]).toEqual([1, 0, 1]);
   });
 
+  it("the scrolling body sits in a View of its own inside the body drag's detector, never as its direct child (T440)", () => {
+    // RNGH 3's ScrollView is a gesture detector itself: drawn straight inside the pan's detector, Android dropped the
+    // whole body (text, "I understand") from the accessibility tree. The unflattened frame between them keeps it there.
+    render(<Sheet open scroll onClose={() => {}} title="Before you fish" palette={LIGHT}><Text>points</Text></Sheet>);
+    expect(screen.getByTestId("sheet-scroll-frame").contains(screen.getByTestId("sheet-scroll"))).toBe(true);
+    expect(screen.getByTestId("sheet-scroll-frame").contains(screen.getByText("points"))).toBe(true);
+  });
+
   it("a sheet without a scrolling body has no body drag (its content is short; the handle is the drag)", () => {
     render(<Sheet open onClose={() => {}} title="Layers" palette={LIGHT}><Text>choices</Text></Sheet>);
     expect(() => getByGestureTestId("sheet-body-drag")).toThrow();
