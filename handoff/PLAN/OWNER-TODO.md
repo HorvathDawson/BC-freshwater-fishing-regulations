@@ -9,6 +9,10 @@ with the default Claude uses until you answer). Newest first inside each section
 - **PSF run-timing files: ANSWERED 11-05** — fine as is; only the parsed `timing.json` stays in git, the PSF pages and their
   fetch record are git-ignored from now on (772fbf4f0).
 
+- **Optional, prod feeds worker placeholder (T404 prep):** `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds-placeholder.sh`
+  creates `bc-fishing-feeds` (answers 503, touches nothing) and asks for its four secrets; for RUN_TOKEN and REPORT_SALT
+  paste new values from `openssl rand -hex 24` / `openssl rand -hex 32`.
+
 - **Optional, GitHub token for the feeds worker (T413):** a fine-grained token on this repo, *Actions: write* only,
   set as the staging worker's secret, so the worker starts the HYDAT workflow itself. Until then, its email tells you to press
   the button. Not blocking. The code is in (T413); it goes live with the next worker deploy. To set it:

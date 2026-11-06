@@ -35,3 +35,9 @@ need a workflow for the transition. we dont need this yet but will need it event
 Links: T86 (production hosting + ship config), T240 (launch checklist), T198 (.com → .ca, Search Console), T371 (Play
 closed testing), T234/T390 (`play.json`).
 Size: M.
+
+## Prep 2026-11-05 (owner): the prod feeds worker exists early, with its secrets
+`deploy/prod/feeds-placeholder.sh` (the OWNER runs it: `CONFIRM_PROD=bc-fishing-feeds`) deploys `bc-fishing-feeds` as a
+503 placeholder (no bindings, no crons) and prompts for GITHUB_DISPATCH_TOKEN, RUN_TOKEN, REPORT_SALT, NOTIFY_EMAIL_TO
+(new values for the two random ones). At the switch: a production wrangler config for app/workers/feeds with
+`name = "bc-fishing-feeds"` (prod bucket, email, crons, FEEDS_ENV=production) deployed over it; the secrets stay.
