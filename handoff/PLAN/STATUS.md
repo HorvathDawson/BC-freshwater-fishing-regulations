@@ -34,7 +34,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Next, before the build:** T423 (dead switch), T428 (one sync control), T424 (attribution), T419 (Salmon River
   detail), T402 (flaky tests), T306 re-check; the "phone" bugs (pan lag T420/T401, crash T242, walkthrough T293)
   reproduced on the emulator, not your phone. Then an APK + staging release (you're the only user).
-- **Waiting on you:** Mamquam Blind Channel — make it one whole tidal water (yes/no)? Then T326 closes.
+- **T326 done:** Mamquam is not tidal (your call); every proposed DFO cut you accepted is applied — 7 cuts (Quatse
+  weir ±100 m, Stamp lagoon inlet/outlet + powerline, Little Qualicum park boundary, Sheldens Spur 19) and the 4 DFO
+  extents waiting on them. Checked first on one side rebuild: rules only GAIN the new pieces, nothing lost. They reach
+  the map with the next atlas build.
+- **T439 done:** golden.json and the tests that only compared against it are gone; the release-backed fixtures stay.
+- **T250 merged (in review):** Expo SDK 58 (React Native 0.88, React 19.3, gesture handler 3); full app check green;
+  the release APK starts and walks on the emulator. Release-build shrinking (R8) stays off as before — SDK 58 turned
+  it on and the app crashed at start.
+- **Running:** T423 / T428 / T424 in one lane; the "phone" bugs (pan lag, crash test bed, walkthrough, T351) being
+  reproduced on the emulator in another.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
