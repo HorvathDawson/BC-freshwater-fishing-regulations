@@ -49,7 +49,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   arrive, repeats carry no ids, no "not held" reports. No changes were needed.
 - **Full check:** 2 failures fixed (a guard on my T445 change; START-HERE now points at after-chat3, the two older restart
   pages deleted). **0.6.6** committed (72142ff).
-- **Running:** staging site rebuild + smoke → 0.6.6 to Play internal (logs `~/site-1106c-*.log`, `~/apk-1106d.log`).
+- **0.6.6 (versionCode 15) on Play internal**; staging site rebuilt with it (19,635 water pages), smoke 18/18.
+- **Running:** the fresh-install emulator walk on 0.6.6 (`app/tools/testbed/out/walk-066/`).
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
   retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
   repro once T448 frees the emulator.
