@@ -36,12 +36,28 @@ from typing import Iterable, Mapping
 FILENAME = "section_handles.txt"
 
 
-def parse_section_id(node_id: str) -> tuple[int, int] | None:
-    """`'380887781:0'` -> `(380887781, 0)`: a stream section's blue line and measure. A namespaced id (`lake:<wbk>`) or
-    a malformed one -> None. (T436) THE one parser of a section id; the bundle's helpers call it."""
+def split_section_id(node_id: str) -> tuple[str, int] | None:
+    """`'380887781:0'` -> `('380887781', 0)`: a stream section's line key and measure, the key AS WRITTEN. A lake
+    (`lake:<wbk>`), an empty key or a measure that is not a number -> None. (T436) THE one splitter of a section id:
+    `parse_section_id` and the bundle's helpers all go through it. The key stays a string because a line is named, not
+    counted, where continuation reads it (its test graphs name lines `W`, `Jr412`, `Sproat`)."""
     head, _, tail = node_id.rpartition(":")
+    if not head or head == "lake":
+        return None
     try:
-        return int(head), int(tail)
+        return head, int(tail)
+    except ValueError:
+        return None
+
+
+def parse_section_id(node_id: str) -> tuple[int, int] | None:
+    """`'380887781:0'` -> `(380887781, 0)`: a stream section's blue line and measure, as numbers (`split_section_id`,
+    then the key as an int). A namespaced id (`lake:<wbk>`), a named key or a malformed id -> None."""
+    p = split_section_id(node_id)
+    if p is None:
+        return None
+    try:
+        return int(p[0]), p[1]
     except ValueError:
         return None
 

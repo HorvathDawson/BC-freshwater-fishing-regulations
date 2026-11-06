@@ -74,7 +74,7 @@ from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.utils import wsc as _wsc
 from pipeline.common import entry_id as EID
 from pipeline.common import tolerances as _tol
-from pipeline.common.section_handles import parse_section_id
+from pipeline.common.section_handles import split_section_id
 from pipeline.deliver.bundle.lines import handle_lengths, line_ends
 
 Line = Tuple[str, int]
@@ -133,9 +133,8 @@ class Flow:
 
 
 def line_of(section_id: str) -> Optional[Line]:
-    """`'380887781:0'` -> `('380887781', 0)`; a section on no blue line (`lake:…`) -> None (`parse_section_id`)."""
-    p = parse_section_id(section_id)
-    return None if p is None else (section_id.rpartition(":")[0], p[1])
+    """`'380887781:0'` -> `('380887781', 0)`; a section on no blue line (`lake:…`) -> None (`split_section_id`)."""
+    return split_section_id(section_id)
 
 
 def drains_into(code: str, into: str) -> bool:
