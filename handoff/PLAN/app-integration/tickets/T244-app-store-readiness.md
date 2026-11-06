@@ -1,6 +1,6 @@
 # T244 — app store readiness
 
-Status: IN PROGRESS 2026-10-29 — splash + listing/privacy-label drafts DONE (Claude); icon art, store accounts, builds, submissions are the owner's / wait on T268, T250.
+Status: IN PROGRESS — 2026-11-05: Claude's part current (see Check 2026-11-05); the rest is owner / T319 / T88 / T404. 2026-10-29: splash + listing/privacy-label drafts DONE (Claude); icon art, store accounts, builds, submissions are the owner's / wait on T268, T250.
 
 Source: owner 2026-10-28 — approved proposal P10 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -51,3 +51,12 @@ are in OWNER-TODO.
 - **Privacy labels:** Location declared collected + shared with Open-Meteo (weather stays on Open-Meteo), Esri for imagery tiles (owner).
 - **Contact:** support@canifishthis.ca (listing; `EXPO_PUBLIC_CONTACT` in eas.json x3, build-apk.sh, export:web scripts; the app's Contact page reads it). Privacy page
   keeps privacy@canifishthis.ca. OWNER-TODO: set up the mailbox.
+
+## Check 2026-11-05 (0.6.2)
+- Done since: icons (favicon art), splash, listing + privacy drafts, contact `support@canifishthis.ca` in every build
+  profile (and a production build without it is now refused: T86, e45841b85), Play internal track live (0.6.2, build 11),
+  privacy page on staging, Play data safety redrafted with evidence (`play/data-safety.md`, T371).
+- `store/privacy-labels-draft.md` brought up to the code: the install id (T352) and the report's map centre (T384) were
+  missing from its table and Apple section; Apple → Identifiers → Device ID is a proposal (**OWNER**).
+- Left, all owner or later: listing + labels sign-off, the support mailbox, store screenshots (T319), TestFlight (T88,
+  needs the Apple account), the production build (T404), Closed testing (T371).
