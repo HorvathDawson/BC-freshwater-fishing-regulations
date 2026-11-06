@@ -83,7 +83,19 @@ Two costs, one pipe:
    moves the tile to the end, so both LRUs see the same order and a repeat always finds its tile
    (`tile-hold.test.ts` drives 50,000 random requests through both). A repeat JS does not hold is REPORTED and answered
    by a re-watch (never silent); right after a hold clear (new archive, re-watch) a miss is expected and not reported.
-   iOS half edited, NOT compiled or run (no iOS build in this pass).
+   iOS half: compiled and run on the simulator 2026-11-06 (below).
+
+**iOS half (2026-11-06, HEAD b99268518): compiled and ran.** `deploy/staging/build-ios-sim.sh --testbed` (Release, iOS
+Simulator, Xcode 27.2, SDK 58 / RN 0.88, under heavy.sh): BUILD SUCCEEDED; the five patched iOS files (`MLRNVectorSource.m`,
+`MLRNPmTilesIds.m`, `MLRNMapView.m`, `MLRNImageLoader.m`, `MLRNVectorSourceModule.mm`) compiled with no error or warning,
+so the patch was NOT changed (same hash). iPhone 17 simulator, iOS 26.5, fresh install from staging
+(`session-ios.sh --fresh … run-ios.mjs first-open perf`, PERF_SWIPES=16; run `app/tools/testbed/out/t420-ios/run1/`): 2/2
+scenarios pass; over the run the pan probe counted 27 tile events (2,750 labels) and **10 repeat events with no ids**
+(`{tag,z,x,y}` only), **0 "repeat of tile … not held" reports**; 16 travelling swipes: JS lag max 17 ms, no stall > 50 ms.
+Streams coloured (closed / own / base) at the start view, after the round trip, and on new ground after one-way pans
+east (Skagit/Manning), north (Coquihalla) and west (Pitt): `out/t420-ios/0{1..4}-*.png`. (Panning south leaves BC: the
+outside mask fills the screen, `out/t420-ios/outside-bc/`; not a colouring fault.) Frame times were not measured on iOS
+(the simulator draws on the Mac's GPU).
 
 Same scripts, same stressed emulator (`TESTBED_EMU_ECORES=1 TESTBED_EMU_ARGS="-cores 2"`, `PAN_MS=120`, 16 swipes/round;
 runs `app/tools/testbed/out/runs/t420-{before,after2}-{coq13,fv11}`; before = the 09:00 test-bed APK, HEAD 48efaa5fb):
