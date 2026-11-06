@@ -1,6 +1,6 @@
 # T242 — crash and error reporting (privacy-light)
 
-Status: PARTIAL — built and tested (960d2d8, 31c8d04); 2026-11-06 the crash TEST BED proves all three kinds on the emulator (eca309749, run.mjs crash-bed: a JS error, an unhandled promise, a native SIGSEGV each reach the worker's own POST /crash handler on a local stub, no staging write) and fixed a double report of a JS fatal; left (owner): read GET /crashes once, approve the privacy wording, T407's phone check after the 0.6.0 worker deploy; iOS is T362.
+Status: PARTIAL — built and tested (960d2d8, 31c8d04); 2026-11-06 the crash TEST BED proves all three kinds on the emulator (c1c838f58, run.mjs crash-bed: a JS error, an unhandled promise, a native SIGSEGV each reach the worker's own POST /crash handler on a local stub, no staging write) and fixed a double report of a JS fatal; left (owner): read GET /crashes once, approve the privacy wording, T407's phone check after the 0.6.0 worker deploy; iOS is T362.
 
 Source: owner 2026-10-28 — approved proposal P8 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -70,7 +70,7 @@ Owner rule 2026-10-29: NO third-party crash service; everything from our own ser
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T291, T407 — read each file's open items and finish them here; each closes pointing here.
 
-## Crash test bed (2026-11-06, eca309749): every kind reaches the report path, nothing written to staging
+## Crash test bed (2026-11-06, c1c838f58): every kind reaches the report path, nothing written to staging
 - **How:** `session.sh --crash-stub` builds the test-bed APK with `EXPO_PUBLIC_CRASH_URL=http://localhost:39256/crash` (cleartext
   patched after prebuild, never a store build) and `adb reverse`s it to this machine, where `app/tools/testbed/crash-stub/server.mjs`
   runs the feeds worker's OWN `handleCrash` (workers/feeds/src/crashes.ts via Node's type stripping) over an in-memory bucket.

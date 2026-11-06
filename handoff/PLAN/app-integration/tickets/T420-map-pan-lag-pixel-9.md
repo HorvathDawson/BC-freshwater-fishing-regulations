@@ -1,6 +1,6 @@
 # T420 — Panning the map feels laggy on web AND app (even a Pixel 9): streams load in slowly, then the pan stutters
 
-Status: PARTIAL — measured in simulation 2026-11-06 (eca309749): reproduced only on a CPU-starved emulator (10–18 fps, 20–36 % of moving frames missing tiles); the colouring's per-tile events cost up to ~40 % of frames there; fix proposed, not built (see "Measured in simulation"). Was: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
+Status: PARTIAL — measured in simulation 2026-11-06 (c1c838f58): reproduced only on a CPU-starved emulator (10–18 fps, 20–36 % of moving frames missing tiles); the colouring's per-tile events cost up to ~40 % of frames there; fix proposed, not built (see "Measured in simulation"). Was: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
 like the streams load in slow then lag").
 
 Two symptoms, maybe one cause: (1) the stream lines arrive late after a pan (tiles or their layers decoding/painting
@@ -31,7 +31,7 @@ hardware acceleration (chrome://gpu) — a software fallback would explain web l
 Related: T401 (streams pop in at the edges — the pan buffer), T360 (performance pass), T245 (no lighter z8: decided).
 Size: M. Owner: a phone check after (and a screen recording of the lag would help).
 
-## Measured in simulation (2026-11-06, eca309749 tooling; owner rule: emulator, not the phone)
+## Measured in simulation (2026-11-06, c1c838f58 tooling; owner rule: emulator, not the phone)
 Tools: `run.mjs pan` now takes `PAN_AT` (camera link), `PAN_MS` (120 = fling), `PAN_COLD` (page cache dropped, root) and
 prints the pan probe's new `[drawn]` lines (MapLibre's own fully/partially rendered frame: frames MISSING TILES while the
 camera moves, and camera-at-rest → first full frame). Stress = `TESTBED_EMU_ECORES=1 TESTBED_EMU_ARGS="-cores 2"` (the
