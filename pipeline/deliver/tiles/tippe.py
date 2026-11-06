@@ -115,7 +115,11 @@ LOW_BAND_MAX = 8
 #:     -S(max) 14        z14  1.944 MiB   -32.1%
 #: z14 is 68% of the province archive, so -28.7% there is about 139 MiB off the download
 #: -- for a tolerance nobody can see at the only scale it is ever drawn at.
-SIMPLIFICATION = 5
+#: (T419, 2026-11-06) 5 -> 10 below the top zoom: at 5 units of the 2,048 low grid the tolerance was ~0.6 px, so every
+#: meander bend bigger than a pixel survived and a tightly meandering lowland river (the Langley Salmon River: 108
+#: points at z10, one every ~230 m) drew as a sawtooth at z9-z11; 10 units is ~1.2 px. z13 keeps its own
+#: `SIMPLIFICATION_AT_MAX` (the overzoomed top, unchanged). Shared nodes stay pinned, so sections still meet.
+SIMPLIFICATION = 10
 
 #: THE GRID BELOW THE TOP ZOOM (T202, owner 2026-10-27): 2^11 = 2,048 units across a tile, not tippecanoe's 4,096.
 #: A z<=12 tile is drawn at most 2x (from z.0 to z.99), so a 2,048 grid snaps by at most half a pixel there, and
