@@ -16,6 +16,7 @@ import { followSize } from "../size";
 import { sourceTiles, tileIds } from "./tileIds";
 import { atlasTarget, copyTarget, publicSections } from "./handles";
 import { addImages, isGeneratedImage } from "./images";
+import { followPixelRatio, webPixelRatio } from "./pixelRatio";
 import { devCost, EMPTY_FC, forcePublic, registerPMTiles, styledOnce } from "./ready";
 import type { WebMapRefs } from "./refs";
 
@@ -54,6 +55,8 @@ export function useMapInstance(refs: WebMapRefs,
       // (T424) the credits are OURS (`MapCredits`, credits.ts): one chip and card, the phone's component — the renderer's
       // own control is off, so the web and the phone cannot list or look different
       attributionControl: false,
+      // (T420) at most 2 device pixels per CSS pixel (`pixelRatio.ts`): a phone's 2.6× canvas was the web pan lag
+      pixelRatio: webPixelRatio(window.devicePixelRatio),
       // G1: one gesture policy for both maps — pan, pinch, double-tap and wheel zoom; no rotate, no tilt; a press
       // that moves 8 px or more is a pan, never a tap (`@app/core` MAP_GESTURES)
       ...maplibreGestures(),
@@ -176,6 +179,7 @@ export function useMapInstance(refs: WebMapRefs,
     // The canvas follows its container, not the window (see size.ts): a box that settles after mount — search's
     // preview map on the way back from the eye — would otherwise keep the first size and every fit would frame it.
     const unfollow = followSize(m, () => refit.current?.());
+    const unfollowRatio = followPixelRatio(m);
     // Development only: a map is the one component you cannot inspect from the React tree,
     // and every question about it ("where is the camera", "did that source load") needs the
     // instance. Never present in a production bundle.
@@ -183,7 +187,7 @@ export function useMapInstance(refs: WebMapRefs,
       (globalThis as { __map?: unknown }).__map = m;
     return () => {
       m.off("sourcedata", onTile); m.off("moveend", onMoveEnd);
-      unfollow(); map.current = null; colouring.current = null; renderer.current = null;
+      unfollow(); unfollowRatio(); map.current = null; colouring.current = null; renderer.current = null;
       // REMOVED LAST: this hook is declared first, so its cleanup runs before the other hooks' (markers, spots) clear
       // their sources on the same map; removed now, their `getSource` found a map with no style and threw while a
       // water's page opened (owner 2026-11-03, web). The commit's cleanups all run in one pass, then this.
