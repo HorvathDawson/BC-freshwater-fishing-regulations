@@ -40,6 +40,11 @@ export interface Camera {
   lon: number;
   lat: number;
   zoom: number;
+  /**
+   * (T417) What the map shows, west, south, east, north — reported by `onMoved` with the rest of the camera (both maps
+   * read it off the same settle). Absent on a camera handed IN (`initial`): the map has not drawn it yet.
+   */
+  bounds?: readonly [number, number, number, number];
 }
 
 /**

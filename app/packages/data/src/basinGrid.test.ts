@@ -43,6 +43,31 @@ describe("decodeBasinGrid: the group a point is in", () => {
   it("throws on a point that is not one, rather than answering no group", () => {
     expect(() => g.at(Number.NaN, 0.2)).toThrow("is not a point");
   });
+  it("(T417) mostIn: the group with the largest share of the box, not the one under its centre", () => {
+    // centre on the sea (lon 2.25), Lower Fraser covers part of the box: Lower Fraser, never none
+    expect(g.mostIn([1.6, 0, 2.9, 0.9])).toEqual({ id: "LFRA", name: "Lower Fraser" });
+    // centre in Chilliwack (lon 0.9) but Lower Fraser holds more of the box: Lower Fraser
+    expect(g.at(0.9, 0.5)).toEqual({ id: "CHWK", name: "Chilliwack River" });
+    expect(g.mostIn([0.6, 0, 1.2, 1])?.id).toBe("CHWK");   // CHWK cell 1, LFRA cell 2: equal, centre (0.9) wins
+    expect(g.mostIn([0.7, 0, 1.9, 1])).toEqual({ id: "LFRA", name: "Lower Fraser" });
+    // only the sea, or outside the grid: none
+    expect(g.mostIn([2.1, 0, 2.9, 0.9])).toBeNull();
+    expect(g.mostIn([10, 10, 11, 11])).toBeNull();
+    // a box that is one point is that point's cell
+    expect(g.mostIn([0.2, 0.2, 0.2, 0.2])).toEqual(g.at(0.2, 0.2));
+  });
+  it("(T417) mostIn weighs a cell by its ground area: a row nearer the pole counts for less", () => {
+    // row 0 (lat 0–30): one A cell; row 2 (lat 60–90): two B cells — more cells, less ground (cos 75° ≈ 0.26)
+    const f: BasinFrame = { w: 0, s: 0, dlon: 30, dlat: 30, cols: 2, rows: 3 };
+    const names = [{ ix: 1, id: "A", name: "A" }, { ix: 2, id: "B", name: "B" }];
+    const g2 = decodeBasinGrid(f, [{ row: 0, b: Uint8Array.from([1, 1, 1, 0]) }, { row: 1, b: Uint8Array.from([2, 0]) },
+                                  { row: 2, b: Uint8Array.from([2, 2]) }], names);
+    expect(g2.mostIn([0, 0, 59, 89])!.id).toBe("A");
+  });
+  it("(T417) mostIn throws on a box that is not one", () => {
+    expect(() => g.mostIn([Number.NaN, 0, 1, 1])).toThrow("is not a box");
+    expect(() => g.mostIn([2, 0, 1, 1])).toThrow("is not a box");
+  });
   it("names every group by id", () => {
     expect([...g.basins.keys()]).toEqual(["CHWK", "LFRA"]);
   });

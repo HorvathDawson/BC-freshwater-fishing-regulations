@@ -846,7 +846,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     render(<NativeMap {...base({ data: undefined, highlight: undefined, onMoved: moved })} />);
     await waitFor(() => expect(native.props).toBeTruthy());
     PLATFORMS.native.settle();
-    expect(moved.mock.calls).toEqual([[{ lon: -122, lat: 49, zoom: 9 }]]);
+    expect(moved.mock.calls).toEqual([[{ lon: -122, lat: 49, zoom: 9, bounds: [-123, 48, -121, 50] }]]);
   });
   it("frames a subject: a fit moves the camera to the box, once per key", async () => {
     const fit = { key: "a", bbox: [-123, 49, -122, 50] as const };

@@ -7,7 +7,7 @@ import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, typ
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
 import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
-import { centreBasinAsk, useBasinDays, useCentreBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
+import { viewBasinAsk, useBasinDays, useViewBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
          useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
          type StatusSource } from "@app/ui";
@@ -200,20 +200,21 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const gauges = useGaugeGeoJSON(source, feed, mm.onConditions && layers.effective.layers.gauges === true, mm.quantity,
                                  mm.standingHorizon);
   /*
-   * (T376) THE WATERSHED GROUP UNDER THE CONDITIONS MAP'S CENTRE (`centreBasin`: `{ id, name }`, null in none; the id is
-   * `basinStandings`' key), asked when the map comes to rest (`noteCentre`, from `onMoved`) and only on Conditions. A
+   * (T376, T417) THE WATERSHED GROUP MOST ON THE CONDITIONS MAP (`viewBasin`: `{ id, name }`, null when none is on
+   * screen; the id is `basinStandings`' key), asked when the map comes to rest (`noteView`, from `onMoved`: its visible
+   * bounds, so a pan, a search and a tap all ask the same way) and only on Conditions. A
    * water's Conditions view asks its OWN group (`useWaterBasin`), never this one. Asked on a proven pair only, as the
    * standings are: the conditions file it reads is then already being opened for them, so it adds no fetch of its own.
    */
-  const centre = useCentreBasin(source, mm.onConditions && paired, HOME);
+  const view = useViewBasin(source, mm.onConditions && paired, HOME);
   /*
-   * (T377) THE CENTRE GROUP'S DAYS: its standing on each day the horizon chips offer, for the legend's day list (a tap is
-   * `pickDay`, the chips' own pick). The CENTRE's group only — a water's view asks its own (`WaterConditions`). Asked
+   * (T377) THE MAP GROUP'S DAYS: its standing on each day the horizon chips offer, for the legend's day list (a tap is
+   * `pickDay`, the chips' own pick). The MAP's group only — a water's view asks its own (`WaterConditions`). Asked
    * where the horizon chips are offered (Conditions, Flow or Level) on a proven pair.
    */
-  const centreAsk = useMemo(() => centreBasinAsk(centre.centreBasin, centre.centreBasinError),
-                            [centre.centreBasin, centre.centreBasinError]);
-  const basinDays = useBasinDays({ source, feed, basin: centreAsk, for: "browse", quantity: mm.standingParam, horizon,
+  const viewAsk = useMemo(() => viewBasinAsk(view.viewBasin, view.viewBasinError),
+                          [view.viewBasin, view.viewBasinError]);
+  const basinDays = useBasinDays({ source, feed, basin: viewAsk, for: "browse", quantity: mm.standingParam, horizon,
                                    enabled: mm.horizonsShown && paired, epoch });
   /*
    * THE DAY'S STATUS, ONLY on a proven pair with an index that matched (`statusOk`) (`statusFeed`): the map is handed
@@ -251,8 +252,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
            runsOffered, runs, runsFeed: runsShown ? runs.feed : null,
            // (T367) on the Runs tab, why nothing is painted: the bar over the map (`PairBanner`)
            runsProblem: mapTab === "runs" ? runs.problem : null,
-           centreBasin: centre.centreBasin, centreBasinError: centre.centreBasinError, noteCentre: centre.noteCentre,
-           // (T377) the centre group's days, while the horizon chips are offered (else null: nothing drawn)
+           viewBasin: view.viewBasin, viewBasinError: view.viewBasinError, noteView: view.noteView,
+           // (T377) the map group's days, while the horizon chips are offered (else null: nothing drawn)
            basinDays: mm.horizonsShown && paired ? basinDays : null };
 }
 

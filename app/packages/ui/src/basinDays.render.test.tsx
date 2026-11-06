@@ -1,12 +1,13 @@
 /**
- * (T377 item 1) The forecast-day list of one watershed group: browse asks the map centre's group, a water its own — never
+ * (T377 item 1) The forecast-day list of one watershed group: browse asks the map's group (T417: the one most on
+ * screen), a water its own — never
  * one for the other; a failure is a failed state (shown), a place in no group is said, a day no gauge reads is said.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { buildStandingClasses, type Basin, type BasinMember, type ItemId, type StationId,
          type WaterSource } from "@app/data";
-import { centreBasinAsk, useBasinDays, type BasinDaysState } from "./basinDays";
+import { viewBasinAsk, useBasinDays, type BasinDaysState } from "./basinDays";
 import { useWaterBasin } from "./basin";
 import type { PanelFeed } from "./panel";
 
@@ -35,8 +36,8 @@ const feed = (index: () => Promise<unknown> = async () => IDX) => ({ index } as 
 const words = (s: BasinDaysState) => (s.state === "ready" ? s.vm.days.slice(0, 3).map((d) => d.word) : s.state);
 
 describe("useBasinDays", () => {
-  it("browse: the centre's group, each day in the standing words, a day no gauge reads said", async () => {
-    const h = renderHook(() => useBasinDays({ source, feed: feed(), basin: centreBasinAsk(CHWK, null), for: "browse",
+  it("browse: the map's group, each day in the standing words, a day no gauge reads said", async () => {
+    const h = renderHook(() => useBasinDays({ source, feed: feed(), basin: viewBasinAsk(CHWK, null), for: "browse",
                                               quantity: "discharge", horizon: 1, enabled: true, now: TUE }));
     await waitFor(() => expect(h.result.current.state).toBe("ready"));
     const s = h.result.current as Extract<BasinDaysState, { state: "ready" }>;
@@ -59,7 +60,7 @@ describe("useBasinDays", () => {
   });
 
   it("failures are a failed state: the centre's group, the water's group, the feed", async () => {
-    const centre = renderHook(() => useBasinDays({ source, feed: feed(), basin: centreBasinAsk(undefined, new Error("no groups")),
+    const centre = renderHook(() => useBasinDays({ source, feed: feed(), basin: viewBasinAsk(undefined, new Error("no groups")),
                                                    for: "browse", quantity: "discharge", horizon: 0, enabled: true }));
     expect(centre.result.current).toMatchObject({ state: "failed", error: { message: "no groups" } });
     const water = renderHook(() => {
@@ -68,46 +69,69 @@ describe("useBasinDays", () => {
     });
     await waitFor(() => expect(water.result.current.state).toBe("failed"));
     const bad = renderHook(() => useBasinDays({ source, feed: feed(async () => { throw new Error("feed 500"); }),
-                                                basin: centreBasinAsk(CHWK, null), for: "browse", quantity: "discharge",
+                                                basin: viewBasinAsk(CHWK, null), for: "browse", quantity: "discharge",
                                                 horizon: 0, enabled: true }));
     await waitFor(() => expect(bad.result.current).toMatchObject({ state: "failed", error: { message: "feed 500" } }));
   });
 
   it("a place in no group is said (browse and water words), not loading and not blank", () => {
-    const h = renderHook(() => useBasinDays({ source, feed: feed(), basin: centreBasinAsk(null, null), for: "browse",
+    const h = renderHook(() => useBasinDays({ source, feed: feed(), basin: viewBasinAsk(null, null), for: "browse",
                                               quantity: "discharge", horizon: 0, enabled: true }));
-    expect(h.result.current).toEqual({ state: "none", line: "The map's centre is in no watershed group" });
-    expect(centreBasinAsk(undefined, null).state).toBe("loading");
+    expect(h.result.current).toEqual({ state: "none", line: "No watershed group is on the map" });
+    expect(viewBasinAsk(undefined, null).state).toBe("loading");
   });
 
-  it("MUTATION PIN: the list follows the group asked — a new group never shows the last group's days", async () => {
+  it("(T417) NO FLICKER: moving to another group keeps the last group's days up, under ITS name, then swaps in one render",
+     async () => {
     let release: (() => void) | null = null;
     let slow = false;
     const f = feed(() => (slow ? new Promise((r) => { release = () => r(IDX); }) : Promise.resolve(IDX)));
-    // EVERY RENDER is checked, not just the settled one: the render before the new question's effect runs is the one
-    // that could show the last group's days
+    // EVERY RENDER is checked, not just the settled one: no render between the two groups may be empty or loading, and
+    // none may show one group's days under the other's name
     const seen: { asked: Basin; got: BasinDaysState }[] = [];
     const h = renderHook(({ b }) => {
-      const got = useBasinDays({ source, feed: f, basin: centreBasinAsk(b, null), for: "browse",
+      const got = useBasinDays({ source, feed: f, basin: viewBasinAsk(b, null), for: "browse",
                                  quantity: "discharge", horizon: 0, enabled: true, now: TUE });
       seen.push({ asked: b, got });
       return got;
     }, { initialProps: { b: CHWK } });
     await waitFor(() => expect(h.result.current.state).toBe("ready"));
     expect((h.result.current as { basin: Basin }).basin).toEqual(CHWK);
+    const firstReady = seen.findIndex((x) => x.got.state === "ready");
     slow = true;
     h.rerender({ b: LFRA });
-    // the Lower Fraser's days are not in yet: loading — never the Chilliwack's days under the Lower Fraser's name
-    expect(h.result.current.state).toBe("loading");
+    // the Lower Fraser's days are not in yet: the Chilliwack's stay up, as the Chilliwack's
+    expect(h.result.current).toMatchObject({ state: "ready", basin: CHWK, vm: { title: "Chilliwack River watershed" } });
+    expect(words(h.result.current)).toEqual(["Much below normal", "Much above normal", "No gauge reading"]);
     release!();
-    await waitFor(() => expect(h.result.current.state).toBe("ready"));
+    await waitFor(() => expect((h.result.current as { basin?: Basin }).basin).toEqual(LFRA));
     const s = h.result.current as Extract<BasinDaysState, { state: "ready" }>;
-    expect(s.basin).toEqual(LFRA);
     expect(s.vm.title).toBe("Lower Fraser watershed");
     expect(words(s)).toEqual(["Normal", "No gauge reading", "Normal"]);
-    const lfra = seen.filter((x) => x.asked === LFRA && x.got.state === "ready");
-    expect(lfra.length).toBeGreaterThan(0);
-    for (const x of lfra) expect(words(x.got)).toEqual(["Normal", "No gauge reading", "Normal"]);
-    for (const x of seen) if (x.got.state === "ready") expect(x.got.basin).toBe(x.asked);
+    // from the first ready render on: never a loading/empty frame, and each render's days are its OWN group's
+    for (const x of seen.slice(firstReady)) {
+      expect(x.got.state).toBe("ready");
+      const r = x.got as Extract<BasinDaysState, { state: "ready" }>;
+      expect(r.vm.title).toBe(`${r.basin.name} watershed`);
+      expect(words(r)).toEqual(r.basin.id === "CHWK" ? ["Much below normal", "Much above normal", "No gauge reading"]
+                                                     : ["Normal", "No gauge reading", "Normal"]);
+    }
+  });
+
+  it("(T417) no group on the map is said at once (nothing held over it); another quantity is a new question", async () => {
+    let slow = false;
+    const f = feed(() => (slow ? new Promise(() => {}) : Promise.resolve(IDX)));
+    const h = renderHook(({ b, q }) => useBasinDays({ source, feed: f, basin: viewBasinAsk(b, null), for: "browse",
+                                                       quantity: q, horizon: 0, enabled: true, now: TUE }),
+                         { initialProps: { b: CHWK as Basin | null, q: "discharge" as "discharge" | "level" } });
+    await waitFor(() => expect(h.result.current.state).toBe("ready"));
+    h.rerender({ b: null, q: "discharge" });
+    expect(h.result.current).toEqual({ state: "none", line: "No watershed group is on the map" });
+    h.rerender({ b: CHWK, q: "discharge" });
+    await waitFor(() => expect(h.result.current.state).toBe("ready"));
+    // the discharge days never stand in for the level days
+    slow = true;
+    h.rerender({ b: CHWK, q: "level" });
+    expect(h.result.current.state).toBe("loading");
   });
 });
