@@ -1,6 +1,6 @@
 # T250 — Expo SDK / dependency upgrade window
 
-Status: IN REVIEW — SDK 58 done on the dev branch (320785434, 8b4491d6b, 1c47932e9); check green (8376 passed, 977 skipped); Android emulator walk 6/6; iOS, web and phone walks left.
+Status: IN REVIEW — SDK 58 done on the dev branch (320785434, 8b4491d6b, 1c47932e9); check green; Android, iOS simulator and web walks pass (2026-11-06); the owner's phone walk left.
 
 Source: owner 2026-10-28 — approved proposal P16 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -47,3 +47,12 @@ on `n1_pixel` — walk 6/6 (`T250-shots/android/walk.json`): 01 app starts + map
 (Vedder → Chilliwack River, Map view), 03 Regulations body swipe → Conditions, 04 Map-view header swipe → Conditions,
 05 Layers sheet opens, 06 sheet dragged down by its handle closes. Not done: iOS simulator build/walk, the web walk, the
 owner's phone walk.
+
+## iOS + web walks (2026-11-06, chat 4)
+- **iOS:** Release simulator build of SDK 58 (Xcode 27.2, iPhone 17 / iOS 26.5, b99268518) via
+  `deploy/staging/build-ios-sim.sh --testbed`: BUILD SUCCEEDED, the patched binding's iOS files compile clean;
+  `session-ios.sh --fresh … run-ios.mjs first-open perf` both PASS, map coloured after pans
+  (`app/tools/testbed/out/t420-ios/`). Details in T420 "iOS half".
+- **Web:** staging site on 0.6.6 / r-67b456b5e64b, smoke 18/18 phone + desktop (`app/dist/smoke-staging`).
+- **Android:** 0.6.6 fresh-install walk 5/5 (`app/tools/testbed/out/walk-066/`).
+Left: the owner's phone walk.

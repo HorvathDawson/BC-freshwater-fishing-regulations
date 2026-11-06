@@ -50,7 +50,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Full check:** 2 failures fixed (a guard on my T445 change; START-HERE now points at after-chat3, the two older restart
   pages deleted). **0.6.6** committed (72142ff).
 - **0.6.6 (versionCode 15) on Play internal**; staging site rebuilt with it (19,635 water pages), smoke 18/18.
-- **Running:** the fresh-install emulator walk on 0.6.6 (`app/tools/testbed/out/walk-066/`).
+- **0.6.6 emulator walk 5/5** (fresh install, pan, regs-open, walkthrough, water-nav; `app/tools/testbed/out/walk-066/`).
+  T250: Android, iOS simulator and web walks all pass on SDK 58; your phone walk is what is left.
+- **Chat 4 closed.** Next chat: `handoff/PLAN/START-HERE.md` → `NEXT-SESSION-after-chat4.md`. New T450 (two old
+  pipeline tests still read golden.json).
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
   retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
   repro once T448 frees the emulator.
