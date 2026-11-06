@@ -1,6 +1,6 @@
 # T333 — Big Fable audit: duplicate data types, duplicate pathways, bad practices (NEXT credit cycle)
 
-Status: POSTPONED — for the next credit cycle (owner 2026-10-30: "a ticket for next credit cycle on doing a big Fable audit
+Status: IN PROGRESS 2026-11-05 — scope approved by the owner (below); POSTPONED — for the next credit cycle (owner 2026-10-30: "a ticket for next credit cycle on doing a big Fable audit
 to find duplicate datatypes/pathways/bad practices etc… thoroughly").
 
 ## Scope
@@ -39,3 +39,14 @@ is consistent across the app. It should be part of the audit phase later." So th
   one way a failure is shown (a card/face with what went wrong, Retry where it makes sense);
 - callbacks that hide outcomes (stored closures, fire-and-forget) → data + named functions.
 T354's rule-book open is the first done this way (no pdf-lib or outside-app fallback; viewer failure said + reported).
+
+## Scope APPROVED (owner 2026-11-05, batched question round)
+- **Areas:** everything — pipeline (Python), app + workers (packages, apps/mobile, feeds/data workers, app/tools),
+  review app + deploy (curation-review, deploy, scripts, CI), tests + docs (T334).
+- **Finding** = a duplicate data type or pathway, a silent fallback, a check seeded from its own input, a test that
+  cannot fail, non-determinism, dead code/files, a missing write-time guard, a doc/AGENTS rule the code no longer follows.
+- **Output:** a ranked report (file:line, why it matters, proposed fix) → one fix ticket per finding (or per cluster).
+  No code changed in the audit run; the owner picks what gets fixed.
+- **Depth:** medium — one finder per area × lens, one verifier per finding (~8–10 agents).
+- **T335:** delete `archive/` (and `pipeline/docs/archive/`) after moving whatever live code still reads; proof =
+  targeted suites + app typecheck + `pipeline build --graph --dry-run`.

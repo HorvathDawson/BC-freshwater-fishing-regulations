@@ -9,16 +9,9 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Not blocking (11-05, T239/T415):** Heber River's curated text reads "…when open"; the fixed extraction reads
   "…when⏎open" (a line break). `synopsis_book carry` compares exactly, so next book Heber goes to the parse once
   (1 row of credits). Default: leave it. Or: Claude makes carry ignore whitespace-only differences.
-- **Looks, not blocking (11-05, T410 → T260 leftovers):** each changes how something looks, so nothing was typed: one
-  Badge style; the SegmentedControl's selected look (accent frame, ink fill, or tint?); one Banner/Notice and
-  SectionHeader; the font-weight and icon-size ladders. Default: as they are. Also T258: the TalkBack/VoiceOver walk.
-- **Store screenshot titles (T319):** `app/tools/store-shots.json` — pick, reorder or reword; images in
-  `handoff/PLAN/app-integration/store/graphics/store/`.
-
-- **Small, not blocking (11-05, T240/T244):** (1) GitHub secret `CLOUDFLARE_API_TOKEN` is read by no workflow (set in
-  March, v1 era): delete it, or keep it for T404's deploys. Default: keep until T404. (2) Apple App Privacy → declare
-  Identifiers → Device ID for the random install id? Default: yes (`store/privacy-labels-draft.md`; settles at T365).
-
+- **ANSWERED 11-05:** T260 switches = ink fill; CF token kept until prod (T404); Apple install id declared as Device ID
+  (not linked); Heber: carry ignores whitespace-only changes; audits T333–T335 scoped (all areas, report + fix tickets,
+  medium, delete archive/). Still yours: the T425/T427 shots and the T319 titles (`app/tools/store-shots.json`).
 - **PSF run-timing files: ANSWERED 11-05** — fine as is; only the parsed `timing.json` stays in git, the PSF pages and their
   fetch record are git-ignored from now on (772fbf4f0).
 

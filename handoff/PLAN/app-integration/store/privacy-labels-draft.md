@@ -26,7 +26,7 @@ centre (T352 + T384); the table above now carries both.
 - Data used to track you: **None** (no tracking, no ATT prompt).
 - Data linked to you: **None** (no account; the install id is random and tied to no person).
 - Data not linked to you:
-  - Identifiers: Device ID — the random install id (crash + problem reports) — App Functionality. **OWNER** (proposal: declare it; Apple counts any per-install id).
+  - Identifiers: Device ID — the random install id (crash + problem reports) — App Functionality. declared (owner 2026-11-05).
   - Location: Coarse Location — a problem report's map centre (~100 m), only when sent with its row on — App Functionality.
   - Diagnostics: Crash Data, Performance Data/Other Diagnostic Data — App Functionality (switchable off).
   - Contact Info: Email Address — App Functionality — only when typed into a report. (Report text: Other User Content.)

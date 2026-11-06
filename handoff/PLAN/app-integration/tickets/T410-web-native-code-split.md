@@ -79,3 +79,7 @@ a memory trim is the owner's next APK.
     App.tsx boot lines and MapLegend's raw sizes with it
   - the icon ladder (close icons 20 vs 22, chevrons 14/16/18) and IconButton (Hydrograph ±, DayCalendar Btn,
     SpotCapture Step)
+
+## Owner 2026-11-05 (T260 look)
+The SegmentedControl's selected look everywhere = **ink fill** (white text), as Now | Forecast | Change today. The other T260
+look items (Badge, Banner/Notice, SectionHeader, weight/icon ladders) stay as they are until asked.

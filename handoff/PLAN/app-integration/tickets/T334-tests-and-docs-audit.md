@@ -1,6 +1,6 @@
 # T334 — Audit all tests and documentation
 
-Status: POSTPONED — (next credit cycle, with T333) (owner 2026-10-30: "add another ticket to audit all tests and
+Status: IN PROGRESS 2026-11-05 — scope approved by the owner (below); POSTPONED — (next credit cycle, with T333) (owner 2026-10-30: "add another ticket to audit all tests and
 documentation").
 
 ## Tests (pipeline/tests, app packages, workers, testbed)
@@ -31,3 +31,14 @@ Include what that chat changed, so no doc points at the old shape:
 - one place a newcomer starts (root README → AGENTS.md → data-flow.md → runbooks), and which handoff/PLAN files are
   history vs current (NEXT-SESSION-*, IMPLEMENT-HANDOFF, implement_progress, proposed-tickets-*);
 - docstrings that describe removed steps (`review.export` files, `match apply` after a rebuild, the lock tool).
+
+## Scope APPROVED (owner 2026-11-05, batched question round)
+- **Areas:** everything — pipeline (Python), app + workers (packages, apps/mobile, feeds/data workers, app/tools),
+  review app + deploy (curation-review, deploy, scripts, CI), tests + docs (T334).
+- **Finding** = a duplicate data type or pathway, a silent fallback, a check seeded from its own input, a test that
+  cannot fail, non-determinism, dead code/files, a missing write-time guard, a doc/AGENTS rule the code no longer follows.
+- **Output:** a ranked report (file:line, why it matters, proposed fix) → one fix ticket per finding (or per cluster).
+  No code changed in the audit run; the owner picks what gets fixed.
+- **Depth:** medium — one finder per area × lens, one verifier per finding (~8–10 agents).
+- **T335:** delete `archive/` (and `pipeline/docs/archive/`) after moving whatever live code still reads; proof =
+  targeted suites + app typecheck + `pipeline build --graph --dry-run`.
