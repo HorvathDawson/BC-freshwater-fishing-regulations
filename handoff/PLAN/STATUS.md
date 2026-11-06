@@ -67,7 +67,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   is being rebuilt now (new web app + every water page, T304), which reruns the smoke test.
 - **T306 done:** all 6 slow-suite failures were tests pinned to values your later calls changed (mostly the sloughs);
   the status-index one was already fixed on 10-30, so the shipped map was right. No pipeline code changed.
-- **Running:** the "phone" bugs (pan lag, crash test bed, walkthrough, T351) on the emulator.
+- **T410 re-checked:** the web/phone split guard had been crashing silently on the iOS build leftovers; fixed, and
+  today's code is clean (35 pairs, 16 allowed inline files). Left: the moved phone halves walked on the emulator.
+- **In flight (chat 3):** (1) staging site rebuild — web export → every water page on r-4230bc0c1dd5 → `site.sh`
+  deploy + smoke (logs `~/site-1106-{export,seo,deploy}.log`); then the T419 before/after shots on staging.
+  (2) emulator lane: pan lag T420/T401, crash test bed T242, walkthrough T293, T351, and T410's native pass.
+  **After both:** merge the emulator lane, build the APK (staging), Play internal, emulator walk.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
