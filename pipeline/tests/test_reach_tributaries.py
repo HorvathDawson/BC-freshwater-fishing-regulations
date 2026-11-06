@@ -586,9 +586,14 @@ def test_everything_returned_is_reachable_without_crossing_the_reach_boundary(re
         reach = {sid}
         got = tributaries_of_reach(g, reach, guarded=False)
 
-        # independent BFS with the same boundary rule, written differently
-        allowed, frontier = set(), [sid]
-        seen = set(reach)
+        # independent BFS with the same boundary rule, written differently. A stream whose mouth sits
+        # ON the reach's lower cut is the reach's (FWA hangs it on the piece below): it is a START of
+        # the walk, and everything above it is reachable too (T306, 2026-11-06: 360885316 joins
+        # 360873822 at 164908, the lower end of the sampled 360873822:164908, and brought 7,338
+        # sections the old BFS, seeded from the reach alone, called unreachable)
+        mouths = _mouths_at_lower_bound(g, frozenset(reach))
+        allowed, frontier = set(mouths), [sid, *sorted(mouths)]
+        seen = set(reach) | set(mouths)
         while frontier:
             cur = frontier.pop()
             for ei in g.up_adj.get(cur, []):
@@ -601,7 +606,7 @@ def test_everything_returned_is_reachable_without_crossing_the_reach_boundary(re
                 allowed.add(e.from_node)
                 frontier.append(e.from_node)
 
-        unreachable = got - allowed - _mouths_at_lower_bound(g, frozenset(reach))
+        unreachable = got - allowed
         assert not unreachable, f"{sid}: returned unreachable {sorted(unreachable)[:3]}"
 
 

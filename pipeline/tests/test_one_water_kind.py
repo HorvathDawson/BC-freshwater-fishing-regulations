@@ -128,6 +128,17 @@ def tiles():
     return {name: _layer(d / f"{name}.geojsonl") for name in ("stream", "lake", "wetland")}
 
 
+def _routeless(graph, nid: str) -> bool:
+    """A polygon node no line touches: no edge in or out, so no route through it to draw."""
+    return not graph.up_adj.get(nid) and not graph.down_adj.get(nid)
+
+
+def _slough_calls() -> set[str]:
+    """The wbks of the owner's confirmed slough / canal calls (T322)."""
+    return {str(w["wbk"]) for w in json.loads(
+        (REPO_ROOT / "data/curated/waters/slough_calls.json").read_text(encoding="utf-8"))["waters"]}
+
+
 def _owner(db) -> dict[int, tuple[str, str]]:
     """{sid: (item_id, kind)} from the bundle."""
     return {s: (i, k) for i, k, s in db.execute(
@@ -166,8 +177,13 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles):
     assert bad == [], bad[:20]
     polys = {s for s, (i, k) in owner.items() if k == "stream" and node_of[s].startswith("lake:")}
     assert polys <= set(tiles["lake"]) | set(tiles["wetland"])
-    # every LAKE node of a stream has a route (a wetland node has none: nothing to draw as a line)
-    routed = {s for s in polys if graph.nodes[node_of[s]].kind.value == "lake"}
+    # every LAKE node of a stream has a route (a wetland node has none: nothing to draw as a line), except a polygon
+    # no line touches: an owner-confirmed ISOLATED slough call (T322, owner 10-30: the Okanagan River Oxbows are
+    # "general streams, cut off or not") has no route to draw — only its polygon (T306, 2026-11-06: 10 of them)
+    lakes = {s for s in polys if graph.nodes[node_of[s]].kind.value == "lake"}
+    routeless = {s for s in lakes if _routeless(graph, node_of[s])}
+    assert {node_of[s].split(":", 1)[1] for s in routeless} <= _slough_calls(), "a routeless stream polygon nobody confirmed"
+    routed = lakes - routeless
     assert routed and routed <= set(tiles["stream"]), "a stream's polygon draws its route as stream"
 
 
@@ -195,7 +211,14 @@ def test_flowing_polygons_belong_to_their_water(registry):
     assert registry["wbk:329524002"].kind == "stream"                                 # Lewis (Kootenay)
     for name in ("Bear Creek Reservoir", "River Lakes"):
         assert {v.kind for v in water.values() if v.name == name} == {"lake"}, name
-    assert all(v.kind != "stream" for v in water.values() if "OXBOWS" in v.name.upper())
+    # T322 (owner 2026-10-30): an OKANAGAN RIVER OXBOWS polygon the owner confirmed as a slough call is a stream in
+    # place ("general streams, cut off or not"); one not confirmed keeps its kind (2026-11-06: 32 stream, 8 not)
+    calls = _slough_calls()
+    oxbows = [v for v in water.values() if "OXBOWS" in v.name.upper()]
+    for v in oxbows:
+        wbks = {s.split(":", 1)[1] for s in v.section_ids if s.startswith("lake:")}
+        assert (v.kind == "stream") == bool(wbks and wbks <= calls), (v.name, v.section_ids, v.kind)
+    assert sum(v.kind == "stream" for v in oxbows) == 32 and len(oxbows) == 40
     # 117 since the owner named polygon wbk 329505890 "Cayoosh Creek" (2026-10-25, name_variants.json),
     # so the fold joins it to gnis:37767 (was 116)
     assert sum(len(v.aliases) for v in water.values()) == 117
@@ -309,6 +332,8 @@ def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
         nid = node_of[sid]
         if kind != "stream" or not nid.startswith("lake:") or graph.nodes[nid].kind.value != "lake":
             continue                                   # a wetland node has no route to draw
+        if _routeless(graph, nid):
+            continue                                   # nor has a polygon no line touches (T322 isolated oxbows)
         assert sid in tiles["stream"], (item, nid)
         z = tiles["stream"][sid][1]
         nbrs = [graph.edges[e].to_node for e in graph.down_adj.get(nid, ())] + \
