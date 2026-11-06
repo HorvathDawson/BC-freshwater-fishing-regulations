@@ -1,7 +1,8 @@
 # T366 — DFO live refresh that is clean to run (region 2 FN1179 first)
 
-Status: PARTIAL — items 1–4 built (2026-11-03); item 5 dry-run done, the real refresh is the main session's (owner
-2026-11-03: "make it so that this command works cleaner in future too"; batch 3 of RELEASE-PLAN-0.5.0.md).
+Status: DONE (2026-11-05) — items 1–5 built and run. The feeds-worker half (row digest) ships WITH the next app
+deploy, never ahead (owner 2026-11-03: "make it so that this command works cleaner in future too"; batch 3 of
+RELEASE-PLAN-0.5.0.md).
 
 Why: T361 showed a refresh can silently move owner marks to "rule changed" (the typed rows were a season old, then
 re-emitted from a newer page). Region 2 now needs one: staging's live fetch saw FN1179 (Fraser, mainstem upstream of
@@ -64,16 +65,35 @@ chinook non-retention → FN0961/FN1008. MARKS that would move: none.
 Other regions newer than their typed rows: **1** (10-05 → 11-03: Cowichan chum FN1196, 2 places) and **6** (08-28 →
 09-02: Kispiox coho FN0897/FN0951, 1 place); no place changes, no marks move. 3, 4, 5a, 5b, 7, 8: same page.
 
-### Left (item 5, main session)
-1. `python -m pipeline.regs.dfo_salmon.live run --regions 1 2 6` (network; writes cache, history, feed, typed).
+### Left (item 5, main session) — all done (2026-11-05)
+1. DONE 11-03 (abed46e5f: rc 0, no marks moved). `python -m pipeline.regs.dfo_salmon.live run --regions 1 2 6` (network; writes cache, history, feed, typed).
    Regions 2 and 6 MUST be refreshed before the next bundle: their typed rows have no header and no cached page of their
    date, which `load_headers` now refuses.
-2. `python -m pipeline.regs.dfo_salmon.live queue --regions 2`, commit the entry files; the owner confirms the two Fraser
+2. DONE 11-03 (9d5d52553: entry file committed, the Fraser rewordings folded as variants, owner approved). `python -m pipeline.regs.dfo_salmon.live queue --regions 2`, commit the entry files; the owner confirms the two Fraser
    rewordings in DFO mode (note DFO's new wording says "downstream of … Mission to … Hope" for the reach UPSTREAM of
    Mission — confirm it is the Mission→Hope place).
-3. Review-app frontend banner for `/api/dfo/progress` `vintage` (backend only here); the staging worker's DFO job
+3. DONE 11-05 (see Outcome). Review-app frontend banner for `/api/dfo/progress` `vintage` (backend only here); the staging worker's DFO job
    (app/workers/feeds) does not split digest vs urgent row notices yet.
 
 ## Item 5 run (main session, 2026-11-03)
 `live run --regions 1 2 6` (rc 0, no marks moved; 2 urgent: the two reworded Fraser places), then `live queue --regions
 2` (2 variants folded). `entries/dfo_salmon/region-2.json` left UNCOMMITTED for the owner's DFO-mode check (OWNER-TODO).
+
+## Outcome (2026-11-05, item 5 point 3)
+- **Review app, DFO mode:** `DfoVintageBanner` (curation-review/frontend) reads `/api/dfo/progress` `vintage` and says it
+  in the notice dock: typed rows OLDER than the saved page ("you would be reviewing last vintage's rows" — red, cannot be
+  hidden, × shrinks it to a pill), a saved page not fetched for a week in season (amber), the check failing (red); each
+  note's text, then the commands: `live run --regions … --dry-run`, `live run --regions …`, `live queue --regions …`,
+  reload. A failed progress load is shown (was swallowed); a failed vintage check is logged with its traceback.
+- **Feeds worker:** `src/dfo/rows.ts` ports `refresh.row_changes` / `how_read` / `rows_text`; `runDfo` (robust) compares
+  each typed page with the region's last typed page (priv `rows/region-<slug>.json`, the baseline) and adds ONE
+  `dfo-rows:<slug>:<sha12>` notice, `urgent: false` (place, was → now verbatim, FN numbers, how each new row was read).
+  `dfoEvents` carries `urgent`; `events.deliver`: a DFO / in-season event with `urgent: false` waits for the daily digest
+  (`NOTIFY_DIGEST=daily`); every other DFO notice stays urgent. The DFO email section renders rows as Was / Now / read
+  as, with "nothing to re-review" and the local `--dry-run` command. No baseline yet → that page becomes it (logged, no
+  digest); an unreadable baseline → an URGENT `dfo-rows-baseline` notice ("NOT compared"), rewritten from the page.
+- Tests: worker vitest `dfo.worker` (+2, priv keys + rows baseline), `events` (+1: digest vs urgent, rendered body),
+  `email`, `dfo.*` — 106 passed (parity/corpus suites are `describe.skip` as before); `test_review_dfo.py`,
+  `test_curation_review_safety.py`. Frontend typechecked (`tsc --noEmit`); the banner NOT rendered in a browser.
+- **Left:** deploy the feeds worker with the next app release (main session). The first run after deploy writes each
+  region's baseline, so row digests start from the following page change.
