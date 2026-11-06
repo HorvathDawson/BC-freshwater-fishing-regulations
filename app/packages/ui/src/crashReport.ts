@@ -23,10 +23,16 @@ import { waterFrame, type Route, type View } from "./route";
 /** (T352) crash/2: the open water and its pane, the install id, `background`. The worker takes crash/1 too (0.4.0 phones). */
 export const CRASH_FORMAT = "crash/2";
 const CRASH_FORMATS: readonly string[] = ["crash/1", CRASH_FORMAT];
-export type CrashKind = "js" | "promise" | "render" | "native";
-export type RouteKind = "map" | "conditions" | "runs" | "spots" | "menu" | "water" | "other";
+// (T430) The wire's enums as VALUES, not only types: the feeds worker (`workers/feeds/src/crashes.ts`, outside the
+// workspace) types them again and refuses anything else with a 400, which the app never retries. `tools/wire.test.ts`
+// compares these lists with the worker's and sends every value through `validateCrash`.
+export const CRASH_KINDS = ["js", "promise", "render", "native"] as const;
+export type CrashKind = (typeof CRASH_KINDS)[number];
+export const ROUTE_KINDS = ["map", "conditions", "runs", "spots", "menu", "water", "other"] as const;
+export type RouteKind = (typeof ROUTE_KINDS)[number];
 /** (T352) the route-held sheet up when the error happened: search over a map, a spot open, a spot being added */
-export type CrashSheet = "search" | "spot" | "adding";
+export const CRASH_SHEETS = ["search", "spot", "adding"] as const;
+export type CrashSheet = (typeof CRASH_SHEETS)[number];
 export const CRASH_LIMITS = { name: 60, message: 200, stack: 2000, field: 100 } as const;
 
 /** (T352) Where the reader was, from the route: the screen kind and the open water's pane. Every field null when unknown. */

@@ -46,6 +46,8 @@ const INT_FIELDS = ["part", "section"] as const;
 const V2_STR_FIELDS = ["layer", "horizon"] as const;
 const V2_NUM_FIELDS = { zoom: [0, 24], lat: [-90, 90], lon: [-180, 180] } as const;
 const INSTALL_RE = /^[0-9a-f]{16}$/;
+/** (T430) every context key a report/2 may carry; `app/tools/wire.test.ts` compares it with the app's `ReportContext` */
+export const REPORT_CONTEXT_KEYS: readonly string[] = [...STR_FIELDS, ...INT_FIELDS, ...V2_STR_FIELDS, ...Object.keys(V2_NUM_FIELDS), "install", "errors"];
 
 export interface StoredReport {
   format: (typeof REPORT_FORMATS)[number];
