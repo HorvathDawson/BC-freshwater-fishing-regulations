@@ -9,7 +9,9 @@ in order: **Data and build** first, then **Launch and hygiene**. Each is one cha
 > the Chat 1 list (T416, T412, T413), then do the Launch and hygiene list in order. Start ticket work without asking;
 > ask me only for decisions. Keep replies short and STATUS.md current.
 
-(For the second chat, swap the T408 lines for: "Do the Launch and hygiene list in order.")
+(Second chat, from 2026-11-05: "Read `handoff/PLAN/NEXT-SESSION-after-0.6.0.md` (Chat 2) and the STATUS.md top entry.
+Do the Launch and hygiene list in order. Start ticket work without asking; ask me only for decisions. Keep replies
+short and STATUS.md current.")
 
 ## Where 0.6.0 left things
 - **App:** 0.6.0 (`app.json`, `package.json`, changelog dated 2026-11-05). The AAB went to Play internal via
@@ -44,9 +46,10 @@ Left, in order (a short "Chat 1b" before chat 2):
 3. **T413** — the worker starts the HYDAT workflow (owner's optional token); until then its email.
 
 ## Chat 2 — Launch and hygiene (in order; ticket audit 2026-11-05 in `ticket-audit-2026-11-05.md`)
-1. **0.6.1 is on Play internal** (11-05, T411; worker 50a816d9). Next APK: T417 (watershed flicker), T418 (style
-   assets), **T390** (read play.json on every open/return) — build when the owner says "build". T419 (Salmon River
-   simplification) is checked with this UI work; a fix there is a tiles change (rides a data release).
+1. **0.6.2 (T390, T417, T418) went to Play internal at the end of chat 1b** (STATUS top entry: versionCode, worker
+   version, the GitHub token check). Phone checks for the owner are in each ticket. Chat 1b also did T412, T413, T416
+   (STATUS). T419 (Salmon River simplification) is checked with the UI work; a fix is a tiles change (rides a data
+   release). The first staging release after this runs the new run-timing workflow for real (T412): watch it.
 2. **T86, T240, T244** — production hosting, launch checklist (now carries T50, T75, T80, T87), store readiness.
 3. **T409** — SEO launch pass (carries T188, T196, T405; T198 owner-blocked): incl. the map built when first seen on
    `/water/*` (owner 11-05). Measure as T409 did (local, 3 runs, median); no native diff. Before the prod SEO launch.
