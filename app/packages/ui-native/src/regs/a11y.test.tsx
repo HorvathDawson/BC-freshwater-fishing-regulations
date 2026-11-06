@@ -178,7 +178,9 @@ describe("4. every press is named and reaches 44 × 44", () => {
         }
       expect(offences).toEqual([]);
       expect(sized).toBeGreaterThan(keys.length * 2);   // at least Done on each, and the presses inside
-    });
+    // (T250) ~2 s alone (every sheet of a page, twice), past vitest's 5 s when the machine is busy: load, not a regression
+    // (the reason the logic project's timeout is 30 s, vitest.config.ts). A hung walk still fails, just later.
+    }, 30_000);
 
   it("the planted mutants are caught: a press with no slop record, one too small, one unnamed", () => {
     const { container } = render(

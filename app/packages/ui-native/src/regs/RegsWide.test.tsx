@@ -111,7 +111,8 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
       expect([c, scrolls.map((e) => e.getAttribute("data-testid"))]).toEqual([c, ["regs-scroll"]]);
       cleanup();
     }
-  });
+  // (T250) ~1 s alone (getComputedStyle over every node, three layouts), past 5 s on a busy machine: load, not a regression
+  }, 30_000);
 
   it("desktop: a section press in the side column selects it at once and scrolls the page's column to it (T29 tabScrollY)", () => {
     const store = createPinStore();
