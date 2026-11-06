@@ -1,6 +1,6 @@
 # T239 — annual synopsis update: runbook + dry run
 
-Status: PARTIAL (2df8add7b, 4ac91de6f) 2026-11-05 — left: T415 (merged in, before the next book); done: runbook, diff tool, carry/replay tool, dry run (diff explained), T414 (the review app's "only these entries" list).
+Status: DONE (2df8add7b, 4ac91de6f, 83c9995d7) 2026-11-05 — runbook, diff tool, carry/replay tool, dry run (diff explained), T414 (the review app's "only these entries" list), T415 (Heber extraction fixed). Owner choice left: Heber's whitespace (T415 part, last point).
 
 Source: owner 2026-10-28 — approved proposal P5 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -80,3 +80,20 @@ This ticket now also carries the leftovers of: T414, T415 — read each file's o
 - Runbook step 8 and step 10 use the URL.
 - Tests: `pipeline/tests/test_curation_review_ids.py` (3), plus `test_curation_review_safety.py` (32, CI filter);
   frontend `tsc --noEmit` clean. Not yet seen in a browser.
+
+## T415 part — done 2026-11-05 (83c9995d7)
+- Cause: NOT an extractor change since 09-24. The extractor at every commit back to a6fcf21e1 (09-03) reads Heber
+  (PDF p.18) as "Folpye fnishing … when"; the 09-24 file's "Fly fishing … when open" was a hand fix (9ba92c01b,
+  "garbled verbatims restored"). The real cause: `extract_text_with_bold` starts a line only when a glyph is MORE than
+  5 pt lower; Heber's last line "open" is set exactly 5.0 pt under "…confluence when", so it joined that line and the
+  x sort interleaved the two.
+- Fix (`extract_synopsis._stacked_under`): a glyph more than half its size lower that overlaps a glyph already on the
+  line starts a new line. Heber now reads "…confluence when\nopen". Single-page runs vs the live 09-24 file: PDF
+  pp.17, 18, 19, 21, 24, 26, 60 = 231 of 232 rows identical (only Heber moves); Chilliwack/Vedder and Coquihalla
+  (p.24) unchanged. A raw-chars sweep of all 39 table pages found the rule firing only on Heber among table rows.
+- Tests: `test_extract_line_grouping.py` (3, no PDF, every tier); `test_extract_synopsis.py::
+  test_heber_river_tight_last_line_is_its_own_line` (slow, p.18 pinned with neighbours). Both fail without the fix.
+- Left: the curated Heber text has a space where the extraction has a line break ("when open" vs "when\nopen"), so
+  `synopsis_book carry` (exact compare) still sends Heber to the parse once. Ingest's `squash` gate passes it.
+  Owner choice: accept one re-parse, or let carry compare whitespace-normalised.
+  Chilliwack "hatch-\nery" and Coquihalla "Nov" are not this defect (still hand fixes; not touched).

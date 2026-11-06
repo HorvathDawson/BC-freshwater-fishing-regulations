@@ -51,9 +51,10 @@ bash scripts/heavy.sh synopsis-extract 50 -- .venv/bin/python -m pipeline.regs.e
   2. Row count near last year's (2025–27: 1,393 rows on 39 pages), every row with a `region` and an MU.
   3. Spot-check 10 rows against the PDF crops (`$W/extraction/row_images/`), especially multi-line regulations,
      bold `**No Fishing**`, and the symbol column (`Incl. Tribs`, `Classified`, `Stocked`).
-- Known extraction defects on the 2025–27 book (curators fixed the entry text by hand): Heber River line 3 garbles
-  ("Folpye fnishing"), the Chilliwack/Vedder row keeps a line-end hyphen ("hatch-\nery"), the Coquihalla row loses its
-  last words ("Nov" for "Nov 1-Mar 31"). Check those three rows first; a new book will have its own.
+- Known extraction defects on the 2025–27 book (curators fixed the entry text by hand): the Chilliwack/Vedder row
+  keeps a line-end hyphen ("hatch-\nery"), the Coquihalla row loses its last words ("Nov" for "Nov 1-Mar 31"). Heber
+  River's garble ("Folpye fnishing": a last line set 5 pt lower interleaved with the one above) is fixed (T415, in
+  T239). Check those rows first; a new book will have its own.
 
 ## 3. Export every row (full) — Claude
 

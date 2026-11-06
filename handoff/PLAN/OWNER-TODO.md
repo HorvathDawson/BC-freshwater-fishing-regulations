@@ -6,6 +6,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Not blocking (11-05, T239/T415):** Heber River's curated text reads "…when open"; the fixed extraction reads
+  "…when⏎open" (a line break). `synopsis_book carry` compares exactly, so next book Heber goes to the parse once
+  (1 row of credits). Default: leave it. Or: Claude makes carry ignore whitespace-only differences.
 - **Looks, not blocking (11-05, T410 → T260 leftovers):** each changes how something looks, so nothing was typed: one
   Badge style; the SegmentedControl's selected look (accent frame, ink fill, or tint?); one Banner/Notice and
   SectionHeader; the font-weight and icon-size ladders. Default: as they are. Also T258: the TalkBack/VoiceOver walk.
