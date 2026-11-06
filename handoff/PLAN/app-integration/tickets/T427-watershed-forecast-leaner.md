@@ -1,6 +1,6 @@
 # T427 — The Conditions legend's watershed forecast: leaner, fewer lines
 
-Status: DONE 2026-11-05 (owner looks at the shots) — was: OPEN — owner 2026-11-05 (screenshot, Conditions map bottom bar): "make this the watershed forecast a bit leaner.
+Status: DONE 2026-11-05, 9e865e284 (owner looks at the shots) — was: OPEN — owner 2026-11-05 (screenshot, Conditions map bottom bar): "make this the watershed forecast a bit leaner.
 basically it uses more lines then what we need we can combine some of them together etc just to make it a bit less thick."
 
 ## Today (7 lines + a bordered card)
