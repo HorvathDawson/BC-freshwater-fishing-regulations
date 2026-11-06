@@ -1,6 +1,6 @@
 # T250 — Expo SDK / dependency upgrade window
 
-Status: IN REVIEW — SDK 58 done on t250-expo58 (91593d711, 75463f905, ad89267d4); check green (8376 passed, 977 skipped); Android emulator walk 6/6; iOS, web and phone walks left.
+Status: IN REVIEW — SDK 58 done on the dev branch (320785434, 8b4491d6b, 1c47932e9); check green (8376 passed, 977 skipped); Android emulator walk 6/6; iOS, web and phone walks left.
 
 Source: owner 2026-10-28 — approved proposal P16 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -11,7 +11,7 @@ Before store submission: upgrade Expo SDK + React Native + MapLibre RN to curren
 Suites green, the patch re-applied (or dropped as upstreamed), device + web walks with shots, deps.md updated.
 Depends: none (schedule before T244). Size: M. Owner: no (a phone walk at the end).
 
-## Done (2026-11-06, branch t250-expo58: 91593d711, 75463f905, ad89267d4)
+## Done (2026-11-06, dev branch: 320785434, 8b4491d6b, 1c47932e9)
 **Versions** (all exact, each ≥ 2 weeks old; `expo@58.0.19`'s `bundledNativeModules.json` is the authority): expo 58.0.19,
 react / react-dom 19.3.0, react-native 0.88.0, react-native-web 0.21.4, react-native-gesture-handler 3.3.0,
 react-native-safe-area-context 5.10.1, react-native-svg 15.16.0, @expo/metro-runtime 58.0.15, babel-preset-expo 58.0.20,

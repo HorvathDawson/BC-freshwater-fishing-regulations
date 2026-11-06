@@ -1,6 +1,6 @@
 # T439 — Retire golden.json and the tests that only compare against it
 
-Status: DONE — cc8b6b63d (owner 2026-11-06: "the golden as before is bad and we should retire it and the tests with it").
+Status: DONE — 9fc2a3953 (owner 2026-11-06: "the golden as before is bad and we should retire it and the tests with it").
 
 ## Why
 `app/fixtures/golden/golden.json` (with `pins.json`, `tokens.json`, `inventory.json`) was extracted ONCE from the
@@ -20,7 +20,7 @@ only prove "today equals today". What stays as the oracle: the release-backed `t
 
 Size: M. Owner: no.
 
-## Done (cc8b6b63d)
+## Done (9fc2a3953)
 
 `golden.json`, `pins.json`, `tokens.json`, `inventory.json` are deleted. `app/fixtures/golden/` now holds `taps.json`, `hydrate.json`
 and the new `states.json`: the 134 tap QUESTIONS (id, water, part, md, the prototype's part label `sub`, each state's sheet keys),

@@ -294,7 +294,7 @@ use that as the sole source of future work."
 | T247 | search upgrades (fuzzy, MU/region/town, recents) | DONE | 96abc2b58 | in-memory index, typos, MU/region/town, region/MU on rows, recents; core `item_area` (live release gets MU/region search with its next cut); shots T247-shots/ |
 | T248 | first-run walkthrough + help page (after T236's disclaimer notice) | DONE | 5436081e6 | 4 cards after the notice, skippable, once per device; More -> Help generated from legend tokens; shots T248-shots/ |
 | T249 | feeds/worker security (rate limits, token rotation, private/ never public, secrets inventory) | DONE | ec26ed584 | 429 on flood (feeds + data), token rotated on staging, check-public PASS, inventory in ticket; prod WAF rule = owner |
-| T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | OPEN | — | owner 2026-10-28 (P16); before T244 |
+| T250 | Expo SDK / dependency upgrade window (MapLibre RN patch re-apply) | IN REVIEW | 320785434 8b4491d6b 1c47932e9 | owner 2026-10-28 (P16); before T244 |
 | T251 | testing data updates: Updates log (dev/staging, ring buffer, check/force/offline/clear/apply/copy), staging test channel (`test/` + `deploy/staging/test-updates.mjs` + `app/tools/updates-e2e.mjs`), app version (app.json semver + build + sha + date; About, `X-App-Version`, `minAppVersion` gate), `published` stamped at publish | DONE | fe10a015 | owner 2026-10-28; prod data worker must allow `X-App-Version` (T86) |
 | T252 | donor paths through lakes (`section_down` closed downstream + walk ranking), distance along the river (`section_down.len`, `alongM`, confluence label on the map), station names through the shared caser | IN REVIEW — shipped; left: Pitt check on :39218 | f010a2b16 | follow-ups to 9ea333d1 |
 | T253 | background prefetch of the files an unnamed-stream tap reads (view region + neighbours only, capped; good connection only; T231 cache path; Updates log + More "Offline data") | DONE | f52055bb, 5b13ab24 | owner 2026-10-28; tap 5.4 s → 0.25 s at Fast 4G; native installs whole |
@@ -483,7 +483,7 @@ use that as the sole source of future work."
 | T436 | Dead code and duplicate helpers (tidy-up) (low) | DONE | 971f40575 817b52a99 | audit 11-05 |
 | T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | DONE | d9a72c206 | audit 11-05 |
 | T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | DONE | ed591aa70 |  audit 11-05 |
-| T439 | Retire golden.json and the tests that only compare against it | DONE | cc8b6b63d | — (states.json holds the tap questions; uncovered items listed in the ticket) |
+| T439 | Retire golden.json and the tests that only compare against it | DONE | 9fc2a3953 | — (states.json holds the tap questions; uncovered items listed in the ticket) |
 
 ## Order for open tickets
 
