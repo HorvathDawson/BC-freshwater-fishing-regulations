@@ -45,7 +45,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T446:** the next such report will say whether the file was cut short or overwritten (cddfdbe); not reproduced.
 - **T164 proposals refreshed** on today's release: 177 waiting for you in the review app's DFO mode (4 fewer: placed
   by the T326 cuts).
-- **Running:** T420 iOS half (compiling the patched map binding in the iOS simulator for the first time). Then the APK.
+- **T420 iOS half done:** the patched map code compiles and runs in the iOS simulator (iPhone 17, iOS 26.5): colours
+  arrive, repeats carry no ids, no "not held" reports. No changes were needed.
+- **Full check:** 2 failures fixed (a guard on my T445 change; START-HERE now points at after-chat3, the two older restart
+  pages deleted). **0.6.6** committed (72142ff).
+- **Running:** staging site rebuild + smoke → 0.6.6 to Play internal (logs `~/site-1106c-*.log`, `~/apk-1106d.log`).
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
   retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
   repro once T448 frees the emulator.
