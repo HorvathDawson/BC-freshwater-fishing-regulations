@@ -21,6 +21,7 @@ import type { FishImages } from "../regs/types";
 import type { ShellNav } from "./useShellNav";
 import type { ShellSearch } from "./useShellSearch";
 import { part } from "../part";
+import { RegsLayerToggle } from "./RegsLayerToggle";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const MapScreen = part(() => import("../later").then((m) => m.MapScreen));
@@ -117,18 +118,20 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   const { onConditions, modes, activeGroups } = mm;
   /*
    * (T213, owner 2026-10-28) THE MAP TAB'S OWN SWITCHES, on the map: the day in the corner Conditions keeps its horizons
-   * in, and Standard / Salmon beside it — while the day's regulations are what the map draws, and not
+   * in, and (T425) Trout / Salmon on the rail — while the day's regulations are what the map draws, and not
    * while search's sheet is over it.
    */
   const regsDrawn = tab === "map" && !searching && col.statusOk && layers.water.drawn === "regulations";
-  // one control row — the day, then Standard / Salmon — wrapping under the day on a phone
-  // (T367, owner 2026-11-04) the day alone: Trout & more | Salmon heads the legend it changes, at the foot (`MapLegend`)
+  // the day alone: Trout | Salmon is on the rail under locate + layers (T425, `railExtra`), the key at the foot (`MapLegend`)
   const corner = regsDrawn
     ? <View testID="map-corner-row" pointerEvents="box-none" style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
         <MapDayStrip palette={palette} day={mapDay} range={dayRange} onDay={onDay} onOpen={onOpenDay} />
       </View>
     // (T367) the Runs tab's species moved into its bar at the foot (`RunsLegend`), with the rest of run timing
     : undefined;
+
+  const railExtra = regsDrawn && col.salmonOffered
+    ? <RegsLayerToggle col={col} palette={palette} fishImages={fishImages} /> : undefined;
 
   return tab === "spots"
     // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
@@ -162,7 +165,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
                                     : menu.show(k))} />
       : tab === "map" || tab === "conditions" || tab === "runs"
-        ? <MapScreen at={tiles} palette={palette} theme={theme} me={me}
+        ? <MapScreen at={tiles} palette={palette} theme={theme} me={me} railExtra={railExtra}
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
                      insetTop={insetTop} insetBottom={insetBottom}

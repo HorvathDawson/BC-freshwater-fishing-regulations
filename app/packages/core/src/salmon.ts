@@ -382,6 +382,12 @@ export const SALMON_WORDS = {
   toggle: {
     standard: "Trout & more", salmon: "Salmon",
     label: "Colour the regulations by",
+    /** (T425, owner 2026-11-05) the map rail's two buttons: a fish and one word each, the rest said aloud */
+    rail: { standard: "Trout", salmon: "Salmon" },
+    said: { standard: "Colour by trout and other species' rules", salmon: "Colour by salmon openings" },
+    hint: "Changes the colours and the key on the map",
+    /** the fish art each button wears (`FISH` codes: rainbow trout, chinook) */
+    art: { standard: "RB", salmon: "CH" },
     /** (T182) the web reads the salmon file on the first press of Salmon: the choice says so while it loads */
     loading: "Loading…",
   },

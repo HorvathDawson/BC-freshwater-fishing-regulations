@@ -21,7 +21,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
-                            insetTop = 0, insetBottom = 0, onRegion, corner, me = null }: {
+                            insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -79,8 +79,10 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
    * days and words) and the Shell's one `pick`, the same pair the panel header draws.
    */
   horizons?: { chips: readonly HorizonChipVM[]; onPick: (d: Horizon) => void };
-  /** (T213) The Map tab's day strip, in the corner the horizons use on Conditions (`MapDayStrip`) and beside it the Standard / Salmon switch (`RegsLayerToggle`). */
+  /** (T213) The Map tab's day strip, in the corner the horizons use on Conditions (`MapDayStrip`). */
   corner?: ReactNode;
+  /** (T425) further map switches under the rail, right-aligned with it: the Trout / Salmon colouring (`RegsLayerToggle`) */
+  railExtra?: ReactNode;
   onError?: (e: Error) => void;
   /** Send the camera to a chosen water — see MapProps.fit. */
   fit?: MapProps["fit"];
@@ -150,7 +152,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
         THE RAIL (owner 2026-10-21): Layers moved here from a bottom-left pill — the map's own buttons in one stack on the
         right, under MapLibre's zoom stack (`MapRail`). Layers alone since T48: Spots is a bottom-bar tab again.
       */}
-      <MapRail palette={palette} me={me} onLayers={onLayers} layersChanged={layersChanged} top={insetTop} />
+      <MapRail palette={palette} me={me} onLayers={onLayers} layersChanged={layersChanged} top={insetTop}>{railExtra}</MapRail>
     </View>
   );
 }

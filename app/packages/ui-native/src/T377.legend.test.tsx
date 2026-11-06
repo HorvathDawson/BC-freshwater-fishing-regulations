@@ -61,7 +61,7 @@ describe("(T377) the tappable key", () => {
 });
 
 describe("(T377) the regulations bar folds", () => {
-  it("the fold hides the key's rows and keeps the switch; again shows them; the same in both modes", () => {
+  it("the fold hides the key's rows and keeps the head; again shows them; the same in both modes", () => {
     for (const mode of ["standard", "salmon"] as const) {
       show(col(mode, null));
       const fold = screen.getByTestId("legend-fold");
@@ -70,11 +70,22 @@ describe("(T377) the regulations bar folds", () => {
       expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
       fireEvent.click(fold);
       expect(screen.queryByTestId("legend-rows")).toBeNull();
-      expect(screen.getByTestId("regs-paint")).toBeTruthy();
+      expect(screen.getByTestId("legend-fishery-head")).toBeTruthy();
       expect(fold.getAttribute("aria-expanded")).toBe("false");
       expect(fold.getAttribute("aria-label")).toBe(MAP_KEY.fold.show);
       fireEvent.click(fold);
       expect(screen.getAllByTestId("legend-row")).toHaveLength(2);
+      cleanup();
+    }
+  });
+});
+
+describe("(T425) the legend bar holds the legend only", () => {
+  it("the Trout / Salmon switch is on the map's rail, not in the bar, in both modes", () => {
+    for (const mode of ["standard", "salmon"] as const) {
+      show(col(mode, null));
+      expect(screen.queryByTestId("regs-paint")).toBeNull();
+      expect(screen.queryByTestId("regs-paint-salmon")).toBeNull();
       cleanup();
     }
   });

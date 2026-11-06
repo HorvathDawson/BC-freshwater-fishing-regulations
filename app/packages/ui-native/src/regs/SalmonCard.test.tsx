@@ -9,6 +9,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { FISH, salmonCard, salmonRowTexts, type RegsPage, type SalmonFacts } from "@app/core";
 import { LIGHT } from "../theme";
 import { SPINNER_TIMING } from "../LoadingState";
+import { hitArea } from "./hit";
 import { RegsScreen } from "./RegsScreen";
 import { SalmonCard } from "./SalmonCard";
 import { RegsLayerToggle } from "../shell/RegsLayerToggle";
@@ -125,20 +126,38 @@ describe("the Salmon card", () => {
   });
 });
 
-describe("the Standard / Salmon switch (beside the day strip, top left)", () => {
-  it("a radio pair; a press sets the choice and nothing else; no Bait & fly (marks on Standard)", () => {
+describe("(T425) the Trout / Salmon switch (the map rail, under locate + layers)", () => {
+  it("a radio pair of fish over small-caps words; a press sets the choice and nothing else; no Bait & fly (marks on Standard)", () => {
     const set: string[] = [];
     const col = { regsLayer: "standard", setRegsLayer: (p: string) => set.push(p) } as unknown as MapColouring;
     render(<RegsLayerToggle col={col} palette={LIGHT} />);
     const [std, sal] = [screen.getByTestId("regs-paint-standard"), screen.getByTestId("regs-paint-salmon")];
     expect([std, sal].map((e) => [e!.getAttribute("aria-checked"), e!.textContent]))
-      .toEqual([["true", "Trout & more"], ["false", "Salmon"]]);
+      .toEqual([["true", "Trout"], ["false", "Salmon"]]);
+    expect(getComputedStyle(within(std).getByText("Trout")).textTransform).toBe("uppercase");
     expect(screen.getByTestId("regs-paint").getAttribute("role")).toBe("radiogroup");
     expect([std, sal].map((e) => e!.getAttribute("role"))).toEqual(["radio", "radio"]);
-    expect(screen.getByTestId("icon-fish")).toBeTruthy();
+    // named and hinted aloud; the chosen one wears the accent bar
+    expect([std, sal].map((e) => e!.getAttribute("aria-label")))
+      .toEqual(["Colour by trout and other species' rules", "Colour by salmon openings"]);
+    expect(screen.getByTestId("regs-paint-bar-standard")).toBeTruthy();
+    expect(screen.queryByTestId("regs-paint-bar-salmon")).toBeNull();
+    // 44 x 44 to the touch
+    expect([std, sal].map((e) => hitArea(e!.getAttribute("data-hitslop")!))).toEqual([{ w: 44, h: 44 }, { w: 44, h: 44 }]);
     expect(screen.queryByTestId("regs-paint-method")).toBeNull();
     fireEvent.click(sal!);
     expect(set).toEqual(["salmon"]);
+  });
+
+  it("wears the app's fish art when it is handed down (rainbow trout, chinook), the fish icon when it is not", () => {
+    const col = { regsLayer: "standard", setRegsLayer: () => {} } as unknown as MapColouring;
+    const art = { RB: [{ thumb: "rb.png", full: "rb-full.png" }], CH: [{ thumb: "ch.png", full: "ch-full.png" }] };
+    render(<RegsLayerToggle col={col} palette={LIGHT} fishImages={art as never} />);
+    const src = (k: string) => screen.getByTestId(`regs-paint-${k}`).querySelector("img")?.getAttribute("src");
+    expect([src("standard"), src("salmon")].map((x) => x?.split("/").pop())).toEqual(["rb.png", "ch.png"]);
+    cleanup();
+    render(<RegsLayerToggle col={col} palette={LIGHT} />);
+    expect(screen.getAllByTestId("icon-fish")).toHaveLength(2);
   });
 
   it("T182 (web): while the first press's salmon file loads, Salmon is the choice and busy; (T257) the fish turns in its icon's place", () => {

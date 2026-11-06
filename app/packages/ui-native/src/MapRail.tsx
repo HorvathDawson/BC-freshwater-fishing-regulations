@@ -47,8 +47,8 @@ export function MapRail({ palette, onLayers, layersChanged = 0, top = 0, me, chi
    */
   me?: { on: boolean; following: boolean; busy: boolean; notice: string | null; press: () => void; dismiss: () => void } | null;
   /**
-   * any further map switch, stacked under the rail, right-aligned with it. None today: Standard / Salmon moved to the
-   * top-left corner beside the day strip (owner 2026-10-28).
+   * any further map switch, stacked under the rail, right-aligned with it: the Trout / Salmon colouring on the regulations
+   * map (T425, owner 2026-11-05: back from the legend bar; `shell/RegsLayerToggle`).
    */
   children?: ReactNode;
 }) {

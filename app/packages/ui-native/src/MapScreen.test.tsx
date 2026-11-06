@@ -132,6 +132,12 @@ describe("<MapScreen> rail (owner 2026-10-21, Fish Washington style; T48: Layers
     expect([layers, top, rail()]).toEqual(["Choose layers", `${76 + RAIL_BELOW}px`, "no rail"]);
   });
 
+  it("(T425) a further switch (railExtra) stacks in the rail's column, after the tools", () => {
+    render(<MapScreen {...BASE} onLayers={() => {}} railExtra={<div data-testid="extra" />} />);
+    const col = screen.getByTestId("map-rail-column");
+    expect([...col.children].map((c) => c.getAttribute("role") ?? c.getAttribute("data-testid"))).toEqual(["toolbar", "extra"]);
+  });
+
   it("the button opens the Layers sheet", () => {
     const layers = vi.fn();
     render(<MapScreen {...BASE} onLayers={layers} />);

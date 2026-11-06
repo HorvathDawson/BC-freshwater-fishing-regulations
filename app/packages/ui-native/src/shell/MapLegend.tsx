@@ -20,7 +20,6 @@ import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
-import { RegsLayerToggle } from "./RegsLayerToggle";
 import { LEGEND_RAMP_MAX, LEGEND_ROWS, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
@@ -40,10 +39,10 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   const onConditions = mm.onConditions;
   // The readings on screen, as positions on the legend's own scale (sentinels excluded: a state, not a point).
   const visibleMarks = cond.marks;
-  // (T367, owner 2026-11-04) THE FISHERY HEADS THE KEY IT CHANGES: Trout & more | Salmon, both always in view, over the
-  // Map tab's legend (it sat in the map's top corner beside the day); in Salmon, whose rules these are, beside it
+  // (T367, T425) THE FISHERY HEADS THE KEY IT CHANGES: the Map tab's legend, with (in Salmon, whose rules these are) DFO's
+  // source line and the fold above it. The Trout | Salmon switch itself is on the map's rail (`RegsLayerToggle`)
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
-  // (T377) the regulations key folded away (the bar keeps its switch); a reader's choice for this screen, open at first
+  // (T377) the regulations key folded away (the bar keeps its source line); a reader's choice for this screen, open at first
   const [folded, setFolded] = useState(false);
   const checked = fishery && col.regsLayer === "salmon" ? salmonCheckedLine(col.salmonFacts) : null;
   // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
@@ -156,19 +155,18 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   const fold = folded ? MAP_KEY.fold.show : MAP_KEY.fold.hide;
   return (
     <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card }}>
-      {/* (T396) ONE ROW in both modes: Salmon's "DFO rules checked …" sits beside the switch, up to two lines no taller
-          than it, never wrapping under it — so switching modes does not move the bar */}
+      {/* (T396, T425) ONE ROW, 32 px tall in both modes: Salmon's "DFO rules checked …" (up to two lines) beside the fold
+          button, which Trout & more has alone — so switching modes does not move the bar */}
       <View testID="legend-fishery-head"
             style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: LEGEND_ROWS.padX,
-                     paddingTop: 9, borderTopWidth: 1, borderTopColor: palette.line }}>
-        <RegsLayerToggle col={col} palette={palette} />
+                     paddingTop: 9, minHeight: 41, borderTopWidth: 1, borderTopColor: palette.line }}>
         {checked && (
           <Text testID="salmon-legend-source" numberOfLines={2}
                 style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
             {checked}
           </Text>
         )}
-        {/* (T377) THE KEY FOLDS AWAY: the switch stays, the rows go (the bar one line tall); the choice holds across both
+        {/* (T377) THE KEY FOLDS AWAY: the head stays, the rows go (the bar one line tall); the choice holds across both
             modes, so switching never moves the bar */}
         <Pressable testID="legend-fold" onPress={() => setFolded((f) => !f)} accessibilityRole="button"
                    aria-expanded={!folded} accessibilityLabel={fold} {...hitProps({ w: 32, h: 32 })}
