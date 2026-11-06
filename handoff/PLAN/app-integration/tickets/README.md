@@ -489,7 +489,7 @@ use that as the sole source of future work."
 | T442 | A staging upload left test/ on a cleared release: fresh test-bed installs 404 (walk-063) | DONE | 51e05a4ef | 2026-11-06: not an app bug; live/Play builds unaffected |
 | T443 | Stepping ▲/▼ between a big part and a tiny one jumps the camera (Fraser): bound the zoom change per step | OPEN | — | owner report b48c0e 2026-11-06 |
 | T444 | Crash: "water map: part 0 of gnis:3062 is not in its group" (Chilliwack map view, 0.6.2) | DONE | 6ea40732d | worker /crashes 2026-11-06 |
-| T445 | Map error "… resolved to … null which is null or a wrong type" (Android 0.6.1/0.6.2; names scrubbed) | OPEN | — | worker /crashes 2026-11-06 |
+| T445 | Map error "… resolved to … null which is null or a wrong type" (Android 0.6.1/0.6.2; names scrubbed) | DONE | 73daab938 | worker /crashes 2026-11-06 |
 | T446 | First install: a release file "does not match the manifest" (resume / partial file) | OPEN | — | worker /crashes 2026-11-06 |
 | T447 | An app icon made by an artist (the favicon-derived set ships until then) | POSTPONED | — | owner 2026-11-06 |
 | T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | OPEN | — | T420 follow-up 2026-11-06 |
