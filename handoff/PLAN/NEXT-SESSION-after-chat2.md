@@ -30,11 +30,15 @@ PENDING are not final.**
 6. `graphify update .`
 Results: (to fill in)
 
-## The audit (T333–T335) — PENDING
-Scope approved 11-05 (in the tickets). Report: (to fill in) · fix tickets: (to fill in) · then T335 deletes archive/.
+## The audit (T333–T335) — DONE
+Report: `handoff/PLAN/audit-2026-11-05/REPORT.md` (78 findings → ~57 confirmed after a second reader). Fix tickets
+T429–T438, most harmful first: T429 curated file emptied · T430 report-format parity · T431 worker tests run nowhere ·
+T432 golden parity passes on zero cases · T433 staging scripts fail-safe · T434 review-app silent fallbacks · T435
+pipeline paths/determinism · T437 docs + tickets drift · T436 dead code · T438 stale worktree. T335 (delete archive/)
+is verified safe once 4 cited docs move.
 
 ## Next, in order (to finalise)
-1. The audit's fix tickets, in the order the owner picks.
+1. The audit's fix tickets T429–T438, in the order the owner picks (default: the table order).
 2. T335: move what live code reads from archive/, delete archive/.
 3. Whatever the heavy run left (see its results).
 4. With the next APK ("build" from the owner): T250 Expo/dependency upgrade first, then the device checks — T420/T401

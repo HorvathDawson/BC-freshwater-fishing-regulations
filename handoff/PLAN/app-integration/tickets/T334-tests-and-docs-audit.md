@@ -1,6 +1,6 @@
 # T334 — Audit all tests and documentation
 
-Status: IN PROGRESS 2026-11-05 — scope approved by the owner (below); POSTPONED — (next credit cycle, with T333) (owner 2026-10-30: "add another ticket to audit all tests and
+Status: DONE 2026-11-05 — 86a5a4ebf: report `handoff/PLAN/audit-2026-11-05/REPORT.md`, fix tickets T429–T438. Was: POSTPONED — (next credit cycle, with T333) (owner 2026-10-30: "add another ticket to audit all tests and
 documentation").
 
 ## Tests (pipeline/tests, app packages, workers, testbed)

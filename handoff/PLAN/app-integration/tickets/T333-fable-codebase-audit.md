@@ -1,6 +1,6 @@
 # T333 — Big Fable audit: duplicate data types, duplicate pathways, bad practices (NEXT credit cycle)
 
-Status: IN PROGRESS 2026-11-05 — scope approved by the owner (below); POSTPONED — for the next credit cycle (owner 2026-10-30: "a ticket for next credit cycle on doing a big Fable audit
+Status: DONE 2026-11-05 — 86a5a4ebf: report `handoff/PLAN/audit-2026-11-05/REPORT.md`, fix tickets T429–T438. Was: POSTPONED — for the next credit cycle (owner 2026-10-30: "a ticket for next credit cycle on doing a big Fable audit
 to find duplicate datatypes/pathways/bad practices etc… thoroughly").
 
 ## Scope
