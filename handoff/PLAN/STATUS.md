@@ -18,7 +18,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   (r-0fd5c0e4e8b8), every file the same. Two last gaps were found and fixed: the basemap (a fresh machine shipped none)
   and the PDF highlight boxes (a fresh machine shipped every rule without its highlight). Both are now downloaded by
   `scripts/bootstrap.sh`, and a release that lacks either one stops with an error instead of shipping without it.
-- Next in this run: this Mac's own export, the full test suites, the web measurements (T409/T410/T304), the tile id check (T305).
+- **This Mac's data rebuilt with today's code**, held back from LATEST: the new release r-0fd5c0e4e8b8 waits in
+  `data/release/CANDIDATE` (LATEST is still r-5a5999c94588). It is the same release the fresh clone made.
+- **Full test suites:** app check green (8,701 tests); pipeline fast tier green after one fix — a clean-up commit
+  earlier tonight (T436) had made the "where does this river continue" code ignore named test rivers (11 red tests;
+  real data was not affected); slow tier: only the 6 known T306 failures, nothing new.
+- Next in this run: the web measurements (T409/T410/T304), the tile id check (T305). Waiting behind another chat's DFO rebuild.
 
 ## 2026-11-06: chat 3 — your calls, then the next build
 - **Your calls recorded:** golden.json is retired (new T439, in progress); T383 and T341 dropped; T389 deferred;
