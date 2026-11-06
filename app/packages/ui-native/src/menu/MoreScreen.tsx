@@ -22,7 +22,7 @@ import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { useCrashSetting, useLayoutClass, useNet, useNetBps, useNotifications } from "@app/ui";
 import { CRASH_WORDS, dataModeLine, menuVM, MOBILE_DATA_WORDS, NET_WORDS, WATER_STATUS_LINE, WATER_STATUSES, WORDS, type DataInput, type MenuPageKey, type MobileDataSetting, type MoreVM, type SyncVM } from "@app/core";
-import { SyncButton } from "../TopBar";
+import { SyncButton, TOP_BAR } from "../TopBar";
 import { TYPE } from "../type";
 import { GUTTER, MORE_WIDE, SPACE, THEMES, type Palette, type ThemeName, round } from "../theme";
 import { FreshDot, FreshBadge } from "./Fresh";
@@ -169,6 +169,8 @@ function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"];
             <Text testID="more-sync-label" numberOfLines={2} style={{ ...TYPE.small, color: palette.sub, flex: 1 }}>{sync.label}</Text>
           </View>
         )}
+        {/* (T428) ONE control: what the button checked sits right under it, as plain lines (nothing there looks tappable) */}
+        {vm.updates && <UpdateLines vm={vm.updates} palette={palette} indent={sync ? TOP_BAR.slot + 4 + SPACE.s2 : 0} />}
         {vm.newRelease !== null && (
           <View testID="data-new-release"
                 style={{ marginHorizontal: GUTTER, marginTop: SPACE.s3, paddingVertical: SPACE.s2, paddingHorizontal: SPACE.s3,
@@ -207,7 +209,7 @@ function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"];
             );
           })}
         </View>
-        {vm.updates && <UpdatesRow vm={vm.updates} palette={palette} metered={metered ?? null} />}
+        {metered && <MeteredSetting palette={palette} metered={metered} />}
         {/* (T254) low-bandwidth mode: Automatic / On / Off, and what it is doing now */}
         <LowDataRow palette={palette} />
         {/* (T242) crash reports: one switch, on by default */}
@@ -225,51 +227,48 @@ function DataBlock({ vm, palette, metered, sync, onSync }: { vm: MoreVM["data"];
 }
 
 /**
- * (T231) THE UPDATES ROW: under the sources, ruled off — the newest check (or a download, or how many failed) on the
- * right; under it, small, each source's own "checked · updated" and its failure in words. On a phone, the setting for
- * large updates on mobile data.
+ * (T231, T428) WHAT THE SYNC BUTTON CHECKED: under it, plain small lines — the newest check (or a download, or how many
+ * failed), then each source's own "checked · updated" and its failure in words. NOT a control: the one tap is the
+ * button above (the map's own sync button), which checks every feed now.
  */
-function UpdatesRow({ vm, palette, metered }: { vm: NonNullable<MoreVM["data"]["updates"]>; palette: Palette;
-                                                metered: MobileDataControl | null }) {
-  const C = MOBILE_DATA_WORDS;
+function UpdateLines({ vm, palette, indent }: { vm: NonNullable<MoreVM["data"]["updates"]>; palette: Palette; indent: number }) {
   return (
-    <View testID="data-updates" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3,
-                                         borderTopWidth: 1, borderTopColor: palette.line, gap: 2 }}>
-      <View accessible role="group" accessibilityLabel={vm.label}
-            style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s3, minHeight: 32 }}>
-        <Icon name="sync" colour={palette.sub} size={14} />
-        <Text style={{ ...TYPE.bodyStrong, fontSize: 14, color: palette.ink, flexShrink: 0 }}>{vm.title}</Text>
-        <Text testID="data-updates-line" numberOfLines={1}
-              style={{ ...TYPE.meta, color: palette.sub, flex: 1, textAlign: "right" }}>{vm.line}</Text>
-      </View>
+    <View testID="data-updates" accessible role="group" accessibilityLabel={`${vm.label} ${vm.sources.map((s) => s.shown).join(" ")}`}
+          style={{ paddingLeft: GUTTER + indent, paddingRight: GUTTER, paddingTop: SPACE.s1, paddingBottom: SPACE.s2, gap: 2 }}>
+      <Text testID="data-updates-line" style={{ ...TYPE.small, color: palette.sub }}>{`${vm.title}: ${vm.line}`}</Text>
       {vm.sources.map((s) => (
         <Text key={s.k} testID={`data-updates-${s.k}`} style={{ ...TYPE.small, color: s.problem ? palette.ink : palette.faint }}>
           {s.shown}
         </Text>
       ))}
-      {/* (T298, owner 2026-10-29) the mobile-data setting: Always / Ask / Wi-Fi only (the first download's answer lands here) */}
-      {metered && (
-        <View testID="data-updates-metered" style={{ marginTop: SPACE.s1, gap: SPACE.s1 }}>
-          <Text style={{ ...TYPE.small, color: palette.ink }}>{C.label}</Text>
-          <View accessibilityRole="radiogroup" accessibilityLabel={C.label}
-                style={{ flexDirection: "row", gap: SPACE.s2, flexWrap: "wrap" }}>
-            {(["always", "ask", "wifi"] as const).map((k) => {
-              const on = metered.value === k;
-              return (
-                <Pressable {...hitProps({ w: 64, h: 40 })} key={k} testID={`data-mobile-${k}`} onPress={() => metered.set(k)}
-                           accessibilityRole="radio" aria-checked={on} accessibilityLabel={`${C.label}: ${C.choices[k]}`}
-                           accessibilityHint={C.hint}
-                           style={({ pressed }) => ({ minHeight: 40, minWidth: 64, paddingHorizontal: SPACE.s3,
-                                                      justifyContent: "center", alignItems: "center", borderWidth: 1.5,
-                                                      borderColor: on ? palette.accent : palette.line,
-                                                      backgroundColor: on || pressed ? palette.tint : palette.card })}>
-                  <Text style={{ ...(on ? TYPE.metaBold : TYPE.meta), color: on ? palette.accent : palette.ink }}>{C.choices[k]}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      )}
+    </View>
+  );
+}
+
+/** (T298, owner 2026-10-29) the mobile-data setting: Always / Ask / Wi-Fi only (the first download's answer lands here). */
+function MeteredSetting({ palette, metered }: { palette: Palette; metered: MobileDataControl }) {
+  const C = MOBILE_DATA_WORDS;
+  return (
+    <View testID="data-updates-metered" style={{ paddingHorizontal: GUTTER, paddingTop: SPACE.s2, paddingBottom: SPACE.s3,
+                                                  borderTopWidth: 1, borderTopColor: palette.line, gap: SPACE.s1 }}>
+      <Text style={{ ...TYPE.small, color: palette.ink }}>{C.label}</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel={C.label}
+            style={{ flexDirection: "row", gap: SPACE.s2, flexWrap: "wrap" }}>
+        {(["always", "ask", "wifi"] as const).map((k) => {
+          const on = metered.value === k;
+          return (
+            <Pressable {...hitProps({ w: 64, h: 40 })} key={k} testID={`data-mobile-${k}`} onPress={() => metered.set(k)}
+                       accessibilityRole="radio" aria-checked={on} accessibilityLabel={`${C.label}: ${C.choices[k]}`}
+                       accessibilityHint={C.hint}
+                       style={({ pressed }) => ({ minHeight: 40, minWidth: 64, paddingHorizontal: SPACE.s3,
+                                                  justifyContent: "center", alignItems: "center", borderWidth: 1.5,
+                                                  borderColor: on ? palette.accent : palette.line,
+                                                  backgroundColor: on || pressed ? palette.tint : palette.card })}>
+              <Text style={{ ...(on ? TYPE.metaBold : TYPE.meta), color: on ? palette.accent : palette.ink }}>{C.choices[k]}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
