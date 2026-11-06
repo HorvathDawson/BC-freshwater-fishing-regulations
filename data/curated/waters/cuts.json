@@ -1179,6 +1179,25 @@
       49.35039
      ],
      "_offset_m": 35
+    },
+    {
+     "id": "little_qualicum_river__little_qualicum_falls_park_bound",
+     "label": "Little Qualicum Falls Park boundary (downstream end)",
+     "kind": "area_boundary",
+     "anchor": {
+      "type": "area_boundary",
+      "area_layer": "parks_bc",
+      "area_name": "LITTLE QUALICUM FALLS PARK",
+      "area_name_field": "PROTECTED_LANDS_NAME",
+      "side": "downstream"
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-06] proposed in review marks on 1:little-qualicum-river:from-the-falls-in-little-qualicum — \"from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence\"",
+     "_coord": [
+      -124.555678,
+      49.317797
+     ]
     }
    ]
   },
