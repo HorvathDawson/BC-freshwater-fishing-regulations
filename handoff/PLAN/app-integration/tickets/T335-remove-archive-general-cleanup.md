@@ -28,3 +28,12 @@ workflow or agent fan-out until that scope is approved here.
 - **Depth:** medium — one finder per area × lens, one verifier per finding (~8–10 agents).
 - **T335:** delete `archive/` (and `pipeline/docs/archive/`) after moving whatever live code still reads; proof =
   targeted suites + app typecheck + `pipeline build --graph --dry-run`.
+
+## Verified by the audit (2026-11-05, `handoff/PLAN/audit-2026-11-05/review-deploy.verified.md`)
+- **archive/:** NOTHING live opens, imports or globs into it (CI and tools included); every hit is a comment, a test
+  path exclusion or `--exclude-dir=archive` (`pipeline-ci.yml:108`). Delete it; reword the comments that name it.
+- **pipeline/docs/archive/:** move up to `pipeline/docs/` first the 3 docs live code cites (`REACH-BUILDER.md`,
+  `HANDOFF-curated-layout.md` §8, `06-ui-data-contract.md`) and `classify.py:17`'s policy source; and
+  `waterbody-splits.json`, which the CURATED file `data/curated/waters/cuts.json:10023,10045` names as its research
+  source — move the file and keep the path working, never reword curated notes without asking the owner.
+- AGENTS header + rule 37 cite archive/: rewrite with T437.
