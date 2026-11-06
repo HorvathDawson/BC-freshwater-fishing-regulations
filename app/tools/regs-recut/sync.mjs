@@ -1,21 +1,32 @@
-// Re-cut the release-backed regulations oracles after a release: taps.py, then hydrate.mjs.
+// (T441) RE-CUT EVERY RELEASE-BACKED TEST FIXTURE after a release, in one step, in order:
 //   node app/tools/regs-recut/sync.mjs
-// Writes app/fixtures/golden/taps.json and hydrate.json from app/fixtures/golden/states.json (the tap QUESTIONS: water,
-// part, date; no answers). Nothing else is frozen: golden.json, pins.json, tokens.json and inventory.json (extracts of the
-// regulations prototype, app/design/regs-v11.html v38 @ 7fb6809f, deleted in T87) were retired in T439 together with the
-// tests that only compared the app against them (git keeps them).
-// Commit the regenerated taps.json / hydrate.json with the release id in the message.
+//   1. taps.py      app/fixtures/golden/taps.json from app/fixtures/golden/states.json (the tap QUESTIONS: water, part,
+//                   date; no answers), on the release's regs store (data/release/LATEST; P20: no regs.sqlite is kept)
+//   2. hydrate.mjs  app/fixtures/golden/hydrate.json (reads taps.json's states and its meta.golden/version)
+//   3. regs-fixture the committed fixture release app/packages/data/dev/regs-release/ (the waters taps.json names) AND
+//                   app/packages/data/dev/section-lines.json, cut from the same release's own `lines` file
+//   4. VM fixtures  app/packages/ui-native/src/regs/fixtures/*.json (UPDATE_REGS_FIXTURES=1, the conformance harness)
+// Each step reads what the one before it wrote. Then `pnpm check`; commit the regenerated files with the release id in
+// the message. Nothing else is frozen: golden.json, pins.json, tokens.json and inventory.json were retired in T439.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../../..');
-const run = (cmd, a) => execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'] });
+const APP = path.join(REPO, 'app');
+const run = (cmd, a, env = {}) =>
+  execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, ...env } });
 const py = path.join(REPO, '.venv/bin/python');
-// taps.py reads the RELEASE's regs store (data/release/LATEST; P20: no regs.sqlite is kept)
-if (!fs.existsSync(py) || !fs.existsSync(path.join(REPO, 'data/release/LATEST'))) {
+const latest = path.join(REPO, 'data/release/LATEST');
+if (!fs.existsSync(py) || !fs.existsSync(latest)) {
   console.error('regs-recut: needs .venv and data/release/LATEST'); process.exit(1);
 }
-run(py, [path.join(HERE, 'taps.py')]);
-// after taps.py: hydrate.mjs reads golden/taps.json (its states and its meta.golden/version)
-run('node', [path.join(HERE, 'hydrate.mjs')]);
+const release = path.join(REPO, 'data/release', fs.readFileSync(latest, 'utf8').trim());
+const step = (n, what) => console.log(`\nregs-recut ${n}/4: ${what} (${path.basename(release)})`);
+step(1, 'taps.json'); run(py, [path.join(HERE, 'taps.py')]);
+step(2, 'hydrate.json'); run('node', [path.join(HERE, 'hydrate.mjs')]);
+step(3, 'the fixture release + section-lines.json');
+run(py, ['-m', 'pipeline.deliver.release.regs_fixture', '--release', release]);
+step(4, 'the regs VM fixtures');
+run('pnpm', ['-C', APP, 'exec', 'vitest', 'run', 'conformance/src/regs/harness'], { UPDATE_REGS_FIXTURES: '1' });
+console.log('\nregs-recut: done. Next: pnpm -C app check, then commit the fixtures with the release id.');

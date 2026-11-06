@@ -82,7 +82,9 @@ manifest last and writes `PUBLISHED`. If the website must follow, deploy it sepa
 The app's rules→app parity suites compare against the release `app/fixtures/golden/taps.json` was cut from. On any
 other release they SKIP, and a skip is green. So after LATEST moves:
 
-1. `node app/tools/regs-recut/sync.mjs`, then commit `taps.json` / `hydrate.json` with the release id in the message.
+1. `node app/tools/regs-recut/sync.mjs` (T441: ONE step re-cuts every release-backed fixture — taps.json, hydrate.json,
+   the fixture release `app/packages/data/dev/regs-release/`, `dev/section-lines.json`, the regs VM fixtures), then
+   commit them with the release id in the message. Ids still pinned in tests are the one hand step left (see T441).
 2. `scripts/heavy.sh test-full 40 -- ./scripts/test-full.sh`. Its app step runs with `REGS_STORE_REQUIRED=1`, so a
    release that is not paired with the goldens FAILS there, naming the `sync.mjs` command, instead of passing on zero
    cases.

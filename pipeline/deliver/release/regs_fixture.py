@@ -39,12 +39,15 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set
 
 from pipeline.deliver.release import build as B
+from pipeline.deliver.release import lines as L
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.store.common import unpack
 
 REPO = Path(__file__).resolve().parents[3]
 TAPS = REPO / "app" / "fixtures" / "golden" / "taps.json"
 OUT = REPO / "app" / "packages" / "data" / "dev" / "regs-release"
+#: (T441) the fixture's stream lines, beside it (`@app/data/release/node` `regsFixtureLines`)
+LINES_OUT = REPO / "app" / "packages" / "data" / "dev" / "section-lines.json"
 SID_WIDTH = {"section_akey": 2, "section_place": 1}
 #: water tables cut to the kept waters (by their ord column); every other water table is copied whole
 WATER_BY_ORD = {"item": "item_ord", "part": "item_ord", "part_section": "ord", "part_geo": "ord", "part_mark": "ord",
@@ -79,7 +82,74 @@ def _strs(xs: Iterable[str]) -> str:
     return ",".join("'" + x.replace("'", "''") + "'" for x in sorted(set(xs))) or "NULL"
 
 
-def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root: Path) -> Path:
+def unnamed_at(lines_out: Path) -> List[int]:
+    """The unnamed reach the tests walk, as [blue_line_key, from_m] — from the committed file (its `unnamed_at`, or,
+    for a file written before T441, its `unnamed` handle's own row)."""
+    d = json.loads(lines_out.read_text())
+    if d.get("unnamed_at"):
+        return list(d["unnamed_at"])
+    row = next((r for r in d["lines"] if r[0] == d["unnamed"]), None)
+    if row is None:
+        raise FixtureError(f"regs fixture: {lines_out} names unnamed {d['unnamed']} but lists no line for it")
+    return [row[1], row[2]]
+
+
+def fixture_lines(release: Path, sids: Iterable[int], unnamed_at: Sequence[int], out: Path) -> int:
+    """(T441) THE FIXTURE'S STREAM LINES, cut from the release's own `lines` file (`lines.py`, the atlas graph's exact
+    lines): `[handle, blue_line_key, from_m, to_m)` of every stream section among `sids`, plus the one unnamed reach the
+    tests walk — named by its line and start (`unnamed_at` = [blk, from_m], stable across a renumbering), its handle
+    looked up here. A slot that spans nothing (a filler: not a stream section) is left out; an open end stays open
+    (0xFFFFFFFF, `LINE_OPEN`). Returns the rows written. Was a hand re-map through section_handles.txt."""
+    man = json.loads((release / "manifest.json").read_text())
+    e = man["files"].get("lines")
+    if e is None:
+        raise FixtureError(f"regs fixture: release {man['data_release']} has no lines file")
+    with tempfile.NamedTemporaryFile(suffix=".sqlite") as f:
+        f.write(gzip.decompress((release.parent / e["url"]).read_bytes()))
+        f.flush()
+        con = sqlite3.connect(f"file:{f.name}?mode=ro", uri=True)
+        decoded: Dict[int, List] = {}
+
+        def line(s: int):
+            k = s >> L.BLOCK_BITS
+            if k not in decoded:
+                r = con.execute("SELECT n, b FROM section_line WHERE block = ?", (k,)).fetchone()
+                decoded[k] = L.decode_block(r[1], r[0]) if r else []
+            b = decoded[k]
+            return b[s & (L.SLOTS - 1)] if (s & (L.SLOTS - 1)) < len(b) else None
+
+        rows = []
+        for s in sorted(set(sids)):
+            ln = line(s)
+            if ln is not None and ln[1] != ln[2]:
+                rows.append([s, ln[0], ln[1], ln[2]])
+        blk, m = unnamed_at
+        hit = con.execute("SELECT block, n, b FROM section_line WHERE blk0 <= ? ORDER BY blk0 DESC, m0 DESC LIMIT 64",
+                          (blk,)).fetchall()
+        unnamed = None
+        for k, n, b in hit:
+            for i, (lb, lo, hi) in enumerate(L.decode_block(b, n)):
+                if lb == blk and lo == m and lo != hi:
+                    unnamed = (k << L.BLOCK_BITS) | i
+                    rows.append([unnamed, lb, lo, hi])
+                    break
+            if unnamed is not None:
+                break
+        con.close()
+    if unnamed is None:
+        raise FixtureError(f"regs fixture: no section starts at {m} m on line {blk} (the unnamed reach)")
+    rows = sorted({r[0]: r for r in rows}.values())
+    doc = {"about": ("(T369, T441) TEST FIXTURE, WRITTEN by pipeline.deliver.release.regs_fixture: the stream line "
+                     "[handle, blue_line_key, from_m, to_m) of every stream section of the regs fixture's waters "
+                     "(dev/regs-release), plus one unnamed reach (`unnamed`, found by `unnamed_at` = [blue_line_key, "
+                     "from_m]), cut from the release's own `lines` file. 4294967295 = open end. Never hand-edited."),
+           "release": man["data_release"], "unnamed": unnamed, "unnamed_at": [blk, m], "lines": rows}
+    out.write_text(json.dumps(doc, separators=(",", ":")).replace("],[", "],\n[") + "\n")
+    return len(rows)
+
+
+def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root: Path,
+          lines_out: Optional[Path] = None) -> Path:
     man = json.loads((release / "manifest.json").read_text())
     src_id = man["data_release"]
     for need in ("water", "core", "regs-sid"):
@@ -197,6 +267,8 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
         for old in out_root.glob("r-*"):
             if old != final:
                 shutil.rmtree(old)
+        if lines_out is not None:
+            fixture_lines(release, sids, unnamed_at(lines_out), lines_out)
         return final
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -236,7 +308,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         rel = newest_release(GENERATED.release)
     if rel is None or not (rel / "manifest.json").exists():
         raise FixtureError(f"regs fixture: no release at {rel or 'data/release/r-*'}")
-    d = build(rel, sorted(set(golden_items(a.taps)) | set(a.item)), golden_handles(a.taps), a.out)
+    d = build(rel, sorted(set(golden_items(a.taps)) | set(a.item)), golden_handles(a.taps), a.out,
+              lines_out=LINES_OUT if a.out == OUT else None)
     sz = B.sizes(d)
     print(json.dumps({"release": str(d), "gz_total": sum(v["gz"] for v in sz.values()), "files": sz}, indent=1))
     return 0

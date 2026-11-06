@@ -18,7 +18,7 @@ import type { Db, Row } from "../db";
 import { verify } from "../../fetchVerified";
 import { parseManifest, type Manifest } from "../../manifest";
 import { releaseLoader, type DbName, type Opener, type ReleaseLoader, type ReleaseSource } from "../../release/loader";
-import { encodeLineBlock, type SectionLine } from "../../regs/line";
+import { encodeLineBlock, LINE_OPEN, type SectionLine } from "../../regs/line";
 import { BLOCK_BITS } from "../../regs/reads";
 
 /**
@@ -135,10 +135,15 @@ function sectionLineDb(rows: readonly LineRow[], handles: string): Db {
     const n = Math.max(...slots.keys()) + 1, first = slots.get(Math.min(...slots.keys()))!;
     const lines: SectionLine[] = [];
     let prev: SectionLine = { blk: first.blk, from: first.from, to: first.from };
+    // (T441) after an OPEN line (a stream of one section, as the release's own `lines` file writes it) a filler cannot
+    // follow on its stream (only a run's last slot may be open): it spans nothing at the NEXT row's start instead
+    const nextOf = (i: number) => { for (let j = i + 1; j < n; j++) { const l = slots.get(j); if (l) return l; } return null; };
     for (let i = 0; i < n; i++) {
       const l = slots.get(i);
-      lines.push(l ?? prev);
-      prev = l ? { blk: l.blk, from: l.to, to: l.to } : prev;
+      if (l) lines.push(l);
+      else if (prev.to !== LINE_OPEN) lines.push(prev);
+      else { const nx = nextOf(i)!; lines.push({ blk: nx.blk, from: nx.from, to: nx.from }); }
+      if (l) prev = l.to === LINE_OPEN ? l : { blk: l.blk, from: l.to, to: l.to };
     }
     put.run(k, n, lines[0]!.blk, lines[0]!.from, encodeLineBlock(lines));
   }
