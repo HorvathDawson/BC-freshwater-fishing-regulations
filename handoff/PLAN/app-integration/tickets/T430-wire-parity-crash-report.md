@@ -1,6 +1,8 @@
 # T430 — The crash and problem-report formats have no parity test (one field loses every report)
 
-Status: OPEN — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
+Status: DONE 2026-11-05 — a6ed05135. `app/tools/wire.test.ts` pins app ↔ worker: enum/format/limit/context-key sets
+compared, every enum value and an at-limit payload sent through `validateCrash`/`validateReport` (mutation-checked: an
+extra route kind or a dropped worker key fails). No shared source: the worker sits outside the workspace (no @app import).
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: app 5; `*.verified.md` has the evidence per finding).
 
