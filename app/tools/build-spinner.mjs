@@ -34,7 +34,8 @@
  * Grayscale+alpha, not colour, because the runtime tints it. One strip serves the light,
  * dark and colour-blind palettes — and cannot fall out of step with them.
  */
-import { deflateSync } from "node:zlib";
+// (T80) fflate, not node:zlib: zlib's deflate bytes differ by CPU (the Mac vs CI's x64), and `pnpm spinner` compares bytes
+import { zlibSync } from "fflate";
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -246,7 +247,7 @@ function pngRGB(width, height, rgb) {
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk("IHDR", ihdr),
-    chunk("IDAT", deflateSync(raw, { level: 9 })),
+    chunk("IDAT", Buffer.from(zlibSync(raw, { level: 9 }))),
     chunk("IEND", Buffer.alloc(0)),
   ]);
 }
@@ -295,7 +296,7 @@ function png(width, height, alpha) {
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk("IHDR", ihdr),
-    chunk("IDAT", deflateSync(raw, { level: 9 })),
+    chunk("IDAT", Buffer.from(zlibSync(raw, { level: 9 }))),
     chunk("IEND", Buffer.alloc(0)),
   ]);
 }

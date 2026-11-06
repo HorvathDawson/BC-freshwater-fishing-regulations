@@ -15,7 +15,9 @@
  * At t = 0 the spinner's ring is a full circle, its rotation is 0 and its strip is at frame 0 — so the first frame of the
  * live spinner IS this picture, to the pixel, and `splash.ts` hides the native one only once that frame is on screen.
  */
-import { deflateSync, inflateSync as inflate } from "node:zlib";
+import { inflateSync as inflate } from "node:zlib";
+// (T80) fflate, not node:zlib, to write: zlib's deflate bytes differ by CPU (the Mac vs CI's x64); --check compares bytes
+import { zlibSync } from "fflate";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -57,7 +59,7 @@ function pngRGBA(w, h, rgba) {
   }
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6;
-  return Buffer.concat([SIG, chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw, { level: 9 })), chunk("IEND", Buffer.alloc(0))]);
+  return Buffer.concat([SIG, chunk("IHDR", ihdr), chunk("IDAT", Buffer.from(zlibSync(raw, { level: 9 }))), chunk("IEND", Buffer.alloc(0))]);
 }
 
 /** Frame 0 of the committed strip: its alpha channel, 0..1, `frame` x `frame`. */
