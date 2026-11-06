@@ -20,6 +20,30 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   clean. In-season links re-synced: same 32 links, new checksum.
 - **Your phone check:** Coquitlam → Map → Downstream to the bottom → Upstream once. The highlight should be one line.
 
+## 2026-11-05 (late): Chat 1b — T416, T412, T413; next APK batch started
+- **Pushed:** every commit is on GitHub (one at a time; no "commit_refs" errors this time).
+- **T416 (a fresh clone can build):**
+  - The big inputs that are not in git (the 10 GB map data, HYDAT, fish obstacles) are now copied to the build-assets
+    bucket, each under its own fingerprint (`data/source/pins.json`). The basemap was already there.
+  - One command sets up a new machine: `bash scripts/bootstrap.sh`. On this Mac it took ~7 min to download and check
+    everything.
+  - `fetch_data.py` now fails when a layer fails (it used to say "complete").
+  - The timed build from that fresh clone is running now (atlas first). The result goes in T416 and a runbook.
+- **T412 (run timing):** one publisher now, its GitHub workflow. Each release ships only the map data run timing
+  needs. The staging upload starts the workflow and keeps uploading, then switches the app to the new release only
+  once run timing for that map is up (your "in parallel, then wait" answer). The worker checks DFO's NuSEDS weekly and
+  starts the workflow when it changes. Never a GitHub schedule.
+- **T413 (HYDAT):** the worker starts the HYDAT workflow itself once you add the token (OWNER-TODO has the steps).
+  Without the token, the email still names the button. Both workflows can now be started from the dev branch, so
+  `main` stays untouched.
+- **Worker changes (T412, T413) are not deployed yet.** They go out with the next APK, as usual.
+- **Next APK batch (in code, not built):**
+  - T390: the app reads our play.json every time it opens or comes back, so a new version shows at once. Update uses
+    Play's flow, or opens the Play listing while Play catches up.
+  - T417 + T418: in progress in a second lane.
+  - Say "build" when you want the APK.
+- **New ticket T419:** Salmon River (Region 2) is not simplified enough when zoomed out. It is checked with the UI work.
+
 ## 2026-11-05: data flow walkthrough done (T408)
 - **Every stream decided.** Your answers are in `handoff/PLAN/data-flow-decisions.md`. In short:
   - `decided/` goes; marks write straight to the final file.
