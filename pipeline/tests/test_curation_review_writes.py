@@ -175,6 +175,7 @@ def test_a_burst_never_evicts_yesterday_and_one_a_day_is_kept(env):
     assert old[3] in keep and len({old[1], old[2]} & keep) == 1, "one a day, the day's last"
 
 
+@pytest.mark.needs_atlas   # the mark route loads the entries through the build's registry
 def test_a_refused_save_is_logged_to_a_file(env, tmp_path):
     import app as app_mod
     log = tmp_path / "refused.jsonl"

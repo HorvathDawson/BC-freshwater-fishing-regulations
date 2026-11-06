@@ -46,7 +46,11 @@ def test_extract_json_obj():
     assert d._extract_json_obj("not json") == {}
 
 
-def test_invalid_batch_ids_flags_bad_response(tmp_path):
+def test_invalid_batch_ids_flags_bad_response(tmp_path, monkeypatch):
+    # The ingest's registry is the default build's (T119); this judges the batch-id bookkeeping on
+    # synthetic batches, so it gets an empty synthetic registry instead of a build.
+    from pipeline.regs.parsing import ingest_catalogue
+    monkeypatch.setattr(ingest_catalogue, "ingest_registry", lambda: {})
     manifest = {"batches": [{"id": 0, "indices": [0]}, {"id": 1, "indices": [1]}]}
     batches = tmp_path / "batches"
     responses = tmp_path / "responses"

@@ -19,6 +19,10 @@ _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "dfo
 
 COWICHAN = "gnis:12227"
 TRESTLE = "cowichan_river__greendale_trestle"
+# The feed and the matches file are temp; the waters they name (Cowichan, its trestle cut) are checked against the
+# default build's registry and splits (`inseason._check`, `reuse._registry`).
+pytestmark = pytest.mark.needs_atlas
+
 LIVE, OPEN, GONE, STALE = "is-aaaaaaaaaaa1", "is-aaaaaaaaaaa2", "is-aaaaaaaaaaa3", "is-aaaaaaaaaaa9"
 
 

@@ -211,6 +211,7 @@ def test_a_single_line_exemption_targets_the_RULE_not_the_entry():
 # `main()` once splatted argparse's names into run() (`run() got an unexpected keyword argument
 # 'batch'`), so the one command CATALOGUE_PARSE_PROMPT.md gives the model crashed before it
 # checked anything. Only a subprocess on real files exercises that line.
+# The CLI is the real one, so it checks against the default build's registry (T119): needs_atlas.
 
 def _cli(tmp_path, entry):
     import json
@@ -230,12 +231,14 @@ def _cli(tmp_path, entry):
         capture_output=True, text=True, timeout=120)
 
 
+@pytest.mark.needs_atlas
 def test_cli_accepts_a_clean_candidate(tmp_path):
     p = _cli(tmp_path, _entry([_quota(extents=[{"op": "whole"}])]))
     assert p.returncode == 0, p.stdout + p.stderr
     assert "1/1 entries valid" in p.stdout
 
 
+@pytest.mark.needs_atlas
 def test_cli_refuses_a_bad_candidate_with_exit_1(tmp_path):
     p = _cli(tmp_path, _entry([_quota(take=99, extents=[{"op": "whole"}])]))
     assert p.returncode == 1, p.stdout + p.stderr

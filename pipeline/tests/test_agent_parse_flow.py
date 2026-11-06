@@ -49,9 +49,14 @@ def _candidate_entry(index: int) -> dict:
     }
 
 
-def test_export_then_ingest_writes_the_entry(tmp_path):
-    """The whole flow on files: export a batch, answer it, ingest the answer."""
+def test_export_then_ingest_writes_the_entry(tmp_path, monkeypatch):
+    """The whole flow on files: export a batch, answer it, ingest the answer.
+
+    The ingest checks against the default build's registry (T119); here it is handed the same
+    synthetic registry the batch was exported from, so the flow stays data-free."""
+    from pipeline.regs.parsing import ingest_catalogue
     from pipeline.regs.parsing.ingest_catalogue import run
+    monkeypatch.setattr(ingest_catalogue, "ingest_registry", _registry)
     export(_rows(), _registry(), tmp_path, batch_size=40, overrides={}, existing_ids=set(),
            force=False)
     batch = tmp_path / "batches" / "batch_000.json"

@@ -6,7 +6,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+import pytest  # noqa: E402
+
 import reuse  # noqa: E402
+
+# The real entries, read through the default build's registry (`reuse._registry`).
+pytestmark = pytest.mark.needs_atlas
 
 
 def test_the_guessed_cuts_reach_their_entries():

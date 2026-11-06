@@ -153,11 +153,15 @@ def test_a_missing_envelope_is_only_a_placeholder_in_the_plan(inputs):
 
 # ------------------------------------------------------------------ N9: the envelope is a stage
 
-def test_the_envelope_is_made_first_from_hydat():
+def test_the_envelope_is_made_first_from_hydat(tmp_path, monkeypatch):
     assert B.STAGES[0] == "clim" and B.STAGES.index("clim") < B.STAGES.index("deliver")
     cmd = B.commands(Path("atlas"))["clim"]
     assert cmd[2] == "pipeline.gauges.feed.climatology" and str(B.CLIM_PATH) in cmd and "--hydat" in cmd
     assert B.outputs(Path("atlas"))["clim"] == [Path(B.CLIM_PATH)]
+    # the key stamps the fetched HYDAT archive and station roster (not in git): tmp stand-ins here
+    for name in ("hydat.sqlite3", "bc_hydrometric_stations.json"):
+        (tmp_path / name).write_text("v1")
+    monkeypatch.setattr(B, "SOURCE", tmp_path)
     assert set(B.clim_key()) == {"hydat", "release", "stations", "year", "code"}
 
 

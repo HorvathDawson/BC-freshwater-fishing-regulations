@@ -130,15 +130,22 @@ def test_a_vanished_target_is_an_orphan_listed(tmp_path, monkeypatch):
 CHEAP_SCOPES = ("dfo", "tidal", "slough", "q154", "name")
 
 
+@pytest.mark.needs_atlas
 def test_no_owner_mark_is_orphaned_or_dropped_live():
     """Regenerating the DFO feed, the suggestions, the proposals, the tidal candidates, the slough /
     name lists must never orphan an owner mark, and a DFO mark must never fall out of done because
-    its own fix landed. Fails listing every orphan / stale DFO mark with what it said."""
-    from pipeline.common.curated import CURATED
+    its own fix landed. Fails listing every orphan / stale DFO mark with what it said.
+
+    Whether a mark's fix LANDED (`applied_keys`) reads the build's registry: a DFO mark whose proposal
+    cuts at a named river (the Campbell's "Quinsam River") is only recognised as landed against it, so
+    without a build it reads as "binding moved" — needs_atlas, not a data defect."""
+    from pipeline.common.curated import CURATED, GENERATED
+    from pipeline.tests.conftest import ATLAS_HINT, need
     path = Path(CURATED.review.marks)
     assert path.exists(), f"no marks store at {path} — it is curated, in git"
     marks = [m for m in M.load(path) if m.scope in CHEAP_SCOPES]
-    src = P.Sources.live()
+    src = P.Sources.live(build=need(None, "atlas", GENERATED.build(), ATLAS_HINT))
+    need(None, "atlas", src.build / "registry.json", ATLAS_HINT)
     h = M.health(marks, entries={}, ctx=None, applied=P.applied_keys(M.load(path), src))
     dropped = h["orphans"] + [r for r in h["stale_rows"] if r["scope"] == "dfo"]
     assert not dropped, "owner marks orphaned / undone:\n" + "\n".join(

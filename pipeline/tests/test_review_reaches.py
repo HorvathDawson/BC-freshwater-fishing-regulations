@@ -78,6 +78,9 @@ def braided(monkeypatch):
              ("400:0", f"{MAIN}:0"), ("400:0", f"{MAIN}:1000")]   # s1 touches both sides
     g = _graph(nodes, edges)
     monkeypatch.setattr(reuse, "_graph", lambda: g)
+    # This synthetic river has no tidal split and no tidal water: the atlas's tidal sidecar (T326) is the
+    # real build's, keyed to real section ids, and is not read. Rows marked tidal still come from the entries.
+    monkeypatch.setattr(reuse, "_tidal_pieces_for", lambda _key: {})
     return {n.node_id for n in nodes}
 
 

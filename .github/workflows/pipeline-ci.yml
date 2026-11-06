@@ -33,11 +33,24 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      # FULL history: the review-proposal tests rebuild their fixtures with `git show <commit>:<path>` from the commit
+      # the owner's marks were made against (test_review_proposals.py `MARKED_AT`); a shallow clone has no such commit.
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.13", cache: pip }
 
       - run: pip install -r requirements.txt
+
+      # The basemap zoom-cap audit's tests (test_basemap_zoom_audit.py) build a tiny fixture archive and run the
+      # build's own path over it: tippecanoe, tile-join and tippecanoe-decode (Ubuntu's tippecanoe package) and the
+      # go-pmtiles CLI (`pmtiles extract`), pinned. Seconds and a few MB — the tools, never the 4 GB source.
+      - name: Tile tools (tippecanoe, pmtiles)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq tippecanoe
+          curl -fsSL https://github.com/protomaps/go-pmtiles/releases/download/v1.31.2/go-pmtiles_1.31.2_Linux_x86_64.tar.gz \
+            | sudo tar xz -C /usr/local/bin pmtiles
+          tippecanoe --version; pmtiles version
 
       # FIRST, because it is the cheapest and its failure means the tree cannot be trusted
       # rather than that a test broke: every curated path in config.yaml resolves to a file
