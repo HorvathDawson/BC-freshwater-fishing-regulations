@@ -4865,7 +4865,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stamp_river__stamp_river_powerline_crossing_b",
+              "stamp_river__robertson_creek_hatchery_lagoon_2"
+            ],
+            "item_id": "gnis:14533"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
