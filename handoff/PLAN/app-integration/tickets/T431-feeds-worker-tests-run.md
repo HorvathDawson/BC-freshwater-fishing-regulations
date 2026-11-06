@@ -1,6 +1,8 @@
 # T431 — The feeds worker's own tests run nowhere; its silent catches
 
-Status: OPEN — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
+Status: DONE 2026-11-05 — f87e7533a. The worker's vitest runs in `app-ci.yml` and first in `feeds.sh` (`tools/feeds-gate.test.ts`);
+the failure scan covers `workers/feeds/src` and the "logged below" catches now log (`tell`); `scheduled()` + `runTimingCheck`
+tested (`test/scheduled.test.ts`); the two skipped DFO suites + harness/typed_dump removed; REPORT_SALT required (503 / no deploy).
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: app 2, 3/4, 7; tests 3, 4; `*.verified.md` has the evidence per finding).
 
