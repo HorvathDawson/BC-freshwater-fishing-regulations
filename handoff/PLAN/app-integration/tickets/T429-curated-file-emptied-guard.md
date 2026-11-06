@@ -1,6 +1,6 @@
 # T429 — A missing review input can empty a curated file
 
-Status: DONE 2026-11-05 (chat 3) — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
+Status: DONE 2026-11-05 (chat 3, 467affc51) — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: pipeline 1, 4; `*.verified.md` has the evidence per finding).
 
