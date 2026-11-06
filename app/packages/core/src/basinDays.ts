@@ -15,6 +15,8 @@ export const BASIN_DAYS_WORDS = {
   title: (name: string) => `${name} watershed`,
   /** under it: what each day's colour ranks, by quantity */
   scale: { discharge: "Flow vs. past years, by day", level: "Water level vs. past years, by day" },
+  /** (T427) the title row's right end in the bottom bar: the chosen day and its standing, "Now · much below normal" */
+  verdict: (chip: string, word: string) => `${chip} · ${word.toLowerCase()}`,
   /** a day no gauge in the group reaches */
   none: "No gauge reading",
   /** the card's foot when a day has no reading: what the dash means */
@@ -47,6 +49,8 @@ export interface BasinDayVM {
 export interface BasinDaysVM {
   readonly title: string;
   readonly scale: string;
+  /** (T427) the day shown, in words ("Now · much below normal"); null when no day is lit (Change) */
+  readonly verdict: string | null;
   readonly list: string;
   readonly days: readonly BasinDayVM[];
   /** a key for the dash, when a day has none; null otherwise */
@@ -70,7 +74,9 @@ export function basinDaysVM(name: string, standings: ReadonlyMap<DayHorizon, num
     return { day: d, chip: horizonDateChip(d, now), standing: s, percentile: has ? p : null, word,
              label: `${HORIZON_LABELS[d].accessible}: ${word.toLowerCase()}${lit ? ", showing" : ""}`, on: lit };
   });
+  const lit = days.find((d) => d.on);
   return { title: BASIN_DAYS_WORDS.title(name), scale: BASIN_DAYS_WORDS.scale[quantity],
+           verdict: lit ? BASIN_DAYS_WORDS.verdict(lit.chip, lit.word) : null,
            list: BASIN_DAYS_WORDS.list(name), days,
            noneKey: days.some((d) => d.standing === null) ? BASIN_DAYS_WORDS.noneKey : null };
 }

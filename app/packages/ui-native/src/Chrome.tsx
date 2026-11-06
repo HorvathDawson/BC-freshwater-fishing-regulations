@@ -182,6 +182,8 @@ const NORMAL: readonly [number, number] = (() => {
 /** the legend's widest: past this a ramp across a desktop window is a stripe, not a scale (centred in the strip) */
 export const LEGEND_RAMP_MAX = 560;
 const BAR = 10, TICKS = 14;
+/** (T427) the width of Low / High ("Falling" is the longest) beside the ramp, and the gap to it */
+const LABEL_W = 44, LABEL_GAP = 6;
 
 /**
  * The Conditions legend: a continuous ramp, because flow against the record is continuous.
@@ -251,38 +253,41 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
           <Text testID="legend-count" style={{ ...word, fontSize: 12, lineHeight: 17 }}>{count}</Text>
         )}
       </View>
-      <View style={{ height: TICKS + BAR }}>
-        {counts.map((c, i) => c === 0 ? null : (
-          // (T243) a labelled picture, said as one: a label on a role-less view is ignored by screen readers (axe)
-          <View key={i} accessibilityRole="image"
-                accessibilityLabel={legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS)
-                                                    : FLOW_LEGEND.near(percentileOrdinal((i + 0.5) / BINS)))}
-                style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
-                         paddingHorizontal: 0.5 }}>
-            <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />
+      {/* (T427) LOW and HIGH flank the bar on its own row; the bracket under the middle half carries "Normal" in it */}
+      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: LABEL_GAP }}>
+        <Text style={{ ...word, width: LABEL_W, textAlign: "right" }}>{low}</Text>
+        <View style={{ flex: 1, height: TICKS + BAR }}>
+          {counts.map((c, i) => c === 0 ? null : (
+            // (T243) a labelled picture, said as one: a label on a role-less view is ignored by screen readers (axe)
+            <View key={i} accessibilityRole="image"
+                  accessibilityLabel={legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS)
+                                                      : FLOW_LEGEND.near(percentileOrdinal((i + 0.5) / BINS)))}
+                  style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
+                           paddingHorizontal: 0.5 }}>
+              <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />
+            </View>
+          ))}
+          <View testID="legend-bar" accessibilityRole="image" accessibilityLabel={describe ?? FLOW_LEGEND.scale(title, low, high, mid)}
+                style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: BAR }}>
+            <Svg width="100%" height={BAR} viewBox={`0 0 100 ${BAR}`} preserveAspectRatio="none">
+              <Defs>
+                <LinearGradient id="legend-ramp" x1="0" y1="0" x2="1" y2="0">
+                  {stops.map((s) => <Stop key={s.at} offset={s.at} stopColor={s.colour} />)}
+                </LinearGradient>
+              </Defs>
+              <Rect x={0} y={0} width={100} height={BAR} fill="url(#legend-ramp)" />
+            </Svg>
           </View>
-        ))}
-        <View testID="legend-bar" accessibilityRole="image" accessibilityLabel={describe ?? FLOW_LEGEND.scale(title, low, high, mid)}
-              style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: BAR }}>
-          <Svg width="100%" height={BAR} viewBox={`0 0 100 ${BAR}`} preserveAspectRatio="none">
-            <Defs>
-              <LinearGradient id="legend-ramp" x1="0" y1="0" x2="1" y2="0">
-                {stops.map((s) => <Stop key={s.at} offset={s.at} stopColor={s.colour} />)}
-              </LinearGradient>
-            </Defs>
-            <Rect x={0} y={0} width={100} height={BAR} fill="url(#legend-ramp)" />
-          </Svg>
         </View>
+        <Text style={{ ...word, width: LABEL_W }}>{high}</Text>
       </View>
-      {/* THE SCALE UNDER IT: Low · a bracket over the middle half, "Normal" · High */}
-      <View style={{ height: 24 }}>
+      <View style={{ height: 16, marginHorizontal: LABEL_W + LABEL_GAP }}>
         <View testID="legend-normal"
-              style={{ position: "absolute", top: 2, height: 5, left: pct(band[0]), width: pct(band[1] - band[0]),
-                       borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, borderColor: palette.sub }} />
-        <Text style={{ ...word, position: "absolute", top: 8, left: 0 }}>{low}</Text>
-        <Text style={{ ...word, position: "absolute", top: 8, left: pct(band[0]), width: pct(band[1] - band[0]),
-                       textAlign: "center" }}>{mid}</Text>
-        <Text style={{ ...word, position: "absolute", top: 8, right: 0 }}>{high}</Text>
+              style={{ position: "absolute", top: 2, height: 14, left: pct(band[0]), width: pct(band[1] - band[0]),
+                       alignItems: "center", borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1,
+                       borderColor: palette.sub }}>
+          <Text style={{ ...word, lineHeight: 13 }}>{mid}</Text>
+        </View>
       </View>
     </View>
   );

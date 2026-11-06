@@ -15,6 +15,8 @@ describe("basinDaysVM", () => {
   it("the group's name as sourced, core's word around it; the scale by quantity", () => {
     expect(vm.title).toBe("Chilliwack River watershed");
     expect(vm.scale).toBe("Flow vs. past years, by day");
+    expect(vm.verdict).toBe("Fri 6 · above normal");
+    expect(basinDaysVM("Chilliwack River", st, "change", "discharge", TUE).verdict).toBeNull();
     expect(basinDaysVM("Chilliwack River", st, 0, "level", TUE).scale).toBe("Water level vs. past years, by day");
     expect(vm.list).toBe("Chilliwack River watershed, standing by day");
   });

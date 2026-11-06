@@ -1,6 +1,6 @@
 # T427 — The Conditions legend's watershed forecast: leaner, fewer lines
 
-Status: OPEN — owner 2026-11-05 (screenshot, Conditions map bottom bar): "make this the watershed forecast a bit leaner.
+Status: DONE 2026-11-05 (owner looks at the shots) — was: OPEN — owner 2026-11-05 (screenshot, Conditions map bottom bar): "make this the watershed forecast a bit leaner.
 basically it uses more lines then what we need we can combine some of them together etc just to make it a bit less thick."
 
 ## Today (7 lines + a bordered card)
@@ -28,3 +28,13 @@ Same information in about 4 rows at 390 wide (before/after shots, light + dark, 
 merged title/verdict row and the a11y names; nothing else on the Conditions bar moves.
 
 Links: T417 (watershed conditions follow the watershed on screen), T367 (layout rules). Size: S. Owner: looks at the shots.
+
+## Outcome (2026-11-05)
+- Strip card (bottom bar): one title row = watershed left, the day shown right ("Now · normal"; core `BASIN_DAYS_WORDS.verdict`,
+  `BasinDaysVM.verdict`, null when Change lights no day); the subtitle and the separate verdict line are gone; no border/padding,
+  a `line` rule from the key above. Rows layout (a water's view) is unchanged (keeps its subtitle, still a card).
+- Ramp (`Chrome.tsx` `LegendRamp`, also the Change legend): Low / High flank the bar on its row; "Normal" sits inside its bracket.
+  The label line is gone (24 px to a 16 px bracket row). Histogram still stands on the bar.
+- Day cells and their a11y names unchanged. Tests: BasinDays.test (merged row, no subtitle, no card border, no verdict on Change),
+  LegendRamp.test (new text order), core basinDays.test (verdict). Shots (after only, 390 x 844, light + dark):
+  .playwright-mcp/T427-after-light-390.png, T427-after-dark-390.png. 1440 x 900 not taken.

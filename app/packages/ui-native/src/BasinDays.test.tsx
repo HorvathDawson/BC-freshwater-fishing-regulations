@@ -31,8 +31,21 @@ describe("BasinDays", () => {
     expect(days[0]!.getAttribute("aria-label")).toBe("Conditions now: much below normal");
     expect(days[1]!.getAttribute("aria-label")).toBe("Forecast 1 day ahead: normal, showing");
     expect(days[1]!.getAttribute("aria-pressed")).toBe("true");
-    // the day shown, in words, under the strip
-    expect(screen.getByTestId("basin-days-shown").textContent).toBe("Wed 4: Normal");
+    // (T427) the day shown, in words, on the title row's right: one row, the watershed left
+    expect(screen.getByTestId("basin-days-shown").textContent).toBe("Wed 4 · normal");
+    expect(screen.getByTestId("basin-days-shown").parentElement!.textContent)
+      .toBe("Chilliwack River watershedWed 4 · normal");
+    // the repeated subtitle is gone from the strip; the card has no border of its own, a rule line instead
+    expect(screen.queryByText("Flow vs. past years, by day")).toBeNull();
+    const card = screen.getByTestId("basin-days").style;
+    expect([card.borderTopWidth, card.borderLeftWidth]).toEqual(["1px", ""]);
+    // no day lit (Change): no verdict, the name alone
+    cleanup();
+    render(<BasinDays state={{ ...ready, vm: basinDaysVM("Chilliwack River", st, "change", "discharge", TUE) }}
+                      palette={LIGHT} theme="light" layout="strip" />);
+    expect(screen.queryByTestId("basin-days-shown")).toBeNull();
+    cleanup();
+    render(<BasinDays state={ready} palette={LIGHT} theme="light" onPick={onPick} layout="strip" />);
     fireEvent.click(screen.getByRole("button", { name: "Forecast 2 days ahead: no gauge reading" }));
     expect(onPick).toHaveBeenCalledWith(2);
   });

@@ -33,7 +33,7 @@ describe("the Conditions legend", () => {
   it("says what the scale is and how many REACHES it colours (T176: never \"gauges in view\"), in that order, in words", () => {
     ramp(LIGHT, "light", [0.05, 0.06, 0.2, 0.55]);
     expect(screen.getByTestId("legend-ramp").textContent)
-      .toBe("Flow vs. past years, this date4 reaches colouredLowNormalHigh");
+      .toBe("Flow vs. past years, this date4 reaches colouredLowHighNormal");
     expect(screen.getByTestId("legend-bar").getAttribute("aria-label"))
       .toBe("Flow vs. past years, this date: colours from low to high; normal is the middle half of past years");
     cleanup();
@@ -42,7 +42,7 @@ describe("the Conditions legend", () => {
     cleanup();
     ramp(LIGHT, "light", []);
     expect([screen.queryByTestId("legend-count"), screen.getByTestId("legend-ramp").textContent])
-      .toEqual([null, "Flow vs. past years, this dateLowNormalHigh"]);
+      .toEqual([null, "Flow vs. past years, this dateLowHighNormal"]);
   });
 
   it("brackets the middle half — where core's `standing` says NORMAL — under the bar", () => {
@@ -67,7 +67,7 @@ describe("the Conditions legend", () => {
         .map((e) => `${e.textContent}:${getComputedStyle(e).color}`);
       const rgb = (hex: string) => { const d = document.createElement("div"); d.style.color = hex; return d.style.color; };
       expect(colours).toEqual([`Flow vs. past years, this date:${rgb(p.ink)}`, `1 reach coloured:${rgb(p.sub)}`,
-                               `Low:${rgb(p.sub)}`, `Normal:${rgb(p.sub)}`, `High:${rgb(p.sub)}`]);
+                               `Low:${rgb(p.sub)}`, `High:${rgb(p.sub)}`, `Normal:${rgb(p.sub)}`]);
       cleanup();
     }
   });
@@ -91,7 +91,7 @@ describe("the Conditions legend", () => {
                        describe="Expected change, next 10 days: colours from falling to rising; steady is little change"
                        marks={[0.5, 0.84]} />);
     expect(screen.getByTestId("legend-ramp").textContent)
-      .toBe("Expected change, next 10 days2 reaches colouredFallingSteadyRising");
+      .toBe("Expected change, next 10 days2 reaches colouredFallingRisingSteady");
     const b = screen.getByTestId("legend-normal").style;
     expect([b.left, b.width]).toEqual(["43.6%", "12.8%"]);
     expect([...screen.getByTestId("legend-ramp").querySelectorAll("[aria-label$='flow']")]

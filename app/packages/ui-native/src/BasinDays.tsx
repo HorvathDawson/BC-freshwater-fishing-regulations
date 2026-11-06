@@ -33,6 +33,8 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
 }) {
   const card = { gap: SPACE.s2, padding: SPACE.s3, borderWidth: 1, borderColor: palette.line2,
                  borderRadius: palette.r.box, backgroundColor: palette.card } as const;
+  // (T427) in the bottom bar the bar is the card: no border or padding of its own, a rule line from the key above
+  const bare = { gap: SPACE.s2, paddingTop: SPACE.s2, borderTopWidth: 1, borderTopColor: palette.line } as const;
   if (state.state === "loading" || state.state === "failed")
     // (T368) the one face for a part that is coming or cannot come: still loading, offline, or couldn't load
     return <PartPending palette={palette} what={BASIN_DAYS_WORDS.part} state={state.state === "loading" ? "loading" : "failed"}
@@ -47,7 +49,6 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
   const stops = flowRampStops(theme);
   const none = ungaugedColour(theme);
   const fill = (p: number | null) => (p === null ? none : rampAt(stops, p));
-  const lit = vm.days.find((d) => d.on) ?? null;
   const pick = (d: DayHorizon) => onPick?.(d);
   const buttons = vm.days.map((d) => (
     <Pressable key={d.day} testID={`${testID}-day-${d.day}`} accessibilityRole="button" accessibilityLabel={d.label}
@@ -83,11 +84,23 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
     </Pressable>
   ));
   return (
-    <View testID={testID} style={card}>
-      <View style={{ gap: 1 }}>
-        <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 13, lineHeight: 18, color: palette.ink }}>{vm.title}</Text>
-        <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{vm.scale}</Text>
-      </View>
+    <View testID={testID} style={layout === "strip" ? bare : card}>
+      {layout === "strip" ? (
+        // (T427) ONE TITLE ROW: the watershed left, the day shown (its words) right; each day's words stay its button's name
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+          <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 13, lineHeight: 18, color: palette.ink,
+                                           flexShrink: 1 }}>{vm.title}</Text>
+          {vm.verdict && (
+            <Text testID={`${testID}-shown`} numberOfLines={1}
+                  style={{ ...TYPE.caption, lineHeight: 15, color: palette.ink }}>{vm.verdict}</Text>
+          )}
+        </View>
+      ) : (
+        <View style={{ gap: 1 }}>
+          <Text numberOfLines={1} style={{ ...TYPE.bodyStrong, fontSize: 13, lineHeight: 18, color: palette.ink }}>{vm.title}</Text>
+          <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{vm.scale}</Text>
+        </View>
+      )}
       {/* ONE LINE in the bottom bar: the eleven days scroll sideways where the bar is narrower than they are (a phone) */}
       {layout === "strip" ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} role="group" accessibilityLabel={vm.list}
@@ -96,12 +109,6 @@ export function BasinDays({ state, palette, theme, onPick, layout, testID = "bas
         </ScrollView>
       ) : (
         <View role="group" accessibilityLabel={vm.list} style={{ gap: 2 }}>{buttons}</View>
-      )}
-      {/* the strip says the day shown in words (each day's words are its button's name); the rows say every day's */}
-      {layout === "strip" && lit && (
-        <Text testID={`${testID}-shown`} style={{ ...TYPE.caption, lineHeight: 15, color: palette.ink }}>
-          {`${lit.chip}: ${lit.word}`}
-        </Text>
       )}
       {vm.noneKey && <Text style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub }}>{vm.noneKey}</Text>}
     </View>

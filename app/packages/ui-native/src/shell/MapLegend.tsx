@@ -133,7 +133,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       )}
       {/* (T377) THE CENTRE GROUP'S DAYS, under the ramp in the bottom bar: a tap on a day is the horizon chips' pick */}
       {conditions && col.basinDays && (
-        <View style={{ width: "100%", maxWidth: LEGEND_RAMP_MAX, alignSelf: "center", marginTop: 6 }}>
+        <View style={{ width: "100%", maxWidth: LEGEND_RAMP_MAX, alignSelf: "center", marginTop: 4 }}>
           <BasinDays state={col.basinDays} palette={palette} theme={theme} onPick={col.pickDay} layout="strip"
                      testID="legend-basin-days" />
         </View>
