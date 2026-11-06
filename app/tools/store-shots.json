@@ -1,0 +1,87 @@
+{
+  "_": "T319 store shots: the order tells the story (find a water, today's answer, conditions, salmon, runs, a spot, offline). PROPOSAL for the owner: pick, reorder or reword. Each `scene` is a play-shots.mjs scene; `title` is the big line, `line` the small one. Plain words, no promise the app cannot keep, nothing that reads as official.",
+  "shots": [
+    {
+      "scene": "01-map",
+      "title": "Can I fish here today?",
+      "line": "Every BC freshwater lake and stream, coloured by today's rules"
+    },
+    {
+      "scene": "06-search",
+      "title": "Find any water",
+      "line": "Search a lake, river or creek by name"
+    },
+    {
+      "scene": "02-regulations",
+      "title": "Today's rules, in plain words",
+      "line": "Open or closed, what you can keep, gear and methods"
+    },
+    {
+      "scene": "03-conditions",
+      "title": "River conditions",
+      "line": "Flow and level from the gauge that fits the water"
+    },
+    {
+      "scene": "04-salmon",
+      "title": "Salmon openings",
+      "line": "DFO's freshwater salmon notices, on the map"
+    },
+    {
+      "scene": "05-runs",
+      "title": "When the runs come",
+      "line": "Run timing by species and river"
+    },
+    {
+      "scene": "09-offline",
+      "title": "Works offline",
+      "line": "Keep the maps and rules for the regions you fish"
+    }
+  ],
+  "targets": {
+    "play-phone": {
+      "raw": "phone",
+      "w": 1080,
+      "h": 1920
+    },
+    "play-tablet7": {
+      "raw": "tablet7",
+      "w": 1200,
+      "h": 1920
+    },
+    "play-tablet10": {
+      "raw": "tablet10",
+      "w": 1600,
+      "h": 2560
+    },
+    "appstore-6.7": {
+      "raw": "iphone67",
+      "w": 1290,
+      "h": 2796
+    },
+    "appstore-6.5": {
+      "raw": "iphone67",
+      "w": 1242,
+      "h": 2688
+    },
+    "appstore-5.5": {
+      "raw": "iphone55",
+      "w": 1242,
+      "h": 2208
+    },
+    "appstore-ipad13": {
+      "raw": "ipad13",
+      "w": 2048,
+      "h": 2732
+    }
+  },
+  "phone_only": {
+    "_": "Not on the web: the web Spots tab is a 'get the app' notice, so these need the phone build (the emulator test bed). Owed.",
+    "shots": [
+      {
+        "scene": "07-saved-spot",
+        "title": "Keep your spots",
+        "line": "Notes, flow and weather from the day, saved on your phone"
+      }
+    ]
+  }
+}
