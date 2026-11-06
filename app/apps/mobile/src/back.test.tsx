@@ -189,8 +189,9 @@ function backs(n: number): string[] {
   return out;
 }
 const click = async (label: string) => { await act(async () => { fireEvent.click(screen.getByLabelText(label)); }); };
-// a 10 s ceiling, not waitFor's 1 s: CI's runner is several times slower than a laptop (T80 item 6); it only waits longer
-const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), { timeout: 10_000 });
+// a 30 s ceiling, not waitFor's 1 s: CI's runner is several times slower than a laptop (T80 item 6), and 10 s ran out
+// under the full parallel check (T402); it only waits longer
+const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), { timeout: 30_000 });
 
 /** A water's view strip (the bottom bar is hidden in water mode, so these tabs are the strip's). */
 const view = async (name: string) => { await act(async () => { fireEvent.click(screen.getByRole("tab", { name })); }); };
@@ -335,7 +336,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
       "handled -> water Chilliwack River on Regulations · no bar",
       "handled -> tab Map",
     ]);
-  });
+  }, 60_000);
 
   it("a water flowed into returns to the water it came from, then to the map", async () => {
     const frame = { part: null, tapSid: null, at: null, view: "regs" as const };

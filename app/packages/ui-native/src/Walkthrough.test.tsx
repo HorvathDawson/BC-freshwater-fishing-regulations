@@ -12,6 +12,8 @@ import { HelpPage } from "./menu/HelpPage";
 import { GUIDE_STEPS, GuideCard, useGuide, useTabTour, type Guide, type GuideActs, type GuideFacts,
          type WalkthroughStore } from "./Walkthrough";
 import { insideWindow, placeCallout, unionRect, useCoachRegistry, type CoachRegistry } from "./CoachMarks";
+// (T402) a ceiling, not a delay: waitFor returns as soon as it holds; 2 s ran out under the full parallel check
+const WAIT = 10_000;
 import { DARK, LIGHT } from "./theme";
 
 afterEach(cleanup);
@@ -57,7 +59,7 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
   return <GuideCard guide={guide} facts={f} acts={acts} palette={LIGHT} registry={reg} top={60} bottom={64} />;
 }
 
-describe("the guided walkthrough (T293)", () => {
+describe("the guided walkthrough (T293)", { timeout: 30_000 }, () => {
   it("is the owner's walk, in his order: find it, its rules, its conditions, a spot and its coming days", () => {
     // (T302) this is the web's walk (jsdom is the web): no spot steps — spots live in the phone app
     expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "layers", "end"]);
@@ -78,7 +80,7 @@ describe("the guided walkthrough (T293)", () => {
       const key = keyAt(), s = GUIDE_STEPS.find((x) => x.key === key)!;
       const label = screen.queryByText(w.showMe) ? w.showMe : screen.queryByText(w.done) ? w.done : w.next;
       press(label);
-      if (label === w.showMe) await waitFor(() => expect(keyAt()).not.toBe(key), { timeout: 2500 });
+      if (label === w.showMe) await waitFor(() => expect(keyAt()).not.toBe(key), { timeout: WAIT });
       else if (s.key !== "done") expect(keyAt()).not.toBe(key);
     }
     expect(screen.queryByTestId("guide")).toBeNull();
@@ -93,7 +95,7 @@ describe("the guided walkthrough (T293)", () => {
     expect(keyAt()).toBe("search");
     act(() => out.set!((x) => ({ ...x, searching: true, query: "ve" })));
     expect(screen.getByText(`${w.tick} ${GUIDE_STEPS[1]!.title}`)).toBeTruthy();
-    await waitFor(() => expect(keyAt()).toBe("pick"), { timeout: 2000 });
+    await waitFor(() => expect(keyAt()).toBe("pick"), { timeout: WAIT });
   });
 
   it("is skippable at any step; a skip counts as seen and forgets the step", () => {
@@ -136,11 +138,11 @@ describe("the guided walkthrough (T293)", () => {
     const log: string[] = [], out: { set?: (f: (x: GuideFacts) => GuideFacts) => void } = {};
     render(<Harness store={memory("guide-at:layers")} reg={useRegistry()} log={log} out={out} start={{ ...BROWSE, obstacles: false }} />);
     expect(log).toEqual(["layers"]);                                     // resumed on it: the sheet is opened for it
-    await waitFor(() => expect(keyAt()).toBe("ground"), { timeout: 2000 });
+    await waitFor(() => expect(keyAt()).toBe("ground"), { timeout: WAIT });
     press(w.showMe);
-    await waitFor(() => expect(keyAt()).toBe("obstacles"), { timeout: 2000 });
+    await waitFor(() => expect(keyAt()).toBe("obstacles"), { timeout: WAIT });
     press(w.showMe);
-    await waitFor(() => expect(keyAt()).toBe("restore"), { timeout: 2000 });
+    await waitFor(() => expect(keyAt()).toBe("restore"), { timeout: WAIT });
     press(w.next);
     expect(keyAt()).toBe("done");
     expect(log).toEqual(["layers", "ground", "obstacles", "restore"]);
@@ -149,7 +151,7 @@ describe("the guided walkthrough (T293)", () => {
   it("rings the control a step is about, and keeps the card beside it", async () => {
     const reg = useRegistry({ search: [14, 10, 362, 46] });
     render(<Harness store={memory("guide-at:search")} reg={reg} log={[]} out={{}} />);
-    const ring = await screen.findByTestId("guide-ring", {}, { timeout: 2000 });
+    const ring = await screen.findByTestId("guide-ring", {}, { timeout: WAIT });
     expect([ring.style.left, ring.style.top, ring.style.width]).toEqual(["6px", "2px", "378px"]);
     expect(parseFloat(screen.getByTestId("guide-step-search").style.top)).toBeGreaterThan(10 + 46);
   });
