@@ -37,13 +37,15 @@ const EVERY_MIN = 15;
 const settings = createNotifySettings(openNotifyStore());
 /** (v1.1) this build's version file on our server, or null (no channel: a local build, iOS before T88). On the test
  *  update channel the same file name under `test/app/android/` (`deploy/staging/test-updates.mjs app-version`). */
-const OWN_VERSION_FILE = appVersionFileUrl(
-  appUpdateChannel({ os: Platform.OS, env: process.env.EXPO_PUBLIC_APP_ENV || "",
-                     distribution: process.env.EXPO_PUBLIC_APP_DISTRIBUTION || null,
-                     apkPage: process.env.EXPO_PUBLIC_DEV_APK_URL || null,
-                     appStoreUrl: process.env.EXPO_PUBLIC_APP_STORE_URL || null }),
+const OWN_CHANNEL = appUpdateChannel({ os: Platform.OS, env: process.env.EXPO_PUBLIC_APP_ENV || "",
+                                      distribution: process.env.EXPO_PUBLIC_APP_DISTRIBUTION || null,
+                                      apkPage: process.env.EXPO_PUBLIC_DEV_APK_URL || null,
+                                      appStoreUrl: process.env.EXPO_PUBLIC_APP_STORE_URL || null });
+const OWN_VERSION_FILE = appVersionFileUrl(OWN_CHANNEL,
   { apkPage: process.env.EXPO_PUBLIC_DEV_APK_URL || null, dataBase: ENDPOINTS.base });
-const VERSION_FILE = OWN_VERSION_FILE && ENDPOINTS.channel === "test"
+/** (owner 2026-11-06) a Play build tells a new version only once Play offers it, and only the foreground check can ask
+ *  Play (an Activity), so a Play build has no background new-version notice: Play notifies its own installs. */
+const VERSION_FILE = OWN_CHANNEL === "play" ? null : OWN_VERSION_FILE && ENDPOINTS.channel === "test"
   ? `${ENDPOINTS.base}/test/app/android/${OWN_VERSION_FILE.split("/").pop()}` : OWN_VERSION_FILE;
 const FETCH = versionedFetch((u, i) => fetch(u, i),
                              versionHeaders(APP_VERSION, { platform: platformLine(), ua: true }));

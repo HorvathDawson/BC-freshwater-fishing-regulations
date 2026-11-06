@@ -1,9 +1,10 @@
 /**
  * (T390) THE PHONE'S WAY TO A NEWER APP, by channel (`@app/core` `appUpdateChannel`, from the build's own env):
  *
- *   play       the check is our `play.json` (every opening and return, T390 11-05); the button is Google Play's in-app
- *              update (`expo-in-app-updates`, app/deps.md): the flexible download (the immediate, full-screen flow when
- *              new data needs the app), or the Play listing while Play does not offer this phone the version yet.
+ *   play       the check is Google Play's own (`expo-in-app-updates`, app/deps.md): a version is said only once Play
+ *              offers it to this phone (owner 2026-11-06: our `play.json` announced 0.6.4 at upload, before Play had
+ *              it); `play.json` gives only its "What's new" bullets. The button is Play's in-app update: the flexible
+ *              download, or the immediate, full-screen flow when new data needs the app.
  *   app-store  iOS, once the listing exists (T88: `EXPO_PUBLIC_APP_STORE_URL`): the store lookup for the version, the
  *              button opens the listing. Until then there is no channel (STUB until T88).
  *   apk-page   a sideloaded staging APK: `latest.json` beside the APK page (`deploy/staging/build-apk.sh`) for the
@@ -14,7 +15,7 @@
  * The store package is loaded only on the first Play / App Store call, never for the APK page.
  */
 import { Platform } from "react-native";
-import { apkIsNewer, appUpdateChannel, appVersionFileUrl, type AppVersion, type AppVersionFile } from "@app/core";
+import { apkIsNewer, appUpdateChannel, appVersionFileUrl, reportFailure, type AppVersion, type AppVersionFile } from "@app/core";
 import type { AppUpdatePort } from "@app/ui";
 import { openLinkShown } from "@app/ui-native";
 import { ENDPOINTS } from "./config";
@@ -56,22 +57,27 @@ export function makeAppUpdater(own: AppVersion): AppUpdatePort | null {
         start: () => open(appStoreUrl!),
       };
     case "play": {
-      // (T390 2026-11-05) the check is OUR play.json (build-apk.sh --play writes it after the upload): Play's own check
-      // says "available" only after the phone's Play Store refreshes, minutes to hours later, so 0.6.0 missed 0.6.1
       const file = appVersionFileUrl("play", { apkPage: null, dataBase: ENDPOINTS.base })!;
       const listing = `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}`;
       return {
         channel,
         check: async () => {
-          const r = await fetch(file, { cache: "no-store" });
-          if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
-          const l = await r.json() as Partial<AppVersionFile>;
-          return { available: apkIsNewer(l, own), version: l.version ?? null, notes: l.notes ?? null };
+          const u = await (await store()).checkForUpdate();
+          if (!u.updateAvailable) return { available: false, version: null };
+          // Play offers a newer build: our play.json names it and its bullets when it is that build; a failed read is
+          // reported and the notice still stands (it says no notes were published)
+          try {
+            const r = await fetch(file, { cache: "no-store" });
+            if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
+            const l = await r.json() as Partial<AppVersionFile>;
+            if (apkIsNewer(l, own)) return { available: true, version: l.version ?? null, notes: l.notes ?? null };
+          } catch (e) { reportFailure(e); }
+          return { available: true, version: null };
         },
         start: async ({ immediate }) => {
           const m = await store();
           const u = await m.checkForUpdate();
-          // our file is ahead of what Play offers this phone yet: the listing (Play may show it there first)
+          // the check said available a moment ago; Play no longer offering it opens the listing
           if (!u.updateAvailable) { await openLinkShown(listing); return "listing"; }
           // immediate only when Play allows it for this update; else the flexible download
           const started = await m.startUpdate(immediate && u.immediateAllowed === true);

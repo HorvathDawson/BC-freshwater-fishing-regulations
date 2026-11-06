@@ -9,8 +9,9 @@
  *
  * Where the button goes is the CHANNEL (`appUpdateChannel`): Play's in-app update for a Play install, the App Store page
  * on iOS (once the listing exists, T88), the staging APK page for a sideloaded test build; none on the web (the site is
- * always the latest) or a local build. The check reads OUR version file (`play.json` / `latest.json`, tiny) on every
- * opening and every return to the app (T390 2026-11-05: a daily cap and Play's own slow refresh hid 0.6.1), never
+ * always the latest) or a local build. The check runs on every opening and every return to the app (T390 2026-11-05: a
+ * daily cap hid 0.6.1): the APK page's `latest.json`; on Play, Play's own check (owner 2026-11-06: only once Play offers
+ * this phone the build — our `play.json`, written at upload, said 0.6.4 before Play had it; it gives the bullets), never
  * offline (`shouldCheckAppUpdate`); offline says nothing (`appUpdateVM`). A check or a start that fails is shown here and reported by the hook
  * (`@app/ui` `useAppUpdate`, T368).
  */

@@ -92,3 +92,10 @@ listing"). Play's own check keeps its daily cap. Test: a version file newer than
   same day; the kept answer shows before the new ask lands). 39 pass; typecheck clean.
 - Test bed with the next APK: install N−1 from Play internal, upload N, open the app → bell says N at once (no wait for
   Play); Update → Play's flow, or the listing while Play catches up.
+
+## Owner 2026-11-06: say a new version only when Play has it
+0.6.4's `play.json` (written at upload) made 0.6.3 say "new version" before Play offered it. Owner chose "only when Play
+has it": the Play check is now Play's own `checkForUpdate` (`apps/mobile/src/appUpdater.native.ts`); `play.json` only
+names the version and its bullets once Play offers a build; a Play build has no background new-version notice
+(`notify.native.ts`: only the foreground can ask Play; Play notifies its installs). Ships in the next app build; 0.6.3/0.6.4
+installs keep the old behaviour until they update.
