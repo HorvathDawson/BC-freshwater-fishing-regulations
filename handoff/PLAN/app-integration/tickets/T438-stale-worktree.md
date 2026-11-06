@@ -1,6 +1,6 @@
 # T438 — A locked agent worktree (1.4 GB) under .claude/worktrees
 
-Status: DONE 2026-11-06 (chat 3, no commit: a git-only removal) — from the audit (T333–T335, 2026-11-05). Severity: **low**. Verified by a second reader.
+Status: DONE 2026-11-06 (chat 3, ed591aa70) — from the audit (T333–T335, 2026-11-05). Severity: **low**. Verified by a second reader.
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: tests 17; `*.verified.md` has the evidence per finding).
 
