@@ -28,9 +28,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T443 in review** (7f36eb73a, your rule): a part is framed no closer than z12, and ▲/▼ zooms in at most 2 levels
   per step. Before, one Fraser step could jump 5 levels (z9 → z14). Opening or reloading a part still frames it whole.
   Look on the phone after the next APK.
-- **Running now:** T448 agent (phone pixel cap) and a T449 agent (the Nanaimo's tidal DFO places get a "tidal water"
-  state, as a proposal for you; plus a sweep of other regions). Next after them: T446 emulator repro, T441 one-step
-  fixture re-cut, T401 prefetch and the T420 iOS half (both wait on the binding patch T448 is editing), then the APK.
+- **T448 done on Android** (26c59849f): the phone map draws 42 % fewer pixels (823×1567 instead of 1080×2057), same
+  scale and taps; a touch softer (crops sent). The emulator cannot show the speed gain (its GPU is the Mac's): your
+  Pixel 9 is the check. iOS not done (no iOS build).
+- **Running now:** a T401 agent (prefetch: more detailed stand-in tiles while panning, measured before it ships) and a T449 agent (the Nanaimo's tidal DFO places get a "tidal water"
+  state, as a proposal for you; plus a sweep of other regions). Next: T446 emulator repro, T441 one-step fixture
+  re-cut, then the APK + staging site (T420 basemap fix, T448, T443, T444, T445).
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
   retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
   repro once T448 frees the emulator.
