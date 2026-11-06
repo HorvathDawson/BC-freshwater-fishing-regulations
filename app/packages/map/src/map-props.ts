@@ -325,6 +325,11 @@ export interface MapProps {
    */
   insetBottom?: number;
   /**
+   * (T424) How a credit's link leaves the app (the app's one `openLink`, which reports a refused open). Absent: the credits card names
+   * the licences without linking them — the map package cannot open a link itself (every link goes through that one way).
+   */
+  onOpenLink?: (url: string) => void;
+  /**
    * The ground under the water: the drawn basemap, or satellite imagery.
    *
    * A property of the MAP, not a layer group a screen may address: the imagery is an

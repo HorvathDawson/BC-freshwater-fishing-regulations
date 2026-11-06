@@ -13,6 +13,7 @@ import { View } from "react-native";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { mapError, type Horizon, type HorizonChipVM, type MyLocation } from "@app/ui";
 import { HorizonPicker } from "./HorizonPicker";
+import { openLink } from "./openLink";
 import { MapRail } from "./MapRail";
 import type { Palette } from "./theme";
 
@@ -113,7 +114,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressObstacle={onPressObstacle} onPressTidal={onPressTidal} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
+           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} />

@@ -10,7 +10,7 @@ import { webRenderer } from "../adapters/web";
 import { Colouring, LABEL_SOURCE_LAYERS } from "../colouring";
 import { compassShown, keyboardRotation, maplibreGestures, touchRotation } from "../gestures";
 import type { MapProps } from "../map-props";
-import { SHOW_SCALE } from "../chrome";
+import { GEOMETRY, SHOW_SCALE } from "../chrome";
 import { runtimeStyle } from "../runtime-style";
 import { followSize } from "../size";
 import { sourceTiles, tileIds } from "./tileIds";
@@ -51,32 +51,15 @@ export function useMapInstance(refs: WebMapRefs,
       minZoom: MIN_ZOOM,
       maxZoom: CAMERA_MAX_ZOOM,
       maxBounds: CAMERA_BOUNDS as unknown as maplibregl.LngLatBoundsLike,
-      attributionControl: bare ? false : { compact: true },
+      // (T424) the credits are OURS (`MapCredits`, credits.ts): one chip and card, the phone's component — the renderer's
+      // own control is off, so the web and the phone cannot list or look different
+      attributionControl: false,
       // G1: one gesture policy for both maps — pan, pinch, double-tap and wheel zoom; no rotate, no tilt; a press
       // that moves 8 px or more is a pan, never a tap (`@app/core` MAP_GESTURES)
       ...maplibreGestures(),
     });
     if (!touchRotation()) m.touchZoomRotate.disableRotation();
     if (!keyboardRotation()) m.keyboard.disableRotation();
-
-    /*
-     * COLLAPSED ON ARRIVAL.
-     *
-     * `compact: true` makes the attribution collapsible; it does not make it collapsed.
-     * MapLibre adds `maplibregl-compact-show` on creation, so the panel opens itself — and
-     * once the credits included Environment and Climate Change Canada and the Province
-     * alongside OpenStreetMap and Protomaps, that was three lines and 64px of text lying
-     * across the bottom of a phone screen, on top of the Layers button.
-     *
-     * The class is removed rather than the control restyled: the information stays exactly
-     * one tap away on the (i), which is what the licences ask for, and the map is a map
-     * again. Removed after a frame because MapLibre adds it during its own mount.
-     */
-    const collapse = () => host.current
-      ?.querySelector(".maplibregl-ctrl-attrib")
-      ?.classList.remove("maplibregl-compact-show");
-    collapse();
-    m.once("load", collapse);
 
     /**
      * MapLibre's OWN controls, not ours.
@@ -99,7 +82,7 @@ export function useMapInstance(refs: WebMapRefs,
         showCompass: compassShown() && !bare, visualizePitch: false,
       }), "top-right");
     /*
-     * BOTTOM-RIGHT, above the attribution.
+     * BOTTOM-LEFT (T424): the credits chip owns the bottom-right, so the two can never meet.
      *
      * It was top-left, which is also where the date pill sits — so the two stacked in the
      * same corner, the scale clipped against the top edge of the screen, and the one thing
@@ -108,8 +91,8 @@ export function useMapInstance(refs: WebMapRefs,
      * the date's alone: WHEN is the app's own question, and it deserves the corner.
      */
     if (!bare && SHOW_SCALE)
-      m.addControl(new maplibregl.ScaleControl({ maxWidth: 92, unit: "metric" }),
-                   "bottom-right");
+      m.addControl(new maplibregl.ScaleControl({ maxWidth: GEOMETRY.scaleMax, unit: "metric" }),
+                   "bottom-left");
     // A map that fails silently is the worst outcome this app can produce: an empty map
     // looks exactly like water with no regulations on it. Surface every renderer error.
     //

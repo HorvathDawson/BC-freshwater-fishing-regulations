@@ -830,9 +830,14 @@ it("no listener, no long press: the binding is handed no handler (its long press
                                      highlight: undefined, data: { basin: { "B-1": { standing: 70 } } } })} />);
     await waitFor(() => expect(fill()).toContain('["literal",{"B-1":70}]'));
   });
-  it("draws the web's scale bar — metric, bottom-right — not the binding's (top-left, device units on Android)", async () => {
+  it("draws the web's scale bar — metric, bottom-LEFT — not the binding's (top-left, device units on Android), and the credits bottom-right (T424)", async () => {
     const r = render(<NativeMap {...base()} />);
     await waitFor(() => expect(native.props).toBeTruthy());
+    // (T424) the binding's own attribution is off: the credits are the web's component, a chip bottom-right
+    expect(native.props!.attribution).toBe(false);
+    const scale = getComputedStyle(r.getByLabelText("scale")), chip = getComputedStyle(r.getByTestId("map-credits"));
+    expect([scale.left, scale.right, chip.right, chip.left]).toEqual(["10px", "auto", "8px", "auto"]);
+    expect(r.getByTestId("map-credits-chip").textContent).toBe("©");
     // the binding's own is ON but parked off screen: off, the map left a black hole over the next screen (Android)
     expect([native.props!.scaleBar, native.props!.scaleBarPosition]).toEqual([true, { top: -10000, left: -10000 }]);
     // z9 at 49°N: 92 px ≈ 9.2 km → "5 km" (`metricScale`), and it follows the camera
@@ -843,6 +848,7 @@ it("no listener, no long press: the binding is handed no handler (its long press
     expect(r.getByLabelText("scale").textContent).toBe("200 m");
     r.rerender(<NativeMap {...base({ bare: true })} />);
     expect(r.queryByLabelText("scale")).toBeNull();
+    expect(r.queryByTestId("map-credits")).toBeNull();
   });
   it("(T418) a style asset that would not load (MapLibre's log) is REPORTED once per asset, and still logged", async () => {
     const sent: unknown[] = [];

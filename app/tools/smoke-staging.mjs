@@ -199,7 +199,8 @@ async function browser() {
     let standard = null;
     await step('phone: the map paints', async () => { last = '01-map'; const r = await mapPaints(b, '01-map'); standard = r.shot; return r.detail; });
     await step('phone: attribution names OpenStreetMap', async () => {
-      const t = await b.evaluate(`[...document.querySelectorAll('.maplibregl-ctrl-attrib, [class*=attrib]')].map((e) => e.textContent).join(' ')`);
+      await b.evaluate(`document.querySelector('[data-testid=map-credits-chip]')?.click()`);
+      const t = await b.evaluate(`document.querySelector('[data-testid=map-credits-card]')?.textContent ?? ''`);
       must(/OpenStreetMap/.test(t), `attribution text: ${JSON.stringify(t.slice(0, 160))}`);
     });
     for (const [label, id, file, re, tab] of [['Salmon', 'regs-paint-salmon', '02-salmon', /salmon/i, null], ['Run timing', null, '03-run-timing', /\/runtiming\/index\.json/, 'Runs']]) {

@@ -66,5 +66,16 @@ export function mapChrome(theme: string): MapChrome {
 /** (T275) The scale control, lifted above the foot block with the credits. One line: `false` drops it, web and native. */
 export const SHOW_SCALE = true;
 
+/**
+ * (T424) THE MAP'S CORNER FURNITURE, one geometry for the web and the phone: the scale bar bottom-LEFT, the credits chip
+ * (and Esri's badge, while its imagery is drawn) bottom-RIGHT, both `bottom` over the foot block. Nothing else lives in the
+ * bottom corners, so they cannot overlap while the scale (`scaleLeft + scaleMax`) ends left of where the credits begin
+ * (`esriBadgeMax + gap + chip + right` in from the right edge); a test checks it at the narrowest width.
+ */
+export const GEOMETRY = {
+  scaleLeft: 10, scaleMax: 92, scaleBottom: 10,
+  right: 8, bottom: 8, chip: 28, gap: 6, esriBadgeMax: 100, cardMax: 340,
+} as const;
+
 /** (T275) Esri's required credit, kept visibly on the map while its imagery is drawn (the full text is in the attribution (i)). */
 export const ESRI_BADGE = "Powered by Esri";

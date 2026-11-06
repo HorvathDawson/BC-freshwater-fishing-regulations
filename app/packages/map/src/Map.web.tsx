@@ -21,7 +21,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
-import { ESRI_BADGE, mapChrome } from "./chrome";
+import { mapChrome } from "./chrome";
+import { MapCredits } from "./MapCredits";
 import { setReducedMotion } from "./motion";
 import type { MapProps } from "./map-props";
 import { useMapInstance } from "./web/useMapInstance";
@@ -57,7 +58,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
                       onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion }: MapProps) {
+                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -135,12 +136,9 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
           <button key={i} type="button" aria-label={k.a11y} data-mark={k.on ? "on" : ""}
                   onClick={() => onPressMark?.(i)}>{k.label ?? ""}</button>))}
       </div>) : null}
-    {/* (T275) Esri's required credit, visible while its imagery is drawn (the full text is in the attribution's (i)) */}
-    {!bare && basemap === "satellite" && (
-      <div data-testid="esri-badge" style={{ position: "absolute", left: 8, bottom: 8 + insetBottom,
-                                             padding: "2px 5px", font: "10px/13px sans-serif", color: furniture.ink,
-                                             background: furniture.card, pointerEvents: "none" }}>{ESRI_BADGE}</div>
-    )}
+    {/* (T424) THE CREDITS: our own chip and card, the phone's component (Esri's "Powered by Esri" beside it while its
+        imagery is drawn); the renderer's own attribution control is off */}
+    {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink} />}
   </>;
 }
 

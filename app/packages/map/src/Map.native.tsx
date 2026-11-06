@@ -60,7 +60,8 @@ import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox
          marksLayers, pinDotLayer, pinsData, shiftedLabels } from "./point-marks";
 import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
-import { ESRI_BADGE, SHOW_SCALE } from "./chrome";
+import { GEOMETRY, SHOW_SCALE } from "./chrome";
+import { MapCredits } from "./MapCredits";
 import type { MapProps } from "./map-props";
 import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
@@ -80,7 +81,7 @@ const MAX_BOUNDS: [number, number, number, number] =
 /** Where the binding's own scale bar is parked: present (see the `scaleBar` prop), never seen. */
 const OFF_SCREEN = { top: -10000, left: -10000 } as const;
 /** The web's `ScaleControl({ maxWidth: 92 })`. */
-const SCALE_MAX_WIDTH = 92;
+const SCALE_MAX_WIDTH = GEOMETRY.scaleMax;
 
 type PressEvent = { nativeEvent: { point: [number, number] | { x: number; y: number };
                                    lngLat: [number, number] } | null };
@@ -95,7 +96,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch, insetBottom = 0 }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0, onOpenLink }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -656,9 +657,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         mapStyle={look.style as never}
         // G1: one gesture policy for both maps — pan, pinch, double-tap zoom; no rotate, no tilt, no compass
         {...nativeMapGestures()}
-        // a bare map is an illustration: no furniture. Attribution goes with it (the page credits the data, MapProps.bare)
-        attribution={!bare}
-        attributionPosition={{ bottom: 8 + insetBottom, right: 8 }}
+        // (T424) the binding's own attribution "i" is OFF: the credits are `MapCredits` below, the web's own component. A
+        // bare map is an illustration: no furniture, no credits (the page that carries it credits the data, MapProps.bare)
+        attribution={false}
         logo={false}
         // OURS is drawn below (`metricScale`): the binding's is top-left only on Android, in the device's units. But
         // the binding's must EXIST on Android: switched off, the map's surface left a black hole over the next screen
@@ -720,22 +721,19 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
               <Text>{k.label ?? ""}</Text>
             </Pressable>))}
         </View>) : null}
-      {!bare && basemap === "satellite" && (
-        // (T275) Esri's credit stays visible while its imagery is drawn, above the foot block
-        <View pointerEvents="none" style={{ position: "absolute", left: 8, bottom: 8 + insetBottom, paddingHorizontal: 5,
-                                            paddingVertical: 2, backgroundColor: furniture.card }}>
-          <Text style={{ color: furniture.ink, fontSize: 10, lineHeight: 13 }}>{ESRI_BADGE}</Text>
-        </View>
-      )}
+      {/* (T424) THE CREDITS: the web's own component, bottom-right (Esri's "Powered by Esri" beside it while its imagery is
+          drawn, T275); the scale bar is bottom-LEFT, so the two never meet */}
+      {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink} />}
       {bare || !SHOW_SCALE ? null : (
-        // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-right, a RULER — a hairline with a tick at
+        // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-left (T424), a RULER — a hairline with a tick at
         // each end, the distance above its left end, a paper halo and no box — so the bar's LENGTH is the measurement
         // and the number only names it.
         // A SIBLING of the map, positioned in the map's own container — NOT a wrapper View around the map: wrapped,
         // the map's surface left a black rectangle over the next screen on Android when it unmounted (emulator, N2
         // review; the unwrapped map does not)
         <View pointerEvents="none" accessibilityLabel="scale"
-              style={{ position: "absolute", right: 10, bottom: 24 + insetBottom, width: Math.round(scale.width) }}>
+              style={{ position: "absolute", left: GEOMETRY.scaleLeft, bottom: GEOMETRY.scaleBottom + insetBottom,
+                       width: Math.round(scale.width) }}>
           <Text numberOfLines={1}
                 style={{ color: furniture.ink, fontSize: 11, lineHeight: 13, letterSpacing: 0.2, paddingLeft: 4,
                          marginBottom: 2, fontFamily: "Archivo_600SemiBold", fontVariant: ["tabular-nums"],
