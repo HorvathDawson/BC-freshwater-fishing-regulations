@@ -1,7 +1,7 @@
 #!/bin/bash
-# STAGING ONLY: clear bc-fishing-regulations-staging and upload a release + feeds + sql.js wasm, in publish.py's order
-# (tiles, basemap, data files, synopsis, then the manifest LAST), under the `release/` prefix the app reads
-# (app/apps/mobile/src/config.ts). Needs the rclone remote `r2:`.  Usage: deploy/staging/upload.sh [r-<id>]
+# STAGING ONLY: upload a release + feeds + sql.js wasm to bc-fishing-regulations-staging in publish.py's order (tiles,
+# basemap, data files, synopsis, then the manifest LAST), then clear what the release does not name (T433), under the
+# `release/` prefix the app reads (app/apps/mobile/src/config.ts). Needs the rclone remote `r2:`.  Usage: deploy/staging/upload.sh [r-<id>]
 # T225 Phase A: the feeds Worker runs on a schedule and OWNS feeds/** and private/** — the clear spares them; the local
 # feed copies only SEED a key that is missing (never overwrite the worker's newer output); clim.json (the worker's input)
 # goes up when it differs; then sync-inputs.sh (the list in pipeline.deliver.sync_inputs: DFO entries + wording, roster, in-season matches).
@@ -32,10 +32,6 @@ rclone copyto "$RT/$RT_BASE" "$D/private/runtiming/base/${TILES%%.*}.json.gz" --
 GH_REPO=HorvathDawson/BC-freshwater-fishing-regulations; GH_REF=redesign/stream-sections
 git fetch -q origin "$GH_REF"
 git merge-base --is-ancestor HEAD "origin/$GH_REF" || { echo "upload: push $GH_REF first (the run-timing workflow runs GitHub's copy)"; exit 1; }
-# (T199/T412) runtiming/ is the run-timing feed's (feeds-runtiming.yml, its only publisher): never cleared here
-# (T251) test/ is the staging update-test channel (deploy/staging/test-updates.mjs): never cleared here either
-echo "clear $D (except feeds/, private/, runtiming/, test/, app/android/)"
-rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**" --exclude "test/**" --exclude "app/android/**"
 RT_T0=$(date -u -v-60S +%Y-%m-%dT%H:%M:%SZ)     # a minute back: the Mac and GitHub clocks differ a little
 gh workflow run feeds-runtiming.yml -R "$GH_REPO" --ref "$GH_REF" -f upload=true -f tiles="$TILES" >/dev/null
 RT_RUN=""
@@ -88,6 +84,13 @@ RT_LIVE=$(rclone cat "$D/runtiming/index.json" --s3-no-check-bucket | python3 -c
 # into the manifest here, never by the build; neither moves a file, the tiles or the release id (nothing re-uploaded)
 .venv/bin/python -m pipeline.deliver.release.stamp "$M" ${MIN_APP_VERSION+--min-app-version "$MIN_APP_VERSION"}
 cp_ "$M" release/manifest.json --header-upload "Cache-Control: no-cache" --header-upload "Content-Type: application/json"
+# (T433) THE CLEAR COMES AFTER THE POINTER: everything this release does not name goes now, so a failure anywhere above
+# leaves the old manifest + release live. Spared: (T199/T412) runtiming/ (feeds-runtiming.yml, its only publisher),
+# (T251) test/ (the update-test channel), feeds/ + private/ (the worker's), app/android/, and this release's own keys.
+echo "clear $D of what $REL does not name (except feeds/, private/, runtiming/, test/, app/android/)"
+rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**" --exclude "test/**" --exclude "app/android/**" \
+  --exclude "release/manifest.json" --exclude "release/tiles/$TILES/**" --exclude "release/$REL/**" --exclude "release/$BM" \
+  --exclude "release/$SYN" --exclude "map-assets/v1/**" --exclude "/*.wasm"
 echo "uploaded $REL to $D"; rclone size "$D"
 # (T241) the smoke test against the live staging site + this bucket; SMOKE=0 skips it
 if [[ "${SMOKE:-1}" != 0 ]]; then node app/tools/smoke-staging.mjs --shots "${SMOKE_SHOTS:-app/dist/smoke-staging}"; fi

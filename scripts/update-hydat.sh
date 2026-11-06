@@ -10,8 +10,9 @@
 #
 # THE ORDER IS THE POINT (handoff/PLAN/app-integration/decisions.md, "upstream updates the owner runs: HYDAT first"):
 #   1. fetch HYDAT        data/source/hydat.sqlite3 + hydat.release (~266 MB; a no-op when already the newest).
-#                         fetch_data.py prints a failed listing or download and still exits 0, so the script then
-#                         asks the listing itself and STOPS unless data/source now holds the newest release.
+#                         fetch_data's hydat layer downloads through scripts/hydat-fetch.sh (the checked one, T433)
+#                         and fails on a failed listing or fetch; the script still asks the listing itself and
+#                         STOPS unless data/source now holds the newest release.
 #   2. the envelope       clim.json, from that HYDAT, into the served feed directory
 #   3. republish the feed with the new envelope: every percentile re-measured; the notice clears here (current == latest)
 #   4. the bundle         `pipeline build` reruns its clim stage (keyed on the HYDAT stamp: the same envelope again)

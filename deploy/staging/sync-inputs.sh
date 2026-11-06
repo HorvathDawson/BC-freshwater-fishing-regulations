@@ -19,7 +19,10 @@ JSON=(--s3-no-check-bucket --checksum --header-upload "Content-Type: application
 n=0
 while IFS=$'\t' read -r key cache; do
   CC=(); [ "$cache" != "-" ] && CC=(--header-upload "Cache-Control: $cache")
-  rclone copyto "$T/out/$key" "$D/$key" "${JSON[@]}" ${CC[@]+"${CC[@]}"} -v 2>&1 | grep -E "Copied|Skipped|ERROR" || true
+  # (T433) a failed copy STOPS the script (upload.sh then writes no pointer); the log is filtered only after the check
+  rclone copyto "$T/out/$key" "$D/$key" "${JSON[@]}" ${CC[@]+"${CC[@]}"} -v > "$T/log" 2>&1 \
+    || { cat "$T/log" >&2; echo "sync-inputs: $key failed — nothing after it was sent" >&2; exit 1; }
+  grep -E "Copied|Skipped|ERROR" "$T/log" || true
   n=$((n + 1))
 done < "$T/manifest.tsv"
 echo "inputs in sync: $D ($n objects, in-season matches $(jq '.matches|length' "$T/out/feeds/inseason/matches.json"))"

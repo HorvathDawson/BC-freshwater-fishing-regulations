@@ -1,6 +1,6 @@
 # T433 — Staging scripts: upload can take staging dark; sync and HYDAT mask failures
 
-Status: OPEN — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
+Status: DONE 2026-11-05 (chat 3, HASH) — from the audit (T333–T335, 2026-11-05). Severity: **high**. Verified by a second reader.
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: review-deploy 1, 2, 3, 12, 14; `*.verified.md` has the evidence per finding).
 
@@ -21,3 +21,18 @@ Each listed defect fixed with a test that fails without the fix (or a recorded "
 when; no fix in the audit run.
 
 Size: M. Owner: no (picks the order).
+
+## Result (2026-11-05)
+- upload.sh: the clear runs AFTER the pointer flip and spares what the new release names (manifest, its tiles,
+  release folder, basemap, synopsis, map-assets/v1, the wasm) plus feeds/ private/ runtiming/ test/ app/android/.
+  A failure above it now leaves the old manifest + release live. No dry-run mode exists; pinned by a test on the order.
+- sync-inputs.sh: a failed copy prints its log and exits 1 (nothing after it sent); dry-run against staging: 12
+  objects, clean.
+- HYDAT: fetch_data's hydat layer now downloads through `scripts/hydat-fetch.sh` (the checked one, as CI) and raises
+  on an unreadable listing; update-hydat.sh keeps its own listing check. The zip stays in `data/source/hydat-download/`
+  (ignored) so a rerun resumes.
+- check-public.mjs: a failed private read or `rclone config dump` throws; only a missing `.run-token` is a skip.
+  Not added: "fail on 0 emails" — the reporter email is optional. Run against staging: PASS.
+- build-ios-testflight.sh `--production` needs `CONFIRM_PROD=canifishthis.ca`, checked before the heavy queue.
+- Finding 14: the two `curation-review/frontend/*.tsbuildinfo` are untracked (gitignored already).
+Tests: `pipeline/tests/test_staging_scripts_fail_safe.py` (6 of 7 fail with the fixes reverted).

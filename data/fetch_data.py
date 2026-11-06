@@ -1259,30 +1259,23 @@ def fetch_hydat(short_name: str, dest_path: Path) -> None:
     no stated provenance is a number claiming more authority than it has.
 
     Idempotent: an existing extract for the current release is left alone.
+
+    ONE DOWNLOADER (T433): the bytes come through `scripts/hydat-fetch.sh` (resumable; size, CRC and quick_check
+    checked; the old sqlite replaced only by a checked extract), the same script CI's feeds-hydat.yml runs. The zip
+    stays in `source/hydat-download/` so a rerun resumes it. An unreadable listing or a failed fetch RAISES.
     """
     release = hydat_latest_release()
     marker = dest_path.with_suffix(".release")
     if not release:
-        print(f"  ⚠️  {short_name}: could not read the HYDAT listing; leaving what is here")
-        return
+        raise RuntimeError(f"{short_name}: could not read the HYDAT listing; nothing fetched")
     if dest_path.exists() and marker.exists() and marker.read_text().strip() == release:
         print(f"  ✓ {short_name}: already at release {release}")
         return
-
-    url = f"{_HYDAT_DIR}Hydat_sqlite3_{release}.zip"
-    with tempfile.TemporaryDirectory() as tmp:
-        zip_path = Path(tmp) / "hydat.zip"
-        _download_with_progress(url, zip_path, desc=f"HYDAT {release}")
-        with zipfile.ZipFile(zip_path) as zf:
-            inner = next((n for n in zf.namelist() if n.lower().endswith(".sqlite3")), None)
-            if not inner:
-                raise RuntimeError(f"no .sqlite3 inside {url}")
-            dest_path.parent.mkdir(parents=True, exist_ok=True)
-            with zf.open(inner) as src, dest_path.open("wb") as out:
-                shutil.copyfileobj(src, out)
-    marker.write_text(release, encoding="utf-8")
-    print(f"  ✓ {short_name}: HYDAT {release} -> {dest_path.name} "
-          f"({dest_path.stat().st_size / 1e6:.0f} MB)")
+    import subprocess
+    script = Path(__file__).resolve().parents[1] / "scripts" / "hydat-fetch.sh"
+    subprocess.run(["bash", str(script), release, str(dest_path.parent / "hydat-download"), str(dest_path)],
+                   check=True)
+    print(f"  ✓ {short_name}: HYDAT {release} -> {dest_path.name}")
 
 
 def fetch_hydrometric_stations(short_name: str, dest_path: Path) -> None:

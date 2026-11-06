@@ -11,7 +11,8 @@
 #
 # Usage: deploy/staging/build-ios-testflight.sh [--production] [--no-upload | --unsigned] [--dry-run]
 #   (default)     staging data, the environment switch on — the build internal testers get (as the Play internal track)
-#   --production  production data, no switch — the build that is later submitted for App Review
+#   --production  production data, no switch — the build that is later submitted for App Review (needs
+#                 CONFIRM_PROD=canifishthis.ca, T433)
 #   --no-upload   export the signed .ipa to app/dist/ios/ instead of uploading (Transporter or `xcrun altool` by hand)
 #   --unsigned    a device (arm64, iphoneos) Release archive with NO signing, team or upload: proves the device build
 #                 compiles and links without the account (Claude's check); the archive cannot be installed or uploaded
@@ -33,6 +34,10 @@ REPO=$PWD
 has() { [[ " $ARGS " == *" $1 "* ]]; }
 ARGS="$*"
 if has --dry-run; then DRY=1; else DRY=; fi
+# (T433) a production build from a staging/ script asks the same confirmation as deploy/prod/
+if has --production && [[ "${CONFIRM_PROD:-}" != canifishthis.ca ]]; then
+  echo "build-ios-testflight.sh --production: set CONFIRM_PROD=canifishthis.ca to build production" >&2; exit 2
+fi
 if [[ -z ${BUILD_IOS_INNER:-} && -z $DRY ]]; then
   export BUILD_IOS_INNER=1
   exec scripts/heavy.sh build-ios-testflight 20 -- "$0" "$@"

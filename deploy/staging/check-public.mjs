@@ -38,29 +38,33 @@ function list() {
   const j = JSON.parse(execFileSync('aws', ['s3api', 'list-objects-v2', '--bucket', BUCKET, '--endpoint-url', process.env.R2_ENDPOINT, '--output', 'json'], { encoding: 'utf8', maxBuffer: 1 << 28 }));
   return (j.Contents ?? []).map((o) => ({ key: o.Key, size: o.Size }));
 }
+/** (T433) a failed read THROWS: a secret the scan cannot read is a secret it cannot look for */
 function readPrivate(key) {
-  try {
-    if (RCLONE) return execFileSync('rclone', ['cat', `r2:${BUCKET}/${key}`, '--s3-no-check-bucket'], { encoding: 'utf8', maxBuffer: 1 << 26 });
-    return execFileSync('aws', ['s3', 'cp', `s3://${BUCKET}/${key}`, '-', '--endpoint-url', process.env.R2_ENDPOINT], { encoding: 'utf8', maxBuffer: 1 << 26 });
-  } catch { return ''; }
+  if (RCLONE) return execFileSync('rclone', ['cat', `r2:${BUCKET}/${key}`, '--s3-no-check-bucket'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+  return execFileSync('aws', ['s3', 'cp', `s3://${BUCKET}/${key}`, '-', '--endpoint-url', process.env.R2_ENDPOINT], { encoding: 'utf8', maxBuffer: 1 << 26 });
 }
 /** the secret VALUES to look for, by name (never printed) */
 function secrets(privateKeys) {
   const s = [];
   const add = (name, v) => { if (v && String(v).trim().length >= 6) s.push({ name, value: String(v).trim() }); };
-  try { add('RUN_TOKEN', fs.readFileSync(path.join(ROOT, 'app/workers/feeds/.run-token'), 'utf8')); } catch {}
+  // (T433) a missing .run-token is a skip (not every machine has one); any other read failure stops the check
+  try { add('RUN_TOKEN', fs.readFileSync(path.join(ROOT, 'app/workers/feeds/.run-token'), 'utf8')); } catch (e) { if (e.code !== 'ENOENT') throw e; }
   add('RUN_TOKEN (env)', process.env.RUN_TOKEN);
   add('NOTIFY_EMAIL_TO', process.env.NOTIFY_EMAIL_TO);
   add('REPORT_SALT', process.env.REPORT_SALT);
   add('R2 access key id', process.env.AWS_ACCESS_KEY_ID);
   add('R2 secret access key', process.env.AWS_SECRET_ACCESS_KEY);
-  if (RCLONE) try {
+  if (RCLONE) {
     const c = JSON.parse(execFileSync('rclone', ['config', 'dump'], { encoding: 'utf8' })).r2 ?? {};
     add('R2 access key id (rclone)', c.access_key_id); add('R2 secret access key (rclone)', c.secret_access_key);
-  } catch {}
+  }
   // reporter emails (T237): a report's email must never reach a public object
   const reports = privateKeys.filter((k) => /^private\/reports\/\d{4}-\d{2}-\d{2}\/[^/]+\.json$/.test(k)).slice(0, 500);
-  for (const k of reports) { try { add('a reporter email', JSON.parse(readPrivate(k)).email); } catch {} }
+  // a failed READ throws (readPrivate); the email is optional, and a report that is not JSON has none to read
+  for (const k of reports) {
+    const t = readPrivate(k);
+    try { add('a reporter email', JSON.parse(t).email); } catch {}
+  }
   return s;
 }
 const SHAPES = [

@@ -10,6 +10,8 @@ source/bathymetry_pdfs/
 source/hydat.sqlite3
 # a kept previous HYDAT (update-hydat.sh / T301 keep the old archive as hydat.<YYYYMMDD>.sqlite3, 1.2 GB)
 source/hydat.*.sqlite3
+# the resumable HYDAT zip + its sha256 (scripts/hydat-fetch.sh, via fetch_data's hydat layer)
+source/hydat-download/
 source/*.gpkg
 source/*.pmtiles
 
