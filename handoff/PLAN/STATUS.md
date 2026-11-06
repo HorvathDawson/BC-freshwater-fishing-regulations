@@ -97,6 +97,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   (2d62d60ff, 49ab00cd5: per-zoom smoothing in pipeline/deliver/tiles/smooth.py; stream vertices z9 −70 %, z10 −51 %;
   full build data/generated/side/t419/tiles/atlas.pmtiles, same handles as r-4230bc0c1dd5): owner picks from the sent
   sheets, then a tiles release to staging.
+- **Late 11-06:** release **r-67b456b5e64b** (T419 smoothed streams, owner chose L) LATEST + on staging, smoke 18/18,
+  test/ re-pointed. Owner: zoomed-in lag "way better", zoomed-out still laggy (suspects parks/polygons). T420 web
+  pixel-ratio cap ≤2 (2b891823f, −28–32 % frame time on the Pixel 9 Chrome proxy). T390: Play builds say a new version
+  only once Play offers it (0b96e8848, owner). AGENTS.md rules 34a (web/native split by file), 45 (new chat / compact),
+  46 (audit guards), absolute 5–6. Owner decisions: icon ships (artist icon T447 postponed), support URL /about,
+  T425/T427 good, T319 titles kept. Filed T443–T449 (T448 native pixel-ratio cap, T449 DFO wholly-tidal places:
+  Nanaimo below Cedar Rd bridge is tidal, nothing to bind).
+  **In flight:** (1) background chain: staging site rebuild (web cap) → `pnpm check` → `build-apk.sh --play` 0.6.5
+  (logs `~/site-1106b-*.log`, `~/check-1106h.log`, `~/apk-1106c.log`); if the check fails on release fixtures, re-cut per
+  rule 46 / T441. (2) lag agent: zoomed-out lag z5–z9, polygon layers cost, fix + numbers (proposals for anything that
+  changes what shows). **Then:** emulator walk incl. fresh install on 0.6.5, NEXT-SESSION file, new chat.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
