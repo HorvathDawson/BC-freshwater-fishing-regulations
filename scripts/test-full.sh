@@ -5,7 +5,7 @@
 #
 #   scripts/heavy.sh test-full 40 -- ./scripts/test-full.sh
 #
-#   1. pnpm -C app check                                    every app gate + vitest (≈ 17 s)
+#   1. REGS_STORE_REQUIRED=1 pnpm -C app check              every app gate + vitest, the parity strict (≈ 17 s)
 #   2. pytest (the fast suite, `-m "not slow"`)             ≈ 8.5 min serial (2026-10-20: 3572 passed)
 #   3. pytest -m slow                                       264 tests: determinism and full-build guards (AGENTS 18)
 #   4. card gate on the shipped answers                     problems: 0 (rule 9)
@@ -22,7 +22,10 @@ t0=$SECONDS; failed=()
 step() { local name=$1 s=$SECONDS; shift; echo "── $name"; if "$@"; then echo "   ok ($((SECONDS - s)) s)"; else
   echo "   FAILED ($((SECONDS - s)) s)"; failed+=("$name"); fi; }
 
-step "app check" pnpm -C app check
+# (T432) STRICT: REGS_STORE_REQUIRED=1 turns every release-backed parity skip into a failure. Without it the golden parity
+# passes green on zero cases whenever the release on disk is not the one taps.json was cut from (after every release,
+# until sync.mjs re-cuts the goldens); the failure names `node app/tools/regs-recut/sync.mjs`.
+step "app check (strict parity)" env REGS_STORE_REQUIRED=1 pnpm -C app check
 step "pytest fast" "$PY" -m pytest -q
 step "pytest slow" "$PY" -m pytest -q -m slow
 step "card gate" "$PY" -m pipeline.deliver.answers.card_check

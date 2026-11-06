@@ -77,6 +77,16 @@ CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>
 It then runs `python -m pipeline.deliver.release.publish --release data/release/<r-id> --yes`. That uploads the
 manifest last and writes `PUBLISHED`. If the website must follow, deploy it separately with `deploy/prod/site.sh`.
 
+## 5. After a promote: re-cut the goldens, then the strict parity (T432)
+
+The app's rules→app parity suites compare against the release `app/fixtures/golden/taps.json` was cut from. On any
+other release they SKIP, and a skip is green. So after LATEST moves:
+
+1. `node app/tools/regs-recut/sync.mjs`, then commit `taps.json` / `hydrate.json` with the release id in the message.
+2. `scripts/heavy.sh test-full 40 -- ./scripts/test-full.sh`. Its app step runs with `REGS_STORE_REQUIRED=1`, so a
+   release that is not paired with the goldens FAILS there, naming the `sync.mjs` command, instead of passing on zero
+   cases.
+
 ## Not in this command
 
 - **A new atlas.** Build and promote it first (`python -m pipeline build --atlas`, read the parity, then `--promote`).
