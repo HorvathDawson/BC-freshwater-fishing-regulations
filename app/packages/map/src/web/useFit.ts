@@ -1,7 +1,7 @@
 /**
  * THE CAMERA SENT TO A SUBJECT (`fit`) on the web map, refined to the water's own shape as its tiles arrive.
  */
-import { padBbox, refineFit, unionBbox, type Bbox } from "@app/core";
+import { fitAtMost, fitZoomLimit, padBbox, refineFit, unionBbox, type Bbox } from "@app/core";
 import { useEffect, useRef, type MutableRefObject } from "react";
 import type { MapProps } from "../map-props";
 import { syncSize } from "../size";
@@ -28,6 +28,8 @@ export function useFit({ map, renderer, refit }: WebMapRefs, fit: MapProps["fit"
   lit.current = highlight;
   /** The drawn route overlay's extent, once its tiles are in — see `useTrace`. */
   const traceBox = useRef<Bbox | null>(null);
+  /** (T443) This map has been sent to a subject already: the next fit FOLLOWS one (`fitZoomLimit`). */
+  const fittedOnce = useRef(false);
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r || !fit) return;
@@ -39,13 +41,18 @@ export function useFit({ map, renderer, refit }: WebMapRefs, fit: MapProps["fit"
     const touched = (e: { originalEvent?: unknown }) => { if (e.originalEvent) moved = true; };
     m.on("movestart", touched);
     refit.current = () => { if (alive && last && !moved) go(last); };
+    // (T443) the closest this fit lands: a fit that follows another, from where the camera is as it starts (a refine
+    // round or a refit keeps it)
+    const limit = fitZoomLimit(fit, fittedOnce.current ? m.getZoom() : null);
+    if (fit.bbox) fittedOnce.current = true;
     const go = (b: Bbox) => {
       last = b;
       // measure the box BEFORE framing it: a stale canvas centres the water on a size nobody sees
       syncSize(m);
       const el = m.getContainer();
       const pad = Math.round(Math.min(56, el.clientWidth * 0.12, el.clientHeight * 0.12));
-      r.fitBounds(b, { padding: Math.max(pad, 8), duration: cameraMs(450) });
+      const padding = Math.max(pad, 8);
+      r.fitBounds(fitAtMost(b, limit, el.clientWidth, el.clientHeight, padding), { padding, duration: cameraMs(450) });
     };
     const done = () => { alive = false; m.off("movestart", touched); };
     // A route overlay already drawn is part of the subject: "fit" frames the routes' own

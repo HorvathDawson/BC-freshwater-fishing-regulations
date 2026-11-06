@@ -70,6 +70,27 @@ export const CAMERA_MAX_ZOOM = 18;
 export const FIT_MAX_ZOOM = 14;
 
 /**
+ * (T443, owner 2026-11-06) A WATER'S PART IS FRAMED IN ITS COUNTRY, AND A STEP DOES NOT LUNGE. Stepping ▲/▼ along the
+ * Fraser moved the camera up to 5 zoom levels at a time (each part framed tight: z9 → z14 → z9), which the owner found
+ * disorienting. Every water map: a part is framed no closer than `PART_FIT_MAX_ZOOM`, and a step (any fit after the map's
+ * first) zooms IN at most `STEP_ZOOM_IN` levels from where the camera is. Zooming out to fit a big part is not bounded:
+ * the part must be seen whole.
+ */
+export const PART_FIT_MAX_ZOOM = 12;
+export const STEP_ZOOM_IN = 2;
+
+/**
+ * The closest a fit may land: `FIT_MAX_ZOOM`, or the fit's own `maxZoom` if lower, and — `zoomInAtMost` given and
+ * `current` known (the camera's zoom, passed only for a fit that follows another on the same map) — no more than that
+ * many levels in from it. Both maps widen the box to it (`fitAtMost`).
+ */
+export function fitZoomLimit(fit: { maxZoom?: number; zoomInAtMost?: number }, current: number | null): number {
+  const cap = Math.min(FIT_MAX_ZOOM, fit.maxZoom ?? FIT_MAX_ZOOM);
+  if (fit.zoomInAtMost === undefined || current === null || !Number.isFinite(current)) return cap;
+  return Math.min(cap, current + fit.zoomInAtMost);
+}
+
+/**
  * Where the camera may go. `[[west, south], [east, north]]`, MapLibre's `maxBounds` shape.
  *
  * BOTH OF THESE WERE DEAD until now: the constants existed and the map was constructed

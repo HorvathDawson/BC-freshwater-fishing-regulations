@@ -102,7 +102,8 @@ describe("<WaterMapView>", () => {
       // (T278, regs fixture on r-62e2f3a8c81e) re-pinned by section id (atlas full.prev -> full section_handles.txt): the same sections
       highlight: [60206, 60207, 60208, 62219, 62515, 62634, 62888, 1236858, 1236859, 1236904],   // (regs fixture on r-4e709418ebd8: the 08MH044 Albion cut) same sections, handles +1..+2
       water: [1236860, 1236905, 1236906, 59879, 59885, 61207, 62924, 1236861, 1236862, 1236863, 1236864] });
-    expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false });
+    expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false,
+      maxZoom: 12, zoomInAtMost: 2 });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
       "Tamihi Rapids Bridge Boundary: Tamihi Rapids Bridge",
@@ -166,7 +167,8 @@ describe("<WaterMapView>", () => {
     await ready();
     fireEvent.click(screen.getByRole("button", { name: "Whole river" }));
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.fit]).toEqual(["This part",
-      { key: "gnis:8634:whole", bbox: [-121.966394, 48.999855, -121.39612, 49.114995], refine: false }]);
+      { key: "gnis:8634:whole", bbox: [-121.966394, 48.999855, -121.39612, 49.114995], refine: false,
+        maxZoom: 12, zoomInAtMost: 2 }]);
     fireEvent.click(screen.getByRole("button", { name: "This part" }));
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.fit?.key]).toEqual(["⤢ Whole river", "gnis:8634:1"]);
   }, 30_000);

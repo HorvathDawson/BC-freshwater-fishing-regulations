@@ -18,7 +18,7 @@ import { useRef, type ComponentProps } from "react";
 import { ScrollView, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { WATER_MAP_WORDS } from "@app/core";
+import { PART_FIT_MAX_ZOOM, STEP_ZOOM_IN, WATER_MAP_WORDS } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { useBackLayer, useRegsStore, useSalmonKey, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
@@ -82,7 +82,9 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
                    selection="dim"
                    marks={vm?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
                    onPressMark={(i) => { const m = vm?.marks[i]; if (m) act({ type: "mark", ix: m.ix }); }}
-                   fit={vm ? { key: vm.fitKey, bbox: vm.bounds, refine: false } : null}
+                   // (T443) a part in its country; a step (the map's next fit) zooms in gently
+                   fit={vm ? { key: vm.fitKey, bbox: vm.bounds, refine: false, maxZoom: PART_FIT_MAX_ZOOM,
+                               zoomInAtMost: STEP_ZOOM_IN } : null}
                    onPressFeature={(_layer, id, lat, lon) => {
                      const sid = Number(id);
                      if (vm && (vm.selected.includes(sid) || vm.water.includes(sid))) act({ type: "section", sid });

@@ -75,3 +75,11 @@ describe("fitAtMost: a fit frames the subject in its country, never past the til
     expect(fitZoom(b, 400, 800, 8)).toBeLessThanOrEqual(FIT_MAX_ZOOM + 1e-9);
   });
 });
+
+describe("(T443) a water's part in its country; a step does not lunge", () => {
+  it("caps at the fit's maxZoom, and a following fit zooms in at most zoomInAtMost from the camera", () => {
+    const f = { maxZoom: core.PART_FIT_MAX_ZOOM, zoomInAtMost: core.STEP_ZOOM_IN };
+    expect([core.fitZoomLimit(f, null), core.fitZoomLimit(f, 9), core.fitZoomLimit(f, 11.5), core.fitZoomLimit({}, 3),
+            core.fitZoomLimit({ maxZoom: 16 }, null)]).toEqual([12, 11, 12, 14, 14]);
+  });
+});
