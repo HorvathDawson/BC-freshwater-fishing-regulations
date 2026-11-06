@@ -395,7 +395,7 @@ use that as the sole source of future work."
 | T350 | Quick audit: DFO salmon pipeline unified with freshwater datatypes, no fallbacks / dup paths / tech debt (after T349) | DONE | 4fb701fb7 | lean pass merged 4fb701fb7 → T356–T358; in-depth pass → T333 (owner 2026-11-03) |
 | T351 | Native crash in the foreground, Android 37 / 0.4.0 (2 reports, no stack) | OPEN | T346 | 2026-11-02 |
 | T352 | Crash + problem reports lack context (water id, screen, module id, install id, stack normalising, background kills) | DONE 11-05 | 03492caa0 | 2026-11-02 |
-| T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | IN REVIEW — fix landed; left: two-side-build proof | 4754c6f8d, 7dd2f991f | found by the 10-31 build pass; release id moved on every tile rebuild |
+| T305 | tile_version is not deterministic (tippecanoe temp path in pmtiles metadata) | DONE | 4754c6f8d, 7dd2f991f | found by the 10-31 build pass; release id moved on every tile rebuild |
 | T306 | slow suite: 8 failures on live data (status_index 198/6000 disagree, national parks, cayoosh split, water kind, t57 sweep, browser) | IN REVIEW — some fixed; re-check which of the 8 are still red | f0b92de23, 876e63529 | found by the 10-31 build pass; not caused by it |
 | T353 | Map fling still too weak on 0.4.0 mobile: measure, tune deceleration/velocity (see T312) | DROPPED (folded into T312) | T312 | owner 2026-11-02 |
 | T354 | Synopsis PDF slow to open: shipped copy 25 -> 11.7 MB (render-gated), opens IN THE APP (react-native-pdf) at the page, highlight appended in place; no fallbacks, failures reported | IN REVIEW | — | owner 2026-11-02/03; left: dev build on emulator, test bed pdf scenarios |

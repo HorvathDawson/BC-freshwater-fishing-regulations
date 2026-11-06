@@ -23,7 +23,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Full test suites:** app check green (8,701 tests); pipeline fast tier green after one fix — a clean-up commit
   earlier tonight (T436) had made the "where does this river continue" code ignore named test rivers (11 red tests;
   real data was not affected); slow tier: only the 6 known T306 failures, nothing new.
-- Next in this run: the web measurements (T409/T410/T304), the tile id check (T305). Waiting behind another chat's DFO rebuild.
+- **Water pages are faster** (T409, measured on this machine): phone Lighthouse 93 · 91 · 93 for Vedder, Cowichan and
+  Skeena (they were 88 · 85 · 78), desktop 99-100, now that the map behind a water page is only built when it is seen.
+- **A water page on a slow phone line hands over to the app in about 25 s instead of 45 s** (T304): every page now names
+  its region, so it fetches its region's small files (3.5 MB less). Staging gets this with the next deploy that rebuilds
+  all the water pages (not the quick relink). Found on the way: each landing downloads the fonts twice (~315 kB) — noted
+  in T409 as the next item.
+- **Web and phone code are cleanly apart** (T410): the web bundle holds no phone-only file and the Android bundle no
+  web-only file. Left for you: a phone pass over the moved pieces.
+- **The map tiles get the same id when nothing changed** (T305 closed): two rebuilds gave identical files.
 
 ## 2026-11-06: chat 3 — your calls, then the next build
 - **Your calls recorded:** golden.json is retired (new T439, in progress); T383 and T341 dropped; T389 deferred;
