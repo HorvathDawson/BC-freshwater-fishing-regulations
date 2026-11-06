@@ -493,7 +493,7 @@ use that as the sole source of future work."
 | T446 | First install: a release file "does not match the manifest" (resume / partial file) | OPEN | — | worker /crashes 2026-11-06 |
 | T447 | An app icon made by an artist (the favicon-derived set ships until then) | POSTPONED | — | owner 2026-11-06 |
 | T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | PARTIAL | 26c59849f | T420 follow-up 2026-11-06; Android: binding `maxPixelRatio` → the map SurfaceView a fixed smaller buffer (823×1567 vs 1080×2057), compositor scales; same scale/taps (shots out/t448). Stressed emulator frame times mixed (Mac GPU passthrough, fill free). Left: owner phone check, iOS |
-| T449 | A DFO place wholly in tidal water (Nanaimo below Cedar Bridge): a "tidal water" state, proposed, binds nothing | OPEN | — | owner 2026-11-06 |
+| T449 | A DFO place wholly in tidal water (Nanaimo below Cedar Bridge): a "tidal water" state, proposed, binds nothing | IN REVIEW | e83f7811e | owner 2026-11-06; rule proposes (tidal words + tidal-limit cut named, op downstream); owner's DFO mark accepts ("tidal water") / rejects; sweep: only the 2 Nanaimo places |
 
 ## Order for open tickets
 

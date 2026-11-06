@@ -1,6 +1,6 @@
 # T449 — A DFO place that lies wholly in tidal water: say so, bind nothing
 
-Status: OPEN.
+Status: IN REVIEW (e83f7811e; owner accepts/rejects the two Nanaimo proposals in the DFO review app).
 
 Source: owner 2026-11-06 on the two Nanaimo River DFO places (region-1 `1:nanaimo-river:in-subarea-17-14-tidal-portions-of`
 and `…~2`: "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream" and "…from the Cedar
@@ -17,3 +17,20 @@ sit in the DFO queue as unbound (0 extents) only because no verdict says "tidal"
    names DFO as the authority (unchanged).
 3. Sweep every region for the same pattern (other "tidal portions of …" places) and list them as proposals.
 Size: S.
+
+## Done (e83f7811e)
+- Rule (`pipeline.regs.review.dfo.tidal_proposal`, proposes only): no extent yet; the words put the place IN tidal water
+  (`TIDAL_PLACE_WORDS`: "tidal portions/waters of", never "to the tidal boundary" / "tidal water fishing boundary signs"
+  / "flowing into tidal water"); its water has a row in `waters/tidal_limits.json`; for a `split`/`cut` limit the op runs
+  downstream (downstream_of / between) and a distinctive word of the cut's label is in the notice ("cedar" of "Cedar
+  Road bridge"); a `mouth`/`whole` limit needs no anchor.
+- Decision is a DFO mark: call "tidal water" (T R P y, verified) accepts; call "not tidal" (deferred + note) rejects.
+  Write-through (`proposals._tidal_water_proposal`, dfo_loc edit) sets the place's `tidal_water: true` (absent when
+  false; `EntryLocation` refuses it beside an extent).
+- Accepted: review state `tidal` (ranked last, done), no suggestion (`suggest.needs_suggestion`), reach row outcome
+  `tidal_water`, and the bundle (`deliver.salmon`) neither paints its water "parts not mapped" nor lists it as "not yet
+  mapped" on the card (its rules apply below the limit, off the freshwater map). Authority unchanged.
+- Sweep (all regions, live data): exactly the two Nanaimo places
+  (`1:nanaimo-river:in-subarea-17-14-tidal-portions-of`, `…~2`). The other "tidal" wordings (Cowichan, Somass ×4,
+  Chapman, Seymour, Dean) are bounded BY the limit — freshwater above it — and are not proposed.
+- Tests: `test_dfo_tidal_water.py`, screen test (proposed → accepted → rejected), `test_salmon_file` tidal case.
