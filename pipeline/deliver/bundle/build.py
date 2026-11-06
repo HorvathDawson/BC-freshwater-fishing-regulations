@@ -499,6 +499,14 @@ def edition_valid_until(data_dir: Path) -> str:
     return synopsis_period(Path(data_dir) / PDF_NAME).valid_until
 
 
+def _repo_relative(p: Path) -> str:
+    """`p` relative to the repo root when it is inside it (the same text on every machine), else as given."""
+    try:
+        return Path(p).resolve().relative_to(Path(_ROOT).resolve()).as_posix()
+    except ValueError:
+        return str(p)
+
+
 def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
           reaches: Path | None = None, entries: Path | None = None, tiles: Path | None = None) -> Path:
     """Write the bundle. Returns the path written.
@@ -791,7 +799,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         ("schema", SCHEMA.read_text().split("\n")[0]),
         ("format", BUNDLE_FORMAT),
         ("schema_sha256", schema_sha256()),
-        ("build", str(build_dir)),
+        # (T416) repo-relative when the atlas is in this checkout: an absolute path made two machines' bundles differ
+        ("build", _repo_relative(build_dir)),
         ("generated_by", "python -m pipeline.deliver.bundle"),
         ("trust_bands", json.dumps({b: f for b, f in TRUST_BANDS})),
         # THE VINTAGE THE TILE MUST MATCH. Every `sid` in this bundle is an index into the

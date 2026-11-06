@@ -1,6 +1,6 @@
 # T416 — A fresh clone can build: nothing important lives only on this Mac
 
-Status: OPEN (owner 2026-11-05: "find out if everything in the repo saved is enough to clone and then be able to run a
+Status: DONE 2026-11-05 — 758041595, ead5863c6, 1ff647888, c691175 + the bundle-path fix (follow-ups: basemap gap, synopsis cache key) — was OPEN (owner 2026-11-05: "find out if everything in the repo saved is enough to clone and then be able to run a
 build in a short amount of time … all external bigger data is fetchable from r2 assets bucket"). After T324 (the
 renames move the files this inventories).
 
@@ -88,3 +88,18 @@ clone cannot build today.**
   That is a silent fallback. To do: the release refuses a missing basemap, and the runbook adds `python -m
   pipeline.deliver.tiles.basemap` (or pins the released basemap).
 - Runbook: `handoff/PLAN/runbooks/fresh-machine.md`.
+
+## Verdict 2026-11-05 (night): reproducible — every difference explained, two causes fixed
+Fresh clone (pinned libs) vs a Mac `--side` build of the same pipeline code (`~/t416-repro.json`):
+- **Tiles identical** (822db448a2851809.a4c3f4eb02bd — the live release's own tiles id), and 40 of 52 release files
+  byte-identical (core, regs, geo, paint, access, lines, near, conditions, climate, …).
+- **Synopsis**: the fresh clone had cached a copy made with Pillow 13 (the cache is keyed by the source PDF only). Made
+  again with the pinned libs: `80614b20045f` = live, byte for byte.
+- **water-***: rows identical; only `meta` differed — (a) the atlas path written ABSOLUTE into `about_bundle`/`build`
+  (now repo-relative, `bundle/build.py _repo_relative`; readers resolve it against the repo, `section_handles`), and
+  (b) the answers digest, which follows (c).
+- **salmon** (+ the answers digest): DFO's live pages, fetched today by the fresh clone vs the Mac's earlier copy —
+  the one input that is meant to be today's (the live feed serves today's pages anyway).
+So a fresh machine rebuilds the live release; the only expected difference is DFO's salmon pages of the day.
+Left (small, own follow-ups): the basemap gap above (release refuses a missing basemap); the synopsis cache key should
+include the library versions (or the code digest) so a library change cannot reuse an old copy.

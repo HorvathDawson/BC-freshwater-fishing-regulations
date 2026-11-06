@@ -149,15 +149,17 @@ def registry_digest_for(build_dir: Path) -> str:
 def build_of_bundle(meta: Mapping[str, str]) -> Path:
     """THE ATLAS BUILD A BUNDLE WAS MADE FROM, from its `meta` (`build`, `section_handles`).
 
-    `meta.build` is the build's absolute path at bundling time; a bundle built in a scratch
+    `meta.build` is the build's path at bundling time (repo-relative since T416, absolute before); a bundle built in a scratch
     worktree (r-0fa7927b16e5's was) records a path that no longer exists. Then this checkout's
     build of the same name stands in — accepted only when its handle table is the very one the
     bundle records, so a reader never pairs a bundle with another atlas's handles.
     """
+    from pipeline.common.curated import GENERATED, REPO_ROOT
     recorded = Path(meta["build"])
+    if not recorded.is_absolute():                       # (T416) recorded repo-relative
+        recorded = Path(REPO_ROOT) / recorded
     if (recorded / FILENAME).exists():
         return recorded
-    from pipeline.common.curated import GENERATED
     local = GENERATED.atlas.builds / recorded.name
     want = meta.get("section_handles")
     if want and (local / FILENAME).exists() and digest_for(local) == want:
