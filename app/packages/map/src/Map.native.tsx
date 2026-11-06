@@ -72,6 +72,11 @@ import { camProbe } from "./native/camProbe";
 import { watchStyleAssets } from "./native/styleAssets";
 import { MAX_PIXEL_RATIO } from "./pixel-ratio";
 
+/** (T401) MapLibre's prefetch zoom delta: how many zooms below the shown one it also loads, drawn as the placeholder
+ *  while a tile loads. -1 = MapLibre's own (4). Measured 2026-11-06 on the stressed emulator: 2 and 3 moved neither the
+ *  frames missing tiles nor frame time beyond run-to-run noise (T401 ticket), so MapLibre's default stays */
+const PREFETCH_ZOOM_DELTA = -1;
+
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = React.ComponentProps<typeof Layer>;
 
@@ -686,6 +691,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         // (T448) at most 2 device pixels per dp, like the web (`pixel-ratio.ts`): the patched binding draws into a smaller
         // surface the compositor scales up (Android) — fewer pixels filled, the same scale, gestures and taps
         maxPixelRatio={MAX_PIXEL_RATIO}
+        // (T401) parent tiles loaded as placeholders while a tile loads (patched binding, Android; iOS ignores it)
+        prefetchZoomDelta={PREFETCH_ZOOM_DELTA}
         logo={false}
         // OURS is drawn below (`metricScale`): the binding's is top-left only on Android, in the device's units. But
         // the binding's must EXIST on Android: switched off, the map's surface left a black hole over the next screen

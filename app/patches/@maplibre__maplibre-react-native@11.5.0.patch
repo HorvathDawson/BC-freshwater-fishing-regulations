@@ -33,7 +33,7 @@ index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b36
  
                      else -> {
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-index b088909a48c4265219e4e95c529f6c0a63ae7e11..e21a5bf995b726c3281b358717e5bca9255ce3f5 100644
+index b088909a48c4265219e4e95c529f6c0a63ae7e11..89316de3c577b69e905c4d2a3f06bcda276a4ef6 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 @@ -10,6 +10,9 @@ import android.os.Looper
@@ -56,8 +56,11 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..e21a5bf995b726c3281b358717e5bca9
  import kotlin.math.roundToInt
  
  sealed class MapChild {
-@@ -460,6 +466,12 @@ open class MLRNMapView(
+@@ -458,8 +464,15 @@ open class MLRNMapView(
+ 
+     override fun onMapReady(mapLibreMap: MapLibreMap) {
          this.mapLibreMap = mapLibreMap
++        applyPrefetchZoomDelta()
  
          val uiSettings = mapLibreMap.uiSettings
 +        // (T312, owner 2026-11-02: "the fling is still too weak") MapLibre's fling glides for velocity/7/1.5 + base ms
@@ -69,7 +72,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..e21a5bf995b726c3281b358717e5bca9
          if (attributionGravity == null) attributionGravity = Gravity.END or Gravity.BOTTOM
          if (attributionMargin == null) {
              attributionMargin =
-@@ -610,8 +622,43 @@ open class MLRNMapView(
+@@ -610,8 +623,43 @@ open class MLRNMapView(
          }
      }
  
@@ -113,7 +116,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..e21a5bf995b726c3281b358717e5bca9
          val result = super.onTouchEvent(ev)
  
          if (result && scrollEnabled == true) {
-@@ -871,6 +918,58 @@ open class MLRNMapView(
+@@ -871,6 +919,71 @@ open class MLRNMapView(
          updateInsets()
      }
  
@@ -122,6 +125,19 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..e21a5bf995b726c3281b358717e5bca9
 +
 +    /** (T448) the surface size last asked for, or null while the surface follows the layout */
 +    private var cappedSurface: Pair<Int, Int>? = null
++
++    /** (T401) MapLibre's prefetch zoom delta (parent tiles loaded as placeholders); -1 = MapLibre's own (4) */
++    private var prefetchZoomDelta = -1
++
++    fun setReactPrefetchZoomDelta(value: Int) {
++        prefetchZoomDelta = value
++        applyPrefetchZoomDelta()
++    }
++
++    private fun applyPrefetchZoomDelta() {
++        val map = mapLibreMap ?: return
++        if (prefetchZoomDelta >= 0) map.prefetchZoomDelta = prefetchZoomDelta
++    }
 +
 +    fun setReactMaxPixelRatio(value: Double) {
 +        maxPixelRatio = value.toFloat()
@@ -172,7 +188,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..e21a5bf995b726c3281b358717e5bca9
      fun setReactPreferredFramesPerSecond(preferredFramesPerSecond: Int?) {
          this.preferredFramesPerSecond = preferredFramesPerSecond
          updatePreferredFramesPerSecond()
-@@ -1613,6 +1712,22 @@ open class MLRNMapView(
+@@ -1613,6 +1726,22 @@ open class MLRNMapView(
      }
  
      companion object {
@@ -196,10 +212,10 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..e21a5bf995b726c3281b358717e5bca9
      }
  }
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt
-index 2179f0b9b5373a2eacd4aa6c18342e04e22d6f36..7d1a97cb221533a9d0330fceb202a4561527aeda 100644
+index 2179f0b9b5373a2eacd4aa6c18342e04e22d6f36..f3c8631379e4745a4544e40f39afe41191465da1 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapViewManager.kt
-@@ -119,6 +119,14 @@ open class MLRNMapViewManager(
+@@ -119,6 +119,22 @@ open class MLRNMapViewManager(
          mapView.setReactPreferredFramesPerSecond(value)
      }
  
@@ -209,6 +225,14 @@ index 2179f0b9b5373a2eacd4aa6c18342e04e22d6f36..7d1a97cb221533a9d0330fceb202a456
 +        value: Double,
 +    ) {
 +        mapView.setReactMaxPixelRatio(value)
++    }
++
++    @ReactProp(name = "prefetchZoomDelta")
++    override fun setPrefetchZoomDelta(
++        mapView: MLRNMapView,
++        value: Int,
++    ) {
++        mapView.setReactPrefetchZoomDelta(value)
 +    }
 +
      @ReactProp(name = "dragPan")
@@ -1388,26 +1412,28 @@ index 46db8c919a36ce57cca573f7bb248bd797be1242..8bd9c6c6b5c51b1eca0227a0da3c9d81
        }
      });
 diff --git a/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts b/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts
-index af4549f0889d69db52cbbe200d8f67290ea16692..bb33d0f47e5f24a8def44e93d3b7916c97eab53e 100644
+index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264fae8f666 100644
 --- a/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts
 +++ b/lib/commonjs/components/map/AndroidTextureMapViewNativeComponent.ts
-@@ -58,6 +58,7 @@ export interface NativeProps extends ViewProps {
+@@ -58,6 +58,8 @@ export interface NativeProps extends ViewProps {
    light?: UnsafeMixed<LightLayerStyle>;
    contentInset?: NativeViewPadding;
    preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +  maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++  prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
 diff --git a/lib/commonjs/components/map/MapViewNativeComponent.ts b/lib/commonjs/components/map/MapViewNativeComponent.ts
-index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..1764c2f6d795b77b5c97779c7757aff39183373f 100644
+index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3f1284fe9 100644
 --- a/lib/commonjs/components/map/MapViewNativeComponent.ts
 +++ b/lib/commonjs/components/map/MapViewNativeComponent.ts
-@@ -55,6 +55,7 @@ export interface NativeProps extends ViewProps {
+@@ -55,6 +55,8 @@ export interface NativeProps extends ViewProps {
    light?: UnsafeMixed<LightLayerStyle>;
    contentInset?: NativeViewPadding;
    preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +  maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++  prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
@@ -1448,26 +1474,28 @@ index a7f1cd85c4d2117fc5bd43c388c125cffab8c401..2db798ac2503368bfde454d9cefea8ab
        }
      });
 diff --git a/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts b/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts
-index af4549f0889d69db52cbbe200d8f67290ea16692..bb33d0f47e5f24a8def44e93d3b7916c97eab53e 100644
+index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264fae8f666 100644
 --- a/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts
 +++ b/lib/module/components/map/AndroidTextureMapViewNativeComponent.ts
-@@ -58,6 +58,7 @@ export interface NativeProps extends ViewProps {
+@@ -58,6 +58,8 @@ export interface NativeProps extends ViewProps {
    light?: UnsafeMixed<LightLayerStyle>;
    contentInset?: NativeViewPadding;
    preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +  maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++  prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
 diff --git a/lib/module/components/map/MapViewNativeComponent.ts b/lib/module/components/map/MapViewNativeComponent.ts
-index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..1764c2f6d795b77b5c97779c7757aff39183373f 100644
+index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3f1284fe9 100644
 --- a/lib/module/components/map/MapViewNativeComponent.ts
 +++ b/lib/module/components/map/MapViewNativeComponent.ts
-@@ -55,6 +55,7 @@ export interface NativeProps extends ViewProps {
+@@ -55,6 +55,8 @@ export interface NativeProps extends ViewProps {
    light?: UnsafeMixed<LightLayerStyle>;
    contentInset?: NativeViewPadding;
    preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +  maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++  prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
@@ -1504,22 +1532,23 @@ index 473e240b3fac4b00d8a0dabc447bdb9d5b76abb2..4e75d942ce3b7f9a7e5b71bd97264cec
  /**
   * A map image entry: a URL string, a native asset require, or an
 diff --git a/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts b/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts
-index 47f536b7c0bcf57c445b6866d47c10a083682905..8162e547e206ce3411764a7d15e891c6eaccf87d 100644
+index 47f536b7c0bcf57c445b6866d47c10a083682905..515ff21da0f3eb1000f6d585bf8a686676f648f7 100644
 --- a/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts
 +++ b/lib/typescript/commonjs/components/map/AndroidTextureMapViewNativeComponent.d.ts
-@@ -42,6 +42,7 @@ export interface NativeProps extends ViewProps {
+@@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
      light?: UnsafeMixed<LightLayerStyle>;
      contentInset?: NativeViewPadding;
      preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +    maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++    prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
 diff --git a/lib/typescript/commonjs/components/map/Map.d.ts b/lib/typescript/commonjs/components/map/Map.d.ts
-index 25657578618e1ce75273fc672ece61f347da1cab..440f67d7408dc0b8fa251394531e4a6414101556 100644
+index 25657578618e1ce75273fc672ece61f347da1cab..d27801564926a7a5f2d1760c22eb6729bfa9f525 100644
 --- a/lib/typescript/commonjs/components/map/Map.d.ts
 +++ b/lib/typescript/commonjs/components/map/Map.d.ts
-@@ -259,6 +259,13 @@ export interface MapProps extends BaseProps, ViewProps {
+@@ -259,6 +259,19 @@ export interface MapProps extends BaseProps, ViewProps {
       * arbitrary integer values.
       */
      preferredFramesPerSecond?: number;
@@ -1530,18 +1559,25 @@ index 25657578618e1ce75273fc672ece61f347da1cab..440f67d7408dc0b8fa251394531e4a64
 +     * 0 (default) = the device density. Texture mode and iOS ignore it.
 +     */
 +    maxPixelRatio?: number;
++    /**
++     * **Android** (app patch, T401): how many zoom levels below the shown one MapLibre also loads, for the
++     * placeholders drawn while a tile loads (`MapLibreMap.setPrefetchZoomDelta`; MapLibre's default 4, 0 = none).
++     * -1 (default) = MapLibre's own. iOS ignores it.
++     */
++    prefetchZoomDelta?: number;
      /**
       * Toggle pan interaction of the map
       *
 diff --git a/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts b/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts
-index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..c97aa7e18ac210c06640c234fa3a52e956456a95 100644
+index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..276e0d3c8308705b8b1a1bc2ad5dc69865811e97 100644
 --- a/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts
 +++ b/lib/typescript/commonjs/components/map/MapViewNativeComponent.d.ts
-@@ -42,6 +42,7 @@ export interface NativeProps extends ViewProps {
+@@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
      light?: UnsafeMixed<LightLayerStyle>;
      contentInset?: NativeViewPadding;
      preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +    maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++    prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
@@ -1578,22 +1614,23 @@ index 473e240b3fac4b00d8a0dabc447bdb9d5b76abb2..4e75d942ce3b7f9a7e5b71bd97264cec
  /**
   * A map image entry: a URL string, a native asset require, or an
 diff --git a/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts b/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts
-index 47f536b7c0bcf57c445b6866d47c10a083682905..8162e547e206ce3411764a7d15e891c6eaccf87d 100644
+index 47f536b7c0bcf57c445b6866d47c10a083682905..515ff21da0f3eb1000f6d585bf8a686676f648f7 100644
 --- a/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts
 +++ b/lib/typescript/module/components/map/AndroidTextureMapViewNativeComponent.d.ts
-@@ -42,6 +42,7 @@ export interface NativeProps extends ViewProps {
+@@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
      light?: UnsafeMixed<LightLayerStyle>;
      contentInset?: NativeViewPadding;
      preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +    maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++    prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
 diff --git a/lib/typescript/module/components/map/Map.d.ts b/lib/typescript/module/components/map/Map.d.ts
-index 25657578618e1ce75273fc672ece61f347da1cab..440f67d7408dc0b8fa251394531e4a6414101556 100644
+index 25657578618e1ce75273fc672ece61f347da1cab..d27801564926a7a5f2d1760c22eb6729bfa9f525 100644
 --- a/lib/typescript/module/components/map/Map.d.ts
 +++ b/lib/typescript/module/components/map/Map.d.ts
-@@ -259,6 +259,13 @@ export interface MapProps extends BaseProps, ViewProps {
+@@ -259,6 +259,19 @@ export interface MapProps extends BaseProps, ViewProps {
       * arbitrary integer values.
       */
      preferredFramesPerSecond?: number;
@@ -1604,18 +1641,25 @@ index 25657578618e1ce75273fc672ece61f347da1cab..440f67d7408dc0b8fa251394531e4a64
 +     * 0 (default) = the device density. Texture mode and iOS ignore it.
 +     */
 +    maxPixelRatio?: number;
++    /**
++     * **Android** (app patch, T401): how many zoom levels below the shown one MapLibre also loads, for the
++     * placeholders drawn while a tile loads (`MapLibreMap.setPrefetchZoomDelta`; MapLibre's default 4, 0 = none).
++     * -1 (default) = MapLibre's own. iOS ignores it.
++     */
++    prefetchZoomDelta?: number;
      /**
       * Toggle pan interaction of the map
       *
 diff --git a/lib/typescript/module/components/map/MapViewNativeComponent.d.ts b/lib/typescript/module/components/map/MapViewNativeComponent.d.ts
-index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..c97aa7e18ac210c06640c234fa3a52e956456a95 100644
+index e337bbf4b2f53bdf5631d1272e6ad3b31cc6db86..276e0d3c8308705b8b1a1bc2ad5dc69865811e97 100644
 --- a/lib/typescript/module/components/map/MapViewNativeComponent.d.ts
 +++ b/lib/typescript/module/components/map/MapViewNativeComponent.d.ts
-@@ -42,6 +42,7 @@ export interface NativeProps extends ViewProps {
+@@ -42,6 +42,8 @@ export interface NativeProps extends ViewProps {
      light?: UnsafeMixed<LightLayerStyle>;
      contentInset?: NativeViewPadding;
      preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +    maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++    prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
      dragPan?: CodegenTypes.WithDefault<boolean, true>;
      touchZoom?: CodegenTypes.WithDefault<boolean, true>;
      doubleTapZoom?: CodegenTypes.WithDefault<boolean, true>;
@@ -1678,22 +1722,23 @@ index 22c6cf91e9b2f8d2c62f7da7988dc2e95c86ab39..63e4aae5a48521c8a469a5ee384fc4fb
  
  export interface NativeProps extends ViewProps {
 diff --git a/src/components/map/AndroidTextureMapViewNativeComponent.ts b/src/components/map/AndroidTextureMapViewNativeComponent.ts
-index af4549f0889d69db52cbbe200d8f67290ea16692..bb33d0f47e5f24a8def44e93d3b7916c97eab53e 100644
+index af4549f0889d69db52cbbe200d8f67290ea16692..d71b70a0bb51fe563988c7e181030264fae8f666 100644
 --- a/src/components/map/AndroidTextureMapViewNativeComponent.ts
 +++ b/src/components/map/AndroidTextureMapViewNativeComponent.ts
-@@ -58,6 +58,7 @@ export interface NativeProps extends ViewProps {
+@@ -58,6 +58,8 @@ export interface NativeProps extends ViewProps {
    light?: UnsafeMixed<LightLayerStyle>;
    contentInset?: NativeViewPadding;
    preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +  maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++  prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
 diff --git a/src/components/map/Map.tsx b/src/components/map/Map.tsx
-index b193cda77510b23b6a7b8cd50c2b66adfe2c92c9..f9b7571095ef414873e0ec2624e7fe766ce6819e 100644
+index b193cda77510b23b6a7b8cd50c2b66adfe2c92c9..be7639c4a793f3d33342137d9aec3d477a62b503 100644
 --- a/src/components/map/Map.tsx
 +++ b/src/components/map/Map.tsx
-@@ -321,6 +321,13 @@ export interface MapProps extends BaseProps, ViewProps {
+@@ -321,6 +321,20 @@ export interface MapProps extends BaseProps, ViewProps {
     */
    preferredFramesPerSecond?: number;
  
@@ -1704,18 +1749,26 @@ index b193cda77510b23b6a7b8cd50c2b66adfe2c92c9..f9b7571095ef414873e0ec2624e7fe76
 +   */
 +  maxPixelRatio?: number;
 +
++  /**
++   * **Android** (app patch, T401): how many zoom levels below the shown one MapLibre also loads, for the
++   * placeholders drawn while a tile loads (`MapLibreMap.setPrefetchZoomDelta`; MapLibre's default 4, 0 = none).
++   * -1 (default) = MapLibre's own. iOS ignores it.
++   */
++  prefetchZoomDelta?: number;
++
    /**
     * Toggle pan interaction of the map
     *
 diff --git a/src/components/map/MapViewNativeComponent.ts b/src/components/map/MapViewNativeComponent.ts
-index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..1764c2f6d795b77b5c97779c7757aff39183373f 100644
+index 8d387ef65d38f06ea72f4eb1da3162e8535d2d1c..b517661bfcdb2c66fd994a01526d9fd3f1284fe9 100644
 --- a/src/components/map/MapViewNativeComponent.ts
 +++ b/src/components/map/MapViewNativeComponent.ts
-@@ -55,6 +55,7 @@ export interface NativeProps extends ViewProps {
+@@ -55,6 +55,8 @@ export interface NativeProps extends ViewProps {
    light?: UnsafeMixed<LightLayerStyle>;
    contentInset?: NativeViewPadding;
    preferredFramesPerSecond?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
 +  maxPixelRatio?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
++  prefetchZoomDelta?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
  
    dragPan?: CodegenTypes.WithDefault<boolean, true>;
    touchZoom?: CodegenTypes.WithDefault<boolean, true>;
