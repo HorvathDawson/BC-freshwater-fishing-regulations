@@ -43,7 +43,7 @@ def shipped(src: Path, cache: Optional[Path] = None) -> Path:
     from pipeline.common.curated import GENERATED
     cache = cache or (GENERATED.base / "synopsis")
     cache.mkdir(parents=True, exist_ok=True)
-    out = cache / f"synopsis-{_sha(src)[:12]}-c{CAP}q{QUALITY}v{INDEX_V}.pdf"
+    out = cache / f"synopsis-{_sha(src)[:12]}-c{CAP}q{QUALITY}v{INDEX_V}-{_libs()}.pdf"
     if not out.exists():
         part = out.with_suffix(".part")
         _shrink(src, part)
@@ -53,6 +53,17 @@ def shipped(src: Path, cache: Optional[Path] = None) -> Path:
             raise ValueError(f"T354 render gate: the shipped synopsis differs from {src}: {gate}")
         part.replace(out)
     return out
+
+
+def _libs() -> str:
+    """(T416) The libraries that write the copy's bytes (Pillow + its JPEG codec, pikepdf + qpdf), in the cache name: a
+    copy cached under other versions is a different file. A fresh clone once kept one made before its versions were
+    pinned and shipped other bytes than the Mac's from the same source."""
+    import PIL
+    import pikepdf
+    from PIL import features
+    said = f"{PIL.__version__}|{features.version('jpg')}|{pikepdf.__version__}|{pikepdf.__libqpdf_version__}"
+    return hashlib.sha256(said.encode()).hexdigest()[:8]
 
 
 def _shrink(src: Path, dst: Path) -> None:
