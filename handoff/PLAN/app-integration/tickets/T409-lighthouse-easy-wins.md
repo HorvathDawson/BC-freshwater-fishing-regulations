@@ -1,6 +1,6 @@
 # T409 — Water pages: the next Lighthouse wins (later)
 
-Status: PARTIAL — e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 (staging 0457d354): fonts + WebCrypto verify kept, water pages 77-83 (were 67-83); the rest of TBT is the warm map behind the page (owner decision, below). OWNER 2026-11-05: build the map only when it is first seen on water pages (web-only), next chat; keep the Cloudflare scripts. Lazy map DONE in code 2026-11-05 (below); its measurement is owed (heavy lock).
+Status: PARTIAL — e843253e7, 011c8a8b8, 4771bb914, eb118fd15, 17791608a, e92983641 (staging 0457d354): fonts + WebCrypto verify kept, water pages 77-83 (were 67-83); the rest of TBT is the warm map behind the page (owner decision, below). OWNER 2026-11-05: build the map only when it is first seen on water pages (web-only), next chat; keep the Cloudflare scripts. Lazy map DONE in code 2026-11-05; MEASURED 2026-11-06 on the local rig: mobile 93·91·93 (was 88·85·78), desktop 1440 99·100·99 (below). Left: the T269 page-vs-tap pairs, the phone-width manual check, then staging.
 
 Source: T405 outcome on staging (fc215b52): water pages Perf 77–88, LCP 2.1–2.5 s, CLS 0.002, A11y 100; region hubs
 97–100. What is left is the app's boot (TBT 350–520 ms) and bytes before first paint. Measure each item alone
@@ -92,3 +92,21 @@ This ticket now also carries the leftovers of: T188, T196, T405, T198 — read e
   no resize listener): at every width the warm map is built when first shown. Tests: the desktop case now asserts
   "not built until shown"; the widen and breakpoint tests were dropped with the rule. The measurement owed above now also
   covers 1440x900 (desktop TBT should fall like the phone's).
+
+## Lazy map measured 2026-11-06 (local rig, HEAD e8ebf21f4, staging data r-5a5999c94588)
+Same rig as Outcome: the staging web export (`expo export -p web`, APP_ENV=staging) + a full `build-seo` over
+r-5a5999c94588 served from this machine (scratchpad `serve.mjs`: brotli, immutable `/_expo` + `/assets`), data from
+data-staging. Lighthouse 12.8.2, performance only, 3 runs, median. Mobile = Lighthouse's mobile preset; desktop =
+`--preset=desktop` at 1440x900.
+
+| page | mobile Perf (runs) | LCP | TBT | FCP | desktop 1440 Perf | LCP | TBT |
+|---|---|---|---|---|---|---|---|
+| vedder-river | **93** (91, 93, 93) | 2.48 s | 149 ms | 1.80 s | **99** | 0.52 s | 11 ms |
+| cowichan-river | **91** (91, 94, 91) | 2.25 s | 272 ms | 1.80 s | **100** | 0.46 s | 21 ms |
+| skeena-river | **93** (92, 93, 93) | 2.48 s | 147 ms | 1.80 s | **99** | 0.52 s | 11 ms |
+
+Against the kept set (88·85·78, TBT 297·386·608 ms): **+5 · +6 · +15**, TBT −148 · −114 · −461 ms — at the no-map bound
+measured before (93·93·93, TBT 147·182·142). CLS 0.002-0.003. LCP 2.25-2.48 s still misses the 1.8 s gate (fonts +
+thumbnails before the largest paint, Outcome). No desktop "before" was measured on this rig (the kept set was phone only).
+Still owed: the T269 page-vs-tap pairs (390x844 / 1440x900) and the phone-width manual check (land → back → map framed
+and coloured; tap → map at once), then staging.
