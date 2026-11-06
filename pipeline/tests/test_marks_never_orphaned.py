@@ -137,8 +137,8 @@ def test_no_owner_mark_is_orphaned_or_dropped_live():
     its own fix landed. Fails listing every orphan / stale DFO mark with what it said.
 
     Whether a mark's fix LANDED (`applied_keys`) reads the build's registry: a DFO mark whose proposal
-    cuts at a named river (the Campbell's "Quinsam River") is only recognised as landed against it, so
-    without a build it reads as "binding moved" — needs_atlas, not a data defect."""
+    cuts at a named river (the Campbell's "Quinsam River") is only recognised as landed against it — needs_atlas,
+    not a data defect. Without a build `applied_keys` refuses (T421), never "binding moved"."""
     from pipeline.common.curated import CURATED, GENERATED
     from pipeline.tests.conftest import ATLAS_HINT, need
     path = Path(CURATED.review.marks)
@@ -230,3 +230,23 @@ def test_a_historic_only_place_is_its_own_item_with_its_dormant_rewordings():
     assert not B.historic_only(locs["2"][1], g, live)          # a rewording rides its place
     assert not B.historic_only(locs["up"][1], g, live)         # live: shown anyway
     assert not B.historic_only(locs["north"][1], g, set())     # a water off the live page: archived
+
+
+def test_applied_keys_names_a_missing_build_instead_of_calling_marks_moved(tmp_path):
+    """(T421) The live marks hold new points anchored by the registry (the Campbell's "Quinsam River"). With no build,
+    `applied_keys` used to fall back to the stamped point, call every such mark "binding moved" and say nothing; now it
+    refuses, naming the registry it could not read. Curated marks only (in git): no build needed to prove it."""
+    from pipeline.common.curated import CURATED
+    marks = M.load(Path(CURATED.review.marks))
+    with pytest.raises(FileNotFoundError, match="registry"):
+        P.applied_keys(marks, P.Sources.live(build=tmp_path / "no-build"))
+
+
+def test_a_registry_lookup_without_a_build_is_remembered(tmp_path):
+    """(T421) The flag `applied_keys` reads: an item asked for with no registry.json sets it; with one, it stays off."""
+    src = P.Sources(entries_dir=tmp_path, dfo_dir=tmp_path, splits_path=tmp_path / "s.json", build=tmp_path / "none")
+    assert src.item("gnis:1") is None and src._asked_without_registry
+    b = tmp_path / "b"; b.mkdir()
+    (b / "registry.json").write_text(json.dumps({"items": [{"id": "gnis:1", "name": "X"}]}))
+    src = P.Sources(entries_dir=tmp_path, dfo_dir=tmp_path, splits_path=tmp_path / "s.json", build=b)
+    assert src.item("gnis:1")["name"] == "X" and not src._asked_without_registry

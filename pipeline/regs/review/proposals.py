@@ -101,6 +101,10 @@ class Sources:
     tidal_decisions: Optional[Path] = None
     _reg: Optional[dict] = field(default=None, repr=False)
     _texts: dict = field(default_factory=dict, repr=False)
+    #: (T421) whether registry.json was there (None = not read yet), and whether an item was asked for without one:
+    #: `applied_keys` refuses that
+    _has_reg: Optional[bool] = field(default=None, repr=False)
+    _asked_without_registry: bool = field(default=False, repr=False)
 
     @classmethod
     def live(cls, build: Optional[Path] = None) -> "Sources":
@@ -128,7 +132,13 @@ class Sources:
             p = Path(self.build or "") / "registry.json"
             self._reg = ({i["id"]: i for i in json.loads(p.read_text(encoding="utf-8"))["items"]}
                          if self.build and p.exists() else {})
+            self._has_reg = bool(self.build and p.exists())
+        if not self._has_reg:
+            self._asked_without_registry = True
         return self._reg.get(iid)
+
+    def registry_path(self) -> Path:
+        return Path(self.build or "") / "registry.json"
 
 
 def _region_files(d: Path) -> list[Path]:
@@ -1050,7 +1060,14 @@ def applied_keys(marks: Iterable, src: Sources) -> set:
     import dataclasses
     keep = [m for m in marks if m.scope in ("entry", "rule", "dfo")]
     out: set = set()
-    build(keep, dataclasses.replace(src, tidal_decisions=None), applied=out)
+    cheap = dataclasses.replace(src, tidal_decisions=None)
+    build(keep, cheap, applied=out)
+    # (T421) a new point's anchor comes from the registry; without one it falls back to the stamped point, which never
+    # equals the split that landed — every such mark would read "binding moved". Name the missing build instead.
+    if cheap._asked_without_registry:
+        raise FileNotFoundError(f"applied_keys: marks need the build's registry to tell a landed fix from a moved "
+                                f"binding, and there is none at {cheap.registry_path()} (build the atlas, or point "
+                                f"CURATION_BUILD at one)")
     return out
 
 
