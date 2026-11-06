@@ -1,6 +1,6 @@
 # T401 — Streams pop in at the screen edges while panning (phone)
 
-Status: PARTIAL — 2026-11-06 the T420 tile-event fix (deb635819) cut the stressed emulator's moving frames missing tiles 22.6 → 17.6 % (z13 travelling) and 26.4 → 16.1 % (circling); still above the normal emulator's ~5 %, so option 2 (`setPrefetchZoomDelta`) is next if the owner still sees it. Earlier: 2026-11-06 reproduced in simulation DURING the glide (stressed emulator: 20–36 % of moving frames lack tiles, 0 % at rest), measured with the new `[drawn]` probe (c1c838f58); not fixed (see the end). Was: OPEN (owner 2026-11-04, 0.5.0 Play internal: "panning doesn't load enough of a buffer of streams outside the
+Status: PARTIAL — 2026-11-06 option 2 built and measured (29b1e561b): the binding patch exposes `prefetchZoomDelta`; on the stressed emulator deltas 2 and 3 moved neither the moving frames missing tiles nor frame time beyond run-to-run noise (3 runs each of 4 vs 2), so the app keeps MapLibre's default (4). Left: what the owner sees on the phone (a delta-2 A/B APK if wanted), option 3 (render margin). 2026-11-06 the T420 tile-event fix (deb635819) cut the stressed emulator's moving frames missing tiles 22.6 → 17.6 % (z13 travelling) and 26.4 → 16.1 % (circling); still above the normal emulator's ~5 %, so option 2 (`setPrefetchZoomDelta`) is next if the owner still sees it. Earlier: 2026-11-06 reproduced in simulation DURING the glide (stressed emulator: 20–36 % of moving frames lack tiles, 0 % at rest), measured with the new `[drawn]` probe (c1c838f58); not fixed (see the end). Was: OPEN (owner 2026-11-04, 0.5.0 Play internal: "panning doesn't load enough of a buffer of streams outside the
 view").
 
 **What the code says:** nothing in the app can widen the area loaded. MapLibre Native loads only the tiles that cover
@@ -48,3 +48,34 @@ fix first (measured lever), then option 2 (`setPrefetchZoomDelta`) if the parent
 Frames missing tiles while moving, stressed emulator: Coquitlam z13 26.4 → 16.1 % (circling), 22.6 → 17.6 % (travelling);
 Fraser Valley z11 9.9 → 14.9 %, 22.6 → 19.4 % (run-to-run noise is a few points); "never full within 8 s of rest" 3 → 0
 on the z13 travelling run. The pop-in left is MapLibre parsing new tiles behind the glide on 2 slow cores.
+
+## Option 2: prefetch zoom delta, measured (2026-11-06, 29b1e561b)
+**Built.** The binding patch's new `prefetchZoomDelta` prop (Android, `MLRNMapView.applyPrefetchZoomDelta` →
+`MapLibreMap.setPrefetchZoomDelta`, android-v13.6.1; −1 = MapLibre's own 4) is set on map ready and on change.
+`Map.native.tsx` passes `PREFETCH_ZOOM_DELTA = -1` (unchanged behaviour). iOS: `MLNMapView` has only `prefetchesTiles`
+(on/off), no delta, so it ignores the prop. MapLibre also has a PER-SOURCE delta (`Source.setPrefetchZoomDelta`), not
+exposed: a delta for the streams source alone is the narrower experiment if this is reopened.
+
+**What the probe can and cannot show.** MapLibre's "fully rendered" frame (`TilePyramid::isLoaded`, android-v13.6.1)
+waits on EVERY tile it holds, the prefetched parents included. So a smaller delta (more, closer parents to load) can only
+add to "frames missing tiles"; it cannot credit the richer placeholder, which is the visual gain option 2 is for. A
+per-frame look at the placeholder was tried (screenrecord during the pan): on the 2-core emulator the recorder itself
+made the app stall ("isn't responding") and turned flings into taps (a water's page opened) — invalid, discarded.
+
+**Numbers** (stressed emulator `TESTBED_EMU_ECORES=1 TESTBED_EMU_ARGS="-cores 2"`, `PAN_MS=120`, 16 flings/round; same
+tree, the delta via a test-bed build env; runs `app/tools/testbed/out/runs/t401-{d4,d4b,d4c,d2,d2b,d2c,d3}-{coq13,fv11}`;
+mean of 3 runs with the range):
+| run (circling · travelling) | delta | frames missing tiles while moving | map p50 ms | map frames |
+|---|---|---|---|---|
+| Coquitlam z13 | 4 (default) | 21.3 (17.6–27.9) · 19.2 (12–24.4) % | 73.6 (60–94) · 69.6 (41–85) | 273 · 381 |
+| Coquitlam z13 | 2 | 17.9 (9.5–25) · 20.0 (15.9–22.8) % | 58.5 (41–74) · 60.2 (49–67) | 318 · 393 |
+| Coquitlam z13 | 3 (1 run) | 35.5 · 29.9 % | 95.7 · 88.2 | 141 · 304 |
+| Fraser Valley z11 | 4 (default) | 15.2 (10.7–20.9) · 26.4 (21.1–31.4) % | 55.8 (49–69) · 66.1 (52–83) | 349 · 339 |
+| Fraser Valley z11 | 2 | 11.0 (7.5–15.3) · 21.7 (19.1–23.2) % | 49.5 (34–66) · 59.8 (50–66) | 418 · 380 |
+| Fraser Valley z11 | 3 (1 run) | 14.1 · 29.7 % | 67.1 · 79.9 | 285 · 314 |
+
+The same APK varies by up to ±10 points (missing) and ±35 ms (p50) between sessions (the Mac's own load moves the
+efficiency cores; the delta-3 run and a delta-4 repeat fell in a slow spell). Delta 2's means are a few points better in
+3 of 4 rows, all inside the ranges: no measurable gain, and no measurable cost (the extra z11 parents did not raise frame
+time). Not shipped. If the owner still sees bare streams during the glide on the Pixel 9, a delta-2 APK side by side is
+the honest check (the emulator cannot judge placeholder richness).
