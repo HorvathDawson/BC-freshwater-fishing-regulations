@@ -1,6 +1,6 @@
 # T424 — Map attribution: better, the same on web and app, and no longer on top of the scale bar
 
-Status: OPEN (owner 2026-11-05, 0.6.2 on the phone: "need ticket to improve attribution and the scale and attribution
+Status: IN REVIEW — 1aaf0db18; proof pending: emulator/phone look (scale bottom-left, © chip bottom-right, card, with legend open / sheet / landscape; Esri badge on satellite). Web shots T424-shots/. Owner question taken at its default (a © chip that opens a credits card). Not done: bathymetry credit (no bathymetry layer is drawn); More -> About (credits) is the existing Sources and licences page, unchanged. (owner 2026-11-05, 0.6.2 on the phone: "need ticket to improve attribution and the scale and attribution
 overlap right now on map in app").
 
 Today (`app/packages/map/src/Map.native.tsx`): MapLibre's own attribution button at `{bottom: 8 + insetBottom, right: 8}`

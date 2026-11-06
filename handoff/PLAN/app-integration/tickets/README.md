@@ -466,7 +466,7 @@ use that as the sole source of future work."
 | T419 | Salmon River (Region 2) keeps too much detail when zoomed out; check stream simplification | OPEN — UI check | — | owner 11-05 |
 | T420 | Map panning laggy on web and app (even a Pixel 9): streams load in slowly, then the pan stutters | OPEN | — | owner 11-05 |
 | T423 | Update-channel / environment switch looks dead in an installed build (applies on reopen, says nothing); its write fails silently | IN REVIEW — phone check | c48d4190a | owner 11-05 |
-| T424 | Map attribution: our own credits (every source on screen), the same on web and app, no longer on top of the scale bar | OPEN | — | owner 11-05 |
+| T424 | Map attribution: our own credits (every source on screen), the same on web and app, no longer on top of the scale bar | IN REVIEW — phone look | 1aaf0db18 | owner 11-05 |
 | T421 | Review proposals: a missing build reads as "binding moved" (silent registry fallback) | DONE | f29410a41 | CI fix 11-05 |
 | T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | DONE | 5820c2ae4 | T331 leftover 11-05; `CURATED_ROOT` + `curated.make_root`, old four refused, grep gate test_curated_root.py |
 | T425 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | DONE | 0178b4301 | option A (fish art + small-caps word); shots owed, owner reviews look |
