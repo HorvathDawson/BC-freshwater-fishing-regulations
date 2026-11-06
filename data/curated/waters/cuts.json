@@ -2343,6 +2343,26 @@
       -124.987101,
       49.339393
      ]
+    },
+    {
+     "id": "stamp_river__robertson_creek_hatchery_lagoon",
+     "label": "Robertson Creek Hatchery lagoon outlet",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -124.980378,
+       49.339481
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-06] proposed in review marks on 1:stamp-river:from-the-inlet-upstream-of-roberst",
+     "_coord": [
+      -124.980378,
+      49.339481
+     ]
     }
    ]
   },
