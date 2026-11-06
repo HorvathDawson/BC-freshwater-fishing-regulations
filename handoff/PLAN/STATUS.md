@@ -14,6 +14,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 ## 2026-11-06: chat 4 — zoomed-out lag, then the list
+- **Your 0.6.6 notes (late):** T443 now never frames a part under half the screen (the small Fraser part lands at
+  ~z13, 55c7f54; in the next APK). Both Nanaimo places accepted as tidal water (your answer; marks saved, place file
+  written). Running: an agent on the map-switch stream flicker + the fling stutter, and one taking the raw section ids
+  out of the tests (T441).
 - **Zoomed-out lag (T420), your call:** the lag agent's one fix is ready but not shipped: the basemap's green/land fills
   stop drawing a soft 1-px edge outline (a second pass over the most detailed shapes zoomed out). On a slow-GPU proxy of
   your Pixel 9 that is 14–15 % less frame time at z5–z9; the picture changes ≤ 1.3 % of pixels. Shots sent (today left,

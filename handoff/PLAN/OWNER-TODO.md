@@ -6,8 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Review app, 2 clicks (T449, 2026-11-06):** DFO mode, search "nanaimo", open each of the two "tidal portions" places
-  and press "accept: tidal water" (or "reject: not tidal" with a note). Lands with the next release build.
+- **T449 ANSWERED 11-06 (in chat):** both Nanaimo places accepted as tidal water (marks saved for you; lands with the next release build).
 - **Phone checks with 0.6.6 (Play internal, 2026-11-06, chat 4):** zoomed-out pan feel z5–z9 (T420 basemap fix + T448 pixel
   cap; is the map too soft?), Fraser R2 ▲/▼ steps (T443: ≤ 2 levels in per step, never past z12).
 

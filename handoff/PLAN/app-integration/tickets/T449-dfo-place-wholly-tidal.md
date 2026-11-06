@@ -39,3 +39,6 @@ Size: S.
 Accepted tidal places are dropped from the freshwater card's "location not yet mapped" list (as built): "if it is
 tidal we do not do it so it is dropped." Left for the owner: accept the two Nanaimo proposals in the review app (DFO
 mode, search "nanaimo"); the bundle changes with the next release build.
+
+Owner 2026-11-06 (chat): "Yes, accept both" — both marks saved through the review API (reviewer Dawson); the
+write-through set `tidal_water: true` (0a3ba775b, 66aa4bebc). Reaches the app with the next release build.
