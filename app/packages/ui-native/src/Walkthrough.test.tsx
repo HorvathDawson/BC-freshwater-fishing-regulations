@@ -77,6 +77,7 @@ describe("the guided walkthrough (T293)", { timeout: 30_000 }, () => {
     expect(screen.getByTestId("guide-body").textContent).toContain("the Vedder River");
     expect(screen.getByTestId("guide-count").textContent).toBe(`${w.phases.find} · ${w.step(1, GUIDE_STEPS.length)}`);
     for (let k = 0; k < 40 && screen.queryByTestId("guide"); k++) {
+      await act(async () => {});                                          // settle the last move's effects first: under load a DO step read early offers Next, not Show me
       const key = keyAt(), s = GUIDE_STEPS.find((x) => x.key === key)!;
       const label = screen.queryByText(w.showMe) ? w.showMe : screen.queryByText(w.done) ? w.done : w.next;
       press(label);
