@@ -6,9 +6,6 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Not blocking (11-05, T239/T415):** Heber River's curated text reads "…when open"; the fixed extraction reads
-  "…when⏎open" (a line break). `synopsis_book carry` compares exactly, so next book Heber goes to the parse once
-  (1 row of credits). Default: leave it. Or: Claude makes carry ignore whitespace-only differences.
 - **ANSWERED 11-05:** T260 switches = ink fill; CF token kept until prod (T404); Apple install id declared as Device ID
   (not linked); Heber: carry ignores whitespace-only changes; audits T333–T335 scoped (all areas, report + fix tickets,
   medium, delete archive/). Still yours: the T425/T427 shots and the T319 titles (`app/tools/store-shots.json`).
