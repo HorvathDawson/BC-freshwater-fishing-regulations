@@ -1,6 +1,6 @@
 # T436 — Dead code and duplicate helpers (tidy-up)
 
-Status: DONE 2026-11-06 — d8f2429bc. Dead run-timing/audit modules deleted (`test_no_orphan_modules.py`); one
+Status: DONE 2026-11-06 — d8f2429bc, 6265c51a8. Dead run-timing/audit modules deleted (`test_no_orphan_modules.py`); one
 `parse_section_id`; map reads `GEAR_LEGEND`; one `platformLine()`; tile-ids pair gone; check-platform rule 5. Recorded
 "no": one member type (data's `PanelMember`/`BasinMember` are a deliberate wire→domain split: branded `StationId`,
 `lake`→`throughLake`, compile-checked). Left: the `bundle/build.py` by-name branch is T435's `_reach_run`;
