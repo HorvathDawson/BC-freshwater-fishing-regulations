@@ -21,6 +21,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.4", date: "2026-11-06", notes: [
+      "Panning the map is smoother: the map no longer re-reads every tile each time it stops",
+      "Screen readers can read the first-run notice and press \"I understand\" on Android",
+    ],
+  },
+  {
     version: "0.6.3", date: "2026-11-06", notes: [
       "Map credits sit in one small button, off the scale bar, and show in full when the map opens",
       "More → Updates syncs the regulations, the same as the sync button on the map",
