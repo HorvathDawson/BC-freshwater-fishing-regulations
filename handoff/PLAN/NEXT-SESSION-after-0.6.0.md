@@ -46,9 +46,9 @@ Left, in order (a short "Chat 1b" before chat 2):
 3. **T413** — the worker starts the HYDAT workflow (owner's optional token); until then its email.
 
 ## Chat 2 — Launch and hygiene (in order; ticket audit 2026-11-05 in `ticket-audit-2026-11-05.md`)
-0. **Close T416 first:** read `~/t416-repro.json` (log `~/t416-repro.log`): fresh clone vs Mac `--side`, same commit,
-   pinned libs. Identical → T416 DONE; else explain each file. Then the basemap gap (release refuses a missing basemap;
-   bootstrap or runbook builds it).
+0. **T416 is DONE** (a fresh clone rebuilds the live release; only DFO's pages of the day differ). Its two small
+   follow-ups: the release refuses a missing basemap (a fresh machine ships none today), and the synopsis cache key
+   includes the library versions.
 1. **0.6.2 (T390, T417, T418) is on Play internal: versionCode 11** (staging worker ab249a19; token check 200). Phone checks for the owner are in each ticket. Chat 1b also did T412, T413, T416
    (STATUS). T419 (Salmon River simplification) is checked with the UI work; a fix is a tiles change (rides a data
    release). The first staging release after this runs the new run-timing workflow for real (T412): watch it.

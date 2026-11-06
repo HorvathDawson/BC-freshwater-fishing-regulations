@@ -53,6 +53,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   clean. In-season links re-synced: same 32 links, new checksum.
 - **Your phone check:** Coquitlam → Map → Downstream to the bottom → Upstream once. The highlight should be one line.
 
+## 2026-11-05 (late night): T416 done — a fresh machine can rebuild the live release
+- The fresh clone, built with the pinned libraries, matches a Mac build of the same code. The tiles are identical, and
+  so are 40 of the 52 data files.
+- The synopsis is identical once rebuilt with the pinned libraries.
+- The water files differed only in a recorded folder path. The bundle now records it relative to the repo.
+- The only real difference is DFO's salmon pages, fetched on different days. That is expected.
+- Two small follow-ups are in the next chat's list: a release must refuse a missing basemap, and the synopsis cache.
+- T418 passed on your phone (the tile-folder move on the test channel).
+- New tickets: T423 (the channel switch looks dead), T424 (map credits: web = app, no overlap with the scale bar),
+  T428 (one sync control in More).
+- T420 notes the lag is on the web too.
+
 ## 2026-11-05 (night): 0.6.2 on Play internal; chat 1b done
 - **0.6.2 (versionCode 11) is on Play internal.** It holds T390 (a new version shows as soon as it is out), T417
   (watershed conditions don't blank, and follow the watershed most on screen) and T418 (the map keeps its labels and
