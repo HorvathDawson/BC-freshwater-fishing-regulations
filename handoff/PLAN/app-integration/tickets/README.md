@@ -481,7 +481,7 @@ use that as the sole source of future work."
 | T435 | Pipeline: hard-coded data paths, mtime staleness, two release-id formulas (medium) | OPEN | — | audit 11-05 |
 | T436 | Dead code and duplicate helpers (tidy-up) (low) | OPEN | — | audit 11-05 |
 | T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | OPEN | — | audit 11-05 |
-| T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | OPEN | — | audit 11-05 |
+| T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | DONE | — |  audit 11-05 |
 
 ## Order for open tickets
 
