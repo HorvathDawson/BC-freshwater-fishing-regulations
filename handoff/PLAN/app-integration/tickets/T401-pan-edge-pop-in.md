@@ -1,6 +1,6 @@
 # T401 — Streams pop in at the screen edges while panning (phone)
 
-Status: PARTIAL — 2026-11-06 reproduced in simulation DURING the glide (stressed emulator: 20–36 % of moving frames lack tiles, 0 % at rest), measured with the new `[drawn]` probe (c1c838f58); not fixed (see the end). Was: OPEN (owner 2026-11-04, 0.5.0 Play internal: "panning doesn't load enough of a buffer of streams outside the
+Status: PARTIAL — 2026-11-06 the T420 tile-event fix (deb635819) cut the stressed emulator's moving frames missing tiles 22.6 → 17.6 % (z13 travelling) and 26.4 → 16.1 % (circling); still above the normal emulator's ~5 %, so option 2 (`setPrefetchZoomDelta`) is next if the owner still sees it. Earlier: 2026-11-06 reproduced in simulation DURING the glide (stressed emulator: 20–36 % of moving frames lack tiles, 0 % at rest), measured with the new `[drawn]` probe (c1c838f58); not fixed (see the end). Was: OPEN (owner 2026-11-04, 0.5.0 Play internal: "panning doesn't load enough of a buffer of streams outside the
 view").
 
 **What the code says:** nothing in the app can widen the area loaded. MapLibre Native loads only the tiles that cover
@@ -43,3 +43,8 @@ flings, the edge still 0 % missing once at rest (camera at rest 1.1–1.7 s). So
 DURING the glide on a slow CPU — the at-rest measure of 11-05 could not see it. Switching the colouring's per-tile events
 off cut it 30 → 21 % (travelling); the rest is MapLibre parsing new tiles behind the glide. Not fixed: the T420 tile-event
 fix first (measured lever), then option 2 (`setPrefetchZoomDelta`) if the parent placeholders are still too bare.
+
+## After the T420 fix (2026-11-06, deb635819; table in T420 "Fixed")
+Frames missing tiles while moving, stressed emulator: Coquitlam z13 26.4 → 16.1 % (circling), 22.6 → 17.6 % (travelling);
+Fraser Valley z11 9.9 → 14.9 %, 22.6 → 19.4 % (run-to-run noise is a few points); "never full within 8 s of rest" 3 → 0
+on the z13 travelling run. The pop-in left is MapLibre parsing new tiles behind the glide on 2 slow cores.
