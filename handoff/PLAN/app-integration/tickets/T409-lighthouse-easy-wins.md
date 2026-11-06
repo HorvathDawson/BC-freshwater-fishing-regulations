@@ -88,3 +88,7 @@ tap a water → map at once. Then staging.
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T188, T196, T405, T198 — read each file's open items and finish them here; each closes pointing here.
+- **Owner 2026-11-05 (later): desktop waits too.** The desktop-at-once rule is gone (`wide()` / `BUILD_AT_ONCE_FROM` removed;
+  no resize listener): at every width the warm map is built when first shown. Tests: the desktop case now asserts
+  "not built until shown"; the widen and breakpoint tests were dropped with the rule. The measurement owed above now also
+  covers 1440x900 (desktop TBT should fall like the phone's).

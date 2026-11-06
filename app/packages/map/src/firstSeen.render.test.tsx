@@ -1,15 +1,12 @@
 /**
  * (T409, owner 2026-11-05) THE WEB MAP IS BUILT WHEN IT IS FIRST SEEN. `Map.web.tsx` over a counting maplibre-gl (the
  * seam of `one-engine.render.test.tsx`), inside a box like the Shell's warm map behind a water's own page (`BEHIND`:
- * opacity 0). Below desktop width nothing is built until the box is shown; at desktop width it is built at once; and the
+ * opacity 0). At every width nothing is built until the box is shown (owner 2026-11-05: desktop too), and the
  * map built on being shown is the map a visible mount of the same props builds (one load path).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render } from "@testing-library/react";
 import type { MapProps } from "./map-props";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { BUILD_AT_ONCE_FROM } from "./web/firstSeen";
 
 const built: { center: unknown; zoom: unknown; style: string }[] = [];
 const log: string[] = [];
@@ -105,9 +102,12 @@ describe("the web map is built when it is first seen (T409)", () => {
     } finally { css.remove(); }
   });
 
-  it("desktop width: built at once, even behind the water (owner's call)", async () => {
+  it("desktop width behind the water: not built either, until shown (owner 2026-11-05)", async () => {
     width(1440);
-    render(<Box behind p={props()} />);
+    const { rerender } = render(<Box behind p={props()} />);
+    await settle();
+    expect(built.length).toBe(0);
+    rerender(<Box behind={false} p={props()} />);
     await settle();
     expect(built.length).toBe(1);
   });
@@ -115,17 +115,6 @@ describe("the web map is built when it is first seen (T409)", () => {
   it("a map in sight is built at once at any width (every other map: as before)", async () => {
     width(390);
     render(<Box behind={false} p={props()} />);
-    await settle();
-    expect(built.length).toBe(1);
-  });
-
-  it("a phone that widens to desktop while the map is unseen builds it then", async () => {
-    width(390);
-    render(<Box behind p={props()} />);
-    await settle();
-    expect(built.length).toBe(0);
-    width(1440);
-    await act(async () => { window.dispatchEvent(new Event("resize")); });
     await settle();
     expect(built.length).toBe(1);
   });
@@ -147,11 +136,5 @@ describe("the web map is built when it is first seen (T409)", () => {
     await settle();
     expect(shown.built).toHaveLength(1);
     expect(shown).toEqual({ built, log });
-  });
-
-  it("the width it builds at once from is @app/ui's desktop breakpoint (read as text: this package may not import it)", () => {
-    const layout = readFileSync(join(__dirname, "../../ui/src/layout.ts"), "utf8");
-    const desktop = /LAYOUT_BREAKPOINTS = \{[^}]*desktop: (\d+)/.exec(layout)?.[1];
-    expect(BUILD_AT_ONCE_FROM).toBe(Number(desktop));
   });
 });

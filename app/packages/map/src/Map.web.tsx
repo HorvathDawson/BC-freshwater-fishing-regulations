@@ -42,7 +42,7 @@ import { useFirstSeen } from "./web/firstSeen";
 
 /**
  * (T409, owner 2026-11-05) BUILT WHEN FIRST SEEN: until the map's box is seen (`web/firstSeen.ts`: under the Shell's
- * opacity-0 warm map behind a water's own page, below desktop width) only an empty box of the same size is drawn; then
+ * opacity-0 warm map behind a water's own page, at any width) only an empty box of the same size is drawn; then
  * the one map below mounts with the props of that moment — the same mount a map shown at once gets.
  */
 export function Map(props: MapProps) {
