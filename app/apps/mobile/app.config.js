@@ -10,6 +10,13 @@ const { join } = require("node:path");
 const ground = (theme) =>
   JSON.parse(readFileSync(join(__dirname, "../../packages/map/style/themes", `${theme}.json`), "utf8")).values["color.ui.card"];
 
+// (T86) a production build names a contact (the app's Contact page, the store listing), or it is not made: config.ts
+// reads a missing EXPO_PUBLIC_CONTACT as null and the app would ship with no way to reach anyone.
+const production = process.env.EXPO_PUBLIC_APP_ENV === "production" || process.env.EAS_BUILD_PROFILE === "production";
+if (production && !process.env.EXPO_PUBLIC_CONTACT?.trim()) {
+  throw new Error("app.config.js: a production build needs EXPO_PUBLIC_CONTACT (support@canifishthis.ca; eas.json sets it)");
+}
+
 module.exports = ({ config }) => ({
   ...config,
   // (T244) the adaptive icon's solid background: the ground the boot screen paints (the icon is the favicon, `pnpm`-less: tools/build-icons.mjs)
