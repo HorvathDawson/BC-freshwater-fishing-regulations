@@ -111,13 +111,18 @@ async function dragOn(view: View3, id: string): Promise<Record<string, number | 
                     stack: [{ item: "gnis:8634" as never, part: 0, tapSid: water!.sections[0]!, at: null,
                               view: VIEW_KEY[view] }] },
   } as never) as ReactNode));
-  await waitFor(() => expect([!!READY[view](), screen.queryAllByText(NAME).length > 0]).toEqual([true, true]),
-                { timeout: 20_000 });
-  act(() => { fireGestureHandler(getByGestureTestId(id), drag); });
-  const selected = screen.getByRole("tab", { name: view }).getAttribute("aria-selected");
-  const out = { ...where(view), still: selected === "true" ? view : "moved" };
-  cleanup();
-  return out;
+  // (RNGH 3) the swipe's handler registers a moment after the view draws: under a loaded full run the drag fired
+  // before it ("Handler with id … cannot be found"), so the wait includes it
+  const registered = () => { try { getByGestureTestId(id); return true; } catch { return false; } };
+  await waitFor(() => expect([!!READY[view](), screen.queryAllByText(NAME).length > 0, registered()])
+    .toEqual([true, true, true]), { timeout: 20_000 });
+  try {
+    act(() => { fireGestureHandler(getByGestureTestId(id), drag); });
+    const selected = screen.getByRole("tab", { name: view }).getAttribute("aria-selected");
+    return { ...where(view), still: selected === "true" ? view : "moved" };
+  } finally {
+    cleanup();   // a failed drag must not leave its screen for the next one ("multiple elements with the role 'tab'")
+  }
 }
 
 /** Every drag, and where it carried things (content: "followed" when it went left with the finger). */
