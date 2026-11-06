@@ -1,0 +1,57 @@
+{
+  "when": "2026-11-06T09:59:08.412Z",
+  "size": {
+    "w": 1080,
+    "h": 2400
+  },
+  "steps": [
+    {
+      "name": "cold start: the map is drawn",
+      "ok": true,
+      "said": "tab bar up; map views: 1; words: Showing a Map created with MapLibre. Scroll by dragging two fingers. Zoom by pinching two fingers. | Attribution icon. Activate to show attribution dialog. | Map date | One day earlier | Map coloured for today. Choose a day | Today",
+      "crash": null,
+      "shot": "01-cold-start-the-map-is-drawn.png",
+      "ms": 18654
+    },
+    {
+      "name": "Vedder River water page opens (lands on its Map view)",
+      "ok": true,
+      "said": "views selected: water-view-map",
+      "crash": null,
+      "shot": "02-vedder-river-water-page-opens-lands-on-i.png",
+      "ms": 44100
+    },
+    {
+      "name": "Regulations view: a finger-left swipe on its body brings in Conditions (RNGH 3 pan, manual activation)",
+      "ok": true,
+      "said": "water-view-regs -> water-view-conditions",
+      "crash": null,
+      "shot": "03-regulations-view-a-finger-left-swipe-on-.png",
+      "ms": 20882
+    },
+    {
+      "name": "Map view: a finger-right swipe on the header (name row) brings back Conditions",
+      "ok": true,
+      "said": "water-view-map -> water-view-conditions",
+      "crash": null,
+      "shot": "04-map-view-a-finger-right-swipe-on-the-hea.png",
+      "ms": 22055
+    },
+    {
+      "name": "back on the map: the Layers sheet opens",
+      "ok": true,
+      "said": "sheet up",
+      "crash": null,
+      "shot": "05-back-on-the-map-the-layers-sheet-opens.png",
+      "ms": 26712
+    },
+    {
+      "name": "Layers sheet: a downward drag on its handle dismisses it (RNGH 3 sheet pull)",
+      "ok": true,
+      "said": "dragged from 540,617: sheet closed",
+      "crash": null,
+      "shot": "06-layers-sheet-a-downward-drag-on-its-hand.png",
+      "ms": 6956
+    }
+  ]
+}

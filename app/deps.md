@@ -43,7 +43,10 @@ so refs are typed with its `ViewInstance` / `ScrollViewInstance` / `TextInstance
 behaviour); RN 0.87+ dropped `@react-native/assets-registry`, which react-native-svg's web build still imports (Expo's Metro
 maps it to `react-native-web/asset-registry`; `vitest.config.ts` and `tools/seo/runner.mjs` alias it the same way). The
 rest of the set, unnamed below: react-native-web 0.21.4, @expo/metro-runtime 58.0.15, babel-preset-expo 58.0.20 (what
-expo 58.0.19 itself asks for), expo-font 58.0.10, expo-splash-screen 58.0.11, expo-sqlite 58.0.14.
+expo 58.0.19 itself asks for), expo-font 58.0.10, expo-splash-screen 58.0.11, expo-sqlite 58.0.14. SDK 58's prebuild
+template also turns R8 on for release builds (`android.enableMinifyInReleaseBuilds=true`; SDK 57 left it off): the first
+SDK 58 APK died at start (R8 stripped WorkManager's Room database), so `apps/mobile/plugins/with-no-minify.js` keeps it
+off as before; shrinking is a decision of its own (keep rules + a device walk), not part of the bump.
 
 - `expo` — the toolchain, pinned to SDK 58 (58.0.19, exact). Provides Metro (with the web bundler),
   `babel-preset-expo`, and Continuous Native Generation, so `android/` and `ios/` stay
