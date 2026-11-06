@@ -21,6 +21,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.6", date: "2026-11-06", notes: [
+      "The map pans more smoothly zoomed out and draws less work on high-resolution screens",
+      "Stepping up or down a river no longer jumps the map from far out to very close",
+      "Fixed a problem when moving from one river's map to the river it flows into",
+    ],
+  },
+  {
     version: "0.6.5", date: "2026-11-06", notes: [
       "The app says a new version is out only once Google Play has it for your phone",
     ],
