@@ -1,6 +1,6 @@
 # T293 — One guided walkthrough: find a water, read its rules, read its conditions, save a spot
 
-Status: DONE — web 0d19c8881, 3150e5796, 299e048d0, 7e752a935 (headless, 390 + 1280); emulator 2026-11-06 eec02a25a (first run, Android back, all 25 steps; see "Emulator run" below) (owner 2026-10-29: "improve the little tutorial … it wasnt multiple parts but instead walked the user through
+Status: DONE — web 0d19c8881, 3150e5796, 299e048d0, 7e752a935 (headless, 390 + 1280); emulator 2026-11-06 78ff76e77 (first run, Android back, all 25 steps; see "Emulator run" below) (owner 2026-10-29: "improve the little tutorial … it wasnt multiple parts but instead walked the user through
 finding a regulation using the map and search and then how to read the regulations and how to look at conditions / what
 change means for it. also walking through adding a spot and why … then the app can have info on syncing and offline etc.").
 
@@ -64,10 +64,10 @@ Owner 2026-10-30: every step, the Conditions tour and the mode tips rewritten in
 pointing at what is on screen; no app-internal terms — a test refuses them). Phone shots re-taken. Web walk has no spot
 steps (T302). The card's 400 ms re-measure is a timeout chain, not setInterval (no-per-frame test).
 
-## Emulator run (2026-11-06, test-bed APK of redesign/stream-sections @ 329e00542 + 62046a681, n1_pixel)
+## Emulator run (2026-11-06, test-bed APK of redesign/stream-sections @ 329e00542 + eca309749, n1_pixel)
 - **First run:** after a data clear the notice "Before you fish" → I understand → the walkthrough card opened by itself at
   "Find a water · 1 of 25" (`app/tools/testbed/out/runs/base2/T293-first-run-card.png`).
-- **Android back** (new step in `run.mjs walkthrough`, eec02a25a): at step 3, system back → step 2 (`out/runs/base3/walk`).
+- **Android back** (new step in `run.mjs walkthrough`, 78ff76e77): at step 3, system back → step 2 (`out/runs/base3/walk`).
 - **The whole walk** replayed from More → Help with Show me / Next: 25 of 25, the card closed, back on the map with nothing
   left over — twice (`out/runs/base/walk`, `out/runs/base3/walk`; a shot per step, `T293-step-NN.png`).
 - On the stressed emulator (2 efficiency cores) the walk did not start: a data clear by the `memory` scenario left the
