@@ -1,6 +1,6 @@
 # T434 — Review app: errors turned into empty answers
 
-Status: OPEN — from the audit (T333–T335, 2026-11-05). Severity: **medium**. Verified by a second reader.
+Status: DONE 2026-11-06 (chat 3, a89deff00 backend, 544d85a10 frontend) — from the audit (T333–T335, 2026-11-05). Severity: **medium**. Verified by a second reader.
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: review-deploy 4, 5, 6, 7, 8; tests 15; `*.verified.md` has the evidence per finding).
 
@@ -23,3 +23,18 @@ Each listed defect fixed with a test that fails without the fix (or a recorded "
 when; no fix in the audit run.
 
 Size: M. Owner: no (picks the order).
+
+## Result (2026-11-06)
+- `_applied_keys_for` catches nothing; a missing input is a 503 whose `detail` names it (app-wide `FileNotFoundError`
+  handler), and the frontend shows it. Test: `test_review_app_no_silent_empty.py`.
+- Frontend (544d85a10): one `reportFailure` → a FailuresBanner in the NoticeStack; ~45 silent `.catch` fallbacks in 17 files
+  now report; P1Quick no longer invents a verdict; `FALLBACK_OPS` / `OFFSET_FALLBACK` gone (read from
+  `/api/extent-fix/ops`, `/api/split-anchors`). Test: `test_review_frontend_catches.py` (allowlist: 6 body-parse sites).
+- Write-through drains on shutdown (`wait_idle(30)`); `--reload` only with `DEV=1` (both run.sh). No startup re-apply:
+  the next mark re-applies its domain, and the marks are safe either way.
+- Docstrings (app.py, writes.py) and API.md say two write routes + the write-through; in-season refusals are logged
+  like marks'. API.md ends in a route table generated from `app.routes` (`curation-review/api_routes.py --write`),
+  pinned by `test_review_api_routes.py`.
+- Routes: `/api/review/lake-splits` deleted (no caller; the tickets CLI has `--lake-splits`). Kept, tagged PROBE: `GET
+  /api/marks`, `/api/marks/splits`, `/api/review/tickets`, `/bundle`, `/answer/waters`, `/api/answer` — tests pin them.
+- The `splits` review domain is removed (the store holds no split mark; T184 made them history).

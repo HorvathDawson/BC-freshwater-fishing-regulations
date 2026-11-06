@@ -1,6 +1,6 @@
 # T431 — The feeds worker's own tests run nowhere; its silent catches
 
-Status: DONE 2026-11-05 — f87e7533a. The worker's vitest runs in `app-ci.yml` and first in `feeds.sh` (`tools/feeds-gate.test.ts`);
+Status: DONE 2026-11-05 — 9f002b2e2. The worker's vitest runs in `app-ci.yml` and first in `feeds.sh` (`tools/feeds-gate.test.ts`);
 the failure scan covers `workers/feeds/src` and the "logged below" catches now log (`tell`); `scheduled()` + `runTimingCheck`
 tested (`test/scheduled.test.ts`); the two skipped DFO suites + harness/typed_dump removed; REPORT_SALT required (503 / no deploy).
 

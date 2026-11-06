@@ -22,7 +22,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   after the new pointer is up); the inputs sync stops on a failed copy instead of saying "in sync"; HYDAT has one
   checked downloader; the secret scan fails when it cannot read a secret; a production TestFlight build needs
   `CONFIRM_PROD=canifishthis.ca`.
-- T430–T432 in progress (side lane).
+- **T430 done:** the app's crash and problem-report formats are now checked against the feeds worker's, so one renamed
+  field can no longer lose every report.
+- **T431 done:** the feeds worker's tests now run in CI and before every staging worker deploy. **`REPORT_SALT` is now
+  required** — without it the worker refuses reports (they stay queued on the phone). Staging has it; prod needs its
+  own before T404. Your call if you'd rather keep it optional.
+- **T432 done:** the full test run fails when the golden parity check finds nothing to compare; every app test skip is
+  listed with its reason; every pipeline test file must have a quick test in the smoke list (148 still to pick).
+- **T434 done:** the review app no longer turns errors into empty answers. A failed load now shows "could not load X"
+  with the reason in a banner. **The backend no longer auto-reloads on code changes** (start with `DEV=1` if you want
+  that): a reload could cut off a save half way. API.md now lists every route.
 
 ## 2026-11-05 (late): chat 2 started — launch prep, CI back on
 - **T416 proof is running** (fresh clone, then a Mac build at the same commit; verdict in `~/t416-repro.json`, ~23:15).

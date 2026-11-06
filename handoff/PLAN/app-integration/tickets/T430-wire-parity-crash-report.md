@@ -1,6 +1,6 @@
 # T430 — The crash and problem-report formats have no parity test (one field loses every report)
 
-Status: DONE 2026-11-05 — a6ed05135. `app/tools/wire.test.ts` pins app ↔ worker: enum/format/limit/context-key sets
+Status: DONE 2026-11-05 — 1f0b8b7e8. `app/tools/wire.test.ts` pins app ↔ worker: enum/format/limit/context-key sets
 compared, every enum value and an at-limit payload sent through `validateCrash`/`validateReport` (mutation-checked: an
 extra route kind or a dropped worker key fails). No shared source: the worker sits outside the workspace (no @app import).
 

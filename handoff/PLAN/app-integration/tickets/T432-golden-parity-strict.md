@@ -1,6 +1,6 @@
 # T432 — The app's golden parity passes green on zero cases; no app skip gate
 
-Status: DONE 2026-11-05 — 5b8fc762d. `test-full.sh` runs the app step with `REGS_STORE_REQUIRED=1` (an unpaired release fails,
+Status: DONE 2026-11-05 — f00ed83d3. `test-full.sh` runs the app step with `REGS_STORE_REQUIRED=1` (an unpaired release fails,
 naming sync.mjs; release runbook + MAP.md say so); `tools/no-silent-skips.test.ts` allowlists the 59 app skip sites with counts;
 `test_smoke_coverage.py` makes every pipeline test file smoke-listed, data/slow-only or in `smoke_pending.txt` (148, shrink-only).
 

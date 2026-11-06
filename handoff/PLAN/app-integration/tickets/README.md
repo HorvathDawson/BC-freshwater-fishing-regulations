@@ -477,7 +477,7 @@ use that as the sole source of future work."
 | T431 | The feeds worker's own tests run nowhere; its silent catches (high) | OPEN | — | audit 11-05 |
 | T432 | The app's golden parity passes green on zero cases; no app skip gate (high) | OPEN | — | audit 11-05 |
 | T433 | Staging scripts: upload can take staging dark; sync and HYDAT mask failures (high) | DONE | 4d8b72626 | audit 11-05 |
-| T434 | Review app: errors turned into empty answers (medium) | OPEN | — | audit 11-05 |
+| T434 | Review app: errors turned into empty answers (medium) | DONE | a89deff00 544d85a10 | audit 11-05 |
 | T435 | Pipeline: hard-coded data paths, mtime staleness, two release-id formulas (medium) | OPEN | — | audit 11-05 |
 | T436 | Dead code and duplicate helpers (tidy-up) (low) | OPEN | — | audit 11-05 |
 | T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | OPEN | — | audit 11-05 |
