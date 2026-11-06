@@ -7,14 +7,14 @@
  * A BACK LAYER (G1): while it is up, back — Android's, the browser's, the iOS edge — and Escape on the web leave pick
  * mode, one step, with nothing made; the step after that is the route's own.
  */
-import { useEffect } from "react";
-import { Platform, View, useWindowDimensions } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { SPOT_PICK } from "@app/core";
 import { useBackLayer } from "@app/ui";
 import { TOP_BAR, searchPanelWidth } from "./TopBar";
 import { TYPE } from "./type";
+import { useEscapeKey } from "./escapeCloses";
 import type { Palette } from "./theme";
 
 export function SpotPickBanner({ palette, top = TOP_BAR.top, onCancel }: {
@@ -26,12 +26,7 @@ export function SpotPickBanner({ palette, top = TOP_BAR.top, onCancel }: {
 }) {
   const requestClose = useBackLayer(true, onCancel);
   // Escape is a back on the web (a sheet's Modal hears it itself; this banner is no Modal)
-  useEffect(() => {
-    if (Platform.OS !== "web" || typeof window === "undefined") return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") requestClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [requestClose]);
+  useEscapeKey(true, requestClose);
   const panel = searchPanelWidth(useWindowDimensions().width);
   return (
     <View testID="spot-pick-banner" pointerEvents="box-none"

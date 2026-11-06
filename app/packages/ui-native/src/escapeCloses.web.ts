@@ -19,3 +19,16 @@ export function useEscapeCloses(active: boolean, onClose: () => void): void {
     return () => window.removeEventListener("keydown", onKey);
   }, [active]);
 }
+
+/**
+ * (T410) ESCAPE, PLAINLY: `onEscape` on every Escape while `active`, whatever is open — a surface that is no Modal (the
+ * spot pick banner) and so hears no Escape of its own. Web only (the native twin is a no-op).
+ */
+export function useEscapeKey(active: boolean, onEscape: () => void): void {
+  useEffect(() => {
+    if (!active || typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onEscape(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [active, onEscape]);
+}
