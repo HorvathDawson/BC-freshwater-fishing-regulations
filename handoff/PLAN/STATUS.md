@@ -71,8 +71,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   today's code is clean (35 pairs, 16 allowed inline files). Left: the moved phone halves walked on the emulator.
 - **Done (chat 3):** staging site rebuilt on r-4230bc0c1dd5, smoke 18/18 (attribution check passes now). T419 after
   shots on staging (`T419-shots/*-after.png`, `t419-out2-compare.png`): sawtooth mostly gone, tiles −8.8 MB; owner look.
-- **In flight (chat 3):** emulator lane: pan lag T420/T401, crash test bed T242, walkthrough T293, T351, and T410's
-  native pass. **After it:** merge the emulator lane, build the APK (staging), Play internal, emulator walk.
+- **Emulator lane merged (chat 3, c1c838f58..c087e337d):** T293 DONE (Android back + full walk 25/25). T242 crash test
+  bed: all three crash kinds reach the report path; fixed a JS fatal being reported twice and a lost exit record (still
+  PARTIAL: owner reads `GET /crashes`, privacy wording, T407). T420/T401 reproduce only on a CPU-starved emulator;
+  lever = the colouring's per-tile events (fix proposed: send each tile's ids once per watch, native patch). T351 not
+  reproduced (peak 385 MB). T410 native pass 6/6. New T440: first-run notice missing from the Android a11y tree.
+- **Release prep:** app 0.6.3 + changelog (ece6cf2b7); fixtures re-cut on r-4230bc0c1dd5; test source walks skip the
+  generated native dirs (5af27a6d8). **In flight:** full `pnpm check` → `build-apk.sh --play` (log `~/apk-1106.log`),
+  then the emulator walk on that build and the feeds worker deploy.
 
 ## 2026-11-05 (night): chat 3 — the audit's fix tickets
 - Chat 2's heavy run is still going; nothing heavy started here.
