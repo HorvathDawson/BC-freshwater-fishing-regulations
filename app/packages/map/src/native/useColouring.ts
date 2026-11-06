@@ -178,29 +178,52 @@ export function useNativeColouring(o: {
     restore: () => ref.current.restore(),
   }), []);
 
-  // THE TILE EVENT: label the tile at once (the engine skips every id that already wears its labels)
-  useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(TILE_IDS_EVENT, (e: TileIdsEvent) => {
-      if (tag.current === null) { try { tag.current = ref.current.atlas()?.nativeTag() ?? null; } catch { /* not mounted */ } }
-      if (tag.current === null || e.tag !== tag.current) return;
-      const t = hold.current.put(e);
-      const c = engine.current!;
-      const before = labelled.current;
-      if (c.active) c.label(target, t);
-      panProbe.tile(labelled.current - before);
-    });
-    return () => sub.remove();
-  }, [target]);
-  // another archive is other tiles: what was held means nothing for it
-  useEffect(() => { hold.current.clear(); }, [o.atlasUrl]);
-
-  const attached = useCallback(() => {
+  /** Ask the binding for every tile's ids again (it forgets what it sent): the attach, a new archive, a lost tile. */
+  const resyncing = useRef(false);
+  const rewatch = useCallback(() => {
+    resyncing.current = true;
     const src = ref.current.atlas();
     if (!src) return;
     try { tag.current = src.nativeTag(); } catch { return; }
     if ((globalThis as { __tbNoTileEvents?: boolean }).__tbNoTileEvents) return;   // (T420) the experiment build only
     void src.watchTiles([...LABEL_SOURCE_LAYERS]).catch(ref.current.report);
   }, []);
+
+  // THE TILE EVENT: label the tile at once (the engine skips every id that already wears its labels)
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(TILE_IDS_EVENT, (e: TileIdsEvent) => {
+      if (tag.current === null) { try { tag.current = ref.current.atlas()?.nativeTag() ?? null; } catch { /* not mounted */ } }
+      if (tag.current === null || e.tag !== tag.current) return;
+      if (!e.layers) {
+        // (T420) a repeat: its ids came once already and were labelled then
+        panProbe.repeat();
+        if (hold.current.touch(e)) return;
+        // just after the hold was emptied (a new archive, a re-watch) a repeat already on its way is expected to miss;
+        // the binding forgets what it sent with the same step, so the tile comes whole on its next request
+        if (resyncing.current) return;
+        ref.current.report(new Error(`MLRNTileIds: repeat of tile ${e.z}/${e.x}/${e.y} not held (${hold.current.size} held); re-watching`));
+        rewatch();
+        return;
+      }
+      resyncing.current = false;
+      const t = hold.current.put(e as TileIdsEvent & { layers: Record<string, readonly number[]> });
+      const c = engine.current!;
+      const before = labelled.current;
+      if (c.active) c.label(target, t);
+      panProbe.tile(labelled.current - before);
+    });
+    return () => sub.remove();
+  }, [target, rewatch]);
+  // another archive is other tiles: what was held means nothing for it, and the binding must send them all again
+  const firstUrl = useRef(true);
+  useEffect(() => {
+    hold.current.clear();
+    resyncing.current = true;
+    if (firstUrl.current) { firstUrl.current = false; return; }
+    rewatch();
+  }, [o.atlasUrl, rewatch]);
+
+  const attached = rewatch;
   const swapped = useCallback(() => {
     const c = engine.current!;
     c.reset();

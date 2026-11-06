@@ -176,7 +176,7 @@ export const pan = {
         const sum = (k) => ps.reduce((n, p) => n + (p[k] || 0), 0), max = (k) => ps.reduce((n, p) => Math.max(n, p[k] || 0), 0);
         const acks = ps.filter((p) => p.ackMean > 0);
         const probe = ps.length ? ` · JS lag max ${max('lagMax')} ms, ${sum('late')} ticks >100 ms late, tiles ${sum('tiles')}, ` +
-          `labels ${sum('labels')}, sends ${sum('sends')} (ack max ${max('ackMax')} ms, mean ${acks.length ? Math.round(acks.reduce((n, p) => n + p.ackMean, 0) / acks.length) : 0} ms), ` +
+          `repeats ${sum('repeats')}, labels ${sum('labels')}, sends ${sum('sends')} (ack max ${max('ackMax')} ms, mean ${acks.length ? Math.round(acks.reduce((n, p) => n + p.ackMean, 0) / acks.length) : 0} ms), ` +
           `map renders ${sum('renders')}` : ' · no pan probe lines (build without EXPO_PUBLIC_PAN_PROBE)';
         const jank = g.frames ? `${Math.round((g.janky / g.frames) * 1000) / 10} %` : '?';
         return `${Math.round((Date.now() - t0) / 1000)} s · MAP SURFACE ${layer ? `${mf.frames} frames, >20 ms ${mf.over20}, >50 ms ${mf.over50}, ` +

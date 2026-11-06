@@ -7,12 +7,13 @@ import { now as clockNow } from "@app/core";
  * What it counts, per second with anything in it, one line to the log (`[pan] {…}`, `adb logcat -s ReactNativeJS`):
  *   lag      the JS thread's worst delay that second (a 50 ms timer's overshoot, ms) and how many ticks were >100 ms late
  *   tiles    atlas tile events (`MLRNTileIds`) the colouring took, and the section labels they produced
+ *   repeats  (T420) repeat-request events (no ids: the tile's ids came once already)
  *   sends    `setFeatureStates` bridge calls, and their worst / mean round trip (ms) — label → acknowledged on the map
  *   renders  the native Map component's renders
  */
-interface Win { lagMax: number; late: number; tiles: number; labels: number; sends: number; ackMax: number; ackSum: number;
+interface Win { lagMax: number; late: number; tiles: number; repeats: number; labels: number; sends: number; ackMax: number; ackSum: number;
   acks: number; renders: number }
-const fresh = (): Win => ({ lagMax: 0, late: 0, tiles: 0, labels: 0, sends: 0, ackMax: 0, ackSum: 0, acks: 0, renders: 0 });
+const fresh = (): Win => ({ lagMax: 0, late: 0, tiles: 0, repeats: 0, labels: 0, sends: 0, ackMax: 0, ackSum: 0, acks: 0, renders: 0 });
 
 const on = () => !!(globalThis as { __panProbe?: boolean }).__panProbe;
 let w = fresh();
@@ -29,10 +30,10 @@ function start(): void {
     if (lag > 100) w.late += 1;
   }, 50);
   setInterval(() => {
-    const busy = w.tiles || w.sends || w.renders || w.late;
+    const busy = w.tiles || w.repeats || w.sends || w.renders || w.late;
     if (busy) {
       const ackMean = w.acks ? Math.round(w.ackSum / w.acks) : 0;
-      console.log(`[pan] ${JSON.stringify({ t: clockNow(), lagMax: w.lagMax, late: w.late, tiles: w.tiles, labels: w.labels,
+      console.log(`[pan] ${JSON.stringify({ t: clockNow(), lagMax: w.lagMax, late: w.late, tiles: w.tiles, repeats: w.repeats, labels: w.labels,
                                             sends: w.sends, ackMax: w.ackMax, ackMean, renders: w.renders })}`);
     }
     w = fresh();
@@ -41,6 +42,8 @@ function start(): void {
 
 export const panProbe = {
   tile(labels: number): void { if (!on()) return; start(); w.tiles += 1; w.labels += labels; },
+  /** (T420) a repeat-request event (no ids) */
+  repeat(): void { if (!on()) return; start(); w.repeats += 1; },
   /** A `setFeatureStates` call sent: call the returned function when it is acknowledged. */
   send(): () => void {
     if (!on()) return () => {};

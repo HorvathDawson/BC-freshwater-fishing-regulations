@@ -248,7 +248,11 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, []);
   // (T74) the atlas asked for its tiles' ids — again after every style load (the binding may re-create the source)
   // only once the map has drawn: before that the source's native view may not be resolvable by its tag yet
-  useEffect(() => { if (atlasRef.current && styled && drawn) colouring.attached(); }, [gen, styled, drawn, colouring]);
+  // (T420) keyed on the STABLE `attached`, never the hook's result object (new each render): keyed on that, every render
+  // — one per camera settle — asked the binding to watch again, and each watch re-sent every tile it had requested with
+  // all its ids (~28 a second while circling one place on the stressed emulator, every label of them redundant)
+  const { attached: colouringAttached, swapped: colouringSwapped } = colouring;
+  useEffect(() => { if (atlasRef.current && styled && drawn) colouringAttached(); }, [gen, styled, drawn, colouringAttached]);
 
   // PUSHED PER-FEATURE DATA that is not a colouring (the engine's keys are refused, as on the web: one pathway); a
   // value a feature already holds is not sent again (`onceSink`)
@@ -622,13 +626,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
     renderer.forget();
-    colouring.swapped();
+    colouringSwapped();
     copy.current.forgetStates();
     stale.current = true;
     copyStale.current = true;
     setStyled(true);
     setGen((g) => g + 1);
-  }, [renderer, colouring]);
+  }, [renderer, colouringSwapped]);
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     size.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
     if ((globalThis as { __openProbe?: boolean }).__openProbe) {

@@ -32,8 +32,111 @@ index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b36
                      }
  
                      else -> {
+diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
+index b088909a48c4265219e4e95c529f6c0a63ae7e11..b3584ad34bf807dbc22ec8405fec0323904b8762 100644
+--- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
++++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
+@@ -10,6 +10,8 @@ import android.os.Looper
+ import android.util.AttributeSet
+ import android.view.Gravity
+ import android.view.MotionEvent
++import android.view.VelocityTracker
++import android.view.ViewConfiguration
+ import android.view.View
+ import android.view.ViewGroup
+ import android.widget.FrameLayout
+@@ -69,6 +71,9 @@ import org.maplibre.reactnative.events.MapPressEvent
+ import org.maplibre.reactnative.utils.BitmapUtils
+ import org.maplibre.reactnative.utils.ConvertUtils
+ import org.maplibre.reactnative.utils.GeoJSONUtils
++import kotlin.math.exp
++import kotlin.math.hypot
++import kotlin.math.ln
+ import kotlin.math.roundToInt
+ 
+ sealed class MapChild {
+@@ -460,6 +465,12 @@ open class MLRNMapView(
+         this.mapLibreMap = mapLibreMap
+ 
+         val uiSettings = mapLibreMap.uiSettings
++        // (T312, owner 2026-11-02: "the fling is still too weak") MapLibre's fling glides for velocity/7/1.5 + base ms
++        // and its distance grows with that time (MapGestureDetector.onFling: offset = v * time * 0.28 / 1000); the
++        // defaults (150 ms base, 1000 dp/s threshold) stop short. A lower threshold: a gentler swipe flings; and the base
++        // is set per fling, as the finger lifts (`tuneFling`), so the glide goes as far as Android's own fling would.
++        uiSettings.flingAnimationBaseTime = 450L
++        uiSettings.flingThreshold = 500L
+         if (attributionGravity == null) attributionGravity = Gravity.END or Gravity.BOTTOM
+         if (attributionMargin == null) {
+             attributionMargin =
+@@ -610,8 +621,43 @@ open class MLRNMapView(
+         }
+     }
+ 
++    /** (T312) the one finger's velocity, for the fling's glide (`tuneFling`) */
++    private var flingVelocity: VelocityTracker? = null
++
++    /**
++     * (T312) THE FLING GOES AS FAR AS ANDROID'S OWN. MapLibre's glide moves `v * time * 0.28 / 1000` dp, `time` being
++     * `v / 7 / 1.5 + base` ms: under Android's scroller (the fling a list or Google Maps gives) by 2x at 2000 dp/s and
++     * 2.5x at 5000 (testbed `feel`, owner 2026-11-02: "stops too soon"). As the finger lifts — before MapLibre's detector
++     * reads the base — the base is set so the glide covers OverScroller's spline distance for this release speed.
++     */
++    private fun tuneFling(ev: MotionEvent) {
++        when (ev.actionMasked) {
++            MotionEvent.ACTION_DOWN -> {
++                flingVelocity?.recycle()
++                flingVelocity = VelocityTracker.obtain().also { it.addMovement(ev) }
++            }
++            MotionEvent.ACTION_MOVE -> flingVelocity?.addMovement(ev)
++            // a second finger is a pinch: its release is not a fling of ours
++            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
++                flingVelocity?.recycle()
++                flingVelocity = null
++            }
++            MotionEvent.ACTION_UP -> {
++                val vt = flingVelocity ?: return
++                flingVelocity = null
++                vt.addMovement(ev)
++                vt.computeCurrentVelocity(1000, ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat())
++                val density = resources.displayMetrics.density
++                val vDp = hypot(vt.xVelocity.toDouble(), vt.yVelocity.toDouble()) / density
++                vt.recycle()
++                if (vDp > 0) mapLibreMap?.uiSettings?.flingAnimationBaseTime = flingBaseTime(vDp, density)
++            }
++        }
++    }
++
+     @SuppressLint("ClickableViewAccessibility")
+     override fun onTouchEvent(ev: MotionEvent?): Boolean {
++        if (ev != null) tuneFling(ev)
+         val result = super.onTouchEvent(ev)
+ 
+         if (result && scrollEnabled == true) {
+@@ -1613,6 +1659,22 @@ open class MLRNMapView(
+     }
+ 
+     companion object {
++        /** (T312) Android's own fling distance for a release at `vDp` dp/s (OverScroller's spline), in dp. */
++        fun platformFlingDp(vDp: Double, density: Float): Double {
++            val ppi = density * 160.0
++            val coef = 9.80665 * 39.37 * ppi * 0.84
++            val friction = ViewConfiguration.getScrollFriction().toDouble()
++            val decel = ln(0.78) / ln(0.9)
++            val l = ln(0.35 * vDp * density / (friction * coef))
++            return friction * coef * exp(decel / (decel - 1.0) * l) / density
++        }
++
++        /** (T312) MapLibre's fling base time (ms) that makes its glide at `vDp` cover `platformFlingDp`. */
++        fun flingBaseTime(vDp: Double, density: Float): Long {
++            val glideMs = platformFlingDp(vDp, density) / (0.28 * vDp) * 1000.0
++            return (glideMs - vDp / 7.0 / 1.5).coerceIn(300.0, 2500.0).toLong()
++        }
++
+         const val LOG_TAG: String = "MLRNMapView"
+     }
+ }
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt
-index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f4825cbfc76 100644
+index 158db6c16d405f4d57f8c166bea85006a35707d7..39fd730235a0773d4a6c52dddd74d34b22226ba6 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSource.kt
 @@ -1,11 +1,19 @@
@@ -56,7 +159,7 @@ index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f48
  import org.maplibre.reactnative.components.sources.tilesources.MLRNPressableTileSource
  import org.maplibre.reactnative.utils.GeoJSONUtils
  
-@@ -52,4 +60,112 @@ class MLRNVectorSource(
+@@ -52,4 +60,143 @@ class MLRNVectorSource(
          featureId: String?,
          key: String?,
      ): Boolean = source?.removeFeatureState(sourceLayerId, featureId, key) ?: false
@@ -67,6 +170,13 @@ index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f48
 +     * the source's own local PMTiles archive (`PmTilesIds`), and sent to JS as the device event `MLRNTileIds`
 +     * {tag, z, x, y, layers: {name: ids[]}} — so the app's colouring engine labels the tile's sections as it does in
 +     * GL JS's `sourcedata`, before the tile is parsed and drawn wherever it can win that race.
++     *
++     * (canifishthis T420) ONCE PER WATCH: MapLibre requests a tile it already holds again and again (16-19 a second
++     * while circling one place, measured), and each used to cross to JS with all its ids. A tile's ids are now sent
++     * once; a repeat request sends only {tag, z, x, y} (no `layers`), so JS keeps its hold in the same recency order.
++     * `sent` is an LRU of SENT_MAX, touched on every request in the order the events go out, and JS's hold is at least
++     * twice that, so a tile `sent` remembers is always one JS still holds (a repeat JS does not hold is reported there
++     * and answered by a new watch, which forgets `sent`).
 +     */
 +    private var watchedLayers: Set<String> = emptySet()
 +    private var tileListener: MapView.OnTileActionListener? = null
@@ -77,6 +187,11 @@ index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f48
 +        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Map<String, IntArray>>?) = size > 256
 +    }
 +
++    /** Reader thread only: the tiles whose ids went to JS in this watch, least recently requested first. */
++    private val sent = object : LinkedHashMap<Long, Boolean>(128, 0.75f, true) {
++        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Boolean>?) = size > SENT_MAX
++    }
++
 +    /** Tiles requested since the source attached, before anyone watched: replayed when `watchTiles` is called. */
 +    private val requested = object : LinkedHashMap<Long, IntArray>(128, 0.75f, true) {
 +        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, IntArray>?) = size > 256
@@ -85,6 +200,7 @@ index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f48
 +    fun watchTiles(layers: List<String>) {
 +        watchedLayers = layers.toSet()
 +        synchronized(idCache) { idCache.clear() }
++        reader.execute { sent.clear() }
 +        attachTileListener()
 +        // the tiles the map asked for before the watch (the first view loads before JS can ask): sent now
 +        for (t in requested.values.toList()) onTileRequested(t[0], t[1], t[2])
@@ -113,6 +229,7 @@ index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f48
 +            archive = PmTilesIds(path)
 +            archivePath = path
 +            synchronized(idCache) { idCache.clear() }
++            sent.clear()
 +        }
 +        return archive
 +    }
@@ -126,12 +243,24 @@ index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f48
 +        reader.execute {
 +            try {
 +                val key = (z.toLong() shl 58) or (x.toLong() shl 29) or y.toLong()
++                archiveFor(u)
++                if (sent[key] != null) {
++                    // a repeat: JS holds this tile's ids already, it only moves it to the front of its hold
++                    val ev = Arguments.createMap()
++                    ev.putInt("tag", tag)
++                    ev.putInt("z", z)
++                    ev.putInt("x", x)
++                    ev.putInt("y", y)
++                    ctx.emitDeviceEvent("MLRNTileIds", ev)
++                    return@execute
++                }
 +                var ids = synchronized(idCache) { idCache[key] }
 +                if (ids == null) {
 +                    ids = archiveFor(u)?.ids(z, x, y, layers) ?: emptyMap()
 +                    synchronized(idCache) { idCache[key] = ids }
 +                }
 +                if (ids.isEmpty()) return@execute
++                sent[key] = true
 +                val ev = Arguments.createMap()
 +                ev.putInt("tag", tag)
 +                ev.putInt("z", z)
@@ -167,6 +296,11 @@ index 158db6c16d405f4d57f8c166bea85006a35707d7..291695b710586b45722a52101b7f8f48
 +        tileListener?.let { mapView.removeOnTileActionListener(it) }
 +        tileListener = null
 +        super.removeFromMap(mapView)
++    }
++
++    companion object {
++        /** (T420) how many sent tiles the reader remembers; JS's `TileHold` keeps at least twice this (`tile-hold.ts`). */
++        const val SENT_MAX = 256
 +    }
  }
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSourceModule.kt b/android/src/main/java/org/maplibre/reactnative/components/sources/tilesources/vectorsource/MLRNVectorSourceModule.kt
@@ -915,10 +1049,10 @@ index 87a053982d6247f21070d814aa023f6479319dea..bb2d30538ec58599016b02124e2b9765
 +
  @end
 diff --git a/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m b/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m
-index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f25bced93 100644
+index 61445da4ea645cef057d3f0d473f6927f7b039a5..dc267f91b81d454dee873cd0fef2c5b2afa77594 100644
 --- a/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m
 +++ b/ios/components/sources/tile-sources/vector-source/MLRNVectorSource.m
-@@ -1,6 +1,20 @@
+@@ -1,6 +1,22 @@
  #import "MLRNVectorSource.h"
 +#import "MLRNMapView.h"
 +#import "MLRNPmTilesIds.h"
@@ -933,6 +1067,8 @@ index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f
 +  MLRNPmTilesIds *_archive;
 +  NSString *_archivePath;
 +  NSCache<NSString *, NSDictionary<NSString *, NSData *> *> *_idCache;
++  // (T420) reader queue only: the tiles whose ids went to JS in this watch, least recently requested first
++  NSMutableOrderedSet<NSString *> *_sent;
 +  // tiles requested before the watch began (the first view is requested before JS can ask): replayed by the watch
 +  NSMutableOrderedSet<NSArray<NSNumber *> *> *_early;
 +  NSMutableArray<NSArray *> *_pendingStates;
@@ -940,7 +1076,7 @@ index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f
  
  - (nullable MLNSource *)makeSource {
    if (self.url != nil) {
-@@ -47,4 +61,125 @@ - (BOOL)removeFeatureState:(nonnull NSString *)sourceLayerID
+@@ -47,4 +63,143 @@ - (BOOL)removeFeatureState:(nonnull NSString *)sourceLayerID
                                                   stateKey:key];
  }
  
@@ -950,7 +1086,13 @@ index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f
 + * (`tileDidTriggerAction`, forwarded by MLRNMapView) but not what is in it; the ids are read here, off the main
 + * thread, from the source's own local PMTiles archive (`MLRNPmTilesIds`), and sent to JS as the device event
 + * `MLRNTileIds` {tag, z, x, y, layers: {name: ids[]}}.
++ *
++ * (canifishthis T420) ONCE PER WATCH, as the Android half: a tile's ids are sent once; a repeat request sends only
++ * {tag, z, x, y} (no `layers`) so JS keeps its hold in the same recency order. `_sent` is an LRU of MLRN_SENT_MAX,
++ * touched on every request in the order the events go out; JS's hold keeps at least twice that (`tile-hold.ts`).
 + */
++static const NSUInteger MLRN_SENT_MAX = 256;
++
 +- (void)watchTiles:(NSArray<NSString *> *)sourceLayers
 +               tag:(NSInteger)tag
 +              emit:(void (^)(NSDictionary *))emit {
@@ -966,6 +1108,7 @@ index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f
 +    self->_tag = tag;
 +    self->_emit = e;
 +    [self->_idCache removeAllObjects];
++    self->_sent = [NSMutableOrderedSet new];
 +  });
 +  // on the main thread, as the requests: what was requested before the watch, as if requested now
 +  NSOrderedSet<NSArray<NSNumber *> *> *early = [_early copy];
@@ -993,12 +1136,22 @@ index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f
 +    if (layers.count == 0 || emit == nil) return;
 +    @try {
 +      NSString *key = [NSString stringWithFormat:@"%ld/%ld/%ld", (long)z, (long)x, (long)y];
++      MLRNPmTilesIds *archive = [self archiveFor:u];
++      if ([self->_sent containsObject:key]) {
++        // a repeat: JS holds this tile's ids already, it only moves it to the front of its hold
++        [self->_sent removeObject:key];
++        [self->_sent addObject:key];
++        emit(@{@"tag" : @(self->_tag), @"z" : @(z), @"x" : @(x), @"y" : @(y)});
++        return;
++      }
 +      NSDictionary<NSString *, NSData *> *ids = [self->_idCache objectForKey:key];
 +      if (ids == nil) {
-+        ids = [[self archiveFor:u] idsAtZ:z x:x y:y layers:layers] ?: @{};
++        ids = [archive idsAtZ:z x:x y:y layers:layers] ?: @{};
 +        [self->_idCache setObject:ids forKey:key];
 +      }
 +      if (ids.count == 0) return;
++      [self->_sent addObject:key];
++      if (self->_sent.count > MLRN_SENT_MAX) [self->_sent removeObjectAtIndex:0];
 +      NSMutableDictionary *byLayer = [NSMutableDictionary dictionaryWithCapacity:ids.count];
 +      for (NSString *name in ids) {
 +        NSData *d = ids[name];
@@ -1024,6 +1177,7 @@ index 61445da4ea645cef057d3f0d473f6927f7b039a5..81a62befd4750ddab374445327346a8f
 +    _archive = [[MLRNPmTilesIds alloc] initWithPath:path error:nil];
 +    _archivePath = path;
 +    [_idCache removeAllObjects];
++    [_sent removeAllObjects];
 +  }
 +  return _archive;
 +}
@@ -1373,108 +1527,3 @@ index 49b8fd3ec4332a5fc470c623302b3f3da8fcd552..ae84fc2f48a3b2a4ac2a4486225f5069
    }));
  
    return (
-diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
---- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-+++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-@@ -10,6 +10,8 @@
- import android.util.AttributeSet
- import android.view.Gravity
- import android.view.MotionEvent
-+import android.view.VelocityTracker
-+import android.view.ViewConfiguration
- import android.view.View
- import android.view.ViewGroup
- import android.widget.FrameLayout
-@@ -69,6 +71,9 @@
- import org.maplibre.reactnative.utils.BitmapUtils
- import org.maplibre.reactnative.utils.ConvertUtils
- import org.maplibre.reactnative.utils.GeoJSONUtils
-+import kotlin.math.exp
-+import kotlin.math.hypot
-+import kotlin.math.ln
- import kotlin.math.roundToInt
- 
- sealed class MapChild {
-@@ -460,6 +465,12 @@
-         this.mapLibreMap = mapLibreMap
- 
-         val uiSettings = mapLibreMap.uiSettings
-+        // (T312, owner 2026-11-02: "the fling is still too weak") MapLibre's fling glides for velocity/7/1.5 + base ms
-+        // and its distance grows with that time (MapGestureDetector.onFling: offset = v * time * 0.28 / 1000); the
-+        // defaults (150 ms base, 1000 dp/s threshold) stop short. A lower threshold: a gentler swipe flings; and the base
-+        // is set per fling, as the finger lifts (`tuneFling`), so the glide goes as far as Android's own fling would.
-+        uiSettings.flingAnimationBaseTime = 450L
-+        uiSettings.flingThreshold = 500L
-         if (attributionGravity == null) attributionGravity = Gravity.END or Gravity.BOTTOM
-         if (attributionMargin == null) {
-             attributionMargin =
-@@ -607,11 +618,46 @@
-             }
- 
-             queuedChildren = null
-+        }
-+    }
-+
-+    /** (T312) the one finger's velocity, for the fling's glide (`tuneFling`) */
-+    private var flingVelocity: VelocityTracker? = null
-+
-+    /**
-+     * (T312) THE FLING GOES AS FAR AS ANDROID'S OWN. MapLibre's glide moves `v * time * 0.28 / 1000` dp, `time` being
-+     * `v / 7 / 1.5 + base` ms: under Android's scroller (the fling a list or Google Maps gives) by 2x at 2000 dp/s and
-+     * 2.5x at 5000 (testbed `feel`, owner 2026-11-02: "stops too soon"). As the finger lifts — before MapLibre's detector
-+     * reads the base — the base is set so the glide covers OverScroller's spline distance for this release speed.
-+     */
-+    private fun tuneFling(ev: MotionEvent) {
-+        when (ev.actionMasked) {
-+            MotionEvent.ACTION_DOWN -> {
-+                flingVelocity?.recycle()
-+                flingVelocity = VelocityTracker.obtain().also { it.addMovement(ev) }
-+            }
-+            MotionEvent.ACTION_MOVE -> flingVelocity?.addMovement(ev)
-+            // a second finger is a pinch: its release is not a fling of ours
-+            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
-+                flingVelocity?.recycle()
-+                flingVelocity = null
-+            }
-+            MotionEvent.ACTION_UP -> {
-+                val vt = flingVelocity ?: return
-+                flingVelocity = null
-+                vt.addMovement(ev)
-+                vt.computeCurrentVelocity(1000, ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat())
-+                val density = resources.displayMetrics.density
-+                val vDp = hypot(vt.xVelocity.toDouble(), vt.yVelocity.toDouble()) / density
-+                vt.recycle()
-+                if (vDp > 0) mapLibreMap?.uiSettings?.flingAnimationBaseTime = flingBaseTime(vDp, density)
-+            }
-         }
-     }
- 
-     @SuppressLint("ClickableViewAccessibility")
-     override fun onTouchEvent(ev: MotionEvent?): Boolean {
-+        if (ev != null) tuneFling(ev)
-         val result = super.onTouchEvent(ev)
- 
-         if (result && scrollEnabled == true) {
-@@ -1613,6 +1659,22 @@
-     }
- 
-     companion object {
-+        /** (T312) Android's own fling distance for a release at `vDp` dp/s (OverScroller's spline), in dp. */
-+        fun platformFlingDp(vDp: Double, density: Float): Double {
-+            val ppi = density * 160.0
-+            val coef = 9.80665 * 39.37 * ppi * 0.84
-+            val friction = ViewConfiguration.getScrollFriction().toDouble()
-+            val decel = ln(0.78) / ln(0.9)
-+            val l = ln(0.35 * vDp * density / (friction * coef))
-+            return friction * coef * exp(decel / (decel - 1.0) * l) / density
-+        }
-+
-+        /** (T312) MapLibre's fling base time (ms) that makes its glide at `vDp` cover `platformFlingDp`. */
-+        fun flingBaseTime(vDp: Double, density: Float): Long {
-+            val glideMs = platformFlingDp(vDp, density) / (0.28 * vDp) * 1000.0
-+            return (glideMs - vDp / 7.0 / 1.5).coerceIn(300.0, 2500.0).toLong()
-+        }
-+
-         const val LOG_TAG: String = "MLRNMapView"
-     }
- }
