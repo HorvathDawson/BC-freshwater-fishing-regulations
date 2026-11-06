@@ -7,6 +7,7 @@ import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
 import { TopNav, setBadge } from "./TopNav";
 import { ItemSearch } from "./ExtentFixEditor";
+import { failed } from "../failures";
 
 export const INSEASON_HASH = "inseason/";
 
@@ -184,7 +185,7 @@ function InSeasonDetail({ row, source, nav, onSaved }: {
       api.inseasonItemSplits(id).then((s) => {
         setSplitsOf((m) => ({ ...m, [id]: s }));
         setNames((m) => ({ ...m, [id]: s.item.name }));
-      }).catch(() => {});
+      }).catch(failed("an in-season item's splits"));
     }
   }, [items, splitsOf]);
 
@@ -194,7 +195,7 @@ function InSeasonDetail({ row, source, nav, onSaved }: {
     setPreview(null);
     if (!complete) return;
     let live = true;
-    const t = window.setTimeout(() => api.inseasonPreview(extents).then((p) => live && setPreview(p)).catch(() => {}), 250);
+    const t = window.setTimeout(() => api.inseasonPreview(extents).then((p) => live && setPreview(p)).catch(failed("the in-season extent preview")), 250);
     return () => { live = false; window.clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, complete]);

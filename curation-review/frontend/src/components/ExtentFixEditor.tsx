@@ -3,16 +3,12 @@ import { api } from "../api";
 import type {
   AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
 } from "../types";
+import { failed } from "../failures";
 
-/** The owner's words for the ops, until the server's list arrives (`marks.OP_WORDS` is the source). */
-const FALLBACK_OPS: ExtentOpInfo[] = [
-  { op: "whole", points: 0, words: "whole" },
-  { op: "upstream_of", points: 1, words: "upstream" },
-  { op: "downstream_of", points: 1, words: "downstream" },
-  { op: "between", points: 2, words: "between" },
-];
+/** The ops and the owner's words for them, from the server only (`marks.OP_WORDS`, GET /api/extent-fix/ops). (T434) A
+ *  failed read is shown; there is no copy here (a second copy of the policy drifts). */
 let opsOnce: Promise<ExtentOpInfo[]> | null = null;
-const loadOps = () => (opsOnce ??= api.extentOps().then((x) => x.ops).catch(() => FALLBACK_OPS));
+const loadOps = () => (opsOnce ??= api.extentOps().then((x) => x.ops).catch((e) => { opsOnce = null; throw e; }));
 
 /** Where a point comes from: a split on this map, any curated split, or a NEW point by anchor
  *  type (T164's anchor types: a tributary's confluence, a lake's inlet / outlet, a map click). */
@@ -71,8 +67,8 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                                   previewFn, defaultOpen = false }: Props) {
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
   const [open, setOpen] = useState(!!value || defaultOpen);
-  const [ops, setOps] = useState<ExtentOpInfo[]>(FALLBACK_OPS);
-  useEffect(() => { loadOps().then(setOps); }, []);
+  const [ops, setOps] = useState<ExtentOpInfo[]>([]);
+  useEffect(() => { loadOps().then(setOps, failed("the extent ops")); }, []);
   const [preview, setPreview] = useState<ExtentPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [pickAt, setPickAt] = useState<number | null>(null);
@@ -257,7 +253,7 @@ function useSearch<T>(fn: (q: string) => Promise<T[]>) {
   useEffect(() => {
     if (q.trim().length < 2) { setHits([]); return; }
     let live = true;
-    const t = window.setTimeout(() => fn(q).then((h) => live && setHits(h)).catch(() => {}), 200);
+    const t = window.setTimeout(() => fn(q).then((h) => live && setHits(h)).catch(failed("the search")), 200);
     return () => { live = false; window.clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
@@ -299,7 +295,7 @@ export function AreaSearch({ value, onPick, scope }: {
       if (!live) return;
       setHits(h);
       setNames((m) => ({ ...m, ...Object.fromEntries(h.map((x) => [x.id, x.name])) }));
-    }).catch(() => {}), 150);
+    }).catch(failed("the item search")), 150);
     return () => { live = false; window.clearTimeout(t); };
   }, [q, open]);
   return (

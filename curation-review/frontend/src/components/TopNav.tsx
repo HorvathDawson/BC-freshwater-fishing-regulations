@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { isTyping } from "../review";
 import { useClosed } from "./Locked";
+import { failed } from "../failures";
 
 /* THE ONE TOP BAR (owner 2026-10-28: "make the tabs easier to switch between"). Every view renders this
    as its first row: the main tabs (short label, a done/total badge, a 1-9 / g+letter key), then — only for
@@ -72,7 +73,7 @@ function refreshBadges() {
   // owner 2026-10-28: AFTER the first paint and ONE AT A TIME. Fired together on load, seven badge reads held
   // the browser's six connections and the backend's threads, and the open tab's own data waited behind them.
   const jobs: (() => Promise<unknown>)[] = [];
-  const read = (url: string, set: (p: any) => void) => jobs.push(() => j(url).then(set).catch(() => {}));
+  const read = (url: string, set: (p: any) => void) => jobs.push(() => j(url).then(set).catch(failed(`the tab badge (${url})`)));
   read("/api/regions", (rs: { total: number; by_verify?: Record<string, number> }[]) =>
     setBadge("entries", frac(rs.reduce((n, r) => n + (r.by_verify?.verified ?? 0), 0), rs.reduce((n, r) => n + r.total, 0))));
   read("/api/dfo/progress", (p) => setBadge("dfo", frac(p.all?.done, p.all?.total)));

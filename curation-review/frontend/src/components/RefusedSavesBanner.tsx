@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import { current, drop, subscribe, type Refusal } from "../refusals";
 import { Notice } from "./NoticeStack";
+import { failed } from "../failures";
 
 /* OWNER 2026-10-28: A REFUSED SAVE IS IMPOSSIBLE TO MISS. Every save the server refused (or never
    got) stays on this red banner — the item, the reason, "retry" — until a save of that item
@@ -19,7 +20,7 @@ export function RefusedSavesBanner() {
   const [asN, setAsN] = useState<{ key: string; problem: string; note: string } | null>(null);
   const [pProblems, setPProblems] = useState<string[]>([]);
   useEffect(() => subscribe(setList), []);
-  useEffect(() => { if (asN && !pProblems.length) api.mode().then((m) => setPProblems(m.problems.P ?? [])).catch(() => {}); },
+  useEffect(() => { if (asN && !pProblems.length) api.mode().then((m) => setPProblems(m.problems.P ?? [])).catch(failed("the P problems")); },
     [asN, pProblems.length]);
   if (!list.length) return null;
   const retry = async (r: Refusal, patch?: Partial<Refusal["mark"]>) => {

@@ -5,6 +5,7 @@ import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
 import { PvBadge } from "./Preverify";
 import { TopNav } from "./TopNav";
+import { failed } from "../failures";
 
 /** `#p1/` opens the P1 quick-confirm view */
 export const P1_HASH = "p1/";
@@ -54,8 +55,9 @@ export function P1Quick({ mode }: { mode: Mode }) {
   useEffect(() => {
     setReaches(null); setNamed(null);
     if (!card) return;
-    api.reaches(card.entry_id).then(setReaches).catch(() => setReaches({ covered: [], rules: {}, verdict: {} }));
-    api.splits(card.entry_id).then(setNamed).catch(() => {});
+    // (T434) a failed read stays unknown (null) and is shown — never an invented empty verdict ("nothing bound")
+    api.reaches(card.entry_id).then(setReaches).catch(failed("the entry's reaches"));
+    api.splits(card.entry_id).then(setNamed).catch(failed("the entry's splits"));
   }, [card?.entry_id]);
 
   // THE BINDING CHECK: every closure rule bound to at least one section by the reach builder

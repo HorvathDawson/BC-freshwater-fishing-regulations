@@ -20,6 +20,7 @@ import { REPORTS_HASH, ReportsView } from "./components/ReportsView";
 import { TopNav } from "./components/TopNav";
 import { P1_HASH, P1Quick } from "./components/P1Quick";
 import { clearIdsParam, idsParam, IdsBar } from "./components/IdsBar";
+import { failed } from "./failures";
 
 /** T164: the URL hash opens the DFO review mode (`#dfo/<location_id>`) */
 const inDfo = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(DFO_HASH);
@@ -108,7 +109,7 @@ export default function App() {
   }, []);
 
   const loadProgress = useCallback(() => {
-    api.progress().then(setProgress).catch(() => {});
+    api.progress().then(setProgress).catch(failed("the review progress"));
   }, []);
   useEffect(() => { loadProgress(); }, [loadProgress]);
 
@@ -209,7 +210,7 @@ export default function App() {
   // empties and the open entry clears "awaiting build" with no restart.
   const [pending, setPending] = useState<PendingBuild | null>(null);
   const loadPending = useCallback(() => {
-    api.pendingBuild().then(setPending).catch(() => {});
+    api.pendingBuild().then(setPending).catch(failed("the pending build"));
   }, []);
   useEffect(() => { loadPending(); }, [loadPending]);
   const waiting = (pending?.entries.length ?? 0) + (pending?.splits.length ?? 0);
@@ -221,9 +222,9 @@ export default function App() {
         if (p.entries.length + p.splits.length < waiting) {
           loadRows();
           loadProgress();
-          if (selected) api.entry(selected).then(setDetail).catch(() => {});
+          if (selected) api.entry(selected).then(setDetail).catch(failed("the entry"));
         }
-      }).catch(() => {});
+      }).catch(failed("the pending build"));
     }, 60_000);
     return () => window.clearInterval(t);
   }, [waiting, loadRows, loadProgress, selected]);
@@ -235,10 +236,10 @@ export default function App() {
     loadRows();
     loadProgress();
     loadIds();
-    api.regions().then(setRegions).catch(() => {});
+    api.regions().then(setRegions).catch(failed("the regions"));
     if (!selected) return;
     if (final && navRef.current.nav.onNext) navRef.current.nav.onNext();
-    else api.entry(selected).then(setDetail).catch(() => {});
+    else api.entry(selected).then(setDetail).catch(failed("the entry"));
   }, [loadRows, loadProgress, loadIds, selected]);
 
   if (cascade) {
@@ -295,8 +296,8 @@ export default function App() {
           loadRows();
           loadProgress();
           loadIds();
-          api.regions().then(setRegions).catch(() => {});
-          if (selected) api.entry(selected).then(setDetail).catch(() => {});
+          api.regions().then(setRegions).catch(failed("the regions"));
+          if (selected) api.entry(selected).then(setDetail).catch(failed("the entry"));
           loadPending();
           setReloadKey((k) => k + 1);
         }}

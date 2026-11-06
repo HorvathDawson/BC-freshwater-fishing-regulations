@@ -5,6 +5,7 @@ import { Protocol } from "pmtiles";
 import { layers, LIGHT } from "@protomaps/basemaps";
 import { api } from "../api";
 import type { EntryReaches, EntrySplits, ReachIdentity, RuleResolved } from "../types";
+import { reportFailure } from "../failures";
 
 interface Props {
   itemId: string | null;
@@ -544,7 +545,8 @@ export function MapPanel({
     const ids = [itemId, ...alsoItemIds];
     // one failing item must not blank the whole map — keep whatever the others returned
     Promise.all(ids.map((id) =>
-      api.geojson(id).catch(() => ({ type: "FeatureCollection", features: [] } as GeoJSON.FeatureCollection))))
+      // (T434) one water's shape failed: reported, and drawn as nothing (the others still draw)
+        api.geojson(id).catch((e) => { reportFailure(`the shape of ${id}`, e); return { type: "FeatureCollection", features: [] } as GeoJSON.FeatureCollection; })))
       .then((gjs) => {
         if (cancelled) return;
         const features = gjs.flatMap((gj, i) =>
@@ -555,7 +557,7 @@ export function MapPanel({
         setCount(features.length);
         applyData(true);
       })
-      .catch(() => { if (!cancelled) setCount(0); });
+      .catch((e) => { if (!cancelled) { setCount(0); reportFailure("the map shapes", e); } });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId, alsoKey, reloadKey]);
@@ -626,14 +628,14 @@ export function MapPanel({
             setNTribs(info.n_added);
             src.setData(info.geojson as unknown as GeoJSON.FeatureCollection);
           })
-          .catch(() => clear())
+          .catch((e) => { clear(); reportFailure("the tributaries", e); })
           .finally(() => setTribBusy(false));
         return;
       }
 
       setTribInfo(null);
       Promise.all([itemId, ...alsoItemIds].map((id) =>
-        api.tributaryGeojson(id).catch(() => ({ type: "FeatureCollection", features: [] } as GeoJSON.FeatureCollection))))
+        api.tributaryGeojson(id).catch((e) => { reportFailure(`the tributaries of ${id}`, e); return { type: "FeatureCollection", features: [] } as GeoJSON.FeatureCollection; })))
         .then((gjs) => {
           const features = gjs.flatMap((g) => (g as GeoJSON.FeatureCollection).features ?? []);
           setNTribs(gjs.reduce((a, g) => a + ((g as unknown as { n_tributaries?: number }).n_tributaries ?? 0), 0));

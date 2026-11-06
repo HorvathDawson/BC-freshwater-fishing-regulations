@@ -6,6 +6,7 @@ import { MapPanel } from "./MapPanel";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { POND_HASH, PondReview } from "./PondReview";
 import { LockedView, useClosed } from "./Locked";
+import { failed } from "../failures";
 
 export const SLOUGH_HASH = "sloughs/";
 
@@ -136,7 +137,7 @@ function SloughList() {
     const n = ++asked.current;
     get<SloughRow[]>(`/api/sloughs/queue${qs ? `?${qs}` : ""}`).then((got) => { if (n === asked.current) setRows(got); })
       .catch((e) => setErrors([String(e)]));
-    get<SloughProgress>("/api/sloughs/progress").then(setProgress).catch(() => {});
+    get<SloughProgress>("/api/sloughs/progress").then(setProgress).catch(failed("the slough progress"));
   }, [filters]);
   useEffect(() => { loadRows(); }, [loadRows]);
 

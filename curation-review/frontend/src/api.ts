@@ -52,11 +52,22 @@ import type {
   InSeasonRow,
 } from "./types";
 
+/** (T434) a failed answer's words: the server's JSON `detail` (a 503 {detail} names the missing input), else its status */
+async function failure(res: Response, url: string): Promise<Error> {
+  let detail = "";
+  try {
+    const text = await res.text();
+    try {
+      const d = (JSON.parse(text) as { detail?: unknown }).detail;
+      detail = d === undefined ? text : typeof d === "string" ? d : asFieldErrors(d).map((e) => e.msg).join("; ") || JSON.stringify(d);
+    } catch { detail = text; }   // not JSON: the body as sent
+  } catch { /* no body: the status says it */ }
+  return new Error(`${res.status} ${res.statusText} for ${url}${detail ? ` — ${detail.slice(0, 500)}` : ""}`);
+}
+
 async function getJSON<T>(url: string): Promise<T> {
   const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`${res.status} ${res.statusText} for ${url}`);
-  }
+  if (!res.ok) throw await failure(res, url);
   return (await res.json()) as T;
 }
 
@@ -68,7 +79,7 @@ async function getOrRefused<T>(url: string): Promise<T> {
     const body = await res.json().catch(() => ({}));
     return { ok: false, why: asFieldErrors((body as { detail?: unknown }).detail).map((e) => e.msg).join("; ") } as T;
   }
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
+  if (!res.ok) throw await failure(res, url);
   return (await res.json()) as T;
 }
 

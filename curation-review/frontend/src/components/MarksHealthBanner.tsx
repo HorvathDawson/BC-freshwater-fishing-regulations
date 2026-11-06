@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { MarkHealthRow, MarksHealth } from "../types";
 import { Notice } from "./NoticeStack";
+import { failed } from "../failures";
 
 /* OWNER 2026-10-28: "I don't want that to happen again." Every mark in force is accounted for at
    load (`GET /api/marks/health`): a mark whose target is GONE (orphaned — a regenerated / renamed
@@ -21,7 +22,7 @@ function Row({ r }: { r: MarkHealthRow }) {
 
 export function MarksHealthBanner() {
   const [h, setH] = useState<MarksHealth | null>(null);
-  useEffect(() => { api.marksHealth().then(setH).catch(() => {}); }, []);
+  useEffect(() => { api.marksHealth().then(setH).catch(failed("the marks health")); }, []);
   if (!h || (!h.n_orphans && !h.n_stale)) return null;
   const bad = h.n_orphans > 0;
   const words = [bad ? `${h.n_orphans} orphaned (target gone — counted nowhere)` : "",

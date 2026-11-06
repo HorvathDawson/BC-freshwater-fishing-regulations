@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isTyping } from "../review";
 import { MapPanel } from "./MapPanel";
 import { TopNav, setBadge } from "./TopNav";
+import { failed } from "../failures";
 
 export const REPORTS_HASH = "reports/";
 
@@ -206,7 +207,8 @@ function ReportDetail({ r, status, onStatus, nav }: { r: Report; status: ReportS
     if (!r.section || r.section.vintage !== "same" || !c.tiles) return;
     let live = true;
     fetch(`/api/reports/section?sid=${r.section.sid}&tiles=${encodeURIComponent(c.tiles)}`)
-      .then((x) => (x.ok ? x.json() : null)).then((g) => live && g && setSection(g)).catch(() => {});
+      .then((x) => (x.ok ? x.json() : Promise.reject(new Error(`${x.status} /api/reports/section`)))).then((g) => live && g && setSection(g))
+      .catch(failed("the reported section"));
     return () => { live = false; };
   }, [r.section, c.tiles]);
   const facts: [string, string | undefined][] = [

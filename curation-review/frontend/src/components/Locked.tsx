@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { TopNav, type TabId } from "./TopNav";
+import { reportFailure } from "../failures";
 
 /* T325: CLOSED REVIEW DOMAINS — only a domain that FEEDS NOTHING (ponds, T329). There is no lock step (owner
    2026-10-30): every other domain's marks reach its curated file by write-through, and a finished queue just says
@@ -16,10 +17,11 @@ const listeners = new Set<(c: Closed) => void>();
 function load(): Promise<Closed> {
   if (!pending) {
     pending = fetch("/api/review/closed")
-      .then((r) => (r.ok ? r.json() : { closed: {} }))
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${r.status} /api/review/closed`))))
       .then((j) => (j.closed ?? {}) as Closed)
-      .catch(() => ({}) as Closed)
-      .then((c) => { cache = c; listeners.forEach((l) => l(c)); return c; });
+      .then((c) => { cache = c; listeners.forEach((l) => l(c)); return c; },
+            // (T434) unknown is not "none closed": shown; the server still refuses a mark on a closed domain (423)
+            (e) => { pending = null; reportFailure("the closed review domains", e); return {} as Closed; });
   }
   return pending;
 }

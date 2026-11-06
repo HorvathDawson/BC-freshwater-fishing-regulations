@@ -4,6 +4,7 @@ import type { MarkPost } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { MapPanel } from "./MapPanel";
+import { failed } from "../failures";
 
 export const POND_HASH = "sloughs/q154/";
 
@@ -93,7 +94,7 @@ export function PondReview() {
     const n = ++asked.current;
     get<PondRow[]>(`/api/q154/queue${qs ? `?${qs}` : ""}`).then((got) => { if (n === asked.current) setRows(got); })
       .catch((e) => setErrors([String(e)]));
-    get<Tally>("/api/q154/tally").then(setTally).catch(() => {});
+    get<Tally>("/api/q154/tally").then(setTally).catch(failed("the pond tally"));
   }, [filters]);
   useEffect(() => { loadRows(); }, [loadRows]);
 

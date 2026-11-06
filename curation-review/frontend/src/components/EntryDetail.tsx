@@ -15,6 +15,7 @@ import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { VerdictBar } from "./useMarking";
 import { PvBadge } from "./Preverify";
 import { AwaitingWaterPanel } from "./AwaitingWater";
+import { failed, reportFailure } from "../failures";
 
 /** T207: how a rule's `review_reason` says a cut is still to be located by the owner (`precheck.NEEDS_SPLIT`). */
 const NEEDS_SPLIT = "needs a split (owner to locate)";
@@ -119,7 +120,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
   const [showRule, setShowRule] = useState<{ id: string | null; n: number }>({ id: null, n: 0 });
   const [reaches, setReaches] = useState<EntryReaches | null>(null);
   const [pdfPages, setPdfPages] = useState<Record<string, number>>({});
-  useEffect(() => { api.synopsisPages().then(setPdfPages).catch(() => {}); }, []);
+  useEffect(() => { api.synopsisPages().then(setPdfPages).catch(failed("the synopsis page map")); }, []);
   const rules = entry.rules ?? [];
   const licensing = entry.licensing ?? [];
 
@@ -156,7 +157,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
     let live = true;
     if (zone) { setNamed(null); return; }
     api.splits(entry.entry_id).then((s) => { if (live) setNamed(s); })
-      .catch(() => { if (live) setNamed(null); });
+      .catch((e) => { if (live) { setNamed(null); reportFailure("the entry's splits", e); } });
     return () => { live = false; };
   }, [entry, reloadKey]);
   // owner 2026-10-28: a guessed cut opens on the satellite imagery, flown to — the low-confidence cuts queue
@@ -186,7 +187,7 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
     setReachBusy(true);
     api.reaches(entry.entry_id)
       .then((x) => { if (live) setReaches(x); })
-      .catch(() => { if (live) setReaches(null); })
+      .catch((e) => { if (live) { setReaches(null); reportFailure("the entry's reaches", e); } })
       .finally(() => { if (live) setReachBusy(false); });
     return () => { live = false; };
   }, [entry, reloadKey]);

@@ -8,6 +8,7 @@ import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
+import { errorText, failed } from "../failures";
 
 export const TIDAL_HASH = "tidal/";
 
@@ -164,7 +165,7 @@ export function TidalReview({ mode }: Props) {
     const seq = ++queueSeq.current;      // only the latest request lands (a slow earlier one must not overwrite it)
     api.tidalQueue({})
       .then((got) => { if (seq === queueSeq.current) setRows(got); }).catch((e) => setError(String(e)));
-    api.tidalProgress().then(setProgress).catch(() => {});
+    api.tidalProgress().then(setProgress).catch(failed("the tidal progress"));
   }, []);
 
   // ACCEPT ALL "DFO DEFAULT: MOUTH" (owner 2026-10-28): EVERY candidate nothing specifies — the whole queue,
@@ -188,7 +189,7 @@ export function TidalReview({ mode }: Props) {
           note: `DFO default (unless otherwise specified): the mouth — ${r.dfo_default_why ?? ""} — bulk accept`, reviewer: who, seconds: 0,
           new_splits: [defaultSplit(d.candidate)] });
         ok += 1;
-        if (ok % 50 === 0) { setNotice(`saving… ${ok}/${take.length}`); api.tidalProgress().then(setProgress).catch(() => {}); }
+        if (ok % 50 === 0) { setNotice(`saving… ${ok}/${take.length}`); api.tidalProgress().then(setProgress).catch(failed("the tidal progress")); }
       } catch (e) {
         bad.push(`${r.water}: ${String(e)}`);
       }
@@ -308,7 +309,7 @@ export function TidalReview({ mode }: Props) {
               setNotice(said);
               loadRows();
               if (next) open(next);
-              else api.tidalCandidate(detail.row.id).then(setDetail).catch(() => {});
+              else api.tidalCandidate(detail.row.id).then(setDetail).catch(failed("the tidal candidate"));
             }} />
         ) : (
           <div className="detail"><div className="empty-state">{selected ? "loading…" : "Select a proposed tidal boundary from the queue."}</div></div>
@@ -348,7 +349,7 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
 
   useEffect(() => {
     let live = true;
-    api.tidalEdge(c.id).then((g) => live && setEdge(g as unknown as GeoJSON.FeatureCollection)).catch(() => {});
+    api.tidalEdge(c.id).then((g) => live && setEdge(g as unknown as GeoJSON.FeatureCollection)).catch(failed("the tidal edge"));
     return () => { live = false; };
   }, [c.id]);
 
@@ -397,7 +398,7 @@ function TidalCandidateView({ detail, mode, nav, onMarked }: {
       setProblem("");
       setAccepted(`your point is the cut (snapped ${Math.round(sn.distance_m)} m to the stream`
         + `${sn.above_mouth_m != null ? `, ${Math.round(sn.above_mouth_m)} m above the mouth` : ""}): press y, then Record mark (nothing is saved yet)`);
-    }).catch(() => setErrors([`that point is not on ${c.water} (more than 500 m from it): click on the stream`]));
+    }).catch((e) => setErrors([`that point was not placed on ${c.water}: ${errorText(e)} (a point more than 500 m from the stream is refused: click on it)`]));
   } : null;
 
   // the map's points: the candidate's (proposed / polygon / mouth / located words), the pending cut, the mark in force's

@@ -13,6 +13,7 @@ import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel, type EditPoint } from "./MapPanel";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { ExtentFixEditor, pointWords } from "./ExtentFixEditor";
+import { failed, reportFailure } from "../failures";
 
 /** two clicks this close (m) are one cut — the server folds them the same way (`marks.SAME_CUT_M`) */
 const SAME_CUT_M = 10;
@@ -408,7 +409,7 @@ export function DfoReview({ mode }: Props) {
                 ? ` · already proposed — reused: ${reused.map((r) => `${r.name} (${r.id})`).join(", ")}` : ""));
               loadRows();
               if (next) open(next);
-              else api.dfoLocation(detail.row.id).then(setDetail).catch(() => {});
+              else api.dfoLocation(detail.row.id).then(setDetail).catch(failed("the DFO location"));
             }} />
         ) : (
           <div className="detail"><div className="empty-state">{selected ? "loading…" : "Select a DFO location from the queue."}</div></div>
@@ -468,7 +469,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   // what the extent binds now — magenta until a fix is previewed
   useEffect(() => {
     let live = true;
-    api.dfoReach(id, showTribs).then((r) => live && setReach(r)).catch(() => {})
+    api.dfoReach(id, showTribs).then((r) => live && setReach(r)).catch(failed("the DFO reach"))
       .finally(() => live && setLoadingTribs(false));
     return () => { live = false; };
   }, [id, showTribs]);
@@ -491,7 +492,8 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     api.dfoExtentPreview(id, saved, showTribs)
       .then((r) => live && setSavedFc({ type: "FeatureCollection",
         features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] }))
-      .catch(() => live && setSavedFc({ type: "FeatureCollection", features: pts }));
+      // (T434) the reach did not load: reported; the saved points (local) are still drawn
+        .catch((e) => { reportFailure("the DFO saved reach", e); if (live) setSavedFc({ type: "FeatureCollection", features: pts }); });
     return () => { live = false; };
   }, [id, saved, showTribs]);  // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -571,7 +573,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                                  tributaries: sg.tributaries }, showTribs)
         .then((r) => live && r.resolvable && setSuggestedFc({ type: "FeatureCollection",
           features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] }))
-        .catch(() => {});
+        .catch(failed("the DFO reach preview"));
     }
     return () => { live = false; };
   }, [id, sugg, showTribs]);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -1010,10 +1012,10 @@ const LAKE_EDGES: { v: AnchorKind; words: string }[] = [
   { v: "lake_outlet", words: "outlet" }, { v: "lake_inlet", words: "inlet" }, { v: "lake", words: "both ends" },
 ];
 /** the anchors the build can offset (`marks.OFFSET_ANCHORS`) until the server's list arrives */
-const OFFSET_FALLBACK: AnchorKind[] = ["bridge", "dam", "sign", "coord", "confluence", "lake_inlet", "lake_outlet", "lake", "split"];
+// (T434) the anchor policy comes from the server only (GET /api/split-anchors); a failed read is shown, never replaced
+// by a copy kept here (a second copy of the policy drifts)
 let anchorsOnce: Promise<SplitAnchors> | null = null;
-const loadAnchors = () => (anchorsOnce ??= api.splitAnchors().catch(() => ({
-  area_layers: { parks_bc: "PROTECTED_LANDS_NAME" }, offset_anchors: OFFSET_FALLBACK })));
+const loadAnchors = () => (anchorsOnce ??= api.splitAnchors().catch((e) => { anchorsOnce = null; throw e; }));
 
 export const typeOf = (a: AnchorKind): SplitType =>
   a === "confluence" || a === "area_boundary" || a === "border" || a === "split" ? a
@@ -1074,7 +1076,7 @@ export function Autocomplete({ value, placeholder, fetch, onPick, onText, testid
     if (!open || q.trim().length < minChars) { setHits([]); return; }
     let live = true;
     const t = window.setTimeout(() => fetch(q.trim()).then((h) => { if (live) { setHits(h); setAt(0); } })
-      .catch(() => live && setHits([])), 150);
+      .catch(failed("the search")), 150);
     return () => { live = false; window.clearTimeout(t); };
   }, [q, open]);  // eslint-disable-line react-hooks/exhaustive-deps
   const pick = (c: Choice) => { setQ(c.label); setOpen(false); setHits([]); onPick(c); };
@@ -1126,10 +1128,9 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
   /** T355: the live preview on the map (null clears it) */
   onPreview: (fc: GeoJSON.FeatureCollection | null) => void;
 }) {
-  const [anchors, setAnchors] = useState<SplitAnchors>({ area_layers: { parks_bc: "PROTECTED_LANDS_NAME" },
-                                                         offset_anchors: OFFSET_FALLBACK });
-  useEffect(() => { loadAnchors().then(setAnchors); }, []);
-  const offsettable = anchors.offset_anchors;
+  const [anchors, setAnchors] = useState<SplitAnchors | null>(null);
+  useEffect(() => { loadAnchors().then(setAnchors, failed("the split anchor policy")); }, []);
+  const offsettable: AnchorKind[] = anchors?.offset_anchors ?? [];
   const sideOf = (): NewSplit["side"] =>
     op === "downstream_of" ? "downstream" : op === "upstream_of" ? "upstream" : null;
   const hintFor = (t: SplitType) => hints.find((h) =>
@@ -1176,7 +1177,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
   // the tributaries of the water, for a confluence (loaded once per water)
   useEffect(() => {
     if (type !== "confluence" || tribs !== null) return;
-    api.dfoTributaries(id, draft?.on_item).then(setTribs).catch(() => setTribs([]));
+    api.dfoTributaries(id, draft?.on_item).then(setTribs).catch(failed("the tributaries"));
   }, [type, id, draft?.on_item, tribs]);
   useEffect(() => { setTribs(null); }, [draft?.on_item]);
 
@@ -1294,7 +1295,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
     }
   }
 
-  const layers = Object.keys(anchors.area_layers);
+  const layers = Object.keys(anchors?.area_layers ?? {});
   const typeHint = TYPES.find((t) => t.v === type)?.hint;
   return (
     <div className="section extent-fix" data-testid="dfo-new-splits">
@@ -1419,7 +1420,7 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
                   onChange={(e) => set({ area_layer: e.target.value, area_field: null })}>
                   {layers.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
-                <span className="k">{draft.area_field || anchors.area_layers[draft.area_layer ?? "parks_bc"]}</span>
+                <span className="k">{draft.area_field || anchors?.area_layers[draft.area_layer ?? "parks_bc"]}</span>
                 <Autocomplete label="area name" testid="dfo-area-name" value={draft.area ?? ""}
                   placeholder="type the polygon's name…"
                   fetch={async (q) => (await api.dfoAreaNames(id, draft.area_layer ?? "parks_bc", q, draft.on_item))
