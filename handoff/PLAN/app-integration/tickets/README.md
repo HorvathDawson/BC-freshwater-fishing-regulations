@@ -493,6 +493,7 @@ use that as the sole source of future work."
 | T446 | First install: a release file "does not match the manifest" (resume / partial file) | OPEN | — | worker /crashes 2026-11-06 |
 | T447 | An app icon made by an artist (the favicon-derived set ships until then) | POSTPONED | — | owner 2026-11-06 |
 | T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | OPEN | — | T420 follow-up 2026-11-06 |
+| T449 | A DFO place wholly in tidal water (Nanaimo below Cedar Bridge): a "tidal water" state, proposed, binds nothing | OPEN | — | owner 2026-11-06 |
 
 ## Order for open tickets
 
