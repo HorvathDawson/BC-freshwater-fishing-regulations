@@ -465,6 +465,7 @@ use that as the sole source of future work."
 | T419 | Salmon River (Region 2) keeps too much detail when zoomed out; check stream simplification | OPEN — UI check | — | owner 11-05 |
 | T420 | Map panning laggy even on a Pixel 9: streams load in slowly, then the pan stutters | OPEN | — | owner 11-05 |
 | T423 | Update-channel / environment switch looks dead in an installed build (applies on reopen, says nothing); its write fails silently | OPEN | — | owner 11-05 |
+| T424 | Map attribution: our own credits (every source on screen), and no longer on top of the scale bar | OPEN | — | owner 11-05 |
 | T421 | Review proposals: a missing build reads as "binding moved" (silent registry fallback) | OPEN | — | CI fix 11-05 |
 | T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | OPEN | — | T331 leftover 11-05 |
 

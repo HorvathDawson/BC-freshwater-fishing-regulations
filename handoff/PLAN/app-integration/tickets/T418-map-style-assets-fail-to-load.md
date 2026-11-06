@@ -49,6 +49,6 @@ including after an in-session update that changes the tile folder. Not checked o
 
 ## Phone check 2026-11-05 (owner, 0.6.2 from Play internal): PASS
 `node deploy/staging/test-updates.mjs tiles` (new scenario: the tile folder moves, same files) on the test channel;
-the owner applied it with the map open ("Apply now"): labels, symbols and the outside shading stayed. The reports and
+the update downloaded and applied by itself on opening the app (owner); the map stayed whole: labels, symbols, the outside shading. The reports and
 crashes feeds hold nothing since (no `map-style-asset:` report). The apply-on-return path was not tried separately.
 Test channel reset after.
