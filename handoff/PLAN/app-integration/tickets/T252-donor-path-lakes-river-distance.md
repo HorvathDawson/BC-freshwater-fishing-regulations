@@ -64,3 +64,11 @@ side, no lengths → no distance); `core/routeMap.test.ts` (relation words, `joi
   and the `down` gate is set from the measured size (provisional now).
 - Verify on :39218 after that release: Pitt above the lake (e.g. `356360869:46555`) and below it (`356360869:3342`) —
   08MH006 drawn through Pitt Lake and the Alouette mouth, with the confluence label and the along-river km.
+
+## Check 2026-11-05 (staging, not :39218)
+:39218 is the owner's dev app; its data host (:39217) has no `feeds/` (404), so the check ran on staging instead.
+`/water/pitt-river` → Conditions, the part "From Pitt Lake up to the Garibaldi Park boundary": **no gauge** ("No gauge
+on this water is close enough in size to speak for it"). So on today's release the upper Pitt's panel does not hold
+08MH006 (the drainage gate), and nothing above the lake is drawn — consistent with "every section with 08MH006 in its
+panel". Left: the part below the lake (`356360869:3342`): 08MH006 drawn to the Alouette mouth with the along-river km
+(the web page opens on the upper part; a phone/emulator step to the lower part).
