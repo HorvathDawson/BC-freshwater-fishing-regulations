@@ -471,6 +471,7 @@ use that as the sole source of future work."
 | T425 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | DONE | 0178b4301 | option A (fish art + small-caps word); shots owed, owner reviews look |
 | T426 | A changed synopsis extractor must still read the current book the same way (baseline + row diff + fast pages) | DONE | aad8f7313 | whole-book --check-against owed (heavy); Heber = first accepted diff |
 | T427 | Conditions legend's watershed forecast: leaner (about 4 rows, merged title/verdict, labels on the ramp) | DONE (needs owner look at the shots) | 9e865e284 | owner 11-05 (screenshot) |
+| T426 | One sync control in More (the "Updates" row really syncs, same look as the map sync button) | OPEN | — | owner 11-05 |
 
 ## Order for open tickets
 
