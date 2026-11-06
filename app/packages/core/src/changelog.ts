@@ -21,6 +21,11 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.5", date: "2026-11-06", notes: [
+      "The app says a new version is out only once Google Play has it for your phone",
+    ],
+  },
+  {
     version: "0.6.4", date: "2026-11-06", notes: [
       "Panning the map is smoother: the map no longer re-reads every tile each time it stops",
       "Screen readers can read the first-run notice and press \"I understand\" on Android",
