@@ -155,6 +155,7 @@ const QUESTIONS: Record<string, string> = {
 };
 const STATE_WORDS: Record<string, string> = {
   needs_cut: "needs a cut", bound: "bound", unbound: "no extent yet", no_water: "no water matched",
+  tidal: "tidal water",
 };
 const VERIFY: [string, string][] = [
   ["", "all"], ["todo", "to do"], ["unmarked", "never marked"], ["stale", "changed since marked"],
@@ -288,6 +289,7 @@ export function DfoReview({ mode }: Props) {
               <strong>{all.done}/{all.total}</strong> marked
               {live && <span className="dim"> · live {live.done}/{live.total}</span>}
               <span className="dim"> · {all.by_state.needs_cut ?? 0} need a cut · {all.by_state.bound ?? 0} bound
+                {(all.by_state.tidal ?? 0) > 0 && <> · {all.by_state.tidal} tidal water</>}
                 · {all.new_splits} new split{all.new_splits === 1 ? "" : "s"} proposed</span>
               {(all.by_verify.wrong ?? 0) + (all.by_verify.unsure ?? 0) > 0 &&
                 <span className="dim"> · {all.by_verify.wrong ?? 0} wrong, {all.by_verify.unsure ?? 0} unsure</span>}
@@ -393,6 +395,8 @@ export function DfoReview({ mode }: Props) {
                   title="a suggested extent is waiting on this location">suggested · {r.suggested}</span>}
                 {r.fix_proposed && <span className="chip-tag suggested" data-testid="dfo-fix-chip"
                   title="Claude proposed a fix from your note — open the item">fix proposed</span>}
+                {r.tidal?.status === "proposed" && <span className="chip-tag suggested" data-testid="dfo-tidal-chip"
+                  title={`proposed, not decided — ${r.tidal.why}`}>tidal water? proposed</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
                 <span>{r.n_rows} row{r.n_rows === 1 ? "" : "s"}</span>
               </div>
@@ -653,6 +657,34 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   }
   const groupTargets = (detail.group?.members ?? []).filter((m) => m.this || keep[m.id] !== false)
     .map((m) => m.id);
+  // T449: the tidal-water proposal (`dfo.tidal_of`) — the owner's call is a mark like any other: accept is every
+  // check y with call "tidal water" (verified); reject is deferred with call "not tidal" (still to curate)
+  const tidal = detail.row.tidal ?? null;
+  async function decideTidal(call: "tidal water" | "not tidal") {
+    setErrors([]); setOkMsg("");
+    if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
+    setReviewer(reviewer.trim());
+    setBusy(true);
+    try {
+      const accept = call === "tidal water";
+      await api.postMark({
+        scope: "dfo", target: id, reviewer: reviewer.trim(), call,
+        seconds: Math.round((Date.now() - since.current) / 100) / 10,
+        ...(accept ? { answers: { T: "y", R: "y", P: "y" }, note: note.trim() || `wholly in tidal water: ${tidal?.why ?? ""}` }
+          : { answers: {}, verdict: "deferred" as const,
+              note: note.trim() || "not wholly in tidal water — its freshwater extent is still to curate" }),
+      });
+      const said = `saved ✓ ${detail.row.water || id} — ${accept ? "tidal water (binds nothing)" : "not tidal"}`;
+      setOkMsg(said);
+      onMarked([], said);
+    } catch (e) {
+      const fe = (e as EntryRefused).fieldErrors;
+      setErrors([`NOT SAVED — ${fe ? "refused by the server" : "the save failed"}:`,
+        ...(fe ? fe.map((x) => (x.path ? `${x.path}: ` : "") + x.msg) : [String(e)])]);
+    } finally {
+      setBusy(false);
+    }
+  }
   // Enter records the mark; y n ? answer the next unanswered check
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
@@ -800,6 +832,27 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             )}
           </div>
 
+          {tidal && (
+            <div className="section dfo-tidal-proposal" data-testid="dfo-tidal-proposal">
+              <div className="ext-row">
+                <span className="k" style={{ color: "#b45309" }}>{tidal.status === "proposed" ? "proposed: tidal water"
+                  : tidal.status === "accepted" ? "tidal water" : "not tidal (rejected)"}</span>
+                <span data-testid="dfo-tidal-why">{tidal.why}</span>
+              </div>
+              {tidal.status === "proposed" && <>
+                <div className="ext-row dim" style={{ fontSize: 12 }}>
+                  Accept: the place lies wholly in tidal water — it binds nothing on the freshwater map and is not
+                  counted as missing. Reject: it keeps needing its freshwater extent (the note below is kept).
+                </div>
+                <div className="ext-row">
+                  <button type="button" className="btn small" data-testid="dfo-tidal-accept" disabled={busy}
+                    onClick={() => void decideTidal("tidal water")}>accept: tidal water</button>
+                  <button type="button" className="btn small" data-testid="dfo-tidal-reject" disabled={busy}
+                    onClick={() => void decideTidal("not tidal")}>reject: not tidal</button>
+                </div>
+              </>}
+            </div>
+          )}
           {detail.fix_proposal && (
             <div className="section dfo-fix-proposal" data-testid="dfo-fix-proposal">
               <div className="ext-row">

@@ -48,7 +48,8 @@ MOUTH_MAX_M = 300.0
 #: how close (m) a section end must be to a lake's outline to be its inlet / outlet
 LAKE_TOUCH_M = 40.0
 #: the queue filters
-NEEDS = ("needs_cut", "bound", "unbound", "no_water")
+#: T449: `tidal` — a place in tidal water the owner accepted (binds nothing, not missing)
+NEEDS = ("needs_cut", "bound", "unbound", "no_water", "tidal")
 VERIFIES = ("unmarked", "verified", "wrong", "unsure", "deferred", "stale", "todo")
 
 TRIB_RE = re.compile(r"\b([A-Z][A-Za-z'\-]*(?:\s+[A-Z][A-Za-z'\-]*)*\s+(?:River|Creek|Slough))\b")
@@ -209,13 +210,41 @@ def historic_only(loc: dict, groups: dict | None, live_waters: set) -> bool:
     return g is None or g["canonical"] == loc["location_id"]
 
 
+#: T449: THE TIDAL CONTEXT (tidal-limit rows by blk, cut labels) once per tidal_limits.json / cuts.json stamp
+_TIDAL_MEMO = reuse._Memo()
+
+
+def _tidal_ctx() -> tuple[dict, dict]:
+    from pipeline.common.curated import CURATED
+    return _TIDAL_MEMO.get((reuse._stamp((CURATED.waters.tidal, CURATED.waters.cuts)), D.tidal_context),
+                           D.tidal_context)
+
+
+def tidal_of(loc: dict, water: dict | None, m) -> dict | None:
+    """T449: THE PLACE'S TIDAL-WATER CALL — {status, why, label?}, or None. `accepted`: the curated place says
+    `tidal_water` or the DFO mark in force accepts it (call "tidal water", before its write-through lands);
+    `rejected`: the mark in force says "not tidal"; `proposed`: `review.dfo.tidal_proposal` proposes it and no mark
+    decided it — shown to the owner, never acted on."""
+    call = m.call if m is not None else None
+    if loc.get("tidal_water") or call == "tidal water":
+        return {"status": "accepted", "why": "accepted: the place lies wholly in tidal water"}
+    limits, labels = _tidal_ctx()
+    got = D.tidal_proposal(loc, water, D.tidal_limits_on(water, reuse._registry(), limits), labels)
+    if got is None:
+        return None
+    return {**got, "status": "rejected" if call == "not tidal" else "proposed"}
+
+
 def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None,
          live_waters: set | None = None) -> dict:
     st = loc.get("source_text") or {}
     need = D.need(loc)
     rows, rules = D.rule_rows(loc, DFO_TYPED)
     v = _verify(m, loc, water)
-    if not water or not water.get("item_ids"):
+    tidal = tidal_of(loc, water, m)
+    if tidal is not None and tidal["status"] == "accepted":
+        state = "tidal"                  # T449: binds nothing by decision, missing nothing
+    elif not water or not water.get("item_ids"):
         state = "no_water"
     elif need["bound"]:
         state = "bound"
@@ -236,6 +265,7 @@ def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None
             "pv": preverify.dfo(loc["location_id"]),
             "fix_proposed": fix_proposal(loc["location_id"]) is not None,
             "lake_area": lake_area(loc, water),
+            "tidal": tidal,
             "new_splits": len(m.new_splits) if m is not None else 0,
             "historic_only": historic_only(loc, groups, live_waters if live_waters is not None
                                            else _live_waters()),
@@ -254,7 +284,7 @@ _ROWS_MEMO = reuse._Memo()
 def _rows_inputs() -> tuple:
     from pipeline.common.curated import CURATED
     return (reuse._stamp((reuse.MARKS_PATH, SUGGESTIONS_PATH, preverify.FILES["dfo"], _fixes_path(),
-                          CURATED.review.proposal_overrides)),
+                          CURATED.review.proposal_overrides, CURATED.waters.tidal, CURATED.waters.cuts)),
             D.regions(reuse._dfo_dir()), D.typed(DFO_TYPED), reuse._registry(), reuse.applied_keys(),
             _locations, _states, _groups, _row)
 
@@ -271,7 +301,8 @@ def _compute_rows() -> list[dict]:
     out = [_row(slug, loc, water, states.get(lid), groups, live)
            for lid, (slug, loc, water) in _locations().items() if loc.get("water_id")]
     # the review order: the live page first, then what is missing a cut, then region and water
-    rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3}
+    # (T449: a place accepted as tidal water is missing nothing — last, with the bound ones)
+    rank = {"needs_cut": 0, "unbound": 1, "no_water": 2, "bound": 3, "tidal": 4}
     out.sort(key=lambda r: (r["status"] != "active", rank[r["state"]], reuse._region_key(r["region"]),
                             r["water"], r["id"]))
     return out

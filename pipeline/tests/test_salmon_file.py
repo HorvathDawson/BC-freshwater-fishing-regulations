@@ -62,9 +62,9 @@ def test_the_map_status_of_a_day():
         ["open", "release", "closed", "closed", "check"]
 
 
-def _loc(lid, prec, fps, water="", water_id=None, area=""):
+def _loc(lid, prec, fps, water="", water_id=None, area="", tidal_water=False):
     return SimpleNamespace(location_id=lid, precedence=prec, fingerprints=fps, water=water, water_id=water_id,
-                           source_text={"specific_area": area})
+                           source_text={"specific_area": area}, tidal_water=tidal_water)
 
 
 def _ef(locs, waters=()):
@@ -104,6 +104,16 @@ def test_build_chains_narrowest_first_with_the_unlisted_chain_first():
     assert (u["items"], u["w"], u["r"]) == (["gnis:4674"], "Kispiox River — above the resort signs", "6")
     assert u["chain"] not in {c for _, c in sections}
     assert payload["regions"]["6"]["asof"] == "2026-08-28"
+
+
+def test_a_place_accepted_as_tidal_water_is_not_an_undrawn_part_of_its_water():
+    """T449: a place the owner accepted as wholly in tidal water (`tidal_water`) lies off the freshwater map: it is not
+    "not yet mapped" on the card and no section of its water carries it as an undrawn part."""
+    files, feeds, placed, sid_of = _fixture()
+    files["6"].locations[3].tidal_water = True                  # 6:resort
+    payload, sections = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11, 14]})
+    assert payload["unmapped"] == []
+    assert not any(c.get("u") for c in payload["chains"]) and 14 not in dict(sections)
 
 
 def test_a_water_with_an_undrawn_place_carries_it_but_paints_its_drawn_answer():

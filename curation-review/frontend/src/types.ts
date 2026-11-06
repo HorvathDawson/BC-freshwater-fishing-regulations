@@ -816,8 +816,9 @@ export interface MarkPost {
   targets?: string[];
   /** owner 2026-11-02 (dfo): this wording is a variant of that location (T185 writes duplicate_of) */
   variant_of?: string;
-  /** T359 (tidal): "whole" — the whole water is tidal (Place y, no cut; the writer makes a `whole` row) */
-  call?: "whole";
+  /** T359 (tidal): "whole" — the whole water is tidal (Place y, no cut; the writer makes a `whole` row);
+   *  T449 (dfo): "tidal water" accepts a place proposed as wholly tidal, "not tidal" rejects it */
+  call?: "whole" | "tidal water" | "not tidal";
 }
 
 /** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */
@@ -1009,7 +1010,17 @@ export interface ProposedSplit extends AreaFields {
   /** the proposed split's confidence (an owner override, the latest set, else the anchor default) */
   confidence: SplitConfidence;
 }
-export type DfoState = "needs_cut" | "bound" | "unbound" | "no_water";
+/** T449: `tidal` — a place the owner accepted as wholly in tidal water (binds nothing, missing nothing) */
+export type DfoState = "needs_cut" | "bound" | "unbound" | "no_water" | "tidal";
+/** T449: the place's tidal-water call (`dfo.tidal_of`): proposed by the rule, accepted or rejected by a mark */
+export interface DfoTidal {
+  status: "proposed" | "accepted" | "rejected";
+  why: string;
+  limit?: "mouth" | "whole" | "split" | "cut";
+  split?: string | null;
+  label?: string | null;
+  words?: string[];
+}
 export interface DfoRow {
   pv?: Pv | null;
   id: string;
@@ -1041,6 +1052,8 @@ export interface DfoRow {
   historic_only?: boolean;
   /** a fix proposal waits on this item (`dfo_fix_proposals.json`) */
   fix_proposed?: boolean;
+  /** T449: wholly in tidal water — proposed / accepted / rejected, or null */
+  tidal?: DfoTidal | null;
 }
 /** a member of a DFO historic group (`review.dfo.groups`) and why it was grouped */
 export interface DfoGroupMember {

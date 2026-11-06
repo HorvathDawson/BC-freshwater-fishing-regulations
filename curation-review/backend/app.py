@@ -264,7 +264,8 @@ class MarkPayload(BaseModel):
     #: resolved point stamped by the server; never written to splits.json (T185)
     new_splits: list[dict] = []
     #: T55: the owner's call on a slough / canal candidate — "stream" | "not stream" (scope slough);
-    #: Q154: "pool" | "real lake" on a sample small pond (scope q154)
+    #: Q154: "pool" | "real lake" on a sample small pond (scope q154);
+    #: T449: "tidal water" | "not tidal" on a DFO place proposed as wholly tidal (scope dfo)
     call: str | None = None
     #: T55: "accept all visible" — one slough mark per candidate, in one commit (scope slough only)
     targets: list[str] = []
@@ -367,9 +368,11 @@ def _post_mark(body: MarkPayload):
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
         data.pop("targets")
     elif body.scope == "dfo":                       # owner 2026-10-28: a historic group's members
-        if body.call is not None:
-            raise HTTPException(422, [{"path": "", "msg": "a DFO mark carries no call"}])
-        data.pop("call")
+        # T449: the one DFO call — a place proposed as wholly in tidal water, accepted or rejected
+        if body.call not in (None, "tidal water", "not tidal"):
+            raise HTTPException(422, [{"path": "call", "msg": "a DFO call is tidal water or not tidal"}])
+        if body.call is None:
+            data.pop("call")
         if not body.targets:
             data.pop("targets")
     elif body.scope == "tidal":                     # T359: "the whole water is tidal" is a tidal call

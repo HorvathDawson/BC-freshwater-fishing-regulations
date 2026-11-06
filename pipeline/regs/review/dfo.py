@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Mapping, Optional
@@ -166,6 +167,94 @@ def need(loc: Mapping) -> dict:
     have = sum(len(e.get("splits") or []) for e in ex)
     return {"op": op, "points": n, "have": have, "bound": bool(ex),
             "missing": max(0, (n or 0) - have) if not ex else 0}
+
+
+# --------------------------------------------------------------------------- T449: a place wholly in tidal water
+
+#: Words that put the PLACE IN tidal water ("tidal portions of the Nanaimo River", "the tidal waters of"). Never a
+#: boundary of it ("downstream to the tidal boundary", "tidal water fishing boundary signs" — those places are the
+#: freshwater above the limit) nor a scope ("all streams flowing into tidal water Area 5").
+TIDAL_PLACE_WORDS = re.compile(r"(?<!into )\btidal\s+(?:portions?|waters?|reach(?:es)?|parts?)\b"
+                               r"(?!\s+(?:fishing\s+)?boundar)", re.I)
+#: the notice ops that run DOWNSTREAM from their first anchor: a place below the tidal-limit cut reads as one of these
+TIDAL_OPS = ("downstream_of", "between")
+#: a cut label's words that name no place in particular (what is left must be in the notice: "Cedar Road bridge" -> cedar)
+_LABEL_STOP = frozenset("the of a an at on in to and near river creek slough bridge road rd highway hwy dam tidal "
+                        "boundary sign signs limit mouth confluence with railway cn cp cpr crossing falls".split())
+
+
+def tidal_limits_on(water: Optional[Mapping], registry: Mapping, limits_by_blk: Mapping) -> list:
+    """The tidal-limit rows (`atlas.splits.tidal.Limit`, waters/tidal_limits.json) on the blue lines of the water's
+    registry items (each item's `blk:` ref ids)."""
+    blks: set[str] = set()
+    for iid in (water or {}).get("item_ids") or []:
+        it = registry.get(iid)
+        if it is not None:
+            blks |= {r[4:] for r in it.ref_ids if r.startswith("blk:")}
+    return [limits_by_blk[b] for b in sorted(blks) if b in limits_by_blk]
+
+
+def tidal_proposal(loc: Mapping, water: Optional[Mapping], limits: list, labels: Mapping[str, str]) -> Optional[dict]:
+    """THE "TIDAL WATER" PROPOSAL (T449, owner 2026-11-06) for one DFO place, or None. Proposed — never decided here;
+    the owner accepts or rejects it with a DFO mark (call "tidal water" / "not tidal") — when ALL of:
+
+      1. the place binds nothing yet (no extent) and is not already accepted (`tidal_water`);
+      2. its words put it IN tidal water (`TIDAL_PLACE_WORDS`: "tidal portions of …", not "to the tidal boundary");
+      3. its water has a decided tidal limit (`limits`: `tidal_limits_on`), and for that limit either
+         - `mouth` / `whole`: the freshwater map holds no tidal stretch of it (it ends at the mouth / is all tidal), or
+         - `split` / `cut`: the notice runs DOWNSTREAM from it (op downstream_of / between) and names the cut — a word of
+           its label other than the generic ones (`_LABEL_STOP`) is in the notice: every anchor is at or below the cut.
+
+    Returns {limit, split, label, words, why}: what the proposal rests on, said on the screen."""
+    if (loc.get("binding") or {}).get("extents") or loc.get("tidal_water"):
+        return None
+    st = loc.get("source_text") or {}
+    text = st.get("specific_area") or ""
+    said = TIDAL_PLACE_WORDS.search(text)
+    if said is None:
+        return None
+    words = set(_gnorm(text).split())
+    for lim in limits:
+        if lim.limit in ("mouth", "whole"):
+            return {"limit": lim.limit, "split": None, "label": None, "words": [said.group(0)],
+                    "why": f"the notice says \"{said.group(0)}\", and {lim.name or 'the water'}'s tidal limit is "
+                           + ("its mouth: the freshwater map holds none of its tidal water" if lim.limit == "mouth"
+                              else "the whole water")}
+        if (st.get("op") or "") not in TIDAL_OPS:
+            continue
+        label = labels.get(lim.split) if lim.limit == "split" else str((lim.at or {}).get("label") or "")
+        named = sorted((set(_gnorm(label).split()) - _LABEL_STOP) & words)
+        if named:
+            return {"limit": lim.limit, "split": lim.split, "label": label, "words": [said.group(0), *named],
+                    "why": f"the notice says \"{said.group(0)}\" and runs downstream from the {label} "
+                           f"(\"{' '.join(named)}\" in its words), {lim.name or 'the water'}'s tidal limit: every "
+                           "anchor is at or below it"}
+    return None
+
+
+def tidal_context() -> tuple[dict, dict]:
+    """(tidal-limit rows by blk, cut label by split id) — the curated tidal limits (`atlas.splits.tidal.load`, which
+    refuses a missing file) and waters/cuts.json's labels."""
+    from pipeline.atlas.splits import tidal as T
+    from pipeline.common.curated import CURATED
+    cuts = json.loads(Path(CURATED.waters.cuts).read_text(encoding="utf-8"))
+    labels = {sp["id"]: sp.get("label") or sp["id"] for wb in cuts.get("waterbodies") or []
+              for sp in wb.get("splits") or [] if isinstance(sp, dict) and sp.get("id")}
+    return {l.blk: l for l in T.load()}, labels
+
+
+def tidal_sweep(registry: Mapping, d: Path | None = None) -> list[dict]:
+    """Every DFO place in every region the rule proposes as wholly tidal: [{location_id, water, text, why}]."""
+    limits, labels = tidal_context()
+    out = []
+    for lid, (_slug, loc, water) in sorted(locations(d).items()):
+        if not loc.get("water_id"):
+            continue
+        got = tidal_proposal(loc, water, tidal_limits_on(water, registry, limits), labels)
+        if got is not None:
+            out.append({"location_id": lid, "water": loc.get("water") or "", "status": loc.get("status") or "active",
+                        "text": (loc.get("source_text") or {}).get("specific_area") or "", "why": got["why"]})
+    return out
 
 
 # --------------------------------------------------------------------------- historic groups

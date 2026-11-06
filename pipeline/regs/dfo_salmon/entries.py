@@ -213,6 +213,11 @@ class EntryLocation:
     reviewed_by: str = ""
     reviewed_at: str = ""
     review_note: str = ""
+    #: T449 (owner 2026-11-06): THE PLACE LIES WHOLLY IN TIDAL WATER — below its water's tidal limit, off the freshwater
+    #: map. Written only by the review write-through from an accepted DFO mark (call "tidal water"); never proposed
+    #: here. Such a place binds nothing (no extent) and is not missing: the reach row says `tidal_water`, and the
+    #: bundle does not paint its water "parts not mapped" for it. Absent from the file when False.
+    tidal_water: bool = False
 
     @property
     def is_variant(self) -> bool:
@@ -222,12 +227,16 @@ class EntryLocation:
     def to_dict(self) -> dict:
         d = asdict(self, dict_factory=lambda kv: {k: v for k, v in kv if k != "binding"})
         d["binding"] = self.binding.to_dict()
+        if not self.tidal_water:
+            d.pop("tidal_water")
         return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "EntryLocation":
         d = dict(d)
         d["binding"] = Binding.from_dict(d.get("binding"))
+        if d.get("tidal_water") and d["binding"].extents:
+            raise ValueError(f"{d.get('location_id')}: a place in tidal water binds nothing, but it has an extent")
         return cls(**d)
 
 

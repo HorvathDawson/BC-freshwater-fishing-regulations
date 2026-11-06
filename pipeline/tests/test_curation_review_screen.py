@@ -286,6 +286,40 @@ def test_the_dfo_queue_counts_and_filters_every_location(env):
     assert c.get("/api/dfo/queue", params={"need": "nope"}).status_code == 422
 
 
+NANAIMO_TIDAL = "1:nanaimo-river:in-subarea-17-14-tidal-portions-of"
+
+
+def test_a_dfo_place_wholly_in_tidal_water_is_proposed_and_the_owners_mark_decides_it(env):
+    """T449: the Nanaimo's "tidal portions … from Cedar Bridge downstream" sits below its tidal limit (the Cedar Road
+    bridge cut): the row is PROPOSED tidal water (still "needs a cut" — a proposal is never pre-accepted); the owner's
+    accept (call "tidal water", every check y) makes it `tidal` — last in the queue, a done mark, no write under
+    data/curated from the app; a reject ("not tidal", deferred) leaves it needing its cut, the proposal rejected."""
+    c = env["client"]
+    row = lambda: next(r for r in c.get("/api/dfo/queue", params={"q": "nanaimo", "status": ""}).json()
+                       if r["id"] == NANAIMO_TIDAL)
+    got = row()
+    assert got["state"] == "needs_cut" and got["tidal"]["status"] == "proposed", got
+    assert got["tidal"]["split"] == "nanaimo_river__cedar_road_bridge"
+    curated = _stamps(load_repo().base)
+    base = {"scope": "dfo", "target": NANAIMO_TIDAL, "reviewer": "tester"}
+    assert c.post("/api/marks", json={**base, "answers": {"P": "?"}, "call": "stream"}).status_code == 422
+    r = c.post("/api/marks", json={**base, "answers": {"T": "y", "R": "y", "P": "y"}, "call": "tidal water"})
+    assert r.status_code == 200, r.text
+    got = row()
+    assert got["state"] == "tidal" and got["tidal"]["status"] == "accepted" and got["verify"] == "verified"
+    rows = c.get("/api/dfo/queue", params={"status": ""}).json()
+    tail = [x["state"] for x in rows if x["status"] == "active"]
+    assert tail[tail.index("tidal"):] == ["tidal"] * tail.count("tidal")     # missing nothing: last
+    assert c.get("/api/dfo/queue", params={"need": "tidal", "status": ""}).json()[0]["id"] == NANAIMO_TIDAL
+    assert c.get("/api/dfo/progress").json()["all"]["by_state"]["tidal"] >= 1
+    r = c.post("/api/marks", json={**base, "answers": {}, "verdict": "deferred", "note": "not wholly tidal",
+                                   "call": "not tidal"})
+    assert r.status_code == 200, r.text
+    got = row()
+    assert got["state"] == "needs_cut" and got["tidal"]["status"] == "rejected"
+    assert _stamps(load_repo().base) == curated, "a DFO mark wrote under data/curated"
+
+
 def test_a_dfo_anchor_is_checked_and_a_new_split_rides_the_mark_only(env):
     """T164: a new split's anchor resolves on the water (a tributary's mouth snaps onto it; a
     stream that is not its tributary is refused, so is a map point on another water); a DFO mark

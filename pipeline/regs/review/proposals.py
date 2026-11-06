@@ -487,6 +487,35 @@ def _variant_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
             "notes": [], "split_id": None, "confidence": None}
 
 
+def _tidal_water_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
+    """T449 (owner 2026-11-06): A DFO PLACE WHOLLY IN TIDAL WATER — the owner's call on the proposal
+    (`review.dfo.tidal_proposal`). "tidal water" sets the place's `tidal_water` (it binds nothing and is not missing);
+    "not tidal" takes it back if a former acceptance set it. A place with an extent is refused: it binds something."""
+    problems: list[str] = []
+    edits: list[dict] = []
+    found = _find_location(src, m.target)
+    if found is None:
+        problems.append(f"no DFO location {m.target}")
+    else:
+        path, loc = found
+        before = loc.get("tidal_water", _MISSING)
+        if m.call == "tidal water":
+            if (loc.get("binding") or {}).get("extents"):
+                problems.append(f"{m.target} has an extent: a place in tidal water binds nothing — clear the extent "
+                                "first, or reject the tidal proposal")
+            if before is not True:
+                edits.append({"file": _rel(path), "kind": "dfo_loc", "location_id": m.target, "scope": "entry",
+                              "field": "tidal_water", "before": before, "after": True})
+        elif before is not _MISSING:
+            edits.append({"file": _rel(path), "kind": "dfo_loc", "location_id": m.target, "scope": "entry",
+                          "field": "tidal_water", "before": before, "after": _MISSING})
+    title = (f"{m.target}: wholly in tidal water (binds nothing)" if m.call == "tidal water"
+             else f"{m.target}: not in tidal water")
+    return {"id": pid + "-tidal-water", "kind": "extent", "target": m.target, "scope": m.scope,
+            "rule_id": None, "title": title, "marks": [who], "edits": edits, "depends_on": [],
+            "problems": problems, "notes": [], "split_id": None, "confidence": None}
+
+
 def _validate_catalogue(doc: dict) -> list[str]:
     from pydantic import ValidationError
     from pipeline.regs.parsing.catalogue import CatalogueFile
@@ -516,7 +545,12 @@ def _provenance(m) -> dict:
 def _proposes(m) -> bool:
     return m.scope in ("entry", "rule", "dfo") and bool(
         m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later
-        or getattr(m, "variant_of", None))
+        or getattr(m, "variant_of", None) or _dfo_tidal_call(m))
+
+
+def _dfo_tidal_call(m) -> bool:
+    """T449: a DFO mark that calls a place tidal water (or takes the call back)."""
+    return m.scope == "dfo" and getattr(m, "call", None) in ("tidal water", "not tidal")
 
 
 # --------------------------------------------------------------------------- tidal (T166)
@@ -922,6 +956,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                         "split_id": None, "confidence": None})
         if m.scope == "dfo" and getattr(m, "variant_of", None):
             out.append(_variant_proposal(m, pid, who, src))
+        if _dfo_tidal_call(m):
+            tp = _tidal_water_proposal(m, pid, who, src)
+            if tp["edits"] or tp["problems"]:
+                out.append(tp)
+            elif applied is not None and not (m.extent_fix or m.tributaries):
+                applied.add(m.key)                       # the place already says it: applied
         if not (m.extent_fix or m.tributaries):
             continue
         problems: list[str] = []

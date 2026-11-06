@@ -52,6 +52,10 @@ NameCall = Literal["accept", "reject"]
 #: T359 (owner 2026-11-03): the owner's call on a tidal candidate — "whole": the whole water is tidal (a Fraser delta
 #: channel). Place y with no cut; the tidal writer (`tools.tidal_limits`) makes it a `whole` row
 TidalCall = Literal["whole"]
+#: T449 (owner 2026-11-06): the owner's call on a DFO place PROPOSED as wholly in tidal water (`review.dfo.tidal_proposal`)
+#: — "tidal water": accepted (a verified mark; the write-through sets the place's `tidal_water`, it binds nothing and is
+#: not missing); "not tidal": rejected (the place keeps needing its freshwater extent; the proposal is no longer shown)
+DfoCall = Literal["tidal water", "not tidal"]
 #: T185 (owner 2026-10-27): THE MARKS ARE THE DECISIONS. The retired accept step wrote marks of
 #: scope `proposal` (P y / P n on a proposal's digest); the store is append-only, so a line of it
 #: may still be there — `load` skips it, and nothing makes a new one.
@@ -428,7 +432,8 @@ class Mark(BaseModel):
     #: "not stream" (it stays a lake). Only on a slough mark; a verified slough mark carries one.
     #: Q154: "pool" (takes the river's rules) or "real lake" on a q154 sample mark
     #: T224: "accept" / "reject" on a name-variant candidate (scope name)
-    call: Optional[Union[SloughCall, Q154Call, NameCall, TidalCall]] = None
+    #: T449: "tidal water" / "not tidal" on a DFO place proposed as wholly tidal (scope dfo, `DfoCall`)
+    call: Optional[Union[SloughCall, Q154Call, NameCall, TidalCall, DfoCall]] = None
     #: owner 2026-10-28: THE GROUP a DFO mark was recorded with — historic places that reword a
     #: current one (`review.dfo.groups`) take one extent decision, one mark per member, linked here
     group: Optional[str] = None
@@ -528,8 +533,21 @@ class Mark(BaseModel):
                 raise ValueError("a tidal call is whole")
             if self.verdict != "verified" or self.new_splits:
                 raise ValueError("the whole water is tidal is a Place y mark with no cut")
+        elif self.scope == "dfo" and self.call is not None:
+            # T449: a DFO place wholly in tidal water — accepted ("tidal water": every check y, and the place binds
+            # nothing, so no extent, cut, variant or lake split rides it) or rejected ("not tidal")
+            if self.call not in ("tidal water", "not tidal"):
+                raise ValueError("a DFO call is tidal water or not tidal")
+            if self.variant_of is not None:
+                raise ValueError("a variant mark makes no tidal call")
+            if self.call == "tidal water":
+                if self.verdict != "verified":
+                    raise ValueError("tidal water is a verified mark (every check y)")
+                if (self.extent_fix or self.new_splits or self.lake_split_later or self.tributaries):
+                    raise ValueError("a place in tidal water binds nothing: no extent, new split, tributary call "
+                                     "or lake split rides it")
         elif self.call is not None:
-            raise ValueError("only a slough, q154, name or tidal mark carries a call")
+            raise ValueError("only a slough, q154, name, tidal or DFO mark carries a call")
         if self.scope in ("split", "tidal"):
             if keys != [f"split:{self.target}"] or self.prints.text is not None:
                 raise ValueError(f"a {self.scope} mark holds exactly its "

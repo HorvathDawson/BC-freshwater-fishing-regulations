@@ -428,7 +428,10 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         if lid not in locs:
             continue
         if not row.get("mapped"):
-            unmapped_locs.append(lid)
+            # T449: a place accepted as wholly in tidal water lies off the freshwater map — not a part of its water
+            # still to draw, so it neither paints the water "check" nor rides the card as "not yet mapped"
+            if not locs[lid][1].tidal_water:
+                unmapped_locs.append(lid)
             continue
         for s in row["sections"]:
             sid = sid_of.get(s)

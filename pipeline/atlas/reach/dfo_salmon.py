@@ -10,7 +10,8 @@ is not a provincial rule, and adding the salmon to a run must not move the rules
 (`pipeline.deliver.salmon`) and never resolves again.
 
 A LOCATION WITH NO EXTENT IS WRITTEN TOO, with `sections: []` and `mapped: false` — the app says "location not yet mapped"
-for it on the card, and never draws it. A VARIANT (`duplicate_of`, the same reach reworded) takes its target's extent and
+for it on the card, and never draws it — unless the owner accepted it as WHOLLY IN TIDAL WATER (T449, `tidal_water`):
+then `outcome: tidal_water`, and it is not missing anywhere. A VARIANT (`duplicate_of`, the same reach reworded) takes its target's extent and
 water when it has none of its own: it is the same place.
 
 `regional=False`: a DFO row's extent is its own words (a region default says `within area:region:6`, a closure
@@ -53,8 +54,9 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
             if not loc.binding.resolved and loc.is_variant and loc.duplicate_of in by_id:
                 target = by_id[loc.duplicate_of]
             water = ef.water(target.water_id) if target.water_id else None
+            # T449: a place the owner accepted as wholly in tidal water binds nothing and is not missing
             row = {"location_id": loc.location_id, "region": slug, "mapped": False,
-                   "outcome": "no_extent", "reason": None, "sections": []}
+                   "outcome": "tidal_water" if loc.tidal_water else "no_extent", "reason": None, "sections": []}
             if target.binding.resolved:
                 entry, rules = E.to_reach_input(target, [{}], water, siblings=by_id)
                 entry = {**entry, "entry_id": loc.location_id}

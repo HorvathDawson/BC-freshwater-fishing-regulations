@@ -923,8 +923,9 @@ def water_of(item_ids: list[str], registry: Mapping[str, dict]) -> Water:
 
 
 def needs_suggestion(loc: Mapping, water: Optional[Mapping]) -> bool:
-    """Not cleanly bound: no extent curated (whatever the op), or no water matched."""
-    return not (loc.get("binding") or {}).get("extents")
+    """Not cleanly bound: no extent curated (whatever the op), or no water matched. A place the owner accepted as
+    wholly in tidal water (T449, `tidal_water`) binds nothing by decision: it needs no suggestion."""
+    return not (loc.get("binding") or {}).get("extents") and not loc.get("tidal_water")
 
 
 def summarize(rows: list[dict]) -> dict:
