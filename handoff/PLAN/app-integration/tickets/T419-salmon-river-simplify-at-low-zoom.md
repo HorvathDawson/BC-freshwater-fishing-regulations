@@ -1,7 +1,7 @@
 # T419 — Salmon River (Region 2) is not simplified enough when zoomed out
 
-Status: OPEN (owner 2026-11-05: "salmon river in region 2 is an example of a river i would expect to have gotten more
-simplified at higher zooms. it looks really bad because of it." — check with the UI work).
+Status: IN REVIEW — b40de633d: `SIMPLIFICATION` 5 -> 10 (z4-z12; z13 unchanged). Left: the next tile build, the same
+views before/after + tile bytes, then the owner's look.
 
 ## Work
 1. Look at the Salmon River (Region 2, Fraser Valley / Langley) on the map at each zoom from z8 up to z13 (emulator +
