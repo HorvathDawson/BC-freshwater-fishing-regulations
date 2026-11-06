@@ -11,6 +11,13 @@ import { defineConfig } from "vitest/config";
  */
 import { fileURLToPath } from "node:url";
 
+/**
+ * (T80 item 6) Every test runs in BC time, whatever the machine's zone: the date/time tests (a spot's "at 09:00", the
+ * donor's "Mon 9") were written on a Mac in America/Vancouver and failed on CI's UTC runner. Set here, before the test
+ * workers start, so each inherits it.
+ */
+process.env.TZ = "America/Vancouver";
+
 const pkg = (name: string, entry = "src/index.ts") =>
   fileURLToPath(new URL(`packages/${name}/${entry}`, import.meta.url));
 
