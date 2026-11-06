@@ -344,8 +344,9 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     - **No frozen prototype oracles**: `golden.json` and its tests were retired (T439); the regs oracles are
       release-backed (`app/fixtures/golden/taps.json`, re-cut by `node app/tools/regs-recut/sync.mjs`). After a release
       is promoted, re-cut EVERY release-backed fixture before an app build: `node app/tools/regs-recut/sync.mjs` does
-      them all in one step (T441: taps, hydrate, the fixture release, `dev/section-lines.json`, VM fixtures); ids still
-      pinned in tests are re-mapped by hand — a renumbering is a re-cut, never a weakened assertion.
+      them all in one step (T441: taps, hydrate, the fixture release, `dev/section-lines.json`, VM fixtures); no test
+      types a raw section id — name it by stream key + start metre (or a lake by water + part) through `sectionNames`
+      (`@app/data/release/node`), so a renumbering is no test edit and a moved section fails by name.
     - **Feeds worker**: its tests gate every deploy (`deploy/staging/feeds.sh`); `REPORT_SALT` is a required secret
       (no salt = 503, never an unsalted report). Crash/report enums match the app (wire parity test).
     - **Staging**: `deploy/staging/upload.sh` refuses commits not on GitHub, clears old releases only after the

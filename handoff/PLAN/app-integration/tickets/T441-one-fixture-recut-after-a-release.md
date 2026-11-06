@@ -1,6 +1,6 @@
 # T441 — One re-cut of every release-backed test fixture after a release
 
-Status: PARTIAL (deef924da): one-step re-cut + section-lines writer done; raw ids in tests left.
+Status: DONE (deef924da; raw ids out of tests: 23c9aed6a).
 
 Source: 2026-11-06, release r-4230bc0c1dd5. `pnpm check` needed four rounds before the 0.6.3 build, each finding the
 next frozen set still cut from the previous release (handles 822db… → 269777…):
@@ -31,3 +31,12 @@ release re-cut (r-313224f5908f → r-5afbbf9bec7a), taps/hydrate/VM fixtures unc
 suites 4290/4290. Runbook + AGENTS rule 46 say the one command.
 Left (Work 2): section ids still written raw in tests (`waterGroup.fixture`, `waterMap`, `WaterMapView`, `oneLoadPath`,
 `unnamed.release`) — re-mapped by hand on a renumbering.
+
+## Done (2026-11-06, Work 2)
+Tests no longer write raw section ids. `sectionNames(loader)` (`releaseDir.ts`, `@app/data/release/node`) names a stream
+section by stream key + START metre (`stream` / `streams`, through the release's own `lines` file; throws naming the
+place when no section starts there) and a lake's section by water + part (`lake`: the part's one non-stream section).
+Converted: `waterGroup.fixture`, `waterMap`, `WaterMapView`, `oneLoadPath`, `WaterScreen.unnamed`, and
+`unnamed.release` (live release; the `H_ATLAS` guard is gone — the three sections are looked up, not pinned). Same
+sections, same order; mutation-checked (a swapped start fails the Chilliwack and Coquitlam tests). A re-cut that only
+renumbers needs no test edit; one that moves a section's start or part fails by name.
