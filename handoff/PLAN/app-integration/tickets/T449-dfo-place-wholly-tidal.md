@@ -34,3 +34,8 @@ Size: S.
   (`1:nanaimo-river:in-subarea-17-14-tidal-portions-of`, `…~2`). The other "tidal" wordings (Cowichan, Somass ×4,
   Chapman, Seymour, Dean) are bounded BY the limit — freshwater above it — and are not proposed.
 - Tests: `test_dfo_tidal_water.py`, screen test (proposed → accepted → rejected), `test_salmon_file` tidal case.
+
+## Owner 2026-11-06
+Accepted tidal places are dropped from the freshwater card's "location not yet mapped" list (as built): "if it is
+tidal we do not do it so it is dropped." Left for the owner: accept the two Nanaimo proposals in the review app (DFO
+mode, search "nanaimo"); the bundle changes with the next release build.

@@ -31,7 +31,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T448 done on Android** (26c59849f): the phone map draws 42 % fewer pixels (823×1567 instead of 1080×2057), same
   scale and taps; a touch softer (crops sent). The emulator cannot show the speed gain (its GPU is the Mac's): your
   Pixel 9 is the check. iOS not done (no iOS build).
-- **Running now:** a T401 agent (prefetch: more detailed stand-in tiles while panning, measured before it ships) and a T449 agent (the Nanaimo's tidal DFO places get a "tidal water"
+- **T449 in review** (e83f7811e): the two Nanaimo "tidal portions" DFO places are proposed as tidal water (no other
+  region matched). Your 2 clicks in the review app are on OWNER-TODO; your call: accepted ones drop off the card.
+- **Running now:** a T401 agent (prefetch: more detailed stand-in tiles while panning, measured before it ships). Earlier: a T449 agent (the Nanaimo's tidal DFO places get a "tidal water"
   state, as a proposal for you; plus a sweep of other regions). Next: T446 emulator repro, T441 one-step fixture
   re-cut, then the APK + staging site (T420 basemap fix, T448, T443, T444, T445).
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
