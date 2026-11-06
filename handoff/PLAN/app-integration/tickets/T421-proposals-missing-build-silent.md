@@ -1,6 +1,6 @@
 # T421 — Review proposals: a missing build reads as "binding moved", not as a missing build
 
-Status: DONE 2026-11-05 (found fixing pipeline CI, 897984554).
+Status: DONE 2026-11-05 — f29410a41 (found fixing pipeline CI, 897984554).
 
 `pipeline/regs/review/proposals.py` `Sources.item()` returns `{}` when `build` is None or has no `registry.json`. The
 class docstring allows that for a new split's anchor (falls back to the mark's stamped point "and says so"), but

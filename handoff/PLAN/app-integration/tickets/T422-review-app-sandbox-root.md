@@ -1,6 +1,6 @@
 # T422 — The review app's sandbox: one temp root instead of four path overrides
 
-Status: DONE 2026-11-05 (see Outcome). Was: OPEN (leftover of T331 item 2, split out 2026-11-05).
+Status: DONE 2026-11-05 — 5820c2ae4 (see Outcome). Was: OPEN (leftover of T331 item 2, split out 2026-11-05).
 
 `CURATION_MARKS`, `CURATION_SPLITS_JSON`, `CURATION_ENTRIES_DIR`, `CURATION_DFO_DIR` (curation-review/backend `reuse.py`,
 `dfo.py`) still repoint curated files one by one. They are the review app's sandbox: ~15 test files start the app with
