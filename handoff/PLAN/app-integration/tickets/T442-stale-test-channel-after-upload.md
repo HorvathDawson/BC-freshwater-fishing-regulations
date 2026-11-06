@@ -1,6 +1,6 @@
 # T442 — A staging upload left the test channel on a cleared release (fresh test-bed installs 404)
 
-Status: DONE in code (2026-11-06); staging test/ itself still needs one `reset` (an R2 write: owner/coordinator).
+Status: DONE — 51e05a4ef; staging test/ reset to r-4230bc0c1dd5 on 2026-11-06.
 
 Source: walk-063 (0/4) and probe-063. A fresh install of the test-bed APK (channel `test`) showed "The map data could
 not be loaded" on every scenario. Cause: `test/release/manifest.json` still named r-5a5999c94588 (the app logged
