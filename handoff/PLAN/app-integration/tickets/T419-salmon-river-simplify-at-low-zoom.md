@@ -26,3 +26,11 @@ Size: S to look, M if the fix is a tiles change. Owner: phone/web look after the
 - **Fix to try (tiles change → tile build, ships with a release):** a larger tolerance BELOW z12 only (e.g. 5 → 10–15
   units at z≤11; z12–13 unchanged), measured before/after on the same views and the tile bytes. Optionally a round
   line-join on the stream layers. Owner looks at the shots before it ships.
+
+## After (2026-11-06, staging r-4230bc0c1dd5, `SIMPLIFICATION` 5 → 10, 117f12472)
+- Same views replayed on staging: `t419-open-after.png`, `t419-out2-after.png`, `t419-z10-plain-after.png`;
+  side-by-side crop of the zoomed-out view: `t419-out2-compare.png` (left before, right after).
+- Salmon River points per zoom: z9 33→20, z10 108→71, z11 198→128, z12 316→210, z13 790→790.
+- Tiles 202.8 MB → 194.1 MB (−8.8 MB). Smoke 18/18 on staging.
+- The sawtooth is mostly gone at z10; the line keeps its shape. Owner look left: if it is still too angular,
+  next step is a round line-join on the stream layers (app style, no tile build).
