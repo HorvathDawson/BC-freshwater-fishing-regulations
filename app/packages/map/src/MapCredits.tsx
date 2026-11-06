@@ -10,8 +10,13 @@
  * sheet). The scale bar is bottom-LEFT (`GEOMETRY.scaleLeft`), so the two can never meet: `GEOMETRY` is what a test checks
  * at the narrowest width. A bare map (an illustration) draws none; the page that carries it credits the data.
  * The map UI rule: square corners, a card, our type, no loose text.
+ *
+ * SHOWN FIRST (OSMF attribution guideline, checked 2026-11-06): the credit must be visible when a map first shows, and
+ * may then fold away — on a dismiss, or after five seconds — as long as the chip still finds it. So the first map of a
+ * session shows "© OpenStreetMap contributors" beside the chip for `STARTUP_MS`, then folds to the chip; later maps in
+ * the same session start folded (the guideline does not ask for it again on every map or on return from background).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View, useWindowDimensions } from "react-native";
 import { ESRI_BADGE, GEOMETRY } from "./chrome";
 import { creditLines, type CreditPart } from "./credits";
@@ -19,6 +24,14 @@ import type { Look } from "./look";
 import type { MapChrome } from "./map-props";
 
 const TEXT = "Archivo_400Regular", SEMI = "Archivo_600SemiBold";
+
+/** How long the startup credit shows before it folds to the chip (OSMF: "automatically after five seconds"). */
+export const STARTUP_MS = 5000;
+export const STARTUP_CREDIT = "© OpenStreetMap contributors";
+/** One startup credit per session: true once any map has shown it. */
+let shownThisSession = false;
+/** Tests only: start a new session. */
+export function resetStartupCredit(): void { shownThisSession = false; }
 
 /** A link leaves through the app's one way (`onOpenLink`); with none given the licence is named, not linked. */
 function Parts({ parts, chrome, onOpenLink }: { parts: readonly CreditPart[]; chrome: MapChrome;
@@ -38,6 +51,13 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink }: {
   onOpenLink?: ((url: string) => void) | undefined;
 }) {
   const [on, setOn] = useState(false);
+  const [startup, setStartup] = useState(() => !shownThisSession);
+  useEffect(() => {
+    if (!startup) return;
+    shownThisSession = true;
+    const t = setTimeout(() => setStartup(false), STARTUP_MS);
+    return () => clearTimeout(t);
+  }, [startup]);
   const lines = creditLines(look);
   const G = GEOMETRY;
   const { width } = useWindowDimensions();
@@ -60,6 +80,15 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink }: {
           <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 15, lineHeight: 18 }}>©</Text>
         </Pressable>
       </View>
+      {startup && !on && (
+        // above the chip, where the card opens: the bottom-left scale bar is never in reach, badge or not
+        <Pressable testID="map-credits-startup" accessibilityRole="button" accessibilityLabel={STARTUP_CREDIT}
+                   onPress={() => setStartup(false)}
+                   style={{ position: "absolute", right: G.right, bottom: bottom + G.chip + G.gap, paddingHorizontal: 6,
+                            paddingVertical: 3, backgroundColor: chrome.card, borderWidth: 1, borderColor: chrome.ink }}>
+          <Text style={{ color: chrome.ink, fontFamily: TEXT, fontSize: 11, lineHeight: 14 }}>{STARTUP_CREDIT}</Text>
+        </Pressable>
+      )}
       {on && (
         <View testID="map-credits-card" accessibilityRole="summary" accessibilityLabel="Map credits"
               style={{ position: "absolute", right: G.right, bottom: bottom + G.chip + G.gap, width: Math.min(G.cardMax, width - 2 * G.right),

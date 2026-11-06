@@ -4,10 +4,10 @@
  * scale bar is bottom-left and the credits bottom-right, at the narrowest width and with Esri's badge showing.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { GEOMETRY, ESRI_BADGE, mapChrome } from "./chrome";
 import { creditLines, lineText, partsHtml, MAP_CREDITS_DRAWN, ATLAS_CREDIT, BASEMAP_CREDIT } from "./credits";
-import { MapCredits } from "./MapCredits";
+import { MapCredits, STARTUP_CREDIT, STARTUP_MS, resetStartupCredit } from "./MapCredits";
 
 afterEach(cleanup);
 const PLAIN = { view: "plain", modes: {}, groups: {}, basemap: "map" } as const;
@@ -89,5 +89,32 @@ describe("the credits chip and card (T424)", () => {
     render(<MapCredits look={PLAIN} chrome={chrome} insetBottom={120} />);
     const s = getComputedStyle(screen.getByTestId("map-credits"));
     expect([s.right, s.bottom]).toEqual([`${GEOMETRY.right}px`, `${GEOMETRY.bottom + 120}px`]);
+  });
+});
+
+describe("the credit is shown first, then folds (OSMF attribution guideline)", () => {
+  const chrome = mapChrome("light");
+  afterEach(() => { vi.useRealTimers(); resetStartupCredit(); });
+
+  it("the first map of a session shows '© OpenStreetMap contributors' and folds it to the chip after five seconds", () => {
+    vi.useFakeTimers();
+    resetStartupCredit();
+    render(<MapCredits look={PLAIN} chrome={chrome} />);
+    expect(screen.getByTestId("map-credits-startup").textContent).toBe(STARTUP_CREDIT);
+    act(() => { vi.advanceTimersByTime(STARTUP_MS - 1); });
+    expect(screen.queryByTestId("map-credits-startup")).not.toBeNull();
+    act(() => { vi.advanceTimersByTime(1); });
+    expect(screen.queryByTestId("map-credits-startup")).toBeNull();
+    expect(screen.getByTestId("map-credits-chip")).toBeTruthy();          // the licence is still one tap away
+  });
+
+  it("a tap folds it at once; a later map in the same session starts folded", () => {
+    resetStartupCredit();
+    const first = render(<MapCredits look={PLAIN} chrome={chrome} />);
+    fireEvent.click(screen.getByTestId("map-credits-startup"));
+    expect(screen.queryByTestId("map-credits-startup")).toBeNull();
+    first.unmount();
+    render(<MapCredits look={PLAIN} chrome={chrome} />);
+    expect(screen.queryByTestId("map-credits-startup")).toBeNull();
   });
 });

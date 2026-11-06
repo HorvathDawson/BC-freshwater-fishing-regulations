@@ -27,3 +27,10 @@ T367): top = search + day; legend and its control in the bottom bar; square corn
 Owner question when started (default in brackets): the credits as a small text line on the map [a "©" chip that opens
 a credits card].
 Size: S–M. Owner: phone look.
+
+## The startup credit (2026-11-06, chat 3)
+The default (a © chip, the OSM wording only in its card) did NOT meet the OSMF attribution guideline, checked
+2026-11-06: the credit must show first and may then fold away (on a dismiss, on interaction, or after five seconds) as
+long as an "(i)"/© or About still finds it. Now the first map of a session shows "© OpenStreetMap contributors" just
+above the chip for 5 s (a tap folds it sooner), then folds to the chip; later maps in the session start folded. Above
+the chip, so the bottom-left scale bar is never in reach. Tests: `MapCredits.render.test.tsx` ("shown first, then folds").
