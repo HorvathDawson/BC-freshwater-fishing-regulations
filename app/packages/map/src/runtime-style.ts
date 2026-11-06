@@ -70,7 +70,19 @@ function splitBasemap(flavor: Parameters<typeof basemapLayers>[1], tokens: Token
    * AND ITS NAMES WEAR OUR INKS (`labels.ts`): one label style across the map, the basemap's included. Painted for the
    * drawn ground here; `setBasemap` repaints them for imagery and back.
    */
-  const named = all.map((l) => (BASEMAP_LABELS.includes(l.id)
+  /*
+   * (T420) THE GROUND'S FILLS DRAW NO ANTIALIASED OUTLINE. A fill with `fill-antialias` (on by default) is drawn twice:
+   * its triangles, then every ring again as a 1-px line to soften the edge. The basemap's green fills are the most
+   * detailed polygons on the map zoomed out (`landuse` ~15k vertices in one z7 tile over the Lower Mainland, 3–10× our
+   * atlas), so the outline pass is the single largest piece of a low-zoom frame that nobody sees: on a fill-limited GPU
+   * proxy (SwiftShader, Pixel 9 viewport) switching it off saves 13–15 % of the frame at z5–z9, and the picture moves
+   * ≤ 1.33 % of pixels (>24/255) over 9 places z5–z11, under the basemap's own 2 % render gate (T280). Our own fills keep
+   * theirs: the same switch on them saved nothing measurable. Both maps read this style.
+   */
+  const ground = all.map((l) => (l.type === "fill"
+    ? { ...l, paint: { ...(l as { paint?: Record<string, unknown> }).paint, "fill-antialias": false } }
+    : l));
+  const named = ground.map((l) => (BASEMAP_LABELS.includes(l.id)
     ? { ...l, paint: { ...(l as { paint?: Record<string, unknown> }).paint, ...basemapLabelPaint(l.id, tokens, "map") } }
     : l)).map(placesByImportance);
   const i = named.findIndex((l) => l.type === "symbol");

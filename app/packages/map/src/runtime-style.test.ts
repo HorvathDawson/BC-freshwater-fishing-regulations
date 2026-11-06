@@ -59,3 +59,17 @@ describe("the flow dots", () => {
       .toEqual([["interpolate", ["linear"], ["coalesce", ["get", "ramp"], -1]], true, true]);
   });
 });
+
+/* (T420) the ground's fills draw no antialiased outline (a second pass over the most detailed polygons zoomed out);
+ * ours keep theirs */
+describe("the basemap's fills (T420)", () => {
+  it("draw without the antialias outline pass; our own fills keep the default", () => {
+    const layers = runtimeStyle(AT, "light").layers as { id: string; type?: string; source?: string; paint?: Record<string, unknown> }[];
+    const ground = layers.filter((l) => l.type === "fill" && l.source === "basemap");
+    expect(ground.length).toBeGreaterThan(5);
+    for (const l of ground) expect([l.id, l.paint?.["fill-antialias"]]).toEqual([l.id, false]);
+    const ours = layers.filter((l) => l.type === "fill" && l.source === "atlas");
+    expect(ours.length).toBeGreaterThan(5);
+    for (const l of ours) expect([l.id, l.paint?.["fill-antialias"]]).toEqual([l.id, undefined]);
+  });
+});
