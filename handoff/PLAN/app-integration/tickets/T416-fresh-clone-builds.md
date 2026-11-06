@@ -1,6 +1,6 @@
 # T416 — A fresh clone can build: nothing important lives only on this Mac
 
-Status: DONE 2026-11-05 — 758041595, ead5863c6, 1ff647888, c691175 + the bundle-path fix (follow-ups: basemap gap, synopsis cache key) — was OPEN (owner 2026-11-05: "find out if everything in the repo saved is enough to clone and then be able to run a
+Status: DONE 2026-11-05 — 758041595, ead5863c6, 1ff647888, c691175, dd4e9240e (follow-ups: basemap gap, synopsis cache key) — was OPEN (owner 2026-11-05: "find out if everything in the repo saved is enough to clone and then be able to run a
 build in a short amount of time … all external bigger data is fetchable from r2 assets bucket"). After T324 (the
 renames move the files this inventories).
 
