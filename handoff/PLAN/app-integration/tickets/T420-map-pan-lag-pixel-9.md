@@ -1,6 +1,6 @@
 # T420 — Panning the map feels laggy on web AND app (even a Pixel 9): streams load in slowly, then the pan stutters
 
-Status: PARTIAL — the app's share FIXED 2026-11-06 (deb635819, "Fixed: tile ids once per watch"): stressed emulator z13 travelling flings p50 83.5 → 49.7 ms, map frames 309 → 419, tile events 958 → 37. Left: MapLibre's own tile parsing on a slow CPU (~17 % of moving frames still lack a tile), a phone check, and the web only lags on a software/weak GPU (see "Web"). Measured in simulation 2026-11-06 (c1c838f58): reproduced only on a CPU-starved emulator. Was: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
+Status: PARTIAL — the app's share FIXED 2026-11-06 (deb635819, "Fixed: tile ids once per watch"): stressed emulator z13 travelling flings p50 83.5 → 49.7 ms, map frames 309 → 419, tile events 958 → 37. Web (owner 11-06: ONLY mobile Chrome on the Pixel 9) capped at 2 device px per CSS px (2b891823f): proxy frame time −28 to −32 % at z10–z12. Left: MapLibre's own tile parsing on a slow CPU (~17 % of moving frames still lack a tile), a native pixel-ratio cap (binding patch), a phone check. Measured in simulation 2026-11-06 (c1c838f58): reproduced only on a CPU-starved emulator. Was: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
 like the streams load in slow then lag").
 
 Two symptoms, maybe one cause: (1) the stream lines arrive late after a pan (tiles or their layers decoding/painting
@@ -115,3 +115,41 @@ GL the main thread is 85 % IDLE and frames take ~90 ms — GPU-bound, and fill-h
 from 14 to 49 fps). So the owner's web lag most likely means their browser draws without hardware acceleration (or on a
 weak GPU): `chrome://gpu` on that machine says which. Levers if so: cap MapLibre's `pixelRatio` (e.g. 1 when the WebGL
 renderer is SwiftShader/llvmpipe, reported, not silent) and less overdraw/geometry (T419's simplification). Not built.
+
+## Mobile web: the pixel-ratio cap (2026-11-06, 2b891823f)
+Owner 11-06: the web lag is ONLY mobile Chrome on the Pixel 9; desktop is fine. Chrome there runs at devicePixelRatio
+~2.6, so the canvas is ~1080×2260 device pixels on a phone GPU.
+
+**Proxy, and what it can show.** Headless Chromium, Pixel 9 Chrome viewport (412×915 @ 2.625, mobile, touch), the dev web
+build on local data (`globalThis.__map`), 4 programmatic pans (600 ms, linear) round the Fraser Valley, rAF frame
+intervals while moving, 2–3 reps. GL by SwiftShader: a GPU that is slow at FILL, so it shows how frame time follows
+pixel count and per-layer draw work. It CANNOT show a Mali's own behaviour: tile-based rendering (overdraw of opaque
+fills is cheaper there, blending costs bandwidth), its driver, thermal throttling, or Chrome's Android compositor. The
+emulator's Chrome was not used: its GL is the Mac's GPU passed through, which is the hardware-GL case (120 fps at any
+ratio, 8.4 ms). Script: `.../scratchpad/layercost.py` (session scratchpad; not kept).
+
+| zoom | uncapped (2.625: canvas 1081×2260) mean / p95 ms, frames | capped (2: canvas 824×1722) | change |
+|---|---|---|---|
+| z10 | 39.2 / 42.2, 188 | **28.2 / 33.6, 257** | −28 % |
+| z11 | 37.8 / 42.3, 193 | **26.3 / 33.4, 276** | −30 % |
+| z12 | 33.5 / 41.7, 220 | **22.7 / 25.3, 320** | −32 % |
+Ratio sweep (same runs before the cap): 2.625 / 2 / 1.5 / 1 → z10 38.8 / 27.1 / 22.2 / 18.6 ms, z11 41.8 / 25.0 / 21.2 / 16.6,
+z12 34.0 / 23.4 / 22.3 / 13.1. Most of the gain is at 2; lower costs sharpness for less. The rule (`web/pixelRatio.ts`):
+`min(devicePixelRatio, 2)` for every browser, followed when the ratio changes; desktops (1–2) are untouched.
+
+**Per layer (z10–z12, one layer off at a time, then groups at z11, 3 reps).** Nothing in the style moved frame time beyond
+the noise (±3–4 ms; layers that draw nothing at that view also read −3 ms): all 7 stream line layers off, the `stream`
+layer alone, the stream overlays (gear/no-access/closed/runs), the atlas edges, the area fills (region / mu / sign_zone /
+watershed / outside), parks and access fills, all 26 symbol layers, the basemap lines — each within the noise. Only the
+WHOLE basemap (≈ 40 layers) read −9 ms at z11/z12. So no style change was made: no merged casings, no low-zoom drop. Round
+`line-join` (T419's suggestion against kinks) ADDS triangles at every vertex; it is a look decision, not a lag fix — not done.
+`parcel` (T419: ~113k of 132k vertices at z11) is `visibility: none` by default: GL JS and MapLibre Native build no bucket
+for a hidden layer, so it costs tile bytes and transfer, not drawing; it was not measurable here.
+
+**Per zoom, for T419:** the frame cost on this proxy is ~the same at z10, z11 and z12 (33–42 ms uncapped) and follows the
+pixel count; stream geometry was not a measurable share at these zooms. Fewer vertices still lighten tile parse on a slow
+CPU (the native emulator's remaining cost), which this web proxy does not stress.
+
+**Native (same GPU on the Pixel 9).** MapLibre Native draws at the device density (2.625); the RN binding exposes no pixel
+ratio, so the same cap natively needs a patch (`MapLibreMapOptions.pixelRatio` on Android). Not built. The style JSON is
+shared, and was not changed.
