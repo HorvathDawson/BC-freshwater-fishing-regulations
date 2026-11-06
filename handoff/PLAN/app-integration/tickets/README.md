@@ -468,6 +468,7 @@ use that as the sole source of future work."
 | T424 | Map attribution: our own credits (every source on screen), the same on web and app, no longer on top of the scale bar | OPEN | — | owner 11-05 |
 | T421 | Review proposals: a missing build reads as "binding moved" (silent registry fallback) | DONE | f29410a41 | CI fix 11-05 |
 | T422 | Review app sandbox: one temp root instead of four CURATION_* path overrides | DONE | 5820c2ae4 | T331 leftover 11-05; `CURATED_ROOT` + `curated.make_root`, old four refused, grep gate test_curated_root.py |
+| T423 | Trout / Salmon switch moves to the map rail (under layers), clearer icons or words | OPEN | — | owner 11-05 (screenshot); owner picks icons/words |
 
 ## Order for open tickets
 
