@@ -1,6 +1,6 @@
 # T242 — crash and error reporting (privacy-light)
 
-Status: PARTIAL — built and tested (960d2d8, 31c8d04); web forced error lands on staging (201); the owner redeployed the staging worker 2026-10-29 (accepts `native`); left: run the test bed `crash` scenario (`scripts/heavy.sh testbed 30 -- bash app/tools/testbed/session.sh --max-min 30 -- node app/tools/testbed/run.mjs crash`, no rebuild); iOS is T362.
+Status: PARTIAL — built and tested (960d2d8, 31c8d04); 2026-11-06 the crash TEST BED proves all three kinds on the emulator (62046a681, run.mjs crash-bed: a JS error, an unhandled promise, a native SIGSEGV each reach the worker's own POST /crash handler on a local stub, no staging write) and fixed a double report of a JS fatal; left (owner): read GET /crashes once, approve the privacy wording, T407's phone check after the 0.6.0 worker deploy; iOS is T362.
 
 Source: owner 2026-10-28 — approved proposal P8 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -69,3 +69,27 @@ Owner rule 2026-10-29: NO third-party crash service; everything from our own ser
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T291, T407 — read each file's open items and finish them here; each closes pointing here.
+
+## Crash test bed (2026-11-06, 62046a681): every kind reaches the report path, nothing written to staging
+- **How:** `session.sh --crash-stub` builds the test-bed APK with `EXPO_PUBLIC_CRASH_URL=http://localhost:39256/crash` (cleartext
+  patched after prebuild, never a store build) and `adb reverse`s it to this machine, where `app/tools/testbed/crash-stub/server.mjs`
+  runs the feeds worker's OWN `handleCrash` (workers/feeds/src/crashes.ts via Node's type stripping) over an in-memory bucket.
+  A tool's build (`TEST_REPORTS`) shows "Crash test" on the Updates log: Throw a JS error (a setTimeout throw: the global handler,
+  fatal) and Reject a promise (Hermes' tracker). The native crash is `kill -11` on the app's pid (`adb root`), the shape of T351's
+  reports. Scenario: `run.mjs --no-r2 crash-bed` (README; `--no-r2` = no staging test-channel reset).
+- **Results** (n1_pixel; `out/runs/base/crash-bed`, then the stressed emulator `out/runs/stress/crash-bed`):
+
+  | kind | phone | worker handler | stored |
+  |---|---|---|---|
+  | unhandled promise | sent at once, app keeps running | 201 `promise`, fatal false, stack scrubbed to `at promise (address at index.android.bundle:1:…)`, route menu | `private/crashes-test/<hash>` |
+  | uncaught JS error | app ends; sent before it died | 201 `js`, fatal true | crashes-test/ |
+  | native SIGSEGV | next start: `CRASH_NATIVE while foreground, status 11` | 201 `native`, `NativeExit` | crashes-test/ |
+
+- **Bug found and fixed:** a JS fatal sent BEFORE the app died (the usual case online) cleared the kept slot, so the next start did
+  not know the system's plain CRASH record was the same death and sent it too: one crash told twice, the second as a `native` kind
+  (first run: "exit records sent with it: 1"). The slot now says "sent" (`FATAL_SENT`) until the next start reads it; same run after
+  the fix: "exit records sent with it: 0". Also: an exit record whose send FAILED (server unreachable) was marked seen and lost (found
+  when `adb root` dropped the reverse forward: "sent 0 exit record(s); 1 new (CRASH_NATIVE), 1 bad"); the mark now stops just before
+  the oldest failed one, so it goes at the next start. Both pinned in `crashReport.test.ts`.
+- The `test: true` tag holds end to end (T291's leftover, for crashes): every kind landed under `crashes-test/`.
+- Left (owner): `GET /crashes` read once on staging; the privacy wording; T407's phone check after the 0.6.0 worker deploy.

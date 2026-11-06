@@ -35,7 +35,7 @@ while (( $# )); do
     *) echo "session.sh: unknown $1" >&2; exit 2 ;;
   esac; shift
 done
-APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}${STUB:+-stub}.apk"
+APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}${STUB:+-stub}${TESTBED_APK_TAG:+-$TESTBED_APK_TAG}.apk"   # (T420) TESTBED_APK_TAG: an experiment build beside the others
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
@@ -87,7 +87,7 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
   # --local: the emulator's name for this machine, and no update channel (the test channel is staging's `test/` prefix)
   if [[ $ENV == local ]]; then export EXPO_PUBLIC_DATA_BASE=http://10.0.2.2:39217; CHANNEL=; fi
   t0=$(date +%s)
-  ( cd android && EXPO_PUBLIC_APP_ENV=$ENV EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=$CHANNEL EXPO_PUBLIC_PAN_PROBE=1 EXPO_PUBLIC_TEST_REPORTS=1 \
+  ( cd android && EXPO_PUBLIC_APP_ENV=$ENV EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=$CHANNEL EXPO_PUBLIC_PAN_PROBE=${TESTBED_PROBE:-1} EXPO_PUBLIC_TEST_REPORTS=1 \
       ./gradlew app:assembleRelease --max-workers=4 -PreactNativeArchitectures=arm64-v8a -x lint ) >"$OUT/gradle.log" 2>&1 \
     || { log "gradle failed (out/gradle.log)"; tail -30 "$OUT/gradle.log"; exit 1; }
   cp android/app/build/outputs/apk/release/app-release.apk "$APK"

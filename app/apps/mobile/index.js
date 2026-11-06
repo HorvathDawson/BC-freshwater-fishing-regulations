@@ -42,6 +42,9 @@ if (process.env.EXPO_PUBLIC_PAN_PROBE === "1" && globalThis.HermesInternal?.getI
     console.log(`[heap] ${JSON.stringify({ at: Date.now(), size: s.js_heapSize, used: s.js_allocatedBytes, ext: s.js_externalBytes ?? null })}`);
   }, 2000);
 }
+// (T420) An experiment build: the map asks for no atlas tile events (`MLRNTileIds`), so the pan's cost without the colouring's
+// per-tile pipeline can be measured (the sections are then not coloured). Never a store build.
+if (process.env.EXPO_PUBLIC_TB_NO_TILE_EVENTS === "1") globalThis.__tbNoTileEvents = true;
 // (T287) The benchmark's "before": release files hashed and inflated in one go (EXPO_PUBLIC_T287_BEFORE=1).
 if (process.env.EXPO_PUBLIC_T287_BEFORE === "1") globalThis.__hashOneShot = true;
 // (T286) The benchmark's "before": regulations read one row per call and no page held (EXPO_PUBLIC_REGS_ONE_BY_ONE=1).

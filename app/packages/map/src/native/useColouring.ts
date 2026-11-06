@@ -198,6 +198,7 @@ export function useNativeColouring(o: {
     const src = ref.current.atlas();
     if (!src) return;
     try { tag.current = src.nativeTag(); } catch { return; }
+    if ((globalThis as { __tbNoTileEvents?: boolean }).__tbNoTileEvents) return;   // (T420) the experiment build only
     void src.watchTiles([...LABEL_SOURCE_LAYERS]).catch(ref.current.report);
   }, []);
   const swapped = useCallback(() => {
