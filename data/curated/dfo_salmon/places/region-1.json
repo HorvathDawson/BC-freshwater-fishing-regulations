@@ -5507,7 +5507,8 @@
         "sections_cached": null,
         "notes": [],
         "spatial_caveat": false
-      }
+      },
+      "tidal_water": true
     },
     {
       "location_id": "1:default:region",
