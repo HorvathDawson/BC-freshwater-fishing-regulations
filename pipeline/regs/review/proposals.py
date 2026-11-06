@@ -1312,7 +1312,8 @@ def main(argv: list[str] | None = None) -> int:
     b.add_argument("--check", action="store_true",
                    help="bind each proposal in memory before/after (loads the graph)")
     s = sub.add_parser("side", help="patched copies of the curated files for a side rebuild")
-    s.add_argument("id", help="a proposal id, or `tidal` for EVERY applicable tidal proposal at once "
+    s.add_argument("id", help="a proposal id, `a,b,c` for several in ONE side atlas (each with the new splits it "
+                              "waits on), or `tidal` for EVERY applicable tidal proposal at once "
                               "(T166: one side atlas for all the tidal boundaries)")
     s.add_argument("--out", type=Path, required=True)
     for x in (b, s):
@@ -1335,6 +1336,18 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {w}")
         print(f"{len(tid)} tidal proposal(s) patched: " + " ".join(p["id"] for p in tid),
               file=sys.stderr)
+        return 0
+    if a.cmd == "side" and "," in a.id:
+        want = [i for i in a.id.split(",") if i]
+        got = {q["id"]: q for q in props if q["id"] in want}
+        bad = [i for i in want if i not in got or not got[i]["applicable"]]
+        if bad:
+            print(f"no applicable proposal {', '.join(bad)}", file=sys.stderr)
+            return 2
+        chain = list({q["id"]: q for i in want for q in chain_of(got[i], props)}.values())
+        for w in write_side_many(chain, src, a.out):
+            print(f"  {w}")
+        print(f"{len(chain)} proposal(s) patched: " + " ".join(q["id"] for q in chain), file=sys.stderr)
         return 0
     if a.cmd == "side":
         p = next((q for q in props if q["id"] == a.id), None)
