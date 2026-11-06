@@ -22,7 +22,10 @@ Status: OPEN — owner 2026-11-05, an addition (screenshot on the Map tab, phone
      small caps ("TROUT", "SALMON").
    - B. Short words only: "Trout" / "Salmon" in the rail's type (the "& more" moves into the hint and the legend title).
    - C. Letters: "T" / "S" badges (smallest, least clear).
-   Default if not picked: A.
+   **Decided (owner 2026-11-05, asked "unless you can think of a better spot"; Claude's call): the rail, option A** — a fish
+   silhouette + a small-caps word on each button. Why: the rail already holds the other "how the map shows" control
+   (layers); a word under the icon makes it plain with no tour; the top day row is full on a phone and a second row would
+   cover more map; the legend is where it is missed today. The owner reviews the shots and may still change the look.
 3. Phone, tablet and desktop: the rail exists at every width (check the desktop layout keeps it beside the zoom).
    Runs and Conditions modes: the switch only shows in the regulations mode, as today.
 4. One load path: switching from the rail = switching from the legend today (same state, same URL param, same paint).
