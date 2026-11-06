@@ -19,6 +19,9 @@ export async function appUp(ctx, { launch = true, ms = 120_000 } = {}) {
     else if (!ctx.device.pidOf()) ctx.device.launch();
     await ctx.device.sleep(3000);
   }
+  // (T440) one last look: `dismiss-first-run` (Maestro, six optional taps) can outlast the whole wait, and the words
+  // read BEFORE it ran ("Before you fish …") failed a step whose app was up by then
+  if (!(w.includes('More') || w.includes('MORE'))) w = ctx.device.screenText();
   if (!(w.includes('More') || w.includes('MORE'))) throw new Error(`the app is not up in ${ms / 1000} s (saw: ${w.slice(0, 8).join(' | ').slice(0, 300)})`);
   const bad = w.find((x) => /could not be loaded|Something went wrong|Unable to load/i.test(x));
   if (bad) throw new Error(`the app says: ${bad}`);
