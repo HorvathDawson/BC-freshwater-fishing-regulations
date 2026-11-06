@@ -6,11 +6,12 @@ this dir so `import reuse` works — the folder name has a hyphen so it can't be
 
 Makes NO LLM calls — pure local file review. Safe to run any time, including out of parsing credits.
 
-REVIEW MODE ONLY (T134, T185): the app serves reads and ONE write, a mark (`POST /api/marks`). A
-reviewer cannot change the catalogue or splits.json however they click: the editors and their routes
-(entry save, the draft check, split add / move / delete / rename — the old "fix mode") are gone. A
-wrong or unsure mark becomes a ticket (`python -m pipeline.regs.review.tickets`); the fix is made in
-the curated files by a reviewed change, never by this app (T185).
+REVIEW MODE ONLY (T134, T185): the app serves reads and TWO write routes — a mark (`POST /api/marks`) and an
+in-season match (`POST /api/inseason/matches`, data/curated/inseason/notice_waters.json) — both through `writes.commit`,
+every refusal logged (`REFUSED_LOG`). There are no editors (entry save, split add / move / delete / rename — the old
+"fix mode" — are gone). A saved mark then reaches its domain's curated file by the WRITE-THROUGH (T325,
+`write_through.py`): the file domains (sloughs, names, tidal) in the request, the proposal domains (dfo, entries:
+the catalogue and splits.json) in the background, one commit per proposal.
 """
 
 from __future__ import annotations
@@ -28,6 +29,14 @@ from pydantic import BaseModel, ConfigDict
 import reuse
 
 app = FastAPI(title="Curation Review")
+
+
+@app.exception_handler(FileNotFoundError)
+def _missing_file(_req, ex: FileNotFoundError):
+    """(T434) A missing input (a build, a review input) is a 503 that SAYS which and why — never an empty answer. The
+    frontend shows `detail` in its error banner."""
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=503, content={"detail": str(ex)})
 #: THE ONLY ORIGIN THE BROWSER MAY CALL FROM: the Vite dev server, which binds 127.0.0.1 only
 #: (`frontend/vite.config.ts`). It proxies `/api`, so the app itself never needs CORS; this is what
 #: stops another page the reviewer has open from reading the review or posting a mark (T96: it was
@@ -92,6 +101,15 @@ def review_closed():
 #: `CURATION_WRITE_THROUGH=1`); a refused apply keeps the mark and says why on the item.
 import write_through as _wt                                     # noqa: E402
 WRITE_THROUGH = _wt.from_env(reuse.MARKS_PATH, reuse._ROOT)
+
+
+@app.on_event("shutdown")
+def _drain_write_through():
+    """(T434) a background apply in flight finishes before the process goes (a restart once dropped it)."""
+    if not WRITE_THROUGH.wait_idle(30):
+        import logging
+        logging.getLogger("uvicorn.error").warning("WRITE-THROUGH: still applying at shutdown after 30 s; the next "
+                                                   "mark re-applies its domain")
 
 
 @app.get("/api/review/write-through")
@@ -273,28 +291,31 @@ def refused_log() -> Path:
     return REFUSED_LOG or (Path(env) if env else _REFUSED_DEFAULT)
 
 
-def _log_refused(body: "MarkPayload", status: int, detail) -> None:
+def _log_refused(body: "MarkPayload | InSeasonMatchPayload", status: int, detail) -> None:
+    """One refused save on file; a mark or (T434) an in-season match (scope `inseason`, its row id the target)."""
     import datetime as _dt
     import json as _json
     import logging
     reasons = ([d.get("msg", str(d)) if isinstance(d, dict) else str(d) for d in detail]
                if isinstance(detail, list) else [str(detail)])
     row = {"at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
-           "scope": body.scope, "target": body.target, "rule_id": body.rule_id,
-           "targets": list(body.targets), "status": status, "reasons": reasons,
-           "reviewer": body.reviewer, "payload": body.model_dump()}
+           "scope": getattr(body, "scope", "inseason"), "target": getattr(body, "target", None) or body.id,
+           "rule_id": getattr(body, "rule_id", None), "targets": list(getattr(body, "targets", ())),
+           "status": status, "reasons": reasons,
+           "reviewer": getattr(body, "reviewer", None) or getattr(body, "by", ""), "payload": body.model_dump()}
     try:
         import writes
         writes.log_refused(refused_log(), _json.dumps(row, ensure_ascii=False, default=str))
     except OSError:
         logging.getLogger("uvicorn.error").exception("could not log a refused save")
-    logging.getLogger("uvicorn.error").warning("REFUSED SAVE %s %s (%s): %s", body.scope,
-                                               body.target, status, "; ".join(reasons))
+    logging.getLogger("uvicorn.error").warning("REFUSED SAVE %s %s (%s): %s", row["scope"],
+                                               row["target"], status, "; ".join(reasons))
 
 
 @app.post("/api/marks")
 def post_mark(body: MarkPayload):
-    """THE ONE WRITE, with every refusal logged (`REFUSED_LOG`) before it is returned."""
+    """A reviewer's mark (one of the app's two writes), with every refusal logged (`REFUSED_LOG`) before it is
+    returned."""
     try:
         return _post_mark(body)
     except HTTPException as ex:
@@ -409,14 +430,16 @@ def _written_through(got, body: MarkPayload):
 @app.get("/api/marks")
 def get_marks(target: str | None = None, scope: str | None = None):
     """The marks in force (the last one on each target), each with its `status` and typed stale
-    `reasons` against its target as it is now."""
+    `reasons` against its target as it is now.
+    PROBE (T434): no screen calls it; kept as the tests' and the owner's debug read."""
     return reuse.marks_view(target, scope)
 
 
 @app.get("/api/marks/splits")
 def get_split_marks():
     """Every split in splits.json -> its old split mark's status now (`unmarked` for most). Split
-    marks are HISTORY (T184): none is taken any more, the ones in the store stay readable."""
+    marks are HISTORY (T184): none is taken any more, the ones in the store stay readable.
+    PROBE (T434): no screen calls it; kept as the tests' and the owner's debug read."""
     return reuse.split_mark_states()
 
 
@@ -463,17 +486,10 @@ def review_p1():
 def review_tickets():
     """THE TICKET EXPORT (T135): every wrong and unsure mark in force as ticket text, with what
     changed since. Read only — the owner files them (`python -m pipeline.regs.review.tickets
-    --out <dir>` writes the same text to files)."""
+    --out <dir>` writes the same text to files).
+    PROBE (T434): no screen calls it; kept as the tests' and the owner's debug read."""
     import review
     return review.tickets()
-
-
-@app.get("/api/review/lake-splits")
-def review_lake_splits():
-    """THE DEFERRED LAKE-SPLIT LIST as reviewers feed it (T189, `marks.lake_splits_later`): every
-    target whose mark in force says "needs a lake split later". Read only."""
-    from pipeline.regs.review import marks as M
-    return M.lake_splits_later(M.load(reuse.MARKS_PATH))
 
 
 @app.get("/api/review/tickets.md")
@@ -536,7 +552,8 @@ def evidence_page(entry_id: str):
 def entry_bundle(entry_id: str):
     """The live bundle's copy of this entry beside the file's — per-rule label and section count
     (the bundle's, and the builder's now), where each licensing record binds — and whether they
-    match. For an entry AWAITING BUILD only its `vintage` (the bundle's copy is not this entry's)."""
+    match. For an entry AWAITING BUILD only its `vintage` (the bundle's copy is not this entry's).
+    PROBE (T434): no screen calls it; kept as the tests' and the owner's debug read."""
     d = reuse.entry_answer_context(entry_id)
     if d is None:
         raise HTTPException(404, f"entry {entry_id} not found")
@@ -546,7 +563,8 @@ def entry_bundle(entry_id: str):
 @app.get("/api/entries/{entry_id}/answer/waters")
 def entry_answer_waters(entry_id: str, q: str = "", limit: int = 60):
     """The waters this entry reaches in the bundle, split into pieces that get one answer each.
-    409 while the entry awaits its build (T133): the bundle's answer is another vintage's."""
+    409 while the entry awaits its build (T133): the bundle's answer is another vintage's.
+    PROBE (T434): no screen calls it; kept as the tests' and the owner's debug read."""
     import answer
     from pipeline.regs.review.vintage import CURRENT
     found = reuse._find(entry_id)
@@ -561,7 +579,8 @@ def entry_answer_waters(entry_id: str, q: str = "", limit: int = 60):
 @app.get("/api/answer")
 def get_answer(sid: int, date: str, fish: str):
     """The EFFECTIVE answer an angler gets: `read.effective_rules` on one bundle section, one day,
-    one fish — plus the licensing bound there and whether it is tidal. Reflects the live bundle."""
+    one fish — plus the licensing bound there and whether it is tidal. Reflects the live bundle.
+    PROBE (T434): no screen calls it; kept as the tests' and the owner's debug read."""
     import answer
     try:
         return answer.effective(sid, date, fish)
@@ -1054,11 +1073,13 @@ def inseason_extent_preview(extent: str, limit: int = 6000):
 @app.post("/api/inseason/matches")
 def inseason_save_match(body: InSeasonMatchPayload):
     """SET or CLEAR one in-season row's match (`inseason.save_match`): validated (row in the feed, known water
-    and splits, the extent binds a section, a note), then `writes.commit` (backup + atomic). 400 when refused."""
+    and splits, the extent binds a section, a note), then `writes.commit` (backup + atomic). 400 when refused, and
+    (T434) every refusal logged like a mark's (`REFUSED_LOG`)."""
     import inseason
     try:
         return inseason.save_match(body.id, body.extents, body.effective, body.note, body.by)
     except inseason.Refused as ex:
+        _log_refused(body, 400, str(ex))
         raise HTTPException(400, str(ex))
 
 

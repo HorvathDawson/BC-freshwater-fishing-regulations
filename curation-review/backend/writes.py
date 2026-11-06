@@ -1,6 +1,7 @@
 """EVERY write the app makes to curated data goes through here: back up, then commit, all or nothing.
-There is one such write, a reviewer's mark appended to the marks store (`reuse.post_mark`); the
-catalogue and splits.json are never written by the app (T185).
+The routes write two things: a reviewer's mark appended to the marks store (`reuse.post_mark`) and an in-season match
+(`inseason.save_match`). The T325 write-through then writes the domain's curated file (`write_through.py`, through
+`pipeline.regs.review.apply`) — the catalogue and splits.json only by the proposal writer, one commit per proposal.
 
     commit([(path, text), ...], action)
 

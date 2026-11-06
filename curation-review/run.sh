@@ -18,8 +18,9 @@ export CURATION_API="http://127.0.0.1:${PORT:-8787}"
 export CURATION_WARM="${CURATION_WARM:-1}"
 
 # --- backend (background) ---
+# (T434) no --reload unless DEV=1: a reload kills the write-through thread mid-apply (the shutdown hook drains it)
 echo "starting backend on :${PORT:-8787} …"
-( cd "$ROOT/curation-review/backend" && PYTHONPATH="$ROOT" "$ROOT/.venv/bin/uvicorn" app:app --reload --host 127.0.0.1 --port "${PORT:-8787}" ) &
+( cd "$ROOT/curation-review/backend" && PYTHONPATH="$ROOT" "$ROOT/.venv/bin/uvicorn" app:app ${DEV:+--reload} --host 127.0.0.1 --port "${PORT:-8787}" ) &
 BACKEND_PID=$!
 trap 'echo; echo "stopping…"; kill "$BACKEND_PID" 2>/dev/null || true' EXIT INT TERM
 

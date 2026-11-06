@@ -1139,14 +1139,11 @@ _MARKS_LOCK = threading.RLock()
 def _applied_keys_for(_key: tuple) -> frozenset:
     from pipeline.regs.review import marks as M
     from pipeline.regs.review import proposals as P
-    try:
-        src = P.Sources(entries_dir=Path(ENTRIES_DIR), dfo_dir=_dfo_dir(),
-                        splits_path=Path(SPLITS_JSON_PATH), build=_BUILD)
-        return frozenset(P.applied_keys(M.load(MARKS_PATH), src))
-    except Exception:                          # never take the queue down: no mark is excused
-        import logging
-        logging.getLogger(__name__).exception("applied_keys failed")
-        return frozenset()
+    # (T434) NO CATCH: an empty set read every landed fix as "binding moved" (T421's refusal, swallowed). A raise is not
+    # cached (lru_cache keeps no exception); the request fails with the reason (app.py's FileNotFoundError handler).
+    src = P.Sources(entries_dir=Path(ENTRIES_DIR), dfo_dir=_dfo_dir(),
+                    splits_path=Path(SPLITS_JSON_PATH), build=_BUILD)
+    return frozenset(P.applied_keys(M.load(MARKS_PATH), src))
 
 
 def marks_health() -> dict:

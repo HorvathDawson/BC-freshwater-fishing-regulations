@@ -38,7 +38,7 @@ from typing import Callable, Optional
 from pipeline.regs.review import export as E
 
 #: the domains whose writer is `apply_proposals` (one commit per proposal, binding check, side rebuilds)
-PROPOSAL_DOMAINS = ("dfo", "entries", "splits")
+PROPOSAL_DOMAINS = ("dfo", "entries")
 
 
 def _sloughs(decided: E.Decided) -> dict[Path, str]:

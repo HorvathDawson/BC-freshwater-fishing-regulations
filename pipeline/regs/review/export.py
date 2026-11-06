@@ -39,7 +39,8 @@ from pipeline.regs.review import marks as M
 
 #: domain -> the mark scopes it holds
 DOMAINS: dict[str, tuple[str, ...]] = {
-    "tidal": ("tidal",), "dfo": ("dfo",), "entries": ("entry", "rule"), "splits": ("split",),
+    # (T434) no "splits": split marks are history (T184), the store holds none, and the domain had no test
+    "tidal": ("tidal",), "dfo": ("dfo",), "entries": ("entry", "rule"),
     "sloughs": ("slough",), "ponds": ("q154",), "names": ("name",),
     # T331: the retired accept step's marks (scope "proposal", 7, 2026-10-27) — a domain only so it can be CLOSED
     "proposals": ("proposal",),

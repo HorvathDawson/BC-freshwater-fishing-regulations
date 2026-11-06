@@ -4,14 +4,15 @@ Backend base URL (dev): `http://127.0.0.1:8787`. All responses JSON. No auth. St
 `bash curation-review/backend/run.sh`. Makes **no LLM calls** — pure local file review, safe to run
 out of parsing credits.
 
-**Write model: ONE write, a mark** (T134, T185). The app reads the catalogue region files
-(`data/curated/regulations/synopsis/region-*.json`, the single source of truth) and
-splits.json, and appends reviewers' marks to the marks store — `POST /api/marks` is its only write
-route. The editors' routes (`POST /api/check`, `PUT /api/entries/{id}`, split add / save / delete /
-rename — the retired fix mode) are gone: a request to one is refused by the router (404 / 405). A
-fix is a reviewed change to the curated files (T185), never this app's.
-**The one exception (T230, owner 2026-10-28):** `POST /api/inseason/matches` writes the in-season
-matches file (`data/curated/inseason/notice_waters.json`) — Claude/owner tooling, not a mark — below.
+**Write model: two write routes, then the write-through** (T134, T185, T325, T434). The app reads the catalogue region
+files (`data/curated/regulations/synopsis/region-*.json`, the single source of truth) and splits.json. Its write
+routes: `POST /api/marks` (a reviewer's mark, appended to the marks store) and `POST /api/inseason/matches` (T230: the
+in-season matches file, `data/curated/inseason/notice_waters.json`, below); both log every refusal. A saved mark then
+reaches its domain's curated file by the WRITE-THROUGH (`GET /api/review/write-through`): sloughs, names and tidal in the
+request; dfo and entries (the catalogue, splits.json) in the background, one commit per proposal. The editors' routes
+(`POST /api/check`, `PUT /api/entries/{id}`, split add / save / delete / rename — the retired fix mode) are gone: a
+request to one is refused by the router (404 / 405). A missing input is a 503 whose `detail` names it, never an empty
+answer. Every route is in the generated table at the end.
 `GET /api/mode` → `{app_url, checks: {entry, rule}, problems: {T, R, P, A: [..]},
 prechecks: {code: {severity, what}}, commands: {commit_marks, tickets, prechecks}}` (T135: the
 commands the screen PRINTS for the human; it runs none).
@@ -189,7 +190,7 @@ Body `{scope: entry | rule, target, rule_id?, verdict?: verified | wrong | unsur
 answers: {T, R, P, A: y | n | ?}, problem?, note, reviewer, pages?, seconds?, tributaries?,
 lake_split_later?}`. **T189:** `tributaries` `{"entry" | rule_id: include | exclude}` is the
 reviewer's call (a rule mark calls only its own rule); `lake_split_later` puts the target on the
-deferred lake-split list (`GET /api/review/lake-splits`, `marks.lake_splits_later`; CLI
+deferred lake-split list (`marks.lake_splits_later`; CLI
 `python -m pipeline.regs.review.tickets --lake-splits`). Both live in the mark — never a file edit.
 **T191:** `extent_fix?` `[{scope: "entry" | rule_id, op, points: [{kind: split | confluence |
 lake_inlet | lake_outlet | coord, split_id?, name?, item_id?, coord?: [lon, lat]}], items: [registry
@@ -459,3 +460,81 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 - **Show reach** per rule, with the straddling / ambiguous-cut warnings surfaced.
 - **Related entries** — jump to the other synopsis rows over the same water.
 - **Human-reviewed** on the entry and in the queue (T184); the queue in the review order.
+
+## Every route (generated)
+
+<!-- routes:start (curation-review/api_routes.py --write) -->
+| method | path | what |
+|---|---|---|
+| GET | `/api/answer` | The EFFECTIVE answer an angler gets: `read.effective_rules` on one bundle section, one day, |
+| GET | `/api/areas/search` | The atlas's areas whose id or name contains `q` — the "within an area" op's pick list. |
+| GET | `/api/build` | THE PENDING BUILD (T133, PLAN §5): every entry and split awaiting its build, why, the |
+| GET | `/api/dfo/cascade-regions` | Every region's DFO cascade (`region_cascade.regions`): the page's region-wide scopes and section |
+| GET | `/api/dfo/cascade-regions/{slug}/map` | One region's outline and each scope's coverage (`region_cascade.region_map`), plus its check. |
+| GET | `/api/dfo/cascade/{name}` | T229 THE CASCADE of one watershed (`cascade.cascade`): every section coloured by the DFO |
+| GET | `/api/dfo/locations/{location_id:path}` | One DFO location: the notice's words verbatim, its scraped rows, its curated extent, the |
+| GET | `/api/dfo/locations/{location_id:path}/anchor` | A PROPOSED NEW SPLIT's anchor resolved, READ ONLY (`dfo.check_anchor`): `split` is one |
+| GET | `/api/dfo/locations/{location_id:path}/area-names` | T355: an area_boundary's name, as you type — up to 15 names of `layer` containing `q`, prefix |
+| GET | `/api/dfo/locations/{location_id:path}/extent-preview` | A proposed extent (`marks.ExtentFix`) on a DFO location resolved, READ ONLY. |
+| GET | `/api/dfo/locations/{location_id:path}/reach` | What the location's curated extent binds NOW (`build_reach`), as geometry. The tributary |
+| GET | `/api/dfo/locations/{location_id:path}/split-pick` | T355: what a map click names for a new split — `kind` tributary \| lake \| area (`split_preview.pick`). |
+| GET | `/api/dfo/locations/{location_id:path}/split-preview` | T355: A PROPOSED SPLIT'S CUT, READ ONLY, by the build's own resolver (`split_preview.resolve`): |
+| GET | `/api/dfo/locations/{location_id:path}/tributaries` | T355: the streams whose mouth joins the water (a confluence split's pick list), with their mouths. |
+| GET | `/api/dfo/progress` | Marked / total for the DFO queue, overall, live-page only and per region. |
+| GET | `/api/dfo/queue` | THE DFO QUEUE: every scraped DFO location (`dfo.queue`), filtered — `status` active \| |
+| GET | `/api/entries` | THE ONE QUEUE (T135): every region unless `region` names one. `kind` is zone \| water — the |
+| GET | `/api/entries/{entry_id}` |  |
+| GET | `/api/entries/{entry_id}/answer/waters` | The waters this entry reaches in the bundle, split into pieces that get one answer each. |
+| GET | `/api/entries/{entry_id}/bundle` | The live bundle's copy of this entry beside the file's — per-rule label and section count |
+| GET | `/api/entries/{entry_id}/evidence/crop.png` | The entry as printed, LEGIBLE: its row (the water column above the regulation column) or its |
+| GET | `/api/entries/{entry_id}/evidence/page.png` | The whole printed page with the entry's row or passage marked. |
+| GET | `/api/entries/{entry_id}/extent-preview` | THE PROPOSED EXTENT RESOLVED, READ ONLY (`reuse.extent_preview`): `fix` is one |
+| GET | `/api/entries/{entry_id}/reaches` | Per-rule, per-extent section ids — the REACH each rule selects, for map highlighting. |
+| GET | `/api/entries/{entry_id}/review` | What the T/R/P/A checklist is answered from: the raw name, where the entry is printed and a |
+| GET | `/api/entries/{entry_id}/rules/{rule_id}/resolved` | What this rule covers and what it excepts — the reach builder's own answer, as geometry. |
+| GET | `/api/entries/{entry_id}/splits` | EVERY SPLIT THE ENTRY'S RULES NAME, as labelled map points (T184: a split is reviewed by |
+| GET | `/api/extent-fix/ops` | The ops a fix can propose — the catalogue's own names, their point counts, the owner's |
+| GET | `/api/inseason/extent-preview` | What the proposed extents (`extent`: one `{op, item_id, splits}` or a list, as JSON) bind, unioned, |
+| GET | `/api/inseason/items/{item_id}/splits` | The splits.json splits on one water, as labelled map points — the extent editor's split picker. |
+| POST | `/api/inseason/matches` | SET or CLEAR one in-season row's match (`inseason.save_match`): validated (row in the feed, known water |
+| GET | `/api/inseason/queue` | Every in-season feed row (and removed row, and a match on a row the feed no longer holds: "stale") with |
+| GET | `/api/items/search` | Registry items whose name contains `q` (a tributary, a lake, an item the extent holds on). |
+| GET | `/api/items/{item_id}/geojson` | Stream sections + curated split points for the map, in EPSG:4326 (lon/lat) to overlay the |
+| GET | `/api/items/{item_id}/tributaries/geojson` | One level of tributaries as map geometry — what `includes_tributaries` actually covers. |
+| POST | `/api/marks` | A reviewer's mark (one of the app's two writes), with every refusal logged (`REFUSED_LOG`) before it is |
+| GET | `/api/marks` | The marks in force (the last one on each target), each with its `status` and typed stale |
+| GET | `/api/marks/health` | EVERY OWNER MARK ACCOUNTED FOR (owner 2026-10-28, `marks.health`): per scope held / landed / |
+| GET | `/api/marks/splits` | Every split in splits.json -> its old split mark's status now (`unmarked` for most). Split |
+| GET | `/api/mode` | What this server is: the app the answer is checked in, the checks each scope answers and the |
+| GET | `/api/q154/ponds/{pid}` | One sample pond: its measures, the cutoff's prediction, its outline and the river lines. |
+| GET | `/api/q154/queue` | THE Q154 SAMPLE (`ponds.queue`): `set` example \| sample, `verify` todo \| decided \| unsure, |
+| GET | `/api/q154/tally` |  |
+| GET | `/api/ready` | THE READY SIGNAL: whether the backend has loaded what a first entry needs (`reuse.warm`), |
+| GET | `/api/regions` | Per region: how many entries, by status and by the reviewer's mark. One pass over the one |
+| GET | `/api/reports` | Every report since `since` (YYYY-MM-DD; default 90 days), newest first, each with the water it names and, |
+| GET | `/api/reports/section` | The tapped section of a report as map geometry — empty when the report's tiles are another vintage. |
+| GET | `/api/review/closed` | T325: the closed review domains (they feed nothing), each with its scopes — the app shows a "closed" notice. |
+| GET | `/api/review/ids` | ONLY THESE ENTRIES (T414): the ids file `path` names (the yearly diff's `--ids-out`, under the |
+| GET | `/api/review/p1` | THE P1 PASS (owner 2026-10-28, `p1.view`): counts by risk and by the second check, the |
+| GET | `/api/review/progress` | Done / to do per tier (PLAN §3) and overall — the progress bar; the ETA is the screen's, |
+| GET | `/api/review/tickets` | THE TICKET EXPORT (T135): every wrong and unsure mark in force as ticket text, with what |
+| GET | `/api/review/tickets.md` | The tickets as one Markdown text (`tickets.SEPARATOR` between them), to read or save. |
+| GET | `/api/review/write-through` | What the write-through did: per domain (saving / done / refused, the files written, proposals waiting on a |
+| GET | `/api/row-image/{filename}` | Serve a source synopsis row-crop image (<generated>/regs/extraction/row_images/<name>.png). |
+| GET | `/api/sloughs/candidates/{cid}` | One slough / canal candidate: its row (pre-mark, why), the finder's evidence, its outline. |
+| GET | `/api/sloughs/progress` |  |
+| GET | `/api/sloughs/queue` | THE SLOUGH QUEUE (`sloughs.queue`): `group` premark \| owner list \| owner \| default, `basis` |
+| GET | `/api/split-anchors` | T355: what a new split may be — the area layers (and the field each names its polygons by) and |
+| GET | `/api/splits/search` | Curated splits (splits.json) whose id, label or water contains `q`. |
+| GET | `/api/synopsis.pdf` | The synopsis PDF the entries were read from (the repo copy), for `#page=<pdf page>` links. |
+| GET | `/api/synopsis/page/{printed}.png` | The whole printed page, rendered — the region chapter a zone entry was transcribed from has |
+| GET | `/api/synopsis/pages` | printed page -> PDF page. `source_pages` are PRINTED numbers; the PDF index differs by 2-6. |
+| GET | `/api/synopsis/ref` | Where a printed page (and, when `water` names a row on it, that row) is in the repo PDF: the |
+| GET | `/api/synopsis/row/{key}/page.png` | The whole printed page with one source row boxed (the row_boxes.json sidecar's box). |
+| GET | `/api/tidal/candidates/{cid:path}` | One proposed tidal boundary: its sources verbatim, the polygon's crossing, the proposed cut, |
+| GET | `/api/tidal/candidates/{cid:path}/edge` | The tidal polygon's edge near one candidate, as lon/lat lines (read only). |
+| GET | `/api/tidal/candidates/{cid:path}/snap` | A clicked point SNAPPED to the candidate's stream (read only): {coord, blk, measure, |
+| GET | `/api/tidal/progress` | Marked / total for the tidal queue, by confidence, and the proposal file's coverage. |
+| GET | `/api/tidal/queue` | THE TIDAL QUEUE: every proposed tidal boundary (`tidal.queue`), filtered — `followup` only the marks the |
+| GET | `/basemap/bc.pmtiles` | Serve the webapp's PMTiles basemap (data/bc.pmtiles). FileResponse honours HTTP Range requests, |
+<!-- routes:end -->
