@@ -28,6 +28,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T443 in review** (7f36eb73a, your rule): a part is framed no closer than z12, and ▲/▼ zooms in at most 2 levels
   per step. Before, one Fraser step could jump 5 levels (z9 → z14). Opening or reloading a part still frames it whole.
   Look on the phone after the next APK.
+- **Running now:** T448 agent (phone pixel cap) and a T449 agent (the Nanaimo's tidal DFO places get a "tidal water"
+  state, as a proposal for you; plus a sweep of other regions). Next after them: T446 emulator repro, T441 one-step
+  fixture re-cut, T401 prefetch and the T420 iOS half (both wait on the binding patch T448 is editing), then the APK.
 - **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
   retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
   repro once T448 frees the emulator.
