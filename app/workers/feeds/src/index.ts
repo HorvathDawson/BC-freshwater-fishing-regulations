@@ -107,7 +107,7 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
 
 /** DFO notices (unplaced / held / moved / header names / fetch failures) → events naming the review-app tab to open
  *  (the review app runs on the owner's machine: no link, just where to go) and the queue command to run first */
-export function dfoEvents(notices: { key: string; text: string; data?: unknown }[], at: string): FeedEvent[] {
+export function dfoEvents(notices: { key: string; text: string; urgent?: boolean; data?: unknown }[], at: string): FeedEvent[] {
   return notices.map((n) => {
     const m = /DFO Region (\w+):/.exec(n.text);
     const lid = /\b(\d[ab]?:[a-z0-9-]+:[a-z0-9-]+)\b/.exec(n.text)?.[1];
@@ -115,8 +115,10 @@ export function dfoEvents(notices: { key: string; text: string; data?: unknown }
       key: n.key,
       kind: "dfo" as const,
       title: n.text.split(";")[0]!.slice(0, 200),
-      // (T321) a new wording is not a place to review: its own text says what to do
-      text: n.key.startsWith("dfo-wording:") ? n.text :
+      // (T366, live.py) a rule-row change on a known place is the DIGEST (`urgent: false`); every other DFO notice urgent
+      urgent: n.urgent !== false,
+      // (T321) a new wording is not a place to review: its own text says what to do; (T366) nor is a row change
+      text: n.key.startsWith("dfo-wording:") || n.key.startsWith("dfo-rows") ? n.text :
         `${n.text}\n\n` +
         (m ? `First: python -m pipeline.regs.dfo_salmon.live queue --regions ${m[1]}\n` : "") +
         `Then: Review app → DFO → Extents: ${lid ?? placeOf(n.text) ?? "the new rows"}`,

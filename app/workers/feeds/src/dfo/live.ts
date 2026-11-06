@@ -4,7 +4,8 @@
 //   priv  (never served)               notified.json (sent notices), manifest.json (fetch snapshots),
 //                                      raw/region<slug>-eng.html (last good page), history/region<slug>_<stamp>.html
 //                                      (every changed page: the corpus), entries/region-<slug>.json (the curated
-//                                      entry files — see `EntrySource`)
+//                                      entry files — see `EntrySource`), rows/region-<slug>.json (T366: the last
+//                                      typed page's rows, the row digest's baseline — rows.ts)
 //
 // THE SAFETY RULES (each as the Python): a failed fetch keeps the region's last answers, marked `stale`, and the
 // second failure in a row notifies; a page that does not parse / verify HOLDS the region at the last feed; a
@@ -34,6 +35,7 @@ import { headerAnswers, headerClosure } from "./quota";
 import { Interner, locationCalendar, NOT_LISTED, SPECIES } from "./salmon";
 import { untangle, verify } from "./untangle";
 import { readRegistry, REGISTRY_PATH, template, type Registry } from "./wording";
+import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange, type RowsBaseline } from "./rows";
 
 // T332 (/2): a verdict's quota is `tree` (a game-fish TreeTier), a bucket `{tree, …}`; T356 (/3, live.py): a header
 // closure's verdict carries `c`, a region its `shared` + `sizes`, a header note's length is `lengths`
@@ -217,7 +219,8 @@ function join(
 /** What the owner email renders (robust mode; stripped in pythonParity so the notices stay the Python's). */
 export interface NoticeData {
   region: string;
-  /** new | new_water | drift (a place to place) · held | fetch | row-held | moved | header | header-name */
+  /** new | new_water | drift (a place to place) · held | fetch | row-held | moved | header | header-name ·
+   *  (T366) rows: rule rows changed on known places (the digest) · rows-baseline: the row digest could not compare */
   kind: string;
   water?: string;
   /** the place as DFO prints it, in full */
@@ -237,10 +240,15 @@ export interface NoticeData {
   species?: string;
   dates?: string;
   fn?: string;
+  /** (T366) kind "rows": the page's date and every place whose rows changed (rows.ts `rowChanges`) */
+  page?: string;
+  rows?: RowChange[];
 }
 export interface Notice {
   key: string;
   text: string;
+  /** (T366, live.py) false = the digest (a rule-row change on a known place); absent / true = urgent */
+  urgent?: boolean;
   data?: NoticeData;
 }
 
@@ -513,6 +521,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       unplaced.push(u);
       notices.push(unplacedNotice(u));
     }
+    if (robust) await rowDigest(slug, sha, typed, ef, deps.priv, notices, log);
   }
 
   const sortedLocs: Record<string, Json> = {};
@@ -549,6 +558,33 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     log,
   });
   return { index, unplaced, notices: robust ? notices : notices.map(({ key, text }) => ({ key, text })), sent, skipped };
+}
+
+/** (T366) the page's rule-row changes on known places against the last typed page of the region (priv `rows/`): ONE
+ *  digest notice (`urgent: false`). No baseline yet → this page is the baseline (logged). An unreadable baseline is
+ *  told (urgent: the row changes of this page were not compared) and replaced by this page — never read as "no change". */
+async function rowDigest(slug: string, sha: string, typed: TypedFeed, ef: EntryFile, priv: Store, notices: Notice[], log: (s: string) => void) {
+  const now = feedMap(typed);
+  let base: RowsBaseline | null = null;
+  let broken = false;
+  try {
+    base = readBaseline(await priv.get(ROWS_KEY(slug)));
+  } catch (e) {
+    broken = true;
+    const why = `${pyTypeName(e)}: ${[...pyStrOf(e)].slice(0, 160).join("")}`;
+    log(`region ${slug}: the rows baseline ${ROWS_KEY(slug)} is unreadable (${why}) — this page's row changes were not compared`);
+    notices.push({
+      key: `dfo-rows-baseline:${slug}:${sha.slice(0, 12)}`,
+      text: `DFO Region ${slug}: the row digest's baseline (${ROWS_KEY(slug)}) did not read (${why}); this page's rule-row changes were NOT compared — read DFO's page for Region ${slug}; the baseline is rewritten from it`,
+      data: { region: slug, kind: "rows-baseline", affects: `the row digest could not compare this page (${why}); read DFO's page by hand` },
+    });
+  }
+  if (base && base.sha256 === sha) return;
+  if (base) {
+    const changes = rowChanges(ef, base.rows, now);
+    if (changes.length) notices.push(rowsNotice(slug, sha, typed.date_modified, changes));
+  } else if (!broken) log(`region ${slug}: no rows baseline yet — this page (${typed.date_modified ?? "no date"}) is it; row changes are told from the next page on`);
+  await priv.put(ROWS_KEY(slug), JSON.stringify({ sha256: sha, date_modified: typed.date_modified, rows: now } satisfies RowsBaseline));
 }
 
 /** live.words_by_location (T321): location id → the rows its card shows in DFO's words, `{k, sp, d, t}` (`locs[lid].x`) */

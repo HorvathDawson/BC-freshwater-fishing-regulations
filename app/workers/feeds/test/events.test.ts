@@ -99,6 +99,40 @@ describe("the outbox", () => {
     expect((await deliver([], { store, config: c, fetch: okFetch, now: T("2026-10-29T15:10:00Z") })).messages).toHaveLength(1);
   });
 
+  // T366 (owner 2026-11-03): DFO's rule-row changes on known places ride the digest; places to review stay urgent
+  it("daily digest: a DFO rule-row change (urgent: false) waits for the digest; a DFO place goes now", async () => {
+    const { rowsNotice } = await import("../src/dfo/rows");
+    const store = new MemStore();
+    const { sent, cfg } = mailbox();
+    const c = { ...cfg, digest: true, digestHourUtc: 15 };
+    const rows = rowsNotice("2", "ab".repeat(32), "2026-11-02", [{
+      location_id: "2:fraser-river:mainstem", place: "Fraser River: mainstem waters downstream of the CPR Bridge at Mission",
+      old: ["Chum | Oct 1 to Oct 31 | No fishing for salmon"], new: ["Chum | Nov 3 to Nov 30 | 2 per day — FN1179"], fns: ["FN1179"],
+      read: [{ row: "Chum | Nov 3 to Nov 30 | 2 per day — FN1179", read: ["retention_limit · chum · Nov 3–Nov 30 · take 2"] }],
+    }]);
+    const place = { key: "dfo-drift:2:ffff", text: "DFO Region 2: new wording on Fraser River, likely 2:fraser-river:x (0.90) — 1 rule held unplaced." };
+    const evs = dfoEvents([rows, place], "2026-11-03T09:00:00Z");
+    expect(evs.map((e) => [e.key, e.urgent])).toEqual([[rows.key, false], ["dfo-drift:2:ffff", true]]);
+    const r1 = await deliver(evs, { store, config: c, fetch: okFetch, now: T("2026-11-03T09:00:00Z") });
+    expect(r1.messages).toHaveLength(1);
+    expect(r1.messages[0]!.keys).toEqual(["dfo-drift:2:ffff"]);
+    expect(r1.queued).toBe(1);
+    const r2 = await deliver([], { store, config: c, fetch: okFetch, now: T("2026-11-03T15:05:00Z") });
+    expect(r2.messages.map((m) => m.keys)).toEqual([[rows.key]]);
+    expect(r2.messages[0]!.subject).toBe("[staging] Daily digest: DFO: rule rows changed on 1 place (Region 2)");
+    const body = bodyOf(sent.at(-1)!.raw);
+    expect(body).toContain("Fraser River: mainstem waters downstream of the CPR Bridge at Mission");
+    expect(body).toMatch(/Was[\s\S]*Chum \| Oct 1 to Oct 31 \| No fishing for salmon/);
+    expect(body).toMatch(/Now[\s\S]*Chum \| Nov 3 to Nov 30 \| 2 per day — FN1179/);
+    expect(body).toContain("read as: retention_limit · chum · Nov 3–Nov 30 · take 2");
+    expect(body).toContain("nothing to re-review");
+    expect(body).toContain("python -m pipeline.regs.dfo_salmon.live run --regions 2 --dry-run");
+    // without the digest setting every DFO notice is emailed at once, the row change included
+    const s2 = new MemStore();
+    const inst = await deliver(dfoEvents([rows], "2026-11-03T09:00:00Z"), { store: s2, config: cfg, fetch: okFetch, now: T("2026-11-03T09:00:00Z") });
+    expect(inst.messages.map((m) => m.keys)).toEqual([[rows.key]]);
+  });
+
   it("gauge failures never email alone, even flagged urgent; the digest carries them", async () => {
     const store = new MemStore();
     const { sent, cfg } = mailbox();

@@ -1,4 +1,5 @@
 import { CloseX } from "./NoticeStack";
+import { DfoVintageBanner } from "./DfoVintageBanner";
 import { DfoPlaces } from "./DfoPlaces";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
@@ -231,7 +232,8 @@ export function DfoReview({ mode }: Props) {
 
   const loadRows = useCallback(() => {
     api.dfoQueue(filters).then((r) => { setRows(r); setLoaded(true); }).catch((e) => setError(String(e)));
-    api.dfoProgress().then(setProgress).catch(() => {});
+    // shown, never swallowed: the progress carries the vintage check (T366), so a failed load would hide that too
+    api.dfoProgress().then(setProgress).catch((e) => setError(`DFO progress did not load (so whether the rows are current is unknown): ${e}`));
   }, [filters]);
   useEffect(() => { loadRows(); }, [loadRows]);
 
@@ -340,6 +342,7 @@ export function DfoReview({ mode }: Props) {
         )}
         <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
+      {progress && <DfoVintageBanner notes={progress.vintage} />}
       {notice && <div className="notice inline-notice" data-testid="dfo-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
         <span style={{ flex: 1 }}>{notice}</span><CloseX onClick={() => setNotice("")} /></div>}
       {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>

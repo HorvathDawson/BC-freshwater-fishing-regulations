@@ -1118,7 +1118,10 @@ export interface DfoCount {
   by_state: Record<string, number>;
   new_splits: number;
 }
-export interface DfoProgress { all: DfoCount; active: DfoCount; regions: Record<string, DfoCount> }
+/** T366 one vintage (`refresh.vintage`): typed rows older than the saved DFO page, a saved page old in season, or the
+ *  check failing (`error`, region null) */
+export interface DfoVintageNote { region: string | null; kind: "typed_older" | "raw_old" | "error"; text: string }
+export interface DfoProgress { all: DfoCount; active: DfoCount; regions: Record<string, DfoCount>; vintage: DfoVintageNote[] }
 export interface DfoExtent { op: string; splits?: string[]; item_id?: string; item_ids?: string[] }
 export interface DfoWording { fingerprint: string | null; text: string; dates: string[];
   location_id?: string; status?: string; variant?: boolean; verify?: string | null }

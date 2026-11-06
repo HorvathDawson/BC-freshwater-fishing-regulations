@@ -330,7 +330,9 @@ def vintage() -> list[dict]:
     from pipeline.regs.dfo_salmon import refresh as R
     try:
         return R.vintage(DFO_TYPED or D.default_typed_dir())
-    except Exception as ex:  # noqa: BLE001 — shown, not hidden
+    except Exception as ex:  # noqa: BLE001 — shown (the DFO-mode banner), and logged with its traceback
+        import logging
+        logging.getLogger("curation").exception("the DFO vintage check failed")
         return [{"region": None, "kind": "error", "text": f"the DFO vintage check failed: {type(ex).__name__}: {ex}"}]
 
 

@@ -63,6 +63,7 @@ describe("runDfo in the Worker shape", () => {
         "manifest.json",
         "notified.json",
         "raw/region4-eng.html",
+        "rows/region-4.json",               // (T366) the row digest's baseline: this page's rows
         "wording.json",                     // (T324) the synced registry, read only
         "writes.json",
       ]);
@@ -168,6 +169,46 @@ describe("change-aware DFO runs", () => {
     const changed = { ...pages, "8": pages["8"]!.replace("4 per day, only 2 over 50&nbsp;cm.", "3 per day, only 2 over 50&nbsp;cm.") };
     const got = await run(feed, priv, "2026-10-28T18:00:00Z", changed);
     expect(got.skipped).toEqual(["4", "6"]);
+  });
+
+  // T366 (owner 2026-11-03): a rule-row change on a known place is ONE digest notice per page (`urgent: false`), with
+  // old → new verbatim and how each new row was read; places stay urgent (their own notices)
+  it("a changed row is one digest notice (urgent: false): was / now verbatim and how it was read", async () => {
+    const feed = new MemStore();
+    const priv = privStore();
+    const first = await run(feed, priv, "2026-10-28T12:00:00Z", pages);
+    expect(first.notices.filter((n) => n.key.startsWith("dfo-rows"))).toEqual([]); // no baseline yet: this page is it
+    expect(JSON.parse(priv.m.get("rows/region-8.json")!).sha256).toMatch(/^[0-9a-f]{64}$/);
+    const changed = { ...pages, "8": pages["8"]!.replace("4 per day, only 2 over 50&nbsp;cm.", "3 per day, only 2 over 50&nbsp;cm.") };
+    const got = await run(feed, priv, "2026-10-28T18:00:00Z", changed);
+    const rows = got.notices.filter((n) => n.key.startsWith("dfo-rows"));
+    expect(rows).toHaveLength(1);
+    const n = rows[0]!;
+    expect(n.key).toMatch(/^dfo-rows:8:[0-9a-f]{12}$/);
+    expect(n.urgent).toBe(false);
+    expect(got.notices.filter((x) => x !== n).every((x) => x.urgent !== false)).toBe(true);
+    expect(n.text).toMatch(/^DFO Region 8: 1 place\(s\) with changed rows on the page of /);
+    expect(n.text).toMatch(/\n {4}- was: .*4 per day, only 2 over 50/);
+    expect(n.text).toMatch(/\n {4}\+ now: .*3 per day, only 2 over 50/);
+    expect(n.text).toMatch(/\n {8}read: .*take 3/);
+    expect(n.data).toMatchObject({ region: "8", kind: "rows", rows: [expect.objectContaining({ old: [expect.stringContaining("4 per day")], new: [expect.stringContaining("3 per day")] })] });
+    // the same page again: no second notice (the baseline moved to it)
+    const again = await run(feed, priv, "2026-10-29T00:00:00Z", changed, { changeAware: false });
+    expect(again.notices.filter((x) => x.key.startsWith("dfo-rows"))).toEqual([]);
+  });
+
+  it("an unreadable row baseline is told (urgent), never read as 'no change', and is rewritten", async () => {
+    const feed = new MemStore();
+    const priv = privStore();
+    await run(feed, priv, "2026-10-28T12:00:00Z", pages);
+    priv.m.set("rows/region-8.json", "{not json");
+    const changed = { ...pages, "8": pages["8"]!.replace("4 per day, only 2 over 50&nbsp;cm.", "3 per day, only 2 over 50&nbsp;cm.") };
+    const got = await run(feed, priv, "2026-10-28T18:00:00Z", changed);
+    const n = got.notices.filter((x) => x.key.startsWith("dfo-rows"));
+    expect(n.map((x) => x.key)).toEqual([expect.stringMatching(/^dfo-rows-baseline:8:/)]);
+    expect(n[0]!.urgent).not.toBe(false);
+    expect(n[0]!.text).toContain("were NOT compared");
+    expect(() => JSON.parse(priv.m.get("rows/region-8.json")!)).not.toThrow();
   });
 
   it("a new entry file (curation) re-types its region even on the same page", async () => {

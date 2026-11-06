@@ -5,7 +5,8 @@
 //            verified Email Routing address) — when both are set
 //   webhook  FEED_NOTIFY_URL (ntfy / Discord / Slack) — when set, and as the fallback when the email send fails
 //   log      neither configured: logged, and still recorded as told (nothing replays when a channel is added later)
-// POLICY (owner 2026-10-28): DFO places to review and in-season changes are URGENT — emailed at once. With
+// POLICY (owner 2026-10-28): DFO places to review and in-season changes are URGENT — emailed at once (T366, owner
+// 2026-11-03: EXCEPT DFO's rule-row changes on known places, `urgent: false`, which ride the digest). With
 // NOTIFY_DIGEST=daily everything else (HYDAT, roster drift, feed health) waits for ONE digest a day (first run at/after
 // NOTIFY_DIGEST_HOUR_UTC, default 15 = 08:00 PDT), sent ONLY when the day holds at least one issue or action — a
 // "recovered" health event alone (`fine`) never makes a digest; current state is /status's job, not email's.
@@ -31,7 +32,8 @@ export interface FeedEvent {
   at: string;
   /** good news only (a feed recovered): rides along in a digest, never the reason for one */
   fine?: boolean;
-  /** sent at once even in digest mode (a whole feed failing / stale; owner 2026-10-28) */
+  /** sent at once even in digest mode (a whole feed failing / stale; owner 2026-10-28). For a URGENT kind (dfo,
+   *  inseason) `false` sends it to the digest instead (T366: DFO rule-row changes) */
   urgent?: boolean;
   /** what the email template renders (src/email.ts), per kind; absent → the title + text, once */
   data?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -171,7 +173,9 @@ export async function deliver(
   }
   const digest = !!o.config.digest;
   // owner 2026-10-29: gauge health is never urgent, whatever flagged it
-  const isUrgent = (e: FeedEvent) => URGENT.includes(e.kind) || (!!e.urgent && !(e.kind === "health" && e.data?.job === "gauges"));
+  // (T366) a DFO / in-season event marked `urgent: false` (DFO's rule-row digest) waits for the digest like the rest
+  const isUrgent = (e: FeedEvent) =>
+    URGENT.includes(e.kind) ? e.urgent !== false : !!e.urgent && !(e.kind === "health" && e.data?.job === "gauges");
   const now: FeedEvent[] = digest ? fresh.filter(isUrgent) : fresh;
   const later = digest ? fresh.filter((e) => !isUrgent(e)) : [];
   const pending = [...st.pending, ...later];
