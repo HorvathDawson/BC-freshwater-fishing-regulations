@@ -10,6 +10,7 @@ import type { ItemId, SectionId } from "@app/data";
 import type { MapProps } from "@app/map";
 import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines } from "@app/data/release/node";
 import { openRegsStore } from "@app/data/regs";
+import { setFailureSink } from "@app/core";
 import { BackLayerContext, HOME, openWater, parseStartLink, partAction, partOfTap, reduce, useBack, useRoute,
          waterFrame, type Route, type StartLink, type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, resolveStartLink } from "@app/ui/place";
@@ -127,6 +128,26 @@ describe("<WaterMapView>", () => {
       .toEqual(["Flows into the tidal Fraser River", null, null]);
     fireEvent.click(exit);
     expect(calls).toEqual([]);
+  }, 30_000);
+
+  it("(T444) the frame moved to the water it flows into: the map never pairs the Vedder's part with the Chilliwack's group", async () => {
+    const failures: unknown[] = [];
+    const off = setFailureSink((e) => failures.push(e));
+    try {
+      let go: (() => void) | null = null;
+      function Moved() {
+        const [f, setF] = useState<{ item: string; part: number }>({ item: "gnis:8634", part: 1 });
+        go = () => setF({ item: "gnis:3062", part: 0 });
+        return <WaterMapView loader={loader} item={f.item as ItemId} part={f.part} tapSid={null} palette={LIGHT}
+                             map={MAP} whole={false} onWhole={() => {}} onOpenWater={() => {}} onShowRegs={() => {}}
+                             onOtherSection={() => {}} onCross={() => {}} onPart={() => {}} />;
+      }
+      render(<Moved />);
+      await ready();
+      act(() => go!());
+      await waitFor(() => expect(screen.getByTestId("water-map-name").textContent).toMatch(/Vedder/), { timeout: 20_000 });
+      expect(failures.map(String)).toEqual([]);
+    } finally { off(); }
   }, 30_000);
 
   it("the mouth's exit opens the receiving water at the part it meets; Show regulations names this part", async () => {

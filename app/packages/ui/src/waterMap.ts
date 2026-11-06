@@ -293,7 +293,15 @@ export function useWaterGroup(store: GroupStore | null, item: ItemId | null,
 /** (T369 D6) The group as the release cuts it (`raw`: one entry per release stretch) and as the map joins it (`g`). */
 function useWaterGroups(store: GroupStore | null, item: ItemId | null, salmonKey: ((sid: number) => string) | null) {
   const key = `water-group:${store ? idOf(store) : ""}:${item ?? ""}`;
-  const raw = useAsync(async () => (store && item ? loadRawWaterGroup(store, item) : null), key, !!store && !!item);
+  const read = useAsync(async () => (store && item ? { key, g: await loadRawWaterGroup(store, item) } : null), key,
+    !!store && !!item);
+  // (T444) THE ANSWER IS THIS WATER'S OR NONE: for the one render after the key changes `useAsync` still holds the last
+  // key's answer, and the Chilliwack's group met the Vedder's part in `waterMapStartIx` ("part 0 of gnis:3062 is not in
+  // its group"). An answer to another question is loading here; no water, no group.
+  const raw: Async<WaterGroup | null> = !store || !item ? { state: "ready", value: null, error: null }
+    : read.state !== "ready" ? read
+      : read.value?.key === key ? { state: "ready", value: read.value.g, error: null }
+        : { state: "loading", value: null, error: null };
   // the salmon grouping is joined in memory: a feed change re-groups without a read (or a loading state)
   const g = useMemo(() => (raw.value ? mergeNav(raw.value, salmonKey) : null), [raw.value, salmonKey]);
   return { raw, g };
