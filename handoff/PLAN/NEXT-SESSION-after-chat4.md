@@ -20,17 +20,31 @@ Written 2026-11-06, as chat 4 closed. It replaces `NEXT-SESSION-after-chat3.md`.
   written from the release). Left: raw section ids in a few tests.
 - **T449 in review:** two Nanaimo DFO places proposed as tidal water; owner accepts in the review app (OWNER-TODO).
 
+## Owner feedback on 0.6.6 (late 11-06) and what chat 4 did with it
+- Pixel 9: zoomed in and out now feel alike; a flick still STUTTERS a little during the glide.
+- Switching to Map (from Conditions / Runs) sometimes FLICKERS the streams (not the basemap): colours should be ready
+  before the switch.
+- T443: the small Fraser part was unreadable at z12 → fixed (55c7f54: a part is never framed under half the screen,
+  up to z14). NOT in an APK yet.
+- T449: both Nanaimo places accepted (owner, in chat); marks + place file committed.
+- Section ids typed into tests: owner says they should not be there (T441 Work 2).
+- **Two agents were still running when chat 4 closed** (they die with it): (a) the flicker + fling stutter (new
+  tickets, emulator), (b) T441 Work 2. Check `git log` / the tickets README for what they committed; redo what is
+  missing.
+
 ## The list, in order
-1. **Owner feedback on 0.6.6** (zoomed-out feel, softness, Fraser steps) → act on it. If streams still pop in while
-   panning: a delta-2 APK side by side on the phone (T401).
-2. **T351** native foreground crash (read the staging worker's `/crashes` for anything new since 0.6.6 first).
-3. **T446** reopen only if a new report arrives (it now says short file vs other bytes).
-4. **T441 Work 2:** tests name sections by water + part + index instead of raw ids.
-5. **T164** after the owner's DFO review: the reach-only rerun + binding diff (memory reach-only-rerun).
-6. iOS pixel cap (T448 iOS) if the owner wants it.
+1. **Map-switch flicker and fling stutter** (owner, 0.6.6): file/finish their tickets; measure on the emulator, fix,
+   before/after numbers. Then **T441 Work 2** if unfinished.
+2. **Next APK** (0.6.7) with T443's floor and whatever of 1 lands: `pnpm check` once, `sync.mjs` if a release moved,
+   `deploy/staging/build-apk.sh --play`, fresh-install walk.
+3. If streams still pop in while panning: a delta-2 APK side by side on the phone (T401).
+4. **T351** native foreground crash (read the staging worker's `/crashes` for anything new since 0.6.6 first).
+5. **T446** reopen only if a new report arrives (it now says short file vs other bytes).
+6. **T164** after the owner's DFO review: the reach-only rerun + binding diff (memory reach-only-rerun).
+7. iOS pixel cap (T448 iOS) if the owner wants it.
 
 ## Owner items (not Claude's)
-- Phone checks of 0.6.6 · T449's two clicks · T164's 177 DFO proposals · T371 Closed testing · T404 prod.
+- Phone check of the next APK · T164's 177 DFO proposals · T371 Closed testing · T404 prod.
 
 ## Notes
 - After any release: `node app/tools/regs-recut/sync.mjs`, then `pnpm check` (rule 46).
