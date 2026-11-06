@@ -1,6 +1,6 @@
 # T446 — First install: "release/r-4230bc0c1dd5/geo-1a94cc221b73.sqlite does not match the manifest"
 
-Status: OPEN.
+Status: PARTIAL (cddfdbe10): diagnosis in the next report; not reproduced.
 
 Source: staging worker `GET /crashes` (read 2026-11-06), kind 708eb429638d84ff: 0.6.3 (build 12), Android 35 (the
 emulator test bed, walk-063b, 2026-11-06 16:31Z), route other, release none, non-fatal, thrown in `install`. The same
@@ -24,3 +24,8 @@ re-verify). So the bytes changed between a verified write and the re-read, which
 `live = false`, it does not stop a running `bootRelease`), or a file read that came back short. The report's time
 (16:31Z) is inside T442's window, when `test/` named a release whose files had been cleared, so the run was already
 abnormal. Next: the emulator repro in Work 2 (retry during a first install; a kill mid-file) once the slot is free.
+
+## Next report names itself (cddfdbe10, 2026-11-06)
+The re-verify's error now says "(N % of its size)" or "(the same size, other bytes)" — a cut write vs a second writer
+or another release's file — in words the crash scrubber keeps. Emulator repro not run: no path to a second writer was
+found in code, and the one report sits in T442's broken window. Reopen with the next report's words.
