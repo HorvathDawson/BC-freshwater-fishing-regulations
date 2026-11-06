@@ -331,7 +331,11 @@ export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: st
   // every file of the new set, re-verified on disk before anything points at it
   for (const name of names) {
     const e = m.files[name]!, path = `${dir}/${e.url.split("/").pop()!.replace(/\.gz$/, "")}`;
-    if (await sha256HexAsync(await fs.read(path)) !== e.sha256) throw new Error(`release: ${path} does not match the manifest`);
+    const b = await fs.read(path);
+    // (T446) the report says HOW it differs, in words the crash scrubber keeps (it drops 5+ digit runs): a short file
+    // is a cut write, the same size with other bytes a second writer or another release's file
+    if (await sha256HexAsync(b) !== e.sha256) throw new Error(`release: ${path} does not match the manifest (${
+      b.length === e.bytes ? "the same size, other bytes" : `${Math.round((100 * b.length) / Math.max(1, e.bytes))} % of its size`})`);
   }
   // THE MAP ASSETS (glyphs + sprites): always made whole — their folder lives under the tile version, so new tiles move
   // it even when its id does not. Files already there are kept, the held folder's are copied; the rest fetched.
