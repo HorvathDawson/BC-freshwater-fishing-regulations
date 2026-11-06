@@ -965,7 +965,7 @@
        "name": "Conservation Surcharge Stamp for salmon",
        "price": "$17.14 a year",
        "terms": [
-        "conservation_surcharge"
+        "stamp_salmon_stamp"
        ],
        "when": "Only if you keep salmon (not kokanee)"
       }
@@ -1229,7 +1229,7 @@
      "k": "para",
      "text": [
       {
-       "s": "An add-on to your basic licence that pays for conservation; you need one only for what it names: Kootenay Lake rainbow trout, Shuswap Lake char, Shuswap rainbow trout, salmon, Steelhead. Keeping some of these fish also means recording them on your licence right away.",
+       "s": "An add-on to your basic licence that pays for the conservation of one kind of fish. Your basic licence can carry up to five of these stamps; you need one only for the fish it names. Keeping some of these fish also means recording them on your licence right away.",
        "t": "text"
       }
      ]
@@ -5904,6 +5904,10 @@
   "region_8": "Region 8 – Okanagan",
   "set_line": "Set line (set lining)",
   "single_barbless_hook": "Single barbless hook",
+  "stamp_kootenay_rainbow_stamp": "Conservation Surcharge Stamp for Kootenay Lake rainbow trout",
+  "stamp_salmon_stamp": "Conservation Surcharge Stamp for salmon",
+  "stamp_shuswap_char_stamp": "Conservation Surcharge Stamp for Shuswap Lake char",
+  "stamp_shuswap_rainbow_stamp": "Conservation Surcharge Stamp for Shuswap rainbow trout",
   "steelhead": "Steelhead",
   "steelhead_stamp": "Steelhead Stamp",
   "stream": "Stream (from streams)",
