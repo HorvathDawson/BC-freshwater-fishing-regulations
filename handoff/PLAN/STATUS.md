@@ -32,8 +32,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T430 done:** the app's crash and problem-report formats are now checked against the feeds worker's, so one renamed
   field can no longer lose every report.
 - **T431 done:** the feeds worker's tests now run in CI and before every staging worker deploy. **`REPORT_SALT` is now
-  required** — without it the worker refuses reports (they stay queued on the phone). Staging has it; prod needs its
-  own before T404. Your call if you'd rather keep it optional.
+  required** — without it the worker refuses reports (they stay queued on the phone). Staging and prod both have it
+  (owner 11-06: already set on the prod feeds worker); it stays required.
 - **T432 done:** the full test run fails when the golden parity check finds nothing to compare; every app test skip is
   listed with its reason; every pipeline test file must have a quick test in the smoke list (148 still to pick).
 - **T434 done:** the review app no longer turns errors into empty answers. A failed load now shows "could not load X"

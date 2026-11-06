@@ -7,7 +7,7 @@ Names and where they live only. No value is in the repo. Checked 2026-11-05 (`wr
 | name | where | rotate |
 |---|---|---|
 | `RUN_TOKEN` | staging `bc-fishing-feeds-staging`; prod `bc-fishing-feeds` has its OWN value (placeholder, T404) | Claude may rotate staging: `deploy/staging/rotate-run-token.sh` (local copy `app/workers/feeds/.run-token`, gitignored). Prod: owner |
-| `REPORT_SALT` | staging; prod its own. REQUIRED (T431): without it `/report` and `/crash` answer 503, and `deploy/staging/feeds.sh` refuses to deploy | never, or report ids stop matching their history. Owner |
+| `REPORT_SALT` | staging; prod its own (set on the prod feeds worker, owner 11-06). REQUIRED (T431): without it `/report` and `/crash` answer 503, and `deploy/staging/feeds.sh` refuses to deploy | never, or report ids stop matching their history. Owner |
 | `NOTIFY_EMAIL_TO` | staging; prod | owner (a verified Email Routing address) |
 | `GITHUB_DISPATCH_TOKEN` | staging; prod | owner: a fine-grained GitHub token, this repo only, Actions read+write. It expires: renew it, then `wrangler secret put` |
 
