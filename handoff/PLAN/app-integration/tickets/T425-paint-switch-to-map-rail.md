@@ -53,3 +53,8 @@ head has a fixed min height so the bar does not move between modes. No new image
 No Shell-level test (the fixture has no paired status index, so the regs map never draws there).
 Owed: before/after shots at 390x844 and 1440x900, light + dark (not taken: no dev server run); owner reviews the look.
 The `map-ui-layout-rule` memory already carries the new placement.
+
+## Seen 2026-11-05 (local dev app, 390 wide, light)
+The rail looks right (trout + salmon art, TROUT selected). Left: the legend bar keeps an empty head row holding only the
+fold chevron — one wasted line; put the chevron on the key's first row (or the bar's corner). Shot:
+`.playwright-mcp/t425-phone-light.png` (not committed). Dark + 1440 still owed.
