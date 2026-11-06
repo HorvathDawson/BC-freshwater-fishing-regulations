@@ -28,13 +28,14 @@ Written 2026-11-06, as chat 4 closed. It replaces `NEXT-SESSION-after-chat3.md`.
   up to z14). NOT in an APK yet.
 - T449: both Nanaimo places accepted (owner, in chat); marks + place file committed.
 - Section ids typed into tests: owner says they should not be there (T441 Work 2).
-- **Two agents were still running when chat 4 closed** (they die with it): (a) the flicker + fling stutter (new
-  tickets, emulator), (b) T441 Work 2. Check `git log` / the tickets README for what they committed; redo what is
-  missing.
+- **T441 DONE** (23c9aed6a, d03aab79e): tests name sections by stream key + start (`sectionNames` in
+  `@app/data/release/node`); no raw ids left.
+- **One agent was still running when chat 4 closed** (it dies with it): the flicker + fling stutter (new tickets,
+  emulator). Check `git log` / the tickets README for what it committed; redo what is missing.
 
 ## The list, in order
 1. **Map-switch flicker and fling stutter** (owner, 0.6.6): file/finish their tickets; measure on the emulator, fix,
-   before/after numbers. Then **T441 Work 2** if unfinished.
+   before/after numbers.
 2. **Next APK** (0.6.7) with T443's floor and whatever of 1 lands: `pnpm check` once, `sync.mjs` if a release moved,
    `deploy/staging/build-apk.sh --play`, fresh-install walk.
 3. If streams still pop in while panning: a delta-2 APK side by side on the phone (T401).
