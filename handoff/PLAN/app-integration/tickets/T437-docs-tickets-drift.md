@@ -1,6 +1,6 @@
 # T437 — Docs and tickets: drift, stale statuses, one START-HERE
 
-Status: DONE 2026-11-06 — fd7efa095. check-tickets compares file vs ledger status (13 aligned; IN REVIEW defined);
+Status: DONE 2026-11-06 — d9a72c206. check-tickets compares file vs ledger status (13 aligned; IN REVIEW defined);
 AGENTS 16/17/18/39/59 true; one START-HERE (5 NEXT-SESSION pages + 2 plans deleted); tsbuildinfo untracked; copilot file a
 pointer. Not done (recorded): tests.md §2 kept (`tools/regs-walk.mjs` names its checks); archive/ pointers (AGENTS header,
 rule 21/37, `classify.py:17`, …) are T335's; findings 11 (golden.json freeze, owner), 12, 14 (test shapes) left open.

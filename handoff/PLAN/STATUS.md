@@ -39,6 +39,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T434 done:** the review app no longer turns errors into empty answers. A failed load now shows "could not load X"
   with the reason in a banner. **The backend no longer auto-reloads on code changes** (start with `DEV=1` if you want
   that): a reload could cut off a save half way. API.md now lists every route.
+- **T435 done:** pipeline tools read data only through the declared paths (and CI now catches the form that slipped
+  through 23 times); the gauge tools that judged staleness by file times are gone; one release-id formula; several
+  "quiet default" spots now stop with a reason instead.
+- **T436 done:** dead modules deleted, duplicate helpers folded into one each.
+- **T437 done:** docs and ticket statuses made true; the ticket check now refuses a ticket whose file and ledger row
+  disagree. New `handoff/PLAN/START-HERE.md`; 5 old handoff pages deleted.
+- **T438 done:** the stale 1.4 GB agent worktree removed (clean, merged, unused).
+- **All 10 audit fix tickets (T429–T438) done.** Next: T335 (delete `archive/`).
 
 ## 2026-11-05 (late): chat 2 started — launch prep, CI back on
 - **T416 proof is running** (fresh clone, then a Mac build at the same commit; verdict in `~/t416-repro.json`, ~23:15).

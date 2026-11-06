@@ -480,8 +480,8 @@ use that as the sole source of future work."
 | T433 | Staging scripts: upload can take staging dark; sync and HYDAT mask failures (high) | DONE | 4d8b72626 | audit 11-05 |
 | T434 | Review app: errors turned into empty answers (medium) | DONE | a89deff00 544d85a10 | audit 11-05 |
 | T435 | Pipeline: hard-coded data paths, mtime staleness, two release-id formulas (medium) | DONE | 692ebeaf0 | audit 11-05 |
-| T436 | Dead code and duplicate helpers (tidy-up) (low) | DONE | d8f2429bc 6265c51a8 | audit 11-05 |
-| T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | DONE | fd7efa095 | audit 11-05 |
+| T436 | Dead code and duplicate helpers (tidy-up) (low) | DONE | 971f40575 817b52a99 | audit 11-05 |
+| T437 | Docs and tickets: drift, stale statuses, one START-HERE (medium) | DONE | d9a72c206 | audit 11-05 |
 | T438 | A locked agent worktree (1.4 GB) under .claude/worktrees (low) | DONE | ed591aa70 |  audit 11-05 |
 
 ## Order for open tickets
