@@ -164,9 +164,9 @@ def _delivery(d: Path, *, handles=H, reach=REACH, store_handles=None, answers_te
     _tiles(d / "tiles", handles)
     (d / "tiles" / "atlas.meta.json").write_text(json.dumps({"section_handles": handles, "registry": "reg1",
                                                              "tile_version": "TV1"}))
-    # (T373) the run-timing feed bound for this delivery's map
-    (d / "runtiming" / "runtiming").mkdir(parents=True, exist_ok=True)
-    (d / "runtiming" / "runtiming" / "index.json").write_text(json.dumps({
+    # (T373/T412) the run-timing base staged for this delivery's map
+    (d / "runtiming").mkdir(parents=True, exist_ok=True)
+    (d / "runtiming" / "base.json").write_text(json.dumps({
         "section_handles": rt_handles or handles, "tile_version": rt_tiles}))
     db = sqlite3.connect(d / "bundle.sqlite")
     db.execute("CREATE TABLE meta (k TEXT, v TEXT)")
@@ -230,7 +230,7 @@ def test_report_all_refuses_answers_changed_after_the_store_and_the_gate(tmp_pat
 
 def test_report_all_strict_refuses_a_missing_artifact_lenient_notes_it(tmp_path: Path):
     arts = _delivery(tmp_path)
-    arts.runtiming.unlink()                                   # (T373) a release with no run timing bound is refused
+    arts.runtiming.unlink()                                   # (T373/T412) a release with no run-timing base is refused
     assert not report_all(tmp_path / "tiles", arts, strict=True)[0]
     arts = _delivery(tmp_path / "b")
     arts.store.unlink()

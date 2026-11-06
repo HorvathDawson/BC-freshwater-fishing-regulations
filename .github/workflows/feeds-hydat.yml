@@ -1,6 +1,6 @@
 name: feeds — HYDAT → climatology → R2
 
-# T225 follow-up (owner 2026-10-28). MANUAL ONLY (workflow_dispatch): no schedule, no push trigger. The trigger is the
+# T225 follow-up (owner 2026-10-28). MANUAL ONLY (workflow_dispatch): no schedule; a push of this file only registers it (skipped). The trigger is the
 # app's / feed's "new HYDAT release" notice (T301, owner 2026-10-30). The run asks ECCC's listing first (a few KB) and
 # stops there unless it names a newer HYDAT than the staging feed is on (force: true rebuilds anyway).
 #
@@ -46,6 +46,10 @@ on:
         description: "Rebuild the envelope even when HYDAT is unchanged"
         type: boolean
         default: false
+  # (T412/T413) REGISTRATION ONLY: GitHub can dispatch a workflow that is not on the default branch (main stays
+  # untouched) only once it has run there; a push of THIS file registers it. The job below is skipped for a push.
+  push:
+    paths: [".github/workflows/feeds-hydat.yml"]
 
 concurrency:
   group: feeds-hydat
@@ -53,6 +57,7 @@ concurrency:
 
 jobs:
   hydat:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:

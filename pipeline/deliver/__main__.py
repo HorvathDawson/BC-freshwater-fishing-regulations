@@ -135,8 +135,8 @@ def _all(a) -> int:
         # (T202) THE BASEMAP THE RELEASE NAMES LIVES BESIDE THE RELEASES (data/release/basemap/<id>/, T75), not in this
         # staging folder, which holds only the new r-* folder. The vintage check resolves the manifest's basemap url
         # under the staging release, so it is shown the released basemaps there; only r-* folders are promoted below.
-        # (T373) RUN TIMING BOUND FOR THIS RELEASE'S MAP (`runtiming.feed.release`), checked by the vintage below and
-        # promoted with it: a release never ships beside a feed of another atlas
+        # (T373/T412) THE RUN-TIMING BASE OF THIS RELEASE'S MAP (`runtiming.feed.release.stage_base`), checked by the
+        # vintage below and promoted with it; the feed itself is the workflow's (the staging upload starts it)
         _step(["runtiming", "--release-root", str(d / "release"), "--out", str(d / "runtiming"),
                *(["--tiles", str(a.tiles)] if a.tiles else []), *(["--build", str(a.build)] if a.build else [])])
         bm_root, bm_here = rel_root / "basemap", d / "release" / "basemap"
@@ -177,8 +177,8 @@ def _all(a) -> int:
             else:
                 write_latest(rel_root, releases[-1].name)
                 (rel_root / "CANDIDATE").unlink(missing_ok=True)     # a direct build supersedes a held one
-        # (T373) the run-timing feed of this release, whole, where the data server and the upload read it
-        rt_home = (dest / "runtiming") if dest else GENERATED.runtiming / "feed" / "out"
+        # (T412) the run-timing base of this release, where the staging upload reads it
+        rt_home = (dest / "runtiming") if dest else GENERATED.runtiming / "feed" / "release"
         if (d / "runtiming").exists():
             if rt_home.exists():
                 shutil.rmtree(rt_home)
@@ -240,7 +240,7 @@ def main(argv=None) -> int:
     st.add_argument("--out", type=Path, default=None,
                     help="default: pipeline.deliver.store.DEBUG_OUT (data/generated/debug/regs.sqlite)")
     st.add_argument("--blobs", default="zdict", choices=("json", "deflate", "zdict"))
-    rt = sub.add_parser("runtiming", help="(T373) the run-timing feed bound for the one release in --release-root")
+    rt = sub.add_parser("runtiming", help="(T412) the run-timing base for the one release in --release-root")
     rt.add_argument("--release-root", type=Path, required=True)
     rt.add_argument("--out", type=Path, required=True)
     rt.add_argument("--tiles", type=Path, default=None)
@@ -271,11 +271,11 @@ def main(argv=None) -> int:
             a.hold_latest = False
         return _all(a)
     if a.step == "runtiming":
-        from pipeline.runtiming.feed.release import bind
+        from pipeline.runtiming.feed.release import stage_base
         rels = sorted(p for p in a.release_root.glob("r-*") if p.is_dir())
         if len(rels) != 1:
             raise SystemExit(f"pipeline.deliver runtiming: expected one release in {a.release_root}, found {len(rels)}")
-        bind(rels[0], a.tiles or GENERATED.tiles, a.out, a.build)
+        stage_base(rels[0], a.tiles or GENERATED.tiles, a.out, a.build)
         return 0
     if a.step == "bundle":
         _bundle(a)

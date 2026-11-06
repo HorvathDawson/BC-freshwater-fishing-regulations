@@ -41,9 +41,9 @@ def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
             (r / "manifest.json").write_text("new manifest")
             (r.parent / "LATEST").write_text("r-test\n")    # the release step names it (T72)
             return
-        if name == "runtiming":                     # (T373) a folder: the feed bound for that release
-            (Path(args[args.index("--out") + 1]) / "runtiming").mkdir(parents=True)
-            (Path(args[args.index("--out") + 1]) / "runtiming" / "index.json").write_text("new runtiming")
+        if name == "runtiming":                     # (T412) a folder: the run-timing base staged for that release
+            Path(args[args.index("--out") + 1]).mkdir(parents=True)
+            (Path(args[args.index("--out") + 1]) / "base.json").write_text("new runtiming")
             return
         out = Path(args[args.index("--out") + 1]).parent if "--out" in args else Path(args[args.index("--export-dir") + 1])
         for f in WRITES[name]:
@@ -95,8 +95,8 @@ def test_a_passing_run_promotes_every_file_and_leaves_no_staging(monkeypatch, tm
     assert {n: t for n, (t, _m) in _state(dest).items() if n not in ("release", "runtiming")} == {f: f"new {f}" for f in KEPT}
     assert not (dest / "regs.sqlite").exists()                      # P20: the store is not kept
     assert (dest / "release" / "r-test" / "manifest.json").read_text() == "new manifest"
-    # (T373) the run-timing feed of that release is promoted whole beside it
-    assert (dest / "runtiming" / "runtiming" / "index.json").read_text() == "new runtiming"
+    # (T412) the run-timing base of that release is promoted whole beside it
+    assert (dest / "runtiming" / "base.json").read_text() == "new runtiming"
     assert [p.name for p in tmp_path.iterdir()] == ["out"]
 
 

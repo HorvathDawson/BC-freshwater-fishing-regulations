@@ -18,11 +18,34 @@ q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]
 MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release.app_gate "$M"
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket "${@:3}"; }
-# (T199) runtiming/ is the run-timing feed's (feeds-runtiming.yml / pipeline.runtiming.feed.publish): never cleared here
+TILES=$(q "m['tiles']['current']['id']")
+# (T412) RUN TIMING HAS ONE PUBLISHER, feeds-runtiming.yml. This release ships the BINDING BASE of its map (`pipeline
+# deliver` stages it in data/generated/runtiming/feed/release/); it goes to private/, then the workflow is started for
+# these tiles and runs WHILE the rest uploads; the pointer (release/manifest.json) is written last, after it (below).
+RT=data/generated/runtiming/feed/release
+RT_TV=$(python3 -c "import json;print(json.load(open('$RT/base.json'))['tile_version'])") \
+  || { echo "upload: no run-timing base at $RT — run pipeline.deliver all"; exit 1; }
+[[ "$RT_TV" == "$TILES" ]] || { echo "upload: the run-timing base is for $RT_TV, the release's tiles are $TILES"; exit 1; }
+RT_BASE=$(python3 -c "import json;print(json.load(open('$RT/base.json'))['base'])")
+rclone copyto "$RT/$RT_BASE" "$D/private/runtiming/base/${TILES%%.*}.json.gz" --s3-no-check-bucket --checksum
+# the workflow runs the code on GitHub: refuse a local commit it would not see
+GH_REPO=HorvathDawson/BC-freshwater-fishing-regulations; GH_REF=redesign/stream-sections
+git fetch -q origin "$GH_REF"
+git merge-base --is-ancestor HEAD "origin/$GH_REF" || { echo "upload: push $GH_REF first (the run-timing workflow runs GitHub's copy)"; exit 1; }
+# (T199/T412) runtiming/ is the run-timing feed's (feeds-runtiming.yml, its only publisher): never cleared here
 # (T251) test/ is the staging update-test channel (deploy/staging/test-updates.mjs): never cleared here either
 echo "clear $D (except feeds/, private/, runtiming/, test/, app/android/)"
 rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/**" --exclude "runtiming/**" --exclude "test/**" --exclude "app/android/**"
-TILES=$(q "m['tiles']['current']['id']")
+RT_T0=$(date -u -v-60S +%Y-%m-%dT%H:%M:%SZ)     # a minute back: the Mac and GitHub clocks differ a little
+gh workflow run feeds-runtiming.yml -R "$GH_REPO" --ref "$GH_REF" -f upload=true -f tiles="$TILES" >/dev/null
+RT_RUN=""
+for _ in $(seq 1 30); do
+  RT_RUN=$(gh run list -R "$GH_REPO" --branch "$GH_REF" --event workflow_dispatch --limit 10 --json databaseId,createdAt,workflowName \
+    --jq "[.[] | select(.workflowName | startswith(\"feeds — run timing\")) | select(.createdAt >= \"$RT_T0\")][0].databaseId // empty")
+  [[ -n "$RT_RUN" ]] && break; sleep 4
+done
+[[ -n "$RT_RUN" ]] || { echo "upload: the run-timing workflow did not start (gh workflow run)"; exit 1; }
+echo "run timing: workflow run $RT_RUN started for $TILES"
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
   --exclude "*.pbf"
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
@@ -53,17 +76,14 @@ deploy/staging/sync-inputs.sh
 for w in app/node_modules/sql.js/dist/sql-wasm-browser.wasm app/node_modules/sql.js/dist/sql-wasm.wasm; do
   cp_ "$w" "$(basename "$w")" --header-upload "Content-Type: application/wasm" --header-upload "Cache-Control: public, max-age=86400"
 done
-# (T373) THE RUN-TIMING FEED OF THIS RELEASE'S MAP (`deliver all` binds it: data/generated/runtiming/feed/out), published
-# with the release — refused when it names other tiles; its binding base goes to private/ for the scheduled refresh
-RT=data/generated/runtiming/feed/out/runtiming
-RT_TV=$(.venv/bin/python -c "import json;print(json.load(open('$RT/index.json'))['tile_version'])") \
-  || { echo "upload: no run-timing feed at $RT — run pipeline.deliver all"; exit 1; }
-[[ "$RT_TV" == "$TILES" ]] || { echo "upload: the run-timing feed is bound to $RT_TV, the release's tiles are $TILES"; exit 1; }
-RT_H=${TILES%%.*}
-if ! rclone lsf "$D/private/runtiming/base/$RT_H.json.gz" --s3-no-check-bucket 2>/dev/null | grep -q .; then
-  rclone copyto "data/generated/runtiming/feed/base-$RT_H.json.gz" "$D/private/runtiming/base/$RT_H.json.gz" --s3-no-check-bucket
-fi
-.venv/bin/python -m pipeline.runtiming.feed.publish --dir "$RT" --via wrangler --yes
+# (T412) ATOMIC SWITCH: the release pointer flips only once run timing for THIS release's tiles is on R2 (the workflow
+# started above publishes it; same tiles as the live feed and nothing new: it publishes nothing, the index already
+# names them). A failed run stops here without writing the pointer; fix it and rerun this script.
+echo "run timing: waiting for workflow run $RT_RUN"
+gh run watch "$RT_RUN" -R "$GH_REPO" --exit-status --interval 20 >/dev/null \
+  || { echo "upload: the run-timing workflow failed: https://github.com/$GH_REPO/actions/runs/$RT_RUN — the release pointer was NOT written"; exit 1; }
+RT_LIVE=$(rclone cat "$D/runtiming/index.json" --s3-no-check-bucket | python3 -c "import json,sys;print(json.load(sys.stdin)['tile_version'])")
+[[ "$RT_LIVE" == "$TILES" ]] || { echo "upload: runtiming/index.json names $RT_LIVE, the release's tiles are $TILES — pointer NOT written"; exit 1; }
 # (T251) the publish day (kept once set) and, with MIN_APP_VERSION=x.y.z, the oldest app that may apply it: stamped
 # into the manifest here, never by the build; neither moves a file, the tiles or the release id (nothing re-uploaded)
 .venv/bin/python -m pipeline.deliver.release.stamp "$M" ${MIN_APP_VERSION+--min-app-version "$MIN_APP_VERSION"}

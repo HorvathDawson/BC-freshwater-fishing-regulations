@@ -211,3 +211,50 @@ def test_t373_a_release_without_its_runtiming_inputs_is_refused_not_given_an_old
     (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": "h1"}))
     with pytest.raises(SystemExit, match="no section_handles / tile_version"):
         R.bind(tmp_path / "r-x", tiles, tmp_path / "out")
+
+
+def test_t412_the_release_stages_the_base_of_its_own_map(tmp_path, monkeypatch):
+    """(T412) a release ships the BASE of its tiles' handles (+ base.json naming it), never a feed: the workflow is the
+    only publisher of run timing."""
+    import json
+    from pipeline.runtiming.feed import release as R
+    tiles = tmp_path / "tiles"
+    tiles.mkdir()
+    (tiles / "atlas.meta.json").write_text(json.dumps({"section_handles": "h" * 16, "tile_version": "h" * 16 + ".t2"}))
+    base = make_base(tmp_path)
+    named = tmp_path / ("base-" + "h" * 16 + ".json.gz")
+    base.rename(named)
+    monkeypatch.setattr(R, "base_for", lambda handles, t, rel, b=None: named)
+    doc = R.stage_base(tmp_path / "r-x", tiles, tmp_path / "out")
+    assert doc["section_handles"] == "h" * 16 and doc["tile_version"] == "h" * 16 + ".t2"
+    assert (tmp_path / "out" / named.name).read_bytes() == named.read_bytes()
+    assert json.loads((tmp_path / "out" / "base.json").read_text()) == doc
+    assert not (tmp_path / "out" / "runtiming").exists()
+
+
+def test_t412_built_twice_the_same_bytes(tmp_path):
+    """(T412) the same inputs give the same files and index (only `built_at` moves): a refresh with nothing new is
+    not a change, and the workflow publishes nothing."""
+    timing, poly = make_inputs(tmp_path)
+    base = make_base(tmp_path)
+    f1, i1, _ = B.build(timing, poly, base, tile_version="T")
+    f2, i2, _ = B.build(timing, poly, base, tile_version="T")
+    assert f1 == f2
+    assert {k: v for k, v in i1.items() if k != "built_at"} == {k: v for k, v in i2.items() if k != "built_at"}
+    d1, d2 = B.write(tmp_path / "a", f1, i1, {}), B.write(tmp_path / "b", f2, i2, {})
+    assert {p.name: p.read_bytes() for p in d1.glob("*.gz")} == {p.name: p.read_bytes() for p in d2.glob("*.gz")}
+
+
+def test_t412_the_diff_says_a_real_change_only(built):
+    from pipeline.runtiming.feed.diff import diff
+    docs, index, _report, _files = built
+    runs = {r["id"]: r for r in docs["runs"]["runs"]}
+    assert diff(index, runs, None, None)["changed"] is True
+    same = diff(index, runs, {**index, "built_at": "another day"}, runs)
+    assert same["changed"] is False and same["runs"] == {"added": 0, "dropped": 0, "changed": 0}
+    k = next(iter(runs))
+    moved = {**runs, k: {**runs[k], "peak": "Jan 1"}}
+    live = {**index, "files": {**index["files"], "runs": {**index["files"]["runs"], "sha256": "old"}}}
+    d = diff(index, runs, live, moved)
+    assert d["changed"] is True and d["why"] == "runs" and d["runs"]["changed"] == 1
+    assert diff(index, runs, {**index, "tile_version": "older"}, runs)["why"] == "tiles"

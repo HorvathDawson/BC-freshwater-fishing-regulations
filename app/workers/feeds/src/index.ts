@@ -30,6 +30,7 @@ import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { dispatchOnce, type DispatchEnv } from "./dispatch";
+import { checkRunTiming } from "./runtiming";
 import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv, DispatchEnv {
@@ -436,6 +437,27 @@ async function skill(env: Env, now = new Date(), month?: string): Promise<{ ok: 
   return report ? { ok: true, report } : { ok: false, error };
 }
 
+/** (T412) the weekly run-timing source check (src/runtiming.ts): a newer NuSEDS starts its workflow and tells the owner */
+async function runTimingCheck(env: Env, now = new Date()): Promise<{ ok: boolean; error?: string; event?: FeedEvent | null }> {
+  let event: FeedEvent | null = null;
+  let error: string | undefined;
+  try {
+    event = await checkRunTiming(env, (u, i) => fetch(u, i), env.BUCKET, r2Store(env.BUCKET, "private/feeds/dispatch/"), now);
+  } catch (e) {
+    error = String((e as Error)?.message ?? e).slice(0, 500);
+  }
+  const at = now.toISOString();
+  const ev: FeedEvent | null = event ?? (error
+    ? { key: `runtiming-failed:${at.slice(0, 10)}`, kind: "runtiming", at, title: "The weekly run-timing source check failed",
+        text: `${error}\n\nRetry: POST /run/runtiming on the feeds worker (Bearer RUN_TOKEN).` }
+    : null);
+  try {
+    if (ev) await deliver([ev], { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now });
+  } catch { /* logged below */ }
+  console.log(JSON.stringify({ job: "runtiming", ok: !error, event: event?.key ?? null, error }));
+  return error ? { ok: false, error } : { ok: true, event };
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     setDeployId(env.CF_VERSION_METADATA?.id);
@@ -518,6 +540,12 @@ export default {
       const r = await skill(env, new Date(), month);
       return Response.json(r, { status: r.ok ? 200 : 500 });
     }
+    if (url.pathname === "/run/runtiming" && req.method === "POST") {
+      // (T412) the weekly run-timing source check by hand
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const r = await runTimingCheck(env);
+      return Response.json(r, { status: r.ok ? 200 : 500 });
+    }
     if (url.pathname === "/run/backup" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const r = await backup(env);
@@ -535,9 +563,10 @@ export default {
     setDeployId(env.CF_VERSION_METADATA?.id);
     // cron strings are in wrangler.toml [triggers]: the minute field names the job
     //   "15 …" DFO, "45 …" in-season, "25 …" the daily backup (T246) + report purge (T271), "55 …" the monthly model
-    //   score (T178), anything else the gauges
+    //   score (T178), "40 …" the weekly run-timing source check (T412), anything else the gauges
     if (ev.cron.startsWith("25 ")) { ctx.waitUntil(Promise.allSettled([backup(env), purge(env)])); return; }
     if (ev.cron.startsWith("55 ")) { ctx.waitUntil(skill(env)); return; }
+    if (ev.cron.startsWith("40 ")) { ctx.waitUntil(runTimingCheck(env)); return; }
     const job: Job = ev.cron.startsWith("15 ") ? "dfo" : ev.cron.startsWith("45 ") ? "inseason" : "gauges";
     ctx.waitUntil(run(job, env).then((r) => console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter }))));
   },

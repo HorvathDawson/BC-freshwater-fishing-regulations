@@ -337,8 +337,9 @@ def main(argv=None) -> int:
     ap.add_argument("--polygons", type=Path, required=True)
     ap.add_argument("--base", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--tile-version", default=None, help="(T412) the release's tiles, when a later cut of the base's atlas")
     a = ap.parse_args(argv)
-    files, index, report = build(a.timing, a.polygons, a.base)
+    files, index, report = build(a.timing, a.polygons, a.base, tile_version=a.tile_version)
     d = write(a.out, files, index, report)
     print(f"build: {json.dumps(report, sort_keys=True)} -> {d}")
     return 0

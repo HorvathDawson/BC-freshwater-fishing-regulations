@@ -64,3 +64,29 @@ describe("the HYDAT email", () => {
     expect(dispatchSteps(undefined, "B")).toEqual([{ text: "B" }]);
   });
 });
+
+describe("(T412) the weekly run-timing source check", async () => {
+  const { checkRunTiming, nusedsLatest } = await import("../src/runtiming");
+  const record = (names: string[]) => async (url: string) =>
+    url.includes("open.canada.ca") ? Response.json({ result: { resources: names.map((name) => ({ name })) } }) : new Response(null, { status: 204 });
+  const bucket = (updated: string | null) => ({
+    get: async () => updated === null ? null : { text: async () => JSON.stringify({ sources: { dfo: { updated } } }) },
+  });
+  it("reads the newest All Areas date", async () => {
+    expect(await nusedsLatest(record(["All Areas NuSEDS_20250101.zip", "All Areas NuSEDS_20260601.zip", "Other_20990101.zip"]))).toBe("20260601");
+    await expect(nusedsLatest(record(["something else"]))).rejects.toThrow("lists no");
+  });
+  it("nothing newer: no event, no dispatch", async () => {
+    expect(await checkRunTiming({ GITHUB_DISPATCH_TOKEN: "t" }, record(["All Areas NuSEDS_20260601.zip"]), bucket("20260601"), mem(), T0)).toBeNull();
+  });
+  it("newer: starts the workflow once and says so", async () => {
+    const s = mem();
+    const e = await checkRunTiming({ GITHUB_DISPATCH_TOKEN: "t" }, record(["All Areas NuSEDS_20270101.zip"]), bucket("20260601"), s, T0);
+    expect(e).toMatchObject({ key: "runtiming:20270101", kind: "runtiming", data: { latest: "20270101", current: "20260601", dispatch: { state: "started" } } });
+    expect(JSON.parse(s.m.get("feeds-runtiming.yml.json")!)).toMatchObject({ version: "20270101", state: "started" });
+  });
+  it("without a token: the button", async () => {
+    const e = await checkRunTiming({}, record(["All Areas NuSEDS_20270101.zip"]), bucket("20260601"), mem(), T0);
+    expect(e!.text).toContain("GitHub → Actions");
+  });
+});

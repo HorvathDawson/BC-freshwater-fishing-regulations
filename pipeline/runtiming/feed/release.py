@@ -1,18 +1,15 @@
-"""(T373, owner 2026-11-03: "we need the run timing to always be synced") RUN TIMING BOUND FOR ONE RELEASE. `deliver all`
-runs this after the release step, so every release has a run-timing feed of ITS map: the paint index names the
-release's `section_handles` and its tiles' `tile_version`; the vintage check (`common.vintage.report_all`) refuses a
-delivery whose feed names another. A new atlas no longer waits on a hand-run base (the 2026-11-03 failure: the feed
-was bound to 10cbcb72…, the release carried 822db448…, so Run timing painted nothing).
+"""RUN TIMING FOR ONE RELEASE (T373 "always synced"; T412 owner 2026-11-05: ONE publisher). The release ships the BINDING
+BASE of its map, not the feed: `deliver all` runs `stage_base` after the release step, so every release has the base of
+its own `section_handles`; the vintage check (`common.vintage.report_all`) refuses a delivery whose base names another.
+The run-timing feed itself is built and published ONLY by `.github/workflows/feeds-runtiming.yml`: the staging upload
+puts this base in `private/runtiming/base/`, starts the workflow for the release's tiles, and flips the release pointer
+last, once run timing for those tiles is on R2 (`deploy/staging/upload.sh`), so map and run timing switch together.
 
-    python -m pipeline.runtiming.feed.release --release DIR [--tiles DIR] [--build DIR] --out DIR
+    python -m pipeline.runtiming.feed.release --release DIR [--tiles DIR] [--build DIR] --out DIR          # the base
+    python -m pipeline.runtiming.feed.release --local [--tiles DIR] [--build DIR]   # the LOCAL test bed's feed only
 
-1. THE BASE for the tiles' handles (`base-<handles>.json.gz` in `GENERATED.runtiming/feed`): read when it is there,
-   else built (`base.build`: the atlas graph + the tiles' layers, ~3 GB streamed — heavy, as `deliver all` already is).
-2. THE BINDING (`build.build`) of the parsed timings (`TIMING`, source data since T331) and the CU polygons (`POLYGONS`)
-   — `python -m pipeline.runtiming.parse`'s own default outputs, after a fetch. Missing inputs stop the delivery (never an
-   old feed in their place). Checked (`build.check`), written to `--out`.
-The scheduled workflow keeps refreshing the runs against the same base (`private/runtiming/base/<handles>`); the
-staging upload sends this feed with its release (`deploy/staging/upload.sh`).
+`--local` binds the cached timings (`TIMING`, `POLYGONS`: `runtiming.parse`'s defaults) into
+`data/generated/runtiming/feed/out`, which `app/tools/serve-tiles.mjs` serves. Never uploaded.
 """
 from __future__ import annotations
 
@@ -40,6 +37,24 @@ def base_for(handles: str, tiles: Path, release: Path, build_dir: Optional[Path]
     return p
 
 
+def stage_base(release: Path, tiles: Path, out: Path, build_dir: Optional[Path] = None) -> dict:
+    """The base of `tiles`' handles into `out` (`base-<handles>.json.gz` + `base.json` naming it); returns base.json."""
+    import hashlib
+    import shutil
+    meta = json.loads((tiles / "atlas.meta.json").read_text(encoding="utf-8"))
+    handles, tv = meta.get("section_handles"), meta.get("tile_version")
+    if not handles or not tv:
+        raise SystemExit(f"runtiming: the tiles at {tiles} carry no section_handles / tile_version")
+    src = base_for(handles, tiles, release, build_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(src, out / src.name)
+    doc = {"section_handles": handles, "tile_version": tv, "base": src.name,
+           "sha256": hashlib.sha256((out / src.name).read_bytes()).hexdigest()}
+    (out / "base.json").write_text(json.dumps(doc, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"runtiming: base {src.name} staged for {tv}")
+    return doc
+
+
 def bind(release: Path, tiles: Path, out: Path, build_dir: Optional[Path] = None,
          timing: Path = TIMING, polygons: Path = POLYGONS) -> dict:
     """Bind the run-timing feed for `release` (cut against `tiles`) into `out`; returns its index."""
@@ -64,12 +79,20 @@ def bind(release: Path, tiles: Path, out: Path, build_dir: Optional[Path] = None
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="pipeline.runtiming.feed.release", description=__doc__.split("\n\n")[0])
-    ap.add_argument("--release", type=Path, required=True, help="the release just built (its core names the items)")
+    ap.add_argument("--release", type=Path, default=None, help="the release just built (its core names the items)")
     ap.add_argument("--tiles", type=Path, default=None, help="the tiles it is cut against (default: GENERATED.tiles)")
     ap.add_argument("--build", type=Path, default=None, help="the atlas build, for a missing base (default: the live one)")
-    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--local", action="store_true", help="bind the cached timings for the local test bed (never uploaded)")
     a = ap.parse_args(argv)
-    bind(a.release, a.tiles or GENERATED.tiles, a.out, a.build)
+    tiles = a.tiles or GENERATED.tiles
+    if a.local:
+        rel = a.release or (GENERATED.release / (GENERATED.release / "LATEST").read_text().strip())
+        bind(rel, tiles, a.out or GENERATED.runtiming / "feed" / "out", a.build)
+        return 0
+    if not a.release or not a.out:
+        ap.error("--release and --out (or --local)")
+    stage_base(a.release, tiles, a.out, a.build)
     return 0
 
 

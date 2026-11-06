@@ -28,14 +28,14 @@ plan (which stages run and why), the min app version, and the upload command.
 | 3 build | `scripts/heavy.sh release 50 -- python -m pipeline build --hold-latest`. The build skips any stage whose inputs did not change. It writes the new release to `data/release/<r-id>/` and names it in `data/release/CANDIDATE`. **LATEST does not move.** | A build stage failed. `python -m pipeline build --status` shows the stage and its log. |
 | 4 checks | Manifest sanity: every file is there at its size, the size gate passes, and the bundle names the reach run on disk. The app-version gate (`pipeline/deliver/release/app_gate.py`, the same one `upload.sh` runs). The rule-binding diff against the live release. | Any check fails. **A non-empty binding diff always stops here** (see 3). |
 | 5 promote | LATEST := the candidate. `CANDIDATE` is removed. | — |
-| 6 staging | `deploy/staging/upload.sh <r-id>` with `MIN_APP_VERSION`. This is the staging bucket only, with the smoke test. | The upload failed. Fix it and rerun. Stages 1–5 are skipped. |
+| 6 staging | `deploy/staging/upload.sh <r-id>` with `MIN_APP_VERSION`. This is the staging bucket only, with the smoke test. It starts the run-timing workflow for the release's tiles while the files upload, and writes the release pointer last, after run timing for those tiles is on R2 (T412). The branch must be pushed (the workflow runs GitHub's copy). | The upload failed. Fix it and rerun. Stages 1–5 are skipped. |
 
 When a stage fails, the run prints what failed and what to do. **Rerun the same command to resume.** A finished stage
 is skipped: the build has its own stage cache, and the ledger `data/generated/release/ledger.json` holds the result of
 each check, the promote and the staging upload for each release id.
 
 Before the checks, the build has already rewritten the live working outputs: the reach run, tiles, bundle, export and
-run-timing feed. The review app reads these. Only the release pointer waits. So a release that fails its checks sits on
+run-timing base. The review app reads these. Only the release pointer waits. So a release that fails its checks sits on
 disk, named by `CANDIDATE`, and nothing ships it.
 
 `--min-app-version X.Y.Z` sets the oldest app that may apply the release. The default is the live release's stamp,
@@ -81,4 +81,4 @@ manifest last and writes `PUBLISHED`. If the website must follow, deploy it sepa
 
 - **A new atlas.** Build and promote it first (`python -m pipeline build --atlas`, read the parity, then `--promote`).
   The release then builds on it.
-- **Run timing.** It still runs inside deliver; moving it out is T412.
+- **Run timing (T412).** Deliver stages only the binding base; the workflow publishes run timing, started by the staging upload.

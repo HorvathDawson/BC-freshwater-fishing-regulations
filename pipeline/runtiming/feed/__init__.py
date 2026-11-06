@@ -1,11 +1,13 @@
 """THE RUN-TIMING FEED (T199, owner 2026-10-28): its own stream, NOT the release. Fetched, bound to the live atlas and
 uploaded to R2 `runtiming/` by `.github/workflows/feeds-runtiming.yml` (or by hand, the same commands); the app reads it
-lazily in the Map tab's Run timing mode. Nothing in the bundle or the release reads it. (T373, owner 2026-11-03: "always
-synced") `deliver all` BINDS it for every release's map (`feed.release`: the base built when missing, the parsed timings
-bound, the vintage check refusing a feed of other tiles) into `data/generated/runtiming/feed/out`, and the staging upload
-publishes that feed with its release; the workflow below keeps refreshing the runs against the same base.
+lazily in the Map tab's Run timing mode. Nothing in the bundle or the release reads it. (T412, owner 2026-11-05: a "slow
+feed", ONE publisher) the workflow is the only thing that publishes it. Every release ships the BASE of its map
+(`feed.release.stage_base`, checked by the vintage); the staging upload puts the base in private/, starts the workflow for
+the release's tiles, and writes the release pointer only after run timing for those tiles is on R2 ("always synced",
+T373). The feeds worker starts the workflow when NuSEDS moves (weekly check). `feed.release --local` binds the cached
+timings for the local test bed only (`data/generated/runtiming/feed/out`, never uploaded).
 
-    # by hand (deliver all does this for every release since T373; the base names the atlas's sections)
+    # by hand (deliver all stages it for every release; the base names the atlas's sections)
     python -m pipeline.runtiming.feed.base [--upload]              # -> data/generated/runtiming/feed/base-<handles>.json.gz
     # anywhere (the workflow does this): HTTP + the base, no atlas
     python -m pipeline.runtiming.fetch.explorer && python -m pipeline.runtiming.fetch.boundaries \\

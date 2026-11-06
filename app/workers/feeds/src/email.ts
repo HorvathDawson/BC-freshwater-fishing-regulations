@@ -3,6 +3,7 @@
 // was sent) rendered by one layout into multipart HTML + plain text (wrapped at 78 columns). Each item's text appears
 // ONCE, in full; commands appear once per email and are never wrapped.
 import { dispatchSteps } from "./dispatch";
+import { BUTTON as RUNTIMING_BUTTON } from "./runtiming";
 import type { FeedEvent } from "./events";
 
 export interface Item {
@@ -203,6 +204,17 @@ export function hydatSection(events: FeedEvent[]): Section {
   };
 }
 
+export function runTimingSection(events: FeedEvent[]): Section {
+  const d = events[events.length - 1]!.data ?? {};
+  return {
+    heading: `New NuSEDS ${d.latest} is out`,
+    subject: `New NuSEDS ${d.latest} — refresh run timing`,
+    blocks: [{ items: [{ name: `NuSEDS ${d.latest}`, text: `Run timing was built from ${d.current ?? "nothing"}.` }] }],
+    steps: dispatchSteps(d.dispatch, RUNTIMING_BUTTON),
+    why: "The DFO NuSEDS record is checked once a week (T412); run timing is rebuilt from it by its workflow.",
+  };
+}
+
 export function rosterSection(events: FeedEvent[]): Section {
   const rich = events.filter((e) => e.data?.latest !== undefined);
   if (!rich.length)
@@ -234,7 +246,7 @@ export function rosterSection(events: FeedEvent[]): Section {
 }
 
 const KIND_NAME: Record<string, string> = {
-  dfo: "DFO salmon", inseason: "In-season changes", health: "Feed health", hydat: "HYDAT", roster: "Gauge stations", report: "Problem reports from the app", crash: "New app errors", skill: "Forecast model scores (T178)",
+  dfo: "DFO salmon", inseason: "In-season changes", health: "Feed health", hydat: "HYDAT", roster: "Gauge stations", report: "Problem reports from the app", crash: "New app errors", skill: "Forecast model scores (T178)", runtiming: "Run timing",
 };
 
 export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): Section {
@@ -258,6 +270,8 @@ export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): S
       return healthSection(events, ctx.statusUrl);
     case "hydat":
       return hydatSection(events);
+    case "runtiming":
+      return runTimingSection(events);
     case "roster":
       return rosterSection(events);
     case "report":
