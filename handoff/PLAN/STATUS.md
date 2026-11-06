@@ -26,7 +26,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   by nothing: yours to delete or keep. The prod configs and scripts are T404's, for when prod is near.
 - **T244 / T371:** the store privacy draft now lists the install id and the report's map centre (the privacy page
   already did). Apple "Device ID": a proposal for you. T371 now says promote **0.6.2 (build 11)**.
-- **T409:** the "map only when first seen" change is being written (web only); measuring waits for the heavy slot.
+- **T409:** water pages no longer build the hidden map until you go back to it, at every width (your call: desktop
+  too). Code + tests in (a2946f62e, 99574d8c8). The score measurement waits for the heavy slot.
 - New: T421 (a silent fallback found while fixing CI).
 
 ## 2026-11-05: 0.6.1 on Play internal
