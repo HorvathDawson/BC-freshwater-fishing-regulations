@@ -1,6 +1,6 @@
 # T242 — crash and error reporting (privacy-light)
 
-Status: PARTIAL — built and tested (960d2d8, 31c8d04); 2026-11-06 the crash TEST BED proves all three kinds on the emulator (c1c838f58, run.mjs crash-bed: a JS error, an unhandled promise, a native SIGSEGV each reach the worker's own POST /crash handler on a local stub, no staging write) and fixed a double report of a JS fatal; left (owner): read GET /crashes once, approve the privacy wording, T407's phone check after the 0.6.0 worker deploy; iOS is T362.
+Status: DONE (reports read + privacy wording approved 2026-11-06; T407 phone check stays with T407) — was PARTIAL: built and tested (960d2d8, 31c8d04); 2026-11-06 the crash TEST BED proves all three kinds on the emulator (c1c838f58, run.mjs crash-bed: a JS error, an unhandled promise, a native SIGSEGV each reach the worker's own POST /crash handler on a local stub, no staging write) and fixed a double report of a JS fatal; left (owner): read GET /crashes once, approve the privacy wording, T407's phone check after the 0.6.0 worker deploy; iOS is T362.
 
 Source: owner 2026-10-28 — approved proposal P8 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
@@ -93,3 +93,13 @@ This ticket now also carries the leftovers of: T291, T407 — read each file's o
   the oldest failed one, so it goes at the next start. Both pinned in `crashReport.test.ts`.
 - The `test: true` tag holds end to end (T291's leftover, for crashes): every kind landed under `crashes-test/`.
 - Left (owner): `GET /crashes` read once on staging; the privacy wording; T407's phone check after the 0.6.0 worker deploy.
+
+## Reports read 2026-11-06 (Claude, staging `GET /crashes` + `GET /reports`, read only)
+Owner 11-06: "the privacy drafts look good" — the privacy wording is approved. 18 crash kinds, 9 problem reports.
+- New since T346 (11-04 on): `water map: part 0 of gnis:3062 is not in its group` (0.6.2 phone) → T444;
+  MapLibre `… resolved to … null which is null or a wrong type` (0.6.1/0.6.2 phone, names scrubbed) → T445;
+  first-install `geo-… does not match the manifest` (0.6.3 emulator) → T446; web `start link: this water's page names no
+  region` (0.6.2, the old staging pages) → fixed by the T304 rebuild (staging pages carry `cift:region` now);
+  `salmon: not a salmon/4 file` and `not a dfo-feed/3 feed` (0.5.0 against older data) → T403; web `Requiring unknown
+  module` (≤0.5.0) → T391; native exits 0.4.0 → T351.
+- Problem reports: all ticketed (T348, T393–T398, T417) except the Fraser ▲/▼ camera jump → T443.
