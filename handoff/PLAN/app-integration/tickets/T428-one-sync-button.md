@@ -1,6 +1,6 @@
 # T428 — One sync control in More: the "Updates" row really syncs, and looks like the map's sync button
 
-Status: OPEN (owner 2026-11-05, 0.6.2, More → Data; screenshot `shots/T428-updates-row.png`): "Sync button here is
+Status: IN REVIEW — 538434db8; proof pending: phone look (More → Data on the 0.6.x build: one sync button, lines under it). Web shots T428-shots/. (owner 2026-11-05, 0.6.2, More → Data; screenshot `shots/T428-updates-row.png`): "Sync button here is
 confusing too — maybe the sync button at top in More menu can be combined with this so it actually syncs when you
 click it. Also use same look as sync button with fish near search bar." Do sometime (not urgent).
 
