@@ -1,6 +1,6 @@
 # T435 — Pipeline: hard-coded data paths, mtime staleness, two release-id formulas
 
-Status: DONE 2026-11-06 (chat 3, HASH) — from the audit (T333–T335, 2026-11-05). Severity: **medium**. Verified by a second reader.
+Status: DONE 2026-11-06 (chat 3, 692ebeaf0) — from the audit (T333–T335, 2026-11-05). Severity: **medium**. Verified by a second reader.
 
 Source: `handoff/PLAN/audit-2026-11-05/` (findings: pipeline 3, 5, 6, 8, 9, 11, 15, 16, V1; `*.verified.md` has the evidence per finding).
 
