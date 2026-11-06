@@ -145,12 +145,24 @@ def test_carry_keeps_unchanged_rows_and_tables_and_leaves_the_rest_to_the_parse(
                                   ("r1:new_lake@1-5", "No ice fishing")])              # new; gone_creek gone
     got = SB.carry(b, old, tmp_path / "new")
     assert got == {"carried": ["r1:alice_lake@1-13"], "changed": ["r1:adam_river@1-10"],
-                   "new": ["r1:new_lake@1-5"], "gone": ["r1:gone_creek@1-1"]}
+                   "new": ["r1:new_lake@1-5"], "gone": ["r1:gone_creek@1-1"], "reflowed": []}
     carried = SD.load_book(tmp_path / "new")
     assert sorted(carried) == ["r1:alice_lake@1-13", "z1:region_1"]
     assert carried["r1:alice_lake@1-13"] == BASE["r1:alice_lake@1-13"]          # copied as is
     with pytest.raises(FileExistsError):
         SB.carry(b, old, tmp_path / "new")
+
+
+def test_carry_keeps_a_reflowed_row_and_says_so(tmp_path):
+    """(owner 2026-11-05, T415) same words, other line breaks: carried with its curated text, listed as reflowed — and a
+    real word change is still a change."""
+    from pipeline.tools import synopsis_book as SB
+    old = _write(tmp_path / "old", BASE)
+    b = _batches(tmp_path / "b", [("r1:alice_lake@1-13", "Bait\n ban"), ("r1:adam_river@1-10", "No Fishing Apr 1-Jul 15")])
+    got = SB.carry(b, old, tmp_path / "new")
+    assert got["reflowed"] == ["r1:alice_lake@1-13"] and "r1:alice_lake@1-13" in got["carried"]
+    assert SD.load_book(tmp_path / "new")["r1:alice_lake@1-13"] == BASE["r1:alice_lake@1-13"]
+    assert got["changed"] == ["r1:adam_river@1-10"]
 
 
 def test_replay_answers_each_batch_item_with_the_catalogue_entry(tmp_path):

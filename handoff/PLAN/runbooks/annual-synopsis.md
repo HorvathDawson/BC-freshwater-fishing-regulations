@@ -113,8 +113,9 @@ No credits. Matches every row against the registry and mints each row's `entry_i
 .venv/bin/python -m pipeline.tools.synopsis_book carry --batches $W/all/batches --catalogue $OLD --out $W/book
 ```
 
-Writes `$W/book`: every entry whose row the new book prints with the SAME id and the SAME text, copied as is, plus every
-province/zone table (`z…`, never parsed). Prints the three lists that matter:
+Writes `$W/book`: every entry whose row the new book prints with the SAME id and the SAME words, copied as is, plus every
+province/zone table (`z…`, never parsed). Same words with other line breaks or spacing count as the same (owner
+2026-11-05): carried, curated text kept, and listed as **reflowed** so a reflow is seen, not parsed. Prints the lists:
 - **changed** (same id, new text) and **new** (an id last year did not have) → the parse, step 5–6;
 - **gone** (last year's id not in the new book) → the owner confirms each in step 8 (a renamed row shows here AND
   under new; the diff pairs them by matched water).

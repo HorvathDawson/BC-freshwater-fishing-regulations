@@ -36,15 +36,22 @@ def batch_items(batches: Path) -> list[dict]:
     return [it for f in files for it in json.loads(f.read_text(encoding="utf-8"))["items"]]
 
 
+def _words(text) -> list[str]:
+    """The printed words, whitespace aside: what decides whether a row's text changed."""
+    return str(text or "").split()
+
+
 def carry(batches: Path, old_dir: Path, out: Path) -> dict[str, list[str]]:
     """Write OLD's unchanged entries + every table into OUT (region files laid out as OLD's).
-    Returns {"carried", "changed", "new", "gone"} entry ids."""
+    Returns {"carried", "changed", "new", "gone", "reflowed"} entry ids. (Owner 2026-11-05) a row whose printed WORDS are
+    the same and only its line breaks / spacing moved is carried (its curated text kept): `reflowed` lists those, a subset
+    of `carried`, so a reflow is seen and never parsed again (T415: Heber's "when open" vs "when\nopen")."""
     raw = {str(it["entry_id"]): str(it["raw_regs"]) for it in batch_items(batches)}
     if any(out.glob("region-*.json")):
         raise FileExistsError(f"{out}: already holds region files — carry into an empty dir")
     out.mkdir(parents=True, exist_ok=True)
     seen: set[str] = set()
-    got = {"carried": [], "changed": [], "new": [], "gone": []}
+    got = {"carried": [], "changed": [], "new": [], "gone": [], "reflowed": []}
     for f in sorted(Path(old_dir).glob("region-*.json")):
         doc = json.loads(f.read_text(encoding="utf-8"))
         keep = []
@@ -55,11 +62,13 @@ def carry(batches: Path, old_dir: Path, out: Path) -> dict[str, list[str]]:
                 keep.append(e)
             elif eid not in raw:
                 got["gone"].append(eid)
-            elif raw[eid] != e.get("regs_verbatim"):
+            elif _words(raw[eid]) != _words(e.get("regs_verbatim")):
                 got["changed"].append(eid)
             else:
                 keep.append(e)
                 got["carried"].append(eid)
+                if raw[eid] != e.get("regs_verbatim"):
+                    got["reflowed"].append(eid)
         (out / f.name).write_text(json.dumps({**doc, "entries": keep}, indent=1, ensure_ascii=False) + "\n",
                                   encoding="utf-8")
     got["new"] = sorted(set(raw) - seen)
@@ -96,7 +105,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         got = carry(a.batches, a.catalogue, a.out)
         print(f"carried {len(got['carried'])} unchanged water rows + every table -> {a.out}")
         for k, why in (("changed", "printed text changed — parse"), ("new", "not in last year's book — parse"),
-                       ("gone", "not in the new book — confirm removal")):
+                       ("gone", "not in the new book — confirm removal"),
+                       ("reflowed", "same words, other line breaks — carried, curated text kept")):
             print(f"{len(got[k])} {k} ({why})")
             for i in got[k]:
                 print(f"  {i}")
