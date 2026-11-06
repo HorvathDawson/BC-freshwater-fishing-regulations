@@ -125,7 +125,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     cssParts = async () => [];
   } else if (a.threads) {
     pool = new PanePool(Math.min(4, Math.max(1, a.threads.n)), { ...a.threads, origin: config.origin, doc });
-    waterPage = (m, head, file) => pool!.page(m.id, head, file);
+    waterPage = (m, head, file) => pool!.page(m.id, m.focus, head, file);
     cssParts = () => pool!.css();
   } else {
     const panes = new PaneRenderer({ source: makeReleaseSource(a.loader), loader: a.loader,
@@ -133,7 +133,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     // one render at a time: a render owns the hooks' answers (site.ts asks for every page at once)
     let chain: Promise<unknown> = Promise.resolve();
     waterPage = (m, head) => {
-      const p = chain.then(async () => ({ html: appDocument(template, { ...doc, head, item: m.id, pane: await panes.water(m.id as ItemId) }) }));
+      const p = chain.then(async () => ({ html: appDocument(template, { ...doc, head, item: m.id, region: m.focus, pane: await panes.water(m.id as ItemId) }) }));
       chain = p.catch(() => {});
       return p;
     };

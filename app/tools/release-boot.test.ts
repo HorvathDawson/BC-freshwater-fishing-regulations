@@ -24,6 +24,8 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+import { gunzipSync } from "node:zlib";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
 import { assetsDigest, bootRelease, heldPath, POINTER, releaseTiles, type ReleaseFs, type ReleasePlatform }
   from "@app/data/release";
@@ -79,6 +81,49 @@ describe("web: a cold start is the manifest and paint, then each file on first n
     // the map's status asks for it when shown (`releaseStatus` → `loader.paint()`)
     await b.loader.paint();
     expect(log).toEqual([`${BASE}manifest.json`, `${BASE}${m.files.paint!.url}`]);
+  });
+
+  it("(T304) a water page's region focuses the boot BEFORE the first read: the landing's core read is `core-2`, not the whole core", async () => {
+    const fx = fixtureRelease("plain");
+    // the fixture has no slices: `core-2` here is the whole core re-stamped as a slice (it covers every key it holds)
+    const m0 = JSON.parse(readFileSync(join(fx.dir, "manifest.json"), "utf8")) as Manifest;
+    const core = m0.files.core!, tmp = join(fx.root, "core-2.sqlite");
+    writeFileSync(tmp, gunzipSync(readFileSync(join(fx.dir, "..", core.url))));
+    const sq = new DatabaseSync(tmp);
+    sq.exec("UPDATE meta SET v = 'core-slice/1' WHERE k = 'format'");
+    sq.close();
+    const raw = readFileSync(tmp), url = `${m0.data_release}/core-2.sqlite`;
+    writeFileSync(join(fx.dir, "..", url), raw);
+    const slice = { ...core, url, bytes: raw.length, sha256: sha256Hex(new Uint8Array(raw)), format: "core-slice/1",
+                    slice_of: "core", region: "2" };
+    const sliced = (log: string[]): typeof fetch => {
+      const f = releaseFetch(BASE, fx.dir, log);
+      return (async (u: RequestInfo | URL, i?: RequestInit) => {
+        if (!String(u).endsWith("manifest.json")) return f(u, i);
+        const m = JSON.parse(await (await f(u, i)).text()) as Manifest;
+        m.files["core-2" as never] = slice as never;
+        return new Response(JSON.stringify(m), { headers: { "content-type": "application/json" } });
+      }) as typeof fetch;
+    };
+    const boot = async (focus: "2" | null) => {
+      const names: string[] = [];
+      const platform: ReleasePlatform = { ...web, releaseSource: (m, at) => {
+        const s = releaseSource(m, at);
+        return Object.assign(Object.create(s) as typeof s, { bytes: (n: never, o?: { ahead?: boolean }) => { names.push(n); return s.bytes(n, o); } });
+      } };
+      const b = await bootRelease({ manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", paintFirst: false,
+                                    ...(focus ? { focus } : {}), platform, fetch: sliced([]) });
+      return { b, names };
+    };
+    const plain = await boot(null);
+    const id = String((await (await plain.b.loader.db("core")).get("SELECT item_id FROM item ORDER BY ord LIMIT 1"))!.item_id);
+    const READ = "SELECT ord FROM item WHERE item_id = ?";
+    const whole = await plain.b.loader.routed("core").get(READ, id);
+    expect(plain.names).toEqual(["core"]);   // MUTATION PIN: no focus → the whole core (what a landing read before T304)
+    const landed = await boot("2");
+    expect(landed.names).toEqual([]);        // focusing reads nothing
+    expect(await landed.b.loader.routed("core").get(READ, id)).toEqual(whole);
+    expect(landed.names).toEqual(["core-2"]);
   });
 
   it("a release that names its tiles and mask is drawn from them", async () => {

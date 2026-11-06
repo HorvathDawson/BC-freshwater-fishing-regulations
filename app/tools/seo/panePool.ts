@@ -48,11 +48,11 @@ export class PanePool {
     }
   }
 
-  page(id: string, head: string, file: string): Promise<WaterMade> {
+  page(id: string, region: string | null, head: string, file: string): Promise<WaterMade> {
     if (this.failed) return Promise.reject(this.failed);
     return new Promise((done, fail) => {
       const n = ++this.n;
-      this.queue.push({ n, msg: { t: "page", n, id, head, file }, done, fail });
+      this.queue.push({ n, msg: { t: "page", n, id, region, head, file }, done, fail });
       this.next();
     });
   }

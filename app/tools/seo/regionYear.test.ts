@@ -5,7 +5,7 @@ import { regionYear, rowWords, yearCardHtml } from "./regionYear";
 const part = (year: PartModel["year"]): PartModel =>
   ({ turns: [], year, partIx: 0, label: "x", status: "open", today: "", sections: [] });
 const water = (id: string, kind: string, ...parts: PartModel[]): WaterModel =>
-  ({ ord: 0, id, name: id, kind, regions: [2], region: 2, status: "open", answer: "", parts, neighbours: [], mid: null, book: [] });
+  ({ ord: 0, id, name: id, kind, regions: [2], region: 2, focus: "2", status: "open", answer: "", parts, neighbours: [], mid: null, book: [] });
 
 describe("T406 part 2: the region's year bar, folded from the water strips", () => {
   // a stream closed Jan 1 - Jun 30 (181 days), open after; a stream open all year; a lake open all year; a lake with no strip

@@ -29,6 +29,14 @@ export const PROGRESS_MS = 200;
 let regsFirst = false;
 export function setRegsFirstStart(on: boolean): void { regsFirst = on; }
 
+/**
+ * (T304) THE REGION THIS START IS ABOUT (a water's own page, `cift:region`): the boot focuses the release on it before
+ * anything reads core or water (`BootOptions.focus`), so the landing reads its region's answer slices as a tap there
+ * would. Set once, before the app mounts, by the platform's start link; null: none (the map's region focuses it later).
+ */
+let startRegion: NonNullable<BootOptions["focus"]> | null = null;
+export function setStartRegion(r: NonNullable<BootOptions["focus"]> | null): void { startRegion = r; }
+
 export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt = 0): BootState {
   const [s, set] = useState<BootState>({ state: "loading", stage: "manifest", progress: null });
   const on = opts !== null;
@@ -49,6 +57,7 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
     bootRelease({
       ...opts,
       ...(regsFirst ? { paintFirst: false } : {}),
+      ...(startRegion ? { focus: startRegion } : {}),
       // (T418) an applied update: the set on screen stays whole (its tiles, mask and map assets) until the next launch
       ...(again ? { keepReplaced: true } : {}),
       onStage: (st) => { stage = st; if (live && !again) set({ state: "loading", stage, progress }); },

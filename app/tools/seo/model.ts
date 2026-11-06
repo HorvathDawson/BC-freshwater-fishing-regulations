@@ -37,6 +37,9 @@ export interface Neighbour { readonly id: string; readonly name: string; readonl
 export interface WaterModel {
   readonly ord: number; readonly id: string; readonly name: string; readonly kind: string;
   readonly regions: readonly number[]; readonly region: number;
+  /** (T304) the bundle region the app's landing on this page is focused on (`cift:region`): its first part's answer key's
+   *  first region, as the app's `regionDb` picks it ("7a", not 7); null: no key with a region */
+  readonly focus: string | null;
   readonly status: WaterStatus; readonly answer: string;
   readonly parts: readonly PartModel[];
   readonly neighbours: readonly Neighbour[];
@@ -229,6 +232,16 @@ async function regionsOf(store: RegsStore, akeys: readonly number[]): Promise<nu
   return [...out].filter((n) => n >= 1 && n <= 8).sort((a, b) => a - b);
 }
 
+/** (T304) The region the app reads a water's page from: the first of the first keyed part's regions (`regionDb`'s order). */
+async function focusOf(store: RegsStore, akeys: readonly number[]): Promise<string | null> {
+  const w = await store.water();
+  for (const a of akeys) {
+    const r = await w.get("SELECT region FROM akey_region WHERE akey = ? ORDER BY region LIMIT 1", a);
+    if (r) return String(r.region);
+  }
+  return null;
+}
+
 /** The app's page for one part on `on` (the angler defaults as the app's do). */
 export async function appPage(store: RegsStore, itemId: string, partIx: number, on: BuildDay, today: Day = on.day): Promise<RegsPage> {
   const inp = await loadRegsInputs(store, { kind: "part", item: itemId, partIx }, on.day, on.weekday, on.year);
@@ -253,6 +266,7 @@ export async function waterModel(store: RegsStore, ord: number, on: BuildDay): P
   const live = parts.filter((p) => p.akey !== null && p.facts !== null);
   if (!live.length) return null;
   const regions = await regionsOf(store, live.map((p) => p.akey!));
+  const focus = await focusOf(store, live.map((p) => p.akey!));
   const models: PartModel[] = [];
   for (const p of live) {
     const page = await appPage(store, it.id, p.partIx, on);
@@ -269,7 +283,7 @@ export async function waterModel(store: RegsStore, ord: number, on: BuildDay): P
   // (T278) never a tidal piece's middle (owner T166: no parts on tidal water)
   const first = nav.geo.find((g) => !parts[g.partIx]?.tidal)?.mid ?? null;
   return {
-    ord, id: it.id, name: it.name, kind: it.kind, regions, region: regions[0] ?? 0, status: r.status, answer: r.answer, parts: models,
+    ord, id: it.id, name: it.name, kind: it.kind, regions, region: regions[0] ?? 0, focus, status: r.status, answer: r.answer, parts: models,
     neighbours, mid: first ? [first[0], first[1]] : null, book: [...book.values()].sort((a, b) => a.printed - b.printed),
   };
 }

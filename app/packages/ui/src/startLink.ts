@@ -19,6 +19,8 @@ import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Wh
 import type { ItemId } from "@app/data";
 import { openWater } from "./openWater";
 import type { StreamPlace } from "@app/data/regs/place";
+import { regionOfTile } from "@app/data/release";
+type Region = NonNullable<ReturnType<typeof regionOfTile>>;
 import { mapDayOf } from "./regs";
 import { HOME, reduce, waterFrame, type BrowseTab, type LatLon, type Route, type View } from "./route";
 
@@ -131,6 +133,20 @@ export function slugShard(item: string): number {
 export const slugShardPath = (item: string): string => `/water-slugs/${slugShard(item)}.json`;
 /** The path of the water page `/water/<slug>`; a water's start link otherwise. */
 export const WATER_PATH = /^\/water\/([a-z0-9-]+)\/?$/;
+
+/**
+ * (T304) THE REGION A WATER'S PAGE NAMES (`<meta name="cift:region">`, written by the SEO build beside `cift:item`): the
+ * bundle region the landing is focused on, so it reads that region's answer slices. Throws, naming what it got, when the
+ * page names none or not a region: the build always writes one, so that is a stale or broken page — the start then reads
+ * the whole files as before (the same answer, more bytes) and the failure is reported (`startLink.web.ts`).
+ */
+export function pageRegion(content: string | null | undefined): Region {
+  if (content === null || content === undefined)
+    throw new Error("start link: this water's page names no region (no <meta name=\"cift:region\">)");
+  const r = regionOfTile(content);
+  if (!r || r !== content) throw new Error(`start link: this water's page names region "${content}", not a region`);
+  return r;
+}
 
 /** (T369) Why a start opened less than its link named — said on screen, never a silent guess. */
 /** (T369) Whether a start link waits for the release before it opens (a place to resolve, or a water to read the parts of). */

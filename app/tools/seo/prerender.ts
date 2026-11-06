@@ -12,6 +12,7 @@
  *   document   the app's own index.html (the web export's: its script, its reset) with the page's head and the pane in it.
  */
 import type { LayoutClass } from "@app/ui";
+import { regionOfTile } from "@app/data/release";
 
 const COLOUR = /rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}\b/g;
 /** SVG presentation attributes holding a colour: moved into `style`, where a CSS variable works. */
@@ -192,6 +193,8 @@ export interface AppDocument {
   readonly critical: string; readonly cssHref: string;
   readonly preload: readonly string[];
   readonly item: string; readonly pane: string;
+  /** (T304) the water's bundle region (`WaterModel.focus`): the app focuses the release on it before its first read */
+  readonly region: string | null;
 }
 
 /**
@@ -202,6 +205,8 @@ export interface AppDocument {
 export function appDocument(template: string, d: AppDocument): string {
   let t = template;
   const need = (re: RegExp, what: string) => { if (!re.test(t)) throw new Error(`seo: the app's index.html has no ${what}`); };
+  // (T304) every water page names its region: a page without one would land reading the whole core + water files
+  if (d.region === null || regionOfTile(d.region) !== d.region) throw new Error(`seo: water ${d.item} names no bundle region (${d.region})`);
   need(/<title>[^<]*<\/title>/, "<title>"); need(/<div id="root"><\/div>/, `<div id="root"></div>`); need(/<\/head>/, "</head>");
   t = t.replace(/<html lang="[^"]*"/, `<html lang="en-CA"`)
     .replace(/<title>[^<]*<\/title>/, "")
@@ -209,7 +214,7 @@ export function appDocument(template: string, d: AppDocument): string {
     .replace(/<link rel="stylesheet" href="([^"]+\.css)">/g, `<link rel="stylesheet" href="$1" media="print" onload="this.media='all'">`)
     .replace(/<noscript>[\s\S]*?<\/noscript>/, "")
     .replace(/<script src="([^"]+)" defer><\/script>/g, (_, src: string) => afterPaint(src))
-    .replace(/<\/head>/, `${d.head}<meta name="cift:item" content="${d.item}">` +
+    .replace(/<\/head>/, `${d.head}<meta name="cift:item" content="${d.item}"><meta name="cift:region" content="${d.region}">` +
       d.preload.map((f) => `<link rel="preload" href="${f}" as="font" type="font/woff2" crossorigin>`).join("") +
       `<style>${d.critical}</style><link rel="stylesheet" href="${d.cssHref}"></head>`)
     .replace(/<div id="root"><\/div>/, `<div id="prerender">${d.pane}</div><div id="root"></div>${HANDOFF}`);

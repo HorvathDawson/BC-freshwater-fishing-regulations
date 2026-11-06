@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HOME, reduce, waterFrame } from "./route";
 import { openWater } from "./openWater";
-import { holdsMapStatus, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
+import { holdsMapStatus, pageRegion, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
          startNoticeLine, WATER_PATH } from "./startLink";
 import type { ItemId } from "@app/data";
 
@@ -123,5 +123,17 @@ describe("(T256, T345) the map's status waits for the regulations page only whil
     // the reader leaves the page for the Map view before it applied its start: the hold ends there too
     expect(holdsMapStatus(reduce(regs.route, { type: "view", view: "map" }), regs.regs)).toBe(false);
     expect(holdsMapStatus(HOME, regs.regs)).toBe(false);
+  });
+});
+
+describe("(T304) pageRegion: the region a water's page names (cift:region)", () => {
+  it("reads every bundle region as written", () => {
+    for (const r of ["1", "2", "3", "4", "5", "6", "7a", "7b", "8"]) expect(pageRegion(r)).toBe(r);
+  });
+  it("throws, naming what it got, on a page with none or not a region (the start reads the whole files and reports it)", () => {
+    expect(() => pageRegion(null)).toThrow('start link: this water\'s page names no region (no <meta name="cift:region">)');
+    expect(() => pageRegion(undefined)).toThrow("names no region");
+    for (const bad of ["", "7", "7A", " 2", "9", "2,5"])
+      expect(() => pageRegion(bad)).toThrow(`start link: this water's page names region "${bad}", not a region`);
   });
 });

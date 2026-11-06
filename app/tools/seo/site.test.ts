@@ -52,6 +52,10 @@ describe("T193 + T269 water pages (the app's own pane) and About", () => {
     for (const p of waters()) {
       const m = built.build.models.find((x) => p.path === `/water/${built.build.slugMap.waters[x.id]!.slug}`)!;
       expect(p.html, p.path).toContain(`<meta name="cift:item" content="${m.id}">`);
+      // (T304) and its bundle region, the one the app reads the page's frames from: one of the water's own regions
+      expect(m.focus, p.path).toMatch(/^(?:[1-8]|7a|7b)$/);
+      expect(m.regions, p.path).toContain(parseInt(m.focus!, 10));
+      expect(p.html, p.path).toContain(`<meta name="cift:region" content="${m.focus}">`);
       for (const id of ["water-frame", "regs-header", "regs-scroll", "keep-tab"]) expect(pane(p.html), `${p.path} ${id}`).toContain(`data-testid="${id}"`);
       expect(pane(p.html), p.path).toContain(m.name);
       // the retired text page (T193's html.ts body) is nowhere: no <main>, no answer paragraph, no "Open in the app"

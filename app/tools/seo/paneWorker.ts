@@ -19,7 +19,7 @@ export interface ThreadData {
   readonly releaseDir: string; readonly appDir: string; readonly out: string; readonly origin: string;
   readonly doc: Pick<AppDocument, "critical" | "cssHref" | "preload">;
 }
-export type ToThread = { t: "page"; n: number; id: string; head: string; file: string } | { t: "css" } | { t: "stop" };
+export type ToThread = { t: "page"; n: number; id: string; region: string | null; head: string; file: string } | { t: "css" } | { t: "stop" };
 
 /** @public — loaded by tools/seo/pane-worker.mjs through the module runner (a dynamic load knip cannot follow). */
 export async function serve(port: MessagePort, d: ThreadData): Promise<void> {
@@ -39,7 +39,7 @@ export async function serve(port: MessagePort, d: ThreadData): Promise<void> {
       if (m.t === "stop") { port.close(); return; }
       if (m.t === "css") { port.postMessage({ t: "css", parts: panes.parts() }); return; }
       try {
-        const html = appDocument(app.template, { ...d.doc, head: m.head, item: m.id, pane: await panes.water(m.id as ItemId) });
+        const html = appDocument(app.template, { ...d.doc, head: m.head, item: m.id, region: m.region, pane: await panes.water(m.id as ItemId) });
         const size = writeCompressed(d.out, m.file, html);
         port.postMessage({ t: "done", n: m.n, size, problems: checkWaterPage(html, d.origin) });
       } catch (e) {

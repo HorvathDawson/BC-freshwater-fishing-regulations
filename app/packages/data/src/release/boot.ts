@@ -36,6 +36,7 @@ import { withLiveSalmon, type SalmonFeedSource } from "../feed/salmon";
 import { releaseLoader, ReleaseError, type DbName, type Opener, type ReleaseLoader,
          type ReleaseSource } from "./loader";
 import { makeReleaseSource } from "./source";
+import type { Region } from "../pack.generated";
 
 /** What `@app/data/release/platform` exports (structurally; a test passes fakes). */
 export interface ReleasePlatform {
@@ -99,6 +100,13 @@ export interface BootOptions {
    * ignores it (paint is on disk).
    */
   paintFirst?: boolean;
+  /**
+   * (T304) The region the start is about (a water's own page names its region, `cift:region`): the web loader is
+   * focused on it BEFORE anything reads core or water, so a landing reads `core-<r>` / `water-<r>` (T256) instead of the
+   * whole files — what a tap in that region of the map reads. A slice answers only what it covers (`focus.ts`), so a
+   * wrong region costs bytes, never a different answer. Native ignores it (a phone holds no slices).
+   */
+  focus?: Region | null;
   /** How long a launch waits for the manifest before going on with the held set (native). */
   manifestTimeoutMs?: number;
   /**
@@ -227,6 +235,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     const loader = withLiveSalmon(
       releaseLoader(m, o.platform.releaseSource(m, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
                     o.platform.releaseOpener({ wasmBase: o.wasmBase, installed: () => null, net: o.net ?? null })), o.salmonFeed);
+    // (T304) the start's region, before the first read of core / water (none happens before this returns)
+    if (o.focus) loader.focus(o.focus);
     // (T256) a Regulations-first start draws its page before paint: the map asks for it when it is shown
     let paint: Paint | null = null;
     if (o.paintFirst !== false) {

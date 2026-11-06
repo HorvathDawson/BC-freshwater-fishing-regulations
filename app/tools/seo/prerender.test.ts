@@ -74,12 +74,21 @@ describe("the header's controls and the document", () => {
      "(T405) the app's script asked for after the first paint", () => {
     const t = '<html lang="en"><head><title>canifishthis</title><link rel="preload" href="/m.css" as="style">\n<link rel="stylesheet" href="/m.css"></head>' +
       '<body><noscript>JS</noscript><div id="root"></div><script src="/app.js" defer></script></body></html>';
-    const d = appDocument(t, { head: "<title>X</title>", critical: "#prerender{}", cssHref: "/assets/pane.1.css", preload: ["/f.woff2"], item: "gnis:1", pane: "<div>pane</div>" });
+    const d = appDocument(t, { head: "<title>X</title>", critical: "#prerender{}", cssHref: "/assets/pane.1.css", preload: ["/f.woff2"], item: "gnis:1", region: "7a", pane: "<div>pane</div>" });
     expect(d).toBe('<html lang="en-CA"><head>\n<link rel="stylesheet" href="/m.css" media="print" onload="this.media=\'all\'"><title>X</title>' +
-      '<meta name="cift:item" content="gnis:1"><link rel="preload" href="/f.woff2" as="font" type="font/woff2" crossorigin><style>#prerender{}</style>' +
+      '<meta name="cift:item" content="gnis:1"><meta name="cift:region" content="7a"><link rel="preload" href="/f.woff2" as="font" type="font/woff2" crossorigin><style>#prerender{}</style>' +
       '<link rel="stylesheet" href="/assets/pane.1.css"></head><body><div id="prerender"><div>pane</div></div><div id="root"></div>' +
       `${HANDOFF}${afterPaint("/app.js")}</body></html>`);
-    expect(() => appDocument("<html></html>", { head: "", critical: "", cssHref: "", preload: [], item: "", pane: "" })).toThrow(/no <title>/);
-    expect(appDocument(BARE_APP, { head: "", critical: "", cssHref: "/c.css", preload: [], item: "gnis:1", pane: "" })).toContain('<div id="prerender"></div><div id="root"></div>');
+    expect(() => appDocument("<html></html>", { head: "", critical: "", cssHref: "", preload: [], item: "", region: "2", pane: "" })).toThrow(/no <title>/);
+    expect(appDocument(BARE_APP, { head: "", critical: "", cssHref: "/c.css", preload: [], item: "gnis:1", region: "2", pane: "" })).toContain('<div id="prerender"></div><div id="root"></div>');
+  });
+  it("(T304) every water page names its bundle region; one with none, or not a region, is refused", () => {
+    const at = (region: string | null) => appDocument(BARE_APP, { head: "", critical: "", cssHref: "/c.css", preload: [], item: "gnis:1", region, pane: "" });
+    expect(at("2")).toContain('<meta name="cift:item" content="gnis:1"><meta name="cift:region" content="2">');
+    expect(at("7b")).toContain('<meta name="cift:region" content="7b">');
+    expect(() => at(null)).toThrow("seo: water gnis:1 names no bundle region (null)");
+    expect(() => at("7")).toThrow("seo: water gnis:1 names no bundle region (7)");
+    expect(() => at("7A")).toThrow("seo: water gnis:1 names no bundle region (7A)");
+    expect(() => at("")).toThrow("seo: water gnis:1 names no bundle region ()");
   });
 });
