@@ -36,7 +36,7 @@ jobs:
         with:
           sparse-checkout: deploy/staging
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version-file: app/.nvmrc }
       - name: private/ not served, no secret in a public object
         run: node deploy/staging/check-public.mjs
       - name: a flood gets 429
