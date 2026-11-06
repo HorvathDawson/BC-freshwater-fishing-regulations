@@ -14,3 +14,13 @@ piece ("What has downloaded is kept"), or the test channel's switch (T442) chang
 2. Reproduce on the emulator: interrupt the first-run download (airplane mode / kill) mid-file, resume; and a manifest
    switch mid-download. Pin it in the download tests.
 Size: S.
+
+## Read (2026-11-06, chat 4) — not reproduced yet
+The throw is the install's re-verify (`install.ts` "every file of the new set, re-verified on disk"), not the download:
+`dl` (fetchVerified) already refuses bytes that are not the manifest's, and `place` writes `.part` then renames. Within
+one install nothing else writes `geo-*.sqlite` (small files are fetched one at a time; the assets start after the
+re-verify). So the bytes changed between a verified write and the re-read, which needs a SECOND writer: a second
+`install` into the same folder (a boot retried while the first install still ran — `useReleaseBoot`'s cleanup only sets
+`live = false`, it does not stop a running `bootRelease`), or a file read that came back short. The report's time
+(16:31Z) is inside T442's window, when `test/` named a release whose files had been cleared, so the run was already
+abnormal. Next: the emulator repro in Work 2 (retry during a first install; a kill mid-file) once the slot is free.

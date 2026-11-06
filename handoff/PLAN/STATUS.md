@@ -18,8 +18,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   stop drawing a soft 1-px edge outline (a second pass over the most detailed shapes zoomed out). On a slow-GPU proxy of
   your Pixel 9 that is 14–15 % less frame time at z5–z9; the picture changes ≤ 1.3 % of pixels. Shots sent (today left,
   proposed right). Hiding parks would save about as much but changes the map a lot, so it is not proposed.
+- **Zoomed-out fix: you said ship it** (e58b10a). It reaches you with the next APK and staging site.
 - **Running:** T448 (phone map draws at ≤ 2 pixels per dp like the web). Found: MapLibre's own pixel-ratio switch on
   Android may only shrink the map, not save drawing; the agent checks that before changing anything.
+- **T444 fixed** (6ea4073): the Chilliwack → Vedder crash report. For one screen refresh the map held the old river's
+  parts with the new river's part. A test now reproduces the exact report; fixed at the source.
+- **T445 fixed** (73daab938): "resolved to null" was not a style error. The map asked something of a view that had
+  just closed (the map left the screen, or the style reloaded). Those are no longer reported; a live view's still are.
+- **T443 in review** (7f36eb73a, your rule): a part is framed no closer than z12, and ▲/▼ zooms in at most 2 levels
+  per step. Before, one Fraser step could jump 5 levels (z9 → z14). Opening or reloading a part still frames it whole.
+  Look on the phone after the next APK.
+- **T446 read, not reproduced:** the file check failed after a clean download, which needs a second writer (e.g. a
+  retried start while the first was still running). It happened in the test channel's broken window (T442). Emulator
+  repro once T448 frees the emulator.
 
 ## 2026-11-06: chat 2 heavy runner — T416 closed
 - **A fresh clone now rebuilds the release exactly** (T416): the fresh copy and this Mac, same code, made the same release
