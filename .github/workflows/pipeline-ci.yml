@@ -123,6 +123,7 @@ jobs:
           # the missing-splits guard fired, but the gate should have caught it first.
           check "a __file__-relative curated file"  '(parents\[[0-9]\]|\.parent)\s*/\s*"(splits|cuts|name_variants|gauge_match|gauge_review|match_calls|added_streams|added_lakes|areas|area_closures|ungazetted|unmapped_waters)'
           check "quoted data/<file> as a value"     '[=(,]\s*"data/[a-z_]+\.(json|sqlite3|geojson|gpkg|csv|pmtiles)"'
-          check "ROOT / \"data\" / a bare file"      '/\s*"data"\s*/\s*"[a-z]' '"(source|curated|generated)"|project_config\.py'
+          # the repo's top-level data/ only (a root then "data"): app/packages/data is a package, data/fetch_data.py code
+          check "ROOT / \"data\" / a bare file"      '(ROOT|REPO|parents\[[0-9]\])\s*/\s*"data"\s*/\s*"[a-z]' '"(source|curated|generated)"|project_config\.py|"fetch_data\.py"'
           check "/ \"entries\" outside a tmp fixture" '(_ROOT|__file__|parents\[[0-9]\])[^\n]*/ "entries"'
           exit $fail

@@ -14,12 +14,12 @@ from pathlib import Path
 
 import pytest
 
+from pipeline.common.curated import GENERATED
 from pipeline.tests.conftest import need
 
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.release import slices as SL
 
-REPO = Path(__file__).resolve().parents[2]
 
 
 def _core(p: Path) -> Path:
@@ -201,7 +201,7 @@ def test_a_str_only_a_blob_names_and_a_section_in_two_waters_are_refused(tmp_pat
 
 
 def _live():
-    root = REPO / "data" / "release"
+    root = GENERATED.release
     try:
         rid = (root / "LATEST").read_text().strip()
     except OSError:
@@ -217,7 +217,7 @@ def _live():
 def test_on_the_live_release_a_slice_is_the_whole_file_for_what_it_covers(tmp_path, request):
     """For Regions 2 and 7B (the small and the far): every covered water's rows in every sliced table equal the whole
     file's; every covered sid's water (or none) is the whole core's; every str a kept row names is the whole's."""
-    need(request, "bundle", REPO / "data" / "release" / "LATEST", "python -m pipeline.deliver (writes data/release/<r-id> + LATEST)")
+    need(request, "bundle", GENERATED.release / "LATEST", "python -m pipeline.deliver (writes data/release/<r-id> + LATEST)")
     live = _live()
     assert live is not None, "the live release has no core / water / regs-sid (an older release: re-run pipeline.deliver)"
     root, m = live
