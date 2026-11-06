@@ -11,6 +11,7 @@ import subprocess
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[2]
+SELF = "pipeline/tests/test_no_orphan_modules.py"
 #: where a module may be named from (tracked files only)
 WHERE = ("pipeline", "scripts", "curation-review", ".github", "app/tools", "app/workers", "deploy", "conftest.py",
          "handoff/PLAN/runbooks")
@@ -62,7 +63,8 @@ def _orphans() -> list[str]:
     files = subprocess.run(["git", "-C", str(ROOT), "ls-files", *WHERE], capture_output=True, text=True,
                            check=True).stdout.split()
     texts = {f: (ROOT / f).read_text(encoding="utf-8", errors="ignore")
-             for f in files if f.endswith(SUFFIXES) and "/fixtures/" not in f and (ROOT / f).is_file()}
+             for f in files if f.endswith(SUFFIXES) and "/fixtures/" not in f and (ROOT / f).is_file()
+             and f != SELF}   # its own allowlist is not a mention
     index = mentions(texts)
     mods = [f for f in files if f.startswith("pipeline/") and f.endswith(".py") and "/tests/" not in f
             and not f.endswith(("__init__.py", "__main__.py", "conftest.py"))]
