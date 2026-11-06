@@ -21,14 +21,22 @@ PENDING are not final.**
 - **Not deployed:** the feeds worker (T366 row digest) ships with the next app; the staging site needs a FULL SEO build
   before its next deploy (T304: site.sh refuses pages without `cift:region`).
 
-## The heavy run (one agent, one job at a time) — PENDING
-1. T416 final proof + the release refuses a missing basemap
-2. the Mac's deliver (on-disk export matches the new code)
-3. full suites once (pipeline fast + slow, `pnpm -C app check`)
-4. one web export → T409 Lighthouse (390 + 1440), T410 bundle listings, T304 SEO build + Fast-3G
-5. T305 tile_version proof
-6. `graphify update .`
-Results: (to fill in)
+## The heavy run (one agent, one job at a time) — DONE 11-06 (HEAD 4fa63f124)
+1. **T416 DONE:** a fresh clone and a Mac `--side` build both give **r-0fd5c0e4e8b8**, all 52 files plus the tiles,
+   synopsis and basemap identical (`~/t416-final.json`). Two more causes were fixed: the basemap is now pinned in the
+   build-assets bucket and a missing one is refused, and `row_boxes.json`/`synopsis_raw_data.json` are now pins (a
+   missing one is refused). Commits b53af411a, 1cd8e8812.
+2. **The Mac's deliver** (`--hold-latest`): r-0fd5c0e4e8b8 waits in `data/release/CANDIDATE`. LATEST is still
+   r-5a5999c94588. **Owner: promote it with `pipeline release`.**
+3. **Suites:**
+   - App: green (8,701 tests).
+   - Pipeline fast tier: 11 failures from T436 (971f40575), fixed in 84e71af78; only the 5 affected files were rerun.
+   - Slow tier: only the known T306 failures.
+4. **T409:** Lighthouse phone 91–93, desktop 99–100, but phone LCP is 2.25–2.48 s (gate 1.8 s). Next item: each font
+   is downloaded twice (~315 kB). **T410:** the bundle listings are clean; it stays PARTIAL for the phone pass.
+   **T304:** all 19,635 pages tagged; Fast-3G 47.6 → 24.9 s locally; staging needs a full `build-seo` deploy.
+5. **T305 DONE:** two builds, same `tile_version` and pmtiles sha.
+6. `graphify update .` done.
 
 ## The audit (T333–T335) — DONE
 Report: `handoff/PLAN/audit-2026-11-05/REPORT.md` (78 findings → ~57 confirmed after a second reader). Fix tickets
