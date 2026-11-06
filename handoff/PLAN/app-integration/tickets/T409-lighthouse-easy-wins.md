@@ -110,3 +110,6 @@ measured before (93·93·93, TBT 147·182·142). CLS 0.002-0.003. LCP 2.25-2.48 
 thumbnails before the largest paint, Outcome). No desktop "before" was measured on this rig (the kept set was phone only).
 Still owed: the T269 page-vs-tap pairs (390x844 / 1440x900) and the phone-width manual check (land → back → map framed
 and coloured; tap → map at once), then staging.
+- **Fonts fetched twice (found by T304's Fast-3G run, 2026-11-06):** after the page's WOFF2 faces, the app bundle loads
+  its own TTF copy of every face (expo-font assets, 8 × 36-48 kB, ~315 kB) before the hand-over. Making the app use the
+  page's WOFF2 faces on the web (same family names) would save those bytes on every landing. Not done: next item here.
