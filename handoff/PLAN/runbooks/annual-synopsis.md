@@ -39,6 +39,45 @@ shasum -a 256 data/source/fishing_synopsis.pdf      # record it in the ticket / 
 
 ## 2. Decode the PDF to rows — Claude
 
+The new book's layout needs extractor changes; each change must still read the CURRENT book exactly as before
+(T426), or a regression shows up later as a fake "the book changed" row (T415: Heber River). In this order, and
+never out of it:
+
+**2a. Change the extractor** (`pipeline/regs/extraction/extract_synopsis.py`) for the new layout. Try it on single
+pages of the new book: `.venv/bin/python -m pipeline.regs.extraction.extract_synopsis --page <pdf page>`.
+
+**2b. Fast tier green** (seconds; CI runs the first two with no PDF):
+
+```bash
+.venv/bin/python -m pytest -q pipeline/tests/test_extract_fixtures.py pipeline/tests/test_extract_line_grouping.py \
+  pipeline/tests/test_extract_baseline.py
+```
+
+`test_extract_fixtures.py` replays 13 hard rows (one per region at least) from their characters
+(`fixtures/extract_rows.json.gz`); `test_extract_baseline.py::test_hard_pages_read_as_the_baseline` (`needs_source`)
+re-reads 14 hard pages of the current book — Heber, the sample table (skipped), the four unnumbered centre pages, a
+page per region — against the baseline.
+
+**2c. `--check-against` on the current book: clean** (the whole book; heavy, through heavy.sh):
+
+```bash
+bash scripts/heavy.sh synopsis-check 50 -- .venv/bin/python -m pipeline.regs.extraction.extract_synopsis \
+  --check-against pipeline/regs/extraction/baseline/2025-27.json --report $W/check.json 2>&1 | tee $W/check.log
+```
+
+- No PDF argument: the gate finds the baseline's own book by sha — after step 1 that is last year's copy
+  (`fishing_synopsis.2025-27.pdf`). It writes no rows file and no row images.
+- It compares every row by PDF page + row box (`baseline/2025-27.json`: the PDF sha, the extractor commit, a sha per
+  row) and exits 1 naming each row neither identical nor in `baseline/accepted_diffs.json` (changed + which fields,
+  gone, new), and each accepted diff no longer seen (stale).
+- A row the change moves ON PURPOSE (a fix): add it to `accepted_diffs.json` with its key, `was`, `now` (the gate
+  prints all three) and a reason, in the same commit as the extractor change. An entry explains exactly that move;
+  the row changing again fails again. T415's Heber fix is the first entry (`…confluence when\nopen`).
+- Any other row: the change broke the current book — fix the extractor, back to 2a.
+- Single pages while iterating (seconds): add `--pages 18 24`.
+
+**2d. Only then extract the new book:**
+
 ```bash
 bash scripts/heavy.sh synopsis-extract 50 -- .venv/bin/python -m pipeline.regs.extraction.extract_synopsis \
   data/source/fishing_synopsis.pdf $W/extraction/synopsis_raw_data.json --workers 4 2>&1 | tee $W/extract.log
@@ -46,15 +85,17 @@ bash scripts/heavy.sh synopsis-extract 50 -- .venv/bin/python -m pipeline.regs.e
 
 - Writes only under `$W` (the PDF copy, row images, `synopsis_raw_data.json`). Never the live
   `data/generated/regs/extraction/` until step 9.
-- Expect formatting breakage. Check, in this order, and fix `pipeline/regs/extraction/extract_synopsis.py` until clean:
+- Check, in this order; a fix here is an extractor change, so it goes back through 2a–2c:
   1. `grep -c 'Error on page' $W/extract.log` is 0; `[Skipped]` lines name only the sample table (2025–27: PDF p.6).
   2. Row count near last year's (2025–27: 1,393 rows on 39 pages), every row with a `region` and an MU.
   3. Spot-check 10 rows against the PDF crops (`$W/extraction/row_images/`), especially multi-line regulations,
      bold `**No Fishing**`, and the symbol column (`Incl. Tribs`, `Classified`, `Stocked`).
 - Known extraction defects on the 2025–27 book (curators fixed the entry text by hand): the Chilliwack/Vedder row
   keeps a line-end hyphen ("hatch-\nery"), the Coquihalla row loses its last words ("Nov" for "Nov 1-Mar 31"). Heber
-  River's garble ("Folpye fnishing": a last line set 5 pt lower interleaved with the one above) is fixed (T415, in
-  T239). Check those rows first; a new book will have its own.
+  River's garble is fixed (T415). A new book will have its own.
+
+**2e.** The book diff (step 8, `synopsis_diff`) then shows only what the BOOK changed: the extractor's own changes
+were proven on the current book in 2c.
 
 ## 3. Export every row (full) — Claude
 
@@ -139,6 +180,18 @@ cp -r $OLD /tmp/catalogue-before-$Y                                  # AGENTS 2:
 cp $W/book/region-*.json $OLD/ && git diff --stat -- $OLD             # only the diff's entries may move
 cp $W/extraction/synopsis_raw_data.json data/generated/regs/extraction/
 bash pipeline/regs/parsing/run_parse.sh seed-ledger                   # no credits
+```
+
+Cut the new book's baseline for the extractor gate (T426; the accepted diffs reset to empty, since the new baseline
+holds them), and re-capture the fast tier's rows from the new book (pick hard rows again — one per region at least):
+
+```bash
+bash scripts/heavy.sh row-boxes 50 -- .venv/bin/python -m pipeline.regs.extraction.row_boxes    # boxes of the adopted rows
+.venv/bin/python -m pipeline.regs.extraction.baseline cut --book $Y --out pipeline/regs/extraction/baseline/$Y.json \
+  --commit $(git rev-parse --short HEAD) --note "the step-2d extraction, adopted <date>"
+git rm pipeline/regs/extraction/baseline/2025-27.json      # one book at a time (the latest <years>.json is current)
+.venv/bin/python -m pipeline.regs.extraction.baseline fixture --out pipeline/tests/fixtures/extract_rows.json.gz \
+  --rows page_0NN_row_0NN.png …                             # then fix the page lists in the two test files
 ```
 
 Then re-run `synopsis_diff /tmp/catalogue-before-$Y $OLD` — it must equal `$W/diff.txt`. Commit with

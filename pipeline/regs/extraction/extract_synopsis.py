@@ -1093,70 +1093,10 @@ class FishingSynopsisParser:
                 print(f"\nREGS COLUMN (raw):\n{repr(regs_raw)}")
                 print(f"{'='*80}\n")
 
-            # Process waterbody column (name, symbols, MUs)
-            w_txt, w_sym, mus = self.process_waterbody_column(water_raw)
-
-            if "WATER BODY" in w_txt.upper() or "MGMT UNIT" in w_txt.upper():
-                continue
-
-            # First-seen order, never `set` order: a set made the order follow the hash seed, so two
-            # extractions of one PDF differed on 30 rows' symbols (T239 dry run).
-            all_syms = list(dict.fromkeys(v_sym_raw + w_sym))
-
-            # Normalize unicode characters to preserve context while standardizing format
-            regs_raw = _normalize_unicode(regs_raw)
-
-            # Replace tributaries symbols with standardized placeholder text
-            trib_pattern = r"[\uf0dc\uf02a]"
-            regs_raw = re.sub(trib_pattern, self.INCLUDES_TRIBUTARIES, regs_raw)
-            regs_raw = regs_raw.replace(
-                "Includes tributaries", self.INCLUDES_TRIBUTARIES
-            )
-            regs_raw = regs_raw.replace("Incl. Tribs", self.INCLUDES_TRIBUTARIES)
-
-            # Fix dates/numbers split across lines with bold markers
-            # Step 1: Remove bolded whitespace (spaces/tabs only) and replace with single space
-            # "**   **" → " ", "**\t\t**" → " "
-            regs_raw = re.sub(r"\*\*[ \t]+\*\*", " ", regs_raw)
-
-            # Step 2: Remove bold markers around newlines (keep the newline)
-            # "June **\n**1" → "June \n1"
-            regs_raw = re.sub(r"\*\*\s*\n\s*\*\*", "\n", regs_raw)
-
-            # Step 2: Fix date ranges split by newlines
-            # Pattern matches: Month Day-Month\nDay or Month\nDay-Month Day
-            # Examples: "Apr 1-June\n14" → "Apr 1-June 14", "June\n15-Mar 31" → "June 15-Mar 31"
-            month_pattern = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sept?(?:ember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
-            # Match: (month + optional spaces/digits/hyphens) + newline + (digits)
-            date_newline_pattern = (
-                rf"({month_pattern}(?:\s+\d+)?\s*-\s*{month_pattern}?)\s*\n\s*(\d+)"
-            )
-            regs_raw = re.sub(
-                date_newline_pattern, r"\1 \2", regs_raw, flags=re.IGNORECASE
-            )
-
-            # Also handle: Month\nDay (at start of date range)
-            date_start_pattern = rf"({month_pattern})\s*\n\s*(\d+)"
-            regs_raw = re.sub(
-                date_start_pattern, r"\1 \2", regs_raw, flags=re.IGNORECASE
-            )
-
-            # Normalize whitespace: replace multiple spaces/newlines with single space/newline
-            regs_raw = re.sub(
-                r"[ \t]+", " ", regs_raw
-            )  # Multiple spaces/tabs → single space
-            regs_raw = re.sub(
-                r"\n+", "\n", regs_raw
-            )  # Multiple newlines → single newline
-            regs_raw = re.sub(
-                r" *\n *", "\n", regs_raw
-            )  # Remove all spaces around newlines
-            regs_raw = regs_raw.strip()
-
-            # Only include rows that have a water body name OR management units (real regulation data)
-            if (w_txt.strip() or mus) and (
-                w_txt or regs_raw.strip() or mus or all_syms
-            ):
+            cell = self.row_from_cells(water_raw, regs_raw, v_sym_raw)
+            if cell is not None:
+                w_txt, mus, regs_raw, all_syms = (cell["water"], cell["mu"], cell["raw_regs"],
+                                                   cell["symbols"])
                 # Validate: warn if waterbody has no MU
                 if w_txt.strip() and not mus:
                     print(
@@ -1187,6 +1127,77 @@ class FishingSynopsisParser:
                 f"Page {page_num}: {len(structured_data)} rows ({region_header or 'Unknown'})"
             )
         return result
+
+    def row_from_cells(self, water_raw: str, regs_raw: str, v_sym_raw: List[str]) -> Optional[Dict[str, Any]]:
+        """One table row's fields from its two cells' text (`extract_text_with_bold` of each) and its
+        visual symbols: the name column's name / MUs / symbols and the regulation column's cleaned
+        text. None for the header row or a row with no name and no MU (not a regulation row).
+
+        Split out of `extract_rows` (T426) so the fast tier replays a row from its characters with no
+        PDF (`pipeline/tests/test_extract_fixtures.py`); `extract_rows` is unchanged in what it reads."""
+        # Process waterbody column (name, symbols, MUs)
+        w_txt, w_sym, mus = self.process_waterbody_column(water_raw)
+
+        if "WATER BODY" in w_txt.upper() or "MGMT UNIT" in w_txt.upper():
+            return None
+
+        # First-seen order, never `set` order: a set made the order follow the hash seed, so two
+        # extractions of one PDF differed on 30 rows' symbols (T239 dry run).
+        all_syms = list(dict.fromkeys(v_sym_raw + w_sym))
+
+        # Normalize unicode characters to preserve context while standardizing format
+        regs_raw = _normalize_unicode(regs_raw)
+
+        # Replace tributaries symbols with standardized placeholder text
+        trib_pattern = r"[\uf0dc\uf02a]"
+        regs_raw = re.sub(trib_pattern, self.INCLUDES_TRIBUTARIES, regs_raw)
+        regs_raw = regs_raw.replace(
+            "Includes tributaries", self.INCLUDES_TRIBUTARIES
+        )
+        regs_raw = regs_raw.replace("Incl. Tribs", self.INCLUDES_TRIBUTARIES)
+
+        # Fix dates/numbers split across lines with bold markers
+        # Step 1: Remove bolded whitespace (spaces/tabs only) and replace with single space
+        # "**   **" → " ", "**\t\t**" → " "
+        regs_raw = re.sub(r"\*\*[ \t]+\*\*", " ", regs_raw)
+
+        # Step 2: Remove bold markers around newlines (keep the newline)
+        # "June **\n**1" → "June \n1"
+        regs_raw = re.sub(r"\*\*\s*\n\s*\*\*", "\n", regs_raw)
+
+        # Step 2: Fix date ranges split by newlines
+        # Pattern matches: Month Day-Month\nDay or Month\nDay-Month Day
+        # Examples: "Apr 1-June\n14" → "Apr 1-June 14", "June\n15-Mar 31" → "June 15-Mar 31"
+        month_pattern = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sept?(?:ember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+        # Match: (month + optional spaces/digits/hyphens) + newline + (digits)
+        date_newline_pattern = (
+            rf"({month_pattern}(?:\s+\d+)?\s*-\s*{month_pattern}?)\s*\n\s*(\d+)"
+        )
+        regs_raw = re.sub(
+            date_newline_pattern, r"\1 \2", regs_raw, flags=re.IGNORECASE
+        )
+
+        # Also handle: Month\nDay (at start of date range)
+        date_start_pattern = rf"({month_pattern})\s*\n\s*(\d+)"
+        regs_raw = re.sub(
+            date_start_pattern, r"\1 \2", regs_raw, flags=re.IGNORECASE
+        )
+
+        # Normalize whitespace: replace multiple spaces/newlines with single space/newline
+        regs_raw = re.sub(
+            r"[ \t]+", " ", regs_raw
+        )  # Multiple spaces/tabs → single space
+        regs_raw = re.sub(
+            r"\n+", "\n", regs_raw
+        )  # Multiple newlines → single newline
+        regs_raw = re.sub(
+            r" *\n *", "\n", regs_raw
+        )  # Remove all spaces around newlines
+        regs_raw = regs_raw.strip()
+
+        if not ((w_txt.strip() or mus) and (w_txt or regs_raw.strip() or mus or all_syms)):
+            return None
+        return {"water": w_txt, "mu": mus, "raw_regs": regs_raw.strip(), "symbols": all_syms}
 
     @staticmethod
     def _printed_or_refuse(printed: Optional[int], page_num: int) -> int:
@@ -1434,6 +1445,12 @@ def _process_single_page(args):
         page = pdf.pages[page_num - 1]
         result = parser.extract_rows(page, save_debug=save_debug, page_num=page_num)
 
+    return keep_page(result, page_num)
+
+
+def keep_page(result: PageResult, page_num: int) -> Optional[PageResult]:
+    """The page as the extraction keeps it, or None. One rule, read by the extraction and by the
+    change gate (`baseline.page_rows`, T426), so the two never keep different pages."""
     # Only return pages with actual data rows
     if not result.rows:
         return None
@@ -1600,7 +1617,25 @@ def main(argv: Optional[List[str]] = None) -> None:
     parser.add_argument(
         "--debug", action="store_true", help="Save debug visualizations"
     )
+    # T426: the extractor change gate. Re-reads the CURRENT book (pdf_path) with this code and compares every row
+    # with the committed baseline; exits 1 naming each row neither identical nor in the accepted diffs. Writes no
+    # output file and no row images. A whole book is a heavy job: run it through scripts/heavy.sh.
+    parser.add_argument("--check-against", type=Path, metavar="MANIFEST",
+                        help="compare with a baseline manifest (pipeline/regs/extraction/baseline/<book>.json)")
+    parser.add_argument("--accepted", type=Path, default=None,
+                        help="the accepted diffs (default: accepted_diffs.json beside the manifest)")
+    parser.add_argument("--pages", type=int, nargs="+", help="with --check-against: these PDF pages only")
+    parser.add_argument("--report", type=Path, help="with --check-against: write the diffs as JSON")
     args = parser.parse_args(argv)
+
+    if args.check_against:
+        from .baseline import book_pdf, check
+        accepted = args.accepted or args.check_against.parent / "accepted_diffs.json"
+        # No PDF given: the baseline's own book, found by sha (after runbook step 1 the default is the NEW book).
+        pdf = (book_pdf(json.loads(args.check_against.read_text(encoding="utf-8")))
+               if args.pdf_path == default_pdf else Path(args.pdf_path))
+        sys.exit(check(args.check_against, accepted, pdf, pages=args.pages,
+                       workers=args.workers, report=args.report))
 
     # Print configuration
     print("=" * 80)

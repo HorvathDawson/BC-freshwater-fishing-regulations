@@ -1,0 +1,16 @@
+{
+ "_about": "T426: each current-book row a DELIBERATE extractor change moved, with its reason. An entry explains exactly its move (key + was + now): the same row changing again is unexplained again. Claude adds an entry when it commits the extractor change; `baseline cut` (runbook step 9) empties the list, since the new baseline holds the change.",
+ "baseline": "2025-27.json",
+ "baseline_rows": "ff73e8c82a273896",
+ "accepted": [
+  {
+   "key": "018:36.00,359.52,540.00,393.60",
+   "image": "page_018_row_021.png",
+   "water": "HEBER RIVER",
+   "was": "8037aef34bd9bc37",
+   "now": "060f13a883126a01",
+   "ticket": "T415 (in T239), 83c9995d7",
+   "reason": "raw_regs: the baseline row is the 09-24 hand fix ('…confluence when open', 9ba92c01b); no extractor produced it (every commit back to a6fcf21e1 read 'Folpye fnishing … when'). T415's _stacked_under reads the last line 'open', set 5.0 pt under '…confluence when', as its own line: '…confluence when\\nopen'. Same words, a line break where the hand fix had a space."
+  }
+ ]
+}
