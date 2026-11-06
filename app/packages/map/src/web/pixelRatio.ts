@@ -12,9 +12,10 @@
  * value, so a window that opened on a 1× screen is not left blurry on a 2× one.
  */
 import type { Map as GLMap } from "maplibre-gl";
+import { MAX_PIXEL_RATIO } from "../pixel-ratio";
 
 /** The most device pixels per CSS pixel the web map draws. */
-export const WEB_MAX_PIXEL_RATIO = 2;
+export const WEB_MAX_PIXEL_RATIO = MAX_PIXEL_RATIO;
 
 /** The ratio the web map draws at for a device ratio. */
 export function webPixelRatio(deviceRatio: number): number {

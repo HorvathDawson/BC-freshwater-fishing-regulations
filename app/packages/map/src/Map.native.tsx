@@ -70,6 +70,7 @@ import { cameraMs, setReducedMotion } from "./motion";
 import { ME_SOURCE, meData, mePaint } from "./me";
 import { camProbe } from "./native/camProbe";
 import { watchStyleAssets } from "./native/styleAssets";
+import { MAX_PIXEL_RATIO } from "./pixel-ratio";
 
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = React.ComponentProps<typeof Layer>;
@@ -682,6 +683,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         // (T424) the binding's own attribution "i" is OFF: the credits are `MapCredits` below, the web's own component. A
         // bare map is an illustration: no furniture, no credits (the page that carries it credits the data, MapProps.bare)
         attribution={false}
+        // (T448) at most 2 device pixels per dp, like the web (`pixel-ratio.ts`): the patched binding draws into a smaller
+        // surface the compositor scales up (Android) — fewer pixels filled, the same scale, gestures and taps
+        maxPixelRatio={MAX_PIXEL_RATIO}
         logo={false}
         // OURS is drawn below (`metricScale`): the binding's is top-left only on Android, in the device's units. But
         // the binding's must EXIST on Android: switched off, the map's surface left a black hole over the next screen
