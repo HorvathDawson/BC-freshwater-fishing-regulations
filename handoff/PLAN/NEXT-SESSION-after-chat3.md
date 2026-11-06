@@ -21,8 +21,11 @@ Written 2026-11-06, as chat 3 closed. It replaces `NEXT-SESSION-after-chat2.md`.
   guards stay), absolutes 5–6. Read them.
 
 ## The list, in order
-1. **Zoomed-out lag (T420)** — finish from the agent's findings: fix, tile build, release to staging, emulator numbers,
-   then an APK if app code changed.
+1. **Zoomed-out lag (T420, "Zoomed out, z5–z9")**: the cost is the basemap's green landuse fills, not our parks.
+   a893b06fe (antialias outline off on basemap fills, −10–13 % frame) is committed but **not shipped**. It needs a
+   staging site rebuild and the next APK. Ask the owner about the three look changes in T420, with a before/after image
+   for each: harder basemap landuse simplification at z≤9 (tile build), landuse_park from z8, dropping the region/MU 4 %
+   tints. Then T448.
 2. **T448** native pixel-ratio cap (web already capped).
 3. **T401** prefetch (`setPrefetchZoomDelta`).
 4. **T420 iOS half** — the binding patch is not compiled on iOS yet.
