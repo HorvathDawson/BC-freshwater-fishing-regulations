@@ -80,3 +80,17 @@ export function dispatchSteps(d: Dispatch | undefined, button: string): { text: 
     { text: button },
   ];
 }
+
+/** (T413) Is the token good for this repo? Reads the HYDAT workflow with it — starts nothing. GitHub cannot show a
+ *  fine-grained token's write permission without using it: a read that answers 200 proves the token and the repo. */
+export async function checkToken(env: DispatchEnv, fetch_: Fetch): Promise<{ ok: boolean; status: number | null; says: string }> {
+  if (!env.GITHUB_DISPATCH_TOKEN) return { ok: false, status: null, says: "GITHUB_DISPATCH_TOKEN is not set" };
+  const r = await fetch_(`https://api.github.com/repos/${REPO}/actions/workflows/feeds-hydat.yml`, {
+    headers: { Authorization: `Bearer ${env.GITHUB_DISPATCH_TOKEN}`, Accept: "application/vnd.github+json",
+               "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "bc-fishing-feeds-worker" },
+  });
+  const body = await r.text();
+  let says = body.slice(0, 200);
+  try { const j = JSON.parse(body); says = r.ok ? `${j.name} (${j.state})` : String(j.message ?? says); } catch { /* the text */ }
+  return { ok: r.status === 200, status: r.status, says };
+}

@@ -90,3 +90,21 @@ describe("(T412) the weekly run-timing source check", async () => {
     expect(e!.text).toContain("GitHub → Actions");
   });
 });
+
+describe("(T413) the token check", async () => {
+  const { checkToken } = await import("../src/dispatch");
+  it("reads the workflow with the token and starts nothing", async () => {
+    const calls: string[] = [];
+    const r = await checkToken({ GITHUB_DISPATCH_TOKEN: "t" }, async (u, i) => {
+      calls.push(`${i?.method ?? "GET"} ${u}`);
+      return Response.json({ name: "feeds — HYDAT → climatology → R2", state: "active" });
+    });
+    expect(r).toEqual({ ok: true, status: 200, says: "feeds — HYDAT → climatology → R2 (active)" });
+    expect(calls).toEqual(["GET https://api.github.com/repos/HorvathDawson/BC-freshwater-fishing-regulations/actions/workflows/feeds-hydat.yml"]);
+  });
+  it("says why not", async () => {
+    expect(await checkToken({}, async () => new Response())).toMatchObject({ ok: false, says: "GITHUB_DISPATCH_TOKEN is not set" });
+    expect(await checkToken({ GITHUB_DISPATCH_TOKEN: "bad" }, async () => Response.json({ message: "Bad credentials" }, { status: 401 })))
+      .toEqual({ ok: false, status: 401, says: "Bad credentials" });
+  });
+});

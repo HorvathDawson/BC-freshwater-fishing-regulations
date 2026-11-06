@@ -29,7 +29,7 @@ import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./
 import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
-import { dispatchOnce, type DispatchEnv } from "./dispatch";
+import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
 import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
@@ -538,6 +538,12 @@ export default {
       const month = url.searchParams.get("month") ?? undefined;
       if (month !== undefined && !/^\d{4}-\d{2}$/.test(month)) return new Response("month must be YYYY-MM", { status: 400 });
       const r = await skill(env, new Date(), month);
+      return Response.json(r, { status: r.ok ? 200 : 500 });
+    }
+    if (url.pathname === "/run/check-github" && req.method === "POST") {
+      // (T413) is the dispatch token good? a read with it; starts nothing
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const r = await checkToken(env, (u, i) => fetch(u, i));
       return Response.json(r, { status: r.ok ? 200 : 500 });
     }
     if (url.pathname === "/run/runtiming" && req.method === "POST") {
