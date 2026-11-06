@@ -446,6 +446,10 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       return (await basinGrid()).at(p.lon, p.lat);
     },
 
+    async basinIn(box) {
+      return (await basinGrid()).mostIn(box);
+    },
+
     lakeFacts() {
       return loader.lakes();
     },

@@ -108,6 +108,14 @@ export interface BootOptions {
    */
   deferUpdate?: boolean;
   /**
+   * (T418) AN UPDATE APPLIED WHILE THE SET IT REPLACES IS ON SCREEN (the app's in-session apply, `useReleaseBoot`'s
+   * generation > 0): the replaced set is NOT pruned by this boot. Its tile folder — the atlas, the outside mask, the map
+   * assets (glyphs, sprites) — is what the map on screen still reads until the new set is drawn; pruned under it, every
+   * one of them failed to load (0.5.0, 2026-11-04 17:07: r-4e70 → r-5a59 changed the tile folder). It stays the
+   * PREVIOUS pointer and is pruned by the next launch, or by the next `stage` (the new set is on screen by then).
+   */
+  keepReplaced?: boolean;
+  /**
    * (T251) THE RELEASE GATE on a phone: a manifest whose `minAppVersion` is newer than this app is never installed — a
    * first run says "Update the app to get new regulations" (there is nothing older to keep); a later launch keeps the
    * held set. The web passes none: its app code is deployed with its data.
@@ -380,11 +388,16 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     }
   }
 
-  // the set this one replaced is deleted only now: the new one has opened, decoded its paint and paired
+  // the set this one replaced is deleted only now: the new one has opened, decoded its paint and paired — and (T418) only
+  // when nothing still draws it: an in-session apply leaves it to the next launch or the next stage (`keepReplaced`)
+  let replaced: { h: Held; m: Manifest | null } | null = null;
   if (!rolledBack && previous) {
-    if (!sameSet(previous, held))
-      await prune(dev.fs, previous, await heldManifest(dev.fs, previous).catch(() => null), held, set.m);
-    await dev.fs.remove(PREVIOUS);
+    if (!sameSet(previous, held)) {
+      const previousM = await heldManifest(dev.fs, previous).catch(() => null);
+      if (o.keepReplaced) replaced = { h: previous, m: previousM };
+      else await prune(dev.fs, previous, previousM, held, set.m);
+    }
+    if (!replaced) await dev.fs.remove(PREVIOUS);
   }
 
   const now = held;
@@ -405,6 +418,8 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     staging = (async () => {
       // a newer set replaces the one being retried: what of it the held set does not name goes first
       if (retrying) { await prune(dev.fs, retrying.h, retrying.m, now, set.m); retrying = null; }
+      // (T418) the set an in-session apply kept for the map that was on screen: this set has been drawn since
+      if (replaced) { await prune(dev.fs, replaced.h, replaced.m, now, set.m); replaced = null; }
       const h = await install(next, dev.fs, dev.download, o.releaseBase, now, onProgress, dev.toDisk,
                               () => writeHeld(dev.fs, PREVIOUS, now), rawFetch(f));
       staged = h;

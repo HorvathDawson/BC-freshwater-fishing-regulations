@@ -3,8 +3,9 @@
  * per day (`basinStandings` in @app/data: the group's id is its key). Two questions, and NEVER one answered for the other
  * (owner: no hidden fallbacks):
  *
- *   browse   the group under the Conditions map's CENTRE, asked when the map comes to rest (`useCentreBasin`, on the
- *            map colouring as `col.centreBasin`); null when the centre is in no group (the sea, outside B.C.)
+ *   browse   (T417) the group with the LARGEST SHARE OF WHAT THE CONDITIONS MAP SHOWS, asked when the map comes to rest
+ *            (`useViewBasin`, on the map colouring as `col.viewBasin`) — so a centre over the Strait next to the Lower
+ *            Fraser still answers the Lower Fraser; null only when no group is on screen (open sea, outside B.C.)
  *   a water  the group the water's own place is in (`useWaterBasin`): where the reader tapped on it, or — opened without
  *            a tap — the water's own point (`WaterSource.waterPoint`). Never the map's centre.
  *
@@ -25,6 +26,26 @@ export type { Basin };
 export function basinAt(source: WaterSource, at: LatLon): Promise<Basin | null> {
   if (!source.basinAt) return Promise.reject(new Error("basins: this source carries no watershed groups"));
   return source.basinAt(at);
+}
+
+/** What the map shows when it comes to rest: its centre, and (T417) its visible bounds once it has drawn them. */
+export interface MapView extends LatLon {
+  readonly bounds?: readonly [number, number, number, number];
+}
+
+/**
+ * (T417) THE BOX A VIEW IS ASKED BY: the map's visible bounds; before the map has drawn any (the camera it starts on),
+ * the start point itself — a box of one point, which IS the group under that point (`BasinGrid.mostIn`). The same
+ * question either way, never a second way of answering it.
+ */
+function viewBox(v: MapView): readonly [number, number, number, number] {
+  return v.bounds ?? [v.lon, v.lat, v.lon, v.lat];
+}
+
+/** `source.basinIn` over the view's box, or a thrown "cannot say" for a source that has no groups — never null. */
+function basinIn(source: WaterSource, v: MapView): Promise<Basin | null> {
+  if (!source.basinIn) return Promise.reject(new Error("basins: this source carries no watershed groups"));
+  return source.basinIn(viewBox(v));
 }
 
 /** What a water's Conditions view is opened on: the water (null: an unnamed reach), the tapped section and the tap. */
@@ -56,32 +77,33 @@ export function useWaterBasin(source: WaterSource, w: WaterBasinAsk, enabled = t
   return useAsync(() => waterBasin(source, w), key, enabled);
 }
 
-/** The Conditions map's centre group, for the map colouring (`col.centreBasin`). */
-export interface CentreBasinVM {
-  /** The group under the centre; null: the centre is in none; undefined: not asked (off Conditions) or not answered yet. */
-  centreBasin: Basin | null | undefined;
-  /** Why the centre's group could not be read (a release without groups, a source without them); null otherwise. */
-  centreBasinError: Error | null;
+/** The Conditions map's group (T417: the one most on screen), for the map colouring (`col.viewBasin`). */
+export interface ViewBasinVM {
+  /** The group most on screen; null: no group is on screen; undefined: not asked (off Conditions) or not answered yet. */
+  viewBasin: Basin | null | undefined;
+  /** Why the view's group could not be read (a release without groups, a source without them); null otherwise. */
+  viewBasinError: Error | null;
   /** Hand it the camera each time the map comes to rest (`MapProps.onMoved`). Cheap: a ref, plus a lookup while asked. */
-  noteCentre(at: LatLon): void;
+  noteView(at: MapView): void;
 }
 
 /**
- * THE GROUP UNDER THE MAP'S CENTRE, while `enabled` (the Conditions map): asked on each `noteCentre` — which the map calls
- * once per gesture, when it comes to rest, never per frame — and re-renders only when the group changes. Off Conditions
- * nothing is asked (no release file is opened for it) and the answer is withdrawn (`undefined`); back on, the last centre
- * noted is asked at once. `initial` is where the camera starts, before the map first reports.
+ * THE GROUP WITH THE LARGEST SHARE OF THE MAP, while `enabled` (the Conditions map): asked on each `noteView` — which the
+ * map calls once per gesture, when it comes to rest, never per frame; a pan, a search and a tap all end there, so all
+ * three get the same answer for the same view (one load path) — and re-renders only when the group changes. Off
+ * Conditions nothing is asked (no release file is opened for it) and the answer is withdrawn (`undefined`); back on, the
+ * last view noted is asked at once. `initial` is where the camera starts, before the map first reports.
  */
-export function useCentreBasin(source: WaterSource, enabled: boolean, initial: LatLon): CentreBasinVM {
-  const at = useRef<LatLon>(initial);
+export function useViewBasin(source: WaterSource, enabled: boolean, initial: MapView): ViewBasinVM {
+  const at = useRef<MapView>(initial);
   const on = useRef(enabled);
   on.current = enabled;
   const seq = useRef(0);
   const [vm, setVm] = useState<{ basin: Basin | null | undefined; error: Error | null }>({ basin: undefined, error: null });
   const held = useRef(vm);
-  const ask = useCallback((p: LatLon) => {
+  const ask = useCallback((p: MapView) => {
     const n = ++seq.current;
-    basinAt(source, p).then(
+    basinIn(source, p).then(
       (b) => {
         if (n !== seq.current) return;
         // compared HERE, not in an updater: React may render once even for an updater that returns the same state
@@ -107,9 +129,9 @@ export function useCentreBasin(source: WaterSource, enabled: boolean, initial: L
       }
     }
   }, [enabled, ask]);
-  const noteCentre = useCallback((p: LatLon) => {
-    at.current = { lon: p.lon, lat: p.lat };
+  const noteView = useCallback((p: MapView) => {
+    at.current = { lon: p.lon, lat: p.lat, ...(p.bounds ? { bounds: p.bounds } : {}) };
     if (on.current) ask(at.current);
   }, [ask]);
-  return { centreBasin: vm.basin, centreBasinError: vm.error, noteCentre };
+  return { viewBasin: vm.basin, viewBasinError: vm.error, noteView };
 }

@@ -30,6 +30,14 @@ export interface BasinFrame {
 export interface BasinGrid {
   /** The group holding the point's cell; null outside every group. A non-finite point is a caller's error: thrown. */
   at(lon: number, lat: number): Basin | null;
+  /**
+   * (T417) THE GROUP WITH THE LARGEST SHARE OF A BOX (west, south, east, north — the map's visible bounds): every cell
+   * the box touches, each counted at its true ground area (a cell's width shrinks with cos(latitude)); null only when no
+   * group holds any of them (open sea, outside B.C.). A box that is a single point is that point's cell — `at`. Equal
+   * shares go to the group under the box's centre, then to the lower id, so the answer never depends on order.
+   * A non-finite or inverted box is a caller's error: thrown.
+   */
+  mostIn(box: readonly [number, number, number, number]): Basin | null;
   /** Every group, by id. */
   readonly basins: ReadonlyMap<string, Basin>;
 }
@@ -86,21 +94,54 @@ export function decodeBasinGrid(frame: BasinFrame, rows: readonly { row: number;
     grid[r.row] = d;
   }
   for (let r = 0; r < frame.rows; r++) if (!grid[r]) throw new Error(`basin_grid: row ${r} is missing`);
+  /** The run holding column `c` of a row: the first run ending past it. */
+  const runAt = (ends: Uint32Array, c: number): number => {
+    let lo = 0, hi = ends.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (ends[mid]! > c) hi = mid; else lo = mid + 1;
+    }
+    return lo;
+  };
+  const at = (lon: number, lat: number): Basin | null => {
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) throw new Error(`basin_grid: (${lon}, ${lat}) is not a point`);
+    const r = Math.floor((lat - frame.s) / frame.dlat), c = Math.floor((lon - frame.w) / frame.dlon);
+    if (r < 0 || r >= frame.rows || c < 0 || c >= frame.cols) return null;
+    const { ends, ix } = grid[r]!;
+    const k = ix[runAt(ends, c)]!;
+    return k === 0 ? null : byIx.get(k)!;
+  };
   return {
     basins,
-    at(lon, lat) {
-      if (!Number.isFinite(lon) || !Number.isFinite(lat)) throw new Error(`basin_grid: (${lon}, ${lat}) is not a point`);
-      const r = Math.floor((lat - frame.s) / frame.dlat), c = Math.floor((lon - frame.w) / frame.dlon);
-      if (r < 0 || r >= frame.rows || c < 0 || c >= frame.cols) return null;
-      const { ends, ix } = grid[r]!;
-      // the first run ending past the column
-      let lo = 0, hi = ends.length - 1;
-      while (lo < hi) {
-        const mid = (lo + hi) >> 1;
-        if (ends[mid]! > c) hi = mid; else lo = mid + 1;
+    at,
+    mostIn(box) {
+      const [w, s, e, n] = box;
+      if (![w, s, e, n].every(Number.isFinite) || e < w || n < s)
+        throw new Error(`basin_grid: [${box.join(", ")}] is not a box`);
+      const r0 = Math.max(0, Math.floor((s - frame.s) / frame.dlat));
+      const r1 = Math.min(frame.rows - 1, Math.floor((n - frame.s) / frame.dlat));
+      const c0 = Math.max(0, Math.floor((w - frame.w) / frame.dlon));
+      const c1 = Math.min(frame.cols - 1, Math.floor((e - frame.w) / frame.dlon));
+      const share = new Map<number, number>();
+      for (let r = r0; r <= r1; r++) {
+        const { ends, ix } = grid[r]!;
+        const area = Math.cos(((frame.s + (r + 0.5) * frame.dlat) * Math.PI) / 180);
+        for (let k = runAt(ends, c0), from = c0; k < ends.length && from <= c1; k++) {
+          const to = Math.min(ends[k]!, c1 + 1);
+          if (ix[k]! !== 0) share.set(ix[k]!, (share.get(ix[k]!) ?? 0) + (to - from) * area);
+          from = to;
+        }
       }
-      const k = ix[lo]!;
-      return k === 0 ? null : byIx.get(k)!;
+      if (share.size === 0) return null;
+      const centre = at((w + e) / 2, (s + n) / 2);
+      let best: Basin | null = null, most = -1;
+      for (const [k, v] of share) {
+        const b = byIx.get(k)!;
+        const wins = v > most || (v === most && best !== null && best.id !== centre?.id
+                                  && (b.id === centre?.id || b.id < best.id));
+        if (wins) { best = b; most = v; }
+      }
+      return best;
     },
   };
 }

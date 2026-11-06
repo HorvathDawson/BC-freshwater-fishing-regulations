@@ -460,8 +460,8 @@ use that as the sole source of future work."
 | T414 | Review app: "only these entries" filter for the yearly synopsis diff | DROPPED — merged into T239 (2026-11-05) | — | from T239 11-05 |
 | T415 | Extraction regression: Heber River's text (found by T239's dry run) | DROPPED — merged into T239 (2026-11-05) | — | from T239 11-05; before the next book |
 | T416 | A fresh clone can build: inventory non-git inputs, mirror what only lives on the Mac, one bootstrap, timed clone→build proof | OPEN | — | owner 11-05; after T324 |
-| T417 | Watershed conditions: no flicker between watersheds; pick the watershed most on screen | OPEN — 0.6.1 batch (with T411) | — | owner report 11-05 on 0.6.0 |
-| T418 | Map style assets failed to load on the phone (sprite, glyphs, `outside` source) on 0.5.0 — one-off or real gap | OPEN — 0.6.1 batch (with T411) | — | from reports 11-05 |
+| T417 | Watershed conditions: the last watershed's days stay up until the next is loaded (no flicker); the watershed is the one most on screen (visible bounds, cos-weighted grid), "none" only with none on screen; one load path (the map's settle) | DONE in code — phone check with the next APK | 44ecbaad6 | owner report 11-05 on 0.6.0; emulator check not run (no test-bed APK built) |
+| T418 | Map style assets failed on 0.5.0: a real gap, not a one-off. The in-session update (r-4e70 → r-5a59, new tile folder) pruned the old set's atlas, mask and map assets while its map was still drawn. The replaced set is now kept until the next launch or stage, and a failed style asset is reported once (MapLibre log watch) | DONE in code — phone check with the next APK | 370731ad3 | from reports 11-05; re-read the report feed after 2–3 days of 0.6.x |
 | T419 | Salmon River (Region 2) keeps too much detail when zoomed out; check stream simplification | OPEN — UI check | — | owner 11-05 |
 
 ## Order for open tickets

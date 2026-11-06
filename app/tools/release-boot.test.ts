@@ -280,6 +280,55 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect(fs.files.has("release/previous")).toBe(false);
     });
 
+  it("(T418) an update APPLIED IN SESSION keeps the replaced tiles (the map on screen reads them) until the next launch",
+    async () => {
+      const r1 = fixtureRelease("plain");
+      const v1 = tileVersion(r1, "aaaaaaaaaaaa"), v2 = tileVersion(r1, "bbbbbbbbbbbb"), v3 = tileVersion(r1, "cccccccccccc");
+      const at1 = withTiles(r1, v1), at2 = withTiles(r1, v2), at3 = withTiles(r1, v3);
+      const fs = memFs();
+      const boot = (f: typeof fetch, keepReplaced?: boolean) => bootRelease({
+        manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
+        manifestTimeoutMs: 1000, ...(keepReplaced ? { keepReplaced, deferUpdate: true } : {}) });
+      await boot(releaseFetch(BASE, at1, []));
+      expect(await (await boot(releaseFetch(BASE, at2, []))).update).toMatchObject({ tiles: v2 });
+
+      // the app applies it while v1 is drawn (the 0.5.0 phone, r-4e70 → r-5a59): v2 opens, v1 stays whole (the server
+      // already names v3; the update service stages it later — `deferUpdate`, as the app boots)
+      const applied = await boot(releaseFetch(BASE, at3, []), true);
+      expect(applied.held.tiles).toBe(v2);
+      expect(tileFiles(fs, v1)).toEqual([`release/tiles/${v1}/atlas-${v1}.pmtiles`, `release/tiles/${v1}/bc_outside.geojson`]);
+      expect(fs.files.has("release/previous")).toBe(true);
+
+      // the next update staged in that session: v2 has been drawn since, so v1 goes first, then v3 is installed
+      const staged = await applied.stage(applied.latest!);
+      expect(staged).toMatchObject({ tiles: v3 });
+      expect(tileFiles(fs, v1)).toEqual([]);
+      expect(tileFiles(fs, v2)).toHaveLength(2);
+
+      // and the next launch prunes what it replaced, as before (nothing on screen yet)
+      const next = await boot(offline);
+      expect(next.held.tiles).toBe(v3);
+      expect(tileFiles(fs, v2)).toEqual([]);
+      expect(fs.files.has("release/previous")).toBe(false);
+    });
+
+  it("(T418) an in-session apply's kept set is pruned by the next LAUNCH when nothing else was staged", async () => {
+    const r1 = fixtureRelease("plain");
+    const v1 = tileVersion(r1, "aaaaaaaaaaaa"), v2 = tileVersion(r1, "bbbbbbbbbbbb");
+    const fs = memFs();
+    const boot = (f: typeof fetch, keepReplaced?: boolean) => bootRelease({
+      manifestUrl: `${BASE}manifest.json`, releaseBase: BASE, wasmBase: "", platform: phone(fs), fetch: f,
+      manifestTimeoutMs: 1000, ...(keepReplaced ? { keepReplaced } : {}) });
+    await boot(releaseFetch(BASE, withTiles(r1, v1), []));
+    await (await boot(releaseFetch(BASE, withTiles(r1, v2), []))).update;
+    await boot(offline, true);
+    expect(tileFiles(fs, v1)).toHaveLength(2);
+    const next = await boot(offline);
+    expect(next.held.tiles).toBe(v2);
+    expect(tileFiles(fs, v1)).toEqual([]);
+    expect(fs.files.has("release/previous")).toBe(false);
+  });
+
   const GLYPHS = "fonts/Noto Sans Regular/0-255.pbf", SPRITE = "sprites/v4/light.png";
   const assetFiles = (fs: ReturnType<typeof memFs>, v: string, id: string) =>
     [...fs.files.keys()].filter((k) => k.startsWith(`release/tiles/${v}/${id}/`)).sort();

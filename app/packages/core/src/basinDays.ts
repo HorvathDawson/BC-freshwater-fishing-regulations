@@ -20,7 +20,7 @@ export const BASIN_DAYS_WORDS = {
   /** the card's foot when a day has no reading: what the dash means */
   noneKey: "— no gauge in this watershed reads that day",
   /** the group itself cannot be had */
-  noGroup: { browse: "The map's centre is in no watershed group", water: "This water is in no watershed group" },
+  noGroup: { browse: "No watershed group is on the map", water: "This water is in no watershed group" },
   /** what is loading or failed, for core's part line (`partLine`) */
   part: "Watershed days",
   /** the row's name aloud */

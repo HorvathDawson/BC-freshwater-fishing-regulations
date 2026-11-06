@@ -13,7 +13,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useEffect, useImperativeHandle, type ReactNode } from "react";
-import { MAP_GESTURES } from "@app/core";
+import { MAP_GESTURES, setFailureSink } from "@app/core";
 import type { MapProps } from "./map-props";
 import type { StatusIndex } from "@app/core";
 import { maplibreGestures, nativeMapGestures } from "./gestures";
@@ -120,9 +120,12 @@ type Press = { nativeEvent: { point: [number, number]; lngLat: [number, number] 
 const native: { props: Record<string, unknown> | null; camera: Record<string, unknown> | null;
                 geojson: Record<string, unknown>; holdRender: boolean; watched?: string[];
                 layers?: Record<string, { type: string; paint?: unknown }>;
-                images?: Record<string, unknown>; fitOpts?: unknown[] } =
+                images?: Record<string, unknown>; fitOpts?: unknown[];
+                onLog?: (e: { level: string; tag: string; message: string }) => boolean } =
   { props: null, camera: null, geojson: {}, holdRender: false };
 vi.mock("@maplibre/maplibre-react-native", () => ({
+  // (T418) MapLibre Native's log: the map installs one handler (the style-asset watch)
+  LogManager: { onLog: (h: (e: { level: string; tag: string; message: string }) => boolean) => { native.onLog = h; } },
   Map: ({ ref, children, ...props }: { ref?: unknown; children?: ReactNode } & Record<string, unknown>) => {
     native.props = props;
     useImperativeHandle(ref as never, () => ({
@@ -841,12 +844,31 @@ it("no listener, no long press: the binding is handed no handler (its long press
     r.rerender(<NativeMap {...base({ bare: true })} />);
     expect(r.queryByLabelText("scale")).toBeNull();
   });
+  it("(T418) a style asset that would not load (MapLibre's log) is REPORTED once per asset, and still logged", async () => {
+    const sent: unknown[] = [];
+    const undo = setFailureSink((e) => sent.push(e));
+    try {
+      render(<NativeMap {...base({ data: undefined, highlight: undefined })} />);
+      await waitFor(() => expect(native.onLog).toBeTruthy());
+      // the 0.5.0 phone's lines (2026-11-04 17:07), twice over: one report per asset
+      const lines = ["{anifishthis.app}[Style]: Failed to load source outside: ", "{anifishthis.app}[Style]: Failed to load sprite: ",
+                     "{RenderThread 16}[Style]: Failed to load glyph range 0-255 for font stack Noto Sans Regular:( )"];
+      for (const message of [...lines, ...lines])
+        expect(native.onLog!({ level: "error", tag: "Mbgl", message })).toBe(false);   // printed as before
+      native.onLog!({ level: "warn", tag: "Mbgl", message: "Failed to load sprite: " });  // a warning: not this
+      expect(sent.map((e) => (e as Error).message)).toEqual([
+        `map: a style asset failed to load (source:outside): ${lines[0]!.trim()}`,
+        `map: a style asset failed to load (sprite): ${lines[1]!.trim()}`,
+        `map: a style asset failed to load (glyphs:Noto Sans Regular): ${lines[2]!.trim()}`,
+      ]);
+    } finally { undo(); }
+  });
   it("reports where the camera settled, read off the event before anything else", async () => {
     const moved = vi.fn();
     render(<NativeMap {...base({ data: undefined, highlight: undefined, onMoved: moved })} />);
     await waitFor(() => expect(native.props).toBeTruthy());
     PLATFORMS.native.settle();
-    expect(moved.mock.calls).toEqual([[{ lon: -122, lat: 49, zoom: 9 }]]);
+    expect(moved.mock.calls).toEqual([[{ lon: -122, lat: 49, zoom: 9, bounds: [-123, 48, -121, 50] }]]);
   });
   it("frames a subject: a fit moves the camera to the box, once per key", async () => {
     const fit = { key: "a", bbox: [-123, 49, -122, 50] as const };

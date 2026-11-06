@@ -39,7 +39,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type LayoutChangeEvent } from "react-native";
 import {
-  Camera, GeoJSONSource, Images, Layer, Map as MLMap, VectorSource,
+  Camera, GeoJSONSource, Images, Layer, LogManager, Map as MLMap, VectorSource,
   type CameraRef, type GeoJSONSourceRef, type MapRef, type VectorSourceRef,
 } from "@maplibre/maplibre-react-native";
 import { CAMERA_BOUNDS, CAMERA_MAX_ZOOM, FIT_MAX_ZOOM, MIN_ZOOM, fitAtMost, padBbox, refineFit, spotMarkers,
@@ -66,6 +66,7 @@ import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, 
 import { cameraMs, setReducedMotion } from "./motion";
 import { ME_SOURCE, meData, mePaint } from "./native/me";
 import { camProbe } from "./native/camProbe";
+import { watchStyleAssets } from "./native/styleAssets";
 
 /** (T317) a style-spec layer as the binding's `Layer` takes it (its source is the enclosing `GeoJSONSource`) */
 type LayerSpec = React.ComponentProps<typeof Layer>;
@@ -83,7 +84,8 @@ const SCALE_MAX_WIDTH = 92;
 
 type PressEvent = { nativeEvent: { point: [number, number] | { x: number; y: number };
                                    lngLat: [number, number] } | null };
-type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number; userInteraction?: boolean } | null };
+type RegionEvent = { nativeEvent: { center?: [number, number]; zoom?: number; userInteraction?: boolean;
+                                    bounds?: [number, number, number, number] } | null };
 type Data = NonNullable<MapProps["data"]>;
 
 /** (T348) How long a settled camera waits for a full render before it asks what is on screen itself. */
@@ -132,6 +134,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onVisible, onLongPress };
   const report = useCallback((e: unknown) =>
     cb.current.onError?.(e instanceof Error ? e : new Error(String(e))), []);
+  // (T418) a sprite, glyph range or source that would not load is reported once, not only logged (MapLibre's log)
+  useEffect(() => { watchStyleAssets(LogManager); }, []);
   /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`shiftMarks`) */
   const marksNow = useRef(marks);
   marksNow.current = marks;
@@ -581,7 +585,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     probe?.settled();
     const ne = e.nativeEvent;          // before anything async, as with a press
     if (ne?.center && ne.zoom !== undefined) {
-      cb.current.onMoved?.({ lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom });
+      const b = ne.bounds;
+      cb.current.onMoved?.({ lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom,
+                             ...(b && b.length === 4 ? { bounds: [b[0], b[1], b[2], b[3]] as const } : {}) });
       camNow.current = { lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom };
       camProbe.settled({ ...camNow.current, user: !!ne.userInteraction });
       // (test bed only, the open probe's build) once the camera rests: a point the selected water answers a tap at

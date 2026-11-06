@@ -206,6 +206,14 @@ describe("(T376) makeReleaseSource.basinAt: the watershed group a point is in, f
     expect(await source.basinAt!({ lon: 2.5, lat: 0.2 })).toBeNull();
     expect(loader.opened()).toEqual(["conditions"]);
   });
+  it("(T417) basinIn: the group with the largest share of a box, from the same grid", async () => {
+    const source = makeReleaseSource(releaseLoader(manifest(["core", "conditions"]), bytes, openBasins(true)));
+    // centred on the sea (lon 2.5) with Lower Fraser on screen: Lower Fraser, never none
+    expect(await source.basinIn!([1.6, 0, 2.9, 0.9])).toEqual({ id: "LFRA", name: "Lower Fraser" });
+    expect(await source.basinIn!([2.1, 0, 2.9, 0.9])).toBeNull();
+    await expect(makeReleaseSource(releaseLoader(manifest(["core", "conditions"]), bytes, openBasins(false)))
+      .basinIn!([0, 0, 1, 1])).rejects.toThrow("carries no watershed groups");
+  });
   it("a release cut before the grid THROWS — never 'in no group'", async () => {
     const source = makeReleaseSource(releaseLoader(manifest(["core", "conditions"]), bytes, openBasins(false)));
     await expect(source.basinAt!({ lon: 0.2, lat: 0.7 })).rejects.toThrow("carries no watershed groups");

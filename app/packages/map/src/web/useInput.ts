@@ -17,8 +17,9 @@ export function useMoved({ map }: WebMapRefs, onMoved: MapProps["onMoved"]) {
     if (!m || !onMoved) return;
     // `moveend`, not `move`: one report per gesture rather than one per frame.
     const report = () => {
-      const c = m.getCenter();
-      onMoved({ lon: c.lng, lat: c.lat, zoom: m.getZoom() });
+      const c = m.getCenter(), b = m.getBounds();
+      onMoved({ lon: c.lng, lat: c.lat, zoom: m.getZoom(),
+                bounds: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()] });
     };
     m.on("moveend", report);
     return () => { m.off("moveend", report); };
