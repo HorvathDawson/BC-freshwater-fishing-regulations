@@ -71,6 +71,8 @@ const walk = (dir, out = []) => {
   for (const n of readdirSync(dir)) {
     if (n === "node_modules" || n === "dist") continue;
     const p = join(dir, n);
+    // the generated native projects (`expo prebuild`, gitignored): not our source, and their Pods hold dangling links
+    if (/apps\/mobile\/(ios|android)$/.test(p)) continue;
     statSync(p).isDirectory() ? walk(p, out) : /\.(ts|tsx)$/.test(p) && out.push(p);
   }
   return out;
