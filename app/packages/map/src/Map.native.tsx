@@ -57,6 +57,7 @@ import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
 import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
+import { GoneViews } from "./native/goneView";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
          marksLayers, pinDotLayer, pinsData, shiftedLabels } from "./point-marks";
 import { pngDataUri } from "./png";
@@ -134,8 +135,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // re-register them (or, for the style, swap it).
   const cb = useRef({ onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onVisible, onLongPress });
   cb.current = { onError, onMoved, onMapPoint, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onVisible, onLongPress };
-  const report = useCallback((e: unknown) =>
-    cb.current.onError?.(e instanceof Error ? e : new Error(String(e))), []);
+  // (T445) a call that outlived its view (the map left, or a style load made the atlas source anew) is not a failure:
+  // `goneView.ts`. Any other — a live view's included — is reported.
+  const gone = useRef(new GoneViews());
+  useEffect(() => { gone.current.mount(); return () => gone.current.unmount(); }, []);
+  const report = useCallback((e: unknown) => {
+    if (gone.current.stale(e)) return;
+    cb.current.onError?.(e instanceof Error ? e : new Error(String(e)));
+  }, []);
   // (T418) a sprite, glyph range or source that would not load is reported once, not only logged (MapLibre's log)
   useEffect(() => { watchStyleAssets(LogManager); }, []);
   /** (T317) the boundary marks and their press, read by the tap (`onPress`) and the label measure (`shiftMarks`) */
@@ -244,6 +251,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const attachedOnce = useRef(false);
   const atlasAttached = useCallback((r: VectorSourceRef | null) => {
     atlasRef.current = r;
+    let tag: number | null = null;
+    try { tag = r?.nativeTag() ?? null; } catch { /* not mounted yet: its tag is learnt on the next attach */ }
+    gone.current.held(tag);
     if (r && !attachedOnce.current) { attachedOnce.current = true; setGen((g) => g + 1); }
   }, []);
   // (T74) the atlas asked for its tiles' ids — again after every style load (the binding may re-create the source)
