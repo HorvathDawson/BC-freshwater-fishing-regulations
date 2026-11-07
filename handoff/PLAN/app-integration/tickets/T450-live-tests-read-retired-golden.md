@@ -1,6 +1,6 @@
 # T450 — Two pipeline "live" tests still read the retired golden.json
 
-Status: OPEN.
+Status: DONE — dedd06cc5 (2026-11-06, chat 5)
 
 Source: 2026-11-06 (chat 4): `pytest pipeline/tests -k …` stops at collection on
 `test_answers_keep_answers_live.py` and `test_answers_pipeline_needs_live.py` — both open
@@ -11,3 +11,8 @@ test in the run.
 Re-point both at the release-backed oracle (`app/fixtures/golden/taps.json`, re-cut by `regs-recut/sync.mjs`) or delete
 them if they only compared against golden.json (as T439 did on the app side). Collection must be clean.
 Size: S.
+
+## Done (dedd06cc5)
+`test_answers_pipeline_needs_live.py` only compared against golden.json: deleted. `test_answers_keep_answers_live.py`
+keeps its code-only checks (closers on closed frames, Cowichan sturgeon, Vedder share, Kootenay duty: 124 pass) and
+drops the golden stamp-line checks. `pytest --collect-only`: 6306/6580, no errors.
