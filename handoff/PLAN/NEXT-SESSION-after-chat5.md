@@ -43,7 +43,8 @@ Written 2026-11-06, as chat 5 closed. It replaces `NEXT-SESSION-after-chat4.md`.
    notes say which; "skip invisible layers" measured a real z13 gain).
 4. **T466** (owner's 0.6.8 walkthrough notes: dams/obstacles step must scroll to them, spots must walk a real creation,
    the closed example must be a part closed all year, e.g. an Ecological Reserve) and **T467** (lakes still look solid:
-   shoreline as a shade of the fill, inside the colour-blind gate). Then **T465:** boundary labels with different words
+   shoreline as a shade of the fill, inside the colour-blind gate; OWNER QUESTION OPEN in T467: run the colour-blind
+   check on the cvd theme only? Claude recommends keeping it on all themes; ask first, then follow the answer). Then **T465:** boundary labels with different words
    overlapping zoomed out.
 5. **T351:** read the staging `/crashes` for anything new since 0.6.6. **T446** is reopened only on a new report.
 6. **T462 regs-presentation audit:** a multi-agent workflow; the owner starts it with "use a workflow". Read-only.

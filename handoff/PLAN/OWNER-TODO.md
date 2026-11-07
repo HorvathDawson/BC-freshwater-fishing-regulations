@@ -6,6 +6,9 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Decide (T467, 2026-11-06):** should the colour-blind check on the map's status colours apply only to the colour-blind
+  theme? Today it applies to light and dark too, which is why the lighter lake fill was reverted. Claude recommends keeping
+  it on all themes and giving lakes a shaded shoreline instead. The pros and cons are in T467.
 - **Phone check with 0.6.8: the Map lab (T420), ~10 min.** Long-press the © chip (map, bottom-right) → a card of
   switches; flip one, Close, pan; the card's last line says whether the map differs from today's (a restart resets all).
   Use the **Map tab**, Regulations view. For each switch below: pan with it OFF, then ON, same place, same gestures
