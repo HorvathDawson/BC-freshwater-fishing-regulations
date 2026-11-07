@@ -237,3 +237,25 @@ still hitches while tiles load and parse. That is this ticket's open item, MapLi
 (which tiles, how big, parse time on the map thread). Then try, one at a time with before/after: smaller stream
 tiles at the zooms panned most (fewer features per tile, z11–z13), the prefetch delta (T401), and fewer layers
 reading the same source.
+
+## Where MapLibre's time goes, by function (2026-11-06 night, stressed emulator)
+`simpleperf record --call-graph fp`, 1000 Hz, 20 s of round 2 (travelling, 16 flings at 120 ms), 2 recordings per place, ~20k
+samples each; libmaplibre symbols from MapLibre's own `debug-symbols-maplibre-android-vulkan-release-android-v13.6.1`
+(build id matches the APK's stripped .so); Hermes unresolved. Runs `out/runs/t420-prof-{coq13,fv11}-{a,b}/` (`report.md`).
+The render thread is ~one full core (80–88 % of the app's samples). Split, % of the app's samples (Coquitlam z13 / Fraser Valley z11):
+| share | what |
+|---|---|
+| **33–44 %** | **feature-state**: each JS `setFeatureStates` batch (~45 per round) is applied by `SourceFeatureState::coalesceChanges` to every held tile, which re-evaluates its data-driven paint (`LineBucket::update` → `updateVertexVectors`; expressions 18–23 % of it) on the render thread |
+| 42–48 % | upload + draw (upload 18–22 %, mostly `BufferResource` creation; draw 12–16 %); goldfish/gfxstream (emulator-only) is 32–39 % of ALL samples, all in here |
+| 3–6 % | worker tile parse |
+| 3–7 % | JS thread |
+| 1.3–1.9 % | symbol placement (`Placement::` alone 0.3–0.6 %) |
+| 0.2–0.3 % | pmtiles read / zlib |
+So handoff leads 1 (symbol placement) and 3 (stream tile weight) are closed: placement and parse are small, and the atlas tiles are
+light (stream 10–25 features, 90–350 vertices per z11–z13 tile; the basemap is 10–40× that). The lever is feature-state: how many
+batches a glide sends, and how many paint properties read it (21 in the style, 9 on the stream layers, each ~1.7 KB of expression).
+Not shown by the stack: whether the buffer re-uploads are the feature-state updates' (likely).
+
+**Built (lab switches, 94695e0 + e88e3be):** the map lab (staging/test-bed builds only; long-press ©) with `stateGapMs` 250 (colour
+batches at least 250 ms apart; a burst after a quiet spell still goes at once) and `streamsOneBucket` (the 8 stream line layers in one
+cap/join/minzoom spelling: 4 buckets → 1). A/B numbers: pending (agent run `out/runs/t420-lab-*`).
