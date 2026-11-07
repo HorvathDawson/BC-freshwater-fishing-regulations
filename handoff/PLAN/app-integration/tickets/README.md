@@ -490,7 +490,7 @@ use that as the sole source of future work."
 | T443 | Stepping ▲/▼ between a big part and a tiny one jumps the camera (Fraser): bound the zoom change per step | IN REVIEW | 7f36eb73a | owner report b48c0e 2026-11-06 |
 | T444 | Crash: "water map: part 0 of gnis:3062 is not in its group" (Chilliwack map view, 0.6.2) | DONE | 6ea40732d | worker /crashes 2026-11-06 |
 | T445 | Map error "… resolved to … null which is null or a wrong type" (Android 0.6.1/0.6.2; names scrubbed) | DONE | 73daab938 | worker /crashes 2026-11-06 |
-| T446 | First install: a release file "does not match the manifest" (resume / partial file) | PARTIAL | cddfdbe10 | worker /crashes 2026-11-06 |
+| T446 | First install: a release file "does not match the manifest" (SDK 58 async write/move, unawaited) | DONE | cddfdbe10 7fc594427 | worker /crashes 2026-11-06 |
 | T447 | An app icon made by an artist (the favicon-derived set ships until then) | POSTPONED | — | owner 2026-11-06 |
 | T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | PARTIAL | 26c59849f | T420 follow-up 2026-11-06; Android: binding `maxPixelRatio` → the map SurfaceView a fixed smaller buffer (823×1567 vs 1080×2057), compositor scales; same scale/taps (shots out/t448). Stressed emulator frame times mixed (Mac GPU passthrough, fill free). Left: owner phone check, iOS |
 | T449 | A DFO place wholly in tidal water (Nanaimo below Cedar Bridge): a "tidal water" state, proposed, binds nothing | IN REVIEW | e83f7811e | owner 2026-11-06; rule proposes (tidal words + tidal-limit cut named, op downstream); owner's DFO mark accepts ("tidal water") / rejects; sweep: only the 2 Nanaimo places |
