@@ -328,17 +328,22 @@ export function partOfSection(g: WaterGroup, sid: number): number {
 }
 
 type Dir = "up" | "down";
+/** The marks that lead from `at` one step in `dir`, each with the part it leads to. */
+function waysOut(g: WaterGroup, at: number, dir: Dir): { to: number; m: NavMark }[] {
+  return dir === "up"
+    ? g.marks.filter((m) => m.down === at).flatMap((m) => m.up.map((to) => ({ to, m })))
+    : g.marks.filter((m) => m.up.includes(at)).map((m) => ({ to: m.down, m }));
+}
 /** The parts one step away by the marks alone. */
 function byMarks(g: WaterGroup, at: number, dir: Dir): number[] {
-  const out = dir === "up"
-    ? g.marks.filter((m) => m.down === at).flatMap((m) => m.up)
-    : g.marks.filter((m) => m.up.includes(at)).map((m) => m.down);
-  return [...new Set(out)].filter((i) => i !== at);
+  return [...new Set(waysOut(g, at, dir).map((w) => w.to))].filter((i) => i !== at);
 }
+const placed = (m: NavMark): boolean => m.lon !== null && m.lat !== null;
+const samePlace = (a: NavMark, b: NavMark): boolean => a.lon === b.lon && a.lat === b.lat;
 
-/** Whether, going on in `dir` from `from` by the marks, `to` is reached. */
-function reaches(g: WaterGroup, from: number, to: number, dir: Dir): boolean {
-  const seen = new Set([from]);
+/** Whether, going on in `dir` from `from` by the marks (never through `avoid`), `to` is reached. */
+function reaches(g: WaterGroup, from: number, to: number, dir: Dir, avoid = -1): boolean {
+  const seen = new Set([from, avoid]);
   const queue = [from];
   while (queue.length) {
     for (const n of byMarks(g, queue.shift()!, dir)) {
@@ -350,11 +355,29 @@ function reaches(g: WaterGroup, from: number, to: number, dir: Dir): boolean {
 }
 
 /**
+ * (T460, owner 2026-11-06: "it gives an option to basically skip one of the sections") Whether the way from `at` to `c`
+ * SKIPS a part: `c` is also reached by going on from another way out of `at`, and the two ways leave at different
+ * places. The Fraser's "Williams Lake River confluence → Region 7A boundary" holds a side channel that touches the part
+ * two boundaries up, so ▲ offered both "Region 7A boundary → Region 5 boundary" and, past it, "Region 5 boundary →
+ * Source". A true fork leaves at ONE place (the Zymoetz's canyon upper entrance: main stem and side channel) and stays.
+ * A mark with no place (a split lake's boundary) is never judged a skip, and the way on never comes back through `at`
+ * (the Fraser's channels round Lillooet leave part 3 and come back to it: no skip); two ways that each reach the other
+ * are a loop, not a skip, and both stay.
+ */
+function skips(g: WaterGroup, at: number, c: number, dir: Dir): boolean {
+  const ways = waysOut(g, at, dir);
+  const mine = ways.filter((w) => w.to === c).map((w) => w.m);
+  if (!mine.every(placed)) return false;
+  return ways.some((o) => o.to !== c && o.to !== at && placed(o.m) && !mine.some((m) => samePlace(m, o.m))
+    && reaches(g, o.to, c, dir, at) && !reaches(g, c, o.to, dir, at));
+}
+
+/**
  * The parts one step away in `dir`, the main stem first: by the marks, else (where they say nothing) the next part in
  * the order. Empty at the end.
  */
 export function stepsFrom(g: WaterGroup, at: number, dir: Dir): readonly number[] {
-  const marked = byMarks(g, at, dir);
+  const marked = byMarks(g, at, dir).filter((c) => !skips(g, at, c, dir));
   if (!marked.length) {
     const n = dir === "up" ? at + 1 : at - 1;
     return n >= 0 && n < g.parts.length ? [n] : [];

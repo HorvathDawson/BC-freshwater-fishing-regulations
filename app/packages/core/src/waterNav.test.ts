@@ -129,6 +129,44 @@ export const ZYMOETZ: ItemNavRows = {
   exit: { ord: 7279, part: 0, item: "gnis:2936", name: "Skeena River" },
 };
 
+/** (T460) The Fraser River (ord 9871) above the Chilcotin, marks as r-67b456b5e64b stores them: part 1 also meets part 0
+ *  (mark 0, 53.27 N), past part 15. Boxes are the marks' span (no part_geo copied: only rank orders here). */
+const fraserPart = (partIx: number, short: string) => ({ partIx, label: short, short });
+const box = (partIx: number, rank: number, s: number, n: number) => geo(partIx, rank, [-122500000, (s + n) / 2], -123000000, s, -122000000, n);
+export const FRASER_UP: ItemNavRows = {
+  ord: 9871, item: "gnis:39325", name: "Fraser River", kind: "stream",
+  parts: [fraserPart(0, "Region 5 boundary → Source"), fraserPart(1, "Williams Lake River confluence → Region 7A boundary"),
+          fraserPart(14, "Chilcotin River confluence → Williams Lake River confluence"),
+          fraserPart(15, "Region 7A boundary → Region 5 boundary")],
+  geo: [box(14, 0, 51739993, 52163781), box(1, 1, 52163781, 53273342), box(15, 2, 53122530, 53307117), box(0, 3, 53273342, 54000000)],
+  marks: [
+    mark(-122273377, 52163781, "Williams Lake River confluence", 14, [1]),
+    mark(-122619847, 53122530, null, 1, [15]),
+    mark(-122843561, 53273342, null, 1, [0]),
+    mark(-122867878, 53307117, null, 15, [0]),
+  ],
+  sections: [], exit: null,
+};
+/** (T460) The Fraser round Lillooet (same release): parts 11 and 12 leave part 3 and come back to it. */
+export const FRASER_LILLOOET: ItemNavRows = {
+  ord: 9871, item: "gnis:39325", name: "Fraser River", kind: "stream",
+  parts: [fraserPart(3, "Thompson River confluence → Region 5 boundary (3 stretches)"), fraserPart(10, "CNR bridge ~1km below Thompson → Thompson River confluence"),
+          fraserPart(11, "BC Hydro's tail race outflow channel → Hwy 99 bridge at Lillooet"),
+          fraserPart(12, "BC Railway → Lower entrance of the fish ladder at Bridge River Rapids"),
+          fraserPart(13, "Region 5 boundary → Region 3 boundary")],
+  geo: [box(10, 0, 50224240, 50235508), box(3, 1, 50235508, 51257392), box(11, 2, 50672350, 50683561),
+        box(12, 3, 50717739, 50756940), box(13, 4, 51257392, 51517203)],
+  marks: [
+    mark(-121584880, 50235508, "Thompson River confluence", 10, [3]),
+    mark(-121920469, 50672350, "BC Hydro's tail race outflow channel", 3, [11]),
+    mark(-121913911, 50717739, "BC Railway", 3, [12]),
+    mark(-122185864, 51257392, null, 3, [13]),
+    mark(-121929168, 50683561, "Hwy 99 bridge at Lillooet", 11, [3]),
+    mark(-121930970, 50756940, "lower entrance of the fish ladder at Bridge River Rapids", 12, [3]),
+  ],
+  sections: [], exit: null,
+};
+
 const order = (g: ReturnType<typeof waterGroup>) => g.parts.map((p, i) => `${i}: ${partName(g, i)}`);
 /** Each part's ways ▼ | ▲ ("-": none), as the conformance test prints them. */
 const steps = (g: ReturnType<typeof waterGroup>) =>
@@ -242,6 +280,23 @@ describe("▼ / ▲ over the marks", () => {
     expect([stepsDown(g, source), stepDown(g, source)]).toEqual([[main, lake], main]);
     // and above the canyon, ▼ offers the canyon first and the side channel that rejoins there
     expect(steps(g)).toEqual(["-|1", "0|3,2", "1|3", "1,2|5", "3|5", "3,4|-"]);
+  });
+
+  it("(T460) the Fraser above Williams Lake: ▲ never skips the Region 7A → Region 5 part; ▼ never skips back", () => {
+    const g = waterGroup([FRASER_UP]);
+    const p = (ix: number) => partAt(g, "gnis:39325", ix);
+    const [chilcotin, williams, border, source] = [p(14), p(1), p(15), p(0)];
+    // the release's marks offer part 0 from part 1 too (a side channel of part 1 touches it 53.27 N): not a step
+    expect([stepsUp(g, williams), stepsDown(g, source)]).toEqual([[border], [border]]);
+    expect([stepsUp(g, chilcotin), stepsUp(g, border), stepsDown(g, border), stepsDown(g, williams)])
+      .toEqual([[williams], [source], [williams], [chilcotin]]);
+  });
+
+  it("(T460) channels that leave a part and come back to it are ways on, not skips (the Fraser at Lillooet)", () => {
+    const g = waterGroup([FRASER_LILLOOET]);
+    const p = (ix: number) => partAt(g, "gnis:39325", ix);
+    expect(stepsUp(g, p(3)).slice().sort()).toEqual([p(11), p(12), p(13)].sort());
+    expect([stepsUp(g, p(11)), stepsUp(g, p(12))]).toEqual([[p(3)], [p(3)]]);
   });
 
   it("EVERY part of every water is stepped INTO by ▼ or ▲ from another part, and all are reached from the mouth", () => {
