@@ -34,6 +34,8 @@ Written 2026-11-07, as chat 6 closed. It replaces `NEXT-SESSION-after-chat5.md`.
 2. **T483 fast-fail** (AGENTS 20a): build `scripts/fast-fail.sh`, wire into release + build-apk. Add the two late
    failures from chat 6: branch not pushed (found at stage 6), resumed release losing min app (T484).
 3. **T484:** release resume keeps the ledger's min app version; push check into preflight.
+   **T485** steps 2–3: run-timing sources cached on R2, refresh as its own job (owner: no outside site may block a
+   release).
 4. Carried from chat 5 (details in each ticket):
    - **T478:** 0.6.8 walk failures — Updates log flow stale after T476; a Coquitlam River tap opens Coquitlam Lake.
    - Remove T459's test-bed-only all-grey switch (owner picked A); move T451/T443/T459/T456 to DONE as confirmed.
