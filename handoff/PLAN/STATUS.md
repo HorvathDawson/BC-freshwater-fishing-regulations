@@ -13,6 +13,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-07 (overnight): map performance lane (T420) — the cause found, the fix being measured
+- **Cause (MapLibre's own code, android-v13.6.1 and main):** every frame, MapLibre re-applies EVERY stream colour set this
+  session to every tile on screen (`coalesceChanges`), and it grows over a session. **Your Pixel 9 trace** (0.6.8,
+  Coquitlam z13): the map drew ~10 fps, its render thread busy 92–100 % on the prime core, the GPU ~1 ms a frame. So the
+  lag is CPU work, not the GPU (pixel cap / Vulkan-vs-GL can't fix it).
+- **Shipped:** the Map lab (0.6.8; long-press ©; 2f55534); "skip invisible layers" ON by default for every build (10fcb30;
+  stressed z13 p50 −15..−19 ms, same look; your phone: helps). Colour batch gap and one bucket: no gain (to drop).
+- **The fix:** a patched MapLibre (acf015b98, `app/tools/maplibre-patch/`): a tile gets all colours once, then only
+  changes. Test-bed only (production refuses it). Running: stressed A/B patched vs stock (+ the long-session check).
+  Pre-approved: if it CLEARLY wins, an APK pair (same app, stock vs patched) goes to staging / Play internal for the morning.
+- **Upstream:** prepare only, the patch as lean as possible (agent running); you post the issue + PR from your account.
+- **Records:** T420 (profile, correction, lab A/B, phone trace), COORD-068, OWNER-TODO (lab phone script).
+
 ## 2026-11-06: chat 5 — next APK (0.6.7)
 - **0.6.7 (versionCode 16) is on Play internal** (e6071231a): T443's half-screen floor, T451 (no stream flicker on
   the Map switch), T452 (the new glide). Fresh-install walk 5/5 (`app/tools/testbed/out/walk-067/`). The camera where
