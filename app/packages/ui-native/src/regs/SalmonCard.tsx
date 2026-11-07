@@ -20,6 +20,7 @@ import { RegionRules } from "./RegionRules";
 import { LineText, NO_ACTIONS, type KeepActions } from "./LineText";
 import { CaveatBlock } from "./KeepBlocks";
 import type { FishImages } from "./types";
+import { CoachSpot } from "../CoachMarks";
 
 const chipColour = (p: Palette, s: SalmonRowVM["status"]): string =>
   s === "open" ? p.open : s === "release" ? p.restricted : s === "closed" ? p.closed : p.sub;
@@ -179,7 +180,8 @@ export function SalmonCard({ card, palette, actions, images }: {
           <Text testID="salmon-credit" style={{ ...TYPE.meta, color: palette.sub }}>{card.credit}</Text>
           {shown.length > 0 && <Text testID="salmon-pic-credit" style={{ ...TYPE.meta, color: palette.sub }}>{`${WORDS.FISH_PICTURES}: ${shown.join(" · ")}`}</Text>}
         </View>
-        <Text testID="salmon-note" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: SPACE.s2 }}>{card.note}</Text>
+        {/* (T456) the walkthrough's "both rules hold" rings this line */}
+        <CoachSpot k="regs:both"><Text testID="salmon-note" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: SPACE.s2 }}>{card.note}</Text></CoachSpot>
       </View>
     </WaterInset>
   );

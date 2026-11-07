@@ -15,6 +15,7 @@ import { RegsPress } from "./RegsPress";
 import { AnchorContext, StickyContext, type AnchorKey } from "./useAnchors";
 import { useStickyHead } from "./stickyHead";
 import type { FishImages } from "./types";
+import { CoachSpot } from "../CoachMarks";
 
 /** (T29) where this node sits for the pin bar: the group's row, the tier sections it lies in, a unique path. */
 interface At { readonly row: number; readonly tids: readonly string[]; readonly path: string }
@@ -142,14 +143,17 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
     : <View>{body}</View>;
 }
 
-function Nodes({ nodes, inBand, at, palette, actions, images }: { nodes: readonly TreeNodeVM[]; inBand: boolean; at: At; palette: Palette; actions: KeepActions; images?: FishImages }) {
+function Nodes({ nodes, inBand, at, palette, actions, images, coachFirst }: { nodes: readonly TreeNodeVM[]; inBand: boolean; at: At; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T456) the walkthrough's key for the first node (the group's first rule, its Rule book link with it) */
+  coachFirst?: string }) {
   return (
     <>
       {nodes.map((n, i) => {
         const here = { row: at.row, tids: at.tids, path: `${at.path}.${i}` };
-        return n.t === "tier" ? <Tier key={i} t={n} at={here} palette={palette} actions={actions} images={images} />
+        const node = n.t === "tier" ? <Tier key={i} t={n} at={here} palette={palette} actions={actions} images={images} />
           : n.t === "kind" ? <Kind key={i} k={n} first={i === 0 || nodes[i - 1]!.t === "tier"} inBand={inBand} at={here} palette={palette} actions={actions} images={images} />
           : <Release key={i} names={n.names} pictures={n.pictures} at={here} palette={palette} actions={actions} images={images} />;
+        return i === 0 && coachFirst ? <CoachSpot key={i} k={coachFirst}>{node}</CoachSpot> : node;
       })}
     </>
   );
@@ -190,6 +194,8 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
   const pin = useAnchor(`p${g.row}`, { k: "pin", row: g.row });
   return (
     <View {...article} testID="keep-group" style={{ paddingHorizontal: GUTTER, paddingBottom: 12, marginTop: 12 }}>
+      {/* (T456) the walkthrough's "how to read a rule" rings the head and its origin lines (the Rule book link with them) */}
+      <CoachSpot k="regs:rule">
       <View {...pin} style={{ marginHorizontal: -GUTTER, paddingHorizontal: GUTTER, paddingVertical: 8, borderTopWidth: 1.5, borderTopColor: palette.ink, backgroundColor: palette.card }}>
         {titled && (
           <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
@@ -216,6 +222,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
           </View>
         </View>
       )}
+      </CoachSpot>
       {g.year && (
         // prototype UR5 `.gyear`: the label on its own line, then the year window in the data's words
         <View testID="keep-group-year" style={{ marginTop: 4, marginBottom: 8 }}>
@@ -223,7 +230,8 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
           <Text style={[TYPE.metaSemi, { color: palette.ink }]}>{g.year.says}</Text>
         </View>
       )}
-      {g.tree && <Nodes nodes={g.tree} inBand={false} at={{ row: g.row, tids: [], path: "" }} palette={palette} actions={actions} images={images} />}
+      {g.tree && <Nodes nodes={g.tree} inBand={false} at={{ row: g.row, tids: [], path: "" }} palette={palette} actions={actions} images={images}
+                        coachFirst="regs:ruleline" />}
       {g.notKept.map((x, i) => <NotKept key={i} x={x} palette={palette} actions={actions} images={images} />)}
       {g.worked && (
         <View style={{ marginTop: 16, paddingTop: 8, borderTopWidth: 1.5, borderTopColor: palette.ink }}>

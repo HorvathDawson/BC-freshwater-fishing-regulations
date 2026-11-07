@@ -22,7 +22,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
+import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, View } from "react-native";
@@ -56,7 +56,8 @@ import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
 import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
-import { CoachContext, useCoachRegistry } from "./CoachMarks";
+import { CoachContext, CoachItemContext, useCoachRegistry } from "./CoachMarks";
+import { GuideControlContext, useGuideControlHost } from "./guideControls";
 import { part, preloadParts } from "./part";
 import { LoadingState } from "./LoadingState";
 import { windowSize } from "./windowSize";
@@ -358,12 +359,16 @@ export function Shell(p: ShellProps) {
   const groundNow = col.layers.ground.tiles.find((t) => t.chosen)?.id ?? "";
   const obstaclesNow = !!col.layers.overlays.rows.find((r) => r.id === OBSTACLES)?.chosen;
   const [layersWas, setLayersWas] = useState<{ ground: string; obstacles: boolean } | null>(null);
+  // (T456) the controls a screen keeps to itself (a fold's Details, the chart's toggles, the panel's forecast day)
+  const guideCtl = useGuideControlHost();
   const guideFacts: GuideFacts = {
     water: guideWater, searching, query: searchMemory.q,
     selected: picked?.kind === "water" ? picked.item : null,
     open: frame ? { item: frame.item, view: frame.view } : null,
     adding: adding !== null, viewing: openSpot, spots: spots.length,
     layersOpen, ground: groundNow, obstacles: obstaclesNow, layersWas,
+    onMap: tab === "map" && frame === null && !searching && adding === null && openSpot === null && !rail.picking,
+    dayPicked: mapDay !== null, controls: guideCtl.values,
   };
   const restoreLayers = () => {
     if (layersWas) {
@@ -425,6 +430,14 @@ export function Shell(p: ShellProps) {
     },
     obstaclesOn: () => { if (!obstaclesNow) col.onChooseLayer(OBSTACLES); },
     restoreLayers,
+    toMap: () => { setLayersOpen(false); go({ type: "close" }); if (searching) { go({ type: "search", open: false }); search.searchType(""); }
+                   if (tab !== "map") nav.toTab("map"); },
+    leaveWater: () => { if (frame) back(); },
+    pickDay: () => {
+      const d = stepDay(mapDay, 1, bcNow(), dayRange(bcNow(), loader?.manifest?.regulations?.valid_until ?? null));
+      if (d !== undefined) setMapDay(d);
+    },
+    control: guideCtl.set,
   };
   const guide = useGuide(p.walkthrough ?? null, firstRun.open || !onMapTab, guideFacts, guideActs);
   useEffect(() => { if (guide.open || guide.pending) setGuideWanted(true); }, [guide.open, guide.pending]);
@@ -478,11 +491,15 @@ export function Shell(p: ShellProps) {
                top={(route.mode === "browse" && !adding && !openSpot ? topBarBottom() : 0) + 8}
                bottom={bottomBarShown(route) ? TAB_BAR_ROOM : 0} />
   );
-  const withGuide = (n: React.ReactNode) => (
+  /** (T293, T456) what the walk reads from the screens: the controls' places, their own state, and which water is its */
+  const coached = (n: React.ReactNode) => (
     <CoachContext.Provider value={coach}>
-      <View style={{ flex: 1 }}>{n}{guideCard}</View>
+      <GuideControlContext.Provider value={guideCtl.sink}>
+        <CoachItemContext.Provider value={guideWater?.item ?? null}>{n}</CoachItemContext.Provider>
+      </GuideControlContext.Provider>
     </CoachContext.Provider>
   );
+  const withGuide = (n: React.ReactNode) => coached(<View style={{ flex: 1 }}>{n}{guideCard}</View>);
 
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   // T51: the open spot against the coming days — the feed the rest of the app reads, and the weather port; asked
@@ -572,8 +589,7 @@ export function Shell(p: ShellProps) {
     && (tab === "conditions"
         || (tab === "map" && (col.layers.water.drawn !== "regulations" || col.statusOk)));
 
-  return layered(withInSeason(
-    <CoachContext.Provider value={coach}>
+  return layered(withInSeason(coached(<>
     {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -694,6 +710,5 @@ export function Shell(p: ShellProps) {
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
     </View>
     </MenuContext.Provider>
-    </CoachContext.Provider>
-  ));
+  </>)));
 }

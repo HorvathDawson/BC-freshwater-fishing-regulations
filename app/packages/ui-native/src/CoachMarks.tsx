@@ -33,26 +33,65 @@ export interface Rect { x: number; y: number; w: number; h: number }
 export interface Measurable { measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void }
 
 /**
+ * (T456) THE PAGE A TARGET SCROLLS WITH: a scroll view the walkthrough may move, so the control a step is about comes into
+ * view on a phone as on the web (react-native has no scrollIntoView). `by(dy)` scrolls the page dy further down.
+ */
+export interface CoachScroller {
+  by(dy: number): void;
+  /** the page's own box in the window (null: not laid out) */
+  view(): Promise<Rect | null>;
+}
+export const CoachScrollContext = createContext<CoachScroller | null>(null);
+
+/**
+ * A scroll view's side of it: pass `ref` and `onScroll` (beside its own) to the ScrollView and provide `scroller` round
+ * its content (`CoachScrollContext`). The offset is followed from the scroll events, so `by` needs no measuring.
+ */
+export function useCoachScroller(): {
+  scroller: CoachScroller; ref: (node: unknown) => void; track: (y: number) => void;
+} {
+  const node = useRef<(Measurable & { scrollTo?: (o: { y: number; animated?: boolean }) => void }) | null>(null);
+  const y = useRef(0);
+  return useMemo(() => ({
+    scroller: { by: (dy: number) => { y.current = Math.max(0, y.current + dy); node.current?.scrollTo?.({ y: y.current, animated: true }); },
+                view: () => measure(node.current) },
+    ref: (n: unknown) => { node.current = n as typeof node.current; },
+    track: (at: number) => { y.current = at; },
+  }), []);
+}
+
+/**
  * The registry the tour reads: key → the host views drawn for that control. (T293) Several views may share a key (a rule
  * book link on every rule, a map under a water's map): `get` gives the first still mounted, and each view leaves alone.
+ * (T456) Each view keeps the page it scrolls with (`scrollerOf`), so the walk can bring it into view.
  */
 export interface CoachRegistry {
-  set(key: string, node: Measurable | null, prev?: Measurable | null): void;
+  set(key: string, node: Measurable | null, prev?: Measurable | null, scroller?: CoachScroller | null): void;
   get(key: string): Measurable | null;
+  scrollerOf?(key: string): CoachScroller | null;
 }
 
 export const CoachContext = createContext<CoachRegistry | null>(null);
 
+/**
+ * (T456) The water the walkthrough is about (its item): search's row for it registers itself ("search:hit") and its open
+ * arrow ("search:go"), so the steps that say "tap it in the list" ring the row they mean.
+ */
+export const CoachItemContext = createContext<string | null>(null);
+
 export function useCoachRegistry(): CoachRegistry {
   return useMemo(() => {
     const nodes = new Map<string, Measurable[]>();
+    const pages = new Map<Measurable, CoachScroller>();
     return {
-      set: (k, n, prev) => {
+      set: (k, n, prev, scroller) => {
         const l = (nodes.get(k) ?? []).filter((q) => q !== prev && q !== n);
-        if (n) l.push(n);
+        if (prev) pages.delete(prev);
+        if (n) { l.push(n); if (scroller) pages.set(n, scroller); }
         if (l.length) nodes.set(k, l); else nodes.delete(k);
       },
       get: (k) => nodes.get(k)?.[0] ?? null,
+      scrollerOf: (k) => { const n = nodes.get(k)?.[0]; return n ? pages.get(n) ?? null : null; },
     };
   }, []);
 }
@@ -60,27 +99,29 @@ export function useCoachRegistry(): CoachRegistry {
 /** A ref for the view the tour may point at under `key`; undefined key or no provider: nothing registered. */
 export function useCoachTarget(key: string | undefined): (node: unknown) => void {
   const reg = useContext(CoachContext);
+  const page = useContext(CoachScrollContext);
   const held = useRef<Measurable | null>(null);
   return useCallback((node: unknown) => {
     if (!reg || !key) return;
-    reg.set(key, node as Measurable | null, held.current);
+    reg.set(key, node as Measurable | null, held.current, page);
     held.current = node as Measurable | null;
-  }, [reg, key]);
+  }, [reg, key, page]);
 }
 
 /** Refs for several views at once (a row of tabs): `refs(key)` is the same callback for a key every render. */
 export function useCoachRefs(): (key: string) => (node: unknown) => void {
   const reg = useContext(CoachContext);
+  const page = useContext(CoachScrollContext);
   const cache = useRef(new Map<string, (node: unknown) => void>());
   return useCallback((key: string) => {
     let f = cache.current.get(key);
     if (!f) {
       let held: Measurable | null = null;
-      f = (node: unknown) => { reg?.set(key, node as Measurable | null, held); held = node as Measurable | null; };
+      f = (node: unknown) => { reg?.set(key, node as Measurable | null, held, page); held = node as Measurable | null; };
       cache.current.set(key, f);
     }
     return f;
-  }, [reg]);
+  }, [reg, page]);
 }
 
 /** (T293) A box round a control the walkthrough points at, where the control itself takes no ref. */

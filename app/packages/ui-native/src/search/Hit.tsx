@@ -8,6 +8,7 @@ import { Icon } from "../icons";
 import { TYPE } from "../type";
 import { round, type Palette } from "../theme";
 import { hitProps } from "../regs/hit";
+import { useCoachTarget } from "../CoachMarks";
 
 /**
  * One result. SELECT, THEN GO (`searchStep`): a tap (or Enter) on the row selects it — the main map frames and lights
@@ -21,7 +22,7 @@ import { hitProps } from "../regs/hit";
  * down its edge so the two groups cannot be mistaken for each other at a glance.
  */
 export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, selected, label, onPress,
-               goLabel, onGo, status = null }: {
+               goLabel, onGo, status = null, coach = false }: {
   palette: Palette; tone: string; bar?: boolean;
   /**
    * On the places band. The row takes the band's warm ground, and its secondary line is drawn in the place colour,
@@ -37,7 +38,10 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
    * screen reader. Null — not asked: the status index has not loaded, or was refused for another atlas — draws nothing.
    */
   status?: WaterStatus | null;
+  /** (T456) the walkthrough's water: the row and its open arrow are what its steps ring */
+  coach?: boolean;
 }) {
+  const rowRef = useCoachTarget(coach ? "search:hit" : undefined), goRef = useCoachTarget(coach ? "search:go" : undefined);
   const [focus, setFocus] = useState<"row" | "go" | null>(null);
   // The ring is for the KEYBOARD. A tap focuses the control too, and a ring left round every row the reader clicked
   // reads as a second, louder selection — so a focus that follows a press is not drawn (what the web calls
@@ -50,7 +54,7 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
   const press = () => { pressing.current = true; setFocus(null); };
   const ring = { outlineWidth: 2, outlineStyle: "solid" as const, outlineColor: tone, outlineOffset: -2 };
   return (
-    <View style={{ flexDirection: "row", alignItems: "stretch",
+    <View ref={rowRef} collapsable={false} style={{ flexDirection: "row", alignItems: "stretch",
                    borderTopWidth: 1, borderTopColor: palette.line,
                    backgroundColor: band ? palette.placeBand : selected ? palette.wash : palette.card }}>
       {/* The edge bar: a town's colour always, a water's only while it is selected. */}
@@ -89,7 +93,7 @@ export function Hit({ palette, tone, bar, band, name, alias, sub, strongSub, sel
         with the next.
       */}
       {selected && onGo && goLabel ? (
-        <View style={{ justifyContent: "center", paddingRight: 14, paddingLeft: 4 }}>
+        <View ref={goRef} collapsable={false} style={{ justifyContent: "center", paddingRight: 14, paddingLeft: 4 }}>
           <Pressable {...hitProps({ w: 44, h: 44 })} onPress={onGo} accessibilityRole="button" accessibilityLabel={goLabel}
                      onPressIn={press}
                      onFocus={onFocusOf("go")} onBlur={blur}

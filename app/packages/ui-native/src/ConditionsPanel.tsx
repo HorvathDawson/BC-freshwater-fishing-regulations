@@ -38,6 +38,8 @@ import { TYPE } from "./type";
 import { flowRampStops, GUTTER, SPACE, type Palette, round } from "./theme";
 import { hitProps } from "./regs/hit";
 import { NoneLine } from "./EmptyState";
+import { CoachScrollContext, useCoachScroller, useCoachTarget } from "./CoachMarks";
+import { useGuideControl } from "./guideControls";
 
 /** The units, from core's one table. */
 export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
@@ -150,6 +152,13 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     ? changeView(runs, vm.day, attribution, { width: Math.max(160, (chartW || 300) - CHANGE_AXIS - 2 * SPACE.s3), height: 120 },
                  series.value?.change ?? null) : null;
 
+  // (T456) the walkthrough: its Flow / Level and 72 h / Year steps see (and Show me sets) the chart's two toggles, and the
+  // page scrolls a step's control into view
+  useGuideControl(available.length > 1 ? "cond:quantity" : null, shown, pick);
+  useGuideControl("cond:span", span, setSpan);
+  const coachScroll = useCoachScroller();
+  const readingRing = useCoachTarget("cond:reading"), chartRing = useCoachTarget("cond:chart");
+
   if (vm.loading)
     return (
       <LoadingState palette={palette} size={110} label={W.readingWater} style={{ paddingVertical: 48, alignItems: "center" }} />
@@ -164,7 +173,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * list as two more answer-shaped blocks; here they are the working under the answer.
    */
   const readingRows = reading ? (
-        <View style={{ gap: SPACE.s1 }}>
+        <View ref={readingRing} collapsable={false} style={{ gap: SPACE.s1 }}>
           {/* (T367) whose reading this is is the card's title, over it; when it was taken is the card's foot */}
           {/* (T367) THE FIGURE AS A STAT: large in the display face, its unit small beside it, the stage after a dot —
               the monospace figure in the chart's teal read as code beside the rest of the card */}
@@ -224,10 +233,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       <GaugeTitle palette={palette} title={title} gauges={vm.gauges} groups={vm.gaugeGroups}
                   onPick={(s) => vm.select(s as never)}
                   tools={<>
-                    <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity"
+                    <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity" coach="cond:quantity"
                                               label={W.controls.quantity} onPick={pick}
                                               options={available.map((p) => [p, W.quantity[p]] as const)} />
-                    <ChartControls<Span> palette={palette} value={span} label={W.controls.span} testID="chart-span"
+                    <ChartControls<Span> palette={palette} value={span} label={W.controls.span} testID="chart-span" coach="cond:span"
                                          onPick={setSpan}
                                          options={[["72h", W.spanShort["72h"], W.span["72h"]],
                                                    ["year", W.spanShort.year, W.span.year]] as const} />
@@ -240,7 +249,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {/* THE LAST CHART STAYS UP, DIMMED, while a gauge not yet in hand loads — never a spinner in its place. */}
       {/* (T367) under Change the Change chart above is the one chart: the flow chart under it said the same twice */}
       {view && !change && (
-        <View style={{ opacity: view.pending ? 0.45 : 1 }} aria-busy={view.pending}>
+        <View ref={chartRing} collapsable={false} style={{ opacity: view.pending ? 0.45 : 1 }} aria-busy={view.pending}>
           <Hydrograph shape={view.shape} palette={palette} colour={tint}
                       unit={UNIT[shown]} view={view}
                       forecastLabel={run && forecast ? forecastChartLabel(run) : undefined}
@@ -325,12 +334,15 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // (`WIDE_PANEL`). The body is also a water's VIEW SWIPE when it has one (Regulations · Conditions · Map); the plot
   // and minimap inside are shielded so their own drags stay theirs.
   const pad = { paddingHorizontal: GUTTER, paddingTop: SPACE.s3, paddingBottom: SPACE.s4 * 3, gap: SPACE.s4 };
+  const scrolled = <CoachScrollContext.Provider value={coachScroll.scroller}>{body}</CoachScrollContext.Provider>;
+  const follow = { ref: coachScroll.ref, scrollEventThrottle: 16,
+                   onScroll: (e: { nativeEvent: { contentOffset: { y: number } } }) => coachScroll.track(e.nativeEvent.contentOffset.y) };
   return scroll
     ? bodySwipe
-      ? <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <ViewSwipe swipe={bodySwipe} testId="view-swipe-conditions" style={pad}>{body}</ViewSwipe>
+      ? <ScrollView {...follow} contentContainerStyle={{ flexGrow: 1 }}>
+          <ViewSwipe swipe={bodySwipe} testId="view-swipe-conditions" style={pad}>{scrolled}</ViewSwipe>
         </ScrollView>
-      : <ScrollView contentContainerStyle={pad}>{body}</ScrollView>
+      : <ScrollView {...follow} contentContainerStyle={pad}>{scrolled}</ScrollView>
     : <View style={{ gap: SPACE.s4 }}>{body}</View>;
 }
 

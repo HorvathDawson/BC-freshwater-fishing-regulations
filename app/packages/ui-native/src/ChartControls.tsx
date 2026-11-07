@@ -16,17 +16,19 @@
 import { CornerStrip } from "./CornerStrip";
 import type { Palette } from "./theme";
 
-export function ChartControls<T extends string>({ palette, value, options, onPick, label, testID }: {
+export function ChartControls<T extends string>({ palette, value, options, onPick, label, testID, coach }: {
   palette: Palette; value: T;
   /** each option: its id, its word on the toggle, and (optionally) its spoken name */
   options: readonly (readonly [T, string] | readonly [T, string, string])[];
   onPick: (v: T) => void; label: string; testID: string;
+  /** (T456) the walkthrough's key for it */
+  coach?: string;
 }) {
   // One choice is not a choice. Showing it as the current state, unpressable, is honest —
   // and it tells the reader something true: this station only measures the one thing.
   if (options.length < 2) return null;
   return (
-    <CornerStrip palette={palette} testID={testID} label={label} radio
+    <CornerStrip palette={palette} testID={testID} label={label} radio coach={coach}
                  segments={options.map(([id, text, said]) => ({ key: id, chip: text, label: said ?? text, on: id === value,
                                                                 onPress: () => onPick(id) }))} />
   );

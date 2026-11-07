@@ -140,6 +140,7 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer": "(T354) the web's viewer draws nothing (the browser's own PDF tab is the viewer); the native one registers its back",
   "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss": "(T303) the rail's one-line location notice over the map (why there is no dot): a tap puts it away and the button retries; it hides nothing, so system back stays the map's",
   "packages/ui-native/src/SpotCapture.tsx#SpotCapture: takes onCancel (SpotCaptureProps)": "(T302) it draws the web's spots notice (system back is the route's: it leaves the add) or the capture flow (SpotCaptureFlow), which registers its own steps",
+  "packages/ui-native/src/Walkthrough.tsx#GuideCard: a dialog": "(T456, owner 2026-11-06: the walk never runs the action behind the reader's back) a NON-modal card over the app: back does what is under it (a page's ‹ closes the page, and on a step that rings ‹ Map that IS the step); leaving a step's screen any other way pauses the walk behind its Resume chip (Walkthrough.test.tsx \"every exit\")",
   "packages/ui-native/src/Walkthrough.tsx#TabTourSheet: draws TabTourSheet": "(T276, T293) the Runs, Conditions and Salmon mode hints draw the same CoachMarks.CoachTour, which registers its own back layer (back skips the tour)",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreenBody: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
   "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack": "T44: hands the on-screen ‹ to the FaceBar it draws (a view mounted alone); system back is the Shell's route layer",
@@ -242,7 +243,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/TidalSheet.tsx#TidalSheet: takes onClose",
       // (T60) SpotScreen read "takes onBack" only from its bottom row's `? p.onBack : leaveEdit` ternary; that second
       // Back button is gone (one surface per action). It still registers (`useBackLayer`) and back.test drives it.
-      // (T293) the guided walkthrough's card: a non-modal dialog, registered (useBackLayer: back steps the walk back)
+      // (T293) the guided walkthrough's card: a non-modal dialog (T456: NOT a back layer — COVERED says why)
       "packages/ui-native/src/Walkthrough.tsx#GuideCard: a dialog",
       "packages/ui-native/src/Walkthrough.tsx#TabTourSheet: draws TabTourSheet",
       "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack",

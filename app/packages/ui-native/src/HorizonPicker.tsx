@@ -14,6 +14,7 @@ import { Pressable } from "./Pressable";
 import { HORIZON_PICK } from "@app/core";
 import { useBackLayer, type Horizon, type HorizonChipVM } from "@app/ui";
 import { CornerStrip, type CornerSegment } from "./CornerStrip";
+import { useCoachTarget } from "./CoachMarks";
 import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
@@ -26,6 +27,8 @@ export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIco
   changeIcon?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  // (T456) a walkthrough's ring goes round the strip AND the days it opens, so the card beside it never covers the days
+  const ring = useCoachTarget(coach);
   // the open day list is a layer: back closes it first
   useBackLayer(open, () => setOpen(false));
   const days = chips.filter((c) => typeof c.day === "number" && c.day > 0);
@@ -46,8 +49,8 @@ export function HorizonPicker({ palette, chips, onPick, testID, coach, changeIco
     ...(change ? [seg(change)] : []),
   ];
   return (
-    <View style={{ alignItems: "flex-start", gap: 6, maxWidth: "100%" }} pointerEvents="box-none">
-      <CornerStrip palette={palette} testID={testID} coach={coach} segments={segments} />
+    <View ref={ring} collapsable={false} style={{ alignItems: "flex-start", gap: 6, maxWidth: "100%" }} pointerEvents="box-none">
+      <CornerStrip palette={palette} testID={testID} segments={segments} />
       {/* (T367, owner 2026-11-04: "big shift here") ONE ROW of days under the strip, as wide as the strip, scrolling
           sideways — the three-row grid pushed the page down and pulled the heading beside it off its line */}
       {open && (

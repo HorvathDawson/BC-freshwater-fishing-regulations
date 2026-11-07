@@ -14,6 +14,8 @@ import { GUTTER, type Palette } from "../theme";
 import { LineText, TermText, type KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
 import type { FishImages } from "./types";
+import { useCoachTarget } from "../CoachMarks";
+import { useGuideControl } from "../guideControls";
 
 /** (T40) a full-width press row at least 44 tall (`minHeight: 44`): its known box */
 const ROW = { w: 44, h: 44 } as const;
@@ -228,8 +230,12 @@ export interface GlanceFold { readonly key: string; readonly row: GlanceRowVM; r
  * card has it (no count) — but its end is a "Details" button with the set's expand mark (not the sheet's ›), and a press opens its full
  * card in place under it (pressed again, "Hide", folds it). (T227) The whole row is the press, the button its visible mark.
  */
-function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; images?: FishImages }) {
+function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palette; images?: FishImages;
+  /** (T456) the walkthrough's key for this row: its Details is a step's control, and the walk sees it open */
+  coach?: string }) {
   const [open, setOpen] = useState(false);
+  const ring = useCoachTarget(coach);
+  useGuideControl(coach, open, setOpen);
   const tone = f.row.tone === "release" ? palette.restricted : f.row.tone === "closed" ? palette.closed : palette.ink;
   // (T227) nothing more to see: a plain row, its word and no "Details"
   if (f.row.fold === false) return (
@@ -244,7 +250,7 @@ function FoldRow({ f, palette, images }: { f: GlanceFold; palette: Palette; imag
   );
   return (
     <View testID={`glance:${f.key}`}>
-      <View style={{ paddingHorizontal: GUTTER }}>
+      <View ref={ring} collapsable={false} style={{ paddingHorizontal: GUTTER }}>
         {/* (T405) named by what it shows ("Salmon closed Details"), open or folded by aria-expanded: a name that holds the
             visible words (WCAG 2.5.3), so a voice user's "Salmon" or "Details" finds it */}
         <RegsPress accessibilityRole="button" aria-expanded={open}
@@ -283,7 +289,8 @@ export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: 
       <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8, paddingHorizontal: GUTTER }]}>
         {folds.length ? GLANCE_WORDS.head : WORDS.OTHER_FISH}
       </Text>
-      {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images} />)}
+      {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images}
+                                 coach={f.key === "salmon" ? "regs:salmon" : f === folds.find((x) => x.key.startsWith("group:")) ? "regs:trout" : undefined} />)}
       <View style={{ paddingHorizontal: GUTTER }}>
       {rows.map((o) => [
         <RegsPress key={o.open} accessibilityRole="button" onPress={() => actions.onSheet(o.open)} box={ROW}

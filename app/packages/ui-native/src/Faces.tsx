@@ -25,7 +25,7 @@ import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { TO_REGULATIONS, WATER_BACK, WATER_VIEWS, waterBackName, WATER_VIEWS_LABEL, WATER_VIEW_LABEL, type WaterView } from "@app/core";
 import { WaterViewsContext } from "./ViewSwipe";
-import { useCoachRefs } from "./CoachMarks";
+import { useCoachRefs, useCoachTarget } from "./CoachMarks";
 import { Icon, IconText } from "./icons";
 import { hitProps } from "./regs/hit";
 import { TYPE } from "./type";
@@ -49,6 +49,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
   const label = ctx?.backLabel ?? backLabel ?? WATER_BACK;
   const close = ctx?.close ?? null;
   const share = ctx?.share ?? null;
+  const backRef = useCoachTarget("water:back");   // (T456) the walkthrough's "Back to the map" step rings it
 
   return (
     <View style={{ gap: SPACE.s1 }}>
@@ -57,7 +58,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 32 }}>
           {back ? (
             // (T40) 44 × 44 to the touch: the row is 32 tall and "‹  Map" (the shortest place back goes) about 36 wide
-            <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={waterBackName(label)} testID="water-back"
+            <Pressable ref={backRef} onPress={back} accessibilityRole="button" accessibilityLabel={waterBackName(label)} testID="water-back"
                        {...hitProps({ w: 36, h: 32 })} style={{ minHeight: 32, justifyContent: "center" }}>
               <IconText name="back" text={label} style={{ ...TYPE.metaBold, fontSize: 13, color: palette.accent }} />
             </Pressable>

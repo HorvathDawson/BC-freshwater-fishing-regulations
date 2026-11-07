@@ -18,7 +18,10 @@
  * Pure, and no hex anywhere: the colour of each swatch is resolved by the surface through the map's theme.
  */
 import { ACCESS_WORDS } from "./access";
-import { DAY_PICKER } from "./dayPicker";
+import { CONDITIONS_WORDS, HORIZON_LABELS, HORIZON_PICK } from "./conditions";
+import { GLANCE_WORDS } from "./glance";
+import { MAP_RAIL } from "./mapRail";
+import { WATER_VIEW_LABEL } from "./waterViews";
 import { FRESHNESS_WORDS, type SourceFreshness } from "./menu/freshness";
 import { MENU_WORDS } from "./menu/words";
 import { GEAR_LEGEND, METHOD_WORDS, type GearMark } from "./method";
@@ -33,7 +36,7 @@ import { NOT_FISHING_WORDS } from "./notFishing";
  * Stored on a device that has seen, or skipped, the walkthrough. Bump to show it again after a rewrite (T257: the tour;
  * T293: the one guided walkthrough on a real water, which every device sees once).
  */
-export const WALKTHROUGH_VERSION = "walkthrough-3";
+export const WALKTHROUGH_VERSION = "walkthrough-4";
 
 /** Has this device seen the current walkthrough? (the stored text is the version it saw) */
 export const walkthroughSeen = (stored: string | null | undefined): boolean => seenIn(stored, WALKTHROUGH_VERSION);
@@ -72,11 +75,13 @@ export const tabTourSeen = (stored: string | null | undefined, k: TabTourKey): b
  * What a step points at: the surface registers each control under its key (`useCoachTarget`); a control that is not on
  * screen leaves the step without a spotlight (the guided walkthrough) or drops it (a mode hint).
  */
-export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "tab:runs" | "tab:spots" | "sync" | "bell"
-  | "runs:species" | "runs:slider" | "horizons" | "search"
-  | "view:regs" | "view:conditions"
+export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "tab:runs" | "tab:spots" | "tab:more" | "sync"
+  | "bell" | "runs:species" | "runs:slider" | "horizons" | "search"
+  | "search:hit" | "search:go"
+  | "view:regs" | "view:conditions" | "water:back"
   | "regs:answer" | "regs:date" | "regs:keep" | "regs:tabs" | "regs:place" | "regs:book"
-  | "cond:headline" | "cond:horizons" | "cond:chart"
+  | "regs:salmon" | "regs:trout" | "regs:rule" | "regs:ruleline" | "regs:both"
+  | "cond:headline" | "cond:horizons" | "cond:reading" | "cond:quantity" | "cond:span" | "cond:chart"
   | "spot:days" | "spot:best"
   | "locate" | "layers" | "layers:ground" | "layers:obstacles";
 
@@ -103,84 +108,120 @@ export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
   readonly phase: GuidePhase;
   readonly kind: "show" | "do";
   readonly targets: readonly WalkthroughTarget[];
-  /** where the card sits when nothing is spotlit: over the top of the screen, or (default) at its foot */
+  /** where the card sits when nothing is ringed: over the top of the screen, or (default) at its foot */
   readonly dock?: "top";
+  /**
+   * (T456) The controls the step's words name, as their own labels say them (`WATER_VIEW_LABEL`, `HORIZON_PICK` …): each
+   * is inside the ringed control (its words or its spoken name), so the words never name a control that is not on screen
+   * and ringed (a test renders each target and looks; the "+1d to +10d" words outlived the chips they named).
+   */
+  readonly names?: readonly string[];
+  /**
+   * (T456) The ringed control is on some waters only (a fold for salmon, a group of trout): a step whose control is not
+   * drawn on this water is passed, never shown pointing at nothing.
+   */
+  readonly optional?: boolean;
 }
 
 /** The water the walkthrough uses: a well-known one, found by name in the release; any water stands in without it. */
 export const GUIDE_WATER = { name: "Vedder River", kind: "stream", letters: "ved" } as const;
 
 const step = (key: string, phase: GuidePhase, kind: "show" | "do", targets: readonly WalkthroughTarget[], title: string,
-              body: string, dock?: "top"): GuideStepWords => ({ key, phase, kind, targets, title, body, ...(dock ? { dock } : {}) });
+              body: string, more: Pick<GuideStepWords, "dock" | "names" | "optional"> = {}): GuideStepWords =>
+  ({ key, phase, kind, targets, title, body, ...more });
 
+const V = WATER_VIEW_LABEL, C = CONDITIONS_WORDS, H = HORIZON_LABELS;
+
+/*
+ * (T456, owner 2026-11-06: "make it actually show the use and make sure it doesn't cover items … show examples of how to
+ * read the rules, how to read the conditions"; "make it more interactive, so the user clicks it to go next") EVERY STEP
+ * ABOUT A CONTROL ASKS THE READER TO USE IT (a DO step: it moves on when they do); a SHOW step reads a real line on the
+ * screen. A step that needs another screen first takes the reader there with a tap of their own ("Back to the map").
+ */
 const GUIDE_STEPS: readonly GuideStepWords[] = [
   step("welcome", "find", "show", [], "Let's find a water",
-    "We'll look up the {water} together, using the app for real. Do each step yourself, or tap Show me. You can "
-    + "skip at any time, and replay this later from More → Help."),
+    "We'll look up the {water} together, using the app for real. Each step rings what to tap. Tap it to go on, or tap "
+    + "Show me. Skip ends the tour.", { dock: "top" }),
   step("search", "find", "do", ["search"], "Search for it",
     "Tap this search bar and type the first few letters: “{letters}”."),
-  step("pick", "find", "do", [], "Pick it from the list",
+  step("pick", "find", "do", ["search:hit"], "Pick it from the list",
     "Tap {water} in the list. The map moves to it and lights it up."),
-  step("map", "find", "do", [], "Now tap it on the map",
-    "Tap the lit line on the map. Tapping any river or lake opens its fishing rules."),
+  step("map", "find", "do", ["search:go"], "Open its page",
+    "Tap the arrow beside it to open its page. On the map, tapping any river or lake opens its page the same way."),
   step("regs", "rules", "do", ["view:regs"], "Open its rules",
-    "Tap Regulations at the top."),
-  step("answer", "rules", "show", ["regs:answer"], "Can you fish here today?",
-    "This tells you if the water is open or closed today. The bar under it is the whole year: you can see when it "
-    + "opens and closes."),
-  step("day", "rules", "show", ["regs:date"], "Pick another day",
-    `Tap this date to see the rules for ${DAY_PICKER.tomorrowSaid}, or any day you plan to go. The map changes with it.`),
-  step("keep", "rules", "show", ["regs:keep"], "What you can keep",
-    "Each fish and how many you can keep in a day. Tap a fish for its sizes, its season and how to tell it apart."),
-  step("gear", "rules", "show", ["regs:tabs"], "Gear and how you fish",
-    "Tap these to jump down the page. Gear and Methods say what you can use, like bait, hooks or fly only. Licence "
-    + "says what you need to buy."),
+    `Tap ${V.regs} to read this water's rules.`, { names: [V.regs] }),
+  step("answer", "rules", "show", ["regs:answer"], "Open or closed, and when",
+    "The big word is the answer for the day shown. The bar under it is the whole year. Each colour is in the key under "
+    + "it, and the mark is the day you are reading."),
+  step("day", "rules", "do", ["regs:date"], "Pick another day",
+    "Tap the date, then pick a day you plan to go. The page and the map change to that day."),
+  step("trout", "rules", "do", ["regs:trout"], "Open a fish's rules",
+    `Tap ${GLANCE_WORDS.show} on this fish to read what you may keep, and where.`,
+    { names: [GLANCE_WORDS.show], optional: true }),
+  step("rule", "rules", "show", ["regs:rule", "regs:ruleline"], "How to read a rule",
+    "The big words are how many you may keep in a day, and where that counts. The lines under say which fish. The "
+    + "Rule book link opens the page it comes from: the book has the final say.", { names: ["Rule book"], optional: true }),
+  step("salmon", "rules", "do", ["regs:salmon"], "A closed fish",
+    `Closed means you may not fish for it here that day, not even to let it go. Tap ${GLANCE_WORDS.show} beside Salmon to see why.`,
+    { names: [GLANCE_WORDS.show, "Salmon"], optional: true }),
+  step("both", "rules", "show", ["regs:both"], "Both rules hold",
+    "Salmon rules come from the federal fisheries office, the rest from the province's rule book. Where both have a "
+    + "rule, you follow both.", { optional: true }),
   step("part", "rules", "show", ["regs:place"], "Which stretch you're reading",
-    "A long river can have different rules in different places. This line tells you which stretch these rules are for. "
-    + "Tap Map at the top to see the stretches."),
-  step("book", "rules", "show", ["regs:book"], "Check the rule book",
-    "The official rule book has the final say. Tap this link to open the page these rules come from."),
+    "A long river can have different rules in different places. This line says which stretch these rules are for."),
   step("conditions", "conditions", "do", ["view:conditions"], "How is the river doing?",
-    "Tap Conditions at the top."),
+    `Tap ${V.conditions} to see how high the river runs.`, { names: [V.conditions] }),
   step("reading", "conditions", "show", ["cond:headline"], "Higher or lower than usual",
-    "This tells you if the river is low, normal or high compared with other years at this time of year. Normal is how "
-    + "it usually runs now."),
-  step("forecast", "conditions", "show", ["cond:horizons"], "The next few days",
-    "Tap +1d to +10d to see how the river should look on those days. The arrow at the end shows if it's going up or "
-    + "down."),
+    "The dot and its words compare the river with other years on this date: low, normal or high. The line under says how "
+    + "sure that is, and from how many gauges."),
+  step("forecast", "conditions", "do", ["cond:horizons"], "The next few days",
+    `Tap ${HORIZON_PICK.forecast}, then a day, to see how the river should look then. ${H.change.chip} shows if it `
+    + `will rise or fall. ${H[0].chip} goes back to today.`,
+    { names: [HORIZON_PICK.forecast, H.change.chip, H[0].chip] }),
+  step("gauge", "conditions", "show", ["cond:reading"], "The gauge's own reading",
+    "This is what the gauge measures now. The words under it say where that sits among past years on this date."),
+  step("quantity", "conditions", "do", ["cond:quantity"], "Flow or level",
+    `${C.quantity.discharge} is how much water goes by. ${C.quantity.level} is how high it stands at the gauge. `
+    + `Tap ${C.quantity.level}.`, { names: [C.quantity.discharge, C.quantity.level] }),
+  step("span", "conditions", "do", ["cond:span"], "The last few days, or the year",
+    `Tap ${C.spanShort.year} to see this year against the usual range. The grey band is where the river runs most years.`,
+    { names: [C.spanShort.year] }),
   step("change", "conditions", "show", ["cond:chart"], "What it means for fishing",
     "A river rising after rain is often high and muddy. As it drops and clears, fishing often gets better. Very high "
     + "water can be unsafe to wade. Use it as a guide, not a promise."),
+  step("leave", "conditions", "do", ["water:back"], "Back to the map",
+    `Tap ${V.map} at the top left to go back to the map.`, { names: [V.map] }),
   step("layers", "layers", "do", ["layers"], "Change what the map shows",
-    "Back on the map, tap this button to choose what the map shows."),
+    `Tap the ${MAP_RAIL.layers} button to choose what the map shows.`, { names: [MAP_RAIL.layers] }),
   step("ground", "layers", "do", ["layers:ground"], "Try the satellite view",
-    "Satellite shows photos from the air (you need a signal). Map shows a drawn map. Tap the one you're not using."),
+    "Satellite shows photos from the air (you need a signal). Map shows a drawn map. Tap the one you're not using.",
+    { names: ["Satellite", "Map"] }),
   step("obstacles", "layers", "do", ["layers:obstacles"], "Falls and dams",
     "Turn this on to see waterfalls, dams and other places fish can't get past. Tap one on the map to see what it is."),
   step("restore", "layers", "show", [], "Back to how it was",
-    "Tap Next to put the map back how you had it. You can change these any time.", "top"),
+    "Tap Next to put the map back how you had it. You can change these any time.", { dock: "top" }),
   step("spot", "spot", "do", ["tab:spots"], "Save a fishing spot",
-    "Tap Spots to save a place you fish, then pick how to add it."),
+    "Tap Spots to save a place you fish, then pick how to add it.", { names: ["Spots"] }),
   step("capture", "spot", "do", [], "Where and when",
     "Tap the water and the place, then the day and time you were there. The app saves how the river and the weather "
-    + "were that day. Add a note or a photo, then tap Save.", "top"),
+    + "were that day. Add a note or a photo, then tap Save.", { dock: "top" }),
   step("open", "days", "do", ["tab:spots"], "Find your spot again",
-    "Your spots are kept here. Tap Spots, then tap a spot."),
+    "Your spots are kept here. Tap Spots, then tap a spot.", { names: ["Spots"] }),
   step("days", "days", "show", ["spot:days"], "Days like the day you fished",
     "Here's why you save a spot: each of the next few days gets a score for how much it looks like a day you fished "
     + "here. The river and the rain count most, then clouds and air pressure, then temperature and wind."),
   step("reasons", "days", "show", ["spot:best"], "Why, and the best match",
     "Each day says what's the same and what's different. The day marked “Closest to your visit” is the best match. "
     + "Similar weather, not a promise of fish."),
-  step("done", "end", "show", [], "You're all set",
-    "The rules are saved on your phone, so the map works with no signal. More → Help explains updates and offline "
-    + "use, and can replay this tour."),
+  step("done", "end", "show", ["tab:more"], "You're all set",
+    "The rules are saved on your phone, so the map works with no signal. Help, under More, explains updates and offline "
+    + "use, and can replay this tour.", { names: ["More"], optional: true }),
 ];
 
 /** The web's last step: a browser keeps no offline copy, so it says where updates and Help are instead. */
-const WEB_DONE = step("done", "end", "show", [], "You're all set",
+const WEB_DONE = step("done", "end", "show", ["tab:more"], "You're all set",
   "The refresh button at the top gets the latest rules and river levels, and the bell shows changes. To save fishing "
-  + "spots, get the phone app. More → Help explains it all, and can replay this tour.");
+  + "spots, get the phone app. Help, under More, explains it all, and can replay this tour.", { names: ["More"], optional: true });
 
 export const WALKTHROUGH_WORDS = {
   /** the walkthrough's name aloud */
@@ -205,6 +246,15 @@ export const WALKTHROUGH_WORDS = {
             days: "Your spot", end: "That's it" } satisfies Record<GuidePhase, string>,
   /** the Help page's button that starts the walkthrough again */
   again: "Replay the walkthrough",
+  /**
+   * (T456) THE PAUSED WALK: the reader left the step's screen some other way (a tab, the system back, closing the page or
+   * a sheet). The card steps aside for a chip; the chip puts the app back where the step was and shows it again.
+   */
+  resume: "Resume walkthrough",
+  /** the chip's spoken name, with the step it goes back to */
+  resumeLabel: (title: string) => `Resume walkthrough at “${title}”`,
+  /** the chip's way out: the walk ends (counts as seen) */
+  endLabel: "End the walkthrough",
 } as const;
 
 /** (T293) The walkthrough's steps for the platform: the app's last step says works-offline, the web's does not. */

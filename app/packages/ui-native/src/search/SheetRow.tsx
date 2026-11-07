@@ -1,4 +1,5 @@
 /** One row of search's sheet, drawn from its `Row` (search/rows.ts): a heading, a note, a pointer, a place or a water. */
+import { useContext } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { ErrorState } from "../ErrorState";
@@ -12,6 +13,7 @@ import type { Palette } from "../theme";
 import { Hit } from "./Hit";
 import type { Row } from "./rows";
 import { hitProps } from "../regs/hit";
+import { CoachItemContext } from "../CoachMarks";
 
 export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, today, onRecent, onClearRecents }: {
   r: Row; palette: Palette; pick: SearchPick; act: (a: SearchAction) => void; onOpenWater: (item: ItemId) => void;
@@ -21,6 +23,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
   /** (T247) the recents' Clear */
   onClearRecents?: () => void;
 }) {
+  const guideItem = useContext(CoachItemContext);   // (T456) the walkthrough's water: its row is what the steps ring
   if (r.t === "head")
     return (
       <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10,
@@ -119,7 +122,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
            label={SEARCH_BAR.show(r.near.name)}
            goLabel={SEARCH_BAR.open(r.near.name)}
            onPress={() => act({ t: "select", target: t })}
-           onGo={() => onOpenWater(r.near.item)} />
+           onGo={() => onOpenWater(r.near.item)} coach={guideItem === r.near.item} />
     );
   }
   const h = r.hit;
@@ -136,7 +139,7 @@ export function SheetRow({ r, palette, pick, act, onOpenWater, statusIndex, toda
          label={SEARCH_BAR.show(named)}
          goLabel={SEARCH_BAR.open(named)}
          onPress={() => act({ t: "select", target: t })}
-         onGo={() => onOpenWater(h.item)} />
+         onGo={() => onOpenWater(h.item)} coach={guideItem === h.item} />
   );
 }
 

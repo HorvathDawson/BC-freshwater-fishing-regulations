@@ -41,6 +41,7 @@ import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, StickyContext, useAnchors } from "./useAnchors";
 import type { AdiposeImages, FishImages } from "./types";
+import { CoachScrollContext, useCoachScroller } from "../CoachMarks";
 
 declare const __DEV__: boolean | undefined;
 
@@ -267,14 +268,18 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
 
   // (T45) the page in the reading column (a phone: as it is); on a desktop, beside the side column
   const read = <ReadingColumn layout={layout} testID="regs-reading">{body}</ReadingColumn>;
+  const coachScroll = useCoachScroller();
   const pageScroll = (
     <View style={{ flex: 1 }}>
-      <ScrollView ref={scroll} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y);
+      <ScrollView ref={(n) => { (scroll as { current: ScrollViewInstance | null }).current = n; coachScroll.ref(n); }} testID="regs-scroll" scrollEventThrottle={16} onScrollBeginDrag={() => { restoring.current = false; }} contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
+                  onScroll={(e) => { const y = e.nativeEvent.contentOffset.y; scrollY.setValue(y); store.setScroll(y); coachScroll.track(y);
                                      if (scrollKey && !restoring.current) rememberRegsScroll(scrollKey, y); }}
                   onLayout={(e) => { viewH.current = e.nativeEvent.layout.height; store.setViewport(e.nativeEvent.layout.height); }}
                   onContentSizeChange={(_w, h) => { contentH.current = h; store.setContentHeight(h); remeasure(); }}>
-        {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}
+        {/* (T456) the walkthrough brings a step's control on this page into view */}
+        <CoachScrollContext.Provider value={coachScroll.scroller}>
+          {swipe ? <ViewSwipe swipe={swipe} testId="view-swipe-body">{read}</ViewSwipe> : read}
+        </CoachScrollContext.Provider>
       </ScrollView>
       {layout !== "desktop" && <PinOver layout={layout} store={store} palette={palette} />}
     </View>

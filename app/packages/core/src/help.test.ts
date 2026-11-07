@@ -14,7 +14,8 @@ describe("the walkthrough (T293)", () => {
   it("one walk in the owner's order, every step with words; DO steps are the reader's taps", () => {
     const app = guideSteps("app");
     expect(app.filter((s) => s.kind === "do").map((s) => s.key))
-      .toEqual(["search", "pick", "map", "regs", "conditions", "layers", "ground", "obstacles", "spot", "capture", "open"]);
+      .toEqual(["search", "pick", "map", "regs", "day", "trout", "salmon", "conditions", "forecast", "quantity", "span", "leave",
+                "layers", "ground", "obstacles", "spot", "capture", "open"]);
     for (const s of app) { expect(s.title.length, s.key).toBeGreaterThan(3); expect(s.body.length, s.key).toBeGreaterThan(20); }
     expect(new Set(app.map((s) => s.key)).size).toBe(app.length);
   });
@@ -49,8 +50,8 @@ describe("the walkthrough (T293)", () => {
             walkthroughSeen(` ${WALKTHROUGH_VERSION}\n`)]).toEqual([false, false, false, true, true]);
   });
   it("keeps where an unfinished walk was left, one line beside the others, and forgets it", () => {
-    const s = withGuideAt(withSeen(null, TAB_TOURS.runs), "keep");
-    expect([s, guideResumeAt(s)]).toEqual([`${TAB_TOURS.runs}\nguide-at:keep`, "keep"]);
+    const s = withGuideAt(withSeen(null, TAB_TOURS.runs), "answer");
+    expect([s, guideResumeAt(s)]).toEqual([`${TAB_TOURS.runs}\nguide-at:answer`, "answer"]);
     const moved = withGuideAt(s, "book");
     expect([guideResumeAt(moved), moved.split("\n").length]).toEqual(["book", 2]);
     expect([guideResumeAt(withGuideAt(moved, null)), withGuideAt(moved, null)]).toEqual([null, TAB_TOURS.runs]);
