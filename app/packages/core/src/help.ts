@@ -117,7 +117,7 @@ export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
    */
   readonly names?: readonly string[];
   /**
-   * (T456) The ringed control is on some waters only (a fold for salmon, a group of trout): a step whose control is not
+   * (T456) The ringed control is not always drawn (a fold for salmon on some waters; a spot's days with no spot saved): a step whose control is not
    * drawn on this water is passed, never shown pointing at nothing.
    */
   readonly optional?: boolean;
@@ -209,10 +209,11 @@ const GUIDE_STEPS: readonly GuideStepWords[] = [
     "Your spots are kept here. Tap Spots, then tap a spot.", { names: ["Spots"] }),
   step("days", "days", "show", ["spot:days"], "Days like the day you fished",
     "Here's why you save a spot: each of the next few days gets a score for how much it looks like a day you fished "
-    + "here. The river and the rain count most, then clouds and air pressure, then temperature and wind."),
+    + "here. The river and the rain count most, then clouds and air pressure, then temperature and wind.",
+    { optional: true }),
   step("reasons", "days", "show", ["spot:best"], "Why, and the best match",
     "Each day says what's the same and what's different. The day marked “Closest to your visit” is the best match. "
-    + "Similar weather, not a promise of fish."),
+    + "Similar weather, not a promise of fish.", { optional: true }),
   step("done", "end", "show", ["tab:more"], "You're all set",
     "The rules are saved on your phone, so the map works with no signal. Help, under More, explains updates and offline "
     + "use, and can replay this tour.", { names: ["More"], optional: true }),

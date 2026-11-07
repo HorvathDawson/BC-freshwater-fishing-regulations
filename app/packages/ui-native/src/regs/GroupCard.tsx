@@ -93,7 +93,9 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
 const RAIL = 5, BOX_INSET = 6, BOX_BORDER = 1, BOX_PAD_BOTTOM = 8;
 const NO_SUB = () => () => {};
 
-function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette: Palette; actions: KeepActions; images?: FishImages }) {
+function Tier({ t, at, palette, actions, images, coach }: { t: TierVM; at: At; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T456) the walkthrough's key for this tier's origin line (the rule a step reads, its Rule book link with it) */
+  coach?: string }) {
   const small = t.tier === "size" || t.tier === "count";
   const tids = [...at.tids, t.tid];
   // (T29) the tier's header (prototype `.tier`: kicker, words, relation, sub, origin) — the pin bar's `head` box
@@ -125,13 +127,13 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
       {t.relation && <Text style={[TYPE.meta, { lineHeight: 16.85, color: palette.sub, marginTop: 4 }]}>{t.relation}</Text>}
       {t.sub && <Text style={[TYPE.meta, { lineHeight: 16.85, color: palette.sub, marginTop: 4 }]}>{t.sub}</Text>}
       {t.origin && (
-        <View style={{ paddingTop: 8, paddingBottom: 4 }}>
+        <CoachSpot k={coach ?? ""} style={{ paddingTop: 8, paddingBottom: 4 }}>
           <LineText line={t.origin.says} style={TYPE.metaSemi} color={palette.ink} palette={palette} actions={actions} />
           <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 6 }}>
             {t.origin.howtell && <HowTell palette={palette} actions={actions} />}
             {t.origin.book.length > 0 && <LineText line={t.origin.book} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} />}
           </View>
-        </View>
+        </CoachSpot>
       )}
       </HeadView>
       <Nodes nodes={t.children} inBand={t.band} at={{ row: at.row, tids, path: at.path }} palette={palette} actions={actions} images={images} />
@@ -144,16 +146,18 @@ function Tier({ t, at, palette, actions, images }: { t: TierVM; at: At; palette:
 }
 
 function Nodes({ nodes, inBand, at, palette, actions, images, coachFirst }: { nodes: readonly TreeNodeVM[]; inBand: boolean; at: At; palette: Palette; actions: KeepActions; images?: FishImages;
-  /** (T456) the walkthrough's key for the first node (the group's first rule, its Rule book link with it) */
+  /** (T456) the walkthrough's key for the first node's rule line (its Rule book link with it) */
   coachFirst?: string }) {
   return (
     <>
       {nodes.map((n, i) => {
         const here = { row: at.row, tids: at.tids, path: `${at.path}.${i}` };
-        const node = n.t === "tier" ? <Tier key={i} t={n} at={here} palette={palette} actions={actions} images={images} />
-          : n.t === "kind" ? <Kind key={i} k={n} first={i === 0 || nodes[i - 1]!.t === "tier"} inBand={inBand} at={here} palette={palette} actions={actions} images={images} />
+        const first = i === 0 ? coachFirst : undefined;
+        // a tier: its origin line is the ring (the tier holds every row under it); a row: the row itself
+        if (n.t === "tier") return <Tier key={i} t={n} at={here} palette={palette} actions={actions} images={images} coach={first} />;
+        const node = n.t === "kind" ? <Kind key={i} k={n} first={i === 0 || nodes[i - 1]!.t === "tier"} inBand={inBand} at={here} palette={palette} actions={actions} images={images} />
           : <Release key={i} names={n.names} pictures={n.pictures} at={here} palette={palette} actions={actions} images={images} />;
-        return i === 0 && coachFirst ? <CoachSpot key={i} k={coachFirst}>{node}</CoachSpot> : node;
+        return first ? <CoachSpot key={i} k={first}>{node}</CoachSpot> : node;
       })}
     </>
   );

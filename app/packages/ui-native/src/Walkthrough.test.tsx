@@ -459,6 +459,8 @@ describe("(T456) the words name only controls drawn inside the ring", { timeout:
       for (const n of s.names) expect(inside, `${s.key} names "${n}"`).toContain(n.toLowerCase());
       checked.push(s.key);
     }
+    // the rule's ring is the head and the first rule's own line, never the whole tier under it (the phone's ring was 2145 px)
+    expect(said(reg, "regs:ruleline")).not.toContain("of your 2 trout and char");
     // salmon's Details is the same fold row as trout's (its own key)
     expect(said(reg, "regs:salmon")).toContain(GLANCE_WORDS.show.toLowerCase());
     expect(checked).toEqual(GUIDE_STEPS.filter((s) => s.names?.length).map((s) => s.key));
