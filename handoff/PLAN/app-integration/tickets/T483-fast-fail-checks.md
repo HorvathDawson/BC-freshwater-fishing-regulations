@@ -1,5 +1,7 @@
 # T483 — Fast-fail: cheap checks before (and while) long jobs
 
+Status: OPEN — rule in AGENTS 20a (cc54044cc); the script is not built yet.
+
 Owner 2026-11-07: builds sometimes reveal easy failures only at the end. Run the cheap checks up front, or while a
 build waits, so they fail in a minute or two. Rule: AGENTS.md 20a — every late failure a cheap check could have
 caught becomes a new fast-fail item, added with its fix.
