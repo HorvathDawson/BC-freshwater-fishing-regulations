@@ -19,7 +19,9 @@ export function useTestbedFlag(name: string, dflt: boolean): boolean {
     if (!on()) return;
     if (!listening) {
       listening = true;
+      console.log(`[flag] ${JSON.stringify({ listening: name })}`);
       Linking.addEventListener("url", ({ url }) => {
+        console.log(`[flag] ${JSON.stringify({ url })}`);
         const m = /^canifishthis:\/\/testbed\/flag\?(.*)$/.exec(url);
         if (!m) return;
         const q = new URLSearchParams(m[1]);

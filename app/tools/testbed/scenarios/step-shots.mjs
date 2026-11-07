@@ -109,30 +109,43 @@ export const stepShots = {
       } finally { d.sh('wm density reset'); await d.sleep(3000); }
     });
 
+    // each water at the part that shows the most: the mouth part (its receiving water in view), or a named part
     const waters = [
-      ['fraser', 'Fraser River', 'Stream · .*', ['water-map-step-up']],
-      ['chilliwack', 'Chilliwack River', 'Stream · .*', []],
-      ['chawuthen-creek', 'Chawuthen Creek', 'Stream · .*', []],
+      ['fraser-hope', 'Fraser River', 'Stream · .*', { row: '.*Landstrom Bar.*', tidal: true }],
+      ['chilliwack-mouth', 'Chilliwack River', 'Stream · .*', { lowest: true }],
+      ['silverhope-creek-mouth', 'Silverhope Creek', 'Stream · .*', { lowest: true }],
     ];
-    for (const [name, q, row, steps] of ONLY.includes('grey') ? waters : []) {
+    const flagLines = () => d.sh("logcat -d -s ReactNativeJS:* | grep '\\[flag\\]' || true").trim().split('\n').filter(Boolean);
+    for (const [name, q, row, at] of ONLY.includes('grey') ? waters : []) {
       await ctx.step(`T459 ${q}: other waters grey — receiving kept / grey, light / dark`, async () => {
         night(false);
         await d.sleep(2000);
         await openMap(q, row);
-        for (const id of steps) { flow('tap-id', { ID: id }); await d.sleep(5000); }
+        if (at.row) {
+          flow('tap-id', { ID: 'water-map-parts-toggle' }); await d.sleep(1500);
+          flow('tap-text', { TEXT: at.row }); await d.sleep(5000);
+        }
+        if (at.lowest) for (let i = 0; i < 6 && !/Lowest part/.test(d.screenText().join(' ')); i++) {
+          flow('tap-id', { ID: 'water-map-step-down' }); await d.sleep(4500);
+        }
         const where = part();
+        const seen = [];
         for (const dark of [false, true]) {
           night(dark);
           await d.sleep(4000);
           for (const kept of [true, false]) {
             link(`canifishthis://testbed/flag?name=receiving&on=${kept ? 1 : 0}`);
             await d.sleep(3500);
+            seen.push(...flagLines());
             shot('t459', `${name}-${dark ? 'dark' : 'light'}-${kept ? 'receiving-kept' : 'all-grey'}.png`);
           }
         }
         night(false);
         link('canifishthis://testbed/flag?name=receiving&on=1');
-        return where;
+        const same = fs.readFileSync(path.join(OUT, 't459', `${name}-light-receiving-kept.png`))
+          .equals(fs.readFileSync(path.join(OUT, 't459', `${name}-light-all-grey.png`)));
+        if (same && !at.tidal) throw new Error(`${where}: the two options drew the same picture (flag lines: ${[...new Set(seen)].slice(-4).join(' | ') || 'none'})`);
+        return `${where}; flag lines ${new Set(seen).size}`;
       });
     }
     gather();

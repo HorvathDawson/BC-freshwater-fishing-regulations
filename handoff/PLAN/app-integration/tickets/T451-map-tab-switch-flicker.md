@@ -1,6 +1,6 @@
 # T451 — Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6)
 
-Status: PARTIAL — e63c921c3 (owner on 0.6.7: still flickers, "maybe better")
+Status: IN REVIEW — e63c921c3, 507de9433 (test bed: 0 uncoloured frames entering Map, was 12/12); owner phone check left
 
 Owner: "switching between Conditions and Runs has no flicker, but sometimes going to Map it flickers a bit (the streams
 etc flicker, not the base map) … maybe the colours when switching should get ready before it switches to avoid flicker."
@@ -45,3 +45,29 @@ events + feature-state writes). Find what draws a frame in the wrong colours: ma
 render of the old paint, feature-state cleared before the new values, or the stream layer's visibility/filter changing
 before its colours. Fix that, and before/after use the same 32-switch script with Conditions→Map and Runs→Map
 counted separately.
+
+## Found and fixed, round 2 (2026-11-06, 507de9433)
+**Measured first** (the 32-switch recording of e63c921c3, `out/runs/t452-c`, counted per direction by
+`app/tools/testbed/switch-frames.py`: a frame with the Map style's ground and under 30 % of the settled view's blue
+lines): every switch INTO Map drew the streams uncoloured — Conditions→Map 8/8 (one frame each), Runs→Map 4/4 (12
+frames, up to 67 ms); Map→Conditions, Map→Runs, Conditions↔Runs 0. The owner's words exactly.
+**Cause:** not feature-state (it survives the swap: MapLibre keeps `SourceFeatureState`, and pushes it to every tile
+every frame). A swap that changes a line layer's data-driven paint makes every tile lay out again, and until that lands
+MapLibre 13.6.1 draws the NEW layer from the OLD bucket (`GeometryTile::LayoutResult::getLayerRenderData`, by layer id),
+whose feature-state binders were built for the old paint: grey streams for 1–4 frames. Conditions and Runs at that
+zoom draw the field (style-borne values, no binders), so switching between them never showed it.
+**Fix (binding patch, Android):** `setReactMapStyle` copies the frame on screen (`PixelCopy`, 6–20 ms) over the map,
+sets the style, and takes the copy away at the first fully rendered frame after the new style loaded (or the first
+touch, or 1.5 s — logged `CifSwap`). And the native colouring queue merges a section's writes in one burst (a clear's
+null write + its relabel are one write), so no frame between them draws it bare (Runs→Map drops the runs channel).
+iOS is not changed (needs its own snapshot path; the owner's phone is Android).
+**After** (`out/runs/t451-t459`, same script, same place):
+| direction | before (t452-c) | after |
+|---|---|---|
+| Conditions → Map | 8/8 switches, 8 frames | 0/8, 0 |
+| Runs → Map | 4/4, 12 frames (max 67 ms) | 0/4, 0 |
+| Map → Conditions / Map → Runs / Conditions ↔ Runs | 0 | 0 |
+Holds: 32 swaps, 32 ended by the drawn frame (none by the cap), hold p50 11 / max 159 ms.
+Left: the owner's phone check (Pixel 9: Conditions/Runs → Map). Unverified: the hold on a real device (its first full
+frame comes ~10 ms after the load on the emulator).
+

@@ -1,6 +1,6 @@
 # T459 — Stepping ▲/▼ along a water: grey out the other waters
 
-Status: OPEN (owner 2026-11-06, chat 5).
+Status: IN REVIEW — 77c985859; the owner picks the downstream option from the shots (out/t459/)
 
 Owner: "in the section navigation with up/downstream all other rivers should be greyed out I think, except downstream
 maybe. That way it is less distracting?"
@@ -26,3 +26,22 @@ The shots show it both ways, and the owner picks.
    to the owner.
 Related: T443 (step framing, same screen), T451 (switch flicker). Size: S–M. Owner: pick the downstream option from
 the shots.
+
+## Done (2026-11-06, 77c985859)
+A water's Map view is focused (`MapProps.focus`, part of the look — on from the water map's first style, so no swap per
+step and no flash of colour): every stream/lake/wetland section that is not this water (`part`/`water`) nor the
+receiving water (feature-state `near`: the sections of the part its mouth meets, `useReceivingSections`) is drawn in
+`color.water.context` at its opacity × 0.55; the receiving water keeps its colours at × 0.7. Their gear edges, closed
+stripe, run dash and no-access dots are not drawn. Labels and the ground unchanged. The grey is the quiet grey of water
+nothing is said about (`@color.water.ungauged`, which the Map tab never draws); no colour mode paints it, so no legend
+lists it; ΔE ≥ 12 from every Map-tab status and from unknown in all three themes (`tools/water-focus.test.ts`, which
+also evaluates the paint for part / water / near / other and pins the browse map unchanged). Both maps.
+Off when the reader leaves (the water map unmounts with its view/tab). A mouth on tidal water has nothing to keep.
+**The owner's pick:** shots both ways, light and dark, in `app/tools/testbed/out/t459/` (`*-receiving-kept.png` /
+`*-all-grey.png`): `silverhope-creek-mouth-*` (a small creek's mouth part; the Fraser it meets kept, amber, muted),
+`chilliwack-mouth-*` (▼ from the Chilliwack's mouth crosses into the Vedder; the Sumas it flows into kept),
+`fraser-hope-*` (the Fraser's Landstrom Bar part near Hope: tributaries grey; the Fraser's mouth is tidal, so the two
+options are the same picture there). Test bed run `out/runs/t459c`: the two options differ for both waters with a
+receiving water; switched by the link below (8 `[flag]` lines per water). The test-bed link `canifishthis://testbed/flag?name=receiving&on=0|1` switches it
+(`ui-native/src/testbedFlag.ts`, test bed only) — remove it with the choice.
+

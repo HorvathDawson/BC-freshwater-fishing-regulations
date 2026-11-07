@@ -1,6 +1,6 @@
 # T443 — Stepping ▲/▼ between a big part and a tiny one jumps the camera (disorienting)
 
-Status: PARTIAL — 7f36eb73a, 55c7f54 (owner on 0.6.7: Fraser framed well; two new items below)
+Status: IN REVIEW — 7f36eb73a, 55c7f54, c30bee60d, c0c9647d7 (0.6.7 items: one framing per part, one label at Landstrom Bar); owner phone check left
 
 Source: owner problem report b48c0e449372c34b, 2026-11-06, app 0.6.2 (staging worker `GET /reports`): "When navigating
 a river like the Fraser regulation map and you click up or downstream and it goes from a big section to a tiny section or
@@ -50,3 +50,29 @@ take a big step in (≈ 5 levels from z8–9): seeing the part won over the smal
    the same framing function as a step, with the same padding, floor (half the screen, ≤ z14) and insets. Find the
    difference (likely the first fit runs before the bar/sheet insets are measured, or uses the whole water's bounds).
    Test: open → camera A; ▲ then ▼ → camera B; A == B (centre within 1 dp, zoom within 0.01).
+
+## 0.6.7 items done (2026-11-06, c30bee60d, c0c9647d7)
+1. **Landstrom Bar.** The zone's two ends carry the same words 138 m apart, both labelled. Fix (`@app/ui` waterMap
+   `oneLabelPerPlace`): within 250 m of a labelled mark with the same words a mark keeps its ring and its own
+   screen-reader words but draws no label; the open mark's label wins. The release holds 12 such pairs in 9 waters
+   (5–197 m; Clayhurst / Mount Griffin / Lasqueti Ecological Reserves, Capilano / Greater Victoria watershed boundaries,
+   MU 5-6/5-11, Nanaimo rifle range, a hatchery fence, Landstrom Bar). Test: the Fraser pair on the fixture release
+   (`waterMap.test.ts`, mutation-checked). The step bar's own names already clamp to two lines with an ellipsis and the
+   full words as the label; a render test pins that (`WaterMapView.test.tsx`), and the shot at 360 dp with the release's
+   longest pair (Puntledge part 4, 141 characters) is `app/tools/testbed/out/t443/step-bar-360dp-puntledge.png`.
+2. **First open ≠ ▲ then ▼.** Three causes. (a) The step bound (at most 2 levels in from the camera) made a part's frame
+   depend on the part before it: 61 of the release's 968 ▲-then-▼ round trips came back up to a level further out.
+   Removed: a part's frame is the cap and the floor only (`fitZoomLimit(fit, fitZoom)`). (b) The native map framed the
+   first fit before its size was known / before the bar under it grew; it now frames again when its size changes
+   (as the web's refit does), unless the reader moved it. (c) On the test bed a first fit sent before the native map's
+   first style loaded was lost to its initial camera (the water's map opened on the previous water's place); the fit
+   now waits for the first style. Note: a SEARCH result opens the Map on the whole water (T203, by design), so "first
+   open" here is the Map tab entered from another view.
+**Measured** (test bed `step-shots`, Map tab entered from another view; `[cam]`): before (c30bee60d build, no fit gate)
+Coquitlam part 2: A z9.885 vs B z10.900, centres 178.6 dp apart (and a Chilliwack open left on the previous water's
+place); after: Fraser part 19 and Coquitlam part 2 — centres 0.00 dp apart, zoom 0.000 (spec: ≤ 1 dp, ≤ 0.01).
+Shots: `app/tools/testbed/out/t443/` — `coquitlam-A-first-open.png` / `coquitlam-B-step-there-and-back.png`,
+`fraser-landstrom-bar.png` (one label), `step-bar-360dp-puntledge.png`.
+Seen, not in scope: at the Fraser's top part (z5.5) the marks round Williams Lake (different words, km apart at that
+zoom) still overlap — a label-collision rule across different words would be its own ticket.
+
