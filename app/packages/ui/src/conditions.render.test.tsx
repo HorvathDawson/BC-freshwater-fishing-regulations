@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { donorBecause, donorFacts, donorLastReport, donorPinTitle, donorReads, donorReason,
          donorRowLabel, donorWeightLine, estimateHeadline, estimateRange, estimateSentence,
-         freshness, HORIZONS, HORIZON_LABELS, horizonChipLabel, horizonDateChip, localStamp, noGaugeSentence,
+         freshness, HORIZONS, HORIZON_LABELS, horizonChipLabel, horizonDateChip, bcNow, localStamp, noGaugeSentence,
          readingAgeLine, readingHeading,
          readingStandingLine, stageLine, unplacedNote } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
@@ -51,7 +51,7 @@ describe("donorView", () => {
     expect(vm).toEqual({
       ok: false, heading: "NO ESTIMATE",
       reason: "No forecast for the gauges here reaches this far ahead.",
-      horizons: HORIZONS.map((d) => ({ day: d, chip: horizonDateChip(d, new Date()), label: horizonChipLabel(d, d === 10),
+      horizons: HORIZONS.map((d) => ({ day: d, chip: horizonDateChip(d, bcNow()), label: horizonChipLabel(d, d === 10),
                                        on: d === 10, note: null, needs: null })),
       silent: null,
     });
@@ -76,7 +76,7 @@ describe("donorView", () => {
     if (!vm.ok) throw new Error("expected an estimate");
     expect(vm.headlineSuffix).toBeNull();
     expect(vm.horizons).toEqual([
-      ...HORIZONS.filter((d) => d !== "change").map((d) => ({ day: d, chip: horizonDateChip(d, new Date()),
+      ...HORIZONS.filter((d) => d !== "change").map((d) => ({ day: d, chip: horizonDateChip(d, bcNow()),
         label: horizonChipLabel(d, d === 0), on: d === 0, note: null, needs: null })),
       { day: "change", chip: "Change", label: horizonChipLabel("change", false), on: false, note: null, needs: null },
     ]);

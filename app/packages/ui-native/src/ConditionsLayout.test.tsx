@@ -14,11 +14,11 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { CONDITIONS_WORDS, donorReason, forecastRunLine, horizonDateChip, localStamp, noGaugeSentence,
+import { CONDITIONS_WORDS, donorReason, forecastRunLine, horizonDateChip, bcNow, localStamp, noGaugeSentence,
          type Horizon } from "@app/core";
 
 /** (T367) a forecast day's chip: its date, from the device's today */
-const chipOf = (d: number) => horizonDateChip(d as Horizon, new Date());
+const chipOf = (d: number) => horizonDateChip(d as Horizon, bcNow());
 /** (T367) the forecast days sit in the header's drop-down: open it */
 const openDays = () => fireEvent.click(screen.getByLabelText("Choose a forecast day"));
 import type { Panel, WaterSource, SectionId } from "@app/data";

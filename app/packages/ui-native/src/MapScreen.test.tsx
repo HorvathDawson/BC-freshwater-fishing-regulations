@@ -11,7 +11,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { horizonChips, type Horizon } from "@app/ui";
-import { HORIZONS, horizonChipLabel, horizonDateChip } from "@app/core";
+import { HORIZONS, horizonChipLabel, horizonDateChip, bcNow } from "@app/core";
 import { LIGHT } from "./theme";
 
 /*
@@ -58,7 +58,7 @@ describe("<MapScreen> corner", () => {
     expect(screen.getByLabelText("Choose a forecast day").getAttribute("aria-expanded")).toBe("true");
     const days = HORIZONS.filter((d) => typeof d === "number" && d > 0);
     expect([...screen.getByTestId("map-horizons-list").children].map((e) => [e.textContent, e.getAttribute("aria-label")]))
-      .toEqual(days.map((d) => [horizonDateChip(d, new Date()), horizonChipLabel(d, false)]));
+      .toEqual(days.map((d) => [horizonDateChip(d, bcNow()), horizonChipLabel(d, false)]));
   });
 
   it("reports which horizon is showing to a screen reader, not only in colour", () => {

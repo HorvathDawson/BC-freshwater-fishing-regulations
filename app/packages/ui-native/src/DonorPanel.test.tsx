@@ -12,7 +12,7 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { CONDITIONS_WORDS, donorReason, horizonDateChip, type Horizon, type NoEstimate } from "@app/core";
+import { CONDITIONS_WORDS, donorReason, horizonDateChip, bcNow, type Horizon, type NoEstimate } from "@app/core";
 import { donorView, type DonorRow, type PanelAnswer } from "@app/ui";
 import { DonorPanel } from "./DonorPanel";
 import { LIGHT } from "./theme";
@@ -368,9 +368,9 @@ describe("the donor panel", () => {
   it("offers every horizon, above the number they change", () => {
     draw({ value: answer(), horizon: 3, onHorizon: () => {} });
     // (T367) Now · the chosen day ▾ · Change; the drop-down holds each day by its date, every day the publisher forecasts
-    expect(screen.getByLabelText("Forecast 3 days ahead, showing").textContent).toBe(horizonDateChip(3, new Date()));
+    expect(screen.getByLabelText("Forecast 3 days ahead, showing").textContent).toBe(horizonDateChip(3, bcNow()));
     fireEvent.click(screen.getByLabelText("Forecast 3 days ahead, showing"));
-    for (const t of ["Now", ...[1, 2, 4, 5, 6, 7, 8, 9, 10].map((d) => horizonDateChip(d as Horizon, new Date()))])
+    for (const t of ["Now", ...[1, 2, 4, 5, 6, 7, 8, 9, 10].map((d) => horizonDateChip(d as Horizon, bcNow()))])
       expect(screen.getByText(t)).toBeTruthy();
   });
 
@@ -384,7 +384,7 @@ describe("the donor panel", () => {
 
   it("offers no horizons where the caller does not own one", () => {
     draw({ value: answer() });
-    expect(screen.queryByText(horizonDateChip(3, new Date()))).toBeNull();
+    expect(screen.queryByText(horizonDateChip(3, bcNow()))).toBeNull();
   });
 
   it("keeps the heading one line at every horizon", () => {
