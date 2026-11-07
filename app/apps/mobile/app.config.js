@@ -22,12 +22,23 @@ if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
   throw new Error("app.config.js: EXPO_PUBLIC_MAP_LAB is for staging and test-bed builds only; unset it for production");
 }
 
+// (T420) a locally built MapLibre (app/tools/maplibre-patch) is for test-bed builds only: production stays on the stock SDK
+if (production && process.env.MLN_LOCAL_MAVEN) {
+  throw new Error("app.config.js: MLN_LOCAL_MAVEN (a locally built MapLibre) is for test-bed builds only; unset it for production");
+}
+
+// (T420) with MLN_LOCAL_MAVEN set, MapLibre's own plugin is told the local SDK version (with-local-maplibre.js adds the repo)
+const localMaplibre = process.env.MLN_LOCAL_MAVEN ? require("./plugins/with-local-maplibre").localVersion(process.env.MLN_LOCAL_MAVEN) : null;
+const withLocalMaplibreVersion = (plugins) => !localMaplibre ? plugins : plugins.map((p) =>
+  Array.isArray(p) && p[0] === "@maplibre/maplibre-react-native"
+    ? [p[0], { ...p[1], android: { ...p[1]?.android, nativeVersion: localMaplibre } }] : p);
+
 module.exports = ({ config }) => ({
   ...config,
   // (T244) the adaptive icon's solid background: the ground the boot screen paints (the icon is the favicon, `pnpm`-less: tools/build-icons.mjs)
   android: { ...config.android, adaptiveIcon: { ...config.android?.adaptiveIcon, backgroundColor: ground("light") } },
   plugins: [
-    ...(config.plugins ?? []),
+    ...withLocalMaplibreVersion(config.plugins ?? []),
     ["expo-splash-screen", {
       backgroundColor: ground("light"),
       image: "./assets/splash/splash-light.png",
@@ -35,5 +46,7 @@ module.exports = ({ config }) => ({
       resizeMode: "contain",
       dark: { backgroundColor: ground("dark"), image: "./assets/splash/splash-dark.png" },
     }],
+    // (T420) opt-in only: unset (every normal and store build), the app uses the stock MapLibre from Maven Central
+    ...(process.env.MLN_LOCAL_MAVEN ? ["./plugins/with-local-maplibre"] : []),
   ],
 });

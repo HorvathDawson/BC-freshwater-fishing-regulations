@@ -40,6 +40,12 @@ export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Con
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
 log() { echo "[testbed $(date +%T)] $*"; }
+# (T420) MLN_LOCAL_MAVEN builds against the locally patched MapLibre (app/tools/maplibre-patch/README.md): its APK must
+# carry its own name (never replace the stock one), and the patched SDK is the Vulkan variant only
+if [[ -n ${MLN_LOCAL_MAVEN:-} ]]; then
+  [[ -n ${TESTBED_APK_TAG:-} ]] || { log "MLN_LOCAL_MAVEN needs TESTBED_APK_TAG (e.g. fsdelta) so the stock APK is kept"; exit 1; }
+  [[ -z $VARIANT ]] || { log "MLN_LOCAL_MAVEN is the Vulkan SDK: drop --$VARIANT"; exit 1; }
+fi
 source "$HERE/lib/xcrun-shim.sh"   # (T313) Maestro's startup `xcrun simctl list -j` must not hang on Xcode's first launch
 
 EMU_PID=""

@@ -1,0 +1,12 @@
+// Gradle init script for build.sh: caps the native (CMake/Ninja) build of MapLibreAndroid at MLN_JOBS compile jobs and
+// one link job. AGP runs ninja with its default parallelism (cores + 2 = 20 here), which is over the machine's
+// four-worker rule for heavy jobs. Build-only: it changes no upstream file and nothing that ends up in the AAR.
+def jobs = System.getenv("MLN_JOBS") ?: "4"
+allprojects {
+    pluginManager.withPlugin("com.android.library") {
+        android.defaultConfig.externalNativeBuild.cmake.arguments(
+            "-DCMAKE_JOB_POOLS=compile=${jobs};link=1",
+            "-DCMAKE_JOB_POOL_COMPILE=compile",
+            "-DCMAKE_JOB_POOL_LINK=link")
+    }
+}
