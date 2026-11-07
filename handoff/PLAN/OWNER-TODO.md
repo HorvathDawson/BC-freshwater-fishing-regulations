@@ -6,6 +6,19 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Phone check with 0.6.8: the Map lab (T420), ~10 min.** Long-press the © chip (map, bottom-right) → a card of
+  switches; flip one, Close, pan; the card's last line says whether the map differs from today's (a restart resets all).
+  Use the **Map tab**, Regulations view. For each switch below: pan with it OFF, then ON, same place, same gestures
+  (3–4 quick flings travelling one way, then back). Note which feel smoother; "no difference" is a useful answer.
+  1. **Coquitlam z13** (dense creeks): *Skip invisible layers* (same look; less colouring work every frame), then
+     *Streams in one bucket* (same look), then *Pixel cap 2* OFF (sharper but more pixels: does it lag more?).
+  2. **Fraser Valley z11** (around Chilliwack): the same three, then *Prefetch delta 2* (do streams pop in at the
+     edges less?).
+  3. **Lower Mainland z7–z9** (zoomed out): *Basemap greens* off, then *Labels* off. These are test-only (they hide
+     things): they tell us where the zoomed-out lag lives, not a change to ship.
+  4. **A long session:** pan around for ~5 min first, then repeat 1. The emulator says the colouring cost grows the
+     longer the map is used; if the lag gets worse over a session on the phone too, that confirms it.
+  *Colour batches ≥ 250 ms apart* is expected to change nothing (skip it unless curious).
 - **Phone check 0.6.7: ANSWERED 11-06** (glide good; loading stutter, Map-switch flicker, step-bar names overlap, first framing differs: all back in T420/T451/T443).
 - **T449 ANSWERED 11-06 (in chat):** both Nanaimo places accepted as tidal water (marks saved for you; lands with the next release build).
 - **Phone checks with 0.6.6 (Play internal, 2026-11-06, chat 4):** zoomed-out pan feel z5–z9 (T420 basemap fix + T448 pixel
