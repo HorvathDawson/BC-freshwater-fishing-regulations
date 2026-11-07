@@ -303,3 +303,30 @@ On-device System Tracing (default categories), read with Perfetto's trace proces
 So the phone's lag is per-frame CPU work on the render thread — where MapLibre's every-frame feature-state re-apply runs
 (the correction above) — and not fill or GPU: the pixel cap (T448) and Vulkan vs GL cannot fix this. Inference, not yet
 proof: a function-level profile on the phone (simpleperf, USB, after the emulator is free) or the patched-MapLibre APK pair.
+
+## Patched MapLibre vs stock, stressed emulator (2026-11-07 night; runs `out/runs/t420-j3-*`, `t420-anr-*`)
+Same app tree for both APKs (HEAD 9e06227ee; stock `out/app-testbed-j3stock.apk`, libmaplibre build id aab47813; patched
+`out/app-testbed-fsdelta.apk`, build id 4181656f, `check-loaded.sh` PASS: mapped executable in the app). Lab at defaults; 3 stock + 3
+patched blocks per place, installs alternated in one boot; each block = fresh (cold) 2 rounds, 10 warm rounds (160 flings), held 2 rounds.
+Map p50 / p95 ms, circling · travelling, mean [range]:
+| place | build | fresh p50 | fresh p95 | held p50 (after 160 flings) | held p95 |
+|---|---|---|---|---|---|
+| Coquitlam z13 | stock | 78 [61–93] · 76 [53–95] | 143 · 135 | 138 [128–150] · 148 [137–167] | 221 · 228 |
+| Coquitlam z13 | **patched** | **46 [33–55] · 31 [17–42]** | 97 · 73 | **46 [33–53] · 42 [31–49]** | 102 · 91 |
+| Fraser Valley z11 | stock | 60 [52–66] · 71 [65–80] | 137 · 156 | 60 [38–72] · 104 [101–109] | 154 · 200 |
+| Fraser Valley z11 | **patched** | **32 [30–34] · 35 [34–37]** | 87 · 87 | **31 · 35** (n=2) | 63 · 87 |
+Map frames ~1.6–1.9× more, frames missing tiles roughly halved. **Growth gone**: stock slows as feature state is held, patched is flat.
+simpleperf (Coquitlam, 20 s travelling): feature-state work (`setFeatureState`) 41.6 % of app samples → 1.9 %; `updateVertexVectors`
+40.8 % → 1.9 %. Colours after Map → Conditions → Map: coloured on both (`t420-j3-{fv11,coq13}-modeswitch-*.png`), no grey or stale.
+
+**One ANR on patched** (FV r2 long, round 3): a swipe opened a water page, then "isn't responding" (input dispatch timed out 14.5 s;
+main thread in `futex_wait_queue`; Android's dump of the app's stacks failed, so no stack). Traces: `t420-j3-fv11-r2-patched-long/anr*.txt`,
+`trace_00.txt`. **Code:** the patch adds no lock, atomic or cross-thread call: the version counter, a tile's applied version and the
+reset in `GeometryTile::onLayout` all live on the render thread that owns the tiles and `SourceFeatureState`. **Repro hunt**
+(`app/tools/testbed/tap-glide.mjs`: FV z11, 4 × 16 flings, a map tap mid-glide after each, pages closed with Back; same stressed
+emulator, patched/stock alternated in one boot): **not reproduced** — patched 0/6 (384 flings, 152 pages opened mid-glide), stock 0/6
+(384 flings, 143 pages). Read: a one-off on the starved emulator, not the patch; still unexplained.
+
+APK pair: not uploaded. The pair (patched → Play internal via `MLN_LOCAL_MAVEN=… deploy/staging/build-apk.sh --play`, which would be
+versionCode 19; stock → the staging sideload page via `deploy/staging/build-apk.sh`) was refused by the session's permission check;
+it needs the owner to run it or to allow it.
