@@ -23,7 +23,7 @@
  * ACCESSIBLE. The card is a non-modal dialog named by its title; each step's title and words are a polite live region
  * (and, on a phone, announced), so a screen reader hears every step; focus is never moved or trapped.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Platform, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -95,7 +95,12 @@ export interface Guide {
   readonly at: number;
   reopen(): void;
   finish(): void;
-  next(): void;
+  /**
+   * (T455) On from `from`, the step the caller saw; a move from a step the walk has already left is dropped. The
+   * done-timer and the card's tap can both fire for one step (a tap in the same tick as the timer, or a tap a stale
+   * handler took): without `from` both advanced, and the next step was skipped unread.
+   */
+  next(from?: number): void;
   back(): void;
 }
 
@@ -216,9 +221,10 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     setPending(false); setOpen(false);
   }, [write]);
   const reopen = useCallback(() => { how.current = "start"; setAt(0); setOpen(true); }, []);
-  const next = useCallback(() => {
+  const next = useCallback((from?: number) => {
     how.current = "fwd";
     setAt((i) => {
+      if (from !== undefined && from !== i) return i;     // (T455) that step is already left: not a second advance
       // forward onto a DO step the app is already past: passed (e.g. the water opened straight on its Regulations)
       let j = i + 1;
       while (j < STEPS.length - 1 && passOnArrival(STEPS[j]!, live.current.facts)) j += 1;
@@ -250,7 +256,7 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     const was = seen.current;
     seen.current = { at, isDone };
     if (!isDone || (was.at === at && was.isDone) || was.at !== at) return;
-    const t = setTimeout(next, 700);
+    const t = setTimeout(() => next(at), 700);
     return () => clearTimeout(t);
   }, [at, isDone, next]);
 
@@ -333,6 +339,20 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   }, [guide.open, guide.at]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per step
 
   const [cardH, setCardH] = useState(0);
+  const onPrimary = () => {
+    if (done) { guide.next(guide.at); return; }
+    if (showMe) { rule.show!(facts, acts); return; }
+    if (step.key === "capture" && facts.adding) acts.cancelAdd();
+    if (step.key === "restore") acts.restoreLayers();
+    if (last) guide.finish(); else guide.next(guide.at);
+  };
+  // (T455) A Pressable takes a new onPress only in a passive effect after the commit, so a tap landing between the two ran
+  // the step before's handler: its "Done", a second advance, skipped the step on screen. The buttons call through this
+  // ref, set at commit, so a tap always acts on the step the reader sees.
+  const taps = useRef({ primary: onPrimary, next: () => guide.next(guide.at) });
+  useLayoutEffect(() => { taps.current = { primary: onPrimary, next: () => guide.next(guide.at) }; });
+  const tapPrimary = useCallback(() => taps.current.primary(), []);
+  const tapNext = useCallback(() => taps.current.next(), []);
   if (!guide.open) return null;
 
   const wide = win.w >= WIDE;
@@ -348,13 +368,6 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   }
 
   const primary = done ? W.doneStep : showMe ? W.showMe : last ? W.done : W.next;
-  const onPrimary = () => {
-    if (done) { guide.next(); return; }
-    if (showMe) { rule.show!(facts, acts); return; }
-    if (step.key === "capture" && facts.adding) acts.cancelAdd();
-    if (step.key === "restore") acts.restoreLayers();
-    if (last) guide.finish(); else guide.next();
-  };
 
   return (
     <View ref={(v) => { origin.current = v as unknown as Measurable; }} collapsable={false} pointerEvents="box-none"
@@ -395,13 +408,13 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
             </Pressable>
           )}
           {showMe && (
-            <Pressable testID="guide-next" onPress={guide.next} accessibilityRole="button" accessibilityLabel={W.next}
+            <Pressable testID="guide-next" onPress={tapNext} accessibilityRole="button" accessibilityLabel={W.next}
                        {...hitProps({ w: 44, h: 24 })}>
               <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{W.next}</Text>
             </Pressable>
           )}
           <View testID="guide-primary">
-            <Button palette={palette} grow={false} label={primary} onPress={onPrimary}
+            <Button palette={palette} grow={false} label={primary} onPress={tapPrimary}
                     style={{ paddingVertical: 10, paddingHorizontal: 18 }} />
           </View>
         </View>
