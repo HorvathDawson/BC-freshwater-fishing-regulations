@@ -22,6 +22,7 @@ export * from "./recentSearches";
 export * from "./spots";
 export * from "./capture";
 export * from "./photos";
+export * from "./photoZoom";
 export * from "./leadUp";
 export * from "./likeVisit";
 export * from "./visits";
