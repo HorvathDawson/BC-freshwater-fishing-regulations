@@ -20,7 +20,7 @@ import type { Lit } from "./useHighlight";
 
 type Channels = Pick<MapProps, "at" | "theme" | "data" | "status" | "standing" | "lakes" | "salmon" | "method" | "runs">;
 
-export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
+export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue, wasNear }: Lit,
                             { at, theme, data, status, standing, lakes, salmon, method, runs }: Channels) {
   const { map, renderer, adapter, copy, colouring } = refs;
   const latestData = useRef(data);
@@ -35,7 +35,7 @@ export function useChannels(refs: WebMapRefs, { wasLit, wasWater, wasCue }: Lit,
       return read && read.every((x) => x !== null) ? read as TileSections[] : [publicSections(m)];
     },
     restore: () => {
-      adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current], wasCue.current);
+      adapter.current.highlight(r.states(() => []), [...wasLit.current], [...wasWater.current], wasCue.current, [...wasNear.current]);
       for (const [layerId, values] of Object.entries(withoutEngineKeys(latestData.current ?? {}, () => {})))
         adapter.current.setData(layerHandle(m, r), layerId, values);
     },

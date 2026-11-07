@@ -286,6 +286,14 @@ export interface MapProps {
    */
   selection?: SelectionCue;
   /**
+   * (T459) A WATER'S MAP VIEW, FOCUSED: every stream, lake and wetland that is not this water (`highlight`, `water`) nor
+   * `near` is drawn in one grey (`color.water.context`); labels and the ground stay. Part of the look: on from the map's
+   * first style, never a swap per step.
+   */
+  focus?: boolean;
+  /** (T459) The water this one flows into, kept in its colours (muted) on a focused map: feature-state `near`. */
+  near?: readonly SectionKey[];
+  /**
    * BOUNDARY MARKS (P15): the release's `part_mark` places between a water's parts — a finger-sized ring, labelled
    * where `label` is given (the current part's two ends, or the mark that is open). `on`: the mark that is open.
    */

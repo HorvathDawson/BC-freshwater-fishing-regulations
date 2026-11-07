@@ -11,9 +11,9 @@ import { layerHandle } from "./handles";
 import { afterLoad } from "./ready";
 import type { WebMapRefs } from "./refs";
 
-type Look = Pick<MapProps, "view" | "theme" | "modes" | "groups" | "hide" | "show" | "basemap">;
+type Look = Pick<MapProps, "view" | "theme" | "modes" | "groups" | "hide" | "show" | "basemap" | "focus">;
 
-export function useLook(refs: WebMapRefs, { view, theme, modes, groups, hide, show, basemap }: Look) {
+export function useLook(refs: WebMapRefs, { view, theme, modes, groups, hide, show, basemap, focus }: Look) {
   const { map, renderer, adapter, pill, lookError } = refs;
   /**
    * THE LOOK, KEYED ON THE LOOK ALONE: its CONTENT, not its props' identities. A caller hands fresh-but-equal objects on
@@ -22,14 +22,14 @@ export function useLook(refs: WebMapRefs, { view, theme, modes, groups, hide, sh
    * "A HORIZON CHANGE").
    */
   const lookKey = JSON.stringify([view, theme, modes ?? null, groups ?? null, hide ?? null, show ?? null,
-                                  basemap ?? "map"]);
-  const lookNow = useRef({ view, theme, modes, groups, hide, show, basemap });
-  lookNow.current = { view, theme, modes, groups, hide, show, basemap };
+                                  basemap ?? "map", !!focus]);
+  const lookNow = useRef({ view, theme, modes, groups, hide, show, basemap, focus });
+  lookNow.current = { view, theme, modes, groups, hide, show, basemap, focus };
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r) return;
     const apply = () => {
-      const { view, theme, modes, groups, hide, show, basemap } = lookNow.current;
+      const { view, theme, modes, groups, hide, show, basemap, focus } = lookNow.current;
       const handle = layerHandle(m, r);
       // The pill is painted in the theme's paper, so a light one under dark text on a dark
       // map is the exact failure it replaced a halo to avoid. Repainted with everything else.
@@ -39,7 +39,7 @@ export function useLook(refs: WebMapRefs, { view, theme, modes, groups, hide, sh
       // is not recoverable, a map in its previous colouring is). The ground is here, not in an effect of its own
       // behind `whenStyled`, which dropped a toggle made mid tile burst (one-engine.render.test).
       applyLook(adapter.current, handle, (id) => m.getLayer(id) !== undefined,
-                { view, theme, modes, hide, show, groups, basemap: basemap ?? "map" },
+                { view, theme, modes, hide, show, groups, basemap: basemap ?? "map", focus: !!focus },
                 (e) => lookError.current?.(e));
       // The route overlay's paper and ink: runtime layers outside the catalogue, web only (the overlay lives here).
       for (const [id, paint] of Object.entries(tracePaint(theme)))

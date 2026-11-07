@@ -25,12 +25,15 @@ import { useBackLayer, useRegsStore, useSalmonKey, useWaterMap, type WaterMapPar
 import { MapScreen } from "../MapScreen";
 import { WaterInset } from "../WaterFrame";
 import { Icon } from "../icons";
+import { useTestbedFlag } from "../testbedFlag";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
-  "palette" | "highlight" | "water" | "waterLine" | "selection" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
+  "palette" | "highlight" | "water" | "waterLine" | "selection" | "focus" | "near" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
+
+const NO_NEAR: readonly SectionId[] = [];
 
 /** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn. */
 const EXIT_SLOT = 44;
@@ -67,6 +70,10 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, stretch, onWhole);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
+  // (T459) the water this one flows into stays in colour (muted) while every other water is grey; the test bed's
+  // `receiving` switch draws it grey too, for the owner's pick between the two (shots in app/tools/testbed/out/t459/)
+  const receivingKept = useTestbedFlag("receiving", true);
+  const near = receivingKept ? wm.value?.receiving : undefined;
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable
     : wm.state === "loading" || store.state === "loading" ? WATER_MAP_WORDS.loading
     : vm === null ? WATER_MAP_WORDS.unavailable : null;
@@ -80,6 +87,8 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
                    // (T175) the whole water's line at every zoom, and it opens no further out than its first zoom
                    waterLine={vm ? { sections: [...vm.selected, ...vm.water] } : undefined}
                    selection="dim"
+                   // (T459) step mode: every other water grey, the receiving water kept
+                   focus near={near ?? NO_NEAR}
                    marks={vm?.marks.map((m) => ({ lon: m.lon, lat: m.lat, label: m.label, a11y: m.a11y, on: m.on })) ?? []}
                    onPressMark={(i) => { const m = vm?.marks[i]; if (m) act({ type: "mark", ix: m.ix }); }}
                    // (T443) a part in its country, framed the same however it was reached (the first open, a step)

@@ -21,7 +21,7 @@ import type { Palette } from "./theme";
 export function MapScreen({ at, palette, theme, view, modes, groups, hide, show, camera,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, runs, gauges, onVisible, onError,
-                            fit, basemap, onImageryError, water, waterLine, selection, marks, onPressMark, spots,
+                            fit, basemap, onImageryError, water, waterLine, selection, focus, near, marks, onPressMark, spots,
                             insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
@@ -47,6 +47,9 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   water?: MapProps["water"];
   /** (T151) How `highlight` is marked — see MapProps.selection. */
   selection?: MapProps["selection"];
+  /** (T459) a water's Map view: every other water grey, `near` kept — see MapProps.focus / near */
+  focus?: boolean;
+  near?: MapProps["near"];
   /** (T175) The water's own line at every zoom — see MapProps.waterLine. */
   waterLine?: MapProps["waterLine"];
   /** A water's boundary marks (P15) — see MapProps.marks. */
@@ -114,7 +117,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
            initial={camera}
            onPressFeature={onPressFeature} onPressObstacle={onPressObstacle} onPressTidal={onPressTidal} onPressNotFishing={onPressNotFishing} onMoved={onMoved} onMapPoint={onMapPoint} onLongPress={onLongPress}
-           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} water={water} waterLine={waterLine} selection={selection} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
+           highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
            onRegion={onRegion} />

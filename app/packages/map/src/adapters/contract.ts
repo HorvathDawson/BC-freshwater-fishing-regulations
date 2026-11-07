@@ -16,7 +16,7 @@ import {
   MAP_STYLE, NO_VALUES, STYLE_META, followerMode, followersOf, isRuntimeLayer, profileChannel,
   resolveTheme, type ChannelValues, type Tokens,
 } from "../style";
-import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
+import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS, type SelectionCue } from "../paint";
 
 export type { ChannelValues } from "../style";
@@ -110,7 +110,8 @@ export interface MapAdapter {
    * river reads as one water around the part you are on). Every key of both is cleared first. `cue` (T151,
    * `SelectionCue`): "outline" (default) lights `featureIds` `selected`; "dim" — a water's Map view — lights them `part`.
    */
-  highlight(h: MapHandle, featureIds: SectionKey[], water?: readonly SectionKey[], cue?: SelectionCue): void;
+  highlight(h: MapHandle, featureIds: SectionKey[], water?: readonly SectionKey[], cue?: SelectionCue,
+            near?: readonly SectionKey[]): void;
   /**
    * The ground: the drawn basemap, or satellite imagery over it.
    *
@@ -123,6 +124,12 @@ export interface MapAdapter {
    * moves.
    */
   setBasemap(h: MapHandle, kind: "map" | "satellite", themeName?: string, overrides?: Tokens): void;
+  /**
+   * (T459) A WATER'S MAP VIEW, FOCUSED: every water but the one lit (`part` / `water`) and the one it flows into (`near`)
+   * drawn grey (`focusTheOthers`). Remembered like the modes, so a later mode or day paints the same way; a change
+   * repaints every layer this adapter painted.
+   */
+  setFocus(h: MapHandle, on: boolean, themeName: string, overrides?: Tokens): void;
   /**
    * A CHANNEL'S VALUES (the colouring engine, `colouring.ts`). `status`: the day's label sets (@app/core `dayProfiles`),
    * which the `profile` modes paint — repaints exactly the layers now in a profile mode, and is remembered, so a later
@@ -192,25 +199,29 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
   const basinsHeld = new Set<string>();
   /** (T261) The basins this map holds a run state for (`setChannel("runs")`): the Runs tab's zoomed-out field. */
   const runBasinsHeld = new Set<string>();
+  /** (T459) a water's Map view: every other water grey (`setFocus`) */
+  let focused = false;
+  const quiet = (o: Record<string, unknown>) => (focused ? hideTheOthers(o) : o);
   const paint = (h: MapHandle, layerId: string, mode: string, tokens: Tokens) => {
     modeOf[layerId] = mode;
-    const out = paintFor(layerId, mode, tokens, values);
+    const own = paintFor(layerId, mode, tokens, values);
+    const out = focused ? focusTheOthers(layerId, own, tokens) : own;
     for (const [prop, value] of Object.entries(out)) h.setPaint(layerId, prop, value);
     // the stream's dash reads the stream's own mode (a runtime layer: absent from a style that has none, harmless)
     if (layerId === "stream") {
-      h.setPaint(NOBASELINE_LAYER, "line-opacity", nobaselineOpacity(mode));
+      h.setPaint(NOBASELINE_LAYER, "line-opacity", quiet({ "line-opacity": nobaselineOpacity(mode) })["line-opacity"]);
       h.setPaint(NOBASELINE_LAYER, "line-color", tokens["color.water.ungauged"]);
       // (T165) and so do the no-access dots: shown where this mode (and its day) paints a section no_access
-      for (const [prop, value] of Object.entries(noaccessPaint(mode, tokens, values))) h.setPaint(NOACCESS_LAYER, prop, value);
+      for (const [prop, value] of Object.entries(quiet(noaccessPaint(mode, tokens, values)))) h.setPaint(NOACCESS_LAYER, prop, value);
       // (T213) the gear edges: the stream's mode, its width, the status and method days
       for (const mark of GEAR_LEGEND)
-        for (const [prop, value] of Object.entries(gearPaint("stream", mode, mark, tokens, values, out["line-width"])))
+        for (const [prop, value] of Object.entries(quiet(gearPaint("stream", mode, mark, tokens, values, out["line-width"]))))
           h.setPaint(GEAR_LAYERS.stream[mark], prop, value);
       // (T199) a passing run's dash: the stream's mode and width
-      for (const [prop, value] of Object.entries(runsPassPaint(mode, tokens, out["line-width"])))
+      for (const [prop, value] of Object.entries(quiet(runsPassPaint(mode, tokens, out["line-width"]))))
         h.setPaint(RUNS_PASS_LAYER, prop, value);
       // (T377) closed's stripe: the stream's mode, its day and width
-      for (const [prop, value] of Object.entries(closedCuePaint(mode, tokens, values, out["line-width"])))
+      for (const [prop, value] of Object.entries(quiet(closedCuePaint(mode, tokens, values, out["line-width"]))))
         h.setPaint(CLOSED_CUE_LAYER, prop, value);
       // the selection's outline goes with the stream: its width is the stream's, its colour the theme's
       for (const [prop, value] of Object.entries(casingPaint(out["line-width"], tokens)))
@@ -227,7 +238,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       for (const [prop, value] of Object.entries(copyFillPaint(out))) h.setPaint(COPY_FILL, prop, value);
       // (T213) and its gear rings
       for (const mark of GEAR_LEGEND)
-        for (const [prop, value] of Object.entries(gearPaint("lake", mode, mark, tokens, values)))
+        for (const [prop, value] of Object.entries(quiet(gearPaint("lake", mode, mark, tokens, values))))
           h.setPaint(GEAR_LAYERS.lake[mark], prop, value);
     }
   };
@@ -345,7 +356,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
           paint(h, layerId, mode, tokens);
     },
 
-    highlight(h, featureIds, water = [], cue = "outline") {
+    highlight(h, featureIds, water = [], cue = "outline", near = []) {
       // EVERY layer cleared before ANY is set: several layers draw one source-layer (`lake`, `lake_flowing`), so a
       // clear for the second would otherwise take back what the first just set
       for (const { id } of STYLE_META.highlightable) h.clearFeatureStates(id);
@@ -353,7 +364,16 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       for (const { id } of STYLE_META.highlightable) {
         for (const f of featureIds) h.setFeatureState(id, f, lit);
         for (const f of water) h.setFeatureState(id, f, { water: true });
+        // (T459) the water this one flows into: kept in colour on a focused water map
+        for (const f of near) h.setFeatureState(id, f, { near: true });
       }
+    },
+
+    setFocus(h, on, themeName, overrides = {}) {
+      if (on === focused) return;
+      focused = on;
+      const tokens = resolveTheme(themeName, overrides);
+      for (const [id, mode] of Object.entries(modeOf)) paint(h, id, mode, tokens);
     },
 
     setBasemap(h, kind, themeName, overrides = {}) {

@@ -25,7 +25,7 @@ import { useMemo, useRef, useState } from "react";
 import {
   reportOnce, crossLabel, crossDown, crossUp, exitLabel, groupBounds, mergeNav, itemNote, markA11y, markLabel, navSections, partAt, partBounds,
   partName, partOfSection, partRowAria, partWhere, stepsDown, stepsUp, WATER_MAP_WORDS, wholeAria, wholeLabel, type Bbox,
-  type NavCross, salmonTimelineKey, type WaterGroup,
+  type NavCross, type NavExit, salmonTimelineKey, type WaterGroup,
 } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import { loadRawWaterGroup, type GroupStore, type RegsStore } from "@app/data/regs";
@@ -398,7 +398,30 @@ export function stretchOf(g: WaterGroup, i: number, raw: WaterGroup = g): number
 export interface WaterMap {
   readonly vm: WaterMapVM;
   readonly act: (a: WaterMapAction) => void;
+  /** (T459) the sections of the water this one flows into, at the part its mouth meets (`useReceivingSections`) */
+  readonly receiving: readonly number[];
 }
+
+/**
+ * (T459, owner 2026-11-06: "all other rivers should be greyed out I think, except downstream maybe") THE WATER THIS ONE
+ * FLOWS INTO, kept in colour (muted) while every other water on the water map is grey: the sections of the receiving
+ * water's part where the mouth meets it (`g.exit`: `water_exit`, a part of its own map). Nothing for a mouth on tidal
+ * water (no map lists it) or a water with no exit. A read that fails, or a part the receiving water's group does not
+ * hold, is reported; the map then draws the receiving water grey like the rest — what it shows is still true.
+ */
+function useReceivingSections(store: GroupStore | null, exit: NavExit | null): readonly number[] {
+  const part = exit && !exit.tidal ? exit.part : null;
+  const key = `receiving:${store ? idOf(store) : ""}:${exit?.item ?? ""}:${part ?? ""}`;
+  const read = useAsync(async () => {
+    const g = mergeNav(await loadRawWaterGroup(store!, exit!.item), null);
+    const i = partAt(g, exit!.item, part!);
+    if (i < 0) throw new Error(`water map: the receiving water ${exit!.item} has no part ${part}`);
+    return navSections(g, i).selected;
+  }, key, !!store && !!exit && part !== null);
+  if (read.state === "failed") reportOnce(key, read.error);
+  return read.state === "ready" && read.value ? read.value : NO_SIDS;
+}
+const NO_SIDS: readonly number[] = [];
 
 /**
  * The water map of `item` on the regs store: `part` the frame's part (null: the part the Regulations view opens for
@@ -454,6 +477,7 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   // (T369 D7) ⤢ is the FRAME's (`whole`), never held: a view switch, back and a reload keep it
   const s = useMemo(() => (heldS ? { ...heldS, whole } : null), [heldS, whole]);
   const vm = useMemo(() => (g && s ? waterMapView(g, s) : null), [g, s]);
+  const receiving = useReceivingSections(store, g?.exit ?? null);
   // (T369 D3) no part is ADOPTED here any more: a tapped water opens at its part (the opener's `partOf`), and a frame
   // opened part-less reads its part from the same `targetFor` the Regulations view reads (`useFrameView`)
   // no store (no release, or not open yet: the caller says which) or no water: nothing to walk
@@ -472,5 +496,5 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
     const a1 = g.parts[next.at]!;
     if (onPart && next.at !== from.at) onPart(a1.item as ItemId, a1.partIx, stretchOf(g, next.at, rawG ?? g) || undefined);
   };
-  return { state: "ready", value: { vm, act }, error: null };
+  return { state: "ready", value: { vm, act, receiving }, error: null };
 }

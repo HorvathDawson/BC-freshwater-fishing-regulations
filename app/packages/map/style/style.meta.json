@@ -2792,6 +2792,9 @@
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
       "opacity.water.others": 0.25,
+      "color.water.context": "#D5D5D5",
+      "opacity.water.context": 0.55,
+      "opacity.water.near": 0.7,
       "opacity.overlay": 0.55,
       "color.water.route": "#A3AEB4",
       "color.lake.fill": "#94C9E0",
@@ -2957,6 +2960,9 @@
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
       "opacity.water.others": 0.25,
+      "color.water.context": "#39434B",
+      "opacity.water.context": 0.55,
+      "opacity.water.near": 0.7,
       "opacity.overlay": 0.45,
       "color.status.closed": "#FF3B6D",
       "color.status.own": "#FFD307",
@@ -3130,6 +3136,9 @@
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
       "opacity.water.others": 0.25,
+      "color.water.context": "#D5D5D5",
+      "opacity.water.context": 0.55,
+      "opacity.water.near": 0.7,
       "opacity.overlay": 0.55,
       "color.water.route": "#2E62A8",
       "color.lake.fill": "#64B5F6",
@@ -3392,6 +3401,21 @@
       "type": "number",
       "themeable": false,
       "$comment": "T151 (owner 2026-10-23: 'the bold in the section map view is also weird and makes the reg legend hard to follow'). In a water's Map view the part you are on is marked by DIMMING THE WATER'S OTHER PARTS to this opacity — never by a thicker line, so every part keeps the legend's colour at one width. T203 added a highlight halo round the part; T214 (owner 2026-10-27, 'much more obvious') took the others from 0.4 to 0.25 and the halo to the full outline."
+    },
+    "color.water.context": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "T459 (owner 2026-11-06: 'in the section navigation with up/downstream all other rivers should be greyed out ... That way it is less distracting'). On a water's Map view every stream, lake and wetland that is not this water (nor, kept muted, the water it flows into) is drawn in this one grey at `opacity.water.context` — the quiet grey of water nothing is said about (`color.water.ungauged`, which the Map tab never draws). Not a status: never a legend row, and held apart from every status colour (tools/status-colours-distinct.test.ts) so a grey water never reads as closed or no access."
+    },
+    "opacity.water.context": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "T459: the other waters' opacity on a water's Map view (times their own), under `color.water.context`."
+    },
+    "opacity.water.near": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "T459: the receiving water (the part its mouth meets) on a water's Map view: its own colours, slightly muted to this opacity (times its own)."
     },
     "opacity.overlay": {
       "type": "number",

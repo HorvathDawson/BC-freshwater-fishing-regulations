@@ -137,7 +137,7 @@ export interface StateSink {
 
 /** The feature-state keys a highlight sets (`MapAdapter.highlight`): what is selected (outlined), the part you are on in
  *  a water's Map view (`part`, T151: marked by dimming the rest), and the rest of its water. */
-export const HIGHLIGHT_KEYS = ["selected", "part", "water"] as const;
+export const HIGHLIGHT_KEYS = ["selected", "part", "water", "near"] as const;
 
 /**
  * The adapter's feature-state half over a renderer (`MapHandle`'s other calls do nothing here), shared so both maps

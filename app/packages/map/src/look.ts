@@ -27,6 +27,8 @@ export interface Look {
    * drawn (the one-pathway audit, 2026-10-21). Absent: left as it is.
    */
   basemap?: "map" | "satellite";
+  /** (T459) A water's Map view: every other water grey (`MapAdapter.setFocus`). Absent: left as it is. */
+  focus?: boolean;
 }
 
 /** `has`: is this layer in the style the handle writes to. */
@@ -35,6 +37,8 @@ export function applyLook(adapter: MapAdapter, h: MapHandle, has: (layerId: stri
   const { view, theme } = look;
   const modes = look.modes ?? {};
   const asError = (e: unknown) => (e instanceof Error ? e : new Error(String(e)));
+  // (T459) first, so every layer this pass paints is painted focused (or not) once
+  if (look.focus !== undefined) { try { adapter.setFocus(h, look.focus, theme); } catch (e) { report(asError(e)); } }
   try { adapter.applyView(h, view, theme); } catch (e) { report(asError(e)); }
   // THE WASH follows the stream layer's mode: the Conditions ramp needs a quiet ground, every other mode wants the map
   // legible as a map. 0.42: enough that roads and landcover stop competing with a 1.4 px coloured line, little enough

@@ -13,10 +13,12 @@ export interface Lit {
   wasLit: MutableRefObject<SectionKey[]>;
   wasWater: MutableRefObject<SectionKey[]>;
   wasCue: MutableRefObject<SelectionCue>;
+  /** (T459) the ids lit `near` last (a focused water map's receiving water) */
+  wasNear: MutableRefObject<SectionKey[]>;
 }
 
 export function useHighlight({ map, renderer, adapter }: WebMapRefs,
-                             { highlight, water, selection = "outline" }: Pick<MapProps, "highlight" | "water" | "selection">): Lit {
+                             { highlight, water, selection = "outline", near }: Pick<MapProps, "highlight" | "water" | "selection" | "near">): Lit {
   /**
    * The ids lit `selected` last, and apart from them the ids lit `water` (P15) — cleared by id on the next highlight,
    * and what a release swap puts back (`useChannels`). Kept apart, and `wasLit` meaning what it meant before P15 (the
@@ -26,6 +28,7 @@ export function useHighlight({ map, renderer, adapter }: WebMapRefs,
   const wasLit = useRef<SectionKey[]>([]);
   const wasWater = useRef<SectionKey[]>([]);
   const wasCue = useRef<SelectionCue>("outline");
+  const wasNear = useRef<SectionKey[]>([]);
   useEffect(() => {
     const m = map.current, r = renderer.current;
     if (!m || !r || !highlight) return;
@@ -35,13 +38,14 @@ export function useHighlight({ map, renderer, adapter }: WebMapRefs,
     // waited for a `styledata` a settled map never sends, and the OLD part stayed lit where the camera had left it.
     const apply = () => {
       // Clears ONLY the highlight's keys, per feature, from the ids this map lit last time — see `stateHandle`.
-      const handle = r.states(() => [...wasLit.current, ...wasWater.current]);
-      adapter.current.highlight(handle, [...highlight], [...(water ?? [])], selection);
+      const handle = r.states(() => [...wasLit.current, ...wasWater.current, ...wasNear.current]);
+      adapter.current.highlight(handle, [...highlight], [...(water ?? [])], selection, [...(near ?? [])]);
       wasLit.current = [...highlight];
       wasWater.current = [...(water ?? [])];
+      wasNear.current = [...(near ?? [])];
       wasCue.current = selection;
     };
     return whenAtlas(m, apply);
-  }, [highlight, water, selection]);
-  return { wasLit, wasWater, wasCue };
+  }, [highlight, water, selection, near]);
+  return { wasLit, wasWater, wasCue, wasNear };
 }

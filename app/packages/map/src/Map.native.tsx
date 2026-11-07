@@ -102,7 +102,7 @@ const SETTLE_ASK_MS = 700;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, chrome, onError,
                       onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
-                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs,
+                      onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch, insetBottom = 0, onOpenLink }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
@@ -216,12 +216,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const gaugesNow = useRef(gauges);
   gaugesNow.current = gauges;
   const look = useMemo(
-    () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map",
+    () => nativeStyle({ at, theme, view, modes, hide, show, groups, basemap: basemap ?? "map", focus: !!focus,
                         gauges: gaugesNow.current ?? EMPTY_FC, areaData: JSON.parse(areaKey) as Data,
                         values: cv }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [at.atlas, at.basemap, at.glyphs, at.sprite, at.assets, at.outside, theme, view, JSON.stringify(modes ?? {}),
-     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, valuesKey]);
+     JSON.stringify(hide ?? []), JSON.stringify(show ?? []), JSON.stringify(groups ?? {}), basemap, areaKey, valuesKey, !!focus]);
   // (T317) and the boundary mark label's box, named by its colours (the binding adds a name once and never replaces it)
   const markBoxName = `${MARK_BOX_IMAGE}.${furniture.card}.${furniture.ink}`.replace(/#/g, "");
   // (T316) and the spot faces and their name strip, named by the spot colours
@@ -295,9 +295,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const wasLit = useRef<SectionKey[]>([]);
   useEffect(() => {
     if (!styled || !drawn || !atlasRef.current || !highlight) return;
-    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])], selection);
-    wasLit.current = [...highlight, ...(water ?? [])];
-  }, [highlight, water, selection, gen, styled, drawn, report, renderer]);
+    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])], selection, [...(near ?? [])]);
+    wasLit.current = [...highlight, ...(water ?? []), ...(near ?? [])];
+  }, [highlight, water, selection, near, gen, styled, drawn, report, renderer]);
 
   /*
    * NO QUERY BEFORE THE FIRST FULL RENDER. MapLibre Native's `queryRenderedFeatures` dereferences the renderer, which

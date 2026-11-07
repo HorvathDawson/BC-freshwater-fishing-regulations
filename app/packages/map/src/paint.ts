@@ -498,6 +498,44 @@ export function dimTheOthers(layerId: string, type: string | undefined, out: Rec
   return { ...out, [prop]: withinZoomCurve(out[prop] ?? 1, (v) => ["case", WATER, ["*", v, k], v]) };
 }
 
+/*
+ * (T459, owner 2026-11-06: "in the section navigation with up/downstream all other rivers should be greyed out I think,
+ * except downstream maybe. That way it is less distracting") A WATER'S MAP VIEW, FOCUSED: on a per-section layer (a
+ * highlightable one, or the edge that follows it), a feature that is not this water (`part` / `water`) nor the water it
+ * flows into (`near`) is drawn in `color.water.context` at its opacity times `opacity.water.context`; `near` keeps its
+ * colours at `opacity.water.near`. Only a water's Map view turns it on (`MapProps.focus`, `MapAdapter.setFocus`): the
+ * browse map is untouched. The marks a stream layer carries (gear edges, closed's stripe, a run's dash, the no-access
+ * dots) are not drawn on the others (`hideTheOthers`): a grey water says nothing.
+ */
+const NEAR = ["boolean", ["feature-state", "near"], false];
+const OWN = ["any", PART, WATER];
+const KEPT = ["any", PART, WATER, NEAR];
+
+const typeOf = (layerId: string) =>
+  (MAP_STYLE.layers.find((l) => l.id === layerId) as { type?: string } | undefined)?.type;
+
+export function focusTheOthers(layerId: string, out: Record<string, unknown>, tokens: Tokens): Record<string, unknown> {
+  const type = typeOf(layerId);
+  const owner = STYLE_META.follows?.[layerId] ?? layerId;
+  if ((type !== "line" && type !== "fill") || !STYLE_META.highlightable.some((h) => h.id === owner)) return out;
+  const grey = tokens["color.water.context"], kc = Number(tokens["opacity.water.context"]),
+        kn = Number(tokens["opacity.water.near"]);
+  if (typeof grey !== "string" || !Number.isFinite(kc) || !Number.isFinite(kn))
+    throw new Error("focus: color.water.context / opacity.water.context / opacity.water.near missing from the theme");
+  const cprop = `${type}-color`, oprop = `${type}-opacity`;
+  const res: Record<string, unknown> = { ...out };
+  if (out[cprop] !== undefined) res[cprop] = withinZoomCurve(out[cprop], (v) => ["case", KEPT, v, grey]);
+  res[oprop] = withinZoomCurve(out[oprop] ?? 1, (v) => ["case", OWN, v, NEAR, ["*", v, kn], ["*", v, kc]]);
+  return res;
+}
+
+/** (T459) A stream mark layer's paint with its opacity 0 on every water but this one and the one it flows into. */
+export function hideTheOthers(out: Record<string, unknown>): Record<string, unknown> {
+  const res: Record<string, unknown> = { ...out };
+  for (const k of Object.keys(out)) if (k.endsWith("-opacity")) res[k] = withinZoomCurve(out[k], (v) => ["case", KEPT, v, 0]);
+  return res;
+}
+
 /** Every `#rrggbb` in `expr` laid over `ground` at `alpha`, per sRGB channel — what the renderer's blend gives. */
 export function mixColours(expr: unknown, ground: string, alpha: number): unknown {
   if (Array.isArray(expr)) return expr[0] === "literal" ? expr : expr.map((x) => mixColours(x, ground, alpha));
