@@ -5,7 +5,7 @@
 import { View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { CHANGELOG_WORDS, changelogVM, LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, UPDATE_LOG_WORDS, WORDS, type AboutEnvVM, type AboutVM, type AppEnv, type SourcesVM } from "@app/core";
+import { CHANGELOG_WORDS, changelogVM, LICENCE_WORDS, licencesVM, MENU_WORDS, PRIVACY_URL, WORDS, type AboutEnvVM, type AboutVM, type SourcesVM } from "@app/core";
 import { Credits } from "../Credits";
 import { LicencesList } from "./Licences";
 import { TYPE } from "../type";
@@ -21,12 +21,10 @@ const officialAt = (url: string) => () => openOfficial(url);
 /** (T243) a link on its own line is a 44 px row (the touch-target floor), its words centred in it */
 const LINK_ROW = { minHeight: 44, justifyContent: "center" } as const;
 
-export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onReport, onChangelog }: { vm: AboutVM; palette: Palette;
+export function AboutPage({ vm, palette, onSources, onReport, onChangelog }: { vm: AboutVM; palette: Palette;
                             /** (T234 v1.1) open What's new (every version) */ onChangelog?: () => void;
-                            onEnv?: (env: AppEnv) => void;
                             /** (T237) open Report a problem */ onReport?: () => void;
-                            /** (T235) open Sources and licences */ onSources?: () => void;
-                            /** (T251) open the Updates log (development and staging builds) */ onUpdatesLog?: () => void }) {
+                            /** (T235) open Sources and licences */ onSources?: () => void }) {
   return (
     <>
       {vm.env && <EnvBadge vm={vm.env} palette={palette} />}
@@ -71,55 +69,17 @@ export function AboutPage({ vm, palette, onEnv, onSources, onUpdatesLog, onRepor
           <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{CHANGELOG_WORDS.open}</Text>
         </Pressable>
       )}
-      {vm.env && <EnvBlock vm={vm.env} palette={palette} onEnv={onEnv} />}
-      {onUpdatesLog && (
-        <Pressable {...hitProps({ w: 120, h: 44 })} testID="about-updates-log" onPress={onUpdatesLog} accessibilityRole="link"
-                   accessibilityLabel={UPDATE_LOG_WORDS.aboutLink} style={LINK_ROW}>
-          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{UPDATE_LOG_WORDS.aboutLinkShown}</Text>
-        </Pressable>
-      )}
     </>
   );
 }
 
-/** (T232) The data source's badge, small, at the head of About — a development or staging build only. */
+/** (T232) The data source's badge, small, at the head of About — a development or staging build only (T476: the rest is the Developer card). */
 function EnvBadge({ vm, palette }: { vm: AboutEnvVM; palette: Palette }) {
   return (
     <View style={{ flexDirection: "row" }}>
       <Text testID="about-env-badge" accessibilityLabel={`${vm.label}: ${vm.value}`}
             style={{ ...TYPE.small, fontSize: 11, letterSpacing: 0.6, color: palette.sub, borderWidth: 1,
                      borderColor: palette.line, paddingHorizontal: 6, paddingVertical: 1 }}>{vm.badge}</Text>
-    </View>
-  );
-}
-
-/** (T232) The data source: where this build reads, and in a development build the switch (applied on the next start). */
-function EnvBlock({ vm, palette, onEnv }: { vm: AboutEnvVM; palette: Palette; onEnv?: (env: AppEnv) => void }) {
-  return (
-    <View testID="about-env" style={{ gap: SPACE.s2 }}>
-      <View style={{ flexDirection: "row", gap: SPACE.s3, paddingVertical: 6, borderTopWidth: 1, borderTopColor: palette.line }}>
-        <Text style={{ ...TYPE.small, color: palette.sub, width: 104 }}>{vm.label}</Text>
-        <Text selectable testID="about-env-value"
-              style={{ ...TYPE.figure, fontSize: 12.5, color: palette.ink, flex: 1 }}>{vm.value}</Text>
-      </View>
-      {vm.choose && onEnv && (
-        <View accessibilityRole="radiogroup" accessibilityLabel={vm.choose.title} style={{ gap: SPACE.s2 }}>
-          <Text style={{ ...TYPE.small, color: palette.sub }}>{vm.choose.title}</Text>
-          <View style={{ flexDirection: "row", gap: SPACE.s2 }}>
-            {vm.choose.choices.map((c) => (
-              <Pressable {...hitProps({ w: 60, h: 34 })} key={c.k} testID={`about-env-${c.k}`} onPress={() => onEnv(c.k)} accessibilityRole="radio"
-                         aria-checked={c.on} accessibilityLabel={c.label}
-                         style={{ flex: 1, alignItems: "center", paddingVertical: SPACE.s2, borderWidth: c.on ? 1.5 : 1,
-                                  borderColor: c.on ? palette.ink : palette.line,
-                                  backgroundColor: c.on ? palette.tint : "transparent" }}>
-                <Text style={{ ...TYPE.small, color: c.on ? palette.ink : palette.sub }}>{c.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      )}
-      {vm.note && <Text testID="about-env-note" style={{ ...TYPE.small, color: palette.sub }}>{vm.note}</Text>}
-      {vm.failed && <Text testID="about-env-failed" style={{ ...TYPE.small, color: palette.closed }}>{vm.failed}</Text>}
     </View>
   );
 }

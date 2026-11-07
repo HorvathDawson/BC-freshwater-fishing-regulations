@@ -11,7 +11,8 @@ import type { SectionKey } from "@app/core";
 import { useState, type ReactNode } from "react";
 import { View } from "react-native";
 import { LAB_ON, Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
-import { MapLabModal } from "./MapLabModal";
+import { DeveloperModal } from "./DeveloperModal";
+import type { MenuInfo } from "./menu/MenuHost";
 import { mapError, type Horizon, type HorizonChipVM, type MyLocation } from "@app/ui";
 import { HorizonPicker } from "./HorizonPicker";
 import { openLink } from "./openLink";
@@ -23,7 +24,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, focus, near, marks, onPressMark, spots,
-                            insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null }: {
+                            insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null, developer }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -108,13 +109,15 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   insetBottom?: number;
   /** (T303) My location (the rail's button, the dot): `useMyLocation`'s state, absent where the platform has none. */
   me?: MyLocation | null;
+  /** (T476) the Developer card's facts (the Shell's menu info and the release in use); drawn only where `LAB_ON` (never production) */
+  developer?: { info: MenuInfo; release: string | null } | undefined;
   /** (T186) The region under the centre, each settle — see MapProps.onRegion (the web prefetch's). */
   onRegion?: MapProps["onRegion"];
 }) {
   // (T257) the first-run tour's "tap a water" points at the middle of this map
   const coachTarget = useCoachTarget("map");
-  // (T420) a lab build's map lab: the map says the long press, this screen owns the card and its back
-  const [labOpen, setLabOpen] = useState(false);
+  // (T420, T476) a development or staging build's Developer card: the map says the long press, this screen owns the card and its back
+  const [devOpen, setDevOpen] = useState(false);
   return (
     <View ref={coachTarget} collapsable={false} style={{ flex: 1, backgroundColor: palette.tint }}>
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
@@ -123,8 +126,11 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
            highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
-           onRegion={onRegion} onOpenLab={LAB_ON ? () => setLabOpen(true) : undefined} />
-      <MapLabModal open={labOpen} theme={theme} onClose={() => setLabOpen(false)} />
+           onRegion={onRegion} onOpenLab={LAB_ON && developer ? () => setDevOpen(true) : undefined} />
+      {LAB_ON && developer && (
+        <DeveloperModal open={devOpen} theme={theme} palette={palette} info={developer.info} release={developer.release}
+                        onClose={() => setDevOpen(false)} />
+      )}
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left

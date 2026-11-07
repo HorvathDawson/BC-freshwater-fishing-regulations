@@ -11,7 +11,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
-import { FISH_CREDITS, MENU_WORDS, regsReportWhere, setFailureSink, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
+import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { BackLayerContext, ERROR_LOG, LayoutWidthContext, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
          type MenuControls } from "@app/ui";
@@ -233,37 +233,15 @@ describe("a page", () => {
       + "recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf"]]);
   });
 
-  it("(T232) About in a development build: the data source's badge and origin, the switch, and its pending note", () => {
-    const picked: string[] = [];
+  it("(T232, T476) About in a development build: only the small data-source badge; the switch and Updates log moved to the Developer card", () => {
     const env = { about: { env: "staging" as const, built: "staging" as const,
                            origin: "https://data-staging.canifishthis.ca", switchable: true },
-                  pending: null, pick: (k: string) => { picked.push(k); } };
+                  pending: null, pick: () => {} };
     render(<App out={{}} info={{ ...INFO, env }} />);
     pick("menu-item-about");
-    expect([text("about-env-badge"), text("about-env-value")])
-      .toEqual(["STAGING", "Staging · data-staging.canifishthis.ca"]);
-    expect(screen.queryByTestId("about-env-note")).toBeNull();
-    fireEvent.click(screen.getByTestId("about-env-local"));
-    expect([picked, text("about-env-note"), screen.getByTestId("about-env-local").getAttribute("aria-checked")]).toEqual(
-      [["local"], "Local is used from the next start. Close and reopen the app.", "true"]);
-  });
-
-  it("(T423) About: a kept choice shows as pending on opening; a write that fails is shown and reported", () => {
-    const about = { env: "staging" as const, built: "staging" as const,
-                    origin: "https://data-staging.canifishthis.ca", switchable: true };
-    const { unmount } = render(<App out={{}} info={{ ...INFO, env: { about, pending: "local", pick() {} } }} />);
-    pick("menu-item-about");
-    expect(text("about-env-note")).toBe("Local is used from the next start. Close and reopen the app.");
-    unmount();
-    const seen: unknown[] = [];
-    const off = setFailureSink((e) => seen.push(e));
-    const boom = new Error("disk full");
-    render(<App out={{}} info={{ ...INFO, env: { about, pending: null, pick: () => { throw boom; } } }} />);
-    pick("menu-item-about");
-    fireEvent.click(screen.getByTestId("about-env-local"));
-    expect([text("about-env-failed"), seen, screen.queryByTestId("about-env-note")])
-      .toEqual(["Could not save Local. The data source is unchanged.", [boom], null]);
-    off();
+    expect(text("about-env-badge")).toBe("STAGING");
+    expect([screen.queryByTestId("about-env"), screen.queryByTestId("about-env-local"), screen.queryByTestId("about-updates-log"),
+            screen.queryByTestId("dev-env")]).toEqual([null, null, null, null]);
   });
 
   it("(T232) About in a production build says nothing about environments", () => {

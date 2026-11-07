@@ -206,6 +206,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                        : Platform.OS !== "web" && tab === "map" && !col.zoomedOut && !searching && regsPrefetch
                          ? regsPrefetch.onVisible : undefined}
                      onRegion={onRegion}
+                     developer={menuInfo ? { info: menuInfo, release: loader?.release ?? null } : undefined}
                      onMoved={(at) => {
                        camera.current = at;
                        // (T376, T417) the group most on screen, asked at rest by the map's bounds (on Conditions

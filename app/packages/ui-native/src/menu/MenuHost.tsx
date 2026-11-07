@@ -9,10 +9,10 @@
  *
  * Each open level is a back layer (G1): back closes a glossary term, then the page.
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { platformLine } from "../platformLine";
 import { getSynopsisSource } from "../regs/synopsisSource";
-import { aboutVM, dayLabel, MENU_WORDS, reportFailure, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
+import { aboutVM, dayLabel, MENU_WORDS, SYNOPSIS_PDF, sourcesVM, type AboutEnvInput, type AppEnv, type ReportMap } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import type { WaterSource } from "@app/data";
 import { ERROR_LOG, routeWhere, useGlossary, useNotifications, type MenuControls, type OfflineControls, type ReportSender, type Route } from "@app/ui";
@@ -24,7 +24,7 @@ import { MenuPage } from "./MenuPage";
 import { OfflinePage } from "./OfflinePage";
 import { NotificationsPage } from "./NotificationsPage";
 import { ReportPage } from "./ReportPage";
-import { UpdatesLogPage, type UpdatesLogControls } from "./UpdatesLogPage";
+import type { UpdatesLogControls } from "./UpdatesLogPage";
 
 /** What the app itself knows about its build (apps/mobile config.ts). */
 export interface MenuInfo {
@@ -40,7 +40,7 @@ export interface MenuInfo {
    */
   readonly env?: { readonly about: Omit<AboutEnvInput, "pending">; readonly pending: AppEnv | null;
                    pick(env: AppEnv): void } | null;
-  /** (T251) The Updates log's controls (App.tsx): development and staging builds only; absent, About does not link it. */
+  /** (T251, T476) The Updates log's controls (App.tsx): development and staging builds only; the Developer card (map credits long press) draws them. */
   readonly updatesLog?: UpdatesLogControls | null;
   /** (T237) the report outbox (App.tsx): "Send report" posts through it; absent, the form offers email / share only */
   readonly report?: ReportSender | null;
@@ -80,15 +80,8 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
   mode?: string | null;
 }) {
   const s = menu.state;
-  // (T232) a source picked on About waits for the next start; the page says so until then
-  const [pendingEnv, setPendingEnv] = useState<AppEnv | null>(info.env?.pending ?? null);
-  const [failedEnv, setFailedEnv] = useState<AppEnv | null>(null);
-  const dataEnv = info.env ? { ...info.env.about, pending: pendingEnv, failed: failedEnv } : null;
-  // (T423) a write that fails is SHOWN under the switch and reported; the choice stays what it was
-  const pickEnv = info.env ? (k: AppEnv) => {
-    try { info.env!.pick(k); setFailedEnv(null); setPendingEnv(k === info.env!.about.env ? null : k); }
-    catch (e) { reportFailure(e); setFailedEnv(k); }
-  } : undefined;
+  // (T232) About's badge only (T476: the data-source switch and its pending note are the Developer card's)
+  const dataEnv = info.env ? { ...info.env.about, pending: info.env.pending, failed: null } : null;
   const where = routeWhere(route, day ? dayLabel(day) : null);
   const glossary = useGlossary(loader, s.page === "glossary");
   const notifications = useNotifications();
@@ -112,7 +105,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
     errors: ERROR_LOG.recent(),
   }), [reportOpen, s.report]);     // frozen at open, deliberately: a report states what was true when it was asked
 
-  const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "updates" | "changelog", node: React.ReactNode) => (
+  const page = (k: "offline" | "notifications" | "help" | "sources" | "about" | "report" | "changelog", node: React.ReactNode) => (
     <MenuPage open={s.page === k} title={MENU_WORDS.items[k].label} onBack={menu.closePage} palette={palette}
               testID={`menu-page-${k}`}>
       {s.page === k ? node : null}
@@ -141,14 +134,12 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, onTabT
         edition: m?.sources?.synopsis?.title ?? null, tiles })} />)}
       {page("about", <AboutPage palette={palette} vm={aboutVM({
         appBuild: info.appBuild, release: loader?.release ?? null, tiles, dataEnv,
-        edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)} onEnv={pickEnv}
-                                   onUpdatesLog={info.updatesLog ? () => menu.show("updates") : undefined}
+        edition: m?.sources?.synopsis?.title ?? null }, getSynopsisSource()?.url ?? SYNOPSIS_PDF)}
                                    onChangelog={() => menu.show("changelog")}
                                    onReport={() => menu.report(where)}
                                    onSources={() => menu.show("sources")} />)}   {/* (owner 2026-10-28) our release's copy, gov.bc.ca only when it names none */}
       {page("report", <ReportPage palette={palette} contact={info.contact} diagnostics={diagnostics}
                                   sender={info.report ?? null} />)}
-      {info.updatesLog && page("updates", <UpdatesLogPage c={info.updatesLog} palette={palette} />)}
       {page("changelog", <ChangelogPage palette={palette} installed={info.appVersion ?? null} />)}
     </>
   );

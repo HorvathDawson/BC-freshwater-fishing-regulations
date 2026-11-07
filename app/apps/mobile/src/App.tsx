@@ -399,7 +399,7 @@ export default function App() {
   }, [boot, updates]);
   const clearToast = useCallback(() => setToast(null), []);
 
-  // (T251) the Updates log page's levers (development and staging builds): About links it
+  // (T251, T476) the Updates log's levers (development and staging builds): the Developer card (map credits long press) draws them
   const releaseNow = boot.state === "ready" ? boot.booted.manifest.data_release : null;
   const releaseRef = useRef(releaseNow);
   releaseRef.current = releaseNow;

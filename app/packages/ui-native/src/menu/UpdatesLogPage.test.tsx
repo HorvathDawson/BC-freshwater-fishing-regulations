@@ -9,7 +9,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { setFailureSink, UPDATE_LOG_WORDS } from "@app/core";
 import { createUpdateLog } from "@app/data";
 import { LIGHT } from "../theme";
-import { UpdatesLogPage, type UpdatesLogControls } from "./UpdatesLogPage";
+import { ChannelPicker, UpdatesLogPage, type UpdatesLogControls } from "./UpdatesLogPage";
 
 afterEach(cleanup);
 
@@ -28,7 +28,7 @@ const text = (id: string) => screen.getByTestId(id).textContent;
 describe("T423: the update-channel switch says what it did", () => {
   it("a pick shows at once as pending, and the kept choice shows when the page opens", () => {
     const picked: string[] = [];
-    const { unmount } = render(<UpdatesLogPage palette={LIGHT} c={controls({ current: "live", stored: null, pick: (k) => { picked.push(k); } })} />);
+    const { unmount } = render(<ChannelPicker palette={LIGHT} c={controls({ current: "live", stored: null, pick: (k) => { picked.push(k); } })} />);
     expect(screen.queryByTestId("updates-log-channel-pending")).toBeNull();
     fireEvent.click(screen.getByTestId("updates-log-channel-test"));
     expect([picked, text("updates-log-channel-pending")])
@@ -36,7 +36,7 @@ describe("T423: the update-channel switch says what it did", () => {
     fireEvent.click(screen.getByTestId("updates-log-channel-live"));
     expect(screen.queryByTestId("updates-log-channel-pending")).toBeNull();
     unmount();
-    render(<UpdatesLogPage palette={LIGHT} c={controls({ current: "live", stored: "test", pick() {} })} />);
+    render(<ChannelPicker palette={LIGHT} c={controls({ current: "live", stored: "test", pick() {} })} />);
     expect(text("updates-log-channel-pending")).toBe(UPDATE_LOG_WORDS.channel.pending(UPDATE_LOG_WORDS.channel.test));
   });
 
@@ -44,7 +44,7 @@ describe("T423: the update-channel switch says what it did", () => {
     const seen: unknown[] = [];
     const off = setFailureSink((e) => seen.push(e));
     const boom = new Error("disk full");
-    render(<UpdatesLogPage palette={LIGHT} c={controls({ current: "live", stored: null, pick: () => { throw boom; } })} />);
+    render(<ChannelPicker palette={LIGHT} c={controls({ current: "live", stored: null, pick: () => { throw boom; } })} />);
     fireEvent.click(screen.getByTestId("updates-log-channel-test"));
     expect([text("updates-log-channel-failed"), seen, screen.queryByTestId("updates-log-channel-pending")])
       .toEqual([UPDATE_LOG_WORDS.channel.failed(UPDATE_LOG_WORDS.channel.test), [boom], null]);

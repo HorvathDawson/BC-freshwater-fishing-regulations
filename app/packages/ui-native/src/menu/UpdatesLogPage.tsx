@@ -1,8 +1,8 @@
 /**
- * (T251) THE UPDATES LOG — a development and staging tool, reached from About: every check the update service made on
+ * (T251) THE UPDATES LOG — a development and staging tool, a section of the Developer card (T476): every check the update service made on
  * this device (per source: when, unchanged 304 / changed / failed and its class / offline, bytes, sha or release before
  * → after, how long), newest first, and the buttons a tester needs — check now, force re-download, simulate offline,
- * clear cache, apply a staged release — the update channel (live, or the staging test channel), and the whole log
+ * clear cache, apply a staged release — and the whole log
  * copied for a bug report. Draws `updateLogVM` / `updateLogText` (core updateLog.ts); decides nothing.
  */
 import { useState, useSyncExternalStore } from "react";
@@ -43,7 +43,37 @@ export interface UpdatesLogControls {
 
 const W = UPDATE_LOG_WORDS;
 
-function Act({ id, label, onPress, palette, on }: { id: string; label: string; onPress?: () => void; palette: Palette;
+/** (T423, T476) The update channel and its switch: a section of the Developer card (Data source / channel). */
+export function ChannelPicker({ c, palette }: { c: UpdatesLogControls; palette: Palette }) {
+  // (T423) the picked channel shows at once; an installed build reads it only on the next start
+  const [picked, setPicked] = useState<UpdateChannelKey | null>(c.channel?.stored ?? null);
+  const [channelFailed, setChannelFailed] = useState<UpdateChannelKey | null>(null);
+  const live = c.channel?.current ?? "live";
+  const shown = picked ?? live;
+  const pickChannel = (k: UpdateChannelKey) => {
+    try { c.channel!.pick(k); setChannelFailed(null); setPicked(k); }
+    catch (e) { reportFailure(e); setChannelFailed(k); }
+  };
+  return (
+    <View style={{ gap: SPACE.s1 }}>
+      <Text style={{ ...TYPE.section, color: palette.sub }}>{W.channel.label}</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel={W.channel.label} style={{ flexDirection: "row", gap: SPACE.s2 }}>
+        {(["live", "test"] as const).map((k) => (
+          <Act key={k} id={`channel-${k}`} label={W.channel[k]} palette={palette}
+               on={shown === k} onPress={c.channel ? () => pickChannel(k) : undefined} />
+        ))}
+      </View>
+      {shown !== live && !channelFailed && (
+        <Text testID="updates-log-channel-pending" style={{ ...TYPE.small, color: palette.sub }}>{W.channel.pending(W.channel[shown])}</Text>
+      )}
+      {channelFailed && (
+        <Text testID="updates-log-channel-failed" style={{ ...TYPE.small, color: palette.closed }}>{W.channel.failed(W.channel[channelFailed])}</Text>
+      )}
+    </View>
+  );
+}
+
+export function Act({ id, label, onPress, palette, on }: { id: string; label: string; onPress?: () => void; palette: Palette;
                                                     on?: boolean }) {
   const off = !onPress;
   return (
@@ -62,15 +92,6 @@ export function UpdatesLogPage({ c, palette }: { c: UpdatesLogControls; palette:
   const snap = useSyncExternalStore(c.updates.subscribe, c.updates.snapshot, c.updates.snapshot);
   const [offline, setOffline] = useState(c.offline.get());
   const [busy, setBusy] = useState(false);
-  // (T423) the picked channel shows at once; an installed build reads it only on the next start
-  const [picked, setPicked] = useState<UpdateChannelKey | null>(c.channel?.stored ?? null);
-  const [channelFailed, setChannelFailed] = useState<UpdateChannelKey | null>(null);
-  const live = c.channel?.current ?? "live";
-  const shown = picked ?? live;
-  const pickChannel = (k: UpdateChannelKey) => {
-    try { c.channel!.pick(k); setChannelFailed(null); setPicked(k); }
-    catch (e) { reportFailure(e); setChannelFailed(k); }
-  };
   const [copied, setCopied] = useState<boolean | null>(null);
   const rows = updateLogVM(events);
   const h = c.header();
@@ -92,22 +113,6 @@ export function UpdatesLogPage({ c, palette }: { c: UpdatesLogControls; palette:
           <Text testID="updates-log-app-too-old" style={{ ...TYPE.bodyStrong, color: palette.closed }}>
             {UPDATE_WORDS.row.appTooOld}
           </Text>
-        )}
-      </View>
-
-      <View style={{ gap: SPACE.s1 }}>
-        <Text style={{ ...TYPE.section, color: palette.sub }}>{W.channel.label}</Text>
-        <View accessibilityRole="radiogroup" accessibilityLabel={W.channel.label} style={{ flexDirection: "row", gap: SPACE.s2 }}>
-          {(["live", "test"] as const).map((k) => (
-            <Act key={k} id={`channel-${k}`} label={W.channel[k]} palette={palette}
-                 on={shown === k} onPress={c.channel ? () => pickChannel(k) : undefined} />
-          ))}
-        </View>
-        {shown !== live && !channelFailed && (
-          <Text testID="updates-log-channel-pending" style={{ ...TYPE.small, color: palette.sub }}>{W.channel.pending(W.channel[shown])}</Text>
-        )}
-        {channelFailed && (
-          <Text testID="updates-log-channel-failed" style={{ ...TYPE.small, color: palette.closed }}>{W.channel.failed(W.channel[channelFailed])}</Text>
         )}
       </View>
 

@@ -23,6 +23,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { mapChrome } from "./chrome";
 import { MapCredits } from "./MapCredits";
+import { LAB_ON } from "./lab";
 import { setReducedMotion } from "./motion";
 import type { MapProps } from "./map-props";
 import { useMapInstance } from "./web/useMapInstance";
@@ -55,7 +56,7 @@ export function Map(props: MapProps) {
 
 function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing,
                      chrome,
-                      onError, onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker,
+                      onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
                       zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, focus, near }: MapProps) {
@@ -138,7 +139,8 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
       </div>) : null}
     {/* (T424) THE CREDITS: our own chip and card, the phone's component (Esri's "Powered by Esri" beside it while its
         imagery is drawn); the renderer's own attribution control is off */}
-    {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink} />}
+    {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink}
+                         onLongPress={LAB_ON ? onOpenLab : undefined} />}
   </>;
 }
 

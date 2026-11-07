@@ -2,9 +2,10 @@
  * (T420) THE MAP LAB: live A/B switches for judging map performance ON THE OWNER'S PHONE, where the GPU and fill costs
  * the emulator cannot show are real. Each switch changes one thing; flipping it back restores today's map exactly.
  *
- * NEVER IN PRODUCTION (owner/builder 2026-11-06, COORD-068): on only when the build says `EXPO_PUBLIC_MAP_LAB=1` and is
- * not `EXPO_PUBLIC_APP_ENV=production` (and `app.config.js` refuses a production build carrying the flag). The switches
- * last for the session only — module state, never saved — so a restart is today's map.
+ * NEVER IN PRODUCTION (owner/builder 2026-11-06, COORD-068; T476 owner 2026-11-07): on in a development or staging build,
+ * i.e. any build that does not say `EXPO_PUBLIC_APP_ENV=production` (production must be named: a build never defaults to it).
+ * No flag, no tap-code, no runtime unlock. It is the gate of the Developer card (T476) as a whole. The switches last for
+ * the session only — module state, never saved — so a restart is today's map.
  *
  * AT ITS DEFAULTS IT IS TODAY'S MAP: the one default that is not "off" is `hideInvisible` (owner 2026-11-06, after the
  * stressed A/B and a phone check: ON for every build) — it hides only layers drawing nothing, so the picture is the same.
@@ -38,7 +39,7 @@ export const LAB_DEFAULT: Readonly<Lab> = Object.freeze({
 });
 
 /** Read once: Metro inlines `EXPO_PUBLIC_*` at build time. */
-export const LAB_ON = process.env.EXPO_PUBLIC_MAP_LAB === "1" && process.env.EXPO_PUBLIC_APP_ENV !== "production";
+export const LAB_ON = process.env.EXPO_PUBLIC_APP_ENV?.trim() !== "production";
 
 let now: Readonly<Lab> = LAB_DEFAULT;
 const listeners = new Set<() => void>();

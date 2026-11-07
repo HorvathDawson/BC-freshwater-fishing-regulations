@@ -1,6 +1,6 @@
 /**
- * (T420) The map lab's card in a lab build: a switch flips one thing and the foot names it; in any other build the
- * switches read today's map whatever was set.
+ * (T420, T476) The map lab's rows in a development or staging build: a switch flips one thing and the foot names it; in
+ * production the switches read today's map whatever was set.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -19,9 +19,9 @@ const flip = (key: string) => fireEvent.click(screen.getByTestId(`map-lab-${key}
 
 describe("the map lab card (T420)", () => {
   it("flips one switch and says the map differs from today's until it is flipped back", async () => {
-    const { lab, card: { MapLab } } = await labBuild({ EXPO_PUBLIC_MAP_LAB: "1", EXPO_PUBLIC_APP_ENV: "staging" });
+    const { lab, card: { MapLab } } = await labBuild({ EXPO_PUBLIC_APP_ENV: "staging" });
     expect(lab.LAB_ON).toBe(true);
-    render(<MapLab chrome={mapChrome("light")} onClose={() => {}} />);
+    render(<MapLab chrome={mapChrome("light")} />);
     expect(screen.getByTestId("map-lab-state").textContent).toBe("Today's map.");
     act(() => { flip("labels"); });
     expect(screen.getByTestId("map-lab-state").textContent)
@@ -30,10 +30,12 @@ describe("the map lab card (T420)", () => {
     expect(screen.getByTestId("map-lab-state").textContent).toBe("Today's map.");
   });
 
-  it("is off in production even with the flag, and off with no flag", async () => {
-    expect((await labBuild({ EXPO_PUBLIC_MAP_LAB: "1", EXPO_PUBLIC_APP_ENV: "production" })).lab.LAB_ON).toBe(false);
+  it("is on in a development or staging build with no flag, and off in production whatever was set", async () => {
+    expect((await labBuild({ EXPO_PUBLIC_APP_ENV: "staging" })).lab.LAB_ON).toBe(true);
     vi.unstubAllEnvs();
-    const { lab } = await labBuild({ EXPO_PUBLIC_APP_ENV: "staging" });
+    expect((await labBuild({})).lab.LAB_ON).toBe(true);
+    vi.unstubAllEnvs();
+    const { lab } = await labBuild({ EXPO_PUBLIC_MAP_LAB: "1", EXPO_PUBLIC_APP_ENV: "production" });
     expect(lab.LAB_ON).toBe(false);
     lab.setLab({ labels: false });
     const { useLab, LAB_DEFAULT } = lab;
