@@ -1,6 +1,6 @@
-# T481 — Sticky header on the keep tab: a design study (owner 2026-11-07)
+# T481 — Sticky header on the keep tab: a design study, then "here-max + one breadcrumb" (owner 2026-11-07)
 
-Status: IN REVIEW — design study, options for the owner to pick from; nothing shipped, today's default unchanged.
+Status: DONE — d2a7b4370. Owner approved the wording 11-07, no shot review (one Vedder pinned-bar shot for overlap only).
 
 Owner: "The sticky header feels hard to read right now. I still like the idea but maybe they need to combine instead into
 a single sentence when 2 items sticky. I think we could have same point across with less text. This is a regulatory and
@@ -89,12 +89,56 @@ safest change (fixes the overlap and the order flip) if the owner would rather k
 - **D**: no data. The size header moves into the bar (PinBar draws the size line; the box header stops sticking), and
   the bar gets the fade.
 
+
+## Decision (owner 2026-11-07): "here-max + one breadcrumb" — built
+
+The owner picked a design outside A–D. Built as the default (no flag):
+
+- **One solid bar**, at most 2 lines, path order; 8 px solid padding under the lines, then a 24 px fade (PinBar `PinFade`,
+  8 bands, no package). The size header no longer sticks on its own (`stickyHead.{web,native,d}.ts` removed).
+- **Line 1, the water's limit** (core `pins.groupLine`; the region total never pins): plain root "Kokanee · 10 a day"; a
+  share "Trout and char · 2 a day from streams"; a share plus a water's own tier beside it (`within: "total"`, the T479
+  exceptions) "Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow" — `water_max` leads, those
+  tiers never pin.
+- **Line 2, one breadcrumb** (`pins.breadcrumb`): "↳ " + the levels the scroll is inside, "; of those, " between them; no
+  origin clause; a level whose n ≥ its parent's is folded. Size level (coordinator, owner): "↳ 1 of them may be over
+  50 cm (20 in) — 2 if one is a hatchery steelhead" (steelhead clause only where the store has `extra`). With a count
+  level between line 1 and the size level, "of them" would point at line 1's fish, so it reads "…; of those, 1 may be
+  over 50 cm (20 in)". A count inside a size level is counted from line 1 (a size level is no parent: it limits only what
+  is over its size), so it follows with "; " — this fixes the Big Bend order flip.
+- **Card size wording** (pipeline, the size tier's `says`): "Only 1 of all your trout and char may be over 50 cm (20 in)
+  — not 1 per species. 2 if one of them is a hatchery steelhead." By the data: the closed group's name where the tier
+  holds every fish that may pass the size, else the fish named; "not N per species" only over more than one fish.
+- **The region total, once**: under it in the card head, "Fishing more than one water today? ›" (`GroupHeadVM.multi`) opens
+  `multi:r<row>` (core `sheets.multiSheet`, the existing sheet blocks): per angler per day across every water; the
+  region's N caps all {group} in {Region} today; the share and any lake share are parts of it; a water's own rule can sit
+  outside a share, never outside the total; possession is separate; Source › with the rule book page.
+- **Pipeline** (`answers/tree.py`, additive, answers/2): group `water_max` (`tree.water_max`: a tier holds min(n, its
+  children together), a size tier its children, the root min(total, …); the Vedder 4 = min(4, 2 + 4)); every tier but the
+  total `short` (lower-case clause, no origin clause — fixes "of those, Up to", ~1,878 waters); own tiers `within`
+  ("share" | "total") and `fish` ("hatchery rainbow"). Schema regenerated.
+
+**Williston Lake (blocking check): the flag is RIGHT, not a T479 false positive.** Only the Zone B part (wbk:-19) carries
+it ("This lake's rule: up to 4 a day (part of the 5)", Dolly Varden 1 + lake trout 3), on every segment where lake trout
+are open; Nation Arm, Davis Bay and Zone A (7A) do not. Region 7B's table has "2 lake trout" (`z7b:daily_quotas`
+`trout_char_quota.r4`, a subcap of the 5); the lake's own "Lake trout daily quota =3" (`williston_lake_zone_b.r5`) carries
+`exempts: trout_char_quota.r4` — the ladder records the subcap displaced by the lake's entry, and 3 > 2. That is exactly
+"a quota bigger than the regional quota". No change to `over_region`. (No share on a lake in 7B, so line 1 is the plain
+"Trout and char · 5 a day" and the own tier pins as a breadcrumb "↳ up to 4 Dolly Varden/bull trout or lake trout combined".)
+
+Tests: `pipeline/tests/test_answers_t481_pin.py` (water_max on the real shapes + mutation; nothing the bar says sums above
+water_max; every tier's short clause; size words); `core/regs/pins.test.ts` (group line, breadcrumb: fold, "of them" /
+"of those", no number over its parent), `core/regs/t481.test.ts` (Vedder line + mutations, link, sheet);
+`ui-native/regs/T481MultiWater.test.tsx`; PinBar / pinStore / RegsWide over `fixtures/pin-geometry.json` (its group lines
+and shorts set to what the new store gives); VM fixtures re-cut (harness); six pipeline tests' size sentences updated.
+Rebuild (not promoted): `data/generated/scratch/t481` (from `scratch/t468/reaches/full`), card_check 0 problems.
+The study harness `app/tools/pin-study.mjs` is removed (decided; it also tripped the colour gate).
+
 ## Found on the way (not fixed here)
 
-- A count tier's short line keeps a capital mid-sentence: "↳ of those, **Up** to 1 brown trout, …" (1,878 waters).
+- ~~A count tier's short line keeps a capital mid-sentence~~ — fixed by `short` (above).
 - A data defect in a "whose" name: "under **lIARD RIVER WATERSHED (see map on page 63)**'s rule" (578 waters, e.g. Esker Lake).
-- Williston Lake (Zone B) carries "Exception to regional quota" on "4 of them under this lake's rule" (4 of 5). Check
-  whether it is over a regional subcap (lake trout?) or a false flag.
+- ~~Williston Lake (Zone B) "Exception to regional quota"~~ — checked: right (above).
 
 ## Shots
 
@@ -104,7 +148,7 @@ exception + hatchery), **vedder-size** (the typical 3-item stack, 6,359 waters),
 **bigbend-deepest** (size + count, where the order flips). The full-size shots, one per case × width × theme × option, are
 in the session scratchpad as `sticky/<case>-<width>-<theme>-<option>.png`.
 
-Re-shoot: serve a release (`RELEASE_ROOT=… TILE_PORT=<port> node app/tools/serve-tiles.mjs`), then run Expo web on it
+Re-shoot (study only; `pin-study.mjs` is removed, `git show bd29046d1:app/tools/pin-study.mjs`): serve a release (`RELEASE_ROOT=… TILE_PORT=<port> node app/tools/serve-tiles.mjs`), then run Expo web on it
 (`EXPO_PUBLIC_DATA_BASE=http://localhost:<port> npx expo start --web --port <web>`), then
 `APP_URL=http://localhost:<web> node app/tools/pin-study.mjs shoot <dir> <census.json>` and `… sheet <dir>`. The census is
 a one-off vitest pass (not committed): for every `st.item(ord)` × `st.parts(ord)` × `st.segStarts(akey.seg)`, run
