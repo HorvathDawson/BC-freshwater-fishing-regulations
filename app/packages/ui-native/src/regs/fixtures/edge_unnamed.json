@@ -328,8 +328,12 @@
            }
           ],
           "size": {
+           "chip": "any size",
+           "def": false,
+           "lead": null,
            "rule": false,
-           "text": "any size"
+           "text": "any size",
+           "then": null
           },
           "species": [
            "GB",
@@ -412,8 +416,12 @@
            }
           ],
           "size": {
+           "chip": "any size",
+           "def": false,
+           "lead": null,
            "rule": false,
-           "text": "any size"
+           "text": "any size",
+           "then": null
           },
           "species": [
            "ST"

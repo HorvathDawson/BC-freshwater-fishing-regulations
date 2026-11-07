@@ -185,6 +185,8 @@ export const WORDS = Object.freeze({
   PIN_OF_TOTAL: (total: string) => `(of ${total})`,
   // ── T18 tree (tree.ts: prototype buildKeep kt, dutyWords, fishBtn) ──
   STEELHEAD_STAMP: "Steelhead stamp ›",
+  // (T480) the steelhead size definition's words before its chip ("rainbow trout over 50 cm (20 in)")
+  COUNTS_AS_STEELHEAD: "Counts as a steelhead:",
   // prototype stampLine (round UR7): "You need <document ›> <when>" — the document and its when are the store's (rows 31 stamps)
   YOU_NEED: "You need ", DOC_LINK: (name: string) => `${name} ›`,
   CAPTION: (c: string) => `${c}\u00a0›`,   // U+00A0 keeps the › on the caption's line (T20)

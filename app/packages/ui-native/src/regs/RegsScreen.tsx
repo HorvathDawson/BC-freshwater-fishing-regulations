@@ -17,12 +17,12 @@
  * ONE MAP ENTRY (T71, owner call 3, 2026-10-22): the regs header has no Map button; the water's Map view is offered once,
  * by the view strip the frame draws.
  */
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { openProbe } from "@app/data";
 import { AccessibilityInfo, Animated, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
-import { AccessNoticeBlock } from "./AccessNoticeBlock";
+import { AccessChip, AccessNoticeBlock } from "./AccessNoticeBlock";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
@@ -218,8 +218,15 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   // (T227) a tab whose section is not drawn (Gear / Methods on a day nothing may be fished) is not offered
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
+  // (T480) the gentle access note is a chip in the header's whitespace; its strip opens under the header on a press
+  const note = access.find((n) => n.tier !== "no_access") ?? null;
+  const [noteOpen, setNoteOpen] = useState(false);
+  const toggleNote = useCallback(() => setNoteOpen((o) => !o), []);
+  const noteKey = note ? `${note.title}|${note.brief}` : "";
+  useEffect(() => { setNoteOpen(false); }, [noteKey]);   // another page's note starts closed
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
-                           side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
+                           side={layout === "desktop"} nameSource={nameSource} sun={sun}
+                           aside={note && <AccessChip notice={note} palette={palette} open={noteOpen} onPress={toggleNote} />} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;
@@ -295,8 +302,9 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
     <TermTitles.Provider value={page.terms}>
     <View testID="regs-view" style={{ flex: 1, backgroundColor: palette.card }}>
       {swipe ? <ViewSwipe swipe={swipe} fill={false} still testId="view-swipe-regs-header">{head}</ViewSwipe> : head}
-      {/* (T367) the access facts are pinned under the header, outside the scroll: one slim strip each */}
-      <AccessNoticeBlock notices={access} palette={palette} />
+      {/* (T367) the access facts are pinned under the header, outside the scroll: one slim strip each — (T480) the gentle
+          note only while its header chip holds it open */}
+      <AccessNoticeBlock notices={access} palette={palette} noteOpen={{ open: noteOpen, toggle: toggleNote }} />
       {layout === "desktop" ? (
         <View testID="regs-columns" style={{ flex: 1, flexDirection: "row" }}>
           <RegsSide header={header} store={store} palette={palette} onDate={onDate} onTab={toTab} />

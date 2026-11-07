@@ -31,7 +31,7 @@ const page = {
       origin: { says: [], tag: null, howtell: true, book: [{ t: "book", printed: 21, pdf: 23 }] }, year: null,
       tree: [{ t: "tier", tier: "size", tid: "t3", kicker: null, exception: null, line: [], folded: false, relation: null, sub: null, origin: null, band: true, short: "1 over 50 cm", n: 1,
         children: [{ t: "kind", kind: "Brook trout", species: ["EB"], folded: false, zero: false, says: null,
-          size: { text: "keep 30 cm (12 in) or longer", rule: false }, qualifiers: null,
+          size: { text: "keep 30 cm (12 in) or longer", lead: null, chip: "keep 30 cm (12 in) or longer", then: null, rule: false, def: false }, qualifiers: null,
           pictures: [{ code: "EB", name: "Brook trout", caption: "Brook trout ›", open: "sp:EB", sil: false }],
           also: [], duty: null, stamps: [], presence: null }] }],
       notKept: [], worked: null, quiet: null, more: { text: "See every regulation line ›", open: "src:r0" },

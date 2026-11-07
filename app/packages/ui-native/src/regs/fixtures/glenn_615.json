@@ -381,8 +381,12 @@
         "qualifiers": null,
         "says": null,
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "EB",
@@ -443,8 +447,12 @@
         "qualifiers": null,
         "says": null,
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "RB"
@@ -1611,8 +1619,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LW",

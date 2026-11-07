@@ -87,15 +87,16 @@ describe("kindRow", () => {
   it("the steelhead (golden vedder_1010): How to tell, the chip, its qualifier, duty with the water's name and the stamp link, presence", () => {
     const k = kindRow((SHARE.children[0] as typeof SHARE).children[1] as never, env);
     expect([nbspFree(k.says), k.size, k.qualifiers, plain(k.duty), plain(k.presence), k.pictures.map((p) => p.code)]).toEqual([
-      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell hatchery ›", { text: "over 50 cm", rule: false }, "rainbow trout",
+      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell hatchery ›",
+      { text: "rainbow trout over 50 cm", lead: "Counts as a steelhead:", chip: "rainbow trout over 50 cm", then: null, rule: false, def: true }, null,
       "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away Steelhead stamp ›",
-      "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ", ["ST"]]);
+      "", ["ST"]]);   // (T480) the presence line said only the definition: the definition row says it now
     expect([k.says!.at(-1), k.duty!.at(-1)]).toEqual([{ t: "link", s: "How to tell hatchery ›", open: "hatch" }, { t: "link", s: "Steelhead stamp ›", open: { tab: "licence" } }]);
   });
   it("no stamp in the licence answer: no stamp link; a size_rule chip is the bold one", () => {
     const k = kindRow((SHARE.children[0] as typeof SHARE).children[0] as never, envOf());
     expect([nbspFree(k.says), k.size, k.duty]).toEqual(["Up to 2 may be hatchery brook, brown or cutthroat trout",
-      { text: "keep 30 cm (12 in) or longer; release the rest", rule: true }, null]);
+      { text: "keep 30 cm (12 in) or longer; release the rest", lead: null, chip: "keep 30 cm (12 in) or longer; release the rest", then: null, rule: true, def: false }, null]);
     const st = kindRow((SHARE.children[0] as typeof SHARE).children[1] as never, envOf());
     expect(plain(st.duty)).toBe("10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away");
   });
@@ -144,7 +145,7 @@ describe("kindRow", () => {
     const z = kindRow(kind({ species: ["CT"], name: "Cutthroat trout", n: 0, says: "No cutthroat trout may be kept", detail: "catch and release, 30 cm" }), env);
     expect([plain(z.says), z.says!.some((r) => r.t === "num"), z.size, z.qualifiers, z.zero]).toEqual(["No cutthroat trout may be kept", false, null, "catch and release", true]);
     const f = kindRow(OWN.children[0] as never, env);
-    expect([f.folded, f.says, f.size]).toEqual([true, null, { text: "50 cm or less", rule: false }]);
+    expect([f.folded, f.says, f.size]).toEqual([true, null, { text: "50 cm or less", lead: null, chip: "50 cm or less", then: null, rule: false, def: false }]);
   });
 });
 

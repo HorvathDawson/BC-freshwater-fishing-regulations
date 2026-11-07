@@ -318,8 +318,12 @@
        }
       ],
       "size": {
+       "chip": "any size",
+       "def": false,
+       "lead": null,
        "rule": false,
-       "text": "any size"
+       "text": "any size",
+       "then": null
       },
       "species": [
        "EB",
@@ -364,8 +368,12 @@
        }
       ],
       "size": {
+       "chip": "any size",
+       "def": false,
+       "lead": null,
        "rule": false,
-       "text": "any size"
+       "text": "any size",
+       "then": null
       },
       "species": [
        "DV"
@@ -1452,8 +1460,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LW",
@@ -1598,8 +1610,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LMB",

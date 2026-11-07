@@ -260,8 +260,12 @@
         "qualifiers": null,
         "says": null,
         "size": {
+         "chip": "between 60 cm (24 in) and 90 cm (35 in)",
+         "def": false,
+         "lead": "release any",
          "rule": true,
-         "text": "release any between 60 cm (24 in) and 90 cm (35 in)"
+         "text": "release any between 60 cm (24 in) and 90 cm (35 in)",
+         "then": null
         },
         "species": [
          "LT"
@@ -378,8 +382,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "EB",
@@ -425,8 +433,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "DV"
@@ -1369,8 +1381,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LW",
@@ -1523,8 +1539,12 @@
          }
         ],
         "size": {
+         "chip": "between 36 cm (14 in) and 44 cm (17 in)",
+         "def": false,
+         "lead": "release any",
          "rule": true,
-         "text": "release any between 36 cm (14 in) and 44 cm (17 in)"
+         "text": "release any between 36 cm (14 in) and 44 cm (17 in)",
+         "then": null
         },
         "species": [
          "GR"
@@ -1809,8 +1829,12 @@
          }
         ],
         "size": {
+         "chip": "between 70 cm (28 in) and 100 cm (39 in)",
+         "def": false,
+         "lead": "release any",
          "rule": true,
-         "text": "release any between 70 cm (28 in) and 100 cm (39 in)"
+         "text": "release any between 70 cm (28 in) and 100 cm (39 in)",
+         "then": null
         },
         "species": [
          "NP"

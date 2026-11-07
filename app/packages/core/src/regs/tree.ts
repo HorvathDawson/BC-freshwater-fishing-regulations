@@ -22,7 +22,7 @@ import { leadSaysOrigin, pagesOf, shortOf, type HeadCtx } from "./grouphead";
 import { ruleBookLine } from "./book";
 import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
-import type { FishPicVM, KindVM, OriginVM, TierVM, TreeNodeVM } from "./model";
+import type { FishPicVM, KindVM, OriginVM, SizeVM, TierVM, TreeNodeVM } from "./model";
 import { WORDS } from "./words";
 import { cap, lc, type SpeciesBook } from "./names";
 
@@ -56,6 +56,28 @@ const OF_THESE = "Of these, ";
 export function subcapLead(t: TreeTier, up: TreeTier | null, title: string): string | null {
   if (t.tier !== "size" || !t.says.startsWith(OF_THESE) || !up || up.n === null || !title) return null;
   return `Of your ${up.n} ${lc(title)}, `;
+}
+
+const RULE_MUST = /^must be (.+?); (release .+)$/, RULE_SLOT = /^(release any) (between .+)$/;
+/**
+ * (T480) A kind's size in the one style (`SizeVM`): the store's `size_rule` split at its own seam — "must be X; release …"
+ * is chip X + then "release …", a slot "release any between A and B" is lead "release any" + chip "between A and B" —
+ * else the detail's size words as the chip. Words only; nothing decided. `def`: a steelhead kind whose detail names the
+ * rainbow it is ("rainbow trout over 50 cm (20 in)" — the qualifier is the definition's own subject, so it rides in the chip).
+ */
+export function sizeVM(sizeRule: string | null | undefined, detailSize: string, q: readonly string[], steelhead: boolean): SizeVM | null {
+  if (sizeRule) {
+    const m = RULE_MUST.exec(sizeRule), sl = m ? null : RULE_SLOT.exec(sizeRule);
+    return { text: nbsp(sizeRule), rule: true, def: false, lead: sl ? sl[1]! : null,
+             chip: nbsp(m ? m[1]! : sl ? sl[2]! : sizeRule), then: m ? m[2]! : null };
+  }
+  if (!detailSize) return null;
+  if (steelhead && /^over /.test(detailSize) && q.length === 1 && /\brainbow trout$/.test(q[0]!)) {
+    // the fish's name may wrap; its size never breaks ("over 50 cm (20 in)")
+    const words = `${q[0]} ${nbsp(detailSize)}`;
+    return { text: words, rule: false, def: true, lead: WORDS.COUNTS_AS_STEELHEAD, chip: words, then: null };
+  }
+  return { text: nbsp(detailSize), rule: false, def: false, lead: null, chip: nbsp(detailSize), then: null };
 }
 
 /** prototype tierWords: boldN(says, n) big; a size box's `extra` makes the first number after " — " big too ("big2"). */
@@ -148,7 +170,7 @@ export function kindWords(says: string, n: number | null): Line {
 
 /** prototype kt: one kind row. */
 export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
-  const { size: size0, q } = sizeOf(k.detail), zero = k.n === 0, size = k.size_rule || size0;
+  const { size: size0, q } = sizeOf(k.detail), zero = k.n === 0;
   let says: Run[] | null = null;
   if (!k.folded) {
     says = [...kindWords(k.says, zero ? null : k.n)];
@@ -166,13 +188,18 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
   // the stored stamps (rows 31), but the steelhead stamp the duty line already links (prototype `skip`)
   const stamps = (k.stamps ?? []).filter((x) => !(stLinked && x.doc === STAMP_DOC)).map(stampLine);
   const sizeNote = (k as TreeKind & { size_note?: { says: string } | null }).size_note;
+  const sz = zero ? null : sizeVM(k.size_rule, size0, q, k.species.length === 1 && k.species[0] === "ST");
+  // (T480) the definition drawn as the row's size says what the presence line says when that line is only the definition
+  // ("A rainbow trout over 50 cm (20 in) here counts as a steelhead."): one place, the ⓘ moves with it
+  const pres = presOf(k, env.card, env.drawn);
+  const presDup = !!sz?.def && !!pres && pres.says.includes(sz.text.replace(/\u00a0/g, " ")) && /counts as a steelhead\.?$/.test(pres.says);
   return {
     t: "kind", kind: k.name, species: k.species, folded: !!k.folded, zero, says,
-    size: size && !zero ? { text: nbsp(size), rule: !!k.size_rule } : null,
-    qualifiers: q.length ? q.join(", ") : null,
+    size: sz,
+    qualifiers: q.length && !sz?.def ? q.join(", ") : null,
     pictures: pictures(k.species, env.fish, fishNames(env.inp, env.fish), env.inp.statics.exportSpecies.groups),
     also: [...(sizeNote ? [nbsp(cap(sizeNote.says))] : []), ...(k.also_counts ?? []).map((a) => nbsp(cap(a.says)))],
-    duty, stamps, presence: presenceLine(presOf(k, env.card, env.drawn)),
+    duty, stamps, presence: presDup ? null : presenceLine(pres),
   };
 }
 

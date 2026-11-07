@@ -151,12 +151,30 @@ export interface TierVM {
   readonly n: number | null;                // (T29) the stored tier's number: the pin bar's form-a share test (PinTierAnchor.n)
   readonly children: readonly TreeNodeVM[];
 }
+/**
+ * (T480, owner 2026-11-07: "Why is size written now in 2 different styles? We need to commit to a single style.") A
+ * kind's size, every form in ONE style: the size words in a chip, what happens outside it as plain words beside it. All
+ * three are the store's words laid out (`size_rule` "must be 60 cm (24 in) or longer; release any shorter" → chip "60 cm
+ * (24 in) or longer" + then "release any shorter"; a slot's "release any between …" → lead "release any" + chip "between
+ * …"; a `detail` size → the chip alone). `def`: the steelhead's DEFINITION (what counts as one here — "rainbow trout over
+ * 50 cm (20 in)"), not a limit: lead `WORDS.COUNTS_AS_STEELHEAD`, its ⓘ after the chip.
+ */
+export interface SizeVM {
+  /** the whole words as stored (nbsp'd): the row's accessible text and the SEO page's */
+  readonly text: string;
+  readonly lead: string | null;
+  readonly chip: string;
+  readonly then: string | null;
+  /** the store's `size_rule` (a rule on the count line it hangs from) */
+  readonly rule: boolean;
+  readonly def: boolean;
+}
 export interface KindVM {
   readonly t: "kind"; readonly kind: string; readonly species: readonly string[];
   readonly folded: boolean; readonly zero: boolean;
   readonly says: Line | null;               // null when folded; boldN(says, n) (no bold when n===0); + "How to tell ›" for hatchery-only steelhead
-  readonly size: { text: string; rule: boolean } | null;   // the chip (nbsp'd); rule: the bold size_rule chip
-  readonly qualifiers: string | null;       // sizeOf(detail).q joined ", "
+  readonly size: SizeVM | null;             // (T480) the one size style: words, the chip, its consequence
+  readonly qualifiers: string | null;       // sizeOf(detail).q joined ", " (a definition's words are in its chip instead)
   readonly pictures: readonly FishPicVM[];  // FIRST after the sentence + chip
   readonly also: readonly string[];         // also_counts[].says (cap)
   readonly duty: Line | null;               // duties.map(dutyWords).join(" · ") + link "Steelhead stamp ›" {tab:"licence"}

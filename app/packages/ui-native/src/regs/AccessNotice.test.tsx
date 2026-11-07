@@ -45,23 +45,44 @@ describe("T54/T367: the access strips on the Regulations page", () => {
     expect(screen.queryByTestId("access-map")).toBeNull();
   });
 
-  it("both apply: the banner, then the reserve's note in the accent — not the warning", () => {
+  it("both apply: the banner strip; (T480) the reserve's note is the header's chip, its strip in the accent under the header on a press", () => {
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}}
                        access={pageAccessNotices([{ area: COQ, share: 0.5 }, { area: CAP5, share: 0.2 }], "part")} />);
+    expect([...screen.getByTestId("access-notices").children].map((e) => e.getAttribute("data-testid"))).toEqual(["access-banner"]);
+    const chip = screen.getByTestId("access-chip");
+    expect(screen.getByTestId("regs-header").contains(chip)).toBe(true);
+    expect(chip.textContent).toBe("Access may be restricted");
+    expect(chip.getAttribute("aria-label")).toBe("Access may be restricted · Indian reserve (Capilano 5). "
+      + "This part of the water crosses an Indian reserve (Capilano 5, about 20% of it).");
+    expect(chip.getAttribute("aria-expanded")).toBe("false");
+    expect(chip.style.borderLeftColor).toBe(rgb(LIGHT.accent));
+    fireEvent.click(chip);
+    expect(chip.getAttribute("aria-expanded")).toBe("true");
     expect([...screen.getByTestId("access-notices").children].map((e) => e.getAttribute("data-testid")))
       .toEqual(["access-banner", "access-note"]);
     const note = screen.getByTestId("access-note");
-    expect(note.textContent).toBe("Access may be restricted · Indian reserve (Capilano 5)");
+    expect(note.textContent).toBe("Access may be restricted · Indian reserve (Capilano 5)"
+      + "This part of the water crosses an Indian reserve (Capilano 5, about 20% of it).");
     expect([note.style.borderLeftColor, note.style.backgroundColor])
       .toEqual([rgb(LIGHT.accent), rgb(laid(LIGHT.accent, LIGHT.card, NO_ACCESS_BAND))]);
     expect(LIGHT.accent).not.toBe(LIGHT.warning);
-    fireEvent.click(note);
-    expect(note.textContent).toBe("Access may be restricted · Indian reserve (Capilano 5)"
-      + "This part of the water crosses an Indian reserve (Capilano 5, about 20% of it).");
+    fireEvent.click(note);                    // the open strip closes it too
+    expect(screen.queryByTestId("access-note")).toBeNull();
+    expect(chip.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("(T480) the note alone: no strip until the chip is pressed; the chip toggles it", () => {
+    render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} access={pageAccessNotices([{ area: CAP5, share: 0.2 }], "part")} />);
+    expect(screen.queryByTestId("access-notices")).toBeNull();
+    fireEvent.click(screen.getByTestId("access-chip"));
+    expect(screen.getByTestId("access-text").textContent).toBe("This part of the water crosses an Indian reserve (Capilano 5, about 20% of it).");
+    fireEvent.click(screen.getByTestId("access-chip"));
+    expect(screen.queryByTestId("access-notices")).toBeNull();
   });
 
   it("nothing to say: nothing drawn", () => {
     render(<RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} />);
     expect(screen.queryByTestId("access-notices")).toBeNull();
+    expect(screen.queryByTestId("access-chip")).toBeNull();
   });
 });

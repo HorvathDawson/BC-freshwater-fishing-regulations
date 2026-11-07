@@ -416,8 +416,12 @@
            }
           ],
           "size": {
+           "chip": "25 cm (10 in) or longer",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 25 cm (10 in) or longer; release any shorter"
+           "text": "must be 25 cm (10 in) or longer; release any shorter",
+           "then": "release any shorter"
           },
           "species": [
            "EB",
@@ -460,8 +464,12 @@
            }
           ],
           "size": {
+           "chip": "25 cm (10 in) or longer",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 25 cm (10 in) or longer; release any shorter"
+           "text": "must be 25 cm (10 in) or longer; release any shorter",
+           "then": "release any shorter"
           },
           "species": [
            "DV"
@@ -533,8 +541,12 @@
            }
           ],
           "size": {
+           "chip": "25–33 cm (10–13 in)",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 25–33 cm (10–13 in); release any other size"
+           "text": "must be 25–33 cm (10–13 in); release any other size",
+           "then": "release any other size"
           },
           "species": [
            "CT"
@@ -575,8 +587,12 @@
            }
           ],
           "size": {
+           "chip": "25 cm (10 in) or longer",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 25 cm (10 in) or longer; release any shorter"
+           "text": "must be 25 cm (10 in) or longer; release any shorter",
+           "then": "release any shorter"
           },
           "species": [
            "RB"
@@ -1816,8 +1832,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LW",

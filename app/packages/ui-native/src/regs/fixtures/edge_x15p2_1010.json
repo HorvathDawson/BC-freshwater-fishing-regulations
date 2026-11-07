@@ -408,8 +408,12 @@
            }
           ],
           "size": {
+           "chip": "30 cm (12 in) or longer",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 30 cm (12 in) or longer; release any shorter"
+           "text": "must be 30 cm (12 in) or longer; release any shorter",
+           "then": "release any shorter"
           },
           "species": [
            "EB",
@@ -459,8 +463,12 @@
            }
           ],
           "size": {
+           "chip": "60 cm (24 in) or longer",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 60 cm (24 in) or longer; release any shorter"
+           "text": "must be 60 cm (24 in) or longer; release any shorter",
+           "then": "release any shorter"
           },
           "species": [
            "DV",
@@ -530,8 +538,12 @@
          }
         ],
         "size": {
+         "chip": "30 cm (12 in) or longer",
+         "def": false,
+         "lead": null,
          "rule": true,
-         "text": "must be 30 cm (12 in) or longer; release any shorter"
+         "text": "must be 30 cm (12 in) or longer; release any shorter",
+         "then": "release any shorter"
         },
         "species": [
          "RB"
@@ -1805,8 +1817,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LW",
@@ -1954,8 +1970,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LMB",

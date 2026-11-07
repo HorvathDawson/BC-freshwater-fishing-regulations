@@ -413,8 +413,12 @@
            }
           ],
           "size": {
+           "chip": "30 cm (12 in) or longer",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 30 cm (12 in) or longer; release any shorter"
+           "text": "must be 30 cm (12 in) or longer; release any shorter",
+           "then": "release any shorter"
           },
           "species": [
            "EB",
@@ -463,8 +467,12 @@
            }
           ],
           "size": {
+           "chip": "60 cm (24 in) or longer",
+           "def": false,
+           "lead": null,
            "rule": true,
-           "text": "must be 60 cm (24 in) or longer; release any shorter"
+           "text": "must be 60 cm (24 in) or longer; release any shorter",
+           "then": "release any shorter"
           },
           "species": [
            "DV",
@@ -504,23 +512,8 @@
             "sil": false
            }
           ],
-          "presence": [
-           {
-            "s": "A rainbow trout over 50 cm (20 in) here counts as a steelhead.",
-            "t": "text"
-           },
-           {
-            "s": " ",
-            "t": "text"
-           },
-           {
-            "ids": [
-             "steelhead"
-            ],
-            "t": "term"
-           }
-          ],
-          "qualifiers": "rainbow trout",
+          "presence": null,
+          "qualifiers": null,
           "says": [
            {
             "s": "Of your 2 trout and char a day in streams, up to ",
@@ -546,8 +539,12 @@
            }
           ],
           "size": {
+           "chip": "rainbow trout over 50 cm (20 in)",
+           "def": true,
+           "lead": "Counts as a steelhead:",
            "rule": false,
-           "text": "over 50 cm (20 in)"
+           "text": "rainbow trout over 50 cm (20 in)",
+           "then": null
           },
           "species": [
            "ST"
@@ -2037,8 +2034,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LW",
@@ -2186,8 +2187,12 @@
          }
         ],
         "size": {
+         "chip": "any size",
+         "def": false,
+         "lead": null,
          "rule": false,
-         "text": "any size"
+         "text": "any size",
+         "then": null
         },
         "species": [
          "LMB",

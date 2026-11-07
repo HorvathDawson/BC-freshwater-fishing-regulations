@@ -8,7 +8,7 @@
 import { Fragment, useContext, useState, useSyncExternalStore } from "react";
 import { Image, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { WORDS, type FishPicVM, type GroupVM, type KindVM, type NotKeptVM, type TierVM, type TreeNodeVM } from "@app/core";
+import { WORDS, type FishPicVM, type GroupVM, type KindVM, type Line, type NotKeptVM, type SizeVM, type TierVM, type TreeNodeVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { LineText, TermText, type KeepActions } from "./LineText";
@@ -73,14 +73,12 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
       {k.says && <LineText line={k.says} testID={k.zero ? "st:zero" : undefined} style={TYPE.regsBodySemi} color={k.zero ? palette.restricted : palette.ink} palette={palette} actions={actions}
                            linkStyle={TYPE.regsBodySemi} inlineBig />}
       {meta && (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 4, columnGap: 8, marginTop: k.size?.rule ? 0 : 4 }}>
-          {/* owner 2026-10-27: a size RULE ("must be 50 cm (20 in) or less; release any longer") is part of the count line it
-              limits: no gap under it, no separate chip box. (T221, owner 2026-10-28: the accent rail looked odd) plain — the
-              row's own meta line, semibold ink, as the table's other second lines */}
-          {k.size && (k.size.rule
-            ? <Text testID="chip:size" style={[TYPE.metaSemi, { color: palette.ink, paddingVertical: 2 }]}>{k.size.text}</Text>
-            : <Text testID="chip:size" style={[TYPE.regsChip, { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8 }]}>{k.size.text}</Text>)}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 4, columnGap: 8, marginTop: k.size?.rule ? 2 : 4 }}>
+          {/* (T480, owner 2026-11-07: "commit to a single style") EVERY size is one chip — the size words — with what happens
+              outside it as plain words beside it ("60 cm (24 in) or longer" · "release any shorter"); a slot's "release any"
+              leads it; the steelhead's definition leads with its words ("Counts as a steelhead:") and keeps its ⓘ */}
           {k.qualifiers && <Text style={[TYPE.metaSemi, { color: palette.sub }]}>{k.qualifiers}</Text>}
+          {k.size && <SizeChip size={k.size} palette={palette} actions={actions} />}
         </View>
       )}
       <Pictures pics={k.pictures} palette={palette} actions={actions} images={images} />
@@ -90,6 +88,20 @@ function Kind({ k, first, inBand, at, palette, actions, images }: { k: KindVM; f
     </View>
   );
 }
+
+/** (T480) a kind's size in the one style: [lead] chip [then] (+ the definition's ⓘ); one wrapping row */
+function SizeChip({ size, palette, actions }: { size: SizeVM; palette: Palette; actions: KeepActions }) {
+  return (
+    <View testID={size.def ? "size-def" : "size"}
+          style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", rowGap: 4, columnGap: 6, flexShrink: 1, maxWidth: "100%" }}>
+      {size.lead && <Text style={[TYPE.metaSemi, { color: palette.ink }]}>{size.lead}</Text>}
+      <Text testID="chip:size" style={[TYPE.regsChip, { color: palette.ink, backgroundColor: palette.tint, paddingVertical: 3, paddingHorizontal: 8, flexShrink: 1 }]}>{size.chip}</Text>
+      {size.then && <Text testID="size-then" style={[TYPE.metaSemi, { color: palette.ink }]}>{size.then}</Text>}
+      {size.def && <LineText line={DEF_TERM} style={TYPE.metaSemi} color={palette.ink} palette={palette} actions={actions} />}
+    </View>
+  );
+}
+const DEF_TERM: Line = [{ t: "term", ids: ["steelhead"] }];
 
 /** the size box: its bold left rail, and its gap to the screen edge */
 const RAIL = 5, BOX_INSET = 6, BOX_BORDER = 1, BOX_PAD_BOTTOM = 8;
