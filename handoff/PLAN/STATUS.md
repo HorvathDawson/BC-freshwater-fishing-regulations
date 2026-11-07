@@ -27,7 +27,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T454 on the emulator** (13eb712, recording sent): double-tap zoom, drag pan, a swipe while zoomed stays on the
   photo, double-tap back, a swipe at the fit changes photo. Pinch cannot be driven on the emulator (no multi-touch
   injection): yours to check on the phone, in the next APK.
-- **Running:** T455 (above).
+- **T455 fixed** (2290b6e25): a real race, a reader could hit it. A tap landing just as a done step moved on was run by
+  the previous step's button and skipped the next step. Now a tap always acts on the step on screen. Under load: 2/20
+  runs failed before, 0/40 after. `pnpm check` fully green after (6701 pass, 0 fail).
+- **Running:** T446 (fresh installs on the emulator got several release files EMPTY on 0.6.6: the crash store's new
+  wording shows "0 % of its size"); T307 + T308 emulator checks (offline spot save, the moving location dot).
 - **Crash store (T351):** no foreground native crash since 0.6.6. Today's reports are emulator installs (android 35)
   failing a download check ("does not match the manifest", several "0 % of its size") plus one from 0.6.4 on your
   phone (before T446's change). The test-bed builds do tag theirs. These carry the Play build's version, so they come
