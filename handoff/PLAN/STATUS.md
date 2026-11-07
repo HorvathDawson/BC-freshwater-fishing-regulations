@@ -40,7 +40,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T307 + T308 DONE** on the emulator: a spot saved offline shows in under 2 s and fills its weather/gauge itself once
   back online; the location dot follows each move. Found on the way: an empty spots backup wedged every later save
   with a raw error. Fixed: it is kept aside and reported, never read as "no spots" (0e8ca33).
-- **Running:** T456 (walkthrough); the step-screen lane (T451 flicker, T443's two items, T459 grey-out).
+- **Park border from z11** (d9823e0, your ask): the tint and name still show a park from z8.
+- **New tickets:** T460 (Fraser: ▲ from "Williams Lake River confluence → Region 7A boundary" offers 2 parts, one skips
+  part 15: a side channel of that part touches the part above; first check whether that channel's sections carry the
+  right region's rules), T461 (tidal polygon: measure, simplify per zoom, quieter edge; shots for you). T443's
+  "landstorm bar" item corrected: two copies of the Landstrom Bar label ~50 m apart overlap.
+- **Running:** T456 (walkthrough, agent); the step-screen lane (T451 flicker, T443's two items, T459 grey-out, agent;
+  told about the Landstrom correction).
+- **Queue after them:** T460 → 0.6.8 APK (T446, T454, T455, T456, T451, T443, T459, park border) → T457, T461, T420,
+  T458.
 - **Your 0.6.7 check:** the glide feels good (T452 DONE). Still to do: the pan stutters while the map loads tiles
   (T420), the Map switch still flickers coming from Conditions/Run timing ("maybe better", T451 reopened), the
   boundary names in the ▲/▼ bar overlap, and the first open of a water's Map tab frames differently from ▲ then ▼
