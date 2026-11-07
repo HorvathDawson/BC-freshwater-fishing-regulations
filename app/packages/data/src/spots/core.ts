@@ -74,11 +74,10 @@ export function openSpotsWith(fs: SpotsFs, name: string, now: () => number = Dat
       }
     }
     if (fs.exists(bak)) {
-      // (T307) the recovery copy is read like the file itself: an EMPTY one (a torn write, nothing in it) holds no spots;
-      // an unreadable one is kept aside and said — it used to throw a raw parse error from every later save, for good
-      const text = fs.read(bak);
-      if (text.trim() === "") { fs.remove(bak); return []; }
-      try { return parse(text); } catch (e) {
+      // (T307) the recovery copy is read like the file itself: an unreadable one — EMPTY included (T446's un-awaited
+      // write emptied files) — is kept aside and said, never dropped as "no spots"; it used to throw a raw parse error
+      // from every later save, for good
+      try { return parse(fs.read(bak)); } catch (e) {
         const keptAt = `${bak}.corrupt-${now()}`;
         fs.rename(bak, keptAt);
         throw new SpotsCorrupt(keptAt, e);
