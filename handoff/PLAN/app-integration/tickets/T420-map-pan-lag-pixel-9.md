@@ -291,3 +291,15 @@ apart, +13 to +27 % frames), none at z11, look identical (0.00 pixel change); th
 the per-frame model predicted). **Growth** (A, fresh vs after 160 warm flings, one run each — a signal): Coquitlam p50 99/98 → 148/146 ms,
 p95 156/164 → 217/215; FV p50 70/87 → 84/118 — frame cost rises with the feature-state held, though the tiles are warmer.
 Next: skip-invisible default ON after the owner's phone check (0.6.9); the patched MapLibre A/B (`app/tools/maplibre-patch/`, acf015b98).
+
+## The owner's Pixel 9: a system trace (2026-11-07, 0.6.8, Coquitlam z13, skip-invisible on, ~10 s of flings)
+On-device System Tracing (default categories), read with Perfetto's trace processor (`app/tools/perfetto/`; trace
+`out/traces/pixel9-067-coq13-20261107.perfetto-trace`, git-ignored). **CPU-bound on MapLibre's render thread, GPU nearly idle:**
+- the render thread ran 915–1010 ms of every second for 10 s (9.4 s of 12; asleep 68 ms in total), on CPU 7 (the prime core,
+  avg 1.89 of 3.1 GHz);
+- the map's surface presented **113 frames in ~11 s (~10 fps)**; `QueueSubmit`/`QueuePresentKHR` are short (≤ 1.3 ms) and
+  the reported GPU duration averages ~1 ms a frame;
+- the 4 tile workers 1.1–1.4 s each (in parallel, not the frame limit), JS 0.9 s, main thread 0.7 s.
+So the phone's lag is per-frame CPU work on the render thread — where MapLibre's every-frame feature-state re-apply runs
+(the correction above) — and not fill or GPU: the pixel cap (T448) and Vulkan vs GL cannot fix this. Inference, not yet
+proof: a function-level profile on the phone (simpleperf, USB, after the emulator is free) or the patched-MapLibre APK pair.
