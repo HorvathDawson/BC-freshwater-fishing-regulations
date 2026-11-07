@@ -66,3 +66,14 @@ Areas 28 and 29 …") — DFO's reason the rows are closed, said once (T318); re
 - Scratch rebuild from the T468 reaches (format bump applied) → shots, Vedder + Squamish (coho open), before/after,
   390 px, in the session scratchpad `salmonfold/`.
 - Then: owner look at the shots; ships with the next release (its build re-reads R1/R2/R6 headers).
+
+## State 2026-11-07 (worktree commit d10043ccd on `t482-salmon-fold`, rebased on 3dd72dfcb)
+- Scratch rebuild `data/generated/scratch/t482` (T468 reaches; the shared tree's code + the /3 bump via a sitecustomize,
+  so the subprocess stages saw it): r-f56b90ad2540, vintage clean. R1/R2/R6 now ship sizes (3 / 6 / 4 entries), every
+  min_size / adult / jack note `fold: sizes`, R2 `hours` + daylight `fold: hours`; R6 "other" (eulachon) stays words.
+  The cached pages for R1/R2/R6 carried the typed feeds' dates, so the re-read raised nothing.
+- Shots (390 px, cropped to the salmon section): Vedder 1,187 → 605 px tall (no region block, no "On this water",
+  sizes on each row, source folded); Squamish (coho open) 1,236 → 841 px (hours line, sizes on rows). Session
+  scratchpad `salmonfold/` {before,after}-{vedder,squamish}.png, after-vedder-source-open.png.
+- Tests: pipeline DFO suites 492 pass (test_dfo_live/header/quota/salmon); app regs + salmon vitest pass; `pnpm check`
+  steps all pass except `tickets` (T483's file has no Status line in its first 6 lines — not this lane's).
