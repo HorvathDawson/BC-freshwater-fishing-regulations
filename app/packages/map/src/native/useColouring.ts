@@ -42,17 +42,22 @@ type Channels = Pick<MapProps, "status" | "standing" | "lakes" | "salmon" | "met
  * the relabelling in the same frame wiped the new labels (the highlight's own bug, fixed by 8a5b5bd the same way). It
  * is queued as a NULL write of every key the queue has set on that layer (a null state is unset to every paint), in
  * order with the sets around it — one `setFeatureStates` call per layer per burst.
+ *
+ * (T451) ONE WRITE PER SECTION PER BURST. A section written twice in a burst (a clear's null write, then its relabel —
+ * a tab switch that drops a channel) is sent ONCE, the writes merged in order: MapLibre Native may draw a frame between
+ * two writes of one batch, and that frame showed the section with every key nulled (the streams grey for a frame
+ * entering Map from Runs). Each section now goes from its old state straight to its new one.
  */
 export class StateQueue {
-  private q = new Map<string, { ids: string[]; states: Record<string, unknown>[] }>();
+  private q = new Map<string, Map<string, Record<string, unknown>>>();
   /** what each layer wears, by this queue: the ids and every key ever set there */
   private worn = new Map<string, { ids: Set<string>; keys: Set<string> }>();
   get size(): number { return this.q.size; }
   set(layer: string, id: string, s: Record<string, unknown>): void {
     let b = this.q.get(layer);
-    if (!b) this.q.set(layer, b = { ids: [], states: [] });
-    b.ids.push(id);
-    b.states.push(s);
+    if (!b) this.q.set(layer, b = new Map());
+    const was = b.get(id);
+    b.set(id, was ? { ...was, ...s } : s);
     let w = this.worn.get(layer);
     if (!w) this.worn.set(layer, w = { ids: new Set(), keys: new Set() });
     w.ids.add(id);
@@ -64,14 +69,14 @@ export class StateQueue {
     const w = this.worn.get(layer);
     if (!w || !w.ids.size) return;
     const nulls = Object.fromEntries([...w.keys].map((k) => [k, null]));
-    this.q.set(layer, { ids: [...w.ids], states: [...w.ids].map(() => nulls) });
+    this.q.set(layer, new Map([...w.ids].map((id) => [id, nulls])));
     this.worn.set(layer, { ids: new Set(), keys: new Set() });
   }
   /** A style swap dropped every state: nothing is worn any more. */
   forget(): void { this.worn.clear(); }
   /** The batches to send now, one per layer, and the queue emptied. */
   drain(): [string, string[], Record<string, unknown>[]][] {
-    const out = [...this.q].map(([l, b]) => [l, b.ids, b.states] as [string, string[], Record<string, unknown>[]]);
+    const out = [...this.q].map(([l, b]) => [l, [...b.keys()], [...b.values()]] as [string, string[], Record<string, unknown>[]]);
     this.q.clear();
     return out;
   }

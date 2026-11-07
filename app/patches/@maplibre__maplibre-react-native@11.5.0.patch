@@ -54,14 +54,17 @@ index 86183442be292aa6084cd61dc7cf1bf286ea6b28..5a651fd8be582efc250b3c43884f8b36
  
                      else -> {
 diff --git a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de15764c1bb 100644
+index b088909a48c4265219e4e95c529f6c0a63ae7e11..cb260faf37bfe9b63cb0d5f3303277819a68b974 100644
 --- a/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
 +++ b/android/src/main/java/org/maplibre/reactnative/components/mapview/MLRNMapView.kt
-@@ -8,8 +8,13 @@ import android.graphics.RectF
+@@ -8,8 +8,16 @@ import android.graphics.RectF
  import android.os.Handler
  import android.os.Looper
  import android.util.AttributeSet
 +import android.view.Choreographer
++import android.view.PixelCopy
++import android.widget.ImageView
++import android.graphics.Bitmap
  import android.view.Gravity
 +import android.util.Log
  import android.view.MotionEvent
@@ -71,7 +74,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
  import android.view.View
  import android.view.ViewGroup
  import android.widget.FrameLayout
-@@ -69,6 +74,9 @@ import org.maplibre.reactnative.events.MapPressEvent
+@@ -69,6 +77,9 @@ import org.maplibre.reactnative.events.MapPressEvent
  import org.maplibre.reactnative.utils.BitmapUtils
  import org.maplibre.reactnative.utils.ConvertUtils
  import org.maplibre.reactnative.utils.GeoJSONUtils
@@ -81,7 +84,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
  import kotlin.math.roundToInt
  
  sealed class MapChild {
-@@ -458,8 +466,19 @@ open class MLRNMapView(
+@@ -458,8 +469,19 @@ open class MLRNMapView(
  
      override fun onMapReady(mapLibreMap: MapLibreMap) {
          this.mapLibreMap = mapLibreMap
@@ -101,7 +104,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
          if (attributionGravity == null) attributionGravity = Gravity.END or Gravity.BOTTOM
          if (attributionMargin == null) {
              attributionMargin =
-@@ -519,6 +538,8 @@ open class MLRNMapView(
+@@ -519,6 +541,8 @@ open class MLRNMapView(
          updateScaleBar()
  
          mapLibreMap.addOnCameraMoveStartedListener { reason ->
@@ -110,7 +113,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
              cameraChangeTracker.setReason(reason)
              handleMapChangedEvent("onRegionWillChange", true)
          }
-@@ -543,7 +564,9 @@ open class MLRNMapView(
+@@ -543,7 +567,9 @@ open class MLRNMapView(
              },
          )
  
@@ -121,7 +124,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
      }
  
      fun reflow() {
-@@ -610,8 +633,53 @@ open class MLRNMapView(
+@@ -610,8 +636,54 @@ open class MLRNMapView(
          }
      }
  
@@ -171,11 +174,107 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
 +
      @SuppressLint("ClickableViewAccessibility")
      override fun onTouchEvent(ev: MotionEvent?): Boolean {
++        if (ev?.actionMasked == MotionEvent.ACTION_DOWN) endSwapHold("touch")
 +        if (ev != null) tuneFling(ev)
          val result = super.onTouchEvent(ev)
  
          if (result && scrollEnabled == true) {
-@@ -871,6 +939,172 @@ open class MLRNMapView(
+@@ -774,6 +846,8 @@ open class MLRNMapView(
+         frameEncodingTime: Double,
+         frameRenderingTime: Double,
+     ) {
++        if (swapCover != null) Log.i(SWAP_TAG, "frame ${if (fully) 1 else 0} ${if (swapLoaded) 1 else 0} ${(System.nanoTime() - swapAt) / 1_000_000}")
++        if (fully && swapLoaded) endSwapHold("drawn")
+         if (fully) {
+             handleMapChangedEvent("onDidFinishRenderingFrameFully")
+         } else {
+@@ -794,6 +868,7 @@ open class MLRNMapView(
+     }
+ 
+     override fun onDidFinishLoadingStyle() {
++        if (swapCover != null) { swapLoaded = true; Log.i(SWAP_TAG, "loaded ${(System.nanoTime() - swapAt) / 1_000_000}") }
+         handleMapChangedEvent("onDidFinishLoadingStyle")
+         applyLight()
+     }
+@@ -813,10 +888,77 @@ open class MLRNMapView(
+     private val displayDensity: Float
+         get() = context.resources.displayMetrics.density
+ 
++    /*
++     * (canifishthis T451, owner 2026-11-06: "maybe the colours when switching should get ready before it switches") THE
++     * OLD PICTURE IS HELD OVER A STYLE SWAP until the new style has drawn a whole frame. A swap that changes a line layer's
++     * data-driven paint (a tab switch: Conditions/Runs → Map) makes every tile lay itself out again, and until that layout
++     * lands MapLibre draws the NEW layer from the OLD bucket, whose feature-state binders were built for the old paint
++     * (`GeometryTile::LayoutResult::getLayerRenderData` keeps the bucket by layer id): the streams drew grey for 1–3 frames
++     * entering Map (test bed `switch`, 12/12 switches). So the map's current frame is copied (`PixelCopy`, a few ms) and
++     * laid over the surface, the style is set, and the copy is taken away at the first FULLY rendered frame after the new
++     * style loaded (every tile laid out again, the feature-states on its new buckets), on the reader's first touch, or after
++     * SWAP_HOLD_MAX_MS. Each hold is logged (`CifSwap`: copy ms, hold ms, why it ended); a copy that fails is logged and the
++     * style set at once.
++     */
++    private var swapCover: ImageView? = null
++    private var swapCopying = false
++    private var swapLoaded = false
++    private var swapAt = 0L
++    private val swapEnd = Runnable { endSwapHold("cap") }
++
++    private fun endSwapHold(why: String) {
++        val cover = swapCover ?: return
++        swapCover = null
++        swapLoaded = false
++        removeCallbacks(swapEnd)
++        removeView(cover)
++        Log.i(SWAP_TAG, "end $why ${(System.nanoTime() - swapAt) / 1_000_000}")
++        if (why == "cap") Log.w(SWAP_TAG, "the new style drew no full frame in ${SWAP_HOLD_MAX_MS} ms: the held picture is taken away")
++    }
++
++    /** Copy the frame on screen over the map, then `apply` (the swap). Without a style or a surface yet: at once. */
++    private fun holdThenSwap(apply: () -> Unit) {
++        val surface = (0 until childCount).map(::getChildAt).filterIsInstance<SurfaceView>().firstOrNull()
++        if (swapCover != null) { swapLoaded = false; apply(); return }        // already held: the newest style, same cover
++        if (swapCopying) return                                                 // the copy in flight applies the newest
++        if (surface == null || width <= 0 || height <= 0 || mapLibreMap?.style?.isFullyLoaded != true ||
++            android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) { apply(); return }
++        val frame = surface.holder.surfaceFrame
++        if (frame.width() <= 0 || frame.height() <= 0) { apply(); return }
++        val bmp = Bitmap.createBitmap(frame.width(), frame.height(), Bitmap.Config.ARGB_8888)
++        swapCopying = true
++        val t0 = System.nanoTime()
++        PixelCopy.request(surface, bmp, { result ->
++            swapCopying = false
++            if (result == PixelCopy.SUCCESS) {
++                val cover = ImageView(context)
++                cover.scaleType = ImageView.ScaleType.FIT_XY
++                cover.setImageBitmap(bmp)
++                cover.isClickable = false
++                cover.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
++                addView(cover, FrameLayout.LayoutParams(width, height))
++                swapCover = cover
++                swapLoaded = false
++                swapAt = System.nanoTime()
++                postDelayed(swapEnd, SWAP_HOLD_MAX_MS)
++                Log.i(SWAP_TAG, "hold copy ${(swapAt - t0) / 1_000_000}")
++            } else {
++                Log.w(SWAP_TAG, "the frame could not be copied (PixelCopy $result): the style is swapped without a hold")
++            }
++            apply()
++        }, Handler(Looper.getMainLooper()))
++    }
++
+     fun setReactMapStyle(value: String?) {
+         if (value != null) {
+             mapStyle = value
+ 
++            if (mapLibreMap != null) holdThenSwap { applyReactMapStyle() }
++        }
++    }
++
++    private fun applyReactMapStyle() {
++        run {
+             mapLibreMap?.let { map ->
+                 removeAllSourcesFromMap()
+ 
+@@ -871,6 +1013,172 @@ open class MLRNMapView(
          updateInsets()
      }
  
@@ -348,7 +447,7 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
      fun setReactPreferredFramesPerSecond(preferredFramesPerSecond: Int?) {
          this.preferredFramesPerSecond = preferredFramesPerSecond
          updatePreferredFramesPerSecond()
-@@ -1565,6 +1799,7 @@ open class MLRNMapView(
+@@ -1565,6 +1873,7 @@ open class MLRNMapView(
          eventName: String,
          withViewState: Boolean? = null,
      ) {
@@ -356,10 +455,14 @@ index b088909a48c4265219e4e95c529f6c0a63ae7e11..3df847a92f53508944e191c44be96de1
          val event =
              if (withViewState == true) {
                  MapChangeEvent(surfaceId, id, eventName, makeViewState(null))
-@@ -1613,6 +1848,26 @@ open class MLRNMapView(
+@@ -1613,6 +1922,30 @@ open class MLRNMapView(
      }
  
      companion object {
++        /** (T451) the longest a held picture stays over a style swap */
++        const val SWAP_HOLD_MAX_MS = 1500L
++        const val SWAP_TAG = "CifSwap"
++
 +        /** (T312) Android's own fling distance for a release at `vDp` dp/s (OverScroller's spline), in dp. */
 +        fun platformFlingDp(vDp: Double, density: Float): Double {
 +            val ppi = density * 160.0

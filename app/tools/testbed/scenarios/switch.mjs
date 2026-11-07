@@ -86,6 +86,12 @@ export const tabSwitch = {
       const mp4 = path.join(ctx.dir, 'T451-switch.mp4');
       execFileSync(process.env.ADB ?? 'adb', ['-s', d.serial(), 'pull', '/sdcard/t451.mp4', mp4], { stdio: 'ignore' });
       fs.writeFileSync(path.join(ctx.dir, 'T451-switch.json'), `${JSON.stringify(out, null, 1)}\n`);
+      // (T451) the binding's held picture over each swap (`CifSwap`: copy ms, frames, load, end and why), and the
+      // recording's frames per direction (`switch-frames.py`: frames drawing the streams uncoloured entering Map)
+      const held = execFileSync(process.env.ADB ?? 'adb', ['-s', d.serial(), 'logcat', '-d', '-s', 'CifSwap:*']).toString();
+      fs.writeFileSync(path.join(ctx.dir, 'T451-hold.log'), held);
+      const ends = [...held.matchAll(/ end (\w+) (\d+)/g)].map((m) => ({ why: m[1], ms: Number(m[2]) }));
+      const frames = execFileSync('python3', ['-I', path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'switch-frames.py'), ctx.dir]).toString().trim();
       const s = out.swaps;
       const twice = s.filter((x) => x.handed > 1).length, bare = s.filter((x) => x.bare > 0);
       const kept = s.filter((x) => x.kept === true).length, lost = s.filter((x) => x.kept === false).length;
@@ -95,7 +101,9 @@ export const tabSwitch = {
       for (const x of s) for (const w of x.why) whys[w] = (whys[w] ?? 0) + 1;
       return `${out.switches.length} switches → ${s.length} style loads; ${twice} loads followed 2+ hand-overs; ` +
         `frames drawn before the labels landed: ${bare.length}/${s.length} loads, p50 ${q(bareN, 0.5)} / max ${bareN.at(-1)} frames, ` +
-        `load → labels p50 ${q(bareMs, 0.5)} / max ${bareMs.at(-1)} ms; feature-state kept over a swap ${kept}, lost ${lost}; why ${JSON.stringify(whys)}`;
+        `load → labels p50 ${q(bareMs, 0.5)} / max ${bareMs.at(-1)} ms; feature-state kept over a swap ${kept}, lost ${lost}; why ${JSON.stringify(whys)}; ` +
+        `holds ${ends.length} (${JSON.stringify(Object.fromEntries([...new Set(ends.map((e) => e.why))].map((w) => [w, ends.filter((e) => e.why === w).length])))}), ` +
+        `hold p50 ${q(ends.map((e) => e.ms).sort((a, b) => a - b), 0.5)} / max ${Math.max(0, ...ends.map((e) => e.ms))} ms; frames per direction:\n${frames}`;
     });
   },
 };

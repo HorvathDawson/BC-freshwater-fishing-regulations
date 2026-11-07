@@ -59,4 +59,21 @@ describe("(T369 D14) the native colouring queue", () => {
     q.clear("lake");
     expect(q.drain()).toEqual([["lake", ["9"], [{ survey: null }]]]);
   });
+
+  it("(T451) a section cleared then relabelled in one burst is ONE write: no frame between them draws it bare", () => {
+    const q = new StateQueue();
+    q.set("stream", "1", { p: 2, rs: 4 }); q.set("stream", "2", { p: 3 });
+    q.drain();
+    q.clear("stream");
+    q.set("stream", "1", { p: 2 }); q.set("stream", "2", { p: 3 });
+    // a renderer that may draw between ANY two writes of the batch: every write is a frame
+    const cur = new Map<string, State>([["1", { p: 2, rs: 4 }], ["2", { p: 3 }]]);
+    const bare: string[] = [];
+    for (const [, ids, states] of q.drain()) ids.forEach((id, i) => {
+      cur.set(id, { ...cur.get(id), ...states[i] });
+      for (const [k, v] of cur) if (v.p === null || v.p === undefined) bare.push(k);
+    });
+    expect(bare).toEqual([]);
+    expect(Object.fromEntries(cur)).toEqual({ 1: { p: 2, rs: null }, 2: { p: 3, rs: null } });
+  });
 });
