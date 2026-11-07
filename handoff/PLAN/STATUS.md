@@ -46,9 +46,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   right region's rules), T461 (tidal polygon: measure, simplify per zoom, quieter edge; shots for you). T443's
   "landstorm bar" item corrected: two copies of the Landstrom Bar label ~50 m apart overlap.
 - **Running:** T456 (walkthrough, agent); the step-screen lane (T451 flicker, T443's two items, T459 grey-out, agent;
-  told about the Landstrom correction).
-- **Queue after them:** T460 → 0.6.8 APK (T446, T454, T455, T456, T451, T443, T459, park border) → T457, T461, T420,
-  T458.
+  told about the Landstrom correction). **Map performance (T420/T401/T448) now belongs to its own chat**
+  (handoff/PLAN/MAP-PERF-HANDOFF.md, started 11-06): this chat does not touch those tickets, and the two chats take
+  turns on the test bed. That chat's perf changes join the 0.6.8 batch if they are ready in time.
+- **Queue after them:** T460 → 0.6.8 APK (T446, T454, T455, T456, T451, T443, T459, park border) → T457, T461, T458.
+  T457/T461 edit layers.source.json, which the perf chat may also edit: commit only your own paths, rebuild the style
+  after a pull.
 - **Your 0.6.7 check:** the glide feels good (T452 DONE). Still to do: the pan stutters while the map loads tiles
   (T420), the Map switch still flickers coming from Conditions/Run timing ("maybe better", T451 reopened), the
   boundary names in the ▲/▼ bar overlap, and the first open of a water's Map tab frames differently from ▲ then ▼
