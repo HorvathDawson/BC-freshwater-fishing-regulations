@@ -27,12 +27,17 @@ const visible = (l: L) => l.layout?.visibility !== "none";
 const moved = (a: S, b: S) => a.layers.filter((l, i) => JSON.stringify(l) !== JSON.stringify(b.layers[i])).map((l) => l.id);
 
 describe("the map lab", () => {
-  it("at its defaults hands back the very style, byte for byte", () => {
-    const s = today();
-    expect(labStyle(s, LAB_DEFAULT)).toBe(s);
-    expect(JSON.stringify(labStyle(today(), LAB_DEFAULT))).toBe(JSON.stringify(today()));
+  it("with skip-invisible off, hands back the very style, byte for byte", () => {
+    const s = today(), off = { ...LAB_DEFAULT, hideInvisible: false };
+    expect(labStyle(s, off)).toBe(s);
+    expect(JSON.stringify(labStyle(today(), off))).toBe(JSON.stringify(today()));
     // the native switches (pixel cap, prefetch) never touch the style
-    expect(labStyle(s, { ...LAB_DEFAULT, pixelCap: false, prefetch: 2 })).toBe(s);
+    expect(labStyle(s, { ...off, pixelCap: false, prefetch: 2 })).toBe(s);
+  });
+
+  it("at its defaults moves only layers drawing nothing (every opacity the constant 0)", () => {
+    const t = today(), s = labStyle(today(), LAB_DEFAULT);
+    expect(moved(t, s)).toEqual(moved(t, lab({ hideInvisible: true })));
   });
 
   it("streams in one bucket: today four, the lab one, and nothing else moves", () => {
@@ -40,7 +45,7 @@ describe("the map lab", () => {
     expect(buckets(today(), (l) => streamLine(l) && visible(l))).toBe(4);
     const s = lab({ streamsOneBucket: true });
     expect(buckets(s, (l) => streamLine(l) && visible(l))).toBe(1);
-    const t = today();
+    const t = labStyle(today(), LAB_DEFAULT);
     expect(moved(t, s).every((id) => streamLine(t.layers.find((l) => l.id === id)!))).toBe(true);
     expect(s.layers.map((l) => l.id)).toEqual(t.layers.map((l) => l.id));
   });
@@ -61,7 +66,7 @@ describe("the map lab", () => {
     ["landuse", { landuse: false }, (l: L) => l.source === "basemap" && l["source-layer"] === "landuse"],
     ["labels", { labels: false }, (l: L) => l.type === "symbol"],
   ] as const)("%s off hides exactly those layers", (_, change, pick) => {
-    const t = today(), s = lab(change);
+    const t = labStyle(today(), LAB_DEFAULT), s = lab(change);
     const named = t.layers.filter(pick).map((l) => l.id);
     expect(named.length).toBeGreaterThan(0);
     expect(s.layers.filter(pick).every((l) => l.layout?.visibility === "none")).toBe(true);

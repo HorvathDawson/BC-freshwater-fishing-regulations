@@ -6,8 +6,10 @@
  * not `EXPO_PUBLIC_APP_ENV=production` (and `app.config.js` refuses a production build carrying the flag). The switches
  * last for the session only — module state, never saved — so a restart is today's map.
  *
- * AT ITS DEFAULTS IT IS NOTHING: `labStyle(style, LAB_DEFAULT)` returns the very style it was given (`lab.test.ts` pins
- * that, and that each switch moves only the layers it names).
+ * AT ITS DEFAULTS IT IS TODAY'S MAP: the one default that is not "off" is `hideInvisible` (owner 2026-11-06, after the
+ * stressed A/B and a phone check: ON for every build) — it hides only layers drawing nothing, so the picture is the same.
+ * `lab.test.ts` pins that, that with it off the style comes back as the very object, and that each switch moves only
+ * the layers it names.
  */
 import { useSyncExternalStore } from "react";
 
@@ -32,7 +34,7 @@ export interface Lab {
 }
 
 export const LAB_DEFAULT: Readonly<Lab> = Object.freeze({
-  pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0, hideInvisible: false,
+  pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0, hideInvisible: true,
 });
 
 /** Read once: Metro inlines `EXPO_PUBLIC_*` at build time. */
