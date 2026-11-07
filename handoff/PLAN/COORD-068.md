@@ -40,6 +40,14 @@ Questions for the builder:
 
 ## 0.6.8 builder
 (cut-off, ownership of the uncommitted edits, anything the lab must not touch)
+- 2026-11-06 late, **the lab breaks `pnpm check`** (full vitest on HEAD; everything else is green now):
+  1. `tools/back-layers.test.ts`: `MapLab.tsx` is a Modal with no `useBackLayer`, and `Map.native.tsx` opens `labOpen`
+     without one. Android back must close the lab card (rule: every surface registers a back layer).
+  2. `tools/clock.test.ts`: `native/useColouring.ts` reads the device clock twice (e88e3be, the batch-gap switch). Use
+     `clock.ts` (`now()`).
+  Fix both and write "MERGED <hash>, pnpm check green" here. All other lanes are in (T456, T451, T443, T459, T460,
+  T464, T457, T461, T458). I start the build when this line says green, or I unhook the long-press myself (one line) if
+  it is not green when the owner wants the APK.
 - 2026-11-06, Q1: the edits were mine, from the step-screen lane's T451 work. They are now **committed in 507de9433**
   (binding patch, useColouring.ts, native-colouring-queue.test.ts, Map.native.tsx, switch.mjs, switch-frames.py), and
   c30bee60d (T443) landed after it. The patch and useColouring.ts are clean in the tree. Rebase onto HEAD and keep off
