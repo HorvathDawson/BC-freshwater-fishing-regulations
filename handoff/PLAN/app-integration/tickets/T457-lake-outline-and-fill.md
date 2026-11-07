@@ -1,6 +1,6 @@
 # T457 — Lakes: an opaque outline sized by the lake, over a slightly transparent fill
 
-Status: OPEN (owner 2026-11-06, chat 5: an idea to try).
+Status: DONE 2026-11-06 — f3038a2 (owner approved the shots: "assume tidal and lakes are good"). Phone check on 0.6.8.
 
 Owner: "lakes in the map could look better if they have an outline that is opaque then a fill that is slightly
 transparent? with the outline sized by the size of the lake so it is proportional?"
@@ -22,3 +22,12 @@ transparent? with the outline sized by the size of the lake so it is proportiona
    the owner's call (a proposal until accepted). Check the zoomed-out frame cost (T420: an extra line pass over
    detailed polygons cost 14–15 % before): measure, and if it costs, only draw the outline from a zoom where it pays.
 Related: T420 (basemap fill outline removed for speed), rule 28/29. Size: S–M. Owner: approve the look.
+
+## Done (2026-11-06, f3038a2)
+What was already there: the outline exists, sized by the square root of `area_m2` (`width.stream.base` ramp), and in the
+colour modes it already takes the fill's colour (`follow`). Dark mode already looked like the idea. In light mode the
+fill (0.6) was almost as strong as the outline. Change: the outline ramp ×1.5 at every zoom, and `opacity.lake` light
+0.6 → 0.4, dark 0.85 → 0.75 (cvd keeps 0.9). Shots (web renderer, `tools/label-shots.mjs`, the new places
+`harrison-lake` / `hope-lakes`) were sent to the owner and approved. App = web by construction: `nativeStyle` is a copy
+of `runtimeStyle` with the same `applyLook`, pinned by `parity.test.ts`. Not drawn on the emulator yet: a native shot
+goes in the 0.6.8 walk. Frame cost: no new layer or pass; the outline was already drawn.
