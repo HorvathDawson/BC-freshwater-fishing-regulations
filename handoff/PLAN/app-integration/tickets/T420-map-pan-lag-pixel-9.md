@@ -294,7 +294,7 @@ Next: skip-invisible default ON after the owner's phone check (0.6.9); the patch
 
 ## The owner's Pixel 9: a system trace (2026-11-07, 0.6.8, Coquitlam z13, skip-invisible on, ~10 s of flings)
 On-device System Tracing (default categories), read with Perfetto's trace processor (`app/tools/perfetto/`; trace
-`out/traces/pixel9-067-coq13-20261107.perfetto-trace`, git-ignored). **CPU-bound on MapLibre's render thread, GPU nearly idle:**
+`out/traces/pixel9-068-coq13-20261107.perfetto-trace`, git-ignored). **CPU-bound on MapLibre's render thread, GPU nearly idle:**
 - the render thread ran 915–1010 ms of every second for 10 s (9.4 s of 12; asleep 68 ms in total), on CPU 7 (the prime core,
   avg 1.89 of 3.1 GHz);
 - the map's surface presented **113 frames in ~11 s (~10 fps)**; `QueueSubmit`/`QueuePresentKHR` are short (≤ 1.3 ms) and
