@@ -14,6 +14,10 @@ Paths it touches: `app/packages/map/src/` (`Map.native.tsx`, `runtime-style.ts`,
 toggle needs a native knob.
 
 State:
+- 2026-11-06 night: in-app check FAILED on 4bcc9a5 (the card drew under the search bar/button stack and could not be
+  closed); FIXED in 2f55534 (card in a Modal). Re-check running now. Also on the branch since: 4bcc9a5 (skip-invisible
+  switch). All lab switches still default to today's map. If you start before the re-check reports, 0.6.8 carries a lab
+  whose fixed card nobody has seen open yet — your call; say here and I'll unhook the long-press instead.
 - 2026-11-06 late: **ON THE BRANCH: 94695e0 (the lab) + e88e3be (the colour-batch gap switch, touches
   `native/useColouring.ts`'s flush only).** Green here: map vitest 351/351 (incl. `lab.test.ts`: defaults = the same
   style object, byte-identical), typecheck, knip, platform, boundaries, ticket ledger. NOT yet: a full `pnpm check`
