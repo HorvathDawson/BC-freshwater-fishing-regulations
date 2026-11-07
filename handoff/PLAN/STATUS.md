@@ -24,7 +24,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   held").
 - **`pnpm check` on a quiet machine:** 6700 pass, 1 fail: the walkthrough's Layers test skipped a step. It passes
   alone, so it is a race, possibly one a reader could hit (a step skipped). Filed as T455, an agent is on it.
-- **Running:** T455 (above); T454's emulator check with a recording for you.
+- **T454 on the emulator** (13eb712, recording sent): double-tap zoom, drag pan, a swipe while zoomed stays on the
+  photo, double-tap back, a swipe at the fit changes photo. Pinch cannot be driven on the emulator (no multi-touch
+  injection): yours to check on the phone, in the next APK.
+- **Running:** T455 (above).
 - **Crash store (T351):** no foreground native crash since 0.6.6. Today's reports are emulator installs (android 35)
   failing a download check ("does not match the manifest", several "0 % of its size") plus one from 0.6.4 on your
   phone (before T446's change). The test-bed builds do tag theirs. These carry the Play build's version, so they come
