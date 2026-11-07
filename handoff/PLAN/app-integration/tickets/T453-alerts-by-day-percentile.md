@@ -31,7 +31,8 @@ or standard UI structure."
      % in 24 h / day's percentile) → value → how often → Save. Back always goes up one level.
    - grouped sections with headers, labelled controls, plain defaults already filled in, no hidden gestures.
    It uses the app's tokens and components (no new look) and the same layout on phone and web (rule 26), and keeps
-   logic in hooks (rule 25). Before building, send the owner before/after shots (emulator).
+   logic in hooks (rule 25). The design is Claude's choice (owner 2026-11-06: "choose the menu that you think is best,
+   don't need to propose ones to me"): build it without asking for a design, and the owner checks it on the phone.
 
 ## Open questions (defaults until the owner answers)
 - Q-T453a: does the picker offer free percentiles or the app's own words/bands (e.g. "above normal", "high")?
