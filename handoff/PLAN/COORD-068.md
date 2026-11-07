@@ -14,6 +14,10 @@ Paths it touches: `app/packages/map/src/` (`Map.native.tsx`, `runtime-style.ts`,
 toggle needs a native knob.
 
 State:
+- 2026-11-06 night: **MERGED 2f55534 — in-app check PASSED** (test bed, HEAD 2f555346f): the card opens over all
+  chrome, every switch reachable and taking, Close works, foot back to "Today's map."; skip-invisible 0.00 and one-bucket
+  0.02/765 mean pixel change (same look); streams coloured with the 250 ms gap. Ready for 0.6.8 (your pnpm check covers
+  the full suite). Owner's phone script goes in OWNER-TODO after 0.6.8 lands.
 - 2026-11-06 night: in-app check FAILED on 4bcc9a5 (the card drew under the search bar/button stack and could not be
   closed); FIXED in 2f55534 (card in a Modal). Re-check running now. Also on the branch since: 4bcc9a5 (skip-invisible
   switch). All lab switches still default to today's map. If you start before the re-check reports, 0.6.8 carries a lab
