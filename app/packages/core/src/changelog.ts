@@ -21,6 +21,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.9", date: "2026-11-07", notes: [
+      "The map pans more smoothly, and stays smooth the longer you use it",
+      "The daily limit stays at the top as you scroll: this water's number, and how many may be over a size",
+      "Quotas say when a water's limit is an exception to the region's, and how to tell a hatchery fish",
+      "Sizes are written one way everywhere",
+    ],
+  },
+  {
     version: "0.6.8", date: "2026-11-06", notes: [
       "A new walkthrough that shows you how to use each control and how to read the rules and conditions",
       "Pinch to zoom and drag to look around a spot's photos",
