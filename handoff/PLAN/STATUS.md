@@ -49,7 +49,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   told about the Landstrom correction). **Map performance (T420/T401/T448) now belongs to its own chat**
   (handoff/PLAN/MAP-PERF-HANDOFF.md, started 11-06): this chat does not touch those tickets, and the two chats take
   turns on the test bed. That chat's perf changes join the 0.6.8 batch if they are ready in time.
-- **Queue after them:** T460 → T457, T461, T458 (owner 11-06: in 0.6.8) → write "BUILD STARTING <hash>" in handoff/PLAN/COORD-068.md and include the perf lane's Map lab only if it says "MERGED … pnpm check green" → 0.6.8 APK (T446, T454, T455, T456, T451, T443, T459, park border, T457, T461, T458). Then T463 (owner runs /code-review ultra) and T462 (regs audit, a workflow; may start sooner, read-only).
+- **Done 11-06 (evening):** T460 (Fraser step no longer skips a part; 10 waters; the side channel's rules were right), T464
+  (Bulkley: 6 of 12 parts could not be stepped to; only the Bulkley changes, plus a release test that every part is
+  reachable), T457 lakes + T461 tidal look (owner approved the shots), T458 (the floating-promise gate in `pnpm check`).
+  The perf lane's Map lab is on the branch (94695e0, e88e3be); its in-app check is still running (COORD-068).
+- **Left before 0.6.8:** T456 (walkthrough) and the step-screen lane (T459) land → write "BUILD STARTING <hash>" in
+  handoff/PLAN/COORD-068.md → `pnpm check` → APK (T446, T454, T455, T456, T451, T443, T459, T460, T464, park border, T457,
+  T461 look, T458, Map lab). Native shot of the new lake look in the walk. Then T463 (owner runs /code-review ultra) and
+  T462 (regs audit, a workflow; may start sooner, read-only). iOS benched (OWNER-TODO).
   T457/T461 edit layers.source.json, which the perf chat may also edit: commit only your own paths, rebuild the style
   after a pull.
 - **Your 0.6.7 check:** the glide feels good (T452 DONE). Still to do: the pan stutters while the map loads tiles
