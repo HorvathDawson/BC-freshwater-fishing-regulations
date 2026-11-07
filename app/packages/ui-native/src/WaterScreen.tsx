@@ -113,8 +113,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const sunDay = { y: d.calendarYear, m: d.day.month, d: d.day.day };
   const sun = useSunLine(source, item, at, sunDay);
   const daylight = useDaylight(source, item, at, sunDay);   // (T473) the hours a daylight-only closure leaves open
-  const waterBook = useMemo(() => (inputs.value ? waterBookOf(inputs.value) : undefined), [inputs.value]);   // (T474)
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
+  const waterBook = useMemo(() => (inputs.value ? waterBookOf(inputs.value, regs) : undefined), [inputs.value, regs]);   // (T474; T60: not a page the lines already link)
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T254) a refusal (a release that cannot answer) is not a dead line: no Try again for it
   const regsRetry = !!regsError && regsError.name !== "RegsStoreError" && !!onRetry;

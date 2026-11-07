@@ -16,3 +16,15 @@ describe("waterBookOf (T474)", () => {
     expect(waterBookOf(inp([rule(0, null, true)]))).toEqual([]);
   });
 });
+
+describe("waterBookOf dedupe (T60)", () => {
+  const i = inp([rule(0, [[22, 24]]), rule(0, [[59, 61]])]);
+  it("leaves out a page the screen's lines already link, keeps the rest", () => {
+    const page = { keep: [{ line: [{ t: "text", s: "x" }, { t: "book", printed: 22, pdf: 24 }] }] };
+    expect(waterBookOf(i, page)).toEqual([{ t: "text", s: "This water in the rule book" }, { t: "text", s: " " }, { t: "book", printed: 59, pdf: 61, bare: true }]);
+  });
+  it("every page already linked: no line (the rule's own link is the one action)", () => {
+    const page = [[{ t: "book", printed: 22, pdf: 24 }], { a: { t: "book", printed: 59, pdf: 61 } }];
+    expect(waterBookOf(i, page)).toEqual([]);
+  });
+});
