@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { MapLab, type mapChrome } from "@app/map";
-import { MENU_WORDS, reportFailure, type AboutEnvVM, type AppEnv, aboutEnvVM } from "@app/core";
+import { DEV_WORDS, MENU_WORDS, reportFailure, type AboutEnvVM, type AppEnv, aboutEnvVM } from "@app/core";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { NoneLine } from "./EmptyState";
@@ -18,14 +18,10 @@ import { hitProps } from "./regs/hit";
 import type { MenuInfo } from "./menu/MenuHost";
 import { ChannelPicker, UpdatesLogPage } from "./menu/UpdatesLogPage";
 
-export const DEVELOPER_SECTIONS = [
-  { k: "lab", label: "Map lab" },
-  { k: "source", label: "Data source" },
-  { k: "updates", label: "Updates log" },
-  { k: "build", label: "Build info" },
-] as const;
-export type DeveloperSection = (typeof DEVELOPER_SECTIONS)[number]["k"];
-export const DEVELOPER_CLOSE = "Close the developer card";
+export type DeveloperSection = keyof typeof DEV_WORDS.sections;
+export const DEVELOPER_SECTIONS = (Object.keys(DEV_WORDS.sections) as DeveloperSection[])
+  .map((k) => ({ k, label: DEV_WORDS.sections[k] }));
+export const DEVELOPER_CLOSE = DEV_WORDS.closeLabel;
 
 const W = MENU_WORDS.about;
 
@@ -84,11 +80,11 @@ function BuildInfo({ info, release, palette }: { info: MenuInfo; release: string
   const env = info.env?.about;
   const rows: readonly (readonly [string, string, string])[] = [
     ["app", W.app, info.appBuild ?? W.notStated],
-    ...(h ? [["platform", "Platform", h.platform] as const] : []),
-    ["release", "Data release", release ?? h?.release ?? W.devBundle],
-    ["env", "Environment", env ? env.env : W.notStated],
-    ["origin", "Origin", env ? env.origin.replace(/^https?:\/\//, "") : W.notStated],
-    ["channel", "Channel", h ? h.channel : W.notStated],
+    ...(h ? [["platform", DEV_WORDS.build.platform, h.platform] as const] : []),
+    ["release", DEV_WORDS.build.release, release ?? h?.release ?? W.devBundle],
+    ["env", DEV_WORDS.build.env, env ? env.env : W.notStated],
+    ["origin", DEV_WORDS.build.origin, env ? env.origin.replace(/^https?:\/\//, "") : W.notStated],
+    ["channel", DEV_WORDS.build.channel, h ? h.channel : W.notStated],
   ];
   return (
     <View testID="dev-build" style={{ gap: 0 }}>
@@ -110,14 +106,14 @@ export function DeveloperCard({ palette, chrome, info, release, onClose, initial
 }) {
   const [section, setSection] = useState<DeveloperSection>(initial);
   return (
-    <Pressable testID="developer-card" accessibilityLabel="Developer" onPress={() => {}}
+    <Pressable testID="developer-card" accessibilityLabel={DEV_WORDS.name} onPress={() => {}}
                style={{ backgroundColor: palette.card, borderWidth: 1, borderColor: palette.ink, padding: SPACE.s3, gap: SPACE.s3,
                         maxHeight: "92%", boxShadow: `2px 2px 0 ${chrome.shadow}` }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>Developer (test build)</Text>
+        <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{DEV_WORDS.title}</Text>
         <Pressable {...hitProps({ w: 60, h: 44 })} testID="developer-close" accessibilityRole="button" accessibilityLabel={DEVELOPER_CLOSE}
                    onPress={onClose} style={{ paddingHorizontal: SPACE.s2, paddingVertical: 2, borderWidth: 1, borderColor: palette.ink }}>
-          <Text style={{ ...TYPE.small, color: palette.ink }}>Close</Text>
+          <Text style={{ ...TYPE.small, color: palette.ink }}>{DEV_WORDS.close}</Text>
         </Pressable>
       </View>
       <View accessibilityRole="tablist" style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE.s2 }}>
@@ -138,7 +134,7 @@ export function DeveloperCard({ palette, chrome, info, release, onClose, initial
         {section === "source" && <DataSource info={info} palette={palette} />}
         {section === "updates" && (info.updatesLog
           ? <UpdatesLogPage c={info.updatesLog} palette={palette} />
-          : <NoneLine palette={palette}>{"This build keeps no Updates log."}</NoneLine>)}
+          : <NoneLine palette={palette}>{DEV_WORDS.noUpdatesLog}</NoneLine>)}
         {section === "build" && <BuildInfo info={info} release={release} palette={palette} />}
       </ScrollView>
     </Pressable>

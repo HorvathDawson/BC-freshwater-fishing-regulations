@@ -2,7 +2,7 @@
 import { IMAGERY_ATTRIBUTION } from "../imagery";
 
 /** The pages that open OVER the More tab. Display and Contact are drawn on the tab itself (owner 2026-10-22). */
-export type MenuPageKey = "offline" | "notifications" | "help" | "glossary" | "sources" | "about" | "report" | "updates"
+export type MenuPageKey = "offline" | "notifications" | "help" | "glossary" | "sources" | "about" | "report"
   | "changelog";
 
 /** The app's name as the menu writes it (app.json's display name is the slug; the owner names the product). */
@@ -47,7 +47,6 @@ export const MENU_WORDS = {
     about: { label: "About", hint: "What this app is, and what it is not" },
     report: { label: "Report a problem", hint: "Something wrong, missing or confusing" },
     // (T251) development and staging builds only: reached from About, never listed on the More tab
-    updates: { label: "Updates log", hint: "Every check for new data on this device" },
     // (T234 v1.1) every version's changes, newest first: reached from About, never listed on the More tab
     changelog: { label: "What's new", hint: "Every version of the app, newest first" },
   } satisfies Record<MenuPageKey, { label: string; hint: string }>,
@@ -234,4 +233,18 @@ export const CRASH_WORDS = {
   off: "Off",
   hint: "When the app hits an error it sends the error, the app version, the kind of screen, the id of the water you had open "
     + "and a random id made on this device to our own server. Never your location, spots or photos. Nothing else.",
+} as const;
+
+/**
+ * (T476) THE DEVELOPER CARD'S WORDS (development and staging builds only; the map credits' long press): the card, its four
+ * sections and the Build info rows. The Updates log's and the data source's own words stay in UPDATE_LOG_WORDS / about.env.
+ */
+export const DEV_WORDS = {
+  title: "Developer (test build)",
+  name: "Developer",
+  close: "Close",
+  closeLabel: "Close the developer card",
+  sections: { lab: "Map lab", source: "Data source", updates: "Updates log", build: "Build info" },
+  noUpdatesLog: "This build keeps no Updates log.",
+  build: { platform: "Platform", release: "Data release", env: "Environment", origin: "Origin", channel: "Channel" },
 } as const;

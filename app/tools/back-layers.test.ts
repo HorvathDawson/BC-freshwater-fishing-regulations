@@ -137,6 +137,8 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
  * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
+  "packages/ui-native/src/DeveloperCard.tsx#DeveloperCard: takes onClose": "(T476) the Developer card's body: DeveloperModal draws it in a Modal and registers the back (its onClose is DeveloperModal's requestClose)",
+  "packages/ui-native/src/menu/UpdatesLogPage.tsx#ChannelPicker: draws ChannelPicker": "(T476) a section of the Developer card (Data source / channel): it opens nothing of its own; DeveloperModal's back layer closes the card",
   "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer": "(T354) the web's viewer draws nothing (the browser's own PDF tab is the viewer); the native one registers its back",
   "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss": "(T303) the rail's one-line location notice over the map (why there is no dot): a tap puts it away and the button retries; it hides nothing, so system back stays the map's",
   "packages/ui-native/src/SpotCapture.tsx#SpotCapture: takes onCancel (SpotCaptureProps)": "(T302) it draws the web's spots notice (system back is the route's: it leaves the add) or the capture flow (SpotCaptureFlow), which registers its own steps",
@@ -220,6 +222,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       // (T257) the first-run tour: its own Modal, registered (useBackLayer)
       "packages/ui-native/src/CoachMarks.tsx#CoachTour: a Modal",
       // (T476) the Developer card, open: its own Modal, registered (useBackLayer); MapScreen hands it devOpen
+      "packages/ui-native/src/DeveloperCard.tsx#DeveloperCard: takes onClose",
       "packages/ui-native/src/DeveloperModal.tsx#DeveloperModal: a Modal",
       "packages/ui-native/src/Faces.tsx#FaceBar: takes onBack",
       // (T367) the forecast day list under the horizon strip (registered: back closes the list)
@@ -265,6 +268,7 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/menu/NotificationsPage.tsx#NotificationsPage: draws NotificationsPage",
       "packages/ui-native/src/menu/OfflinePage.tsx#OfflinePage: draws OfflinePage",
       "packages/ui-native/src/menu/ReportPage.tsx#ReportPage: draws ReportPage",
+      "packages/ui-native/src/menu/UpdatesLogPage.tsx#ChannelPicker: draws ChannelPicker",
       "packages/ui-native/src/menu/UpdatesLogPage.tsx#UpdatesLogPage: draws UpdatesLogPage",
       "packages/ui-native/src/regs/DaySheet.tsx#DaySheet: takes onClose",
       // (T354) the rule book in the app, full screen (native); the web's draws nothing (COVERED)
