@@ -261,7 +261,7 @@
     "tree": [
      {
       "also": [
-       "Only 1 cutthroat or rainbow trout over 50 cm (20 in)"
+       "Up to 1 cutthroat or rainbow trout over 50 cm (20 in)"
       ],
       "duty": null,
       "folded": false,
@@ -307,7 +307,7 @@
       "qualifiers": null,
       "says": [
        {
-        "s": "Of your 2 trout and char a day, up to ",
+        "s": "Up to ",
         "t": "text"
        },
        {
@@ -316,7 +316,7 @@
         "t": "num"
        },
        {
-        "s": " may be brook, brown, cutthroat, lake or rainbow trout",
+        "s": " brook, brown, cutthroat, lake or rainbow trout combined",
         "t": "text"
        }
       ],
@@ -357,7 +357,7 @@
       "qualifiers": null,
       "says": [
        {
-        "s": "Of your 2 trout and char a day, only ",
+        "s": "Up to ",
         "t": "text"
        },
        {
@@ -366,7 +366,7 @@
         "t": "num"
        },
        {
-        "s": " may be Dolly Varden/bull trout",
+        "s": " Dolly Varden/bull trout",
         "t": "text"
        }
       ],
@@ -1467,7 +1467,7 @@
           "t": "num"
          },
          {
-          "s": " may be whitefish",
+          "s": " whitefish combined",
           "t": "text"
          }
         ],

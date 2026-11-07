@@ -250,7 +250,7 @@
       "children": [
        {
         "also": [
-         "Only 1 over 90 cm (35 in)",
+         "Up to 1 over 90 cm (35 in)",
          "No more than 3 counting any Dolly Varden/bull trout you keep"
         ],
         "duty": null,
@@ -329,7 +329,7 @@
       "n": 2,
       "origin": null,
       "relation": null,
-      "short": "2 of them (lake trout) under this lake’s rule",
+      "short": "up to 2 lake trout",
       "sub": null,
       "t": "tier",
       "tid": "t2",
@@ -377,7 +377,7 @@
         "qualifiers": null,
         "says": [
          {
-          "s": "Of your 5 trout and char a day, up to ",
+          "s": "Up to ",
           "t": "text"
          },
          {
@@ -386,7 +386,7 @@
           "t": "num"
          },
          {
-          "s": " may be brook, brown, cutthroat or rainbow trout",
+          "s": " brook, brown, cutthroat or rainbow trout combined",
           "t": "text"
          }
         ],
@@ -428,7 +428,7 @@
         "qualifiers": null,
         "says": [
          {
-          "s": "Of your 5 trout and char a day, only ",
+          "s": "Up to ",
           "t": "text"
          },
          {
@@ -437,7 +437,7 @@
           "t": "num"
          },
          {
-          "s": " may be Dolly Varden/bull trout",
+          "s": " Dolly Varden/bull trout",
           "t": "text"
          }
         ],
@@ -462,7 +462,7 @@
       "kicker": null,
       "line": [
        {
-        "s": "Of your 5 trout and char, only ",
+        "s": "Only ",
         "t": "text"
        },
        {
@@ -471,14 +471,14 @@
         "t": "num"
        },
        {
-        "s": " may be over 50 cm (20 in)",
+        "s": " of your rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout and brook trout may be over 50 cm (20 in) — not 1 per species.",
         "t": "text"
        }
       ],
       "n": 1,
       "origin": null,
       "relation": null,
-      "short": "may be over 50 cm",
+      "short": "may be over 50 cm (20 in)",
       "sub": null,
       "t": "tier",
       "tid": "t3",
@@ -1388,7 +1388,7 @@
           "t": "num"
          },
          {
-          "s": " may be whitefish",
+          "s": " whitefish combined",
           "t": "text"
          }
         ],
@@ -1441,7 +1441,7 @@
     {
      "group": {
       "head": {
-       "exception": null,
+       "exception": "Exception to regional quota",
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1522,7 +1522,7 @@
       "tree": [
        {
         "also": [
-         "Only 1 over 44 cm (17 in)"
+         "Up to 1 over 44 cm (17 in)"
         ],
         "duty": null,
         "folded": false,
@@ -1549,7 +1549,7 @@
           "t": "num"
          },
          {
-          "s": " may be Arctic grayling",
+          "s": " Arctic grayling",
           "t": "text"
          }
         ],
@@ -1815,7 +1815,7 @@
       "tree": [
        {
         "also": [
-         "Only 1 over 100 cm (39 in)"
+         "Up to 1 over 100 cm (39 in)"
         ],
         "duty": null,
         "folded": false,
@@ -1842,7 +1842,7 @@
           "t": "num"
          },
          {
-          "s": " may be northern pike",
+          "s": " northern pike",
           "t": "text"
          }
         ],

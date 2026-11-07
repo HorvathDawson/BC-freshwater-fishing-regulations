@@ -245,8 +245,18 @@
        "t": "text"
       },
       {
-       "s": "a day per angler from streams",
+       "s": "hatchery trout/char a day from streams",
        "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "label": "How this limit is shared",
+       "open": "share:r0",
+       "s": "ⓘ",
+       "t": "link"
       }
      ],
      "leadN": 2,
@@ -289,10 +299,11 @@
      "cls": "g",
      "n": 2,
      "said": [
-      "t3"
+      "t3",
+      "t2"
      ],
      "sub": null,
-     "text": "Trout and char · 2 a day from streams"
+     "text": "Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow"
     },
     "quiet": null,
     "row": 0,
@@ -337,7 +348,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, up to ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -346,7 +357,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery brook, brown or cutthroat trout",
+            "s": " brook, brown or cutthroat trout combined",
             "t": "text"
            }
           ],
@@ -392,7 +403,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, only ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -401,7 +412,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery Dolly Varden/bull trout or lake trout",
+            "s": " Dolly Varden/bull trout or lake trout combined",
             "t": "text"
            }
           ],
@@ -455,7 +466,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, up to ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -464,7 +475,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery steelhead only — wild steelhead go back",
+            "s": " hatchery steelhead — wild steelhead go back",
             "t": "text"
            },
            {
@@ -498,7 +509,7 @@
         "kicker": null,
         "line": [
          {
-          "s": "Of your 2 trout and char, only ",
+          "s": "Only ",
           "t": "text"
          },
          {
@@ -507,23 +518,23 @@
           "t": "num"
          },
          {
-          "s": " may be over 50 cm (20 in) — ",
+          "s": " of all your trout and char may be over 50 cm (20 in) — not ",
           "t": "text"
          },
          {
-          "s": "2",
+          "s": "1",
           "size": "big2",
           "t": "num"
          },
          {
-          "s": " if one is a hatchery steelhead",
+          "s": " per species. 2 if one of them is a hatchery steelhead.",
           "t": "text"
          }
         ],
         "n": 1,
         "origin": null,
         "relation": null,
-        "short": "may be over 50 cm",
+        "short": "may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
         "sub": null,
         "t": "tier",
         "tid": "t4",
@@ -544,12 +555,7 @@
         }
        ],
        "howtell": true,
-       "says": [
-        {
-         "s": "From streams, keep hatchery fish only — wild trout and char go back.",
-         "t": "text"
-        }
-       ],
+       "says": [],
        "tag": null
       },
       "relation": null,
@@ -595,7 +601,7 @@
         "zero": false
        }
       ],
-      "exception": null,
+      "exception": "Exception to regional quota",
       "folded": false,
       "kicker": null,
       "line": [
@@ -640,7 +646,7 @@
       "n": 4,
       "origin": null,
       "relation": "Not part of the 2 from streams; part of the 4 a day across Region 2",
-      "short": "4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams",
+      "short": "up to 4 hatchery rainbow trout",
       "sub": null,
       "t": "tier",
       "tid": "t2",
@@ -2000,7 +2006,7 @@
           "t": "num"
          },
          {
-          "s": " may be whitefish",
+          "s": " whitefish combined",
           "t": "text"
          }
         ],
@@ -2162,7 +2168,7 @@
           "t": "num"
          },
          {
-          "s": " may be bass",
+          "s": " bass combined",
           "t": "text"
          }
         ],

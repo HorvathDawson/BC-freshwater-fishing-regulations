@@ -145,16 +145,16 @@ describe("T45 the Regulations view on a wide screen, laid out in Chrome", () => 
     expect(Object.fromEntries(Object.entries(m).map(([k, v]) => [k, `${v.page.join("–")} body ${v.longest} note ${v.note}`])))
       .toMatchInlineSnapshot(`
         {
-          "bc1_501 desktop 1280": "492–1052 body 79 note 103",
-          "bc1_501 desktop 1440": "572–1132 body 79 note 103",
-          "bc1_501 phone 390": "0–390 body 55 note 69",
-          "bc1_501 tablet 1024": "232–792 body 79 note 103",
-          "bc1_501 tablet 900": "170–730 body 79 note 103",
-          "klwa_1010 desktop 1280": "492–1052 body 79 note 103",
-          "klwa_1010 desktop 1440": "572–1132 body 79 note 103",
-          "klwa_1010 phone 390": "0–390 body 51 note 69",
-          "klwa_1010 tablet 1024": "232–792 body 79 note 103",
-          "klwa_1010 tablet 900": "170–730 body 79 note 103",
+          "bc1_501 desktop 1280": "492–1052 body 71 note 103",
+          "bc1_501 desktop 1440": "572–1132 body 71 note 103",
+          "bc1_501 phone 390": "0–390 body 45 note 69",
+          "bc1_501 tablet 1024": "232–792 body 71 note 103",
+          "bc1_501 tablet 900": "170–730 body 71 note 103",
+          "klwa_1010 desktop 1280": "492–1052 body 63 note 103",
+          "klwa_1010 desktop 1440": "572–1132 body 63 note 103",
+          "klwa_1010 phone 390": "0–390 body 48 note 69",
+          "klwa_1010 tablet 1024": "232–792 body 63 note 103",
+          "klwa_1010 tablet 900": "170–730 body 63 note 103",
           "vedder_1010 desktop 1280": "492–1052 body 77 note 103",
           "vedder_1010 desktop 1440": "572–1132 body 77 note 103",
           "vedder_1010 phone 390": "0–390 body 54 note 69",
@@ -170,18 +170,10 @@ describe("T45 the Regulations view on a wide screen, laid out in Chrome", () => 
       // (the line's words dropped from each problem: the count and where are the claim)
       expect(problems(measure()).map((p) => p.replace(/ characters: .*$/, " characters"))).toMatchInlineSnapshot(`
         [
-          "vedder_1010 tablet 900: a line of 118 characters",
-          "vedder_1010 tablet 1024: a line of 129 characters",
-          "vedder_1010 desktop 1280: a line of 129 characters",
-          "vedder_1010 desktop 1440: a line of 129 characters",
-          "klwa_1010 tablet 900: a line of 93 characters",
-          "klwa_1010 tablet 1024: a line of 93 characters",
-          "klwa_1010 desktop 1280: a line of 93 characters",
-          "klwa_1010 desktop 1440: a line of 93 characters",
-          "bc1_501 tablet 900: a line of 97 characters",
-          "bc1_501 tablet 1024: a line of 97 characters",
-          "bc1_501 desktop 1280: a line of 97 characters",
-          "bc1_501 desktop 1440: a line of 97 characters",
+          "vedder_1010 tablet 900: a line of 114 characters",
+          "vedder_1010 tablet 1024: a line of 122 characters",
+          "vedder_1010 desktop 1280: a line of 122 characters",
+          "vedder_1010 desktop 1440: a line of 122 characters",
         ]
       `);
     } finally { MUTANT.on = false; }

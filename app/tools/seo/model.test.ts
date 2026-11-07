@@ -88,7 +88,7 @@ describe("the page model is the app's answer (T192, fixture release)", () => {
     const v = models.find((m) => m.name === "Vedder River")!;
     expect(v.status).toBe("open");
     const text = v.parts.flatMap((p) => p.sections.flatMap((s) => s.items.map((i) => i.text))).join("\n");
-    expect(text).toMatch(/2 a day per angler from streams/);
+    expect(text).toMatch(/2 hatchery trout\/char a day from streams/);   // T475: Region 2's "2 from streams (must be hatchery)"
     expect(text).toMatch(/This river’s rule: up to 4 hatchery rainbow trout a day/);
   });
 

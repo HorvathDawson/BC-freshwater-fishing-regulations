@@ -270,8 +270,18 @@
        "t": "text"
       },
       {
-       "s": "a day per angler from streams",
+       "s": "hatchery trout/char a day from streams",
        "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "label": "How this limit is shared",
+       "open": "share:r0",
+       "s": "ⓘ",
+       "t": "link"
       }
      ],
      "leadN": 2,
@@ -410,7 +420,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, up to ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -419,7 +429,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery brook or brown trout",
+            "s": " brook or brown trout combined",
             "t": "text"
            }
           ],
@@ -464,7 +474,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, only ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -473,7 +483,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery Dolly Varden/bull trout or lake trout",
+            "s": " Dolly Varden/bull trout or lake trout combined",
             "t": "text"
            }
           ],
@@ -527,7 +537,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, up to ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -536,7 +546,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery steelhead only — wild steelhead go back",
+            "s": " hatchery steelhead — wild steelhead go back",
             "t": "text"
            },
            {
@@ -570,7 +580,7 @@
         "kicker": null,
         "line": [
          {
-          "s": "Of your 2 trout and char, only ",
+          "s": "Only ",
           "t": "text"
          },
          {
@@ -579,23 +589,23 @@
           "t": "num"
          },
          {
-          "s": " may be over 50 cm (20 in) — ",
+          "s": " of all your trout and char may be over 50 cm (20 in) — not ",
           "t": "text"
          },
          {
-          "s": "2",
+          "s": "1",
           "size": "big2",
           "t": "num"
          },
          {
-          "s": " if one is a hatchery steelhead",
+          "s": " per species. 2 if one of them is a hatchery steelhead.",
           "t": "text"
          }
         ],
         "n": 1,
         "origin": null,
         "relation": null,
-        "short": "may be over 50 cm",
+        "short": "may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
         "sub": null,
         "t": "tier",
         "tid": "t3",
@@ -616,12 +626,7 @@
         }
        ],
        "howtell": true,
-       "says": [
-        {
-         "s": "From streams, keep hatchery fish only — wild trout and char go back.",
-         "t": "text"
-        }
-       ],
+       "says": [],
        "tag": null
       },
       "relation": null,
@@ -2049,7 +2054,7 @@
           "t": "num"
          },
          {
-          "s": " may be whitefish",
+          "s": " whitefish combined",
           "t": "text"
          }
         ],
@@ -2211,7 +2216,7 @@
           "t": "num"
          },
          {
-          "s": " may be bass",
+          "s": " bass combined",
           "t": "text"
          }
         ],

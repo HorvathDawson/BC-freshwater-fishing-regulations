@@ -247,8 +247,18 @@
        "t": "text"
       },
       {
-       "s": "a day per angler from streams",
+       "s": "trout/char a day from streams",
        "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "label": "How this limit is shared",
+       "open": "share:r0",
+       "s": "ⓘ",
+       "t": "link"
       }
      ],
      "leadN": 2,
@@ -313,10 +323,10 @@
         "t": "term"
        }
       ],
-      "says": "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
+      "says": "Steelhead: closed, no catch and release",
       "stamps": [],
       "status": "closed",
-      "term": null,
+      "term": "no_fishing_for",
       "whose": [
        {
         "s": "This river’s rule",
@@ -411,7 +421,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day under this river’s rule, up to ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -420,7 +430,7 @@
             "t": "num"
            },
            {
-            "s": " may be brook, brown or lake trout",
+            "s": " brook, brown or lake trout combined",
             "t": "text"
            }
           ],
@@ -459,7 +469,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day under this river’s rule, only ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -468,7 +478,7 @@
             "t": "num"
            },
            {
-            "s": " may be Dolly Varden/bull trout",
+            "s": " Dolly Varden/bull trout",
             "t": "text"
            }
           ],
@@ -493,7 +503,7 @@
         "kicker": null,
         "line": [
          {
-          "s": "Of your 2 trout and char, only ",
+          "s": "Only ",
           "t": "text"
          },
          {
@@ -502,14 +512,14 @@
           "t": "num"
          },
          {
-          "s": " may be over 50 cm (20 in)",
+          "s": " of all your trout and char may be over 50 cm (20 in) — not 1 per species.",
           "t": "text"
          }
         ],
         "n": 1,
         "origin": null,
         "relation": null,
-        "short": "may be over 50 cm",
+        "short": "may be over 50 cm (20 in)",
         "sub": null,
         "t": "tier",
         "tid": "t4",
@@ -536,7 +546,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day under this river’s rule, only ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -545,7 +555,7 @@
             "t": "num"
            },
            {
-            "s": " may be cutthroat trout",
+            "s": " cutthroat trout",
             "t": "text"
            }
           ],
@@ -582,7 +592,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day under this river’s rule, only ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -591,7 +601,7 @@
             "t": "num"
            },
            {
-            "s": " may be rainbow trout",
+            "s": " rainbow trout",
             "t": "text"
            }
           ],
@@ -616,19 +626,23 @@
         "kicker": null,
         "line": [
          {
+          "s": "Up to ",
+          "t": "text"
+         },
+         {
           "s": "1",
           "size": "big",
           "t": "num"
          },
          {
-          "s": " cutthroat or rainbow trout in all (part of the 2)",
+          "s": " cutthroat or rainbow trout combined (part of the 2)",
           "t": "text"
          }
         ],
         "n": 1,
         "origin": null,
         "relation": null,
-        "short": "1 cutthroat or rainbow trout in all",
+        "short": "up to 1 cutthroat or rainbow trout combined",
         "sub": null,
         "t": "tier",
         "tid": "t3",
@@ -680,7 +694,7 @@
       "n": 2,
       "origin": null,
       "relation": null,
-      "short": "2 of them under this river’s rule",
+      "short": "up to 2 of them",
       "sub": null,
       "t": "tier",
       "tid": "t2",
@@ -1845,7 +1859,7 @@
           "t": "num"
          },
          {
-          "s": " may be whitefish",
+          "s": " whitefish combined",
           "t": "text"
          }
         ],

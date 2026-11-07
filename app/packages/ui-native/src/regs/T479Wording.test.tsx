@@ -32,12 +32,18 @@ describe("T479 the group card", () => {
     fireEvent.click(links[0]!);
     expect(opened).toEqual(["hatch"]);
   });
-  it("2: a flagged own tier, and a flagged head, say Exception to regional quota; the fixture as cut says none", () => {
-    expect(mount().container.querySelector("[data-testid='kicker:exception']")).toBeNull();
+  it("2: a flagged own tier, and a flagged head, say Exception to regional quota; the fixture as cut flags the own tier only", () => {
+    // as cut (r-1b4f54fb6ed9): the Vedder's 4 hatchery rainbow are over the region's 2 from streams — the own tier is flagged
+    expect(G.head.exception).toBeNull();
+    expect(G.tree!.filter((n) => n.t === "tier" && n.exception).map((n) => n.t === "tier" && n.tier)).toEqual(["own"]);
+    expect(mount().container.querySelectorAll("[data-testid='kicker:exception']").length).toBe(1);
     cleanup();
-    const tree = G.tree!.map((n) => (n.t === "tier" && n.tier === "own" ? { ...n, exception: EXC } as TierVM : n));
-    expect(tree.some((n) => n.t === "tier" && n.exception)).toBe(true);
-    mount({ ...G, tree, head: { ...G.head, exception: EXC } });
+    // the flag cleared: no kicker
+    const none = G.tree!.map((n) => (n.t === "tier" ? { ...n, exception: null } as TierVM : n));
+    expect(mount({ ...G, tree: none }).container.querySelector("[data-testid='kicker:exception']")).toBeNull();
+    cleanup();
+    // the head flagged too: two
+    mount({ ...G, head: { ...G.head, exception: EXC } });
     expect(screen.getAllByTestId("kicker:exception").map((e) => e.textContent)).toEqual([EXC, EXC]);
   });
   it("3: the examples fold starts closed and opens on a press", () => {

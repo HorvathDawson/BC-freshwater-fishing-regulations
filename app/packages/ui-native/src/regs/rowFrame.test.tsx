@@ -37,7 +37,8 @@ describe("row frame target (T138)", () => {
     expect(words(row)).toBe("50 cm (20 in) or lessRainbow trout ›");
     const block = blockOf(row) as Element;
     expect(block.getAttribute("data-testid")).toBe("khead");
-    expect(words(block)).toMatch(/^This river’s rule: up to 4 hatchery rainbow trout a day/);
+    // T479: the own tier's "Exception to regional quota" kicker heads its block
+    expect(words(block)).toMatch(/^Exception to regional quotaThis river’s rule: up to 4 hatchery rainbow trout a day/);
   });
   it("ST (Vedder): the steelhead row itself — the second row in its box, so not the box head", () => {
     const row = rowOf(mount(vedder1010), "ST") as Element;

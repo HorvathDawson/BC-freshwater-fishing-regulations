@@ -61,9 +61,9 @@ describe("anchors", () => {
       tiers: [
         // the folded share: its header has no height, so its end is its rows' (540), its number the stored 2
         { tid: "t3", tier: "share", n: 2, head: { top: 230, height: 0 }, end: 540, short: "2 of them from streams" },
-        { tid: "t4", tier: "size", n: 1, head: { top: 230, height: 60 }, end: 540, short: "may be over 50 cm" },
+        { tid: "t4", tier: "size", n: 1, head: { top: 230, height: 60 }, end: 540, short: "may be over 50 cm (20 in) — 2 if one is a hatchery steelhead" },
         { tid: "t2", tier: "own", n: 4, head: { top: 560, height: 70 }, end: 730,
-          short: "4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams" },
+          short: "up to 4 hatchery rainbow trout" },
       ],
     }]);
   });

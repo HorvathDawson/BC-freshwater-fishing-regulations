@@ -250,8 +250,18 @@
        "t": "text"
       },
       {
-       "s": "a day per angler from streams",
+       "s": "hatchery trout/char a day from streams",
        "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "label": "How this limit is shared",
+       "open": "share:r0",
+       "s": "ⓘ",
+       "t": "link"
       }
      ],
      "leadN": 2,
@@ -316,10 +326,10 @@
         "t": "term"
        }
       ],
-      "says": "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
+      "says": "Steelhead: closed, no catch and release",
       "stamps": [],
       "status": "closed",
-      "term": null,
+      "term": "no_fishing_for",
       "whose": [
        {
         "s": "This river’s rule",
@@ -405,7 +415,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, up to ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -414,7 +424,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery brook, brown or cutthroat trout",
+            "s": " brook, brown or cutthroat trout combined",
             "t": "text"
            }
           ],
@@ -460,7 +470,7 @@
           "qualifiers": null,
           "says": [
            {
-            "s": "Of your 2 trout and char a day in streams, only ",
+            "s": "Up to ",
             "t": "text"
            },
            {
@@ -469,7 +479,7 @@
             "t": "num"
            },
            {
-            "s": " may be hatchery Dolly Varden/bull trout or lake trout",
+            "s": " Dolly Varden/bull trout or lake trout combined",
             "t": "text"
            }
           ],
@@ -495,7 +505,7 @@
         "kicker": null,
         "line": [
          {
-          "s": "Of your 2 trout and char, only ",
+          "s": "Only ",
           "t": "text"
          },
          {
@@ -504,14 +514,14 @@
           "t": "num"
          },
          {
-          "s": " may be over 50 cm (20 in)",
+          "s": " of all your trout and char may be over 50 cm (20 in) — not 1 per species.",
           "t": "text"
          }
         ],
         "n": 1,
         "origin": null,
         "relation": null,
-        "short": "may be over 50 cm",
+        "short": "may be over 50 cm (20 in)",
         "sub": null,
         "t": "tier",
         "tid": "t3",
@@ -535,7 +545,7 @@
         "qualifiers": null,
         "says": [
          {
-          "s": "Of your 2 trout and char a day in streams, up to ",
+          "s": "Up to ",
           "t": "text"
          },
          {
@@ -544,7 +554,7 @@
           "t": "num"
          },
          {
-          "s": " may be hatchery rainbow trout",
+          "s": " rainbow trout",
           "t": "text"
          }
         ],
@@ -578,12 +588,7 @@
         }
        ],
        "howtell": true,
-       "says": [
-        {
-         "s": "From streams, keep hatchery fish only — wild trout and char go back.",
-         "t": "text"
-        }
-       ],
+       "says": [],
        "tag": null
       },
       "relation": null,
@@ -1832,7 +1837,7 @@
           "t": "num"
          },
          {
-          "s": " may be whitefish",
+          "s": " whitefish combined",
           "t": "text"
          }
         ],
@@ -1994,7 +1999,7 @@
           "t": "num"
          },
          {
-          "s": " may be bass",
+          "s": " bass combined",
           "t": "text"
          }
         ],

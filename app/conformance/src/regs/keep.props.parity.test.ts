@@ -5,8 +5,8 @@
  * 1. number once (r20b): a folded kind says nothing of its own; a tier's only kind never repeats the tier's number; a
  *    printed Rule book page appears at most once on any root → leaf path.
  * 2. region vs stream words (r20e/r20f): a group whose head words say " across " (a region's total) never has a head
- *    kicker ending in "streams"; an unfolded share says "Only N of the M may be …" with N its big number and M the head's
- *    total (v38 sets only N big; the ticket's "both numbers num runs" was v33's).
+ *    kicker ending in "streams"; an unfolded share says "Up to N … of the M from …" (T475: "up to N", never "only") with N
+ *    its big number and M the head's total (v38 sets only N big; the ticket's "both numbers num runs" was v33's).
  * 3. form a (r20h): a group with a share lead under tot "a" leads with the headline's number and is "of the" root total;
  *    under tot "b" the same group leads with the root total and carries the share line; a group with no share lead is
  *    identical under a and b.
@@ -56,7 +56,7 @@ export function regionWords(g: GroupVM): string[] {
     .filter((x): x is Extract<TreeNodeVM, { t: "tier" }> => x.t === "tier" && x.tier === "share");
   for (const s of shares) {
     if (s.folded) continue;
-    const line = plain(s.line), m = /^Only (\d+) of the (\d+) may be /.exec(line);
+    const line = plain(s.line), m = /^Up to (\d+) (?:.+ )?of the (\d+) from /.exec(line);
     if (!m) bad.push(`share ${s.tid}: "${line}"`);
     else if (nums(s.line)[0] !== m[1] || m[2] !== nums(g.head.words)[0]) bad.push(`share ${s.tid}: "${line}" — its number is not the big one, or its total is not the head's`);
   }
@@ -135,7 +135,7 @@ describe("T21 Keep properties (every state)", () => {
       if (c.id !== "vedder_1010") continue;
       const a = (await c.page()).keep.groups[0]!.head, b = (await c.page(undefined, "b")).keep.groups[0]!.head;
       expect([a.form, plain(a.lead), a.ofTotal, plain(a.words), nums(a.lead)[0]]).toEqual(
-        ["a", "2 a day per angler from streams", true, "4 a day per angler across Region 2, lakes included", "2"]);
+        ["a", "2 hatchery trout/char a day from streams ⓘ", true, "4 a day per angler across Region 2, lakes included", "2"]);
       expect([b.form, nums(b.words)[0], plain(b.shareOf), b.lead]).toEqual(["b", "4", "↳ 2 of them from streams", null]);
     }
   });
@@ -146,7 +146,7 @@ describe("T21 Keep properties (every state)", () => {
       const g = (await c.page()).keep.groups[0]!;
       const share = (g.tree ?? []).find((x) => x.t === "tier" && x.tier === "share");
       expect([g.scope, share && share.t === "tier" ? [share.kicker, plain(share.line)] : null]).toEqual(
-        [null, ["All Region 4 streams", "Only 2 of the 5 may be brook, brown, cutthroat or lake trout from streams"]]);
+        [null, ["All Region 4 streams", "Up to 2 brook, brown, cutthroat or lake trout of the 5 from streams"]]);
     }
   });
 

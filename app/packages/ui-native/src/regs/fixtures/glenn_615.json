@@ -235,8 +235,18 @@
        "t": "text"
       },
       {
-       "s": "a day per angler from streams",
+       "s": "trout/char a day from streams",
        "t": "text"
+      },
+      {
+       "s": " ",
+       "t": "text"
+      },
+      {
+       "label": "How this limit is shared",
+       "open": "share:r0",
+       "s": "ⓘ",
+       "t": "link"
       }
      ],
      "leadN": 2,
@@ -338,10 +348,11 @@
      "cls": "g",
      "n": 2,
      "said": [
-      "t3"
+      "t3",
+      "t2"
      ],
      "sub": null,
-     "text": "Trout and char · 2 a day from streams"
+     "text": "Trout and char · 5 a day — up to 2 of any kind, the rest rainbow"
     },
     "quiet": null,
     "row": 0,
@@ -353,7 +364,7 @@
       "children": [
        {
         "also": [
-         "Only 1 cutthroat trout over 50 cm (20 in)"
+         "Up to 1 cutthroat trout over 50 cm (20 in)"
         ],
         "duty": null,
         "folded": true,
@@ -415,7 +426,7 @@
       "kicker": "All Region 4 streams",
       "line": [
        {
-        "s": "Only ",
+        "s": "Up to ",
         "t": "text"
        },
        {
@@ -424,7 +435,7 @@
         "t": "num"
        },
        {
-        "s": " of the 5 may be brook, brown, cutthroat or lake trout from streams",
+        "s": " brook, brown, cutthroat or lake trout of the 5 from streams",
         "t": "text"
        }
       ],
@@ -473,7 +484,7 @@
         "zero": false
        }
       ],
-      "exception": null,
+      "exception": "Exception to regional quota",
       "folded": false,
       "kicker": null,
       "line": [
@@ -518,7 +529,7 @@
       "n": 5,
       "origin": null,
       "relation": "Not part of the 2 from streams; part of the 5 a day across Region 4",
-      "short": "5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams",
+      "short": "up to 5 rainbow trout",
       "sub": "Its row covers its tributaries, so it applies here",
       "t": "tier",
       "tid": "t2",
@@ -1634,7 +1645,7 @@
           "t": "num"
          },
          {
-          "s": " may be whitefish",
+          "s": " whitefish combined",
           "t": "text"
          }
         ],
