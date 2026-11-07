@@ -33,6 +33,23 @@ describe("the spots store core (P01)", () => {
     expect([...fs.files.entries()]).toEqual([["s.json.corrupt-42", "{not json"]]);
   });
 
+  it("(T307) an empty recovery copy and no file: no spots, and a save works", async () => {
+    const fs = memFs({ "s.json.bak": "" });
+    const store = openSpotsWith(fs, "s.json");
+    expect(await store.list()).toEqual([]);
+    await store.put(spot("a"));
+    expect(ids(await store.list())).toEqual(["a"]);
+  });
+
+  it("(T307) an unreadable recovery copy is kept aside and SpotsCorrupt is raised, not a raw parse error", async () => {
+    const fs = memFs({ "s.json.bak": "{not json" });
+    const store = openSpotsWith(fs, "s.json", () => 7);
+    await expect(store.put(spot("a"))).rejects.toBeInstanceOf(SpotsCorrupt);
+    expect([...fs.files.keys()]).toEqual(["s.json.bak.corrupt-7"]);
+    await store.put(spot("a"));                         // the next save is not wedged
+    expect(ids(await store.list())).toEqual(["a"]);
+  });
+
   it("a crash between the write and the rename leaves the spot recoverable on the next load", async () => {
     const fs = memFs();
     const store = openSpotsWith(fs, "s.json");
