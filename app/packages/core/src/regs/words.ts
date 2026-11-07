@@ -174,7 +174,7 @@ export const WORDS = Object.freeze({
   SCOPE_HERE: "This water", SCOPE_WIDE: (s: string) => `${s}-wide`, SCOPE_ALL_STREAMS: (s: string) => `All ${s} streams`,
   SCOPE_MISSING: "scope missing", PLURAL_S: "s",
   SEPARATE_FROM: "Separate from your ",
-  HOW_TELL: "How to tell ›", BC: "B.C.", THE_REGION_LC: "the region", THE_AREA: "the area",
+  HOW_TELL: "How to tell hatchery ›", BC: "B.C.", THE_REGION_LC: "the region", THE_AREA: "the area",
   PROTECTED: "Protected species", TROUT_TITLE: "Trout", DOT_SEP: " · ",
   // prototype shortOf (form b's "↳ 2 of them from streams"; T28's pin lines)
   SHORT_ACROSS: " a day across ", SHORT_DAY: " a day", SHORT_OF_THEM_FROM: " of them from ", SHORT_DAY_FROM: " a day from ",
@@ -190,7 +190,7 @@ export const WORDS = Object.freeze({
   CAPTION: (c: string) => `${c}\u00a0›`,   // U+00A0 keeps the › on the caption's line (T20)
   THE_NAME: (name: string) => `the ${name}`,
   // ── T19 tail + other fish (tail.ts, others.ts: prototype nk, worked, Other fish; page v36 noRulesLine, rowsHtml) ──
-  HOW_IT_ADDS_UP: "How it adds up", SEE_EVERY_LINE: "See every regulation line ›", OTHER_FISH: "Other fish",
+  INTERPRET_EXAMPLES: "Examples of how to interpret regulations", EXCEPTION_REGIONAL: "Exception to regional quota", SEE_EVERY_LINE: "See every regulation line ›", OTHER_FISH: "Other fish",
   NO_LIMIT: "no limit", CLOSED_LC: "closed", RELEASE_LC: "release", SIZE_HINT: "· size limit", COLON: ":",
   STEEL_POSSIBLE: "Steelhead rules apply here; steelhead may not be present in this water.",
   STEEL_KNOWN: "Steelhead are known to be in this water.",

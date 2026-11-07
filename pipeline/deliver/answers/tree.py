@@ -608,10 +608,48 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     # ROUND20 1 (owner: the group's top and the first tier are ONE block): the header IS the root tier — its words,
     # named by `tier`; the page draws the root's line as the header and the root's children at the top of the tree.
     # ROUND19 1: the kinds' names carry the origin; the tag does not repeat it
+    # T479 (owner 2026-11-07: "if a quota is bigger then the regional quota it should say exception to regional quota"):
+    # a water's own tier (or a water's own total) that lets a fish be kept above the number a regional or B.C.-wide
+    # quota would hold it to — the rule that quota is lifted or displaced by here — says so (`over_region`)
+    for t, _p in walk([root]):
+        if t["node"] == "tier" and t["tier"] in ("own", "total") and t.get("whose") and over_region(P, t["by"], t):
+            t["over_region"] = True
     for t, _p in walk([root]):
         t.pop("_of", None)
     header = {"says": root["says"], "tier": root["id"], "tag": None}
     return [root], header
+
+
+#: T479: the regional rules whose number is a QUOTA (a day's count over a group or a part of it); a size cap's count over a
+#: length ("1 over 50 cm") and the gate are not
+QUOTA_KINDS = ("pool", "subcap")
+
+
+def over_region(P, by, t: dict) -> bool:
+    """T479: a kind under tier `t` (the rule `by`'s) may be kept above the take of a regional or B.C.-wide quota
+    (`QUOTA_KINDS`) that a rule of `by`'s own entry LIFTS or DISPLACES for that fish here (the ladder's state) — the
+    Vedder's 4 hatchery rainbow trout over Region 2's 2 from streams, a lake's own 8 over its region's 5. A water's rule
+    at or under the region's number (a lake's 2 rainbow trout "part of the 4", the Bella Coola's 1) is no exception."""
+    from pipeline.deliver.answers.rows import badge_of
+    mine = P.by_key.get(by)
+    if mine is None:
+        return False
+    for kn, _p in walk(t["children"]):
+        if kn["node"] != "kind" or kn["n"] == 0:
+            continue
+        for S in kn["species"]:
+            for _o, v in sorted((P.ladder.get(S) or {}).items()):
+                for key, st in sorted(v.items()):
+                    if not st or st[0] not in ("lifted", "displaced") or len(st) < 4:
+                        continue
+                    r, who = P.by_key.get(key), P.by_key.get(st[3])
+                    if r is None or who is None or who.entry_id != mine.entry_id:
+                        continue
+                    if r.k not in QUOTA_KINDS or badge_of(r) not in ("region", "bc") or r.f.get("take") is None:
+                        continue
+                    if kn["n"] is None or kn["n"] > r.f["take"]:
+                        return True
+    return False
 
 
 def size_rule(kn: dict, steelhead_water: bool, steel_cm) -> Optional[str]:

@@ -234,7 +234,8 @@ export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: Readonl
     : null;
   const below = new Set([...seen, ...pg]);
   const children = nodesOf(t.children, env, below, t);
-  const base = { t: "tier" as const, tier: t.tier, tid: t.id, n: t.n, band: t.tier === "size", short: shortOf(t), children };
+  const base = { t: "tier" as const, tier: t.tier, tid: t.id, n: t.n, band: t.tier === "size", short: shortOf(t), children,
+    exception: t.over_region ? WORDS.EXCEPTION_REGIONAL : null };
   if (foldsShare(t, env)) {
     const origin = torg(bk);
     return { ...base, kicker: null, line: origin ? [] : bk, folded: true, relation: null, sub: null, origin };

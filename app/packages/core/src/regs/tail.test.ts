@@ -43,7 +43,7 @@ describe("notKeptOf", () => {
 
 describe("workedOf", () => {
   it("the row's elsewhere sentence; a keep-here question takes its colon, a lake / stream / elsewhere line reads as kept elsewhere", () => {
-    expect(workedOf(ctxOf().row, GROUP())).toEqual({ label: "How it adds up",
+    expect(workedOf(ctxOf().row, GROUP())).toEqual({ label: "Examples of how to interpret regulations",
       says: "Your own limit, counted across every Region 2 stream you fish today.",
       lines: [{ at: "here", q: "If you keep 4 hatchery rainbow trout here:", a: "that’s your trout and char for the day, everywhere." },
         { at: "elsewhere", q: "Kept 1 at a lake?", a: "Keep 3 more here." }] });

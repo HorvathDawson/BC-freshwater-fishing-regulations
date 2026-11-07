@@ -183,6 +183,7 @@
   "groups": [
    {
     "head": {
+     "exception": null,
      "form": null,
      "lead": null,
      "leadN": null,
@@ -270,6 +271,7 @@
         "zero": false
        }
       ],
+      "exception": null,
       "folded": false,
       "kicker": null,
       "line": [
@@ -434,6 +436,7 @@
         "zero": false
        }
       ],
+      "exception": null,
       "folded": false,
       "kicker": null,
       "line": [
@@ -462,7 +465,7 @@
      }
     ],
     "worked": {
-     "label": "How it adds up",
+     "label": "Examples of how to interpret regulations",
      "lines": [
       {
        "a": "Keep 3 more here",
@@ -1251,6 +1254,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1378,7 +1382,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [],
        "says": "This lake’s rule: 5 a day here. Whitefish you kept anywhere else today count toward those 5."
       },
@@ -1409,6 +1413,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1530,7 +1535,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "It counts here too: at most 1 over 44 cm (17 in) a day in all.",
@@ -1694,6 +1699,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1815,7 +1821,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "It counts here too: at most 1 over 100 cm (39 in) a day in all.",

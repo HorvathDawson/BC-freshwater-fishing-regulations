@@ -165,15 +165,17 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
     const hm = bigWords(hlead, h.n);
     const words: Run[] = hm ?? (h.n != null ? [{ t: "num", s: String(h.n), size: "big" }, text(" "), text(h.unit)] : [text(h.says)]);
     return { form: null, rootTier: null, lead: null, leadN: null, words, ofTotal: false,
-      whyHere: hm && hrest && !g.tree.length ? cap(hrest) : null, shareOf: null, terms: [], nolimit: !hm && h.n == null };
+      whyHere: hm && hrest && !g.tree.length ? cap(hrest) : null, shareOf: null, terms: [], nolimit: !hm && h.n == null, exception: null };
   }
   const words = bigWords(hdrRoot.says, hdrRoot.n);
+  // (T479) a water's own total above the region's quota (the stored root tier's `over_region`)
+  const exception = hdrRoot.over_region ? WORDS.EXCEPTION_REGIONAL : null;
   if (relTier && opts.tot === "a") {
     const lead = bigWords(h.says, h.n) ?? [{ t: "num", s: String(h.n), size: "big" } as Run, text(" "), text(nbsp(h.says))];
     // (T475 ask 1) the stored ⓘ on the regional total the share is part of: its sheet is the row's `share:r<row>`
     if (h.info) lead.push(text(" "), { t: "link", s: WORDS.TERM_ONE, open: `share:r${ctx.rowIx}`, label: WORDS.SHARE_INFO_A11Y });
     return { form: "a", rootTier: hdrRoot.id, lead, leadN: h.n, words: words ?? [text(nbsp(hdrRoot.says))], ofTotal: true,
-      whyHere: null, shareOf: null, terms: [], nolimit: false };
+      whyHere: null, shareOf: null, terms: [], nolimit: false, exception };
   }
   let shareOf: Run[] | null = null;
   if (relTier && opts.tot === "b") {
@@ -187,7 +189,7 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
     }
   }
   return { form: shareOf ? "b" : null, rootTier: hdrRoot.id, lead: null, leadN: null, words: words ?? [text(nbsp(hdrRoot.says))],
-    ofTotal: false, whyHere: hdrRoot.why_here ? cap(hdrRoot.why_here) : null, shareOf, terms: [], nolimit: !words };
+    ofTotal: false, whyHere: hdrRoot.why_here ? cap(hdrRoot.why_here) : null, shareOf, terms: [], nolimit: !words, exception };
 }
 
 /** (T475 ask 1) form a's lead says the share's one origin ("2 hatchery trout/char a day from streams", the stored

@@ -1,6 +1,6 @@
 /**
  * T19 — a group's tail: each not-kept line (the store's words, whose rule and its Rule book page, ✕ for a closure, the
- * fish pictured), "How it adds up" (the store's elsewhere sentence and worked lines), the steelhead quiet line, and
+* fish pictured), "Examples of how to interpret regulations" (T479; "How it adds up" before: the store's elsewhere sentence and worked lines), the steelhead quiet line, and
  * "See every regulation line ›".
  *
  * Owner rule 2026-10-21: what is not kept, its status, the worked counts and the steelhead line are the store's
@@ -35,12 +35,12 @@ export function notKeptOf(g: GroupTotal, env: TreeEnv): readonly NotKeptVM[] {
   });
 }
 
-/** prototype worked: "How it adds up" — the row's elsewhere sentence, then every worked line (a keep-here question with
+/** prototype worked: "How it adds up" (T479: "Examples of how to interpret regulations", drawn folded) — the row's elsewhere sentence, then every worked line (a keep-here question with
  *  its colon; the data's stream / lake / elsewhere lines all read as kept-elsewhere questions). Null when neither. */
 export function workedOf(row: HydRow, g: GroupTotal): GroupVM["worked"] {
   const els = row.raw.elsewhere?.says || "", wk = g.worked ?? [];
   if (!els && !wk.length) return null;
-  return { label: WORDS.HOW_IT_ADDS_UP, says: els || null,
+  return { label: WORDS.INTERPRET_EXAMPLES, says: els || null,
     lines: wk.map((w) => ({ at: w.at === "here" ? "here" as const : "elsewhere" as const, q: w.q + (w.at === "here" ? WORDS.COLON : ""), a: w.a })) };
 }
 

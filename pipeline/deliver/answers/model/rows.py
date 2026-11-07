@@ -850,9 +850,15 @@ class TreeTier(Model):
     #: day — the catalogue rule's `period` (`Period.monthly` / `annual`): DFO's "Monthly quota = 1 over 65 cm", a region
     #: header's "annual limit for chinook over 50 cm is 10". Absent: a day's number (every game-fish tier today)
     period: Optional[Literal["monthly", "annual"]] = None
+    #: T479 (owner 2026-11-07): a water's own tier (or a water's own total) that lets a fish be kept above a regional or
+    #: B.C.-wide quota its rule lifts or displaces here (`tree.over_region`) — the line says "Exception to regional
+    #: quota". Absent: no exception
+    over_region: Optional[Literal[True]] = None
 
     @model_validator(mode="after")
     def _shape(self):
+        if self.over_region is not None and (self.whose is None or self.tier not in ("own", "total")):
+            raise ValueError("only a water's own tier (or a water's own total) is an exception to a regional quota")
         if self.period is not None and self.tier not in ("size", "count"):
             raise ValueError("only a size or count tier runs on another clock than the day")
         if self.tier == "own" and self.whose is None or self.whose is not None and self.tier not in ("own", "total"):

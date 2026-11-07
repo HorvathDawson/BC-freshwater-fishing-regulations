@@ -234,6 +234,7 @@
   "groups": [
    {
     "head": {
+     "exception": null,
      "form": "a",
      "lead": [
       {
@@ -470,6 +471,7 @@
           "zero": false
          }
         ],
+        "exception": null,
         "folded": false,
         "kicker": null,
         "line": [
@@ -584,6 +586,7 @@
           "zero": false
          }
         ],
+        "exception": null,
         "folded": false,
         "kicker": null,
         "line": [
@@ -607,6 +610,7 @@
         "tier": "count"
        }
       ],
+      "exception": null,
       "folded": false,
       "kicker": null,
       "line": [
@@ -659,7 +663,7 @@
      }
     ],
     "worked": {
-     "label": "How it adds up",
+     "label": "Examples of how to interpret regulations",
      "lines": [
       {
        "a": "It counts here too: at most 1 over 50 cm (20 in) a day in all.",
@@ -1720,6 +1724,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1824,7 +1829,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "Keep 13 more here",

@@ -180,6 +180,7 @@
   "groups": [
    {
     "head": {
+     "exception": null,
      "form": null,
      "lead": null,
      "leadN": null,
@@ -375,7 +376,7 @@
      }
     ],
     "worked": {
-     "label": "How it adds up",
+     "label": "Examples of how to interpret regulations",
      "lines": [],
      "says": "This lake’s rule: 2 a day here. Trout and char other than steelhead you kept anywhere else today count toward those 2."
     },
@@ -1359,6 +1360,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1463,7 +1465,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "Keep 13 more here",
@@ -1507,6 +1509,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,

@@ -237,6 +237,7 @@
   "groups": [
    {
     "head": {
+     "exception": null,
      "form": "a",
      "lead": [
       {
@@ -470,6 +471,7 @@
           "zero": false
          }
         ],
+        "exception": null,
         "folded": false,
         "kicker": null,
         "line": [
@@ -539,6 +541,7 @@
         "zero": false
        }
       ],
+      "exception": null,
       "folded": true,
       "kicker": null,
       "line": [],
@@ -569,7 +572,7 @@
      }
     ],
     "worked": {
-     "label": "How it adds up",
+     "label": "Examples of how to interpret regulations",
      "lines": [
       {
        "a": "None more here",
@@ -1710,6 +1713,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1814,7 +1818,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "Keep 13 more here",
@@ -1858,6 +1862,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1962,7 +1967,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "Keep 18 more here",

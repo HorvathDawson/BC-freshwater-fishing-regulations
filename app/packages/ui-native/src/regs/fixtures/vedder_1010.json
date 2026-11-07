@@ -232,6 +232,7 @@
   "groups": [
    {
     "head": {
+     "exception": null,
      "form": "a",
      "lead": [
       {
@@ -468,7 +469,7 @@
            },
            {
             "open": "hatch",
-            "s": "How to tell ›",
+            "s": "How to tell hatchery ›",
             "t": "link"
            }
           ],
@@ -484,6 +485,7 @@
           "zero": false
          }
         ],
+        "exception": null,
         "folded": false,
         "kicker": null,
         "line": [
@@ -520,6 +522,7 @@
         "tier": "size"
        }
       ],
+      "exception": null,
       "folded": true,
       "kicker": null,
       "line": [],
@@ -580,6 +583,7 @@
         "zero": false
        }
       ],
+      "exception": null,
       "folded": false,
       "kicker": null,
       "line": [
@@ -632,7 +636,7 @@
      }
     ],
     "worked": {
-     "label": "How it adds up",
+     "label": "Examples of how to interpret regulations",
      "lines": [
       {
        "a": "that’s your trout and char for the day, everywhere.",
@@ -1888,6 +1892,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -1992,7 +1997,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "Keep 13 more here",
@@ -2036,6 +2041,7 @@
     {
      "group": {
       "head": {
+       "exception": null,
        "form": null,
        "lead": null,
        "leadN": null,
@@ -2140,7 +2146,7 @@
        }
       ],
       "worked": {
-       "label": "How it adds up",
+       "label": "Examples of how to interpret regulations",
        "lines": [
         {
          "a": "Keep 18 more here",

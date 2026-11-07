@@ -87,10 +87,10 @@ describe("kindRow", () => {
   it("the steelhead (golden vedder_1010): How to tell, the chip, its qualifier, duty with the water's name and the stamp link, presence", () => {
     const k = kindRow((SHARE.children[0] as typeof SHARE).children[1] as never, env);
     expect([nbspFree(k.says), k.size, k.qualifiers, plain(k.duty), plain(k.presence), k.pictures.map((p) => p.code)]).toEqual([
-      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell ›", { text: "over 50 cm", rule: false }, "rainbow trout",
+      "Up to 2 may be hatchery steelhead only — wild steelhead go back How to tell hatchery ›", { text: "over 50 cm", rule: false }, "rainbow trout",
       "10 a year · Stop fishing the Vedder River after 2 a day · Record each on your licence right away Steelhead stamp ›",
       "A rainbow trout over 50 cm (20 in) here counts as a steelhead. ⓘ", ["ST"]]);
-    expect([k.says!.at(-1), k.duty!.at(-1)]).toEqual([{ t: "link", s: "How to tell ›", open: "hatch" }, { t: "link", s: "Steelhead stamp ›", open: { tab: "licence" } }]);
+    expect([k.says!.at(-1), k.duty!.at(-1)]).toEqual([{ t: "link", s: "How to tell hatchery ›", open: "hatch" }, { t: "link", s: "Steelhead stamp ›", open: { tab: "licence" } }]);
   });
   it("no stamp in the licence answer: no stamp link; a size_rule chip is the bold one", () => {
     const k = kindRow((SHARE.children[0] as typeof SHARE).children[0] as never, envOf());
@@ -115,7 +115,7 @@ describe("kindRow", () => {
     // a hatchery-only steelhead held to fewer than its total ("only 1 … — wild steelhead go back") still links How to tell
     const st = kindRow(kind({ species: ["ST"], name: "Steelhead", n: 1,
       says: "Of your 5 trout and char a day, only 1 may be hatchery steelhead — wild steelhead go back" }), env);
-    expect(st.says!.at(-1)).toEqual({ t: "link", s: "How to tell ›", open: "hatch" });
+    expect(st.says!.at(-1)).toEqual({ t: "link", s: "How to tell hatchery ›", open: "hatch" });
     // the old words (no total named) bold as before: the first number
     const old = kindRow(kind({ species: ["RB"], name: "Rainbow trout", n: 2, says: "Up to 2 hatchery rainbow trout (part of the 2 from streams)" }), env);
     expect(old.says![0]).toEqual({ t: "text", s: "Up to " });

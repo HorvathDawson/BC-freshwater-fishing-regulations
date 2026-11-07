@@ -490,7 +490,10 @@ SPEC = {
                     "\"no_fishing_for\" (the ⓘ: an accidental hook); every tier and kind line says one pattern, \"Up to N "
                     "<fish>\" (\"combined\" over more than one fish), never \"only\", and names no total (T128's \"Of your "
                     "2 … a day in streams, …\" is gone); the kinds under a share whose origin the headline says do not "
-                    "repeat it (a steelhead does).",
+                    "repeat it (a steelhead does). "
+                    "T479 (owner 2026-11-07, additive): a water's own tier (or a water's own total) whose fish may be kept "
+                    "above a regional or B.C.-wide quota its rule lifts or displaces here carries `over_region: true`; draw "
+                    "\"Exception to regional quota\" with its line. Absent: no exception.",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

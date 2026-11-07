@@ -1,10 +1,11 @@
 /**
  * One g28 group (T26 shapes, drawn for T21): the head (title + scope kicker, form a's share lead over "of the" root total,
  * or the root total), the origin block, the quota tree (tiers with their numbers big, the size band, kind rows with the
- * size chip, qualifiers, pictures, also-counts, duty, presence), the not-kept lines, How it adds up, the quiet steelhead
+ * size chip, qualifiers, pictures, also-counts, duty, presence), the not-kept lines, the examples fold (T479, closed by
+ * default; "How it adds up" before), the quiet steelhead
  * line and "See every regulation line ›". tokens.md §5 GroupHead … HowItAddsUp. No logic.
  */
-import { Fragment, useContext, useSyncExternalStore } from "react";
+import { Fragment, useContext, useState, useSyncExternalStore } from "react";
 import { Image, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { WORDS, type FishPicVM, type GroupVM, type KindVM, type NotKeptVM, type TierVM, type TreeNodeVM } from "@app/core";
@@ -16,6 +17,7 @@ import { AnchorContext, StickyContext, type AnchorKey } from "./useAnchors";
 import { useStickyHead } from "./stickyHead";
 import type { FishImages } from "./types";
 import { CoachSpot } from "../CoachMarks";
+import { Icon } from "../icons";
 
 /** (T29) where this node sits for the pin bar: the group's row, the tier sections it lies in, a unique path. */
 interface At { readonly row: number; readonly tids: readonly string[]; readonly path: string }
@@ -27,7 +29,7 @@ function useAnchor(id: string, key: AnchorKey): { ref?: (n: ViewInstance | null)
 }
 
 /**
- * "How to tell ›" under an origin line: the hatch sheet. (T40) A press of its own, not a Text with onPress: it stands in a
+ * "How to tell hatchery ›" (T479) under an origin line: the hatch sheet. (T40) A press of its own, not a Text with onPress: it stands in a
  * row beside the Rule book link, 32 tall (its `minHeight`) by its words (about 80 wide) — grown to 44 to the touch.
  */
 function HowTell({ palette, actions, top = 0 }: { palette: Palette; actions: KeepActions; top?: number }) {
@@ -119,8 +121,9 @@ function Tier({ t, at, palette, actions, images, coach }: { t: TierVM; at: At; p
       <HeadView {...(pinned ? {} : head)} testID="khead" style={headStyle as never}
                 onLayout={sticky.onLayout}>
       {t.kicker && <Text testID="kicker:tier" style={[TYPE.kicker, { color: palette.sub, paddingTop: 8 }]}>{t.kicker}</Text>}
+      {t.exception && <Exception says={t.exception} palette={palette} top={t.kicker ? 2 : 12} />}
       {t.line.length > 0 && (
-        <View style={{ paddingTop: t.kicker ? 2 : small ? (t.tier === "size" ? (pinned ? 6 : 12) : 8) : 16, paddingBottom: pinned ? 6 : 8 }}>
+        <View style={{ paddingTop: t.kicker || t.exception ? 2 : small ? (t.tier === "size" ? (pinned ? 6 : 12) : 8) : 16, paddingBottom: pinned ? 6 : 8 }}>
           <LineText line={t.line} testID={t.tier === "size" ? "tier:size" : undefined} style={small ? TYPE.tierSmall : TYPE.tier} color={t.tier === "size" ? palette.rule : palette.ink} palette={palette} actions={actions} />
         </View>
       )}
@@ -191,6 +194,44 @@ function NotKept({ x, palette, actions, images }: { x: NotKeptVM; palette: Palet
   );
 }
 
+/** (T479) "Exception to regional quota" over a water's own line whose number is above the region's (the stored flag). */
+function Exception({ says, palette, top }: { says: string; palette: Palette; top: number }) {
+  return <Text testID="kicker:exception" style={[TYPE.kicker, { color: palette.ink, paddingTop: top }]}>{says}</Text>;
+}
+
+/**
+ * (T479, owner 2026-11-07) "Examples of how to interpret regulations" ("How it adds up" before): a fold, closed by
+ * default, like the Methods tab's Reference fold — the summary row (kicker + chevron), open: the elsewhere sentence and
+ * every worked line. The fold's state is local (it changes no answer).
+ */
+function Worked({ w, palette }: { w: NonNullable<GroupVM["worked"]>; palette: Palette }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View testID="worked-fold" style={{ marginTop: 16, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
+      <RegsPress testID="worked-summary" accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={{ w: 44, h: 44 }}
+                 style={{ minHeight: 44, flexDirection: "row", alignItems: "center", columnGap: 8, paddingVertical: 6 }}>
+        <Text testID="kicker:worked" style={[TYPE.kicker, { flex: 1, color: palette.sub }]}>{w.label}</Text>
+        <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} />
+      </RegsPress>
+      {open && (
+        <View testID="worked-body">
+          {w.says && <Text style={[TYPE.meta, { color: palette.sub, marginTop: 2, marginBottom: 4 }]}>{w.says}</Text>}
+          {w.lines.map((l, i) => (
+            <View key={i} style={{ paddingVertical: 6, borderTopWidth: i ? 1 : 0, borderTopColor: palette.line }}>
+              {l.at === "here"
+                ? <Text style={[TYPE.meta, { color: palette.sub }]}>{`${l.q} `}<Text style={{ fontFamily: TYPE.metaBold.fontFamily, color: palette.ink }}>{l.a}</Text></Text>
+                : <Fragment>
+                    <Text style={[TYPE.metaSemi, { lineHeight: 17.72, color: palette.ink }]}>{l.q}</Text>
+                    <Text style={[TYPE.meta, { color: palette.sub }]}>{l.a}</Text>
+                  </Fragment>}
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
 export function GroupCard({ g, palette, actions, images, titled = true }: { g: GroupVM; palette: Palette; actions: KeepActions; images?: FishImages;
   /** (T37) false: the head draws no title line (in an other-fish sheet, whose title says it — SheetBlock group.titled) */
   titled?: boolean }) {
@@ -207,6 +248,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
           <Text accessibilityRole="header" style={[TYPE.lead, { color: palette.ink }]}>
             {g.title}{g.scope ? <Text testID="kicker:scope" style={[TYPE.kicker, { color: palette.sub }]}>{`  ${g.scope}`}</Text> : null}
           </Text>)}
+        {h.exception && <Exception says={h.exception} palette={palette} top={2} />}
         {h.lead && <LineText line={h.lead} style={{ ...TYPE.metaBold, lineHeight: 19.97 }} num={TYPE.numeralMid} color={palette.ink} palette={palette} actions={actions} />}
         {h.ofTotal
           ? <Text style={[TYPE.metaSemi, { color: palette.sub, marginTop: 1 }]}>{`${WORDS.OF_THE} `}<LineText line={h.words} style={TYPE.metaSemi} num={TYPE.metaBold} numColor={palette.ink} color={palette.sub} palette={palette} actions={actions} /></Text>
@@ -239,22 +281,7 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
       {g.tree && <Nodes nodes={g.tree} inBand={false} at={{ row: g.row, tids: [], path: "" }} palette={palette} actions={actions} images={images}
                         coachFirst="regs:ruleline" />}
       {g.notKept.map((x, i) => <NotKept key={i} x={x} palette={palette} actions={actions} images={images} />)}
-      {g.worked && (
-        <View style={{ marginTop: 16, paddingTop: 8, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
-          <Text testID="kicker:worked" style={[TYPE.kicker, { color: palette.sub, paddingTop: 6, paddingBottom: 4 }]}>{g.worked.label}</Text>
-          {g.worked.says && <Text style={[TYPE.meta, { color: palette.sub, marginTop: 2, marginBottom: 4 }]}>{g.worked.says}</Text>}
-          {g.worked.lines.map((l, i) => (
-            <View key={i} style={{ paddingVertical: 6, borderTopWidth: i ? 1 : 0, borderTopColor: palette.line }}>
-              {l.at === "here"
-                ? <Text style={[TYPE.meta, { color: palette.sub }]}>{`${l.q} `}<Text style={{ fontFamily: TYPE.metaBold.fontFamily, color: palette.ink }}>{l.a}</Text></Text>
-                : <Fragment>
-                    <Text style={[TYPE.metaSemi, { lineHeight: 17.72, color: palette.ink }]}>{l.q}</Text>
-                    <Text style={[TYPE.meta, { color: palette.sub }]}>{l.a}</Text>
-                  </Fragment>}
-            </View>
-          ))}
-        </View>
-      )}
+      {g.worked && <Worked w={g.worked} palette={palette} />}
       {g.quiet && <View style={{ marginTop: 8 }}><LineText line={g.quiet} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
       <RegsPress accessibilityRole="link" onPress={() => actions.onSheet(g.more.open)} box={{ w: 44, h: 44 }} style={{ minHeight: 44, justifyContent: "center", marginTop: 8 }}>
         <Text style={[TYPE.regsBodyBold, { color: palette.accent }]}>{g.more.text}</Text>

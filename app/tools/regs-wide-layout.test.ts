@@ -170,10 +170,10 @@ describe("T45 the Regulations view on a wide screen, laid out in Chrome", () => 
       // (the line's words dropped from each problem: the count and where are the claim)
       expect(problems(measure()).map((p) => p.replace(/ characters: .*$/, " characters"))).toMatchInlineSnapshot(`
         [
-          "vedder_1010 tablet 900: a line of 120 characters",
-          "vedder_1010 tablet 1024: a line of 120 characters",
-          "vedder_1010 desktop 1280: a line of 120 characters",
-          "vedder_1010 desktop 1440: a line of 120 characters",
+          "vedder_1010 tablet 900: a line of 118 characters",
+          "vedder_1010 tablet 1024: a line of 129 characters",
+          "vedder_1010 desktop 1280: a line of 129 characters",
+          "vedder_1010 desktop 1440: a line of 129 characters",
           "klwa_1010 tablet 900: a line of 93 characters",
           "klwa_1010 tablet 1024: a line of 93 characters",
           "klwa_1010 desktop 1280: a line of 93 characters",

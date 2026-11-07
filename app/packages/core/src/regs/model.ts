@@ -130,6 +130,7 @@ export interface GroupHeadVM {
   readonly shareOf: Line | null;            // form b only: "↳ " + shortOf(relTier)
   readonly terms: readonly string[];        // the daily_quota ⓘ
   readonly nolimit: boolean;
+  readonly exception: string | null;        // (T479) "Exception to regional quota": the root tier's over_region; null: none
 }
 export interface OriginVM { readonly says: Line; readonly tag: string | null; readonly howtell: boolean; readonly book: Line }
 
@@ -138,6 +139,7 @@ export type TreeNodeVM = TierVM | KindVM | ReleaseRowVM;
 export interface TierVM {
   readonly t: "tier"; readonly tier: "total" | "own" | "share" | "count" | "size"; readonly tid: string;
   readonly kicker: string | null;           // the moved scope tag over the share (tagShare); null when folded
+  readonly exception: string | null;        // (T479) "Exception to regional quota": the stored tier's over_region; null: none
   readonly line: Line;                      // tierWords: boldN(says, n) + size extra's 2nd number "big2" + root ⓘ + book.
                                             // (T18) folded: [] — or, with no tier origin, the tier's fresh Rule book link alone
   readonly folded: boolean;                 // (T18, v38 int1) form a's share that says no more than the head's lead: no kicker, no words

@@ -7,7 +7,7 @@ const group = (over: Partial<GroupVM["head"]>, tree: GroupVM["tree"] = []): Grou
   row: 0, title: "Trout and char", scope: null, pinLine: null, origin: null, year: null, tree, notKept: [], worked: null,
   quiet: null, more: { text: "", open: "src:r0" as never },
   head: { form: null, rootTier: null, lead: null, leadN: null, ofTotal: false, whyHere: null, shareOf: null, terms: [],
-          nolimit: false, words: [{ t: "num", s: "5", size: "big" }, { t: "text", s: " a day per angler across Region 6" }], ...over },
+          nolimit: false, exception: null, words: [{ t: "num", s: "5", size: "big" }, { t: "text", s: " a day per angler across Region 6" }], ...over },
 });
 const pic = (code: string) => ({ code, name: code, caption: code, open: `sp:${code}` as never, sil: false as const });
 

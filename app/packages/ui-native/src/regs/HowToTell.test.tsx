@@ -137,10 +137,10 @@ describe("T38 How to tell: the hatch sheet", () => {
       ["Wild · adipose fin there", null], ["Hatchery · clipped, a healed scar instead", null]]);
   });
 
-  it("6. How to tell opens it: the ST kind's 'How to tell ›' on the Vedder Keep tab opens the hatch sheet (ur3-howtell-steelhead)", () => {
+  it("6. How to tell opens it: the ST kind's 'How to tell hatchery ›' on the Vedder Keep tab opens the hatch sheet (ur3-howtell-steelhead)", () => {
     const onSheet = vi.fn();
     render(<RegsScreen page={VEDDER} palette={LIGHT} adipose={ADIPOSE} actions={{ onSheet, onDay() {}, onBook() {} }} onDate={() => {}} />);
-    const tells = screen.getAllByText("How to tell ›");
+    const tells = screen.getAllByText("How to tell hatchery ›");
     expect(tells.length).toBeGreaterThan(0);
     fireEvent.click(tells[0]!);
     expect(onSheet.mock.calls).toEqual([["hatch"]]);
