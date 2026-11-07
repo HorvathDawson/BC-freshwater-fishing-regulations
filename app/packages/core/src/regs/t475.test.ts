@@ -67,7 +67,7 @@ describe("T475 ask 1: the headline and its ⓘ", () => {
   it("the sheet: the store's words, its examples, Source › with the share rule's page", () => {
     const ctx = ctxOf(G475());
     const env = { card: ctx.card } as unknown as KeepEnv;
-    const sc = { inp: ctx.inp, page: {} as SheetCtx["page"], today: { m: 10, d: 10 } as SheetCtx["today"], env } as SheetCtx;
+    const sc = { inp: ctx.inp, page: {} as SheetCtx["page"], today: { m: 10, d: 10 } as unknown as SheetCtx["today"], env } as SheetCtx;
     const l = sheetLines(sheetOf(sc, "share:r0")!);
     expect([l.title, l.lines]).toEqual([INFO.title, [INFO.says, "For example:",
       "Kept 2 on another stream? None more from streams today — up to 2 more from lakes.",
