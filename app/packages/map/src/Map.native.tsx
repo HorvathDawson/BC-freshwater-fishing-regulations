@@ -64,6 +64,8 @@ import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { GEOMETRY, SHOW_SCALE } from "./chrome";
 import { MapCredits } from "./MapCredits";
+import { MapLab } from "./MapLab";
+import { LAB_ON, labStyle, useLab } from "./lab";
 import type { MapProps } from "./map-props";
 import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
 import { cameraMs, setReducedMotion } from "./motion";
@@ -241,6 +243,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                               stretchX: g.stretchX, stretchY: g.stretchY, content: g.content } };
   }, [theme, markBoxName, spotColourKey]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
+  // (T420) a lab build's switches (`lab.ts`): today's style, the same object, unless one is flipped
+  const lab = useLab();
+  const [labOpen, setLabOpen] = useState(false);
+  const shown = useMemo(() => labStyle(look.style, lab), [look, lab]);
   // (T451, the pan probe's build) each style handed to the binding, and what changed since the last one
   const lookWas = useRef<Record<string, string> | null>(null);
   useEffect(() => {
@@ -707,7 +713,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         ref={mapRef}
         style={[{ flex: 1 }, style]}
         onLayout={onLayout}
-        mapStyle={look.style as never}
+        mapStyle={shown as never}
         // G1: one gesture policy for both maps — pan, pinch, double-tap zoom; no rotate, no tilt, no compass
         {...nativeMapGestures()}
         // (T424) the binding's own attribution "i" is OFF: the credits are `MapCredits` below, the web's own component. A
@@ -715,9 +721,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         attribution={false}
         // (T448) at most 2 device pixels per dp, like the web (`pixel-ratio.ts`): the patched binding draws into a smaller
         // surface the compositor scales up (Android) — fewer pixels filled, the same scale, gestures and taps
-        maxPixelRatio={MAX_PIXEL_RATIO}
+        maxPixelRatio={lab.pixelCap ? MAX_PIXEL_RATIO : 0}
         // (T401) parent tiles loaded as placeholders while a tile loads (patched binding, Android; iOS ignores it)
-        prefetchZoomDelta={PREFETCH_ZOOM_DELTA}
+        prefetchZoomDelta={LAB_ON ? lab.prefetch : PREFETCH_ZOOM_DELTA}
         logo={false}
         // OURS is drawn below (`metricScale`): the binding's is top-left only on Android, in the device's units. But
         // the binding's must EXIST on Android: switched off, the map's surface left a black hole over the next screen
@@ -783,7 +789,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         </View>) : null}
       {/* (T424) THE CREDITS: the web's own component, bottom-right (Esri's "Powered by Esri" beside it while its imagery is
           drawn, T275); the scale bar is bottom-LEFT, so the two never meet */}
-      {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink} />}
+      {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink}
+                            onLongPress={LAB_ON ? () => setLabOpen(true) : undefined} />}
+      {LAB_ON && labOpen && !bare && <MapLab chrome={furniture} onClose={() => setLabOpen(false)} />}
       {bare || !SHOW_SCALE ? null : (
         // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-left (T424), a RULER — a hairline with a tick at
         // each end, the distance above its left end, a paper halo and no box — so the bar's LENGTH is the measurement

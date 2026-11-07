@@ -46,9 +46,11 @@ function Parts({ parts, chrome, onOpenLink }: { parts: readonly CreditPart[]; ch
   );
 }
 
-export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink }: {
+export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink, onLongPress }: {
   look: Pick<Look, "view" | "modes" | "groups" | "basemap">; chrome: MapChrome; insetBottom?: number;
   onOpenLink?: ((url: string) => void) | undefined;
+  /** (T420) a lab build's way into the map lab (`MapLab`); none in any other build */
+  onLongPress?: (() => void) | undefined;
 }) {
   const [on, setOn] = useState(false);
   const [startup, setStartup] = useState(() => !shownThisSession);
@@ -74,7 +76,7 @@ export function MapCredits({ look, chrome, insetBottom = 0, onOpenLink }: {
           </View>
         )}
         <Pressable testID="map-credits-chip" accessibilityRole="button" accessibilityLabel="Map credits"
-                   aria-expanded={on} onPress={() => setOn((v) => !v)} hitSlop={8}
+                   aria-expanded={on} onPress={() => setOn((v) => !v)} onLongPress={onLongPress} hitSlop={8}
                    style={{ width: G.chip, height: G.chip, alignItems: "center", justifyContent: "center",
                             backgroundColor: on ? chrome.tint : chrome.card, borderWidth: 1, borderColor: chrome.ink }}>
           <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 15, lineHeight: 18 }}>©</Text>

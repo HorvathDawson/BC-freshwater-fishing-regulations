@@ -17,6 +17,11 @@ if (production && !process.env.EXPO_PUBLIC_CONTACT?.trim()) {
   throw new Error("app.config.js: a production build needs EXPO_PUBLIC_CONTACT (support@canifishthis.ca; eas.json sets it)");
 }
 
+// (T420) the map lab is a staging/test-bed tool (COORD-068): a production build carrying its flag is not made
+if (production && process.env.EXPO_PUBLIC_MAP_LAB) {
+  throw new Error("app.config.js: EXPO_PUBLIC_MAP_LAB is for staging and test-bed builds only; unset it for production");
+}
+
 module.exports = ({ config }) => ({
   ...config,
   // (T244) the adaptive icon's solid background: the ground the boot screen paints (the icon is the favicon, `pnpm`-less: tools/build-icons.mjs)

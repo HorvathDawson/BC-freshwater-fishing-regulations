@@ -17,6 +17,7 @@ if [[ -z ${BUILD_IOS_INNER:-} && -z $DRY ]]; then
   export BUILD_IOS_INNER=1
   exec scripts/heavy.sh build-ios-sim 20 -- "$0" "$@"
 fi
+export EXPO_PUBLIC_MAP_LAB=1   # (T420) the map lab (staging only)
 export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}
 # (T313) --probes: the test bed's measuring switches only ([pan] [open] [stall] [target] [heap] in the log), on the live
 # channel; (T362) its crash and problem reports tagged `test` (the crash scenario crashes it on purpose)

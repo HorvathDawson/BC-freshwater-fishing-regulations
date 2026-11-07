@@ -47,7 +47,7 @@ M=app/apps/mobile
 if has --production; then
   export EXPO_PUBLIC_APP_ENV=production; unset EXPO_PUBLIC_ENV_SWITCH; ENV=production
 else
-  export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1; ENV=staging
+  export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_MAP_LAB=1; ENV=staging
 fi
 export EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}
 # a store build never carries the test bed's switches

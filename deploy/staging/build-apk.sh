@@ -48,6 +48,7 @@ BASE=https://data-staging.canifishthis.ca/app/android
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}   # the store contact (T244)
+export EXPO_PUBLIC_MAP_LAB=1   # (T420) the map lab: long-press the map's © chip (staging only; app.config.js refuses it in production)
 # (T263) "Get the new test build" (Update the app, in a staging build) opens this page
 export EXPO_PUBLIC_DEV_APK_URL=${EXPO_PUBLIC_DEV_APK_URL:-$BASE/index.html}
 # (T390) how this build updates itself (core appUpdateChannel): the sideloaded APK reads latest.json beside the page
