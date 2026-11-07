@@ -43,8 +43,19 @@ outside the reach. Of these, 6 entries are lake rows whose inlet has no row → 
 Unchanged: Hatzic (the inlet is the row's own water), Atnarko/Tenas Lake (a lake at the reach's top, not the row's
 own), Peace/Halfway River (the Halfway has its own row). Full-run binding diff: see "Rerun" below.
 
-## Rerun
-Reach-only rerun + bundle in `data/generated/scratch/t468/` (`reach.log`, `bundle.log`). Diff:
-`python -m pipeline.atlas.reach.binding_diff data/generated/reaches/full data/generated/scratch/t468/reaches/full`.
+## Rerun (done 2026-11-07, not promoted)
+Reach-only rerun in `data/generated/scratch/t468/reaches/full`; bundle `data/generated/scratch/t468/bundle.sqlite`.
+`binding_diff` vs live: **15 rules, all gains, 0 lost, 0 unresolved changes, 0 licensing moved**
+(`data/generated/scratch/t468/binding_diff.txt`). The 6 lake rows above, plus 3 "X Lake's tributaries" rows the scan
+missed (their live binding does not hold the lake):
+- `r4:little_slocan_lake_s_tributaries` r1–r3: +374 each, Little Slocan River above the lakes. **OWNER CHECK:** this row
+  EXEMPTS its waters from the Slocan River's closure, so here the gain OPENS 374 sections (from the Slocan's
+  incl.-tributaries closure to a June 15–Oct 31 bait ban). By p.80 the river feeding the lake is its tributary, but
+  this is the opening direction.
+- `r2:wahleach_jones_lake_s_tributaries` r1 (No Fishing): +20, Wahleach Creek above the lake.
+- `r4:premier_lake_s_tributaries` r1 (No Fishing): +10, unnamed inlet.
+
+12 lakes have a through-river with a row of its own and stay out, unchanged: Buttle, Campbell and John Hart (Campbell R.),
+Chehalis, Connor (Forsyth Cr.), Duncan, Lake Revelstoke (Kinbasket), Lower Arrow (Upper Arrow), Tanya (Takia), and others.
 
 Related: Koocanusa/Kinbasket (`_through_blks`), receiving-river-not-a-tributary, confluence ruling 2026-09-30. Size: S.

@@ -512,7 +512,7 @@ use that as the sole source of future work."
 | T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | OPEN | — | 2026-11-06 |
 | T466 | Walkthrough follow-ups: scroll to dams/obstacles, a real spot creation, a closed example that stays closed (closed all year) | OPEN | — | owner 2026-11-06 |
 | T467 | Lakes: a visible shoreline (a shade of the fill) inside the colour-blind gate | OPEN | — | owner 2026-11-06 |
-| T468 | Powell River above Powell Lake misses the lake's incl.-tributaries closure (through-river read as the lake's own outlet) | OPEN | 14294b999 | fix built, not promoted; 6 lake rows change; reach rerun in scratch |
+| T468 | Powell River above Powell Lake misses the lake's incl.-tributaries closure (through-river read as the lake's own outlet) | OPEN | 14294b999 | fix built + rerun, not promoted; 15 rules gain (0 lost); Little Slocan exemption opens 374 secs — owner check |
 | T469 | Legend: one row (fold button in it) on a wide screen, not two rows plus a strip | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web ≥ 900 px only, phones unchanged |
 | T470 | Mid-zoom map (z7–z10) too busy: calmer hierarchy, 3 variants (A weight only / B small waters recede / C closed leads) | DONE 2026-11-07 | 85ee6156d, 225ad72a5 | B built (owner 2026-11-07, Q170); order × zoom fade tunable (`fadeByOrder`); stress-pan cost pending (T420 test bed) |
 | T471 | Sun line in the regs pane's header, not its own card | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web + native |
