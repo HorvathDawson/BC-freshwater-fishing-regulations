@@ -14,6 +14,7 @@ const ROWS: readonly { key: keyof Lab; label: string; hint: string; on: Lab[keyo
   { key: "pixelCap", label: "Pixel cap 2", hint: "fewer pixels filled (today: on)", on: true, off: false },
   { key: "prefetch", label: "Prefetch delta 2", hint: "closer placeholder tiles (today: 4)", on: 2, off: 4 },
   { key: "stateGapMs", label: "Colour batches ≥ 250 ms apart", hint: "fewer colour updates mid-glide (today: per tile)", on: 250, off: 0 },
+  { key: "hideInvisible", label: "Skip invisible layers", hint: "layers drawn at opacity 0 left out (same look)", on: true, off: false },
   { key: "streamsOneBucket", label: "Streams in one bucket", hint: "stream tiles laid out once, not 4×", on: true, off: false },
   { key: "roads", label: "Basemap roads", hint: "test only: off hides roads", on: true, off: false },
   { key: "landuse", label: "Basemap greens", hint: "test only: off hides landuse", on: true, off: false },

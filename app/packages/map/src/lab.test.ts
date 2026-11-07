@@ -45,6 +45,17 @@ describe("the map lab", () => {
     expect(s.layers.map((l) => l.id)).toEqual(t.layers.map((l) => l.id));
   });
 
+  it("skip invisible: hides only layers whose every opacity is the constant 0", () => {
+    const t = today(), s = lab({ hideInvisible: true });
+    const ids = moved(t, s);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) {
+      const l = t.layers.find((x) => x.id === id)! as L & { paint?: Record<string, unknown> };
+      expect(Object.entries(l.paint ?? {}).filter(([k]) => k.endsWith("opacity")).every(([, v]) => v === 0)).toBe(true);
+      expect(s.layers.find((x) => x.id === id)!.layout?.visibility).toBe("none");
+    }
+  });
+
   it.each([
     ["roads", { roads: false }, (l: L) => l.source === "basemap" && l["source-layer"] === "roads"],
     ["landuse", { landuse: false }, (l: L) => l.source === "basemap" && l["source-layer"] === "landuse"],

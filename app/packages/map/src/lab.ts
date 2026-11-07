@@ -26,10 +26,13 @@ export interface Lab {
   labels: boolean;
   /** the least time between two feature-state batches, ms (`useColouring`); 0 = one per burst (today) */
   stateGapMs: 0 | 250;
+  /** hide a layer whose every opacity is the constant 0: it draws nothing, but MapLibre Native still re-applies every
+   *  stored feature-state to it each frame (T420 correction) */
+  hideInvisible: boolean;
 }
 
 export const LAB_DEFAULT: Readonly<Lab> = Object.freeze({
-  pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0,
+  pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0, hideInvisible: false,
 });
 
 /** Read once: Metro inlines `EXPO_PUBLIC_*` at build time. */
@@ -61,11 +64,22 @@ const STREAM_LAYOUT_KEYS = ["line-cap", "line-join"];
 
 const hidden = (l: Layer): Layer => ({ ...l, layout: { ...l.layout, visibility: "none" } });
 
+/** Every opacity a layer type has; a layer drawing nothing has each of them at the constant 0. */
+const OPACITY: Record<string, readonly string[]> = {
+  line: ["line-opacity"], fill: ["fill-opacity"], circle: ["circle-opacity", "circle-stroke-opacity"],
+  symbol: ["text-opacity", "icon-opacity"],
+};
+const drawsNothing = (l: Layer & { paint?: Record<string, unknown> }): boolean => {
+  const keys = OPACITY[l.type ?? ""];
+  return !!keys && keys.every((k) => l.paint?.[k] === 0);
+};
+
 /** The style with the lab's switches applied; the SAME object when every style switch is at its default. */
 export function labStyle<S>(style: S, lab: Readonly<Lab>): S {
   const s = style as unknown as Style;
-  if (!lab.streamsOneBucket && lab.roads && lab.landuse && lab.labels) return style;
+  if (!lab.streamsOneBucket && lab.roads && lab.landuse && lab.labels && !lab.hideInvisible) return style;
   const layers = s.layers.map((l) => {
+    if (lab.hideInvisible && drawsNothing(l)) return hidden(l);
     if (!lab.labels && l.type === "symbol") return hidden(l);
     if (!lab.roads && l.source === "basemap" && l["source-layer"] === "roads") return hidden(l);
     if (!lab.landuse && l.source === "basemap" && l["source-layer"] === "landuse") return hidden(l);
