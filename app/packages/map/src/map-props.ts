@@ -264,6 +264,8 @@ export interface MapProps {
    * the tap that may follow it is not also a tap.
    */
   onLongPress?: (lat: number, lon: number) => void;
+  /** (T420) a lab build's long press on the credits chip: the screen opens the map lab (ui-native `MapLabModal`) */
+  onOpenLab?: () => void;
   /** Feature ids to draw as selected. Applied by feature-state, never by mutating paint. */
   highlight?: readonly SectionKey[];
   /**

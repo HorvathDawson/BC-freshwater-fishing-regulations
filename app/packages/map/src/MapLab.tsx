@@ -1,12 +1,12 @@
 /**
  * (T420) THE MAP LAB'S CARD: the switches of `lab.ts`, opened by a long press on the credits chip in a lab build only.
  * A square card (the map UI rule: a card, square corners, our type); every row names what it changes and what today's
- * map does, and the foot says when the map differs from today's. IN A MODAL: drawn inside the map, the screen's search
- * bar and button stack sat over it and swallowed its taps, Close included (test bed 2026-11-06); a modal is its own
- * window, over every chrome. Back, Close or a tap beside the card closes it; flip, close, then pan.
+ * map does, and the foot says when the map differs from today's. The CARD only: its Modal, the tap beside it and the
+ * system back are ui-native's `MapLabModal` (a Modal over every chrome: drawn inside the map, the screen's search bar and
+ * button stack swallowed its taps, test bed 2026-11-06; and the one back, `useBackLayer`, which this package cannot
+ * reach). Back, Close or a tap beside the card closes it; flip, close, then pan.
  */
-import { Modal, Pressable, Switch, Text, View } from "react-native";
-import { GEOMETRY } from "./chrome";
+import { Pressable, Switch, Text, View } from "react-native";
 import { LAB_DEFAULT, setLab, useLab, type Lab } from "./lab";
 import type { MapChrome } from "./map-props";
 
@@ -27,9 +27,6 @@ export function MapLab({ chrome, onClose }: { chrome: MapChrome; onClose: () => 
   const lab = useLab();
   const changed = ROWS.filter((r) => lab[r.key] !== LAB_DEFAULT[r.key]).map((r) => r.label);
   return (
-    <Modal transparent animationType="none" onRequestClose={onClose}>
-    <Pressable testID="map-lab-backdrop" accessibilityLabel="Close the map lab" onPress={onClose}
-               style={{ flex: 1, justifyContent: "center", padding: GEOMETRY.right }}>
     <Pressable testID="map-lab" accessibilityLabel="Map lab" onPress={() => {}}
           style={{ backgroundColor: chrome.card, borderWidth: 1, borderColor: chrome.ink, padding: 10, gap: 8,
                    boxShadow: `2px 2px 0 ${chrome.shadow}` }}>
@@ -55,7 +52,5 @@ export function MapLab({ chrome, onClose }: { chrome: MapChrome; onClose: () => 
         {changed.length ? `Differs from today: ${changed.join(", ")}. Resets when the app restarts.` : "Today's map."}
       </Text>
     </Pressable>
-    </Pressable>
-    </Modal>
   );
 }

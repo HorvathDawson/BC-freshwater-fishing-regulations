@@ -153,7 +153,7 @@ export function useNativeColouring(o: {
   const lastFlush = useRef(-Infinity);
   const flush = useCallback(() => {
     queued.current = false;
-    lastFlush.current = Date.now();
+    lastFlush.current = performance.now();   // a gap between flushes, not a time of day: the frame timer
     const src = ref.current.atlas();
     if (!src || !ready.current || !alive.current) return;
     for (const [layer, ids, states] of queue.current.drain()) {
@@ -173,7 +173,7 @@ export function useNativeColouring(o: {
   const schedule = useCallback(() => {
     if (queued.current) return;
     queued.current = true;
-    setTimeout(flush, Math.max(0, lastFlush.current + gap.current - Date.now()));
+    setTimeout(flush, Math.max(0, lastFlush.current + gap.current - performance.now()));
   }, [flush]);
   useEffect(() => { if (o.ready && queue.current.size) schedule(); }, [o.ready, schedule]);
 

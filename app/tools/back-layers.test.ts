@@ -137,6 +137,7 @@ const registeredSurfaces = () => new Set(drawing().flatMap((p) =>
  * decision, said in app/HANDOFF-ui.md's table — not a way past the scan.
  */
 const COVERED: Record<string, string> = {
+  "packages/map/src/MapLab.tsx#MapLab: takes onClose": "(T420) the map lab's card only, in @app/map (which cannot reach useBackLayer): ui-native's MapLabModal draws it in a Modal and registers the back (its onClose is MapLabModal's requestClose)",
   "packages/ui-native/src/regs/PdfViewer.web.tsx#PdfViewer: draws PdfViewer": "(T354) the web's viewer draws nothing (the browser's own PDF tab is the viewer); the native one registers its back",
   "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss": "(T303) the rail's one-line location notice over the map (why there is no dot): a tap puts it away and the button retries; it hides nothing, so system back stays the map's",
   "packages/ui-native/src/SpotCapture.tsx#SpotCapture: takes onCancel (SpotCaptureProps)": "(T302) it draws the web's spots notice (system back is the route's: it leaves the add) or the capture flow (SpotCaptureFlow), which registers its own steps",
@@ -184,7 +185,9 @@ describe("back, everywhere: one mechanism", () => {
     const users = where(/\bonRequestClose\b/);
     expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
       // (T257) the first-run tour's coach marks: back skips the tour
-      "packages/ui-native/src/CoachMarks.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
+      "packages/ui-native/src/CoachMarks.tsx",
+      // (T420) the map lab's card, in a lab build only
+      "packages/ui-native/src/MapLabModal.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
       // (T354) the rule book in the app, full screen
       "packages/ui-native/src/regs/PdfViewer.native.tsx",
       // (T284) a spot photograph, full screen
@@ -213,6 +216,8 @@ describe("back, everywhere: every surface registers a back layer", () => {
       return w ? [`${p}#${d.name}: ${w}`] : [];
     }));
     expect(found).toEqual([
+      // (T420) the map lab's card: its Modal and back are ui-native's MapLabModal (COVERED)
+      "packages/map/src/MapLab.tsx#MapLab: takes onClose",
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
       "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",
       // (T257) the first-run tour: its own Modal, registered (useBackLayer)
@@ -223,7 +228,10 @@ describe("back, everywhere: every surface registers a back layer", () => {
       "packages/ui-native/src/InSeasonNotice.tsx#InSeasonNotice: takes onClose",
       "packages/ui-native/src/LayersSheet.tsx#LayersSheet: takes onClose",
       // (T303) the rail's one-line location notice (why there is no dot): a tap puts it away; not a surface (COVERED)
+      // (T420) the map lab, open: its own Modal, registered (useBackLayer); MapScreen hands it labOpen
+      "packages/ui-native/src/MapLabModal.tsx#MapLabModal: a Modal",
       "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss",
+      "packages/ui-native/src/MapScreen.tsx#MapScreen: opens labOpen",
       // (T292) a tapped not-fished water's sheet (sewage lagoon, tailings pond, dump): a <Sheet>, so it registers
       "packages/ui-native/src/NotFishingSheet.tsx#NotFishingSheet: takes onClose",
       // (T173) a tapped fish obstacle mark's sheet, drawn by the Shell over the map: a <Sheet>, so it registers

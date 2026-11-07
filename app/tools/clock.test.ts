@@ -22,6 +22,7 @@ const CLOCK = "packages/core/src/clock.ts";
 const FRAME_TIMERS: Record<string, { n: number; why: string }> = {
   "packages/data/src/openProbe.ts": { n: 1, why: "the open probe's spans (dev timing)" },
   "packages/map/src/Map.native.tsx": { n: 1, why: "the open probe's press stamp, the same timer as openProbe" },
+  "packages/map/src/native/useColouring.ts": { n: 2, why: "(T420 lab) the gap between colour batches, a duration" },
   "packages/map/src/web/useChannels.ts": { n: 2, why: "a channel push's cost (dev timing)" },
   "packages/map/src/web/useMapInstance.ts": { n: 4, why: "a style and a tile request's cost (dev timing)" },
   "packages/ui/src/regs.ts": { n: 2, why: "the open probe's build span" },

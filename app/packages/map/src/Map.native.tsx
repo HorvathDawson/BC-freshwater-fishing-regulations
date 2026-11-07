@@ -64,7 +64,6 @@ import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { GEOMETRY, SHOW_SCALE } from "./chrome";
 import { MapCredits } from "./MapCredits";
-import { MapLab } from "./MapLab";
 import { LAB_ON, labStyle, useLab } from "./lab";
 import type { MapProps } from "./map-props";
 import { COPY_LINE, COPY_SOURCE, COPY_UNTIL, WaterCopy, copyIds, pieceGridZoom, probeZoom, zoomAround, type CopyTarget } from "./water-copy";
@@ -103,7 +102,7 @@ type Data = NonNullable<MapProps["data"]>;
 const SETTLE_ASK_MS = 700;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, chrome, onError,
-                      onMoved, onMapPoint, onLongPress, highlight, water, waterLine, selection = "outline", marker, style, gauges,
+                      onMoved, onMapPoint, onLongPress, onOpenLab, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch, insetBottom = 0, onOpenLink }: MapProps) {
@@ -245,7 +244,6 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { for (const e of look.errors) report(e); }, [look, report]);
   // (T420) a lab build's switches (`lab.ts`): today's style, the same object, unless one is flipped
   const lab = useLab();
-  const [labOpen, setLabOpen] = useState(false);
   const shown = useMemo(() => labStyle(look.style, lab), [look, lab]);
   // (T451, the pan probe's build) each style handed to the binding, and what changed since the last one
   const lookWas = useRef<Record<string, string> | null>(null);
@@ -792,8 +790,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       {/* (T424) THE CREDITS: the web's own component, bottom-right (Esri's "Powered by Esri" beside it while its imagery is
           drawn, T275); the scale bar is bottom-LEFT, so the two never meet */}
       {!bare && <MapCredits look={{ view, modes, groups, basemap }} chrome={furniture} insetBottom={insetBottom} onOpenLink={onOpenLink}
-                            onLongPress={LAB_ON ? () => setLabOpen(true) : undefined} />}
-      {LAB_ON && labOpen && !bare && <MapLab chrome={furniture} onClose={() => setLabOpen(false)} />}
+                            onLongPress={LAB_ON ? onOpenLab : undefined} />}
       {bare || !SHOW_SCALE ? null : (
         // THE WEB'S SCALE BAR (controls.css `.maplibregl-ctrl-scale`): bottom-left (T424), a RULER — a hairline with a tick at
         // each end, the distance above its left end, a paper halo and no box — so the bar's LENGTH is the measurement

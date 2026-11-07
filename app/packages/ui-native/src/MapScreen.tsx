@@ -8,9 +8,10 @@
  */
 import { useCoachTarget } from "./CoachMarks";
 import type { SectionKey } from "@app/core";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { View } from "react-native";
-import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
+import { LAB_ON, Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
+import { MapLabModal } from "./MapLabModal";
 import { mapError, type Horizon, type HorizonChipVM, type MyLocation } from "@app/ui";
 import { HorizonPicker } from "./HorizonPicker";
 import { openLink } from "./openLink";
@@ -112,6 +113,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
 }) {
   // (T257) the first-run tour's "tap a water" points at the middle of this map
   const coachTarget = useCoachTarget("map");
+  // (T420) a lab build's map lab: the map says the long press, this screen owns the card and its back
+  const [labOpen, setLabOpen] = useState(false);
   return (
     <View ref={coachTarget} collapsable={false} style={{ flex: 1, backgroundColor: palette.tint }}>
       <Map at={at} theme={theme} me={me ? { on: me.on, fix: me.fix, following: me.following, centre: me.centre, zoom: me.zoom, onRelease: me.release } : null} view={view} modes={modes} groups={groups} hide={hide} show={show}
@@ -120,7 +123,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
            highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
-           onRegion={onRegion} />
+           onRegion={onRegion} onOpenLab={LAB_ON ? () => setLabOpen(true) : undefined} />
+      <MapLabModal open={labOpen} theme={theme} onClose={() => setLabOpen(false)} />
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left
