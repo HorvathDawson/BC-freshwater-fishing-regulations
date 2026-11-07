@@ -289,7 +289,32 @@ def test_the_dfo_queue_counts_and_filters_every_location(env):
 NANAIMO_TIDAL = "1:nanaimo-river:in-subarea-17-14-tidal-portions-of"
 
 
-def test_a_dfo_place_wholly_in_tidal_water_is_proposed_and_the_owners_mark_decides_it(env):
+@pytest.fixture
+def undecided_nanaimo(env):
+    """T491: the Nanaimo place as it was before the owner decided it (2026-11-06: their mark wrote `tidal_water` onto the
+    live place) — the flag taken off in THIS module's sandbox copy only, put back after, so the test never depends on what
+    the live curated data has decided."""
+    from pipeline.common.curated import CURATED
+    f = Path(CURATED.dfo_salmon.places) / "region-1.json"
+    was = f.read_text(encoding="utf-8")
+
+    def strip(x):
+        if isinstance(x, dict):
+            if str(x.get("location_id", "")).split("~")[0] == NANAIMO_TIDAL:
+                x.pop("tidal_water", None)
+            for v in x.values():
+                strip(v)
+        elif isinstance(x, list):
+            for v in x:
+                strip(v)
+    doc = json.loads(was)
+    strip(doc)
+    f.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    yield
+    f.write_text(was, encoding="utf-8")
+
+
+def test_a_dfo_place_wholly_in_tidal_water_is_proposed_and_the_owners_mark_decides_it(env, undecided_nanaimo):
     """T449: the Nanaimo's "tidal portions … from Cedar Bridge downstream" sits below its tidal limit (the Cedar Road
     bridge cut): the row is PROPOSED tidal water (still "needs a cut" — a proposal is never pre-accepted); the owner's
     accept (call "tidal water", every check y) makes it `tidal` — last in the queue, a done mark, no write under
