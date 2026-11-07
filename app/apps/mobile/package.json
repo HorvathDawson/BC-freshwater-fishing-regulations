@@ -1,6 +1,6 @@
 {
   "name": "@app/mobile",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "private": true,
   "license": "UNLICENSED",
   "main": "index.js",
