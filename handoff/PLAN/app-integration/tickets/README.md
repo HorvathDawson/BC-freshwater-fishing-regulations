@@ -528,6 +528,7 @@ use that as the sole source of future work."
 | T481 | Sticky header on the keep tab: study, then the owner's "here-max + one breadcrumb" pin bar (water_max line 1, one breadcrumb, size words, "Fishing more than one water today? ›") | DONE | d2a7b4370 | owner 2026-11-07; wording approved 11-07, no shot review; release with the next one |
 | T482 | Salmon section: region rules into the species rows (sizes on each row, daylight one line), DFO source a closed fold; R1/R2/R6 header-format regression | IN PROGRESS | — | owner 2026-11-07 (Vedder); target: next release — worktree `t482-salmon-fold`, app code held until the current release is built |
 | T483 | Fast-fail: cheap checks before and while long jobs; every late failure a cheap check could catch is added (AGENTS 20a) | OPEN | — | owner 2026-11-07; agent starts when a lane frees |
+| T484 | A resumed release forgets the min app version after its promote; push check belongs in preflight | OPEN | — | found 2026-11-07 (r-1b4f54fb6ed9) |
 
 ## Order for open tickets
 
