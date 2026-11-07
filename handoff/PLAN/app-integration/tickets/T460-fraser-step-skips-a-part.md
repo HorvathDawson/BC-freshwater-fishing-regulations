@@ -30,3 +30,28 @@ Shouldn't it only have 1? It gives an option to basically skip one of the sectio
    binding diff (memory: split fix changes the trib walk), and a release. Do not promote without the owner.
 
 Related: T443 (step bar), rule 12 (braids), T67/E17. Size: M. Owner: none unless 1 finds misplaced rules.
+
+## Q1 found (2026-11-06): case (a), Region 5 water; no braid across the cut
+Measured: release r-67b456b5e64b (water-5, lines, geo) against the `wmu` polygons in `bc_fisheries_data.gpkg`,
+dissolved by `REGION_RESPONSIBLE_NAME`, the same polygons the regions and the border cut come from.
+- Part 1 holds 5 side channels above the 7A cut (mainstem 356364114 @ 674465 m, 53.1225 N). Each meets the Fraser
+  mainstem at BOTH ends INSIDE part 15's span (674465–703745 m), and none attaches below the cut:
+  | blk | lat | joins mainstem at (m) | sid · m |
+  |---|---|---|---|
+  | 355995847 | 53.158–53.162 | 682886 / 683389 | 61179 · 470, 61180 · 340 |
+  | 355999316 | 53.241–53.247 | 692946 / 693775 | 62527 · 909 |
+  | 355995086 | 53.261–53.265 | 697062 / 698149 | 60853 · 1470 |
+  | 355999633 | 53.271–53.273 | 699253 / 699507 | 62637 · 587 |
+  | 355992951 | 53.278–53.286 | 700284 / 701232 | 59989 · 1126 |
+  So: Fraser side channels from 53.158 N (−122.7186) to 53.286 N (−122.8574), 6 sections, 4,902 m.
+- All 5 lie WHOLLY in Cariboo (Region 5). Their length inside Omineca is 0.00 m. They touch the R5/R7 line only
+  where they rejoin the mainstem (the line follows the main channel here). They reach up to 164–253 m from the line,
+  on the R5 side. The R7-side channels beside part 15 (355996501, 355993311, 355995178, 355995175, 355996805) lie
+  wholly in Omineca and sit in part 0.
+- So nothing straddles a cut. `braid_sweep` cuts a channel only when it attaches on both sides of a cut, and none
+  does here. Region 5 rules on these 6 sections are right by region. Only ▲/▼ is wrong (Q2). Mark 0
+  (−122.8436, 53.2733) is where 355999633's top meets 355995175 (part 0, R7 side) at the same mainstem junction, and
+  that junction is what makes part 1 "touch" part 0.
+- For the record, the rules differ. Part 15 ("Where Region 5 and Region 7 meet") adds the R7A "upstream of the
+  Cottonwood River confluence" set (any bait, spring stream closure lifted) on top of part 1's rules. The 6 R5-side
+  sections do not get it, which is correct if R7A rules stop at the region line. This is not a placement defect.
