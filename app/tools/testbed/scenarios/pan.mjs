@@ -9,6 +9,7 @@ import path from 'node:path';
 import { coldStart, openLog, toMap } from './common.mjs';
 import { capture, LAKE } from './spots.mjs';
 import { cameraTo } from './perf.mjs';
+import { applyLab, parseLab } from '../lib/lab.mjs';
 
 const SWIPES = Number(process.env.PAN_SWIPES ?? 16);
 const ROUNDS = Number(process.env.PAN_ROUNDS ?? 2);
@@ -25,6 +26,10 @@ const AT = process.env.PAN_AT ? process.env.PAN_AT.split(',').map(Number) : null
 const COLD = process.env.PAN_COLD === '1';
 /** (T420) PAN_MS: each swipe's duration (default 350; 120 is a fling) */
 const SWIPE_MS = Number(process.env.PAN_MS ?? 350);
+/** (T420) PAN_LAB=key=value,…: map-lab switches set after the camera is placed (`lib/lab.mjs`; a lab build) — an A/B arm */
+const LAB = parseLab(process.env.PAN_LAB);
+/** (T420) PAN_WARM=1: no cold start — the app as the last run left it (state held, tiles cached): a growth check after a long pan */
+const WARM = process.env.PAN_WARM === '1';
 
 /** (T420/T401) the pan probe's `[drawn]` lines (`native/panProbe.ts`): per camera move, frames missing tiles while it
  *  moved, and rest → first full frame */
@@ -76,7 +81,7 @@ export const pan = {
   id: 'pan',
   title: `A scripted pan: ${SWIPES} swipes × ${ROUNDS} rounds, frame times and the app's pan lines`,
   async run(ctx) {
-    await ctx.step('the map up on Wi-Fi (cold start)', async () => {
+    await ctx.step(`the map up on Wi-Fi (${WARM ? 'warm' : 'cold start'})`, async () => {
       await ctx.device.net('wifi'); ctx.device.link('full', 'none');
       let cold = '';
       if (COLD) {
@@ -84,11 +89,18 @@ export const pan = {
         try { ctx.device.sh(`su 0 sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches' && echo dropped`); cold = 'page cache dropped'; }
         catch (e) { cold = `page cache NOT dropped (${String(e.message).split('\n')[0]})`; }
       }
-      await coldStart(ctx, { ms: 90_000 });
+      if (WARM) { if (!ctx.device.pidOf()) throw new Error('PAN_WARM: the app is not running'); } else await coldStart(ctx, { ms: 90_000 });
       if (AT) { cameraTo(ctx, { lon: AT[0], lat: AT[1], zoom: AT[2] }); }
       await ctx.device.sleep(5000);                                  // the first screen's tiles and colours in
-      return [cold, AT ? `at ${AT.join(',')}` : 'start view', `swipe ${SWIPE_MS} ms`].filter(Boolean).join(' · ');
+      return [WARM ? 'warm (no cold start)' : '', cold, AT ? `at ${AT.join(',')}` : 'start view', `swipe ${SWIPE_MS} ms`].filter(Boolean).join(' · ');
     });
+    if (Object.keys(LAB).length) {
+      await ctx.step(`map lab: ${process.env.PAN_LAB} (PAN_LAB)`, async () => {
+        const foot = await applyLab(LAB, ctx.device);
+        await ctx.device.sleep(4000);                                // a style switch's tiles in again
+        return foot;
+      });
+    }
     if (UPDATE) {
       await ctx.step('the live staging release taken (PAN_UPDATE): staged, applied at the next pause', async () => {
         const target = ctx.updates('reset').release?.data_release;
