@@ -36,6 +36,7 @@ Written 2026-11-07, as chat 6 closed. It replaces `NEXT-SESSION-after-chat5.md`.
 3. **T484:** release resume keeps the ledger's min app version; push check into preflight.
    **T485** steps 2–3: run-timing sources cached on R2, refresh as its own job (owner: no outside site may block a
    release).
+3b. **T486:** staging in-season feed stale since 11-06 (worker cron silent); the smoke flags it.
 4. Carried from chat 5 (details in each ticket):
    - **T478:** 0.6.8 walk failures — Updates log flow stale after T476; a Coquitlam River tap opens Coquitlam Lake.
    - Remove T459's test-bed-only all-grey switch (owner picked A); move T451/T443/T459/T456 to DONE as confirmed.
