@@ -33,7 +33,8 @@ describe.skipIf(!at.dir)("(T464) every part of every water is reached by â–² / â
       .map((r) => [Number(r.ord), String(r.item_id)]));
     const ords = (await (await loader.db("water")).all("SELECT item_ord AS ord FROM part GROUP BY item_ord HAVING count(*) > 1"))
       .map((r) => Number(r.ord));
-    expect(ords.length).toBeGreaterThan(500);
+    // the walk covers the waters this test was written for: the Bulkley (T464) and the Fraser (T460)
+    expect(["gnis:2195", "gnis:39325"].filter((id) => !ords.some((o) => items.get(o) === id))).toEqual([]);
     const bad: string[] = [];
     for (const ord of ords) {
       const g = await loadWaterGroup(store, items.get(ord)!);
