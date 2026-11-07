@@ -46,6 +46,8 @@ export interface NavPart {
   readonly rank: number;
   readonly label: string;
   readonly short: string;
+  /** (T460) A side channel (the release's part with no km): a fork's branch, never a skipped part of the main stem. */
+  readonly side?: boolean;
   /** The box of its geometry `[w, s, e, n]` in degrees, or null where the builder wrote none. */
   readonly box: Bbox | null;
   /** A point on it (`part_geo.mid_lon / mid_lat`), in degrees. */
@@ -116,7 +118,8 @@ export interface ItemNavRows {
   readonly item: string;
   readonly name: string;
   readonly kind: string;
-  readonly parts: readonly { readonly partIx: number; readonly label: string; readonly short: string }[];
+  /** `side` (T460): a side channel, the release's part with no km (`part.km` NULL), never a step on the main stem. */
+  readonly parts: readonly { readonly partIx: number; readonly label: string; readonly short: string; readonly side?: boolean }[];
   readonly geo: readonly { readonly partIx: number; readonly rank: number; readonly box: Bbox | null;
                            readonly mid: readonly [number, number] | null }[];
   readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
@@ -179,7 +182,7 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
         const p = facts.get(s.partIx)!, whole = geo.get(s.partIx);
         at.set(`${i.ord}:${s.partIx}:${s.stretch}`, parts.length);
         parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: s.partIx, rank: s.rank,
-                     label: p.label, short: p.short, box: s.box, mid: s.mid,
+                     label: p.label, short: p.short, ...(p.side ? { side: true } : {}), box: s.box, mid: s.mid,
                      sids: [...s.sids].sort((a, b) => a - b), stretch: s.stretch, stretches: count.get(s.partIx)!,
                      ...(whole ? { partBox: whole.box, partMid: whole.mid } : {}) });
       }
@@ -188,7 +191,7 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
         const g = geo.get(p.partIx);
         at.set(`${i.ord}:${p.partIx}:0`, parts.length);
         parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, rank: g?.rank ?? parts.length,
-                     label: p.label, short: p.short, box: g?.box ?? null, mid: g?.mid ?? null,
+                     label: p.label, short: p.short, ...(p.side ? { side: true } : {}), box: g?.box ?? null, mid: g?.mid ?? null,
                      sids: [...(sids.get(p.partIx) ?? [])].sort((a, b) => a - b) });
       }
       continue;
@@ -199,7 +202,7 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
       const g = geo.get(p.partIx);
       at.set(`${i.ord}:${p.partIx}:0`, parts.length);
       parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, rank: g?.rank ?? parts.length,
-                   label: p.label, short: p.short, box: g?.box ?? null, mid: g?.mid ?? null,
+                   label: p.label, short: p.short, ...(p.side ? { side: true } : {}), box: g?.box ?? null, mid: g?.mid ?? null,
                    sids: [...(sids.get(p.partIx) ?? [])].sort((a, b) => a - b) });
     }
   }
@@ -360,11 +363,15 @@ function reaches(g: WaterGroup, from: number, to: number, dir: Dir, avoid = -1):
  * places. The Fraser's "Williams Lake River confluence → Region 7A boundary" holds a side channel that touches the part
  * two boundaries up, so ▲ offered both "Region 7A boundary → Region 5 boundary" and, past it, "Region 5 boundary →
  * Source". A true fork leaves at ONE place (the Zymoetz's canyon upper entrance: main stem and side channel) and stays.
- * A mark with no place (a split lake's boundary) is never judged a skip, and the way on never comes back through `at`
+ * A side channel is never a skip, nor a step from one (the Skeena's Reserve: ▲ offers the main stem OR the channel beside
+ * it, a true fork; the channel's ▼ offers both places it rejoins). The
+ * shapes are the same in the marks, so the release's km says which: a side channel has none. A mark with no place (a
+ * split lake's boundary) is never judged a skip, and the way on never comes back through `at`
  * (the Fraser's channels round Lillooet leave part 3 and come back to it: no skip); two ways that each reach the other
  * are a loop, not a skip, and both stay.
  */
 function skips(g: WaterGroup, at: number, c: number, dir: Dir): boolean {
+  if (g.parts[c]?.side || g.parts[at]?.side) return false;
   const ways = waysOut(g, at, dir);
   const mine = ways.filter((w) => w.to === c).map((w) => w.m);
   if (!mine.every(placed)) return false;
