@@ -1,6 +1,6 @@
 # T451 — Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6)
 
-Status: DONE 2026-11-06 — e63c921c3 (owner phone check on the next APK)
+Status: PARTIAL — e63c921c3 (owner on 0.6.7: still flickers, "maybe better")
 
 Owner: "switching between Conditions and Runs has no flicker, but sometimes going to Map it flickers a bit (the streams
 etc flicker, not the base map) … maybe the colours when switching should get ready before it switches to avoid flicker."
@@ -35,3 +35,13 @@ Picture of a before frame: `out/runs/t451-a/T451-flicker-before.png` (Conditions
 The relabel on every style load (`swapped()`) is redundant now that states are known to survive; left in (harmless).
 Web not changed: GL JS paints channel values imperatively, no style swap. The run's camera sat at the zoomed-out field,
 not stream zoom; streams use the same values path.
+
+## Owner phone check (2026-11-06, 0.6.7): not fixed
+"The map switch still flickers, mostly between Conditions/Run timing into Map, not so much between Run timing and
+Conditions. Flicker is maybe better." So the one-style-per-switch fix helped but is not the whole cause. What is left
+happens when entering MAP from a colour mode (Conditions = flow colours, Runs = run-timing colours) and not between
+those two modes. Next: on the emulator, record the frames of a Conditions→Map switch (map surface presents + style
+events + feature-state writes). Find what draws a frame in the wrong colours: map mode's own style landing after a
+render of the old paint, feature-state cleared before the new values, or the stream layer's visibility/filter changing
+before its colours. Fix that, and before/after use the same 32-switch script with Conditions→Map and Runs→Map
+counted separately.

@@ -6,9 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Phone check 0.6.7 (Play internal, versionCode 16, 2026-11-06, chat 5):** T452 fling glide (now longer and softer,
-  ~1.25 s: right, or too floaty?), T451 (streams should not flicker when switching to Map), T443 (the small Fraser part
-  is framed at least half the screen).
+- **Phone check 0.6.7: ANSWERED 11-06** (glide good; loading stutter, Map-switch flicker, step-bar names overlap, first framing differs: all back in T420/T451/T443).
 - **T449 ANSWERED 11-06 (in chat):** both Nanaimo places accepted as tidal water (marks saved for you; lands with the next release build).
 - **Phone checks with 0.6.6 (Play internal, 2026-11-06, chat 4):** zoomed-out pan feel z5–z9 (T420 basemap fix + T448 pixel
   cap; is the map too soft?), Fraser R2 ▲/▼ steps (T443: ≤ 2 levels in per step, never past z12).

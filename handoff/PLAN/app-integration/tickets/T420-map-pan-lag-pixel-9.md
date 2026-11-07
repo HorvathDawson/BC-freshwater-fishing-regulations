@@ -229,3 +229,11 @@ tile; JS lag ≤ 250 ms; map renders 16 per round after the earlier fix).
 3. **Proposal:** drop the region and MU 4 % tints (keep their outlines and taps): 4–7 % of a low-zoom frame.
 4. Native pixel-ratio cap (T448) — the same GPU on the Pixel 9.
 Scripts (session scratchpad, not kept): `tilestats.py`, `drawwork.py`, `abcost.py`, `aadiff.py`, `layercost.py --aab`.
+
+## Owner phone check (2026-11-06, 0.6.7)
+"The fling glide feels good, but the map loading still causes stuttering." The glide is smooth (T452 DONE). The pan
+still hitches while tiles load and parse. That is this ticket's open item, MapLibre's own tile parsing, and T401
+(streams popping in at the edges). Next: measure on the emulator the frames while new tiles arrive during a glide
+(which tiles, how big, parse time on the map thread). Then try, one at a time with before/after: smaller stream
+tiles at the zooms panned most (fewer features per tile, z11–z13), the prefetch delta (T401), and fewer layers
+reading the same source.

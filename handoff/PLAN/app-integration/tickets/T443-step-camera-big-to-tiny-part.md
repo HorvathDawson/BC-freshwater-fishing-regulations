@@ -1,6 +1,6 @@
 # T443 — Stepping ▲/▼ between a big part and a tiny one jumps the camera (disorienting)
 
-Status: IN REVIEW (7f36eb73a; owner look on the phone).
+Status: PARTIAL — 7f36eb73a, 55c7f54 (owner on 0.6.7: Fraser framed well; two new items below)
 
 Source: owner problem report b48c0e449372c34b, 2026-11-06, app 0.6.2 (staging worker `GET /reports`): "When navigating
 a river like the Fraser regulation map and you click up or downstream and it goes from a big section to a tiny section or
@@ -33,3 +33,15 @@ neither bound may leave a part under half the screen across (one level out from 
 (`fitZoomOf` + `fitZoomLimit(fit, current, fitZoom)`, both maps). Fraser from the mouth, step by step, before → after:
 tiny parts 10.1 / 11.1 / 11.0 → 13 / 13 / 13; parts of z12–13.4 → 12–12.4; big parts unchanged. The tiny parts still
 take a big step in (≈ 5 levels from z8–9): seeing the part won over the smaller step.
+
+## Owner phone check (2026-11-06, 0.6.7)
+"Fraser is framed well." Two new items:
+1. **The boundary names in the ▲/▼ step bar overlap each other** (the part's from/to names, e.g. "Mouth → … Bridge"):
+   long names run into each other. Fix: names never overlap at any phone width. Long ones wrap to two lines or are cut
+   with an ellipsis, and the full name is on the accessibility label. A render test with the longest pair the release
+   holds at 360 dp.
+2. **The first open of a water's Map tab frames the part differently from the same part reached by ▲ then ▼.** The
+   first framing must equal the step framing (memory: one load path per screen, T369): the first open must go through
+   the same framing function as a step, with the same padding, floor (half the screen, ≤ z14) and insets. Find the
+   difference (likely the first fit runs before the bar/sheet insets are measured, or uses the whole water's bounds).
+   Test: open → camera A; ▲ then ▼ → camera B; A == B (centre within 1 dp, zoom within 0.01).

@@ -1,6 +1,6 @@
 # T452 — A fling's glide stutters as it goes (Pixel 9, 0.6.6)
 
-Status: IN REVIEW — e63c921c3 (the glide's shape changed: owner feel check on the next APK)
+Status: DONE 2026-11-06 — e63c921c3 (owner on 0.6.7: "the fling glide feels good")
 
 Owner: "the panning is a bit better, zoomed out and in are similar now; still feels a little stuttery — if you flick
 the screen the way it moves stutters a bit as it goes."
@@ -44,3 +44,7 @@ settle's reported travel 459 / 258 / 182 dp = the real travel to the dp (err 0),
 real one each time (constant: no stale settle). The 2286 dp/s fling had no baseline (the slow drags log no probe `m`
 samples, a probe gap, not the settle's); drags ×0.97 of the finger as before; arrivals settle as before. No fix needed.
 Not verified: iOS (no change there); a real Pixel 9 (owner's feel check on 0.6.7).
+
+## Owner phone check (2026-11-06, 0.6.7)
+"The fling glide feels good." Accepted as is. The stutter that is left comes from tiles loading while
+moving: that is T420/T401, not the glide.

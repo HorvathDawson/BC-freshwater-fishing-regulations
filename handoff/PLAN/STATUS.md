@@ -30,8 +30,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T455 fixed** (2290b6e25): a real race, a reader could hit it. A tap landing just as a done step moved on was run by
   the previous step's button and skipped the next step. Now a tap always acts on the step on screen. Under load: 2/20
   runs failed before, 0/40 after. `pnpm check` fully green after (6701 pass, 0 fail).
-- **Running:** T446 (fresh installs on the emulator got several release files EMPTY on 0.6.6: the crash store's new
-  wording shows "0 % of its size"); T307 + T308 emulator checks (offline spot save, the moving location dot).
+- **T446 fixed** (7fc594427): the Expo SDK 58 upgrade made the file write/move/copy calls asynchronous, and ours did
+  not wait. A rename moved an EMPTY file into place, so fresh installs got 0-byte release files (the retry usually
+  recovered). The spots save does the same write-then-rename, so it could have emptied a spots file. Fresh install
+  after the fix: 1 boot, 0 mismatches (before: 2 boots). If any of your spots look missing, say so before saving
+  anything new: the store keeps a backup copy beside the file. T458 filed: a check that catches an un-awaited promise.
+- **New tickets:** T456 (walkthrough rework from the tester's feedback), T457 (lake outline + see-through fill, shots
+  for you first), T458 (above).
+- **Running:** T456 (agent); T307 + T308 emulator checks (offline spot save, the moving location dot).
+- **Your 0.6.7 check:** the glide feels good (T452 DONE). Still to do: the pan stutters while the map loads tiles
+  (T420), the Map switch still flickers coming from Conditions/Run timing ("maybe better", T451 reopened), the
+  boundary names in the ▲/▼ bar overlap, and the first open of a water's Map tab frames differently from ▲ then ▼
+  (both added to T443). The Fraser is framed well.
+- **Next:** T451 + T443's two items (one lane, emulator) → 0.6.8 APK with T446, T454, T455 and those; then T457, T420.
 - **Crash store (T351):** no foreground native crash since 0.6.6. Today's reports are emulator installs (android 35)
   failing a download check ("does not match the manifest", several "0 % of its size") plus one from 0.6.4 on your
   phone (before T446's change). The test-bed builds do tag theirs. These carry the Play build's version, so they come

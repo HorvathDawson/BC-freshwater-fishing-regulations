@@ -487,7 +487,7 @@ use that as the sole source of future work."
 | T440 | Android: the first-run notice's body (and "I understand") is missing from the accessibility tree (Sheet scroll dialog) | DONE | 48efaa5fb 6c48c1047 | found 2026-11-06 by the T293/T420 emulator runs; the test bed cannot dismiss the notice |
 | T441 | One re-cut of every release-backed test fixture after a release (taps, fixture release, VM fixtures, section-lines, pinned ids) | DONE | deef924da, 23c9aed6a | 2026-11-06: four check rounds before 0.6.3 |
 | T442 | A staging upload left test/ on a cleared release: fresh test-bed installs 404 (walk-063) | DONE | 51e05a4ef | 2026-11-06: not an app bug; live/Play builds unaffected |
-| T443 | Stepping ▲/▼ between a big part and a tiny one jumps the camera (Fraser): bound the zoom change per step | IN REVIEW | 7f36eb73a | owner report b48c0e 2026-11-06 |
+| T443 | Stepping ▲/▼ between a big part and a tiny one jumps the camera (Fraser): bound the zoom change per step | PARTIAL | 7f36eb73a 55c7f54 | owner report b48c0e 2026-11-06 |
 | T444 | Crash: "water map: part 0 of gnis:3062 is not in its group" (Chilliwack map view, 0.6.2) | DONE | 6ea40732d | worker /crashes 2026-11-06 |
 | T445 | Map error "… resolved to … null which is null or a wrong type" (Android 0.6.1/0.6.2; names scrubbed) | DONE | 73daab938 | worker /crashes 2026-11-06 |
 | T446 | First install: a release file "does not match the manifest" (SDK 58 async write/move, unawaited) | DONE | cddfdbe10 7fc594427 | worker /crashes 2026-11-06 |
@@ -495,8 +495,8 @@ use that as the sole source of future work."
 | T448 | Native map: cap the drawing density at 2 like the web (binding patch exposes pixelRatio) | PARTIAL | 26c59849f | T420 follow-up 2026-11-06; Android: binding `maxPixelRatio` → the map SurfaceView a fixed smaller buffer (823×1567 vs 1080×2057), compositor scales; same scale/taps (shots out/t448). Stressed emulator frame times mixed (Mac GPU passthrough, fill free). Left: owner phone check, iOS |
 | T449 | A DFO place wholly in tidal water (Nanaimo below Cedar Bridge): a "tidal water" state, proposed, binds nothing | IN REVIEW | e83f7811e | owner 2026-11-06; rule proposes (tidal words + tidal-limit cut named, op downstream); owner's DFO mark accepts ("tidal water") / rejects; sweep: only the 2 Nanaimo places |
 | T450 | Two pipeline "live" tests still read the retired golden.json (collection error) | DONE | dedd06cc5 | chat 5 2026-11-06 |
-| T451 | Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6) | DONE | e63c921c3 | owner phone check |
-| T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | IN REVIEW | e63c921c3 | owner feel check (glide shape changed: proposal) |
+| T451 | Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6) | PARTIAL | e63c921c3 | 0.6.7: still flickers Conditions/Runs → Map |
+| T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | DONE | e63c921c3 | owner 0.6.7: feels good |
 | T453 | Flow alerts set by the day's percentile; an easier alert menu | OPEN | — | owner 2026-11-06; after T234 resumes |
 | T454 | Spot photos: zoom and pan in the viewer | IN REVIEW | 4ede32a69 (owner phone check) | owner 2026-11-06 |
 | T455 | Walkthrough "Layers" test skips the ground step under load (flaky) | DONE | 2290b6e25 | chat 5 2026-11-06 |
