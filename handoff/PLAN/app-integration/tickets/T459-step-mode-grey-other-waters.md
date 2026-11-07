@@ -45,3 +45,7 @@ options are the same picture there). Test bed run `out/runs/t459c`: the two opti
 receiving water; switched by the link below (8 `[flag]` lines per water). The test-bed link `canifishthis://testbed/flag?name=receiving&on=0|1` switches it
 (`ui-native/src/testbedFlag.ts`, test bed only) — remove it with the choice.
 
+
+## Owner pick (2026-11-06)
+"Step mode is good": option A ships (the water it flows into keeps its colours, muted). Remove the test-bed-only
+all-grey switch after the 0.6.8 check.
