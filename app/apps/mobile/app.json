@@ -35,7 +35,7 @@
     "ios": {
       "bundleIdentifier": "ca.canifishthis.app",
       "supportsTablet": false,
-      "buildNumber": "15",
+      "buildNumber": "16",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -130,7 +130,7 @@
     },
     "android": {
       "package": "ca.canifishthis.app",
-      "versionCode": 15,
+      "versionCode": 16,
       "adaptiveIcon": { "foregroundImage": "./assets/icon/adaptive-foreground.png", "monochromeImage": "./assets/icon/adaptive-monochrome.png" }
     },
     "web": {
