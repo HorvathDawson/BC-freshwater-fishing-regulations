@@ -8,11 +8,10 @@ Written 2026-11-07, as chat 6 closed. It replaces `NEXT-SESSION-after-chat5.md`.
 > Start ticket work without asking; ask me only for decisions. Keep replies short and STATUS.md current.
 
 ## Where chat 6 left things
-- **Data:** release **r-1b4f54fb6ed9** is LATEST locally (T468 Powell River / Little Slocan: 15 rules gain, 0 lose,
-  owner approved; T479 quota wording; T481 pin-bar fields). The staging upload was blocked by an open.canada.ca outage
-  (the run-timing workflow's NuSEDS fetch timed out twice); see STATUS.md top entry for whether the retry landed. If not:
-  `.venv/bin/python -m pipeline release --staging --min-app-version 0.5.0` (pass the min app explicitly — T484).
-  Prod is the owner's step.
+- **Data:** release **r-1b4f54fb6ed9** is LATEST and **live on staging** (T468 Powell River / Little Slocan: 15 rules
+  gain, 0 lose, owner approved; T479 quota wording; T481 pin-bar fields). The staging WEBSITE was not redeployed (T490),
+  so the release ledger's stage 6 is still open (smoke: the unnamed tap, and the stale in-season feed T486). Prod is
+  the owner's step.
 - **App 0.6.9:**
   - **Play internal, versionCode 19:** built with the **patched lean MapLibre** (T420; libmaplibre.so verified
     byte-identical to `13.6.1-fslean`). This is the phone perf test.

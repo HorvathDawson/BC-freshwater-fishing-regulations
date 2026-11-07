@@ -1,8 +1,7 @@
 # T482 — Salmon section: region rules into the species rows, daylight one line, the DFO source a closed fold
 
-Status: IN PROGRESS — worktree branch `t482-salmon-fold` (scratchpad `wt-salmon`); target: next release. App + pipeline
-code held out of the current release (coordinator 11-07): committed to `redesign/stream-sections` only after the
-current release/APK is built.
+Status: IN REVIEW — merged into redesign/stream-sections 2026-11-07 (a7235f996), after r-1b4f54fb6ed9 and the 0.6.9
+APKs. Ships with the next release; the owner was sent the before/after Vedder shots 11-07.
 
 Owner 2026-11-07, Vedder River regs pane, salmon (DFO) section: "Also I thought a long time ago with salmon we got rid
 of the items here and combine it into the individual salmon species? It is too much and the source of the regs should
