@@ -55,7 +55,7 @@ missed (their live binding does not hold the lake):
 - `r2:wahleach_jones_lake_s_tributaries` r1 (No Fishing): +20, Wahleach Creek above the lake.
 - `r4:premier_lake_s_tributaries` r1 (No Fishing): +10, unnamed inlet.
 
-12 lakes have a through-river with a row of its own and stay out, unchanged: Buttle, Campbell and John Hart (Campbell R.),
-Chehalis, Connor (Forsyth Cr.), Duncan, Lake Revelstoke (Kinbasket), Lower Arrow (Upper Arrow), Tanya (Takia), and others.
+9 lake rows have a through-river with a row of its own and stay out, unchanged: Buttle, Campbell and John Hart (Campbell R.),
+Chehalis, Connor (Forsyth Cr.), Duncan, Lake Revelstoke (Kinbasket), Lower Arrow (Upper Arrow), Tanya (Takia).
 
 Related: Koocanusa/Kinbasket (`_through_blks`), receiving-river-not-a-tributary, confluence ruling 2026-09-30. Size: S.
