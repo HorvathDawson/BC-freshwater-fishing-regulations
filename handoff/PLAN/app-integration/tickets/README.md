@@ -509,6 +509,7 @@ use that as the sole source of future work."
 | T462 | Audit (multi-agent): every screen shows the regulations the release holds and the synopsis says | OPEN | — | owner 2026-11-06 |
 | T463 | Deep code review of the branch before production (owner runs /code-review ultra; Claude triages) | OPEN | — | owner 2026-11-06 |
 | T464 | Bulkley River: 6 of 12 parts unreachable by ▲/▼ (found by the T460 count; true before it) | DONE 2026-11-06 | 1470734, 723f43116 | only the Bulkley changes; release test every part reachable |
+| T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | OPEN | — | 2026-11-06 |
 
 ## Order for open tickets
 
