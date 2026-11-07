@@ -27,14 +27,27 @@ RT_TV=$(python3 -c "import json;print(json.load(open('$RT/base.json'))['tile_ver
   || { echo "upload: no run-timing base at $RT — run pipeline.deliver all"; exit 1; }
 [[ "$RT_TV" == "$TILES" ]] || { echo "upload: the run-timing base is for $RT_TV, the release's tiles are $TILES"; exit 1; }
 RT_BASE=$(python3 -c "import json;print(json.load(open('$RT/base.json'))['base'])")
-rclone copyto "$RT/$RT_BASE" "$D/private/runtiming/base/${TILES%%.*}.json.gz" --s3-no-check-bucket --checksum
+# (T485) NOTHING TO REDO: when staging's run timing already names these tiles and its binding base is byte-identical to
+# this release's, the workflow would publish nothing — skip it (it fetches PSF + open.canada.ca, and an outage there
+# blocked r-1b4f54fb6ed9 on 2026-11-07). Said out loud; any difference runs the workflow as before.
+RT_KEY="private/runtiming/base/${TILES%%.*}.json.gz"
+RT_HAVE=$(rclone cat "$D/runtiming/index.json" --s3-no-check-bucket 2>/dev/null \
+  | python3 -c "import json,sys;print(json.load(sys.stdin)['tile_version'])" 2>/dev/null || true)
+RT_SAME=""
+if [[ "$RT_HAVE" == "$TILES" ]] && cmp -s "$RT/$RT_BASE" <(rclone cat "$D/$RT_KEY" --s3-no-check-bucket 2>/dev/null); then
+  RT_SAME=1
+fi
 # the workflow runs the code on GitHub: refuse a local commit it would not see
 GH_REPO=HorvathDawson/BC-freshwater-fishing-regulations; GH_REF=redesign/stream-sections
 git fetch -q origin "$GH_REF"
+RT_RUN=""
+if [[ -n "$RT_SAME" ]]; then
+  echo "run timing: staging already has it for $TILES with the same binding base — workflow not started (T485)"
+else
+rclone copyto "$RT/$RT_BASE" "$D/$RT_KEY" --s3-no-check-bucket --checksum
 git merge-base --is-ancestor HEAD "origin/$GH_REF" || { echo "upload: push $GH_REF first (the run-timing workflow runs GitHub's copy)"; exit 1; }
 RT_T0=$(date -u -v-60S +%Y-%m-%dT%H:%M:%SZ)     # a minute back: the Mac and GitHub clocks differ a little
 gh workflow run feeds-runtiming.yml -R "$GH_REPO" --ref "$GH_REF" -f upload=true -f tiles="$TILES" >/dev/null
-RT_RUN=""
 for _ in $(seq 1 30); do
   RT_RUN=$(gh run list -R "$GH_REPO" --branch "$GH_REF" --event workflow_dispatch --limit 10 --json databaseId,createdAt,workflowName \
     --jq "[.[] | select(.workflowName | startswith(\"feeds — run timing\")) | select(.createdAt >= \"$RT_T0\")][0].databaseId // empty")
@@ -42,6 +55,7 @@ for _ in $(seq 1 30); do
 done
 [[ -n "$RT_RUN" ]] || { echo "upload: the run-timing workflow did not start (gh workflow run)"; exit 1; }
 echo "run timing: workflow run $RT_RUN started for $TILES"
+fi
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
   --exclude "*.pbf"
 rclone copy "$R/tiles/$TILES" "$D/release/tiles/$TILES" --s3-no-check-bucket --transfers 16 --header-upload "$IMM" \
@@ -75,9 +89,11 @@ done
 # (T412) ATOMIC SWITCH: the release pointer flips only once run timing for THIS release's tiles is on R2 (the workflow
 # started above publishes it; same tiles as the live feed and nothing new: it publishes nothing, the index already
 # names them). A failed run stops here without writing the pointer; fix it and rerun this script.
-echo "run timing: waiting for workflow run $RT_RUN"
-gh run watch "$RT_RUN" -R "$GH_REPO" --exit-status --interval 20 >/dev/null \
-  || { echo "upload: the run-timing workflow failed: https://github.com/$GH_REPO/actions/runs/$RT_RUN — the release pointer was NOT written"; exit 1; }
+if [[ -n "$RT_RUN" ]]; then
+  echo "run timing: waiting for workflow run $RT_RUN"
+  gh run watch "$RT_RUN" -R "$GH_REPO" --exit-status --interval 20 >/dev/null \
+    || { echo "upload: the run-timing workflow failed: https://github.com/$GH_REPO/actions/runs/$RT_RUN — the release pointer was NOT written"; exit 1; }
+fi
 RT_LIVE=$(rclone cat "$D/runtiming/index.json" --s3-no-check-bucket | python3 -c "import json,sys;print(json.load(sys.stdin)['tile_version'])")
 [[ "$RT_LIVE" == "$TILES" ]] || { echo "upload: runtiming/index.json names $RT_LIVE, the release's tiles are $TILES — pointer NOT written"; exit 1; }
 # (T251) the publish day (kept once set) and, with MIN_APP_VERSION=x.y.z, the oldest app that may apply it: stamped
