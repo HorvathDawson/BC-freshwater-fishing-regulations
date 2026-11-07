@@ -18,7 +18,11 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   `pnpm check`, builds 0.6.7 (T443's half-screen floor, T451, T452) to Play internal, and walks a fresh install.
 - **Crash store (T351):** no foreground native crash since 0.6.6. Today's reports are emulator installs (android 35)
   failing a download check ("does not match the manifest", several "0 % of its size") plus one from 0.6.4 on your
-  phone (before T446's change). To check: why test-bed reports are not tagged as test (T291).
+  phone (before T446's change). The test-bed builds do tag theirs. These carry the Play build's version, so they come
+  from walks of the store APK on the emulator: not a fault.
+- **New tickets from you:** T453 (alerts by the day's percentile + an easier alert menu, my design; waits on T234),
+  T454 (zoom/pan in the spot photo viewer: an agent is building it now).
+- **T450 done** (dedd06c): the two pipeline tests that read the retired golden.json; collection is clean again.
 
 ## 2026-11-06: chat 4 — zoomed-out lag, then the list
 - **Your 0.6.6 notes (late):** T443 now never frames a part under half the screen (the small Fraser part lands at
