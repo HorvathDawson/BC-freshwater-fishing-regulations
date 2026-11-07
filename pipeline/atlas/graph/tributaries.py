@@ -374,6 +374,37 @@ CONFLUENCE_NEAR_M = _tol.CONFLUENCE_NEAR_M     # 150 m, pipeline/common/toleranc
 #: through it; the Morice, Atnarko, Zymoetz and Chowade lost side channels of their own stretch.
 THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER = True
 
+#: A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE IS ITS TRIBUTARY WHEN THE RIVER HAS NO ROW OF ITS OWN
+#: (T468, owner 2026-11-07: "powell lake is closed including tributaries in november but powell river
+#: (above the lake) is not showing as closed"). The walk refuses the inflow on a lake's outlet line as
+#: "the river continuing through" (`_through_blks`) — right where the river has rows of its own
+#: (Koocanusa must not take the Kootenay above it; Kinbasket's row prints "does not include Columbia
+#: River upstream"), wrong where nothing else in the tables speaks for it: FWA draws the Powell River
+#: down through Powell Lake on ONE blue line, so the river feeding the lake's head read as the lake's
+#: own outlet river carrying on, and the Nov 1-Mar 31 closure took every other inflow but that one
+#: and the 640 sections above it. The same test as a confluence cut's joining water
+#: (`CONFLUENCE_WATER_WITHOUT_A_ROW_GOES_WITH_THE_CUT`, ruling 2026-09-30): no row of its own, it goes
+#: with the lake. Only for a lake that is the ENTRY'S OWN water — a lake at the top of a river reach
+#: still ends that reach ("X River downstream of Y Lake" does not take what feeds Y Lake).
+#: Applied by `reach.build._expander` through `through_inlets`. False = the mutation pin.
+A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY = True
+
+
+def through_inlets(graph: StreamGraph, reach, lake_id: str) -> frozenset[str]:
+    """The inflows of boundary lake `lake_id` that the walk from `reach` refuses as the river
+    running through it (`RIVER_CONTINUING`): the stream on its outlet's blue line, or the next lake
+    up that line. Empty for a lake not in `reach`."""
+    reach = frozenset(reach)
+    if lake_id not in reach:
+        return frozenset()
+    ctx = reach_context(graph, reach)
+    out: set[str] = set()
+    for ei in sorted(graph.up_adj.get(lake_id, [])):
+        e = graph.edges[ei]
+        if e.from_node not in reach and may_enter(ctx, e.from_node, lake_id, e) == RIVER_CONTINUING:
+            out.add(e.from_node)
+    return frozenset(out)
+
 
 def confluence_joiners(graph: StreamGraph, blk: str, m: float, *, near: float = 1.0,
                        names: tuple[str, ...] = ()) -> frozenset[str]:

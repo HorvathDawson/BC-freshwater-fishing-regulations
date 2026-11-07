@@ -444,6 +444,8 @@ def test_policy_version_is_bumped_when_classify_changes():
         "straddlers_in_every_region": regions.STRADDLERS_IN_EVERY_REGION,
         "unnamed_lakes_on_the_river_are_the_river": extent.UNNAMED_LAKES_ON_THE_RIVER_ARE_THE_RIVER,
         "a_steelhead_rivers_widening_is_anadromous": steelhead.A_STEELHEAD_RIVERS_WIDENING_IS_ANADROMOUS,
+        "a_lake_rows_unrowed_through_river_is_a_tributary":
+            tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -460,8 +462,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "every_cut_reaches_the_walk": True,
                      "straddlers_in_every_region": True,
                      "unnamed_lakes_on_the_river_are_the_river": True,
-                     "a_steelhead_rivers_widening_is_anadromous": True})
-    assert cache.POLICY_VERSION == "34", "update this pin with the version it was taken at"
+                     "a_steelhead_rivers_widening_is_anadromous": True,
+                     "a_lake_rows_unrowed_through_river_is_a_tributary": True})
+    assert cache.POLICY_VERSION == "35", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

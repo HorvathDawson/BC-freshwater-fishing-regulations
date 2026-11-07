@@ -132,7 +132,10 @@ from typing import Callable
 #:     (`sectionizer._plan_blk`) — a gauge joins a name within 400 m on EITHER side, two authored cuts are
 #:     never merged by distance, `at_edge` replaces the per-split pickup radii — so the sections a rule
 #:     binds move. No classify.py outcome changed; the bump marks the binding diff.
-POLICY_VERSION = "34"
+#: 35: (T468, owner 2026-11-07) A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE IS ITS TRIBUTARY when the river
+#:     has no row of its own (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`): Powell Lake's
+#:     closure takes the Powell River above the lake. Depends on OTHER entries (`rowed_waters`), as 14 does.
+POLICY_VERSION = "35"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

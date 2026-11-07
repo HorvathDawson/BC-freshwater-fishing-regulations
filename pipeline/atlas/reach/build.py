@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids
 from pipeline.atlas.graph import tributaries as _tribs
+from pipeline.common.models import NodeKind
 from pipeline.common.names import key as name_key
 from pipeline.atlas.reach import classify as _policy
 from pipeline.atlas.reach.classify import classify, wants_tributaries
@@ -509,6 +510,14 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
             "joined": row.get("joined", 0),
             **({"bounded_at_lake": True, "stem": len(row.get("stem") or ())}
                if row.get("bounded_at_lake") else {})}))
+    seen_through: set[tuple[str, str]] = set()
+    for row in getattr(expander, "through", None) or ():
+        # REPORTED, never silent (T468): each lake row's through-river above the lake, and whether
+        # it went with the lake or stayed out (a row of its own, or the rule's words).
+        if (row["lake"], row["inlet"]) in seen_through:
+            continue
+        seen_through.add((row["lake"], row["inlet"]))
+        diags.append(Diagnostic(entry["entry_id"], rule["rule_id"], "through_river", dict(row)))
     walked_out = getattr(expander, "out_of_region", 0)
     if out_of_region or walked_out:
         # REPORTED, never silent: what the row's own region(s) took away, before the walk and
@@ -1043,7 +1052,8 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
                 with_cut |= add
             elif row.get("with_cut"):
                 row["joined"] = len(set(row["subtree"]) & got)
-        got = frozenset(got | with_cut)
+        got = frozenset(got | with_cut | _through_river_with_the_lake(
+            graph, registry, owned, entry, rule, reach, own_water, blocked, passed, expand))
         if region is None:
             return got
         kept = {s for s in got if s in region}
@@ -1052,7 +1062,44 @@ def _expander(graph, registry, covered, rule, entry, *, cuts=None, region=None, 
 
     expand.out_of_region = 0
     expand.confluence = None
+    expand.through = []
     return expand
+
+
+def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own_water, blocked,
+                                 passed, expand) -> set[str]:
+    """A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE, when it has no row of its own
+    (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`, T468): the river entering each
+    of the entry's own lakes on the lake's outlet line, and everything above it — streams only, never
+    a carve-out's water or the entry's own. A river with a row of its own, or one the rule's words
+    keep out ("not including X River"), stays out as before. Each lake's answer is reported
+    (`expand.through`, the `through_river` diagnostic)."""
+    if not _tribs.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY:
+        return set()
+    words = " ".join(str(rule.get(k) or "") for k in ("verbatim", "extent_text"))
+    add: set[str] = set()
+    for lake in sorted(s for s in reach if s in own_water):
+        n = graph.nodes.get(lake)
+        if n is None or n.kind != NodeKind.lake:
+            continue
+        for inlet in sorted(_tribs.through_inlets(graph, reach, lake)):
+            if inlet in blocked or inlet in own_water:
+                continue
+            water = (graph.nodes[inlet].display_name or "").strip()
+            own = own_rows(registry, owned, {inlet}, entry.get("entry_id"))
+            negated = bool(water) and _rule_excludes(words, water)
+            joined = 0
+            if not own and not negated:
+                got = {s for s in _tribs.subtree(graph, {inlet})
+                       if s not in blocked and s not in passed and s not in own_water
+                       and s not in reach
+                       and (not _tribs.STREAMS_ONLY
+                            or _resolve._kind_of(graph, s, registry) == "stream")}
+                joined = len(got - add)
+                add |= got
+            expand.through.append({"lake": lake, "inlet": inlet, "water": water or "(unnamed)",
+                                   "own_row": list(own), "negated": negated, "joined": joined})
+    return add
 
 
 def scope_resolutions(e: dict, covered: list[str], registry, graph) -> list[tuple[dict, dict | None]]:
