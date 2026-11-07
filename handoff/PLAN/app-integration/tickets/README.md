@@ -524,6 +524,7 @@ use that as the sole source of future work."
 | T477 | ui-native render tests fail by wall-clock date (horizon labels "Sat 7" vs "Sun 8") | DONE | 0bd5ae373 | found 2026-11-07; pin the clock |
 | T478 | 0.6.8 walk: Updates log flow stale after T476; Coquitlam River tap opens the lake (T457 outline?) | OPEN | — | found 2026-11-07; test bed run 2026-11-07T09-16-07 |
 | T479 | T475 follow-up: "How to tell hatchery ›", "Exception to regional quota" (pipeline `over_region`), examples fold closed by default | IN REVIEW | 31dd63547 | owner 2026-11-07; owner look at the shots, then a release |
+| T480 | One size style on the regs pane (chips; steelhead as a definition); "Access may be restricted" as a chip in the water header | OPEN | — | owner 2026-11-07; proposal |
 
 ## Order for open tickets
 
