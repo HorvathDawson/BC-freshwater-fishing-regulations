@@ -56,7 +56,7 @@ export function whenTraced(m: maplibregl.Map, fn: () => void): () => void {
  */
 export function afterLoad(m: maplibregl.Map, fn: () => void): () => void {
   if (styledOnce.has(m)) { fn(); return () => {}; }
-  m.once("load", fn);
+  void m.once("load", fn);   // MapLibre types once() as `this | Promise`: given a listener it returns the map
   return () => { m.off("load", fn); };
 }
 

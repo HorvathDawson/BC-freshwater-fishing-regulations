@@ -132,7 +132,7 @@ export function useMapInstance(refs: WebMapRefs,
         pill.current?.();
     });
     m.on("load", addPill);
-    m.once("load", () => styledOnce.add(m));
+    void m.once("load", () => styledOnce.add(m));   // MapLibre types once() as `this | Promise`: given a listener it returns the map
     map.current = m;
     const toCopy = copyTarget(m);
     const r0 = webRenderer(m as never, FIT_MAX_ZOOM, { copy: () => copy.current, target: () => toCopy });

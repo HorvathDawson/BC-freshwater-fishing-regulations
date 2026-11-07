@@ -80,6 +80,6 @@ export function useLabelsInBC(map: MutableRefObject<maplibregl.Map | null>, outs
         m.setFilter(l.id, (kept ? ["all", inBC, kept] : inBC) as never);
       }
     };
-    if (m.isStyleLoaded()) apply(); else m.once("load", apply);
+    if (m.isStyleLoaded()) apply(); else void m.once("load", apply);   // MapLibre types once() as `this | Promise`: given a listener it returns the map
   }, [outsideData]);
 }

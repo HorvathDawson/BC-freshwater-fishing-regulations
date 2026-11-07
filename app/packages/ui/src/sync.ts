@@ -24,7 +24,7 @@
  */
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { failedSources, hydatNotice as noticeOf, UPDATE_WORDS, type HydatNotice, type SyncInput, type UpdateSourceInput,
-         type MobileDataSetting, type UpdateSourceKey, now as clockNow } from "@app/core";
+         type MobileDataSetting, type UpdateSourceKey, now as clockNow, reportFailure } from "@app/core";
 import { FEED_TTL_MS, type GaugeFeed, type UpdateService, type UpdateSnapshot } from "@app/data";
 import { usePoll } from "./async";
 import { feedMoved } from "./feedVersion";
@@ -150,6 +150,10 @@ export function useSync({ feed, release, checkRelease, named = null, updates = n
     ]).then(([idx, latest]) => {
       if (live) setSt({ feedFetchedAt: idx.at, checkedAt: idx.at !== null ? clockNow() : null, latest,
                         hydatNotice: idx.hydat, forecastIssuedAt: idx.forecast, checking: false });
+    }, (e: unknown) => {
+      // (T458) each ask answers its own failure above, so this is not reached; were it, the check is said, not stuck
+      reportFailure(e);
+      if (live) setSt((s) => ({ ...s, checking: false }));
     });
     return () => { live = false; };
   }, [feed, checkRelease, epoch, tick, named, updates]);

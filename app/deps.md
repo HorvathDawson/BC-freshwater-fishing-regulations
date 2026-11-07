@@ -8,7 +8,8 @@ v1's webapp reached `chart.js` + `pdf-lib` + `pdfjs-dist` + `fuse.js` + `suncalc
 
 ## Build / test
 
-- `typescript` — the language.
+- `typescript` — the language. Its compiler API is also the floating-promise gate (`tools/check-promises.mjs`, T458): no
+  ESLint for one rule; the gate is typescript-eslint's `no-floating-promises` with its defaults.
 - `vitest` — test runner; also runs the conformance suite against every `WaterSource`.
 - `knip` — the unused-code guard in `pnpm check` (N23, T63): an unused file, dependency or export fails the check.
   Dead code regrew between audits while every test stayed green. Allowances, each with its reason, are in

@@ -43,7 +43,7 @@ import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Easing, View } from "react-native";
 import { spriteStaircase } from "@app/ui";
 import { FISH_SPRITE } from "./fish-sprite.generated";
-import { SPINNER_WORDS } from "@app/core";
+import { reportFailure, SPINNER_WORDS } from "@app/core";
 import { round, type Palette } from "./theme";
 
 export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading, colour }:
@@ -56,7 +56,7 @@ export function FishSpinner({ palette, size = 96, label = SPINNER_WORDS.loading,
     // A spinner is the one thing on screen that always moves, so it is the one thing
     // "reduce motion" is most likely to have been turned on for.
     let live = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((on) => { if (live) setStill(on); });
+    AccessibilityInfo.isReduceMotionEnabled().then((on) => { if (live) setStill(on); }, reportFailure);
     // react-native-web returns UNDEFINED here when the browser has no matchMedia, so the
     // optional call is load-bearing, not defensive noise.
     const sub = AccessibilityInfo.addEventListener("reduceMotionChanged", setStill);
