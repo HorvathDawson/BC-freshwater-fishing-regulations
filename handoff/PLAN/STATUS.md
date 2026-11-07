@@ -21,7 +21,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   phone (before T446's change). The test-bed builds do tag theirs. These carry the Play build's version, so they come
   from walks of the store APK on the emulator: not a fault.
 - **New tickets from you:** T453 (alerts by the day's percentile + an easier alert menu, my design; waits on T234),
-  T454 (zoom/pan in the spot photo viewer: an agent is building it now).
+  T454 (zoom/pan in the spot photo viewer).
+- **T454 built** (4ede32a69, in review): pinch zooms around your fingers (1×–5×), drag pans while zoomed (stops at
+  the edges), double-tap toggles 2.5×, a swipe changes photo only when not zoomed, the mouse wheel zooms on the web.
+  Tests + `pnpm check` pass; not yet tried on a screen (emulator check next, then your phone).
 - **T450 done** (dedd06c): the two pipeline tests that read the retired golden.json; collection is clean again.
 
 ## 2026-11-06: chat 4 — zoomed-out lag, then the list
