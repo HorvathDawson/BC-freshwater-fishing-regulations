@@ -7,12 +7,13 @@ is used only when `MLN_LOCAL_MAVEN` is set, and `app.config.js` refuses a produc
 
 | file | what |
 |---|---|
-| `feature-state-deltas.patch` | the patch against `android-v13.6.1` (12 source files, +75 −24; plus 3 render tests) |
+| `feature-state-deltas.patch` | the first patch against `android-v13.6.1` (12 source files, +75 −24; plus 3 render tests), built as `13.6.1-fsdelta` |
+| `feature-state-deltas-lean.patch` | the lean one (the upstream fix + the buckets follow-up, 12 files, +53 −24), built as `13.6.1-fslean` (`MLN_PATCH`/`MLN_VERSION`) |
 | `build.sh` | clone + patch + build the AAR (arm64-v8a, x86_64) + publish it to a local Maven repo |
 | `jobpool.init.gradle` | build-only: caps the native build at `MLN_JOBS` (4) compile jobs and one link |
 | `tests.sh` | the upstream feature-state render tests + related unit tests, on this Mac (Metal) |
 | `check-loaded.sh` | inside a test-bed session: the installed APK carries the local AAR's lib, the app maps it, one screenshot |
-| `upstream-issue.md` | draft issue for maplibre/maplibre-native (not filed) |
+| `upstream/` | the upstream contribution against `main` (patches, issue, PR, how to post); not posted |
 
 ## The defect and the fix
 
@@ -21,7 +22,7 @@ Since upstream PR #3406 (2025-06, b81de155) `SourceFeatureState::coalesceChanges
 (`changes.insert(currentStates…)`) and hands it to every rendered tile. Each tile updates each bucket on that source
 layer: a lookup per stored id per data-driven binder, a re-evaluation for each id it holds, and its vertex buffer
 marked modified even when nothing matched (on Vulkan that is a new buffer). The cost is ids ever set × tiles × layers,
-per frame, whether or not anything changed. Full evidence with file:line: `upstream-issue.md`.
+per frame, whether or not anything changed. Evidence with permalinks: `upstream/issue.md`.
 
 What #3406 fixed: before it, tiles got only the deltas of the frame in which a state changed, so a tile laid out later
 (loaded after the state was set, re-parsed, or not rendered that frame) never showed the state.

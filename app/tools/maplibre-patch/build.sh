@@ -8,11 +8,12 @@
 #   src/   maplibre-native at TAG with its submodules, the patch applied (cloned on the first run, reused after)
 #   m2/    the local Maven repo: org/maplibre/gl/android-sdk-vulkan/<VERSION>/   <- MLN_LOCAL_MAVEN points here
 #   build.log
-# Env: MLN_JOBS (compile jobs, default 4), MLN_ABIS (default "arm64-v8a x86_64").
+# Env: MLN_JOBS (compile jobs, default 4), MLN_ABIS (default "arm64-v8a x86_64"), MLN_PATCH + MLN_VERSION (the lean patch).
 set -euo pipefail
 
 TAG=android-v13.6.1
-VERSION=13.6.1-fsdelta          # the local artifact's version: never collides with a Maven Central one
+VERSION=${MLN_VERSION:-13.6.1-fsdelta}   # the local artifact's version: never collides with a Maven Central one
+PATCH_NAME=${MLN_PATCH:-feature-state-deltas.patch}   # or feature-state-deltas-lean.patch (MLN_VERSION=13.6.1-fslean)
 NDK=28.2.13676358               # platform/android/buildSrc/src/main/kotlin/Versions.kt at TAG
 CMAKE=3.31.6                    # Versions.kt asks for 3.24.0+; the SDK's 3.22.1 is too old
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -40,10 +41,10 @@ fi
 
 # 2. the patch (applied once; a tree that has it applied already passes the reverse check)
 cd "$SRC"
-if git apply --check "$HERE/feature-state-deltas.patch" 2>/dev/null; then
-  git apply "$HERE/feature-state-deltas.patch"
-elif ! git apply --check --reverse "$HERE/feature-state-deltas.patch" 2>/dev/null; then
-  echo "feature-state-deltas.patch neither applies nor is applied in $SRC"; exit 1
+if git apply --check "$HERE/$PATCH_NAME" 2>/dev/null; then
+  git apply "$HERE/$PATCH_NAME"
+elif ! git apply --check --reverse "$HERE/$PATCH_NAME" 2>/dev/null; then
+  echo "$PATCH_NAME neither applies nor is applied in $SRC"; exit 1
 fi
 
 # 3. the local version (build-only: VERSION feeds the published artifact's version and the SDK's version string)
