@@ -28,6 +28,11 @@ export const PLACES = {
   // (T311) Garibaldi Park, and its south edge where the upper Pitt closes — not in the default set
   "garibaldi": [-122.8, 49.95],
   "upper-pitt": [-122.7, 49.74],
+  // (T457 / T461) lakes big and small, and tidal water: not in the default set
+  "harrison-lake": [-121.85, 49.45],
+  "hope-lakes": [-121.35, 49.35],
+  "fraser-estuary": [-123.1, 49.1],
+  "howe-sound": [-123.3, 49.5],
 };
 const DEFAULT_PLACES = ["lower-mainland", "osoyoos", "blaine"];
 

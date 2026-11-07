@@ -26,7 +26,7 @@
     "color.notfishing.edge": "#ABAB87",
     "color.tidal.fill": "#1F5A52",
     "color.tidal.edge": "#6FA8A4",
-    "opacity.tidal": 0.45,
+    "opacity.tidal": 0.38,
     "width.tidal.edge": 1.0,
     "width.notfishing.edge": 1.0,
     "dash.notfishing": [
@@ -44,7 +44,7 @@
     "width.admin.edge": 1.2,
     "opacity.wetland": 0.28,
     "opacity.notfishing": 0.85,
-    "opacity.lake": 0.85,
+    "opacity.lake": 0.75,
     "width.underlake": 1.6,
     "dash.route": [
       4,

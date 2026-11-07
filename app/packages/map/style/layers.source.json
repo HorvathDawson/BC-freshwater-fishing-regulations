@@ -805,12 +805,8 @@
           "mode": "zoom",
           "ramp": [
             [
-              6,
-              0.4
-            ],
-            [
-              9,
-              0.7
+              11,
+              0
             ],
             [
               12,
@@ -851,7 +847,7 @@
         },
         "haloWidth": 1.4
       },
-      "$comment": "(T166, owner 2026-10-28) TIDAL WATER: the DFO tidal-waters polygon (all BC coastal sea and the estuaries) plus the footprints of the stream pieces removed below a tidal boundary (pipeline/deliver/tiles). Freshwater regulations stop here; DFO's tidal rules begin. Drawn UNDER every freshwater layer (first in the water group, before the basin field) as a muted sea-teal wash and a thin edge, STATIC in every colour mode. NOT decorative: it carries `area_id` (always \"tidal\") and `name` (\"Tidal water\"), property-based identity and no MVT id, so it is a tap target of its own — asked after the obstacle mark and the water sections (src/sections.ts `TIDAL_LAYERS`), opening the tidal sheet (`@app/core` `tidalSheet`). The tile has minzoom 6, maxzoom 13 (overzoomed past it). The label is the tile `name`; the full wording lives in the sheet."
+      "$comment": "(T166, owner 2026-10-28) TIDAL WATER: the DFO tidal-waters polygon (all BC coastal sea and the estuaries) plus the footprints of the stream pieces removed below a tidal boundary (pipeline/deliver/tiles). Freshwater regulations stop here; DFO's tidal rules begin. Drawn UNDER every freshwater layer (first in the water group, before the basin field) as a muted sea-teal wash and a thin edge, STATIC in every colour mode. NOT decorative: it carries `area_id` (always \"tidal\") and `name` (\"Tidal water\"), property-based identity and no MVT id, so it is a tap target of its own — asked after the obstacle mark and the water sections (src/sections.ts `TIDAL_LAYERS`), opening the tidal sheet (`@app/core` `tidalSheet`). The tile has minzoom 6, maxzoom 13 (overzoomed past it). The label is the tile `name`; the full wording lives in the sheet.\n\n(T461, owner 2026-11-06: \"might be overwhelming\") No edge below z12 (the ramp starts at z11 at 0 width; it ran along every shore and island from z6) and a lighter wash (opacity.tidal: light 0.4 -> 0.32, dark 0.45 -> 0.38). The shape's own simplification waits for a tile build with the next release (tiles and bundle share a vintage)."
     },
     {
       "id": "basin",
@@ -1570,31 +1566,31 @@
           "ramp": [
             [
               4,
-              0.5,
-              5e-05,
-              1.5
+              0.75,
+              7.5e-05,
+              2.25
             ],
             [
               8,
-              0.6,
-              8e-05,
-              2.0
-            ],
-            [
-              12,
-              0.8,
-              0.0002,
+              0.9,
+              0.00012,
               3.0
             ],
             [
-              16,
-              1.0,
+              12,
+              1.2,
               0.0003,
-              4.0
+              4.5
+            ],
+            [
+              16,
+              1.5,
+              0.00045,
+              6.0
             ]
           ]
         },
-        "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area — area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible.\n\nFOLLOWS THE FILL wherever the fill is answering a question. A lake filled by its flow percentile and ringed in plain blue was drawing two answers at once — the edge said 'water' while the middle said 'much below normal', and the edge is the part that survives at a distance where the fill is a few pixels. `plain` is excluded: there the fill IS the water colour, so an inherited edge would disappear into it.",
+        "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area — area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible.\n\nFOLLOWS THE FILL wherever the fill is answering a question. A lake filled by its flow percentile and ringed in plain blue was drawing two answers at once — the edge said 'water' while the middle said 'much below normal', and the edge is the part that survives at a distance where the fill is a few pixels. `plain` is excluded: there the fill IS the water colour, so an inherited edge would disappear into it.\n\n(T457, owner 2026-11-06: \"an outline that is opaque then a fill that is slightly transparent, sized by the size of the lake\") The ramp is 1.5x what it was, and the fill lighter (opacity.lake: light 0.6 -> 0.4, dark 0.85 -> 0.75), so the shoreline carries the lake and the fill reads as water under it.",
         "follow": true,
         "drawAfter": "mu",
         "$comment_drawAfter": "A WATER LINE, NOT A FILL (T83). The shoreline wears the lake's status colour, so it is drawn with the streams, after the region and unit boundaries; the fill stays here, under them. Where a boundary crosses a lake it runs over the fill (traceable) and under the shoreline (the water's answer wins)."

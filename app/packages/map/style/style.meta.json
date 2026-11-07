@@ -2415,12 +2415,8 @@
       "mode": "zoom",
       "ramp": [
         [
-          6,
-          0.4
-        ],
-        [
-          9,
-          0.7
+          11,
+          0
         ],
         [
           12,
@@ -2457,27 +2453,27 @@
       "ramp": [
         [
           4,
-          0.5,
-          0.00005,
-          1.5
+          0.75,
+          0.000075,
+          2.25
         ],
         [
           8,
-          0.6,
-          0.00008,
-          2
-        ],
-        [
-          12,
-          0.8,
-          0.0002,
+          0.9,
+          0.00012,
           3
         ],
         [
-          16,
-          1,
+          12,
+          1.2,
           0.0003,
-          4
+          4.5
+        ],
+        [
+          16,
+          1.5,
+          0.00045,
+          6
         ]
       ]
     },
@@ -2976,7 +2972,7 @@
       "color.notfishing.edge": "#ABAB87",
       "color.tidal.fill": "#1F5A52",
       "color.tidal.edge": "#6FA8A4",
-      "opacity.tidal": 0.45,
+      "opacity.tidal": 0.38,
       "width.tidal.edge": 1,
       "width.notfishing.edge": 1,
       "dash.notfishing": [
@@ -2994,7 +2990,7 @@
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.28,
       "opacity.notfishing": 0.85,
-      "opacity.lake": 0.85,
+      "opacity.lake": 0.75,
       "width.underlake": 1.6,
       "dash.route": [
         4,
@@ -3148,7 +3144,7 @@
       "color.notfishing.edge": "#9F9556",
       "color.tidal.fill": "#A9CFCB",
       "color.tidal.edge": "#5E9A97",
-      "opacity.tidal": 0.4,
+      "opacity.tidal": 0.32,
       "width.tidal.edge": 1,
       "width.notfishing.edge": 1,
       "dash.notfishing": [
@@ -3166,7 +3162,7 @@
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.45,
       "opacity.notfishing": 0.9,
-      "opacity.lake": 0.6,
+      "opacity.lake": 0.4,
       "width.underlake": 1.6,
       "dash.route": [
         4,
