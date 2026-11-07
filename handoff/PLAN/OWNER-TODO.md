@@ -271,7 +271,7 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   - Offline maps (T238/T259): More → Offline maps; which map regions a first install keeps (Q161, default all).
 - **Sign-off walk** at the end (T87) before app/design is deleted.
 
-- **iOS (T88, T364, T365; 2026-11-05)** — the real iPhone run (T364) is AFTER the launch-and-hygiene chat (owner 11-05). Claude built and tested everything the simulator can show (T313).
+- **iOS (T88, T364, T365; 2026-11-05)** — **BENCHED (owner 11-06) until the DFO extents are labelled and Play closed testing has started; then pay the $99 (pick individual vs organization first) and run TestFlight, not the free 7-day route.** the real iPhone run (T364) is AFTER the launch-and-hygiene chat (owner 11-05). Claude built and tested everything the simulator can show (T313).
   1. Join the Apple Developer Program ($99/yr). Then put two files in `~/.canifishthis/`: `ios-team-id` (the Team ID,
      Membership details) and `asc-api-key.json` `{"key_id","issuer_id","key_path"}` for an App Store Connect API key
      (Users and Access → Integrations → Team key, role App Manager; keep the .p8 outside the repo).
