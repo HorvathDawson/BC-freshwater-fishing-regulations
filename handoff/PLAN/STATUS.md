@@ -49,7 +49,7 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   told about the Landstrom correction). **Map performance (T420/T401/T448) now belongs to its own chat**
   (handoff/PLAN/MAP-PERF-HANDOFF.md, started 11-06): this chat does not touch those tickets, and the two chats take
   turns on the test bed. That chat's perf changes join the 0.6.8 batch if they are ready in time.
-- **Queue after them:** T460 → 0.6.8 APK (T446, T454, T455, T456, T451, T443, T459, park border) → T457, T461, T458.
+- **Queue after them:** T460 → T457, T461, T458 (owner 11-06: in 0.6.8) → 0.6.8 APK (T446, T454, T455, T456, T451, T443, T459, park border, T457, T461, T458). Then T463 (owner runs /code-review ultra) and T462 (regs audit, a workflow; may start sooner, read-only).
   T457/T461 edit layers.source.json, which the perf chat may also edit: commit only your own paths, rebuild the style
   after a pull.
 - **Your 0.6.7 check:** the glide feels good (T452 DONE). Still to do: the pan stutters while the map loads tiles
