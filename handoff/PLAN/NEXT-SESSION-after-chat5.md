@@ -41,7 +41,10 @@ Written 2026-11-06, as chat 5 closed. It replaces `NEXT-SESSION-after-chat4.md`.
    owner confirms each.
 3. **T420 follow-ups** from the lab's results: ship what the owner's lab A/B on the Pixel 9 shows helps (T420's own
    notes say which; "skip invisible layers" measured a real z13 gain).
-4. **T465:** boundary labels with different words overlapping zoomed out.
+4. **T466** (owner's 0.6.8 walkthrough notes: dams/obstacles step must scroll to them, spots must walk a real creation,
+   the closed example must be a part closed all year, e.g. an Ecological Reserve) and **T467** (lakes still look solid:
+   shoreline as a shade of the fill, inside the colour-blind gate). Then **T465:** boundary labels with different words
+   overlapping zoomed out.
 5. **T351:** read the staging `/crashes` for anything new since 0.6.6. **T446** is reopened only on a new report.
 6. **T462 regs-presentation audit:** a multi-agent workflow; the owner starts it with "use a workflow". Read-only.
    **T463:** the owner runs `/code-review ultra` (Claude can't); Claude triages the findings into tickets.
