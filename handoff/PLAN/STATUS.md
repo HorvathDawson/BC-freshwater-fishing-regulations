@@ -14,8 +14,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ---
 
 ## 2026-11-06: chat 5 — next APK (0.6.7)
-- **Running:** an agent reruns the test bed `feel` check (T452: is the camera right where the new glide stops?), then
-  `pnpm check`, builds 0.6.7 (T443's half-screen floor, T451, T452) to Play internal, and walks a fresh install.
+- **0.6.7 (versionCode 16) is on Play internal** (e6071231a): T443's half-screen floor, T451 (no stream flicker on
+  the Map switch), T452 (the new glide). Fresh-install walk 5/5 (`app/tools/testbed/out/walk-067/`). The camera where
+  a glide stops is exact (0 dp travel error over 3 flings). Also fixed on the way: a swallowed error in the T451 change
+  is now reported. `pnpm check`: no single fully green run (the machine was loaded, timeouts only; the one failing file
+  passes alone). **Please try on the phone:** does the fling glide (longer, softer) feel right? Stream flicker on Map?
+  T454 (photo zoom) is NOT in 0.6.7.
+- **Running:** staging site rebuild on 0.6.7 + T454 (export → SEO pages → site.sh + smoke).
 - **Crash store (T351):** no foreground native crash since 0.6.6. Today's reports are emulator installs (android 35)
   failing a download check ("does not match the manifest", several "0 % of its size") plus one from 0.6.4 on your
   phone (before T446's change). The test-bed builds do tag theirs. These carry the Play build's version, so they come
