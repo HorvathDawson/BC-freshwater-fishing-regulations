@@ -373,11 +373,29 @@ function skips(g: WaterGroup, at: number, c: number, dir: Dir): boolean {
 }
 
 /**
+ * (T464) The part next in the order in `dir`, when it is another stretch of `at`'s own part and its own step back,
+ * having no mark that way, falls back to `at`: then `at` steps to it too, so ▲ and ▼ agree (any other part next in the
+ * order is not, a side channel's neighbour least of all). The upper Bulkley's "Morice River confluence → Source" is 7 stretches; the 6
+ * upstream ones (a section each) have no marks, so each stepped ▼ to the one before by the order. The main stretch's ▲
+ * had a mark of its own (to the side channel), so the order was never asked, and 6 of the Bulkley's 12 parts could
+ * not be stepped to.
+ */
+function fallsBackTo(g: WaterGroup, at: number, dir: Dir): number | null {
+  const n = dir === "up" ? at + 1 : at - 1;
+  if (n < 0 || n >= g.parts.length) return null;
+  const p = g.parts[at]!, q = g.parts[n]!;
+  if (p.stretch === undefined || q.item !== p.item || q.partIx !== p.partIx) return null;
+  return byMarks(g, n, dir === "up" ? "down" : "up").length === 0 ? n : null;
+}
+
+/**
  * The parts one step away in `dir`, the main stem first: by the marks, else (where they say nothing) the next part in
  * the order. Empty at the end.
  */
 export function stepsFrom(g: WaterGroup, at: number, dir: Dir): readonly number[] {
   const marked = byMarks(g, at, dir).filter((c) => !skips(g, at, c, dir));
+  const back = fallsBackTo(g, at, dir);
+  if (marked.length && back !== null && !marked.includes(back)) marked.push(back);
   if (!marked.length) {
     const n = dir === "up" ? at + 1 : at - 1;
     return n >= 0 && n < g.parts.length ? [n] : [];

@@ -439,6 +439,46 @@ const KANAKA: ItemNavRows = {
   exit: null,
 };
 
+/** (T464) The upper Bulkley River (ord 4570) as r-67b456b5e64b stores it, shortened: "Morice River confluence → Source"
+ *  in stretches with no mark between them (2 kept of the 6 one-section ones), and a side channel marked off the first. */
+const BULKLEY_UP: ItemNavRows = {
+  ord: 4570, item: "gnis:2195", name: "Bulkley River", kind: "stream",
+  parts: [
+    { partIx: 1, label: "Morice River confluence → Source", short: "Morice River confluence → Source" },
+    { partIx: 2, label: "CNR bridge at Barrett → Morice River confluence", short: "CNR bridge at Barrett → Morice River confluence" },
+    { partIx: 3, label: "Side channel", short: "Side channel" },
+  ],
+  geo: [geo(2, 0, [-126787100, 54425400], -126810000, 54410000, -126745000, 54445000),
+        geo(1, 1, [-126745400, 54411000], -126750000, 54400000, -126040000, 54480000),
+        geo(3, 2, [-126742900, 54408800], -126745000, 54407000, -126740000, 54410000)],
+  marks: [
+    { ...mark(-126746019, 54411266, "Morice River confluence", 2, [1]), upStretches: [0] },
+    { ...mark(-126740700, 54407409, null, 1, [3]), downStretch: 0 },
+  ],
+  sections: secs({ 1: [763206, 1216798, 1216799], 2: [769980], 3: [769986] }),
+  stretches: [
+    { partIx: 2, stretch: 0, rank: 0, box: null, mid: [-126.7871, 54.4254], sids: [769980] },
+    { partIx: 1, stretch: 0, rank: 1, box: null, mid: [-126.7454, 54.411], sids: [763206] },
+    { partIx: 1, stretch: 1, rank: 2, box: null, mid: [-126.0489, 54.4045], sids: [1216798] },
+    { partIx: 1, stretch: 2, rank: 3, box: null, mid: [-126.1005, 54.4172], sids: [1216799] },
+    { partIx: 3, stretch: 0, rank: 4, box: null, mid: [-126.7429, 54.4088], sids: [769986] },
+  ],
+  exit: null,
+};
+
+describe("T464: a part's stretches with no mark between them", () => {
+  it("the Bulkley: ▲ from the first stretch offers the next one as well as the side channel; ▲ and ▼ agree", () => {
+    const g = waterGroup([BULKLEY_UP]);
+    expect(g.parts.map((p) => `${p.partIx}s${p.stretch ?? 0}`)).toEqual(["2s0", "1s0", "1s1", "1s2", "3s0"]);
+    expect([stepsUp(g, 1), stepsUp(g, 2), stepsDown(g, 2), stepsDown(g, 3)]).toEqual([[2, 4], [3], [1], [2]]);
+    // the side channel's neighbour in the order is not its part: its ▼ stays its mark's
+    expect(stepsDown(g, 4)).toEqual([1]);
+    const seen = new Set([0]), q = [0];
+    while (q.length) for (const j of [...stepsUp(g, q[0]!), ...stepsDown(g, q.shift()!)]) if (!seen.has(j)) { seen.add(j); q.push(j); }
+    expect(seen.size).toBe(g.parts.length);
+  });
+});
+
 describe("T204: a part's separate stretches", () => {
   it("Kanaka: three entries mouth first — part 0's lower stretch, part 1, part 0's upper stretch — each its own name", () => {
     const g = waterGroup([KANAKA]);
