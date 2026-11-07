@@ -6,6 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **pick a mid-zoom calm variant (T470)** (2026-11-07): today vs A / B / C side by side at z7–z11, desktop and phone; Claude recommends B.
 - **Decide (T467, 2026-11-06):** should the colour-blind check on the map's status colours apply only to the colour-blind
   theme? Today it applies to light and dark too, which is why the lighter lake fill was reverted. Claude recommends keeping
   it on all themes and giving lakes a shaded shoreline instead. The pros and cons are in T467.

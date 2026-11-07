@@ -514,6 +514,7 @@ use that as the sole source of future work."
 | T467 | Lakes: a visible shoreline (a shade of the fill) inside the colour-blind gate | OPEN | — | owner 2026-11-06 |
 | T468 | Powell River above Powell Lake misses the lake's incl.-tributaries closure (through-river read as the lake's own outlet) | FIX BUILT 2026-11-07 | — | 6 lake rows change; reach rerun in scratch, not promoted |
 | T469 | Legend: one row (fold button in it) on a wide screen, not two rows plus a strip | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web ≥ 900 px only, phones unchanged |
+| T470 | Mid-zoom map (z7–z10) too busy: calmer hierarchy, 3 variants (A weight only / B small waters recede / C closed leads) | IN REVIEW | — | owner picks a variant from the sheets (Q170); recommend B |
 | T471 | Sun line in the regs pane's header, not its own card | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web + native |
 | T472 | In-season change: one collapsed line above the species table | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; count when several; web + native |
 | T473 | "Daylight only" as today's real hours with the status | DONE 2026-11-07 | 0f4b0063a | owner 2026-11-07; offsets parsed from the rule's words |
@@ -582,6 +583,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 | Q160 | T243 | Bottom tab labels follow the OS text size only to 1.3× (a quarter of a phone holds no more; the platforms' own tab bars do the same) | 1.3× cap | owner |
 | Q161 | T259 | Which map regions a first install keeps offline | all (~460 MB map; regs always all-B.C.) | owner |
+| Q170 | T470 | Which mid-zoom calm variant ships: A (weight only, colour gate unchanged), B (A + small own/base streams fade at z7–z10; own vs base weaker on small streams for colour-blind readers), C (B + own/base washed + lighter lake fills; fails the gate), or none? | none shipped until picked (recommend B) | owner |
 
 ### Answered (recently, for the record)
 - Q144 — owner 2026-10-28: the defaults — steelhead the default species; spawning reaches solid and passage reaches DASHED (not a paler ramp); its own map mode (a third choice beside Standard / Salmon, with its own index for painting), not inside Conditions. Built in T199 (decisions.md "Q144").
