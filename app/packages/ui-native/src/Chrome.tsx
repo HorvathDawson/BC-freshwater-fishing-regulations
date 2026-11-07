@@ -5,7 +5,7 @@
  * map itself must never be asked to draw UI — everything here sits above it.
  */
 import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
-import { ScrollView, View } from "react-native";
+import { ScrollView, useWindowDimensions, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { hitProps } from "./regs/hit";
@@ -100,12 +100,18 @@ export function StripedSwatch({ colour, stripe, width = 14, thick = 4 }: { colou
  */
 export const LEGEND_ROWS = { padX: 12, column: 8, gap: 4, line: 14, edge: 16, square: 12 } as const;
 
+/** (T469) the window width from which the regulations key is one row, sharing it with its fold button */
+export const WIDE_LEGEND = 900;
+
 /**
  * (T396) THE KEY IN TWO FIXED ROWS: each mode decides which entries share a row, so Trout & more and Salmon both stand two
  * lines tall at a phone's width and the bottom bar does not jump between them. A row too wide for a narrow screen still
  * wraps (nothing is cut).
  */
 export function LegendRows({ rows }: { rows: readonly React.ReactNode[] }) {
+  // (T469) A WIDE SCREEN has room for the whole key on one row: the fixed split is for a phone's bar height
+  const { width } = useWindowDimensions();
+  if (width >= WIDE_LEGEND) rows = [rows.flat()];
   return (
     <View testID="legend-rows" style={{ width: "100%", rowGap: 6 }}>
       {rows.map((r, i) => (

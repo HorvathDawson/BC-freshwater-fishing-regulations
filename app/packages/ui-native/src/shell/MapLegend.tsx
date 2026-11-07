@@ -15,12 +15,12 @@ import { Icon, ObstacleIcon } from "../icons";
 import { hitProps } from "../regs/hit";
 import { useMemo, useState } from "react";
 import { useCoachTarget } from "../CoachMarks";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { RunDayCaption, RunDaySlider, RunSpeciesChips } from "../RunsControls";
 import type { FishImages } from "../regs/types";
-import { LEGEND_RAMP_MAX, LEGEND_ROWS, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
+import { LEGEND_RAMP_MAX, LEGEND_ROWS, WIDE_LEGEND, LegendCount, LegendRamp, LegendRows, LegendStrip } from "../Chrome";
 import { BasinDays } from "../BasinDays";
 import { legendColour } from "../LayersSheet";
 import { LEGEND_TEXT, TYPE } from "../type";
@@ -44,6 +44,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   const fishery = !conditions && col.salmonOffered && col.statusOk && col.layers.water.drawn === "regulations";
   // (T377) the regulations key folded away (the bar keeps its source line); a reader's choice for this screen, open at first
   const [folded, setFolded] = useState(false);
+  const wide = useWindowDimensions().width >= WIDE_LEGEND;
   const checked = fishery && col.regsLayer === "salmon" ? salmonCheckedLine(col.salmonFacts) : null;
   // (T396) the regulations key's entries, laid in two rows below (`LegendRows`)
   const gearRows = col.gearMarked ? GEAR_LEGEND.map((m) => (
@@ -153,6 +154,33 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
   );
   if (!fishery) return strip;
   const fold = folded ? MAP_KEY.fold.show : MAP_KEY.fold.hide;
+  const button = (
+    <Pressable testID="legend-fold" onPress={() => setFolded((f) => !f)} accessibilityRole="button"
+               aria-expanded={!folded} accessibilityLabel={fold} {...hitProps({ w: 32, h: 32 })}
+               style={{ marginLeft: "auto", width: 32, height: 32, alignItems: "center", justifyContent: "center",
+                        borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.chip }}>
+      <Icon name={folded ? "collapse" : "expand"} colour={palette.ink} size={18} />
+    </Pressable>
+  );
+  const source = checked && (
+    <Text testID="salmon-legend-source" numberOfLines={2}
+          style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
+      {checked}
+    </Text>
+  );
+  // (T469) WIDE SCREEN, key open: the fold button sits in the key's own row (its right end), not in a strip of its own
+  if (wide && !folded) {
+    return (
+      <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card, flexDirection: "row", alignItems: "flex-start",
+                                                 borderTopWidth: 1, borderTopColor: palette.line }}>
+        <View style={{ flex: 1 }}>
+          {source && <View testID="legend-fishery-head" style={{ paddingHorizontal: LEGEND_ROWS.padX, paddingTop: 9 }}>{source}</View>}
+          {strip}
+        </View>
+        <View style={{ paddingRight: LEGEND_ROWS.padX, paddingTop: 7 }}>{button}</View>
+      </View>
+    );
+  }
   return (
     <View testID="legend-fishery-bar" style={{ backgroundColor: palette.card }}>
       {/* (T396, T425) ONE ROW, 32 px tall in both modes: Salmon's "DFO rules checked …" (up to two lines) beside the fold
@@ -160,20 +188,10 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
       <View testID="legend-fishery-head"
             style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: LEGEND_ROWS.padX,
                      paddingTop: 9, minHeight: 41, borderTopWidth: 1, borderTopColor: palette.line }}>
-        {checked && (
-          <Text testID="salmon-legend-source" numberOfLines={2}
-                style={{ ...TYPE.caption, lineHeight: 15, color: palette.sub, flexShrink: 1 }}>
-            {checked}
-          </Text>
-        )}
+        {source}
         {/* (T377) THE KEY FOLDS AWAY: the head stays, the rows go (the bar one line tall); the choice holds across both
             modes, so switching never moves the bar */}
-        <Pressable testID="legend-fold" onPress={() => setFolded((f) => !f)} accessibilityRole="button"
-                   aria-expanded={!folded} accessibilityLabel={fold} {...hitProps({ w: 32, h: 32 })}
-                   style={{ marginLeft: "auto", width: 32, height: 32, alignItems: "center", justifyContent: "center",
-                            borderWidth: 1, borderColor: palette.line, borderRadius: palette.r.chip }}>
-          <Icon name={folded ? "collapse" : "expand"} colour={palette.ink} size={18} />
-        </Pressable>
+        {button}
       </View>
       {folded ? <View style={{ height: 9 }} /> : strip}
     </View>
