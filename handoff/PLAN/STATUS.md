@@ -13,6 +13,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-06: chat 5 — next APK (0.6.7)
+- **Running:** an agent reruns the test bed `feel` check (T452: is the camera right where the new glide stops?), then
+  `pnpm check`, builds 0.6.7 (T443's half-screen floor, T451, T452) to Play internal, and walks a fresh install.
+- **Crash store (T351):** no foreground native crash since 0.6.6. Today's reports are emulator installs (android 35)
+  failing a download check ("does not match the manifest", several "0 % of its size") plus one from 0.6.4 on your
+  phone (before T446's change). To check: why test-bed reports are not tagged as test (T291).
+
 ## 2026-11-06: chat 4 — zoomed-out lag, then the list
 - **Your 0.6.6 notes (late):** T443 now never frames a part under half the screen (the small Fraser part lands at
   ~z13, 55c7f54; in the next APK). Both Nanaimo places accepted as tidal water (your answer; marks saved, place file
