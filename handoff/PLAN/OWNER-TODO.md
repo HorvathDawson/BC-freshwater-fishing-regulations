@@ -6,7 +6,16 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **pick a mid-zoom calm variant (T470)** (2026-11-07): today vs A / B / C side by side at z7–z11, desktop and phone; Claude recommends B.
+- **Run the T420 APK pair (2026-11-07): the MapLibre patch halves pan frame time.** On the stressed emulator, map p50
+  went from 76–148 ms (stock) to 31–46 ms (patched), and it no longer gets slower with use. Feature-state work went from
+  42 % of CPU to 2 %. One unexplained ANR happened in 9 patched blocks; it did not reproduce in 6+6 targeted runs, and
+  the patch adds no lock. Claude's upload was refused by the permission check, so run these yourself:
+  1. `MLN_LOCAL_MAVEN=/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/ee95bdfc-d51a-4f83-8602-1e5d2e402692/scratchpad/mlpatch/m2 deploy/staging/build-apk.sh --play` (if a reboot cleared /private/tmp, rebuild it with app/tools/maplibre-patch/build.sh first): patched → Play internal (versionCode 19).
+  2. `deploy/staging/build-apk.sh`: stock → the staging APK page.
+  Then pan the same places on each (Coquitlam z13, Fraser Valley z11). Details are in T420.
+- **T470 B is built (2026-11-07); one call on dark mode:** with B, a faded small own-rules stream vs closed drops to 12 in
+  dark mode (floor 21). Keep it, or strengthen closed in dark? The fade's tuning knob is `fadeByOrder` in
+  app/packages/map/style/layers.source.json.
 - **Decide (T467, 2026-11-06):** should the colour-blind check on the map's status colours apply only to the colour-blind
   theme? Today it applies to light and dark too, which is why the lighter lake fill was reverted. Claude recommends keeping
   it on all themes and giving lakes a shaded shoreline instead. The pros and cons are in T467.
