@@ -24,8 +24,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
     version: "0.6.8", date: "2026-11-06", notes: [
       "A new walkthrough that shows you how to use each control and how to read the rules and conditions",
       "Pinch to zoom and drag to look around a spot's photos",
-      "Stepping up or down a river: other waters go grey, and a step never skips a part",
-      "Streams no longer flash grey when you switch to the map from Conditions or Run timing",
+      "Stepping along a river greys out other waters and never skips a part; no grey flash switching to the map",
       "Lakes have a clearer shoreline, tidal water a quieter edge, and park borders show only when zoomed in",
       "Fixed: a fresh install could save empty files",
     ],

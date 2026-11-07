@@ -11,6 +11,8 @@ import { LAB_DEFAULT, setLab, useLab, type Lab } from "./lab";
 import type { MapChrome } from "./map-props";
 
 const TEXT = "Archivo_400Regular", SEMI = "Archivo_600SemiBold";
+/** The words of the lab's way out (its Close, and ui-native's tap beside the card) */
+export const MAP_LAB_CLOSE = "Close the map lab";
 
 const ROWS: readonly { key: keyof Lab; label: string; hint: string; on: Lab[keyof Lab]; off: Lab[keyof Lab] }[] = [
   { key: "pixelCap", label: "Pixel cap 2", hint: "fewer pixels filled (today: on)", on: true, off: false },
@@ -32,7 +34,7 @@ export function MapLab({ chrome, onClose }: { chrome: MapChrome; onClose: () => 
                    boxShadow: `2px 2px 0 ${chrome.shadow}` }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 13, lineHeight: 16 }}>Map lab (test build)</Text>
-        <Pressable testID="map-lab-close" accessibilityRole="button" accessibilityLabel="Close the map lab"
+        <Pressable testID="map-lab-close" accessibilityRole="button" accessibilityLabel={MAP_LAB_CLOSE}
                    onPress={onClose} hitSlop={10}
                    style={{ paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: chrome.ink }}>
           <Text style={{ color: chrome.ink, fontFamily: SEMI, fontSize: 12, lineHeight: 15 }}>Close</Text>

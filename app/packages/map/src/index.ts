@@ -25,6 +25,6 @@ export { colour } from "./chrome";
 /** The route overlay (owner 2026-10-21): routes copied out of the tiles, pins, and their words' slots. */
 export { type TraceProp } from "./trace-overlay";
 export { pressSpot } from "./spots";
-export { MapLab } from "./MapLab";
+export { MAP_LAB_CLOSE, MapLab } from "./MapLab";
 export { LAB_ON } from "./lab";
 export { GEOMETRY, mapChrome } from "./chrome";
