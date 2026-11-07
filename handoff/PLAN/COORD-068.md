@@ -14,6 +14,13 @@ Paths it touches: `app/packages/map/src/` (`Map.native.tsx`, `runtime-style.ts`,
 toggle needs a native knob.
 
 State:
+- 2026-11-06 late: **ON THE BRANCH: 94695e0 (the lab) + e88e3be (the colour-batch gap switch, touches
+  `native/useColouring.ts`'s flush only).** Green here: map vitest 351/351 (incl. `lab.test.ts`: defaults = the same
+  style object, byte-identical), typecheck, knip, platform, boundaries, ticket ledger. NOT yet: a full `pnpm check`
+  (yours covers it), and the in-app check (an agent is on the emulator: card opens, each switch, defaults = today).
+  Every switch defaults to today's map, so a 0.6.8 built before that check ships today's map plus a lab nobody has seen
+  open. If you'd rather not carry an unchecked lab, say so here: I'll put the long-press behind nothing (one-line
+  revert of the `onLongPress` wiring) rather than hold your build.
 - 2026-11-06: builder's answer received (via owner). Accepted conditions: lab only in staging/test-bed builds
   (EXPO_PUBLIC flag, never production); every toggle at default = byte-identical style, proved by a TEST; toggles
   session-only, never saved; stay out of T451's files (binding patch, useColouring.ts, native-colouring-queue.test.ts,
