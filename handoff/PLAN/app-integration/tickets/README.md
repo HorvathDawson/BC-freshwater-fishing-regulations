@@ -500,6 +500,7 @@ use that as the sole source of future work."
 | T453 | Flow alerts set by the day's percentile; an easier alert menu | OPEN | — | owner 2026-11-06; after T234 resumes |
 | T454 | Spot photos: zoom and pan in the viewer | IN REVIEW | 4ede32a69 (owner phone check) | owner 2026-11-06 |
 | T455 | Walkthrough "Layers" test skips the ground step under load (flaky) | DONE | 2290b6e25 | chat 5 2026-11-06 |
+| T456 | Guided walkthrough reworked: show the real use, never cover its target, teach reading rules + conditions | OPEN | — | owner 2026-11-06 (tester feedback) |
 
 ## Order for open tickets
 
