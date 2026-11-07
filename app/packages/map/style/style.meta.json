@@ -2990,7 +2990,7 @@
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.28,
       "opacity.notfishing": 0.85,
-      "opacity.lake": 0.75,
+      "opacity.lake": 0.85,
       "width.underlake": 1.6,
       "dash.route": [
         4,
@@ -3162,7 +3162,7 @@
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.45,
       "opacity.notfishing": 0.9,
-      "opacity.lake": 0.4,
+      "opacity.lake": 0.6,
       "width.underlake": 1.6,
       "dash.route": [
         4,
