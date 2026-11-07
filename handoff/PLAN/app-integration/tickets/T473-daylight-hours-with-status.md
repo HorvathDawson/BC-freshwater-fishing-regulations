@@ -1,6 +1,6 @@
 # T473 — "Daylight only" says today's real hours, with the status
 
-Status: DONE 2026-11-07 HASH (owner: "could display daylight only text here better too").
+Status: DONE 2026-11-07 0f4b0063a (owner: "could display daylight only text here better too").
 
 Under the year bar's status the line reads "Daylight only · fishing 07:04–18:37 PT": sunrise minus the rule's "before sunrise"
 minutes to sunset plus its "after sunset" minutes, at the water's point on the picked day (`core/sun.ts daylightRange`,

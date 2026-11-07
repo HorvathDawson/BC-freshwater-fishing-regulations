@@ -1,6 +1,6 @@
 # T471 — The sun line moves from its own card into the regs pane's header
 
-Status: DONE 2026-11-07 (owner: "Sunrise 08:04 PT · sunset 17:37 PT type text should be in the header of the pane for regs instead.")
+Status: DONE 2026-11-07 0f4b0063a (owner: "Sunrise 08:04 PT · sunset 17:37 PT type text should be in the header of the pane for regs instead.")
 
 Was: `SunCard` (T382), a tinted card at the top of the scroll. Now: a small secondary line (`regs-sun`, metaSemi, `sub` colour)
 inside `RegsHeader`, under the place label, on a phone and on the desktop header. `SunCard.tsx` and its test are removed;
