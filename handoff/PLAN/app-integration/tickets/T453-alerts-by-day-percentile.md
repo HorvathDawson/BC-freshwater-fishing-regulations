@@ -1,4 +1,4 @@
-# T453 — Flow alerts set by the day's percentile, not only a fixed value
+# T453 — Flow alerts set by the day's percentile; an easier alert menu
 
 Status: OPEN (owner 2026-11-06, chat 5).
 
@@ -21,8 +21,20 @@ that day of the year. "High for the season" in May and in September are differen
 4. Tests: a crossing that happens at the same flow on two different days fires on one day and not the other. Also cover
    a missing envelope day, and a migration of saved alerts (none change).
 
+## Also: the alert menu, easier to use (owner 2026-11-06)
+Owner: "making that menu a little bit better, easier to use and navigate so that it is how say a banking app would work
+or standard UI structure."
+5. Rework the alert sheet into a standard settings structure, like a banking app's alert settings:
+   - a list of the reader's alerts (one row each: the gauge, the sentence, an on/off switch). Tap a row to edit it,
+     swipe or press a clear button to delete it, and use one obvious "Add alert" button.
+   - adding or editing is a short step-by-step form: what to watch (flow/level) → condition (rises above / falls below /
+     % in 24 h / day's percentile) → value → how often → Save. Back always goes up one level.
+   - grouped sections with headers, labelled controls, plain defaults already filled in, no hidden gestures.
+   It uses the app's tokens and components (no new look) and the same layout on phone and web (rule 26), and keeps
+   logic in hooks (rule 25). Before building, send the owner before/after shots (emulator).
+
 ## Open questions (defaults until the owner answers)
 - Q-T453a: does the picker offer free percentiles or the app's own words/bands (e.g. "above normal", "high")?
   Default: the app's band words, so the alert matches what the Conditions page says.
 
-Depends: T234 (POSTPONED; this lands when alerts resume). Related: T170, T52. Size: S–M. Owner: phone check.
+Depends: T234 (POSTPONED; this lands when alerts resume). Related: T170, T52. Size: M. Owner: phone check.

@@ -497,7 +497,7 @@ use that as the sole source of future work."
 | T450 | Two pipeline "live" tests still read the retired golden.json (collection error) | OPEN | — | chat 4 2026-11-06 |
 | T451 | Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6) | DONE | e63c921c3 | owner phone check |
 | T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | IN REVIEW | e63c921c3 | owner feel check (glide shape changed: proposal) |
-| T453 | Flow alerts set by the day's percentile, not only a fixed value | OPEN | — | owner 2026-11-06; after T234 resumes |
+| T453 | Flow alerts set by the day's percentile; an easier alert menu | OPEN | — | owner 2026-11-06; after T234 resumes |
 
 ## Order for open tickets
 
