@@ -13,6 +13,12 @@ with the default Claude uses until you answer). Newest first inside each section
   1. `MLN_LOCAL_MAVEN=/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/ee95bdfc-d51a-4f83-8602-1e5d2e402692/scratchpad/mlpatch/m2 deploy/staging/build-apk.sh --play` (if a reboot cleared /private/tmp, rebuild it with app/tools/maplibre-patch/build.sh first): patched → Play internal (versionCode 19).
   2. `deploy/staging/build-apk.sh`: stock → the staging APK page.
   Then pan the same places on each (Coquitlam z13, Fraser Valley z11). Details are in T420.
+- **Check one T468 side effect (2026-11-07): Little Slocan River above Little Slocan Lakes.** The Powell fix (a river
+  flowing through a lake with no row of its own now counts as the lake's tributary) adds 374 sections of the Little
+  Slocan River above the lakes to the "Little Slocan Lakes tributaries" rows r1–r3. Those rows exempt their waters from
+  the Slocan River closure, so this stretch would go from closed to a Jun 15–Oct 31 bait ban. Is that what the rule book
+  means? The other 12 changes are expected (Powell River +587 now closed Nov 1–Mar 31; Goat/Eldred, Duck, Wahleach/Jones,
+  Premier, Anderson, Twin, New). Nothing is promoted. The full diff is data/generated/scratch/t468/binding_diff.txt.
 - **Post the MapLibre fix upstream (T420, 2026-11-07), when you're ready.** The lean fix is 6 files (+22 −7), tested on
   maplibre-native main: the new unit test fails before the fix and passes after, and the feature-state render tests pass.
   An optional second patch is split out. Their AI policy wants the issue and PR text in your own words and a human
