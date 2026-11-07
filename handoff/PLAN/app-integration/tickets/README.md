@@ -505,6 +505,7 @@ use that as the sole source of future work."
 | T458 | A guard against un-awaited promises (the T446 class of bug) | OPEN | — | chat 5 2026-11-06 |
 | T459 | Stepping ▲/▼ along a water: grey out the other waters (receiving water kept, owner picks) | OPEN | — | owner 2026-11-06 |
 | T460 | Fraser: ▲ from Williams Lake River confluence offers 2 parts (a side channel skips part 15) | OPEN | — | owner 2026-11-06 |
+| T461 | Tidal-water polygon: simplify per zoom, quieter edge (measure first) | OPEN | — | owner 2026-11-06 |
 
 ## Order for open tickets
 
