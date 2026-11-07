@@ -522,6 +522,7 @@ use that as the sole source of future work."
 | T475 | Quota block wording: one headline, "up to N" sub-limits as parts, steelhead concise | OPEN | — | owner 2026-11-07; pipeline wording + rebuild |
 | T476 | One Developer card behind the credits long-press (lab, data source, Updates log, build info); dev/staging only | DONE | 46f948264 | owner 2026-11-07; About loses dev rows |
 | T477 | ui-native render tests fail by wall-clock date (horizon labels "Sat 7" vs "Sun 8") | DONE | 0bd5ae373 | found 2026-11-07; pin the clock |
+| T478 | 0.6.8 walk: Updates log flow stale after T476; Coquitlam River tap opens the lake (T457 outline?) | OPEN | — | found 2026-11-07; test bed run 2026-11-07T09-16-07 |
 
 ## Order for open tickets
 

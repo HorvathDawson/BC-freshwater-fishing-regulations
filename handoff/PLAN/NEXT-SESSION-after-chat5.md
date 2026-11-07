@@ -31,6 +31,8 @@ Written 2026-11-06, as chat 5 closed. It replaces `NEXT-SESSION-after-chat4.md`.
   run TestFlight (OWNER-TODO).
 
 ## The list, in order
+0. **T478 first:** the 0.6.8 emulator walk passed walkthrough + switch but failed 2: the Updates log flow is stale
+   (T476 moved the link) and a Coquitlam River tap opens Coquitlam Lake (suspect T457's wider lake outline).
 1. **Owner's 0.6.8 phone check** (OWNER-TODO). Act on what comes back:
    - the walkthrough's wording (Claude's draft),
    - the T451 flicker on the Pixel 9,
