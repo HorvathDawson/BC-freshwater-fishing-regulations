@@ -531,6 +531,7 @@ use that as the sole source of future work."
 | T484 | A resumed release forgets the min app version after its promote; push check belongs in preflight | OPEN | — | found 2026-11-07 (r-1b4f54fb6ed9) |
 | T485 | Run timing off the release path: skip when unchanged; last good NuSEDS/PSF on R2; refresh as its own job | PARTIAL | d948fa0 | owner 2026-11-07 (open.canada.ca outage blocked a release) |
 | T486 | Staging in-season feed stopped refreshing (last fetch 11-06 15:28 UTC); the worker failed silently | OPEN | — | found 2026-11-07 by the staging smoke |
+| T487 | Share a river's conditions as its own page (viewer, link previews, back to the app) | OPEN (future) | — | owner 2026-11-07; not for the next chat |
 
 ## Order for open tickets
 
