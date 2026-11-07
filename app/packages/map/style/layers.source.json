@@ -597,12 +597,8 @@
           "mode": "zoom",
           "ramp": [
             [
-              7,
-              0.6
-            ],
-            [
-              10,
-              1.0
+              11,
+              0.8
             ],
             [
               13,
@@ -614,11 +610,11 @@
             ]
           ]
         },
-        "minzoom": 7,
+        "minzoom": 11,
         "opacity": {
           "token": "opacity.park.edge"
         },
-        "$comment": "(T311) A GREEN HAIRLINE from z7, finer than a closure edge at every zoom, so the park can be found and named without reading as a boundary where the rules change."
+        "$comment": "(T311) A GREEN HAIRLINE, finer than a closure edge at every zoom, so the park can be found and named without reading as a boundary where the rules change. (Owner 2026-11-06: no border until zoomed in more: from z11, was z7; the tint and the name still show the park from z8.)"
       },
       "label": {
         "field": "name",

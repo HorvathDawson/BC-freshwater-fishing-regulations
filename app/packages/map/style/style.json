@@ -203,7 +203,7 @@
       "layout": {
         "visibility": "visible"
       },
-      "minzoom": 7,
+      "minzoom": 11,
       "filter": [
         "==",
         [
