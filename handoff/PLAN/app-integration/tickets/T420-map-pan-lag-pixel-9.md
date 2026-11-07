@@ -277,3 +277,17 @@ feature-state binders, per frame**, NOT "per batch". Consequences:
   full set once when laid out and only deltas after, with no per-frame copy and no "modified" without a match — the real fix,
   needs our own MapLibre AAR build, offer upstream; (2) fewer layers reading feature-state per mode (`visibility: none` drops a
   layer from the tile's render data); (3) fewer rendered tiles. Scratch study: session scratchpad `colouring/` (clone + probes).
+
+## Lab A/B, stressed emulator (2026-11-06 night, HEAD 2f555346f, runs `out/runs/t420-lab-{coq13,fv11}-*`)
+Interleaved A,B1,B2,B3 ×3 in one boot per place; every B run's switch confirmed by the card's foot. Map p50 / p95 ms, circling · travelling, mean [range]:
+| arm | Coquitlam z13 p50 | p95 | frames | Fraser Valley z11 p50 | p95 |
+|---|---|---|---|---|---|
+| A defaults | 94 [84–105] · 89 [81–98] | 161 · 153 | 196 · 304 | 54 [40–70] · 68 [48–89] | 125 · 158 |
+| B1 colour gap 250 ms | 80 [50–99] · 76 [50–94] | 156 · 143 | 257 · 331 | 56 · 77 | 131 · 171 |
+| **B2 skip invisible layers** | **80 [78–83] · 71 [66–75]** | 160 · 136 | **248 · 345** | 62 · 77 | 137 · 162 |
+| B3 streams in one bucket | 90 [80–100] · 83 [73–92] | 156 · 148 | 225 · 320 | 51 · 68 | 115 · 163 |
+Missing-tile % and rest → full: no arm moved beyond noise. Verdicts: **skip invisible** is a real gain at z13 (p50 −15 to −19 ms, ranges
+apart, +13 to +27 % frames), none at z11, look identical (0.00 pixel change); the gap and one bucket: nothing beyond noise (the gap as
+the per-frame model predicted). **Growth** (A, fresh vs after 160 warm flings, one run each — a signal): Coquitlam p50 99/98 → 148/146 ms,
+p95 156/164 → 217/215; FV p50 70/87 → 84/118 — frame cost rises with the feature-state held, though the tiles are warmer.
+Next: skip-invisible default ON after the owner's phone check (0.6.9); the patched MapLibre A/B (`app/tools/maplibre-patch/`, acf015b98).
