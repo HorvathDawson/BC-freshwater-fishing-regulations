@@ -42,7 +42,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   (T420), the Map switch still flickers coming from Conditions/Run timing ("maybe better", T451 reopened), the
   boundary names in the ▲/▼ bar overlap, and the first open of a water's Map tab frames differently from ▲ then ▼
   (both added to T443). The Fraser is framed well.
-- **Next:** T451 + T443's two items (one lane, emulator) → 0.6.8 APK with T446, T454, T455 and those; then T457, T420.
+- **Next:** the step-screen lane (T451 flicker, T443's two items, T459 grey-out) and T456 (walkthrough), then ONE 0.6.8
+  APK with all of them + T446, T454, T455 (owner 11-06: wait until a few items are done). Then T457, T420.
 - **Crash store (T351):** no foreground native crash since 0.6.6. Today's reports are emulator installs (android 35)
   failing a download check ("does not match the manifest", several "0 % of its size") plus one from 0.6.4 on your
   phone (before T446's change). The test-bed builds do tag theirs. These carry the Play build's version, so they come
