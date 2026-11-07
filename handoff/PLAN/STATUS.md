@@ -53,10 +53,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   (Bulkley: 6 of 12 parts could not be stepped to; only the Bulkley changes, plus a release test that every part is
   reachable), T457 lakes + T461 tidal look (owner approved the shots), T458 (the floating-promise gate in `pnpm check`).
   The perf lane's Map lab is on the branch (94695e0, e88e3be); its in-app check is still running (COORD-068).
-- **Left before 0.6.8:** T456 (walkthrough) and the step-screen lane (T459) land → write "BUILD STARTING <hash>" in
-  handoff/PLAN/COORD-068.md → `pnpm check` → APK (T446, T454, T455, T456, T451, T443, T459, T460, T464, park border, T457,
-  T461 look, T458, Map lab). Native shot of the new lake look in the walk. Then T463 (owner runs /code-review ultra) and
-  T462 (regs audit, a workflow; may start sooner, read-only). iOS benched (OWNER-TODO).
+- **Left before 0.6.8 (late 11-06):** every lane is in except the perf lane's Map lab, which fails 2 checks
+  (back-layers, clock; COORD-068). The build starts when COORD-068 says it is green, or with the lab's long-press unhooked.
+  Fixed tonight on the way: T460 also removed the Skeena's side-channel fork (fixed: a side channel, which has no km, is
+  never a skip; 8 waters change); the lighter lake fill failed the colour-blind status gate, so it is back to 0.6 / 0.85
+  and the wider shoreline stays (T457).
+- **Owner picks pending:** T459 A (the river it flows into keeps muted colours) or B (all grey); T443 removed the old
+  "zoom in at most 2 levels per step" bound (so first open == ▲▼ framing). Then T463 / T462. iOS benched (OWNER-TODO).
   T457/T461 edit layers.source.json, which the perf chat may also edit: commit only your own paths, rebuild the style
   after a pull.
 - **Your 0.6.7 check:** the glide feels good (T452 DONE). Still to do: the pan stutters while the map loads tiles
