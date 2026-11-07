@@ -8,21 +8,24 @@ let tasks = 0;
 const urls: string[] = [];
 
 vi.mock("expo-file-system", () => {
+  const later = (f: () => void) => new Promise<void>((r) => setTimeout(() => { f(); r(); }, 0));
   class File {
     uri: string; constructor(dir: string, name: string) { this.uri = `${dir}/${name}`; }
     get exists() { return files.has(this.uri); }
     get size() { return files.get(this.uri)?.bytes.length ?? 0; }
     get contentUri() { return `content://ca.test.FileSystemFileProvider/${this.uri}`; }
     create() { files.set(this.uri, { bytes: new Uint8Array() }); }
-    write(b: Uint8Array, o?: { append?: boolean }) { const was = o?.append ? files.get(this.uri)?.bytes ?? new Uint8Array() : new Uint8Array(); files.set(this.uri, { bytes: new Uint8Array([...was, ...b]) }); }
+    // (T446) as SDK 58: `write` and `move` are promises whose work lands AFTER the call returns — an unawaited one is caught
+    write(b: Uint8Array, o?: { append?: boolean }) { return later(() => this.put(b, o)); }
+    put(b: Uint8Array, o?: { append?: boolean }) { const was = o?.append ? files.get(this.uri)?.bytes ?? new Uint8Array() : new Uint8Array(); files.set(this.uri, { bytes: new Uint8Array([...was, ...b]) }); }
     async copy(to: File) { files.set(to.uri, { bytes: files.get(this.uri)!.bytes }); }
     delete() { files.delete(this.uri); }
-    move(to: File) { files.set(to.uri, files.get(this.uri)!); files.delete(this.uri); }
+    move(to: File) { return later(() => { files.set(to.uri, files.get(this.uri)!); files.delete(this.uri); }); }
     async bytes() { return files.get(this.uri)!.bytes; }
   }
   class DownloadTask {
     constructor(private url: string, private to: File, private o: { onProgress?: (p: { bytesWritten: number; totalBytes: number }) => void }) {}
-    async downloadAsync() { tasks++; urls.push(this.url); if (this.url.includes("/gone/")) throw Object.assign(new Error("rejected"), { cause: "HTTP 404" }); const b = new Uint8Array([1, 2, 3, 4]); this.to.write(b); this.o.onProgress?.({ bytesWritten: 4, totalBytes: 4 }); return this.to; }
+    async downloadAsync() { tasks++; urls.push(this.url); if (this.url.includes("/gone/")) throw Object.assign(new Error("rejected"), { cause: "HTTP 404" }); const b = new Uint8Array([1, 2, 3, 4]); this.to.put(b); this.o.onProgress?.({ bytesWritten: 4, totalBytes: 4 }); return this.to; }
     release() {}
   }
   return { File, DownloadTask, Paths: { cache: "cache", document: "doc" } };

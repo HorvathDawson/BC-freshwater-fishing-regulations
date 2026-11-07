@@ -25,9 +25,10 @@ export function openSpots(): SpotsStore {
   const fs: SpotsFs = {
     exists: (n) => at(n).exists,
     read: (n) => at(n).textSync(),
-    write: (n, t) => { if (!dir.exists) dir.create({ intermediates: true }); at(n).write(t); },
-    // expo-file-system's move refuses an existing destination: replace it explicitly
-    rename: (a, b) => { const to = at(b); if (to.exists) to.delete(); at(a).move(to); },
+    write: (n, t) => { if (!dir.exists) dir.create({ intermediates: true }); at(n).writeSync(t); },
+    // expo-file-system's move refuses an existing destination: replace it explicitly. (T446) The SYNC calls: since SDK 58
+    // `write`/`move` return a promise, and `core.ts`'s save (write, then rename) moved the file before its bytes were in it
+    rename: (a, b) => { const to = at(b); if (to.exists) to.delete(); at(a).moveSync(to); },
     remove: (n) => { const f = at(n); if (f.exists) f.delete(); },
   };
   // a spot deleted takes its photos with it (S1)
@@ -147,6 +148,6 @@ function fileStore(name: string): { read(): string | null; write(text: string): 
   const file = () => new File(dir, name);
   return {
     read: () => { try { const f = file(); return f.exists ? f.textSync() : null; } catch { return null; } },
-    write: (t) => { if (!dir.exists) dir.create({ intermediates: true }); file().write(t); },
+    write: (t) => { if (!dir.exists) dir.create({ intermediates: true }); file().writeSync(t); },
   };
 }

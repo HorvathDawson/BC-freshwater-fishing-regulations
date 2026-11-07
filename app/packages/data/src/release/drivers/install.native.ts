@@ -40,14 +40,17 @@ const fs: ReleaseFs & PartFs = {
     const f = fileAt(path);
     if (f.exists) f.delete();
     f.create();
-    f.write(bytes);
+    // (T446) AWAITED: since SDK 58 `write` and `move` return a promise (the work runs natively, after the call
+    // returns). Unawaited, `place`'s rename moved the empty file `create` made onto the release path and the bytes landed
+    // in a new `.part` behind it: the re-verify read 0 bytes ("0 % of its size") on a first install.
+    await f.write(bytes);
   },
   // expo-file-system's move refuses an existing destination: replace it explicitly (the pointer swap is this rename)
   rename: async (from, to) => {
     ensureParent(to);
     const dest = fileAt(to);
     if (dest.exists) dest.delete();
-    fileAt(from).move(dest);
+    await fileAt(from).move(dest);
   },
   remove: async (path) => {
     const f = fileAt(path);
@@ -137,7 +140,7 @@ const nativeFill = (tries = 4): PartFill => async (url, part, _have, total, onBy
       if (!done) throw new Error(`${url}: the download stopped`);
       if (have > 0) {
         const got = tail.size;
-        if (got === total) { onRewrite?.(); f.delete(); tail.move(f); }        // the server sent it whole
+        if (got === total) { onRewrite?.(); f.delete(); await tail.move(f); }        // the server sent it whole
         else if (got === total - have) appendFile(`${part}.tail`, part);
         else { tail.delete(); throw new Error(`${url}: ${got} bytes for the ${total - have} after ${have}`); }
       }

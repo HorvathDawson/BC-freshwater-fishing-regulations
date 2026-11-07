@@ -45,7 +45,7 @@ async function downloadSynopsis(s: SynopsisSource, hooks: Partial<LoadHooks> = {
     try {
       if (!(await task.downloadAsync())) throw new Error(`${url}: the download stopped`);
       if (s.bytes > 1 && part.size !== s.bytes) throw new Error(`${url}: ${part.size} bytes, expected ${s.bytes}`);
-      part.move(f);
+      await part.move(f);                     // (T446) a promise since SDK 58: f is whole only after it
       hooks.onProgress?.(f.size, f.size);
       return f;
     } catch (e) {
@@ -84,7 +84,7 @@ async function markedCopy(s: SynopsisSource, cached: File, boxes: readonly Sourc
   const f = new File(Paths.cache, "synopsis-open.pdf");
   if (f.exists) f.delete();
   await cached.copy(f);
-  f.write(tail, { append: true });
+  await f.write(tail, { append: true });   // (T446) a promise since SDK 58
   return f;
 }
 

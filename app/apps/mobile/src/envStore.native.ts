@@ -13,7 +13,7 @@ export const envStore = {
   read: (): string | null => { try { const f = file(); return f.exists ? f.textSync().trim() || null : null; } catch { return null; } },
   write: (env: string): void => {
     if (!dir().exists) dir().create({ intermediates: true });
-    file().write(env);
+    file().writeSync(env);          // (T446) sync: since SDK 58 `write` is a promise, and a failure must throw here
   },
 };
 
@@ -23,7 +23,7 @@ export const channelStore = {
   read: (): string | null => { try { const f = channelFile(); return f.exists ? f.textSync().trim() || null : null; } catch { return null; } },
   write: (c: string): void => {
     if (!dir().exists) dir().create({ intermediates: true });
-    channelFile().write(c);
+    channelFile().writeSync(c);
   },
 };
 

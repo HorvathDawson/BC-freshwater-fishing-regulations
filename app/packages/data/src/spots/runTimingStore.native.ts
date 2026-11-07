@@ -7,6 +7,6 @@ export function openRunTimingStore(): RunTimingStore {
   const file = () => new File(dir, "runtiming.json");
   return {
     async read() { try { const f = file(); return f.exists ? f.textSync() : null; } catch { return null; } },
-    async write(text) { if (!dir.exists) dir.create({ intermediates: true }); file().write(text); },
+    async write(text) { if (!dir.exists) dir.create({ intermediates: true }); await file().write(text); },   // (T446) a promise since SDK 58
   };
 }
