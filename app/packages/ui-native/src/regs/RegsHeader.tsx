@@ -12,7 +12,7 @@
  * on every view of the water), so the name and the place label start at the gutter, not after a 44 px back (the
  * prototype's 56). The name row itself is the frame's `WaterTitle` (T44), the box every view's name sits in.
  */
-import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
 import { WORDS, type HeaderVM, type Tab } from "@app/core";
@@ -46,7 +46,7 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
  * NO ACTION IN THE NAME ROW (owner call 3): T71 dropped the Map button (the view strip is the one Map entry), T150 the
  * Parts button (the water's Map view lists the parts). The place label below keeps the part's name.
  */
-export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false, nameSource = null, sun = null, aside = null }: {
+export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false, nameSource = null, sun = null }: {
   header: HeaderVM; palette: Palette;
   /** (T224) where the water's name came from when it is not the official one (`WaterTitle`'s `source`) */
   nameSource?: string | null;
@@ -62,9 +62,6 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
   /** (T471) the day's sun line at the water ("Sunrise 08:04 PT · sunset 17:37 PT", `useSunLine`), a small secondary line
    *  under the place label; null: nothing drawn */
   sun?: string | null;
-  /** (T480) drawn at the right of the place and sun lines, in their whitespace (the access chip); never makes the header
-   *  taller: it sits beside them, bottom-aligned, and they wrap in what is left */
-  aside?: ReactNode;
 }) {
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
@@ -72,16 +69,11 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
       <WaterTitle name={h.name} palette={palette} source={nameSource}>
         {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
       </WaterTitle>
-      <View style={{ flexDirection: "row" }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Place place={h.place} palette={palette} />
-          {!!sun && (
-            <Text testID="regs-sun" maxFontSizeMultiplier={CAPPED_SCALE}
-                  style={[TYPE.metaSemi, { paddingLeft: GUTTER, paddingRight: aside ? 8 : 12, paddingBottom: 6, color: palette.sub }]}>{sun}</Text>
-          )}
-        </View>
-        {!!aside && <View testID="regs-header-aside" style={{ justifyContent: "flex-end", paddingRight: 12, paddingBottom: 6 }}>{aside}</View>}
-      </View>
+      <Place place={h.place} palette={palette} />
+      {!!sun && (
+        <Text testID="regs-sun" maxFontSizeMultiplier={CAPPED_SCALE}
+              style={[TYPE.metaSemi, { paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, color: palette.sub }]}>{sun}</Text>
+      )}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
     </View>
   );
