@@ -330,3 +330,17 @@ emulator, patched/stock alternated in one boot): **not reproduced** — patched 
 APK pair: not uploaded. The pair (patched → Play internal via `MLN_LOCAL_MAVEN=… deploy/staging/build-apk.sh --play`, which would be
 versionCode 19; stock → the staging sideload page via `deploy/staging/build-apk.sh`) was refused by the session's permission check;
 it needs the owner to run it or to allow it.
+
+## Lean patch vs full patch, stressed emulator (2026-11-07 night; runs `out/runs/t420-ln-*`)
+Both APKs from one tree (HEAD 048fa78a1, app clean): lean `out/app-testbed-fslean.apk` (13.6.1-fslean, build id 7bf3dc29),
+full `out/app-testbed-fsfull.apk` (13.6.1-fsdelta, build id 4181656f); `check-loaded.sh` PASS on both. Same stress
+(`TESTBED_EMU_ECORES=1`, `-cores 2`, PAN_MS=120), Coquitlam z13, lean/full alternated in one boot, 3 blocks each
+(fresh 2 rounds, 160 warm flings, held 2 rounds). Map p50 / p95 ms, circling · travelling, mean [range]:
+| build | fresh p50 | fresh p95 | held p50 | held p95 | held frames |
+|---|---|---|---|---|---|
+| lean | 52 [51–53] · 36 [33–39] | 115 · 82 | 50 [48–51] · 36 [33–39] | 109 · 90 | 409 · 593 |
+| full | 50 [47–53] · 41 [36–47] | 111 · 93 | 49 [47–50] · 35 [30–43] | 110 · 87 | 414 · 612 |
+**Within noise** (ranges overlap everywhere; no growth on either). Colours after Map → Conditions → Map on lean: coloured,
+nothing grey or stale (`t420-ln-coq13-modeswitch-lean.png`). Tap-glide on lean (FV z11, 64 flings, 23 pages opened
+mid-glide): **0 ANR**. Verdict: the phone APK carries the lean patch (the upstream one); OWNER-TODO step 1 now points at
+`mllean/m2`.

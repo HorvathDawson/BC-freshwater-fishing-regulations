@@ -10,7 +10,7 @@ with the default Claude uses until you answer). Newest first inside each section
   went from 76–148 ms (stock) to 31–46 ms (patched), and it no longer gets slower with use. Feature-state work went from
   42 % of CPU to 2 %. One unexplained ANR happened in 9 patched blocks; it did not reproduce in 6+6 targeted runs, and
   the patch adds no lock. Claude's upload was refused by the permission check, so run these yourself:
-  1. `MLN_LOCAL_MAVEN=/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/ee95bdfc-d51a-4f83-8602-1e5d2e402692/scratchpad/mlpatch/m2 deploy/staging/build-apk.sh --play` (if a reboot cleared /private/tmp, rebuild it with app/tools/maplibre-patch/build.sh first): patched → Play internal (versionCode 19).
+  1. `MLN_LOCAL_MAVEN=/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/ee95bdfc-d51a-4f83-8602-1e5d2e402692/scratchpad/mllean/m2 deploy/staging/build-apk.sh --play` — the lean patch, the one going upstream (A/B 2026-11-07: as fast as the full patch, colours right, no ANR; if a reboot cleared /private/tmp, rebuild it with app/tools/maplibre-patch/build.sh and the lean patch first): patched → Play internal (versionCode 19).
   2. `deploy/staging/build-apk.sh`: stock → the staging APK page.
   Then pan the same places on each (Coquitlam z13, Fraser Valley z11). Details are in T420.
 - **Check one T468 side effect (2026-11-07): Little Slocan River above Little Slocan Lakes.** The Powell fix (a river
