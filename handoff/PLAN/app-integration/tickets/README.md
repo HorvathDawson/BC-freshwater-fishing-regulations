@@ -499,6 +499,7 @@ use that as the sole source of future work."
 | T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | IN REVIEW | e63c921c3 | owner feel check (glide shape changed: proposal) |
 | T453 | Flow alerts set by the day's percentile; an easier alert menu | OPEN | — | owner 2026-11-06; after T234 resumes |
 | T454 | Spot photos: zoom and pan in the viewer | IN REVIEW | 4ede32a69 (owner phone check) | owner 2026-11-06 |
+| T455 | Walkthrough "Layers" test skips the ground step under load (flaky) | OPEN | — | chat 5 2026-11-06 |
 
 ## Order for open tickets
 
