@@ -24,10 +24,12 @@ export interface Lab {
   landuse: boolean;
   /** every label and icon drawn (today: on) */
   labels: boolean;
+  /** the least time between two feature-state batches, ms (`useColouring`); 0 = one per burst (today) */
+  stateGapMs: 0 | 250;
 }
 
 export const LAB_DEFAULT: Readonly<Lab> = Object.freeze({
-  pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true,
+  pixelCap: true, prefetch: 4, streamsOneBucket: false, roads: true, landuse: true, labels: true, stateGapMs: 0,
 });
 
 /** Read once: Metro inlines `EXPO_PUBLIC_*` at build time. */

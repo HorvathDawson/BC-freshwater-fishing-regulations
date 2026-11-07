@@ -24,6 +24,7 @@ import type { ChannelValues } from "../style";
 import { TILE_IDS_EVENT, TileHold, type TileIdsEvent } from "../tile-hold";
 import type { CopyTarget, WaterCopy } from "../water-copy";
 import { readingDayOf, salmonDayIndex } from "@app/core";
+import { useLab } from "../lab";
 import { panProbe } from "./panProbe";
 
 /** What the engine asks of the patched atlas `VectorSource` (`VectorSourceRef`, deps.md). */
@@ -141,8 +142,18 @@ export function useNativeColouring(o: {
   /** (T451, the pan probe's build) a style load's relabel not yet acknowledged; a section acknowledged before it */
   const swapPending = useRef(false);
   const lastAck = useRef<{ layer: string; id: string } | null>(null);
+  /*
+   * (T420) THE SEND GAP, a lab switch: MapLibre Native applies each `setFeatureStates` batch to EVERY tile it holds and
+   * re-evaluates and re-uploads their paint (the stressed profile: 33–44 % of the app's CPU in a glide, ~45 batches a
+   * round). With a gap, a burst after a quiet spell still goes at once; bursts closer than the gap wait for it, so a
+   * glide sends a few large batches instead of one per tile. 0 = one batch per burst (today).
+   */
+  const gap = useRef(0);
+  gap.current = useLab().stateGapMs;
+  const lastFlush = useRef(-Infinity);
   const flush = useCallback(() => {
     queued.current = false;
+    lastFlush.current = Date.now();
     const src = ref.current.atlas();
     if (!src || !ready.current || !alive.current) return;
     for (const [layer, ids, states] of queue.current.drain()) {
@@ -162,7 +173,7 @@ export function useNativeColouring(o: {
   const schedule = useCallback(() => {
     if (queued.current) return;
     queued.current = true;
-    setTimeout(flush, 0);
+    setTimeout(flush, Math.max(0, lastFlush.current + gap.current - Date.now()));
   }, [flush]);
   useEffect(() => { if (o.ready && queue.current.size) schedule(); }, [o.ready, schedule]);
 
