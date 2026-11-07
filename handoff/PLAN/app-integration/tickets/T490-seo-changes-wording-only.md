@@ -1,0 +1,17 @@
+# T490 — /changes counts a wording-only release as every water changed (over budget; staging site not deployed)
+
+Status: OPEN — found 2026-11-07 deploying the staging site for r-1b4f54fb6ed9.
+
+`build-seo.mjs --release-dir data/release/r-1b4f54fb6ed9 --app app/dist/web-staging` stopped:
+"/changes is 154515 B gzip, over 30720". The snapshot's per-water "rules hash" moves when the WORDS move, so T475/T479/
+T481 (quota wording, no rule moved) make thousands of waters "changed". The staging site still runs the older web build
+(walkthrough-3), which is also why the release smoke's unnamed-stream tap failed (the walkthrough card covers it: the
+smoke seeds the repo's walkthrough-4).
+
+## Do
+- /changes lists REGULATION changes: hash what an angler must do (status, seasons, quotas, sizes, gear — the rule ids and
+  their bound values), not the rendered words. A wording-only release says "Wording updated on N waters" once.
+- sitemap lastmod: decide whether wording moves it (probably yes — the page did change).
+- Then: export web staging, build-seo, `deploy/staging/site.sh`; rerun `python -m pipeline release --staging
+  --min-app-version 0.5.0` so the ledger records stage 6 (its smoke then passes the tap).
+- Fast-fail (AGENTS 20a): build the /changes page alone (cheap) before the 19k-page build.

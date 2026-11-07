@@ -534,6 +534,7 @@ use that as the sole source of future work."
 | T487 | Share a river's conditions as its own page (viewer, link previews, back to the app) | OPEN (future) | — | owner 2026-11-07; not for the next chat |
 | T488 | Park borders and fill nearly invisible in light mode | OPEN | — | owner 2026-11-07; proposal with shots |
 | T489 | Lakes lose too much shape when zoomed out (tile simplification) | OPEN | — | owner 2026-11-07; ships with a tiles rebuild |
+| T490 | /changes counts a wording-only release as every water changed (154 KB > 30 KB); staging site not redeployed | OPEN | — | found 2026-11-07; blocks the staging site + release ledger stage 6 |
 
 ## Order for open tickets
 

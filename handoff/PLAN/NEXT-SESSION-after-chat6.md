@@ -36,6 +36,8 @@ Written 2026-11-07, as chat 6 closed. It replaces `NEXT-SESSION-after-chat5.md`.
 3. **T484:** release resume keeps the ledger's min app version; push check into preflight.
    **T485** steps 2–3: run-timing sources cached on R2, refresh as its own job (owner: no outside site may block a
    release).
+3a. **T490 first among these:** /changes over budget on a wording-only release, so the staging website is still the
+   older build (smoke's unnamed tap fails on its walkthrough). Fix, deploy the site, rerun the release to close stage 6.
 3b. **T486:** staging in-season feed stale since 11-06 (worker cron silent); the smoke flags it.
 3c. **T488** park borders invisible in light mode; **T489** lakes over-simplified zoomed out (owner, 0.6.9 phone).
 4. Carried from chat 5 (details in each ticket):
