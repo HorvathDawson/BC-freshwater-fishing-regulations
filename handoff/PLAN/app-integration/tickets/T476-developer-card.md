@@ -1,6 +1,6 @@
 # T476 — One Developer card behind the credits long-press; dev/staging builds only
 
-Status: DONE 2026-11-07 (5048d5430). Opened 2026-11-07 (owner: "lets move it over… only ship it in dev/staging no prod and just be a long press to get").
+Status: DONE 2026-11-07 (46f948264). Opened 2026-11-07 (owner: "lets move it over… only ship it in dev/staging no prod and just be a long press to get").
 
 Today the developer tools are scattered:
 - Map lab (`MapLab.tsx` / `MapLabModal.tsx`): long-press on the map credits, `EXPO_PUBLIC_MAP_LAB=1` and not production.
