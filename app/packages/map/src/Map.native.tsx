@@ -489,7 +489,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     if (ne?.userInteraction && meNow.current?.following) meNow.current.onRelease?.();
   }, []);
   useEffect(() => {
-    if (!fit || !camRef.current || fitted.current === fit.key) return;
+    // (T443) not before the map's first style has loaded: a fit sent while the native map was still being made was lost
+    // to its initial camera (test bed: a water's map opened on the last water's place, its fit and refit both dropped)
+    if (!fit || !camRef.current || !styled || fitted.current === fit.key) return;
     fitted.current = fit.key;
     let rounds = 0;
     let alive = true;

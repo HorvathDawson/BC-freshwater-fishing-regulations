@@ -102,6 +102,20 @@ describe("<WaterMapView> (T150 / T151)", () => {
 });
 
 describe("<WaterMapView>", () => {
+  it("(T443, owner on 0.6.7) the bar's names never run into each other: each wraps to two lines at most, cut with an ellipsis, its full words on its label", async () => {
+    mount("gnis:8634", 1);
+    await ready();
+    const name = screen.getByTestId("water-map-name");
+    expect(name.getAttribute("aria-label")).toBe("Vedder Crossing Bridge → Tamihi Rapids Bridge");
+    const down = screen.getByTestId("water-map-step-down"), up = screen.getByTestId("water-map-step-up");
+    for (const el of [name, down, up]) expect(el.style.getPropertyValue("-webkit-line-clamp"), el.textContent ?? "").toBe("2");
+    // each step's button holds its own words (a shrinkable column of half the bar), and names the whole way for a reader
+    expect(down.closest("[role=button]")?.getAttribute("aria-label")).toBe("Downstream into Vedder River");
+    // (T459) and the map is told to grey every other water, keeping the one it flows into (the Vedder's sections)
+    await waitFor(() => expect((seen.props?.near ?? []).length).toBeGreaterThan(0));
+    expect(seen.props?.focus).toBe(true);
+  });
+
   it("the Chilliwack from its mouth part: lit, framed, ▲ to the top; the ends disabled", async () => {
     mount("gnis:8634", 1);
     await ready();
