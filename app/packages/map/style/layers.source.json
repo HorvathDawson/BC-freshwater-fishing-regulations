@@ -1588,7 +1588,18 @@
               0.00045,
               6.0
             ]
-          ]
+          ],
+          "recede": [
+            [
+              8,
+              0.6
+            ],
+            [
+              12,
+              1.0
+            ]
+          ],
+          "$comment_recede": "(T470) times 0.6 to z8, easing back to 1 at z12 (closed lakes keep their full shoreline): a mid-zoom lake outline no longer shouts over the water."
         },
         "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area — area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible.\n\nFOLLOWS THE FILL wherever the fill is answering a question. A lake filled by its flow percentile and ringed in plain blue was drawing two answers at once — the edge said 'water' while the middle said 'much below normal', and the edge is the part that survives at a distance where the fill is a few pixels. `plain` is excluded: there the fill IS the water colour, so an inherited edge would disappear into it.\n\n(T457, owner 2026-11-06: \"an outline that is opaque then a fill that is slightly transparent, sized by the size of the lake\") The ramp is 1.5x what it was, so the shoreline carries the lake. The fill stays at opacity.lake (light 0.6, dark 0.85): a lighter fill (0.4 / 0.75, owner-approved shots) failed the colour-blind status gate (tools/status-colours-distinct.test.ts: closed vs own and no access vs base as lake fills); every lighter step tried (0.5, 0.55) failed it too.",
         "follow": true,
@@ -1994,7 +2005,41 @@
           "token": "color.region.edge"
         },
         "width": {
-          "token": "width.region.edge"
+          "token": "width.region.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              5,
+              0.733
+            ],
+            [
+              8,
+              0.533
+            ],
+            [
+              11,
+              0.667
+            ],
+            [
+              12,
+              1.0
+            ]
+          ],
+          "$comment": "(T470) A MULTIPLE of width.region.edge (3 px): 2.2 px at z5, 1.6 at z8, 2.0 at z11, 3 from z12 (was 3 at every zoom). Still wider than the unit's dotted edge at every zoom."
+        },
+        "opacity": {
+          "token": "opacity.region.edge",
+          "ramp": [
+            [
+              11,
+              0.75
+            ],
+            [
+              12,
+              1.0
+            ]
+          ],
+          "$comment": "(T470) 0.75 to z11, full from z12."
         }
       },
       "label": {
@@ -2050,11 +2095,41 @@
           "token": "color.mu.edge"
         },
         "width": {
-          "token": "width.admin.edge"
+          "token": "width.admin.edge",
+          "mode": "zoom",
+          "ramp": [
+            [
+              7,
+              0.75
+            ],
+            [
+              11,
+              0.75
+            ],
+            [
+              12,
+              1.0
+            ]
+          ],
+          "$comment": "(T470) 0.9 px (0.75 x width.admin.edge) to z11, 1.2 from z12."
         },
         "$comment": "DOTTED, as v1 drew it, and from z7 only. A unit boundary is an administrative line over country, not a feature of the country; solid it competes with every river it crosses. Below z7 there are 225 of them on one screen and `region` is drawn instead.",
         "dash": {
           "token": "dash.mu"
+        },
+        "opacity": {
+          "token": "opacity.mu.edge",
+          "ramp": [
+            [
+              11,
+              0.55
+            ],
+            [
+              12,
+              1.0
+            ]
+          ],
+          "$comment": "(T470) 0.55 to z11, full from z12; the dots are kept."
         }
       },
       "minzoom": 7,
@@ -2164,13 +2239,18 @@
           ],
           [
             8,
-            0.6,
-            0.15
+            0.2,
+            0.16
+          ],
+          [
+            10,
+            0.3,
+            0.33
           ],
           [
             11,
-            0.75,
-            0.75
+            0.5,
+            0.55
           ],
           [
             12,
@@ -2186,6 +2266,91 @@
             16,
             2.0,
             2.0
+          ]
+        ],
+        "$comment_t470": "(T470 B, owner 2026-11-07) THINNER AT MID ZOOM, today's from z12: the z8-z11 stops were [8, .6, .15], [11, .75, .75] (ord 5: 1.35 / 3.45 / 4.5 px at z8 / z10 / z11, now 1.0 / 1.95 / 3.25). The same curve drives the closed stripe, the gear edges and the selection casing. `closed`: a closed section's width times this factor, so closed is the heaviest line on the mid-zoom map (1.3 from z7 to z11, back to 1 at z12).",
+        "closed": [
+          [
+            6,
+            1.0
+          ],
+          [
+            7,
+            1.3
+          ],
+          [
+            11,
+            1.3
+          ],
+          [
+            12,
+            1.0
+          ]
+        ]
+      },
+      "fadeByOrder": {
+        "$comment": "THE TUNING KNOB for T470 B, \"small waters recede\" (owner 2026-11-07: \"Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom\"). WHICH stream orders fade, BY HOW MUCH, AT WHICH ZOOM: each stop is [zoom, [factor for ord < 4, ord 4, ord 5, ord 6, ord >= 7]] (`orders` are the step thresholds on `ord`, Strahler order from the tile), linear in zoom between stops and held beyond them. The factor multiplies the line's own opacity, on the profile day's `classes` only (own rules, general rules): closed is NEVER faded and no access keeps its dots. The last stop must be all 1 (build-style checks), so from z12 in the map is today's (tools/midzoom.test.ts). First values are the proposal's (T470); tune them here, then `pnpm style:build`. The colour-blind cost is recorded in tools/status-colours-distinct.test.ts (T470 block).",
+        "by": "ord",
+        "classes": [
+          "own",
+          "base"
+        ],
+        "orders": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "stops": [
+          [
+            7,
+            [
+              0.45,
+              0.55,
+              0.7,
+              0.85,
+              1.0
+            ]
+          ],
+          [
+            9,
+            [
+              0.5,
+              0.6,
+              0.75,
+              0.9,
+              1.0
+            ]
+          ],
+          [
+            10,
+            [
+              0.6,
+              0.7,
+              0.85,
+              1.0,
+              1.0
+            ]
+          ],
+          [
+            11,
+            [
+              0.8,
+              0.9,
+              1.0,
+              1.0,
+              1.0
+            ]
+          ],
+          [
+            12,
+            [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ]
           ]
         ]
       },

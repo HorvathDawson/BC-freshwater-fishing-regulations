@@ -70,7 +70,11 @@ describe("the profile colour mode", () => {
     const t = resolveTheme("light");
     const p = paintFor("stream", "profile", t, day(DAY));
     expect(p["line-color"]).toEqual(expected("light", DAY));
-    expect(p["line-width"]).toEqual(paintFor("stream", "plain", t)["line-width"]);
+    // the line's own width — save that (T470) a closed section is drawn heavier short of z12, the day's closed labels
+    expect(paintFor("stream", "profile", t, day({ ...DAY, closed: [] }))["line-width"])
+      .toEqual(paintFor("stream", "plain", t)["line-width"]);
+    expect(JSON.stringify(p["line-width"])).toContain(JSON.stringify(["case", ["in", ["coalesce", ["feature-state", "p"], ""],
+      ["literal", DAY.closed]], 1.3, 1]));
   });
 
   it("is accepted by MapLibre's validator with real label sets, in every theme", () => {

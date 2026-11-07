@@ -2293,13 +2293,18 @@
         ],
         [
           8,
-          0.6,
-          0.15
+          0.2,
+          0.16
+        ],
+        [
+          10,
+          0.3,
+          0.33
         ],
         [
           11,
-          0.75,
-          0.75
+          0.5,
+          0.55
         ],
         [
           12,
@@ -2315,6 +2320,24 @@
           16,
           2,
           2
+        ]
+      ],
+      "closed": [
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1.3
+        ],
+        [
+          11,
+          1.3
+        ],
+        [
+          12,
+          1
         ]
       ]
     },
@@ -2475,6 +2498,16 @@
           0.00045,
           6
         ]
+      ],
+      "recede": [
+        [
+          8,
+          0.6
+        ],
+        [
+          12,
+          1
+        ]
       ]
     },
     "not_fishing_water__edge": {
@@ -2495,8 +2528,46 @@
         ]
       ]
     },
-    "region__edge": "width.region.edge",
-    "mu__edge": "width.admin.edge",
+    "region__edge": {
+      "token": "width.region.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          5,
+          0.733
+        ],
+        [
+          8,
+          0.533
+        ],
+        [
+          11,
+          0.667
+        ],
+        [
+          12,
+          1
+        ]
+      ]
+    },
+    "mu__edge": {
+      "token": "width.admin.edge",
+      "mode": "zoom",
+      "ramp": [
+        [
+          7,
+          0.75
+        ],
+        [
+          11,
+          0.75
+        ],
+        [
+          12,
+          1
+        ]
+      ]
+    },
     "sign_zone__edge": {
       "token": "width.closure.edge",
       "mode": "zoom",
@@ -2512,6 +2583,73 @@
         [
           16,
           2
+        ]
+      ]
+    }
+  },
+  "orderFades": {
+    "stream": {
+      "by": "ord",
+      "classes": [
+        "own",
+        "base"
+      ],
+      "orders": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "stops": [
+        [
+          7,
+          [
+            0.45,
+            0.55,
+            0.7,
+            0.85,
+            1
+          ]
+        ],
+        [
+          9,
+          [
+            0.5,
+            0.6,
+            0.75,
+            0.9,
+            1
+          ]
+        ],
+        [
+          10,
+          [
+            0.6,
+            0.7,
+            0.85,
+            1,
+            1
+          ]
+        ],
+        [
+          11,
+          [
+            0.8,
+            0.9,
+            1,
+            1,
+            1
+          ]
+        ],
+        [
+          12,
+          [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
         ]
       ]
     }
@@ -2674,7 +2812,31 @@
     "eco_reserve__edge": "opacity.closure.edge",
     "park__edge": "opacity.park.edge",
     "park_closed__edge": "opacity.closure.edge",
+    "region__edge": "opacity.region.edge",
+    "mu__edge": "opacity.mu.edge",
     "sign_zone__edge": "opacity.closure.edge"
+  },
+  "edgeOpacityRamps": {
+    "region__edge": [
+      [
+        11,
+        0.75
+      ],
+      [
+        12,
+        1
+      ]
+    ],
+    "mu__edge": [
+      [
+        11,
+        0.55
+      ],
+      [
+        12,
+        1
+      ]
+    ]
   },
   "labelHalos": {
     "indigenous_land__label": {
@@ -2834,6 +2996,7 @@
       "color.ui.run-species.sockeye": "#D55E00",
       "color.outside": "#F8F8F2",
       "opacity.outside": 0.72,
+      "opacity.outside.mid": 0.5,
       "color.flow.f1": "#5E2A00",
       "color.flow.f2": "#9A5A12",
       "color.flow.f3": "#E0A83C",
@@ -2857,6 +3020,8 @@
       "width.parcel.edge": 0.8,
       "color.region.edge": "#8B857F",
       "width.region.edge": 3,
+      "opacity.region.edge": 1,
+      "opacity.mu.edge": 1,
       "opacity.admin.fill": 0.04,
       "dash.mu": [
         1,
@@ -3006,6 +3171,7 @@
       "color.ui.run-species.sockeye": "#D55E00",
       "color.outside": "#0A0B0D",
       "opacity.outside": 0.7,
+      "opacity.outside.mid": 0.49,
       "color.flow.f1": "#E0466E",
       "color.flow.f2": "#F79A5E",
       "color.flow.f3": "#FBD24A",
@@ -3029,6 +3195,8 @@
       "width.parcel.edge": 0.8,
       "color.region.edge": "#B8B8B8",
       "width.region.edge": 3,
+      "opacity.region.edge": 1,
+      "opacity.mu.edge": 1,
       "opacity.admin.fill": 0.06,
       "dash.mu": [
         1,
@@ -3178,6 +3346,7 @@
       "color.ui.run-species.sockeye": "#D55E00",
       "color.outside": "#F8F8F2",
       "opacity.outside": 0.72,
+      "opacity.outside.mid": 0.5,
       "color.flow.f1": "#7A1608",
       "color.flow.f2": "#E0552A",
       "color.flow.f3": "#E08A2B",
@@ -3201,6 +3370,8 @@
       "width.parcel.edge": 0.8,
       "color.region.edge": "#7F7C79",
       "width.region.edge": 3,
+      "opacity.region.edge": 1,
+      "opacity.mu.edge": 1,
       "opacity.admin.fill": 0.04,
       "dash.mu": [
         1,
@@ -3588,6 +3759,11 @@
       "themeable": true,
       "$comment": "The mask is a WASH, not a blank. You should still be able to see that the river continues into Washington — only that we stop answering there."
     },
+    "opacity.outside.mid": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "(T470) The mask at mid zoom (z8 to z11): lighter than `opacity.outside`, which it eases back to by z12, so the dark band beyond the province stops competing with the water while the far bank is still faint at close range."
+    },
     "color.gauge.dot": {
       "type": "color",
       "themeable": true
@@ -3641,6 +3817,16 @@
       "type": "number",
       "themeable": false,
       "$comment": "Thicker than width.admin.edge on purpose: region outranks unit."
+    },
+    "opacity.region.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T470) The region border's opacity from z12 (full, as before T470); its outline ramp lowers it short of z12."
+    },
+    "opacity.mu.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T470) The unit border's opacity from z12 (full, as before T470); its outline ramp lowers it short of z12."
     },
     "opacity.admin.fill": {
       "type": "number",

@@ -1,6 +1,6 @@
 # T470 — Mid-zoom map (z7–z10) too busy: a calmer hierarchy that keeps the information
 
-Status: IN REVIEW (owner picks a variant from the comparison sheets; nothing in the app changed).
+Status: IN PROGRESS — variant B built 2026-11-07 (owner: "Ok let's try that"); hash follows.
 
 Source: owner 2026-11-07: "on desktop or mobile, when in a middle zoom value it feels very very busy. we still want a lot
 of the info but need to find a way to make it a little less abrasive." Their screenshot: web, about z8, Lower Mainland
@@ -130,3 +130,49 @@ Mainland, Powell River, Fraser Valley) × z7 / z8 / z9 / z11 × 1440 and 390 px,
 
 Related: T457 / T467 (lake fill vs the colour gate), T47 (status colours), T311 (park edges from z11), T420 (map
 performance), T469 (legend). Size: S (A) – M (B). Owner: yes (pick A / B / C or none). Default: none shipped until picked.
+
+## Built: variant B (owner 2026-11-07)
+
+Owner: "Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams
+to zoom".
+
+**Thresholds (stream order × zoom) are tunable; first values are the proposal's.** The knob is ONE block:
+`fadeByOrder` on the `stream` layer in `app/packages/map/style/layers.source.json` — `orders` (the step thresholds on
+`ord`), `classes` (own, base; closed can never be listed, build-style refuses it) and `stops`
+(`[zoom, [factor for ord < 4, 4, 5, 6, >= 7]]`, the table above). Edit it, `pnpm style:build`; build-style checks every
+row and that the last row is all 1 (so the close-in map cannot move). A deeper fade fails
+`tools/status-colours-distinct.test.ts` until its floor is recorded there.
+
+What shipped (everything from z12 in is today's map, proved by `tools/midzoom.test.ts`: every touched layer's paint
+evaluated over zooms 12–20 × orders × lake areas × feature-states, all themes, against the pre-T470 paint frozen in
+`tools/midzoom-today.fixture.json`; and 0 changed pixels at z12 in the shots):
+- stream width ramp as A; `width.closed` [[6, 1], [7, 1.3], [11, 1.3], [12, 1]] (closed × 1.3 z7–z11, on the day's closed labels).
+- lake outline `width.recede` [[8, 0.6], [12, 1]], closed lakes untouched.
+- region edge: `width.region.edge` (3) × [[5, .733], [8, .533], [11, .667], [12, 1]] = 2.2 / 1.6 / 2.0 / 3 px;
+  opacity `opacity.region.edge` (1) × [[11, .75], [12, 1]].
+- unit edge: `width.admin.edge` × [[7, .75], [11, .75], [12, 1]] = 0.9 px to z11; opacity `opacity.mu.edge` × [[11, .55], [12, 1]].
+- outside mask: `opacity.outside.mid` (light / cvd 0.5, dark 0.49) from z8 to z11, back to `opacity.outside` at z12.
+- order fade (`fadeByOrder`, above) composed into the stream's opacity in `paint.ts` (`fadeByOrder()`), before the
+  no-access, dim and focus rules, which wrap it.
+
+Differences from the sheet, all for "z12+ is today's": the sheet's region ramp ran on to 3 px at z14 (now 3 at z12),
+and its region / unit opacity and the mask were flat at every zoom (now back to today's at z12). Mid zoom is the sheet's.
+
+Colour gate (`status-colours-distinct.test.ts`, T470 block): main rivers (ord >= 7) and closed are never faded, so they
+keep every floor. Small streams, as recorded (worst vision, thin lines): light own / base 21.0 at ord 5 z8 (10.4 at the
+deepest fade, ord < 4 z7), cvd 22.5 (11.7) — accepted by the owner for B. **Dark was not on the comparison sheet:** its
+own / base holds (37.8), but closed / own on a faded small stream falls to 12.0 at ord 5 z8 (9.2 deepest; floor 21) —
+the faded yellow own sinks toward the dark rose closed. Recorded, not hidden; the owner's to keep or answer (e.g. a
+shallower fade in dark).
+
+Native: `nativeStyle` = `runtimeStyle` + `applyLook`, so no second change (parity.test.ts green).
+
+Shots (web, today vs B as built, owner / lm / fv × z8 / z9 / z12 × 1440 and 390 px): scratch `t470/after-*.png`, side by
+side in `after-pair-*.png`. "Today" is rebuilt exactly on the live map from B's own expressions (scratch `today.js`,
+checked against the frozen fixture at every zoom). z12: 0 pixels differ in all six frames.
+
+Stress-pan cost check pending (T420 test bed).
+
+Note: the token / theme / runtime-style (mask) edits were swept into 225ad72a5 (T475) by a concurrent commit; the rest
+is in the T470 commit.
+

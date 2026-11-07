@@ -34,7 +34,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { TEMP_BAND_TOKEN, type TempBand } from "@app/core";
-import { resolveTheme } from "@app/map";
+import { STYLE_META, resolveTheme } from "@app/map";
 import { deltaE, lch, MODELS, parseHex, worstSeparation } from "./cvd";
 
 /**
@@ -600,5 +600,77 @@ describe("depth contours are seen on every lake (T158)", () => {
       expect([th, lost.map((f) => (f.includes(", normal vision ") ? "normal vision" : "every reader"))])
         .toEqual([th, ["normal vision", "every reader"]]);
     }
+  });
+});
+
+/**
+ * (T470 B, owner 2026-11-07: "Ok let's try that but should add a note that we could tune the parameters on the threshold
+ * of magnitude of streams to zoom") SMALL WATERS RECEDE AT MID ZOOM: own and general-rules streams drawn at their line's
+ * coverage times the order fade (`fadeByOrder` on `stream`, layers.source.json — the tuning knob). Closed is never faded.
+ *
+ * MAIN RIVERS keep today's separation: the fade's last band (ord >= 7) is 1 at every zoom, so they are the lines every
+ * floor above already measures. SMALL STREAMS pay for the calm: own / base fall under `waterLine` at z7-z11 — the cost
+ * ACCEPTED BY THE OWNER FOR B (T470's measurement, ~21 for an ord 5 stream at z8, against 35). The floors below are what
+ * the first values reach, rounded down to 0.5; tuning the knob deeper fails here until a new floor is recorded.
+ */
+describe("(T470) the mid-zoom order fade, as drawn", () => {
+  const fade = STYLE_META.orderFades["stream"]!;
+  /** The fade's factor for order band `band` at `zoom`: linear between its rows, held beyond them. */
+  const factor = (band: number, zoom: number) => {
+    const rows = fade.stops;
+    if (zoom <= rows[0]![0]) return rows[0]![1][band]!;
+    for (let i = 1; i < rows.length; i++)
+      if (zoom <= rows[i]![0]) {
+        const [[z0, k0], [z1, k1]] = [rows[i - 1]!, rows[i]!];
+        return k0[band]! + (k1[band]! - k0[band]!) * (zoom - z0) / (z1 - z0);
+      }
+    return rows[rows.length - 1]![1][band]!;
+  };
+  const colour = (t: Record<string, unknown>, s: Status) => t[`color.status.${s}`] as string;
+  /** own / base both faded, and closed (never faded) beside each, as thin lines over the theme's grounds. */
+  const measure = (th: Theme, k: number) => {
+    const t = resolveTheme(th) as Record<string, unknown>;
+    return { ownBase: drawn(colour(t, "own"), colour(t, "base"), GROUND[th], LINE * k, LINE * k).dE,
+             closedOwn: drawn(colour(t, "closed"), colour(t, "own"), GROUND[th], LINE, LINE * k).dE,
+             closedBase: drawn(colour(t, "closed"), colour(t, "base"), GROUND[th], LINE, LINE * k).dE };
+  };
+
+  it("fades own and base only, and never a main river: closed and ord >= 7 keep today's separation", () => {
+    expect([...fade.classes].sort()).toEqual(["base", "own"]);
+    const main = fade.orders.length;   // the last band: ord >= the last threshold
+    expect(fade.orders[main - 1]).toBe(7);
+    expect(fade.stops.map(([, ks]) => ks[main])).toEqual(fade.stops.map(() => 1));
+    for (const th of THEMES) expect([th, failures(th, resolveTheme(th))]).toEqual([th, []]);
+  });
+
+  /**
+   * THE RECORDED FLOORS (worst vision, thin lines over the theme's grounds), for an ord 5 stream at z8 (the ticket's
+   * measurement: light own / base 21.0, cvd 22.5, against 35 / 34) and for the deepest fade anywhere in the table (ord < 4
+   * at z7). Accepted by the owner for B (T470, 2026-11-07), light and cvd as measured on the comparison sheet. DARK was
+   * not on that sheet: its own / base holds (the yellow own and deep blue base part by lightness), but closed / own as a
+   * line falls (12.0 at ord 5 z8, 9.2 deepest; floor 21) because the faded yellow sinks toward the dark rose closed —
+   * recorded here and raised in the ticket as the owner's to keep or answer (e.g. a smaller fade in dark).
+   */
+  const SMALL: Record<Theme, Record<"ord5z8" | "deepest", ReturnType<typeof measure>>> = {
+    light: { ord5z8: { ownBase: 20.5, closedOwn: 21.5, closedBase: 35.5 }, deepest: { ownBase: 10, closedOwn: 23, closedBase: 30.5 } },
+    dark:  { ord5z8: { ownBase: 37.5, closedOwn: 11.5, closedBase: 16.5 }, deepest: { ownBase: 30, closedOwn: 9, closedBase: 13.5 } },
+    cvd:   { ord5z8: { ownBase: 22.5, closedOwn: 21.5, closedBase: 34 }, deepest: { ownBase: 11.5, closedOwn: 23, closedBase: 30 } },
+  };
+
+  it("small streams: own / base at the recorded, owner-accepted floors (an ord 5 stream at z8, and the deepest fade)", () => {
+    const deepest = Math.min(...fade.stops.flatMap(([, ks]) => ks));
+    const under: string[] = [];
+    for (const th of THEMES)
+      for (const [where, k] of [["ord5z8", factor(2, 8)], ["deepest", deepest]] as const)
+        for (const [pair, dE] of Object.entries(measure(th, k)))
+          if (dE < SMALL[th][where][pair as keyof ReturnType<typeof measure>])
+            under.push(`${th} ${where} ${pair} ${dE.toFixed(2)} < ${SMALL[th][where][pair as keyof ReturnType<typeof measure>]}`);
+    expect(under).toEqual([]);
+    // and the fade is real: an ord 5 own / base line at z8 is well under the main river's
+    expect(measure("light", factor(2, 8)).ownBase).toBeLessThan(FLOOR.light.waterLine!);
+  });
+
+  it("fails a deeper fade than the one recorded (mutation pin)", () => {
+    expect(measure("light", 0.5 * factor(2, 8)).ownBase).toBeLessThan(SMALL.light.ord5z8.ownBase);
   });
 });

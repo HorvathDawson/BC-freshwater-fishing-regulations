@@ -126,7 +126,13 @@ export const STYLE_META = meta as unknown as {
     mode?: "linear" | "sqrt" | "zoom";
     /** [zoom, base px, slope-or-k, max px for sqrt]. Scaled by the token. */
     ramp: [number, number, number, number?][];
+    /** (T470) "linear": a closed section's width times this [[zoom, factor]] curve (1 at its last stop). */
+    closed?: [number, number][];
+    /** (T470) "sqrt": the outline times this [[zoom, factor]] curve, a closed water's excepted (1 at its last stop). */
+    recede?: [number, number][];
   }>;
+  /** (T470) layer id -> its order fade at mid zoom (`fadeByOrder`, the tuning knob; paint.ts `fadeByOrder`). */
+  orderFades: Record<string, { by: string; classes: string[]; orders: number[]; stops: [number, number[]][] }>;
   opacities: Record<string, string>;
   dashes: Record<string, string>;
   /** layer id -> the halo behind its text: a paper token and a width in px. */
@@ -155,6 +161,8 @@ export const STYLE_META = meta as unknown as {
   /** layer id -> [[zoom, factor]]: its opacity token times this curve. */
   opacityRamps: Record<string, [number, number][]>;
   edgeOpacities: Record<string, string>;
+  /** (T470) edge id -> [[zoom, factor]]: its outline opacity token times a zoom curve. */
+  edgeOpacityRamps: Record<string, [number, number][]>;
   themes: Record<string, Tokens>;
   /** Layers a view may switch that are added at runtime, not defined here. */
   runtimeLayers: string[];

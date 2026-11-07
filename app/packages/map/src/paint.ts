@@ -346,13 +346,22 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
         // area grows as the square of a shoreline, so a linear ramp makes one big lake
         // enormous and every small one invisible. MapLibre has no clamp, hence max(min()).
         const attr = ["coalesce", ["to-number", ["get", spec.by]], 10000];
-        for (const [at, base, k, max] of spec.ramp)
-          z.push(at, ["*", scale,
-            ["max", ["min", ["+", base, ["*", k, ["sqrt", attr]]], max ?? base], base]]);
+        // (T470) `recede`: thinner short of its last zoom, a closed water's outline untouched
+        const closed = spec.recede ? closedShown(layerId, mode, values) : null;
+        for (const [at, base, k, max] of spec.ramp) {
+          const w = ["*", scale, ["max", ["min", ["+", base, ["*", k, ["sqrt", attr]]], max ?? base], base]];
+          const f = spec.recede ? rampAt(spec.recede, at) : 1;
+          z.push(at, f === 1 ? w : ["*", closed === null ? f : ["case", closed, 1, f], w]);
+        }
       } else {
         const attr = ["coalesce", ["to-number", ["get", spec.by]], 1];
-        for (const [at, base, slope] of spec.ramp)
-          z.push(at, ["*", scale, ["+", base, ["*", attr, slope]]]);
+        // (T470) `closed`: a section the day paints closed is drawn this much heavier, short of the factor's last zoom
+        const closed = spec.closed ? closedShown(layerId, mode, values) : null;
+        for (const [at, base, slope] of spec.ramp) {
+          const w = ["*", scale, ["+", base, ["*", attr, slope]]];
+          const f = spec.closed ? rampAt(spec.closed, at) : 1;
+          z.push(at, f === 1 || closed === null ? w : ["*", ["case", closed, f, 1], w]);
+        }
       }
       out[widthKey] = z;
     }
@@ -406,7 +415,12 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
   const edgeOpacity = (STYLE_META.edgeOpacities ?? {})[layerId];
   if (edgeOpacity !== undefined && type === "line") {
     const o = tokens[edgeOpacity];
-    if (o !== undefined) out["line-opacity"] = o;
+    // (T470) a zoom curve where the outline declares one (`outline.opacity.ramp`): the token times each factor
+    const ramp = (STYLE_META.edgeOpacityRamps ?? {})[layerId];
+    if (o !== undefined)
+      out["line-opacity"] = ramp && typeof o === "number"
+        ? ["interpolate", ["linear"], ["zoom"], ...ramp.flatMap(([z, k]) => [z, Math.round(o * k * 1000) / 1000])]
+        : o;
   }
 
   const opacity = (STYLE_META.opacities ?? {})[layerId];
@@ -418,6 +432,16 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
       out[`${type}-opacity`] = ramp && typeof o === "number"
         ? ["interpolate", ["linear"], ["zoom"], ...ramp.flatMap(([z, k]) => [z, Math.round(o * k * 1000) / 1000])]
         : o;
+  }
+
+  // (T470) small waters recede at mid zoom: the day's own / base sections faded by stream order (`fadeByOrder`)
+  const fade = (STYLE_META.orderFades ?? {})[layerId];
+  if (fade !== undefined && type === "line") {
+    const m = STYLE_META.colorModes[layerId]?.[mode];
+    const day = m?.scale === "profile" ? profileDay(m, values) : null;
+    const labels = day && m && "property" in m ? fade.classes.flatMap((c) => day[c] ?? []) : [];
+    if (labels.length) out["line-opacity"] = fadeByOrder(out["line-opacity"] ?? 1, fade,
+      ["in", ["coalesce", ["feature-state", (m as { property: string }).property], ""], ["literal", labels]]);
   }
 
   // (T165) a no-access stream section is drawn by its dots (`NOACCESS_LAYER`), never as a solid line under them
@@ -546,6 +570,24 @@ export function mixColours(expr: unknown, ground: string, alpha: number): unknow
     .join("").toUpperCase();
 }
 const HEX6 = /^#[0-9a-f]{6}$/i;
+
+/** (T470) One layer's order fade, as `layers.source.json` `fadeByOrder` declares it (the tuning knob). */
+export type OrderFade = { by: string; classes: readonly string[]; orders: readonly number[];
+                          stops: readonly (readonly [number, readonly number[]])[] };
+
+/**
+ * (T470, owner 2026-11-07) SMALL WATERS RECEDE: `opacity` times a factor by stream order where `faded` holds (the day's
+ * own / base labels — closed is never in it), as a zoom curve at the top of the expression (MapLibre's rule: one zoom
+ * `interpolate`, outermost; the order `step` sits inside each stop). A stop whose factors are all 1 is `opacity` itself,
+ * so from the last stop in (z12) the line is exactly what it was.
+ */
+export function fadeByOrder(opacity: unknown, fade: OrderFade, faded: unknown): unknown {
+  if (Array.isArray(opacity) && JSON.stringify(opacity).includes('["zoom"]'))
+    throw new Error("fadeByOrder: the line's opacity is already a zoom curve; merge its stops before fading");
+  const ord = ["coalesce", ["to-number", ["get", fade.by]], 1];
+  return ["interpolate", ["linear"], ["zoom"], ...fade.stops.flatMap(([z, ks]) => [z, ks.every((k) => k === 1) ? opacity
+    : ["*", opacity, ["case", faded, ["step", ord, ks[0], ...fade.orders.flatMap((o, i) => [o, ks[i + 1]])], 1]]])];
+}
 
 /**
  * Apply `f` to what an expression EVALUATES TO, leaving any zoom curve on the outside.

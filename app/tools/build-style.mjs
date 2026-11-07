@@ -43,6 +43,18 @@ const errs = [];
 const err = (m) => errs.push(m);
 const used = new Set();
 
+/**
+ * (T470) A MID-ZOOM FACTOR CURVE: [[zoom, factor]], ascending, linear between stops and held beyond them, and back to 1
+ * at its last stop — so it can only ever change the map short of that zoom. `max` bounds a factor (1 for a fade).
+ */
+function recedeRamp(r, where, max = 1) {
+  if (!Array.isArray(r) || r.length < 2 || r.some((s) => !Array.isArray(s) || s.length !== 2
+      || typeof s[0] !== "number" || typeof s[1] !== "number" || s[1] <= 0 || s[1] > max))
+    return err(`${where}: needs >= 2 [zoom, factor] stops, factors in (0, ${max}]`);
+  if (r.some(([z], i) => i > 0 && z <= r[i - 1][0])) err(`${where}: zooms must ascend`);
+  if (r[r.length - 1][1] !== 1) err(`${where}: the last stop must be 1 (the close-in map is today's)`);
+}
+
 function tokenValue(ref, where) {
   if (!ref || typeof ref !== "object" || !("token" in ref))
     return err(`${where}: expected {"token": "..."}, got ${JSON.stringify(ref)} — literals are not allowed`);
@@ -474,6 +486,34 @@ for (const l of src.layers ?? []) {
       err(`${where}: a width ramp with no "by" must declare mode "zoom" — otherwise it is ` +
           `a ramp over an attribute that was never named, which reads as null everywhere.`);
   }
+  if (l.width?.closed !== undefined) {
+    if (l.geometry !== "line") err(`${where}: width.closed is a line's (a closed stream drawn heavier)`);
+    recedeRamp(l.width.closed, `${where} width.closed`, 2);
+  }
+  /*
+   * (T470) SMALL WATERS RECEDE AT MID ZOOM — `fadeByOrder` (the stream's). Validated whole here, because a row of the
+   * wrong length or a last row under 1 would quietly change the close-in map this block promises to leave alone.
+   */
+  if (l.fadeByOrder !== undefined) {
+    const f = l.fadeByOrder, w = `${where} fadeByOrder`;
+    if (l.geometry !== "line" || typeof f.by !== "string" || !Array.isArray(f.classes) || !f.classes.length)
+      err(`${w}: a line layer's, with "by" (the order attribute) and "classes" (the profile categories it fades)`);
+    const cats = l.colorModes?.profile?.categories ?? {};
+    for (const c of f.classes ?? []) if (!cats[c]) err(`${w}: "${c}" is not a category of this layer's profile mode`);
+    if ((f.classes ?? []).includes("closed")) err(`${w}: closed is never faded (T470) — it is the line that must lead`);
+    const orders = f.orders;
+    if (!Array.isArray(orders) || !orders.length || orders.some((o, i) => typeof o !== "number" || (i > 0 && o <= orders[i - 1])))
+      err(`${w}: "orders" must be ascending numbers (the step thresholds)`);
+    const stops = f.stops;
+    if (!Array.isArray(stops) || stops.length < 2
+        || stops.some((r) => !Array.isArray(r) || typeof r[0] !== "number" || !Array.isArray(r[1])
+          || r[1].length !== (orders?.length ?? 0) + 1 || r[1].some((k) => typeof k !== "number" || k <= 0 || k > 1)))
+      err(`${w}: "stops" are [zoom, [factor per order band]] with ${(orders?.length ?? 0) + 1} factors in (0, 1]`);
+    else {
+      if (stops.some(([z], i) => i > 0 && z <= stops[i - 1][0])) err(`${w}: zooms must ascend`);
+      if (stops[stops.length - 1][1].some((k) => k !== 1)) err(`${w}: the last stop must be all 1 (the close-in map is today's)`);
+    }
+  }
   layersById.set(l.id, l);
 
   const g = groups.get(l.group);
@@ -555,6 +595,11 @@ for (const l of src.layers ?? []) {
       err(`${where}: an outline width ramp with no "by" must declare mode "zoom"`);
     if (l.outline.dash) tokenValue(l.outline.dash, `${where} outline dash`);
     if (l.outline.opacity) tokenValue(l.outline.opacity, `${where} outline opacity`);
+    if (l.outline.opacity?.ramp !== undefined) recedeRamp(l.outline.opacity.ramp, `${where} outline opacity ramp`);
+    if (l.outline.width?.recede !== undefined) {
+      if (l.outline.width.mode !== "sqrt") err(`${where}: outline.width.recede scales an area-sized (sqrt) outline`);
+      recedeRamp(l.outline.width.recede, `${where} outline width.recede`);
+    }
     /*
      * The edge inherits the fill's filter. Without it the outline is a different SHAPE from
      * the thing it outlines.
@@ -1025,14 +1070,20 @@ const meta = {
     ...(src.layers ?? []).filter((l) => l.width)
       .map((l) => [l.id, (l.width.by || l.width.mode === "zoom")
         ? { token: l.width.token, ...(l.width.by ? { by: l.width.by } : {}),
-            mode: l.width.mode ?? "linear", ramp: l.width.ramp }
+            mode: l.width.mode ?? "linear", ramp: l.width.ramp,
+            ...(l.width.closed ? { closed: l.width.closed } : {}) }
         : l.width.token]),
     ...[...edges].filter(([, l]) => l.outline.width)
       .map(([id, l]) => [id, (l.outline.width.by || l.outline.width.mode === "zoom")
         ? { token: l.outline.width.token, ...(l.outline.width.by ? { by: l.outline.width.by } : {}),
-            mode: l.outline.width.mode ?? "linear", ramp: l.outline.width.ramp }
+            mode: l.outline.width.mode ?? "linear", ramp: l.outline.width.ramp,
+            ...(l.outline.width.recede ? { recede: l.outline.width.recede } : {}) }
         : l.outline.width.token]),
   ]),
+  /** (T470) layer id -> its order fade at mid zoom (`fadeByOrder` in layers.source.json, the tuning knob). */
+  orderFades: Object.fromEntries((src.layers ?? []).filter((l) => l.fadeByOrder)
+    .map((l) => [l.id, { by: l.fadeByOrder.by, classes: l.fadeByOrder.classes, orders: l.fadeByOrder.orders,
+                         stops: l.fadeByOrder.stops }])),
   /** layer id -> [[zoom, factor]]: its opacity token times a zoom curve (`opacity.ramp`). Absent: the token, flat. */
   opacityRamps: Object.fromEntries((src.layers ?? []).filter((l) => l.opacity?.ramp)
     .map((l) => [l.id, l.opacity.ramp])),
@@ -1078,6 +1129,9 @@ const meta = {
       .map((l) => [l.id, l.minzoomByMode])),
   edgeOpacities: Object.fromEntries([...edges].filter(([, l]) => l.outline.opacity)
     .map(([id, l]) => [id, l.outline.opacity.token])),
+  /** (T470) edge id -> [[zoom, factor]]: its outline opacity token times a zoom curve (`outline.opacity.ramp`). */
+  edgeOpacityRamps: Object.fromEntries([...edges].filter(([, l]) => l.outline.opacity?.ramp)
+    .map(([id, l]) => [id, l.outline.opacity.ramp])),
   // A label's HALO — the only paint property no other layer type has. Text colour rides
   // the ordinary colorModes rail; the halo needs its own entry or a name is legible on
   // open ground and invisible the moment it crosses a road.
