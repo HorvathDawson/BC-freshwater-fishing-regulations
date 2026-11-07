@@ -526,7 +526,7 @@ use that as the sole source of future work."
 | T479 | T475 follow-up: "How to tell hatchery ›", "Exception to regional quota" (pipeline `over_region`), examples fold closed by default | IN REVIEW | 31dd63547 | owner 2026-11-07; owner look at the shots, then a release |
 | T480 | One size style on the regs pane (chips; steelhead as a definition); access chip in the header tried and reverted (owner 11-07) | IN REVIEW | 3a1026e20, revert d6d964106 | owner 2026-11-07; proposal — size style for the owner's look; a better place for the access note is still open |
 | T481 | Sticky header on the keep tab: study, then the owner's "here-max + one breadcrumb" pin bar (water_max line 1, one breadcrumb, size words, "Fishing more than one water today? ›") | DONE | d2a7b4370 | owner 2026-11-07; wording approved 11-07, no shot review; release with the next one |
-| T482 | Salmon section: region rules into the species rows (sizes on each row, daylight one line), DFO source a closed fold; R1/R2/R6 header-format regression | IN PROGRESS | — | owner 2026-11-07 (Vedder); target: next release — worktree `t482-salmon-fold`, app code held until the current release is built |
+| T482 | Salmon section: region rules into the species rows (sizes on each row, daylight one line), DFO source a closed fold; R1/R2/R6 header-format regression | IN REVIEW | a7235f996 | owner 2026-11-07 (Vedder); target: next release — worktree `t482-salmon-fold`, app code held until the current release is built |
 | T483 | Fast-fail: cheap checks before and while long jobs; every late failure a cheap check could catch is added (AGENTS 20a) | OPEN | — | owner 2026-11-07; agent starts when a lane frees |
 | T484 | A resumed release forgets the min app version after its promote; push check belongs in preflight | OPEN | — | found 2026-11-07 (r-1b4f54fb6ed9) |
 | T485 | Run timing off the release path: skip when unchanged; last good NuSEDS/PSF on R2; refresh as its own job | PARTIAL | d948fa0 | owner 2026-11-07 (open.canada.ca outage blocked a release) |
@@ -535,6 +535,7 @@ use that as the sole source of future work."
 | T488 | Park borders and fill nearly invisible in light mode | OPEN | — | owner 2026-11-07; proposal with shots |
 | T489 | Lakes lose too much shape when zoomed out (tile simplification) | OPEN | — | owner 2026-11-07; ships with a tiles rebuild |
 | T490 | /changes counts a wording-only release as every water changed (154 KB > 30 KB); staging site not redeployed | OPEN | — | found 2026-11-07; blocks the staging site + release ledger stage 6 |
+| T491 | test_curation_review_screen tidal test reads live curated data; the owner's 11-06 Nanaimo mark decided it | OPEN | — | found 2026-11-07; give the test its own fixture |
 
 ## Order for open tickets
 

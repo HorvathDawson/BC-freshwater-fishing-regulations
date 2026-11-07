@@ -26,9 +26,8 @@ Written 2026-11-07, as chat 6 closed. It replaces `NEXT-SESSION-after-chat5.md`.
 0. **Owner's phone A/B (T420):** Play (patched) vs staging APK (stock): pan Coquitlam z13, Fraser Valley z11.
    If the patch wins on the Pixel 9, this chat's last job is the owner posting the MapLibre PR
    (`app/tools/maplibre-patch/upstream/`, owner posts in their own words). If not, back to T420's traces.
-1. **T482 salmon fold (next release):** code is on worktree branch `t482-salmon-fold` (a7235f996). **Only after
-   r-1b4f54fb6ed9 is on staging** (its pipeline code would make the pending release rebuild), merge into
-   redesign/stream-sections, set IN REVIEW, send the owner the shots (scratchpad `salmonfold/` may be gone — re-shoot).
+1. **T482 salmon fold: MERGED (a7235f996), IN REVIEW;** the owner has the before/after Vedder shots. Ships with the next
+   release (the T490 rerun builds it).
    It also fixes a DATA regression: R1/R2/R6 DFO feeds were labelled with today's header format, so those regions ship
    no salmon sizes/hours in r-1b4f (pipeline bump to `dfo-header/3`). Needs a release after merge.
 2. **T483 fast-fail** (AGENTS 20a): build `scripts/fast-fail.sh`, wire into release + build-apk. Add the two late
@@ -39,6 +38,7 @@ Written 2026-11-07, as chat 6 closed. It replaces `NEXT-SESSION-after-chat5.md`.
 3a. **T490 first among these:** /changes over budget on a wording-only release, so the staging website is still the
    older build (smoke's unnamed tap fails on its walkthrough). Fix, deploy the site, rerun the release to close stage 6.
 3b. **T486:** staging in-season feed stale since 11-06 (worker cron silent); the smoke flags it.
+3d. **T491:** a pipeline test reads live curated data (Nanaimo tidal place, decided by the owner 11-06).
 3c. **T488** park borders invisible in light mode; **T489** lakes over-simplified zoomed out (owner, 0.6.9 phone).
 4. Carried from chat 5 (details in each ticket):
    - **T478:** 0.6.8 walk failures — Updates log flow stale after T476; a Coquitlam River tap opens Coquitlam Lake.

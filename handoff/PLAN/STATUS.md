@@ -19,8 +19,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **In 0.6.9:** quota wording (T479), one size style (T480; the access banner is back where it was), the sticky header
   (T481: "Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow" / "↳ 1 of them may be over 50 cm…").
 - **Data r-1b4f54fb6ed9** (Powell River + Little Slocan T468, 15 rules gain, none lose; T479/T481 fields) is LATEST
-  locally. **Staging upload blocked by an open.canada.ca outage** (DFO NuSEDS fetch in the run-timing workflow); a
-  watcher retries every 5 min. Until it lands, the phone shows the old data (the bar shows the region total).
+  locally and **live on staging** (an open.canada.ca outage blocked it until T485 step 1: the upload now skips the
+  run-timing workflow when staging already has it for the same tiles). The staging website is NOT redeployed (T490:
+  /changes over budget on a wording-only release). Owner on the phone: the lag is a lot better.
 - **Next release:** T482 salmon fold (sizes into species rows, source folded; also fixes R1/R2/R6 shipping no salmon
   sizes). New: T483 fast-fail (AGENTS 20a), T484 release resume bug. Restart page: NEXT-SESSION-after-chat6.md.
 
