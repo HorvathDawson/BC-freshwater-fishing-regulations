@@ -13,6 +13,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-07 afternoon: 0.6.9 is on your phone's Play track (patched MapLibre) + stock on the staging page
+- **Play internal, 0.6.9 (versionCode 19):** the lean MapLibre lag fix (T420), verified in the AAB. **Staging APK page:**
+  the same app with stock MapLibre (0.6.9-677e99fb3). Pan Coquitlam z13 and Fraser Valley z11 on each.
+- **In 0.6.9:** quota wording (T479), one size style (T480; the access banner is back where it was), the sticky header
+  (T481: "Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow" / "↳ 1 of them may be over 50 cm…").
+- **Data r-1b4f54fb6ed9** (Powell River + Little Slocan T468, 15 rules gain, none lose; T479/T481 fields) is LATEST
+  locally. **Staging upload blocked by an open.canada.ca outage** (DFO NuSEDS fetch in the run-timing workflow); a
+  watcher retries every 5 min. Until it lands, the phone shows the old data (the bar shows the region total).
+- **Next release:** T482 salmon fold (sizes into species rows, source folded; also fixes R1/R2/R6 shipping no salmon
+  sizes). New: T483 fast-fail (AGENTS 20a), T484 release resume bug. Restart page: NEXT-SESSION-after-chat6.md.
+
 ## 2026-11-07 morning summary: the lag is fixed in MapLibre; your turn on 5 items (OWNER-TODO top)
 - **Lag (T420): the fix works.** Patched MapLibre, stressed emulator: map frame p50 Coquitlam z13 76–148 → 31–46 ms,
   Fraser Valley z11 60–104 → 31–35 ms. It no longer slows down over a session. Feature-state CPU went 42 % → 2 %. The
