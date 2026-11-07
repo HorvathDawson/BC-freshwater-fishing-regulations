@@ -11,7 +11,7 @@ import { changed, readPng } from '../lib/png.mjs';
 const WATER = process.env.GESTURE_WATER ?? 'Vedder River';
 
 /** The touchscreen's event node and its axis ranges (`getevent -pl`). */
-function touchscreen(ctx) {
+export function touchscreen(ctx) {
   const out = ctx.device.sh('getevent -pl');
   for (const blk of out.split(/\nadd device \d+: /)) {
     const dev = /^(?:add device \d+: )?(\/dev\/input\/event\d+)/.exec(blk)?.[1];
@@ -23,7 +23,7 @@ function touchscreen(ctx) {
 }
 
 /** Two fingers from `d0` apart to `d1` apart (px, along x) about (cx, cy), in `steps` frames. */
-function pinch(ctx, ts, size, cx, cy, d0, d1, steps = 12) {
+export function pinch(ctx, ts, size, cx, cy, d0, d1, steps = 12) {
   const sx = ts.maxX / size.w, sy = ts.maxY / size.h, D = ts.dev;
   const ev = (t, c, v) => `sendevent ${D} ${t} ${c} ${v}`;
   const lines = [];

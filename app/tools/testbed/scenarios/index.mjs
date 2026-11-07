@@ -28,5 +28,6 @@ import { feel } from './feel.mjs';
 import { partSteps } from './part-steps.mjs';
 import { tabSwitch } from './switch.mjs';
 import { glide } from './glide.mjs';
+import { photoZoom } from './photo-zoom.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom];

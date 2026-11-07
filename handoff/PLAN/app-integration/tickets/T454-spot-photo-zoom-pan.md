@@ -24,3 +24,7 @@ and a PanResponder swipe. You cannot zoom or pan it. Make it work like a standar
    zoomed. Emulator check with a test-bed photo on a spot; send the owner a short screen recording.
 
 Related: T284 (the viewer). Size: S–M. Owner: phone check.
+
+## Emulator check (2026-11-06)
+
+New scenario `photo-zoom` (`app/tools/testbed/run.mjs photo-zoom`) on the n1_pixel emulator, release APK built from 4ede32a69. A spot with two photos, viewer opened, each step judged on the photo box's pixels against the step before. Results: double-tap zoom in 32 % changed; one-finger drag pans 34 %; sideways swipe while zoomed moves the picture (10 %) and stays on "Photo 1 of 2"; double-tap back to the fit 28 %; swipe at the fit goes to "Photo 2 of 2". No crash. NOT verified: pinch (adb cannot inject multi-touch here: `sendevent` is permission denied on the Play-image emulator), so the pinch gesture still needs the owner's phone. Shots + 30 s recording: `app/tools/testbed/out/t454/` (git-ignored, local).

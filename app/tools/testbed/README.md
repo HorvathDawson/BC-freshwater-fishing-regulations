@@ -18,6 +18,7 @@ and recorded; the report is `out/runs/<stamp>/index.html` (plus `report.md`, `re
 | `near-cold` | (T264) ten cold starts (offline/online alternating), a town tapped FIRST: its waters are listed every time and no failed near read is logged (`NEAR_COLD_RUNS=n`) |
 | `part-steps` | (T411) Coquitlam → Map → ▼ to Part 1 → ▲ once: no section of the water drawn by the water copy AND the atlas at once (`[copydraw]`); each kept section's `copy_until` in `T411-copy-log.txt` (`STEPS_VIA=tap` for the map-tap way in) |
 
+| `photo-zoom` | (T454) a spot with two photos: the viewer double-tap zooms in, a drag pans, a sideways swipe while zoomed keeps the photo, a pinch zooms, double-tap returns to the fit, a swipe at the fit changes the photo; screenshots + a 30 s recording in `out/t454/` |
 | `crash-bed` | (T242) an unhandled promise rejection, an uncaught JS error (fatal: kept, sent at the next start, its exit record not sent again) and a native crash (SIGSEGV via `adb root`, Android's CRASH_NATIVE record) each reach the feeds worker's OWN `POST /crash` handler, run locally by `crash-stub/server.mjs` over an in-memory bucket. Needs `session.sh --crash-stub`; run with `run.mjs --no-r2`. Nothing goes to staging |
 
 Stress knobs (T420): `TESTBED_EMU_ECORES=1` runs the emulator on the Mac's efficiency cores (`taskpolicy -b`), `TESTBED_EMU_ARGS="-cores 2"`
