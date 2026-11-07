@@ -76,6 +76,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "tools/search-golden.test.ts": { n: 2, why: `${LIVE}; the area half needs a release with the area tables` },
   "tools/testbed/run-ios.mjs": { n: 2, why: TESTBED },
   "tools/testbed/scenarios/crash-bed.mjs": { n: 1, why: `${TESTBED} (needs the stub APK, session.sh --crash-stub)` },
+  "tools/testbed/scenarios/photo-zoom.mjs": { n: 2, why: `${TESTBED} (T454: pinch needs multi-touch injection, which the emulator refuses)` },
   "tools/testbed/scenarios/spots.mjs": { n: 1, why: TESTBED },
   "tools/testbed/sync/account.mjs": { n: 1, why: `${TESTBED} (accounts are not in the app yet, T223)` },
   "workers/feeds/test/dfo.wording.test.ts": { n: 1, why: PY },
