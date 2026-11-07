@@ -521,6 +521,7 @@ use that as the sole source of future work."
 | T474 | "This water in the rule book p.N" link on every water with an entry | DONE 2026-11-07 | 0f4b0063a | owner 2026-11-07; rank-0 rule pages |
 | T475 | Quota block wording: one headline, "up to N" sub-limits as parts, steelhead concise | OPEN | — | owner 2026-11-07; pipeline wording + rebuild |
 | T476 | One Developer card behind the credits long-press (lab, data source, Updates log, build info); dev/staging only | DONE | 46f948264 | owner 2026-11-07; About loses dev rows |
+| T477 | ui-native render tests fail by wall-clock date (horizon labels "Sat 7" vs "Sun 8") | OPEN | — | found 2026-11-07; pin the clock |
 
 ## Order for open tickets
 
