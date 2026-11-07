@@ -15,3 +15,7 @@ Depends: T294. Size: S. Owner: no.
 
 ## Emulator check (2026-11-06, test bed `spots`, offline = airplane mode)
 PASS. Offline Next -> "Save spot" 1.98 s (1.99 s on the rerun; each includes ~1 s of screen reads, so the capture itself is well under that); the spot saved, listed with its photo, survived a cold start offline, offline edit kept; back online its weather/gauge context filled by itself (expectSynced: nothing missing). First run FAILED on save: "This spot was not saved (JSON Parse error: Unexpected end of input)" - an empty `.bak` with no main file made `core.ts` load throw a raw parse error from every later save. Fixed 3404e25 (empty recovery copy = no spots; unreadable one kept aside + SpotsCorrupt) with 2 tests. Shots: app/tools/testbed/out/t307/ (local, gitignored). Not separately timed: Save tap -> row showing (scenario times Next -> Save spot).
+
+- 2026-11-06 (review, 0e8ca3331): 3404e25's empty-backup case read an empty .bak as "no spots" and deleted it. That is a
+  silent drop, and an empty file is what T446's bug left. Now kept aside + SpotsCorrupt (shown and reported), as for an
+  unreadable one; the next save works.
