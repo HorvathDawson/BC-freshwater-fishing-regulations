@@ -13,6 +13,11 @@ with the default Claude uses until you answer). Newest first inside each section
   1. `MLN_LOCAL_MAVEN=/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/ee95bdfc-d51a-4f83-8602-1e5d2e402692/scratchpad/mlpatch/m2 deploy/staging/build-apk.sh --play` (if a reboot cleared /private/tmp, rebuild it with app/tools/maplibre-patch/build.sh first): patched → Play internal (versionCode 19).
   2. `deploy/staging/build-apk.sh`: stock → the staging APK page.
   Then pan the same places on each (Coquitlam z13, Fraser Valley z11). Details are in T420.
+- **Post the MapLibre fix upstream (T420, 2026-11-07), when you're ready.** The lean fix is 6 files (+22 −7), tested on
+  maplibre-native main: the new unit test fails before the fix and passes after, and the feature-state render tests pass.
+  An optional second patch is split out. Their AI policy wants the issue and PR text in your own words and a human
+  review of the code: drafts and the `gh` commands are in app/tools/maplibre-patch/upstream/ (README.md). Related open
+  PRs: #4835 (same lines), #4828.
 - **T470 B is built (2026-11-07); one call on dark mode:** with B, a faded small own-rules stream vs closed drops to 12 in
   dark mode (floor 21). Keep it, or strengthen closed in dark? The fade's tuning knob is `fadeByOrder` in
   app/packages/map/style/layers.source.json.
