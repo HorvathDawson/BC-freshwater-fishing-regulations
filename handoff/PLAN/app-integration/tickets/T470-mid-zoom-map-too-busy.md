@@ -1,6 +1,6 @@
 # T470 — Mid-zoom map (z7–z10) too busy: a calmer hierarchy that keeps the information
 
-Status: IN PROGRESS — variant B built 2026-11-07 (owner: "Ok let's try that"); hash follows.
+Status: DONE 2026-11-07 — 85ee6156d (tokens, themes and the mask ramp in 225ad72a5, swept by a concurrent commit). Variant B (owner: "Ok let's try that"). Pending: stress-pan cost check (T420 test bed); dark closed / own on faded small streams is the owner's to keep or answer.
 
 Source: owner 2026-11-07: "on desktop or mobile, when in a middle zoom value it feels very very busy. we still want a lot
 of the info but need to find a way to make it a little less abrasive." Their screenshot: web, about z8, Lower Mainland
