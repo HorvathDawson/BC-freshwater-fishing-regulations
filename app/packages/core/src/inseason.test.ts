@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  inSeasonBanner, inSeasonDates, inSeasonNoticeRows, inSeasonOn, inSeasonParts, inSeasonSpan, inSeasonUnseen, joinInSeason,
+  inSeasonBanner, inSeasonDates, inSeasonNoticeRows, inSeasonOn, inSeasonParts, inSeasonSpan, inSeasonSummary, inSeasonUnseen, joinInSeason,
   parseInSeasonFeed, parseInSeasonLinks, type InSeasonFeed, type InSeasonMarks, type InSeasonRow,
 } from "./inseason";
 
@@ -124,5 +124,14 @@ describe("in-season: places on the device's release (owner 2026-10-29)", () => {
     expect(c!.places).toBeNull();
     expect(inSeasonOn([c!], "gnis:9", 0, null)).toEqual([]);
     expect(inSeasonOn([c!], "gnis:7551", 1, RIVER).map((p) => p.partial)).toEqual([true]);
+  });
+});
+
+describe("inSeasonSummary (T472)", () => {
+  const b = (from: string | null) => inSeasonBanner({ change: { id: "x", region: "2", water: "Fraser River", from, to: null, text: "t", source: "u", extents: [], places: null } as never, partial: false });
+  it("none: null; one: its head and see; several: the count", () => {
+    expect(inSeasonSummary([])).toBeNull();
+    expect(inSeasonSummary([b("2025-05-16")])).toBe("In-season change (since May 16, 2025) · see ›");
+    expect(inSeasonSummary([b(null), b(null)])).toBe("2 in-season changes · see ›");
   });
 });

@@ -25,12 +25,12 @@
 import { ErrorState } from "./ErrorState";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
+import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, waterBookOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet, usePageSubject,
-         useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
+         useDaylight, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
@@ -110,7 +110,10 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // (T53) an unnamed reach: the named water down its flow, for the header's "Tributary of …" (none for a named water)
   const down = useDownstreamWater(source, item, section);
   // (T382) the chosen day's sunrise and sunset at the water (the tapped point, else the water's own)
-  const sun = useSunLine(source, item, at, { y: d.calendarYear, m: d.day.month, d: d.day.day });
+  const sunDay = { y: d.calendarYear, m: d.day.month, d: d.day.day };
+  const sun = useSunLine(source, item, at, sunDay);
+  const daylight = useDaylight(source, item, at, sunDay);   // (T473) the hours a daylight-only closure leaves open
+  const waterBook = useMemo(() => (inputs.value ? waterBookOf(inputs.value) : undefined), [inputs.value]);   // (T474)
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T254) a refusal (a release that cannot answer) is not a dead line: no Try again for it
@@ -232,7 +235,7 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     return (
       <>
       {frame(null, (
-      <RegsScreen page={regs} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun}
+      <RegsScreen page={regs} palette={palette} nameSource={s?.nameSource ?? null} images={fishImages} adipose={adiposeImages} onDate={() => setDayOpen(true)} layout={layout} sun={sun} daylight={daylight} waterBook={waterBook}
                   start={start} onStarted={onStarted} onPart={onPart} scrollKey={regsScrollKey(item, part, section)}
                   // past the release's last day in force, the page leads with core's out-of-date sentence (none unstamped)
                   lapsed={regsLapsedNote(loader.manifest?.regulations?.valid_until, clockNow())}

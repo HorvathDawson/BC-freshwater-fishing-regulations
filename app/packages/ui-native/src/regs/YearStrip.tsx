@@ -75,7 +75,9 @@ function BarTitle({ text, palette, testID }: { text: string; palette: Palette; t
   return <Text testID={testID} accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{text}</Text>;
 }
 
-export function YearStrip({ strip, dateLabel, palette, title = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null }) {
+export function YearStrip({ strip, dateLabel, palette, title = null, hours = null }: { strip: StripVM; dateLabel: string; palette: Palette; title?: string | null;
+  /** (T473) a daylight-only closure's real hours on the day, said with the status ("Daylight only · fishing 07:04–18:37 PT") */
+  hours?: string | null }) {
   const bar = useBarWidth(), w = bar.at;
   const total = strip.runs.reduce((a, r) => a + r.days, 0) || 365;
   const room = Math.max(0, w - GAP * (strip.runs.length - 1));
@@ -94,6 +96,7 @@ export function YearStrip({ strip, dateLabel, palette, title = null }: { strip: 
           : <Text key={i} testID={l.kind === "soonOpen" ? "st:open" : "st:closed"} style={[TYPE.metaBold, { marginLeft: "auto", paddingVertical: 2, paddingHorizontal: 8, borderWidth: 1.5,
               color: l.kind === "soonOpen" ? palette.open : palette.closed, borderColor: l.kind === "soonOpen" ? palette.open : palette.closed }]}>{l.text}</Text>)}
       </View>
+      {!!hours && <Text testID="keep-daylight" style={[TYPE.metaBold, { color: palette.ink, marginTop: 2 }]}>{hours}</Text>}
       {/* (T40) the bar is one picture to a screen reader, named by the status line ("Open today"); the marker's date is the
           header pill's, so it is hidden inside it. The legend below stays text. */}
       <View testID="strip-bar" style={{ marginTop: 22, height: H }} onLayout={(e) => bar.setW(e.nativeEvent.layout.width)}

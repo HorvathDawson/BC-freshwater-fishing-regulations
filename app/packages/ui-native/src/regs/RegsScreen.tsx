@@ -21,9 +21,8 @@ import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } fro
 import { openProbe } from "@app/data";
 import { AccessibilityInfo, Animated, Platform, ScrollView, View, type ScrollViewInstance, type ViewInstance } from "react-native";
 import { Text } from "../Text";
-import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
+import { LEGAL_WORDS, parseSheetKey, tabScrollY, type AccessNotice, type GlanceRowVM, type InSeasonBannerVM, type Line, type RegsPage, type SalmonStripVM, type SheetKey, type Tab } from "@app/core";
 import { AccessNoticeBlock } from "./AccessNoticeBlock";
-import { InSeasonBanners } from "./InSeasonBanner";
 import { FreshDot } from "../menu/Fresh";
 import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
@@ -31,9 +30,8 @@ import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
 import { type Palette } from "../theme";
 import { KeepTab } from "./KeepTab";
-import { TermTitles, type KeepActions } from "./LineText";
+import { LineText, TermTitles, type KeepActions } from "./LineText";
 import { createPinStore, type PinStore } from "./pinStore";
-import { SunCard } from "./SunCard";
 import { RegsHeader } from "./RegsHeader";
 import { PinOver, ReadingColumn, RegsSide } from "./RegsWide";
 import { SheetHost } from "./SheetHost";
@@ -118,15 +116,19 @@ export interface RegsScreenProps {
    */
   access?: readonly AccessNotice[];
   /** (T230) the provincial in-season changes on this water / part on the page's day (`useInSeasonBanners`), drawn
-   *  right under the access notice; informational, they change no answer. */
+   *  as one collapsed line above the species table (T472); informational, they change no answer. */
   inSeason?: readonly InSeasonBannerVM[];
   /**
    * (T236) how current this page's sources are (core `asOfLine`: "Regulations as of … · salmon feed … · in-season …"),
    * drawn at the page's foot under the "not legal advice" line (`LEGAL_WORDS.footer`, always drawn). Absent: that line only.
    */
   asOf?: string | null;
-  /** (T382) the day's sunrise and sunset at the water (`useSunLine`), the first small card of the page; absent: none. */
+  /** (T382) the day's sunrise and sunset at the water (`useSunLine`), a small line in the page's header; absent: none. */
   sun?: string | null;
+  /** (T473) a daylight-only closure's open hours on the day at the water, from its own offsets; null: no point known */
+  /** (T474) the water's own entry in the rule book (core `waterBookOf`): "This water in the rule book p.N ↗"; empty: none */
+  waterBook?: Line;
+  daylight?: ((after: number, before: number) => string | null) | null;
   /**
    * (T50) the water as opened (`regsScrollKey`): the page remembers its scroll under it and, mounted again without a
    * start link (a view or tab switch, back / forward, a new day, an Android recreation), returns there once the page is
@@ -138,7 +140,7 @@ export interface RegsScreenProps {
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
                              gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
-                             nameSource = null, asOf = null, scrollKey = null, sun = null }: RegsScreenProps) {
+                             nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [] }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
   openProbe.mark("regsRender");
   useLayoutEffect(() => { openProbe.mark("layout"); }, []);
@@ -217,7 +219,7 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   const header = useMemo(() => ({ ...page.header, tabs: page.header.tabs.filter((t) =>
     (t.tab !== "gear" || !!gear) && (t.tab !== "methods" || !!methods)) }), [page.header, gear, methods]);
   const head = <RegsHeader header={header} palette={palette} tabs={store} onDate={onDate} onTab={toTab}
-                           side={layout === "desktop"} nameSource={nameSource} />;
+                           side={layout === "desktop"} nameSource={nameSource} sun={sun} />;
   const sec = (tab: "gear" | "methods" | "licence", slot: Slot) => {
     const node = typeof slot === "function" ? slot(keepActions) : slot;
     if (!node) return null;
@@ -230,21 +232,24 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
   };
   const body = (
     <View ref={content} collapsable={false} testID="regs-content">
-      <InSeasonBanners banners={inSeason} palette={palette} />
       {lapsed && (
         <WaterInset testID="regs-lapsed" style={{ paddingTop: 12, flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
           <View style={{ paddingTop: 4 }}><FreshDot palette={palette} kind="stale" /></View>
           <Text accessibilityRole="alert" style={{ ...TYPE.metaBold, color: palette.ink, flex: 1 }}>{lapsed}</Text>
         </WaterInset>
       )}
-      <SunCard line={sun} palette={palette} />
+      {waterBook.length > 0 && (
+        <WaterInset testID="regs-water-book" style={{ paddingTop: 10 }}>
+          <LineText line={waterBook} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={keepActions} />
+        </WaterInset>
+      )}
       {/* (T395) the vessel restrictions are no longer here: their own section under Methods (`MethodsTab` boats) */}
       {/* (T387 review) the glance folds the card into its table only when it has the card's row: a card still coming, or
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
         <StickyContext.Provider value={sticky}>
-          <KeepTab keep={page.keep} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
+          <KeepTab keep={page.keep} inSeason={inSeason} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />

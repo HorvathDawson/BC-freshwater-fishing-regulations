@@ -124,6 +124,18 @@ describe("11. the timed caveat (x15p2_1010, D10 a)", () => {
     expect([sheets.length, books.length]).toEqual([1, 1]);
   });
 
+  it("(T473) with the water's sun: the day's real hours under the status, the rule's words a small line after; no point, the plain rule", () => {
+    const range = (a: number, b: number) => (a === 60 && b === 60 ? "07:04–18:37 PT" : null);   // the offsets come from the rule's words
+    render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={range} />);
+    const strip = screen.getByTestId("keep-strip");
+    expect(within(strip).getByTestId("keep-daylight").textContent).toBe("Daylight only · fishing 07:04–18:37 PT");
+    expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
+    cleanup();
+    render(<KeepTab keep={page.keep} dateLabel={page.header.date} palette={LIGHT} actions={{ ...NOOP, onTab() {} }} daylight={null} />);
+    expect(screen.queryByTestId("keep-daylight")).toBeNull();
+    expect(screen.getByTestId("keep-timed-line").textContent).toBe("Daylight only: closed from 1 h after sunset to 1 h before sunrise");
+  });
+
   /*
    * T82 O3 (Q12: "the same caveat box as the other top caveats"). The prototype draws the timed caveat's hours in a grey
    * 56 px box; that box is its location-bar rule `.where{display:flex;min-height:56px;padding:8px 16px;background:var(--wash)}`

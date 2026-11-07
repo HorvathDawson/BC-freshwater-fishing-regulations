@@ -15,8 +15,25 @@ const change = { id: "is-a", region: "8", water: "Okanagan River", from: "2026-1
                  text: "No fishing July 30 to September 15.", source: SRC, extents: [], places: null };
 
 describe("in-season", () => {
-  it("<InSeasonBanners>: the owner's line, whole, then the note and the source link", () => {
+  it("<InSeasonBanners>: collapsed, one line with the dates and 'see'; the notice is not drawn (T472)", () => {
     render(<InSeasonBanners banners={[inSeasonBanner({ change, partial: false })]} palette={LIGHT} />);
+    expect(screen.getByTestId("inseason-summary").textContent).toBe("In-season change (Oct 15–Nov 30) · see ›");
+    expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("false");
+    expect(screen.queryByTestId("inseason-banner")).toBeNull();
+  });
+  it("<InSeasonBanners>: several changes say the count; a press opens every notice, a second closes them", () => {
+    const b = (id: string) => inSeasonBanner({ change: { ...change, id }, partial: false });
+    render(<InSeasonBanners banners={[b("a"), b("b"), b("c")]} palette={LIGHT} />);
+    expect(screen.getByTestId("inseason-summary").textContent).toBe("3 in-season changes · see ›");
+    fireEvent.click(screen.getByTestId("inseason-line"));
+    expect(screen.getAllByTestId("inseason-banner")).toHaveLength(3);
+    fireEvent.click(screen.getByTestId("inseason-line"));
+    expect(screen.queryByTestId("inseason-banner")).toBeNull();
+  });
+  it("<InSeasonBanners>: expanded, the owner's line whole, then the note and the source link", () => {
+    render(<InSeasonBanners banners={[inSeasonBanner({ change, partial: false })]} palette={LIGHT} />);
+    fireEvent.click(screen.getByTestId("inseason-line"));
+    expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByTestId("inseason-banner").textContent).toBe(
       "In-season change (Oct 15–Nov 30): No fishing July 30 to September 15."
       + "Shown as posted; the answers on this page do not include it yet.source ›");
@@ -143,5 +160,24 @@ describe("T234 v1.1: what's new in the incoming version, under the bell's App up
            onUpdate: () => {} });
     expect(screen.getByTestId("notice-app-notes-missing").textContent).toBe("No notes were published for version 9.9.9.");
     expect(screen.queryAllByTestId("notice-app-note")).toEqual([]);
+  });
+});
+
+describe("the in-season line on the Keep tab (T472)", () => {
+  it("sits after the year bar and before the species table, collapsed", async () => {
+    const { KeepTab } = await import("./regs/KeepTab");
+    const vedder = (await import("./regs/fixtures/vedder_1010.json")).default as unknown as { keep: import("@app/core").KeepVM };
+    render(<KeepTab keep={vedder.keep} dateLabel="Oct 10" palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never}
+                    inSeason={[inSeasonBanner({ change, partial: false })]} />);
+    const tab = screen.getByTestId("keep-tab");
+    const line = screen.getByTestId("inseason-banners");
+    const kids = [...tab.children];
+    const at = kids.findIndex((k) => k.contains(line));
+    expect(at).toBeGreaterThanOrEqual(0);
+    expect(screen.queryByTestId("inseason-banner")).toBeNull();
+    const before = kids.slice(0, at).map((k) => k.textContent).join("");
+    const after = kids.slice(at + 1).map((k) => k.textContent).join("");
+    expect(before.length + after.length).toBeGreaterThan(0);
+    expect(tab.querySelectorAll('[data-testid="inseason-banners"]')).toHaveLength(1);
   });
 });

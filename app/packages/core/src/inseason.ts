@@ -249,6 +249,7 @@ export function inSeasonDates(from: string | null, to: string | null): string | 
 
 export const INSEASON_WORDS = {
   source: "source ›",
+  see: "see ›",
   sourceLabel: "Open the province's in-season changes page",
   partial: "On part of this water: the change says where.",
   informational: "Shown as posted; the answers on this page do not include it yet.",
@@ -268,6 +269,16 @@ export interface InSeasonBannerVM {
   readonly url: string;
   readonly partial: string | null;
   readonly note: string;
+}
+
+/**
+ * (T472, owner 2026-11-07) THE COLLAPSED LINE of a page's in-season changes, drawn just above the species table: one change
+ * says its head ("In-season change (since May 16, 2025) · see ›"), several say how many ("3 in-season changes · see ›").
+ * The full notices open under it on a press. Nothing in effect: null.
+ */
+export function inSeasonSummary(banners: readonly InSeasonBannerVM[]): string | null {
+  if (!banners.length) return null;
+  return `${banners.length === 1 ? banners[0]!.head : `${banners.length} in-season changes`} · ${INSEASON_WORDS.see}`;
 }
 
 export function inSeasonBanner(p: InSeasonOnPage): InSeasonBannerVM {

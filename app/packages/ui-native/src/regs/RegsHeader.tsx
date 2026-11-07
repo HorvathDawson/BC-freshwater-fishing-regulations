@@ -46,7 +46,7 @@ export function pickPlace(place: { full: string; short: string }, measuredHeight
  * NO ACTION IN THE NAME ROW (owner call 3): T71 dropped the Map button (the view strip is the one Map entry), T150 the
  * Parts button (the water's Map view lists the parts). The place label below keeps the part's name.
  */
-export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false, nameSource = null }: {
+export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = false, nameSource = null, sun = null }: {
   header: HeaderVM; palette: Palette;
   /** (T224) where the water's name came from when it is not the official one (`WaterTitle`'s `source`) */
   nameSource?: string | null;
@@ -59,6 +59,9 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
    * keeps the name row and the place label. false (a phone, a tablet): the header as it always was.
    */
   side?: boolean;
+  /** (T471) the day's sun line at the water ("Sunrise 08:04 PT · sunset 17:37 PT", `useSunLine`), a small secondary line
+   *  under the place label; null: nothing drawn */
+  sun?: string | null;
 }) {
   return (
     <View testID="regs-header" style={{ backgroundColor: palette.card, borderBottomWidth: 1.5, borderBottomColor: palette.ink }}>
@@ -67,6 +70,10 @@ export function RegsHeader({ header: h, palette, tabs, onDate, onTab, side = fal
         {!side && <DatePill h={h} palette={palette} onDate={onDate} />}
       </WaterTitle>
       <Place place={h.place} palette={palette} />
+      {!!sun && (
+        <Text testID="regs-sun" maxFontSizeMultiplier={CAPPED_SCALE}
+              style={[TYPE.metaSemi, { paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, color: palette.sub }]}>{sun}</Text>
+      )}
       {!side && <TabRow h={h} tabs={tabs} palette={palette} onTab={onTab} />}
     </View>
   );

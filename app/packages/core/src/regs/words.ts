@@ -20,6 +20,8 @@ export const WORDS = Object.freeze({
   PARTS_TITLE: "Parts of this water", PART_OPEN: "open", PART_CLOSED: "closed", PART_UNKNOWN: "unknown",
   // rich text (line.ts plain()): `${BOOK} ${PAGE}<printed> ${LINK_OUT}`
   BOOK: "Rule book",
+  /** (T474) the water's own entry in the book: "This water in the rule book p.21 ↗" */
+  WATER_BOOK: "This water in the rule book",
   PAGE: "p.",
   LINK_OUT: "↗",
   /** (T43) what a screen reader says for a linked book run (the link names the PRINTED page; it opens the PDF) */
@@ -119,6 +121,8 @@ export const WORDS = Object.freeze({
   TIMED_TITLE: "⚠ At certain times",
   /** (T318) a closure of some hours of every day, said under the year bar: "Daylight only: closed from 1 h after sunset to 1 h before sunrise" */
   TIMED_DAYLIGHT: (after: string, before: string) => `Daylight only: closed from ${after} after sunset to ${before} before sunrise`,
+  /** (T473) a daylight-only closure as today's real hours, under the status: "Daylight only · fishing 07:04–18:37 PT" */
+  DAYLIGHT_HOURS: (range: string) => `Daylight only · fishing ${range}`,
   TIMED_H: (min: number) => (min % 60 === 0 ? `${min / 60} h` : `${min} min`),
   ANGLER_TITLE: "⚠ Closed to some anglers",
   TODAY_PAREN: (m: string) => "today (" + m + ")",

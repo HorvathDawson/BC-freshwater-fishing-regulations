@@ -515,6 +515,9 @@ use that as the sole source of future work."
 | T469 | Legend: one row (fold button in it) on a wide screen, not two rows plus a strip | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web ≥ 900 px only, phones unchanged |
 | T471 | Sun line in the regs pane's header, not its own card | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web + native |
 | T472 | In-season change: one collapsed line above the species table | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; count when several; web + native |
+| T473 | "Daylight only" as today's real hours with the status | DONE 2026-11-07 | HASH | owner 2026-11-07; offsets parsed from the rule's words |
+| T474 | "This water in the rule book p.N" link on every water with an entry | DONE 2026-11-07 | HASH | owner 2026-11-07; rank-0 rule pages |
+| T475 | Quota block wording: one headline, "up to N" sub-limits as parts, steelhead concise | OPEN | — | owner 2026-11-07; pipeline wording + rebuild |
 
 ## Order for open tickets
 

@@ -137,3 +137,25 @@ describe("<RegsHeader>", () => {
     expect(screen.getAllByRole("tab").map((t) => t.getAttribute("aria-selected"))).toEqual(["false", "false", "true", "false"]);
   });
 });
+
+describe("the sun line in the header (T471)", () => {
+  const LINE = "Sunrise 08:04 PT · sunset 17:37 PT";
+  const mountSun = (sun: string | null, side = false) =>
+    render(<RegsHeader header={headerOf("vedder_1010")} palette={LIGHT} tabs={createPinStore()} onDate={() => {}} onTab={() => {}}
+                       side={side} sun={sun} />);
+  it("is a secondary line inside the header, under the place label, the whole line", () => {
+    mountSun(LINE);
+    const header = screen.getByTestId("regs-header");
+    const sun = within(header).getByTestId("regs-sun");
+    expect(sun.textContent).toBe(LINE);
+    expect(screen.getByTestId("regs-place").compareDocumentPosition(sun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it("is drawn in the desktop header too", () => {
+    mountSun(LINE, true);
+    expect(within(screen.getByTestId("regs-header")).getByTestId("regs-sun").textContent).toBe(LINE);
+  });
+  it("null: nothing is drawn", () => {
+    mountSun(null);
+    expect(screen.queryByTestId("regs-sun")).toBeNull();
+  });
+});

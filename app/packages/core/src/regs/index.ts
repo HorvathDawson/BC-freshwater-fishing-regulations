@@ -33,6 +33,7 @@ export * from "./tree";
 export * from "./tail";
 export * from "./others";
 export * from "./keep";
+export * from "./waterbook";
 export * from "./edge";
 export * from "./pins";
 export * from "./sheets";

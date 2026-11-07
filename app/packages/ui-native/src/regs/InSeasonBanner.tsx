@@ -3,10 +3,17 @@
  * and in effect on the page's day — "In-season change (Oct 15–Nov 30): <verbatim text> — source ›". No words of its own
  * (core `inSeasonBanner`); which changes, from `@app/ui` `useInSeasonBanners`. INFORMATIONAL: drawn above the rules,
  * never changing them; the attention bar is not a water-status colour.
+ *
+ * (T472, owner 2026-11-07: "a big wall of text to get when you open a regulation page") COLLAPSED BY DEFAULT: one card
+ * line just above the species table ("In-season change (since May 16, 2025) · see ›", or "3 in-season changes · see ›"),
+ * the Access notice strip's pattern — a press opens the full notices under it, a second closes them. Never hidden.
  */
+import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
-import { INSEASON_WORDS, type InSeasonBannerVM } from "@app/core";
+import { Pressable } from "../Pressable";
+import { Icon } from "../icons";
+import { INSEASON_WORDS, inSeasonSummary, type InSeasonBannerVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, RADIUS, type Palette } from "../theme";
 import { RegsPress } from "./RegsPress";
@@ -15,10 +22,22 @@ import { linkTo } from "../openLink";
 export function InSeasonBanners({ banners: all, palette }: { banners: readonly InSeasonBannerVM[]; palette: Palette }) {
   // (T318) a change with no words of its own is never drawn as an empty card with only its link (owner's phone, 0.3.0)
   const banners = all.filter((b) => b.text.trim());
-  if (!banners.length) return null;
+  const [open, setOpen] = useState(false);
+  const summary = inSeasonSummary(banners);
+  if (!summary) return null;
   return (
     <View testID="inseason-banners">
-      {banners.map((b) => (
+      <Pressable testID="inseason-line" onPress={() => setOpen((o) => !o)} accessibilityRole="button" aria-expanded={open}
+                 accessibilityLabel={summary}
+                 style={{ marginTop: 10, marginBottom: 2, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
+                          backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: palette.attention,
+                          minHeight: 44, paddingVertical: 8, paddingLeft: 12, paddingRight: 14, justifyContent: "center" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text testID="inseason-summary" style={[TYPE.regsBodyBold, { color: palette.ink, flex: 1 }]}>{summary}</Text>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={14} />
+        </View>
+      </Pressable>
+      {open && banners.map((b) => (
         <View key={b.id} testID="inseason-banner"
               style={{ marginTop: 10, marginBottom: 2, marginHorizontal: GUTTER, borderRadius: RADIUS.box,
                        backgroundColor: palette.tint, borderLeftWidth: 6, borderLeftColor: palette.attention,

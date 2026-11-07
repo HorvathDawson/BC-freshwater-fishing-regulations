@@ -5,7 +5,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { ItemId, WaterSource } from "@app/data";
-import { useSunLine } from "./sun";
+import { useDaylight, useSunLine } from "./sun";
 
 afterEach(cleanup);
 
@@ -37,5 +37,13 @@ describe("useSunLine", () => {
     const none = renderHook(() => useSunLine(source, "gnis:2" as ItemId, null, NOV4));
     await waitFor(() => expect(asked).toContain("gnis:2"));
     expect(none.result.current).toBeNull();
+  });
+});
+
+describe("useDaylight (T473)", () => {
+  it("the hours the rule's offsets leave open, at the point and on the day; no point, no function", () => {
+    const { result } = renderHook(() => useDaylight(source, null, VEDDER, NOV4));
+    expect(result.current!(60, 60)).toBe("07:00–18:42 PT");
+    expect(renderHook(() => useDaylight(source, null, null, NOV4)).result.current).toBeNull();
   });
 });
