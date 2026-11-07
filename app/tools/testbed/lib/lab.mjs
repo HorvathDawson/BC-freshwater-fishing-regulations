@@ -1,6 +1,6 @@
 // (T420) THE MAP LAB from the host: open the card (a long press on the © chip, `map-credits-chip`), set its switches by
 // testID (`map-lab-<key>`, read off a uiautomator dump: RN's testID is the view's resource-id), read the foot
-// (`map-lab-state`), close it (`map-lab-close`). Only in a lab build (`EXPO_PUBLIC_MAP_LAB=1`, session.sh sets it). The
+// (`map-lab-state`), close it (`developer-close`; `map-lab-close` before T476). Any non-production build (T476). The
 // switches are session-only: a cold start is today's map again.
 //
 //   PAN_LAB=stateGapMs=250,streamsOneBucket=true   (the `pan` scenario; parseLab below)
@@ -45,7 +45,10 @@ export async function openLab(d = device) {
   d.sh(`input swipe ${chip.x} ${chip.y} ${chip.x} ${chip.y} 1200`);           // a long press
   await d.sleep(1200);
   ns = nodes(d);
-  if (!byId(ns, 'map-lab')) throw new Error('lab: the card did not open (a build without EXPO_PUBLIC_MAP_LAB=1?)');
+  // (T476) the lab is a section of the Developer card: its Lab tab when another section is showing
+  const tab = !byId(ns, 'map-lab') && byId(ns, 'developer-tab-lab');
+  if (tab) { d.sh(`input tap ${tab.x} ${tab.y}`); await d.sleep(800); ns = nodes(d); }
+  if (!byId(ns, 'map-lab')) throw new Error('lab: the card did not open (a production build, or one before the lab?)');
 }
 
 /** The foot line ("Today's map." or "Differs from today: …"). */
@@ -73,7 +76,8 @@ export async function setLab(change, d = device) {
 }
 
 export async function closeLab(d = device) {
-  const c = byId(nodes(d), 'map-lab-close');
+  // (T476) `developer-close` on the Developer card; `map-lab-close` on builds before it
+  const ns = nodes(d), c = byId(ns, 'developer-close') ?? byId(ns, 'map-lab-close');
   if (!c) return;
   d.sh(`input tap ${c.x} ${c.y}`);
   await d.sleep(600);
