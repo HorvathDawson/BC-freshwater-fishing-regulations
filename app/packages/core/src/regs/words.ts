@@ -183,6 +183,22 @@ export const WORDS = Object.freeze({
   OPEN_PAREN: " (", CLOSE_PAREN: ")",
   // ── T28 pin bar (pins.ts: prototype pinUpdate's form a group line, the total in brackets under the share) ──
   PIN_OF_TOTAL: (total: string) => `(of ${total})`,
+  // ── T481 pin bar "here-max + one breadcrumb" (owner 2026-11-07): line 1 the water's limit, line 2 the path below it ──
+  PIN_A_DAY: (n: number) => `${n} a day`,
+  PIN_SHARE: (n: number, from: string) => `${n} a day from ${from}`,
+  // the share plus a water's own tier beside it: the true most, the share inside it, the rest the exception's fish
+  PIN_EXCEPTION: (max: number, share: number, fish: string) => `${max} a day — up to ${share} of any kind, the rest ${fish}`,
+  PIN_OF_THEM: " of them", PIN_LEVEL_SEP: "; ", PIN_NONE: "none", PIN_OR: " or ", PIN_MAY_BE_OVER: "may be over ",
+  // the card head's link under the region total, and its sheet (sheets.ts multiSheet: the water's own numbers)
+  MULTI_LINK: "Fishing more than one water today? ›",
+  MULTI_TITLE: "Fishing more than one water today",
+  MULTI_PER_ANGLER: "Quotas are per angler per day, across every water you fish.",
+  MULTI_TOTAL: (scope: string, total: number, group: string) =>
+    `${scope}’s ${total} a day caps all the ${group} you keep in ${scope} today, whatever the water.`,
+  MULTI_SHARE: (share: number, from: string, other: string, total: number) =>
+    `The ${share} ${from} and any share from ${other} are parts of that ${total}, not additions to it.`,
+  MULTI_OWN: "A water’s own rule can sit outside a share, but never outside the region’s total.",
+  MULTI_POSSESSION: "Possession limits are separate.",
   // ── T18 tree (tree.ts: prototype buildKeep kt, dutyWords, fishBtn) ──
   STEELHEAD_STAMP: "Steelhead stamp ›",
   // (T480) the steelhead size definition's words before its chip ("rainbow trout over 50 cm (20 in)")

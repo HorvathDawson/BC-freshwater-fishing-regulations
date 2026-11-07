@@ -11,7 +11,9 @@ export type SheetKey =
   | `srcs:${"bait" | "ways" | "always" | "boats"}` | `srcs:gl|${"mode" | "lines" | "hook" | "weight"}`
   | `other:o${number}` | "pos:pos" | `src:r${number}`
   /** (T475) a card row's share ⓘ: how the headline's share stands to the regional total (`headline.info`) */
-  | `share:r${number}`;
+  | `share:r${number}`
+  /** (T481) a card row's "Fishing more than one water today? ›": how the region's total holds across waters */
+  | `multi:r${number}`;
 const SRCS = /^srcs:(?:bait|ways|always|boats|gl\|(?:mode|lines|hook|weight))$/;
 
 /** A sheet key the app knows, or null (an unknown shape is refused — the date sheet is D7's, not a SheetKey). */
@@ -21,7 +23,7 @@ export function parseSheetKey(k: string): SheetKey | null {
   if (/^gl:[a-z0-9_]+(?:,[a-z0-9_]+)*$/.test(k)) return k as SheetKey;
   if (/^sp:[A-Za-z0-9_]+$/.test(k)) return k as SheetKey;
   if (SRCS.test(k)) return k as SheetKey;
-  if (/^other:o\d+$/.test(k) || /^src:r\d+$/.test(k) || /^share:r\d+$/.test(k)) return k as SheetKey;
+  if (/^other:o\d+$/.test(k) || /^src:r\d+$/.test(k) || /^share:r\d+$/.test(k) || /^multi:r\d+$/.test(k)) return k as SheetKey;
   return null;   // `licsrc:` (the licence sources sheet) is no key: removed, owner 2026-11-04
 }
 

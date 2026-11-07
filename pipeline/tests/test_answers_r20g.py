@@ -67,7 +67,7 @@ def test_the_steelhead_row_says_it_once():
         assert not any("once you keep one" in s for s in [st["sentence"]] + [a["says"] for a in st["also_counts"]])
     g, _o, _P = _g(F.VEDDER)
     (size,) = [t for t in _tiers(g) if t["tier"] == "size"]
-    assert size["says"].endswith("— 2 if one is a hatchery steelhead")      # the band head says it
+    assert size["says"].endswith("2 if one of them is a hatchery steelhead.")      # the band head says it
     st = _st(g)
     assert st["duties"] == ["10 a year", "stop fishing this river after 2 a day", "record each on your licence right away"]
     assert st["presence"]["says"] == "A rainbow trout over 50 cm (20 in) here counts as a steelhead."

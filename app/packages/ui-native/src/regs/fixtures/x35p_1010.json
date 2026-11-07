@@ -187,6 +187,13 @@
      "form": null,
      "lead": null,
      "leadN": null,
+     "multi": [
+      {
+       "open": "multi:r0",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ],
      "nolimit": false,
      "ofTotal": false,
      "rootTier": "t1",
@@ -228,8 +235,10 @@
     },
     "pinLine": {
      "cls": "g",
+     "n": 5,
+     "said": [],
      "sub": null,
-     "text": "Trout and char · 5 a day across Region 6"
+     "text": "Trout and char · 5 a day"
     },
     "quiet": null,
     "row": 0,
@@ -469,7 +478,7 @@
       "n": 1,
       "origin": null,
       "relation": null,
-      "short": "of those, 1 over 50 cm",
+      "short": "may be over 50 cm",
       "sub": null,
       "t": "tier",
       "tid": "t3",
@@ -1270,6 +1279,7 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
@@ -1334,8 +1344,10 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": 5,
+       "said": [],
        "sub": null,
-       "text": "Whitefish · This lake’s rule: 5 a day"
+       "text": "Whitefish · 5 a day"
       },
       "quiet": null,
       "row": 3,
@@ -1433,6 +1445,7 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
@@ -1497,8 +1510,10 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": 4,
+       "said": [],
        "sub": null,
-       "text": "Arctic grayling · This lake’s rule: 4 a day"
+       "text": "Arctic grayling · 4 a day"
       },
       "quiet": null,
       "row": 4,
@@ -1723,6 +1738,7 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": null,
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
@@ -1787,8 +1803,10 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": 4,
+       "said": [],
        "sub": null,
-       "text": "Northern pike · This lake’s rule: 4 a day"
+       "text": "Northern pike · 4 a day"
       },
       "quiet": null,
       "row": 6,

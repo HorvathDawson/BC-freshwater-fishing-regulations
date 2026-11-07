@@ -142,7 +142,7 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
    the reading column (tablet) — the lines the pin store holds at each offset (PinBar.test.tsx pins them in words). */
 type Slice = { heights: Record<string, number>;
   states: Record<string, { viewport: { height: number }; anchors: PinAnchor[] }> };
-const OFFSETS: Record<string, readonly number[]> = { vedder_1010: [0, 128, 240, 912, 968, 1128, 1624], klwa_1010: [0, 128, 744] };
+const OFFSETS: Record<string, readonly number[]> = { vedder_1010: [0, 128, 300, 912, 968, 1128, 1624], klwa_1010: [0, 128, 744] };
 const P = slice as unknown as Slice;
 
 describe("T45 the pin bar on a wide screen", () => {
@@ -150,7 +150,7 @@ describe("T45 the pin bar on a wide screen", () => {
   const bar = () => {
     const b = screen.queryByTestId("pin-bar");
     if (!b) return [];
-    return [...b.children].map((line) => [...line.children].map((t) => t.textContent));
+    return [...b.querySelectorAll('[data-testid="pin-group"], [data-testid="pin-tier"]')].map((line) => [...line.children].map((t) => t.textContent));
   };
   const want = (lines: readonly PinLine[]) => lines.map((l) => (l.sub === null ? [l.text] : [l.text, l.sub]));
 

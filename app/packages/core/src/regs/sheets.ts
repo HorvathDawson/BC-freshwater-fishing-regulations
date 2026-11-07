@@ -21,7 +21,9 @@ import type { GroupVM, SheetBlock, SheetCtx, SheetVM } from "./model";
 import { parseSheetKey, type SheetKey } from "./sheetKey";
 import { WORDS } from "./words";
 import { ruleSub } from "./level";
-import { clean } from "./names";
+import { clean, lc } from "./names";
+import { rowTitle } from "./grouphead";
+import type { TreeTier } from "../answers.generated";
 import { srcSheet, srcsSheet } from "./sheets/sources";
 import { fishSheet } from "./sheets/fish";
 import { otherSheet } from "./sheets/other";
@@ -117,6 +119,29 @@ function shareSheet(key: SheetKey, ctx: SheetCtx, rowIx: number): SheetVM | null
   return { key, title: info.title, sub: null, blocks };
 }
 
+/**
+ * (T481, owner 2026-11-07) "Fishing more than one water today? ›" under a region's total: how that total holds across
+ * waters, in the water's own numbers — every one the store's (the row's tree: the root total and its scope, the share and
+ * where it counts from; the title is rowTitle's). Null where the row's root is not a region's total.
+ */
+function multiSheet(key: SheetKey, ctx: SheetCtx, rowIx: number): SheetVM | null {
+  const row = ctx.env?.card?.rows[rowIx], root = row?.raw.group?.tree[0];
+  const scope = root && root.n != null && !root.whose ? / across (.+?)(?:, (?:lakes|streams) included)?$/.exec(root.says)?.[1] : null;
+  if (!row || !root || root.n == null || !scope) return null;
+  const items: string[] = [WORDS.MULTI_PER_ANGLER, WORDS.MULTI_TOTAL(scope, root.n, lc(rowTitle(row, ctx.inp)))];
+  const share = root.children.find((c): c is TreeTier => c.node === "tier" && c.tier === "share");
+  const from = share ? /from (this stream|this lake|streams|lakes)/.exec(share.says)?.[0] : null;
+  if (share && share.n != null && from) items.push(WORDS.MULTI_SHARE(share.n, from, /lake/.test(from) ? "streams" : "lakes", root.n));
+  items.push(WORDS.MULTI_OWN, WORDS.MULTI_POSSESSION);
+  const blocks: SheetBlock[] = [{ k: "list", items: items.map((s) => ({ line: [text(s)], strong: null })) }];
+  const r = ctx.inp.rules.get(root.by);
+  if (!r.missing) {
+    const book = ruleBookLine(r);
+    blocks.push({ k: "source", line: [{ t: "link", s: WORDS.SHEET_SOURCE_LINK, open: `rule:${r.key}` }, ...(book.length ? [text(" "), ...book] : [])] });
+  }
+  return { key, title: WORDS.MULTI_TITLE, sub: null, blocks };
+}
+
 /** sheetHtml hatch branch over page v36 adiposeHtml: the two fins, the plain how-to, then the hatchery_wild term. */
 function hatchSheet(key: SheetKey, inp: RegsInputs): SheetVM {
   const hw = termOf(inp, "hatchery_wild");
@@ -141,6 +166,7 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key.startsWith("srcs:")) return srcsSheet(ctx, key);
   if (key.startsWith("src:r")) return srcSheet(ctx, key, +key.slice(5));
   if (key.startsWith("share:r")) return shareSheet(key, ctx, +key.slice(7));
+  if (key.startsWith("multi:r")) return multiSheet(key, ctx, +key.slice(7));
   if (key.startsWith("other:o")) return otherSheet(ctx, key, +key.slice(7));
   if (key.startsWith("sp:")) return fishSheet(ctx.inp, key, key.slice(3), ctx.env?.fish);
   if (key === "parts") return partsSheet(key, ctx.inp);
@@ -158,7 +184,7 @@ export interface SheetLines {
  *  page opens a row's sources by `data-src`, which the golden's nested keys do not list. */
 function keysOf(l: Line, out: string[]): void {
   for (const r of l) {
-    if (r.t === "link" && typeof r.open === "string") { if (!r.open.startsWith("src:") && !r.open.startsWith("share:")) out.push(r.open); }
+    if (r.t === "link" && typeof r.open === "string") { if (!r.open.startsWith("src:") && !r.open.startsWith("share:") && !r.open.startsWith("multi:")) out.push(r.open); }
     else if (r.t === "term") out.push(`gl:${r.ids.join(",")}`);
   }
 }
@@ -170,7 +196,7 @@ function keysDeep(x: unknown, out: string[]): void {
   if (!x || typeof x !== "object") return;
   const o = x as Record<string, unknown>;
   if (o.t === "term" && Array.isArray(o.ids)) { out.push(`gl:${(o.ids as string[]).join(",")}`); return; }
-  if (o.t === "link") { if (typeof o.open === "string" && !o.open.startsWith("src:") && !o.open.startsWith("share:")) out.push(o.open); return; }
+  if (o.t === "link") { if (typeof o.open === "string" && !o.open.startsWith("src:") && !o.open.startsWith("share:") && !o.open.startsWith("multi:")) out.push(o.open); return; }
   if (typeof o.code === "string" && typeof o.open === "string" && o.sil === false) { out.push(o.open); return; }
   for (const [k, v] of Object.entries(o)) if (k !== "more") keysDeep(v, out);
 }

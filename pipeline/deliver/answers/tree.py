@@ -52,6 +52,7 @@ the placement of every kind are proved by the card gate (`card_check.check_tree`
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
 
@@ -208,6 +209,61 @@ def fold_words(says: str, tier: str, n, names: str) -> str:
     if base.startswith("Up to ") and " of the " in base:
         return base.replace(" of the ", f" {names} of the ", 1)
     return base.replace(f"{_js(n)} a day per angler from ", f"{_js(n)} {names} a day per angler from ", 1)
+
+
+def lc_first(s: str) -> str:
+    """T481: a line as a clause after "↳ " or "; of those, " ("Up to 1 brown trout" -> "up to 1 brown trout")."""
+    return s[:1].lower() + s[1:] if s[:1].isupper() and not s[1:2].isupper() else s
+
+
+#: T481: the trout a pin line may name by their first word ("the rest hatchery rainbow")
+_SHORT_TROUT = ("rainbow", "cutthroat", "brook", "brown")
+
+
+def short_fish(name: str) -> str:
+    """T481: a water's own tier's fish, short, for the bar's "the rest <fish>": "hatchery rainbow trout" -> "hatchery
+    rainbow", "hatchery cutthroat or rainbow trout" -> "hatchery cutthroat or rainbow" (rainbow, cutthroat, brook and
+    brown trout by their first word); any other fish as named."""
+    if not name.endswith(" trout"):
+        return name
+    head = name[:-len(" trout")]
+    words = re.split(r", | or ", re.sub(r"^(?:hatchery|wild) ", "", head))
+    return head if all(w in _SHORT_TROUT for w in words) else name
+
+
+def group_words(kinds: Sequence[str]) -> str:
+    """T481: the group the size tier's "all your …" names — the closed group holding every kind ("trout and char"),
+    else the kinds."""
+    s = set(kinds)
+    for g, members in common._closed_groups():
+        if g != "ALL_GAME_FISH" and g != "CHAR" and s <= members:
+            return common.lc(common.sp_name(g))
+    return kind_names(book_order_(kinds), conj=" and ")
+
+
+def book_order_(kinds: Sequence[str]) -> List[str]:
+    from pipeline.deliver.answers.card import book_order
+    return book_order(kinds)
+
+
+def water_max(tree: Sequence[dict]) -> Optional[int]:
+    """T481 (owner 2026-11-07, "nothing in the line may add up to more than the true maximum"): the most one angler may
+    keep of the group here in a day — the total, or less where every tier under it is held smaller: a tier holds the
+    smaller of its number and what its children hold together; a size tier counts only what is over its size, so it holds
+    what its children hold; a kind its number. With a share, min(total, share + the water's own tiers beside it). None:
+    no number (unlimited)."""
+    def cap(x: dict):
+        if x["node"] == "kind":
+            return INF if x["n"] is None else x["n"]
+        inner = sum(cap(y) for y in x["children"]) if x["children"] else INF
+        if x["tier"] == "size" or x["n"] is None:
+            return inner
+        return min(x["n"], inner)
+    root = tree[0]
+    if root["n"] is None:
+        return None
+    got = cap(root)
+    return None if got == INF else _num(got)
 
 
 def _why_here(L) -> Optional[str]:
@@ -438,21 +494,46 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         # redesign): "Of these, only 1 may be over 50 cm (20 in)" — the page draws the section's extent (a rule from its head to
         # its last row); a fresh-reader single-frame test picked these words over naming every fish (rows 28)
         # T475 (asks 3-4): "Up to 1 over 50 cm (20 in) combined" — the box holds the kinds it caps, so the line names none
-        says = "None" if not sz["n"] else f"Up to {_js(sz['n'])}"
-        says += f" over {common.cm_in(cm)}{combined(sz['species']) if sz['n'] else ''}"
-        for th in sz.get("then") or []:
-            says += f", and {'none' if not th['n'] else 'up to ' + _js(th['n'])} over {common.cm_in(th['over_cm'])}"
+        # T481 (owner 2026-11-07: "ONE fish across the whole group may be over 50 cm, not one per species"): the size
+        # tier says it of the fish together, by the group's name where it holds every fish that may pass the size
+        # ("Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species. 2 if one of them is a
+        # hatchery steelhead."); `short` is the pin bar's words without the number ("may be over 50 cm (20 in) — 2 if one
+        # is a hatchery steelhead", core puts "1 of them" / "of those, 1" before it)
+        over = common.cm_in(cm)
+        thens = "".join(f", and {'none' if not th['n'] else 'up to ' + _js(th['n'])} over {common.cm_in(th['over_cm'])}"
+                        for th in sz.get("then") or [])
+        held = {id(k) for x in kids for k, _p in walk([x])} | ({id(st)} if st is not None and extra is not None else set())
+        every_passes = all(id(kn) in held for kn in every_kind if can_pass(kn, cm))
+        fish_under = [S for kn in kids for S in kn["species"]]
+        who_all = (f"all your {group_words(grp['kinds'])}" if every_passes
+                   else f"your {kind_names(book_order(sz['species']), conj=' and ')}")
         who = f"{st['_origin']} steelhead" if st is not None and st["_origin"] else "steelhead"
+        n0 = sz["n"]
+        then_card = "".join(f"; {'none' if not th['n'] else 'up to ' + _js(th['n'])} of them over "
+                            f"{common.cm_in(th['over_cm'])}" for th in sz.get("then") or [])
+        if n0:
+            says = f"Only {_js(n0)} of {who_all} may be over {over}"
+            if len(set(fish_under)) > 1:
+                says += f" — not {_js(n0)} per species"
+            says += f"{then_card}."
+        else:
+            says = f"None of {who_all} may be over {over}{then_card}"
+        short = f"may be over {over}{thens}"
         if extra is not None:
             # RULINGS Q16 (Region 1/2): "no more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed)"
-            e, n0 = extra["n"], sz["n"]
+            e = extra["n"]
             if not n0:
-                says += f" — except {_js(e)} {who}"
+                says += f" — except {_js(e)} {who}."
+                short += f" — except {_js(e)} {who}"
             else:
-                says += f" — {_js(n0 + e)} if " + (f"one is a {who}" if e == 1 else f"{_js(e)} are {who}")
+                says += f" {_js(n0 + e)} if " + (f"one of them is a {who}." if e == 1 else f"{_js(e)} of them are {who}.")
+                short += f" — {_js(n0 + e)} if " + (f"one is a {who}" if e == 1 else f"{_js(e)} are {who}")
             extra["by"] = ex_by
+        elif not n0:
+            says += "."
         st_ = tier("size", sz["n"], says, sz["by"], over_cm=_num(cm), species=list(sz["species"]),
-                   then=[{"n": th["n"], "over_cm": th["over_cm"]} for th in sz.get("then") or []], extra=extra)
+                   then=[{"n": th["n"], "over_cm": th["over_cm"]} for th in sz.get("then") or []], extra=extra,
+                   short=short)
         at = min(box["children"].index(x) for x in taken)
         for x in taken:
             box["children"].remove(x)
@@ -614,6 +695,32 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     for t, _p in walk([root]):
         if t["node"] == "tier" and t["tier"] in ("own", "total") and t.get("whose") and over_region(P, t["by"], t):
             t["over_region"] = True
+    # T481 (owner 2026-11-07, the pin bar "here-max + one breadcrumb"): every tier but the total carries `short`, its line
+    # with no origin clause ("under this river’s rule") and a lower-case start, for the bar's "↳ … ; of those, …"; a
+    # water's own tier says where it stands (`within` "share" — inside the stream share — or "total" — beside it, inside
+    # the total) and its fish in short (`fish`, "hatchery rainbow": the bar's "the rest hatchery rainbow")
+    in_share = {id(t) for t in under_share}
+    kept_all = {S for x, _q in walk([root]) if x["node"] == "kind" and x["n"] != 0 for S in x["species"]}
+    for t, _p in walk([root]):
+        if t["node"] != "tier" or t["tier"] in ("total", "size"):
+            continue
+        if t["tier"] == "count":
+            t["short"] = lc_first(_count_says(t))
+        elif t["tier"] == "share":
+            t["short"] = f"up to {_js(t['n'])} from {share_place(c.share['water'], share_region_wide(P, c.share))}"
+        else:
+            ks = [k for k, _q in walk(t["children"]) if k["node"] == "kind" and k["n"] != 0]
+            sp = book_order(list(dict.fromkeys(S for k in ks for S in k["species"])))
+            ors = {kind_origin.get(id(k)) for k in ks}
+            said = kind_names(sp, sp == ["ST"], origin=next(iter(ors)) if len(ors) == 1 else None) if sp else ""
+            # every fish the group keeps here: "up to 2 of them" (the bar's first line names them)
+            if sp and set(sp) >= kept_all:
+                said = "of them"
+            num = "any number" if t["n"] is None else f"up to {_js(t['n'])}"
+            t["short"] = f"{num} {said}{combined(sp) if said != 'of them' else ''}" if said else num
+            t["within"] = "share" if id(t) in in_share else "total"
+            t["fish"] = (short_fish(kind_names(sp, sp == ["ST"], origin=next(iter(ors)) if len(ors) == 1 else None))
+                         if sp else None)
     for t, _p in walk([root]):
         t.pop("_of", None)
     header = {"says": root["says"], "tier": root["id"], "tag": None}

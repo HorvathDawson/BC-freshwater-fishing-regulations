@@ -229,3 +229,4 @@ pipeline/tests/test_liveness.py::test_nothing_else_reads_liveness
 pipeline/tests/test_review_api_routes.py::test_api_md_route_table_is_current
 pipeline/tests/test_review_app_no_silent_empty.py::test_no_splits_domain
 pipeline/tests/test_pipeline_refusals_t435.py::test_get_path_raises_on_a_missing_key
+pipeline/tests/test_answers_t481_pin.py::test_short_fish

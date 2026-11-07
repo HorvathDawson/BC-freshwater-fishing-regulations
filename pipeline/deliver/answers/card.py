@@ -1047,4 +1047,5 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     return {"headline": head, "origin": origin, "lifts": lifts, "total_line": total_line,
             "buckets": buckets, "not_kept": not_kept, "worked": worked, "states": states,
             "table": table, "cap_kinds": sysm["kinds"], "caps": sysm["caps"], "tree": tree, "header": header,
+            "water_max": TR.water_max(tree),   # T481: the most one angler may keep of the group here
             "possession": None if unlimited else possession_of(P, model, kinds, total, what, share)}   # ROUND20h 3

@@ -240,6 +240,13 @@
       }
      ],
      "leadN": 2,
+     "multi": [
+      {
+       "open": "multi:r0",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ],
      "nolimit": false,
      "ofTotal": true,
      "rootTier": "t1",
@@ -328,8 +335,12 @@
      "tag": null
     },
     "pinLine": {
-     "cls": "g two",
-     "sub": "(of 5 across Region 4)",
+     "cls": "g",
+     "n": 2,
+     "said": [
+      "t3"
+     ],
+     "sub": null,
      "text": "Trout and char · 2 a day from streams"
     },
     "quiet": null,
@@ -1531,6 +1542,13 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": [
+        {
+         "open": "multi:r3",
+         "s": "Fishing more than one water today? ›",
+         "t": "link"
+        }
+       ],
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
@@ -1572,8 +1590,10 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": 15,
+       "said": [],
        "sub": null,
-       "text": "Whitefish · 15 a day across Region 4"
+       "text": "Whitefish · 15 a day"
       },
       "quiet": null,
       "row": 3,

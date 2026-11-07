@@ -29,18 +29,18 @@ describe("pin store contract", () => {
     const before = count();
     store.setScroll(128);
     const first = store.getLines();
-    expect([count() - before, first.map((l) => l.text)]).toEqual([1, ["Trout and char · 2 a day from streams"]]);
+    expect([count() - before, first.map((l) => l.text)]).toEqual([1, ["Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow"]]);
     for (const y of [130, 140, 150, 160, 170]) store.setScroll(y);
     expect([count() - before, store.getLines() === first]).toEqual([1, true]);
-    store.setScroll(240);
+    store.setScroll(300);
     expect([count() - before, store.getLines().map((l) => l.text)])
-      .toEqual([2, ["Trout and char · 2 a day from streams", "↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"]]);
+      .toEqual([2, ["Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow", "↳ 1 of them may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"]]);
   });
 
   it("a tier line carries its tier (the size line wears the rule)", () => {
     const { store } = mk();
-    store.setScroll(240);
-    expect(store.getLines().map((l) => [l.cls, l.tier ?? null])).toEqual([["g two", null], ["c", "size"]]);
+    store.setScroll(300);
+    expect(store.getLines().map((l) => [l.cls, l.tier ?? null])).toEqual([["g", null], ["c", "size"]]);
   });
 
   it("a measured line height (PIN_HC) recomputes; a zero height (not laid out) is ignored", () => {
@@ -48,13 +48,13 @@ describe("pin store contract", () => {
     let n = 0;
     store.subscribe(() => { n++; });
     store.setAnchors(vedder.anchors);
-    store.setScroll(240);
+    store.setScroll(300);
     const g = store.getLines()[0]!;
     const k = n;
     store.setLineHeight(g, 0);
     store.setLineHeight(g, -3);
     expect(n).toBe(k);
-    expect(pinLineKey(g)).toBe("g two|Trout and char · 2 a day from streams|(of 4 across Region 2)");
+    expect(pinLineKey(g)).toBe("g|Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow|");
   });
 
   it("the tab in view (prototype mini): the last section whose top reached the bar; the end of the page is the licence", () => {

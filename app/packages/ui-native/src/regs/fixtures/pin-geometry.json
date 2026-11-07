@@ -55,9 +55,14 @@
      "formA": true,
      "group": true,
      "groupLine": {
-      "cls": "g two",
-      "sub": "(of 4 across Region 2)",
-      "text": "Trout and char · 2 a day from streams"
+      "cls": "g",
+      "n": 2,
+      "said": [
+       "t3",
+       "t2"
+      ],
+      "sub": null,
+      "text": "Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow"
      },
      "headlineN": 2,
      "height": 1526.83,
@@ -74,7 +79,7 @@
         "top": 206.45
        },
        "n": 2,
-       "short": "2 of them from streams",
+       "short": "up to 2 from streams",
        "tid": "t3",
        "tier": "share"
       },
@@ -85,7 +90,7 @@
         "top": 279.89
        },
        "n": 1,
-       "short": "of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+       "short": "may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
        "tid": "t4",
        "tier": "size"
       },
@@ -96,7 +101,7 @@
         "top": 1003.27
        },
        "n": 4,
-       "short": "4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams",
+       "short": "up to 4 hatchery rainbow trout",
        "tid": "t2",
        "tier": "own"
       }
@@ -116,9 +121,14 @@
      "formA": true,
      "group": true,
      "groupLine": {
-      "cls": "g two",
-      "sub": "(of 5 across Region 4)",
-      "text": "Trout and char · 2 a day from streams"
+      "cls": "g",
+      "n": 2,
+      "said": [
+       "t3",
+       "t2"
+      ],
+      "sub": null,
+      "text": "Trout and char · 5 a day — up to 2 of any kind, the rest rainbow"
      },
      "headlineN": 2,
      "height": 1251.3,
@@ -135,7 +145,7 @@
         "top": 457.22
        },
        "n": 2,
-       "short": "2 of them from streams",
+       "short": "up to 2 from streams",
        "tid": "t3",
        "tier": "share"
       },
@@ -146,7 +156,7 @@
         "top": 761.19
        },
        "n": 5,
-       "short": "5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams",
+       "short": "up to 5 rainbow trout",
        "tid": "t2",
        "tier": "own"
       }
@@ -167,8 +177,10 @@
      "group": true,
      "groupLine": {
       "cls": "g",
+      "n": 2,
+      "said": [],
       "sub": null,
-      "text": "Trout and char · This lake’s rule: 2 a day"
+      "text": "Trout and char · 2 a day"
      },
      "headlineN": 2,
      "height": 646.27,

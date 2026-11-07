@@ -119,12 +119,12 @@ describe("headCtx + groupHeadOf + originOf", () => {
 describe("shortOf (prototype; T28's pin lines, form b)", () => {
   it("each tier as one short line, whole strings", () => {
     expect([shortOf(ROOT), shortOf(SHARE), shortOf(SHARE.children[0] as never), shortOf(OWN)]).toEqual([
-      "4 a day across Region 2", "2 of them from streams", "of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+      "4 a day across Region 2", "2 of them from streams", "may be over 50 cm",
       "4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams"]);
     expect([shortOf(tier({ tier: "count", says: "1 cutthroat or rainbow trout in all (part of the 2)" })),
       shortOf(tier({ tier: "own", n: 2, whose: "This lake’s rule", replaces: "x" })), shortOf(tier({ tier: "total", n: 5, whose: "The lake" })),
       shortOf(tier({ tier: "share", n: 2, says: "2 a day from this lake" }))]).toEqual([
-      "of those, 1 cutthroat or rainbow trout in all", "plus up to 2 under this lake’s rule", "The lake: 5 a day", "2 a day from this lake"]);
+      "1 cutthroat or rainbow trout in all", "plus up to 2 under this lake’s rule", "The lake: 5 a day", "2 a day from this lake"]);
   });
 });
 

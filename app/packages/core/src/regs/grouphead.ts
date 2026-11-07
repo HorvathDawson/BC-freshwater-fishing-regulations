@@ -170,12 +170,15 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
   const words = bigWords(hdrRoot.says, hdrRoot.n);
   // (T479) a water's own total above the region's quota (the stored root tier's `over_region`)
   const exception = hdrRoot.over_region ? WORDS.EXCEPTION_REGIONAL : null;
+  // (T481) the region's total is said once, here: under it, "Fishing more than one water today? ›" (its `multi:` sheet)
+  const multi: Line | null = hdrRoot.tier === "total" && !hdrRoot.whose && hdrRoot.n != null && / across /.test(hdrRoot.says)
+    ? [{ t: "link", s: WORDS.MULTI_LINK, open: `multi:r${ctx.rowIx}` }] : null;
   if (relTier && opts.tot === "a") {
     const lead = bigWords(h.says, h.n) ?? [{ t: "num", s: String(h.n), size: "big" } as Run, text(" "), text(nbsp(h.says))];
     // (T475 ask 1) the stored ⓘ on the regional total the share is part of: its sheet is the row's `share:r<row>`
     if (h.info) lead.push(text(" "), { t: "link", s: WORDS.TERM_ONE, open: `share:r${ctx.rowIx}`, label: WORDS.SHARE_INFO_A11Y });
     return { form: "a", rootTier: hdrRoot.id, lead, leadN: h.n, words: words ?? [text(nbsp(hdrRoot.says))], ofTotal: true,
-      whyHere: null, shareOf: null, terms: [], nolimit: false, exception };
+      whyHere: null, shareOf: null, terms: [], nolimit: false, exception, multi };
   }
   let shareOf: Run[] | null = null;
   if (relTier && opts.tot === "b") {
@@ -189,7 +192,7 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
     }
   }
   return { form: shareOf ? "b" : null, rootTier: hdrRoot.id, lead: null, leadN: null, words: words ?? [text(nbsp(hdrRoot.says))],
-    ofTotal: false, whyHere: hdrRoot.why_here ? cap(hdrRoot.why_here) : null, shareOf, terms: [], nolimit: !words, exception };
+    ofTotal: false, whyHere: hdrRoot.why_here ? cap(hdrRoot.why_here) : null, shareOf, terms: [], nolimit: !words, exception, multi };
 }
 
 /** (T475 ask 1) form a's lead says the share's one origin ("2 hatchery trout/char a day from streams", the stored
@@ -214,7 +217,7 @@ const lc1w = (t: string): string => (t ? t[0]!.toLowerCase() + t.slice(1) : t);
 
 /** The tier fields shortOf reads: a TreeTier, or form a's headline read as a share (`{ tier: "share", n, says }`, T28). */
 export type ShortTier = Pick<TreeTier, "tier" | "n" | "says">
-  & Partial<Pick<TreeTier, "whose" | "replaces" | "relation" | "over_cm" | "children">>;
+  & Partial<Pick<TreeTier, "whose" | "replaces" | "relation" | "over_cm" | "children" | "short">>;
 /** prototype shortOf: one tier as one short line, from its own fields and the page's connecting words (the pin bar's,
  *  T28; form b's "↳ 2 of them from streams"). */
 export function shortOf(t: ShortTier): string {
@@ -231,6 +234,7 @@ export function shortOf(t: ShortTier): string {
       return /^(?:Only |Up to \d+ (?:.+ )?of the )/.test(says) ? `${n}${WORDS.SHORT_OF_THEM_FROM}${w}` : `${n}${WORDS.SHORT_DAY_FROM}${w}`;
     }
     case "own": {
+      if (t.short) return t.short;                  // (T481) the store's clause, no origin clause
       const k = (t.children ?? []).find((c): c is TreeKind => c.node === "kind" && !!c.folded);
       // the folded kind's fish: "Up to 4 hatchery rainbow trout" (T475), "Up to 4 may be hatchery rainbow trout" before it
       const names = k ? (/ may be (.+?)(?: only —.*)?$/.exec(k.says) ?? /^Up to \d+ (.+?)(?: combined)?(?: — .*)?$/.exec(k.says))?.[1] || "" : "",
@@ -239,11 +243,10 @@ export function shortOf(t: ShortTier): string {
       return t.replaces ? `${WORDS.SHORT_PLUS}${n}${names ? " " + names : ""}${WORDS.SHORT_UNDER}${whose}`
         : `${n}${WORDS.SHORT_OF_THEM}${names ? `${WORDS.OPEN_PAREN}${names}${WORDS.CLOSE_PAREN}` : ""}${WORDS.SHORT_UNDER}${whose}`;
     }
-    case "count": return `${WORDS.SHORT_OF_THOSE}${says.replace(/ \(part of the \d+\)$/, "")}`;
-    case "size": {
-      const cut = says.indexOf(" — "), tail = cut > 0 ? says.slice(cut + 3) : "";
-      return `${WORDS.SHORT_OF_THOSE}${n == null ? "" : n + " "}${WORDS.SHORT_OVER}${t.over_cm}${WORDS.CM}${tail ? `${WORDS.OPEN_PAREN}${tail}${WORDS.CLOSE_PAREN}` : ""}`;
-    }
+    // (T481) a breadcrumb level: the clause alone (pins.ts `breadcrumb` puts "of those, " between levels; "Up to" is
+    // lower-cased mid-sentence); a size level without its number ("may be over 50 cm (20 in)"), the store's where it has one
+    case "count": return t.short ?? lc1w(says.replace(/ \(part of the \d+\)$/, ""));
+    case "size": return t.short ?? `${WORDS.PIN_MAY_BE_OVER}${t.over_cm}${WORDS.CM}`;
   }
   return says;
 }

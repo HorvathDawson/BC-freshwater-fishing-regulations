@@ -250,6 +250,13 @@
       }
      ],
      "leadN": 2,
+     "multi": [
+      {
+       "open": "multi:r0",
+       "s": "Fishing more than one water today? ›",
+       "t": "link"
+      }
+     ],
      "nolimit": false,
      "ofTotal": true,
      "rootTier": "t1",
@@ -279,8 +286,12 @@
     "notKept": [],
     "origin": null,
     "pinLine": {
-     "cls": "g two",
-     "sub": "(of 4 across Region 2)",
+     "cls": "g",
+     "n": 2,
+     "said": [
+      "t3"
+     ],
+     "sub": null,
      "text": "Trout and char · 2 a day from streams"
     },
     "quiet": null,
@@ -512,7 +523,7 @@
         "n": 1,
         "origin": null,
         "relation": null,
-        "short": "of those, 1 over 50 cm (2 if one is a hatchery steelhead)",
+        "short": "may be over 50 cm",
         "sub": null,
         "t": "tier",
         "tid": "t4",
@@ -1897,6 +1908,13 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": [
+        {
+         "open": "multi:r3",
+         "s": "Fishing more than one water today? ›",
+         "t": "link"
+        }
+       ],
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
@@ -1938,8 +1956,10 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": 15,
+       "said": [],
        "sub": null,
-       "text": "Whitefish · 15 a day across Region 2"
+       "text": "Whitefish · 15 a day"
       },
       "quiet": null,
       "row": 3,
@@ -2050,6 +2070,13 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": [
+        {
+         "open": "multi:r4",
+         "s": "Fishing more than one water today? ›",
+         "t": "link"
+        }
+       ],
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
@@ -2091,8 +2118,10 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": 20,
+       "said": [],
        "sub": null,
-       "text": "Bass · 20 a day across Region 2"
+       "text": "Bass · 20 a day"
       },
       "quiet": null,
       "row": 4,

@@ -5,7 +5,7 @@
  * default; "How it adds up" before), the quiet steelhead
  * line and "See every regulation line ›". tokens.md §5 GroupHead … HowItAddsUp. No logic.
  */
-import { Fragment, useContext, useState, useSyncExternalStore } from "react";
+import { Fragment, useContext, useState } from "react";
 import { Image, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { WORDS, type FishPicVM, type GroupVM, type KindVM, type Line, type NotKeptVM, type SizeVM, type TierVM, type TreeNodeVM } from "@app/core";
@@ -13,8 +13,7 @@ import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { LineText, TermText, type KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
-import { AnchorContext, StickyContext, type AnchorKey } from "./useAnchors";
-import { useStickyHead } from "./stickyHead";
+import { AnchorContext, type AnchorKey } from "./useAnchors";
 import type { FishImages } from "./types";
 import { CoachSpot } from "../CoachMarks";
 import { Icon } from "../icons";
@@ -104,8 +103,7 @@ function SizeChip({ size, palette, actions }: { size: SizeVM; palette: Palette; 
 const DEF_TERM: Line = [{ t: "term", ids: ["steelhead"] }];
 
 /** the size box: its bold left rail, and its gap to the screen edge */
-const RAIL = 5, BOX_INSET = 6, BOX_BORDER = 1, BOX_PAD_BOTTOM = 8;
-const NO_SUB = () => () => {};
+const RAIL = 5, BOX_INSET = 6;
 
 function Tier({ t, at, palette, actions, images, coach }: { t: TierVM; at: At; palette: Palette; actions: KeepActions; images?: FishImages;
   /** (T456) the walkthrough's key for this tier's origin line (the rule a step reads, its Rule book link with it) */
@@ -114,28 +112,18 @@ function Tier({ t, at, palette, actions, images, coach }: { t: TierVM; at: At; p
   const tids = [...at.tids, t.tid];
   // (T29) the tier's header (prototype `.tier`: kicker, words, relation, sub, origin) — the pin bar's `head` box
   const head = useAnchor(`h${at.row}:${t.tid}`, { k: "head", row: at.row, tid: t.tid, tids });
-  // (owner 2026-10-27) the size section's box: its sentence pins as the box's header while its kinds scroll under it, and
-  // goes with the box (web: CSS `position: sticky` inside the box; native has no container-bounded sticky — see below)
-  const stick = useContext(StickyContext);
-  const stackTop = useSyncExternalStore(stick?.store.subscribe ?? NO_SUB, () => (stick?.overlay ? stick.store.getStackHeight() : 0), () => 0);
-  const pinned = t.band && !!stick;
-  // native: no container-bounded sticky, so the header is translated by the page's scroll (stickyHead.native / .web)
+  // (T481, owner 2026-11-07) the size header no longer sticks on its own: whatever pins is drawn in the ONE pin bar (its
+  // line there is the breadcrumb's size level), so nothing slides under the bar and the order never flips
   const boxId = `box:${at.row}:${t.tid}`;
-  const sticky = useStickyHead({ stick, pinned, boxId, stackTop, palette, box: { border: BOX_BORDER, padBottom: BOX_PAD_BOTTOM } });
   const sink = useContext(AnchorContext);
   const boxAnchor = sink && t.band ? { ref: sink.ref(boxId, { k: "box" }), onLayout: sink.changed } : {};
-  const headStyle = sticky.style;
-  const HeadView = sticky.View;
   const body = (
     <>
-      {/* a stuck header moves, so the pin bar's anchor is a zero-height marker at its natural place */}
-      {pinned && <View {...head} />}
-      <HeadView {...(pinned ? {} : head)} testID="khead" style={headStyle as never}
-                onLayout={sticky.onLayout}>
+      <View {...head} testID="khead">
       {t.kicker && <Text testID="kicker:tier" style={[TYPE.kicker, { color: palette.sub, paddingTop: 8 }]}>{t.kicker}</Text>}
       {t.exception && <Exception says={t.exception} palette={palette} top={t.kicker ? 2 : 12} />}
       {t.line.length > 0 && (
-        <View style={{ paddingTop: t.kicker || t.exception ? 2 : small ? (t.tier === "size" ? (pinned ? 6 : 12) : 8) : 16, paddingBottom: pinned ? 6 : 8 }}>
+        <View style={{ paddingTop: t.kicker || t.exception ? 2 : small ? (t.tier === "size" ? 12 : 8) : 16, paddingBottom: 8 }}>
           <LineText line={t.line} testID={t.tier === "size" ? "tier:size" : undefined} style={small ? TYPE.tierSmall : TYPE.tier} color={t.tier === "size" ? palette.rule : palette.ink} palette={palette} actions={actions} />
         </View>
       )}
@@ -150,7 +138,7 @@ function Tier({ t, at, palette, actions, images, coach }: { t: TierVM; at: At; p
           </View>
         </CoachSpot>
       )}
-      </HeadView>
+      </View>
       <Nodes nodes={t.children} inBand={t.band} at={{ row: at.row, tids, path: at.path }} palette={palette} actions={actions} images={images} />
     </>
   );
@@ -267,6 +255,8 @@ export function GroupCard({ g, palette, actions, images, titled = true }: { g: G
           : <LineText line={h.words} style={{ ...TYPE.metaBold, lineHeight: 19.97 }} num={TYPE.numeralMid} color={palette.ink} palette={palette} actions={actions} />}
         {h.whyHere && <Text style={[TYPE.metaSemi, { lineHeight: 16.85, color: palette.sub, marginTop: 2 }]}>{h.whyHere}</Text>}
         {h.shareOf && <LineText line={h.shareOf} style={TYPE.metaSemi} num={TYPE.metaBold} numColor={palette.ink} color={palette.sub} palette={palette} actions={actions} />}
+        {/* (T481) under the region's total, where it is first shown: how it holds across waters (the row's multi: sheet) */}
+        {h.multi && <View testID="multi-link" style={{ minHeight: 32, justifyContent: "center", marginTop: 2 }}><LineText line={h.multi} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={actions} /></View>}
       </View>
       {g.origin && (
         <View style={{ paddingTop: 8, paddingBottom: 4 }}>

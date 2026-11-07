@@ -493,7 +493,13 @@ SPEC = {
                     "repeat it (a steelhead does). "
                     "T479 (owner 2026-11-07, additive): a water's own tier (or a water's own total) whose fish may be kept "
                     "above a regional or B.C.-wide quota its rule lifts or displaces here carries `over_region: true`; draw "
-                    "\"Exception to regional quota\" with its line. Absent: no exception.",
+                    "\"Exception to regional quota\" with its line. Absent: no exception. "
+                    "T481 (owner 2026-11-07, additive): every tier but the total carries `short` (its line as a clause, no "
+                    "origin clause, lower-case; a size tier's without its number: \"may be over 50 cm (20 in) — 2 if one is "
+                    "a hatchery steelhead\"); a water's own tier `within` (\"share\" | \"total\") and `fish` (its fish in "
+                    "short, \"hatchery rainbow\"); the group `water_max`, the most one angler may keep of it here. A size "
+                    "tier says its cap of the fish together: \"Only 1 of all your trout and char may be over 50 cm (20 in) — "
+                    "not 1 per species. 2 if one of them is a hatchery steelhead.\"",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

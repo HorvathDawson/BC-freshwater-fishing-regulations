@@ -40,10 +40,10 @@ def _walk(nodes):
 def test_1_a_size_tier_says_of_these_not_this_box():
     g = _g(F.VEDDER)
     (size,) = [t for t in _walk(g["tree"]) if t.get("tier") == "size"]
-    assert size["says"] == "Up to 1 over 50 cm (20 in) combined — 2 if one is a hatchery steelhead"
+    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species. 2 if one of them is a hatchery steelhead."
     g = _g(F.BELLA_MAY_ST, MAY1)
     (size,) = [t for t in _walk(g["tree"]) if t.get("tier") == "size"]
-    assert size["says"] == "Up to 1 over 50 cm (20 in) combined"
+    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species."
 
 
 def test_1_no_tier_anywhere_says_box():

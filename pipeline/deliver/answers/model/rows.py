@@ -854,9 +854,23 @@ class TreeTier(Model):
     #: B.C.-wide quota its rule lifts or displaces here (`tree.over_region`) — the line says "Exception to regional
     #: quota". Absent: no exception
     over_region: Optional[Literal[True]] = None
+    #: T481 (owner 2026-11-07, the pin bar): the tier's line as a clause, no origin clause ("under this river’s rule"),
+    #: lower-case ("up to 1 brown trout combined"; a size tier's without its number, "may be over 50 cm (20 in) — 2 if
+    #: one is a hatchery steelhead"). Absent on the total
+    short: Optional[StrictStr] = None
+    #: T481: a water's own tier inside the stream share ("share") or beside it, inside the total ("total")
+    within: Optional[Literal["share", "total"]] = None
+    #: T481: a water's own tier's fish in short ("hatchery rainbow"), the bar's "the rest hatchery rainbow"
+    fish: Optional[StrictStr] = None
 
     @model_validator(mode="after")
     def _shape(self):
+        if self.short is not None and self.tier == "total":
+            raise ValueError("the total has no short line (the bar's first line is the water's limit)")
+        if self.within is not None and self.tier != "own":
+            raise ValueError("only a water's own tier says whether it is inside the share or the total")
+        if self.fish is not None and self.tier != "own":
+            raise ValueError("only a water's own tier names its fish in short")
         if self.over_region is not None and (self.whose is None or self.tier not in ("own", "total")):
             raise ValueError("only a water's own tier (or a water's own total) is an exception to a regional quota")
         if self.period is not None and self.tier not in ("size", "count"):
@@ -926,6 +940,9 @@ class GroupTotal(Model):
     tree: Tuple[TreeTier, ...] = Field(min_length=1, max_length=1)   # ROUND18 1: the card as folders
     header: Header                                    # ROUND18 4: one compact line
     possession: Optional[GroupPossession] = None      # ROUND20h 3: the possession quota on this total
+    #: T481 (owner 2026-11-07): the most one angler may keep of the group here today (`tree.water_max`: the total, or
+    #: less where the tiers under it hold fewer — the share plus a water's own tiers beside it); None: unlimited
+    water_max: Optional[Positive] = None
 
     @model_validator(mode="after")
     def _caps_name_kinds(self):

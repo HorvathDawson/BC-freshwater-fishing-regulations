@@ -1,7 +1,8 @@
 /**
  * T29 — the pin bar (prototype regs v38 `#pins .pinbar`, `pinHtml`; tokens.md §5 "PinBar"): directly under the fixed
- * header, the chain of sections the reader is inside — "Trout and char · 2 a day from streams" with "(of 4 across Region
- * 2)" under it, then "↳ of those, 1 over 50 cm …" while inside the size section. The lines are the pin store's (core
+ * header. (T481, owner 2026-11-07, "here-max + one breadcrumb") ONE solid bar of at most two lines: the water's limit
+ * ("Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow"), then, while the scroll is inside a size,
+ * count or own tier, one breadcrumb ("↳ 1 of them may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"). The lines are the pin store's (core
  * `pinChain`); this draws them, the first whole number of a line (and of its sub-line) in the heavy face (`boldFirst`).
  *
  * Overlays the scroll view's top edge (absolute, top 0) — the header is a sibling above the ScrollView, so that edge IS
@@ -36,16 +37,28 @@ function Line({ l, store, palette }: { l: PinLine; store: PinStore; palette: Pal
   );
 }
 
+/** (T481) the bar's solid padding under its lines, and the fade below it (owner: "no text shows through") */
+const PIN_PAD = 8, PIN_FADE = 24, FADE_STEPS = 8;
+
+/** The fade under the bar: FADE_STEPS bands of the card colour, each more transparent (no gradient package: a View per
+ *  band, the same on web and native). */
+function PinFade({ color }: { color: string }) {
+  const h = PIN_FADE / FADE_STEPS;
+  return (
+    <View testID="pin-fade" style={{ height: PIN_FADE }}>
+      {Array.from({ length: FADE_STEPS }, (_, i) => (
+        <View key={i} style={{ height: h, backgroundColor: color, opacity: 1 - (i + 1) / (FADE_STEPS + 1) }} />
+      ))}
+    </View>
+  );
+}
+
 export function PinBar({ store, palette, placement = "over" }: {
   store: PinStore; palette: Palette;
   /** "over": over the scroll's top edge (the phone, the tablet); "side": in the desktop side column (T45 `RegsSide`) */
   placement?: "over" | "side";
 }) {
-  const all = useSyncExternalStore(store.subscribe, store.getLines, store.getLines);
-  // (owner 2026-10-27) the size section's header sticks under the bar and says the same thing: its line stays out of the bar
-  // while that header is stuck (the chain says the size section is entered exactly when the header reaches the bar)
-  const boxed = useSyncExternalStore(store.subscribe, () => store.getBoxes().size > 0, () => store.getBoxes().size > 0);
-  const lines = boxed ? all.filter((l) => l.tier !== "size") : all;
+  const lines = useSyncExternalStore(store.subscribe, store.getLines, store.getLines);
   if (!lines.length) return null;
   // (T45) on a desktop the lines stand in the side column, beside the page rather than over its top edge: they cover
   // nothing, so the bar reports no stack height of its own
@@ -59,9 +72,12 @@ export function PinBar({ store, palette, placement = "over" }: {
   return (
     <View testID="pin-bar" pointerEvents="none" aria-hidden importantForAccessibility="no-hide-descendants"
           onLayout={(e) => store.setStackHeight(e.nativeEvent.layout.height)}
-          style={{ position: "absolute", top: 0, left: 0, right: 0, backgroundColor: palette.card,
-                   borderBottomWidth: 1, borderBottomColor: palette.line }}>
-      {lines.map((l) => <Line key={`${l.cls}|${l.text}`} l={l} store={store} palette={palette} />)}
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+      {/* (T481) ONE solid bar: its lines, 8 px of solid padding, then a 24 px fade to the page, so no text shows through */}
+      <View style={{ backgroundColor: palette.card, paddingBottom: PIN_PAD }}>
+        {lines.map((l) => <Line key={`${l.cls}|${l.text}`} l={l} store={store} palette={palette} />)}
+      </View>
+      <PinFade color={palette.card} />
     </View>
   );
 }

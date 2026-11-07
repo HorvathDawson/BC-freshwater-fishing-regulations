@@ -60,7 +60,7 @@ export function groupOf(rowIx: number, inp: RegsInputs, env: KeepEnv, drawn: Rea
   const head = groupHeadOf(ctx, { tot: env.tot }), root = ctx.g.tree[0];
   return {
     row: rowIx, title: ctx.title, scope: ctx.scope, head,
-    pinLine: root ? groupLine(ctx.title, root, ctx.g.headline, head.form === "a") : null,
+    pinLine: root ? groupLine(ctx.title, ctx.g) : null,
     origin: originOf(ctx),
     year: yearWindowOf(ctx.row, inp, env.settled.day, seams),
     tree: treeOf(tenv), notKept: notKeptOf(ctx.g, tenv), worked: workedOf(ctx.row, ctx.g), quiet: quietOf(ctx.row, env.card),

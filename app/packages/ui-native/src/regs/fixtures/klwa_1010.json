@@ -184,6 +184,7 @@
      "form": null,
      "lead": null,
      "leadN": null,
+     "multi": null,
      "nolimit": false,
      "ofTotal": false,
      "rootTier": "t1",
@@ -248,8 +249,10 @@
     },
     "pinLine": {
      "cls": "g",
+     "n": 2,
+     "said": [],
      "sub": null,
-     "text": "Trout and char · This lake’s rule: 2 a day"
+     "text": "Trout and char · 2 a day"
     },
     "quiet": null,
     "row": 0,
@@ -1372,6 +1375,13 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": [
+        {
+         "open": "multi:r2",
+         "s": "Fishing more than one water today? ›",
+         "t": "link"
+        }
+       ],
        "nolimit": false,
        "ofTotal": false,
        "rootTier": "t1",
@@ -1413,8 +1423,10 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": 15,
+       "said": [],
        "sub": null,
-       "text": "Whitefish · 15 a day across Region 4"
+       "text": "Whitefish · 15 a day"
       },
       "quiet": null,
       "row": 2,
@@ -1525,6 +1537,7 @@
        "form": null,
        "lead": null,
        "leadN": null,
+       "multi": null,
        "nolimit": true,
        "ofTotal": false,
        "rootTier": "t1",
@@ -1572,6 +1585,8 @@
       },
       "pinLine": {
        "cls": "g",
+       "n": null,
+       "said": [],
        "sub": null,
        "text": "Bass · No daily limit on bass"
       },

@@ -58,6 +58,7 @@ const VEDDER_INLINE: string[] = [
   "button What does Conservation Surcharge Stamp for salmon mean?", "button What does Fly fishing only mean?",
   "button What does No fishing for (closed) mean?", "button What does Single barbless hook mean?",
   "button What does Steelhead Stamp mean?", "button What does Steelhead mean?",
+  "link Fishing more than one water today? ›",   // (T481) the head's link under the region's total (multi: sheet)
   "link How to tell hatchery ›",   // the page's own link run in a hatchery-only line (Line `link`), not GroupCard's HowTell press
   "link Rule book page 21, opens the PDF", "link Rule book page 22, opens the PDF", "link Rule book page 9, opens the PDF",
   "link Steelhead stamp ›", "link White Sturgeon Conservation Licence ›",

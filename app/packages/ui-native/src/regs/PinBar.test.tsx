@@ -48,36 +48,35 @@ const scrollTo = (y: number) => act(() => {
 const bar = () => {
   const b = screen.queryByTestId("pin-bar");
   if (!b) return [];
-  return [...b.children].map((line) => [...line.children].map((t) => t.textContent));
+  return [...b.querySelectorAll('[data-testid="pin-group"], [data-testid="pin-tier"]')].map((line) => [...line.children].map((t) => t.textContent));
 };
 describe("<PinBar> through the ScrollView", () => {
-  it("vedder_1010 in words: nothing at the top; the group line and its total; + the size line; + the rainbow line; nothing past the group", () => {
+  it("vedder_1010 in words (T481): nothing at the top; the water's limit; + the size breadcrumb; the exception tier never pins", () => {
     mount("vedder_1010");
     const seen: unknown[] = [];
-    for (const y of [0, 128, 240, 912, 968, 1128, 1624]) { scrollTo(y); seen.push(bar()); }
-    const G = ["Trout and char · 2 a day from streams", "(of 4 across Region 2)"];
+    for (const y of [0, 128, 300, 912, 968, 1128, 1624]) { scrollTo(y); seen.push(bar()); }
+    const G = ["Trout and char · 4 a day — up to 2 of any kind, the rest hatchery rainbow"];
     expect(seen).toEqual([
       [],
       [G],
-      [G, ["↳ of those, 1 over 50 cm (2 if one is a hatchery steelhead)"]],
+      [G, ["↳ 1 of them may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"]],
+      [G, ["↳ 1 of them may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"]],
       [G],
-      [G, ["↳ 4 hatchery rainbow trout a day under this river’s rule, not part of the 2 from streams"]],
       [G],
       [],
     ]);
   });
 
-  it("glenn_501 (form a): the share's own '↳ … from streams' never shows; the Duncan River's line does", () => {
+  it("glenn_501 (T481): the Duncan River's own tier beside the share is said in the first line and never pins", () => {
     mount("glenn_501");
     scrollTo(720);
-    expect(bar()).toEqual([["Trout and char · 2 a day from streams", "(of 5 across Region 4)"],
-      ["↳ 5 rainbow trout a day under the Duncan River’s rule, not part of the 2 from streams"]]);
+    expect(bar()).toEqual([["Trout and char · 5 a day — up to 2 of any kind, the rest rainbow"]]);
   });
 
   it("klwa_1010 (no form): one line, no sub", () => {
     mount("klwa_1010");
     scrollTo(128);
-    expect(bar()).toEqual([["Trout and char · This lake’s rule: 2 a day"]]);
+    expect(bar()).toEqual([["Trout and char · 2 a day"]]);
     scrollTo(744);
     expect(bar()).toEqual([]);
   });
@@ -86,26 +85,27 @@ describe("<PinBar> through the ScrollView", () => {
 describe("<PinBar> drawing", () => {
   it("each line's first whole number (and its sub's) is a nested Text in the heavy face", () => {
     mount("vedder_1010");
-    scrollTo(240);
+    scrollTo(300);
     const heavy = [...screen.getByTestId("pin-bar").querySelectorAll<HTMLElement>("div[dir] > span, div[dir] > div")]
       .filter((e) => e.style.fontFamily === FACE.textHeavy).map((e) => e.textContent);
-    expect(heavy).toEqual(["2", "4", "1"]);
+    expect(heavy).toEqual(["4", "1"]);
   });
 
-  it("the surface: absolute at the scroll's top edge, the card, a hairline under it, hidden from screen readers", () => {
+  it("the surface (T481): absolute at the scroll's top edge, ONE solid card block with 8 px under its lines, a 24 px fade, hidden from screen readers", () => {
     mount("vedder_1010");
     scrollTo(128);
     const b = screen.getByTestId("pin-bar");
-    expect([b.style.position, b.style.top, b.style.backgroundColor, b.style.borderBottomWidth, b.style.borderBottomColor,
-            b.getAttribute("aria-hidden")])
-      .toEqual(["absolute", "0px", toRgb(LIGHT.card), "1px", toRgb(LIGHT.line), "true"]);
+    expect([b.style.position, b.style.top, b.getAttribute("aria-hidden")]).toEqual(["absolute", "0px", "true"]);
+    const solid = b.firstElementChild as HTMLElement, fade = screen.getByTestId("pin-fade");
+    expect([solid.style.backgroundColor, solid.style.paddingBottom, fade.style.height, b.lastElementChild === fade])
+      .toEqual([toRgb(LIGHT.card), "8px", "24px", true]);
     // it overlays the scroll; it is not in it
     expect(screen.getByTestId("regs-scroll").contains(b)).toBe(false);
   });
 
   it("the size line wears the size section's rule colour and bar", () => {
     mount("vedder_1010");
-    scrollTo(240);
+    scrollTo(300);
     const size = screen.getAllByTestId("pin-tier")[0]!;
     expect([size.style.borderLeftWidth, size.style.borderLeftColor, size.style.paddingLeft, (size.firstElementChild as HTMLElement).style.color])
       .toEqual(["3px", toRgb(LIGHT.rule), "13px", toRgb(LIGHT.rule)]);
@@ -113,7 +113,7 @@ describe("<PinBar> drawing", () => {
 
   it("r20d-pinned-stack (render form): no line is clamped (v33: lines wrap)", () => {
     mount("vedder_1010");
-    scrollTo(240);
+    scrollTo(300);
     const clamped = [...screen.getByTestId("pin-bar").querySelectorAll<HTMLElement>("*")].filter((e) => e.style.webkitLineClamp || e.style.textOverflow);
     expect(clamped).toEqual([]);
   });
@@ -122,7 +122,7 @@ describe("<PinBar> drawing", () => {
     mount("vedder_1010");
     const before = keepRenders.n;
     expect(before).toBeGreaterThan(0);   // the counter does see the Keep tab render
-    for (let i = 0; i < 20; i++) scrollTo([128, 240, 928, 0][i % 4]!);
+    for (let i = 0; i < 20; i++) scrollTo([128, 300, 928, 0][i % 4]!);
     expect([keepRenders.n - before, bar().length]).toEqual([0, 0]);
   });
 });

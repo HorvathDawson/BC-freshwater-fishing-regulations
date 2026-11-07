@@ -5525,6 +5525,19 @@
        "title": "Tree",
        "type": "array"
       },
+      "water_max": {
+       "anyOf": [
+        {
+         "exclusiveMinimum": 0,
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Water Max"
+      },
       "worked": {
        "items": {
         "$ref": "#/$defs/Worked"
@@ -7939,6 +7952,18 @@
        ],
        "default": null
       },
+      "fish": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Fish"
+      },
       "id": {
        "pattern": "^t[0-9]+$",
        "title": "Id",
@@ -8074,6 +8099,18 @@
        "title": "Says",
        "type": "string"
       },
+      "short": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Short"
+      },
       "species": {
        "anyOf": [
         {
@@ -8138,6 +8175,22 @@
        ],
        "default": null,
        "title": "Why Here"
+      },
+      "within": {
+       "anyOf": [
+        {
+         "enum": [
+          "share",
+          "total"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Within"
       }
      },
      "required": [

@@ -218,7 +218,7 @@ def test_2_a_release_line_needs_no_info():
 def test_3_4_size_and_count_tiers_and_notes_say_up_to():
     g, _o, _P = _g(F.LAKE)
     size = g["tree"][0]["children"][0]
-    assert size["says"] == "Up to 1 over 50 cm (20 in) combined"
+    assert size["says"] == "Only 1 of all your trout and char may be over 50 cm (20 in) — not 1 per species."
     assert _kinds(g) == ["Up to 4 brook, brown, cutthroat or rainbow trout combined",
                          "Up to 1 Dolly Varden/bull trout or lake trout combined"]
     g, _o, _P = _g(F.COUNT)
@@ -229,7 +229,7 @@ def test_3_4_size_and_count_tiers_and_notes_say_up_to():
                                                                                "release any shorter")
     g, _o, _P = _g(F.NESTED)
     assert [t["says"] for t, _p in walk(g["tree"]) if t["node"] == "tier" and t["tier"] == "size"] == [
-        "Up to 2 over 30 cm (12 in) combined, and up to 1 over 50 cm (20 in)"]
+        "Only 2 of all your trout and char may be over 30 cm (12 in) — not 2 per species; up to 1 of them over 50 cm (20 in)."]
 
 
 # MUTATIONS: remove one rule, `dropped` names it ---------------------------------------------------------------------

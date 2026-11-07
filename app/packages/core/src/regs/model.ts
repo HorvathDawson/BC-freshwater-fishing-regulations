@@ -131,6 +131,9 @@ export interface GroupHeadVM {
   readonly terms: readonly string[];        // the daily_quota ⓘ
   readonly nolimit: boolean;
   readonly exception: string | null;        // (T479) "Exception to regional quota": the root tier's over_region; null: none
+  /** (T481) under a region's total, where it is first shown: "Fishing more than one water today? ›" (the row's `multi:r<row>`
+   *  sheet); null: the total is a water's own, or there is none */
+  readonly multi?: Line | null;
 }
 export interface OriginVM { readonly says: Line; readonly tag: string | null; readonly howtell: boolean; readonly book: Line }
 

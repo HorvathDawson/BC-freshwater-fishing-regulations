@@ -13,7 +13,8 @@
  * Nothing here decides a regulation: every word on a line is the store's (shortOf over the stored tree, the stored headline);
  * this only chooses which lines stand in the bar at a scroll offset.
  */
-import { shortOf, type ShortTier } from "./grouphead";
+import type { GroupTotal, TreeTier } from "../answers.generated";
+import { shortOf } from "./grouphead";
 import type { Tab } from "./model";
 import { WORDS } from "./words";
 
@@ -30,21 +31,66 @@ export interface PinLine {
   readonly cls: "g" | "g two" | "c"; readonly text: string; readonly sub: string | null;
   /** (T29) a tier line's tier (prototype `data-tier`: the size line is drawn in the size section's rule colour) */
   readonly tier?: string;
+  /** (T481) the group line only: the tiers it already says (the share, a water's own tier beside it) — they never pin */
+  readonly said?: readonly string[];
+  /** (T481) the group line only: the number the breadcrumb's first level counts from ("1 of them") */
+  readonly n?: number | null;
 }
 
-/** The group line (pinUpdate 1735): form a with a headline → the share leads, the total in brackets under it; else
- *  "<name> · <shortOf(root)>". */
-export function groupLine(name: string, root: ShortTier, headline: { n: number | null; says: string } | null, formA: boolean): PinLine {
-  if (formA && headline) {
-    // the total's "N a day across X" read as "N across X" inside the brackets (the prototype's own rewrite of shortOf's words)
-    return { cls: "g two", text: `${name}${WORDS.DOT_SEP}${shortOf({ tier: "share", n: headline.n, says: headline.says })}`,
-      sub: WORDS.PIN_OF_TOTAL(shortOf(root).replace(/ a day /, " ")) };
+const tierKids = (t: TreeTier): TreeTier[] => t.children.filter((c): c is TreeTier => c.node === "tier");
+
+/**
+ * (T481, owner 2026-11-07, "here-max + one breadcrumb") The bar's first line: the WATER's limit, never the region's total.
+ * - a plain root: "Kokanee · 10 a day";
+ * - a stream (lake) share and nothing beside it: "Trout and char · 2 a day from streams";
+ * - a share and a water's own tier beside it, inside the total (`within` "total", the T479 exceptions): the stored
+ *   `water_max` leads and the parts are inside it — "Trout and char · 4 a day — up to 2 of any kind, the rest hatchery
+ *   rainbow" (owner: no double negatives; nothing in the line adds up to more than the true most). Those tiers never pin.
+ * Every number is the store's (the tree, `water_max`); this only words them.
+ */
+export function groupLine(name: string, g: Pick<GroupTotal, "tree"> & { readonly water_max?: number | null }): PinLine {
+  const root = g.tree[0]!;
+  const line = (rest: string, said: string[], n: number | null): PinLine => ({ cls: "g", text: `${name}${WORDS.DOT_SEP}${rest}`, sub: null, said, n });
+  if (root.n == null) return line(shortOf(root), [], null);
+  const share = tierKids(root).find((t) => t.tier === "share") ?? null;
+  if (!share || share.n == null) return line(WORDS.PIN_A_DAY(root.n), [], root.n);
+  const beside = tierKids(root).filter((t) => t.tier === "own" && t.within === "total");
+  const max = g.water_max ?? root.n;
+  const fish = beside.map((t) => t.fish).filter((f): f is string => !!f);
+  if (beside.length && max > share.n && fish.length === beside.length)
+    return line(WORDS.PIN_EXCEPTION(max, share.n, [...new Set(fish)].join(WORDS.PIN_OR)), [share.id, ...beside.map((t) => t.id)], share.n);
+  const from = /from (this stream|this lake|streams|lakes)/.exec(share.says)?.[1] || WORDS.SHORT_STREAMS;
+  return line(WORDS.PIN_SHARE(share.n, from), [share.id], share.n);
+}
+
+/** One breadcrumb level: a tier the scroll is inside (its kind, number and stored short words, TierVM.short). */
+export interface CrumbLevel { readonly tier: string; readonly n: number | null; readonly short: string }
+
+/**
+ * (T481) The bar's second line: the path below the root, "; of those, " between levels. A level whose number is at or over
+ * its parent's caps nothing further and is folded. A size level counts only what is over its size, so it is no parent:
+ * "1 of them may be over 50 cm (20 in)" where it counts from the first line, "of those, 1 may be over …" under a count
+ * level (owner: "of them" must point at the right fish). "" where nothing is left.
+ */
+export function breadcrumb(levels: readonly CrumbLevel[], n0: number | null): string {
+  const parts: string[] = [];
+  let ref = n0, prev: "line" | "count" | "size" = "line";
+  for (const L of levels) {
+    if (L.n != null && ref != null && L.n >= ref) continue;               // caps nothing further
+    if (L.tier === "size") {
+      const k = L.n ? String(L.n) : WORDS.PIN_NONE;
+      parts.push(prev === "count" ? `${WORDS.SHORT_OF_THOSE}${k} ${L.short}` : `${k}${WORDS.PIN_OF_THEM} ${L.short}`);
+      prev = "size";
+    } else {
+      parts.push(prev === "count" ? `${WORDS.SHORT_OF_THOSE}${L.short}` : L.short);
+      ref = L.n ?? ref; prev = "count";
+    }
   }
-  return { cls: "g", text: `${name}${WORDS.DOT_SEP}${shortOf(root)}`, sub: null };
+  return parts.join(WORDS.PIN_LEVEL_SEP);
 }
 
-/** A tier's pinned line: "↳ " + its short line (TierVM.short). */
-export const tierLine = (short: string): PinLine => ({ cls: "c", text: `${WORDS.SHARE_ARROW}${short}`, sub: null });
+/** A tier's pinned line: "↳ " + the breadcrumb. */
+export const tierLine = (crumb: string, tier?: string): PinLine => ({ cls: "c", text: `${WORDS.SHARE_ARROW}${crumb}`, sub: null, ...(tier ? { tier } : {}) });
 
 /** pinUpdate hOf before a line has been measured: one LH, two with a sub. */
 export const pinLineEstimate = (l: PinLine): number => (l.sub ? 2 * PIN_LH : PIN_LH);
@@ -80,15 +126,21 @@ export function pinChain(anchors: readonly PinAnchor[], scrollY: number, vp: Pin
   const y = vp.header, top = (e: { top: number }) => e.top - scrollY;
   const art = anchors.find((a) => top(a) < y && top(a) + a.height > y + vp.LH);
   if (!art || !art.group || !art.tree || !art.groupLine || !art.pin || !(top(art.pin) < y)) return [];
-  const lines: PinLine[] = [art.groupLine];
-  let B = y + heightOf(art.groupLine);
-  for (const t of art.tiers) {
-    if (t.short == null || !t.head) continue;
-    if (art.formA && t.tier === "share" && t.n === art.headlineN) continue;   // form a: the group line already says the share
-    const line: PinLine = { ...tierLine(t.short), tier: t.tier }, h = heightOf(line);
-    if (top(t.head) < B && t.end != null && t.end - scrollY > B + h + vp.ROW) { lines.push(line); B += h; }
+  const g = art.groupLine, said = new Set(g.said ?? []);
+  const B = y + heightOf(g);
+  // (T481) ONE bar of at most two lines: every tier the scroll is inside, but what the first line says, as one breadcrumb
+  const under = (h: number) => art.tiers.filter((t) => t.short != null && t.head && !said.has(t.tid) && t.tier !== "share"
+    && top(t.head) < B && t.end != null && t.end - scrollY > B + h + vp.ROW);
+  const lineOf = (ts: readonly PinTierAnchor[]): PinLine | null => {
+    const crumb = breadcrumb(ts.map((t) => ({ tier: t.tier, n: t.n, short: t.short! })), g.n ?? null);
+    return crumb ? tierLine(crumb, ts.every((t) => t.tier === "size") ? "size" : undefined) : null;
+  };
+  let line = lineOf(under(vp.LH));
+  if (line) {
+    const h = heightOf(line);
+    if (h !== vp.LH) line = lineOf(under(h));          // the measured height of the line it would draw
   }
-  return lines;
+  return line ? [g, line] : [g];
 }
 
 /** What the app draws: the chain itself (kept as the seam T29 calls; the v33 "skip" divergence is gone, C5). */
