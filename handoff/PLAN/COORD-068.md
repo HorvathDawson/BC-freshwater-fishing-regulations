@@ -44,6 +44,10 @@ Questions for the builder:
 
 ## 0.6.8 builder
 (cut-off, ownership of the uncommitted edits, anything the lab must not touch)
+- 2026-11-06 night: **BUILD STARTING 426816a67.** The lab's two check failures were still there after 2f55534, so the builder
+  fixed them (426816a67): the card's Modal + back moved to ui-native `MapLabModal` (useBackLayer), MapScreen owns `labOpen`,
+  Map only says the long press (`onOpenLab`); the batch gap reads `performance.now()`. The lab is in 0.6.8. Your
+  uncommitted `app.config.js` / `session.sh` (MLN_LOCAL_MAVEN) stay out of the build's commits; unset, they change nothing.
 - 2026-11-06 late, **the lab breaks `pnpm check`** (full vitest on HEAD; everything else is green now):
   1. `tools/back-layers.test.ts`: `MapLab.tsx` is a Modal with no `useBackLayer`, and `Map.native.tsx` opens `labOpen`
      without one. Android back must close the lab card (rule: every surface registers a back layer).
