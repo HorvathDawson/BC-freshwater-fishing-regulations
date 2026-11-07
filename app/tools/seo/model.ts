@@ -225,6 +225,34 @@ export async function listWaterOrds(store: RegsStore): Promise<number[]> {
   return rows.map((r) => Number(r.ord));
 }
 
+/**
+ * (T490) WHAT AN ANGLER MUST DO on the water, without our words: per keyed part, the key's flags and every rule bound to
+ * it (its ids and bound values) — never a rule's `label`, its `verbatim`, its `parts` words, its provenance notes or the display text, so a
+ * wording-only release moves no water here. /changes lists the waters whose rules moved; the page hash still moves lastmod.
+ */
+export async function rulesKey(store: RegsStore, ord: number): Promise<string> {
+  const [parts, rules] = await Promise.all([store.parts(ord), store.rules()]);
+  const out: unknown[] = [];
+  for (const p of parts) {
+    if (p.akey === null || p.facts === null) continue;
+    const k = await store.akey(p.akey), set = await store.ruleset(k.ruleset);
+    const bound = (rix: number) => {
+      const r = rules.get(rix);
+      if (!r) throw new Error(`seo: ruleset ${k.ruleset} names rule ${rix}, which the release does not have`);
+      const e = r.export;
+      return [e.entry_id, e.rule_id, e.type, e.family, e.fields, e.dimension ?? null, e.binds ?? null,
+        e.not_yet_mapped ?? null, e.prov.rank, e.prov.region ?? null];
+    };
+    const ids = (xs: readonly number[]) => xs.map(bound).sort((a, b) => `${a[0]}|${a[1]}`.localeCompare(`${b[0]}|${b[1]}`));
+    out.push([p.partIx, k.kind, k.tidal, k.steelhead, k.steelheadWater, k.steelheadRules, ids(set.reach), ids(set.trib)]);
+  }
+  return canon(out);
+}
+/** JSON with every object's keys sorted: a release that writes the same fields in another order is no change */
+const canon = (v: unknown): string => Array.isArray(v) ? `[${v.map(canon).join(",")}]`
+  : v && typeof v === "object" ? `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canon((v as Record<string, unknown>)[k])}`).join(",")}}`
+  : JSON.stringify(v ?? null);
+
 async function regionsOf(store: RegsStore, akeys: readonly number[]): Promise<number[]> {
   const w = await store.water();
   const out = new Set<number>();

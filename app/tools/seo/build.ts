@@ -10,6 +10,7 @@
  *                                [--slug-map app/seo/slug-map.json --update-slugs] [--previous <snapshot.json>] [--date YYYY-MM-DD]
  *   node app/tools/build-seo.mjs --fixture [--app <web export>]
  *   node app/tools/build-seo.mjs --release-dir <folder> --snapshot-only   (no pages: only what the NEXT release is diffed against)
+ *   node app/tools/build-seo.mjs --release-dir <folder> --snapshot-only --keep-pages   (T490: upgrade a kept snapshot in place)
  *
  * The snapshot (each water's rules hash + each page's lastmod) is kept between releases in app/dist/seo-snapshots/
  * <release>.json; a build without `--previous` diffs against the newest kept snapshot of ANOTHER release (the /changes page
@@ -276,7 +277,13 @@ async function snapshotOnly(dir: string, args: readonly string[]): Promise<void>
   const slugFile = resolve(opt(args, "--slug-map") ?? SLUG_MAP_FILE);
   const built = await buildAll({ loader: openReleaseDir(resolve(dir)), on: buildDayOf(now), bare: true,
     slugMap: existsSync(slugFile) ? (JSON.parse(readFileSync(slugFile, "utf8")) as SlugMap) : EMPTY_SLUG_MAP });
-  const snap = { ...built.build.snapshot, pages: {} };
+  // (T490) `--keep-pages`: rewrite a kept snapshot with today's water hashes, carrying its as-of day and its pages' lastmods (an older snapshot
+  // format, upgraded without losing when each page last moved)
+  const kept = join(SNAPSHOT_DIR, `${built.build.snapshot.release}.json`);
+  if (args.includes("--keep-pages") && !existsSync(kept)) throw new Error(`seo: --keep-pages: no kept snapshot ${kept}`);
+  const was = args.includes("--keep-pages") ? (JSON.parse(readFileSync(kept, "utf8")) as Snapshot) : null;
+  const pages = was?.pages ?? {};
+  const snap = { ...built.build.snapshot, ...(was ? { asOf: was.asOf } : {}), pages };
   put(SNAPSHOT_DIR, `${snap.release}.json`, `${JSON.stringify(snap, null, 1)}\n`);
-  console.log(`seo: snapshot of ${snap.release} (${Object.keys(snap.waters).length} waters, no pages) -> ${join(SNAPSHOT_DIR, `${snap.release}.json`)}`);
+  console.log(`seo: snapshot of ${snap.release} (${Object.keys(snap.waters).length} waters, ${Object.keys(pages).length} pages kept) -> ${join(SNAPSHOT_DIR, `${snap.release}.json`)}`);
 }

@@ -240,13 +240,14 @@ describe("T195 hubs and dated pages", () => {
     expect(cal.some((p) => /<li><strong>[A-Z][a-z]{2} \d+<\/strong> (opens|closes): <a href="\/water\//.test(p.html))).toBe(true);
   });
 
-  it("the changes page appears only against a previous release, and lists changed, new and removed waters", async () => {
+  it("the changes page appears only against a previous release, and lists changed (rules), new and removed waters", async () => {
     expect(built.build.pages.some((p) => p.kind === "changes")).toBe(false);
     const ids = Object.keys(built.build.snapshot.waters);
     const prev = {
       ...built.build.snapshot, release: "r-000000000000", asOf: "2026-01-01",
-      waters: { ...built.build.snapshot.waters, [ids[0]!]: { ...built.build.snapshot.waters[ids[0]!]!, hash: "old" },
-                "gnis:1": { slug: "gone", name: "Gone Creek", hash: "x" } },
+      waters: { ...built.build.snapshot.waters, [ids[0]!]: { ...built.build.snapshot.waters[ids[0]!]!, hash: "old", rules: "old" },
+                [ids[2]!]: { ...built.build.snapshot.waters[ids[2]!]!, hash: "old" },
+                "gnis:1": { slug: "gone", name: "Gone Creek", hash: "x", rules: "x" } },
     };
     delete (prev.waters as Record<string, unknown>)[ids[1]!];
     const next = await buildAll({ loader: openRegsFixture(), on: TODAY, previous: prev });
@@ -254,7 +255,17 @@ describe("T195 hubs and dated pages", () => {
     const t = text(page.html);
     expect(t).toMatch(/Rules changed \(1\)/); expect(t).toMatch(/New waters \(1\)/); expect(t).toMatch(/no longer listed \(1\)/);
     expect(t).toContain("Gone Creek"); expect(t).toContain("r-000000000000");
+    // (T490) ids[2]'s words moved, its rules did not: not a rule change, one wording line (a wording release listed 19k waters)
+    expect(t).toContain("Wording updated on 1 water: the rules there are the same.");
+    expect(page.html).not.toContain(`/water/${built.build.snapshot.waters[ids[2]!]!.slug}"`);
     expect(next.files.get("sitemap-1.xml")).toContain("/changes");
+    // a wording-only release: the page says so once and lists no water
+    const words = { ...built.build.snapshot, release: "r-000000000000", waters: Object.fromEntries(Object.entries(built.build.snapshot.waters).map(([k, w]) => [k, { ...w, hash: "old" }])) };
+    const wt = text((await buildAll({ loader: openRegsFixture(), on: TODAY, previous: words })).build.pages.find((p) => p.kind === "changes")!.html);
+    expect(wt).toMatch(/Rules changed \(0\)/); expect(wt).toContain(`Wording updated on ${ids.length} waters: the rules there are the same.`);
+    // a snapshot from before the rules hash is refused, naming the upgrade, never read as "every water changed"
+    const before = { ...built.build.snapshot, release: "r-000000000000", waters: Object.fromEntries(Object.entries(built.build.snapshot.waters).map(([k, w]) => [k, { slug: w.slug, name: w.name, hash: w.hash }])) };
+    await expect(buildAll({ loader: openRegsFixture(), on: TODAY, previous: before as never })).rejects.toThrow(/no rules hash .*--snapshot-only --keep-pages/);
     // another release with the same rules (a re-cut): nothing to say, so no page and no sitemap entry
     const same = await buildAll({ loader: openRegsFixture(), on: TODAY, previous: { ...built.build.snapshot, release: "r-000000000000" } });
     expect(same.build.pages.some((p) => p.kind === "changes")).toBe(false);

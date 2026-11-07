@@ -11,7 +11,7 @@ import type { RegsStore } from "@app/data/regs";
 import { slugShard, SLUG_SHARDS } from "@app/ui";
 import { aboutBody, privacyBody, CSS, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
-import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
+import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, rulesKey, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
 import { TOPICS, topicLines, type TopicKey } from "./topics";
 import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
@@ -35,7 +35,8 @@ export const checkWaterPage = (html: string, origin: string): string[] => checkJ
 export interface Snapshot {
   readonly release: string; readonly asOf: string;
   readonly pages: Readonly<Record<string, { readonly hash: string; readonly lastmod: string }>>;
-  readonly waters: Readonly<Record<string, { readonly slug: string; readonly name: string; readonly hash: string }>>;
+  /** `hash`: the water's page words (lastmod); `rules`: what an angler must do there (`rulesKey`, T490: /changes) */
+  readonly waters: Readonly<Record<string, { readonly slug: string; readonly name: string; readonly hash: string; readonly rules: string }>>;
 }
 export interface BuildOpts {
   readonly store: RegsStore; readonly site: Site; readonly release: Release; readonly on: BuildDay;
@@ -142,7 +143,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     if (was) bad.push(`${path} and ${was} share a ${what === titles ? "title" : "description"}: ${v}`);
     what.set(v, path);
   };
-  const waterHash = new Map<string, string>();
+  const waterHash = new Map<string, string>(), waterRules = new Map<string, string>();
   const made: { path: string; hash: string; title: string; description: string; page: Promise<WaterMade> }[] = [];
   const waterTopics = new Map<string, Map<TopicKey, string[]>>();
   const nameCount = new Map<string, number>(), sameQual = new Map<string, WaterModel[]>();
@@ -162,6 +163,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     unique(titles, title, path); unique(descriptions, description, path);
     const hash = sha(JSON.stringify(m.parts.map((p) => [p.label, p.sections.filter((s) => s.title !== "Why it is closed").map((s) => [s.title, s.items.filter((i) => !i.dated)])])));
     waterHash.set(m.id, hash);
+    waterRules.set(m.id, sha(await rulesKey(store, m.ord)));
     // the topic lines feed the hubs (each a sentence the water's own pane shows)
     waterTopics.set(m.id, topicLines(m));
     const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site), image: `/share/${slugOf(m.id)}.png` }, site);
@@ -281,16 +283,23 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const prev = o.previous;
   if (prev && prev.release !== release.id) {
     const was = prev.waters, now = new Map(models.map((m) => [m.id, m]));
-    const added = models.filter((m) => !(m.id in was)), changed = models.filter((m) => m.id in was && was[m.id]!.hash !== waterHash.get(m.id));
+    // (T490) a snapshot from before the rules hash cannot say which waters' RULES moved: refused, never read as "all changed"
+    const old = Object.values(was).find((w) => typeof w.rules !== "string");
+    if (old) throw new Error(`seo: the previous snapshot (${prev.release}) has no rules hash (made before T490); rewrite it, keeping its pages: ` +
+      `node tools/build-seo.mjs --release-dir <${prev.release} folder> --snapshot-only --keep-pages`);
+    const added = models.filter((m) => !(m.id in was)), changed = models.filter((m) => m.id in was && was[m.id]!.rules !== waterRules.get(m.id));
+    // the words moved, the rules did not (a wording release): one line, never a list of every water as "changed"
+    const reworded = models.filter((m) => m.id in was && was[m.id]!.rules === waterRules.get(m.id) && was[m.id]!.hash !== waterHash.get(m.id)).length;
     const gone = Object.entries(was).filter(([id]) => !now.has(id)).map(([, w]) => w.name).sort();
     // nothing differs (two cuts of the same rules): no page — an empty "changes" page is thin content, not news
-    if (changed.length + added.length + gone.length > 0) {
+    if (changed.length + added.length + gone.length + reworded > 0) {
     const ul = (xs: readonly WaterModel[]) => `<ul class="cols">${xs.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a></li>`).join("")}</ul>`;
     const path = "/changes", title = clip(`BC fishing regulation changes this release — ${site.name}`, 60);
     const body = `<nav class="crumbs"><a href="/">Home</a> › Changes</nav><h1>Fishing regulation changes in this release</h1>` +
       `<p class="asof">As of <time datetime="${asOf}">${asOf}</time>: release ${esc(release.id)} compared with release ${esc(prev.release)} (<time datetime="${prev.asOf}">${prev.asOf}</time>).</p>` +
       `<h2>Rules changed (${changed.length})</h2>${ul(changed)}<h2>New waters (${added.length})</h2>${ul(added)}` +
       `<h2>Waters no longer listed (${gone.length})</h2><ul class="cols">${gone.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` +
+      (reworded ? `<p>Wording updated on ${reworded} ${reworded === 1 ? "water" : "waters"}: the rules there are the same.</p>` : "") +
       `<div class="legal"><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
     const description = clip(`${changed.length} waters with changed rules, ${added.length} new and ${gone.length} removed since release ${prev.release}.`);
     unique(titles, title, path); unique(descriptions, description, path);
@@ -340,7 +349,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   shards.forEach((sh, i) => files.set(`water-slugs/${i}.json`, JSON.stringify(sh)));
   const snapshot: Snapshot = {
     release: release.id, asOf, pages: snapPages,
-    waters: Object.fromEntries(models.map((m) => [m.id, { slug: slugOf(m.id), name: m.name, hash: waterHash.get(m.id)! }])),
+    waters: Object.fromEntries(models.map((m) => [m.id, { slug: slugOf(m.id), name: m.name, hash: waterHash.get(m.id)!, rules: waterRules.get(m.id)! }])),
   };
   files.set("snapshot.json", `${JSON.stringify(snapshot, null, 1)}\n`);
   return { files, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions };
