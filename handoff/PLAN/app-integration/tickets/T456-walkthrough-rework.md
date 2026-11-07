@@ -14,6 +14,14 @@ example. Also it should show examples of how to read the rules, how to read the 
    took it as a Back (`useBackLayer` → `guide.back`), moved one step back, and did not put the app where that step
    expects. Leaving the page during a walk needs a clear rule (guardrail): e.g. the walk pauses, or the step that needs
    the page brings the reader back to it. It must never land half-way.
+   **More from the tester:** "it all started when the tutorial said click back on the map button; it just brought me
+   back a step instead." So the step ASKED for "‹ Map", and pressing it was caught as the walk's Back. The walk's back
+   handler (`useBackLayer(guide.open, guide.back)`) sits on top of the page's own back. When the ringed control IS a
+   back/close control, pressing it must do its own job (leave the page) AND complete the step, never go back a step.
+   The owner's direction: "make it more interactive, so the user clicks it to go next, instead of it doing the normal
+   action under the hood then borking it". Pressing the ringed control is how a step moves on. The walk never also runs
+   the action behind the reader's back. Test: on that step, press "‹ Map" → the water page closes, the walk is on the
+   NEXT step, the log holds the page's own close once.
 
 ## Work
 1. **Never cover the target:** the card is placed beside the ringed control and never over it (above/below, or docked
