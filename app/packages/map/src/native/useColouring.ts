@@ -240,7 +240,8 @@ export function useNativeColouring(o: {
         { getFeatureState?: (f: { id: string; sourceLayer: string }) => Promise<Record<string, unknown>> } | null;
       if (was && src?.getFeatureState)
         void src.getFeatureState({ id: was.id, sourceLayer: was.layer })
-          .then((st) => panProbe.kept(Object.keys(st ?? {}).length > 0), () => panProbe.kept(null));
+          .then((st) => panProbe.kept(Object.keys(st ?? {}).length > 0),
+                (e: unknown) => { panProbe.kept(null); ref.current.report(e); });
     }
     c.reset();
     queue.current.forget();

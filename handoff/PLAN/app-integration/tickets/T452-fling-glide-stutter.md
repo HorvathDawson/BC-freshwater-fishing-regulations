@@ -38,5 +38,9 @@ Runs: `out/runs/t452-a` (before, experiment build), `t452-c` (after, committed p
 **Proposal (owner's call):** the glide's SHAPE is different: it starts at the finger's speed and eases out longer and
 softer (≈1.25 s vs 0.67 s at this speed, similar distance) — more like a list or Google Maps. If it feels too floaty,
 the length is one number (`platformFlingDp`) and the decay curve can be shortened.
-Not verified: the settle's reported camera centre against the map's (the feel scenario's `[cam]` travel was not rerun);
-iOS (no change there); a real Pixel 9.
+**Settle camera checked (2026-11-06, test bed `feel`, `out/runs/t452-feel`):** the scenario now also reads the binding
+probe's last `m` sample (the map's real centre off its projection) per gesture. Flings at 1429 / 952 / 571 dp/s: the
+settle's reported travel 459 / 258 / 182 dp = the real travel to the dp (err 0), the reported centre 0.3 dp from the
+real one each time (constant: no stale settle). The 2286 dp/s fling had no baseline (the slow drags log no probe `m`
+samples, a probe gap, not the settle's); drags ×0.97 of the finger as before; arrivals settle as before. No fix needed.
+Not verified: iOS (no change there); a real Pixel 9 (owner's feel check on 0.6.7).

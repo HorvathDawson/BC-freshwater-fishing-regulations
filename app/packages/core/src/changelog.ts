@@ -21,6 +21,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.6.7", date: "2026-11-06", notes: [
+      "A flick of the map glides more smoothly and starts at the speed of your finger",
+      "Streams no longer flicker when you switch back to the map",
+      "A small part of a river is shown large enough to read when you step to it",
+    ],
+  },
+  {
     version: "0.6.6", date: "2026-11-06", notes: [
       "The map pans more smoothly zoomed out and draws less work on high-resolution screens",
       "Stepping up or down a river no longer jumps the map from far out to very close",

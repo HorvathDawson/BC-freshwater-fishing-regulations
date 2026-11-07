@@ -28,6 +28,11 @@ const mx = (lon, z) => ((lon + 180) / 360) * 512 * 2 ** z;
 const my = (lat, z) => { const p = (lat * Math.PI) / 180; return ((1 - Math.log(Math.tan(p) + 1 / Math.cos(p)) / Math.PI) / 2) * 512 * 2 ** z; };
 /** The screen distance (dp) between two camera centres, at the first one's zoom. */
 const travelDp = (a, b) => Math.hypot(mx(b.lon, a.zoom) - mx(a.lon, a.zoom), my(b.lat, a.zoom) - my(a.lat, a.zoom));
+/** (T452) The binding probe's last camera sample since the last clear: the map's real centre where it stopped. */
+function probeLast(ctx) {
+  const m = ctx.device.sh('logcat -d -s CifCam:D').split('\n').map((l) => /CifCam\s*:\s*m \S+ (\S+) (\S+) (\S+)/.exec(l)).filter(Boolean).at(-1);
+  return m ? { lon: Number(m[1]), lat: Number(m[2]), zoom: Number(m[3]) } : null;
+}
 /**
  * MapLibre Android 13.6's fling (`MapGestureDetector.onFling`, javap, T312): released at v dp/s (≥ the threshold), it
  * glides for v / 7 / 1.5 + base ms and moves v × time × 0.28 / 1000 dp. The defaults (base 150, threshold 1000) and the
@@ -45,10 +50,11 @@ export const feel = {
     const k = Number(/(\d+)\s*$/.exec(d.sh('wm density').trim().split('\n').pop() ?? '')?.[1] ?? 420) / 160;
     const [w, h] = (/(\d+)x(\d+)/.exec(d.sh('wm size'))?.slice(1) ?? ['1080', '2400']).map(Number);
     const cx = Math.round(w / 2), cy = Math.round(h * 0.45);
-    let at = null;
+    let at = null, real = null;
     /** The camera at rest now: the last `[cam]` line (the log is cleared before each gesture, so it is kept). */
     const rest = () => lines(ctx, '[cam]').at(-1) ?? null;
     await ctx.step(`the map up (cold start, Wi-Fi), the camera at ${PLACE.lon},${PLACE.lat} z${PLACE.zoom} (camera link)`, async () => {
+      d.sh('setprop log.tag.CifCam D');
       await d.net('wifi'); d.link('full', 'none');
       await coldStart(ctx, { ms: 90_000 });
       await toMap(ctx);
@@ -56,6 +62,7 @@ export const feel = {
       cameraTo(ctx, PLACE);
       await d.sleep(6000);
       at = rest();
+      real = probeLast(ctx);
       if (!at) throw new Error('no [cam] line after the camera link (build without EXPO_PUBLIC_PAN_PROBE, or the link not taken)');
       return `density ${k} · at ${JSON.stringify(at)}`;
     }, { stop: true });
@@ -68,13 +75,20 @@ export const feel = {
       const now = rest();
       if (!now) throw new Error('no [cam] line after the gesture');
       const r = { fingerDp: Math.abs(dx) / k, mapDp: travelDp(at, now), user: now.user };
+      const probe = probeLast(ctx);
+      if (probe && real) {
+        r.realDp = travelDp(real, probe);
+        r.camErrDp = Math.round(Math.abs(r.realDp - r.mapDp) * 10) / 10;
+        r.offDp = Math.round(travelDp(now, probe) * 10) / 10;
+      }
       at = now;
+      real = probe ?? real;
       return r;
     };
     await ctx.step('drag: 3 slow drags of 400 px (1500 ms, no fling): the map moves with the finger', async () => {
       for (const dx of [400, -400, 400]) out.drag.push(await gesture(dx, 1500));
       keep();
-      return out.drag.map((r) => `finger ${r.fingerDp.toFixed(0)} dp → map ${r.mapDp.toFixed(0)} dp (×${(r.mapDp / r.fingerDp).toFixed(2)})`).join(' · ');
+      return out.drag.map((r) => `finger ${r.fingerDp.toFixed(0)} dp → map ${r.mapDp.toFixed(0)} dp (×${(r.mapDp / r.fingerDp).toFixed(2)}; real ${r.realDp?.toFixed(0) ?? '?'}, err ${r.camErrDp ?? '?'}, off ${r.offDp ?? '?'})`).join(' · ');
     });
     await ctx.step(`fling: 300 px flicks in ${FLINGS.join(', ')} ms, the glide past the finger`, async () => {
       let dir = 1;
@@ -86,7 +100,7 @@ export const feel = {
                          was: Math.round(glide(v, 150, 1000)), patched: Math.round(glide(v, 450, 500)) });
       }
       keep();
-      return out.fling.map((f) => `${f.vDp} dp/s: map ${f.mapDp.toFixed(0)} dp, glide ${f.glideDp} dp (formula: defaults ${f.was}, T312 ${f.patched})`).join(' · ');
+      return out.fling.map((f) => `${f.vDp} dp/s: map ${f.mapDp.toFixed(0)} dp, glide ${f.glideDp} dp (real ${f.realDp?.toFixed(0) ?? '?'}, err ${f.camErrDp ?? '?'}, off ${f.offDp ?? '?'}; formula: defaults ${f.was}, T312 ${f.patched})`).join(' · ');
     });
     for (const a of ARRIVALS) {
       await ctx.step(`arrival: "${a.q}" opened from search, back → the camera moves until it rests`, async () => {
