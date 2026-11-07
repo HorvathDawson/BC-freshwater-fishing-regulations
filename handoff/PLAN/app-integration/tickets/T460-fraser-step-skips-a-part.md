@@ -1,6 +1,6 @@
 # T460 — Fraser: ▲ from "Williams Lake River confluence → Region 7A boundary" offers two parts, one skips a part
 
-Status: DONE 2026-11-06 — 96f7b5919 (Q1: case (a), the rules are right, 950c2a3; Q2: the step fixed). Owner: phone check on 0.6.8.
+Status: DONE 2026-11-06 — 96f7b5919, 92a25d8ee (Q1: case (a), the rules are right, 950c2a3; Q2: the step fixed). Owner: phone check on 0.6.8.
 
 Owner: "upstream of Fraser at Williams Lake River confluence → Region 7A boundary has 2 upstream Fraser options?
 Shouldn't it only have 1? It gives an option to basically skip one of the sections."
@@ -68,3 +68,12 @@ skipped step each way): Fraser (this one), West Road (Blackwater) (the same shap
 channels), and the border streams Blanchard, Little Hay, Wap and Sleigh (a step into a later stretch past an earlier one).
 Every part stays reachable from the mouth in all 650, except Bulkley River (6 of 12 parts unreachable). That was true
 before this change too, so it has its own ticket: T464.
+
+## Correction (2026-11-06, 92a25d8ee): side channels are forks
+The first rule also removed the Skeena's fork at the Ecological Reserve (▲ to the main stem OR the side channel beside it,
+pinned by `waterMap` / `WaterMapView` tests; also the Snehumption's "2 side channels"). In the marks that shape is the
+Fraser's. The release's `part.km` tells them apart: a side channel has none. A side channel is now never a skip, and no
+step FROM one is either (its ▼ offers both places it rejoins). `side` comes from the data layer (`waterGroup.ts`) into
+core. Final count vs the code before T460: **8 waters** change (Fraser, West Road (Blackwater), Little Qualicum, Peace,
+and the border streams Blanchard, Little Hay, Wap, Sleigh), plus the Bulkley from T464. The Skeena and Snehumption are as
+before.
