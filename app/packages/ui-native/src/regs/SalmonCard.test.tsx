@@ -78,6 +78,13 @@ describe("the Salmon card", () => {
     expect(screen.getAllByTestId("salmon-look").length).toBe(5);
     expect(screen.getByTestId("pic:CO").textContent).toBe("Coho ›");
     expect(screen.getByTestId("salmon-card-block-gear").textContent).toBe("No natural bait allowed (Jan 1–Dec 31)");
+    // (T482) DFO's source block is a fold, closed by default: its summary only, then everything on a press
+    const summary = screen.getByTestId("salmon-source-summary");
+    expect([summary.textContent, summary.getAttribute("aria-expanded"), screen.queryByTestId("salmon-source")])
+      .toEqual(["Source (DFO)", "false", null]);
+    expect(screen.queryByTestId("salmon-note")).toBeNull();
+    fireEvent.click(summary);
+    expect(screen.getByTestId("salmon-note").textContent).toBe("Salmon are set by DFO, not the provincial regulations above. Both apply.");
     expect([screen.getByTestId("salmon-source").textContent, screen.getByTestId("salmon-asof").textContent])
       .toEqual(["Fisheries and Oceans Canada · Region 6 Skeena", "DFO page dated Aug 28, 2026"]);
     expect(screen.getByTestId("salmon-credit").textContent).toContain("Fisheries and Oceans Canada (DFO)");
@@ -85,9 +92,19 @@ describe("the Salmon card", () => {
     expect(screen.queryByTestId("salmon-checked")).toBeNull();
   });
 
+  it("(T482) the page's salmon hours are one line in the section (the daylight note folds into it)", () => {
+    const hours = "Salmon fishing in daylight only: one hour before sunrise to one hour after sunset";
+    render(<SalmonCard card={{ ...salmonCard(FACTS, { sids: [101], item: null }, JUL20), hours }} palette={LIGHT} />);
+    expect(screen.getByTestId("salmon-hours").textContent).toBe(hours);
+    cleanup();
+    render(<SalmonCard card={{ ...salmonCard(FACTS, { sids: [101], item: null }, JUL20), hours: null }} palette={LIGHT} />);
+    expect(screen.queryByTestId("salmon-hours")).toBeNull();
+  });
+
   it("(T211 part 2) read through the live feed: the capture's time under the page date", () => {
     const card = { ...salmonCard(FACTS, { sids: [101], item: null }, JUL20), checked: "Checked with DFO Oct 27, 2026, 11:04 am" };
     render(<SalmonCard card={card} palette={LIGHT} />);
+    fireEvent.click(screen.getByTestId("salmon-source-summary"));
     expect(screen.getByTestId("salmon-checked").textContent).toBe("Checked with DFO Oct 27, 2026, 11:04 am");
   });
 

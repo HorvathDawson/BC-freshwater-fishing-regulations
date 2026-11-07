@@ -356,6 +356,26 @@ def test_the_release_reads_the_header_from_the_typed_feed_and_refuses_none(tmp_p
     assert S.load_headers({"2": old}, cache_dir=tmp_path) == {"2": H.parse_header(page, "2")}
 
 
+def test_a_feed_carries_its_scraped_header_format_never_todays(tmp_path):
+    """(T482) `feed.build` stamped today's header format on whatever notes the scraped file held: R1/R2/R6's rules files
+    (notes in the pre-T358 `cm` shape, no daylight `hours`) became `dfo-header/2` feeds, the release took those notes as
+    current, and no size, adult or daylight note folded — the Vedder's salmon section kept them all as loose words.
+    A feed now carries the scraped file's own format (none: none), so the release re-reads that page's header."""
+    from pipeline.regs.dfo_salmon import feed as FD, header as H
+    page = (FIX / "region2-eng.html").read_text(encoding="utf-8")
+    typed, _l, _s = L.type_page(page, "2")
+    assert typed["header_format"] == H.FORMAT                       # typed from the page: today's notes, today's format
+    stale = [{"id": "2:min_size:x", "k": "min_size", "t": "All retained coho must measure 25 cm or more.", "sp": ["CO"],
+              "cm": 25}]
+    old = FD.build({"region": "2", "date_modified": typed["date_modified"], "notes": stale, "rules": []})
+    assert "header_format" not in old and old["notes"] == stale
+    (tmp_path / "raw").mkdir()
+    (tmp_path / "raw" / "region2-eng.html").write_text(page, encoding="utf-8")
+    (got,) = S.load_headers({"2": old}, cache_dir=tmp_path).values()
+    assert got == H.parse_header(page, "2") and not any("cm" in n for n in got)
+    assert all(n.get("hours") for n in got if n["k"] == "daylight")
+
+
 def test_an_unreadable_last_feed_stops_the_run_and_a_missing_one_is_none(tmp_path):
     """(T357) Only a MISSING file means none; a truncated index.json used to read as none and drop every carried answer."""
     import pytest

@@ -97,9 +97,10 @@ describe("the DFO feed over the release", () => {
     const live = withSalmonFeed(release(), feed());
     // Oct 1 on the Kispiox (gnis:4674): the 62 cm adult chinook window is open; a bait ban marks part of it
     const card = salmonCard(live, { sids: [12], item: "gnis:4674", gear: ["bait", "none"] }, new Date(2026, 9, 1));
-    expect(card.regionRules.map((g) => g.label)).toEqual(["Region 6 Skeena"]);
-    const rules = card.regionRules[0]!.notes;
-    expect(rules.some((t) => t.startsWith("You can only fish for salmon in Region 6 during daylight"))).toBe(true);
+    const rules = card.regionRules.flatMap((g) => g.notes);
+    // (T482) the daylight note is the card's `hours` line, the FEED's (never left loose in the region block)
+    expect(rules.some((t) => t.startsWith("You can only fish for salmon in Region 6 during daylight"))).toBe(false);
+    expect(card.hours).toBe("Salmon fishing in daylight only: one hour before sunrise to one hour after sunset");
     expect(rules.some((t) => t.startsWith("Annual bait ban"))).toBe(false);          // the Kispiox is excepted by name
     // (T372) the chinook row keeps its drawn answer (open), so its sizes line says the water's 62 cm (below), never
     // repeated in the water's lines

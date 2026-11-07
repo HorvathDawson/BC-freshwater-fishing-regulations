@@ -15,7 +15,7 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
-import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
+import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -37,6 +37,8 @@ export interface SalmonFeedRegion {
   /** (T356) beside the notes: the scoped aggregate limits and the header sizes (`deliver.salmon.header_answers`) */
   readonly shared?: readonly SalmonShared[];
   readonly sizes?: readonly SalmonSizes[];
+  /** (T343) the page's salmon fishing hours, read from those notes (`header_answers`): absent where none is printed */
+  readonly hours?: SalmonHours;
 }
 export interface SalmonFeedLocation {
   readonly r: string; readonly sp: readonly (readonly number[])[]; readonly g: readonly number[];
@@ -158,9 +160,11 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
     // (T350) the bucket is read from the notes, so it goes with them: a feed region that carries notes and no bucket
     // has none today (the page dropped its combined limit) — never the release's bucket under the feed's notes
     // (T356) and so are the shared limits and the sizes
-    const { bucket: _releaseBucket, ...rest } = r;
-    const head = fr.notes ? { notes: fr.notes, ...(fr.bucket ? { bucket: fr.bucket } : {}), shared: fr.shared!, sizes: fr.sizes! }
-      : { notes: r.notes, ...(r.bucket ? { bucket: r.bucket } : {}), shared: r.shared, sizes: r.sizes };
+    // (T482) the hours too: a feed's daylight note folds into ITS hours, never the release's (or none)
+    const { bucket: _releaseBucket, hours: _releaseHours, ...rest } = r;
+    const head = fr.notes ? { notes: fr.notes, ...(fr.bucket ? { bucket: fr.bucket } : {}), ...(fr.hours ? { hours: fr.hours } : {}),
+                              shared: fr.shared!, sizes: fr.sizes! }
+      : { notes: r.notes, ...(r.bucket ? { bucket: r.bucket } : {}), ...(r.hours ? { hours: r.hours } : {}), shared: r.shared, sizes: r.sizes };
     return [slug, { ...rest, asof: fr.asof ?? r.asof, ...head }];
   }));
   const payload: Payload = {

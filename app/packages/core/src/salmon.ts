@@ -114,7 +114,7 @@ export interface SalmonNote {
   readonly fold?: "bucket" | "sizes" | "shared" | "closure" | "hours" | "drop";
 }
 /** (T343) the page's salmon fishing hours (a `daylight` note), the pipeline's words in `says` */
-interface SalmonHours { readonly says: string; readonly id: string | null }
+export interface SalmonHours { readonly says: string; readonly id: string | null }
 interface Region { readonly name: string; readonly asof: string | null; readonly url: string; readonly notes?: readonly SalmonNote[];
                   readonly bucket?: SalmonBucket; readonly hours?: SalmonHours; readonly shared: readonly SalmonShared[]; readonly sizes: readonly SalmonSizes[] }
 interface Unmapped { readonly items: readonly string[]; readonly r: string; readonly w: string; readonly chain: number; readonly d?: number }
@@ -378,6 +378,8 @@ export const SALMON_WORDS = {
   agency: "Fisheries and Oceans Canada",
   notListedLine: "DFO does not list this water for salmon. It is closed to salmon fishing.",
   noteTwoAuthorities: "Salmon are set by DFO, not the provincial regulations above. Both apply.",
+  /** (T482, owner 2026-11-07: "the source of the regs should be collapsible") the source block's fold, closed by default */
+  sourceFold: "Source (DFO)",
   legendTitle: "Salmon, from DFO",
   toggle: {
     standard: "Trout & more", salmon: "Salmon",
@@ -673,10 +675,10 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const buckets = [...new Map(regionsUsed.flatMap((r) => (P.regions[r]?.bucket ? [P.regions[r]!.bucket!] : []))
     .map((b) => [JSON.stringify([b.tree.n, b.possession ?? null]), b])).values()];
   // (T343) a note the pipeline folded is said by its structure, not as words: a sizes note where a sizes line says its
-  // species (`sized`), a bucket note where the one bucket is; an aggregate, a closure or a dropped note never
-  // ("hours" stays words too until the card draws `hours` — T367, the UI chat)
+  // species (`sized`), a bucket note where the one bucket is; an aggregate, a closure or a dropped note never; (T482) a
+  // daylight note where its region ships the hours (the card's `hours` line), never where it does not
   const asWords = (n: SalmonNote, sized: ReadonlySet<string>) =>
-    !n.fold || n.fold === "hours" || (n.fold === "sizes" && !n.sp?.some((x) => sized.has(x)))
+    !n.fold || (n.fold === "hours" && !P.regions[n.id.split(":")[0]!]?.hours) || (n.fold === "sizes" && !n.sp?.some((x) => sized.has(x)))
       || (n.fold === "bucket" && buckets.length !== 1);
   const none: ReadonlySet<string> = new Set();
   // (T227, owner 2026-10-28) a region note about a species (what an "adult chinook" is, an annual chinook limit) sits
@@ -692,8 +694,10 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     return Object.keys(by).length ? { sizesBy: by } : {};
   };
   const rows = block.rows.map((row) => {
-    if (block.allClosed) return row;
     const r = { ...row, ...sizesByOf(row) };
+    // (T482, owner 2026-11-07: "combine it into the individual salmon species") every species closed: its sizes still
+    // sit on its row (the "Salmon — closed" row's, per species), so no size note is left loose in the region block
+    if (block.allClosed) return r;
     if (r.status === "closed") return r;
     const ofRow = (n: SalmonNote) => !!n.sp?.some((x) => r.species.includes(x as SalmonSpecies));
     const regionMine = speciesWise.filter(ofRow);

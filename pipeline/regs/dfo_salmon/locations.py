@@ -272,7 +272,7 @@ def emit_html(slug: str, html: str, out_dir: Path) -> tuple[int, int]:
     page's stamp (`fetch.page_stamp`) and its header notes (`header.parse_header`) — ONE VINTAGE (T366): the typed feed
     made from it says which page its rows came from, and the release's header can never come from another day's page."""
     from pipeline.regs.dfo_salmon.fetch import page_stamp
-    from pipeline.regs.dfo_salmon.header import parse_header
+    from pipeline.regs.dfo_salmon.header import FORMAT as HEADER_FORMAT, parse_header
     parsed = parse_region(html, slug)
     u = untangle(parsed)
     locs, rules, sig = extract(u)
@@ -289,7 +289,7 @@ def emit_html(slug: str, html: str, out_dir: Path) -> tuple[int, int]:
 
     (out_dir / "rules" / f"region-{slug}.json").write_text(json.dumps({
         "region": slug, "date_modified": parsed.date_modified,
-        "page": page_stamp(html), "notes": parse_header(html, slug),
+        "page": page_stamp(html), "notes": parse_header(html, slug), "header_format": HEADER_FORMAT,   # T482
         "preamble": parsed.preamble,
         "rules": [r.to_dict() for r in rules],
     }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
