@@ -1,6 +1,6 @@
 # T456 — The guided walkthrough, reworked: show the real use, never cover what it is about, teach reading
 
-Status: OPEN (owner 2026-11-06, chat 5, from a tester's feedback with a screenshot).
+Status: IN REVIEW — 8ffc41135 ecc12a476 (owner phone check; the reading steps' words are Claude's draft, in the recording)
 
 Owner: "The tutorial needs work. Make it actually show the use and make sure it doesn't cover items like in the
 example. Also it should show examples of how to read the rules, how to read the conditions etc."
@@ -53,3 +53,25 @@ example. Also it should show examples of how to read the rules, how to read the 
 
 Related: T293 (the walkthrough), T455 (tap races in the card). Size: M–L. Owner: phone check; the reading steps' wording
 is Claude's draft, shown to the owner in the recording.
+
+## Done (8ffc41135, ecc12a476) — owner phone check left
+Steps 25 → 30 on the app (web 20 → 25). `WALKTHROUGH_VERSION` → walkthrough-4, so every device sees the new walk once.
+1. **Never cover:** `guideLayout.placeGuideCard` puts the card beside the ring (desktop), else under/over it, else at the
+   far edge; `revealBy` scrolls the ring's page (regs page, Conditions panel, both platforms via `CoachScroller`) when
+   neither side has room. The forecast ring is the strip AND its day list. Test: a sweep of every ring at phone,
+   phone-water and desktop sizes; a ring that moves (the card follows).
+2. **Do, not read:** every ringed control is a DO step the reader's tap moves on: day pill, a fold's Details (trout,
+   salmon), Forecast, Level, Year, ‹ Map, Layers. Show me uses the control's own setter (`guideControls`).
+3. **Reading:** a rule (group head + first rule line with its Rule book link), a closed fish, "both rules hold" (DFO
+   note), which stretch; Conditions: the headline + its sureness line, the gauge's reading, Flow/Level, 72 h/Year,
+   what change means. Tests use the release fixture's Vedder (stream 356363467 from 0 m).
+4. **Guardrails:** the walk is no longer a back layer (back-layers COVERED says why). The page's ‹ Map on "Back to the
+   map" closes the page and the walk goes on (test: log holds only the page's close). Any other way off a step's screen
+   (‹ / system back, a tab, a sheet closed) pauses behind "Resume walkthrough"; Resume puts the app back. Tests: every
+   step × each exit. Steps whose control is not drawn on this water (folds; a spot's days with no spot) are passed.
+5. **Words:** each step's `names` are checked inside the real component its ring registers.
+6. **Emulator** (`walkthrough` scenario, rewritten): 30/30 PASS — no card over its ring (uiautomator bounds), ‹ Map →
+   next step, back → paused → Resume → same step. Shots + checks + recording: `app/tools/testbed/out/t456/`.
+Not verified: the open forecast day list beside the card on a device (Show me picks a day without opening the list);
+the capture step still rings nothing (a multi-screen flow); Android back at the map root now leaves the app (the walk
+resumes there next start) instead of stepping the walk back.
