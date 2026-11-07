@@ -504,10 +504,11 @@ use that as the sole source of future work."
 | T457 | Lakes: opaque outline sized by the lake over a slightly transparent fill | OPEN | — | owner 2026-11-06 (idea; look is the owner's call) |
 | T458 | A guard against un-awaited promises (the T446 class of bug) | OPEN | — | chat 5 2026-11-06 |
 | T459 | Stepping ▲/▼ along a water: grey out the other waters (receiving water kept, owner picks) | OPEN | — | owner 2026-11-06 |
-| T460 | Fraser: ▲ from Williams Lake River confluence offers 2 parts (a side channel skips part 15) | OPEN | — | owner 2026-11-06 |
+| T460 | Fraser: ▲ from Williams Lake River confluence offers 2 parts (a side channel skips part 15) | DONE 2026-11-06 | 96f7b5919 | rules right (950c2a3); 10 waters' steps change; phone check 0.6.8 |
 | T461 | Tidal-water polygon: simplify per zoom, quieter edge (measure first) | OPEN | — | owner 2026-11-06 |
 | T462 | Audit (multi-agent): every screen shows the regulations the release holds and the synopsis says | OPEN | — | owner 2026-11-06 |
 | T463 | Deep code review of the branch before production (owner runs /code-review ultra; Claude triages) | OPEN | — | owner 2026-11-06 |
+| T464 | Bulkley River: 6 of 12 parts unreachable by ▲/▼ (found by the T460 count; true before it) | OPEN | — | 2026-11-06 |
 
 ## Order for open tickets
 

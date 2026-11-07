@@ -1,6 +1,6 @@
 # T460 — Fraser: ▲ from "Williams Lake River confluence → Region 7A boundary" offers two parts, one skips a part
 
-Status: OPEN (owner 2026-11-06, chat 5).
+Status: DONE 2026-11-06 — 96f7b5919 (Q1: case (a), the rules are right, 950c2a3; Q2: the step fixed). Owner: phone check on 0.6.8.
 
 Owner: "upstream of Fraser at Williams Lake River confluence → Region 7A boundary has 2 upstream Fraser options?
 Shouldn't it only have 1? It gives an option to basically skip one of the sections."
@@ -55,3 +55,16 @@ dissolved by `REGION_RESPONSIBLE_NAME`, the same polygons the regions and the bo
 - For the record, the rules differ. Part 15 ("Where Region 5 and Region 7 meet") adds the R7A "upstream of the
   Cottonwood River confluence" set (any bait, spring stream closure lifted) on top of part 1's rules. The 6 R5-side
   sections do not get it, which is correct if R7A rules stop at the region line. This is not a placement defect.
+
+## Q2 fixed (2026-11-06, 96f7b5919)
+`core/waterNav.ts` `skips`: a way from a part is not offered when another way out of that part reaches it going on, the
+two ways leave at different places, and it does not reach back. A fork at one place (the Zymoetz canyon) stays. So do
+channels that leave a part and come back to it (the Fraser at Lillooet, never going back through the part) and two ways
+that each reach the other (a loop). Tests use the Fraser's real marks (above Williams Lake, and Lillooet). Each half of
+the rule was checked by mutation: the test fails without it.
+**Release-wide** (r-67b456b5e64b, through the app's own `loadWaterGroup`): 650 waters with marks, **10 change** (one
+skipped step each way): Fraser (this one), West Road (Blackwater) (the same shape at the R5/R7A line), Little Qualicum
+(the hatchery part), Peace (Clayhurst Ecological Reserve), Skeena (side channel at the reserve), Snehumption Creek (2 side
+channels), and the border streams Blanchard, Little Hay, Wap and Sleigh (a step into a later stretch past an earlier one).
+Every part stays reachable from the mouth in all 650, except Bulkley River (6 of 12 parts unreachable). That was true
+before this change too, so it has its own ticket: T464.
