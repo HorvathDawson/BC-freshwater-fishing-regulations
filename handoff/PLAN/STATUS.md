@@ -13,6 +13,26 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-07 morning summary: the lag is fixed in MapLibre; your turn on 5 items (OWNER-TODO top)
+- **Lag (T420): the fix works.** Patched MapLibre, stressed emulator: map frame p50 Coquitlam z13 76–148 → 31–46 ms,
+  Fraser Valley z11 60–104 → 31–35 ms. It no longer slows down over a session. Feature-state CPU went 42 % → 2 %. The
+  lean (upstream) patch matches the full one (z13 36–52 ms both), with colours right after mode switches. ANR: 1 in the
+  first 9 patched blocks, never again in 6+6 targeted runs plus 1 lean run; the patch adds no lock. **Not uploaded:** the
+  permission check refused Claude's build-and-upload, so you run the two commands in OWNER-TODO (patched lean → Play
+  internal vc 19, stock → staging page).
+- **Upstream (T420):** lean fix, 6 files +22 −7, tested on maplibre-native main (the new unit test fails before, passes
+  after). Drafts + `gh` commands are in app/tools/maplibre-patch/upstream/. You post it, in your own words (their AI policy).
+- **Powell River (T468):** fixed (a river running through a lake with no rule of its own is now the lake's tributary).
+  Powell River is now closed Nov 1–Mar 31. 15 rules gain sections, none lose. Built in scratch, NOT promoted: first
+  answer the Little Slocan question (OWNER-TODO).
+- **Calmer mid zoom (T470):** B built (small waters recede; z12+ identical to today). The tuning knob is `fadeByOrder`.
+  One dark-mode call is in OWNER-TODO.
+- **Quota wording (T475):** built in scratch, wording only (0 numbers/statuses/bindings moved), IN REVIEW, not promoted.
+  Shots were sent.
+- **Done:** T469 legend in one row on wide screens; T471–T474 regs pane (sun line in header, in-season one line, daylight
+  hours, the water's rule-book link); T476 Developer card (long-press ©, dev/staging only, About cleaned); T477
+  date-dependent tests fixed.
+
 ## 2026-11-07 (overnight): map performance lane (T420) — the cause found, the fix being measured
 - **Cause (MapLibre's own code, android-v13.6.1 and main):** every frame, MapLibre re-applies EVERY stream colour set this
   session to every tile on screen (`coalesceChanges`), and it grows over a session. **Your Pixel 9 trace** (0.6.8,
