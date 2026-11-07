@@ -349,8 +349,8 @@ use that as the sole source of future work."
 | T302 | Web Spots tab → notice: spots live in the phone app, no web sync yet, accounts coming; web save entry points + walkthrough spot steps adjusted | DONE | 8c0337a3e, 7e752a935 | owner 2026-10-30; web Spots tab + add → notice (Get the app), walk skips spots on web; shots T302-shots/ |
 | T303 | Show your current location on the map: my-location button, blue dot, centre/follow, asks only on tap | DONE on web (emulator pass pending: lock held) | 1b74740 | owner 2026-10-30 |
 | T304 | Water-page landing focuses its own region so slow lines read the small region files (Vedder Fast-3G ~37 s today) | DONE | bb32b33bb (measured 11-06) | T282 finding 2026-10-31; `cift:region` meta + boot focus before first read; local Fast-3G 11-06: Vedder hand-over 47.6/44.6 → 24.9/25.0 s (core-2+water-2 instead of core+water); staging needs a FULL build-seo deploy |
-| T307 | Adding a spot/visit offline is instant: fail fast on network, backfill later | PARTIAL (in review, emulator check pending) | — | owner 2026-10-31 |
-| T308 | Location dot keeps updating with you (not stuck at first fix) | PARTIAL (in review, emulator check pending) | — | owner 2026-10-31 |
+| T307 | Adding a spot/visit offline is instant: fail fast on network, backfill later | DONE (emulator-checked 11-06; empty-.bak save wedge fixed) | d5e3fcf8e, 3404e25 | owner 2026-10-31 |
+| T308 | Location dot keeps updating with you (not stuck at first fix) | DONE (emulator-checked 11-06) | d5e3fcf8e | owner 2026-10-31 |
 | T309 | Region salmon rules readable (rows, chips, wording folded); copyable text in the app | DONE | cbbd809d4, dfecc1b89 | owner 2026-10-31 |
 | T310 | Spots: parking location + directions; notes/photos belong to visits (lossless migration) | PARTIAL (in review, phone shots pending) | fd36533e3 | owner 2026-10-31 |
 | T311 | Provincial parks missing — Garibaldi (closes upper Pitt): draw parks, bind park-scoped rules | DONE | 60c285d22 | owner 2026-10-31; parks were in tiles but 0.12 tint + no edge: green edge from z7 + stronger tint, style only (no tiles rebuild); rules unchanged (owner); no legend row (owner) |
