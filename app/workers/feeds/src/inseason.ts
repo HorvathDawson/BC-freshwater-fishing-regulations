@@ -208,7 +208,9 @@ export async function runInSeason(deps: {
   return { feed, rows: rows.length, sections, changed: true, first: false, diff: d, events };
 }
 
-export const FEED_HEARTBEAT_MS = 24 * 3600_000;
+/** (T486) rewritten at least this often though unchanged: UNDER the daily cron (14:45 UTC Nov–May), so each daily run
+ *  writes — at 24 h a run 23.3 h after the last write skipped, and the file aged to 48 h (the smoke's stale in-season) */
+export const FEED_HEARTBEAT_MS = 20 * 3600_000;
 async function publishFeed(
   deps: { feed?: Store; priv: Store; meter?: Meter; log?: (s: string) => void },
   rows: Row[],

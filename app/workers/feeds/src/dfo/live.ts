@@ -81,8 +81,9 @@ export interface DfoDeps {
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
 export const DFO_REV = "2026-10-31.2"; // T332: quotas as game-fish quota trees (`tree`), the wording split tidied
-/** published index.json is rewritten at least this often even when nothing changed (the app's "checked" age) */
-export const INDEX_HEARTBEAT_MS = 24 * 3600_000;
+/** published index.json is rewritten at least this often even when nothing changed (the app's "checked" age); (T486) under
+ *  the daily cron, or a run just inside 24 h skips and the index ages to 48 h */
+export const INDEX_HEARTBEAT_MS = 20 * 3600_000;
 
 /** Index.json minus what changes on every run (`at`, each region's `checked`): what "changed" means for a write. */
 export function stableIndex(body: string): string {

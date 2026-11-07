@@ -5,6 +5,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker, { cronJob } from "../src/index";
+import { FEED_HEARTBEAT_MS } from "../src/inseason";
+import { INDEX_HEARTBEAT_MS } from "../src/dfo/live";
+import { cadenceMin } from "../src/status";
 import type { R2BucketLike } from "../src/io";
 import { REPO } from "./dfo.scenario";
 
@@ -41,6 +44,15 @@ describe("scheduled(): which job each cron starts", () => {
     });
     expect(new Set(Object.values(got))).toEqual(new Set(["gauges", "dfo", "inseason", "backup", "skill", "runtiming"]));
   });
+});
+
+// (T486) a feed rewritten only when older than its heartbeat must be rewritten by EVERY daily run: a 24 h heartbeat let a run
+// 23.3 h after the last write skip it, and staging's in-season index aged to 48 h (the smoke caught it, 2026-11-07)
+it("each feed's heartbeat is under its slowest cron cadence, so a daily run never skips the rewrite", () => {
+  const winter = cadenceMin("inseason", new Date("2026-01-15T14:45:00Z")) * 60_000;
+  expect(cadenceMin("dfo", new Date("2026-01-15T14:15:00Z")) * 60_000).toBe(winter);
+  // the cron fires within a few minutes of its time: the heartbeat leaves at least 2 h of slack under the cadence
+  for (const hb of [FEED_HEARTBEAT_MS, INDEX_HEARTBEAT_MS]) expect(hb).toBeLessThanOrEqual(winter - 2 * 3600_000);
 });
 
 describe("scheduled() → the weekly run-timing check (T412)", () => {
