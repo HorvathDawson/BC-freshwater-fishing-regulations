@@ -72,16 +72,21 @@ export const FIT_MAX_ZOOM = 14;
 /**
  * (T443, owner 2026-11-06) A WATER'S PART IS FRAMED IN ITS COUNTRY, AND A STEP DOES NOT LUNGE. Stepping ▲/▼ along the
  * Fraser moved the camera up to 5 zoom levels at a time (each part framed tight: z9 → z14 → z9), which the owner found
- * disorienting. Every water map: a part is framed no closer than `PART_FIT_MAX_ZOOM`, and a step (any fit after the map's
- * first) zooms IN at most `STEP_ZOOM_IN` levels from where the camera is. Zooming out to fit a big part is not bounded:
- * the part must be seen whole.
+ * disorienting. Every water map: a part is framed no closer than `PART_FIT_MAX_ZOOM`. Zooming out to fit a big part is
+ * not bounded: the part must be seen whole.
  *
- * (owner 2026-11-06, on 0.6.6) BUT A PART IS ALWAYS SEEN: the Fraser's smallest part, held at z12 (or 2 levels in from a
- * z9 camera), was a dot under overlapping labels. So neither bound may leave a part smaller than half the screen across
- * (`PART_MIN_FILL` levels out from the zoom that frames it), up to `FIT_MAX_ZOOM`.
+ * (owner 2026-11-06, on 0.6.6) BUT A PART IS ALWAYS SEEN: the Fraser's smallest part, held at z12, was a dot under
+ * overlapping labels. So the cap may never leave a part smaller than half the screen across (`PART_MIN_FILL` levels out
+ * from the zoom that frames it), up to `FIT_MAX_ZOOM`.
+ *
+ * (owner 2026-11-06, on 0.6.7) ONE FRAMING PER PART, whatever the way in: the first open of a water's Map tab framed a
+ * part differently from the same part reached by ▲ then ▼. The step's own bound — at most 2 levels in from where the
+ * camera was (`STEP_ZOOM_IN`, 7f36eb73a) — made a part's frame depend on the part before it: 61 of the release's 968
+ * ▲-then-▼ round trips came back up to a level further out than the first open (r-67b456b5e64b). It is gone: a part's
+ * frame is a function of the part and the map's size only (the cap and the floor above, which already keep a step from
+ * lunging into a mid-sized part).
  */
 export const PART_FIT_MAX_ZOOM = 12;
-export const STEP_ZOOM_IN = 2;
 export const PART_MIN_FILL = 1;
 
 /** (T443) The zoom that frames `b` in a `width` x `height` map with `padding` on every side (512 px world tiles). */
@@ -93,18 +98,14 @@ export function fitZoomOf(b: readonly [number, number, number, number], width: n
 }
 
 /**
- * The closest a fit may land: `FIT_MAX_ZOOM`, or the fit's own `maxZoom` if lower, and — `zoomInAtMost` given and
- * `current` known (the camera's zoom, passed only for a fit that follows another on the same map) — no more than that
- * many levels in from it. With `fitZoom` (the zoom that frames the box, `fitZoomOf`) and either bound set, never so far
- * out that the subject is under half the screen (`PART_MIN_FILL`). Both maps widen the box to it (`fitAtMost`).
+ * The closest a fit may land: `FIT_MAX_ZOOM`, or the fit's own `maxZoom` if lower — and with `fitZoom` (the zoom that
+ * frames the box, `fitZoomOf`) and a `maxZoom` set, never so far out that the subject is under half the screen
+ * (`PART_MIN_FILL`). Both maps widen the box to it (`fitAtMost`). Nothing here reads where the camera is: one subject,
+ * one frame (T443).
  */
-export function fitZoomLimit(fit: { maxZoom?: number; zoomInAtMost?: number }, current: number | null,
-                             fitZoom: number | null = null): number {
+export function fitZoomLimit(fit: { maxZoom?: number }, fitZoom: number | null = null): number {
   let limit = Math.min(FIT_MAX_ZOOM, fit.maxZoom ?? FIT_MAX_ZOOM);
-  if (fit.zoomInAtMost !== undefined && current !== null && Number.isFinite(current))
-    limit = Math.min(limit, current + fit.zoomInAtMost);
-  const bounded = fit.maxZoom !== undefined || fit.zoomInAtMost !== undefined;
-  if (bounded && fitZoom !== null && Number.isFinite(fitZoom)) limit = Math.max(limit, fitZoom - PART_MIN_FILL);
+  if (fit.maxZoom !== undefined && fitZoom !== null && Number.isFinite(fitZoom)) limit = Math.max(limit, fitZoom - PART_MIN_FILL);
   return Math.min(FIT_MAX_ZOOM, limit);
 }
 

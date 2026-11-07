@@ -410,3 +410,32 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     expect(fraser.parts.some((p) => p.partIx === 16)).toBe(false);
   });
 });
+
+describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart draw ONE label", () => {
+  it("the Fraser's Landstrom Bar sign zone: both ends of the zone named once, at every part they bound", async () => {
+    const g = await loadWaterGroup(st, "gnis:39325");
+    const zone = g.marks.flatMap((m, ix) => (m.label === "Landstrom Bar sign zone boundary" ? [ix] : []));
+    expect(zone).toHaveLength(2);
+    // every part that has one of the two marks at an end: the part around the zone and the zone itself
+    const parts = [...new Set(zone.flatMap((ix) => [g.marks[ix]!.down, ...g.marks[ix]!.up]))];
+    expect(parts.length).toBeGreaterThanOrEqual(2);
+    for (const at of parts) {
+      const v = view(g, waterMapStart(at));
+      const shown = v.marks.filter((m) => zone.includes(m.ix));
+      expect(shown).toHaveLength(2);                                    // both rings drawn
+      expect(shown.filter((m) => m.label !== null)).toHaveLength(1);    // one label
+      expect(shown.every((m) => m.a11y.length > 0)).toBe(true);         // each ring keeps its words for a screen reader
+    }
+    // the open mark keeps its own label (the other end goes quiet)
+    const open = view(g, { ...waterMapStart(parts[0]!), mark: zone[1]! });
+    expect(open.marks.find((m) => m.ix === zone[1])!.label).not.toBeNull();
+    expect(open.marks.find((m) => m.ix === zone[0])!.label).toBeNull();
+  });
+
+  it("MUTATION PIN: labels a kilometre apart, or with other words, are both drawn", async () => {
+    const g = await loadWaterGroup(st, "gnis:8634");
+    const v = view(g, waterMapStart(1));
+    expect(v.marks.filter((m) => m.label !== null).length).toBe(2);   // part 2's two ends, different words
+  });
+});
+

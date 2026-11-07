@@ -110,7 +110,7 @@ describe("<WaterMapView>", () => {
     expect(lit()).toEqual({
       highlight: await sections.streams(CHW1_LIT), water: await sections.streams(CHW1_WATER) });
     expect(seen.props?.fit).toEqual({ key: "gnis:8634:1", bbox: [-121.966394, 49.071523, -121.836034, 49.097385], refine: false,
-      maxZoom: 12, zoomInAtMost: 2 });
+      maxZoom: 12 });
     expect(seen.props?.marks?.map((m) => `${m.label ?? "(ring)"} ${m.a11y}`)).toEqual([
       "(ring) Boundary: Chilliwack River Ecological Reserve boundary",
       "Tamihi Rapids Bridge Boundary: Tamihi Rapids Bridge",
@@ -175,7 +175,7 @@ describe("<WaterMapView>", () => {
     fireEvent.click(screen.getByRole("button", { name: "Whole river" }));
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.fit]).toEqual(["This part",
       { key: "gnis:8634:whole", bbox: [-121.966394, 48.999855, -121.39612, 49.114995], refine: false,
-        maxZoom: 12, zoomInAtMost: 2 }]);
+        maxZoom: 12 }]);
     fireEvent.click(screen.getByRole("button", { name: "This part" }));
     expect([screen.getByTestId("water-map-whole").textContent, seen.props?.fit?.key]).toEqual(["⤢ Whole river", "gnis:8634:1"]);
   }, 30_000);

@@ -315,12 +315,6 @@ export interface MapProps {
     camera?: Camera | null;
     /** (T443) Framed no closer than this zoom (below `FIT_MAX_ZOOM`): a water's part (`PART_FIT_MAX_ZOOM`). */
     maxZoom?: number;
-    /**
-     * (T443) A fit that FOLLOWS another on this map (a water map's step, `STEP_ZOOM_IN`) zooms in at most this many
-     * levels from where the camera is. A map's first fit is whole: the same props draw the same frame whatever the way
-     * in (a step, a reload), and only the map knows which fit is its first.
-     */
-    zoomInAtMost?: number;
   } | null;
   /**
    * (T48) How much of the map's top is covered by the app's own bar (the search field over the browse maps), in px: the

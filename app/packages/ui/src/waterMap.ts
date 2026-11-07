@@ -179,6 +179,35 @@ export interface WaterMapVM {
   } | null;
 }
 
+/**
+ * (T443, owner 2026-11-06 on 0.6.7: "the boundary names at Landstrom Bar overlap") TWO MARKS THAT SAY THE SAME THING, A
+ * FEW STEPS APART, ARE ONE LABEL. A short zone inside a part (the Fraser's "Within Landstrom Bar sign zone", 138 m long) has
+ * a mark at each end with the same words, and both were labelled: two copies of "Landstrom Bar sign zone boundary" over
+ * each other. Within `MARK_LABEL_ONE_M` of a labelled mark with the same words, a mark keeps its ring (and its own
+ * words for a screen reader, `a11y`) and draws no label; the open mark's label is the one kept. The release holds 12 such
+ * pairs in 9 waters (r-67b456b5e64b, every pair under 200 m: 5–197 m).
+ */
+const MARK_LABEL_ONE_M = 250;
+
+const metresApart = (a: { lon: number; lat: number }, b: { lon: number; lat: number }): number => {
+  const k = Math.PI / 180;
+  const x = (b.lon - a.lon) * k * Math.cos(((a.lat + b.lat) / 2) * k), y = (b.lat - a.lat) * k;
+  return Math.hypot(x, y) * 6_371_000;
+};
+
+/** The marks with every repeated label within `MARK_LABEL_ONE_M` of a kept one dropped (the open mark's kept first). */
+function oneLabelPerPlace(marks: readonly WaterMapMarkVM[]): WaterMapMarkVM[] {
+  const kept: WaterMapMarkVM[] = [];
+  const order = [...marks].sort((a, b) => Number(b.on) - Number(a.on));
+  const drop = new Set<number>();
+  for (const m of order) {
+    if (m.label === null) continue;
+    if (kept.some((k) => k.label === m.label && metresApart(k, m) < MARK_LABEL_ONE_M)) drop.add(m.ix);
+    else kept.push(m);
+  }
+  return marks.map((m) => (drop.has(m.ix) ? { ...m, label: null } : m));
+}
+
 const partVM = (g: WaterGroup, i: number): WaterMapPartVM => {
   const p = g.parts[i]!;
   return { ix: i, item: p.item, partIx: p.partIx, name: partName(g, i), note: itemNote(g, i) };
@@ -217,7 +246,7 @@ export function waterMapView(g: WaterGroup, s: WaterMapState): WaterMapVM | null
     chooser: choice.length > 1
       ? { title: s.choosing === "down" ? W.chooserDown : W.chooser, close: W.close,
           options: choice.map((i) => partVM(g, i)) } : null,
-    marks,
+    marks: oneLabelPerPlace(marks),
     pop: open ? { title: markLabel(g, open), close: W.close,
                   upLabel: W.upstreamSide, up: open.up.map((i) => partVM(g, i)),
                   downLabel: W.downstreamSide, down: partVM(g, open.down) } : null,

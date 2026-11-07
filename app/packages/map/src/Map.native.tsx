@@ -455,6 +455,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   lit.current = highlight;
   const refine = useRef<(() => Promise<void>) | null>(null);
   const fitted = useRef<string | null>(null);
+  /** (T443) frame the current fit's box again (the map's size changed), and whether the reader has moved the camera */
+  const refit = useRef<(() => void) | null>(null);
+  const fitTouched = useRef(false);
   // (T303) My location: the camera goes to the fix each time the button asks and, while following, to each new fix (as
   // the web's `useMe`). The dot is ours (`me.ts`), not MapLibre's UserLocation, which drew nothing on Android.
   const centred = useRef(0);
@@ -481,27 +484,34 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   }, []);
   useEffect(() => {
     if (!fit || !camRef.current || fitted.current === fit.key) return;
-    if (!fit || !camRef.current || fitted.current === fit.key) return;
-    const follows = fitted.current !== null;
     fitted.current = fit.key;
     let rounds = 0;
     let alive = true;
     /** The camera moved since the last measure: a render with nothing new is not a reason to measure again. */
     let moved = false;
-    // (T443) the closest this fit lands: a fit that follows another, from where the camera is as it starts (a refine
-    // round keeps it)
-    const from = follows ? camNow.current.zoom : null;
+    /** (T443) the box last framed, framed again when the map's size changes (`refit`) */
+    let last: Bbox | null = null;
+    fitTouched.current = false;
     const go = (b: Bbox) => {
+      last = b;
       const { width, height } = size.current;
       const p = Math.max(8, Math.round(Math.min(56, (width || 400) * 0.12, (height || 800) * 0.12)));
       moved = true;
       camProbe.move(rounds ? "refine" : "fit", rounds, height);
       // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what the limit shows
-      const limit = fitZoomLimit(fit, from, fitZoomOf(b, width, height, p));
+      // (T443) a function of the box and the map's size only: a part is framed the same however it was reached
+      const limit = fitZoomLimit(fit, fitZoomOf(b, width, height, p));
       renderer.fitBounds(fitAtMost(b, limit, width, height, p), { padding: p, duration: cameraMs(450) });
     };
+    /*
+     * (T443, owner on 0.6.7: "the first open frames the part differently from ▲ then ▼") THE MAP'S SIZE CHANGED AFTER THE
+     * FIT: framed again, as the web's `useFit` refit does (`followSize`). A water's first fit is sent in the render that
+     * also grows the bar under the map (its names and steps arrive with the same view model), so it framed the part in
+     * the taller map the loading bar left; a step later framed it in the real one. Not after the reader moved the camera.
+     */
+    refit.current = () => { if (alive && last && !fitTouched.current) go(last); };
     // (T48) an exact camera to return to (search's cancel): put back as it was, nothing measured
-    if (fit.camera) { renderer.easeTo(fit.camera, { duration: cameraMs(450) }); refine.current = null; return () => { alive = false; }; }
+    if (fit.camera) { renderer.easeTo(fit.camera, { duration: cameraMs(450) }); refine.current = null; refit.current = null; return () => { alive = false; }; }
     if (fit.bbox) go(fit.bbox);
     if (!fit.refine) { refine.current = null; return () => { alive = false; }; }
     refine.current = async () => {
@@ -650,8 +660,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       void keepCopy.current?.().catch(report)
         .then(() => { if (camProbe.on()) setTimeout(() => void copyDraw.current().catch(report), 400); });
     }, SETTLE_ASK_MS);
-    // (T175) the reader's own pan or pinch: the copy never steps in against it
-    if (ne?.userInteraction) copyTouched.current = true;
+    // (T175) the reader's own pan or pinch: the copy never steps in against it (T443: nor does a refit)
+    if (ne?.userInteraction) { copyTouched.current = true; fitTouched.current = true; }
   }, [shiftMarks, reportVisible, report]);
 
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
@@ -666,7 +676,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     setGen((g) => g + 1);
   }, [renderer, colouringSwapped]);
   const onLayout = useCallback((e: LayoutChangeEvent) => {
+    const was = size.current;
     size.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
+    // (T443) a fit framed in the old size is framed again in this one
+    if (was.width !== size.current.width || was.height !== size.current.height) refit.current?.();
     if ((globalThis as { __openProbe?: boolean }).__openProbe) {
       const t = e.currentTarget as unknown as { measureInWindow?: (f: (x: number, y: number, w: number, h: number) => void) => void };
       t?.measureInWindow?.((x, y, w, h) => { winRect.current = { x, y, w, h }; });
