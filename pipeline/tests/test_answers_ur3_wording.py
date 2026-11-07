@@ -54,14 +54,14 @@ def test_2_the_buffers_say_feet():
 # 3 ---------------------------------------------------------------------------------------------
 def test_3_a_count_tier_in_an_own_tier_says_part_of_it():
     (ct,) = [t for t in _tiers(F.BELLA_MAY_ST, MAY1) if t["tier"] == "count"]
-    assert ct["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"
+    assert ct["says"] == "Up to 1 cutthroat or rainbow trout combined (part of the 2)"
 
 
 # 4 ---------------------------------------------------------------------------------------------
 def test_4_the_lifted_share_says_the_fish_count_toward_the_total():
     # ROUND20 2 (owner: the UR3 words read as 4 + 2): the share sits inside the total, the lifted fish not counted in it
     (sh,) = [t for t in _tiers(F.VEDDER, OCT10) if t["tier"] == "share"]
-    assert sh["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
+    assert sh["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
 
 
 # 6 ---------------------------------------------------------------------------------------------

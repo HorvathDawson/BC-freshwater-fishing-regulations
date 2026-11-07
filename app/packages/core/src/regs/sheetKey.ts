@@ -9,7 +9,9 @@ export type SheetKey =
   | `rule:${RuleKey}` | `gl:${string}`            // gl: one id, or ids joined by "," (multi-term sheet)
   | `sp:${string}` | "hatch" | "parts"
   | `srcs:${"bait" | "ways" | "always" | "boats"}` | `srcs:gl|${"mode" | "lines" | "hook" | "weight"}`
-  | `other:o${number}` | "pos:pos" | `src:r${number}`;
+  | `other:o${number}` | "pos:pos" | `src:r${number}`
+  /** (T475) a card row's share ⓘ: how the headline's share stands to the regional total (`headline.info`) */
+  | `share:r${number}`;
 const SRCS = /^srcs:(?:bait|ways|always|boats|gl\|(?:mode|lines|hook|weight))$/;
 
 /** A sheet key the app knows, or null (an unknown shape is refused — the date sheet is D7's, not a SheetKey). */
@@ -19,7 +21,7 @@ export function parseSheetKey(k: string): SheetKey | null {
   if (/^gl:[a-z0-9_]+(?:,[a-z0-9_]+)*$/.test(k)) return k as SheetKey;
   if (/^sp:[A-Za-z0-9_]+$/.test(k)) return k as SheetKey;
   if (SRCS.test(k)) return k as SheetKey;
-  if (/^other:o\d+$/.test(k) || /^src:r\d+$/.test(k)) return k as SheetKey;
+  if (/^other:o\d+$/.test(k) || /^src:r\d+$/.test(k) || /^share:r\d+$/.test(k)) return k as SheetKey;
   return null;   // `licsrc:` (the licence sources sheet) is no key: removed, owner 2026-11-04
 }
 
@@ -38,6 +40,6 @@ export function appKeyOf(goldenKey: string, sid: string): SheetKey {
 export function goldenKeyOf(k: SheetKey, sid: string): string {
   if (k.startsWith("srcs:gl|")) return `srcs:gl|${sid}|${k.slice(8)}`;
   if (k.startsWith("srcs:")) return `${k}|${sid}`;
-  const m = /^(other|src|pos):(.+)$/.exec(k);
+  const m = /^(other|src|pos|share):(.+)$/.exec(k);
   return m ? `${m[1]}:${sid}|${m[2]}` : k;
 }

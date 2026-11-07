@@ -117,7 +117,7 @@ def test_the_gate_refuses_a_wrong_tree():
         size["children"].append(copy.deepcopy(size["children"][0]))
     def words(g):
         k = g["tree"][0]["children"][0]["children"][0]["children"][0]
-        k["sentence"] = k["sentence"].replace("up to 2", "up to 3")
+        k["sentence"] = k["sentence"].replace("Up to 2", "Up to 3")
     def sizes(g):
         g["tree"][0]["children"][1]["children"][0]["sizes"] = {"cm": [[30, 50]], "in": [[12, 20]]}
     def header(g):
@@ -142,7 +142,7 @@ def test_t203_a_size_cap_splits_the_count_tier_it_crosses():
     size, rb = total["children"]
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
     count = size["children"][-1]
-    assert (count["tier"], count["says"]) == ("count", "1 cutthroat or rainbow trout in all")
+    assert (count["tier"], count["says"]) == ("count", "Up to 1 cutthroat or rainbow trout combined")
     assert [k["species"] for k in count["children"]] == [["CT"]]
     assert rb["species"] == ["RB"] and rb["sizes"]["cm"] == [[30, 50]]
     assert [a["says"] for a in rb["also_counts"]] == ["no more than 1 counting any cutthroat trout you keep"]

@@ -10,7 +10,6 @@ pipeline/tests/test_answers_27.py
 pipeline/tests/test_answers_pipeline_needs.py
 pipeline/tests/test_answers_strips.py
 pipeline/tests/test_answers_t127_displaced_xref.py
-pipeline/tests/test_answers_t128_subcap_total.py
 pipeline/tests/test_answers_year_strip.py
 pipeline/tests/test_answers_year_strip_live.py
 pipeline/tests/test_basemap_filter.py

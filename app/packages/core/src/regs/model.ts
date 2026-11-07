@@ -164,7 +164,9 @@ export interface KindVM {
 export interface ReleaseRowVM { readonly t: "release"; readonly names: string; readonly pictures: readonly FishPicVM[] }
 /** caption "Brook trout ›"; sil: no image. name: fishName(c) — a11y "What a <name> looks like". */
 export type FishPicVM = { readonly code: string; readonly name: string; readonly caption: string; readonly open: SheetKey; readonly sil: false } | { readonly code: string; readonly name: string; readonly sil: true };
-export interface NotKeptVM { readonly status: "closed" | "release"; readonly says: string; readonly whose: Line; readonly mark: "✕" | null; readonly presence: Line | null; readonly pictures: readonly FishPicVM[];
+export interface NotKeptVM { readonly status: "closed" | "release"; readonly says: string;
+  /** (T475 ask 2) the glossary term the line's ⓘ opens (a closed fish: what an accidental hook means); null: none */
+  readonly term: string | null; readonly whose: Line; readonly mark: "✕" | null; readonly presence: Line | null; readonly pictures: readonly FishPicVM[];
   /** (rows 31) one line per stored stamp of a released fish, drawn after its pictures */
   readonly stamps: readonly Line[] }
 export interface PlainRowVM {                                         // golden keep.plainRows (T19b)

@@ -354,7 +354,7 @@ PLUS_ONE = {"2 hatchery steelhead": True,
             "a cutthroat over 50 cm kept at a lake, then 2 hatchery steelhead": False}
 
 SIZE_TIER = {"tier": "size", "n": 1, "over_cm": 50,
-             "says": "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead",
+             "says": "Up to 1 over 50 cm (20 in) combined — 2 if one is a hatchery steelhead",
              "extra": {"n": 1, "species": ["ST"]}}
 OVER_50_ELSEWHERE = {
     "q": "Kept trout or char over 50 cm (20 in) elsewhere today?",

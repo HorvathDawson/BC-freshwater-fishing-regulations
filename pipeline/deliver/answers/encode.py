@@ -480,7 +480,17 @@ SPEC = {
                     "release them\"). "
                     "T183 (owner 2026-10-24, additive): on a piece in two regions a keep row's group takes the stricter of "
                     "BOTH regions' caps, and its badge carries `scope.both` — the two regions in the book's words "
-                    "(\"Regions 3 and 5\") — to say in place of the pool's own region; absent elsewhere.",
+                    "(\"Regions 3 and 5\") — to say in place of the pool's own region; absent elsewhere. "
+                    "T475 (owner 2026-11-07, additive fields, new words): a share's `headline` says \"2 hatchery "
+                    "trout/char a day from streams\" from fields — `origin` (the one origin the share's water keeps, the "
+                    "share tier's `origin_kind`; null: any), `fish` (the group as one noun) — and carries `info` {title, "
+                    "says, by, examples} for its ⓘ: how the share stands to the regional total, with kept-elsewhere "
+                    "examples in the `worked` shape (gate-proved; none where a lift or a water's own rule changes the "
+                    "count); a closed not-kept line says \"Steelhead: closed, no catch and release\" with `term` "
+                    "\"no_fishing_for\" (the ⓘ: an accidental hook); every tier and kind line says one pattern, \"Up to N "
+                    "<fish>\" (\"combined\" over more than one fish), never \"only\", and names no total (T128's \"Of your "
+                    "2 … a day in streams, …\" is gone); the kinds under a share whose origin the headline says do not "
+                    "repeat it (a steelhead does).",
         },
         "gear": {
             "what": "Stage 7.1-7.6, the gear answer per part key and segment (`gear.resolve`): "

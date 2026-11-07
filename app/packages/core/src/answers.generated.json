@@ -5636,6 +5636,29 @@
        "title": "Also",
        "type": "array"
       },
+      "fish": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Fish"
+      },
+      "info": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/ShareInfo"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null
+      },
       "n": {
        "anyOf": [
         {
@@ -5647,6 +5670,22 @@
         }
        ],
        "title": "N"
+      },
+      "origin": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Origin"
       },
       "says": {
        "minLength": 1,
@@ -6325,6 +6364,18 @@
        ],
        "title": "Status",
        "type": "string"
+      },
+      "term": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Term"
       },
       "whose": {
        "minLength": 1,
@@ -7057,6 +7108,42 @@
       "year"
      ],
      "title": "Row",
+     "type": "object"
+    },
+    "ShareInfo": {
+     "additionalProperties": false,
+     "description": "T475 ask 1: the headline's \u24d8 \u2014 how the share stands to the regional total (\"The 2 from streams are part of your 4\ntrout and char a day across Region 2, lakes included. \u2026\"), `by` the share's rule, and kept-elsewhere `examples` in the\nnumbers of this card (`Worked` lines at another stream / a lake, each number proved by the card gate; none where a\nlift or a water's own rule makes the count more than this arithmetic).",
+     "properties": {
+      "by": {
+       "minimum": 0,
+       "title": "By",
+       "type": "integer"
+      },
+      "examples": {
+       "items": {
+        "$ref": "#/$defs/Worked"
+       },
+       "title": "Examples",
+       "type": "array"
+      },
+      "says": {
+       "minLength": 1,
+       "title": "Says",
+       "type": "string"
+      },
+      "title": {
+       "minLength": 1,
+       "title": "Title",
+       "type": "string"
+      }
+     },
+     "required": [
+      "title",
+      "says",
+      "by",
+      "examples"
+     ],
+     "title": "ShareInfo",
      "type": "object"
     },
     "SharedCap": {
@@ -7897,6 +7984,22 @@
        ],
        "default": null,
        "title": "Origin"
+      },
+      "origin_kind": {
+       "anyOf": [
+        {
+         "enum": [
+          "hatchery",
+          "wild"
+         ],
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "default": null,
+       "title": "Origin Kind"
       },
       "over_cm": {
        "anyOf": [

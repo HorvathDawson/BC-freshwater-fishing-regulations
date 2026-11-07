@@ -2,7 +2,7 @@
 
 1. THE ORIGIN RULE SITS WHERE ITS SCOPE IS. Region 2's "And you must release: Wild trout/char from streams" (printed p.21) holds on
    STREAMS only — the Region 2 total (4 a day) counts lakes too, where wild trout may be kept. So "Keep hatchery fish only — wild
-   trout and char go back" belongs to the stream share's tier ("Only 2 of the 4 may be from streams…"), not the group head: the
+   trout and char go back" belongs to the stream share's tier ("Up to 2 of the 4 from streams…"), not the group head: the
    share tier carries `origin` ("From streams, keep hatchery fish only — wild trout and char go back."), the group's `origin` is
    None. The group keeps it only where the rules sending the other origin back hold wherever the total does.
 2. THE STEELHEAD ROW SAYS LESS. The size band's head already says "— 2 if one is a hatchery steelhead", so the kind's

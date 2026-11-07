@@ -60,6 +60,7 @@
     "color.ui.run-species.sockeye": "#D55E00",
     "color.outside": "#F8F8F2",
     "opacity.outside": 0.72,
+    "opacity.outside.mid": 0.5,
     "color.flow.f1": "#7A1608",
     "color.flow.f2": "#E0552A",
     "color.flow.f3": "#E08A2B",
@@ -83,6 +84,8 @@
     "width.parcel.edge": 0.8,
     "color.region.edge": "#7F7C79",
     "width.region.edge": 3.0,
+    "opacity.region.edge": 1.0,
+    "opacity.mu.edge": 1.0,
     "opacity.admin.fill": 0.04,
     "dash.mu": [
       1,

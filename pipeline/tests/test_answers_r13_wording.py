@@ -4,7 +4,7 @@
      ("none under 25 cm and all cutthroat trout catch and release") is "catch and release", never
      "25 cm or longer"; a kind keeping some keeps its size words.
   S  a species the card's row holds but nobody may keep is SAID on the card (`group.not_kept`), whose rule
-     with it (the page cites its Book page): "Steelhead: no fishing for them, not even catch and release — release any you hook by accident" (Bella Coola r13, undated;
+     with it (the page cites its Book page): "Steelhead: closed, no catch and release" (Bella Coola r13, undated;
      the Fraser above Mission's r5, Aug 15-Dec 31 — not on Jul 15). The gate proves none may be kept.
   G  `gear.summary.says` names no hook when there is no hook restriction ("any hook" is gone); "a single
      barbless hook" stays. P: the weight is "weight on the line".
@@ -62,16 +62,16 @@ def test_z_a_kind_keeping_some_keeps_its_size_words():
 # S ---------------------------------------------------------------------------------------------
 def test_s_an_undated_species_closure_is_said_on_the_card():
     g, _o, _P = _group(F.BELLA)
-    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
+    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: closed, no catch and release",
                               "by": F.BELLA_ST, "rules": [F.BELLA_ST], "whose": "this river’s rule",
-                              "presence": KNOWN}]                                   # ROUND14 4/6
+                              "term": "no_fishing_for", "presence": KNOWN}]                                   # ROUND14 4/6
 
 
 def test_s_a_dated_species_closure_is_said_on_its_dates_only():
     g, _o, _P = _group(F.FRASER)
-    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: no fishing for them, not even catch and release — release any you hook by accident",
+    assert g["not_kept"] == [{"species": ["ST"], "status": "closed", "says": "Steelhead: closed, no catch and release",
                               "by": F.FRASER_ST, "rules": [F.FRASER_ST], "whose": "this river’s rule",
-                              "presence": KNOWN}]                                   # ROUND14 4/6
+                              "term": "no_fishing_for", "presence": KNOWN}]                                   # ROUND14 4/6
     g, _o, _P = _group(F.FRASER, JUL15)
     assert g["not_kept"] == [] and "ST" in g["kinds"]
 

@@ -72,7 +72,7 @@ def test_the_card_gate_proves_the_pinned_waters():
 def test_vedder_mouth_oct_10_card(built):
     row = _trout(built, VEDDER, ("mouth",))
     assert _text(row) == [
-        "2 a day per angler from streams",
+        "2 hatchery trout/char a day from streams",                   # T475 ask 1
         # ROUND20g 1: the origin is the stream share's (its tier says it), not the group's
         "On this river, hatchery rainbow trout 50 cm (20 in) or less: up to 4 a day — this river’s rule "
         "replaces Region 2’s 2-from-streams limit for them.",
@@ -110,7 +110,7 @@ def test_vedder_mouth_oct_10_card(built):
 def test_duncan_and_lardeau_cards(built):
     d = _text(_trout(built, DUNCAN, ("mouth", "duncan_river__lardeau_river_into_duncan_river")))
     # ROUND10 W1: the row's two lifts are ONE line, each kind with its number, highest first
-    assert d[:2] == ["2 a day per angler from streams",
+    assert d[:2] == ["2 trout/char a day from streams",            # T475: Region 4 keeps wild fish too
                      "On this river, its own rule replaces Region 4’s 2-from-streams limit for rainbow "
                      "trout (up to 5 a day) and Dolly Varden/bull trout (up to 2 a day)."]
     lc = _text(_trout(built, LARDEAU_CREEK))
@@ -126,7 +126,7 @@ def test_kootenay_lake_plain_lake_and_plain_stream_cards(built):
     assert lake[0] == "4 a day per angler" and ("Rainbow trout, cutthroat trout, brown trout, Dolly Varden/bull trout, lake "
                                      "trout or brook trout: only 1 over 50 cm between them") in lake
     stream = _trout(built, R2_STREAM)
-    assert stream["group"]["headline"]["says"] == "2 a day per angler from streams"
+    assert stream["group"]["headline"]["says"] == "2 hatchery trout/char a day from streams"
     assert stream["group"]["lifts"] == [] and not [w for w in stream["group"]["worked"] if w["at"] == "here"]
     # ROUND12 4: the examples are the card's one list
     assert stream["elsewhere"]["ask"] == []

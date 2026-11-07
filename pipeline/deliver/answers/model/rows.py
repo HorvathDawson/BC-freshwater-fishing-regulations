@@ -382,6 +382,23 @@ class Headline(Model):
     #: persona): Vedder "4 if they're hatchery rainbow trout 50 cm or less"; every lifted number above
     #: the headline, highest first (ROUND10 W1)
     also: Tuple["HeadAlso", ...] = ()
+    #: T475 ask 1 (owner 2026-11-07: "2 hatchery trout/char a day from streams"): on a share's headline, the one origin the
+    #: share's water keeps (the share tier's `origin_kind`, from the resolved rules; None: any origin), the group's fish as
+    #: one noun ("trout/char"), and the ⓘ on the regional total the share is part of
+    origin: Optional[Literal["hatchery", "wild"]] = None
+    fish: Optional[StrictStr] = None
+    info: Optional["ShareInfo"] = None
+
+
+class ShareInfo(Model):
+    """T475 ask 1: the headline's ⓘ — how the share stands to the regional total ("The 2 from streams are part of your 4
+    trout and char a day across Region 2, lakes included. …"), `by` the share's rule, and kept-elsewhere `examples` in the
+    numbers of this card (`Worked` lines at another stream / a lake, each number proved by the card gate; none where a
+    lift or a water's own rule makes the count more than this arithmetic)."""
+    title: StrictStr = Field(min_length=1)
+    says: StrictStr = Field(min_length=1)
+    by: RuleIx
+    examples: Tuple["Worked", ...]
 
 
 class HeadAlso(Model):
@@ -570,6 +587,9 @@ class NotKept(Model):
     presence: Optional[Presence] = None
     #: rows 31: the licence documents a released fish needs (to fish for it, even to release it); absent where none
     stamps: Optional[Tuple[Stamp, ...]] = Field(default=None, min_length=1)
+    #: T475 ask 2 (owner 2026-11-07: "Steelhead: closed, no catch and release"): the glossary term the line's ⓘ opens — a
+    #: closed fish's `no_fishing_for` (what an accidental hook means); absent on a release line
+    term: Optional[StrictStr] = None
 
     @model_validator(mode="after")
     def _by_first(self):
@@ -823,6 +843,9 @@ class TreeTier(Model):
     #: ROUND20g 1 (owner): the one-origin rule said on the share's tier where it holds on the share's water only ("From
     #: streams, keep hatchery fish only — wild trout and char go back.", Region 2 p.21); the group's `origin` is then None
     origin: Optional[StrictStr] = None
+    #: T475: the same one-origin rule as a field ("hatchery" | "wild"), set exactly where `origin` is; the group's headline
+    #: says it ("2 hatchery trout/char a day from streams")
+    origin_kind: Optional[Literal["hatchery", "wild"]] = None
     #: T332 (owner 2026-10-30: salmon quotas in the trout model): THE CLOCK THE TIER'S NUMBER RUNS ON, where it is not the
     #: day — the catalogue rule's `period` (`Period.monthly` / `annual`): DFO's "Monthly quota = 1 over 65 cm", a region
     #: header's "annual limit for chinook over 50 cm is 10". Absent: a day's number (every game-fish tier today)
@@ -842,6 +865,8 @@ class TreeTier(Model):
             raise ValueError("only a water's own-rule tier says how it stands to the share and the total")
         if self.origin is not None and self.tier != "share":
             raise ValueError("only the share's tier says an origin (the group says one that holds where its total does)")
+        if (self.origin is None) != (self.origin_kind is None):
+            raise ValueError("a share tier's origin sentence and its origin field come together")
         return self
 
 

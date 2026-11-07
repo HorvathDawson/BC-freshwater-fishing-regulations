@@ -34,6 +34,8 @@ export const WORDS = Object.freeze({
   TERM_A11Y: (title: string) => `What does ${title} mean?`,
   /** (T40) a one-word ⓘ whose title the page does not carry (a component drawn outside a RegsScreen) */
   TERM_A11Y_UNTITLED: "What this word means",
+  /** (T475) what a screen reader says for the headline's ⓘ (the share's sheet: how it stands to the regional total) */
+  SHARE_INFO_A11Y: "How this limit is shared",
   // species words (names.ts: page v36 join, lcNames, lc, writtenName)
   AND: " and ", OR: " or ",
   MORE: (n: number) => ` + ${n} more`,

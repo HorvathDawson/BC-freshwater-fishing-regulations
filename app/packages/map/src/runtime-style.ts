@@ -446,10 +446,15 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
            * picture — we have no answers out there and no obligation to draw it. By z8 the
            * tint is back, and that is where it earns its keep: close in you want to see the
            * far bank of a border river, faintly, so the water does not just stop.
+           *
+           * (T470) LIGHTER AT MID ZOOM: `opacity.outside.mid` from z8 to z11, so the dark band stops competing with the
+           * water, then back to `opacity.outside` at z12 — the close-in map is the one it was.
            */
           "fill-opacity": ["interpolate", ["linear"], ["zoom"],
                            6, 1,
-                           8, resolveTheme(theme)["opacity.outside"] as number],
+                           8, resolveTheme(theme)["opacity.outside.mid"] as number,
+                           11, resolveTheme(theme)["opacity.outside.mid"] as number,
+                           12, resolveTheme(theme)["opacity.outside"] as number],
         },
       }] : []),
       ...ours.filter((l) => l.type !== "symbol"),

@@ -26,7 +26,7 @@ from pipeline.deliver.answers.model.rows import (
     FCap, FOuterSize, FOuterCap, FAlso, FCaution, FTnote, FOrigin, FOrigin2, FExc, FXref, FBare, Fact,
     KeepBand, _CondBase, COrigin, CSize, CBack, CGroup, CCap, CSubcap, COuterCap, COuterSize, COrigin2,
     CStreamcap, Cond, LiftNote, RoleOf, Decided, OriginLine, Item, SharedCap, SharedCount, RealDaily, Badge,
-    Group, SubcapLift, Subcap, Headline, HeadAlso, CardLiftEach, CardLift, Presence, CardKind, SubGroup,
+    Group, SubcapLift, Subcap, Headline, HeadAlso, ShareInfo, CardLiftEach, CardLift, Presence, CardKind, SubGroup,
     NoteThen, BucketNote, SizeThen, SizeGroup, Replaces, Bucket, Stamp, NotKept, Worked, CardState,
     TableBand, WhyLit, TableCell, CardTable, CapKind, CapPlaces, Cap, TreeThen, TreeExtra, TreeSizes,
     AlsoCounts, TreeKind, TreeTier, GroupPossession, Header, GroupTotal, _trout_char, Elsewhere, Week,

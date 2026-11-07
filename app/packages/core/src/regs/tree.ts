@@ -18,7 +18,7 @@
 import type { Presence, Stamp, TreeKind, TreeTier } from "../answers.generated";
 import type { CardModel } from "./card";
 import type { FishManifest } from "./fish.generated";
-import { pagesOf, shortOf, type HeadCtx } from "./grouphead";
+import { leadSaysOrigin, pagesOf, shortOf, type HeadCtx } from "./grouphead";
 import { ruleBookLine } from "./book";
 import type { RegsInputs } from "./inputs";
 import { boldN, nbsp, text, type Line, type Run } from "./line";
@@ -178,7 +178,7 @@ export function kindRow(k: TreeKind, env: TreeEnv): KindVM {
 
 /** The relTier share that says no more than form a's lead ("Only 2 of the 4 may be from streams"): folded (int1). */
 const foldsShare = (t: TreeTier, env: TreeEnv): boolean => t === env.ctx.relTier && env.tot === "a" && t.tier === "share"
-  && t.n === env.ctx.g.headline?.n && /^Only \d+ of the \d+ may be from streams\.?$/.test(t.says || "");
+  && t.n === env.ctx.g.headline?.n && /^(?:Only \d+ of the \d+ may be|Up to \d+ of the \d+) from streams\.?$/.test(t.says || "");
 
 /** Every kind under `nodes`, at any depth. */
 const kindsUnder = (nodes: readonly (TreeKind | TreeTier)[]): TreeKind[] =>
@@ -227,8 +227,9 @@ export function tierNode(t: TreeTier, env: TreeEnv, root: boolean, seen: Readonl
   const pg = hasKey ? pagesOf(key) : new Set<number>(), fresh = [...pg].some((p) => !seen.has(p));
   const bk: Line = hasKey && fresh ? ruleBookLine(key) : [];
   const g = env.ctx.g;
+  // (T475 ask 1) where form a's lead says the origin, the tier keeps only its How to tell and Rule book
   const torg = (extra: Line): OriginVM | null => t.origin
-    ? { says: [text(t.origin)], tag: null, howtell: env.ctx.howtell,
+    ? { says: leadSaysOrigin(env.ctx, t, env.tot) ? [] : [text(t.origin)], tag: null, howtell: env.ctx.howtell,
         book: [...(!g.origin ? env.ctx.rootBook : []), ...(!g.origin && env.ctx.rootBook.length && extra.length ? [text(" ")] : []), ...extra] }
     : null;
   const below = new Set([...seen, ...pg]);

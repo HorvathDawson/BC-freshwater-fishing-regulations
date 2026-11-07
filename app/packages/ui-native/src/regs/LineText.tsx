@@ -68,7 +68,7 @@ export function LineText({ line, style, color, palette, actions, num = TYPE.nume
           case "link": {
             const o = r.open;
             const go = () => (typeof o === "string" ? actions.onSheet(o) : "day" in o ? actions.onDay(o.day) : actions.onTab(o.tab));
-            return <Text key={i} accessibilityRole="link" onPress={go} {...lineRun} style={[linkStyle ?? {}, { color: palette.accent }]}>{r.s}</Text>;
+            return <Text key={i} accessibilityRole="link" accessibilityLabel={r.label} onPress={go} {...lineRun} style={[linkStyle ?? {}, { color: palette.accent }]}>{r.s}</Text>;
           }
         }
       })}

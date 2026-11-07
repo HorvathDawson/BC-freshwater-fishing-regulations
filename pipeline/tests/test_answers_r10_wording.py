@@ -63,7 +63,9 @@ def test_w1_the_worked_count_follows_the_main_lift_and_the_gate_proves_the_card(
 def CC_ix(g, r):
     from pipeline.deliver.answers.tree import map_rules
     """The group with every rule id an index again (what the answers ship)."""
+    h = g["headline"]
     return {**g, "pool": r(g["pool"]),
+            "headline": h if h.get("info") is None else {**h, "info": {**h["info"], "by": r(h["info"]["by"])}},
             "subcaps": [{**s, "r": r(s["r"]), "lifted": [{**L, "by": r(L["by"])} for L in s["lifted"]]}
                         for s in g["subcaps"]],
             "lifts": [{**L, "by": r(L["by"]), "each": [{**e, "by": r(e["by"])} for e in L["each"]]}

@@ -10,7 +10,7 @@ import { Text } from "../Text";
 import { WORDS, type FishPicVM, type GroupVM, type KindVM, type NotKeptVM, type TierVM, type TreeNodeVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
-import { LineText, type KeepActions } from "./LineText";
+import { LineText, TermText, type KeepActions } from "./LineText";
 import { RegsPress } from "./RegsPress";
 import { AnchorContext, StickyContext, type AnchorKey } from "./useAnchors";
 import { useStickyHead } from "./stickyHead";
@@ -179,7 +179,9 @@ function NotKept({ x, palette, actions, images }: { x: NotKeptVM; palette: Palet
   return (
     <View testID="krow" style={{ paddingVertical: 8, borderTopWidth: 1, borderTopColor: palette.line, flexDirection: "row", gap: 12 }}>
       <View style={{ flex: 1 }}>
-        <Text testID={`st:${x.status}`} style={[TYPE.regsBodyBold, { lineHeight: 19.5, color: tone }]}>{x.says}</Text>
+        {/* (T475 ask 2) "Steelhead: closed, no catch and release" — its ⓘ says what an accidental hook means */}
+        <Text testID={`st:${x.status}`} style={[TYPE.regsBodyBold, { lineHeight: 19.5, color: tone }]}>{x.says}{x.term
+          ? <>{" "}<TermText ids={[x.term]} palette={palette} actions={actions} /></> : null}</Text>
         <View style={{ marginTop: 2 }}><LineText line={x.whose} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>
         {x.presence && <View style={{ marginTop: 3 }}><LineText line={x.presence} style={TYPE.meta} color={palette.sub} palette={palette} actions={actions} /></View>}
         <Pictures pics={x.pictures} palette={palette} actions={actions} images={images} />

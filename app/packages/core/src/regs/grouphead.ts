@@ -170,6 +170,8 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
   const words = bigWords(hdrRoot.says, hdrRoot.n);
   if (relTier && opts.tot === "a") {
     const lead = bigWords(h.says, h.n) ?? [{ t: "num", s: String(h.n), size: "big" } as Run, text(" "), text(nbsp(h.says))];
+    // (T475 ask 1) the stored ⓘ on the regional total the share is part of: its sheet is the row's `share:r<row>`
+    if (h.info) lead.push(text(" "), { t: "link", s: WORDS.TERM_ONE, open: `share:r${ctx.rowIx}`, label: WORDS.SHARE_INFO_A11Y });
     return { form: "a", rootTier: hdrRoot.id, lead, leadN: h.n, words: words ?? [text(nbsp(hdrRoot.says))], ofTotal: true,
       whyHere: null, shareOf: null, terms: [], nolimit: false };
   }
@@ -187,6 +189,11 @@ export function groupHeadOf(ctx: HeadCtx, opts: { tot: "a" | "b" }): GroupHeadVM
   return { form: shareOf ? "b" : null, rootTier: hdrRoot.id, lead: null, leadN: null, words: words ?? [text(nbsp(hdrRoot.says))],
     ofTotal: false, whyHere: hdrRoot.why_here ? cap(hdrRoot.why_here) : null, shareOf, terms: [], nolimit: !words };
 }
+
+/** (T475 ask 1) form a's lead says the share's one origin ("2 hatchery trout/char a day from streams", the stored
+ *  `headline.origin`): the share tier's origin sentence is then not drawn again (its How to tell and Rule book stay). */
+export const leadSaysOrigin = (ctx: HeadCtx, t: TreeTier, tot: "a" | "b"): boolean =>
+  !!ctx.relTier && tot === "a" && !!ctx.g.headline?.origin && t.origin_kind === ctx.g.headline.origin;
 
 /** The `.ghd.gsub` block (prototype orig / orig2): the group's origin words (its tag before " — "), "How to tell ›",
  *  the root's Rule book page; or the root's page alone when no tier carries the origin; null when nothing is drawn. */
@@ -218,11 +225,14 @@ export function shortOf(t: ShortTier): string {
     }
     case "share": {
       const w = /from (this stream|this lake|streams|lakes)/.exec(says)?.[1] || WORDS.SHORT_STREAMS;
-      return /^Only /.test(says) ? `${n}${WORDS.SHORT_OF_THEM_FROM}${w}` : `${n}${WORDS.SHORT_DAY_FROM}${w}`;
+      // "Up to 2 of the 4 from streams" (T475; "Only 2 of the 4 may be from streams" before it)
+      return /^(?:Only |Up to \d+ (?:.+ )?of the )/.test(says) ? `${n}${WORDS.SHORT_OF_THEM_FROM}${w}` : `${n}${WORDS.SHORT_DAY_FROM}${w}`;
     }
     case "own": {
       const k = (t.children ?? []).find((c): c is TreeKind => c.node === "kind" && !!c.folded);
-      const names = k ? / may be (.+?)(?: only —.*)?$/.exec(k.says)?.[1] || "" : "", whose = lc1w(t.whose || "");
+      // the folded kind's fish: "Up to 4 hatchery rainbow trout" (T475), "Up to 4 may be hatchery rainbow trout" before it
+      const names = k ? (/ may be (.+?)(?: only —.*)?$/.exec(k.says) ?? /^Up to \d+ (.+?)(?: combined)?(?: — .*)?$/.exec(k.says))?.[1] || "" : "",
+        whose = lc1w(t.whose || "");
       if (t.relation) return `${n}${names ? " " + names : ""}${WORDS.SHORT_DAY_UNDER}${whose}${WORDS.COMMA}${lc1w(t.relation.split(";")[0]!.trim())}`;
       return t.replaces ? `${WORDS.SHORT_PLUS}${n}${names ? " " + names : ""}${WORDS.SHORT_UNDER}${whose}`
         : `${n}${WORDS.SHORT_OF_THEM}${names ? `${WORDS.OPEN_PAREN}${names}${WORDS.CLOSE_PAREN}` : ""}${WORDS.SHORT_UNDER}${whose}`;

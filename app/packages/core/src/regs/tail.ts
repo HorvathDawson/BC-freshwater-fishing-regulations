@@ -30,7 +30,7 @@ export function notKeptOf(g: GroupTotal, env: TreeEnv): readonly NotKeptVM[] {
     const r = env.inp.rules.get(x.by);
     const whose: Run[] = [text(cap(x.whose))];
     if (!r.missing) { whose.push(text(WORDS.DOT_SEP)); whose.push(...ruleBookLine(r)); }
-    return { status: x.status, says: x.says, whose, mark: x.status === "closed" ? WORDS.CLOSED_MARK as "✕" : null,
+    return { status: x.status, says: x.says, term: x.term ?? null, whose, mark: x.status === "closed" ? WORDS.CLOSED_MARK as "✕" : null,
       presence: presenceLine(x.presence), pictures: pictures(x.species, env.fish, names, env.inp.statics.exportSpecies.groups), stamps: (x.stamps ?? []).map(stampLine) };
   });
 }

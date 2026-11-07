@@ -1,5 +1,5 @@
 """ROUND20f 3 (owner; the 20e reader read "ALL REGION 2 STREAMS" + "from this stream" both ways) — rows 23: a share that is
-the REGION'S (a zone / province rule: the Region 2 streams' combined 2) says it plainly — "Only 2 of the 4 may be from streams"
+the REGION'S (a zone / province rule: the Region 2 streams' combined 2) says it plainly — "Up to 2 of the 4 from streams"
 (the headline "2 a day per angler from streams"; the page's pinned line "↳ 2 of them from streams"); a share a WATER'S own row
 sets keeps "from this stream". `tree.share_place(water, region_wide)` is the one place the phrase comes from.
 """
@@ -36,18 +36,18 @@ def test_the_place_phrase():
 def test_a_regions_share_says_from_streams():
     g, _o, _P = _g(F.VEDDER)                   # Region 2's "2 from streams" (z2), lifted by the river's row
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
-    assert g["headline"]["says"] == "2 a day per angler from streams"
-    assert g["headline"]["unit"] == "a day per angler from streams"
+    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
+    assert g["headline"]["says"] == "2 hatchery trout/char a day from streams"
+    assert g["headline"]["unit"] == "hatchery trout/char a day from streams"
     g, _o, _P = _g(F.STREAM)                   # a plain Region 2 stream
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from streams"
+    assert share["says"] == "Up to 2 of the 4 from streams"
     assert all("this stream" not in t["says"] for t in _tiers(g))
 
 
 def test_the_fold_keeps_the_place():
-    assert fold_words("Only 2 of the 5 may be from streams, not counting rainbow trout", "share", 2,
+    assert fold_words("Up to 2 of the 5 from streams, not counting rainbow trout", "share", 2,
                       "brook, brown, cutthroat or lake trout") == \
-        "Only 2 of the 5 may be brook, brown, cutthroat or lake trout from streams"
+        "Up to 2 brook, brown, cutthroat or lake trout of the 5 from streams"
     assert fold_words("2 a day per angler from this stream", "share", 2, "brook or brown trout") == \
         "2 brook or brown trout a day per angler from this stream"

@@ -38,8 +38,8 @@ def test_c1_an_own_tier_with_one_kind_folds_the_kind_into_its_line():
     assert own["says"] == "This river’s rule: up to 4 hatchery rainbow trout a day"
     (rb,) = own["children"]
     assert rb["node"] == "kind" and rb["folded"] is True
-    assert rb["says"] == "Up to 4 may be hatchery rainbow trout"       # the gate's words stay
-    assert rb["sentence"].startswith("Of the 4 a day: up to 4 may be hatchery rainbow trout")
+    assert rb["says"] == "Up to 4 hatchery rainbow trout"       # the gate's words stay
+    assert rb["sentence"].startswith("Up to 4 hatchery rainbow trout, ")
 
 
 def test_c1_the_fold_words_for_an_own_and_a_share_tier():
@@ -50,16 +50,16 @@ def test_c1_the_fold_words_for_an_own_and_a_share_tier():
         "This river’s rule: up to 4 hatchery rainbow trout a day"
     assert fold_words("This lake’s rule: up to 2 a day (part of the 5)", "own", 2, "lake trout") == \
         "This lake’s rule: up to 2 lake trout a day (part of the 5)"
-    assert fold_words("Only 2 of the 5 may be from this stream, not counting rainbow trout", "share", 2,
+    assert fold_words("Up to 2 of the 5 from this stream, not counting rainbow trout", "share", 2,
                       "brook, brown, cutthroat or lake trout") == \
-        "Only 2 of the 5 may be brook, brown, cutthroat or lake trout from this stream"
+        "Up to 2 brook, brown, cutthroat or lake trout of the 5 from this stream"
     assert fold_words("2 a day per angler from this stream, not counting rainbow trout", "share", 2,
                       "brook, brown, cutthroat or lake trout") == \
         "2 brook, brown, cutthroat or lake trout a day per angler from this stream"
     # the fixture's share (the Vedder) holds a size tier, not one kind: nothing folds
     g, _o, _P = _g(F.VEDDER)
     (share,) = [t for t in _tiers(g) if t["tier"] == "share"]
-    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
+    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation
     assert all(not k.get("folded") for k in share["children"] if k["node"] == "kind")
 
 

@@ -88,7 +88,10 @@ def refs(out: dict, ix) -> dict:
             o["conds"] = [{**c, "r": None if c.get("r") is None else ix(c["r"])} for c in r["conds"]]
         if r.get("group") is not None:
             g = r["group"]
+            h = g["headline"]
             o["group"] = {**g, "pool": ix(g["pool"]),
+                          # T475: the headline's ⓘ cites the share's rule
+                          "headline": h if h.get("info") is None else {**h, "info": {**h["info"], "by": ix(h["info"]["by"])}},
                           "subcaps": [{**s, "r": ix(s["r"]),
                                        "lifted": [{**L, "by": ix(L["by"])} for L in s["lifted"]]}
                                       for s in g["subcaps"]],

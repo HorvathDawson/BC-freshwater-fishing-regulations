@@ -192,6 +192,8 @@ def check_group(P, g: dict) -> List[str]:
                              f"{after} more may be kept here (fish kept elsewhere count toward it)")
     other = "stream" if P.kind == "stream" else "lake"
     away = "lake" if P.kind == "stream" else "stream"
+    if head is not None:
+        probs += _check_headline(P, E, g, head, where, kinds, other, away)
     for w in g.get("worked") or []:
         if w.get("at", "here") != "here":
             probs += _check_elsewhere_line(E, g, w, where, kinds, other, away)
@@ -637,6 +639,58 @@ def check_caps(P, g: dict, baskets: int = BASKETS) -> List[str]:
     return probs
 
 
+def _check_headline(P, E: Engine, g: dict, head: dict, where: str, kinds: Sequence[str], other: str,
+                    away: str) -> List[str]:
+    """T475 (owner 2026-11-07, ask 1): the headline's words and its ⓘ.
+      * `says` states its number only ("2 hatchery trout/char a day from streams");
+      * `origin` — the one origin the share's water keeps — is the share tier's `origin_kind`, and no kind under the
+        share may keep the other origin here (the engine: none of it, on this water);
+      * the ⓘ (`info`) cites the share, states only the share's and the total's numbers, and every example is a
+        kept-elsewhere line the rules prove (`_check_elsewhere_line`), its words stating only the numbers it proves."""
+    probs: List[str] = []
+    bad = [x for x in _numbers(head["says"]) if x != head.get("n")]
+    if bad:
+        probs.append(f"{where}: headline {head['says']!r} states {bad}, which nothing proves here")
+    share = next((t for t, _p in _walk(g.get("tree") or []) if t["node"] == "tier" and t["tier"] == "share"), None)
+    o = head.get("origin")
+    if o is not None:
+        # the share's tier says it too where the share holds kinds (a water's own rule printing the share's number takes
+        # them all — the Bella Coola mainstem's 2 in spring: then the headline is the only place it is said)
+        if share is not None and share.get("origin_kind") != o:
+            probs.append(f"{where}: headline says {o} only, the share tier says {share.get('origin_kind')}")
+        under = [S for x, _p in _walk(share["children"]) if x["node"] == "kind" for S in x["species"]] \
+            if share is not None else list(kinds)
+        back = "wild" if o == "hatchery" else "hatchery"
+        got = E.most(E.fish(under, origins=(back,)), cap=1) if under else 0
+        if got:
+            probs.append(f"{where}: headline says {o} only, but {back} {under} may be kept here")
+    elif share is not None and share.get("origin_kind") is not None and head.get("fish") is not None:
+        probs.append(f"{where}: the share keeps {share['origin_kind']} only, the headline does not say it")
+    info = head.get("info")
+    if info is not None:
+        sub = next((s for s in g["subcaps"] if s["r"] == info["by"]), None)
+        if sub is None or sub["water"] is None:
+            probs.append(f"{where}: the headline's ⓘ cites {info['by']}, which is no share of this total")
+        allowed = {float(v) for v in (head.get("n"), _claim(g["total"]), sub and sub["take"]) if v is not None}
+        names = [P.by_key[k].x.get("entry_name") for k in (g["pool"], info["by"]) if k in P.by_key]
+        for key in ("title", "says"):
+            bad = [x for x in _numbers(info[key], names) if x not in allowed]
+            if bad:
+                probs.append(f"{where}: the headline's ⓘ {info[key]!r} states {bad}, which nothing proves here")
+        for w in info["examples"]:
+            probs += _check_elsewhere_line(E, g, w, where, kinds, other, away)
+            said = {float(v) for v in (w["kept"], w["here"], w["other"], w["away"]) if v is not None}
+            bad = [x for x in _numbers(f"{w['q']}: {w['a']}", names) if x not in said]
+            if bad:
+                probs.append(f"{where}: ⓘ example {w['q']!r}: {w['a']!r} states {bad}, which nothing proves here")
+    return probs
+
+
+def _walk(nodes):
+    from pipeline.deliver.answers.tree import walk
+    return walk(nodes)
+
+
 def _check_elsewhere_line(E: Engine, g: dict, w: dict, where: str, kinds: Sequence[str], other: str,
                           away: str) -> List[str]:
     """ROUND12 4: a line of the one list that starts from fish kept ON ANOTHER WATER (`at`: a stream or
@@ -722,6 +776,9 @@ def _unref(v, ids):
         g["caps"] = [{**c, "by": r(c["by"])} for c in g["caps"]]
     if g.get("possession") is not None:
         g["possession"] = {**g["possession"], "by": r(g["possession"]["by"])}
+    h = g.get("headline")
+    if h is not None and h.get("info") is not None:
+        g["headline"] = {**h, "info": {**h["info"], "by": r(h["info"]["by"])}}
     return g
 
 

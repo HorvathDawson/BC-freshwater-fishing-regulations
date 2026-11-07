@@ -323,6 +323,7 @@
       "says": "Rainbow trout and cutthroat trout: release every one",
       "stamps": [],
       "status": "release",
+      "term": null,
       "whose": [
        {
         "s": "This river’s rule",

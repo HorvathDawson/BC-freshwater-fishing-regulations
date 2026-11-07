@@ -44,7 +44,7 @@ def test_a_the_total_and_header_say_per_angler():
 def test_a_the_share_says_the_lifted_fish_do_not_use_it():
     g, _o, _P = _g(F.VEDDER)
     share, _own = g["tree"][0]["children"]                       # ROUND20b C3: the share first
-    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
+    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
     g, _o, _P = _g(F.STREAM)                    # a plain Region 2 stream: nothing lifted, nothing said
     share = next(t for t in _walk(g["tree"]) if t.get("tier") == "share")
     assert "don’t use" not in share["says"]
@@ -54,10 +54,10 @@ def test_a_the_share_says_the_lifted_fish_do_not_use_it():
 def test_b_a_size_tier_says_the_fish_in_its_box():
     g, _o, _P = _g(F.VEDDER)
     (size,) = g["tree"][0]["children"][0]["children"]
-    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
+    assert size["says"] == "Up to 1 over 50 cm (20 in) combined — 2 if one is a hatchery steelhead"
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
     (own,) = g["tree"][0]["children"]
-    assert own["children"][0]["says"] == "Of these, only 1 may be over 50 cm (20 in)"
+    assert own["children"][0]["says"] == "Up to 1 over 50 cm (20 in) combined"
 
 
 # D ---------------------------------------------------------------------------------------------
@@ -65,17 +65,16 @@ def test_d_a_count_tier_says_how_many_in_all():
     g, _o, _P = _g(F.BELLA_MAY_ST, MAY1)
     (own,) = g["tree"][0]["children"]
     count = own["children"][1]
-    assert count["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"           # UR3 3
-    # T128: the kind names the total around the count tier
-    assert count["children"][0]["sentence"] == ("Of your 2 trout and char a day under this river’s rule, only 1 may be "
-                                                "hatchery cutthroat trout, 30–33 cm (12–13 in)")
+    assert count["says"] == "Up to 1 cutthroat or rainbow trout combined (part of the 2)"           # UR3 3
+    # T475: the kind is a part of the count tier it sits in
+    assert count["children"][0]["sentence"] == "Up to 1 hatchery cutthroat trout, 30–33 cm (12–13 in)"
 
 
 # F ---------------------------------------------------------------------------------------------
 def test_f_a_species_closure_says_not_even_to_release():
     g, _o, _P = _g(F.BELLA)
     (nk,) = g["not_kept"]
-    assert nk["says"] == "Steelhead: no fishing for them, not even catch and release — release any you hook by accident"
+    assert nk["says"] == "Steelhead: closed, no catch and release"
 
 
 # G ---------------------------------------------------------------------------------------------

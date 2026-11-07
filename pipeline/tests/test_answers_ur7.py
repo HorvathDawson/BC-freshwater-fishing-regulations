@@ -1,6 +1,6 @@
 """ROUND UR7 (owner, the final prototype round before the app port; rows 29).
 
-  A  the stream share says nothing the head and the own tier don't: "Only 2 of the 4 may be from streams" — the fish a
+  A  the stream share says nothing the head and the own tier don't: "Up to 2 of the 4 from streams" — the fish a
      water's own rule lifts out of it (", not counting hatchery rainbow trout") are said ONCE, by that own tier's `relation`
      ("Not part of the 2 from streams; part of the 4 a day across Region 2"); with no relation the share still says them
   1  the worked keep-the-share line reads with the own tier's "Not part of the 2 from streams" (the lift holds only on its own
@@ -37,13 +37,13 @@ def _tier(g, kind):
 def test_A_the_share_says_no_lifted_fish_where_the_own_tier_says_its_relation():
     for water in (F.VEDDER, F.VEDDER_TRIB):
         g = _g(water)
-        assert _tier(g, "share")["says"] == "Only 2 of the 4 may be from streams"
+        assert _tier(g, "share")["says"] == "Up to 2 of the 4 from streams"
         assert _tier(g, "own")["relation"] == "Not part of the 2 from streams; part of the 4 a day across Region 2"
 
 
 def test_A_two_lifts_said_once_by_the_own_tier():
     g = _g(F.TWO)
-    assert _tier(g, "share")["says"] == "Only 2 of the 4 may be from streams"
+    assert _tier(g, "share")["says"] == "Up to 2 of the 4 from streams"
     assert _tier(g, "own")["relation"] == "Not part of the 2 from streams; part of the 4 a day across Region 2"
 
 
@@ -66,35 +66,34 @@ def test_1_every_keep_the_share_line_says_both_halves():
 
 # 2 ---------------------------------------------------------------------------------------------
 def test_2_a_kind_directly_under_the_share_says_it_is_part_of_it():
-    """T128 (owner 2026-10-22) supersedes "(part of the 2 from streams)": every kind under the share names it first, the
-    ones inside the size section too."""
+    """T475 (owner 2026-11-07, asks 3-4) supersedes T128's named total: a kind under the share is a part of it by where it
+    sits — "Up to N <fish>", the headline saying "hatchery" for every one (a steelhead says its own)."""
     g = _g(F.STREAM)
     share = _tier(g, "share")
     direct = [n for n in share["children"] if n["node"] == "kind"]
-    assert [k["says"] for k in direct] == ["Of your 2 trout and char a day in streams, up to 2 may be hatchery rainbow trout"]
+    assert [k["says"] for k in direct] == ["Up to 2 rainbow trout"]
     size = _tier(g, "size")
     assert [k["says"] for k in size["children"]] == [
-        "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or cutthroat trout",
-        "Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout or lake trout",
-        "Of your 2 trout and char a day in streams, up to 2 may be hatchery steelhead only — wild steelhead go back"]
+        "Up to 2 brook, brown or cutthroat trout combined",
+        "Up to 1 Dolly Varden/bull trout or lake trout combined",
+        "Up to 2 hatchery steelhead — wild steelhead go back"]
 
 
 def test_2_every_shape_of_kind_under_the_share():
     g = _g(F.TWO)
     share = _tier(g, "share")
     assert [k["says"] for k in share["children"] if k["node"] == "kind"] == [
-        "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook or brown trout",
-        "Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout or lake trout",
-        "Of your 2 trout and char a day in streams, up to 2 may be hatchery steelhead only — wild steelhead go back"]
+        "Up to 2 brook or brown trout combined",
+        "Up to 1 Dolly Varden/bull trout or lake trout combined",
+        "Up to 2 hatchery steelhead — wild steelhead go back"]
 
 
 def test_2_kinds_under_an_own_tier_or_a_water_total_are_unchanged():
-    """No "part of" on them; T128: they name the own rule's total, by whose it is (its fish are only some of the group's,
-    so no "your 4 trout and char": T128 review, `tree.total_fish`)."""
+    """No "part of" on them; T475: one pattern, the fish with their origin (no headline says it for an own rule)."""
     g = _g(F.TWO)
     own = _tier(g, "own")
     assert [k["says"] for k in own["children"]] == [
-        "Of the 4 a day under this river’s rule, only 3 may be hatchery cutthroat trout",
-        "Of the 4 a day under this river’s rule, up to 4 may be hatchery rainbow trout"]
+        "Up to 3 hatchery cutthroat trout",
+        "Up to 4 hatchery rainbow trout"]
     g = _g(F.COUNT)
     assert all("part of" not in n["says"] for n, _p in _walk(g["tree"]) if n["node"] == "kind")

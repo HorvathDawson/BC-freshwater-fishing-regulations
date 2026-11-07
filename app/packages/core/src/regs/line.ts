@@ -19,7 +19,9 @@ export type Run =
   | { t: "num"; s: string; size: "big" | "big2" | "inline" }  // "big": tier/head number (TYPE.answer); "big2": the size box's second number
   | { t: "term"; ids: readonly string[] }                    // ⓘ — one id: "What does <title> mean?"; 2+: "What these words mean"
   | { t: "book"; printed: number; pdf: number | null; bare?: true; box?: readonly BookBox[] }   // "Rule book p.<printed> ↗"; bare: "p.<printed> ↗"; pdf null → "p.<printed>" unlinked
-  | { t: "link"; s: string; open: SheetKey | { day: Day } | { tab: Tab } };  // "How to tell ›", "Source ›", "See the rules from then ›"; {tab}: "Steelhead stamp ›"
+  | { t: "link"; s: string; open: SheetKey | { day: Day } | { tab: Tab };  // "How to tell ›", "Source ›", "See the rules from then ›"; {tab}: "Steelhead stamp ›"
+      /** (T475) what a screen reader says where `s` is a glyph (the headline's ⓘ) */
+      label?: string };
 
 export type Line = readonly Run[];
 

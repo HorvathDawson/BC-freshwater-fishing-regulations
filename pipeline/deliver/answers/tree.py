@@ -16,30 +16,31 @@ count groups, size groups and notes) as that tree; it decides nothing new.
                 TRIBUTARY WALK ("its row covers its tributaries, so it applies here", ROUND18 8) and `line` (all
                 three in one line); under the share where it holds share kinds to a smaller number, else under the
                 total
-         share  the stream (lake) share, said INSIDE the count tier around it ("Only 2 of the 4 may be from this
-                stream" — ROUND20 2, owner: the UR3 "— your hatchery rainbow trout count toward the 4, not these 2"
+         share  the stream (lake) share, said INSIDE the count tier around it ("Up to 2 of the 4 from this stream",
+                T475; "Only 2 of the 4 may be from this stream" before — ROUND20 2, owner: the UR3 "— your hatchery rainbow trout count toward the 4, not these 2"
                 read as 4 + 2; the fish a water's own rule lifts out of it ", not counting hatchery rainbow trout")
                 — ROUND20g 1: its `origin` where the one-origin rule holds on the share's water only ("From streams, keep
-                hatchery fish only — wild trout and char go back.", Region 2 p.21; the group's `origin` is then None)
-         count  a count over some of a tier's kinds, naming them ("1 cutthroat or rainbow trout in all", UR1 D)
+                hatchery fish only — wild trout and char go back.", Region 2 p.21; the group's `origin` is then None) and,
+                T475, the same rule as a field, `origin_kind` ("hatchery"), which the headline says
+         count  a count over some of a tier's kinds, naming them ("Up to 1 cutthroat or rainbow trout combined", T475;
+                "1 cutthroat or rainbow trout in all" before, UR1 D)
          size   ROUND19 3 (owner): a size cap HOLDING EVERY KIND IT CAPS — each kind row that may be kept over its
                 size — nested in the tightest tier holding them all (wrapping whole tiers where they span tiers);
-                a kind that can never pass the size stays outside ("Of these, only 1 may be over 50 cm (20 in)", UR1 B,
-                ROUND UR6 1). RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead
+                a kind that can never pass the size stays outside ("Up to 1 over 50 cm (20 in) combined", T475; "Of these,
+                only 1 may be over 50 cm (20 in)" before, UR1 B, ROUND UR6 1). RULINGS Q16's pair (1 over 50 cm, 2 with a steelhead) is ONE tier, the steelhead
                 INSIDE: "… — 2 if one is a hatchery steelhead" (`extra` {n, species, by}; ROUND20g 2: said once, the
                 steelhead's own `size_note` is gone). A cap on one kind
                 row, on part of a row, or over kinds no tier can hold without a kind that cannot pass it (an own
                 rule's tier holding one of them beside a Dolly Varden of 50 cm or less) is no tier: the kinds'
                 `also_counts` say it. T203: a COUNT tier it crosses is split, not a reason (`holding`)
   kind   {node: "kind", species, name, n, says, detail, sizes {cm, in}, also_counts, duties, sentence}:
-         each kind EXACTLY ONCE; `says` "Up to 2 may be hatchery brook, brown or cutthroat trout" (ROUND19 1: the
-         origin with the fish where it keeps one, never again in the detail), `detail` its sizes ("30 cm (12 in) or
-         longer"), `also_counts` every cap no tier around it holds that still binds it, in words, and `sentence` the
-         whole line, "of" the nearest COUNT tier around it (a size tier is no count): "Of the 2 a day: up to 2 may
-         be hatchery brook, brown or cutthroat trout, 30 cm (12 in) or longer". T128 (owner 2026-10-22): a kind line
-         NAMES THE TOTAL it is part of (`total_named`, `total_words`) — `says` "Of your 2 trout and char a day in
-         streams, up to 2 may be hatchery brook, brown or cutthroat trout", its `sentence` the same line with the
-         detail and notes — unless it is that total's only kind at its number (the tier's line says it all).
+         each kind EXACTLY ONCE; `says` "Up to 2 hatchery brook, brown or cutthroat trout combined" (ROUND19 1: the
+         origin with the fish where it keeps one, never again in the detail — T475: unless the headline says it for
+         every kind under the share), `detail` its sizes ("30 cm (12 in) or longer"), `also_counts` every cap no tier
+         around it holds that still binds it, in words, and `sentence` the whole line with its detail and notes.
+         T475 (owner 2026-11-07, asks 3-4): ONE pattern for every sub-limit, "Up to N <fish>" ("combined" over more
+         than one fish), never "only", and the line reads as a part of the tier it sits in — T128's "Of your 2 trout
+         and char a day in streams, …" on every line is gone.
   header {says, tier, tag}: ROUND20 1 (owner: the group's top and the first tier are ONE block) — the header IS the
          root tier: `says` its line ("4 a day per angler across Region 2, lakes included"; a water's own total "This
          river’s rule: up to 1 a day per angler"), `tier` its id; the page draws the root's children at the top of
@@ -114,91 +115,46 @@ def _count_names(t: dict) -> str:
     return kind_names(sp, conj=" or ")
 
 
+def combined(species: Sequence[str]) -> str:
+    """T475 (owner 2026-11-07, ask 4: "Up to 2 brook, brown or cutthroat combined"): a number over more than one fish
+    holds them TOGETHER — the card gate proves it of the fish together and of each alone (`card_check.check_tree`)."""
+    return " combined" if len(set(species)) > 1 else ""
+
+
 def _count_says(t: dict) -> str:
-    return f"{_js(t['n'])} {_count_names(t)} in all"
+    """T475 (asks 3-4): a count over some kinds, "Up to 1 cutthroat or rainbow trout combined"."""
+    sp = t.get("_of") or [S for x, _p in walk(t["children"]) if x["node"] == "kind" for S in x["species"]]
+    return f"Up to {_js(t['n'])} {_count_names(t)}{combined(sp)}"
 
 
-def _short(t: dict) -> str:
-    """What a kind's sentence says it is "of" (its nearest COUNT tier): "the 2 a day", "the 1 between cutthroat and
-    rainbow trout"."""
-    if t["tier"] == "count":
-        return _count_says(t)
-    return "no daily limit" if t["n"] is None else f"{_js(t['n'])} a day"
-
-
-def _kind_says(k: dict, parent_n, plain: bool = False, lead: Optional[str] = None) -> str:
-    """A kind's line. UR2 3 (user panel: "Only 1 may be Dolly Varden" — inside the 2 or extra?): a kind held to fewer
-    than its count tier says of how many, "Only 1 of the 2 may be …"; UR2 4 (wild steelhead release unsaid on the
-    Vedder): a steelhead kind keeping hatchery fish only, "Up to 2 may be hatchery steelhead only — wild steelhead go
-    back". `plain`: the bare line the kind's `sentence` reads after "Of the 2 a day: ", which says the count itself.
-    T128 (owner 2026-10-22: "up to 2 may be hatchery …" read as 2 more on top of the quota): `lead` the total the line is
-    part of (`total_named`), said first — "Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown
-    or cutthroat trout"; the kind is then "only" N where it is held to fewer than that total (`parent_n`). It replaces ROUND
-    UR7 2's "(part of the 2 from streams)": the lead names the share for every kind under it."""
-    names = kind_names(k["species"], k["name"] == "Steelhead", origin=k.get("_origin"))
-    wild_back = not plain and k["name"] == "Steelhead" and k.get("_origin") == "hatchery"
+def _kind_says(k: dict) -> str:
+    """A kind's line. T475 (owner 2026-11-07; asks 3-4 — "every sub-limit 'up to N', never 'only'", "sub-limits read as
+    parts of the headline total, 'Up to 2 brook, brown or cutthroat combined'", not "Of your 2 trout and char a day in
+    streams, …" on each line): ONE pattern, "Up to N <fish>", "combined" over more than one fish; the tier the line sits in
+    says what it is part of (it replaces T128's named total and UR2 3's "Only 1 of the 2"). The fish carry their origin
+    (ROUND19 1) unless the headline says it for every kind under the share (`_origin` None there, `tree_of`). UR2 4 (wild
+    steelhead release unsaid on the Vedder): a steelhead kind keeping hatchery fish only, "Up to 2 hatchery steelhead —
+    wild steelhead go back" (its origin always said: a rainbow over the steelhead line is one)."""
+    st = k["name"] == "Steelhead"
+    names = kind_names(k["species"], st, origin=k.get("_origin"))
     if k["n"] == 0:
         return f"No {names} may be kept"
     if k["n"] is None:
         return f"Any number may be {names}"
-    if lead is not None:
-        if parent_n is not None and k["n"] < parent_n:
-            return f"{lead}, only {_js(k['n'])} may be {names}" + (" — wild steelhead go back" if wild_back else "")
-        return f"{lead}, up to {_js(k['n'])} may be {names}" + (" only — wild steelhead go back" if wild_back else "")
-    if parent_n is not None and k["n"] < parent_n:
-        of = "" if plain else f" of the {_js(parent_n)}"
-        return f"Only {_js(k['n'])}{of} may be {names}" + (" — wild steelhead go back" if wild_back else "")
-    return f"Up to {_js(k['n'])} may be {names}" + (" only — wild steelhead go back" if wild_back else "")
-
-
-def total_named(chain: Sequence[dict], kind: dict) -> Optional[dict]:
-    """T128 (owner 2026-10-22: "it needs to add 'of your total X daily quota in a stream for trout and char' in there to
-    make it more obvious to an untrained user"): THE total a kind's line names — the nearest tier above it that is a total,
-    the stream (lake) share or a water's own rule (a count or a size tier is a part of one, never a total of its own) —
-    or None where the line names none: a kind keeping none or any number, a tier of no number, or the kind is that tier's
-    ONLY kind at its number (the tier's own line says the whole of it: the card's header, or the share / own tier the kind
-    is folded into). `chain` the tiers from the root down to the kind's parent. The one decision; the card gate proves
-    the number it names like every other (`card_check.check_tree`)."""
-    t = next((t for t in reversed(chain) if t["tier"] in ("total", "share", "own")), None)
-    if t is None or t["n"] is None or kind["n"] in (0, None):
-        return None
-    under = [x for x, _p in walk(t["children"]) if x["node"] == "kind"]
-    if len(under) == 1 and under[0] is kind and kind["n"] == t["n"]:
-        return None
-    return t
-
-
-def total_fish(t: dict, kinds: Sequence[str], what: str) -> Optional[str]:
-    """T128 review: the fish a named total is OF — the group's (`what`, "trout and char") for a total or a share, and for a
-    water's own rule holding every one of the group's kinds; None for an own rule holding only SOME of them (Kamloops
-    Lake's "Rainbow trout daily quota = 2" and "bull trout daily quota = 1", one tier of 3 beside Region 3's 5; Adams
-    Lake's "1 bull trout or lake trout"): it is no "3 trout and char a day" of yours, the 5 is."""
-    if t["tier"] != "own":
-        return what
-    held = {S for x, _p in walk(t["children"]) if x["node"] == "kind" for S in x["species"]}
-    return what if held >= set(kinds) else None
-
-
-def total_words(t: dict, what: Optional[str], where: str) -> str:
-    """T128: the named total in the reader's words — its number, the group's fish, the period and, only where the total
-    is limited to one, its kind of water: "Of your 2 trout and char a day in streams", "Of your 5 trout and char a day",
-    a water's own rule "Of your 2 trout and char a day under this river’s rule"; an own rule of only some of the group's
-    fish (`total_fish` None) by its number and whose it is, "Of the 3 a day under this lake’s rule"."""
-    if what is None:
-        return f"Of the {_js(t['n'])} a day{where}"
-    return f"Of your {_js(t['n'])} {what} a day{where}"
+    wild_back = " — wild steelhead go back" if st and k.get("_origin") == "hatchery" else ""
+    return f"Up to {_js(k['n'])} {names}{combined(k['species'])}{wild_back}"
 
 
 def _size_also(kn, n, cm, others: List[str], then: List[dict], some: Optional[str] = None) -> Optional[str]:
     """A size cap no tier around a kind holds, said on the kind (ROUND18 7); `some` names the fish of the kind row
     it holds where it holds only some of them ("only 1 cutthroat trout over 50 cm (20 in)")."""
     over = f"{some} over {common.cm_in(cm)}" if some else f"over {common.cm_in(cm)}"
-    nw = "none" if not n else f"only {_js(n)}"
+    nw = "none" if not n else f"up to {_js(n)}"          # T475 ask 3: "up to N", never "only"
     o = kind_names(others) if others else ""
     if (INF if kn is None else kn) > n:
         s = f"{nw} {over}"
         for t in then:
-            s += f", and {'none' if not t['n'] else 'only ' + _js(t['n'])} over {common.cm_in(t['over_cm'])}"
+            s += f", and {'none' if not t['n'] else 'up to ' + _js(t['n'])} over {common.cm_in(t['over_cm'])}"
         if others and n:
             s += (f", if you haven’t already kept a {o} over {common.cm_in(cm)}" if n == 1
                   else f", counting any {o} over {common.cm_in(cm)}")
@@ -213,12 +169,12 @@ def _count_also(kn, n, mine: List[str], others: List[str], some: bool = False) -
     """A count over some kinds a kind's tier does not hold, said on the kind (`some`: it holds only `mine` of the
     kind row's fish)."""
     if some:
-        return f"only {_js(n)} may be {kind_names(mine)}" + (f", counting any {kind_names(others)} you keep"
-                                                            if others else "")
+        return f"up to {_js(n)} may be {kind_names(mine)}" + (f", counting any {kind_names(others)} you keep"
+                                                             if others else "")
     if others:
         return f"no more than {_js(n)} counting any {kind_names(others)} you keep"
     if (INF if kn is None else kn) > n:
-        return f"only {_js(n)} may be {kind_names(mine)}"
+        return f"up to {_js(n)} may be {kind_names(mine)}"
     return None
 
 
@@ -241,16 +197,16 @@ def fold_words(says: str, tier: str, n, names: str) -> str:
     twice): a tier whose ONLY child is one kind row at its number names the fish itself, and the kind is folded into it.
       own    "This river’s rule: up to 4 a day (part of the 5)" -> "This river’s rule: up to 4 hatchery rainbow trout a
              day (part of the 5)"
-      share  "Only 2 of the 5 may be from this stream, not counting rainbow trout" -> "Only 2 of the 5 may be brook,
-             brown, cutthroat or lake trout from this stream" (the fish named, nothing else is in the 2, so the lifted
-             fish need no mention); the fallback "2 a day per angler from this stream" -> "2 brook, … a day per angler
-             from this stream"."""
+      share  "Up to 2 of the 5 from this stream, not counting rainbow trout" -> "Up to 2 brook, brown, cutthroat or
+             lake trout of the 5 from this stream" (T475: the fish named, nothing else is in the 2, so the lifted fish
+             need no mention); the fallback "2 a day per angler from this stream" -> "2 brook, … a day per angler from
+             this stream"."""
     if tier == "own":
         head, _sep, tail = says.partition(" a day")
         return f"{head} {names} a day{tail}"
     base = says.split(", not counting ")[0]
-    if base.startswith("Only ") and " may be from " in base:
-        return base.replace(" may be from ", f" may be {names} from ", 1)
+    if base.startswith("Up to ") and " of the " in base:
+        return base.replace(" of the ", f" {names} of the ", 1)
     return base.replace(f"{_js(n)} a day per angler from ", f"{_js(n)} {names} a day per angler from ", 1)
 
 
@@ -352,6 +308,7 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             t = share_t = tier("share", b["cap"], f"{_js(b['cap'])} a day per angler from {share_place(c.share['water'], share_region_wide(P, c.share))}", b["by"])
             if c.share_origin is not None:
                 t["origin"] = c.share_origin           # ROUND20g 1: the origin rule where its scope is
+                t["origin_kind"] = c.origin_one        # T475: the same rule as a field (the headline says it)
         else:
             t = root
         content: List[dict] = []
@@ -384,6 +341,13 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         share_t["children"][:0] = under_share
     # ROUND20b C3 (owner: after the header's 4, the 2 reads as the next line): the share before a water's own tiers
     root["children"][:0] = ([share_t] if share_t is not None else []) + under_total
+    # T475 ask 1 (owner: "2 hatchery trout/char a day from streams"): where the share's one-origin rule is said by the
+    # headline (`card.card_of` headline `origin`), the kinds under the share do not say it again — but a steelhead, whose
+    # "— wild steelhead go back" is its own line (UR2 4)
+    if share_t is not None and c.share_origin is not None:
+        for x, _p in walk(share_t["children"]):
+            if x["node"] == "kind" and x["name"] != "Steelhead" and x["_origin"] == c.origin_one:
+                x["_origin"] = None
 
     # -- size caps (ROUND19 3, owner): a tier HOLDING every kind row its cap binds (each that may be kept over its
     # size), in the tightest tier holding them all — wrapping whole tiers where they span tiers, never a kind that
@@ -473,10 +437,11 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
         # UR1 B (user panel: "which these?"): the fish the tier holds. ROUND UR6 1 (owner: "this box" with no box since the flat
         # redesign): "Of these, only 1 may be over 50 cm (20 in)" — the page draws the section's extent (a rule from its head to
         # its last row); a fresh-reader single-frame test picked these words over naming every fish (rows 28)
-        n_w = "none" if not sz["n"] else f"only {_js(sz['n'])}"
-        says = f"Of these, {n_w} may be over {common.cm_in(cm)}"
+        # T475 (asks 3-4): "Up to 1 over 50 cm (20 in) combined" — the box holds the kinds it caps, so the line names none
+        says = "None" if not sz["n"] else f"Up to {_js(sz['n'])}"
+        says += f" over {common.cm_in(cm)}{combined(sz['species']) if sz['n'] else ''}"
         for th in sz.get("then") or []:
-            says += f", and {'none' if not th['n'] else 'only ' + _js(th['n'])} over {common.cm_in(th['over_cm'])}"
+            says += f", and {'none' if not th['n'] else 'up to ' + _js(th['n'])} over {common.cm_in(th['over_cm'])}"
         who = f"{st['_origin']} steelhead" if st is not None and st["_origin"] else "steelhead"
         if extra is not None:
             # RULINGS Q16 (Region 1/2): "no more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed)"
@@ -578,7 +543,8 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
             up = count_of(par, p)
             if up["n"] is not None and t["n"] is not None and t["n"] < up["n"]:
                 if t is share_t:
-                    t["says"] = f"Only {_js(t['n'])} of the {_js(up['n'])} may be from {share_place(c.share['water'], share_region_wide(P, c.share))}"
+                    # T475 ask 3: "up to N", never "only"
+                    t["says"] = f"Up to {_js(t['n'])} of the {_js(up['n'])} from {share_place(c.share['water'], share_region_wide(P, c.share))}"
                     if lifted:
                         t["says"] += f", not counting {lifted}"
                         lifted = None
@@ -607,33 +573,20 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     steel_cm = RD._steelhead_min_cm()
     kind_origin: Dict[int, Optional[str]] = {}
 
-    def where_of(t: dict) -> str:
-        """T128: where the named total holds, said only where it is limited: the share's kind of water ("in streams",
-        "in this stream"), a water's own rule by whose it is, a zone total printed for one kind of water."""
-        from pipeline.deliver.answers.card import _whose
-        if t["tier"] == "share":
-            return f" in {share_place(c.share['water'], share_region_wide(P, c.share))}"
-        if t["tier"] == "own":
-            return f" under {_whose(P, P.by_key[t['by']])[1]}"
-        return f" in {share_place(T.f['water'], True)}" if zone and T.f.get("water") else ""
-
-    for x, p in walk([root]):
+    for x, _p in walk([root]):
         if x["node"] != "kind":
             continue
-        up = count_of(par, p)
-        named = total_named(chain(par, x), x)
-        lead = total_words(named, total_fish(named, grp["kinds"], c.what), where_of(named)) if named is not None else None
-        x["says"] = _kind_says(x, named["n"] if named is not None else up["n"], lead=lead)
-        bare = _kind_says(x, named["n"] if named is not None else up["n"], plain=True, lead=lead)
+        # T475 (asks 3-4): one pattern, "Up to N <fish>"; the sentence is the line, its detail and its notes
+        x["says"] = _kind_says(x)
         kind_origin[id(x)] = x.get("_origin")
         x["folded"] = False
         x["size_rule"] = size_rule(x, P.steelhead_water, steel_cm)     # ROUND20i 1
         for k_ in ("_hi", "_origins", "_origin"):
             x.pop(k_, None)
-        # T128: a line naming its total is the sentence's head itself; else "Of the 2 a day: …" as before
-        s = bare if lead is not None else f"Of the {_short(up)}: {common.lc(bare)}"
+        s, _w, back = x["says"].partition(" — wild steelhead go back")
         if x["detail"]:
             s += f", {x['detail']}"
+        s += _w
         notes = [a["says"] for a in x["also_counts"]]
         if notes:
             s += " — " + "; ".join(notes)

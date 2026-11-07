@@ -252,6 +252,55 @@ def possession_of(P, model: dict, kinds: Sequence[str], total, what: str, share:
             "example": f"With {_js(total)} {what} a day you may have {n}: {days}.", "doubles": doubles}
 
 
+def headline_of(n, origin: Optional[str], what: str, place: str) -> dict:
+    """T475 ask 1 (owner 2026-11-07): a share's headline in one line, from fields — "2 hatchery trout/char a day from
+    streams": the number, the one origin the share's water keeps (`origin`, the resolved rules' — `origin_place`; None
+    where any is kept), the group's fish as one noun (`fish`, "trout/char") and where the share holds."""
+    fish = what.replace(" and ", "/")
+    unit = f"{origin + ' ' if origin else ''}{fish} a day from {place}"
+    return {"unit": unit, "says": f"{_js(n)} {unit}", "origin": origin, "fish": fish}
+
+
+def share_info(P, model: dict, share: dict, T, total, head: dict, what: str, scope: str, kinds: Sequence[str],
+               plain: bool) -> Optional[dict]:
+    """T475 ask 1 (owner 2026-11-07: an ⓘ on the headline "explaining the regional total shared with lakes and 2–3
+    examples from the numbers"): {title, says, by (the share's rule), examples}. Built from the share and the total; None
+    where the total is a water's own (no regional total to share). `examples` (only on a REGION-WIDE share holding every
+    kind of the card on its own kind of water, with no lift — `plain` — where the counts are this arithmetic) are kept-
+    elsewhere lines in the `Worked` shape, each number proved by the card gate (`card_check.check_group`): keep the share on
+    another water of its kind, keep 1 on the other kind, keep the whole total on the other kind."""
+    from pipeline.deliver.answers.rows import badge_of
+    from pipeline.deliver.answers.tree import share_place, share_region_wide
+    if badge_of(T) not in ("region", "bc"):
+        return None
+    s, T, water = share["take"], total, share["water"]
+    other = "lake" if water == "stream" else "stream"
+    wide = share_region_wide(P, share)
+    place = share_place(water, wide)
+    info = {"title": f"Your {_js(s)} from {place} and the {_js(T)} across {scope}",
+            "says": (f"The {_js(s)} from {place} are part of your {_js(T)} {what} a day across {scope}, {other}s included. "
+                     f"Every one you keep that day, at any {water} or {other}, counts toward the {_js(T)}; no more than "
+                     f"{_js(s)} of them may come from {place}."),
+            "by": share["r"], "examples": []}
+    n = head.get("n")
+    if not (plain and wide and water == P.kind and isinstance(n, (int, float))):
+        return info
+    o = (_kept_origins(model, kinds[0]) or ["hatchery"])[0]
+
+    def ex(at, kept, q, a, here, other_, away):
+        return {"kept": kept, "q": q, "a": a, "species": list(kinds), "origin": o, "share": None, "here": here,
+                "other": other_, "away": away, "at": at, "over_cm": None, "most": "exactly", "of": None}
+    here1 = min(n, T - 1)
+    info["examples"] = [
+        ex(water, s, f"Kept {_js(s)} on another {water}?",
+           f"None more from {water}s today — up to {_js(T - s)} more from {other}s.", 0, 0, T - s),
+        ex(other, 1, f"Kept 1 at a {other}?",
+           f"Up to {_js(here1)} more here, or up to {_js(T - 1)} more at {other}s.", here1, None, T - 1),
+        ex(other, T, f"Kept {_js(T)} at {other}s?",
+           f"That’s your {_js(T)} for the day: none more here or on any other water.", 0, 0, 0)]
+    return info
+
+
 def _items_of(rows_out: List[dict], home: int, S: str) -> List[dict]:
     """Every row item holding `S`, the group's own row first."""
     order = [rows_out[home]] + [r for i, r in enumerate(rows_out) if i != home]
@@ -608,11 +657,18 @@ def _not_kept(P, model: dict, row: dict, kinds: Sequence[str]) -> List[dict]:
     for x in out.values():
         name = "Steelhead" if x["species"] == ["ST"] and P.steelhead_water else _named_with_members(x["species"])
         # UR1 F (user panel: may I catch and release?): the book's p.4 legend — "you may not deliberately fish for the
-        # species named even if your intention is to release … If you accidentally catch [one], you must release it"
-        x["says"] = f"{name}: " + ("no fishing for them, not even catch and release — release any you hook by accident"
-                                   if x["status"] == "closed" else "release every one")
+        # species named even if your intention is to release … If you accidentally catch [one], you must release it".
+        # T475 ask 2 (owner 2026-11-07: "Steelhead: closed, no catch and release"): the line says it short; what an
+        # accidental hook means is the ⓘ (`term`: the glossary's `no_fishing_for`, the p.4 legend in plain words)
+        x["says"] = f"{name}: " + ("closed, no catch and release" if x["status"] == "closed" else "release every one")
     return [{"species": x["species"], "status": x["status"], "says": x["says"], "by": x["by"],
-             "rules": x["rules"], "whose": x["whose"]} for x in out.values()]
+             "rules": x["rules"], "whose": x["whose"], **({"term": NO_FISHING_TERM} if x["status"] == "closed" else {})}
+            for x in out.values()]
+
+
+#: T475 ask 2: the glossary term a closed fish's ⓘ opens (`glossary.t_no_fishing_for`: "If you catch one by accident,
+#: release it at once.")
+NO_FISHING_TERM = "no_fishing_for"
 
 
 def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
@@ -717,6 +773,12 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     share_origin = None
     if one_origin and (got := origin_place(P, model, kinds, next(iter(os_))[0], T, share)) is not None:
         share_origin, origin = f"From {got}, {origin[0].lower()}{origin[1:]}", None
+    # T475 ask 1 (owner 2026-11-07: "2 hatchery trout/char a day from streams", the hatchery-only rule folded in, with an ⓘ
+    # on the regional total): the share's headline from FIELDS — its number, the share's one origin (the rule above, never
+    # its sentence), the group's fish and the share's water
+    if share is not None and not unlimited:
+        head.update(headline_of(head["n"], next(iter(os_))[0] if share_origin is not None else None, what,
+                                share_place(share["water"], share_region_wide(P, share))))
 
     # -- lifts out of the share, and the total under it ------------------------------------------
     region = (P.by_key[share["r"]].x.get("entry_name") if share else None) or "the region"
@@ -971,6 +1033,11 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     sysm = CP.system(P, grp["pool"], book_order(list(dict.fromkeys(
         kinds + [S for x in not_kept for S in x["species"]]))))
     table = {**sysm["table"], "steelhead_cm": sysm["steelhead_cm"]}
+    if share is not None and not unlimited and share["take"] < total:
+        info = share_info(P, model, share, T, total, head, what, T.x.get("entry_name") or "the region", kinds,
+                          plain=not lifts and all(where_of[S] is share_b for S in kinds))
+        if info is not None:
+            head["info"] = info
     # ROUND18 1/2/3/4/7/8 (owner): the card as a TREE of tiers holding the kinds, and its compact header
     from pipeline.deliver.answers import tree as TR
     tree, header = TR.tree_of(P, model, TR.Ctx(

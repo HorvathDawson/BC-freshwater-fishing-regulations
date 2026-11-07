@@ -39,7 +39,7 @@ def _kind(g, sp):
 # 1 ---------------------------------------------------------------------------------------------
 def test_1_the_headline_says_per_angler():
     g, _o, _P = _g(F.VEDDER)
-    assert g["headline"]["says"] == "2 a day per angler from streams"
+    assert g["headline"]["says"] == "2 hatchery trout/char a day from streams"     # T475 ask 1: per angler in the ⓘ
     assert g["header"]["says"] == "4 a day per angler across Region 2, lakes included"        # ROUND20 1: the root
     g, _o, _P = _g(F.LWA)
     assert g["headline"]["says"] == "4 a day per angler"
@@ -67,19 +67,17 @@ def test_2_the_gate_proves_the_numbers_a_worked_line_states():
 def test_3_a_kind_held_to_fewer_says_of_how_many():
     g, _o, _P = _g(F.VEDDER)
     dv = _kind(g, "DV")
-    # T128: "of how many" is the total the line names
-    assert dv["says"] == "Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout or lake trout"
-    assert dv["sentence"] == ("Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout or "
-                              "lake trout, 60 cm (24 in) or longer")
+    # T475 (asks 3-4): "of how many" is the tier the line sits in; "up to", never "only"
+    assert dv["says"] == "Up to 1 Dolly Varden/bull trout or lake trout combined"
+    assert dv["sentence"] == "Up to 1 Dolly Varden/bull trout or lake trout combined, 60 cm (24 in) or longer"
     g, _o, _P = _g(F.LWA)
-    assert _kind(g, "DV")["says"] == "Of your 4 trout and char a day, only 1 may be Dolly Varden/bull trout or lake trout"
+    assert _kind(g, "DV")["says"] == "Up to 1 Dolly Varden/bull trout or lake trout combined"
 
 
 # 4 ---------------------------------------------------------------------------------------------
 def test_4_hatchery_steelhead_only_and_wild_go_back():
     g, _o, _P = _g(F.VEDDER)
-    assert _kind(g, "ST")["says"] == ("Of your 2 trout and char a day in streams, up to 2 may be hatchery steelhead only — "
-                                      "wild steelhead go back")
+    assert _kind(g, "ST")["says"] == "Up to 2 hatchery steelhead — wild steelhead go back"
 
 
 def test_4_the_presence_line_says_a_big_rainbow_is_a_steelhead_where_it_is():

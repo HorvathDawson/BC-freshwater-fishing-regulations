@@ -64,23 +64,20 @@ def test_3_the_vedder_tree():
     assert own["replaces"] == ("Replaces Region 2’s 2-from-streams limit and 30 cm (12 in) minimum size for hatchery "
                                "rainbow trout")
     (rb,) = own["children"]
-    assert (rb["says"], rb["detail"]) == ("Up to 4 may be hatchery rainbow trout", "any length, 50 cm (20 in) or less")
-    assert rb["sentence"] == "Of the 4 a day: up to 4 may be hatchery rainbow trout, any length, 50 cm (20 in) or less"
-    assert share["says"] == "Only 2 of the 4 may be from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
+    assert (rb["says"], rb["detail"]) == ("Up to 4 hatchery rainbow trout", "any length, 50 cm (20 in) or less")
+    assert rb["sentence"] == "Up to 4 hatchery rainbow trout, any length, 50 cm (20 in) or less"
+    assert share["says"] == "Up to 2 of the 4 from streams"   # ROUND UR7 A: the lift said once, by the own tier's relation   # ROUND20 2
     assert share["origin"] == "From streams, keep hatchery fish only — wild trout and char go back."   # ROUND20g 1
     (size,) = share["children"]           # every kind of the share may pass 50 cm: the size tier holds them all
-    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in) — 2 if one is a hatchery steelhead"
+    assert size["says"] == "Up to 1 over 50 cm (20 in) combined — 2 if one is a hatchery steelhead"
     assert (size["extra"]["n"], size["extra"]["species"]) == (1, ["ST"])
     trout, dv, st = size["children"]
-    # T128: a kind's line names the total it is part of
-    assert trout["sentence"] == ("Of your 2 trout and char a day in streams, up to 2 may be hatchery brook, brown or "
-                                 "cutthroat trout, 30 cm (12 in) or longer")
+    # T475: the line is a part of the share it sits in; the headline says "hatchery" for every kind of it
+    assert trout["sentence"] == "Up to 2 brook, brown or cutthroat trout combined, 30 cm (12 in) or longer"
     assert trout["also_counts"] == []     # the grouping says the cross-kind over-50 line
-    assert dv["sentence"] == ("Of your 2 trout and char a day in streams, only 1 may be hatchery Dolly Varden/bull trout "
-                              "or lake trout, 60 cm (24 in) or longer")
+    assert dv["sentence"] == "Up to 1 Dolly Varden/bull trout or lake trout combined, 60 cm (24 in) or longer"
     # ROUND20g 2: the size tier's "— 2 if one is a hatchery steelhead" says it once; no size note on the kind
-    assert st["sentence"] == ("Of your 2 trout and char a day in streams, up to 2 may be hatchery steelhead, rainbow trout "
-                              "over 50 cm (20 in)")
+    assert st["sentence"] == ("Up to 2 hatchery steelhead, rainbow trout over 50 cm (20 in) — wild steelhead go back")
     assert "size_note" not in st
 
 
@@ -89,19 +86,19 @@ def test_3_a_kind_that_cannot_pass_the_size_stays_outside_and_a_count_tier_names
     (own,) = g["tree"][0]["children"]
     assert own["says"] == "This river’s rule: up to 2 a day (part of the 4)"
     size, count = own["children"]
-    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in)"
+    assert size["says"] == "Up to 1 over 50 cm (20 in) combined"
     assert [k["species"] for k in size["children"]] == [["EB", "GB"], ["DV", "LT"]]
-    assert count["says"] == "1 cutthroat or rainbow trout in all (part of the 2)"     # UR3 3; ≤33 and ≤50 cm: never over 50
-    # T128: a kind under a count tier names the total around it (the count tier's line says the 1 in all)
+    assert count["says"] == "Up to 1 cutthroat or rainbow trout combined (part of the 2)"   # UR3 3; ≤33 and ≤50 cm: never over 50
+    # T475: a kind under a count tier is a part of it (the count tier's line says the 1 combined)
     assert [k["sentence"] for k in count["children"]] == [
-        "Of your 2 trout and char a day under this river’s rule, only 1 may be hatchery cutthroat trout, 30–33 cm (12–13 in)",
-        "Of your 2 trout and char a day under this river’s rule, only 1 may be hatchery rainbow trout, 30–50 cm (12–20 in)"]
+        "Up to 1 hatchery cutthroat trout, 30–33 cm (12–13 in)",
+        "Up to 1 hatchery rainbow trout, 30–50 cm (12–20 in)"]
 
 
 def test_3_a_size_tier_spanning_tiers_wraps_them():
     g, _o, _P = _g(F.CLAKE)             # Chilliwack Lake's own Dolly Varden rule under Region 2's 1 over 50 cm
     (size,) = g["tree"][0]["children"]
-    assert size["says"] == "Of these, only 1 may be over 50 cm (20 in)"
+    assert size["says"] == "Up to 1 over 50 cm (20 in) combined"
     assert [x.get("tier") or x["species"] for x in size["children"]] == ["own", ["EB", "GB", "CT", "RB"], ["LT"]]
 
 

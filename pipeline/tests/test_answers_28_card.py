@@ -54,10 +54,12 @@ def _card_text(g, row):
 
 # 1 ---------------------------------------------------------------------------------------------
 def test_the_headline_is_this_waters_number_without_a_lift():
-    assert _g(F.VEDDER)["headline"] == {"n": 2, "unit": "a day per angler from streams",
-                                         "says": "2 a day per angler from streams",
-                                         "also": [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm "
-                                                                   "(20 in) or less"}]}
+    h = _g(F.VEDDER)["headline"]
+    assert {k: v for k, v in h.items() if k != "info"} == {
+        "n": 2, "unit": "hatchery trout/char a day from streams", "says": "2 hatchery trout/char a day from streams",
+        "origin": "hatchery", "fish": "trout/char",
+        "also": [{"n": 4, "says": "4 if they’re hatchery rainbow trout 50 cm (20 in) or less"}]}
+    assert h["info"]["examples"] == []                    # T475: a lift makes the count more than the ⓘ's arithmetic
     assert _g(F.STREAM)["headline"]["n"] == 2
     assert _g(F.LAKE)["headline"] == {"n": 4, "unit": "a day per angler", "says": "4 a day per angler"}
 
