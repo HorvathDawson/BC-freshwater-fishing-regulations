@@ -13,6 +13,8 @@ with the default Claude uses until you answer). Newest first inside each section
   1. `MLN_LOCAL_MAVEN=/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/ee95bdfc-d51a-4f83-8602-1e5d2e402692/scratchpad/mllean/m2 deploy/staging/build-apk.sh --play` — the lean patch, the one going upstream (A/B 2026-11-07: as fast as the full patch, colours right, no ANR; if a reboot cleared /private/tmp, rebuild it with app/tools/maplibre-patch/build.sh and the lean patch first): patched → Play internal (versionCode 19).
   2. `deploy/staging/build-apk.sh`: stock → the staging APK page.
   Then pan the same places on each (Coquitlam z13, Fraser Valley z11). Details are in T420.
+- **Review the quota wording (T475, 2026-11-07):** from the shots sent overnight (Fraser R2 trout card + its ⓘ sheet).
+  Wording only; it is built in scratch. Say OK and it is promoted with the next release.
 - **Check one T468 side effect (2026-11-07): Little Slocan River above Little Slocan Lakes.** The Powell fix (a river
   flowing through a lake with no row of its own now counts as the lake's tributary) adds 374 sections of the Little
   Slocan River above the lakes to the "Little Slocan Lakes tributaries" rows r1–r3. Those rows exempt their waters from
