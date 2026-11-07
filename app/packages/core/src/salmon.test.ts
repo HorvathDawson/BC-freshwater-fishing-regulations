@@ -289,6 +289,15 @@ describe("(T227) region notes about a species sit with that species", () => {
       ["SK", null], ["PK", null], ["CM", null]]);
     expect(c.regionRules.map(({ label, notes }) => ({ label, notes }))).toEqual([{ label: "Region 6 Skeena", notes: ["Daylight only."] }]);
   });
+  it("(T482, owner 2026-11-07) every species closed: each species' sizes are on its own row, none left in the region block", () => {
+    const c = salmonCard(withNotes(), { sids: [101], item: null }, SEP15);           // the Kispiox: all five closed
+    expect(c.allClosed).toBe(true);
+    expect(salmonTable(c).species.map((r) => [r.code, r.status, r.limit])).toEqual([
+      ["CH", "closed", "Sizes (DFO): adult chinook over 50 cm"], ["CO", "closed", "Sizes (DFO): coho 25 cm or more to keep"],
+      ["SK", "closed", null], ["PK", "closed", null], ["CM", "closed", null]]);
+    const loose = [...c.regionRules.flatMap((g) => g.notes), ...c.waterRules];
+    expect(loose.filter((t) => /cm/.test(t))).toEqual([]);
+  });
   it("(T343) a folded note is said by its structure: a dropped one never shows, a bucket one not beside its bucket", () => {
     const f = withNotes() as unknown as { payload: { regions: Record<string, { notes: unknown[] }> } };
     const r6 = f.payload.regions["6"]!;
@@ -301,14 +310,19 @@ describe("(T227) region notes about a species sit with that species", () => {
     const c = salmonCard(g, { sids: [101], item: null }, JUL20);
     expect([c.bucket?.ids, words(c).includes("The daily limit … is 4.")]).toEqual([["6:daily:f"], false]);
   });
-  it("(T343) the page's fishing hours are the card's `hours` line (the words stay until the card draws it — T367)", () => {
+  it("(T343, T482) the page's fishing hours are the card's `hours` line; the daylight words leave the region block", () => {
     const f = withNotes() as unknown as { payload: { regions: Record<string, { notes: unknown[] }> } };
     const r6 = f.payload.regions["6"]!;
     const g = { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...r6,
       hours: { says: "Salmon fishing in daylight only: sunrise to sunset", id: "6:daylight:a" },
       notes: (r6.notes as { id: string }[]).map((x) => (x.id === "6:daylight:a" ? { ...x, fold: "hours" } : x)) } } } } as never;
     const c = salmonCard(g, { sids: [101], item: null }, JUL20);
-    expect([c.hours, c.regionRules[0]!.notes.includes("Daylight only.")]).toEqual(["Salmon fishing in daylight only: sunrise to sunset", true]);
+    const loose = (x: ReturnType<typeof salmonCard>) => x.regionRules.flatMap((r) => r.notes).includes("Daylight only.");
+    expect([c.hours, loose(c)]).toEqual(["Salmon fishing in daylight only: sunrise to sunset", false]);
+    // a daylight note folded to hours its region does not ship (an older file) stays as words: never lost
+    const bare = { ...f, payload: { ...f.payload, regions: { ...f.payload.regions, "6": { ...r6,
+      notes: (r6.notes as { id: string }[]).map((x) => (x.id === "6:daylight:a" ? { ...x, fold: "hours" } : x)) } } } } as never;
+    expect(loose(salmonCard(bare, { sids: [101], item: null }, JUL20))).toBe(true);
     const closed = salmonCard(g, { sids: [101], item: null }, SEP15);      // every species closed: no hours line
     expect([closed.allClosed, closed.hours]).toEqual([true, null]);
   });

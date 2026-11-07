@@ -82,8 +82,11 @@ def build(scraped: dict) -> dict:
         # T366 ONE VINTAGE: the page these rows came from ({sha256, date_modified}) and its header notes, so a reader
         # can tell typed rows older than the raw page, and the release ships the header of the rows' own page
         **({"page": scraped["page"]} if scraped.get("page") else {}),
-        # (T358) the header format the notes are in: a reader takes notes only in today's (`header.FORMAT`)
-        **({"notes": scraped["notes"], "header_format": _header_format()} if "notes" in scraped else {}),
+        # (T358) the header format the notes are in: a reader takes notes only in today's (`header.FORMAT`). (T482) The
+        # SCRAPED file's own format, never today's stamped on notes parsed before it: a pre-T358 rules file was stamped
+        # /2 here, so the release took its `cm` notes as current and no size or daylight note folded (R1, R2, R6)
+        **({"notes": scraped["notes"], **({"header_format": scraped["header_format"]} if scraped.get("header_format") else {})}
+           if "notes" in scraped else {}),
         "preamble": scraped.get("preamble") or [],
         "locators": locators,
     }
@@ -157,11 +160,6 @@ def main(argv: Optional[List[str]] = None) -> int:
                       f"{len(loc['rules'])} rule(s): {loc['rows'][0][:70]}")
         print(f"  {tb} locators bind to a curated record; {tn} of those have no extent yet")
     return 0
-
-
-def _header_format() -> str:
-    from pipeline.regs.dfo_salmon.header import FORMAT
-    return FORMAT
 
 
 if __name__ == "__main__":

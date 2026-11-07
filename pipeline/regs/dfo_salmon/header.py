@@ -30,7 +30,8 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 
 from pipeline.common import calendar_spec
 
-FORMAT = "dfo-header/2"     # T358: a note's length is `lengths` (LengthBand), was `cm`
+FORMAT = "dfo-header/3"     # T358: a note's length is `lengths` (LengthBand), was `cm`; T343/T482: a `daylight` note
+                            # carries `hours` (/2 feeds were stamped on pre-T358 notes, so none is trusted)
 _SP = {"chinook": "CH", "coho": "CO", "sockeye": "SK", "pink": "PK", "chum": "CM"}
 _MONTHS = {m.lower(): i for i, m in enumerate(calendar_spec.MONTHS, 1)}
 _RE_STOP = re.compile(r"<h[1-6][^>]*>\s*(?:Related links|Salmon limits, openings and closures)|<(?:p|li)[^>]*>\s*(?:This table refers to"

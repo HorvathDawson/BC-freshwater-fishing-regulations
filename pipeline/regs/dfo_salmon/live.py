@@ -151,8 +151,8 @@ def type_page(html: str, slug: str):
     scraped = {"region": slug, "date_modified": parsed.date_modified, "page": F.page_stamp(html),
                "preamble": parsed.preamble, "rules": [r.to_dict() for r in rules]}
     try:                                                       # T366: the header rides with its rows
-        from pipeline.regs.dfo_salmon.header import parse_header
-        scraped["notes"] = parse_header(html, slug)
+        from pipeline.regs.dfo_salmon.header import FORMAT, parse_header
+        scraped["notes"], scraped["header_format"] = parse_header(html, slug), FORMAT
     except Exception:                                          # noqa: BLE001 — told by `_read_header`; no notes key
         pass
     return FD.build(scraped), locs, structure

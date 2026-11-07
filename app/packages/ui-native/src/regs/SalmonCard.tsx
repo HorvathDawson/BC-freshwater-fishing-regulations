@@ -7,8 +7,11 @@
  * the rows keep the drawn answer. Then (owner 2026-10-28) the provincial bait ban / fly only that day (it applies to salmon too), the
  * header notes naming this water, and the page's DFO regions' header rules in a compact "Region rules (DFO)" block; an
  * open row carries the header's sizes, and (T227) any row that may be fished carries the region notes about its species
- * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. No logic and no words of its own: everything is core `salmonCard`'s.
+ * (DFO's words: what an "adult chinook" is …), which the region block then leaves out. (T482, owner 2026-11-07) Sizes sit on
+ * each species' row (closed rows too), the daylight rule is one `hours` line, and DFO's source block is a fold, closed by
+ * default. No logic and no words of its own: everything is core `salmonCard`'s.
  */
+import { useState } from "react";
 import { Image, View } from "react-native";
 import { Text } from "../Text";
 import { FISH, SALMON_WORDS, WORDS, salmonTable, type SalmonCardVM, type SalmonRowVM, type SalmonSaysVM, type SalmonSpecies, type SalmonTableRowVM, type SalmonWordsRowVM } from "@app/core";
@@ -21,6 +24,7 @@ import { LineText, NO_ACTIONS, type KeepActions } from "./LineText";
 import { CaveatBlock } from "./KeepBlocks";
 import type { FishImages } from "./types";
 import { CoachSpot } from "../CoachMarks";
+import { Icon } from "../icons";
 
 const chipColour = (p: Palette, s: SalmonRowVM["status"]): string =>
   s === "open" ? p.open : s === "release" ? p.restricted : s === "closed" ? p.closed : p.sub;
@@ -129,10 +133,44 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
         </View>
       ))}
       {t.species.map((r) => <SpeciesRow key={r.code} r={r} palette={palette} actions={actions} images={images} pictures />)}
+      {/* (T343, T482) the page's salmon hours, one line (the daylight note folds into it) */}
+      {card.hours && <Text selectable testID="salmon-hours" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: 8 }}>{card.hours}</Text>}
       <Says says={t.says} palette={palette} />
       {card.gear.map((g) => (
         <Text key={g} testID="salmon-card-block-gear" style={{ ...TYPE.meta, color: palette.sub, paddingTop: 6 }}>{g}</Text>
       ))}
+    </View>
+  );
+}
+
+/**
+ * (T482, owner 2026-11-07: "the source of the regs should be collapsible"; T343 item 7) DFO's source block — the
+ * agency and region, the page's date, when it was checked, the credit, the pictures' credit, and the two-authorities
+ * note — as ONE fold, closed by default, like the Methods tab's Reference fold and T479's examples fold. Its state is
+ * local (it changes no answer). The walkthrough's "both rules hold" rings its summary row.
+ */
+function SourceFold({ card, shown, palette }: {
+  card: SalmonCardVM & { readonly checked?: string | null }; shown: readonly string[]; palette: Palette }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View testID="salmon-source-fold" style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: palette.line }}>
+      <CoachSpot k="regs:both">
+        <RegsPress testID="salmon-source-summary" accessibilityRole="button" aria-expanded={open} onPress={() => setOpen(!open)} box={{ w: 44, h: 44 }}
+                   style={{ minHeight: 44, flexDirection: "row", alignItems: "center", columnGap: 8, paddingVertical: 6 }}>
+          <Text testID="kicker:salmon-source" style={[TYPE.kicker, { flex: 1, color: palette.sub }]}>{SALMON_WORDS.sourceFold}</Text>
+          <Icon name={open ? "collapse" : "expand"} colour={palette.sub} size={16} />
+        </RegsPress>
+      </CoachSpot>
+      {open && (
+        <View testID="salmon-source-body" style={{ paddingBottom: 4 }}>
+          <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent }}>{card.source}</Text>
+          <Text testID="salmon-asof" style={{ ...TYPE.meta, color: palette.sub }}>{card.asOf}</Text>
+          {card.checked && <Text testID="salmon-checked" style={{ ...TYPE.meta, color: palette.sub }}>{card.checked}</Text>}
+          <Text testID="salmon-credit" style={{ ...TYPE.meta, color: palette.sub }}>{card.credit}</Text>
+          {shown.length > 0 && <Text testID="salmon-pic-credit" style={{ ...TYPE.meta, color: palette.sub }}>{`${WORDS.FISH_PICTURES}: ${shown.join(" · ")}`}</Text>}
+          <Text testID="salmon-note" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: SPACE.s2 }}>{card.note}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -173,15 +211,7 @@ export function SalmonCard({ card, palette, actions, images }: {
           <Text testID="salmon-not-listed" style={{ ...TYPE.meta, color: palette.ink, paddingTop: 8 }}>{card.notListed}</Text>
         )}
         {card.regionRules.map((g) => <RegionRules key={g.label} group={g} palette={palette} />)}
-        <View style={{ marginTop: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
-          <Text testID="salmon-source" style={{ ...TYPE.metaBold, color: palette.accent }}>{card.source}</Text>
-          <Text testID="salmon-asof" style={{ ...TYPE.meta, color: palette.sub }}>{card.asOf}</Text>
-          {card.checked && <Text testID="salmon-checked" style={{ ...TYPE.meta, color: palette.sub }}>{card.checked}</Text>}
-          <Text testID="salmon-credit" style={{ ...TYPE.meta, color: palette.sub }}>{card.credit}</Text>
-          {shown.length > 0 && <Text testID="salmon-pic-credit" style={{ ...TYPE.meta, color: palette.sub }}>{`${WORDS.FISH_PICTURES}: ${shown.join(" · ")}`}</Text>}
-        </View>
-        {/* (T456) the walkthrough's "both rules hold" rings this line */}
-        <CoachSpot k="regs:both"><Text testID="salmon-note" style={{ ...TYPE.metaSemi, color: palette.ink, paddingTop: SPACE.s2 }}>{card.note}</Text></CoachSpot>
+        <SourceFold card={card} shown={shown} palette={palette} />
       </View>
     </WaterInset>
   );
