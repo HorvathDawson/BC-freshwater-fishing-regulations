@@ -259,3 +259,21 @@ Not shown by the stack: whether the buffer re-uploads are the feature-state upda
 **Built (lab switches, 94695e0 + e88e3be):** the map lab (staging/test-bed builds only; long-press ©) with `stateGapMs` 250 (colour
 batches at least 250 ms apart; a burst after a quiet spell still goes at once) and `streamsOneBucket` (the 8 stream line layers in one
 cap/join/minzoom spelling: 4 buckets → 1). A/B numbers: pending (agent run `out/runs/t420-lab-*`).
+
+## Correction: feature-state costs EVERY FRAME, and grows with the session (2026-11-06 night, MapLibre source read)
+MapLibre Native android-v13.6.1 (also main; came with upstream PR #3406, 2025-06): `RenderTileSource::prepare`
+(`render_tile_source.cpp:465-479`) runs every frame on the render thread and calls `SourceFeatureState::coalesceChanges`, which
+ends `changes.insert(currentStates…)` and calls `setFeatureState(changes)` on EVERY rendered tile (`source_state.cpp:~100-108`);
+each tile updates every layer's bucket on that source-layer with the WHOLE stored set (`geometry_tile.cpp:594-619` →
+`paint_property_binder.hpp:315-330`: a hash lookup per stored id per data-driven binder, re-evaluation for ids it holds) and marks
+its buffers modified even with no match (`:732`, `line_bucket.cpp:174-176`; on Vulkan a modified buffer is a new `BufferResource`,
+`vulkan/upload_pass.cpp:78-90`, likely the profile's upload share). The store never shrinks: a removal leaves an empty entry
+(`source_state.cpp:76-90`) and states survive a style swap. So the cost is **ids touched this session × rendered tiles × layers ×
+feature-state binders, per frame**, NOT "per batch". Consequences:
+- `stateGapMs` (batch spacing) should change nothing (A/B pending to confirm the model).
+- Colouring every section up front (65k named sections, 1.96M handles) is ruled out: the per-frame set and memory explode
+  (~360 B per id with 3 keys: ~700 MB province-wide; T360's crash was at 406 MB).
+- Levers that meet the owner's constraints (tiles geometry-only, one colouring path): (1) patch MapLibre core so a tile gets the
+  full set once when laid out and only deltas after, with no per-frame copy and no "modified" without a match — the real fix,
+  needs our own MapLibre AAR build, offer upstream; (2) fewer layers reading feature-state per mode (`visibility: none` drops a
+  layer from the tile's render data); (3) fewer rendered tiles. Scratch study: session scratchpad `colouring/` (clone + probes).
