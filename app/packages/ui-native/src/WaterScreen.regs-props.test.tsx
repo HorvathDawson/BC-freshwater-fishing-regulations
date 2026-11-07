@@ -54,8 +54,9 @@ describe("<WaterScreen> regulations", () => {
     expect([screen.queryByTestId("gear-tab"), screen.queryByTestId("methods-tab")]).toEqual([null, null]);
     // (owner 2026-11-04) on a closed day there is no Licence section: nothing would be said under its heading
     expect(screen.queryByTestId("licence-tab")).toBeNull();
+    // (T474) the water's own rule-book page heads the content
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-legal"]);
+      .toEqual(["regs-water-book", "keep-tab", "regs-legal"]);
   }, 30_000);
 
   it("a release past its valid_until: the page leads with core's out-of-date sentence (none on an unstamped release)", async () => {
