@@ -526,6 +526,7 @@ use that as the sole source of future work."
 | T479 | T475 follow-up: "How to tell hatchery ›", "Exception to regional quota" (pipeline `over_region`), examples fold closed by default | IN REVIEW | 31dd63547 | owner 2026-11-07; owner look at the shots, then a release |
 | T480 | One size style on the regs pane (chips; steelhead as a definition); access chip in the header tried and reverted (owner 11-07) | IN REVIEW | 3a1026e20, revert d6d964106 | owner 2026-11-07; proposal — size style for the owner's look; a better place for the access note is still open |
 | T481 | Sticky header on the keep tab: design study (inventory of what pins; A one sentence / B number-led / C top line only / D solid + fade) | IN REVIEW | — | owner 2026-11-07; owner picks an option (rec: C + fade, A on the 87 outside-share waters) |
+| T483 | Fast-fail: cheap checks before and while long jobs; every late failure a cheap check could catch is added (AGENTS 20a) | OPEN | — | owner 2026-11-07; agent starts when a lane frees |
 
 ## Order for open tickets
 

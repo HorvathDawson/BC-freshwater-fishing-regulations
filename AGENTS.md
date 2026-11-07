@@ -144,6 +144,12 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
 20. **`pipeline.atlas.reach.cache.POLICY_VERSION` must be bumped when `classify.py` changes an
     outcome.** A test fails if it goes stale — a cache serving confidently wrong answers is
     worse than no cache.
+20a. **Fast-fail first, and it grows (owner 2026-11-07, T483).** Before any long job (build, release, APK, emulator,
+    full suite), run `scripts/fast-fail.sh`: the cheap checks (typecheck, vitest on changed files, colours,
+    answers-stale, ticket ledger, …) that stop a doomed job in a minute or two. Run it while a build waits, too.
+    **Whenever a failure shows up late — after a long job, at review, on the device — that a cheap check could
+    have caught, add that check to `scripts/fast-fail.sh` in the same change as the fix**, with a one-line comment
+    naming what it caught and when. A late failure that could have failed fast is a missing fast-fail item.
 
 ## The app (`app/`)
 
