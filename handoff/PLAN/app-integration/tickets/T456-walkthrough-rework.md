@@ -22,6 +22,13 @@ example. Also it should show examples of how to read the rules, how to read the 
    action under the hood then borking it". Pressing the ringed control is how a step moves on. The walk never also runs
    the action behind the reader's back. Test: on that step, press "‹ Map" → the water page closes, the walk is on the
    NEXT step, the log holds the page's own close once.
+   **The step that started it** (tester's second screenshot, step "Change what the map shows", LAYERS 16 of 20): the
+   reader is still on Chilliwack River → Conditions. The card says "Back on the map, tap this button to choose what the
+   map shows", but "this button" (Layers) is not on screen, so nothing is ringed. The card covers the bottom of the
+   Conditions card and leaves only Back · Next · Show me. A step about a control on another screen must first take the
+   reader there with one tap they make themselves (ring "‹ Map": "Tap Map to go back"). Only then does it ring the
+   Layers button. Rule: a step never refers to a control that is not on screen and ringed (test: every step's ring
+   target is laid out when its card shows).
 
 ## Work
 1. **Never cover the target:** the card is placed beside the ringed control and never over it (above/below, or docked
