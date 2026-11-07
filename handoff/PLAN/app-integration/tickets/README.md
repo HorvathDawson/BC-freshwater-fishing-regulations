@@ -503,6 +503,7 @@ use that as the sole source of future work."
 | T456 | Guided walkthrough reworked: show the real use, never cover its target, teach reading rules + conditions | OPEN | — | owner 2026-11-06 (tester feedback) |
 | T457 | Lakes: opaque outline sized by the lake over a slightly transparent fill | OPEN | — | owner 2026-11-06 (idea; look is the owner's call) |
 | T458 | A guard against un-awaited promises (the T446 class of bug) | OPEN | — | chat 5 2026-11-06 |
+| T459 | Stepping ▲/▼ along a water: grey out the other waters (receiving water kept, owner picks) | OPEN | — | owner 2026-11-06 |
 
 ## Order for open tickets
 
