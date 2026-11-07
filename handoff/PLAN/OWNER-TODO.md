@@ -17,9 +17,10 @@ with the default Claude uses until you answer). Newest first inside each section
   Wording only; it is built in scratch. Say OK and it is promoted with the next release.
 - **Check one T468 side effect (2026-11-07): Little Slocan River above Little Slocan Lakes.** The Powell fix (a river
   flowing through a lake with no row of its own now counts as the lake's tributary) adds 374 sections of the Little
-  Slocan River above the lakes to the "Little Slocan Lakes tributaries" rows r1–r3. Those rows exempt their waters from
-  the Slocan River closure, so this stretch would go from closed to a Jun 15–Oct 31 bait ban. Is that what the rule book
-  means? The other 12 changes are expected (Powell River +587 now closed Nov 1–Mar 31; Goat/Eldred, Duck, Wahleach/Jones,
+  Slocan River above the lakes to the "Little Slocan Lakes tributaries" rows r1–r3. Corrected 11-07: "closed" overstated
+  it. What lifts is the Slocan River's Jul 15–Aug 31 noon–midnight closure and its trout/char release; the bait ban and
+  the Region 4 stream rules (Apr 1–Jun 14 closure, Nov 1–Mar 31 release) stay. Slocan River p.39 names "Little Slocan
+  Lake's tributaries" as an EXCEPT on both. All 374 sections join at or above the lakes (FWA codes), none below. The other 12 changes are expected (Powell River +587 now closed Nov 1–Mar 31; Goat/Eldred, Duck, Wahleach/Jones,
   Premier, Anderson, Twin, New). Nothing is promoted. The full diff is data/generated/scratch/t468/binding_diff.txt.
 - **Post the MapLibre fix upstream (T420, 2026-11-07), when you're ready.** The lean fix is 6 files (+22 −7), tested on
   maplibre-native main: the new unit test fails before the fix and passes after, and the feature-state render tests pass.
