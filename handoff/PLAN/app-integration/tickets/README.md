@@ -536,6 +536,7 @@ use that as the sole source of future work."
 | T489 | Lakes lose too much shape when zoomed out (tile simplification) | OPEN | — | owner 2026-11-07; ships with a tiles rebuild |
 | T490 | /changes counts a wording-only release as every water changed (154 KB > 30 KB); staging site not redeployed | OPEN | — | found 2026-11-07; blocks the staging site + release ledger stage 6 |
 | T491 | test_curation_review_screen tidal test reads live curated data; the owner's 11-06 Nanaimo mark decided it | OPEN | — | found 2026-11-07; give the test its own fixture |
+| T492 | Stream colours chosen on the GPU (per-day status lookup), after T420 | OPEN (future) | — | owner 2026-11-07; only on a measured trigger |
 
 ## Order for open tickets
 
