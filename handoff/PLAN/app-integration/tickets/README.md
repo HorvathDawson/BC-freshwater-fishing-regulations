@@ -501,6 +501,7 @@ use that as the sole source of future work."
 | T454 | Spot photos: zoom and pan in the viewer | IN REVIEW | 4ede32a69 (owner phone check) | owner 2026-11-06 |
 | T455 | Walkthrough "Layers" test skips the ground step under load (flaky) | DONE | 2290b6e25 | chat 5 2026-11-06 |
 | T456 | Guided walkthrough reworked: show the real use, never cover its target, teach reading rules + conditions | OPEN | — | owner 2026-11-06 (tester feedback) |
+| T457 | Lakes: opaque outline sized by the lake over a slightly transparent fill | OPEN | — | owner 2026-11-06 (idea; look is the owner's call) |
 
 ## Order for open tickets
 
