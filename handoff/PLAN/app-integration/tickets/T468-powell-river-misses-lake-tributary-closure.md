@@ -1,6 +1,6 @@
 # T468 — Powell River above Powell Lake misses the lake's "incl. tributaries" closure
 
-Status: FIX BUILT 2026-11-07 (code + test committed; reach rerun in data/generated/scratch/t468, NOT promoted). Owner: promote with the next release.
+Status: OPEN — fix built 2026-11-07 (14294b999), not promoted; reach rerun in data/generated/scratch/t468. Owner: promote with the next release.
 
 Owner, 2026-11-07: "POWELL LAKE 2-12 No Fishing Nov 1-Mar 31 … powell lake is closed including tributaries in
 november but powell river (above the lake) is not showing as closed". In the screenshot the inlet river NE of the
