@@ -36,10 +36,15 @@ take a big step in (≈ 5 levels from z8–9): seeing the part won over the smal
 
 ## Owner phone check (2026-11-06, 0.6.7)
 "Fraser is framed well." Two new items:
-1. **The boundary names in the ▲/▼ step bar overlap each other** (the part's from/to names, e.g. "Mouth → … Bridge"):
-   long names run into each other. Fix: names never overlap at any phone width. Long ones wrap to two lines or are cut
-   with an ellipsis, and the full name is on the accessibility label. A render test with the longest pair the release
-   holds at 360 dp.
+1. **The boundary names AT LANDSTROM BAR overlap each other** (corrected 2026-11-06: the owner wrote "landstorm bar",
+   meaning the place, not a bar). The release has TWO Fraser marks there with the SAME label "Landstrom Bar sign zone
+   boundary", ~50 m apart (r-67b456b5e64b water-5 `part_mark` ord 9871: mark 2 at −121.4650, 49.3730, part 2 → part 6;
+   mark 9 at −121.4632, 49.3725, part 6 → part 2). Part 6 "Within Landstrom Bar sign zone" is a short zone inside part 2
+   ("2 stretches"), and both ends of the zone are drawn with one label. Fix: two marks that carry the same label and
+   sit closer than a label's width at the zoom are drawn as ONE label (the zone's name), or each end names its side
+   (lower/upper end). Never two overlapping copies. Check every water for same-label marks closer than ~200 m (count
+   them) and add a render/collision test with this pair. Also make sure the step bar's own names never overlap at
+   360 dp (wrap/ellipsis, full name on the a11y label).
 2. **The first open of a water's Map tab frames the part differently from the same part reached by ▲ then ▼.** The
    first framing must equal the step framing (memory: one load path per screen, T369): the first open must go through
    the same framing function as a step, with the same padding, floor (half the screen, ≤ z14) and insets. Find the

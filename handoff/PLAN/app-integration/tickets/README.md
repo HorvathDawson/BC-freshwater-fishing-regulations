@@ -504,6 +504,7 @@ use that as the sole source of future work."
 | T457 | Lakes: opaque outline sized by the lake over a slightly transparent fill | OPEN | — | owner 2026-11-06 (idea; look is the owner's call) |
 | T458 | A guard against un-awaited promises (the T446 class of bug) | OPEN | — | chat 5 2026-11-06 |
 | T459 | Stepping ▲/▼ along a water: grey out the other waters (receiving water kept, owner picks) | OPEN | — | owner 2026-11-06 |
+| T460 | Fraser: ▲ from Williams Lake River confluence offers 2 parts (a side channel skips part 15) | OPEN | — | owner 2026-11-06 |
 
 ## Order for open tickets
 
