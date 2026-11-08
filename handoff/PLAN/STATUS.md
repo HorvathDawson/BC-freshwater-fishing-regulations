@@ -34,8 +34,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T488 (light park colour):** proposal only, A or B on the morning page; tokens unchanged until you pick.
 - **T498 + T499 IN REVIEW (emulator):** a Regulations pane opens in one piece (built hidden, shown once its page, salmon
   card and access notices are in); the water map no longer blinks its part out every ~5 min (it re-lit unchanged ids).
-  The hold covers the Regulations view only; Conditions/Map views stay as they were (needs another emulator pass).
-  App suite 6905 pass. Staging APK with everything above: building.
+- **T508 IN REVIEW (emulator):** Map and Conditions views open in one piece too (ready = map drew the lit part after the
+  fit). Fraser search → Open 18–20 screens → 2; Conditions taps 3–6 → 2; 80 held Map opens, no crash. A DFO feed update
+  no longer closes an open mark/chooser/parts list. App suite 6914 pass.
+- **Staging APK** e7eb12a8f (reads 0.6.9) carries all of the above plus T500/T502/T505/T506/T466/T494.
 - **Morning page:** https://claude.ai/artifact/9XDb7uXoQ9ciZf8sS7uz3U
 
 ## 2026-11-08 early (chat 7, continued): phone check sent; T478 done; T494 found and fixed
