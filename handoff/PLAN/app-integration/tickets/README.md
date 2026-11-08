@@ -564,6 +564,7 @@ use that as the sole source of future work."
 | T517 | One part per connected run of same-rule sections (river order, place key, paint + salmon sync check, size flat) | OPEN — paused for audits | — | owner 2026-11-08 |
 | T518 | In-season notice shows on exactly the sections it covers (its own ends + map highlight), not its whole part | OPEN — after T517 | — | owner 2026-11-08 |
 | T519 | Fraser exit reads Morey Channel (own side channel) since T497; T59 rule regressed | OPEN — with T517 rebuild | — | T517 lane 2026-11-08 |
+| T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, GitHub sync fixed (carries T518) | OPEN | — | audit 2026-11-08 |
 
 ## Order for open tickets
 

@@ -1,6 +1,6 @@
 # T518 — An in-season notice shows on exactly the sections it covers, not its whole part
 
-Status: OPEN — after T517 (contiguous parts); owner 2026-11-08.
+Status: OPEN — carried by T520 (links/2 gives section-exact coverage; no longer waits for T517); owner 2026-11-08.
 
 Owner 2026-11-08: "Shouldnt we make it only go on the parts it covers?" (5 notices end partway through a part, e.g. the
 Fraser part 2 notice covers 25 of 28 sections; today the page shows the banner flagged "on part of this stretch").
