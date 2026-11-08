@@ -1,6 +1,6 @@
 # T480 — One size style on the regs pane (owner 2026-11-07); access chip in the header tried and reverted
 
-Status: IN REVIEW (proposal) — 3a1026e20. Owner review of the Vedder River, What you can keep, phone width:
+Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW (proposal) — 3a1026e20. Owner review of the Vedder River, What you can keep, phone width:
 
 1. "Why is size written now in 2 different styles? We need to commit to a single style."
 2. "Maybe the access may be restricted should live in header (without making it taller, just somewhere where there is

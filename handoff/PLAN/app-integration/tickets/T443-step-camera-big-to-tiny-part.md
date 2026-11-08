@@ -1,6 +1,6 @@
 # T443 — Stepping ▲/▼ between a big part and a tiny one jumps the camera (disorienting)
 
-Status: IN REVIEW — 7f36eb73a, 55c7f54, c30bee60d, c0c9647d7 (0.6.7 items: one framing per part, one label at Landstrom Bar); owner phone check left
+Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW — 7f36eb73a, 55c7f54, c30bee60d, c0c9647d7 (0.6.7 items: one framing per part, one label at Landstrom Bar); owner phone check left
 
 Source: owner problem report b48c0e449372c34b, 2026-11-06, app 0.6.2 (staging worker `GET /reports`): "When navigating
 a river like the Fraser regulation map and you click up or downstream and it goes from a big section to a tiny section or

@@ -1,6 +1,6 @@
 # T454 — Spot photos: zoom and pan in the viewer
 
-Status: IN REVIEW — built in 4ede32a69 (owner phone check pending; web and emulator not yet looked at). Owner 2026-11-06, chat 5.
+Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW — built in 4ede32a69 (owner phone check pending; web and emulator not yet looked at). Owner 2026-11-06, chat 5.
 
 Owner: "the spot viewer needs a better image viewer to look at images on it so we can zoom and pan etc; right now it is
 a fixed size."

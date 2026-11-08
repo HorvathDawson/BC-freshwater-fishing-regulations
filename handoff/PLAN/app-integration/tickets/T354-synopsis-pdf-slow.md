@@ -1,6 +1,6 @@
 # T354 — Opening the synopsis PDF takes a very long time
 
-Status: IN REVIEW (code done 2026-11-03; left: emulator timing before/after, owner looks at the photo pages).
+Status: DONE — 5d4f0e7f9 cc3203218; owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW (code done 2026-11-03; left: emulator timing before/after, owner looks at the photo pages).
 
 Opening the rule book (synopsis PDF) from a water page takes a very long time. Find out where the time goes:
 - downloading the whole PDF on first open (size?);

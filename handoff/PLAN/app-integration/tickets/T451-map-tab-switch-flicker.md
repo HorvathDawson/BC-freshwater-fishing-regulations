@@ -1,6 +1,6 @@
 # T451 — Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6)
 
-Status: IN REVIEW — e63c921c3, 507de9433 (test bed: 0 uncoloured frames entering Map, was 12/12); owner phone check left
+Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW — e63c921c3, 507de9433 (test bed: 0 uncoloured frames entering Map, was 12/12); owner phone check left
 
 Owner: "switching between Conditions and Runs has no flicker, but sometimes going to Map it flickers a bit (the streams
 etc flicker, not the base map) … maybe the colours when switching should get ready before it switches to avoid flicker."

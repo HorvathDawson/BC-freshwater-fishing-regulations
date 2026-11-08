@@ -1,6 +1,6 @@
 # T479 — T475 follow-up: "How to tell hatchery", "Exception to regional quota", examples fold (owner 2026-11-07)
 
-Status: IN REVIEW — 31dd63547. Owner (review of T475): "The new quota is better but now how to tell (for hatchery) should say it is how
+Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW — 31dd63547. Owner (review of T475): "The new quota is better but now how to tell (for hatchery) should say it is how
 to tell hatchery instead. Also if a quota is bigger then the regional quota it should say exception to regional quota. Also
 the how it adds up section I think should be turning into a collapsed section and change it to examples of how to
 interpret regulations." (Filed as T479: T478 was already taken by the 0.6.8 walk.)

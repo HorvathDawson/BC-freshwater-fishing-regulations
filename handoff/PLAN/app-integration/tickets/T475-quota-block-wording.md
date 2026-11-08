@@ -1,6 +1,6 @@
 # T475 — Quota block: one clear headline, sub-limits as parts of it (owner 2026-11-07, four asks)
 
-Status: IN REVIEW — 225ad72a5 14a759829. Code + tests in; scratch rebuild (answers/store/release r-4e3c9abcbada, not promoted) passes the card gate (0 problems, 17,173 groups); its diff vs the live answers moves only card wording (0 non-wording changes). Proof pending: the owner's look at the Fraser R2 shots, then a release.
+Status: DONE — owner phone check 2026-11-08 passed (0.6.9). Was: IN REVIEW — 225ad72a5 14a759829. Code + tests in; scratch rebuild (answers/store/release r-4e3c9abcbada, not promoted) passes the card gate (0 problems, 17,173 groups); its diff vs the live answers moves only card wording (0 non-wording changes). Proof pending: the owner's look at the Fraser R2 shots, then a release.
 
 Asks (verbatim in the coordinator's message): (1) trout/char stream share as one big line "2 hatchery trout/char a day from streams"
 with an ⓘ explaining the regional total shared with lakes and 2–3 examples from the numbers; How to tell and the book link stay
