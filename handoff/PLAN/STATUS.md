@@ -39,6 +39,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   no longer closes an open mark/chooser/parts list. App suite 6914 pass.
 - **Staging APK** e7eb12a8f (reads 0.6.9) carries all of the above plus T500/T502/T505/T506/T466/T494.
 - **Morning page:** https://claude.ai/artifact/9XDb7uXoQ9ciZf8sS7uz3U
+- **Later 11-08 (owner awake):** Play internal versionCode 21 (6ef99a4e5) uploaded. T497 accepted (prod command in
+  OWNER-TODO). T488 B applied to light (cvd theme kept: B vs noaccess fails cvd.test). Old mode hints + Help replays +
+  CoachTour removed (owner; 96abc49). T511 gauge card v2 (forecast by shape, readable axis, normal range, bigger plot)
+  owner-approved, not yet deployed. T509: owner says parts = contiguous merged runs, no "stretches" — agent reworking
+  pipeline + app (rule diff must be 0). T510: owner picked rule A for all 11 connectors — waits for a lane (side atlas
+  build + moved list to owner). T512: agent analysing owner's laggy-map trace (Map tab worst, worse after map switches).
+  App suite 6911 pass at 96abc49+.
 
 ## 2026-11-08 early (chat 7, continued): phone check sent; T478 done; T494 found and fixed
 - **Your phone check (0.6.9):** https://claude.ai/artifact/XsAWajGrhpgsCnK2kWv7sZ — 11 items that close the IN REVIEW
