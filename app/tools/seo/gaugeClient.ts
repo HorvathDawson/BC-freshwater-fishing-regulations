@@ -108,7 +108,7 @@ export function chartSvg(f: Facts, now: number): string | null {
     `<line x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}" class="axis"/>`,
     `<text x="${L - 6}" y="${y(hi)}" class="tick" text-anchor="end" dominant-baseline="hanging">${figure(hi)}</text>`,
     `<text x="${L - 6}" y="${y(lo)}" class="tick" text-anchor="end">${figure(lo)}</text>`,
-    `<text x="${L - 6}" y="${T}" class="tick" text-anchor="end" dy="1.4em">${esc(f.unit ?? "")}</text>`,
+    `<text x="${L + 6}" y="${y(hi)}" class="tick" dominant-baseline="hanging">${esc(f.unit ?? "")}</text>`,
     obs.length >= 2 ? `<path d="${path(obs)}L${x(last![0])} ${H - B}L${x(obs[0]![0])} ${H - B}Z" class="area"/>` : "",
     obs.length >= 2 ? `<path d="${path(obs)}" class="obs"/>` : "",
     fc.length ? `<path d="${path(last ? [last, ...fc] : fc)}" class="fc"/>` : "",
