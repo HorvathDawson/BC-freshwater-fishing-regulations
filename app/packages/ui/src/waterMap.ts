@@ -458,8 +458,12 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
   const waiting = fv.state === "loading" && store !== null;
   const g = group.value;
   const rawG = rawGroup.value ?? g;
-  // (T228) a new salmon grouping re-indexes the pieces: the walk starts again on the frame's part
-  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${startStretch}:${salmonKey ? idOf(salmonKey) : ""}`;
+  // (T228) a new salmon grouping re-indexes the pieces: the walk starts again on the frame's part. (T508) Keyed on the
+  // GROUPING ITSELF (each piece's part, stretch and sections), never on the salmon reading's identity: a DFO feed taken
+  // (`useFeedVersion("dfo")`) hands a new reading that most often groups the pieces exactly as before, and keyed on its
+  // identity that reset an open mark, the chooser and the parts list under the reader's finger
+  const grouping = useMemo(() => (g ? g.parts.map((p) => `${p.item}/${p.partIx}/${p.stretch ?? 0}/${p.sids.length}:${p.sids[0] ?? ""}`).join(",") : ""), [g]);
+  const key = `${group.state}:${item ?? ""}:${startPart ?? ""}:${startStretch}:${grouping}`;
   // THIS FRAME's visit: a new number each time the key changes, so what was held on an EARLIER visit to the same frame
   // (A → B → back to A by Show regulations and back) is never taken for this one's
   const visit = useRef({ key, n: 0 });
