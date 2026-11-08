@@ -59,6 +59,9 @@ export interface NavPart {
   /** (T228) For a stretch: its whole part's frame (`part_geo`), which a piece joined back into the whole part takes. */
   readonly partBox?: Bbox | null;
   readonly partMid?: readonly [number, number] | null;
+  /** (T509) The named boundary at this part's lower end where the part below is not listed (the Fraser's "the CPR
+   *  Bridge at Mission", above its tidal part): said in a stretch's name, never a mark (nothing to step to). */
+  readonly lowEnd?: string;
 }
 
 /** (T207) How sure the curator is of where a cut stands — pipeline `models.splits.CONFIDENCE`; absent is high. */
@@ -214,6 +217,9 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
       const up = m.up.map((u, k) => ix(i.ord, u, m.upStretches?.[k] ?? 0)).filter((u): u is number => u !== undefined);
       if (down !== undefined && up.length)
         marks.push({ lon: m.lon, lat: m.lat, label: m.label, down, up, ...(m.confidence ? { confidence: m.confidence } : {}) });
+      // (T509) the part below is not listed (tidal): no mark, but its name is the lower end of the parts above it
+      else if (down === undefined && m.label)
+        for (const u of up) parts[u] = { ...parts[u]!, lowEnd: m.label };
     }
     // a sibling flowing into a sibling: a boundary with no place, from the receiving part to this item's lowest part
     if (i.exit && byOrd.has(i.exit.ord) && i !== placed[0]) {
@@ -452,11 +458,31 @@ export function stepsUp(g: WaterGroup, at: number): readonly number[] {
 const manyOf = (g: WaterGroup, i: number) => g.parts.filter((q) => q.item === g.parts[i]!.item).length > 1;
 
 /** A part's name on the map: its short name where its water has several parts, else its water's name — and, for one
- *  of a part's separate stretches (T204), which: "Mouth → Kanaka Lake (2 stretches) · stretch 1 of 2". */
+ *  of a part's separate stretches (T204), which: "Mouth → 112 Avenue bridge · stretch 1 of 2". (T509, owner
+ *  2026-11-08: "2 stretches · stretch 1 of 2" said nothing) a stretch is named by ITS OWN ends where both are known
+ *  (`stretchEnds`), else by its part's short name as before. */
 export function partName(g: WaterGroup, i: number): string {
   const p = g.parts[i]!;
-  const base = manyOf(g, i) ? p.short : p.itemName;
-  return p.stretches && p.stretches > 1 ? `${base} · ${WATER_MAP_WORDS.stretchOf((p.stretch ?? 0) + 1, p.stretches)}` : base;
+  if (!p.stretches || p.stretches <= 1) return manyOf(g, i) ? p.short : p.itemName;
+  return `${stretchEnds(g, i) ?? p.short} · ${WATER_MAP_WORDS.stretchOf((p.stretch ?? 0) + 1, p.stretches)}`;
+}
+
+/** (T509) A stretch's own ends, "From → To", or null where either is unknown. Its lower end: the one named mark below
+ *  it, else the boundary below a part not listed (`lowEnd`), else — the part's lowest stretch — its short name's first
+ *  end; its upper end: the one named mark above it (a mark to side channels only sits mid-stretch: not an end), else —
+ *  the part's highest stretch — its short name's last end. Only words the release wrote: never a guess. */
+function stretchEnds(g: WaterGroup, i: number): string | null {
+  const p = g.parts[i]!, k = p.stretch ?? 0, n = p.stretches ?? 1;
+  const one = (ls: readonly (string | null)[]) => {
+    const s = [...new Set(ls.filter((l): l is string => !!l))];
+    return s.length === 1 ? s[0]! : null;
+  };
+  const ends = p.short.replace(/ \(\d+ stretches\)$/, "").split(" → ");
+  const named = ends.length === 2;
+  const from = one(g.marks.filter((m) => m.up.includes(i)).map((m) => m.label)) ?? p.lowEnd ?? (k === 0 && named ? ends[0]! : null);
+  const to = one(g.marks.filter((m) => m.down === i && !m.up.every((u) => g.parts[u]?.side)).map((m) => m.label))
+    ?? (k === n - 1 && named ? ends[1]! : null);
+  return from && to ? `${from.charAt(0).toUpperCase()}${from.slice(1)} → ${to}` : null;
 }
 
 /** The water a part belongs to, said beside it where the water has several parts (else nothing). */

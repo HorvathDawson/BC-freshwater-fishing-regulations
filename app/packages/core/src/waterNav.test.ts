@@ -485,8 +485,29 @@ describe("T204: a part's separate stretches", () => {
     expect(g.parts.map((p) => [p.partIx, p.stretch ?? 0, p.sids])).toEqual([
       [0, 0, [294874]], [1, 0, [294875]], [0, 1, [294876, 294877]]]);
     expect([0, 1, 2].map((i) => partName(g, i))).toEqual([
-      "Mouth → Source (2 stretches) · stretch 1 of 2", "112 Avenue bridge → Cliff Park Falls",
-      "Mouth → Source (2 stretches) · stretch 2 of 2"]);
+      // (T509) each stretch by its own ends: the mark at one end, the part's short name at the other
+      "Mouth → 112 Avenue bridge · stretch 1 of 2", "112 Avenue bridge → Cliff Park Falls",
+      "Cliff Park Falls → Source · stretch 2 of 2"]);
+  });
+
+  it("(T509) a part whose short names no ends: each stretch by its marks, the lower end from a mark off a tidal part", () => {
+    // the Fraser's shape: part 0 "2 stretches" either side of a zone (part 1); its lower end a mark from the tidal part 9,
+    // which the water map never lists (no mark is kept, the name is); its upper end the mark into the part above (2)
+    const bare = (n: number, short: string) => ({ partIx: n, label: short, short });
+    const g = waterGroup([{ ...KANAKA,
+      parts: [bare(0, "2 stretches"), bare(1, "Within the zone"), bare(2, "Spuzzum → Hell's Gate")],
+      geo: [...KANAKA.geo, geo(2, 2, [-122300000, 49260000], -122400000, 49250000, -122200000, 49270000)],
+      marks: [{ ...mark(-122700000, 49180000, "the CPR Bridge at Mission", 9, [0]) },
+              { ...mark(-122550000, 49200000, "zone boundary", 0, [1]), downStretch: 0 },
+              { ...mark(-122536222, 49207142, "zone boundary", 1, [0]), upStretches: [1] },
+              { ...mark(-122400000, 49250000, "Spuzzum", 0, [2]), downStretch: 1 }],
+      sections: secs({ 0: [294874, 294876, 294877], 1: [294875], 2: [294878] }),
+      stretches: [...KANAKA.stretches!, { partIx: 2, stretch: 0, rank: 3, box: null, mid: null, sids: [294878] }] }]);
+    expect(g.parts.map((_, i) => partName(g, i))).toEqual([
+      "The CPR Bridge at Mission → zone boundary · stretch 1 of 2", "Within the zone",
+      "Zone boundary → Spuzzum · stretch 2 of 2", "Spuzzum → Hell's Gate"]);
+    // the tidal mark is no mark: nothing to step down to
+    expect(g.marks.map((m) => m.label)).toEqual(["zone boundary", "zone boundary", "Spuzzum"]);
   });
 
   it("Kanaka: the bridge is below part 1 and the falls above it — each mark on the stretch that meets there", () => {

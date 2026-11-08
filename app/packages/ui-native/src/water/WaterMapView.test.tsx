@@ -227,7 +227,7 @@ describe("<WaterMapView>", () => {
     const other = "Side channel";
     // (T204) part 0's stretch above the Reserve is its own entry
     expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(
-      ["Close", "3 stretches · stretch 2 of 3", other]);
+      ["Close", "Skeena River Ecological Reserve boundary → Exchamsiks River confluence · stretch 2 of 3", other]);
     fireEvent.click(chooser.getByRole("button", { name: other }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
   }, 30_000);
