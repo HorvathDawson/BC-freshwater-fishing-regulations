@@ -13,6 +13,24 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-08 night (chat 7, continued): r-6dce77a24e6a on staging — slough names + slough gaps fixed
+- **On staging now:** r-6dce77a24e6a, 18/18 smoke. It carries T497 + T493 + T501 + T503 (and the T485 run-timing seed).
+  Production is yours: `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a`, **after** you
+  accept the moved list below.
+- **T497 (wrong names on Fraser braids) IN REVIEW:** an unnamed channel now takes the water its two ends reach. 20
+  sections change water, 26 rules change, nothing else. Nicomen Slough and Maria Slough lose the Fraser's night and
+  steelhead closures (Nicomen gains its 8 km/h rule). Two to check: an 11 ha pond on Baldy Channel becomes stream water,
+  and 4 km of Old Kootenay River Channel lose the Kootenay's exemptions. List: tickets/shots/T497-moved.md.
+- **T493 (gaps in slough polygons) IN REVIEW:** a hidden piece of a water is drawn from where its own water breaks on
+  both sides. 242 pieces drawn earlier; Nicomen z11 → z7, Camp Slough z12–13 → z11. Shots: tickets/shots/T493-*.png.
+- **Wording (IN REVIEW):** T500 release/closed key is just the term with ⓘ; T501 no-fishing lines say the short place;
+  T502 no words under the salmon table that repeat it; T503 rainbows read "30–50 cm" where steelhead rules apply; T506
+  Conditions sources and notes at the bottom; T505 the tinted 1885 crayfish. App changes need the next APK.
+- **Production setup:** Q171 reports go to feeds.canifishthis.ca (workers.dev off); Q174 v1 keys deleted on switch day.
+- **Fixed on the way:** T466 walkthrough's closed step opens through the one water path; T468's lake check now asks the
+  registry kind (test_t121 green). Left: T507 (a review-screen test pins live corpus counts, 452 vs 445).
+- **Running:** T487 (shareable gauge page; cards drawn at the feeds refresh, served as static files).
+
 ## 2026-11-08 early (chat 7, continued): phone check sent; T478 done; T494 found and fixed
 - **Your phone check (0.6.9):** https://claude.ai/artifact/XsAWajGrhpgsCnK2kWv7sZ — 11 items that close the IN REVIEW
   tickets, plus the T459 pick (A or B). Reply with the numbers that fail. T449 is DONE (both Nanaimo marks are in r-f56b).
