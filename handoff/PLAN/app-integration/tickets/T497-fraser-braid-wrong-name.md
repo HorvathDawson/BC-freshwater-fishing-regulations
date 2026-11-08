@@ -1,6 +1,6 @@
 # T497 — Lower Fraser braids carry the Fraser's name (Nicomen Slough, Maria Slough)
 
-Status: OPEN — owner 2026-11-08 (phone, r-25a89ce9f8e6). Part of T495 gate 1 (no wrong regs).
+Status: IN REVIEW — next release (1ab627c95) — owner 2026-11-08 (phone, r-25a89ce9f8e6). Part of T495 gate 1 (no wrong regs).
 
 A section shown as "Fraser River" is a braid of Nicomen Slough; same for Maria Slough. The lowest stretch reads
 "Fraser River — stretch 1 of 2", as if a second 2-stretch Fraser water exists. Framing is right.
@@ -34,3 +34,19 @@ A section shown as "Fraser River" is a braid of Nicomen Slough; same for Maria S
 - Pin test: 355991891 → gnis:21105, 355992357 → gnis:13499. Diff rule bindings + braid_sweep before promoting.
 - Needs a full atlas rebuild (item membership is in registry.json), then reaches, tiles, bundle. Section ids unchanged.
 - Every moved channel listed for the owner (a proposal), with its before/after rules.
+
+## Done (2026-11-08, 1ab627c95) — owner decision "follow connections"
+- `names.follow_connections`: an unnamed blk walks from its two ends through unnamed pieces of its code, stopping at named
+  water; one named water reached (not the code's dominant river) gives it that water's name + gnis. Otherwise
+  (main reached, two waters, nothing named) the magnitude rule stays. Per blk, by its own ends: a branch off a channel's
+  middle does not decide the channel (Baldy 356364764). Blks curated in `name_variants` are left alone, which keeps
+  Jeperson Side Channel one item: `blk:355994562` is in the corpus, and the first build split it.
+- `prune._has_own_name`: an inherited side-channel name is never a piece's own. Without that, 20 braid loops off the
+  sloughs survived the prune (new sections).
+- Pins: 355991891 → gnis:21105, 355992357 → gnis:13499 (real gpkg), plus chain / fallback / two-waters / branch /
+  curated / order tests; each fails with the rule disabled.
+- Side build `data/generated/side/t497` (release `deliver/release/r-668799e82b0e`) vs live: section ids identical, items
+  identical, braid_sweep identical. 20 sections moved, 26 rules changed only on them. Owner list with rules before/after:
+  `shots/T497-moved.md`. Two things to check there: an 11 ha unnamed polygon (wbk 329220393) becomes Baldy Channel stream
+  water (spring stream closure applies), and three Old Kootenay pieces (4.0 km) lose the Kootenay's closure exemption.
+- Ships with the next release (atlas rebuild through `pipeline release --staging`).

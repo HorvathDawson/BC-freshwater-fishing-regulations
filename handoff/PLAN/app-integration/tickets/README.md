@@ -541,7 +541,7 @@ use that as the sole source of future work."
 | T494 | Web map console TypeError `interpolationFactor is not a function` (paint expression binder) on 0.6.9 | DONE | 04ead70fd | found 2026-11-07 by the staging smoke (warn) |
 | T495 | THE NEAR GOAL: Play closed testing on production, four gates (no wrong regs, no crashes, smooth map, clean first run) | OPEN | — | owner 2026-11-07; work this list first |
 | T496 | Cleanup sweep before launch: v1 leftovers, dead pipeline code, stale docs, old outputs | OPEN | — | owner 2026-11-07 (T495) |
-| T497 | Lower Fraser braids carry the Fraser's name (Nicomen / Maria Slough); a 2-stretch "Fraser River" water | OPEN | — | owner 2026-11-08 (phone); T495 gate 1 |
+| T497 | Lower Fraser braids carry the Fraser's name (Nicomen / Maria Slough); a 2-stretch "Fraser River" water | IN REVIEW — next release | 1ab627c95 | owner 2026-11-08 (phone); T495 gate 1 |
 | T498 | Rules / conditions pane opens janky (shows, then loads in): build first, then show | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
 | T499 | Pane's Map tab flickers when left open on the lowest Fraser stretch | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
 | T500 | Release / closed definitions only behind the ⓘ, not printed in the main view | IN REVIEW — next build | 0cab98ff5 | owner 2026-11-08 (phone) |
