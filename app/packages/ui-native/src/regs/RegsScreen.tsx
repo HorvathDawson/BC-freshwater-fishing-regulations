@@ -28,7 +28,8 @@ import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
-import { type Palette } from "../theme";
+import { GUTTER, type Palette } from "../theme";
+import { ReferenceFold } from "./ReferenceFold";
 import { KeepTab } from "./KeepTab";
 import { LineText, TermTitles, type KeepActions } from "./LineText";
 import { createPinStore, type PinStore } from "./pinStore";
@@ -76,6 +77,8 @@ export interface RegsScreenProps {
   /** Gear / Methods / Licence (T34/T35); absent → that section is not drawn, its tab is still listed. A function is handed
    *  this screen's actions (its tab links scroll to the section, like the Keep tab's). */
   gear?: Slot; methods?: Slot; licence?: Slot;
+  /** (T516) the Reference fold's first state: closed; a render test opens it to read the folded lines */
+  referenceOpen?: boolean;
   /** the last child of the scroll */
   footer?: React.ReactNode;
   /** (T211) the "Salmon · DFO" card, drawn ABOVE the Keep tab's provincial rules (owner 2026-10-28); absent → none. A
@@ -138,7 +141,7 @@ export interface RegsScreenProps {
 }
 
 export function RegsScreen({ page, palette, images, adipose, actions, onDate, onPart,
-                             gear, methods, licence, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
+                             gear, methods, licence, referenceOpen = false, footer, salmon, store: injected, layout = "phone", start = null, onStarted,
                              lapsed = null, access = [], inSeason = [], glance = null, salmonStrip = null,
                              nameSource = null, asOf = null, scrollKey = null, sun = null, daylight = null, waterBook = [] }: RegsScreenProps) {
   // (T286) the open probe (test bed only): the page's first render, and its first layout (mounted, before paint)
@@ -258,6 +261,13 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {sec("gear", gear)}
       {sec("methods", methods)}
       {sec("licence", licence)}
+      {/* (T516, owner 2026-11-08) the "Handling fish" reference closes the page, after Licence: it is background reading,
+          not one of the tabs (null on a closed day, as before) */}
+      {methods && page.methods?.reference && (
+        <View testID="regs-reference" style={{ marginHorizontal: GUTTER }}>
+          <ReferenceFold vm={page.methods.reference} palette={palette} actions={keepActions} initiallyOpen={referenceOpen} />
+        </View>
+      )}
       {/* (T236) every page's foot: not legal advice, and how current its sources are — (owner 2026-11-04) as fine print
           under a hairline, so it does not read as part of the page */}
       <WaterInset testID="regs-legal" style={{ marginTop: 20, paddingTop: 10, gap: 2, borderTopWidth: 1, borderTopColor: palette.line }}>

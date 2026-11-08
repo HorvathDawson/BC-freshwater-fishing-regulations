@@ -62,13 +62,25 @@ describe("<RegsScreen>", () => {
   it("licence-last: Keep, Gear, Methods, Licence, then the footer, in the one scroll; absent sections are not drawn", () => {
     mount({ footer: <Text testID="foot">foot</Text> });
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
-      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-legal", "foot"]);
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-reference", "regs-legal", "foot"]);
     cleanup();
     mount({ gear: undefined, methods: undefined, licence: undefined });
     expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"))).toEqual(["keep-tab", "regs-legal"]);
     // (T227, owner 2026-10-28) a Gear / Methods section not drawn (nothing may be fished that day) is not offered as a tab
     expect(within(screen.getByRole("tablist", { name: "Section" })).getAllByRole("tab").map((t) => t.textContent))
       .toEqual(["What you can keep", "Licence"]);
+  });
+
+  it("(T516, owner 2026-11-08) the Handling fish reference is the last thing on the page: after Licence, before the legal foot", () => {
+    mount({ footer: <Text testID="foot">foot</Text> });
+    expect([...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid")))
+      .toEqual(["keep-tab", "regs-gear", "regs-methods", "regs-licence", "regs-reference", "regs-legal", "foot"]);
+    expect(within(screen.getByTestId("regs-methods")).queryByTestId("methods-reference")).toBeNull();
+    expect(within(screen.getByTestId("regs-reference")).getByTestId("methods-reference-summary").textContent)
+      .toContain("Handling fish");
+    cleanup();
+    mount({ methods: undefined });
+    expect(screen.queryByTestId("regs-reference")).toBeNull();
   });
 
   it("(owner 2026-10-29) no fish-picture credits at the page's foot: they live on More → Sources and licences", () => {

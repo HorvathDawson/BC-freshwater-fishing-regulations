@@ -48,7 +48,7 @@ function drawTab(tab: Tab, page: RegsPage, palette: Palette): HTMLElement {
   // a tab the page does not draw (null: outside B.C.) mounts nothing — none of the frozen pages here is one
   const el = tab === "keep" ? <KeepTab keep={page.keep} dateLabel="Oct 10" palette={palette} actions={NO_ACTIONS} images={IMAGES} />
     : tab === "gear" ? page.gear && <GearTab vm={page.gear} palette={palette} actions={NO_ACTIONS} />
-    : tab === "methods" ? page.methods && <MethodsTab vm={page.methods} palette={palette} actions={NO_ACTIONS} referenceOpen />
+    : tab === "methods" ? page.methods && <MethodsTab vm={page.methods} palette={palette} actions={NO_ACTIONS} />
     : page.licence && <LicenceTab vm={page.licence} who={{ age: "adult", residency: "resident" }} palette={palette} actions={NO_ACTIONS} onWho={() => {}} />;
   return render(el).container;
 }

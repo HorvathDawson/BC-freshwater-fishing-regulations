@@ -11,6 +11,7 @@ import { LIC as LICW, METHODS, type LicenceVM, type MethodsVM, type RegsPage, ty
 import { LIGHT } from "../theme";
 import type { KeepActions } from "./LineText";
 import { LicenceTab } from "./LicenceTab";
+import { ReferenceFold } from "./ReferenceFold";
 import { MethodsTab } from "./MethodsTab";
 import { domLines } from "./testing/domLines";
 import vedder615 from "./fixtures/vedder_615.json";
@@ -36,7 +37,8 @@ function acts() {
 }
 function mountMethods(vm: MethodsVM, open = false) {
   const a = acts();
-  render(<MethodsTab vm={vm} palette={LIGHT} actions={a.actions} referenceOpen={open} />);
+  render(<><MethodsTab vm={vm} palette={LIGHT} actions={a.actions} />
+    {vm.reference && <ReferenceFold vm={vm.reference} palette={LIGHT} actions={a.actions} initiallyOpen={open} />}</>);
   return { ...a, lines: () => domLines(screen.getByTestId("methods-tab")) };
 }
 function mountLicence(vm: LicenceVM, who: Who = ADULT) {
