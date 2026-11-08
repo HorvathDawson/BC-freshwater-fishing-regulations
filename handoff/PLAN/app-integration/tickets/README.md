@@ -547,10 +547,11 @@ use that as the sole source of future work."
 | T500 | Release / closed definitions only behind the ⓘ, not printed in the main view | IN REVIEW — next build | 0cab98ff5 | owner 2026-11-08 (phone) |
 | T501 | "Where you can't fish" in short lines; full rule-book text one tap away | IN REVIEW — next release | 657f6e244 | owner 2026-11-08 (phone) |
 | T502 | The words under the salmon table repeat the table (closed words, quota notes); drop repeats, lose no fact | IN REVIEW — next build | a540631bb | owner 2026-11-08 (phone) |
-| T503 | Rainbow size says the band (30–50 cm) where steelhead rules apply too | OPEN | — | owner 2026-11-08 (phone) |
+| T503 | Rainbow size says the band (30–50 cm) where steelhead rules apply too | IN REVIEW — next release | 2477ab293 | owner 2026-11-08 (phone) |
 | T504 | "See every regulation line": better formatted, easier to read | OPEN (future) | — | owner 2026-11-08 |
 | T505 | A crayfish picture in the same textbook look as the fish | OPEN | — | owner 2026-11-08 |
 | T506 | Conditions: sources and notes at the bottom of the pane | IN REVIEW — next build | 84bf729f4 | owner 2026-11-08 (phone) |
+| T507 | test_the_corpus_tiers_match_plan_section_3 pins live-corpus counts (452 vs 445) | OPEN | — | found 2026-11-08; fixture like T491 |
 
 ## Order for open tickets
 
