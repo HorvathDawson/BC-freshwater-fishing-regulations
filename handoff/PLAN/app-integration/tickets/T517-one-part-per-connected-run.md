@@ -25,7 +25,51 @@ flat; old-release fallbacks may go (in-season part paused).
 - **Salmon:** `salmon_section` has 287 chains over 1.95 M sections. `salmon_edge_gap` (a chain change with no named split)
   has 1 row, so T228 pieces with mixed chains are the only salmon-paint divergence path today.
 
-## Not started
+## Superseded plan notes (before the audit)
 Place key, `short_label` per run, app side (waterGroup / mergeNav / partName, SEO rulesKey, picker grouping,
 targetFor, problem reports), contract bump, paint-sync build check + mutation test, golden-tap declarations, side build,
 size before/after, shots. All wait for the audited design.
+
+## Design (audit 2026-11-08 on the live bundle; follow-ups answered)
+**Main defect found:** `topology.by_chain` cuts a part into non-touching pieces at every lake when the salmon chain
+varies: 35 parts → 187 map entries (Dean "Anahim Lake → Source" 26 pieces, Tusulko 21, Pelican 16, Bulkley). T464's
+mark-less stretches and `fallsBackTo` are patches for it. Names/ends are computed in ~12 places (7 Python, 5+ app; the
+app parses Python prose). Screen vs bundle disagree (Fraser map "Mission → Landstrom", header "2 stretches"; 68 bare
+shorts; 409 marks drawn "X / Y"; 2 marks named after gauges).
+
+- **Part = maximal connected run** of sections with the same key = today's key + `chain`. "Connected" = T204
+  `stretches` (a lake is another item; the river run stays one part — Fraser part 0 "through 3 lakes"). Every part is
+  then uniform for regular, access and salmon paint by construction.
+- **Columns:** `grp` (today's rule-set group: picker, full label, closed-merge stay per grp → picker length unchanged,
+  Fraser 15); `run` (chain-free T204 run index). UNIQUE(ord, rep_sid) replaces the group-key UNIQUE. part_ix = river
+  order (km, mouth first; no-km last); `part_geo.rank` dropped. No `place` column (in-season uses FWA ranges, T520).
+- **Names: one Python function `run_ends`**, cleaned end words (`_end_short` / `end_name`; "CPR Bridge at Mission").
+  Ships `name_s` per part + a precomputed merged name per (grp, run); two end strings only on the 35 multi-chain runs
+  (salmon mode composes "lo → hi"). Skip `kind=gauge` split tokens: use the regulation's own split at that place
+  (`same_place_as`), else the nearest named feature. A chain change with no named split (Klinaklini, 1 today) is named
+  by the run's end, never fails the build — but Python must never emit "" (fail loudly on no nameable token).
+  `part_mark` label = the same words as the lower part's top end and the upper part's bottom end (build asserts).
+- **App only displays.** `name ?? lo + " → " + hi`. Regular mode joins parts with equal (grp, run); salmon mode also
+  needs equal `salmonKey`. Delete `stretchEnds`, `lowEnd`, the `markLabel` fallback, `fallsBackTo` (prove with
+  every-part-reachable), stretch fields + `stretchOf`. `skips` stays. `targetFor` ties → lowest part_ix.
+- **SEO `rulesKey`** per grp: rule content + each run's two end tokens (split_id / confluence:gnis / mouth / source /
+  lake) + a split's curated position (`split.at`). A moved cut shows on /changes; renumbering and snapping noise do not.
+- **Paint sync: one release-build check on the shipped outputs** (decode status_index / paint + `salmon-*.bin`): every
+  part uniform in status profile, >500‰ no-access tier and chain; no two mark-joined parts with equal keys (maximal);
+  every section in exactly one part. Mutation tests.
+- **Delete (Python):** `by_chain`, `chain_label`, `split_at`/`split_label` (if `water_map_export` drops them),
+  stretch code in `merge_marks`, `part_stretch`, multi-stretch branches of `runs_label`/`short_label`, `hint_s`.
+- **Size:** ≈ +260 part rows, −869 `part_stretch` rows and their sid lists, fewer strings → flat or smaller. Measure.
+
+## Output parity (what the owner sees)
+- Same: Fraser map list 19 entries in the same order; the 184 T204 waters; picker and parts sheet lengths; paint; links.
+- Intended: the 35 fragmented T228 parts 187 → ~80 entries (Dean ~31 → ~9); the 114 bare "N stretches" names get
+  real ends; header/sheet show the run's own name, not "2 stretches"; the 409 unlabelled marks get end words; 3 Fraser
+  names lose the raw split wording ("The CPR Bridge…" → "CPR Bridge at Mission"); part_ix moves in ~472 waters (SEO,
+  golden taps, reports re-keyed in the same change).
+- Measure in the side build: (g) side channels whose chain differs from the stem become own parts (Tomahnous kind).
+
+## Gates on the side build (with T510 + T519)
+Rule bindings per section identical to live except T510's 13 sections (+ any slough-fold lakes, listed); paint-sync
+check passes; size flat; every part reachable; parity list above confirmed with counts; shots (Fraser, Dean, one
+formerly bare water) light/dark. Nothing promoted.
