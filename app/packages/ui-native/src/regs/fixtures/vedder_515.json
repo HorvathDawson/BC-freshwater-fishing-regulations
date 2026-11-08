@@ -745,7 +745,7 @@
     "open": "other:o5",
     "sizeHint": null,
     "stamps": [],
-    "thumb": null,
+    "thumb": "CRA",
     "tone": "keep",
     "value": "25 a day",
     "week": null
@@ -862,7 +862,7 @@
      "rule": "zp:no_fishing_buffers::no_fishing_buffers.r1",
      "text": [
       {
-       "s": "No fishing: within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap",
+       "s": "No fishing: within 23 m (75 ft) downstream of any fishway, canal, obstacle or leap",
        "t": "text"
       },
       {
@@ -880,7 +880,7 @@
      "rule": "zp:no_fishing_buffers::no_fishing_buffers.r2",
      "text": [
       {
-       "s": "No fishing: within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated",
+       "s": "No fishing: within 100 m (330 ft) of any government fish counting, passing or rearing facility",
        "t": "text"
       },
       {
@@ -2555,6 +2555,18 @@
   "other:o5": {
    "blocks": [
     {
+     "k": "pictures",
+     "pics": [
+      {
+       "caption": "Signal crayfish ›",
+       "code": "CRA",
+       "name": "Crayfish",
+       "open": "sp:CRA",
+       "sil": false
+      }
+     ]
+    },
+    {
      "k": "rowTitle",
      "scope": "Region 2-wide",
      "title": "Crayfish"
@@ -3675,7 +3687,7 @@
      "k": "para",
      "text": [
       {
-       "s": "No fishing within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap.",
+       "s": "No fishing within 23 m (75 ft) downstream of any fishway, canal, obstacle or leap.",
        "t": "text"
       }
      ],
@@ -3744,7 +3756,7 @@
      "k": "para",
      "text": [
       {
-       "s": "No fishing within a 100 m (330 ft) radius of any government facility operated for counting, passing or rearing fish (e.g., fishway, fish hatchery) unless otherwise designated.",
+       "s": "No fishing within 100 m (330 ft) of any government fish counting, passing or rearing facility.",
        "t": "text"
       }
      ],

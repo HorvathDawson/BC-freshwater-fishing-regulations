@@ -44,7 +44,7 @@ describe("T487 gauge pages", () => {
     const stations = JSON.parse(built.files.get("gauge/stations.json")!);
     expect(stations).toMatchObject({ format: "gauge-stations/1", stations: [
       { station: "08MH016", path: "/gauge/08MH016/chilliwack-river-at-chilliwack-lake" }, { station: "08MH001", path: "/gauge/08MH001/chilliwack-river-at-vedder-crossing" }] });
-    expect(pngSize(built.binary.get("share/gauge.png")!)).toEqual({ width: 1200, height: 630 });
+    expect(pngSize(built.binary.get("share/gauge.png")!)).toEqual({ width: 1200, height: 630 }); // the Open Graph card size, fixed by design
     expect(built.files.has("share/gauge.svg")).toBe(false);
   });
 

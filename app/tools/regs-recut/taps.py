@@ -105,6 +105,8 @@ PART_MOVED = {"x15p16_1010": 14,   # (T183) 15; then T278 FRASER_TIDAL: 14
               # (T67, then T183) the Skeena's Ecological Reserve is two parts (PART_GONE x19p5: 5 below the Exchamsiks cut,
               # 6 the host channel above it), which renumbers the parts after them
               "x19p6_1010": 7, "x19p7_1010": 8,
+              # (T497) three pieces left the Kootenay for the Old Kootenay River Channel, which renumbers its parts
+              "x9p6_1010": 5, "x9p4_1010": 3,
               # (T228) the Coquitlam's no-access split renumbers the parts after it
               # (T228) x37p1/x37p2 were 1 -> 2 and 2 -> 3; then T278 COQUITLAM_TIDAL: x37p1's part is tidal
               # (PART_TIDAL) and x37p2's is back at its golden index 2
@@ -178,7 +180,9 @@ PART_GONE = {
 # atlas full.prev vs the bundle of atlas full): every part below keeps its label and rows; only its section count moved.
 # {state: (store part_ix, why)} — the golden part is the store's part `ix`, same label, another section count
 PART_RECOUNTED = {
-    "x9p5_1010": (5, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): sloughs on the upper Kootenay are part of "
+    "x9p3_1010": (7, "T497 (owner 2026-11-08, follow connections): three pieces of this stretch are the Old Kootenay "
+                     "River Channel's now, which also renumbers the Kootenay's parts: 4 -> 1 sections, same label and rows"),
+    "x9p5_1010": (4, "T497 renumbered (index 5 -> 4); before that T322 (owner 2026-10-29 slough calls, folded 2026-11-03): sloughs on the upper Kootenay are part of "
                      "its stream now, so the part has more sections under the same label and rows: 16 -> 18 sections"),
     "cow0_1010": (0, "T185 (owner marks 2026-10-27): the new Sandy Pool white-triangle sign cut (DFO "
                      "'from 66 Mile Trestle downstream to the sign') lies inside this stretch: 10 -> 11 sections"),

@@ -82,6 +82,7 @@ const EXPECTED_VEDDER: readonly string[] = [
   "Largemouth bass — Duane Raver / USFWS (Commons)",
   "Mountain whitefish — What To Fish (whattofish.ca)",
   "Rainbow trout — Freshwater Fisheries Society of BC (GoFishBC)",
+  "Signal crayfish — Walter Faxon 1885 / FMIB (Commons)",
   "Smallmouth bass — Freshwater Fisheries Society of BC (GoFishBC)",
   "Steelhead · ocean — Freshwater Fisheries Society of BC (GoFishBC)",
   "Steelhead · spawning — WDFW (eRegulations WA)",

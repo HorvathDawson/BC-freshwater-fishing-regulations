@@ -4,10 +4,10 @@
   "store": {
    "format": "regs-store/4",
    "section_handles": "269777be890cc2b3",
-   "reach_digest": "1b6b4bbdf5b90f57",
+   "reach_digest": "5b70bda77c7d3812",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "7187c0434b183689ce2c8113ee6de565369de126e7872481e875b2839560b4ac",
-   "store_digest": "df4c0b3ed6d573b7",
+   "answers_sha256": "420989b7cb09e346da9a91d3ba96fec8e2aa1140b2e075897857724cb1499535",
+   "store_digest": "20d6afef1ee91933",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
   },
   "golden": "d7b1ed353",
@@ -22,7 +22,7 @@
    "date": "2026-05-15",
    "weekday": "Friday",
    "item_ord": 7843,
-   "akey": 910,
+   "akey": 911,
    "seg": 76,
    "mom": null,
    "nseg": 4,
@@ -36,7 +36,7 @@
    "s": 1,
    "cell": {
     "ladder": 1127,
-    "rows": 2106,
+    "rows": 2109,
     "gear": 334,
     "licence": 1,
     "display": 109
@@ -417,7 +417,7 @@
    "date": "2026-06-15",
    "weekday": "Monday",
    "item_ord": 7843,
-   "akey": 910,
+   "akey": 911,
    "seg": 76,
    "mom": null,
    "nseg": 4,
@@ -430,8 +430,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2589,
-    "rows": 2107,
+    "ladder": 2592,
+    "rows": 2110,
     "gear": 151,
     "licence": 1,
     "display": 341
@@ -812,7 +812,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 7843,
-   "akey": 910,
+   "akey": 911,
    "seg": 76,
    "mom": null,
    "nseg": 4,
@@ -826,7 +826,7 @@
    "s": 3,
    "cell": {
     "ladder": 1126,
-    "rows": 2105,
+    "rows": 2108,
     "gear": 151,
     "licence": 1,
     "display": 20
@@ -3623,7 +3623,7 @@
     "sections": 10
    },
    "item_ord": 11269,
-   "akey": 1212,
+   "akey": 1213,
    "seg": 10,
    "mom": null,
    "nseg": 3,
@@ -4017,7 +4017,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 11269,
-   "akey": 1213,
+   "akey": 1214,
    "seg": 14,
    "mom": null,
    "nseg": 3,
@@ -4030,7 +4030,7 @@
    "s": 2,
    "cell": {
     "ladder": 22,
-    "rows": 1648,
+    "rows": 1651,
     "gear": 0,
     "licence": 1,
     "display": 20
@@ -4411,7 +4411,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 11269,
-   "akey": 1211,
+   "akey": 1212,
    "seg": 0,
    "mom": null,
    "nseg": 1,
@@ -4421,7 +4421,7 @@
    "moments": null,
    "s": 0,
    "cell": {
-    "ladder": 3477,
+    "ladder": 3480,
     "rows": 60,
     "gear": 0,
     "licence": 1,
@@ -13530,12 +13530,13 @@
   },
   "x9p6_1010": {
    "item": "gnis:14097",
-   "partIx": 6,
+   "partIx": 5,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 6,
    "item_ord": 1669,
-   "akey": 318,
+   "akey": 317,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -13548,8 +13549,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 902,
-    "rows": 800,
+    "ladder": 899,
+    "rows": 797,
     "gear": 12,
     "licence": 2,
     "display": 291
@@ -13925,12 +13926,13 @@
   },
   "x9p4_1010": {
    "item": "gnis:14097",
-   "partIx": 4,
+   "partIx": 3,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 4,
    "item_ord": 1669,
-   "akey": 316,
+   "akey": 315,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -13944,7 +13946,7 @@
    "s": 2,
    "cell": {
     "ladder": 73,
-    "rows": 794,
+    "rows": 791,
     "gear": 12,
     "licence": 2,
     "display": 59
@@ -14320,12 +14322,17 @@
   },
   "x9p3_1010": {
    "item": "gnis:14097",
-   "partIx": 3,
+   "partIx": 7,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 3,
+   "recounted": {
+    "reason": "T497 (owner 2026-11-08, follow connections): three pieces of this stretch are the Old Kootenay River Channel's now, which also renumbers the Kootenay's parts: 4 -> 1 sections, same label and rows",
+    "sections": 1
+   },
    "item_ord": 1669,
-   "akey": 315,
+   "akey": 319,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -14338,8 +14345,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 895,
-    "rows": 791,
+    "ladder": 905,
+    "rows": 803,
     "gear": 12,
     "licence": 23,
     "display": 155
@@ -15902,16 +15909,17 @@
   },
   "x9p5_1010": {
    "item": "gnis:14097",
-   "partIx": 5,
+   "partIx": 4,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
+   "goldenPartIx": 5,
    "recounted": {
-    "reason": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): sloughs on the upper Kootenay are part of its stream now, so the part has more sections under the same label and rows: 16 -> 18 sections",
+    "reason": "T497 renumbered (index 5 -> 4); before that T322 (owner 2026-10-29 slough calls, folded 2026-11-03): sloughs on the upper Kootenay are part of its stream now, so the part has more sections under the same label and rows: 16 -> 18 sections",
     "sections": 18
    },
    "item_ord": 1669,
-   "akey": 317,
+   "akey": 316,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -15924,8 +15932,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 899,
-    "rows": 797,
+    "ladder": 896,
+    "rows": 794,
     "gear": 127,
     "licence": 7,
     "display": 63
@@ -16306,7 +16314,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 8131,
-   "akey": 948,
+   "akey": 949,
    "seg": 129,
    "mom": null,
    "nseg": 5,
@@ -16320,8 +16328,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2676,
-    "rows": 2146,
+    "ladder": 2679,
+    "rows": 2149,
     "gear": 342,
     "licence": 2,
     "display": 693
@@ -16702,7 +16710,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 8131,
-   "akey": 949,
+   "akey": 950,
    "seg": 129,
    "mom": null,
    "nseg": 5,
@@ -16716,8 +16724,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2676,
-    "rows": 2149,
+    "ladder": 2679,
+    "rows": 2152,
     "gear": 342,
     "licence": 2,
     "display": 693
@@ -17098,7 +17106,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 6864,
-   "akey": 811,
+   "akey": 812,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -17111,8 +17119,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2341,
-    "rows": 1883,
+    "ladder": 2344,
+    "rows": 1886,
     "gear": 309,
     "licence": 51,
     "display": 63
@@ -17493,7 +17501,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 6864,
-   "akey": 810,
+   "akey": 811,
    "seg": 16,
    "mom": null,
    "nseg": 5,
@@ -17507,8 +17515,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2338,
-    "rows": 1880,
+    "ladder": 2341,
+    "rows": 1883,
     "gear": 308,
     "licence": 80,
     "display": 434
@@ -20282,7 +20290,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 8191,
-   "akey": 955,
+   "akey": 956,
    "seg": 22,
    "mom": null,
    "nseg": 5,
@@ -20296,8 +20304,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2689,
-    "rows": 2165,
+    "ladder": 2692,
+    "rows": 2168,
     "gear": 344,
     "licence": 0,
     "display": 80
@@ -20678,7 +20686,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 8191,
-   "akey": 954,
+   "akey": 955,
    "seg": 22,
    "mom": null,
    "nseg": 5,
@@ -20693,7 +20701,7 @@
    "s": 3,
    "cell": {
     "ladder": 1678,
-    "rows": 2165,
+    "rows": 2168,
     "gear": 344,
     "licence": 0,
     "display": 80
@@ -21078,7 +21086,7 @@
     "sections": 27
    },
    "item_ord": 8191,
-   "akey": 953,
+   "akey": 954,
    "seg": 96,
    "mom": null,
    "nseg": 7,
@@ -21095,7 +21103,7 @@
    "s": 5,
    "cell": {
     "ladder": 1678,
-    "rows": 2162,
+    "rows": 2165,
     "gear": 344,
     "licence": 0,
     "display": 80
@@ -21477,7 +21485,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 9,
    "item_ord": 9871,
-   "akey": 1065,
+   "akey": 1066,
    "seg": 153,
    "mom": null,
    "nseg": 9,
@@ -21495,8 +21503,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3027,
-    "rows": 2480,
+    "ladder": 3030,
+    "rows": 2483,
     "gear": 8,
     "licence": 1,
     "display": 762
@@ -21878,7 +21886,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 7,
    "item_ord": 9871,
-   "akey": 1063,
+   "akey": 1064,
    "seg": 152,
    "mom": 19,
    "nseg": 8,
@@ -22072,8 +22080,8 @@
    ],
    "s": 4,
    "cell": {
-    "ladder": 3015,
-    "rows": 2462,
+    "ladder": 3018,
+    "rows": 2465,
     "gear": 383,
     "licence": 1,
     "display": 755
@@ -22455,10 +22463,10 @@
    "weekday": "Saturday",
    "recounted": {
     "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): on the Fraser mainstem the old perpendicular sweep's gauge cuts are gone (94,834 / 108,135 / 111,137 / 122,096 / 132,550 / 148,097 m) and the automatic length cuts moved off braid-spanned junctions (owner Q2) (93,822 / 116,370 / 135,999 m): 40 -> 36 sections",
-    "sections": 36
+    "sections": 34
    },
    "item_ord": 9871,
-   "akey": 1059,
+   "akey": 1060,
    "seg": 150,
    "mom": 18,
    "nseg": 4,
@@ -22560,8 +22568,8 @@
    ],
    "s": 2,
    "cell": {
-    "ladder": 2993,
-    "rows": 2435,
+    "ladder": 2996,
+    "rows": 2438,
     "gear": 383,
     "licence": 150,
     "display": 744
@@ -22943,7 +22951,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 8,
    "item_ord": 9871,
-   "akey": 1064,
+   "akey": 1065,
    "seg": 153,
    "mom": null,
    "nseg": 9,
@@ -22961,8 +22969,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3018,
-    "rows": 2471,
+    "ladder": 3021,
+    "rows": 2474,
     "gear": 8,
     "licence": 1,
     "display": 758
@@ -23344,7 +23352,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 5,
    "item_ord": 9871,
-   "akey": 1061,
+   "akey": 1062,
    "seg": 151,
    "mom": null,
    "nseg": 8,
@@ -23361,8 +23369,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 3004,
-    "rows": 2448,
+    "ladder": 3007,
+    "rows": 2451,
     "gear": 8,
     "licence": 1,
     "display": 749
@@ -23744,7 +23752,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 11,
    "item_ord": 9871,
-   "akey": 1067,
+   "akey": 1068,
    "seg": 154,
    "mom": null,
    "nseg": 9,
@@ -23762,8 +23770,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3041,
-    "rows": 2497,
+    "ladder": 3044,
+    "rows": 2500,
     "gear": 384,
     "licence": 1,
     "display": 767
@@ -24145,7 +24153,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 12,
    "item_ord": 9871,
-   "akey": 1068,
+   "akey": 1069,
    "seg": 155,
    "mom": null,
    "nseg": 8,
@@ -24162,8 +24170,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3047,
-    "rows": 2506,
+    "ladder": 3050,
+    "rows": 2509,
     "gear": 8,
     "licence": 1,
     "display": 770
@@ -24545,7 +24553,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 13,
    "item_ord": 9871,
-   "akey": 1069,
+   "akey": 1070,
    "seg": 156,
    "mom": null,
    "nseg": 9,
@@ -24563,8 +24571,8 @@
    "moments": null,
    "s": 6,
    "cell": {
-    "ladder": 2999,
-    "rows": 2514,
+    "ladder": 3002,
+    "rows": 2517,
     "gear": 8,
     "licence": 1,
     "display": 747
@@ -24946,7 +24954,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 4,
    "item_ord": 9871,
-   "akey": 1060,
+   "akey": 1061,
    "seg": 88,
    "mom": null,
    "nseg": 7,
@@ -24962,8 +24970,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2999,
-    "rows": 2441,
+    "ladder": 3002,
+    "rows": 2444,
     "gear": 8,
     "licence": 1,
     "display": 747
@@ -25345,7 +25353,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 6,
    "item_ord": 9871,
-   "akey": 1062,
+   "akey": 1063,
    "seg": 149,
    "mom": null,
    "nseg": 7,
@@ -25361,8 +25369,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 3011,
-    "rows": 2456,
+    "ladder": 3014,
+    "rows": 2459,
     "gear": 382,
     "licence": 1,
     "display": 752
@@ -25744,7 +25752,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 16,
    "item_ord": 9871,
-   "akey": 1071,
+   "akey": 1072,
    "seg": 149,
    "mom": null,
    "nseg": 7,
@@ -25760,8 +25768,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 3065,
-    "rows": 2531,
+    "ladder": 3068,
+    "rows": 2534,
     "gear": 382,
     "licence": 1,
     "display": 775
@@ -26146,7 +26154,7 @@
     "sections": 37
    },
    "item_ord": 9871,
-   "akey": 1058,
+   "akey": 1059,
    "seg": 149,
    "mom": null,
    "nseg": 7,
@@ -26162,8 +26170,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2989,
-    "rows": 2431,
+    "ladder": 2992,
+    "rows": 2434,
     "gear": 382,
     "licence": 0,
     "display": 742
@@ -26548,7 +26556,7 @@
     "sections": 110
    },
    "item_ord": 9871,
-   "akey": 1057,
+   "akey": 1058,
    "seg": 12,
    "mom": null,
    "nseg": 5,
@@ -26562,8 +26570,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 2984,
-    "rows": 2426,
+    "ladder": 2987,
+    "rows": 2429,
     "gear": 381,
     "licence": 2,
     "display": 377
@@ -26945,7 +26953,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 5,
    "item_ord": 9937,
-   "akey": 1090,
+   "akey": 1091,
    "seg": 163,
    "mom": null,
    "nseg": 7,
@@ -26961,8 +26969,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 3153,
-    "rows": 2597,
+    "ladder": 3156,
+    "rows": 2600,
     "gear": 397,
     "licence": 0,
     "display": 788
@@ -27348,7 +27356,7 @@
     "tidalPartIx": 10
    },
    "item_ord": 9937,
-   "akey": 1091,
+   "akey": 1092,
    "seg": 3,
    "mom": null,
    "nseg": 5,
@@ -27744,7 +27752,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9937,
-   "akey": 1094,
+   "akey": 1095,
    "seg": 1,
    "mom": null,
    "nseg": 3,
@@ -27756,7 +27764,7 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 3160,
+    "ladder": 3163,
     "rows": 223,
     "gear": 399,
     "licence": 0,
@@ -28138,7 +28146,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9937,
-   "akey": 1088,
+   "akey": 1089,
    "seg": 161,
    "mom": null,
    "nseg": 3,
@@ -28151,7 +28159,7 @@
    "s": 2,
    "cell": {
     "ladder": 233,
-    "rows": 2588,
+    "rows": 2591,
     "gear": 1,
     "licence": 0,
     "display": 3
@@ -28533,7 +28541,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 4,
    "item_ord": 9937,
-   "akey": 1089,
+   "akey": 1090,
    "seg": 162,
    "mom": null,
    "nseg": 5,
@@ -28548,7 +28556,7 @@
    "s": 4,
    "cell": {
     "ladder": 233,
-    "rows": 2590,
+    "rows": 2593,
     "gear": 1,
     "licence": 0,
     "display": 3
@@ -28929,7 +28937,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9937,
-   "akey": 1092,
+   "akey": 1093,
    "seg": 164,
    "mom": null,
    "nseg": 5,
@@ -28944,7 +28952,7 @@
    "s": 4,
    "cell": {
     "ladder": 233,
-    "rows": 2598,
+    "rows": 2601,
     "gear": 1,
     "licence": 0,
     "display": 3
@@ -30111,7 +30119,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9937,
-   "akey": 1093,
+   "akey": 1094,
    "seg": 164,
    "mom": null,
    "nseg": 5,
@@ -30125,8 +30133,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 3156,
-    "rows": 2602,
+    "ladder": 3159,
+    "rows": 2605,
     "gear": 1,
     "licence": 0,
     "display": 791
@@ -33757,7 +33765,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9281,
-   "akey": 1020,
+   "akey": 1021,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -33770,8 +33778,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2885,
-    "rows": 2310,
+    "ladder": 2888,
+    "rows": 2313,
     "gear": 373,
     "licence": 2,
     "display": 291
@@ -34152,7 +34160,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9281,
-   "akey": 1022,
+   "akey": 1023,
    "seg": 142,
    "mom": null,
    "nseg": 6,
@@ -34167,8 +34175,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2885,
-    "rows": 2315,
+    "ladder": 2888,
+    "rows": 2318,
     "gear": 373,
     "licence": 2,
     "display": 291
@@ -34549,7 +34557,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9281,
-   "akey": 1023,
+   "akey": 1024,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -34562,8 +34570,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2894,
-    "rows": 2318,
+    "ladder": 2897,
+    "rows": 2321,
     "gear": 373,
     "licence": 2,
     "display": 291
@@ -34945,7 +34953,7 @@
    "weekday": "Saturday",
    "recounted": {
     "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): on the Columbia (356570372) the automatic length cuts moved off braid-spanned junctions (owner Q2): 4 cuts -> 5, 132 -> 133 sections",
-    "sections": 141
+    "sections": 131
    },
    "item_ord": 9281,
    "akey": 486,
@@ -35343,7 +35351,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9281,
-   "akey": 1024,
+   "akey": 1025,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -35356,8 +35364,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2897,
-    "rows": 2321,
+    "ladder": 2900,
+    "rows": 2324,
     "gear": 373,
     "licence": 2,
     "display": 724
@@ -35738,7 +35746,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9281,
-   "akey": 1019,
+   "akey": 1020,
    "seg": 13,
    "mom": null,
    "nseg": 4,
@@ -35751,8 +35759,8 @@
    "moments": null,
    "s": 2,
    "cell": {
-    "ladder": 2882,
-    "rows": 2307,
+    "ladder": 2885,
+    "rows": 2310,
     "gear": 372,
     "licence": 2,
     "display": 408
@@ -36134,7 +36142,7 @@
    "weekday": "Saturday",
    "grown": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
    "item_ord": 7452,
-   "akey": 869,
+   "akey": 870,
    "seg": 120,
    "mom": null,
    "nseg": 8,
@@ -36534,7 +36542,7 @@
    "weekday": "Saturday",
    "grown": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Exchamsiks confluence cut runs straight across and the automatic length cuts moved off braid-spanned junctions (owner Q2); then T183 (owner 2026-10-24): the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part (3 stretches, 44 -> 48 sections); then T278 (r-62e2f3a8c81e, tidal cut split:skeena_river__tidal_boundary, gnis:2936 at 6.4 km): the Skeena below its tidal boundary is tidal (1 section, store part 9, unkeyed), so part 0 starts at the tidal boundary",
    "item_ord": 7452,
-   "akey": 868,
+   "akey": 869,
    "seg": 21,
    "mom": null,
    "nseg": 7,
@@ -36932,7 +36940,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 7452,
-   "akey": 870,
+   "akey": 871,
    "seg": 21,
    "mom": null,
    "nseg": 7,
@@ -36949,7 +36957,7 @@
    "s": 4,
    "cell": {
     "ladder": 1569,
-    "rows": 2002,
+    "rows": 2005,
     "gear": 323,
     "licence": 106,
     "display": 80
@@ -37334,7 +37342,7 @@
     "sections": 52
    },
    "item_ord": 7452,
-   "akey": 871,
+   "akey": 872,
    "seg": 121,
    "mom": null,
    "nseg": 8,
@@ -37352,7 +37360,7 @@
    "s": 5,
    "cell": {
     "ladder": 1569,
-    "rows": 2008,
+    "rows": 2011,
     "gear": 323,
     "licence": 106,
     "display": 80
@@ -37734,7 +37742,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 6,
    "item_ord": 7452,
-   "akey": 875,
+   "akey": 876,
    "seg": 123,
    "mom": 15,
    "nseg": 11,
@@ -37859,8 +37867,8 @@
    ],
    "s": 6,
    "cell": {
-    "ladder": 2471,
-    "rows": 2002,
+    "ladder": 2474,
+    "rows": 2005,
     "gear": 323,
     "licence": 106,
     "display": 80
@@ -38242,7 +38250,7 @@
    "weekday": "Saturday",
    "goldenPartIx": 7,
    "item_ord": 7452,
-   "akey": 876,
+   "akey": 877,
    "seg": 122,
    "mom": 14,
    "nseg": 12,
@@ -38380,8 +38388,8 @@
    ],
    "s": 7,
    "cell": {
-    "ladder": 2481,
-    "rows": 2008,
+    "ladder": 2484,
+    "rows": 2011,
     "gear": 324,
     "licence": 106,
     "display": 80
@@ -38762,7 +38770,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 7452,
-   "akey": 872,
+   "akey": 873,
    "seg": 122,
    "mom": 14,
    "nseg": 12,
@@ -38900,8 +38908,8 @@
    ],
    "s": 7,
    "cell": {
-    "ladder": 2462,
-    "rows": 2012,
+    "ladder": 2465,
+    "rows": 2015,
     "gear": 323,
     "licence": 106,
     "display": 80
@@ -39286,7 +39294,7 @@
     "sections": 8
    },
    "item_ord": 9919,
-   "akey": 1085,
+   "akey": 1086,
    "seg": 155,
    "mom": null,
    "nseg": 8,
@@ -39303,8 +39311,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3143,
-    "rows": 2568,
+    "ladder": 3146,
+    "rows": 2571,
     "gear": 393,
     "licence": 152,
     "display": 783
@@ -39685,7 +39693,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9919,
-   "akey": 1086,
+   "akey": 1087,
    "seg": 160,
    "mom": null,
    "nseg": 9,
@@ -39703,8 +39711,8 @@
    "moments": null,
    "s": 6,
    "cell": {
-    "ladder": 3129,
-    "rows": 2583,
+    "ladder": 3132,
+    "rows": 2586,
     "gear": 394,
     "licence": 152,
     "display": 783
@@ -40085,7 +40093,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9919,
-   "akey": 1083,
+   "akey": 1084,
    "seg": 155,
    "mom": null,
    "nseg": 8,
@@ -40102,8 +40110,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 3129,
-    "rows": 2568,
+    "ladder": 3132,
+    "rows": 2571,
     "gear": 392,
     "licence": 152,
     "display": 783
@@ -40484,7 +40492,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "item_ord": 9919,
-   "akey": 1084,
+   "akey": 1085,
    "seg": 6,
    "mom": null,
    "nseg": 6,
@@ -40499,8 +40507,8 @@
    "moments": null,
    "s": 3,
    "cell": {
-    "ladder": 3135,
-    "rows": 2574,
+    "ladder": 3138,
+    "rows": 2577,
     "gear": 8,
     "licence": 1,
     "display": 26
@@ -45258,7 +45266,7 @@
    "weekday": "Saturday",
    "grown": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
    "item_ord": 6218,
-   "akey": 753,
+   "akey": 754,
    "seg": 110,
    "mom": null,
    "nseg": 6,
@@ -45273,8 +45281,8 @@
    "moments": null,
    "s": 4,
    "cell": {
-    "ladder": 2212,
-    "rows": 1756,
+    "ladder": 2215,
+    "rows": 1759,
     "gear": 287,
     "licence": 102,
     "display": 576
@@ -45656,7 +45664,7 @@
    "weekday": "Saturday",
    "grown": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
    "item_ord": 6218,
-   "akey": 751,
+   "akey": 752,
    "seg": 108,
    "mom": null,
    "nseg": 8,
@@ -45673,8 +45681,8 @@
    "moments": null,
    "s": 5,
    "cell": {
-    "ladder": 2198,
-    "rows": 1742,
+    "ladder": 2201,
+    "rows": 1745,
     "gear": 285,
     "licence": 100,
     "display": 316
@@ -49438,7 +49446,7 @@
    "date": "2036-02-29",
    "weekday": "Friday",
    "readingDay": 59,
-   "akey": 928,
+   "akey": 929,
    "starts": [
     1,
     1,
@@ -49598,7 +49606,7 @@
    ],
    "s": 1,
    "cell": {
-    "ladder": 2618,
+    "ladder": 2621,
     "rows": 244,
     "gear": 340,
     "licence": 19,
@@ -49612,7 +49620,7 @@
    "date": "2036-02-28",
    "weekday": "Thursday",
    "readingDay": 59,
-   "akey": 928,
+   "akey": 929,
    "starts": [
     1,
     1,
@@ -49772,7 +49780,7 @@
    ],
    "s": 0,
    "cell": {
-    "ladder": 2617,
+    "ladder": 2620,
     "rows": 244,
     "gear": 340,
     "licence": 19,
@@ -49786,7 +49794,7 @@
    "date": "2028-02-29",
    "weekday": "Tuesday",
    "readingDay": 59,
-   "akey": 928,
+   "akey": 929,
    "starts": [
     1,
     1,
@@ -49946,7 +49954,7 @@
    ],
    "s": 0,
    "cell": {
-    "ladder": 2617,
+    "ladder": 2620,
     "rows": 244,
     "gear": 340,
     "licence": 19,
@@ -49960,7 +49968,7 @@
    "date": "2028-02-28",
    "weekday": "Monday",
    "readingDay": 59,
-   "akey": 928,
+   "akey": 929,
    "starts": [
     1,
     1,
@@ -50120,7 +50128,7 @@
    ],
    "s": 0,
    "cell": {
-    "ladder": 2617,
+    "ladder": 2620,
     "rows": 244,
     "gear": 340,
     "licence": 19,
@@ -50253,10 +50261,10 @@
   "gnis:39325": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the Fraser's straddling pieces are parts of their own again (15 -> 17 parts; the golden has 19); then T278 (r-62e2f3a8c81e, tidal cut split:fraser_river__the_cpr_bridge_at_mission, gnis:39325 at 76.51 km): the Fraser below the CPR Bridge at Mission is tidal (29 sections, store part 16, unkeyed), so the golden part 'From the mouth up to the CPR Bridge at Mission' (old store part 3) has no freshwater part and the parts after it are renumbered down by one (4..16 -> 3..15)",
   "gnis:39532": "T278 (r-62e2f3a8c81e, tidal cut split:campbell_river__cement_block_boundary_sign, gnis:39532 at 1.63 km): the Campbell from the mouth up to the cement block boundary sign is tidal (5 sections, store part 10, unkeyed); the golden two-stretch part (old store part 3, 8 sections) keeps only its Maple Street -> power line stretch (store part 5, 3 sections), and John Hart Lake -> Ladore Dam and cement block -> Maple Street are renumbered 4 -> 3 and 5 -> 4 (part order follows rule-set ids)",
   "gnis:2936": "T67 (owner 2026-10-24) and T183 (owner 2026-10-24: Skeena section 2 starts at the Exchamsiks cut): the Ecological Reserve's Exchamsiks host channel above the cut, 360216952:1017, keeps the section-2 designation the rest of the Reserve lost, and is a part of its own (8 -> 9 parts)",
+  "gnis:14097": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
   "gnis:16075": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
   "gnis:19955": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
   "gnis:26104": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's straddling pieces are parts of their own (3 -> 5 parts)",
-  "gnis:14097": "T115 (owner decision AGENTS 54, tickets/T115-one-region-membership.md): a straddling stream piece is its home region's only",
   "gnis:19986": "T228 (a757756b, owner 2026-10-28): no-access land breaks a water's pieces \u2014 the Coquitlam's Lougheed -> lake outlet stretch (golden part 0, 10 sections) is cut at the Coquitlam Watershed boundary into store parts 0 (1 section) and 1 (9), so the mouth and Mary Hill parts are renumbered 1 -> 2 and 2 -> 3 (4 parts, not 3); then T278 (r-62e2f3a8c81e, tidal cut split:coquitlam_river__mary_hill_bypass_bridge, gnis:19986 at 0.31 km): the Coquitlam from the mouth up to the Mary Hill Bypass Bridge is tidal (1 section, store part 3, unkeyed), so the golden mouth part (old store part 2) has no freshwater part and the Mary Hill -> Lougheed part is renumbered 3 -> 2",
   "gnis:37414": "2026-10-27 (owner, decisions.md \"needs a split\"): columbia_river.r11 'Speed restriction (10 km/h) from Mud Lake to Columbia Lake' now binds the Fairmont -> Columbia Lake stretch, so the golden's two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)",
   "gnis:14619": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the Halfway, so its parts are renumbered (part order follows rule-set ids)",
