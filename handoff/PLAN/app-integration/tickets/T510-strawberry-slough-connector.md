@@ -1,9 +1,10 @@
 # T510 — A channel joining the Fraser to Strawberry Slough is filed under the Fraser
 
-Status: OPEN — owner decision (rule A, B or C below); proposal list `shots/T510-moved.md`. Follow-up of T497. Part of T495 gate 1.
+Status: OPEN — owner picked rule A for all (2026-11-08); next: pin tests, side atlas build, bindings diff (expect 13 sections), moved list to owner before promote; proposal list `shots/T510-moved.md`. Follow-up of T497. Part of T495 gate 1.
 
 Owner 2026-11-08: "there is a little stream that connects between Fraser and Strawberry Slough that I feel like should
 be Strawberry, not Fraser."
+Owner 2026-11-08 (rule A): "Yes the strawberry slough thing should apply to all".
 
 ## Found (r-6dce77a24e6a)
 - **The channel:** blk **355991900**, one section `355991900:0`, 1,543 m, unnamed in FWA, on the Fraser's watershed code.
