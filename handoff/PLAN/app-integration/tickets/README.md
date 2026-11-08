@@ -550,7 +550,7 @@ use that as the sole source of future work."
 | T503 | Rainbow size says the band (30–50 cm) where steelhead rules apply too | OPEN | — | owner 2026-11-08 (phone) |
 | T504 | "See every regulation line": better formatted, easier to read | OPEN (future) | — | owner 2026-11-08 |
 | T505 | A crayfish picture in the same textbook look as the fish | OPEN | — | owner 2026-11-08 |
-| T506 | Conditions: sources and notes at the bottom of the pane | OPEN | — | owner 2026-11-08 (phone) |
+| T506 | Conditions: sources and notes at the bottom of the pane | IN REVIEW — next build | 84bf729f4 | owner 2026-11-08 (phone) |
 
 ## Order for open tickets
 
