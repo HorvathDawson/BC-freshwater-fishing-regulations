@@ -9,7 +9,7 @@
  * Informational only: nothing here touches an answer, a status or the map's colours.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { INSEASON_WORDS, inSeasonBanner, inSeasonCover, reportFailure, inSeasonNoticeRows, inSeasonUnseen, isoDayOf, joinInSeason,
+import { INSEASON_FAILURES, INSEASON_WORDS, inSeasonBanner, inSeasonCover, reportFailure, inSeasonNoticeRows, inSeasonUnseen, isoDayOf, joinInSeason,
          type InSeasonBannerVM, type InSeasonChange, type InSeasonCover, type InSeasonNoticeRow, type InSeasonSection,
          bcNow } from "@app/core";
 import type { InSeasonData, InSeasonSource } from "@app/data";
@@ -64,7 +64,14 @@ export interface InSeasonPage {
 /** One change on one page, and where on it (`inSeasonCover`). */
 export interface InSeasonOnPage { readonly change: InSeasonChange; readonly cover: InSeasonCover }
 
-type WaterLines = { readonly water: readonly InSeasonSection[]; readonly partOf: ReadonlyMap<number, number> };
+/** a water's section lines, tagged with the water they were read for: `useAsync` keeps the previous key's value while
+ *  the next loads, so an answer for another water is never placed (Fraser's lines read as Pitt's) */
+type WaterLines = { readonly ord: number; readonly water: readonly InSeasonSection[];
+                    readonly partOf: ReadonlyMap<number, number> };
+
+/** (no silent fallbacks) what was reported, once per app run: a change shown whole because it could not be placed.
+ *  Off-release is ONE report per pair of releases, not one per view. */
+const TOLD = new Set<string>();
 
 /**
  * (T520) THE CHANGES ON ONE PAGE AND WHERE, for its day (null: today) — the one load path every view of them reads.
@@ -89,12 +96,12 @@ export function useInSeasonCovers(store: Pick<RegsStore, "navRows"> | null,
         const l = await lines!.sectionLine(s.sid);
         return { sid: s.sid, line: l ? { blk: l.blk, from: l.from } : null };
       }));
-      return { water, partOf: new Map(nav.sections.map((s) => [s.sid, s.partIx] as const)) };
+      return { ord: page!.ord, water, partOf: new Map(nav.sections.map((s) => [s.sid, s.partIx] as const)) };
     },
     `inseason-lines:${page?.ord ?? ""}`, needs && !!store && !!lines);
   const out = useMemo(() => {
-    if (!page || (needs && read.state === "loading")) return [];
-    const got = read.state === "ready" ? read.value : null;
+    const got = read.state === "ready" && read.value.ord === page?.ord ? read.value : null;
+    if (!page || (needs && (read.state === "loading" || (read.state === "ready" && !got)))) return [];
     const onPage = got && page.partIx !== null
       ? new Set([...got.partOf].filter(([, ix]) => ix === page.partIx).map(([sid]) => sid)) : null;
     const res: InSeasonOnPage[] = [];
@@ -105,11 +112,16 @@ export function useInSeasonCovers(store: Pick<RegsStore, "navRows"> | null,
     return res;
   }, [page?.item, page?.partIx, here, needs, read.state, read.state === "ready" ? read.value : null]);
   // (no silent fallbacks) a change shown on the whole water because it could not be placed is also reported
-  const told = useRef(new Set<string>());
   useEffect(() => {
     for (const p of out) {
-      const k = `${p.change.id}|${page?.item}|${p.cover.failure}`;
-      if (p.cover.failure && !told.current.has(k)) { told.current.add(k); reportFailure(new Error(p.cover.failure)); }
+      const f = p.cover.failure;
+      if (!f) continue;
+      const k = f === INSEASON_FAILURES.offRelease ? `off|${p.change.linksRelease}|${release}`
+        : `${f}|${p.change.id}|${page?.item}`;
+      if (TOLD.has(k)) continue;
+      TOLD.add(k);
+      reportFailure(new Error(f === INSEASON_FAILURES.offRelease
+        ? `${f} (links ${p.change.linksRelease}, device ${release})` : f));
     }
   }, [out]);
   return out;

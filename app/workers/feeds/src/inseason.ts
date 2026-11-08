@@ -358,13 +358,17 @@ export function parseChange(text: string): FeedRow["parsed"] | undefined {
 }
 
 /** the rows → the feed, against the previously published feed */
-/** (T520) the change's words as the id reads them: case, spacing and non-breaking spaces do not make a new notice */
-export const changeKey = (s: string): string => s.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
-/** (T520) A ROW'S ID IS ITS CONTENT: region + water + the change's text (not `effective`, not its position). `n` tells
- *  apart two rows identical in all three (the second and later only). */
-export function rowId(region: string, water: string, change: string, n = 0): string {
-  const k = `${region}\u0000${water.toLowerCase()}\u0000${changeKey(change)}`;
-  return `is-${contentHash(n ? `${k}\u0000${n}` : k).slice(0, 12)}`;
+/** (T520) the words as the id reads them: TYPOGRAPHY IS NOT A NEW NOTICE — Unicode compatibility forms (NFKC), curly
+ *  quotes and primes, en / em dashes and minus, non-breaking and repeated spaces, and case all fold. */
+export const changeKey = (s: string): string => s.normalize("NFKC")
+  .replace(/[\u2018\u2019\u201A\u201B\u2032\u0060\u00B4]/g, "'").replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+  .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
+  .replace(/\s+/g, " ").trim().toLowerCase();
+/** (T520) A ROW'S ID IS ITS CONTENT: region + water + the change's text (not its position). `effective` joins the key
+ *  ONLY for rows that share the other three (`buildFeed` says when), so a date change alone keeps a lone row's id. */
+export function rowId(region: string, water: string, change: string, effective: string | null = null): string {
+  const k = `${region}\u0000${changeKey(water)}\u0000${changeKey(change)}`;
+  return `is-${contentHash(effective === null ? k : `${k}\u0000${changeKey(effective)}`).slice(0, 12)}`;
 }
 
 /** (T520) The curated links' matched waters per row id (`matches.json`, `inseason-links/2`): what fills `waters`. */
@@ -379,15 +383,18 @@ export function matchedWaters(text: string | null): MatchedWaters | null {
 
 export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, pageHash: string, pageChanged: boolean,
                           matched: MatchedWaters | null = null): InSeasonFeed {
-  const nth = new Map<string, number>();
   const prevById = new Map((prev?.rows ?? []).map((r) => [r.id, r] as const));
-  const ids = rows.map((r) => {
-    const region = regionOf(r.section);
-    const k = `${region}\u0000${r.water.toLowerCase()}\u0000${changeKey(r.change)}`;
-    const n = nth.get(k) ?? 0;
-    nth.set(k, n + 1);
-    return rowId(region, r.water, r.change, n);
-  });
+  // rows sharing region + water + change are told apart by their dates; rows identical in those too are ONE notice
+  // printed twice — refused (a failed run, reported), never told apart by position
+  const keyOf = (r: Row) => `${regionOf(r.section)}\u0000${changeKey(r.water)}\u0000${changeKey(r.change)}`;
+  const same = new Map<string, Row[]>();
+  for (const r of rows) same.set(keyOf(r), [...(same.get(keyOf(r)) ?? []), r]);
+  for (const g of same.values())
+    if (g.length > 1 && new Set(g.map((r) => changeKey(r.effective))).size < g.length)
+      throw new SourceError("parse", `in-season: ${g.length} rows of ${g[0]!.water} (${regionOf(g[0]!.section)}) read the same, `
+        + "dates included — one notice printed twice? Nothing written", "inseason-page");
+  const ids = rows.map((r) => rowId(regionOf(r.section), r.water, r.change,
+                                    same.get(keyOf(r))!.length > 1 ? r.effective : null));
   // an amended notice: a new id where a row of the same region + water left the page in this reading
   const idSet = new Set(ids);
   const replaced = new Map<string, FeedRow[]>();

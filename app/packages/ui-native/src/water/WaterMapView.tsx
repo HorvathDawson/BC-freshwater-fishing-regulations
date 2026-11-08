@@ -43,7 +43,7 @@ const NO_NEAR: readonly SectionId[] = [];
 const EXIT_SLOT = 44;
 
 export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
-                               onCross, onPart, whole = false, onWhole }: {
+                               onCross, onPart, whole = false, onWhole, day = null }: {
   loader: ReleaseLoader | null;
   item: ItemId;
   /** The frame's part (null: the part the Regulations view opens for `tapSid`). */
@@ -67,6 +67,8 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   whole?: boolean;
   /** (T369 D7) ⤢ pressed: the frame's `whole` toggled (the route's `whole`), so it outlives this view. */
   onWhole?: () => void;
+  /** (T520) THE day (the Shell's map day; null = today): the in-season changes outlined are those in force then */
+  day?: Date | null;
 }) {
   const store = useRegsStore(loader);
   // (T228) pieces of a part join only where salmon (the live DFO feed over the release) reads them alike
@@ -77,9 +79,12 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   // (T518) the provincial in-season changes on this water today, outlined on exactly their sections (the banner's own
   // coverage, `useInSeasonCovers`: one load path)
   const lines = useReleaseLines(loader);
-  const ordQ = useAsync(async () => store.value!.itemOrd(item), `inseason-ord:${item}`, !!store.value);
-  const ord = ordQ.state === "ready" ? ordQ.value : null;
-  const covers = useInSeasonCovers(store.value ?? null, lines, ord === null ? null : { item, ord, partIx: null }, null);
+  // the answer names the water it is for: `useAsync` keeps the last key's answer while the next loads
+  const ordQ = useAsync(async () => ({ item, ord: await store.value!.itemOrd(item) }), `inseason-ord:${item}`,
+                        !!store.value);
+  const ord = ordQ.state === "ready" && ordQ.value.item === item ? ordQ.value.ord : null;
+  // (T520) on THE day the Regulations view reads (the Shell's map day): the banner and the outline agree
+  const covers = useInSeasonCovers(store.value ?? null, lines, ord === null ? null : { item, ord, partIx: null }, day);
   const inSeason = useMemo(() => (vm && covers.length ? inSeasonSections(covers, [...vm.selected, ...vm.water]) : NO_NEAR),
     [covers, vm?.selected, vm?.water]);
   // (T459) the water this one flows into stays in colour (muted) while every other water is grey; the test bed's

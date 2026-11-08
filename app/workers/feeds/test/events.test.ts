@@ -270,6 +270,16 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     // spacing / case in the text: the same notice
     expect(rowId("1", "Heber Creek", "No  fishing")).toBe(rowId("1", "heber creek", "no fishing"));
     expect(rowId("1", "Heber Creek", "No fishing")).toBe("is-03e14f544b83");      // pinned: the curated file's ids
+    // typography is not a new notice: curly quotes, dashes, NFKC
+    expect(rowId("3", "Fraser River", "Rescind the \u201cNo Fishing\u201d closure \u2013 Sept\u00a01"))
+      .toBe(rowId("3", "Fraser River", 'Rescind the "No Fishing" closure - Sept 1'));
+    // the same words on two dates: the dates tell them apart; a lone row's id ignores its date
+    const H = (eff: string) => ({ section: "Region 1 - Vancouver Island", water: "Heber Creek", change: "No fishing", effective: eff });
+    const two = buildFeed([H("July 1, 2025"), H("Aug 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true);
+    expect(new Set(two.rows.map((r) => r.id)).size).toBe(2);
+    expect(buildFeed([H("July 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true).rows[0]!.id).toBe(rowId("1", "Heber Creek", "No fishing"));
+    // one notice printed twice (dates too): refused, never told apart by position
+    expect(() => buildFeed([H("July 1, 2025"), H("July 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true)).toThrow(/printed twice/);
     // amended: a new id, shown as a change of the row it replaced, which leaves the page
     const c = buildFeed([R("Heber Creek", "No fishing until Dec 1"), R("Heber Creek", "Bait ban")], a, "2026-11-03T00:00:00Z", "h3", true);
     expect(c.rows[0]!.id).not.toBe(a.rows[0]!.id);

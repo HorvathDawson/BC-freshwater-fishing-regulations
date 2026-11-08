@@ -46,18 +46,23 @@ export interface InSeasonFeed {
 }
 /** (T520) one FWA range: stream key, start, end (metres) — the sections whose START lies in [m0, m1) on that stream */
 export type InSeasonRun = readonly [number, number, number];
+/** (T520) one covered stretch of a water's main line: its two end TOKENS, mouth upward (a split id, a pick-point id,
+ *  `mouth`, `source`) — said in words only here (`inSeasonWhere`) */
+export type InSeasonEnds = readonly [string, string];
 /** (T520) where one notice lands on one water: the whole of it, or its ranges (+ a river's covered lake pieces, by
- *  their place among the water's lake pieces in handle order) and the notice's own ends in words */
+ *  their place among the water's lake pieces in handle order) and its covered stretches' end tokens */
 export interface InSeasonWater {
   readonly all?: true;
   readonly runs?: readonly InSeasonRun[];
   readonly lakes?: readonly number[];
-  readonly ends?: string;
+  readonly ends?: readonly InSeasonEnds[];
 }
 export interface InSeasonLinks {
   readonly format: typeof INSEASON_LINKS_FORMAT;
   /** the data release the ranges are resolved on (`pipeline.regs.inseason.resolve`); read only there (AGENTS 6) */
   readonly release: string;
+  /** INTERIM (until T517 ships the release's token -> words table): the words of every end token */
+  readonly words: Readonly<Record<string, string>>;
   readonly notices: Readonly<Record<string, { readonly from?: string; readonly to?: string;
                                               readonly waters: Readonly<Record<string, InSeasonWater>> }>>;
 }
@@ -75,13 +80,15 @@ export function parseInSeasonFeed(x: unknown): InSeasonFeed | null {
 const isNat = (n: unknown): n is number => Number.isSafeInteger(n) && (n as number) >= 0;
 const isRun = (r: unknown): boolean => Array.isArray(r) && r.length === 3 && Number.isSafeInteger(r[0])
   && isNat(r[1]) && isNat(r[2]) && (r[1] as number) < (r[2] as number);
-function isWater(w: unknown): w is InSeasonWater {
+function isWater(w: unknown, words: Readonly<Record<string, string>>): w is InSeasonWater {
   const x = w as InSeasonWater | null;
   if (!x || typeof x !== "object") return false;
-  if (x.all === true) return x.runs === undefined && x.lakes === undefined;
-  const runs = x.runs ?? [], lakes = x.lakes ?? [];
-  return Array.isArray(runs) && Array.isArray(lakes) && runs.length + lakes.length > 0 && runs.every(isRun)
-    && lakes.every(isNat) && typeof x.ends === "string" && x.ends.length > 0;
+  if (x.all === true) return x.runs === undefined && x.lakes === undefined && x.ends === undefined;
+  const runs = x.runs ?? [], lakes = x.lakes ?? [], ends = x.ends ?? [];
+  return Array.isArray(runs) && Array.isArray(lakes) && Array.isArray(ends) && runs.length + lakes.length > 0
+    && runs.every(isRun) && lakes.every(isNat)
+    && ends.every((p) => Array.isArray(p) && p.length === 2 && p.every((t) => typeof t === "string"
+      && (t === MOUTH || t === SOURCE || (typeof words[t] === "string" && words[t]!.length > 0))));
 }
 
 /** The links as the app reads them, or null: ANY notice it cannot read refuses the whole file (the caller reports it,
@@ -89,14 +96,15 @@ function isWater(w: unknown): w is InSeasonWater {
 export function parseInSeasonLinks(x: unknown): InSeasonLinks | null {
   const l = x as Partial<InSeasonLinks> | null;
   if (!l || typeof l !== "object" || l.format !== INSEASON_LINKS_FORMAT || typeof l.release !== "string"
-      || !l.notices || typeof l.notices !== "object") return null;
+      || !l.notices || typeof l.notices !== "object" || !l.words || typeof l.words !== "object") return null;
+  const words = l.words;
   for (const n of Object.values(l.notices)) {
     if (!n || typeof n !== "object" || !n.waters || typeof n.waters !== "object") return null;
     const ws = Object.values(n.waters);
-    if (!ws.length || !ws.every(isWater)) return null;
+    if (!ws.length || !ws.every((w) => isWater(w, words))) return null;
     if ((n.from !== undefined && typeof n.from !== "string") || (n.to !== undefined && typeof n.to !== "string")) return null;
   }
-  return { format: INSEASON_LINKS_FORMAT, release: l.release, notices: l.notices };
+  return { format: INSEASON_LINKS_FORMAT, release: l.release, words, notices: l.notices };
 }
 
 /** "2026-07-30" for a local date. */
@@ -133,6 +141,10 @@ export interface InSeasonChange {
   readonly waters: Readonly<Record<string, InSeasonWater>> | null;
   /** the links' release is this device's: only then are `runs` / `lakes` read (an `all` water holds anywhere) */
   readonly onRelease: boolean;
+  /** the links' release (null: no links) — an off-release failure names it once */
+  readonly linksRelease: string | null;
+  /** the end tokens' words (the links' INTERIM table) */
+  readonly words: Readonly<Record<string, string>>;
 }
 
 /** The waters a matched change is on. */
@@ -154,10 +166,27 @@ export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | n
     const span = inSeasonSpan(r, link);
     if ((span.from && span.from > day) || (span.to && span.to < day)) continue;
     const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
-                                source: feed.source, waters: link?.waters ?? null, onRelease };
+                                source: feed.source, waters: link?.waters ?? null, onRelease,
+                                linksRelease: links?.release ?? null, words: links?.words ?? NO_WORDS };
     (c.waters ? matched : unmatched).push(c);
   }
   return { matched, unmatched };
+}
+
+const NO_WORDS: Readonly<Record<string, string>> = {};
+const MOUTH = "mouth", SOURCE = "source";
+
+/**
+ * (T518, T520) WHERE ON THE WATER, AS A SENTENCE — composed here only (AGENTS 33) from the covered stretches' end
+ * tokens: "From A to B", "Upstream of A" (to the source), "Downstream of B" (from the mouth); several stretches joined
+ * by "; ". The whole main line (mouth to source): null. Words: the links' table (T517 replaces it with the release's).
+ */
+export function inSeasonWhere(ends: readonly InSeasonEnds[], words: Readonly<Record<string, string>>): string | null {
+  const say = (t: string) => words[t] ?? t;
+  const parts = ends.map(([lo, hi]) => (lo === MOUTH && hi === SOURCE ? null
+    : lo === MOUTH ? `Downstream of ${say(hi)}` : hi === SOURCE ? `Upstream of ${say(lo)}` : `From ${say(lo)} to ${say(hi)}`))
+    .filter((x): x is string => x !== null);
+  return parts.length ? parts.join("; ") : null;
 }
 
 /** One section of a water as `inSeasonCover` reads it: its handle and its line (null: a lake piece, no line). */
@@ -168,8 +197,9 @@ export interface InSeasonCover {
   /** the page's covered sections, in handle order; null: the whole page (the whole water, or — `failure` — not
    *  placeable here, so shown on the whole water) */
   readonly sections: readonly number[] | null;
-  /** the change's own ends ("From Hell's Gate to Spuzzum Creek confluence") when it covers only some of the page */
-  readonly ends: string | null;
+  /** where on the water ("From Spuzzum Creek confluence to Hell's Gate", `inSeasonWhere`) when it covers only some of
+   *  the page; null: all of it */
+  readonly where: string | null;
   /** why its ranges could not be placed on this device (shown on the whole water AND reported by the caller) */
   readonly failure: string | null;
 }
@@ -194,21 +224,21 @@ export function inSeasonCover(c: InSeasonChange, item: string, water: readonly I
                               page: ReadonlySet<number> | null): InSeasonCover | null {
   const w = c.waters?.[item];
   if (!w) return null;
-  if (w.all) return { sections: null, ends: null, failure: null };
-  const ends = w.ends ?? null;
-  if (!c.onRelease) return { sections: null, ends, failure: INSEASON_FAILURES.offRelease };
-  if (!water) return { sections: null, ends, failure: INSEASON_FAILURES.noLines };
+  if (w.all) return { sections: null, where: null, failure: null };
+  const where = inSeasonWhere(w.ends ?? [], c.words);
+  if (!c.onRelease) return { sections: null, where, failure: INSEASON_FAILURES.offRelease };
+  if (!water) return { sections: null, where, failure: INSEASON_FAILURES.noLines };
   const runs = w.runs ?? [];
   const lakes = water.filter((s) => !s.line).map((s) => s.sid).sort((a, b) => a - b);
   const lakeHit = new Set((w.lakes ?? []).map((i) => lakes[i]).filter((s): s is number => s !== undefined));
   const hit = water.filter((s) => (s.line
     ? runs.some(([b, m0, m1]) => b === s.line!.blk && m0 <= s.line!.from && s.line!.from < m1)
     : lakeHit.has(s.sid))).map((s) => s.sid).sort((a, b) => a - b);
-  if (!hit.length) return { sections: null, ends, failure: INSEASON_FAILURES.nothing(c.id, item) };
+  if (!hit.length) return { sections: null, where, failure: INSEASON_FAILURES.nothing(c.id, item) };
   const mine = page ? hit.filter((s) => page.has(s)) : hit;
   if (!mine.length) return null;
   const size = page ? page.size : water.length;
-  return { sections: mine, ends: mine.length === size ? null : ends, failure: null };
+  return { sections: mine, where: mine.length === size ? null : where, failure: null };
 }
 
 function dayWords(iso: string, year: boolean): string {
@@ -229,8 +259,8 @@ export const INSEASON_WORDS = {
   source: "source ›",
   see: "see ›",
   sourceLabel: "Open the province's in-season changes page",
-  /** (T518) where on the page's water a change covering only part of it applies: its own ends */
-  where: (ends: string) => `Where: ${ends}`,
+  /** (T518) where on the page's water a change covering only part of it applies (`inSeasonWhere`) */
+  where: (where: string) => `Where: ${where}`,
   informational: "Shown as posted; the answers on this page do not include it yet.",
   noticeTitle: MENU_WORDS.sources.names.inseason,
   noticeIntro: "The province has posted changes we have not placed on the map yet. Check each one before you fish.",
@@ -261,10 +291,10 @@ export function inSeasonSummary(banners: readonly InSeasonBannerVM[]): string | 
   return `${banners.length === 1 ? banners[0]!.head : `${banners.length} in-season changes`} · ${INSEASON_WORDS.see}`;
 }
 
-export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover, "ends">): InSeasonBannerVM {
+export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover, "where">): InSeasonBannerVM {
   const dates = inSeasonDates(change.from, change.to);
   const head = `In-season change${dates ? ` (${dates})` : ""}`;
-  const where = cover.ends ? INSEASON_WORDS.where(cover.ends) : null;
+  const where = cover.where ? INSEASON_WORDS.where(cover.where) : null;
   return { id: change.id, head, text: change.text, source: INSEASON_WORDS.source, url: change.source,
            line: `${head}: ${change.text}${where ? ` ${where}.` : ""} — ${INSEASON_WORDS.source}`,
            where, note: INSEASON_WORDS.informational };

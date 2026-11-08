@@ -1,3 +1,4 @@
+import type React from "react";
 /**
  * (T230) The in-season notice opens by itself once per row per device, re-opens from the bell, and drops a row once it
  * is matched or out of effect (a new unmatched list). Mounted (jsdom) because it is a hook.
@@ -9,7 +10,7 @@ import { InSeasonContext, useInSeasonCovers, useInSeasonNotice, type InSeasonNot
 
 afterEach(cleanup);
 const ch = (id: string): InSeasonChange =>
-  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", waters: null, onRelease: true });
+  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", waters: null, onRelease: true, linksRelease: null, words: {} });
 const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; } }; };
 
 function Probe({ rows, store, out }: { rows: InSeasonChange[]; store: ReturnType<typeof mem>; out: { s?: InSeasonNoticeState } }) {
@@ -51,8 +52,8 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
   const lines = { hasLines: async () => true, sectionLine: async (h: number) => ({ blk: 7, from: (h - 1) * 100, to: h * 100 }) };
   const feed = { format: "inseason-feed/1" as const, fetchedAt: "x", source: "s", removed: [],
                  rows: [{ id: "is-a", region: "2", water: "W", effective: "", from: null, to: null, change: "No fishing" }] };
-  const links = (release: string) => ({ format: "inseason-links/2" as const, release,
-    notices: { "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: "From A to B" } } } } });
+  const links = (release: string) => ({ format: "inseason-links/2" as const, release, words: { a: "A", b: "B" },
+    notices: { "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [["a", "b"]] as const } } } } });
   function Covers({ partIx, out }: { partIx: number | null; out: { v?: readonly InSeasonOnPage[] } }) {
     out.v = useInSeasonCovers(store, lines, { item: "gnis:1", ord: 5, partIx }, null);
     return null;
@@ -67,11 +68,37 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
   it("a part page: its own covered sections and the ends; the water's page: every covered section", async () => {
     const p0 = at("r-1", "r-1", 0);
     await waitFor(() => expect(p0.v).toHaveLength(1));
-    expect(p0.v![0]!.cover).toEqual({ sections: [2], ends: "From A to B", failure: null });
+    expect(p0.v![0]!.cover).toEqual({ sections: [2], where: "From A to B", failure: null });
     cleanup();
     const all = at("r-1", "r-1", null);
     await waitFor(() => expect(all.v).toHaveLength(1));
     expect(all.v![0]!.cover.sections).toEqual([2, 3]);
+  });
+  it("moving to another water never places its changes on the last water's lines (useAsync keeps the old answer)", async () => {
+    // water 5 (Fraser-like, ord 5) and water 6 (Pitt-like, ord 6, sids 11-12): 6's lines are slow to come
+    let release6: () => void = () => {};
+    const slow = new Promise<void>((r) => { release6 = r; });
+    const store2 = { navRows: async (ord: number) => (ord === 5 ? nav
+      : (await slow, { sections: [{ sid: 11, partIx: 0 }, { sid: 12, partIx: 0 }] })) } as never;
+    const both = { format: "inseason-links/2" as const, release: "r-1", words: { a: "A", b: "B" }, notices: {
+      "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [["a", "b"]] as const },
+                          "gnis:2": { runs: [[7, 1000, 1100]] as const, ends: [["a", "b"]] as const } } } } };
+    const lines2 = { hasLines: async () => true,
+                     sectionLine: async (h: number) => ({ blk: 7, from: h < 10 ? (h - 1) * 100 : 1000 + (h - 11) * 100, to: 0 }) };
+    const out: { v?: readonly InSeasonOnPage[] } = {};
+    function P({ item, ord }: { item: string; ord: number }) {
+      out.v = useInSeasonCovers(store2, lines2, { item, ord, partIx: null }, null);
+      return null;
+    }
+    const wrap = (n: React.ReactNode) => <InSeasonContext.Provider value={{ matched: [], unmatched: [], release: "r-1",
+                                                                            data: { feed, links: both } }}>{n}</InSeasonContext.Provider>;
+    const r = render(wrap(<P item="gnis:1" ord={5} />));
+    await waitFor(() => expect(out.v![0]!.cover.sections).toEqual([2, 3]));
+    r.rerender(wrap(<P item="gnis:2" ord={6} />));
+    // while 6's lines load, nothing is placed — never water 5's sections read as water 6's
+    expect(out.v).toEqual([]);
+    release6();
+    await waitFor(() => expect(out.v![0]!.cover.sections).toEqual([11]));
   });
   it("off-release: the whole water with its ends, and reported", async () => {
     const seen: unknown[] = [];
@@ -79,7 +106,7 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
     try {
       const off = at("r-1", "r-2", 0);
       await waitFor(() => expect(off.v).toHaveLength(1));
-      expect(off.v![0]!.cover).toEqual({ sections: null, ends: "From A to B", failure: INSEASON_FAILURES.offRelease });
+      expect(off.v![0]!.cover).toEqual({ sections: null, where: "From A to B", failure: INSEASON_FAILURES.offRelease });
       await waitFor(() => expect(String(seen[0])).toContain("another data release"));
     } finally { undo(); }
   });
