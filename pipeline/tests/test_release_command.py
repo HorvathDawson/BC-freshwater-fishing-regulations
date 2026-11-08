@@ -13,12 +13,13 @@ from pipeline import release as R
 LIVE, NEW = "r-live00000000", "r-new000000000"
 
 
-def _release(root: Path, rid: str, reach: str, data: bytes = b"data", extra: dict | None = None) -> None:
+def _release(root: Path, rid: str, reach: str, data: bytes = b"data", extra: dict | None = None,
+             stamp: str | None = "0.5.0") -> None:
     d = root / rid
     d.mkdir(parents=True)
     (d / "water.bin.gz").write_bytes(data)
     (d / "manifest.json").write_text(json.dumps({
-        "format": "app-manifest/2", "data_release": rid, "minAppVersion": "0.5.0",
+        "format": "app-manifest/2", "data_release": rid, **({"minAppVersion": stamp} if stamp else {}),
         "files": {"water": {"url": f"{rid}/water.bin.gz", "gz": len(data), "format": "water/1"}, **(extra or {})},
         "bundle": {"entries_digest": "e", "reach_digest": reach}}))
 
@@ -35,7 +36,8 @@ def world(tmp_path: Path, monkeypatch):
     _release(root, LIVE, "reach-live")
     (root / "LATEST").write_text(LIVE + "\n")
     _reach(reaches, "reach-live")
-    w = {"calls": [], "fail": set(), "dirty": [], "diffs": 0, "differs": False, "root": root, "reaches": reaches}
+    w = {"calls": [], "fail": set(), "dirty": [], "diffs": 0, "differs": False, "root": root, "reaches": reaches,
+         "pushed": True, "fast_fail_rc": 0, "fast_fails": 0, "new_stamp": "0.5.0"}
 
     def run_cmd(cmd, env=None):
         name = "build" if "build" in cmd else "upload" if any("upload.sh" in c for c in cmd) else \
@@ -45,7 +47,7 @@ def world(tmp_path: Path, monkeypatch):
             return 3
         if name == "build" and not (root / NEW).exists():       # the build writes the release and CANDIDATE
             _reach(reaches, "reach-new")
-            _release(root, NEW, "reach-new", extra=w.get("extra"))
+            _release(root, NEW, "reach-new", extra=w.get("extra"), stamp=w["new_stamp"])
             (root / "CANDIDATE").write_text(NEW + "\n")
         return 0
 
@@ -61,6 +63,13 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "git_dirty", lambda: list(w["dirty"]))
     monkeypatch.setattr(R, "git_head", lambda: "abc123")
     monkeypatch.setattr(R, "run_cmd", run_cmd)
+
+    def fast_fail():
+        w["fast_fails"] += 1
+        return w["fast_fail_rc"]
+
+    monkeypatch.setattr(R, "run_fast_fail", fast_fail)
+    monkeypatch.setattr(R, "git_pushed", lambda: w["pushed"])
     monkeypatch.setattr(R, "binding_diff", diff)
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
@@ -150,6 +159,57 @@ def test_a_rerun_resumes_where_it_stopped(world, capsys):
     assert _staging() == 0                                    # done: the upload is not repeated
     assert [c for c, _ in world["calls"]][-1] == "build"
     assert "already on staging" in capsys.readouterr().out
+
+
+def test_a_rerun_after_the_promote_keeps_the_first_runs_min_app(world, capsys):
+    """T484 (r-1b4f54fb6ed9, 2026-11-07): the upload failed after the promote; the rerun took the default min app from
+    LATEST — by then the new, unstamped release — so the gate saw "any" and refused paint/5 + salmon/4."""
+    world["new_stamp"] = None                                 # the build does not stamp; the upload does
+    world["extra"] = {"salmon": {"url": "x", "format": "salmon/4"}}
+    world["fail"] = {"upload"}
+    assert _staging() == 1
+    assert "STOPPED at staging" in capsys.readouterr().err and _latest(world) == NEW
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["checks"]["min_app_version"] == "0.5.0" and rec["live_before"] == LIVE
+    world["fail"] = set()
+    assert _staging() == 0, capsys.readouterr().err
+    ups = [env for c, env in world["calls"] if c == "upload"]
+    assert ups == [{"MIN_APP_VERSION": "0.5.0"}, {"MIN_APP_VERSION": "0.5.0"}]
+
+
+def test_a_rerun_with_no_checks_recorded_falls_back_to_the_release_before_the_promote(world):
+    led = {"releases": {NEW: {"live_before": LIVE}}}
+    assert R.resume_min_app(led, NEW, NEW) == "0.5.0"         # LIVE's stamp, not NEW's (LATEST now)
+    led["releases"][NEW]["checks"] = {"min_app_version": "0.6.0"}
+    assert R.resume_min_app(led, NEW, NEW) == "0.6.0"
+    assert R.resume_min_app({"releases": {}}, None, LIVE) == "0.5.0"     # a first run: the live stamp
+
+
+def test_fast_fail_runs_first_and_stops_the_release(world, capsys):
+    world["fast_fail_rc"] = 1
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "fast-fail.sh failed" in err
+    assert world["calls"] == [] and _latest(world) == LIVE and world["fast_fails"] == 1
+
+
+def test_no_fast_fail_needs_a_reason_and_prints_it(world, capsys):
+    world["fast_fail_rc"] = 1
+    with pytest.raises(SystemExit):
+        _staging(no_fast_fail=" ")
+    assert world["fast_fails"] == 0 and world["calls"] == []
+    assert _staging(no_fast_fail="tsc is down for the T999 refactor") == 0
+    assert "fast-fail SKIPPED (--no-fast-fail): tsc is down for the T999 refactor" in capsys.readouterr().out
+    assert world["fast_fails"] == 0
+
+
+def test_an_unpushed_head_stops_at_preflight_not_at_the_upload(world, capsys):
+    """T484: found at stage 6 on 2026-11-07 (after the build, checks and promote); it belongs in preflight."""
+    world["pushed"] = False
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "not on origin/redesign/stream-sections" in err and "git push" in err
+    assert world["calls"] == [] and _latest(world) == LIVE
 
 
 def test_the_baseline_is_kept_before_the_build_overwrites_the_reach_run(world):

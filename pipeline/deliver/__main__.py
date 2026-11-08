@@ -90,6 +90,27 @@ def canonical_homes(debug: bool = False) -> dict:
             **({"regs.sqlite": DEBUG_OUT} if debug else {})}
 
 
+def out_dir_release_problems(rel_root: Path, tiles_dir: Path, check_tiles: bool) -> list[str]:
+    """FAST-FAIL (T483, AGENTS 20a) for `--out-dir`: the release step and the vintage check read the released tiles
+    (with --tiles) and the released basemap under `<out-dir>/release/`. A scratch out-dir without them failed only
+    after the bundle, answers and store were built (both the T481 and T482 lanes, 2026-11-07); this is checked first."""
+    import json
+    out, live = [], Path(GENERATED.release)
+    bm_meta = Path(tiles_dir) / "basemap.meta.json"
+    if bm_meta.is_file():
+        vid = json.loads(bm_meta.read_text(encoding="utf-8")).get("basemap_version")
+        if vid and not (rel_root / "basemap" / vid / f"{vid}.pmtiles").exists():
+            out.append(f"{rel_root / 'basemap' / vid / (vid + '.pmtiles')} is missing — "
+                       f"ln -s {live.resolve() / 'basemap'} {rel_root / 'basemap'}")
+    tv_meta = Path(tiles_dir) / "atlas.meta.json"
+    if check_tiles and tv_meta.is_file():
+        tv = json.loads(tv_meta.read_text(encoding="utf-8")).get("tile_version")
+        if tv and not (rel_root / "tiles" / tv / f"atlas-{tv}.pmtiles").exists():
+            out.append(f"{rel_root / 'tiles' / tv / ('atlas-' + tv + '.pmtiles')} is missing — "
+                       f"ln -s {live.resolve() / 'tiles'} {rel_root / 'tiles'} (or release the tiles there)")
+    return out
+
+
 def _all(a) -> int:
     """THE CHAIN, ATOMIC (P07). Every step writes into a staging directory beside the destination (on the same disk, so
     `os.replace` is a rename). Only when the last step AND `vintage.report_all(strict)` pass is each file moved into
@@ -105,6 +126,12 @@ def _all(a) -> int:
     import tempfile
     from pipeline.common import vintage
     dest = a.out_dir
+    if dest:
+        probs = out_dir_release_problems(dest / "release", a.tiles or Path(GENERATED.tiles), check_tiles=bool(a.tiles))
+        if probs:
+            print("pipeline.deliver: --out-dir is missing what the release step reads (nothing was built):\n  "
+                  + "\n  ".join(probs), file=sys.stderr)
+            return 1
     base = dest.parent if dest else GENERATED.bundle.parent
     base.mkdir(parents=True, exist_ok=True)
     d = Path(tempfile.mkdtemp(prefix=".deliver-staging-", dir=base))

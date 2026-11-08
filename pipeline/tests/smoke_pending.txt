@@ -81,7 +81,6 @@ pipeline/tests/test_part_line.py
 pipeline/tests/test_polygon_walk.py
 pipeline/tests/test_record_years.py
 pipeline/tests/test_release_basemap.py
-pipeline/tests/test_release_command.py
 pipeline/tests/test_release_latest.py
 pipeline/tests/test_release_slices.py
 pipeline/tests/test_release_sources.py
