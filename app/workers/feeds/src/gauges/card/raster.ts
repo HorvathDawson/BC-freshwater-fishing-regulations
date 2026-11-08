@@ -190,6 +190,19 @@ export function fillUnder(cv: Canvas, pts: readonly Pt[], bottom: number, c: Rgb
   }
 }
 
+/** fill between two lines that share their x positions (`upper` and `lower`, same length), colour `c` at `a`; the y of each
+ * line is clamped to [top, bottom] so a band running off the chart's scale is cut at its edge */
+export function fillBand(cv: Canvas, upper: readonly Pt[], lower: readonly Pt[], top: number, bottom: number, c: Rgb, a: number): void {
+  for (let i = 1; i < upper.length; i++) {
+    const p = upper[i - 1]!, q = upper[i]!, r = lower[i - 1]!, s = lower[i]!;
+    for (let x = Math.ceil(p[0]); x < Math.ceil(q[0]); x++) {
+      const t = q[0] === p[0] ? 0 : (x - p[0]) / (q[0] - p[0]);
+      const y0 = Math.max(top, Math.min(bottom, p[1] + (q[1] - p[1]) * t)), y1 = Math.max(top, Math.min(bottom, r[1] + (s[1] - r[1]) * t));
+      for (let yy = Math.ceil(Math.min(y0, y1)); yy < Math.max(y0, y1); yy++) cv.blend(x, yy, c, a);
+    }
+  }
+}
+
 // ── PNG (indexed colour) ────────────────────────────────────────────────────────────────────────────────────────────
 const CRC = (() => {
   const t = new Uint32Array(256);

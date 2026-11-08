@@ -9,19 +9,24 @@
 //   when           a card is redrawn only when what it shows can have changed: its reading's time, standing and
 //                  parameter in index.json, the forecast issue, the reading going stale, or a new day (the 7-day window)
 //   what           the gauge's name, the reading (flow or level) with its standing for the time of year and its time,
-//                  and a mini chart of the last 7 days (with the forecast run's dashes when one is current). No open /
-//                  closed status: the card is conditions only.
+//                  the forecast in words ("Rising to 31 m³/s by Wed", from the series the chart draws), and a chart of
+//                  the last 7 days (with the forecast run's dashes when one is current) over the NORMAL RANGE for each
+//                  day: the climatology's median and 25th–75th (darker) / 10th–90th percentile band, the very envelope
+//                  that words the standing (T511). No open / closed status: the card is conditions only.
+//   climatology    feeds/live/clim.json, read ONCE per run (and only when a card is to be drawn), kept for the listed
+//                  stations; a run without it draws cards without the band and says so (an event).
 import { plainStanding, standing } from "../../../../../packages/core/src/flow";
 import { byWeekdays, forecastDueBy, STALE_AFTER } from "../../../../../packages/core/src/staleness";
 import { ATTRIBUTION } from "../forecast";
+import { bandFor, PCTILES } from "../publish";
 import type { FeedEvent } from "../../events";
 import type { Fetch, Store } from "../../io";
 import { pool } from "../py";
-import { Canvas, fillUnder, fit, hex, measure, png, stroke, text, wrap, type Pt, type Rgb } from "./raster";
+import { Canvas, fillBand, fit, hex, measure, png, stroke, text, wrap, type Pt, type Rgb } from "./raster";
 
 export const CARD_W = 1200, CARD_H = 630;
 /** bumped when the drawing changes without its inputs changing (every card is redrawn once) */
-export const CARD_REV = 1;
+export const CARD_REV = 2;
 export const CARDS_PREFIX = "feeds/cards/";
 export const MISSING_PREFIX = "private/cards-missing/";
 export const CARD_STATE = "private/feeds/cards/state.json";
@@ -67,6 +72,65 @@ export interface CardModel {
   forecast: { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][] } | null;
   /** a run exists but is past its working-day line (T347): said, not drawn */
   forecastOld: { model: string; issued: string } | null;
+  /** the drawn forecast in words (T511), from the series the chart draws; null = no current forecast */
+  outlook: Outlook | null;
+  /** the climatology's normal range over the chart's window, a point a day: [epoch ms, p10, p25, p50, p75, p90]; null = none for this gauge */
+  normal: [number, number, number, number, number, number][] | null;
+}
+
+/** a station's climatology envelope (clim.json `stations[<station>]`): 73 pentads x PCTILES a parameter */
+export type Bands = Record<string, Record<string, Array<number | null>> | undefined>;
+
+export interface Outlook {
+  kind: "rising" | "falling" | "steady";
+  /** the figure said: the extreme the forecast reaches (rising / falling) or its mean (steady) */
+  value: number;
+  /** when the extreme is (epoch ms); null for steady */
+  at: number | null;
+  /** "Rising to 31 m³/s by Wed" */
+  text: string;
+}
+
+/** the forecast moves the reading by at least this much (of the reading) before the card says rising / falling */
+export const STEADY_WITHIN = 0.1;
+const weekday = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, weekday: "short" });
+const monthDay = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, month: "short", day: "numeric" });
+/** "Wed" within six days, "Nov 14" beyond (a weekday alone would be ambiguous in a 10-day run); "today" the same Pacific day */
+export function byWhen(t: number, now: number): string {
+  if (dayOf(t) === dayOf(now)) return "today";
+  return t - now < 6 * DAY ? weekday.format(new Date(t)) : monthDay.format(new Date(t));
+}
+
+/**
+ * THE FORECAST IN WORDS, from the points the chart draws (the same series: nothing re-derived from another source).
+ * The reading `v0` against the forecast's highest and lowest point: both within STEADY_WITHIN of v0 is "steady around"
+ * the forecast's mean; otherwise the larger move says it, as "rising to <peak> by <day>" or "falling to <low> by <day>".
+ */
+export function outlookOf(v0: number, points: readonly (readonly [number, number])[], unit: string, now: number): Outlook | null {
+  if (!points.length || !Number.isFinite(v0)) return null;
+  let hi = points[0]!, lo = points[0]!, sum = 0;
+  for (const p of points) { if (p[1] > hi[1]) hi = p; if (p[1] < lo[1]) lo = p; sum += p[1]; }
+  const base = Math.max(Math.abs(v0), 1e-9);
+  const up = (hi[1] - v0) / base, down = (v0 - lo[1]) / base;
+  if (up < STEADY_WITHIN && down < STEADY_WITHIN) {
+    const value = sum / points.length;
+    return { kind: "steady", value, at: null, text: `Steady around ${figure(value)} ${unit}` };
+  }
+  return up >= down
+    ? { kind: "rising", value: hi[1], at: hi[0], text: `Rising to ${figure(hi[1])} ${unit} by ${byWhen(hi[0], now)}` }
+    : { kind: "falling", value: lo[1], at: lo[0], text: `Falling to ${figure(lo[1])} ${unit} by ${byWhen(lo[0], now)}` };
+}
+
+/** the normal range a day from `t0` to `t1` from the climatology (the same `bandFor` that words the standing); null when none */
+export function normalRange(bands: Record<string, Array<number | null>> | undefined | null, t0: number, t1: number): CardModel["normal"] {
+  if (!bands) return null;
+  const out: NonNullable<CardModel["normal"]> = [];
+  for (let t = t0; ; t += DAY) {
+    const at = Math.min(t, t1), b = bandFor(bands, at);
+    if (b && b.length >= PCTILES.length && b.every((x) => typeof x === "number")) out.push([at, b[0]!, b[1]!, b[2]!, b[3]!, b[4]!]);
+    if (at >= t1) break;
+  }
+  return out.length >= 2 ? out : null;
 }
 
 /** three figures, no false precision — core conditions.ts `chartFigure` (a test holds the two equal) */
@@ -83,7 +147,7 @@ const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, year: "numeric
 const dayOf = (t: number) => dayFmt.format(new Date(t));
 
 /** what a card shows, from the station's file (null: the feed has no file for it) */
-export function cardModel(station: string, name: string, f: CardStation | null, now: number): CardModel {
+export function cardModel(station: string, name: string, f: CardStation | null, now: number, clim?: Bands | null): CardModel {
   const nowRow = f?.now ?? null;
   const parameter = nowRow?.parameter ?? (nowRow?.discharge != null ? "discharge" : nowRow?.level != null ? "level" : null);
   const col = parameter === "level" ? 1 : 2;
@@ -120,9 +184,11 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
       break;
     }
   }
+  const unit = parameter === null ? null : parameter === "level" ? "m" : "m³/s";
+  const last = forecast ? forecast.points[forecast.points.length - 1]![0] : now;
   return {
     station, name, now, parameter,
-    unit: parameter === null ? null : parameter === "level" ? "m" : "m³/s",
+    unit,
     reading: v,
     value: v === null ? null : `${figure(v)} ${parameter === "level" ? "m" : "m³/s"}`,
     standing: v === null ? null : plainStanding(standing(nowRow?.percentile ?? null)),
@@ -130,7 +196,22 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     at: Number.isFinite(t) ? pacific(t) : null,
     stale: !Number.isFinite(t) || now - t > STALE_AFTER.feed.ms,
     week, forecast, forecastOld,
+    outlook: forecast && v !== null && unit ? outlookOf(v, forecast.points, unit, now) : null,
+    normal: parameter && clim ? normalRange(clim[parameter], now - WEEK, Math.max(now, last)) : null,
   };
+}
+
+/** the finest run of round figures (1, 2 or 5 x 10^k) inside [lo, hi] that is at most `n` of them (at least two when the range allows) */
+export function niceTicks(lo: number, hi: number, n: number): number[] {
+  const mag = 10 ** Math.floor(Math.log10((hi - lo) / n)) / 10;
+  let out: number[] = [];
+  for (const k of [1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500]) {
+    const step = k * mag;
+    out = [];
+    for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + 1e-9; v += step) out.push(Math.round(v / step) * step || 0);
+    if (out.length <= n) break;
+  }
+  return out;
 }
 
 const mix = (a: Rgb, b: Rgb, t: number): Rgb => [0, 1, 2].map((i) => Math.round(a[i]! + (b[i]! - a[i]!) * t)) as unknown as Rgb;
@@ -149,43 +230,75 @@ export async function drawCard(m: CardModel): Promise<{ png: Uint8Array; missing
   if (m.value) {
     await text(cv, "body", m.parameter === "level" ? "Water level" : "Flow", L, top + 40, soft);
     await text(cv, "big", fit("big", m.value, colW), L, top + 140, ink);
+    let y = top + 196;
     const st = wrap("body", m.standing ?? "", colW, 2);
-    for (const [i, l] of st.entries()) await text(cv, "body", l, L, top + 196 + i * 42, ink);
+    for (const [i, l] of st.entries()) await text(cv, "body", l, L, y + i * 42, ink);
+    y += st.length * 42;
+    // the forecast in words (T511); a gauge with no current run says so plainly
+    const fc = wrap("body", m.outlook ? `Forecast: ${m.outlook.text.charAt(0).toLowerCase()}${m.outlook.text.slice(1)}` : m.forecastOld ? "Forecast out of date" : "No forecast", 590, 2);
+    for (const [i, l] of fc.entries()) await text(cv, "body", l, L, y + i * 42, m.outlook ? ink : soft);
+    y += fc.length * 42 + 8;
     const when = wrap("small", m.stale ? `No new reading since ${m.at ?? "an unknown time"}` : `Measured ${m.at}`, colW, 2);
-    for (const [i, l] of when.entries()) await text(cv, "small", l, L, top + 196 + st.length * 42 + 8 + i * 34, soft);
+    for (const [i, l] of when.entries()) await text(cv, "small", l, L, y + i * 34, soft);
   } else {
     await text(cv, "title", "No current reading", L, top + 110, ink);
     await text(cv, "small", fit("small", m.at ? `Last reading ${m.at}` : "The live feed has no reading for this gauge", colW), L, top + 160, soft);
   }
-  // right: the last 7 days (and the forecast's dashes)
-  const cx0 = 660, cx1 = R, cy0 = top + 20, cy1 = CARD_H - 96;
+  // right: the last 7 days, the forecast's dashes, and the normal range for each day behind them. Text here is the body face
+  // in full ink: a card is shown a third of this size in Messages / Facebook (T511).
+  const GUT = 782, cx0 = GUT + 14, cx1 = R, cy0 = top + 70, cy1 = CARD_H - 96;
   const now = m.now;
   const t0 = now - WEEK, t1 = m.forecast ? Math.max(now, m.forecast.points[m.forecast.points.length - 1]![0]) : now;
   const vals = [...m.week.map((p) => p[1]), ...(m.forecast?.points.map((p) => p[1]) ?? [])];
-  cv.fill(cx0, cy1, cx1 - cx0, 2, faint);
+  const nr = m.normal;
   if (vals.length >= 2) {
-    let lo = Math.min(...vals), hi = Math.max(...vals);
+    // the scale holds the readings and the middle half of the normal range; the outer band is cut at the chart's edge
+    const keep = nr ? [...vals, ...nr.flatMap((n) => [n[2], n[4]])] : vals;
+    let lo = Math.min(...keep), hi = Math.max(...keep);
     if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
     const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;
     const x = (t: number) => cx0 + ((t - t0) / (t1 - t0 || 1)) * (cx1 - cx0);
     const y = (v: number) => cy1 - ((v - lo) / (hi - lo)) * (cy1 - cy0);
+    // a few ticks only: two or three round figures, each on a faint line, labelled in full ink
+    const ticks = niceTicks(lo, hi, cy1 - cy0 >= 200 ? 3 : 2);
+    for (const v of ticks) {
+      const ty = y(v);
+      cv.fill(cx0, ty, cx1 - cx0, 2, faint);
+      const label = figure(v);
+      await text(cv, "body", label, GUT - measure("body", label), ty + 12, ink);
+    }
+    if (nr) {
+      const col = (k: number) => nr.map((n) => [x(n[0]), y(n[k]!)] as Pt);
+      fillBand(cv, col(5), col(1), cy0, cy1, ink, 0.1);
+      fillBand(cv, col(4), col(2), cy0, cy1, ink, 0.16);
+      const mid = col(3);
+      fillBand(cv, mid.map((p) => [p[0], p[1] - 1.5] as Pt), mid.map((p) => [p[0], p[1] + 1.5] as Pt), cy0, cy1, ink, 0.7);
+    }
     const obs: Pt[] = m.week.map((p) => [x(p[0]), y(p[1])]);
-    if (obs.length >= 2) fillUnder(cv, obs, cy1, ink, 0.16);
     if (m.forecast) {
       const fp: Pt[] = [...(obs.length ? [obs[obs.length - 1]!] : []), ...m.forecast.points.map((p) => [x(p[0]), y(p[1])] as Pt)];
-      cv.composite(stroke(cv, fp, 3, undefined, [14, 10]), soft);
+      cv.composite(stroke(cv, fp, 4, undefined, [14, 10]), soft);
     }
-    const mask = stroke(cv, obs, 4);
-    if (obs.length) stroke(cv, [obs[obs.length - 1]!, obs[obs.length - 1]!], 14, mask);
+    const mask = stroke(cv, obs, 5);
+    if (obs.length) stroke(cv, [obs[obs.length - 1]!, obs[obs.length - 1]!], 16, mask);
     cv.composite(mask, ink);
     if (m.forecast) cv.fill(x(now), cy0, 2, cy1 - cy0, faint);
   } else {
     await text(cv, "body", "No readings in the last 7 days", cx0, (cy0 + cy1) / 2, soft);
   }
-  const below = cy1 + 34;
-  await text(cv, "small", "7 days ago", cx0, below, soft);
-  const right = m.forecast ? `forecast (${m.forecast.model}) →` : m.forecastOld ? `${m.forecastOld.model} forecast out of date` : "no flow forecast";
-  await text(cv, "small", right, cx1 - measure("small", right), below, soft);
+  cv.fill(cx0, cy1, cx1 - cx0, 2, faint);
+  // the unit (once) above the figures; the key to the band at the right
+  if (m.unit) await text(cv, "body", m.unit, GUT - measure("body", m.unit), top + 40, ink);
+  if (m.normal) {
+    const key = "normal range", kw = measure("body", key);
+    await text(cv, "body", key, cx1 - kw, top + 40, ink);
+    cv.fill(cx1 - kw - 40, top + 14, 28, 26, mix(ground, ink, 0.2));
+    cv.fill(cx1 - kw - 40, top + 22, 28, 10, mix(ground, ink, 0.38));
+  }
+  const below = cy1 + 40;
+  await text(cv, "body", "7 days ago", cx0, below, ink);
+  const right = m.forecast ? "Forecast" : "Now";
+  await text(cv, "body", right, cx1 - measure("body", right), below, ink);
   await text(cv, "small", "canifishthis.ca", L, CARD_H - 40, soft);
   return { png: await png(cv), missing: [...cv.missing] };
 }
@@ -204,6 +317,8 @@ export function cardFacts(m: CardModel, drawnAt: Date): Record<string, unknown> 
     week: m.week.map(([t, v]) => [t, v]),
     forecast: m.forecast && { ...m.forecast, attribution: ATTRIBUTION },
     forecastOld: m.forecastOld,
+    outlook: m.outlook,
+    normal: m.normal,
   };
 }
 
@@ -227,6 +342,8 @@ export interface CardRun {
   failed: { station: string; error: string }[];
   /** stations whose name holds a letter no face has (drawn as "?") */
   missingGlyphs: Record<string, string[]>;
+  /** why the climatology (normal range) could not be read this run: cards were drawn without the band */
+  climateError?: string;
   error?: string;
   ms: number;
 }
@@ -263,12 +380,27 @@ export async function runCards(o: { fetch: Fetch; feed: Store; bucket: CardBucke
   const stations = list.stations.slice(0, o.limit ?? Infinity);
   res.listed = stations.length;
   const at = o.now.toISOString();
+  // the climatology, read once and only when a card is to be drawn; kept for the listed stations (the rest is dropped)
+  let climP: Promise<Map<string, Bands> | null> | undefined;
+  const climate = () => climP ??= (async () => {
+    try {
+      const t = await o.feed.get("clim.json");
+      if (t === null) throw new Error("feeds/live/clim.json is missing");
+      const all = (JSON.parse(t) as { stations?: Record<string, Bands> }).stations;
+      if (!all || typeof all !== "object") throw new Error("clim.json has no stations");
+      return new Map(stations.flatMap(({ station }) => (all[station] ? [[station, all[station]!] as const] : [])));
+    } catch (e) {
+      res.climateError = e instanceof Error ? e.message : String(e);
+      return null;
+    }
+  })();
   await pool(stations, 6, async ({ station, name }) => {
     const sig = cardSig(name, index.stations?.[station], index.forecastIssuedAt ?? null, now);
     if (state[station]?.s === sig) { res.unchanged++; return; }
     try {
+      const bands = (await climate())?.get(station) ?? null;
       const text = await o.feed.get(`${station}.json`);
-      const m = cardModel(station, name, text === null ? null : (JSON.parse(text) as CardStation), now);
+      const m = cardModel(station, name, text === null ? null : (JSON.parse(text) as CardStation), now, bands);
       const card = await drawCard(m);
       if (card.missing.length) res.missingGlyphs[station] = card.missing;
       await o.bucket.put(`${CARDS_PREFIX}${station}.png`, card.png, { httpMetadata: { contentType: "image/png", cacheControl: CARD_CACHE } });
@@ -299,6 +431,8 @@ export async function cardEvents(bucket: CardBucket, run: CardRun | null, known:
     text: `The gauge run could not draw the share cards: ${run.error}. The cards already on R2 stay, older each run; a gauge without one shows the site card.`, at });
   if (run?.failed.length) out.push({ key: `card-failed:${day}:${run.failed.map((f) => f.station).join(",")}`, kind: "card",
     title: `${run.failed.length} gauge share card(s) failed to draw`, text: run.failed.map((f) => `${f.station}: ${f.error}`).join("\n"), at });
+  if (run?.climateError) out.push({ key: `card-clim:${day}:${run.climateError}`, kind: "card", title: `Gauge share cards drawn without the normal range: ${run.climateError}`,
+    text: `The gauge run could not read the climatology (${run.climateError}), so this run's cards show the readings and forecast but no normal-range band.`, at });
   const glyphs = Object.entries(run?.missingGlyphs ?? {});
   if (glyphs.length) out.push({ key: `card-glyphs:${glyphs.map(([s, c]) => s + c.join("")).join(",")}`, kind: "card",
     title: `${glyphs.length} gauge card(s) hold a letter the card face lacks (drawn as "?")`,
