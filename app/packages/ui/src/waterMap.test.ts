@@ -178,7 +178,7 @@ describe("a fork upstream: the Skeena's Ecological Reserve", () => {
     const open = run(g, reserve, { type: "up" });
     expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: 2, item: "gnis:2936", partIx: 0, name: "Skeena River Ecological Reserve boundary → Exchamsiks River confluence · stretch 2 of 3", note: "Skeena River" },
+      { ix: 2, item: "gnis:2936", partIx: 0, name: "Skeena River Ecological Reserve boundary → Exchamsiks River confluence", note: "Skeena River" },
       { ix: 12, item: "gnis:2936", partIx: 6, name: "Side channel", note: "Skeena River" }] });
     expect(run(g, open, { type: "choose", to: 2 })).toEqual(waterMapStart(2));
     expect(run(g, open, { type: "choose", to: 12 })).toEqual(waterMapStart(12));

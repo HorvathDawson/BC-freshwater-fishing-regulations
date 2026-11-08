@@ -458,13 +458,14 @@ export function stepsUp(g: WaterGroup, at: number): readonly number[] {
 const manyOf = (g: WaterGroup, i: number) => g.parts.filter((q) => q.item === g.parts[i]!.item).length > 1;
 
 /** A part's name on the map: its short name where its water has several parts, else its water's name — and, for one
- *  of a part's separate stretches (T204), which: "Mouth → 112 Avenue bridge · stretch 1 of 2". (T509, owner
+ *  of a part's separate stretches (T204), which: "Mouth → 112 Avenue bridge". (T509, owner
  *  2026-11-08: "2 stretches · stretch 1 of 2" said nothing) a stretch is named by ITS OWN ends where both are known
- *  (`stretchEnds`), else by its part's short name as before. */
+ *  (`stretchEnds`) and nothing else (owner 2026-11-08 "Ends only"); else by its part's short name and "stretch k of n". */
 export function partName(g: WaterGroup, i: number): string {
   const p = g.parts[i]!;
   if (!p.stretches || p.stretches <= 1) return manyOf(g, i) ? p.short : p.itemName;
-  return `${stretchEnds(g, i) ?? p.short} · ${WATER_MAP_WORDS.stretchOf((p.stretch ?? 0) + 1, p.stretches)}`;
+  // (T509, owner 2026-11-08 "Ends only": "stretch 1 of 2" confused) its ends alone; the count only where none is named
+  return stretchEnds(g, i) ?? `${p.short} · ${WATER_MAP_WORDS.stretchOf((p.stretch ?? 0) + 1, p.stretches)}`;
 }
 
 /** (T509) A stretch's own ends, "From → To", or null where either is unknown. Its lower end: the one named mark below

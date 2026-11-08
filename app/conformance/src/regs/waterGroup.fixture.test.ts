@@ -77,7 +77,7 @@ describe("the water map's group from the fixture release", () => {
       // (T204) the source part's two stretches lie either side of the McDonell Lake part: each is its own entry, in
       // stem order, so the old fork from the source (both stretches were one) is a line now
       // (T509) the lower stretch by its own ends: its upper end is the mark into the lake part
-      "Limonite Creek confluence → McDonell Lake (3000 m downstream) · stretch 1 of 2",
+      "Limonite Creek confluence → McDonell Lake (3000 m downstream)",
       "McDonell Lake (3000 m downstream) → McDonell Lake outlet",
       "Limonite Creek confluence → Source (2 stretches) · stretch 2 of 2"]);
     expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|5", "4|-"]);

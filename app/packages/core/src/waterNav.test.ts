@@ -485,9 +485,9 @@ describe("T204: a part's separate stretches", () => {
     expect(g.parts.map((p) => [p.partIx, p.stretch ?? 0, p.sids])).toEqual([
       [0, 0, [294874]], [1, 0, [294875]], [0, 1, [294876, 294877]]]);
     expect([0, 1, 2].map((i) => partName(g, i))).toEqual([
-      // (T509) each stretch by its own ends: the mark at one end, the part's short name at the other
-      "Mouth → 112 Avenue bridge · stretch 1 of 2", "112 Avenue bridge → Cliff Park Falls",
-      "Cliff Park Falls → Source · stretch 2 of 2"]);
+      // (T509, owner "Ends only") each stretch by its own ends alone: the mark at one end, the part's short name at the other
+      "Mouth → 112 Avenue bridge", "112 Avenue bridge → Cliff Park Falls",
+      "Cliff Park Falls → Source"]);
   });
 
   it("(T509) a part whose short names no ends: each stretch by its marks, the lower end from a mark off a tidal part", () => {
@@ -504,8 +504,8 @@ describe("T204: a part's separate stretches", () => {
       sections: secs({ 0: [294874, 294876, 294877], 1: [294875], 2: [294878] }),
       stretches: [...KANAKA.stretches!, { partIx: 2, stretch: 0, rank: 3, box: null, mid: null, sids: [294878] }] }]);
     expect(g.parts.map((_, i) => partName(g, i))).toEqual([
-      "The CPR Bridge at Mission → zone boundary · stretch 1 of 2", "Within the zone",
-      "Zone boundary → Spuzzum · stretch 2 of 2", "Spuzzum → Hell's Gate"]);
+      "The CPR Bridge at Mission → zone boundary", "Within the zone",
+      "Zone boundary → Spuzzum", "Spuzzum → Hell's Gate"]);
     // the tidal mark is no mark: nothing to step down to
     expect(g.marks.map((m) => m.label)).toEqual(["zone boundary", "zone boundary", "Spuzzum"]);
   });

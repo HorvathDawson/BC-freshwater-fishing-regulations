@@ -20,9 +20,10 @@ describe.skipIf(!at.dir)("(T509) a part's stretches are named by their own ends"
     const store = await openRegsStore(openReleaseDir(at.dir!));
     const g = await loadWaterGroup(store, "gnis:39325");
     const names = g.parts.map((_, i) => partName(g, i));
-    expect(names[0]).toBe("The CPR Bridge at Mission → Landstrom Bar sign zone boundary · stretch 1 of 2");
-    expect(names).toContain("Landstrom Bar sign zone boundary → Spuzzum Creek confluence · stretch 2 of 2");
-    // no Fraser name is a bare count any more
+    expect(names[0]).toBe("The CPR Bridge at Mission → Landstrom Bar sign zone boundary");
+    expect(names).toContain("Landstrom Bar sign zone boundary → Spuzzum Creek confluence");
+    // (owner 2026-11-08 "Ends only") a stretch with both ends named carries no "stretch k of n"; no bare count left
+    expect(names.filter((n) => / → .* · stretch \d+ of \d+$/.test(n) && !/^\d+ stretches/.test(n))).toEqual([]);
     expect(names.filter((n) => /^\d+ stretches/.test(n))).toEqual([]);
   }, 60_000);
 });
