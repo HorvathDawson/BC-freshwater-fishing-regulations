@@ -30,12 +30,26 @@
 #   sideload  app/android/latest.json  {version, build, sha, date, notes}  (beside the APK page, as before + notes)
 #   --play    app/android/play.json    {version, build, sha, date, notes}  (after the Play upload; the Play build reads it)
 # A version with no entry warns here and the app says "No notes were published for version …".
+#
+# (T404) --play --production: the PRODUCTION build for Google Play (closed testing, then production): EXPO_PUBLIC_APP_ENV=
+# production (data.canifishthis.ca, reports to bc-fishing-feeds), no environment switch, no map lab; play.json goes to
+# the PRODUCTION bucket (bc-fishing-regulations/app/android/play.json — the file a production build reads), the email
+# through the production feeds worker (token app/workers/feeds/.run-token.prod). The track is PLAY_TRACK (default
+# internal; the owner promotes the same build to Closed testing in Play Console, T371). THE OWNER RUNS IT:
+#   CONFIRM_PROD=canifishthis.ca deploy/prod/build-apk.sh        (= this script with --play --production)
+# --dry-run prints the plan and touches nothing (no build, no Play, no R2), so it needs no confirmation.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO=$PWD
 if [[ " $* " == *" --dry-run "* ]]; then DRY=1; else DRY=; fi
 if [[ " $* " == *" --play "* ]]; then PLAY=1; else PLAY=; fi
 if [[ " $* " == *" --no-upload "* ]]; then NOUP=1; else NOUP=; fi
+if [[ " $* " == *" --production "* ]]; then PROD=1; else PROD=; fi
+if [[ -n $PROD ]]; then
+  [[ -n $PLAY ]] || { echo "build-apk: --production is a Play build only (--play --production)" >&2; exit 2; }
+  [[ -n $DRY || "${CONFIRM_PROD:-}" == canifishthis.ca ]] || {
+    echo "build-apk --production: set CONFIRM_PROD=canifishthis.ca to build and publish production" >&2; exit 2; }
+fi
 SECRETS=$HOME/.canifishthis
 PKG=ca.canifishthis.app
 PLAY_STORE_URL="https://play.google.com/store/apps/details?id=$PKG"
@@ -59,12 +73,22 @@ if [[ -z ${BUILD_APK_INNER:-} && -z $DRY ]]; then
   export BUILD_APK_INNER=1
   exec scripts/heavy.sh build-apk 20 -- "$0" "$@"
 fi
-BUCKET=bc-fishing-regulations-staging            # hardcoded: never a production bucket
+BUCKET=bc-fishing-regulations-staging            # staging's; production's only with --production (CONFIRM_PROD above)
 BASE=https://data-staging.canifishthis.ca/app/android
+FEEDS=https://bc-fishing-feeds-staging.horvath-dawson.workers.dev; TOKF=app/workers/feeds/.run-token
+NOTES_HEAD="Staging build"; ENVWORD=staging
+if [[ -n $PROD ]]; then
+  BUCKET=bc-fishing-regulations; BASE=https://data.canifishthis.ca/app/android
+  FEEDS=https://bc-fishing-feeds.horvath-dawson.workers.dev; TOKF=app/workers/feeds/.run-token.prod
+  NOTES_HEAD="Build"; ENVWORD=production
+fi
+TRACK=${PLAY_TRACK:-internal}
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}   # the store contact (T244)
 export EXPO_PUBLIC_MAP_LAB=1   # (T420) the map lab: long-press the map's © chip (staging only; app.config.js refuses it in production)
+# (T404) a production build: production data + reports, no switch, no lab (the rest — Play, the store URL — below)
+if [[ -n $PROD ]]; then export EXPO_PUBLIC_APP_ENV=production; unset EXPO_PUBLIC_ENV_SWITCH EXPO_PUBLIC_MAP_LAB; fi
 # (T263) "Get the new test build" (Update the app, in a staging build) opens this page
 export EXPO_PUBLIC_DEV_APK_URL=${EXPO_PUBLIC_DEV_APK_URL:-$BASE/index.html}
 # (T390) how this build updates itself (core appUpdateChannel): the sideloaded APK reads latest.json beside the page
@@ -91,7 +115,7 @@ if [[ -n $PLAY ]]; then
       const fs=require("fs"),p=process.argv[1],n=process.env.N;let s=fs.readFileSync(p,"utf8");
       const a=s.replace(/("versionCode":\s*)\d+/,"$1"+n).replace(/("buildNumber":\s*")\d+(")/,"$1"+n+"$2");
       if(a===s||!/"versionCode":\s*\d+/.test(a))throw new Error("versionCode not found");fs.writeFileSync(p,a);' "$M/app.json"
-    git commit -q -m "app: versionCode $NEXT for Google Play internal testing (build-apk.sh --play)
+    git commit -q -m "app: versionCode $NEXT for Google Play $TRACK ($ENVWORD; build-apk.sh --play)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -- "$M/app.json"
   fi
@@ -127,8 +151,9 @@ if [[ -n $DRY && -n $PLAY ]]; then
   echo "[dry-run] (cd \$WT/$M/android && CANIFISHTHIS_UPLOAD_PROPERTIES=$SECRETS/upload-keystore.properties ./gradlew bundleRelease)"
   echo "[dry-run] keep the Hermes map: data/sourcemaps/$VER-b$CODE-${SHA:0:7}/android/"
   echo "[dry-run] check the AAB is signed by $SECRETS/upload_certificate.pem; copy -> $OUT/$NAME"
-  echo "[dry-run] upload to Play track internal with notes from git log (unless --no-upload); email (unless --no-email)"
-  echo "[dry-run] publish app/android/play.json: $VERSION_JSON"
+  echo "[dry-run] $ENVWORD build: EXPO_PUBLIC_APP_ENV=$EXPO_PUBLIC_APP_ENV, switch ${EXPO_PUBLIC_ENV_SWITCH:-off}, map lab ${EXPO_PUBLIC_MAP_LAB:-off}"
+  echo "[dry-run] upload to Play track $TRACK with notes from git log (unless --no-upload); email via $FEEDS/notify/apk (unless --no-email)"
+  echo "[dry-run] publish $BUCKET/app/android/play.json (read at $BASE/play.json): $VERSION_JSON"
   exit 0
 fi
 if [[ -n $DRY ]]; then
@@ -165,8 +190,8 @@ if [[ -n $PLAY ]]; then
   PREV=$(cat "$OUT/last-play-sha" 2>/dev/null || true)
   if [[ -n $PREV ]] && git cat-file -e "$PREV^{commit}" 2>/dev/null; then RANGE="$PREV..HEAD"; else RANGE="-10"; fi
   CH=$(git log $RANGE --no-merges -10 --format=%s | grep -v '^app: versionCode .* for Google Play' | cut -c1-160 || true)
-  NOTES=$OUT/notes-$CODE.txt; { echo "Staging build $VER ($CODE), $SHA"; echo "$CH" | sed 's/^/- /'; } | cut -c1-500 > "$NOTES"
-  "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --package $PKG --track internal --notes-file "$NOTES"
+  NOTES=$OUT/notes-$CODE.txt; { echo "$NOTES_HEAD $VER ($CODE), $SHA"; echo "$CH" | sed 's/^/- /'; } | cut -c1-500 > "$NOTES"
+  "$REPO/.venv/bin/python" "$REPO/deploy/staging/play-upload.py" --aab "$OUT/$NAME" --package $PKG --track "$TRACK" --notes-file "$NOTES"
   echo "$SHA_FULL" > "$OUT/last-play-sha"
   # (T234 v1.1) what a Play build reads to learn of this version (its background check + the bell's "What's new")
   echo "$VERSION_JSON" > "$OUT/play.json"
@@ -176,12 +201,12 @@ if [[ -n $PLAY ]]; then
   if [[ " $* " != *" --no-email "* ]]; then
     export V=$VER B=$CODE S=$SHA D=$DATE SZ="$MB MB" U="$TEST_URL" CH
     BODY=$(python3 -c 'import json,os;e=os.environ;print(json.dumps({"channel":"play","version":e["V"],"build":e["B"],"sha":e["S"],"date":e["D"],"size":e["SZ"],"url":e["U"],"changes":e["CH"].splitlines()}))')
-    TOK=$(tr -d '\n' < "$REPO/app/workers/feeds/.run-token" 2>/dev/null || true)   # the REPO's: the build worktree has no gitignored token
+    TOK=$(tr -d '\n' < "$REPO/$TOKF" 2>/dev/null || true)   # the REPO's: the build worktree has no gitignored token
     code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $TOK" -H "Content-Type: application/json" \
-      -d "$BODY" https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/notify/apk || true)
+      -d "$BODY" "$FEEDS/notify/apk" || true)
     echo "email: HTTP $code (200 = sent)"
   fi
-  echo "uploaded versionCode $CODE to Play internal testing ($TEST_URL)"
+  echo "uploaded versionCode $CODE ($ENVWORD) to Play track $TRACK ($TEST_URL)"
   exit 0
 fi
 (cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --max-workers=4 -Dorg.gradle.workers.max=4)

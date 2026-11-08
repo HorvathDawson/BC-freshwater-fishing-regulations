@@ -59,9 +59,11 @@ fails. If a change was not intended, fix the cause, commit, and rerun.
 
 ## 4. Production (human only)
 
+The whole production run (data, site, feeds worker, Play, rollback) is `handoff/PLAN/release/PRODUCTION.md` (T404).
+The data step:
+
 ```bash
-export R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… R2_BUCKET=<production bucket>
-.venv/bin/python -m pipeline.deliver.release.publish --release data/release/<r-id>   # the plan, nothing sent
+deploy/prod/upload.sh <r-id> --bucket bc-fishing-regulations-staging --dry-run   # rehearse: nothing sent
 CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>
 ```
 
@@ -74,8 +76,9 @@ CONFIRM_PROD=<r-id> .venv/bin/python -m pipeline release --prod <r-id>
 - it runs in an interactive terminal, and you type the id again;
 - there is no agent environment (`CLAUDECODE`, `AI_AGENT`).
 
-It then runs `python -m pipeline.deliver.release.publish --release data/release/<r-id> --yes`. That uploads the
-manifest last and writes `PUBLISHED`. If the website must follow, deploy it separately with `deploy/prod/site.sh`.
+It then runs `CONFIRM_PROD=canifishthis.ca deploy/prod/upload.sh <r-id>`: it refuses unless staging serves the same
+manifest bytes, copies the files (and staging's run timing for the same tiles), keeps the old pointer as
+`release/manifest.previous.json`, writes the manifest last and `data/release/PUBLISHED`. Undo: `deploy/prod/rollback.sh`.
 
 ## 5. After a promote: re-cut the goldens, then the strict parity (T432)
 

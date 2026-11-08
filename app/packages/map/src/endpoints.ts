@@ -18,7 +18,8 @@ export interface TileEndpoints {
   /**
    * The release's map assets folder (P11/P18, ending in "/"): `fonts/{fontstack}/{range}.pbf` and
    * `sprites/v4/<light|dark>` under it. The installed folder on a phone (always offline), the
-   * release url on the web. `glyphs`/`sprite` win when given; absent, our data host's `/map-assets/v1/`.
+   * release url on the web. `glyphs`/`sprite` win when given. The app always names it (`releaseTiles`: the release's
+   * folder, else the environment's `<data origin>/map-assets/v1/`); absent (tests), `NO_ASSETS`, which names no host.
    */
   assets?: string;
   /**
@@ -58,10 +59,11 @@ export function imageryTiles(key: string | null): string {
 }
 
 /**
- * (T270) OUR glyphs and sprites at a fixed path under a data origin, for a build whose release names no assets folder
- * (a release normally does: `tiles.assets`). The local tile server and the R2 bucket serve the same folder.
+ * (T270) OUR glyphs and sprites sit at a fixed path under each data origin (`/map-assets/v1/`), for a build whose release
+ * names no assets folder (a release normally does: `tiles.assets`); the app builds that url from its environment's origin
+ * (`apps/mobile/src/env.ts` `endpointsFor` → `tiles.assets`).
+ * (T404) NO HOST HERE: a caller that names no assets folder (tests only — the app always passes its environment's,
+ * `releaseTiles` requires it) gets the bare path, which names no environment. It used to be staging's data host, which
+ * would have drawn a production build's labels from staging without a word.
  */
-export const MAP_ASSETS_PATH = "/map-assets/v1/";
-export const mapAssetsUrl = (origin: string) => `${origin.replace(/\/+$/, "")}${MAP_ASSETS_PATH}`;
-/** The last-resort default (tests, a caller that names nothing): staging's data host — a build never defaults to production. */
-export const OUR_ASSETS = mapAssetsUrl("https://data-staging.canifishthis.ca");
+export const NO_ASSETS = "/map-assets/v1/";

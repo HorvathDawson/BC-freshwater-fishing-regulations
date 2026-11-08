@@ -1,5 +1,6 @@
 # T225 STAGING ONLY. Deploy: deploy/staging/feeds.sh (deploys, then runs every job: T392)
-# The feed schedule is ON for staging (owner 2026-10-28). No production env in this file.
+# The feed schedule is ON for staging (owner 2026-10-28). Production is its twin, wrangler.prod.toml (T404, owner-run:
+# deploy/prod/feeds.sh); test/config.test.ts holds the two to the same bindings, crons and vars.
 name = "bc-fishing-feeds-staging"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
@@ -53,6 +54,10 @@ NOTIFY_EMAIL_FROM = "status@canifishthis.ca"
 NOTIFY_DIGEST = "daily"          # DFO + in-season are urgent (at once); the rest one digest a day, only on a day with an issue
 FEEDS_ENV = "staging"            # the [staging] subject tag + footer of every email (src/email.ts)
 STATUS_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status"
+# (T404) this deployment's own names, said in emails and the backup manifest (src/index.ts Env)
+WORKER_NAME = "bc-fishing-feeds-staging"
+BUCKET_NAME = "bc-fishing-regulations-staging"
+BACKUP_BUCKET_NAME = "bc-fishing-regulations-staging-backup"
 
 # T225 Phase A (owner 2026-10-28): the schedule. Cron times are UTC; the MINUTE names the job (src/index.ts `scheduled`):
 #   :05 + :35 gauges   every 30 min 13–05 UTC (06–22 PDT / 05–21 PST), hourly (:05) at night 06–12 UTC (owner 2026-10-28)

@@ -20,6 +20,10 @@ export type Dispatch =
 export interface DispatchEnv {
   GITHUB_DISPATCH_TOKEN?: string;
   GITHUB_DISPATCH_REF?: string;
+  /** (T404) "production": the run is asked for the production bucket (`target: production`); anything else, the
+   *  workflow's default (staging). Until the owner enables the workflows' production option, GitHub refuses that input
+   *  and the failed start is emailed — a production worker never quietly updates staging's bucket. */
+  FEEDS_ENV?: string;
 }
 
 type Fetch = (url: string, init?: RequestInit) => Promise<Response>;
@@ -58,7 +62,7 @@ export async function dispatchOnce(
         "User-Agent": "bc-fishing-feeds-worker",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ref, inputs }),
+      body: JSON.stringify({ ref, inputs: env.FEEDS_ENV === "production" ? { ...inputs, target: "production" } : inputs }),
     });
     out = r.status === 204
       ? { state: "started", at, workflow, ref }

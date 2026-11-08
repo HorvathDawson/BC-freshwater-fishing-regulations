@@ -1,0 +1,29 @@
+# PRODUCTION data worker — THE OWNER deploys it (agents never):
+#   npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml          (rehearse: add --dry-run --outdir <tmp>)
+# T240 §1 / T404: replaces prod's old worker of the same name with staging's code (deploy/staging/data-worker.js: one gzip
+# for release files, weak ETag compare, private/ never served, CORS, per-IP limit). It serves the bucket as stored, so
+# the v1 app's old keys (stations.json, gauges.geojson, recent/, history/) keep answering for old installs.
+# Before deploying: check the old worker's name and route in the dashboard (Workers → bc-fishing-r2 → Settings →
+# Domains & Routes); a different name means changing `name` here, or two workers fighting over data.canifishthis.ca.
+name = "bc-fishing-r2"
+main = "../staging/data-worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = false
+preview_urls = false
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "bc-fishing-regulations"
+
+# (T249) the same limit as staging, its own counter (namespace ids are account-wide; staging's is 2493)
+[[ratelimits]]
+name = "RL"
+namespace_id = "3493"
+simple = { limit = 300, period = 10 }
+
+[[routes]]
+pattern = "data.canifishthis.ca"
+custom_domain = true
+
+[observability]
+enabled = true

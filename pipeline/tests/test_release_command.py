@@ -243,7 +243,7 @@ def staged(world, monkeypatch):
 def test_prod_refuses_without_the_human_confirmation(staged, capsys):
     assert R.prod(NEW, ask=lambda _: NEW) == 2
     err = capsys.readouterr().err
-    assert "CONFIRM_PROD is not" in err and "pipeline.deliver.release.publish" in err
+    assert "CONFIRM_PROD is not" in err and "deploy/prod/upload.sh" in err
     assert staged["calls"] == []
 
 
@@ -272,14 +272,15 @@ def test_prod_ships_only_a_checked_staged_unchanged_release(staged, monkeypatch)
     assert staged["calls"] == []
 
 
-def test_prod_runs_the_existing_publish_for_a_human(staged, monkeypatch):
+def test_prod_runs_the_prod_upload_for_a_human(staged, monkeypatch):
     monkeypatch.setenv("CONFIRM_PROD", NEW)
     # the stamp the staging upload adds does not change the artifact
     m = json.loads((staged["root"] / NEW / "manifest.json").read_text())
     (staged["root"] / NEW / "manifest.json").write_text(json.dumps({**m, "published": "2026-11-05"}))
     assert R.prod(NEW, ask=lambda _: NEW) == 0
-    assert [c for c, _ in staged["calls"]] == ["publish"]
-    assert R.prod_cmd(NEW)[-3:] == ["--release", str(staged["root"] / NEW), "--yes"]
+    # (T404) the one production upload, deploy/prod/upload.sh, given its own confirmation only after release --prod's
+    assert staged["calls"] == [("upload", {"CONFIRM_PROD": "canifishthis.ca"})]
+    assert R.prod_cmd(NEW) == ["bash", "deploy/prod/upload.sh", NEW]
 
 
 # ----------------------------------------------------------------------------------------------- the pieces it uses

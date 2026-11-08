@@ -36,6 +36,16 @@ describe("dispatchOnce", () => {
     expect(g.calls).toHaveLength(2);
   });
 
+  it("(T404) the production worker asks for the production bucket; staging's runs keep the workflow's default", async () => {
+    const g = gh(204);
+    await dispatchOnce({ GITHUB_DISPATCH_TOKEN: "t", FEEDS_ENV: "production" }, g.f, mem(), "feeds-hydat.yml", "20261019",
+                       { upload: "true" }, T0);
+    await dispatchOnce({ GITHUB_DISPATCH_TOKEN: "t", FEEDS_ENV: "staging" }, g.f, mem(), "feeds-hydat.yml", "20261019",
+                       { upload: "true" }, T0);
+    expect(g.calls.map((c) => JSON.parse(String(c.init!.body)).inputs))
+      .toEqual([{ upload: "true", target: "production" }, { upload: "true" }]);
+  });
+
   it("reports a failed start and retries it only after RETRY_MS", async () => {
     const g = gh(403), s = mem(), env = { GITHUB_DISPATCH_TOKEN: "t" };
     const a = await dispatchOnce(env, g.f, s, "feeds-hydat.yml", "20261019", {}, T0);

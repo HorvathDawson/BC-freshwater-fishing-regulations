@@ -1,8 +1,9 @@
 // T246: THE DAILY BACKUP of what lives only in R2 — run by the feeds Worker's own cron ("25 9 * * *", wrangler.toml),
-// into a SECOND bucket (BACKUP = bc-fishing-regulations-staging-backup, never served by any worker):
+// into a SECOND bucket (BACKUP: var BACKUP_BUCKET_NAME — staging's or production's, wrangler.toml / wrangler.prod.toml —
+// never served by any worker):
 //
 //   daily/<YYYY-MM-DD>/<key>        every key in BACKUP_SET, as stored (bytes + content type / encoding / cache control)
-//   daily/<YYYY-MM-DD>/_manifest.json   {format: "backup/1", at, source, objects: {key: {size, sha256, contentType}}}
+//   daily/<YYYY-MM-DD>/_manifest.json   {format: "backup/1", at, source (var BUCKET_NAME), objects: {key: {size, sha256, contentType}}}
 //   monthly/<YYYY-MM>/…             the same, on the 1st of the month
 //
 // Retention is the backup bucket's lifecycle rules (daily/ 30 days, monthly/ 400 days; set by wrangler, see T246). The
@@ -64,7 +65,7 @@ export async function backupKeys(src: SrcBucket): Promise<{ key: string; size: n
 }
 
 /** copy the set into daily/<day>/ (and monthly/<YYYY-MM>/ on the 1st), with a manifest of sha256s written LAST */
-export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date): Promise<BackupResult> {
+export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date, source: string | null = null): Promise<BackupResult> {
   const t0 = Date.now();
   const at = now.toISOString();
   const day = at.slice(0, 10);
@@ -83,7 +84,7 @@ export async function runBackup(src: SrcBucket, dst: DstBucket, now: Date): Prom
       res.copied++;
       res.bytes += body.byteLength;
     }
-    const manifest = JSON.stringify({ format: "backup/1", at, source: "bc-fishing-regulations-staging", objects }, null, 1);
+    const manifest = JSON.stringify({ format: "backup/1", at, source, objects }, null, 1);
     for (const p of prefixes) await dst.put(`${p}_manifest.json`, manifest, { httpMetadata: { contentType: "application/json" } });
     res.ok = true;
   } catch (e) {

@@ -5,7 +5,7 @@ import { compose, type FeedEvent } from "../src/events";
 import { sampleDfoEvents, wrap, type RenderCtx } from "../src/email";
 import { gaugeEvents, healthEvents } from "../src/index";
 
-const ctx: RenderCtx = { env: "staging", statusUrl: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status" };
+const ctx: RenderCtx = { env: "staging", worker: "bc-fishing-feeds-staging", statusUrl: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status" };
 const at = "2026-10-28T12:00:00Z";
 const count = (hay: string, needle: string) => hay.split(needle).length - 1;
 const htmlEsc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

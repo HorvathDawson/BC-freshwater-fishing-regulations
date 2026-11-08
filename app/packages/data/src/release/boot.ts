@@ -452,10 +452,12 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
  * — until the human-run tile rebuild writes a tile version folder (P18), the release names no tiles and no mask.
  * N2: and the map ASSETS folder (glyphs + sprites) when the manifest names one, so labels come from the release — the
  * installed `file://` folder on a phone — and not from a CDN. Absent, the environment's own data host (`dev.assets`) — never a CDN.
+ * (T404) `dev.assets` is REQUIRED: the caller passes its environment's folder (`ENDPOINTS.tiles.assets`), so the map can
+ * never fall back to some other environment's host.
  */
 export function releaseTiles(b: Pick<Booted, "manifest" | "locate">,
-                             dev: { atlas: string; basemap: string; outside: string; assets?: string }):
-    { atlas: string; basemap: string; outside: string; assets?: string } {
+                             dev: { atlas: string; basemap: string; outside: string; assets: string }):
+    { atlas: string; basemap: string; outside: string; assets: string } {
   const t = b.manifest.tiles;
   const assets = t.assets ? b.locate(t.assets.url).replace(/\/?$/, "/") : null;
   return {
@@ -463,6 +465,6 @@ export function releaseTiles(b: Pick<Booted, "manifest" | "locate">,
     basemap: b.manifest.basemap ? b.locate(b.manifest.basemap.url) : dev.basemap,
     outside: t.mask ? b.locate(t.mask.url) : dev.outside,
     // the glyphs and sprites: the installed folder on a phone, the release url on the web (the style's CDN otherwise)
-    ...(assets ?? dev.assets ? { assets: (assets ?? dev.assets) as string } : {}),
+    assets: assets ?? dev.assets,
   };
 }

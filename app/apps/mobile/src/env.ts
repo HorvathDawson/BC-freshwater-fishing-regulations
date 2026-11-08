@@ -8,8 +8,14 @@
  *               set `EXPO_PUBLIC_DATA_BASE=http://<this machine's LAN address>:39217` for a device build.
  *   staging     data-staging.canifishthis.ca (R2 bucket bc-fishing-regulations-staging, `deploy/staging/`);
  *               the staging site (the web app + SEO pages) is staging.canifishthis.ca.
- *   production  data.canifishthis.ca — UNUSED until production launches (T86 confirms the name); a build only reads it
- *               when made with `EXPO_PUBLIC_APP_ENV=production`.
+ *   production  data.canifishthis.ca (R2 bucket bc-fishing-regulations, `deploy/prod/`, owner-run); the site is
+ *               canifishthis.ca. A build only reads it when made with `EXPO_PUBLIC_APP_ENV=production`.
+ *
+ * (T404) THE ONE SWITCH: this file owns every environment's hosts (data origin, report + crash endpoint); everything else
+ * derives from them — the release, tiles, map assets, feeds, synopsis copy and sql.js (`endpointsFor`), the app's version
+ * file (`<origin>/app/android/play.json`, core `appVersionFileUrl`), reports and crashes (`reportUrlFor` / `crashUrlFor`).
+ * The public site (share links, privacy page) is `@app/core` `SITE_ORIGIN`: one site for every environment. A host spelt
+ * anywhere else in app code fails `tools/no-env-hosts.test.ts`. The runbook is handoff/PLAN/release/PRODUCTION.md.
  *
  * Chosen at BUILD time by `EXPO_PUBLIC_APP_ENV` (Metro inlines `EXPO_PUBLIC_*` into the bundle; eas.json's profiles set
  * it). Unset: a known `EXPO_PUBLIC_DATA_BASE` names its environment; otherwise the web (the dev loop and the browser
@@ -27,15 +33,15 @@ export const ORIGINS: Readonly<Record<AppEnv, string>> = Object.freeze({
 });
 
 /**
- * (T237) WHERE A PROBLEM REPORT IS SENT, per environment: the feeds worker's `POST /report` (app/workers/feeds). Staging
- * only for now — local reports to staging too (a local web build is the owner's test bench); production has no endpoint
- * until its worker exists (T86), so a production build offers email / share only. `EXPO_PUBLIC_REPORT_URL` overrides
- * ("off" disables).
+ * (T237) WHERE A PROBLEM REPORT IS SENT, per environment: the feeds worker's `POST /report` (app/workers/feeds) — staging's
+ * `bc-fishing-feeds-staging`, production's `bc-fishing-feeds` (T404; its config is app/workers/feeds/wrangler.prod.toml,
+ * owner question Q171: workers.dev, the same pattern as staging, until a custom domain is chosen). Local reports to
+ * staging (a local web build is the owner's test bench). `EXPO_PUBLIC_REPORT_URL` overrides ("off" disables).
  */
 export const REPORT_URLS: Readonly<Record<AppEnv, string | null>> = Object.freeze({
   local: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/report",
   staging: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/report",
-  production: null,
+  production: "https://bc-fishing-feeds.horvath-dawson.workers.dev/report",
 });
 
 export function reportUrlFor(env: AppEnv, override?: string | undefined): string | null {
@@ -46,7 +52,7 @@ export function reportUrlFor(env: AppEnv, override?: string | undefined): string
 
 /**
  * (T242) WHERE AN APP ERROR IS SENT: the same worker as the problem reports (its `POST /crash`), so wherever a build has
- * a report address it has a crash address; none (production, until its worker exists) → nothing is sent.
+ * a report address it has a crash address; none (a build with `EXPO_PUBLIC_REPORT_URL=off`) → nothing is sent.
  * `EXPO_PUBLIC_CRASH_URL` overrides ("off" disables).
  */
 export function crashUrlFor(reportUrl: string | null, override?: string | undefined): string | null {

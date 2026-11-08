@@ -6,7 +6,11 @@
  */
 import { APP_NAME } from "./menu/words";
 
-/** The public site (production): every shared link is on it, whatever build shares it. */
+/**
+ * The public site (production): every shared link and the privacy page are on it, whatever build shares it (T404: one
+ * site for every environment; the staging site is noindex and not for anglers). The one place core spells a host
+ * (`tools/no-env-hosts.test.ts`).
+ */
 export const SITE_ORIGIN = "https://canifishthis.ca";
 
 /** The link a page's address makes: the site, then the start link's query ("?regs=…"; "" is the map). */

@@ -3,10 +3,13 @@
 # app/dist/seo-prod (build-seo.mjs on the SAME release, `--app app/dist/web-prod --out app/dist/seo-prod`) into
 # app/dist/prod-site and deploy it to canifishthis.ca. Unlike deploy/staging/site.sh there are NO staging edits: tools/seo's
 # robots.txt stays (Allow + sitemap), no X-Robots-Tag, links stay absolute to https://canifishthis.ca.
-#   CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh [--dry-run]
+#   CONFIRM_PROD=canifishthis.ca deploy/prod/site.sh
+#   deploy/prod/site.sh --dry-run     (T404: assembles app/dist/prod-site and runs `wrangler deploy --dry-run`, which
+#                                      uploads nothing — no confirmation needed)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-[[ "${CONFIRM_PROD:-}" == canifishthis.ca ]] || { echo "site.sh (prod): set CONFIRM_PROD=canifishthis.ca to deploy production" >&2; exit 2; }
+DRY=; [[ " $* " == *" --dry-run "* ]] && DRY=1
+[[ -n $DRY || "${CONFIRM_PROD:-}" == canifishthis.ca ]] || { echo "site.sh (prod): set CONFIRM_PROD=canifishthis.ca to deploy production" >&2; exit 2; }
 W=app/dist/web-prod; S=app/dist/seo-prod; O=app/dist/prod-site; K=app/dist/prod-site-worker; H=app/dist/prod-host-worker
 js=$(grep -o '/_expo/static/js/web/index-[0-9a-f]*\.js' "$W/index.html")
 one=$(find "$S/water" -name index.html.gz -print -quit)

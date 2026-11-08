@@ -1,12 +1,13 @@
 /** The About page: what the app is, the authority disclaimer, the official synopsis, the versions, the data source. */
 import { MENU_WORDS } from "./words";
+import { SITE_ORIGIN } from "../share";
 
 /**
- * (T232) WHERE A BUILD READS ITS DATA: the local dev server, staging (data-staging.canifishthis.ca) or production. The
- * origins themselves are the app's config (`apps/mobile/src/env.ts`); core names the three and says them.
+ * (T232) WHERE A BUILD READS ITS DATA: the local dev server, staging or production. The origins themselves are the
+ * app's config (`apps/mobile/src/env.ts`, T404: the one module that spells them); core names the three and says them.
  */
 /** (owner 2026-10-29) the privacy policy: a static page of the site (Google Play asks for this URL; production). */
-export const PRIVACY_URL = "https://canifishthis.ca/privacy";
+export const PRIVACY_URL = `${SITE_ORIGIN}/privacy`;
 
 export type AppEnv = "local" | "staging" | "production";
 export const APP_ENVS: readonly AppEnv[] = ["local", "staging", "production"];
@@ -17,7 +18,7 @@ export interface AboutEnvInput {
   env: AppEnv;
   /** the one the build was made for (differs when a development build's switch chose another) */
   built: AppEnv;
-  /** the data origin in use, e.g. https://data-staging.canifishthis.ca */
+  /** the data origin in use (`env.ts` ORIGINS) */
   origin: string;
   /** a development / internal build: the reader may pick another source (applied on the next start) */
   switchable: boolean;
@@ -45,7 +46,7 @@ export interface AboutEnvVM {
   /** the small badge, e.g. "STAGING" */
   readonly badge: string;
   readonly label: string;
-  /** e.g. "Staging · data-staging.canifishthis.ca" */
+  /** e.g. "Staging · <the staging data host>" */
   readonly value: string;
   /** the switch's title and choices; null when the build has none */
   readonly choose: { readonly title: string;

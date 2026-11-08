@@ -97,7 +97,7 @@ describe("an unproven pair is said, a pair not yet checked is not", () => {
 
 describe("releaseMapInput: what App hands the Shell on the release path (the tiles it draws, and the pair they prove)", () => {
   const DEV = { atlas: "http://dev.test/atlas.pmtiles", basemap: "http://dev.test/basemap.pmtiles",
-                outside: "http://dev.test/bc_outside.geojson" };
+                outside: "http://dev.test/bc_outside.geojson", assets: "http://dev.test/map-assets/v1/" };
   const locate = (path: string) => `https://r2.test/release/${path}`;
   it("a manifest that names no tiles draws the dev atlas, and the pairing is proven against THAT atlas's stamp",
     async () => {

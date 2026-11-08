@@ -9,7 +9,9 @@
 //   → prints one PASS/WARN/FAIL line per check; exit 1 on any FAIL, with the failing step's screenshot path.
 //   Screenshots of every browser step land in --shots (default: a fresh temp dir; the path is printed).
 //
-// STAGING ONLY: every host is a staging one and the script refuses any other (a check against prod is not this tool).
+// STAGING by default: every host is a staging one and the script refuses any other. (T404) `--production` checks
+// production instead (canifishthis.ca, data.canifishthis.ca, the bc-fishing-feeds worker) — read-only GETs, run by the
+// OWNER after a prod step (handoff/PLAN/release/PRODUCTION.md); there a page must NOT say noindex.
 // `--slug nope` is the deliberate break (the /water/ page check then FAILs). Runs at the end of deploy/staging/site.sh
 // and upload.sh (SMOKE=0 skips), and by hand in GitHub Actions (.github/workflows/staging-smoke.yml).
 import fs from 'node:fs';
@@ -20,15 +22,19 @@ import { project, TARGETS } from './map-tap.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
-const SITE = opt('--url', 'https://staging.canifishthis.ca').replace(/\/$/, '');
-const DATA = opt('--data', 'https://data-staging.canifishthis.ca').replace(/\/$/, '');
-const FEEDS = opt('--feeds', 'https://bc-fishing-feeds-staging.horvath-dawson.workers.dev').replace(/\/$/, '');
+const PROD = args.includes('--production');
+const SITE = opt('--url', PROD ? 'https://canifishthis.ca' : 'https://staging.canifishthis.ca').replace(/\/$/, '');
+const DATA = opt('--data', PROD ? 'https://data.canifishthis.ca' : 'https://data-staging.canifishthis.ca').replace(/\/$/, '');
+const FEEDS = opt('--feeds', PROD ? 'https://bc-fishing-feeds.horvath-dawson.workers.dev'
+                                  : 'https://bc-fishing-feeds-staging.horvath-dawson.workers.dev').replace(/\/$/, '');
 const SLUG = opt('--slug', 'vedder-river');
 const ONLY = opt('--only', 'http,browser,desktop').split(',');
 const SHOTS = opt('--shots', null) ?? fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-staging-'));
 fs.mkdirSync(SHOTS, { recursive: true });
+const PROD_HOST = /^https:\/\/(canifishthis\.ca|data\.canifishthis\.ca|bc-fishing-feeds\.horvath-dawson\.workers\.dev)$/;
 for (const u of [SITE, DATA, FEEDS])
-  if (!/^https:\/\/([a-z0-9-]+\.)*(staging\.canifishthis\.ca|data-staging\.canifishthis\.ca|[a-z0-9-]+-staging\.[a-z0-9-]+\.workers\.dev)$/.test(u)
+  if (PROD) { if (!PROD_HOST.test(u)) { console.error(`smoke-staging --production: ${u} is not a production host — refusing`); process.exit(2); } }
+  else if (!/^https:\/\/([a-z0-9-]+\.)*(staging\.canifishthis\.ca|data-staging\.canifishthis\.ca|[a-z0-9-]+-staging\.[a-z0-9-]+\.workers\.dev)$/.test(u)
       && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(u)) {
     console.error(`smoke-staging: ${u} is not a staging host — refusing`); process.exit(2);
   }
@@ -91,12 +97,13 @@ async function http() {
     must(!tiles || rt.tile_version === tiles, `runtiming tile_version ${rt.tile_version} ≠ manifest tiles ${tiles}`);
     return rt.tile_version;
   });
-  await check(`/water/${SLUG}: 200 + canonical + noindex`, async () => {
+  await check(`/water/${SLUG}: 200 + canonical + ${PROD ? 'indexable' : 'noindex'}`, async () => {
     const r = await get(`${SITE}/water/${SLUG}`);
     must(r.status === 200, `HTTP ${r.status}`);
     const html = await r.text();
     must(html.includes(`rel="canonical" href="https://canifishthis.ca/water/${SLUG}`), 'no canonical to https://canifishthis.ca/water/<slug>');
-    must(/noindex/.test(r.headers.get('x-robots-tag') ?? ''), 'staging page without X-Robots-Tag: noindex');
+    if (PROD) must(!r.headers.get('x-robots-tag'), `production page sends X-Robots-Tag: ${r.headers.get('x-robots-tag')}`);
+    else must(/noindex/.test(r.headers.get('x-robots-tag') ?? ''), 'staging page without X-Robots-Tag: noindex');
     return `${html.length} B`;
   });
   await check('legacy /waterbody/328939712/ → one 301 → 200', async () => {

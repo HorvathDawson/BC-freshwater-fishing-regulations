@@ -48,10 +48,15 @@ export interface Env extends ReportEnv, DispatchEnv {
   /** the env tag every email carries ("staging" | "production") and the status page link (vars) */
   FEEDS_ENV?: string;
   STATUS_URL?: string;
+  /** (T404) this deployment's own names (vars): the worker, its bucket and its backup bucket — said in emails and the
+   *  backup manifest, so a production email never names staging's (wrangler.toml / wrangler.prod.toml set them) */
+  WORKER_NAME?: string;
+  BUCKET_NAME?: string;
+  BACKUP_BUCKET_NAME?: string;
   /** (T249) per-IP rate limits ([[ratelimits]] in wrangler.toml; src/guard.ts): absent under test */
   RL_PUBLIC?: RateLimiter;
   RL_AUTH?: RateLimiter;
-  /** (T246) the backup bucket (bc-fishing-regulations-staging-backup; src/backup.ts) */
+  /** (T246) the backup bucket (BACKUP_BUCKET_NAME; src/backup.ts) */
   BACKUP?: DstBucket;
   /** the deployed version ([version_metadata] in wrangler.toml): every job's reuse key carries it (`rev`, io.ts) */
   CF_VERSION_METADATA?: { id: string };
@@ -62,7 +67,7 @@ const JOBS: readonly Job[] = ["gauges", "dfo", "inseason"];
 
 export function notifyConfig(env: Env): NotifyConfig {
   return {
-    ctx: { env: env.FEEDS_ENV || "staging", statusUrl: env.STATUS_URL || null },
+    ctx: { env: env.FEEDS_ENV || "staging", statusUrl: env.STATUS_URL || null, worker: env.WORKER_NAME || null },
     emailTo: env.NOTIFY_EMAIL_TO || undefined,
     emailFrom: env.NOTIFY_EMAIL_FROM || undefined,
     webhook: env.FEED_NOTIFY_URL || undefined,
@@ -398,9 +403,9 @@ async function tell(job: string, env: Env, now: Date, events: FeedEvent[]): Prom
 /** (T246) the daily backup; a failure is told at once (urgent health event) */
 async function backup(env: Env, now = new Date()) {
   if (!env.BACKUP) return { ok: false, error: "no BACKUP binding" };
-  const r = await runBackup(env.BUCKET as unknown as SrcBucket, env.BACKUP, now);
+  const r = await runBackup(env.BUCKET as unknown as SrcBucket, env.BACKUP, now, env.BUCKET_NAME ?? null);
   const told = r.ok ? null : await tell("backup", env, now, [{ key: `backup:${r.day}`, kind: "health", title: `Backup ${r.day} failed`, urgent: true, at: r.at,
-    text: `The daily R2 backup (daily/${r.day}/ in bc-fishing-regulations-staging-backup) failed after ${r.copied} objects:\n${r.error}\n\nRetry: POST /run/backup on the feeds worker (Bearer RUN_TOKEN).` }]);
+    text: `The daily R2 backup (daily/${r.day}/ in ${env.BACKUP_BUCKET_NAME ?? "the backup bucket (BACKUP_BUCKET_NAME is not set)"}) failed after ${r.copied} objects:\n${r.error}\n\nRetry: POST /run/backup on the feeds worker (Bearer RUN_TOKEN).` }]);
   console.log(JSON.stringify({ job: "backup", ok: r.ok, copied: r.copied, bytes: r.bytes, skipped: r.skipped.length, wallMs: r.wallMs, told }));
   return r;
 }

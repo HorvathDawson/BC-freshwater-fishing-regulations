@@ -38,8 +38,9 @@ run-timing feed) as `pipeline build` always has — the review app reads them �
 release whose checks failed is on disk under data/release/<r-id>/ and named by CANDIDATE; nothing ships it.
 
 PROD (`--prod <r-id>`) builds nothing and checks nothing new: it re-uploads the SAME release folder that passed this
-command's checks and reached staging (the ledger says so, and its content fingerprint must be unchanged), through the
-existing `python -m pipeline.deliver.release.publish --release data/release/<r-id> --yes`. It runs ONLY for a human:
+command's checks and reached staging (the ledger says so, and its content fingerprint must be unchanged), through
+`deploy/prod/upload.sh <r-id>` (T404: it promotes what staging serves — the same manifest bytes — and keeps the previous
+pointer for deploy/prod/rollback.sh; handoff/PLAN/release/PRODUCTION.md). It runs ONLY for a human:
 CONFIRM_PROD=<r-id> in the environment, an interactive terminal where the id is typed again, and no agent environment
 (CLAUDECODE / AI_AGENT). Otherwise it prints the exact commands and refuses (exit 2).
 
@@ -149,7 +150,13 @@ def upload_cmd(rid: str) -> list[str]:
 
 
 def prod_cmd(rid: str) -> list[str]:
-    return [sys.executable, "-m", "pipeline.deliver.release.publish", "--release", str(release_root() / rid), "--yes"]
+    """(T404) the ONE production upload: deploy/prod/upload.sh promotes the release staging serves (same manifest bytes,
+    run timing, map assets, feed seeds, inputs; the pointer last, the previous one kept for deploy/prod/rollback.sh)."""
+    return ["bash", "deploy/prod/upload.sh", rid]
+
+
+# deploy/prod/upload.sh's own guard; release --prod has asked for CONFIRM_PROD=<id> and the typed id before it is set
+PROD_UPLOAD_ENV = {"CONFIRM_PROD": "canifishthis.ca"}
 
 
 def load_ledger() -> dict:
@@ -546,11 +553,10 @@ def is_tty() -> bool:
 def prod_instructions(rid: str, r: dict) -> str:
     return (f"production is HUMAN-ONLY. To publish {rid} (checked {r.get('checks', {}).get('at')}, staged "
             f"{r.get('staged_at')}), in YOUR terminal:\n"
-            f"    export R2_ACCOUNT_ID=… R2_ACCESS_KEY_ID=… R2_SECRET_ACCESS_KEY=… R2_BUCKET=<the production bucket>\n"
-            f"    python -m pipeline.deliver.release.publish --release {release_root() / rid}     # the plan, nothing sent\n"
+            f"    deploy/prod/upload.sh {rid} --bucket bc-fishing-regulations-staging --dry-run     # rehearse, nothing sent\n"
             f"    CONFIRM_PROD={rid} python -m pipeline release --prod {rid}\n"
-            f"which runs (after you type the id again): {' '.join(prod_cmd(rid))}\n"
-            f"The production site, if it must follow, is separate: deploy/prod/site.sh (CONFIRM_PROD=canifishthis.ca).")
+            f"which runs (after you type the id again): CONFIRM_PROD=canifishthis.ca {' '.join(prod_cmd(rid))}\n"
+            f"The rest of a production release (site, feeds worker, Play) is handoff/PLAN/release/PRODUCTION.md.")
 
 
 def prod(rid: str, ask=input) -> int:
@@ -578,7 +584,7 @@ def prod(rid: str, ask=input) -> int:
     if ask(f"type the release id to publish {rid} to PRODUCTION: ").strip() != rid:
         print("release --prod: the id did not match; nothing sent", file=sys.stderr)
         return 2
-    rc = run_cmd(prod_cmd(rid))
+    rc = run_cmd(prod_cmd(rid), env=PROD_UPLOAD_ENV)
     if rc:
         print(f"release --prod: publish failed (rc={rc}); see above. Rerunning it re-sends the same files.",
               file=sys.stderr)

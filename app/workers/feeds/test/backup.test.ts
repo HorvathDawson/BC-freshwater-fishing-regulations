@@ -55,7 +55,7 @@ describe("the daily backup (T246)", () => {
   it("copies exactly the state set into daily/<day>/, bytes and content type kept, manifest hashes match", async () => {
     const s = src(STATE);
     const d = dst();
-    const r = await runBackup(s, d, new Date("2026-10-29T09:25:00Z"));
+    const r = await runBackup(s, d, new Date("2026-10-29T09:25:00Z"), "bc-fishing-regulations-staging");
     expect(r.ok).toBe(true);
     expect(r.prefixes).toEqual(["daily/2026-10-29/"]);
     const copied = [...d.m.keys()].filter((k) => !k.endsWith("_manifest.json")).map((k) => k.slice("daily/2026-10-29/".length)).sort();
@@ -66,6 +66,8 @@ describe("the daily backup (T246)", () => {
     ]);
     const man = JSON.parse(new TextDecoder().decode(d.m.get("daily/2026-10-29/_manifest.json")!.body));
     expect(man.format).toBe("backup/1");
+    // (T404) the manifest names the bucket this deployment backs up (var BUCKET_NAME), never a spelt one
+    expect(man.source).toBe("bc-fishing-regulations-staging");
     for (const k of copied) {
       const got = d.m.get(`daily/2026-10-29/${k}`)!;
       expect(new TextDecoder().decode(got.body)).toBe((STATE as any)[k]);

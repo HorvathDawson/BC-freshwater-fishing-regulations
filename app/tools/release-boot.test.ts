@@ -35,7 +35,9 @@ import { releaseStatus, statusOf } from "../packages/ui/src/release";
 import { fixtureRelease, nodeOpener, releaseFetch, type FixtureRelease } from "../conformance/src/fixtureRelease";
 
 const BASE = "https://r2.test/release/";
-const DEV_TILES = { atlas: "dev:atlas.pmtiles", basemap: "dev:basemap.pmtiles", outside: "dev:bc_outside.geojson" };
+// (T404) the environment's map assets folder is required: the map never falls back to another environment's host
+const DEV_TILES = { atlas: "dev:atlas.pmtiles", basemap: "dev:basemap.pmtiles", outside: "dev:bc_outside.geojson",
+                    assets: "dev:map-assets/v1/" };
 const DEV_PATH = /province\.sqlite|status_index\.bin|atlas\.meta\.json|bundle\.sqlite/;
 
 /** The web half, for real (sql.js aside: node:sqlite opens the same verified bytes). */
@@ -134,7 +136,8 @@ describe("web: a cold start is the manifest and paint, then each file on first n
       current: { id: "v1", url: "tiles/v1/atlas-v1.pmtiles", bytes: 1, sha256: "x" },
       mask: { url: "tiles/v1/bc_outside.geojson", bytes: 1, sha256: "y" } } } };
     expect(releaseTiles(named, DEV_TILES)).toEqual({
-      atlas: `${BASE}tiles/v1/atlas-v1.pmtiles`, basemap: DEV_TILES.basemap, outside: `${BASE}tiles/v1/bc_outside.geojson` });
+      atlas: `${BASE}tiles/v1/atlas-v1.pmtiles`, basemap: DEV_TILES.basemap, outside: `${BASE}tiles/v1/bc_outside.geojson`,
+      assets: DEV_TILES.assets });
     // the map assets (glyphs + sprites) from the release url on the web
     const assets = { ...named, manifest: { ...named.manifest, tiles: { ...named.manifest.tiles,
       assets: { id: "map-assets-1", url: "tiles/v1/map-assets-1/", files_sha256: "z" } } } };

@@ -76,11 +76,29 @@ describe("(T251) the update channel", () => {
   });
 });
 
+describe("one switch (T404): every environment's hosts are its own", () => {
+  it("no environment reads, reports or crashes to another's host", async () => {
+    const { REPORT_URLS } = await import("./env");
+    const host = (u: string) => new URL(u).host;
+    expect(host(ORIGINS.production)).toBe("data.canifishthis.ca");
+    expect(host(REPORT_URLS.production ?? "")).toBe("bc-fishing-feeds.horvath-dawson.workers.dev");
+    for (const u of [ORIGINS.production, REPORT_URLS.production ?? ""]) expect(u).not.toMatch(/staging|localhost/);
+    for (const u of [ORIGINS.staging, REPORT_URLS.staging ?? ""]) expect(u).toMatch(/staging/);
+    // every URL the app reads hangs off the one origin
+    const e = endpointsFor(ORIGINS.production);
+    const urls = [e.manifest, e.release, e.feed, e.hydat, e.dfoFeed, e.inSeason, e.alertFeed, e.sqlWasm,
+                  ...Object.values(e.tiles), ...Object.values(e.checks)];
+    expect(urls.filter((u) => !u.startsWith(`${ORIGINS.production}/`))).toEqual([]);
+  });
+});
+
 describe("crashUrlFor (T242)", () => {
   it("is the report worker's /crash; none where there is no report address; the override wins", async () => {
     const { crashUrlFor, reportUrlFor } = await import("./env");
     expect(crashUrlFor(reportUrlFor("staging"))).toBe("https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/crash");
-    expect(crashUrlFor(reportUrlFor("production"))).toBeNull();
+    // (T404) production reports and crashes go to the production feeds worker, never staging's
+    expect(crashUrlFor(reportUrlFor("production"))).toBe("https://bc-fishing-feeds.horvath-dawson.workers.dev/crash");
+    expect(crashUrlFor(reportUrlFor("production", "off"))).toBeNull();
     expect(crashUrlFor("https://x.example/report", "off")).toBeNull();
     expect(crashUrlFor(null, "https://y.example/c")).toBe("https://y.example/c");
   });

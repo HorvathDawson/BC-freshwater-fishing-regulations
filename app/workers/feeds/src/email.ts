@@ -39,6 +39,8 @@ export interface RenderCtx {
   /** "staging" | "production": shown in the subject tag and the footer */
   env: string;
   statusUrl: string | null;
+  /** (T404) the deployed worker's name (var WORKER_NAME): the `wrangler tail` a health email tells the owner to run */
+  worker?: string | null;
 }
 export interface Rendered {
   subject: string;
@@ -182,7 +184,7 @@ const JOB_NAME: Record<string, string> = { gauges: "Gauge feed", dfo: "DFO salmo
 /** an event without `data`: its title as the name (before any " — " snippet), its text once */
 const generic = (e: FeedEvent): Item => ({ name: e.title.split(" — ")[0], text: e.text });
 
-export function healthSection(events: FeedEvent[], statusUrl: string | null): Section {
+export function healthSection(events: FeedEvent[], statusUrl: string | null, worker: string | null = null): Section {
   const bad = events.filter((e) => !e.fine);
   const items: Item[] = events.map((e) =>
     e.data?.job
@@ -197,7 +199,9 @@ export function healthSection(events: FeedEvent[], statusUrl: string | null): Se
   const steps: Step[] = bad.length
     ? [
         { text: `Open the feed status${statusUrl ? `: ${statusUrl}` : " (/status on the feeds worker)"}` },
-        { text: "Read the run's error in the worker's logs:", code: "npx --prefix app wrangler tail bc-fishing-feeds-staging" },
+        // (T404) the worker's own name (staging's or production's), never a spelt one; unset, said so
+        { text: "Read the run's error in the worker's logs:",
+          code: `npx --prefix app wrangler tail ${worker ?? "<the feeds worker (WORKER_NAME is not set)>"}` },
       ]
     : [{ text: "Nothing to do: the feed recovered." }];
   const word = (e: FeedEvent) => (e.fine ? "recovered" : e.data?.to ?? "");
@@ -288,7 +292,7 @@ export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): S
     case "inseason":
       return inSeasonSection(events, events[0]?.data?.source ?? "the provincial fishing regulations page");
     case "health":
-      return healthSection(events, ctx.statusUrl);
+      return healthSection(events, ctx.statusUrl, ctx.worker ?? null);
     case "hydat":
       return hydatSection(events);
     case "runtiming":
