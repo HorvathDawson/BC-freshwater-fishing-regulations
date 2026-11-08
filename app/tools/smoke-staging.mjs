@@ -291,7 +291,10 @@ async function browser() {
       return (await b.evaluate('window.__pdf')).replace(/^blob:[^#]+/, 'blob:…');
     });
     const ex = b.errors.filter((e) => !/favicon/.test(e));
-    if (ex.length) say('WARN', 'phone: console errors', ex.slice(0, 3).join(' | ').slice(0, 300));
+    // (T494) a TypeError is our code (or the map's) breaking, never the network: a FAIL. Anything else stays a WARN.
+    const broke = ex.filter((e) => /TypeError/.test(e));
+    if (broke.length) say('FAIL', 'phone: TypeError in the console', broke.slice(0, 3).join(' | ').slice(0, 300));
+    else if (ex.length) say('WARN', 'phone: console errors', ex.slice(0, 3).join(' | ').slice(0, 300));
   } finally { await b.close(); }
 }
 

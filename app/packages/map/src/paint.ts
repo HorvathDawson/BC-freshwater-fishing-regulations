@@ -440,8 +440,13 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens,
     const m = STYLE_META.colorModes[layerId]?.[mode];
     const day = m?.scale === "profile" ? profileDay(m, values) : null;
     const labels = day && m && "property" in m ? fade.classes.flatMap((c) => day[c] ?? []) : [];
-    if (labels.length) out["line-opacity"] = fadeByOrder(out["line-opacity"] ?? 1, fade,
-      ["in", ["coalesce", ["feature-state", (m as { property: string }).property], ""], ["literal", labels]]);
+    // (T494) a mode with nothing to fade keeps the same zoom curve, flat: MapLibre builds a tile's opacity for the kind
+    // of expression it had (zoom AND data here), and a mode swap to a data-only one threw on every tile already built
+    // (`interpolationFactor is not a function`, entering Conditions or Runs from the Map tab)
+    out["line-opacity"] = labels.length
+      ? fadeByOrder(out["line-opacity"] ?? 1, fade,
+          ["in", ["coalesce", ["feature-state", (m as { property: string }).property], ""], ["literal", labels]])
+      : fadeByOrder(out["line-opacity"] ?? 1, { ...fade, stops: fade.stops.map(([z, ks]) => [z, ks.map(() => 1)]) }, false);
   }
 
   // (T165) a no-access stream section is drawn by its dots (`NOACCESS_LAYER`), never as a solid line under them

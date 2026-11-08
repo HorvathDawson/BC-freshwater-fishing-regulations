@@ -372,7 +372,10 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     expect(Object.fromEntries(Object.entries(seen).filter(([k]) => k.startsWith("light ")))).toEqual({
       "light wetland": dimmed(wet, 0.25), "light wetland_flowing": dimmed(wet, 0.25),
       "light lake": dimmed(lake, 0.25), "light lake__edge": dimmed(edge, 0.25),
-      "light lake_flowing": dimmed(lake, 0.25), "light stream": dimmed(1, 0.25),
+      "light lake_flowing": dimmed(lake, 0.25),
+      // (T494) the stream's opacity is the order fade's zoom curve in every mode, flat where nothing fades
+      "light stream": ["interpolate", ["linear"], ["zoom"],
+                       ...STYLE_META.orderFades.stream!.stops.flatMap(([z]) => [z, dimmed(1, 0.25)])],
     });
     expect(Object.keys(seen).length).toBe(18);                                  // the same six layers in each theme
   });
