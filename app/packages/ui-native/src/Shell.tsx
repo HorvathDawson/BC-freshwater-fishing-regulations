@@ -8,7 +8,9 @@
  *     (`useBack`, the system back and the iOS edge swipe) unwinds it — `shell/useShellNav.ts`.
  *   - ONE WATER SCREEN. Every water opens through `@app/ui` openWater.ts (`useOpenWater`), from either map, a water's
  *     own map or a search result; water mode is a frame (`waterFrame`) whose views — Regulations · Conditions · Map —
- *     sit under one header (`WaterFrame`, fed by `WaterViewsContext`) — `shell/WaterModeHost.tsx`.
+ *     sit under one header (`WaterFrame`, fed by `WaterViewsContext`) — `shell/WaterModeHost.tsx`. (T498) A water
+ *     opened over the browse screen is built hidden and shown whole, the browse screen held as it was meanwhile —
+ *     `shell/paneReveal.ts`.
  *   - BROWSE. The Map and Conditions tabs share ONE map; Spots and More are lists — `shell/BrowseHost.tsx`.
  *   - COLOURING. The layers choice, the tiles/data pair (nothing is coloured on an unproven pair, a mixed one is said),
  *     the day's status, the lake values and the Conditions colouring at its horizon — `shell/useMapColouring.ts`;
@@ -49,6 +51,7 @@ import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { useSpotEdit } from "./shell/useSpotEdit";
 import { WaterModeHost } from "./shell/WaterModeHost";
+import { PaneReadyContext, usePaneHold } from "./shell/paneReveal";
 import type { ShellProps } from "./shell/props";
 import { HOME, useMapColouring } from "./shell/useMapColouring";
 import { useShellNav } from "./shell/useShellNav";
@@ -76,6 +79,8 @@ export type { ShellProps } from "./shell/props";
 
 /** (owner 2026-10-29) the map readied behind a landing's water: the whole box, unseen (painted, not shown) */
 const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 } as const;
+/** (T498) A HELD PANE: laid out at its final size, beside the screen rather than over the browse map's surface. */
+const HELD = { ...BEHIND, transform: [{ translateX: 100_000 }] } as const;
 
 /** (T293) The Conditions tour's gauge: of the bigger-river gauges, the nearest to the camera, with its catchment's area. */
 async function nearGauge(source: ShellProps["source"], at: Camera): Promise<{ lon: number; lat: number; km2: number } | null> {
@@ -549,6 +554,18 @@ export function Shell(p: ShellProps) {
   // T170: the visit day's own flow, and the action that asks for it (waits offline, asks again when back)
   const dayFlow = useDayFlow(shownVisit, p.onDayFlow, connectivity);
   const withInSeason = (n: React.ReactNode) => <InSeasonContext.Provider value={inSeason}>{n}</InSeasonContext.Provider>;
+  // (T498) A PANE OPENED OVER THE MAP IS BUILT HIDDEN and shown whole (`shell/paneReveal.ts`): held only when the last
+  // screen committed was the browse body (a map or a list tab), never over a spot or the add flow, never at a landing —
+  // and only for the Regulations view: the Conditions and Map views carry a map of their own, and two live maps over a
+  // hold crashed MapLibre's render thread on the emulator (SIGSEGV as the browse map was let go)
+  const browseShown = useRef(false);
+  const pane = usePaneHold(frame !== null && !nav.carrying, browseShown.current && frame?.view === "regs");
+  // (T498) while a pane is held, the screen is the one the reader left, AS IT WAS: the elements of the last browse
+  // render (the map, and the search bar, the map's foot and the tab bar over it), so the route's change (a search
+  // consumed, the water's fit, the bars a water hides) reaches none of them under the hold — the screen changes once
+  const lastBrowse = useRef<{ map: React.ReactNode; top: React.ReactNode; foot: React.ReactNode; tabs: React.ReactNode } | null>(null);
+  const browseNow = frame === null && !viewing && !(adding && onSaveSpot);
+  useEffect(() => { browseShown.current = browseNow; });
   if (viewing)
     return layered(withGuide(
       <SpotHost viewing={viewing} spotEdit={spotEdit} nav={nav} palette={palette} camera={camera} like={like}
@@ -601,7 +618,7 @@ export function Shell(p: ShellProps) {
    * colours load then, and back shows it painted — the same map, not a new one. Only for a landing: a water tapped from
    * the map, and an ordinary start, are as before.
    */
-  const browse = frame === null || (landed && warm)
+  const browseLive = frame === null || (landed && warm)
     ? <BrowseHost nav={nav} col={col} search={search} rail={rail} palette={palette} theme={theme}
                   themeName={p.themeName} onTheme={p.onTheme} tiles={tiles} camera={camera} insetTop={barBottom} insetBottom={footH}
                   spots={spots} spotsShown={spotsShown} spotLayer={spotLayer} spotsError={p.spotsError}
@@ -614,15 +631,6 @@ export function Shell(p: ShellProps) {
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
                   fishImages={p.fishImages} tourFit={tourFit} />
     : null;
-  const body = (
-    <View style={{ flex: 1 }}>
-      {browse && (
-        <View key="browse" style={frame === null ? { flex: 1 } : BEHIND} pointerEvents={frame === null ? "auto" : "none"}
-              aria-hidden={frame !== null}>{browse}</View>
-      )}
-      {water && <View key="water" style={{ flex: 1 }}>{water}</View>}
-    </View>
-  );
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
    *  Runs while browsing, so the bell is where it always is on every map. */
@@ -632,27 +640,9 @@ export function Shell(p: ShellProps) {
     && (tab === "conditions"
         || (tab === "map" && (col.layers.water.drawn !== "regulations" || col.statusOk)));
 
-  return layered(withInSeason(coached(<>
-    {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
-    <MenuContext.Provider value={menu}>
-    <View style={{ flex: 1, backgroundColor: palette.card }}>
-      <PairBanner col={col} palette={palette} />
-      {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
-      <NetBanner palette={palette} onPress={() => nav.toTab("more")} />
-      <View style={{ flex: 1 }}>
-        <EdgeBack drag={nav.edge}>
-          <WaterViewsContext.Provider value={nav.waterViews && share ? { ...nav.waterViews, share } : nav.waterViews}>
-            {/* Regulations and Conditions take the swipe anywhere on them (the Conditions maps and chart shielded),
-                Map from its header only (the canvas pans) — see `waterViews` */}
-            {/* (T37) the regs sheet is a back layer too: back closes it before it leaves the water */}
-            <BackLayerContext.Provider value={backLayers}>{body}</BackLayerContext.Provider>
-          </WaterViewsContext.Provider>
-        </EdgeBack>
-        {/*
-          * (T48) search over the SAME map: the sheet rises over it, and the field is drawn over both. The field comes
-          * FIRST in the page (T69): Tab reaches the bar, then the results panel under it — the order the eye reads;
-          * its zIndex keeps it painted over the sheet and the dim.
-          */}
+  const chromeLive = {
+    top: (
+      <>
         {topBar && (
           <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={onSync}
                   // (T231, owner 2026-10-28) one bell: the in-season changes not on the map, and the updates that failed
@@ -675,6 +665,63 @@ export function Shell(p: ShellProps) {
                        statusIndex={col.statusIndex} total={counts?.waters}
                        recents={search.recents.list} onRecent={search.pickRecent} onClearRecents={search.recents.clear} />
         )}
+      </>
+    ),
+    foot: (
+      <>
+          {showLegend && (
+            <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
+          )}
+          {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
+          {route.mode === "browse" && tab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
+          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} onHelp={runsTour.reopen} fishImages={p.fishImages} />}
+      </>
+    ),
+    tabs: bottomBarShown(route) ? <TabBar active={tab} palette={palette} onChange={nav.toTab} /> : null,
+  };
+  if (frame === null) lastBrowse.current = { map: browseLive, ...chromeLive };
+  const held = pane.holding ? lastBrowse.current : null;
+  const browse = held && !browseLive ? held.map : browseLive;
+  const chrome = held ?? chromeLive;
+  const browseView = browse && (
+    // (T498) while a pane is held the map stays on screen, untouchable, until the pane is shown whole. NEVER COLLAPSED
+    // (Fabric): a layout-only wrapper is flattened away, and the hold's pointerEvents made it a real view — the map was
+    // re-parented into it, its surface torn down: black, then grey, for every hold (emulator)
+    <View key="browse" collapsable={false} style={frame === null || pane.holding ? { flex: 1 } : BEHIND}
+          pointerEvents={frame === null ? "auto" : "none"} aria-hidden={frame !== null && !pane.holding}>{browse}</View>
+  );
+  const waterView = water && (
+    <View key="water" collapsable={false} style={pane.holding ? HELD : { flex: 1 }} pointerEvents={pane.holding ? "none" : "auto"}
+          aria-hidden={pane.holding}>
+      <PaneReadyContext.Provider value={pane.holding ? pane.ready : null}>{water}</PaneReadyContext.Provider>
+    </View>
+  );
+  const body = <View style={{ flex: 1 }}>{browseView}{waterView}</View>;
+  return layered(withInSeason(coached(<>
+    {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
+    <MenuContext.Provider value={menu}>
+    <View style={{ flex: 1, backgroundColor: palette.card }}>
+      <PairBanner col={col} palette={palette} />
+      {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
+      <NetBanner palette={palette} onPress={() => nav.toTab("more")} />
+      <View style={{ flex: 1 }}>
+        <EdgeBack drag={nav.edge}>
+          <WaterViewsContext.Provider value={nav.waterViews && share ? { ...nav.waterViews, share } : nav.waterViews}>
+            {/* Regulations and Conditions take the swipe anywhere on them (the Conditions maps and chart shielded),
+                Map from its header only (the canvas pans) — see `waterViews` */}
+            {/* (T37) the regs sheet is a back layer too: back closes it before it leaves the water */}
+            <BackLayerContext.Provider value={backLayers}>{body}</BackLayerContext.Provider>
+          </WaterViewsContext.Provider>
+        </EdgeBack>
+        {/*
+          * (T48) search over the SAME map: the sheet rises over it, and the field is drawn over both. The field comes
+          * FIRST in the page (T69): Tab reaches the bar, then the results panel under it — the order the eye reads;
+          * its zIndex keeps it painted over the sheet and the dim.
+          */}
+        {/* (T498) held, the frozen bars take no press (their handlers are the last browse render's); one wrapper always,
+            so the hold neither mounts nor remounts them */}
+        <View collapsable={false} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, zIndex: 2 }}
+              pointerEvents={held ? "none" : "box-none"}>{chrome.top}</View>
         {/* PICK ON THE MAP (owner 2026-10-22): the slim banner in the search field's place; a back layer */}
         {rail.picking && route.mode === "browse" && tab === "map" && (
           <SpotPickBanner palette={palette} onCancel={rail.cancelPick} />
@@ -686,16 +733,11 @@ export function Shell(p: ShellProps) {
             species row (a native horizontal ScrollView) never scrolled, while taps (hit-tested in JS) still worked. */}
         <View testID="map-foot" style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1 }} pointerEvents="box-none"
               onLayout={(e) => setFootH(Math.round(e.nativeEvent.layout.height))}>
-          {showLegend && (
-            <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
-          )}
-          {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
-          {route.mode === "browse" && tab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
-          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} onHelp={runsTour.reopen} fishImages={p.fishImages} />}
+          {chrome.foot}
         </View>
       </View>
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
-      {bottomBarShown(route) && <TabBar active={tab} palette={palette} onChange={nav.toTab} />}
+      {chrome.tabs && <View collapsable={false} pointerEvents={held ? "none" : "auto"}>{chrome.tabs}</View>}
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
       <SynopsisLoading palette={palette} floating />
       {/* (T354) the rule book itself, in the app (native; the web opens the browser's tab) */}

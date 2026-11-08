@@ -73,15 +73,20 @@ export function waterOfSection(source: Pick<WaterSource, "itemForSection">, sid:
 export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: SectionId, at: LatLon | null,
                               view: View, except: ItemId | null = null,
                               groupOf?: (item: ItemId) => Promise<readonly ItemId[] | undefined>,
-                              partOf?: OpenerOptions["partOf"]): Promise<RouteAction | null> {
+                              partOf?: OpenerOptions["partOf"],
+                              solo?: OpenerOptions["solo"]): Promise<RouteAction | null> {
   const item = await waterOfSection(source, sid);
   if (item !== null && item === except) return null;
-  const [group, at2] = await Promise.all([
+  const [group, at2, isSolo] = await Promise.all([
     item !== null && groupOf ? groupOf(item) : undefined,
     // (T369 D3) the tapped water opens AT its part (and the release's stretch holding the tap): one frame for it
     // (T368) a failed read opens part-less (each view asks the same `targetFor`), and is reported
-    item !== null && partOf ? partOf(item, sid).catch(reported(null)) : null]);
-  return openWater({ item, tapSid: sid, at, view, group, ...(at2 ? { part: at2.part, stretch: at2.stretch } : {}) });
+    item !== null && partOf ? partOf(item, sid).catch(reported(null)) : null,
+    // (T498) and KNOWING whether it is solo, as a search result does: told after it opened, its Map view dropped out of
+    // the strip under the reader (the pane changed shape after it was shown). A failed read opens with the Map view.
+    item !== null && solo ? solo(item).catch(reported(false)) : false]);
+  return openWater({ item, tapSid: sid, at, view, group, ...(at2 ? { part: at2.part, stretch: at2.stretch } : {}),
+                     ...(isSolo ? { solo: true } : {}) });
 }
 
 export interface WaterOpener {
@@ -117,7 +122,8 @@ export interface OpenerOptions {
   group?: (item: ItemId) => Promise<readonly ItemId[]>;
   /**
    * (T221) Whether a water is solo (one part, no continuation: `@app/core` `soloWater` over its group). Asked for a search
-   * result only; a read that fails counts as not solo (its Map opens, as before). Absent: never asked.
+   * result, a Map asked for by id, and (T498) a map tap, before the frame opens; a read that fails counts as not solo (its
+   * Map view is offered, as before). Absent: never asked.
    */
   solo?: (item: ItemId) => Promise<boolean>;
   /**
@@ -145,7 +151,7 @@ export function waterOpener(source: Pick<WaterSource, "itemForSection">, go: (a:
     go(a);
   };
   return {
-    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf)),
+    tap: (sid, at, view, except = null) => settle((groupOf) => openTap(source, sid, at, view, except, groupOf, o.partOf, o.solo)),
     flow: (item, build) => settle(async (groupOf) => build(groupOf ? await groupOf(item) : undefined)),
     // nothing to wait on: at once, and any open still in flight is overtaken — (T369 D13) but a Map asked for asks first
     // whether the water is solo (no Map view: its Regulations), as a search result does, so no Map mounts and is dropped

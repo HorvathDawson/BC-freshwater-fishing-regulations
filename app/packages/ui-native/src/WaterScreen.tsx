@@ -45,6 +45,7 @@ import { openBook } from "./regs/openBook";
 import { PartPending, RegsWaiting } from "./regs/NetWaiting";
 import { SPACE, type Palette } from "./theme";
 import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
+import { usePaneReady } from "./shell/paneReveal";
 
 /** Why the page says the regulations are unavailable when no release loader was handed in. */
 
@@ -191,6 +192,11 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
     if (access.state !== "loading") openProbe.mark("access");
   }
   useEffect(() => { openProbe.mark("shell"); }, []);
+  // (T498) DRAWN WHOLE: the page with its Salmon card (or the card's failed face) and its access notices in, or the
+  // why it cannot be drawn — what the Shell waits for before it shows a pane opened over the map (`shell/paneReveal.ts`)
+  const failedWhole = (item !== null && sheet.state === "failed") || !loader || !!regsError;
+  usePaneReady(failedWhole
+    || (drawn && access.state !== "loading" && !(salmonExpected && salmon.state === "loading")));
   useEffect(() => {
     if (!drawn || !openProbe.on()) return;
     openProbe.mark("commit");

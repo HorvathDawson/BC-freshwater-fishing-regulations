@@ -198,3 +198,19 @@ describe("(T221) a SOLO water from search opens on its Regulations, its Map view
     expect(reduce(r, { type: "view", view: "map" })).toBe(r);
   });
 });
+
+describe("(T498) a MAP TAP on a solo water opens knowing it: the view strip never changes after the pane is shown", () => {
+  it("the tapped frame carries `solo` from its first render (no Map view to drop later); not solo, or the read failing: the Map view offered", async () => {
+    const sent: RouteAction[] = [];
+    const ask = (answer: boolean | Error) => waterOpener(source, (a) => sent.push(a), {
+      solo: async () => { if (answer instanceof Error) throw answer; return answer; } });
+    await ask(true).tap(77 as SectionId, AT, "regs");
+    await ask(false).tap(77 as SectionId, AT, "regs");
+    await ask(new Error("no store")).tap(77 as SectionId, AT, "regs");
+    // an unnamed reach is never asked (it has no water to be solo)
+    await ask(true).tap(5 as SectionId, AT, "regs");
+    expect(sent.map((a) => frameViews(waterFrame(reduce(mapTab, a))!))).toEqual(
+      [["regs", "conditions"], ["regs", "conditions", "map"], ["regs", "conditions", "map"], ["regs", "conditions"]]);
+    expect((sent[0] as { solo?: boolean }).solo).toBe(true);
+  });
+});

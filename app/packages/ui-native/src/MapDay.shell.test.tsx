@@ -105,8 +105,9 @@ describe("the one day, from the map's calendar and the page's pill", () => {
 
     // the water opens on the map's day: the page's pill says Oct 10
     await act(async () => { fireEvent.click(screen.getByLabelText("tap the map")); });
-    await waitFor(() => expect(screen.getByTestId("regs-header")).toBeTruthy(), { timeout: 20_000 });
     const pill = () => within(screen.getByTestId("regs-header")).getByRole("button", { name: /, change date$/ });
+    // (T498) the pane is built hidden and shown whole: its pill is reachable once it is shown
+    await waitFor(() => expect(pill()).toBeTruthy(), { timeout: 20_000 });
     seen.push(`pill ${pill().textContent}`);
     // the pill's sheet is the same calendar, on the same day; its Today puts THE day back on today
     fireEvent.click(pill());
