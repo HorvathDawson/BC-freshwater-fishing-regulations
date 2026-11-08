@@ -1,6 +1,6 @@
 # T509 — The Fraser's lowest part reads "2 stretches · stretch 1 of 2": name a stretch by its own ends
 
-Status: IN REVIEW — 48710b7cb; owner sees it on the next APK (shot: `shots/T509-after.png`). Part of T495 gate 1.
+Status: IN REVIEW — 48710b7cb, ed962781d (owner "Ends only"); pipeline parts split tried and reverted (below); owner sees it on the next APK (shot: `shots/T509-after.png`). Part of T495 gate 1.
 
 Owner 2026-11-08 (r-6dce77a24e6a, shot `shots/T499-before.png` left): the Fraser's Map view, lowest part, reads
 "PART 1 OF 19 · FRASER RIVER / 2 stretches · stretch 1 of 2". Weird for the lowest part.
@@ -29,9 +29,12 @@ Owner 2026-11-08 (r-6dce77a24e6a, shot `shots/T499-before.png` left): the Fraser
   named mark below it (else the named boundary below a part the map does not list — the Fraser's tidal piece, kept as
   `lowEnd` — else, on the part's lowest stretch, the short name's first end) and the one named mark above it (a mark
   to side channels only is mid-stretch, not an end; else, on the highest stretch, the short name's last end). Otherwise
-  the old words. "· stretch k of n" stays (it says the piece is one of a part with the same rules).
-- Fraser now: "The CPR Bridge at Mission → Landstrom Bar sign zone boundary · stretch 1 of 2" and "Landstrom Bar sign
-  zone boundary → Spuzzum Creek confluence · stretch 2 of 2". One load path: header, parts list and screen reader all read
+  the old words.
+- **Owner 2026-11-08 "Ends only"**: a stretch named by both ends carries no "· stretch k of n" (it confused); the count
+  stays only on a name with no ends ("2 stretches · stretch 1 of 2"). Each stretch is already its own entry ("Part 1 of
+  19" counts entries), so the map shows the pieces as separate parts in river order.
+- Fraser now: "The CPR Bridge at Mission → Landstrom Bar sign zone boundary" and "Landstrom Bar sign zone boundary →
+  Spuzzum Creek confluence". One load path: header, parts list and screen reader all read
   `partName`, after `mergeNav`, whatever way the part was opened.
 - Live release: 155 of 459 stretch names now carry their own ends (e.g. Skeena "Tidal boundary → Skeena River Ecological
   Reserve boundary · stretch 1 of 3", Kanaka "CPR Bridge (tidal boundary) → 112 Avenue bridge · stretch 1 of 2"); 114
@@ -48,3 +51,36 @@ Owner 2026-11-08 (r-6dce77a24e6a, shot `shots/T499-before.png` left): the Fraser
    corners match the text, and its "S end of Croft Island" (49.3761, −121.4573) is the island's south edge in OSM
    (49.3762). The ring sits mostly over the side-channel mouth on the north side. The FWA mainstem runs along the south
    bank and crosses only the ring's downstream corner: 156,379–156,517 m, 138 m.
+
+## Parts as contiguous runs in the pipeline: tried, reverted (2026-11-08)
+Owner: "we combine sections after if the regulations are the same for neighbouring items, so this should naturally happen
+from the extent structure" — then "make sure … the painting feeds … stuff gets combined properly". Tried: `derived.part_rows`
+cut each same-rules group into its contiguous runs (`topology.stretches`). Dry run on the live bundle: 20,708 → 20,933
+parts, 160 waters renumbered; the Fraser 17 → 20 (Mission → Landstrom, the zone, Landstrom → Spuzzum). **Reverted, not
+shipped**: the bundle refuses it (`part` is UNIQUE per (water, rule set, licensing, …), schema.sql:401 — one part per rule
+set is a built-in invariant), and the consumer map below shows behaviour changes beyond the split. Kept instead: the
+grouping as it is, the stretches presented as separate entries named by their own ends (above). Nothing renumbers.
+
+### Consumers of parts / `part_ix` (static map, 2026-11-08)
+- **Unaffected (keyed by section, not part):** tiles (no part property), `paint.py`, `salmon-*.bin`, app feature-state /
+  `litKey` (section ids), status_index / verdicts, feeds worker + DFO/gauge feeds (no part reference), share links
+  (blk + metre), `carry` / `place`, `guideClosed`.
+- **Would change if parts were split** (why the split was reverted):
+  - SEO `/changes`: `rulesKey` holds `partIx` per part (`app/tools/seo/model.ts:232`), so ~160 waters would list "Rules
+    changed" with no rule changed.
+  - In-season `matches.json` `places` (`pipeline/regs/inseason/publish.py`): part indexes reach the device. Guarded by the
+    release name (`core/src/inseason.ts:151`), but every water falls back to `extents` until it is re-published.
+  - Picker / Parts sheet / closed-page merge: one choice per piece, longer lists. `targetFor`'s akey fallback picks one of
+    the sibling pieces. `part_label`'s duplicate pass stamps "(same rules, a separate stretch)" on siblings.
+  - Golden taps (`regs-recut/taps.py`): moved indexes need PART_MOVED / PART_GROWN / PART_GONE declarations.
+  - Problem reports keep `part N` beside the release name: old reports read against a new release point elsewhere.
+- **Per release, rebuilt each load (fine either way):** answers `parts`, export `waters.parts`, store decode, regs reads,
+  `waterGroup` / `mergeNav` (T228 salmon pieces stay in `part_stretch`), water map + T508 ready signal, `part_line`,
+  `part_geo` / `part_mark` / `part_stretch`.
+- With the presentation-only fix, none of the above changes: same release, same parts, same sections lit per entry, same
+  ▲/▼ order. Only `partName`'s words change.
+
+### What is left
+The 114 bare names ("N stretches · stretch k of n": Fort Nelson, Mackin, Blaney …) need each stretch's own ends from the
+pipeline: an ADDITIVE `short` on `part_stretch` (each stretch's runs' ends, `short_label`'s words), read by `stretchEnds`
+before its fallbacks. No part, index or consumer changes. A bundle + release rebuild; not done here.
