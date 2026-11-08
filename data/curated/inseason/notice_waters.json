@@ -1,8 +1,40 @@
 {
   "$comment": "notice_waters.json (was matches.json; T324). T226 AUTHORED: provincial in-season notices (feeds/inseason/index.json `rows[].id`) -> the waters they apply to. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
-  "format": "inseason-matches/1",
+  "format": "inseason-matches/2",
+  "release": "r-6dce77a24e6a",
   "matches": {
-    "is-0cf7f7b877ef": {
+    "is-03e14f544b83": {
+      "region": "1",
+      "water": "Heber Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:20215",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Heber Creek",
+        "via": "override",
+        "reason": "HEBER CREEK is a name variant of HEBER RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+        "items": {
+          "gnis:20215": "Heber River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:20215": {
+          "all": true
+        }
+      }
+    },
+    "is-06e7bf41d7fc": {
       "region": "3",
       "water": "Salmon River",
       "extents": [
@@ -30,57 +62,890 @@
           "the text includes tributaries: the extent walks them"
         ]
       },
-      "confidence": "high"
+      "confidence": "high",
+      "waters": {
+        "gnis:10807": {
+          "all": true
+        },
+        "gnis:11021": {
+          "all": true
+        },
+        "gnis:11493": {
+          "all": true
+        },
+        "gnis:11889": {
+          "all": true
+        },
+        "gnis:11971": {
+          "all": true
+        },
+        "gnis:12122": {
+          "all": true
+        },
+        "gnis:12762": {
+          "all": true
+        },
+        "gnis:12890": {
+          "all": true
+        },
+        "gnis:13112": {
+          "all": true
+        },
+        "gnis:13569": {
+          "all": true
+        },
+        "gnis:13619": {
+          "all": true
+        },
+        "gnis:14046": {
+          "all": true
+        },
+        "gnis:15842": {
+          "all": true
+        },
+        "gnis:16556": {
+          "all": true
+        },
+        "gnis:16689": {
+          "all": true
+        },
+        "gnis:16790": {
+          "all": true
+        },
+        "gnis:17385": {
+          "all": true
+        },
+        "gnis:18127": {
+          "all": true
+        },
+        "gnis:18158": {
+          "all": true
+        },
+        "gnis:18599": {
+          "all": true
+        },
+        "gnis:19041": {
+          "all": true
+        },
+        "gnis:19193": {
+          "all": true
+        },
+        "gnis:19244": {
+          "all": true
+        },
+        "gnis:20481": {
+          "all": true
+        },
+        "gnis:20809": {
+          "all": true
+        },
+        "gnis:21528": {
+          "all": true
+        },
+        "gnis:2166": {
+          "all": true
+        },
+        "gnis:24090": {
+          "all": true
+        },
+        "gnis:2433": {
+          "all": true
+        },
+        "gnis:2444": {
+          "all": true
+        },
+        "gnis:25196": {
+          "all": true
+        },
+        "gnis:25269": {
+          "all": true
+        },
+        "gnis:25537": {
+          "all": true
+        },
+        "gnis:26281": {
+          "all": true
+        },
+        "gnis:26481": {
+          "all": true
+        },
+        "gnis:26537": {
+          "all": true
+        },
+        "gnis:26783": {
+          "all": true
+        },
+        "gnis:26968": {
+          "all": true
+        },
+        "gnis:27514": {
+          "all": true
+        },
+        "gnis:27745": {
+          "all": true
+        },
+        "gnis:27909": {
+          "all": true
+        },
+        "gnis:28305": {
+          "all": true
+        },
+        "gnis:28742": {
+          "all": true
+        },
+        "gnis:28759": {
+          "all": true
+        },
+        "gnis:28946": {
+          "all": true
+        },
+        "gnis:2933": {
+          "all": true
+        },
+        "gnis:2988": {
+          "all": true
+        },
+        "gnis:30188": {
+          "all": true
+        },
+        "gnis:36082": {
+          "all": true
+        },
+        "gnis:39454": {
+          "all": true
+        },
+        "gnis:5861": {
+          "all": true
+        },
+        "gnis:7849": {
+          "all": true
+        },
+        "gnis:8120": {
+          "all": true
+        },
+        "gnis:8121": {
+          "all": true
+        },
+        "gnis:8135": {
+          "all": true
+        },
+        "gnis:8831": {
+          "all": true
+        },
+        "gnis:9590": {
+          "all": true
+        },
+        "gnis:9846": {
+          "all": true
+        }
+      }
     },
-    "is-14e4e067f16f": {
-      "region": "5",
+    "is-14c1a6f972a3": {
+      "region": "3",
       "water": "Fraser River",
       "extents": [
         {
           "op": "between",
           "item_id": "gnis:39325",
           "splits": [
-            "fraser_river__chilcotin_river_into_fraser_river",
-            "region:3|5"
+            "fraser_river__hell_s_gate",
+            "fraser_river__spuzzum_creek_into_fraser_river"
+          ]
+        },
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__hell_s_gate"
           ]
         }
       ],
-      "note": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged",
-      "by": "claude (owner-directed)",
-      "at": "2026-10-29T08:40:04Z",
-      "source": "owner",
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
       "evidence": {
         "water": "Fraser River",
-        "notes": [
-          "from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin"
+        "via": "override",
+        "reason": "Fraser River in Region 3. Channels and sloughs are in Zone 2 only.",
+        "items": {
+          "gnis:39325": "Fraser River"
+        },
+        "locators": [
+          "from Hells Gate to Spuzzum Creek confluence",
+          "upstream of Hells Gate"
         ],
-        "owner": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged"
+        "splits": {
+          "Hells Gate": "fraser_river__hell_s_gate",
+          "Spuzzum Creek confluence": "fraser_river__spuzzum_creek_into_fraser_river"
+        },
+        "notes": [
+          "the water runs into region(s) 2, 5, 7: the extent is not clipped to region 3"
+        ]
+      },
+      "confidence": "medium",
+      "waters": {
+        "gnis:39325": {
+          "runs": [
+            [
+              355991441,
+              0,
+              1303
+            ],
+            [
+              355991564,
+              0,
+              1617
+            ],
+            [
+              355991637,
+              0,
+              598
+            ],
+            [
+              355991881,
+              0,
+              1579
+            ],
+            [
+              355991988,
+              0,
+              876
+            ],
+            [
+              355991990,
+              0,
+              308
+            ],
+            [
+              355991990,
+              450,
+              727
+            ],
+            [
+              355992101,
+              0,
+              805
+            ],
+            [
+              355992150,
+              0,
+              1382
+            ],
+            [
+              355992151,
+              0,
+              844
+            ],
+            [
+              355992245,
+              0,
+              1681
+            ],
+            [
+              355992335,
+              0,
+              2466
+            ],
+            [
+              355992432,
+              0,
+              2361
+            ],
+            [
+              355992451,
+              0,
+              1386
+            ],
+            [
+              355992588,
+              0,
+              616
+            ],
+            [
+              355992603,
+              0,
+              761
+            ],
+            [
+              355992603,
+              791,
+              1294
+            ],
+            [
+              355992603,
+              1428,
+              1977
+            ],
+            [
+              355992689,
+              0,
+              2613
+            ],
+            [
+              355992763,
+              0,
+              423
+            ],
+            [
+              355992840,
+              0,
+              2799
+            ],
+            [
+              355992846,
+              0,
+              2013
+            ],
+            [
+              355992918,
+              0,
+              608
+            ],
+            [
+              355992951,
+              0,
+              1127
+            ],
+            [
+              355992955,
+              0,
+              1957
+            ],
+            [
+              355992959,
+              0,
+              1437
+            ],
+            [
+              355992960,
+              0,
+              1306
+            ],
+            [
+              355992992,
+              0,
+              4550
+            ],
+            [
+              355993311,
+              0,
+              1162
+            ],
+            [
+              355993385,
+              0,
+              1528
+            ],
+            [
+              355993404,
+              0,
+              2625
+            ],
+            [
+              355993450,
+              0,
+              1611
+            ],
+            [
+              355993636,
+              0,
+              1822
+            ],
+            [
+              355993713,
+              0,
+              1201
+            ],
+            [
+              355993806,
+              0,
+              615
+            ],
+            [
+              355993808,
+              0,
+              190
+            ],
+            [
+              355994020,
+              0,
+              559
+            ],
+            [
+              355994199,
+              0,
+              2810
+            ],
+            [
+              355994268,
+              0,
+              1409
+            ],
+            [
+              355994269,
+              0,
+              776
+            ],
+            [
+              355994271,
+              0,
+              1180
+            ],
+            [
+              355994344,
+              0,
+              185
+            ],
+            [
+              355994444,
+              0,
+              964
+            ],
+            [
+              355994478,
+              0,
+              3648
+            ],
+            [
+              355994486,
+              0,
+              982
+            ],
+            [
+              355994676,
+              0,
+              1332
+            ],
+            [
+              355994677,
+              0,
+              1150
+            ],
+            [
+              355994819,
+              0,
+              2395
+            ],
+            [
+              355994821,
+              0,
+              916
+            ],
+            [
+              355995048,
+              0,
+              249
+            ],
+            [
+              355995086,
+              0,
+              1470
+            ],
+            [
+              355995175,
+              0,
+              980
+            ],
+            [
+              355995178,
+              0,
+              1542
+            ],
+            [
+              355995250,
+              0,
+              191
+            ],
+            [
+              355995458,
+              0,
+              2357
+            ],
+            [
+              355995672,
+              0,
+              1710
+            ],
+            [
+              355995794,
+              0,
+              605
+            ],
+            [
+              355995824,
+              0,
+              897
+            ],
+            [
+              355995847,
+              0,
+              470
+            ],
+            [
+              355995847,
+              520,
+              861
+            ],
+            [
+              355996028,
+              0,
+              1023
+            ],
+            [
+              355996073,
+              0,
+              402
+            ],
+            [
+              355996188,
+              0,
+              1954
+            ],
+            [
+              355996208,
+              0,
+              838
+            ],
+            [
+              355996268,
+              0,
+              1162
+            ],
+            [
+              355996328,
+              0,
+              1038
+            ],
+            [
+              355996346,
+              0,
+              796
+            ],
+            [
+              355996347,
+              0,
+              607
+            ],
+            [
+              355996501,
+              0,
+              1667
+            ],
+            [
+              355996801,
+              0,
+              886
+            ],
+            [
+              355996805,
+              0,
+              610
+            ],
+            [
+              355997145,
+              0,
+              897
+            ],
+            [
+              355997179,
+              0,
+              297
+            ],
+            [
+              355997516,
+              0,
+              1890
+            ],
+            [
+              355997639,
+              0,
+              833
+            ],
+            [
+              355997749,
+              0,
+              1689
+            ],
+            [
+              355997852,
+              0,
+              1662
+            ],
+            [
+              355997934,
+              0,
+              1214
+            ],
+            [
+              355998097,
+              0,
+              1044
+            ],
+            [
+              355998141,
+              0,
+              2140
+            ],
+            [
+              355998331,
+              0,
+              604
+            ],
+            [
+              355998379,
+              0,
+              755
+            ],
+            [
+              355998461,
+              0,
+              727
+            ],
+            [
+              355998720,
+              872,
+              1412
+            ],
+            [
+              355998898,
+              0,
+              415
+            ],
+            [
+              355998993,
+              0,
+              1887
+            ],
+            [
+              355999134,
+              0,
+              1052
+            ],
+            [
+              355999248,
+              0,
+              542
+            ],
+            [
+              355999316,
+              0,
+              910
+            ],
+            [
+              355999362,
+              0,
+              1271
+            ],
+            [
+              355999365,
+              0,
+              525
+            ],
+            [
+              355999489,
+              0,
+              699
+            ],
+            [
+              355999489,
+              765,
+              1401
+            ],
+            [
+              355999548,
+              0,
+              671
+            ],
+            [
+              355999633,
+              0,
+              587
+            ],
+            [
+              355999666,
+              0,
+              2581
+            ],
+            [
+              355999708,
+              0,
+              1103
+            ],
+            [
+              355999709,
+              0,
+              470
+            ],
+            [
+              355999845,
+              0,
+              923
+            ],
+            [
+              356000134,
+              0,
+              719
+            ],
+            [
+              356000158,
+              0,
+              294
+            ],
+            [
+              356000165,
+              0,
+              545
+            ],
+            [
+              356000310,
+              0,
+              619
+            ],
+            [
+              356000589,
+              0,
+              585
+            ],
+            [
+              356000869,
+              0,
+              904
+            ],
+            [
+              356000924,
+              0,
+              607
+            ],
+            [
+              356001249,
+              0,
+              1067
+            ],
+            [
+              356001314,
+              0,
+              309
+            ],
+            [
+              356001328,
+              0,
+              757
+            ],
+            [
+              356001333,
+              0,
+              853
+            ],
+            [
+              356002257,
+              0,
+              544
+            ],
+            [
+              356364114,
+              196966,
+              1315274
+            ],
+            [
+              356364114,
+              1326854,
+              1405974
+            ],
+            [
+              356364114,
+              1406040,
+              1406981
+            ],
+            [
+              356364114,
+              1407038,
+              1407210
+            ]
+          ],
+          "lakes": [
+            0
+          ],
+          "ends": "From Hell's Gate to Spuzzum Creek confluence; Upstream of Hell's Gate"
+        }
       }
     },
-    "is-19ea430e45d1": {
-      "region": "2",
-      "water": "Stave River",
+    "is-164f9965bfbd": {
+      "region": "4",
+      "water": "Hellroaring Creek",
       "extents": [
         {
           "op": "whole",
-          "item_id": "wsc:100-046202-028692-080600",
-          "splits": [],
-          "tributaries": "include"
+          "item_id": "gnis:20676",
+          "splits": []
         }
       ],
-      "note": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays",
-      "by": "claude (owner-directed)",
-      "at": "2026-10-29T08:40:04Z",
-      "source": "owner",
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
       "evidence": {
-        "water": "Stave River",
-        "notes": [
-          "the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel"
+        "water": "Hellroaring Creek",
+        "via": "name",
+        "reason": "2 candidates for 'Hellroaring Creek'",
+        "candidates": [
+          "gnis:20676",
+          "gnis:20677"
         ],
-        "owner": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays"
+        "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
+        "items": {
+          "gnis:20676": "Hellroaring Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "medium",
+      "waters": {
+        "gnis:20676": {
+          "all": true
+        }
       }
     },
-    "is-34e1f8ba7e89": {
+    "is-1cf72da5a533": {
+      "region": "4",
+      "water": "Kaslo River",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:11345",
+          "splits": [
+            "trib:gnis:11410"
+          ]
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Kaslo River",
+        "notes": [
+          "rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)"
+        ]
+      },
+      "confidence": "medium",
+      "waters": {
+        "gnis:11345": {
+          "runs": [
+            [
+              356567321,
+              526,
+              29241
+            ]
+          ],
+          "ends": "Downstream of Keen Creek confluence"
+        }
+      }
+    },
+    "is-20205c2b98c9": {
       "region": "4",
       "water": "Lodgepole Creek (upstream of falls)",
       "extents": [
@@ -114,15 +979,32 @@
           "the text includes tributaries: the extent walks them"
         ]
       },
-      "confidence": "high"
+      "confidence": "high",
+      "waters": {
+        "gnis:17044": {
+          "runs": [
+            [
+              356565430,
+              23081,
+              25906
+            ],
+            [
+              356565430,
+              26216,
+              29864
+            ]
+          ],
+          "ends": "Upstream of Falls"
+        }
+      }
     },
-    "is-39abf1c6f713": {
-      "region": "4",
-      "water": "Quinn Creek",
+    "is-2fa458fef3c3": {
+      "region": "8",
+      "water": "Okanagan River",
       "extents": [
         {
           "op": "whole",
-          "item_id": "gnis:1961",
+          "item_id": "gnis:32069",
           "splits": []
         }
       ],
@@ -131,11 +1013,403 @@
       "at": "2026-10-29T01:41:59Z",
       "source": "auto",
       "evidence": {
-        "water": "Quinn Creek",
-        "via": "override",
-        "reason": "GNIS name: Quinn (Queen) Creek. Full name includes parenthetical.",
+        "water": "Okanagan River",
+        "via": "name",
+        "reason": "",
         "items": {
-          "gnis:1961": "Quinn (Queen) Creek"
+          "gnis:32069": "Okanagan River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:32069": {
+          "all": true
+        }
+      }
+    },
+    "is-4169515839dc": {
+      "region": "2",
+      "water": "Chilliwack Lake, Upper Pitt River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wbk:329083341",
+          "splits": []
+        },
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:7551",
+          "splits": [
+            "lake:329291806:inlet"
+          ]
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Chilliwack Lake, Upper Pitt River",
+        "notes": [
+          "two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet"
+        ]
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:7551": {
+          "runs": [
+            [
+              355991630,
+              0,
+              1487
+            ],
+            [
+              355991852,
+              0,
+              667
+            ],
+            [
+              355992743,
+              0,
+              370
+            ],
+            [
+              355992745,
+              0,
+              709
+            ],
+            [
+              355993128,
+              0,
+              719
+            ],
+            [
+              355993240,
+              0,
+              468
+            ],
+            [
+              355993241,
+              0,
+              1033
+            ],
+            [
+              355993386,
+              0,
+              351
+            ],
+            [
+              355993559,
+              0,
+              1005
+            ],
+            [
+              355993834,
+              0,
+              482
+            ],
+            [
+              355994222,
+              0,
+              371
+            ],
+            [
+              355994946,
+              0,
+              300
+            ],
+            [
+              355994947,
+              0,
+              247
+            ],
+            [
+              355995228,
+              0,
+              420
+            ],
+            [
+              355995229,
+              0,
+              638
+            ],
+            [
+              355995767,
+              0,
+              355
+            ],
+            [
+              355996285,
+              0,
+              839
+            ],
+            [
+              355997808,
+              0,
+              752
+            ],
+            [
+              355997877,
+              0,
+              419
+            ],
+            [
+              355997878,
+              0,
+              502
+            ],
+            [
+              355997912,
+              0,
+              524
+            ],
+            [
+              355997913,
+              0,
+              587
+            ],
+            [
+              355998024,
+              0,
+              786
+            ],
+            [
+              356000662,
+              0,
+              659
+            ],
+            [
+              356360869,
+              46555,
+              105902
+            ]
+          ],
+          "ends": "Upstream of Pitt Lake inlet"
+        },
+        "wbk:329083341": {
+          "all": true
+        }
+      }
+    },
+    "is-472d822b755f": {
+      "region": "4",
+      "water": "Alexander Creek (upstream of the easternmost Hwy 3 bridge)",
+      "extents": [
+        {
+          "op": "upstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Alexander Creek (upstream of the easternmost Hwy 3 bridge)",
+        "via": "override",
+        "reason": "Matched via base name: ALEXANDER CREEK",
+        "items": {
+          "gnis:9343": "Alexander Creek"
+        },
+        "locators": [
+          "upstream of the easternmost Hwy 3 bridge"
+        ],
+        "splits": {
+          "the easternmost Hwy 3 bridge": "alexander_creek__easternmost_hwy_3"
+        },
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:9343": {
+          "runs": [
+            [
+              356366414,
+              0,
+              218
+            ],
+            [
+              356366698,
+              0,
+              234
+            ],
+            [
+              356367960,
+              0,
+              357
+            ],
+            [
+              356368598,
+              0,
+              810
+            ],
+            [
+              356368599,
+              0,
+              159
+            ],
+            [
+              356566667,
+              4681,
+              36595
+            ]
+          ],
+          "ends": "Upstream of easternmost Hwy 3"
+        }
+      }
+    },
+    "is-498820589328": {
+      "region": "5",
+      "water": "Fraser River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": [
+            "fraser_river__chilcotin_river_into_fraser_river",
+            "region:3|5"
+          ]
+        }
+      ],
+      "note": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged",
+      "by": "claude (owner-directed)",
+      "at": "2026-10-29T08:40:04Z",
+      "source": "owner",
+      "evidence": {
+        "water": "Fraser River",
+        "notes": [
+          "from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin"
+        ],
+        "owner": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged"
+      },
+      "waters": {
+        "gnis:39325": {
+          "runs": [
+            [
+              355999845,
+              0,
+              923
+            ],
+            [
+              356364114,
+              418405,
+              481906
+            ]
+          ],
+          "ends": "From Chilcotin River confluence to Region 3 / Region 5 boundary"
+        }
+      }
+    },
+    "is-4eaad82900f8": {
+      "region": "4",
+      "water": "Duncan River",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:22255",
+          "splits": [
+            "duncan_river__duncan_dam"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Duncan River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:22255": "Duncan River"
+        },
+        "locators": [
+          "downstream of Duncan Dam"
+        ],
+        "splits": {
+          "Duncan Dam": "duncan_river__duncan_dam"
+        },
+        "notes": [
+          "the text speaks of tributaries",
+          "a rescind row: informational, bound to its water"
+        ]
+      },
+      "confidence": "medium",
+      "waters": {
+        "gnis:22255": {
+          "runs": [
+            [
+              356364729,
+              0,
+              1699
+            ],
+            [
+              356364730,
+              0,
+              4200
+            ],
+            [
+              356364732,
+              0,
+              690
+            ],
+            [
+              356365277,
+              1196,
+              2488
+            ],
+            [
+              356365279,
+              86,
+              1824
+            ],
+            [
+              356365282,
+              0,
+              620
+            ],
+            [
+              356570552,
+              438,
+              9904
+            ]
+          ],
+          "ends": "Downstream of Duncan Dam"
+        }
+      }
+    },
+    "is-50ac6c61eb00": {
+      "region": "4",
+      "water": "Perry Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:14741",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Perry Creek",
+        "via": "name",
+        "reason": "2 candidates for 'Perry Creek'",
+        "candidates": [
+          "gnis:14740",
+          "gnis:14741"
+        ],
+        "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
+        "items": {
+          "gnis:14741": "Perry Creek"
         },
         "locators": [],
         "splits": {},
@@ -143,9 +1417,72 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "high"
+      "confidence": "medium",
+      "waters": {
+        "gnis:14741": {
+          "all": true
+        }
+      }
     },
-    "is-4254fc685e34": {
+    "is-546bc1e74bbc": {
+      "region": "4",
+      "water": "Keen Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11410",
+          "splits": []
+        }
+      ],
+      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)",
+      "by": "claude",
+      "at": "2026-10-29T08:27:28Z",
+      "source": "claude",
+      "evidence": {
+        "water": "Keen Creek",
+        "notes": [
+          "rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)"
+        ]
+      },
+      "confidence": "medium",
+      "waters": {
+        "gnis:11410": {
+          "all": true
+        }
+      }
+    },
+    "is-689cae172c40": {
+      "region": "1",
+      "water": "Cowichan River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:12227",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Cowichan River",
+        "via": "override",
+        "reason": "Matched via base name: COWICHAN RIVER",
+        "items": {
+          "gnis:12227": "Cowichan River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:12227": {
+          "all": true
+        }
+      }
+    },
+    "is-6a32433916ac": {
       "region": "8",
       "water": "Similkameen River",
       "extents": [
@@ -174,9 +1511,947 @@
           "the water runs into region(s) 2: the extent is not clipped to region 8"
         ]
       },
-      "confidence": "medium"
+      "confidence": "medium",
+      "waters": {
+        "blk:356520700": {
+          "all": true
+        },
+        "gnis:10114": {
+          "all": true
+        },
+        "gnis:10164": {
+          "all": true
+        },
+        "gnis:10477": {
+          "all": true
+        },
+        "gnis:11112": {
+          "all": true
+        },
+        "gnis:11606": {
+          "all": true
+        },
+        "gnis:11616": {
+          "all": true
+        },
+        "gnis:11675": {
+          "all": true
+        },
+        "gnis:11708": {
+          "all": true
+        },
+        "gnis:11727": {
+          "all": true
+        },
+        "gnis:11829": {
+          "all": true
+        },
+        "gnis:11831": {
+          "all": true
+        },
+        "gnis:11832": {
+          "all": true
+        },
+        "gnis:11881": {
+          "all": true
+        },
+        "gnis:11907": {
+          "all": true
+        },
+        "gnis:11969": {
+          "all": true
+        },
+        "gnis:12040": {
+          "all": true
+        },
+        "gnis:12197": {
+          "all": true
+        },
+        "gnis:12257": {
+          "runs": [
+            [
+              356557997,
+              0,
+              1502
+            ],
+            [
+              356557997,
+              1567,
+              1612
+            ],
+            [
+              356557997,
+              1670,
+              1706
+            ],
+            [
+              356557997,
+              2165,
+              6892
+            ],
+            [
+              356557997,
+              7003,
+              7156
+            ],
+            [
+              356557997,
+              7257,
+              7504
+            ],
+            [
+              356557997,
+              8260,
+              8913
+            ],
+            [
+              356557997,
+              9002,
+              10678
+            ],
+            [
+              356557997,
+              11127,
+              12020
+            ]
+          ],
+          "ends": "Tributaries of Similkameen River"
+        },
+        "gnis:12419": {
+          "all": true
+        },
+        "gnis:12467": {
+          "all": true
+        },
+        "gnis:12509": {
+          "all": true
+        },
+        "gnis:12527": {
+          "all": true
+        },
+        "gnis:12534": {
+          "all": true
+        },
+        "gnis:12704": {
+          "all": true
+        },
+        "gnis:12752": {
+          "all": true
+        },
+        "gnis:12758": {
+          "all": true
+        },
+        "gnis:12764": {
+          "all": true
+        },
+        "gnis:12783": {
+          "all": true
+        },
+        "gnis:12841": {
+          "all": true
+        },
+        "gnis:12913": {
+          "all": true
+        },
+        "gnis:13208": {
+          "all": true
+        },
+        "gnis:13235": {
+          "all": true
+        },
+        "gnis:13395": {
+          "all": true
+        },
+        "gnis:13449": {
+          "all": true
+        },
+        "gnis:13547": {
+          "all": true
+        },
+        "gnis:13554": {
+          "all": true
+        },
+        "gnis:13630": {
+          "all": true
+        },
+        "gnis:13668": {
+          "runs": [
+            [
+              356560517,
+              0,
+              12734
+            ]
+          ],
+          "ends": "Tributaries of Similkameen River"
+        },
+        "gnis:13809": {
+          "all": true
+        },
+        "gnis:13863": {
+          "all": true
+        },
+        "gnis:14303": {
+          "all": true
+        },
+        "gnis:14386": {
+          "all": true
+        },
+        "gnis:14666": {
+          "all": true
+        },
+        "gnis:14734": {
+          "all": true
+        },
+        "gnis:14838": {
+          "all": true
+        },
+        "gnis:15057": {
+          "all": true
+        },
+        "gnis:15080": {
+          "all": true
+        },
+        "gnis:15198": {
+          "all": true
+        },
+        "gnis:15211": {
+          "all": true
+        },
+        "gnis:15409": {
+          "all": true
+        },
+        "gnis:15739": {
+          "all": true
+        },
+        "gnis:15972": {
+          "runs": [
+            [
+              356569725,
+              0,
+              2022
+            ],
+            [
+              356569725,
+              2075,
+              5115
+            ],
+            [
+              356569725,
+              5239,
+              5264
+            ],
+            [
+              356569725,
+              5327,
+              6427
+            ],
+            [
+              356569725,
+              6502,
+              8892
+            ],
+            [
+              356569725,
+              9338,
+              9368
+            ],
+            [
+              356569725,
+              9673,
+              9748
+            ],
+            [
+              356569725,
+              9813,
+              9898
+            ],
+            [
+              356569725,
+              11297,
+              11595
+            ],
+            [
+              356569725,
+              12474,
+              12628
+            ],
+            [
+              356569725,
+              12763,
+              13025
+            ],
+            [
+              356569725,
+              13652,
+              14200
+            ],
+            [
+              356569725,
+              14422,
+              14539
+            ],
+            [
+              356569725,
+              14585,
+              14922
+            ],
+            [
+              356569725,
+              15076,
+              15442
+            ],
+            [
+              356569725,
+              15664,
+              16045
+            ],
+            [
+              356569725,
+              16228,
+              17068
+            ],
+            [
+              356569725,
+              17181,
+              19654
+            ]
+          ],
+          "lakes": [
+            0,
+            1,
+            2
+          ],
+          "ends": "Tributaries of Similkameen River"
+        },
+        "gnis:16149": {
+          "all": true
+        },
+        "gnis:16214": {
+          "all": true
+        },
+        "gnis:16352": {
+          "all": true
+        },
+        "gnis:16441": {
+          "all": true
+        },
+        "gnis:1662": {
+          "all": true
+        },
+        "gnis:16657": {
+          "all": true
+        },
+        "gnis:16675": {
+          "all": true
+        },
+        "gnis:16767": {
+          "all": true
+        },
+        "gnis:16781": {
+          "all": true
+        },
+        "gnis:16962": {
+          "all": true
+        },
+        "gnis:17032": {
+          "all": true
+        },
+        "gnis:17159": {
+          "all": true
+        },
+        "gnis:17171": {
+          "all": true
+        },
+        "gnis:17256": {
+          "all": true
+        },
+        "gnis:17291": {
+          "all": true
+        },
+        "gnis:17361": {
+          "all": true
+        },
+        "gnis:17612": {
+          "all": true
+        },
+        "gnis:17701": {
+          "all": true
+        },
+        "gnis:1779": {
+          "all": true
+        },
+        "gnis:18054": {
+          "all": true
+        },
+        "gnis:18081": {
+          "all": true
+        },
+        "gnis:18089": {
+          "all": true
+        },
+        "gnis:1855": {
+          "all": true
+        },
+        "gnis:18691": {
+          "all": true
+        },
+        "gnis:18721": {
+          "all": true
+        },
+        "gnis:18793": {
+          "all": true
+        },
+        "gnis:1882": {
+          "all": true
+        },
+        "gnis:18822": {
+          "all": true
+        },
+        "gnis:18843": {
+          "all": true
+        },
+        "gnis:18860": {
+          "all": true
+        },
+        "gnis:18897": {
+          "all": true
+        },
+        "gnis:18963": {
+          "all": true
+        },
+        "gnis:19061": {
+          "all": true
+        },
+        "gnis:19189": {
+          "all": true
+        },
+        "gnis:19344": {
+          "all": true
+        },
+        "gnis:19352": {
+          "all": true
+        },
+        "gnis:19406": {
+          "all": true
+        },
+        "gnis:19488": {
+          "all": true
+        },
+        "gnis:19734": {
+          "all": true
+        },
+        "gnis:19860": {
+          "all": true
+        },
+        "gnis:20065": {
+          "all": true
+        },
+        "gnis:20181": {
+          "all": true
+        },
+        "gnis:20231": {
+          "all": true
+        },
+        "gnis:20268": {
+          "all": true
+        },
+        "gnis:20298": {
+          "all": true
+        },
+        "gnis:20598": {
+          "all": true
+        },
+        "gnis:20623": {
+          "all": true
+        },
+        "gnis:20719": {
+          "all": true
+        },
+        "gnis:20822": {
+          "all": true
+        },
+        "gnis:20867": {
+          "all": true
+        },
+        "gnis:20881": {
+          "all": true
+        },
+        "gnis:20977": {
+          "all": true
+        },
+        "gnis:21020": {
+          "all": true
+        },
+        "gnis:21062": {
+          "all": true
+        },
+        "gnis:21085": {
+          "all": true
+        },
+        "gnis:21175": {
+          "all": true
+        },
+        "gnis:21428": {
+          "all": true
+        },
+        "gnis:21607": {
+          "all": true
+        },
+        "gnis:21765": {
+          "all": true
+        },
+        "gnis:21889": {
+          "all": true
+        },
+        "gnis:22292": {
+          "all": true
+        },
+        "gnis:22521": {
+          "all": true
+        },
+        "gnis:22645": {
+          "all": true
+        },
+        "gnis:22838": {
+          "all": true
+        },
+        "gnis:22846": {
+          "all": true
+        },
+        "gnis:22855": {
+          "all": true
+        },
+        "gnis:22909": {
+          "all": true
+        },
+        "gnis:22936": {
+          "all": true
+        },
+        "gnis:23045": {
+          "all": true
+        },
+        "gnis:23219": {
+          "all": true
+        },
+        "gnis:23243": {
+          "all": true
+        },
+        "gnis:23273": {
+          "all": true
+        },
+        "gnis:23492": {
+          "all": true
+        },
+        "gnis:23604": {
+          "all": true
+        },
+        "gnis:2364": {
+          "all": true
+        },
+        "gnis:23731": {
+          "all": true
+        },
+        "gnis:23759": {
+          "all": true
+        },
+        "gnis:23839": {
+          "all": true
+        },
+        "gnis:24179": {
+          "all": true
+        },
+        "gnis:2435": {
+          "all": true
+        },
+        "gnis:2445": {
+          "all": true
+        },
+        "gnis:24744": {
+          "all": true
+        },
+        "gnis:24769": {
+          "all": true
+        },
+        "gnis:24788": {
+          "all": true
+        },
+        "gnis:24901": {
+          "all": true
+        },
+        "gnis:2525": {
+          "all": true
+        },
+        "gnis:25481": {
+          "all": true
+        },
+        "gnis:2556": {
+          "all": true
+        },
+        "gnis:25620": {
+          "all": true
+        },
+        "gnis:25654": {
+          "runs": [
+            [
+              356564182,
+              0,
+              7259
+            ],
+            [
+              356564182,
+              7335,
+              13040
+            ]
+          ],
+          "ends": "Tributaries of Similkameen River"
+        },
+        "gnis:25662": {
+          "all": true
+        },
+        "gnis:25727": {
+          "all": true
+        },
+        "gnis:25779": {
+          "all": true
+        },
+        "gnis:25839": {
+          "all": true
+        },
+        "gnis:25851": {
+          "all": true
+        },
+        "gnis:25974": {
+          "all": true
+        },
+        "gnis:26259": {
+          "all": true
+        },
+        "gnis:26322": {
+          "all": true
+        },
+        "gnis:26324": {
+          "all": true
+        },
+        "gnis:26441": {
+          "all": true
+        },
+        "gnis:26448": {
+          "all": true
+        },
+        "gnis:26486": {
+          "all": true
+        },
+        "gnis:26811": {
+          "all": true
+        },
+        "gnis:26837": {
+          "all": true
+        },
+        "gnis:27132": {
+          "all": true
+        },
+        "gnis:27233": {
+          "all": true
+        },
+        "gnis:27238": {
+          "all": true
+        },
+        "gnis:27292": {
+          "all": true
+        },
+        "gnis:27337": {
+          "all": true
+        },
+        "gnis:27343": {
+          "all": true
+        },
+        "gnis:27390": {
+          "runs": [
+            [
+              356367094,
+              0,
+              795
+            ],
+            [
+              356367095,
+              0,
+              2412
+            ]
+          ],
+          "ends": "Tributaries of Similkameen River"
+        },
+        "gnis:27633": {
+          "all": true
+        },
+        "gnis:27891": {
+          "all": true
+        },
+        "gnis:27906": {
+          "all": true
+        },
+        "gnis:28038": {
+          "all": true
+        },
+        "gnis:28610": {
+          "all": true
+        },
+        "gnis:28622": {
+          "runs": [
+            [
+              356556691,
+              0,
+              12680
+            ]
+          ],
+          "ends": "Tributaries of Similkameen River"
+        },
+        "gnis:28671": {
+          "all": true
+        },
+        "gnis:28723": {
+          "all": true
+        },
+        "gnis:28779": {
+          "all": true
+        },
+        "gnis:28837": {
+          "all": true
+        },
+        "gnis:28846": {
+          "all": true
+        },
+        "gnis:28891": {
+          "all": true
+        },
+        "gnis:28936": {
+          "all": true
+        },
+        "gnis:29181": {
+          "all": true
+        },
+        "gnis:29320": {
+          "all": true
+        },
+        "gnis:29689": {
+          "all": true
+        },
+        "gnis:29844": {
+          "all": true
+        },
+        "gnis:30175": {
+          "all": true
+        },
+        "gnis:30401": {
+          "all": true
+        },
+        "gnis:30442": {
+          "all": true
+        },
+        "gnis:3087": {
+          "all": true
+        },
+        "gnis:34317": {
+          "all": true
+        },
+        "gnis:34546": {
+          "all": true
+        },
+        "gnis:3527": {
+          "all": true
+        },
+        "gnis:36080": {
+          "all": true
+        },
+        "gnis:36214": {
+          "all": true
+        },
+        "gnis:37379": {
+          "all": true
+        },
+        "gnis:37451": {
+          "all": true
+        },
+        "gnis:37470": {
+          "all": true
+        },
+        "gnis:38044": {
+          "all": true
+        },
+        "gnis:38561": {
+          "all": true
+        },
+        "gnis:38617": {
+          "all": true
+        },
+        "gnis:38847": {
+          "all": true
+        },
+        "gnis:38850": {
+          "all": true
+        },
+        "gnis:38853": {
+          "all": true
+        },
+        "gnis:38874": {
+          "all": true
+        },
+        "gnis:38877": {
+          "all": true
+        },
+        "gnis:38882": {
+          "all": true
+        },
+        "gnis:39310": {
+          "all": true
+        },
+        "gnis:39352": {
+          "all": true
+        },
+        "gnis:39431": {
+          "all": true
+        },
+        "gnis:44170": {
+          "all": true
+        },
+        "gnis:5132": {
+          "all": true
+        },
+        "gnis:5144": {
+          "all": true
+        },
+        "gnis:7229": {
+          "all": true
+        },
+        "gnis:7371": {
+          "all": true
+        },
+        "gnis:7431": {
+          "all": true
+        },
+        "gnis:7437": {
+          "all": true
+        },
+        "gnis:7447": {
+          "all": true
+        },
+        "gnis:7594": {
+          "all": true
+        },
+        "gnis:7654": {
+          "all": true
+        },
+        "gnis:7793": {
+          "all": true
+        },
+        "gnis:7926": {
+          "all": true
+        },
+        "gnis:7971": {
+          "all": true
+        },
+        "gnis:7998": {
+          "all": true
+        },
+        "gnis:8170": {
+          "all": true
+        },
+        "gnis:8172": {
+          "all": true
+        },
+        "gnis:8235": {
+          "all": true
+        },
+        "gnis:8650": {
+          "all": true
+        },
+        "gnis:8671": {
+          "all": true
+        },
+        "gnis:8907": {
+          "all": true
+        },
+        "gnis:8948": {
+          "all": true
+        },
+        "gnis:9150": {
+          "all": true
+        },
+        "gnis:9487": {
+          "all": true
+        },
+        "gnis:9533": {
+          "all": true
+        },
+        "gnis:9613": {
+          "all": true
+        },
+        "gnis:9659": {
+          "all": true
+        },
+        "gnis:9674": {
+          "all": true
+        },
+        "gnis:9678": {
+          "all": true
+        },
+        "gnis:9794": {
+          "all": true
+        },
+        "gnis:9797": {
+          "all": true
+        },
+        "gnis:9972": {
+          "all": true
+        }
+      }
     },
-    "is-441737881ec3": {
+    "is-6db43a66acf9": {
+      "region": "7B",
+      "water": "Peace River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:14619",
+          "splits": [
+            "peace_river__peace_canyon_dam",
+            "peace_river__hwy_29_bridge"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Peace River",
+        "via": "override",
+        "reason": "Matched via base name: PEACE RIVER",
+        "items": {
+          "gnis:14619": "Peace River"
+        },
+        "locators": [
+          "between Peace Canyon Dam and Hwy 29 Bridge"
+        ],
+        "splits": {
+          "Peace Canyon Dam": "peace_river__peace_canyon_dam",
+          "Hwy 29 Bridge": "peace_river__hwy_29_bridge"
+        }
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:14619": {
+          "runs": [
+            [
+              359572348,
+              1683398,
+              1684323
+            ]
+          ],
+          "ends": "From Peace Canyon Dam to Hwy. 29 bridge"
+        }
+      }
+    },
+    "is-74fcb31b2d0b": {
       "region": "1",
       "water": "Heber Creek",
       "extents": [
@@ -211,190 +2486,14 @@
           "upstream and downstream of heber_river__top_of_lower_canyon: the whole water"
         ]
       },
-      "confidence": "high"
-    },
-    "is-4847b38baf1c": {
-      "region": "8",
-      "water": "Granby River",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:18775",
-          "splits": []
+      "confidence": "high",
+      "waters": {
+        "gnis:20215": {
+          "all": true
         }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Granby River",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:18775": "Granby River"
-        },
-        "locators": [],
-        "splits": {}
-      },
-      "confidence": "high"
+      }
     },
-    "is-53180f57e676": {
-      "region": "8",
-      "water": "Bessette Creek",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:12386",
-          "splits": [],
-          "tributaries": "include"
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T08:26:14Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Bessette Creek",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:12386": "Bessette Creek"
-        },
-        "locators": [],
-        "splits": {},
-        "notes": [
-          "the text includes tributaries: the extent walks them"
-        ]
-      },
-      "confidence": "high"
-    },
-    "is-5c46aad57f6e": {
-      "region": "4",
-      "water": "Perry Creek",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:14741",
-          "splits": []
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Perry Creek",
-        "via": "name",
-        "reason": "2 candidates for 'Perry Creek'",
-        "candidates": [
-          "gnis:14740",
-          "gnis:14741"
-        ],
-        "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
-        "items": {
-          "gnis:14741": "Perry Creek"
-        },
-        "locators": [],
-        "splits": {},
-        "notes": [
-          "a clarification row: informational, bound to its water"
-        ]
-      },
-      "confidence": "medium"
-    },
-    "is-6beaeeb05e26": {
-      "region": "4",
-      "water": "Forsyth Creek",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:11815",
-          "splits": []
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Forsyth Creek",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:11815": "Forsyth Creek"
-        },
-        "locators": [],
-        "splits": {},
-        "notes": [
-          "a clarification row: informational, bound to its water"
-        ]
-      },
-      "confidence": "high"
-    },
-    "is-7c2b97a6c474": {
-      "region": "8",
-      "water": "Okanagan River",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:32069",
-          "splits": []
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Okanagan River",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:32069": "Okanagan River"
-        },
-        "locators": [],
-        "splits": {}
-      },
-      "confidence": "high"
-    },
-    "is-7feb28092abf": {
-      "region": "4",
-      "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
-      "extents": [
-        {
-          "op": "downstream_of",
-          "item_id": "gnis:9343",
-          "splits": [
-            "alexander_creek__easternmost_hwy_3"
-          ],
-          "tributaries": "include"
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T08:26:14Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
-        "via": "override",
-        "reason": "Matched via base name: ALEXANDER CREEK",
-        "items": {
-          "gnis:9343": "Alexander Creek"
-        },
-        "locators": [
-          "downstream of the easternmost Hwy 3 bridge"
-        ],
-        "splits": {
-          "the easternmost Hwy 3 bridge": "alexander_creek__easternmost_hwy_3"
-        },
-        "notes": [
-          "the text includes tributaries: the extent walks them"
-        ]
-      },
-      "confidence": "high"
-    },
-    "is-84b0abe3fd13": {
+    "is-7826b2108311": {
       "region": "2",
       "water": "Fraser River",
       "extents": [
@@ -477,175 +2576,177 @@
           "rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included"
         ],
         "owner": "owner 2026-10-29: mirror the Region 2 Fraser entry r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4 — the Fraser from the CPR Bridge at Mission to the Region 2/3 boundary plus every water that entry matches (12 channels/sloughs, all Region 2)"
+      },
+      "waters": {
+        "gnis:10494": {
+          "all": true
+        },
+        "gnis:11481": {
+          "all": true
+        },
+        "gnis:11566": {
+          "all": true
+        },
+        "gnis:13499": {
+          "all": true
+        },
+        "gnis:14010": {
+          "all": true
+        },
+        "gnis:14905": {
+          "all": true
+        },
+        "gnis:17368": {
+          "all": true
+        },
+        "gnis:17805": {
+          "all": true
+        },
+        "gnis:21224": {
+          "all": true
+        },
+        "gnis:22631": {
+          "all": true
+        },
+        "gnis:25152": {
+          "all": true
+        },
+        "gnis:39325": {
+          "runs": [
+            [
+              355991887,
+              0,
+              1537
+            ],
+            [
+              355991893,
+              0,
+              1108
+            ],
+            [
+              355991896,
+              0,
+              2748
+            ],
+            [
+              355991900,
+              0,
+              1542
+            ],
+            [
+              355992048,
+              0,
+              6391
+            ],
+            [
+              355992195,
+              0,
+              4865
+            ],
+            [
+              355992251,
+              0,
+              1020
+            ],
+            [
+              355992255,
+              0,
+              4316
+            ],
+            [
+              355992317,
+              0,
+              1283
+            ],
+            [
+              355992359,
+              0,
+              3143
+            ],
+            [
+              355992484,
+              0,
+              3633
+            ],
+            [
+              355992485,
+              0,
+              2136
+            ],
+            [
+              355993147,
+              0,
+              563
+            ],
+            [
+              355994425,
+              0,
+              1679
+            ],
+            [
+              355995295,
+              0,
+              1676
+            ],
+            [
+              355996061,
+              0,
+              1385
+            ],
+            [
+              355996062,
+              0,
+              1779
+            ],
+            [
+              355996063,
+              0,
+              2135
+            ],
+            [
+              355996184,
+              214,
+              1509
+            ],
+            [
+              355996304,
+              0,
+              2275
+            ],
+            [
+              355997500,
+              0,
+              2610
+            ],
+            [
+              356000032,
+              0,
+              1282
+            ],
+            [
+              356001526,
+              0,
+              1581
+            ],
+            [
+              356001890,
+              0,
+              1034
+            ],
+            [
+              356364114,
+              76506,
+              196966
+            ]
+          ],
+          "ends": "From the CPR Bridge at Mission to Region 2 / Region 3 boundary"
+        },
+        "gnis:8341": {
+          "all": true
+        }
       }
     },
-    "is-9cc030ee9af2": {
-      "region": "4",
-      "water": "Kaslo River",
-      "extents": [
-        {
-          "op": "downstream_of",
-          "item_id": "gnis:11345",
-          "splits": [
-            "trib:gnis:11410"
-          ]
-        }
-      ],
-      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)",
-      "by": "claude",
-      "at": "2026-10-29T08:27:28Z",
-      "source": "claude",
-      "evidence": {
-        "water": "Kaslo River",
-        "notes": [
-          "rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)"
-        ]
-      },
-      "confidence": "medium"
-    },
-    "is-9f132ef6252a": {
-      "region": "7B",
-      "water": "Peace River",
-      "extents": [
-        {
-          "op": "between",
-          "item_id": "gnis:14619",
-          "splits": [
-            "peace_river__peace_canyon_dam",
-            "peace_river__hwy_29_bridge"
-          ]
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Peace River",
-        "via": "override",
-        "reason": "Matched via base name: PEACE RIVER",
-        "items": {
-          "gnis:14619": "Peace River"
-        },
-        "locators": [
-          "between Peace Canyon Dam and Hwy 29 Bridge"
-        ],
-        "splits": {
-          "Peace Canyon Dam": "peace_river__peace_canyon_dam",
-          "Hwy 29 Bridge": "peace_river__hwy_29_bridge"
-        }
-      },
-      "confidence": "high"
-    },
-    "is-ac81f09cc47c": {
-      "region": "3",
-      "water": "Fraser River",
-      "extents": [
-        {
-          "op": "between",
-          "item_id": "gnis:39325",
-          "splits": [
-            "fraser_river__hell_s_gate",
-            "fraser_river__spuzzum_creek_into_fraser_river"
-          ]
-        },
-        {
-          "op": "upstream_of",
-          "item_id": "gnis:39325",
-          "splits": [
-            "fraser_river__hell_s_gate"
-          ]
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Fraser River",
-        "via": "override",
-        "reason": "Fraser River in Region 3. Channels and sloughs are in Zone 2 only.",
-        "items": {
-          "gnis:39325": "Fraser River"
-        },
-        "locators": [
-          "from Hells Gate to Spuzzum Creek confluence",
-          "upstream of Hells Gate"
-        ],
-        "splits": {
-          "Hells Gate": "fraser_river__hell_s_gate",
-          "Spuzzum Creek confluence": "fraser_river__spuzzum_creek_into_fraser_river"
-        },
-        "notes": [
-          "the water runs into region(s) 2, 5, 7: the extent is not clipped to region 3"
-        ]
-      },
-      "confidence": "medium"
-    },
-    "is-ae26b6334dde": {
-      "region": "4",
-      "water": "Lardeau River",
-      "extents": [
-        {
-          "op": "between",
-          "item_id": "gnis:16359",
-          "splits": [
-            "lake:329120715:outlet",
-            "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
-          ]
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T08:26:14Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Lardeau River",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:16359": "Lardeau River"
-        },
-        "locators": [
-          "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek"
-        ],
-        "splits": {
-          "fishing boundary signs at Trout Lake outlet": "lake:329120715:outlet",
-          "fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek": "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
-        }
-      },
-      "confidence": "high"
-    },
-    "is-b0fdf1205cdd": {
-      "region": "2",
-      "water": "Chilliwack Lake, Upper Pitt River",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "wbk:329083341",
-          "splits": []
-        },
-        {
-          "op": "upstream_of",
-          "item_id": "gnis:7551",
-          "splits": [
-            "lake:329291806:inlet"
-          ]
-        }
-      ],
-      "note": "Claude 2026-10-29 at owner's request — check: two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet",
-      "by": "claude",
-      "at": "2026-10-29T08:27:28Z",
-      "source": "claude",
-      "evidence": {
-        "water": "Chilliwack Lake, Upper Pitt River",
-        "notes": [
-          "two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet"
-        ]
-      },
-      "confidence": "high"
-    },
-    "is-b3197170450c": {
+    "is-79fcd6f4a6bc": {
       "region": "8",
       "water": "Granby River’s Tributaries",
       "extents": [
@@ -673,255 +2774,448 @@
           "the row is the water's tributaries: tributaries only"
         ]
       },
-      "confidence": "high"
-    },
-    "is-b55c08ea4074": {
-      "region": "4",
-      "water": "Alexander Creek (upstream of the easternmost Hwy 3 bridge)",
-      "extents": [
-        {
-          "op": "upstream_of",
-          "item_id": "gnis:9343",
-          "splits": [
-            "alexander_creek__easternmost_hwy_3"
-          ]
+      "confidence": "high",
+      "waters": {
+        "gnis:10323": {
+          "all": true
+        },
+        "gnis:10644": {
+          "all": true
+        },
+        "gnis:10830": {
+          "all": true
+        },
+        "gnis:10949": {
+          "all": true
+        },
+        "gnis:10951": {
+          "all": true
+        },
+        "gnis:11929": {
+          "all": true
+        },
+        "gnis:13187": {
+          "all": true
+        },
+        "gnis:13421": {
+          "all": true
+        },
+        "gnis:14458": {
+          "all": true
+        },
+        "gnis:14467": {
+          "all": true
+        },
+        "gnis:14902": {
+          "all": true
+        },
+        "gnis:14935": {
+          "all": true
+        },
+        "gnis:16048": {
+          "all": true
+        },
+        "gnis:17252": {
+          "all": true
+        },
+        "gnis:17745": {
+          "all": true
+        },
+        "gnis:17804": {
+          "all": true
+        },
+        "gnis:17807": {
+          "all": true
+        },
+        "gnis:19099": {
+          "all": true
+        },
+        "gnis:19226": {
+          "all": true
+        },
+        "gnis:19780": {
+          "all": true
+        },
+        "gnis:20392": {
+          "all": true
+        },
+        "gnis:20516": {
+          "all": true
+        },
+        "gnis:20571": {
+          "all": true
+        },
+        "gnis:20998": {
+          "all": true
+        },
+        "gnis:21588": {
+          "all": true
+        },
+        "gnis:21644": {
+          "all": true
+        },
+        "gnis:21717": {
+          "all": true
+        },
+        "gnis:21844": {
+          "all": true
+        },
+        "gnis:22539": {
+          "all": true
+        },
+        "gnis:2256": {
+          "all": true
+        },
+        "gnis:2262": {
+          "all": true
+        },
+        "gnis:22656": {
+          "all": true
+        },
+        "gnis:22670": {
+          "all": true
+        },
+        "gnis:23240": {
+          "all": true
+        },
+        "gnis:23519": {
+          "all": true
+        },
+        "gnis:23681": {
+          "all": true
+        },
+        "gnis:24514": {
+          "all": true
+        },
+        "gnis:25241": {
+          "all": true
+        },
+        "gnis:2598": {
+          "all": true
+        },
+        "gnis:26497": {
+          "all": true
+        },
+        "gnis:26606": {
+          "all": true
+        },
+        "gnis:2724": {
+          "all": true
+        },
+        "gnis:27402": {
+          "all": true
+        },
+        "gnis:27621": {
+          "all": true
+        },
+        "gnis:28720": {
+          "all": true
+        },
+        "gnis:28772": {
+          "all": true
+        },
+        "gnis:28922": {
+          "all": true
+        },
+        "gnis:29998": {
+          "all": true
+        },
+        "gnis:3013": {
+          "all": true
+        },
+        "gnis:30197": {
+          "all": true
+        },
+        "gnis:3026": {
+          "all": true
+        },
+        "gnis:32062": {
+          "all": true
+        },
+        "gnis:32148": {
+          "all": true
+        },
+        "gnis:39547": {
+          "all": true
+        },
+        "gnis:8066": {
+          "all": true
+        },
+        "gnis:9620": {
+          "all": true
+        },
+        "gnis:9707": {
+          "all": true
         }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Alexander Creek (upstream of the easternmost Hwy 3 bridge)",
-        "via": "override",
-        "reason": "Matched via base name: ALEXANDER CREEK",
-        "items": {
-          "gnis:9343": "Alexander Creek"
-        },
-        "locators": [
-          "upstream of the easternmost Hwy 3 bridge"
-        ],
-        "splits": {
-          "the easternmost Hwy 3 bridge": "alexander_creek__easternmost_hwy_3"
-        },
-        "notes": [
-          "a clarification row: informational, bound to its water"
-        ]
-      },
-      "confidence": "high"
+      }
     },
-    "is-b655c90cb0f6": {
-      "region": "4",
-      "water": "Duncan River",
+    "is-8cd37f6e5bf9": {
+      "region": "2",
+      "water": "Fraser River",
       "extents": [
         {
           "op": "downstream_of",
-          "item_id": "gnis:22255",
+          "item_id": "gnis:39325",
           "splits": [
-            "duncan_river__duncan_dam"
+            "fraser_river__spuzzum_creek_into_fraser_river"
           ]
         }
       ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Duncan River",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:22255": "Duncan River"
-        },
-        "locators": [
-          "downstream of Duncan Dam"
-        ],
-        "splits": {
-          "Duncan Dam": "duncan_river__duncan_dam"
-        },
-        "notes": [
-          "the text speaks of tributaries",
-          "a rescind row: informational, bound to its water"
-        ]
-      },
-      "confidence": "medium"
-    },
-    "is-ba87af74a85d": {
-      "region": "4",
-      "water": "Hellroaring Creek",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:20676",
-          "splits": []
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Hellroaring Creek",
-        "via": "name",
-        "reason": "2 candidates for 'Hellroaring Creek'",
-        "candidates": [
-          "gnis:20676",
-          "gnis:20677"
-        ],
-        "disambiguated_by": "in the St. Mary River watershed (the row's classified licence)",
-        "items": {
-          "gnis:20676": "Hellroaring Creek"
-        },
-        "locators": [],
-        "splits": {},
-        "notes": [
-          "a clarification row: informational, bound to its water"
-        ]
-      },
-      "confidence": "medium"
-    },
-    "is-ca91a5418bef": {
-      "region": "4",
-      "water": "Morrissey Creek",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:14951",
-          "splits": []
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Morrissey Creek",
-        "via": "name",
-        "reason": "disambiguated by region 4",
-        "items": {
-          "gnis:14951": "Morrissey Creek"
-        },
-        "locators": [],
-        "splits": {},
-        "notes": [
-          "a clarification row: informational, bound to its water"
-        ]
-      },
-      "confidence": "high"
-    },
-    "is-d2c6c62e8bd6": {
-      "region": "1",
-      "water": "Cowichan River",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:12227",
-          "splits": []
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Cowichan River",
-        "via": "override",
-        "reason": "Matched via base name: COWICHAN RIVER",
-        "items": {
-          "gnis:12227": "Cowichan River"
-        },
-        "locators": [],
-        "splits": {}
-      },
-      "confidence": "high"
-    },
-    "is-d39112adf4c4": {
-      "region": "4",
-      "water": "Keen Creek",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:11410",
-          "splits": []
-        }
-      ],
-      "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)",
+      "note": "Claude 2026-10-29 at owner's request — check: Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters",
       "by": "claude",
       "at": "2026-10-29T08:27:28Z",
       "source": "claude",
       "evidence": {
-        "water": "Keen Creek",
+        "water": "Fraser River",
         "notes": [
-          "rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)"
+          "Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters"
         ]
       },
-      "confidence": "medium"
-    },
-    "is-d39e790b2c5b": {
-      "region": "4",
-      "water": "Fording River (downstream of Josephine Falls)",
-      "extents": [
-        {
-          "op": "downstream_of",
-          "item_id": "gnis:19955",
-          "splits": [
-            "fording_river__josephine_falls"
-          ]
+      "confidence": "medium",
+      "waters": {
+        "gnis:39325": {
+          "runs": [
+            [
+              355991887,
+              0,
+              1537
+            ],
+            [
+              355991893,
+              0,
+              1108
+            ],
+            [
+              355991896,
+              0,
+              2748
+            ],
+            [
+              355991900,
+              0,
+              1542
+            ],
+            [
+              355991966,
+              0,
+              3534
+            ],
+            [
+              355991968,
+              0,
+              1964
+            ],
+            [
+              355991970,
+              0,
+              221
+            ],
+            [
+              355991970,
+              594,
+              1133
+            ],
+            [
+              355991971,
+              0,
+              3204
+            ],
+            [
+              355991973,
+              0,
+              6582
+            ],
+            [
+              355991977,
+              0,
+              3810
+            ],
+            [
+              355992048,
+              0,
+              6391
+            ],
+            [
+              355992195,
+              0,
+              4865
+            ],
+            [
+              355992231,
+              0,
+              854
+            ],
+            [
+              355992231,
+              918,
+              3004
+            ],
+            [
+              355992232,
+              0,
+              1470
+            ],
+            [
+              355992232,
+              1558,
+              1690
+            ],
+            [
+              355992232,
+              1750,
+              3147
+            ],
+            [
+              355992234,
+              0,
+              6520
+            ],
+            [
+              355992251,
+              0,
+              1020
+            ],
+            [
+              355992255,
+              0,
+              4316
+            ],
+            [
+              355992314,
+              0,
+              4315
+            ],
+            [
+              355992315,
+              0,
+              875
+            ],
+            [
+              355992317,
+              0,
+              1283
+            ],
+            [
+              355992359,
+              0,
+              3143
+            ],
+            [
+              355992484,
+              0,
+              3633
+            ],
+            [
+              355992485,
+              0,
+              2136
+            ],
+            [
+              355993147,
+              0,
+              563
+            ],
+            [
+              355993810,
+              0,
+              1823
+            ],
+            [
+              355994264,
+              0,
+              1581
+            ],
+            [
+              355994266,
+              0,
+              1186
+            ],
+            [
+              355994425,
+              0,
+              1679
+            ],
+            [
+              355994683,
+              0,
+              1586
+            ],
+            [
+              355994872,
+              0,
+              23936
+            ],
+            [
+              355995295,
+              0,
+              1676
+            ],
+            [
+              355996061,
+              0,
+              1385
+            ],
+            [
+              355996062,
+              0,
+              1779
+            ],
+            [
+              355996063,
+              0,
+              2135
+            ],
+            [
+              355996184,
+              214,
+              1509
+            ],
+            [
+              355996304,
+              0,
+              2275
+            ],
+            [
+              355996907,
+              0,
+              3564
+            ],
+            [
+              355997500,
+              0,
+              2610
+            ],
+            [
+              356000032,
+              0,
+              1282
+            ],
+            [
+              356001015,
+              0,
+              1162
+            ],
+            [
+              356001526,
+              0,
+              1581
+            ],
+            [
+              356001890,
+              0,
+              1034
+            ],
+            [
+              356364114,
+              0,
+              196966
+            ]
+          ],
+          "ends": "Downstream of Spuzzum Creek confluence"
         }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Fording River (downstream of Josephine Falls)",
-        "via": "override",
-        "reason": "Matched via base name: FORDING RIVER",
-        "items": {
-          "gnis:19955": "Fording River"
-        },
-        "locators": [
-          "downstream of Josephine Falls"
-        ],
-        "splits": {
-          "Josephine Falls": "fording_river__josephine_falls"
-        },
-        "notes": [
-          "a clarification row: informational, bound to its water"
-        ]
-      },
-      "confidence": "high"
+      }
     },
-    "is-d88914c741e0": {
-      "region": "4",
-      "water": "Cadorna Creek",
-      "extents": [
-        {
-          "op": "whole",
-          "item_id": "gnis:16777",
-          "splits": []
-        }
-      ],
-      "note": "auto",
-      "by": "auto",
-      "at": "2026-10-29T01:41:59Z",
-      "source": "auto",
-      "evidence": {
-        "water": "Cadorna Creek",
-        "via": "name",
-        "reason": "",
-        "items": {
-          "gnis:16777": "Cadorna Creek"
-        },
-        "locators": [],
-        "splits": {},
-        "notes": [
-          "a clarification row: informational, bound to its water"
-        ]
-      },
-      "confidence": "high"
-    },
-    "is-da00d75dbce0": {
+    "is-9e042d16dbe9": {
       "region": "4",
       "water": "Lodgepole Creek (downstream of falls near the km 26 post on Lodgepole Road)",
       "extents": [
@@ -954,16 +3248,76 @@
           "a clarification row: informational, bound to its water"
         ]
       },
-      "confidence": "medium"
+      "confidence": "medium",
+      "waters": {
+        "gnis:17044": {
+          "runs": [
+            [
+              356565430,
+              0,
+              23081
+            ]
+          ],
+          "ends": "Downstream of Falls"
+        }
+      }
     },
-    "is-e4e8ab4a1415": {
-      "region": "1",
-      "water": "Heber Creek",
+    "is-a9ddfd332aa7": {
+      "region": "4",
+      "water": "Lardeau River",
       "extents": [
         {
-          "op": "whole",
-          "item_id": "gnis:20215",
-          "splits": []
+          "op": "between",
+          "item_id": "gnis:16359",
+          "splits": [
+            "lake:329120715:outlet",
+            "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
+          ]
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T08:26:14Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Lardeau River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:16359": "Lardeau River"
+        },
+        "locators": [
+          "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek"
+        ],
+        "splits": {
+          "fishing boundary signs at Trout Lake outlet": "lake:329120715:outlet",
+          "fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek": "lardeau_river__fishing_boundary_signs_near_mobbs_creek"
+        }
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:16359": {
+          "runs": [
+            [
+              356569776,
+              43650,
+              44250
+            ]
+          ],
+          "ends": "From Trout Lake outlet to the Mobbs Creek confluence (600 m below Trout Lake outlet)"
+        }
+      }
+    },
+    "is-b7a6816f8679": {
+      "region": "4",
+      "water": "Fording River (downstream of Josephine Falls)",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:19955",
+          "splits": [
+            "fording_river__josephine_falls"
+          ]
         }
       ],
       "note": "auto",
@@ -971,18 +3325,47 @@
       "at": "2026-10-29T01:41:59Z",
       "source": "auto",
       "evidence": {
-        "water": "Heber Creek",
+        "water": "Fording River (downstream of Josephine Falls)",
         "via": "override",
-        "reason": "HEBER CREEK is a name variant of HEBER RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+        "reason": "Matched via base name: FORDING RIVER",
         "items": {
-          "gnis:20215": "Heber River"
+          "gnis:19955": "Fording River"
         },
-        "locators": [],
-        "splits": {}
+        "locators": [
+          "downstream of Josephine Falls"
+        ],
+        "splits": {
+          "Josephine Falls": "fording_river__josephine_falls"
+        },
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
       },
-      "confidence": "high"
+      "confidence": "high",
+      "waters": {
+        "gnis:19955": {
+          "runs": [
+            [
+              356367541,
+              0,
+              405
+            ],
+            [
+              356367542,
+              0,
+              338
+            ],
+            [
+              356568903,
+              0,
+              20199
+            ]
+          ],
+          "ends": "Downstream of Josephine Falls"
+        }
+      }
     },
-    "is-e932e70532b4": {
+    "is-bb5426c61ff3": {
       "region": "8",
       "water": "Okanagan River Oxbows",
       "extents": [
@@ -1202,37 +3585,485 @@
           "the curated override names the oxbows: 41 waters, all whole"
         ]
       },
-      "confidence": "high"
+      "confidence": "high",
+      "waters": {
+        "gnis:22618": {
+          "all": true
+        },
+        "wbk:328944522": {
+          "all": true
+        },
+        "wbk:328947490": {
+          "all": true
+        },
+        "wbk:328948249": {
+          "all": true
+        },
+        "wbk:328957729": {
+          "all": true
+        },
+        "wbk:328985783": {
+          "all": true
+        },
+        "wbk:328985785": {
+          "all": true
+        },
+        "wbk:328985789": {
+          "all": true
+        },
+        "wbk:329459157": {
+          "all": true
+        },
+        "wbk:329459219": {
+          "all": true
+        },
+        "wbk:329459234": {
+          "all": true
+        },
+        "wbk:329460050": {
+          "all": true
+        },
+        "wbk:329460279": {
+          "all": true
+        },
+        "wbk:329460316": {
+          "all": true
+        },
+        "wbk:329460329": {
+          "all": true
+        },
+        "wbk:329460457": {
+          "all": true
+        },
+        "wbk:329460670": {
+          "all": true
+        },
+        "wbk:329460748": {
+          "all": true
+        },
+        "wbk:329461070": {
+          "all": true
+        },
+        "wbk:329461320": {
+          "all": true
+        },
+        "wbk:329461388": {
+          "all": true
+        },
+        "wbk:329461445": {
+          "all": true
+        },
+        "wbk:329461584": {
+          "all": true
+        },
+        "wbk:329461800": {
+          "all": true
+        },
+        "wbk:329461866": {
+          "all": true
+        },
+        "wbk:329461918": {
+          "all": true
+        },
+        "wbk:329461983": {
+          "all": true
+        },
+        "wbk:329462043": {
+          "all": true
+        },
+        "wbk:329462064": {
+          "all": true
+        },
+        "wbk:329462114": {
+          "all": true
+        },
+        "wbk:329462179": {
+          "all": true
+        },
+        "wbk:329462220": {
+          "all": true
+        },
+        "wbk:329462306": {
+          "all": true
+        },
+        "wbk:329462319": {
+          "all": true
+        },
+        "wbk:329462395": {
+          "all": true
+        },
+        "wbk:329462406": {
+          "all": true
+        },
+        "wbk:329462410": {
+          "all": true
+        },
+        "wbk:329462424": {
+          "all": true
+        },
+        "wbk:329462438": {
+          "all": true
+        },
+        "wbk:329462452": {
+          "all": true
+        },
+        "wbk:329462470": {
+          "all": true
+        }
+      }
     },
-    "is-ecfd33ebcc81": {
+    "is-c77bf6cd7da6": {
       "region": "2",
-      "water": "Fraser River",
+      "water": "Stave River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wsc:100-046202-028692-080600",
+          "splits": [],
+          "tributaries": "include"
+        }
+      ],
+      "note": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays",
+      "by": "claude (owner-directed)",
+      "at": "2026-10-29T08:40:04Z",
+      "source": "owner",
+      "evidence": {
+        "water": "Stave River",
+        "notes": [
+          "the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel"
+        ],
+        "owner": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays"
+      },
+      "waters": {
+        "wsc:100-046202-028692-080600": {
+          "all": true
+        }
+      }
+    },
+    "is-c7dd217d00e3": {
+      "region": "4",
+      "water": "Quinn Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:1961",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Quinn Creek",
+        "via": "override",
+        "reason": "GNIS name: Quinn (Queen) Creek. Full name includes parenthetical.",
+        "items": {
+          "gnis:1961": "Quinn (Queen) Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:1961": {
+          "all": true
+        }
+      }
+    },
+    "is-cd23c37ead11": {
+      "region": "4",
+      "water": "Cadorna Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:16777",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Cadorna Creek",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:16777": "Cadorna Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:16777": {
+          "all": true
+        }
+      }
+    },
+    "is-e03c3754d0af": {
+      "region": "8",
+      "water": "Granby River",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:18775",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Granby River",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:18775": "Granby River"
+        },
+        "locators": [],
+        "splits": {}
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:18775": {
+          "all": true
+        }
+      }
+    },
+    "is-ed799087db95": {
+      "region": "4",
+      "water": "Morrissey Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:14951",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Morrissey Creek",
+        "via": "name",
+        "reason": "disambiguated by region 4",
+        "items": {
+          "gnis:14951": "Morrissey Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:14951": {
+          "all": true
+        }
+      }
+    },
+    "is-f1670924c755": {
+      "region": "4",
+      "water": "Forsyth Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11815",
+          "splits": []
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T01:41:59Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Forsyth Creek",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:11815": "Forsyth Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "a clarification row: informational, bound to its water"
+        ]
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:11815": {
+          "all": true
+        }
+      }
+    },
+    "is-f528732e7d5b": {
+      "region": "8",
+      "water": "Bessette Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:12386",
+          "splits": [],
+          "tributaries": "include"
+        }
+      ],
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T08:26:14Z",
+      "source": "auto",
+      "evidence": {
+        "water": "Bessette Creek",
+        "via": "name",
+        "reason": "",
+        "items": {
+          "gnis:12386": "Bessette Creek"
+        },
+        "locators": [],
+        "splits": {},
+        "notes": [
+          "the text includes tributaries: the extent walks them"
+        ]
+      },
+      "confidence": "high",
+      "waters": {
+        "gnis:11138": {
+          "all": true
+        },
+        "gnis:11585": {
+          "all": true
+        },
+        "gnis:12386": {
+          "all": true
+        },
+        "gnis:12868": {
+          "all": true
+        },
+        "gnis:13205": {
+          "all": true
+        },
+        "gnis:13228": {
+          "all": true
+        },
+        "gnis:14485": {
+          "all": true
+        },
+        "gnis:15155": {
+          "all": true
+        },
+        "gnis:15316": {
+          "all": true
+        },
+        "gnis:16070": {
+          "all": true
+        },
+        "gnis:19769": {
+          "all": true
+        },
+        "gnis:20075": {
+          "all": true
+        },
+        "gnis:21090": {
+          "all": true
+        },
+        "gnis:22573": {
+          "all": true
+        },
+        "gnis:22946": {
+          "all": true
+        },
+        "gnis:22990": {
+          "all": true
+        },
+        "gnis:23794": {
+          "all": true
+        },
+        "gnis:2454": {
+          "all": true
+        },
+        "gnis:26073": {
+          "all": true
+        },
+        "gnis:28026": {
+          "all": true
+        },
+        "gnis:29621": {
+          "all": true
+        },
+        "gnis:3554": {
+          "all": true
+        },
+        "gnis:8039": {
+          "all": true
+        },
+        "gnis:9311": {
+          "all": true
+        }
+      }
+    },
+    "is-f9e5db230277": {
+      "region": "4",
+      "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
       "extents": [
         {
           "op": "downstream_of",
-          "item_id": "gnis:39325",
+          "item_id": "gnis:9343",
           "splits": [
-            "fraser_river__spuzzum_creek_into_fraser_river"
-          ]
+            "alexander_creek__easternmost_hwy_3"
+          ],
+          "tributaries": "include"
         }
       ],
-      "note": "Claude 2026-10-29 at owner's request — check: Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters",
-      "by": "claude",
-      "at": "2026-10-29T08:27:28Z",
-      "source": "claude",
+      "note": "auto",
+      "by": "auto",
+      "at": "2026-10-29T08:26:14Z",
+      "source": "auto",
       "evidence": {
-        "water": "Fraser River",
+        "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
+        "via": "override",
+        "reason": "Matched via base name: ALEXANDER CREEK",
+        "items": {
+          "gnis:9343": "Alexander Creek"
+        },
+        "locators": [
+          "downstream of the easternmost Hwy 3 bridge"
+        ],
+        "splits": {
+          "the easternmost Hwy 3 bridge": "alexander_creek__easternmost_hwy_3"
+        },
         "notes": [
-          "Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters"
+          "the text includes tributaries: the extent walks them"
         ]
       },
-      "confidence": "medium"
+      "confidence": "high",
+      "waters": {
+        "gnis:9343": {
+          "runs": [
+            [
+              356566667,
+              0,
+              4681
+            ]
+          ],
+          "ends": "Downstream of easternmost Hwy 3"
+        }
+      }
     }
   },
   "history": [
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-0cf7f7b877ef",
+      "id": "is-06e7bf41d7fc",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:39454",
@@ -1246,7 +4077,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-34e1f8ba7e89",
+      "id": "is-20205c2b98c9",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): upstream_of gnis:17044 lodgepole_creek__falls",
@@ -1262,7 +4093,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-39abf1c6f713",
+      "id": "is-c7dd217d00e3",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:1961",
@@ -1276,7 +4107,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-4254fc685e34",
+      "id": "is-6a32433916ac",
       "action": "auto",
       "by": "auto",
       "note": "auto (medium): whole gnis:26324",
@@ -1290,7 +4121,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-441737881ec3",
+      "id": "is-74fcb31b2d0b",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:20215",
@@ -1304,7 +4135,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-4847b38baf1c",
+      "id": "is-e03c3754d0af",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:18775",
@@ -1318,7 +4149,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-53180f57e676",
+      "id": "is-f528732e7d5b",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:12386",
@@ -1332,7 +4163,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-5c46aad57f6e",
+      "id": "is-50ac6c61eb00",
       "action": "auto",
       "by": "auto",
       "note": "auto (medium): whole gnis:14741",
@@ -1346,7 +4177,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-6beaeeb05e26",
+      "id": "is-f1670924c755",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:11815",
@@ -1360,7 +4191,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-7c2b97a6c474",
+      "id": "is-2fa458fef3c3",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:32069",
@@ -1374,7 +4205,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-7feb28092abf",
+      "id": "is-f9e5db230277",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): downstream_of gnis:9343 alexander_creek__easternmost_hwy_3",
@@ -1390,7 +4221,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-9f132ef6252a",
+      "id": "is-6db43a66acf9",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): between gnis:14619 peace_river__peace_canyon_dam,peace_river__hwy_29_bridge",
@@ -1407,7 +4238,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-ac81f09cc47c",
+      "id": "is-14c1a6f972a3",
       "action": "auto",
       "by": "auto",
       "note": "auto (medium): between gnis:39325 fraser_river__hell_s_gate,fraser_river__spuzzum_creek_into_fraser_river; upstream_of gnis:39325 fraser_river__hell_s_gate",
@@ -1431,7 +4262,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-b55c08ea4074",
+      "id": "is-472d822b755f",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): upstream_of gnis:9343 alexander_creek__easternmost_hwy_3",
@@ -1447,7 +4278,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-b655c90cb0f6",
+      "id": "is-4eaad82900f8",
       "action": "auto",
       "by": "auto",
       "note": "auto (medium): downstream_of gnis:22255 duncan_river__duncan_dam",
@@ -1463,7 +4294,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-ba87af74a85d",
+      "id": "is-164f9965bfbd",
       "action": "auto",
       "by": "auto",
       "note": "auto (medium): whole gnis:20676",
@@ -1477,7 +4308,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-ca91a5418bef",
+      "id": "is-ed799087db95",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:14951",
@@ -1491,7 +4322,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-d2c6c62e8bd6",
+      "id": "is-689cae172c40",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:12227",
@@ -1505,7 +4336,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-d39e790b2c5b",
+      "id": "is-b7a6816f8679",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): downstream_of gnis:19955 fording_river__josephine_falls",
@@ -1521,7 +4352,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-d88914c741e0",
+      "id": "is-cd23c37ead11",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:16777",
@@ -1535,7 +4366,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-da00d75dbce0",
+      "id": "is-9e042d16dbe9",
       "action": "auto",
       "by": "auto",
       "note": "auto (medium): downstream_of gnis:17044 lodgepole_creek__falls",
@@ -1551,7 +4382,7 @@
     },
     {
       "at": "2026-10-29T01:41:59Z",
-      "id": "is-e4e8ab4a1415",
+      "id": "is-03e14f544b83",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:20215",
@@ -1565,7 +4396,7 @@
     },
     {
       "at": "2026-10-29T08:26:14Z",
-      "id": "is-0cf7f7b877ef",
+      "id": "is-06e7bf41d7fc",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:39454",
@@ -1580,7 +4411,7 @@
     },
     {
       "at": "2026-10-29T08:26:14Z",
-      "id": "is-34e1f8ba7e89",
+      "id": "is-20205c2b98c9",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): upstream_of gnis:17044 lodgepole_creek__falls",
@@ -1597,7 +4428,7 @@
     },
     {
       "at": "2026-10-29T08:26:14Z",
-      "id": "is-4254fc685e34",
+      "id": "is-6a32433916ac",
       "action": "auto",
       "by": "auto",
       "note": "auto (medium): whole gnis:26324",
@@ -1612,7 +4443,7 @@
     },
     {
       "at": "2026-10-29T08:26:14Z",
-      "id": "is-53180f57e676",
+      "id": "is-f528732e7d5b",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:12386",
@@ -1627,7 +4458,7 @@
     },
     {
       "at": "2026-10-29T08:26:14Z",
-      "id": "is-7feb28092abf",
+      "id": "is-f9e5db230277",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): downstream_of gnis:9343 alexander_creek__easternmost_hwy_3",
@@ -1644,7 +4475,7 @@
     },
     {
       "at": "2026-10-29T08:26:14Z",
-      "id": "is-ae26b6334dde",
+      "id": "is-a9ddfd332aa7",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): between gnis:16359 lake:329120715:outlet,lardeau_river__fishing_boundary_signs_near_mobbs_creek",
@@ -1661,7 +4492,7 @@
     },
     {
       "at": "2026-10-29T08:26:14Z",
-      "id": "is-b3197170450c",
+      "id": "is-79fcd6f4a6bc",
       "action": "auto",
       "by": "auto",
       "note": "auto (high): whole gnis:18775",
@@ -1676,7 +4507,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-84b0abe3fd13",
+      "id": "is-7826b2108311",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: rescind of the Region 2 trout closure 'Fraser mainstem upstream of the CPR Bridge at Mission': the Fraser item from that bridge up to the Region 2/3 boundary; the book's excluded sloughs and side channels are separate waters and not included",
@@ -1693,7 +4524,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-ecfd33ebcc81",
+      "id": "is-8cd37f6e5bf9",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: Region 2 row: the Fraser item below the Spuzzum Creek confluence (that confluence is also the Region 2/3 crossing); the Fraser item is the mainstem, channels/sloughs are their own waters",
@@ -1709,7 +4540,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-14e4e067f16f",
+      "id": "is-498820589328",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: from the Chilcotin confluence downstream to the Region 5 boundary: the lower Region 5 boundary (Region 3/5 crossing), since 'downstream' from the Chilcotin",
@@ -1726,7 +4557,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-b0fdf1205cdd",
+      "id": "is-4169515839dc",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: two waters: Chilliwack Lake whole; 'Upper Pitt River' = the Pitt River upstream of the Pitt Lake inlet",
@@ -1747,7 +4578,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-19ea430e45d1",
+      "id": "is-c77bf6cd7da6",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: the change is in Northrop Spawning Channel (not the Stave): whole channel including tributaries; 'the intake' has no pick-point, so the whole channel",
@@ -1762,7 +4593,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-9cc030ee9af2",
+      "id": "is-1cf72da5a533",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end)",
@@ -1778,7 +4609,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-d39112adf4c4",
+      "id": "is-546bc1e74bbc",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo)",
@@ -1792,7 +4623,7 @@
     },
     {
       "at": "2026-10-29T08:27:28Z",
-      "id": "is-e932e70532b4",
+      "id": "is-bb5426c61ff3",
       "action": "set",
       "by": "claude",
       "note": "Claude 2026-10-29 at owner's request — check: the curated override names the oxbows: 41 waters, all whole",
@@ -2006,7 +4837,7 @@
     },
     {
       "at": "2026-10-29T08:40:04Z",
-      "id": "is-84b0abe3fd13",
+      "id": "is-7826b2108311",
       "action": "set",
       "by": "claude (owner-directed)",
       "note": "owner 2026-10-29: mirror the Region 2 Fraser entry r2:fraser_river_upstream_of_the_cpr_bridge_at_mission@2-4 — the Fraser from the CPR Bridge at Mission to the Region 2/3 boundary plus every water that entry matches (12 channels/sloughs, all Region 2)",
@@ -2083,7 +4914,7 @@
     },
     {
       "at": "2026-10-29T08:40:04Z",
-      "id": "is-14e4e067f16f",
+      "id": "is-498820589328",
       "action": "set",
       "by": "claude (owner-directed)",
       "note": "owner 2026-10-29: within Region 5 — checked: the extent (Chilcotin confluence at 481.9 km down to the Region 3/5 crossing at 418.4 km) lies wholly inside the Fraser's Region 5 stretch (418.4–674.5 km); every section is a Region 5 section, unchanged",
@@ -2100,7 +4931,7 @@
     },
     {
       "at": "2026-10-29T08:40:04Z",
-      "id": "is-19ea430e45d1",
+      "id": "is-c77bf6cd7da6",
       "action": "set",
       "by": "claude (owner-directed)",
       "note": "owner 2026-10-29: 'the intake' is where Northrop meets the Stave; the atlas has no link at that end (one piece, -2300000000:0, outflow only), so no intake pick-point — whole channel incl. tributaries stays",
@@ -2112,6 +4943,230 @@
           "tributaries": "include"
         }
       ]
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-06e7bf41d7fc",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-0cf7f7b877ef)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-498820589328",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-14e4e067f16f)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-c77bf6cd7da6",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-19ea430e45d1)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-20205c2b98c9",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-34e1f8ba7e89)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-c7dd217d00e3",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-39abf1c6f713)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-6a32433916ac",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-4254fc685e34)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-74fcb31b2d0b",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-441737881ec3)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-e03c3754d0af",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-4847b38baf1c)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-f528732e7d5b",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-53180f57e676)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-50ac6c61eb00",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-5c46aad57f6e)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-f1670924c755",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-6beaeeb05e26)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-2fa458fef3c3",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-7c2b97a6c474)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-f9e5db230277",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-7feb28092abf)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-7826b2108311",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-84b0abe3fd13)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-1cf72da5a533",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-9cc030ee9af2)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-6db43a66acf9",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-9f132ef6252a)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-14c1a6f972a3",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-ac81f09cc47c)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-a9ddfd332aa7",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-ae26b6334dde)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-4169515839dc",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-b0fdf1205cdd)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-79fcd6f4a6bc",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-b3197170450c)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-472d822b755f",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-b55c08ea4074)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-4eaad82900f8",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-b655c90cb0f6)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-164f9965bfbd",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-ba87af74a85d)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-ed799087db95",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-ca91a5418bef)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-689cae172c40",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-d2c6c62e8bd6)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-546bc1e74bbc",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-d39112adf4c4)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-b7a6816f8679",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-d39e790b2c5b)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-cd23c37ead11",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-d88914c741e0)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-9e042d16dbe9",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-da00d75dbce0)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-03e14f544b83",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-e4e8ab4a1415)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-bb5426c61ff3",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-e932e70532b4)"
+    },
+    {
+      "at": "2026-11-08T00:00:00Z",
+      "id": "is-8cd37f6e5bf9",
+      "action": "rekey",
+      "by": "claude",
+      "note": "T520: the row id is its content now (was is-ecfd33ebcc81)"
     }
   ]
 }

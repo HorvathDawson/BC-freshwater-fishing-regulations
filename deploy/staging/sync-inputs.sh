@@ -25,4 +25,4 @@ while IFS=$'\t' read -r key cache; do
   grep -E "Copied|Skipped|ERROR" "$T/log" || true
   n=$((n + 1))
 done < "$T/manifest.tsv"
-echo "inputs in sync: $D ($n objects, in-season matches $(jq '.matches|length' "$T/out/feeds/inseason/matches.json"))"
+echo "inputs in sync: $D ($n objects, in-season matches $(jq '.notices|length' "$T/out/feeds/inseason/matches.json"))"

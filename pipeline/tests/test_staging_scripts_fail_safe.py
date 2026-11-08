@@ -42,7 +42,7 @@ def test_upload_clears_after_the_pointer_and_spares_the_release():
 PY_STUB = """#!/usr/bin/env bash
 # pipeline.deliver.sync_inputs --out <dir>: two inputs
 out=$4; mkdir -p "$out/feeds/inseason" "$out/dfo"
-echo '{"matches": [1, 2]}' > "$out/feeds/inseason/matches.json"; echo '{}' > "$out/dfo/a.json"
+echo '{"notices": {"a": 1, "b": 2}}' > "$out/feeds/inseason/matches.json"; echo '{}' > "$out/dfo/a.json"
 printf 'dfo/a.json\\t-\\nfeeds/inseason/matches.json\\tno-cache\\n'
 """
 

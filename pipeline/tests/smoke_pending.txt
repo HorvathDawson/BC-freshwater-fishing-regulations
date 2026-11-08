@@ -57,7 +57,6 @@ pipeline/tests/test_gauge_matches_record.py
 pipeline/tests/test_gauge_promote.py
 pipeline/tests/test_gear_omission.py
 pipeline/tests/test_hydat_daily.py
-pipeline/tests/test_inseason_auto.py
 pipeline/tests/test_inseason_points.py
 pipeline/tests/test_licence_records.py
 pipeline/tests/test_live_panels.py

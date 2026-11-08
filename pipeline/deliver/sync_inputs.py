@@ -13,8 +13,8 @@ THE LIST (`INPUTS`), every source read through `CURATED` / `SOURCE`:
     wording           dfo_salmon/wording.json                       -> private/feeds/dfo/wording.json (T321; the
                                                                        worker's ONLY copy, T324)
     roster            source bc_hydrometric_stations.json, slim [{station, realtime}] -> private/feeds/gauges/roster.json
-    inseason-matches  `pipeline.regs.inseason.publish` (inseason/notice_waters.json + split labels)
-                                                                    -> feeds/inseason/matches.json (PUBLIC)
+    inseason-matches  `pipeline.regs.inseason.publish` (inseason/notice_waters.json, already resolved to FWA ranges
+                      where the atlas is — T520: no atlas here)     -> feeds/inseason/matches.json (PUBLIC)
 
 `private/` keys are never served (the data worker 404s them); the Worker reads them on its next run, no redeploy.
 Needs only pydantic + pyyaml (the GitHub runner installs nothing else).

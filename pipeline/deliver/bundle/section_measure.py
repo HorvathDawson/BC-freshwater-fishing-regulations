@@ -25,6 +25,20 @@ def stream_head(node_id: str):
     return parse_section_id(node_id)
 
 
+def span(node_id: str, node) -> Tuple[int, int, int] | None:
+    """`(blk, from_m, to_m)` of one stream section — the bundle's row, so a caller with the graph (the in-season
+    resolver, T520) names a section's span exactly as `lines` carries it. None: not a stream id / unusable length."""
+    at = stream_head(node_id)
+    if at is None or node is None or node.kind != "stream":
+        return None
+    blk, start = at
+    length = float(node.length_m or 0.0)
+    if not math.isfinite(length) or length < 0:
+        return None
+    # 1e-6: `down_m + (up_m - down_m)` can come back a hair under a whole `up_m`
+    return blk, start, max(start, math.floor(float(node.down_m) + length + 1e-6))
+
+
 def rows(handle_ids: Sequence[str], nodes) -> List[Row]:
     """One row per stream handle (`handle_ids[h - 1]` is handle h), from the graph's `nodes` {node_id: StreamNode}."""
     out: List[Row] = []
@@ -37,13 +51,11 @@ def rows(handle_ids: Sequence[str], nodes) -> List[Row]:
         if node is None or node.kind != "stream":         # NodeKind is a str enum
             bad.append(nid)
             continue
-        blk, start = at
-        length = float(node.length_m or 0.0)
-        if not math.isfinite(length) or length < 0:
+        got = span(nid, node)
+        if got is None:
             bad.append(nid)
             continue
-        # 1e-6: `down_m + (up_m - down_m)` can come back a hair under a whole `up_m`
-        out.append((h, blk, start, max(start, math.floor(float(node.down_m) + length + 1e-6))))
+        out.append((h, *got))
     if bad:
         raise SystemExit(f"section_measure: {len(bad)} stream handle(s) with no stream node of a usable length in the "
                          f"graph (e.g. {bad[:3]}) — the handle table and graph.pkl are from different atlas runs")

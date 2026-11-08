@@ -429,10 +429,11 @@ banner on the water in the app, never changes an answer.
   `{from, to, source: curated | feed}` (the curated `effective` overrides the feed's field by field),
   `in_effect` (from ≤ today ≤ to; `to` null = open-ended; null when no dates) and `history[]` (this row's
   edits). No feed file: 200 with `available: false` and a message. Progress counts live rows only.
-  AUTO (owner add-on 2026-10-28, `python -m pipeline.regs.inseason.auto`): `match.source` owner | auto, with
-  `match.confidence` and `match.evidence` (water via, items, locators, boundary words → split ids, notes);
-  `progress.auto`; an unmatched row carries `guess` `{why, evidence, extents[]}` (auto's best guess, pre-fills the
-  editor, never applied). A save here is always `source: owner`; auto never writes over an owner match.
+  `match.source` owner | auto | claude (the auto matcher was removed in T520; its matches stay labelled), with
+  `match.confidence` / `match.evidence` where it wrote them; `progress.auto`. (T520) `match.waters` is where the
+  match lands on the file's release (per water `{all: true}` or `{ends, runs, lakes}` counts) and `match.unresolved`
+  why a re-resolve could not place it. A save RESOLVES the match on the shipped release (`pipeline.regs.inseason.resolve`)
+  and is refused when it does not resolve; publish only formats the file.
 - `GET /api/inseason/items/{item_id}/splits` → `{item, splits}`: the splits.json splits on that water as
   labelled points (the `EntrySplits` shape) — the editor's split picker.
 - `GET /api/inseason/extent-preview?extent=<json>` — one `{op, item_id, splits}` or a list (a union), each

@@ -1479,7 +1479,7 @@ export interface InSeasonRow {
   state: "matched" | "unmatched" | "stale";
   match: { extents: InSeasonExtentView[]; effective: { from: string | null; to: string | null } | null;
            note: string; by: string; at: string;
-           /** owner add-on 2026-10-28: "auto" = `pipeline.regs.inseason.auto` (unambiguous rows only); an owner
+           /** owner add-on 2026-10-28: "auto" = the auto matcher (removed T520; its matches keep the label); an owner
             *  save makes it "owner", and auto never writes over an owner match */
            source: "owner" | "auto" | "claude"; confidence: "high" | "medium" | "low" | null;
            evidence: InSeasonEvidence | null } | null;

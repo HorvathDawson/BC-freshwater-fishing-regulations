@@ -74,6 +74,7 @@ def _load_matches() -> M.Matches:
 
 
 def _in_effect(frm: str | None, to: str | None, today: str) -> bool | None:
+    """In force on `today` for the dates `M.span` gives (core's `inSeasonSpan`, the one rule)."""
     if not frm and not to:
         return None
     return (not frm or frm <= today) and (not to or today <= to)
@@ -114,8 +115,7 @@ def _guess_view(g: dict | None, labels: dict[str, str]) -> dict | None:
 def _row_view(rid: str, row: dict | None, m: M.Match | None, history: list[dict], today: str,
               labels: dict[str, str], guess: dict | None = None) -> dict:
     eff = m.effective if m else None
-    frm = (eff.from_ if eff and eff.from_ else None) or (row or {}).get("from")
-    to = (eff.to if eff and eff.to else None) or (row or {}).get("to")
+    frm, to = M.span(row or {}, eff)
     base = row or {"id": rid, "region": m.region if m else "", "water": m.water if m else "",
                    "status": "gone", "removed": True}
     state = "stale" if row is None else ("matched" if m else "unmatched")
@@ -132,8 +132,12 @@ def _row_view(rid: str, row: dict | None, m: M.Match | None, history: list[dict]
             "extents": [_extent_view(e, labels) for e in m.extents],
             "effective": None if eff is None else {"from": eff.from_, "to": eff.to},
             "note": m.note, "by": m.by, "at": m.at,
-            # owner add-on 2026-10-28: an AUTO match (`pipeline.regs.inseason.auto`) says so, with its evidence
-            "source": m.source, "confidence": m.confidence, "evidence": m.evidence},
+            # owner add-on 2026-10-28: an AUTO match (the matcher removed in T520) says so, with its evidence
+            "source": m.source, "confidence": m.confidence, "evidence": m.evidence,
+            # (T520) where it lands on the file's release: per water, whole or its ends; or why it does not
+            "waters": {k: ({"all": True} if w.all else {"ends": w.ends, "runs": len(w.runs), "lakes": len(w.lakes)})
+                       for k, w in sorted(m.waters.items())},
+            "unresolved": m.unresolved},
         "guess": guess,
         "dates": {"from": frm, "to": to, "source": "curated" if eff else "feed"},
         "in_effect": _in_effect(frm, to, today),
@@ -313,6 +317,17 @@ def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "
             prev = extent_preview(exts, limit=0)
             if not prev["resolvable"]:
                 raise Refused(f"the extent binds no section: {prev['why']}")
+            # (T520) RESOLVED HERE, where the atlas is: FWA ranges on the release the file names (publish only formats)
+            from pipeline.regs.inseason import resolve as R
+            rel = R.read_release(R.release_dir(None))
+            if doc.release and doc.release != rel.name:
+                raise Refused(f"the matches are resolved on {doc.release}, the shipped release is {rel.name}: "
+                              "re-resolve them first (python -m pipeline.regs.inseason.resolve)")
+            atlas = R.load_atlas(reuse._registry(), reuse._graph(), reuse._BUILD)
+            try:
+                waters = R.resolve_match(atlas, rel, M.Match(extents=exts), M.split_labels())
+            except R.Unresolved as ex:
+                raise Refused(f"the extent does not resolve on {rel.name}: {ex}")
             eff = None
             if effective and (effective.get("from") or effective.get("to")):
                 try:
@@ -322,10 +337,10 @@ def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "
             r = rows[rid]
             try:
                 match = M.Match(region=str(r.get("region") or ""), water=str(r.get("water") or ""),
-                                extents=exts, effective=eff, note=note, by=by, at=at)
+                                extents=exts, effective=eff, note=note, by=by, at=at, waters=waters)
             except (ValidationError, ValueError) as ex:
                 raise Refused(str(ex))
-            new = M.set_match(doc, rid, match, at=at, by=by, note=note)
+            new = M.set_match(doc, rid, match, at=at, by=by, note=note).model_copy(update={"release": rel.name})
         text = M.dumps(new)
         errs = [p for p in M.problems(M.parse(text), split_ids=split_ids()) if p.startswith(rid)]
         if errs:

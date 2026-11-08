@@ -1,30 +1,30 @@
-"""T226: compile the curated in-season matches into the file the app reads beside the feed.
+"""T226 / T520: the curated in-season matches as the file the app reads beside the feed — FORMATTING ONLY, no atlas.
 
-    python -m pipeline.regs.inseason.publish [--out DIR] [--feed index.json]
+    python -m pipeline.regs.inseason.publish [--out DIR] [--matches FILE] [--release DIR] [--feed index.json]
 
 writes `<out>/matches.json` (default `GENERATED.inseason / "feed"`, which the local tile server serves as
-`/feeds/inseason/`; production: upload it to R2 `feeds/inseason/matches.json`, beside the T225 worker's index.json).
-`--feed` copies a captured feed `index.json` there too (dev: the app then reads both from the tile server).
+`/feeds/inseason/`; staging / production: R2 `feeds/inseason/matches.json` through `pipeline.deliver.sync_inputs`).
+`--feed` copies a captured feed `index.json` there too (dev).
 
-FORMAT `inseason-links/1` — no section id ever (AGENTS 5): an extent names its water by `item` (durable) and its cuts
-by the split's LABEL, the name the release's `part_mark.label` carries where two parts of the water meet; the app
-resolves the parts between them in its own release (`@app/core` `inSeasonParts`) and, when a label is not a part
-boundary there, shows the banner on the whole water saying so — never guessing a part.
+FORMAT `inseason-links/2` (T520). Where a notice applies was resolved where the atlas is (`pipeline.regs.inseason.resolve`:
+the review app on save, the release promote) and committed in `notice_waters.json`; this only copies it out:
 
-    {"format": "inseason-links/1", "digest": <sha of the curated file>,
-     "matches": {"is-…": {"extents": [{"item": "gnis:…", "op": "between", "at": ["Tamihi Rapids Bridge", "…"]}],
-                          "from"?: "YYYY-MM-DD", "to"?: "YYYY-MM-DD"}}}
+    {"format": "inseason-links/2", "release": "r-…", "digest": <sha of the curated file>,
+     "notices": {"is-…": {"from"?: "YYYY-MM-DD", "to"?: "YYYY-MM-DD",
+                          "waters": {"gnis:…": {"all": true}
+                                     | {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": "From A to B"}}}}}
 
-PLACES (owner 2026-10-29: lake inlets, confluences, region / MU crossings, tributaries): with the atlas and the
-shipped release at hand (`--release`, default `data/release/LATEST`; refused unless its `section_handles` digest is
-the atlas's), every extent is resolved on the atlas (`points.resolve`: the regs' resolver, the measure-cut
-pick-points, the tributary walk) and handed to the app as the PARTS of each water it touches, in THAT release:
+No part index, label, extent or section id (AGENTS 5). The app (`@app/core` `inSeasonCover`) reads `runs` / `lakes` only
+on the release named; `all` is a water's whole and holds on any release.
 
-    "release": "r-…", "matches": {"is-…": {…, "places": {"gnis:…": {"parts": [0, 2], "some": [2], "all": false}}}}
-
-`parts` are part indexes of the water in that release (never a section id, AGENTS 5); `some` the parts only partly
-covered; `all` the whole water. The app reads `places` only on the release it names (rule 6: never across a
-version) and otherwise falls back to `extents` (labels). `--no-places` skips it (no atlas load).
+THE CHECKS LIVE HERE, ONCE (the feed has its own): a non-zero exit, nothing written, on
+    - an unresolved match (`unresolved`, or no `waters`) — re-match it in the review app
+    - empty coverage (a water with no range)
+    - a range not landing on the release it names: when that release is here (`data/release/<release>`), every run must
+      start on a section of its water there and every `lakes` place exist; a release that is NOT here (GitHub's
+      runner) is SAID on stderr, never silently passed
+    - the file resolved on another release than `data/release/LATEST` when LATEST is here (re-resolve:
+      `python -m pipeline.regs.inseason.resolve`)
 
 Deterministic: no clock in the output.
 """
@@ -33,117 +33,73 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
 import shutil
+import sys
 from pathlib import Path
 
 from pipeline.regs.inseason import matches as M
 
-FORMAT = "inseason-links/1"
+FORMAT = "inseason-links/2"
 
 
-def compile_links(doc: M.Matches, labels: dict[str, str], digest: str) -> dict:
-    out: dict = {}
-    missing: list[str] = []
+class Refused(SystemExit):
+    pass
+
+
+def compile_links(doc: M.Matches, digest: str) -> dict:
+    """The links, or Refused with every reason (unresolved / empty)."""
+    bad: list[str] = []
+    if not doc.release:
+        bad.append("the file names no release: resolve it (python -m pipeline.regs.inseason.resolve)")
+    notices: dict = {}
     for rid in sorted(doc.matches):
         m = doc.matches[rid]
-        exts = []
-        for e in m.extents:
-            at = []
-            for s in e.splits:
-                lab = labels.get(s, "")
-                if not lab and M.place_id_shape(s):
-                    lab = s          # a derived pick-point: no part mark carries it — the app reads `places`
-                if not lab:
-                    missing.append(f"{rid}: split {s!r} has no label")
-                at.append(lab)
-            exts.append({"item": e.item_id, "op": e.op, **({"at": at} if at else {}),
-                         **({"tributaries": e.tributaries} if e.tributaries else {})})
-        row: dict = {"extents": exts}
+        if m.unresolved or not m.waters:
+            bad.append(f"{rid} ({m.water}): unresolved — {m.unresolved or 'no waters'}")
+            continue
+        waters = {}
+        for item in sorted(m.waters):
+            w = m.waters[item]
+            if w.all:
+                waters[item] = {"all": True}
+            elif not (w.runs or w.lakes):
+                bad.append(f"{rid} ({m.water}): {item} covers nothing")
+            else:
+                waters[item] = {"runs": [list(r) for r in w.runs], **({"lakes": list(w.lakes)} if w.lakes else {}),
+                                "ends": w.ends}
+        row: dict = {}
         if m.effective and m.effective.from_:
             row["from"] = m.effective.from_
         if m.effective and m.effective.to:
             row["to"] = m.effective.to
-        out[rid] = row
-    if missing:
-        raise ValueError("; ".join(missing))
-    return {"format": FORMAT, "digest": digest, "matches": out}
+        row["waters"] = waters
+        notices[rid] = row
+    if bad:
+        raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
+    return {"format": FORMAT, "release": doc.release, "digest": digest, "notices": notices}
 
 
-def release_dir(arg: Path | None) -> Path:
-    from pipeline.common.curated import GENERATED
-    if arg:
-        return Path(arg)
-    root = Path(GENERATED.release)
-    return root / (root / "LATEST").read_text(encoding="utf-8").strip()
-
-
-def _sqlite(gz: Path, tmp: Path):
-    import gzip
-    import sqlite3
-    out = tmp / gz.name.replace(".gz", "")
-    out.write_bytes(gzip.decompress(gz.read_bytes()))
-    return sqlite3.connect(str(out))
-
-
-def compile_places(doc: M.Matches, rel: Path, log=print) -> tuple[str, dict[str, dict]] | None:
-    """{match id: {item_id: {parts, some, all}}} on release `rel`, or None (atlas / release disagree)."""
-    import json as _json
-    import tempfile
-    from pipeline.atlas.reach import position
-    from pipeline.atlas.registry import load_registry, regions
-    from pipeline.common import section_handles as H
-    from pipeline.common.curated import GENERATED
-    from pipeline.common.io.serialize import read_artifact
-    from pipeline.regs.inseason import points as P
-    build = GENERATED.require_build()
-    manifest = _json.loads((rel / "manifest.json").read_text(encoding="utf-8"))
-    with tempfile.TemporaryDirectory() as t:
-        # the WHOLE core / water, not T256's per-region slices (core-<region>-<sha>.sqlite.gz)
-        whole = lambda n: next(p for p in rel.glob(f"{n}-*.sqlite.gz")  # noqa: E731
-                               if re.fullmatch(rf"{n}-[0-9a-f]{{12}}\.sqlite\.gz", p.name))
-        core = _sqlite(whole("core"), Path(t))
-        water = _sqlite(whole("water"), Path(t))
-        meta = dict(core.execute("SELECT k, v FROM meta").fetchall())
-        if meta.get("section_handles") != H.digest_for(build):
-            log(f"places skipped: release {rel.name} handles {meta.get('section_handles')} != atlas {H.digest_for(build)}")
-            return None
-        reg = load_registry(str(build / "registry.json"))
-        g = read_artifact(str(build / "graph.pkl"))
-        regions.attach_from(build, g, reg)
-        position.attach(g, build)
-        handle = H.read(build)[1]
-        ord_of = dict(core.execute("SELECT item_id, ord FROM item").fetchall())
-        id_of = {o: i for i, o in ord_of.items()}
-        part_of: dict[int, dict[int, int]] = {}
-        for o, sid, ix in water.execute("SELECT ord, sid, part_ix FROM part_section"):
-            part_of.setdefault(o, {})[sid] = ix
-        out: dict[str, dict] = {}
-        for rid in sorted(doc.matches):
-            secs: set[int] = set()
-            for e in doc.matches[rid].extents:
-                try:
-                    got = P.resolve(reg, g, e.model_dump(exclude_none=True))
-                except P.Unresolved as ex:
-                    log(f"{rid}: {e.op} {e.item_id} unresolved on the atlas: {ex}")
-                    continue
-                secs |= {handle[s] for s in got["sections"] if s in handle}
-            places: dict[str, dict] = {}
-            for o, members in part_of.items():
-                hit = {sid for sid in members if sid in secs}
-                if not hit:
-                    continue
-                per: dict[int, list[int]] = {}
-                for sid, ix in members.items():
-                    per.setdefault(ix, [0, 0])[0] += 1
-                    if sid in hit:
-                        per[ix][1] += 1
-                parts = sorted(ix for ix, (n, h) in per.items() if h)
-                some = sorted(ix for ix, (n, h) in per.items() if 0 < h < n)
-                places[id_of[o]] = {"parts": parts, **({"some": some} if some else {}),
-                                    "all": len(hit) == len(members)}
-            out[rid] = {k: places[k] for k in sorted(places)}
-        return str(manifest.get("data_release") or rel.name), out
+def check_on_release(links: dict, rel) -> list[str]:
+    """Every range lands on its water in the release it names (`resolve.Release`); every lake place exists.
+    -> [problem]."""
+    from pipeline.regs.inseason import resolve as R
+    bad: list[str] = []
+    if rel.name != links["release"]:
+        return [f"the release here is {rel.name}, not {links['release']}"]
+    for rid, n in links["notices"].items():
+        for item, w in n["waters"].items():
+            members = rel.item_sections(item)
+            if not members:
+                bad.append(f"{rid}: {item} is not a water of {rel.name}")
+                continue
+            for run in w.get("runs", ()):
+                if not R.covered_by_runs([run], members, rel.starts):
+                    bad.append(f"{rid}: {item} range {run} lands on no section of it in {rel.name}")
+            n_lakes = len(rel.lake_pieces(item))
+            for i in w.get("lakes", ()):
+                if not 0 <= i < n_lakes:
+                    bad.append(f"{rid}: {item} lake place {i} — it has {n_lakes} lake piece(s) in {rel.name}")
+    return bad
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -152,27 +108,37 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--matches", type=Path, default=None, help="the curated file (default CURATED.inseason.notice_waters)")
     ap.add_argument("--feed", type=Path, default=None, help="a captured feed index.json to copy beside it (dev)")
-    ap.add_argument("--release", type=Path, default=None, help="the shipped release to name parts in (default LATEST)")
-    ap.add_argument("--no-places", action="store_true", help="labels only: no atlas load, no parts")
+    ap.add_argument("--release", type=Path, default=None,
+                    help="the release directory to check the ranges on (default data/release/<the file's release>)")
     a = ap.parse_args(argv)
     src = a.matches or M.default_path()
     text = Path(src).read_text(encoding="utf-8")
     doc = M.load(src)
-    links = compile_links(doc, M.split_labels(), hashlib.sha256(text.encode("utf-8")).hexdigest()[:16])
-    if not a.no_places:
-        got = compile_places(doc, release_dir(a.release))
-        if got:
-            links["release"] = got[0]
-            for rid, places in got[1].items():
-                if places and rid in links["matches"]:
-                    links["matches"][rid]["places"] = places
+    links = compile_links(doc, hashlib.sha256(text.encode("utf-8")).hexdigest()[:16])
+    root = Path(GENERATED.release)
+    latest = root / "LATEST"
+    if a.release is None and latest.exists():
+        now = latest.read_text(encoding="utf-8").strip()
+        if now != links["release"]:
+            raise Refused(f"inseason.publish: refused — the matches are resolved on {links['release']}, LATEST is {now}: "
+                          "re-resolve (python -m pipeline.regs.inseason.resolve)")
+    rel_dir = a.release or root / links["release"]
+    if (rel_dir / "manifest.json").exists():
+        from pipeline.regs.inseason import resolve as R
+        bad = check_on_release(links, R.read_release(rel_dir))
+        if bad:
+            raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
+    else:
+        print(f"inseason.publish: release {links['release']} is not here ({rel_dir}): its ranges were proved when they "
+              "were resolved, not again now", file=sys.stderr)
     out = a.out or (GENERATED.inseason / "feed")
     out.mkdir(parents=True, exist_ok=True)
     (out / "matches.json").write_text(json.dumps(links, ensure_ascii=False, separators=(",", ":")) + "\n",
                                       encoding="utf-8")
     if a.feed:
         shutil.copyfile(a.feed, out / "index.json")
-    print(f"in-season links: {len(links['matches'])} matched row(s) -> {out / 'matches.json'}")
+    print(f"in-season links: {len(links['notices'])} notice(s) on {links['release']} -> {out / 'matches.json'}",
+          file=sys.stderr)
     return 0
 
 

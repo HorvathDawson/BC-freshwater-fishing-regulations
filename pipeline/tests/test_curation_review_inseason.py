@@ -39,7 +39,7 @@ FEED = {"format": "inseason-feed/1", "source": "https://example.invalid/inseason
                  _row(OPEN, "Cowichan River", "2020-01-01", None, status="new")],
         "removed": [{"id": GONE, "region": "1", "water": "Koksilah River", "change": "No fishing",
                      "effective": "x", "removedAt": "2026-10-20T00:00:00.000Z"}]}
-MATCHES = {"$comment": "test", "format": "inseason-matches/1", "history": [],
+MATCHES = {"$comment": "test", "format": "inseason-matches/2", "release": "", "history": [],
            "matches": {STALE: {"region": "1", "water": "Gone Creek", "note": "old", "by": "t", "at": "x",
                                "extents": [{"op": "whole", "item_id": COWICHAN, "splits": []}]}}}
 
@@ -114,6 +114,11 @@ def test_2_a_good_save_writes_the_match_and_its_history(env):
         ("Cowichan River", "the notice names the trestle", "tester", {"to": "2099-12-31"})
     assert [(h["id"], h["action"], h["note"]) for h in doc["history"]] == \
         [(LIVE, "set", "the notice names the trestle")]
+    # (T520) resolved on save, on the shipped release: the Cowichan in part, as FWA ranges + its ends in words
+    from pipeline.regs.inseason import resolve as R
+    assert doc["release"] == R.release_dir(None).name
+    (w,) = m["waters"].values()
+    assert w["runs"] and w["ends"].startswith("Upstream of ") and "all" not in w
     snaps = sorted((env["dir"] / "backups").iterdir())
     assert len(snaps) == 1 and snaps[0].name.endswith("-inseason-match")
     assert json.loads((snaps[0] / env["dir"].name / "matches.json").read_text()) == MATCHES   # the old bytes

@@ -82,6 +82,13 @@ fi
 rclone copy data/generated/regs/dfo_salmon/feed "$D/feeds/dfo" --s3-no-check-bucket --include "*.json" --ignore-existing \
   --exclude "feed.notified.json" \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
+# (T520) THE IN-SEASON MATCHES ON THIS RELEASE: re-resolved where the atlas is (FWA ranges on $REL) when the curated
+# file names another release; a match that no longer resolves stops the upload (publish would refuse it). The rewritten
+# data/curated/inseason/notice_waters.json is then committed by whoever ran this.
+if [[ "$(jq -r .release data/curated/inseason/notice_waters.json)" != "$REL" ]]; then
+  scripts/heavy.sh inseason-resolve 30 -- .venv/bin/python -m pipeline.regs.inseason.resolve --release "$R/$REL" \
+    || { echo "upload: the in-season matches do not all resolve on $REL — re-match them (review app), then rerun"; exit 1; }
+fi
 deploy/staging/sync-inputs.sh
 for w in app/node_modules/sql.js/dist/sql-wasm-browser.wasm app/node_modules/sql.js/dist/sql-wasm.wasm; do
   cp_ "$w" "$(basename "$w")" --header-upload "Content-Type: application/wasm" --header-upload "Cache-Control: public, max-age=86400"

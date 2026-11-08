@@ -63,7 +63,7 @@ def test_place_ids_validate_by_shape():
     good = ["mouth", "lake:329291806:inlet", "trib:gnis:11410", "region:2|3", "mu:2-4|2-8", "area:5", "length:1:2"]
     assert all(M.place_id_shape(x) for x in good)
     assert not any(M.place_id_shape(x) for x in ["lake:1:middle", "trib:nope", "region:2", "no_such_split"])
-    doc = M.parse('{"format": "inseason-matches/1", "matches": {"is-000000000001": {"extents": '
+    doc = M.parse('{"format": "inseason-matches/2", "matches": {"is-000000000001": {"extents": '
                   '[{"op": "upstream_of", "item_id": "gnis:7551", "splits": ["lake:1:inlet"], "tributaries": "only"}]}}}')
     assert M.problems(doc, split_ids=set()) == []
     bad = doc.model_copy(update={"matches": {"is-000000000001": doc.matches["is-000000000001"].model_copy(
