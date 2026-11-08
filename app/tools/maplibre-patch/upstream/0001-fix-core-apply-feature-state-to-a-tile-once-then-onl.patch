@@ -1,6 +1,6 @@
-From e115c24ca76cc26bb85f47e837e162698953fdbe Mon Sep 17 00:00:00 2001
+From 440b609d333a3b5e670f1228b0918bdd32ae7616 Mon Sep 17 00:00:00 2001
 From: Dawson Horvath <horvath.dawson@gmail.com>
-Date: Sat, 7 Nov 2026 02:41:52 -0700
+Date: Sun, 8 Nov 2026 00:23:01 -0700
 Subject: [PATCH] fix(core): apply feature state to a tile once, then only
  changes
 
@@ -15,14 +15,10 @@ version behind gets this frame's changes; a tile with new buckets, or
 one that missed a version, gets the whole state; an up-to-date tile gets
 nothing. A removal now merges into the same frame's changes instead of
 replacing that source layer's changes.
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ---
  CHANGELOG.md                                  |   1 +
  .../vector-source-relayout/expected.png       | Bin 0 -> 39671 bytes
  .../vector-source-relayout/style.json         |  76 ++++++++++++++++++
- platform/android/CHANGELOG.md                 |   1 +
- platform/ios/CHANGELOG.md                     |   1 +
  src/mln/renderer/render_tile.cpp              |   4 +
  src/mln/renderer/render_tile.hpp              |   1 +
  src/mln/renderer/source_state.cpp             |  19 +++--
@@ -31,7 +27,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
  src/mln/tile/tile.hpp                         |   2 +
  test/CMakeLists.txt                           |   1 +
  test/renderer/source_state.test.cpp           |  76 ++++++++++++++++++
- 13 files changed, 178 insertions(+), 7 deletions(-)
+ 11 files changed, 176 insertions(+), 7 deletions(-)
  create mode 100644 metrics/integration/render-tests/feature-state/vector-source-relayout/expected.png
  create mode 100644 metrics/integration/render-tests/feature-state/vector-source-relayout/style.json
  create mode 100644 test/renderer/source_state.test.cpp
@@ -749,30 +745,6 @@ index 0000000000..4ebfa7a7cf
 +    }
 +  ]
 +}
-diff --git a/platform/android/CHANGELOG.md b/platform/android/CHANGELOG.md
-index 91f986b544..9b49009f19 100644
---- a/platform/android/CHANGELOG.md
-+++ b/platform/android/CHANGELOG.md
-@@ -2,6 +2,7 @@
- 
- ## main
- 
-+- Feature state no longer costs render-thread time on every frame: a tile gets the stored state once, then only its changes.
- - Make symbol guard checks opt-in, so symbol-dense tiles load faster. To keep them, set the environment variable `MLN_SYMBOL_GUARDS=1` before the first map loads.
- 
- ## 13.7.1
-diff --git a/platform/ios/CHANGELOG.md b/platform/ios/CHANGELOG.md
-index 6e7e45ce4b..6e9371a99f 100644
---- a/platform/ios/CHANGELOG.md
-+++ b/platform/ios/CHANGELOG.md
-@@ -4,6 +4,7 @@ MapLibre welcomes participation and contributions from everyone. Please read [`M
- 
- ## main
- 
-+- Feature state no longer costs render-thread time on every frame: a tile gets the stored state once, then only its changes.
- - Add `MLNSource.isVolatile`: a source whose tiles are never written to the ambient cache on disk, as `Source.setVolatile()` on Android ([#4843](https://github.com/maplibre/maplibre-native/issues/4843)).
- - Make symbol guard checks opt-in, so symbol-dense tiles load faster. To keep them, set the environment variable `MLN_SYMBOL_GUARDS=1` before the first map loads.
- 
 diff --git a/src/mln/renderer/render_tile.cpp b/src/mln/renderer/render_tile.cpp
 index 60133050c6..93411bf7d9 100644
 --- a/src/mln/renderer/render_tile.cpp
