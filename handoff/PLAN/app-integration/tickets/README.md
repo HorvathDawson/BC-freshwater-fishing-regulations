@@ -561,7 +561,9 @@ use that as the sole source of future work."
 | T514 | Share page "Open in the app" → Play Store listing once public (web app until then) | OPEN | — | owner 2026-11-08; ships with the production app release (T495 step 5) |
 | T515 | Bait rule card: one heading line ("No natural bait — all year" / season + status), no NOW-chip repeat | DONE | f44ef545a | owner 2026-11-08 |
 | T516 | "Handling fish" reference moved to the bottom of the regulation page (after Licence) | IN REVIEW — next APK | b7ce44b40 | owner 2026-11-08 |
+| T517 | One part per connected run of same-rule sections (river order, place key, paint + salmon sync check, size flat) | OPEN — paused for audits | — | owner 2026-11-08 |
 | T518 | In-season notice shows on exactly the sections it covers (its own ends + map highlight), not its whole part | OPEN — after T517 | — | owner 2026-11-08 |
+| T519 | Fraser exit reads Morey Channel (own side channel) since T497; T59 rule regressed | OPEN — with T517 rebuild | — | T517 lane 2026-11-08 |
 
 ## Order for open tickets
 
