@@ -174,3 +174,5 @@ wrapped. Owner 11-05: 6.3 MB is fine for now — salmon stays decoded at map loa
 
 ## Merged in (ticket audit 2026-11-05, owner)
 This ticket now also carries the leftovers of: T245, T287, T317 — read each file's open items and finish them here; each closes pointing here.
+
+- 2026-11-08 (gate 2): same session. PSS boot 253, 10 pans 286, satellite 320, rule book 326, **Conditions 396 (native 217)**, Salmon 395, after RUNNING_CRITICAL trim 364 MB. No growth across 32 tab switches. Conditions is still the peak (~400 MB, unchanged from 11-05).

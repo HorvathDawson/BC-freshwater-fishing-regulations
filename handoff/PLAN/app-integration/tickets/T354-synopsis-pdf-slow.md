@@ -59,3 +59,5 @@ the highlight drawn, page jump, back closes); time + memory before/after (T360 s
 scenarios still look for an OUTSIDE viewer (tools/testbed/scenarios/offline.mjs, run-ios.mjs "No app on this device"):
 switch them to `pdf-viewer` / `pdf-viewer-failed` testIDs in that sitting; (3) release r-88c4fc7bbf1f carries the v1 index:
 the label refresh's deliver re-run (or the next build) ships v2.
+
+- 2026-11-08 (test bed `memory`, emulator): the rule book opens at the cited page in **10.1 s** (twice, 10.2 s held); the highlighted copy takes 28 ms and drawing the page 300 ms, so ~9.7 s is react-native-pdf loading the book. Too slow for "opens quickly": measure where on the owner's phone (phone check item 11) before calling it done.

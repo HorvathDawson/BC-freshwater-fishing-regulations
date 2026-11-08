@@ -26,3 +26,5 @@ Size: M.
   arrives in the same shape — still no stack (Android gives none to the app; a tombstone needs the device). Stays OPEN.
   Test-bed drift seen on the way: `layers-satellite` / "Choose layers" flows no longer find the Layers button (memory's
   satellite + Conditions-layer steps and `PAN_GROUND=satellite` fail) — a flow to update, not an app crash.
+
+- 2026-11-08 (gate 2, T495): one ~28 min emulator session on 8fa19a6 (satellite, 2×16-swipe pans, gestures, the 30-step walkthrough, memory, 32 tab switches): 6/6 pass, no crash, ANR or tombstone. Crash store: no foreground crash from any 0.6.x build (every report is the emulator or the web, T494). Stays OPEN until the owner phone session (T495 gate 2).
