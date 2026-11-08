@@ -364,8 +364,9 @@ def run_ends(doc: dict, part: dict) -> Optional[tuple]:
     reads them). None: no main-stem run (a lake, side channels only, an area) — the part is said by its label."""
     rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
     main = [r for r in rs if not r.get("branch") and not _js(r.get("polygon"))]
-    if not main or any(str(r.get("from") or "").startswith("area:") for r in main):
-        return None
+    if not main or any(r.get("from") and r.get("from") == r.get("to") and str(r["from"]).startswith("area:")
+                       for r in main):
+        return None                                  # a run within an area: said "Within …" (`_run_short`)
     km = [(r.get("km_from") if r.get("km_from") is not None else 0) for r in main]
     lo, hi = main[km.index(min(km))], main[km.index(max(km))]
     return end_words(doc, lo.get("to"), "to"), end_words(doc, hi.get("from"), "from")

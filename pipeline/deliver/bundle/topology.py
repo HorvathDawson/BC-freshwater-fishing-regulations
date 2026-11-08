@@ -218,7 +218,7 @@ def mark_words(down: dict, up: dict, doc: dict, splits: Dict[str, dict]) -> Tupl
     words = end_words(doc, tok, "from")
     if tok == top == bottom:
         a, b = run_ends(doc, down), run_ends(doc, up)
-        if not a or not b or a[1] != words or b[0] != end_words(doc, tok, "to"):
+        if a and b and (a[1] != words or b[0] != end_words(doc, tok, "to")):
             raise SystemExit(f"part_mark: {tok!r} reads {words!r} on the mark but {a and a[1]!r} / {b and b[0]!r} "
                              f"on the parts it joins — one function names both (T517)")
     return words, (splits.get(_named_token(doc, tok) or "") or {}).get("confidence")
