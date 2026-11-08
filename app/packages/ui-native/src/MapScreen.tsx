@@ -24,7 +24,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
                             onLayers, layersChanged = 0, onLongPress, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, onMoved, onMapPoint, horizons,
                             highlight, marker, pins, status, standing, lakes, salmon, method, runs, gauges, onVisible, onError,
                             fit, basemap, onImageryError, water, waterLine, selection, focus, near, marks, onPressMark, spots,
-                            insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null, developer }: {
+                            insetTop = 0, insetBottom = 0, onRegion, corner, railExtra, me = null, developer, onDrawn }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
@@ -111,6 +111,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
   me?: MyLocation | null;
   /** (T476) the Developer card's facts (the Shell's menu info and the release in use); drawn only where `LAB_ON` (never production) */
   developer?: { info: MenuInfo; release: string | null } | undefined;
+  /** (T508) The map drawn whole — see MapProps.onDrawn (a held pane's map: `paneReveal` `usePaneMap`). */
+  onDrawn?: MapProps["onDrawn"];
   /** (T186) The region under the centre, each settle — see MapProps.onRegion (the web prefetch's). */
   onRegion?: MapProps["onRegion"];
 }) {
@@ -126,7 +128,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, show,
            highlight={highlight} pins={pins} spots={spots} insetTop={insetTop} insetBottom={insetBottom} onOpenLink={openLink} water={water} waterLine={waterLine} selection={selection} focus={focus} near={near} marks={marks} onPressMark={onPressMark} marker={marker} status={status} standing={standing} lakes={lakes} salmon={salmon} method={method} runs={runs}
            gauges={gauges}
            onVisible={onVisible} onError={onError ?? mapError} fit={fit} basemap={basemap} onImageryError={onImageryError}
-           onRegion={onRegion} onOpenLab={LAB_ON && developer ? () => setDevOpen(true) : undefined} />
+           onRegion={onRegion} onDrawn={onDrawn} onOpenLab={LAB_ON && developer ? () => setDevOpen(true) : undefined} />
       {LAB_ON && developer && (
         <DeveloperModal open={devOpen} theme={theme} palette={palette} info={developer.info} release={developer.release}
                         onClose={() => setDevOpen(false)} />

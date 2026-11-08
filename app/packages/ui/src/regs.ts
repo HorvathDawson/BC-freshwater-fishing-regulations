@@ -427,5 +427,11 @@ export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSo
   // (T387) the page's subject — its part, never the tap — so this view's notices are its Regulations page's
   const subject = usePageSubject(inp);
   const access = useAccessNotices(loader, store.value ?? null, subject);
-  return { place, access: access.value ?? [] };
+  // (T508) SETTLED: the place label and the notices are what they will be (or cannot be read) — what a held pane waits
+  // for. A disabled read stays "loading" for good, so each step's own "nothing to ask" is read as settled too.
+  const failed = store.state === "failed" || found.state === "failed" || inputs.state === "failed" || access.state === "failed";
+  const noTarget = !!store.value && found.state === "ready" && !found.value;
+  const settled = !loader || failed || noTarget
+    || (inputs.state === "ready" && (subject === null || access.state === "ready") && (item !== null || section === null || down.state !== "loading"));
+  return { place, access: access.value ?? [], settled };
 }

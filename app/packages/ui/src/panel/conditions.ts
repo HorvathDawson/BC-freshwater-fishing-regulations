@@ -11,7 +11,7 @@ import { CONDITIONS_WORDS, donorLastReport, donorReads, donorSilent, freshness, 
 import { useGaugeTrace, useStationReading } from "../hooks";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
 import { useLastReports, type PanelFeed } from "./feed";
-import { useJoinedRoutes, usePanel, usePanelStandings, useRoutes, useSpeaker } from "./standings";
+import { useJoinedRoutes, usePanelAsk, usePanelStandings, useRoutes, useSpeaker } from "./standings";
 import { gaugeChoiceGroups, gaugeChoices, useGaugeSides, type GaugeChoiceVM, type GaugeGroupVM,
          type GaugeSides } from "./donor";
 
@@ -66,6 +66,12 @@ export interface ConditionsVM {
    * (`standing`); see `routeColour.ts`.
    */
   route: RouteColourVM;
+  /**
+   * (T508) Every first answer this view draws is in (who speaks, the panel, its routes, the lead's reading): what is
+   * shown now is what stays — a held pane's "ready" (`ConditionsPanel`). Refreshes after it (a feed tick) change values
+   * in place.
+   */
+  settled: boolean;
   /** The station the chart and the reading are about. */
   lead: StationId | null;
   select: (station: StationId) => void;
@@ -111,7 +117,8 @@ export function useConditionsView(
   // shows at once without them, and is refreshed in place)
   const routes = useRoutes(source, section);
   const lakes = useMemo(() => throughLakeStations(routes), [routes]);
-  const panel = useLastReports(feed, useJoinedRoutes(usePanel(source, feed, section, quantity, horizon, lakes), routes));
+  const asked = usePanelAsk(source, feed, section, quantity, horizon, lakes);
+  const panel = useLastReports(feed, useJoinedRoutes(asked.value, routes));
   const today = useMemo(() => day ?? bcNow(), [day]);
   // THE ROUTES OF THE MEMBERS THAT SPEAK — the route map's own chain (`donorView`): a silent member has no pin, so its
   // route is not coloured either.
@@ -189,6 +196,9 @@ export function useConditionsView(
 
   return {
     loading: spoken.state === "loading",
+    // (T508) every first answer in: who speaks, the panel and its routes (the route map's chain), the lead's reading
+    settled: spoken.state !== "loading" && (speaker?.kind !== "panel" || (!asked.loading && routes !== null))
+      && (lead === null || got.state !== "loading"),
     // A LAKE IS READ AT ITS OWN GAUGE: the donor panel says so, not "no gauge on this water" (answerFrom's "no-station"
     // for a section with no panel), which the lake's own reading under it would contradict (T105 review).
     day: today, panel: speaker?.kind === "lake" ? { ...panel, answer: { ok: false, why: "own-gauge" } } : panel,

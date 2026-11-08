@@ -18,7 +18,7 @@ import { makeReleaseSource } from "@app/data/release";
 import { openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
 import { LIGHT } from "../theme";
 import { WaterScreen } from "../WaterScreen";
-import { PANE_HOLD_MS, PaneReadyContext, usePaneHold, usePaneReady } from "./paneReveal";
+import { PANE_HOLD_MS, PaneReadyContext, usePaneHold, usePaneMap, usePaneReady } from "./paneReveal";
 
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
@@ -28,7 +28,7 @@ function Host({ open, overMap, ready }: { open: boolean; overMap: boolean; ready
   return (
     <>
       <Text testID="state">{`${open ? "open" : "browse"} ${pane.holding ? "held" : "shown"}`}</Text>
-      {open && <PaneReadyContext.Provider value={pane.holding ? pane.ready : null}><View ready={ready} /></PaneReadyContext.Provider>}
+      {open && <PaneReadyContext.Provider value={pane.hold}><View ready={ready} /></PaneReadyContext.Provider>}
     </>
   );
 }
@@ -36,7 +36,7 @@ function View({ ready }: { ready: boolean }) { usePaneReady(ready); return null;
 const state = () => screen.getByTestId("state").textContent;
 
 describe("(T498) the hold: a pane opened over the map waits, hidden, until it is whole", () => {
-  it("held from the very render that opens it, shown when the view says ready; never held at a landing or not over the map", () => {
+  it("held from the very render that opens it, shown when the view says ready; never held at a landing or not over the map", async () => {
     vi.useFakeTimers();
     const r = render(<Host open={false} overMap ready={false} />);
     r.rerender(<Host open overMap ready={false} />);
@@ -44,6 +44,7 @@ describe("(T498) the hold: a pane opened over the map waits, hidden, until it is
     act(() => { vi.advanceTimersByTime(PANE_HOLD_MS - 50); });
     expect(state()).toBe("open held");
     r.rerender(<Host open overMap ready />);
+    await act(async () => {});                        // (T508) read once the commit's effects have all run
     expect(state()).toBe("open shown");
     // back to the map, and open again over a spot (no map shown): not held
     r.rerender(<Host open={false} overMap ready={false} />);
@@ -59,6 +60,61 @@ describe("(T498) the hold: a pane opened over the map waits, hidden, until it is
     vi.useFakeTimers();
     const r = render(<Host open={false} overMap ready={false} />);
     r.rerender(<Host open overMap ready={false} />);
+    act(() => { vi.advanceTimersByTime(PANE_HOLD_MS); });
+    expect(state()).toBe("open shown");
+  });
+});
+
+/** (T508) a pane with a live map: its view's word, and the map's own (armed once the view hands it its part) */
+let drawMap: (() => void) | undefined;
+function MapPart({ armed }: { armed: boolean }) { drawMap = usePaneMap(armed); return null; }
+function MapHost({ open, ready, armed, map = true }: { open: boolean; ready: boolean; armed: boolean; map?: boolean }) {
+  const pane = usePaneHold(open, true);
+  return (
+    <>
+      <Text testID="state">{`${open ? "open" : "browse"} ${pane.holding ? "held" : "shown"}`}</Text>
+      {open && <PaneReadyContext.Provider value={pane.hold}><View ready={ready} />{map && <MapPart armed={armed} />}</PaneReadyContext.Provider>}
+    </>
+  );
+}
+
+describe("(T508) every part of the pane says it is in: the view's content AND each live map in it", () => {
+  it("a view whose content is in but whose map has not drawn stays held; the map drawn, it is shown", async () => {
+    vi.useFakeTimers();
+    const r = render(<MapHost open={false} ready={false} armed={false} />);
+    r.rerender(<MapHost open ready={false} armed={false} />);
+    await act(async () => {});
+    expect([state(), drawMap]).toEqual(["open held", undefined]);   // not armed: the map's first draw of nothing never counts
+    r.rerender(<MapHost open ready armed />);
+    await act(async () => {});
+    expect(state()).toBe("open held");                // the content is in, the map has not drawn its part
+    expect(typeof drawMap).toBe("function");
+    await act(async () => { drawMap!(); });
+    expect(state()).toBe("open shown");
+  });
+
+  it("the map drawn first and the content after: shown on the content; a pane with nothing to wait for is shown at once", async () => {
+    vi.useFakeTimers();
+    const r = render(<MapHost open={false} ready={false} armed />);
+    r.rerender(<MapHost open ready={false} armed />);
+    await act(async () => { drawMap!(); });
+    expect(state()).toBe("open held");
+    r.rerender(<MapHost open ready armed />);
+    await act(async () => {});
+    expect(state()).toBe("open shown");
+    cleanup();
+    const q = render(<MapHost open={false} ready={false} armed map={false} />);
+    q.rerender(<MapHost open ready armed map={false} />);
+    await act(async () => {});
+    expect(state()).toBe("open shown");
+  });
+
+  it("a map that never draws: shown after PANE_HOLD_MS (its own loading face), never a map that ignores the reader", async () => {
+    vi.useFakeTimers();
+    const r = render(<MapHost open={false} ready={false} armed />);
+    r.rerender(<MapHost open ready armed />);
+    await act(async () => {});
+    expect(state()).toBe("open held");
     act(() => { vi.advanceTimersByTime(PANE_HOLD_MS); });
     expect(state()).toBe("open shown");
   });
@@ -100,8 +156,10 @@ describe("(T498) the Regulations view says ready only once it is drawn whole", (
   it("what it draws at its ready is what it draws when everything is in (Salmon card, access notices)", async () => {
     let atReady: string | null = null;
     const say = () => { atReady ??= screen.queryByTestId("regs-view")?.textContent ?? "(no page)"; };
+    // the page's one wait: said in when it ends
+    const hold = { wait: () => say };
     render(
-      <PaneReadyContext.Provider value={say}>
+      <PaneReadyContext.Provider value={hold}>
         <WaterScreen source={source} loader={slow} item={C} section={TAP} part={2} day={DAY} palette={LIGHT} />
       </PaneReadyContext.Provider>);
     await until(() => atReady !== null);

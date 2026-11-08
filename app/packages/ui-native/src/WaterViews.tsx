@@ -32,6 +32,7 @@ import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
 import { WaterFrame, WaterTitle } from "./WaterFrame";
 import { BasinDays } from "./BasinDays";
+import { usePaneReady } from "./shell/paneReveal";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
                                   credits, horizon, onHorizon, loader = null, part = null, stretch }: {
@@ -88,6 +89,10 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const basin = useWaterBasin(source, { item, tapSid, at: from ?? null }, section !== null);
   const days = useBasinDays({ source, feed, basin, for: "water", quantity: parameter ?? "discharge",
                               horizon: horizon ?? 0, enabled: section !== null });
+
+  // (T508) DRAWN WHOLE, this view's own part: the reach known (or why not), the place label and the access notices, the
+  // watershed group's days — the panel says its own (`ConditionsPanel`), and its maps theirs (`MiniMap`)
+  usePaneReady(section === null ? !waiting : where.settled && days.state !== "loading");
 
   return (
     <WaterFrame palette={palette} face="conditions" title={<WaterTitle name={name} palette={palette} />}>

@@ -224,3 +224,30 @@ describe("the conditions panel in a water's views", () => {
     expect(release.mock.calls).toEqual([[-120, 0, 0]]);
   });
 });
+
+describe("(T508) the panel says it is drawn whole only once its first answers are in", () => {
+  it("held while the reading, the routes and the chart come in late; at its word, what it draws is what it keeps", async () => {
+    const { PaneReadyContext } = await import("./shell/paneReveal");
+    const late = <T,>(ms: number, v: T) => new Promise<T>((ok) => setTimeout(() => ok(v), ms));
+    const base = sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below", at: "2026-09-04T06:00:00Z" }, PANEL);
+    const source = { ...base,
+      gaugeNow: (...a: unknown[]) => late(150, null).then(() => (base.gaugeNow as (...x: unknown[]) => unknown)(...a)),
+      panelRoutes: (...a: unknown[]) => late(250, null).then(() => (base.panelRoutes as (...x: unknown[]) => unknown)(...a)),
+    } as unknown as WaterSource;
+    let waits = 0, atWord: string | null = null;
+    const hold = { wait: () => { waits += 1; return () => { atWord ??= document.body.textContent ?? ""; }; } };
+    render(
+      <PaneReadyContext.Provider value={hold}>
+        <ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={new Date(2026, 8, 4, 12)} />
+      </PaneReadyContext.Provider>);
+    expect(waits).toBeGreaterThan(0);                  // it waits from its first draw
+    await waitFor(() => expect(atWord).not.toBeNull(), { timeout: 10_000 });
+    expect(atWord).toContain("12.5");                  // the reading was in at its word
+    // settled: the text unchanged for 500 ms after the last late answer (routes at 250 ms)
+    let was = "", since = Date.now();
+    await waitFor(() => { const now = document.body.textContent ?? "";
+                          if (now !== was) { was = now; since = Date.now(); } expect(Date.now() - since).toBeGreaterThan(500); },
+                  { timeout: 10_000, interval: 50 });
+    expect(atWord).toBe(document.body.textContent);
+  }, 20_000);
+});

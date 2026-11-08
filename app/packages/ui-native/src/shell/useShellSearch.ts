@@ -102,9 +102,11 @@ export function useShellSearch({ source, nav, camera, recentStore }: {
                                     reportFailure);   // (T368) not framed: reported
     }
     searchMoved.current = false;            // the camera from before search is not put back: the water is the subject
-    recents.push(searchMemory.q);
-    setSearchMemory(NO_SEARCH);             // the search is consumed, its text with it
-    void opener.searched(id);
+    // (T508) the search is consumed, its text with it — ONCE THE WATER HAS OPENED (the opener first asks whether it is
+    // solo): consumed before, the browse screen drew one more screen between the results and the pane (the field
+    // emptied, the recent searches, the water's outline gone), and only then was the opened pane held over it
+    const q = searchMemory.q;
+    void opener.searched(id).then(() => { recents.push(q); setSearchMemory(NO_SEARCH); }, reportFailure);
   };
   /**
    * (T269, owner 2026-10-29) THE PAGE STARTED ON A WATER (a `/water/<slug>` page, a start link) or at one (`?show=`):

@@ -92,3 +92,20 @@ export function useRegion({ map }: WebMapRefs, onRegion: MapProps["onRegion"]) {
     return () => { m.off("idle", report); };
   }, [onRegion !== undefined]);
 }
+
+/**
+ * (T508) `onDrawn` on the web: each `idle` (every tile in, no camera move running), and at once when the map is already
+ * settled as someone starts listening — see `MapProps.onDrawn`.
+ */
+export function useDrawn({ map }: WebMapRefs, onDrawn: MapProps["onDrawn"]) {
+  const cb = useRef(onDrawn);
+  cb.current = onDrawn;
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !onDrawn) return;
+    const say = () => cb.current?.();
+    m.on("idle", say);
+    if (m.loaded()) say();
+    return () => { m.off("idle", say); };
+  }, [onDrawn !== undefined]);  // eslint-disable-line react-hooks/exhaustive-deps
+}

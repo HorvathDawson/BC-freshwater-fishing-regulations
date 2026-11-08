@@ -562,3 +562,49 @@ describe("<WaterMapView>", () => {
     }, 60_000);
   });
 });
+
+describe("(T508) a water's Map view held over the browse map is shown only once its map has drawn its part", () => {
+  it("held while the part loads and while its map draws it; shown on the map's word, which it is never handed before " +
+     "the part (a first draw of nothing does not count)", async () => {
+    const { PaneReadyContext, usePaneHold } = await import("../shell/paneReveal");
+    const handed: (MapProps["onDrawn"])[] = [];
+    function Held({ open }: { open: boolean }) {
+      // as the Shell: the hold derived from a browse → water change made over the map
+      const pane = usePaneHold(open, true);
+      return (
+        <>
+          <span data-testid="state">{!open ? "browse" : pane.holding ? "held" : "shown"}</span>
+          {open && <PaneReadyContext.Provider value={pane.hold}>
+            <WaterMapView loader={loader} item={"gnis:8634" as ItemId} part={1} tapSid={null} palette={LIGHT} map={MAP}
+                          onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />
+          </PaneReadyContext.Provider>}
+        </>
+      );
+    }
+    const r = render(<Held open={false} />);
+    r.rerender(<Held open />);
+    const state = () => screen.getByTestId("state").textContent;
+    await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
+    handed.push(seen.props?.onDrawn);
+    expect(lit().highlight.length).toBeGreaterThan(0);
+    expect(state()).toBe("held");                      // the bar is in; the map has not drawn the part
+    expect(typeof handed[0]).toBe("function");
+    await act(async () => { seen.props!.onDrawn!(); });
+    expect(state()).toBe("shown");
+  }, 30_000);
+
+  it("the map is handed no `onDrawn` while the part is still loading", async () => {
+    const { PaneReadyContext } = await import("../shell/paneReveal");
+    const hold = { wait: () => () => {} };
+    render(
+      <PaneReadyContext.Provider value={hold}>
+        <WaterMapView loader={loader} item={"gnis:8634" as ItemId} part={1} tapSid={null} palette={LIGHT} map={MAP}
+                      onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}} onCross={() => {}} />
+      </PaneReadyContext.Provider>);
+    // the first render of the view: no view model yet, nothing lit, no word to give
+    expect(seen.props?.highlight ?? []).toEqual([]);
+    expect(seen.props?.onDrawn).toBeUndefined();
+    await waitFor(() => expect(seen.props?.onDrawn).toBeTypeOf("function"), { timeout: 20_000 });
+    expect(lit().highlight.length).toBeGreaterThan(0);
+  }, 30_000);
+});

@@ -30,6 +30,7 @@ import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
 import { useGuideControl } from "../guideControls";
+import { usePaneMap, usePaneReady } from "../shell/paneReveal";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
@@ -89,11 +90,16 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable
     : wm.state === "loading" || store.state === "loading" ? WATER_MAP_WORDS.loading
     : vm === null ? WATER_MAP_WORDS.unavailable : null;
+  // (T508) DRAWN WHOLE: the bar with the part's view model (or the words that say it is unavailable), and the map
+  // with that part lit and framed (`usePaneMap`, armed only once the view model hands the map its part: a first draw of
+  // nothing never counts) — what a pane held over the browse map waits for (`shell/paneReveal.ts`)
+  usePaneReady(status !== WATER_MAP_WORDS.loading);
+  const onDrawn = usePaneMap(vm !== null || status === WATER_MAP_WORDS.unavailable);
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }} testID="water-map">
       <View style={{ flex: 1 }}>
-        <MapScreen palette={palette} {...map}
+        <MapScreen palette={palette} {...map} onDrawn={onDrawn}
                    highlight={vm?.selected ?? []}
                    water={vm?.water ?? []}
                    // (T175) the whole water's line at every zoom, and it opens no further out than its first zoom

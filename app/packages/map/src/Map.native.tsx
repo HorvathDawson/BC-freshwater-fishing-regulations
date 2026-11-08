@@ -105,7 +105,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch, insetBottom = 0, onOpenLink }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0, onOpenLink, onDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -298,6 +298,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // THE SELECTION: only the highlight's keys (`selected`, and the rest of the water's `water`) are cleared, per
   // feature, from the ids lit last time
   const wasLit = useRef<SectionKey[]>([]);
+  /** (T508) what the lit effect last wrote (`litText` at the style generation it wrote into), for `onDrawn` */
+  const litWritten = useRef<string | null>(null);
   // (T499) keyed on WHAT is lit (`litKey`), never on the arrays: the same ids in new arrays (a caller's re-render) clear
   // nothing and light nothing — on a phone that clear and relight drew a frame with the water unlit
   const litText = litKey(highlight, water, selection, near);
@@ -309,6 +311,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     panProbe.src("lit");
     adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])], selection, [...(near ?? [])]);
     wasLit.current = [...highlight, ...(water ?? []), ...(near ?? [])];
+    litWritten.current = `${litText}|${gen}`;
   }, [litText, selection, gen, styled, drawn, report, renderer]);
 
   /*
@@ -358,10 +361,44 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     camProbe.copy("copydraw", { zoom: camNow.current.zoom, both: [...byCopy].filter((id) => byAtlas.has(id)).sort(),
                                 copyOnly: [...byCopy].filter((id) => !byAtlas.has(id)).sort() });
   });
+  /*
+   * (T508) DRAWN WHOLE (`MapProps.onDrawn`): a full render that came after the style loaded, after the sections handed
+   * to light were written into it, and with the camera at rest where the fit sent it. Re-read at every full render (a
+   * ref, refreshed each render of this map); said once per lit + fit pair, and at once to a listener that arrives after.
+   */
+  const whole = useRef(() => {});
+  const wholeSaid = useRef<string | null>(null);
+  const drawnNow = useRef(onDrawn);
+  drawnNow.current = onDrawn;
+  const wholeKey = `${litText}|${fit?.key ?? ""}`;
+  whole.current = () => {
+    // (test bed only, the open probe's build) why a full render was or was not the whole one
+    const why = !styledNow.current || !rendered.current ? "unstyled"
+      : highlight && litWritten.current !== `${litText}|${gen}` ? "unlit"
+      : fit && (fitted.current !== fit.key || fitMoving.current) ? "moving" : null;
+    if (drawnNow.current && (globalThis as { __openProbe?: boolean }).__openProbe)
+      console.log(`[whole] ${JSON.stringify({ t: clockNow(), why: why ?? "whole", h: size.current.height })}`);
+    if (why) return;
+    wholeSaid.current = wholeKey;
+    drawnNow.current?.();
+  };
+  const styledNow = useRef(styled);
+  styledNow.current = styled;
+  useEffect(() => { if (onDrawn && wholeSaid.current === wholeKey) onDrawn(); }, [onDrawn, wholeKey]);
+  /*
+   * (T508, emulator) MapLibre Native's "map fully rendered" (`onRendered`) came ONCE, at the map's first draw: the fit's
+   * glide and the lit sections after it drew frames with every tile in, but no second "map fully rendered" — a held
+   * Fraser waited out its whole hold. So while someone waits (`onDrawn`, not yet said for these props) the map also hears
+   * each frame (`lastFull`: whether the last one had every tile in), and a camera coming to rest after a full frame is
+   * whole at once.
+   */
+  const wantWhole = !!onDrawn && wholeSaid.current !== wholeKey;
+  const lastFull = useRef(false);
   const onRendered = useCallback(() => {
     panProbe.src("idle");               // (T499) a full render (MapLibre's "map idle")
     rendered.current = true;
     setDrawn(true);
+    whole.current();
     void reportVisible();
     void refine.current?.().catch(report);
     void keepCopy.current?.().catch(report);
@@ -471,6 +508,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   /** (T443) frame the current fit's box again (the map's size changed), and whether the reader has moved the camera */
   const refit = useRef<(() => void) | null>(null);
   const fitTouched = useRef(false);
+  /** (T508) a fit (or refit) sent and the camera not yet at rest from it: the map is not drawn whole (`onDrawn`) */
+  const fitMoving = useRef(false);
+  const fitSentAt = useRef(0);
+  const fitGlide = useRef(0);
+  const fitDone = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (fitDone.current) clearTimeout(fitDone.current); }, []);
   // (T303) My location: the camera goes to the fix each time the button asks and, while following, to each new fix (as
   // the web's `useMe`). The dot is ours (`me.ts`), not MapLibre's UserLocation, which drew nothing on Android.
   const centred = useRef(0);
@@ -512,6 +555,15 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const { width, height } = size.current;
       const p = Math.max(8, Math.round(Math.min(56, (width || 400) * 0.12, (height || 800) * 0.12)));
       moved = true;
+      // (T508) moving until the glide's time is up: the camera's first settle report right after a fit is sent is the
+      // camera it starts from (emulator: 4 ms after the fit, the glide itself 450 ms on); a glide that goes nowhere (the
+      // camera already there) reports no settle, so its time running out ends it too
+      const glide = cameraMs(450);
+      fitMoving.current = true;
+      fitSentAt.current = clockNow();
+      fitGlide.current = glide;
+      if (fitDone.current) clearTimeout(fitDone.current);
+      fitDone.current = setTimeout(() => { fitDone.current = null; fitMoving.current = false; if (lastFull.current) whole.current(); }, glide + 100);
       camProbe.move(rounds ? "refine" : "fit", rounds, height);
       // the binding's fitBounds has no maxZoom, and the camera now goes to z18: widen the box to what the limit shows
       // (T443) a function of the box and the map's size only: a part is framed the same however it was reached
@@ -650,6 +702,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => { void shiftMarks(); }, [JSON.stringify(marks ?? []), shiftMarks]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const onRegionDidChange = useCallback((e: RegionEvent) => {
+    // (T508) the fit's glide at its end (not the camera it started from), and the last frame drawn had every tile in
+    if (fitMoving.current && clockNow() - fitSentAt.current >= fitGlide.current * 0.8) fitMoving.current = false;
+    if (lastFull.current) whole.current();
     probe?.settled();
     panProbe.settled();
     const ne = e.nativeEvent;          // before anything async, as with a press
@@ -676,6 +731,8 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     // the last one saw (the step back to a part already drawn)
     settleAsk.current = setTimeout(() => {
       settleAsk.current = null; void reportVisible();
+      // (T508) a settle over tiles already held draws no full render (T348): at rest, nothing more is coming
+      whole.current();
       void keepCopy.current?.().catch(report)
         .then(() => { if (camProbe.on()) setTimeout(() => void copyDraw.current().catch(report), 400); });
     }, SETTLE_ASK_MS);
@@ -756,9 +813,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         onLongPress={onLongPress ? onLongPressed as never : undefined}
         onRegionDidChange={onRegionDidChange as never}
         onRegionWillChange={probe || me?.on || PAN_PROBE ? ((e: RegionEvent) => { probe?.moving(); panProbe.moving(); onRegionWillChange(e); }) as never : undefined}
-        onDidFinishRenderingFrame={probe || PAN_PROBE ? (() => { probe?.frame(); panProbe.frame(false); }) as never : undefined}
-        // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"
-        onDidFinishRenderingFrameFully={PAN_PROBE ? (() => panProbe.frame(true)) as never : undefined}
+        onDidFinishRenderingFrame={probe || PAN_PROBE || wantWhole
+          ? (() => { lastFull.current = false; probe?.frame(); if (PAN_PROBE) panProbe.frame(false); }) as never : undefined}
+        // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"; (T508) and while someone
+        // waits for this map to be drawn whole, each such frame is asked whether it is the whole one
+        onDidFinishRenderingFrameFully={PAN_PROBE || wantWhole
+          ? (() => { lastFull.current = true; if (PAN_PROBE) panProbe.frame(true); whole.current(); }) as never : undefined}
         onDidFinishLoadingStyle={onStyle}
         onDidFinishRenderingMapFully={onRendered}
         // an empty map and a map whose tiles failed look the same: say so

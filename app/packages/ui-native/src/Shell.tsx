@@ -52,6 +52,7 @@ import { ShellSheets } from "./shell/ShellSheets";
 import { useSpotEdit } from "./shell/useSpotEdit";
 import { WaterModeHost } from "./shell/WaterModeHost";
 import { PaneReadyContext, usePaneHold } from "./shell/paneReveal";
+import { holdsView } from "./shell/holdViews";
 import type { ShellProps } from "./shell/props";
 import { HOME, useMapColouring } from "./shell/useMapColouring";
 import { useShellNav } from "./shell/useShellNav";
@@ -79,8 +80,13 @@ export type { ShellProps } from "./shell/props";
 
 /** (owner 2026-10-29) the map readied behind a landing's water: the whole box, unseen (painted, not shown) */
 const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 } as const;
-/** (T498) A HELD PANE: laid out at its final size, beside the screen rather than over the browse map's surface. */
-const HELD = { ...BEHIND, transform: [{ translateX: 100_000 }] } as const;
+/**
+ * (T498) A HELD PANE: laid out at its final size, beside the screen rather than over the browse map's surface. (T508)
+ * Its FINAL size: while held, the frozen tab bar still takes its row under the body, and a pane shown grows into it —
+ * the water's map then framed its part again, visibly, after it was shown (emulator: map 334 → 389 dp, a second fit).
+ * So the held pane (`heldStyle`) hangs `tabsH` below the body, the height it will have once shown.
+ */
+const heldStyle = (tabsH: number) => ({ ...BEHIND, bottom: -tabsH, transform: [{ translateX: 100_000 }] }) as const;
 
 /** (T293) The Conditions tour's gauge: of the bigger-river gauges, the nearest to the camera, with its catchment's area. */
 async function nearGauge(source: ShellProps["source"], at: Camera): Promise<{ lon: number; lat: number; km2: number } | null> {
@@ -184,6 +190,8 @@ export function Shell(p: ShellProps) {
   /** (T199) The section a tap asked about under Run timing (its runs sheet), else null. */
   // (T275) the foot block's height, for the credits and scale above it
   const [footH, setFootH] = useState(0);
+  /** (T508) the tab bar's height, last measured: the row a held pane will grow into once shown (`heldStyle`) */
+  const [tabsH, setTabsH] = useState(0);
   const [runsAt, setRunsAt] = useState<number | null>(null);
   /** (T369 D15) where on that section the Runs tap landed: the water it opens is that tap's */
   const [runsPoint, setRunsPoint] = useState<{ lat: number; lon: number } | null>(null);
@@ -555,11 +563,10 @@ export function Shell(p: ShellProps) {
   const dayFlow = useDayFlow(shownVisit, p.onDayFlow, connectivity);
   const withInSeason = (n: React.ReactNode) => <InSeasonContext.Provider value={inSeason}>{n}</InSeasonContext.Provider>;
   // (T498) A PANE OPENED OVER THE MAP IS BUILT HIDDEN and shown whole (`shell/paneReveal.ts`): held only when the last
-  // screen committed was the browse body (a map or a list tab), never over a spot or the add flow, never at a landing —
-  // and only for the Regulations view: the Conditions and Map views carry a map of their own, and two live maps over a
-  // hold crashed MapLibre's render thread on the emulator (SIGSEGV as the browse map was let go)
+  // screen committed was the browse body (a map or a list tab), never over a spot or the add flow, never at a landing.
+  // (T508) Every view on a phone: the Conditions and Map views wait for their own live maps to draw too (`holdViews`)
   const browseShown = useRef(false);
-  const pane = usePaneHold(frame !== null && !nav.carrying, browseShown.current && frame?.view === "regs");
+  const pane = usePaneHold(frame !== null && !nav.carrying, browseShown.current && !!frame && holdsView(frame.view));
   // (T498) while a pane is held, the screen is the one the reader left, AS IT WAS: the elements of the last browse
   // render (the map, and the search bar, the map's foot and the tab bar over it), so the route's change (a search
   // consumed, the water's fit, the bars a water hides) reaches none of them under the hold — the screen changes once
@@ -691,9 +698,9 @@ export function Shell(p: ShellProps) {
           pointerEvents={frame === null ? "auto" : "none"} aria-hidden={frame !== null && !pane.holding}>{browse}</View>
   );
   const waterView = water && (
-    <View key="water" collapsable={false} style={pane.holding ? HELD : { flex: 1 }} pointerEvents={pane.holding ? "none" : "auto"}
+    <View key="water" collapsable={false} style={pane.holding ? heldStyle(held?.tabs ? tabsH : 0) : { flex: 1 }} pointerEvents={pane.holding ? "none" : "auto"}
           aria-hidden={pane.holding}>
-      <PaneReadyContext.Provider value={pane.holding ? pane.ready : null}>{water}</PaneReadyContext.Provider>
+      <PaneReadyContext.Provider value={pane.hold}>{water}</PaneReadyContext.Provider>
     </View>
   );
   const body = <View style={{ flex: 1 }}>{browseView}{waterView}</View>;
@@ -737,7 +744,8 @@ export function Shell(p: ShellProps) {
         </View>
       </View>
       {/* A tab change is a change of subject: the remembered reach goes with it. Hidden in water mode (P13/P14). */}
-      {chrome.tabs && <View collapsable={false} pointerEvents={held ? "none" : "auto"}>{chrome.tabs}</View>}
+      {chrome.tabs && <View collapsable={false} pointerEvents={held ? "none" : "auto"}
+                            onLayout={(e) => setTabsH(Math.round(e.nativeEvent.layout.height))}>{chrome.tabs}</View>}
       {/* (T215) the synopsis PDF is loading / failed: progress, Cancel, Retry */}
       <SynopsisLoading palette={palette} floating />
       {/* (T354) the rule book itself, in the app (native; the web opens the browser's tab) */}

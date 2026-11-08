@@ -30,6 +30,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { LoadingState } from "./LoadingState";
+import { usePaneReady } from "./shell/paneReveal";
 import { DonorPanel, donorTone, rampAt } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
@@ -158,6 +159,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   useGuideControl("cond:span", span, setSpan);
   const coachScroll = useCoachScroller();
   const readingRing = useCoachTarget("cond:reading"), chartRing = useCoachTarget("cond:chart");
+
+  // (T508) DRAWN WHOLE: every first answer in (who speaks, the panel and its routes, the reading), and the chart's —
+  // its quantities known, its record drawn (not loading, not the last chart dimmed while the next loads). What a pane
+  // held over the browse map waits for (`shell/paneReveal.ts`), beside the route map's own draw (`MiniMap`).
+  usePaneReady(vm.settled && (station === null || (known && chart.state !== "loading" && !(chart.state === "ready" && chart.value?.pending))));
 
   if (vm.loading)
     return (

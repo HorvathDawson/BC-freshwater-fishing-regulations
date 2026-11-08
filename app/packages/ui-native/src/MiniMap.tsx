@@ -13,6 +13,7 @@ import { Text } from "./Text";
 import { Map, type Camera, type MapProps, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
 import { useSwipeShield } from "./ViewSwipe";
+import { usePaneMap } from "./shell/paneReveal";
 import type { Palette } from "./theme";
 
 /**
@@ -53,12 +54,14 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "plai
 }) {
   // A MAP PANS: inside a water's view swipe, a drag that starts on it is the map's (see ViewSwipe)
   const shield = useSwipeShield();
+  // (T508) in a held pane (a water's Conditions view opened over the map), the pane waits for this map to draw
+  const onDrawn = usePaneMap();
   return (
     <View {...shield} style={[style ? null : { height },
                   { backgroundColor: palette.tint, overflow: "hidden" }, OWN_TOUCHES, style]}>
       <Map at={at} theme={theme} view={view} initial={camera} standing={standing}
            highlight={highlight} marker={marker} pins={pins} bare={bare} groups={groups}
-           fit={fit} basemap={basemap} trace={trace} zoomControls={zoomControls} waterLine={waterLine} />
+           fit={fit} basemap={basemap} trace={trace} zoomControls={zoomControls} waterLine={waterLine} onDrawn={onDrawn} />
       {hint && (
         <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: palette.r.pill,
                        paddingVertical: 7, paddingHorizontal: 13,

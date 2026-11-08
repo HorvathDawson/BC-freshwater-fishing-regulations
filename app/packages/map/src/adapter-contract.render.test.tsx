@@ -752,6 +752,71 @@ it("no listener, no long press: the binding is handed no handler (its long press
     await waitFor(() => expect(log).toEqual([...status, ...selected(311274, true)]));
     expect(native.props!.mapStyle).not.toBe(style1);
   });
+  it("(T508) says it is drawn whole only after a full render that follows the lit sections written AND the fit's camera " +
+     "at rest — never at its first draw (a held pane is shown on this word)", async () => {
+    native.holdRender = true;
+    const drawn = vi.fn();
+    const full = () => act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });
+    const rest = () => act(() => {
+      (native.props!.onRegionDidChange as (e: unknown) => void)({ nativeEvent: { center: [-122, 49], zoom: 12 } });
+    });
+    const fit = { key: "part", bbox: [-122.1, 48.9, -121.9, 49.1] as const };
+    let t = 1_800_000_000_000;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => t);
+    const r = render(<NativeMap {...base({ fit, onDrawn: drawn })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("fit "))).toBe(true));
+    full();                                            // the first draw: the gate opens, the selection is written after it
+    await waitFor(() => expect(log.some((l) => l.includes('"selected"'))).toBe(true));
+    expect(drawn).not.toHaveBeenCalled();             // the fit is still on its way
+    rest();                                            // (emulator) the camera it STARTS from, reported as the fit is sent
+    full();                                            // a full render mid-flight: still not whole
+    expect(drawn).not.toHaveBeenCalled();
+    t += 500;                                          // the glide's time is up
+    rest();                                            // the camera arrives…
+    expect(drawn).not.toHaveBeenCalled();
+    full();                                            // …and the map draws what is there: whole
+    expect(drawn).toHaveBeenCalledTimes(1);
+    // a new part to light: not whole again until it is written and drawn
+    drawn.mockClear();
+    r.rerender(<NativeMap {...base({ fit, onDrawn: drawn, highlight: [5] })} />);
+    await act(async () => {});
+    expect(drawn).not.toHaveBeenCalled();
+    full();
+    expect(drawn).toHaveBeenCalledTimes(1);
+    // a listener that arrives after the map was drawn whole hears it at once
+    const late = vi.fn();
+    r.rerender(<NativeMap {...base({ fit, onDrawn: late, highlight: [5] })} />);
+    await act(async () => {});
+    expect(late).toHaveBeenCalledTimes(1);
+    clock.mockRestore();
+  });
+  it("(T508, emulator) no second 'map fully rendered' after the fit's glide: a camera at rest after a frame with every " +
+     "tile in is whole; the frames are heard only while someone waits", async () => {
+    native.holdRender = true;
+    const drawn = vi.fn();
+    const fit = { key: "part", bbox: [-122.1, 48.9, -121.9, 49.1] as const };
+    let t = 1_800_000_000_000;
+    const clock = vi.spyOn(Date, "now").mockImplementation(() => t);
+    const r = render(<NativeMap {...base({ fit, onDrawn: drawn })} />);
+    await waitFor(() => expect(log.some((l) => l.startsWith("fit "))).toBe(true));
+    act(() => { (native.props!.onDidFinishRenderingMapFully as () => void)(); });   // the one "fully rendered"
+    await waitFor(() => expect(log.some((l) => l.includes('"selected"'))).toBe(true));
+    const frame = (full: boolean) => act(() => {
+      ((full ? native.props!.onDidFinishRenderingFrameFully : native.props!.onDidFinishRenderingFrame) as () => void)();
+    });
+    frame(true);                                       // mid-glide, every tile in: not at rest
+    frame(false);                                      // the last frame before rest still loading
+    t += 500;
+    act(() => { (native.props!.onRegionDidChange as (e: unknown) => void)({ nativeEvent: { center: [-122, 49], zoom: 12 } }); });
+    expect(drawn).not.toHaveBeenCalled();
+    frame(true);                                       // the tiles in, at rest: whole
+    expect(drawn).toHaveBeenCalledTimes(1);
+    // nobody waiting: the frames are not sent across the bridge
+    r.rerender(<NativeMap {...base({ fit })} />);
+    await act(async () => {});
+    expect(native.props!.onDidFinishRenderingFrameFully).toBeUndefined();
+    clock.mockRestore();
+  });
   it("queries nothing until the map has drawn (Android SIGSEGVs in MapRenderer::actor() before that)", async () => {
     native.holdRender = true;
     const press = vi.fn();

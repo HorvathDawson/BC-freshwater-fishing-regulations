@@ -37,7 +37,7 @@ import { useChannels } from "./web/useChannels";
 import { useFit } from "./web/useFit";
 import { useGauges, useTrace } from "./web/useOverlays";
 import { useWaterCopy } from "./web/useWaterCopy";
-import { useRegion, useVisible } from "./web/useVisible";
+import { useDrawn, useRegion, useVisible } from "./web/useVisible";
 import { useWebMapRefs } from "./web/refs";
 import { useMe } from "./web/useMe";
 import { useFirstSeen } from "./web/firstSeen";
@@ -59,7 +59,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
                       onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, focus, near }: MapProps) {
+                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, focus, near, onDrawn }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -96,6 +96,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   useWaterCopy(refs, { highlight, water, waterLine, at, onError });
   useVisible(refs, onVisible);
   useRegion(refs, onRegion);
+  useDrawn(refs, onDrawn);
   usePressFeature(refs, onPressFeature, onError, onPressObstacle, onPressTidal, onPressNotFishing);
   useHoverCursor(refs, { feature: !!onPressFeature, obstacle: !!onPressObstacle, tidal: !!onPressTidal,
                         notFishing: !!onPressNotFishing, mark: !!onPressMark }, onError);

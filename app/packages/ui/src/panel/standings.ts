@@ -152,9 +152,21 @@ export function usePanel(
   section: SectionId | null,
   quantity: Quantity = "discharge",
   horizon: Horizon = 0,
-  /** (T296) the members whose route crosses a lake (`throughLakeStations`), once walked; null or empty: none known. */
   lakes: ReadonlySet<StationId> | null = null,
 ): PanelAnswer {
+  return usePanelAsk(source, feed, section, quantity, horizon, lakes).value;
+}
+
+/** (T508) `usePanel`, and whether its first answer for this question is still coming (`useConditionsView`'s `settled`). */
+export function usePanelAsk(
+  source: WaterSource,
+  feed: { index(): Promise<Index> } | undefined,
+  section: SectionId | null,
+  quantity: Quantity = "discharge",
+  horizon: Horizon = 0,
+  /** (T296) the members whose route crosses a lake (`throughLakeStations`), once walked; null or empty: none known. */
+  lakes: ReadonlySet<StationId> | null = null,
+): { value: PanelAnswer; loading: boolean } {
   // (owner 2026-10-29) the open Conditions view re-reads a feed the update service took, in place
   const v = useFeedVersion("gauges");
   // (T296) a REFRESH of the same question when the lakes arrive (same `sameAs`): the first answer stays until the
@@ -179,7 +191,7 @@ export function usePanel(
   const none = useMemo<PanelAnswer>(
     () => ({ answer: { ok: false, why: "no-station" }, rows: [], areaKm2: null,
              routesReady: false }), []);
-  return got.state === "ready" && got.value ? got.value : none;
+  return { value: got.state === "ready" && got.value ? got.value : none, loading: section !== null && got.state === "loading" };
 }
 
 /**

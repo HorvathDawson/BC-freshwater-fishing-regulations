@@ -250,6 +250,14 @@ export interface MapProps {
    */
   onError?: (e: Error) => void;
   /**
+   * (T508) THE MAP IS DRAWN WHOLE: its style loaded, the sections it was handed to light (`highlight`, `water`, `near`)
+   * written, the camera at rest where `fit` sent it, and a full render after all three (every tile on screen in) — what
+   * a pane held hidden waits for before it is shown (`@app/ui-native` `paneReveal`). Called again after a later draw of
+   * new props (a caller treats a repeat as nothing new). The phone's map; the web's calls it on each `idle` once loaded,
+   * but builds no map while it is unseen (`firstSeen`).
+   */
+  onDrawn?: () => void;
+  /**
    * A raw tapped coordinate, whether or not it hit a feature.
    *
    * Separate from `onPressFeature` because they answer different questions: picking a
