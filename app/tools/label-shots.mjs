@@ -33,6 +33,14 @@ export const PLACES = {
   "hope-lakes": [-121.35, 49.35],
   "fraser-estuary": [-123.1, 49.1],
   "howe-sound": [-123.3, 49.5],
+  // (T493) creeks through small lakes hidden zoomed out; (T489) lake shapes zoomed out — not in the default set
+  "foley-lake": [-121.577, 49.127],
+  "hayward-lake": [-122.367, 49.215],
+  "nahatlatch-lake": [-121.76, 49.98],
+  "morris-lake": [-121.873, 49.316],
+  "hicks-lake": [-121.71, 49.34],
+  "stave-pitt": [-122.45, 49.45],
+  "okanagan-lake": [-119.5, 49.9],
 };
 const DEFAULT_PLACES = ["lower-mainland", "osoyoos", "blaine"];
 

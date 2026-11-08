@@ -20,7 +20,7 @@ import pickle
 from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
-from pipeline.deliver.tiles.layers import BY_NAME, LayerSpec
+from pipeline.deliver.tiles.layers import BY_NAME, LAKE_LINK, LayerSpec
 from pipeline.deliver.bundle.place_names import is_shouting
 from pipeline.deliver.tiles.names import display
 from pipeline.common.fishing_water import not_fishing_kind
@@ -33,8 +33,10 @@ def region_id_of(name) -> str:
     """One spelling of a region's id on every `region` feature: "1" … "8", "7A", "7B" (P18)."""
     return str(name).strip().upper()
 
-def _writer(out_dir: Path, spec: LayerSpec):
-    fh = (out_dir / f"{spec.name}.geojsonl").open("w")
+def _writer(out_dir: Path, spec: LayerSpec, file: str | None = None):
+    """Features of `spec`'s tile layer, written to `<file or spec.name>.geojsonl` (`file`: a layer file drawn INTO
+    another tile layer, `layers.DRAWN_INTO`)."""
+    fh = (out_dir / f"{file or spec.name}.geojsonl").open("w")
     allowed = set(spec.attrs)
     n = 0
     shouting: list[str] = []
@@ -178,9 +180,21 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
         return max(orders) or None, max(mags) or None
 
     spec = BY_NAME["stream"]
-    write, close = _writer(out_dir, spec)
+    _write, close = _writer(out_dir, spec)
+    #: (T493) the first zoom each drawn stream-layer feature is drawn at, for the links through hidden lakes
+    drawn_z: dict[str, int] = {}
+
+    def write(geom: dict, props: dict, minzoom: int, sec: str) -> None:
+        drawn_z[sec] = max(spec.minzoom, min(minzoom, spec.maxzoom))
+        _write(geom, props, minzoom)
+
     ul_spec = BY_NAME["under_lake"]
     ul_write, ul_close = _writer(out_dir, ul_spec)
+    lake_spec = BY_NAME["lake"]
+    link_write, link_close = _writer(out_dir, spec, LAKE_LINK)
+    #: (T493) every lake route kept, in order: (section, route, its under_lake zoom); and each one's lake's first zoom
+    routes: list[tuple[str, object, int]] = []
+    lake_z: dict[str, int] = {}
     # The waterbody outlines, to sanity-check each route against the lake it crosses.
     wb_path = build_dir / "waterbody_polys.pkl"
     if not wb_path.exists():                # P2: no missing-file fallbacks
@@ -236,7 +250,7 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
                      for o in ((e.from_node if e.to_node == sec else e.to_node),) if o in run_zoom]
             write(_to4326(g, tf), {"section_id": sid[sec], "name": owners.label(sec, node),
                                    "ord": ord_},
-                  min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z))
+                  min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z), sec)
             continue
         if _kind(node) != "stream":
             # A lake node's sidecar geometry is the route THROUGH the lake, not the lake.
@@ -259,8 +273,14 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
                 # NOTHING AT ALL — the route has no identity and no size (see layers.py).
                 # It is a construction line: it says the river continues through this lake,
                 # and it is drawn at a small constant width so it cannot be read as river.
-                ul_write(_to4326(g, tf), {},
-                         ladder.zoom_for_area(g.length * g.length, ul_spec.minzoom))
+                # Written after the loop (T493): where the lake is hidden the route is drawn as the creek instead.
+                routes.append((sec, g, ladder.zoom_for_area(g.length * g.length, ul_spec.minzoom)))
+                # (T493) the LAKE's first zoom, exactly as `export_waterbodies` draws it; only a lake that is drawn
+                # with an identity (a polygon, not a ghost under its parts, not "not fishing water") gets a link
+                if (pl is not None and not pl.is_empty and sec not in owners.ghosts
+                        and not getattr(node, "not_fishing", "")):
+                    lake_z[sec] = max(lake_spec.minzoom, min(ladder.zoom_for_area(pl.area, lake_spec.minzoom),
+                                                             lake_spec.maxzoom))
             continue
         write(_to4326(g, tf), {
             # THE HANDLE, not the string — the bundle keys every section table by it, and
@@ -278,15 +298,63 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
             # identity, search and containment are the bundle's (`item_section`, `alias`,
             # `area:` items) — and `_writer` drops what `layers.py` does not list.
             "ord": node.stream_order,
-        }, run_zoom.get(sec) or ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom))
-    n, n_ul = close(), ul_close()
+        }, run_zoom.get(sec) or ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom), sec)
+    # (T493) THE CREEK THROUGH A HIDDEN LAKE: below the lake's first zoom its route is drawn in the STREAM layer under
+    # the LAKE's section id, so the creek has no gap, the stretch wears the lake's status and a tap opens the lake.
+    links = lake_link_zooms(graph, lake_z, drawn_z)
+    geom_of = {sec: g for sec, g, _ in routes}
+    for sec in sorted(links, key=lambda s: sid[s]):                     # DETERMINISM
+        link_write(_to4326(geom_of[sec], tf), {"section_id": sid[sec], "ord": neighbour_weight(sec)[0]},
+                   links[sec], lake_z[sec] - 1)
+    for sec, g, z in routes:
+        # the dotted thread through a lake is drawn only where the lake is (a link draws the route below it)
+        ul_write(_to4326(g, tf), {}, max(z, lake_z[sec]) if sec in links else z)
+    n, n_ul, n_link = close(), ul_close(), link_close()
+    print(f"  lake links     {n_link:>9,}  (a creek through a lake hidden at its zoom, T493)")
     print(f"  stream         {n:>9,}"
           + (f"  ({dropped_outside:,} outside BC, not drawn)" if dropped_outside else "")
           + (f"  ({dropped_tidal:,} tidal, not drawn)" if dropped_tidal else ""))
     print(f"  under_lake     {n_ul:>9,}"
           + (f"  ({dropped_routes:,} dropped: longer than "
              f"{_MAX_ROUTE_OVER_DIAGONAL:g}x their own waterbody)" if dropped_routes else ""))
-    return {"stream": n, "under_lake": n_ul}
+    return {"stream": n, "under_lake": n_ul, LAKE_LINK: n_link}
+
+
+def lake_link_zooms(graph, lake_z: dict[str, int], drawn_z: dict[str, int]) -> dict[str, int]:
+    """(T493, owner 2026-11-07) {lake section: the first zoom its LINK is drawn at} — the lakes a drawn creek runs
+    THROUGH at zooms the lake itself is not drawn at (Foley Lake on Foley Creek: the lake from z10, the creek on both
+    sides from z8). A link is drawn from the first zoom at which water is drawn on BOTH sides — upstream (`up_adj`)
+    and downstream (`down_adj`) — to the zoom before the lake's own (`lake_z`); a lake with drawn water on one side only
+    (a headwater lake, a lake whose inflows all come in later) leaves no gap and gets none.
+
+    THE WATER ON EITHER SIDE MAY BE ANOTHER LAKE (a chain of small lakes on one creek): the walk looks THROUGH it —
+    a neighbouring lake is drawn from its own zoom, or from the zoom the water beyond it is, whichever is first, since
+    below its own zoom it is linked as well, by the same rule. Only lakes are looked through; a section in neither map
+    (a wetland, a lake with no polygon) is water not drawn. `drawn_z`: the first zoom of every stream-layer feature
+    (lines and a stream's own polygons' routes)."""
+    never = 1 << 30
+
+    def side(lake: str, up: bool, path: frozenset) -> int:
+        """The first zoom at which water on that side of `lake` is drawn, looking through lakes (never back through
+        one already on `path`: a loop of lakes ends). Walked afresh per lake, no memo: a memo filled inside a loop
+        would keep the loop's cut-short answer; a chain of lakes is a few long."""
+        edges = graph.up_adj.get(lake, ()) if up else graph.down_adj.get(lake, ())
+        best = never
+        for i in edges:
+            e = graph.edges[i]
+            n = e.from_node if up else e.to_node
+            if n in drawn_z:
+                best = min(best, drawn_z[n])
+            elif n in lake_z and n not in path:
+                best = min(best, lake_z[n], side(n, up, path | {n}))
+        return best
+
+    links: dict[str, int] = {}
+    for lake in sorted(lake_z):                                          # DETERMINISM
+        z = max(side(lake, True, frozenset({lake})), side(lake, False, frozenset({lake})))
+        if z < lake_z[lake]:
+            links[lake] = z
+    return links
 
 
 #: (T299) The zooms a stream name's lines are merged for: one set of lines per zoom, the last one serving every zoom up

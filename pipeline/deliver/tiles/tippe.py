@@ -92,7 +92,7 @@ from pathlib import Path
 import orjson
 
 from pipeline.deliver.tiles import smooth
-from pipeline.deliver.tiles.layers import ALL, BY_NAME, tile_attrs
+from pipeline.deliver.tiles.layers import ALL, BY_NAME, DRAWN_INTO, LAKE_LINK, tile_attrs
 
 #: The last zoom at which the own-pass layers (`OWN_PASS`) ride the per-zoom passes; above it they are built in their
 #: own pass. (Before T419 this was the top of the pre-filtered low band — see the module docstring.)
@@ -139,7 +139,24 @@ SIMPLIFICATION = 10
 #: its course (95th pct ~1.5 px from the true line; at 10, ~2.2 px). The routes through lakes and the water polygons
 #: the streams end on ride the same pass, so a stream's end and the lake's edge stay one shared node.
 WATER_SIMPLIFICATION = 5
-WATER_PASS = ("stream", "under_lake", "lake", "wetland", "tidal_water", "not_fishing_water")
+WATER_PASS = ("stream", LAKE_LINK, "under_lake", "lake", "wetland", "tidal_water", "not_fishing_water")
+
+#: (T489, owner 2026-11-07: "lake polygons lose almost too much shape when zoomed out") THE STANDING WATER'S OWN PASS
+#: AT THE LOW ZOOMS: up to `STILL_WATER_GENTLE_MAX_Z` the lake and wetland polygons leave the water pass for one of their
+#: own at `STILL_WATER_SIMPLIFICATION` (2 units of the 2,048 grid, ~0.5 px) instead of the streams' 5 (~1.25 px, which
+#: is tuned for SMOOTHED lines, `smooth.py`, and cut a lake to a few corners: Pitt Lake was 10 points at z6, Hicks Lake
+#: a 4-corner box at z8, Foley Lake one at z10). MEASURED (lake-only per-zoom passes over the 18,071 lakes drawn by z10,
+#: live layer files 2026-11-07), points kept and the lake layer's bytes, S = 5 -> 2:
+#:     z6   Harrison 28 -> 63    Okanagan 35 -> 81     Pitt 10 -> 22    bytes  10.7 ->  16.7 KB
+#:     z8   Harrison 99 -> 255   Stave 78 -> 174       Hicks 5 -> 11    bytes   112 ->   165 KB
+#:     z10  Harrison 469 -> 1084 Chilliwack 27 -> 67   Foley 5 -> 11    bytes 1,112 -> 1,505 KB
+#: (S = 1 roughly doubled the points again for another +30-70% bytes; 2 is the knee.) Above z10 a lake is drawn big
+#: enough that 5 units keeps its shape and the polygons stay in the water pass, so a stream's mouth on a lake's shore is
+#: a pinned shared node again; below it the shore vertex at a mouth may move by the 0.5 px tolerance, never more.
+#: To go back: STILL_WATER_GENTLE_MAX_Z = 0.
+STILL_WATER_SIMPLIFICATION = 2
+STILL_WATER_GENTLE_MAX_Z = 10
+STILL_WATER_PASS = ("lake", "wetland")
 
 #: (T419) Stream lines below the top zoom are smoothed for the zoom they are drawn at (`smooth.py`): a meander a few
 #: pixels across collapses onto the river's course instead of drawing as a sawtooth. Ids, properties and every shared
@@ -255,6 +272,11 @@ def _copy_layer(src: Path, dst: Path, *, max_minzoom: int | None, id_attr: str |
             f = orjson.loads(line)
             if max_minzoom is not None and f.get("tippecanoe", {}).get("minzoom", 0) > max_minzoom:
                 continue
+            # (T493) nor one that STOPS before it: a pass is fed only what its zoom draws. A feature left in the input
+            # is in the pass's shared-node set even where tippecanoe drops it, and a lake's link (the route, drawn up
+            # to the zoom before its lake) would pin every vertex of the same route in `under_lake` from the lake's zoom.
+            if max_minzoom is not None and f.get("tippecanoe", {}).get("maxzoom", max_minzoom) < max_minzoom:
+                continue
             if id_attr is not None:
                 v = f.get("properties", {}).get(id_attr)
                 if not isinstance(v, int) or isinstance(v, bool) or v < 0:
@@ -274,7 +296,7 @@ def _inputs(files: list[Path], tmp: Path, max_minzoom: int | None) -> tuple[list
     Returns the non-empty inputs and the feature count."""
     out, total = [], 0
     for f in files:
-        spec = BY_NAME[f.stem]
+        spec = BY_NAME[DRAWN_INTO.get(f.stem, f.stem)]      # (T493) a file drawn into another layer takes its spec
         id_attr = spec.attrs[0] if spec.mvt_id else None
         dst = tmp / f.name
         n = _copy_layer(f, dst, max_minzoom=max_minzoom, id_attr=id_attr, spec=spec)
@@ -318,7 +340,7 @@ OWN_PASS_DETAIL = 12
 def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
           name: str = "atlas", verbose: bool = False) -> Path:
     check()
-    files = [layer_dir / f"{s.name}.geojsonl" for s in ALL]
+    files = [layer_dir / f"{n}.geojsonl" for n in [s.name for s in ALL] + list(DRAWN_INTO)]
     files = [f for f in files if f.exists() and f.stat().st_size > 0]
     if not files:
         raise RuntimeError(f"no layer files in {layer_dir}")
@@ -355,7 +377,10 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
                 smooth.smooth_file(stream, z)
             # (T419) two passes per zoom: the WATER (smoothed streams, their routes, the water polygons they end on, so
             # those nodes are still shared) at `WATER_SIMPLIFICATION`, everything else at `SIMPLIFICATION`.
-            groups = (("water", [f for f in zfiles if f.stem in WATER_PASS], WATER_SIMPLIFICATION),
+            # (T489) up to `STILL_WATER_GENTLE_MAX_Z` the lake and wetland polygons are a third pass, at a gentler tolerance.
+            still = STILL_WATER_PASS if z <= STILL_WATER_GENTLE_MAX_Z else ()
+            groups = (("water", [f for f in zfiles if f.stem in WATER_PASS and f.stem not in still], WATER_SIMPLIFICATION),
+                      ("still", [f for f in zfiles if f.stem in still], STILL_WATER_SIMPLIFICATION),
                       ("other", [f for f in zfiles if f.stem not in WATER_PASS], SIMPLIFICATION))
             for tag, gfiles, tol in groups:
                 if not gfiles:
@@ -373,7 +398,9 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 13,
 
         top_dir = Path(tmp) / "top"
         top_dir.mkdir()
-        top_all, _ = _inputs(banded, top_dir, None)
+        # (T493) a lake's link stops the zoom before its lake, so never at the top (no lake starts after it): left in,
+        # its vertices would pin the same route's in `under_lake` (see `_copy_layer`)
+        top_all, _ = _inputs([f for f in banded if f.stem not in DRAWN_INTO], top_dir, None)
         own = [f for f in top_all if f.stem in OWN_PASS]
         top_files = [f for f in top_all if f.stem not in OWN_PASS]
         alone_dir = Path(tmp) / "alone"

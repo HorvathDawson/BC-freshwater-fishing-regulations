@@ -424,6 +424,25 @@ FEATURES: tuple[LayerSpec, ...] = (
 ALL: tuple[LayerSpec, ...] = WATER + ADMIN + LABELS + HYDROLOGY + FEATURES
 BY_NAME = {s.name: s for s in ALL}
 
+#: (T493, owner 2026-11-07) THE CREEK THROUGH A HIDDEN LAKE. Zoomed out, a small lake leaves the map before the creek
+#: through it, and the creek stopped at one shore and started again at the other (Foley Lake on Foley Creek: the lake
+#: from z10, the creek from z8). Below the lake's first zoom its ROUTE (the FWA line through the polygon, the same line
+#: `under_lake` draws dotted once the lake is there) is drawn in the `stream` TILE layer under the LAKE's section id:
+#: the stretch wears the lake's status (feature-state is keyed by the id, and the lake's values go to every
+#: per-section source-layer) and a tap on it opens the lake (the id resolves to the lake's item). It stops the zoom
+#: before the lake is drawn (`tippecanoe.maxzoom`), so at the lake's own zooms nothing changes. No name: the label is the
+#: creek's (`stream_name` is derived from `stream.geojsonl` alone, which never holds a link).
+#:
+#: ITS OWN LAYER FILE, DRAWN INTO `stream`: the layer FILES are read by section (the bundle's section access sums a
+#: section's lines and polygons, `bundle/access.py`; the run-timing base takes a section's first feature), and a
+#: lake's route in `stream.geojsonl` would give the lake a length and a point it does not have. Not in the tile
+#: contract either: the tile has no layer of this name, only more `stream` features (`tippe` reads it with `stream`'s
+#: spec, in the water pass, so its ends stay shared nodes with the creek's).
+LAKE_LINK = "lake_link"
+#: Layer files that carry no layer of their own: {file stem: the tile layer (spec) its features are drawn in}.
+DRAWN_INTO: dict[str, str] = {LAKE_LINK: "stream"}
+assert not set(DRAWN_INTO) & set(BY_NAME), "a file drawn into another layer must not be a layer itself"
+
 assert len({s.name for s in ALL}) == len(ALL), "layer names must be unique"
 
 

@@ -137,6 +137,16 @@ describe("the status channel: what each change does to the map", () => {
     expect(r.take()).toEqual([]);
   });
 
+  it("(T493) a LAKE's id in the stream source-layer (the creek drawn through a hidden lake) wears the LAKE's label", () => {
+    // section 12 is the lake (p2); below its first zoom its route is a `stream` feature with the lake's MVT id
+    const r = rig();
+    r.setTiles([{ stream: [10] }]);
+    r.c.set(r.h, r.target, r.renderer, "status", statusInput({ index: A, day: JUN1 }), "light");
+    r.take();
+    expect(r.c.label(r.target, { stream: [10, 12], lake: [12] })).toBe(2);
+    expect(r.take()).toEqual(['state stream 12 {"p":"p2"}', 'state lake 12 {"p":"p2"}']);
+  });
+
   it("RELEASE SWAP: plain, clear all three source-layers, restore, forget, relabel, then the new day", () => {
     const r = rig();
     r.setTiles([{ stream: [10, 11] }]);

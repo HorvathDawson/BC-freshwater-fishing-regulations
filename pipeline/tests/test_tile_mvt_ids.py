@@ -108,7 +108,8 @@ def test_every_tippecanoe_run_feeds_section_features_with_section_id_as_their_id
                     assert "section_id" not in f["properties"], f"{layer}: the id ships twice: {f}"
                 else:
                     assert "id" not in f, f"{layer} must not get an MVT id: {f}"
-        assert seen & {"stream", "park"}
+        # (T489) the standing water's own pass at the low zooms holds only lakes
+        assert seen & ({"lake"} if "-still." in cmd[cmd.index("-o") + 1] else {"stream", "park"})
     if not bands:
         by = {Path(c[c.index("-o") + 1]).name: (c, fs) for c, fs in runs}
 
