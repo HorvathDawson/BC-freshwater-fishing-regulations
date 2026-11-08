@@ -24,6 +24,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   it already built. Now a flat zoom curve in every mode, plus a test that no paint value changes kind across modes. The
   staging smoke now FAILS on a TypeError instead of warning.
 - **Crash store:** nothing from your phone on 0.6.x; every report is the emulator or the web (T494).
+- **Gate 2 (emulator):** a ~28 min session, 6/6 pass, no crash or ANR. Memory peaks at Conditions (~396 MB), with no
+  growth over 32 tab switches. Your phone session is still the last step of this gate.
+- **T404 (one switch to production) IN REVIEW, merged:** every address comes from one setting (with a guard test). The
+  production deploy scripts refuse without your CONFIRM_PROD. Runbook: handoff/PLAN/release/PRODUCTION.md. Five
+  questions with defaults (Q171–Q175) are at the bottom of the phone-check page.
+- **Running:** T493 + T489 (creek gap, lake shape; tiles built beside, not promoted) and T466 (walkthrough follow-ups).
 
 ## 2026-11-07 night (chat 7): the goal is written down (T495); r-f56b live on staging
 - **Goal (T495):** Play closed testing ON PRODUCTION, good enough for first users. Gates: no wrong regs (T462 audit), no
