@@ -1,6 +1,6 @@
 # T488 — Park borders and fill nearly invisible in light mode
 
-Status: IN REVIEW — PROPOSAL only (nothing applied): two light-mode options below, owner picks; proof pending: owner look at the shots. Was OPEN — owner 2026-11-07 (0.6.9 on the phone).
+Status: IN REVIEW — APPLIED 2026-11-08: Option B colours, width 1.0 (see Decision); proof pending: owner look at shots/T488-applied.png. Was OPEN — owner 2026-11-07 (0.6.9 on the phone).
 
 Owner: "In light mode the park boundaries and color are impossible to see." Park borders show from z11 (chat 5 change).
 
@@ -10,7 +10,14 @@ Owner: "In light mode the park boundaries and color are impossible to see." Park
   inside the colour-blind gate (T467 discussion) and below the regulation colours in the hierarchy.
 - Knobs: app/packages/map/style/layers.source.json (park layers).
 
-## Proposal (2026-11-08) — nothing applied
+## Decision (owner 2026-11-08) — APPLIED
+Owner 2026-11-08: B, colours only, width 1.0 for T311. Light and cvd themes (`app/packages/map/style/themes/{light,cvd}.json`);
+dark unchanged. `color.park.fill` #cfe3b4 -> #17604A, `opacity.park` 0.32 -> 0.20, `color.park.edge` #5F8A3C -> `@color.park.fill`
+(an alias: fill and edge are one colour by design, and `build-style.mjs` refuses two tokens with one hex or ΔE < 12; the
+alias is its sanctioned way to say so), `opacity.park.edge` 0.9 -> 1.0, `width.park.edge` stays 1.0.
+Shot: `shots/T488-applied.png` (Golden Ears, light, z9/z11/z13; left before, right applied).
+
+## Proposal (2026-11-08)
 
 ### Measured (park tokens over the light basemap's own grounds; ΔE2000, WCAG contrast)
 The basemap already paints parks, woods and scrub GREEN (`landuse_park` #9cd3b4, wood #a0d9a0, scrub #99d2bb, landcover
