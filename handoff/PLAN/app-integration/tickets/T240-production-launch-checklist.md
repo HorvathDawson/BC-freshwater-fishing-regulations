@@ -32,8 +32,9 @@ against staging) and the owner runs on prod.
       the same crons as staging (gauges :05/:35 day + hourly night, DFO :15, in-season :45).
 - [ ] ★ Secrets on prod: `RUN_TOKEN` (fresh, not staging's), `NOTIFY_EMAIL_TO`; vars `NOTIFY_EMAIL_FROM`,
       `NOTIFY_DIGEST`; Email Routing destination verified.
-- [ ] ★ GitHub secrets for the prod option of `feeds-hydat.yml` / `feeds-sync-inputs.yml` (`CLOUDFLARE_ACCOUNT_ID`,
-      prod R2 key pair) and un-comment their prod option.
+- [ ] ★ GitHub secrets for the prod option of `feeds-hydat.yml` / `feeds-runtiming.yml` (`CLOUDFLARE_ACCOUNT_ID`,
+      prod R2 key pair) and un-comment their prod option. The worker inputs go up from the Mac only (T520):
+      `CONFIRM_PROD=canifishthis.ca deploy/prod/sync-inputs.sh`.
 - [ ] Run every job once by hand with `?dryNotify=1`, then let the schedule run 24 h; `GET /status` all fresh, the gauge
       feed < 2 h old throughout (T86 acceptance).
 

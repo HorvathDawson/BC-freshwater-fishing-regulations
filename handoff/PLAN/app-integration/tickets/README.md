@@ -564,7 +564,7 @@ use that as the sole source of future work."
 | T517 | One part per connected run of same-rule sections (river order, place key, paint + salmon sync check, size flat) | OPEN — paused for audits | — | owner 2026-11-08 |
 | T518 | In-season notice shows on exactly the sections it covers (its own ends + map highlight), not its whole part | IN REVIEW — next APK | ece44d1f3, 46ce5a22d, fd09e65af | carried by T520; shots/T520-*.png |
 | T519 | Fraser exit reads Morey Channel (own side channel) since T497; T59 rule regressed | OPEN — with T517 rebuild | — | T517 lane 2026-11-08 |
-| T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, publish from the Mac only (workflow deleted; carries T518) | IN REVIEW — owner look at shots, next APK | ece44d1f3, 46ce5a22d, fd09e65af | staging live (32/32 matched); owner: GitHub R2 secrets (OWNER-TODO) |
+| T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, publish from the Mac only (workflow deleted; carries T518) | IN REVIEW — owner look at shots, next APK | ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600, 28c0c7869 | staging live (32/32 matched); owner: GitHub R2 secrets (OWNER-TODO); T517 to ship the token→words table |
 
 ## Order for open tickets
 

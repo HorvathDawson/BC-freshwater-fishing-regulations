@@ -1,6 +1,6 @@
 # T520 — In-season links/2: section-exact FWA ranges, content ids, one check place, GitHub sync fixed
 
-Status: IN REVIEW — ece44d1f3, 46ce5a22d, fd09e65af (+ the ticket commit). Proof pending: the owner's look at shots/T520-*.png and the next APK
+Status: IN REVIEW — ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600, 28c0c7869 (review fixes: end tokens said by core, stamps, per-input sync, ids with typography folded; staging re-synced, 32/32 matched). Proof pending: the owner's look at shots/T520-*.png and the next APK
 (the device half ships with it). The 32 notices cover exactly today's sections (diff against the live places, r-6dce77a24e6a:
 0 differences); staging: links/2 synced, feeds worker deployed, feed reads matched 32 / unmatched 0. Owner 2026-11-08 change
 of plan: publish from the Mac only — the GitHub workflow is DELETED (not fixed); the review app runs
@@ -40,5 +40,23 @@ Carries T518 (exact sections + ends on the page).
 ## Proof
 - All 32 notices cover exactly the same sections as today's `places` (diff); partial ones (Fraser, Pitt ×2, Kaslo,
   Snehumption) show their own ends and highlight only their sections (shots light/dark).
-- `gh workflow run feeds-sync-inputs.yml … dry_run=true` passes; a push run passes.
+- ~~`gh workflow run feeds-sync-inputs.yml … dry_run=true` passes~~ — superseded (owner 2026-11-08): publish from the
+  Mac only; the workflow is deleted. Proof instead: `deploy/staging/sync-inputs.sh` (by hand and from the review app)
+  puts links/2 and the staging feed reads matched 32 / unmatched 0.
 - Tests: publish refusals, content id stability under reorder, `inSeasonCover` all/some/none/off-release.
+
+## Ends: tokens, said by core (review 2026-11-08) — WHAT T517 MUST PROVIDE
+- `resolve` stores each covered stretch of a water's main line as two end TOKENS, mouth upward (a split id, a pick-point
+  id — `lake:<wbk>:inlet|outlet`, `region:A|B`, `mu:A|B`, `trib:<item>` — or `mouth` / `source`), never words.
+  Core composes the sentence (`inSeasonWhere`: "From A to B", "Upstream of A", "Downstream of B"), AGENTS 33. One
+  geometric rule for every case: the Hell's Gate double extent is one stretch; a partly covered tributary says where on
+  IT (its own tokens), never the parent's name.
+- INTERIM words: `notice_waters.json` / links `words` (token -> a place's NAME, `resolve.interim_words`: the curated
+  split label or the atlas point's label). **T517 must ship a token -> words table in the release** (the words
+  `answers.display.part.end_words` / `end_variants` give each run-end token, the same ones the page boundaries say), keyed
+  by these tokens (split ids as cuts.json names them; the derived point ids above). Then core reads the release's
+  table instead of the links' `words`, and the links stop carrying words — so "Where" and the part boundaries can never
+  disagree.
+- Weak words today come from the curated LABELS, not the composition: `lodgepole_creek__falls` is labelled "Falls",
+  `alexander_creek__easternmost_hwy_3` "easternmost Hwy 3" (the province says "the easternmost Hwy 3 bridge"). Fixing
+  those labels is curation (owner: ask-before-changing content), or T517's end words when they say more.
