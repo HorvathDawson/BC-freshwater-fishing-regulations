@@ -10,10 +10,14 @@ import { now as clockNow } from "@app/core";
  *   repeats  (T420) repeat-request events (no ids: the tile's ids came once already)
  *   sends    `setFeatureStates` bridge calls, and their worst / mean round trip (ms) — label → acknowledged on the map
  *   renders  the native Map component's renders
+ *   frames   (T499) frames the map drew (`full`: of them, fully) — a map at rest with no input draws none
+ *   src      (T499) writes the map made with no camera move: a GeoJSON source handed new data, the highlight re-sent,
+ *            pushed data re-sent (`src.copy`, `src.lit` …) — what redraws a map left idle
  */
 interface Win { lagMax: number; late: number; tiles: number; repeats: number; labels: number; sends: number; ackMax: number; ackSum: number;
-  acks: number; renders: number }
-const fresh = (): Win => ({ lagMax: 0, late: 0, tiles: 0, repeats: 0, labels: 0, sends: 0, ackMax: 0, ackSum: 0, acks: 0, renders: 0 });
+  acks: number; renders: number; frames: number; full: number; src: Record<string, number> }
+const fresh = (): Win => ({ lagMax: 0, late: 0, tiles: 0, repeats: 0, labels: 0, sends: 0, ackMax: 0, ackSum: 0, acks: 0, renders: 0,
+  frames: 0, full: 0, src: {} });
 
 const on = () => !!(globalThis as { __panProbe?: boolean }).__panProbe;
 let w = fresh();
@@ -30,11 +34,12 @@ function start(): void {
     if (lag > 100) w.late += 1;
   }, 50);
   setInterval(() => {
-    const busy = w.tiles || w.repeats || w.sends || w.renders || w.late;
+    const busy = w.tiles || w.repeats || w.sends || w.renders || w.late || w.frames || Object.keys(w.src).length;
     if (busy) {
       const ackMean = w.acks ? Math.round(w.ackSum / w.acks) : 0;
       console.log(`[pan] ${JSON.stringify({ t: clockNow(), lagMax: w.lagMax, late: w.late, tiles: w.tiles, repeats: w.repeats, labels: w.labels,
-                                            sends: w.sends, ackMax: w.ackMax, ackMean, renders: w.renders })}`);
+                                            sends: w.sends, ackMax: w.ackMax, ackMean, renders: w.renders,
+                                            frames: w.frames, full: w.full, src: w.src })}`);
     }
     w = fresh();
   }, 1000);
@@ -60,7 +65,15 @@ export const panProbe = {
   /** (T420/T401) the camera came to rest (`onRegionDidChange`) */
   settled(): void { if (!on()) return; drawn.settled(clockNow()); },
   /** (T420/T401) a frame drawn; `full`: every tile the view needs was in it (MapLibre's "fully rendered") */
-  frame(full: boolean): void { if (!on()) return; const t = clockNow(); drawn.frame(full, t); swaps.frame(t); },
+  frame(full: boolean): void {
+    if (!on()) return;
+    start();
+    // (T499) `frames`: the binding's every-frame event; `full`: its fully-drawn one (counted apart: they are two events)
+    if (full) w.full += 1; else w.frames += 1;
+    const t = clockNow(); drawn.frame(full, t); swaps.frame(t);
+  },
+  /** (T499) a write the map made: a source's new data, the highlight or pushed data sent again */
+  src(what: string): void { if (!on()) return; start(); w.src[what] = (w.src[what] ?? 0) + 1; },
   /** (T451) a new style handed to the binding (`why`: what changed since the last one) */
   styleHanded(why: string): void { if (!on()) return; swaps.handed(why, clockNow()); },
   /** (T451) a style finished loading */
