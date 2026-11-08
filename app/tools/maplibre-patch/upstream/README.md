@@ -45,5 +45,5 @@ gh pr create --repo maplibre/maplibre-native --base main --head "$ME:fix/feature
 0002 later, as its own PR on top (branch from the 0001 branch, `git am 0002-*.patch`, push, `gh pr create` with a
 short body: what, the render tests passed, depends on the first PR).
 
-The drafts' links and line numbers are for main d1b09a89 (2026-11-07). If `git am` fails on a newer main, rebase and
+0001 is rebased onto main ce1d31a61 (2026-11-07 evening; tests + pre-commit pass there). The drafts' permalinks point at d1b09a89 (still valid). If `git am` fails on a newer main, rebase and
 re-run the tests (`../tests.sh` style, see "Tests" in pr.md).
