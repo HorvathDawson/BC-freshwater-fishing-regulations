@@ -349,16 +349,20 @@ def fill_zooms(graph, zoom: dict[str, int], items_of: dict[str, frozenset[str]],
     area), so a water could break: Nicomen Slough's pieces 59594 / 1454487 / 59593 hidden z7-z10 between two z7 pieces.
 
     A piece of water I hidden at zoom z, with drawn water OF I upstream (`up_adj`) AND downstream (`down_adj`) of it
-    — looking through hidden pieces of I, never through anything else — is drawn from z, WHERE I VISIBLY ENDS there:
-    the drawn piece the walk starts from has no drawn piece of I next on that side. A braid leaving and rejoining a
-    drawn river is no hole (the river is unbroken); measured on the T497 atlas, seeding from every drawn piece filled
-    16,754 such braids (order-1 pieces of the Stikine, Liard, Fraser... from z13 down to z4-z7). THE SAME WATER ONLY:
-    across waters this would draw every lake-outlet creek at its river's zoom. A stream's own polygon counts as drawn from its
-    polygon's zoom (`poly_z`; its route need not be). Per zoom, two linear floods from the drawn pieces of each water,
-    one downstream and one upstream, each (piece, water) visited once per flood — a braid's loop ends; repeated only when a piece of two waters
-    filled for one is new drawn water of the other, so the result is a fixed point. Zooms are only
-    ever lowered; a section in no water (`items_of`) is never filled and never walked through. Deterministic: the
-    result is a function of the sets, not of any order."""
+    — looking through hidden pieces of I, never through anything else — is drawn from z WHEN THOSE ARE TWO SEPARATE
+    DRAWN RUNS OF I (not joined through drawn pieces of I): the hidden pieces are what breaks the water. A braid or
+    side channel leaving and rejoining one drawn run is no hole — the river is unbroken. (Measured on the T497 atlas:
+    "drawn water of I on both sides" alone filled 16,754 pieces, and "only where I visibly ends" still 5,382 — braids
+    and side channels in and out of a river's own polygon, Stikine, Liard, Swanson...) THE SAME WATER ONLY: across
+    waters this would draw every lake-outlet creek at its river's zoom. A stream's own polygon counts as drawn from
+    its polygon's zoom (`poly_z`; its route need not be).
+
+    Per zoom: the drawn runs of each water (union-find over the edges between drawn pieces of it), then two linear
+    floods through hidden pieces of it, one downstream and one upstream, each carrying the run it started from; a
+    (piece, water) keeps at most two distinct runs per flood (enough to tell "two different runs"), so each is pushed
+    at most twice and a braid's loop ends. Repeated only when a piece of two waters filled for one is new drawn water
+    of the other, so the result is a fixed point. Zooms are only ever lowered; a section in no water (`items_of`) is
+    never filled and never walked through. Deterministic: a function of the sets, not of any order."""
     poly_z = poly_z or {}
     out = dict(zoom)
     if not out:
@@ -367,30 +371,49 @@ def fill_zooms(graph, zoom: dict[str, int], items_of: dict[str, frozenset[str]],
         def drawn(s: str) -> bool:
             return out[s] <= z or poly_z.get(s, z + 1) <= z
 
-        def flood(adj, step) -> set[tuple[str, str]]:
-            """(hidden piece, water) reached from a drawn piece of that water WHERE THE WATER ENDS on the map (no drawn
-            piece of it next on that side), walking `adj` through hidden pieces of it."""
-            seen: set[tuple[str, str]] = set()
-            stack = [(s, i) for s in out if drawn(s) for i in items_of.get(s, ())
-                     if not any(n in out and drawn(n) and i in items_of.get(n, ())
-                                for n in (step(graph.edges[ei]) for ei in adj.get(s, ())))]
-            while stack:
-                s, i = stack.pop()
-                for ei in adj.get(s, ()):
-                    n = step(graph.edges[ei])
-                    if n in out and not drawn(n) and i in items_of.get(n, ()) and (n, i) not in seen:
-                        seen.add((n, i))
-                        stack.append((n, i))
-            return seen
-
         while True:
-            from_up = flood(graph.down_adj, lambda e: e.to_node)       # drawn water of I upstream of the piece
+            on = {s for s in out if drawn(s) and items_of.get(s)}
+            parent: dict[tuple[str, str], tuple[str, str]] = {(s, i): (s, i) for s in on for i in items_of[s]}
+
+            def root(k):
+                while parent[k] != k:
+                    parent[k] = parent[parent[k]]
+                    k = parent[k]
+                return k
+
+            for s in on:
+                for ei in graph.down_adj.get(s, ()):
+                    n = graph.edges[ei].to_node
+                    if n in on:
+                        for i in items_of[s] & items_of[n]:
+                            a, b = root((s, i)), root((n, i))
+                            if a != b:
+                                parent[max(a, b)] = min(a, b)
+
+            def flood(adj, step) -> dict[tuple[str, str], set]:
+                """(hidden piece, water) -> the drawn runs of that water it is reached from, walking `adj` through
+                hidden pieces of the water (at most two runs kept: all the test needs)."""
+                runs: dict[tuple[str, str], set] = {}
+                stack = [(s, i, root((s, i))) for s in on for i in items_of[s]]
+                while stack:
+                    s, i, r = stack.pop()
+                    for ei in adj.get(s, ()):
+                        n = step(graph.edges[ei])
+                        if n in out and n not in on and i in items_of.get(n, ()):
+                            got = runs.setdefault((n, i), set())
+                            if r not in got and len(got) < 2:
+                                got.add(r)
+                                stack.append((n, i, r))
+                return runs
+
+            from_up = flood(graph.down_adj, lambda e: e.to_node)       # drawn runs of I upstream of the piece
             from_down = flood(graph.up_adj, lambda e: e.from_node)     # ...and downstream of it
-            new = {s for s, _ in from_up & from_down}
+            new = {s for (s, i), ups in from_up.items()
+                   if any(u != d for u in ups for d in from_down.get((s, i), ()))}
             if not new:
                 break
-            # a piece of two waters drawn for one of them is drawn water of the other too: flood again (a second round
-            # is rare and the rounds are bounded by the pieces filled)
+            # a piece of two waters drawn for one of them is drawn water of the other too: flood again (rare; the
+            # rounds are bounded by the pieces filled)
             for s in new:
                 out[s] = z
     return out

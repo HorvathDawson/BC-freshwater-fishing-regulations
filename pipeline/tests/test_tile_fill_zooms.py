@@ -94,6 +94,15 @@ def test_a_braid_beside_a_drawn_river_is_no_hole():
     g = _graph(("a", "b"), ("a", "x"), ("x", "b"))
     zoom = {"a": 7, "b": 7, "x": 13}
     assert fill_zooms(g, zoom, _one(*zoom)) == zoom
+    # Swanson River: side channels out of and back into the river's last drawn piece (its own polygon, where the
+    # river ends on the map) — the river is unbroken, nothing to fill
+    g = _graph(("up", "poly"), ("poly", "x"), ("x", "poly"), ("poly", "y"), ("y", "z"), ("z", "poly"))
+    zoom = {"up": 6, "poly": 6, "x": 13, "y": 12, "z": 13}
+    assert fill_zooms(g, zoom, _one(*zoom)) == zoom
+    # two drawn pieces joined only through drawn water of ANOTHER item are still two runs of this one
+    g = _graph(("a", "m"), ("m", "b"), ("a", "o"), ("o", "b"))
+    zoom = {"a": 7, "m": 10, "b": 7, "o": 7}
+    assert fill_zooms(g, zoom, {**_one("a", "m", "b"), "o": frozenset({"O"})})["m"] == 7
     # ...but where the river itself is hidden there too, both ways through are the hole
     g = _graph(("a", "m"), ("m", "b"), ("a", "x"), ("x", "b"))
     zoom = {"a": 7, "m": 10, "b": 7, "x": 13}
