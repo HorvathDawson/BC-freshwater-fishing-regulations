@@ -1,6 +1,6 @@
 # T487 — Share a gauge's conditions as a public page of its own (future)
 
-Status: OPEN — FUTURE, not for the next chat. Owner 2026-11-07 (scope answered the same day).
+Status: OPEN — owner 2026-11-08: do it now (after T497). Owner 2026-11-07 (scope answered the same day).
 
 Owner: a way to share the conditions for a river that creates a new page — a nice viewer of them, nicely shared, with a
 link back to the app.
@@ -22,3 +22,10 @@ link back to the app.
 - URL shape (`/gauge/<station-id>/<slug>`?) and how it relates to the SEO water pages' URLs.
 - Card image renderer on the worker (satori/resvg-wasm or similar) and its cache time vs gauge refresh (gauges < 3 h).
 - A gauge with no forecast / a stale reading: shown as such, never hidden (no-silent-fallbacks).
+
+## Owner 2026-11-08
+- **Preview cards must not cost much worker compute.** Default: no rendering per request. The cards are drawn when
+  the gauge data refresh (the feeds job that already runs), stored as small PNGs on R2, and served as static files.
+  The worker only maps the URL to the file. A gauge whose card is missing shows a fixed site card, reported (no silent
+  fallback).
+- URL default: `/gauge/<station-id>/<slug>`, in the sitemap beside the water pages.
