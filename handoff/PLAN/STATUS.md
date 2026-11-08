@@ -30,10 +30,10 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   production deploy scripts refuse without your CONFIRM_PROD. Runbook: handoff/PLAN/release/PRODUCTION.md. Five
   questions with defaults (Q171–Q175) are at the bottom of the phone-check page.
 - **T493 + T489 merged (IN REVIEW):** the creek is drawn through a hidden lake (the lake's colour and tap); lakes keep
-  about twice the outline zoomed out (+1.6 MB tiles). Release **r-25a89ce9f8e6** is built and is LATEST locally, but its
-  staging upload STOPPED: open.canada.ca (NuSEDS) is down again. T485 step 2 is now in, so from the next good fetch on, run
-  timing builds from a kept private copy and an outage cannot block a release. The upload resumes on its own once
-  open.canada.ca answers (checked every 10 min, up to 8 h).
+  about twice the outline zoomed out (+1.6 MB tiles). Release **r-25a89ce9f8e6** is LATEST and **live on staging**
+  (18 smoke checks pass). open.canada.ca was down, so the T485 kept copy was seeded by hand from this Mac's 10-29 fetch
+  (staging `private/runtiming/src/sources.tar.gz`, FETCHED 2026-10-29); run timing no longer needs open.canada.ca
+  unless run with `refresh=true` or the copy passes 400 days.
 - **T466 merged (IN REVIEW):** the walkthrough scrolls Layers to Fish obstacles before ringing it; Spots is a real
   10-step creation (the example spot removed at the end); the closed example is the Chilliwack's stretch closed all year
   (reached Upstream ×3 from the Vedder). Emulator walk 41/41. Defaults for 3 small questions are on the phone-check page.
