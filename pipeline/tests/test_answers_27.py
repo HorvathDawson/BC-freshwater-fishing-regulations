@@ -194,7 +194,7 @@ def test_a_short_label_reads_the_run_ends():
     assert D.short_label(doc, one, "full") == "Mouth → Big Bridge"
     two = {"runs": [{"from": "source", "to": "x__bridge", "km_from": 9.0},
                     {"from": "x__bridge", "to": "mouth", "km_from": 3.0}]}
-    assert D.short_label(doc, two, "full") == "Mouth → Source (2 stretches)"
+    assert D.short_label(doc, two, "full") == "Mouth → Source"      # T517: one run, its own two ends
     side = {"runs": [{"from": "a", "to": "b", "branch": True}]}
     assert D.short_label(doc, side, "full") == "Side channel"
     assert D.short_label(doc, {"runs": []}, "Whole water") == "Whole water"

@@ -696,6 +696,9 @@ def read(bundle: Path) -> dict:
                 "ruleset": None if p.set_id is None else str(p.set_id),
                 "licensing_set": None if p.licensing_set is None else str(p.licensing_set),
                 "sections": p.sections,
+                # T517: a part is one connected run; parts sharing `grp` share their rule set group (the picker's
+                # one choice), and sharing `run` too they are one run cut where the DFO salmon chain changes
+                "grp": p.grp, "run": p.run,
                 **({"province_except": list(p.province_except)} if p.province_except else {}),
                 **({"anadromous_rainbow": True} if p.steelhead_water else {}),
                 **({"steelhead": p.steelhead} if p.steelhead else {}),

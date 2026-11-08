@@ -315,6 +315,45 @@ def _end_short(doc: dict, e: Optional[str], side: str) -> str:
     return cap(t)
 
 
+def _named_token(doc: dict, e: Optional[str]) -> Optional[str]:
+    """T517: the token a run end is SAID by. A gauge cut (`kind` gauge) is never the name of a place a regulation
+    ends at: the regulation's own split at the same place (`same_place_as`), else the nearest named non-gauge cut on
+    the same water by km (Cruickshank: the gauge stands at the Strathcona Park line), else the gauge itself."""
+    splits = doc.get("splits") or {}
+    sp = splits.get(e or "")
+    if not sp or sp.get("kind") != "gauge":
+        return e
+    if sp.get("same_place_as") and sp["same_place_as"] in splits:
+        return sp["same_place_as"]
+    w, km = sp.get("water_id"), sp.get("km")
+    near = sorted((abs(o["km"] - km), k) for k, o in splits.items()
+                  if w and km is not None and o.get("water_id") == w and o.get("km") is not None
+                  and o.get("kind") != "gauge" and o.get("name"))
+    return near[0][1] if near else e
+
+
+def end_words(doc: dict, e: Optional[str], side: str) -> str:
+    """T517: ONE end of a run, in the few words every name and mark uses (`_end_short`, the gauge rule above). Never
+    empty: a token nothing can name stops the build."""
+    t = _end_short(doc, _named_token(doc, e), side)
+    if not t:
+        raise AnswersError(f"run end {e!r} ({side}) has no words")
+    return t
+
+
+def run_ends(doc: dict, part: dict) -> Optional[tuple]:
+    """T517 THE ONE NAME OF A PART: (lower end, upper end) in words, mouth first — its lowest main-stem run's
+    downstream end and its highest run's upstream end (a lake's inlet and outlet runs joined, as `short_label`
+    reads them). None: no main-stem run (a lake, side channels only, an area) — the part is said by its label."""
+    rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
+    main = [r for r in rs if not r.get("branch") and not _js(r.get("polygon"))]
+    if not main or any(str(r.get("from") or "").startswith("area:") for r in main):
+        return None
+    km = [(r.get("km_from") if r.get("km_from") is not None else 0) for r in main]
+    lo, hi = main[km.index(min(km))], main[km.index(max(km))]
+    return end_words(doc, lo.get("to"), "to"), end_words(doc, hi.get("from"), "from")
+
+
 def _run_short(doc: dict, r: dict) -> str:
     if _js(r.get("polygon")):
         return "" if r["polygon"] == "whole" else str(r["polygon"])
@@ -324,32 +363,20 @@ def _run_short(doc: dict, r: dict) -> str:
 
 
 def short_label(doc: dict, part: dict, label: str) -> str:
-    """A part's SHORT label for the part strip (answers 2.7, A4) — generic, from its range's END
-    labels, mouth upward: "Mouth → Vedder Crossing Bridge"; several stretches "Mouth → Hwy 29
-    bridge (2 stretches)" (the first's lower end to the last's upper end); side channels only "Side
-    channel" / "3 side channels"; a part with no run (a lake, an area) its full label, whole (W3).
-    The full label (`label`) stays for the sheet."""
+    """A part's SHORT label, its NAME (answers 2.7, A4; T517): its own two ends, mouth upward (`run_ends`):
+    "Mouth → Vedder Crossing Bridge". A part is one connected run (T517), so there is no "N stretches". With no
+    main-stem run: a polygon or area run's own words, side channels only "Side channel" / "3 side channels", else
+    its full label, whole (W3). The full label (`label`) stays for the sheet."""
+    ends = run_ends(doc, part)
+    if ends:
+        return f"{ends[0]} → {ends[1]}"
     rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
-    main0 = sorted((r for r in rs if not r.get("branch")),
-                   key=lambda r: -(r.get("km_from") if r.get("km_from") is not None else 0))
+    main = [r for r in rs if not r.get("branch")]
     side = [r for r in rs if r.get("branch")]
-    main: List[dict] = []
-    for r in main0:                                  # a lake's inlet and outlet join (runs_label)
-        last = main[-1] if main else None
-        if last and str(last.get("to") or "").startswith("lake_inlet") and \
-                str(r.get("from") or "").startswith("lake_outlet"):
-            last["to"], last["km_to"] = r.get("to"), r.get("km_to")
-        else:
-            main.append(dict(r))
-    main = list(reversed(main))                      # mouth upward
     if len(main) == 1:
         t = _run_short(doc, main[0])
-    elif main and all(not _js(r.get("polygon")) and not str(r.get("from") or "").startswith("area:")
-                      for r in main):
-        t = (f"{_end_short(doc, main[0].get('to'), 'to')} → "
-             f"{_end_short(doc, main[-1].get('from'), 'from')} ({len(main)} stretches)")
     elif main:
-        t = f"{len(main)} stretches"
+        t = ""
     elif side:
         t = "Side channel" if len(side) == 1 else f"{len(side)} side channels"
     else:

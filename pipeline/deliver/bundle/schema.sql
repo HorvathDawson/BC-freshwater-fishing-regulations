@@ -366,11 +366,12 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
                               place  INTEGER REFERENCES region_place(place),
                               mus    INTEGER REFERENCES mu_set(mus));
 
--- THE PARTS OF EVERY NAMED WATER, decided once (DATAFLOW P2, Q16): every section of one water
--- carrying the same rule set, licensing set, province exceptions, steelhead water and steelhead
--- presence. `part_ix` IS the export's `waters[item].parts` index (the order it always shipped:
--- rule set, null last; licensing set; no exception first; not steelhead water first; known,
--- possible, none). Read by the export and the answers; nothing else groups sections into parts.
+-- THE PARTS OF EVERY NAMED WATER, decided once (DATAFLOW P2, Q16): every CONNECTED RUN of one water's
+-- sections carrying the same rule set, licensing set, province exceptions, steelhead water and steelhead
+-- presence (T517, `derived.part_rows`). `part_ix` IS the export's `waters[item].parts` index, in RIVER
+-- ORDER from the mouth (km; then the parts with no km: lakes, side channels only). Two parts of one water
+-- may share a rule set; two of them never touch. Read by the export and the answers; nothing else groups
+-- sections into parts.
 --   set_id / key_ix   NULL together: every section is outside B.C.
 --   licensing_set     NULL: no placed licensing record binds it (a real answer)
 --   province_except   '' or a sorted, comma-joined subset of the families a province-wide
@@ -382,6 +383,10 @@ CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
 --                     colour), 0: none is. A HARD BREAK (T226, owner 2026-10-28: "no access should not allow
 --                     adjacent sections to merge"): the Coquitlam above the watershed boundary is its own part.
 --                     Last in the order key (outside first): only a split water's part indexes move.
+--   chain             (T517) the DFO salmon chain every section shares (`salmon_section`; 0 none) — in the key, so a
+--                     part is uniform for the salmon paint too
+--   grp / run         (T517) the chain-free rule-set group (picker, full label, closed-merge) and which of its connected
+--                     runs this part lies in: parts sharing (grp, run) are one run cut where the salmon chain changes
 CREATE TABLE part (ord             INTEGER NOT NULL REFERENCES item(ord),
                    part_ix         INTEGER NOT NULL CHECK (part_ix >= 0),
                    set_id          INTEGER,
@@ -397,9 +402,13 @@ CREATE TABLE part (ord             INTEGER NOT NULL REFERENCES item(ord),
                    sections        INTEGER NOT NULL CHECK (sections > 0),
                    rep_sid         INTEGER NOT NULL,
                    no_access       INTEGER NOT NULL DEFAULT 0 CHECK (no_access IN (0, 1)),
+                   grp             INTEGER NOT NULL DEFAULT 0 CHECK (grp >= 0),
+                   run             INTEGER NOT NULL DEFAULT 0 CHECK (run >= 0),
+                   chain           INTEGER NOT NULL DEFAULT 0,
                    PRIMARY KEY (ord, part_ix),
-                   UNIQUE (ord, set_id, licensing_set, province_except, steelhead_water,
-                           steelhead, no_access),
+                   -- (T517, owner 2026-11-08 "one part per connected adjacent stretch") a part is a RUN, so one
+                   -- rule set may hold several parts of a water; a part is keyed by its POSITION, its lowest section
+                   UNIQUE (ord, rep_sid),
                    CHECK ((set_id IS NULL) = (key_ix IS NULL)),
                    CHECK (steelhead_water <= steelhead_rules)) WITHOUT ROWID;
 CREATE TABLE part_section (ord     INTEGER NOT NULL,
@@ -428,11 +437,6 @@ CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon REAL
                         label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, confidence TEXT,
                         down_stretch INTEGER, up_stretches TEXT,
                         PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
-CREATE TABLE part_stretch (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, stretch_ix INTEGER NOT NULL,
-                           rank INTEGER NOT NULL, mid_sid INTEGER NOT NULL, mid_lon REAL NOT NULL, mid_lat REAL NOT NULL,
-                           w REAL, s REAL, e REAL, n REAL, sids TEXT NOT NULL,
-                           PRIMARY KEY (ord, part_ix, stretch_ix),
-                           FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
 -- (T369, owner 2026-11-03) WHERE EVERY STREAM SECTION LIES ON ITS OWN BLUE LINE: one row per STREAM handle (every one
 -- in B.C., named or not; a lake or wetland has no line and no row). `blk` the FWA stream key, `from_m` the section id's

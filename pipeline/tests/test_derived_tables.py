@@ -71,10 +71,10 @@ def test_part_section_carries_each_sections_length():
     "INSERT INTO rule_key VALUES (5, 1, 0, 0, 'lake', 0, 1)",              # no sections
     "INSERT INTO section_ruleset (sid, set_id, key_ix) VALUES (9, 1, NULL)",
     "INSERT INTO section_ruleset (sid, set_id, key_ix) VALUES (9, 1, 404)",   # dangling key
-    "INSERT INTO part VALUES (1, 0, 1, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1, 0)",  # set w/o key
-    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, 'parks', 0, NULL, 0, '', 0, 1, 1, 0)",
-    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, '', 0, 3, 0, '', 0, 1, 1, 0)",
-    "INSERT INTO part VALUES (99, 0, NULL, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1, 0)",  # no item
+    "INSERT INTO part VALUES (1, 0, 1, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1, 0, 0, 0, 0)",  # set w/o key
+    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, 'parks', 0, NULL, 0, '', 0, 1, 1, 0, 0, 0, 0)",
+    "INSERT INTO part VALUES (1, 0, NULL, NULL, NULL, '', 0, 3, 0, '', 0, 1, 1, 0, 0, 0, 0)",
+    "INSERT INTO part VALUES (99, 0, NULL, NULL, NULL, '', 0, NULL, 0, '', 0, 1, 1, 0, 0, 0, 0)",  # no item
     "INSERT INTO part_section (ord, sid, part_ix) VALUES (1, 1, 7)",                              # no such part
     "INSERT INTO rule (entry_id, rule_id, type, family, dimension, label, parts, take, may_target)"
     " VALUES ('r1:a', 'a.r1', 'retention_limit', 'retention', 'daily', 'x', '{}', 3, 0)",
@@ -151,10 +151,16 @@ def test_the_stored_parts_are_the_old_grouping_on_the_built_bundle():
     old = [(it, rs, ls, pe or "", bool(sw), st, n, rep) for it, rs, ls, pe, sw, st, n, rep, _na
            in db.execute(_OLD_PART_SQL)]
     names = dict(derived.read_steelhead_codes())
-    new = [(it, p.set_id, p.licensing_set, ",".join(p.province_except), p.steelhead_water,
-            p.steelhead, p.sections, p.rep_sid)
-           for it, ps in sorted(derived.parts(db).items()) for p in ps]
-    assert names and new == old and len(new) > 20_000
+    # T517: a part is one connected run, so the OLD grouping is each water's `grp` (its runs joined)
+    by: dict = {}
+    for it, ps in sorted(derived.parts(db).items()):
+        for p in ps:
+            g = by.setdefault((it, p.grp), [it, p.set_id, p.licensing_set, ",".join(p.province_except),
+                                            p.steelhead_water, p.steelhead, 0, p.rep_sid])
+            g[6] += p.sections
+            g[7] = min(g[7], p.rep_sid)
+    new = sorted((tuple(v) for v in by.values()), key=lambda r: (r[0], r[7]))
+    assert names and new == sorted(old, key=lambda r: (r[0], r[7])) and len(new) > 20_000
     derived.prove(db)
 
 
@@ -174,3 +180,50 @@ def test_no_access_land_is_a_hard_break_between_parts():
     rows = db.execute("SELECT ord, part_ix, set_id, no_access, sections, rep_sid FROM part ORDER BY ord, part_ix").fetchall()
     assert rows == [(1, 0, 7, 0, 3, 4), (1, 1, 7, 1, 2, 1), (2, 0, 9, 0, 1, 3)]
     assert sorted(db.execute("SELECT sid FROM part_section WHERE ord = 1 AND part_ix = 1")) == [(1,), (2,)]
+
+
+# ---- T517: one part per connected run ------------------------------------------------------------------------------
+
+def _stream(chains=None):
+    """One River, sections 1-2-3-4 end to end mouth up (100 m each, `length:k` tokens between them; `bridge` between 2
+    and 3). `chains`: each section's DFO salmon chain."""
+    db = _db()
+    db.execute("DELETE FROM item_section WHERE ord = 1")
+    db.executemany("INSERT INTO item_section (ord, sid) VALUES (?,?)", [(1, s) for s in (1, 2, 3, 4)])
+    toks = ["mouth", "length:1", "bridge", "length:3", "source"]
+    db.executemany("INSERT INTO span_end (eid, token) VALUES (?,?)", list(enumerate(toks)))
+    db.executemany("INSERT INTO section_span (sid, lo_m, hi_m, lo, hi) VALUES (?,?,?,?,?)",
+                   [(s, (s - 1) * 100, s * 100, s - 1, s) for s in (1, 2, 3, 4)])
+    db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", [(1, 2), (2, 3), (3, 4)])
+    if chains:
+        db.executemany("INSERT INTO salmon_section (sid, chain) VALUES (?,?)", sorted(chains.items()))
+    return db
+
+
+def test_a_rule_set_on_both_sides_of_another_is_two_parts_in_river_order():
+    """T517 (owner 2026-11-08, "one part per connected adjacent stretch"): sets 7, 8, 7, 7 mouth up — set 7 is two parts
+    (one grp, runs 0 and 1), numbered from the mouth: [1], [2], [3, 4]."""
+    db = _stream()
+    section_sets(db, {1: 7, 2: 8, 3: 7, 4: 7, 5: 9})
+    db.execute("DELETE FROM item_section WHERE sid = 5")
+    finish(db)
+    rows = db.execute("SELECT part_ix, set_id, grp, run, sections, rep_sid FROM part WHERE ord = 1 ORDER BY part_ix")
+    assert rows.fetchall() == [(0, 7, 0, 0, 1, 1), (1, 8, 1, 0, 1, 2), (2, 7, 0, 1, 2, 3)]
+
+
+def test_a_salmon_chain_change_cuts_a_run_into_parts_of_one_grp_and_run():
+    """T517: the chain is in the part key — every part paints one salmon colour; the pieces share (grp, run), what the
+    regular map joins back into one entry."""
+    db = _stream({1: 5, 2: 5, 3: 6, 4: 6})
+    section_sets(db, {1: 7, 2: 7, 3: 7, 4: 7})
+    finish(db)
+    rows = db.execute("SELECT part_ix, grp, run, chain, rep_sid FROM part WHERE ord = 1 ORDER BY part_ix").fetchall()
+    assert rows == [(0, 0, 0, 5, 1), (1, 0, 0, 6, 3)]
+
+
+def test_two_parts_of_one_water_never_touch_with_the_same_key():
+    """T517 maximal runs: same rules all along make ONE part, whatever cuts the spans carry."""
+    db = _stream()
+    section_sets(db, {1: 7, 2: 7, 3: 7, 4: 7})
+    finish(db)
+    assert db.execute("SELECT COUNT(*), MIN(sections) FROM part WHERE ord = 1").fetchone() == (1, 4)

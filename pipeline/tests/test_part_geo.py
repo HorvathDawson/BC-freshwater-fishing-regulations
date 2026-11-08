@@ -41,17 +41,40 @@ def test_marks_at_one_point_with_one_down_part_merge():
            {"lon": -122.0, "lat": 49.1, "down": 0, "up": 1, "label": "Bridge"},
            {"lon": -122.1, "lat": 49.2, "down": 1, "up": 3, "label": None}]
     assert T.merge_marks(raw) == [
-        {"lon": -122.0, "lat": 49.1, "down": 0, "down_k": 0, "up": [1, 2], "up_k": [0, 0], "label": "Bridge"},
-        {"lon": -122.1, "lat": 49.2, "down": 1, "down_k": 0, "up": [3], "up_k": [0], "label": None}]
+        {"lon": -122.0, "lat": 49.1, "down": 0, "up": [1, 2], "label": "Bridge"},
+        {"lon": -122.1, "lat": 49.2, "down": 1, "up": [3], "label": None}]
 
 
 def test_two_meeting_places_of_one_pair_of_parts_are_two_marks():
-    """T204 (Kanaka Creek): part 0 is below the 112 Avenue bridge AND above Cliff Park Falls, part 1 between them. The
-    pair meets twice; each place is its own mark, with the stretch of part 0 that meets there."""
-    raw = [{"lon": -122.55, "lat": 49.20, "down": 0, "down_k": 0, "up": 1, "up_k": 0, "label": "112 Avenue bridge"},
-           {"lon": -122.53, "lat": 49.21, "down": 1, "down_k": 0, "up": 0, "up_k": 1, "label": "Cliff Park Falls"}]
-    assert [(m["down"], m["down_k"], m["up"], m["up_k"], m["label"]) for m in T.merge_marks(raw)] == [
-        (0, 0, [1], [0], "112 Avenue bridge"), (1, 0, [0], [1], "Cliff Park Falls")]
+    """Kanaka Creek: since T517 the creek below the 112 Avenue bridge and above Cliff Park Falls are two parts (0 and
+    2) with part 1 between; each meeting place is its own mark."""
+    raw = [{"lon": -122.55, "lat": 49.20, "down": 0, "up": 1, "label": "112 Avenue bridge"},
+           {"lon": -122.53, "lat": 49.21, "down": 1, "up": 2, "label": "Cliff Park Falls"}]
+    assert [(m["down"], m["up"], m["label"]) for m in T.merge_marks(raw)] == [
+        (0, [1], "112 Avenue bridge"), (1, [2], "Cliff Park Falls")]
+
+
+def test_a_mark_says_the_same_words_as_the_two_parts_names_there():
+    """T517: one function (`answers.display.end_words`) names a mark and the parts' ends it joins: the lower part's
+    top end and the upper part's bottom end are one token, said once."""
+    doc = {"splits": {"x__bridge": {"name": "Big Bridge", "kind": "point"}}, "waters": {}}
+    down = {"runs": [{"from": "x__bridge", "to": "mouth", "km_from": 3.0, "km_to": 0.0}]}
+    up = {"runs": [{"from": "source", "to": "x__bridge", "km_from": 9.0, "km_to": 3.0}]}
+    assert T.mark_words(down, up, doc, doc["splits"]) == ("Big Bridge", None)
+
+
+def test_a_gauge_cut_is_said_by_the_regulations_own_split_there():
+    """T517 (Cruickshank 08HB074): a gauge cut that stands where a regulation's boundary does is named by that
+    boundary (`same_place_as`), else the nearest named cut on the water."""
+    from pipeline.deliver.answers.display.part import end_words
+    doc = {"splits": {"gauge__1": {"name": "08HB074 · Cruickshank River Near The Mouth", "kind": "gauge",
+                                   "water_id": "gnis:1", "km": 2.5},
+                      "park": {"name": "Strathcona Park boundary", "kind": "area", "water_id": "gnis:1", "km": 2.4},
+                      "far": {"name": "Moat Lake", "kind": "lake_edge", "water_id": "gnis:1", "km": 23.0}},
+           "waters": {}}
+    assert end_words(doc, "gauge__1", "from") == "Strathcona Park boundary"
+    doc["splits"]["gauge__1"]["same_place_as"] = "far"
+    assert end_words(doc, "gauge__1", "from") == "Moat Lake"
 
 
 def _span(rows):
@@ -128,6 +151,18 @@ def test_a_water_exits_where_its_mouth_flows_never_into_its_own_side_channel():
     # main line's mouth through its own piece H:0 into the creek; water 5's way down never meets a named water; water 7
     # leaves by its mouth into the Fraser, not by its braid into Annacis Channel; water 8 goes on through the lake
     assert T.mouth_downs(_Fraser(), ids, secs) == {1: set(), 2: {1}, 3: {1}, 4: {3}, 5: set(), 7: {1}, 8: {1}}
+
+
+def test_a_braid_pair_s_smaller_water_is_never_the_bigger_one_s_exit():
+    """T519: since T497 named the delta's connectors, the Fraser's own mouth walk meets Morey Channel, and Morey
+    Channel's meets the Fraser. The smaller water is the side channel: never the Fraser's exit; the Fraser stays
+    Morey Channel's. Without sizes the old rule (o's mouth wins) stands."""
+    mouths = {9697: {14905}, 14905: {9697}}
+    downs = {9697: [14905], 14905: [9697]}
+    size = {9697: 300, 14905: 5}
+    assert T.exit_receivers(9697, [14905], mouths, downs, size) == []
+    assert T.exit_receivers(14905, [9697], mouths, downs, size) == [9697]
+    assert T.exit_receivers(9697, [14905], mouths, downs) == [14905]
 
 
 def test_a_water_never_exits_into_a_water_that_flows_into_it():
@@ -304,60 +339,3 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
     db.executemany("INSERT INTO item_section VALUES (1, ?)", [(1,), (2,), (3,)])
     got = T.keep_named(db, build, geoms)
     assert (got[1].length, got[2].length, got[3].geom_type) == (1.0, 9.0, "Polygon")
-
-
-def _t228_span(cuts: dict[int, str]):
-    """Sections 1-2-3-4 mouth up; the end between s and s+1 is `cuts[s]` (a split id) or a plain length token."""
-    return {s: (s * 100.0, s * 100.0 + 100, cuts.get(s - 1, f"length:{s - 1}"), cuts.get(s, f"length:{s}"), 0, 0)
-            for s in (1, 2, 3, 4)}
-
-
-TOUCH4 = {1: {2}, 2: {1, 3}, 3: {2, 4}, 4: {3}}
-SPLITS = {"bridge": {"name": "Canyon Bridge"}, "sign": {"name": "white triangle boundary sign"}}
-
-
-def test_t228_a_stretch_is_cut_where_the_salmon_chain_changes_at_a_named_split():
-    """T228: chains 5, 5, 7, 5 with named splits at both chain changes: three pieces mouth first, each one chain; a
-    stretch of one chain is returned as it was."""
-    from pipeline.deliver.bundle.topology import by_chain
-    span = _t228_span({2: "sign", 3: "bridge"})
-    st = [{"lo": 100.0, "hi": 500.0, "sids": [1, 2, 3, 4]}]
-    gaps: list = []
-    got = by_chain(st, {1: 5, 2: 5, 3: 7, 4: 5}, TOUCH4, span, SPLITS, gaps)
-    assert [(p["sids"], p["chain"], p["hi"]) for p in got] == [([1, 2], 5, 300.0), ([3], 7, 400.0), ([4], 5, 500.0)]
-    assert gaps == []
-    assert by_chain(st, {1: 5, 2: 5, 3: 5, 4: 5}, TOUCH4, span, SPLITS) == st
-
-
-def test_t228_a_salmon_change_with_no_split_is_a_gap_never_a_cut():
-    """T228 (owner 2026-10-28: every boundary is a named split): a chain change where no named split stands is a DATA
-    GAP — the pieces stay one, the touching pair is reported; the named one still cuts."""
-    from pipeline.deliver.bundle.topology import by_chain
-    span = _t228_span({3: "bridge"})                       # 2|3 has no split, 3|4 has the bridge
-    gaps: list = []
-    got = by_chain([{"lo": 100.0, "hi": 500.0, "sids": [1, 2, 3, 4]}], {1: 5, 2: 5, 3: 7, 4: 5}, TOUCH4, span,
-                   SPLITS, gaps)
-    assert [(p["sids"], p["chain"]) for p in got] == [([1, 2, 3], (5, 7)), ([4], 5)]
-    assert gaps == [(2, 3)]
-
-
-def test_t228_an_unjoined_side_channel_stays_with_its_chains_stem_piece():
-    """T228 (Cowichan 722): an off-stem section with no `section_touch` row joins the stretch's main-stem piece of its own
-    chain, not a piece of its own; when that leaves one piece the stretch is returned whole."""
-    from pipeline.deliver.bundle.topology import by_chain
-    span = {1: (100.0, 200.0, "mouth", "sign", 0, 0), 2: (200.0, 300.0, "sign", "source", 0, 0),
-            9: (None, None, "x", "y", 1, 0)}
-    st = [{"lo": 100.0, "hi": 300.0, "sids": [1, 2, 9]}]
-    got = by_chain(st, {1: 3, 2: 15, 9: 3}, {1: {2}, 2: {1}}, span, SPLITS)
-    assert [(p["sids"], p["chain"]) for p in got] == [([1, 9], 3), ([2], 15)]
-    assert by_chain(st, {1: 3, 2: 3, 9: 15}, {1: {2}, 2: {1}}, span, SPLITS)[1]["sids"] == [9]
-
-
-def test_t228_a_salmon_cut_is_named_by_its_split_and_nothing_else():
-    """T228: the cut between two pieces of one part carries the split's name (Cowichan's Sandy Pool sign); with no
-    named split there is no name (and `by_chain` never cuts there)."""
-    from pipeline.deliver.bundle.topology import chain_label
-    span = _t228_span({1: "sign"})
-    dn, up = {"sids": [1], "chain": 1}, {"sids": [2], "chain": 2}
-    assert chain_label(dn, up, span, SPLITS, {1: {2}, 2: {1}}) == SPLITS["sign"]
-    assert chain_label(dn, up, _t228_span({}), SPLITS, {1: {2}, 2: {1}}) is None

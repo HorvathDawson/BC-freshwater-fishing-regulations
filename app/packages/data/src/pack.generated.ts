@@ -706,20 +706,6 @@ export const PACK_FILES: Record<string, PackFile> = {
         "s",
         "e",
         "n"
-      ],
-      "part_stretch": [
-        "ord",
-        "part_ix",
-        "stretch_ix",
-        "rank",
-        "mid_sid",
-        "mid_lon",
-        "mid_lat",
-        "w",
-        "s",
-        "e",
-        "n",
-        "sids"
       ]
     }
   },
@@ -1519,7 +1505,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -1643,7 +1631,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -1733,7 +1723,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -1823,7 +1815,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -1913,7 +1907,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -2003,7 +1999,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -2093,7 +2091,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -2183,7 +2183,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -2273,7 +2275,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -2363,7 +2367,9 @@ export const PACK_FILES: Record<string, PackFile> = {
         "paper_licence",
         "xp",
         "sections",
-        "xruns"
+        "xruns",
+        "grp",
+        "run"
       ],
       "part_line": [
         "ord",
@@ -2595,12 +2601,6 @@ export const PACK_UNITS: Record<string, string> = {
   "geo.part_geo.n": "microdegrees",
   "geo.part_geo.s": "microdegrees",
   "geo.part_geo.w": "microdegrees",
-  "geo.part_stretch.e": "microdegrees",
-  "geo.part_stretch.mid_lat": "microdegrees",
-  "geo.part_stretch.mid_lon": "microdegrees",
-  "geo.part_stretch.n": "microdegrees",
-  "geo.part_stretch.s": "microdegrees",
-  "geo.part_stretch.w": "microdegrees",
   "lakes": "lakes/1: 'BCLK', u8 1, 8 bytes section_handles, LEB128 asof+1, LEB128 count, then per section (sid ascending) LEB128 sid delta, u8 survey (0 none, 1 sheet, 2 digitised), LEB128 stocked day+1 (0 never); days since 1900-01-01 (pipeline/deliver/lake_facts.py)",
   "method": "method/1: 'BCMT', u8 1, 8 bytes section_handles, LEB128 profile count, then per profile LEB128 run count + runs (length << 2 | code: 0 none or closed, 1 bait ban, 2 fly only; 366 days), then LEB128 run count and three columns sid gap[], count[], profile[] (pipeline/deliver/method.py)",
   "paint": "paint/5: see pipeline/deliver/release/paint.py",

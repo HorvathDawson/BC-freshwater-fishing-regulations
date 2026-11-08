@@ -9,11 +9,12 @@
                    steelhead here, the steelhead rules apply here) — interned in that order, and
                    `section_ruleset.key_ix` on every section (decision U2). Written by
                    `rules.write` (`rule_keys`), where the steelhead facts are born
-  part             THE PARTS OF EVERY NAMED WATER (Q16, finding H4): every section of one water
-  part_section     carrying the same rule set, licensing set, province exceptions, steelhead
-                   water and steelhead presence — in the export's order, so `part_ix` IS the
-                   export's `waters[item].parts` index. The export and the answers read this
-                   table; nothing else groups sections into parts (gate 3)
+  part             THE PARTS OF EVERY NAMED WATER (Q16, finding H4): every CONNECTED RUN of one
+  part_section     water's sections carrying the same rule set, licensing set, province exceptions,
+                   steelhead water and steelhead presence (T517, owner 2026-11-08: "one part per
+                   connected adjacent stretch"), numbered in river order from the mouth, so
+                   `part_ix` IS the export's `waters[item].parts` index. The export and the answers
+                   read this table; nothing else groups sections into parts (gate 3)
   region_place     WHERE EVERY SECTION IN B.C. IS (S1b): its region set and its MU set (the
   mu_set           atlas's, handed in by the bundle build), on `section_ruleset.place` / `.mus`
   unnamed_part     THE UNNAMED WATER (S1, user ruling 2026-10-10: every section has an answer):
@@ -131,7 +132,7 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
     db.executemany(
         "INSERT INTO part (ord, part_ix, set_id, key_ix, licensing_set, province_except, "
         "steelhead_water, steelhead, steelhead_rules, home_regions, tidal, sections, rep_sid, "
-        "no_access) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [r[:14] for r in rows])
+        "no_access, grp, run, chain) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [r[:14] + r[15:18] for r in rows])
     # (T387) each section's length along the water (access.py `section_length`): what the app weighs a part's access by
     length = dict(db.execute("SELECT sid, m FROM section_length"))
     db.executemany("INSERT INTO part_section (ord, sid, part_ix, m) VALUES (?,?,?,?)",
@@ -171,13 +172,59 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
     prove(db, unnamed=places is not None)
 
 
+def _runs_of(db: sqlite3.Connection):
+    """T517: what splits a same-rules group into its CONNECTED RUNS — the bundle's spans and touches, read once.
+    Returns `split(o, groups)`: for one water `o` and its groups `{g: [sid]}`, `{g: [[sid] per run]}` plus each run's
+    river key (`part_km`, km from the mouth of its main-stem top; None for no main stem). A run is
+    `topology.stretches` (T204): a group's main-stem runs merged unless ANOTHER group of the water has a main-stem
+    section in the gap between them (a lake on the course, or an unnamed piece, is not another part), side channels
+    joining the run they re-enter; a lake / polygon water, or a group with a section the spans do not hold, is one
+    run. So two runs of one group never touch, and every run is maximal."""
+    from pipeline.deliver.bundle import spans as SP
+    from pipeline.deliver.bundle.topology import part_km, stretches
+    kind = dict(db.execute("SELECT ord, kind FROM item"))
+    span = {s: (a, b, lo, hi, off, shape) for s, a, b, lo, hi, off, shape in db.execute(
+        "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem, s.shape FROM section_span s "
+        "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
+    touch: Dict[int, set] = defaultdict(set)
+    for a, b in db.execute("SELECT a, b FROM section_touch"):
+        touch[a].add(b)
+        touch[b].add(a)
+
+    def one(ss: List[int]):
+        poly = all(span.get(x) is not None and span[x][5] == 1 and span[x][0] is None for x in ss)
+        if poly or any(x not in span for x in ss):
+            return None
+        return SP.compose_runs(span, touch, ss)
+
+    def split(o: int, groups: Dict[tuple, List[int]]) -> Dict[tuple, List[Tuple[List[int], Optional[float]]]]:
+        out: Dict[tuple, List[Tuple[List[int], Optional[float]]]] = {}
+        if kind.get(o) != "stream":
+            return {g: [(ss, None)] for g, ss in groups.items()}
+        stem = {g: [(span[x][0], span[x][1]) for x in ss if x in span and not span[x][4]
+                    and span[x][0] is not None and span[x][1] is not None] for g, ss in groups.items()}
+        for g, ss in groups.items():
+            runs = one(ss)
+            if runs is None:
+                out[g] = [(ss, None)]
+                continue
+            other = [ab for h, v in stem.items() if h != g for ab in v]
+            pieces = [p["sids"] for p in stretches(runs, span, other)] or [ss]
+            out[g] = [(p, part_km(one(p) or [])) for p in pieces]
+        return out
+    return split
+
+
 def part_rows(db: sqlite3.Connection) -> List[tuple]:
     """Every part of every named water, in the export's order: `(ord, part_ix, set_id, key_ix,
     licensing_set, province_except, steelhead_water, steelhead, steelhead_rules, home_regions,
-    tidal, sections, rep_sid, no_access, [sid])`. Grouped by (item, rule set, licensing set, province
-    exceptions, steelhead water, steelhead presence, mostly inside no-access land) and ordered as the
-    export always listed them (rule set first, null last; licensing set; no province exception first;
-    not steelhead water first; presence known, possible, none; outside no-access land first).
+    tidal, sections, rep_sid, no_access, [sid], grp, run, chain)`. Grouped by (item, rule set, licensing set, province
+    exceptions, steelhead water, steelhead presence, mostly inside no-access land, DFO salmon chain), each group cut into
+    its CONNECTED RUNS (T517, `_runs_of`: one part per run), and numbered in RIVER ORDER: by km from the
+    mouth (`part_km`, as `topology.order_parts` ranks them), then the parts with no km (a lake, side
+    channels only) — ties and the km-less in the old group order (rule set first, null last; licensing
+    set; no province exception first; not steelhead water first; presence known, possible, none; outside
+    no-access land first), then lowest section.
     NO ACCESS IS A HARD BREAK (T226, owner 2026-10-28): a section mostly inside no-access land
     (`access.mostly_inside`, the app's fourth colour; `section_access` must be written first) never
     shares a part with one outside, though their rules agree. The facts every section of a part must share
@@ -199,21 +246,53 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
     from pipeline.deliver.bundle.access import mostly_inside
     closed_land = mostly_inside(db)
 
+    # T517: each section's DFO salmon chain is IN THE KEY (0 for a section in none, and for a bundle without the salmon
+    # table: a fixture), so every part is uniform for the salmon paint too, by construction
+    chain_of: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section")) if db.execute(
+        "SELECT 1 FROM sqlite_master WHERE name = 'salmon_section'").fetchone() else {}
     groups: Dict[tuple, List[int]] = defaultdict(list)
     for o, sid in db.execute("SELECT ord, sid FROM item_section ORDER BY ord, sid"):
         groups[(o, rset.get(sid), lset.get(sid), ",".join(pe.get(sid, ())), sid in sw,
-                st.get(sid), sid in closed_land)].append(sid)
+                st.get(sid), sid in closed_land, chain_of.get(sid, 0))].append(sid)
 
     def order(g):
-        o, rs, ls, p, w, s, na = g
+        o, rs, ls, p, w, s, na = g[:7]
         return (item_id[o], rs is None, rs or 0, ls is None, ls or 0, p != "", p, w,
-                s is None, s or 0, na)
+                s is None, s or 0, na) + tuple(g[7:])
+
+    split = _runs_of(db)
+    by_ord: Dict[int, Dict[tuple, List[int]]] = defaultdict(dict)
+    for g, sids in groups.items():
+        by_ord[g[0]][g] = sids
+    # `grp`: the chain-free rule-set group (what the picker, the full label and the closed-merge read, as before T517);
+    # `run`: which chain-free connected run of its grp a part lies in (`_runs_of` without the chain). Parts sharing
+    # (grp, run) are one run cut only where the salmon chain changes.
+    pieces: List[Tuple[tuple, List[int], int, int]] = []
+    for o in sorted(by_ord, key=lambda o: item_id[o]):
+        runs = split(o, by_ord[o])
+        free: Dict[tuple, List[int]] = defaultdict(list)
+        for g, ss in by_ord[o].items():
+            free[g[:7]] += ss
+        grp_of = {g: i for i, g in enumerate(sorted(free, key=order))}
+        free_runs = split(o, free)
+        run_of: Dict[int, int] = {}
+        for g, rs_ in free_runs.items():
+            ranked = sorted(rs_, key=lambda x: (x[1] is None, x[1] or 0, min(x[0])))
+            for k, (ss, _) in enumerate(ranked):
+                for x in ss:
+                    run_of[x] = k
+        mine = [(g, ss, km) for g in sorted(by_ord[o], key=order) for ss, km in runs[g]]
+        with_km = sorted((x for x in mine if x[2] is not None), key=lambda x: (x[2], order(x[0]), min(x[1])))
+        for g, ss, _ in with_km + [x for x in mine if x[2] is None]:
+            ks = {run_of[x] for x in ss}
+            if len(ks) != 1:
+                raise DerivedError(f"part: {item_id[o]}: a salmon-chain run straddles two runs of its rule set")
+            pieces.append((g, sorted(ss), grp_of[g[:7]], ks.pop()))
 
     out: List[tuple] = []
     n_of: Dict[int, int] = defaultdict(int)
-    for g in sorted(groups, key=order):
-        o, rs, ls, p, w, s, na = g
-        sids = groups[g]
+    for g, sids, grp, run in pieces:
+        o, rs, ls, p, w, s, na, ch = g
         name = f"{item_id[o]} part {n_of[o]}"
         rules_apply = {x in sr for x in sids}
         tides = {x in tidal for x in sids}
@@ -232,7 +311,7 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
         homes = sorted({home[x] for x in sids if x in home})
         out.append((o, n_of[o], rs, next(iter(keys)), ls, p, int(w), s,
                     int(next(iter(rules_apply))), ",".join(T.Region(h).value for h in homes),
-                    int(next(iter(tides))), len(sids), min(sids), int(na), sids))
+                    int(next(iter(tides))), len(sids), min(sids), int(na), sids, grp, run, ch))
         n_of[o] += 1
     return out
 
@@ -405,17 +484,17 @@ def parts(db: sqlite3.Connection) -> Dict[str, List[T.Part]]:
     """{item_id: [Part in part_ix order]} — the bundle's parts, typed (`types.Part`)."""
     names = {c: n for c, n in read_steelhead_codes()}
     out: Dict[str, List[T.Part]] = defaultdict(list)
-    for (item, kind, ix, s, k, ls, pe, sw, st, sr, home, td, n, rep) in db.execute(
+    for (item, kind, ix, s, k, ls, pe, sw, st, sr, home, td, n, rep, grp, run) in db.execute(
             "SELECT i.item_id, i.kind, p.part_ix, p.set_id, p.key_ix, p.licensing_set, "
             "p.province_except, p.steelhead_water, p.steelhead, p.steelhead_rules, "
-            "p.home_regions, p.tidal, p.sections, p.rep_sid FROM part p JOIN item i "
+            "p.home_regions, p.tidal, p.sections, p.rep_sid, p.grp, p.run FROM part p JOIN item i "
             "ON i.ord = p.ord ORDER BY i.item_id, p.part_ix"):
         out[item].append(T.Part(
             item_id=item, part_ix=ix, set_id=s, key=k, licensing_set=ls,
             province_except=tuple(pe.split(",")) if pe else (), steelhead_water=bool(sw),
             steelhead=None if st is None else names[st], steelhead_rules=bool(sr),
             home_regions=tuple(home.split(",")) if home else (), kind=kind, tidal=bool(td),
-            sections=n, rep_sid=rep))
+            sections=n, rep_sid=rep, grp=grp, run=run))
     return dict(out)
 
 

@@ -186,9 +186,9 @@ class Store:
         xparts = {i: self.val("xpart", b) for i, b in self.con.execute("SELECT id, j FROM xpart")}
         runs = {i: self.val("runs", b) for i, b in self.con.execute("SELECT id, j FROM runs")}
         parts_of: Dict[int, list] = {}
-        for o, pix, xp, n, r in self.con.execute(
-                "SELECT item_ord, part_ix, xp, sections, xruns FROM part ORDER BY item_ord, part_ix"):
-            parts_of.setdefault(o, []).append({**xparts[xp], "sections": n, "runs": runs[r]})
+        for o, pix, xp, n, r, g, u in self.con.execute(
+                "SELECT item_ord, part_ix, xp, sections, xruns, grp, run FROM part ORDER BY item_ord, part_ix"):
+            parts_of.setdefault(o, []).append({**xparts[xp], "sections": n, "runs": runs[r], "grp": g, "run": u})
         eids = list(entries)
         waters = {}
         for o, wid_s, name, kind, n, out_bc, ents, st, x in self.con.execute(

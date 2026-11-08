@@ -135,108 +135,6 @@ def cut_between(x: int, y: int, span: Dict[int, tuple], splits: Dict[str, dict])
     return None
 
 
-def by_chain(st: Sequence[dict], chain: Dict[int, int], touch: Dict[int, set], span: Dict[int, tuple],
-             splits: Optional[Dict[str, dict]] = None, gaps: Optional[List[Tuple[int, int]]] = None) -> List[dict]:
-    """T228 (owner 2026-10-28: "sections are bounded by extents (named splits); salmon DFO places' extents are splits
-    too; adjacent sections merge only when both standard and salmon rules match; every boundary is a named split"):
-    each stretch of `st` cut where the DFO salmon chain changes (`salmon_section.chain`, 0 for a section in none) AND a
-    named split stands there (`cut_between`). The connected runs (`section_touch`) of one chain are the candidate
-    pieces; two that touch only where no named split stands are ONE piece — a salmon difference at a point with no split
-    is a DATA GAP (a DFO place's edge not placed as a split), never cut or named: each such touching pair is appended to
-    `gaps` (down-or-up order as met) for the build's diagnostic and the review's DFO queue. Each piece mouth first, its
-    `hi` the highest main-stem measure it holds (None: no main stem), its `chain` the one chain or a tuple of them.
-    Where two pieces read the same salmon TODAY the app joins them again (`@app/core` `mergeNav`). A stretch left whole
-    is returned as it was."""
-    splits = splits or {}
-    out: List[dict] = []
-    for s in st:
-        if len({chain.get(x, 0) for x in s["sids"]}) <= 1:
-            out.append(s)
-            continue
-        here = set(s["sids"])
-        left, comps = set(s["sids"]), []
-        piece_of: Dict[int, int] = {}
-        for x in s["sids"]:
-            if x not in left:
-                continue
-            c, comp, todo = chain.get(x, 0), [], [x]
-            left.discard(x)
-            while todo:
-                y = todo.pop()
-                comp.append(y)
-                for z in touch.get(y, ()):
-                    if z in left and chain.get(z, 0) == c:
-                        left.discard(z)
-                        todo.append(z)
-            for y in comp:
-                piece_of[y] = len(comps)
-            comps.append(comp)
-        # two pieces join unless a named split stands where they touch
-        root = list(range(len(comps)))
-
-        def find(i: int) -> int:
-            while root[i] != i:
-                root[i] = root[root[i]]
-                i = root[i]
-            return i
-        pairs: Dict[Tuple[int, int], List[Tuple[int, int]]] = defaultdict(list)
-        for x in sorted(here):
-            for y in sorted(touch.get(x, ())):
-                if y in here and piece_of[x] < piece_of[y]:
-                    pairs[(piece_of[x], piece_of[y])].append((x, y))
-        for (i, j), xs in sorted(pairs.items()):
-            if not any(cut_between(x, y, span, splits) for x, y in xs):
-                if gaps is not None:
-                    gaps += xs
-                root[find(j)] = find(i)
-        joined: Dict[int, List[int]] = defaultdict(list)
-        for k, comp in enumerate(comps):
-            joined[find(k)] += comp
-        pieces = []
-        for comp in joined.values():
-            cs = sorted({chain.get(y, 0) for y in comp})
-            stem = [span[y] for y in comp if y in span and not span[y][4] and span[y][0] is not None]
-            pieces.append({"lo": min(r[0] for r in stem) if stem else None,
-                           "hi": max(r[1] for r in stem) if stem else None, "sids": sorted(comp),
-                           "chain": cs[0] if len(cs) == 1 else tuple(cs)})
-        pieces.sort(key=lambda q: (q["hi"] is None, q["lo"] if q["lo"] is not None else 0, q["sids"][0]))
-        # a piece with no main stem (a side channel the graph does not join: no `section_touch`) goes with the stretch's
-        # first main-stem piece of its chain — as `stretches` placed it by measure; with none of its chain it stays
-        stem_of = {}
-        for q in pieces:
-            if q["hi"] is not None:
-                stem_of.setdefault(q["chain"], q)
-        kept = []
-        for q in pieces:
-            home = stem_of.get(q["chain"]) if q["hi"] is None else None
-            if home is not None:
-                home["sids"] = sorted(home["sids"] + q["sids"])
-            else:
-                kept.append(q)
-        out += kept if len(kept) > 1 else [{**s, "sids": sorted(s["sids"])}]
-    return out
-
-
-def chain_label(dn: dict, up: dict, span: Dict[int, tuple], splits: Dict[str, dict],
-                touch: Optional[Dict[int, set]] = None) -> Optional[dict]:
-    """T228: the NAMED SPLIT where two pieces of ONE part meet (`by_chain` only cuts at one): the split two of their
-    touching sections share, else the upper piece's lowest main-stem end when it is a named split; else None — no
-    name is ever invented (owner 2026-10-28: every boundary is a named split)."""
-    a = set(dn["sids"])
-    for y in sorted(up["sids"]):
-        for x in sorted((touch or {}).get(y, ())):
-            if x in a:
-                t = cut_between(x, y, span, splits)
-                if t:
-                    return splits[t]
-    stem = sorted((span[s][0], s) for s in up["sids"] if s in span and not span[s][4] and span[s][0] is not None)
-    if stem:
-        hit = splits.get(span[stem[0][1]][2] or "")
-        if hit and hit.get("name"):
-            return hit
-    return None
-
-
 def split_at(down: dict, up: dict, splits: Dict[str, dict]) -> Optional[dict]:
     """The split where `up` (upstream) meets `down`: the downstream part's run start, else the upstream part's run end,
     when it has a name. A branch (`km` None: a side channel, a lake part) is named only by its own runs' ends: the main
@@ -279,28 +177,52 @@ def point_on(g):
 
 
 def merge_marks(raw: Sequence[dict]) -> List[dict]:
-    """One mark per (point, down part, down stretch), with every up part meeting there. A raw mark's `up` is a part, its
-    `up_k` / `down_k` (T204) the stretches (absent: 0); the merged `up` lists the parts and `up_k` their stretches, in
-    the same order, sorted by (part, stretch)."""
+    """One mark per (point, down part), with every up part meeting there, sorted."""
     by: Dict[tuple, dict] = {}
     for m in raw:
-        k = (round(m["lon"], 6), round(m["lat"], 6), m["down"], m.get("down_k", 0))
-        u = (m["up"], m.get("up_k", 0))
+        k = (round(m["lon"], 6), round(m["lat"], 6), m["down"])
         if k in by:
-            by[k]["ups"] = sorted(set(by[k]["ups"]) | {u})
+            by[k]["up"] = sorted(set(by[k]["up"]) | {m["up"]})
             if not by[k]["label"] and m["label"]:
                 by[k]["label"] = m["label"]
                 if m.get("confidence"):                  # T207: the named split's, with its name
                     by[k]["confidence"] = m["confidence"]
         else:
-            by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "down_k": m.get("down_k", 0), "ups": [u],
+            by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "up": [m["up"]],
                      "label": m["label"], **({"confidence": m["confidence"]} if m.get("confidence") else {})}
-    out = []
-    for m in sorted(by.values(), key=lambda m: (m["down"], m["down_k"], m["ups"], m["lon"], m["lat"])):
-        ups = m.pop("ups")
-        m["up"], m["up_k"] = [u for u, _ in ups], [k for _, k in ups]
-        out.append(m)
-    return out
+    return sorted(by.values(), key=lambda m: (m["down"], m["up"], m["lon"], m["lat"]))
+
+
+def _stem_ends(p: dict) -> Tuple[Optional[str], Optional[str]]:
+    """(the token at a part's lowest main-stem end, the one at its highest), or (None, None) with no main stem."""
+    main = [r for r in p.get("runs") or [] if not r.get("branch") and r.get("km_from") is not None]
+    if not main:
+        return None, None
+    return min(main, key=lambda r: r["km_from"]).get("to"), max(main, key=lambda r: r["km_from"]).get("from")
+
+
+def mark_words(down: dict, up: dict, doc: dict, splits: Dict[str, dict]) -> Tuple[Optional[str], Optional[str]]:
+    """T517: (a mark's words, its confidence). Where the lower part's top end IS the upper part's bottom end (one
+    token), the mark says that end in `end_words` — the same words the two parts' names say there (asserted). Else an
+    end token the two parts' runs share; else the named split `split_at` finds; else (None, None)."""
+    from pipeline.deliver.answers.display.part import _named_token, end_words, run_ends
+    natural = {None, "", "mouth", "source"}
+    top, bottom = _stem_ends(down)[1], _stem_ends(up)[0]
+    tok = top if top == bottom and top not in natural else None
+    if tok is None:
+        ends = lambda p: {e for r in p.get("runs") or [] for e in (r.get("to"), r.get("from"))}  # noqa: E731
+        common = sorted((ends(down) & ends(up)) - natural)
+        tok = common[0] if common else None
+    if tok is None:
+        s = split_at(down, up, splits)
+        return (s["name"], s.get("confidence")) if s else (None, None)
+    words = end_words(doc, tok, "from")
+    if tok == top == bottom:
+        a, b = run_ends(doc, down), run_ends(doc, up)
+        if not a or not b or a[1] != words or b[0] != end_words(doc, tok, "to"):
+            raise SystemExit(f"part_mark: {tok!r} reads {words!r} on the mark but {a and a[1]!r} / {b and b[0]!r} "
+                             f"on the parts it joins — one function names both (T517)")
+    return words, (splits.get(_named_token(doc, tok) or "") or {}).get("confidence")
 
 
 #: a way down through unnamed pieces longer than this is the sea or the edge of the atlas (as `nearer.MAX_STEPS`)
@@ -369,7 +291,8 @@ def mouth_downs(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, se
     return out
 
 
-def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: Dict[int, Sequence[int]]) -> List[int]:
+def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: Dict[int, Sequence[int]],
+                   size: Optional[Dict[int, int]] = None) -> List[int]:
     """The waters water `o` may EXIT into (T59): of its `item_down` receivers `cands`, every one that does not itself
     flow into `o`, directly or down a chain of waters — a side channel whose mouth is back on `o` (Annacis Channel on
     the Fraser: `mouths`, from `mouth_downs`), one that reaches it through another (the upper Jeperson Side Channel
@@ -378,13 +301,14 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
     goes. Empty for the Fraser: its mouth is the sea. A LAKE (no main line: absent from `mouths`) keeps every
     receiver: a creek running through it is both its inflow and its outlet, and a creek's main line (`lines.main_line`,
     the line carrying most of its length) can be its upper line, so the creek's "mouth" is no evidence against the
-    lake's outlet (Adsit Lake, Crooked Lake)."""
+    lake's outlet (Adsit Lake, Crooked Lake).
+    T519: when o's own mouth reaches d AND d flows back into o (a braid: each mouth walk meets the other), the SMALLER
+    water (`size`, its sections) is the side channel and never the bigger one's exit — since T497 named the delta's
+    connectors, the Fraser's mouth walk met Morey Channel, its own side channel. Without `size` o's mouth wins."""
     if o not in mouths:
         return list(cands)
 
-    def into_o(d: int) -> bool:
-        if d in mouths[o]:                      # o's own mouth reaches d: evidence for d, whatever d's says back
-            return False
+    def flows_into_o(d: int) -> bool:
         seen, stack = {d}, [d]
         while stack:
             x = stack.pop()
@@ -396,6 +320,11 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
                     seen.add(y)
                     stack.append(y)
         return False
+
+    def into_o(d: int) -> bool:
+        if d in mouths[o]:                      # o's own mouth reaches d: evidence for d, unless d is o's side channel
+            return size is not None and size.get(d, 0) < size.get(o, 0) and flows_into_o(d)
+        return flows_into_o(d)
     return [d for d in cands if not into_o(d)]
 
 
@@ -428,6 +357,10 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         touch[b].add(a)
     splits = {sid: {"name": n, "confidence": c}
               for sid, n, c in db.execute("SELECT split_id, name, confidence FROM split")}
+    # T517: the words of a mark are `answers.display.end_words`' — the one function that names every run end
+    from pipeline.deliver.export.read import read_splits
+    words_doc = {"splits": read_splits(db), "waters": {i: {"name": n} for i, n in db.execute("SELECT item_id, name FROM item")}}
+    grp_run = {(o, p): (g, r) for o, p, g, r in db.execute("SELECT ord, part_ix, grp, run FROM part")}
     # T228: each section's DFO salmon chain (written before this by `salmon.write_bundle`; a bundle without it: none)
     chain: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section")) if db.execute(
         "SELECT 1 FROM sqlite_master WHERE name = 'salmon_section'").fetchone() else {}
@@ -474,7 +407,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         lon, lat = to_ll.transform(pt.x, pt.y)
         return round(lon, 6), round(lat, 6)
 
-    part_rows, mark_rows, stretch_rows, shapes = [], [], [], {}
+    part_rows, mark_rows, shapes = [], [], {}
     gap_rows: List[tuple] = []
     no_measure = 0
     for o, parts in sorted(by_ord.items()):
@@ -488,17 +421,22 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
             shapes[(o, p["v"])] = g
             mid, pt = midpoint(p["sids"], p["poly"], g, rep[(o, p["v"])])
             part_rows.append((o, p["v"], rank, mid, *ll(pt), *box(g)))
-        # T204: the stretches of every part, then their order in the water (mouth first: as `order_parts`, by km, then
-        # part, then stretch; no km last). A part of one stretch is the part itself (its km, its shape).
-        nodes = []
-        for p in ranked:
-            other = [(a, b) for v, a, b in stem_of[o] if v != p["v"]]
-            st = [{"lo": None, "hi": None, "sids": p["sids"]}] if p["poly"] or not p["runs"] \
-                else by_chain(stretches(p["runs"], span, other), chain, touch, span, splits, gap_pairs)
-            for k, s in enumerate(st):
-                km = p["km"] if len(st) == 1 else (None if s["hi"] is None else round(s["hi"] / 1000, 2))
-                nodes.append({"part": p, "v": p["v"], "k": k, "n": len(st), "sids": s["sids"], "km": km,
-                              "chain": s.get("chain", chain.get(s["sids"][0], 0) if s["sids"] else 0)})
+        # T517: a part IS one connected run (`derived.part_rows`), so the nodes are the parts, in rank order, and the
+        # rank is the part index (river order is decided once, there)
+        for rank, p in enumerate(ranked):
+            if rank != p["v"]:
+                raise SystemExit(f"part_geo: water ord {o} part {p['v']} ranks {rank}: part_ix is not river order")
+        nodes = [{"part": p, "v": p["v"], "sids": p["sids"], "km": p["km"], "g": shapes[(o, p["v"])]} for p in ranked]
+        # T228 DIAGNOSTIC: two parts of one run (same grp, run) cut where the salmon chain changes with no named split
+        for a_ in nodes:
+            for b_ in nodes:
+                if a_["v"] >= b_["v"] or grp_run.get((o, a_["v"])) != grp_run.get((o, b_["v"])):
+                    continue
+                bs = set(b_["sids"])
+                for x in a_["sids"]:
+                    for y in sorted(touch.get(x, ())):
+                        if y in bs and not cut_between(x, y, span, splits):
+                            gap_pairs.append((x, y))
         # T228: every salmon difference with no named split under it — one row per (water, the two chains), at the
         # first place they touch, the lower section first
         seen_gap = set()
@@ -512,26 +450,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
             pa, pb = nearest_points(geo[dx], geo[uy])
             lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
             gap_rows.append((o, dx, uy, round(lon, 6), round(lat, 6), k[0], k[1]))
-        nodes = (sorted((x for x in nodes if x["km"] is not None), key=lambda x: (x["km"], x["v"], x["k"]))
-                 + [x for x in nodes if x["km"] is None])
-        multi = any(x["n"] > 1 for x in nodes)
-        for x in nodes:
-            if x["n"] == 1:
-                x["g"] = shapes[(o, x["v"])]
-            else:
-                gs = [geo[s] for s in x["sids"] if s in geo]
-                if not gs:
-                    raise SystemExit(f"part_stretch: water ord {o} part {x['v']} stretch {x['k']} has no geometry")
-                x["g"] = unary_union(gs)
-        if multi:
-            for srank, x in enumerate(nodes):
-                if x["n"] == 1:          # the part's own row, again: its midpoint and box are the part's
-                    pr = next(r for r in part_rows if r[0] == o and r[1] == x["v"])
-                    mid, lon, lat, bb = pr[3], pr[4], pr[5], pr[6:10]
-                else:
-                    mid, pt = midpoint(x["sids"], x["part"]["poly"], x["g"], rep[(o, x["v"])])
-                    (lon, lat), bb = ll(pt), box(x["g"])
-                stretch_rows.append((o, x["v"], x["k"], srank, mid, lon, lat, *bb, json.dumps(x["sids"])))
+
         def stem_g(x):
             if "stem_g" not in x:
                 gs = [geo[s] for s in x["sids"] if s in geo and s in span and not span[s][4]]
@@ -542,12 +461,6 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
                 dn, up = nodes[i], nodes[j]
-                same = dn["v"] == up["v"]
-                # T228: two pieces of one part meet only at a named split on a salmon chain boundary; any other pair
-                # of one part is not adjacent (or is a stretch apart, T204)
-                if same and (dn.get("chain") == up.get("chain")
-                             or chain_label(dn, up, span, splits, touch) is None):
-                    continue
                 a, b = dn["g"], up["g"]
                 if a.distance(b) > TOUCH_M:
                     continue
@@ -558,29 +471,25 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                     a, b = sa, sb
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
-                at = chain_label(dn, up, span, splits, touch) if same \
-                    else split_at(dn["part"], up["part"], splits) if dn["n"] == 1 and up["n"] == 1 \
-                    else split_at(_runs_of(dn), _runs_of(up), splits)
+                label, conf = mark_words(dn["part"], up["part"], words_doc, splits)
                 raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": dn["v"], "up": up["v"],
-                            "down_k": dn["k"], "up_k": up["k"],
-                            "label": at["name"] if at else None, "confidence": (at or {}).get("confidence")})
+                            "label": label, "confidence": conf})
         for k, m in enumerate(merge_marks(raw)):
-            ks = m["up_k"] if any(m["up_k"]) or m["down_k"] else None
             mark_rows.append((o, k, m["lon"], m["lat"], m["label"], m["down"], json.dumps(m["up"]),
-                              m.get("confidence"), m["down_k"] if ks is not None else None,
-                              json.dumps(ks) if ks is not None else None))
+                              m.get("confidence"), None, None))
 
     mouth = _mouths(part_rows)
     shapes_of: Dict[int, List[Tuple[int, Geometry]]] = defaultdict(list)
     for (o, p), g in sorted(shapes.items(), key=lambda kv: kv[0]):
         shapes_of[o].append((p, g))
     exits = []
+    size_of = dict(db.execute("SELECT ord, COUNT(*) FROM item_section GROUP BY ord"))
     downs: Dict[int, List[int]] = defaultdict(list)
     for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord, down_ord"):
         downs[a].append(b)
     for o, cands in sorted(downs.items()):
         if mouths is not None:
-            cands = exit_receivers(o, cands, mouths, downs)
+            cands = exit_receivers(o, cands, mouths, downs, size_of)
         if o not in mouth or not cands:
             continue
         here = shapes[(o, mouth[o])]
@@ -597,8 +506,6 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                    "VALUES (?,?,?,?,?,?,?,?,?,?)", part_rows)
     db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence, "
                    "down_stretch, up_stretches) VALUES (?,?,?,?,?,?,?,?,?,?)", mark_rows)
-    db.executemany("INSERT INTO part_stretch (ord, part_ix, stretch_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n, "
-                   "sids) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", stretch_rows)
     db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
     # T228 DIAGNOSTIC: a salmon difference where no named split stands — a DFO place's edge not yet placed as a split.
     # Not cut, not named: the pieces stay one (the salmon bar shows its "see Salmon below" days) until the edge is placed
@@ -617,17 +524,10 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
             print(f"    {name.get(o)} at {lon},{lat}: {' | '.join(f'{p} ({words.get(p, '')})' for p in only[:2])}")
     cov.filled("part_geo", len(part_rows))
     cov.filled("part_mark", len(mark_rows))
-    cov.filled("part_stretch", len(stretch_rows))
     cov.filled("water_exit", len(exits))
-    print(f"  part topology: {len(part_rows):,} parts, {len(mark_rows):,} marks, {len(stretch_rows):,} stretch rows, "
+    print(f"  part topology: {len(part_rows):,} parts, {len(mark_rows):,} marks, "
           f"{len(exits):,} exits "
           f"({no_measure:,} stream parts placed by section length: no route measure)")
-
-
-def _runs_of(x: dict) -> dict:
-    """A stretch as `split_at` reads a part: its km and the runs (of its part) holding its sections."""
-    ss = set(x["sids"])
-    return {"km": x["km"], "runs": [r for r in x["part"].get("runs") or [] if ss & set(r["sids"])]}
 
 
 def _mouths(part_rows: Sequence[tuple]) -> Dict[int, int]:

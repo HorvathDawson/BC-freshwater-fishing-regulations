@@ -124,6 +124,8 @@ CREATE TABLE part (
     xp              INTEGER NOT NULL REFERENCES xpart(id),
     sections        INTEGER NOT NULL,
     xruns           INTEGER NOT NULL REFERENCES runs(id),
+    grp             INTEGER NOT NULL,                -- T517: the rule-set group (the picker's one choice)
+    run             INTEGER NOT NULL,                -- T517: its connected run (shared: cut only by the salmon chain)
     PRIMARY KEY (item_ord, part_ix)) WITHOUT ROWID;
 CREATE TABLE runs (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
 CREATE TABLE xpart (id INTEGER PRIMARY KEY, j BLOB NOT NULL);

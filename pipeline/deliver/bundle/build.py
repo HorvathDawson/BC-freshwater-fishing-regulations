@@ -675,9 +675,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # THE DERIVED TABLES (DATAFLOW P2): rule_ix, rule.closure_grade, part, part_section — from
         # the rows just written, proved against them.
         from pipeline.deliver.bundle import derived as _derived
-        _derived.write(db, cov, places=places)
-        _continuation.write(db, _continues, cov, built_with=_settled)
-        # (T228: before the part topology, which cuts a part's stretches where the salmon chain changes)
+        # (T517: the salmon chain is in the part key, so the salmon sections are written BEFORE the parts)
         # THE DFO SALMON (T211): the federal salmon rules per chain of locations and day, and each placed section's chain —
         # read once here from the reach run's placements, the curated locations and the typed feed (`pipeline.deliver.salmon`)
         if _reaches is not None:
@@ -731,6 +729,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             _place_words = {_loc.location_id: _salmon._label(_loc) for _ef in _files.values() for _loc in _ef.locations}
             _chain_places = [list(_c.get("l") or []) for _c in _payload["chains"]]
             del _files, _feeds, _placed, _payload, _salmon_secs
+        _derived.write(db, cov, places=places)
+        _continuation.write(db, _continues, cov, built_with=_settled)
         _topology.write(db, named_geo, cov, mouths=_mouths,
                         dfo_places=(_place_words, _chain_places) if _reaches is not None else None)
         del named_geo

@@ -379,7 +379,7 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
         for i, (k, p, q) in enumerate(zip(ap, ep, dp)):
             if not isinstance(p.get("sections"), int) or "runs" not in p:
                 raise StoreError(f"store: {wid} part {i}: no export sections count or runs")
-            xj = dumps({kk: v for kk, v in p.items() if kk not in ("sections", "runs")})
+            xj = dumps({kk: v for kk, v in p.items() if kk not in ("sections", "runs", "grp", "run")})
             xp = xparts.setdefault(xj, len(xparts))
             if q is None:
                 cols = (None,) * 9
@@ -393,12 +393,12 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
                         S.add(q["hint"]), q["km"], int(q["closed_all_year"]),
                         dumps_s(q["paper_licence"]))
             parts.append((o, i, None if k is None else k + 1, *cols, xp, p["sections"],
-                          runs.setdefault(dumps(p["runs"]), len(runs))))
+                          runs.setdefault(dumps(p["runs"]), len(runs)), p["grp"], p["run"]))
     pending["item"] = items
     pending["xpart"] = [(i, j) for j, i in xparts.items()]
     pending["picker"] = [(i, j) for j, i in pickers.items()]
     pending["runs"] = [(i, j) for j, i in runs.items()]
-    con.executemany("INSERT INTO part VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", parts)
+    con.executemany("INSERT INTO part VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", parts)
 
     # ---- section_akey: every section a keyed named part covers
     by_ord = {o: wid for wid, o in item_ord.items()}

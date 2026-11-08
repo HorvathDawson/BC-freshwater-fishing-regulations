@@ -251,6 +251,8 @@ class Part:
     tidal: bool
     sections: int
     rep_sid: int                            # the lowest section: a HANDLE, never leaves the bundle
+    grp: int = 0                            # T517: the chain-free rule-set group (picker, label, closed-merge)
+    run: int = 0                            # T517: which connected run of its grp (parts sharing both: one run)
 
     def __post_init__(self):
         if (self.set_id is None) != (self.key is None):

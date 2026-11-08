@@ -98,11 +98,8 @@ FILES = {
     "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
     "geo": {"format": "geo/1", "kind": "sqlite", "tables": {
-        "meta": ["k", "v"], "part_geo": ["ord", "part_ix", "rank", "mid_sid", "mid_lon", "mid_lat", "w", "s", "e", "n"],
-        # (T204) a part's separate stretches, for the waters that have a part of two or more: ADDITIVE, still geo/1 (an
-        # older release has none: every part is one stretch)
-        "part_stretch": ["ord", "part_ix", "stretch_ix", "rank", "mid_sid", "mid_lon", "mid_lat", "w", "s", "e", "n",
-                         "sids"]}},
+        # (T517) a part is one connected run, so `part_stretch` (T204's pieces of a part) is gone
+        "meta": ["k", "v"], "part_geo": ["ord", "part_ix", "rank", "mid_sid", "mid_lon", "mid_lat", "w", "s", "e", "n"]}},
     "water": {"format": "water/1", "kind": "sqlite", "tables": {
         "akey": ["akey", "ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
                  "province_except", "home_region", "kind", "tidal", "seg", "mom", "nseg"],
@@ -115,7 +112,7 @@ FILES = {
         "lset": ["set_id", "j"],
         "meta": ["k", "v"],
         "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
-                 "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
+                 "closed_all_year", "paper_licence", "xp", "sections", "xruns", "grp", "run"],
         # `confidence` (T207), `down_stretch` / `up_stretches` (T204: which stretch of each part meets there, NULL when
         # every one is stretch 0): ADDITIVE, last — still water/1; an older release has no columns
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
@@ -154,7 +151,7 @@ FILES = {
                  "entries", "steelhead", "x"],
         "meta": ["k", "v"],
         "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
-                 "closed_all_year", "paper_licence", "xp", "sections", "xruns"],
+                 "closed_all_year", "paper_licence", "xp", "sections", "xruns", "grp", "run"],
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
                       "up_stretches"],
         "part_line": ["ord", "part_ix", "stretch", "blk", "m0", "m1"],             # (T388) by ord, as part_section
@@ -191,9 +188,7 @@ UNITS = {
     "geo.part_geo.mid_lon": "microdegrees", "geo.part_geo.mid_lat": "microdegrees",
     "geo.part_geo.w": "microdegrees", "geo.part_geo.s": "microdegrees", "geo.part_geo.e": "microdegrees",
     "geo.part_geo.n": "microdegrees",
-    "geo.part_stretch.mid_lon": "microdegrees", "geo.part_stretch.mid_lat": "microdegrees",
-    "geo.part_stretch.w": "microdegrees", "geo.part_stretch.s": "microdegrees", "geo.part_stretch.e": "microdegrees",
-    "geo.part_stretch.n": "microdegrees", "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
+    "water.part_mark.lon": "microdegrees", "water.part_mark.lat": "microdegrees",
     "climate.gauge_clim.bands": "clim/2: [u8 pentad, 5 x float16 LE] records",
     "flow-area": "flow-area/1: 'BCFA', u8 1, one LEB128 varint per paint section (sid order) = round(km2 x 1000)",
     "paint": "paint/5: see pipeline/deliver/release/paint.py",
