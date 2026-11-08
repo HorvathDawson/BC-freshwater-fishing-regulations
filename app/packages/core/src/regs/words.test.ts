@@ -57,7 +57,7 @@ describe("ALL_WORDS", () => {
   });
 
   it("holds the Bait item's words and fragments (T31)", () => {
-    for (const w of ["Bait", "No natural bait of any kind while the ban runs. ", "Roe (fish eggs)", "on streams", "allowed · the ",
+    for (const w of ["Bait", "No natural bait", "Bait ban", " — all year", " · in force today", " · not today", "Roe (fish eggs)", "on streams", "allowed · the ",
       " ban excepts it", "carry up to ", " kg", " is still OK", "Allowed", "Not allowed", "✓", "✕"]) expect(ALL_WORDS.has(w), w).toBe(true);
   });
 

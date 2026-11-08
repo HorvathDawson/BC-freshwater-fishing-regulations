@@ -6,14 +6,6 @@
  },
  "gear": {
   "bait": {
-   "dated": [
-    {
-     "chip": "Next",
-     "inForce": false,
-     "says": "bait ban",
-     "when": "May 1–31"
-    }
-   ],
    "label": "Bait",
    "list": [
     {
@@ -53,7 +45,36 @@
      ]
     }
    ],
-   "notes": [],
+   "notes": [
+    [
+     {
+      "s": "Bait ban",
+      "t": "text"
+     },
+     {
+      "s": " ",
+      "t": "text"
+     },
+     {
+      "s": "May 1–31",
+      "t": "text"
+     },
+     {
+      "s": " · not today",
+      "t": "text"
+     },
+     {
+      "s": " ",
+      "t": "text"
+     },
+     {
+      "ids": [
+       "bait_ban"
+      ],
+      "t": "term"
+     }
+    ]
+   ],
    "src": {
     "aria": "Sources: Province",
     "keys": [

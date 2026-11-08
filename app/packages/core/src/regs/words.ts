@@ -342,8 +342,9 @@ export const ELEM: Readonly<Record<string, string>> = Object.freeze({ roe: "Roe 
   chumming: "Chumming", downrigger: "Downrigger", light: "Light to attract fish" });
 export const BAIT = Object.freeze({
   LABEL: "Bait",
-  /** + the bait_ban ⓘ as its own run (page v36 gearParts: the note, a space, the ⓘ) */
-  BAN_NOTE: "No natural bait of any kind while the ban runs. ",
+  /** (T515) the heading over the list: what is banned + WHEN, then the status, then the bait_ban ⓘ as its own run (after a space) */
+  BAN_ALL: "No natural bait", BAN_SOME: "Bait ban",
+  WHEN_ALL_YEAR: " — all year", WHEN_JOIN: ", ", ON_TODAY: " · in force today", OFF_TODAY: " · not today",
   /** page v36 gearParts WHY */
   WHY: Object.freeze({ bait_ban: "bait ban", on_streams: "on streams", on_lakes: "on lakes", not_on_streams: "not on streams",
     not_on_lakes: "not on lakes", banned_roe_ok: "banned · roe is still OK", allowed: "allowed" }) as Readonly<Record<string, string>>,

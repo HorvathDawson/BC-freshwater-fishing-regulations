@@ -3,7 +3,7 @@
  * bait.parity.test.ts (retired, T439)): the item words, note2, the allowance move, the dated ban runs and the all-year line.
  */
 import { describe, expect, it } from "vitest";
-import { allYearBan, baitItems, datedBans, moveAllowances, note2, type BaitItem } from "./bait";
+import { allYearBan, baitItems, banHeading, datedBans, moveAllowances, note2, type BaitItem } from "./bait";
 import type { GearAnswer, StripState } from "./inputs";
 
 const LABELS: StripState[] = [
@@ -78,4 +78,23 @@ describe("datedBans (prototype dated(st, 16)) and allYearBan (UR4 fix 6)", () =>
     expect(allYearBan(year(() => 16), [{ ok: true, name: "Worms", s: "", rix: null }])).toBeNull();
     expect(allYearBan(year(() => 16), [{ ok: false, name: "Worms", s: "on lakes", rix: 1 }])).toBeNull();
   });
+});
+
+describe("banHeading (T515): one line — what, when, status, ⓘ", () => {
+  const line = (l: ReturnType<typeof banHeading>) => l.map((r) => r.map((x) => (x.t === "text" ? x.s : "ⓘ")).join(""));
+  const none: BaitItem[] = ["Worms", "Roe (fish eggs)"].map((name) => ({ ok: false, name, s: "bait ban", rix: 1 }));
+  const some: BaitItem[] = [{ ok: true, name: "Roe (fish eggs)", s: "", rix: 1 }, { ok: false, name: "Fish or fish parts", s: "bait ban", rix: 2 }];
+  const all = { chip: "Now", when: "All year", says: "bait ban", inForce: true } as const;
+  const now = { chip: "Now", when: "May 1–31", says: "bait ban", inForce: true } as const;
+  const next = { chip: "Next", when: "Sep 1–Dec 31", says: "bait ban", inForce: false } as const;
+  it("all year: no 'in force today', no chip", () => expect(line(banHeading(true, none, all, [], true))).toEqual(["No natural bait — all year ⓘ"]));
+  it("seasonal, in season: names the season once, says it is on", () =>
+    expect(line(banHeading(true, none, null, [now], true))).toEqual(["No natural bait May 1–31 · in force today ⓘ"]));
+  it("seasonal, out of season: the dates, 'not today' (bait is allowed now)", () =>
+    expect(line(banHeading(false, some, null, [next, now].slice(0, 1), true))).toEqual(["Bait ban Sep 1–Dec 31 · not today ⓘ"]));
+  it("several runs join; any of them in force says today", () =>
+    expect(line(banHeading(true, none, null, [now, next], false))).toEqual(["No natural bait May 1–31, Sep 1–Dec 31 · in force today"]));
+  it("partial (an exception stays ✓): 'Bait ban', never 'No natural bait'", () =>
+    expect(line(banHeading(true, some, all, [], true))).toEqual(["Bait ban — all year ⓘ"]));
+  it("only some baits banned, no season: no heading line at all", () => expect(banHeading(false, some, null, [], true)).toEqual([]));
 });

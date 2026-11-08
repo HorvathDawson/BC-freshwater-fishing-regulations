@@ -62,7 +62,7 @@ describe("<GearTab> vedder_1010 (open, Oct 10)", () => {
 
   it("Bait: ✓ rows with their notes, ✕ Fish or fish parts, the dated ban, Province ›", () => {
     const { sheets } = mount(vm);
-    expect(domLines(screen.getByTestId("gear-bait"))).toEqual(["Bait", "Next May 1–31: bait ban", "Allowed", "✓ Worms",
+    expect(domLines(screen.getByTestId("gear-bait"))).toEqual(["Bait", "Bait ban May 1–31 · not today ⓘ", "Allowed", "✓ Worms",
       "✓ Roe (fish eggs) the fish or fish parts ban excepts it", "✓ Water insects and crayfish on streams", "Not allowed",
       "✕ Fish or fish parts", "Province › Rule book p.8 ↗"]);
     // (T40) no row label (it would hide the row's words and its ⓘ from a screen reader): the column head is read as text,
@@ -83,7 +83,7 @@ describe("<GearTab> other states", () => {
       "This water’s · Province › Rule book p.8 ↗ Rule book p.22 ↗"]);
     fireEvent.click(within(mode).getByText("ⓘ"));
     expect(sheets).toEqual(["gl:fly_fishing"]);
-    expect(domLines(screen.getByTestId("gear-bait"))).toContain("Now May 1–31: bait ban · in force today");
+    expect(domLines(screen.getByTestId("gear-bait"))).toContain("No natural bait May 1–31 · in force today ⓘ");
     expect(within(screen.getByTestId("gear-line-weight")).queryByTestId("regs-src")).toBeNull();
   });
 

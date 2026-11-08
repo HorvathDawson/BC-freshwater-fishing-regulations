@@ -12,20 +12,6 @@
  },
  "gear": {
   "bait": {
-   "dated": [
-    {
-     "chip": "Now",
-     "inForce": true,
-     "says": "bait ban",
-     "when": "Jan 1–May 15"
-    },
-    {
-     "chip": "Next",
-     "inForce": false,
-     "says": "bait ban",
-     "when": "Sep 1–Dec 31"
-    }
-   ],
    "label": "Bait",
    "list": [
     {
@@ -62,7 +48,23 @@
    "notes": [
     [
      {
-      "s": "No natural bait of any kind while the ban runs. ",
+      "s": "No natural bait",
+      "t": "text"
+     },
+     {
+      "s": " ",
+      "t": "text"
+     },
+     {
+      "s": "Jan 1–May 15, Sep 1–Dec 31",
+      "t": "text"
+     },
+     {
+      "s": " · in force today",
+      "t": "text"
+     },
+     {
+      "s": " ",
       "t": "text"
      },
      {

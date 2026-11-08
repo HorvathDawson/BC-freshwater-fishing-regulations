@@ -1,6 +1,5 @@
 /**
- * T31 — the Gear tab's Bait item: the ban note with its ⓘ, the dated bait-ban changes from the strip ("Next May 1–31:
- * bait ban", or "All year: bait ban · in force today"), one ✓ / ✕ list of the bait elements (each its note small under
+ * T31 — the Gear tab's Bait item: the ban note with its ⓘ, the bait-ban heading (T515: when it runs, from the strip), one ✓ / ✕ list of the bait elements (each its note small under
  * it) and the item's source line.
  *
  * Owner rule 2026-10-21 (decisions.md): which bait is allowed, why, the carry limit and the exception it is to are the
@@ -80,6 +79,19 @@ export function allYearBan(bits365: readonly (number | null)[], items: readonly 
   return changeVM(GEAR.ALL_YEAR, no.s.replace(/^(allowed|banned)\s*·\s*/, "").trim(), true);
 }
 
+/**
+ * (T515) the one line over the list — what is banned and when, the status once, the ⓘ: "No natural bait — all year",
+ * "No natural bait May 1–31 · in force today", "Bait ban Jan 1–May 15, Sep 1–Dec 31 · not today". "No natural bait" only
+ * when every bait item is ✕; any ✓ item (an exception) makes it "Bait ban". No line when nothing is banned by season.
+ */
+export function banHeading(banToday: boolean, items: readonly BaitItem[], allYear: ChangeVM | null, dated: readonly ChangeVM[], term: boolean): Line[] {
+  if (!allYear && !dated.length && !banToday) return [];
+  const head = items.some((x) => x.ok) ? BAIT.BAN_SOME : BAIT.BAN_ALL;
+  const when: Run[] = allYear ? [text(BAIT.WHEN_ALL_YEAR)] : dated.length ? [text(" "), text(dated.map((c) => c.when).join(BAIT.WHEN_JOIN))] : [];
+  const status: Run[] = allYear || !dated.length ? [] : [text(dated.some((c) => c.inForce) ? BAIT.ON_TODAY : BAIT.OFF_TODAY)];
+  return [[text(head), ...when, ...status, ...(term ? [text(" "), { t: "term", ids: ["bait_ban"] } as const] : [])]];
+}
+
 /** The Bait item, or null on a day the Gear tab draws no items. */
 export function buildBait(inp: RegsInputs, ctx: GearCtx, anyway = false): BaitVM | null {
   const g = gearAnswer(inp);
@@ -88,10 +100,9 @@ export function buildBait(inp: RegsInputs, ctx: GearCtx, anyway = false): BaitVM
   moveAllowances(items);
   const bits = bookBits(inp), dated = datedBans(bits, bookIndex(inp.day), inp.statics.strip);
   const all = dated.length ? null : allYearBan(bits, items);
-  const note: Run[] = [text(BAIT.BAN_NOTE), ...(ctx.glossary.has("bait_ban") ? [{ t: "term", ids: ["bait_ban"] } as const] : [])];
-  const notes: Line[] = g.bait_ban ? [note] : [];
+  const notes: Line[] = banHeading(g.bait_ban, items, all, dated, ctx.glossary.has("bait_ban"));
   return {
-    label: BAIT.LABEL, notes, dated: all ? [all] : dated,
+    label: BAIT.LABEL, notes,
     list: yesNo(items.filter((x) => x.ok).map((x) => [x.name, note2(x.s)] as const), items.filter((x) => !x.ok).map((x) => [x.name, note2(x.s)] as const)),
     src: sourceLine("srcs:bait", items.flatMap((x) => (x.rix == null ? [] : [x.rix])), ctx),
   };

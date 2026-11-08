@@ -6,14 +6,6 @@
  },
  "gear": {
   "bait": {
-   "dated": [
-    {
-     "chip": "Now",
-     "inForce": true,
-     "says": "bait ban",
-     "when": "All year"
-    }
-   ],
    "label": "Bait",
    "list": [
     {
@@ -50,7 +42,15 @@
    "notes": [
     [
      {
-      "s": "No natural bait of any kind while the ban runs. ",
+      "s": "No natural bait",
+      "t": "text"
+     },
+     {
+      "s": " — all year",
+      "t": "text"
+     },
+     {
+      "s": " ",
       "t": "text"
      },
      {

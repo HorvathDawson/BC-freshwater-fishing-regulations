@@ -54,7 +54,7 @@ const LIC = licences as unknown as Record<string, LicenceVM>;
 const NOOP = { onSheet() {}, onDay() {}, onBook() {} };
 /** vedder_1010's runs inside a sentence, every fold open: a new one (or a press that turned back into a run) shows here */
 const VEDDER_INLINE: string[] = [
-  "button What does Anglers under 16 mean?", "button What does Catch and release (release) mean?",
+  "button What does Anglers under 16 mean?", "button What does Bait ban mean?", "button What does Catch and release (release) mean?",
   "button What does Conservation Surcharge Stamp for salmon mean?", "button What does Fly fishing only mean?",
   "button What does No fishing for (closed) mean?", "button What does Single barbless hook mean?",
   "button What does Steelhead Stamp mean?", "button What does Steelhead mean?",
@@ -81,7 +81,7 @@ function mount(id = "vedder_1010", layout: LayoutClass = "phone", store = create
     <WaterFrame palette={LIGHT} face="regulations" onBack={() => {}} backLabel="Map">
       <RegsScreen page={page} palette={LIGHT} actions={NOOP} onDate={() => {}} layout={layout} store={store}
                   gear={page.gear ? (a) => <GearTab vm={page.gear!} palette={LIGHT} actions={a} /> : undefined}
-                  methods={page.methods ? (a) => <MethodsTab vm={page.methods!} palette={LIGHT} actions={a} referenceOpen /> : undefined}
+                  methods={page.methods ? (a) => <MethodsTab vm={page.methods!} palette={LIGHT} actions={a} /> : undefined}
                   licence={id === "vedder_1010" ? (a) => <Licence actions={a} /> : undefined} />
     </WaterFrame>
     </MenuContext.Provider>);
