@@ -475,6 +475,11 @@ export interface SalmonRowVM {
   readonly speciesNotes?: readonly string[];
   /** (T320) per species of the row, its numbers when every verdict it has here says the same, else null */
   readonly quota?: Readonly<Partial<Record<SalmonSpecies, SalmonQuota | null>>>;
+  /** (T502, owner 2026-11-08: "it just repeats the real table") the row's `notes` the table's rows already say: DFO's
+   *  "not opened" words on a closed row, a verdict whose numbers the quota line reads (no notice, nothing unread) */
+  readonly repeats?: readonly string[];
+  /** (T502) the dates a repeated verdict's words end in ("Sep 1–Dec 31"), kept on the species' quota line */
+  readonly window?: string | null;
 }
 
 /** (T309) One region rule as a row: its kind chip, the species it is about (chips), one line, and DFO's whole wording
@@ -605,11 +610,21 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     const v = verdictOf(ix);
     return v.n && !v.t.includes(v.n) ? `${v.t} · ${v.n}` : v.t;
   }))];
+  // (T502) the notes the rows already say: a closed row's "not opened by DFO" (`d`, the pipeline's NOT_LISTED) and an
+  // open row's verdict words whose numbers its quota line reads (`read`: every species' quota a tree, nothing unread),
+  // neither carrying a notice; the dates such words end in stay, on the quota line
+  const repeatsOf = (ixs: readonly number[], read: boolean): { repeats: string[]; window: string | null } => {
+    const vs = [...new Set(ixs)].map(verdictOf);
+    const rep = vs.filter((v) => !v.n && (v.s === "closed" ? !!v.d : v.s === "open" && read && !!v.tree && !v.u));
+    if (rep.length !== vs.length) return { repeats: [], window: null };
+    const ws = [...new Set(rep.map((v) => (v.s === "open" ? /\(([^()]+)\)\s*\.?$/.exec(v.t)?.[1] ?? "" : "")))];
+    return { repeats: rep.map((v) => v.t), window: ws.length === 1 && ws[0] ? ws[0] : null };
+  };
   if (per.every((ixs) => statusOf(ixs) === "closed")) {
     const all = [...new Set(per.flat())];
     return { allClosed: true, gear,
              rows: [{ key: "all", species: SALMON_SPECIES, label: SALMON_WORDS.all, status: "closed", statusLabel: SALMON_WORDS.status.closed,
-                      notes: notesOf(all) }] };
+                      notes: notesOf(all), ...repeatsOf(all, false) }] };
   }
   const groups = new Map<string, { sp: SalmonSpecies[]; ixs: number[] }>();
   SALMON_SPECIES.forEach((sp, k) => {
@@ -632,7 +647,8 @@ export function salmonBlock(f: SalmonFacts, chains: readonly number[], day: numb
     const quota = Object.fromEntries(g.sp.map((sp) => [sp, quotaOf(SALMON_SPECIES.indexOf(sp))]));
     return { key, species: g.sp, label: cap(g.sp.map((s) => SPECIES_NAME[s]).join(" · ")), status: st,
              statusLabel: SALMON_WORDS.status[st],
-             notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs), quota };
+             notes: st === "varies" ? [SALMON_WORDS.varies] : notesOf(g.ixs), quota,
+             ...(st === "varies" ? {} : repeatsOf(g.ixs, g.sp.every((sp) => !!quota[sp]?.tree && !quota[sp]?.u))) };
   });
   return { allClosed: false, gear, rows };
 }
@@ -1006,6 +1022,8 @@ export interface SalmonTableRowVM {
   readonly quotaRuns?: Line | null;
   /** (T320) DFO's row could not be read as one number: its words are under the table, no number is shown */
   readonly quotaUnread?: boolean;
+  /** (T502) the dates of the verdict the quota line reads ("Sep 1–Dec 31"), under it */
+  readonly window?: string;
 }
 /** (T320) The bucket line over the species rows: "Up to 4 salmon a day in total · 8 in possession", DFO's words;
  *  (T332) `runs` the line as the trout presenter draws the bucket's total tier. */
@@ -1051,7 +1069,9 @@ const tableRows = (rows: readonly SalmonRowVM[]): SalmonTableRowVM[] =>
     const runs = quotaLine(q);
     return [{ code, name: cap(SPECIES_NAME[code]), status: r.status, statusLabel: r.statusLabel,
               limit: r.sizesBy?.[code] ?? (r.species.length === 1 ? r.sizes ?? null : null),
-              quota: runs ? lineText(runs) : null, quotaRuns: runs, ...(q?.u ? { quotaUnread: true } : {}) }];
+              quota: runs ? lineText(runs) : null, quotaRuns: runs, ...(q?.u ? { quotaUnread: true } : {}),
+              // (T502) the dates DFO's repeated words gave, now that those words are not said under the table
+              ...(runs && r.window ? { window: r.window } : {}) }];
   });
 /** (T320) the bucket line, when a species of the table may be kept today: its total tier by the trout presenter */
 const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM[]): SalmonBucketVM | null => {
@@ -1061,7 +1081,7 @@ const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM
   return { line: lineText(runs), runs, words: [b.t, ...(b.tp ? [b.tp] : [])] };
 };
 const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSaysVM[] =>
-  rows.map((r) => ({ label: allClosed || rows.length === 1 ? null : r.label, lines: [...r.notes, ...(r.species.length > 1 && r.sizes && !r.sizesBy ? [r.sizes] : []), ...(r.speciesNotes ?? [])] }))
+  rows.map((r) => ({ label: allClosed || rows.length === 1 ? null : r.label, lines: [...r.notes.filter((n) => !r.repeats?.includes(n)), ...(r.species.length > 1 && r.sizes && !r.sizesBy ? [r.sizes] : []), ...(r.speciesNotes ?? [])] }))
     .filter((x) => x.lines.length);
 
 /**
@@ -1089,7 +1109,8 @@ export function salmonRowTexts(card: SalmonCardVM): string[] {
 
 /** Every string the table can show (its rows' limits, the words under it). */
 export function salmonTableTexts(t: SalmonTableVM, gear: readonly string[] = []): string[] {
-  const species = (rs: readonly SalmonTableRowVM[]) => rs.flatMap((r) => [...(r.limit ? [r.limit] : []), ...(r.quota ? [r.quota] : [])]);
+  const species = (rs: readonly SalmonTableRowVM[]) => rs.flatMap((r) => [...(r.limit ? [r.limit] : []), ...(r.quota ? [r.quota] : []),
+                                                                           ...(r.window ? [r.window] : [])]);
   const says = (xs: readonly SalmonSaysVM[]) => xs.flatMap((x) => x.lines);
   return [...(t.bucket ? [t.bucket.line] : []), ...(t.waterBuckets ?? []).map((w) => w.line), ...species(t.species), ...says(t.says), ...gear];
 }

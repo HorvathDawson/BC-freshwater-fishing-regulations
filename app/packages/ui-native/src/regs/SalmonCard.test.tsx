@@ -128,7 +128,8 @@ describe("the Salmon card", () => {
   it("A WATER DFO DOES NOT LIST reads 'Salmon — closed', and says why (owner 2026-10-27)", () => {
     render(<SalmonCard card={salmonCard(FACTS, { sids: [7], item: "gnis:1" }, JUL20)} palette={LIGHT} />);
     expect(screen.getAllByTestId("salmon-species-status").map((e) => e.textContent)).toEqual(Array(5).fill("Closed"));
-    expect(screen.getAllByTestId("salmon-says-line").map((e) => e.textContent)).toEqual(["Not opened by DFO: closed to salmon fishing"]);
+    // (T502) DFO's "not opened" words repeat the five Closed rows: not said under the table; the line below says why
+    expect(screen.queryAllByTestId("salmon-says-line")).toEqual([]);
     expect(screen.getByTestId("salmon-not-listed").textContent)
       .toBe("DFO does not list this water for salmon. It is closed to salmon fishing.");
   });
@@ -206,7 +207,8 @@ describe("(T318) every DFO rule on a water is still reachable in the table layou
       render(<SalmonCard card={card} palette={LIGHT} />);
       screen.queryAllByTestId("caveat-fold").forEach((b) => fireEvent.click(b));
       const text = screen.getByTestId("salmon-card").textContent!;
-      for (const t of salmonRowTexts(card)) expect(text, t).toContain(t);
+      // (T502) a row's words its species rows already say (`repeats`) are said by those rows, not under the table
+      for (const t of salmonRowTexts(card)) if (!card.rows.some((r) => r.repeats?.includes(t))) expect(text, t).toContain(t);
       for (const x of [...(card.caveat?.items ?? []), ...(card.caveat?.later ?? [])]) for (const t of [x.where!, ...(x.detail ?? [])]) expect(text, t).toContain(t);
       for (const g of card.regionRules) for (const r of g.rules) expect(text, r.id).toContain(r.line);
       for (const t of card.waterRules) expect(text, t).toContain(t);

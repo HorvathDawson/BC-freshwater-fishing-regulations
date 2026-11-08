@@ -173,7 +173,7 @@ describe("the Salmon card", () => {
       calm: "Everywhere else, follow this page.", later: null, items: [{
         what: [{ t: "text", s: "Chinook · sockeye · pink · chum closed · Coho release only" }],
         where: "Where: Kispiox River — above the resort signs", rule: null, fish: null, book: [],
-        detail: ["Chinook · sockeye · pink · chum: Not opened by DFO: closed to salmon fishing",
+        detail: [   // (T502) the closed species: the "what" line says it, not repeated here
                  "Coho: Catch and release (Sep 1–Oct 31)"] }] });
     // a day DFO says nothing for it: the same block, not in force today
     const jul = salmonCard(facts(), { sids: [101], item: "gnis:4674" }, JUL20).caveat!;
@@ -367,7 +367,13 @@ describe("(T318) the salmon table keeps every DFO word", () => {
   for (const [what, day, sids, item] of cases) it(`${what}: every row word, size, species note and place word is in the table`, () => {
     const c = salmonCard(withNotes(), { sids, item }, day), t = salmonTable(c);
     const have = new Set(salmonTableTexts(t, c.gear));
-    for (const s of salmonRowTexts(c)) expect(have, s).toContain(s);
+    // (T502) a row's words its species rows already say are not repeated under the table: closed words on rows all
+    // Closed, a read verdict's words on rows whose quota line says its numbers (its dates on the line's `window`)
+    const said = (s: string) => c.rows.some((r) => r.repeats?.includes(s) && r.species.every((sp) => {
+      const row = t.species.find((x) => x.code === sp)!;
+      return r.status === "closed" ? row.status === "closed" : !!row.quota && (!r.window || row.window === r.window);
+    }));
+    for (const s of salmonRowTexts(c)) if (!said(s)) expect(have, s).toContain(s);
     // one species row each, in order, nothing repeated per picture
     expect(t.species.map((r) => r.code)).toEqual(["CH", "CO", "SK", "PK", "CM"]);
   });

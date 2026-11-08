@@ -59,6 +59,7 @@ function SpeciesRow({ r, palette, actions, images, pictures }: {
         {/* (T332) the quota tree drawn as the trout card draws its tiers (core quotaLine: tierWords / kindWords) */}
         {r.quotaRuns && <LineText testID="salmon-quota" line={r.quotaRuns} style={TYPE.metaSemi} color={palette.ink} palette={palette}
                                   actions={actions ?? NO_ACTIONS} num={TYPE.metaBold} />}
+        {r.window && <Text selectable testID="salmon-window" style={{ ...TYPE.meta, color: palette.sub }}>{r.window}</Text>}
         {r.quotaUnread && <Text testID="salmon-quota-unread" style={{ ...TYPE.meta, color: palette.sub }}>{SALMON_WORDS.quotaUnread}</Text>}
         {r.limit && <Text selectable testID="salmon-limit" style={{ ...TYPE.meta, color: palette.sub }}>{r.limit}</Text>}
       </View>
