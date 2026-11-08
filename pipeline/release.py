@@ -8,8 +8,11 @@
 THE STAGES, in order; the run stops at the first failure with a plain message, and a rerun of the same command picks up
 where it stopped (every stage below is skipped when it is already done for this release):
 
-  1 preflight  code and data/curated committed (the review log marks.jsonl and closed.json may be dirty: no stage reads
-               them, `build.NOT_BUILD_INPUTS`); the HEAD commit is recorded with the release.
+  1 preflight  `scripts/fast-fail.sh` first (T483, AGENTS 20a: the cheap checks, a minute or two; `--no-fast-fail
+               REASON` skips it and prints the reason); code and data/curated committed (the review log marks.jsonl
+               and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); HEAD pushed to
+               origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
+               copy — found only at stage 6 on 2026-11-07); the HEAD commit is recorded with the release.
   2 baseline   a copy of the reach run the LIVE release (LATEST) was cut from, kept before the build can overwrite it,
                so the binding diff has its "before" (data/generated/release/baseline/<LATEST>/).
   3 build      `python -m pipeline build --hold-latest` through `scripts/heavy.sh` (one heavy job at a time). The build
@@ -25,7 +28,10 @@ where it stopped (every stage below is skipped when it is already done for this 
   5 promote    LATEST := the candidate (CANDIDATE removed). Only here does the live release pointer move, so a failed
                check leaves LATEST untouched.
   6 staging    `deploy/staging/upload.sh <r-id>` (staging bucket only; MIN_APP_VERSION from --min-app-version, else the
-               previous release's stamp — printed in the plan).
+               previous release's stamp — printed in the plan). On a RERUN (T484) the default is the min app this
+               release's checks passed with (ledger `checks.min_app_version`), else the stamp of the release LATEST
+               named before this one was promoted (ledger `live_before`) — never the new release's own stamp, which
+               LATEST names once the promote is done.
 
 WHERE THINGS MOVE BEFORE THE CHECKS: the build writes the live working outputs (the reach run, tiles, bundle, export,
 run-timing feed) as `pipeline build` always has — the review app reads them — and only the release POINTER waits. A
@@ -65,6 +71,8 @@ BASELINE_FILES = ("report.json", "rule_section.jsonl.gz", "rule_unresolved.jsonl
 #: min free memory % for heavy.sh to start the build (memory `heavy-jobs-one-at-a-time`)
 HEAVY_MIN_FREE = 50
 STAGES = ("preflight", "baseline", "build", "checks", "promote", "staging")
+#: the branch GitHub's workflows run (the staging upload starts feeds-runtiming.yml there); HEAD must be on it
+GH_REMOTE, GH_BRANCH = "origin", "redesign/stream-sections"
 #: manifest keys stamped at upload time (`release/stamp.py`), outside every hash: not part of the fingerprint
 STAMP_KEYS = ("published", "minAppVersion")
 
@@ -106,6 +114,21 @@ def git_dirty() -> list[str]:
 def git_head() -> str:
     return subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, capture_output=True, text=True,
                           check=True).stdout.strip()
+
+
+def git_pushed() -> bool:
+    """HEAD is on origin/redesign/stream-sections after a fresh fetch. A failed fetch raises (never a silent pass)."""
+    subprocess.run(["git", "fetch", "-q", GH_REMOTE, GH_BRANCH], cwd=REPO_ROOT, check=True)
+    rc = subprocess.run(["git", "merge-base", "--is-ancestor", "HEAD", f"{GH_REMOTE}/{GH_BRANCH}"],
+                        cwd=REPO_ROOT).returncode
+    if rc not in (0, 1):
+        raise RuntimeError(f"git merge-base --is-ancestor HEAD {GH_REMOTE}/{GH_BRANCH} failed (rc={rc})")
+    return rc == 0
+
+
+def run_fast_fail() -> int:
+    """`scripts/fast-fail.sh` (T483) on the console; its return code."""
+    return run_cmd(["bash", "scripts/fast-fail.sh"])
 
 
 def run_cmd(cmd: list[str], env: dict | None = None) -> int:
@@ -239,6 +262,7 @@ def diff_summary(rep: dict) -> str:
 @dataclass
 class Ctx:
     accept_diff: Path | None = None
+    no_fast_fail: str | None = None  # why scripts/fast-fail.sh is skipped (printed); None runs it
     baseline: Path | None = None
     min_app: str | None = None
     jobs: int = 2
@@ -257,12 +281,30 @@ def baseline_dir(live: str) -> Path:
 
 
 def stage_preflight(ctx: Ctx) -> str:
+    if ctx.no_fast_fail is not None:
+        print(f"    fast-fail SKIPPED (--no-fast-fail): {ctx.no_fast_fail}", flush=True)
+    else:
+        rc = run_fast_fail()
+        if rc:
+            raise Stop("preflight", f"scripts/fast-fail.sh failed (rc={rc})",
+                       "read its output above (the last check printed is the one that failed), fix it, rerun; "
+                       "--no-fast-fail REASON skips it and prints the reason")
     dirty = git_dirty()
     if dirty:
         raise Stop("preflight", f"{len(dirty)} uncommitted path(s) the build reads: " + ", ".join(dirty[:8])
                    + (" …" if len(dirty) > 8 else ""),
                    "commit them (a release is built from committed code and curated data only; marks.jsonl may "
                    "stay dirty), then rerun")
+    try:
+        pushed = git_pushed()
+    except (subprocess.CalledProcessError, RuntimeError) as e:
+        raise Stop("preflight", f"could not tell whether HEAD is pushed: {e}",
+                   f"check the network and `git fetch {GH_REMOTE} {GH_BRANCH}`, then rerun")
+    if not pushed:
+        raise Stop("preflight", f"HEAD {git_head()[:12]} is not on {GH_REMOTE}/{GH_BRANCH} (the staging upload starts "
+                   "a GitHub workflow that runs GitHub's copy)",
+                   f"git push {GH_REMOTE} HEAD:{GH_BRANCH} (after `build-apk.sh --play`, that pushes its app.json "
+                   "commit), then rerun")
     ctx.live = read_pointer("LATEST")
     if ctx.live is None:
         raise Stop("preflight", f"no {release_root() / 'LATEST'}: there is no live release to diff against",
@@ -313,6 +355,8 @@ def stage_build(ctx: Ctx) -> str:
     r = rec(ctx, ctx.rid)
     r.setdefault("built_at", now())
     r.setdefault("commit", git_head())
+    # (T484) the release LATEST named before this one's promote: the min app default on a rerun after the promote
+    r.setdefault("live_before", ctx.live)
     save_ledger(ctx.led)
     return f"release {ctx.rid}" + (" (already LATEST)" if ctx.rid == ctx.live else "")
 
@@ -410,6 +454,18 @@ def default_min_app(live: str | None) -> str | None:
     return manifest_of(live).get("minAppVersion") if live else None
 
 
+def resume_min_app(led: dict, rid: str | None, live: str | None) -> str | None:
+    """The min app version when none is given (T484). A rerun after the promote finds LATEST already naming this
+    (unstamped) release, whose stamp is "any": so first the min app this release's checks passed with (ledger
+    `checks.min_app_version`), else the stamp of the release LATEST named before the promote (`live_before`), else —
+    a first run — the live release's stamp."""
+    r = (led.get("releases") or {}).get(rid or "", {})
+    got = (r.get("checks") or {}).get("min_app_version")
+    if got:
+        return got
+    return default_min_app(r.get("live_before") or live)
+
+
 def staging(ctx: Ctx) -> int:
     ctx.led = load_ledger()
     t0 = time.time()
@@ -417,7 +473,7 @@ def staging(ctx: Ctx) -> int:
         print(f"\n[{i}/{len(STAGES)}] {s} …", flush=True)
         t = time.time()
         if s == "checks" and ctx.min_app is None:
-            ctx.min_app = default_min_app(ctx.live)
+            ctx.min_app = resume_min_app(ctx.led, ctx.rid, ctx.live)
         try:
             msg = RUNNERS[s](ctx)
         except Stop as e:
@@ -437,9 +493,16 @@ def dry_run(ctx: Ctx) -> int:
     live, cand = read_pointer("LATEST"), read_pointer("CANDIDATE")
     print("release --staging, DRY RUN (nothing is built, promoted or uploaded)\n")
     dirty = git_dirty()
-    print("[1/6] preflight  " + ("ok: code + data/curated committed" if not dirty else
-                                   f"WOULD STOP: {len(dirty)} uncommitted path(s): {', '.join(dirty[:8])}")
+    print("[1/6] preflight  " + (f"fast-fail SKIPPED: {ctx.no_fast_fail}" if ctx.no_fast_fail is not None
+                                   else "bash scripts/fast-fail.sh (not run in a dry run)"))
+    print("             " + ("ok: code + data/curated committed" if not dirty else
+                             f"WOULD STOP: {len(dirty)} uncommitted path(s): {', '.join(dirty[:8])}")
           + f"  (HEAD {git_head()[:12]}; marks.jsonl / closed.json may be dirty)")
+    try:
+        pushed = "ok: HEAD is on" if git_pushed() else "WOULD STOP: HEAD is not on"
+    except (subprocess.CalledProcessError, RuntimeError) as e:
+        pushed = f"WOULD STOP ({e}): cannot tell whether HEAD is on"
+    print(f"             {pushed} {GH_REMOTE}/{GH_BRANCH}")
     lock = Path(os.environ.get("HEAVY_LOCK", Path.home() / ".claude/heavy-job.lock")) / "owner"
     print(f"             heavy-job lock: {'held by ' + lock.read_text().strip() if lock.exists() else 'free'}")
     live_digest = (manifest_of(live).get("bundle") or {}).get("reach_digest") if live else None
@@ -455,11 +518,11 @@ def dry_run(ctx: Ctx) -> int:
     if rc:
         print(f"             (the build's dry run returned rc={rc})")
     print(f"             CANDIDATE now: {cand or '(none)'} — the build names its release there; LATEST stays {live}")
-    min_app = ctx.min_app or default_min_app(live)
     target = cand or live
+    min_app = ctx.min_app or resume_min_app(led, target, live)
     r = led.get("releases", {}).get(target or "", {})
     print(f"[4/6] checks     manifest sanity; app gate (min app {min_app or 'any'}"
-          + ("" if ctx.min_app else ", from the live release's stamp") + "); binding diff "
+          + ("" if ctx.min_app else ", from the ledger, else the live release's stamp") + "); binding diff "
           f"{rel(baseline_dir(live)) if live else '?'} -> {rel(reach_dir())}"
           + (f"\n             ledger for {target}: {r.get('checks')}" if r.get("checks") else ""))
     print(f"[5/6] promote    LATEST {live} -> the candidate (after every check passes)")
@@ -539,6 +602,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="the reach run the live release was cut from, when no copy was kept")
     ap.add_argument("--min-app-version", default=None, metavar="X.Y.Z",
                     help="the oldest app allowed to apply the release (default: the live release's stamp)")
+    ap.add_argument("--no-fast-fail", default=None, metavar="REASON",
+                    help="skip scripts/fast-fail.sh (T483); the reason is required and printed")
     ap.add_argument("--jobs", type=int, default=2, help="the build's --jobs (default 2, at most 4)")
     ap.add_argument("--reupload", action="store_true", help="upload to staging again even if the ledger says it is")
     a = ap.parse_args(argv)
@@ -548,8 +613,10 @@ def main(argv: list[str] | None = None) -> int:
             print(prod_instructions(a.prod, r))
             return 0
         return prod(a.prod)
+    if a.no_fast_fail is not None and not a.no_fast_fail.strip():
+        ap.error('--no-fast-fail needs a reason, which is printed: --no-fast-fail "<why the cheap checks are skipped>"')
     ctx = Ctx(accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
-              reupload=a.reupload)
+              reupload=a.reupload, no_fast_fail=a.no_fast_fail)
     return dry_run(ctx) if a.dry_run else staging(ctx)
 
 

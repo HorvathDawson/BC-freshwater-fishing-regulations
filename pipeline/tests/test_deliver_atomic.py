@@ -51,6 +51,7 @@ def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
     monkeypatch.setattr(D, "_step", step)
     monkeypatch.setattr("pipeline.common.vintage.report_all",
                         lambda *a, **k: (vintage_ok, "vintage: ok" if vintage_ok else "VINTAGE MISMATCH"))
+    monkeypatch.setattr(D, "out_dir_release_problems", lambda *a, **k: [])    # pinned on its own below (T483)
     return ran
 
 
@@ -142,3 +143,27 @@ def test_a_live_latest_pointer_is_replaced_not_treated_as_a_release(monkeypatch,
     assert D.main(["all", "--out-dir", str(dest)]) == 0
     assert (dest / "release" / "LATEST").read_text().strip() == "r-test"
     assert sorted(p.name for p in (dest / "release").iterdir()) == ["LATEST", "r-test"]
+
+
+def test_a_scratch_out_dir_without_released_tiles_or_basemap_stops_before_any_step(monkeypatch, tmp_path, capsys):
+    """T483 fast-fail: the T481 and T482 lanes (2026-11-07) each built the bundle, answers and store into a scratch
+    --out-dir, then failed at the release step / vintage because <out-dir>/release/ held no tiles or basemap links."""
+    import json
+    tiles = tmp_path / "tiles"
+    tiles.mkdir()
+    (tiles / "basemap.meta.json").write_text(json.dumps({"basemap_version": "bm-1"}))
+    (tiles / "atlas.meta.json").write_text(json.dumps({"tile_version": "h.t1"}))
+    dest = tmp_path / "out"
+    ran = []
+    monkeypatch.setattr(D, "_step", lambda args: ran.append(args[0]))
+    assert D.main(["all", "--out-dir", str(dest), "--tiles", str(tiles)]) == 1
+    err = capsys.readouterr().err
+    assert ran == [] and "basemap/bm-1/bm-1.pmtiles is missing" in err and "tiles/h.t1/atlas-h.t1.pmtiles" in err
+    for p in (dest / "release" / "basemap" / "bm-1" / "bm-1.pmtiles",
+              dest / "release" / "tiles" / "h.t1" / "atlas-h.t1.pmtiles"):
+        p.parent.mkdir(parents=True)
+        p.write_bytes(b"x")
+    assert D.out_dir_release_problems(dest / "release", tiles, check_tiles=True) == []
+    # without --tiles the tile block is read from the live release root: only the basemap must be under --out-dir
+    (dest / "release" / "tiles" / "h.t1" / "atlas-h.t1.pmtiles").unlink()
+    assert D.out_dir_release_problems(dest / "release", tiles, check_tiles=False) == []

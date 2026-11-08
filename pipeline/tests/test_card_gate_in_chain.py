@@ -36,6 +36,7 @@ def _run_all(monkeypatch, tmp_path, fail_at=None):
             raise subprocess.CalledProcessError(1, args)
     monkeypatch.setattr(D, "_step", step)
     monkeypatch.setattr("pipeline.common.vintage.report_all", lambda *a, **k: (True, "ok"))
+    monkeypatch.setattr(D, "out_dir_release_problems", lambda *a, **k: [])    # (T483) pinned in test_deliver_atomic
     try:
         D.main(["all", "--out-dir", str(tmp_path)])
     except subprocess.CalledProcessError:

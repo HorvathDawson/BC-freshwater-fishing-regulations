@@ -23,7 +23,7 @@ plan (which stages run and why), the min app version, and the upload command.
 
 | stage | what it does | when it stops |
 |---|---|---|
-| 1 preflight | Code (`pipeline/`, `scripts/`, `deploy/`) and `data/curated/` must be committed. `marks.jsonl` and `closed.json` may be dirty, because no stage reads them. | Anything else is uncommitted. Commit it. |
+| 1 preflight | `scripts/fast-fail.sh` passes (T483; `--no-fast-fail "<reason>"` skips it and prints the reason). Code (`pipeline/`, `scripts/`, `deploy/`) and `data/curated/` must be committed. `marks.jsonl` and `closed.json` may be dirty, because no stage reads them. HEAD must be on `origin/redesign/stream-sections` (T484: stage 6 starts a GitHub workflow). | A fast-fail check failed, something is uncommitted, or HEAD is not pushed. Fix, commit, push. |
 | 2 baseline | Copies the reach run the live release (LATEST) was cut from to `data/generated/release/baseline/<LATEST>/`. That copy is the "before" of the diff. | The reach run on disk is not LATEST's and no copy was kept. Give one with `--baseline DIR` (its `report.json` digest must match). |
 | 3 build | `scripts/heavy.sh release 50 -- python -m pipeline build --hold-latest`. The build skips any stage whose inputs did not change. It writes the new release to `data/release/<r-id>/` and names it in `data/release/CANDIDATE`. **LATEST does not move.** | A build stage failed. `python -m pipeline build --status` shows the stage and its log. |
 | 4 checks | Manifest sanity: every file is there at its size, the size gate passes, and the bundle names the reach run on disk. The app-version gate (`pipeline/deliver/release/app_gate.py`, the same one `upload.sh` runs). The rule-binding diff against the live release. | Any check fails. **A non-empty binding diff always stops here** (see 3). |
@@ -39,7 +39,7 @@ run-timing base. The review app reads these. Only the release pointer waits. So 
 disk, named by `CANDIDATE`, and nothing ships it.
 
 `--min-app-version X.Y.Z` sets the oldest app that may apply the release. The default is the live release's stamp,
-and the plan prints it.
+and the plan prints it. A rerun after the promote keeps the min app this release's checks passed with (T484).
 
 ## 3. A binding diff
 

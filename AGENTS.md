@@ -145,8 +145,13 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     outcome.** A test fails if it goes stale — a cache serving confidently wrong answers is
     worse than no cache.
 20a. **Fast-fail first, and it grows (owner 2026-11-07, T483).** Before any long job (build, release, APK, emulator,
-    full suite), run `scripts/fast-fail.sh`: the cheap checks (typecheck, vitest on changed files, colours,
-    answers-stale, ticket ledger, …) that stop a doomed job in a minute or two. Run it while a build waits, too.
+    full suite), run `scripts/fast-fail.sh`: the cheap checks that stop a doomed job in a minute or two (each item
+    is listed there with a "caught:" comment: conflict markers, ticket ledger, smoke.txt covering every pipeline test
+    files, changed Python compiles, colours, answers-stale, app typecheck, vitest related to the changed app files).
+    Run it while a build waits, too. `python -m pipeline release --staging` (preflight, with the branch-pushed check)
+    and `deploy/staging/build-apk.sh` run it first; the escape (`--no-fast-fail REASON` / `--no-fast-fail=REASON`)
+    prints its reason. Checks that need a release or an out-dir sit where those are known (release preflight;
+    `pipeline.deliver all --out-dir` refuses a scratch release root without the released tiles / basemap).
     **Whenever a failure shows up late — after a long job, at review, on the device — that a cheap check could
     have caught, add that check to `scripts/fast-fail.sh` in the same change as the fix**, with a one-line comment
     naming what it caught and when. A late failure that could have failed fast is a missing fast-fail item.
