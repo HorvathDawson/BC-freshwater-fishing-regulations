@@ -37,3 +37,14 @@ card facts, no-clim run draws + digest line. Feeds worker suite 251 pass.
 
 Shots `shots/T511-{vedder,no-forecast,high-for-time-of-year}-{before,after,after-third}.png` (Vedder Crossing 08MH001,
 Murray River 07FB002 with no forecast, Dickebusch Creek 07FB004 very high for the time of year; seed of 2026-10-28).
+
+## Follow-up (owner 2026-11-08): honest shapes, scale to the line, bigger plot
+- **Forecast by shape** (`outlookOf`): steady; brief spike/dip that returns ("Brief rise to 49 m³/s on Nov 3, then back to
+  12"); longer excursion that returns ("Rise to … around …, then back to …"); sustained rise ("Rising to 30 m³/s by Wed",
+  ", then easing to N" when it comes part-way back); sustained fall; fall after a recent week peak ("Dropping after a recent
+  peak, to … by …"); none / out of date said plainly. Figures to 2 significant figures (`about`). One line across the card's
+  foot ("Forecast: …", fitted to 1072 px). Tests for every shape.
+- **Scale**: the y-scale is the readings + forecast only (8 % headroom); the normal range is cut at the plot's edges, so
+  the line uses the plot's height (Vedder: 12–49 on the axis, not 0–80).
+- **Bigger plot**: 512 px wide (was 354), tick labels beside it; brand moved to the kicker row; left column 490 px; forecast
+  sentence in its own foot row. Shots overwritten, same three gauges (+ 1/3 size).

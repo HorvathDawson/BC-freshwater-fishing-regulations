@@ -82,17 +82,26 @@ export interface CardModel {
 export type Bands = Record<string, Record<string, Array<number | null>> | undefined>;
 
 export interface Outlook {
-  kind: "rising" | "falling" | "steady";
-  /** the figure said: the extreme the forecast reaches (rising / falling) or its mean (steady) */
+  /** steady | rising / falling (a sustained move) | spike / dip (a brief one that returns) | receding (falling after a recent peak) */
+  kind: "steady" | "rising" | "falling" | "spike" | "dip" | "receding";
+  /** the figure said: the extreme the forecast reaches (the mean for steady) */
   value: number;
   /** when the extreme is (epoch ms); null for steady */
   at: number | null;
-  /** "Rising to 31 m³/s by Wed" */
+  /** where the run ends, said for a spike / dip ("then back near 12") */
+  end: number | null;
+  /** "Brief rise to 49 m³/s on Nov 3, then back to 12" */
   text: string;
 }
 
-/** the forecast moves the reading by at least this much (of the reading) before the card says rising / falling */
+/** the forecast moves the reading by at least this much (of the reading) before the card says anything but steady */
 export const STEADY_WITHIN = 0.1;
+/** a rise or dip that has come back to within this share of its own height by the run's end is "brief" (it did not last) */
+export const RETURNS_WITHIN = 0.25;
+/** … and it is brief only if it stood above (below) its own half-height for no more than this long */
+export const BRIEF_MS = 2 * DAY;
+/** a reading this far under the past week's peak is on the way down from it (receding) */
+export const PEAK_BEFORE = 1.3;
 const weekday = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, weekday: "short" });
 const monthDay = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, month: "short", day: "numeric" });
 /** "Wed" within six days, "Nov 14" beyond (a weekday alone would be ambiguous in a 10-day run); "today" the same Pacific day */
@@ -100,25 +109,50 @@ export function byWhen(t: number, now: number): string {
   if (dayOf(t) === dayOf(now)) return "today";
   return t - now < 6 * DAY ? weekday.format(new Date(t)) : monthDay.format(new Date(t));
 }
+/** two significant figures: "49.3" -> "49", "172" -> "170", "2.43" -> "2.4" (a card does not claim more) */
+export const about = (v: number): string => String(Number(v.toPrecision(2)));
 
 /**
- * THE FORECAST IN WORDS, from the points the chart draws (the same series: nothing re-derived from another source).
- * The reading `v0` against the forecast's highest and lowest point: both within STEADY_WITHIN of v0 is "steady around"
- * the forecast's mean; otherwise the larger move says it, as "rising to <peak> by <day>" or "falling to <low> by <day>".
+ * THE FORECAST IN WORDS, from the points the chart draws (the same series: nothing re-derived from another source), by its SHAPE:
+ *   steady     every point within STEADY_WITHIN of the reading: "Steady around 100 m³/s"
+ *   spike/dip  the larger move came back (the run ends within RETURNS_WITHIN of the reading) and stood past its half-height
+ *              for BRIEF_MS or less: "Brief rise to 49 m³/s on Nov 3, then back to 12"
+ *   rising     a rise that lasts: "Rising to 30 m³/s by Wed" (", then easing to 22" when it comes part-way back)
+ *   falling    a fall that lasts: "Falling to 41 m³/s by Fri"; with `weekMax` (the past week's peak) well above the reading,
+ *              "Dropping after a recent peak, to 41 m³/s by Fri"
+ * A longer excursion that returns says "Rise to 49 m³/s around Nov 3, then back to 12".
  */
-export function outlookOf(v0: number, points: readonly (readonly [number, number])[], unit: string, now: number): Outlook | null {
+export function outlookOf(v0: number, points: readonly (readonly [number, number])[], unit: string, now: number, weekMax?: number | null): Outlook | null {
   if (!points.length || !Number.isFinite(v0)) return null;
   let hi = points[0]!, lo = points[0]!, sum = 0;
   for (const p of points) { if (p[1] > hi[1]) hi = p; if (p[1] < lo[1]) lo = p; sum += p[1]; }
+  const end = points[points.length - 1]![1];
   const base = Math.max(Math.abs(v0), 1e-9);
   const up = (hi[1] - v0) / base, down = (v0 - lo[1]) / base;
+  const u = (v: number) => `${about(v)} ${unit}`;
   if (up < STEADY_WITHIN && down < STEADY_WITHIN) {
     const value = sum / points.length;
-    return { kind: "steady", value, at: null, text: `Steady around ${figure(value)} ${unit}` };
+    return { kind: "steady", value, at: null, end: null, text: `Steady around ${u(value)}` };
   }
-  return up >= down
-    ? { kind: "rising", value: hi[1], at: hi[0], text: `Rising to ${figure(hi[1])} ${unit} by ${byWhen(hi[0], now)}` }
-    : { kind: "falling", value: lo[1], at: lo[0], text: `Falling to ${figure(lo[1])} ${unit} by ${byWhen(lo[0], now)}` };
+  const rise = up >= down, ext = rise ? hi : lo, h = Math.abs(ext[1] - v0);
+  // how long the run stood past its own half-height
+  const half = v0 + (ext[1] - v0) / 2, past = points.filter((p) => (rise ? p[1] >= half : p[1] <= half));
+  const width = past[past.length - 1]![0] - past[0]![0];
+  const returned = Math.abs(end - v0) <= RETURNS_WITHIN * h || (rise ? end < v0 : end > v0);
+  const when = byWhen(ext[0], now);
+  if (returned) {
+    const brief = width <= BRIEF_MS;
+    return rise
+      ? { kind: "spike", value: ext[1], at: ext[0], end, text: `${brief ? "Brief rise to" : "Rise to"} ${u(ext[1])} ${brief ? "on" : "around"} ${when}, then back to ${about(end)}` }
+      : { kind: "dip", value: ext[1], at: ext[0], end, text: `${brief ? "Brief dip to" : "Dip to"} ${u(ext[1])} ${brief ? "on" : "around"} ${when}, then back to ${about(end)}` };
+  }
+  if (rise) {
+    const easing = (hi[1] - end) > 0.4 * (hi[1] - v0);
+    return { kind: "rising", value: hi[1], at: hi[0], end: easing ? end : null, text: `Rising to ${u(hi[1])} by ${when}${easing ? `, then easing to ${about(end)}` : ""}` };
+  }
+  if (weekMax != null && weekMax >= PEAK_BEFORE * v0)
+    return { kind: "receding", value: lo[1], at: lo[0], end: null, text: `Dropping after a recent peak, to ${u(lo[1])} by ${when}` };
+  return { kind: "falling", value: lo[1], at: lo[0], end: null, text: `Falling to ${u(lo[1])} by ${when}` };
 }
 
 /** the normal range a day from `t0` to `t1` from the climatology (the same `bandFor` that words the standing); null when none */
@@ -196,7 +230,7 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     at: Number.isFinite(t) ? pacific(t) : null,
     stale: !Number.isFinite(t) || now - t > STALE_AFTER.feed.ms,
     week, forecast, forecastOld,
-    outlook: forecast && v !== null && unit ? outlookOf(v, forecast.points, unit, now) : null,
+    outlook: forecast && v !== null && unit ? outlookOf(v, forecast.points, unit, now, week.length ? Math.max(...week.map((w) => w[1])) : null) : null,
     normal: parameter && clim ? normalRange(clim[parameter], now - WEEK, Math.max(now, last)) : null,
   };
 }
@@ -221,23 +255,21 @@ export async function drawCard(m: CardModel): Promise<{ png: Uint8Array; missing
   const ground = hex(CARD_GROUND), ink = hex(CARD_INK), soft = mix(ground, ink, 0.78), faint = mix(ground, ink, 0.35);
   const cv = new Canvas(CARD_W, CARD_H, ground);
   const L = 64, R = CARD_W - 64;
-  await text(cv, "small", fit("small", `RIVER CONDITIONS · WATER SURVEY OF CANADA GAUGE ${m.station}`, R - L), L, 72, soft);
+  const brand = "canifishthis.ca", bw = measure("small", brand);
+  await text(cv, "small", fit("small", `RIVER CONDITIONS · WATER SURVEY OF CANADA GAUGE ${m.station}`, R - L - bw - 24), L, 72, soft);
+  await text(cv, "small", brand, R - bw, 72, soft);
   const title = wrap("title", m.name, R - L, 2);
   for (const [i, l] of title.entries()) await text(cv, "title", l, L, 138 + i * 64, ink);
   const top = 138 + (title.length - 1) * 64 + 40;
   // left: the reading
-  const colW = 540;
+  const colW = 490;
   if (m.value) {
     await text(cv, "body", m.parameter === "level" ? "Water level" : "Flow", L, top + 40, soft);
     await text(cv, "big", fit("big", m.value, colW), L, top + 140, ink);
     let y = top + 196;
     const st = wrap("body", m.standing ?? "", colW, 2);
     for (const [i, l] of st.entries()) await text(cv, "body", l, L, y + i * 42, ink);
-    y += st.length * 42;
-    // the forecast in words (T511); a gauge with no current run says so plainly
-    const fc = wrap("body", m.outlook ? `Forecast: ${m.outlook.text.charAt(0).toLowerCase()}${m.outlook.text.slice(1)}` : m.forecastOld ? "Forecast out of date" : "No forecast", 590, 2);
-    for (const [i, l] of fc.entries()) await text(cv, "body", l, L, y + i * 42, m.outlook ? ink : soft);
-    y += fc.length * 42 + 8;
+    y += st.length * 42 + 8;
     const when = wrap("small", m.stale ? `No new reading since ${m.at ?? "an unknown time"}` : `Measured ${m.at}`, colW, 2);
     for (const [i, l] of when.entries()) await text(cv, "small", l, L, y + i * 34, soft);
   } else {
@@ -246,17 +278,16 @@ export async function drawCard(m: CardModel): Promise<{ png: Uint8Array; missing
   }
   // right: the last 7 days, the forecast's dashes, and the normal range for each day behind them. Text here is the body face
   // in full ink: a card is shown a third of this size in Messages / Facebook (T511).
-  const GUT = 782, cx0 = GUT + 14, cx1 = R, cy0 = top + 70, cy1 = CARD_H - 96;
+  const GUT = 612, cx0 = GUT + 14, cx1 = R, cy0 = top + 62, cy1 = CARD_H - 112;
   const now = m.now;
   const t0 = now - WEEK, t1 = m.forecast ? Math.max(now, m.forecast.points[m.forecast.points.length - 1]![0]) : now;
   const vals = [...m.week.map((p) => p[1]), ...(m.forecast?.points.map((p) => p[1]) ?? [])];
   const nr = m.normal;
   if (vals.length >= 2) {
-    // the scale holds the readings and the middle half of the normal range; the outer band is cut at the chart's edge
-    const keep = nr ? [...vals, ...nr.flatMap((n) => [n[2], n[4]])] : vals;
-    let lo = Math.min(...keep), hi = Math.max(...keep);
+    // the scale is the readings and the forecast alone, so the line uses the plot's height; the normal range is cut at its edges
+    let lo = Math.min(...vals), hi = Math.max(...vals);
     if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
-    const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;
+    const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
     const x = (t: number) => cx0 + ((t - t0) / (t1 - t0 || 1)) * (cx1 - cx0);
     const y = (v: number) => cy1 - ((v - lo) / (hi - lo)) * (cy1 - cy0);
     // a few ticks only: two or three round figures, each on a faint line, labelled in full ink
@@ -299,7 +330,9 @@ export async function drawCard(m: CardModel): Promise<{ png: Uint8Array; missing
   await text(cv, "body", "7 days ago", cx0, below, ink);
   const right = m.forecast ? "Forecast" : "Now";
   await text(cv, "body", right, cx1 - measure("body", right), below, ink);
-  await text(cv, "small", "canifishthis.ca", L, CARD_H - 40, soft);
+  // the forecast in one line across the card's foot (its words are outlookOf's); none / out of date said plainly
+  const fw = m.outlook ? `Forecast: ${m.outlook.text.charAt(0).toLowerCase()}${m.outlook.text.slice(1)}` : m.forecastOld ? "Forecast out of date" : "No forecast";
+  if (m.value) await text(cv, "body", fit("body", fw, R - L), L, CARD_H - 24, m.outlook ? ink : soft);
   return { png: await png(cv), missing: [...cv.missing] };
 }
 

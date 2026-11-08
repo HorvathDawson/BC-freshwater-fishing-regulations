@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PNG } from "pngjs";
 import { chartFigure, plainStanding, standing } from "../../../packages/core/src/index";
-import { byWhen, CARD_GROUND, CARD_H, CARD_INK, CARD_W, CARD_STATE, cardEvents, cardFacts, cardModel, cardSig, drawCard, figure, niceTicks, normalRange, outlookOf, runCards,
+import { about, byWhen, CARD_GROUND, CARD_H, CARD_INK, CARD_W, CARD_STATE, cardEvents, cardFacts, cardModel, cardSig, drawCard, figure, niceTicks, normalRange, outlookOf, runCards,
          type CardBucket, type CardStation } from "../src/gauges/card/card";
 import { FACES, FONT_SHA256 } from "../src/gauges/card/glyphs.generated";
 import { bandFor, percentileOf } from "../src/gauges/publish";
@@ -103,12 +103,12 @@ const rising = (day: number, ...mid: number[]): [number, number][] => mid.map((v
 describe("the forecast in words (outlookOf)", () => {
   it("rising: the peak and the day it falls on, in the gauge's unit", () => {
     const o = outlookOf(24.6, rising(0, 24, 27, 31.04, 29), "m³/s", NOW)!;
-    expect([o.kind, o.value, o.text]).toEqual(["rising", 31.04, `Rising to 31 m³/s by ${byWhen(NOW + 2 * DAYMS, NOW)}`]);
+    expect([o.kind, o.value, o.text]).toEqual(["rising", 31.04, `Rising to 31 m³/s by ${byWhen(NOW + 2 * DAYMS, NOW)}`]);   // 2 significant figures
     expect(o.text).toMatch(/^Rising to 31 m³\/s by (Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/);
   });
   it("falling: the low and its day", () => {
     const o = outlookOf(80, rising(0, 78, 60, 41.2, 45), "m³/s", NOW)!;
-    expect([o.kind, o.value, o.text.startsWith("Falling to 41.2 m³/s by ")]).toEqual(["falling", 41.2, true]);
+    expect([o.kind, o.value, o.text.startsWith("Falling to 41 m³/s by ")]).toEqual(["falling", 41.2, true]);
   });
   it("steady: every point within 10 % of the reading is 'steady around' the forecast's mean", () => {
     const o = outlookOf(100, rising(0, 96, 104, 99, 101), "m³/s", NOW)!;
@@ -116,7 +116,35 @@ describe("the forecast in words (outlookOf)", () => {
   });
   it("the larger move says it when the run goes up and back down", () => {
     expect(outlookOf(100, rising(0, 130, 100, 40), "m³/s", NOW)!.kind).toBe("falling");
-    expect(outlookOf(100, rising(0, 160, 100, 70), "m³/s", NOW)!.kind).toBe("rising");
+    expect(outlookOf(100, rising(0, 160, 130, 125), "m³/s", NOW)!.kind).toBe("rising");
+  });
+  // the Vedder card (owner 2026-11-08): a one-day spike that falls back to the old level is not "rising to 49"
+  const hourly = (f: (h: number) => number, hours = 240): [number, number][] => Array.from({ length: hours }, (_, h) => [NOW + h * H, f(h)]);
+  it("a brief spike that falls back: said as brief, with where it ends", () => {
+    const o = outlookOf(14.7, hourly((h) => (h >= 150 && h <= 168 ? 12 + 37 * Math.sin(((h - 150) / 18) * Math.PI) : 12.3)), "m³/s", NOW)!;
+    expect(o.kind).toBe("spike");
+    expect(o.text).toBe(`Brief rise to 49 m³/s on ${byWhen(o.at!, NOW)}, then back to 12`);
+    expect(o.text.length).toBeLessThan(60);   // one line at card size
+  });
+  it("a long excursion that returns is not 'brief'", () => {
+    const o = outlookOf(10, hourly((h) => (h >= 24 && h <= 150 ? 30 : 10)), "m³/s", NOW)!;
+    expect([o.kind, o.text.startsWith("Rise to 30 m³/s around "), o.text.endsWith(", then back to 10")]).toEqual(["spike", true, true]);
+  });
+  it("a brief dip that comes back, and a fall that stays", () => {
+    const d = outlookOf(50, hourly((h) => (h >= 60 && h <= 70 ? 20 : 50)), "m³/s", NOW)!;
+    expect([d.kind, d.text.startsWith("Brief dip to 20 m³/s on "), d.text.endsWith(", then back to 50")]).toEqual(["dip", true, true]);
+    const f = outlookOf(50, hourly((h) => Math.max(20, 50 - h / 4)), "m³/s", NOW)!;
+    expect([f.kind, f.text.startsWith("Falling to 20 m³/s by ")]).toEqual(["falling", true]);
+  });
+  it("a rise that part-way eases, and a fall after a recent peak", () => {
+    const e = outlookOf(10, hourly((h) => (h < 72 ? 10 + h / 3 : 34 - (h - 72) / 12)), "m³/s", NOW)!;
+    expect([e.kind, /^Rising to 34 m³\/s by .+, then easing to \d+$/.test(e.text)]).toEqual(["rising", true]);
+    const r = outlookOf(60, rising(0, 55, 45, 41.2), "m³/s", NOW, 95)!;
+    expect([r.kind, r.text.startsWith("Dropping after a recent peak, to 41 m³/s by ")]).toEqual(["receding", true]);
+    expect(outlookOf(60, rising(0, 55, 45, 41.2), "m³/s", NOW, 62)!.kind).toBe("falling");
+  });
+  it("two significant figures, whatever the size", () => {
+    expect([49.3, 172, 1060, 2.43, 0.0432, 12.8, 100].map(about)).toEqual(["49", "170", "1100", "2.4", "0.043", "13", "100"]);
   });
   it("no points: no words (the card says 'No forecast' itself)", () => {
     expect(outlookOf(10, [], "m³/s", NOW)).toBeNull();
