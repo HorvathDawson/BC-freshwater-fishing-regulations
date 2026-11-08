@@ -544,7 +544,7 @@ use that as the sole source of future work."
 | T497 | Lower Fraser braids carry the Fraser's name (Nicomen / Maria Slough); a 2-stretch "Fraser River" water | OPEN | — | owner 2026-11-08 (phone); T495 gate 1 |
 | T498 | Rules / conditions pane opens janky (shows, then loads in): build first, then show | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
 | T499 | Pane's Map tab flickers when left open on the lowest Fraser stretch | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
-| T500 | Release / closed definitions only behind the ⓘ, not printed in the main view | OPEN | — | owner 2026-11-08 (phone) |
+| T500 | Release / closed definitions only behind the ⓘ, not printed in the main view | IN REVIEW — next build | 0cab98ff5 | owner 2026-11-08 (phone) |
 | T501 | "Where you can't fish" in short lines; full rule-book text one tap away | OPEN | — | owner 2026-11-08 (phone) |
 
 ## Order for open tickets
