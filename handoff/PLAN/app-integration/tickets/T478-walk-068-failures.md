@@ -1,6 +1,6 @@
 # T478 — 0.6.8 fresh-install walk: two failures (install, water-nav)
 
-Status: DONE — 6b5f9037; both were test drift, no app bug. Test bed 2026-11-08: install PASS (Updates log via the Developer card), water-nav 7/7 PASS.
+Status: DONE — 6b5f9039e; both were test drift, no app bug. Test bed 2026-11-08: install PASS (Updates log via the Developer card), water-nav 7/7 PASS.
 abf91d3). 2 of 4 passed: walkthrough (30/30 steps) and switch (32 swaps, 0 bare frames, 0 feature-state lost).
 The install itself passed: downloaded and up in 77 s, no crash.
 
