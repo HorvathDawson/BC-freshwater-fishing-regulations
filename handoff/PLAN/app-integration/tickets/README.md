@@ -538,6 +538,7 @@ use that as the sole source of future work."
 | T491 | test_curation_review_screen tidal test reads live curated data; the owner's 11-06 Nanaimo mark decided it | DONE | 763bb4d | found 2026-11-07; give the test its own fixture |
 | T492 | Stream colours chosen on the GPU (per-day status lookup), after T420 | OPEN (future) | — | owner 2026-11-07; only on a measured trigger |
 | T493 | A creek shows a gap where its small lake drops out zoomed out (Foley Lake): draw the creek through, lake's status + tap | OPEN | — | owner 2026-11-07; ships with a tiles rebuild (with T489) |
+| T494 | Web map console TypeError `interpolationFactor is not a function` (paint expression binder) on 0.6.9 | OPEN | — | found 2026-11-07 by the staging smoke (warn) |
 
 ## Order for open tickets
 
