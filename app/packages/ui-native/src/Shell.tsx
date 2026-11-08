@@ -27,7 +27,7 @@ import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -435,7 +435,7 @@ export function Shell(p: ShellProps) {
     openClosed: (v) => {
       if (!guideClosed) return;
       if (searching) { go({ type: "search", open: false }); search.searchType(""); }
-      go({ type: "openWater", item: guideClosed.item as ItemId, part: guideClosed.part, view: v });
+      go(openWater({ item: guideClosed.item as ItemId, part: guideClosed.part, view: v }));   // the one builder (one water screen)
     },
     // (T466) adding a spot, the reader's way: the Spots tab's Pick on the map, the pin on the walk's water, Continue
     pickOnMap: () => rail.pick(),

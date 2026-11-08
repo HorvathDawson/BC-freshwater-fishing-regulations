@@ -145,21 +145,21 @@ describe("T45 the Regulations view on a wide screen, laid out in Chrome", () => 
     expect(Object.fromEntries(Object.entries(m).map(([k, v]) => [k, `${v.page.join("–")} body ${v.longest} note ${v.note}`])))
       .toMatchInlineSnapshot(`
         {
-          "bc1_501 desktop 1280": "492–1052 body 71 note 103",
-          "bc1_501 desktop 1440": "572–1132 body 71 note 103",
-          "bc1_501 phone 390": "0–390 body 45 note 69",
-          "bc1_501 tablet 1024": "232–792 body 71 note 103",
-          "bc1_501 tablet 900": "170–730 body 71 note 103",
-          "klwa_1010 desktop 1280": "492–1052 body 63 note 103",
-          "klwa_1010 desktop 1440": "572–1132 body 63 note 103",
-          "klwa_1010 phone 390": "0–390 body 48 note 69",
-          "klwa_1010 tablet 1024": "232–792 body 63 note 103",
-          "klwa_1010 tablet 900": "170–730 body 63 note 103",
-          "vedder_1010 desktop 1280": "492–1052 body 77 note 103",
-          "vedder_1010 desktop 1440": "572–1132 body 77 note 103",
-          "vedder_1010 phone 390": "0–390 body 54 note 69",
-          "vedder_1010 tablet 1024": "232–792 body 77 note 103",
-          "vedder_1010 tablet 900": "170–730 body 77 note 103",
+          "bc1_501 desktop 1280": "492–1052 body 71 note 96",
+          "bc1_501 desktop 1440": "572–1132 body 71 note 96",
+          "bc1_501 phone 390": "0–390 body 45 note 64",
+          "bc1_501 tablet 1024": "232–792 body 71 note 96",
+          "bc1_501 tablet 900": "170–730 body 71 note 96",
+          "klwa_1010 desktop 1280": "492–1052 body 63 note 96",
+          "klwa_1010 desktop 1440": "572–1132 body 63 note 96",
+          "klwa_1010 phone 390": "0–390 body 48 note 64",
+          "klwa_1010 tablet 1024": "232–792 body 63 note 96",
+          "klwa_1010 tablet 900": "170–730 body 63 note 96",
+          "vedder_1010 desktop 1280": "492–1052 body 77 note 96",
+          "vedder_1010 desktop 1440": "572–1132 body 77 note 96",
+          "vedder_1010 phone 390": "0–390 body 54 note 67",
+          "vedder_1010 tablet 1024": "232–792 body 77 note 96",
+          "vedder_1010 tablet 900": "170–730 body 77 note 96",
         }
       `);
   }, 180_000);
