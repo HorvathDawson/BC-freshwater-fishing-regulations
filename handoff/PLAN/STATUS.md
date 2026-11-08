@@ -13,6 +13,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-07 evening (chat 7): /changes fixed, feeds fresh, fast-fail in
+- **/changes (T490):** lists waters whose RULES moved (rule ids + values), not wording; a wording release says "Wording
+  updated on N waters" once. r-1b4f vs the live site: 17 waters changed (T468), not thousands. Staging site deploy +
+  release stage 6 rerun in progress.
+- **In-season feed (T486):** never broken — a daily run just under 24 h after the last write skipped it, so the file aged
+  to 48 h. Both feeds now rewrite within 20 h; staging worker deployed, the feed is fresh.
+- **Fast-fail (T483, IN REVIEW):** `scripts/fast-fail.sh`, 8 cheap checks (~8 s), run first by the release and the APK
+  build. **T484 (IN REVIEW):** a resumed release keeps its min app version; the push check is in preflight now.
+- **T491** test fixed. **New: T493** — a creek gap where a small lake drops out zoomed out (Foley Lake): your answers
+  are in the ticket (draw the creek through, lake's colour and tap).
+
 ## 2026-11-07 afternoon: 0.6.9 is on your phone's Play track (patched MapLibre) + stock on the staging page
 - **Play internal, 0.6.9 (versionCode 19):** the lean MapLibre lag fix (T420), verified in the AAB. **Staging APK page:**
   the same app with stock MapLibre (0.6.9-677e99fb3). Pan Coquitlam z13 and Fraser Valley z11 on each.
