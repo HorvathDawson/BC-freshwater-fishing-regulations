@@ -448,7 +448,7 @@ use that as the sole source of future work."
 | T401 | Streams pop in at the edges while panning: MapLibre Native has no viewport prefetch; parent tiles lack small streams. Measure, then prefetch-delta patch or render margin (no tile buffer rebuild) | PARTIAL | c1c838f58 deb635819 29b1e561b | owner 2026-11-04 (0.5.0 phone); 11-06 stressed emulator: frames missing tiles while moving 22.6→17.6 % (z13 travelling), 26.4→16.1 % (circling) after the T420 tile-event fix deb635819; not gone — prefetch-delta patch next if the owner still sees it; option 2 (29b1e561b): binding `prefetchZoomDelta` prop, deltas 2/3 vs 4 within run-to-run noise (3 runs each) → default kept; left: owner phone A/B, option 3 |
 | T402 | Two tests fail only in the full suites: split_preview real_ids empty (memo/module leak), back.test day sheet under load | DONE | 93d274234 5b5865c89 | full run 2026-11-05 |
 | T403 | A 0.5.0 phone opened the 0.4.0 data release it held (salmon/3, no lines): a release the app cannot read is never opened, installed or rolled back to | DONE 11-05 | 62d96721d, 1473f95c7 | staging crashes 2026-11-05 |
-| T404 | One switch to production (every origin from one setting) + the prod release runbook and transition workflow | OPEN | — | owner 2026-11-05 (later, with T86/T240) |
+| T404 | One switch to production (every origin from one setting) + the prod release runbook and transition workflow | IN REVIEW | b8d4bec0b | built 11-07 (not merged): env.ts owns every host + guard test, prod twins in deploy/prod/ (rehearsed, never run), handoff/PLAN/release/PRODUCTION.md; owner reads it + Q171–Q175; left: prod prune, runtiming publish --bucket |
 | T405 | Water pages fail Lighthouse when the app takes over the prerendered pane (LCP 3-39 s, CLS 0.15-0.72; hubs score 100) | DROPPED — merged into T409 (2026-11-05) | 5ba3155e5, db643ad12, f32ddb13a | staging fc215b52: fish thumbnails (fish bytes 307 → 54 KB on Vedder), perf 77-88, LCP 2.1-2.5 s, CLS 0.002, A11y 100; TBT (app boot) stops 95 — owner picks target/option |
 | T406 | SEO: raster (PNG) share images + species-by-region season calendar | DONE 11-05 | 08837f197, 7b20ec0da | owner accepted region bar + map button as they are |
 | T407 | Report a problem: "App bug" and "Feature request" reasons (for testing) | DROPPED — merged into T242 (2026-11-05) | — | owner 11-05; worker deploys with 0.6.0 |
@@ -603,6 +603,11 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 | Q160 | T243 | Bottom tab labels follow the OS text size only to 1.3× (a quarter of a phone holds no more; the platforms' own tab bars do the same) | 1.3× cap | owner |
 | Q161 | T259 | Which map regions a first install keeps offline | all (~460 MB map; regs always all-B.C.) | owner |
+| Q171 | T404 | Production's problem-report + crash endpoint | `https://bc-fishing-feeds.horvath-dawson.workers.dev/report` (staging's pattern; workers_dev on in wrangler.prod.toml) until a custom domain is chosen | owner |
+| Q172 | T404 | Production's backup bucket (you create it, staging's lifecycle rules) | `bc-fishing-regulations-backup` | owner |
+| Q173 | T404 | After the switch, every Play build (internal, closed) reads production; staging stays on the sideload APK page? | yes | owner |
+| Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it still serves the v1 keys)? | yes — check its name + route in the dashboard first | owner |
+| Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner |
 
 ### Answered (recently, for the record)
 - Q170 — owner 2026-11-07: B ("Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom"); built in T470, the order × zoom fade is one block (`fadeByOrder`).
