@@ -12,17 +12,17 @@ import { LIGHT } from "./theme";
 afterEach(cleanup);
 const SRC = "https://www2.gov.bc.ca/x";
 const change = { id: "is-a", region: "8", water: "Okanagan River", from: "2026-10-15", to: "2026-11-30",
-                 text: "No fishing July 30 to September 15.", source: SRC, extents: [], places: null };
+                 text: "No fishing July 30 to September 15.", source: SRC, waters: null, onRelease: true };
 
 describe("in-season", () => {
   it("<InSeasonBanners>: collapsed, one line with the dates and 'see'; the notice is not drawn (T472)", () => {
-    render(<InSeasonBanners banners={[inSeasonBanner({ change, partial: false })]} palette={LIGHT} />);
+    render(<InSeasonBanners banners={[inSeasonBanner(change, { ends: null })]} palette={LIGHT} />);
     expect(screen.getByTestId("inseason-summary").textContent).toBe("In-season change (Oct 15–Nov 30) · see ›");
     expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("false");
     expect(screen.queryByTestId("inseason-banner")).toBeNull();
   });
   it("<InSeasonBanners>: several changes say the count; a press opens every notice, a second closes them", () => {
-    const b = (id: string) => inSeasonBanner({ change: { ...change, id }, partial: false });
+    const b = (id: string) => inSeasonBanner({ ...change, id }, { ends: null });
     render(<InSeasonBanners banners={[b("a"), b("b"), b("c")]} palette={LIGHT} />);
     expect(screen.getByTestId("inseason-summary").textContent).toBe("3 in-season changes · see ›");
     fireEvent.click(screen.getByTestId("inseason-line"));
@@ -31,12 +31,17 @@ describe("in-season", () => {
     expect(screen.queryByTestId("inseason-banner")).toBeNull();
   });
   it("<InSeasonBanners>: expanded, the owner's line whole, then the note and the source link", () => {
-    render(<InSeasonBanners banners={[inSeasonBanner({ change, partial: false })]} palette={LIGHT} />);
+    render(<InSeasonBanners banners={[inSeasonBanner(change, { ends: null })]} palette={LIGHT} />);
     fireEvent.click(screen.getByTestId("inseason-line"));
     expect(screen.getByTestId("inseason-line").getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByTestId("inseason-banner").textContent).toBe(
       "In-season change (Oct 15–Nov 30): No fishing July 30 to September 15."
       + "Shown as posted; the answers on this page do not include it yet.source ›");
+  });
+  it("(T518) <InSeasonBanners>: a change on part of the water says where, in its own ends", () => {
+    render(<InSeasonBanners banners={[inSeasonBanner(change, { ends: "From Hell's Gate to Spuzzum Creek confluence" })]} palette={LIGHT} />);
+    fireEvent.click(screen.getByTestId("inseason-line"));
+    expect(screen.getByTestId("inseason-where").textContent).toBe("Where: From Hell's Gate to Spuzzum Creek confluence");
   });
   it("<InSeasonBanners>: nothing to draw, nothing drawn", () => {
     render(<InSeasonBanners banners={[]} palette={LIGHT} />);
@@ -168,7 +173,7 @@ describe("the in-season line on the Keep tab (T472)", () => {
     const { KeepTab } = await import("./regs/KeepTab");
     const vedder = (await import("./regs/fixtures/vedder_1010.json")).default as unknown as { keep: import("@app/core").KeepVM };
     render(<KeepTab keep={vedder.keep} dateLabel="Oct 10" palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never}
-                    inSeason={[inSeasonBanner({ change, partial: false })]} />);
+                    inSeason={[inSeasonBanner(change, { ends: null })]} />);
     const tab = screen.getByTestId("keep-tab");
     const line = screen.getByTestId("inseason-banners");
     const kids = [...tab.children];

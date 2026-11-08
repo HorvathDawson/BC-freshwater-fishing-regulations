@@ -14,14 +14,15 @@
  * (`onPart`) — so the Regulations and Conditions views agree with the map.
  */
 import { LoadingState } from "../LoadingState";
-import { useRef, type ComponentProps } from "react";
+import { useMemo, useRef, type ComponentProps } from "react";
 import { ScrollView, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { PART_FIT_MAX_ZOOM, WATER_MAP_WORDS } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { useBackLayer, useRegsStore, useSalmonKey, useWaterMap, type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
+import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useRegsStore, useReleaseLines, useSalmonKey, useWaterMap,
+         type WaterMapPartVM, type WaterMapVM, type WaterMapAction } from "@app/ui";
 import { MapScreen } from "../MapScreen";
 import { WaterInset } from "../WaterFrame";
 import { Icon } from "../icons";
@@ -34,7 +35,7 @@ import { usePaneMap, usePaneReady } from "../shell/paneReveal";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
-  "palette" | "highlight" | "water" | "waterLine" | "selection" | "focus" | "near" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
+  "palette" | "highlight" | "inSeason" | "water" | "waterLine" | "selection" | "focus" | "near" | "marks" | "onPressMark" | "fit" | "onPressFeature">;
 
 const NO_NEAR: readonly SectionId[] = [];
 
@@ -73,6 +74,14 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, stretch, onWhole);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
+  // (T518) the provincial in-season changes on this water today, outlined on exactly their sections (the banner's own
+  // coverage, `useInSeasonCovers`: one load path)
+  const lines = useReleaseLines(loader);
+  const ordQ = useAsync(async () => store.value!.itemOrd(item), `inseason-ord:${item}`, !!store.value);
+  const ord = ordQ.state === "ready" ? ordQ.value : null;
+  const covers = useInSeasonCovers(store.value ?? null, lines, ord === null ? null : { item, ord, partIx: null }, null);
+  const inSeason = useMemo(() => (vm && covers.length ? inSeasonSections(covers, [...vm.selected, ...vm.water]) : NO_NEAR),
+    [covers, vm?.selected, vm?.water]);
   // (T459) the water this one flows into stays in colour (muted) while every other water is grey; the test bed's
   // `receiving` switch draws it grey too, for the owner's pick between the two (shots in app/tools/testbed/out/t459/)
   const receivingKept = useTestbedFlag("receiving", true);
@@ -101,6 +110,7 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
       <View style={{ flex: 1 }}>
         <MapScreen palette={palette} {...map} onDrawn={onDrawn}
                    highlight={vm?.selected ?? []}
+                   inSeason={inSeason}
                    water={vm?.water ?? []}
                    // (T175) the whole water's line at every zoom, and it opens no further out than its first zoom
                    waterLine={vm ? { sections: [...vm.selected, ...vm.water] } : undefined}

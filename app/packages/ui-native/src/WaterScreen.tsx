@@ -28,7 +28,7 @@ import { ScrollView } from "react-native";
 import { NET_WORDS, asOfLine, dayRange, gearIfFished, gearTabsFor, regsLapsedNote, waterBookOf, salmonGlance, salmonStripOf, WATER_BACK, WATER_SCREEN_WORDS, WORDS, type RegsTarget, bcNow, now as clockNow } from "@app/core";
 import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
-import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
+import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet, usePageSubject,
          useDaylight, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
@@ -149,10 +149,12 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const salmonExpected = !!loader?.manifest?.files?.salmon;
   // (T230) the provincial in-season changes matched to this water / part, in effect on THE day (informational)
   const inSeasonPage = useMemo(() => (pageItem && inputs.value
-    ? { item: pageItem.id, ord: pageItem.ord, partIx: inputs.value.partIx, parts: pageItem.parts.length } : null),
+    ? { item: pageItem.id, ord: pageItem.ord, partIx: inputs.value.partIx } : null),
     // the page's identity
-    [pageItem?.id, pageItem?.ord, inputs.value?.partIx, pageItem?.parts.length]);
-  const inSeason = useInSeasonBanners(store.value ?? null, inSeasonPage, day);
+    [pageItem?.id, pageItem?.ord, inputs.value?.partIx]);
+  // (T520) where each lands: core's `inSeasonCover` over the water's section lines (read only for a part-covering change)
+  const inSeasonLines = useReleaseLines(loader ?? null);
+  const inSeason = useInSeasonBanners(store.value ?? null, inSeasonLines, inSeasonPage, day);
   // (T236) the page's foot: how current the regulations, the salmon feed and the in-season changes are
   const inSeasonAt = useContext(InSeasonContext).data?.feed.fetchedAt ?? null;
   // (T227) the day's book gear as if open, for a day only salmon may be fished (core `gearIfFished`)

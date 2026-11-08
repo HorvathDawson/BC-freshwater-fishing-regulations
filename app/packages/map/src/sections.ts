@@ -137,7 +137,7 @@ export interface StateSink {
 
 /** The feature-state keys a highlight sets (`MapAdapter.highlight`): what is selected (outlined), the part you are on in
  *  a water's Map view (`part`, T151: marked by dimming the rest), and the rest of its water. */
-export const HIGHLIGHT_KEYS = ["selected", "part", "water", "near"] as const;
+export const HIGHLIGHT_KEYS = ["selected", "part", "water", "near", "inseason"] as const;
 
 /**
  * (T499, owner 2026-11-08 on 0.6.9: the Fraser's water map, left open, "flickered now and then with no input") WHAT A
@@ -147,8 +147,10 @@ export const HIGHLIGHT_KEYS = ["selected", "part", "water", "near"] as const;
  * with the whole part unlit (emulator, testbed `map-idle`: the part blinked out ~4.5 min into an idle Map view).
  */
 export function litKey(highlight: readonly SectionKey[] | undefined, water: readonly SectionKey[] | undefined,
-                       cue: string, near: readonly SectionKey[] | undefined): string {
-  return highlight ? `${highlight.join(",")}|${(water ?? []).join(",")}|${cue}|${(near ?? []).join(",")}` : "";
+                       cue: string, near: readonly SectionKey[] | undefined,
+                       inSeason?: readonly SectionKey[]): string {
+  return highlight
+    ? `${highlight.join(",")}|${(water ?? []).join(",")}|${cue}|${(near ?? []).join(",")}|${(inSeason ?? []).join(",")}` : "";
 }
 
 /**

@@ -42,6 +42,8 @@ export const SELECTION_RINGS = { lake: "selection-ring-lake", wetland: "selectio
 export const CASING_PX = 2.5;
 export const RING_PX = 3;
 const SELECTED = ["boolean", ["feature-state", "selected"], false];
+/** (T518) a section an in-season change on the water's map covers (`MapProps.inSeason`) */
+const INSEASON = ["boolean", ["feature-state", "inseason"], false];
 /**
  * (T203, T214) THE PART'S HALO — the selection's own casing/ring (`OUTLINE_SHOWN` lights both). Dimming the others alone did not read when the water is amber (own rules) or any colour
  * close to its dimmed self, so the part you are on is also ringed in `color.highlight`. T203 drew it at HALF the outline
@@ -51,18 +53,21 @@ const SELECTED = ["boolean", ["feature-state", "selected"], false];
  * the water keeps the legend's width; only its outline grows. tools/water-status-cvd.test.ts holds highlight apart from
  * every status, cvd included.
  */
-const OUTLINE_SHOWN = ["case", SELECTED, 1, PART, 1, 0];
+const OUTLINE_SHOWN = ["case", SELECTED, 1, PART, 1, INSEASON, 1, 0];
+/** (T518) the outline's colour: the attention ink (the in-season banner's bar) on a section an in-season change covers,
+ *  else the highlight's */
+const outlineColour = (tokens: Tokens) => ["case", INSEASON, tokens["color.ui.attention"], tokens["color.highlight"]];
 
 /** The stream casing's paint: the stream's own width (`streamWidth`, with its floors) plus the outline each side. */
 export function casingPaint(streamWidth: unknown, tokens: Tokens): Record<string, unknown> {
-  return { "line-color": tokens["color.highlight"],
+  return { "line-color": outlineColour(tokens),
            "line-width": withinZoomCurve(streamWidth, (v) => ["+", v, 2 * CASING_PX]),
            "line-opacity": OUTLINE_SHOWN };
 }
 
 /** A selected lake's or wetland's ring. */
 export function ringPaint(tokens: Tokens): Record<string, unknown> {
-  return { "line-color": tokens["color.highlight"], "line-width": RING_PX, "line-opacity": OUTLINE_SHOWN };
+  return { "line-color": outlineColour(tokens), "line-width": RING_PX, "line-opacity": OUTLINE_SHOWN };
 }
 
 /**

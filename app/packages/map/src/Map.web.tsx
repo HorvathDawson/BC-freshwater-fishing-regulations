@@ -56,7 +56,7 @@ export function Map(props: MapProps) {
 
 function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing,
                      chrome,
-                      onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, water, waterLine, selection = "outline", marker,
+                      onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
                       zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, focus, near, onDrawn }: MapProps) {
@@ -86,7 +86,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
   useMapPoint(refs, onMapPoint);
   useMe(refs, me, theme);
   usePins(refs, marker, pins, furniture);
-  const lit = useHighlight(refs, { highlight, water, selection, near });
+  const lit = useHighlight(refs, { highlight, water, selection, near, inSeason });
   useMarks(refs, marks, onPressMark, furniture);
   const spotLayer = useSpots(refs, spots, at);
   useChannels(refs, lit, { at, theme, data, status, standing, lakes, salmon, method, runs });

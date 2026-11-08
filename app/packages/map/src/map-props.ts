@@ -277,6 +277,11 @@ export interface MapProps {
   /** Feature ids to draw as selected. Applied by feature-state, never by mutating paint. */
   highlight?: readonly SectionKey[];
   /**
+   * (T518) THE SECTIONS A PROVINCIAL IN-SEASON CHANGE COVERS on a water's map (`@app/ui` `useInSeasonCovers`, the
+   * banner's own coverage): feature-state `inseason`, outlined in the attention ink. Set and cleared with `highlight`.
+   */
+  inSeason?: readonly SectionKey[];
+  /**
    * THE REST OF THE WATER whose part is `highlight` (P15, the water's Map view): feature-state `water`, drawn in its own
    * colour at a width floor so the river reads as one water around the selected part. Set and cleared with
    * `highlight`, by the adapter's one `highlight` call.

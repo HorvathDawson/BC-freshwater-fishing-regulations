@@ -62,10 +62,12 @@ describe("the layers a section is read from", () => {
       "remove atlas/stream number:7 water",
       // (T459) `near`: a focused water map's receiving water
       "remove atlas/stream number:7 near",
+      "remove atlas/stream number:7 inseason",
       "remove atlas/stream number:8 selected",
       "remove atlas/stream number:8 part",
       "remove atlas/stream number:8 water",
       "remove atlas/stream number:8 near",
+      "remove atlas/stream number:8 inseason",
     ]);
   });
   it("feature-state goes to the layer's own source and SOURCE-layer", () => {

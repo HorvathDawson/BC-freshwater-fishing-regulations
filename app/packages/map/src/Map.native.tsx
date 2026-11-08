@@ -102,7 +102,7 @@ type Data = NonNullable<MapProps["data"]>;
 const SETTLE_ASK_MS = 700;
 
 export function Map({ at, theme, view, modes, groups, hide, show, initial, data, onPressFeature, onPressObstacle, onPressTidal, onPressNotFishing, chrome, onError,
-                      onMoved, onMapPoint, onLongPress, onOpenLab, highlight, water, waterLine, selection = "outline", marker, style, gauges,
+                      onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
                       onRegion: _noPrefetch, insetBottom = 0, onOpenLink, onDrawn }: MapProps) {
@@ -302,15 +302,16 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const litWritten = useRef<string | null>(null);
   // (T499) keyed on WHAT is lit (`litKey`), never on the arrays: the same ids in new arrays (a caller's re-render) clear
   // nothing and light nothing — on a phone that clear and relight drew a frame with the water unlit
-  const litText = litKey(highlight, water, selection, near);
-  const litNow = useRef({ highlight, water, near });
-  litNow.current = { highlight, water, near };
+  const litText = litKey(highlight, water, selection, near, inSeason);
+  const litNow = useRef({ highlight, water, near, inSeason });
+  litNow.current = { highlight, water, near, inSeason };
   useEffect(() => {
-    const { highlight, water, near } = litNow.current;
+    const { highlight, water, near, inSeason } = litNow.current;
     if (!styled || !drawn || !atlasRef.current || !highlight) return;
     panProbe.src("lit");
-    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])], selection, [...(near ?? [])]);
-    wasLit.current = [...highlight, ...(water ?? []), ...(near ?? [])];
+    adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])], selection,
+                              [...(near ?? [])], [...(inSeason ?? [])]);
+    wasLit.current = [...highlight, ...(water ?? []), ...(near ?? []), ...(inSeason ?? [])];
     litWritten.current = `${litText}|${gen}`;
   }, [litText, selection, gen, styled, drawn, report, renderer]);
 

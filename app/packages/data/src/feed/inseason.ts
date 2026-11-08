@@ -1,6 +1,6 @@
 /**
  * (T230) THE PROVINCIAL IN-SEASON CHANGES, over HTTP: `{base}/index.json` (the T225 worker's `inseason-feed/1`) and
- * `{base}/matches.json` (`inseason-links/1`, `pipeline.regs.inseason.publish`) — the local tile server's
+ * `{base}/matches.json` (`inseason-links/2`, `pipeline.regs.inseason.publish`) — the local tile server's
  * `/feeds/inseason/` in dev, R2's `feeds/inseason/` in production, the same bytes.
  *
  * THE LAST CAPTURE IS KEPT, as for the DFO feed: every whole pair this device reads is written to `store`; offline, or
@@ -50,7 +50,11 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
     const feed = parseInSeasonFeed(f);
     const was = captured();
     if (!feed || (was && feed.fetchedAt < was.feed.fetchedAt)) return was;
-    const links = parseInSeasonLinks(l) ?? was?.links ?? null;
+    // (T520) links that came back but will not read (another format, a notice it cannot place) are REPORTED; the
+    // captured links answer meanwhile, so matched changes do not turn into the "not on the map yet" notice
+    const read = parseInSeasonLinks(l);
+    if (l !== null && !read) reported(null)(new Error("in-season matches.json: not readable inseason-links/2 — refused"));
+    const links = read ?? was?.links ?? null;
     try { store?.write(JSON.stringify({ feed: f, links: links })); } catch { /* a cache: costs only the next offline open */ }
     return { feed, links };
   };

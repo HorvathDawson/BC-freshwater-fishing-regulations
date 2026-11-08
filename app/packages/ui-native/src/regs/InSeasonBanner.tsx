@@ -46,7 +46,8 @@ export function InSeasonBanners({ banners: all, palette }: { banners: readonly I
             <Text style={TYPE.regsBodyBold}>{b.head}: </Text>
             {b.text}
           </Text>
-          {b.partial && <Text style={[TYPE.meta, { color: palette.sub, marginTop: 4 }]}>{b.partial}</Text>}
+          {/* (T518) where on this water, in the change's own ends, when it covers only part of the page */}
+          {b.where && <Text testID="inseason-where" style={[TYPE.metaBold, { color: palette.ink, marginTop: 4 }]}>{b.where}</Text>}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <Text style={[TYPE.meta, { color: palette.sub, flexShrink: 1 }]}>{b.note}</Text>
             {!!b.url && (

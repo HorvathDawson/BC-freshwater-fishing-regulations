@@ -408,13 +408,16 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const layer = (id: string) => style.layers.find((l: { id: string }) => l.id === id) as unknown as
       { type: string; "source-layer": string; paint: Record<string, unknown> };
     // (T203) the part of a water's Map ("dim") is haloed too — (T214) at the full outline, the same as a selection
+    // (T518) and a section an in-season change covers, in the attention ink
+    const inseason = ["boolean", ["feature-state", "inseason"], false];
     const shown = ["case", ["boolean", ["feature-state", "selected"], false], 1,
-                   ["boolean", ["feature-state", "part"], false], 1, 0];
+                   ["boolean", ["feature-state", "part"], false], 1, inseason, 1, 0];
     for (const theme of ["light", "dark", "cvd"]) {
       const tk = resolveTheme(theme);
       const s = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never, theme, {});
       const casing = s.layers.find((l: { id: string }) => l.id === SELECTION_CASING) as unknown as { paint: Record<string, unknown> };
-      expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]]).toEqual([theme, tk["color.highlight"], shown]);
+      expect([theme, casing.paint["line-color"], casing.paint["line-opacity"]])
+        .toEqual([theme, ["case", inseason, tk["color.ui.attention"], tk["color.highlight"]], shown]);
     }
     expect([SELECTION_CASING, SELECTION_RINGS.lake, SELECTION_RINGS.wetland].map((id) =>
       [layer(id).type, layer(id)["source-layer"], layer(id).paint["line-opacity"]])).toEqual([
@@ -432,8 +435,8 @@ describe("the style adapter (platform-free: one implementation, tested for what 
     const t = resolveTheme("dark");
     expect(r.calls.filter((c) => c.startsWith(`paint ${SELECTION_CASING} line-color`)
                                  || c.startsWith(`paint ${SELECTION_RINGS.lake} line-color`)))
-      .toEqual([`paint ${SELECTION_CASING} line-color ${t["color.highlight"]}`,
-                `paint ${SELECTION_RINGS.lake} line-color ${t["color.highlight"]}`]);
+      .toEqual([`paint ${SELECTION_CASING} line-color case,boolean,feature-state,inseason,false,${t["color.ui.attention"]},${t["color.highlight"]}`,
+                `paint ${SELECTION_RINGS.lake} line-color case,boolean,feature-state,inseason,false,${t["color.ui.attention"]},${t["color.highlight"]}`]);
   });
 
   it("a highlight clears and sets `selected` on every highlightable layer", () => {

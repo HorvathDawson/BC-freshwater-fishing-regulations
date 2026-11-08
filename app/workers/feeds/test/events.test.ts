@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { compose, deliver, mime, NOTIFY_STATE, readState, type FeedEvent, type NotifyConfig } from "../src/events";
 import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
-import { buildFeed, diff, effectiveDates, parseChange, parseInSeason, regionOf, runInSeason, type InSeasonFeed } from "../src/inseason";
+import { buildFeed, diff, effectiveDates, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { MemStore } from "./dfo.scenario";
 
 /** a test event with the `data` its kind's template renders */
@@ -258,6 +258,36 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     expect(d2.removed).toHaveLength(1);
     expect(d2.removed[0]).toMatchObject({ region: "7B", change: "No fishing between Peace Canyon Dam and Hwy 29 Bridge", removedAt: "2026-10-29T00:00:00.000Z" });
     expect(d2.rows.filter((x) => x.status === "unchanged")).toHaveLength(30);
+  });
+  it("(T520) a row's id is its content: stable under reorder, a new id for an amended text (status changed)", () => {
+    const R = (water: string, change: string) => ({ section: "Region 1 - Vancouver Island", water, change, effective: "" });
+    const a = buildFeed([R("Heber Creek", "No fishing"), R("Heber Creek", "Bait ban")], null, "2026-11-01T00:00:00Z", "h", true);
+    // a DFO-style insert above: the existing rows keep their ids (the position never mattered)
+    const b = buildFeed([R("Heber Creek", "Catch and release"), R("Heber Creek", "No fishing"), R("Heber Creek", "Bait ban")],
+                        a, "2026-11-02T00:00:00Z", "h2", true);
+    expect(b.rows.slice(1).map((r) => r.id)).toEqual(a.rows.map((r) => r.id));
+    expect(b.rows.map((r) => r.status)).toEqual(["new", "unchanged", "unchanged"]);
+    // spacing / case in the text: the same notice
+    expect(rowId("1", "Heber Creek", "No  fishing")).toBe(rowId("1", "heber creek", "no fishing"));
+    expect(rowId("1", "Heber Creek", "No fishing")).toBe("is-03e14f544b83");      // pinned: the curated file's ids
+    // amended: a new id, shown as a change of the row it replaced, which leaves the page
+    const c = buildFeed([R("Heber Creek", "No fishing until Dec 1"), R("Heber Creek", "Bait ban")], a, "2026-11-03T00:00:00Z", "h3", true);
+    expect(c.rows[0]!.id).not.toBe(a.rows[0]!.id);
+    expect(c.rows[0]).toMatchObject({ status: "changed", previous: { change: "No fishing" } });
+    expect(c.removed.map((r) => r.id)).toEqual([a.rows[0]!.id]);
+  });
+  it("(T520) matched / unmatched are the curated links' true counts; links of another format fail the run", async () => {
+    const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
+    const first = buildFeed(parseInSeason(page), null, "2026-10-28T00:00:00Z", "h", true);
+    const links = { format: "inseason-links/2", release: "r-1", notices: { [first.rows[0]!.id]: { waters: { "gnis:12227": { all: true } } } } };
+    const feed = new MemStore();
+    await feed.put("matches.json", JSON.stringify(links));
+    const r = await runInSeason({ fetch: okFetch, priv: new MemStore(), feed, html: page, now: T("2026-10-28T12:00:00Z") });
+    expect(r.feed).toMatchObject({ rows: 32, unmatched: 31 });
+    const doc: InSeasonFeed = JSON.parse(feed.m.get("index.json")!);
+    expect(doc.matching).toEqual({ method: "curated", matched: 1, unmatched: 31 });
+    expect(doc.rows[0]).toMatchObject({ waters: ["gnis:12227"], matched: true });
+    expect(() => matchedWaters(JSON.stringify({ format: "inseason-links/1", matches: {} }))).toThrow(/not inseason-links\/2/);
   });
   it("helpers", () => {
     expect(regionOf("Region 7B - Peace")).toBe("7B");

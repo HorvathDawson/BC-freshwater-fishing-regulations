@@ -226,7 +226,10 @@ async function publishFeed(
   } catch {
     prev = null;
   }
-  const doc = buildFeed(rows, prev, now.toISOString(), sha, pageChanged || !prev);
+  // (T520) the true matched / unmatched counts: the curated links beside this file. Unreadable links are a FAILED run
+  // (shown on the status page), never a feed claiming every row unmatched
+  const doc = buildFeed(rows, prev, now.toISOString(), sha, pageChanged || !prev,
+                        matchedWaters(await deps.feed!.get("matches.json")));
   const writes = await loadManifest(deps.priv, "writes.json");
   const out = skipSameStore(deps.feed!, writes, {
     now: now.getTime(),
@@ -246,9 +249,12 @@ async function publishFeed(
 //   { format, fetchedAt (this run), changedAt (the page's content last changed), source, pageHash,
 //     matching: { method: null | "<how>", matched, unmatched }        — matching to waters is a SEPARATE, optional step
 //     rows: [ {
-//       id            stable: hash of region + water + its order among that water's rows (a reworded row keeps it)
+//       id            (T520) the CONTENT: hash of region + water + the change's normalised text (`rowId`) — never the
+//                     row's position, so a row inserted above another cannot move a curated match onto it. An amended
+//                     notice is a new id (unmatched until re-matched: the app lists it "not on the map yet")
 //       region        "1" … "8", "7A", "7B", or "provincial";  section: the heading as printed
-//       water         as printed;  waters: [] the matched registry item / GNIS ids (empty = unmatched; matched: false)
+//       water         as printed;  waters: [] the matched registry item ids, from the curated links beside this file
+//                     (`matches.json`, `inseason-links/2`; empty = unmatched; matched: false)
 //       effective     verbatim;  from / to: ISO dates when the effective cell reads ("July 4, 2025 to August 31, 2025"),
 //                     else null (to null = no end printed)
 //       change        verbatim (the authority)
@@ -256,7 +262,7 @@ async function publishFeed(
 //                     clarification), species (names as printed, lower case), dailyQuota, window (one printed date
 //                     range in the text, as {from_month, from_day, to_month, to_day}); absent when nothing does
 //       status        new | changed | unchanged — against the page version before the last change;  previous: the old
-//                     change/effective when changed
+//                     change/effective when changed (an amended text: the row of the same region + water it replaced)
 //       firstSeen, changedAt
 //     } ],
 //     removed: [ { id, region, water, change, effective, removedAt } ]   — rows gone from the page, kept 30 days
@@ -352,22 +358,55 @@ export function parseChange(text: string): FeedRow["parsed"] | undefined {
 }
 
 /** the rows → the feed, against the previously published feed */
-export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, pageHash: string, pageChanged: boolean): InSeasonFeed {
+/** (T520) the change's words as the id reads them: case, spacing and non-breaking spaces do not make a new notice */
+export const changeKey = (s: string): string => s.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+/** (T520) A ROW'S ID IS ITS CONTENT: region + water + the change's text (not `effective`, not its position). `n` tells
+ *  apart two rows identical in all three (the second and later only). */
+export function rowId(region: string, water: string, change: string, n = 0): string {
+  const k = `${region}\u0000${water.toLowerCase()}\u0000${changeKey(change)}`;
+  return `is-${contentHash(n ? `${k}\u0000${n}` : k).slice(0, 12)}`;
+}
+
+/** (T520) The curated links' matched waters per row id (`matches.json`, `inseason-links/2`): what fills `waters`. */
+export type MatchedWaters = ReadonlyMap<string, readonly string[]>;
+export function matchedWaters(text: string | null): MatchedWaters | null {
+  if (text === null) return null;
+  const j = JSON.parse(text) as { format?: string; notices?: Record<string, { waters?: Record<string, unknown> }> };
+  if (j?.format !== "inseason-links/2" || !j.notices || typeof j.notices !== "object")
+    throw new Error(`in-season: matches.json is ${String(j?.format)}, not inseason-links/2`);
+  return new Map(Object.entries(j.notices).map(([id, n]) => [id, Object.keys(n?.waters ?? {}).sort()] as const));
+}
+
+export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, pageHash: string, pageChanged: boolean,
+                          matched: MatchedWaters | null = null): InSeasonFeed {
   const nth = new Map<string, number>();
   const prevById = new Map((prev?.rows ?? []).map((r) => [r.id, r] as const));
-  const out: FeedRow[] = rows.map((r) => {
+  const ids = rows.map((r) => {
     const region = regionOf(r.section);
-    const k = `${region}\u0000${r.water.toLowerCase()}`;
+    const k = `${region}\u0000${r.water.toLowerCase()}\u0000${changeKey(r.change)}`;
     const n = nth.get(k) ?? 0;
     nth.set(k, n + 1);
-    const id = `is-${contentHash(`${k}\u0000${n}`).slice(0, 12)}`;
+    return rowId(region, r.water, r.change, n);
+  });
+  // an amended notice: a new id where a row of the same region + water left the page in this reading
+  const idSet = new Set(ids);
+  const replaced = new Map<string, FeedRow[]>();
+  for (const p of prev?.rows ?? [])
+    if (!idSet.has(p.id)) replaced.set(`${p.region}\u0000${p.water.toLowerCase()}`, [...(replaced.get(`${p.region}\u0000${p.water.toLowerCase()}`) ?? []), p]);
+  const out: FeedRow[] = rows.map((r, i) => {
+    const region = regionOf(r.section);
+    const id = ids[i]!;
     const was = prevById.get(id);
     const same = was && was.change === r.change && was.effective === r.effective;
+    const amended = !was ? replaced.get(`${region}\u0000${r.water.toLowerCase()}`)?.shift() : undefined;
     const { from, to } = effectiveDates(r.effective);
     const parsed = parseChange(r.change);
     let status: FeedRow["status"];
     let previous: FeedRow["previous"];
-    if (!was) status = prev ? "new" : "unchanged";
+    if (amended) {
+      status = "changed";
+      previous = { change: amended.change, effective: amended.effective };
+    } else if (!was) status = prev ? "new" : "unchanged";
     else if (!same) {
       status = "changed";
       previous = { change: was.change, effective: was.effective };
@@ -377,19 +416,18 @@ export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, p
       previous = was.previous;
     }
     return {
-      id, region, section: r.section, water: r.water, waters: was?.waters ?? [], matched: !!was?.waters?.length,
+      id, region, section: r.section, water: r.water, waters: [...(matched?.get(id) ?? [])], matched: !!matched?.get(id)?.length,
       effective: r.effective, from, to, change: r.change, ...(parsed ? { parsed } : {}), status, ...(previous ? { previous } : {}),
       firstSeen: was?.firstSeen ?? now, changedAt: was && same ? was.changedAt : now,
     };
   });
-  const ids = new Set(out.map((r) => r.id));
   const removed = [
-    ...(prev?.removed ?? []).filter((r) => !ids.has(r.id) && Date.parse(now) - Date.parse(r.removedAt) < REMOVED_KEEP_MS),
-    ...(prev?.rows ?? []).filter((r) => !ids.has(r.id)).map((r) => ({ id: r.id, region: r.region, water: r.water, change: r.change, effective: r.effective, removedAt: now })),
+    ...(prev?.removed ?? []).filter((r) => !idSet.has(r.id) && Date.parse(now) - Date.parse(r.removedAt) < REMOVED_KEEP_MS),
+    ...(prev?.rows ?? []).filter((r) => !idSet.has(r.id)).map((r) => ({ id: r.id, region: r.region, water: r.water, change: r.change, effective: r.effective, removedAt: now })),
   ];
-  const matched = out.filter((r) => r.matched).length;
+  const matchedN = out.filter((r) => r.matched).length;
   return {
     format: FEED_FORMAT, fetchedAt: now, changedAt: pageChanged || !prev ? now : prev.changedAt, source: SOURCE_URL, pageHash,
-    matching: { method: null, matched, unmatched: out.length - matched }, rows: out, removed,
+    matching: { method: matched ? "curated" : null, matched: matchedN, unmatched: out.length - matchedN }, rows: out, removed,
   };
 }

@@ -111,7 +111,7 @@ export interface MapAdapter {
    * `SelectionCue`): "outline" (default) lights `featureIds` `selected`; "dim" — a water's Map view — lights them `part`.
    */
   highlight(h: MapHandle, featureIds: SectionKey[], water?: readonly SectionKey[], cue?: SelectionCue,
-            near?: readonly SectionKey[]): void;
+            near?: readonly SectionKey[], inSeason?: readonly SectionKey[]): void;
   /**
    * The ground: the drawn basemap, or satellite imagery over it.
    *
@@ -356,7 +356,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
           paint(h, layerId, mode, tokens);
     },
 
-    highlight(h, featureIds, water = [], cue = "outline", near = []) {
+    highlight(h, featureIds, water = [], cue = "outline", near = [], inSeason = []) {
       // EVERY layer cleared before ANY is set: several layers draw one source-layer (`lake`, `lake_flowing`), so a
       // clear for the second would otherwise take back what the first just set
       for (const { id } of STYLE_META.highlightable) h.clearFeatureStates(id);
@@ -366,6 +366,8 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         for (const f of water) h.setFeatureState(id, f, { water: true });
         // (T459) the water this one flows into: kept in colour on a focused water map
         for (const f of near) h.setFeatureState(id, f, { near: true });
+        // (T518) the sections a provincial in-season change covers: their outline in the attention colour
+        for (const f of inSeason) h.setFeatureState(id, f, { inseason: true });
       }
     },
 

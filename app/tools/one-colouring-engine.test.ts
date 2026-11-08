@@ -116,7 +116,7 @@ describe("one colouring engine", () => {
   it("SELECTION IS AN OUTLINE, NEVER A COLOUR (owner 2026-10-21): `color.highlight` is read by the selection's outline and the route arrows only", () => {
     // the one paint path (paint.ts) and the style composer; nothing else in the map package names the token
     const contract = read("packages/map/src/paint.ts");
-    expect(contract.match(/tokens\["color\.highlight"\]/g)?.length).toBe(2);           // casingPaint, ringPaint
+    expect(contract.match(/tokens\["color\.highlight"\]/g)?.length).toBe(1);           // outlineColour (casing + ring; T518)
     expect(contract).not.toMatch(/\["case", selected, tokens\["color\.highlight"\]/);
     const rs = read("packages/map/src/runtime-style.ts");
     expect(rs.match(/color\.highlight/g)?.length).toBe(1);                             // the route arrows' text

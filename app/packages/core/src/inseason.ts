@@ -1,7 +1,7 @@
 /**
  * (T230, owner 2026-10-28) THE PROVINCIAL IN-SEASON CHANGES: the T225 feed (`feeds/inseason/index.json`,
  * `inseason-feed/1`, `app/workers/feeds/src/inseason.ts`) joined to the curated links (`feeds/inseason/matches.json`,
- * `inseason-links/1`, `pipeline.regs.inseason.publish` from `data/curated/inseason/notice_waters.json`).
+ * `inseason-links/2`, `pipeline.regs.inseason.publish` from `data/curated/inseason/notice_waters.json`).
  *
  * INFORMATIONAL ONLY. A change is shown as a banner on every water (and part) it is matched to while it is in effect;
  * it never changes a computed answer or a status. (A future option, not built: a full closure could set "Check".)
@@ -12,9 +12,8 @@
  * date range (`parsed.window`) — that range's end in the `from` year (rolling to the next year when it ends before it
  * starts). A row with only a `from` stays in effect until the page drops it.
  *
- * WHERE: a link names its water by `item` and its cut(s) by the split LABEL the release's `part_mark.label` carries
- * (`inSeasonParts`). A label that is not a part boundary of the water in this release is not guessed: the banner goes
- * on the whole water and says the change is on part of it (`partial`).
+ * WHERE (T520, links/2): per water, `all` or FWA RANGES resolved on one release where the atlas is (never a part index
+ * or a section id); `inSeasonCover` reads them over the water's section lines — the one core every view of it reads.
  *
  * Every sentence is composed here, whole (AGENTS 33).
  */
@@ -22,7 +21,7 @@ import { MONTHS } from "./calendar.generated";
 import { MENU_WORDS } from "./menu/words";
 
 export const INSEASON_FEED_FORMAT = "inseason-feed/1";
-export const INSEASON_LINKS_FORMAT = "inseason-links/1";
+export const INSEASON_LINKS_FORMAT = "inseason-links/2";
 
 export interface InSeasonRow {
   readonly id: string;
@@ -45,21 +44,22 @@ export interface InSeasonFeed {
   readonly rows: readonly InSeasonRow[];
   readonly removed: readonly { readonly id: string }[];
 }
-export interface InSeasonExtent {
-  readonly item: string;
-  readonly op: "whole" | "upstream_of" | "downstream_of" | "between";
-  /** the split labels, as the release's part marks carry them (1 for up/downstream_of, 2 for between) */
-  readonly at?: readonly string[];
+/** (T520) one FWA range: stream key, start, end (metres) — the sections whose START lies in [m0, m1) on that stream */
+export type InSeasonRun = readonly [number, number, number];
+/** (T520) where one notice lands on one water: the whole of it, or its ranges (+ a river's covered lake pieces, by
+ *  their place among the water's lake pieces in handle order) and the notice's own ends in words */
+export interface InSeasonWater {
+  readonly all?: true;
+  readonly runs?: readonly InSeasonRun[];
+  readonly lakes?: readonly number[];
+  readonly ends?: string;
 }
-/** (owner 2026-10-29) where a match lands in ONE release: the parts of each water it touches (`some`: only partly) */
-export interface InSeasonPlace { readonly parts: readonly number[]; readonly some?: readonly number[]; readonly all: boolean }
 export interface InSeasonLinks {
   readonly format: typeof INSEASON_LINKS_FORMAT;
-  /** the data release `places` name parts in; a device on another release reads `extents` instead (AGENTS 6) */
-  readonly release?: string;
-  readonly matches: Readonly<Record<string, { readonly extents: readonly InSeasonExtent[];
-                                              readonly from?: string; readonly to?: string;
-                                              readonly places?: Readonly<Record<string, InSeasonPlace>> }>>;
+  /** the data release the ranges are resolved on (`pipeline.regs.inseason.resolve`); read only there (AGENTS 6) */
+  readonly release: string;
+  readonly notices: Readonly<Record<string, { readonly from?: string; readonly to?: string;
+                                              readonly waters: Readonly<Record<string, InSeasonWater>> }>>;
 }
 
 /** The feed as the app reads it, or null (never a half-read feed). */
@@ -72,27 +72,31 @@ export function parseInSeasonFeed(x: unknown): InSeasonFeed | null {
   return { ...f, source: typeof f.source === "string" ? f.source : "", removed: f.removed ?? [] } as InSeasonFeed;
 }
 
-const OPS = new Set(["whole", "upstream_of", "downstream_of", "between"]);
-const NEEDS: Record<string, number> = { whole: 0, upstream_of: 1, downstream_of: 1, between: 2 };
+const isNat = (n: unknown): n is number => Number.isSafeInteger(n) && (n as number) >= 0;
+const isRun = (r: unknown): boolean => Array.isArray(r) && r.length === 3 && Number.isSafeInteger(r[0])
+  && isNat(r[1]) && isNat(r[2]) && (r[1] as number) < (r[2] as number);
+function isWater(w: unknown): w is InSeasonWater {
+  const x = w as InSeasonWater | null;
+  if (!x || typeof x !== "object") return false;
+  if (x.all === true) return x.runs === undefined && x.lakes === undefined;
+  const runs = x.runs ?? [], lakes = x.lakes ?? [];
+  return Array.isArray(runs) && Array.isArray(lakes) && runs.length + lakes.length > 0 && runs.every(isRun)
+    && lakes.every(isNat) && typeof x.ends === "string" && x.ends.length > 0;
+}
 
-/** The links as the app reads them, or null. An extent it cannot read drops its whole match (never a wider one). */
+/** The links as the app reads them, or null: ANY notice it cannot read refuses the whole file (the caller reports it,
+ *  T520) — never a narrower or wider reading of it. */
 export function parseInSeasonLinks(x: unknown): InSeasonLinks | null {
   const l = x as Partial<InSeasonLinks> | null;
-  if (!l || typeof l !== "object" || l.format !== INSEASON_LINKS_FORMAT || !l.matches || typeof l.matches !== "object")
-    return null;
-  const matches: Record<string, InSeasonLinks["matches"][string]> = {};
-  for (const [id, m] of Object.entries(l.matches)) {
-    const exts = Array.isArray(m?.extents) ? m.extents : [];
-    const ok = exts.length > 0 && exts.every((e) => e && typeof e.item === "string" && OPS.has(e.op)
-      && (e.at ?? []).length === NEEDS[e.op] && (e.at ?? []).every((a: unknown) => typeof a === "string" && (a as string).length > 0));
-    if (!ok) continue;
-    const places = m.places && typeof m.places === "object"
-      && Object.values(m.places).every((p) => p && typeof p.all === "boolean" && Array.isArray(p.parts)
-        && p.parts.every(Number.isInteger) && (p.some ?? []).every(Number.isInteger)) ? m.places : undefined;
-    matches[id] = { extents: m.extents, ...(m.from ? { from: m.from } : {}), ...(m.to ? { to: m.to } : {}),
-                    ...(places ? { places } : {}) };
+  if (!l || typeof l !== "object" || l.format !== INSEASON_LINKS_FORMAT || typeof l.release !== "string"
+      || !l.notices || typeof l.notices !== "object") return null;
+  for (const n of Object.values(l.notices)) {
+    if (!n || typeof n !== "object" || !n.waters || typeof n.waters !== "object") return null;
+    const ws = Object.values(n.waters);
+    if (!ws.length || !ws.every(isWater)) return null;
+    if ((n.from !== undefined && typeof n.from !== "string") || (n.to !== undefined && typeof n.to !== "string")) return null;
   }
-  return { format: INSEASON_LINKS_FORMAT, ...(typeof l.release === "string" ? { release: l.release } : {}), matches };
+  return { format: INSEASON_LINKS_FORMAT, release: l.release, notices: l.notices };
 }
 
 /** "2026-07-30" for a local date. */
@@ -125,15 +129,15 @@ export interface InSeasonChange {
   readonly from: string | null;
   readonly to: string | null;
   readonly source: string;
-  /** the matched extents; empty = not matched yet */
-  readonly extents: readonly InSeasonExtent[];
-  /** the parts it lands on in THIS device's release (null: the links name another release, or none) */
-  readonly places: Readonly<Record<string, InSeasonPlace>> | null;
+  /** where it lands, per water (`InSeasonWater`); null = not matched yet */
+  readonly waters: Readonly<Record<string, InSeasonWater>> | null;
+  /** the links' release is this device's: only then are `runs` / `lakes` read (an `all` water holds anywhere) */
+  readonly onRelease: boolean;
 }
 
-/** The waters a matched change is on (its places' waters, else its extents'). */
+/** The waters a matched change is on. */
 export function inSeasonWaters(c: InSeasonChange): string[] {
-  return c.places ? Object.keys(c.places) : [...new Set(c.extents.map((e) => e.item))];
+  return Object.keys(c.waters ?? {});
 }
 
 /** Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in. */
@@ -143,94 +147,68 @@ export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | n
   const matched: InSeasonChange[] = [], unmatched: InSeasonChange[] = [];
   if (!feed) return { matched, unmatched };
   const gone = new Set(feed.removed.map((r) => r.id));
+  const onRelease = !!links && links.release === release;
   for (const r of feed.rows) {
     if (gone.has(r.id)) continue;
-    const link = links?.matches[r.id];
+    const link = links?.notices[r.id];
     const span = inSeasonSpan(r, link);
     if ((span.from && span.from > day) || (span.to && span.to < day)) continue;
-    const places = link?.places && links?.release && links.release === release ? link.places : null;
     const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
-                                source: feed.source, extents: link?.extents ?? [], places };
-    (c.extents.length ? matched : unmatched).push(c);
+                                source: feed.source, waters: link?.waters ?? null, onRelease };
+    (c.waters ? matched : unmatched).push(c);
   }
   return { matched, unmatched };
 }
 
-/** The part graph of one water, as the release's `part_mark` rows give it. */
-export interface InSeasonMarks {
-  readonly parts: number;
-  readonly marks: readonly { readonly label: string | null; readonly down: number; readonly up: readonly number[] }[];
+/** One section of a water as `inSeasonCover` reads it: its handle and its line (null: a lake piece, no line). */
+export interface InSeasonSection { readonly sid: number; readonly line: { readonly blk: number; readonly from: number } | null }
+
+/** Where one change lands on one page. */
+export interface InSeasonCover {
+  /** the page's covered sections, in handle order; null: the whole page (the whole water, or — `failure` — not
+   *  placeable here, so shown on the whole water) */
+  readonly sections: readonly number[] | null;
+  /** the change's own ends ("From Hell's Gate to Spuzzum Creek confluence") when it covers only some of the page */
+  readonly ends: string | null;
+  /** why its ranges could not be placed on this device (shown on the whole water AND reported by the caller) */
+  readonly failure: string | null;
 }
 
-/**
- * THE PARTS OF A WATER AN EXTENT COVERS, read on the release's part graph: the parts on the extent's side of each named
- * cut, never crossing a cut of that name. `whole`: every part. Null: a label is not a part boundary here (or nothing lies
- * between the two) — the caller shows the change on the whole water and says it is on part of it, never a guessed part.
- */
-export function inSeasonParts(e: InSeasonExtent, w: InSeasonMarks): Set<number> | null {
-  const all = new Set(Array.from({ length: w.parts }, (_, i) => i));
-  if (e.op === "whole") return all;
-  const at = e.at ?? [];
-  const cuts = at.map((l) => w.marks.filter((m) => m.label === l));
-  if (cuts.some((c) => c.length === 0)) return null;
-  const blocked = new Set(cuts.flat());
-  const comp = (start: Iterable<number>): Set<number> => {
-    const seen = new Set<number>(), todo = [...start];
-    while (todo.length) {
-      const p = todo.pop()!;
-      if (seen.has(p)) continue;
-      seen.add(p);
-      for (const m of w.marks) {
-        if (blocked.has(m)) continue;
-        if (m.down === p) todo.push(...m.up);
-        else if (m.up.includes(p)) todo.push(m.down);
-      }
-    }
-    return seen;
-  };
-  const ups = (ms: readonly InSeasonMarks["marks"][number][]) => ms.flatMap((m) => m.up);
-  const downs = (ms: readonly InSeasonMarks["marks"][number][]) => ms.map((m) => m.down);
-  let out: Set<number>;
-  if (e.op === "upstream_of") out = comp(ups(cuts[0]!));
-  else if (e.op === "downstream_of") out = comp(downs(cuts[0]!));
-  else {
-    const [a, b] = cuts as [typeof cuts[0], typeof cuts[0]];
-    const inter = (x: Set<number>, y: Set<number>) => new Set([...x].filter((p) => y.has(p)));
-    out = new Set([...inter(comp(ups(a)), comp(downs(b))), ...inter(comp(downs(a)), comp(ups(b)))]);
-  }
-  return out.size ? out : null;
-}
-
-/** One change shown on one page: the change, and whether only part of the page's water is meant but not drawn. */
-export interface InSeasonOnPage { readonly change: InSeasonChange; readonly partial: boolean }
+export const INSEASON_FAILURES = {
+  offRelease: "in-season: the ranges are resolved on another data release than this device's",
+  noLines: "in-season: this release's section lines could not be read",
+  nothing: (id: string, item: string) => `in-season: ${id}'s ranges land on no section of ${item} in this release`,
+} as const;
 
 /**
- * The matched changes that are on THIS page: the water `item`, its part `partIx` (null: the whole water's page). A
- * change whose cut is not a part boundary here is on the whole water, `partial`. `marks` null: the water's parts are
- * not known, so a change on any part of it is shown `partial` (never hidden).
+ * (T520) THE ONE CORE OF "WHERE IS THIS CHANGE": change `c` on water `item`, on a page holding `page` (null: the whole
+ * water's page) of the water's sections `water` (every one of them, with its line; null: they could not be read).
+ * Null: the change is not on this page. The banner, the KeepTab line, the water map's highlight and the screen reader
+ * all read this.
+ *
+ * `all`: every section, no ends. Ranges: a section is covered when its start lies in [m0, m1) on its stream (a lake
+ * piece: its place among the water's lake pieces is in `lakes`) — read ONLY on the release the links name. Off that
+ * release, with no lines, or landing on nothing, the change is on the whole water with its ends and a `failure`.
  */
-export function inSeasonOn(matched: readonly InSeasonChange[], item: string, partIx: number | null,
-                           marks: InSeasonMarks | null): InSeasonOnPage[] {
-  const out: InSeasonOnPage[] = [];
-  for (const c of matched) {
-    if (c.places) {                       // THE RELEASE'S OWN PARTS (publish resolved them on this release's atlas)
-      const p = c.places[item];
-      if (!p) continue;
-      if (partIx === null) out.push({ change: c, partial: !p.all });
-      else if (p.parts.includes(partIx)) out.push({ change: c, partial: (p.some ?? []).includes(partIx) });
-      continue;
-    }
-    let on = false, partial = false;
-    for (const e of c.extents) {
-      if (e.item !== item) continue;
-      if (e.op === "whole") { on = true; continue; }
-      const ps = marks ? inSeasonParts(e, marks) : null;
-      if (ps === null) { on = true; partial = true; }
-      else if (partIx === null || ps.has(partIx)) on = true;
-    }
-    if (on) out.push({ change: c, partial: partial && !c.extents.some((e) => e.item === item && e.op === "whole") });
-  }
-  return out;
+export function inSeasonCover(c: InSeasonChange, item: string, water: readonly InSeasonSection[] | null,
+                              page: ReadonlySet<number> | null): InSeasonCover | null {
+  const w = c.waters?.[item];
+  if (!w) return null;
+  if (w.all) return { sections: null, ends: null, failure: null };
+  const ends = w.ends ?? null;
+  if (!c.onRelease) return { sections: null, ends, failure: INSEASON_FAILURES.offRelease };
+  if (!water) return { sections: null, ends, failure: INSEASON_FAILURES.noLines };
+  const runs = w.runs ?? [];
+  const lakes = water.filter((s) => !s.line).map((s) => s.sid).sort((a, b) => a - b);
+  const lakeHit = new Set((w.lakes ?? []).map((i) => lakes[i]).filter((s): s is number => s !== undefined));
+  const hit = water.filter((s) => (s.line
+    ? runs.some(([b, m0, m1]) => b === s.line!.blk && m0 <= s.line!.from && s.line!.from < m1)
+    : lakeHit.has(s.sid))).map((s) => s.sid).sort((a, b) => a - b);
+  if (!hit.length) return { sections: null, ends, failure: INSEASON_FAILURES.nothing(c.id, item) };
+  const mine = page ? hit.filter((s) => page.has(s)) : hit;
+  if (!mine.length) return null;
+  const size = page ? page.size : water.length;
+  return { sections: mine, ends: mine.length === size ? null : ends, failure: null };
 }
 
 function dayWords(iso: string, year: boolean): string {
@@ -251,7 +229,8 @@ export const INSEASON_WORDS = {
   source: "source ›",
   see: "see ›",
   sourceLabel: "Open the province's in-season changes page",
-  partial: "On part of this water: the change says where.",
+  /** (T518) where on the page's water a change covering only part of it applies: its own ends */
+  where: (ends: string) => `Where: ${ends}`,
   informational: "Shown as posted; the answers on this page do not include it yet.",
   noticeTitle: MENU_WORDS.sources.names.inseason,
   noticeIntro: "The province has posted changes we have not placed on the map yet. Check each one before you fish.",
@@ -267,7 +246,8 @@ export interface InSeasonBannerVM {
   readonly text: string;
   readonly source: string;
   readonly url: string;
-  readonly partial: string | null;
+  /** (T518) "Where: From A to B" when the change covers only part of the page; null: all of it */
+  readonly where: string | null;
   readonly note: string;
 }
 
@@ -281,12 +261,13 @@ export function inSeasonSummary(banners: readonly InSeasonBannerVM[]): string | 
   return `${banners.length === 1 ? banners[0]!.head : `${banners.length} in-season changes`} · ${INSEASON_WORDS.see}`;
 }
 
-export function inSeasonBanner(p: InSeasonOnPage): InSeasonBannerVM {
-  const dates = inSeasonDates(p.change.from, p.change.to);
+export function inSeasonBanner(change: InSeasonChange, cover: Pick<InSeasonCover, "ends">): InSeasonBannerVM {
+  const dates = inSeasonDates(change.from, change.to);
   const head = `In-season change${dates ? ` (${dates})` : ""}`;
-  return { id: p.change.id, head, text: p.change.text, source: INSEASON_WORDS.source, url: p.change.source,
-           line: `${head}: ${p.change.text} — ${INSEASON_WORDS.source}`,
-           partial: p.partial ? INSEASON_WORDS.partial : null, note: INSEASON_WORDS.informational };
+  const where = cover.ends ? INSEASON_WORDS.where(cover.ends) : null;
+  return { id: change.id, head, text: change.text, source: INSEASON_WORDS.source, url: change.source,
+           line: `${head}: ${change.text}${where ? ` ${where}.` : ""} — ${INSEASON_WORDS.source}`,
+           where, note: INSEASON_WORDS.informational };
 }
 
 export interface InSeasonNoticeRow {
