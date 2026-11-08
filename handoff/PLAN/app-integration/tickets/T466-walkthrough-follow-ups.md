@@ -21,3 +21,14 @@ always closed?"
    area, the step is skipped and SAID, not faked.
 4. Emulator walk with shots of each changed step; a short recording to the owner.
 Related: T456, T293, T454 (photos), T460 (steps). Size: M.
+
+## Done (bc938e624) — owner phone check left
+1. Sheet bodies give the walk a scroller (`coachScroll.ts`); a ring laid out past the window is scrolled to first. Tests: a ring
+   in a scrolled sheet at phone size; LayersSheet registers Falls and dams with its page. Emulator: step 27 ringed in view.
+2. Spots, 10 DO steps with Show me: Spots → Pick on the map → pin → Continue → water → day → name → Save → Show on map →
+   Spots → the spot. The example spot is removed on reaching the last card, which says so (or that it could not be).
+   A Skip before the end keeps the spot (it is the reader's).
+3. `GUIDE_CLOSED`: Chilliwack River, run 380887781 from 23325 m (100 m below Slesse Creek → Ecological Reserve boundary),
+   checked `closed_all_year`; reached from the Vedder's Map with ▲ ×3, then Show regulations. None in a release: the step
+   says so, the rest are passed. The salmon step no longer says "a closed fish". `WALKTHROUGH_VERSION` → walkthrough-5.
+4. Test bed `walkthrough`: 41/41 PASS, no card over its ring, example spot gone from Spots. Shots: `app/tools/testbed/out/t466/`.
