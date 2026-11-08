@@ -611,7 +611,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q171 | T404 | Production's problem-report + crash endpoint | `https://feeds.canifishthis.ca/report` (custom domain on the prod feeds worker, workers.dev off) | owner 2026-11-08 |
 | Q172 | T404 | Production's backup bucket (you create it, staging's lifecycle rules) | `bc-fishing-regulations-backup` | owner |
 | Q173 | T404 | After the switch, every Play build (internal, closed) reads production; staging stays on the sideload APK page? | yes | owner 2026-11-08: yes |
-| Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it still serves the v1 keys)? | yes — check its name + route in the dashboard first | owner |
+| Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 
 ### Answered (recently, for the record)

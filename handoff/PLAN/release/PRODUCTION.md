@@ -43,7 +43,7 @@ Before: the release is on staging and the owner has checked it there (phone + we
 3. **Owner — the data worker.** Check the old one's name and route (Workers → bc-fishing-r2 → Domains & Routes; Q174), then
    ```bash
    npx --prefix app wrangler deploy -c deploy/prod/data.wrangler.toml
-   curl -sI https://data.canifishthis.ca/stations.json | head -3      # the v1 app's keys still answer
+   curl -sI https://data.canifishthis.ca/stations.json | head -3      # the v1 keys still answer (until step 11, the same day)
    ```
 4. **Owner — the data.** The release staging serves:
    ```bash
@@ -84,9 +84,10 @@ Before: the release is on staging and the owner has checked it there (phone + we
    Install from internal on the phone (About shows no environment badge), then promote the same build to Closed testing
    in Play Console (T371). From now on every Play build is production; staging stays on the sideload APK page (Q173).
 10. **Owner — search.** Search Console Domain property (DNS TXT) + Bing import; submit `https://canifishthis.ca/sitemap.xml`.
-11. **Owner — later.** Once the prod app reads `feeds/`: disable the `bc-fishing-cron` worker and `main`'s
-    `update-hydro.yml`, `update-in-season.yml`, `update-stocking.yml`. 30 days after, delete the v1 R2 layout
-    (`stations.json`, `gauges.geojson`, `recent/`, `history/`, `climatology/`).
+11. **Owner — the same day (Q174, owner 2026-11-08: the owner is the only user, so no 30-day wait).** Once the prod app
+    reads `feeds/` and the new site is live: disable the `bc-fishing-cron` worker and `main`'s `update-hydro.yml`,
+    `update-in-season.yml`, `update-stocking.yml`, and delete the v1 R2 layout (`stations.json`, `gauges.geojson`,
+    `recent/`, `history/`, `climatology/`).
 
 ## Every later release
 
