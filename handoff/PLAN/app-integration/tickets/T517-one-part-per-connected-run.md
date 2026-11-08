@@ -49,8 +49,12 @@ shorts; 409 marks drawn "X / Y"; 2 marks named after gauges).
   (`same_place_as`), else the nearest named feature. A chain change with no named split (Klinaklini, 1 today) is named
   by the run's end, never fails the build — but Python must never emit "" (fail loudly on no nameable token).
   `part_mark` label = the same words as the lower part's top end and the upper part's bottom end (build asserts).
-- **App only displays.** `name ?? lo + " → " + hi`. Regular mode joins parts with equal (grp, run); salmon mode also
-  needs equal `salmonKey`. Delete `stretchEnds`, `lowEnd`, the `markLabel` fallback, `fallsBackTo` (prove with
+- **App only displays.** `name ?? lo + " → " + hi`. ONE MODE (owner 2026-11-08: "I only want a single mode and stretches cover both types of
+  regulation changes while adapting to new DFO rules"): two neighbouring parts join only when grp, run AND the LIVE
+  `salmonKey` (release chains + the feed's rules) are equal — the same list, navigation and names in every mode. A
+  dormant DFO place's cut stays joined while its live salmon equals the neighbour's and separates on its own when the
+  feed activates it. With no reading yet nothing joins across a part. A live-joined span is named by the shipped words:
+  the whole run's `run_name`, else the first part's `lo` → the last part's `hi` (the app composes only that). Delete `stretchEnds`, `lowEnd`, the `markLabel` fallback, `fallsBackTo` (prove with
   every-part-reachable), stretch fields + `stretchOf`. `skips` stays. `targetFor` ties → lowest part_ix.
 - **SEO `rulesKey`** per grp: rule content + each run's two end tokens (split_id / confluence:gnis / mouth / source /
   lake) + a split's curated position (`split.at`). A moved cut shows on /changes; renumbering and snapping noise do not.
@@ -68,6 +72,8 @@ shorts; 409 marks drawn "X / Y"; 2 marks named after gauges).
   names lose the raw split wording ("The CPR Bridge…" → "CPR Bridge at Mission"); part_ix moves in ~472 waters (SEO,
   golden taps, reports re-keyed in the same change).
 - Measure in the side build: (g) side channels whose chain differs from the stem become own parts (Tomahnous kind).
+- Intended (one mode): the regular map can list MORE stretches than today wherever live salmon rules differ along a
+  run (≈29 waters by the audit); counted in the side build's parity report.
 
 ## Gates on the side build (with T510 + T519)
 Rule bindings per section identical to live except T510's 13 sections (+ any slough-fold lakes, listed); paint-sync

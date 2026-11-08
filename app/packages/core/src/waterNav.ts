@@ -265,11 +265,16 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
   const find = (i: number): number => { while (root[i] !== i) i = root[i] = root[root[i]!]!; return i; };
   const keyOf = (i: number) => salmonKey ? [...new Set(g.parts[i]!.sids.map(salmonKey))].sort().join("|") : "";
   const keys = g.parts.map((_, i) => keyOf(i));
-  // (T517) one run the salmon chain cut: same item, grp and run (a T204 stretch of one part: same part)
+  // (T517, owner 2026-11-08: "I only want a single mode and stretches cover both types of regulation changes while
+  // adapting to new DFO rules") ONE join rule, every mode: two parts of one run (same item, grp, run) join only where the
+  // LIVE salmon reads them alike (`salmonKey`: the release's chains with the feed's rules over them). With no reading
+  // (none yet) nothing joins across a part: a cut is never hidden on a guess. A T204 stretch of one part (a release cut
+  // before T517) joins as before.
   const one = (a: number, b: number) => {
     const p = g.parts[a]!, q = g.parts[b]!;
-    return p.item === q.item && keys[a] === keys[b]
-      && (p.partIx === q.partIx || (p.runName !== undefined && p.grp === q.grp && p.run === q.run));
+    if (p.item !== q.item || keys[a] !== keys[b]) return false;
+    return p.partIx === q.partIx
+      || (salmonKey !== null && p.runName !== undefined && p.grp === q.grp && p.run === q.run);
   };
   for (const m of g.marks) for (const u of m.up) if (u !== m.down && one(m.down, u)) {
     const a = find(m.down), b = find(u);
@@ -468,7 +473,7 @@ const manyOf = (g: WaterGroup, i: number) => g.parts.filter((q) => q.item === g.
 
 /** A part's name on the map: its short name where its water has several parts, else its water's name. (T517) A part
  *  is one connected run, named by its own two ends in the pipeline (`answers.display.run_ends`); nothing here composes
- *  a name but `mergeNav`'s "lo → hi" for salmon-cut pieces joined in salmon mode. A stretch of a release cut before
+ *  a name but `mergeNav`'s "lo → hi" for pieces the live salmon joins (one mode, T517). A stretch of a release cut before
  *  T517 keeps its count. */
 export function partName(g: WaterGroup, i: number): string {
   const p = g.parts[i]!;

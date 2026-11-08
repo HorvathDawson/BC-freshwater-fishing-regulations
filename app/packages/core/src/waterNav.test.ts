@@ -524,10 +524,24 @@ describe("T517: one part per connected run, a salmon-cut run joined on the map",
             mark(-126000000, 52400000, "Anahim Lake", 1, [2])],
     sections: secs({ 0: [10, 11], 1: [12], 2: [13] }), exit: null };
 
-  it("the regular map lists the run once, by the run's own name", () => {
-    const g = mergeNav(waterGroup([DEAN]), null);
+  it("ONE mode (owner 2026-11-08): the run is listed once by its own name where the live salmon reads it alike", () => {
+    const g = mergeNav(waterGroup([DEAN]), () => "alike");
     expect(g.parts.map((_, i) => partName(g, i))).toEqual(["Mouth → Anahim Lake", "Anahim Lake → Source"]);
     expect(g.parts[0]!.sids).toEqual([10, 11, 12]);
+  });
+
+  it("the same water and the same live salmon give the identical list, names and marks whatever the map's mode", () => {
+    // the list is a function of the group and the live reading only: no mode argument exists to differ on
+    const key = (sid: number) => (sid === 12 ? "coho open" : "closed");
+    const regular = mergeNav(waterGroup([DEAN]), key), salmon = mergeNav(waterGroup([DEAN]), key);
+    expect(regular).toEqual(salmon);
+    expect(regular.parts.map((_, i) => partName(regular, i))).toEqual([
+      "Mouth → Tanswanket Creek confluence", "Tanswanket Creek confluence → Anahim Lake", "Anahim Lake → Source"]);
+  });
+
+  it("with no salmon reading yet, no cut is hidden: every part of the run is its own entry", () => {
+    const g = mergeNav(waterGroup([DEAN]), null);
+    expect(g.parts.length).toBe(3);
   });
 
   it("a DORMANT DFO place the live feed turns active separates on the map with no release", () => {
