@@ -1,6 +1,6 @@
 # T515 — Bait rule card: one heading line, no NOW-chip repeat
 
-Status: DONE (words + layout) — owner 2026-11-08, phone screenshot of a Bait card (dark): "The formatting here isn't great. The bait ban now line at top is gross. Need to rework this a bit."
+Status: DONE (words + layout, f44ef545a) — owner 2026-11-08, phone screenshot of a Bait card (dark): "The formatting here isn't great. The bait ban now line at top is gross. Need to rework this a bit."
 
 ## What
 - Before: sentence "No natural bait of any kind while the ban runs. ⓘ", then a NOW chip line "All year: bait ban · in force today", then the ✕ list. Same fact twice, vague "while the ban runs", mixed grey/white weights.
