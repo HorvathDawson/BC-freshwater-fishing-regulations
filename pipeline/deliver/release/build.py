@@ -515,6 +515,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         final = ship(work, files, base["section_handles"], out_root, data_release=data_release, tiles=tiles,
                      basemap=basemap, valid_until=bmeta.get("valid_until") or None, sources=sources, synopsis=synopsis,
                      bundle=bmeta, regs_versions=json.loads(smeta["layout"]).get("versions") if "layout" in smeta else None)
+        # T517 (owner 2026-11-08: the parts and the painted colours "can never diverge"): held on the SHIPPED files,
+        # before any pointer names the release
+        from pipeline.deliver.release.paint_sync import check as _paint_sync
+        _paint_sync(final)
         from pipeline.deliver.release.manifest import write_latest
         write_latest(out_root, final.name)              # T72: the pointer every reader asks, not the newest mtime
         return final
@@ -611,7 +615,4 @@ def ship(work: Path, files: Dict[str, Path], handles: str, out_root: Path, *, da
         shutil.rmtree(final)                # a re-run of identical inputs writes identical bytes; replace them
     out_root.mkdir(parents=True, exist_ok=True)
     work.rename(final)
-    # T517 (owner 2026-11-08: the parts and the painted colours "can never diverge"): held on the SHIPPED files
-    from pipeline.deliver.release.paint_sync import check as _paint_sync
-    _paint_sync(final)
     return final

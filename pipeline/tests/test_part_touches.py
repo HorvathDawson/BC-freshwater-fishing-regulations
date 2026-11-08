@@ -107,10 +107,13 @@ def test_a_part_never_touches_itself_though_its_own_sections_meet(tmp_path):
     assert got == {"7": ["8"], "8": ["7"]}
 
 
-def test_a_part_of_two_stretches_touches_what_either_stretch_touches(tmp_path):
-    # 7 | 8 | 7 | 9 : set 7 is two stretches; it borders 8 and 9, and 8 does not border 9
-    got = _parts(_bundle(tmp_path, {0: 7, 1: 8, 2: 7, 3: 9}, [(0, 1), (1, 2), (2, 3)]))
-    assert got == {"7": ["8", "9"], "8": ["7"], "9": ["7"]}
+def test_a_rule_set_on_both_sides_of_another_is_two_parts_each_touching_its_own_neighbours(tmp_path):
+    # 7 | 8 | 7 | 9 : T517 (one part per connected run) set 7 is TWO parts — the first borders 8, the second 8 and 9;
+    # 8 does not border 9
+    parts = export_read.read(_bundle(tmp_path, {0: 7, 1: 8, 2: 7, 3: 9}, [(0, 1), (1, 2), (2, 3)])
+                             )["waters"]["gnis:1"]["parts"]
+    got = sorted((p["ruleset"], sorted(parts[j]["ruleset"] for j in p["touches"])) for p in parts)
+    assert got == [("7", ["8"]), ("7", ["8", "9"]), ("8", ["7", "7"]), ("9", ["7"])]
 
 
 def test_a_stretch_with_no_rule_set_is_a_part_and_touches_like_one(tmp_path):
