@@ -15,7 +15,7 @@ from pipeline.deliver.export.guide_words import (
     BAIT_GUIDE, BINDS_TEXT, CLAUSE_TEXT, DOING_TEXT, END_TEXT, ENTRY_TEXT, FAMILY_TEXT, FLY_DEFINITIONS,
     GEAR_SPEC_TEXT, GEAR_WHEN_TEXT, LENGTH_TEXT, LICENSING_FIELD_TEXT, LICENSING_KIND_TEXT,
     LICENSING_PART_TEXT, LIFT_TEXT, PART_TEXT, PATH_TEXT, PDF_PAGES_TEXT, PERIOD_TEXT, PLACEMENT_TEXT,
-    RULE_FIELD_TEXT, RUN_TEXT, SLOT_TEXT, STAMP_WAIVER_TEXT, STEELHEAD_TEXT, TOUCHES_TEXT, TYPE_CAN_CLOSE,
+    GRP_TEXT, PART_RUN_TEXT, RULE_FIELD_TEXT, RUN_TEXT, SLOT_TEXT, STAMP_WAIVER_TEXT, STEELHEAD_TEXT, TOUCHES_TEXT, TYPE_CAN_CLOSE,
     TYPE_TEXT, VIA_TEXT, WHEN_TEXT, WHO_TEXT
 )
 from pipeline.deliver.export.cases import _closure
@@ -920,11 +920,15 @@ def guide_placement(d: dict) -> dict:
                    "are present; the water carries the roll-up). "
                    "`null` on either side "
                    "is a stretch with no set of that kind. The parts' sections sum to the "
-                   "water's `sections`. A part is a class of sections, not one stretch; which "
-                   "parts border each other is `touches` (below) — merge only parts connected "
-                   "through it. Set ids are local to this file and change with every "
+                   "water's `sections`. A part is ONE CONNECTED RUN of sections with the same "
+                   "sets (T517): two parts of one water never share their sets AND touch; parts "
+                   "sharing `grp` are one rule-set group (one choice in the picker), and sharing "
+                   "`run` too they are one run the DFO salmon chain cuts. Which parts border each "
+                   "other is `touches` (below). Set ids are local to this file and change with every "
                    "build; never store one. Section handles never leave the bundle.",
         "touches": TOUCHES_TEXT,
+        "grp": GRP_TEXT,
+        "run": PART_RUN_TEXT,
         "runs": {
             "reading": "WHERE EACH PART RUNS. A part's `runs` are its stretches, UPSTREAM TO "
                        "DOWNSTREAM: each from one end (`from`, upstream) to another (`to`, "

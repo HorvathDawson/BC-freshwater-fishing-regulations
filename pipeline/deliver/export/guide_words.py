@@ -95,6 +95,12 @@ BAIT_GUIDE = {
 # --------------------------------------------------------------------------------------------
 
 #: WHAT `touches` MEANS — one text, used by the guide and the field dictionary.
+GRP_TEXT = ("T517: the part's RULE-SET GROUP within its water, 0-based (absent: 0): every part with the same "
+            "rule set, licensing set, province exceptions, steelhead facts and no-access tier — what one part "
+            "was before T517, one choice in the picker")
+PART_RUN_TEXT = ("T517: which connected run of its `grp` the part lies in, 0-based mouth up (absent: 0). Parts sharing "
+            "`grp` and `run` are one run the DFO salmon chain cuts: list them as one where their salmon reads "
+            "alike")
 TOUCHES_TEXT = (
     "The indexes (into this water's `parts`) of the OTHER parts of this water that this part "
     "borders. Two parts touch when a section of one and a section of the other are joined in "
@@ -313,6 +319,8 @@ WATER_PART_TEXT = {
                        "answered as rainbow trout there (RU-6) and says nothing to show",
     "steelhead": STEELHEAD_TEXT,
     "touches": TOUCHES_TEXT,
+    "grp": GRP_TEXT,
+    "run": PART_RUN_TEXT,
     "runs": "WHERE THE PART RUNS: its stretches, upstream to downstream — [{from, to, km_from, "
             "km_to}] (see `water.parts[].runs[]`, and `placement.runs`). A part of several "
             "stretches has several runs. A part that is a polygon (a lake, a wetland, or a "

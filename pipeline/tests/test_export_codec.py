@@ -102,26 +102,26 @@ def _tiny() -> dict:
         "gnis:1": {"name": "A Creek", "kind": "stream", "sections": 7, "entries": ["r1:a"],
                    "outside_bc": 1, "steelhead": "known", "steelhead_rows": ["r1:a"],
                    "steelhead_source": ["regulations"], "parts": [
-                       {"ruleset": "1", "licensing_set": "0", "sections": 4,
+                       {"ruleset": "1", "licensing_set": "0", "sections": 4, "grp": 2, "run": 0,
                         "anadromous_rainbow": True, "steelhead": "known", "touches": [1],
                         "home_region": ["1"],
                         "runs": [run("source", "mouth", 3.25, 0.0)]},
-                       {"ruleset": "0", "licensing_set": None, "sections": 2,
+                       {"ruleset": "0", "licensing_set": None, "sections": 2, "grp": 0, "run": 0,
                         "steelhead": "possible", "touches": [0],
                         "runs": [run("x__y", "mouth", 9.5, 3.25),
                                  run("source", "mouth", 4.0, 4.0, branch=True)]},
-                       {"ruleset": None, "licensing_set": None, "sections": 1, "touches": [],
+                       {"ruleset": None, "licensing_set": None, "sections": 1, "grp": 1, "run": 0, "touches": [],
                         "runs": [run("bc_border", "x__y", None, None)]}]},
         "wbk:1": {"name": "A Lake", "kind": "lake", "sections": 3, "entries": [], "outside_bc": 0,
                   "steelhead": "possible", "steelhead_source": ["curated list"], "parts": [
-                      {"ruleset": "0", "licensing_set": None, "sections": 3, "steelhead":
+                      {"ruleset": "0", "licensing_set": None, "sections": 3, "grp": 2, "run": 0, "steelhead":
                        "possible", "touches": [], "runs": [run(None, None, None, None,
                                                                polygon="whole")]}]},
         "wbk:2": {"name": "A Lake — North Arm", "kind": "lake", "sections": 0, "entries": [],
                   "outside_bc": 0, "part_of": "wbk:1", "parts": []},
         "wbk:3": {"name": "B Lake — Part", "kind": "lake", "sections": 1, "entries": [],
                   "outside_bc": 0, "part_of": "wbk:1", "parts": [
-                      {"ruleset": "2", "licensing_set": None, "sections": 1, "touches": [],
+                      {"ruleset": "2", "licensing_set": None, "sections": 1, "grp": 0, "run": 0, "touches": [],
                        "runs": [run(None, None, None, None, polygon="B Lake — Part")]}]},
     }
     splits = {"x__y": {"name": "X", "kind": "point", "water_id": "gnis:1", "km": 9.5},
@@ -239,7 +239,7 @@ def _decode_from_the_dictionary(data: dict, guide: dict) -> dict:
             rs, ls, n, runs = arr[:4]
             p = {"ruleset": None if rs is None else str(rs),
                  "licensing_set": None if ls is None else str(ls), "sections": n,
-                 "touches": [], **(arr[4] if len(arr) > 4 else {})}
+                 "touches": [], "grp": 0, "run": 0, **(arr[4] if len(arr) > 4 else {})}
             if runs == "polygon":
                 p["runs"] = [{"from": None, "to": None, "km_from": None, "km_to": None,
                               "polygon": w["name"] if w.get("part_of") else "whole"}]

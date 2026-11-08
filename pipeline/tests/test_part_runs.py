@@ -168,12 +168,13 @@ def _bundle(tmp: Path, *, spans: bool = True) -> Path:
 
 def test_the_export_ships_runs_and_never_a_section(tmp_path):
     d = export_read.read(_bundle(tmp_path))
-    parts = {p["ruleset"]: p["runs"] for p in d["waters"]["gnis:1"]["parts"]}
-    assert parts == {
-        "7": [{"from": "lake_inlet:wbk:5", "to": "one_river__falls", "km_from": 5.0, "km_to": 3.4},
-              {"from": "one_river__bridge", "to": "mouth", "km_from": 1.2, "km_to": 0.0}],
-        "8": [{"from": "one_river__falls", "to": "one_river__bridge", "km_from": 3.4, "km_to": 1.2}],
-    }
+    # T517: one part per connected run, mouth first — set 7 is two parts (one grp, runs 0 and 1) either side of set 8
+    parts = [(p["ruleset"], p["grp"], p["run"], p["runs"]) for p in d["waters"]["gnis:1"]["parts"]]
+    assert parts == [
+        ("7", 0, 0, [{"from": "one_river__bridge", "to": "mouth", "km_from": 1.2, "km_to": 0.0}]),
+        ("8", 1, 0, [{"from": "one_river__falls", "to": "one_river__bridge", "km_from": 3.4, "km_to": 1.2}]),
+        ("7", 0, 1, [{"from": "lake_inlet:wbk:5", "to": "one_river__falls", "km_from": 5.0, "km_to": 3.4}]),
+    ]
     assert d["waters"]["wbk:5"]["parts"][0]["runs"] == [
         {"from": None, "to": None, "km_from": None, "km_to": None, "polygon": "whole"}]
     assert d["splits"]["one_river__bridge"] == {"name": "bridge", "kind": "point",

@@ -53,8 +53,9 @@ PROVENANCE_DEFAULTS = {"uncertain": False, "why": None}
 WATER_DEFAULTS = {"entries": [], "outside_bc": 0}
 #: The part fields that travel in a part's fifth slot, each dropped at its default.
 PART_FLAGS = ("province_except", "anadromous_rainbow", "steelhead", "steelhead_rules",
-              "home_region", "touches")
-PART_FLAG_DEFAULTS = {"touches": []}
+              "home_region", "touches", "grp", "run")
+#: T517 `grp` / `run` (a part's rule-set group and connected run): 0 for the common one-part water, so absent there
+PART_FLAG_DEFAULTS = {"touches": [], "grp": 0, "run": 0}
 #: The run fields that travel in a run's four slots; anything else goes in its fifth.
 RUN_SLOTS = ("from", "to", "km_from", "km_to")
 #: The one run a part may be reduced to its length.
