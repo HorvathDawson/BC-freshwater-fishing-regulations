@@ -36,16 +36,115 @@ def _sorted_unique(tuples: list[NameTuple]) -> tuple[NameTuple, ...]:
     return tuple(ordered)
 
 
-def resolve_names(chains: list[BlkChain]) -> list[BlkChain]:
+def _mag(c: BlkChain) -> tuple[int, int]:
+    return (c.stream_magnitude or 0, c.stream_order or 0)
+
+
+def follow_connections(chains: list[BlkChain], fid_rows, curated_blks) -> dict[str, BlkChain]:
+    """T497 (owner 2026-11-08, "follow connections"): blk -> the named water an UNNAMED channel belongs to,
+    read from what its ends touch, for every unnamed blk that has one.
+
+    FWA gives every channel of a river the river's watershed code, so on the lower Fraser the sloughs
+    (Nicomen, Maria) share the Fraser's code and so does every unnamed channel braided off them. The
+    magnitude rule below then filed a channel whose two ends both sit on Nicomen Slough under the Fraser —
+    and the channel took the Fraser's rules (night closure, steelhead closure) instead of the slough's.
+
+    The rule, name-agnostic, per unnamed blk: walk out from its two ENDS (its mouth and source fid
+    endpoints) to whatever lies there — another blk with a fid endpoint at that point, of the same code. A
+    named blk stops the walk and is "reached"; an unnamed one is walked through, on to its own two ends (a
+    chain of unnamed pieces). When everything reached is one named water (one gnis) and not the code's
+    dominant water (`_mag`, the magnitude rule's main), the blk belongs to it. Otherwise — an end reaches
+    the main river, two different named waters, or nothing named — this returns nothing for it and the
+    magnitude rule stays. Only same-code named blks count, so the answer is always one of
+    the candidates the magnitude rule chose from; deterministic (sets, sorted blks, no input order).
+
+    A blk `name_variants` names (``curated_blks``, `prune.nv_blks`) is NOT unnamed: curation has said which
+    water it is (Jeperson Side Channel: six blks, one of them Greyell Slough's own). It is never renamed here,
+    and reaching it counts as reaching a water of its own, so a blk that reaches it keeps the magnitude
+    rule — the connection rule never splits a curated water across two items."""
+    from collections import defaultdict
+
+    by_wsc: dict[str, list[BlkChain]] = defaultdict(list)
+    for c in chains:
+        by_wsc[c.fwa_watershed_code].append(c)
+    # only codes with BOTH a named and an unnamed blk can change an answer — the rest never index a fid
+    curated = {str(b) for b in curated_blks}
+
+    def _named(c: BlkChain) -> bool:
+        return bool(c.gnis_name) or c.blk in curated
+
+    wscs = {w for w, cs in by_wsc.items()
+            if any(c.gnis_name for c in cs) and any(not _named(c) for c in cs)}
+    if not wscs:
+        return {}
+    chain_of = {c.blk: c for w in wscs for c in by_wsc[w]}
+    at: dict[str, set[str]] = defaultdict(set)              # fid endpoint coord -> blks with a fid ending there
+    ends: dict[str, list] = defaultdict(list)               # unnamed blk -> its fids (for its two ends)
+    for r in fid_rows:
+        if r.blk not in chain_of:
+            continue
+        at[r.down_node].add(r.blk)
+        at[r.up_node].add(r.blk)
+        if not _named(chain_of[r.blk]):
+            ends[r.blk].append(r)
+
+    def _ends(blk: str) -> tuple[str, ...]:
+        rs = ends.get(blk)
+        if not rs:
+            return ()
+        mouth = min(rs, key=lambda r: (r.down_m, r.fid))
+        source = max(rs, key=lambda r: (r.up_m, r.fid))
+        return (mouth.down_node, source.up_node)
+
+    def _reach(blk: str) -> set[str]:
+        """The named blks reached from blk's two ends, walking through unnamed pieces and stopping at
+        named water (two pieces meeting ON the slough are not one chain). Only blk's ENDS start the walk:
+        a branch leaving its middle is that branch's business, not blk's."""
+        wsc = chain_of[blk].fwa_watershed_code
+        seen_blk, seen_at, named = {blk}, set(), set()
+        stack = list(_ends(blk))
+        while stack:
+            coord = stack.pop()
+            if coord in seen_at:
+                continue
+            seen_at.add(coord)
+            here = [o for o in at.get(coord, ()) if chain_of[o].fwa_watershed_code == wsc]
+            on_named = [o for o in here if _named(chain_of[o])]
+            if on_named:
+                named.update(on_named)
+                continue
+            for o in here:
+                if o not in seen_blk:
+                    seen_blk.add(o)
+                    stack.extend(_ends(o))
+        return named
+
+    out: dict[str, BlkChain] = {}
+    for blk in sorted(ends):
+        wsc = chain_of[blk].fwa_watershed_code
+        main = max((s for s in by_wsc[wsc] if s.gnis_name), key=_mag)
+        reached = {chain_of[n] for n in _reach(blk)}
+        waters = {(s.gnis_id, s.gnis_name) if s.gnis_name else ("curated", s.blk) for s in reached}
+        if len(waters) != 1 or (main.gnis_id, main.gnis_name) in waters or not next(iter(reached)).gnis_name:
+            continue                                        # main reached / ambiguous / nothing: magnitude rule
+        # the water's representative blk: its biggest blk (blk breaks a tie), never input order
+        out[blk] = max(reached, key=lambda s: (_mag(s), s.blk))
+    return out
+
+
+def resolve_names(chains: list[BlkChain], fid_rows, *, curated_blks) -> list[BlkChain]:
     """Return chains with ``name_tuples`` populated + priority-ordered (gazette + side-channel;
-    manual overrides are applied later on the graph by ``apply_name_variants``)."""
+    manual overrides are applied later on the graph by ``apply_name_variants``).
+
+    ``fid_rows`` (the `FidRow`s the chains were built from) give the channel ends `follow_connections`
+    reads: an unnamed channel whose ends reach one other named water of its code takes THAT water's name
+    (T497); the magnitude rule is the fallback. ``curated_blks``: the blks `name_variants` names, which
+    the connection rule leaves alone (`follow_connections`)."""
     # Index named chains by WSC to find same-WSC main channels for side-channel inheritance.
     by_wsc: dict[str, list[BlkChain]] = {}
     for c in chains:
         by_wsc.setdefault(c.fwa_watershed_code, []).append(c)
-
-    def _mag(c: BlkChain) -> tuple[int, int]:
-        return (c.stream_magnitude or 0, c.stream_order or 0)
+    connected = follow_connections(chains, fid_rows, curated_blks)
 
     out: list[BlkChain] = []
     for c in chains:
@@ -62,7 +161,10 @@ def resolve_names(chains: list[BlkChain]) -> list[BlkChain]:
         # sibling's name too (Stave River wrongly got 'Blind Slough'), making both names ambiguous.
         siblings = [s for s in by_wsc.get(c.fwa_watershed_code, [])
                     if s.blk != c.blk and s.gnis_name]
-        if siblings:
+        if c.blk in connected:                  # T497: its ends reach one other named water -> that water
+            t = connected[c.blk]
+            tuples.append(NameTuple(t.gnis_name, NameSource.side_channel, gnis_id=t.gnis_id))
+        elif siblings:
             main = max(siblings, key=_mag)
             if main.gnis_name and main.gnis_name != c.gnis_name and _mag(main) > _mag(c):
                 # carry the main channel's gnis so the registry can group the whole river by it

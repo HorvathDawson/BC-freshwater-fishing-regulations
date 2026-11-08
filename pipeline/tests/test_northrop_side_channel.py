@@ -30,7 +30,7 @@ def graph(request):
     add = [s for s in data["streams"] if str(s["blk"]) == NORTHROP]
     add_fids, specs = to_graph_inputs(add)
     fids += add_fids
-    chains = resolve_names(build_blk_chains(fids, lake_kind))
+    chains = resolve_names(build_blk_chains(fids, lake_kind), fids, curated_blks=())
     g = build_stream_graph(chains, fids, lake_kind, lake_names)
     rep = attach_connectors(g, build_section_geometries(chains, fids, lake_kind), specs)
     assert rep["skipped"] == 0 and {c["kind"] for c in rep["connectors"]} == {"connector", "intake"}

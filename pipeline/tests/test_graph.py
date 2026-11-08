@@ -191,7 +191,7 @@ def _extract_chains(names=None, lake_gnis=None, pad=None):
         bbox = bbox_from_gnis(fwa, names)
     lake_kind, lake_names = get_lake_wbk_kind(fwa, bbox), get_lake_names(fwa, bbox)
     fids = load_stream_fids(_DATA, bbox=bbox)
-    chains = resolve_names(build_blk_chains(fids, lake_kind))
+    chains = resolve_names(build_blk_chains(fids, lake_kind), fids, curated_blks=())
     return chains, fids, lake_kind, lake_names
 
 

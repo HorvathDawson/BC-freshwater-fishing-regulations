@@ -60,7 +60,7 @@ def _brunette_graph(added: bool):
         fids, _ = b._apply_fwa_exclude(fids, data.get("fwa_exclude", []))
         fids += add_fids
 
-    chains = resolve_names(build_blk_chains(fids, lake_kind))
+    chains = resolve_names(build_blk_chains(fids, lake_kind), fids, curated_blks=())
     graph = build_stream_graph(chains, fids, lake_kind, lake_names)
     if add_specs:
         geoms = build_section_geometries(chains, fids, lake_kind)

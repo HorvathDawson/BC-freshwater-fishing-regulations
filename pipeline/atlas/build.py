@@ -559,11 +559,18 @@ def build_graph(b: _Build) -> None:
     """GRAPH: blk chains + names, the stream graph (lakes as nodes), its geometry sidecar, and each
     added stream wired to its receiver.
 
-    Reads: fids, lake_kind, lake_names, lake_wsc, add_specs. Writes: chains, graph, geoms."""
+    Reads: args, fids, lake_kind, lake_names, lake_wsc, add_specs, add_nv. Writes: _nv_all (the curated
+    name variants), chains, graph, geoms."""
     fids, lake_kind, lake_names, lake_wsc, add_specs = b.fids, b.lake_kind, b.lake_names, b.lake_wsc, b.add_specs
     _tick = b.tick
     print("building blk chains + names ...")
-    chains = resolve_names(build_blk_chains(fids, lake_kind))
+    # the curated variants are read HERE (not in add_waters) because the names step needs their blks: a
+    # channel curation names is not unnamed, so the T497 connection rule leaves it to its curated water
+    from pipeline.atlas.graph.names import load_name_variants
+    from pipeline.atlas.graph.prune import nv_blks
+    b._nv_all = (load_name_variants(b.args.name_variants or CURATED.waters.name_variants)
+                 + _added_name_variant_entries(b.add_nv))
+    chains = resolve_names(build_blk_chains(fids, lake_kind), fids, curated_blks=nv_blks(b._nv_all))
 
     print("building stream graph (lakes as nodes) ...")
     graph = build_stream_graph(chains, fids, lake_kind, lake_names, lake_wsc=lake_wsc)
@@ -583,8 +590,8 @@ def add_waters(b: _Build) -> None:
     """WATERS: the whole-feature name variants, then a node for every waterbody no stream runs
     through (named first, then every remaining polygon), basin codes and not-fishing stamps.
 
-    Reads: args, fwa, bbox, graph, lake_kind, lake_names, lake_wsc, add_nv, added_lake_polys.
-    Writes: _nv_all, _nv_reach (the reach-qualified variants, applied after the cuts),
+    Reads: args, fwa, bbox, graph, lake_kind, lake_names, lake_wsc, add_nv, added_lake_polys, _nv_all.
+    Writes: _nv_reach (the reach-qualified variants, applied after the cuts),
     wetland_names, wb_polys (every waterbody outline, curated lakes included)."""
     args, fwa, bbox, graph, lake_kind, lake_names, lake_wsc, add_nv, added_lake_polys = b.args, b.fwa, b.bbox, b.graph, b.lake_kind, b.lake_names, b.lake_wsc, b.add_nv, b.added_lake_polys
     _tick = b.tick
@@ -602,7 +609,6 @@ def add_waters(b: _Build) -> None:
     # a section boundary). The other 3,656 name a whole blk, waterbody, gnis or watershed code and can
     # be applied the moment the graph exists. So the pass is split in two, and `protected_blks` goes.
     from pipeline.atlas.graph.names import apply_name_variants, load_name_variants
-    _nv_path = args.name_variants or CURATED.waters.name_variants
     # T224's mined names (city layers, OSM, ECCC…) are NOT graph names (owner 2026-10-28): a name the owner
     # accepted from a mined source is a display/search LABEL only. On a graph node it changed what the braid
     # prune keeps (409 braid pieces kept), which item a feature joins (a named ditch stayed in its river's
@@ -610,7 +616,7 @@ def add_waters(b: _Build) -> None:
     # "Silverstream Slough" stream). So they are attached to the finished registry instead
     # (`registry.mined.add_mined_names`), never to the graph.
     b._mined = load_name_variants(CURATED.waters.found_names)
-    _nv_all = load_name_variants(_nv_path) + _added_name_variant_entries(add_nv)
+    _nv_all = b._nv_all                       # read in build_graph (the names step needs its blks)
     _nv_reach = [e for e in _nv_all if e.get("reach") or (e.get("target") or {}).get("reach")]
     _nv_now = [e for e in _nv_all if e not in _nv_reach]
     if _nv_now:

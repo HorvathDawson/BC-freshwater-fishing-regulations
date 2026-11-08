@@ -71,6 +71,13 @@ def test_a_gazetted_name_is_kept():
     assert loop_nodes(_river(braid_name="Herrling Island Side Channel")) == set()
 
 
+def test_an_inherited_slough_name_is_not_a_name_of_its_own():
+    """T497: an unnamed braid off Nicomen Slough inherits the slough's name (side-channel), not the river's.
+    Inherited is never own, so the pure loop is still pruned — read as own it kept 20 loops."""
+    tuples = (NameTuple("Nicomen Slough", NameSource.side_channel, gnis_id="21105"),)
+    assert loop_nodes(_river(braid_name="Nicomen Slough", braid_tuples=tuples)) == {"B:0"}
+
+
 def test_a_curated_name_variant_is_kept_even_when_display_name_is_inherited():
     """McArthur Island Slough displays the mainstem's name; the curated tuple makes it a water."""
     tuples = (NameTuple("Big River", NameSource.side_channel, gnis_id="1"),

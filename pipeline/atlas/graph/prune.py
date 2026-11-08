@@ -61,11 +61,20 @@ def _has_own_name(node, river_name: str) -> bool:
     TUPLE while the display name stays the mainstem's. Matching is casefolded because FWA stores the
     gazetted name in caps ("FRASER RIVER") next to the display name ("Fraser River") — reading those
     as two different waters made every piece of a big river look individually named, which is exactly
-    what stopped the Fraser's braids from ever being pruned."""
+    what stopped the Fraser's braids from ever being pruned.
+
+    An INHERITED name (`side-channel`: the water the piece belongs to, `names.resolve_names`) is never
+    its own. Since T497 an unnamed braid off Nicomen Slough inherits "Nicomen Slough" rather than the
+    Fraser's name; read as its own, that kept 20 pure braid loops the prune always dropped."""
     rn = (river_name or "").strip().casefold()
-    if (node.display_name or "").strip().casefold() not in ("", rn):
+    inherited = {(t.name or "").strip().casefold() for t in node.name_tuples
+                 if t.source == NameSource.side_channel}
+    own = {(t.name or "").strip().casefold() for t in node.name_tuples
+           if t.source != NameSource.side_channel}
+    d = (node.display_name or "").strip().casefold()
+    if d not in ("", rn) and (d in own or d not in inherited):
         return True
-    return any((t.name or "").strip().casefold() not in ("", rn) for t in node.name_tuples)
+    return any(n not in ("", rn) for n in own)
 
 
 def _mainstem_blk(nodes, fwa_main: frozenset[str] | set[str] | None = None) -> str:

@@ -1,7 +1,7 @@
 """(name, source) tuple tests (03 S2) — side-channel name inheritance."""
 
 from pipeline.common.models import BlkChain, NameSource, NameTuple
-from pipeline.atlas.graph.names import resolve_names
+from pipeline.atlas.graph.names import load_name_variants, resolve_names
 
 
 def _chain(blk, wsc, gnis_id="", gnis_name="", order=1, mag=1):
@@ -20,7 +20,7 @@ def test_side_channel_inherits_main_name_directionally():
     # (Stave River) must NOT pick up the side channel's name — else both names become ambiguous.
     stave = _chain("S", "100-1", gnis_id="14589", gnis_name="Stave River", order=5, mag=100)
     blind = _chain("B", "100-1", gnis_id="13674", gnis_name="Blind Slough", order=2, mag=10)
-    by_blk = {c.blk: c for c in resolve_names([stave, blind])}
+    by_blk = {c.blk: c for c in resolve_names([stave, blind], [], curated_blks=())}
 
     assert ("Stave River", "side-channel") in _names(by_blk["B"])      # slough inherits mainstem
     assert ("Blind Slough", "side-channel") not in _names(by_blk["S"])  # mainstem does NOT inherit slough
@@ -32,9 +32,93 @@ def test_unnamed_side_channel_still_inherits():
     # registry can group the whole river.
     main = _chain("M", "100-2", gnis_id="7551", gnis_name="Pitt River", order=6, mag=200)
     braid = _chain("X", "100-2", gnis_id="", gnis_name="", order=1, mag=3)
-    by_blk = {c.blk: c for c in resolve_names([main, braid])}
+    by_blk = {c.blk: c for c in resolve_names([main, braid], [], curated_blks=())}
     tup = [t for t in by_blk["X"].name_tuples if t.source == NameSource.side_channel]
     assert tup and tup[0].name == "Pitt River" and tup[0].gnis_id == "7551"
+
+
+# --- T497: follow connections (owner 2026-11-08) ------------------------------------------------------
+
+def _fid(blk, wsc, down_node, up_node, down_m=0.0, up_m=1.0, gnis_id="", gnis_name=""):
+    from pipeline.atlas.graph.blk_chains import FidRow
+    return FidRow(fid=f"{blk}@{down_m}", blk=blk, wsc=wsc, edge_type="1000", wbk="", gnis_id=gnis_id,
+                  gnis_name=gnis_name, stream_order=1, stream_magnitude=1, down_m=down_m, up_m=up_m,
+                  geometry=None, down_node=down_node, up_node=up_node)
+
+
+def _side(chain):
+    return [(t.name, t.gnis_id) for t in chain.name_tuples if t.source == NameSource.side_channel]
+
+
+def _lower_fraser():
+    """Fraser F (main) A-B-C-D; Nicomen Slough N off it B-E-G-C. Unnamed X1 E-P and X2 P-G: a CHAIN of two
+    unnamed pieces whose outer ends both land on the slough. Unnamed Y A-Q and Z Q-E: a chain from the Fraser
+    to the slough. Unnamed W R-S: touches nothing named."""
+    w = "100-0"
+    chains = [_chain("F", w, gnis_id="39325", gnis_name="Fraser River", order=9, mag=9000),
+              _chain("N", w, gnis_id="21105", gnis_name="Nicomen Slough", order=3, mag=40),
+              *(_chain(b, w, mag=2) for b in ("X1", "X2", "Y", "Z", "W"))]
+    fids = [_fid("F", w, "A", "B", 0, 1), _fid("F", w, "B", "C", 1, 2), _fid("F", w, "C", "D", 2, 3),
+            _fid("N", w, "B", "E", 0, 1), _fid("N", w, "E", "G", 1, 2), _fid("N", w, "G", "C", 2, 3),
+            _fid("X1", w, "E", "P"), _fid("X2", w, "P", "G"),
+            _fid("Y", w, "A", "Q"), _fid("Z", w, "Q", "E"),
+            _fid("W", w, "R", "S")]
+    return chains, fids
+
+
+def test_a_chain_of_unnamed_pieces_whose_ends_land_on_the_slough_belongs_to_the_slough():
+    chains, fids = _lower_fraser()
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["X1"]) == [("Nicomen Slough", "21105")]
+    assert _side(by_blk["X2"]) == [("Nicomen Slough", "21105")]
+
+
+def test_an_end_on_the_main_river_or_nothing_named_keeps_the_magnitude_rule():
+    chains, fids = _lower_fraser()
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["Y"]) == [("Fraser River", "39325")]   # chain Fraser -> slough: an end on the main
+    assert _side(by_blk["Z"]) == [("Fraser River", "39325")]
+    assert _side(by_blk["W"]) == [("Fraser River", "39325")]   # reaches nothing named
+    assert _side(by_blk["N"]) == [("Fraser River", "39325")]   # a NAMED water is untouched by the rule
+
+
+def test_two_different_named_waters_reached_is_ambiguous_and_falls_back():
+    w = "100-0"
+    chains = [_chain("F", w, gnis_id="1", gnis_name="Big River", mag=900),
+              _chain("N", w, gnis_id="2", gnis_name="North Slough", mag=40),
+              _chain("S", w, gnis_id="3", gnis_name="South Slough", mag=30),
+              _chain("X", w, mag=2)]
+    fids = [_fid("N", w, "a", "b"), _fid("S", w, "c", "d"), _fid("X", w, "b", "c"), _fid("F", w, "y", "z")]
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["X"]) == [("Big River", "1")]
+
+
+def test_a_branch_off_the_middle_does_not_move_a_channel_whose_ends_are_on_the_slough():
+    """Baldy Channel (Columbia) 356364764: both ends on the channel, and an unnamed branch leaving its MIDDLE
+    runs to the Columbia. The channel is judged by its own ends; the branch reaches both and falls back."""
+    chains, fids = _lower_fraser()
+    w = "100-0"
+    chains += [_chain("C", w, mag=2), _chain("BR", w, mag=2)]
+    fids += [_fid("C", w, "E", "M", 0, 1), _fid("C", w, "M", "G", 1, 2), _fid("BR", w, "M", "D")]
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["C"]) == [("Nicomen Slough", "21105")]
+    assert _side(by_blk["BR"]) == [("Fraser River", "39325")]   # through C to the slough, and on the Fraser
+
+
+def test_a_channel_curation_names_is_left_to_its_curated_water():
+    """Jeperson Side Channel: name_variants names several blks as one water. The rule never renames a
+    curated blk, and a piece reaching one keeps the magnitude rule — a curated water is never split."""
+    chains, fids = _lower_fraser()
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks={"X1"})}
+    assert _side(by_blk["X1"]) == [("Fraser River", "39325")]
+    assert _side(by_blk["X2"]) == [("Fraser River", "39325")]    # reaches the curated X1 and the slough
+
+
+def test_follow_connections_ignores_input_order():
+    chains, fids = _lower_fraser()
+    a = {c.blk: c.name_tuples for c in resolve_names(chains, fids, curated_blks=())}
+    b = {c.blk: c.name_tuples for c in resolve_names(chains[::-1], fids[::-1], curated_blks=())}
+    assert a == b
 
 
 # --- minting nodes for waterbodies the graph never nodes -------------------------------------------
@@ -89,3 +173,33 @@ def test_mint_waterbody_nodes_takes_the_longest_gazetted_name():
     mint_waterbody_nodes(g, {"333": (("Tsayta", "1"), ("Nation Lakes", "2"))}, NameSource.gazette)
     assert g.nodes["lake:333"].display_name == "Nation Lakes"
     assert {t.name for t in g.nodes["lake:333"].name_tuples} == {"Tsayta", "Nation Lakes"}
+
+
+# --- T497 pin on the real lower Fraser (needs the FWA gpkg) ----------------------------------------------
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(scope="module")
+def lower_fraser(request):
+    import pipeline.atlas.build as b
+    from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
+    from pipeline.tests.conftest import need, GPKG_HINT
+    need(request, "source", b._DEFAULT_GPKG, GPKG_HINT)
+    bbox = (1276000.0, 464000.0, 1316000.0, 488000.0)      # Nicomen Slough to Maria Slough
+    fwa = b.FWADataAccessor(b._DEFAULT_GPKG)
+    lake_kind = b.get_lake_wbk_kind(fwa, bbox)
+    fids = load_stream_fids(b._DEFAULT_GPKG, bbox=bbox)
+    from pipeline.atlas.graph.prune import nv_blks
+    from pipeline.common.curated import CURATED
+    curated = nv_blks(load_name_variants(CURATED.waters.name_variants))     # as the build passes them
+    return {c.blk: c for c in resolve_names(build_blk_chains(fids, lake_kind), fids, curated_blks=curated)}
+
+
+@pytest.mark.needs_source
+@pytest.mark.parametrize("blk, gnis, name", [("355991891", "21105", "Nicomen Slough"),
+                                             ("355992357", "13499", "Maria Slough")])
+def test_a_channel_with_both_ends_on_its_slough_is_the_sloughs(lower_fraser, blk, gnis, name):
+    """T497: both channels share the Fraser's watershed code; both ends sit on their slough. The magnitude
+    rule filed them under the Fraser (gnis 39325) and gave them its night and steelhead closures."""
+    assert _side(lower_fraser[blk]) == [(name, gnis)]
