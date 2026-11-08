@@ -10,7 +10,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 NAME=bc-fishing-feeds
-URL=https://$NAME.horvath-dawson.workers.dev
+URL=https://feeds.canifishthis.ca        # the custom domain (Q171); workers.dev is off
 C=app/workers/feeds/wrangler.prod.toml
 DRY=; [[ " $* " == *" --dry-run "* ]] && DRY=1
 [[ -n $DRY || "${CONFIRM_PROD:-}" == "$NAME" ]] || { echo "feeds.sh (prod): set CONFIRM_PROD=$NAME to deploy production" >&2; exit 2; }

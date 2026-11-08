@@ -54,7 +54,7 @@ Before: the release is on staging and the owner has checked it there (phone + we
    ```bash
    CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds.sh
    curl -X POST -H "Authorization: Bearer $(cat app/workers/feeds/.run-token.prod)" \
-     https://bc-fishing-feeds.horvath-dawson.workers.dev/run/purge-reports
+     https://feeds.canifishthis.ca/run/purge-reports
    ```
    Then in GitHub: uncomment `- production` and the prod secrets in `feeds-hydat.yml`, `feeds-runtiming.yml`,
    `feeds-sync-inputs.yml`, and add `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY`. Until then the prod worker's
@@ -75,7 +75,7 @@ Before: the release is on staging and the owner has checked it there (phone + we
    ```bash
    curl -sI https://www.canifishthis.ca/water/vedder-river | grep -i location   # https://canifishthis.ca/water/vedder-river
    ```
-8. **Owner — check it all:** `node app/tools/smoke-staging.mjs --production`; `curl -s https://bc-fishing-feeds.horvath-dawson.workers.dev/status`
+8. **Owner — check it all:** `node app/tools/smoke-staging.mjs --production`; `curl -s https://feeds.canifishthis.ca/status`
    all fresh, and again after 24 h (gauges < 2 h old throughout).
 9. **Owner — the app.** The changelog entry for the version is in `app/packages/core/src/changelog.ts` (Claude), then
    ```bash

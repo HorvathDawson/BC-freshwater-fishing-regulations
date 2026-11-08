@@ -79,7 +79,7 @@ FEEDS=https://bc-fishing-feeds-staging.horvath-dawson.workers.dev; TOKF=app/work
 NOTES_HEAD="Staging build"; ENVWORD=staging
 if [[ -n $PROD ]]; then
   BUCKET=bc-fishing-regulations; BASE=https://data.canifishthis.ca/app/android
-  FEEDS=https://bc-fishing-feeds.horvath-dawson.workers.dev; TOKF=app/workers/feeds/.run-token.prod
+  FEEDS=https://feeds.canifishthis.ca; TOKF=app/workers/feeds/.run-token.prod
   NOTES_HEAD="Build"; ENVWORD=production
 fi
 TRACK=${PLAY_TRACK:-internal}

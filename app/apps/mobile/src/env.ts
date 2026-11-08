@@ -41,7 +41,7 @@ export const ORIGINS: Readonly<Record<AppEnv, string>> = Object.freeze({
 export const REPORT_URLS: Readonly<Record<AppEnv, string | null>> = Object.freeze({
   local: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/report",
   staging: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/report",
-  production: "https://bc-fishing-feeds.horvath-dawson.workers.dev/report",
+  production: "https://feeds.canifishthis.ca/report",
 });
 
 export function reportUrlFor(env: AppEnv, override?: string | undefined): string | null {

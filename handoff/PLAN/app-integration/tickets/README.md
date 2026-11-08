@@ -541,6 +541,11 @@ use that as the sole source of future work."
 | T494 | Web map console TypeError `interpolationFactor is not a function` (paint expression binder) on 0.6.9 | DONE | 04ead70fd | found 2026-11-07 by the staging smoke (warn) |
 | T495 | THE NEAR GOAL: Play closed testing on production, four gates (no wrong regs, no crashes, smooth map, clean first run) | OPEN | — | owner 2026-11-07; work this list first |
 | T496 | Cleanup sweep before launch: v1 leftovers, dead pipeline code, stale docs, old outputs | OPEN | — | owner 2026-11-07 (T495) |
+| T497 | Lower Fraser braids carry the Fraser's name (Nicomen / Maria Slough); a 2-stretch "Fraser River" water | OPEN | — | owner 2026-11-08 (phone); T495 gate 1 |
+| T498 | Rules / conditions pane opens janky (shows, then loads in): build first, then show | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
+| T499 | Pane's Map tab flickers when left open on the lowest Fraser stretch | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
+| T500 | Release / closed definitions only behind the ⓘ, not printed in the main view | OPEN | — | owner 2026-11-08 (phone) |
+| T501 | "Where you can't fish" in short lines; full rule-book text one tap away | OPEN | — | owner 2026-11-08 (phone) |
 
 ## Order for open tickets
 
@@ -603,11 +608,11 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q159 | T168 | "Reporting, not ranked" gauges fold with the silent ones ("not reporting or not ranked")? | yes | owner |
 | Q160 | T243 | Bottom tab labels follow the OS text size only to 1.3× (a quarter of a phone holds no more; the platforms' own tab bars do the same) | 1.3× cap | owner |
 | Q161 | T259 | Which map regions a first install keeps offline | all (~460 MB map; regs always all-B.C.) | owner |
-| Q171 | T404 | Production's problem-report + crash endpoint | `https://bc-fishing-feeds.horvath-dawson.workers.dev/report` (staging's pattern; workers_dev on in wrangler.prod.toml) until a custom domain is chosen | owner |
+| Q171 | T404 | Production's problem-report + crash endpoint | `https://feeds.canifishthis.ca/report` (custom domain on the prod feeds worker, workers.dev off) | owner 2026-11-08 |
 | Q172 | T404 | Production's backup bucket (you create it, staging's lifecycle rules) | `bc-fishing-regulations-backup` | owner |
-| Q173 | T404 | After the switch, every Play build (internal, closed) reads production; staging stays on the sideload APK page? | yes | owner |
+| Q173 | T404 | After the switch, every Play build (internal, closed) reads production; staging stays on the sideload APK page? | yes | owner 2026-11-08: yes |
 | Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it still serves the v1 keys)? | yes — check its name + route in the dashboard first | owner |
-| Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner |
+| Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 
 ### Answered (recently, for the record)
 - Q170 — owner 2026-11-07: B ("Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom"); built in T470, the order × zoom fade is one block (`fadeByOrder`).

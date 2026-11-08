@@ -81,7 +81,7 @@ describe("one switch (T404): every environment's hosts are its own", () => {
     const { REPORT_URLS } = await import("./env");
     const host = (u: string) => new URL(u).host;
     expect(host(ORIGINS.production)).toBe("data.canifishthis.ca");
-    expect(host(REPORT_URLS.production ?? "")).toBe("bc-fishing-feeds.horvath-dawson.workers.dev");
+    expect(host(REPORT_URLS.production ?? "")).toBe("feeds.canifishthis.ca");
     for (const u of [ORIGINS.production, REPORT_URLS.production ?? ""]) expect(u).not.toMatch(/staging|localhost/);
     for (const u of [ORIGINS.staging, REPORT_URLS.staging ?? ""]) expect(u).toMatch(/staging/);
     // every URL the app reads hangs off the one origin
@@ -97,7 +97,7 @@ describe("crashUrlFor (T242)", () => {
     const { crashUrlFor, reportUrlFor } = await import("./env");
     expect(crashUrlFor(reportUrlFor("staging"))).toBe("https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/crash");
     // (T404) production reports and crashes go to the production feeds worker, never staging's
-    expect(crashUrlFor(reportUrlFor("production"))).toBe("https://bc-fishing-feeds.horvath-dawson.workers.dev/crash");
+    expect(crashUrlFor(reportUrlFor("production"))).toBe("https://feeds.canifishthis.ca/crash");
     expect(crashUrlFor(reportUrlFor("production", "off"))).toBeNull();
     expect(crashUrlFor("https://x.example/report", "off")).toBeNull();
     expect(crashUrlFor(null, "https://y.example/c")).toBe("https://y.example/c");

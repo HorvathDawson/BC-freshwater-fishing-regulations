@@ -37,7 +37,7 @@ describe("wrangler.prod.toml is wrangler.toml with production's names (T404)", (
   it("the names are production's, and the vars say them", () => {
     expect(P.top.name).toBe("bc-fishing-feeds");
     expect(P.vars).toMatchObject({ FEEDS_ENV: "production", WORKER_NAME: "bc-fishing-feeds",
-      STATUS_URL: "https://bc-fishing-feeds.horvath-dawson.workers.dev/status",
+      STATUS_URL: "https://feeds.canifishthis.ca/status",
       BUCKET_NAME: "bc-fishing-regulations", BACKUP_BUCKET_NAME: "bc-fishing-regulations-backup" });
     expect(P.buckets).toEqual([{ binding: "BUCKET", bucket_name: P.vars.BUCKET_NAME },
                                { binding: "BACKUP", bucket_name: P.vars.BACKUP_BUCKET_NAME }]);
@@ -48,10 +48,14 @@ describe("wrangler.prod.toml is wrangler.toml with production's names (T404)", (
   it("each file's vars name its own worker and buckets", () => {
     for (const c of [S, P]) {
       expect(c.vars.WORKER_NAME).toBe(c.top.name);
-      expect(c.vars.STATUS_URL).toBe(`https://${c.top.name}.horvath-dawson.workers.dev/status`);
       expect(c.buckets.map((b) => b.bucket_name)).toEqual([c.vars.BUCKET_NAME, c.vars.BACKUP_BUCKET_NAME]);
-      expect(c.top.workers_dev).toBe("true");      // the app's report + crash endpoint is on workers.dev (env.ts)
     }
+    // the app's report + crash endpoint (env.ts): staging on workers.dev, production on its custom domain (Q171)
+    expect(S.vars.STATUS_URL).toBe(`https://${S.top.name}.horvath-dawson.workers.dev/status`);
+    expect(S.top.workers_dev).toBe("true");
+    expect(P.vars.STATUS_URL).toBe("https://feeds.canifishthis.ca/status");
+    expect(P.top.workers_dev).toBe("false");
+    expect(P.top.routes).toBe('[{ pattern = "feeds.canifishthis.ca", custom_domain = true }]');
     expect(S.vars.FEEDS_ENV).toBe("staging");
   });
 

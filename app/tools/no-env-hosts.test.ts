@@ -55,9 +55,9 @@ describe("one switch (T404): environment hosts live only in their owning modules
 
   it("knows a host from an email address", () => {
     expect(["https://data-staging.canifishthis.ca", "data.canifishthis.ca/x", "www.canifishthis.com",
-            "bc-fishing-feeds.horvath-dawson.workers.dev", "bucket bc-fishing-regulations-staging"].map(envHost))
+            "feeds.canifishthis.ca", "bucket bc-fishing-regulations-staging"].map(envHost))
       .toEqual(["data-staging.canifishthis.ca", "data.canifishthis.ca", "www.canifishthis.com",
-                "bc-fishing-feeds.horvath-dawson.workers.dev", "bc-fishing-regulations-staging"]);
+                "feeds.canifishthis.ca", "bc-fishing-regulations-staging"]);
     expect(["support@canifishthis.ca", "privacy@canifishthis.ca", "canifishthis://water/1"].map(envHost))
       .toEqual([null, null, null]);
   });

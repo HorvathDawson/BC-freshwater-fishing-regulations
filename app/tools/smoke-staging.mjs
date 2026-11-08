@@ -25,7 +25,7 @@ const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] :
 const PROD = args.includes('--production');
 const SITE = opt('--url', PROD ? 'https://canifishthis.ca' : 'https://staging.canifishthis.ca').replace(/\/$/, '');
 const DATA = opt('--data', PROD ? 'https://data.canifishthis.ca' : 'https://data-staging.canifishthis.ca').replace(/\/$/, '');
-const FEEDS = opt('--feeds', PROD ? 'https://bc-fishing-feeds.horvath-dawson.workers.dev'
+const FEEDS = opt('--feeds', PROD ? 'https://feeds.canifishthis.ca'
                                   : 'https://bc-fishing-feeds-staging.horvath-dawson.workers.dev').replace(/\/$/, '');
 const SLUG = opt('--slug', 'vedder-river');
 const ONLY = opt('--only', 'http,browser,desktop').split(',');

@@ -5,9 +5,11 @@
 name = "bc-fishing-feeds"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
-# the app's report + crash endpoint is https://bc-fishing-feeds.horvath-dawson.workers.dev/report (apps/mobile/src/env.ts
-# REPORT_URLS.production; owner question Q171: workers.dev until a custom domain is chosen) — so workers.dev is ON
-workers_dev = true
+# the app's report + crash endpoint is https://feeds.canifishthis.ca/report (apps/mobile/src/env.ts
+# REPORT_URLS.production; owner 2026-11-08, Q171: the custom domain, workers.dev OFF). The deploy attaches the domain
+# (canifishthis.ca is a zone on this account) and fails out loud if it cannot.
+workers_dev = false
+routes = [{ pattern = "feeds.canifishthis.ca", custom_domain = true }]
 preview_urls = false
 
 [version_metadata]
@@ -49,7 +51,7 @@ name = "EMAIL"
 NOTIFY_EMAIL_FROM = "status@canifishthis.ca"
 NOTIFY_DIGEST = "daily"
 FEEDS_ENV = "production"         # the [production] subject tag + footer; test reports/crashes are refused (src/reports.ts)
-STATUS_URL = "https://bc-fishing-feeds.horvath-dawson.workers.dev/status"
+STATUS_URL = "https://feeds.canifishthis.ca/status"
 WORKER_NAME = "bc-fishing-feeds"
 BUCKET_NAME = "bc-fishing-regulations"
 BACKUP_BUCKET_NAME = "bc-fishing-regulations-backup"
