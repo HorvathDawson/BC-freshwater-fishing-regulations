@@ -29,7 +29,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **T404 (one switch to production) IN REVIEW, merged:** every address comes from one setting (with a guard test). The
   production deploy scripts refuse without your CONFIRM_PROD. Runbook: handoff/PLAN/release/PRODUCTION.md. Five
   questions with defaults (Q171–Q175) are at the bottom of the phone-check page.
-- **Running:** T493 + T489 (creek gap, lake shape; tiles built beside, not promoted) and T466 (walkthrough follow-ups).
+- **T493 + T489 merged (IN REVIEW):** the creek is drawn through a hidden lake (the lake's colour and tap); lakes keep
+  about twice the outline zoomed out (+1.6 MB tiles). Release **r-25a89ce9f8e6** is built and is LATEST locally, but its
+  staging upload STOPPED: open.canada.ca (NuSEDS) is down again. T485 step 2 is now in, so from the next good fetch on, run
+  timing builds from a kept private copy and an outage cannot block a release. The upload resumes on its own once
+  open.canada.ca answers (checked every 10 min, up to 8 h).
+- **Running:** T466 (walkthrough follow-ups).
 
 ## 2026-11-07 night (chat 7): the goal is written down (T495); r-f56b live on staging
 - **Goal (T495):** Play closed testing ON PRODUCTION, good enough for first users. Gates: no wrong regs (T462 audit), no
