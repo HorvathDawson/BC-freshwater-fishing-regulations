@@ -44,6 +44,7 @@ Owner 2026-11-08 (r-6dce77a24e6a, shot `shots/T499-before.png` left): the Fraser
 ## Options left for the owner (not done)
 1. **The 114 still-bare names** need the pipeline to write each stretch's own short name (a `short` on `part_stretch`,
    from the runs' ends in `short_label`). Bundle + release rebuild, no atlas. Recommend: do it with the next release.
-2. **Is the Landstrom Bar zone right at 138 m of mainstem?** The hand-drawn ring (`added_areas.geojson`) mostly covers
-   the bar; the regulation's line follows the bank from a sign at the bar's eastern end. If the owner expects a longer
-   zone, the ring is the thing to redraw (atlas rebuild). Not checked against the synopsis here.
+2. **Landstrom Bar zone at 138 m: plausible, closed (owner 2026-11-08: the sign splits are right).** The curated ring's
+   corners match the text, and its "S end of Croft Island" (49.3761, −121.4573) is the island's south edge in OSM
+   (49.3762). The ring sits mostly over the side-channel mouth on the north side. The FWA mainstem runs along the south
+   bank and crosses only the ring's downstream corner: 156,379–156,517 m, 138 m.
