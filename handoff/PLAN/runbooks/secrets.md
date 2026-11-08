@@ -16,7 +16,7 @@ Plain vars (not secret, in `wrangler.toml`): `NOTIFY_EMAIL_FROM`, `NOTIFY_DIGEST
 ## GitHub Actions (repo secrets)
 | name | used by | rotate |
 |---|---|---|
-| `CLOUDFLARE_ACCOUNT_ID` | feeds-hydat, feeds-runtiming, feeds-sync-inputs, staging-* | not a credential; never |
+| `CLOUDFLARE_ACCOUNT_ID` | feeds-hydat, feeds-runtiming, staging-* (feeds-sync-inputs deleted, T520) | not a credential; never |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | the staging R2 writes of the feeds workflows | owner: Cloudflare → R2 → API tokens (staging bucket only) |
 | `PROD_R2_ACCESS_KEY_ID`, `PROD_R2_SECRET_ACCESS_KEY` | the prod option of `feeds-hydat.yml` (commented out until T404) | owner, at T404: not set yet |
 | `CLOUDFLARE_API_TOKEN` | **no workflow reads it** (set 2026-03-18, v1 era) | owner: delete it, or keep it for T404's deploys |

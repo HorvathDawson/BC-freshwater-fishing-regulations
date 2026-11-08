@@ -1,36 +1,33 @@
-"""T331: ONE SYNC LIST — the GitHub workflow and the Mac script put the same staged set (`pipeline.deliver.sync_inputs`).
+"""T331: ONE SYNC LIST — the uploaders put the staged set of `pipeline.deliver.sync_inputs` and name no data file.
 
-They were two hand-kept lists and drifted: the workflow never synced `dfo_salmon/wording.json`. Now neither names a
-data file; both run the module and put what its manifest lists.
+(T520, owner 2026-11-08) Publishing is from the Mac only: the GitHub workflow (`feeds-sync-inputs.yml`) is deleted —
+its runner had no atlas, so it failed every run once publish needed one. `deploy/staging/sync-inputs.sh` is the path.
 """
 from __future__ import annotations
 
 import json
 
-import yaml
 from pathlib import Path
 
 from pipeline.common.curated import CURATED, REPO_ROOT
 from pipeline.deliver import sync_inputs as S
 
-WORKFLOW = REPO_ROOT / ".github/workflows/feeds-sync-inputs.yml"
 MAC = REPO_ROOT / "deploy/staging/sync-inputs.sh"
+PROD = REPO_ROOT / "deploy/prod/sync-inputs.sh"
 
 
-def test_both_uploaders_stage_through_the_module_and_name_no_data_file():
-    for p in (WORKFLOW, MAC):
-        text = p.read_text(encoding="utf-8")
-        body = "\n".join(ln for ln in text.splitlines() if not ln.lstrip().startswith("#"))
-        if p == WORKFLOW:                     # T324: the push trigger's `paths:` name the inputs; the JOB names none
-            body = body[body.index("\njobs:"):]
-        assert "python -m pipeline.deliver.sync_inputs" in body or "-m pipeline.deliver.sync_inputs" in body, p
-        assert "data/curated" not in body and "bc_hydrometric_stations" not in body, p
+def test_the_uploaders_stage_through_the_module():
+    for p in (MAC, PROD):
+        body = "\n".join(ln for ln in p.read_text(encoding="utf-8").splitlines() if not ln.lstrip().startswith("#"))
+        assert "-m pipeline.deliver.sync_inputs" in body, p
+        assert "bc_hydrometric_stations" not in body and "dfo_salmon" not in body, p
 
 
-def test_the_workflow_choices_are_the_list():
-    doc = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-    on = doc.get("on", doc.get(True))
-    assert on["workflow_dispatch"]["inputs"]["what"]["options"] == ["all", *S.NAMES]
+def test_publishing_is_from_the_mac_only():
+    """(T520) no GitHub workflow puts the inputs: the deleted one, and no other naming the module."""
+    wf = REPO_ROOT / ".github/workflows"
+    assert not (wf / "feeds-sync-inputs.yml").exists()
+    assert not [p.name for p in wf.glob("*.yml") if "pipeline.deliver.sync_inputs" in p.read_text(encoding="utf-8")]
 
 
 def test_the_list_holds_the_wording_registry(tmp_path):
@@ -49,18 +46,3 @@ def test_an_unknown_input_is_refused(tmp_path):
     import pytest
     with pytest.raises(SystemExit):
         S.stage(tmp_path, ("wordings",))
-
-
-def test_the_push_trigger_watches_every_input_and_targets_staging_only():
-    """T324 (owner 2026-11-05): a push of a curated input syncs STAGING by itself; never a schedule."""
-    from pipeline.common.curated import CURATED, REPO_ROOT as R, SOURCE
-    doc = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-    on = doc.get("on", doc.get(True))
-    assert "schedule" not in on
-    paths = set(on["push"]["paths"])
-    rel = lambda p: str(Path(p).relative_to(R))
-    for want in (rel(CURATED.dfo_salmon.places) + "/**", rel(CURATED.dfo_salmon.wording),
-                 rel(CURATED.inseason.notice_waters), rel(SOURCE / "bc_hydrometric_stations.json")):
-        assert want in paths, want
-    env = doc["jobs"]["sync"]["env"]["BUCKET"]
-    assert "github.event_name == 'workflow_dispatch' && inputs.target == 'production'" in env

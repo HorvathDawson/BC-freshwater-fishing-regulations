@@ -1,7 +1,7 @@
 // Tiny typed API client matching curation-review/API.md.
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
-import type {
+import type { InputsSync,
   EntryKind,
   FieldError,
   EntryDetail,
@@ -220,6 +220,8 @@ export const api = {
     if (!res.ok) return { resolvable: false, why: String(body?.detail ?? res.statusText), n_sections: null };
     return body as InSeasonPreview;
   },
+  /** (T520) the Mac publish path's last run after a saved input (deploy/staging/sync-inputs.sh) */
+  inputsSync: () => getJSON<InputsSync>("/api/inputs/sync"),
   inseasonSave: async (post: InSeasonMatchPost): Promise<InSeasonRow> => {
     const res = await fetch("/api/inseason/matches", {
       method: "POST",

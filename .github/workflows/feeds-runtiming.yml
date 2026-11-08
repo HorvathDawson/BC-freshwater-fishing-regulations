@@ -24,7 +24,7 @@ name: feeds — run timing (PSF + DFO) → R2 runtiming/
 # below until the owner enables it (uncomment the option AND the prod secrets block; publish.py names only staging —
 # give it a --bucket first).
 #
-# SECRETS (the repo's existing ones, as feeds-sync-inputs.yml):
+# SECRETS (the repo's existing ones, as feeds-hydat.yml):
 #   CLOUDFLARE_ACCOUNT_ID            the account id (R2's S3 endpoint is https://<id>.r2.cloudflarestorage.com)
 #   R2_ACCESS_KEY_ID                 the repo's R2 API token (Object Read & Write); it may be account-wide, so the
 #   R2_SECRET_ACCESS_KEY             bucket guard below is what keeps this staging-only

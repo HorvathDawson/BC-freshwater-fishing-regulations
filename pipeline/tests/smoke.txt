@@ -238,3 +238,4 @@ pipeline/tests/test_tile_lake_link.py::test_a_chain_of_hidden_lakes_is_linked_th
 pipeline/tests/test_tile_fill_zooms.py::test_nicomen_a_water_hidden_between_two_drawn_pieces_of_itself_is_drawn_with_them
 pipeline/tests/test_inseason_publish.py::test_place_words
 pipeline/tests/test_paint_sync.py::test_a_section_moved_into_another_part_is_caught
+pipeline/tests/test_curation_review_inputs_sync.py::test_off_says_so_and_runs_nothing

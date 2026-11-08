@@ -56,8 +56,8 @@ Before: the release is on staging and the owner has checked it there (phone + we
    curl -X POST -H "Authorization: Bearer $(cat app/workers/feeds/.run-token.prod)" \
      https://feeds.canifishthis.ca/run/purge-reports
    ```
-   Then in GitHub: uncomment `- production` and the prod secrets in `feeds-hydat.yml`, `feeds-runtiming.yml`,
-   `feeds-sync-inputs.yml`, and add `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY`. Until then the prod worker's
+   Then in GitHub: uncomment `- production` and the prod secrets in `feeds-hydat.yml`, `feeds-runtiming.yml`
+   (the inputs go up from the Mac: `deploy/prod/sync-inputs.sh`, T520), and add `PROD_R2_ACCESS_KEY_ID` / `PROD_R2_SECRET_ACCESS_KEY`. Until then the prod worker's
    HYDAT / run-timing starts fail and say so by email (it asks for `target: production`, never staging's bucket).
 6. **Claude builds, owner deploys — the site** (one vintage with the data; the SEO build is heavy):
    ```bash

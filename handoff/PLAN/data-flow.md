@@ -210,12 +210,13 @@ Informational only: a banner on the water, never an answer change.
 Decided, not built yet: run timing becomes a "slow feed" (own R2 folder + `index.json`, started by a button or the
 Worker, content-hashed, publish only on a real change) — its own ticket.
 
-### 3.7 Worker inputs → R2 (automatic to staging)
+### 3.7 Worker inputs → R2 (automatic to staging, from the Mac)
 
 `python -m pipeline.deliver.sync_inputs` is the one list of what the Worker reads from R2: the DFO places, the wording
-registry, the station roster, the in-season links. **On every push to the dev branch that touches one of them**,
-`.github/workflows/feeds-sync-inputs.yml` puts what changed into **staging** R2 (T324). Production stays a manual run
-at the prod switch. `deploy/staging/sync-inputs.sh` is the same list from the Mac.
+registry, the station roster, the in-season links. **When the review app saves one of them**, it runs
+`deploy/staging/sync-inputs.sh` (T520: re-resolve the in-season matches if they name another release, publish's
+refusals, then put what changed into **staging** R2); a refusal or failed put shows on the In-season tab and in the
+server log. The GitHub workflow is gone (it had no atlas). Production stays a manual run at the prod switch.
 
 ### 3.8 Release → app
 

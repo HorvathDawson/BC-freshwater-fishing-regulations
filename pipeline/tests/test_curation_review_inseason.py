@@ -104,6 +104,8 @@ def test_2_a_good_save_writes_the_match_and_its_history(env):
               effective={"from": None, "to": "2099-12-31"}, note="the notice names the trestle")
     assert r.status_code == 200, r.text
     got = r.json()
+    # (T520) a sandboxed server never publishes: the Mac path is off, and says so
+    assert got["sync"]["state"] == "off"
     # the curated dates override the feed's field by field: the feed's `from`, the curated `to`
     assert got["state"] == "matched" and got["in_effect"] is True and got["dates"] == \
         {"from": "2025-07-04", "to": "2099-12-31", "source": "curated"}

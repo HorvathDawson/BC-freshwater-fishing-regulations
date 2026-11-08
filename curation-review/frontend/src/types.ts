@@ -1511,3 +1511,14 @@ export interface InSeasonMatchPost {
   note: string;
   by?: string;
 }
+
+/** (T520) GET /api/inputs/sync: the Mac publish path after a saved input (staging only; never git). */
+export interface InputsSync {
+  enabled: boolean;
+  state: "idle" | "off" | "queued" | "running" | "done" | "failed";
+  at?: string;
+  reasons?: string[];
+  rc?: number;
+  took_s?: number;
+  output?: string;
+}

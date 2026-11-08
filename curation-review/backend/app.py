@@ -101,11 +101,19 @@ def review_closed():
 #: `CURATION_WRITE_THROUGH=1`); a refused apply keeps the mark and says why on the item.
 import write_through as _wt                                     # noqa: E402
 WRITE_THROUGH = _wt.from_env(reuse.MARKS_PATH, reuse._ROOT)
+#: (T520, owner 2026-11-08: publish from the Mac only) a saved input `sync_inputs` stages — an in-season match, or a
+#: DFO places / wording file the write-through wrote — runs deploy/staging/sync-inputs.sh (`inputs_sync`)
+import inputs_sync as _is                                       # noqa: E402
+INPUTS_SYNC = _is.from_env(reuse._ROOT)
+WRITE_THROUGH.on_files = lambda files: (INPUTS_SYNC.request("write-through")
+                                        if _is.touches(files, reuse._ROOT) else None)
 
 
 @app.on_event("shutdown")
 def _drain_write_through():
-    """(T434) a background apply in flight finishes before the process goes (a restart once dropped it)."""
+    """(T434) a background apply in flight finishes before the process goes (a restart once dropped it); (T520) so
+    does a staging sync it started."""
+    INPUTS_SYNC.wait_idle(60)
     if not WRITE_THROUGH.wait_idle(30):
         import logging
         logging.getLogger("uvicorn.error").warning("WRITE-THROUGH: still applying at shutdown after 30 s; the next "
@@ -1080,10 +1088,20 @@ def inseason_save_match(body: InSeasonMatchPayload):
     (T434) every refusal logged like a mark's (`REFUSED_LOG`)."""
     import inseason
     try:
-        return inseason.save_match(body.id, body.extents, body.effective, body.note, body.by)
+        got = inseason.save_match(body.id, body.extents, body.effective, body.note, body.by)
     except inseason.Refused as ex:
         _log_refused(body, 400, str(ex))
         raise HTTPException(400, str(ex))
+    # (T520) publish from the Mac: the saved match goes to STAGING by the one Mac path (resolve, publish's refusals,
+    # deploy/staging/sync-inputs.sh), in the background; its outcome is GET /api/inputs/sync
+    return {**(got or {}), "sync": INPUTS_SYNC.request("inseason-match")}
+
+
+@app.get("/api/inputs/sync")
+def inputs_sync_status():
+    """(T520) The last run of the Mac publish path after a saved input (state queued / running / done / failed, its
+    output's tail). A failure is also in the server log and data/generated/review/inputs-sync.jsonl."""
+    return INPUTS_SYNC.status()
 
 
 @app.get("/api/row-image/{filename}")

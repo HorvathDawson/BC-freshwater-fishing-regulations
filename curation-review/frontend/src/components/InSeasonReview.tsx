@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import type {
-  EntrySplits, InSeasonEvidence, InSeasonExtent, InSeasonItemSplits, InSeasonOp, InSeasonPreview, InSeasonQueue, InSeasonRow,
+  EntrySplits, InputsSync, InSeasonEvidence, InSeasonExtent, InSeasonItemSplits, InSeasonOp, InSeasonPreview, InSeasonQueue, InSeasonRow,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
@@ -10,6 +10,31 @@ import { ItemSearch } from "./ExtentFixEditor";
 import { failed } from "../failures";
 
 export const INSEASON_HASH = "inseason/";
+
+/**
+ * (T520, owner 2026-11-08: publish from the Mac only) WHERE A SAVE WENT: a saved match runs deploy/staging/sync-inputs.sh
+ * (resolve, publish's refusals, the staging put) in the backend; this line says its last run — and a refusal or a failed
+ * upload in red with its output, never silently (the backend also logs it).
+ */
+function InputsSyncLine() {
+  const [s, setS] = useState<InputsSync | null>(null);
+  useEffect(() => {
+    let live = true;
+    const tick = () => api.inputsSync().then((x) => { if (live) setS(x); }, (e) => { if (live) failed("inputs sync")(e); });
+    tick();
+    const t = setInterval(tick, 3000);
+    return () => { live = false; clearInterval(t); };
+  }, []);
+  if (!s || !s.enabled || s.state === "idle") return null;
+  const words = { queued: "staging: queued", running: "staging: publishing (sync-inputs.sh) …", done: `staging: published ${s.at ?? ""}`,
+                  failed: `staging: NOT published (rc ${s.rc}) ${s.at ?? ""}`, off: "", idle: "" }[s.state];
+  return (
+    <div className={s.state === "failed" ? "errors" : "notice"} style={{ margin: 8 }} data-testid="inputs-sync" role="status">
+      {words}
+      {s.state === "failed" && s.output && <pre style={{ whiteSpace: "pre-wrap", maxHeight: 160, overflow: "auto" }}>{s.output}</pre>}
+    </div>
+  );
+}
 
 const OPS: { op: InSeasonOp; words: string; n: number }[] = [
   { op: "whole", words: "the whole water", n: 0 },
@@ -122,6 +147,7 @@ export function InSeasonReview() {
       {error && <div className="errors" style={{ margin: 8 }}>{error}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
       {queue && !queue.available && <div className="notice" style={{ margin: 8 }} data-testid="inseason-nofeed">{queue.message}</div>}
+      <InputsSyncLine />
       <div className="main">
         <div className="queue" data-testid="inseason-queue">
           <div className="queue-group">{rows.length} row{rows.length === 1 ? "" : "s"} — the provincial in-season changes</div>

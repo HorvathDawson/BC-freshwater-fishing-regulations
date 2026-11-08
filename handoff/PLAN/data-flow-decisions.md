@@ -34,7 +34,7 @@ One row per question asked. Stream → decision → why → ticket. `data-flow.m
 ## In-season
 | question | decision | why | ticket |
 |---|---|---|---|
-| Worker inputs (in-season matches, DFO places, `wording.json`, roster) reach R2 only by a hand-run `sync-inputs` | **Auto on push, to STAGING R2** (turn on `feeds-sync-inputs.yml`'s push trigger). Prod stays a manual run at the prod switch. | A saved match should reach the worker without a remembered step; prod stays human-only. | T324 |
+| Worker inputs (in-season matches, DFO places, `wording.json`, roster) reach R2 only by a hand-run `sync-inputs` | ~~Auto on push, to STAGING R2 (`feeds-sync-inputs.yml`)~~ → (T520, owner 2026-11-08) **from the Mac only**: the review app runs `deploy/staging/sync-inputs.sh` after a save (staging); the workflow is deleted. Prod stays a manual run at the prod switch. | A saved match should reach the worker without a remembered step; prod stays human-only; the runner had no atlas to resolve on. | T324, T520 |
 
 ## Run timing → the "slow feed" pattern
 | question | decision | why | ticket |

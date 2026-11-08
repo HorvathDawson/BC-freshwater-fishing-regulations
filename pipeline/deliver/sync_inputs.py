@@ -2,11 +2,12 @@
 
     python -m pipeline.deliver.sync_inputs --out DIR [--only NAME ...]
 
-stages each input at `DIR/<its R2 key>` and prints one line per object, `<key>\\t<cache-control or ->`. The two
-uploaders only put what is staged, so they cannot drift apart again (the workflow had no `wording.json`):
+stages each input at `DIR/<its R2 key>` and prints one line per object, `<key>\t<cache-control or ->`. The uploaders
+only put what is staged — all on the Mac (T520, owner 2026-11-08: the GitHub workflow is deleted; it had no atlas):
 
-    .github/workflows/feeds-sync-inputs.yml   (GitHub; compares MD5 = the R2 ETag, puts what differs)
-    deploy/staging/sync-inputs.sh             (the Mac; rclone --checksum)
+    deploy/staging/sync-inputs.sh   (rclone --checksum; by hand, from upload.sh, and by the review app after a saved
+                                     input: curation-review/backend/inputs_sync.py)
+    deploy/prod/sync-inputs.sh      (the owner's CONFIRM_PROD step)
 
 THE LIST (`INPUTS`), every source read through `CURATED` / `SOURCE`:
     dfo-entries       dfo_salmon/places/region-*.json               -> private/feeds/dfo/entries/region-*.json
@@ -17,7 +18,7 @@ THE LIST (`INPUTS`), every source read through `CURATED` / `SOURCE`:
                       where the atlas is — T520: no atlas here)     -> feeds/inseason/matches.json (PUBLIC)
 
 `private/` keys are never served (the data worker 404s them); the Worker reads them on its next run, no redeploy.
-Needs only pydantic + pyyaml (the GitHub runner installs nothing else).
+Needs only pydantic + pyyaml (no atlas: the in-season matches are resolved before, `pipeline.regs.inseason.resolve`).
 """
 from __future__ import annotations
 

@@ -73,12 +73,12 @@ export function loadRegistry(d: { format?: string; entries: WordingEntry[] }): R
   if (!d || d.format !== FORMAT || !Array.isArray(d.entries)) throw new Error(`not a ${FORMAT} registry`);
   return new Map(d.entries.map((e) => [e.template, e]));
 }
-/** The registry from THE copy, R2 private/feeds/dfo/wording.json (put there by `pipeline.deliver.sync_inputs`: the
- *  feeds-sync-inputs workflow on push, or deploy/staging/sync-inputs.sh). Read once per run. Missing or invalid THROWS
+/** The registry from THE copy, R2 private/feeds/dfo/wording.json (put there by `pipeline.deliver.sync_inputs` through
+ *  deploy/staging/sync-inputs.sh: the Mac, by hand or the review app after a save — T520). Read once per run. Missing or invalid THROWS
  *  (T324): the DFO job fails and is reported; nothing is typed with a registry nobody reviewed. */
 export function readRegistry(text: string | null): Registry {
   if (text === null)
-    throw new Error(`wording registry missing: no R2 private/feeds/dfo/wording.json — sync it (python -m pipeline.deliver.sync_inputs, the feeds-sync-inputs workflow) from ${REGISTRY_PATH}`);
+    throw new Error(`wording registry missing: no R2 private/feeds/dfo/wording.json — sync it (deploy/staging/sync-inputs.sh, pipeline.deliver.sync_inputs) from ${REGISTRY_PATH}`);
   try {
     return loadRegistry(JSON.parse(text));
   } catch (e) {

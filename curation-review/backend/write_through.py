@@ -69,6 +69,8 @@ class WriteThrough:
         self._worker: Optional[threading.Thread] = None
         self.domains: dict[str, dict] = {}        # domain -> {state, at, why?, files?}
         self.outcomes: dict[str, dict] = {}       # mark key -> {state, why, domain, at}
+        #: (T520) called with the files an apply wrote (the server sends a staged input to staging R2)
+        self.on_files: Optional[Callable[[list[str]], object]] = None
 
     # ------------------------------------------------------------------ entry point (after a mark is appended)
 
@@ -175,6 +177,11 @@ class WriteThrough:
                                  "why": whole or "; ".join(e["why"] for e in mine)[:2000] or None,
                                  "waiting": [e["why"] for e in events
                                              if e.get("status") == "waiting" and e.get("domain") == dom][:20]}
+        if files and self.on_files is not None:
+            try:
+                self.on_files(files)
+            except Exception:                                      # noqa: BLE001 — logged; the apply stands
+                _log.exception("write-through: the inputs sync could not be started")
         if whole or refused:
             self._log({"at": at, "domains": domains, "rc": got.get("rc"), "error": err, "took_s": took,
                        "marked": marked, "refused": refused})

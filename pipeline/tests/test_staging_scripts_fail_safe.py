@@ -52,6 +52,11 @@ def sync_tree(tmp_path):
     (tmp_path / "deploy/staging").mkdir(parents=True)
     shutil.copy(ROOT / "deploy/staging/sync-inputs.sh", tmp_path / "deploy/staging/sync-inputs.sh")
     _exe(tmp_path / ".venv/bin/python", PY_STUB)
+    # (T520) the in-season matches already resolved on LATEST: no resolve step
+    (tmp_path / "data/release").mkdir(parents=True)
+    (tmp_path / "data/release/LATEST").write_text("r-1\n")
+    (tmp_path / "data/curated/inseason").mkdir(parents=True)
+    (tmp_path / "data/curated/inseason/notice_waters.json").write_text('{"release": "r-1"}')
     return tmp_path
 
 
@@ -70,6 +75,15 @@ def test_sync_inputs_stops_on_a_failed_copy(sync_tree):
     assert "inputs in sync" not in r.stdout
     assert "sync-inputs: dfo/a.json failed" in r.stderr
     assert len((sync_tree / "rclone.log").read_text().splitlines()) == 1     # nothing after the failed one
+
+
+def test_sync_inputs_refuses_matches_that_will_not_resolve(sync_tree):
+    """(T520) matches on another release are re-resolved first; a failed resolve puts nothing."""
+    (sync_tree / "data/release/LATEST").write_text("r-2\n")
+    _exe(sync_tree / "scripts/heavy.sh", "#!/usr/bin/env bash\nexit 1\n")
+    r = _sync(sync_tree, 0)
+    assert r.returncode != 0 and "do not all resolve on r-2" in r.stderr
+    assert not (sync_tree / "rclone.log").exists()
 
 
 def test_sync_inputs_reports_a_clean_copy(sync_tree):

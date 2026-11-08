@@ -434,6 +434,11 @@ banner on the water in the app, never changes an answer.
   match lands on the file's release (per water `{all: true}` or `{ends, runs, lakes}` counts) and `match.unresolved`
   why a re-resolve could not place it. A save RESOLVES the match on the shipped release (`pipeline.regs.inseason.resolve`)
   and is refused when it does not resolve; publish only formats the file.
+  (T520, publish from the Mac only) a save also answers `sync` and starts the Mac publish path in the background —
+  `deploy/staging/sync-inputs.sh` (re-resolve if stale, publish's refusals, the STAGING put; never git); so does a
+  write-through that writes a DFO places / wording file. `GET /api/inputs/sync` → `{enabled, state: off | idle | queued |
+  running | done | failed, at, reasons, rc, took_s, output}`; a failure is also in the server log and
+  `data/generated/review/inputs-sync.jsonl`. Off on a sandboxed server (`CURATED_ROOT`); `CURATION_SYNC_INPUTS=0|1`.
 - `GET /api/inseason/items/{item_id}/splits` → `{item, splits}`: the splits.json splits on that water as
   labelled points (the `EntrySplits` shape) — the editor's split picker.
 - `GET /api/inseason/extent-preview?extent=<json>` — one `{op, item_id, splits}` or a list (a union), each
