@@ -13,6 +13,23 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-08 afternoon (chat 7, continued): gauges unfrozen; map lag = stock MapLibre; bait card rework
+
+- **Gauges were frozen (T513, DONE on staging):** 162 of 434 stations showed old readings (Capilano 0.742 vs 32.6 m³/s).
+  Cloudflare's edge cache served old ECCC CSVs to the feeds worker; source requests now bypass it. 431/434 current.
+  Production has no feeds yet — the first prod feeds deploy carries the fix.
+- **Laggy main map (T512, IN REVIEW):** Play builds 20/21 shipped stock MapLibre. `build-apk.sh --play` now refuses
+  without `MLN_LOCAL_MAVEN` (package kept in cache/maplibre/fslean-m2). Emulator: stock 60→84 ms after switches, lean
+  flat ~34 ms. Build 22 = patched; owner expects it to fix it.
+- **Share page (T487/T514):** "Open on the website" + greyed "Open in the app · coming soon" (committed; goes live with
+  the next staging site deploy). T514 = real store link at the production app release.
+- **Owner answers:** BC is on permanent daylight time (settled, never ask); production waits for the owner's DFO extent
+  labelling; the regulations audit (T462) runs after the DFO extents land.
+- **Running:** T509 Fraser part names (must not change painting/feeds/combining); T515 bait card layout (owner: the
+  "NOW · All year: bait ban · in force today" line is gross; shots to owner).
+- **Next:** T510 rule A (11 connectors, moved list to owner first), T351/T360 crash+memory session, then build 22
+  (patched) with T488 B, hint removal, T509, T511, T515. Unpushed local commits — push with T509.
+
 ## 2026-11-08 night (chat 7, continued): r-6dce77a24e6a on staging — slough names + slough gaps fixed
 - **On staging now:** r-6dce77a24e6a, 18/18 smoke. It carries T497 + T493 + T501 + T503 (and the T485 run-timing seed).
   Production is yours: `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a`, **after** you
