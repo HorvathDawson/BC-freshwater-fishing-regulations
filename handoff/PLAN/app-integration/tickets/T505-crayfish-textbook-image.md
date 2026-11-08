@@ -1,6 +1,6 @@
 # T505 — A crayfish picture in the same textbook look
 
-Status: OPEN — owner 2026-11-08.
+Status: IN REVIEW — 17ec1d9b0; owner approved the picture 2026-11-08 ("The Cray fish is good"); in the app from the next build.
 
 The fish pictures share one textbook (scientific illustration) look; the crayfish does not match. Find a crayfish
 (signal crayfish, Pacifastacus leniusculus — B.C.'s native one) illustration in the same style, with a licence that allows
@@ -22,3 +22,9 @@ photos only). The best match is a 19th-century stipple engraving, top view (turn
 Options for the owner: A as is (grey engraving among colour fish), or A tinted to a natural brown-olive (a derived
 image, still PD), or keep looking for a colour plate (European noble crayfish plates exist; wrong species).
 Shots in the session scratchpad t505/.
+
+## Done (17ec1d9b0)
+Owner picked the 1885 engraving, tinted. `signal-crayfish.webp` (code CRA, credit "Walter Faxon 1885 / FMIB", Commons),
+800×400 RGBA like the fish, thumbnail made, manifest + generated files rebuilt; the Crayfish row now shows it instead of
+the silhouette. Made by `app/tools/fish-sources/make-signal-crayfish.py` from FMIB 53513 (cut from the paper, shell
+filled, brown-olive gradient map, head left).

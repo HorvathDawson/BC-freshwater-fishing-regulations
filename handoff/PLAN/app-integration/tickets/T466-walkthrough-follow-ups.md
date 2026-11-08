@@ -32,3 +32,7 @@ Related: T456, T293, T454 (photos), T460 (steps). Size: M.
    checked `closed_all_year`; reached from the Vedder's Map with ▲ ×3, then Show regulations. None in a release: the step
    says so, the rest are passed. The salmon step no longer says "a closed fish". `WALKTHROUGH_VERSION` → walkthrough-5.
 4. Test bed `walkthrough`: 41/41 PASS, no card over its ring, example spot gone from Spots. Shots: `app/tools/testbed/out/t466/`.
+
+## Follow-up 2026-11-08 (7cb6a9871)
+The app tool guards caught two T466 leftovers: `Shell.tsx` built an `openWater` action by hand for the closed example
+(now `openWater(...)`, the one builder), and the catch counts moved with the coach measure (CoachMarks → coachScroll).
