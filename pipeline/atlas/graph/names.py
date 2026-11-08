@@ -53,8 +53,14 @@ def follow_connections(chains: list[BlkChain], fid_rows, curated_blks) -> dict[s
     endpoints) to whatever lies there — another blk with a fid endpoint at that point, of the same code. A
     named blk stops the walk and is "reached"; an unnamed one is walked through, on to its own two ends (a
     chain of unnamed pieces). When everything reached is one named water (one gnis) and not the code's
-    dominant water (`_mag`, the magnitude rule's main), the blk belongs to it. Otherwise — an end reaches
-    the main river, two different named waters, or nothing named — this returns nothing for it and the
+    dominant water (`_mag`, the magnitude rule's main), the blk belongs to it.
+
+    T510 (owner 2026-11-08, rule A: "the strawberry slough thing should apply to all"): each END is also judged
+    on its own. A CONNECTOR — one end reaches only the main river, the other only one other named water — takes
+    that other water (the channel from the Fraser into Strawberry Slough, blk 355991900; Pitt -> Widgeon
+    Slough, 355993053). An end that reaches BOTH the main river and the other water (they meet at that point)
+    says nothing, so such a channel keeps the magnitude rule. Otherwise — an end reaches two different
+    named waters, the main river at both ends, or nothing named — this returns nothing for it and the
     magnitude rule stays. Only same-code named blks count, so the answer is always one of
     the candidates the magnitude rule chose from; deterministic (sets, sorted blks, no input order).
 
@@ -96,13 +102,13 @@ def follow_connections(chains: list[BlkChain], fid_rows, curated_blks) -> dict[s
         source = max(rs, key=lambda r: (r.up_m, r.fid))
         return (mouth.down_node, source.up_node)
 
-    def _reach(blk: str) -> set[str]:
-        """The named blks reached from blk's two ends, walking through unnamed pieces and stopping at
-        named water (two pieces meeting ON the slough are not one chain). Only blk's ENDS start the walk:
-        a branch leaving its middle is that branch's business, not blk's."""
+    def _reach(blk: str, starts: tuple[str, ...]) -> set[str]:
+        """The named blks reached from `starts` (blk's two ends, or one of them), walking through unnamed
+        pieces and stopping at named water (two pieces meeting ON the slough are not one chain). Only blk's
+        ENDS start the walk: a branch leaving its middle is that branch's business, not blk's."""
         wsc = chain_of[blk].fwa_watershed_code
         seen_blk, seen_at, named = {blk}, set(), set()
-        stack = list(_ends(blk))
+        stack = list(starts)
         while stack:
             coord = stack.pop()
             if coord in seen_at:
@@ -119,16 +125,31 @@ def follow_connections(chains: list[BlkChain], fid_rows, curated_blks) -> dict[s
                     stack.extend(_ends(o))
         return named
 
+    def _water(s: BlkChain) -> tuple[str, str]:
+        return (s.gnis_id, s.gnis_name) if s.gnis_name else ("curated", s.blk)
+
     out: dict[str, BlkChain] = {}
     for blk in sorted(ends):
         wsc = chain_of[blk].fwa_watershed_code
         main = max((s for s in by_wsc[wsc] if s.gnis_name), key=_mag)
-        reached = {chain_of[n] for n in _reach(blk)}
-        waters = {(s.gnis_id, s.gnis_name) if s.gnis_name else ("curated", s.blk) for s in reached}
-        if len(waters) != 1 or (main.gnis_id, main.gnis_name) in waters or not next(iter(reached)).gnis_name:
-            continue                                        # main reached / ambiguous / nothing: magnitude rule
+        main_w = (main.gnis_id, main.gnis_name)
+        reached = {chain_of[n] for n in _reach(blk, _ends(blk))}
+        waters = {_water(s) for s in reached}
+        if len(waters) == 1 and main_w not in waters and next(iter(reached)).gnis_name:
+            take = reached                                  # T497: everything reached is one other water
+        else:
+            # T510 rule A: a connector — one end on the main river ONLY, the other on one other named water
+            # ONLY (never a curated one: curation decides those). An end on both says nothing.
+            per_end = [{_water(chain_of[n]) for n in _reach(blk, (e,))} for e in _ends(blk)]
+            other = [w for w in per_end if w != {main_w}]
+            if len(per_end) != 2 or len(other) != 1 or {main_w} not in per_end or len(other[0]) != 1:
+                continue                                    # main / ambiguous / nothing: magnitude rule
+            w = next(iter(other[0]))
+            if w[0] == "curated":
+                continue
+            take = {s for s in reached if _water(s) == w}
         # the water's representative blk: its biggest blk (blk breaks a tie), never input order
-        out[blk] = max(reached, key=lambda s: (_mag(s), s.blk))
+        out[blk] = max(take, key=lambda s: (_mag(s), s.blk))
     return out
 
 

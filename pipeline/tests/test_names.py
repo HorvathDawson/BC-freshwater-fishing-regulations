@@ -53,7 +53,7 @@ def _side(chain):
 def _lower_fraser():
     """Fraser F (main) A-B-C-D; Nicomen Slough N off it B-E-G-C. Unnamed X1 E-P and X2 P-G: a CHAIN of two
     unnamed pieces whose outer ends both land on the slough. Unnamed Y A-Q and Z Q-E: a chain from the Fraser
-    to the slough. Unnamed W R-S: touches nothing named."""
+    to the slough (a connector, T510). Unnamed W R-S: touches nothing named."""
     w = "100-0"
     chains = [_chain("F", w, gnis_id="39325", gnis_name="Fraser River", order=9, mag=9000),
               _chain("N", w, gnis_id="21105", gnis_name="Nicomen Slough", order=3, mag=40),
@@ -73,13 +73,58 @@ def test_a_chain_of_unnamed_pieces_whose_ends_land_on_the_slough_belongs_to_the_
     assert _side(by_blk["X2"]) == [("Nicomen Slough", "21105")]
 
 
-def test_an_end_on_the_main_river_or_nothing_named_keeps_the_magnitude_rule():
+def test_nothing_named_keeps_the_magnitude_rule_and_a_named_water_is_untouched():
     chains, fids = _lower_fraser()
     by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
-    assert _side(by_blk["Y"]) == [("Fraser River", "39325")]   # chain Fraser -> slough: an end on the main
-    assert _side(by_blk["Z"]) == [("Fraser River", "39325")]
     assert _side(by_blk["W"]) == [("Fraser River", "39325")]   # reaches nothing named
     assert _side(by_blk["N"]) == [("Fraser River", "39325")]   # a NAMED water is untouched by the rule
+
+
+def test_a_connector_from_the_main_river_to_one_slough_is_the_sloughs():
+    """T510 rule A (owner 2026-11-08): the chain Y-Z has one end ONLY on the Fraser and the other ONLY on
+    Nicomen Slough, so both pieces are the slough's (Strawberry Slough's connector, blk 355991900)."""
+    chains, fids = _lower_fraser()
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["Y"]) == [("Nicomen Slough", "21105")]
+    assert _side(by_blk["Z"]) == [("Nicomen Slough", "21105")]
+
+
+def test_a_channel_touching_both_waters_at_one_end_stays_with_the_main_river():
+    """T510: K runs from B, where the Fraser and the slough meet, to the slough at G. Its B end reaches both, so
+    it says nothing; one end on the slough alone is not a connector. The magnitude rule stays."""
+    chains, fids = _lower_fraser()
+    w = "100-0"
+    chains.append(_chain("K", w, mag=2))
+    fids.append(_fid("K", w, "B", "G"))
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["K"]) == [("Fraser River", "39325")]
+
+
+def test_a_channel_on_the_main_river_at_both_ends_stays_with_it():
+    chains, fids = _lower_fraser()
+    w = "100-0"
+    chains.append(_chain("L", w, mag=2))
+    fids.append(_fid("L", w, "A", "D"))
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["L"]) == [("Fraser River", "39325")]
+
+
+def test_a_connector_into_a_curated_water_is_left_to_curation():
+    """T510: Jeperson Side Channel's connectors (blk 355994564, 355992188) are curation's call, not the rule's."""
+    chains, fids = _lower_fraser()
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks={"Z"})}
+    assert _side(by_blk["Y"]) == [("Fraser River", "39325")]   # Fraser at one end, the curated Z at the other
+
+
+def test_a_connector_whose_other_end_reaches_two_waters_stays_with_the_main_river():
+    w = "100-0"
+    chains = [_chain("F", w, gnis_id="1", gnis_name="Big River", mag=900),
+              _chain("N", w, gnis_id="2", gnis_name="North Slough", mag=40),
+              _chain("S", w, gnis_id="3", gnis_name="South Slough", mag=30),
+              _chain("X", w, mag=2)]
+    fids = [_fid("F", w, "a", "y"), _fid("N", w, "b", "n"), _fid("S", w, "b", "s"), _fid("X", w, "a", "b")]
+    by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
+    assert _side(by_blk["X"]) == [("Big River", "1")]
 
 
 def test_two_different_named_waters_reached_is_ambiguous_and_falls_back():
@@ -95,14 +140,15 @@ def test_two_different_named_waters_reached_is_ambiguous_and_falls_back():
 
 def test_a_branch_off_the_middle_does_not_move_a_channel_whose_ends_are_on_the_slough():
     """Baldy Channel (Columbia) 356364764: both ends on the channel, and an unnamed branch leaving its MIDDLE
-    runs to the Columbia. The channel is judged by its own ends; the branch reaches both and falls back."""
+    runs to the Columbia. The channel is judged by its own ends. The branch has one end on the main river
+    only and the other (through C) on the slough only: a connector (T510 rule A), so it is the slough's."""
     chains, fids = _lower_fraser()
     w = "100-0"
     chains += [_chain("C", w, mag=2), _chain("BR", w, mag=2)]
     fids += [_fid("C", w, "E", "M", 0, 1), _fid("C", w, "M", "G", 1, 2), _fid("BR", w, "M", "D")]
     by_blk = {c.blk: c for c in resolve_names(chains, fids, curated_blks=())}
     assert _side(by_blk["C"]) == [("Nicomen Slough", "21105")]
-    assert _side(by_blk["BR"]) == [("Fraser River", "39325")]   # through C to the slough, and on the Fraser
+    assert _side(by_blk["BR"]) == [("Nicomen Slough", "21105")]   # through C to the slough, and on the Fraser
 
 
 def test_a_channel_curation_names_is_left_to_its_curated_water():
@@ -186,7 +232,7 @@ def lower_fraser(request):
     from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
     from pipeline.tests.conftest import need, GPKG_HINT
     need(request, "source", b._DEFAULT_GPKG, GPKG_HINT)
-    bbox = (1276000.0, 464000.0, 1316000.0, 488000.0)      # Nicomen Slough to Maria Slough
+    bbox = (1238000.0, 464000.0, 1316000.0, 490000.0)      # Widgeon Slough (Pitt) to Maria Slough
     fwa = b.FWADataAccessor(b._DEFAULT_GPKG)
     lake_kind = b.get_lake_wbk_kind(fwa, bbox)
     fids = load_stream_fids(b._DEFAULT_GPKG, bbox=bbox)
@@ -202,4 +248,13 @@ def lower_fraser(request):
 def test_a_channel_with_both_ends_on_its_slough_is_the_sloughs(lower_fraser, blk, gnis, name):
     """T497: both channels share the Fraser's watershed code; both ends sit on their slough. The magnitude
     rule filed them under the Fraser (gnis 39325) and gave them its night and steelhead closures."""
+    assert _side(lower_fraser[blk]) == [(name, gnis)]
+
+
+@pytest.mark.needs_source
+@pytest.mark.parametrize("blk, gnis, name", [("355991900", "16210", "Strawberry Slough"),
+                                             ("355993053", "27696", "Widgeon Slough")])
+def test_a_connector_from_the_main_river_is_its_sloughs(lower_fraser, blk, gnis, name):
+    """T510 rule A: an unnamed channel on the Fraser's (Pitt's) watershed code, one end only on the main river,
+    the other only on the slough. The magnitude rule filed it under the river (night + steelhead closures)."""
     assert _side(lower_fraser[blk]) == [(name, gnis)]
