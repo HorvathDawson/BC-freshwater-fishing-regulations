@@ -14,8 +14,11 @@ name: feeds — run timing (PSF + DFO) → R2 runtiming/
 #   5. build (pipeline.runtiming.feed.build) → runtiming/{runs,paint,waters}-<sha12>.json.gz + index.json, checked
 #   6. diff against the live runtiming/ (pipeline.runtiming.feed.diff): runs added / dropped / changed, in the summary
 #   7. (upload: true, and only on a real change) the files, then index.json LAST (pipeline.runtiming.feed.publish)
-# Nothing fetched is kept: the PSF pages may not be re-hosted (T162). The run's artifact is the REPORT only (counts,
-# sizes), never the data.
+# (T485, owner 2026-11-07) THE LAST GOOD SOURCES ARE KEPT, PRIVATELY: a fresh fetch (`refresh`, or no copy yet) is
+# stored at private/runtiming/src/sources.tar.gz with its fetch date (never public: the PSF pages may not be re-hosted,
+# T162); every other run builds from that copy and makes NO outside request, so an open.canada.ca outage cannot block a
+# release. The summary names the copy's date; a copy older than MAX_SRC_DAYS fails the run. The run's artifact is the
+# REPORT only (counts, sizes), never the data.
 #
 # TARGET: staging by default and, for now, ONLY staging. Production is an explicit choice that is commented out
 # below until the owner enables it (uncomment the option AND the prod secrets block; publish.py names only staging —
@@ -48,6 +51,10 @@ on:
         description: "Bind for these tiles (a release being uploaded; empty = the live release's)"
         type: string
         default: ""
+      refresh:
+        description: "Fetch the sources afresh (PSF + NuSEDS) and keep them; false = build from the kept copy"
+        type: boolean
+        default: false
   # (T412/T413) REGISTRATION ONLY: GitHub can dispatch a workflow that is not on the default branch (main stays
   # untouched) only once it has run there; a push of THIS file registers it. The job below is skipped for a push.
   push:
@@ -66,6 +73,8 @@ jobs:
       BUCKET: ${{ inputs.target == 'production' && 'bc-fishing-regulations' || 'bc-fishing-regulations-staging' }}
       UPLOAD: ${{ inputs.upload }}
       TILES_IN: ${{ inputs.tiles }}
+      REFRESH: ${{ inputs.refresh }}
+      MAX_SRC_DAYS: "400"
       AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       # OWNER (prod): replace the two lines above with
@@ -112,11 +121,25 @@ jobs:
             echo "::error::no binding base for section_handles $HANDLES: the staging upload of that release puts it there"
             exit 1; }
 
-      - name: 3/7 fetch (PSF run-timing page + CU tiles, DFO NuSEDS)
+      - name: 3/7 sources (the kept copy; fetched afresh on `refresh` or when none is kept — T485)
         run: |
-          python -m pipeline.runtiming.fetch.explorer --out "$W/src" --only run-timing
-          python -m pipeline.runtiming.fetch.boundaries --out "$W/src"
-          python -m pipeline.runtiming.fetch.nuseds --out "$W/src/dfo"
+          KEPT="s3://$BUCKET/private/runtiming/src/sources.tar.gz"
+          if [ "$REFRESH" != "true" ] && aws s3 cp "$KEPT" "$W/sources.tar.gz" --endpoint-url "$R2_ENDPOINT" --only-show-errors; then
+            tar -xzf "$W/sources.tar.gz" -C "$W"
+            AGE=$(python -c 'import datetime,sys; f=datetime.date.fromisoformat(open(sys.argv[1]).read().strip()); print((datetime.date.today()-f).days)' "$W/src/FETCHED")
+            echo "sources: the kept copy, fetched $(cat "$W/src/FETCHED") ($AGE days old)" | tee -a "$GITHUB_STEP_SUMMARY"
+            [ "$AGE" -le "$MAX_SRC_DAYS" ] || { echo "::error::the kept sources are $AGE days old (> $MAX_SRC_DAYS): run this workflow with refresh=true"; exit 1; }
+          else
+            [ "$REFRESH" = "true" ] && WHY="refresh asked" || WHY="no kept copy yet"
+            echo "sources: fetched afresh ($WHY)" | tee -a "$GITHUB_STEP_SUMMARY"
+            python -m pipeline.runtiming.fetch.explorer --out "$W/src" --only run-timing
+            python -m pipeline.runtiming.fetch.boundaries --out "$W/src"
+            python -m pipeline.runtiming.fetch.nuseds --out "$W/src/dfo"
+            date -u +%F > "$W/src/FETCHED"
+            tar -czf "$W/sources.tar.gz" -C "$W" src
+            aws s3 cp "$W/sources.tar.gz" "$KEPT" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+            echo "sources: kept at private/runtiming/src/sources.tar.gz ($(du -h "$W/sources.tar.gz" | cut -f1))" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: 4/7 parse
         run: python -m pipeline.runtiming.parse --src "$W/src" --out "$W/timing.json" --polygons "$W/cu_polygons.geojson"
