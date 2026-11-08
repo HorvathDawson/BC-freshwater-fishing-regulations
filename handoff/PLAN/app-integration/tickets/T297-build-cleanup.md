@@ -1,6 +1,6 @@
 # T297 — Build clean-up, done together with T295 (faster full rebuild) and T266 (marks → data exporter)
 
-Status: IN REVIEW (2026-11-05, T408 re-scope, 9bc734bfa) — one release command (`pipeline release --staging`, `--prod <r-id>` human-only: refuses an agent / no CONFIRM_PROD / no tty / an unchecked or changed release, then runs the existing `deliver.release.publish --yes`); the upload's app-version guard moved to `pipeline/deliver/release/app_gate.py` (upload.sh calls it); `deliver all --hold-latest` names the release in data/release/CANDIDATE so a failed check leaves LATEST untouched; runbook + build docs updated. Earlier (2026-10-31): STAGE_GRAPH (--graph), --status, --side proof runs, heavy.sh re-entrant (`build-pass-2026-10-31.md`).
+Status: DONE — proved 2026-11-08 with T295: the one release command took r-25a89ce9f8e6 to staging. Was: IN REVIEW (2026-11-05, T408 re-scope, 9bc734bfa) — one release command (`pipeline release --staging`, `--prod <r-id>` human-only: refuses an agent / no CONFIRM_PROD / no tty / an unchecked or changed release, then runs the existing `deliver.release.publish --yes`); the upload's app-version guard moved to `pipeline/deliver/release/app_gate.py` (upload.sh calls it); `deliver all --hold-latest` names the release in data/release/CANDIDATE so a failed check leaves LATEST untouched; runbook + build docs updated. Earlier (2026-10-31): STAGE_GRAPH (--graph), --status, --side proof runs, heavy.sh re-entrant (`build-pass-2026-10-31.md`).
 the optimizing it (requiring big long builds) can happen together").
 
 ## Order

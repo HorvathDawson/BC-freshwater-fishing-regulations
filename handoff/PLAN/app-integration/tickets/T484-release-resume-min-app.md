@@ -1,6 +1,6 @@
 # T484 — A resumed release forgets the min app version after its promote
 
-Status: IN REVIEW — 50c2260d9 (found 2026-11-07 releasing r-1b4f54fb6ed9). Proof pending: the next real resumed release.
+Status: DONE — proved 2026-11-08: r-25a89ce9f8e6 resumed after its promote and its checks still read min app 0.5.0. Was: IN REVIEW — 50c2260d9 (found 2026-11-07 releasing r-1b4f54fb6ed9). Proof pending: the next real resumed release.
 
 `python -m pipeline release --staging` stopped at the staging upload (branch not pushed). The rerun re-ran the checks
 with the default min app = `default_min_app(ctx.live)` (pipeline/release.py:408) — but LATEST had already moved to the

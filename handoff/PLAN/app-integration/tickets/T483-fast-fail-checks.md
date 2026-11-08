@@ -1,6 +1,6 @@
 # T483 — Fast-fail: cheap checks before (and while) long jobs
 
-Status: IN REVIEW — 50c2260d9 (script + release/APK wiring; rule AGENTS 20a cc54044cc). Proof pending: the owner's next release/APK run starts with it.
+Status: DONE — proved 2026-11-08: the release started with scripts/fast-fail.sh (all passed in 8 s). Was: IN REVIEW — 50c2260d9 (script + release/APK wiring; rule AGENTS 20a cc54044cc). Proof pending: the owner's next release/APK run starts with it.
 
 Owner 2026-11-07: builds sometimes reveal easy failures only at the end. Run the cheap checks up front, or while a
 build waits, so they fail in a minute or two. Rule: AGENTS.md 20a — every late failure a cheap check could have

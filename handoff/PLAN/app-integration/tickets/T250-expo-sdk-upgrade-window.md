@@ -1,6 +1,6 @@
 # T250 — Expo SDK / dependency upgrade window
 
-Status: IN REVIEW — SDK 58 done on the dev branch (320785434, 8b4491d6b, 1c47932e9); check green; Android, iOS simulator and web walks pass (2026-11-06); the owner's phone walk left.
+Status: DONE — owner's phone walk = the 2026-11-08 phone check on 0.6.9 (built on SDK 58), all 11 items passed. Was: IN REVIEW — SDK 58 done on the dev branch (320785434, 8b4491d6b, 1c47932e9); check green; Android, iOS simulator and web walks pass (2026-11-06); the owner's phone walk left.
 
 Source: owner 2026-10-28 — approved proposal P16 in handoff/PLAN/proposed-tickets-2026-10-28.md ("approved ALL 16").
 
