@@ -13,6 +13,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-07 night (chat 7): the goal is written down (T495); r-f56b live on staging
+- **Goal (T495):** Play closed testing ON PRODUCTION, good enough for first users. Gates: no wrong regs (T462 audit), no
+  crashes/ANRs (T351/T360), smooth map (T420 on your phone + T401/T451/T493/T494), clean first run (T478/T423/T466). The
+  website moves v1 → new before closed testing; iOS right after. You: salmon review (T164) + prod steps. Claude: the rest.
+- **Data r-f56b90ad2540** (T482 salmon fold, same bindings) is LATEST and live on staging; the staging site is rebuilt on
+  it, smoke 17 pass / 0 fail. T490 DONE. Prod (yours): `CONFIRM_PROD=r-f56b90ad2540 python -m pipeline release --prod r-f56b90ad2540`.
+- New: T494 (a web map console error), T496 (cleanup sweep). Phone push when I ask you something is on.
+
 ## 2026-11-07 evening (chat 7): /changes fixed, feeds fresh, fast-fail in
 - **/changes (T490):** lists waters whose RULES moved (rule ids + values), not wording; a wording release says "Wording
   updated on N waters" once. r-1b4f vs the live site: 17 waters changed (T468), not thousands. Staging site deploy +

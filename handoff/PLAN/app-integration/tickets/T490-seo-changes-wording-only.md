@@ -1,6 +1,6 @@
 # T490 — /changes counts a wording-only release as every water changed (over budget; staging site not deployed)
 
-Status: OPEN — found 2026-11-07 deploying the staging site for r-1b4f54fb6ed9.
+Status: DONE — 3c12dc0. /changes hashes each water's rules (ids + bound values); r-1b4f vs r-67b4: 17 rule changes + "Wording updated on 16482 waters", 4.2 KB. Staging site deployed (r-f56b90ad2540, smoke 17 pass 0 fail); the release ledger closed stage 6 on r-f56b90ad2540 (the rerun built a new release, same bindings). Old snapshot upgraded by --snapshot-only --keep-pages.
 
 `build-seo.mjs --release-dir data/release/r-1b4f54fb6ed9 --app app/dist/web-staging` stopped:
 "/changes is 154515 B gzip, over 30720". The snapshot's per-water "rules hash" moves when the WORDS move, so T475/T479/

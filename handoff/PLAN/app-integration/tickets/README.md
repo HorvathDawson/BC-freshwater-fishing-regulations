@@ -534,11 +534,13 @@ use that as the sole source of future work."
 | T487 | Share a gauge's conditions as a public page (live; 7-day gauge + forecast, weather; regs link only; generated preview card) | OPEN (future) | — | owner 2026-11-07; scope answered; not for the next chat |
 | T488 | Park borders and fill nearly invisible in light mode | OPEN | — | owner 2026-11-07; proposal with shots |
 | T489 | Lakes lose too much shape when zoomed out (tile simplification) | OPEN | — | owner 2026-11-07; ships with a tiles rebuild |
-| T490 | /changes counts a wording-only release as every water changed (154 KB > 30 KB); staging site not redeployed | OPEN | — | found 2026-11-07; blocks the staging site + release ledger stage 6 |
+| T490 | /changes counts a wording-only release as every water changed (154 KB > 30 KB); staging site not redeployed | DONE | 3c12dc0 | found 2026-11-07; blocks the staging site + release ledger stage 6 |
 | T491 | test_curation_review_screen tidal test reads live curated data; the owner's 11-06 Nanaimo mark decided it | DONE | 763bb4d | found 2026-11-07; give the test its own fixture |
 | T492 | Stream colours chosen on the GPU (per-day status lookup), after T420 | OPEN (future) | — | owner 2026-11-07; only on a measured trigger |
 | T493 | A creek shows a gap where its small lake drops out zoomed out (Foley Lake): draw the creek through, lake's status + tap | OPEN | — | owner 2026-11-07; ships with a tiles rebuild (with T489) |
 | T494 | Web map console TypeError `interpolationFactor is not a function` (paint expression binder) on 0.6.9 | OPEN | — | found 2026-11-07 by the staging smoke (warn) |
+| T495 | THE NEAR GOAL: Play closed testing on production, four gates (no wrong regs, no crashes, smooth map, clean first run) | OPEN | — | owner 2026-11-07; work this list first |
+| T496 | Cleanup sweep before launch: v1 leftovers, dead pipeline code, stale docs, old outputs | OPEN | — | owner 2026-11-07 (T495) |
 
 ## Order for open tickets
 
