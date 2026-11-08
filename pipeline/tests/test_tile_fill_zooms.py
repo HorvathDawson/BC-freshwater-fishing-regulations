@@ -40,6 +40,17 @@ def test_nicomen_a_water_hidden_between_two_drawn_pieces_of_itself_is_drawn_with
     assert out == {"top": 7, "59594": 7, "1454487": 7, "59593": 7, "bottom": 7}
 
 
+def test_nicomen_as_built_a_hidden_channel_beside_a_drawn_one_ending_at_a_dangling_piece():
+    # the T497 atlas: 1266795 (polygon, z7) -> 59599 (z7) -> 59592 (z7), and beside it 1266795 -> 59594 (z11) ->
+    # 1454487 (z11) -> 59593 (z11) -> 1454621 (polygon, z7) -> 59592. One drawn run (through 59599), but 1454621 is
+    # drawn with all its water above hidden: the slough visibly stops there
+    g = _graph(("1266795", "59599"), ("59599", "59592"), ("1266795", "59594"), ("59594", "1454487"),
+               ("1454487", "59593"), ("59593", "1454621"), ("1454621", "59592"))
+    zoom = {"1266795": 11, "59599": 7, "59592": 7, "59594": 11, "1454487": 11, "59593": 11, "1454621": 11}
+    out = fill_zooms(g, zoom, _one(*zoom), {"1266795": 7, "1454487": 11, "1454621": 7})
+    assert out["59594"] == out["1454487"] == out["59593"] == 7
+
+
 def test_camp_the_connectors_between_a_slough_s_drawn_polygons_come_in_with_them():
     # two polygons drawn from z11 (their routes later), the connectors between them z12 / z13
     g = _chain("p1", "c1", "c2", "p2")
@@ -98,7 +109,10 @@ def test_a_braid_beside_a_drawn_river_is_no_hole():
     # river ends on the map) — the river is unbroken, nothing to fill
     g = _graph(("up", "poly"), ("poly", "x"), ("x", "poly"), ("poly", "y"), ("y", "z"), ("z", "poly"))
     zoom = {"up": 6, "poly": 6, "x": 13, "y": 12, "z": 13}
-    assert fill_zooms(g, zoom, _one(*zoom)) == zoom
+    out = fill_zooms(g, zoom, _one(*zoom))
+    assert out["x"] == 13 and out["y"] == 12
+    # ...but a side channel drawn half-way (y from z12, stopping at z) is a visible stop: z comes in with y, no earlier
+    assert out["z"] == 12
     # two drawn pieces joined only through drawn water of ANOTHER item are still two runs of this one
     g = _graph(("a", "m"), ("m", "b"), ("a", "o"), ("o", "b"))
     zoom = {"a": 7, "m": 10, "b": 7, "o": 7}
