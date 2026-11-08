@@ -315,11 +315,12 @@ export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: 
           </View>)),
       ])}
       {keys.length > 0 && (
-        <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
+        // (T500) only the word and its ⓘ: the definition (k.says, the glossary's) opens from the ⓘ, not printed here
+        <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 18, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: palette.line }}>
           {keys.map((k) => (
             <Text key={k.status} style={[TYPE.meta, { color: palette.sub, marginBottom: 6 }]}>
               <Text testID={`st:${k.status}`} style={[TYPE.metaBold, { color: k.status === "release" ? palette.restricted : palette.closed }]}>{k.status}</Text>
-              {` ${k.says} `}
+              {" "}
               <TermText ids={[k.term]} palette={palette} actions={actions} />
             </Text>
           ))}
