@@ -1,6 +1,6 @@
 # T497 — Lower Fraser braids carry the Fraser's name (Nicomen Slough, Maria Slough)
 
-Status: IN REVIEW — next release (1ab627c95) — owner 2026-11-08 (phone, r-25a89ce9f8e6). Part of T495 gate 1 (no wrong regs).
+Status: IN REVIEW — next release (1ab627c95) — owner 2026-11-08 (phone, r-25a89ce9f8e6); owner accepted the moved list 2026-11-08 (on staging in r-6dce77a24e6a; production is the owner's run). Part of T495 gate 1 (no wrong regs).
 
 A section shown as "Fraser River" is a braid of Nicomen Slough; same for Maria Slough. The lowest stretch reads
 "Fraser River — stretch 1 of 2", as if a second 2-stretch Fraser water exists. Framing is right.
