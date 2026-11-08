@@ -1,15 +1,16 @@
-# More → About → Updates log (development / staging builds only).
+# Map → long-press the © credits chip → Developer card → Updates log (development / staging builds only; T476 moved it
+# out of More → About).
 appId: ca.canifishthis.app
 ---
-- tapOn: { text: "More", index: 0 }
-- scrollUntilVisible:
-    element: { text: "About" }
+- tapOn: { text: "MAP|Map", index: 0 }
+- extendedWaitUntil:
+    visible: { id: "map-credits-chip" }
     timeout: 15000
-- tapOn: { text: "About" }
-- scrollUntilVisible:
-    element: { id: "about-updates-log" }
+- longPressOn: { id: "map-credits-chip" }
+- extendedWaitUntil:
+    visible: { id: "developer-card" }
     timeout: 15000
-- tapOn: { id: "about-updates-log" }
+- tapOn: { id: "developer-tab-updates" }
 - extendedWaitUntil:
     visible: { id: "updates-log-status" }
     timeout: 15000

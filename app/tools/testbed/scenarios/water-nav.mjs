@@ -62,10 +62,13 @@ export const waterNav = {
       if (VIA !== 'open') {
         const at = await settledTarget(ctx);
         if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
+        ctx.device.screenshot(path.join(ctx.dir, `T478-before-tap.png`));   // (T478) what the tap lands on
         ctx.device.sh(`input tap ${at.x} ${at.y}`);
         // (0.5.0 drift) beside the tap: the section the probe hit there (a confluence tap
         // opened the unnamed tributary)
         const hits = [...ctx.device.logcatJs().matchAll(/\[target\] (\{.*\})/g)].map((m) => m[1]);
+        await ctx.device.sleep(2500);
+        console.log(`  opened: ${[...ctx.device.logcatJs().matchAll(/\[(?:open|tap)\] (\{.{0,260})/g)].map((m) => m[1]).join(', ') || '?'}`);
         console.log(`  tap ${at.x},${at.y} px; ${hits.length} probe line(s), the last (tapped) ${hits.at(-1) ?? '?'}; first ${hits[0] ?? '?'}`);
       }
       // the water's own screen (its view strip), and the water tapped is the one searched (not a neighbour; the search

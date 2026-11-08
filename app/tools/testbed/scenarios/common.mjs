@@ -34,7 +34,7 @@ export async function coldStart(ctx, opts) {
   return appUp(ctx, opts);
 }
 
-/** The Updates log page, open (More → About → Updates log). */
+/** The Updates log page, open (Map → long-press © → Developer card → Updates log, T476). */
 export function openLog(ctx) {
   const w = ctx.device.screenText();
   if (w.includes('Updates log') && w.includes('Check now')) return;         // already there

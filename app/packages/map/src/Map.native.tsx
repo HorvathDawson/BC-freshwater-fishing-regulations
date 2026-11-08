@@ -51,7 +51,7 @@ import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
-import { spreadSections, VISIBLE_LAYERS, visibleSections } from "./sections";
+import { spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
@@ -537,9 +537,12 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
    * points on a 24 dp grid (nearest the middle first, clear of the top bar and the bottom chrome) are hit-tested as a tap
    * would be (`renderer.press`) until one answers with a highlighted section; logged as `[target] {x, y, win}` (dp, in
    * the map view and the map's rect in the window). A scenario taps there: never a colour hunted on screen, which the
-   * "has its own regulations" lines share with the highlight.
+   * "has its own regulations" lines share with the highlight. (T478) Never a point with still water under the box as
+   * well: the search fires while the water is open and lit, and a lit river answered at a lake's tip; the scenario taps
+   * after Back, unlit, and the same point opened the lake. A tap there opening the lake is right; the target was not.
    */
   findTarget.current = async () => {
+    const STILL_WATER = TAP_GROUPS.find((g) => g.as === "lake")!.layers;
     const ids = new Set((lit.current ?? []).map(Number).filter(Number.isFinite));
     const { width: w, height: h } = size.current;
     if (!ids.size || !w || !h || !rendered.current) return;
@@ -548,7 +551,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     pts.sort((a, b) => Math.hypot(a[0] - w / 2, a[1] - h / 2) - Math.hypot(b[0] - w / 2, b[1] - h / 2));
     for (const [x, y] of pts.slice(0, 400)) {
       const hit = await renderer.press(x, y).catch(() => null);
-      if (hit && ids.has(Number(hit.id))) {
+      if (hit && ids.has(Number(hit.id)) && !(await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [...STILL_WATER] }).catch(() => [null]) ?? [null]).length) {
         console.log(`[target] ${JSON.stringify({ x, y, id: hit.id, win: winRect.current })}`);
         return;
       }
@@ -590,6 +593,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
       const ob = obstacle ? await renderer.pressObstacle(x, y) : null;
       if (ob) { obstacle!(ob); return; }
       const hit = press ? await renderer.press(x, y) : null;
+      if (probe.__openProbe) console.log(`[tap] ${JSON.stringify({ x, y, hit })}`);   // (T478) beside the [target] line
       if (hit) { press!(hit.layer, hit.id, lat, lon); return; }
       // (T292) no water under the tap: a sewage lagoon / tailings pond / dump says what it is
       const nf = notFishing ? await renderer.pressNotFishing(x, y) : null;
