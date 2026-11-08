@@ -120,6 +120,8 @@ class Owners:
         items = json.loads((build_dir / "registry.json").read_text(encoding="utf-8"))["items"]
         self.name: dict[str, str] = {}
         self.kind: dict[str, str] = {}
+        #: (T493) every water item each section is a piece of — `fill_zooms` closes holes inside ONE water only
+        self.items: dict[str, frozenset[str]] = {}
         parents = {i["part_of"] for i in items if i.get("part_of")}
         # A LAKE CUT INTO PARTS owns no section (user ruling 2026-10-03) — its whole polygon is a
         # ghost under its parts, and is NOT DRAWN: a feature nothing names and nothing colours.
@@ -131,6 +133,7 @@ class Owners:
             for sec in i.get("section_ids", []):
                 self.name.setdefault(sec, i.get("name") or "")
                 self.kind.setdefault(sec, i.get("kind") or "")
+                self.items[sec] = self.items.get(sec, frozenset()) | {i["id"]}
 
     def label(self, sec: str, node) -> str:
         """The owner's name, else (a section of no named water) the node's own label."""
@@ -183,10 +186,14 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
     _write, close = _writer(out_dir, spec)
     #: (T493) the first zoom each drawn stream-layer feature is drawn at, for the links through hidden lakes
     drawn_z: dict[str, int] = {}
+    #: (T493 reopened) the stream-layer features in write order, (section, props), written only once every zoom is
+    #: known and `fill_zooms` has closed the holes inside each water; and each stream's own polygon's first zoom
+    pending: list[tuple[str, dict]] = []
+    poly_z: dict[str, int] = {}
 
-    def write(geom: dict, props: dict, minzoom: int, sec: str) -> None:
+    def write(props: dict, minzoom: int, sec: str) -> None:
         drawn_z[sec] = max(spec.minzoom, min(minzoom, spec.maxzoom))
-        _write(geom, props, minzoom)
+        pending.append((sec, props))
 
     ul_spec = BY_NAME["under_lake"]
     ul_write, ul_close = _writer(out_dir, ul_spec)
@@ -248,9 +255,16 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
             run_z = [run_zoom[o] for ei in list(graph.up_adj.get(sec, ())) + list(graph.down_adj.get(sec, ()))
                      for e in (graph.edges[ei],)
                      for o in ((e.from_node if e.to_node == sec else e.to_node),) if o in run_zoom]
-            write(_to4326(g, tf), {"section_id": sid[sec], "name": owners.label(sec, node),
-                                   "ord": ord_},
+            write({"section_id": sid[sec], "name": owners.label(sec, node), "ord": ord_},
                   min([ladder.zoom_for_magnitude(mag, spec.minzoom)] + run_z), sec)
+            # (T493 reopened) the polygon is the river where it is drawn: its first zoom exactly as
+            # `export_waterbodies` draws it (a ghost, not-fishing water or an undrawn wetland is not drawn)
+            pl = wb_polys.get(sec)
+            p_spec = BY_NAME["wetland" if _kind(node) == "wetland" else "lake"]
+            if (pl is not None and not pl.is_empty and sec not in owners.ghosts
+                    and not getattr(node, "not_fishing", "")
+                    and (_kind(node) != "wetland" or wetland_is_drawn(sec, node, owners))):
+                poly_z[sec] = max(p_spec.minzoom, min(ladder.zoom_for_area(pl.area, p_spec.minzoom), p_spec.maxzoom))
             continue
         if _kind(node) != "stream":
             # A lake node's sidecar geometry is the route THROUGH the lake, not the lake.
@@ -282,7 +296,7 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
                     lake_z[sec] = max(lake_spec.minzoom, min(ladder.zoom_for_area(pl.area, lake_spec.minzoom),
                                                              lake_spec.maxzoom))
             continue
-        write(_to4326(g, tf), {
+        write({
             # THE HANDLE, not the string — the bundle keys every section table by it, and
             # this is the feature id the app sets state on, so the two must be the same
             # number. See pipeline/common/section_handles.
@@ -299,6 +313,14 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
             # `area:` items) — and `_writer` drops what `layers.py` does not list.
             "ord": node.stream_order,
         }, run_zoom.get(sec) or ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom), sec)
+    # (T493 reopened) NO HOLE INSIDE ONE WATER: a piece hidden at a zoom its own water is drawn at on both sides of it
+    # is drawn from that zoom (Nicomen Slough z7-z10, Camp Slough z11). Then every stream feature is written.
+    filled = fill_zooms(graph, drawn_z, owners.items, poly_z)
+    print(f"  holes filled   {sum(1 for s in drawn_z if filled[s] < drawn_z[s]):>9,}  (a piece of a water drawn "
+          "on both sides of it, T493)")
+    drawn_z = filled
+    for sec, props in pending:
+        _write(_to4326(geoms[sec], tf), props, drawn_z[sec])
     # (T493) THE CREEK THROUGH A HIDDEN LAKE: below the lake's first zoom its route is drawn in the STREAM layer under
     # the LAKE's section id, so the creek has no gap, the stretch wears the lake's status and a tap opens the lake.
     links = lake_link_zooms(graph, lake_z, drawn_z)
@@ -318,6 +340,55 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None,
           + (f"  ({dropped_routes:,} dropped: longer than "
              f"{_MAX_ROUTE_OVER_DIAGONAL:g}x their own waterbody)" if dropped_routes else ""))
     return {"stream": n, "under_lake": n_ul, LAKE_LINK: n_link}
+
+
+def fill_zooms(graph, zoom: dict[str, int], items_of: dict[str, frozenset[str]],
+               poly_z: dict[str, int] | None = None) -> dict[str, int]:
+    """(T493 reopened, 2026-11-08) {stream-layer section: its first zoom, holes closed}. Inside one water every piece
+    gets its own first zoom (a line by magnitude, a stream's own polygon's route by its neighbours, the polygon by its
+    area), so a water could break: Nicomen Slough's pieces 59594 / 1454487 / 59593 hidden z7-z10 between two z7 pieces.
+
+    A piece of water I hidden at zoom z, with drawn water OF I upstream (`up_adj`) AND downstream (`down_adj`) of it
+    — looking through hidden pieces of I, never through anything else — is drawn from z. THE SAME WATER ONLY: across
+    waters this would draw every lake-outlet creek at its river's zoom. A stream's own polygon counts as drawn from its
+    polygon's zoom (`poly_z`; its route need not be). Per zoom, two linear floods from the drawn pieces of each water,
+    one downstream and one upstream, each (piece, water) visited once per flood — a braid's loop ends (and a braid
+    leaving and rejoining one drawn piece of its water is drawn with it); repeated only when a piece of two waters
+    filled for one is new drawn water of the other, so the result is a fixed point. Zooms are only
+    ever lowered; a section in no water (`items_of`) is never filled and never walked through. Deterministic: the
+    result is a function of the sets, not of any order."""
+    poly_z = poly_z or {}
+    out = dict(zoom)
+    if not out:
+        return out
+    for z in range(min([*out.values(), *poly_z.values()]), max(out.values())):
+        def drawn(s: str) -> bool:
+            return out[s] <= z or poly_z.get(s, z + 1) <= z
+
+        def flood(adj, step) -> set[tuple[str, str]]:
+            """(hidden piece, water) reached from a drawn piece of that water, walking `adj` through hidden pieces."""
+            seen: set[tuple[str, str]] = set()
+            stack = [(s, i) for s in out if drawn(s) for i in items_of.get(s, ())]
+            while stack:
+                s, i = stack.pop()
+                for ei in adj.get(s, ()):
+                    n = step(graph.edges[ei])
+                    if n in out and not drawn(n) and i in items_of.get(n, ()) and (n, i) not in seen:
+                        seen.add((n, i))
+                        stack.append((n, i))
+            return seen
+
+        while True:
+            from_up = flood(graph.down_adj, lambda e: e.to_node)       # drawn water of I upstream of the piece
+            from_down = flood(graph.up_adj, lambda e: e.from_node)     # ...and downstream of it
+            new = {s for s, _ in from_up & from_down}
+            if not new:
+                break
+            # a piece of two waters drawn for one of them is drawn water of the other too: flood again (a second round
+            # is rare and the rounds are bounded by the pieces filled)
+            for s in new:
+                out[s] = z
+    return out
 
 
 def lake_link_zooms(graph, lake_z: dict[str, int], drawn_z: dict[str, int]) -> dict[str, int]:

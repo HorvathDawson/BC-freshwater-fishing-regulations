@@ -248,6 +248,10 @@ UP_ADJ_READERS = {
     ("pipeline/deliver/tiles/export.py", "export_streams.neighbour_weight"): "neighbour weights, one level",
     ("pipeline/deliver/tiles/export.py", "export_streams"):
         "T306: a stream polygon's side-channel run zoom, from the pieces it touches, one level",
+    ("pipeline/deliver/tiles/export.py", "lake_link_zooms.side"):
+        "T493: the drawn water either side of a lake, looking through lakes only — a drawing zoom, binds nothing",
+    ("pipeline/deliver/tiles/export.py", "fill_zooms"):
+        "T493: a hidden piece's drawn water of its OWN item up and down — a drawing zoom, binds nothing",
     ("curation-review/backend/reuse.py", "item_side_channels"): "leaves-and-rejoins test, one level",
     # the climbs: each asks `may_enter` (see WALKS above)
     ("pipeline/atlas/reach/build.py", "_stem_to_first_lake"): "may_enter",
