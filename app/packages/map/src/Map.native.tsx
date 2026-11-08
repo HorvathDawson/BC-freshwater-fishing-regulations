@@ -51,7 +51,7 @@ import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
-import { spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
+import { litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
 import { useNativeColouring, type AtlasSource } from "./native/useColouring";
@@ -289,6 +289,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   useEffect(() => {
     if (!styled || !drawn || !atlasRef.current) return;
     const h = renderer.states(() => []);
+    panProbe.src("data");
     for (const [layerId, values] of Object.entries(withoutEngineKeys(sectionData, report))) {
       try { adapter.current.setData(h, layerId, values); } catch (e) { report(e); }
     }
@@ -297,11 +298,18 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // THE SELECTION: only the highlight's keys (`selected`, and the rest of the water's `water`) are cleared, per
   // feature, from the ids lit last time
   const wasLit = useRef<SectionKey[]>([]);
+  // (T499) keyed on WHAT is lit (`litKey`), never on the arrays: the same ids in new arrays (a caller's re-render) clear
+  // nothing and light nothing — on a phone that clear and relight drew a frame with the water unlit
+  const litText = litKey(highlight, water, selection, near);
+  const litNow = useRef({ highlight, water, near });
+  litNow.current = { highlight, water, near };
   useEffect(() => {
+    const { highlight, water, near } = litNow.current;
     if (!styled || !drawn || !atlasRef.current || !highlight) return;
+    panProbe.src("lit");
     adapter.current.highlight(renderer.states(() => wasLit.current), [...highlight], [...(water ?? [])], selection, [...(near ?? [])]);
     wasLit.current = [...highlight, ...(water ?? []), ...(near ?? [])];
-  }, [highlight, water, selection, near, gen, styled, drawn, report, renderer]);
+  }, [litText, selection, gen, styled, drawn, report, renderer]);
 
   /*
    * NO QUERY BEFORE THE FIRST FULL RENDER. MapLibre Native's `queryRenderedFeatures` dereferences the renderer, which
@@ -351,6 +359,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                                 copyOnly: [...byCopy].filter((id) => !byAtlas.has(id)).sort() });
   });
   const onRendered = useCallback(() => {
+    panProbe.src("idle");               // (T499) a full render (MapLibre's "map idle")
     rendered.current = true;
     setDrawn(true);
     void reportVisible();
@@ -711,6 +720,15 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const pinKey = `${marker ? `${marker.lon},${marker.lat}` : ""}|${(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")}`;
   const pinJson = useMemo(() => pinsData(marker, pins, furniture.accent), [pinKey, furniture.accent]);  // eslint-disable-line react-hooks/exhaustive-deps
   const pinLook = useMemo(() => pinDotLayer(furniture.card), [furniture.card]);
+  // (T499, the pan probe's build) each GeoJSON source handed new data: a redraw with no camera move
+  useEffect(() => { panProbe.src("gauges"); }, [gaugeData]);
+  useEffect(() => { panProbe.src("copy"); }, [copyData]);
+  useEffect(() => { panProbe.src("me"); }, [meJson]);
+  useEffect(() => { panProbe.src("pins"); }, [pinJson]);
+  useEffect(() => { panProbe.src("spots"); }, [spotJson]);
+  useEffect(() => { panProbe.src("marks"); }, [markJson]);
+  useEffect(() => { panProbe.src("images"); }, [images]);
+  useEffect(() => { panProbe.src("style"); }, [shown]);
   return (
     <>
       <MLMap

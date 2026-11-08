@@ -7,6 +7,7 @@ import { useEffect, useRef, type MutableRefObject } from "react";
 import type { MapProps } from "../map-props";
 import type { SelectionCue } from "../paint";
 import { whenAtlas } from "./ready";
+import { litKey } from "../sections";
 import type { WebMapRefs } from "./refs";
 
 export interface Lit {
@@ -29,7 +30,13 @@ export function useHighlight({ map, renderer, adapter }: WebMapRefs,
   const wasWater = useRef<SectionKey[]>([]);
   const wasCue = useRef<SelectionCue>("outline");
   const wasNear = useRef<SectionKey[]>([]);
+  // (T499) keyed on WHAT is lit (`litKey`), never on the arrays: the same ids in new arrays (a caller's re-render) are
+  // not cleared and lit again (the native map drew a frame unlit between the two; here it is redundant work)
+  const lit = litKey(highlight, water, selection, near);
+  const litNow = useRef({ highlight, water, near });
+  litNow.current = { highlight, water, near };
   useEffect(() => {
+    const { highlight, water, near } = litNow.current;
     const m = map.current, r = renderer.current;
     if (!m || !r || !highlight) return;
     // `whenAtlas`: feature-state needs the atlas source and nothing else. Not `once("load")` (a search lights a water
@@ -46,6 +53,6 @@ export function useHighlight({ map, renderer, adapter }: WebMapRefs,
       wasCue.current = selection;
     };
     return whenAtlas(m, apply);
-  }, [highlight, water, selection, near]);
+  }, [lit, selection]);
   return { wasLit, wasWater, wasCue, wasNear };
 }

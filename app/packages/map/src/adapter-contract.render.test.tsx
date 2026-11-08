@@ -290,6 +290,18 @@ describe.each(Object.entries(PLATFORMS))("the map adapter contract: %s", (_name,
       ...selected(311274, false), ...water(1235781, false), ...selected(1235781, true), ...water(311274, true)].sort()));
   });
 
+  it("(T499) the same highlight handed again in NEW arrays (a caller's re-render) writes nothing: no frame unlit", async () => {
+    const r = render(<P.Map {...base({ data: undefined, highlight: [311274], water: [1235781], near: [1566515], selection: "dim" })} />);
+    await waitFor(() => expect(atlasLog().some((x) => x.includes('{"part":true}'))).toBe(true));
+    await act(async () => { await new Promise((d) => setTimeout(d, 50)); });
+    log.length = 0;
+    for (let i = 0; i < 3; i++)
+      r.rerender(<P.Map {...base({ data: undefined, highlight: [311274], water: [1235781], near: [1566515], selection: "dim" })} />);
+    await act(async () => { await new Promise((d) => setTimeout(d, 50)); });
+    // before T499 each re-render cleared every lit key (null writes on a phone) and set it again: the Fraser's blink
+    expect(atlasLog()).toEqual([]);
+  });
+
   it("P15: a boundary mark is a finger-sized button with its label, and a tap names it", async () => {
     const press = vi.fn();
     render(<P.Map {...base({ data: undefined, onPressMark: press, marks: [
