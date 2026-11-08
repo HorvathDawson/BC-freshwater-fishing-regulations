@@ -1,7 +1,9 @@
 """The curation-review tool is SAFE to sit a reviewer in front of (T96, curation-review/PLAN.md Phase 0).
 
   no process    no endpoint starts a subprocess: the in-app "Rebuild graph" / "Promote" started an
-                18-minute, 9 GB atlas build outside `scripts/heavy.sh`, beside the review buttons
+                18-minute, 9 GB atlas build outside `scripts/heavy.sh`, beside the review buttons; ONE named exception
+                (T520, owner 2026-11-08: publish from the Mac only): `inputs_sync.py` runs
+                deploy/staging/sync-inputs.sh — staging only, never git, never a build
   not exposed   Vite binds 127.0.0.1 only and the backend's CORS admits only the Vite origin (it
                 was `host: true` and CORS `*`, with no authentication, on an editor that writes the
                 curated catalogue)
@@ -105,7 +107,11 @@ def test_no_endpoint_starts_a_process(env):
     assert [p for p in paths if "rebuild" in p or "promote" in p] == []
     spawners = [x for py in sorted(BACKEND.glob("*.py"))
                 for x in _spawners(py.read_text(encoding="utf-8"), py.name)]
-    assert spawners == []
+    # (T520) the one exception: the Mac publish path after a saved input, the staging script and nothing else
+    assert spawners == ["inputs_sync.py: import subprocess"]
+    src = (BACKEND / "inputs_sync.py").read_text(encoding="utf-8")
+    assert src.count("subprocess.run(") == 1 and '"deploy" / "staging" / "sync-inputs.sh"' in src
+    assert "git" not in re.sub(r"#.*|\"\"\"[\s\S]*?\"\"\"", "", src)
     assert not (BACKEND / "rebuild.py").exists()
     assert not (TOOL / "frontend" / "src" / "components" / "RebuildButton.tsx").exists()
 

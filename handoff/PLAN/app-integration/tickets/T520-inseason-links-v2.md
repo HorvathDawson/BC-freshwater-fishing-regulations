@@ -1,6 +1,11 @@
 # T520 — In-season links/2: section-exact FWA ranges, content ids, one check place, GitHub sync fixed
 
-Status: OPEN — designed 2026-11-08 from a fresh audit (coordinator; owner asked for the audit: "it feels fragile").
+Status: IN REVIEW — ece44d1f3, 46ce5a22d, fd09e65af (+ the ticket commit). Proof pending: the owner's look at shots/T520-*.png and the next APK
+(the device half ships with it). The 32 notices cover exactly today's sections (diff against the live places, r-6dce77a24e6a:
+0 differences); staging: links/2 synced, feeds worker deployed, feed reads matched 32 / unmatched 0. Owner 2026-11-08 change
+of plan: publish from the Mac only — the GitHub workflow is DELETED (not fixed); the review app runs
+deploy/staging/sync-inputs.sh after a save. Notes: a river's lake pieces (no line) ride as `lakes` places (Fraser, a
+Similkameen trib); the map outlines covered sections in the attention ink.
 Carries T518 (exact sections + ends on the page).
 
 ## Why (audit 2026-11-08, verified on code + live staging)

@@ -562,9 +562,9 @@ use that as the sole source of future work."
 | T515 | Bait rule card: one heading line ("No natural bait — all year" / season + status), no NOW-chip repeat | DONE | f44ef545a | owner 2026-11-08 |
 | T516 | "Handling fish" reference moved to the bottom of the regulation page (after Licence) | IN REVIEW — next APK | b7ce44b40 | owner 2026-11-08 |
 | T517 | One part per connected run of same-rule sections (river order, place key, paint + salmon sync check, size flat) | OPEN — paused for audits | — | owner 2026-11-08 |
-| T518 | In-season notice shows on exactly the sections it covers (its own ends + map highlight), not its whole part | OPEN — after T517 | — | owner 2026-11-08 |
+| T518 | In-season notice shows on exactly the sections it covers (its own ends + map highlight), not its whole part | IN REVIEW — next APK | ece44d1f3, 46ce5a22d, fd09e65af | carried by T520; shots/T520-*.png |
 | T519 | Fraser exit reads Morey Channel (own side channel) since T497; T59 rule regressed | OPEN — with T517 rebuild | — | T517 lane 2026-11-08 |
-| T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, GitHub sync fixed (carries T518) | OPEN | — | audit 2026-11-08 |
+| T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, publish from the Mac only (workflow deleted; carries T518) | IN REVIEW — owner look at shots, next APK | ece44d1f3, 46ce5a22d, fd09e65af | staging live (32/32 matched); owner: GitHub R2 secrets (OWNER-TODO) |
 
 ## Order for open tickets
 

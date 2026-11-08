@@ -1,6 +1,6 @@
 # T518 — An in-season notice shows on exactly the sections it covers, not its whole part
 
-Status: OPEN — carried by T520 (links/2 gives section-exact coverage; no longer waits for T517); owner 2026-11-08.
+Status: IN REVIEW — carried by T520 (ece44d1f3, 46ce5a22d, fd09e65af): banner says "Where: <ends>", the water map outlines exactly the covered sections; shots/T520-*.png light + dark (Fraser part 2, Pitt part 0). Proof pending: the next APK.
 
 Owner 2026-11-08: "Shouldnt we make it only go on the parts it covers?" (5 notices end partway through a part, e.g. the
 Fraser part 2 notice covers 25 of 28 sections; today the page shows the banner flagged "on part of this stretch").
