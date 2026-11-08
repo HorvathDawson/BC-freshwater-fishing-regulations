@@ -1,6 +1,6 @@
 # T494 — Web map console error: `this.expression.interpolationFactor is not a function`
 
-Status: DONE — HASH; staging redeployed 2026-11-08 (index-a72c2148): Map ⇄ Conditions ⇄ Runs, 0 console errors.
+Status: DONE — 04ead70fd; staging redeployed 2026-11-08 (index-a72c2148): Map ⇄ Conditions ⇄ Runs, 0 console errors.
 
 `TypeError: this.expression.interpolationFactor is not a function at Ca.setUniform` (maplibre-gl-js
 ProgramConfiguration). That call is made by a COMPOSITE expression binder: a paint property built as zoom+data
