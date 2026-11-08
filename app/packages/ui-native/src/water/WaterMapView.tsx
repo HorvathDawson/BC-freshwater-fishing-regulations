@@ -28,6 +28,8 @@ import { Icon } from "../icons";
 import { useTestbedFlag } from "../testbedFlag";
 import { TYPE } from "../type";
 import { SPACE, type Palette } from "../theme";
+import { useCoachTarget } from "../CoachMarks";
+import { useGuideControl } from "../guideControls";
 
 /** The map's own props: everything the water map does not decide. */
 export type WaterMapMapProps = Omit<ComponentProps<typeof MapScreen>,
@@ -74,6 +76,16 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   // `receiving` switch draws it grey too, for the owner's pick between the two (shots in app/tools/testbed/out/t459/)
   const receivingKept = useTestbedFlag("receiving", true);
   const near = receivingKept ? wm.value?.receiving : undefined;
+  // (T466) the walkthrough's closed example is reached with ▲ and opened with "Show regulations": its "Show me" presses
+  // them as the reader's tap does (the same handlers), and it rings them
+  const step = (dir: "up" | "down") => {
+    const st = vm?.[dir];
+    if (!st || st.disabled) return;
+    if (st.cross) onCross(st.cross.item as ItemId, st.cross.part); else act({ type: dir });
+  };
+  useGuideControl(vm ? "map:up" : null, vm ? !vm.up.disabled : false, () => step("up"));
+  useGuideControl(vm ? "map:regs" : null, true, () => { if (vm) onShowRegs(vm.regs.item as ItemId, vm.regs.partIx); });
+  const regsRing = useCoachTarget("map:regs");
   const status = store.error || wm.error ? WATER_MAP_WORDS.unavailable
     : wm.state === "loading" || store.state === "loading" ? WATER_MAP_WORDS.loading
     : vm === null ? WATER_MAP_WORDS.unavailable : null;
@@ -126,10 +138,10 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
             <View style={{ flexDirection: "row", gap: SPACE.s2, marginTop: 10 }}>
               {([["down", vm.down], ["up", vm.up]] as const).map(([dir, st]) => (
                 <Step key={dir} dir={dir} palette={palette} label={st.label} aria={st.aria} disabled={st.disabled}
-                      onPress={() => (st.cross ? onCross(st.cross.item as ItemId, st.cross.part) : act({ type: dir }))} />
+                      onPress={() => step(dir)} />
               ))}
             </View>
-            <Pressable onPress={() => onShowRegs(vm.regs.item as ItemId, vm.regs.partIx)} accessibilityRole="button"
+            <Pressable ref={regsRing} onPress={() => onShowRegs(vm.regs.item as ItemId, vm.regs.partIx)} accessibilityRole="button"
                        accessibilityLabel={vm.regs.label} testID="water-map-regs"
                        style={{ minHeight: 52, marginTop: 8, alignItems: "center", justifyContent: "center",
                                 backgroundColor: palette.accent }}>
@@ -227,8 +239,9 @@ function Step({ dir, palette, label, aria, disabled, onPress }: {
 }) {
   // (T186, Q162) the way's chevron is the icon set's — up `collapse`, down `expand` — beside the words, never a typed
   // ▲ / ▼; an end ("Lowest part") goes nowhere and draws none
+  const ring = useCoachTarget(dir === "up" ? "map:up" : undefined);   // (T466) the walkthrough's "Walk upstream"
   return (
-    <Pressable onPress={disabled ? undefined : onPress} disabled={disabled} accessibilityRole="button"
+    <Pressable ref={ring} onPress={disabled ? undefined : onPress} disabled={disabled} accessibilityRole="button"
                accessibilityLabel={aria} aria-disabled={disabled}
                style={{ flex: 1, minWidth: 0, minHeight: 52, alignItems: "center", justifyContent: "center",
                         flexDirection: "row", gap: 4,

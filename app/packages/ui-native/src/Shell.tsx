@@ -58,6 +58,7 @@ import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
 import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, CoachItemContext, useCoachRegistry } from "./CoachMarks";
 import { GuideControlContext, useGuideControlHost } from "./guideControls";
+import { useGuideClosed } from "./guideClosed";
 import { part, preloadParts } from "./part";
 import { LoadingState } from "./LoadingState";
 import { windowSize } from "./windowSize";
@@ -354,6 +355,17 @@ export function Shell(p: ShellProps) {
   const onMapTab = route.mode === "browse" && tab === "map" && !rail.picking;
   const [guideWanted, setGuideWanted] = useState(false);
   const guideWater = useGuideWater(source, guideWanted);
+  // (T466) the part closed all year the walk walks up to (none in this release: the walk says so), and the walk's pin
+  const guideClosed = useGuideClosed(source, loader, guideWanted);
+  const [guidePin, setGuidePin] = useState<{ lat: number; lon: number; sid?: number } | null>(null);
+  useEffect(() => {
+    if (!guideWater || !source.waterPoint) return;
+    let live = true;
+    void source.waterPoint(guideWater.item as ItemId).then((at) => { if (live) setGuidePin(at); }).catch(reportFailure);
+    return () => { live = false; };
+  }, [source, guideWater]);
+  // (T466) the example spot the walk made (its id), and what became of it at the end: removed, or kept (it could not be)
+  const [example, setExample] = useState<{ id: string; state: "removed" | "kept" | null } | null>(null);
   const picked = searchMemory.pick.selected;
   // the layers as the reader had them when the walk reached its Layers steps: put back at the last of them (or a skip)
   const groundNow = col.layers.ground.tiles.find((t) => t.chosen)?.id ?? "";
@@ -364,8 +376,11 @@ export function Shell(p: ShellProps) {
   const guideFacts: GuideFacts = {
     water: guideWater, searching, query: searchMemory.q,
     selected: picked?.kind === "water" ? picked.item : null,
-    open: frame ? { item: frame.item, view: frame.view } : null,
+    open: frame ? { item: frame.item, view: frame.view, part: frame.part } : null,
     adding: adding !== null, viewing: openSpot, spots: spots.length,
+    closed: guideClosed, example: example?.state ?? null,
+    spotsTab: route.mode === "browse" && tab === "spots" && adding === null && openSpot === null && !searching,
+    picking: rail.picking, dropped: route.mode === "browse" && rail.drop !== null,
     layersOpen, ground: groundNow, obstacles: obstaclesNow, layersWas,
     onMap: tab === "map" && frame === null && !searching && adding === null && openSpot === null && !rail.picking,
     dayPicked: mapDay !== null, controls: guideCtl.values,
@@ -408,16 +423,37 @@ export function Shell(p: ShellProps) {
     view: (v) => go({ type: "view", view: v }),
     addSpot: () => {
       go({ type: "close" });
-      if (!guideWater) { go({ type: "addSpot" }); return; }
       // the pin ON the water: its own line's point nearest the middle of it (`waterPoint`); none known, no pin
-      void (source.waterPoint?.(guideWater.item as ItemId) ?? Promise.resolve(null)).catch(() => null)
-        .then((at) => go({ type: "addSpot", at }));
+      go({ type: "addSpot", at: guidePin ? { lat: guidePin.lat, lon: guidePin.lon } : null });
     },
     cancelAdd: () => { if (adding) go({ type: "back" }); },
     toSpots: () => go({ type: "tab", tab: "spots" }),
     openSpot: () => {
       const newest = [...spots].sort((a, b) => b.createdAt - a.createdAt)[0];
       if (newest) go({ type: "openSpot", id: newest.id as never });
+    },
+    openClosed: (v) => {
+      if (!guideClosed) return;
+      if (searching) { go({ type: "search", open: false }); search.searchType(""); }
+      go({ type: "openWater", item: guideClosed.item as ItemId, part: guideClosed.part, view: v });
+    },
+    // (T466) adding a spot, the reader's way: the Spots tab's Pick on the map, the pin on the walk's water, Continue
+    pickOnMap: () => rail.pick(),
+    dropPin: () => { if (guidePin) rail.pressLong(guidePin.lat, guidePin.lon); },
+    continueDrop: () => rail.continueDrop(),
+    capturePick: () => { if (guidePin?.sid !== undefined) guideCtl.set("capture", { pick: guidePin.sid }); },
+    showSpot: () => {
+      const s = spots.find((x) => x.id === openSpot);
+      if (!s) return;
+      camera.current = { lon: s.lon, lat: s.lat, zoom: 14 };
+      rail.show(s);
+    },
+    removeExample: () => {
+      const ex = example;
+      if (!ex || ex.state !== null || !p.onDeleteSpot) return;
+      if (openSpot === ex.id) go({ type: "back" });
+      void Promise.resolve(p.onDeleteSpot(ex.id)).then(() => setExample({ ...ex, state: "removed" }),
+        (e: unknown) => { reportFailure(e); setExample({ ...ex, state: "kept" }); });
     },
     openLayers: () => {
       go({ type: "close" }); if (tab !== "map") nav.toTab("map");
@@ -449,7 +485,7 @@ export function Shell(p: ShellProps) {
   // the walk left (skipped, or Back out of it) mid-Layers: the layers go back as they were
   useEffect(() => { if (!guide.open && layersWas) restoreLayers(); }, [guide.open]);   // eslint-disable-line react-hooks/exhaustive-deps
   // from the start, on the Map tab, with no water open and nothing typed in search
-  const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); guide.reopen(); };
+  const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); setExample(null); guide.reopen(); };
   // (T276, T293) the mode hints — Runs, the Conditions map, Salmon: on a mode's first use, after the notice and the
   // walkthrough; More → Help replays each
   const tabBusy = firstRun.open || guide.open || guide.pending || searching;
@@ -485,6 +521,8 @@ export function Shell(p: ShellProps) {
     if (k === "salmon") { nav.toTab("map"); col.setRegsLayer("salmon"); salmonTour.reopen(); return; }
     nav.toTab(k); (k === "runs" ? runsTour : condTour).reopen();
   };
+  /** (T466) the drop sheet (a pin down, Continue to come) is up: the card goes in its window */
+  const dropUp = route.mode === "browse" && rail.drop !== null;
   /** the walkthrough's card, over whatever is on screen (a spot and the capture included) */
   const guideCard = (
     <GuideCard guide={guide} facts={guideFacts} acts={guideActs} palette={palette} registry={coach}
@@ -537,7 +575,12 @@ export function Shell(p: ShellProps) {
                    onCancel={back}
                    // awaited: a rejection reaches SpotCapture, which shows it and stays open (P01)
                    // saved: the spot itself, over the map it was added from (back returns to that map)
-                   onSaved={async (s) => { await onSaveSpot(s); go({ type: "openSpot", id: s.id }); }} />
+                   onSaved={async (s) => {
+                     await onSaveSpot(s);
+                     // (T466) made on the walk's spot steps: the example spot, removed as the walk ends (and said)
+                     if (guide.open && GUIDE_STEPS[guide.at]?.phase === "spot") setExample({ id: s.id, state: null });
+                     go({ type: "openSpot", id: s.id });
+                   }} />
     ));
 
   // (T369 D8) a new release applied with a water open: the water says it is updating while it is carried to the same
@@ -687,6 +730,8 @@ export function Shell(p: ShellProps) {
                  }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo} source={source}
                    mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState}
+                   // (T466) the drop sheet is its own window: the walk's card is drawn in it while it is up
+                   dropOverlay={dropUp && guide.open ? guideCard : undefined}
                    // (T352) where the map was looking, read at this render (a report freezes it when it opens): the water's
                    // own map while it is in front, else the browse map's
                    camera={frame?.view === "map" ? waterCamera.current ?? camera.current : camera.current} />
@@ -704,7 +749,7 @@ export function Shell(p: ShellProps) {
       <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} onStep={onCondStep} />
       <TabTourSheet tour={salmonTour} which="salmon" palette={palette} registry={coach} />
       <TabTourSheet tour={locateTour} which="locate" palette={palette} registry={coach} />
-      {!layersOpen && guideCard}
+      {!layersOpen && !(dropUp && guide.open) && guideCard}
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />

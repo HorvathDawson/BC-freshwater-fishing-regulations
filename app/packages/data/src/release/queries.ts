@@ -80,7 +80,7 @@ export const CROSS = {
     "SELECT ord FROM item WHERE item_id = ?1 UNION ALL SELECT ord FROM item WHERE part_of = ?1" },
   /** geo: the parts' boxes, integer microdegrees (`part_geo`'s primary key is (ord, part_ix)). */
   PART_GEO_FOR_ORDS: (n: number) => ({ file: "geo", sql:
-    `SELECT w, s, e, n, mid_lon, mid_lat FROM part_geo WHERE ord IN (${ids(n)})` }),
+    `SELECT w, s, e, n, mid_lon, mid_lat, mid_sid FROM part_geo WHERE ord IN (${ids(n)})` }),
   ORDS_FOR_ITEMS: (n: number) => ({ file: "core", sql: `SELECT ord, item_id FROM item WHERE item_id IN (${ids(n)})` }),
   ITEMS_FOR_ORDS: (n: number) => ({ file: "core", sql:
     "SELECT ord, item_id, name, kind, area_ha, size, pieces, gauged, has_rows FROM item " +

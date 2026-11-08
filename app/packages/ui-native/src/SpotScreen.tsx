@@ -45,6 +45,7 @@ import { SpotPhotos } from "./spot/SpotPhotos";
 import { RateBlock, VisitsBlock } from "./spot/Visits";
 import { ParkingBlock } from "./spot/Parking";
 import { hitProps } from "./regs/hit";
+import { CoachSpot } from "./CoachMarks";
 
 
 export type SpotMode = "draft" | "view" | "edit";
@@ -246,10 +247,13 @@ export function SpotScreen(p: SpotScreenProps) {
                                            paddingBottom: 40, ...MEASURE_NOW }}>
         <View style={{ gap: 4 }}>
           {editable && p.onTitle ? (
+            // (T466) the walkthrough's "Name it" rings the name (a draft's)
+            <CoachSpot k={mode === "draft" ? "capture:title" : "spot:title"}>
             <TextInput value={p.title ?? ""} onChangeText={p.onTitle}
                        placeholder={W.name} placeholderTextColor={palette.faint}
                        accessibilityLabel={W.name}
                        style={{ ...TYPE.title, color: palette.ink }} />
+            </CoachSpot>
           ) : (
             <Text style={{ ...TYPE.title, color: palette.ink }}>{spotLabel(spot)}</Text>
           )}
@@ -285,6 +289,8 @@ export function SpotScreen(p: SpotScreenProps) {
         )}
 
         {p.onShowOnMap && (
+          // (T466) the walkthrough's "On the map" rings it
+          <CoachSpot k="spot:show">
           <Pressable {...hitProps({ w: 120, h: 44 })} onPress={p.onShowOnMap} accessibilityRole="button"
                      accessibilityLabel={W.showOnMap}
                      style={{ flexDirection: "row", alignItems: "center", gap: 10,
@@ -295,6 +301,7 @@ export function SpotScreen(p: SpotScreenProps) {
             </Text>
             <Icon name="next" colour={palette.accent} size={18} />
           </Pressable>
+          </CoachSpot>
         )}
 
         {/* (T310) where to park: the spot's own, not a visit's */}
@@ -325,8 +332,11 @@ export function SpotScreen(p: SpotScreenProps) {
         // every screen; this row had a second Back / Cancel beside Save, the same action offered twice
         <View style={{ flexDirection: "row", gap: 10, padding: 16, borderTopWidth: 1,
                        borderTopColor: palette.line }}>
-          <Button palette={palette}
-                  label={mode === "draft" ? W.save : W.saveChanges} onPress={p.onSave} />
+          {/* (T466) the walkthrough's "Save it" rings a draft's Save */}
+          <CoachSpot k={mode === "draft" ? "capture:save" : "spot:save"} style={{ flex: 1 }}>
+            <Button palette={palette}
+                    label={mode === "draft" ? W.save : W.saveChanges} onPress={p.onSave} />
+          </CoachSpot>
         </View>
       )}
     </View>

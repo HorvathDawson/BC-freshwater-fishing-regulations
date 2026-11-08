@@ -20,7 +20,9 @@
 import { ACCESS_WORDS } from "./access";
 import { CONDITIONS_WORDS, HORIZON_LABELS, HORIZON_PICK } from "./conditions";
 import { GLANCE_WORDS } from "./glance";
-import { MAP_RAIL } from "./mapRail";
+import { MAP_RAIL, SPOT_DROP, SPOTS_MENU } from "./mapRail";
+import { SPOT_CAPTURE_WORDS, SPOT_WORDS } from "./spotWords";
+import { WATER_MAP_WORDS } from "./waterNav";
 import { WATER_VIEW_LABEL } from "./waterViews";
 import { FRESHNESS_WORDS, type SourceFreshness } from "./menu/freshness";
 import { MENU_WORDS } from "./menu/words";
@@ -36,7 +38,7 @@ import { NOT_FISHING_WORDS } from "./notFishing";
  * Stored on a device that has seen, or skipped, the walkthrough. Bump to show it again after a rewrite (T257: the tour;
  * T293: the one guided walkthrough on a real water, which every device sees once).
  */
-export const WALKTHROUGH_VERSION = "walkthrough-4";
+export const WALKTHROUGH_VERSION = "walkthrough-5";
 
 /** Has this device seen the current walkthrough? (the stored text is the version it saw) */
 export const walkthroughSeen = (stored: string | null | undefined): boolean => seenIn(stored, WALKTHROUGH_VERSION);
@@ -83,7 +85,11 @@ export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "t
   | "regs:salmon" | "regs:trout" | "regs:rule" | "regs:ruleline" | "regs:both"
   | "cond:headline" | "cond:horizons" | "cond:reading" | "cond:quantity" | "cond:span" | "cond:chart"
   | "spot:days" | "spot:best"
-  | "locate" | "layers" | "layers:ground" | "layers:obstacles";
+  | "locate" | "layers" | "layers:ground" | "layers:obstacles"
+  // (T466) the water's Map view (its ▲ and "Show regulations"), and each step of adding a spot
+  | "view:map" | "map:up" | "map:regs"
+  | "spots:pick" | "spot:pick" | "spot:drop" | "capture:water" | "capture:when" | "capture:title" | "capture:save"
+  | "spot:show";
 
 export interface WalkthroughCard {
   readonly key: string;
@@ -103,7 +109,7 @@ export interface WalkthroughCard {
  * `{water}` in a title or body is the chosen water's name, `{letters}` the first letters to type (`guideText`). The
  * spot steps say "a day you fished here", never "your visit" alone, so they hold when a spot keeps several visits (T294).
  */
-export type GuidePhase = "find" | "rules" | "conditions" | "layers" | "spot" | "days" | "end";
+export type GuidePhase = "find" | "rules" | "conditions" | "closed" | "layers" | "spot" | "days" | "end";
 export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
   readonly phase: GuidePhase;
   readonly kind: "show" | "do";
@@ -121,16 +127,32 @@ export interface GuideStepWords extends Omit<WalkthroughCard, "targets"> {
    * drawn on this water is passed, never shown pointing at nothing.
    */
   readonly optional?: boolean;
+  /**
+   * (T466) A step about the closed example (`GUIDE_CLOSED`). The release has none: the first such step says so (its words
+   * become `WALKTHROUGH_WORDS.closedNone`, nothing ringed) and the rest are passed — skipped and said, never faked.
+   */
+  readonly closed?: boolean;
 }
 
 /** The water the walkthrough uses: a well-known one, found by name in the release; any water stands in without it. */
 export const GUIDE_WATER = { name: "Vedder River", kind: "stream", letters: "ved" } as const;
 
+/**
+ * (T466, owner 2026-11-06: "how would it work when salmon regs are added and they aren't closed anymore? Maybe it could
+ * navigate sections up to an ecological zone that is always closed?") THE CLOSED EXAMPLE: a part closed ALL YEAR
+ * (`part.closed_all_year`), so no season can open it — the Chilliwack's part from 100 m below the Slesse Creek
+ * confluence up to the Chilliwack River Ecological Reserve. The Vedder goes on upstream as the Chilliwack
+ * (`water_continue`), so the reader walks to it with ▲ from the walk's own water. Found by its water's name and the
+ * part's own run on its blue line — stream key `blk`, starting at metre `from` (`part_line`) — never by a raw id (rule
+ * 46). A release where that run is not a part closed all year has no example: the step says so.
+ */
+export const GUIDE_CLOSED = { name: "Chilliwack River", kind: "stream", blk: 380887781, from: 23325 } as const;
+
 const step = (key: string, phase: GuidePhase, kind: "show" | "do", targets: readonly WalkthroughTarget[], title: string,
-              body: string, more: Pick<GuideStepWords, "dock" | "names" | "optional"> = {}): GuideStepWords =>
+              body: string, more: Pick<GuideStepWords, "dock" | "names" | "optional" | "closed"> = {}): GuideStepWords =>
   ({ key, phase, kind, targets, title, body, ...more });
 
-const V = WATER_VIEW_LABEL, C = CONDITIONS_WORDS, H = HORIZON_LABELS;
+const V = WATER_VIEW_LABEL, C = CONDITIONS_WORDS, H = HORIZON_LABELS, CW = SPOT_CAPTURE_WORDS;
 
 /*
  * (T456, owner 2026-11-06: "make it actually show the use and make sure it doesn't cover items … show examples of how to
@@ -161,8 +183,9 @@ const GUIDE_STEPS: readonly GuideStepWords[] = [
   step("rule", "rules", "show", ["regs:rule", "regs:ruleline"], "How to read a rule",
     "The big words are how many you may keep in a day, and where that counts. The lines under say which fish. The "
     + "Rule book link opens the page it comes from: the book has the final say.", { names: ["Rule book"], optional: true }),
-  step("salmon", "rules", "do", ["regs:salmon"], "A closed fish",
-    `Closed means you may not fish for it here that day, not even to let it go. Tap ${GLANCE_WORDS.show} beside Salmon to see why.`,
+  // (T466) no longer "a closed fish": salmon rules change with the season (the closed example is the "closed" phase)
+  step("salmon", "rules", "do", ["regs:salmon"], "Salmon rules",
+    `Tap ${GLANCE_WORDS.show} beside Salmon to read this water's salmon rules.`,
     { names: [GLANCE_WORDS.show, "Salmon"], optional: true }),
   step("both", "rules", "show", ["regs:both"], "Both rules hold",
     "Salmon rules come from the federal fisheries office, the rest from the province's rule book. Where both have a "
@@ -189,6 +212,18 @@ const GUIDE_STEPS: readonly GuideStepWords[] = [
   step("change", "conditions", "show", ["cond:chart"], "What it means for fishing",
     "A river rising after rain is often high and muddy. As it drops and clears, fishing often gets better. Very high "
     + "water can be unsafe to wade. Use it as a guide, not a promise."),
+  // (T466) A PART CLOSED ALL YEAR (`GUIDE_CLOSED`), reached the way a reader gets there: the water's Map, ▲ part by part
+  step("partsmap", "closed", "do", ["view:map"], "A stretch closed all year",
+    `Some places are closed all year, whatever the season. Tap ${V.map} to walk up the river and find one.`,
+    { names: [V.map], closed: true }),
+  step("upstream", "closed", "do", ["map:up"], "Walk upstream",
+    `Tap ${WATER_MAP_WORDS.up} to go up the river one stretch at a time, until you reach “{closedPart}”.`,
+    { names: [WATER_MAP_WORDS.up], closed: true }),
+  step("closedregs", "closed", "do", ["map:regs"], "Open its rules",
+    `Tap ${WATER_MAP_WORDS.regs} to read it.`, { names: [WATER_MAP_WORDS.regs], closed: true }),
+  step("closed", "closed", "show", ["regs:answer"], "Closed all year",
+    "This stretch is closed every day of the year. You may not fish here at all, not even to let fish go. No season "
+    + "changes that.", { closed: true }),
   step("leave", "conditions", "do", ["water:back"], "Back to the map",
     `Tap ${V.map} at the top left to go back to the map.`, { names: [V.map] }),
   step("layers", "layers", "do", ["layers"], "Change what the map shows",
@@ -200,13 +235,29 @@ const GUIDE_STEPS: readonly GuideStepWords[] = [
     "Turn this on to see waterfalls, dams and other places fish can't get past. Tap one on the map to see what it is."),
   step("restore", "layers", "show", [], "Back to how it was",
     "Tap Next to put the map back how you had it. You can change these any time.", { dock: "top" }),
+  // (T466, owner: "the spots tutorial seemed rushed or didn't really show how to create a spot") THE REAL CREATION, one
+  // tap at a time: the add button, the pin, the water, the day, a name, Save — then the spot on the map and in Spots
   step("spot", "spot", "do", ["tab:spots"], "Save a fishing spot",
-    "Tap Spots to save a place you fish, then pick how to add it.", { names: ["Spots"] }),
-  step("capture", "spot", "do", [], "Where and when",
-    "Tap the water and the place, then the day and time you were there. The app saves how the river and the weather "
-    + "were that day. Add a note or a photo, then tap Save.", { dock: "top" }),
-  step("open", "days", "do", ["tab:spots"], "Find your spot again",
-    "Your spots are kept here. Tap Spots, then tap a spot.", { names: ["Spots"] }),
+    "Tap Spots. Your spots are kept there, and you add new ones there.", { names: ["Spots"] }),
+  step("add", "spot", "do", ["spots:pick"], "Add one",
+    `Tap ${SPOTS_MENU.addPick}. On the map, pressing and holding a place does the same.`, { names: [SPOTS_MENU.addPick] }),
+  step("pin", "spot", "do", ["spot:pick"], "Put the pin down",
+    "Tap the map where you fished. Show me puts the pin on the {water}."),
+  step("drop", "spot", "do", ["spot:drop"], "Start the spot",
+    `Tap ${SPOT_DROP.go} to start a spot at the pin.`, { names: [SPOT_DROP.go] }),
+  step("water", "spot", "do", ["capture:water"], "Which water",
+    `Tap the river beside the pin, then ${CW.next}.`, { names: [CW.next] }),
+  step("when", "spot", "do", ["capture:when"], "When you were there",
+    `Pick the day and the hour you fished, then tap ${CW.next}. The app saves how the river and the weather were then.`,
+    { names: [CW.next] }),
+  step("name", "spot", "do", ["capture:title"], "Name it",
+    "Tap the name and type one you'll know again, like “Below the bridge”."),
+  step("save", "spot", "do", ["capture:save"], "Save it",
+    `Add a note or a photo if you like, then tap ${SPOT_WORDS.save}.`, { names: [SPOT_WORDS.save] }),
+  step("show", "days", "do", ["spot:show"], "On the map",
+    `Your spot is saved. Tap ${SPOT_WORDS.showOnMap} to see its pin.`, { names: [SPOT_WORDS.showOnMap] }),
+  step("open", "days", "do", ["tab:spots"], "In your list",
+    "It's in Spots too. Tap Spots, then tap your spot.", { names: ["Spots"] }),
   step("days", "days", "show", ["spot:days"], "Days like the day you fished",
     "Here's why you save a spot: each of the next few days gets a score for how much it looks like a day you fished "
     + "here. The river and the rain count most, then clouds and air pressure, then temperature and wind.",
@@ -243,8 +294,22 @@ export const WALKTHROUGH_WORDS = {
   doneStep: "Done",
   step: (i: number, n: number) => `${i} of ${n}`,
   /** each phase's name, over its steps */
-  phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions", layers: "Layers", spot: "Save a spot",
-            days: "Your spot", end: "That's it" } satisfies Record<GuidePhase, string>,
+  phases: { find: "Find a water", rules: "Read the rules", conditions: "Conditions", closed: "Closed all year",
+            layers: "Layers", spot: "Save a spot", days: "Your spot", end: "That's it" } satisfies Record<GuidePhase, string>,
+  /**
+   * (T466) THE RELEASE HAS NO CLOSED EXAMPLE (`GUIDE_CLOSED` is not a part closed all year in it): the first closed step
+   * says so in its place, and the walk goes on without it.
+   */
+  closedNone: { title: "No closed stretch to show",
+                body: "This copy of the rules has no stretch near the {water} that is closed all year, so this bit of the "
+                  + "tour is skipped." },
+  /** (T466) the part to walk to, while the release is still being read for it */
+  closedPartAny: "a stretch that is closed all year",
+  /** (T466) the name "Show me" types for the example spot */
+  exampleName: "Example spot",
+  /** (T466) said on the last card after the walk made an example spot: removed (the default), or it could not be */
+  exampleRemoved: "The example spot you made is removed.",
+  exampleKept: "The example spot could not be removed. Delete it from Spots.",
   /** the Help page's button that starts the walkthrough again */
   again: "Replay the walkthrough",
   /**
@@ -267,8 +332,10 @@ export function guideSteps(platform: "web" | "app"): readonly GuideStepWords[] {
 }
 
 /** A step's words with the chosen water's name in (`{water}`) and the letters to type (`{letters}`). */
-export function guideText(s: string, water: { name: string; letters: string } | null): string {
-  return s.replace(/the \{water\}/g, water ? `the ${water.name}` : "a water near you")
+export function guideText(s: string, water: { name: string; letters: string } | null,
+                          closed: { part: string } | null = null): string {
+  return s.replace(/\{closedPart\}/g, closed?.part ?? WALKTHROUGH_WORDS.closedPartAny)
+    .replace(/the \{water\}/g, water ? `the ${water.name}` : "a water near you")
     .replace(/\{water\}/g, water?.name ?? "the water you want")
     .replace(/\{letters\}/g, water?.letters ?? "the first few letters of a water");
 }

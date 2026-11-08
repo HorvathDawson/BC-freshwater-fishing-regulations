@@ -43,10 +43,13 @@ const memory = (v: string | null = null): WalkthroughStore & { v: string | null 
 };
 const w = WALKTHROUGH_WORDS;
 const WATER = { item: "w-vedder", name: "Vedder River" };
+/** (T466) the closed example as `findGuideClosed` answers it (its own test reads it from the release fixture) */
+const CLOSED = { item: "w-chilliwack", name: "Chilliwack River", part: 0, label: "Slesse Creek → Ecological Reserve" };
 /** the pretend app: `away` is another tab in front (the walk's screens are the Map tab's and a water's) */
 interface Pretend extends GuideFacts { readonly away?: boolean }
 const BROWSE: Pretend = { water: WATER, searching: false, query: "", selected: null, open: null, adding: false, viewing: null, spots: 0,
-                          layersOpen: false, ground: "ground.map", obstacles: false, layersWas: null, dayPicked: false, controls: {} };
+                          layersOpen: false, ground: "ground.map", obstacles: false, layersWas: null, dayPicked: false, controls: {},
+                          closed: CLOSED };
 const REGS: Pretend = { ...BROWSE, open: { item: WATER.item, view: "regs" } };
 const COND: Pretend = { ...BROWSE, open: { item: WATER.item, view: "conditions" } };
 const keyAt = () => screen.getByTestId(/^guide-step-/).getAttribute("data-testid")!.slice("guide-step-".length);
@@ -84,7 +87,15 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
     toMap: () => { log.push("toMap"); setF((x) => ({ ...x, away: false, open: null, searching: false, layersOpen: false })); },
     leaveWater: () => { log.push("leave"); setF((x) => ({ ...x, open: null })); },
     pickDay: () => { log.push("day"); setF((x) => ({ ...x, dayPicked: true })); },
-    control: (k, v) => { log.push(`${k}=${String(v)}`); setF((x) => ({ ...x, controls: { ...x.controls, [k]: v } })); return true; },
+    control: (k, v) => {
+      log.push(`${k}=${String(v)}`);
+      // (T466) the water map's ▲ (here: straight to the closed example's part) and its "Show regulations"
+      if (k === "map:up") setF((x) => ({ ...x, open: { item: CLOSED.item, view: "map", part: CLOSED.part } }));
+      else if (k === "map:regs") setF((x) => ({ ...x, open: x.open && { ...x.open, view: "regs" } }));
+      else setF((x) => ({ ...x, controls: { ...x.controls, [k]: v } }));
+      return true;
+    },
+    openClosed: (v) => { log.push(`closed:${v}`); setF((x) => ({ ...x, away: false, open: { item: CLOSED.item, view: v, part: CLOSED.part } })); },
   };
   const facts: GuideFacts = { ...f, onMap: !f.away && !f.open && !f.searching && !f.adding && f.viewing === null };
   const guide = useGuide(store, blocked, facts, acts);
@@ -95,15 +106,15 @@ function Harness({ store, start = BROWSE, blocked = false, reg, log, out }: {
 describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
   it("is the owner's walk, in his order: find it, read its rules and its conditions, back to the map, its layers", () => {
     // (T302) this is the web's walk (jsdom is the web): no spot steps — spots live in the phone app
-    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "layers", "end"]);
+    expect([...new Set(GUIDE_STEPS.map((s) => s.phase))]).toEqual(["find", "rules", "conditions", "closed", "layers", "end"]);
     expect(GUIDE_STEPS.map((s) => s.key)).toEqual(["welcome", "search", "pick", "map", "regs", "answer", "day", "trout", "rule",
-      "salmon", "both", "part", "conditions", "reading", "forecast", "gauge", "quantity", "span", "change", "leave", "layers",
-      "ground", "obstacles", "restore", "done"]);
+      "salmon", "both", "part", "conditions", "reading", "forecast", "gauge", "quantity", "span", "change",
+      "partsmap", "upstream", "closedregs", "closed", "leave", "layers", "ground", "obstacles", "restore", "done"]);
   });
 
   it("(T456) no step only describes a control: a step that rings a control asks for its tap, or reads a line", () => {
     // the reading steps ring lines, not controls; every other ringed step is a DO step the reader's tap moves on
-    const reading = ["answer", "rule", "both", "part", "reading", "gauge", "change", "done"];
+    const reading = ["answer", "rule", "both", "part", "reading", "gauge", "change", "closed", "done"];
     for (const s of GUIDE_STEPS.filter((x) => x.targets.length > 0 && !reading.includes(x.key))) expect(s.kind, s.key).toBe("do");
     // a step that names a control by its label says that label
     for (const s of GUIDE_STEPS) for (const n of s.names ?? []) expect(s.body, `${s.key}: ${n}`).toContain(n);
@@ -130,8 +141,44 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     expect(store.v).toBe(WALKTHROUGH_VERSION);                           // seen, and no resume line left
     // each DO step done by Show me, through the app's own moves; "regs" was passed (the water opened on its Regulations)
     expect(log).toEqual(["search", "select", "open:regs", "day", "regs:trout=true", "regs:salmon=true", "view:conditions",
-      "cond:horizons=1", "cond:quantity=level", "cond:span=year", "leave", "layers", "ground", "obstacles", "restore"]);
+      "cond:horizons=1", "cond:quantity=level", "cond:span=year",
+      // (T466) up the river to the part closed all year, the reader's way: the water's Map, ▲, Show regulations
+      "view:map", "map:up=true", "map:regs=true",
+      "leave", "layers", "ground", "obstacles", "restore"]);
   }, 40_000);
+
+  it("(T466) the closed example: ▲ is pressed until its part is on screen, then its rules, then it is read", async () => {
+    const out: { set?: (f: (x: Pretend) => Pretend) => void } = {};
+    const at = (part: number) => ({ item: CLOSED.item, view: "map", part });
+    render(<Harness store={memory("guide-at:upstream")} reg={useRegistry(EVERY)} log={[]} out={out}
+                    start={{ ...BROWSE, open: { item: WATER.item, view: "map", part: 0 } }} />);
+    expect(screen.getByTestId("guide-body").textContent).toContain(`until you reach “${CLOSED.label}”.`);
+    act(() => out.set!((x) => ({ ...x, open: at(1) })));                   // a ▲ into the Chilliwack: not there yet
+    act(() => out.set!((x) => ({ ...x, open: at(2) })));
+    await act(() => new Promise((d) => setTimeout(d, 900)));
+    expect(keyAt()).toBe("upstream");
+    act(() => out.set!((x) => ({ ...x, open: at(CLOSED.part) })));         // the part closed all year
+    await waitFor(() => expect(keyAt()).toBe("closedregs"), { timeout: WAIT });
+    act(() => out.set!((x) => ({ ...x, open: { ...at(CLOSED.part), view: "regs" } })));
+    await waitFor(() => expect(keyAt()).toBe("closed"), { timeout: WAIT });
+  });
+
+  it("(T466) no closed example in the release: the first closed step says so and rings nothing; the rest are passed, both ways", async () => {
+    const log: string[] = [];
+    render(<Harness store={memory("guide-at:change")} reg={useRegistry(EVERY)} log={log} out={{}} start={{ ...COND, closed: null }} />);
+    press(w.next);
+    expect(keyAt()).toBe("partsmap");
+    expect(screen.getByText(w.closedNone.title)).toBeTruthy();
+    expect(screen.getByTestId("guide-body").textContent).toBe(
+      "This copy of the rules has no stretch near the Vedder River that is closed all year, so this bit of the tour is skipped.");
+    await act(() => new Promise((d) => setTimeout(d, 900)));
+    expect([screen.queryByTestId("guide-ring"), screen.queryByText(w.showMe)]).toEqual([null, null]);   // a card to read
+    press(w.next);
+    expect(keyAt()).toBe("leave");                                        // upstream, its rules and the reading: passed
+    press(w.back);
+    expect(keyAt()).toBe("partsmap");                                     // back onto the card that said so
+    expect(log).toEqual([]);                                              // nothing was opened for an example there is not
+  });
 
   it("a DO step done by the reader ticks, then moves on by itself", async () => {
     const out: { guide?: Guide; set?: (f: (x: Pretend) => Pretend) => void } = {};
@@ -233,6 +280,43 @@ describe("the guided walkthrough (T293, T456)", { timeout: 30_000 }, () => {
     expect(parseFloat(screen.getByTestId("guide-step-search").style.top)).toBeGreaterThan(10 + 46);
   });
 
+  it("(T466) a ring inside a scrolled sheet at phone size (Layers → Falls and dams): the sheet is scrolled first, then it is ringed", async () => {
+    // a 390 × 844 phone: the obstacles row is laid out below the sheet's visible body (the sheet is scrolled to its top)
+    const win = { w: 390, h: 844 };
+    const saved = [window.innerWidth, window.innerHeight];
+    Object.assign(window, { innerWidth: win.w, innerHeight: win.h });
+    act(() => { window.dispatchEvent(new Event("resize")); });
+    try {
+      const scroll = { y: 0 }, asked: number[] = [];
+      const page = { by: (dy: number) => { asked.push(dy); scroll.y = Math.max(0, scroll.y + dy); },
+                     view: async () => ({ x: 0, y: 300, w: 390, h: 480 }) };          // the sheet's body, under its title row
+      const reg = renderHook(() => useCoachRegistry()).result.current;
+      reg.set("layers:obstacles", { measureInWindow: (cb) => cb(16, 1010 - scroll.y, 358, 96) }, null, page);
+      render(<Harness store={memory("guide-at:obstacles")} reg={reg} log={[]} out={{}}
+                      start={{ ...BROWSE, layersOpen: true, layersWas: { ground: "ground.map", obstacles: false } }} />);
+      expect(screen.getByTestId("guide-step-obstacles")).toBeTruthy();
+      await waitFor(() => expect(asked.length).toBeGreaterThan(0), { timeout: WAIT });
+      const ring = await screen.findByTestId("guide-ring", {}, { timeout: WAIT });
+      const top = parseFloat(ring.style.top), h = parseFloat(ring.style.height);
+      expect(top, "the row is in the sheet's view once it is ringed").toBeGreaterThanOrEqual(300 - 8);
+      expect(top + h).toBeLessThanOrEqual(300 + 480 + 8);
+      expect(scroll.y).toBeGreaterThan(0);                                   // scrolled DOWN to it, never left off-screen
+    } finally {
+      Object.assign(window, { innerWidth: saved[0], innerHeight: saved[1] });
+      act(() => { window.dispatchEvent(new Event("resize")); });
+    }
+  });
+
+  it("(T466) the Layers sheet's body is a page the walk can scroll: its Falls and dams row is registered with it", () => {
+    const reg = renderHook(() => useCoachRegistry()).result.current;
+    render(<CoachContext.Provider value={reg}>
+      <LayersSheet open onClose={() => {}} palette={LIGHT} onChoose={() => {}}
+                   vm={layersVM("map", LAYER_DEFAULTS, { carries: { stocked: false, surveyed: false }, online: true })} />
+    </CoachContext.Provider>);
+    expect(reg.get("layers:obstacles")).not.toBeNull();
+    expect(reg.scrollerOf!("layers:obstacles")).not.toBeNull();             // before T466: null, so it was never scrolled to
+  });
+
   it("(T456) the card follows a ring that moves (a sheet sliding, the page scrolling) and stays off it", async () => {
     const at = { y: 120 };
     const reg = useRegistry();
@@ -286,6 +370,11 @@ describe("(T456) every exit from a step's screen", { timeout: 60_000 }, () => {
     if (s.phase === "rules" || k === "conditions") return REGS;
     if (s.phase === "conditions") return COND;
     if (s.phase === "layers" && k !== "layers") return { ...BROWSE, layersOpen: true, layersWas: { ground: "ground.map", obstacles: false } };
+    // (T466) the closed example: the walk's water's Conditions, its Map, then the example's part (Map, then Regulations)
+    if (k === "partsmap") return COND;
+    if (k === "upstream") return { ...BROWSE, open: { item: WATER.item, view: "map", part: 0 } };
+    if (k === "closedregs") return { ...BROWSE, open: { item: CLOSED.item, view: "map", part: CLOSED.part } };
+    if (k === "closed") return { ...BROWSE, open: { item: CLOSED.item, view: "regs", part: CLOSED.part } };
     return BROWSE;
   };
   const EXITS: Record<string, (x: Pretend) => Pretend> = {
@@ -452,8 +541,10 @@ describe("(T456) the words name only controls drawn inside the ring", { timeout:
     </Coached>);
     await waitFor(() => expect(reg.get("regs:rule")).not.toBeNull(), { timeout: 30_000 });
     const checked: string[] = [];
+    // (T466) the water map's ▲ and "Show regulations" are checked on the water map itself (guideClosed.test.tsx)
+    const onWaterMap = (s: (typeof GUIDE_STEPS)[number]) => s.targets[0] === "map:up" || s.targets[0] === "map:regs";
     for (const s of GUIDE_STEPS) {
-      if (!s.names?.length) continue;
+      if (!s.names?.length || onWaterMap(s)) continue;
       const inside = s.targets.map((t) => said(reg, t)).filter((x): x is string => x !== null).join(" | ");
       expect(inside, `${s.key}: ${s.targets.join(", ")} not drawn`).not.toBe("");
       for (const n of s.names) expect(inside, `${s.key} names "${n}"`).toContain(n.toLowerCase());
@@ -463,7 +554,7 @@ describe("(T456) the words name only controls drawn inside the ring", { timeout:
     expect(said(reg, "regs:ruleline")).not.toContain("of your 2 trout and char");
     // salmon's Details is the same fold row as trout's (its own key)
     expect(said(reg, "regs:salmon")).toContain(GLANCE_WORDS.show.toLowerCase());
-    expect(checked).toEqual(GUIDE_STEPS.filter((s) => s.names?.length).map((s) => s.key));
+    expect(checked).toEqual(GUIDE_STEPS.filter((s) => s.names?.length && !onWaterMap(s)).map((s) => s.key));
   });
   it("the walk sees a screen's own control, and Show me sets it the reader's way", () => {
     const host = renderHook(() => useGuideControlHost());

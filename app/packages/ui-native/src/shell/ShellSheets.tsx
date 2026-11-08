@@ -32,7 +32,9 @@ function reportMapOf(col: Pick<MapColouring, "flowParam" | "horizon" | "layers" 
 }
 
 export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null,
-                              camera = null, source = null }: {
+                              camera = null, source = null, dropOverlay }: {
+  /** (T466) the walkthrough's card, drawn in the drop sheet's window while it is up */
+  dropOverlay?: React.ReactNode;
   /** (T234 v1.1) the waters, for More → Notifications (the editor's context, "Add an alert") */
   source?: WaterSource | null;
   /** (T352) the camera of the map in front (the Shell's ref, read at its render) */
@@ -51,7 +53,7 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
   return (
     <>
       <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
-                     onCancel={rail.cancelDrop} onContinue={rail.continueDrop} />
+                     onCancel={rail.cancelDrop} onContinue={rail.continueDrop} overlay={dropOverlay} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} onTabTour={onTabTour} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
                 route={route} day={mapDay} mode={col.regsLayer} map={reportMapOf(col, nav.mapTab, camera)} offline={offline}

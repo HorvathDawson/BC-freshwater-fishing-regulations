@@ -571,12 +571,16 @@ export function boxOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): Bb
 /**
  * (T293) A POINT ON A WATER from its `part_geo` rows: each part's `mid` is a point on that part's own line (the middle of
  * its main stem; a polygon's representative point — `topology.point_on`); of those, the one nearest the middle of the
- * water's box. Null with no rows. The same units as `boxOfGeoRows`.
+ * water's box. Null with no rows. The same units as `boxOfGeoRows`. (T466) With the part's midpoint section
+ * (`part_geo.mid_sid`, when the rows carry it): `sid`, the section the point is on — where the walkthrough's "Show me"
+ * picks the water for a spot.
  */
-export function pointOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): { lat: number; lon: number } | null {
+export function pointOfGeoRows(rows: readonly Row[], perDegree: 1 | 1_000_000): { lat: number; lon: number; sid?: number } | null {
   const box = boxOfGeoRows(rows, perDegree);
-  const mids = rows.map((r) => ({ lon: Number(r.mid_lon) / perDegree, lat: Number(r.mid_lat) / perDegree }))
-    .filter((m) => Number.isFinite(m.lon) && Number.isFinite(m.lat) && !(m.lon === 0 && m.lat === 0));
+  const mids = rows.map((r) => {
+    const m = { lon: Number(r.mid_lon) / perDegree, lat: Number(r.mid_lat) / perDegree };
+    return r.mid_sid === null || r.mid_sid === undefined ? m : { ...m, sid: Number(r.mid_sid) };
+  }).filter((m) => Number.isFinite(m.lon) && Number.isFinite(m.lat) && !(m.lon === 0 && m.lat === 0));
   if (!mids.length) return null;
   if (!box) return mids[0]!;
   const cx = (box[0] + box[2]) / 2, cy = (box[1] + box[3]) / 2, k = Math.cos((cy * Math.PI) / 180);

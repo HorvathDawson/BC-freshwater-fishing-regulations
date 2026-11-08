@@ -16,6 +16,7 @@ import { TOP_BAR, searchPanelWidth } from "./TopBar";
 import { TYPE } from "./type";
 import { useEscapeKey } from "./escapeCloses";
 import type { Palette } from "./theme";
+import { useCoachTarget } from "./CoachMarks";
 
 export function SpotPickBanner({ palette, top = TOP_BAR.top, onCancel }: {
   palette: Palette;
@@ -28,8 +29,9 @@ export function SpotPickBanner({ palette, top = TOP_BAR.top, onCancel }: {
   // Escape is a back on the web (a sheet's Modal hears it itself; this banner is no Modal)
   useEscapeKey(true, requestClose);
   const panel = searchPanelWidth(useWindowDimensions().width);
+  const ring = useCoachTarget("spot:pick");   // (T466) the walkthrough's "Put the pin down"
   return (
-    <View testID="spot-pick-banner" pointerEvents="box-none"
+    <View ref={ring} collapsable={false} testID="spot-pick-banner" pointerEvents="box-none"
           style={{ position: "absolute", top, left: TOP_BAR.side,
                    ...(panel === null ? { right: TOP_BAR.side } : { width: panel }) }}>
       <View style={{ minHeight: TOP_BAR.field, flexDirection: "row", alignItems: "center", gap: 10, paddingLeft: 14,

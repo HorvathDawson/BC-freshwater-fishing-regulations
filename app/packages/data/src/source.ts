@@ -72,9 +72,9 @@ export interface WaterSource {
   /**
    * (T293) A POINT ON THE WATER ITSELF, from the same geometry: of its parts' midpoints (each on the part's own line),
    * the one nearest the middle of its box — where the walkthrough drops a spot's pin. Null without geometry; absent on a
-   * source that has none.
+   * source that has none. (T466) `sid`: the section that point is on, where the release says (`part_geo.mid_sid`).
    */
-  waterPoint?(item: ItemId): Promise<{ lat: number; lon: number } | null>;
+  waterPoint?(item: ItemId): Promise<{ lat: number; lon: number; sid?: SectionId } | null>;
 
   // ---- conditions -----------------------------------------------------
   gaugeForSection(id: SectionId): Promise<GaugeLink | null>;

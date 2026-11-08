@@ -8,7 +8,7 @@
  * Spots, SpotDrop, the Day sheet) changes what the map shows, so it stays a bottom sheet at every width and the map stays
  * visible above it (T45 review: a 640 px dialog's scrim covered the middle of the map the Layers choices recolour).
  */
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Animated, Easing, Modal, ScrollView, View, useWindowDimensions, type ScrollViewInstance } from "react-native";
 import { Selectable, Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -21,6 +21,7 @@ import { NATIVE_DRIVER, SHEET_MOTION, useReducedMotion } from "./motion";
 import { hitProps } from "./regs/hit";
 import { BottomInset } from "./WindowInset";
 import { Chip } from "./Chip";
+import { CoachScrollContext, useCoachScroller } from "./coachScroll";
 
 /**
  * (T40) "Done" is a short word (about 34 × 21 at the body size): grown to 44 × 44 to the touch.
@@ -195,9 +196,7 @@ export function Sheet({ open, onClose, title, palette, children, scroll = false,
                 {shown.sub ? <Text testID="sheet-sub" style={{ ...TYPE.small, color: palette.sub, paddingHorizontal: 18, paddingTop: 6 }}>{shown.sub}</Text> : null}
               </View>
               {scroll
-                ? <ScrollView ref={scrollRef} testID="sheet-scroll" style={{ flexGrow: 0, flexShrink: 1, flexBasis: "auto" }}
-                              keyboardShouldPersistTaps="handled" scrollEventThrottle={16}
-                              contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{shown.children}</Selectable></ScrollView>
+                ? <DialogScroll scrollRef={scrollRef}>{shown.children}</DialogScroll>
                 : <View style={{ paddingBottom: 28 }}><Selectable>{shown.children}</Selectable></View>}
               {footer}
             </View>
@@ -285,6 +284,9 @@ function PullScroll({ open, drag, y, height, scrollRef, maxHeight, children }: {
    */
   const scrollTop = useRef(0);
   useEffect(() => { if (open) scrollTop.current = 0; }, [open]);
+  // (T466) the walkthrough brings a control in this body into view before it rings it (Layers → Falls and dams)
+  const coach = useCoachScroller();
+  const ref = useCallback((n: ScrollViewInstance | null) => { setRef(scrollRef, n); coach.ref(n); }, [scrollRef, coach]);
   const bodyPull = usePanGesture(useMemo((): PanGestureConfig => {
     let armed = false;
     return {
@@ -311,13 +313,35 @@ function PullScroll({ open, drag, y, height, scrollRef, maxHeight, children }: {
         detector › RN ScrollView all present). `collapsable={false}`: a style-less View is flattened away otherwise.
       */}
       <View testID="sheet-scroll-frame" collapsable={false}>
-        <GHScrollView ref={scrollRef} simultaneousWith={bodyPull} testID="sheet-scroll" style={{ maxHeight }}
+        <GHScrollView ref={ref} simultaneousWith={bodyPull} testID="sheet-scroll" style={{ maxHeight }}
                       keyboardShouldPersistTaps="handled" bounces={false} scrollEventThrottle={16}
-                      onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; }}
-                      contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}><Selectable>{children}</Selectable></GHScrollView>
+                      onScroll={(e) => { scrollTop.current = e.nativeEvent.contentOffset.y; coach.track(scrollTop.current); }}
+                      contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>
+          <CoachScrollContext.Provider value={coach.scroller}><Selectable>{children}</Selectable></CoachScrollContext.Provider>
+        </GHScrollView>
       </View>
     </GestureDetector>
   );
+}
+
+/** (T466) The wide dialog's scrolling body: the walkthrough may scroll it to a control it rings, as on a phone. */
+function DialogScroll({ scrollRef, children }: { scrollRef?: React.Ref<ScrollViewInstance>; children: React.ReactNode }) {
+  const coach = useCoachScroller();
+  const ref = useCallback((n: ScrollViewInstance | null) => { setRef(scrollRef, n); coach.ref(n); }, [scrollRef, coach]);
+  return (
+    <ScrollView ref={ref} testID="sheet-scroll" style={{ flexGrow: 0, flexShrink: 1, flexBasis: "auto" }}
+                keyboardShouldPersistTaps="handled" scrollEventThrottle={16}
+                onScroll={(e) => coach.track(e.nativeEvent.contentOffset.y)}
+                contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.s4 }}>
+      <CoachScrollContext.Provider value={coach.scroller}><Selectable>{children}</Selectable></CoachScrollContext.Provider>
+    </ScrollView>
+  );
+}
+
+/** A caller's ref (a callback or an object) handed the node too. */
+function setRef<T>(r: React.Ref<T> | undefined, n: T | null): void {
+  if (typeof r === "function") r(n);
+  else if (r) (r as { current: T | null }).current = n;
 }
 
 /**

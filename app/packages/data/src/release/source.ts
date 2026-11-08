@@ -413,7 +413,7 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
       if (!loader.manifest.files[at(CROSS.PART_GEO_FOR_ORDS(1))]) return null;
       const ords = (await all(CROSS.GEO_ORDS, item)).map((r) => Number(r.ord));
       if (!ords.length) return null;
-      return pointOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000);
+      return pointOfGeoRows(await chunked(ords, (c) => all(CROSS.PART_GEO_FOR_ORDS(c.length), ...c)), 1_000_000) as { lat: number; lon: number; sid?: SectionId } | null;
     },
 
     async gaugeForSection(id): Promise<GaugeLink | null> {

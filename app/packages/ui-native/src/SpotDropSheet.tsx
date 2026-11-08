@@ -11,13 +11,16 @@ import { Button } from "./Button";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { CoachSpot } from "./CoachMarks";
 
-export function SpotDropSheet({ at, palette, onCancel, onContinue }: {
+export function SpotDropSheet({ at, palette, onCancel, onContinue, overlay }: {
   /** The pin; null: the sheet is down. */
   at: LatLon | null; palette: Palette; onCancel: () => void; onContinue: () => void;
+  /** (T466) the walkthrough's card while its step is about this sheet (the sheet is its own window) */
+  overlay?: React.ReactNode;
 }) {
   return (
-    <Sheet open={at !== null} onClose={onCancel} title={SPOT_DROP.title} palette={palette}>
+    <Sheet open={at !== null} onClose={onCancel} title={SPOT_DROP.title} palette={palette} overlay={overlay}>
       <View style={{ paddingHorizontal: 20, paddingTop: 16, gap: 6 }}>
         <Text testID="spot-drop-where" style={{ ...TYPE.bodyStrong, fontSize: 15, color: palette.accent }}>
           {at ? SPOT_DROP.where(at.lat, at.lon) : ""}
@@ -26,7 +29,7 @@ export function SpotDropSheet({ at, palette, onCancel, onContinue }: {
       </View>
       <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 18 }}>
         <Button palette={palette} label={SPOT_DROP.cancel} onPress={onCancel} kind="ghost" />
-        <Button palette={palette} label={SPOT_DROP.go} onPress={onContinue} />
+        <CoachSpot k="spot:drop" style={{ flex: 1 }}><Button palette={palette} label={SPOT_DROP.go} onPress={onContinue} /></CoachSpot>
       </View>
     </Sheet>
   );

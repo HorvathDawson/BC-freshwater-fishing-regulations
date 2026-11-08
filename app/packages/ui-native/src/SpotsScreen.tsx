@@ -23,6 +23,7 @@ import { Icon } from "./icons";
 import { TYPE } from "./type";
 import { GUTTER, type Palette } from "./theme";
 import { hitProps } from "./regs/hit";
+import { CoachSpot } from "./CoachMarks";
 
 export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, refreshing, error, photoStore }: {
   palette: Palette; vm: SpotsMenuVM;
@@ -65,7 +66,9 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
           <ErrorState palette={palette} message={error} style={{ paddingHorizontal: 20, paddingTop: 12 }} />
         ) : null}
         {vm.adds.map((a, i) => (
-          <Pressable {...hitProps({ w: 300, h: 46 })} key={a.k} onPress={() => onAdd(a.k)} accessibilityRole="button" accessibilityLabel={a.label}
+          // (T466) the walkthrough's "Add one" rings Pick on the map
+          <CoachSpot key={a.k} k={a.k === "pick" ? "spots:pick" : `spots:${a.k}`}>
+          <Pressable {...hitProps({ w: 300, h: 46 })} onPress={() => onAdd(a.k)} accessibilityRole="button" accessibilityLabel={a.label}
                      style={({ pressed }) => ({
                        flexDirection: "row", alignItems: "center", gap: 13, paddingVertical: 13,
                        paddingHorizontal: 20, backgroundColor: pressed ? palette.wash : palette.card,
@@ -78,6 +81,7 @@ export function SpotsScreen({ palette, vm, onOpen, onShow, onAdd, onRefresh, ref
               {a.detail ? <Text style={{ ...TYPE.caption, color: palette.sub }}>{a.detail}</Text> : null}
             </View>
           </Pressable>
+          </CoachSpot>
         ))}
         {/* why "At my location" is not among them (refused, or none on this platform): said, never a silent gap */}
         {vm.note !== null && (

@@ -24,41 +24,13 @@ import { GUTTER, SPACE, type Palette } from "./theme";
 import { TYPE } from "./type";
 import { hitProps } from "./regs/hit";
 import { windowSize } from "./windowSize";
+// (T466) the measuring and the scrolled page live in `coachScroll` (a Sheet provides the page; it cannot import this file)
+import { CoachScrollContext, measure, type CoachScroller, type Measurable, type Rect } from "./coachScroll";
+export { CoachScrollContext, measure, useCoachScroller, type CoachScroller, type Measurable, type Rect } from "./coachScroll";
 
 /** the browser window's size when it reports one (null: none, or a phone) */
 const windowOwn = () => { const s = windowSize(); return s && s.w > 0 ? s : null; };
 
-export interface Rect { x: number; y: number; w: number; h: number }
-
-export interface Measurable { measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void }
-
-/**
- * (T456) THE PAGE A TARGET SCROLLS WITH: a scroll view the walkthrough may move, so the control a step is about comes into
- * view on a phone as on the web (react-native has no scrollIntoView). `by(dy)` scrolls the page dy further down.
- */
-export interface CoachScroller {
-  by(dy: number): void;
-  /** the page's own box in the window (null: not laid out) */
-  view(): Promise<Rect | null>;
-}
-export const CoachScrollContext = createContext<CoachScroller | null>(null);
-
-/**
- * A scroll view's side of it: pass `ref` and `onScroll` (beside its own) to the ScrollView and provide `scroller` round
- * its content (`CoachScrollContext`). The offset is followed from the scroll events, so `by` needs no measuring.
- */
-export function useCoachScroller(): {
-  scroller: CoachScroller; ref: (node: unknown) => void; track: (y: number) => void;
-} {
-  const node = useRef<(Measurable & { scrollTo?: (o: { y: number; animated?: boolean }) => void }) | null>(null);
-  const y = useRef(0);
-  return useMemo(() => ({
-    scroller: { by: (dy: number) => { y.current = Math.max(0, y.current + dy); node.current?.scrollTo?.({ y: y.current, animated: true }); },
-                view: () => measure(node.current) },
-    ref: (n: unknown) => { node.current = n as typeof node.current; },
-    track: (at: number) => { y.current = at; },
-  }), []);
-}
 
 /**
  * The registry the tour reads: key → the host views drawn for that control. (T293) Several views may share a key (a rule
@@ -128,21 +100,6 @@ export function useCoachRefs(): (key: string) => (node: unknown) => void {
 export function CoachSpot({ k, children, style }: { k: string; children: ReactNode; style?: ViewStyle }) {
   const target = useCoachTarget(k);
   return <View ref={target} collapsable={false} style={style}>{children}</View>;
-}
-
-export function measure(node: Measurable | null): Promise<Rect | null> {
-  return new Promise((res) => {
-    if (!node?.measureInWindow) { res(null); return; }
-    let done = false;
-    const t = setTimeout(() => { if (!done) { done = true; res(null); } }, 500);
-    try {
-      node.measureInWindow((x, y, w, h) => {
-        if (done) return;
-        done = true; clearTimeout(t);
-        res(w > 0 && h > 0 && Number.isFinite(x) && Number.isFinite(y) ? { x, y, w, h } : null);
-      });
-    } catch { done = true; clearTimeout(t); res(null); }
-  });
 }
 
 /** The union of several rects (the bell and the refresh button, side by side). */

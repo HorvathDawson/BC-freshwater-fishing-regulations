@@ -35,6 +35,7 @@ import { Button } from "./Button";
 import { CoachTour, insideWindow, measure, unionRect, type CoachRegistry, type CoachStep, type Measurable,
          type Rect } from "./CoachMarks";
 import { placeGuideCard, revealBy } from "./guideLayout";
+import type { GuideClosed } from "./guideClosed";
 import { SHEET_TITLE } from "./Sheet";
 import { GUTTER, SPACE, type Palette } from "./theme";
 import { TYPE } from "./type";
@@ -53,8 +54,8 @@ export interface GuideFacts {
   readonly query: string;
   /** the water selected in search's results */
   readonly selected: string | null;
-  /** the water on screen and its view; null while browsing */
-  readonly open: { readonly item: string | null; readonly view: string } | null;
+  /** the water on screen, its view and (T466) its part (null: the part a tap or the water's first opens); null while browsing */
+  readonly open: { readonly item: string | null; readonly view: string; readonly part?: number | null } | null;
   /** a spot is being added */
   readonly adding: boolean;
   /** the spot on screen */
@@ -73,14 +74,25 @@ export interface GuideFacts {
   readonly dayPicked?: boolean;
   /** (T456) the controls a screen keeps to itself, as it told them (`useGuideControl`): a fold's Details, Flow / Level … */
   readonly controls?: Readonly<Record<string, unknown>>;
+  /**
+   * (T466) THE CLOSED EXAMPLE (`findGuideClosed`): the part closed all year the walk goes to; null: this release has none
+   * (the step says so); undefined: still being read.
+   */
+  readonly closed?: GuideClosed | null;
+  /** (T466) the Spots tab is in front (browsing, nothing open on it); the map is in pick mode; the drop sheet's pin is down */
+  readonly spotsTab?: boolean;
+  readonly picking?: boolean;
+  readonly dropped?: boolean;
+  /** (T466) the example spot the walk made: removed at the end, or it could not be; null: none made (or still kept) */
+  readonly example?: "removed" | "kept" | null;
 }
 
 /** What "Show me" and a step's set-up can do: each one the app's own route move. */
 export interface GuideActs {
   search(): void;
   select(): void;
-  openWater(view: "regs" | "conditions"): void;
-  view(v: "regs" | "conditions"): void;
+  openWater(view: "regs" | "conditions" | "map"): void;
+  view(v: "regs" | "conditions" | "map"): void;
   addSpot(): void;
   cancelAdd(): void;
   toSpots(): void;
@@ -101,6 +113,18 @@ export interface GuideActs {
   pickDay?(): void;
   /** (T456) a screen's own control set, as the reader's tap sets it (`useGuideControl`); false: not drawn */
   control?(key: string, value: unknown): boolean;
+  /** (T466) the closed example's water opened at its part, on this view */
+  openClosed?(view: "regs" | "map"): void;
+  /** (T466) the Spots tab's "Pick on the map"; the pin dropped on the walk's water; the drop sheet's Continue */
+  pickOnMap?(): void;
+  dropPin?(): void;
+  continueDrop?(): void;
+  /** (T466) the capture's water picked: the walk's water, at the section under its pin */
+  capturePick?(): void;
+  /** (T466) the open spot's "Show on map" */
+  showSpot?(): void;
+  /** (T466) the example spot the walk made, removed (said on the last card) */
+  removeExample?(): void;
 }
 
 /** The walk's state: open or not, the step, and the moves. */
@@ -156,6 +180,16 @@ const onWater = (view: "regs" | "conditions") => (f: GuideFacts, a: GuideActs) =
   if (f.open && f.open.view !== view) a.view(view);
   else if (!f.open && f.water) a.openWater(view);
 };
+/** (T466) on the walk's own water's view (another water open — the closed example's — is left for it) */
+const onOwnWater = (view: "regs" | "conditions") => (f: GuideFacts, a: GuideActs) => {
+  if (f.open && f.water && f.open.item !== f.water.item) a.openWater(view);
+  else onWater(view)(f, a);
+};
+/** (T466) the closed example's part is the one on screen */
+const atClosed = (f: GuideFacts) => !!f.closed && !!f.open && f.open.item === f.closed.item && f.open.part === f.closed.part;
+/** (T466) a capture's own step (`SpotCapture` tells it: water · point · when · details · saving) */
+const captureAt = (f: GuideFacts) => ctl(f, "capture");
+const capturePast = (...steps: string[]) => (f: GuideFacts) => steps.includes(String(captureAt(f)));
 const ctl = (f: GuideFacts, key: string) => f.controls?.[key];
 const setCtl = (key: string, value: unknown) => (_f: GuideFacts, a: GuideActs) => { a.control?.(key, value); };
 const regsOn = (f: GuideFacts) => f.open?.view === "regs";
@@ -165,6 +199,7 @@ const PHASE: Partial<Record<GuidePhase, StepRule>> = {
   rules: { on: regsOn, bring: onWater("regs") },
   conditions: { on: condOn, bring: onWater("conditions") },
   layers: { on: (f) => !!f.layersOpen, bring: (f, a) => { if (!f.layersOpen) a.openLayers(); } },
+  closed: { on: (f) => f.open !== null },
 };
 
 const RULES: Readonly<Record<string, StepRule>> = {
@@ -206,6 +241,25 @@ const RULES: Readonly<Record<string, StepRule>> = {
   },
   quantity: { done: (f) => ctl(f, "cond:quantity") === "level", show: setCtl("cond:quantity", "level") },
   span: { done: (f) => ctl(f, "cond:span") === "year", show: setCtl("cond:span", "year") },
+  // (T466) THE CLOSED EXAMPLE: the water's Map, ▲ until its part, its rules — each the reader's tap; Show me taps it
+  partsmap: {
+    done: (f) => f.open?.view === "map",
+    show: (_f, a) => a.view("map"),
+    bring: onOwnWater("conditions"),
+  },
+  upstream: {
+    done: atClosed,
+    show: setCtl("map:up", true),
+    on: (f) => f.open?.view === "map",
+    bring: (f, a) => { if (f.open?.view !== "map") a.openWater("map"); },
+  },
+  closedregs: {
+    done: (f) => atClosed(f) && f.open?.view === "regs",
+    show: setCtl("map:regs", true),
+    on: (f) => f.open?.view === "map" || f.open?.view === "regs",
+    bring: (_f, a) => a.openClosed?.("map"),
+  },
+  closed: { on: (f) => f.open?.view === "regs", bring: (f, a) => { if (!atClosed(f)) a.openClosed?.("regs"); } },
   // (T456, a tester: "it just brought me back a step") the page's own ‹ IS this step: pressing it leaves the page and
   // moves the walk on; the walk never runs a back of its own
   leave: {
@@ -227,30 +281,75 @@ const RULES: Readonly<Record<string, StepRule>> = {
     done: (f) => !!f.obstacles,
     show: (_f, a) => a.obstaclesOn(),
   },
+  // (T466) ADDING A SPOT, the real way: Spots → Pick on the map → the pin → Continue → the water → the day → a name → Save
   spot: {
-    done: (f) => f.adding,
-    show: (_f, a) => a.addSpot(),
+    done: (f) => !!f.spotsTab || !!f.picking || !!f.dropped || f.adding,
+    show: (_f, a) => a.toSpots(),
+    on: (f) => f.onMap !== false || !!f.spotsTab,
+    bring: (_f, a) => a.toMap?.(),
   },
-  capture: {
-    done: (f) => f.viewing !== null,
+  add: {
+    done: (f) => !!f.picking || !!f.dropped || f.adding,
+    show: (_f, a) => a.pickOnMap?.(),
+    on: (f) => !!f.spotsTab || !!f.picking,
+    bring: (_f, a) => a.toSpots(),
+  },
+  pin: {
+    done: (f) => !!f.dropped || f.adding,
+    show: (_f, a) => a.dropPin?.(),
+    on: (f) => !!f.picking || !!f.dropped,
+    bring: (_f, a) => a.pickOnMap?.(),
+  },
+  drop: {
+    done: (f) => f.adding,
+    show: (_f, a) => a.continueDrop?.(),
+    on: (f) => !!f.dropped || f.adding,
+    bring: (f, a) => { if (!f.dropped) a.dropPin?.(); },
+  },
+  water: {
+    done: capturePast("point", "when", "details", "saving"),
+    show: (_f, a) => a.capturePick?.(),
+    on: (f) => f.adding,
+    bring: (f, a) => { if (!f.adding) a.addSpot(); },
+  },
+  when: { done: capturePast("details", "saving"), show: setCtl("capture", "next"), on: (f) => f.adding },
+  name: { done: (f) => ctl(f, "capture:title") === true, show: setCtl("capture:title", WALKTHROUGH_WORDS.exampleName),
+          on: (f) => f.adding },
+  save: { done: (f) => f.viewing !== null, show: setCtl("capture", "save"), on: (f) => f.adding || f.viewing !== null },
+  show: {
+    done: (f) => f.onMap === true,
+    show: (_f, a) => a.showSpot?.(),
+    on: (f) => f.viewing !== null || f.onMap === true,
+    bring: (f, a) => { if (f.viewing === null && f.spots > 0) a.openSpot(); },
   },
   open: {
-    // just saved, the spot is on screen: back to the Spots list, so the reader opens it from there
-    arrive: (f, a) => { if (f.viewing !== null) a.toSpots(); },
     done: (f) => f.viewing !== null,
-    show: (f, a) => { if (f.spots > 0) a.openSpot(); },
+    // the reader's two taps, one a press: Spots, then the spot
+    show: (f, a) => { if (!f.spotsTab) a.toSpots(); else if (f.spots > 0) a.openSpot(); },
   },
   days: { bring: (f, a) => { if (f.viewing === null && f.spots > 0) a.openSpot(); } },
   reasons: { bring: (f, a) => { if (f.viewing === null && f.spots > 0) a.openSpot(); } },
+  // (T466) the example spot the walk made is removed as the walk ends, and the last card says so
+  done: { arrive: (_f, a) => a.removeExample?.() },
 };
 
-/** A step's rule: its own, over its phase's screen and set-up (T456: every step on a water's view pauses off it). */
-const ruleOf = (s: GuideStepWords): StepRule => ({ ...PHASE[s.phase], ...RULES[s.key] });
+/** (T466) The release holds no closed example: the closed steps' first says so, the rest are passed. */
+const noClosed = (s: GuideStepWords, f: GuideFacts) => !!s.closed && f.closed === null;
+const FIRST_CLOSED = STEPS.find((s) => s.closed)?.key;
+/** (T466) a closed step passed both ways when there is no example (its first is the card that says so) */
+const skipped = (s: GuideStepWords, f: GuideFacts) => noClosed(s, f) && s.key !== FIRST_CLOSED;
+
+/** A step's rule: its own, over its phase's screen and set-up (T456: every step on a water's view pauses off it). (T466) A
+ *  closed step with no example is read anywhere and does nothing. */
+const ruleOf = (s: GuideStepWords, f?: GuideFacts): StepRule =>
+  f && noClosed(s, f) ? {} : ({ ...PHASE[s.phase], ...RULES[s.key] });
 
 /** Is this DO step one the reader can still do (a spot to open needs a saved spot)? Otherwise it reads as a SHOW step. */
-const doable = (s: GuideStepWords, f: GuideFacts) => s.kind === "do" && !(s.key === "open" && f.spots === 0 && f.viewing === null);
+const doable = (s: GuideStepWords, f: GuideFacts) => s.kind === "do" && !noClosed(s, f)
+  && !(s.key === "open" && f.spots === 0 && f.viewing === null);
 /** A DO step the app is already past when it is reached going forward: passed (the "open" step is the reader's to do). */
-const passOnArrival = (s: GuideStepWords, f: GuideFacts) => doable(s, f) && s.key !== "open" && !!ruleOf(s).done?.(f);
+const passOnArrival = (s: GuideStepWords, f: GuideFacts) =>
+  skipped(s, f) || (doable(s, f) && s.key !== "open" && !!ruleOf(s, f).done?.(f));
 
 /** (T456) How long the step's screen may be gone before the walk pauses: a route move in flight is not a leaving. */
 export const PAUSE_AFTER_MS = 1500;
@@ -303,7 +402,13 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
   }, [finish]);
   const back = useCallback(() => {
     how.current = "back";
-    setAt((i) => { if (i <= 0) { finish(); return i; } return i - 1; });
+    setAt((i) => {
+      if (i <= 0) { finish(); return i; }
+      // (T466) back over the closed steps that were passed (no example): onto the card that said so
+      let j = i - 1;
+      while (j > 0 && skipped(STEPS[j]!, live.current.facts)) j -= 1;
+      return j;
+    });
   }, [finish]);
   const pass = useCallback((from: number) => {
     if (how.current === "back") setAt((i) => (i !== from ? i : i <= 0 ? 0 : i - 1));
@@ -311,7 +416,7 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
   }, [next]);
   const resume = useCallback(() => {
     const { facts: f, acts: a } = live.current;
-    ruleOf(STEPS[at]!).bring?.(f, a);
+    ruleOf(STEPS[at]!, f).bring?.(f, a);
     setPaused(false);
   }, [at]);
 
@@ -322,14 +427,14 @@ export function useGuide(store: WalkthroughStore | null, blocked: boolean, facts
     const s = STEPS[at]!;
     if (pending) write((stored) => withGuideAt(stored, s.key));
     const { facts: f, acts: a } = live.current;
-    const rule = ruleOf(s);
+    const rule = ruleOf(s, f);
     if (how.current === "fwd") rule.arrive?.(f, a);
     if (how.current !== "fwd" || s.kind === "show") rule.bring?.(f, a);
   }, [open, at]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per step reached
 
   // a DO step the reader has just done: a moment to see it ticked, then on
   const s = STEPS[at]!;
-  const rule = ruleOf(s);
+  const rule = ruleOf(s, facts);
   const isDone = open && doable(s, facts) && !!rule.done?.(facts);
   const seen = useRef({ at, isDone });
   useEffect(() => {
@@ -375,8 +480,16 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   const step = STEPS[guide.at]!;
   const n = STEPS.length;
   const water = facts.water ? { name: facts.water.name, letters: lettersOf(facts.water.name) } : null;
-  const title = guideText(step.title, water), body = guideText(step.body, water);
-  const rule = ruleOf(step);
+  // (T466) no closed example in this release: its first step says so in its place, nothing ringed
+  const none = noClosed(step, facts);
+  const closedPart = facts.closed ? { part: facts.closed.label } : null;
+  const title = none ? W.closedNone.title : guideText(step.title, water, closedPart);
+  const said = none ? guideText(W.closedNone.body, water) : guideText(step.body, water, closedPart);
+  // (T466) the last card says what became of the example spot the walk made
+  const body = step.key === "done" && facts.example
+    ? `${facts.example === "removed" ? W.exampleRemoved : W.exampleKept} ${said}` : said;
+  const targets = none ? [] : step.targets;
+  const rule = ruleOf(step, facts);
   const canDo = doable(step, facts);
   const done = canDo && !!rule.done?.(facts);
   const showMe = canDo && !done && !!rule.show && (step.key !== "open" || facts.spots > 0)
@@ -399,11 +512,11 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   const showing = guide.open && !guide.paused;
   useEffect(() => {
     setHole(null);
-    if (!showing || step.targets.length === 0) return;
+    if (!showing || targets.length === 0) return;
     let gone = false, absent = 0, reveals = 0;
     const look = async () => {
       const o = await measure(origin.current);
-      const rs = (await Promise.all(step.targets.map((k) => measure(registry.get(k))))).filter((r): r is Rect => r !== null);
+      const rs = (await Promise.all(targets.map((k) => measure(registry.get(k))))).filter((r): r is Rect => r !== null);
       const u = unionRect(rs);
       if (gone) return;
       if (!u) {
@@ -416,15 +529,18 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
       const ox = o?.x ?? 0, oy = o?.y ?? 0;
       const r = { x: u.x - ox - PAD, y: u.y - oy - PAD, w: u.w + 2 * PAD, h: u.h + 2 * PAD };
       // (T456) the control's page scrolled so it is in view with room for the card (both platforms: the page's own scroll)
-      const page = registry.scrollerOf?.(step.targets[0]!) ?? null;
+      const page = registry.scrollerOf?.(targets[0]!) ?? null;
       const { cardH: ch, width: cw, room: rm, win: wn } = sized.current;
-      if (page && reveals < REVEALS && ch > 0) {
+      // (T466, owner on 0.6.8: "for dams and obstacles it never scrolled down on the menu to show it") a control laid out
+      // past the window's edge — a row below a sheet's visible body — is scrolled to before the card has measured itself
+      const outside = r.y + r.h < 0 || r.y > wn.h;
+      if (page && reveals < REVEALS && (ch > 0 || outside)) {
         const v = await page.view();
         if (gone) return;
         const dy = v ? revealBy(r, { x: v.x - ox, y: v.y - oy, w: v.w, h: v.h }, wn, { w: cw, h: ch }, rm) : 0;
         if (Math.abs(dy) > 4) { reveals += 1; page.by(dy); return; }
       }
-      const off = r.y + r.h < 0 || r.y > wn.h;
+      const off = outside;
       setHole((h) => (off ? null : h && Math.abs(h.x - r.x) < 1 && Math.abs(h.y - r.y) < 1 && Math.abs(h.w - r.w) < 1
         && Math.abs(h.h - r.h) < 1 ? h : r));
     };
@@ -433,7 +549,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
     const again = () => { t = setTimeout(() => { void look().then(() => { if (!gone) again(); }); }, 400); };
     void look(); again();
     return () => { gone = true; if (t) clearTimeout(t); };
-  }, [showing, guide.at, registry, win.h]);   // eslint-disable-line react-hooks/exhaustive-deps -- per step
+  }, [showing, guide.at, registry, win.h, none]);   // eslint-disable-line react-hooks/exhaustive-deps -- per step
 
   // (a phone) each step said aloud as it comes up; on the web the live region says it
   useEffect(() => {
@@ -443,7 +559,6 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   const onPrimary = () => {
     if (done) { guide.next(guide.at); return; }
     if (showMe) { rule.show!(facts, acts); return; }
-    if (step.key === "capture" && facts.adding) acts.cancelAdd();
     if (step.key === "restore") acts.restoreLayers();
     if (last) guide.finish(); else guide.next(guide.at);
   };
@@ -476,7 +591,7 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
   );
 
   const ring = hole ? insideWindow(hole, win) : null;
-  const pos = placeGuideCard(ring, win, { w: width, h: cardH }, room, step.dock);
+  const pos = placeGuideCard(ring, win, { w: width, h: cardH }, room, none ? "top" : step.dock);
 
   const primary = done ? W.doneStep : showMe ? W.showMe : last ? W.done : W.next;
 

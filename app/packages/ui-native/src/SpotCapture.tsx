@@ -43,6 +43,8 @@ import { Button } from "./Button";
 import { Icon, IconText, type IconName } from "./icons";
 import { hitProps } from "./regs/hit";
 import { Chip } from "./Chip";
+import { CoachSpot } from "./CoachMarks";
+import { useGuideControl } from "./guideControls";
 
 type Step = "water" | "point" | "when" | "details" | "saving";
 /** Where one back goes from each step: the step before it (a read in flight goes back to the hour it was asked for). */
@@ -137,12 +139,28 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
     setTitle(title || water.name || "");
     setStep("details");
   };
+  const ready = step === "water" ? water !== null : point !== null;
+  const onNext = () => setStep(step === "water" && !preset ? "point" : "when");
+  /*
+   * (T466) THE WALKTHROUGH SEES WHICH STEP THIS IS, and its "Show me" takes the reader's own moves: the water picked by
+   * its section (`{ pick }`, the walk's water under its pin), Next, Save, a name typed. Outside the walk: nothing.
+   */
+  useGuideControl<unknown>("capture", step, (v) => {
+    if (v === "save") { if (step === "details") void cap.save(title, notes, props.onSaved); return; }
+    if (v === "next") { if (step === "when") void toDetails(); else if ((step === "water" || step === "point") && ready) onNext(); return; }
+    const pick = (v as { pick?: number } | null)?.pick;
+    if (step === "water" && typeof pick === "number")
+      void pickWater("", String(pick) as SectionKey).then(() => setStep(preset ? "when" : "point"));
+  });
+  // a name of the reader's own (not the water's, which it starts as)
+  const named = title.trim() !== "" && title !== (water?.name ?? "");
+  useGuideControl(step === "details" ? "capture:title" : null, named, (v) => setTitle(String(v)));
 
   if (step === "when") {
     return (
       <WhenScreen palette={palette} steps={cap.steps} onShiftDay={cap.shiftDay} onDay={cap.toDay}
                   onHour={cap.setHour} water={water?.name ?? null} error={cap.error}
-                  onBack={() => setStep("point")} onNext={toDetails} />
+                  onBack={() => setStep("point")} onNext={toDetails} coach="capture:when" />
     );
   }
 
@@ -164,7 +182,6 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
     );
   }
 
-  const ready = step === "water" ? water !== null : point !== null;
   return (
     <View style={{ flex: 1 }}>
       <MapScreen at={tiles} palette={palette} theme={theme} camera={start}
@@ -182,6 +199,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
                    onConfirm={() => { setAsking(false); cancel(); }} />
         </View>
       )}
+      <CoachSpot k="capture:water">
       <Coach palette={palette}
              title={step === "water" ? (preset ? SPOT_CAPTURE_AT.title : CW.pickWater) : CW.exactSpot}
              detail={step === "water"
@@ -192,7 +210,8 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
              // Cancel leaves the whole capture: asks first when the draft holds what the reader put in
              onCancel={leave}
              // the pin is already down when the spot was started at a point: on to when you were there
-             onNext={ready ? () => setStep(step === "water" && !preset ? "point" : "when") : undefined} />
+             onNext={ready ? onNext : undefined} />
+      </CoachSpot>
     </View>
   );
 }
@@ -212,12 +231,14 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
  * archive has nothing for tomorrow, and a spot that records a visit that has not happened
  * is not a spot.
  */
-export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, onNext, error, title }: {
+export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, onBack, onNext, error, title, coach }: {
   palette: Palette; steps: VisitSteps;
   onShiftDay: (n: number) => void; onDay: (offset: number) => void; onHour: (h: number) => void;
   water: string | null; onBack: () => void; onNext: () => void; error?: string | null;
   /** (T294) the page's question; "Add a visit" asks it of the visit. Absent: "When were you there?" */
   title?: string;
+  /** (T466) the walkthrough's key for this page's Next (adding a spot's "When you were there") */
+  coach?: string;
 }) {
   const { dayOffset } = steps;
   const { hour } = steps;
@@ -274,7 +295,7 @@ export function WhenScreen({ palette, steps, onShiftDay, onDay, onHour, water, o
       <View style={{ flex: 1 }} />
       {/* (T257) the one button: this step's Next had been typed out (15 px padding, no slab, 14.5 px words) beside the
           Button the next step uses */}
-      <Button palette={palette} label={CW.next} onPress={onNext} grow={false} />
+      <CoachSpot k={coach ?? "visit:when"}><Button palette={palette} label={CW.next} onPress={onNext} grow={false} /></CoachSpot>
     </View>
   );
 }
