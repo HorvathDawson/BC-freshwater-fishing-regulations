@@ -522,7 +522,7 @@ use that as the sole source of future work."
 | T475 | Quota block wording: one headline, "up to N" sub-limits as parts, steelhead concise | IN REVIEW | 225ad72a5 14a759829 | owner 2026-11-07; owner look at the shots, then a release |
 | T476 | One Developer card behind the credits long-press (lab, data source, Updates log, build info); dev/staging only | DONE | 46f948264 | owner 2026-11-07; About loses dev rows |
 | T477 | ui-native render tests fail by wall-clock date (horizon labels "Sat 7" vs "Sun 8") | DONE | 0bd5ae373 | found 2026-11-07; pin the clock |
-| T478 | 0.6.8 walk: Updates log flow stale after T476; Coquitlam River tap opens the lake (T457 outline?) | OPEN | — | found 2026-11-07; test bed run 2026-11-07T09-16-07 |
+| T478 | 0.6.8 walk: Updates log flow stale after T476; Coquitlam River tap opens the lake (T457 outline?) | DONE | 6b5f9039e | found 2026-11-07; test bed run 2026-11-07T09-16-07 |
 | T479 | T475 follow-up: "How to tell hatchery ›", "Exception to regional quota" (pipeline `over_region`), examples fold closed by default | IN REVIEW | 31dd63547 | owner 2026-11-07; owner look at the shots, then a release |
 | T480 | One size style on the regs pane (chips; steelhead as a definition); access chip in the header tried and reverted (owner 11-07) | IN REVIEW | 3a1026e20, revert d6d964106 | owner 2026-11-07; proposal — size style for the owner's look; a better place for the access note is still open |
 | T481 | Sticky header on the keep tab: study, then the owner's "here-max + one breadcrumb" pin bar (water_max line 1, one breadcrumb, size words, "Fishing more than one water today? ›") | DONE | d2a7b4370 | owner 2026-11-07; wording approved 11-07, no shot review; release with the next one |
