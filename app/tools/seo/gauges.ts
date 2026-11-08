@@ -143,7 +143,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<h2>Last 7 days and the forecast</h2><div id="gauge-chart"></div>` +
     `<h2>Weather at the gauge</h2><div id="gauge-weather"><p class="small">Reading the forecast…</p></div>` +
     `<h2>Regulations</h2>` +
-    (g.close.length ? `<p>This gauge measures:</p><ul>${g.close.map(line).join("")}</ul>` : "") +
+    (g.close.length ? `<p>The waters this gauge serves:</p><ul>${g.close.map(line).join("")}</ul>` : "") +
     (g.rough.length ? `<details><summary>${g.close.length ? "Also a rough guide for" : "A rough guide for"} ${g.rough.length} more ${g.rough.length === 1 ? "water" : "waters"}</summary>` +
       `<ul class="cols">${g.rough.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
