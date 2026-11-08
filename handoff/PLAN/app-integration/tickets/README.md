@@ -542,8 +542,8 @@ use that as the sole source of future work."
 | T495 | THE NEAR GOAL: Play closed testing on production, four gates (no wrong regs, no crashes, smooth map, clean first run) | OPEN | — | owner 2026-11-07; work this list first |
 | T496 | Cleanup sweep before launch: v1 leftovers, dead pipeline code, stale docs, old outputs | OPEN | — | owner 2026-11-07 (T495) |
 | T497 | Lower Fraser braids carry the Fraser's name (Nicomen / Maria Slough); a 2-stretch "Fraser River" water | IN REVIEW — next release | 1ab627c95 | owner 2026-11-08 (phone); T495 gate 1 |
-| T498 | Rules / conditions pane opens janky (shows, then loads in): build first, then show | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
-| T499 | Pane's Map tab flickers when left open on the lowest Fraser stretch | OPEN | — | owner 2026-11-08 (phone); T495 smooth map |
+| T498 | Rules / conditions pane opens janky (shows, then loads in): build first, then show | IN REVIEW — next APK; Regulations view held (Conditions/Map: owner call) | b9103af33, c23affc58 | owner 2026-11-08 (phone); T495 smooth map |
+| T499 | Pane's Map tab flickers when left open on the lowest Fraser stretch | IN REVIEW — next APK | 0fee60f85, c23affc58 | owner 2026-11-08 (phone); T495 smooth map |
 | T500 | Release / closed definitions only behind the ⓘ, not printed in the main view | IN REVIEW — next build | 0cab98ff5 | owner 2026-11-08 (phone) |
 | T501 | "Where you can't fish" in short lines; full rule-book text one tap away | IN REVIEW — next release | 657f6e244 | owner 2026-11-08 (phone) |
 | T502 | The words under the salmon table repeat the table (closed words, quota notes); drop repeats, lose no fact | IN REVIEW — next build | a540631bb | owner 2026-11-08 (phone) |
