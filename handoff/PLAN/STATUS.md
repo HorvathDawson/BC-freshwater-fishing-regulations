@@ -34,7 +34,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   staging upload STOPPED: open.canada.ca (NuSEDS) is down again. T485 step 2 is now in, so from the next good fetch on, run
   timing builds from a kept private copy and an outage cannot block a release. The upload resumes on its own once
   open.canada.ca answers (checked every 10 min, up to 8 h).
-- **Running:** T466 (walkthrough follow-ups).
+- **T466 merged (IN REVIEW):** the walkthrough scrolls Layers to Fish obstacles before ringing it; Spots is a real
+  10-step creation (the example spot removed at the end); the closed example is the Chilliwack's stretch closed all year
+  (reached Upstream ×3 from the Vedder). Emulator walk 41/41. Defaults for 3 small questions are on the phone-check page.
 
 ## 2026-11-07 night (chat 7): the goal is written down (T495); r-f56b live on staging
 - **Goal (T495):** Play closed testing ON PRODUCTION, good enough for first users. Gates: no wrong regs (T462 audit), no
