@@ -73,7 +73,7 @@ def _water(p: Path, loose_str: bool = False) -> Path:
                                    PRIMARY KEY (ord, sid)) WITHOUT ROWID;
         CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER, lat INTEGER, label TEXT,
                                 down_part INTEGER, up_parts TEXT, confidence TEXT, down_stretch INTEGER,
-                                up_stretches TEXT, PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
+                                up_stretches TEXT, alt TEXT, PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
         CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER);
         CREATE TABLE water_continue (ord INTEGER PRIMARY KEY, part INTEGER NOT NULL, next_ord INTEGER NOT NULL UNIQUE,
                                      next_part INTEGER NOT NULL);
@@ -109,7 +109,7 @@ def _water(p: Path, loose_str: bool = False) -> Path:
         INSERT INTO part VALUES (0, 0, 1, 0, 121, 121, 121, NULL, 121, 1.5, 0, '[]', NULL, NULL, NULL, 1, 2, 0, 0, 0),
             (6, 0, 2, 0, 120, 120, 120, NULL, 120, 2.0, 0, '[]', NULL, NULL, NULL, 2, 1, 0, 0, 0);
         INSERT INTO part_section VALUES (0, 10, 0), (0, 11, 0), (6, 4100, 0);
-        INSERT INTO part_mark VALUES (0, 0, 1, 2, NULL, 0, '[]', NULL, NULL, NULL);
+        INSERT INTO part_mark VALUES (0, 0, 1, 2, NULL, 0, '[]', NULL, NULL, NULL, NULL);
         INSERT INTO water_exit VALUES (0, 1, 0), (6, 1, 0);
         INSERT INTO water_continue VALUES (4, 0, 5, 0);
         INSERT INTO xpart VALUES (1, x'01'), (2, x'02');

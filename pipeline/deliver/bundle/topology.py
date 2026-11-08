@@ -187,7 +187,8 @@ def merge_marks(raw: Sequence[dict]) -> List[dict]:
                     by[k]["confidence"] = m["confidence"]
         else:
             by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "up": [m["up"]],
-                     "label": m["label"], **({"confidence": m["confidence"]} if m.get("confidence") else {})}
+                     "label": m["label"], **({"confidence": m["confidence"]} if m.get("confidence") else {}),
+                     **({"alt": m["alt"]} if m.get("alt") else {})}
     return sorted(by.values(), key=lambda m: (m["down"], m["up"], m["lon"], m["lat"]))
 
 
@@ -200,10 +201,10 @@ def _stem_ends(p: dict) -> Tuple[Optional[str], Optional[str]]:
 
 
 def mark_words(down: dict, up: dict, doc: dict, splits: Dict[str, dict]) -> Tuple[Optional[str], Optional[str]]:
-    """T517: (a mark's words, its confidence). Where the lower part's top end IS the upper part's bottom end (one
+    """T517: (a mark's words, its confidence) — `mark_alt` gives the other names it is known by. Where the lower part's top end IS the upper part's bottom end (one
     token), the mark says that end in `end_words` — the same words the two parts' names say there (asserted). Else an
     end token the two parts' runs share; else the named split `split_at` finds; else (None, None)."""
-    from pipeline.deliver.answers.display.part import _named_token, end_words, run_ends
+    from pipeline.deliver.answers.display.part import _named_token, end_variants, end_words, run_ends
     natural = {None, "", "mouth", "source"}
     top, bottom = _stem_ends(down)[1], _stem_ends(up)[0]
     tok = top if top == bottom and top not in natural else None
@@ -221,6 +222,17 @@ def mark_words(down: dict, up: dict, doc: dict, splits: Dict[str, dict]) -> Tupl
             raise SystemExit(f"part_mark: {tok!r} reads {words!r} on the mark but {a and a[1]!r} / {b and b[0]!r} "
                              f"on the parts it joins — one function names both (T517)")
     return words, (splits.get(_named_token(doc, tok) or "") or {}).get("confidence")
+
+
+def mark_alt(down: dict, up: dict, doc: dict) -> Optional[List[str]]:
+    """T517: the OTHER names of the place a mark stands at (a gauge cut where a regulation's boundary stands: the
+    gauge's own name), kept for search and the alias list — None when it has one name."""
+    from pipeline.deliver.answers.display.part import end_variants
+    top, bottom = _stem_ends(down)[1], _stem_ends(up)[0]
+    if top is None or top != bottom or top in ("mouth", "source"):
+        return None
+    alt = end_variants(doc, top, "from")[1:]
+    return alt or None
 
 
 #: a way down through unnamed pieces longer than this is the sea or the edge of the atlas (as `nearer.MAX_STEPS`)
@@ -470,11 +482,12 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
                 label, conf = mark_words(dn["part"], up["part"], words_doc, splits)
+                alt = mark_alt(dn["part"], up["part"], words_doc)
                 raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": dn["v"], "up": up["v"],
-                            "label": label, "confidence": conf})
+                            "label": label, "confidence": conf, **({"alt": alt} if alt else {})})
         for k, m in enumerate(merge_marks(raw)):
             mark_rows.append((o, k, m["lon"], m["lat"], m["label"], m["down"], json.dumps(m["up"]),
-                              m.get("confidence"), None, None))
+                              m.get("confidence"), None, None, json.dumps(m["alt"]) if m.get("alt") else None))
 
     mouth = _mouths(part_rows)
     shapes_of: Dict[int, List[Tuple[int, Geometry]]] = defaultdict(list)
@@ -503,7 +516,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
     db.executemany("INSERT INTO part_geo (ord, part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n) "
                    "VALUES (?,?,?,?,?,?,?,?,?,?)", part_rows)
     db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence, "
-                   "down_stretch, up_stretches) VALUES (?,?,?,?,?,?,?,?,?,?)", mark_rows)
+                   "down_stretch, up_stretches, alt) VALUES (?,?,?,?,?,?,?,?,?,?,?)", mark_rows)
     db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
     # T228 DIAGNOSTIC: a salmon difference where no named split stands — a DFO place's edge not yet placed as a split.
     # Not cut, not named: the pieces stay one (the salmon bar shows its "see Salmon below" days) until the edge is placed

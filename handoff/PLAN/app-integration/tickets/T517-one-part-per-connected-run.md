@@ -73,3 +73,25 @@ shorts; 409 marks drawn "X / Y"; 2 marks named after gauges).
 Rule bindings per section identical to live except T510's 13 sections (+ any slough-fold lakes, listed); paint-sync
 check passes; size flat; every part reachable; parity list above confirmed with counts; shots (Fraser, Dean, one
 formerly bare water) light/dark. Nothing promoted.
+
+## Salmon feed adaptivity (checked 2026-11-08, code + live data)
+- **The chain holds EVERY curated DFO place, dormant ones too.** `deliver/salmon.build` puts every location of every
+  curated region file in `locs` ("EVERY location, ruled today or not (T211 part 2)") and chains each placed section by
+  the places whose extent covers it; the feed's rules only fill verdicts. The reach run places all 352 curated places
+  (151 active + 107 active-unmapped + 26 dormant-with-extent + 68 dormant-unmapped; `dfo_salmon.jsonl.gz` 352 rows), so
+  a dormant place's edges are chain changes today. Pinned: `test_salmon_file` (a dormant location sits in its chain).
+- So with `chain` in the part key the cut is already there for a dormant place: an activation from the live feed changes
+  only salmon status and paint (`regs.dfo_salmon.live` ships rules per location; the app re-composes the release's
+  chains), never the parts or marks. Salmon-mode navigation joins on the feed's `salmonKey`, so it separates the day
+  DFO lists the place again, with no release. Pinned: `waterNav.test.ts` "a DORMANT DFO place the live feed turns
+  active separates on the map with no release" (marks between the pieces stay).
+- **A brand-new extent with no curated geography** is not silent: `live.py` holds its rules in `unplaced.json`, sends an
+  URGENT notice ("new location on … — Place it in DFO review"), and lists it on the live queue (T366;
+  `test_dfo_live::test_a_place_matching_no_curated_place_is_urgent_and_listed`). It paints nothing until a curator places
+  it, and the next release cuts there.
+
+## Gauge cuts keep every name (owner 2026-11-08)
+`answers.display.end_variants`: the regulation's own name is said (`end_words`: Cruickshank's Strathcona Park line,
+not "08HB074 · Cruickshank River Near The Mouth"); the gauge's own name (and any same-place cut / official spelling) is
+kept as an alternate on the mark (`part_mark.alt`, a JSON list, release water file) for search and the alias list. Not
+done: the app's search does not read marks yet.

@@ -436,6 +436,9 @@ CREATE TABLE part_geo  (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INT
 CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon REAL NOT NULL, lat REAL NOT NULL,
                         label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, confidence TEXT,
                         down_stretch INTEGER, up_stretches TEXT,
+                        -- (T517) the other names of the place (a JSON list: a gauge cut's own name where a regulation's
+                        -- boundary stands, said `label`), for search and the alias list; NULL: one name
+                        alt TEXT,
                         PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
 CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
 -- (T369, owner 2026-11-03) WHERE EVERY STREAM SECTION LIES ON ITS OWN BLUE LINE: one row per STREAM handle (every one

@@ -530,6 +530,18 @@ describe("T517: one part per connected run, a salmon-cut run joined on the map",
     expect(g.parts[0]!.sids).toEqual([10, 11, 12]);
   });
 
+  it("a DORMANT DFO place the live feed turns active separates on the map with no release", () => {
+    // the cut is in the release whatever DFO lists today: the chain holds every curated place, dormant ones too
+    // (pipeline `salmon.build`), so the parts and the mark between them are already there
+    const dormant = mergeNav(waterGroup([DEAN]), () => "same");           // the feed: nothing on piece 1 today
+    expect(dormant.parts.map((_, i) => partName(dormant, i))).toEqual(["Mouth → Anahim Lake", "Anahim Lake → Source"]);
+    const active = mergeNav(waterGroup([DEAN]), (sid) => (sid === 12 ? "coho open" : "same"));   // DFO lists it again
+    expect(active.parts.map((_, i) => partName(active, i))).toEqual([
+      "Mouth → Tanswanket Creek confluence", "Tanswanket Creek confluence → Anahim Lake", "Anahim Lake → Source"]);
+    expect(active.marks.map((m) => [m.label, m.down, m.up])).toEqual([
+      ["Tanswanket Creek confluence", 0, [1]], ["Anahim Lake", 1, [2]]]);
+  });
+
   it("salmon mode keeps the pieces apart where their salmon differs, each by its own ends", () => {
     const g = mergeNav(waterGroup([DEAN]), (sid) => (sid === 12 ? "b" : "a"));
     expect(g.parts.map((_, i) => partName(g, i))).toEqual([

@@ -77,6 +77,22 @@ def test_a_gauge_cut_is_said_by_the_regulations_own_split_there():
     assert end_words(doc, "gauge__1", "from") == "Moat Lake"
 
 
+def test_a_gauge_cut_keeps_every_name_it_is_known_by():
+    """T517 (owner 2026-11-08: "any can be used"): the regulation's own name is said; the gauge's stays as an alternate
+    (`end_variants`, the mark's `alt`), never discarded."""
+    from pipeline.deliver.answers.display.part import end_variants
+    doc = {"splits": {"gauge__1": {"name": "08HB074 · Cruickshank River Near The Mouth", "kind": "gauge",
+                                   "water_id": "gnis:1", "km": 2.5, "same_place_as": "park"},
+                      "park": {"name": "Strathcona Park boundary", "kind": "area", "water_id": "gnis:1", "km": 2.5}},
+           "waters": {}}
+    assert end_variants(doc, "gauge__1", "from") == ["Strathcona Park boundary",
+                                                     "08HB074 · Cruickshank River Near The Mouth"]
+    down = {"runs": [{"from": "gauge__1", "to": "mouth", "km_from": 2.5, "km_to": 0.0}]}
+    up = {"runs": [{"from": "source", "to": "gauge__1", "km_from": 23.0, "km_to": 2.5}]}
+    assert T.mark_words(down, up, doc, doc["splits"])[0] == "Strathcona Park boundary"
+    assert T.mark_alt(down, up, doc) == ["08HB074 · Cruickshank River Near The Mouth"]
+
+
 def _span(rows):
     """{sid: (lo_m, hi_m, lo, hi, off_stem, shape)} from (sid, lo_m, hi_m[, off_stem])."""
     return {r[0]: (r[1], r[2], "a", "b", r[3] if len(r) > 3 else 0, 0) for r in rows}

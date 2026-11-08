@@ -332,6 +332,23 @@ def _named_token(doc: dict, e: Optional[str]) -> Optional[str]:
     return near[0][1] if near else e
 
 
+def end_variants(doc: dict, e: Optional[str], side: str) -> List[str]:
+    """T517 (owner 2026-11-08: a boundary that is both a gauge and a regulation's cut "can carry several name variations,
+    and any can be used"): EVERY name of a run end, the one said first (`end_words`: the regulation's own), then the
+    others it is also known by — the gauge's own name, a same-place cut's, an official spelling — none discarded."""
+    first = end_words(doc, e, side)
+    splits = doc.get("splits") or {}
+    out = [first]
+    for t in (e, (splits.get(e or "") or {}).get("same_place_as")):
+        sp = splits.get(t or "")
+        if not sp:
+            continue
+        for n in (_end_short(doc, t, side), sp.get("official_name")):
+            if n and n not in out:
+                out.append(n)
+    return out
+
+
 def end_words(doc: dict, e: Optional[str], side: str) -> str:
     """T517: ONE end of a run, in the few words every name and mark uses (`_end_short`, the gauge rule above). Never
     empty: a token nothing can name stops the build."""

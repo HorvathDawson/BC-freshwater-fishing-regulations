@@ -1530,7 +1530,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -1659,7 +1660,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -1754,7 +1756,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -1849,7 +1852,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -1944,7 +1948,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -2039,7 +2044,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -2134,7 +2140,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -2229,7 +2236,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -2324,7 +2332,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
@@ -2419,7 +2428,8 @@ export const PACK_FILES: Record<string, PackFile> = {
         "up_parts",
         "confidence",
         "down_stretch",
-        "up_stretches"
+        "up_stretches",
+        "alt"
       ],
       "part_section": [
         "ord",
