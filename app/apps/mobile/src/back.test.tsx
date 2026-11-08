@@ -196,6 +196,8 @@ const until = async (f: () => boolean) => waitFor(() => expect(f()).toBe(true), 
 /** A water's view strip (the bottom bar is hidden in water mode, so these tabs are the strip's). */
 const view = async (name: string) => { await act(async () => { fireEvent.click(screen.getByRole("tab", { name })); }); };
 const press = async (name: string) => { await act(async () => { fireEvent.click(screen.getByRole("button", { name })); }); };
+/** (T498) a water opened over the map is built hidden and shown whole: its view strip is reachable once it is shown */
+const paneShown = () => screen.queryByRole("tablist", { name: "Views of this water" }) !== null;
 const mapWhere = () => screen.queryByTestId("water-map-where")?.textContent ?? "no water map";
 const onWaterMap = () => waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
 const JEPERSON = "gnis:11481" as ItemId;
@@ -209,7 +211,7 @@ async function movesInsideChilliwack(extra: () => string = () => ""): Promise<st
   const out: string[] = [];
   const note = (s: string) => out.push(`${s}${extra()}`);
   await click("tap the map");
-  await until(() => screen.queryByText("Chilliwack River") !== null);
+  await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
   note(where());
   await view("Conditions"); note(where());
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
@@ -248,11 +250,11 @@ async function openFromSearch(): Promise<void> {
 async function openTributary(): Promise<void> {
   TAP.sid = (await makeFixtureSource().water(CHILLIWACK))!.sections[1]!;
   await click("tap the map");
-  await until(() => screen.queryByText("Chilliwack River") !== null);
+  await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
   await view("Map"); await onWaterMap();
   TAP.sid = (await makeFixtureSource().water(JEPERSON))!.sections[0]!;
   await click("tap the map");
-  await until(() => screen.queryByText("Jeperson Side Channel") !== null);
+  await until(() => screen.queryByText("Jeperson Side Channel") !== null && paneShown());
 }
 
 /**
@@ -264,7 +266,7 @@ async function acrossChilliwackVedder(extra: () => string = () => ""): Promise<s
   const out: string[] = [];
   const note = (s: string) => out.push(`${s}${extra()}`);
   await click("tap the map");
-  await until(() => screen.queryByText("Chilliwack River") !== null);
+  await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
   await view("Map"); await onWaterMap();
   await press("Downstream"); await press("Downstream"); note(`${where()} · ${mapWhere()}`);
   await press("Downstream into Vedder River");
@@ -398,7 +400,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     const seen = [where()];
     TAP.sid = KLWA_SID;
     await click("tap the map");
-    await until(() => screen.queryByText(KLWA["wbk:-22"]!) !== null);
+    await until(() => screen.queryByText(KLWA["wbk:-22"]!) !== null && paneShown());
     expect([...seen, ...backs(2)]).toEqual([
       "water Chilliwack River on Map · no bar",
       "water Kootenay Lake — Lower West Arm on Regulations · no bar", "handled -> tab Map", "ANDROID -> tab Map"]);
@@ -621,7 +623,7 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
     await click("Layers"); seen.push(where());
     await browserBack(); seen.push(where());
     await click("tap the map");
-    await until(() => screen.queryByText("Chilliwack River") !== null);
+    await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
     seen.push(where());
     await browserBack(); seen.push(where());
     await click("Spots"); seen.push(where());
