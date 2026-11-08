@@ -492,6 +492,18 @@
    "source": "this app",
    "width": 800,
    "height": 300
+  },
+  {
+   "file": "signal-crayfish.webp",
+   "code": "CRA",
+   "caption": "Signal crayfish",
+   "phase": null,
+   "stand_in_for": null,
+   "credit": "Walter Faxon 1885 / FMIB",
+   "type": "Engraving (tinted)",
+   "source": "Commons",
+   "width": 800,
+   "height": 400
   }
  ]
 }

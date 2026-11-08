@@ -23,6 +23,9 @@ export const FISH_IMAGES: Readonly<Record<string, readonly { readonly thumb: Ima
     { thumb: require("../assets/fish/thumbs/coho-salmon-ocean-phase.webp"), full: require("../assets/fish/coho-salmon-ocean-phase.webp") },
     { thumb: require("../assets/fish/thumbs/coho-salmon-spawning-phase.webp"), full: require("../assets/fish/coho-salmon-spawning-phase.webp") },
   ],
+  "CRA": [
+    { thumb: require("../assets/fish/thumbs/signal-crayfish.webp"), full: require("../assets/fish/signal-crayfish.webp") },
+  ],
   "CT": [
     { thumb: require("../assets/fish/thumbs/coastal-cutthroat-trout.webp"), full: require("../assets/fish/coastal-cutthroat-trout.webp") },
     { thumb: require("../assets/fish/thumbs/westslope-cutthroat-trout.webp"), full: require("../assets/fish/westslope-cutthroat-trout.webp") },

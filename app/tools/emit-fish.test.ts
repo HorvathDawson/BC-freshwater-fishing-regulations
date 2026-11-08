@@ -25,7 +25,7 @@ const tips = fishTips(readFileSync(TIPS_SOURCE, "utf8"));
 describe("emit-fish: the core manifest", () => {
   it("holds every coded species, sorted, salmon included", () => {
     expect(Object.keys(FISH)).toEqual([
-      "BB", "BCB", "CH", "CM", "CO", "CT", "CULTUS_LAKE_SCULPIN", "DV", "EB", "GB", "GE",
+      "BB", "BCB", "CH", "CM", "CO", "CRA", "CT", "CULTUS_LAKE_SCULPIN", "DV", "EB", "GB", "GE",
       "GR", "GREEN_STURGEON", "IN", "KO", "LMB", "LT", "LW", "MW", "NOOKSACK_DACE", "NP",
       "PK", "RB", "SALISH_SUCKER", "SK", "SMB", "ST", "WP", "WSG", "YP",
     ]);
@@ -72,7 +72,7 @@ describe("emit-fish: the credit lines (T43 FISH_CREDITS / FISH_CREDIT_OF)", () =
     expect(Object.keys(FISH_CREDIT_OF).sort()).toEqual(outside.map((i: { file: string }) => i.file).sort());
     expect(manifest.images.length - outside.length).toBe(2);   // T38's adipose drawings
     expect(["adipose-wild.webp", "adipose-clipped.webp"].map((f) => f in FISH_CREDIT_OF)).toEqual([false, false]);
-    expect(Object.keys(FISH_CREDIT_OF).length).toBe(39);
+    expect(Object.keys(FISH_CREDIT_OF).length).toBe(40);   // T505: + the signal crayfish
   });
   it("words a line \"<caption>[ · <phase>] — <credit> (<source>)\" (the pictured fish, a stand-in by its own caption)", () => {
     expect([FISH_CREDIT_OF["rainbow-trout.webp"], FISH_CREDIT_OF["steelhead-ocean-phase.webp"],
@@ -85,7 +85,7 @@ describe("emit-fish: the credit lines (T43 FISH_CREDITS / FISH_CREDIT_OF)", () =
   it("FISH_CREDITS is every line, sorted and unique", () => {
     const all = [...new Set(Object.values(FISH_CREDIT_OF))].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     expect(FISH_CREDITS).toEqual(all);
-    expect(FISH_CREDITS.length).toBe(39);
+    expect(FISH_CREDITS.length).toBe(40);
     expect(FISH_CREDITS.slice(0, 3)).toEqual(["Arctic grayling — The Fishes of Alaska (1907), A. Hoen & Co. (Commons)",
       "Black crappie — Duane Raver / USFWS (fws.gov)", "Brook trout — Freshwater Fisheries Society of BC (GoFishBC)"]);
   });

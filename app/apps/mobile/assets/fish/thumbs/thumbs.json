@@ -212,6 +212,13 @@
    "height": 120,
    "bytes": 5920
   },
+  "signal-crayfish.webp": {
+   "source_sha256": "55bcdc3a3b93d1df20748c79e0568d6a86361a65fbd6ea63b206ba18dc50ab11",
+   "sha256": "fd854f0a228beb84453923289d362b001fdfebfc773759b252c910fffda084fc",
+   "width": 240,
+   "height": 120,
+   "bytes": 10474
+  },
   "smallmouth-bass.webp": {
    "source_sha256": "f5bcb1e15c3cf467660eb551d0d184c3043770dfe9f58be1ca8b7f571fb6c8a9",
    "sha256": "fce9796f177051dea30684b37b81217881d476079f353226a53b6225ec371000",

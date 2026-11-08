@@ -9,7 +9,7 @@ export interface FishImage { readonly file: string; readonly caption: string; re
 export type FishManifest = Readonly<Record<string, readonly FishImage[]>>;
 
 /** sha256 of manifest.json's bytes, for `--check`. */
-export const FISH_MANIFEST_SHA256: string = "11d3bd2d5d7c7da20fe2adc54323b2b5b919ac06a9cb91d103799d6bacfa80ad";
+export const FISH_MANIFEST_SHA256: string = "33996029a4a3359950a4110c5faec333e5c7d5c49fc9fff4014a2d16f7a2e0b5";
 
 export const FISH: FishManifest = {
   "BB": [
@@ -29,6 +29,9 @@ export const FISH: FishManifest = {
   "CO": [
     { file: "coho-salmon-ocean-phase.webp", caption: "Coho salmon", credit: "WDFW", type: "Regulations photo", source: "eRegulations WA", phase: "ocean", standInFor: null, width: 800, height: 400 },
     { file: "coho-salmon-spawning-phase.webp", caption: "Coho salmon", credit: "WDFW", type: "Regulations photo", source: "eRegulations WA", phase: "spawning", standInFor: null, width: 800, height: 400 },
+  ],
+  "CRA": [
+    { file: "signal-crayfish.webp", caption: "Signal crayfish", credit: "Walter Faxon 1885 / FMIB", type: "Engraving (tinted)", source: "Commons", phase: null, standInFor: null, width: 800, height: 400 },
   ],
   "CT": [
     { file: "coastal-cutthroat-trout.webp", caption: "Coastal cutthroat trout", credit: "Freshwater Fisheries Society of BC", type: "Studio photo", source: "GoFishBC", phase: null, standInFor: null, width: 800, height: 400 },
@@ -145,6 +148,7 @@ export const FISH_CREDIT_OF: Readonly<Record<string, string>> = {
   "pink-salmon-ocean-phase.webp": "Pink salmon · ocean — WDFW (eRegulations WA)",
   "pink-salmon-spawning-phase.webp": "Pink salmon · spawning — WDFW (eRegulations WA)",
   "rainbow-trout.webp": "Rainbow trout — Freshwater Fisheries Society of BC (GoFishBC)",
+  "signal-crayfish.webp": "Signal crayfish — Walter Faxon 1885 / FMIB (Commons)",
   "smallmouth-bass.webp": "Smallmouth bass — Freshwater Fisheries Society of BC (GoFishBC)",
   "sockeye-salmon-ocean-phase.webp": "Sockeye salmon · ocean — WDFW (eRegulations WA)",
   "sockeye-salmon-spawning-phase.webp": "Sockeye salmon · spawning — WDFW (eRegulations WA)",
@@ -188,6 +192,7 @@ export const FISH_CREDITS: readonly string[] = [
   "Pink salmon · ocean — WDFW (eRegulations WA)",
   "Pink salmon · spawning — WDFW (eRegulations WA)",
   "Rainbow trout — Freshwater Fisheries Society of BC (GoFishBC)",
+  "Signal crayfish — Walter Faxon 1885 / FMIB (Commons)",
   "Smallmouth bass — Freshwater Fisheries Society of BC (GoFishBC)",
   "Sockeye salmon · ocean — WDFW (eRegulations WA)",
   "Sockeye salmon · spawning — WDFW (eRegulations WA)",

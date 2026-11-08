@@ -196,7 +196,7 @@ describe("sources and credits (T167: references apart — no dates, no freshness
     const vm = sourcesVM({ edition: null, tiles: null });
     expect(vm.pictures.label).toBe("Fish pictures");
     expect(vm.pictures.lines).toBe(FISH_CREDITS);
-    expect([vm.pictures.lines.length, vm.pictures.lines[0], vm.pictures.lines.at(-1)]).toEqual([39,
+    expect([vm.pictures.lines.length, vm.pictures.lines[0], vm.pictures.lines.at(-1)]).toEqual([40,
       "Arctic grayling — The Fishes of Alaska (1907), A. Hoen & Co. (Commons)",
       "Yellow perch — Freshwater Fisheries Society of BC (GoFishBC)"]);
   });
