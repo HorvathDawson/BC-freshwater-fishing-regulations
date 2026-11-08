@@ -1,6 +1,6 @@
 # T485 — Run timing off the release path: no outside site can block a release
 
-Status: PARTIAL — step 1 done (d948fa0); steps 2–3 open. Owner 2026-11-07.
+Status: PARTIAL — step 1 done (d948fa0); step 2 built (cb20055c6): proof is the first run that keeps a copy (open.canada.ca was down again 2026-11-08 03:45 UTC and stopped r-25a89ce9f8e6 at staging); step 3 open. Owner 2026-11-07.
 
 On 2026-11-07 open.canada.ca was down for hours. Every staging upload starts `feeds-runtiming.yml`, which re-downloads
 DFO NuSEDS (open.canada.ca) and the PSF pages, and the release pointer waits for it — so r-1b4f54fb6ed9 could not reach
