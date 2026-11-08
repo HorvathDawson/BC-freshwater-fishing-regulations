@@ -218,12 +218,19 @@ const HOURLY = (st: string) => `https://dd.weather.gc.ca/today/hydrometric/csv/B
 /** share of asked stations that may fail before the gauge feed counts as degraded */
 export const GAUGE_DEGRADED_SHARE = 0.1;
 
+/**
+ * (T513) A source request never goes through Cloudflare's cache. ECCC sends its CSVs with no Cache-Control, and `.csv`
+ * is a cached extension: the edge kept serving old copies (Capilano 08GA031 frozen at Nov 6, 162 of 434 stations stale,
+ * some since Oct 28) while every fetch counted as a success.
+ */
+export const sourceFetch = (u: string, i?: RequestInit) => fetch(u, { ...i, cache: "no-store" });
+
 
 async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: number; dryNotify?: boolean } = {}) {
   const m: Meter = newMeter();
   // every request: metered (each attempt is a subrequest), then retried / timed out / measured per source (src/health.ts)
   const health = new RunHealth();
-  const fetch_ = resilientFetch(meteredFetch((u, i) => fetch(u, i), m), health);
+  const fetch_ = resilientFetch(meteredFetch(sourceFetch, m), health);
   const logs: string[] = [];
   const log = (s: string) => logs.push(s);
   const t0 = Date.now(); // Workers' clock advances only across I/O: this is wall time, not CPU (CPU: tail / observability)
