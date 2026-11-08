@@ -47,3 +47,5 @@ short body: what, the render tests passed, depends on the first PR).
 
 0001 is rebased onto main ce1d31a61 (2026-11-07 evening; tests + pre-commit pass there). The drafts' permalinks point at d1b09a89 (still valid). If `git am` fails on a newer main, rebase and
 re-run the tests (`../tests.sh` style, see "Tests" in pr.md).
+
+Posted 2026-11-08 as maplibre/maplibre-native#4919 (0001 only, no issue; branch HorvathDawson:fix/feature-state-deltas).
