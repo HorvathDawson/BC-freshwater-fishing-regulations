@@ -11,8 +11,9 @@ Owner: "In light mode the park boundaries and color are impossible to see." Park
 - Knobs: app/packages/map/style/layers.source.json (park layers).
 
 ## Decision (owner 2026-11-08) — APPLIED
-Owner 2026-11-08: B, colours only, width 1.0 for T311. Light and cvd themes (`app/packages/map/style/themes/{light,cvd}.json`);
-dark unchanged. `color.park.fill` #cfe3b4 -> #17604A, `opacity.park` 0.32 -> 0.20, `color.park.edge` #5F8A3C -> `@color.park.fill`
+Owner 2026-11-08: B, colours only, width 1.0 for T311. Light theme only (`app/packages/map/style/themes/light.json`);
+dark unchanged. The cvd theme is NOT changed: B's fill vs `noaccess` is ΔE 11.8 under red/green, under the 15 floor in
+`tools/cvd.test.ts` ("keeps the access overlays apart"), so it stays on the old tokens until that pair is retuned (follow-up). `color.park.fill` #cfe3b4 -> #17604A, `opacity.park` 0.32 -> 0.20, `color.park.edge` #5F8A3C -> `@color.park.fill`
 (an alias: fill and edge are one colour by design, and `build-style.mjs` refuses two tokens with one hex or ΔE < 12; the
 alias is its sanctioned way to say so), `opacity.park.edge` 0.9 -> 1.0, `width.park.edge` stays 1.0.
 Shot: `shots/T488-applied.png` (Golden Ears, light, z9/z11/z13; left before, right applied).
