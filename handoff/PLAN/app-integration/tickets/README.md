@@ -556,6 +556,7 @@ use that as the sole source of future work."
 | T509 | Fraser lowest part read "2 stretches · stretch 1 of 2": a stretch is named by its own ends | IN REVIEW — next APK | 48710b7cb | owner 2026-11-08 (phone); T495 gate 1 |
 | T510 | A channel joining the Fraser to Strawberry Slough is filed under the Fraser (T497 leaves main-river connectors) | OPEN | — | owner 2026-11-08; proposal shots/T510-moved.md; owner picks A/B/C |
 | T511 | Gauge share card: forecast in words, readable axis, normal range (climatology band) behind the chart | IN REVIEW — next feeds deploy | 35276cdc2 | owner 2026-11-08; follow-up of T487 |
+| T512 | Laggy main map on Play 0.6.9 build 21: builds 20/21 shipped STOCK MapLibre (not T420's lean patch); build-apk --play now refuses that | IN REVIEW — GUARD; owner runs the next Play build patched | — | owner 2026-11-08 Pixel trace: render thread 100 % of a core, 55 map frames in 8.2 s (~147 ms CPU each); emulator lean flat after 16 switches, no map leak; stock A/B running |
 
 ## Order for open tickets
 

@@ -31,5 +31,6 @@ import { glide } from './glide.mjs';
 import { photoZoom } from './photo-zoom.mjs';
 import { stepShots } from './step-shots.mjs';
 import { mapIdle, paneOpen } from './pane.mjs';
+import { switchPan } from './switch-pan.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan];

@@ -15,6 +15,9 @@
 # cheap check could have caught is added here, in the same change as its fix, with a "caught:" line naming it.
 # Checks that need a release or an out-dir live where those are known: `pipeline/release.py` preflight (branch pushed,
 # T484) and `pipeline.deliver all --out-dir` (scratch release root holds tiles + basemap).
+# caught (T512, 2026-11-08): Play builds 20 and 21 shipped the STOCK MapLibre (no MLN_LOCAL_MAVEN), found only from the
+# owner's phone trace: `deploy/staging/build-apk.sh --play` checks it before the heavy lock (needs the flags it is given)
+# and checks the AAB's libmaplibre.so build id after the build.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
