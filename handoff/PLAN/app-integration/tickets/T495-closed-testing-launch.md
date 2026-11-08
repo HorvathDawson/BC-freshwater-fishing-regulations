@@ -27,7 +27,7 @@ resumes as soon as closed testing starts (Play first, iOS right after).
    T482 T483 T484 T423 T424 T428 T315 T354. What fails goes back on this list.
 2. **Gates 2–4 work** (Claude, ticket by ticket): T478, T351/T360, T494, T493 + T489 (one tiles rebuild), T488, T466,
    T401/T448, T461.
-3. **Audit + review:** T462 (gate 1), T463 (owner runs `/code-review ultra`, Claude triages), T496 cleanup sweep.
+3. **Audit + review:** T462 (gate 1; owner 2026-11-08: runs AFTER the DFO extents (T164) are in), T463 (owner runs `/code-review ultra`, Claude triages), T496 cleanup sweep.
 4. **Production cut-over, prepared** (Claude preps, owner runs): T404 (one switch to prod, every origin from one
    setting, prod runbook), T240 (launch checklist: map assets, HYDAT, report purge, SEO build, privacy page), T198/T409
    (.com → .ca 301, HSTS, Search Console), T86 (prod hosting), the prod feeds worker (placeholder exists). Dry-run every
