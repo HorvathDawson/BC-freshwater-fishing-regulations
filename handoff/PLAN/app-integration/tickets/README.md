@@ -553,6 +553,7 @@ use that as the sole source of future work."
 | T506 | Conditions: sources and notes at the bottom of the pane | IN REVIEW — next build | 84bf729f4 | owner 2026-11-08 (phone) |
 | T507 | test_the_corpus_tiers_match_plan_section_3 pins live-corpus counts (452 vs 445) | OPEN | — | found 2026-11-08; fixture like T491 |
 | T508 | A water opened into its Map / Conditions view appears in one piece (T498's hold for every view) | IN REVIEW — next APK | f2428537b, 02364791a, 49dd973d3 | follow-up of T498, 2026-11-08; T495 smooth map |
+| T509 | Fraser lowest part read "2 stretches · stretch 1 of 2": a stretch is named by its own ends | IN REVIEW — next APK | 48710b7cb | owner 2026-11-08 (phone); T495 gate 1 |
 | T511 | Gauge share card: forecast in words, readable axis, normal range (climatology band) behind the chart | IN REVIEW — next feeds deploy | 35276cdc2 | owner 2026-11-08; follow-up of T487 |
 
 ## Order for open tickets
