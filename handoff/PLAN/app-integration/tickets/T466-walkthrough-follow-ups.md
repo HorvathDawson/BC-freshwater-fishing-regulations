@@ -1,6 +1,6 @@
 # T466 — Walkthrough follow-ups from the owner's 0.6.8 phone check
 
-Status: OPEN (owner 2026-11-06, on 0.6.8).
+Status: IN REVIEW — bc938e624 (owner phone check; the new steps' words are Claude's draft)
 
 Owner: "the walkthrough generally is pretty good but for dams and obstacles it never scrolled down on the menu to show
 it, and the spots tutorial seemed rushed or didn't really show how to create a spot. Also how would it work when salmon

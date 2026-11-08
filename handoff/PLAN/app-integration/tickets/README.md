@@ -510,7 +510,7 @@ use that as the sole source of future work."
 | T463 | Deep code review of the branch before production (owner runs /code-review ultra; Claude triages) | OPEN | — | owner 2026-11-06 |
 | T464 | Bulkley River: 6 of 12 parts unreachable by ▲/▼ (found by the T460 count; true before it) | DONE 2026-11-06 | 1470734, 723f43116 | only the Bulkley changes; release test every part reachable |
 | T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | OPEN | — | 2026-11-06 |
-| T466 | Walkthrough follow-ups: scroll to dams/obstacles, a real spot creation, a closed example that stays closed (closed all year) | OPEN | — | owner 2026-11-06 |
+| T466 | Walkthrough follow-ups: scroll to dams/obstacles, a real spot creation, a closed example that stays closed (closed all year) | IN REVIEW | bc938e624 (owner phone check) | owner 2026-11-06 |
 | T467 | Lakes: a visible shoreline (a shade of the fill) inside the colour-blind gate | OPEN | — | owner 2026-11-06 |
 | T468 | Powell River above Powell Lake misses the lake's incl.-tributaries closure (through-river read as the lake's own outlet) | OPEN | 14294b999 | fix built + rerun, not promoted; 15 rules gain (0 lost); Little Slocan check: owner OK 11-07; promote with next release |
 | T469 | Legend: one row (fold button in it) on a wide screen, not two rows plus a strip | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web ≥ 900 px only, phones unchanged |
