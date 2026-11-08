@@ -1,6 +1,6 @@
 # T493 — A creek shows a gap where its small lake drops out zoomed out
 
-Status: PARTIAL (reopened 2026-11-08) — owner phone: slough polygons (Nicomen Slough, Camp Slough) still drop out zoomed out and leave gaps; the 8494959a2 link covers lakes only. Was: IN REVIEW — side build + shots done (8494959a2); left: owner look at the shots, ships with the next tiles rebuild. Owner 2026-11-07 (Foley Lake on Foley Creek).
+Status: IN REVIEW — slough fix `fill_zooms` (41bf8e309, 0031f1997) + side build + shots done; left: owner look at the shots, ships with the next tiles rebuild (on T497's atlas). Was: PARTIAL (reopened 2026-11-08) — owner phone: Nicomen / Camp Slough still gap; the 8494959a2 link covers lakes only. Owner 2026-11-07 (Foley Lake on Foley Creek).
 
 Zoomed out, a small lake leaves the tiles before its creek does. The creek's line stops at the lake's shore and starts
 again on the far side, so the creek looks broken.
@@ -68,3 +68,26 @@ again on the far side, so the creek looks broken.
   zooms only lowered, no new layer. Lake links computed on the filled zooms. Tiles-only rebuild, AFTER T497's atlas
   (membership from registry.json). Tests: Nicomen shape, Camp shape, one-side negative, other-item negative, loop,
   never raised, deterministic.
+
+## Slough fix — done 2026-11-08 (41bf8e309 … 0031f1997)
+- `export.fill_zooms`: a hidden piece of water I is drawn from zoom z when drawn water OF I lies upstream AND
+  downstream of it (through hidden pieces of I only) AND the water visibly breaks there: either the two sides are
+  separate drawn runs of I, or one side is a drawn piece that DANGLES into the hidden stretch (no drawn piece of I
+  next to it) and the other side is a different drawn piece. A stream's own polygon counts as drawn from its polygon
+  zoom. Zooms only lowered; no new layer; `export_streams` buffers, fills, then writes; lake links use the filled zooms.
+- The agreed rule ("drawn water of I on both sides") was too wide: on the T497 atlas it filled 16,754 pieces — braids
+  and side channels of big rivers (Stikine, Liard, Swanson) pulled from z13 to z4–z7. "Only where I ends" still gave
+  5,382. "Two separate runs" gave 204 but missed Nicomen: as built, 1266795 → 59599 → 59592 is drawn, so its hidden
+  channel 59594 / 1454487 / 59593 is a parallel channel of ONE run, ending at 1454621, which dangles. Final: 242.
+- Tests `pipeline/tests/test_tile_fill_zooms.py` (Nicomen schematic + as built, Camp, one side, other item, braid
+  beside a river, Swanson side channels, loop, never raised + fixed point, deterministic, lake link on filled zooms,
+  wiring); mutation-checked; in smoke.txt.
+- Side build ON the T497 atlas (APFS clone `data/generated/side/t493/atlas`), tiles `data/generated/side/t493/tiles/`
+  (version 269777be890cc2b3.c0ed226b8ed7, 196.0 MB; admin layers copied from live, water layers re-exported). vs live
+  `stream.geojsonl`: 242 minzooms lowered (none raised), 0 geometry / `ord` changes; plus T497's renames (6 Columbia /
+  Fraser / Kootenay side channels → their own names) and one new feature (Baldy Channel). Nicomen 59593 / 59594 /
+  1454487 z11 → z7; Camp Slough's connectors z12–z13 → z11.
+- Shots (before | after, centre crop x2): `shots/T493-nicomen-slough-z8.png`, `-z10`, `shots/T493-camp-slough-z11.png`,
+  `-z12`.
+- Ships: a tiles rebuild after T497's atlas is promoted (the side tiles are on T497's side atlas, not live).
+
