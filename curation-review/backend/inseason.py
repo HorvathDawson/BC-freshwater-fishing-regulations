@@ -99,21 +99,9 @@ def _labels() -> dict[str, str]:
     return {sid: str(sp.get("label") or sid) for sid, (_w, sp) in reuse._split_records().items()}
 
 
-def _guess_view(g: dict | None, labels: dict[str, str]) -> dict | None:
-    """auto's BEST GUESS for an unmatched row (`Matches.guesses`): pre-fills the editor, never applied."""
-    if not g:
-        return None
-    exts = []
-    for e in g.get("extents") or []:
-        try:
-            exts.append(_extent_view(M.InSeasonExtent.model_validate(e), labels))
-        except (ValidationError, ValueError):
-            continue
-    return {"why": g.get("why") or "", "evidence": g.get("evidence"), "extents": exts}
-
-
 def _row_view(rid: str, row: dict | None, m: M.Match | None, history: list[dict], today: str,
-              labels: dict[str, str], guess: dict | None = None) -> dict:
+              labels: dict[str, str], doc_words: dict[str, str] | None = None) -> dict:
+    doc_words = doc_words or {}
     eff = m.effective if m else None
     frm, to = M.span(row or {}, eff)
     base = row or {"id": rid, "region": m.region if m else "", "water": m.water if m else "",
@@ -135,10 +123,11 @@ def _row_view(rid: str, row: dict | None, m: M.Match | None, history: list[dict]
             # owner add-on 2026-10-28: an AUTO match (the matcher removed in T520) says so, with its evidence
             "source": m.source, "confidence": m.confidence, "evidence": m.evidence,
             # (T520) where it lands on the file's release: per water, whole or its ends; or why it does not
-            "waters": {k: ({"all": True} if w.all else {"ends": w.ends, "runs": len(w.runs), "lakes": len(w.lakes)})
+            "waters": {k: ({"all": True} if w.all else {"ends": [list(p) for p in w.ends], "runs": len(w.runs),
+                                                          "lakes": len(w.lakes)})
                        for k, w in sorted(m.waters.items())},
+            "words": {t: doc_words.get(t, t) for w in m.waters.values() for p in w.ends for t in p},
             "unresolved": m.unresolved},
-        "guess": guess,
         "dates": {"from": frm, "to": to, "source": "curated" if eff else "feed"},
         "in_effect": _in_effect(frm, to, today),
         "history": history,
@@ -151,22 +140,21 @@ def queue() -> dict:
     feed = load_feed()
     doc = _load_matches()
     today = date.today().isoformat()
-    labels = _labels() if (doc.matches or doc.guesses) else {}
+    labels = _labels() if doc.matches else {}
     hist: dict[str, list[dict]] = {}
     for h in doc.history:
         hist.setdefault(h.id, []).append(h.model_dump(exclude_none=True))
     if feed is None:
         return {"available": False, "message": f"no in-season feed at {feed_path()} — the T225 worker's "
                 "feeds/inseason/index.json has not been copied here", "source": None, "fetchedAt": None,
-                "rows": [_row_view(rid, None, m, hist.get(rid, []), today, labels)
+                "rows": [_row_view(rid, None, m, hist.get(rid, []), today, labels, doc.words)
                          for rid, m in sorted(doc.matches.items())],
                 "progress": {"matched": 0, "unmatched": 0, "total": 0, "removed": 0,
                              "stale": len(doc.matches)}}
     rows = _feed_rows(feed)
-    out = [_row_view(rid, r, doc.matches.get(rid), hist.get(rid, []), today, labels,
-                     None if rid in doc.matches else _guess_view(doc.guesses.get(rid), labels))
+    out = [_row_view(rid, r, doc.matches.get(rid), hist.get(rid, []), today, labels, doc.words)
            for rid, r in rows.items()]
-    out += [_row_view(rid, None, m, hist.get(rid, []), today, labels)
+    out += [_row_view(rid, None, m, hist.get(rid, []), today, labels, doc.words)
             for rid, m in sorted(doc.matches.items()) if rid not in rows]
     live = [r for r in out if not r["removed"]]
     return {"available": True, "message": None, "source": feed.get("source"), "fetchedAt": feed.get("fetchedAt"),
@@ -290,6 +278,25 @@ def extent_preview(extents: list[M.InSeasonExtent], limit: int = 6000) -> dict:
 
 # --------------------------------------------------------------------------- THE WRITE
 
+def _atlas():
+    from pipeline.regs.inseason import resolve as R
+    return R.load_atlas(reuse._registry(), reuse._graph(), reuse._BUILD)
+
+
+def resolve_all(by: str = "") -> dict:
+    """(T520) RE-RESOLVE every match on the shipped release (after a release promote: the file names an older one),
+    through `writes.commit`. Matches that no longer resolve keep their extents and say why (`unresolved`); publish
+    refuses them until re-matched. -> {release, unresolved: [...]}."""
+    from pipeline.regs.inseason import resolve as R
+    rel = R.read_release(R.release_dir(None))
+    with writes.LOCK:
+        doc = _load_matches()
+        new, bad = R.resolve_doc(doc, _atlas(), rel)
+        if M.dumps(new) != M.dumps(doc):
+            writes.commit([(matches_path(), M.dumps(new))], "inseason-resolve")
+    return {"release": rel.name, "unresolved": bad}
+
+
 def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "") -> dict:
     """SET (extents given) or CLEAR (None / []) one row's match, with a history row carrying `note`. Refused:
     no note, an id the feed does not hold (rows or removed), a malformed extent, an unknown water or split, an
@@ -314,20 +321,17 @@ def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "
         else:
             exts = parse_extents(extents)
             _check(exts)
-            prev = extent_preview(exts, limit=0)
-            if not prev["resolvable"]:
-                raise Refused(f"the extent binds no section: {prev['why']}")
-            # (T520) RESOLVED HERE, where the atlas is: FWA ranges on the release the file names (publish only formats)
+            # (T520) RESOLVED ONCE, HERE, where the atlas is: FWA ranges + end tokens on the shipped release
+            # (`resolve_match` refuses a release not built from this atlas); publish only formats
             from pipeline.regs.inseason import resolve as R
             rel = R.read_release(R.release_dir(None))
             if doc.release and doc.release != rel.name:
                 raise Refused(f"the matches are resolved on {doc.release}, the shipped release is {rel.name}: "
-                              "re-resolve them first (python -m pipeline.regs.inseason.resolve)")
-            atlas = R.load_atlas(reuse._registry(), reuse._graph(), reuse._BUILD)
+                              "re-resolve them first (Re-resolve on the In-season tab), then commit")
             try:
-                waters = R.resolve_match(atlas, rel, M.Match(extents=exts), M.split_labels())
+                waters, words = R.resolve_match(_atlas(), rel, M.Match(extents=exts), M.split_labels())
             except R.Unresolved as ex:
-                raise Refused(f"the extent does not resolve on {rel.name}: {ex}")
+                raise Refused(f"the extent binds no section on {rel.name}: {ex}")
             eff = None
             if effective and (effective.get("from") or effective.get("to")):
                 try:
@@ -336,11 +340,13 @@ def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "
                     raise Refused(f"effective: {ex}")
             r = rows[rid]
             try:
-                match = M.Match(region=str(r.get("region") or ""), water=str(r.get("water") or ""),
-                                extents=exts, effective=eff, note=note, by=by, at=at, waters=waters)
+                match = M.stamped(M.Match(region=str(r.get("region") or ""), water=str(r.get("water") or ""),
+                                          extents=exts, effective=eff, note=note, by=by, at=at, waters=waters),
+                                  rel.name)
             except (ValidationError, ValueError) as ex:
                 raise Refused(str(ex))
-            new = M.set_match(doc, rid, match, at=at, by=by, note=note).model_copy(update={"release": rel.name})
+            new = M.set_match(doc, rid, match, at=at, by=by, note=note)
+            new = new.model_copy(update={"release": rel.name, "words": {**new.words, **words}})
         text = M.dumps(new)
         errs = [p for p in M.problems(M.parse(text), split_ids=split_ids()) if p.startswith(rid)]
         if errs:

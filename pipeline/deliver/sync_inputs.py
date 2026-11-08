@@ -99,8 +99,11 @@ INPUTS = (
 NAMES = tuple(i.name for i in INPUTS)
 
 
-def stage(out: Path, only: tuple[str, ...] = ()) -> list[tuple[str, str | None]]:
-    """Stage the inputs (all, or `only`) under `out`; -> [(key, cache-control)] in list order."""
+def stage(out: Path, only: tuple[str, ...] = (), failed: list[tuple[str, str]] | None = None
+          ) -> list[tuple[str, str | None]]:
+    """Stage the inputs (all, or `only`) under `out`; -> [(key, cache-control)] in list order. (T520) EACH INPUT ON
+    ITS OWN: one that fails (an in-season refusal) is appended to `failed` as (name, why) and the others still stage —
+    a refused match must not hold back the DFO entries. Without `failed`, the first failure raises."""
     bad = sorted(set(only) - set(NAMES))
     if bad:
         raise SystemExit(f"sync_inputs: unknown input(s) {bad}; the list is {', '.join(NAMES)}")
@@ -108,19 +111,29 @@ def stage(out: Path, only: tuple[str, ...] = ()) -> list[tuple[str, str | None]]
     for i in INPUTS:
         if only and i.name not in only:
             continue
-        got += [(k, i.cache) for k in i.stage(out)]
+        try:
+            got += [(k, i.cache) for k in i.stage(out)]
+        except (SystemExit, Exception) as ex:                 # noqa: BLE001 — said, per input
+            if failed is None:
+                raise
+            failed.append((i.name, str(ex) or type(ex).__name__))
     return got
 
 
 def main(argv: list[str] | None = None) -> int:
+    """The manifest of what staged on stdout; every input that did not, one `FAILED <name>: <why>` line on stderr and
+    exit 1 (the uploader puts what staged, then fails)."""
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, required=True, help="the staging directory (objects land at <out>/<key>)")
     ap.add_argument("--only", nargs="*", default=[], choices=NAMES, help="stage just these (default: all)")
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
-    for key, cache in stage(a.out, tuple(a.only)):
+    failed: list[tuple[str, str]] = []
+    for key, cache in stage(a.out, tuple(a.only), failed):
         sys.stdout.write(f"{key}\t{cache or '-'}\n")
-    return 0
+    for name, why in failed:
+        sys.stderr.write(f"FAILED {name}: {why}\n")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

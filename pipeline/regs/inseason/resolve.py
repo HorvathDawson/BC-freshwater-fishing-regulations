@@ -8,12 +8,18 @@ on the release the file then names (`release`, default `data/release/LATEST`; re
 `section_handles` digest is the atlas's):
 
     {item: {"all": true}}                           every section of the water (in that release's `part_section`)
-    {item: {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": …}}
+    {item: {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": [[low, high], …]}}
                                                     the covered stream sections as FWA ranges: the sections of the
                                                     release whose START lies in [m0, m1) on stream `blk`; `lakes` the
                                                     covered LAKE pieces of a river (no line: their places among the
-                                                    water's lake pieces, handle order); `ends` the extent's own places
-                                                    in words ("From Hell's Gate to Spuzzum Creek confluence")
+                                                    water's lake pieces, handle order); `ends` each covered stretch of
+                                                    the water's main line as two end TOKENS, mouth upward (a split id,
+                                                    a pick-point id, `mouth`, `source`) — never words: core says them
+                                                    (`inSeasonWhere`) with the file's `words` (INTERIM: T517's release
+                                                    token table replaces it)
+
+and each match is STAMPED (`matches.stamp`: a hash of its extents, the release and its waters) so publish refuses a
+hand edit that was not re-resolved.
 
 No part index, label or section id (AGENTS 5): a range survives a renumbering of parts (T517). A lake or wetland is
 whole or not at all (it has no line). Each range set is proved on the spot: read back by the device's rule over the
@@ -152,15 +158,19 @@ def make_runs(secs: Iterable[int], span_of: Mapping[int, tuple[int, int, int]]) 
     return runs
 
 
-# --------------------------------------------------------------------------- words
+# --------------------------------------------------------------------------- ends (TOKENS, never words)
 
-
+#: the natural ends of a water's main line (no named place)
+MOUTH, SOURCE = "mouth", "source"
+#: which named place stands for a run end when several stand at one measure
+_KIND_ORDER = {"split": 0, "lake": 1, "region": 2, "mu": 3, "trib": 4, "mouth": 5}
 _SIGNS = re.compile(r"^(?:the )?(?:fishing )?(?:boundary )?signs? (?:at |near )?", re.I)
 
 
-def place_words(label: str) -> str:
-    """A place as a sentence names it: "Spuzzum Creek → Fraser River" (a confluence split) is "Spuzzum Creek
-    confluence"; a sign-post's words go ("fishing boundary signs near the Mobbs Creek …" -> "the Mobbs Creek …")."""
+def interim_words(token: str, label: str) -> str:
+    """(INTERIM, until T517 ships a token -> words table in the release) the words a run-end TOKEN is said by: the
+    place's own name (a split's curated label, an atlas point's label), cleaned of the confluence arrow and sign-post
+    words. A NAME, never a sentence: the sentence ("From A to B") is core's (`inSeasonWhere`, AGENTS 33)."""
     t = label.strip()
     m = re.fullmatch(r"(.+?)\s*→\s*.+", t)
     if m:
@@ -168,14 +178,106 @@ def place_words(label: str) -> str:
     return _SIGNS.sub("", t) or t
 
 
-def ends_words(op: str, places: list[str]) -> str:
-    if op == "upstream_of":
-        return f"Upstream of {places[0]}"
-    if op == "downstream_of":
-        return f"Downstream of {places[0]}"
-    if op == "between":
-        return f"From {places[0]} to {places[1]}"
-    return ""
+def stem_ends(atlas: "Atlas", item: str, hit: set[int]) -> tuple[list[tuple[str, str]], dict[str, str], list]:
+    """GEOMETRY: the covered stretches of `item`'s MAIN LINE as end-token pairs, mouth upward — each the place standing
+    at that end (a split, a lake inlet / outlet, a region / MU crossing, a named confluence) or `mouth` / `source` at
+    the line's own ends — each token's label, and the stretches' measures [(lo_m, hi_m)]. For a water the notice reaches
+    only by its tributary walk (it names no place on it). Raises Unresolved when a stretch ends where nothing stands."""
+    from pipeline.regs.inseason import points as P
+    stem, nodes = P._stem_nodes(atlas.reg, atlas.g, item)
+    if not nodes:
+        return [], {}, []
+    cov = [atlas.handle.get(n.node_id) in hit for n in nodes]
+    pts = [p for p in P.points(atlas.reg, atlas.g, item) if p.m is not None]
+    label = {p.id: p.label for p in P.points(atlas.reg, atlas.g, item)}
+
+    def at(m: float, natural: str, edge: float) -> str:
+        if abs(m - edge) <= P.EPS_M:
+            return natural
+        near = sorted((_KIND_ORDER.get(p.kind, 9), p.id) for p in pts if abs(p.m - m) <= P.EPS_M and p.id != MOUTH)
+        if not near:
+            raise Unresolved(f"{atlas.reg[item].name or item}: a covered stretch ends at {m:.0f} m on its main line, "
+                             "where no named place stands")
+        return near[0][1]
+
+    out: list[tuple[str, str]] = []
+    spans: list = []
+    i = 0
+    while i < len(nodes):
+        if not cov[i]:
+            i += 1
+            continue
+        j = i
+        while j + 1 < len(nodes) and cov[j + 1]:
+            j += 1
+        spans.append((nodes[i].down_m, nodes[j].up_m))
+        out.append((at(nodes[i].down_m, MOUTH, nodes[0].down_m), at(nodes[j].up_m, SOURCE, nodes[-1].up_m)))
+        i = j + 1
+    return out, label, spans
+
+
+def _spans(atlas: "Atlas", item: str, hit: set[int]) -> list[tuple[float, float]]:
+    """The covered stretches of the main line as measures [(lo, hi)], mouth upward (no names)."""
+    from pipeline.regs.inseason import points as P
+    _stem, nodes = P._stem_nodes(atlas.reg, atlas.g, item)
+    out, i = [], 0
+    while i < len(nodes):
+        if atlas.handle.get(nodes[i].node_id) not in hit:
+            i += 1
+            continue
+        j = i
+        while j + 1 < len(nodes) and atlas.handle.get(nodes[j + 1].node_id) in hit:
+            j += 1
+        out.append((nodes[i].down_m, nodes[j].up_m))
+        i = j + 1
+    return out
+
+
+def extent_ends(atlas: "Atlas", item: str, extents: list, hit: set[int]
+                ) -> tuple[list[tuple[str, str]], dict[str, str]]:
+    """THE NOTICE'S OWN PLACES on `item` (the extents naming it) as end-token pairs, mouth upward: `between` a, b ->
+    (a, b) ordered by their measures on the main line; `upstream_of` a -> (a, source); `downstream_of` a -> (mouth, a);
+    `whole` -> (mouth, source). Pairs that meet are one stretch (Hell's Gate: "between Spuzzum and Hell's Gate" +
+    "upstream of Hell's Gate" is upstream of Spuzzum)."""
+    from pipeline.regs.inseason import points as P
+    pts = {p.id: p for p in P.points(atlas.reg, atlas.g, item)}
+    m = lambda t: (-1e18 if t == MOUTH else 1e18 if t == SOURCE else (pts[t].m if t in pts else None))  # noqa: E731
+    pairs: list[tuple[str, str]] = []
+    for e in extents:
+        if e.op == "whole":
+            pairs.append((MOUTH, SOURCE))
+        elif e.op == "upstream_of":
+            pairs.append((e.splits[0], SOURCE))
+        elif e.op == "downstream_of":
+            pairs.append((MOUTH, e.splits[0]))
+        else:
+            a, b = e.splits
+            ma, mb = m(a), m(b)
+            if ma is None and mb is None:
+                raise Unresolved(f"{atlas.reg[item].name or item}: between {a} and {b}: neither is a place on its "
+                                 "main line, so its ends cannot be ordered")
+            if ma is None or mb is None:
+                # one end stands off the main line's pick-points (a dam re-anchored on a reservoir's outlet): the
+                # covered stretch says which end the other one is
+                known, km = (b, mb) if ma is None else (a, ma)
+                other = a if ma is None else b
+                lo, hi = min(_spans(atlas, item, hit), key=lambda sp: min(abs(sp[0] - km), abs(sp[1] - km)))
+                pairs.append((known, other) if abs(lo - km) <= abs(hi - km) else (other, known))
+                continue
+            pairs.append((a, b) if ma <= mb else (b, a))
+    def key(p):
+        lo = m(p[0]) if m(p[0]) is not None else m(p[1])
+        return (lo if lo is not None else 0, m(p[1]) if m(p[1]) is not None else 0)
+    pairs = sorted(set(pairs), key=key)
+    merged: list[tuple[str, str]] = []
+    for lo, hi in pairs:
+        if merged and (merged[-1][1] == lo or (m(lo) is not None and m(merged[-1][1]) is not None
+                                               and m(lo) <= m(merged[-1][1]))):
+            top = merged[-1][1] if (m(merged[-1][1]) or 0) >= (m(hi) or 0) else hi
+            merged[-1] = (merged[-1][0], top)
+        else:
+            merged.append((lo, hi))
+    return merged, {k: p.label for k, p in pts.items()}
 
 
 # --------------------------------------------------------------------------- the atlas
@@ -208,34 +310,24 @@ def load_atlas(reg=None, g=None, build=None) -> Atlas:
     return Atlas(reg, g, handle, ids, H.digest_for(build))
 
 
-def _labels_for(atlas: Atlas, item: str, splits: dict[str, str]) -> dict[str, str]:
-    from pipeline.regs.inseason import points as P
-    out = dict(splits)
-    for p in P.points(atlas.reg, atlas.g, item):
-        out.setdefault(p.id, p.label)
-    return out
-
-
-def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]) -> dict[str, M.Water]:
-    """One match -> its `waters` on `rel`. Raises Unresolved with the reason."""
+def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]
+                  ) -> tuple[dict[str, M.Water], dict[str, str]]:
+    """One match -> (its `waters` on `rel`, the words of the end tokens it uses). Raises Unresolved with the reason —
+    first when `rel` was not built from this atlas (its handles would mean other sections)."""
     from pipeline.deliver.bundle.section_measure import span
     from pipeline.regs.inseason import points as P
+    if rel.handles != atlas.digest:
+        raise Unresolved(f"release {rel.name} was not built from this atlas (section handles {rel.handles} != "
+                         f"{atlas.digest}): resolve on the release built from it")
     secs: set[int] = set()
-    named: dict[str, list[str]] = {}            # item -> the ends of the extents naming it (not whole)
-    walked_from: dict[str, str] = {}            # extent water -> its name, for a tributary walk
     for e in m.extents:
         try:
             got = P.resolve(atlas.reg, atlas.g, e.model_dump(exclude_none=True))
         except P.Unresolved as ex:
             raise Unresolved(f"{e.op} {e.item_id}: {ex}")
         secs |= {atlas.handle[s] for s in got["sections"] if s in atlas.handle}
-        if e.op != "whole":
-            labels = _labels_for(atlas, e.item_id, splits)
-            named.setdefault(e.item_id, []).append(
-                ends_words(e.op, [place_words(labels.get(s) or s) for s in e.splits]))
-        if e.tributaries:
-            walked_from[e.item_id] = atlas.reg[e.item_id].name or e.item_id
     out: dict[str, M.Water] = {}
+    words: dict[str, str] = {}
     for item in sorted(rel.ord_of):
         members = rel.item_sections(item)
         hit = members & secs
@@ -261,42 +353,46 @@ def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]
         if back != hit:
             raise Unresolved(f"{item}: its ranges read back {len(back)} sections on {rel.name}, not the {len(hit)} "
                              "resolved")
-        ends = "; ".join(sorted(set(named.get(item, ())))) or (
-            "Tributaries of " + " and ".join(sorted(set(walked_from.values()))) if walked_from else "")
-        if not ends:
-            raise Unresolved(f"{item}: covered in part but no extent says where")
+        named = [e for e in m.extents if e.item_id == item]
+        ends, label = extent_ends(atlas, item, named, hit) if named else stem_ends(atlas, item, hit)[:2]
+        for pair in ends:
+            for t in pair:
+                if t not in (MOUTH, SOURCE):
+                    words[t] = interim_words(t, splits.get(t) or label.get(t) or t)
         out[item] = M.Water(runs=[tuple(r) for r in runs], lakes=lakes, ends=ends)
     if not out:
         raise Unresolved(f"covers no section of any water in {rel.name}")
-    return out
+    return out, words
 
 
 def resolve_doc(doc: M.Matches, atlas: Atlas, rel: Release, only: Iterable[str] | None = None,
                 log=print) -> tuple[M.Matches, list[str]]:
     """`doc` with every match (or `only` these ids) resolved on `rel`; -> (doc, [problem]). A match that does not
     resolve keeps its extents and says why (`unresolved`), with no `waters`."""
-    if rel.handles != atlas.digest:
-        raise SystemExit(f"inseason.resolve: release {rel.name} handles {rel.handles} != atlas {atlas.digest}: "
-                         "resolve on the release built from this atlas")
     splits = M.split_labels()
     want = set(only) if only is not None else set(doc.matches)
     if only is not None and doc.release and doc.release != rel.name:
         raise SystemExit(f"inseason.resolve: the file is resolved on {doc.release}, not {rel.name}: re-resolve every "
                          "match (no --only) first")
     out, bad = {}, []
+    words = dict(doc.words) if only is not None else {}
     for rid in sorted(doc.matches):
         m = doc.matches[rid]
         if rid not in want:
             out[rid] = m
             continue
         try:
-            out[rid] = m.model_copy(update={"waters": resolve_match(atlas, rel, m, splits), "unresolved": None})
+            waters, w = resolve_match(atlas, rel, m, splits)
+            words.update(w)
+            out[rid] = M.stamped(m.model_copy(update={"waters": waters, "unresolved": None}), rel.name)
         except Unresolved as ex:
             bad.append(f"{rid} ({m.water}): {ex}")
-            out[rid] = m.model_copy(update={"waters": {}, "unresolved": str(ex)})
+            out[rid] = m.model_copy(update={"waters": {}, "unresolved": str(ex), "stamp": None})
     for b in bad:
         log(f"inseason.resolve: UNRESOLVED {b}")
-    return doc.model_copy(update={"matches": out, "release": rel.name}), bad
+    used = {t for m in out.values() for w in m.waters.values() for pair in w.ends for t in pair} - {MOUTH, SOURCE}
+    return doc.model_copy(update={"matches": out, "release": rel.name,
+                                  "words": {t: words[t] for t in sorted(used)}}), bad
 
 
 def main(argv: list[str] | None = None) -> int:

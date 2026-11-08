@@ -20,7 +20,7 @@ HANDLES = re.compile(r"\breportFailure\(|^\s*failed\(|\bthrow\b|\bset(?:Error|Er
 _BODY = "parsing a FAILED answer's body, which may not be JSON: the status is still thrown / returned with it"
 #: file (relative to src) -> (exact number of non-showing `.catch(` sites, why)
 ALLOWLIST: dict[str, tuple[int, str]] = {
-    "api.ts": (5, _BODY),
+    "api.ts": (6, _BODY),
     "components/ReportsView.tsx": (1, _BODY),
 }
 

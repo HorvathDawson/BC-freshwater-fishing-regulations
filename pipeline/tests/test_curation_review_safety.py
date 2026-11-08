@@ -11,7 +11,8 @@
                 cut-points are still auto-proposals and the tool hid every word of that
   one write     the app serves reads and one write, a mark; no backend module but `writes.py`
                 writes a file, and its one caller is the mark (T185: the fix-mode writers are
-                retired) — and ONE exception (T230, owner 2026-10-28): `POST /api/inseason/matches`,
+                retired) — and ONE exception (T230, owner 2026-10-28): `POST /api/inseason/matches` (and, T520, its
+                `POST /api/inseason/resolve`: re-resolve every match after a release promote),
                 the in-season matches file (Claude/owner tooling, not a mark), through the same
                 `writes.commit`
 
@@ -198,7 +199,8 @@ def test_the_hwy_19_bridge_note_is_on_the_bridge_not_the_eve_river_confluence():
 MARK_ROUTE = {("POST", "/api/marks")}
 #: ... and THE ONE EXCEPTION (T230, owner 2026-10-28: "this file is Claude/owner tooling, not marks; keep a
 #: history note per edit"): the in-season matches file, data/curated/inseason/notice_waters.json
-INSEASON_ROUTE = {("POST", "/api/inseason/matches")}
+#: (T520) and its Re-resolve after a release promote: the same file, the same writes.commit
+INSEASON_ROUTE = {("POST", "/api/inseason/matches"), ("POST", "/api/inseason/resolve")}
 WRITE_ROUTES = MARK_ROUTE | INSEASON_ROUTE
 #: what the retired editors were asked, so a request to one is shown refused
 RETIRED = (("POST", "/api/check"), ("PUT", "/api/entries/{entry_id}"),
@@ -315,7 +317,7 @@ def test_the_only_file_write_is_the_mark_s_commit():
     # owner 2026-10-29: `clear_marks` appends "cleared" marks to the same store (an Undo), the same way
     assert {k: v for k, v in got.items() if v} == {"reuse.py": [("post_mark", "commit"),
                                                                  ("clear_marks", "commit")],
-                                                    "inseason.py": [("save_match", "commit")]}
+                                                    "inseason.py": [("resolve_all", "commit"), ("save_match", "commit")]}
     src = (BACKEND / "reuse.py").read_text(encoding="utf-8")
     assert "writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, out))], \"clear\")" in src
     # T55: a slough batch ("accept all visible") is several marks in that same one commit
@@ -323,7 +325,9 @@ def test_the_only_file_write_is_the_mark_s_commit():
     assert "marks = batch or [mark]" in src
     # T230: the in-season write names exactly the matches file, as one commit
     ins = (BACKEND / "inseason.py").read_text(encoding="utf-8")
-    assert ins.count("writes.commit(") == 1 and 'writes.commit([(path, text)], "inseason-match")' in ins
+    # the match save, and (T520) the Re-resolve of the same file — both the in-season matches file only
+    assert ins.count("writes.commit(") == 2 and 'writes.commit([(path, text)], "inseason-match")' in ins
+    assert 'writes.commit([(matches_path(), M.dumps(new))], "inseason-resolve")' in ins
     assert "path = matches_path()" in ins and "with writes.LOCK:" in ins
 
 

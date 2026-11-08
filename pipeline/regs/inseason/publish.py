@@ -7,24 +7,24 @@ writes `<out>/matches.json` (default `GENERATED.inseason / "feed"`, which the lo
 `--feed` copies a captured feed `index.json` there too (dev).
 
 FORMAT `inseason-links/2` (T520). Where a notice applies was resolved where the atlas is (`pipeline.regs.inseason.resolve`:
-the review app on save, the release promote) and committed in `notice_waters.json`; this only copies it out:
+the review app on save, its Re-resolve after a promote) and committed in `notice_waters.json`; this only copies it out:
 
     {"format": "inseason-links/2", "release": "r-…", "digest": <sha of the curated file>,
+     "words": {token: words},                       INTERIM (T517 ships the release's token -> words table)
      "notices": {"is-…": {"from"?: "YYYY-MM-DD", "to"?: "YYYY-MM-DD",
                           "waters": {"gnis:…": {"all": true}
-                                     | {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": "From A to B"}}}}}
+                                     | {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": [[low, high], …]}}}}}
 
-No part index, label, extent or section id (AGENTS 5). The app (`@app/core` `inSeasonCover`) reads `runs` / `lakes` only
-on the release named; `all` is a water's whole and holds on any release.
+No part index, extent or section id (AGENTS 5); `ends` are TOKENS, the sentence is core's (`inSeasonWhere`). The app
+(`@app/core` `inSeasonCover`) reads `runs` / `lakes` only on the release named; `all` holds on any release.
 
 THE CHECKS LIVE HERE, ONCE (the feed has its own): a non-zero exit, nothing written, on
     - an unresolved match (`unresolved`, or no `waters`) — re-match it in the review app
-    - empty coverage (a water with no range)
-    - a range not landing on the release it names: when that release is here (`data/release/<release>`), every run must
-      start on a section of its water there and every `lakes` place exist; a release that is NOT here (GitHub's
-      runner) is SAID on stderr, never silently passed
-    - the file resolved on another release than `data/release/LATEST` when LATEST is here (re-resolve:
-      `python -m pipeline.regs.inseason.resolve`)
+    - a match whose `stamp` no longer fits its extents, the release and its waters (a hand edit not re-resolved)
+    - an end token with no words
+    - the file resolved on another release than `data/release/LATEST` (re-resolve in the review app, then commit)
+    - that release not on disk, or a range not landing on its water there
+`--side-release DIR` checks against a SIDE build instead of LATEST (a release not promoted yet) — never by default.
 
 Deterministic: no clock in the output.
 """
@@ -40,6 +40,8 @@ from pathlib import Path
 from pipeline.regs.inseason import matches as M
 
 FORMAT = "inseason-links/2"
+#: a water's own ends: core says them by the sentence's shape ("Upstream of …"), never by words
+NATURAL = frozenset({"mouth", "source"})
 
 
 class Refused(SystemExit):
@@ -47,26 +49,31 @@ class Refused(SystemExit):
 
 
 def compile_links(doc: M.Matches, digest: str) -> dict:
-    """The links, or Refused with every reason (unresolved / empty)."""
+    """The links, or Refused with every reason (unresolved / stale stamp / an end with no words)."""
     bad: list[str] = []
     if not doc.release:
-        bad.append("the file names no release: resolve it (python -m pipeline.regs.inseason.resolve)")
+        bad.append("the file names no release: re-resolve it (the review app's Re-resolve)")
     notices: dict = {}
     for rid in sorted(doc.matches):
         m = doc.matches[rid]
         if m.unresolved or not m.waters:
             bad.append(f"{rid} ({m.water}): unresolved — {m.unresolved or 'no waters'}")
             continue
+        if m.stamp != M.stamp_of(m, doc.release):
+            bad.append(f"{rid} ({m.water}): its extents or ranges changed since they were resolved on {doc.release} "
+                       "(a hand edit?) — re-resolve it")
+            continue
         waters = {}
         for item in sorted(m.waters):
             w = m.waters[item]
             if w.all:
                 waters[item] = {"all": True}
-            elif not (w.runs or w.lakes):
-                bad.append(f"{rid} ({m.water}): {item} covers nothing")
-            else:
-                waters[item] = {"runs": [list(r) for r in w.runs], **({"lakes": list(w.lakes)} if w.lakes else {}),
-                                "ends": w.ends}
+                continue
+            for t in (t for pair in w.ends for t in pair if t not in NATURAL):
+                if not doc.words.get(t):
+                    bad.append(f"{rid} ({m.water}): {item} end {t!r} has no words")
+            waters[item] = {"runs": [list(r) for r in w.runs], **({"lakes": list(w.lakes)} if w.lakes else {}),
+                            "ends": [list(p) for p in w.ends]}
         row: dict = {}
         if m.effective and m.effective.from_:
             row["from"] = m.effective.from_
@@ -76,7 +83,9 @@ def compile_links(doc: M.Matches, digest: str) -> dict:
         notices[rid] = row
     if bad:
         raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
-    return {"format": FORMAT, "release": doc.release, "digest": digest, "notices": notices}
+    used = {t for n in notices.values() for w in n["waters"].values() for p in w.get("ends", ()) for t in p} - NATURAL
+    return {"format": FORMAT, "release": doc.release, "digest": digest,
+            "words": {t: doc.words[t] for t in sorted(used)}, "notices": notices}
 
 
 def check_on_release(links: dict, rel) -> list[str]:
@@ -108,29 +117,29 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--matches", type=Path, default=None, help="the curated file (default CURATED.inseason.notice_waters)")
     ap.add_argument("--feed", type=Path, default=None, help="a captured feed index.json to copy beside it (dev)")
-    ap.add_argument("--release", type=Path, default=None,
-                    help="the release directory to check the ranges on (default data/release/<the file's release>)")
+    ap.add_argument("--side-release", type=Path, default=None,
+                    help="check against this SIDE build's release instead of data/release/LATEST (never by default)")
     a = ap.parse_args(argv)
     src = a.matches or M.default_path()
     text = Path(src).read_text(encoding="utf-8")
     doc = M.load(src)
     links = compile_links(doc, hashlib.sha256(text.encode("utf-8")).hexdigest()[:16])
     root = Path(GENERATED.release)
-    latest = root / "LATEST"
-    if a.release is None and latest.exists():
-        now = latest.read_text(encoding="utf-8").strip()
+    if a.side_release is None:
+        now = (root / "LATEST").read_text(encoding="utf-8").strip()      # a missing LATEST raises: no release here
         if now != links["release"]:
-            raise Refused(f"inseason.publish: refused — the matches are resolved on {links['release']}, LATEST is {now}: "
-                          "re-resolve (python -m pipeline.regs.inseason.resolve)")
-    rel_dir = a.release or root / links["release"]
-    if (rel_dir / "manifest.json").exists():
-        from pipeline.regs.inseason import resolve as R
-        bad = check_on_release(links, R.read_release(rel_dir))
-        if bad:
-            raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
+            raise Refused(f"inseason.publish: refused — the matches are resolved on {links['release']}, LATEST is "
+                          f"{now}: re-resolve in the review app (Re-resolve), then commit")
+        rel_dir = root / now
     else:
-        print(f"inseason.publish: release {links['release']} is not here ({rel_dir}): its ranges were proved when they "
-              "were resolved, not again now", file=sys.stderr)
+        rel_dir = a.side_release
+    if not (rel_dir / "manifest.json").exists():
+        raise Refused(f"inseason.publish: refused — release {links['release']} is not on disk at {rel_dir}: its "
+                      "ranges cannot be checked")
+    from pipeline.regs.inseason import resolve as R
+    bad = check_on_release(links, R.read_release(rel_dir))
+    if bad:
+        raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
     out = a.out or (GENERATED.inseason / "feed")
     out.mkdir(parents=True, exist_ok=True)
     (out / "matches.json").write_text(json.dumps(links, ensure_ascii=False, separators=(",", ":")) + "\n",

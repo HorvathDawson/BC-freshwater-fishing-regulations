@@ -46,3 +46,16 @@ def test_an_unknown_input_is_refused(tmp_path):
     import pytest
     with pytest.raises(SystemExit):
         S.stage(tmp_path, ("wordings",))
+
+
+def test_one_refused_input_does_not_hold_back_the_others(tmp_path, monkeypatch, capsys):
+    """(T520) each input stages on its own: an in-season refusal is named (FAILED …, exit 1) and the DFO entries,
+    wording and roster are still in the manifest."""
+    def refuse(out):
+        raise SystemExit("inseason.publish: refused — is-a: unresolved")
+    monkeypatch.setattr(S, "INPUTS", tuple(S.Input(i.name, refuse if i.name == "inseason-matches" else i.stage, i.cache)
+                                           for i in S.INPUTS))
+    assert S.main(["--out", str(tmp_path)]) == 1
+    got = capsys.readouterr()
+    assert "private/feeds/dfo/wording.json" in got.out and "feeds/inseason/matches.json" not in got.out
+    assert "FAILED inseason-matches: inseason.publish: refused — is-a: unresolved" in got.err

@@ -16,6 +16,8 @@ export CURATION_API="http://127.0.0.1:${PORT:-8787}"
 # WARM BEFORE THE REVIEWER SITS DOWN (T136): the backend loads every cache a first entry reads in the
 # background; `curl -s $CURATION_API/api/ready` says `"ready": true` when it is done.
 export CURATION_WARM="${CURATION_WARM:-1}"
+# (T520) a saved input goes to STAGING by deploy/staging/sync-inputs.sh (backend/inputs_sync.py); off unless set
+export CURATION_SYNC_INPUTS="${CURATION_SYNC_INPUTS:-1}"
 
 # --- backend (background) ---
 # (T434) no --reload unless DEV=1: a reload kills the write-through thread mid-apply (the shutdown hook drains it)

@@ -1,40 +1,38 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api";
 import type {
-  EntrySplits, InputsSync, InSeasonEvidence, InSeasonExtent, InSeasonItemSplits, InSeasonOp, InSeasonPreview, InSeasonQueue, InSeasonRow,
+  EntrySplits, InSeasonEvidence, InSeasonExtent, InSeasonItemSplits, InSeasonOp, InSeasonPreview, InSeasonQueue, InSeasonRow,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel } from "./MapPanel";
 import { TopNav, setBadge } from "./TopNav";
 import { ItemSearch } from "./ExtentFixEditor";
 import { failed } from "../failures";
+import { InputsSyncLine } from "./InputsSyncLine";
 
 export const INSEASON_HASH = "inseason/";
 
-/**
- * (T520, owner 2026-11-08: publish from the Mac only) WHERE A SAVE WENT: a saved match runs deploy/staging/sync-inputs.sh
- * (resolve, publish's refusals, the staging put) in the backend; this line says its last run — and a refusal or a failed
- * upload in red with its output, never silently (the backend also logs it).
- */
-function InputsSyncLine() {
-  const [s, setS] = useState<InputsSync | null>(null);
-  useEffect(() => {
-    let live = true;
-    const tick = () => api.inputsSync().then((x) => { if (live) setS(x); }, (e) => { if (live) failed("inputs sync")(e); });
-    tick();
-    const t = setInterval(tick, 3000);
-    return () => { live = false; clearInterval(t); };
-  }, []);
-  if (!s || !s.enabled || s.state === "idle") return null;
-  const words = { queued: "staging: queued", running: "staging: publishing (sync-inputs.sh) …", done: `staging: published ${s.at ?? ""}`,
-                  failed: `staging: NOT published (rc ${s.rc}) ${s.at ?? ""}`, off: "", idle: "" }[s.state];
+/** (T520) RE-RESOLVE: after a release promote the matches name the old release and publish refuses them; this resolves
+ *  every match on the shipped one (through the backend's one in-season write), then publishes. Commit the file after. */
+function ResolveAll({ onDone }: { onDone: () => void }) {
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const run = () => {
+    setBusy(true);
+    api.inseasonResolve()
+      .then((r) => setMsg({ ok: !r.unresolved.length, text: r.unresolved.length
+        ? `re-resolved on ${r.release}; NOT resolved: ${r.unresolved.join(" · ")}` : `re-resolved on ${r.release} — commit notice_waters.json` }))
+      .catch((e) => setMsg({ ok: false, text: `NOT re-resolved: ${e instanceof Error ? e.message : e}` }))
+      .finally(() => { setBusy(false); onDone(); });
+  };
   return (
-    <div className={s.state === "failed" ? "errors" : "notice"} style={{ margin: 8 }} data-testid="inputs-sync" role="status">
-      {words}
-      {s.state === "failed" && s.output && <pre style={{ whiteSpace: "pre-wrap", maxHeight: 160, overflow: "auto" }}>{s.output}</pre>}
+    <div style={{ margin: 8 }} data-testid="inseason-resolve">
+      <button className="btn" disabled={busy} onClick={run}>{busy ? "re-resolving…" : "Re-resolve all on the shipped release"}</button>
+      {msg && <span className={msg.ok ? "dim" : "errors"} role="status" style={{ marginLeft: 8 }}>{msg.text}</span>}
     </div>
   );
 }
+
 
 const OPS: { op: InSeasonOp; words: string; n: number }[] = [
   { op: "whole", words: "the whole water", n: 0 },
@@ -147,7 +145,8 @@ export function InSeasonReview() {
       {error && <div className="errors" style={{ margin: 8 }}>{error}{" "}
         <button className="btn" style={{ padding: "2px 8px" }} onClick={() => setError("")}>dismiss</button></div>}
       {queue && !queue.available && <div className="notice" style={{ margin: 8 }} data-testid="inseason-nofeed">{queue.message}</div>}
-      <InputsSyncLine />
+      <InputsSyncLine reason="inseason-match" />
+      <ResolveAll onDone={load} />
       <div className="main">
         <div className="queue" data-testid="inseason-queue">
           <div className="queue-group">{rows.length} row{rows.length === 1 ? "" : "s"} — the provincial in-season changes</div>
@@ -188,8 +187,7 @@ interface Nav { pos: number; total: number; onNext?: () => void; onPrev?: () => 
 function InSeasonDetail({ row, source, nav, onSaved }: {
   row: InSeasonRow; source: string | null; nav: Nav; onSaved: () => void;
 }) {
-  // an unmatched row starts from auto's best guess (never saved until the owner saves it)
-  const start = row.match?.extents ?? row.guess?.extents ?? [];
+  const start = row.match?.extents ?? [];
   const [extents, setExtents] = useState<InSeasonExtent[]>(() =>
     start.map(({ op, item_id, splits, tributaries }) => ({ op, item_id, splits: [...splits], tributaries: tributaries ?? null })));
   const [names, setNames] = useState<Record<string, string>>(() =>
@@ -298,12 +296,7 @@ function InSeasonDetail({ row, source, nav, onSaved }: {
 
           {(row.match?.source === "auto" || row.match?.source === "claude") && <div className="notice" style={{ margin: "6px 0" }} data-testid="inseason-auto-evidence">
             <strong>{row.match.source === "claude" ? "Matched by Claude" : "Matched automatically"} ({row.match.confidence ?? "?"}) — check it.</strong> {evidenceWords(row.match.evidence)}.
-            {" "}Saving here makes it yours: auto never writes over an owner match.</div>}
-          {!row.match && row.guess && <div className="notice" style={{ margin: "6px 0" }} data-testid="inseason-guess">
-            <strong>Not matched automatically:</strong> {row.guess.why}.
-            {row.guess.extents.length ? " The editor starts from auto's best guess — check it before saving." : ""}
-            {evidenceWords(row.guess.evidence) && <div className="dim" style={{ fontSize: 12 }}>{evidenceWords(row.guess.evidence)}</div>}
-          </div>}
+            {" "}Saving here makes it yours.</div>}
 
           <div className="section" data-testid="inseason-editor">
             <h3>Where it applies</h3>

@@ -120,7 +120,9 @@ def test_2_a_good_save_writes_the_match_and_its_history(env):
     from pipeline.regs.inseason import resolve as R
     assert doc["release"] == R.release_dir(None).name
     (w,) = m["waters"].values()
-    assert w["runs"] and w["ends"].startswith("Upstream of ") and "all" not in w
+    # its covered stretch as end TOKENS (never words): the trestle up to the source; the token's words in `words`
+    assert w["runs"] and "all" not in w and [p[1] for p in w["ends"]] == ["source"]
+    assert doc["words"][w["ends"][0][0]] and m["stamp"]
     snaps = sorted((env["dir"] / "backups").iterdir())
     assert len(snaps) == 1 and snaps[0].name.endswith("-inseason-match")
     assert json.loads((snaps[0] / env["dir"].name / "matches.json").read_text()) == MATCHES   # the old bytes

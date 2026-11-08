@@ -86,6 +86,45 @@ def test_sync_inputs_refuses_matches_that_will_not_resolve(sync_tree):
     assert not (sync_tree / "rclone.log").exists()
 
 
+def test_sync_inputs_from_the_review_app_never_rewrites_the_matches(sync_tree):
+    """(T520) from the review app, matches on another release are REFUSED (re-resolve there, then commit) — the
+    curated file is never rewritten outside its writes.commit."""
+    (sync_tree / "data/release/LATEST").write_text("r-2\n")
+    _exe(sync_tree / "scripts/heavy.sh", f'#!/usr/bin/env bash\necho ran >> "{sync_tree}/heavy.log"\n')
+    env_tree = sync_tree
+    r = subprocess.run(["bash", str(env_tree / "deploy/staging/sync-inputs.sh")], capture_output=True, text=True,
+                       env={**os.environ, "SYNC_INPUTS_FROM_REVIEW": "1",
+                            "PATH": f"{env_tree / 'bin'}:{os.environ['PATH']}"})
+    assert r.returncode != 0 and "re-resolve in the review app, then commit" in r.stderr
+    assert not (sync_tree / "heavy.log").exists()
+
+
+def test_sync_inputs_puts_the_inputs_that_staged_and_names_the_one_that_did_not(sync_tree):
+    _exe(sync_tree / ".venv/bin/python", PY_STUB + 'echo "FAILED inseason-matches: refused — is-a" >&2\nexit 1\n')
+    r = _sync(sync_tree, 0)
+    assert r.returncode != 0
+    assert "FAILED inseason-matches: refused — is-a" in r.stderr
+    assert len((sync_tree / "rclone.log").read_text().splitlines()) == 2      # the others still went up
+
+
+def test_sync_inputs_waits_for_another_sync(sync_tree):
+    """(T520) one at a time across processes: a live holder of the lock is waited for (here: refused after it)."""
+    import time
+    lock = sync_tree / "data/generated/.sync-inputs.lock"
+    lock.mkdir(parents=True)
+    holder = subprocess.Popen(["sleep", "30"])
+    try:
+        (lock / "pid").write_text(str(holder.pid))
+        _exe(sync_tree / "bin/seq", "#!/usr/bin/env bash\necho 1\necho 2\n")      # two tries, not 600
+        _exe(sync_tree / "bin/sleep", "#!/usr/bin/env bash\nexit 0\n")
+        t0 = time.monotonic()
+        r = _sync(sync_tree, 0)
+        assert r.returncode != 0 and "another sync held the lock" in r.stderr and time.monotonic() - t0 < 20
+        assert not (sync_tree / "rclone.log").exists()
+    finally:
+        holder.kill()
+
+
 def test_sync_inputs_reports_a_clean_copy(sync_tree):
     r = _sync(sync_tree, 0)
     assert r.returncode == 0, r.stderr

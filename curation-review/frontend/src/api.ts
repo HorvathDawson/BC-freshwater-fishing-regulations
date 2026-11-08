@@ -222,6 +222,13 @@ export const api = {
   },
   /** (T520) the Mac publish path's last run after a saved input (deploy/staging/sync-inputs.sh) */
   inputsSync: () => getJSON<InputsSync>("/api/inputs/sync"),
+  /** (T520) re-resolve every in-season match on the shipped release (after a promote), then publish */
+  inseasonResolve: async (): Promise<{ release: string; unresolved: string[] }> => {
+    const res = await fetch("/api/inseason/resolve", { method: "POST" });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(typeof body?.detail === "string" ? body.detail : res.statusText);
+    return body;
+  },
   inseasonSave: async (post: InSeasonMatchPost): Promise<InSeasonRow> => {
     const res = await fetch("/api/inseason/matches", {
       method: "POST",

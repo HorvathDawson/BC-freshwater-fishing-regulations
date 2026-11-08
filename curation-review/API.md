@@ -500,10 +500,12 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 | GET | `/api/entries/{entry_id}/rules/{rule_id}/resolved` | What this rule covers and what it excepts — the reach builder's own answer, as geometry. |
 | GET | `/api/entries/{entry_id}/splits` | EVERY SPLIT THE ENTRY'S RULES NAME, as labelled map points (T184: a split is reviewed by |
 | GET | `/api/extent-fix/ops` | The ops a fix can propose — the catalogue's own names, their point counts, the owner's |
+| GET | `/api/inputs/sync` | (T520) The last run of the Mac publish path after a saved input (state queued / running / done / failed, its |
 | GET | `/api/inseason/extent-preview` | What the proposed extents (`extent`: one `{op, item_id, splits}` or a list, as JSON) bind, unioned, |
 | GET | `/api/inseason/items/{item_id}/splits` | The splits.json splits on one water, as labelled map points — the extent editor's split picker. |
 | POST | `/api/inseason/matches` | SET or CLEAR one in-season row's match (`inseason.save_match`): validated (row in the feed, known water |
 | GET | `/api/inseason/queue` | Every in-season feed row (and removed row, and a match on a row the feed no longer holds: "stale") with |
+| POST | `/api/inseason/resolve` | (T520) Re-resolve every in-season match on the shipped release (after a release promote), then publish (the Mac |
 | GET | `/api/items/search` | Registry items whose name contains `q` (a tributary, a lake, an item the extent holds on). |
 | GET | `/api/items/{item_id}/geojson` | Stream sections + curated split points for the map, in EPSG:4326 (lon/lat) to overlay the |
 | GET | `/api/items/{item_id}/tributaries/geojson` | One level of tributaries as map geometry — what `includes_tributaries` actually covers. |

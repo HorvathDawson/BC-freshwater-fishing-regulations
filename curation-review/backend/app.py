@@ -1097,6 +1097,15 @@ def inseason_save_match(body: InSeasonMatchPayload):
     return {**(got or {}), "sync": INPUTS_SYNC.request("inseason-match")}
 
 
+@app.post("/api/inseason/resolve")
+def inseason_resolve_all():
+    """(T520) Re-resolve every in-season match on the shipped release (after a release promote), then publish (the Mac
+    path): matches that no longer resolve say why and are refused by publish until re-matched."""
+    import inseason
+    got = inseason.resolve_all()
+    return {**got, "sync": INPUTS_SYNC.request("inseason-match")}
+
+
 @app.get("/api/inputs/sync")
 def inputs_sync_status():
     """(T520) The last run of the Mac publish path after a saved input (state queued / running / done / failed, its

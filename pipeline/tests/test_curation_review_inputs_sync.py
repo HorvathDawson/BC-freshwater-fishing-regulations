@@ -57,3 +57,37 @@ def test_the_default_command_is_the_staging_script():
     s = IS.InputsSync(REPO, enabled=False)
     assert s.cmd == [str(REPO / "deploy/staging/sync-inputs.sh")]
     assert "bc-fishing-regulations-staging" in (REPO / "deploy/staging/sync-inputs.sh").read_text()
+
+
+def test_each_input_that_did_not_go_up_is_named(tmp_path):
+    s = _sync(tmp_path, 'echo "FAILED inseason-matches: refused — is-a: unresolved" >&2; exit 1\n')
+    s.request("inseason-match")
+    assert s.wait_idle(10)
+    assert s.status()["failed"] == {"inseason-matches": "refused — is-a: unresolved"}
+
+
+def test_it_runs_from_the_review_app_mode(tmp_path):
+    """The script is told it runs from the review app: it then refuses to rewrite the matches (re-resolve here)."""
+    s = _sync(tmp_path, f'echo "$SYNC_INPUTS_FROM_REVIEW" > "{tmp_path}/mode"\n')
+    s.request("inseason-match")
+    assert s.wait_idle(10) and (tmp_path / "mode").read_text().strip() == "1"
+
+
+def test_a_save_after_a_run_ends_starts_a_new_run(tmp_path):
+    """The worker clears itself under the lock as it ends: a request right after is never dropped."""
+    s = _sync(tmp_path, f'echo run >> "{tmp_path}/runs"\n')
+    for _ in range(3):
+        s.request("inseason-match")
+        assert s.wait_idle(10)
+    assert (tmp_path / "runs").read_text().count("run") == 3
+
+
+def test_it_fails_closed(monkeypatch):
+    """Off unless CURATION_SYNC_INPUTS=1, and never over a sandboxed curated tree."""
+    for env, on in (({}, False), ({"CURATION_SYNC_INPUTS": "0"}, False), ({"CURATION_SYNC_INPUTS": "1"}, True),
+                    ({"CURATION_SYNC_INPUTS": "1", "CURATED_ROOT": "/tmp/x"}, False)):
+        for k in ("CURATION_SYNC_INPUTS", "CURATED_ROOT"):
+            monkeypatch.delenv(k, raising=False)
+        for k, v in env.items():
+            monkeypatch.setenv(k, v)
+        assert IS.from_env(REPO).enabled is on, env

@@ -102,13 +102,15 @@ class Water(BaseModel):
     #: their places among the water's lake pieces in the release's handle order (= FWA waterbody key order) —
     #: read only on the release the file names, like the ranges
     lakes: List[int] = Field(default_factory=list)
-    ends: str = ""
+    #: each covered stretch of the water's MAIN LINE as (low, high) end TOKENS, mouth upward — a split id, a
+    #: pick-point id (`points`), `mouth` or `source`; words are the file's `words` (core composes the sentence)
+    ends: List[Tuple[str, str]] = Field(default_factory=list)
 
     def model_post_init(self, _ctx) -> None:
         if bool(self.all) == bool(self.runs or self.lakes):
             raise ValueError("a resolved water is either {all: true} or {runs, lakes?, ends}")
-        if (self.runs or self.lakes) and not self.ends:
-            raise ValueError("a partly covered water says where (ends)")
+        if self.all and self.ends:
+            raise ValueError("a whole water has no ends")
         for blk, m0, m1 in self.runs:
             if not 0 <= m0 < m1:
                 raise ValueError(f"run {[blk, m0, m1]} is not a range")
@@ -134,6 +136,9 @@ class Match(BaseModel):
     #: (T520) resolved on the file's `release`; empty only with `unresolved`
     waters: Dict[str, Water] = Field(default_factory=dict)
     unresolved: Optional[str] = None
+    #: `stamp_of(extents, release, waters)` when resolved: publish refuses a match whose stamp no longer fits (a hand
+    #: edit of its extents or ranges that was not re-resolved)
+    stamp: Optional[str] = None
 
     def model_post_init(self, _ctx) -> None:
         if not self.extents:
@@ -145,6 +150,7 @@ class HistoryRow(BaseModel):
 
     at: str
     id: str
+    #: "auto": rows the removed auto matcher wrote (history is append-only: kept, never written again)
     action: Literal["set", "clear", "auto", "rekey"]
     by: str = ""
     note: str = ""
@@ -159,11 +165,11 @@ class Matches(BaseModel):
     format: Literal["inseason-matches/2"]
     #: (T520) the data release every match's `waters` is resolved on
     release: str = ""
+    #: (T520, INTERIM until T517 ships a token -> words table in the release) the words of every end token the
+    #: matches use (`resolve.interim_words`: a place's name, never a sentence)
+    words: Dict[str, str] = Field(default_factory=dict)
     matches: Dict[str, Match]
     history: List[HistoryRow] = Field(default_factory=list)
-    #: auto's BEST GUESS for a row it would not match (ambiguous): pre-fills the review tab's editor, never shown in
-    #: the app. {id: {"extents": [...]?, "why": "...", "evidence": {...}}}
-    guesses: Dict[str, dict] = Field(default_factory=dict)
 
     @field_validator("matches")
     @classmethod
@@ -249,6 +255,19 @@ def span(row: dict, effective: Optional[Effective] = None) -> tuple[Optional[str
     return frm, to
 
 
+def stamp_of(m: Match, release: str) -> str:
+    """(T520) the hash a resolved match carries: its extents, the release and its waters, as dumped."""
+    import hashlib
+    body = json.dumps({"extents": [e.model_dump(exclude_none=True) for e in m.extents], "release": release,
+                       "waters": {k: m.waters[k].model_dump(exclude_none=True, exclude_defaults=True)
+                                  for k in sorted(m.waters)}}, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()[:16]
+
+
+def stamped(m: Match, release: str) -> Match:
+    return m.model_copy(update={"stamp": stamp_of(m, release)})
+
+
 def place_id_shape(pid: str) -> bool:
     """A pick-point id that is not a splits.json id but has a valid shape (a derived point or an atlas boundary);
     whether it is ON the water is the review backend's check (`points.points`)."""
@@ -258,7 +277,8 @@ def place_id_shape(pid: str) -> bool:
 
 def _dump_match(m: Match) -> dict:
     d = m.model_dump(by_alias=True, exclude_none=True, exclude_defaults=False)
-    d["waters"] = {k: {kk: (list(map(list, vv)) if kk == "runs" else vv) for kk, vv in w.items() if vv not in ([], "")}
+    d["waters"] = {k: {kk: (list(map(list, vv)) if kk in ("runs", "ends") else vv) for kk, vv in w.items()
+                       if vv not in ([], "", None)}
                    for k, w in sorted(d["waters"].items())}
     return d
 
@@ -266,10 +286,13 @@ def _dump_match(m: Match) -> dict:
 def dumps(doc: Matches) -> str:
     """The file's text: `$comment`, format, matches by id, history in order."""
     out = {"$comment": doc.comment, "format": doc.format, "release": doc.release,
+           "words": {k: doc.words[k] for k in sorted(doc.words)},
            "matches": {k: _dump_match(doc.matches[k]) for k in sorted(doc.matches)},
-           "history": [h.model_dump(exclude_none=True) for h in doc.history],
-           **({"guesses": {k: doc.guesses[k] for k in sorted(doc.guesses)}} if doc.guesses else {})}
-    return json.dumps(out, indent=2, ensure_ascii=False) + "\n"
+           "history": [h.model_dump(exclude_none=True) for h in doc.history]}
+    text = json.dumps(out, indent=2, ensure_ascii=False) + "\n"
+    # a range or an end pair on one line (the file is read by people too)
+    return re.sub(r"\[\s+(-?\d+|\"[^\"\n]*\"),\s+(-?\d+|\"[^\"\n]*\")(?:,\s+(-?\d+))?\s+\]",
+                  lambda g: "[" + ", ".join(x for x in g.groups() if x is not None) + "]", text)
 
 
 def set_match(doc: Matches, rid: str, match: Match, *, at: str, by: str = "", note: str = "") -> Matches:
@@ -277,10 +300,8 @@ def set_match(doc: Matches, rid: str, match: Match, *, at: str, by: str = "", no
     if not ID_RE.match(rid):
         raise ValueError(f"{rid!r} is not an in-season row id")
     m = match.model_copy(update={"at": at, "by": by or match.by, "note": note or match.note})
-    guesses = {k: v for k, v in doc.guesses.items() if k != rid}
     hist = HistoryRow(at=at, id=rid, action="set", by=by, note=note or match.note, extents=list(match.extents))
-    return doc.model_copy(update={"matches": {**doc.matches, rid: m}, "history": [*doc.history, hist],
-                                  "guesses": guesses})
+    return doc.model_copy(update={"matches": {**doc.matches, rid: m}, "history": [*doc.history, hist]})
 
 
 def clear_match(doc: Matches, rid: str, *, at: str, by: str = "", note: str = "") -> Matches:
@@ -293,5 +314,5 @@ def clear_match(doc: Matches, rid: str, *, at: str, by: str = "", note: str = ""
 
 
 __all__ = ["FORMAT", "InSeasonExtent", "Effective", "Match", "HistoryRow", "Matches", "ValidationError",
-           "Water", "span", "load", "parse", "problems", "dumps", "set_match", "clear_match", "split_labels", "all_split_ids",
+           "Water", "span", "stamp_of", "stamped", "load", "parse", "problems", "dumps", "set_match", "clear_match", "split_labels", "all_split_ids",
            "default_path"]

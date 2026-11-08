@@ -13,9 +13,12 @@ hardcodes the staging bucket; production stays the owner's CONFIRM_PROD step), i
 a failed upload is never silent — `status()` says it (GET /api/inputs/sync, shown on the In-season tab), the server
 log warns, and a JSON line goes to `data/generated/review/inputs-sync.jsonl`.
 
-In the background, debounced (several saves -> one run), one run at a time. ON only when the server writes the LIVE
-curated tree (a sandbox / every test is off) or `CURATION_SYNC_INPUTS=1`; `=0` turns it off. `CURATION_SYNC_CMD`
-replaces the command (tests).
+In the background, debounced (several saves -> one run), one run at a time (in-process; the script's own lock also
+serialises it with a hand run and upload.sh). It runs with SYNC_INPUTS_FROM_REVIEW=1: matches resolved on another release
+are REFUSED there (re-resolve here, then commit), never rewritten outside `writes.commit`. Each input is staged on its own:
+`status()["inputs"]` names the ones that failed (`FAILED <name>: …` lines), so a refused match never hides that the DFO
+entries went up. FAILS CLOSED: off unless `CURATION_SYNC_INPUTS=1` (curation-review/run.sh sets it for the live tree).
+`CURATION_SYNC_CMD` replaces the command (tests).
 """
 from __future__ import annotations
 
@@ -23,6 +26,7 @@ import datetime as _dt
 import json
 import logging
 import os
+import re
 import shlex
 import subprocess
 import threading
@@ -74,7 +78,7 @@ class InputsSync:
             self._reasons.append(reason)
             self._last = time.monotonic()
             self.state = {**self.state, "state": "queued", "queued": sorted(set(self._reasons))}
-            if self._worker is None or not self._worker.is_alive():
+            if self._worker is None:
                 self._worker = threading.Thread(target=self._loop, name="inputs-sync", daemon=True)
                 self._worker.start()
             self._cv.notify_all()
@@ -86,6 +90,7 @@ class InputsSync:
                 while self._reasons and time.monotonic() - self._last < self.debounce:
                     self._cv.wait(self.debounce)
                 if not self._reasons:
+                    self._worker = None          # under the lock: a request now starts a new worker, never lost
                     return
                 reasons, self._reasons = sorted(set(self._reasons)), []
                 self.state = {"state": "running", "reasons": reasons, "at": _now()}
@@ -94,14 +99,16 @@ class InputsSync:
     def _run(self, reasons: list[str]) -> None:
         t0 = time.monotonic()
         try:
-            p = subprocess.run(self.cmd, cwd=self.root, capture_output=True, text=True, timeout=1800)
+            p = subprocess.run(self.cmd, cwd=self.root, capture_output=True, text=True, timeout=1800,
+                               env={**os.environ, "SYNC_INPUTS_FROM_REVIEW": "1"})
             rc, out = p.returncode, (p.stdout + p.stderr)
         except Exception as ex:                                  # noqa: BLE001 — said, never swallowed
             rc, out = 1, f"{type(ex).__name__}: {ex}"
         took = round(time.monotonic() - t0, 1)
         ok = rc == 0
+        failed = {m.group(1): m.group(2) for m in re.finditer(r"^FAILED ([\w-]+): (.*)$", out, re.M)}
         self.state = {"state": "done" if ok else "failed", "at": _now(), "reasons": reasons, "rc": rc,
-                      "took_s": took, "output": out[-TAIL:]}
+                      "took_s": took, "failed": failed, "output": out[-TAIL:]}
         if not ok:
             _log.warning("INPUTS SYNC FAILED (%s, rc %s): %s", ",".join(reasons), rc, out[-500:])
             self._log({"at": self.state["at"], "reasons": reasons, "rc": rc, "took_s": took, "output": out[-TAIL:]})
@@ -134,12 +141,9 @@ def _now() -> str:
 
 
 def from_env(root: Path) -> InputsSync:
-    """On when the server writes the live curated tree (not a `CURATED_ROOT` sandbox), or `CURATION_SYNC_INPUTS=1`."""
-    from pipeline.common.curated import CURATED, load_repo
+    """FAILS CLOSED: on only with `CURATION_SYNC_INPUTS=1` AND the live curated tree (never a `CURATED_ROOT` sandbox)."""
     flag = os.environ.get("CURATION_SYNC_INPUTS")
-    live = Path(CURATED.inseason.notice_waters).resolve() == Path(load_repo().inseason.notice_waters).resolve() \
-        and not os.environ.get("CURATED_ROOT")
     cmd = os.environ.get("CURATION_SYNC_CMD")
-    return InputsSync(root, enabled=flag == "1" or (flag is None and live),
+    return InputsSync(root, enabled=flag == "1" and not os.environ.get("CURATED_ROOT"),
                       cmd=shlex.split(cmd) if cmd else None,
                       log_path=root / "data" / "generated" / "review" / "inputs-sync.jsonl")

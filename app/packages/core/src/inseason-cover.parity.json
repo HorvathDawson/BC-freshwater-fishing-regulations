@@ -1,0 +1,20 @@
+{
+  "$comment": "T520: ONE fixture for the two readers of a range — Python `pipeline.regs.inseason.resolve.covered_by_runs` (+ `lakes` over `Release.lake_pieces`) and TS `@app/core` `inSeasonCover`. Both tests read it (pipeline/tests/test_inseason_publish.py, core inseason.test.ts) and must give `expect` for each case. A section with `line: null` is a lake piece (no line).",
+  "water": [
+    {"sid": 1, "line": {"blk": 7, "from": 0}},
+    {"sid": 2, "line": {"blk": 7, "from": 100}},
+    {"sid": 3, "line": {"blk": 7, "from": 200}},
+    {"sid": 4, "line": {"blk": 7, "from": 300}},
+    {"sid": 5, "line": {"blk": 8, "from": 0}},
+    {"sid": 6, "line": {"blk": 8, "from": 40}},
+    {"sid": 20, "line": null},
+    {"sid": 21, "line": null}
+  ],
+  "cases": [
+    {"name": "one range, two sections", "runs": [[7, 100, 300]], "lakes": [], "expect": [2, 3]},
+    {"name": "a start exactly at m1 is out", "runs": [[7, 0, 200]], "lakes": [], "expect": [1, 2]},
+    {"name": "two streams", "runs": [[7, 300, 400], [8, 0, 40]], "lakes": [], "expect": [4, 5]},
+    {"name": "the second lake piece by its place", "runs": [[8, 40, 41]], "lakes": [1], "expect": [6, 21]},
+    {"name": "another stream: nothing", "runs": [[9, 0, 1000]], "lakes": [], "expect": []}
+  ]
+}

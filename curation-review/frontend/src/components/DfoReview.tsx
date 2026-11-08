@@ -1,5 +1,6 @@
 import { CloseX } from "./NoticeStack";
 import { DfoVintageBanner } from "./DfoVintageBanner";
+import { InputsSyncLine } from "./InputsSyncLine";
 import { DfoPlaces } from "./DfoPlaces";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
@@ -346,6 +347,8 @@ export function DfoReview({ mode }: Props) {
         <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
       </div>
       {progress && <DfoVintageBanner notes={progress.vintage} />}
+      {/* (T520) a DFO write-through that wrote an entries / wording file went to staging: what became of it */}
+      <InputsSyncLine reason="write-through" />
       {notice && <div className="notice inline-notice" data-testid="dfo-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
         <span style={{ flex: 1 }}>{notice}</span><CloseX onClick={() => setNotice("")} /></div>}
       {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>

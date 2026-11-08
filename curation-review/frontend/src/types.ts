@@ -1483,8 +1483,6 @@ export interface InSeasonRow {
             *  save makes it "owner", and auto never writes over an owner match */
            source: "owner" | "auto" | "claude"; confidence: "high" | "medium" | "low" | null;
            evidence: InSeasonEvidence | null } | null;
-  /** auto's best guess for an unmatched row (pre-fills the editor; never applied) */
-  guess: { why: string; evidence: InSeasonEvidence | null; extents: InSeasonExtentView[] } | null;
   /** the dates in force: the curated `effective` over the feed's, field by field */
   dates: { from: string | null; to: string | null; source: "curated" | "feed" };
   in_effect: boolean | null;
@@ -1518,6 +1516,9 @@ export interface InputsSync {
   state: "idle" | "off" | "queued" | "running" | "done" | "failed";
   at?: string;
   reasons?: string[];
+  queued?: string[];
+  /** the inputs that did not go up, and why (`FAILED <name>: …`) */
+  failed?: Record<string, string>;
   rc?: number;
   took_s?: number;
   output?: string;
