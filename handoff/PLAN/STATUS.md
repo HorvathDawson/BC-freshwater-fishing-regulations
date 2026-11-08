@@ -29,7 +29,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Production setup:** Q171 reports go to feeds.canifishthis.ca (workers.dev off); Q174 v1 keys deleted on switch day.
 - **Fixed on the way:** T466 walkthrough's closed step opens through the one water path; T468's lake check now asks the
   registry kind (test_t121 green). Left: T507 (a review-screen test pins live corpus counts, 452 vs 445).
-- **Running:** T487 (shareable gauge page; cards drawn at the feeds refresh, served as static files).
+- **T487 (shareable gauge page) IN REVIEW, on staging:** 450 gauge pages in the sitemap; the share card is drawn at the
+  feeds refresh and served as a static file (almost no worker compute). Two questions on the morning page (Play link, PDT).
+- **T488 (light park colour):** proposal only, A or B on the morning page; tokens unchanged until you pick.
+- **T498 + T499 IN REVIEW (emulator):** a Regulations pane opens in one piece (built hidden, shown once its page, salmon
+  card and access notices are in); the water map no longer blinks its part out every ~5 min (it re-lit unchanged ids).
+  The hold covers the Regulations view only; Conditions/Map views stay as they were (needs another emulator pass).
+  App suite 6905 pass. Staging APK with everything above: building.
+- **Morning page:** https://claude.ai/artifact/9XDb7uXoQ9ciZf8sS7uz3U
 
 ## 2026-11-08 early (chat 7, continued): phone check sent; T478 done; T494 found and fixed
 - **Your phone check (0.6.9):** https://claude.ai/artifact/XsAWajGrhpgsCnK2kWv7sZ — 11 items that close the IN REVIEW
