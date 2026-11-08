@@ -40,6 +40,9 @@ export interface PartRow {
   /** null when part.ord IS NULL (outside B.C.) — decode.py `Store.answers` shape. */
   readonly facts: PartFacts | null;
   readonly sections: number;
+  /** (T517) the part's rule-set group (the picker's one choice) and its connected run in it: parts sharing both are one
+   *  run the DFO salmon chain cuts (the regular map joins them) */
+  readonly grp: number; readonly run: number;
   /** (T278; owner T166 2026-10-28: no parts on tidal water) a tidal cut's piece: no key, every section tidal (its
    *  `xpart.province_except` holds "tidal"). The store keeps it at its part index; nothing lists it as a part. */
   readonly tidal: boolean;
@@ -68,6 +71,9 @@ export interface RegsReads {
   itemOrd(itemId: string): Promise<number | null>;
   item(itemOrd: number): Promise<ItemRow>;
   parts(itemOrd: number): Promise<readonly PartRow[]>;
+  /** (T517) each part's runs' two END TOKENS (split ids, `confluence:…`, mouth / source…), in part order: what a part is
+   *  bounded by, whatever its index — the SEO change key's (`/changes`) place of a part */
+  partEnds(itemOrd: number): Promise<readonly (readonly (readonly [string | null, string | null])[])[]>;
   picker(id: number): Promise<Picker>;
   akey(akey: number): Promise<AkeyRow>;
   segStarts(seg: number): Promise<readonly number[]>;
@@ -354,24 +360,34 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
       };
     }),
 
+    partEnds: (ord) => once("partEnds", ord, async () => {
+      const rows = await (await base.water()).all(
+        "SELECT p.part_ix, r.j FROM part p JOIN runs r ON r.id = p.xruns WHERE p.item_ord = ? ORDER BY p.part_ix", ord);
+      return rows.map((r) => base.val<readonly { readonly from?: string | null; readonly to?: string | null }[]>("runs", r.j)
+        .map((x) => [x.to ?? null, x.from ?? null] as const));
+    }),
+
     parts: (ord) => once("parts", ord, async () => {
       const rows = await (await base.water()).all(
-        "SELECT part_ix, akey, ord, label_s, short_s, runs_s, place_s, hint_s, km, closed_all_year, paper_licence, sections, " +
+        "SELECT part_ix, akey, ord, label_s, short_s, lo_s, hi_s, run_s, runs_s, place_s, hint_s, km, closed_all_year, " +
+        "paper_licence, sections, grp, run, " +
         "(SELECT j FROM xpart WHERE id = part.xp) AS xj " +
         "FROM part WHERE item_ord = ? ORDER BY part_ix", ord);
       return Promise.all(rows.map(async (p, i): Promise<PartRow> => {
         if (n(p.part_ix) !== i) throw damaged(`item ${ord}'s parts are out of sequence`);
         const s = (c: Cell) => reads.str(n(c));
         // (T286) every part's strings asked at once: one read for the whole water
-        const [label, short, runs, place, hint] = p.ord === null || p.ord === undefined ? [] : await Promise.all([
-          s(p.label_s), s(p.short_s), s(p.runs_s), p.place_s === null ? null : s(p.place_s), s(p.hint_s)]);
+        const opt = (c: Cell) => (c === null || c === undefined ? null : s(c));
+        const [label, short, runs, place, hint, lo, hi, runName] = p.ord === null || p.ord === undefined ? [] : await Promise.all([
+          s(p.label_s), s(p.short_s), s(p.runs_s), opt(p.place_s), s(p.hint_s), opt(p.lo_s), opt(p.hi_s), opt(p.run_s)]);
         const facts: PartFacts | null = p.ord === null || p.ord === undefined ? null : {
-          order: n(p.ord), label: label!, short: short!, runs: runs!, place: place ?? null, hint: hint!, km: nn(p.km),
+          order: n(p.ord), label: label!, short: short!, lo: lo ?? null, hi: hi ?? null, run_name: runName ?? null,
+          runs: runs!, place: place ?? null, hint: hint!, km: nn(p.km),
           closed_all_year: n(p.closed_all_year) === 1, paper_licence: json<number[]>(p.paper_licence),
         };
         const xp = p.akey === null && p.xj !== null && p.xj !== undefined
           ? base.val<{ province_except?: readonly string[] }>("xpart", p.xj) : null;
-        return { itemOrd: ord, partIx: i, akey: nn(p.akey), facts, sections: n(p.sections),
+        return { itemOrd: ord, partIx: i, akey: nn(p.akey), facts, sections: n(p.sections), grp: n(p.grp), run: n(p.run),
                  tidal: (xp?.province_except ?? []).includes("tidal") };
       }));
     }),

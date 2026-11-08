@@ -102,7 +102,7 @@ class Store:
         parts_of: Dict[int, list] = {}
         for row in self.con.execute(
                 "SELECT item_ord, part_ix, akey, ord, label_s, short_s, runs_s, place_s, hint_s, km, "
-                "closed_all_year, paper_licence FROM part ORDER BY item_ord, part_ix"):
+                "closed_all_year, paper_licence, lo_s, hi_s, run_s FROM part ORDER BY item_ord, part_ix"):
             parts_of.setdefault(row[0], []).append(row[1:])
         parts, waters = {}, {}
         for o, wid_s, shown, picker, unresolved in items:
@@ -115,6 +115,7 @@ class Store:
                 waters[wid] = {
                     "parts": [None if p[2] is None else {
                         "order": p[2], "label": self.s(p[3]), "short": self.s(p[4]),
+                        "lo": self.s(p[11]), "hi": self.s(p[12]), "run_name": self.s(p[13]),
                         "runs": self.s(p[5]), "place": self.s(p[6]), "hint": self.s(p[7]),
                         "km": p[8], "closed_all_year": bool(p[9]),
                         "paper_licence": json.loads(p[10])}

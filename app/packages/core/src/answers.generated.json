@@ -759,6 +759,18 @@
        "title": "Closed All Year",
        "type": "boolean"
       },
+      "hi": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Hi"
+      },
       "hint": {
        "title": "Hint",
        "type": "string"
@@ -780,6 +792,18 @@
       "label": {
        "title": "Label",
        "type": "string"
+      },
+      "lo": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Lo"
       },
       "order": {
        "minimum": 0,
@@ -805,6 +829,18 @@
        ],
        "title": "Place"
       },
+      "run_name": {
+       "anyOf": [
+        {
+         "minLength": 1,
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Run Name"
+      },
       "runs": {
        "title": "Runs",
        "type": "string"
@@ -819,6 +855,9 @@
       "order",
       "label",
       "short",
+      "lo",
+      "hi",
+      "run_name",
       "runs",
       "place",
       "hint",

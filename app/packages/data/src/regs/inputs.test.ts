@@ -16,7 +16,7 @@ const SHUT: DisplayFrame = { status: "closed", closing: [[100, ["RB"]], [101, ["
 const rule = (rix: number, rank: number): StoredRule => ({ rix,
   export: { entry_id: `e${rix}`, rule_id: `r${rix}`, type: "t", family: "f", label: "L", verbatim: "V", fields: {}, prov: { rank } } as ExportRule,
   facts: { kind: "gate" } as unknown as RuleFacts });
-const facts = (label: string) => ({ order: 0, label, short: label, runs: label, place: null, hint: "", km: 1, closed_all_year: false,
+const facts = (label: string) => ({ order: 0, label, short: label, lo: null, hi: null, run_name: null, runs: label, place: null, hint: "", km: 1, closed_all_year: false,
   paper_licence: [] });
 const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, gear: 9, licence: 4, display });
 
@@ -27,9 +27,9 @@ function fake(o: { openGroup?: boolean } = {}) {
   const asked: string[] = [];
   const log = <T>(what: string, v: T): Promise<T> => { asked.push(what); return Promise.resolve(v); };
   const parts: PartRow[] = [
-    { itemOrd: 3, partIx: 0, akey: 2, facts: facts("Mouth to bridge"), sections: 4, tidal: false },
-    { itemOrd: 3, partIx: 1, akey: 5, facts: facts("Above the bridge"), sections: 2, tidal: false },
-    { itemOrd: 3, partIx: 2, akey: null, facts: null, sections: 1, tidal: false }];
+    { itemOrd: 3, partIx: 0, akey: 2, facts: facts("Mouth to bridge"), sections: 4, grp: 0, run: 0, tidal: false },
+    { itemOrd: 3, partIx: 1, akey: 5, facts: facts("Above the bridge"), sections: 2, grp: 1, run: 0, tidal: false },
+    { itemOrd: 3, partIx: 2, akey: null, facts: null, sections: 1, grp: 2, run: 0, tidal: false }];
   const picker: Picker = { headed: true, choices: [
     { parts: [0, 1], closed: !o.openGroup, sections: 6, heading: "h", text: "t" }, { parts: [2], closed: false, sections: 1, heading: "h", text: "t" }] };
   const keys = {

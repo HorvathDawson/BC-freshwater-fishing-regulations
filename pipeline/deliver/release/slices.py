@@ -56,7 +56,7 @@ WATER_SHARED_TABLES = ("akey", "akey_region", "ruleset", "seglist", "segmom", "r
                        "place", "zdict")
 #: every column of water that names a `str` id (`str` keeps only these ids' rows)
 STR_COLUMNS = (("item", "item_id"), ("item", "kind"), ("part", "label_s"), ("part", "short_s"), ("part", "runs_s"),
-               ("part", "place_s"), ("part", "hint_s"), ("akey", "kind"), ("akey", "province_except"),
+               ("part", "place_s"), ("part", "hint_s"), ("part", "lo_s"), ("part", "hi_s"), ("part", "run_s"), ("akey", "kind"), ("akey", "province_except"),
                ("akey", "home_region"), ("place", "label"))
 BLOCK_BITS, BLOCK = SH.BLOCK_BITS, SH.BLOCK
 

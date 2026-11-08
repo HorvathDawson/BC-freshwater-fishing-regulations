@@ -155,6 +155,11 @@ class PartFacts(Model):
     #: answers 2.7 (A4): the part strip's short name, from the range's end labels ("Mouth → Vedder
     #: Crossing Bridge"); `label` stays the sheet's full name
     short: StrictStr = Field(min_length=1)
+    #: T517: a piece of a run the DFO salmon chain cuts (parts sharing grp + run): its own two ends and the whole run's
+    #: name; None for a part that is its run (the map then says `short`)
+    lo: Optional[StrictStr] = Field(min_length=1)
+    hi: Optional[StrictStr] = Field(min_length=1)
+    run_name: Optional[StrictStr] = Field(min_length=1)
     runs: StrictStr
     place: Optional[StrictStr]                        # None: no entry heading
     hint: StrictStr

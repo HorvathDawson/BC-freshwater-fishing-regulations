@@ -24,6 +24,9 @@ async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
     // (T278; owner T166 2026-10-28: no parts on tidal water) a tidal piece is never listed; `waterGroup` drops its
     // stretches, sections and the marks that would reach it with it
     parts: parts.filter((p) => !p.tidal).map((p) => ({ partIx: p.partIx, label: p.facts?.label ?? item.name, short: p.facts?.short ?? item.name,
+                                                       // (T517) its run, and a salmon-cut piece's own ends + the run's name
+                                                       grp: p.grp, run: p.run,
+                                                       ...(p.facts?.run_name ? { lo: p.facts.lo, hi: p.facts.hi, runName: p.facts.run_name } : {}),
                                                        // (T460) a side channel has no km: a fork's branch, never a skip
                                                        ...(p.facts && p.facts.km === null ? { side: true } : {}) })),
     geo: nav.geo, marks: nav.marks, sections: nav.sections, stretches: nav.stretches, exit: ex && tidal ? { ...ex, tidal: true } : ex,

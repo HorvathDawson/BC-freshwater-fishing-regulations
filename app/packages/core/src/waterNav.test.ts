@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  confidenceWords, crossLabel, crossDown, crossUp, exitLabel, groupBounds, isConfidence, markA11y, itemNote, markLabel, navSections, partAt, partBounds, partName,
+  confidenceWords, crossLabel, crossDown, crossUp, exitLabel, groupBounds, isConfidence, markA11y, itemNote, markLabel, mergeNav, navSections, partAt, partBounds, partName,
   partOfSection, partRowAria, partWhere, stepDown, stepsDown, stepsUp, waterGroup, wholeAria, wholeLabel, WATER_MAP_WORDS, type ItemNavRows,
 } from "./waterNav";
 import { WORDS } from "./regs/words";
@@ -480,34 +480,11 @@ describe("T464: a part's stretches with no mark between them", () => {
 });
 
 describe("T204: a part's separate stretches", () => {
-  it("Kanaka: three entries mouth first — part 0's lower stretch, part 1, part 0's upper stretch — each its own name", () => {
+  it("Kanaka (a release cut before T517): three entries mouth first, a stretch keeps its count", () => {
     const g = waterGroup([KANAKA]);
     expect(g.parts.map((p) => [p.partIx, p.stretch ?? 0, p.sids])).toEqual([
       [0, 0, [294874]], [1, 0, [294875]], [0, 1, [294876, 294877]]]);
-    expect([0, 1, 2].map((i) => partName(g, i))).toEqual([
-      // (T509, owner "Ends only") each stretch by its own ends alone: the mark at one end, the part's short name at the other
-      "Mouth → 112 Avenue bridge", "112 Avenue bridge → Cliff Park Falls",
-      "Cliff Park Falls → Source"]);
-  });
-
-  it("(T509) a part whose short names no ends: each stretch by its marks, the lower end from a mark off a tidal part", () => {
-    // the Fraser's shape: part 0 "2 stretches" either side of a zone (part 1); its lower end a mark from the tidal part 9,
-    // which the water map never lists (no mark is kept, the name is); its upper end the mark into the part above (2)
-    const bare = (n: number, short: string) => ({ partIx: n, label: short, short });
-    const g = waterGroup([{ ...KANAKA,
-      parts: [bare(0, "2 stretches"), bare(1, "Within the zone"), bare(2, "Spuzzum → Hell's Gate")],
-      geo: [...KANAKA.geo, geo(2, 2, [-122300000, 49260000], -122400000, 49250000, -122200000, 49270000)],
-      marks: [{ ...mark(-122700000, 49180000, "the CPR Bridge at Mission", 9, [0]) },
-              { ...mark(-122550000, 49200000, "zone boundary", 0, [1]), downStretch: 0 },
-              { ...mark(-122536222, 49207142, "zone boundary", 1, [0]), upStretches: [1] },
-              { ...mark(-122400000, 49250000, "Spuzzum", 0, [2]), downStretch: 1 }],
-      sections: secs({ 0: [294874, 294876, 294877], 1: [294875], 2: [294878] }),
-      stretches: [...KANAKA.stretches!, { partIx: 2, stretch: 0, rank: 3, box: null, mid: null, sids: [294878] }] }]);
-    expect(g.parts.map((_, i) => partName(g, i))).toEqual([
-      "The CPR Bridge at Mission → zone boundary", "Within the zone",
-      "Zone boundary → Spuzzum", "Spuzzum → Hell's Gate"]);
-    // the tidal mark is no mark: nothing to step down to
-    expect(g.marks.map((m) => m.label)).toEqual(["zone boundary", "zone boundary", "Spuzzum"]);
+    expect(partName(g, 1)).toBe("112 Avenue bridge → Cliff Park Falls");
   });
 
   it("Kanaka: the bridge is below part 1 and the falls above it — each mark on the stretch that meets there", () => {
@@ -528,5 +505,34 @@ describe("T204: a part's separate stretches", () => {
     const g = waterGroup([CHILLIWACK]);
     expect(g.parts.map((p) => [p.partIx, p.stretch])).toEqual([[1, undefined], [2, undefined], [0, undefined], [3, undefined]]);
     expect(g.marks.map((m) => [m.down, m.up])).toEqual([[2, [3]], [0, [1]], [1, [2]]]);
+  });
+});
+
+describe("T517: one part per connected run, a salmon-cut run joined on the map", () => {
+  // the Dean's shape: one run (grp 0, run 0) cut where the DFO salmon chain changes into parts 0 and 1; part 2 its own
+  const piece = (n: number, short: string, lo: string, hi: string) =>
+    ({ partIx: n, label: short, short, grp: 0, run: 0, lo, hi, runName: "Mouth → Anahim Lake" });
+  const DEAN: ItemNavRows = {
+    ord: 77, item: "gnis:16075", name: "Dean River", kind: "stream",
+    parts: [piece(0, "Mouth → Tanswanket Creek confluence", "Mouth", "Tanswanket Creek confluence"),
+            piece(1, "Tanswanket Creek confluence → Anahim Lake", "Tanswanket Creek confluence", "Anahim Lake"),
+            { partIx: 2, label: "Above", short: "Anahim Lake → Source", grp: 1, run: 0 }],
+    geo: [geo(0, 0, [-127000000, 52000000], -127100000, 51900000, -126900000, 52100000),
+          geo(1, 1, [-126500000, 52200000], -126600000, 52100000, -126400000, 52300000),
+          geo(2, 2, [-125500000, 52500000], -125600000, 52400000, -125400000, 52600000)],
+    marks: [mark(-126800000, 52150000, "Tanswanket Creek confluence", 0, [1]),
+            mark(-126000000, 52400000, "Anahim Lake", 1, [2])],
+    sections: secs({ 0: [10, 11], 1: [12], 2: [13] }), exit: null };
+
+  it("the regular map lists the run once, by the run's own name", () => {
+    const g = mergeNav(waterGroup([DEAN]), null);
+    expect(g.parts.map((_, i) => partName(g, i))).toEqual(["Mouth → Anahim Lake", "Anahim Lake → Source"]);
+    expect(g.parts[0]!.sids).toEqual([10, 11, 12]);
+  });
+
+  it("salmon mode keeps the pieces apart where their salmon differs, each by its own ends", () => {
+    const g = mergeNav(waterGroup([DEAN]), (sid) => (sid === 12 ? "b" : "a"));
+    expect(g.parts.map((_, i) => partName(g, i))).toEqual([
+      "Mouth → Tanswanket Creek confluence", "Tanswanket Creek confluence → Anahim Lake", "Anahim Lake → Source"]);
   });
 });

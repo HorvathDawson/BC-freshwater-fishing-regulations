@@ -54,10 +54,11 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
       kind INTEGER, sections INTEGER, outside_bc INTEGER, entries TEXT, steelhead INTEGER, x BLOB);
     INSERT INTO item VALUES (3, 0, 1, 0, '[]', 'Test River', 1, 6, 1, '[4,9]', 2, ${X({ steelhead_source: ["curated list"] })});
     CREATE TABLE part (item_ord INTEGER, part_ix INTEGER, akey INTEGER, ord INTEGER, label_s INTEGER, short_s INTEGER,
-      runs_s INTEGER, place_s INTEGER, hint_s INTEGER, km REAL, closed_all_year INTEGER, paper_licence TEXT, xp INTEGER,
-      sections INTEGER, xruns INTEGER, PRIMARY KEY (item_ord, part_ix));
-    INSERT INTO part VALUES (3, 0, 2, 0, 2, 3, 4, NULL, 5, 12.5, 0, '[7]', 0, 5, 0), (3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, ${o.tidalPart ? 1 : 0}, 1, 0);
+      runs_s INTEGER, place_s INTEGER, hint_s INTEGER, km REAL, closed_all_year INTEGER, paper_licence TEXT, lo_s INTEGER,
+      hi_s INTEGER, run_s INTEGER, xp INTEGER, sections INTEGER, xruns INTEGER, grp INTEGER, run INTEGER,
+      PRIMARY KEY (item_ord, part_ix));
+    INSERT INTO part VALUES (3, 0, 2, 0, 2, 3, 4, NULL, 5, 12.5, 0, '[7]', NULL, NULL, NULL, 0, 5, 0, 0, 0),
+      (3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ${o.tidalPart ? 1 : 0}, 1, 0, 1, 0);
     CREATE TABLE xpart (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
     INSERT INTO xpart VALUES (0, ${X({ ruleset: null, licensing_set: null })}),
       (1, ${X({ ruleset: null, licensing_set: null, steelhead: "known", province_except: ["tidal"] })});
@@ -150,9 +151,10 @@ describe("reads over water", () => {
   it("parts: facts as decode.py shapes them, null where the part has no order (outside B.C.)", async () => {
     const st = await openRegsStore(seed().loader);
     expect(await st.parts(3)).toEqual([
-      { itemOrd: 3, partIx: 0, akey: 2, sections: 5, facts: { order: 0, label: "Mouth to the bridge", short: "Mouth → Bridge",
+      { itemOrd: 3, partIx: 0, akey: 2, sections: 5, grp: 0, run: 0, facts: { order: 0, label: "Mouth to the bridge",
+        short: "Mouth → Bridge", lo: null, hi: null, run_name: null,
         runs: "runs", place: null, hint: "hint", km: 12.5, closed_all_year: false, paper_licence: [7] }, tidal: false },
-      { itemOrd: 3, partIx: 1, akey: null, sections: 1, facts: null, tidal: false },
+      { itemOrd: 3, partIx: 1, akey: null, sections: 1, grp: 1, run: 0, facts: null, tidal: false },
     ]);
   });
 

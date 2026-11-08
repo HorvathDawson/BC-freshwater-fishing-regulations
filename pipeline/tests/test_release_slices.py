@@ -65,8 +65,10 @@ def _water(p: Path, loose_str: bool = False) -> Path:
                            x BLOB);
         CREATE TABLE part (item_ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, akey INTEGER, ord INTEGER, label_s INTEGER,
                            short_s INTEGER, runs_s INTEGER, place_s INTEGER, hint_s INTEGER, km REAL,
-                           closed_all_year INTEGER, paper_licence TEXT, xp INTEGER NOT NULL, sections INTEGER NOT NULL,
-                           xruns INTEGER NOT NULL, PRIMARY KEY (item_ord, part_ix)) WITHOUT ROWID;
+                           closed_all_year INTEGER, paper_licence TEXT, lo_s INTEGER, hi_s INTEGER, run_s INTEGER,
+                           xp INTEGER NOT NULL, sections INTEGER NOT NULL,
+                           xruns INTEGER NOT NULL, grp INTEGER NOT NULL DEFAULT 0, run INTEGER NOT NULL DEFAULT 0,
+                           PRIMARY KEY (item_ord, part_ix)) WITHOUT ROWID;
         CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL,
                                    PRIMARY KEY (ord, sid)) WITHOUT ROWID;
         CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER, lat INTEGER, label TEXT,
@@ -104,8 +106,8 @@ def _water(p: Path, loose_str: bool = False) -> Path:
             (4, 104, 1, NULL, NULL, 'Cut Creek', 110, 1, 0, '[]', NULL, NULL),
             (5, 105, 1, NULL, NULL, 'Vedder River', 110, 1, 0, '[3]', NULL, NULL),
             (6, 106, 1, 2, NULL, 'Far Creek', 110, 1, 0, '[]', NULL, NULL);
-        INSERT INTO part VALUES (0, 0, 1, 0, 121, 121, 121, NULL, 121, 1.5, 0, '[]', 1, 2, 0),
-            (6, 0, 2, 0, 120, 120, 120, NULL, 120, 2.0, 0, '[]', 2, 1, 0);
+        INSERT INTO part VALUES (0, 0, 1, 0, 121, 121, 121, NULL, 121, 1.5, 0, '[]', NULL, NULL, NULL, 1, 2, 0, 0, 0),
+            (6, 0, 2, 0, 120, 120, 120, NULL, 120, 2.0, 0, '[]', NULL, NULL, NULL, 2, 1, 0, 0, 0);
         INSERT INTO part_section VALUES (0, 10, 0), (0, 11, 0), (6, 4100, 0);
         INSERT INTO part_mark VALUES (0, 0, 1, 2, NULL, 0, '[]', NULL, NULL, NULL);
         INSERT INTO water_exit VALUES (0, 1, 0), (6, 1, 0);

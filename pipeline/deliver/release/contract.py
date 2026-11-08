@@ -112,7 +112,8 @@ FILES = {
         "lset": ["set_id", "j"],
         "meta": ["k", "v"],
         "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
-                 "closed_all_year", "paper_licence", "xp", "sections", "xruns", "grp", "run"],
+                 "closed_all_year", "paper_licence", "lo_s", "hi_s", "run_s", "xp", "sections", "xruns", "grp",
+                 "run"],
         # `confidence` (T207), `down_stretch` / `up_stretches` (T204: which stretch of each part meets there, NULL when
         # every one is stretch 0): ADDITIVE, last — still water/1; an older release has no columns
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
@@ -151,7 +152,8 @@ FILES = {
                  "entries", "steelhead", "x"],
         "meta": ["k", "v"],
         "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
-                 "closed_all_year", "paper_licence", "xp", "sections", "xruns", "grp", "run"],
+                 "closed_all_year", "paper_licence", "lo_s", "hi_s", "run_s", "xp", "sections", "xruns", "grp",
+                 "run"],
         "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
                       "up_stretches"],
         "part_line": ["ord", "part_ix", "stretch", "blk", "m0", "m1"],             # (T388) by ord, as part_section

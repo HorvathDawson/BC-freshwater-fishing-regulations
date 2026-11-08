@@ -9,11 +9,8 @@ The app draws lines and polygons from the tiles (feature id = sid). The bundle c
               downstream part and the upstream parts, and — where a part has several stretches — which stretch of each
               (`down_stretch`, `up_stretches`, NULL when every one is stretch 0). Side channels and lake splits make
               the parts a graph, not a list.
-  part_stretch (ord, part_ix, stretch_ix) (T204): a part's STRETCHES — its runs that no other part of the same water
-              separates (a lake or an unnamed piece between two runs does not) — each with its rank among the water's
-              stretches (mouth first), midpoint, bbox and section ids; written for every part of a water that has a
-              part of two or more stretches (Kanaka Creek's part below the 112 Avenue bridge AND above Cliff Park
-              Falls), none for any other water: there a part is its one stretch.
+  (T517: a part IS one connected run — `derived.part_rows` cuts the rule-set groups into their runs, the DFO salmon
+              chain in the key — so there is no `part_stretch`; T204's `stretches` is what decides a run, there.)
   water_exit  (ord): the water this one flows into (`item_down`), and the receiving water's part it enters.
 
 THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/audit/water_map_export.py`, which now imports
@@ -24,12 +21,13 @@ THE RULES (stated, pinned in test_part_geo.py), moved here from `pipeline/tools/
             (`section_span`), or by summed section length where a section has no span; `mid_sid` is the section
             holding it, and the point is that section's own midpoint (within one section of the exact point). A lake
             part: `rep_sid` and the polygon's representative point.
-  stretch   a part's main-stem runs, mouth up, merged unless another part of the water has a main-stem section in the
-            gap between them; a side-channel run joins the stretch it re-enters within (else the nearest); a part with
-            no main-stem run (side channels only, a lake) is one stretch (`stretches`).
-  marks     two STRETCHES of different parts closer than TOUCH_M; the point is the middle of their nearest points; the
-            down stretch is the lower rank. Stretches meeting at one point with one down stretch are one mark with
-            several up stretches. A water whose parts are each one stretch gets exactly the per-pair marks it had.
+  stretch   (used by `derived.part_rows`) a group's main-stem runs, mouth up, merged unless another group of the water
+            has a main-stem section in the gap between them; a side-channel run joins the stretch it re-enters within
+            (else the nearest); a group with no main-stem run (side channels only, a lake) is one stretch.
+  marks     two parts closer than TOUCH_M; the point is the middle of their nearest points; the down part is the lower
+            index. Parts meeting at one point with one down part are one mark with several up parts. Its words are
+            `answers.display.end_words` of the end token the two parts share (`mark_words`), the same words their
+            names say there (asserted).
   exit      `item_down` (from the graph), less every receiver that itself flows into this water (`exit_receivers`,
             T59: the Fraser "flowed into" Annacis Channel, its own side channel; a creek into the headwater lake it
             runs out of). Where a water drains into several, the receiver whose part lies nearest this water's mouth

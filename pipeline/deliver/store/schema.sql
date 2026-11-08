@@ -121,6 +121,9 @@ CREATE TABLE part (
     km              REAL,
     closed_all_year INTEGER CHECK (closed_all_year IN (0, 1)),
     paper_licence   TEXT,
+    lo_s            INTEGER REFERENCES str(id),     -- T517: a salmon-cut run's piece: its own lower end (else NULL)
+    hi_s            INTEGER REFERENCES str(id),     -- … its own upper end
+    run_s           INTEGER REFERENCES str(id),     -- … the whole run's name (what the regular map says)
     xp              INTEGER NOT NULL REFERENCES xpart(id),
     sections        INTEGER NOT NULL,
     xruns           INTEGER NOT NULL REFERENCES runs(id),

@@ -155,6 +155,51 @@ def record_kept(B, store, key_ix: int, rid: str) -> bool:
     return not took_part
 
 
+def _run_words(ex: int, multi: Dict[int, List[int]], ends_of: Dict[int, Optional[tuple]]) -> dict:
+    """T517 `lo` / `hi` (this piece's own two ends) and `run_name` (the whole run, its lowest piece's lower end to its
+    highest piece's upper end) for a piece of a run the salmon chain cuts; all None for a part that is its run."""
+    if ex not in multi:
+        return {"lo": None, "hi": None, "run_name": None}
+    ends = [ends_of[x] for x in multi[ex] if ends_of[x]]
+    mine = ends_of[ex]
+    return {"lo": mine[0] if mine else None, "hi": mine[1] if mine else None,
+            "run_name": f"{ends[0][0]} → {ends[-1][1]}" if ends else None}
+
+
+def _by_grp(item_id: str, w: dict, doc: dict):
+    """T517: the water as its RULE-SET GROUPS (what a part was before T517): one pseudo-part per `grp`, its parts'
+    runs together (mouth-upward km order kept as `compose_runs` lists them: upstream first) and sections summed —
+    `(Water over them, {grp: [export part index]})`. The picker, the full label, the place and the hint read it."""
+    members: Dict[int, List[int]] = {}
+    for ex, q in enumerate(w["parts"]):
+        members.setdefault(q["grp"], []).append(ex)
+    if sorted(members) != list(range(len(members))):
+        raise AnswersError(f"display: {item_id}'s part groups are not 0..n-1: {sorted(members)}")
+    merged = []
+    for g in range(len(members)):
+        qs = [w["parts"][ex] for ex in members[g]]
+        runs = [r for q in qs for r in q.get("runs") or []]
+        runs.sort(key=lambda r: (r.get("km_from") is None, -(r.get("km_from") or 0)))
+        merged.append({**qs[0], "runs": runs, "sections": sum(q["sections"] for q in qs)})
+    return Water(item_id, {**w, "parts": merged}, doc), members
+
+
+def _shorts(W: "Water", labels: Sequence[str]) -> List[str]:
+    """Every part's name (`short_label`, its own two ends), two parts the same words would name told apart by their
+    full labels' distinguishing tail, else numbered — `short_labels` over the parts, the labels per group."""
+    from pipeline.deliver.answers.display.part import short_label
+    out = [short_label(W.doc, p, labels[i]) for i, p in enumerate(W.parts)]
+    for s_ in set(out):
+        ix = [i for i, t in enumerate(out) if t == s_]
+        if len(ix) < 2:
+            continue
+        for n, i in enumerate(ix, 1):
+            h = re.split(r" — | · ", labels[i], maxsplit=1)
+            tail = h[1] if len(h) > 1 and h[1] else ""
+            out[i] = f"{s_} · {tail}" if tail and len({labels[j] for j in ix}) > 1 else f"{s_} ({n})"
+    return out
+
+
 def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                   rule_ref=None, lic_ref=None, log=print, store=None) -> Dict[str, dict]:
     """PURE: every named water's part facts, `{item_id: {"parts": [facts | null per EXPORT part],
@@ -177,8 +222,22 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         W = Water(item_id, w, doc)
         if not W.parts:
             continue
-        labels = part_labels(W)
-        shorts = short_labels(W, labels)
+        # T517: a part is one connected run; the PICKER, the full label, the place and the hint stay per rule-set
+        # group (`grp`, what a part was before T517: its runs together), so the picker's length is unchanged
+        W, Wg, members = W, *_by_grp(item_id, w, doc)
+        labels_g = part_labels(Wg)
+        gi = {g: k for k, g in enumerate(Wg.export_ix)}
+        labels = [labels_g[gi[p["grp"]]] for p in W.parts]
+        shorts = _shorts(W, labels)
+        # T517: a run the DFO salmon chain cuts into several parts (same grp, run) carries its pieces' own two ends
+        # and the whole run's name, so the map joins them and says them without composing prose
+        from pipeline.deliver.answers.display.part import run_ends
+        pieces: Dict[tuple, List[int]] = {}
+        for ex in W.export_ix:
+            q = w["parts"][ex]
+            pieces.setdefault((q["grp"], q["run"]), []).append(ex)
+        multi = {ex: sorted(v) for v in pieces.values() if len(v) > 1 for ex in v}
+        ends_of = {ex: run_ends(doc, w["parts"][ex]) for ex in multi}
         closed = []
         facts: List[Optional[dict]] = [None] * len(w["parts"])
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
@@ -186,13 +245,19 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
             if rk not in closed_memo:
                 closed_memo[rk] = closed_all_year(store, B.key_ix[rk])
             closed.append(closed_memo[rk])
+            k = gi[p["grp"]]
             facts[ex] = {
-                "order": i, "label": labels[i], "short": shorts[i], "runs": runs_label(doc, p),
-                "place": part_place(W, i) or None,           # null: no entry heading
-                "hint": part_label(W, i), "km": part_km(p),
+                "order": i, "label": labels[i], "short": shorts[i],
+                **_run_words(ex, multi, ends_of), "runs": runs_label(doc, p),
+                "place": part_place(Wg, k) or None,          # null: no entry heading
+                "hint": part_label(Wg, k), "km": part_km(p),
                 "closed_all_year": closed[-1],
                 "paper_licence": [rule_ref(r) for r in paper_licence(B, rk, w.get("kind"), store=store)]}
-        out[item_id] = {"parts": facts, "picker": picker(W, labels, closed),
+        shut = {p["grp"]: c for p, c in zip(W.parts, closed)}
+        pk = picker(Wg, labels_g, [shut[g] for g in Wg.export_ix])
+        for c in pk["choices"]:
+            c["parts"] = sorted(x for g in c["parts"] for x in members[g])
+        out[item_id] = {"parts": facts, "picker": pk,
                         "unresolved_licensing": [lic_ref(k) for k in sorted(
                             k for e in w.get("entries") or [] for k in unresolved.get(e, []))]}
     log(f"  parts: {sum(1 for v in out.values() for f in v['parts'] if f)} parts of {len(out)} "

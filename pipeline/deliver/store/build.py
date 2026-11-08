@@ -54,8 +54,8 @@ TOP_TABLES = ("keys", "segments", "segment_moments", "parts", "places", "section
 TOP_STATIC = ("about", "spec", "schemas", "fish", "moments", "glossary", "unnamed")
 #: display.waters' shapes (the columnar `item` / `part` rows rebuild them in this key order).
 DISPLAY_WATER_KEYS = ("parts", "picker", "unresolved_licensing")
-DISPLAY_PART_KEYS = ("order", "label", "short", "runs", "place", "hint", "km", "closed_all_year",
-                     "paper_licence")
+DISPLAY_PART_KEYS = ("order", "label", "short", "lo", "hi", "run_name", "runs", "place", "hint", "km",
+                     "closed_all_year", "paper_licence")
 #: The export water's words held as `item` columns (the rest goes to `item.x`).
 WATER_COLUMNS = ("name", "kind", "sections", "outside_bc", "entries", "steelhead", "parts")
 #: The answers keys row (`encode.encode`): 9 part-key fields, segments, moments.
@@ -382,7 +382,7 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
             xj = dumps({kk: v for kk, v in p.items() if kk not in ("sections", "runs", "grp", "run")})
             xp = xparts.setdefault(xj, len(xparts))
             if q is None:
-                cols = (None,) * 9
+                cols = (None,) * 12
             else:
                 if tuple(q) != DISPLAY_PART_KEYS:
                     raise StoreError(f"store: display part {wid}[{i}] keys {list(q)}")
@@ -391,14 +391,14 @@ def _write(con, raw: bytes, A: dict, sub: dict, item_ord: Dict[str, int], part_s
                     raise StoreError(f"store: display part {wid}[{i}] has an untaught type")
                 cols = (q["order"], S.add(q["label"]), S.add(q["short"]), S.add(q["runs"]), S.add(q["place"]),
                         S.add(q["hint"]), q["km"], int(q["closed_all_year"]),
-                        dumps_s(q["paper_licence"]))
+                        dumps_s(q["paper_licence"]), S.add(q["lo"]), S.add(q["hi"]), S.add(q["run_name"]))
             parts.append((o, i, None if k is None else k + 1, *cols, xp, p["sections"],
                           runs.setdefault(dumps(p["runs"]), len(runs)), p["grp"], p["run"]))
     pending["item"] = items
     pending["xpart"] = [(i, j) for j, i in xparts.items()]
     pending["picker"] = [(i, j) for j, i in pickers.items()]
     pending["runs"] = [(i, j) for j, i in runs.items()]
-    con.executemany("INSERT INTO part VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", parts)
+    con.executemany("INSERT INTO part VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", parts)
 
     # ---- section_akey: every section a keyed named part covers
     by_ord = {o: wid for wid, o in item_ord.items()}

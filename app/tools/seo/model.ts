@@ -231,9 +231,17 @@ export async function listWaterOrds(store: RegsStore): Promise<number[]> {
  * wording-only release moves no water here. /changes lists the waters whose rules moved; the page hash still moves lastmod.
  */
 export async function rulesKey(store: RegsStore, ord: number): Promise<string> {
-  const [parts, rules] = await Promise.all([store.parts(ord), store.rules()]);
+  const [parts, rules, ends] = await Promise.all([store.parts(ord), store.rules(), store.partEnds(ord)]);
+  // (T517) keyed by RULE-SET GROUP and where its runs end, never by part index: renumbering moves nothing here, a cut
+  // that ends a run elsewhere (another end token) does
+  const where = new Map<number, string[]>();
+  for (const p of parts) if (p.akey !== null)
+    where.set(p.grp, [...(where.get(p.grp) ?? []), ...(ends[p.partIx] ?? []).map(([a, b]) => `${a ?? ""}>${b ?? ""}`)]);
+  const done = new Set<number>();
   const out: unknown[] = [];
   for (const p of parts) {
+    if (done.has(p.grp)) continue;
+    done.add(p.grp);
     if (p.akey === null || p.facts === null) continue;
     const k = await store.akey(p.akey), set = await store.ruleset(k.ruleset);
     const bound = (rix: number) => {
@@ -244,7 +252,8 @@ export async function rulesKey(store: RegsStore, ord: number): Promise<string> {
         e.not_yet_mapped ?? null, e.prov.rank, e.prov.region ?? null];
     };
     const ids = (xs: readonly number[]) => xs.map(bound).sort((a, b) => `${a[0]}|${a[1]}`.localeCompare(`${b[0]}|${b[1]}`));
-    out.push([p.partIx, k.kind, k.tidal, k.steelhead, k.steelheadWater, k.steelheadRules, ids(set.reach), ids(set.trib)]);
+    out.push([[...(where.get(p.grp) ?? [])].sort(), k.kind, k.tidal, k.steelhead, k.steelheadWater, k.steelheadRules,
+      ids(set.reach), ids(set.trib)]);
   }
   return canon(out);
 }
