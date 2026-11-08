@@ -384,7 +384,9 @@ Six angler personas read v23 screenshots (USER-ROUNDS round 3); only wording cha
 
 2. A no-fishing place rule (`display.where_of`: the fishway and fish-facility buffers) carries `rules[].plain`: the
    book's words with every distance in feet too, the nearest 5 ft — "No fishing within 23 m (75 ft) downstream of the
-   lower entrance to any fishway, canal, obstacle or leap." (`common.m_ft`, `display.cant_fish_words`).
+   lower entrance to any fishway, canal, obstacle or leap." (`common.m_ft`, `display.cant_fish_words`). T501 (owner
+   2026-11-08): the rule's short place words (`extent_text`) when it has them — "No fishing within 23 m (75 ft)
+   downstream of any fishway, canal, obstacle or leap." — the full sentence stays on its Rule book page.
 3. A count tier inside a water's own tier or the stream share says it is part of it: "1 cutthroat or rainbow trout in
    all (part of the 2)" (its kinds' sentences keep "Of the 1 cutthroat or rainbow trout in all: …").
 4. The share says "per angler" like the headline ("2 a day per angler from this stream (part of the 4)"); where a

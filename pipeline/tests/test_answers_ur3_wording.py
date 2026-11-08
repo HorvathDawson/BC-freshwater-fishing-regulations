@@ -51,6 +51,20 @@ def test_2_the_buffers_say_feet():
     assert D.rule_facts(y)["plain"].startswith("No fishing within a 100 m (330 ft) radius of any government")
 
 
+def test_t501_the_buffers_say_their_short_place_words():
+    """T501: a no-fishing place rule with `extent_text` says that short phrase (feet too), not the book's sentence."""
+    x = {"type": "retention_limit", "family": "retention", "standing": True, "take": 0, "may_target": False,
+         "species": ["ALL_GAME_FISH"],
+         "verbatim": "Within 23 m downstream of the lower entrance to any fishway, canal, obstacle or leap.",
+         "extent_text": "within 23 m downstream of any fishway, canal, obstacle or leap"}
+    assert D.rule_facts(x)["plain"] == "No fishing within 23 m (75 ft) downstream of any fishway, canal, obstacle or leap."
+    y = {**x, "verbatim": "Within a 100 m radius of any government facility operated for counting, passing or rearing "
+                          "fish (e.g., fishway, fish hatchery) unless otherwise designated.",
+         "extent_text": "within 100 m of any government fish counting, passing or rearing facility"}
+    assert D.rule_facts(y)["plain"] == ("No fishing within 100 m (330 ft) of any government fish counting, passing or "
+                                        "rearing facility.")
+
+
 # 3 ---------------------------------------------------------------------------------------------
 def test_3_a_count_tier_in_an_own_tier_says_part_of_it():
     (ct,) = [t for t in _tiers(F.BELLA_MAY_ST, MAY1) if t["tier"] == "count"]

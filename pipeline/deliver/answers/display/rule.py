@@ -457,8 +457,11 @@ def where_of(x: dict) -> Optional[str]:
 def cant_fish_words(x: dict) -> Optional[str]:
     """UR3 2 (user panel: "how far is 23 m?"): a no-fishing place rule's sentence, the book's words with every distance
     in metres said in feet too — "No fishing within 23 m (75 ft) downstream of the lower entrance to any fishway,
-    canal, obstacle or leap." (`common.m_ft`). None where the rule has no words."""
-    w = clean(x.get("verbatim") or "").strip().rstrip(".")
+    canal, obstacle or leap." (`common.m_ft`). None where the rule has no words.
+    T501 (owner 2026-11-08: "just a quick no fishing at x"): the rule's own short place words (`extent_text`, "within 23 m
+    downstream of any fishway, canal, obstacle or leap") when it has them; the book's full sentence stays one tap away
+    (the line's Rule book page)."""
+    w = clean(x.get("extent_text") or x.get("verbatim") or "").strip().rstrip(".")
     if not w:
         return None
     w = re.sub(r"\b(\d+(?:\.\d+)?) ?m\b(?! \()", lambda m: m_ft(m.group(1)), w)
