@@ -239,8 +239,8 @@ A. **The 2 said once** (`tree.py`): the share no longer says ", not counting hat
 
 1. **A kind's size says the rule** (`TreeKind.size_rule`): "must be 30–50 cm (12–20 in); release any other size" from the kind's
    `sizes` (exactly the lengths it may be kept at here, gate-proved). Where a rainbow's top is the steelhead line on a steelhead
-   water the top is no release (over it the fish IS a steelhead, its own row): "must be 30 cm (12 in) or longer; release
-   any shorter", nothing where that is the only end; top only "must be 50 cm (20 in) or less; release any longer"; bottom only
+   water the top is no release (over it the fish IS a steelhead, its own row): T503 (owner 2026-11-08) the band, "must be
+   30–50 cm (12–20 in); release any shorter", so the count and the size read together; nothing where that is the only end; top only "must be 50 cm (20 in) or less; release any longer"; bottom only
    "must be 30 cm (12 in) or longer; release any shorter"; a slot (kept up to A and from B) "release any between 60 cm (24 in)
    and 90 cm (35 in)" (owner 2026-10-28, Q62); null for any size, none, or a steelhead. The rule's own `plain` says a size
    rule with no count the same way, the fish first (owner 2026-10-28, Q63): "Lake trout must be 50 cm (20 in) or less;

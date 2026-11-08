@@ -225,8 +225,8 @@ def test_3_4_size_and_count_tiers_and_notes_say_up_to():
     count = next(t for t, _p in walk(g["tree"]) if t["node"] == "tier" and t["tier"] == "count")
     assert count["says"] == "Up to 1 cutthroat or rainbow trout combined"
     rb = next(k for k, _p in walk(g["tree"]) if k["node"] == "kind" and k["species"] == ["RB"])
-    assert (rb["says"], rb["size_rule"]) == ("Up to 1 hatchery rainbow trout", "must be 30 cm (12 in) or longer; "
-                                                                               "release any shorter")
+    assert (rb["says"], rb["size_rule"]) == ("Up to 1 hatchery rainbow trout", "must be 30–50 cm (12–20 in); "
+                                                                               "release any shorter")   # T503
     g, _o, _P = _g(F.NESTED)
     assert [t["says"] for t, _p in walk(g["tree"]) if t["node"] == "tier" and t["tier"] == "size"] == [
         "Only 2 of all your trout and char may be over 30 cm (12 in) — not 2 per species; up to 1 of them over 50 cm (20 in)."]

@@ -766,7 +766,7 @@ def size_rule(kn: dict, steelhead_water: bool, steel_cm) -> Optional[str]:
     any shorter"; a range "must be 30–50 cm (12–20 in); release any other size"; gaps "must be A, or B; release any other
     size"; a slot (kept up to A and from B) "release any between 60 cm (24 in) and 90 cm (35 in)" (owner 2026-10-28,
     Q62). A rainbow's top at the steelhead line on a steelhead water is no release (over it the fish IS a steelhead, its
-    own row): "must be 30 cm (12 in) or longer; release any shorter". None for a kind kept at any size, at none, or a
+    own row): T503 "must be 30–50 cm (12–20 in); release any shorter". None for a kind kept at any size, at none, or a
     steelhead (its row's size is what it is)."""
     from pipeline.deliver.answers.card import _size_words
     segs = [(a, INF if b is None else b) for a, b in kn["sizes"]["cm"]]
@@ -778,7 +778,9 @@ def size_rule(kn: dict, steelhead_water: bool, steel_cm) -> Optional[str]:
     if not (below or above or gaps):
         return None
     if steel_cut and not gaps:
-        return f"must be {_size_words(segs[0][0], INF, inch=True)}; release any shorter"
+        # T503 (owner 2026-11-08): the band, "must be 30–50 cm (12–20 in)", so the count and the size read together (a
+        # bare "30 cm or longer" read as any rainbow over 30 cm); over the top it is a steelhead, its own row
+        return f"must be {_size_words(segs[0][0], segs[0][1], inch=True)}; release any shorter"
     if len(segs) == 2 and not segs[0][0] and segs[1][1] == INF and not steel_cut:
         # A SLOT (owner 2026-10-28, Q62): kept up to A and from B, released between — the book's "between" words
         return f"release any {common.band_words(segs[0][1], segs[1][0], False, False)}"

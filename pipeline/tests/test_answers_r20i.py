@@ -40,7 +40,7 @@ def test_a_size_says_the_rule():
     assert k[("ST",)]["size_rule"] is None                   # the steelhead row: over 50 cm IS what it is
     assert k[("RB",)]["size_rule"] is None                   # any length up to the steelhead line
     k, _o = _kinds(F.STREAM)
-    assert k[("RB",)]["size_rule"] == "must be 30 cm (12 in) or longer; release any shorter"   # over 50: a steelhead
+    assert k[("RB",)]["size_rule"] == "must be 30–50 cm (12–20 in); release any shorter"   # T503: the band; over 50 a steelhead
     k, _o = _kinds(F.BELLA_MAY_ST, MAY1)
     assert k[("CT",)]["size_rule"] == "must be 30–33 cm (12–13 in); release any other size"
     k, _o = _kinds(F.LAKE)
