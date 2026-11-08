@@ -6,6 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Phone check, 0.6.9 (2026-11-07, chat 7): https://claude.ai/artifact/XsAWajGrhpgsCnK2kWv7sZ** — 11 items closing the IN REVIEW tickets (T451 T443 T459-pick T475/T479/T480 T454 T456 T423 T424 T428 T315 T354). Reply with the numbers that fail.
 - **Run the T420 APK pair (2026-11-07): the MapLibre patch halves pan frame time.** On the stressed emulator, map p50
   went from 76–148 ms (stock) to 31–46 ms (patched), and it no longer gets slower with use. Feature-state work went from
   42 % of CPU to 2 %. One unexplained ANR happened in 9 patched blocks; it did not reproduce in 6+6 targeted runs, and

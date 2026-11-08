@@ -1,6 +1,6 @@
 # T449 — A DFO place that lies wholly in tidal water: say so, bind nothing
 
-Status: IN REVIEW (e83f7811e; owner accepts/rejects the two Nanaimo proposals in the DFO review app).
+Status: DONE — e83f7811e; the owner accepted both Nanaimo places as tidal water (11-06), marks applied 66aa4bebc, in r-1b4f and later.
 
 Source: owner 2026-11-06 on the two Nanaimo River DFO places (region-1 `1:nanaimo-river:in-subarea-17-14-tidal-portions-of`
 and `…~2`: "in Subarea 17-14 (tidal portions of the Nanaimo River) from Cedar Bridge downstream" and "…from the Cedar
