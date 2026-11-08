@@ -17,7 +17,6 @@ from dataclasses import dataclass, field
 
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids
 from pipeline.atlas.graph import tributaries as _tribs
-from pipeline.common.models import NodeKind
 from pipeline.common.names import key as name_key
 from pipeline.atlas.reach import classify as _policy
 from pipeline.atlas.reach.classify import classify, wants_tributaries
@@ -1079,8 +1078,7 @@ def _through_river_with_the_lake(graph, registry, owned, entry, rule, reach, own
     words = " ".join(str(rule.get(k) or "") for k in ("verbatim", "extent_text"))
     add: set[str] = set()
     for lake in sorted(s for s in reach if s in own_water):
-        n = graph.nodes.get(lake)
-        if n is None or n.kind != NodeKind.lake:
+        if _resolve._kind_of(graph, lake, registry) != "lake":
             continue
         for inlet in sorted(_tribs.through_inlets(graph, reach, lake)):
             if inlet in blocked or inlet in own_water:
