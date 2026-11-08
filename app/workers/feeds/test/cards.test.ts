@@ -223,14 +223,14 @@ describe("runCards", () => {
     let reads = 0;
     const feed = { get: async (k: string) => { if (k === "clim.json") reads++; return k in withClim ? JSON.stringify((withClim as Record<string, unknown>)[k]) : null; }, put: async () => { throw new Error("no"); } };
     const r = await runCards({ fetch: siteList(list) as never, feed, bucket: b, siteOrigin: "https://staging.example", now: new Date(NOW) });
-    expect([r.drawn, reads, r.climateError]).toEqual([2, 1, undefined]);
+    expect([r.drawn, reads, r.climate]).toEqual([2, 1, undefined]);
     expect(JSON.parse(String(b.m.get("feeds/cards/08MH001.json"))).normal.length).toBeGreaterThan(8);
     expect(JSON.parse(String(b.m.get("feeds/cards/08XX001.json"))).normal).toBeNull();
     expect((await runCards({ fetch: siteList(list) as never, feed, bucket: b, siteOrigin: "https://staging.example", now: new Date(NOW) })).drawn).toBe(0);
     expect(reads).toBe(1);   // nothing to draw: clim.json is not even read
     const b2 = new Bucket();
     const r2 = await runCards({ fetch: siteList(list) as never, feed: feedOf(files), bucket: b2, siteOrigin: "https://staging.example", now: new Date(NOW) });
-    expect([r2.ok, r2.drawn, r2.climateError]).toEqual([true, 2, "feeds/live/clim.json is missing"]);
+    expect([r2.ok, r2.drawn, r2.climate]).toEqual([true, 2, { error: "feeds/live/clim.json is missing" }]);
     expect(JSON.parse(String(b2.m.get("feeds/cards/08MH001.json"))).normal).toBeNull();
     const ev = await cardEvents(b2, r2, () => false, new Date(NOW).toISOString());
     expect(ev.map((e) => e.title)).toEqual(["Gauge share cards drawn without the normal range: feeds/live/clim.json is missing"]);

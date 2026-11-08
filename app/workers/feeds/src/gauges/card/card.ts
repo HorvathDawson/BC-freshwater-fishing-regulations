@@ -343,7 +343,7 @@ export interface CardRun {
   /** stations whose name holds a letter no face has (drawn as "?") */
   missingGlyphs: Record<string, string[]>;
   /** why the climatology (normal range) could not be read this run: cards were drawn without the band */
-  climateError?: string;
+  climate?: { error: string };
   error?: string;
   ms: number;
 }
@@ -390,7 +390,7 @@ export async function runCards(o: { fetch: Fetch; feed: Store; bucket: CardBucke
       if (!all || typeof all !== "object") throw new Error("clim.json has no stations");
       return new Map(stations.flatMap(({ station }) => (all[station] ? [[station, all[station]!] as const] : [])));
     } catch (e) {
-      res.climateError = e instanceof Error ? e.message : String(e);
+      res.climate = { error: e instanceof Error ? e.message : String(e) };
       return null;
     }
   })();
@@ -431,8 +431,8 @@ export async function cardEvents(bucket: CardBucket, run: CardRun | null, known:
     text: `The gauge run could not draw the share cards: ${run.error}. The cards already on R2 stay, older each run; a gauge without one shows the site card.`, at });
   if (run?.failed.length) out.push({ key: `card-failed:${day}:${run.failed.map((f) => f.station).join(",")}`, kind: "card",
     title: `${run.failed.length} gauge share card(s) failed to draw`, text: run.failed.map((f) => `${f.station}: ${f.error}`).join("\n"), at });
-  if (run?.climateError) out.push({ key: `card-clim:${day}:${run.climateError}`, kind: "card", title: `Gauge share cards drawn without the normal range: ${run.climateError}`,
-    text: `The gauge run could not read the climatology (${run.climateError}), so this run's cards show the readings and forecast but no normal-range band.`, at });
+  if (run?.climate?.error) out.push({ key: `card-clim:${day}:${run.climate.error}`, kind: "card", title: `Gauge share cards drawn without the normal range: ${run.climate.error}`,
+    text: `The gauge run could not read the climatology (${run.climate.error}), so this run's cards show the readings and forecast but no normal-range band.`, at });
   const glyphs = Object.entries(run?.missingGlyphs ?? {});
   if (glyphs.length) out.push({ key: `card-glyphs:${glyphs.map(([s, c]) => s + c.join("")).join(",")}`, kind: "card",
     title: `${glyphs.length} gauge card(s) hold a letter the card face lacks (drawn as "?")`,
