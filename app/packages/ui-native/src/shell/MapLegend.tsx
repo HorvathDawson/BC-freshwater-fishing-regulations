@@ -235,8 +235,8 @@ export function RunsKey({ theme, palette, bottom }: { theme: string; palette: Pa
  * line below appears only while loading — never the routine offline line. Tap it for the whole text. (T367) What is
  * WRONG (stale, failed) is the bar over the map (`PairBanner`), not a grey line here.
  */
-export function RunsLegend({ col, palette, theme, onHelp, fishImages }: { col: MapColouring; palette: Palette; theme: string;
-                                                                      onHelp?: () => void; fishImages?: FishImages }) {
+export function RunsLegend({ col, palette, theme, fishImages }: { col: MapColouring; palette: Palette; theme: string;
+                                                                      fishImages?: FishImages }) {
   const r = col.runs;
   const slots = useMemo(() => (r.facts ? slotsFor(r.facts, r.chosen, r.year) : []), [r.facts, r.chosen, r.year]);
   const season = useMemo(() => (r.facts ? r.facts.season(slots) : []), [r.facts, slots]);
@@ -261,7 +261,7 @@ export function RunsLegend({ col, palette, theme, onHelp, fishImages }: { col: M
           </View>
         )}
         <RunDayCaption pentad={r.pentad} today={r.today} title={r.chosen.length ? RUN_WORDS.legendTitle(r.chosen.map((s) => s.name)) : null}
-                       onToday={() => r.setPentad(r.today)} onHelp={onHelp} palette={palette} />
+                       onToday={() => r.setPentad(r.today)} palette={palette} />
         <RunDaySlider pentad={r.pentad} today={r.today} playing={r.playing} onPentad={r.setPentad} onPlay={r.setPlaying}
                       season={season} bySpecies={bySpecies} theme={theme} palette={palette} />
         {note && (

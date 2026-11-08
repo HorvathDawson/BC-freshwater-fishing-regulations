@@ -5,7 +5,7 @@
  * through the year, and wears the season at a glance behind its track (the share of watershed groups with these runs
  * in the water, `RunTimingFacts.season`). Every word is core's (`RUN_WORDS`); every colour a palette or map token.
  */
-import { FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, TAB_TOUR_WORDS, pentadLabel, seasonPeak, sliderKey, type RunSpecies } from "@app/core";
+import { FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, pentadLabel, seasonPeak, sliderKey, type RunSpecies } from "@app/core";
 import { runStateColour } from "@app/map/colours";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Image, PanResponder, ScrollView, View } from "react-native";
@@ -197,10 +197,8 @@ export function RunDaySlider({ pentad, today, playing, onPentad, onPlay, season,
 }
 
 /** The slider's caption: the days shown, big, and a way back to today when it has moved. */
-export function RunDayCaption({ pentad, today, title, onToday, onHelp, palette }: {
+export function RunDayCaption({ pentad, today, title, onToday, palette }: {
   pentad: number; today: number; title: string | null; onToday: () => void; palette: Palette;
-  /** (T276) the "?" that replays the Runs tutorial */
-  onHelp?: () => void;
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -220,14 +218,6 @@ export function RunDayCaption({ pentad, today, title, onToday, onHelp, palette }
                    style={{ height: 36, paddingHorizontal: 14, borderRadius: palette.r.pill, borderWidth: 1,
                             borderColor: palette.line2, justifyContent: "center" }}>
           <Text style={{ ...TYPE.micro, fontSize: 14, fontWeight: "600", color: palette.ink }}>{RUN_WORDS.slider.today}</Text>
-        </Pressable>
-      )}
-      {onHelp && (
-        <Pressable testID="run-help" onPress={onHelp} accessibilityRole="button" accessibilityLabel={TAB_TOUR_WORDS.label.runs}
-                   {...hitProps({ w: 44, h: 44 })}
-                   style={{ width: 32, height: 32, borderRadius: round(32), borderWidth: 1.5, borderColor: palette.line2,
-                            alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ ...TYPE.bodyStrong, fontSize: 16, color: palette.ink }}>?</Text>
         </Pressable>
       )}
     </View>

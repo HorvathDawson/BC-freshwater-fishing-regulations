@@ -681,7 +681,7 @@ export function Shell(p: ShellProps) {
           )}
           {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
           {route.mode === "browse" && tab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
-          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} onHelp={runsTour.reopen} fishImages={p.fishImages} />}
+          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} fishImages={p.fishImages} />}
       </>
     ),
     tabs: bottomBarShown(route) ? <TabBar active={tab} palette={palette} onChange={nav.toTab} /> : null,
