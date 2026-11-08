@@ -1,6 +1,6 @@
 # T510 — A channel joining the Fraser to Strawberry Slough is filed under the Fraser
 
-Status: OPEN — owner picked rule A for all (2026-11-08); next: pin tests, side atlas build, bindings diff (expect 13 sections), moved list to owner before promote; proposal list `shots/T510-moved.md`. Follow-up of T497. Part of T495 gate 1.
+Status: OPEN — rule A + pin tests in c4ce4b8b4 (owner picked A, 2026-11-08); side atlas build HELD (coordinator, pending the T509 data-shape decision so one build carries both); next: side build, bindings + braid_sweep diff (expect 13 sections), moved list `shots/T510-moved.md` to owner before promote. Follow-up of T497. Part of T495 gate 1.
 
 Owner 2026-11-08: "there is a little stream that connects between Fraser and Strawberry Slough that I feel like should
 be Strawberry, not Fraser."
@@ -33,6 +33,21 @@ Owner 2026-11-08 (rule A): "Yes the strawberry slough thing should apply to all"
   slough-fold (`registry/flowing.py`: an unnamed polygon a channel item enters and leaves becomes that channel), which is
   how T497's 11 ha Baldy polygon moved. None of the 11 is checked for that yet; the side build must.
 - **Prune.** 13 candidate blks are pruned today; a rename must not revive them (`prune._has_own_name` covers T497's case).
+
+## Done (c4ce4b8b4)
+- `names.follow_connections`: after T497's whole-blk test, each end is walked on its own (`_reach(blk, (end,))`). One
+  end reaching only `{main}` and the other exactly one other gnis-named water -> that water. An end on both, a far end
+  on two waters, nothing named, or a curated (`name_variants`) far end: the magnitude rule stays.
+- Pins: `test_names.py::test_a_connector_from_the_main_river_is_its_sloughs` (FWA gpkg: 355991900 -> gnis:16210,
+  355993053 -> gnis:27696; both fail on the old rule), plus synthetic both-at-one-end, main-at-both-ends, curated far
+  end, two-waters far end. Two T497 synthetic cases now move by design (Fraser->slough chain Y-Z; the mid-branch BR).
+- Guards, code-level: Strahler holds by construction (only unnamed blks are renamed; the main is the code's highest
+  magnitude). Prune revival: the new name is a `side-channel` tuple, which `prune._has_own_name` never reads as own.
+- Guards for the side build (polygon slough-fold): two connectors pass through UNNAMED lakes on the FWA gpkg —
+  wbk 329292341 (0.9 ha, Williamson connector 355991970, why it has sections :0 and :594) and wbk 329220703 (2.4 ha,
+  Baldy connector 356364756). If either polygon moves item, that is the slough-fold; list it. Unnamed wetlands on the
+  Columbia connectors (wbk 328945031, 329220270, 329220350) are wetlands, not lakes. Also check that no pruned blk
+  gains a section.
 
 ## Options
 - **A. Connector rule (recommended).** In `follow_connections`, judge each END on its own: when one end reaches only the
