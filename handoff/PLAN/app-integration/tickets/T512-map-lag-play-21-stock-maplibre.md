@@ -48,6 +48,18 @@ opacity 0, since 2026-10-29, before T498); the emulator run below counts render 
 - Test bed `switch-pan` (`app/tools/testbed/scenarios/switch-pan.mjs`): the Map and Conditions tabs' travelling pan fresh
   and after N switches (Map → Conditions → Map + the Fraser opened into its Map view and closed), with render threads,
   map workers, SurfaceView layers and PSS beside each pan.
+- **Emulator A/B** (stressed as T420: efficiency cores, `-cores 2`; Coquitlam z13; 16 travelling flings; both APKs from
+  the same tree, versionCode 21; runs `app/tools/testbed/out/runs/t512-{lean-a,stock-a}/`). Map surface p50 / p95 ms
+  (frames) after N switches, each switch = Map → Conditions → Map + the Fraser opened into its Map view and closed:
+  | build · tab | 0 | 4 | 8 | 16 |
+  |---|---|---|---|---|
+  | lean · Map | 34.1 / 134 (484) | 39.2 / 121 (398) | 33.6 / 95 (510) | 34.8 / 93 (472) |
+  | lean · Conditions | 33.4 / 87 (616) | 33.4 / 84 (624) | — | 32.7 / 80 (644) |
+  | stock · Map | 59.6 / 158 (299) | 84.3 / 171 (205) | 83.6 / 154 (231) | not run |
+  | stock · Conditions | 52.9 / 129 (445) | 54.4 / 127 (427) | 71.0 / 147 (353) | not run |
+  Stock is ~1.75× slower fresh and its Map tab grows +40 % within 4 switches; lean is flat to 16. Alive throughout, both
+  builds: 1 map SurfaceView, the same render-thread / worker names (5 / 14) — no map left alive by the hold. Stopped
+  at stock 8 switches (owner 2026-11-08: the patch worked before; ship it).
 
 ## Owner
 - Next Play build: `MLN_LOCAL_MAVEN=$PWD/cache/maplibre/fslean-m2 deploy/staging/build-apk.sh --play` (build 22).
