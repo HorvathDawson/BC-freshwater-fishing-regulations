@@ -278,8 +278,12 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     const two = buildFeed([H("July 1, 2025"), H("Aug 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true);
     expect(new Set(two.rows.map((r) => r.id)).size).toBe(2);
     expect(buildFeed([H("July 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true).rows[0]!.id).toBe(rowId("1", "Heber Creek", "No fishing"));
-    // one notice printed twice (dates too): refused, never told apart by position
-    expect(() => buildFeed([H("July 1, 2025"), H("July 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true)).toThrow(/printed twice/);
+    // one notice printed twice (every field): ONE row, never a failed run
+    const twice = buildFeed([H("July 1, 2025"), H("July 1, 2025")], null, "2026-11-01T00:00:00Z", "h", true);
+    expect(twice.rows.map((r) => r.id)).toEqual([rowId("1", "Heber Creek", "No fishing")]);
+    // rows that would share an id but differ as printed (spacing): refused — never told apart by position
+    expect(() => buildFeed([H("July 1, 2025"), H("July  1, 2025")], null, "2026-11-01T00:00:00Z", "h", true))
+      .toThrow(/differ only in how they are printed/);
     // amended: a new id, shown as a change of the row it replaced, which leaves the page
     const c = buildFeed([R("Heber Creek", "No fishing until Dec 1"), R("Heber Creek", "Bait ban")], a, "2026-11-03T00:00:00Z", "h3", true);
     expect(c.rows[0]!.id).not.toBe(a.rows[0]!.id);
@@ -298,6 +302,18 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     expect(doc.matching).toEqual({ method: "curated", matched: 1, unmatched: 31 });
     expect(doc.rows[0]).toMatchObject({ waters: ["gnis:12227"], matched: true });
     expect(() => matchedWaters(JSON.stringify({ format: "inseason-links/1", matches: {} }))).toThrow(/not inseason-links\/2/);
+  });
+  it("(T520) a page printing a row twice: the feed publishes it once, says so once, and the run succeeds", async () => {
+    const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
+    const row = /<tr>(?:(?!<\/tr>)[\s\S])*?Peace Canyon Dam[\s\S]*?<\/tr>/.exec(page)![0];
+    const doubled = page.replace(row, row + row);
+    const feed = new MemStore(), priv = new MemStore();
+    const r = await runInSeason({ fetch: okFetch, priv, feed, html: doubled, now: T("2026-10-28T12:00:00Z") });
+    expect(r.feed).toMatchObject({ rows: 32 });
+    expect(r.events.filter((e) => e.key.startsWith("inseason-duplicate:"))).toHaveLength(1);
+    const again = await runInSeason({ fetch: okFetch, priv, feed, html: doubled, now: T("2026-10-28T18:00:00Z") });
+    // the same duplicate keeps its key: the notifier sends it once
+    expect(again.events.map((e) => e.key)).toEqual(r.events.filter((e) => e.key.startsWith("inseason-duplicate:")).map((e) => e.key));
   });
   it("helpers", () => {
     expect(regionOf("Region 7B - Peace")).toBe("7B");

@@ -150,6 +150,17 @@ export async function runInSeason(deps: {
   } catch (e) {
     throw new SourceError(looksBlocked(html) ? "blocked" : "parse", String((e as Error)?.message ?? e), "inseason-page");
   }
+  // (T520) a notice printed twice is one notice: collapsed, and said ONCE (an event keyed by the duplicated rows, which
+  // the notifier sends once per key) — never a failed run
+  const collapsed = collapseDuplicates(rows);
+  rows = collapsed.rows;
+  const dupEvents: FeedEvent[] = collapsed.dups.length ? [{
+    key: `inseason-duplicate:${contentHash(JSON.stringify(collapsed.dups))}`, kind: "inseason",
+    title: `${collapsed.dups.length} in-season ${collapsed.dups.length === 1 ? "row is" : "rows are"} printed twice on the provincial page (shown once)`,
+    text: `${collapsed.dups.map((r) => `${r.section} · ${r.water} — ${r.change}${r.effective ? ` (effective ${r.effective})` : ""}`).join("\n")}\n\nSource: ${SOURCE_URL}`,
+    at: (deps.now ?? new Date()).toISOString(), data: { duplicates: collapsed.dups, source: SOURCE_URL },
+  }] : [];
+  if (collapsed.dups.length) log(`in-season: ${collapsed.dups.length} row(s) printed twice, collapsed`);
   const sha = contentHash(JSON.stringify(rows));
   let prev: Snapshot | null = null;
   try {
@@ -182,13 +193,13 @@ export async function runInSeason(deps: {
   const feed = deps.feed ? await publishFeed(deps, rows, sha, !prev || prev.sha !== sha, now) : null;
   if (prev && prev.sha === sha) {
     log(`in-season: ${rows.length} rows in ${sections} sections, unchanged`);
-    return { feed, rows: rows.length, sections, changed: false, first: false, diff: null, events: [] };
+    return { feed, rows: rows.length, sections, changed: false, first: false, diff: null, events: dupEvents };
   }
   await deps.priv.put("latest.json", JSON.stringify(snap));
   await deps.priv.put(`history/${now.toISOString().replace(/[-:]/g, "").slice(0, 15)}.json`, JSON.stringify(snap));
   if (!prev) {
     log(`in-season: first snapshot, ${rows.length} rows in ${sections} sections (the baseline: nothing to tell)`);
-    return { feed, rows: rows.length, sections, changed: true, first: true, diff: null, events: [] };
+    return { feed, rows: rows.length, sections, changed: true, first: true, diff: null, events: dupEvents };
   }
   const d = diff(prev.rows, rows);
   const n = d.added.length + d.changed.length + d.removed.length;
@@ -205,7 +216,7 @@ export async function runInSeason(deps: {
         },
       ]
     : [];
-  return { feed, rows: rows.length, sections, changed: true, first: false, diff: d, events };
+  return { feed, rows: rows.length, sections, changed: true, first: false, diff: d, events: [...dupEvents, ...events] };
 }
 
 /** (T486) rewritten at least this often though unchanged: UNDER the daily cron (14:45 UTC Nov–May), so each daily run
@@ -381,18 +392,32 @@ export function matchedWaters(text: string | null): MatchedWaters | null {
   return new Map(Object.entries(j.notices).map(([id, n]) => [id, Object.keys(n?.waters ?? {}).sort()] as const));
 }
 
+/** (T520) A ROW PRINTED TWICE — identical in section, water, change and dates — is ONE notice: collapsed to its first
+ *  copy (`dups` names each collapsed row once), never a failed run (a page glitch must not stop the feed). */
+export function collapseDuplicates(rows: Row[]): { rows: Row[]; dups: Row[] } {
+  const seen = new Set<string>(), out: Row[] = [], dups: Row[] = [];
+  for (const r of rows) {
+    const k = `${r.section}\u0000${r.water}\u0000${r.change}\u0000${r.effective}`;
+    if (seen.has(k)) { if (!dups.some((d) => `${d.section}\u0000${d.water}\u0000${d.change}\u0000${d.effective}` === k)) dups.push(r); continue; }
+    seen.add(k);
+    out.push(r);
+  }
+  return { rows: out, dups };
+}
+
 export function buildFeed(rows: Row[], prev: InSeasonFeed | null, now: string, pageHash: string, pageChanged: boolean,
                           matched: MatchedWaters | null = null): InSeasonFeed {
   const prevById = new Map((prev?.rows ?? []).map((r) => [r.id, r] as const));
-  // rows sharing region + water + change are told apart by their dates; rows identical in those too are ONE notice
-  // printed twice — refused (a failed run, reported), never told apart by position
+  rows = collapseDuplicates(rows).rows;
+  // rows sharing region + water + change are told apart by their dates. Rows that would still share an id yet differ
+  // in some field as printed (spacing, typography) are refused (a failed run, reported) — never told apart by position
   const keyOf = (r: Row) => `${regionOf(r.section)}\u0000${changeKey(r.water)}\u0000${changeKey(r.change)}`;
   const same = new Map<string, Row[]>();
   for (const r of rows) same.set(keyOf(r), [...(same.get(keyOf(r)) ?? []), r]);
   for (const g of same.values())
     if (g.length > 1 && new Set(g.map((r) => changeKey(r.effective))).size < g.length)
-      throw new SourceError("parse", `in-season: ${g.length} rows of ${g[0]!.water} (${regionOf(g[0]!.section)}) read the same, `
-        + "dates included — one notice printed twice? Nothing written", "inseason-page");
+      throw new SourceError("parse", `in-season: ${g.length} rows of ${g[0]!.water} (${regionOf(g[0]!.section)}) differ only `
+        + "in how they are printed, so they would share an id — nothing written", "inseason-page");
   const ids = rows.map((r) => rowId(regionOf(r.section), r.water, r.change,
                                     same.get(keyOf(r))!.length > 1 ? r.effective : null));
   // an amended notice: a new id where a row of the same region + water left the page in this reading
