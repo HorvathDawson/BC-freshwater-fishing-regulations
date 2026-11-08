@@ -60,4 +60,7 @@ scenarios still look for an OUTSIDE viewer (tools/testbed/scenarios/offline.mjs,
 switch them to `pdf-viewer` / `pdf-viewer-failed` testIDs in that sitting; (3) release r-88c4fc7bbf1f carries the v1 index:
 the label refresh's deliver re-run (or the next build) ships v2.
 
-- 2026-11-08 (test bed `memory`, emulator): the rule book opens at the cited page in **10.1 s** (twice, 10.2 s held); the highlighted copy takes 28 ms and drawing the page 300 ms, so ~9.7 s is react-native-pdf loading the book. Too slow for "opens quickly": measure where on the owner's phone (phone check item 11) before calling it done.
+- 2026-11-08 (test bed `memory`, emulator): "Page 25 of 88" seen 10.1 s after the tap, but that clock starts before a
+  Maestro `tap-text` run (a JVM start) and polls with uiautomator dumps, so it is mostly the harness. The app's own
+  marks: the highlighted copy 28 ms (7 ms held), the page drawn 300 ms after the viewer mounts. Not a measure of the open;
+  the owner's phone check (item 11) is the judge. A clean in-app timing (press → page drawn, logged) would settle it.
