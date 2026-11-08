@@ -1,6 +1,6 @@
 # T493 — A creek shows a gap where its small lake drops out zoomed out
 
-Status: IN REVIEW — side build + shots done (8494959a2); left: owner look at the shots, ships with the next tiles rebuild. Owner 2026-11-07 (Foley Lake on Foley Creek).
+Status: REOPENED 2026-11-08 — owner phone: slough polygons (Nicomen Slough, Camp Slough) still drop out zoomed out and leave gaps; the 8494959a2 link covers lakes only. Was: IN REVIEW — side build + shots done (8494959a2); left: owner look at the shots, ships with the next tiles rebuild. Owner 2026-11-07 (Foley Lake on Foley Creek).
 
 Zoomed out, a small lake leaves the tiles before its creek does. The creek's line stops at the lake's shore and starts
 again on the far side, so the creek looks broken.

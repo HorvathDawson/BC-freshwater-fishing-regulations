@@ -1,6 +1,6 @@
 # T419 — Salmon River (Region 2) is not simplified enough when zoomed out
 
-Status: IN REVIEW — b40de633d: `SIMPLIFICATION` 5 -> 10 (z4-z12; z13 unchanged). Left: the next tile build, the same
+Status: DONE — owner phone 2026-11-08: Salmon River looks better (staging r-25a89ce9f8e6). Was: IN REVIEW — b40de633d: `SIMPLIFICATION` 5 -> 10 (z4-z12; z13 unchanged). Left: the next tile build, the same
 views before/after + tile bytes, then the owner's look.
 
 ## Work

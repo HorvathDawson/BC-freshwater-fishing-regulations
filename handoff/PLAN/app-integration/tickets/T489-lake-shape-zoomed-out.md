@@ -1,6 +1,6 @@
 # T489 — Lakes lose too much shape when zoomed out
 
-Status: IN REVIEW — side build + shots done (8494959a2); left: owner look at the shots, ships with the next tiles rebuild. Owner 2026-11-07 (0.6.9 on the phone).
+Status: DONE — owner phone 2026-11-08: zoomed-out lakes "definitely look better" (staging r-25a89ce9f8e6). Was: IN REVIEW — side build + shots done (8494959a2); left: owner look at the shots, ships with the next tiles rebuild. Owner 2026-11-07 (0.6.9 on the phone).
 
 Owner: "lake polygons lose almost too much shape when zoomed out."
 
