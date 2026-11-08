@@ -55,3 +55,16 @@ again on the far side, so the creek looks broken.
   · z8 +13.7% · z9 +12.9% · z10 +8.5% · z11 +1.7% · z12 +0.8% · z13 0. Stream layer (links) z8 +16%, z10 +14%, z12 +5%.
 - Shots (before | after, centre crop x2): scratchpad `t493/shots/pairs/` — foley-lake, hayward-lake, nahatlatch-lake,
   morris-lake at z6-z10. Not shown: status colour (the shot tool draws no feature-state).
+
+## Reopened — found 2026-11-08 (read-only investigation)
+- Nicomen and Camp Slough are not lakes: each is a STREAM's own polygon (`water:"stream"`, drawn `lake_flowing`), its
+  route in the stream layer. `lake_z` only holds `_kind == "lake"`, so the T493 link never sees them.
+- The real defect: inside one water every piece gets its own first zoom (lines by magnitude, routes by the max of their
+  neighbours, polygons by area), so a water can have holes. Nicomen: 59594 / 1454487 / 59593 hidden z7–z10 between two
+  z7 pieces. Camp: z11 polygons with z12/z13 connectors.
+- Province-wide ~6–39 gap runs per zoom (z7–z12), 12 stream polygons; mostly lower-Fraser sloughs.
+- Fix: `fill_zooms` in export.py — a piece of water I hidden at z, with drawn water OF I on both sides (through hidden
+  pieces of I), is drawn from z. Same water only (any-water would draw every lake-outlet creek). Two floods per zoom,
+  zooms only lowered, no new layer. Lake links computed on the filled zooms. Tiles-only rebuild, AFTER T497's atlas
+  (membership from registry.json). Tests: Nicomen shape, Camp shape, one-side negative, other-item negative, loop,
+  never raised, deterministic.
