@@ -6,7 +6,8 @@
  * facts the feeds worker writes beside each gauge's share card (`feeds/cards/<station>.json`) and the weather at the
  * gauge (Open-Meteo). What the build writes here is what does not move between feed runs: the gauge's name and number,
  * the waters it serves (one line each to that water's regulations page — never an open/closed word on this page), and
- * "Open in the app" (the web app on that water's Conditions view; the phone app takes no links, D1).
+ * "Open on the website" (the web app on that water's Conditions view) beside a greyed "Open in the app · coming soon"
+ * (the phone app takes no links yet, D1; T514).
  *
  * WHICH GAUGES: every station in the release that serves at least one water with a page — its own water (`gauge.item_id`),
  * a lake it gauges (`lake_gauge`), or a section it is the panel gauge of (`section_gauge`, good / fair; weak ones are
@@ -148,7 +149,9 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
       `<ul class="cols">${g.rough.map(line).join("")}</ul></details>` : "") +
     `<p class="small">Waters as of <time datetime="${esc(asOf)}">${esc(asOf)}</time>, from release ${esc(release)}.</p>` +
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
-    `<a class="app" href="${esc(`${first.path}?view=conditions`)}">Open in the app</a></div></div>` +
+    // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
+    `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
+    `<span class="app soon" aria-disabled="true">Open in the app · coming soon</span></div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>`;
 }
 

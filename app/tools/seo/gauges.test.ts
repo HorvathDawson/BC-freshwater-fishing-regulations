@@ -53,7 +53,8 @@ describe("T487 gauge pages", () => {
     const m = built.build.models, path = (id: string) => `/water/${built.build.slugMap.waters[id]!.slug}`;
     const links = [...p.html.matchAll(/<a href="(\/water\/[^"?]+)">([^<]*) fishing regulations<\/a>/g)].map((x) => x[1]);
     expect(links).toEqual([path(ids[0]!), path(ids[1]!)]);                 // own water first, then the fair one; the weak duplicate folded
-    expect(p.html).toContain(`<a class="app" href="${path(ids[0]!)}?view=conditions">Open in the app</a>`);
+    expect(p.html).toContain(`<a class="app" href="${path(ids[0]!)}?view=conditions">Open on the website</a>`);
+    expect(p.html).toContain(`<span class="app soon" aria-disabled="true">Open in the app · coming soon</span>`);
     const q = gaugePages().find((x) => x.path.startsWith("/gauge/08MH016"))!;
     expect(q.html).toMatch(/<details><summary>A rough guide for 2 more waters<\/summary>/);
     for (const g of gaugePages()) {
