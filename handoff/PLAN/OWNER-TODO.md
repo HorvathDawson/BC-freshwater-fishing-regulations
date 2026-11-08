@@ -6,7 +6,13 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Phone check, 0.6.9 (2026-11-07, chat 7): https://claude.ai/artifact/XsAWajGrhpgsCnK2kWv7sZ** — 11 items closing the IN REVIEW tickets (T451 T443 T459-pick T475/T479/T480 T454 T456 T423 T424 T428 T315 T354). Reply with the numbers that fail.
+- **Morning page (2026-11-08): https://claude.ai/artifact/9XDb7uXoQ9ciZf8sS7uz3U** — four answers:
+  1. **T497 yes / no:** the 20 channels that change water (26 rules). Then production is yours:
+     `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a`.
+  2. **T488 A or B:** the light-mode park colour (shots on the page).
+  3. **T487:** add a Play Store link to "Open in the app" once the listing is public?
+  4. **T487:** gauge times read PDT in November (Cloudflare's clock data). Has BC gone to permanent daylight time?
+- (Done 2026-11-08: the 0.6.9 phone check — all 11 pass, T459 pick A.)
 - **Run the T420 APK pair (2026-11-07): the MapLibre patch halves pan frame time.** On the stressed emulator, map p50
   went from 76–148 ms (stock) to 31–46 ms (patched), and it no longer gets slower with use. Feature-state work went from
   42 % of CPU to 2 %. One unexplained ANR happened in 9 patched blocks; it did not reproduce in 6+6 targeted runs, and
