@@ -38,6 +38,9 @@ export const PLACES = {
   "hayward-lake": [-122.367, 49.215],
   "nahatlatch-lake": [-121.76, 49.98],
   "morris-lake": [-121.873, 49.316],
+  // (T493 reopened) holes inside one water: a slough's own polygon / connectors hidden between drawn pieces
+  "nicomen-slough": [-122.047, 49.198],
+  "camp-slough": [-121.85, 49.201],
   "hicks-lake": [-121.71, 49.34],
   "stave-pitt": [-122.45, 49.45],
   "okanagan-lake": [-119.5, 49.9],

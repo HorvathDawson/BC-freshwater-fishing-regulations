@@ -84,9 +84,20 @@ def test_a_braid_loop_ends():
     zoom = {"top": 7, "a": 11, "b": 12, "bottom": 8}
     out = fill_zooms(g, zoom, _one(*zoom))
     assert out == {"top": 7, "a": 8, "b": 8, "bottom": 8}
-    # a loop with no way out downstream ends; b leaves and rejoins a, so it is drawn with a, never before
+    # a loop with no way out downstream ends, and fills nothing: a is drawn on from top, so no hole starts there
     g = _graph(("top", "a"), ("a", "b"), ("b", "a"))
-    assert fill_zooms(g, {"top": 7, "a": 11, "b": 12}, _one("top", "a", "b")) == {"top": 7, "a": 11, "b": 11}
+    assert fill_zooms(g, {"top": 7, "a": 11, "b": 12}, _one("top", "a", "b")) == {"top": 7, "a": 11, "b": 12}
+
+
+def test_a_braid_beside_a_drawn_river_is_no_hole():
+    # the river a -> b drawn from z7; its braid x leaves a and rejoins b, drawn from z13: the river is unbroken
+    g = _graph(("a", "b"), ("a", "x"), ("x", "b"))
+    zoom = {"a": 7, "b": 7, "x": 13}
+    assert fill_zooms(g, zoom, _one(*zoom)) == zoom
+    # ...but where the river itself is hidden there too, both ways through are the hole
+    g = _graph(("a", "m"), ("m", "b"), ("a", "x"), ("x", "b"))
+    zoom = {"a": 7, "m": 10, "b": 7, "x": 13}
+    assert fill_zooms(g, zoom, _one(*zoom)) == {"a": 7, "m": 7, "b": 7, "x": 7}
 
 
 def _random_case(seed: int):

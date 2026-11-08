@@ -349,11 +349,13 @@ def fill_zooms(graph, zoom: dict[str, int], items_of: dict[str, frozenset[str]],
     area), so a water could break: Nicomen Slough's pieces 59594 / 1454487 / 59593 hidden z7-z10 between two z7 pieces.
 
     A piece of water I hidden at zoom z, with drawn water OF I upstream (`up_adj`) AND downstream (`down_adj`) of it
-    — looking through hidden pieces of I, never through anything else — is drawn from z. THE SAME WATER ONLY: across
-    waters this would draw every lake-outlet creek at its river's zoom. A stream's own polygon counts as drawn from its
+    — looking through hidden pieces of I, never through anything else — is drawn from z, WHERE I VISIBLY ENDS there:
+    the drawn piece the walk starts from has no drawn piece of I next on that side. A braid leaving and rejoining a
+    drawn river is no hole (the river is unbroken); measured on the T497 atlas, seeding from every drawn piece filled
+    16,754 such braids (order-1 pieces of the Stikine, Liard, Fraser... from z13 down to z4-z7). THE SAME WATER ONLY:
+    across waters this would draw every lake-outlet creek at its river's zoom. A stream's own polygon counts as drawn from its
     polygon's zoom (`poly_z`; its route need not be). Per zoom, two linear floods from the drawn pieces of each water,
-    one downstream and one upstream, each (piece, water) visited once per flood — a braid's loop ends (and a braid
-    leaving and rejoining one drawn piece of its water is drawn with it); repeated only when a piece of two waters
+    one downstream and one upstream, each (piece, water) visited once per flood — a braid's loop ends; repeated only when a piece of two waters
     filled for one is new drawn water of the other, so the result is a fixed point. Zooms are only
     ever lowered; a section in no water (`items_of`) is never filled and never walked through. Deterministic: the
     result is a function of the sets, not of any order."""
@@ -366,9 +368,12 @@ def fill_zooms(graph, zoom: dict[str, int], items_of: dict[str, frozenset[str]],
             return out[s] <= z or poly_z.get(s, z + 1) <= z
 
         def flood(adj, step) -> set[tuple[str, str]]:
-            """(hidden piece, water) reached from a drawn piece of that water, walking `adj` through hidden pieces."""
+            """(hidden piece, water) reached from a drawn piece of that water WHERE THE WATER ENDS on the map (no drawn
+            piece of it next on that side), walking `adj` through hidden pieces of it."""
             seen: set[tuple[str, str]] = set()
-            stack = [(s, i) for s in out if drawn(s) for i in items_of.get(s, ())]
+            stack = [(s, i) for s in out if drawn(s) for i in items_of.get(s, ())
+                     if not any(n in out and drawn(n) and i in items_of.get(n, ())
+                                for n in (step(graph.edges[ei]) for ei in adj.get(s, ())))]
             while stack:
                 s, i = stack.pop()
                 for ei in adj.get(s, ()):
