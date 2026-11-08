@@ -10,21 +10,53 @@
 // `[pan]` lines (frames drawn, renders, feature-state sends, GeoJSON writes per second), `[swap]` (style loads), `[cam]`
 // / `[move]` (camera) say what the map did then.
 //
-//   node app/tools/testbed/run.mjs pane-open map-idle      (OPEN_CASES=small,fraser; IDLE_MIN=n)
+// (T508) `pane-open` also opens each case by search → Open (the Fraser lands on its Map view: a live map built under the
+// hold), then repeats that Map-view open HOLD_RUNS times (default 20) and reads the whole log for a native crash
+// (`Fatal signal` / SIGSEGV: one was seen once holding a Map view before T498's collapsable fix).
+//
+//   node app/tools/testbed/run.mjs pane-open map-idle      (OPEN_CASES=small,fraser; IDLE_MIN=n; HOLD_RUNS=n)
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { closeWaters, coldStart, toMap } from './common.mjs';
 import { settledTarget } from './regs-open.mjs';
+import { cameraTo } from './perf.mjs';
 
 const ADB = process.env.ADB ?? 'adb';
 const FRAMES = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'pane-frames.py');
 const CASES = [
   { id: 'small', q: 'Norrish Creek', row: 'Stream · Region 2 · MU 2-8 · near Dewdney.*', title: /Norrish Creek/ },
-  { id: 'fraser', q: 'Fraser River', row: 'Stream · .*', title: /Fraser River/ },
+  // (T508) the Fraser framed whole is at a zoom where the Conditions map draws its watershed field, not streams: that
+  // map is first sent to the Fraser at Hope at z10 (the camera link: the two tabs share one map), and tapped on the
+  // river's line above Hope (a point read off that camera's screenshot, emulator 1080×2400; no water is lit there for
+  // the probe's [target])
+  { id: 'fraser', q: 'Fraser River', row: 'Stream · .*', title: /Fraser River/, condAt: { lon: -121.4419, lat: 49.3858, zoom: 10 },
+    condTap: { x: 635, y: 720 } },
 ].filter((c) => !process.env.OPEN_CASES || process.env.OPEN_CASES.split(',').includes(c.id));
 const IDLE_MIN = Number(process.env.IDLE_MIN ?? 5);
-const TAGS = /\[(pan|swap|cam|move|open|drawn)\] /;
+const HOLD_RUNS = Number(process.env.HOLD_RUNS ?? 20);
+
+/** (T508) a native crash in the whole log since the last clear: the first lines of each (`Fatal signal`, a tombstone) */
+function nativeCrash(d) {
+  const log = execFileSync(ADB, ['-s', d.serial(), 'logcat', '-d', '-b', 'main,system,crash']).toString();
+  const hit = log.split('\n').filter((l) => /Fatal signal|SIGSEGV|SIGABRT|backtrace:|FATAL EXCEPTION/.test(l));
+  return hit.length ? hit.slice(0, 6).join(' / ').slice(0, 600) : null;
+}
+
+/** (T508) a recording of one way in, from `go()` (the tap) until settled, cut into the screens shown */
+async function recordOpen(ctx, name, go, settleMs = 7000) {
+  const d = ctx.device;
+  d.logcatClear();
+  const r = record(d, path.join(ctx.dir, `${name}.mp4`), 14);
+  await d.sleep(1200);
+  const tapAt = Date.now() - r.t0;
+  await go();
+  await d.sleep(settleMs);
+  await r.stop();
+  fs.writeFileSync(path.join(ctx.dir, `${name}.log`), `${jsLines(d).join('\n')}\n`);
+  return execFileSync('python3', ['-I', FRAMES, 'open', path.join(ctx.dir, `${name}.mp4`), String(tapAt / 1000)]).toString().trim();
+}
+const TAGS = /\[(pan|swap|cam|move|open|drawn|whole|hold)\] /;
 
 /** A recording on the phone (≤ 180 s, the recorder's cap), pulled to `file` when `stop` is awaited. */
 function record(d, file, secs) {
@@ -105,6 +137,13 @@ export const paneOpen = {
       }
       // the same point on the Conditions map (the one browse map, its Conditions colouring): the Conditions view in front
       await ctx.step(`${c.id} (conditions): the Conditions-map tap → the pane, recorded`, async () => {
+        // (T508) the camera moved on the Map tab (the two tabs share one map)
+        let tapAt = at;
+        if (c.condAt) {
+          cameraTo(ctx, c.condAt);
+          await d.sleep(4000);
+          tapAt = c.condTap;                              // the river's line there, read off the Map tab's screenshot
+        }
         ctx.flow('tab', { TAB: 'Conditions' });
         await d.sleep(5000);
         for (let k = 0; k < 3; k++) {                      // a first visit's coach marks, closed as a reader would
@@ -112,43 +151,60 @@ export const paneOpen = {
           if (!btn) break;
           ctx.flow('tap-text', { TEXT: btn }); await d.sleep(1500);
         }
-        d.logcatClear();
         const pid = d.pidOf();
         const name = `pane-open-${c.id}-conditions`;
-        const r = record(d, path.join(ctx.dir, `${name}.mp4`), 12);
-        await d.sleep(1200);
-        const tapAt = Date.now() - r.t0;
-        d.sh(`input tap ${at.x} ${at.y}`);
-        await d.sleep(7000);
-        await r.stop();
-        fs.writeFileSync(path.join(ctx.dir, `${name}.log`), `${jsLines(d).join('\n')}\n`);
-        const out = execFileSync('python3', ['-I', FRAMES, 'open', path.join(ctx.dir, `${name}.mp4`), String(tapAt / 1000)]).toString().trim();
+        d.screenshot(path.join(ctx.dir, `${name}-before-tap.png`));
+        const out = await recordOpen(ctx, name, async () => { d.sh(`input tap ${tapAt.x} ${tapAt.y}`); });
+        // (T508) the tap must have opened the water (a Conditions tap that lands on nothing measures nothing)
+        const w = d.screenText();
+        const opened = w.some((x) => c.title.test(x));
         d.sh('input keyevent 4'); await d.sleep(2500);
+        if (!opened) throw new Error(`the Conditions-map tap opened no ${c.q} pane (${out})`);
         samePid(d, pid);
         ctx.flow('tab', { TAB: 'Map' });
         await d.sleep(2000);
         return out;
       });
     }
-    // the other way in: search → Open (the map is replaced by the pane, as with a tap)
-    const c = CASES[0];
-    if (c) await ctx.step(`${c.id}: search → Open → the pane, recorded`, async () => {
+    // the other way in: search → Open (the map is replaced by the pane, as with a tap): for every case (T508: the Fraser
+    // lands on its Map view, a live map built under the hold)
+    for (const c of CASES) {
+      await ctx.step(`${c.id}: search → Open → the pane, recorded`, async () => {
+        await closeWaters(ctx);
+        await toMap(ctx);
+        ctx.flow('search', { Q: c.q });
+        ctx.flow('tap-text', { TEXT: c.row });                // the preview (the map frames it), then Open, recorded
+        await d.sleep(2500);
+        // Maestro's tap lands a little after `tapAt`: the cut starts at the first change after it
+        const out = await recordOpen(ctx, `pane-open-${c.id}-search`, async () => { ctx.flow('tap-text', { TEXT: 'Open .*' }); }, 6000);
+        const w = d.screenText();
+        return `${out}\nview: ${w.includes('Show regulations for this part') ? 'Map' : 'Regulations/Conditions'}`;
+      });
+    }
+    // (T508) THE MAP-VIEW HOLD, AGAIN AND AGAIN: search → Open on the case that lands on its Map view, closed, HOLD_RUNS
+    // times; the app's pid and the whole log (a native crash: `Fatal signal`) read after each
+    const m = CASES.find((x) => x.id === 'fraser') ?? CASES[0];
+    if (m && HOLD_RUNS > 0) await ctx.step(`${m.id}: search → Open (Map view held) × ${HOLD_RUNS}, no native crash`, async () => {
       await closeWaters(ctx);
       await toMap(ctx);
-      ctx.flow('search', { Q: c.q });
-      ctx.flow('tap-text', { TEXT: c.row });                // the preview (the map frames it), then Open, recorded
-      await d.sleep(2500);
-      d.logcatClear();
-      const name = `pane-open-${c.id}-search`;
-      const r = record(d, path.join(ctx.dir, `${name}.mp4`), 12);
-      await d.sleep(1200);
-      const tapAt = Date.now() - r.t0;
-      ctx.flow('tap-text', { TEXT: 'Open .*' });
-      await d.sleep(6000);
-      await r.stop();
-      fs.writeFileSync(path.join(ctx.dir, `${name}.log`), `${jsLines(d).join('\n')}\n`);
-      // Maestro's tap lands a little after `tapAt`: the cut starts at the first change after it
-      return execFileSync('python3', ['-I', FRAMES, 'open', path.join(ctx.dir, `${name}.mp4`), String(tapAt / 1000)]).toString().trim();
+      execFileSync(ADB, ['-s', d.serial(), 'logcat', '-b', 'all', '-c']);
+      const pid = d.pidOf();
+      let mapViews = 0;
+      for (let k = 0; k < HOLD_RUNS; k++) {
+        ctx.flow('search', { Q: m.q });
+        ctx.flow('open-result', { LINE: m.row });
+        await d.sleep(3000);
+        samePid(d, pid);
+        const crash = nativeCrash(d);
+        if (crash) throw new Error(`open ${k + 1}: ${crash}`);
+        if (d.screenText().includes('Show regulations for this part')) mapViews++;
+        await closeWaters(ctx);
+        await d.sleep(1200);
+        samePid(d, pid);
+      }
+      const crash = nativeCrash(d);
+      if (crash) throw new Error(`after ${HOLD_RUNS} opens: ${crash}`);
+      return `${HOLD_RUNS} opens (${mapViews} on the Map view), pid ${pid} throughout, no Fatal signal / SIGSEGV in logcat`;
     });
   },
 };
