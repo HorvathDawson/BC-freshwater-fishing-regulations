@@ -13,6 +13,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-08 early (chat 7, continued): phone check sent; T478 done; T494 found and fixed
+- **Your phone check (0.6.9):** https://claude.ai/artifact/XsAWajGrhpgsCnK2kWv7sZ — 11 items that close the IN REVIEW
+  tickets, plus the T459 pick (A or B). Reply with the numbers that fail. T449 is DONE (both Nanaimo marks are in r-f56b).
+- **T478 DONE:** both 0.6.8 walk failures were the test, not the app. The Updates log now opens from the Developer card,
+  and the Coquitlam tap target was picked while the river was lit (a lit river answers at the lake's tip; unlit, a tap
+  there opens the lake, which is right). Test bed: install and water-nav pass.
+- **T494 (web map error):** switching to Conditions or Runs from the Map tab threw in the stream layer for a frame. The
+  T470 order fade made the stream's opacity a zoom curve on the Map tab only, and MapLibre cannot swap that kind on tiles
+  it already built. Now a flat zoom curve in every mode, plus a test that no paint value changes kind across modes. The
+  staging smoke now FAILS on a TypeError instead of warning.
+- **Crash store:** nothing from your phone on 0.6.x; every report is the emulator or the web (T494).
+
 ## 2026-11-07 night (chat 7): the goal is written down (T495); r-f56b live on staging
 - **Goal (T495):** Play closed testing ON PRODUCTION, good enough for first users. Gates: no wrong regs (T462 audit), no
   crashes/ANRs (T351/T360), smooth map (T420 on your phone + T401/T451/T493/T494), clean first run (T478/T423/T466). The
