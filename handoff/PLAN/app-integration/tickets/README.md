@@ -553,12 +553,14 @@ use that as the sole source of future work."
 | T506 | Conditions: sources and notes at the bottom of the pane | IN REVIEW — next build | 84bf729f4 | owner 2026-11-08 (phone) |
 | T507 | test_the_corpus_tiers_match_plan_section_3 pins live-corpus counts (452 vs 445) | OPEN | — | found 2026-11-08; fixture like T491 |
 | T508 | A water opened into its Map / Conditions view appears in one piece (T498's hold for every view) | IN REVIEW — next APK | f2428537b, 02364791a, 49dd973d3 | follow-up of T498, 2026-11-08; T495 smooth map |
-| T509 | Fraser lowest part read "2 stretches · stretch 1 of 2": a stretch is named by its own ends | IN REVIEW — next APK | 48710b7cb | owner 2026-11-08 (phone); T495 gate 1 |
+| T509 | Fraser lowest part read "2 stretches · stretch 1 of 2": a stretch is named by its own ends | IN REVIEW — next APK | 48710b7cb, ed962781d, b569fb5e2 | owner 2026-11-08 (phone); T495 gate 1 |
 | T510 | A channel joining the Fraser to Strawberry Slough is filed under the Fraser (T497 leaves main-river connectors) | OPEN | — | owner 2026-11-08; proposal shots/T510-moved.md; owner picks A/B/C |
 | T511 | Gauge share card: forecast in words, readable axis, normal range (climatology band) behind the chart | IN REVIEW — next feeds deploy | 35276cdc2 | owner 2026-11-08; follow-up of T487 |
 | T512 | Laggy main map on Play 0.6.9 build 21: builds 20/21 shipped STOCK MapLibre (not T420's lean patch); build-apk --play now refuses that | IN REVIEW — GUARD; owner runs the next Play build patched | — | owner 2026-11-08 Pixel trace: render thread 100 % of a core, 55 map frames in 8.2 s (~147 ms CPU each); emulator lean flat after 16 switches, no map leak; stock A/B running |
 | T513 | Gauges frozen on old readings (162 of 434, some since Oct 28): Cloudflare edge cache served stale ECCC CSVs to the feeds worker | DONE staging (prod has no feeds yet) | 07ba10ade | owner 2026-11-08 Capilano 0.742 vs 32.6 m³/s; `sourceFetch` no-store; staging 431/434 current |
 | T514 | Share page "Open in the app" → Play Store listing once public (web app until then) | OPEN | — | owner 2026-11-08; ships with the production app release (T495 step 5) |
+| T515 | Bait rule card: one heading line ("No natural bait — all year" / season + status), no NOW-chip repeat | DONE | f44ef545a | owner 2026-11-08 |
+| T516 | "Handling fish" reference moved to the bottom of the regulation page (after Licence) | IN REVIEW — next APK | b7ce44b40 | owner 2026-11-08 |
 
 ## Order for open tickets
 
