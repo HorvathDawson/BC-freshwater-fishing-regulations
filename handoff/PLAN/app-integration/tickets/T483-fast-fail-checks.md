@@ -1,6 +1,6 @@
 # T483 — Fast-fail: cheap checks before (and while) long jobs
 
-Status: OPEN — rule in AGENTS 20a (cc54044cc); the script is not built yet.
+Status: IN REVIEW — 50c2260d9 (script + release/APK wiring; rule AGENTS 20a cc54044cc). Proof pending: the owner's next release/APK run starts with it.
 
 Owner 2026-11-07: builds sometimes reveal easy failures only at the end. Run the cheap checks up front, or while a
 build waits, so they fail in a minute or two. Rule: AGENTS.md 20a — every late failure a cheap check could have
@@ -23,3 +23,17 @@ caught becomes a new fast-fail item, added with its fix.
 ## Done when
 - A deliberately broken colour, stale answers file, or type error each stops the release/APK path in < 2 min.
 - AGENTS.md 20a points at the script and the list is commented.
+
+## Done (50c2260d9)
+- `scripts/fast-fail.sh`, 8 items each with a "caught:" line: conflict markers, ticket ledger, smoke coverage
+  (`test_smoke_coverage`; 3 files merged on 11-07 had no smoke id — fixed), changed Python compiles, colours,
+  answers-stale, app typecheck, vitest on changed test files + the sibling tests of changed sources (`vitest related`
+  pulled most of the suite in for one core file: > 2 min, dropped). Changed = since the merge-base with
+  origin/redesign/stream-sections, working tree included.
+- First step of `pipeline release` preflight (`--no-fast-fail REASON`, printed; empty refused) and of `build-apk.sh`
+  before the heavy lock (`--no-fast-fail=REASON`). Release preflight also checks HEAD is pushed (T484).
+- `pipeline.deliver all --out-dir` refuses, before any step, a release root missing the released basemap (and tiles,
+  with `--tiles`), naming the `ln -s` (the T481/T482 scratch-build failure).
+- Measured: 2–3 s warm, ~15 s with a cold `tsc -b`. Each break stopped it in ≤ 3 s: a type error (also stopped
+  `python -m pipeline release --staging` at preflight, 2.4 s), a hex colour in app/tools (also stopped `build-apk.sh`,
+  1.2 s), a stale answers schema (pydantic field change), a conflict marker, an unlisted test file.
