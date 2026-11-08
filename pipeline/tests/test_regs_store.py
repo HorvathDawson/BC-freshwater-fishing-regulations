@@ -77,7 +77,7 @@ def _wire() -> dict:
                                    {"status": "closed", "closing": [[0, ["RB"]]], "strip": 1}],
                         "strip": [{"state": "open", "bit": 0, "label": "open", "says": "Open."}],
                         "reasons": {"ladder": {"lost": "Replaced by {by}.", "won": "Replaces {rule}."}},
-                        "licensing": [{"book": [[14, 16]]}],
+                        "licensing": [{"book": [[14, 16]]}], "ends": {"mouth": ["Mouth"], "x__b": ["Big Bridge", "08AA001 · Gauge"]},
                         "rules": [{"kind": "gear"}, {"kind": "quota", "plain": "Keep 2"}],
                         "waters": {"w:a": {"parts": [{"order": 0, "label": "From the mouth", "short": "Mouth",
                                                       "lo": "Mouth", "hi": "Falls", "run_name": "Mouth → Source",

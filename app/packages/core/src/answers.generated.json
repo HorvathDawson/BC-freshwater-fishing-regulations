@@ -232,6 +232,15 @@
     }
    ]
   },
+  "display.ends": {
+   "additionalProperties": {
+    "items": {
+     "type": "string"
+    },
+    "type": "array"
+   },
+   "type": "object"
+  },
   "display.licensing": {
    "$defs": {
     "LicensingFacts": {

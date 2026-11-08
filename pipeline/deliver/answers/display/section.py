@@ -10,6 +10,7 @@ from pipeline.deliver.answers.display.builders import (
     build_rules, closers_of, produce_parts, unless_opened_here
 )
 from pipeline.deliver.answers.display.subsets import add_subsets
+from pipeline.deliver.answers.display.part import end_table
 from pipeline.deliver.answers.display.strip import strip_legend
 from pipeline.deliver.answers.display.decided import (
     _unless_words, add_sources, inherited_kind, inherited_line, licensing_books, reasons_table
@@ -158,5 +159,5 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
             "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,
                                     lic_ref=lic_ix.__getitem__, log=lambda *_: None,
                                     store=ctx.store),
-            "strip": strip_legend(), "reasons": reasons_table(),
+            "strip": strip_legend(), "reasons": reasons_table(), "ends": end_table(doc),
             "licensing": licensing_books(doc, data.get("licensing_ids") or [])}

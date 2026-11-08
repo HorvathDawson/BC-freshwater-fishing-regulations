@@ -680,6 +680,11 @@ SPEC = {
             "licensing": "[{book}] — aligned with the export's `licensing_ids` (version 6, answers "
                          "2.7): a licensing record's [[printed page, PDF page]], as `rules[].book` — "
                          "the page cites a record (a Classified Water, an exemption) as it cites a rule",
+            "ends": "{token: [words, other names…]} (T517) — EVERY place a run can end at (every split, area, "
+                    "region line, lake edge, confluence, lake inlet / outlet, mouth, source): the words a part's "
+                    "name, a mark and in-season \"Where\" say first, then the other names it is known by (a gauge "
+                    "cut's own name where a regulation's boundary stands); a last `to:<words>` where the lower end "
+                    "reads otherwise (\"the source\")",
             "strip": "[{state, bit, label, says}] — the open-days strip's legend (version 5): "
                      "open 0, closed 1, release 2, fly_only 4, artificial_fly_only 8, bait_ban 16, "
                      "with the label and sentence to show",
@@ -864,7 +869,7 @@ CODECS = {c.name: c for c in (LadderCodec(), RowsCodec(),
                               FrameCodec("gear", ("province_methods", "parent", "methods",
                                                   "moments", "conduct_means", "count_nouns")),
                               LicenceCodec(), FrameCodec("display", ("rules", "waters", "strip",
-                                                                     "reasons", "licensing")))}
+                                                                     "reasons", "licensing", "ends")))}
 
 
 # --------------------------------------------------------------------------------------------

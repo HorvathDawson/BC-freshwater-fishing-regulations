@@ -47,7 +47,7 @@ SECTION_STATIC = {("ladder", "reasons"), ("ladder", "reason_state"),
                   ("gear", "moments"), ("gear", "conduct_means"), ("gear", "count_nouns"),
                   ("licence", "profiles"), ("licence", "profile_dims"),
                   ("licence", "residency_labels"), ("licence", "profile_labels"),     # ROUND15 2
-                  ("display", "strip"), ("display", "reasons"), ("display", "licensing"),
+                  ("display", "strip"), ("display", "reasons"), ("display", "licensing"), ("display", "ends"),
                   ("rows", "strips")}                  # rows 30: each distinct year strip, once (water)
 #: The answers' top-level keys held in tables; every other one is a `static` row.
 TOP_TABLES = ("keys", "segments", "segment_moments", "parts", "places", "sections")

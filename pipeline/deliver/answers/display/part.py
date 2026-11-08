@@ -349,6 +349,25 @@ def end_variants(doc: dict, e: Optional[str], side: str) -> List[str]:
     return out
 
 
+def end_table(doc: dict) -> Dict[str, List[str]]:
+    """T517 THE ONE NAME SOURCE for a place a run can end at: {token: [words, other names…]} for EVERY split of the
+    export (cut, area, region line, lake edge) and every end token a water's runs carry (confluence, lake inlet/outlet,
+    mouth, source, a water that goes on as another) — what the part names, the marks and in-season "Where" say. The
+    words are the `from` side's (`end_variants`); a token whose `to` side reads otherwise ("the source") carries it
+    as `"to:" + words` last."""
+    toks = set(doc.get("splits") or {})
+    for w in (doc.get("waters") or {}).values():
+        for p in w.get("parts") or []:
+            for r in p.get("runs") or []:
+                toks.update(t for t in (r.get("from"), r.get("to")) if t)
+    out: Dict[str, List[str]] = {}
+    for t in sorted(toks):
+        v = end_variants(doc, t, "from")
+        to = end_words(doc, t, "to")
+        out[t] = v + ([f"to:{to}"] if to != v[0] else [])
+    return out
+
+
 def end_words(doc: dict, e: Optional[str], side: str) -> str:
     """T517: ONE end of a run, in the few words every name and mark uses (`_end_short`, the gauge rule above). Never
     empty: a token nothing can name stops the build."""

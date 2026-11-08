@@ -134,6 +134,7 @@ export type WithAdult = { "who": string; "counts": boolean };
 export type Worked = { "kept": number; "q": string; "a": string; "species": readonly (string)[]; "origin": "hatchery" | "wild" | null; "share": null | number; "here": null | number; "other": null | number; "away": null | number; "at": "here" | "stream" | "lake" | "elsewhere"; "over_cm": null | number; "most": "exactly" | "at_most"; "of": null | readonly (string)[] };
 
 export type DisplayValue = StatusFrame | TidalStatus;
+export type DisplayEndsValue = Record<string, readonly (string)[]>;
 export type DisplayLicensingValue = readonly (LicensingFacts)[];
 export type DisplayReasonsValue = { [K in "lifted" | "ladder" | "own_row" | "water_dates" | "zone_release" | "closure" | "water_closure" | "size_release" | "water_release" | "same_row_release" | "moot_size_clause" | "stricter_region" | "same_as_peer" | "nearer_row"]?: ReasonWords };
 export type DisplayRulesValue = readonly (RuleFacts)[];

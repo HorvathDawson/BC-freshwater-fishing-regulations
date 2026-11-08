@@ -38,6 +38,8 @@ STATICS: Dict[Tuple[str, str], TypeAdapter] = {
     ("display", "strip"): TypeAdapter(Tuple[StripState, ...]),
     ("gear", "count_nouns"): TypeAdapter(Dict[StrictStr, Tuple[StrictStr, StrictStr]]),
     ("display", "licensing"): TypeAdapter(Tuple[LicensingFacts, ...]),
+    # T517: every end token -> [words, other names…] (`answers.display.end_table`)
+    ("display", "ends"): TypeAdapter(Dict[StrictStr, Tuple[StrictStr, ...]]),
     ("display", "reasons"): TypeAdapter(Dict[_enum(T.LossReason, "LossReason"), ReasonWords]),
 }
 
