@@ -13,6 +13,29 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-08 evening (chat 7, continued): parts + in-season redesigned after two fresh audits
+
+**What changed**
+- Bait card reworked (T515) and "Handling fish" moved to the page bottom (T516); Fraser stretch names by their ends
+  (T509). All committed and pushed; they ship with the next Play build.
+- Strawberry Slough rule A for all 11 connectors committed (T510, c4ce4b8b4); lands with the T517 rebuild.
+- **Parts (T517):** owner decision — one part per connected run; stretches split on regulation OR live DFO salmon
+  changes and auto-combine when equal; one navigation mode; names computed once in Python; paint (regular + salmon)
+  checked against the shipped files so it can never diverge; size flat. Design in the T517 ticket (ad3f8dc).
+- **In-season (T520):** audit found the GitHub sync failing every run since 11-05 (needs the atlas). New design: the
+  Mac publishes only (GitHub workflow deleted, review-app save syncs staging); notices keyed by their own text;
+  links carry exact FWA ranges (no part numbers); checks in publish only; banners on exactly the covered sections (T518).
+- T519: the Fraser's exit reads Morey Channel since T497; fixed in the T517 rebuild.
+
+**Running**
+- T517 side build (atlas → bundle → release, with T510 + T519); nothing promoted.
+- T520 implementation (in-season links/2, GitHub workflow removal).
+- When each lands: a fresh high-effort Opus review of the code + side build before anything is promoted (owner ask).
+
+**Needs the owner**
+- Remove the R2 keys from GitHub settings once T520 deletes the workflow (OWNER-TODO).
+- On return: T510 moved list, T517 parity list + sizes + shots.
+
 ## 2026-11-08 afternoon (chat 7, continued): gauges unfrozen; map lag = stock MapLibre; bait card rework
 
 - **Gauges were frozen (T513, DONE on staging):** 162 of 434 stations showed old readings (Capilano 0.742 vs 32.6 m³/s).
