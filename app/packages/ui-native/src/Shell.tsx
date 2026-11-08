@@ -24,7 +24,7 @@
  * The Shell holds only the state more than one of these needs (the camera, the day, which sheet is open) and hands it
  * down. Every answer on every screen comes from a hook (rule 25).
  */
-import { GUIDE_WATER, TAB_TOUR_WORDS, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
+import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, View } from "react-native";
@@ -59,13 +59,12 @@ import { useShellNav } from "./shell/useShellNav";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
-import { GUIDE_STEPS, GuideCard, TabTourSheet, useGuide, useTabTour, type GuideActs, type GuideFacts } from "./Walkthrough";
+import { GUIDE_STEPS, GuideCard, useGuide, type GuideActs, type GuideFacts } from "./Walkthrough";
 import { CoachContext, CoachItemContext, useCoachRegistry } from "./CoachMarks";
 import { GuideControlContext, useGuideControlHost } from "./guideControls";
 import { useGuideClosed } from "./guideClosed";
 import { part, preloadParts } from "./part";
 import { LoadingState } from "./LoadingState";
-import { windowSize } from "./windowSize";
 
 // (T282) loaded later on the web (`part`): not on the first screen's path
 const SpotCapture = part(() => import("./later").then((m) => m.SpotCapture));
@@ -87,24 +86,6 @@ const BEHIND = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opa
  * So the held pane (`heldStyle`) hangs `tabsH` below the body, the height it will have once shown.
  */
 const heldStyle = (tabsH: number) => ({ ...BEHIND, bottom: -tabsH, transform: [{ translateX: 100_000 }] }) as const;
-
-/** (T293) The Conditions tour's gauge: of the bigger-river gauges, the nearest to the camera, with its catchment's area. */
-async function nearGauge(source: ShellProps["source"], at: Camera): Promise<{ lon: number; lat: number; km2: number } | null> {
-  try {
-    const pts = await source.gaugePoints();
-    if (!pts.length) return null;
-    const mags = pts.map((p) => p.mag ?? 0).sort((a, b) => a - b);
-    const floor = mags[Math.floor(mags.length * 0.75)] ?? 0;
-    const k = Math.cos((at.lat * Math.PI) / 180);
-    const d = (p: { lon: number; lat: number }) => ((p.lon - at.lon) * k) ** 2 + (p.lat - at.lat) ** 2;
-    const big = pts.filter((p) => (p.mag ?? 0) >= floor);
-    const g = (big.length ? big : pts).reduce((a, b) => (d(b) < d(a) ? b : a));
-    let km2 = 0;
-    for (const ms of (await source.basinMembers().catch(() => new Map())).values())
-      for (const m of ms) if (m.station === g.station && (m.areaKm2 ?? 0) > km2) km2 = m.areaKm2 ?? 0;
-    return { lon: g.lon, lat: g.lat, km2: km2 || 1000 };
-  } catch { return null; }
-}
 
 /** (T293) The fish obstacles' switch in the Layers sheet (`@app/core` layers). */
 const OBSTACLES = "overlay.obstacles";
@@ -499,41 +480,6 @@ export function Shell(p: ShellProps) {
   useEffect(() => { if (!guide.open && layersWas) restoreLayers(); }, [guide.open]);   // eslint-disable-line react-hooks/exhaustive-deps
   // from the start, on the Map tab, with no water open and nothing typed in search
   const replayTour = () => { go({ type: "close" }); nav.toTab("map"); search.searchType(""); setExample(null); guide.reopen(); };
-  // (T276, T293) the mode hints — Runs, the Conditions map, Salmon: on a mode's first use, after the notice and the
-  // walkthrough; More → Help replays each
-  const tabBusy = firstRun.open || guide.open || guide.pending || searching;
-  const runsTour = useTabTour(p.walkthrough ?? null, "runs", route.mode === "browse" && tab === "runs", tabBusy);
-  const condTour = useTabTour(p.walkthrough ?? null, "conditions", route.mode === "browse" && tab === "conditions", tabBusy);
-  const salmonTour = useTabTour(p.walkthrough ?? null, "salmon",
-                                onMapTab && col.regsLayer === "salmon" && !col.salmonLoading, tabBusy);
-  // (T303) one hint at the my-location button, on the Map tab
-  const locateTour = useTabTour(me ? p.walkthrough ?? null : null, "locate", onMapTab, tabBusy);
-  /*
-   * (T293, owner 2026-10-29) THE CONDITIONS TOUR MOVES THE REAL CAMERA: out to the watershed of a gauge near where the
-   * map is (its catchment's size sets how far: about twice the width of a square of that area), then in to the gauge.
-   * The gauge: of the bigger-river gauges (stream magnitude in the top quarter), the nearest to the map's centre.
-   */
-  const [tourFit, setTourFit] = useState<{ key: string; camera: Camera } | null>(null);
-  const tourGauge = useRef<Promise<{ lon: number; lat: number; km2: number } | null> | null>(null);
-  const onCondStep = (key: string) => {
-    const kind = TAB_TOUR_WORDS.conditions.find((c) => c.key === key)?.camera;
-    if (!kind) return;
-    tourGauge.current ??= nearGauge(source, camera.current);
-    void tourGauge.current.then((g) => {
-      if (!g) return;
-      const width = Math.max(320, windowSize()?.w ?? 390);
-      const spanM = 2.2 * Math.sqrt(g.km2) * 1000;
-      const fitZ = Math.log2((156543 * Math.cos((g.lat * Math.PI) / 180) * width) / spanM);
-      const zoom = kind === "watershed" ? Math.max(6, Math.min(8.5, fitZ)) : 10.5;
-      setTourFit({ key: `tour:${key}:${clockNow()}`, camera: { lon: g.lon, lat: g.lat, zoom } });
-    });
-  };
-  useEffect(() => { if (!condTour.open) { setTourFit(null); tourGauge.current = null; } }, [condTour.open]);
-  const replayTab = (k: "runs" | "conditions" | "salmon") => {
-    go({ type: "close" });
-    if (k === "salmon") { nav.toTab("map"); col.setRegsLayer("salmon"); salmonTour.reopen(); return; }
-    nav.toTab(k); (k === "runs" ? runsTour : condTour).reopen();
-  };
   /** (T466) the drop sheet (a pin down, Continue to come) is up: the card goes in its window */
   const dropUp = route.mode === "browse" && rail.drop !== null;
   /** the walkthrough's card, over whatever is on screen (a spot and the capture included) */
@@ -636,7 +582,7 @@ export function Shell(p: ShellProps) {
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
-                  fishImages={p.fishImages} tourFit={tourFit} />
+                  fishImages={p.fishImages} />
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
@@ -779,7 +725,7 @@ export function Shell(p: ShellProps) {
                    void nav.opener.tap(sid as never, runsPoint, "regs");
                  }} />
       <ShellSheets nav={nav} col={col} rail={rail} menu={menu} palette={palette} loader={loader} menuInfo={menuInfo} source={source}
-                   mapDay={mapDay} theme={theme} onWalkthrough={replayTour} onTabTour={replayTab} sync={syncState}
+                   mapDay={mapDay} theme={theme} onWalkthrough={replayTour} sync={syncState}
                    // (T466) the drop sheet is its own window: the walk's card is drawn in it while it is up
                    dropOverlay={dropUp && guide.open ? guideCard : undefined}
                    // (T352) where the map was looking, read at this render (a report freezes it when it opens): the water's
@@ -795,10 +741,6 @@ export function Shell(p: ShellProps) {
       {/* (T257) its "Sources and licences" opens that page: the notice steps aside while a page is up and is back after */}
       <FirstRunNotice state={{ ...firstRun, open: firstRun.open && menu.state.page === null }} palette={palette}
                       onSources={() => menu.show("sources")} />
-      <TabTourSheet tour={runsTour} which="runs" palette={palette} registry={coach} />
-      <TabTourSheet tour={condTour} which="conditions" palette={palette} registry={coach} onStep={onCondStep} />
-      <TabTourSheet tour={salmonTour} which="salmon" palette={palette} registry={coach} />
-      <TabTourSheet tour={locateTour} which="locate" palette={palette} registry={coach} />
       {!layersOpen && !(dropUp && guide.open) && guideCard}
       {/* (T231) the sync icon's red badge: what could not be updated, when each last succeeded, Retry */}
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}

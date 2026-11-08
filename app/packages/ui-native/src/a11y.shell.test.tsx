@@ -154,12 +154,6 @@ const STATES_T258: [string, (width: number) => Promise<void>, RegExp][] = [
       palette={LIGHT} registry={reg} top={60} bottom={64} />);
     await screen.findByTestId("guide-ring", {}, { timeout: 3000 });
   }, /Show me/],
-  ["(T293) a mode hint (Salmon), one step", async () => {
-    const { TabTourSheet } = await import("./Walkthrough");
-    const reg = await coachRegistry();
-    render(<TabTourSheet tour={{ open: true, finish: () => {}, reopen: () => {} }} which="salmon" palette={LIGHT} registry={reg} />);
-    await screen.findByTestId("coach-spotlight", {}, { timeout: 3000 });
-  }, /Got it/],
   ["a water's Conditions with a gauge, donors and the day", async () => {
     clearPanelCache();
     const { ConditionsPanel } = await import("./ConditionsPanel");

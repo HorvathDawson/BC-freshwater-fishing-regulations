@@ -70,11 +70,8 @@ const NO_BACKGROUND = `globalThis.__releasePrefetchBackground = false;`;
 /** the "Before you fish" notice and the coach-mark tour cover the map on a fresh profile, and the open at my location
  *  (T384) moves it: seed all as seen (versions read from the source) */
 const rdv = (f, re) => re.exec(fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'))?.[1];
-// the mode hints (T303 "Where you are" on the Map tab, Runs, Conditions, Salmon) are lines of the same key
-const TOURS = [...(/export const TAB_TOURS = \{([^}]+)\}/.exec(fs.readFileSync(new URL('../packages/core/src/help.ts', import.meta.url), 'utf8'))?.[1] ?? '')
-  .matchAll(/"([^"]+)"/g)].map((m) => m[1]);
 const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rdv('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/) ?? 'disclaimer-1')});
-  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify([rdv('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1', ...TOURS].join('\n'))});
+  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify([rdv('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/) ?? '1'].join('\n'))});
   localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]');
   localStorage.setItem('canifishthis.locationAsk.v1', 'asked'); } catch {}`;   // (T384) the default camera, not the reader's
 

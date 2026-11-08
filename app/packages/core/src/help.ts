@@ -44,8 +44,8 @@ export const WALKTHROUGH_VERSION = "walkthrough-5";
 export const walkthroughSeen = (stored: string | null | undefined): boolean => seenIn(stored, WALKTHROUGH_VERSION);
 
 /**
- * (T276) THE SEEN-STORE IS A LIST OF LINES: the walkthrough's version, one line per mode hint (`TAB_TOURS`) the device
- * has seen, and (T293) where an unfinished walkthrough was left (`guide-at:<step>`). One store, so no new key or file on
+ * (T276) THE SEEN-STORE IS A LIST OF LINES: the walkthrough's version (old stores may also hold
+ * the retired mode hints' lines, `tour-*`, ignored), and (T293) where an unfinished walkthrough was left (`guide-at:<step>`). One store, so no new key or file on
  * either platform; an old store (the version alone) reads the same.
  */
 const seenIn = (stored: string | null | undefined, line: string): boolean =>
@@ -65,17 +65,8 @@ export const withGuideAt = (stored: string | null | undefined, key: string | nul
   [...lines(stored).filter((l) => !l.startsWith(GUIDE_AT)), ...(key ? [GUIDE_AT + key] : [])].join("\n");
 
 /**
- * (T276, T293) THE MODE HINTS shown once, on first use of a mode: the Runs tab (its colour key), the Conditions map (its
- * gauge colours) and Salmon (DFO's colours). Short — one step each. Bump a version to show one again.
- */
-export const TAB_TOURS = { runs: "tour-runs-1", conditions: "tour-conditions-1", salmon: "tour-salmon-1",
-                            locate: "tour-locate-1" } as const;
-export type TabTourKey = keyof typeof TAB_TOURS;
-export const tabTourSeen = (stored: string | null | undefined, k: TabTourKey): boolean => seenIn(stored, TAB_TOURS[k]);
-
-/**
  * What a step points at: the surface registers each control under its key (`useCoachTarget`); a control that is not on
- * screen leaves the step without a spotlight (the guided walkthrough) or drops it (a mode hint).
+ * screen leaves the step without a spotlight.
  */
 export type WalkthroughTarget = "days" | "modes" | "map" | "tab:conditions" | "tab:runs" | "tab:spots" | "tab:more" | "sync"
   | "bell" | "runs:species" | "runs:slider" | "horizons" | "search"
@@ -284,8 +275,6 @@ export const WALKTHROUGH_WORDS = {
   /** Skip, said aloud: what it skips */
   skipLabel: "Skip the walkthrough",
   done: "Start exploring",
-  /** a mode hint's one button (one step: nothing comes next) */
-  hintDone: "Got it",
   /** before a DO step's title once the reader has done it */
   tick: "✓",
   /** a DO step not done yet: the app does it for the reader */
@@ -339,56 +328,6 @@ export function guideText(s: string, water: { name: string; letters: string } | 
     .replace(/\{water\}/g, water?.name ?? "the water you want")
     .replace(/\{letters\}/g, water?.letters ?? "the first few letters of a water");
 }
-
-/**
- * (T276, T293) THE MODE HINTS: one step each, the first time a mode is used — how to read the Runs tab's colours, the
- * Conditions map's gauge colours, and Salmon's. Re-opened from More → Help (`again`); the Runs panel's "?" replays its own.
- */
-export const TAB_TOUR_WORDS: {
-  readonly label: Readonly<Record<TabTourKey, string>>; readonly again: Readonly<Record<TabTourKey, string>>;
-} & Readonly<Record<TabTourKey, readonly (WalkthroughCard & { readonly camera?: "watershed" | "gauge" })[]>> = {
-  label: { runs: "How to read Runs", conditions: "Reading the Conditions map", salmon: "How to read Salmon",
-           locate: "Finding yourself on the map" },
-  again: { runs: "How to read the Runs tab", conditions: "Tour the Conditions map", salmon: "How to read Salmon",
-           locate: "Find yourself on the map" },
-  /** (T303) once, on the Map tab: the my-location button under the zoom */
-  locate: [
-    { key: "locate", targets: ["locate"], title: "Where you are",
-      body: "Tap this to show where you are on the map. The first time, your phone asks if the app may use your "
-        + "location. Tap again to keep the map on you, and once more to stop. Your location stays on your device." },
-  ] satisfies readonly WalkthroughCard[],
-  runs: [
-    { key: "read", targets: ["map"], title: "When the fish are in",
-      body: "The colours show where fish are in the water now: spawning, passing through, or due at another time of "
-        + "year. Drag the slider or tap Play to move through the year. Tap a stream to see its runs and how many fish "
-        + "were counted there." },
-  ] satisfies readonly WalkthroughCard[],
-  /**
-   * (T293, owner 2026-10-29) THE CONDITIONS MAP, a short tour with the real camera: out to the watershed of a gauge near
-   * the reader, in to its rivers, the colours, the taps, and change across the watershed. `camera` says where the map is
-   * sent for the step (`watershed`: out, the basins painted; `gauge`: in, at the gauge).
-   */
-  conditions: [
-    { key: "watershed", targets: ["map"], camera: "watershed", title: "Whole watersheds",
-      body: "Zoomed out like this, each area shows if its rivers are low, normal or high for this time of year." },
-    { key: "gauge", targets: ["map"], camera: "gauge", title: "Each river",
-      body: "Zoomed in, each river takes its colour from the nearest river gauge on the same river. The dot is the "
-        + "gauge." },
-    { key: "colours", targets: ["map"], title: "What the colours mean",
-      body: "This legend shows the colours, from low to high compared with other years at this time of year. A river "
-        + "with no gauge nearby stays plain." },
-    { key: "tap", targets: ["map"], title: "Tap for more",
-      body: "Tap a gauge dot for its chart and forecast. Tap a river to see how it's doing, next to its rules." },
-    { key: "change", targets: ["horizons"], title: "Going up or down",
-      body: "Tap a day here to see the forecast. Tap Change to see which rivers are expected to rise or drop. When a "
-        + "whole area turns to rising, rain is usually on the way." },
-  ] satisfies readonly (WalkthroughCard & { camera?: "watershed" | "gauge" })[],
-  salmon: [
-    { key: "salmon", targets: ["modes"], title: "Salmon rules",
-      body: `${SALMON_WORDS.toggle.salmon} shows the federal salmon rules instead. A water that isn't listed is closed `
-        + `to salmon. Tap ${SALMON_WORDS.toggle.standard} to go back.` },
-  ] satisfies readonly WalkthroughCard[],
-} as const;
 
 // ── the Help page ────────────────────────────────────────────────────────────────────────────────────────────────
 

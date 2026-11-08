@@ -143,7 +143,6 @@ const COVERED: Record<string, string> = {
   "packages/ui-native/src/MapRail.tsx#MapRail: takes dismiss": "(T303) the rail's one-line location notice over the map (why there is no dot): a tap puts it away and the button retries; it hides nothing, so system back stays the map's",
   "packages/ui-native/src/SpotCapture.tsx#SpotCapture: takes onCancel (SpotCaptureProps)": "(T302) it draws the web's spots notice (system back is the route's: it leaves the add) or the capture flow (SpotCaptureFlow), which registers its own steps",
   "packages/ui-native/src/Walkthrough.tsx#GuideCard: a dialog": "(T456, owner 2026-11-06: the walk never runs the action behind the reader's back) a NON-modal card over the app: back does what is under it (a page's ‹ closes the page, and on a step that rings ‹ Map that IS the step); leaving a step's screen any other way pauses the walk behind its Resume chip (Walkthrough.test.tsx \"every exit\")",
-  "packages/ui-native/src/Walkthrough.tsx#TabTourSheet: draws TabTourSheet": "(T276, T293) the Runs, Conditions and Salmon mode hints draw the same CoachMarks.CoachTour, which registers its own back layer (back skips the tour)",
   "packages/ui-native/src/WaterScreen.tsx#WaterScreenBody: takes onBack": "the on-screen ‹; system back is the Shell's route layer (water → tab)",
   "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack": "T44: hands the on-screen ‹ to the FaceBar it draws (a view mounted alone); system back is the Shell's route layer",
   "packages/ui-native/src/TopBar.tsx#TopBar: takes onClose (TopBarProps)": "T48: the field's ‹ and Escape; search open is ROUTE state (route `search`), so system back closes it through the Shell's route layer, first",
@@ -185,8 +184,6 @@ describe("back, everywhere: one mechanism", () => {
       && [...src.matchAll(/\bonRequestClose\s*=\s*\{([^}]*)\}/g)].every((m) => m[1]!.trim() === "requestClose");
     const users = where(/\bonRequestClose\b/);
     expect([users, users.filter((p) => !wired(read(p)))]).toEqual([[
-      // (T257) the first-run tour's coach marks: back skips the tour
-      "packages/ui-native/src/CoachMarks.tsx",
       // (T476, T420) the Developer card, in a development or staging build only
       "packages/ui-native/src/DeveloperModal.tsx", "packages/ui-native/src/Sheet.tsx", "packages/ui-native/src/menu/MenuPage.tsx",
       // (T354) the rule book in the app, full screen
@@ -219,8 +216,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
     expect(found).toEqual([
       // (T234) the "Alert me" form, inline in the gauge card (COVERED)
       "packages/ui-native/src/AlertMe.tsx#AlertEditor: takes onCancel",
-      // (T257) the first-run tour: its own Modal, registered (useBackLayer)
-      "packages/ui-native/src/CoachMarks.tsx#CoachTour: a Modal",
       // (T476) the Developer card, open: its own Modal, registered (useBackLayer); MapScreen hands it devOpen
       "packages/ui-native/src/DeveloperCard.tsx#DeveloperCard: takes onClose",
       "packages/ui-native/src/DeveloperModal.tsx#DeveloperModal: a Modal",
@@ -253,7 +248,6 @@ describe("back, everywhere: every surface registers a back layer", () => {
       // Back button is gone (one surface per action). It still registers (`useBackLayer`) and back.test drives it.
       // (T293) the guided walkthrough's card: a non-modal dialog (T456: NOT a back layer — COVERED says why)
       "packages/ui-native/src/Walkthrough.tsx#GuideCard: a dialog",
-      "packages/ui-native/src/Walkthrough.tsx#TabTourSheet: draws TabTourSheet",
       "packages/ui-native/src/WaterFrame.tsx#WaterFrame: takes onBack",
       "packages/ui-native/src/WaterScreen.tsx#WaterScreenBody: takes onBack",
       "packages/ui-native/src/menu/GlossaryPage.tsx#GlossaryPage: draws GlossaryPage",

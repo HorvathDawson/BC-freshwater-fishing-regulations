@@ -13,9 +13,6 @@ const SITE = 'https://staging.canifishthis.ca';
 fs.mkdirSync(OUT, { recursive: true });
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const rd = (f, re) => re.exec(fs.readFileSync(path.join(ROOT, f), 'utf8'))?.[1];
-// (T319) the mode hints (TAB_TOURS: "Where you are" over the bottom bar, Runs, Conditions, Salmon) seen too, one per line
-const TOURS = [...(rd('packages/core/src/help.ts', /TAB_TOURS = \{([^}]*)\}/) ?? '').matchAll(/"(tour-[a-z]+-\d+)"/g)].map((m) => m[1]);
-if (!TOURS.length) throw new Error('play-shots: no TAB_TOURS ids in packages/core/src/help.ts');
 const visit = Date.now() - 4 * 86400000, iso = (t) => new Date(t).toISOString();
 const sample = (t, c) => ({ at: iso(t), tempC: c, cloudPct: 40, pressureHpa: 1012, humidityPct: 63 });
 const SPOT = { id: 'play-spot', createdAt: visit, updatedAt: visit, visitedAt: visit, lat: 49.0985, lon: -121.9585, item: 'gnis:3062', waterName: 'Vedder River',
@@ -23,7 +20,7 @@ const SPOT = { id: 'play-spot', createdAt: visit, updatedAt: visit, visitedAt: v
   photos: [], reading: { station: 'Vedder River at Vedder Crossing', discharge: 41.2, level: null, parameter: null, percentile: 0.42, at: iso(visit) },
   weather: { tempC: 14, windKph: 9, windDir: 250, rain3h: 0, pressureHpa: 1012, code: 2, at: iso(visit), window: { before: sample(visit - 3600e3, 13), at: sample(visit, 14), after: sample(visit + 3600e3, 15) } }, trace: null, panel: null };
 const SEEN = `try { localStorage.setItem('canifishthis.firstRun.v1', ${JSON.stringify(rd('packages/core/src/menu/legal.ts', /FIRST_RUN_VERSION = "([^"]+)"/))});
-  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify([rd('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/), ...TOURS].join('\n'))});
+  localStorage.setItem('canifishthis.walkthrough.v1', ${JSON.stringify([rd('packages/core/src/help.ts', /WALKTHROUGH_VERSION = "([^"]+)"/)].join('\n'))});
   localStorage.setItem('canifishthis.inseasonSeen.v1', '["*"]');
   localStorage.setItem('canifishthis.spots.v1', ${JSON.stringify(JSON.stringify([SPOT]))}); } catch {}`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

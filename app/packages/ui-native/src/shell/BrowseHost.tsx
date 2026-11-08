@@ -35,7 +35,7 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null, tourFit = null }: {
+                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -51,7 +51,6 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** Open the Layers sheet (the Shell's). */
   onLayers: () => void;
   /** (T293) where a tour step sends the camera (the Conditions tour: out to a watershed, in to its gauge); first of all */
-  tourFit?: { key: string; camera: Camera } | null;
   /** (T213) The map's day strip: set THE day, open the date sheet, and the days it may offer. */
   onDay: (d: Date | null) => void;
   onOpenDay: () => void;
@@ -181,8 +180,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      // WHERE THE CAMERA IS SENT, one subject at a time: a spot "Show" asked for (the rail forgets it
                      // whenever the route moves), else what search has picked (a water framed, a town flown to), else
                      // — once, as search closes — back to where the reader was before search moved it
-                     fit={tourFit ? { key: tourFit.key, bbox: null, camera: tourFit.camera }
-                       : rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox }
+                     fit={rail.fly ? { key: rail.fly.key, bbox: rail.fly.bbox }
                        : searching && session.focus
                          ? { key: session.focus.key, bbox: session.focus.bbox, refine: session.focus.refine }
                          : arrive ? arrive

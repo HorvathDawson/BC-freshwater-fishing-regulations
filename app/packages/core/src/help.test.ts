@@ -7,7 +7,7 @@ import { GEAR_LEGEND } from "./method";
 import { RUN_STATES } from "./runTiming";
 import { SALMON_MAP_STATUSES } from "./salmon";
 import { WATER_STATUSES } from "./status";
-import { GUIDE_WATER, HELP_WORDS, SYNC_KINDS, TAB_TOURS, WALKTHROUGH_VERSION, guideResumeAt, guideSteps, guideText, helpVM,
+import { GUIDE_WATER, HELP_WORDS, SYNC_KINDS, WALKTHROUGH_VERSION, guideResumeAt, guideSteps, guideText, helpVM,
          walkthroughSeen, withGuideAt, withSeen, WALKTHROUGH_WORDS, type GuideStepWords } from "./help";
 
 describe("the walkthrough (T293)", () => {
@@ -64,11 +64,11 @@ describe("the walkthrough (T293)", () => {
             walkthroughSeen(` ${WALKTHROUGH_VERSION}\n`)]).toEqual([false, false, false, true, true]);
   });
   it("keeps where an unfinished walk was left, one line beside the others, and forgets it", () => {
-    const s = withGuideAt(withSeen(null, TAB_TOURS.runs), "answer");
-    expect([s, guideResumeAt(s)]).toEqual([`${TAB_TOURS.runs}\nguide-at:answer`, "answer"]);
+    const s = withGuideAt(withSeen(null, WALKTHROUGH_VERSION), "answer");
+    expect([s, guideResumeAt(s)]).toEqual([`${WALKTHROUGH_VERSION}\nguide-at:answer`, "answer"]);
     const moved = withGuideAt(s, "book");
     expect([guideResumeAt(moved), moved.split("\n").length]).toEqual(["book", 2]);
-    expect([guideResumeAt(withGuideAt(moved, null)), withGuideAt(moved, null)]).toEqual([null, TAB_TOURS.runs]);
+    expect([guideResumeAt(withGuideAt(moved, null)), withGuideAt(moved, null)]).toEqual([null, WALKTHROUGH_VERSION]);
   });
 });
 

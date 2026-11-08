@@ -4,7 +4,7 @@
  * what change means for it. also walking through adding a spot and why") THE GUIDED WALKTHROUGH: ONE hands-on walk on a
  * real water the app chooses (`GUIDE_WATER`, found by name in the release) — find it with search and then on the map,
  * read its rules, read its conditions, save a spot, and read a spot's coming days. It replaced the T248/T257 welcome
- * tour and the T276 tab tutorials; those tutorials are now one-step mode hints (`useTabTour`, below).
+ * tour and the T276 tab tutorials (the one-step mode hints that followed were removed, owner 2026-11-08).
  *
  * HANDS-ON, SO NOT MODAL. A card in the app's coach-mark look (`CoachMarks`: square, the ink edge, the offset slab, the
  * accent ring round the control a step is about), but no dim and nothing blocked: the reader does each DO step with a
@@ -29,10 +29,10 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { Platform, View, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { GUIDE_WATER, TAB_TOUR_WORDS, TAB_TOURS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, guideSteps, guideText,
-         tabTourSeen, walkthroughSeen, withGuideAt, withSeen, type GuidePhase, type GuideStepWords, type TabTourKey } from "@app/core";
+import { GUIDE_WATER, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, guideSteps, guideText,
+         walkthroughSeen, withGuideAt, withSeen, type GuidePhase, type GuideStepWords } from "@app/core";
 import { Button } from "./Button";
-import { CoachTour, insideWindow, measure, unionRect, type CoachRegistry, type CoachStep, type Measurable,
+import { insideWindow, measure, unionRect, type CoachRegistry, type Measurable,
          type Rect } from "./CoachMarks";
 import { placeGuideCard, revealBy } from "./guideLayout";
 import type { GuideClosed } from "./guideClosed";
@@ -653,43 +653,3 @@ export function GuideCard({ guide, facts, acts, palette, registry, top, bottom }
 /** The first letters of the water's name to type (`GUIDE_WATER.letters` for the chosen one). */
 const lettersOf = (name: string) => name === GUIDE_WATER.name ? GUIDE_WATER.letters : name.slice(0, 3).toLowerCase();
 
-// ── (T276, T293) THE MODE HINTS ─────────────────────────────────────────────────────────────────────────────────────
-
-export interface TabTour { readonly open: boolean; finish(): void; reopen(): void }
-
-/**
- * A mode's hint: opens by itself the first time its mode is in front (and nothing else is holding the screen: the
- * first-run notice, the walkthrough), is remembered in the SAME store as the walkthrough (one line per hint), and
- * `reopen` shows it again from More → Help. No store (a test): never opens by itself.
- */
-export function useTabTour(store: WalkthroughStore | null, tour: TabTourKey, active: boolean, blocked: boolean): TabTour {
-  const [pending, setPending] = useState(() => {
-    if (!store) return false;
-    try { return !tabTourSeen(store.read(), tour); } catch { return true; }
-  });
-  const [manual, setManual] = useState(false);
-  const finish = useCallback(() => {
-    try { store?.write(withSeen(store.read(), TAB_TOURS[tour])); } catch { /* shown again next start, no harm */ }
-    setPending(false); setManual(false);
-  }, [store, tour]);
-  const reopen = useCallback(() => setManual(true), []);
-  return { open: active && !blocked && (pending || manual), finish, reopen };
-}
-
-// the Runs hint points at a spot on the map ("tap here"); the Conditions tour lights the whole map, its camera moving
-const tabSteps = (k: TabTourKey): readonly CoachStep[] => TAB_TOUR_WORDS[k].map((c) => ({
-  key: c.key, targets: c.targets, title: c.title, body: c.body,
-  ...(c.targets[0] === "map" && k === "runs" ? { shape: "spot" as const } : {}),
-}));
-const TAB_STEPS = { runs: tabSteps("runs"), conditions: tabSteps("conditions"), salmon: tabSteps("salmon"), locate: tabSteps("locate") };
-
-export function TabTourSheet({ tour, which, palette, registry, onStep }: {
-  tour: TabTour; which: TabTourKey; palette: Palette; registry: CoachRegistry;
-  /** (T293) each step's key as it comes up: the Conditions tour moves the camera (`TAB_TOUR_WORDS.conditions[].camera`) */
-  onStep?: (key: string) => void;
-}) {
-  return <CoachTour open={tour.open} steps={TAB_STEPS[which]} palette={palette} registry={registry} onFinish={tour.finish}
-                    onStep={onStep}
-                    words={{ ...WALKTHROUGH_WORDS, done: WALKTHROUGH_WORDS.hintDone,
-                             label: TAB_TOUR_WORDS.label[which] }} />;
-}

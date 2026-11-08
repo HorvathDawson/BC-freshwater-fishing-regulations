@@ -10,14 +10,14 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { useState, type ReactNode } from "react";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { GLANCE_WORDS, GUIDE_WATER, HELP_WORDS, TAB_TOUR_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, helpVM, layersVM,
+import { GLANCE_WORDS, GUIDE_WATER, HELP_WORDS, WALKTHROUGH_VERSION, WALKTHROUGH_WORDS, guideResumeAt, helpVM, layersVM,
          LAYER_DEFAULTS, type GlanceRowVM } from "@app/core";
 import { BackLayerContext, horizonChips } from "@app/ui";
 import { notFishingColours, tidalColours } from "@app/map";
 import { HelpPage } from "./menu/HelpPage";
-import { GUIDE_STEPS, GuideCard, PAUSE_AFTER_MS, useGuide, useTabTour, type Guide, type GuideActs, type GuideFacts,
+import { GUIDE_STEPS, GuideCard, PAUSE_AFTER_MS, useGuide, type Guide, type GuideActs, type GuideFacts,
          type WalkthroughStore } from "./Walkthrough";
-import { CoachContext, insideWindow, placeCallout, unionRect, useCoachRegistry, type CoachRegistry, type Rect } from "./CoachMarks";
+import { CoachContext, insideWindow, unionRect, useCoachRegistry, type CoachRegistry, type Rect } from "./CoachMarks";
 import { CARD_GAP, placeGuideCard, revealBy } from "./guideLayout";
 import { GuideControlContext, useGuideControlHost } from "./guideControls";
 import { ViewTabs, FaceBar } from "./Faces";
@@ -572,16 +572,6 @@ describe("(T456) the words name only controls drawn inside the ring", { timeout:
 });
 
 describe("coach-mark geometry (T257)", () => {
-  it("the callout sits under a control near the top, over one near the foot, inside the gutters on a phone", () => {
-    const top = placeCallout({ x: 10, y: 60, w: 100, h: 40 }, { w: 390, h: 844 });
-    expect([top.below, top.top, top.left, top.width]).toEqual([true, 114, 16, 358]);
-    const foot = placeCallout({ x: 100, y: 780, w: 80, h: 50 }, { w: 390, h: 844 });
-    expect([foot.below, foot.bottom]).toEqual([false, 844 - 780 + 14]);
-    const wide = placeCallout({ x: 1000, y: 10, w: 44, h: 44 }, { w: 1280, h: 800 });
-    expect([wide.width, wide.left]).toEqual([360, 1022 - 180]);
-    const edge = placeCallout({ x: 1230, y: 10, w: 44, h: 44 }, { w: 1280, h: 800 });
-    expect(edge.left).toBe(1280 - 360 - 16);
-  });
   it("keeps the spotlight inside the window, ring and all (a tab at the foot)", () => {
     expect(insideWindow({ x: 174, y: 788, w: 132, h: 60 }, { w: 390, h: 844 })).toEqual({ x: 174, y: 788, w: 132, h: 54 });
     expect(insideWindow({ x: -6, y: -6, w: 50, h: 50 }, { w: 390, h: 844 })).toEqual({ x: 2, y: 2, w: 42, h: 42 });
@@ -616,15 +606,15 @@ describe("the Help page (T248)", () => {
   });
 
   it("(T293) has short pages first: the walkthrough, syncing and updates, offline (the web's words here)", () => {
-    let mode = "", off = 0;
-    render(<HelpPage palette={LIGHT} theme="light" onTabTour={(k) => { mode = k; }} onOffline={() => { off++; }} />);
+    let off = 0;
+    render(<HelpPage palette={LIGHT} theme="light" onOffline={() => { off++; }} />);
     expect(screen.getAllByTestId(/^help-page-/).map((e) => e.getAttribute("data-testid")))
       .toEqual(["help-page-walkthrough", "help-page-updates", "help-page-offline"]);
     expect(screen.getByText(HELP_WORDS.updates.web[0]!)).toBeTruthy();
     expect(screen.getByText(HELP_WORDS.offline.web[0]!)).toBeTruthy();
     expect(screen.queryByTestId("help-offline")).toBeNull();            // a browser has no Offline maps page
-    fireEvent.click(screen.getByText(TAB_TOUR_WORDS.again.salmon));
-    expect([mode, off]).toEqual(["salmon", 0]);
+    expect(screen.queryByTestId(/^help-tour-/)).toBeNull();               // (owner 2026-11-08) the old mode hints are gone
+    expect(off).toBe(0);
   });
 
   it("the button shows the walkthrough again; with no handler there is no button", () => {
@@ -643,33 +633,3 @@ function hexToRgb(hex: string): string {
   return `rgb(${parseInt(m[1]!, 16)}, ${parseInt(m[2]!, 16)}, ${parseInt(m[3]!, 16)})`;
 }
 
-describe("the mode hints (T276, T293)", () => {
-  const mem = (text: string | null = null): WalkthroughStore & { text: string | null } => {
-    const m = { text, read: () => m.text, write: (t: string) => { m.text = t; } };
-    return m;
-  };
-  it("open once, on the tab's first opening, and are remembered beside the welcome tour's line", () => {
-    const store = mem(WALKTHROUGH_VERSION);
-    const { result, rerender } = renderHook(({ on }) => useTabTour(store, "runs", on, false), { initialProps: { on: false } });
-    expect(result.current.open).toBe(false);          // the Runs tab is not in front
-    rerender({ on: true });
-    expect(result.current.open).toBe(true);
-    act(() => result.current.finish());
-    expect(result.current.open).toBe(false);
-    expect(store.text!.split("\n")).toEqual([WALKTHROUGH_VERSION, "tour-runs-1"]);
-    const again = renderHook(() => useTabTour(store, "runs", true, false));
-    expect(again.result.current.open).toBe(false);    // seen
-    act(() => again.result.current.reopen());          // More → Help
-    expect(again.result.current.open).toBe(true);
-  });
-  it("(T293) Runs and Salmon one step each; the Conditions map a short tour that moves the camera out, then in", () => {
-    expect([TAB_TOUR_WORDS.runs.length, TAB_TOUR_WORDS.salmon.length]).toEqual([1, 1]);
-    expect(TAB_TOUR_WORDS.conditions.map((c) => [c.key, c.camera ?? null]))
-      .toEqual([["watershed", "watershed"], ["gauge", "gauge"], ["colours", null], ["tap", null], ["change", null]]);
-    expect(TAB_TOUR_WORDS.salmon[0]!.targets).toEqual(["modes"]);
-  });
-  it("wait while something else holds the screen, and never open with no store", () => {
-    expect(renderHook(() => useTabTour(mem(), "conditions", true, true)).result.current.open).toBe(false);
-    expect(renderHook(() => useTabTour(null, "conditions", true, false)).result.current.open).toBe(false);
-  });
-});

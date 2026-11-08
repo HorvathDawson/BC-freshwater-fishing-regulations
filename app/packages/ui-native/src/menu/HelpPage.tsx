@@ -7,7 +7,7 @@
  */
 import { Platform, View } from "react-native";
 import { Text } from "../Text";
-import { HELP_WORDS, TAB_TOUR_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSwatch } from "@app/core";
+import { HELP_WORDS, WALKTHROUGH_WORDS, helpRowAloud, helpVM, type HelpRow, type HelpSwatch } from "@app/core";
 import { gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour, tidalColours } from "@app/map/colours";
 import { Button } from "../Button";
 import { DottedSwatch } from "../Chrome";
@@ -77,12 +77,11 @@ function Short({ k, title, text, palette, children }: {
   );
 }
 
-export function HelpPage({ palette, theme, onWalkthrough, onTabTour, onOffline }: {
+export function HelpPage({ palette, theme, onWalkthrough, onOffline }: {
   palette: Palette; theme: string;
   /** re-open the walkthrough; absent: no button */
   onWalkthrough?: () => void;
   /** (T276, T293) replay a mode's hint; absent: no buttons */
-  onTabTour?: (k: "runs" | "conditions" | "salmon") => void;
   /** (T293) open Offline maps (the app's); absent: no button */
   onOffline?: () => void;
 }) {
@@ -98,11 +97,6 @@ export function HelpPage({ palette, theme, onWalkthrough, onTabTour, onOffline }
             <Button palette={palette} kind="ghost" label={WALKTHROUGH_WORDS.again} onPress={onWalkthrough} />
           </View>
         )}
-        {onTabTour && (["runs", "conditions", "salmon"] as const).map((k) => (
-          <View key={k} testID={`help-tour-${k}`}>
-            <Button palette={palette} kind="ghost" label={TAB_TOUR_WORDS.again[k]} onPress={() => onTabTour(k)} />
-          </View>
-        ))}
       </Short>
       <Short k="updates" title={HELP_WORDS.updates.title} text={HELP_WORDS.updates[where]} palette={palette} />
       <Short k="offline" title={HELP_WORDS.offline.title} text={HELP_WORDS.offline[where]} palette={palette}>

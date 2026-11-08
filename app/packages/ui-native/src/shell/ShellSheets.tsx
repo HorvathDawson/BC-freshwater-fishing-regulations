@@ -31,7 +31,7 @@ function reportMapOf(col: Pick<MapColouring, "flowParam" | "horizon" | "layers" 
            zoom: camera?.zoom ?? null, lat: camera?.lat ?? null, lon: camera?.lon ?? null };
 }
 
-export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, onTabTour, sync = null,
+export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, mapDay, theme, onWalkthrough, sync = null,
                               camera = null, source = null, dropOverlay }: {
   /** (T466) the walkthrough's card, drawn in the drop sheet's window while it is up */
   dropOverlay?: React.ReactNode;
@@ -39,7 +39,7 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
   source?: WaterSource | null;
   /** (T352) the camera of the map in front (the Shell's ref, read at its render) */
   camera?: Camera | null;
-  theme?: string; onWalkthrough?: () => void; onTabTour?: (k: "runs" | "conditions" | "salmon") => void;
+  theme?: string; onWalkthrough?: () => void;
   /** (T238) the sync state: a phone's release download and its mobile-data setting, for the Offline maps page */
   sync?: SyncState | null;
   nav: ShellNav; col: MapColouring; rail: MapRail; menu: MenuControls; palette: Palette; loader: ReleaseLoader | null;
@@ -55,7 +55,7 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
       <SpotDropSheet at={route.mode === "browse" ? rail.drop : null} palette={palette}
                      onCancel={rail.cancelDrop} onContinue={rail.continueDrop} overlay={dropOverlay} />
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
-      <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} onTabTour={onTabTour} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
+      <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
                 route={route} day={mapDay} mode={col.regsLayer} map={reportMapOf(col, nav.mapTab, camera)} offline={offline}
                 source={source} onOpenConditions={(item) => nav.opener.item(item as never, "conditions")} />
     </>
