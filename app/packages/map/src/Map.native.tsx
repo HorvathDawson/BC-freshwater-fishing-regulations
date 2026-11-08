@@ -551,7 +551,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     pts.sort((a, b) => Math.hypot(a[0] - w / 2, a[1] - h / 2) - Math.hypot(b[0] - w / 2, b[1] - h / 2));
     for (const [x, y] of pts.slice(0, 400)) {
       const hit = await renderer.press(x, y).catch(() => null);
-      if (hit && ids.has(Number(hit.id)) && !(await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [...STILL_WATER] }).catch(() => [null]) ?? [null]).length) {
+      if (hit && ids.has(Number(hit.id)) && !(await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [...STILL_WATER] }).catch((e: unknown) => { report(e); return [null]; }) ?? [null]).length) {
         console.log(`[target] ${JSON.stringify({ x, y, id: hit.id, win: winRect.current })}`);
         return;
       }
