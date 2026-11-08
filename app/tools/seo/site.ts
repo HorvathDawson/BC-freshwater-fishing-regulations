@@ -17,9 +17,10 @@ import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
 import { regionYear, yearCardHtml } from "./regionYear";
 import { pageSize, type PageSize } from "./budget";
+import { clientScript, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 
 export interface PageRec {
-  readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about" | "privacy";
+  readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about" | "privacy" | "gauge" | "gauges";
   /** the page; "" for a water page the build wrote out itself (T279: compressed, by a render thread; 19,000 panes are not held) */
   readonly html: string; readonly hash: string;
   readonly title: string; readonly description: string; readonly size: PageSize;
@@ -50,11 +51,15 @@ export interface BuildOpts {
   readonly waterPage: (m: WaterModel, head: string, file: string) => Promise<WaterMade>;
   /** build only these waters (item ids): a sample to look at, never a release's site */
   readonly only?: ReadonlySet<string>;
+  /** (T487) the release's gauges and the waters each serves (gauges.ts `readGaugeRows`); null: the release has none */
+  readonly gauges?: GaugeRows | null;
 }
 export interface SiteBuild {
   readonly files: ReadonlyMap<string, string>; readonly pages: readonly PageRec[];
   readonly slugSteps: Steps; readonly slugMap: SlugMap; readonly removed: readonly { id: string; slug: string; region: number }[];
   readonly snapshot: Snapshot; readonly models: readonly WaterModel[]; readonly cssHref: string; readonly regions: readonly number[];
+  /** (T487) the gauge pages built */
+  readonly gauges: readonly GaugeModel[];
 }
 
 const sha = (s: string, n = 16) => createHash("sha256").update(s).digest("hex").slice(0, n);
@@ -307,6 +312,30 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     }
   }
 
+  // ── gauge pages (T487): one per station serving a water with a page; their live half reads the feed in the browser ──
+  const byId = new Map(models.map((m) => [m.id, m]));
+  const gauges = o.gauges ? gaugeModels(o.gauges, (item) => { const m = byId.get(item); return m ? { id: m.id, name: m.name, path: waterPath(m) } : null; }) : [];
+  if (gauges.length) {
+    const client = clientScript(), clientHref = `/assets/gauge.${sha(client, 10)}.js`;
+    files.set(clientHref.slice(1), client);
+    const gaugeCrumbs = (g: GaugeModel): [string, string][] => [["Home", "/"], ["River gauges", "/gauges"], [g.name, g.path]];
+    for (const g of gauges) {
+      const title = gaugeTitle(g), description = gaugeDescription(g);
+      unique(titles, title, g.path); unique(descriptions, description, g.path);
+      // lastmod moves with what the build wrote (name, waters, place), not with the release id the live half names
+      add("gauge", g.path, shellOf(g.path, title, description, gaugeBody(g, release.id, clientHref, asOf), pageLd(site, g.path, title, asOf, gaugeCrumbs(g)),
+          `/gauge/${g.station}/card.png`), sha(JSON.stringify(g)));
+    }
+    const title = clip(`River gauges in BC: live flow and weather — ${site.name}`, 60);
+    const description = clip(`Live flow, the last 7 days, flow forecasts and the weather at ${gauges.length} BC river gauges on waters with fishing regulations.`);
+    unique(titles, title, "/gauges"); unique(descriptions, description, "/gauges");
+    add("gauges", "/gauges", shellOf("/gauges", title, description, gaugesIndexBody(gauges, asOf), pageLd(site, "/gauges", title, asOf, [["Home", "/"], ["River gauges", "/gauges"]]), "/share/gauge.png"),
+        sha(JSON.stringify(gauges.map((g) => [g.station, g.name, g.path]))));
+    files.set("gauge/stations.json", stationsFile(gauges, release.id));
+    // (T487) the fixed card a gauge without its own is answered with; build.ts draws it as share/gauge.png
+    files.set("share/gauge.svg", siteGaugeCardSvg(site));
+  }
+
   // ── About ──────────────────────────────────────────────────────────────────────────────────────────────────────────
   {
     const title = `About ${site.name}`, description = `${site.name} is a free, non-profit app that says whether a BC freshwater water is open and what you can keep, from the provincial synopsis.`;
@@ -352,5 +381,5 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     waters: Object.fromEntries(models.map((m) => [m.id, { slug: slugOf(m.id), name: m.name, hash: waterHash.get(m.id)!, rules: waterRules.get(m.id)! }])),
   };
   files.set("snapshot.json", `${JSON.stringify(snapshot, null, 1)}\n`);
-  return { files, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions };
+  return { files, pages, slugSteps, slugMap, removed, snapshot, models, cssHref, regions, gauges };
 }

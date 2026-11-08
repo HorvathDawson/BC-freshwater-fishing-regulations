@@ -41,6 +41,7 @@ import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from 
 import { buildDayOf, type BuildDay } from "./model";
 import { buildSite, type Snapshot, type SiteBuild, type WaterMade } from "./site";
 import { EMPTY_SLUG_MAP, type SlugMap } from "./slug";
+import { readGaugeRows, type GaugeRows } from "./gauges";
 
 const APP = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const DEFAULT_OUT = join(APP, "dist/seo");
@@ -80,6 +81,8 @@ export interface BuildArgs {
   readonly only?: ReadonlySet<string>;
   /** no water page is rendered (a stub stands in): for `--snapshot-only`, whose output is the snapshot alone */
   readonly bare?: boolean;
+  /** (T487) the gauges, given (a test over the regs fixture, which carries no conditions file); absent: read from the release */
+  readonly gauges?: GaugeRows | null;
 }
 /** The app document a test builds into when no web export is given: the export's shape, no script. */
 export const BARE_APP = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><title>canifishthis</title>` +
@@ -141,11 +144,13 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     cssParts = async () => [panes.parts()];
   }
   let build: SiteBuild, parts: PaneCssParts[];
+  // (T487) the gauges and the waters each serves (null: a release with no conditions file, the regs fixture)
+  const gaugeRows = a.gauges !== undefined ? a.gauges : await readGaugeRows(a.loader);
   try {
     build = await buildSite({
       store, site: config, release: { id: store.meta.release, validUntil: a.loader.manifest.regulations.valid_until },
       on: a.on, slugMap: a.slugMap ?? EMPTY_SLUG_MAP, previous: a.previous ?? null, ...(a.hubSplitAt ? { hubSplitAt: a.hubSplitAt } : {}),
-      waterPage, ...(a.only ? { only: a.only } : {}),
+      waterPage, ...(a.only ? { only: a.only } : {}), gauges: gaugeRows,
     });
     parts = await cssParts();
   } finally { await pool?.close(); }
@@ -171,7 +176,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
     const pathOfItem = new Map(build.models.map((m) => [m.id, `/water/${build.slugMap.waters[m.id]!.slug}`]));
     legacy = legacyRedirects(a.crosswalk, pathOfItem, new Set(build.regions));
     files.set("legacy-redirects.json", `${JSON.stringify(legacy.map)}\n`);
-    files.set("_worker.js", legacyWorker(legacy.map));
+    files.set("_worker.js", legacyWorker(legacy.map, undefined, Object.fromEntries(build.gauges.map((g) => [g.station, g.path]))));
   }
   const sizes = build.pages.map((p) => p.size);
   const measured = measure(sizes, [files.get(build.cssHref.slice(1))!, paneCss]);
@@ -180,6 +185,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const share = { files: cards.length, bytes: cards.reduce((x, y) => x + y, 0), largest: Math.max(0, ...cards) };
   if (share.largest > BUDGET.sharePngBytes) problems.push(`a share card is ${share.largest} B, over ${BUDGET.sharePngBytes}`);
   if (web) problems.push(...web.problems);
+  if (gaugeRows && !a.only && !build.gauges.length) problems.push("the release's conditions file names no gauge that serves a water with a page (no /gauge pages)");
   const noTtf = a.app ? FACES_REQUIRED.filter((f) => !a.app!.font(f)) : [];
   if (noTtf.length) problems.push(`the app's web export has no file for the face(s) ${noTtf.join(", ")}`);
   if (unmerged.length) problems.push(`${unmerged.length} pane(s) whose light and dark renders differ beyond colour, shipped twice: ${unmerged.slice(0, 5).join(", ")}`);

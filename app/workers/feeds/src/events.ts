@@ -21,7 +21,7 @@ import { body as webhookBody } from "./notify";
 import type { Fetch, Store } from "./io";
 import { apkSection, render, sectionFor, type ApkInfo, type RenderCtx } from "./email";
 
-export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report" | "crash" | "skill" | "runtiming";
+export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report" | "crash" | "skill" | "runtiming" | "card";
 export interface FeedEvent {
   key: string;
   kind: EventKind;
@@ -66,6 +66,7 @@ export interface NotifyState {
 export const NOTIFY_STATE = "notify/state.json";
 const FORGET_MS = 366 * 86_400_000;
 const KIND_TITLE: Record<EventKind, string> = {
+  card: "Gauge share cards",
   hydat: "HYDAT",
   roster: "Gauge roster",
   inseason: "In-season regulation changes",

@@ -25,6 +25,17 @@ rsync -a --ignore-existing "${X[@]}" "$S/" "$O/"
 # The hubs' "Open the app" link is absolute to production; on staging it must open the staging app (canonicals stay on
 # the .ca). (T269: a water page IS the app — its links are already relative.)
 grep -rl --include=index.html '<a class="app" href="https://canifishthis.ca/">' "$O" | xargs perl -pi -e 's#<a class="app" href="https://canifishthis\.ca/">#<a class="app" href="/">#g' || true
+# (T487) a gauge page's live half names production's data host and crash endpoint (tools/seo gauges.ts LIVE): on staging it
+# reads staging's feed (the cards the staging feeds worker draws) and reports to staging's worker
+if [[ -d "$O/gauge" ]]; then
+  find "$O/gauge" -name index.html -print0 | xargs -0 perl -pi -e 's#"https://data\.canifishthis\.ca/#"https://data-staging.canifishthis.ca/#g; s#"https://feeds\.canifishthis\.ca/crash"#"https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/crash"#g; s#"env":"production"#"env":"staging"#g'
+  if grep -rlq --include=index.html -e 'data\.canifishthis\.ca/feeds' -e 'feeds\.canifishthis\.ca' -e '"env":"production"' "$O/gauge"; then
+    echo "site.sh: a gauge page still names a production host after the staging rewrite" >&2; exit 1
+  fi
+  [[ -f "$O/gauge/stations.json" && -f "$O/share/gauge.png" ]] || { echo "site.sh: $S has gauge pages but no gauge/stations.json or share/gauge.png" >&2; exit 1; }
+else
+  echo "site.sh: $S has no gauge pages (built before T487): rebuild with build-seo" >&2; exit 1
+fi
 cp "$S/_worker.js" "$K/worker.js"
 # staging must never be indexed: robots disallows everything, every response says noindex
 printf 'User-agent: *\nDisallow: /\n# STAGING (staging.canifishthis.ca): not for indexing. Production robots.txt is built by tools/seo.\n' > "$O/robots.txt"

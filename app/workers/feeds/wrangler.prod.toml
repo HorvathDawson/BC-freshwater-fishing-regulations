@@ -55,6 +55,8 @@ STATUS_URL = "https://feeds.canifishthis.ca/status"
 WORKER_NAME = "bc-fishing-feeds"
 BUCKET_NAME = "bc-fishing-regulations"
 BACKUP_BUCKET_NAME = "bc-fishing-regulations-backup"
+# (T487) the site whose gauge pages the share cards are drawn for (src/gauges/card/card.ts reads <SITE_ORIGIN>/gauge/stations.json)
+SITE_ORIGIN = "https://canifishthis.ca"
 
 # The same schedule as staging (wrangler.toml explains each minute).
 [triggers]

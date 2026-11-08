@@ -14,7 +14,13 @@ directory = "../../app/dist/staging-site"
 binding = "ASSETS"
 not_found_handling = "404-page"
 html_handling = "drop-trailing-slash"
-run_worker_first = ["/waterbody/*", "/water/*", "/*/"]
+run_worker_first = ["/waterbody/*", "/water/*", "/gauge/*", "/*/"]
+
+# (T487) the gauge share cards the feeds worker draws (feeds/cards/<station>.png): the worker maps /gauge/<station>/card.png to
+# one, and marks a missing one under private/cards-missing/ (read back by the feeds worker's gauge run)
+[[r2_buckets]]
+binding = "CARDS"
+bucket_name = "bc-fishing-regulations-staging"
 
 [[routes]]
 pattern = "staging.canifishthis.ca"

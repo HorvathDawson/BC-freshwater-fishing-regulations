@@ -58,6 +58,8 @@ STATUS_URL = "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status
 WORKER_NAME = "bc-fishing-feeds-staging"
 BUCKET_NAME = "bc-fishing-regulations-staging"
 BACKUP_BUCKET_NAME = "bc-fishing-regulations-staging-backup"
+# (T487) the site whose gauge pages the share cards are drawn for (src/gauges/card/card.ts reads <SITE_ORIGIN>/gauge/stations.json)
+SITE_ORIGIN = "https://staging.canifishthis.ca"
 
 # T225 Phase A (owner 2026-10-28): the schedule. Cron times are UTC; the MINUTE names the job (src/index.ts `scheduled`):
 #   :05 + :35 gauges   every 30 min 13–05 UTC (06–22 PDT / 05–21 PST), hourly (:05) at night 06–12 UTC (owner 2026-10-28)

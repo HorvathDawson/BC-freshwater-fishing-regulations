@@ -94,3 +94,11 @@ the hooks answered first through `@app/ui` `setPrerenderAnswers`), `seo/prerende
 and phone/tablet/desktop renders into one markup, and the page is the web export's own index.html (`--app <export>`) with the
 pane before `#root`; the app takes over when its own pane is up. The app reads `/water/<slug>` as a start link and writes it
 back (`apps/mobile` `startLink.web.ts`, `systemBack.web.ts`, `waterSlugs.ts` over the build's `water-slugs/<n>.json`).
+
+(T487) **A gauge's page** is `/gauge/<station>/<slug>` (`seo/gauges.ts`, index at `/gauges`, in the sitemap): a static hub-style
+page naming the waters the gauge serves (one regulations link each, no open/closed word) whose live half (`seo/gaugeClient.ts`,
+shipped as one plain script) reads the facts the feeds worker writes beside each card (`feeds/cards/<station>.json`) and
+Open-Meteo at the gauge. Its preview card is drawn in the feeds worker's gauge run (`workers/feeds/src/gauges/card/`: a tiny
+palette rasteriser + glyphs pre-drawn from Archivo, `tools/card_glyphs.py`), stored on R2, and only MAPPED by the site worker
+(`seo/legacy.ts`: `/gauge/<station>/card.png` → R2 binding CARDS; missing → `/share/gauge.png` + a `private/cards-missing/`
+marker the gauge run reports). The worker reads which gauges have pages from the site's `/gauge/stations.json`.

@@ -44,7 +44,8 @@ export function measure(pages: readonly PageSize[], css: readonly string[]): Mea
 /** A `<script>` that blocks the parser: not JSON-LD, not async, not deferred, not a module. */
 export function blockingScripts(html: string): string[] {
   return [...html.matchAll(/<script\b([^>]*)>/g)].map((m) => m[1]!)
-    .filter((a) => !/type="application\/ld\+json"/.test(a) && !/\b(async|defer)\b/.test(a) && !/type="module"/.test(a));
+    // a data block (JSON-LD; (T487) a gauge page's config, application/json) is never run, so it blocks nothing
+    .filter((a) => !/type="application\/(ld\+)?json"/.test(a) && !/\b(async|defer)\b/.test(a) && !/type="module"/.test(a));
 }
 
 /** What is over budget; [] = within. */

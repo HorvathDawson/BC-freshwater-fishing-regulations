@@ -27,6 +27,7 @@ import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
 import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
 import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
+import { cardEvents, runCards, type CardBucket, type CardRun } from "./gauges/card/card";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
@@ -58,6 +59,8 @@ export interface Env extends ReportEnv, DispatchEnv {
   RL_AUTH?: RateLimiter;
   /** (T246) the backup bucket (BACKUP_BUCKET_NAME; src/backup.ts) */
   BACKUP?: DstBucket;
+  /** (T487) the site whose gauge pages the share cards are for: its /gauge/stations.json names them (var) */
+  SITE_ORIGIN?: string;
   /** the deployed version ([version_metadata] in wrangler.toml): every job's reuse key carries it (`rev`, io.ts) */
   CF_VERSION_METADATA?: { id: string };
 }
@@ -257,6 +260,18 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       // owner 2026-10-28: a station ECCC lists but has 404'd for NODATA_DAYS is "listed, no data" — not a failure
       const nd = await noDataStations(r2Store(env.BUCKET, "private/feeds/gauges/"), s.answered ? s.failed ?? [] : [], s.answered ? s.asked : 0, health, at, opts.dryNotify);
       events.push(...nd.events);
+      // (T487) each gauge page's share card, drawn here (never per request): only the ones whose reading moved
+      let cards: CardRun | null = null;
+      try {
+        cards = await runCards({ fetch: meteredFetch((u, i) => fetch(u, i), m), feed: meteredStore(r2Store(env.BUCKET, "feeds/live/"), m),
+                                 bucket: env.BUCKET as unknown as CardBucket, siteOrigin: env.SITE_ORIGIN, now: started, limit: opts.limit, log });
+      } catch (e) {
+        cards = { ok: false, listed: 0, drawn: 0, unchanged: 0, failed: [], missingGlyphs: {}, ms: 0, error: e instanceof Error ? e.message : String(e) };
+      }
+      summary.cards = { ok: cards.ok, listed: cards.listed, drawn: cards.drawn, unchanged: cards.unchanged, failed: cards.failed.length, ms: cards.ms, ...(cards.error ? { error: cards.error } : {}) };
+      counts.cardsDrawn = cards.drawn;
+      counts.cardsFailed = cards.failed.length + (cards.ok ? 0 : 1);
+      if (!cards.ok) log(`cards: not drawn (${cards.error})`);
       // (T237) problem reports received since the last run: one digest line each (not urgent)
       try {
         const ns = await readState(r2Store(env.BUCKET, STATUS_PREFIX));
@@ -264,6 +279,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         events.push(...(await reportEvents(env.BUCKET, (k) => !!ns.told[k] || pend.has(k), started, at)));
         // (T242) and the app's NEW error kinds (one line each, once)
         events.push(...(await crashEvents(env.BUCKET, (k) => !!ns.told[k] || pend.has(k), started, at)));
+        // (T487) the card run's failures and the cards the site found missing (one line each, once)
+        events.push(...(await cardEvents(env.BUCKET as unknown as CardBucket, cards, (k) => !!ns.told[k] || pend.has(k), at)));
       } catch (e) {
         log(`reports: not read (${String(e)})`);
       }
