@@ -1,6 +1,6 @@
 # T513 — Gauges frozen on old readings: Cloudflare's edge cache served stale ECCC CSVs to the feeds worker
 
-Status: DONE on staging (2026-11-08, worker 336fd079); production needs the owner's `deploy/prod/feeds.sh`. Part of T495 gate 1.
+Status: DONE on staging (2026-11-08, worker 336fd079). Production has no feeds yet; the fix is in the code its first deploy uses. Part of T495 gate 1.
 
 Owner 2026-11-08 (screenshot): Capilano River at Canyon (08GA031) showed 0.742 m³/s "observed 2026-11-06 08:45 PT ·
 checked 22 min ago", while ECCC read 32.6 m³/s and rising.
@@ -19,6 +19,6 @@ checked 22 min ago", while ECCC read 32.6 m³/s and rising.
   86 s (was 764 s).
 
 ## Left
-- Production: owner runs `deploy/prod/feeds.sh` (carries the T511 cards too).
+- Production: nothing to do now (no prod feeds yet); the first `deploy/prod/feeds.sh` carries the fix.
 - No guard yet that would catch an old copy. Idea: compare a station's newest row with the run time, and count stations
   more than 1 day behind as a held part on /status.
