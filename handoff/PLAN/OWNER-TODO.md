@@ -6,11 +6,10 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Run production for the Fraser channel fix (T497 accepted 2026-11-08):**
-  `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a`.
-- **Morning page (2026-11-08): https://claude.ai/artifact/9XDb7uXoQ9ciZf8sS7uz3U** — two answers left:
-  1. **T487:** add a Play Store link to "Open in the app" once the listing is public?
-  2. **T487:** gauge times read PDT in November (Cloudflare's clock data). Has BC gone to permanent daylight time?
+- **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
+  `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a` (or the newer release by then).
+- (Done 2026-11-08: T487 link = web app for now, store link is T514 at the production app release; time zone already
+  settled — BC is on permanent daylight time.)
 - (Done 2026-11-08: T497 yes; T488 B (colours, width kept for T311).)
 - (Done 2026-11-08: the 0.6.9 phone check — all 11 pass, T459 pick A.)
 - **Run the T420 APK pair (2026-11-07): the MapLibre patch halves pan frame time.** On the stressed emulator, map p50

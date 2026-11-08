@@ -1,0 +1,11 @@
+# T514 — Share page "Open in the app": link the Play Store listing once it is public
+
+Status: OPEN — owner 2026-11-08: the web app for now; the store link ships with the production app release (T495 step 5).
+
+Owner 2026-11-08: "link can open website for now but have a ticket in production app release to link to it as well".
+
+## What
+- Today (T487): a shared gauge/water page's "Open in the app" opens the web app.
+- When the Play listing is public (T244/T371): Android visitors without the app get the Play Store listing; with the app
+  installed, the app opens at that gauge/water. iOS gets its App Store link after TestFlight/App Store (T88).
+- Proof: on a phone without the app, the link reaches the listing; with the app, it opens the same gauge.
