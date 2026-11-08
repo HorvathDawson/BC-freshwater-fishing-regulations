@@ -532,7 +532,7 @@ use that as the sole source of future work."
 | T485 | Run timing off the release path: skip when unchanged; last good NuSEDS/PSF on R2; refresh as its own job | PARTIAL | d948fa0 | owner 2026-11-07 (open.canada.ca outage blocked a release) |
 | T486 | Staging in-season feed stopped refreshing (last fetch 11-06 15:28 UTC); the worker failed silently | DONE | b85c3c1 | found 2026-11-07 by the staging smoke |
 | T487 | Share a gauge's conditions as a public page (live; 7-day gauge + forecast, weather; regs link only; generated preview card) | IN REVIEW | df77c117f, 1554faf6d, 5f8eece82 | staging 11-08: 450 /gauge pages + /gauges in the sitemap; cards drawn in the feeds gauge run (R2, mapped by the site worker; missing → site card + digest); owner look at a page + a preview |
-| T488 | Park borders and fill nearly invisible in light mode | IN REVIEW | 301ef34a6 | owner 11-08: B, colours only, width 1.0 (T311); light+cvd park tokens; shots/T488-applied.png |
+| T488 | Park borders and fill nearly invisible in light mode | IN REVIEW | 0ae6e04e9 | owner 11-08: B, colours only, width 1.0 (T311); light+cvd park tokens; shots/T488-applied.png |
 | T489 | Lakes lose too much shape when zoomed out (tile simplification) | DONE | 8494959a2 | owner 2026-11-07; ships with a tiles rebuild |
 | T490 | /changes counts a wording-only release as every water changed (154 KB > 30 KB); staging site not redeployed | DONE | 3c12dc0 | found 2026-11-07; blocks the staging site + release ledger stage 6 |
 | T491 | test_curation_review_screen tidal test reads live curated data; the owner's 11-06 Nanaimo mark decided it | DONE | 763bb4d | found 2026-11-07; give the test its own fixture |
