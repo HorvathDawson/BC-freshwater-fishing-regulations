@@ -1,6 +1,6 @@
 # T487 — Share a gauge's conditions as a public page of its own (future)
 
-Status: OPEN — owner 2026-11-08: do it now (after T497). Owner 2026-11-07 (scope answered the same day).
+Status: IN REVIEW — built + on staging (df77c117f, 1554faf6d, 5f8eece82); proof pending: owner look at a page + a shared link's preview. Was OPEN — owner 2026-11-08: do it now (after T497). Owner 2026-11-07 (scope answered the same day).
 
 Owner: a way to share the conditions for a river that creates a new page — a nice viewer of them, nicely shared, with a
 link back to the app.
@@ -29,3 +29,25 @@ link back to the app.
   The worker only maps the URL to the file. A gauge whose card is missing shows a fixed site card, reported (no silent
   fallback).
 - URL default: `/gauge/<station-id>/<slug>`, in the sitemap beside the water pages.
+
+## Built (2026-11-08, df77c117f, 1554faf6d, 5f8eece82)
+- **Pages** (`app/tools/seo/gauges.ts`): `/gauge/<station>/<slug>` for every station serving a water with a page (own water,
+  lake_gauge, section_gauge good/fair; weak ones in a "rough guide" fold) — 450 on r-25a89ce9f8e6 — plus `/gauges`, all in the
+  sitemap with the water pages. One regulations link per water, no open/closed word; "Open in the app" = the web app on the
+  first water's Conditions view (`/water/<slug>?view=conditions`; the phone app takes no links, D1). `/gauge/<station>` and an
+  old slug 301 to the page.
+- **Live half** (`gaugeClient.ts`, one plain script): reads `feeds/cards/<station>.json` (the facts the card was drawn from:
+  core's words, the reading's instant, the 7 days, the forecast run + its working-day line) and Open-Meteo at the gauge
+  (rounded, `weatherPlace`). Stale reading, no forecast, an out-of-date run: each said in words. A read failure is shown and
+  reported as crash/2 (offline: shown only). No new upstream fetch by our servers.
+- **Cards** (`app/workers/feeds/src/gauges/card/`): drawn in the gauge run, never per request — a palette rasteriser with
+  Archivo glyphs pre-drawn (`tools/card_glyphs.py`), ~8 ms and ~20 KB a card, redrawn only when the reading/standing/forecast/
+  stale/day moved. The list is the site's `/gauge/stations.json` (`SITE_ORIGIN` var). The site worker only maps
+  `/gauge/<station>/card.png` to R2 (binding CARDS); a missing card → `/share/gauge.png` (`x-card: site`) + a
+  `private/cards-missing/` marker the gauge run puts in the digest (kind "card"), as are a run that could not draw and a card
+  that failed.
+- Staging: site deployed (version cecb1b22, pages built on r-25a89ce9f8e6), feeds worker deployed (2a8376a1) and run: e.g.
+  https://staging.canifishthis.ca/gauge/08MH001/chilliwack-river-at-vedder-crossing and its card `/gauge/08MH001/card.png`.
+- Production: `deploy/prod/site.wrangler.toml` now binds CARDS (bucket bc-fishing-regulations) and runs the worker first for
+  `/gauge/*`; `wrangler.prod.toml` sets SITE_ORIGIN. Owner-run, untouched.
+- Left: 5f8eece82 (the chart's unit label moved off the top figure) ships with the next site build; owner look.
