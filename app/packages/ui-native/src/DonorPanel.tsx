@@ -85,7 +85,7 @@ const placeMid = (b: readonly [number, number, number, number] | null | undefine
 
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, standing,
-                             detail, chart, foot, quantity, sides, count, waterLine, place }: {
+                             detail, chart, foot, after, quantity, sides, count, waterLine, place }: {
   palette: Palette; value: PanelAnswer;
   /**
    * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
@@ -125,6 +125,9 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   chart?: ReactNode;
   /** Drawn last, inside the fold: the chart's disclaimer and the data credits. */
   foot?: ReactNode;
+  /** (T506, owner 2026-11-08: "sources and notes should be at the bottom") drawn after the readings, before the fold
+   *  (the basin's day strip), so the fold is the page's last block */
+  after?: ReactNode;
   /**
    * (T168) Each member's side — on this water or a donor (`useConditionsView`'s `sides`). With it the rows group, own
    * first, and the not-reporting fold away; without it (a saved spot) one run, as before.
@@ -181,6 +184,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           {detail}
         </Block>
         {chart}
+        {after}
         {foot && <Fold palette={palette}>{foot}</Fold>}
       </View>
     );
@@ -328,6 +332,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         {/* THE SILENT MEMBERS, NAMED (owner 2026-10-22): not rows, not pins — one line, each with its last data. */}
         {vm.silent && !vm.groups ? <Silent palette={palette}>{vm.silent}</Silent> : null}
       </Block>
+      {after}
 
       {/* THE WORKING'S WORKING, closed (P16 item 3): why each gauge counts what it counts,
           the notes that qualify the answer, how it is carried, and whose data it is. Every

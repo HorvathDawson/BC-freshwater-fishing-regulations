@@ -315,7 +315,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const small = notes.length ? <View style={{ gap: SPACE.s3 }}>{notes}</View> : undefined;
 
   /* ONE READING ORDER, decided in `DonorPanel`: header → headline → detail → chart →
-     donors → the fold (which holds the credits; the disclaimer stays under the chart). */
+     donors → the day strip (`footer`, T506) → the fold, last (Sources and notes: the credits, the disclaimer). */
   const body = (
     <>
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
@@ -323,8 +323,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   chain={vm.chain} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
-                  foot={small} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />
-      {footer}
+                  foot={small} after={footer} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />
     </>
   );
 

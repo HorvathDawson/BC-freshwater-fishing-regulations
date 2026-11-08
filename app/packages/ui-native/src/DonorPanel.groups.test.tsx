@@ -11,6 +11,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { MapProps } from "@app/map";
 import type { DonorRow, GaugeSides, PanelAnswer } from "@app/ui";
+import { CONDITIONS_WORDS } from "@app/core";
 import { LIGHT } from "./theme";
 
 vi.mock("@app/map", async (orig) => ({
@@ -79,3 +80,15 @@ describe("(T168) the donor rows, grouped", () => {
     expect(screen.getByText(/^Not reporting: 08MH085/)).toBeTruthy();
   });
 });
+
+describe("(T506, owner 2026-11-08) Sources and notes is the page's last block", () => {
+  it("what the caller draws after the readings (the day strip) comes before the fold", () => {
+    const { container } = render(<DonorPanel palette={LIGHT} value={VALUE} day={new Date(2026, 9, 23, 12)} sides={SIDES}
+                                             after={<span data-testid="day-strip" />} foot={<span data-testid="credits" />} />);
+    const strip = screen.getByTestId("day-strip"), fold = screen.getByRole("button", { name: CONDITIONS_WORDS.fold });
+    expect(strip.compareDocumentPosition(fold) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const all = [...container.querySelectorAll("*")];
+    expect(all.indexOf(fold)).toBeGreaterThan(all.indexOf(strip));
+  });
+});
+
