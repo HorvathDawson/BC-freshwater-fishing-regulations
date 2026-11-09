@@ -565,7 +565,7 @@ use that as the sole source of future work."
 | T518 | In-season notice shows on exactly the sections it covers (its own ends + map highlight), not its whole part | IN REVIEW — next APK | ece44d1f3, 46ce5a22d, fd09e65af | carried by T520; shots/T520-*.png |
 | T519 | Fraser exit reads Morey Channel (own side channel) since T497; T59 rule regressed | OPEN — with T517 rebuild | — | T517 lane 2026-11-08 |
 | T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, publish from the Mac only (workflow deleted; carries T518) | IN REVIEW — owner look at shots, next APK | ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600, 28c0c7869 | staging live (32/32 matched); owner: GitHub R2 secrets (OWNER-TODO); T517 to ship the token→words table |
-| T521 | A new DFO location with no mapped place still shows on its water page (worker unplaced.json read by the app) | OPEN | — | owner 11-09 |
+| T521 | A new DFO location with no mapped place still shows on its water page (worker unplaced.json read by the app) | DONE | c7d4226b2 | owner 11-09 |
 
 ## Order for open tickets
 
