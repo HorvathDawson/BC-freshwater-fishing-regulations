@@ -1301,7 +1301,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "chapman_creek__tidal_boundary",
+              "chapman_creek__100_m_below_lower_falls"
+            ],
+            "item_id": "gnis:12936"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
