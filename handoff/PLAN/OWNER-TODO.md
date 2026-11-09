@@ -8,6 +8,24 @@ with the default Claude uses until you answer). Newest first inside each section
 
 - **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
   `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a` (or the newer release by then).
+- **DFO decisions from T524 (2026-11-09), ~5 min.** (1) Region 6 Section E had a second piece "within MU 6-12/6-13
+  outside MU 6-12/6-13" (an area minus itself — it bound nothing). Removed so the build's new empty-piece check passes; no
+  section changed. What was it meant to be (e.g. MU 6-12/6-13 outside the Fraser basin)? (2) Chilliwack/Sumas loc 48:
+  pieces can't subtract the "no fishing for salmon" closure area its words exclude — OK as is? (3) loc 54's words
+  contradict themselves ("upstream from … downstream including Sumas") — which place did DFO mean? (4) The Forks: in FWA
+  the 1 km below the confluence is the BULKLEY, not the Morice; the proposal uses the Bulkley pieces. (5) Check the new
+  Barrow Town Pump Station point on the Sumas (50 m below the old lake polygon's outlet, medium confidence). Use
+  "use this fix" in the review app once T525 lands.
+- **Phone check with build 22 (Play internal), ~5 min — T401 edge pop-in + T448 pixel cap (2026-11-08).** Build 22 carries
+  the lean MapLibre patch, the pixel cap at 2 and MapLibre's own prefetch (4). Use the **Map tab**, Regulations view.
+  1. **T401, Fraser Valley z11 (around Chilliwack), then Coquitlam z13:** 3–4 quick flings one way, then back. Look at
+     the screen EDGES during the glide: do small creeks appear late (bare big rivers first, creeks popping in)? Say
+     "fine", "pops during the glide" or "still bare once stopped". If it pops: long-press the © chip → *Prefetch delta 2*
+     → Close → same flings; say whether the edges fill sooner.
+  2. **T448, Lower Mainland z7–z9 and Coquitlam z13:** is the map's text and line work sharp enough (the cap draws ~40 %
+     fewer pixels)? Then © chip → *Pixel cap 2* OFF → same pans: sharper? smoother or laggier? Say which you keep.
+  3. **T351/T360:** after ~10 min of use (map, a water page, the rule book, Conditions), any crash or freeze? Nothing to
+     open; a crash reports itself.
 - (Done 2026-11-08: T487 link = web app for now, store link is T514 at the production app release; time zone already
   settled — BC is on permanent daylight time.)
 - (Done 2026-11-08: T497 yes; T488 B (colours, width kept for T311).)

@@ -2468,13 +2468,6 @@
               "area:basin:100-",
               "area:mu_group:management_units_6_12_and_6_13"
             ]
-          },
-          {
-            "op": "within",
-            "area_id": "area:mu_group:management_units_6_12_and_6_13",
-            "outside_areas": [
-              "area:mu_group:management_units_6_12_and_6_13"
-            ]
           }
         ],
         "tributaries": false,
