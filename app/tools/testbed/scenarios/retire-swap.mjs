@@ -39,7 +39,7 @@ export const retireSwap = {
         await coldStart(ctx, { ms: 600_000 });
       }, { stop: true });
       await ctx.step('a new release (same files, new id) published; Check now; staged', async () => {
-        id = ctx.updates('release', `r${Date.now().toString(36).slice(-5)}`).release?.data_release ?? null;
+        { const u = ctx.updates('release', `r${Date.now().toString(36).slice(-5)}`); id = u.data_release ?? u.release?.data_release ?? null; }
         openLog(ctx);
         ctx.flow('updates-log-action', { ACTION: 'check' });
         await ctx.waitText(/Release, (staged|applied)/, 240_000);
