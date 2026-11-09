@@ -32,6 +32,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - T520 implementation (in-season links/2, GitHub workflow removal).
 - When each lands: a fresh high-effort Opus review of the code + side build before anything is promoted (owner ask).
 
+**T520 done** (ece44d1f3 … abe296584, live on staging): 32/32 notices same sections; high-effort review fixed
+(stale lines on page change, day mismatch, digest check, per-input sync, flock, refusals, typography ids, duplicate
+rows collapse). Old APK shows every notice "not on the map yet" until build 22 — owner OK (no old-format shim).
+
+**Next, in order (owner 2026-11-08)**
+1. T517 lands → fresh high-effort Opus review → fixes → owner gets the moved list / parity list / sizes / shots.
+2. **Explainer artifact** (owner ask): the new part + in-season flow and format, why each decision, with visuals.
+3. Then the queue: build 22 (Play internal, `MLN_LOCAL_MAVEN` lean MapLibre; carries T509/T515/T516/T517/T520),
+   T351/T360, T401/T448, T496.
+
 **Needs the owner**
 - Remove the R2 keys from GitHub settings once T520 deletes the workflow (OWNER-TODO).
 - On return: T510 moved list, T517 parity list + sizes + shots.
