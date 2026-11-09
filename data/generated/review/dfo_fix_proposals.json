@@ -153,6 +153,384 @@
    "date": "2026-11-02",
    "by": "claude, from the owner's mark note",
    "owner": true
+  },
+  "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3": {
+   "why": "T524: the words name TWO waters — the Chilliwack-Vedder below the Slesse line AND the Sumas River from Barrow Town Pump Station down to the Fraser. Today's extent is the Chilliwack-Vedder piece only (18 sections; the Sumas binds nothing). The pump station has no cut (the Sumas 'lake' polygon it sat on was absorbed into the Sumas River item), so piece 2 starts at a NEW point cut placed 50 m below that polygon's outlet (checked: snaps onto the Sumas, blk 356352298 m 5579.5) — medium confidence: check the point on the map, move it if the station is elsewhere. 'use this fix' pre-fills both pieces + the new cut; then Save extent.",
+   "status": "proposed",
+   "date": "2026-11-09",
+   "by": "claude (T524), from the notice's words + an FWA check",
+   "suggestion": {
+    "op": "downstream_of",
+    "items": [
+     "gnis:8634",
+     "gnis:3062"
+    ],
+    "tributaries": null,
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+     }
+    ],
+    "new_splits": [
+     {
+      "ref": "barrow_town_pump_station",
+      "anchor": "dam",
+      "name": "Barrow Town Pump Station",
+      "coord": [
+       -122.112533,
+       49.114813
+      ],
+      "on_item": "gnis:26216",
+      "blk": "356352298",
+      "measure": 5579.5,
+      "confidence": "medium",
+      "quote": "that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River"
+     }
+    ],
+    "pieces": [
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:8634",
+       "gnis:3062"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+       }
+      ]
+     },
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:26216"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "barrow_town_pump_station"
+       }
+      ]
+     }
+    ],
+    "words": "2 pieces: (1) the Chilliwack-Vedder downstream of the boundary signs 100 m below the Slesse Creek confluence; (2) the Sumas River downstream of Barrow Town Pump Station (a NEW cut) to the Fraser"
+   }
+  },
+  "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun": {
+   "why": "T524: the words name TWO waters — the Chilliwack-Vedder below the Slesse line AND the Sumas River from Barrow Town Pump Station down to the Fraser. Today's extent is the Chilliwack-Vedder piece only (18 sections; the Sumas binds nothing). The pump station has no cut (the Sumas 'lake' polygon it sat on was absorbed into the Sumas River item), so piece 2 starts at a NEW point cut placed 50 m below that polygon's outlet (checked: snaps onto the Sumas, blk 356352298 m 5579.5) — medium confidence: check the point on the map, move it if the station is elsewhere. 'use this fix' pre-fills both pieces + the new cut; then Save extent. (Same words as the live ~3 place.)",
+   "status": "proposed",
+   "date": "2026-11-09",
+   "by": "claude (T524), from the notice's words + an FWA check",
+   "suggestion": {
+    "op": "downstream_of",
+    "items": [
+     "gnis:8634",
+     "gnis:3062"
+    ],
+    "tributaries": null,
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+     }
+    ],
+    "new_splits": [
+     {
+      "ref": "barrow_town_pump_station",
+      "anchor": "dam",
+      "name": "Barrow Town Pump Station",
+      "coord": [
+       -122.112533,
+       49.114813
+      ],
+      "on_item": "gnis:26216",
+      "blk": "356352298",
+      "measure": 5579.5,
+      "confidence": "medium",
+      "quote": "that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River"
+     }
+    ],
+    "pieces": [
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:8634",
+       "gnis:3062"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+       }
+      ]
+     },
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:26216"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "barrow_town_pump_station"
+       }
+      ]
+     }
+    ],
+    "words": "2 pieces: (1) the Chilliwack-Vedder downstream of the boundary signs 100 m below the Slesse Creek confluence; (2) the Sumas River downstream of Barrow Town Pump Station (a NEW cut) to the Fraser"
+   }
+  },
+  "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2": {
+   "why": "T524: the words name TWO waters — the Chilliwack-Vedder below the Slesse line AND the Sumas River from Barrow Town Pump Station down to the Fraser. Today's extent is the Chilliwack-Vedder piece only (18 sections; the Sumas binds nothing). The pump station has no cut (the Sumas 'lake' polygon it sat on was absorbed into the Sumas River item), so piece 2 starts at a NEW point cut placed 50 m below that polygon's outlet (checked: snaps onto the Sumas, blk 356352298 m 5579.5) — medium confidence: check the point on the map, move it if the station is elsewhere. 'use this fix' pre-fills both pieces + the new cut; then Save extent. FLAG: these words add 'with exception of the \"no fishing for salmon\" closure area identified above' — a carve-out (most likely the Vedder Crossing closure) that pieces cannot subtract. Your call.",
+   "status": "proposed",
+   "date": "2026-11-09",
+   "by": "claude (T524), from the notice's words + an FWA check",
+   "owner": true,
+   "suggestion": {
+    "op": "downstream_of",
+    "items": [
+     "gnis:8634",
+     "gnis:3062"
+    ],
+    "tributaries": null,
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+     }
+    ],
+    "new_splits": [
+     {
+      "ref": "barrow_town_pump_station",
+      "anchor": "dam",
+      "name": "Barrow Town Pump Station",
+      "coord": [
+       -122.112533,
+       49.114813
+      ],
+      "on_item": "gnis:26216",
+      "blk": "356352298",
+      "measure": 5579.5,
+      "confidence": "medium",
+      "quote": "that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River"
+     }
+    ],
+    "pieces": [
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:8634",
+       "gnis:3062"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+       }
+      ]
+     },
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:26216"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "barrow_town_pump_station"
+       }
+      ]
+     }
+    ],
+    "words": "2 pieces: (1) the Chilliwack-Vedder downstream of the boundary signs 100 m below the Slesse Creek confluence; (2) the Sumas River downstream of Barrow Town Pump Station (a NEW cut) to the Fraser"
+   }
+  },
+  "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2": {
+   "why": "Owner 2026-11-09: these words are the same place as the two-river downstream wording (an old typo in 'UPSTREAM from'). So the same 2 pieces: the Chilliwack-Vedder downstream of the Slesse line, and the Sumas River downstream of Barrow Town Pump Station (the new cut, built in r-d14bdb180f55) to the Fraser. 'use this fix', then save.",
+   "status": "proposed",
+   "date": "2026-11-09",
+   "by": "claude, from the owner's answer (Owner Desk 11-09: loc54 = wording 56)",
+   "suggestion": {
+    "op": "downstream_of",
+    "items": [
+     "gnis:8634",
+     "gnis:3062"
+    ],
+    "tributaries": null,
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+     }
+    ],
+    "new_splits": [
+     {
+      "ref": "barrow_town_pump_station",
+      "anchor": "dam",
+      "name": "Barrow Town Pump Station",
+      "coord": [
+       -122.112533,
+       49.114813
+      ],
+      "on_item": "gnis:26216",
+      "blk": "356352298",
+      "measure": 5579.5,
+      "confidence": "medium",
+      "quote": "that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River"
+     }
+    ],
+    "pieces": [
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:8634",
+       "gnis:3062"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+       }
+      ]
+     },
+     {
+      "op": "downstream_of",
+      "items": [
+       "gnis:26216"
+      ],
+      "tributaries": null,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "barrow_town_pump_station"
+       }
+      ]
+     }
+    ],
+    "words": "2 pieces: (1) the Chilliwack-Vedder downstream of the boundary signs 100 m below the Slesse Creek confluence; (2) the Sumas River downstream of Barrow Town Pump Station (a NEW cut) to the Fraser"
+   }
+  },
+  "6:bulkley-river:bulkley-river-and-morice-river-wat": {
+   "why": "Owner 11-09: the Forks zone is THREE arms — 100 m up the Morice, 100 m up the upper Bulkley, ~1 km down the Bulkley. FWA: below the confluence the water is the BULKLEY (blk 360873822, gnis 2195); the Morice (gnis 14918) ends at the confluence. Each place binds its own water's arms: this Bulkley place = 100 m up the upper Bulkley (360873822:164908) + the 1 km below (360873822:163908), both existing cuts; the Morice place holds the Morice's 100 m. Tributaries excluded.",
+   "status": "proposed",
+   "date": "2026-11-09",
+   "by": "claude (T524), from the notice's words + an FWA check",
+   "suggestion": {
+    "op": "between",
+    "items": [
+     "gnis:2195"
+    ],
+    "tributaries": false,
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "bulkley_river__morice_river_into_bulkley_river_u100m"
+     },
+     {
+      "kind": "split",
+      "split_id": "bulkley_river__morice_river_into_bulkley_river"
+     }
+    ],
+    "new_splits": [],
+    "pieces": [
+     {
+      "op": "between",
+      "items": [
+       "gnis:2195"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "bulkley_river__morice_river_into_bulkley_river_u100m"
+       },
+       {
+        "kind": "split",
+        "split_id": "bulkley_river__morice_river_into_bulkley_river"
+       }
+      ]
+     },
+     {
+      "op": "between",
+      "items": [
+       "gnis:2195"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "bulkley_river__morice_river_into_bulkley_river"
+       },
+       {
+        "kind": "split",
+        "split_id": "bulkley_river__morice_river_into_bulkley_river_d1000m"
+       }
+      ]
+     }
+    ],
+    "words": "2 pieces on the Bulkley: (1) 100 m up the upper Bulkley to the Morice confluence; (2) the confluence down ~1 km; no tributaries (the Morice place holds the Morice's 100 m)"
+   }
+  },
+  "6:morice-river:bulkley-river-and-morice-river-wat": {
+   "why": "Owner 11-09: the Forks zone is THREE arms — 100 m up the Morice, 100 m up the upper Bulkley, ~1 km down the Bulkley (in FWA the water below the confluence is the Bulkley; the Morice ends there). DFO lists the zone twice, once per water, so each place binds its own water's arm and the two together are the zone: this Morice place = the Morice's last 100 m (existing cuts morice_river__bulkley_confluence_u100m → morice_river__bulkley_confluence); the Bulkley place holds the other 2 arms. Tributaries excluded: from a 100 m piece 'including tributaries' would walk the whole Morice system. Replaces the earlier T524 proposal, which wrongly gave this place the 2 Bulkley arms and dropped the Morice.",
+   "status": "proposed",
+   "date": "2026-11-09",
+   "by": "claude, from the notice's words + the owner's reading (11-09)",
+   "owner": true,
+   "suggestion": {
+    "op": "between",
+    "items": [
+     "gnis:14918"
+    ],
+    "tributaries": false,
+    "points": [
+     {
+      "kind": "split",
+      "split_id": "morice_river__bulkley_confluence_u100m"
+     },
+     {
+      "kind": "split",
+      "split_id": "morice_river__bulkley_confluence"
+     }
+    ],
+    "new_splits": [],
+    "pieces": [
+     {
+      "op": "between",
+      "items": [
+       "gnis:14918"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "morice_river__bulkley_confluence_u100m"
+       },
+       {
+        "kind": "split",
+        "split_id": "morice_river__bulkley_confluence"
+       }
+      ]
+     }
+    ],
+    "words": "1 piece on the Morice: its last 100 m, up from the Forks; no tributaries (the Bulkley place holds the upper-Bulkley 100 m and the 1 km below)"
+   }
+  },
+  "6:e:section": {
+   "why": "T524 BUILD GATE (a piece that binds nothing stops the build): piece 2 is 'within MU 6-12/6-13 outside MU 6-12/6-13' — an area minus itself, which binds nothing (it has been dropping silently). Removing it changes no section. It cannot be edited in the app (outside_areas): decide what piece 2 was meant to be, or say remove it, and Claude makes the curated edit.",
+   "status": "proposed",
+   "date": "2026-11-09",
+   "by": "claude (T524), from the notice's words + an FWA check",
+   "owner": true
   }
  }
 }
