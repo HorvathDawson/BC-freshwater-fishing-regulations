@@ -16,13 +16,15 @@ import type { Palette } from "./theme";
 
 export type ChipLook = "choice" | "day" | "chart";
 
-export function Chip({ palette, look, label, on, onPress, role = "radio", testID, a11yLabel, hit }: {
+export function Chip({ palette, look, label, on, onPress, role = "radio", testID, a11yLabel, hit, disabled = false }: {
   palette: Palette; look: ChipLook; label: string; on: boolean; onPress: () => void;
   /** "radio" in a group (aria-checked / aria-selected as the look had it), "button" for a quick pick */
   role?: "radio" | "button";
   testID?: string; a11yLabel?: string;
   /** the press's known box (hitProps); the default is the look's own */
   hit?: { w: number; h: number };
+  /** (T527) shown but not pickable (aria-disabled, dimmed); the caller says why beside it */
+  disabled?: boolean;
 }) {
   const box = hit ?? (look === "chart" ? { w: 80, h: 28 } : { w: 60, h: 36 });
   const state = look === "choice" ? { "aria-checked": on } : look === "chart" ? { "aria-selected": on }
@@ -39,8 +41,9 @@ export function Chip({ palette, look, label, on, onPress, role = "radio", testID
     ? { ...TYPE.micro, fontSize: 11.5, fontWeight: on ? "700" : "600", color: on ? palette.accent : palette.ink } as const
     : { ...TYPE.micro, fontSize: 12.5, color: on ? palette.onAccent : look === "choice" ? palette.sub : palette.ink } as const;
   return (
-    <Pressable {...hitProps(box)} testID={testID} onPress={onPress} accessibilityRole={role} accessibilityLabel={a11yLabel ?? label}
-               {...state} style={frame}>
+    <Pressable {...hitProps(box)} testID={testID} onPress={disabled ? undefined : onPress} disabled={disabled}
+               accessibilityRole={role} accessibilityLabel={a11yLabel ?? label}
+               {...state} {...(disabled ? { "aria-disabled": true } : {})} style={disabled ? [frame, { opacity: 0.45 }] : frame}>
       <Text style={words}>{label}</Text>
     </Pressable>
   );

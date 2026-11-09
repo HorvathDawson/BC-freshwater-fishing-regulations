@@ -19,9 +19,6 @@
 //   node deploy/staging/test-updates.mjs gauge <station> <flow|level> <value>   (T234) the gauge alerts' feed (the
 //                                                              background check reads test/feeds/live/obs.json on this
 //                                                              channel): that station's newest reading set to <value>, now
-//   node deploy/staging/test-updates.mjs gauge-day <station> <flow|level> <then> <now>   (T234 v1.1) the ±% alerts' feed:
-//                                                              test/feeds/live/<station>.json, the live file with two rows
-//                                                              added — <then> 24 h ago and <now> now (and obs.json's row)
 //   node deploy/staging/test-updates.mjs app-version <semver> [build] [notes…]   (T234 v1.1) the new-app-version notice:
 //                                                              test/app/android/latest.json and play.json name that version
 //                                                              (a build on the test channel reads them in its background check)
@@ -128,26 +125,13 @@ export async function gauge(station, quantity, value) {
     throw new Error('gauge <station> <flow|level> <value>, e.g. gauge 08MH001 flow 60');
   let j;
   try { j = JSON.parse(await get('test/feeds/live/obs.json')); } catch { j = JSON.parse(await get('feeds/live/obs.json')); }
-  const at = new Date().toISOString();
+  // stamped as the feed stamps ECCC's rows (Pacific standard time with its offset): a percentile alert's line is the
+  // reading's own date (T527), so a UTC stamp would read tomorrow's line every evening
+  const at = `${new Date(Date.now() - 8 * 3_600_000).toISOString().slice(0, 19)}-08:00`;
   const last = j.stations[station]?.at(-1) ?? [at, null, null];
   j.stations[station] = [[at, quantity === 'level' ? v : last[1], quantity === 'flow' ? v : last[2]]];
   put('test/feeds/live/obs.json', JSON.stringify(j));
   return { station, row: j.stations[station][0] };
-}
-
-/** (T234 v1.1) A gauge's own file with a day's change: `<then>` 24 h ago, `<now>` now, on the test channel. */
-export async function gaugeDay(station, quantity, then, now) {
-  const a = Number(then), b = Number(now);
-  if (!station || !['flow', 'level'].includes(quantity) || !Number.isFinite(a) || !Number.isFinite(b))
-    throw new Error('gauge-day <station> <flow|level> <then> <now>, e.g. gauge-day 08MH001 flow 20 31');
-  const file = JSON.parse(await get(`feeds/live/${station}.json`));
-  const t1 = new Date(), t0 = new Date(t1.getTime() - 24 * 3_600_000);
-  const row = (t, v) => [t.toISOString(), quantity === 'level' ? v : null, quantity === 'flow' ? v : null];
-  const recent = (file.recent ?? []).filter((r) => Date.parse(r[0]) < t0.getTime() - 3 * 3_600_000);
-  file.recent = [...recent, row(t0, a), row(t1, b)];
-  put(`test/feeds/live/${station}.json`, JSON.stringify(file));
-  await gauge(station, quantity, String(b));
-  return { station, then: file.recent.at(-2), now: file.recent.at(-1) };
 }
 
 /** (T234 v1.1) A "newer" app version on the test channel (both the sideload and the Play file names). */
@@ -175,7 +159,7 @@ export async function clean() {
   return { cleaned: 'test/' };
 }
 
-const CMDS = { reset, gauge, 'gauge-day': gaugeDay, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, tiles, corrupt, missing, 'min-app': minApp, status, clean };
+const CMDS = { reset, gauge, 'app-version': appVersion, 'feed-bump': feedBump, 'feed-404': feed404, release, big, tiles, corrupt, missing, 'min-app': minApp, status, clean };
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [cmd, ...args] = process.argv.slice(2);

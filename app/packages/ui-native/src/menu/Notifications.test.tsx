@@ -1,12 +1,13 @@
 /**
- * (T234) More → Notifications and a gauge's "Alert me": opt-in, the permission asked only when something is turned on,
- * a refusal shown, (v1.1) alerts as cards grouped by water with their own switch, Edit and Delete, "Add an alert", the
- * new-app-version switch, the background runs in a closed fold; the editor prefilled from the card, its summary line;
- * nothing drawn without the app's notifications (the web).
+ * (T234, T527) More → Notifications and a gauge's "Alert me", stock-style: opt-in, the permission asked only when
+ * something is turned on, a refusal shown; a plain list (one line per alert, its own On/Off and Delete); "Add an alert":
+ * gauge → condition → value → done; the percentile line for the day (presets + custom; disabled with the reason on a
+ * gauge with no record); saved alerts that could not be kept said until dismissed; nothing drawn without the app's
+ * notifications (the web).
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { MENU_WORDS, NOTIFY_WORDS, type DataInput, type GaugeAlertRule } from "@app/core";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { MENU_WORDS, NOTIFY_WORDS, type Band, type DataInput, type GaugeAlertRule } from "@app/core";
 import { createNotifySettings, NOTIFY_DEFAULT, type NotifyState, type WaterSource } from "@app/data";
 import { LayoutWidthContext, NotifyRoot, useNotifications, type NotifyControls, type NotifyPermission } from "@app/ui";
 import { LIGHT } from "../theme";
@@ -22,8 +23,8 @@ const DATA: DataInput = {
   feedFetchedAt: new Date(NOW - 3.6e6).toISOString(), now: NOW, newRelease: null, forecastIssuedAt: new Date(NOW - 3.6e6).toISOString(),
 };
 const RULE: GaugeAlertRule = {
-  id: "r1", station: "08MH001", stationName: "Vedder Crossing", quantity: "discharge", kind: "above", value: 50, gapH: null,
-  on: true, water: { item: "w1", name: "Chilliwack River" }, createdAt: NOW,
+  id: "r1", station: "08MH001", stationName: "Vedder Crossing", quantity: "discharge", direction: "above",
+  threshold: { kind: "value", value: 50 }, on: true, water: { item: "w1", name: "Chilliwack River" }, createdAt: NOW,
 };
 
 function controls(state: Partial<NotifyState> = {}, answer: NotifyPermission = "granted", now: NotifyPermission = "undetermined") {
@@ -39,17 +40,42 @@ function controls(state: Partial<NotifyState> = {}, answer: NotifyPermission = "
   return { c: { settings, platform } satisfies NotifyControls, platform, settings };
 }
 
-function Page() {
-  const n = useNotifications();
-  return n ? <NotificationsPage n={n} palette={LIGHT} /> : null;
+/** The reading on the card's 72 h chart, "now" on Nov 9. */
+const AT = "2026-11-09T07:00:00-08:00";
+const ENVELOPE: Band = [10, 20, 40, 60, 80];
+/**
+ * A fake source for the editor: the 72 h series (the reading now and today's band), the year series (the record, per
+ * day) — `record: false` has none, as a gauge with no climatology — the gauge's quantities and the release's gauges.
+ */
+function fakeSource(o: { record?: boolean; params?: readonly string[] } = {}) {
+  const record = o.record ?? true;
+  const series = vi.fn(async (_st: string, span: "72h" | "year", parameter = "discharge") => {
+    if (span === "year") return record ? { fetchedAt: null, value: { parameter, yearBand: Array.from({ length: 366 }, () => ENVELOPE),
+                                                                       at: [], values: [], band: [], now: null, step: "1d", from: "2026-01-01",
+                                                                       forecast: null, forecasts: [], priorYears: [] } } : null;
+    return { fetchedAt: NOW, value: { parameter, at: [AT], values: [42.5], band: [ENVELOPE], now: { index: 0, value: 42.5 },
+                                      step: "1h", from: AT, forecast: null, forecasts: [], priorYears: [] } };
+  });
+  return {
+    source: {
+      gaugeSeries: series,
+      gaugeParameters: vi.fn(async () => o.params ?? ["discharge", "level"]),
+      gaugePoints: vi.fn(async () => [{ station: "08HA002", name: "COWICHAN RIVER AT LAKE COWICHAN", lon: 0, lat: 0, mag: 1 },
+                                      { station: "08HA011", name: "COWICHAN RIVER NEAR DUNCAN", lon: 0, lat: 0, mag: 1 },
+                                      { station: "08MH001", name: "CHILLIWACK RIVER AT VEDDER CROSSING", lon: 0, lat: 0, mag: 1 }]),
+    } as unknown as WaterSource,
+    series,
+  };
 }
-function PageWith({ source, onFind }: { source: WaterSource; onFind: (item: string) => void }) {
-  const n = useNotifications();
-  return n ? <NotificationsPage n={n} palette={LIGHT} source={source} onFindWater={onFind} /> : null;
-}
-const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 0)); });
 
-describe("More → Notifications (T234)", () => {
+function Page({ source = null }: { source?: WaterSource | null }) {
+  const n = useNotifications();
+  return n ? <NotificationsPage n={n} palette={LIGHT} source={source} /> : null;
+}
+const flush = () => act(async () => { for (let i = 0; i < 4; i++) await new Promise((r) => setTimeout(r, 0)); });
+const line = () => screen.getByTestId("alert-form-line").textContent;
+
+describe("More → Notifications (T234, T527)", () => {
   it("is listed on the More tab only where the app can notify", () => {
     const { c } = controls();
     const more = (ctl: NotifyControls | null) => (
@@ -103,40 +129,29 @@ describe("More → Notifications (T234)", () => {
     expect(platform.openSettings).toHaveBeenCalledTimes(1);
   });
 
-  it("alerts as cards grouped by water: gauge, line, own switch, Edit, Delete; the runs in a closed fold", async () => {
-    const other: GaugeAlertRule = { ...RULE, id: "r2", station: "08MH024", stationName: "Chilliwack at Outlet", kind: "rise",
-                                    value: 50, gapH: 3 };
-    const vedder: GaugeAlertRule = { ...RULE, id: "r3", water: { item: "w2", name: "Vedder River" } };
-    const { c, settings } = controls({ on: true, rules: [RULE, vedder, other],
+  it("a plain list: one line per alert with when it last fired, its own On/Off and Delete; the runs in a closed fold", async () => {
+    const pct: GaugeAlertRule = { ...RULE, id: "r2", stationName: "Lake Cowichan", water: { item: "w2", name: "Cowichan River" },
+                                  threshold: { kind: "percentile", pct: 75, byDay: Array(366).fill(60) } };
+    const { c, settings } = controls({ on: true, rules: [RULE, pct],
                                        ruleState: { r1: { past: true, firedAt: Date.parse("2026-11-05T14:05:00-07:00") } },
                                        runs: [{ at: NOW - 60_000, ms: 900, result: "nothing to tell" },
                                               { at: NOW, ms: 1200, result: "1 alert" }] }, "granted", "granted");
     render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
     await flush();
-    // one card per water, its alerts in it
-    const w1 = screen.getByTestId("notify-water-w1");
-    expect(w1.textContent).toContain("Chilliwack River");
-    expect(within(w1).getAllByTestId(/^notify-alert-r\d$/).map((e) => e.getAttribute("data-testid"))).toEqual(["notify-alert-r1", "notify-alert-r2"]);
-    expect(screen.getByTestId("notify-water-w2").textContent).toContain("Vedder River");
-    const sw = screen.getByRole("switch", { name: "Alert on: Chilliwack River · Vedder Crossing, Flow above 50 m³/s" });
-    expect(screen.getByTestId("notify-alert-r1").textContent)
-      .toContain("Flow above 50 m³/s · at most once a day for this water · last sent 2026-11-05 at 14:05 PT");
-    expect(screen.getByTestId("notify-alert-r2").textContent).toContain("Flow rises 50 % or more within 24 h · at most once every 3 h · not sent yet");
-    // the alert's own switch never moves the master switch
-    await act(async () => { fireEvent.click(sw); });
+    const r1 = "Vedder Crossing · Flow crosses above 50 m³/s · last fired 2026-11-05 at 14:05 PT";
+    const r2 = "Lake Cowichan · Flow crosses above the 75th percentile for the day · not fired yet";
+    expect(screen.getByTestId("notify-alert-r1").textContent).toContain(r1);
+    expect(screen.getByTestId("notify-alert-r2").textContent).toContain(r2);
+    // the alert's own switch never moves the master switch; off says so in its line
+    await act(async () => { fireEvent.click(screen.getByRole("switch", { name: NOTIFY_WORDS.alerts.switchAloud(r1) })); });
     expect([settings.read().on, settings.read().rules[0]!.on]).toEqual([true, false]);
+    expect(screen.getByTestId("notify-alert-r1").textContent).toContain("Vedder Crossing · Flow crosses above 50 m³/s · off");
     // the runs: closed until opened, then newest first
     expect(screen.queryAllByTestId("notify-run")).toEqual([]);
     fireEvent.click(screen.getByRole("button", { name: NOTIFY_WORDS.runs.title }));
     expect(screen.getAllByTestId("notify-run").map((e) => e.textContent?.split(" · ").at(-1))).toEqual(["1 alert", "nothing to tell"]);
-    // edit in place, then delete
-    fireEvent.click(screen.getByRole("button", { name: NOTIFY_WORDS.alerts.editAloud("Chilliwack River · Vedder Crossing, Flow above 50 m³/s") }));
-    fireEvent.change(screen.getByTestId("alert-form-value"), { target: { value: "70" } });
-    fireEvent.click(screen.getByTestId("alert-form-gap-6"));
-    await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });
-    expect(settings.read().rules.find((r) => r.id === "r1")).toMatchObject({ value: 70, gapH: 6 });
-    fireEvent.click(screen.getByRole("button", { name: NOTIFY_WORDS.alerts.removeAloud("Chilliwack River · Vedder Crossing, Flow above 70 m³/s") }));
-    expect(settings.read().rules.map((r) => r.id)).toEqual(["r3", "r2"]);
+    fireEvent.click(screen.getByRole("button", { name: NOTIFY_WORDS.alerts.removeAloud(r2) }));
+    expect(settings.read().rules.map((r) => r.id)).toEqual(["r1"]);
   });
 
   it("'New app version' is offered only where the build has a version file; on asks the permission", async () => {
@@ -153,67 +168,152 @@ describe("More → Notifications (T234)", () => {
     expect(platform.ask).toHaveBeenCalledTimes(1);
   });
 
-  it("'Add an alert' finds a water by name and opens its Conditions", async () => {
-    const { c } = controls({ on: true });
-    const source = { searchNames: vi.fn(async (q: string) => (q.startsWith("Coq")
-      ? [{ item: "w9", name: "Coquitlam River", kind: "stream", matchedAs: null }] : [])) } as unknown as WaterSource;
-    const onFind = vi.fn();
-    render(<NotifyRoot controls={c}><PageWith source={source} onFind={onFind} /></NotifyRoot>);
+  it("'Add an alert': gauge → condition → value → done", async () => {
+    const { c, settings, platform } = controls();
+    const { source } = fakeSource({ params: ["discharge"] });
+    render(<NotifyRoot controls={c}><Page source={source} /></NotifyRoot>);
     await flush();
     fireEvent.click(screen.getByTestId("notify-add-open"));
-    fireEvent.change(screen.getByTestId("notify-add-search"), { target: { value: "Coq" } });
-    await flush();
-    fireEvent.click(screen.getByRole("button", { name: "Coquitlam River" }));
-    expect(onFind).toHaveBeenCalledWith("w9");
-    fireEvent.click(screen.getByTestId("notify-add-open"));
-    fireEvent.change(screen.getByTestId("notify-add-search"), { target: { value: "Zzz" } });
+    fireEvent.change(screen.getByTestId("notify-add-search"), { target: { value: "zzz" } });
     await flush();
     expect(screen.getByTestId("notify-add-none").textContent).toBe(NOTIFY_WORDS.add.none);
+    fireEvent.change(screen.getByTestId("notify-add-search"), { target: { value: "cowichan lake" } });
+    await flush();
+    // 1. the gauge
+    fireEvent.click(screen.getByRole("button", { name: "COWICHAN RIVER AT LAKE COWICHAN (08HA002)" }));
+    await flush();
+    expect(screen.getByText("Alert on COWICHAN RIVER AT LAKE COWICHAN")).toBeTruthy();
+    expect(screen.queryByTestId("alert-form-q-level")).toBeNull();          // only the quantities the gauge has
+    // 2. the condition, 3. the value
+    fireEvent.click(screen.getByTestId("alert-form-below"));
+    fireEvent.change(screen.getByTestId("alert-form-value"), { target: { value: "12" } });
+    expect(line()).toBe("You get one notification each time the flow at COWICHAN RIVER AT LAKE COWICHAN crosses below 12 m³/s. "
+      + "It is ready again once the flow is back above the line.");
+    await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });
+    await flush();
+    expect(settings.read().rules).toMatchObject([{ station: "08HA002", stationName: "COWICHAN RIVER AT LAKE COWICHAN",
+      quantity: "discharge", direction: "below", threshold: { kind: "value", value: 12 }, on: true, water: null }]);
+    expect(settings.read().on).toBe(true);
+    expect(platform.ask).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("alert-me-saved").textContent).toBe(NOTIFY_WORDS.alertMe.saved);
+    expect(screen.getByTestId("notify-alert-" + settings.read().rules[0]!.id).textContent)
+      .toContain("COWICHAN RIVER AT LAKE COWICHAN · Flow crosses below 12 m³/s · not fired yet");
   });
 
-  it("a v1 alert (saved before v1.1) is listed and editable", async () => {
-    const v1 = { id: "old", station: "08MH001", stationName: "Vedder Crossing", quantity: "discharge", direction: "below",
-                 value: 12, water: { item: "w1", name: "Chilliwack River" }, createdAt: 1 };
-    const text = JSON.stringify({ v: 1, on: true, updateReady: false, rules: [v1], ruleState: {}, held: null, toldRelease: null, runs: [] });
-    const settings = createNotifySettings({ read: () => text, write: () => {} });
+  it("a gauge with no flow or level record says so and offers no editor", async () => {
+    const { c } = controls();
+    const { source } = fakeSource({ params: [] });
+    render(<NotifyRoot controls={c}><Page source={source} /></NotifyRoot>);
+    await flush();
+    fireEvent.click(screen.getByTestId("notify-add-open"));
+    fireEvent.change(screen.getByTestId("notify-add-search"), { target: { value: "08MH" } });
+    await flush();
+    fireEvent.click(screen.getByRole("button", { name: "CHILLIWACK RIVER AT VEDDER CROSSING (08MH001)" }));
+    await flush();
+    expect(screen.getByTestId("notify-add-no-quantity").textContent).toBe(NOTIFY_WORDS.add.noQuantity);
+    expect(screen.queryByTestId("alert-form")).toBeNull();
+  });
+
+  it("saved alerts that could not be kept are said, with their words, until dismissed", async () => {
+    const text = JSON.stringify({ v: 2, on: true, rules: [
+      { id: "a", station: "08MH001", stationName: "Vedder Crossing", quantity: "discharge", kind: "above", value: 50, gapH: null,
+        on: true, water: { item: "w1", name: "Chilliwack River" }, createdAt: 1 },
+      { id: "p", station: "08MH001", stationName: "Vedder Crossing", quantity: "discharge", kind: "rise", value: 50, gapH: 3,
+        on: true, water: { item: "w1", name: "Chilliwack River" }, createdAt: 2 }], ruleState: {} });
+    let stored = text;
+    const settings = createNotifySettings({ read: () => stored, write: (t) => { stored = t; } });
     const c: NotifyControls = { settings, platform: { permission: async () => "granted", ask: async () => "granted",
                                                       openSettings: () => {}, schedule: async () => {} } };
     render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
     await flush();
-    expect(screen.getByTestId("notify-alert-old").textContent).toContain("Flow below 12 m³/s · at most once a day for this water");
+    expect(screen.getByTestId("notify-alert-a").textContent).toContain("Vedder Crossing · Flow crosses above 50 m³/s · not fired yet");
+    expect(screen.getAllByTestId("notify-refused-item").map((e) => e.textContent))
+      .toEqual(["Vedder Crossing · Flow rises 50 % or more within 24 h: a change within a day is no longer an alert kind"]);
+    fireEvent.click(screen.getByTestId("notify-refused-ok"));
+    expect(screen.queryByTestId("notify-refused")).toBeNull();
+    expect(settings.read()).toMatchObject({ v: 3, refused: [], rules: [{ id: "a" }] });
   });
 });
 
-describe("Alert me on a gauge's card and the editor (T234 v1.1)", () => {
+describe("Alert me on a gauge's card, and the editor (T527)", () => {
   const target: AlertTarget = { station: "08MH001", stationName: "Vedder Crossing", quantity: "discharge", current: 42.5,
                                 quantities: ["discharge", "level"], water: { item: "w1", name: "Chilliwack River" } };
 
   it("is not drawn without the app's notifications (the web)", () => {
-    render(<NotifyRoot controls={null}><AlertMe palette={LIGHT} target={target} /></NotifyRoot>);
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={null}><AlertMe palette={LIGHT} target={target} source={source} /></NotifyRoot>);
     expect(screen.queryByTestId("alert-me")).toBeNull();
   });
 
-  it("opens prefilled from the card: its gauge, the chart's quantity, the reading now; the summary says what will happen", async () => {
+  it("opens on this gauge, prefilled with the reading now; the summary says what will happen", async () => {
     const { c, platform } = controls();
-    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} /></NotifyRoot>);
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} source={source} /></NotifyRoot>);
     fireEvent.click(screen.getByTestId("alert-me-open"));
+    await flush();
     expect(screen.getByText("Alert on Vedder Crossing")).toBeTruthy();
     expect((screen.getByTestId("alert-form-value") as HTMLInputElement).value).toBe("42.5");
     expect(screen.getByRole("radio", { name: "Flow" }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByRole("radio", { name: NOTIFY_WORDS.editor.cadenceDefault }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByTestId("alert-form-line").textContent).toBe("You get a notification when the flow at Vedder Crossing "
-      + "rises above 42.5 m³/s, at most once a day for Chilliwack River. Not again until it has dropped back under the line.");
-    // a % kind: the number is a percent (opens on 50), the gap the reader's own
-    fireEvent.click(screen.getByTestId("alert-form-rise"));
-    fireEvent.click(screen.getByTestId("alert-form-gap-12"));
-    expect(screen.getByTestId("alert-form-line").textContent).toBe("You get a notification when the flow at Vedder Crossing "
-      + "rises by 50 % or more within 24 hours, at most once every 12 h. Not again until the day's change has eased off.");
+    expect(screen.getByRole("radio", { name: "Crosses above" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByTestId("alert-form-context").textContent).toBe("Now 42.5 m³/s · normal today 20–60 m³/s");
+    fireEvent.change(screen.getByTestId("alert-form-value"), { target: { value: "40" } });
+    expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above 40 m³/s. It is ready "
+      + "again once the flow is back below the line. It is above that now (42.5 m³/s), so the first notification comes after "
+      + "it crosses back and then above again.");
     expect(platform.ask).not.toHaveBeenCalled();
   });
 
-  it("saves the alert in the new shape, turns notifications on and asks the permission then", async () => {
+  it("a percentile for the day: presets and custom, the line today said, saved with its line for every day", async () => {
+    const { c, settings } = controls();
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} source={source} /></NotifyRoot>);
+    fireEvent.click(screen.getByTestId("alert-me-open"));
+    await flush();
+    fireEvent.click(screen.getByTestId("alert-form-line-percentile"));
+    // the 75th by default; the median preset
+    expect(screen.getByRole("radio", { name: "75th" }).getAttribute("aria-checked")).toBe("true");
+    expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above the 75th percentile "
+      + "for the day. The line moves with the date: 60 m³/s for Nov 9. It is ready again once the flow is back below the line.");
+    fireEvent.click(screen.getByTestId("alert-form-p50"));
+    expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above the median for the day. "
+      + "The line moves with the date: 40 m³/s for Nov 9. It is ready again once the flow is back below the line. It is above "
+      + "that now (42.5 m³/s), so the first notification comes after it crosses back and then above again.");
+    // custom: out of the record's range is refused and said
+    fireEvent.click(screen.getByTestId("alert-form-p-custom"));
+    fireEvent.change(screen.getByTestId("alert-form-pct"), { target: { value: "95" } });
+    expect(line()).toBe(NOTIFY_WORDS.editor.badPct);
+    await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });
+    expect(settings.read().rules).toEqual([]);
+    fireEvent.change(screen.getByTestId("alert-form-pct"), { target: { value: "30" } });
+    fireEvent.click(screen.getByTestId("alert-form-below"));
+    await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });
+    await flush();
+    const r = settings.read().rules[0]!;
+    expect([r.direction, r.threshold.kind, r.threshold.kind === "percentile" && r.threshold.pct]).toEqual(["below", "percentile", 30]);
+    // the 30th of [10, 20, 40, 60, 80]: 20 + (0.05 / 0.25) × 20 = 24, on every day
+    expect(r.threshold.kind === "percentile" && [r.threshold.byDay.length, r.threshold.byDay[0], r.threshold.byDay[312]])
+      .toEqual([366, 24, 24]);
+  });
+
+  it("a gauge with no record: the percentile choice is shown disabled, with the reason — never a silent fallback", async () => {
+    const { c } = controls();
+    const { source } = fakeSource({ record: false });
+    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} source={source} /></NotifyRoot>);
+    fireEvent.click(screen.getByTestId("alert-me-open"));
+    await flush();
+    const chip = screen.getByTestId("alert-form-line-percentile");
+    expect(chip.getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByTestId("alert-form-no-percentile").textContent)
+      .toBe("This gauge has no historical record of its flow, so it has no percentiles to alert on.");
+    fireEvent.click(chip);
+    expect(screen.getByRole("radio", { name: NOTIFY_WORDS.editor.lineKinds.value }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.queryByTestId("alert-form-p75")).toBeNull();
+  });
+
+  it("saves a value alert in the new shape, turns notifications on and asks the permission then", async () => {
     const { c, platform, settings } = controls();
-    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} /></NotifyRoot>);
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} source={source} /></NotifyRoot>);
     fireEvent.click(screen.getByTestId("alert-me-open"));
     fireEvent.click(screen.getByTestId("alert-form-q-level"));
     fireEvent.click(screen.getByTestId("alert-form-below"));
@@ -223,22 +323,20 @@ describe("Alert me on a gauge's card and the editor (T234 v1.1)", () => {
     expect(platform.ask).toHaveBeenCalledTimes(1);
     const s = settings.read();
     expect(s.on).toBe(true);
-    expect(s.rules).toMatchObject([{ station: "08MH001", quantity: "level", kind: "below", value: 1.25, gapH: null, on: true,
-                                     water: { item: "w1", name: "Chilliwack River" } }]);
+    expect(s.rules).toMatchObject([{ station: "08MH001", quantity: "level", direction: "below",
+                                     threshold: { kind: "value", value: 1.25 }, on: true, water: { item: "w1", name: "Chilliwack River" } }]);
     expect(screen.getByTestId("alert-me-saved").textContent).toBe(NOTIFY_WORDS.alertMe.saved);
     expect(screen.getByTestId("alert-me-count").textContent).toBe("1 alert on this gauge");
   });
 
-  it("refuses a value that is not a number (or a % out of range), and says a refused permission after saving", async () => {
+  it("refuses a value that is not a number, and says a refused permission after saving", async () => {
     const { c, settings } = controls({}, "denied");
-    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} /></NotifyRoot>);
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={target} source={source} /></NotifyRoot>);
     fireEvent.click(screen.getByTestId("alert-me-open"));
     fireEvent.change(screen.getByTestId("alert-form-value"), { target: { value: "lots" } });
     await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });
-    expect(screen.getByTestId("alert-form-line").textContent).toBe(NOTIFY_WORDS.editor.bad);
-    fireEvent.click(screen.getByTestId("alert-form-fall"));
-    fireEvent.change(screen.getByTestId("alert-form-value"), { target: { value: "120" } });
-    expect(screen.getByTestId("alert-form-line").textContent).toBe(NOTIFY_WORDS.editor.badPct);
+    expect(line()).toBe(NOTIFY_WORDS.editor.bad);
     expect(settings.read().rules).toEqual([]);
     fireEvent.change(screen.getByTestId("alert-form-value"), { target: { value: "30" } });
     await act(async () => { fireEvent.click(screen.getByTestId("alert-form-save")); });

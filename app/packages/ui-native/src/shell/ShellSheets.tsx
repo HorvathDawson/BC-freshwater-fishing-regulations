@@ -57,7 +57,7 @@ export function ShellSheets({ nav, col, rail, menu, palette, loader, menuInfo, m
       {/* the menu's pages: each open level a back layer (back closes a term, then the page) */}
       <MenuHost menu={menu} palette={palette} theme={theme} onWalkthrough={onWalkthrough} loader={loader} info={menuInfo} tiles={col.vintage.tiles ?? null}
                 route={route} day={mapDay} mode={col.regsLayer} map={reportMapOf(col, nav.mapTab, camera)} offline={offline}
-                source={source} onOpenConditions={(item) => nav.opener.item(item as never, "conditions")} />
+                source={source} />
     </>
   );
 }

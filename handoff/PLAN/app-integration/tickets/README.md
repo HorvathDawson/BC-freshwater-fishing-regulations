@@ -497,7 +497,7 @@ use that as the sole source of future work."
 | T450 | Two pipeline "live" tests still read the retired golden.json (collection error) | DONE | dedd06cc5 | chat 5 2026-11-06 |
 | T451 | Switching to the Map tab, the streams flicker (Pixel 9, 0.6.6) | DONE | e63c921c3 507de9433 | test bed 0/12 uncoloured entering Map (was 12/12); owner phone check |
 | T452 | A fling's glide stutters as it goes (Pixel 9, 0.6.6) | DONE | e63c921c3 | owner 0.6.7: feels good |
-| T453 | Flow alerts set by the day's percentile; an easier alert menu | OPEN | — | owner 2026-11-06; after T234 resumes |
+| T453 | Flow alerts set by the day's percentile; an easier alert menu | DROPPED (superseded by T527, owner 2026-11-09) | — | owner 2026-11-06; built as T527 |
 | T454 | Spot photos: zoom and pan in the viewer | DONE | 4ede32a69 (owner phone check) | owner 2026-11-06 |
 | T455 | Walkthrough "Layers" test skips the ground step under load (flaky) | DONE | 2290b6e25 | chat 5 2026-11-06 |
 | T456 | Guided walkthrough reworked: show the real use, never cover its target, teach reading rules + conditions | DONE | 8ffc41135 ecc12a476 (owner phone check) | owner 2026-11-06 (tester feedback) |
@@ -571,6 +571,7 @@ use that as the sole source of future work."
 | T524 | A DFO place extent can be several pieces on different waters (union): Chilliwack-Vedder below Slesse + Sumas below Barrow Town pump station; dead-piece build gate; Forks; replaces-extent banner | DONE | 355ef4cc8 | owner 2026-11-09 review app "needs 2 extents combined or a different representation" |
 | T525 | DFO review screen easy + safe: current extent always visible, confirm keeps it, redo starts from it, every save shows old vs new | IN REVIEW — owner restarts the review app and looks | 6dad1d118 | owner 2026-11-09 "hard to use right now and feels like i will make bad data" |
 | T526 | DFO salmon is stale when not CHECKED for more than a day (feed `at`, not content date); no checked time = unknown + reported | IN REVIEW — worker unchanged | — | owner 2026-11-09 "older then a day … it wasnt checked" |
+| T527 | Gauge alerts stock-style: crosses above / below a value or a percentile for the day (presets + custom), once per crossing, 2 % re-arm; plain list + gauge → condition → value; v1.1 ±% / cadence replaced, ±% alerts refused + said | IN REVIEW (build 22) — phone check on the APK; worker unchanged | — | owner 2026-11-09 "a clean alerting system like … stocks"; shots/T527-*.png |
 
 ## Order for open tickets
 

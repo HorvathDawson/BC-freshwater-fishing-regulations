@@ -9,14 +9,14 @@
  * allowing it later in the phone's settings is all it takes. A refusal is the environment's: never reported.
  */
 import { createElement, useCallback, useContext, useEffect, useMemo, useState, createContext, type ReactNode } from "react";
-import { normalRangeOf, reportFailure, type AlertQuantity, type GaugeAlertRule } from "@app/core";
+import { findGauges, hasRecord, normalRangeOf, reportFailure, type AlertNow, type AlertQuantity, type Band,
+         type GaugeAlertRule } from "@app/core";
 import {
-  notifyActive, putRule as put, removeRule as drop, setAppVersionNotice, setNotifyOn, setRuleOn as ruleOn,
+  dismissRefused, notifyActive, putRule as put, removeRule as drop, setAppVersionNotice, setNotifyOn, setRuleOn as ruleOn,
   setUpdateReady as setReady, type NotifySettings, type NotifyState, type StationId, type WaterSource,
 } from "@app/data";
 import { useSeries } from "./hooks/gauge";
 import { useAsync, type Async } from "./async";
-import type { NameHit } from "@app/data";
 
 export type NotifyPermission = "granted" | "denied" | "undetermined";
 
@@ -74,6 +74,8 @@ export interface NotificationsVM {
   /** (v1.1) one alert's own switch */
   setRuleOn(id: string, on: boolean): Promise<void>;
   removeRule(id: string): void;
+  /** (T527) the note on saved alerts this version could not keep has been read */
+  dismissRefused(): void;
   openSettings(): void;
 }
 
@@ -121,14 +123,15 @@ export function useNotifications(): NotificationsVM | null {
     putRule: async (r) => { write(put(r)); await allow(); },
     setRuleOn: async (id, on) => { write(ruleOn(id, on)); if (on) await allow(); },
     removeRule: (id) => write(drop(id)),
+    dismissRefused: () => write(dismissRefused),
     openSettings: () => c.platform.openSettings(),
   };
 }
 
-/** (T234 v1.1) What the alert editor shows beside its value: the reading now and today's normal range (p25–p75). */
+/** (T234 v1.1) What the alert editor shows beside its value: the reading now (and when) and today's normal range. */
 export interface AlertContext {
   readonly loading: boolean;
-  readonly current: number | null;
+  readonly current: AlertNow | null;
   readonly normal: { readonly lo: number; readonly hi: number } | null;
 }
 
@@ -143,12 +146,46 @@ export function useAlertContext(source: WaterSource, station: string, quantity: 
     if (s.state !== "ready") return { loading: s.state === "loading", current: null, normal: null };
     const v = s.value;
     if (!v || v.parameter !== quantity || !v.now) return { loading: false, current: null, normal: null };
-    return { loading: false, current: v.now.value, normal: normalRangeOf(v.band[v.now.index] ?? null) };
+    const at = v.at[v.now.index];
+    return { loading: false, current: at ? { value: v.now.value, at } : null,
+             normal: normalRangeOf(v.band[v.now.index] ?? null) };
   }, [s, quantity]);
 }
 
-/** (T234 v1.1) "Add an alert": the waters by name (the source's name search), from two letters; under two: none asked. */
-export function useAlertWaterSearch(source: WaterSource, q: string): Async<readonly NameHit[]> {
+/**
+ * (T527) THE GAUGE'S RECORD FOR A PERCENTILE ALERT: the per-day-of-year envelope the chart's YEAR view draws
+ * (`Series.yearBand`, the release's climatology), through the same `useSeries` and answer store. `none`: the gauge has
+ * no envelope in this quantity (the option is shown disabled with that reason, never a silent fallback); `failed`: the
+ * read failed, said with its error.
+ */
+export type AlertRecord =
+  | { readonly state: "loading" }
+  | { readonly state: "none" }
+  | { readonly state: "failed"; readonly error: Error }
+  | { readonly state: "ready"; readonly yearBand: readonly (Band | null)[] };
+
+export function useAlertRecord(source: WaterSource, station: string, quantity: AlertQuantity): AlertRecord {
+  const s = useSeries(source, station as StationId, "year", quantity);
+  return useMemo((): AlertRecord => {
+    if (s.state === "loading") return { state: "loading" };
+    if (s.state === "failed") return { state: "failed", error: s.error };
+    const yb = s.value && s.value.parameter === quantity ? s.value.yearBand : null;
+    return yb && hasRecord(yb) ? { state: "ready", yearBand: yb } : { state: "none" };
+  }, [s, quantity]);
+}
+
+/** A gauge as "Add an alert" lists it. */
+export interface AlertGauge { readonly station: string; readonly name: string }
+
+/**
+ * (T527) "ADD AN ALERT", STEP 1: the release's gauges (`gaugePoints`, read once through the answer path `useAsync`
+ * keeps) whose name or number holds every word typed (core `findGauges`); under two letters nothing is listed.
+ */
+export function useAlertGauges(source: WaterSource, q: string): Async<readonly AlertGauge[]> {
+  const all = useAsync(() => source.gaugePoints(), "alert-gauge-points", true);
   const t = q.trim();
-  return useAsync(() => source.searchNames(t, 8), `alert-water:${t}`, t.length >= 2);
+  return useMemo((): Async<readonly AlertGauge[]> => {
+    if (all.state !== "ready") return all;
+    return { state: "ready", value: t.length >= 2 ? findGauges(all.value, t, 8) : [], error: null };
+  }, [all, t]);
 }

@@ -23,7 +23,7 @@ import { reportFailure, shownParameter, standing, type SourceChange, now as cloc
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
-import type { GaugeHistory, ObsFile, ObsRow } from "./history";
+import type { GaugeHistory, ObsFile } from "./history";
 
 /** The forecast exactly as the publisher writes it — both quantities, unpicked. */
 interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
@@ -267,19 +267,6 @@ export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
   if (!got.value || typeof got.value.stations !== "object" || got.value.stations === null)
     throw new Error(`${url}: not the feed's observations (no stations)`);
   return got.value;
-}
-
-/**
- * (T234 v1.1) ONE GAUGE'S OWN ROWS (`<base>/<station>.json` `recent`: its last week in 30-minute steps), read by the
- * background check for the ±% in 24 h alerts. Throws like `fetchObs`.
- */
-export async function fetchStationRows(base: string, station: string, fetchImpl: typeof fetch = fetch,
-                                       limits: typeof FEED_LIMITS = FEED_LIMITS): Promise<readonly ObsRow[]> {
-  const url = `${base.replace(/\/+$/, "")}/${encodeURIComponent(station)}.json`;
-  const got = await fetchJsonResilient<StationFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store" });
-  if (!got.ok) throw new Error(`${url}: HTTP ${got.status}`);
-  if (!got.value || !Array.isArray(got.value.recent)) throw new Error(`${url}: not a station file (no recent rows)`);
-  return got.value.recent;
 }
 
 export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,

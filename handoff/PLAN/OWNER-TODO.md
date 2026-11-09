@@ -99,11 +99,11 @@ with the default Claude uses until you answer). Newest first inside each section
   the whole map, no region link).
 - **Changelog drafts: approved (owner 11-05, "I'm sure they are good")** — `draft` cleared on 0.1.0–0.5.0; 0.6.0 stays a
   draft until its release. Still yours: production has no `app/android/play.json` yet (prod transition, T404).
-- **Alert cadence readings to confirm (T234 v1.1, 2026-11-05):** (answered 11-05: a crossing the cadence blocks is
-  DROPPED, never queued; it rings again only on a new crossing) a ±% alert re-arms once the
-  day's change is 2 points back under its line; "24 h earlier" = the gauge's reading nearest 24 h before, within 2 h.
-  "Add an alert" in More finds a water by name and opens its Conditions, where the gauge card's "Alert me" sets it (the
-  water's gauge is chosen there). Default: as built.
+- **Gauge alerts, stock-style (T527, owner 11-09; replaces the T234 v1.1 cadence readings):** crosses above / below a
+  value or a percentile for the day, once per crossing, ready again once back across by 2 % of the line. The per-alert
+  cadence and the ±% in 24 h kind are gone; a saved ±% alert is not kept and the page says so. To confirm, as built:
+  a percentile line is taken from the gauge's record when the alert is saved (delete + add again after a new HYDAT
+  release to refresh it); custom percentiles are whole numbers 10–90 (the record has nothing past p10 / p90).
 
 - **T377 leftovers, conservative readings to confirm (2026-11-05):** tapping a legend class GREYS the others (not
   hides); the legend fold (▾/▴) is only on the regulations bar, starts open, not remembered; the closed streams' dashed

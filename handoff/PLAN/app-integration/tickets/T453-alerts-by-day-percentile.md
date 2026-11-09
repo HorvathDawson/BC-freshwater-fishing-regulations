@@ -1,6 +1,6 @@
 # T453 — Flow alerts set by the day's percentile; an easier alert menu
 
-Status: OPEN (owner 2026-11-06, chat 5).
+Status: DROPPED (superseded by T527, owner 2026-11-09: stock-style alerts with the percentile for the day).
 
 Owner: "improve notifications so that you can set rise and fall threshold with respect to the percentile of flow
 instead for that day."

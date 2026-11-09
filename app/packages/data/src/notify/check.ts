@@ -4,11 +4,9 @@
  * the manifest (the SAME reads the open app makes: `fetchObs`, the release manifest), how to raise a notification, and
  * the settings file. Nothing here is shown on a screen; the run is logged in the settings (`runs`).
  *
- *   gauges    only when an alert is on: the feed-wide newest rows (`obs.json`) for the above/below alerts; for the
- *             ±% in 24 h alerts (v1.1) the gauge's OWN station file (its `recent` week, 30-min steps) — the newest
- *             reading and the one ~24 h before it (`dayAgoReading`), one file per gauge with such an alert. Every alert
- *             through `@app/core` `evaluateAlerts` (once per crossing; the cadence: by default one notification per water
- *             per day across its alerts, or the alert's own gap; stale or missing = nothing).
+ *   gauges    only when an alert is on: the feed-wide newest rows (`obs.json`), each alert against its gauge's newest
+ *             reading through `@app/core` `evaluateAlerts` (T527: once per crossing of a value or of a percentile's line
+ *             for the reading's day, re-armed past a small margin; stale, missing or a day with no line = nothing).
  *   release   only when "new data ready" is on: the manifest's data release against the one in use (noted by the app
  *             on every open); a release this app is too old to apply is not announced (the app-update prompt says
  *             that, T390). Once per release (`toldRelease`).
@@ -22,12 +20,11 @@
  * cannot be raised is reported, and the rule's state is not advanced, so the next run raises it.
  */
 import {
-  alertNotification, alertWaterKey, APP_VERSION_NOTE, appVersionToTell, dayAgoReading, evaluateAlerts, isChangeKind, isEnvironment,
-  newestReading, NOTIFY_WORDS, releaseAllowed, reportFailure, UPDATE_READY_NOTE, type AlertInput, type AppVersion,
-  type GaugeAlertRule,
+  alertNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, newestReading, NOTIFY_WORDS,
+  releaseAllowed, reportFailure, UPDATE_READY_NOTE, type AppVersion,
 } from "@app/core";
 import type { Manifest } from "../manifest";
-import type { ObsFile, ObsRow } from "../feed/history";
+import type { ObsFile } from "../feed/history";
 import { noteRun, type NotifySettings, type NotifyState } from "./settings";
 
 /** What a notification carries for its tap. */
@@ -44,8 +41,6 @@ export interface CheckDeps {
   obs(): Promise<ObsFile>;
   /** the release manifest (the update service's url); throws offline */
   manifest(): Promise<Manifest>;
-  /** (v1.1) a gauge's own station file's rows (`<feed>/<station>.json` `recent`); throws offline */
-  stationRows(station: string): Promise<readonly ObsRow[]>;
   /** (v1.1) the version file our server publishes for this build (`latest.json` / `play.json`); absent: no channel */
   latestApp?: (() => Promise<unknown>) | null;
   /** raise a local notification */
@@ -83,30 +78,17 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   let told = false;
 
   const live = s0.on ? s0.rules.filter((r) => r.on) : [];
-  let dropped = 0;
   if (live.length) {
     try {
-      const value = live.some((r) => !isChangeKind(r.kind)) ? await d.obs() : null;
-      // the ±% alerts: each gauge's own file once (its week of rows)
-      const own = new Map<string, readonly ObsRow[]>();
-      for (const st of new Set(live.filter((r) => isChangeKind(r.kind)).map((r) => r.station)))
-        own.set(st, await d.stationRows(st));
-      const inputOf = (r: GaugeAlertRule): AlertInput => {
-        if (!isChangeKind(r.kind)) return { now: newestReading(value?.stations[r.station], r.quantity) };
-        const rows = own.get(r.station);
-        const now = newestReading(rows, r.quantity);
-        return { now, dayAgo: dayAgoReading(rows, r.quantity, now) };
-      };
+      const obs = await d.obs();
       const cur = d.settings.read();
-      const e = evaluateAlerts(live, cur.ruleState, inputOf, cur.waterFired, d.now());
+      const e = evaluateAlerts(live, cur.ruleState, (r) => newestReading(obs.stations[r.station], r.quantity), d.now());
       const states = { ...e.states };
-      const water = { ...cur.waterFired };
       for (const f of e.fire) {
         try {
-          await d.notify({ channel: "gauges", ...alertNotification(f.rule, f.input),
+          await d.notify({ channel: "gauges", ...alertNotification(f.rule, f.reading),
                            data: { kind: "gauge", rule: f.rule.id, station: f.rule.station, item: f.rule.water?.item ?? null } });
           fired++;
-          water[alertWaterKey(f.rule)] = e.waterFired[alertWaterKey(f.rule)]!;
         } catch (err) {
           // not raised: its state stays where it was, so the next run raises it
           reportFailure(err);
@@ -115,9 +97,8 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
           if (prev) states[f.rule.id] = prev; else delete states[f.rule.id];
         }
       }
-      dropped = e.dropped;
       // only the alerts still there (one deleted while the check ran stays deleted)
-      d.settings.update((s) => ({ ...s, waterFired: { ...s.waterFired, ...water }, ruleState: { ...s.ruleState,
+      d.settings.update((s) => ({ ...s, ruleState: { ...s.ruleState,
         ...Object.fromEntries(Object.entries(states).filter(([id]) => s.rules.some((r) => r.id === id))) } }));
     } catch (e) { reportFailure(e); fail(e); }
   }
@@ -152,7 +133,6 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   const W = NOTIFY_WORDS.run;
   if (!s0.on || (!live.length && !s0.updateReady && !s0.appVersion)) parts.push(W.noRules);
   if (fired) parts.push(W.fired(fired));
-  if (dropped) parts.push(W.dropped(dropped));
   if (told) parts.push(W.updateReady);
   if (toldApp) parts.push(W.appVersion);
   if (offline) parts.push(W.offline);

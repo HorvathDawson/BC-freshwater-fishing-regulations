@@ -205,3 +205,8 @@ v1.1 (same build):
 open for notifications again." A crossing the cadence blocks is dropped (`dropped` count in the run log: "N not sent
 (cadence)"); the alert stays past and rings only on a new crossing (back inside by the margin, then past) once the gap
 allows. `pending` removed from the alert state (v1.1 never shipped, so no stored state carries it).
+
+## Owner 2026-11-09: the alert model replaced (T527)
+"a clean alerting system like you would have for stocks" + the percentile for the day → T527: one model, crosses above /
+below a value or a percentile for the day, once per crossing with a 2 % re-arm; the four kinds, the cadence and Edit are
+gone; a saved ±% alert is refused and said. Checklist items 4, 11–15 above are superseded by T527's checklist.

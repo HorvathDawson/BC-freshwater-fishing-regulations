@@ -11,12 +11,13 @@
  * with the app in the background) and the settings page write the same file, and neither may undo the other's change.
  * A write that fails throws to whoever asked (the page shows it).
  *
- * (v1.1) THE FILE IS `v: 2`: alerts carry a kind (above/below/rise/fall), a cadence and their own switch; the state adds
- * when each water was last told (the default cadence), the "new app version" switch and the last version told. A v1
- * file reads into v2 whole (`migrateAlertRule`: direction → kind, default cadence, on), so no reader's alert is lost; an
- * alert that cannot be read is reported (a lost alert is a defect), never dropped quietly.
+ * (T527) THE FILE IS `v: 3`: one alert model, stock-style (a gauge crossing above / below a value or a percentile for
+ * the day, once per crossing). A v1 or v2 file reads into v3 through the one reader (`migrateAlertRule`): above / below a
+ * value is kept with its switch and state; a ±% in 24 h alert (v1.1) cannot become a crossing, so it is REFUSED — kept in
+ * `refused` with its words, shown on More → Notifications until the reader dismisses it, and reported. Nothing is dropped
+ * quietly.
  */
-import { migrateAlertRule, reportOnce, type AlertRuleState, type GaugeAlertRule } from "@app/core";
+import { migrateAlertRule, reportOnce, type AlertRuleState, type GaugeAlertRule, type RefusedAlert } from "@app/core";
 
 export interface BgRun {
   /** when it started (epoch ms, this device's clock) */
@@ -27,7 +28,7 @@ export interface BgRun {
 }
 
 export interface NotifyState {
-  readonly v: 2;
+  readonly v: 3;
   /** the global switch */
   readonly on: boolean;
   /** tell me when newer regulations data is ready */
@@ -36,8 +37,8 @@ export interface NotifyState {
   readonly appVersion: boolean;
   readonly rules: readonly GaugeAlertRule[];
   readonly ruleState: Readonly<Record<string, AlertRuleState>>;
-  /** (v1.1) when each water was last told (epoch ms), for the default once-per-water-per-day cadence */
-  readonly waterFired: Readonly<Record<string, number>>;
+  /** (T527) saved alerts this version could not keep, said on the page until dismissed */
+  readonly refused: readonly RefusedAlert[];
   /** the data release in use (the app notes it on every open), null before the first */
   readonly held: string | null;
   /** the newest release already told (once per release) */
@@ -49,7 +50,7 @@ export interface NotifyState {
 }
 
 export const NOTIFY_DEFAULT: NotifyState = Object.freeze({
-  v: 2, on: false, updateReady: false, appVersion: false, rules: [], ruleState: {}, waterFired: {}, held: null,
+  v: 3, on: false, updateReady: false, appVersion: false, rules: [], ruleState: {}, refused: [], held: null,
   toldRelease: null, toldAppVersion: null, runs: [],
 });
 
@@ -63,28 +64,38 @@ export function notifyActive(s: Pick<NotifyState, "on" | "updateReady" | "appVer
   return s.on && (s.updateReady || s.appVersion || s.rules.some((r) => r.on));
 }
 
+const isRefused = (r: unknown): r is RefusedAlert =>
+  !!r && typeof (r as RefusedAlert).line === "string" && typeof (r as RefusedAlert).why === "string";
+
 function parse(text: string | null): NotifyState {
   if (!text) return NOTIFY_DEFAULT;
-  let j: (Omit<Partial<NotifyState>, "v" | "rules"> & { v?: number; rules?: unknown }) | null;
+  let j: (Omit<Partial<NotifyState>, "v" | "rules" | "refused"> & { v?: number; rules?: unknown; refused?: unknown }) | null;
   // unreadable: the defaults (nothing on), and said — the reader's alerts were lost, which is a defect
   try { j = JSON.parse(text) as typeof j; } catch (e) { reportOnce("notify-settings", e); return NOTIFY_DEFAULT; }
-  if (!j || (j.v !== 1 && j.v !== 2)) {
+  if (!j || (j.v !== 1 && j.v !== 2 && j.v !== 3)) {
     reportOnce("notify-settings-version", new Error(`notify.json: unknown version ${String(j?.v)}`));
     return NOTIFY_DEFAULT;
   }
-  // v1 and v2 alike: every alert through the one reader (a v1 alert takes its direction as its kind)
+  // every version alike: every alert through the one reader; what it cannot keep is refused, said and reported
   const raw = Array.isArray(j.rules) ? j.rules : [];
-  const rules = raw.map(migrateAlertRule).filter((r): r is GaugeAlertRule => r !== null);
-  if (rules.length < raw.length)
-    reportOnce("notify-rules-unreadable", new Error(`notify.json: ${raw.length - rules.length} alert(s) could not be read`));
+  const rules: GaugeAlertRule[] = [];
+  const refused: RefusedAlert[] = Array.isArray(j.refused) ? j.refused.filter(isRefused) : [];
+  let lost = 0;
+  for (const m of raw.map(migrateAlertRule)) {
+    if ("rule" in m) rules.push(m.rule);
+    else { refused.push(m.refused); lost++; }
+  }
+  if (lost) reportOnce("notify-rules-refused", new Error(`notify.json v${j.v}: ${lost} alert(s) could not be kept as a crossing alert`));
+  const states = j.ruleState && typeof j.ruleState === "object" ? j.ruleState : {};
   return {
-    v: 2,
+    v: 3,
     on: j.on === true,
     updateReady: j.updateReady === true,
     appVersion: j.appVersion === true,
     rules,
-    ruleState: j.ruleState && typeof j.ruleState === "object" ? j.ruleState : {},
-    waterFired: j.waterFired && typeof j.waterFired === "object" ? j.waterFired : {},
+    // only the kept alerts' state; what a state means is unchanged (its side of the line, the reading, when it fired)
+    ruleState: Object.fromEntries(Object.entries(states).filter(([id]) => rules.some((r) => r.id === id))),
+    refused,
     held: typeof j.held === "string" ? j.held : null,
     toldRelease: typeof j.toldRelease === "string" ? j.toldRelease : null,
     toldAppVersion: typeof j.toldAppVersion === "string" ? j.toldAppVersion : null,
@@ -122,28 +133,29 @@ export const setNotifyOn = (on: boolean) => (s: NotifyState): NotifyState => ({ 
 export const setUpdateReady = (on: boolean) => (s: NotifyState): NotifyState => ({ ...s, updateReady: on });
 export const setAppVersionNotice = (on: boolean) => (s: NotifyState): NotifyState => ({ ...s, appVersion: on });
 
-/** Add a rule (or replace the one with its id); adding one turns notifications on — that is what the reader asked. */
+/** Add an alert; adding one turns notifications on — that is what the reader asked. Its side is read on the next check. */
 export const putRule = (r: GaugeAlertRule) => (s: NotifyState): NotifyState => {
-  const had = s.rules.some((x) => x.id === r.id);
-  // a changed rule starts again: its side of the new line is read on the next check; when it last fired is kept, so an
-  // edit never resets its cadence
-  const { [r.id]: old, ...rest } = s.ruleState;
-  const ruleState = old?.firedAt ? { ...rest, [r.id]: { past: null, firedAt: old.firedAt } } : rest;
-  return { ...s, on: true, rules: had ? s.rules.map((x) => (x.id === r.id ? r : x)) : [...s.rules, r], ruleState };
+  const { [r.id]: _old, ...ruleState } = s.ruleState;
+  return { ...s, on: true, rules: [...s.rules.filter((x) => x.id !== r.id), r], ruleState };
 };
 
-/** One alert's own switch; on again, it starts again (its side read on the next check). */
+/** One alert's own switch; on again, it starts again (its side read on the next check, when it last fired kept). */
 export const setRuleOn = (id: string, on: boolean) => (s: NotifyState): NotifyState => {
   const r = s.rules.find((x) => x.id === id);
   if (!r || r.on === on) return s;
+  const firedAt = s.ruleState[id]?.firedAt ?? null;
   // the master switch is the reader's own: one alert's switch never moves it
-  return { ...putRule({ ...r, on })(s), on: s.on };
+  return { ...s, rules: s.rules.map((x) => (x.id === id ? { ...x, on } : x)),
+           ruleState: { ...s.ruleState, [id]: firedAt ? { past: null, firedAt } : { past: null } } };
 };
 
 export const removeRule = (id: string) => (s: NotifyState): NotifyState => {
   const { [id]: _gone, ...ruleState } = s.ruleState;
   return { ...s, rules: s.rules.filter((r) => r.id !== id), ruleState };
 };
+
+/** (T527) The reader has read the note on the alerts that were not kept. */
+export const dismissRefused = (s: NotifyState): NotifyState => (s.refused.length ? { ...s, refused: [] } : s);
 
 /** The app opened on this data release: the release in use. */
 export const noteHeld = (release: string) => (s: NotifyState): NotifyState =>

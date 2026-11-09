@@ -1,26 +1,26 @@
 /**
- * (T234, owner 2026-11-05: "a section in More where we configure the notifications … make the UI for this nice please,
- * and in a menu in More") MORE → NOTIFICATIONS, top to bottom, in cards:
+ * (T234, owner 2026-11-05: "a section in More where we configure the notifications"; T527, owner 2026-11-09: "a clean
+ * alerting system like you would have for stocks") MORE → NOTIFICATIONS, top to bottom, in cards:
  *
  *   the switch       every notification on or off, and what the phone allows (refused: the way to its settings)
- *   gauge alerts     "Add an alert" (find a water by name → its Conditions, where its gauge card's "Alert me" opens the
- *                    editor prefilled), then the alerts GROUPED BY WATER: a card per water, each alert its gauge, its
- *                    line ("Flow above 30 m³/s · at most once a day for this water · last sent …"), its own switch,
- *                    Edit (the editor in place) and Delete
+ *   gauge alerts     A PLAIN LIST, one line per alert ("Vedder Crossing · Flow crosses above 50 m³/s · last fired …"),
+ *                    each with its own On/Off and Delete; then "Add an alert": 1. pick a gauge (by name or number), 2–3.
+ *                    the editor (condition, value or percentile), Save — the same editor as a gauge card's "Alert me"
+ *   not kept         (T527) saved alerts this version could not keep, said with their words until dismissed
  *   other            "New regulations data" and "New app version" (v1.1; only where the build can learn of one)
  *   the log          the last background checks, in a fold closed by default (how late the phone ran them)
  *
  * Draws `useNotifications` (@app/ui) in core's words; decides nothing. Every control a 44 px target with its label.
  */
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { TextInput, View } from "react-native";
-import { alertCardLine, alertLine, alertWaterKey, NOTIFY_WORDS, runLine, type GaugeAlertRule } from "@app/core";
-import type { WaterSource } from "@app/data";
-import { useAlertWaterSearch, type NotificationsVM } from "@app/ui";
+import { alertListLine, NOTIFY_WORDS, runLine, type AlertQuantity, type GaugeAlertRule } from "@app/core";
+import type { StationId, WaterSource } from "@app/data";
+import { useAlertGauges, useGaugeParameters, type AlertGauge, type NotificationsVM } from "@app/ui";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
 import { Button } from "../Button";
-import { AlertEditor } from "../AlertMe";
+import { AlertEditor, AlertStatus, newAlert } from "../AlertMe";
 import { Fold } from "../regs/sheet/Fold";
 import { hitProps } from "../regs/hit";
 import { TYPE } from "../type";
@@ -64,90 +64,99 @@ function Kicker({ palette, children }: { palette: Palette; children: string }) {
   return <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{children}</Text>;
 }
 
-/** "Add an alert": a water by name; a pick opens its Conditions (the gauge card's "Alert me" sets the alert there). */
-function AddAlert({ palette, source, onPick, onCancel }: { palette: Palette; source: WaterSource;
-                                                           onPick: (item: string) => void; onCancel: () => void }) {
+/** Step 2–3 for a picked gauge: its quantities (the release's record), then the editor; a gauge with none says so. */
+function PickedGauge({ palette, source, gauge, onSave, onCancel }: {
+  palette: Palette; source: WaterSource; gauge: AlertGauge;
+  onSave: (r: GaugeAlertRule) => Promise<void>; onCancel: () => void;
+}) {
+  const params = useGaugeParameters(source, gauge.station as StationId);
+  if (params.state === "loading") return <Text style={{ ...TYPE.small, color: palette.sub }}>{W.editor.loading}</Text>;
+  if (params.state === "failed")
+    return <Text testID="notify-add-failed" style={{ ...TYPE.small, color: palette.closed }}>{params.error.message}</Text>;
+  const qs = params.value as readonly AlertQuantity[];
+  if (!qs.length)
+    return (
+      <View style={{ gap: SPACE.s2 }}>
+        <Text testID="notify-add-no-quantity" style={{ ...TYPE.small, color: palette.sub }}>{W.add.noQuantity}</Text>
+        <Button palette={palette} kind="ghost" label={W.add.cancel} onPress={onCancel} />
+      </View>
+    );
+  return (
+    <AlertEditor palette={palette} source={source}
+                 gauge={{ station: gauge.station, stationName: gauge.name, quantity: qs[0]!, quantities: qs, current: null,
+                          water: null }}
+                 onCancel={onCancel} onSave={(d) => onSave(newAlert(gauge.station, d))} />
+  );
+}
+
+/** "Add an alert": 1. a gauge by name or number; then the editor on it. */
+function AddAlert({ palette, source, n, onDone, onCancel }: { palette: Palette; source: WaterSource; n: NotificationsVM;
+                                                             onDone: () => void; onCancel: () => void }) {
   const [q, setQ] = useState("");
-  const hits = useAlertWaterSearch(source, q);
+  const [picked, setPicked] = useState<AlertGauge | null>(null);
+  const hits = useAlertGauges(source, q);
   const A = W.add;
   return (
     <Card palette={palette} testID="notify-add">
       <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{A.title}</Text>
-      <TextInput testID="notify-add-search" value={q} onChangeText={setQ} accessibilityLabel={A.searchAloud}
-                 placeholder={A.search} placeholderTextColor={palette.faint} autoFocus
-                 style={{ ...TYPE.body, color: palette.ink, borderWidth: 1.5, borderColor: palette.ink, minHeight: 44,
-                          borderRadius: palette.r.box, padding: SPACE.s2, backgroundColor: palette.card }} />
-      <Text style={{ ...TYPE.small, color: palette.sub }}>{A.pick}</Text>
-      {hits.state === "ready" && hits.value.length === 0 && (
-        <Text testID="notify-add-none" style={{ ...TYPE.small, color: palette.sub }}>{A.none}</Text>
-      )}
-      {hits.state === "failed" && (
-        <Text testID="notify-add-failed" style={{ ...TYPE.small, color: palette.closed }}>{hits.error.message}</Text>
-      )}
-      {hits.state === "ready" && hits.value.map((h) => (
-        <Pressable key={h.item} testID={`notify-add-hit-${h.item}`} onPress={() => onPick(h.item)} accessibilityRole="button"
-                   accessibilityLabel={h.name} {...hitProps({ w: 300, h: 44 })}
-                   style={{ minHeight: 44, justifyContent: "center", borderTopWidth: 1, borderTopColor: palette.line }}>
-          <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{h.name}</Text>
-        </Pressable>
-      ))}
-      <Button palette={palette} kind="ghost" label={A.cancel} testID="notify-add-cancel" onPress={onCancel} />
+      {picked
+        ? <PickedGauge palette={palette} source={source} gauge={picked} onCancel={onCancel}
+                       onSave={async (r) => { await n.putRule(r); onDone(); }} />
+        : (
+          <>
+            <Text style={{ ...TYPE.metaBold, color: palette.sub }}>{A.step}</Text>
+            <TextInput testID="notify-add-search" value={q} onChangeText={setQ} accessibilityLabel={A.searchAloud}
+                       placeholder={A.search} placeholderTextColor={palette.faint} autoFocus
+                       style={{ ...TYPE.body, color: palette.ink, borderWidth: 1.5, borderColor: palette.ink, minHeight: 44,
+                                borderRadius: palette.r.box, padding: SPACE.s2, backgroundColor: palette.card }} />
+            {hits.state === "loading" && <Text style={{ ...TYPE.small, color: palette.sub }}>{A.loading}</Text>}
+            {hits.state === "failed" && (
+              <Text testID="notify-add-failed" style={{ ...TYPE.small, color: palette.closed }}>{hits.error.message}</Text>
+            )}
+            {hits.state === "ready" && q.trim().length >= 2 && hits.value.length === 0 && (
+              <Text testID="notify-add-none" style={{ ...TYPE.small, color: palette.sub }}>{A.none}</Text>
+            )}
+            {hits.state === "ready" && hits.value.map((h) => (
+              <Pressable key={h.station} testID={`notify-add-hit-${h.station}`} onPress={() => setPicked(h)}
+                         accessibilityRole="button" accessibilityLabel={`${h.name} (${h.station})`} {...hitProps({ w: 300, h: 44 })}
+                         style={{ minHeight: 44, justifyContent: "center", borderTopWidth: 1, borderTopColor: palette.line }}>
+                <Text style={{ ...TYPE.bodyStrong, color: palette.accent }}>{h.name}</Text>
+                <Text style={{ ...TYPE.small, color: palette.sub }}>{h.station}</Text>
+              </Pressable>
+            ))}
+            <Button palette={palette} kind="ghost" label={A.cancel} testID="notify-add-cancel" onPress={onCancel} />
+          </>
+        )}
     </Card>
   );
 }
 
-/** One alert in its water's card: its gauge, its line, its switch, Edit and Delete (or the editor, in place). */
-function AlertRow({ n, r, palette, source, first }: { n: NotificationsVM; r: GaugeAlertRule; palette: Palette;
-                                                      source: WaterSource | null; first: boolean }) {
-  const [editing, setEditing] = useState(false);
-  // aloud, an alert is its water and gauge with its line: two waters' alerts on one page are never the same words
-  const line = `${W.alerts.heading(r.water?.name ?? null, r.stationName)}, ${alertLine(r)}`;
-  const card = alertCardLine(r, n.state.ruleState[r.id]);
+/** One alert, one line: its gauge, its condition and when it last fired; its own On/Off and Delete. */
+function AlertRow({ n, r, palette, first }: { n: NotificationsVM; r: GaugeAlertRule; palette: Palette; first: boolean }) {
+  const line = alertListLine(r, n.state.ruleState[r.id]);
   return (
     <View testID={`notify-alert-${r.id}`}
-          style={{ gap: SPACE.s1, paddingTop: first ? 0 : SPACE.s2, borderTopWidth: first ? 0 : 1, borderTopColor: palette.line }}>
-      <SwitchRow palette={palette} testID={`notify-alert-on-${r.id}`} first label={r.stationName} hint={card}
-                 aloud={W.alerts.switchAloud(line)}
-                 on={r.on} onPress={() => { void n.setRuleOn(r.id, !r.on); }} />
-      {editing
-        ? <AlertEditor palette={palette} source={source} rule={r}
-                       gauge={{ station: r.station, stationName: r.stationName, quantity: r.quantity, current: null,
-                                water: r.water }}
-                       onCancel={() => setEditing(false)}
-                       onSave={async (d) => { await n.putRule({ ...r, ...d }); setEditing(false); }} />
-        : (
-          <View style={{ flexDirection: "row", gap: SPACE.s4 }}>
-            <Button palette={palette} kind="link" size="meta" label={W.alerts.edit} testID={`notify-edit-${r.id}`}
-                    a11yLabel={W.alerts.editAloud(line)} onPress={() => setEditing(true)} />
-            <Button palette={palette} kind="link" size="meta" label={W.alerts.remove} testID={`notify-remove-${r.id}`}
-                    a11yLabel={W.alerts.removeAloud(line)} onPress={() => n.removeRule(r.id)} />
-          </View>
-        )}
+          style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, paddingTop: first ? 0 : SPACE.s2,
+                   borderTopWidth: first ? 0 : 1, borderTopColor: palette.line }}>
+      <View style={{ flex: 1 }}>
+        <SwitchRow palette={palette} testID={`notify-alert-on-${r.id}`} first label={line} aloud={W.alerts.switchAloud(line)}
+                   on={r.on} onPress={() => { void n.setRuleOn(r.id, !r.on); }} />
+      </View>
+      <Button palette={palette} kind="link" size="meta" label={W.alerts.remove} testID={`notify-remove-${r.id}`}
+              a11yLabel={W.alerts.removeAloud(line)} onPress={() => n.removeRule(r.id)} />
     </View>
   );
 }
 
-export function NotificationsPage({ n, palette, source = null, onFindWater }: {
+export function NotificationsPage({ n, palette, source = null }: {
   n: NotificationsVM; palette: Palette;
-  /** the waters: the editor's reading and normal range, and "Add an alert"'s search; null: neither is offered */
+  /** the gauges: "Add an alert" and its editor; null: adding is not offered here */
   source?: WaterSource | null;
-  /** "Add an alert": open the picked water's Conditions */
-  onFindWater?: (item: string) => void;
 }) {
   const s = n.state;
   const p = n.permission;
   const [adding, setAdding] = useState(false);
-  // the alerts grouped by water, in the order each water's first alert was added
-  const groups = useMemo(() => {
-    const by = new Map<string, { name: string; rules: GaugeAlertRule[] }>();
-    for (const r of s.rules) {
-      const k = alertWaterKey(r);
-      const g = by.get(k) ?? { name: r.water?.name ?? r.stationName, rules: [] };
-      g.rules.push(r);
-      by.set(k, g);
-    }
-    return [...by.entries()];
-  }, [s.rules]);
+  const [saved, setSaved] = useState(false);
   return (
     <View testID="notifications-page" style={{ gap: SPACE.s4 }}>
       <Card palette={palette}>
@@ -167,24 +176,33 @@ export function NotificationsPage({ n, palette, source = null, onFindWater }: {
 
       <View style={{ gap: SPACE.s2 }}>
         <Kicker palette={palette}>{W.sections.alerts}</Kicker>
-        {s.rules.length === 0 && !adding && (
-          <Card palette={palette}><Text testID="notify-no-alerts" style={{ ...TYPE.small, color: palette.sub }}>{W.alerts.none}</Text></Card>
-        )}
-        {groups.map(([k, g]) => (
-          <Card key={k} palette={palette} testID={`notify-water-${k}`}>
-            <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{g.name}</Text>
-            {g.rules.map((r, i) => <AlertRow key={r.id} n={n} r={r} palette={palette} source={source} first={i === 0} />)}
+        <Card palette={palette} testID="notify-alerts">
+          {s.rules.length === 0
+            ? <Text testID="notify-no-alerts" style={{ ...TYPE.small, color: palette.sub }}>{W.alerts.none}</Text>
+            : s.rules.map((r, i) => <AlertRow key={r.id} n={n} r={r} palette={palette} first={i === 0} />)}
+          <Text style={{ ...TYPE.small, color: palette.sub }}>{W.alerts.how}</Text>
+        </Card>
+        {s.refused.length > 0 && (
+          <Card palette={palette} testID="notify-refused">
+            <Text accessibilityRole="header" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{W.refused.title}</Text>
+            <Text style={{ ...TYPE.small, color: palette.sub }}>{W.refused.note}</Text>
+            {s.refused.map((r, i) => (
+              <Text key={i} testID="notify-refused-item" style={{ ...TYPE.small, color: palette.ink }}>{W.refused.item(r)}</Text>
+            ))}
+            <Button palette={palette} kind="link" size="meta" label={W.refused.ok} testID="notify-refused-ok"
+                    onPress={n.dismissRefused} />
           </Card>
-        ))}
-        {source && onFindWater && (adding
-          ? <AddAlert palette={palette} source={source} onPick={(item) => { setAdding(false); onFindWater(item); }}
+        )}
+        {source && (adding
+          ? <AddAlert palette={palette} source={source} n={n} onDone={() => { setAdding(false); setSaved(true); }}
                       onCancel={() => setAdding(false)} />
           : (
             <View style={{ flexDirection: "row" }}>
               <Button palette={palette} kind="small" icon="bell" label={W.alerts.add} a11yLabel={W.alerts.add}
-                      testID="notify-add-open" onPress={() => setAdding(true)} />
+                      testID="notify-add-open" onPress={() => { setSaved(false); setAdding(true); }} />
             </View>
           ))}
+        {saved && !adding && <AlertStatus n={n} palette={palette} />}
       </View>
 
       <View style={{ gap: SPACE.s2 }}>

@@ -52,11 +52,9 @@ export interface MenuInfo {
 export const NO_MENU_INFO: MenuInfo = Object.freeze({ appBuild: null, contact: null });
 
 export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader, info = NO_MENU_INFO, tiles, route, day, mode = null,
-                           map = null, offline = null, source = null, onOpenConditions }: {
-  /** (T234 v1.1) the waters: the alert editor's reading and normal range, "Add an alert"'s search; null: neither */
+                           map = null, offline = null, source = null }: {
+  /** (T234, T527) the gauges: "Add an alert" (pick a gauge, then the editor: its reading, normal range and record) */
   source?: WaterSource | null;
-  /** (T234 v1.1) "Add an alert": open the picked water's Conditions (where its gauge card has "Alert me") */
-  onOpenConditions?: (item: string) => void;
   /** (T352) the map as the reader has it — layer, forecast offset, zoom and centre (the Shell's): a report lists them */
   map?: ReportMap | null;
   /** (T238) the Offline maps page's view and actions (`useOfflineMaps`); null: no release open, the page says nothing */
@@ -122,8 +120,7 @@ export function MenuHost({ menu, palette, theme = "light", onWalkthrough, loader
         )}
       </MenuPage>
       {page("offline", offline ? <OfflinePage c={offline} palette={palette} /> : null)}
-      {notifications && page("notifications", <NotificationsPage n={notifications} palette={palette} source={source}
-                                                                 onFindWater={onOpenConditions ? (item) => { menu.closePage(); onOpenConditions(item); } : undefined} />)}
+      {notifications && page("notifications", <NotificationsPage n={notifications} palette={palette} source={source} />)}
       {page("help", <HelpPage palette={palette} theme={theme}
                               onWalkthrough={onWalkthrough ? () => { menu.closePage(); onWalkthrough(); } : undefined}
                               // (T293) Help's Offline section opens Offline maps (the app's page: none on the web)

@@ -253,6 +253,21 @@ export function percentileInBand(v: number | null, band: Band | null): number | 
 }
 
 /**
+ * (T527) THE VALUE AT A PERCENTILE of one day's envelope — `percentileInBand` run backwards, on the same knots and the
+ * same straight lines between them, so a reading at the value this returns ranks at `p` on the chart and in the feed.
+ * Only between the outer knots (p10..p90): the envelope holds nothing past them to measure by, so a percentile outside
+ * is null, never a guess. Null with no envelope.
+ */
+export function valueAtPercentile(band: Band | null, p: number): number | null {
+  if (!band || !Number.isFinite(p) || p < KNOTS[0]! || p > KNOTS[4]!) return null;
+  for (let i = 0; i < 4; i++) {
+    const lo = KNOTS[i]!, hi = KNOTS[i + 1]!;
+    if (lo <= p && p <= hi) return band[i]! + ((p - lo) / (hi - lo)) * (band[i + 1]! - band[i]!);
+  }
+  return null;
+}
+
+/**
  * Where one value sits in one day's envelope (S1: a spot's lead-up days), as a lead-up day freezes it.
  *
  * NOT A SECOND RANKING: it is `percentileInBand`, said in words at the edges and rounded to a thousandth inside. The

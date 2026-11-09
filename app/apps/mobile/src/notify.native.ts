@@ -24,7 +24,7 @@ import * as BackgroundTask from "expo-background-task";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { appUpdateChannel, appVersionFileUrl, NOTIFY_WORDS, now, reportFailure, versionHeaders } from "@app/core";
-import { createNotifySettings, fetchObs, fetchStationRows, parseManifest, runBackgroundCheck, versionedFetch,
+import { createNotifySettings, fetchObs, parseManifest, runBackgroundCheck, versionedFetch,
          type Notice, type NotifyData } from "@app/data";
 import { openNotifyStore } from "@app/data/spots";
 import type { NotifyControls, NotifyPermission } from "@app/ui";
@@ -77,7 +77,6 @@ TaskManager.defineTask(TASK, async () => {
     await runBackgroundCheck({
       settings, now, appVersion: APP_VERSION, notify: raise,
       obs: () => fetchObs(ENDPOINTS.alertFeed, FETCH),
-      stationRows: (station) => fetchStationRows(ENDPOINTS.alertFeed, station, FETCH),
       latestApp: VERSION_FILE ? async () => {
         const res = await FETCH(VERSION_FILE, { cache: "no-store" });
         if (!res.ok) throw new Error(`${VERSION_FILE}: HTTP ${res.status}`);
