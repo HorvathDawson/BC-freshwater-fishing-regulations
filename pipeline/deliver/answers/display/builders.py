@@ -178,18 +178,24 @@ def _by_grp(item_id: str, w: dict, doc: dict):
     merged = []
     for g in range(len(members)):
         qs = [w["parts"][ex] for ex in members[g]]
-        runs = [dict(r) for q in qs for r in q.get("runs") or []]
-        runs.sort(key=lambda r: (r.get("km_from") is None, -(r.get("km_from") or 0)))
-        # pieces of ONE run (the salmon chain cut it) meet end to end: said as the one run they are, as before T517
-        joined: List[dict] = []
-        for r in runs:
-            last = joined[-1] if joined else None
-            if last and not last.get("branch") and not r.get("branch") and last.get("to") and \
-                    last.get("to") == r.get("from") and set(last) == set(r):
-                last["to"], last["km_to"] = r.get("to"), r.get("km_to")
-            else:
-                joined.append(r)
-        merged.append({**qs[0], "runs": joined, "sections": sum(q["sections"] for q in qs)})
+        tagged = [(k, dict(r)) for k, q in enumerate(qs) for r in q.get("runs") or []]
+        tagged.sort(key=lambda t: (t[1].get("km_from") is None, -(t[1].get("km_from") or 0)))
+        # pieces of ONE run (the salmon chain cut it, T517) meet end to end where one PART ends and the next begins:
+        # said as the one run they were before T517. Two runs of one part stay two (a border, a lake between).
+        joined: List[tuple] = []
+        stem: Optional[int] = None                      # the index in `joined` of the last main-stem run
+        for k, r in tagged:
+            last = joined[stem] if stem is not None else None
+            if last and last[0] != k and not r.get("branch") and last[1].get("to") \
+                    and last[1].get("to") == r.get("from") and last[1].get("km_to") == r.get("km_from") \
+                    and set(last[1]) == set(r):
+                last[1]["to"], last[1]["km_to"] = r.get("to"), r.get("km_to")
+                joined[stem] = (k, last[1])
+                continue
+            joined.append((k, r))
+            if not r.get("branch"):
+                stem = len(joined) - 1
+        merged.append({**qs[0], "runs": [r for _, r in joined], "sections": sum(q["sections"] for q in qs)})
     return Water(item_id, {**w, "parts": merged}, doc), members
 
 

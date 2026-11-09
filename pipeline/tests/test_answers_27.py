@@ -212,3 +212,9 @@ def test_t517_a_rule_set_group_says_its_salmon_cut_pieces_as_the_one_run_they_ar
     Wg, members = B._by_grp("x", w, {"waters": {"x": w}, "splits": {}, "rulesets": {"1": {}}, "rules": {}})
     assert Wg.parts[0]["runs"] == [{"from": "source", "to": "mouth", "km_from": 9.0, "km_to": 0.0}]
     assert members == {0: [0, 1]} and Wg.parts[0]["sections"] == 3
+    # two runs of ONE part (a border between) stay two, as before T517
+    one = {"kind": "stream", "name": "Y", "parts": [{"ruleset": "1", "grp": 0, "run": 0, "sections": 2, "runs": [
+        {"from": "source", "to": "bc_border", "km_from": 9.0, "km_to": 3.0},
+        {"from": "bc_border", "to": "mouth", "km_from": 3.0, "km_to": 0.0}]}]}
+    Wy, _ = B._by_grp("y", one, {"waters": {"y": one}, "splits": {}, "rulesets": {"1": {}}, "rules": {}})
+    assert len(Wy.parts[0]["runs"]) == 2
