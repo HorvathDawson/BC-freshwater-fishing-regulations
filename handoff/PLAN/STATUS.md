@@ -13,6 +13,29 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 ~13:30 — owner answered the Owner Desk (https://claude.ai/artifact/DNAAwMJiUEHLhWvBHmhE8U, db "answers")
+Settled (fold into OWNER-TODO, mark done): restart done; Barrow Town point OK; loc48 OK as is (a closure inside the
+place overrides it anyway); loc54 = same as wording 56 (old typo) → apply the 56 proposal; resolve route KEEP; T467 all
+themes + lake shoreline; T395 section; T390 as is; T377 as built; gh-token SET; MapLibre upstream posted (waiting on
+PR); clear: older phone checks, 0.4.0, T366, T332, T475, info notes. T420 pair: owner unsure → superseded by build 22, clear.
+To act on:
+1. FORKS (owner: our pieces look backwards): DFO "100 m upstream of the confluence ... ends ~1 km downstream" = 100 m up
+   the MORICE (cut exists) + 1 km down the (lower) BULKLEY; "missing at least one split". Redo the proposal on the owner's
+   reading, check FWA arm names, ASK the owner whether the upper Bulkley's 100 m is also in, send a map shot.
+2. REVIEW APP STILL CONFUSING (owner, strong): too verbose, many things to check, "multiple proposal streams", a save
+   doesn't visibly update (Chilliwack: mark saved, but the extent can't change until the NEW Barrow Town cut is built —
+   the screen just says "not the extent now"). T525 round 3: radically simpler — one proposal, one plain status
+   ("Saved. Takes effect after the next rebuild builds the new cut Barrow Town"), hide internals.
+3. SECTION E: owner — E is the catch-all, everything in Region 6 not in B/C/D/F. Check E's extent is computed as region
+   minus B,C,D,F rather than a hand list; say what the removed MU 6-12/6-13 piece should have covered.
+4. DFO staleness: warn when older than 1 DAY (it is checked daily; data changes rarely but must be checked often).
+5. Alerts (T234): owner wants a clean stock-style alerting system + percentile-of-day alerts (crosses median / 75th
+   etc.). New ticket.
+6. T470 dark mode: "industry standard" → WCAG 2.x non-text contrast ≥ 3:1; strengthen closed in dark if below.
+7. Play listing icon + feature graphic: owner asks Claude to do it → try the Play Developer API (edits.images) with the
+   deploy credentials; if refused, say exactly why.
+8. Prod feeds worker placeholder: owner GRANTS permission to create it if missing (check first).
+
 ## 2026-11-09 11:50 — session stopped ~02:10, resumed
 - Nothing shipped overnight: no build 22, no Play upload, nothing promoted. Committed by 02:04: T524 (+ review fixes),
   T525 round 1, T522 step cache (release builds use --no-step-cache until its review fixes land), T360 memory (+ review
