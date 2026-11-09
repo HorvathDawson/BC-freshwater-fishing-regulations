@@ -81,6 +81,16 @@ as_ci() {
 }
 step "changed pipeline tests pass as CI runs them (no local builds)" as_ci
 
+# caught (2026-11-09, CI run 42723032360): `REPO_ROOT / "data" / "release"` (T517 name_check) failed CI's "No hardcoded
+# curated or source paths" gate after the push; that gate is a grep (< 1 s), run here from the workflow itself
+path_gate() {
+  "$PY" -c 'import sys, yaml; s = [s for j in yaml.safe_load(open(".github/workflows/pipeline-ci.yml"))["jobs"].values()
+for s in j["steps"] if s.get("name") == "No hardcoded curated or source paths"]; assert len(s) == 1, "gate step not found"
+sys.stdout.write(s[0]["run"])' > "${TMPDIR:-/tmp}/fast-fail-path-gate.sh"
+  bash -e "${TMPDIR:-/tmp}/fast-fail-path-gate.sh"
+}
+step "no hardcoded curated or source paths (CI's gate)" path_gate
+
 # caught: a syntax error in a changed pipeline module surfacing only when a build stage imported it, an hour in
 py_compiles() {
   local files=() f
