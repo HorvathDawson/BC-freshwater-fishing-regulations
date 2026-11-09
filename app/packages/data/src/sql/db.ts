@@ -27,7 +27,8 @@ export interface Row {
 export interface Db {
   all(sql: string, ...params: (string | number | null)[]): Promise<Row[]>;
   get(sql: string, ...params: (string | number | null)[]): Promise<Row | undefined>;
-  close?(): void;
+  /** Close the connection; a driver that closes asynchronously resolves once it is closed (or rejects). */
+  close?(): void | Promise<void>;
   /** (T360) Give back what the connection's page cache holds (`PRAGMA shrink_memory`); the file stays open. */
   shrink?(): Promise<void>;
 }

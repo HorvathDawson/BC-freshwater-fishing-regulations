@@ -77,10 +77,9 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
         if (!live) return;
         inUse.current = booted;
         set({ state: "ready", booted, generation });
-        // (T360) the replaced set's database connections are closed (each was held open for the app's life); a screen
-        // still reading the old set opens its file again (kept until the next launch, `keepReplaced`)
-        if (prev && prev.loader !== booted.loader)
-          prev.loader.closeIdle?.(0).catch((e: unknown) => reportFailure(e instanceof Error ? e : new Error(String(e))));
+        // (T360) the replaced set is retired: each of its database connections closes once its last read is out (each
+        // was held open for the app's life), and none opens again. A failed close is reported.
+        if (prev && prev.loader !== booted.loader) prev.loader.retire().catch(reportFailure);
       },
       (e: unknown) => {
         if (pending) clearTimeout(pending);

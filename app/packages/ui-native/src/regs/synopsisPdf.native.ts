@@ -83,24 +83,22 @@ async function markedCopy(s: SynopsisSource, cached: File, boxes: readonly Sourc
   if (!tail) return null;                          // no box on a page of the book: the page opens unmarked
   const f = new File(Paths.cache, "synopsis-open.pdf");
   // (T360) the same marks on the same book again (a reader back on a water's rule-book link): the copy on disk is it,
-  // not a second 12 MB write
-  const key = `${s.sha256}:${tailKey(tail)}`;
-  if (marked === key && f.exists && f.size === s.bytes + tail.length) return f;
-  marked = null;
+  // not a second 12 MB write. Compared exactly (the book's sha256 and every byte of the tail).
+  if (written && written.sha256 === s.sha256 && sameBytes(written.tail, tail) && f.exists && f.size === s.bytes + tail.length)
+    return f;
+  written = null;                                  // from here until the write is whole, the file is unknown
   if (f.exists) f.delete();
   await cached.copy(f);
   await f.write(tail, { append: true });   // (T446) a promise since SDK 58
-  marked = key;
+  written = { sha256: s.sha256, tail };
   return f;
 }
-/** (T360) what `synopsis-open.pdf` holds now (book sha + its tail's key), this run; null: unknown, it is written again */
-let marked: string | null = null;
-/** FNV-1a over the appended tail (a few hundred bytes) and its length */
-function tailKey(b: Uint8Array): string {
-  let h = 0x811c9dc5;
-  for (const x of b) h = Math.imul(h ^ x, 0x01000193) >>> 0;
-  return `${b.length}.${h.toString(16)}`;
-}
+/** (T360) what `synopsis-open.pdf` holds now, this run (the book's sha256 and the tail appended); null: unknown */
+let written: { sha256: string; tail: Uint8Array } | null = null;
+const sameBytes = (a: Uint8Array, b: Uint8Array) => a.length === b.length && a.every((x, i) => x === b[i]);
+
+/** (T360) one open at a time: a double tap must not write the marked copy (or the download's `.part`) under another */
+let opening: Promise<unknown> = Promise.resolve();
 
 /**
  * Open the synopsis at PDF page `pdf` with `boxes` highlighted, IN THE APP (T354, owner 2026-11-03): the viewer opens the
@@ -109,13 +107,18 @@ function tailKey(b: Uint8Array): string {
  */
 export async function openHighlighted(s: SynopsisSource, pdf: number, boxes: readonly SourceBox[],
                                       hooks: Partial<LoadHooks> = {}): Promise<void> {
-  const t0 = now();
-  const cached = await downloadSynopsis(s, hooks);
-  const t1 = now();
-  const marked = await markedCopy(s, cached, boxes);
-  // what opened, for the test bed (logcat) and a report: the page, the boxes it was handed, marked or plain, and how
-  // long the book (held or fetched) and the marked copy took
-  console.info(`[synopsis] open PDF p.${pdf}: ${boxes.length} box(es) → ${marked ? "highlighted copy" : "plain book"}`
-    + ` (book ${t1 - t0} ms, copy ${now() - t1} ms)`);
-  showPdf((marked ?? cached).uri, Math.max(1, pdf));
+  const run = opening.then(async () => {
+    const t0 = now();
+    const cached = await downloadSynopsis(s, hooks);
+    const t1 = now();
+    const copy = await markedCopy(s, cached, boxes);
+    // what opened, for the test bed (logcat) and a report: the page, the boxes it was handed, marked or plain, and how
+    // long the book (held or fetched) and the marked copy took
+    console.info(`[synopsis] open PDF p.${pdf}: ${boxes.length} box(es) → ${copy ? "highlighted copy" : "plain book"}`
+      + ` (book ${t1 - t0} ms, copy ${now() - t1} ms)`);
+    showPdf((copy ?? cached).uri, Math.max(1, pdf));
+  });
+  // the next open waits for this one to END, failed or not (this one's failure is its own caller's to say)
+  opening = run.catch(() => undefined);
+  return run;
 }

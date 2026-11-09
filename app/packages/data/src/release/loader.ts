@@ -95,10 +95,17 @@ export interface ReleaseLoader {
    */
   trim(): Promise<number>;
   /**
-   * (T360) Close every database connection not read for `idleMs` (0: all not mid-read). The handles stay good: the next
-   * read opens the file again (checked again). Resolves to how many were closed. Optional: a fake loader has none.
+   * (T360) Close every database connection not read (nor shrunk) for `idleMs` and not in use now. The handles stay good:
+   * the next read opens the file again, checked again. Resolves to how many were closed; rejects with the first close
+   * that failed, after every close was tried (the caller reports it).
    */
-  closeIdle?(idleMs: number): Promise<number>;
+  closeIdle(idleMs: number): Promise<number>;
+  /**
+   * (T360) This set was REPLACED (an applied update): every connection closes as soon as its last read is out, and none
+   * opens again — a read that would reopen one, or a file never opened, is refused (ReleaseError). Resolves, once all
+   * are closed, to how many were; rejects with the first close that failed, after every close was tried.
+   */
+  retire(): Promise<number>;
   /**
    * (T186) Fetch a file's bytes ahead of need WITHOUT opening it: the source's own fetch, so it lands in the release
    * cache the later open reads (web; a phone's files are installed and never prefetched). Once per file per loader.
@@ -150,10 +157,15 @@ const WATER_SHARED: DbName = "water-shared";
 
   /**
    * (T360) A file's ONE handle: what `db()` hands out and every reader keeps. Its connection may be closed while idle
-   * (`closeIdle`: a trim, an applied update's old set) and the next read opens it again, checked again (0.1–0.3 ms on a
-   * phone: the file is opened in place). A read in flight is never closed under.
+   * (`closeIdle`, on a trim) and the next read opens it again, checked again (0.1–0.3 ms on a phone: the file is opened
+   * in place). A read or a shrink in flight is never closed under: each counts in `busy`, and a close waits for none of
+   * them but skips (closeIdle) or waits out (retire) a busy connection. A retired loader (`retire`) never opens again.
    */
-  const conns = new Map<DbName, { raw: Promise<Db> | null; last: number; busy: number }>();
+  interface Conn { raw: Promise<Db> | null; last: number; busy: number; drained: (() => void)[] }
+  const conns = new Map<DbName, Conn>();
+  let retired = false;
+  const refusal = (name: DbName) =>
+    new ReleaseError(`${name}: release ${m.data_release} was replaced; its databases are closed`);
   const connect = (name: DbName, spec: NonNullable<Manifest["files"][string]>): Promise<Db> =>
     open(name, () => source.bytes(name)).then(async (d) => {
       const meta = Object.fromEntries((await d.all("SELECT k, v FROM meta")).map((r) => [r.k, r.v]));
@@ -162,27 +174,59 @@ const WATER_SHARED: DbName = "water-shared";
                                `${spec.format} / ${spec.section_handles}`);
       return d;
     });
+  /** Run `f` with the connection counted busy; the last one out wakes whoever waits to close it. */
+  const busy = async <T>(c: Conn, f: () => Promise<T>): Promise<T> => {
+    c.busy++;
+    try { return await f(); }
+    finally {
+      c.busy--; c.last = clock();
+      if (c.busy === 0) for (const wake of c.drained.splice(0)) wake();
+    }
+  };
+  /**
+   * Close `c`'s connection: taken off the handle at once (synchronously, so no read starts on it while it closes), then
+   * closed and the close awaited. True: closed; false: it never opened (its failure was the opener's to say). A driver
+   * that cannot close keeps its connection on the handle and is not counted (a fake: every release driver closes).
+   */
+  const shut = async (c: Conn): Promise<boolean> => {
+    const p = c.raw;
+    if (!p) return false;
+    c.raw = null;
+    const d = await p.then((x) => x, () => null);
+    if (!d) return false;
+    if (!d.close) { if (c.raw === null) c.raw = p; return false; }
+    await d.close();
+    return true;
+  };
+  /** Every close of `jobs` run to its end; the count of real closes, or the first failure (after all were tried). */
+  const settle = async (jobs: Promise<boolean>[]): Promise<number> => {
+    const done = await Promise.allSettled(jobs);
+    const failed = done.find((r): r is PromiseRejectedResult => r.status === "rejected");
+    if (failed) throw failed.reason;
+    return done.filter((r) => r.status === "fulfilled" && r.value).length;
+  };
   const handle = (name: DbName, spec: NonNullable<Manifest["files"][string]>, first: Promise<Db>): Db => {
-    const c = { raw: first as Promise<Db> | null, last: clock(), busy: 0 };
+    const c: Conn = { raw: first, last: clock(), busy: 0, drained: [] };
     conns.set(name, c);
-    const use = async <T>(f: (d: Db) => Promise<T>): Promise<T> => {
-      c.busy++;
-      try {
-        if (!c.raw) { const p = connect(name, spec); c.raw = p; p.catch(() => { if (c.raw === p) c.raw = null; }); }
-        return await f(await c.raw);
-      } finally { c.busy--; c.last = clock(); }
-    };
+    const use = <T>(f: (d: Db) => Promise<T>): Promise<T> => busy(c, async () => {
+      if (!c.raw) {
+        if (retired) throw refusal(name);
+        const p = connect(name, spec);
+        c.raw = p;
+        p.catch(() => { if (c.raw === p) c.raw = null; });
+      }
+      return f(await c.raw);
+    });
     return {
       all: (sql, ...params) => use((d) => d.all(sql, ...params)),
       get: (sql, ...params) => use((d) => d.get(sql, ...params)),
-      // only an open connection is shrunk: a closed one holds nothing
-      shrink: async () => { const p = c.raw; const d = p && await p; if (d?.shrink) await d.shrink(); },
     };
   };
 
   const db = (name: DbName): Promise<Db> => {
     const spec = m.files[name];
     if (!spec) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
+    if (retired && !dbs.has(name)) return Promise.reject(refusal(name));
     let p = dbs.get(name);
     if (!p) {
       touch(name);
@@ -317,25 +361,33 @@ const WATER_SHARED: DbName = "water-shared";
     },
     opened: () => order.slice(),
     async trim() {
-      // only the opened ones: a database still opening (or that failed), or closed while idle, is not waited for
+      // only the open ones: a database still opening (or that failed), or closed, is not waited for. The shrink counts
+      // as busy, so no close (an overlapping trim's, a retire) shuts the connection under it.
       let n = 0;
       for (const c of conns.values()) {
-        const d = c.raw && await c.raw.then((x) => x, () => null);
-        if (d?.shrink) { await d.shrink(); n++; }
+        if (!c.raw) continue;
+        const raw = c.raw;
+        n += await busy(c, async () => {
+          const d = await raw.then((x) => x, () => null);
+          if (!d?.shrink) return 0;
+          await d.shrink();
+          return 1;
+        });
       }
       return n;
     },
-    async closeIdle(idleMs) {
+    closeIdle(idleMs) {
       const t = clock();
-      let n = 0;
-      for (const c of conns.values()) {
-        if (!c.raw || c.busy > 0 || t - c.last < idleMs) continue;
-        const p = c.raw;
-        c.raw = null;                            // the next read opens it again
-        const d = await p.then((x) => x, () => null);
-        if (d?.close) { d.close(); n++; }
-      }
-      return n;
+      // checked and taken in one synchronous pass: a read starting meanwhile finds the connection gone and reopens
+      return settle([...conns.values()].filter((c) => c.raw && c.busy === 0 && t - c.last >= idleMs).map(shut));
+    },
+    retire() {
+      retired = true;
+      // each connection closes once its last read or shrink is out; none reopens (`use` refuses)
+      return settle([...conns.values()].map(async (c) => {
+        while (c.busy > 0) await new Promise<void>((r) => c.drained.push(r));
+        return shut(c);
+      }));
     },
     prefetch(name) {
       if (!m.files[name]) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));

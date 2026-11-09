@@ -40,7 +40,11 @@ function wrap(name: string, db: SQLiteDatabase): Db {
       try { return ((await one(() => db.getFirstAsync(sql, params as never), `${name}: ${sql.slice(0, 40)}`)) as unknown as Row | null) ?? undefined; }
       catch (e) { throw named(name, sql, e); }
     },
-    close: () => { void one(() => db.closeAsync()); },
+    // (T360) awaited by the caller: a failed close is said (closeIdle / retire reject), never dropped
+    close: async () => {
+      try { await one(() => db.closeAsync(), `${name}: close`); }
+      catch (e) { throw named(name, "close", e); }
+    },
     // (T360) through the same queue: never beside a read on this connection
     shrink: async () => {
       try { await one(() => db.execAsync("PRAGMA shrink_memory"), `${name}: shrink`); }

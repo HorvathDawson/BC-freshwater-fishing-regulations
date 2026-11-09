@@ -73,6 +73,29 @@ describe("synopsisPdf.native (T285, T354)", () => {
     expect(copies).toHaveBeenCalledTimes(3);
     copies.mockRestore();
   });
+  it("(T360) a double tap: the opens run one after another, each shown with its own marks (never written under another)", async () => {
+    const fs = (await import("expo-file-system")).File.prototype as unknown as { copy(to: unknown): Promise<void>; write(b: Uint8Array, o?: unknown): Promise<void> };
+    const log: string[] = [];
+    const copy = fs.copy, write = fs.write;
+    const spies = [
+      vi.spyOn(fs, "copy").mockImplementation(async function (this: unknown, to) { log.push("copy"); await new Promise((r) => setTimeout(r, 0)); return copy.call(this, to); }),
+      vi.spyOn(fs, "write").mockImplementation(async function (this: unknown, b, o) { log.push("write"); return write.call(this, b, o); }),
+      vi.spyOn(console, "info").mockImplementation((l: string) => { log.push(`show ${/p\.(\d+)/.exec(l)?.[1]}`); }),
+    ];
+    const other = [{ pdf: 9, box: [0, 0, 2, 2], size: [576, 756] }] as never;
+    const shown: string[] = [];
+    const one = openHighlighted(S, 9, BOX).then(() => shown.push(text("cache/synopsis-open.pdf")));
+    const two = openHighlighted(S, 8, other).then(() => shown.push(text("cache/synopsis-open.pdf")));
+    await Promise.all([one, two]);
+    expect(log).toEqual(["copy", "write", "show 9", "copy", "write", "show 8"]);
+    expect([shown[0] !== shown[1], getPdfView()?.page]).toEqual([true, 8]);
+    spies.forEach((x) => x.mockRestore());
+  });
+  it("(T360) a failed open does not stop the next one", async () => {
+    await expect(openHighlighted({ ...S, append: null }, 9, BOX)).rejects.toThrow(/no page index/);
+    await openHighlighted(S, 9, BOX);
+    expect(getPdfView()?.page).toBe(9);
+  });
   it("no box: the held book itself, at the page", async () => {
     await openHighlighted(S, 1, []);
     expect(getPdfView()).toMatchObject({ uri: `doc/synopsis-${S.sha256.slice(0, 16)}.pdf`, page: 1 });

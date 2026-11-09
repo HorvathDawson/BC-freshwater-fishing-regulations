@@ -19,7 +19,7 @@ export function trimOnPressure(loader: ReleaseLoader, failed: (e: unknown) => vo
   // (T360) then the connections no screen has read for a minute are closed (the next read opens one again)
   const trim = (what: string) =>
     loader.trim().then(async (n) => {
-      const closed = await loader.closeIdle?.(IDLE_MS) ?? 0;
+      const closed = await loader.closeIdle(IDLE_MS);
       console.info(`[trim] ${what}, ${n} database(s) shrunk, ${closed} idle closed`);
     }).catch(failed);
   const sub = native ? native.addListener("trim", (e) => {
