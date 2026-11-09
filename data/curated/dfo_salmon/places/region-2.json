@@ -3489,7 +3489,18 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"
+            ],
+            "item_ids": [
+              "gnis:8634",
+              "gnis:3062"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
