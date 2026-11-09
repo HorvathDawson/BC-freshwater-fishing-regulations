@@ -137,16 +137,19 @@ def _step(args: list, steps: "_Steps | None" = None) -> None:
     print(f"pipeline.deliver: {name} done in {time.time() - t0:.0f}s", flush=True)   # T295: per-step timings
 
 
-def step_declared(build_dir: Path, reaches: Path | None = None) -> tuple[dict, dict]:
+def step_declared(build_dir: Path | None, reaches: Path | None = None) -> tuple[dict, dict]:
     """(T522) What the recorder cannot key by content, for (every cached step, the bundle): stamps (size + mtime) of
     every file under the source tree and the atlas — GDAL and SQLite read them in C. The bundle also: every curated
     file but the review state (`build.NOT_BUILD_INPUTS`: the marks change with every review click and no stage reads
     them); and, when no `--reaches` names its run, every reach run's report.json — the bundle PICKS the newest by mtime
-    (`bundle.build._reach_run`), a choice made on file times that content keys cannot see."""
+    (`bundle.build._reach_run`), a choice made on file times that content keys cannot see.
+
+    `build_dir` None = the default build, resolved HERE (it must exist), not at the call site: the chain's fakes stub
+    this function, and resolving the live build before the stub ran made them read the local atlas (red on CI)."""
     from pipeline.build import not_build_inputs
     from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
     from pipeline.common.stepcache import declared_stamps
-    every = declared_stamps([Path(SOURCE), Path(build_dir)])
+    every = declared_stamps([Path(SOURCE), Path(build_dir or GENERATED.require_build())])
     skip = [Path(p).resolve() for p in not_build_inputs()]
     cur = {k: v for k, v in declared_stamps([Path(CURATED.base)]).items()
            if not any(s == (REPO_ROOT / k).resolve() or s in (REPO_ROOT / k).resolve().parents for s in skip)}
@@ -218,7 +221,7 @@ def _all(a) -> int:
     steps = None
     if not getattr(a, "no_step_cache", False):
         from pipeline.common.stepcache import StepCache
-        declared, bundle_declared = step_declared(a.build or GENERATED.require_build(), a.reaches)
+        declared, bundle_declared = step_declared(a.build, a.reaches)
         steps = _Steps(d, StepCache(base / "deliver-cache"), declared, bundle_declared)
     try:
         bundle = d / "bundle.sqlite"

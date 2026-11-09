@@ -373,6 +373,7 @@ def test_the_apply_refuses_a_mark_made_on_an_extent_that_has_moved(tmp_path):
                                "extent_before": {"extents": []}})
 
 
+@pytest.mark.needs_atlas            # the cut labels' registry boundaries and the water names come from the built registry
 def test_every_cut_a_place_names_reads_by_its_label(monkeypatch):
     """T525 (owner 2026-11-09: "the owner reviews by words"): a cut off this map (the Forks' Bulkley cuts on the Morice
     place) is labelled from the curated cuts; a string that is no cut gets no label."""

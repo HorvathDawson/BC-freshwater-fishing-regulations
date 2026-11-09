@@ -66,6 +66,21 @@ silent_skips() {
 }
 step "no silent skips (a pipeline test file changed)" silent_skips
 
+# caught (2026-11-09, CI run 42717971280): 15 tests red on CI only — tests without a `needs_*` marker read the local
+# atlas build (T522's deliver chain resolved it before its stub; the review 503 test read the registry first) and every
+# local run passed because the build is here. The changed pipeline test files run as CI runs them: the data tiers
+# deselected and this machine's builds hidden (`pipeline/tests/ci_no_build.py`)
+CI_MARKERS="not slow and not needs_bundle and not needs_atlas and not needs_reach_run and not needs_tiles and not needs_source and not needs_cache"
+as_ci() {
+  local tests
+  tests=$(grep -E '^pipeline/tests/(.*/)?test_[^/]*\.py$' <<<"$CHANGED" | while IFS= read -r f; do [[ -f $f ]] && echo "$f"; done || true)
+  [[ -n $tests ]] || { echo "   (no pipeline test file changed)"; return 0; }
+  echo "   as CI: $(grep -c . <<<"$tests") test file(s)"
+  # exit 5 = every test in them deselected (all data-tier): nothing CI runs, nothing to fail
+  "$PY" -m pytest -q -p no:cacheprovider -p pipeline.tests.ci_no_build -m "$CI_MARKERS" $tests || [[ $? == 5 ]]
+}
+step "changed pipeline tests pass as CI runs them (no local builds)" as_ci
+
 # caught: a syntax error in a changed pipeline module surfacing only when a build stage imported it, an hour in
 py_compiles() {
   local files=() f

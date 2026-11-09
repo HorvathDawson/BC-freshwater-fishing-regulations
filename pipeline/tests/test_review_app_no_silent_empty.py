@@ -38,6 +38,11 @@ def test_a_failed_applied_keys_is_a_503_that_says_why(app, monkeypatch):
         raise FileNotFoundError("applied_keys: no registry at /x (build the atlas)")
     monkeypatch.setattr(P, "applied_keys", boom)
     import reuse
+    # the entries and the fingerprint context read the built registry BEFORE applied keys run; without a build (CI)
+    # their own FileNotFoundError answered first and the failure under test never ran — neither is under test
+    ctx = object()
+    monkeypatch.setattr(reuse, "_review_context", lambda: ctx)
+    monkeypatch.setattr(reuse, "_all_entries", lambda: [])
     reuse._applied_keys_for.cache_clear()
     with pytest.raises(FileNotFoundError):
         reuse.applied_keys()
