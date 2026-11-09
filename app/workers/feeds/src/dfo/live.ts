@@ -80,7 +80,7 @@ export interface DfoDeps {
 }
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
-export const DFO_REV = "2026-10-31.2"; // T332: quotas as game-fish quota trees (`tree`), the wording split tidied
+export const DFO_REV = "2026-11-09.1"; // T521: an unplaced row carries its water's app items (`items`); T332 quota trees
 /** published index.json is rewritten at least this often even when nothing changed (the app's "checked" age); (T486) under
  *  the daily cron, or a run just inside 24 h skips and the index ages to 48 h */
 export const INDEX_HEARTBEAT_MS = 20 * 3600_000;
@@ -165,6 +165,14 @@ export function typePage(html: string, slug: string, robust: boolean, reg: Regis
   return [typed, locs, structure];
 }
 
+/** (T521) The app item ids of the binding the DFO water name (or one of its aliases) names, sorted; [] when none does. */
+const itemsOf = (ef: EntryFile, water: string): string[] => {
+  const k = key(water || "");
+  if (!k) return [];
+  const ids = ef.waters.filter((w) => key(w.name) === k || w.aliases.some((a) => key(a) === k)).flatMap((w) => w.item_ids);
+  return [...new Set(ids)].sort(cmpStr);
+};
+
 const waterKnown = (ef: EntryFile, water: string): boolean => {
   const k = key(water || "");
   return !k || ef.waters.some((w) => key(w.name) === k || w.aliases.some((a) => key(a) === k));
@@ -211,6 +219,9 @@ function join(
       rows: loc.rows,
       rules: loc.rules,
       page_date: typed.date_modified,
+      // (T521, the Python's `_items_of` too) the app items of the water the row names — the water page that shows it as
+      // "DFO rule, location not yet on the map"; [] for a water no binding knows (`new_water`)
+      items: itemsOf(ef, water),
       ...(loc.error !== undefined ? { error: loc.error } : {}),
     });
   }

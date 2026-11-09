@@ -15,7 +15,7 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
-import { salmonCard, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
+import { salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -53,6 +53,28 @@ export interface SalmonFeed {
   readonly verdicts: readonly Verdict[];
   readonly gears: readonly (readonly string[])[];
   readonly locs: Readonly<Record<string, SalmonFeedLocation>>;
+  /** (T521) how many places the feed lists that no curated location knows (index.json's count) */
+  readonly unplaced?: number;
+  /** (T521) those places, read from `unplaced.json` beside the index (`parseDfoUnplaced`); absent: not read */
+  readonly unplacedRows?: readonly SalmonUnplacedPlace[];
+}
+
+/**
+ * (T521) The feed's `unplaced.json` as the app reads it: every row with its region, its water's app items (`items`, the
+ * feeds worker's T521 field; [] for a water no binding knows), the place and its rows in DFO's words. Throws, naming
+ * the row, on anything else — a half-read list is never shown as the whole one.
+ */
+export function parseDfoUnplaced(x: unknown): readonly SalmonUnplacedPlace[] {
+  if (!Array.isArray(x)) throw new Error("dfo unplaced.json: not a list");
+  const str = (v: unknown) => typeof v === "string";
+  return x.map((u, i) => {
+    const r = u as Record<string, unknown> | null;
+    if (!r || typeof r !== "object" || !str(r.region) || !str(r.water) || !(r.scope == null || str(r.scope))
+        || !Array.isArray(r.rows) || !r.rows.every(str) || !Array.isArray(r.items) || !r.items.every(str))
+      throw new Error(`dfo unplaced.json: row ${i} is not a place with region, water, rows and items`);
+    return { region: r.region as string, items: r.items as string[], water: r.water as string,
+             scope: (r.scope as string | null) ?? "", rows: r.rows as string[] };
+  });
 }
 
 /** The feed as the app reads it, or null when it is not a `dfo-feed/3` it can trust (never a half-read feed). */
@@ -146,7 +168,11 @@ function wordsWithFeed(release: Readonly<Record<string, readonly SalmonWords[]>>
 }
 
 /** What a salmon file read through a feed says about the feed (absent: the release's own file). */
-export interface SalmonFeedFacts { readonly at: string; readonly stale: readonly string[] }
+export interface SalmonFeedFacts {
+  readonly at: string; readonly stale: readonly string[];
+  /** (T521) places the feed lists that no curated location knows, whose list (`unplaced.json`) could not be read */
+  readonly unplacedUnread?: number;
+}
 const FEED = Symbol("salmonFeed");
 type WithFeed = SalmonFacts & { readonly [FEED]?: SalmonFeedFacts };
 
@@ -176,10 +202,14 @@ export function withSalmonFeed(f: SalmonFacts, feed: SalmonFeed): SalmonFacts {
     // a place not drawn yet shows while DFO lists it: the feed's say, not the build's (so never dormant here)
     unmapped: P.unmapped.filter((u) => P.chains[u.chain]?.l.some((l) => !!feed.locs[l]))
       .map(({ d: _d, ...u }) => u),
+    // (T521) the feed's places no curated location knows, shown on their water's page
+    ...(feed.unplacedRows?.length ? { feedUnplaced: feed.unplacedRows } : {}),
   };
   const stale = Object.entries(feed.regions).filter(([, r]) => r.stale || r.held).map(([s]) => s).sort();
+  // (T521) the index counts places its unplaced.json was not read for: said on the card's feed line, never hidden
+  const unread = feed.unplacedRows ? 0 : feed.unplaced ?? 0;
   const out: WithFeed = { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload, loaded: f.loaded,
-                          [FEED]: { at: feed.at, stale } };
+                          [FEED]: { at: feed.at, stale, ...(unread ? { unplacedUnread: unread } : {}) } };
   return out;
 }
 
@@ -226,7 +256,9 @@ export function salmonFeedLine(f: SalmonFacts | null): string | null {
   const when = `${MONTHS[t.getMonth()]} ${t.getDate()}, ${t.getFullYear()}, ${h % 12 || 12}:${mm} ${h < 12 ? "am" : "pm"}`;
   const stale = live.stale.length
     ? ` (Region ${live.stale.map((s) => s.toUpperCase()).join(", ")} could not be read; its earlier rules shown)` : "";
-  return `Checked with DFO ${when}${stale}`;
+  const n = live.unplacedUnread ?? 0;
+  const unread = n ? ` (${n} DFO place${n === 1 ? "" : "s"} not yet on the map could not be read)` : "";
+  return `Checked with DFO ${when}${stale}${unread}`;
 }
 
 /** The Salmon card with the feed's line (`checked`: null when the release's own file answers). */

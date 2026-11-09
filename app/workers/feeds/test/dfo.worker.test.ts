@@ -221,3 +221,23 @@ describe("change-aware DFO runs", () => {
     expect(got.skipped).toEqual(["4", "8"]);
   });
 });
+
+// (T521) a DFO place no curated location knows lands in unplaced.json with the app items of the water it names, so the
+// app shows it on that water's page ("DFO rule, location not yet on the map"); the Python's `_items_of` does the same.
+describe("an unplaced row names its water's app items (T521)", () => {
+  const raw = readFileSync(join(FIX, "entries/region-8.json"), "utf-8");
+  const d = JSON.parse(raw);
+  const gone = d.locations.find((l: any) => l.water === "Mabel Lake");
+  const forgot = JSON.stringify({ ...d, locations: d.locations.filter((l: any) => l !== gone) });
+  const run = (extra: Partial<Parameters<typeof runDfo>[0]> = {}) =>
+    runDfo({ fetch: async () => new Response(""), feed: new MemStore(), priv: privStore(), entries: async () => forgot,
+             now: "2026-10-28T12:00:00Z", regions: ["8"], fetcher: async () => [page("8"), null], ...extra });
+
+  for (const pythonParity of [false, true])
+    it(`${pythonParity ? "pythonParity" : "robust"}: the row carries \`items\` (the binding's item ids)`, async () => {
+      const got = await run({ pythonParity });
+      const u = got.unplaced.find((x: any) => x.water === "Mabel Lake") as any;
+      expect(u).toMatchObject({ region: "8", kind: "new", items: ["wbk:329663955"] });
+      expect(u.rows.length).toBeGreaterThan(0);
+    });
+});

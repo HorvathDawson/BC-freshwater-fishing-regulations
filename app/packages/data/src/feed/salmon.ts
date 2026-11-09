@@ -8,9 +8,14 @@
  * not a whole `dfo-feed/3` is never kept and never read.
  *
  * Asked once per `ttlMs` (the publisher runs every 6 h in season); every answer resolves, never rejects.
+ *
+ * (T521) ONE LOAD PATH for DFO's places no curated location knows: when the index counts any (`unplaced`), its
+ * `unplaced.json` is read beside it, in the same fetch, and kept in the same capture (`unplacedRows`). A failed read
+ * is reported (`reportFailure`) and the feed answers without the rows — the card's feed line says how many could not
+ * be read (`salmonFeedLine`), never an empty list passed off as none.
  */
 import type { Region } from "../pack.generated";
-import { reportFailure, parseSalmonFeed, pickSalmon, type SalmonFacts, type SalmonFeed } from "@app/core";
+import { reportFailure, parseDfoUnplaced, parseSalmonFeed, pickSalmon, type SalmonFacts, type SalmonFeed } from "@app/core";
 
 export interface SalmonFeedStore { read(): string | null; write(text: string): void }
 export interface SalmonFeedSource {
@@ -31,20 +36,36 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
                                opts: { ttlMs?: number; now?: () => number } = {}): SalmonFeedSource {
   const ttl = opts.ttlMs ?? SALMON_FEED_TTL_MS, now = opts.now ?? Date.now;
   let held: { at: number; p: Promise<SalmonFeed | null> } | null = null;
+  const root = base.replace(/\/$/, "");
+  /** a capture, its kept unplaced rows checked as a fresh read is (`parseDfoUnplaced`) */
+  const readFeed = (text: string): SalmonFeed | null => {
+    const raw = JSON.parse(text) as { unplacedRows?: unknown };
+    const f = parseSalmonFeed(raw);
+    return f && raw.unplacedRows !== undefined ? { ...f, unplacedRows: parseDfoUnplaced(raw.unplacedRows) } : f;
+  };
   const captured = (): SalmonFeed | null => {
-    try { const t = store?.read(); return t ? parseSalmonFeed(JSON.parse(t)) : null; } catch { return null; }
+    try { const t = store?.read(); return t ? readFeed(t) : null; } catch { return null; }
+  };
+  /** (T521) the index's unplaced places read beside it, and the whole kept as the capture */
+  const complete = async (f: SalmonFeed): Promise<SalmonFeed> => {
+    let out: SalmonFeed = f;
+    if (f.unplaced !== 0) {
+      try {
+        const r = await fetchImpl(`${root}/unplaced.json`, { cache: "no-store" });
+        if (!r.ok) throw new Error(`dfo unplaced.json: HTTP ${r.status}`);
+        out = { ...f, unplacedRows: parseDfoUnplaced(JSON.parse(await r.text())) };
+      } catch (e) { reportFailure(e); /* the feed answers without them; its line says how many were not read */ }
+    } else out = { ...f, unplacedRows: [] };
+    try { store?.write(JSON.stringify(out)); } catch { /* a cache: a refused write only costs the next offline open */ }
+    return out;
   };
   const get = async (): Promise<SalmonFeed | null> => {
     try {
-      const r = await fetchImpl(`${base.replace(/\/$/, "")}/index.json`, { cache: "no-store" });
+      const r = await fetchImpl(`${root}/index.json`, { cache: "no-store" });
       if (r.ok) {
-        const text = await r.text();
-        const f = parseSalmonFeed(JSON.parse(text));
+        const f = parseSalmonFeed(JSON.parse(await r.text()));
         const was = captured();
-        if (f && (!was || f.at >= was.at)) {
-          try { store?.write(text); } catch { /* a cache: a refused write only costs the next offline open */ }
-          return f;
-        }
+        if (f && (!was || f.at >= was.at)) return await complete(f);
       }
     } catch (e) { reportFailure(e); /* offline, or not a feed: the capture answers, its age said; (T368) not offline: reported */ }
     return captured();
@@ -58,8 +79,7 @@ export function httpSalmonFeed(base: string, store?: SalmonFeedStore, fetchImpl:
     offer(text) {
       const f = parseSalmonFeed(JSON.parse(text));
       if (!f) throw new Error("not a dfo-feed/3 feed");
-      try { store?.write(text); } catch { /* a cache: a refused write only costs the next offline open */ }
-      held = { at: now(), p: Promise.resolve(f) };
+      held = { at: now(), p: complete(f) };   // (T521) its unplaced places read beside it, as a fetch does
       version += 1;
     },
     version: () => version,

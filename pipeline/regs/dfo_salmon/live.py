@@ -164,6 +164,16 @@ def _water_known(ef, water: str) -> bool:
     return not k or any(key(w.name) == k or k in {key(a) for a in w.aliases} for w in ef.waters)
 
 
+def _items_of(ef, water: str) -> List[str]:
+    """(T521) the app item ids of the binding the DFO water name (or an alias) names, sorted; [] when none does — the
+    water page that shows an unplaced row as "DFO rule, location not yet on the map"."""
+    from pipeline.common.names import key
+    k = key(water or "")
+    if not k:
+        return []
+    return sorted({i for w in ef.waters if key(w.name) == k or k in {key(a) for a in w.aliases} for i in w.item_ids})
+
+
 def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[str, List[dict]], List[dict]]:
     """(rules by location_id, unplaced). A fingerprint the entry file knows joins its location; any other is UNPLACED:
     drift (a near location on the same water), new, or new_water — its rules kept with it."""
@@ -188,7 +198,7 @@ def join(slug: str, ef, typed: dict, locations: Sequence, report) -> Tuple[Dict[
         unplaced.append({"region": slug, "fingerprint": fp, "kind": kind, "water": water,
                          "scope": src.specific_area if src else "", "section": src.section if src else None,
                          "candidates": list(o.candidates) if o else [], "rows": loc["rows"], "rules": loc["rules"],
-                         "page_date": typed.get("date_modified")})
+                         "page_date": typed.get("date_modified"), "items": _items_of(ef, water)})
     return rules, unplaced
 
 

@@ -129,6 +129,15 @@ interface Payload {
   readonly shards?: readonly string[];
   /** (T321) location id → its rows the card shows in DFO's words (`pipeline/regs/dfo_salmon/wording.py`) */
   readonly x?: Readonly<Record<string, readonly SalmonWords[]>>;
+  /** (T521) the live feed's places no curated location knows (`feeds/dfo/unplaced.json`), each with the app items of
+   *  the water it names: shown on that water's page, never painted. Absent in a release's own file. */
+  readonly feedUnplaced?: readonly SalmonUnplacedPlace[];
+}
+/** (T521) One DFO place the live feed lists that no curated location knows: its water's app items, the place and its
+ *  rows in DFO's own words (`rows`: the page's cells, " | " between them). */
+export interface SalmonUnplacedPlace {
+  readonly region: string; readonly items: readonly string[]; readonly water: string; readonly scope: string;
+  readonly rows: readonly string[];
 }
 /** (T321) A DFO row the app shows in DFO's words: `new` a clause DFO never printed before and `unread` a number no reading
  *  accounts for (both: no number is shown — the row is unparsed), `note` a known clause whose meaning is DFO's words.
@@ -377,6 +386,8 @@ export const SALMON_WORDS = {
   waterNoun: "water",
   agency: "Fisheries and Oceans Canada",
   notListedLine: "DFO does not list this water for salmon. It is closed to salmon fishing.",
+  /** (T521) a rule the live feed lists at a DFO place no curated location knows: DFO's own row words after the colon */
+  unplacedRule: (dfoWords: string) => `DFO rule, location not yet on the map: ${dfoWords}`,
   noteTwoAuthorities: "Salmon are set by DFO, not the provincial regulations above. Both apply.",
   /** (T482, owner 2026-11-07: "the source of the regs should be collapsible") the source block's fold, closed by default */
   sourceFold: "Source (DFO)",
@@ -664,6 +675,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const chains = [...new Set(page.sids.map((s) => f.chainOf(s)))].sort((a, b) => a - b);
   if (!chains.length) chains.push(P.default);
   const unmapped = page.item === null ? [] : P.unmapped.filter((u) => u.items.includes(page.item!));
+  // (T521) the feed's DFO places on this water that no curated location knows: in the in-part caveat, never painted
+  const unplaced = page.item === null ? [] : (P.feedUnplaced ?? []).filter((u) => u.items.includes(page.item!));
   const def = P.default;
   // (T227, owner 2026-10-28) A REGION-WIDE CLOSURE: the region's header says "There is no fishing for salmon in Region 4
   // … until further notice" — the header's closure is the answer, every day: one closed row in its words, no bar, no
@@ -769,8 +782,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
     waterRules: hn.water.filter((n) => !placed.has(n.id) && asWords(n, sizesShown)).map((n) => n.t),
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
-    notListed: listed || unmapped.length ? null : SALMON_WORDS.notListedLine,
-    caveat: inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun),
+    notListed: listed || unmapped.length || unplaced.length ? null : SALMON_WORDS.notListedLine,
+    caveat: inPartBlock([...undrawnEntries(f, undrawn, unmapped, day), ...unplacedEntries(unplaced)], SALMON_WORDS.waterNoun),
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
     source: [SALMON_WORDS.agency,
@@ -869,6 +882,20 @@ function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: re
                                  ...(detail.length ? { detail } : {}) };
     return [{ item, now: at(ch.n, day) === 1 }];
   });
+}
+
+/**
+ * (T521, owner 2026-11-09: "still will show on front end tho so it isnt missing before it is fixed and matched") the
+ * feed's places no curated location knows, as in-part entries: one per DFO row, "DFO rule, location not yet on the
+ * map: <DFO's row>", `where` the place as DFO prints it. In force: shown as today's — whether it holds today is not
+ * read until a curator places it, so it is never folded behind "Other dates".
+ */
+function unplacedEntries(unplaced: readonly SalmonUnplacedPlace[]) {
+  return unplaced.flatMap((u) => u.rows.map((row) => {
+    const item: CaveatItemVM = { what: [text(SALMON_WORDS.unplacedRule(row.split(" | ").map((c) => c.trim()).filter(Boolean).join(" · ")))],
+                                 where: u.scope ? WORDS.WHERE(u.scope) : null, rule: null, fish: null, book: [] };
+    return { item, now: true };
+  }));
 }
 
 /** (T228) A rule line as the key compares it: case and spacing never make two regulations differ. */
