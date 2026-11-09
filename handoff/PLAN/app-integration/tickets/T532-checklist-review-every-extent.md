@@ -25,6 +25,12 @@ of those items."
 - New DFO items (live queue) and changed wording arrive as unchecked places; a check is stale when its words or extent
   change (re-check, never silently kept).
 
+## One water at a time (owner 2026-11-09)
+"a water has all of the locations for it together … we want to do an entire river / waterbody at one time". The queue and
+prev/next are grouped by water: every place on a water (its DFO places AND its regulation extents) before the next water;
+progress per water ("Chilliwack River: 3 of 7") and overall; the water's map stays while stepping through its places.
+Test: the queue order never leaves a water before all its places are listed.
+
 ## Both sources, one interface
 - DFO places (T525 data path, marks, write-through, all R1–R7 guards kept).
 - Regulation extents (synopsis rules, `pipeline.atlas.reach` bindings; the review app's existing extents tab): same row
