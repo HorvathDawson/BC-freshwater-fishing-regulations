@@ -10,6 +10,10 @@ const { join } = require("node:path");
 const ground = (theme) =>
   JSON.parse(readFileSync(join(__dirname, "../../packages/map/style/themes", `${theme}.json`), "utf8")).values["color.ui.card"];
 
+// The launcher icon's ground: the icon's own colour (assets/icon/icon-ground.txt, written by tools/build-icons.mjs from the
+// chosen mark), not the boot screen's `color.ui.card` — the two are separate since the round-4 mark (owner 2026-11-08).
+const iconGround = readFileSync(join(__dirname, "assets/icon/icon-ground.txt"), "utf8").trim();
+
 // (T86) a production build names a contact (the app's Contact page, the store listing), or it is not made: config.ts
 // reads a missing EXPO_PUBLIC_CONTACT as null and the app would ship with no way to reach anyone.
 const production = process.env.EXPO_PUBLIC_APP_ENV === "production" || process.env.EAS_BUILD_PROFILE === "production";
@@ -35,8 +39,8 @@ const withLocalMaplibreVersion = (plugins) => !localMaplibre ? plugins : plugins
 
 module.exports = ({ config }) => ({
   ...config,
-  // (T244) the adaptive icon's solid background: the ground the boot screen paints (the icon is the favicon, `pnpm`-less: tools/build-icons.mjs)
-  android: { ...config.android, adaptiveIcon: { ...config.android?.adaptiveIcon, backgroundColor: ground("light") } },
+  // the adaptive icon's solid background: the icon's own ground (the splash below keeps the boot screen's `color.ui.card`)
+  android: { ...config.android, adaptiveIcon: { ...config.android?.adaptiveIcon, backgroundColor: iconGround } },
   plugins: [
     ...withLocalMaplibreVersion(config.plugins ?? []),
     ["expo-splash-screen", {
