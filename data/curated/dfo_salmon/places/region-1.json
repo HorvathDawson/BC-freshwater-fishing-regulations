@@ -2828,8 +2828,8 @@
           {
             "op": "between",
             "splits": [
-              "quatse_river__quatse_river_hatchery_weir_100_m",
-              "quatse_river__quatse_river_hatchery_weir_100_m_2"
+              "quatse_river__quatse_river_hatchery_weir_d100m",
+              "quatse_river__quatse_river_hatchery_weir_u100m"
             ],
             "item_id": "gnis:32101"
           }
@@ -4809,8 +4809,8 @@
           {
             "op": "between",
             "splits": [
-              "stamp_river__robertson_creek_hatchery_lagoon_2",
-              "stamp_river__robertson_creek_hatchery_lagoon"
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+              "stamp_river__robertson_creek_hatchery_lagoon_outlet"
             ],
             "item_id": "gnis:14533"
           }
@@ -4880,7 +4880,7 @@
             "op": "between",
             "splits": [
               "stamp_river__stamp_river_powerline_crossing_b",
-              "stamp_river__robertson_creek_hatchery_lagoon_2"
+              "stamp_river__robertson_creek_hatchery_lagoon_inlet"
             ],
             "item_id": "gnis:14533"
           }
