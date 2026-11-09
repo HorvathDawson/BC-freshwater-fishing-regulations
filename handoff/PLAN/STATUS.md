@@ -13,6 +13,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 morning (owner back, review app closed)
+- Owner labelled 100 items; last 25 marks committed (4c45bfd). Chilliwack/Sumas two-piece places marked "unsure" (T524
+  proposals will settle them); the Forks not marked. T523 re-simulating against the new marks before it applies.
+- Owner: speed work (T522) goes INTO build 22. Heavy queue order: T517 bindings diff → T522 proof → T524 dry run / T360.
+- T496 4 silent tool fallbacks: fix lane running.
+
 ## 2026-11-09 night (chat 7, owner asleep): the track
 
 **Order (do not reorder):**
