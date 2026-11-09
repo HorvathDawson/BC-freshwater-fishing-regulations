@@ -514,7 +514,7 @@ use that as the sole source of future work."
 | T467 | Lakes: a visible shoreline (a shade of the fill) inside the colour-blind gate | OPEN | — | owner 2026-11-06 |
 | T468 | Powell River above Powell Lake misses the lake's incl.-tributaries closure (through-river read as the lake's own outlet) | OPEN | 14294b999 | fix built + rerun, not promoted; 15 rules gain (0 lost); Little Slocan check: owner OK 11-07; promote with next release |
 | T469 | Legend: one row (fold button in it) on a wide screen, not two rows plus a strip | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web ≥ 900 px only, phones unchanged |
-| T470 | Mid-zoom map (z7–z10) too busy: calmer hierarchy, 3 variants (A weight only / B small waters recede / C closed leads) | DONE 2026-11-07 | 85ee6156d, 225ad72a5 | B built (owner 2026-11-07, Q170); order × zoom fade tunable (`fadeByOrder`); stress-pan cost pending (T420 test bed) |
+| T470 | Mid-zoom map (z7–z10) too busy: calmer hierarchy, 3 variants (A weight only / B small waters recede / C closed leads) | DONE 2026-11-07 | 85ee6156d, 225ad72a5, a9d19c7be | B built (owner 2026-11-07, Q170); order × zoom fade tunable (`fadeByOrder`); stress-pan cost pending (T420 test bed); WCAG 1.4.11 checker 11-09: dark base + cvd selection to 3:1, light/cvd own/base under 3:1 recorded (Q176 casing) |
 | T471 | Sun line in the regs pane's header, not its own card | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; web + native |
 | T472 | In-season change: one collapsed line above the species table | DONE 2026-11-07 | 0184d8e | owner 2026-11-07; count when several; web + native |
 | T473 | "Daylight only" as today's real hours with the status | DONE 2026-11-07 | 0f4b0063a | owner 2026-11-07; offsets parsed from the rule's words |
@@ -639,6 +639,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q173 | T404 | After the switch, every Play build (internal, closed) reads production; staging stays on the sideload APK page? | yes | owner 2026-11-08: yes |
 | Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
+| Q176 | T470 | WCAG 1.4.11 (3:1 on the ground): light and colour-blind own / base / missing lines are 1.8–2.0:1 on the light basemap, and recolouring cannot reach 3:1 without undoing T47 (closed vs own). Add a casing (a darker edge under each stream / lake outline, same hue), at a frame cost and a visible change? | no casing; the under-3:1 marks stay recorded in tools/map-contrast.test.ts | owner |
 
 ### Answered (recently, for the record)
 - Q170 — owner 2026-11-07: B ("Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom"); built in T470, the order × zoom fade is one block (`fadeByOrder`).

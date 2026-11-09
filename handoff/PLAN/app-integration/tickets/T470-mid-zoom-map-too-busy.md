@@ -1,6 +1,6 @@
 # T470 — Mid-zoom map (z7–z10) too busy: a calmer hierarchy that keeps the information
 
-Status: DONE 2026-11-07 — 85ee6156d (tokens, themes and the mask ramp in 225ad72a5, swept by a concurrent commit). Variant B (owner: "Ok let's try that"). Pending: stress-pan cost check (T420 test bed); dark closed / own on faded small streams is the owner's to keep or answer.
+Status: DONE 2026-11-07 — 85ee6156d (tokens, themes and the mask ramp in 225ad72a5, swept by a concurrent commit). Variant B (owner: "Ok let's try that"). Pending: stress-pan cost check (T420 test bed); dark closed / own on faded small streams is the owner's to keep or answer. WCAG pass 2026-11-09 (a9d19c7be): `tools/map-contrast.test.ts` (1.4.11, 3:1 on the ground); dark base and cvd selection lifted to 3:1; light / cvd own, base and missing recorded under 3:1, a casing is the owner's call (Q176).
 
 Source: owner 2026-11-07: "on desktop or mobile, when in a middle zoom value it feels very very busy. we still want a lot
 of the info but need to find a way to make it a little less abrasive." Their screenshot: web, about z8, Lower Mainland
@@ -176,3 +176,78 @@ Stress-pan cost check pending (T420 test bed).
 Note: the token / theme / runtime-style (mask) edits were swept into 225ad72a5 (T475) by a concurrent commit; the rest
 is in the T470 commit.
 
+
+## WCAG contrast pass (owner 2026-11-09: "what ever is industry standard")
+
+Standard applied: WCAG 2.x **SC 1.4.11 Non-text Contrast**. Every mark that carries an answer needs ≥ 3:1 (relative
+luminance) against the colours next to it. Here that means the Standard view's statuses, the "not answered yet" grey,
+the Salmon view's four, and the selection ring, each measured against the basemap ground under it. Legend swatches need
+3:1 on the card, and legend words need 4.5:1 (SC 1.4.3).
+
+Checker: `app/tools/map-contrast.test.ts`. It reads the real tokens (`waterStatusColour`, `salmonStatusColour`,
+`resolveTheme`) and the real grounds: the Protomaps flavour each theme draws (dark = "black", light/cvd = "light"),
+meaning land, water, and the green-space fills `landuse_park` paints at full strength from z11 (wood, forest,
+scrub/grass, glacier). Every mark under 3:1 fails unless it is in the test's recorded list. That list must be complete,
+and a recorded mark fails if it slips under its recorded ratio. Dark may not gain an exception. Closed must reach 3:1 in
+every theme. A mutation pin keeps the old dark base failing (2.52).
+
+**Fixed (before → after, worst ratio over the grounds, the ground that binds):**
+
+| theme | mark | colour | worst before | worst after | binds on |
+|---|---|---|---|---|---|
+| dark | base (general rules) | `#0368EB` → `#4C70FC` (same blue, lighter) | 2.52 | 3.03 | water |
+| cvd | selection ring (`color.highlight`) | `#F55C00` → `#C04400` (same vermilion, deeper) | 1.92 | 3.02 | scrub |
+
+Legend swatch on the card: dark base 3.55 → 4.27, cvd selection is not a legend row.
+
+**Already passing, unchanged:** dark closed `#FF3B6D` 3.67 (on the dark water; 5.35 on land), own 8.77, no access 4.51,
+restricted / release 4.68, open 10.28, selection 5.16, missing 4.73. Light closed 5.66, no access 4.14, open 3.63,
+restricted 8.37, selection 3.32. Cvd closed 5.66, open 3.18, restricted 7.60, no access 4.14. Every legend swatch reaches
+3:1 on its card (the tightest is light own at 3.01), and legend words (ink 15+, sub 4.5+) were already held by T243.
+
+**Dark closed "reads weak":** by the standard it passes everywhere (3.67:1 at worst, on water), so its colour did not
+change. The likely cause of the weak look is the closed stripe drawn down the middle of the line at 0.4× width
+(`stream-closed`, `color.cue.closed` = the near-black paper in dark). That is a non-colour cue and was left alone, as
+asked. If the owner wants closed heavier in dark, the stripe is the knob, not the hue.
+
+**Still under 3:1, recorded (light and cvd), with the owner's call below:**
+
+| theme | mark | colour | worst | binds on |
+|---|---|---|---|---|
+| light | own (and Salmon "check", which is own) | `#D08404` | 1.76 | scrub |
+| light | base | `#608AE5` | 1.96 | scrub |
+| light | missing (not answered yet) | `#7F8C99` | 2.01 | scrub |
+| cvd | own / check | `#D08404` | 1.76 | scrub |
+| cvd | base | `#3695D8` | 1.91 | scrub |
+| cvd | missing | `#7F8C99` | 2.01 | scrub |
+
+Why recolouring cannot fix these: on this light basemap (green-space fills at luminance ~0.57), a 3:1 line needs
+luminance ≤ 0.155 (about L* 46). I searched sRGB (step 3–5) with each hue kept, against every colour gate in the suite:
+- The best amber at 3:1 stands only ΔE2000 14.7 off the closed red for the worst reader. T47's floor is 29. This is the
+  owner's own complaint: "has regs and closed are very similar", 2026-10-21.
+- The best blue at 3:1 (~`#0060FA`) sits 14.3 from `status.open` in normal vision (the one-meaning floor is 20), and
+  falls under the closed/base and no-access floors.
+
+So darkening own and base brings back the bug T47 fixed. The standard remedy that keeps both is a **casing**: a darker
+edge under the line (for example a darker shade of the same hue). This is how roads and transit lines meet 1.4.11 on
+light basemaps. It is a new layer under every stream and lake outline, a frame cost (T420), and a visible change to the
+map this ticket just calmed, so it is the owner's call (Q176). Default: no casing; the exceptions stay recorded.
+
+**What the dark base cost elsewhere** (each recorded floor lowered to the new value rounded down to 0.5, with the reason
+in the test files):
+- `status-colours-distinct` dark permit (restricted lilac vs base, protan): tokens 15 → 14.5 (14.9), lines 13.5 → 12.5 (12.8).
+- No-access grey vs base, normal vision: tokens 33.5 → 31.5, lines 24 → 23, lakes 30.5 → 29.
+- Faded small streams, dark own/base: ord 5 z8 37.5 → 36, deepest fade 30 → 24.
+- `label-colours`: the dark water-name ink vs base is a new recorded pair, ΔE 7.9 (deutan).
+- `midzoom-today.fixture.json`: the two hexes were carried in by hand. Nothing else in the frozen paint moved.
+
+#4C70FC was the searched blue (sRGB step 4, LCh hue 255–295, ≥ 3.02:1 on every dark ground) that gave up the least.
+
+Out of scope, measured: our own translucent area tints (provincial parks at 0.32, watersheds, closures) darken the light
+ground further. A line over a park needs luminance ≤ ~0.12. This does not change the conclusion above. The mid-zoom order
+fade (B) thins small own/base streams on purpose at z7–z11. The checker measures the solid colour, as drawn from z12 and
+on every main river.
+
+Shots (web, local dev on the T517 side release, Fraser Valley z11, 1280 × 800): `shots/T470-wcag-light-fv-z11.png`
+(light is unchanged), `shots/T470-wcag-dark-fv-z11-before.png` and `shots/T470-wcag-dark-fv-z11-after.png`. The
+"before" is the after frame with the old base hex swapped back into the live paint.
