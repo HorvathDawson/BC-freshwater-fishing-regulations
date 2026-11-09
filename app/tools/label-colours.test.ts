@@ -35,10 +35,14 @@ const FLOOR_DE = 12;
  * floor had pushed the ink to sea-green #5AB49C. The blue that gives up least is #2498FC: 12+ from four statuses and
  * 10.6 from `status.restricted` under protanopia (Machado) — still several just-noticeable steps, between an italic
  * word on a halo and a line. Listed WHOLE, so a further slip, a second pair, or any other theme going under fails.
+ * (T470, 2026-11-09) And base: the dark base was lifted to #4C70FC to reach WCAG 3:1 on the dark water
+ * (tools/map-contrast.test.ts), which brings it to 7.9 from the water ink for a deuteranope — a water's blue name beside
+ * the blue of the water it names, the one place they meet, and a name is italic text on a halo where the line is a line.
  */
 const UNDER_FLOOR: Record<(typeof THEMES)[number], string[]> = {
   light: [],
-  dark: ["color.label.water ~ status.restricted: ΔE 10.6 (protan (machado))"],
+  dark: ["color.label.water ~ status.base: ΔE 7.9 (deutan (machado))",
+         "color.label.water ~ status.restricted: ΔE 10.6 (protan (machado))"],
   cvd: [],
 };
 /**

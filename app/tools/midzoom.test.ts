@@ -8,6 +8,9 @@
  *
  * The fixture is `JSON.stringify` of `{ light, dark, cvd }: midzoomPaint(theme)` run on the tree before T470 (2026-11-07).
  * A later change that means to alter the close-in map regenerates it the same way, on purpose and in its own commit.
+ * (T470 WCAG, 2026-11-09) Two palette moves were carried into it by hand, hex for hex and nothing else: the dark base
+ * (~0368EB -> ~4C70FC) and the colour-blind selection (~F55C00 -> ~C04400), each to reach 3:1 on the ground
+ * (tools/map-contrast.test.ts).
  */
 import { describe, expect, it } from "vitest";
 import { createPropertyExpression, latest } from "@maplibre/maplibre-gl-style-spec";

@@ -16,7 +16,7 @@
     "opacity.overlay": 0.45,
     "color.status.closed": "#FF3B6D",
     "color.status.own": "#FFD307",
-    "color.status.base": "#0368EB",
+    "color.status.base": "#4C70FC",
     "color.status.no_access": "#9C9A98",
     "color.water.route": "#3F5C6B",
     "color.lake.fill": "#205579",

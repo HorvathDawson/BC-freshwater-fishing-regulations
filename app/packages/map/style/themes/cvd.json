@@ -4,7 +4,7 @@
   "values": {
     "color.water.mapped": "#0B6987",
     "color.water.unmapped": "#7F8C99",
-    "color.highlight": "#F55C00",
+    "color.highlight": "#C04400",
     "color.status.open": "#4361D1",
     "color.status.restricted": "#451F60",
     "color.status.closed": "#8F0006",

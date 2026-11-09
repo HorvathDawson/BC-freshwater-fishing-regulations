@@ -110,7 +110,7 @@ const FLOOR: Record<Theme, Record<string, number>> = {
            accessPermitToken: 17.5, accessPermitLine: 12.5, accessPermitSat: 11.5, accessBoundaryToken: 13.5, accessBoundaryLine: 1 },
   dark:  { ownerToken: 21.5, ownerLine: 21, ownerLake: 22, ownerSat: 18.5,
            waterToken: 29.5, waterLine: 19, waterLake: 23.5, waterSat: 18,
-           permitToken: 15, permitLine: 13.5, permitSat: 10.5,
+           permitToken: 14.5, permitLine: 12.5, permitSat: 10.5,
            temperature: 15,
            boundaryToken: 15, boundaryLine: 15.5,
            accessToken: 12.5, accessLine: 8.5, accessLake: 12, accessSat: 8,
@@ -124,6 +124,14 @@ const FLOOR: Record<Theme, Record<string, number>> = {
            accessPermitToken: 14, accessPermitLine: 10, accessPermitSat: 8.5, accessBoundaryToken: 17.5, accessBoundaryLine: 2.5 },
 };
 
+/*
+ * (T470, owner 2026-11-09: "what ever is industry standard" — WCAG 1.4.11, 3:1 on the ground, tools/map-contrast.test.ts)
+ * The dark base went #0368EB -> #4C70FC, the same blue lighter, because it stood 2.52:1 on the dark map's water. That
+ * cost, each lowered to the new value rounded down to 0.5: dark permitToken 15 -> 14.5 and permitLine 13.5 -> 12.5
+ * (restricted's lilac against base for a protanope: 14.9 / 12.8), and below the grey's normal-vision floors (GREY_NORMAL
+ * dark) and the faded small streams' own / base (SMALL dark). It is the searched blue (sRGB step 4, LCh hue 255-295,
+ * 3.02:1 on every dark ground) that gives up the least across every floor in this file.
+ */
 /** The reasons, once each (T47 part 2, T83 Q16: lift where cheap, else a recorded exception). */
 const WHY = {
   satellite: "a 0.6-coverage line over conifer / shadow imagery: the near-black ground pulls every pair together, and no " +
@@ -399,7 +407,7 @@ describe("status colours, as drawn (T47)", () => {
  */
 const GREY_NORMAL: Record<Theme, { baseToken: number; baseLine: number; baseLake: number; unmapped: number; route: number }> = {
   light: { baseToken: 31.5, baseLine: 17.5, baseLake: 17.5, unmapped: 22, route: 21.5 },
-  dark:  { baseToken: 33.5, baseLine: 24, baseLake: 30.5, unmapped: 8, route: 26 },
+  dark:  { baseToken: 31.5, baseLine: 23, baseLake: 29, unmapped: 8, route: 26 },
   cvd:   { baseToken: 34.5, baseLine: 16, baseLake: 29, unmapped: 22, route: 26.5 },
 };
 function greyFailures(th: Theme, t: Record<string, unknown>): string[] {
@@ -653,7 +661,7 @@ describe("(T470) the mid-zoom order fade, as drawn", () => {
    */
   const SMALL: Record<Theme, Record<"ord5z8" | "deepest", ReturnType<typeof measure>>> = {
     light: { ord5z8: { ownBase: 20.5, closedOwn: 21.5, closedBase: 35.5 }, deepest: { ownBase: 10, closedOwn: 23, closedBase: 30.5 } },
-    dark:  { ord5z8: { ownBase: 37.5, closedOwn: 11.5, closedBase: 16.5 }, deepest: { ownBase: 30, closedOwn: 9, closedBase: 13.5 } },
+    dark:  { ord5z8: { ownBase: 36, closedOwn: 11.5, closedBase: 16.5 }, deepest: { ownBase: 24, closedOwn: 9, closedBase: 13.5 } },
     cvd:   { ord5z8: { ownBase: 22.5, closedOwn: 21.5, closedBase: 34 }, deepest: { ownBase: 11.5, closedOwn: 23, closedBase: 30 } },
   };
 
