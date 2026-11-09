@@ -178,9 +178,18 @@ def _by_grp(item_id: str, w: dict, doc: dict):
     merged = []
     for g in range(len(members)):
         qs = [w["parts"][ex] for ex in members[g]]
-        runs = [r for q in qs for r in q.get("runs") or []]
+        runs = [dict(r) for q in qs for r in q.get("runs") or []]
         runs.sort(key=lambda r: (r.get("km_from") is None, -(r.get("km_from") or 0)))
-        merged.append({**qs[0], "runs": runs, "sections": sum(q["sections"] for q in qs)})
+        # pieces of ONE run (the salmon chain cut it) meet end to end: said as the one run they are, as before T517
+        joined: List[dict] = []
+        for r in runs:
+            last = joined[-1] if joined else None
+            if last and not last.get("branch") and not r.get("branch") and last.get("to") and \
+                    last.get("to") == r.get("from") and set(last) == set(r):
+                last["to"], last["km_to"] = r.get("to"), r.get("km_to")
+            else:
+                joined.append(r)
+        merged.append({**qs[0], "runs": joined, "sections": sum(q["sections"] for q in qs)})
     return Water(item_id, {**w, "parts": merged}, doc), members
 
 

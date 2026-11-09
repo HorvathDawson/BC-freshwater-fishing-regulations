@@ -198,3 +198,17 @@ def test_a_short_label_reads_the_run_ends():
     side = {"runs": [{"from": "a", "to": "b", "branch": True}]}
     assert D.short_label(doc, side, "full") == "Side channel"
     assert D.short_label(doc, {"runs": []}, "Whole water") == "Whole water"
+
+
+def test_t517_a_rule_set_group_says_its_salmon_cut_pieces_as_the_one_run_they_are():
+    """T517: the picker and the full label read the water by rule-set group; two parts of one run the DFO salmon chain
+    cut meet end to end at the cut, so the group's label says one run (as before T517), never "Two stretches"."""
+    from pipeline.deliver.answers.display import builders as B
+    w = {"kind": "stream", "name": "X", "parts": [
+        {"ruleset": "1", "grp": 0, "run": 0, "sections": 2,
+         "runs": [{"from": "cut", "to": "mouth", "km_from": 3.0, "km_to": 0.0}]},
+        {"ruleset": "1", "grp": 0, "run": 0, "sections": 1,
+         "runs": [{"from": "source", "to": "cut", "km_from": 9.0, "km_to": 3.0}]}]}
+    Wg, members = B._by_grp("x", w, {"waters": {"x": w}, "splits": {}, "rulesets": {"1": {}}, "rules": {}})
+    assert Wg.parts[0]["runs"] == [{"from": "source", "to": "mouth", "km_from": 9.0, "km_to": 0.0}]
+    assert members == {0: [0, 1]} and Wg.parts[0]["sections"] == 3
