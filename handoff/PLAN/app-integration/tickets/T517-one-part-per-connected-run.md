@@ -132,3 +132,12 @@ done: the app's search does not read marks yet.
   `rulesKey` keys by group + end tokens but not a split's curated position (not in the release).
 - Shots (side release, web, light/dark): `shots/T517-fraser-{light,dark}.png`, `shots/T517-dean-{light,dark}.png`,
   `shots/T517-fortnelson-{light,dark}.png` (formerly "2 stretches · stretch 1 of 2"-style bare names).
+- **Suites on the side build** (env: `RELEASE_DIR` for the app; `UI_EXPORT_BUNDLE`/`ANSWERS_EXPORT_DIR`/… for pytest):
+  app vitest 6,935 pass, 3 fail not T517 (`check-boundaries`: in-season `inseason.test.ts` imports node:fs;
+  `water-frame` ×2: T516's `marginHorizontal: GUTTER`); pipeline 6,499 pass, 2 fail not T517 (`test_review_screen`
+  corpus tiers 452≠445, T185 curation; `test_curation_review_screen` new `POST /api/inseason/resolve`, T520). App fixes
+  found on the way (733b7e5c6): mark confidence words said once; header/Parts sheet say the run's `run_name`; picking
+  list row 0 from the whole-water view now opens it. Open for the owner: the Dean's Anahim run (grp 4, run 0) has a
+  lake between its two pieces and no mark, so they never join even when salmon reads alike.
+- Commits: c4ce4b8b4 (T510), 5f96628fe … c412c8a9d (pipeline + app), 036ba4ba4 (fixtures, tickets, shots), 733b7e5c6
+  (app tests), e254e4ade (pipeline tests).
