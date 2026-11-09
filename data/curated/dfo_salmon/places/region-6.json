@@ -10884,7 +10884,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "babine_river__nilkitkwa_river_into_babine_river",
+              "babine_river__signs_80_m_downstream_of_adult_fish_counting_fence"
+            ],
+            "item_id": "gnis:17687"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
