@@ -36,9 +36,13 @@ The bigger goal is unchanged: **T495**, Play closed testing on production.
 - **Play listing graphics:** the icon and feature graphic upload, but every listing save gets 403. The owner granted "Manage store presence" to `play-uploader@…`, so it is most likely still propagating. Rerun `deploy/staging/play-listing-images.py --package ca.canifishthis.app`.
 
 ## Loose ends, in order
-1. Read the fast-fail lane's result: the 7 late failures of chat 8, logged under T483. Check that `./scripts/fast-fail.sh` stays ≤ 2 min.
+1. Fast-fail is DONE (6f5790a44, T483 "2026-11-09 additions"); `./scripts/fast-fail.sh` runs in 9 s. It now covers:
+   format pairs, staging site version vs release (`site_gate.py`), goldens paired, build keeps LATEST's reach, accept-diff
+   by content, the skip guard, and the heavy precheck. Gaps left: `reach.cli` run directly still overwrites without a copy;
+   only session.sh opts into the precheck.
 2. Emulator: fix the 2 failing offline steps (app or flow). Then run the feeds and big-update scenarios.
-3. Staging site: confirm its deploy on r-d14bdb180f55. Smoke must be green: the old site could not read 0.7.0 data. Then run `release --staging --min-app-version 0.7.0` once more and confirm it says everything is done.
+3. Staging site: the deploy (export → build-seo → site.sh) was still running at hand-off; the site served 0.6.9, so the new
+   site check blocks every staging upload until it is current. Confirm the deploy and a green smoke. Then run `release --staging --min-app-version 0.7.0` once more and confirm it says everything is done.
 4. Play listing: rerun the script above. If it still gets 403, re-check the permission with the owner.
 5. **T525 round 3** (owner, strongly): the review app is "still really bad, so confusing". Make it radically simpler:
    - one proposal;
