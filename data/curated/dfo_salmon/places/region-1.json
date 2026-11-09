@@ -2823,7 +2823,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "quatse_river__quatse_river_hatchery_weir_100_m",
+              "quatse_river__quatse_river_hatchery_weir_100_m_2"
+            ],
+            "item_id": "gnis:32101"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
