@@ -7,6 +7,7 @@ import { compose, deliver, mime, NOTIFY_STATE, readState, type FeedEvent, type N
 import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
 import { buildFeed, diff, effectiveDates, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { MemStore } from "./dfo.scenario";
+import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 /** a test event with the `data` its kind's template renders */
 const ev = (key: string, kind: FeedEvent["kind"] = "dfo", title = key): FeedEvent => ({
@@ -293,7 +294,7 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
   it("(T520) matched / unmatched are the curated links' true counts; links of another format fail the run", async () => {
     const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
     const first = buildFeed(parseInSeason(page), null, "2026-10-28T00:00:00Z", "h", true);
-    const links = { format: "inseason-links/2", release: "r-1", notices: { [first.rows[0]!.id]: { waters: { "gnis:12227": { all: true } } } } };
+    const links = { format: INSEASON_LINKS_FORMAT, release: "r-1", notices: { [first.rows[0]!.id]: { waters: { "gnis:12227": { all: true } } } } };
     const feed = new MemStore();
     await feed.put("matches.json", JSON.stringify(links));
     const r = await runInSeason({ fetch: okFetch, priv: new MemStore(), feed, html: page, now: T("2026-10-28T12:00:00Z") });
@@ -301,7 +302,9 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     const doc: InSeasonFeed = JSON.parse(feed.m.get("index.json")!);
     expect(doc.matching).toEqual({ method: "curated", matched: 1, unmatched: 31 });
     expect(doc.rows[0]).toMatchObject({ waters: ["gnis:12227"], matched: true });
-    expect(() => matchedWaters(JSON.stringify({ format: "inseason-links/1", matches: {} }))).toThrow(/not inseason-links\/2/);
+    expect(() => matchedWaters(JSON.stringify({ format: "inseason-links/1", matches: {} }))).toThrow(/not inseason-links\/3/);
+    // T517's /3 is what the Mac publishes; a /2 file (before it) is refused by name, never read as a /3
+    expect(() => matchedWaters(JSON.stringify({ format: "inseason-links/2", notices: {} }))).toThrow(/is inseason-links\/2, not inseason-links\/3/);
   });
   it("(T520) a page printing a row twice: the feed publishes it once, says so once, and the run succeeds", async () => {
     const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");

@@ -13,6 +13,7 @@ import type { Fetch, Meter, Store } from "./io";
 import { contentHash, loadManifest, skipSameStore } from "./io";
 import type { FeedEvent } from "./events";
 import { parseHtml, Str, Tag } from "./dfo/html";
+import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 export const SOURCE_URL = "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -265,7 +266,7 @@ async function publishFeed(
 //                     notice is a new id (unmatched until re-matched: the app lists it "not on the map yet")
 //       region        "1" … "8", "7A", "7B", or "provincial";  section: the heading as printed
 //       water         as printed;  waters: [] the matched registry item ids, from the curated links beside this file
-//                     (`matches.json`, `inseason-links/2`; empty = unmatched; matched: false)
+//                     (`matches.json`, `INSEASON_LINKS_FORMAT`; empty = unmatched; matched: false)
 //       effective     verbatim;  from / to: ISO dates when the effective cell reads ("July 4, 2025 to August 31, 2025"),
 //                     else null (to null = no end printed)
 //       change        verbatim (the authority)
@@ -382,13 +383,14 @@ export function rowId(region: string, water: string, change: string, effective: 
   return `is-${contentHash(effective === null ? k : `${k}\u0000${changeKey(effective)}`).slice(0, 12)}`;
 }
 
-/** (T520) The curated links' matched waters per row id (`matches.json`, `inseason-links/2`): what fills `waters`. */
+/** (T520) The curated links' matched waters per row id (`matches.json`, the app's `INSEASON_LINKS_FORMAT` — one constant,
+ *  so the worker cannot fall behind a format bump again, as it did at T517's /3): what fills `waters`. */
 export type MatchedWaters = ReadonlyMap<string, readonly string[]>;
 export function matchedWaters(text: string | null): MatchedWaters | null {
   if (text === null) return null;
   const j = JSON.parse(text) as { format?: string; notices?: Record<string, { waters?: Record<string, unknown> }> };
-  if (j?.format !== "inseason-links/2" || !j.notices || typeof j.notices !== "object")
-    throw new Error(`in-season: matches.json is ${String(j?.format)}, not inseason-links/2`);
+  if (j?.format !== INSEASON_LINKS_FORMAT || !j.notices || typeof j.notices !== "object")
+    throw new Error(`in-season: matches.json is ${String(j?.format)}, not ${INSEASON_LINKS_FORMAT}`);
   return new Map(Object.entries(j.notices).map(([id, n]) => [id, Object.keys(n?.waters ?? {}).sort()] as const));
 }
 
