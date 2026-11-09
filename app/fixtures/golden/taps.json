@@ -3,11 +3,11 @@
   "generator": "app/tools/regs-recut/taps.py",
   "store": {
    "format": "regs-store/5",
-   "section_handles": "8b71b67f830be6eb",
-   "reach_digest": "239d3203d1ef1007",
+   "section_handles": "d5242c0c70509877",
+   "reach_digest": "1a11ea11a5b3fb3e",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "378be17fe1722f9b7b12e051c6669245f3aa37bdcc3250e143e42725d11fc9a9",
-   "store_digest": "643b7dc2005ebf6b",
+   "answers_sha256": "a3e5672fcf052798911b93317eaa40dde1f2b1ec0cce09ce83ef2c74ae2d2477",
+   "store_digest": "898087aad1a3891a",
    "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":20}}"
   },
   "golden": "d7b1ed353",
@@ -13148,7 +13148,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 0,
-   "grown": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows)",
+   "grown": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows); then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 store part 1 (part 1)",
    "item_ord": 3807,
    "akey": 545,
    "seg": 16,
@@ -15133,7 +15133,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 0,
-   "grown": "T179 (owner 2026-10-25, decisions.md Koocanusa): the Koocanusa cut moved from the reservoir's outlet (356570348:431810, where the hand point stood) to its INLET (490242), so this 1-section piece below the lake now ends at the lake's outlet, not the curated 'u/s end' name (label only; same piece, same rows)",
+   "grown": "T179 (owner 2026-10-25, decisions.md Koocanusa): the Koocanusa cut moved from the reservoir's outlet (356570348:431810, where the hand point stood) to its INLET (490242), so this 1-section piece below the lake now ends at the lake's outlet, not the curated 'u/s end' name (label only; same piece, same rows); then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 store part 6 (part 6, after the unkeyed piece 5)",
    "item_ord": 1669,
    "akey": 37,
    "seg": 13,
@@ -15530,7 +15530,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 1,
-   "grown": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, DITCHES_LEAVE_RIVER_ITEMS); 3 length cuts on 356570348 moved: 52 -> 51 sections; then T179 (owner 2026-10-25, decisions.md Koocanusa): the authored cut now stands on the reservoir's inlet (490242) and names it, so the part starts at 'the Koocanusa Reservoir upstream end', not 'Lake Koocanusa' (same rows)",
+   "grown": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, DITCHES_LEAVE_RIVER_ITEMS); 3 length cuts on 356570348 moved: 52 -> 51 sections; then T179 (owner 2026-10-25, decisions.md Koocanusa): the authored cut now stands on the reservoir's inlet (490242) and names it, so the part starts at 'the Koocanusa Reservoir upstream end', not 'Lake Koocanusa' (same rows); then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 store part 7 (part 7)",
    "item_ord": 1669,
    "akey": 318,
    "seg": 13,
@@ -19911,7 +19911,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 4,
-   "grown": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows)",
+   "grown": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows); then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 store part 7 (parts 7, 8 and 9)",
    "item_ord": 2379,
    "akey": 401,
    "seg": 26,
@@ -27378,8 +27378,8 @@
    "weekday": "Saturday",
    "goldenPartIx": 3,
    "tidal": {
-    "reason": "T278 (r-62e2f3a8c81e, tidal cut split:campbell_river__cement_block_boundary_sign, gnis:39532 at 1.63 km): the Campbell from the mouth up to the cement block boundary sign is tidal (5 sections, store part 10, unkeyed); the golden two-stretch part (old store part 3, 8 sections) keeps only its Maple Street -> power line stretch (store part 5, 3 sections), and John Hart Lake -> Ladore Dam and cement block -> Maple Street are renumbered 4 -> 3 and 5 -> 4 (part order follows rule-set ids) (before: T185, owner marks 2026-10-27: the Quinsam River confluence cut lies inside the Maple Street stretch, 7 -> 8 sections)",
-    "tidalPartIx": 10
+    "reason": "T278 (r-62e2f3a8c81e, tidal cut split:campbell_river__cement_block_boundary_sign, gnis:39532 at 1.63 km): the Campbell from the mouth up to the cement block boundary sign is tidal (5 sections, store part 10, unkeyed); the golden two-stretch part (old store part 3, 8 sections) keeps only its Maple Street -> power line stretch (store part 5, 3 sections), and John Hart Lake -> Ladore Dam and cement block -> Maple Street are renumbered 4 -> 3 and 5 -> 4 (part order follows rule-set ids) (before: T185, owner marks 2026-10-27: the Quinsam River confluence cut lies inside the Maple Street stretch, 7 -> 8 sections); then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 the tidal piece is part 0 (mouth first), the Maple Street -> power line group is parts 2 and 3 (2 + 1 sections), tapped at part 2",
+    "tidalPartIx": 0
    },
    "item_ord": 9937,
    "akey": 1090,
@@ -36185,7 +36185,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 1,
-   "grown": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
+   "grown": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not); then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 store part 3 (parts 3 and 4)",
    "item_ord": 7452,
    "akey": 871,
    "seg": 120,
@@ -36586,7 +36586,10 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 0,
-   "grown": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Exchamsiks confluence cut runs straight across and the automatic length cuts moved off braid-spanned junctions (owner Q2); then T183 (owner 2026-10-24): the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part (3 stretches, 44 -> 48 sections); then T278 (r-62e2f3a8c81e, tidal cut split:skeena_river__tidal_boundary, gnis:2936 at 6.4 km): the Skeena below its tidal boundary is tidal (1 section, store part 9, unkeyed), so part 0 starts at the tidal boundary",
+   "tidal": {
+    "reason": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Exchamsiks confluence cut runs straight across and the automatic length cuts moved off braid-spanned junctions (owner Q2); then T183 (owner 2026-10-24): the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part (3 stretches, 44 -> 48 sections); then T278 (r-62e2f3a8c81e, tidal cut split:skeena_river__tidal_boundary, gnis:2936 at 6.4 km): the Skeena below its tidal boundary is tidal (1 section, store part 9, unkeyed), so part 0 starts at the tidal boundary; then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 the tidal piece below the tidal boundary is part 0 (mouth first), the remainder's group is parts 2, 5 and 6 (56 sections), tapped at part 2",
+    "tidalPartIx": 0
+   },
    "item_ord": 7452,
    "akey": 870,
    "seg": 21,
@@ -43749,8 +43752,8 @@
    "weekday": "Saturday",
    "goldenPartIx": 0,
    "tidal": {
-    "reason": "T278 (r-62e2f3a8c81e, tidal cut split:brunette_river__burlington_northern_railway_brid, gnis:10070 at 2.86 km): the Brunette below the Burlington Northern Railway Bridge is tidal (1 section, store part 2, unkeyed), so part 0 starts at the bridge, not the mouth (2 sections, same rows)",
-    "tidalPartIx": 2
+    "reason": "T278 (r-62e2f3a8c81e, tidal cut split:brunette_river__burlington_northern_railway_brid, gnis:10070 at 2.86 km): the Brunette below the Burlington Northern Railway Bridge is tidal (1 section, store part 2, unkeyed), so part 0 starts at the bridge, not the mouth (2 sections, same rows); then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 the tidal piece is part 0 (mouth first), the remainder's group is parts 1 and 3 (1 + 1 sections), tapped at part 1",
+    "tidalPartIx": 0
    },
    "item_ord": 203,
    "akey": 64,
@@ -45326,7 +45329,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 2,
-   "grown": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
+   "grown": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch; then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 store part 0 (part 0: the mouth stretch)",
    "item_ord": 6218,
    "akey": 752,
    "seg": 108,
@@ -45725,7 +45728,7 @@
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 0,
-   "grown": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
+   "grown": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections; then T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part \u2014 store part 2 (parts 2 and 5)",
    "item_ord": 6218,
    "akey": 754,
    "seg": 110,
@@ -49406,97 +49409,97 @@
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 349505,
+   "handle": 349506,
    "akey": 2190,
    "place": 9,
    "name": "Unnamed stream \u00b7 Region 4"
   },
   {
-   "handle": 776029,
+   "handle": 776030,
    "akey": 2211,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 846511,
+   "handle": 846512,
    "akey": 2223,
    "place": 2,
    "name": "Unnamed stream \u00b7 Region 2"
   },
   {
-   "handle": 921444,
+   "handle": 921445,
    "akey": 2207,
    "place": 16,
    "name": "Unnamed stream \u00b7 Region 6"
   },
   {
-   "handle": 999441,
+   "handle": 999442,
    "akey": 2213,
    "place": 12,
    "name": "Unnamed stream \u00b7 Region 5"
   },
   {
-   "handle": 1070790,
+   "handle": 1070791,
    "akey": 2212,
    "place": 12,
    "name": "Unnamed stream \u00b7 Region 5"
   },
   {
-   "handle": 1237337,
+   "handle": 1237338,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1277156,
+   "handle": 1277157,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1309572,
+   "handle": 1309573,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1386981,
+   "handle": 1386982,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1472257,
+   "handle": 1472258,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1566591,
+   "handle": 1566592,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1662677,
+   "handle": 1662678,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1697417,
+   "handle": 1697418,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1836474,
+   "handle": 1836475,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
   },
   {
-   "handle": 1908564,
+   "handle": 1908565,
    "akey": 2240,
    "place": 16,
    "name": "Unnamed wetland \u00b7 Region 6"
@@ -50332,14 +50335,14 @@
   "gnis:16075": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
   "gnis:3225": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
   "gnis:39325": "T183 (owner 2026-10-24, tickets/T183): a straddling stream piece carries both regions' rules again (reverses T115): the Fraser's straddling pieces are parts of their own again (15 -> 17 parts; the golden has 19); then T278 (r-62e2f3a8c81e, tidal cut split:fraser_river__the_cpr_bridge_at_mission, gnis:39325 at 76.51 km): the Fraser below the CPR Bridge at Mission is tidal (29 sections, store part 16, unkeyed), so the golden part 'From the mouth up to the CPR Bridge at Mission' (old store part 3) has no freshwater part and the parts after it are renumbered down by one (4..16 -> 3..15)",
-  "gnis:39532": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
+  "gnis:39532": "T278 (r-62e2f3a8c81e, tidal cut split:campbell_river__cement_block_boundary_sign, gnis:39532 at 1.63 km): the Campbell from the mouth up to the cement block boundary sign is tidal (5 sections, store part 10, unkeyed); the golden two-stretch part (old store part 3, 8 sections) keeps only its Maple Street -> power line stretch (store part 5, 3 sections), and John Hart Lake -> Ladore Dam and cement block -> Maple Street are renumbered 4 -> 3 and 5 -> 4 (part order follows rule-set ids)",
   "gnis:17687": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
   "gnis:37414": "2026-10-27 (owner, decisions.md \"needs a split\"): columbia_river.r11 'Speed restriction (10 km/h) from Mud Lake to Columbia Lake' now binds the Fairmont -> Columbia Lake stretch, so the golden's two-stretch part (Kinbasket Lake -> Donald + Fairmont -> Columbia Lake outlet, 3 sections) is two parts: 3 (Fairmont, 2 sections, with the speed limit) and 7 (Kinbasket -> Donald, 1 section)",
   "gnis:2936": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
   "gnis:39492": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
   "gnis:16880": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
   "gnis:14619": "T67 (owner 2026-10-24): the Peace's braids are cut at Site C, the 1,200 m signs and the Halfway, so its parts are renumbered (part order follows rule-set ids)",
-  "gnis:10070": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
+  "gnis:10070": "T278 (r-62e2f3a8c81e, tidal cut split:brunette_river__burlington_northern_railway_brid, gnis:10070 at 2.86 km): the Brunette below the Burlington Northern Railway Bridge is tidal (1 section, store part 2, unkeyed), so part 0 starts at the bridge, not the mouth (2 sections, same rows)",
   "gnis:26104": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part",
   "gnis:19986": "T517 (owner 2026-11-08): one part per connected run, numbered in river order \u2014 the golden part is the rule-set group of the store's parts with its label (their sections summed), tapped at the group's lowest part"
  }

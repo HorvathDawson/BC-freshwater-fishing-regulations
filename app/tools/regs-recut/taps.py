@@ -25,7 +25,8 @@ that index. Declared states are themselves checked, so an entry that no longer d
 - PART_MOVED: the golden part is the store's part `ix` now, unchanged (label and section count equal there).
 - PART_GROWN: the golden part is at the same index with the same rows, but its extent took in merged sections (label
   and/or count differ). Tapped and compared (`grown` on the state); the parity excludes only the words of the extent
-  (the header's part label and the subtitle).
+  (the header's part label and the subtitle). `(ix, why)` (T517, r-d14bdb180f55): the same, at the store's part `ix`
+  — river order renumbered the water, and the grown label names no rule-set group `t517_group` could find.
 - every water with a PART_MOVED / PART_GROWN / PART_GONE state is listed in taps.json `recut` (item -> reason): its
   list of parts is not the golden's, so the parity excludes the Parts sheet on its states.
 - PART_RECOUNTED: the golden part is the store's part `ix` (the same index, or a renumbered one) with the same label
@@ -88,6 +89,10 @@ COQUITLAM_TIDAL = ("T278 (r-62e2f3a8c81e, tidal cut split:coquitlam_river__mary_
                    "the Coquitlam from the mouth up to the Mary Hill Bypass Bridge is tidal (1 section, store part 3, "
                    "unkeyed), so the golden mouth part (old store part 2) has no freshwater part and the Mary Hill -> "
                    "Lougheed part is renumbered 3 -> 2")
+#: T517 (owner 2026-11-08, "one part per connected adjacent stretch"): a part is a connected run, numbered mouth up; the
+#: golden part is its RULE-SET GROUP — the store's parts carrying the golden label, whose sections sum to the golden count.
+T517 = ("T517 (owner 2026-11-08): one part per connected run, numbered in river order — the golden part is the rule-set "
+        "group of the store's parts with its label (their sections summed), tapped at the group's lowest part")
 # (r-8e04e839ea48, d2858cc80) Nitinat Lake (x31p) is a tidal-keyed water again: tapped, its tidal banner as before
 T228 = ("T228 (a757756b, owner 2026-10-28): no-access land breaks a water's pieces — the Coquitlam's Lougheed -> lake "
         "outlet stretch (golden part 0, 10 sections) is cut at the Coquitlam Watershed boundary into store parts 0 (1 "
@@ -107,6 +112,10 @@ PART_MOVED = {"x15p16_1010": 14,   # (T183) 15; then T278 FRASER_TIDAL: 14
               "x19p6_1010": 7, "x19p7_1010": 8,
               # (T497) three pieces left the Kootenay for the Old Kootenay River Channel, which renumbers its parts
               "x9p6_1010": 5, "x9p4_1010": 3,
+              # (T517, r-d14bdb180f55) river order renumbered the Campbell: the golden merged closed part (2 sections:
+              # Elk Falls -> John Hart Dam, part 5, and the Strathcona Dam 100 m piece, part 9) is held at part 9, the
+              # part the previous re-cut carried it to by label
+              "x16p7_1010": 9,
               # (T228) the Coquitlam's no-access split renumbers the parts after it
               # (T228) x37p1/x37p2 were 1 -> 2 and 2 -> 3; then T278 COQUITLAM_TIDAL: x37p1's part is tidal
               # (PART_TIDAL) and x37p2's is back at its golden index 2
@@ -114,7 +123,8 @@ PART_MOVED = {"x15p16_1010": 14,   # (T183) 15; then T278 FRASER_TIDAL: 14
 #: why each PART_MOVED state moved, when it is not the water's RECUT_WHY
 MOVED_WHY = {**{k: FRASER_TIDAL for k in ("x15p4_1010", "x15p5_1010", "x15p6_1010", "x15p7_1010", "x15p8_1010", "x15p9_1010",
                                           "x15p11_1010", "x15p12_1010", "x15p13_1010")},
-             "x16p4_1010": CAMPBELL_TIDAL, "x16p5_1010": CAMPBELL_TIDAL}
+             "x16p4_1010": CAMPBELL_TIDAL, "x16p5_1010": CAMPBELL_TIDAL,
+             "x16p7_1010": f"{T517}: the Campbell's closed parts are 5 and 9 in river order"}
               # (T187) x22p6 (the Peace's Dinosaur Lake part) is back to its golden place and size: part 6, 1 section
 #: gone states whose water's list of parts is still the golden's (labels and order the Parts sheet draws): not `recut`
 GONE_NOT_RECUT: set[str] = set()
@@ -131,22 +141,32 @@ RECUT_WHY = {"x22p2_1010": "T67 (owner 2026-10-24): the Peace's braids are cut a
              "x18p3_1010": COLUMBIA_R11,
              "x37p1_1010": f"{T228}; then {COQUITLAM_TIDAL}",
              "x16p3_1010": CAMPBELL_TIDAL, "x23p0_1010": BRUNETTE_TIDAL}
+#: (T517, r-d14bdb180f55) a grown state whose part river order renumbered: the store index of its rule-set group's lowest
+#: part, declared (no --previous-answers in sync.mjs to carry the old index by label)
+def _t517_at(ix, group):
+    return f"; then {T517} — store part {ix} ({group})"
+
+
 PART_GROWN = {
-    "x13p4_1010": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows)",
-    "x5p0_1010": "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows)",
-    "x27p0_1010": f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections",
-    "x27p2_1010": f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch",
-    "x19p0_1010": f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner 2026-10-24): "
-                  f"the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part "
-                  f"(3 stretches, 44 -> 48 sections); then {SKEENA_TIDAL}",
-    "x9p0_1010": "T179 (owner 2026-10-25, decisions.md Koocanusa): the Koocanusa cut moved from the reservoir's outlet "
+    "x13p4_1010": (7, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (35 -> 42 sections; same rows)"
+                   + _t517_at(7, "parts 7, 8 and 9")),
+    "x5p0_1010": (1, "T322 (owner 2026-10-29 slough calls, folded 2026-11-03): a lake on this water is a slough of its stream now, so the part runs through one lake fewer (9 -> 10 sections; same rows)"
+                   + _t517_at(1, "part 1")),
+    "x27p0_1010": (2, f"{T183}: the West Road's pieces on the Region 5 / 6 / 7A lines are parts of their own; part 0 is 79 sections"
+                   + _t517_at(2, "parts 2 and 5")),
+    "x27p2_1010": (0, f"{T183}: the West Road's side channel above Charleson Creek (Region 5 and 7A) is part 3 now; part 2 is the mouth stretch"
+                   + _t517_at(0, "part 0: the mouth stretch")),
+    "x9p0_1010": (6, "T179 (owner 2026-10-25, decisions.md Koocanusa): the Koocanusa cut moved from the reservoir's outlet "
                  "(356570348:431810, where the hand point stood) to its INLET (490242), so this 1-section piece below "
-                 "the lake now ends at the lake's outlet, not the curated 'u/s end' name (label only; same piece, same rows)",
-    "x9p1_1010": f"{T67}: the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, "
+                 "the lake now ends at the lake's outlet, not the curated 'u/s end' name (label only; same piece, same rows)"
+                   + _t517_at(6, "part 6, after the unkeyed piece 5")),
+    "x9p1_1010": (7, f"{T67}: the Kootenay's ditch-only line 356365735:0 (1,982.6 m) left the river item (owner Q1, "
                  f"DITCHES_LEAVE_RIVER_ITEMS); 3 length cuts on 356570348 moved: 52 -> 51 sections; then T179 (owner "
                  f"2026-10-25, decisions.md Koocanusa): the authored cut now stands on the reservoir's inlet (490242) and "
-                 f"names it, so the part starts at 'the Koocanusa Reservoir upstream end', not 'Lake Koocanusa' (same rows)",
-    "x19p1_1010": "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)",
+                 f"names it, so the part starts at 'the Koocanusa Reservoir upstream end', not 'Lake Koocanusa' (same rows)"
+                   + _t517_at(7, "part 7")),
+    "x19p1_1010": (3, "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)"
+                   + _t517_at(3, "parts 3 and 4")),
 }
 PART_GONE = {
     "x37p0_1010": (0, T228),
@@ -219,11 +239,28 @@ PART_TIDAL = {
     "x15p3_1010": (None, 16, f"{FRASER_TIDAL} (before: {T67}: {_GAUGE} on the Fraser's side channels 355992485 and "
                              f"355994872, and 08MH028's cut moved 578 -> 545 m: 30 -> 29 sections)"),
     "x37p1_1010": (None, 3, f"{COQUITLAM_TIDAL} (before: {T228})"),
-    "x16p3_1010": (5, 10, f"{CAMPBELL_TIDAL} (before: T185, owner marks 2026-10-27: the Quinsam River confluence cut lies "
-                          f"inside the Maple Street stretch, 7 -> 8 sections)"),
-    "x23p0_1010": (0, 2, BRUNETTE_TIDAL),
+    "x16p3_1010": (2, 0, f"{CAMPBELL_TIDAL} (before: T185, owner marks 2026-10-27: the Quinsam River confluence cut lies "
+                          f"inside the Maple Street stretch, 7 -> 8 sections); then {T517} — the tidal piece is part 0 "
+                          f"(mouth first), the Maple Street -> power line group is parts 2 and 3 (2 + 1 sections), tapped "
+                          f"at part 2"),
+    # (T517, r-d14bdb180f55) river order numbers the tidal piece first: the remainder's group is parts 1 and 3
+    "x23p0_1010": (1, 0, f"{BRUNETTE_TIDAL}; then {T517} — the tidal piece is part 0 (mouth first), the remainder's "
+                         f"group is parts 1 and 3 (1 + 1 sections), tapped at part 1"),
+    # (T517, r-d14bdb180f55) was PART_GROWN at index 0: river order numbers the Skeena's tidal piece first (part 0), so
+    # the golden part's freshwater remainder is its rule-set group's lowest part, 2 (parts 2, 5, 6: 46 + 7 + 3 sections)
+    "x19p0_1010": (2, 0, f"{T67}: the Exchamsiks confluence cut runs straight across and {_LEN}; then T183 (owner "
+                         f"2026-10-24): the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and "
+                         f"joined this part (3 stretches, 44 -> 48 sections); then {SKEENA_TIDAL}; then {T517} — the "
+                         f"tidal piece below the tidal boundary is part 0 (mouth first), the remainder's group is parts "
+                         f"2, 5 and 6 (56 sections), tapped at part 2"),
 }
 _SUB = re.compile(r"^(.*?) · (\d+) sections?(?: · (.*))?$")
+
+
+def grown_why(sid):
+    """The reason of a PART_GROWN state (its value, or the reason of an `(ix, why)` one)."""
+    v = PART_GROWN[sid]
+    return v[1] if isinstance(v, tuple) else v
 
 
 def golden_part(st):
@@ -242,12 +279,6 @@ def same_part(golden, store):
         return None
     slab, sn = store
     return sn == n and (slab is not None and (slab.startswith(lab[:-1]) if lab.endswith("…") else slab == lab))
-
-
-#: T517 (owner 2026-11-08, "one part per connected adjacent stretch"): a part is a connected run, numbered mouth up; the
-#: golden part is its RULE-SET GROUP — the store's parts carrying the golden label, whose sections sum to the golden count.
-T517 = ("T517 (owner 2026-11-08): one part per connected run, numbered in river order — the golden part is the rule-set "
-        "group of the store's parts with its label (their sections summed), tapped at the group's lowest part")
 
 
 def t517_group(golden, parts):
@@ -371,7 +402,11 @@ def main():
         if part_ix not in parts:
             raise SystemExit(f"taps: {sid} names part {part_ix} of {item}, the store has parts {min(parts)}..{max(parts)}: "
                              "the release re-cut the water — declare the state in PART_MOVED / PART_GROWN / PART_GONE")
-        if sid in PART_GROWN and remap(item, part_ix) != part_ix:
+        if sid in PART_GROWN and isinstance(PART_GROWN[sid], tuple):
+            part_ix = t517.setdefault(sid, PART_GROWN[sid][0])
+            if part_ix not in parts:
+                raise SystemExit(f"taps: PART_GROWN {sid} -> {part_ix}: the store has parts {sorted(parts)}")
+        elif sid in PART_GROWN and remap(item, part_ix) != part_ix:
             part_ix = t517.setdefault(sid, remap(item, part_ix))
         ok = same_part(g, parts[part_ix])
         if sid in PART_GROWN:
@@ -445,7 +480,7 @@ def main():
             continue
         out["states"][sid] = {"item": item, "partIx": ix, "md": md, "date": f"2026-{month:02d}-{day:02d}", "weekday": wd,
                               **({"goldenPartIx": part_ix} if ix != part_ix else {}),
-                              **({"grown": PART_GROWN[sid]} if sid in PART_GROWN else {}),
+                              **({"grown": grown_why(sid)} if sid in PART_GROWN else {}),
                               **({"tidal": {"reason": PART_TIDAL[sid][2], "tidalPartIx": PART_TIDAL[sid][1]}}
                                  if sid in PART_TIDAL else {}),
                               **({"recounted": {"reason": PART_RECOUNTED[sid][1], "sections": store_parts(item)[ix][1]}}
@@ -500,7 +535,7 @@ def main():
             how = "PART_MOVED" if sid in PART_MOVED else "PART_TIDAL" if sid in PART_TIDAL else "PART_RECOUNTED"
             print(f"taps: {sid} golden part {v['goldenPartIx']} -> store part {v['partIx']} ({how})")
     for sid in PART_GROWN:
-        print(f"taps: {sid} part {out['states'][sid]['partIx']} grew (PART_GROWN): {PART_GROWN[sid]}")
+        print(f"taps: {sid} part {out['states'][sid]['partIx']} grew (PART_GROWN): {grown_why(sid)}")
     for sid in PART_RECOUNTED:
         print(f"taps: {sid} part {out['states'][sid]['partIx']} recounted (PART_RECOUNTED): {PART_RECOUNTED[sid][1]}")
     for sid in PART_TIDAL:
