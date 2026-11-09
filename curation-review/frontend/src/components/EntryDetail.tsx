@@ -224,6 +224,8 @@ export function EntryDetail({ detail, onNavigate, reloadKey = 0, nav, mode, onMa
     return (
       <ExtentFixEditor scope={scope} entryId={entry.entry_id} currentOp={currentOp}
         mapSplits={mapSplits} waters={coveredItems.map((c) => ({ id: c.id, name: c.name }))}
+        cutLabels={Object.fromEntries((named?.features ?? []).map((f) => [f.properties.split_id, f.properties.label]))}
+        itemNames={Object.fromEntries(coveredItems.map((c) => [c.id, c.name]))}
         value={fixes[scope]} onChange={(f) => extras.setFix(scope, f)}
         onPreview={setFixPreview} onPick={(cb) => setPickCb({ cb })} splitAt={splitAt} />
     );

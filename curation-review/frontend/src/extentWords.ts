@@ -51,6 +51,12 @@ export function otherWaters(items: string[], own: string[], names: Record<string
     { id: string; name: string | null }[] {
   return items.filter((x) => !own.includes(x)).map((id) => ({ id, name: names[id] ?? null }));
 }
+/** A CUT'S NAME IN THE EXTENT EDITOR: from every source the screen has — the labels it was given (the curated cuts),
+ *  the ones picked in the editor (a search hit carries its label), the cuts on its map — and, only when none has it,
+ *  said to have none (T525: red is for a name that is really missing, never for one a screen did not pass). */
+export function cutNamer(...sources: Record<string, string>[]): (id: string) => string {
+  return (id) => sources.find((s) => s[id])?.[id] ?? `${id} (no label)`;
+}
 /** parts as one line of text (a notice): a cut with no label is SAID, never left as a bare id */
 export function partsText(parts: Part[]): string {
   return parts.map((p) => (typeof p === "string" ? p : `[cut ${p.cut} has no label]`)).join("");

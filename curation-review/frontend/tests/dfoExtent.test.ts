@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import {
   addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, placeAnswer, previewOf, proposesCuts, saveWords, tribWords, withPiece,
 } from "../src/dfoExtent.ts";
-import { extentParts, fixParts, otherWaters, partsText, piecesParts } from "../src/extentWords.ts";
+import { cutNamer, extentParts, fixParts, otherWaters, partsText, piecesParts } from "../src/extentWords.ts";
 import type { DfoExtentNow, ExtentFix } from "../src/types.ts";
 
 const between = (a: string, b: string, trib: boolean | null = null): ExtentFix => ({
@@ -151,4 +151,12 @@ test("a water ticked beyond the place's own reads by its registry name; one with
   assert.deepEqual(otherWaters(["gnis:14918", "gnis:2195", "gnis:9"], ["gnis:14918"], { "gnis:2195": "Bulkley River" }),
                    [{ id: "gnis:2195", name: "Bulkley River" }, { id: "gnis:9", name: null }]);
   assert.deepEqual(otherWaters(["gnis:14918"], ["gnis:14918"], {}), []);
+});
+
+test("the editor names a cut from every source a screen has, and says 'no label' only when none has it", () => {
+  const name = cutNamer({ a: "the curated label" }, { b: "picked by search" }, { a: "MAP: a", c: "MAP: c" });
+  assert.equal(name("a"), "the curated label");
+  assert.equal(name("b"), "picked by search");
+  assert.equal(name("c"), "MAP: c");
+  assert.equal(name("z"), "z (no label)");
 });

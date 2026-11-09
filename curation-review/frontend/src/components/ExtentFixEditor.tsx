@@ -4,7 +4,7 @@ import type {
   AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
 } from "../types";
 import { failed } from "../failures";
-import { otherWaters, pointWords } from "../extentWords";
+import { cutNamer, otherWaters, pointWords } from "../extentWords";
 
 /** The ops and the owner's words for them, from the server only (`marks.OP_WORDS`, GET /api/extent-fix/ops). (T434) A
  *  failed read is shown; there is no copy here (a second copy of the policy drifts). */
@@ -55,10 +55,10 @@ interface Props {
   /** (owner 2026-11-09) what the place binds with now, in words ("with tributaries — the DFO title"): shown beside
    *  the call, which starts as the place's own (none = it keeps inheriting; T524 review) */
   tributariesNow?: string;
-  /** a cut's label from the curated cuts file, for a cut not on this map (T525: words, never a bare id) */
-  cutLabels?: Record<string, string>;
-  /** a water's registry name, for one ticked beyond the place's own (T525: "Bulkley River", never "gnis:2195") */
-  itemNames?: Record<string, string>;
+  /** every cut label the screen knows (T525: words, never a bare id) — a cut with none is shown as missing */
+  cutLabels: Record<string, string>;
+  /** every water name the screen knows, for one ticked beyond its own (T525: "Bulkley River", never "gnis:2195") */
+  itemNames: Record<string, string>;
   /** whether the preview draws the tributary walk (the slow toggle); off, a walking binding still SAYS it walks */
   tributariesDrawn?: boolean;
 }
@@ -69,7 +69,7 @@ interface Props {
    in-memory copy (GET /extent-preview); a NEW point cannot be previewed until it is built. */
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
                                   onPreview, onPick, splitAt, newSplits = [], sources,
-                                  previewFn, defaultOpen = false, piece, tributariesNow = "", cutLabels = {}, itemNames = {},
+                                  previewFn, defaultOpen = false, piece, tributariesNow = "", cutLabels, itemNames,
                                   tributariesDrawn = true }: Props) {
   const tid = piece ? `${scope}-p${piece + 1}` : scope;
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
@@ -79,9 +79,10 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
   const [preview, setPreview] = useState<ExtentPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [pickAt, setPickAt] = useState<number | null>(null);
-  // the names of the waters picked here (the search hit carries it), beside the ones the caller knows
+  // the names of the waters and cuts picked here (a search hit carries it), beside the ones the caller knows
   const [picked, setPicked] = useState<Record<string, string>>({});
-  const splitName = (id: string) => cutLabels[id] ?? mapSplits.find((s) => s.id === id)?.name ?? `${id} (no label)`;
+  const [pickedCuts, setPickedCuts] = useState<Record<string, string>>({});
+  const splitName = cutNamer(cutLabels, pickedCuts, Object.fromEntries(mapSplits.map((s) => [s.id, s.name])));
 
   const fix: ExtentFix = value ?? {
     scope, op: (ops.some((o) => o.op === currentOp) ? currentOp : "whole") as ExtentOp,
@@ -162,7 +163,8 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
       {Array.from({ length: want }, (_, i) => (
         <PointPicker key={`${fix.op}-${i}`} n={i + 1} of={want} point={fix.points[i]} mapSplits={mapSplits}
           onPoint={(p) => setPoint(i, p)} picking={pickAt === i} onPickMap={() => pick(i)}
-          splitName={splitName} offered={offered} newSplits={newSplits} />
+          splitName={splitName} offered={offered} newSplits={newSplits}
+          onLabel={(id, label) => setPickedCuts((m) => ({ ...m, [id]: label }))} />
       ))}
       <div className="fix-row">
         <span className="k">on</span>
@@ -220,10 +222,12 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
 }
 
 function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, splitName, offered,
-                      newSplits }: {
+                      newSplits, onLabel }: {
   n: number; of: number; point?: FixPoint; mapSplits: NamedRef[]; onPoint: (p: FixPoint) => void;
   picking: boolean; onPickMap: () => void; splitName: (id: string) => string;
   offered: typeof SOURCES; newSplits: NamedRef[];
+  /** a cut picked by search, with its label (so the editor names it) */
+  onLabel: (id: string, label: string) => void;
 }) {
   const [src, setSrc] = useState<string>(
     !point ? "map" : point.kind === "split" ? (mapSplits.some((s) => s.id === point.split_id) ? "map" : "search")
@@ -249,7 +253,7 @@ function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, spl
           {newSplits.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       )}
-      {src === "search" && <SplitSearch onPick={(h) => onPoint({ kind: "split", split_id: h.id })} />}
+      {src === "search" && <SplitSearch onPick={(h) => { onLabel(h.id, h.label); onPoint({ kind: "split", split_id: h.id }); }} />}
       {(src === "confluence" || src === "lake_inlet" || src === "lake_outlet") && (
         <ItemSearch kind={src === "confluence" ? "stream" : "lake"}
           placeholder={src === "confluence" ? "tributary name…" : "lake name…"}
