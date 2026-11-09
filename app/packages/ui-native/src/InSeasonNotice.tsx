@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
-import { INSEASON_WORDS, syncErrorVM, UPDATE_WORDS, type AppUpdateVM, type InSeasonNoticeRow, type ReleaseNoticeVM,
+import { DFO_NOTICE_WORDS, INSEASON_WORDS, syncErrorVM, type DfoNoticeVM, UPDATE_WORDS, type AppUpdateVM, type InSeasonNoticeRow, type ReleaseNoticeVM,
          type UpdateSourceInput, now } from "@app/core";
 import { SyncFailures } from "./SyncErrorSheet";
 import { Button } from "./Button";
@@ -17,8 +17,11 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 import { linkTo } from "./openLink";
 
-export function InSeasonNotice({ open, rows, palette, onClose, sync = null, release = null, app = null }: {
+export function InSeasonNotice({ open, rows, palette, onClose, sync = null, release = null, app = null, dfo = null }: {
   open: boolean; rows: readonly InSeasonNoticeRow[]; palette: Palette; onClose: () => void;
+  /** (T521) THE BELL'S DFO SECTION, after the in-season rows: DFO rules on a water no curated binding knows (core
+   *  `dfoNoticeRows`), and a list the feed could not read. Null or nothing: no section. */
+  dfo?: DfoNoticeVM | null;
   /**
    * (T231, owner 2026-10-28) THE BELL'S SYNC SECTION: the update service's failed sources (what failed, when each last
    * succeeded) and Retry, above the in-season rows; null or none failed: no section.
@@ -38,14 +41,16 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
   const [asking, setAsking] = useState(false);
   const rel = release?.vm ?? null;
   const upd = app?.vm ?? null;
-  const others = rows.length > 0 || !!(sync && sync.failed.length);
+  const dfoOn = !!dfo && (dfo.rows.length > 0 || !!dfo.unread);
+  const others = rows.length > 0 || dfoOn || !!(sync && sync.failed.length);
   const failed = sync && sync.failed.length ? syncErrorVM(sync.failed, now()) : null;
   // (owner 2026-10-29) the bell is always drawn, so it can open on nothing: "No notifications"
-  const empty = !upd && !rel && !failed && rows.length === 0;
+  const empty = !upd && !rel && !failed && rows.length === 0 && !dfoOn;
   const title = empty ? UPDATE_WORDS.bell.noneTitle : upd && !rel && !others ? upd.title
     : upd ? UPDATE_WORDS.bell.title : rel && !others ? rel.title
     : failed && rows.length || rel && others ? UPDATE_WORDS.bell.title
-    : failed ? failed.title : INSEASON_WORDS.noticeTitle;
+    : failed && dfoOn || rows.length && dfoOn ? UPDATE_WORDS.bell.title
+    : failed ? failed.title : rows.length ? INSEASON_WORDS.noticeTitle : DFO_NOTICE_WORDS.title;
   return (
     <Sheet open={open} onClose={onClose} title={title} sub={null} palette={palette} scroll dialog>
       <View testID="inseason-notice" style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12, gap: 14 }}>
@@ -129,6 +134,22 @@ export function InSeasonNotice({ open, rows, palette, onClose, sync = null, rele
             )}
           </View>
         ))}
+        {dfoOn && (
+          <View testID="notice-dfo" style={{ gap: 8, paddingTop: rows.length || failed ? 6 : 0 }}>
+            {(rows.length > 0 || !!failed || !!rel || !!upd) && (
+              <Text accessibilityRole="header" style={{ ...TYPE.section, color: palette.sub }}>{DFO_NOTICE_WORDS.title}</Text>
+            )}
+            {dfo!.rows.length > 0 && <Text style={{ ...TYPE.body, color: palette.ink }}>{DFO_NOTICE_WORDS.intro}</Text>}
+            {dfo!.rows.map((r) => (
+              <View key={r.id} testID="dfo-notice-row"
+                    style={{ borderLeftWidth: 4, borderLeftColor: palette.attention, paddingLeft: 10, gap: 2 }}>
+                <Text style={{ ...TYPE.metaBold, color: palette.ink }}>{r.where}</Text>
+                <Text selectable style={{ ...TYPE.body, color: palette.ink }}>{r.text}</Text>
+              </View>
+            ))}
+            {!!dfo!.unread && <Text testID="dfo-notice-unread" style={{ ...TYPE.small, color: palette.closed }}>{dfo!.unread}</Text>}
+          </View>
+        )}
         <Button palette={palette} label={INSEASON_WORDS.noticeClose} onPress={onClose} />
       </View>
     </Sheet>

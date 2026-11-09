@@ -632,7 +632,7 @@ export default function App() {
                onSaveSpot={spotsHook.save}
                spotsError={spotsHook.spots.state === "failed" ? spotsHook.error : null}
                feed={feed}
-               inSeason={inSeason} inSeasonSeen={inSeasonSeen} firstRun={firstRun} walkthrough={walkthrough} recentSearches={recentSearches}
+               inSeason={inSeason} inSeasonSeen={inSeasonSeen} salmonFeed={salmonFeed} firstRun={firstRun} walkthrough={walkthrough} recentSearches={recentSearches}
                runTiming={runTiming} runSpeciesStore={runSpeciesStore}
                refreshing={refreshing}
                onDeleteSpot={spotsHook.remove}

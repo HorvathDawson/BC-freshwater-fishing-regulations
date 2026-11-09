@@ -57,6 +57,7 @@ export * from "./appUpdate";
 // (owner 2026-10-29) the open page follows the feeds: their versions
 export * from "./feedVersion";
 export * from "./inseason";
+export * from "./dfoNotice";
 export * from "./prefetch";
 // (T238) More → Offline maps, headless
 export * from "./offline";

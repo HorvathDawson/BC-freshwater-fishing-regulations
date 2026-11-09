@@ -29,7 +29,7 @@ import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -334,6 +334,8 @@ export function Shell(p: ShellProps) {
    */
   const inSeason = useInSeason(p.inSeason ?? null, syncState.inSeasonEpoch, loader?.manifest?.data_release ?? null);
   const notice = useInSeasonNotice(inSeason.unmatched, p.inSeasonSeen ?? null);
+  // (T521) the DFO feed's rules on a water no curated binding knows: the bell's DFO section, counted with the rest
+  const dfoNotice = useDfoNotice(p.salmonFeed);
   // (T236) the first-run notice (not legal advice) comes first: nothing else opens by itself while it is up
   const firstRun = useFirstRun(p.firstRun ?? null);
   // (T384) ...once the first-run notice is answered: the platform's prompt never comes up over it
@@ -599,8 +601,8 @@ export function Shell(p: ShellProps) {
         {topBar && (
           <TopBar ref={field} palette={palette} placeholder={placeholder} sync={sync} onSync={onSync}
                   // (T231, owner 2026-10-28) one bell: the in-season changes not on the map, and the updates that failed
-                  notices={{ count: notice.count + syncState.failed.length + releaseCount,
-                             label: bellLabel(notice.count ? notice.label : null, syncState.failed.length, releaseVM?.counts ? releaseVM : null,
+                  notices={{ count: notice.count + dfoNotice.count + syncState.failed.length + releaseCount,
+                             label: bellLabel([notice.count ? notice.label : null, dfoNotice.label].filter(Boolean).join("; ") || null, syncState.failed.length, releaseVM?.counts ? releaseVM : null,
                                               appVM?.counts ? appVM : null),
                              onPress: () => setBellOpen(true) }}
                   open={searching}
@@ -732,7 +734,7 @@ export function Shell(p: ShellProps) {
                    // own map while it is in front, else the browse map's
                    camera={frame?.view === "map" ? waterCamera.current ?? camera.current : camera.current} />
       {/* (T230) the in-season changes not on the map yet: once per row per device, and from the bell */}
-      <InSeasonNotice open={(notice.open && !firstRun.open && !guide.open) || bellOpen} rows={notice.rows}
+      <InSeasonNotice open={(notice.open && !firstRun.open && !guide.open) || bellOpen} rows={notice.rows} dfo={dfoNotice}
                       palette={palette} onClose={() => { setBellOpen(false); notice.close(); }}
                       sync={{ failed: syncState.failed, checking: syncState.checking, onRetry: syncState.refresh }}
                       release={releaseVM ? { vm: releaseVM, onAction: onReleaseAction } : null}

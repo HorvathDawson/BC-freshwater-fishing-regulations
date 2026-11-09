@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { SALMON_FEED_GOLDEN } from "./salmonFeed.golden";
 import { salmonCard, salmonChainStatus, salmonNotes, type SalmonFacts } from "./salmon";
-import { composeChain, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
+import { composeChain, dfoNoticeRows, parseDfoUnplaced, parseSalmonFeed, pickSalmon, salmonFeedLine, salmonCheckedLine, salmonFeedOf, withSalmonFeed } from "./salmonFeed";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the golden is the pipeline's JSON, read as data
 const G = SALMON_FEED_GOLDEN as any;
@@ -183,47 +183,60 @@ describe("(T356) a header closure from the feed: the pipeline's `c`, composed as
   });
 });
 
-// (T521, owner 2026-11-09) a DFO place no curated location knows shows on the water its row names, in the in-part
-// caveat in DFO's words; no paint, no part change. Zero unplaced shows nothing; an unread list is said on the feed line.
+// (T521, owner 2026-11-09) a DFO place no curated location knows: (a) on a matched water, a line with the water's
+// other DFO rules on its Salmon card, "Location not yet on the map: <DFO's words>"; (b) on a water no binding knows,
+// a global bell notice naming DFO's region. No paint, no part change. Zero shows nothing; an unread list is said.
 describe("(T521) the feed's unplaced places", () => {
-  const golden = { region: "6", items: ["gnis:9999"], water: "Babine River", scope: "below the counting fence",
-                   rows: ["All | Aug 1 until further notice | No fishing for salmon"] };
+  const matched = { fingerprint: "aa11", region: "6", items: ["gnis:9999"], water: "Babine River", scope: "below the counting fence",
+                    rows: ["All | Aug 1 until further notice | No fishing for salmon"] };
+  const newWater = { fingerprint: "bb22", region: "6", items: [], water: "Brand New Creek", scope: "",
+                     rows: ["Coho | Sep 1 to Oct 31 | 2 per day"] };
   const day = new Date(2026, 8, 10);
   const page = { sids: [10], item: "gnis:9999" };
+  const withRows = (rows: unknown[]) => withSalmonFeed(release(), { ...feed(), unplaced: rows.length, unplacedRows: parseDfoUnplaced(rows) });
 
-  it("one unplaced row: on its water's page, in DFO's words; the rows and the map unchanged", () => {
-    const plain = withSalmonFeed(release(), { ...feed(), unplaced: 0, unplacedRows: [] });
-    const live = withSalmonFeed(release(), { ...feed(), unplaced: 1, unplacedRows: parseDfoUnplaced([golden]) });
+  it("(a) a matched water: in its Salmon card's water rules, in DFO's words; no caveat, rows and map unchanged", () => {
+    const plain = withRows([]), live = withRows([matched, newWater]);
     const was = salmonCard(plain, page, day), now = salmonCard(live, page, day);
-    expect(now.caveat?.items.map((x) => [x.what.map((r) => (r.t === "text" ? r.s : "")).join(""), x.where])).toEqual([
-      ["DFO rule, location not yet on the map: All · Aug 1 until further notice · No fishing for salmon",
-       "Where: below the counting fence"]]);
-    expect([now.caveat?.title, now.caveat?.later]).toEqual(["Fishing is different in some spots today", null]);
-    // no paint, no part change: the same rows, the same chain status on every section
+    expect(now.waterRules).toEqual([...was.waterRules,
+      "Location not yet on the map: below the counting fence — All · Aug 1 until further notice · No fishing for salmon"]);
+    expect([now.caveat, now.notListed]).toEqual([was.caveat, null]);
     expect(now.rows).toEqual(was.rows);
-    expect(now.notListed).toBeNull();
     const by = new Map<number, number>(G.sections.map(([s, c]: [number, number]) => [s, c]));
     for (const sid of by.keys()) expect(salmonChainStatus(live, by.get(sid)!, 250)).toBe(salmonChainStatus(plain, by.get(sid)!, 250));
-    // another water's page does not show it
-    expect(salmonCard(live, { sids: [10], item: "gnis:1" }, day).caveat).toBeNull();
-    expect(salmonFeedLine(live)).toMatch(/^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m$/);
+    // another water's page does not show it, and the matched place is never the bell's
+    expect(salmonCard(live, { sids: [10], item: "gnis:1" }, day).waterRules).toEqual(salmonCard(plain, { sids: [10], item: "gnis:1" }, day).waterRules);
+    expect(dfoNoticeRows({ ...feed(), unplaced: 1, unplacedRows: parseDfoUnplaced([matched]) })).toEqual(
+      { rows: [], unread: null, count: 0, label: null });
+  });
+
+  it("(b) a water no binding knows: a bell notice naming DFO's region and its words", () => {
+    const vm = dfoNoticeRows({ ...feed(), unplaced: 2, unplacedRows: parseDfoUnplaced([matched, newWater]) });
+    expect(vm).toEqual({ rows: [{ id: "6:bb22:0", where: "DFO Region 6 Skeena · Brand New Creek", text: "Coho · Sep 1 to Oct 31 · 2 per day" }],
+                         unread: null, count: 1, label: "1 DFO water not on the map yet" });
+    // never on a water page
+    expect(salmonCard(withRows([newWater]), page, day).waterRules).toEqual(salmonCard(withRows([]), page, day).waterRules);
   });
 
   it("zero unplaced shows nothing", () => {
-    const live = withSalmonFeed(release(), { ...feed(), unplaced: 0, unplacedRows: [] });
-    expect(salmonCard(live, page, day).caveat).toBeNull();
+    const live = withRows([]);
     expect(live.payload.feedUnplaced).toBeUndefined();
+    expect(salmonCard(live, page, day)).toEqual(salmonCard(withSalmonFeed(release(), feed()), page, day));
+    expect(dfoNoticeRows({ ...feed(), unplaced: 0, unplacedRows: [] })).toEqual({ rows: [], unread: null, count: 0, label: null });
+    expect(dfoNoticeRows(null)).toEqual({ rows: [], unread: null, count: 0, label: null });
   });
 
-  it("an unplaced list that was not read is said on the feed line, never passed off as none", () => {
-    const live = withSalmonFeed(release(), { ...feed(), unplaced: 2 });
-    expect(salmonFeedLine(live)).toMatch(
+  it("an unplaced list that was not read is shown: on the card's feed line and in the bell", () => {
+    const f = { ...feed(), unplaced: 2 };
+    expect(salmonFeedLine(withSalmonFeed(release(), f))).toMatch(
       /^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m \(2 DFO places not yet on the map could not be read\)$/);
+    const msg = "2 DFO places not yet on the map could not be read. They will show when the next check reads them.";
+    expect(dfoNoticeRows(f)).toEqual({ rows: [], unread: msg, count: 1, label: msg });
   });
 
   it("parseDfoUnplaced refuses a row without its water's items (a pre-T521 worker's list)", () => {
-    const { items: _i, ...old } = golden;
-    expect(() => parseDfoUnplaced([old])).toThrow("dfo unplaced.json: row 0 is not a place with region, water, rows and items");
+    const { items: _i, ...old } = matched;
+    expect(() => parseDfoUnplaced([old])).toThrow("dfo unplaced.json: row 0 is not a place with fingerprint, region, water, rows and items");
     expect(() => parseDfoUnplaced({})).toThrow("dfo unplaced.json: not a list");
   });
 });

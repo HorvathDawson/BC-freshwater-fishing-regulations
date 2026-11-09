@@ -51,6 +51,9 @@ export interface ShellProps {
   feed?: import("@app/data").GaugeFeed;
   /** (T230) the provincial in-season changes + their curated links (`httpInSeason`). Absent: no banner, no notice. */
   inSeason?: import("@app/data").InSeasonSource | null;
+  /** (T521) the live DFO feed (`httpSalmonFeed`, the one the release loader lays over its salmon): its rules on a water
+   *  no curated binding knows are the bell's DFO section. Absent: no section. */
+  salmonFeed?: import("@app/data").SalmonFeedSource | null;
   /** (T230) the in-season row ids this device has been shown in the notice (once per row per device). */
   inSeasonSeen?: import("@app/ui").InSeasonSeenStore | null;
   /**

@@ -136,7 +136,7 @@ interface Payload {
 /** (T521) One DFO place the live feed lists that no curated location knows: its water's app items, the place and its
  *  rows in DFO's own words (`rows`: the page's cells, " | " between them). */
 export interface SalmonUnplacedPlace {
-  readonly region: string; readonly items: readonly string[]; readonly water: string; readonly scope: string;
+  readonly fingerprint: string; readonly region: string; readonly items: readonly string[]; readonly water: string; readonly scope: string;
   readonly rows: readonly string[];
 }
 /** (T321) A DFO row the app shows in DFO's words: `new` a clause DFO never printed before and `unread` a number no reading
@@ -387,7 +387,7 @@ export const SALMON_WORDS = {
   agency: "Fisheries and Oceans Canada",
   notListedLine: "DFO does not list this water for salmon. It is closed to salmon fishing.",
   /** (T521) a rule the live feed lists at a DFO place no curated location knows: DFO's own row words after the colon */
-  unplacedRule: (dfoWords: string) => `DFO rule, location not yet on the map: ${dfoWords}`,
+  unplacedRule: (dfoWords: string) => `Location not yet on the map: ${dfoWords}`,
   noteTwoAuthorities: "Salmon are set by DFO, not the provincial regulations above. Both apply.",
   /** (T482, owner 2026-11-07: "the source of the regs should be collapsible") the source block's fold, closed by default */
   sourceFold: "Source (DFO)",
@@ -779,11 +779,14 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
         const runs = tierWords(sh.tree);
         return { line: lineText(runs), runs, words: [n.t] };
       }),
-    waterRules: hn.water.filter((n) => !placed.has(n.id) && asWords(n, sizesShown)).map((n) => n.t),
+    // (T521, owner 2026-11-09) with the water's other DFO rules: the feed's rules at a place on this water no curated
+    // location knows, marked "location not yet on the map"
+    waterRules: [...hn.water.filter((n) => !placed.has(n.id) && asWords(n, sizesShown)).map((n) => n.t),
+                 ...unplacedLines(unplaced)],
     title: SALMON_WORDS.title, badge: SALMON_WORDS.badge,
     headline: SALMON_WORDS.headline[headlineStatus], headlineStatus,
     notListed: listed || unmapped.length || unplaced.length ? null : SALMON_WORDS.notListedLine,
-    caveat: inPartBlock([...undrawnEntries(f, undrawn, unmapped, day), ...unplacedEntries(unplaced)], SALMON_WORDS.waterNoun),
+    caveat: inPartBlock(undrawnEntries(f, undrawn, unmapped, day), SALMON_WORDS.waterNoun),
     dfoWords: regionClosed ? null : wordsOf(P, [...chains.flatMap((c) => [...P.chains[c]!.l, ...(P.chains[c]!.u ?? [])]),
                                                   ...unmapped.filter((u) => !u.d).flatMap((u) => P.chains[u.chain]?.l ?? [])]),
     source: [SALMON_WORDS.agency,
@@ -886,17 +889,17 @@ function undrawnEntries(f: SalmonFacts, undrawn: readonly number[], unmapped: re
 
 /**
  * (T521, owner 2026-11-09: "still will show on front end tho so it isnt missing before it is fixed and matched") the
- * feed's places no curated location knows, as in-part entries: one per DFO row, "DFO rule, location not yet on the
- * map: <DFO's row>", `where` the place as DFO prints it. In force: shown as today's — whether it holds today is not
- * read until a curator places it, so it is never folded behind "Other dates".
+ * feed's rules at places on this water that no curated location knows, one line per DFO row in DFO's own words:
+ * "Location not yet on the map: below the counting fence — All · Aug 1 until further notice · No fishing for salmon".
+ * Never painted, never a part; a water no binding knows is the bell's (`dfoNoticeRows`).
  */
-function unplacedEntries(unplaced: readonly SalmonUnplacedPlace[]) {
-  return unplaced.flatMap((u) => u.rows.map((row) => {
-    const item: CaveatItemVM = { what: [text(SALMON_WORDS.unplacedRule(row.split(" | ").map((c) => c.trim()).filter(Boolean).join(" · ")))],
-                                 where: u.scope ? WORDS.WHERE(u.scope) : null, rule: null, fish: null, book: [] };
-    return { item, now: true };
-  }));
+function unplacedLines(unplaced: readonly SalmonUnplacedPlace[]): string[] {
+  return unplaced.flatMap((u) => u.rows.map((row) => SALMON_WORDS.unplacedRule(
+    [u.scope, dfoRow(row)].filter(Boolean).join(" — "))));
 }
+
+/** (T521) a DFO row as the page's cells, " · " between them */
+export const dfoRow = (row: string): string => row.split(" | ").map((c) => c.trim()).filter(Boolean).join(" · ");
 
 /** (T228) A rule line as the key compares it: case and spacing never make two regulations differ. */
 const normRule = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim();

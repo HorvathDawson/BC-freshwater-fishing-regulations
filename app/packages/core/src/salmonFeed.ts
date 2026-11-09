@@ -15,7 +15,7 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
-import { salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
+import { dfoRow, salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
 type Chain = Payload["chains"][number];
@@ -69,10 +69,10 @@ export function parseDfoUnplaced(x: unknown): readonly SalmonUnplacedPlace[] {
   const str = (v: unknown) => typeof v === "string";
   return x.map((u, i) => {
     const r = u as Record<string, unknown> | null;
-    if (!r || typeof r !== "object" || !str(r.region) || !str(r.water) || !(r.scope == null || str(r.scope))
+    if (!r || typeof r !== "object" || !str(r.fingerprint) || !str(r.region) || !str(r.water) || !(r.scope == null || str(r.scope))
         || !Array.isArray(r.rows) || !r.rows.every(str) || !Array.isArray(r.items) || !r.items.every(str))
-      throw new Error(`dfo unplaced.json: row ${i} is not a place with region, water, rows and items`);
-    return { region: r.region as string, items: r.items as string[], water: r.water as string,
+      throw new Error(`dfo unplaced.json: row ${i} is not a place with fingerprint, region, water, rows and items`);
+    return { fingerprint: r.fingerprint as string, region: r.region as string, items: r.items as string[], water: r.water as string,
              scope: (r.scope as string | null) ?? "", rows: r.rows as string[] };
   });
 }
@@ -271,4 +271,42 @@ export interface SalmonCardLiveVM extends SalmonCardVM {
 export function salmonCardLive(f: SalmonFacts, page: { sids: readonly number[]; item: string | null; gear?: SalmonGearInput },
                                on: Date): SalmonCardLiveVM {
   return { ...salmonCard(f, page, on), checked: salmonFeedLine(f), feedAt: salmonFeedOf(f)?.at ?? null };
+}
+
+/** (T521) The bell's DFO section words. */
+export const DFO_NOTICE_WORDS = {
+  title: "New DFO waters",
+  intro: "DFO has posted salmon rules for waters we have not placed on the map yet. Check each one before you fish.",
+  badge: (n: number) => `${n} DFO ${n === 1 ? "water" : "waters"} not on the map yet`,
+  where: (region: string, name: string, water: string) => [`DFO Region ${region.toUpperCase()} ${name}`.trim(), water].filter(Boolean).join(" · "),
+  unread: (n: number) => `${n} DFO place${n === 1 ? "" : "s"} not yet on the map could not be read. They will show when the next check reads them.`,
+} as const;
+
+/** (T521) One bell row: a DFO rule on a water no curated binding knows (the in-season rows' shape, no link). */
+export interface DfoNoticeRow { readonly id: string; readonly where: string; readonly text: string }
+export interface DfoNoticeVM {
+  readonly rows: readonly DfoNoticeRow[];
+  /** places the index counts whose list could not be read: said in the bell, and counted */
+  readonly unread: string | null;
+  readonly count: number;
+  readonly label: string | null;
+}
+
+/**
+ * (T521, owner 2026-11-09) THE BELL'S DFO SECTION, from the same feed read as the Salmon card: a place on a water no
+ * curated binding knows (`items` empty — a completely new water) is a global notice naming DFO's region and its words,
+ * one row per DFO row. A place on a known water is that water's Salmon card's (`salmonCard` waterRules), never here.
+ * No feed captured: nothing to say (the card's own line says the feed's state).
+ */
+export function dfoNoticeRows(feed: SalmonFeed | null): DfoNoticeVM {
+  const rows = (feed?.unplacedRows ?? []).filter((u) => !u.items.length).flatMap((u) => u.rows.map((row, k) => ({
+    id: `${u.region}:${u.fingerprint}:${k}`,
+    where: DFO_NOTICE_WORDS.where(u.region, feed!.regions[u.region]?.name ?? "", u.water),
+    text: [u.scope, dfoRow(row)].filter(Boolean).join(" — "),
+  })));
+  const n = feed && !feed.unplacedRows ? feed.unplaced ?? 0 : 0;
+  const count = rows.length + (n ? 1 : 0);
+  const label = [rows.length ? DFO_NOTICE_WORDS.badge(new Set(rows.map((r) => r.id.split(":").slice(0, 2).join(":"))).size) : null,
+                 n ? DFO_NOTICE_WORDS.unread(n) : null].filter(Boolean).join("; ") || null;
+  return { rows, unread: n ? DFO_NOTICE_WORDS.unread(n) : null, count, label };
 }

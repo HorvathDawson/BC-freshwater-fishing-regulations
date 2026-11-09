@@ -26,7 +26,7 @@ export { gaugeHistory } from "./feed/history";
 // (T256) the Conditions chart before its envelope: the observations and forecast, no normal range
 export { draftSeriesOf } from "./sql/shared";
 // (T211) the live DFO salmon feed, the last capture kept on the device
-export { httpSalmonFeed } from "./feed/salmon";
+export { httpSalmonFeed, type SalmonFeedSource } from "./feed/salmon";
 // (T230) the provincial in-season changes + their curated links, the last capture kept on the device
 export { httpInSeason, type InSeasonData, type InSeasonSource } from "./feed/inseason";
 // (T199) the run timing (its own feed, not the release), read lazily, the last capture kept on the device

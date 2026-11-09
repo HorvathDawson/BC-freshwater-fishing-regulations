@@ -66,7 +66,7 @@ describe("httpSalmonFeed: the unplaced list (T521)", () => {
                                "/unplaced.json": () => new Response(JSON.stringify([ROW])) }, seen);
     const f = await httpSalmonFeed("http://x/feeds/dfo", store, fetchImpl).latest();
     expect(seen).toEqual(["http://x/feeds/dfo/index.json", "http://x/feeds/dfo/unplaced.json"]);
-    expect(f?.unplacedRows).toEqual([{ region: "6", items: ["gnis:9999"], water: "Babine River", scope: "below the counting fence",
+    expect(f?.unplacedRows).toEqual([{ fingerprint: "ab", region: "6", items: ["gnis:9999"], water: "Babine River", scope: "below the counting fence",
                                        rows: ["All | Aug 1 until further notice | No fishing for salmon"] }]);
     expect((await httpSalmonFeed("http://x", store, offline).latest())?.unplacedRows).toEqual(f?.unplacedRows);
   });
