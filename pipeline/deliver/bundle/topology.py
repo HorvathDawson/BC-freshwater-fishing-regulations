@@ -371,6 +371,9 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
     from pipeline.deliver.export.read import read_splits
     words_doc = {"splits": read_splits(db), "waters": {i: {"name": n} for i, n in db.execute("SELECT item_id, name FROM item")}}
     grp_run = {(o, p): (g, r) for o, p, g, r in db.execute("SELECT ord, part_ix, grp, run FROM part")}
+    # T517: a part's whole key — two parts with ONE key are runs another part separates (else they would be one part),
+    # so where they come within TOUCH_M of each other (across a short sign zone) they do not meet: no mark
+    key_of = {(o, p): (g, c) for o, p, g, c in db.execute("SELECT ord, part_ix, grp, chain FROM part")}
     # T228: each section's DFO salmon chain (written before this by `salmon.write_bundle`; a bundle without it: none)
     chain: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section")) if db.execute(
         "SELECT 1 FROM sqlite_master WHERE name = 'salmon_section'").fetchone() else {}
@@ -471,6 +474,8 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
                 dn, up = nodes[i], nodes[j]
+                if key_of[(o, dn["v"])] == key_of[(o, up["v"])]:
+                    continue
                 a, b = dn["g"], up["g"]
                 if a.distance(b) > TOUCH_M:
                     continue
