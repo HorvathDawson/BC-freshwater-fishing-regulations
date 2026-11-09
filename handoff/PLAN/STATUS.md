@@ -38,6 +38,9 @@ rows collapse). Old APK shows every notice "not on the map yet" until build 22 �
 
 **Next, in order (owner 2026-11-08)**
 1. T517 lands → fresh high-effort Opus review → fixes → owner gets the moved list / parity list / sizes / shots.
+   - 11-09: T517 side build done (r-d62af06225a2; paint sync passes; 6 sections change rules, all T510; size +1.1%).
+     Shots + moved list sent to owner. Opus high-effort review running. Open owner item: Dean Anahim run has a lake
+     between its pieces and no mark, so they never join.
 2. **Explainer artifact** (owner ask): the new part + in-season flow and format, why each decision, with visuals.
 3. Then the queue: build 22 (Play internal, `MLN_LOCAL_MAVEN` lean MapLibre; carries T509/T515/T516/T517/T520),
    T351/T360, T401/T448, T496.
