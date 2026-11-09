@@ -168,6 +168,17 @@ PART_GROWN = {
     "x19p1_1010": (3, "T183 (owner 2026-10-24): Skeena section 2 starts at the Exchamsiks confluence, not the Ecological Reserve boundary (61 -> 59 sections; the extent changed, the rows did not)"
                    + _t517_at(3, "parts 3 and 4")),
 }
+#: (2026-11-09) the store part each PART_GROWN state must land on: (label, section count) as `parts` reads it. Without
+#: it, any part whose label differed from the golden's passed.
+PART_GROWN_IS: dict = {
+    'x27p0_1010': ('Two stretches: from Region 7A boundary up to Region 6 boundary (through 4 lakes), and from Region 6 boundary up to the top of the river (through 1 lake)', 72),
+    'x27p2_1010': ('From the mouth up to Region 5 boundary', 3),
+    'x19p1_1010': ('From the Exchamsiks River confluence up to 1.5 km upstream of the Kitsumkalum River confluence', 59),
+    'x13p4_1010': ('From Anahim Lake up to the top of the river (through 24 lakes)', 17),
+    'x9p1_1010': ('Upstream of Koocanusa Reservoir · From the Koocanusa Reservoir upstream end up to the White River confluence', 56),
+    'x9p0_1010': ('From the B.C. border up to the Lake Koocanusa outlet', 1),
+    'x5p0_1010': ('Upstream of Josephine Falls / See exceptions · From the Josephine Falls up to the top of the river (through 1 lake)', 10),
+}
 PART_GONE = {
     "x37p0_1010": (0, T228),
     "x9p2_1010": (2, f"{T220}: restored braid pieces joined the Kootenay's closed parts: the page's merged 'closed all "
@@ -412,6 +423,11 @@ def main():
         if sid in PART_GROWN:
             if ok is not False:
                 raise SystemExit(f"taps: PART_GROWN {sid} does not describe the store: part {part_ix} is the golden part {g} unchanged")
+            # (2026-11-09) "the label differs" alone let a WRONG part pass: the grown part is named (label, section count)
+            want = PART_GROWN_IS.get(sid)
+            if want is None or tuple(parts[part_ix]) != want:
+                raise SystemExit(f"taps: PART_GROWN {sid} -> {part_ix}: the store's part is {tuple(parts[part_ix])}, "
+                                 f"PART_GROWN_IS names {want} — check it is the golden part grown, then name it")
             return part_ix, None
         if ok is False:
             raise SystemExit(f"taps: {sid}'s golden part {g} is not the store's part {part_ix} {parts[part_ix]}: "
