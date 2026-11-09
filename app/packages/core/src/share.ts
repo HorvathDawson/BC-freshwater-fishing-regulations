@@ -28,3 +28,8 @@ export const SHARE_WORDS = {
   /** a page with no address of its own to send (an unnamed reach in a release that cannot place it) */
   none: "This page has no link to share.",
 } as const;
+
+/** (T530) The words of the Share on a Conditions gauge card; the sheet's title and the "Link copied"/failure words are the water's. */
+export const GAUGE_SHARE_WORDS = {
+  label: "Share this gauge",
+} as const;

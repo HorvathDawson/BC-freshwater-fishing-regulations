@@ -8,6 +8,8 @@
  * is never taken from its owner. A third collision (same name, same region) takes `-2`, `-3` in item-id order.
  */
 
+import { slugOf } from "@app/core";
+
 export interface SlugEntry { readonly slug: string; readonly region: number }
 export interface SlugMap { readonly version: 1; readonly waters: Readonly<Record<string, SlugEntry>> }
 /** `town`: the nearest settlement's name (the bundle's item_near), the human qualifier for a repeated name */
@@ -18,11 +20,7 @@ export interface Assigned { readonly steps: Steps; readonly map: SlugMap; readon
 
 export const EMPTY_SLUG_MAP: SlugMap = { version: 1, waters: {} };
 
-/** "Chilliwack/Vedder River" -> "chilliwack-vedder-river"; "Écho Lake" -> "echo-lake". */
-export function slugOf(name: string): string {
-  return name.normalize("NFKD").replace(/\p{M}+/gu, "").toLowerCase().replace(/['’]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
+export { slugOf };
 
 /** The map for `waters`: every committed slug kept, new waters assigned, waters gone reported in `removed` (and kept in the map). */
 export function assignSlugs(waters: readonly WaterRef[], committed: SlugMap = EMPTY_SLUG_MAP): Assigned {

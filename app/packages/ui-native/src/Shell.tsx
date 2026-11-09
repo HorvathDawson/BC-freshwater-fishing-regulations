@@ -44,6 +44,7 @@ import { LayersSheet } from "./LayersSheet";
 import { InSeasonNotice } from "./InSeasonNotice";
 import { DaySheet } from "./regs/DaySheet";
 import { WaterViewsContext } from "./ViewSwipe";
+import { SharePortContext } from "./SharePortContext";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
 import { MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
@@ -656,6 +657,7 @@ export function Shell(p: ShellProps) {
   return layered(withInSeason(coached(<>
     {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
+    <SharePortContext.Provider value={p.share ?? null}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <PairBanner col={col} palette={palette} />
       {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}
@@ -749,6 +751,7 @@ export function Shell(p: ShellProps) {
       <SyncErrorSheet open={syncErrorOpen && syncState.failed.length > 0} failed={syncState.failed} palette={palette}
                       checking={syncState.checking} onRetry={syncState.refresh} onClose={() => setSyncErrorOpen(false)} />
     </View>
+    </SharePortContext.Provider>
     </MenuContext.Provider>
   </>)));
 }

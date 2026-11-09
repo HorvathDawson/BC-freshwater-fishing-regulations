@@ -77,6 +77,7 @@ export * from "./waterNav";
 export * from "./mapRail";
 // (T385) the water header's Share: its words, and the production link it sends
 export * from "./share";
+export * from "./gaugePage";
 export * from "./spotPins";
 export * from "./layers";
 export * from "./mapKey";

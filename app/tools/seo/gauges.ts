@@ -23,7 +23,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { slugOf } from "./slug";
+import { gaugePath } from "@app/core";
 
 export type Trust = "own" | "lake" | "good" | "fair" | "weak";
 export interface GaugeRow { readonly station: string; readonly name: string; readonly item: string | null; readonly lat: number | null; readonly lon: number | null }
@@ -64,7 +64,7 @@ export interface GaugeModel {
 }
 
 const RANK: Record<Trust, number> = { own: 0, lake: 1, good: 2, fair: 3, weak: 4 };
-export const gaugePath = (station: string, name: string): string => `/gauge/${station}/${slugOf(name) || "gauge"}`;
+export { gaugePath };
 
 export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink | null): GaugeModel[] {
   const best = new Map<string, Map<string, Trust>>();

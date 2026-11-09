@@ -21,9 +21,11 @@ import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { changeChartModel, changeView, chartParameter, forecastDash, forecastDrawn, NO_MODEL_PICK, pickModel, realtimeOnly,
          type ModelPick, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
-         usePrefetchGauges, useSeries, type ChangeVM, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
+         useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
+import { GaugeShare } from "./GaugeShare";
+import { SharePortContext } from "./SharePortContext";
 import { AlertMe } from "./AlertMe";
 import { Icon } from "./icons";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -91,6 +93,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const vm = useConditionsView(source, section, day, horizon,
                                { feed, quantity: parameter ?? "discharge" });
   const station = vm.lead;
+  // (T530) Share on the card: the charted gauge's public page, offered only for a station behind a water with a page
+  // (a title that is only the station number is no name: the address is not made from it)
+  const sourced = vm.reading?.title ?? vm.quiet?.title ?? vm.gauges.find((g) => g.station === station)?.name ?? null;
+  const gaugeShare = useGaugeShare(useContext(SharePortContext), {
+    station, name: sourced !== station ? sourced : null, waters: alertWater?.item ? 1 : 0 });
   // THE VIEW SWIPE, on this body in a water's views (Regulations · Conditions · Map): the text, the estimate and the
   // reading take it; the maps and the chart are shielded (`MiniMap`, `Hydrograph`), their drags are theirs. The
   // detector sits INSIDE the ScrollView — a browser reads `touch-action` only up to the nearest scroll container.
@@ -236,7 +243,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     <View testID="gauge-card" onLayout={measure}
           style={{ gap: SPACE.s3, padding: SPACE.s3, borderWidth: 1, borderColor: palette.line2,
                    borderRadius: palette.r.box, backgroundColor: palette.card }}>
-      <GaugeTitle palette={palette} title={title} gauges={vm.gauges} groups={vm.gaugeGroups}
+      <GaugeTitle palette={palette} title={title} gauges={vm.gauges} groups={vm.gaugeGroups} share={gaugeShare}
                   onPick={(s) => vm.select(s as never)}
                   tools={<>
                     <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity" coach="cond:quantity"
@@ -371,10 +378,12 @@ function About({ palette, label, children }: { palette: Palette; label: string; 
  * estimate — a chevron: a tap opens them as a list (status dot, name, station, share), grouped as `gaugeChoiceGroups`
  * groups them (own first, the not-reporting last); a pick charts that gauge and closes the list. One gauge: a plain title.
  */
-function GaugeTitle({ palette, title, gauges, groups, onPick, tools }: {
+function GaugeTitle({ palette, title, gauges, groups, onPick, tools, share }: {
   palette: Palette; title: string; gauges: readonly GaugeChoiceVM[]; onPick: (station: string) => void;
   /** (T367) the chart's toggles, on the title's row (they wrap under it on a narrow screen) */
   tools?: ReactNode;
+  /** (T530) the gauge's Share (`useGaugeShare`); null: the station has no public page */
+  share?: ShareControl | null;
   /** (T168) the gauges grouped, own first, the not-reporting folded (`gaugeChoiceGroups`); null: one run */
   groups?: readonly GaugeGroupVM<GaugeChoiceVM>[] | null;
 }) {
@@ -383,7 +392,7 @@ function GaugeTitle({ palette, title, gauges, groups, onPick, tools }: {
   const bar = (name: ReactNode) => (
     <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: SPACE.s2 }}>
       <View style={{ flexGrow: 1, flexBasis: 220, flexDirection: "row" }}>{name}</View>
-      <View style={{ flexDirection: "row", gap: SPACE.s2 }}>{tools}</View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>{tools}{share && <GaugeShare share={share} palette={palette} />}</View>
     </View>
   );
   if (gauges.length < 2) return bar(head);
