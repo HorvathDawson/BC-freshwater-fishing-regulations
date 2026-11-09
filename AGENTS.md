@@ -147,7 +147,8 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
 20a. **Fast-fail first, and it grows (owner 2026-11-07, T483).** Before any long job (build, release, APK, emulator,
     full suite), run `scripts/fast-fail.sh`: the cheap checks that stop a doomed job in a minute or two (each item
     is listed there with a "caught:" comment: conflict markers, ticket ledger, smoke.txt covering every pipeline test
-    files, changed Python compiles, colours, answers-stale, app typecheck, vitest related to the changed app files).
+    files, changed Python compiles, colours, answers-stale, app typecheck, vitest related to the changed app files;
+    2026-11-09: format pairs Python ↔ app/worker, goldens cut from LATEST, no-silent-skips on a changed test file).
     Run it while a build waits, too. `python -m pipeline release --staging` (preflight, with the branch-pushed check)
     and `deploy/staging/build-apk.sh` run it first; the escape (`--no-fast-fail REASON` / `--no-fast-fail=REASON`)
     prints its reason. Checks that need a release or an out-dir sit where those are known (release preflight;

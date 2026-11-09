@@ -18,6 +18,12 @@
 # caught (T512, 2026-11-08): Play builds 20 and 21 shipped the STOCK MapLibre (no MLN_LOCAL_MAVEN), found only from the
 # owner's phone trace: `deploy/staging/build-apk.sh --play` checks it before the heavy lock (needs the flags it is given)
 # and checks the AAB's libmaplibre.so build id after the build.
+# caught (2026-11-09), outside this script, where the context is: the staging site older than the release's min app
+# (`deliver.release.site_gate`, run by `pipeline release` preflight and deploy/staging/upload.sh before any upload); the
+# live reach baseline lost to a `pipeline build` outside a release (`pipeline build` keeps LATEST's copy before reach
+# reruns, `release.keep_baseline`); `--accept-diff` compared by bytes (now by content, `release.diff_content_sha`);
+# `session.sh --build` with MLN_LOCAL_MAVEN and no TESTBED_APK_TAG failing after the heavy lock (heavy.sh runs a script's
+# `heavy-precheck` before the lock).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
@@ -51,6 +57,15 @@ step "ticket ledger" node app/tools/check-tickets.mjs
 # test_tile_smooth), found only by the Tier 1 run after the merges; the guard is T432's test_smoke_coverage (< 1 s)
 step "smoke.txt covers every pipeline test file" "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_smoke_coverage.py
 
+# caught (2026-11-09): a committed `pytest.skip` failed test_no_silent_skips only in the full suite. A changed pipeline
+# test file runs that guard here (~1 s)
+silent_skips() {
+  grep -qE '^pipeline/(.*/)?(test_[^/]*|conftest)\.py$|^conftest\.py$' <<<"$CHANGED" \
+    || { echo "   (no pipeline test file changed)"; return 0; }
+  "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_no_silent_skips.py
+}
+step "no silent skips (a pipeline test file changed)" silent_skips
+
 # caught: a syntax error in a changed pipeline module surfacing only when a build stage imported it, an hour in
 py_compiles() {
   local files=() f
@@ -69,6 +84,14 @@ sys.exit(1 if bad else 0)
 EOF
 }
 step "changed Python compiles" py_compiles
+
+# caught (2026-11-09): T517 bumped `inseason-links/3` in Python and core but the feeds worker still required /2, found
+# only on the deployed worker; every Python-written format the app / worker reads must have ONE value on both sides
+step "format pairs (Python writer = app / worker reader)" "$PY" scripts/check-format-pairs.py
+
+# caught (2026-11-09): after LATEST moved, `pnpm check` failed in conformance until regs-recut/sync.mjs re-cut the goldens;
+# taps.json meta.store must be the store of LATEST's water file, or this names the sync command
+step "goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py
 
 # caught 2026-11-07: app/tools/pin-study.mjs held hex colours; the colour gate flagged it only after the build (T481)
 step "colours" node app/tools/check-colours.mjs

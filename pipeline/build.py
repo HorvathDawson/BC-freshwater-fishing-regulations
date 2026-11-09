@@ -692,6 +692,25 @@ def atlas_stage(build_dir: Path, promote: bool, run: dict, m: dict) -> bool:
     return True
 
 
+def keep_live_baseline() -> str:
+    """(T483 fast-fail; caught 2026-11-09) a live build about to rerun reach keeps LATEST's reach run first — the copy
+    `pipeline release` diffs against (data/generated/release/baseline/<LATEST>/, `release.keep_baseline`). Lanes had run
+    `pipeline build` outside a release, the reach run was overwritten, and `release --staging` had no "before" (it was
+    rebuilt by hand from the old commit). When the run on disk is already another one, nothing can be kept: said loudly,
+    with the release's way out, and the build goes on (refusing would not bring the old run back)."""
+    from pipeline import release as R
+    live = R.read_pointer("LATEST")
+    if live is None or not (R.release_root() / live / "manifest.json").exists():
+        return "build: no live release (LATEST) — no reach baseline to keep"
+    if not (R.manifest_of(live).get("bundle") or {}).get("reach_digest"):
+        return f"build: WARNING — the live release {live} names no reach digest; no reach baseline kept"
+    kept, msg = R.keep_baseline(live)
+    if kept:
+        return f"build: reach baseline for {live}: {msg}"
+    return (f"build: WARNING — {msg}. `python -m pipeline release --staging` will need --baseline DIR (a reach run of "
+            f"that digest) for its binding diff")
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline build", description=__doc__.split("\n")[0])
     ap.add_argument("--atlas", action="store_true", help="build a side atlas <build>_next first")
@@ -780,6 +799,8 @@ def main(argv: list[str] | None = None) -> int:
               + (f"  ({why[s]})" if go and not skip and s in why else ""))
     if a.dry_run:
         return 0
+    if SIDE is None and dict((s, go) for s, _k, go in rows).get("reach"):
+        print(keep_live_baseline(), flush=True)
     logs = MANIFEST.parent / "build-logs" / run["started"].replace(":", "")
     try:
         execute(build_dir, rows, cmds, run, m, skip={"tiles"} if a.no_tiles else set(), jobs=a.jobs,

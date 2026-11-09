@@ -74,6 +74,13 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
     monkeypatch.setattr(R, "manifest_problems", lambda rid: list(w.get("manifest_problems", [])))
+    # the live staging site (network): `site_gate` is pinned by its own tests below
+    w["site_min_apps"] = []
+
+    def site(min_app):
+        w["site_min_apps"].append(min_app)
+        return list(w.get("site_problems", [])), "site serves app 9.9.9"
+    monkeypatch.setattr(R, "site_problems", site)
     return w
 
 
@@ -221,6 +228,57 @@ def test_the_baseline_is_kept_before_the_build_overwrites_the_reach_run(world):
     assert world["diffs"] == 1
 
 
+def test_an_accepted_diff_is_compared_by_content_not_by_its_paths(world, tmp_path, capsys):
+    """caught (2026-11-09): `--accept-diff` refused a diff identical in content because its `after` path was relative
+    in one and absolute in the other (the file's bytes were compared)."""
+    world["differs"] = True
+    assert _staging() == 1
+    js = R.HOME / "checks" / NEW / "binding_diff.json"
+    rep = json.loads(js.read_text())
+    same = tmp_path / "same.json"                             # the same diff, written with other path strings
+    same.write_text(json.dumps({**rep, "before": "data/generated/release/baseline/x", "after": "reaches/full"}))
+    other = tmp_path / "other.json"                           # another diff: one more rule moved
+    other.write_text(json.dumps({**rep, "rules_changed": 2, "rules": {"e::r": {"gained": 1}}}))
+    capsys.readouterr()
+    assert _staging(accept_diff=other) == 1 and _latest(world) == LIVE
+    assert "is not this diff" in capsys.readouterr().err
+    assert _staging(accept_diff=same) == 0 and _latest(world) == NEW
+    assert R.diff_content_sha(same) == R.diff_content_sha(js) != R.diff_content_sha(other)
+
+
+def test_a_ledger_row_from_before_content_keys_still_takes_its_own_json(world):
+    world["differs"] = True
+    assert _staging() == 1
+    led = json.loads(R.LEDGER.read_text())
+    del led["releases"][NEW]["binding_diff"]["content"]       # written by the byte-compare version
+    R.LEDGER.write_text(json.dumps(led))
+    assert _staging(accept_diff=R.HOME / "checks" / NEW / "binding_diff.json") == 0
+
+
+def test_an_old_staging_site_stops_at_preflight_not_after_the_upload(world, capsys):
+    """caught (2026-11-09): a 0.7.0 release went up under a 0.6.9 staging site; the smoke test failed after upload."""
+    world["site_problems"] = ["the staging site is app 0.6.9, older than 0.7.0 … deploy/staging/site.sh"]
+    assert _staging(min_app_version="0.7.0") == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "site.sh" in err
+    assert world["calls"] == [] and _latest(world) == LIVE
+    assert world["site_min_apps"] == ["0.7.0"]
+    world["site_problems"] = []
+    assert _staging() == 0 and world["site_min_apps"][-1] == "0.5.0"     # the live stamp when none is given
+
+
+def test_keep_baseline_copies_once_and_says_when_the_run_is_gone(world):
+    kept, msg = R.keep_baseline(LIVE)
+    assert kept and "copied" in msg
+    assert json.loads((R.HOME / "baseline" / LIVE / "report.json").read_text())["digest"] == "reach-live"
+    _reach(world["reaches"], "reach-other")                  # overwritten after the copy: the copy stands
+    assert R.keep_baseline(LIVE) == (True, f"kept: {R.HOME / 'baseline' / LIVE} (reach reach-live)")
+    import shutil
+    shutil.rmtree(R.HOME / "baseline")
+    kept, msg = R.keep_baseline(LIVE)
+    assert not kept and "reach-other" in msg and "no copy" in msg
+
+
 def test_no_baseline_and_a_moved_reach_run_stops_with_a_plain_message(world, capsys):
     _reach(world["reaches"], "reach-other")
     assert _staging() == 1
@@ -313,3 +371,76 @@ def test_the_app_gate_is_the_uploads_rule():
     assert len(problems(m, "0.4.0")) == 1 and "salmon/4 needs app >= 0.5.0" in problems(m, "0.4.0")[0]
     assert len(problems(m)) == 2                              # no stamp, no MIN_APP_VERSION: refused
     assert "app_gate" in (Path(R.REPO_ROOT) / "deploy/staging/upload.sh").read_text()
+
+
+# ------------------------------------------------------------------------------- the staging site's version (T483)
+
+def _site(index: str, bundle: str):
+    def fetch(url, timeout=30):
+        if url.endswith("/"):
+            return index
+        if "/_expo/static/js/web/index-" in url:
+            return bundle
+        raise AssertionError(url)
+    return fetch
+
+
+IDX = '<script src="/_expo/static/js/web/index-5524ce5c42e7529fe22800c74906f952.js" defer></script>'
+JS = 'x;const b=(0,n.resolveAppVersion)({version:"0.6.9",build:"19",sha:"13b31d3f1ddb",date:"2026-11-08"});y'
+
+
+def test_the_site_gate_reads_the_live_bundles_version_stamp():
+    from pipeline.deliver.release import site_gate as SG
+    v, how = SG.site_version("https://staging.example", _site(IDX, JS))
+    assert v == "0.6.9" and "build 19" in how
+    assert SG.site_version("https://s", _site("<html></html>", JS))[0] is None
+    assert SG.site_version("https://s", _site(IDX, "no stamp here"))[0] is None
+
+    def down(url, timeout=30):
+        raise OSError("offline")
+    v, how = SG.site_version("https://s", down)
+    assert v is None and "offline" in how
+
+
+def test_the_site_gate_refuses_a_site_older_than_the_release_and_names_the_redeploy(monkeypatch):
+    from pipeline.deliver.release import site_gate as SG
+    monkeypatch.delenv("SITE_CHECK_SKIP", raising=False)
+    m = {"data_release": "r-x", "minAppVersion": "0.7.0", "files": {"salmon": {"format": "salmon/4"}}}
+    bad, _ = SG.check(m, None, site="https://s", fetch=_site(IDX, JS), rid="r-x")
+    assert len(bad) == 1 and "0.6.9, older than 0.7.0" in bad[0]
+    for step in ("export:web:staging", "build-seo.mjs --release-dir data/release/r-x", "deploy/staging/site.sh"):
+        assert step in bad[0]
+    assert SG.check(m, None, site="https://s", fetch=_site(IDX, JS.replace("0.6.9", "0.7.0")))[0] == []
+    assert SG.check(m, "0.6.0", site="https://s", fetch=_site(IDX, JS))[0] == []    # MIN_APP_VERSION wins
+    # unstamped: the formats' own needs still hold (salmon/4 needs 0.5.0)
+    assert SG.required({"files": {"salmon": {"format": "salmon/4"}}}, None) == "0.5.0"
+    assert SG.check({"files": {}}, None, site="https://s", fetch=_site(IDX, JS.replace("0.6.9", "0.4.0")))[0] == []
+    # an unreadable site is a refusal, never a pass; SITE_CHECK_SKIP says why it is skipped
+    assert SG.check(m, None, site="https://s", fetch=_site("", ""))[0]
+    monkeypatch.setenv("SITE_CHECK_SKIP", "site down for the T999 move")
+    bad, said = SG.check(m, None, site="https://s", fetch=_site("", ""))
+    assert bad == [] and "T999" in said
+
+
+def test_the_upload_runs_the_site_gate_before_anything_is_sent():
+    up = (Path(R.REPO_ROOT) / "deploy/staging/upload.sh").read_text()
+    assert up.index("pipeline.deliver.release.site_gate") < up.index("rclone copy")
+
+
+def test_heavy_runs_a_scripts_precheck_before_it_takes_the_lock(tmp_path):
+    """caught (2026-11-09): `session.sh --build` with MLN_LOCAL_MAVEN and no TESTBED_APK_TAG failed only after waiting
+    for the heavy lock; heavy.sh now runs a `heavy-precheck: yes` script's checks first, unlocked."""
+    import os
+    import subprocess
+    lock = tmp_path / "lock"
+    env = {k: v for k, v in os.environ.items() if k not in ("TESTBED_APK_TAG", "HEAVY_HELD", "HEAVY_PRECHECK")}
+    env.update(HEAVY_LOCK=str(lock), HEAVY_PAUSE=str(tmp_path / "no-pause"), MLN_LOCAL_MAVEN=str(tmp_path / "m2"))
+    r = subprocess.run(["bash", "scripts/heavy.sh", "testbed", "30", "--", "bash", "app/tools/testbed/session.sh",
+                        "--build", "--", "true"], cwd=R.REPO_ROOT, env=env, capture_output=True, text=True, timeout=60)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "needs TESTBED_APK_TAG" in r.stdout and "the lock was not taken" in r.stderr
+    assert not lock.exists()
+    ok = subprocess.run(["bash", "app/tools/testbed/session.sh", "--build", "--", "false"], cwd=R.REPO_ROOT,
+                        env={**env, "HEAVY_PRECHECK": "1", "TESTBED_APK_TAG": "t"}, capture_output=True, text=True,
+                        timeout=60)
+    assert ok.returncode == 0 and "precheck ok" in ok.stdout

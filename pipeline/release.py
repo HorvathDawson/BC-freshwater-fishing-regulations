@@ -12,9 +12,12 @@ where it stopped (every stage below is skipped when it is already done for this 
                REASON` skips it and prints the reason); code and data/curated committed (the review log marks.jsonl
                and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); HEAD pushed to
                origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
-               copy — found only at stage 6 on 2026-11-07); the HEAD commit is recorded with the release.
+               copy — found only at stage 6 on 2026-11-07); the live staging SITE is at least the min app the release
+               goes up with (`deliver.release.site_gate`; 2026-11-09 the smoke test found a 0.6.9 site under a 0.7.0
+               release only after the upload); the HEAD commit is recorded with the release.
   2 baseline   a copy of the reach run the LIVE release (LATEST) was cut from, kept before the build can overwrite it,
-               so the binding diff has its "before" (data/generated/release/baseline/<LATEST>/).
+               so the binding diff has its "before" (data/generated/release/baseline/<LATEST>/). `pipeline build` keeps
+               the same copy before any reach rerun outside a release (`keep_baseline`, 2026-11-09).
   3 build      `python -m pipeline build --hold-latest` through `scripts/heavy.sh` (one heavy job at a time). The build
                caches its own stages (its manifest keys every stage by its inputs), so a rerun skips what is done.
                --hold-latest: the new release is written to data/release/<r-id>/ and named in data/release/CANDIDATE;
@@ -24,7 +27,7 @@ where it stopped (every stage below is skipped when it is already done for this 
                upload runs), and the reach BINDING DIFF against the live release (`atlas.reach.binding_diff`). A diff
                that is not empty STOPS the run: the summary is printed and written beside its json; a reviewer reads it
                and reruns with `--accept-diff <that json>` (its content must be the one written, so a stale accept never
-               passes a new diff).
+               passes a new diff; content = the changes and counts, not the before/after path strings).
   5 promote    LATEST := the candidate (CANDIDATE removed). Only here does the live release pointer move, so a failed
                check leaves LATEST untouched.
   6 staging    `deploy/staging/upload.sh <r-id>` (staging bucket only; MIN_APP_VERSION from --min-app-version, else the
@@ -210,6 +213,24 @@ def file_sha(p: Path) -> str:
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()[:16]
 
 
+#: the binding diff's own words for WHERE it compared, not WHAT differs: left out of its content key
+DIFF_PATH_KEYS = ("before", "after")
+
+
+def diff_content_sha(p: Path) -> str | None:
+    """A binding_diff.json by CONTENT — the rules / unresolved / licensing changes and their counts, not the before /
+    after path strings (2026-11-09: a diff identical in content was refused because its `after` was relative in one
+    and absolute in the other). None when the file is not a diff json."""
+    try:
+        rep = json.loads(Path(p).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(rep, dict):
+        return None
+    body = {k: v for k, v in rep.items() if k not in DIFF_PATH_KEYS}
+    return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
+
+
 # ------------------------------------------------------------------------------------------------------------ checks
 
 def manifest_problems(rid: str) -> list[str]:
@@ -252,6 +273,12 @@ def manifest_problems(rid: str) -> list[str]:
 def app_gate_problems(rid: str, min_app: str | None) -> list[str]:
     from pipeline.deliver.release.app_gate import problems
     return problems(manifest_of(rid), min_app)
+
+
+def site_problems(min_app: str | None) -> tuple[list[str], str]:
+    """The live staging site against the oldest app the release will be stamped for (`deliver.release.site_gate`)."""
+    from pipeline.deliver.release.site_gate import check
+    return check(None, min_app)
 
 
 def binding_diff(before: Path, after: Path) -> dict:
@@ -316,37 +343,56 @@ def stage_preflight(ctx: Ctx) -> str:
     if ctx.live is None:
         raise Stop("preflight", f"no {release_root() / 'LATEST'}: there is no live release to diff against",
                    "build the first release with `python -m pipeline build` (it writes LATEST), then rerun")
-    return f"clean at {git_head()[:12]}; live release {ctx.live}"
+    # (T483 fast-fail; caught 2026-11-09) the staging site older than the min app the release goes up with: found only by
+    # the smoke test after the upload. Checked here, before the build; the upload checks again with the release's own
+    # format needs (deploy/staging/upload.sh, `deliver.release.site_gate`).
+    min_app = ctx.min_app or resume_min_app(ctx.led, read_pointer("CANDIDATE") or ctx.live, ctx.live)
+    bad, said = site_problems(min_app)
+    if bad:
+        raise Stop("preflight", "; ".join(bad), "redeploy the staging site (the commands above), then rerun")
+    return f"clean at {git_head()[:12]}; live release {ctx.live}; {said}"
+
+
+def keep_baseline(live: str, reach: Path | None = None) -> tuple[bool, str]:
+    """Keep the reach run LATEST (`live`) was cut from under baseline/<live>/ — (kept?, what happened). Not kept when the
+    run on disk is another one and no copy exists: the "before" is already gone. One copy of this rule: `stage_baseline`
+    and (2026-11-09) `pipeline build`, which keeps it before a reach rerun outside a release overwrites the run."""
+    reach = reach_dir() if reach is None else Path(reach)
+    live_digest = (manifest_of(live).get("bundle") or {}).get("reach_digest")
+    dest = baseline_dir(live)
+    if reach_digest_of(dest) == live_digest:
+        return True, f"kept: {dest} (reach {live_digest})"
+    on_disk = reach_digest_of(reach)
+    if on_disk != live_digest:
+        # CANDIDATE from an earlier failed run, or a reach run done outside a release: the "before" is gone
+        return False, (f"the reach run on disk ({on_disk}) is not the one the live release {live} was cut from "
+                       f"({live_digest}), and no copy of that one was kept")
+    tmp = dest.with_name(dest.name + ".tmp")
+    shutil.rmtree(tmp, ignore_errors=True)
+    tmp.mkdir(parents=True)
+    for n in BASELINE_FILES:
+        if (reach / n).exists():
+            shutil.copy2(reach / n, tmp / n)
+    shutil.rmtree(dest, ignore_errors=True)
+    tmp.replace(dest)
+    return True, f"copied the live reach run ({live_digest}) to {dest}"
 
 
 def stage_baseline(ctx: Ctx) -> str:
     """Keep the reach run LATEST was cut from, before the build can overwrite it (the binding diff's "before")."""
     live_digest = (manifest_of(ctx.live).get("bundle") or {}).get("reach_digest")
-    dest = baseline_dir(ctx.live)
     if ctx.baseline is not None:
         got = reach_digest_of(ctx.baseline)
         if got != live_digest:
             raise Stop("baseline", f"--baseline {ctx.baseline} is reach run {got}, the live release {ctx.live} was "
                        f"cut from {live_digest}", "name the reach run the live release was built from")
         return f"--baseline {ctx.baseline} (reach {got})"
-    if reach_digest_of(dest) == live_digest:
-        return f"kept: {dest} (reach {live_digest})"
-    on_disk = reach_digest_of(reach_dir())
-    if on_disk != live_digest:
-        # CANDIDATE from an earlier failed run, or a reach run done outside a release: the "before" is gone
-        raise Stop("baseline", f"the reach run on disk ({on_disk}) is not the one the live release {ctx.live} was cut "
-                   f"from ({live_digest}), and no copy of that one was kept",
+    kept, msg = keep_baseline(ctx.live)
+    if not kept:
+        raise Stop("baseline", msg,
                    f"name a reach run whose report.json digest is {live_digest} with --baseline DIR "
                    f"(e.g. data/generated/reaches/full_prev), or rebuild LATEST's run")
-    tmp = dest.with_name(dest.name + ".tmp")
-    shutil.rmtree(tmp, ignore_errors=True)
-    tmp.mkdir(parents=True)
-    for n in BASELINE_FILES:
-        if (reach_dir() / n).exists():
-            shutil.copy2(reach_dir() / n, tmp / n)
-    shutil.rmtree(dest, ignore_errors=True)
-    tmp.replace(dest)
-    return f"copied the live reach run ({live_digest}) to {dest}"
+    return msg
 
 
 def stage_build(ctx: Ctx) -> str:
@@ -396,12 +442,17 @@ def stage_checks(ctx: Ctx) -> str:
             txt.write_text(diff_summary(rep) + "\n", encoding="utf-8")
             differs = rep["rules_changed"] or rep["unresolved_changed"] or rep["licensing_changed"]
             done = {"key": diff_key, "status": "differs" if differs else "same", "json": str(js),
-                    "sha": file_sha(js), "summary": str(txt)}
+                    "sha": file_sha(js), "content": diff_content_sha(js), "summary": str(txt)}
         r["binding_diff"] = done
         save_ledger(ctx.led)
     if done["status"] == "differs":
-        if ctx.accept_diff is not None and Path(ctx.accept_diff).is_file() \
-                and file_sha(Path(ctx.accept_diff)) == done["sha"]:
+        # (2026-11-09) by content, not bytes: the same diff written with another before/after path is the same diff.
+        # A ledger row from before this has no "content": its own json's content stands in (as written, `sha`).
+        want = done.get("content") or (diff_content_sha(Path(done["json"]))
+                                       if Path(done["json"]).is_file() and file_sha(Path(done["json"])) == done["sha"]
+                                       else None)
+        if ctx.accept_diff is not None and Path(ctx.accept_diff).is_file() and want is not None \
+                and diff_content_sha(Path(ctx.accept_diff)) == want:
             done.update(status="accepted", accepted_at=now())
             save_ledger(ctx.led)
         else:

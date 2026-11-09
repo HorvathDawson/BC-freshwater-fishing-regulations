@@ -295,3 +295,34 @@ def test_the_curated_tree_loads_without_the_marks_store(tmp_path):
     cfg.write_text(yaml.safe_dump(blob))
     got = C.load(cfg)
     assert got.review.marks == gone and not gone.exists()
+
+
+def test_a_live_build_keeps_latests_reach_run_before_reach_reruns(tmp_path, monkeypatch, capsys):
+    """caught (2026-11-09): lanes ran `pipeline build` (reach) outside a release, the reach run was overwritten, and
+    `release --staging` had no "before" for its binding diff. The live build now keeps the copy release makes."""
+    from pipeline import release as R
+    root, reach = tmp_path / "release", tmp_path / "reaches" / "full"
+    (root / "r-live").mkdir(parents=True)
+    (root / "r-live" / "manifest.json").write_text(json.dumps({"bundle": {"reach_digest": "d-live"}}))
+    (root / "LATEST").write_text("r-live\n")
+    reach.mkdir(parents=True)
+    (reach / "report.json").write_text(json.dumps({"digest": "d-live"}))
+    (reach / "rule_section.jsonl.gz").write_bytes(b"rs")
+    monkeypatch.setattr(R, "release_root", lambda: root)
+    monkeypatch.setattr(R, "reach_dir", lambda: reach)
+    monkeypatch.setattr(R, "HOME", tmp_path / "home")
+    msg = B.keep_live_baseline()
+    kept = tmp_path / "home" / "baseline" / "r-live"
+    assert "copied" in msg and (kept / "rule_section.jsonl.gz").read_bytes() == b"rs"
+    (reach / "report.json").write_text(json.dumps({"digest": "d-new"}))        # the reach rerun
+    assert "kept:" in B.keep_live_baseline()
+    import shutil
+    shutil.rmtree(kept)
+    assert "WARNING" in B.keep_live_baseline() and "--baseline" in B.keep_live_baseline()
+
+
+def test_the_build_keeps_the_baseline_only_when_reach_will_run():
+    src = Path(B.__file__).read_text()
+    i = src.index("keep_live_baseline()", src.index("def main"))
+    assert 'SIDE is None and dict((s, go) for s, _k, go in rows).get("reach")' in src[i - 120:i]
+    assert i < src.index("execute(build_dir, rows", i)

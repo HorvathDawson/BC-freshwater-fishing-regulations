@@ -16,6 +16,10 @@ q() { python3 -c "import json,sys;m=json.load(open('$M'));print(eval(sys.argv[1]
 # it (MIN_APP_VERSION, or the manifest's stamp). The table and the rule: pipeline/deliver/release/app_gate.py (one copy:
 # `pipeline release` runs the same check before it promotes).
 MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release.app_gate "$M"
+# (T483 fast-fail; caught 2026-11-09: r-d14bdb180f55 went up with minAppVersion 0.7.0 while the live staging site was
+# 0.6.9, so the smoke test failed only AFTER the upload) the live site must be at least the oldest app this release lets
+# apply it — checked before anything is sent; it names the site redeploy. SITE_CHECK_SKIP=<reason> skips it (printed).
+MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release.site_gate "$M"
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket "${@:3}"; }
 TILES=$(q "m['tiles']['current']['id']")

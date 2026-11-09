@@ -46,6 +46,9 @@ if [[ -n ${MLN_LOCAL_MAVEN:-} ]]; then
   [[ -n ${TESTBED_APK_TAG:-} ]] || { log "MLN_LOCAL_MAVEN needs TESTBED_APK_TAG (e.g. fsdelta) so the stock APK is kept"; exit 1; }
   [[ -z $VARIANT ]] || { log "MLN_LOCAL_MAVEN is the Vulkan SDK: drop --$VARIANT"; exit 1; }
 fi
+# heavy-precheck: yes — scripts/heavy.sh runs this far with HEAVY_PRECHECK=1 BEFORE it waits for the lock, so a bad flag
+# or env (above) fails at once (T483; caught 2026-11-09: MLN_LOCAL_MAVEN without TESTBED_APK_TAG failed after the wait)
+[[ -n ${HEAVY_PRECHECK:-} ]] && { log "precheck ok (flags + env)"; exit 0; }
 source "$HERE/lib/xcrun-shim.sh"   # (T313) Maestro's startup `xcrun simctl list -j` must not hang on Xcode's first launch
 
 EMU_PID=""

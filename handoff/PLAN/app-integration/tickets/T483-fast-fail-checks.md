@@ -37,3 +37,26 @@ caught becomes a new fast-fail item, added with its fix.
 - Measured: 2–3 s warm, ~15 s with a cold `tsc -b`. Each break stopped it in ≤ 3 s: a type error (also stopped
   `python -m pipeline release --staging` at preflight, 2.4 s), a hex colour in app/tools (also stopped `build-apk.sh`,
   1.2 s), a stale answers schema (pydantic field change), a conflict marker, an unlisted test file.
+
+## 2026-11-09 additions (owner: "any that could have [been caught] should be added to fast fail")
+Today's late failures (build 22 / r-d14bdb180f55), each with a "caught (2026-11-09)" line where it lives:
+1. Format drift (T517 `inseason-links/3`, worker still on /2): `scripts/check-format-pairs.py` in fast-fail — 12
+   Python-writer ↔ app/worker-reader pairs (inseason links; dfo-feed in core and in the feeds worker; run timing
+   index/runs/paint; salmon/4; app-manifest; regs water/region/sid; paint/5 ∈ PAINT_READS). A name that moves fails too.
+2. Staging site older than the release (0.7.0 release under a 0.6.9 site; smoke failed after upload):
+   `pipeline/deliver/release/site_gate.py` reads the live site's bundle stamp (`resolveAppVersion({version…})`), run by
+   `pipeline release` preflight (before the build) and `deploy/staging/upload.sh` (before anything is sent); it prints
+   export:web:staging → build-seo.mjs → site.sh. `SITE_CHECK_SKIP=<reason>` is the printed escape.
+3. Goldens unpaired after a promote: `scripts/check-goldens-paired.py` in fast-fail — taps.json `meta.store` vs the
+   `meta` of LATEST's water file (answers / reach / handles / rule ids); names `node app/tools/regs-recut/sync.mjs`.
+4. Live reach baseline lost to `pipeline build` outside a release: a live build that will rerun reach keeps LATEST's
+   copy first (`build.keep_live_baseline` → `release.keep_baseline`, the one stage_baseline uses); already gone =
+   a loud WARNING naming `--baseline` (refusing would not bring it back).
+5. `--accept-diff` compared by bytes: now by content (`release.diff_content_sha`, before/after paths left out); a
+   ledger row from before falls back to its own json's content.
+6. Silent skip found only by the full suite: fast-fail runs `test_no_silent_skips.py` when a pipeline test file changed.
+7. `session.sh --build` env error after the heavy lock: `scripts/heavy.sh` runs a `heavy-precheck: yes` script with
+   HEAVY_PRECHECK=1 before the lock; session.sh exits there after its flag/env checks.
+Tests: test_release_command.py (accept-diff by content, legacy ledger row, site gate ×3, keep_baseline, heavy
+precheck), test_build_command.py (keep_live_baseline, only when reach runs). Live check: the site gate on
+r-d14bdb180f55 with MIN_APP_VERSION=0.7.0 refuses today — staging serves app 0.6.9 (build 19).

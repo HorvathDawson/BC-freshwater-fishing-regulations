@@ -18,6 +18,13 @@ if [[ -n ${HEAVY_HELD:-} && -d $LOCK && "$(cut -d' ' -f1 "$LOCK/owner" 2>/dev/nu
   echo "[heavy:$label] inside heavy job $HEAVY_HELD — running under its lock: $*"
   exec "$@"
 fi
+# PRECHECK BEFORE THE LOCK (T483 fast-fail; caught 2026-11-09: `session.sh --build` with MLN_LOCAL_MAVEN and no
+# TESTBED_APK_TAG failed only after waiting for the lock). A script whose text says `heavy-precheck: yes` is run once
+# with HEAVY_PRECHECK=1 first: it checks its flags and environment and exits (0 = go on). A failure ends here, unlocked.
+pre=$1; [[ $pre == bash || $pre == sh ]] && pre=${2:-}
+if [[ -f $pre ]] && grep -q 'heavy-precheck: yes' "$pre"; then
+  HEAVY_PRECHECK=1 "$@" || { rc=$?; echo "[heavy:$label] precheck failed (rc=$rc) — the lock was not taken" >&2; exit $rc; }
+fi
 KILL_PCT=${KILL_PCT:-6}
 free_pct() { memory_pressure -Q 2>/dev/null | awk -F': ' '/free percentage/ {gsub("%","",$2); print int($2)}'; }
 
