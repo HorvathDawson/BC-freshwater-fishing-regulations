@@ -13,6 +13,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 ~14:40 — the Forks redone; T517 lane finished
+- **The Forks (action 1, DONE as a proposal):** owner confirmed the zone is THREE arms: 100 m up the Morice, 100 m up the
+  upper Bulkley and ~1 km down the Bulkley. No cut was missing; the earlier T524 proposal had given the MORICE place the 2
+  Bulkley arms and dropped the Morice's 100 m. The proposals in `dfo_fix_proposals.json` now read: Bulkley place = 2 pieces
+  (upper-Bulkley 100 m + the 1 km below), Morice place = 1 piece (its last 100 m); no tributaries; each place binds its
+  own water's arms so the closure is not bound twice. Both pass `pieces_ok` + `fix_extents` with no problems. Map shot sent.
+  The owner saves them in the review app ("use this fix").
+- **T517 (f3bc6a83e):** both reviews' fixes + the owner's 11-09 rules landed; side release r-9dbd77824c29 (not promoted).
+  Bindings vs live: the same 6 T510 sections only. Pipeline 6,674 pass / 1 fail (`test_no_silent_skips` flags another
+  lane's committed `pytest.skip` in test_review_dfo.py:220); app 6,995 pass. Owner question open: a same-rule run across a
+  NAMED lake stays one part (splitting at every named lake = +12.5 % parts).
+- Next: verify T517 → promote → T523 → re-resolve in-season → rebuild `--no-step-cache` → build 22.
+
 ## 2026-11-09 ~13:30 — owner answered the Owner Desk (https://claude.ai/artifact/DNAAwMJiUEHLhWvBHmhE8U, db "answers")
 Settled (fold into OWNER-TODO, mark done): restart done; Barrow Town point OK; loc48 OK as is (a closure inside the
 place overrides it anyway); loc54 = same as wording 56 (old typo) → apply the 56 proposal; resolve route KEEP; T467 all
