@@ -1,6 +1,6 @@
 # T523 — A cut's id keeps its upstream/downstream (and inlet/outlet) words
 
-Status: OPEN
+Status: DONE 229c464de (code), 1d58354b3 (data: 4 ids renamed, Quatse mark line diff-proven, 332 DFO rows unchanged; Squamish on OSM 5L32)
 
 Owner 2026-11-09 (review app): `quatse_river__quatse_river_hatchery_weir_100_m` / `…_100_m_2` "should say up and
 downstream instead".
