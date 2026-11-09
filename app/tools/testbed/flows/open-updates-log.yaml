@@ -3,6 +3,9 @@
 appId: ca.canifishthis.app
 ---
 - tapOn: { text: "MAP|Map", index: 0 }
+# (2026-11-09) the Map tab keeps an open search (its results sheet covers the © chip): closed first, by its ‹
+- tapOn: { text: "Close search", optional: true }
+- waitForAnimationToEnd: { timeout: 3000 }
 - extendedWaitUntil:
     visible: { id: "map-credits-chip" }
     timeout: 15000
