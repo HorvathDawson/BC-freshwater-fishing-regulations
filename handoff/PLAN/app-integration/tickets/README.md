@@ -570,6 +570,7 @@ use that as the sole source of future work."
 | T523 | A cut id keeps its direction: offset cuts end `_u<m>m`/`_d<m>m`, no truncation clash `_2`; rename Quatse weir + Stamp lagoon pairs, owner mark carried | OPEN | — | owner 2026-11-09 review app "should say up and downstream"; "could do _u and _d" |
 | T524 | A DFO place extent can be several pieces on different waters (union): Chilliwack-Vedder below Slesse + Sumas below Barrow Town pump station; dead-piece build gate; Forks; replaces-extent banner | DONE | 355ef4cc8 | owner 2026-11-09 review app "needs 2 extents combined or a different representation" |
 | T525 | DFO review screen easy + safe: current extent always visible, confirm keeps it, redo starts from it, every save shows old vs new | IN REVIEW — owner restarts the review app and looks | 6dad1d118 | owner 2026-11-09 "hard to use right now and feels like i will make bad data" |
+| T526 | DFO salmon is stale when not CHECKED for more than a day (feed `at`, not content date); no checked time = unknown + reported | IN REVIEW — worker unchanged | — | owner 2026-11-09 "older then a day … it wasnt checked" |
 
 ## Order for open tickets
 

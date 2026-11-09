@@ -111,7 +111,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         + "Province's in-season changes ↗",
       drawn: [
         "Synopsis2025–2027 edition",
-        "DFO salmonNo date recorded",
+        "DFO salmonNot checked yet",
         "Freshwater AtlasNo date recorded",
         "Map tilesMatches the data",
         "BasemapMar 5, 2026",
@@ -123,7 +123,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
       ],
       aloud: [
         "Synopsis: 2025–2027 edition. Unknown.",
-        "DFO salmon: No date recorded. Unknown.",
+        "DFO salmon: Not checked yet. Unknown.",
         "Freshwater Atlas: No date recorded. Unknown.",
         "Map tiles: Matches the data. Up to date.",
         "Basemap: Mar 5, 2026. Up to date.",

@@ -34,7 +34,7 @@ const NONE_PINS: readonly never[] = [];
 
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
-                             photos, loader, syncState, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
+                             photos, loader, syncState, dfoCheckedAt = null, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
                              offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
@@ -44,6 +44,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** (T303) my location on the map (the rail's button and the dot) */
   me?: MyLocation | null;
   photos?: SpotPhotos; loader: ReleaseLoader | null; syncState: SyncState;
+  /** (T526) when the feeds worker last checked DFO (the feed's `at`); null: unknown, reported by the hook */
+  dfoCheckedAt?: string | null;
   /** (T300) the top bar's sync icon state and tap, for the More tab's button */
   sync?: SyncVM | null; onSync?: () => void;
   menu: MenuControls; menuInfo?: MenuInfo; mapDay: Date | null;
@@ -108,7 +110,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   /** What More's Data block reads (T167: the only place a source's date and freshness are drawn): the release's dates, the pair, the feed's age. */
   const dataFacts = {
     sources: loader?.manifest?.sources ?? null, validUntil: loader?.manifest?.regulations?.valid_until ?? null,
-    tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, now: clockNow(),
+    tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, dfoCheckedAt, now: clockNow(),
     // the feed's word on HYDAT (its maintenance notice), read with the sync state; never handed to the sync icon
     hydatNotice: syncState.hydatNotice,
     // (T68) the feed index's newest forecast run, for the Forecasts line

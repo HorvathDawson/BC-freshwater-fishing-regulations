@@ -73,7 +73,12 @@ function ageMs(k: AgeKey, s: SourcesInput): number | null {
     const t = typeof s.feedFetchedAt === "string" ? Date.parse(s.feedFetchedAt) : NaN;
     return Number.isFinite(t) ? s.now - t : null;
   }
-  if (k === "dfo" || k === "fwa" || k === "basemap" || k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
+  if (k === "dfo") {
+    // (T526) when DFO was last CHECKED (the feed's `at`), never the release's date nor when the content changed
+    const t = typeof s.dfoCheckedAt === "string" ? Date.parse(s.dfoCheckedAt) : NaN;
+    return Number.isFinite(t) ? s.now - t : null;
+  }
+  if (k === "fwa" || k === "basemap" || k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
   return null;
 }
 
@@ -95,7 +100,7 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
 /**
  * ONE SOURCE'S FRESHNESS, by its rule in THE ONE TABLE (`STALE_AFTER`, staleness.ts):
  *   age       the feed (its index's own `fetchedAt`), the forecasts (the index's newest run, `forecastIssuedAt`; none
- *             running: the feed's own freshness) and dfo / fwa / basemap / hydat (the release's date for each)
+ *             running: the feed's own freshness) and dfo (when the feeds worker last checked DFO, T526) and fwa / basemap / hydat (the release's date for each)
  *             against the table's line; never checked or not recorded, unknown
  *   notice    hydat: the feed's notice — due "Newer release out"; clear, up to date whatever the age ONLY when the
  *             release's `sources.hydat.date` is the feed's newest HYDAT, "Newer release out" when the release is

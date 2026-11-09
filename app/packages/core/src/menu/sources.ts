@@ -21,6 +21,12 @@ export interface SourcesInput {
   validUntil: string | null;
   /** The tile version the map draws. */
   tiles: string | null;
+  /**
+   * (T526) When the feeds worker last CHECKED DFO's pages (the DFO feed's `at`, an ISO instant) — not when DFO's content
+   * changed. Null / absent: no checked time is known (the feed never read, or its stamp unreadable): unknown, never the
+   * release's date.
+   */
+  dfoCheckedAt?: string | null;
   /** When the live gauge feed was last fetched (its ISO instant, the data facts' `fetchedAt`), or null. */
   feedFetchedAt: string | null;
   /**

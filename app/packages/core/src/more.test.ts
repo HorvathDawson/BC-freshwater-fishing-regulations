@@ -18,6 +18,8 @@ const LIVE: DataInput = {
   validUntil: null, tiles: "d768d6e135e62b99.c9f9604f12bf", tilesPaired: true,
   feedFetchedAt: new Date(NOW - 27 * H).toISOString(), now: NOW, newRelease: null,
   forecastIssuedAt: new Date(NOW - 9 * H).toISOString(),
+  // (T526) DFO is judged on when it was last CHECKED, not on its content date
+  dfoCheckedAt: new Date(NOW - 5 * H).toISOString(),
 };
 /** a row as drawn (name | right-hand text) and as said aloud */
 const rows = (d: DataInput) => dataVM(d).rows.map((r) => `${r.name} | ${r.shown}`);
@@ -29,7 +31,7 @@ describe("the Data block: always on More, compact — every source, one row each
      "stale", () => {
     expect(rows(LIVE)).toEqual([
       "Synopsis | 2025–2027 edition",
-      "DFO salmon | Aug 28, 2026",
+      "DFO salmon | 5h ago",
       "Freshwater Atlas | Jul 15, 2026",
       "Map tiles | Matches the data",
       "Basemap | Mar 5, 2026",
@@ -44,7 +46,7 @@ describe("the Data block: always on More, compact — every source, one row each
   it("every row is said aloud whole: name, date, state — the state the dot draws", () => {
     expect(dataVM(LIVE).rows.map((r) => r.label)).toEqual([
       "Synopsis: 2025–2027 edition. Unknown.",
-      "DFO salmon: Aug 28, 2026. Up to date.",
+      "DFO salmon: 5h ago. Up to date.",
       "Freshwater Atlas: Jul 15, 2026. Up to date.",
       "Map tiles: Matches the data. Up to date.",
       "Basemap: Mar 5, 2026. Up to date.",
@@ -90,9 +92,9 @@ describe("the Data block: always on More, compact — every source, one row each
   });
 
   it("a dated source with no date recorded, or one that is not a day, says so — never a guess", () => {
-    expect([row({ sources: { ...LIVE.sources, dfo: { date: null } } }, "dfo"),
+    expect([row({ dfoCheckedAt: null }, "dfo"),
             row({ sources: { ...LIVE.sources, fwa: { date: "July" } } }, "fwa")].map((r) => r.label))
-      .toEqual(["DFO salmon: No date recorded. Unknown.", "Freshwater Atlas: No date recorded. Unknown."]);
+      .toEqual(["DFO salmon: Not checked yet. Unknown.", "Freshwater Atlas: No date recorded. Unknown."]);
   });
 
   it("past the last day the synopsis row says OUT of date (not 'likely') and the block leads with it", () => {
@@ -102,7 +104,8 @@ describe("the Data block: always on More, compact — every source, one row each
       const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
       const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
       const v = dataVM({ ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
-                         forecastIssuedAt: new Date(now - H).toISOString(), now });
+                         forecastIssuedAt: new Date(now - H).toISOString(),
+                         dfoCheckedAt: new Date(now - H).toISOString(), now });
       return `${v.rows[0]!.name} | ${v.rows[0]!.shown} | ${v.summary.label}`;
     };
     expect([at(new Date(2027, 2, 31, 23, 59).getTime()), at(new Date(2027, 3, 1, 0, 1).getTime())]).toEqual([
@@ -136,11 +139,12 @@ describe("the Data block: always on More, compact — every source, one row each
     const day = { date: new Date(now - 7 * 24 * H).toISOString().slice(0, 10) };
     const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
     const base: DataInput = { ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
-                              forecastIssuedAt: new Date(now - H).toISOString(), now };
+                              forecastIssuedAt: new Date(now - H).toISOString(),
+                              dfoCheckedAt: new Date(now - H).toISOString(), now };
     expect([
       sum(base),
       sum({ ...base, tilesPaired: false }),
-      sum({ ...base, tilesPaired: false, sources: { ...sources, dfo: { date: "2026-01-01" } } }),
+      sum({ ...base, tilesPaired: false, dfoCheckedAt: new Date(now - 30 * H).toISOString() }),
       sum({ ...base, newRelease: "r-new" }),
     ]).toEqual([
       "stale: Regulations out of date",
@@ -154,7 +158,7 @@ describe("the Data block: always on More, compact — every source, one row each
     const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
     expect(rows({ ...fresh, newRelease: "r-new" })).toEqual([
       "Synopsis | Valid to Mar 31, 2027 · Likely out of date",
-      "DFO salmon | Aug 28, 2026",
+      "DFO salmon | 5h ago",
       "Freshwater Atlas | Jul 15, 2026",
       "Map tiles | Matches the data · Likely out of date",
       "Basemap | Mar 5, 2026",
@@ -212,7 +216,7 @@ describe("the Data block: always on More, compact — every source, one row each
       sum({ ...LIVE, tilesPaired: false }),
       sum(LIVE),
       // DFO past its cadence: a row like any other, so it counts (there is no second list to send the reader to)
-      sum({ ...fresh, sources: { ...fresh.sources, dfo: { date: "2026-01-01" } } }),
+      sum({ ...fresh, dfoCheckedAt: new Date(NOW - 30 * H).toISOString() }),
       sum({ ...fresh, validUntil: null }),
       sum({ ...fresh, sources: { ...fresh.sources, fwa: undefined } }),
       sum(fresh),
@@ -226,7 +230,7 @@ describe("the Data block: always on More, compact — every source, one row each
       "fresh: All up to date",
     ]);
     // the summary's count is the number of stale dots drawn, whatever the mix
-    const odd: DataInput = { ...LIVE, tilesPaired: false, sources: { ...LIVE.sources, dfo: { date: "2026-01-01" } } };
+    const odd: DataInput = { ...LIVE, tilesPaired: false, dfoCheckedAt: new Date(NOW - 30 * H).toISOString() };
     expect([sum(odd), dataVM(odd).rows.filter((r) => r.badge.kind === "stale").length])
       .toEqual(["stale: 3 likely out of date", 3]);
     expect([dataVM({ ...LIVE, newRelease: "r-new" }).newRelease, dataVM(LIVE).newRelease])

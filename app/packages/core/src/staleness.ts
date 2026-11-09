@@ -51,8 +51,13 @@ export const STALE_AFTER = {
    * next working day's issue plus half a day's slack (`forecastDueBy`) — 36 h on a weekday, Friday's to Monday evening.
    */
   forecast: { by: "weekdays" },
-  /** DFO's salmon notices turn over in season (~half the rules a year): a scrape older than 120 days has likely missed one. */
-  dfo: { by: "age", ms: 120 * DAY },
+  /**
+   * (T526, owner 2026-11-09: "older then a day … older just means it wasnt checked because it doesnt change that
+   * frequently but we need to check it often") DFO's salmon feed, by WHEN THE FEEDS WORKER LAST CHECKED DFO's pages — the
+   * feed's `at` (rewritten at least every 20 h even when nothing changed, `INDEX_HEARTBEAT_MS`) — never by when DFO's
+   * content last changed. Not checked for more than a day: likely out of date. No checked time: unknown, and reported.
+   */
+  dfo: { by: "age", ms: DAY },
   /** The Freshwater Atlas changes slowly; a copy two years old has likely missed a revision. */
   fwa: { by: "age", ms: 730 * DAY },
   /** The basemap's roads and towns (OpenStreetMap via Protomaps), rebuilt yearly. */

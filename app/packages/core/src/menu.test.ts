@@ -217,7 +217,7 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
      "in days, the regulations and the map by their release", () => {
     expect(STALE_AFTER).toEqual({
       feed: { by: "age", ms: 2 * H }, feedCheck: { by: "age", ms: 30 * 60_000 }, forecast: { by: "weekdays" },
-      dfo: { by: "age", ms: 120 * D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
+      dfo: { by: "age", ms: D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
       hydat: { by: "notice", ms: 548 * D },
       synopsis: { by: "release" }, tiles: { by: "release" },
       inseason: { by: "notRead" }, weather: { by: "live" }, imagery: { by: "live" },
@@ -249,12 +249,28 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
   it("each release-dated source at its edge: the day inside, the day past", () => {
     // at midnight UTC, so a date N days back is exactly N days old
     const midnight = Date.parse("2026-10-22T00:00:00Z");
-    const day = (k: "dfo" | "fwa" | "basemap" | "hydat", days: number) =>
+    const day = (k: "fwa" | "basemap" | "hydat", days: number) =>
       at(k, { sources: { [k]: { date: new Date(midnight - days * D).toISOString().slice(0, 10) } } }, midnight);
-    expect([day("dfo", 120), day("dfo", 121), day("fwa", 730), day("fwa", 731), day("basemap", 365),
+    expect([day("fwa", 730), day("fwa", 731), day("basemap", 365),
             day("basemap", 366), day("hydat", 548), day("hydat", 549)]).toEqual([
-      "dfo Up to date", "dfo Likely out of date", "fwa Up to date", "fwa Likely out of date",
+      "fwa Up to date", "fwa Likely out of date",
       "basemap Up to date", "basemap Likely out of date", "hydat Up to date", "hydat Likely out of date"]);
+  });
+
+  it("(T526) DFO salmon: stale when not CHECKED for more than a day — by the feed's checked time, never its content's " +
+     "date; no checked time is unknown", () => {
+    const iso = (ago: number) => new Date(now - ago).toISOString();
+    const dfo = (s: Partial<SourcesInput>) => at("dfo", s, now);
+    // the release says DFO's content is 30 days old: that is not staleness
+    const old = { sources: { dfo: { date: new Date(now - 30 * D).toISOString().slice(0, 10) } } };
+    expect([dfo({ dfoCheckedAt: iso(23 * H) }), dfo({ dfoCheckedAt: iso(24 * H) }), dfo({ dfoCheckedAt: iso(25 * H) }),
+            dfo({ ...old, dfoCheckedAt: iso(H) }), dfo({ ...old }), dfo({ ...old, dfoCheckedAt: null }),
+            dfo({ dfoCheckedAt: "not a time" })]).toEqual([
+      "dfo Up to date", "dfo Up to date", "dfo Likely out of date", "dfo Up to date", "dfo Unknown", "dfo Unknown",
+      "dfo Unknown"]);
+    const row = (s: Partial<SourcesInput>) => dataVM({ sources: null, validUntil: null, tiles: null, feedFetchedAt: null,
+                                                      now, newRelease: null, ...s }).rows.find((r) => r.k === "dfo")!.when;
+    expect([row({ dfoCheckedAt: iso(5 * H) }), row({ ...old })]).toEqual(["5h ago", "Not checked yet"]);
   });
 
   describe("HYDAT: the feed's maintenance notice decides, its age only when no notice word reaches the app " +

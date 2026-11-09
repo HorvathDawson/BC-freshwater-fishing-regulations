@@ -119,7 +119,9 @@ function rowWhen(k: SourceDateKey, s: SourcesInput): string {
       return until ? w.validTo(until) : printed ? w.printed(printed) : years ? w.edition(years) : w.notRecorded;
     }
     case "inseason": return FRESHNESS_WORDS.notRead;   // never a row (its warning stands above them)
-    case "dfo": case "fwa": case "basemap": case "hydat": return isoDayWords(s.sources?.[k]?.date) ?? w.notRecorded;
+    case "dfo": return s.dfoCheckedAt != null && Number.isFinite(Date.parse(s.dfoCheckedAt))
+      ? agoWords(s.dfoCheckedAt, s.now) : w.notChecked;   // (T526) last CHECKED, not the release's date
+    case "fwa": case "basemap": case "hydat": return isoDayWords(s.sources?.[k]?.date) ?? w.notRecorded;
     // the release dates no tile build (the version is a hash, kept for Sources and credits): the proven pair is the date's stand-in
     case "tiles": return s.tilesPaired === true ? w.paired : s.tilesPaired === false ? w.mixed : w.unproven;
     case "feed": return s.feedFetchedAt !== null && Number.isFinite(Date.parse(s.feedFetchedAt))
