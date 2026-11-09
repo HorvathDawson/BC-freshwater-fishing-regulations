@@ -173,22 +173,19 @@ def test_a_water_exits_where_its_mouth_flows_never_into_its_own_side_channel():
 
 
 def test_a_braid_pair_s_smaller_water_is_never_the_bigger_one_s_exit():
-    """T519: since T497 named the delta's connectors, the Fraser's own mouth walk meets Morey Channel, and Morey
-    Channel's meets the Fraser. The smaller water is the side channel: never the Fraser's exit; the Fraser stays
-    Morey Channel's. Without sizes the old rule (o's mouth wins) stands."""
-    mouths = {9697: {14905}, 14905: {9697}}
-    downs = {9697: [14905], 14905: [9697]}
+    """T519: since T497 named the delta's connectors, the Fraser's mouth walk meets Morey Channel. A smaller water on
+    the river's own watershed code is its channel: never its exit. The Courtenay (its own code) below the Puntledge
+    stays the Puntledge's exit, however short it is."""
     size = {9697: 300, 14905: 5}
-    assert T.exit_receivers(9697, [14905], mouths, downs, size) == []
-    assert T.exit_receivers(14905, [9697], mouths, downs, size) == [9697]
-    assert T.exit_receivers(9697, [14905], mouths, downs) == [14905]
-    # the live shape: Morey Channel's own mouth reaches only the sea (a distributary of the delta)
-    sea = {9697: {14905}, 14905: set()}
-    assert T.exit_receivers(9697, [14905], sea, {9697: [14905]}, size) == []
-    # the side build's shape: the Fraser's own mouth reaches the sea; item_down still lists Morey Channel
-    assert T.exit_receivers(9697, [14905], {9697: set(), 14905: set()}, {9697: [14905]}, size) == []
-    # a creek whose mouth meets a small coastal river is not that river's channel: it is the creek that is smaller
-    assert T.exit_receivers(1, [2], {1: {2}, 2: set()}, {1: [2]}, {1: 20, 2: 10}) == [2]
+    codes = {9697: "100-", 14905: "100-"}
+    assert T.exit_receivers(9697, [14905], {9697: {14905}, 14905: set()}, {9697: [14905]}, size, codes) == []
+    assert T.exit_receivers(9697, [14905], {9697: set(), 14905: set()}, {9697: [14905]}, size, codes) == []
+    assert T.exit_receivers(14905, [9697], {9697: {14905}, 14905: {9697}}, {14905: [9697]}, size, codes) == [9697]
+    puntledge = T.exit_receivers(27060, [12206], {27060: {12206}, 12206: set()}, {27060: [12206]},
+                                 {27060: 13, 12206: 2}, {27060: "920-1", 12206: "920-"})
+    assert puntledge == [12206]
+    # without codes the old rule stands
+    assert T.exit_receivers(9697, [14905], {9697: {14905}, 14905: set()}, {9697: [14905]}, size) == [14905]
 
 
 def test_a_water_never_exits_into_a_water_that_flows_into_it():

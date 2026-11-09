@@ -604,6 +604,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
     for _o, _s in db.execute("SELECT ord, sid FROM item_section"):
         _secs.setdefault(_o, set()).add(_s)
     _mouths = _topology.mouth_downs(graph, _handle_ids, _secs)
+    _codes = _topology.main_codes(graph, _handle_ids, _secs)          # T519: a channel shares its river's code
     del _secs, _handle_ids
     # WHERE EVERY UNNAMED SECTION IS AND WHAT WATER IT IS (S1): read from the atlas here, while it
     # is loaded, and handed to the derived tables, which group the unnamed sections into parts
@@ -731,7 +732,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             del _files, _feeds, _placed, _payload, _salmon_secs
         _derived.write(db, cov, places=places)
         _continuation.write(db, _continues, cov, built_with=_settled)
-        _topology.write(db, named_geo, cov, mouths=_mouths,
+        _topology.write(db, named_geo, cov, mouths=_mouths, codes=_codes,
                         dfo_places=(_place_words, _chain_places) if _reaches is not None else None)
         del named_geo
         # THE NEARER ✱ ROW (ROUND14 1, RULINGS T14): from item_down, entry.matched and the rule sets

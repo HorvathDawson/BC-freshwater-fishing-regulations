@@ -301,13 +301,8 @@ def mouth_downs(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, se
     return out
 
 
-#: T519: a water this many times smaller than the one whose mouth meets it, reaching only the sea, is that water's
-#: distributary (the Fraser's delta channels), not its exit
-DISTRIBUTARY_RATIO = 5
-
-
 def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: Dict[int, Sequence[int]],
-                   size: Optional[Dict[int, int]] = None) -> List[int]:
+                   size: Optional[Dict[int, int]] = None, codes: Optional[Dict[int, str]] = None) -> List[int]:
     """The waters water `o` may EXIT into (T59): of its `item_down` receivers `cands`, every one that does not itself
     flow into `o`, directly or down a chain of waters — a side channel whose mouth is back on `o` (Annacis Channel on
     the Fraser: `mouths`, from `mouth_downs`), one that reaches it through another (the upper Jeperson Side Channel
@@ -336,14 +331,15 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
                     stack.append(y)
         return False
 
-    def distributary(d: int) -> bool:
-        # T519: a much smaller water whose own mouth reaches only the sea, met at o's mouth (or o's mouth reaching
-        # the sea itself) — a channel of o's delta (Morey Channel on the Fraser), never where o goes
-        return size is not None and size.get(d, 0) * DISTRIBUTARY_RATIO <= size.get(o, 0) \
-            and d in mouths and not mouths[d] and (d in mouths[o] or not mouths[o])
+    def channel_of_o(d: int) -> bool:
+        # T519: FWA gives every channel of a river the river's watershed code. A SMALLER water whose main line is on
+        # o's code is a channel of o (Morey Channel on the Fraser, since T497 named the delta's connectors), never
+        # where o goes; a river of its own code (the Courtenay below the Puntledge) is
+        return codes is not None and size is not None and codes.get(d) is not None \
+            and codes.get(d) == codes.get(o) and size.get(d, 0) < size.get(o, 0)
 
     def into_o(d: int) -> bool:
-        if distributary(d):
+        if channel_of_o(d):
             return True
         if d in mouths[o]:                      # o's own mouth reaches d: evidence for d, unless d is o's side channel
             return size is not None and size.get(d, 0) < size.get(o, 0) and flows_into_o(d)
@@ -353,8 +349,25 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
 
 # ---- the tables -------------------------------------------------------------------------------------------------
 
+def main_codes(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, str]:
+    """T519: {ord: the FWA watershed code carrying most of the water's stream length} — a channel of a river shares
+    the river's code, so this is what says a small water is the big one's own channel."""
+    from pipeline.deliver.bundle.lines import handle_lengths
+    length = handle_lengths(graph.nodes, ids, {h for ss in secs.values() for h in ss})
+    out: Dict[int, str] = {}
+    for o, ss in secs.items():
+        by: Dict[str, float] = defaultdict(float)
+        for h in ss:
+            n = graph.nodes.get(ids[h - 1]) if 0 < h <= len(ids) else None
+            if n is not None and getattr(n, "wsc", ""):
+                by[n.wsc] += length.get(h, 0.0) or 0.0
+        if by:
+            out[o] = max(sorted(by), key=lambda w: by[w])
+    return out
+
+
 def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
-          mouths: Optional[Dict[int, set]] = None,
+          mouths: Optional[Dict[int, set]] = None, codes: Optional[Dict[int, str]] = None,
           dfo_places: Optional[Tuple[Dict[str, str], List[List[str]]]] = None) -> None:
     """Write `part_geo`, `part_mark`, `water_exit` from the bundle's own parts, spans, splits and `item_down`, the exit
     never a water that flows into this one (`exit_receivers`, with `mouths` from `mouth_downs` while the graph was
@@ -518,7 +531,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         downs[a].append(b)
     for o, cands in sorted(downs.items()):
         if mouths is not None:
-            cands = exit_receivers(o, cands, mouths, downs, size_of)
+            cands = exit_receivers(o, cands, mouths, downs, size_of, codes)
         if o not in mouth or not cands:
             continue
         here = shapes[(o, mouth[o])]
