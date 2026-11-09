@@ -6,7 +6,7 @@ Owner 2026-11-09: "we want it to be a clean alerting system like you would have 
 alert so percentile on the day (like it passes the median or the 75th percentile or whatever percentile …)".
 Supersedes T453 (percentile alerts + an easier menu) and the T234 v1.1 alert model.
 
-## What was built
+## What was built (402cf8b39)
 - **One model** (`@app/core` `alerts.ts`): per gauge, flow or level, **crosses above / crosses below** a line. The line is
   a **value** (m³/s, m) or a **percentile for the day** (presets 10th / 25th / median / 75th / 90th, custom 10–90 whole).
 - **Edge-triggered:** fires once on the crossing; quiet while past; re-arms once the reading is back across by 2 % of the
