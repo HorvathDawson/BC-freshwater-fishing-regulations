@@ -183,7 +183,7 @@ ENTRY_KEEP = ("kind", "name", "full_name", "pages", "scope_note", "mus")
 WATER_KEEP = ("name", "kind", "sections", "outside_bc", "part_of", "entries", "steelhead",
               "steelhead_source", "steelhead_rules", "tidal", "divided_into")
 PART_KEEP = ("ruleset", "licensing_set", "sections", "runs", "anadromous_rainbow", "steelhead",
-             "steelhead_rules", "province_except", "home_region")
+             "steelhead_rules", "province_except", "home_region", "grp", "run")   # grp / run: T517
 
 
 def slim(d: dict, keep) -> dict:
