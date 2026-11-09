@@ -2271,7 +2271,7 @@ def test_to_be_determined_is_a_state_not_a_parse_failure():
 
 @pytest.mark.needs_source
 def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
-    """All 461 rows convert, and every rule's verbatim is a span of its own row — the check
+    """All 463 rows convert, and every rule's verbatim is a span of its own row — the check
     that caught an invented sub-limit on the synopsis corpus's first sample."""
     from pipeline.regs.dfo_salmon.typed import row_text, to_rules
     from pipeline.regs.parsing.catalogue import squash
@@ -2287,7 +2287,9 @@ def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
                 assert squash(rule.verbatim) in haystack, f"{rule.rule_id}: verbatim is not in its row"
             rows += 1
             made += len(typed)
-    assert rows == 461, f"the corpus is 461 rows, got {rows}"   # T366 refresh 11-03 (R1, R2, R6)
+    # 11-09 refresh (all 9 regions; only R1, R2 pages moved, both dated 11-06): + R1 Chum split at Nov 7 (FN1216),
+    # + R2 Coho Nov 7-30 (FN1217); re-emitting the 11-04 R1/R2 snapshots with today's raw R3-R8 gives back 461
+    assert rows == 463, f"the corpus is 463 rows, got {rows}"
     assert made > rows, "a bundled row states more than one rule"
 
 
@@ -2304,7 +2306,8 @@ def test_the_feed_revalidates_from_disk():
                 CatalogueRule(**rule)
                 total += 1
     # T349: + 10 page-default sentences (one rule each, `cascade.statement_locators`)
-    assert total == 548, f"expected the 548 typed rules on disk, got {total}"   # T366 refresh 11-03
+    # 11-09 refresh: + 1 typed rule each for the two rows above (R1 FN1216, R2 FN1217); 548 on the 11-03 pages
+    assert total == 550, f"expected the 550 typed rules on disk, got {total}"
 
 
 @pytest.mark.needs_source
