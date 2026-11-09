@@ -6,7 +6,11 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- T520 /api/inseason/resolve writes notice_waters.json; rule 66 amended to name it beside /matches (2026-11-09, Claude) — say if you'd rather remove the route.
+- **Play listing graphics: one permission, ~1 min (2026-11-09).** Claude uploaded the icon + feature graphic through the
+  Play API, but Play refused the save (403: the service account may upload builds, not edit the store listing). In Play
+  Console → Users and permissions → the service account (the one in `~/.canifishthis/play-service-account.json`) →
+  App permissions → Can I Fish This? → tick **"Edit store listing, pricing & distribution"** → Apply. Then tell Claude;
+  it runs `deploy/staging/play-listing-images.py --package ca.canifishthis.app` again.
 - **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
   `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a` (or the newer release by then).
 - **DFO decisions from T524 (2026-11-09), ~5 min.** (1) Region 6 Section E had a second piece "within MU 6-12/6-13
