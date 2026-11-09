@@ -6,6 +6,8 @@ The row-box sidecar is made here by the one-off helper itself, for page 16 (no c
 
   * no request writes anything but a mark — every read route is called, then a mark is posted,
     and only the marks store (and its backup) changed; NOTHING under data/curated changed (T185);
+  * the in-season Re-resolve (T520, AGENTS 66's exception) writes only notice_waters.json and never
+    changes what was matched;
   * Adam River shows "ADAM RIVER (except Eve River)" and a readable crop: its row, the water column
     above the regulation column, rendered at 2.6 px/pt (the old crop was the 530 pt row at 24 %);
   * a zone entry is found on its chapter page by text, and each rule carries its impact line;
@@ -239,13 +241,17 @@ def _stamps(root: Path) -> dict[str, tuple[int, int]]:
 def test_no_request_writes_anything_but_a_mark(env):
     """PLAN §4 phase 3 accept: every read route answers, and then a mark; the only bytes that
     changed are the marks store's — and the backup the store's write took of it first.
-    THE T185 PIN: the one write route is the mark's, and NOTHING under data/curated (the real
+    THE T185 PIN: the one write route is the mark's (and AGENTS 66's one exception, the in-season matches file:
+    its re-resolve is pinned by the next test), and NOTHING under data/curated (the real
     catalogue, splits.json, overrides, marks store) changes while every route is called."""
     c, app = env["client"], env["app"].app
     writes = {(m, r.path) for r in app.routes for m in getattr(r, "methods", None) or ()
               if m not in ("GET", "HEAD")}
-    # T230 (owner 2026-10-28): the in-season matches route is the one non-mark write; not called here
-    assert writes == {("POST", "/api/marks"), ("POST", "/api/inseason/matches")}, writes
+    # THE ONE EXCEPTION (AGENTS 66): the in-season matches file, written by two routes — T230 (owner 2026-10-28)
+    # POST /api/inseason/matches, an edit (not called here), and T520 POST /api/inseason/resolve, which re-derives the
+    # saved matches' ranges on the shipped release and never changes a match (proven below)
+    assert writes == {("POST", "/api/marks"), ("POST", "/api/inseason/matches"),
+                      ("POST", "/api/inseason/resolve")}, writes
     curated = _stamps(load_repo().base)
     before = _snapshot(env["root"])
     called = []
@@ -269,6 +275,64 @@ def test_no_request_writes_anything_but_a_mark(env):
     assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-mark/[^/]+/marks\.jsonl", backups[0]), changed
     assert json.loads(after[store].decode().strip())["target"] == ADAM
     assert _stamps(load_repo().base) == curated, "a route wrote under data/curated"
+
+
+#: the mark-free fields of an in-season match: what was matched. Re-resolve may rewrite only the derived rest
+_DERIVED = {"waters", "stamp", "unresolved"}
+
+
+def _what_was_matched(doc: dict) -> dict:
+    return {rid: {k: v for k, v in m.items() if k not in _DERIVED} for rid, m in doc["matches"].items()}
+
+
+def _changed(before: dict[str, bytes], after: dict[str, bytes]) -> list[str]:
+    return sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+
+
+def test_re_resolve_writes_only_the_matches_file_and_never_changes_a_match(env):
+    """T520 (AGENTS 66): POST /api/inseason/resolve, the in-season matches file's second writer. Made stale the way a
+    release promote leaves it (the file names an older release; a match's ranges are gone), a Re-resolve writes ONLY
+    notice_waters.json (and the backup `writes.commit` took of it first), puts back exactly the ranges the shipped
+    release gives, changes nothing that was matched, and starts no sync (the sandbox is not the live tree). An
+    up-to-date file is not rewritten at all. Nothing under the real data/curated changes."""
+    c = env["client"]
+    curated = _stamps(load_repo().base)
+    nw = Path(CURATED.inseason.notice_waters)
+    key = str(nw.relative_to(env["root"]))
+    matched = _what_was_matched(json.loads(nw.read_text(encoding="utf-8")))
+    assert matched, "the sandbox copy holds no in-season match: nothing to re-resolve"
+
+    def resolve() -> dict:
+        r = c.post("/api/inseason/resolve")
+        assert r.status_code == 200, r.text
+        assert r.json()["sync"]["state"] == "off", r.json()["sync"]
+        return r.json()
+
+    base = resolve()                                          # the copy, on the shipped release
+    resolved = nw.read_bytes()
+    assert json.loads(resolved)["release"] == base["release"]
+    assert _what_was_matched(json.loads(resolved)) == matched, "re-resolve changed what was matched"
+
+    before = _snapshot(env["root"])
+    resolve()
+    assert _snapshot(env["root"]) == before, "an up-to-date matches file was rewritten"
+
+    stale = json.loads(resolved)
+    stale["release"] = "r-000000000000"
+    rid = next(r for r, m in sorted(stale["matches"].items()) if m["waters"])
+    stale["matches"][rid].update(waters={}, stamp=None)
+    nw.write_text(json.dumps(stale, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    before = _snapshot(env["root"])
+    resolve()
+    after = _snapshot(env["root"])
+    changed = _changed(before, after)
+    backups = [k for k in changed if k != key]
+    assert key in changed and len(backups) == 1, changed
+    assert re.fullmatch(r"backups/\d{8}T\d{6}\.\d{6}Z-inseason-resolve/(?:[^/]+/)*notice_waters\.json",
+                        backups[0]), changed
+    assert after[backups[0]] == before[key], "the backup is not the file as it was"
+    assert json.loads(after[key]) == json.loads(resolved), f"{rid}: re-resolve did not put back the ranges the shipped release gives"
+    assert _stamps(load_repo().base) == curated, "re-resolve wrote under the real data/curated"
 
 
 # --------------------------------------------------------------------------- T164: DFO mode
