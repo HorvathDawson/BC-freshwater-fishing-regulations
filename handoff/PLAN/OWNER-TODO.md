@@ -6,27 +6,21 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Review app: start the DFO reviews (T525 round 3, 2026-11-09).** Restart it (`bash curation-review/run.sh`). Save
+  the two Forks fixes (three arms: 100 m up the Morice, 100 m up the upper Bulkley, ~1 km down the lower Bulkley) and the
+  Chilliwack/Sumas ones (loc 54 now carries the same two-river proposal as wording 56). Your saved Chilliwack fix lands with
+  the next DFO save (the Barrow Town cut is built). A checklist-style redesign (each DFO claim one row, ✓/✗ on the map) is
+  being mocked up for you to approve.
+- **T531 (2026-11-09): species under their own calendar** (salmon under DFO, the rest under B.C. rules; legend text full
+  contrast). Say OK and a mockup comes first.
 - **Q176 map line contrast (T470, 2026-11-09).** Industry standard (WCAG 3:1 for map lines) now holds in dark mode
   (dark base blue lightened; colour-blind selection deepened; dark closed already passes at 3.67:1). In LIGHT and
   colour-blind themes, "has regs" amber, base blue and missing grey stay under 3:1 on pale ground (1.8–2.0): a recolour
   that passes would make amber look like closed again (your T47 complaint). The standard fix is a thin darker edge
   (casing) under each line — costs some map speed and changes the calm look. Default: no casing. Say "add casing" to
   try it. Shots: `tickets/shots/T470-wcag-*.png`.
-- **Play listing graphics: one permission, ~1 min (2026-11-09).** Claude uploaded the icon + feature graphic through the
-  Play API, but Play refused the save (403: the service account may upload builds, not edit the store listing). In Play
-  Console → Users and permissions → the service account (the one in `~/.canifishthis/play-service-account.json`) →
-  App permissions → Can I Fish This? → tick **"Edit store listing, pricing & distribution"** → Apply. Then tell Claude;
-  it runs `deploy/staging/play-listing-images.py --package ca.canifishthis.app` again.
 - **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
-  `CONFIRM_PROD=r-6dce77a24e6a python -m pipeline release --prod r-6dce77a24e6a` (or the newer release by then).
-- **DFO decisions from T524 (2026-11-09), ~5 min.** (1) Region 6 Section E had a second piece "within MU 6-12/6-13
-  outside MU 6-12/6-13" (an area minus itself — it bound nothing). Removed so the build's new empty-piece check passes; no
-  section changed. What was it meant to be (e.g. MU 6-12/6-13 outside the Fraser basin)? (2) Chilliwack/Sumas loc 48:
-  pieces can't subtract the "no fishing for salmon" closure area its words exclude — OK as is? (3) loc 54's words
-  contradict themselves ("upstream from … downstream including Sumas") — which place did DFO mean? (4) The Forks: in FWA
-  the 1 km below the confluence is the BULKLEY, not the Morice; the proposal uses the Bulkley pieces. (5) Check the new
-  Barrow Town Pump Station point on the Sumas (50 m below the old lake polygon's outlet, medium confidence). Use
-  "use this fix" in the review app once T525 lands.
+  `CONFIRM_PROD=r-d14bdb180f55 python -m pipeline release --prod r-d14bdb180f55` (or the newer release by then).
 - **Phone check with build 22 (Play internal), ~5 min — T401 edge pop-in + T448 pixel cap (2026-11-08).** Build 22 carries
   the lean MapLibre patch, the pixel cap at 2 and MapLibre's own prefetch (4). Use the **Map tab**, Regulations view.
   1. **T401, Fraser Valley z11 (around Chilliwack), then Coquitlam z13:** 3–4 quick flings one way, then back. Look at
@@ -37,47 +31,6 @@ with the default Claude uses until you answer). Newest first inside each section
      fewer pixels)? Then © chip → *Pixel cap 2* OFF → same pans: sharper? smoother or laggier? Say which you keep.
   3. **T351/T360:** after ~10 min of use (map, a water page, the rule book, Conditions), any crash or freeze? Nothing to
      open; a crash reports itself.
-- (Done 2026-11-08: T487 link = web app for now, store link is T514 at the production app release; time zone already
-  settled — BC is on permanent daylight time.)
-- (Done 2026-11-08: T497 yes; T488 B (colours, width kept for T311).)
-- (Done 2026-11-08: the 0.6.9 phone check — all 11 pass, T459 pick A.)
-- **Run the T420 APK pair (2026-11-07): the MapLibre patch halves pan frame time.** On the stressed emulator, map p50
-  went from 76–148 ms (stock) to 31–46 ms (patched), and it no longer gets slower with use. Feature-state work went from
-  42 % of CPU to 2 %. One unexplained ANR happened in 9 patched blocks; it did not reproduce in 6+6 targeted runs, and
-  the patch adds no lock. Claude's upload was refused by the permission check, so run these yourself:
-  1. `MLN_LOCAL_MAVEN=$PWD/cache/maplibre/fslean-m2 deploy/staging/build-apk.sh --play` — the lean patch, the one going upstream (A/B 2026-11-07: as fast as the full patch, colours right, no ANR; if a reboot cleared /private/tmp, rebuild it with app/tools/maplibre-patch/build.sh and the lean patch first): patched → Play internal (versionCode 19).
-  2. `deploy/staging/build-apk.sh`: stock → the staging APK page.
-  Then pan the same places on each (Coquitlam z13, Fraser Valley z11). Details are in T420.
-- **Review the quota wording (T475, 2026-11-07):** from the shots sent overnight (Fraser R2 trout card + its ⓘ sheet).
-  Wording only; it is built in scratch. Say OK and it is promoted with the next release.
-- **Post the MapLibre fix upstream (T420, 2026-11-07), when you're ready.** The lean fix is 6 files (+22 −7), tested on
-  maplibre-native main: the new unit test fails before the fix and passes after, and the feature-state render tests pass.
-  An optional second patch is split out. Their AI policy wants the issue and PR text in your own words and a human
-  review of the code: drafts and the `gh` commands are in app/tools/maplibre-patch/upstream/ (README.md). Related open
-  PRs: #4835 (same lines), #4828.
-- **T470 B is built (2026-11-07); one call on dark mode:** with B, a faded small own-rules stream vs closed drops to 12 in
-  dark mode (floor 21). Keep it, or strengthen closed in dark? The fade's tuning knob is `fadeByOrder` in
-  app/packages/map/style/layers.source.json.
-- **Decide (T467, 2026-11-06):** should the colour-blind check on the map's status colours apply only to the colour-blind
-  theme? Today it applies to light and dark too, which is why the lighter lake fill was reverted. Claude recommends keeping
-  it on all themes and giving lakes a shaded shoreline instead. The pros and cons are in T467.
-- **Phone check with 0.6.8: the Map lab (T420), ~10 min.** Long-press the © chip (map, bottom-right) → a card of
-  switches; flip one, Close, pan; the card's last line says whether the map differs from today's (a restart resets all).
-  Use the **Map tab**, Regulations view. For each switch below: pan with it OFF, then ON, same place, same gestures
-  (3–4 quick flings travelling one way, then back). Note which feel smoother; "no difference" is a useful answer.
-  1. **Coquitlam z13** (dense creeks): *Skip invisible layers* (same look; less colouring work every frame), then
-     *Streams in one bucket* (same look), then *Pixel cap 2* OFF (sharper but more pixels: does it lag more?).
-  2. **Fraser Valley z11** (around Chilliwack): the same three, then *Prefetch delta 2* (do streams pop in at the
-     edges less?).
-  3. **Lower Mainland z7–z9** (zoomed out): *Basemap greens* off, then *Labels* off. These are test-only (they hide
-     things): they tell us where the zoomed-out lag lives, not a change to ship.
-  4. **A long session:** pan around for ~5 min first, then repeat 1. The emulator says the colouring cost grows the
-     longer the map is used; if the lag gets worse over a session on the phone too, that confirms it.
-  *Colour batches ≥ 250 ms apart* is expected to change nothing (skip it unless curious).
-- **Phone check 0.6.7: ANSWERED 11-06** (glide good; loading stutter, Map-switch flicker, step-bar names overlap, first framing differs: all back in T420/T451/T443).
-- **T449 ANSWERED 11-06 (in chat):** both Nanaimo places accepted as tidal water (marks saved for you; lands with the next release build).
-- **Phone checks with 0.6.6 (Play internal, 2026-11-06, chat 4):** zoomed-out pan feel z5–z9 (T420 basemap fix + T448 pixel
-  cap; is the map too soft?), Fraser R2 ▲/▼ steps (T443: ≤ 2 levels in per step, never past z12).
 
 - **ANSWERED 11-05:** T260 switches = ink fill; CF token kept until prod (T404); Apple install id declared as Device ID
   (not linked); Heber: carry ignores whitespace-only changes; audits T333–T335 scoped (all areas, report + fix tickets,
@@ -85,16 +38,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **PSF run-timing files: ANSWERED 11-05** — fine as is; only the parsed `timing.json` stays in git, the PSF pages and their
   fetch record are git-ignored from now on (772fbf4f0).
 
-- **Optional, prod feeds worker placeholder (T404 prep):** `CONFIRM_PROD=bc-fishing-feeds deploy/prod/feeds-placeholder.sh`
-  creates `bc-fishing-feeds` (answers 503, touches nothing) and asks for its four secrets; for RUN_TOKEN and REPORT_SALT
-  paste new values from `openssl rand -hex 24` / `openssl rand -hex 32`.
 
-- **Optional, GitHub token for the feeds worker (T413):** a fine-grained token on this repo, *Actions: write* only,
-  set as the staging worker's secret, so the worker starts the HYDAT workflow itself. Until then, its email tells you to press
-  the button. Not blocking. The code is in (T413); it goes live with the next worker deploy. To set it:
-  GitHub → Settings → Developer settings → Fine-grained tokens → this repo only → Repository permissions: Actions =
-  Read and write. Then `npx --prefix app wrangler secret put GITHUB_DISPATCH_TOKEN -c app/workers/feeds/wrangler.toml`
-  and paste it.
 
 
 - **Water-page speed (T405/T409): ANSWERED 2026-11-05.** Build the map only when it is first seen, web-only (local 93·93·93;
@@ -111,41 +55,9 @@ with the default Claude uses until you answer). Newest first inside each section
   a percentile line is taken from the gauge's record when the alert is saved (delete + add again after a new HYDAT
   release to refresh it); custom percentiles are whole numbers 10–90 (the record has nothing past p10 / p90).
 
-- **T377 leftovers, conservative readings to confirm (2026-11-05):** tapping a legend class GREYS the others (not
-  hides); the legend fold (▾/▴) is only on the regulations bar, starts open, not remembered; the closed streams' dashed
-  stripe look; extra forecast models are thin dashed lines with no band, and the finger read-out reads only the chosen
-  model. Default: as built. Check on the phone with the next APK.
-- **Vessel restrictions (T395, 2026-11-05):** moved out of the top of the page into a "Vessel restrictions" section of
-  the Methods tab (after Ways to fish). Is a section enough, or do you want a fifth tab in the header strip? And on
-  Nicomekl River (gnis:21100) the Keep card still has a boat-only "Boat rules in some spots" note — was that the odd
-  part? Default: section as is, note left.
-- **Update button restart step (T390, 2026-11-05):** with `expo-in-app-updates`, Play installs and restarts the app by
-  itself once the background download is done. Fine as is, or do you want a separate "Restart to update" button (needs
-  a small Kotlin patch to the package)? Default until you answer: as is.
-- **Streams popping in at the screen edge (T401, 2026-11-05):** the phone's map loads only on-screen tiles and has no
-  prefetch setting. After a measurement: patch a prefetch in, draw past the screen edge, or leave it. Claude measures
-  first.
-- **Phone checks with the next APK (2026-11-05):** Coquitlam part 1 highlight (T399) and Coquitlam → Flows into → map tap → close → reopen, no crash (T345), camera feel (T400), the map fling — a quick flick should now glide about as far as a list does, a slow drag stays under the finger (T312), the map stays coloured with no hitch when an update applies (T287), Runs fish row
-  scrolls (T397), the Update button + "New data needs the latest app" (T390), notifications (T234: More →
-  Notifications, Alert me on a gauge, the checklist in the ticket; then leave an alert set for a few days — "Last
-  background checks" shows how late the phone really runs it, which decides whether FCM push is needed).
-- **DFO region 2 Fraser places (T366, 2026-11-03; ANSWERED 11-03, committed as variants — no longer blocks):** the refresh (regions 1, 2, 6; no
-  marks moved) found the Fraser mainstem reworded twice; FN1179 (chum 2/day Nov 3–30) is on one of them. Open the
-  review app in DFO mode, region 2, and confirm the two Fraser places: the queue proposed "upstream of the CPR Bridge"
-  as a variant of the existing upstream place, and DFO's "downstream of the CPR Bridge at Mission to … Hope" as the
-  dormant Mission→Hope place (made active). `data/curated/dfo_salmon/places/region-2.json` is left
-  uncommitted until you have. Also yours: the staleness warning window, 7 days in Apr–Dec (`refresh.STALE_DAYS`).
 - **Plan to 0.5.0 approved (2026-11-03):** the plan file (`RELEASE-PLAN-0.5.0.md`) is in git history since T437. Yours along the way: a look at the compressed rule-book photo pages (T354, plan set 11-03)
   (T360/T354, batch 2); the Apple Developer account ($99) before the iOS release (T88); the feeds-worker deploy: now Claude's
   (owner 2026-11-03), when it makes sense (with 0.5.0: dfo-feed/3 + the ten forecast days).
-- **0.4.0 on Play internal (versionCode 7, 2026-10-31, `89ebd94bf`; release r-4e709418ebd8 on staging, smoke 18/18):**
-  install from the tester link and look at (1) the T316 spot marks on the map (Noto Sans names); (2) a spot saved
-  offline on a river fills by itself back online (T314). Prod stays yours:
-  `pipeline.deliver.release.publish --release data/release/r-4e709418ebd8 --min-app-version 0.3.0 --yes`.
-  New in this release: the 08MH044 cut moved to Albion (Bedford Channel has 2 sections and no gauge; the Fraser length cut
-  moved to the gauge). Its label still reads "Fraser River At Whonock" (T339).
-  Still open, not from this batch: release-perf A5 search p95 ~9 ms vs its 8 ms ceiling (the laptop, not the release).
-- **DFO wording registry (T321 → T332, 2026-10-30):** merged into redesign/stream-sections 2026-11-02 (T349): the split is tidied, 78 entries, 77 accepted after a check against their cells. Shipping T332: release with `minAppVersion` = the T332 app version (salmon/3), THEN the feeds worker deploy (`npx --prefix app wrangler deploy -c app/workers/feeds/wrangler.toml`, dfo-feed/2) and `deploy/staging/sync-inputs.sh` (registry /2, either order).
 - **Build pass (T266/T295/T297, 2026-10-31):** review `handoff/PLAN/app-integration/build-pass-2026-10-31.md`. The proof side run matched r-51d80e68f056 byte for byte, except the tile_version (T305) and the publish stamps. Nothing was promoted. Nothing is yours here.
 - **App test bed (T255, 2026-10-29):** Android emulator scenarios for downloads/sync/offline — `app/tools/testbed/README.md`; last report `handoff/PLAN/app-integration/T255-shots/run-final/index.html`. Found and ticketed: the first install crash-loops on Android (T262, high), Wi-Fi return does not start a held update (T265).
 - **ODbL offer (T235, 2026-10-28):** done as you asked (`data/LICENSE-ODbL.md`, `_licence` in each file). Yours: (1) the repo has no LICENSE of its own — the notice says the rest is "under its own terms"; pick one if you want it stated; (2) the app links files on the `redesign/stream-sections` branch (`licences.ts` `REPO_BLOB`) — flip to `main` when it merges; (3) the no-access land (incl. Malcolm Knapp) and reserve outlines are OSM, not the Province — now credited as OSM.
