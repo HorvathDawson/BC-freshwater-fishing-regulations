@@ -41,6 +41,7 @@ rows collapse). Old APK shows every notice "not on the map yet" until build 22 â
 2. **Explainer artifact** (owner ask): the new part + in-season flow and format, why each decision, with visuals.
 3. Then the queue: build 22 (Play internal, `MLN_LOCAL_MAVEN` lean MapLibre; carries T509/T515/T516/T517/T520),
    T351/T360, T401/T448, T496.
+4. **Owner approved (11-08):** once all of the above is done, upload the final build to Play INTERNAL (not production).
 
 **Needs the owner**
 - Remove the R2 keys from GitHub settings once T520 deletes the workflow (OWNER-TODO).
