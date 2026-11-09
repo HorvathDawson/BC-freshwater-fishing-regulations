@@ -39,7 +39,9 @@ import { headersFile, hostRules, hostWorker, redirectsFile } from "./hosting";
 import type { Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
-import { buildSite, type Snapshot, type SiteBuild, type WaterMade } from "./site";
+import { buildSite, changesOf, rulesSha, type Snapshot, type SiteBuild, type WaterMade } from "./site";
+import { listWaterOrds, rulesKey } from "./model";
+import { gzipSync } from "node:zlib";
 import { EMPTY_SLUG_MAP, type SlugMap } from "./slug";
 import { readGaugeRows, type GaugeRows } from "./gauges";
 
@@ -241,11 +243,14 @@ const opt = (args: readonly string[], k: string): string | null => { const i = a
 export async function main(args: readonly string[]): Promise<void> {
   const dir = opt(args, "--release-dir"), fixture = args.includes("--fixture"), appDir = opt(args, "--app");
   if (dir && args.includes("--snapshot-only")) return snapshotOnly(dir, args);
+  if (dir && args.includes("--check-changes")) return void (await checkChanges(dir, opt(args, "--previous")));
   if ((!dir && !fixture) || (dir && !appDir)) throw new Error("usage: build-seo.mjs --release-dir <folder> --app <web export> | --fixture [--app <web export>]  [--out DIR] [--slug-map FILE --update-slugs] [--previous snapshot.json] [--date YYYY-MM-DD]");
   const loader = fixture ? openRegsFixture() : openReleaseDir(resolve(dir!));
   const date = opt(args, "--date"), now = date ? new Date(`${date}T12:00:00`) : new Date();
   const slugFile = resolve(opt(args, "--slug-map") ?? SLUG_MAP_FILE);
   const prevFile = opt(args, "--previous") ?? (fixture ? null : previousSnapshot(SNAPSHOT_DIR, loader.release));
+  // (T529) the /changes budget, checked in seconds before the ~15 min page build
+  if (dir && prevFile) await checkChanges(dir, prevFile);
   const app = appDir ? readAppExport(appDir) : undefined;
   const out = outDir(opt(args, "--out") ?? DEFAULT_OUT), partial = `${out}.partial`;
   rmSync(partial, { recursive: true, force: true });
@@ -275,6 +280,39 @@ export async function main(args: readonly string[]): Promise<void> {
     (threads ? ` on ${Math.min(4, threads.n)} threads; stored ${JSON.stringify(JSON.parse(built.files.get("budget.json")!).compressed)}` : "") +
     `; diffed against ${prevFile ?? "no previous snapshot"}` +
     `; slug steps ${JSON.stringify(built.build.slugSteps)}` + (built.legacy ? `; v1 redirects ${JSON.stringify(built.legacy.counts)}` : ""));
+}
+
+/**
+ * (T529, fast-fail) `--check-changes`: the /changes page's water list against the previous snapshot, from the rules keys alone
+ * (seconds), measured as the page lists it (its rows, gzip) plus a page shell, and refused over the HTML budget — caught
+ * 2026-11-09: T517's re-cut made /changes 180 KB gzip, found only after a 15 min SEO build. Never trimmed to fit: an honest
+ * list that is too big is a question for the owner (how /changes summarises), not a silent cut.
+ */
+const CHANGES_SHELL_GZIP = 6 * 1024;
+async function checkChanges(dir: string, prevArg: string | null): Promise<void> {
+  const loader = openReleaseDir(resolve(dir)), store = await openRegsStore(loader);
+  const prevFile = prevArg ?? previousSnapshot(SNAPSHOT_DIR, loader.release);
+  if (!prevFile) { console.log(`seo: --check-changes: no kept snapshot of another release; /changes is not built`); return; }
+  const prev = JSON.parse(readFileSync(resolve(prevFile), "utf8")) as Snapshot;
+  if (Object.values(prev.waters).some((w) => typeof w.rules !== "string"))
+    throw new Error(`seo: the previous snapshot (${prev.release}) has no rules hash (made before T490); rewrite it with --snapshot-only --keep-pages`);
+  const ids: string[] = [], names = new Map<string, string>(), rules = new Map<string, string>();
+  for (const ord of await listWaterOrds(store)) {
+    const it = await store.item(ord);
+    ids.push(it.id); names.set(it.id, it.name); rules.set(it.id, rulesSha(await rulesKey(store, ord)));
+  }
+  const { added, changed, gone } = changesOf(prev.waters, ids, rules);
+  const li = (id: string, name: string) => `<li><a href="/water/${id}">${name}</a></li>`;
+  const rows = [...changed].map((id) => li(id, names.get(id)!)).join("") + [...added].map((id) => li(id, names.get(id)!)).join("") +
+    gone.map((id) => `<li>${prev.waters[id]!.name}</li>`).join("");
+  const est = gzipSync(rows).length + CHANGES_SHELL_GZIP;
+  const said = `${changed.size} changed, ${added.size} new, ${gone.length} gone vs ${prev.release}; /changes ≈ ${est} B gzip (budget ${BUDGET.htmlGzipBytes})`;
+  if (est > BUDGET.htmlGzipBytes) {
+    const sample = [...changed].slice(0, 8).map((id) => names.get(id)).join(", ");
+    throw new Error(`seo: --check-changes: ${said} — over budget. The list is the honest one (rules key: what applies where); ` +
+      `ask the owner how /changes should summarise, never trim it. First changed: ${sample}`);
+  }
+  console.log(`seo: --check-changes: ${said} — ok`);
 }
 
 /** `--snapshot-only`: the snapshot of a release no page was built for (rules hashes; no page lastmods), kept for the next diff. */

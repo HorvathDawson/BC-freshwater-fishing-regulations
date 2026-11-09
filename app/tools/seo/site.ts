@@ -39,6 +39,17 @@ export interface Snapshot {
   /** `hash`: the water's page words (lastmod); `rules`: what an angler must do there (`rulesKey`, T490: /changes) */
   readonly waters: Readonly<Record<string, { readonly slug: string; readonly name: string; readonly hash: string; readonly rules: string }>>;
 }
+/**
+ * (T529) The /changes split, one function for the page and for the cheap pre-check (`build-seo.mjs --check-changes`): a water
+ * whose rules key (`rulesKey`: what applies where) moved, a water the previous release did not list, one it listed and this
+ * one does not.
+ */
+export function changesOf(was: Snapshot["waters"], ids: readonly string[], rules: ReadonlyMap<string, string>):
+    { added: Set<string>; changed: Set<string>; gone: string[] } {
+  const now = new Set(ids);
+  return { added: new Set(ids.filter((id) => !(id in was))), changed: new Set(ids.filter((id) => id in was && was[id]!.rules !== rules.get(id))),
+           gone: Object.keys(was).filter((id) => !now.has(id)) };
+}
 export interface BuildOpts {
   readonly store: RegsStore; readonly site: Site; readonly release: Release; readonly on: BuildDay;
   readonly slugMap: SlugMap; readonly previous: Snapshot | null;
@@ -63,6 +74,8 @@ export interface SiteBuild {
 }
 
 const sha = (s: string, n = 16) => createHash("sha256").update(s).digest("hex").slice(0, n);
+/** (T529) a water's rules key as the snapshot keeps it */
+export const rulesSha = (key: string): string => sha(key);
 const outFile = (path: string) => `${path.slice(1)}/index.html`;
 const WORD: Record<WaterStatus, string> = { open: "open today", closed: "closed today", mixed: "parts differ", tidal: "tidal water", outside: "outside BC", unknown: "check the page" };
 const dayOfDate = (d: Date): BuildDay => buildDayOf(d);
@@ -168,7 +181,7 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     unique(titles, title, path); unique(descriptions, description, path);
     const hash = sha(JSON.stringify(m.parts.map((p) => [p.label, p.sections.filter((s) => s.title !== "Why it is closed").map((s) => [s.title, s.items.filter((i) => !i.dated)])])));
     waterHash.set(m.id, hash);
-    waterRules.set(m.id, sha(await rulesKey(store, m.ord)));
+    waterRules.set(m.id, rulesSha(await rulesKey(store, m.ord)));
     // the topic lines feed the hubs (each a sentence the water's own pane shows)
     waterTopics.set(m.id, topicLines(m));
     const head = headOf({ title, description, path, jsonld: waterLd(m, path, title, site), image: `/share/${slugOf(m.id)}.png` }, site);
@@ -287,15 +300,16 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   // ── what changed since the last release (only with a previous snapshot to compare) ────────────────────────────────────
   const prev = o.previous;
   if (prev && prev.release !== release.id) {
-    const was = prev.waters, now = new Map(models.map((m) => [m.id, m]));
+    const was = prev.waters;
     // (T490) a snapshot from before the rules hash cannot say which waters' RULES moved: refused, never read as "all changed"
     const old = Object.values(was).find((w) => typeof w.rules !== "string");
     if (old) throw new Error(`seo: the previous snapshot (${prev.release}) has no rules hash (made before T490); rewrite it, keeping its pages: ` +
       `node tools/build-seo.mjs --release-dir <${prev.release} folder> --snapshot-only --keep-pages`);
-    const added = models.filter((m) => !(m.id in was)), changed = models.filter((m) => m.id in was && was[m.id]!.rules !== waterRules.get(m.id));
+    const split = changesOf(was, models.map((m) => m.id), waterRules);
+    const added = models.filter((m) => split.added.has(m.id)), changed = models.filter((m) => split.changed.has(m.id));
     // the words moved, the rules did not (a wording release): one line, never a list of every water as "changed"
     const reworded = models.filter((m) => m.id in was && was[m.id]!.rules === waterRules.get(m.id) && was[m.id]!.hash !== waterHash.get(m.id)).length;
-    const gone = Object.entries(was).filter(([id]) => !now.has(id)).map(([, w]) => w.name).sort();
+    const gone = split.gone.map((id) => was[id]!.name).sort();
     // nothing differs (two cuts of the same rules): no page — an empty "changes" page is thin content, not news
     if (changed.length + added.length + gone.length + reworded > 0) {
     const ul = (xs: readonly WaterModel[]) => `<ul class="cols">${xs.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a></li>`).join("")}</ul>`;

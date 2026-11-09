@@ -71,9 +71,6 @@ export interface RegsReads {
   itemOrd(itemId: string): Promise<number | null>;
   item(itemOrd: number): Promise<ItemRow>;
   parts(itemOrd: number): Promise<readonly PartRow[]>;
-  /** (T517) each part's runs' two END TOKENS (split ids, `confluence:…`, mouth / source…), in part order: what a part is
-   *  bounded by, whatever its index — the SEO change key's (`/changes`) place of a part */
-  partEnds(itemOrd: number): Promise<readonly (readonly (readonly [string | null, string | null])[])[]>;
   picker(id: number): Promise<Picker>;
   akey(akey: number): Promise<AkeyRow>;
   segStarts(seg: number): Promise<readonly number[]>;
@@ -345,13 +342,6 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         sections: n(r.sections), outsideBc: n(r.outside_bc), steelhead: nn(r.steelhead) as 1 | 2 | null,
         entries: json<number[]>(r.entries), x: r.x === null || r.x === undefined ? null : base.val<Record<string, unknown>>("item", r.x),
       };
-    }),
-
-    partEnds: (ord) => once("partEnds", ord, async () => {
-      const rows = await (await base.water()).all(
-        "SELECT p.part_ix, r.j FROM part p JOIN runs r ON r.id = p.xruns WHERE p.item_ord = ? ORDER BY p.part_ix", ord);
-      return rows.map((r) => base.val<readonly { readonly from?: string | null; readonly to?: string | null }[]>("runs", r.j)
-        .map((x) => [x.to ?? null, x.from ?? null] as const));
     }),
 
     parts: (ord) => once("parts", ord, async () => {

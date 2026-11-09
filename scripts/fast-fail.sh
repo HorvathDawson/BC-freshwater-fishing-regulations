@@ -93,6 +93,15 @@ step "format pairs (Python writer = app / worker reader)" "$PY" scripts/check-fo
 # taps.json meta.store must be the store of LATEST's water file, or this names the sync command
 step "goldens cut from LATEST" "$PY" scripts/check-goldens-paired.py
 
+# caught (2026-11-09, T529): T517's re-cut made /changes 180 KB gzip (budget 30 KB), found only after a 15 min SEO build;
+# the rules-key diff of LATEST against the newest kept snapshot is ~7 s (skipped with no kept snapshot or no LATEST folder)
+changes_budget() {
+  local r; r=$(cat data/release/LATEST 2>/dev/null) || { echo "   (no LATEST)"; return 0; }
+  [ -d "data/release/$r" ] && [ -d app/dist/seo-snapshots ] || { echo "   (no release folder or kept snapshot)"; return 0; }
+  node app/tools/build-seo.mjs --release-dir "data/release/$r" --check-changes
+}
+step "/changes within budget (LATEST vs kept snapshot)" changes_budget
+
 # caught 2026-11-07: app/tools/pin-study.mjs held hex colours; the colour gate flagged it only after the build (T481)
 step "colours" node app/tools/check-colours.mjs
 

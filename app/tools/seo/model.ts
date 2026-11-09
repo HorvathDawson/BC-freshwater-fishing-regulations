@@ -226,22 +226,23 @@ export async function listWaterOrds(store: RegsStore): Promise<number[]> {
 }
 
 /**
- * (T490) WHAT AN ANGLER MUST DO on the water, without our words: per keyed part, the key's flags and every rule bound to
- * it (its ids and bound values) — never a rule's `label`, its `verbatim`, its `parts` words, its provenance notes or the display text, so a
- * wording-only release moves no water here. /changes lists the waters whose rules moved; the page hash still moves lastmod.
+ * (T490) WHAT AN ANGLER MUST DO on the water, without our words — never a rule's `label`, its `verbatim`, its `parts` words,
+ * its provenance notes or the display text, so a wording-only release moves no water here. /changes lists the waters whose
+ * rules moved; the page hash still moves lastmod.
+ *
+ * (T529) WHAT APPLIES WHERE, however the water is cut: each distinct rule content (the key's flags and every rule bound
+ * to it: ids and bound values) with the stretches it covers, as metres along the stream (`partLines`: stream key, [m0, m1)),
+ * merged where they touch. Never a part index, a rule-set group, a part's name or its end tokens: T517 re-cut every river
+ * into one part per connected run and named parts from their ends, and a key on those listed ~every water as "changed"
+ * (/changes 180 KB). A re-cut or renamed part with the same rules moves nothing; a rule changed on one stretch, or a rule's
+ * stretch moved, does. A keyed part with no stream line (a lake, a one-part water) counts as its rule content alone.
  */
 export async function rulesKey(store: RegsStore, ord: number): Promise<string> {
-  const [parts, rules, ends] = await Promise.all([store.parts(ord), store.rules(), store.partEnds(ord)]);
-  // (T517) keyed by RULE-SET GROUP and where its runs end, never by part index: renumbering moves nothing here, a cut
-  // that ends a run elsewhere (another end token) does
-  const where = new Map<number, string[]>();
-  for (const p of parts) if (p.akey !== null)
-    where.set(p.grp, [...(where.get(p.grp) ?? []), ...(ends[p.partIx] ?? []).map(([a, b]) => `${a ?? ""}>${b ?? ""}`)]);
-  const done = new Set<number>();
-  const out: unknown[] = [];
+  const [parts, rules, lines] = await Promise.all([store.parts(ord), store.rules(), store.partLines(ord)]);
+  const spansOf = new Map<number, (readonly [number, number, number])[]>();
+  for (const l of lines ?? []) spansOf.set(l.partIx, [...(spansOf.get(l.partIx) ?? []), [l.blk, l.m0, l.m1] as const]);
+  const where = new Map<string, { spans: (readonly [number, number, number])[]; lineless: boolean }>();
   for (const p of parts) {
-    if (done.has(p.grp)) continue;
-    done.add(p.grp);
     if (p.akey === null || p.facts === null) continue;
     const k = await store.akey(p.akey), set = await store.ruleset(k.ruleset);
     const bound = (rix: number) => {
@@ -252,10 +253,24 @@ export async function rulesKey(store: RegsStore, ord: number): Promise<string> {
         e.not_yet_mapped ?? null, e.prov.rank, e.prov.region ?? null];
     };
     const ids = (xs: readonly number[]) => xs.map(bound).sort((a, b) => `${a[0]}|${a[1]}`.localeCompare(`${b[0]}|${b[1]}`));
-    out.push([[...(where.get(p.grp) ?? [])].sort(), k.kind, k.tidal, k.steelhead, k.steelheadWater, k.steelheadRules,
-      ids(set.reach), ids(set.trib)]);
+    const what = canon([k.kind, k.tidal, k.steelhead, k.steelheadWater, k.steelheadRules, ids(set.reach), ids(set.trib)]);
+    const at = where.get(what) ?? { spans: [], lineless: false };
+    const own = spansOf.get(p.partIx);
+    if (own?.length) at.spans.push(...own); else at.lineless = true;
+    where.set(what, at);
   }
-  return canon(out);
+  return canon([...where].map(([what, at]) => [what, mergeSpans(at.spans), at.lineless]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
+}
+
+/** (T529) stretches on one stream key that touch or overlap are one: [[blk, m0, m1]], sorted */
+export function mergeSpans(spans: readonly (readonly [number, number, number])[]): [number, number, number][] {
+  const out: [number, number, number][] = [];
+  for (const [blk, m0, m1] of [...spans].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2])) {
+    const last = out[out.length - 1];
+    if (last && last[0] === blk && m0 <= last[2]) last[2] = Math.max(last[2], m1);
+    else out.push([blk, m0, m1]);
+  }
+  return out;
 }
 /** JSON with every object's keys sorted: a release that writes the same fields in another order is no change */
 const canon = (v: unknown): string => Array.isArray(v) ? `[${v.map(canon).join(",")}]`
