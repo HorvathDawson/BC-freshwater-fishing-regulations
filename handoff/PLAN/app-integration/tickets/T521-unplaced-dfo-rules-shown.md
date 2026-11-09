@@ -1,7 +1,8 @@
 # T521 — A new DFO location with no mapped place still shows in the app
 
-Status: DONE — c7d4226b2. Feeds worker NOT deployed: it ships with the next app release (until then the live
-unplaced.json has no `items`, so the app reports the read and says it on the feed line).
+Status: DONE — c7d4226b2 + 1650a4b2f. Feeds worker NOT deployed: it ships with the next app release (until then the
+live unplaced.json rows have no `items` and fail to parse, so the app reports the read and says it on the card's feed
+line and in the bell).
 
 Owner 2026-11-09: when DFO publishes a location no curated place matches, "we need to rebuild (still will show on
 front end tho so it isnt missing before it is fixed and matched)".
@@ -11,25 +12,26 @@ front end tho so it isnt missing before it is fixed and matched)".
   notice and lists it on the live queue (T366). No app code reads `unplaced.json`: the rule is invisible to anglers
   until a curator places it and a release ships.
 
-## What
-- The water page of the water the DFO row names (the worker already knows the water/region) shows the rule in the
-  unplaced block (same block as the regs' own unplaced rules, `caveats.ts`): "DFO rule, location not yet on the map:
-  <DFO's own wording>". No paint (we do not know where), no part change.
-- One load path: the same feed read that fills salmon status; a failed read is reported, never silent.
-- Proof: a golden feed with one unplaced row shows it on its water (light/dark shot); 0 unplaced shows nothing.
+## What (owner 2026-11-09, revised)
+- (a) The water IS matched, the location within it is not: the rule shows in that water's SALMON section (the Salmon
+  card's "On this water (DFO)" lines, with its other DFO rules): "Location not yet on the map: <DFO's place> — <DFO's row>".
+  Not the generic in-part caveat block.
+- (b) The water itself is not matched (DFO adds a new water): a global notice in the bell, like the in-season notices,
+  naming the DFO region and DFO's words.
+- Both from the same feed read as salmon status; a failed read is shown (card feed line + bell) and reported. No paint,
+  no part change. Tests for (a), (b) and zero.
 
-## Done (c7d4226b2)
-- Worker `live.ts` (and the Python `live.py`, same field) gives each unplaced row `items`: the app item ids of the
-  water binding its DFO water name / alias names ([] for `new_water`). `DFO_REV` bumped so carried regions re-type.
+## Done (c7d4226b2, 1650a4b2f)
+- Worker `live.ts` + Python `live.py`: each unplaced row carries `items`, the app item ids of the water binding its DFO
+  water name / alias names. Non-empty = (a); empty = (b) (`new_water`, or a binding with no registry item). DFO_REV bumped.
 - App `data/feed/salmon.ts`: when index.json counts unplaced places, `unplaced.json` is read in the same fetch (and on
-  the update service's `offer`), kept in the same capture. Zero: not asked for. Failed read: `reportFailure` + the card's
-  feed line "(N DFO places not yet on the map could not be read)".
-- Core `salmon.ts`: the salmon card's in-part caveat (`inPartBlock`, caveats.ts) gets one item per DFO row:
-  "DFO rule, location not yet on the map: All · Aug 1 until further notice · No fishing for salmon", Where: DFO's place.
-  No paint, no part change, never folded behind "Other dates"; "DFO does not list this water" is not said beside it.
-- Proof: `core/src/salmonFeed.test.ts` (T521 block: one row shows on its water, rows + map status unchanged, other
-  water none; zero shows nothing; unread said), `data/src/feed/salmon.test.ts` (read beside index, capture, offer,
-  failure reported), worker `dfo.worker.test.ts` (items in both modes). No light/dark shot taken (needs a dev feed
-  with a row; the block is the existing CaveatBlock).
-- Not covered: a `new_water` row (DFO water no binding knows) has no water page, so it shows nowhere in the app —
-  still on the live queue + URGENT email. Owner decision if it should show somewhere (e.g. a region line).
+  the update service's `offer`), kept in the same capture; zero: not asked for. Failure: `reportFailure`.
+- Core: (a) `salmonCard` appends the lines to `waterRules`; (b) `dfoNoticeRows` (salmonFeed.ts) → the bell's DFO
+  section (`InSeasonNotice` `dfo`, `@app/ui` `useDfoNotice` over the same `SalmonFeedSource`, Shell + App wired), counted
+  on the bell and in its label. Unread list: "(N DFO places not yet on the map could not be read)" on the Salmon card's
+  feed line, and a red line + count in the bell.
+- Proof: `core/src/salmonFeed.test.ts` (T521: a, b, zero, unread, parse), `data/src/feed/salmon.test.ts` (read beside
+  index, capture, offer, failure reported), `ui-native/src/DfoNotice.test.tsx` (bell rows, unread, zero), worker
+  `dfo.worker.test.ts` (items in both modes). No light/dark shot taken.
+- Not done: the bell's DFO rows do not open the bell by themselves once per device (in-season rows do); they are counted
+  on it. `pickSalmon` choosing the release's own file (release newer than the capture) shows no unplaced rows.
