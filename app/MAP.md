@@ -99,6 +99,6 @@ back (`apps/mobile` `startLink.web.ts`, `systemBack.web.ts`, `waterSlugs.ts` ove
 page naming the waters the gauge serves (one regulations link each, no open/closed word) whose live half (`seo/gaugeClient.ts`,
 shipped as one plain script) reads the facts the feeds worker writes beside each card (`feeds/cards/<station>.json`) and
 Open-Meteo at the gauge. Its preview card is drawn in the feeds worker's gauge run (`workers/feeds/src/gauges/card/`: a tiny
-palette rasteriser + glyphs pre-drawn from Archivo, `tools/card_glyphs.py`), stored on R2, and only MAPPED by the site worker
+palette rasteriser + glyphs pre-drawn from Archivo, `workers/feeds/tools/card_glyphs.py`), stored on R2, and only MAPPED by the site worker
 (`seo/legacy.ts`: `/gauge/<station>/card.png` → R2 binding CARDS; missing → `/share/gauge.png` + a `private/cards-missing/`
 marker the gauge run reports). The worker reads which gauges have pages from the site's `/gauge/stations.json`.

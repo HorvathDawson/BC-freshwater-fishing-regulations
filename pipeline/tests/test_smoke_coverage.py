@@ -17,8 +17,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SMOKE = ROOT / "pipeline" / "tests" / "smoke.txt"
 PENDING = ROOT / "pipeline" / "tests" / "smoke_pending.txt"
-#: smoke_pending.txt on 2026-11-05; it may only shrink (a new file goes into smoke.txt)
-PENDING_MAX = 148
+#: smoke_pending.txt after T496 (2026-11-08); it may only shrink (a new file goes into smoke.txt)
+PENDING_MAX = 3
 
 
 def _lines(p: Path) -> list[str]:
