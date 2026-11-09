@@ -540,7 +540,7 @@ use that as the sole source of future work."
 | T493 | A creek shows a gap where its small lake drops out zoomed out (Foley Lake): draw the creek through, lake's status + tap | IN REVIEW — Foley + sloughs (Nicomen, Camp: `fill_zooms`, 242 pieces) side build + shots; owner look | 8494959a2, 41bf8e309, 0031f1997 | owner 2026-11-07; ships with a tiles rebuild (with T489) |
 | T494 | Web map console TypeError `interpolationFactor is not a function` (paint expression binder) on 0.6.9 | DONE | 04ead70fd | found 2026-11-07 by the staging smoke (warn) |
 | T495 | THE NEAR GOAL: Play closed testing on production, four gates (no wrong regs, no crashes, smooth map, clean first run) | OPEN | — | owner 2026-11-07; work this list first |
-| T496 | Cleanup sweep before launch: v1 leftovers, dead pipeline code, stale docs, old outputs | OPEN | — | owner 2026-11-07 (T495) |
+| T496 | Cleanup sweep before launch: v1 leftovers, dead pipeline code, stale docs, old outputs | PARTIAL — pass 1 done; deferred list in ticket | 678bf986e | owner 2026-11-07 (T495) |
 | T497 | Lower Fraser braids carry the Fraser's name (Nicomen / Maria Slough); a 2-stretch "Fraser River" water | IN REVIEW — next release | 1ab627c95 | owner 2026-11-08 (phone); T495 gate 1 |
 | T498 | Rules / conditions pane opens janky (shows, then loads in): build first, then show | IN REVIEW — next APK; Regulations view held (Conditions/Map: owner call) | b9103af33, 47299ccad, c23affc58 | owner 2026-11-08 (phone); T495 smooth map |
 | T499 | Pane's Map tab flickers when left open on the lowest Fraser stretch | IN REVIEW — next APK | 0fee60f85, c23affc58 | owner 2026-11-08 (phone); T495 smooth map |
