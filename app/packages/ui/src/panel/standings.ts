@@ -28,10 +28,14 @@ type Index = Parameters<typeof answerFrom>[1];
  * about to pan back onto the very first reaches they saw.
  */
 const PANEL_CACHE_MAX = 60_000;
-const panelCache = new Map<SectionId, Panel | null>();
+/** (T360) One cache PER SOURCE: an applied update's new set is a new source, so the old set's panels (its section
+ *  numbering) are neither answered for the new one nor held once the old source is gone. */
+let panelCaches = new WeakMap<WaterSource, Map<SectionId, Panel | null>>();
 
 async function cached(source: WaterSource,
                       sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, Panel>> {
+  let panelCache = panelCaches.get(source);
+  if (!panelCache) { panelCache = new Map(); panelCaches.set(source, panelCache); }
   const out = new Map<SectionId, Panel>();
   const missing: SectionId[] = [];
   for (const s of sections) {
@@ -61,7 +65,7 @@ async function cached(source: WaterSource,
 
 /** Test seam: the cache is module state and a test must be able to start from empty. */
 export function clearPanelCache(): void {
-  panelCache.clear();
+  panelCaches = new WeakMap();
 }
 
 /**

@@ -14,7 +14,7 @@ import { openProbe } from "../openProbe";
 import { oneShot } from "../sha256";
 import { decodeAccessFile, decodeLakeFacts, decodeMethod, decodeMethodAsync, decodePaint, decodePaintAsync, decodeFlowArea,
          decodeSalmonHead, decodeSalmonShard, decodeSalmonShardAsync, salmonFacts, type LakeFacts, type MethodFacts, type Paint, type SalmonFacts, type SalmonShard,
-         type SectionAccess } from "@app/core";
+         type SectionAccess, now } from "@app/core";
 import type { Db } from "../sql/db";
 import type { Manifest } from "../manifest";
 import { type Region } from "../pack.generated";
@@ -95,6 +95,11 @@ export interface ReleaseLoader {
    */
   trim(): Promise<number>;
   /**
+   * (T360) Close every database connection not read for `idleMs` (0: all not mid-read). The handles stay good: the next
+   * read opens the file again (checked again). Resolves to how many were closed. Optional: a fake loader has none.
+   */
+  closeIdle?(idleMs: number): Promise<number>;
+  /**
    * (T186) Fetch a file's bytes ahead of need WITHOUT opening it: the source's own fetch, so it lands in the release
    * cache the later open reads (web; a phone's files are installed and never prefetched). Once per file per loader.
    */
@@ -117,7 +122,9 @@ function decoded<T>(label: string, now: () => T, sliced: () => Promise<T>): Prom
   return oneShot() ? Promise.resolve(openProbe.work(label, now)) : openProbe.workAsync(label, sliced);
 }
 
-export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener): ReleaseLoader {
+export function releaseLoader(m: Manifest, source: ReleaseSource, open: Opener,
+                              o: { now?: () => number } = {}): ReleaseLoader {
+  const clock = o.now ?? now;
   const handles = Object.values(m.files)[0]?.section_handles ?? "";
   const dbs = new Map<DbName, Promise<Db>>();
   const order: FileName[] = [];
@@ -141,19 +148,46 @@ const WATER_SHARED: DbName = "water-shared";
   const wholeHere = async (name: Sliced): Promise<boolean> =>
     dbs.has(name) || ahead.has(name) || (source.stored ? await source.stored(name).catch(() => false) : false);
 
+  /**
+   * (T360) A file's ONE handle: what `db()` hands out and every reader keeps. Its connection may be closed while idle
+   * (`closeIdle`: a trim, an applied update's old set) and the next read opens it again, checked again (0.1–0.3 ms on a
+   * phone: the file is opened in place). A read in flight is never closed under.
+   */
+  const conns = new Map<DbName, { raw: Promise<Db> | null; last: number; busy: number }>();
+  const connect = (name: DbName, spec: NonNullable<Manifest["files"][string]>): Promise<Db> =>
+    open(name, () => source.bytes(name)).then(async (d) => {
+      const meta = Object.fromEntries((await d.all("SELECT k, v FROM meta")).map((r) => [r.k, r.v]));
+      if (meta.format !== spec.format || meta.section_handles !== spec.section_handles)
+        throw new ReleaseError(`${name}: format ${meta.format} / handles ${meta.section_handles} are not the manifest's ` +
+                               `${spec.format} / ${spec.section_handles}`);
+      return d;
+    });
+  const handle = (name: DbName, spec: NonNullable<Manifest["files"][string]>, first: Promise<Db>): Db => {
+    const c = { raw: first as Promise<Db> | null, last: clock(), busy: 0 };
+    conns.set(name, c);
+    const use = async <T>(f: (d: Db) => Promise<T>): Promise<T> => {
+      c.busy++;
+      try {
+        if (!c.raw) { const p = connect(name, spec); c.raw = p; p.catch(() => { if (c.raw === p) c.raw = null; }); }
+        return await f(await c.raw);
+      } finally { c.busy--; c.last = clock(); }
+    };
+    return {
+      all: (sql, ...params) => use((d) => d.all(sql, ...params)),
+      get: (sql, ...params) => use((d) => d.get(sql, ...params)),
+      // only an open connection is shrunk: a closed one holds nothing
+      shrink: async () => { const p = c.raw; const d = p && await p; if (d?.shrink) await d.shrink(); },
+    };
+  };
+
   const db = (name: DbName): Promise<Db> => {
     const spec = m.files[name];
     if (!spec) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
     let p = dbs.get(name);
     if (!p) {
       touch(name);
-      p = open(name, () => source.bytes(name)).then(async (d) => {
-        const meta = Object.fromEntries((await d.all("SELECT k, v FROM meta")).map((r) => [r.k, r.v]));
-        if (meta.format !== spec.format || meta.section_handles !== spec.section_handles)
-          throw new ReleaseError(`${name}: format ${meta.format} / handles ${meta.section_handles} are not the manifest's ` +
-                                 `${spec.format} / ${spec.section_handles}`);
-        return d;
-      });
+      const first = connect(name, spec);
+      p = first.then(() => handle(name, spec, first));
       p.catch(() => dbs.delete(name));          // a failure is not cached: the next ask tries again
       dbs.set(name, p);
     }
@@ -283,10 +317,24 @@ const WATER_SHARED: DbName = "water-shared";
     },
     opened: () => order.slice(),
     async trim() {
-      // only the opened ones: a database still opening (or that failed) is not waited for
-      const open = await Promise.all([...dbs.values()].map((p) => p.then((d) => d, () => null)));
+      // only the opened ones: a database still opening (or that failed), or closed while idle, is not waited for
       let n = 0;
-      for (const d of open) if (d?.shrink) { await d.shrink(); n++; }
+      for (const c of conns.values()) {
+        const d = c.raw && await c.raw.then((x) => x, () => null);
+        if (d?.shrink) { await d.shrink(); n++; }
+      }
+      return n;
+    },
+    async closeIdle(idleMs) {
+      const t = clock();
+      let n = 0;
+      for (const c of conns.values()) {
+        if (!c.raw || c.busy > 0 || t - c.last < idleMs) continue;
+        const p = c.raw;
+        c.raw = null;                            // the next read opens it again
+        const d = await p.then((x) => x, () => null);
+        if (d?.close) { d.close(); n++; }
+      }
       return n;
     },
     prefetch(name) {

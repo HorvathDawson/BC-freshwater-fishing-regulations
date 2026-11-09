@@ -16,6 +16,14 @@ describe("statusOf: one decode per key, and a failure is not kept", () => {
     expect(await statusOf(src)).toBe(index);
     expect(calls).toBe(2);
   });
+  it("(T360) only the two newest keys are held: an earlier set's index is let go (asked again: loaded again)", async () => {
+    const calls: string[] = [];
+    const src = (key: string): StatusSource => ({ key, load: async () => { calls.push(key); return index; } });
+    for (const k of ["c1", "c2", "c3", "c3", "c2"]) await statusOf(src(k));
+    expect(calls).toEqual(["c1", "c2", "c3"]);
+    await statusOf(src("c1"));
+    expect(calls).toEqual(["c1", "c2", "c3", "c1"]);
+  });
   it("the release's status is paint's status half, keyed by the release", async () => {
     let paints = 0;
     const loader = { release: "r-1", paint: async () => { paints++; return { status: index } as never; } };

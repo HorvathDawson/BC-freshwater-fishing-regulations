@@ -82,10 +82,24 @@ async function markedCopy(s: SynopsisSource, cached: File, boxes: readonly Sourc
   const tail = appendHighlight(s.append, s.bytes, boxes);
   if (!tail) return null;                          // no box on a page of the book: the page opens unmarked
   const f = new File(Paths.cache, "synopsis-open.pdf");
+  // (T360) the same marks on the same book again (a reader back on a water's rule-book link): the copy on disk is it,
+  // not a second 12 MB write
+  const key = `${s.sha256}:${tailKey(tail)}`;
+  if (marked === key && f.exists && f.size === s.bytes + tail.length) return f;
+  marked = null;
   if (f.exists) f.delete();
   await cached.copy(f);
   await f.write(tail, { append: true });   // (T446) a promise since SDK 58
+  marked = key;
   return f;
+}
+/** (T360) what `synopsis-open.pdf` holds now (book sha + its tail's key), this run; null: unknown, it is written again */
+let marked: string | null = null;
+/** FNV-1a over the appended tail (a few hundred bytes) and its length */
+function tailKey(b: Uint8Array): string {
+  let h = 0x811c9dc5;
+  for (const x of b) h = Math.imul(h ^ x, 0x01000193) >>> 0;
+  return `${b.length}.${h.toString(16)}`;
 }
 
 /**

@@ -59,6 +59,20 @@ describe("synopsisPdf.native (T285, T354)", () => {
     await openHighlighted(S, 9, BOX);
     expect(tasks).toBe(1);
   });
+  it("(T360) the same marks again reuse the marked copy on disk; other marks write it again", async () => {
+    const copies = vi.spyOn((await import("expo-file-system")).File.prototype, "copy");
+    await openHighlighted(S, 9, BOX);
+    await openHighlighted(S, 9, BOX);
+    expect(copies).toHaveBeenCalledTimes(1);
+    const other = [{ pdf: 9, box: [0, 0, 2, 2], size: [576, 756] }] as never;
+    await openHighlighted(S, 9, other);
+    expect(copies).toHaveBeenCalledTimes(2);
+    expect(text("cache/synopsis-open.pdf")).toMatch(/\n28 0 obj\n\[5 0 R 30 0 R\]\nendobj/);
+    files.delete("cache/synopsis-open.pdf");                 // the OS emptied the cache: written again
+    await openHighlighted(S, 9, other);
+    expect(copies).toHaveBeenCalledTimes(3);
+    copies.mockRestore();
+  });
   it("no box: the held book itself, at the page", async () => {
     await openHighlighted(S, 1, []);
     expect(getPdfView()).toMatchObject({ uri: `doc/synopsis-${S.sha256.slice(0, 16)}.pdf`, page: 1 });

@@ -28,6 +28,7 @@ export interface StatusSource {
 }
 
 const LOADED = new Map<string, Promise<StatusIndex>>();
+const KEEP = 2;
 
 /** The status index of `src`, loaded once per key — and a FAILURE IS NOT KEPT: the next ask loads again. */
 export function statusOf(src: StatusSource): Promise<StatusIndex> {
@@ -36,6 +37,9 @@ export function statusOf(src: StatusSource): Promise<StatusIndex> {
     got = src.load();
     got.catch(() => { if (LOADED.get(src.key) === got) LOADED.delete(src.key); });
     LOADED.set(src.key, got);
+    // (T360) the newest KEEP only: an applied update's index is a new key, and the one before it (on screen until the
+    // new one is in) is the only older one still asked for; earlier sets' indexes are let go
+    while (LOADED.size > KEEP) LOADED.delete(LOADED.keys().next().value!);
   }
   return got;
 }

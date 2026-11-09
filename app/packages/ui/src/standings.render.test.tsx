@@ -121,6 +121,20 @@ describe("usePanelStandings", () => {
     expect(panelsFor).toHaveBeenLastCalledWith([B]);
   });
 
+  it("(T360) a new source (an applied update's set) asks again: one set's panels never answer for another", async () => {
+    const mk = () => {
+      const panelsFor = vi.fn(async (secs: readonly SectionId[]) => new Map(secs.map((s) => [s, panel(["08A", 100])])));
+      return { panelsFor, source: { panelsFor, lakeStationsFor: async () => new Map() } as unknown as WaterSource };
+    };
+    const one = mk(), two = mk();
+    const { result, rerender } = renderHook(({ source, secs }) => usePanelStandings(source, feed({ "08A": 0.42 }), secs),
+                                            { initialProps: { source: one.source, secs: [A] as SectionId[] } });
+    await waitFor(() => expect(result.current.get(A)).toBeDefined());
+    rerender({ source: two.source, secs: [A, B] });       // A was the old set's: asked of the new one too
+    await waitFor(() => expect(two.panelsFor).toHaveBeenCalledWith([A, B]));
+    expect(one.panelsFor).toHaveBeenCalledTimes(1);
+  });
+
   it("remembers that a section has NO panel, and stops asking", async () => {
     // "Nothing qualifies here" is an answer. Re-asking for it on every pan is the same
     // waste as re-asking for a panel — and most of the province is this case.

@@ -61,6 +61,43 @@ describe("releaseLoader", () => {
     await F.regionDb(7);
     await expect(F.trim()).rejects.toThrow("water: no");
   });
+  it("(T360) closeIdle closes connections not read for a while; the handle reopens on the next read, checked again", async () => {
+    let t = 0;
+    const opened: string[] = [], closed: string[] = [];
+    let hold: (() => void) | null = null;
+    const open = async (name: DbName): Promise<Db> => {
+      opened.push(name);
+      const d = await fakeOpen()(name);
+      return { ...d, close: () => { closed.push(name); },
+               get: async () => { if (hold === null) return undefined; await new Promise<void>((r) => { hold = r; }); return undefined; } };
+    };
+    const L = releaseLoader(m, src, open, { now: () => t });
+    const core = await L.db("core");
+    t = 1000; await L.db("water").then((w) => w.all("SELECT 1"));
+    t = 1500;
+    expect(await L.closeIdle!(1000)).toBe(1);                     // core idle 1.5 s; water read 0.5 s ago
+    expect([closed, opened]).toEqual([["core"], ["core", "water"]]);
+    expect(await core.all("SELECT k, v FROM meta")).toHaveLength(2);   // the same handle: opened again
+    expect(opened).toEqual(["core", "water", "core"]);
+    expect(await L.db("core")).toBe(core);
+    // a read in flight is never closed under
+    hold = () => {};
+    const reading = core.get("SELECT x");
+    await new Promise((r) => setTimeout(r, 0));
+    t = 99_000;
+    expect(await L.closeIdle!(0)).toBe(1);                         // water only
+    (hold as unknown as () => void)(); hold = null; await reading;
+    expect(closed).toEqual(["core", "water"]);
+    // a reopen that fails is said by the read, and the next read tries again
+    let fail = false;
+    const F = releaseLoader(m, src, async (n) => { if (fail) throw new Error(`${n}: gone`); return fakeOpen()(n); });
+    const fc = await F.db("core");
+    fail = true;
+    await F.closeIdle!(0);
+    await expect(fc.all("SELECT 1")).rejects.toThrow("core: gone");
+    fail = false;
+    expect(await fc.all("SELECT 1")).toEqual([]);
+  });
   it("the lake facts: decoded once on first ask against the release's handles; null when the release has none", async () => {
     const lakes = Uint8Array.from([0x42, 0x43, 0x4c, 0x4b, 1, 0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99, 0, 1, 12, 2, 0]);
     const asked: string[] = [];
