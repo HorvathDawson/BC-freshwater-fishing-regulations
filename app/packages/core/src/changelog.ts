@@ -21,6 +21,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.0", date: "2026-11-09", notes: [
+      "Flow alerts work like stock alerts: pick a gauge, a level or a percentile for the day, and get one alert when it crosses",
+      "A river's parts follow its rules: stretches with the same rules join into one, and each is named by where it starts and ends",
+      "Map lines are easier to see in dark mode",
+      "Salmon rules from DFO show as out of date when they have not been checked for a day",
+    ],
+  },
+  {
     version: "0.6.9", date: "2026-11-07", notes: [
       "The map pans more smoothly, and stays smooth the longer you use it",
       "The daily limit stays at the top as you scroll: this water's number, and how many may be over a size",
