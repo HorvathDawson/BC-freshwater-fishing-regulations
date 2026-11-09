@@ -379,7 +379,8 @@ def _check_plus_one(data, model):
         if item == KITIMAT:
             k = model.parts[KITIMAT][part_at(data, KITIMAT, "mouth")]
         else:
-            (k,) = [k for k in model.parts[item] if k is not None]
+            # T517: the Vedder's rule set is two parts (a salmon-area cut) that share ONE answer key
+            (k,) = {k for k in model.parts[item] if k is not None}
         i = E.segment_index(model.segments[k], CAL.day_of(md))
         rk, kd = C.rule_key(model.keys[k]), C.key_dict(model.keys[k])
         P = RW.Part(B, rk.set_id, rk.steelhead_water, rk.steelhead_rules, kd["kind"], kd["steelhead"],

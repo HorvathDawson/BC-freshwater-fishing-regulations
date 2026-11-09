@@ -2,8 +2,9 @@
 COMPLETE for what it covers, so the app may read a covered key from it and ask the whole file for anything else.
 
 Synthetic: the coverage closure (a water's exit and continuation, its parts), the str cut, the sid bitmap, and the two
-refusals. On the live release (skipped when none is on disk): for two regions, every covered water's rows in every
-sliced table are EXACTLY the whole file's, and a covered sid's water is the whole file's.
+refusals. On the live release (a side set's `<UI_EXPORT_DIR>/release` when set; fails when none is on disk): for two
+regions, every covered water's rows in every sliced table are EXACTLY the whole file's, and a covered sid's water is the
+whole file's.
 """
 from __future__ import annotations
 
@@ -14,8 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED
-from pipeline.tests.conftest import need
+from pipeline.tests.conftest import need, release_root
 
 from pipeline.deliver.release import shards as SH
 from pipeline.deliver.release import slices as SL
@@ -203,7 +203,7 @@ def test_a_str_only_a_blob_names_and_a_section_in_two_waters_are_refused(tmp_pat
 
 
 def _live():
-    root = GENERATED.release
+    root = release_root()
     try:
         rid = (root / "LATEST").read_text().strip()
     except OSError:
@@ -219,7 +219,8 @@ def _live():
 def test_on_the_live_release_a_slice_is_the_whole_file_for_what_it_covers(tmp_path, request):
     """For Regions 2 and 7B (the small and the far): every covered water's rows in every sliced table equal the whole
     file's; every covered sid's water (or none) is the whole core's; every str a kept row names is the whole's."""
-    need(request, "bundle", GENERATED.release / "LATEST", "python -m pipeline.deliver (writes data/release/<r-id> + LATEST)")
+    need(request, "bundle", release_root() / "LATEST",
+         "python -m pipeline.deliver (writes data/release/<r-id> + LATEST; with UI_EXPORT_DIR set, <dir>/release)")
     live = _live()
     assert live is not None, "the live release has no core / water / regs-sid (an older release: re-run pipeline.deliver)"
     root, m = live

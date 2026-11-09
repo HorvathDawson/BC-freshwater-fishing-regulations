@@ -1023,7 +1023,8 @@ def test_the_export_carries_steelhead_per_part_and_water(doc):
      "anadromous_rainbow on a known lake"),
     (lambda w: w["wbk:329291805"]["parts"][0].update(steelhead="possible"), "a lake marked"),
     (lambda w: w["gnis:39400"].update(steelhead="possible"), "parts say 'known'"),
-    (lambda w: w["gnis:5922"]["parts"][0].pop("anadromous_rainbow"),
+    # the Capilano's lowest part with rules (T517: part 0 in river order is its tidal reach, which has none)
+    (lambda w: next(p for p in w["gnis:5922"]["parts"] if p["ruleset"] is not None).pop("anadromous_rainbow"),
      "a known stream where steelhead rules apply and a big rainbow is not a steelhead"),
     (lambda w: w["gnis:16880"]["parts"][0].update(steelhead="possible"), "no steelhead rule"),
     (lambda w: w["gnis:39400"].update(steelhead_source=["regulations"]), "disagree"),

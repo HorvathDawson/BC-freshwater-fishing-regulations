@@ -178,9 +178,17 @@ def test_every_licensing_record_and_rule_carries_its_book_pages(built):
 def test_every_part_has_a_short_label_from_its_ends(built):
     data, model = built
     ws = model.statics["display"]["waters"]
+    # T517: the Vedder's one rule set is two parts, cut where DFO's salmon area changes at the cable car crossing; each
+    # part's short is its own two ends, the run's name and the group's label are the whole run's
+    cable = "Cable car crossing (200 m downstream of Vedder Crossing bridge)"
     v = ws[VEDDER]["parts"][part_at(data, VEDDER, "mouth")]
-    assert v["short"] == "Mouth → Vedder Crossing Bridge"
+    assert v["short"] == f"Mouth → {cable}"
+    assert v["run_name"] == "Mouth → Vedder Crossing Bridge"
     assert v["label"] == "From the mouth up to the Vedder Crossing Bridge"
+    up = ws[VEDDER]["parts"][part_at(data, VEDDER, "chilliwack_vedder_rivers__vedder_crossing_bridge")]
+    assert (up["short"], up["run_name"], up["label"]) == (
+        f"{cable} → Vedder Crossing Bridge", "Mouth → Vedder Crossing Bridge",
+        "From the mouth up to the Vedder Crossing Bridge")
     assert ws[CHILLIWACK_LAKE]["parts"][0]["short"] == "Whole water"
     for item, w in ws.items():
         shorts = [p["short"] for p in w["parts"] if p]

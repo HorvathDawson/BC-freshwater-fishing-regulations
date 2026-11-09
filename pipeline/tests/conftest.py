@@ -138,6 +138,14 @@ def live_store_of(tmp_path_factory):
     return of
 
 
+def release_root() -> Path:
+    """The release root paired with the suite's bundle: a side set's `deliver all --out-dir` dir (`UI_EXPORT_DIR`)
+    writes its releases (and LATEST) to `<dir>/release`; without it, the live `data/release`."""
+    from pipeline.common.curated import GENERATED
+    side = os.environ.get("UI_EXPORT_DIR")
+    return Path(side) / "release" if side else Path(GENERATED.release)
+
+
 def predates(msg: str) -> None:
     """A bundle built before the ruling this test pins FAILS — the canonical gate and a side build
     alike — unless `UI_EXPORT_ALLOW_PREDATING=1` asks for the old skip."""

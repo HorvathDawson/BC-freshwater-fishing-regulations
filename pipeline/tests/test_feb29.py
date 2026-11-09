@@ -107,8 +107,10 @@ def test_no_stored_year_reads_differently_on_day_60(request):
     from pipeline.deliver import status_index as SI
     from pipeline.deliver.export.contract import OUT
     from pipeline.tests.conftest import EXPORT_HINT
-    answers = need(request, "bundle", OUT.parent / "ui-rules-answers.json", EXPORT_HINT)
-    index = need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT)
+    answers = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent) / "ui-rules-answers.json",
+                   EXPORT_HINT)
+    index = need(request, "bundle", Path(os.environ.get("STATUS_INDEX") or GENERATED.bundle / "status_index.bin"),
+                 BUNDLE_HINT)
     wire = _json.loads(answers.read_bytes())
     assert not [i for i, seg in enumerate(wire["segments"]) if 60 in seg]
     ix = SI.Index(index.read_bytes())
@@ -123,7 +125,8 @@ def test_the_zymoetz_on_friday_2036_02_29_reads_feb_28_and_the_friday_rule(reque
     from pipeline.deliver.answers import common as AC, encode as E
     from pipeline.deliver.export.contract import OUT
     from pipeline.tests.conftest import EXPORT_HINT
-    exp = need(request, "bundle", OUT.parent / "ui-rules-answers.json", EXPORT_HINT).parent
+    exp = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent) / "ui-rules-answers.json",
+               EXPORT_HINT).parent
     wire = _json.loads((exp / "ui-rules-answers.json").read_bytes())
     data, _guide = AC.load_export(exp)
     wd = SPEC.weekday_of(2036, 2, 29)

@@ -69,8 +69,10 @@ def test_live_no_gear_class_on_a_closed_day(request, live_store_of):
     from pipeline.deliver.export.contract import OUT as EXPORT
     from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
     bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
-    si = SI.Index(need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT).read_bytes())
-    exp = need(request, "bundle", EXPORT.parent / "ui-rules-answers.json", EXPORT_HINT).parent
+    si = SI.Index(need(request, "bundle", Path(os.environ.get("STATUS_INDEX") or GENERATED.bundle / "status_index.bin"),
+                       BUNDLE_HINT).read_bytes())
+    exp = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or EXPORT.parent) / "ui-rules-answers.json",
+               EXPORT_HINT).parent
     m = M.compute(live_store_of(exp, bundle))
     assert m["handles"] == si.handles
     ix = M.Index(M.encode(m))

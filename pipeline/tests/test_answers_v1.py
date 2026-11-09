@@ -33,13 +33,16 @@ from pipeline.deliver.answers import licence as L
 from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.answers import stamps as ST
 from pipeline.deliver.bundle import read as R
-from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
 
 BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
 EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
                   or Path(R.BUNDLE).parent.parent / "regs")
 
 CHILLIWACK, KITIMAT, PEACE = "gnis:8634", "gnis:3225", "gnis:14619"
+# the Peace below the Site C dam (its 7B lake-trout part), by what it covers: Site C dam down to 5 km below the
+# Halfway River's mouth (T517 numbers parts in river order, so its index moved)
+PEACE_SITE_C = ("peace_river__site_c_dam", "peace_river__halfway_river_into_peace_river_d5000m")
 WATERS = (CHILLIWACK, KITIMAT, PEACE, "gnis:39298", "wbk:329518145")    # + Denetiah, Shuswap Lake
 
 
@@ -205,7 +208,8 @@ def test_really_2_a_day_on_the_pages_own_ladder():
     B = C.load(BUNDLE)
     data, guide = C.load_export(EXPORT_DIR)
     keys, parts = C.part_keys(B, data)
-    k = keys[parts[fx["water"]][1]]
+    assert fx["water"] == PEACE
+    k = keys[parts[PEACE][part_at(data, PEACE, *PEACE_SITE_C)]]
     rk, kd = C.rule_key(k), C.key_dict(k)
     ladder: dict = {}
     for fo, states in fx["ladder"].items():
@@ -249,7 +253,7 @@ def test_peace_river_on_our_ladder_keeps_the_lakes_own_3(built):
     trout clause (the same statement, the water's number), so no smaller cap binds and there is no
     "Really 2" — a ladder difference with the page (COMPARISON.md, class b1)."""
     data = built[0]
-    t = _tap(built, PEACE, 1, (7, 1))
+    t = _tap(built, PEACE, part_at(data, PEACE, *PEACE_SITE_C), (7, 1))
     row = next(r for r in t["rows"]["rows"] if r["pool"] is not None
                and _rid(data, r["pool"]) == "peace_river.r4")
     assert row["daily"] == 3 and row["real_daily"] is None

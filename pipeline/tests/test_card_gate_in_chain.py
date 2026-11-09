@@ -15,6 +15,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -93,9 +94,12 @@ def test_the_store_refuses_unproved_answers_before_reading_the_bundle(tmp_path, 
 # ---- the live file, mutation-pinned ----------------------------------------------------------------------------
 
 def _live():
+    """The bundle and its answers + export pair: the live ones, or a side set (`UI_EXPORT_BUNDLE` /
+    `ANSWERS_EXPORT_DIR`), never a side bundle with the live answers."""
     from pipeline.deliver.bundle import read as R
     from pipeline.deliver.export.contract import OUT
-    return R.BUNDLE, OUT.parent
+    return (Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE),
+            Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent))
 
 
 def _vedder_keys(wire, n=1):

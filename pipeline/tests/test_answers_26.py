@@ -141,9 +141,11 @@ def test_the_cowichans_fly_only_stretches_are_drawn_from_its_gear(built):
         assert at(built, COWICHAN, mid, d, "gear")["fly"] == "fly_fishing_only"
     assert at(built, COWICHAN, above_66, (10, 10), "display")["strip"] == FLY | BAIT
     assert at(built, COWICHAN, above_66, (5, 15), "display")["strip"] == BAIT
-    # the mouth part is closed Sept 1-Nov 15 below the Mile 66 trestle
-    assert at(built, COWICHAN, "cowichan_river__cnr_trestle|mouth", (10, 10), "display")["strip"] == \
-        CLOSED
+    # the mouth part is closed Sept 1-Nov 15 below the Mile 66 trestle: since T517 that rule set is two parts, cut where
+    # DFO's salmon area changes at the White Triangle boundary sign, and both pieces are closed
+    for below_66 in ("cowichan_river__white_triangle_boundary_sign_loc|mouth",
+                     "cowichan_river__cnr_trestle|cowichan_river__white_triangle_boundary_sign_loc"):
+        assert at(built, COWICHAN, below_66, (10, 10), "display")["strip"] == CLOSED, below_66
 
 
 @pytest.mark.needs_bundle

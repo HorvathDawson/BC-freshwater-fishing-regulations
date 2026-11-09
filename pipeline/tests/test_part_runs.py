@@ -32,6 +32,7 @@ from pipeline.deliver.export import (
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+FRASER = "gnis:39325"
 
 
 # ---------------------------------------------------------------------------------------------
@@ -231,9 +232,11 @@ def test_every_stream_section_has_a_span_and_nothing_else_does(db):
 
 @pytest.mark.needs_bundle
 def test_runs_cover_exactly_the_part_s_sections(doc, db):
-    """Recomputed from the bundle rows: each part's sections (the export's own grouping key, in
-    SQL) are partitioned by its runs — every section in exactly one run — and the shipped runs are
-    those runs without their sections."""
+    """Recomputed from the bundle rows: each section's content key (the export's own grouping key, in SQL) is uniform
+    over every part that holds it (`part_section`), every stream section is in exactly one part, the parts of one key
+    cover exactly that key's sections (T517: a key may be several parts — one per connected run and salmon chain), and
+    each part's sections are partitioned by its runs — every section in exactly one run — the shipped runs being those
+    runs without their sections."""
     span = {s: (a, b, lo, hi, off, shape) for s, a, b, lo, hi, off, shape in db.execute(
         "SELECT s.sid, s.lo_m, s.hi_m, a.token, b.token, s.off_stem, s.shape FROM section_span s "
         "JOIN span_end a ON a.eid = s.lo JOIN span_end b ON b.eid = s.hi")}
@@ -241,7 +244,7 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
     for a, b in db.execute("SELECT a, b FROM section_touch"):
         touch[a].add(b)
         touch[b].add(a)
-    groups = defaultdict(list)
+    key_of, groups = {}, defaultdict(list)
     for item, kind, rs, ls, pe, sw, st, s, na in db.execute(
             "SELECT i.item_id, i.kind, r.set_id, l.set_id, (SELECT group_concat(k, ',') FROM "
             "(SELECT p.area_kind AS k FROM province_except p WHERE p.sid = s.sid ORDER BY "
@@ -256,29 +259,40 @@ def test_runs_cover_exactly_the_part_s_sections(doc, db):
             "LEFT JOIN section_ruleset r ON r.sid = s.sid "
             "LEFT JOIN section_licensing l ON l.sid = s.sid"):
         if kind == "stream":
-            groups[(item, None if rs is None else str(rs), None if ls is None else str(ls),
-                    pe, bool(sw), st, na)].append(s)
+            k = (None if rs is None else str(rs), None if ls is None else str(ls), pe, bool(sw), st, na)
+            key_of[(item, s)] = k
+            groups[(item, k)].append(s)
+    members = defaultdict(list)
+    for item, sid, pi in db.execute("SELECT i.item_id, ps.sid, ps.part_ix FROM part_section ps "
+                                    "JOIN item i ON i.ord = ps.ord WHERE i.kind = 'stream'"):
+        members[(item, pi)].append(sid)
+    placed = sorted((item, s) for (item, _), sids in members.items() for s in sids)
+    assert placed == sorted(key_of), "every stream section in exactly one part"
+    covered_by_key = defaultdict(int)
     checked = 0
-    for (item, rs, ls, pe, sw, st, na), sids in groups.items():
-        # the export's parts do not say no-access (T228): the two of one content are told apart by their size
-        part = [p for p in doc["waters"][item]["parts"]
-                if (p["ruleset"], p["licensing_set"], ",".join(p.get("province_except") or [])
-                    or None, bool(p.get("anadromous_rainbow")), p.get("steelhead"))
-                == (rs, ls, pe, sw, st) and p["sections"] == len(sids)]
-        assert len(part) >= 1, item
-        assert part[0]["sections"] == len(sids)
+    for (item, pi), sids in sorted(members.items()):
+        keys = {key_of[(item, s)] for s in sids}
+        assert len(keys) == 1, (item, pi, keys)                       # a part is one content
+        (rs, ls, pe, sw, st, na), = keys
+        p = doc["waters"][item]["parts"][pi]
+        # the export's parts do not say no-access (T228)
+        assert (p["ruleset"], p["licensing_set"], ",".join(p.get("province_except") or []) or None,
+                bool(p.get("anadromous_rainbow")), p.get("steelhead")) == (rs, ls, pe, sw, st), (item, pi)
+        assert p["sections"] == len(sids), (item, pi)
+        covered_by_key[(item, (rs, ls, pe, sw, st, na))] += len(sids)
         if export_read.is_polygon_part(doc["waters"][item], sorted(sids), span):
             # a stream's polygons its stem does not pass through: one polygon run
-            assert any(q["runs"] == [{"from": None, "to": None, "km_from": None,
-                                      "km_to": None, "polygon": "whole"}] for q in part), item
+            assert p["runs"] == [{"from": None, "to": None, "km_from": None,
+                                  "km_to": None, "polygon": "whole"}], (item, pi)
             checked += 1
             continue
         runs = SP.compose_runs(span, touch, sorted(sids))
         covered = [s for r in runs for s in r["sids"]]
-        assert sorted(covered) == sorted(sids), item          # every section, none twice
-        # (T228) of two parts of one content and size, the one whose runs these are
-        assert [{k: v for k, v in r.items() if k != "sids"} for r in runs] in [q["runs"] for q in part], item
+        assert sorted(covered) == sorted(sids), (item, pi)            # every section, none twice
+        assert [{k: v for k, v in r.items() if k != "sids"} for r in runs] == p["runs"], (item, pi)
         checked += 1
+    # the parts of one content cover exactly its sections
+    assert dict(covered_by_key) == {g: len(sids) for g, sids in groups.items()}
     assert checked > 10_000
 
 
@@ -310,9 +324,18 @@ def test_runs_go_upstream_to_downstream_and_km_never_climbs(doc):
 def test_a_part_of_several_stretches_has_several_runs(doc):
     several = [p for w in doc["waters"].values() for p in w["parts"] if len(p["runs"]) > 1]
     assert len(several) > 1_000
-    # Bull River: the rest of the river is three stretches, the release reaches two
-    bull = dict(_runs(doc, "gnis:10583"))
-    assert sorted(len(r) for r in bull.values()) == [2, 3]
+    # T517: a part is ONE connected run, so its several runs are pieces joined through a lake (or a side channel):
+    # the Fraser's top part runs from its source through three lakes down to the Region 5 line, four runs
+    stems = [[(r["from"], r["to"]) for r in runs if not r.get("branch")] for _, runs in _runs(doc, FRASER)]
+    top = [st for st in stems if st and st[0][0] == "source" and st[-1][1] == "region_line:5"]
+    assert top == [[("source", "lake_inlet"), ("lake_outlet", "lake_inlet"),
+                    ("lake_outlet", "lake_inlet:wbk:329619001"), ("lake_outlet:wbk:329619001", "region_line:5")]]
+    # and a rule set of several stretches the river does not join is several parts, one run each — Bull River: the
+    # rest of the river is three parts, the release reaches two
+    bull = defaultdict(list)
+    for rs, runs in _runs(doc, "gnis:10583"):
+        bull[rs].append(len(runs))
+    assert sorted(bull.values()) == [[1, 1], [1, 1, 1]]
 
 
 @pytest.mark.needs_bundle
@@ -376,16 +399,18 @@ def test_chilliwack_closed_above_the_slesse_signs(doc):
 
 @pytest.mark.needs_bundle
 def test_bull_river_rest_is_the_river_outside_its_release_reaches(doc):
-    parts = dict(_runs(doc, "gnis:10583"))
-    ends = {rs: [(r["from"], r["to"]) for r in runs] for rs, runs in parts.items()}
+    # T517: one part per run, numbered in river order from the mouth; a rule set's parts are its runs
+    ends = defaultdict(list)
+    for rs, runs in _runs(doc, "gnis:10583"):
+        ends[rs] += [(r["from"], r["to"]) for r in runs]
     release = [e for e in ends.values() if ("bull_river__galbraith_creek_confl",
                                             "bull_river__van_creek_confl") in e]
-    assert release == [[("bull_river__galbraith_creek_confl", "bull_river__van_creek_confl"),
-                        ("bull_river__aberfeldie_dam", "bull_river__tie_mill_dam")]]
+    assert release == [[("bull_river__aberfeldie_dam", "bull_river__tie_mill_dam"),
+                        ("bull_river__galbraith_creek_confl", "bull_river__van_creek_confl")]]
     rest = [e for e in ends.values() if e is not release[0]]
-    assert rest == [[("source", "bull_river__galbraith_creek_confl"),
+    assert rest == [[("bull_river__tie_mill_dam", "mouth"),
                      ("bull_river__van_creek_confl", "lake_inlet"),
-                     ("bull_river__tie_mill_dam", "mouth")]]
+                     ("source", "bull_river__galbraith_creek_confl")]]
 
 
 @pytest.mark.needs_bundle
@@ -396,20 +421,28 @@ def test_thompson_between_the_cnr_bridges(doc):
     assert len(between) == 1
     assert between[0][0]["km_from"] == doc["splits"][a]["km"] > doc["splits"][b]["km"] == \
         between[0][0]["km_to"]
-    around = [runs for _, runs in _runs(doc, "gnis:39492") if any(r["to"] == a for r in runs)]
-    assert [(r["from"], r["to"]) for r in around[0]] == [
-        ("lake_outlet:wbk:329563838", a), (b, "thompson_river__boundary_signs")]
+    # the rule set around them is two parts (T517: one per run), the lower first (river order)
+    (rs,) = {rs for rs, runs in _runs(doc, "gnis:39492") if any(r["to"] == a for r in runs)}
+    around = [[(r["from"], r["to"]) for r in runs] for q, runs in _runs(doc, "gnis:39492") if q == rs]
+    assert around == [[(b, "thompson_river__boundary_signs")], [("lake_outlet:wbk:329563838", a)]]
 
 
 @pytest.mark.needs_bundle
 def test_elk_release_reaches_alternate_down_the_river(doc):
-    parts = dict(_runs(doc, "gnis:16880"))
-    many = sorted((runs for runs in parts.values() if len(runs) > 1), key=len)
-    assert [len(r) for r in many] == [3, 4]
-    km = sorted(((r["km_from"], r["km_to"]) for runs in many for r in runs), reverse=True)
-    # the two parts tile 219.72..22.95 end to end, each run starting where the last ended
-    assert all(km[i][1] == km[i + 1][0] for i in range(len(km) - 1))
-    assert km[0][0] > 200 and km[-1][1] == doc["splits"]["elk_river__elko_dam"]["km"]
+    parts = _runs(doc, "gnis:16880")
+    sets = defaultdict(int)
+    for rs, _ in parts:
+        sets[rs] += 1
+    two = sorted(rs for rs, n in sets.items() if n > 1)
+    # T517: the two release rule sets are 3 and 4 parts (one per run), alternating up the river
+    assert sorted(sets[rs] for rs in two) == [3, 4]
+    above = [(rs, runs) for rs, runs in parts if rs in two]
+    assert all(len(runs) == 1 for _, runs in above)
+    assert all(above[i][0] != above[i + 1][0] for i in range(len(above) - 1))
+    km = [(runs[0]["km_from"], runs[0]["km_to"]) for _, runs in above]
+    # the parts tile 22.95..219.72 end to end in river order, each starting where the last ended
+    assert all(km[i][0] == km[i + 1][1] for i in range(len(km) - 1))
+    assert km[-1][0] > 200 and km[0][1] == doc["splits"]["elk_river__elko_dam"]["km"]
 
 
 # ---- mutation: the run checks go red --------------------------------------------------------
@@ -423,12 +456,17 @@ def test_elk_release_reaches_alternate_down_the_river(doc):
     ("no runs", lambda p: p.update({"runs": []}), "no runs"),
 ])
 def test_the_run_checks_catch_a_broken_run(doc, name, mutate, expect):
-    item = "gnis:10583"
-    part = next(i for i, p in enumerate(doc["waters"][item]["parts"]) if len(p["runs"]) == 3)
-    bad = dict(doc, waters={item: copy.deepcopy(doc["waters"][item])})
+    item = FRASER          # its top part: four runs through three lakes (T517: a part is one connected run)
+    part = next(i for i, p in enumerate(doc["waters"][item]["parts"]) if len(p["runs"]) >= 3)
+    # the water and the lakes its runs pass through (a `lake_inlet:<water>` end names a water of the file)
+    lakes = {t.split(":", 1)[1] for p in doc["waters"][item]["parts"] for r in p["runs"] for t in (r["from"], r["to"])
+             if t and t.startswith(("lake_inlet:", "lake_outlet:"))}
+    assert lakes
+    near = {w: doc["waters"][w] for w in sorted(lakes)}
+    bad = dict(doc, waters={**near, item: copy.deepcopy(doc["waters"][item])})
     mutate(bad["waters"][item]["parts"][part])
     assert any(expect in p for p in export_checks.run_problems(bad)), name
-    assert export_checks.run_problems(dict(doc, waters={item: doc["waters"][item]})) == []
+    assert export_checks.run_problems(dict(doc, waters={**near, item: doc["waters"][item]})) == []
 
 
 # ---------------------------------------------------------------------------------------------

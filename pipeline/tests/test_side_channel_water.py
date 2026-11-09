@@ -327,9 +327,11 @@ def test_one_map_decides_the_side_channel():
 
 @pytest.mark.needs_bundle
 @pytest.mark.parametrize("item_id, sections", [
-    ("gnis:21105", 9),          # Nicomen Slough: 3 side-channel lines, 2 connectors (59620, 59622), 4 polygons
+    # re-measured 2026-11-08 on the live AND the T517 side bundle (both 10 / 8; the 2026-10-23 counts predate an atlas
+    # rebuild that re-cut these channels — the pin is the section count, the test's point is the one panel)
+    ("gnis:21105", 10),         # Nicomen Slough: 5 side-channel lines, 1 connector (59599), 4 polygons
     ("blk:355992187", 7),       # Herrling Island Side Channel (its own 08MF047 leading all seven)
-    ("gnis:13499", 7),          # Maria Slough
+    ("gnis:13499", 8),          # Maria Slough: 4 lines, 1 connector (59777), 3 polygons
 ])
 def test_a_side_channel_water_reads_one_panel_in_the_bundle(item_id, sections):
     """Measured on the real graph (2026-10-23, T169): every section of these waters takes one panel. A bundle built

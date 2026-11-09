@@ -239,7 +239,10 @@ def test_lower_ends_on_the_built_export(request):
                        if r.get("km_to") == 0 and not r.get("branch")})
     assert lows("gnis:8634") == ["continues:gnis:3062"]                     # Chilliwack -> Vedder
     labels = [D.short_label(X, p, "") for p in X["waters"]["gnis:8634"]["parts"]]
-    assert "Vedder Crossing Bridge → Tamihi Rapids Bridge" in labels, labels
+    # T517: the Chilliwack's lowest rule set is two parts, cut where DFO's salmon area changes 200 m above the bridge;
+    # the lower one starts at the Vedder Crossing Bridge, where the river goes on as the Vedder
+    signs = "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"
+    assert labels[:2] == [f"Vedder Crossing Bridge → {signs}", f"{signs} → Tamihi Rapids Bridge"], labels
     assert lows("gnis:17209") == ["continues:gnis:11611"]                   # Atnarko -> Bella Coola
     assert lows("gnis:2770") == ["confluence:gnis:17209"]                   # Talchako: Atnarko
     assert lows("gnis:25640") == ["confluence:gnis:14533"]                  # Sproat: Stamp

@@ -122,8 +122,12 @@ def rel(request, tmp_path_factory, live_store_of):
     from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
     from pipeline.deliver.export.contract import OUT as EXPORT
     bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
-    si = need(request, "bundle", GENERATED.bundle / "status_index.bin", BUNDLE_HINT)
-    exp = need(request, "bundle", EXPORT.parent / "ui-rules-answers.json", EXPORT_HINT).parent
+    # the status index and the answers + export pair are the bundle's own set: a side bundle (UI_EXPORT_BUNDLE) is
+    # paired with its side STATUS_INDEX / ANSWERS_EXPORT_DIR, never the live ones (their section_handles differ)
+    si = need(request, "bundle", Path(os.environ.get("STATUS_INDEX") or GENERATED.bundle / "status_index.bin"),
+              BUNDLE_HINT)
+    exp = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or EXPORT.parent) / "ui-rules-answers.json",
+               EXPORT_HINT).parent
     if not sqlite3.connect(f"file:{bundle}?mode=ro", uri=True).execute(
             "SELECT 1 FROM sqlite_master WHERE name = 'part_geo'").fetchone():
         pytest.fail(f"{bundle} predates P09: point UI_EXPORT_BUNDLE at a bundle with part_geo")

@@ -259,56 +259,42 @@ def _marks(db, item: str) -> list[tuple]:
 
 
 @pytest.mark.needs_bundle
-def test_the_chilliwack_and_the_cowichan_rank_and_meet_as_the_prototype_draws_them(request):
+def test_the_chilliwack_and_the_cowichan_are_runs_in_river_order_with_a_named_mark_between_each(request):
+    """T517: one part per connected run, numbered from the mouth, each pair of neighbours met at ONE named mark in
+    the words their names say there. The Chilliwack's lowest 200 m (to DFO's orange triangular signs) is a part of its
+    own: its DFO salmon chain differs from the rest of its run (same rule-set group and run)."""
     db = _bundle(request)
-    wm = _watermap()
-    for group, item in (("vedder", "gnis:8634"), ("cowichan", "gnis:12227")):
-        parts = [p for p in wm[group]["parts"] if p["item"] == item]
-        assert _ranked(db, item) == [p["v"] for p in parts], group
-        # every boundary the prototype draws between two parts of this water, with its words
-        at = {i for i, p in enumerate(wm[group]["parts"]) if p["item"] == item}
-        want = sorted((wm[group]["parts"][m["down"]]["v"], (wm[group]["parts"][m["up"]]["v"],), m["label"])
-                      for m in wm[group]["marks"] if m["down"] in at and m["up"] in at)
-        # (T228) a mark between two pieces of ONE part is a salmon chain cut, which the prototype does not draw
-        assert sorted(m for m in _marks(db, item) if m[0] not in m[1]) == want, group
+
+    def rows(item):
+        (o,) = db.execute("SELECT ord FROM item WHERE item_id = ?", (item,)).fetchone()
+        parts = db.execute("SELECT part_ix, grp, run FROM part WHERE ord = ? ORDER BY part_ix", (o,)).fetchall()
+        marks = db.execute("SELECT label, down_part, up_parts FROM part_mark WHERE ord = ? ORDER BY mark_ix",
+                           (o,)).fetchall()
+        return parts, marks
+    parts, marks = rows("gnis:8634")
+    assert [(g, r) for _, g, r in parts] == [(1, 0), (1, 0), (2, 0), (0, 0), (3, 0)]
+    assert marks == [("Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)", 0, "[1]"),
+                     ("Tamihi Rapids Bridge", 1, "[2]"),
+                     ("100 m below the Slesse Creek confluence", 2, "[3]"),
+                     ("Chilliwack River Ecological Reserve boundary", 3, "[4]")]
+    parts, marks = rows("gnis:12227")
+    assert len(parts) == 5 and [(m[1], m[2]) for m in marks] == [(k, f"[{k + 1}]") for k in range(4)]
+    assert [m[0] for m in marks][1:] == ["CNR Mile 66 Trestle", "CNR Bridge (mile 70.2)", "Greendale Trestle"]
 
 
 @pytest.mark.needs_bundle
-def test_kanaka_has_a_mark_at_the_bridge_and_at_the_falls_and_two_stretches(request):
-    """T204: Kanaka Creek's part below the bridge + above the falls is two stretches, and the part between meets it at
-    BOTH places — the bridge mark (the lower stretch below it) and the falls mark (the upper stretch above it)."""
+def test_kanaka_is_four_runs_and_its_one_rule_set_on_both_sides_of_the_bridge_reach_is_two_parts(request):
+    """T204 -> T517: Kanaka Creek's rule set below the 112 Avenue bridge AND above Cliff Park Falls is TWO parts now
+    (one group, runs 0 and 1), the part between meets each at its own mark; the tidal piece is the lowest part."""
     db = _bundle(request)
-    o = db.execute("SELECT ord FROM item WHERE item_id = 'gnis:11318'").fetchone()
-    marks = db.execute("SELECT label, down_part, up_parts, down_stretch, up_stretches FROM part_mark WHERE ord = ? "
-                       "ORDER BY mark_ix", o).fetchall()
-    labels = sorted(m[0] for m in marks)
-    # (T185/T212, split:kanaka_creek__cpr_bridge_tidal_boundary) below the CPR Bridge is tidal: its own unkeyed part
-    # (2), met at the bridge — the freshwater parts and their marks are as before
-    assert labels == ["112 Avenue bridge", "CPR Bridge (tidal boundary)", "Cliff Park Falls"], marks
-    tidal = {m[1] for m in marks if m[0] == "CPR Bridge (tidal boundary)"}
-    stretches = [r for r in db.execute("SELECT part_ix, stretch_ix, rank FROM part_stretch WHERE ord = ? ORDER BY rank",
-                                       o).fetchall() if r[0] not in tidal]
-    assert len(stretches) == 3 and sorted({p for p, _, _ in stretches}) == [0, 1], stretches
-    by = {m[0]: m for m in marks}
-    two = [p for p, k, _ in stretches if k == 1][0]           # the part with two stretches
-    one = [p for p, _, _ in stretches if p != two][0]
-    assert by["112 Avenue bridge"][1:] == (two, json.dumps([one]), None, None)    # every stretch 0: NULL
-    assert by["Cliff Park Falls"][1:] == (one, json.dumps([two]), 0, json.dumps([1]))
-
-
-@pytest.mark.needs_bundle
-def test_the_chilliwack_chain_is_cut_once_where_dfo_s_salmon_area_changes(request):
-    """T204 + T228: a chain of parts (each pair meets once) whose only stretches are the salmon chain cut — the piece of
-    part 1 below DFO's "orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)" and the rest of it,
-    joined by that one mark (the app joins them again while their salmon reads alike, `mergeNav`)."""
-    db = _bundle(request)
-    (o,) = db.execute("SELECT ord FROM item WHERE item_id = 'gnis:8634'").fetchone()
-    two = db.execute("SELECT part_ix, COUNT(*) FROM part_stretch WHERE ord = ? GROUP BY part_ix HAVING COUNT(*) > 1",
-                     (o,)).fetchall()
-    assert two == [(1, 2)]
-    same = db.execute("SELECT label, down_stretch, up_stretches FROM part_mark WHERE ord = ? AND down_part = 1 "
-                      "AND up_parts = '[1]'", (o,)).fetchall()
-    assert same == [("orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)", 0, "[1]")]
+    (o,) = db.execute("SELECT ord FROM item WHERE item_id = 'gnis:11318'").fetchone()
+    parts = db.execute("SELECT part_ix, grp, run, set_id IS NULL FROM part WHERE ord = ? ORDER BY part_ix",
+                       (o,)).fetchall()
+    assert parts == [(0, 2, 0, 1), (1, 0, 0, 0), (2, 1, 0, 0), (3, 0, 1, 0)]
+    marks = db.execute("SELECT label, down_part, up_parts FROM part_mark WHERE ord = ? ORDER BY mark_ix", (o,)).fetchall()
+    assert marks == [("CPR Bridge (tidal boundary)", 0, "[1]"), ("112 Avenue bridge", 1, "[2]"),
+                     ("Cliff Park Falls", 2, "[3]")]
+    assert not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'part_stretch'").fetchone()
 
 
 @pytest.mark.needs_bundle
@@ -316,7 +302,8 @@ def test_the_chilliwack_flows_into_the_vedder_at_vedder_crossing(request):
     db = _bundle(request)
     row = db.execute("SELECT d.item_id, x.down_part, x.label FROM water_exit x JOIN item i ON i.ord = x.ord "
                      "JOIN item d ON d.ord = x.down_ord WHERE i.item_id = 'gnis:8634'").fetchone()
-    assert row == ("gnis:3062", 0, "Vedder River")
+    # (T517) the Vedder's parts are in river order: Vedder Crossing is its TOP part
+    assert row == ("gnis:3062", 1, "Vedder River")
 
 
 @pytest.mark.needs_bundle

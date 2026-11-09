@@ -418,7 +418,7 @@ def test_a_link_whose_section_has_no_part_stops_the_build():
 
 @pytest.mark.needs_bundle
 def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
-    """On the real bundle: the link the owner asked for (the Chilliwack's mouth part into the Vedder's part 0), and the
+    """On the real bundle: the link the owner asked for (the Chilliwack's mouth part into the Vedder's top part), and the
     17 reviewed links (T59: the Atnarko as the Bella Coola) — the bundle is where `water_continue` is made now; the
     release copies it (`test_release.py`)."""
     import os
@@ -434,7 +434,11 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     named = lambda n: {o for (o,) in b.execute("SELECT ord FROM item WHERE name = ?", (n,))}  # noqa: E731
     rows = b.execute("SELECT ord, part, next_ord, next_part FROM water_continue ORDER BY ord").fetchall()
     chw, ved = ordof["gnis:8634"], ordof["gnis:3062"]
-    assert [r for r in rows if ved in (r[0], r[2]) or chw in (r[0], r[2])] == [(chw, 1, ved, 0)]
+    # T517: parts are numbered in river order from the mouth, so the Chilliwack's lowest part is its part 0, and it goes
+    # on into the Vedder's TOP part (the Vedder is two parts, cut by DFO's salmon area 200 m below Vedder Crossing)
+    ved_top = b.execute("SELECT MAX(part_ix) FROM part WHERE ord = ?", (ved,)).fetchone()[0]
+    assert ved_top == 1
+    assert [r for r in rows if ved in (r[0], r[2]) or chw in (r[0], r[2])] == [(chw, 0, ved, ved_top)]
     preds = {n for (n,) in b.execute("SELECT i.name FROM item_down d JOIN item i ON i.ord = d.ord WHERE d.down_ord = ?",
                                      (ved,))}
     assert preds == {"Chilliwack River", "Stewart Slough", "Street Creek", "McGillivray Slough", "Lewis Slough"}
@@ -469,7 +473,9 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     assert ("gnis:27273", "blk:356368998") in decided.refused
     assert len(rows) == 17 - len(stale)   # 12 on r-ce76b4ed3624: 5 municipal links stale (held)
     atn, bc = ordof["gnis:17209"], ordof["gnis:11611"]
-    assert [r for r in rows if atn in (r[0], r[2]) or bc in (r[0], r[2])] == [(atn, 3, bc, 0)]
+    # T517 (river order from the mouth): the Atnarko's lowest part (0) goes on into the Bella Coola's top part
+    bc_top = b.execute("SELECT MAX(part_ix) FROM part WHERE ord = ?", (bc,)).fetchone()[0]
+    assert [r for r in rows if atn in (r[0], r[2]) or bc in (r[0], r[2])] == [(atn, 0, bc, bc_top)]
 
 
 @pytest.mark.needs_bundle

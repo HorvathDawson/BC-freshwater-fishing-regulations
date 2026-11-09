@@ -45,8 +45,8 @@ def _files():
 
 def _tap(item, part, m, d, **kw):
     data, _, wire = _files()
-    if isinstance(part, str):                # an endpoint label: the part by what it covers
-        part = part_at(data, item, part)
+    if isinstance(part, str):                # endpoint labels ("a|b"): the part by what it covers
+        part = part_at(data, item, *part.split("|"))
     return E.tap(wire, data, item, part, m, d, **kw)
 
 
@@ -68,12 +68,17 @@ def _profile(name: str) -> int:
 # B — a count limit shared by several kinds (rows F11)
 # --------------------------------------------------------------------------------------------
 
+# each water's lowest non-tidal part, by what it covers (T517 numbers parts in river order from the mouth, so the
+# Skeena's part 0 is its tidal reach)
+LOWEST = [(BABINE, "mouth"), (SKEENA, "area:SKEENA RIVER ECOLOGICAL RESERVE|skeena_river__tidal_boundary")]
+
+
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("item", [BABINE, SKEENA])
-def test_b_region_6_stream_trout_cap_is_one_for_all_trout_kinds_together(item):
+@pytest.mark.parametrize("item,part", LOWEST, ids=[i for i, _ in LOWEST])
+def test_b_region_6_stream_trout_cap_is_one_for_all_trout_kinds_together(item, part):
     """p.49: '1 trout from streams July 1-Oct 31'. Sep 20 (lake trout released then): only 1 of the
     5 can be brown, cutthroat, rainbow or steelhead — it was 3 (each kind's own 1, summed)."""
-    t = _tap(item, 0, 9, 20, weekday="Sunday")
+    t = _tap(item, part, 9, 20, weekday="Sunday")
     rd = _trout_row(t)["real_daily"]
     assert rd["n"] == 5 and rd["capped_sum"] == 1 and rd["rb"]
     assert sorted(rd["capped"]) == ["CT", "GB", "RB", "ST"]
@@ -105,11 +110,11 @@ def _general_caps(t):
 
 
 @pytest.mark.needs_bundle
-@pytest.mark.parametrize("item", [BABINE, SKEENA])
-def test_d_region_6_one_over_50_counts_hatchery_steelhead(item):
+@pytest.mark.parametrize("item,part", LOWEST, ids=[i for i, _ in LOWEST])
+def test_d_region_6_one_over_50_counts_hatchery_steelhead(item, part):
     """p.49 '1 over 50 cm (quota includes hatchery steelhead)': the general cap leaves no fish out
     (it was `except: [RB]`, which the page read as 'steelhead don't count')."""
-    caps = _general_caps(_tap(item, 0, 8, 1))
+    caps = _general_caps(_tap(item, part, 8, 1))
     assert caps and all(not c.get("except") for c in caps if c["a"] == 50)
 
 
