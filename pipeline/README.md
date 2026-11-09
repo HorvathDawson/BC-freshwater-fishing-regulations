@@ -60,6 +60,10 @@ What needs which stages: a rule edit (curated regulations) → reach + deliver; 
 that step on; a registry name (atlas sidecar) → reach + deliver; tile labels → `--labels`. `--force deliver`
 runs every step afresh (`deliver all --no-step-cache`).
 
+**Release builds run with `--no-step-cache`** (`pipeline build --force deliver`) until the step cache's read set is
+proved complete on every run (T522: the bundle's recorded read count varied between runs on the same inputs). The
+step cache is for iteration.
+
 ## Review marks → curated files (T266, T408)
 
 ```bash

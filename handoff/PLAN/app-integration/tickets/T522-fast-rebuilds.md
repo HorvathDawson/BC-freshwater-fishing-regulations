@@ -71,4 +71,15 @@ Proof of the fixes (2026-11-09 midday, clean worktree HEAD + fixes, T517 side in
 bytes): bundle reran ("reads changed: …rule_section.jsonl.gz"), rebuilt byte-identical, so every later step was reused
 (453 s). a/b/c/m: 65 files byte-identical. Tests unfiltered: test_stepcache 19 + build/deliver/review gates green.
 
+## The varying read count (coordinator, 2026-11-09): explained and fixed
+Cause: the recorder logged the IMPORT SYSTEM's reads of module sources. On a .pyc miss (a fresh worktree, or one
+where tests had compiled only some modules), each module's .py was read and recorded; otherwise the .pyc was read
+(skipped). 198 / 142 = cold runs in fresh worktrees; 82 = the same run with .pyc warm and no `cache/` dir in the
+worktree (`cache/dfo_salmon` is gitignored, so those 9 reads became recorded `missing` probes). No hole: every such
+read was a module that is also keyed by its M line. Fix: import-system reads and scans are not recorded (only the
+immediate caller counts, so a module's own import-time file reads still are); every repo-local module, not just
+`pipeline.*`, gets an M line. Test: `test_the_read_set_does_not_depend_on_whether_a_pyc_exists` (fails on the old
+recorder). Evidence: three traced bundle runs on identical inputs (data/generated/side/t522/rx): the same 149 modules,
+92 reads, 3 listings and 129 probes with identical stamps; bundle.sqlite sha256 identical (5df79c0b…).
+
 Depends: none. Size: M. Owner: no.

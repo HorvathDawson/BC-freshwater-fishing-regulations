@@ -374,3 +374,35 @@ def test_a_traced_stage_keys_on_the_files_it_imported(scratch):
     assert B.stage_code("reach", m) != k1
     assert B.stage_code("deliver", {"stages": {}, "runs": []}) == B.code_digest(B.CODE["deliver"])
     assert B.stage_code("tiles", m) == B.code_digest(B.CODE["tiles"])
+
+
+# ---------------------------------------------------------------------------------------------------- the read set
+
+def _trace_import(world, tag, script):
+    tr = world / f"tr-{tag}"
+    subprocess.run([PY, "-c", script], check=True, cwd=REPO_ROOT,
+                   env={**os.environ, "PIPELINE_TRACE": str(tr), "PYTHONPATH": f"{REPO_ROOT}{os.pathsep}{world}"})
+    return SC.Trace(tr)
+
+
+def test_the_read_set_does_not_depend_on_whether_a_pyc_exists(world):
+    """T522 review: the bundle recorded 198 / 142 / 82 reads on one input set — the import system reading module
+    SOURCES on a .pyc miss (a fresh worktree) was recorded as reads. A module is keyed by its M line; the read set must
+    be the same cold and warm. Also: a repo module outside `pipeline` is keyed (M), and a file a module reads at
+    IMPORT time (under the import system's frames) is a read."""
+    pkg = world / "t522mod"
+    pkg.mkdir()
+    (pkg / "__init__.py").write_text("")
+    data = world / "data.txt"
+    data.write_text("d")
+    (pkg / "m.py").write_text(f"import pathlib\nDATA = pathlib.Path({str(data)!r}).read_text()\n")
+    script = "import pipeline, t522mod.m"
+    for c in pkg.rglob("__pycache__"):
+        shutil.rmtree(c)
+    cold = _trace_import(world, "cold", script)
+    assert list(pkg.rglob("*.pyc")), "the cold run should have written the .pyc"
+    warm = _trace_import(world, "warm", script)
+    assert cold.reads == warm.reads and cold.lists == warm.lists
+    assert not any(r.endswith(".py") for r in cold.reads), sorted(cold.reads)
+    assert rel(pkg / "m.py") in cold.modules and rel(pkg / "m.py") in warm.modules
+    assert rel(data) in cold.reads and rel(data) in warm.reads

@@ -6,7 +6,8 @@ pipeline code under it — the stage, the `python -m pipeline.deliver <step>` ch
 each STAMPED WHEN IT HAPPENED (the consumer, `pipeline.common.stepcache`, refuses to key a run whose inputs moved
 between that moment and the end of the run — the output came from what was read, not from what is there now):
 
-    M <file> <sha256>   a repo module imported (`pipeline.*`, `project_config`), hashed AS IT WAS IMPORTED
+    M <file> <sha256>   a module imported from this repo (any package under the repo root, outside the venv), hashed
+                        AS IT WAS IMPORTED
     R <file> <stamp>    a file opened for reading (`open`, `os.open` read-only, `sqlite3.connect`); stamp = `stamp()`
     L <dir>  <listing>  a directory listed (`os.listdir` / `os.scandir`: glob, iterdir); listing = `listing()`
     E <path> <kind>     a path probed (`os.stat`, `os.lstat`, `os.access`: exists / lexists / is_file / is_dir /
@@ -19,7 +20,10 @@ Each line is written straight to the file descriptor (no buffer), so a worker ki
 NOT RECORDED, by design, and covered elsewhere: paths under the interpreter (`sys.prefix`: the venv — the consumer keys
 the interpreter and every installed distribution, `stepcache.env_fingerprint`), the temp dir (a step's own scratch;
 no build input lives there), `/dev` and the system; `shutil.rmtree`'s fd-relative scans (a deletion, not an input);
-`os.stat` of an open file descriptor (the open was recorded). What it CANNOT see is declared by the caller
+`os.stat` of an open file descriptor (the open was recorded); and every read or scan the IMPORT SYSTEM makes —
+a module is keyed by its M line, a package's version by the env. (Recording the import system's reads made the read
+set depend on whether a `.pyc` existed: a fresh checkout's first run read each module's source, a later run its
+`.pyc` — 198 / 142 / 82 reads for one bundle on the same inputs, T522 review.) What it CANNOT see is declared by the caller
 (`pipeline.deliver.__main__.step_declared`): a read made in C by a library that does not go through Python's `open`
 (GDAL `read_file`, a SQLite `ATTACH`), and a subprocess that is not Python.
 """
@@ -32,7 +36,8 @@ import sys
 import tempfile
 import threading
 
-_LOCAL = ("pipeline", "project_config")
+#: the repo root: the directory holding the `pipeline` package this file is in
+_REPO = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "")
 _state = threading.local()
 _seen: set = set()
 _fd = -1
@@ -103,16 +108,12 @@ def _is_path(p) -> bool:
     return isinstance(p, (str, bytes, os.PathLike))
 
 
-def _called_from(*needles: str, depth: int = 10) -> bool:
-    f = sys._getframe(2)
-    for _ in range(depth):
-        if f is None:
-            return False
-        fn = f.f_code.co_filename
-        if any(n in fn for n in needles):
-            return True
-        f = f.f_back
-    return False
+def _called_from(*needles: str) -> bool:
+    """Whether the Python frame that made the audited call (the one under `_audit`) is in a file matching a needle.
+    ONLY that frame: a module's own top-level code reading a file while it is being imported runs UNDER the import
+    system's frames, and its reads are inputs."""
+    f = sys._getframe(3)                    # 0 this, 1 _record, 2 _audit, 3 the caller of open/listdir/scandir
+    return f is not None and any(n in f.f_code.co_filename for n in needles)
 
 
 _EVENTS = frozenset(("open", "sqlite3.connect", "os.listdir", "os.scandir"))
@@ -137,6 +138,8 @@ def _record(event: str, args) -> None:
             return
         if isinstance(path, int):
             return                          # `open(fd)`: a descriptor already opened (and recorded) by path
+        if _called_from("<frozen importlib", "importlib/metadata"):
+            return                          # the import system reading a module's source / .pyc (M keys it)
         if not _is_path(path):
             return _unkeyable(f"open of {path!r}")
         p = _norm(path)
@@ -172,19 +175,25 @@ class _ModuleRecorder:
 
     @staticmethod
     def find_spec(name, path=None, target=None):
-        if name.split(".")[0] not in _LOCAL or getattr(_state, "busy", False):
+        if getattr(_state, "busy", False):
             return None
         _state.busy = True
         try:
             from importlib.machinery import PathFinder
             spec = PathFinder.find_spec(name, path)
             origin = getattr(spec, "origin", None) if spec else None
-            if origin and origin.endswith(".py"):
+            if origin and _is_repo_module(origin):
                 with open(origin, "rb") as fh:
                     _emit("M", os.path.abspath(origin), hashlib.sha256(fh.read()).hexdigest())
         finally:
             _state.busy = False
         return None
+
+
+def _is_repo_module(origin: str) -> bool:
+    """A module file of this repo: under the repo root, not under a skipped root (the venv is `sys.prefix`)."""
+    p = os.path.abspath(origin)
+    return p.startswith(_REPO) and not p.startswith(_skip) and p.endswith(".py")
 
 
 def _probe_recorder(real, name: str):
@@ -223,10 +232,10 @@ def install(directory: str) -> None:
                  "/dev", "/System", "/usr", "/Library", "/private/var/folders", "/private/tmp", "/tmp", "/etc", "/private/etc"}
         _skip = tuple(sorted(os.path.join(r, "") for r in roots if r))
         _emit("V", sys.version.replace("\n", " "), os.path.realpath(sys.executable))
-        # the modules loaded before this hook: `pipeline/__init__.py` (and `project_config` if a caller imported it)
+        # the modules loaded before this hook: `pipeline/__init__.py` (and any repo module a caller imported first)
         for name, mod in list(sys.modules.items()):
             f = getattr(mod, "__file__", None)
-            if name.split(".")[0] in _LOCAL and f and f.endswith(".py"):
+            if f and _is_repo_module(f):
                 with open(f, "rb") as fh:
                     _emit("M", os.path.abspath(f), hashlib.sha256(fh.read()).hexdigest())
     finally:
