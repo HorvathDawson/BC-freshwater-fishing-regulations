@@ -1408,7 +1408,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk"
+            ],
+            "item_id": "gnis:13015"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
