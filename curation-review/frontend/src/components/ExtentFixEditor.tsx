@@ -4,7 +4,7 @@ import type {
   AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
 } from "../types";
 import { failed } from "../failures";
-import { pointWords } from "../extentWords";
+import { otherWaters, pointWords } from "../extentWords";
 
 /** The ops and the owner's words for them, from the server only (`marks.OP_WORDS`, GET /api/extent-fix/ops). (T434) A
  *  failed read is shown; there is no copy here (a second copy of the policy drifts). */
@@ -57,6 +57,8 @@ interface Props {
   tributariesNow?: string;
   /** a cut's label from the curated cuts file, for a cut not on this map (T525: words, never a bare id) */
   cutLabels?: Record<string, string>;
+  /** a water's registry name, for one ticked beyond the place's own (T525: "Bulkley River", never "gnis:2195") */
+  itemNames?: Record<string, string>;
   /** whether the preview draws the tributary walk (the slow toggle); off, a walking binding still SAYS it walks */
   tributariesDrawn?: boolean;
 }
@@ -67,7 +69,7 @@ interface Props {
    in-memory copy (GET /extent-preview); a NEW point cannot be previewed until it is built. */
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
                                   onPreview, onPick, splitAt, newSplits = [], sources,
-                                  previewFn, defaultOpen = false, piece, tributariesNow = "", cutLabels = {},
+                                  previewFn, defaultOpen = false, piece, tributariesNow = "", cutLabels = {}, itemNames = {},
                                   tributariesDrawn = true }: Props) {
   const tid = piece ? `${scope}-p${piece + 1}` : scope;
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
@@ -77,6 +79,8 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
   const [preview, setPreview] = useState<ExtentPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [pickAt, setPickAt] = useState<number | null>(null);
+  // the names of the waters picked here (the search hit carries it), beside the ones the caller knows
+  const [picked, setPicked] = useState<Record<string, string>>({});
   const splitName = (id: string) => cutLabels[id] ?? mapSplits.find((s) => s.id === id)?.name ?? `${id} (no label)`;
 
   const fix: ExtentFix = value ?? {
@@ -171,12 +175,17 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
             {w.name}
           </label>
         ))}
-        {fix.items.filter((x) => !waters.some((w) => w.id === x)).map((x) => (
-          <span key={x} className="chip-tag new">{x}
+        {otherWaters(fix.items, waters.map((w) => w.id), { ...itemNames, ...picked }).map(({ id: x, name }) => (
+          <span key={x} className="chip-tag new" title={x} data-testid="fix-other-water">
+            {name ?? <span className="field-error">water {x} has no name</span>}
             <button type="button" className="x" onClick={() => set({ items: fix.items.filter((y) => y !== x) })}>×</button>
           </span>
         ))}
-        <ItemSearch placeholder="+ another water…" onPick={(h) => !fix.items.includes(h.id) && set({ items: [...fix.items, h.id] })} />
+        <ItemSearch placeholder="+ another water…" onPick={(h) => {
+          if (fix.items.includes(h.id)) return;
+          setPicked((m) => ({ ...m, [h.id]: h.name }));
+          set({ items: [...fix.items, h.id] });
+        }} />
         <span className="dim">{fix.items.length ? "" : "(none ticked = the entry's waters)"}</span>
       </div>
       <div className="fix-row">

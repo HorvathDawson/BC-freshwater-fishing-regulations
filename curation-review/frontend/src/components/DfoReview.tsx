@@ -975,6 +975,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                     mapSplits={mapSplits} waters={items} value={pc}
                     onChange={(f) => setFixes((cur) => (f ? withPiece(cur, i, f) : dropPiece(cur, i)))}
                     tributariesNow={tribNow} tributariesDrawn={showTribs} cutLabels={detail.cut_labels}
+                    itemNames={detail.item_names}
                     onPreview={(fc) => setFixPreview(fc)}
                     onPick={(cb) => setPick({ cb })} splitAt={splitAt}
                     newSplits={[

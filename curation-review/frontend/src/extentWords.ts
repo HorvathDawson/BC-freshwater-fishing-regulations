@@ -45,6 +45,12 @@ export function fixParts(f: ExtentFix, label: CutLabel, itemName: (id: string) =
 export function piecesParts<T>(xs: T[], one: (x: T) => Part[]): Part[] {
   return joined(xs.map((x, i) => [...(xs.length > 1 ? [`piece ${i + 1}: `] : []), ...one(x)]), " + ");
 }
+/** the waters an extent fix holds on beyond the place's own (`own`), each with its registry name — null when it has
+ *  none, which the editor shows as an error, never as a bare id */
+export function otherWaters(items: string[], own: string[], names: Record<string, string>):
+    { id: string; name: string | null }[] {
+  return items.filter((x) => !own.includes(x)).map((id) => ({ id, name: names[id] ?? null }));
+}
 /** parts as one line of text (a notice): a cut with no label is SAID, never left as a bare id */
 export function partsText(parts: Part[]): string {
   return parts.map((p) => (typeof p === "string" ? p : `[cut ${p.cut} has no label]`)).join("");

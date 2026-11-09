@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import {
   addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, placeAnswer, previewOf, proposesCuts, saveWords, tribWords, withPiece,
 } from "../src/dfoExtent.ts";
-import { extentParts, fixParts, partsText, piecesParts } from "../src/extentWords.ts";
+import { extentParts, fixParts, otherWaters, partsText, piecesParts } from "../src/extentWords.ts";
 import type { DfoExtentNow, ExtentFix } from "../src/types.ts";
 
 const between = (a: string, b: string, trib: boolean | null = null): ExtentFix => ({
@@ -145,4 +145,10 @@ test("an extent reads by its cuts' labels; a cut with no label is its own part, 
                "piece 1: between CNR Mile 66 Trestle and [cut cowichan_river__white_triangle_boundary_sign_loc has no label]"
                + " · on Cowichan River · tributaries as the place has them + piece 2: downstream of"
                + " [cut sumas_river__barrow_town_pump_station has no label] · on gnis:26216 · tributaries as the place has them");
+});
+
+test("a water ticked beyond the place's own reads by its registry name; one with no name is said (the Forks' Bulkley)", () => {
+  assert.deepEqual(otherWaters(["gnis:14918", "gnis:2195", "gnis:9"], ["gnis:14918"], { "gnis:2195": "Bulkley River" }),
+                   [{ id: "gnis:2195", name: "Bulkley River" }, { id: "gnis:9", name: null }]);
+  assert.deepEqual(otherWaters(["gnis:14918"], ["gnis:14918"], {}), []);
 });
