@@ -13,6 +13,30 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 night (chat 7, owner asleep): the track
+
+**Order (do not reorder):**
+1. T517 fix agent finishes (round-1 + 2nd-review findings + fast-fail name checks; ONE rebuild; display.ends holds
+   EVERY end token used by parts, in-season notices and boundary marks; marks named by their end token; no stored-label
+   fallbacks; joined stretches checked on every piece). Verify: bindings diff (6 expected T510 sections), size flat,
+   name_check 0 on the SHIPPED release, paint_sync, suites, shots (Fraser, Dean, Squamish). Then local promote.
+2. Then T523 data change (prepared, simulated, all mark statuses unchanged): 4 cut-id renames (Quatse weir u100m/d100m,
+   Stamp lagoon inlet/outlet), 2-token surgical marks.jsonl edit (owner-approved), Squamish "9 mile" powerline
+   re-anchored on OSM 5L32 [-123.185859, 49.785773]. Script in the T523 lane's scratchpad (t523_rename.py --dry first).
+3. T524 (running): DFO extent of several pieces (Chilliwack-Vedder + Sumas; the Forks Bulkley/Morice — FWA check which
+   water runs below the Forks), proposals for each, tributary call defaults from "(including tributaries)" titles,
+   a clear "your fix REPLACES the current extent" banner. Then T525 (audit + mockup running; implement after T524):
+   DFO review screen easy + safe, current extent always visible, confirm keeps it, redo starts from it.
+4. Explainer artifact update → build 22 (new icon, clean prebuild, MLN_LOCAL_MAVEN lean patch) → emulator check →
+   feeds worker deploy with the app (T521) → Play INTERNAL only, if every check is clean.
+5. Also open: T496 found 4 silent fallbacks in tools (consistency.ts:22, check-boundaries.mjs:101, audit_splits.py:48/80)
+   → fix; T522 rebuild speed (proof run); T360 memory lane (running).
+
+**Owner, when you wake:** restart the review app (picks up T523/T524/T525 + the slough path fix); hold DFO marking of
+two-river places (Chilliwack/Sumas, the Forks) until T524 lands; re-upload the Play listing icon + feature graphic.
+
+---
+
 ## 2026-11-08 evening (chat 7, continued): parts + in-season redesigned after two fresh audits
 
 **What changed**
