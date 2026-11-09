@@ -3415,6 +3415,10 @@
             "splits": [
               "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream",
               "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream"
+            ],
+            "item_ids": [
+              "gnis:8634",
+              "gnis:3062"
             ]
           }
         ],
