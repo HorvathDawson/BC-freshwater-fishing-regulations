@@ -77,8 +77,10 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
 
   // (T278, r-62e2f3a8c81e) the Fraser's tidal cut at the CPR Bridge at Mission renumbered x15p7's part 7 -> 6 (taps.py
   // PART_MOVED)
+  // (T517) part_ix is river order: x15p7 ("Within Landstrom Bar sign zone") is part 2
   it("4. x15p7_1010 (an hours window: outside it) and x31p_1010 (tidal)", async () => {
-    const x15 = await load(st, "gnis:39325", 6, 10, 10, "Saturday");
+    expect(requestOf("x15p7_1010").target).toEqual({ kind: "part", item: "gnis:39325", partIx: 2 });
+    const x15 = await load(st, "gnis:39325", 2, 10, 10, "Saturday");
     expect([x15.s, x15.cell!.display]).toEqual([4, cellOf("x15p7_1010").display]);
     const x31 = await load(st, "wbk:329504244", 0, 10, 10, "Saturday");
     expect([x31.key!.tidal, x31.frames!.display.status]).toEqual([true, "tidal"]);

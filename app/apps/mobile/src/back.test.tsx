@@ -204,7 +204,7 @@ const JEPERSON = "gnis:11481" as ItemId;
 
 /**
  * (Owner 2026-10-22 late) Moves inside ONE water, from the Map tab: tap the Chilliwack open (Regulations in front), then
- * Conditions, Map, ▲, ▼, ▼, Regulations, Map — each written down as where the reader is
+ * Conditions, Map, ▲, ▲, ▼, Regulations, Map — each written down as where the reader is
  * (and the water map's part while it is in front), with `extra` (the browser's history entry) beside it.
  */
 async function movesInsideChilliwack(extra: () => string = () => ""): Promise<string[]> {
@@ -215,8 +215,9 @@ async function movesInsideChilliwack(extra: () => string = () => ""): Promise<st
   note(where());
   await view("Conditions"); note(where());
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
+  // (T517) it opens on part 0, the mouth (river order): ▲ twice and ▼ once stay inside the water
   await press("Upstream"); note(`${where()} · ${mapWhere()}`);
-  await press("Downstream"); note(`${where()} · ${mapWhere()}`);
+  await press("Upstream"); note(`${where()} · ${mapWhere()}`);
   await press("Downstream"); note(`${where()} · ${mapWhere()}`);
   await view("Regulations"); note(where());
   await view("Map"); await onWaterMap(); note(`${where()} · ${mapWhere()}`);
@@ -226,13 +227,13 @@ const MOVES_SEEN = [
   "tab Map",
   "water Chilliwack River on Regulations · no bar",
   "water Chilliwack River on Conditions · no bar",
-  "water Chilliwack River on Map · no bar · Part 3 of 4 · Chilliwack River",
-  "water Chilliwack River on Map · no bar · Part 4 of 4 · Chilliwack River",
-  "water Chilliwack River on Map · no bar · Part 3 of 4 · Chilliwack River",
-  "water Chilliwack River on Map · no bar · Part 2 of 4 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 2 of 5 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 3 of 5 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 2 of 5 · Chilliwack River",
   "water Chilliwack River on Regulations · no bar",
   // the stepped part is the frame's: the map comes back on it
-  "water Chilliwack River on Map · no bar · Part 2 of 4 · Chilliwack River",
+  "water Chilliwack River on Map · no bar · Part 2 of 5 · Chilliwack River",
 ];
 
 /** Search "chilliwack river", frame its row, and open it from the row's action (the search result path). */
@@ -268,20 +269,29 @@ async function acrossChilliwackVedder(extra: () => string = () => ""): Promise<s
   await click("tap the map");
   await until(() => screen.queryByText("Chilliwack River") !== null && paneShown());
   await view("Map"); await onWaterMap();
-  await press("Downstream"); await press("Downstream"); note(`${where()} · ${mapWhere()}`);
+  // (T517) it opens on part 0, the mouth (river order): already the lowest part, where ▼ goes into the Vedder; the
+  // Vedder is two parts (a salmon-cut run), and the Chilliwack meets its upper one
+  note(`${where()} · ${mapWhere()}`);
   await press("Downstream into Vedder River");
-  await until(() => mapWhere().startsWith("Part 1 of 1")); note(`${where()} · ${mapWhere()}`);
+  await until(() => mapWhere().startsWith("Part 2 of 2")); note(`${where()} · ${mapWhere()}`);
   await press("Upstream into Chilliwack River");
-  await until(() => mapWhere().startsWith("Part 1 of 4")); note(`${where()} · ${mapWhere()}`);
+  await until(() => mapWhere().startsWith("Part 1 of 5")); note(`${where()} · ${mapWhere()}`);
   await press("Downstream into Vedder River");
-  await until(() => mapWhere().startsWith("Part 1 of 1")); note(`${where()} · ${mapWhere()}`);
+  await until(() => mapWhere().startsWith("Part 2 of 2")); note(`${where()} · ${mapWhere()}`);
   return out;
 }
+/** (T517) the dev fixture source holds no Vedder: its title, so the screen says which water is in front (a one-part
+ *  Vedder used to say it by its part's name, its water's; it is two parts now, each named by its ends) */
+function withVedder(): WaterSource {
+  const base = makeFixtureSource();
+  return { ...base, water: async (i) => (i === "gnis:3062"
+    ? { item: i, name: "Vedder River", kind: "river", sections: [] } : base.water(i)) };
+}
 const ACROSS_SEEN = [
-  "water Chilliwack River on Map · no bar · Part 1 of 4 · Chilliwack River",
-  "water Vedder River on Map · no bar · Part 1 of 1",
-  "water Chilliwack River on Map · no bar · Part 1 of 4 · Chilliwack River",
-  "water Vedder River on Map · no bar · Part 1 of 1",
+  "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
+  "water Vedder River on Map · no bar · Part 2 of 2 · Vedder River",
+  "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
+  "water Vedder River on Map · no bar · Part 2 of 2 · Vedder River",
 ];
 
 describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", () => {
@@ -365,7 +375,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
 
   it("(owner 2026-10-22 late) one system: ▼ / ▲ across the Chilliwack ↔ Vedder name change replaces the water, so " +
      "ONE back from either side is the map it was opened from, and the next is Android's", async () => {
-    await mount(HOME, nativeBack, openRegsFixture());
+    await mount(HOME, nativeBack, openRegsFixture(), { source: withVedder() });
     const seen = await acrossChilliwackVedder();
     expect([...seen, ...backs(2).slice(1)]).toEqual([...ACROSS_SEEN, "handled -> tab Map", "ANDROID -> tab Map"]);
   }, 60_000);
@@ -408,7 +418,8 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
 
   it("(T58) a Parts sheet row reads that part (the frame's part: the water's map comes back on it), and is no layer: " +
      "one back is the map", async () => {
-    await mount({ mode: "water", from: HOME, stack: [{ item: CHILLIWACK, part: 0, tapSid: null, at: null, view: "regs" }] },
+    // (T517) part 3 in river order: "100 m below the Slesse → the Ecological Reserve" (Part 4 of 5)
+    await mount({ mode: "water", from: HOME, stack: [{ item: CHILLIWACK, part: 3, tapSid: null, at: null, view: "regs" }] },
                 nativeBack, openRegsFixture(), { regsStart: { tab: "keep", sheet: "parts" as RegsStart["sheet"], scroll: 0 } });
     await until(() => screen.queryAllByRole("radio").length > 0);
     const seen = [where()];
@@ -421,8 +432,8 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     expect([...seen, ...backs(1).slice(1)]).toEqual([
       "water Chilliwack River on Regulations · Parts of this water sheet · no bar",
       "water Chilliwack River on Regulations · no bar",
-      // opened on part 0 (Part 3 of 4, "100 m below the Slesse → the Ecological Reserve"); the row picked the mouth
-      "water Chilliwack River on Map · no bar · Part 1 of 4 · Chilliwack River",
+      // opened on part 3 (Part 4 of 5, "100 m below the Slesse → the Ecological Reserve"); the row picked the mouth
+      "water Chilliwack River on Map · no bar · Part 1 of 5 · Chilliwack River",
       "handled -> tab Map"]);
   }, 60_000);
 
@@ -442,7 +453,8 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
   it("(T58 review) \"Flows into\" goes through the opener: it opens the receiving water once its areas are read, and " +
      "back pressed before they are read wins (the water opens nothing late)", async () => {
     const chilliwack = { mode: "water", from: HOME,
-                         stack: [{ item: CHILLIWACK, part: 1, tapSid: null, at: null, view: "map" }] } as const;
+                         // (T517) part 0 is the mouth (river order), where it flows into the Vedder
+                         stack: [{ item: CHILLIWACK, part: 0, tapSid: null, at: null, view: "map" }] } as const;
     const flows = () => screen.getByRole("link", { name: "Flows into Vedder River ›" });
     // the dev fixture source holds no Vedder: its title, so the page says which water opened
     const base = makeFixtureSource();
@@ -668,7 +680,7 @@ describe("the browser's back (systemBack.web: the History API) does the same", (
       const v = s && typeof s === "object" ? (s as Record<string, unknown>)["canifishthis.back"] : undefined;
       return ` [entry ${typeof v === "number" ? v : 0}]`;
     };
-    await mount(HOME, webBack, openRegsFixture());
+    await mount(HOME, webBack, openRegsFixture(), { source: withVedder() });
     const seen = await acrossChilliwackVedder(entry);
     await browserBack(); seen.push(`${where()}${entry()}`);
     expect(seen).toEqual([...ACROSS_SEEN.map((s) => `${s} [entry 1]`), "tab Map [entry 0]"]);

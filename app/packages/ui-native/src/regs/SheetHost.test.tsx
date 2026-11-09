@@ -64,8 +64,9 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     const rows = screen.getAllByRole("radio");
     expect(rows.map((r) => [r.getAttribute("aria-label"), r.getAttribute("aria-checked")]))
       .toEqual([["4 side channels · open", "true"], ["Mouth → Talchako River confluence · open", "false"]]);
+    // (T517) part_ix is river order: the side channels are part 0, the main stem (row 2) part 1
     act(() => { rows[1]!.click(); });
-    expect(onPart).toHaveBeenCalledWith(0);
+    expect(onPart).toHaveBeenCalledWith(1);
   });
 
   it("(T58) on the Regulations page a Parts row reaches the page's caller with its part, and the sheet closes", () => {
@@ -80,7 +81,7 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     };
     const before = open();
     act(() => { screen.getAllByRole("radio")[1]!.click(); });
-    expect({ before, parts, after: open() }).toEqual({ before: true, parts: [0], after: false });
+    expect({ before, parts, after: open() }).toEqual({ before: true, parts: [1], after: false });
   });
 
   it("4. Done and the scrim each close it once", () => {

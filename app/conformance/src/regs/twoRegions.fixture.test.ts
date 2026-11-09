@@ -21,8 +21,9 @@ const ladder = (r: PlainRowVM) => r.ladder.sections.flatMap((s) => s.steps.map((
 
 describe("T190: a two-region piece's ladder names each region over its own rules", () => {
   // (T278, regs fixture on r-62e2f3a8c81e) the Fraser's tidal cut at the CPR Bridge at Mission took its old part 3: the Regions 3 and 5 part is 13 now (was 14)
-  it("the Fraser, part 13 (Regions 3 and 5): Region 5's possession line is under Region 5, not under Region 3", async () => {
-    const tc = (await rowsOf("gnis:39325", 13)).find((r) => /^Brook trout/.test(r.title))!;
+  // (T517, regs fixture r-fc17c4373686) part_ix is river order: "Region 5 boundary → Region 3 boundary" is part 14
+  it("the Fraser, part 14 (Regions 3 and 5): Region 5's possession line is under Region 5, not under Region 3", async () => {
+    const tc = (await rowsOf("gnis:39325", 14)).find((r) => /^Brook trout/.test(r.title))!;
     expect(ladder(tc)).toEqual([
       "What you can keep | Fraser River | No fishing for trout and char, Oct 1–31.",
       "Other rules | Region 3 | Possession: 2 days’ quota. Fish at home don’t count.",
@@ -30,7 +31,7 @@ describe("T190: a two-region piece's ladder names each region over its own rules
   });
 
   it("every row of both straddlers: no region heading repeats within a question, and no heading is another region's", async () => {
-    for (const [item, partIx] of [["gnis:39325", 13], ["gnis:26104", 3]] as const) {
+    for (const [item, partIx] of [["gnis:39325", 14], ["gnis:26104", 1]] as const) {
       for (const r of await rowsOf(item, partIx)) {
         for (const s of r.ladder.sections) {
           const heads = s.steps.map((st) => st.level).filter((h) => /^Region /.test(h));
@@ -40,8 +41,9 @@ describe("T190: a two-region piece's ladder names each region over its own rules
     }
   });
 
-  it("the West Road, part 3: its Region 5 rules under Region 5, Region 6's under its zone", async () => {
-    const tc = (await rowsOf("gnis:26104", 3)).find((r) => r.title === "Trout and char")!;
+  // (T517) part_ix is river order: the West Road's Region 5 / Zone A straddler is part 1 (was 3)
+  it("the West Road, part 1: its Region 5 rules under Region 5, Region 6's under its zone", async () => {
+    const tc = (await rowsOf("gnis:26104", 1)).find((r) => r.title === "Trout and char")!;
     expect(ladder(tc).filter((x) => x.startsWith("Other rules"))).toEqual([
       "Other rules | Region 5 | Possession: 2 days’ quota. Fish at home don’t count.",
       "Other rules | Zone A | Possession: 2 days’ quota for cutthroat trout, brook trout, brown trout, rainbow trout and steelhead. "

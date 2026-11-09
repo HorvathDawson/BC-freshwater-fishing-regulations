@@ -152,8 +152,10 @@ describe("T44 the water frame: a view switch moves nothing the views share", () 
     try {
       const m = measure(await shoot());
       // (T367) the part's place row and the access notices head the Conditions view as they head Regulations, drawn by
-      // the frame outside the body; on a phone they are the leftmost text, so the body's gutter shows at 768 and 1440
+      // the frame outside the body; on a phone they were the leftmost text, so the body's gutter showed at 768 and 1440
+      // only. (T517) the Chilliwack's part 0 is said by its run's name, which fits one line: the gutter shows on a phone too
       expect(disagreements(m)).toEqual([
+        "390x844 Conditions left 32 ≠ Regulations 16",
         "768x1024 Conditions left 32 ≠ Regulations 16",
         "1440x900 Conditions left 112 ≠ Regulations 96",
       ]);

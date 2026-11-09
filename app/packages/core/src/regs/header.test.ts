@@ -65,6 +65,21 @@ describe("partLabels (prototype hereLabel / shortLabel)", () => {
   });
 });
 
+describe("(T517) a piece of a salmon-cut run is said by the whole run's name", () => {
+  const pieces = [part("From the mouth up to the bridge", "Mouth → Cable car crossing",
+                       { lo: "Mouth", hi: "Cable car crossing", run_name: "Mouth → Bridge" }),
+                  part("From the mouth up to the bridge", "Cable car crossing → Bridge",
+                       { lo: "Cable car crossing", hi: "Bridge", run_name: "Mouth → Bridge" })];
+  it("no picker: either piece read, the run's name (never the first piece's own ends)", () => {
+    for (const partIx of [0, 1])
+      expect(partLabels(inputs({ parts: pieces, choices: [], partIx }))).toEqual({ full: "Mouth → Bridge", short: "Mouth → Bridge" });
+  });
+  it("one choice holding both pieces: the run's name", () => {
+    expect(partLabels(inputs({ parts: pieces, choices: [choice([0, 1], "Lower river", 8)], partIx: 1 })))
+      .toEqual({ full: "Mouth → Bridge", short: "Mouth → Bridge" });
+  });
+});
+
 describe("headerOf", () => {
   it("today: 'Today' + the date; another day: its weekday; the dot from the strip's status", () => {
     const h = headerOf(inputs(), { today, status: "open" });

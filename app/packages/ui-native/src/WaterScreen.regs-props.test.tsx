@@ -36,7 +36,8 @@ describe("<WaterScreen> regulations", () => {
 
   it("the fixture release (T23/T34/T35): the regs header fixed above ONE scroll — the Chilliwack's closed-all-year part on Oct 10; (T227) no Gear / Methods on a day nothing may be fished, and no Licence (owner 2026-11-04: nothing under it)", async () => {
     render(<WaterScreen source={makeFixtureSource()} item={"gnis:8634" as ItemId} palette={LIGHT}
-                        loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={0} />);
+                        loader={openRegsFixture()} day={new Date(2026, 9, 10, 12)} part={3} />);
+    // (T517) part 3 in river order (mouth first) is the closed-all-year "100 m below the Slesse → the Ecological Reserve"
     await waitFor(() => expect(screen.getByTestId("keep-tab")).toBeTruthy(), { timeout: 20_000 });
     const header = screen.getByTestId("regs-header");
     expect(within(header).getByRole("heading").textContent).toBe("Chilliwack River");

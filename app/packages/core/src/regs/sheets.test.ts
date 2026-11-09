@@ -268,6 +268,18 @@ describe("parts (prototype sheetHtml parts; the status is each choice's STORED d
       .blocks[0] as Extract<SheetBlock, { k: "choice" }>).items.map((x) => x.part);
     expect([order(true), order(false)]).toEqual([[6, 4, 0, 2, 1], [6, 4, 0, 1, 2]]);
   });
+  it("(T517) a choice whose first part is a piece of a salmon-cut run says the whole run's name, not the piece's ends", () => {
+    const piece = (short: string) => ({ ...facts(short), run_name: "Vedder Crossing Bridge → Tamihi Rapids Bridge" });
+    const inp = { ...bc().inp, partIx: 1, item: { ...bc().inp.item!,
+      parts: [piece("Vedder Crossing Bridge → Orange signs"), piece("Orange signs → Tamihi Rapids Bridge"), facts("Tamihi Rapids Bridge → Source")],
+      picker: { headed: false, choices: [
+        { parts: [0, 1], closed: false, sections: 10, heading: "", text: "From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge" },
+        { parts: [2], closed: false, sections: 3, heading: "", text: "From the Tamihi Rapids Bridge up to the source" }] } },
+      choicesOnDay: [{ partIx: 0, status: "own" }, { partIx: 2, status: "own" }] } as unknown as RegsInputs;
+    const it = (sheetOf({ ...bc(), inp }, "parts")!.blocks[0] as Extract<SheetBlock, { k: "choice" }>).items;
+    expect(it.map((x) => [x.text, x.checked, x.part])).toEqual([
+      ["Vedder Crossing Bridge → Tamihi Rapids Bridge", true, 0], ["Tamihi Rapids Bridge → Source", false, 2]]);
+  });
   it("no rows loaded (a hand-built input, or a picker of one choice): no sheet, never a guess", () => {
     expect([sheetOf(bc({ days: null }), "parts"), sheetOf({ ...bc(), inp: { ...bc().inp, choicesOnDay: undefined } }, "parts")]).toEqual([null, null]);
   });

@@ -21,6 +21,9 @@ import { sameDay } from "../day";
 /** The data cut a label with "…" (a match key, never said). */
 const CUT = "…";
 const uncut = (s: string | null | undefined): string => (s && !s.includes(CUT) ? s : "");
+/** (T517) A part's name for the header: a piece of a run the DFO salmon chain cuts is said by the whole run's name (the
+ *  pipeline's `run_name`, the run its rules cover), else its own short name. */
+const runShort = (p: { short: string; run_name?: string | null } | null | undefined): string => uncut(p?.run_name ?? p?.short);
 const SUB_MAX = 150;
 const nParts = (inp: RegsInputs) => inp.item?.parts.filter(Boolean).length ?? 0;
 const choiceOf = (inp: RegsInputs) => inp.item?.picker?.choices.find((c) => c.parts.includes(inp.partIx)) ?? null;
@@ -53,12 +56,12 @@ export function partLabels(inp: RegsInputs): { full: string; short: string } | n
   if (!it) return null;
   const g = nParts(inp) > 1 ? choiceOf(inp) : null;
   if (g) {
-    const long = g.text, short = uncut(it.parts[g.parts[0]!]?.short);
+    const long = g.text, short = runShort(it.parts[g.parts[0]!]);
     return { full: subtitleOf(inp).includes(long) ? long : short || long, short: short || long };
   }
   const p = it.parts[inp.partIx];
   if (!p) return null;
-  const s = uncut(p.short) || p.label;
+  const s = runShort(p) || p.label;
   return { full: s, short: s };
 }
 

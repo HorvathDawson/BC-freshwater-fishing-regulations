@@ -487,11 +487,12 @@ export function itemNote(g: WaterGroup, i: number): string {
 }
 
 /** A boundary's words: its own label, else the two parts' names without what they share (the prototype's rule). A cut
- *  placed approximately says so (T207): "salmon viewing platform, approximate location (low confidence)". */
+ *  placed approximately says so (T207): "salmon viewing platform, approximate location (low confidence)". (T517) A label
+ *  the release words as its parts' end (`end_name`) already carries that sentence: it is said once. */
 export function markLabel(g: WaterGroup, m: NavMark): string {
   if (m.label) {
     const cw = confidenceWords(m.confidence);
-    return cw ? `${m.label}, ${cw}` : m.label;
+    return cw && !m.label.endsWith(`, ${cw}`) ? `${m.label}, ${cw}` : m.label;
   }
   const a = g.parts[m.down]?.short ?? "", b = g.parts[m.up[0]!]?.short ?? "";
   let k = 0;

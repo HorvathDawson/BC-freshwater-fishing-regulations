@@ -26,8 +26,9 @@ const byOf = (s: DecidedStoryVM, says: RegExp) => plain(s.layers.flatMap((l) => 
 
 describe("T216 on the fixture release", () => {
   // (T278, regs fixture on r-62e2f3a8c81e) the Fraser's tidal cut at the CPR Bridge at Mission took its old part 3: the Regions 3 and 5 part is 13 now (was 14)
-  it("the Fraser, part 13 (Regions 3 and 5), Oct 10: both regions' bases, the river's own closure decides, each region's limit overridden by it", async () => {
-    const rows = await rowsOf(await openRegsStore(openRegsFixture()), "gnis:39325", 13, 10, 10);
+  // (T517, regs fixture r-fc17c4373686) part_ix is river order: "Region 5 boundary → Region 3 boundary" is part 14
+  it("the Fraser, part 14 (Regions 3 and 5), Oct 10: both regions' bases, the river's own closure decides, each region's limit overridden by it", async () => {
+    const rows = await rowsOf(await openRegsStore(openRegsFixture()), "gnis:39325", 14, 10, 10);
     const tc = storyOf(rows, /^Brook trout/);
     expect(tc.notes).toEqual(["This stretch is in Region 3 and Region 5, so both regions’ rules apply here."]);
     expect(heads(tc)).toEqual(["All of B.C.: the province’s base rules", "Region 3: the region’s base rules", "Region 5: the region’s base rules",
@@ -101,7 +102,8 @@ describe.skipIf(!LIVE)(`T216 on the live release (${LIVE ?? "absent"})`, () => {
   });
 
   it("a closed water: Chimney Creek above Brunson Lake, May 15 — the spring closure decides; the region's limits lose to it", async () => {
-    const s = storyOf(await rowsOf(await openRegsStore(openReleaseDir(LIVE!)), "gnis:39269", 0, 5, 15), /^Brook trout/);
+    // (T517) part_ix is river order: "Brunson Lake → Source" is part 1 ("Mouth → Brunson Lake outlet" is 0)
+    const s = storyOf(await rowsOf(await openRegsStore(openReleaseDir(LIVE!)), "gnis:39269", 1, 5, 15), /^Brook trout/);
     expect(steps(s, /^Fraser and Thompson/)).toEqual(["No fishing in streams, Apr 1-Jun 30: Fraser and Thompson watersheds in Region 5, "
       + "except the Fraser mainstem Rule book p.42 ↗ | Decides it | A closure decides it: a closure beats any limit that would let you keep fish."]);
     expect(steps(s, /^Region 5/)).toContain("Keep up to 5 burbot a day. Rule book p.42 ↗ | Overridden | "

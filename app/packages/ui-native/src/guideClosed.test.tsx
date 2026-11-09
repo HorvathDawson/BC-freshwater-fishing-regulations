@@ -83,7 +83,7 @@ describe("(T466) the closed example", { timeout: 60_000 }, () => {
       await waitFor(() => expect(here()).not.toEqual(was), { timeout: 20_000 });
       expect(screen.queryByTestId("water-map-chooser"), "no fork on the way up").toBeNull();
     }
-    expect([here(), presses]).toEqual([{ item: closed.item, part: closed.part }, 3]);   // Vedder → Chilliwack ×3
+    expect([here(), presses]).toEqual([{ item: closed.item, part: closed.part }, 5]);   // (T517) the Vedder's two parts, then the Chilliwack's: Vedder ▲, → Chilliwack, ▲ ×3 (mouth first, river order)
     await waitFor(() => expect(screen.getByTestId("water-map-name").textContent).toBe(closed.label), { timeout: 20_000 });
     // the steps' named controls are inside their rings: ▲ "Upstream", and "Show regulations for this part"
     const said = (k: string) => {

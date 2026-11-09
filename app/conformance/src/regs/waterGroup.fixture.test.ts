@@ -18,40 +18,56 @@ const steps = (g: WaterGroup) =>
   g.parts.map((_, i) => `${stepsDown(g, i).join(",") || "-"}|${stepsUp(g, i).join(",") || "-"}`);
 
 describe("the water map's group from the fixture release", () => {
-  it("Chilliwack: four parts by rank, its three boundaries, the mouth into the Vedder at its part 0", async () => {
+  // (T517, regs fixture r-fc17c4373686) a part is one connected run of one rule set AND one DFO salmon chain, part_ix in
+  // river order: the Chilliwack's lowest rule set is cut by the chain 200 m above the Vedder Crossing Bridge (two parts,
+  // one run), so five parts, every one named by its own ends; with no salmon read nothing joins (one mode)
+  it("Chilliwack: five parts in river order, its four boundaries, the mouth into the Vedder's upper part", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
+    const ORANGE = "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)";
     expect(names(g)).toEqual([
-      "Vedder Crossing Bridge → Tamihi Rapids Bridge",
+      `Vedder Crossing Bridge → ${ORANGE}`,
+      `${ORANGE} → Tamihi Rapids Bridge`,
       "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
       "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
       "Chilliwack River Ecological Reserve boundary → Source"]);
     expect(marks(g)).toEqual([
-      "Chilliwack River Ecological Reserve boundary: 2 → 3", "Tamihi Rapids Bridge: 0 → 1",
-      "fishing boundary signs 100 m below the Slesse Creek confluence: 1 → 2"]);
-    expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|-"]);
-    expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 0 });
+      `${ORANGE}: 0 → 1`, "Tamihi Rapids Bridge: 1 → 2", "100 m below the Slesse Creek confluence: 2 → 3",
+      "Chilliwack River Ecological Reserve boundary: 3 → 4"]);
+    expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|-"]);
+    // the two pieces are one run of one rule set (`grp`, `run`), named whole by the run's name
+    expect(g.parts.slice(0, 2).map((p) => [p.grp, p.run, p.runName])).toEqual([
+      [1, 0, "Vedder Crossing Bridge → Tamihi Rapids Bridge"], [1, 0, "Vedder Crossing Bridge → Tamihi Rapids Bridge"]]);
+    expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 1 });
     // (T441) named by stream key + start metre (Vedder 355999181:0, 356363467:0/4738/12723) and its lake's part
     // (T220, r-46be3c135e68) a restored braid piece joined part 0 (9 -> 10 sections; taps.py PART_RECOUNTED chw1_1010)
     // (T441) the sections are named by what they are (stream key + start metre), never by id
-    expect(navSections(g, 0).selected).toEqual(await sec.streams([
-      [355993454, 0], [355993455, 0], [355993456, 0], [355998527, 0], [355999283, 0], [355999620, 0], [356000264, 0],
-      [380887781, 0], [380887781, 200], [380887817, 0]]));
-    expect(g.parts[0]!.box).toEqual([-121.966394, 49.071523, -121.836034, 49.097385]);
+    // (T517) those 10 sections are the two pieces now: the mouth piece's one, the rest above the orange signs
+    expect([navSections(g, 0).selected, navSections(g, 1).selected]).toEqual([
+      await sec.streams([[380887781, 0]]),
+      await sec.streams([[355993454, 0], [355993455, 0], [355993456, 0], [355998527, 0], [355999283, 0], [355999620, 0],
+                         [356000264, 0], [380887781, 200], [380887817, 0]])]);
+    expect(g.parts[0]!.box).toEqual([-121.96469, 49.096026, -121.962945, 49.097385]);
   });
 
-  it("Vedder: one part, named by its water", async () => {
+  // (T517) the Vedder's one rule set is one run the salmon chain cuts at the cable car crossing: two parts, by their ends
+  it("Vedder: one run in two parts, each named by its own ends", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
+    const CABLE = "Cable car crossing (200 m downstream of Vedder Crossing bridge)";
     // (T441) named by stream key + start metre (Vedder 355999181:0, 356363467:0/4738/12723) and its lake's part
-    expect([names(g), steps(g), navSections(g, 0).selected]).toEqual([
-      ["Vedder River"], ["-|-"], [
-        ...await sec.streams([[355999181, 0], [356363467, 0], [356363467, 4738], [356363467, 12723]]),
-        await sec.lake("gnis:3062", 0)]]);
+    expect([names(g), steps(g), marks(g), navSections(g, 0).selected, navSections(g, 1).selected]).toEqual([
+      [`Mouth → ${CABLE}`, `${CABLE} → Vedder Crossing Bridge`], ["-|1", "0|-"], [`${CABLE}: 0 → 1`], [
+        ...await sec.streams([[355999181, 0], [356363467, 0], [356363467, 4738]]), await sec.lake("gnis:3062", 0)],
+      await sec.streams([[356363467, 12723]])]);
   });
 
-  it("Cowichan: four parts in a line", async () => {
+  // (T517) the Cowichan's lowest rule set is cut by the salmon chain at the Sandy Pool sign (placed approximately: the
+  // release's end words say so, and the mark says it once)
+  it("Cowichan: five parts in a line", async () => {
     const g = await loadWaterGroup(st, "gnis:12227");
-    expect(marks(g)).toEqual(["CNR Mile 66 Trestle: 0 → 1", "CNR Bridge (mile 70.2): 1 → 2", "Greendale Trestle: 2 → 3"]);
-    expect([steps(g), g.exit]).toEqual([["-|1", "0|2", "1|3", "2|-"], null]);
+    expect(marks(g)).toEqual([
+      "White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence): 0 → 1",
+      "CNR Mile 66 Trestle: 1 → 2", "CNR Bridge (mile 70.2): 2 → 3", "Greendale Trestle: 3 → 4"]);
+    expect([steps(g), g.exit]).toEqual([["-|1", "0|2", "1|3", "2|4", "3|-"], null]);
   });
 
   it("KLWA: opened from any closure area, the lake's three items in the prototype's order", async () => {
@@ -64,7 +80,7 @@ describe("the water map's group from the fixture release", () => {
     }
   });
 
-  it("Zymoetz: five parts in a line but one fork: ▼ from the source offers the main stem first, then the lake part", async () => {
+  it("Zymoetz: six parts in a line, the lake part reached by the steps both ways", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
     // (T67, r-0ed3c2b2a0a7) no "Side channel" part: E15's spurious mark at the canyon is gone and the channel joins
     // the part above the canyon
@@ -73,23 +89,23 @@ describe("the water map's group from the fixture release", () => {
       "Zymoetz Canyon lower entrance = transmission-line sign → Zymoetz Canyon upper entrance",
       "Zymoetz Canyon upper entrance → Limonite Creek confluence",
       // (T179) the cut 3000 m below McDonell Lake is an authored lake-offset split: it names its end (it read "A lake")
-      // and parts the source part's run there, so that part is two stretches
-      // (T204) the source part's two stretches lie either side of the McDonell Lake part: each is its own entry, in
-      // stem order, so the old fork from the source (both stretches were one) is a line now
-      // (T509) the lower stretch by its own ends: its upper end is the mark into the lake part
+      // (T517) the run below the lake part and the run above it are two parts, each named by its own ends (they were
+      // one part's two stretches, "… (2 stretches) · stretch 2 of 2")
       "Limonite Creek confluence → McDonell Lake (3000 m downstream)",
       "McDonell Lake (3000 m downstream) → McDonell Lake outlet",
-      "Limonite Creek confluence → Source (2 stretches) · stretch 2 of 2"]);
+      "McDonell Lake → Source"]);
     expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|5", "4|-"]);
+    expect(names(g).filter((n) => /stretch/.test(n))).toEqual([]);
   });
 
-  it("water_continue: the Vedder goes on from the Chilliwack — ▲ from the Vedder, ▼ from the Chilliwack's lowest part", async () => {
+  // (T517) the Vedder meets the Chilliwack at its upper part (index 1), the Chilliwack the Vedder at its lowest (0)
+  it("water_continue: the Vedder goes on from the Chilliwack — ▲ from the Vedder's top part, ▼ from the Chilliwack's lowest part", async () => {
     const [ved, chw] = await Promise.all([loadWaterGroup(st, "gnis:3062"), loadWaterGroup(st, "gnis:8634")]);
-    expect([ved.prev, ved.next, crossUp(ved, 0), crossDown(ved, 0)]).toEqual([
-      { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null,
-      { item: "gnis:8634", name: "Chilliwack River", part: 1, at: 0 }, null]);
+    const fromChw = { item: "gnis:8634", name: "Chilliwack River", part: 0, at: 1 };
+    expect([ved.prev, ved.next, crossUp(ved, 0), crossUp(ved, 1), crossDown(ved, 0), crossDown(ved, 1)]).toEqual([
+      fromChw, null, null, fromChw, null, null]);
     expect([chw.next, chw.prev, chw.parts.map((_, i) => crossDown(chw, i)?.item ?? "-")]).toEqual([
-      { item: "gnis:3062", name: "Vedder River", part: 0, at: 0 }, null, ["gnis:3062", "-", "-", "-"]]);
+      { item: "gnis:3062", name: "Vedder River", part: 1, at: 0 }, null, ["gnis:3062", "-", "-", "-", "-"]]);
   });
 
   it("no other fixture water crosses: the Cowichan, the Zymoetz and the KLWA lake", async () => {

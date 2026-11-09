@@ -496,9 +496,11 @@ export function useWaterMap(store: RegsStore | null, item: ItemId | null, part: 
     if (next === from) return;
     latest.current = { at, s: next };
     setHeld(latest.current);
-    // every move to another part OR stretch is the frame's (T204, T345): the frame is the one place the map is on
+    // every move to another part OR stretch is the frame's (T204, T345): the frame is the one place the map is on. A
+    // part picked while the whole water is framed is a move too, onto the part the map already stood on (the frame's
+    // ⤢ is dropped by it: a search Open frames the whole water at its first part, and the list's first row was a no-op)
     const a1 = g.parts[next.at]!;
-    if (onPart && next.at !== from.at) onPart(a1.item as ItemId, a1.partIx, stretchOf(g, next.at, rawG ?? g) || undefined);
+    if (onPart && (next.at !== from.at || (from.whole && !next.whole))) onPart(a1.item as ItemId, a1.partIx, stretchOf(g, next.at, rawG ?? g) || undefined);
   };
   return { state: "ready", value: { vm, act, receiving }, error: null };
 }

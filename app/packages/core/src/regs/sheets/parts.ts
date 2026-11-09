@@ -37,7 +37,9 @@ export function partsSheet(key: SheetKey, inp: RegsInputs): SheetVM | null {
   const items = pickerOrder(it.picker).map((i) => {
     const c = choices[i]!;
     const part = days[i]!.partIx, long = longOf(c.text);
-    const text = uncut(it.parts[part]?.short) || long || it.name;
+    // (T517) a choice whose first part is a piece of a salmon-cut run is named by the whole run (`run_name`)
+    const first = it.parts[part];
+    const text = uncut(first?.run_name ?? first?.short) || long || it.name;
     return { text, sub: null, status: wordOf(days[i]!.status), long: long && long !== text ? long : null,
              checked: c.parts.includes(inp.partIx), part };
   });

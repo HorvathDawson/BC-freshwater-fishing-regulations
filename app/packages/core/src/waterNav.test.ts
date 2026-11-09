@@ -409,6 +409,15 @@ describe("T207: a cut placed approximately says so on its boundary", () => {
     expect(markA11y(g, g.marks[0]!)).toBe("Boundary: CNR Mile 66 Trestle, approximate location (low confidence)");
   });
 
+  it("(T517) a label the release already words with its confidence (a part's end words) says the sentence once", () => {
+    const said = "White triangle boundary sign, approximate location (medium confidence)";
+    const rows: ItemNavRows = { ...COWICHAN, marks: COWICHAN.marks.map((m, i) =>
+      (i === 0 ? { ...m, label: said, confidence: "medium" as const } : m)) };
+    const g = waterGroup([rows]);
+    expect(markLabel(g, g.marks[0]!)).toBe(said);
+    expect(markA11y(g, g.marks[0]!)).toBe(`Boundary: ${said}`);
+  });
+
   it("the one sentence, as the pipeline's `confidence_words` says it", () => {
     expect([confidenceWords(undefined), confidenceWords("high"), confidenceWords("medium"), confidenceWords("low")])
       .toEqual(["", "", "approximate location (medium confidence)", "approximate location (low confidence)"]);

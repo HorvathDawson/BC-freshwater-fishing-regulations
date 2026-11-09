@@ -62,8 +62,10 @@ const SPOT: Spot = {
   id: "s1", createdAt: VISIT, visitedAt: VISIT, updatedAt: 0, lat: 49.0974, lon: -121.9675, item: null,
   waterName: null, title: "Tamihi run", notes: "", photos: [], reading: null, weather: null, trace: null, panel: null,
 };
+// (T517) on the part this scan was written on: the Chilliwack's closed-all-year "100 m below the Slesse → the Ecological
+// Reserve" (part_ix 3 in river order; it was part 0, the default, before T517 renumbered the parts mouth first)
 const WATER = (view: "regs" | "conditions" | "map", tab: "map" | "conditions" = "map"): Route =>
-  ({ mode: "water", from: { ...HOME, tab }, stack: [{ item: CHILLIWACK, part: null, tapSid: null, at: null, view }] });
+  ({ mode: "water", from: { ...HOME, tab }, stack: [{ item: CHILLIWACK, part: 3, tapSid: null, at: null, view }] });
 
 async function mount(initialRoute: Route, loader: ReleaseLoader | null = null) {
   const source = makeFixtureSource();

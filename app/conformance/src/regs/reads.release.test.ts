@@ -46,11 +46,20 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
     expect({ id: v.id, name: v.name, kind: v.kind }).toEqual({ id: "gnis:3062", name: "Vedder River", kind: "stream" });
   });
 
-  it("2. the Vedder's one part", async () => {
-    expect(await st.parts(V.item_ord)).toEqual([{ itemOrd: V.item_ord, partIx: 0, akey: VA, sections: 5, facts: {
-      order: 0, label: "From the mouth up to the Vedder Crossing Bridge", short: "Mouth → Vedder Crossing Bridge",
-      runs: "From the mouth up to the Vedder Crossing Bridge", place: null, hint: "Whole water",
-      km: 12.95, closed_all_year: false, paper_licence: [rix("zp:salmon_stamp::salmon_stamp.r1"), rix("zp:steelhead::steelhead.r4")] }, tidal: false }]);
+  // (T517) a part is one connected run of one rule set AND one DFO salmon chain: the Vedder's one rule set (grp 0) is
+  // one run (run 0) the chain cuts at the cable car crossing, so two parts, each with its own ends and the run's name
+  it("2. the Vedder's two parts: one run of one rule set, cut by the salmon chain", async () => {
+    const licence = [rix("zp:salmon_stamp::salmon_stamp.r1"), rix("zp:steelhead::steelhead.r4")];
+    const CABLE = "Cable car crossing (200 m downstream of Vedder Crossing bridge)";
+    const piece = (partIx: number, sections: number, lo: string, hi: string, runs: string, km: number) => ({
+      itemOrd: V.item_ord, partIx, akey: VA, sections, grp: 0, run: 0, tidal: false, facts: {
+        order: partIx, label: "From the mouth up to the Vedder Crossing Bridge", short: `${lo} → ${hi}`, lo, hi,
+        run_name: "Mouth → Vedder Crossing Bridge", runs, place: null, hint: "Whole water", km, closed_all_year: false,
+        paper_licence: licence } });
+    expect(await st.parts(V.item_ord)).toEqual([
+      piece(0, 4, "Mouth", CABLE, "From the mouth up to the cable car crossing (200 m downstream of Vedder Crossing bridge)", 12.72),
+      piece(1, 1, CABLE, "Vedder Crossing Bridge",
+            "From the cable car crossing (200 m downstream of Vedder Crossing bridge) up to the Vedder Crossing Bridge", 12.95)]);
   });
 
   it("3–4. keys, segments and moments", async () => {

@@ -244,34 +244,35 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
     fireEvent.click(screen.getByRole("tab", { name: "Map" }));
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
     expect([stepped, regs, where()]).toEqual([
-      "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
-      // part_ix 0 is the third part mouth first (rank 2)
-      "regs on gnis:8634 part 0",
-      "Part 3 of 4 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"]);
+      "Part 4 of 5 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
+      // (T517) part_ix is river order, mouth first: two up from part 1 is part 3
+      "regs on gnis:8634 part 3",
+      "Part 4 of 5 · Chilliwack River | 100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary"]);
   }, 40_000);
 
   it("across waters: ▲ on the Vedder opens the Chilliwack's map at its lowest part IN ITS PLACE (owner 2026-10-22 " +
      "late: a river that changes its name is ONE system), so to and fro never stacks and ONE back from the Chilliwack " +
      "is the Map tab", async () => {
-    await onMap("gnis:3062", 0);
+    // (T517) the Vedder is two parts (a salmon-cut run, apart while no salmon is read); the Chilliwack meets its upper one
+    await onMap("gnis:3062", 1);
     const seen = [where()];
     fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
-    await until(() => where().startsWith("Part 1 of 4 · Chilliwack River"));
+    await until(() => where().startsWith("Part 1 of 5 · Chilliwack River"));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
     fireEvent.click(screen.getByRole("button", { name: "Downstream into Vedder River" }));
-    await until(() => where().startsWith("Part 1 of 1"));
+    await until(() => where().startsWith("Part 2 of 2"));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
     fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
-    await until(() => where().startsWith("Part 1 of 4"));
+    await until(() => where().startsWith("Part 1 of 5"));
     seen.push(`${where()} | ${screen.getByLabelText(BACK).textContent}`);
     act(() => { fireEvent.click(screen.getByLabelText(BACK)); });
     seen.push(screen.queryByTestId("water-map-where") ? where() : "the Map tab");
     expect(seen).toEqual([
-      "Part 1 of 1 | Vedder River",
+      "Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge",
       // one system: the Chilliwack replaced the Vedder, so its ‹ names the tab the system was opened from
-      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge | Map",
-      "Part 1 of 1 | Vedder River | Map",
-      "Part 1 of 4 · Chilliwack River | Vedder Crossing Bridge → Tamihi Rapids Bridge | Map",
+      "Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) | Map",
+      "Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge | Map",
+      "Part 1 of 5 · Chilliwack River | Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) | Map",
       "the Map tab"]);
   }, 40_000);
 });
@@ -298,6 +299,7 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
 
   it("on the Regulations view the water's Map is offered once — the view strip's tab — and the header has no action " +
      "(T150: no Parts either); the strip's Map opens the water's Map view on the part being read", async () => {
+    // (T517) part 1 in river order: the mouth's salmon-cut neighbour, "Orange triangular boundary signs → Tamihi Rapids Bridge"
     await onRegs(CHILLIWACK, 1);
     // (T379) load-proof: the header is waited for itself, not read on the strength of the tab's arrival
     await waitFor(() => expect(screen.getByTestId("regs-header")).toBeTruthy(), { timeout: 20_000 });
@@ -307,7 +309,7 @@ describe("ONE MAP ENTRY (T71, owner call 3, 2026-10-22: \"Keep only one Map entr
     fireEvent.click(screen.getByRole("tab", { name: "Map" }));
     await waitFor(() => expect(screen.getByTestId("water-map-where")).toBeTruthy(), { timeout: 20_000 });
     seen.push(screen.getByTestId("water-map-where").textContent);
-    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], null, 0, "Part 1 of 4 · Chilliwack River"]);
+    expect(seen).toEqual([["Map", "Close, back to Map"], [["tab", "Map"]], null, 0, "Part 2 of 5 · Chilliwack River"]);
   }, 40_000);
 });
 
@@ -316,7 +318,8 @@ describe("THE PARTS LIST IN THE MAP VIEW (T150, owner 2026-10-23: \"dont we want
   it("the Map view lists every part by name under the map — closed, then open as a radio group with the part shown " +
      "checked — and a pick moves the frame's part: the map, and the Regulations view's part name", async () => {
     const start: Route = { mode: "water", from: { ...HOME, tab: "map" },
-                           stack: [{ item: CHILLIWACK as ItemId, part: 1, tapSid: null, at: null, view: "map" }] };
+                           // (T517) part 0 is the mouth (river order)
+                           stack: [{ item: CHILLIWACK as ItemId, part: 0, tapSid: null, at: null, view: "map" }] };
     render(
       <GestureHandlerRootView>
         <Shell source={makeFixtureSource()} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}
@@ -332,22 +335,24 @@ describe("THE PARTS LIST IN THE MAP VIEW (T150, owner 2026-10-23: \"dont we want
     const open = [toggle().getAttribute("aria-label"), toggle().getAttribute("aria-expanded"),
                   screen.getByTestId("water-map-parts-list").getAttribute("aria-label"), rows()];
     expect([closed, open]).toEqual([
-      ["Show all 4 parts", "false", null],
+      ["Show all 5 parts", "false", null],
       ["Hide the list of parts", "true", "Parts of this water", [
-        ["Vedder Crossing Bridge → Tamihi Rapids Bridge, part 1 of 4 · Chilliwack River", "true"],
-        [expect.stringMatching(/, part 2 of 4 · Chilliwack River$/), "false"],
-        [expect.stringMatching(/, part 3 of 4 · Chilliwack River$/), "false"],
-        [expect.stringMatching(/, part 4 of 4 · Chilliwack River$/), "false"]]]]);
-    // the pick: part 2 of the list — the map's bar says so, the list closes, and the Regulations view reads that part
-    const name2 = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio")[1]!.getAttribute("aria-label")!.split(", part ")[0];
-    fireEvent.click(screen.getByTestId("water-map-part-1"));
-    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 2 of 4 · Chilliwack River"), { timeout: 20_000 });
+        ["Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge), part 1 of 5 · Chilliwack River", "true"],
+        [expect.stringMatching(/, part 2 of 5 · Chilliwack River$/), "false"],
+        [expect.stringMatching(/, part 3 of 5 · Chilliwack River$/), "false"],
+        [expect.stringMatching(/, part 4 of 5 · Chilliwack River$/), "false"],
+        [expect.stringMatching(/, part 5 of 5 · Chilliwack River$/), "false"]]]]);
+    // the pick: part 3 of the list (a rule set of its own: the Regulations view names it by its own ends) — the map's
+    // bar says so, the list closes, and the Regulations view reads that part
+    const name2 = within(screen.getByTestId("water-map-parts-list")).getAllByRole("radio")[2]!.getAttribute("aria-label")!.split(", part ")[0];
+    fireEvent.click(screen.getByTestId("water-map-part-2"));
+    await waitFor(() => expect(screen.getByTestId("water-map-where").textContent).toBe("Part 3 of 5 · Chilliwack River"), { timeout: 20_000 });
     const after = [screen.getByTestId("water-map-name").textContent, screen.queryByTestId("water-map-parts-list"),
                    toggle().getAttribute("aria-label")];
     fireEvent.click(screen.getByRole("tab", { name: "Regulations" }));
     // (T369) load-proof: the place label itself is waited for (the page may hold its spinner a moment after the tab)
     await waitFor(() => expect(screen.getByTestId("regs-place")).toBeTruthy(), { timeout: 20_000 });
     expect([...after, screen.getByTestId("regs-place").getAttribute("aria-label")])
-      .toEqual([name2, null, "Show all 4 parts", expect.stringContaining(name2!.split(" → ")[0]!)]);
+      .toEqual([name2, null, "Show all 5 parts", expect.stringContaining(name2!.split(" → ")[0]!)]);
   }, 60_000);
 });
