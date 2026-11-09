@@ -1,6 +1,6 @@
 # T526 — DFO salmon is stale when it has not been CHECKED for a day
 
-Status: IN REVIEW (build 22 ship-blocker) — worker unchanged, not deployed
+Status: DONE 5b283e295 — worker unchanged (its `at` is the run time, heartbeat 20 h); ships in build 22
 
 Owner 2026-11-09: "should be if it is older then a day. and older just means it wasnt checked because it doesnt change
 that frequently but we need toi check it often."

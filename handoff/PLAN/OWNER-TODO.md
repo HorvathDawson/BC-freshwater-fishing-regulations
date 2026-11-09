@@ -6,6 +6,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **Q176 map line contrast (T470, 2026-11-09).** Industry standard (WCAG 3:1 for map lines) now holds in dark mode
+  (dark base blue lightened; colour-blind selection deepened; dark closed already passes at 3.67:1). In LIGHT and
+  colour-blind themes, "has regs" amber, base blue and missing grey stay under 3:1 on pale ground (1.8–2.0): a recolour
+  that passes would make amber look like closed again (your T47 complaint). The standard fix is a thin darker edge
+  (casing) under each line — costs some map speed and changes the calm look. Default: no casing. Say "add casing" to
+  try it. Shots: `tickets/shots/T470-wcag-*.png`.
 - **Play listing graphics: one permission, ~1 min (2026-11-09).** Claude uploaded the icon + feature graphic through the
   Play API, but Play refused the save (403: the service account may upload builds, not edit the store listing). In Play
   Console → Users and permissions → the service account (the one in `~/.canifishthis/play-service-account.json`) →
