@@ -1,7 +1,7 @@
 /**
  * (T230, owner 2026-10-28) THE PROVINCIAL IN-SEASON CHANGES: the T225 feed (`feeds/inseason/index.json`,
  * `inseason-feed/1`, `app/workers/feeds/src/inseason.ts`) joined to the curated links (`feeds/inseason/matches.json`,
- * `inseason-links/2`, `pipeline.regs.inseason.publish` from `data/curated/inseason/notice_waters.json`).
+ * `inseason-links/3`, `pipeline.regs.inseason.publish` from `data/curated/inseason/notice_waters.json`).
  *
  * INFORMATIONAL ONLY. A change is shown as a banner on every water (and part) it is matched to while it is in effect;
  * it never changes a computed answer or a status. (A future option, not built: a full closure could set "Check".)
@@ -19,9 +19,10 @@
  */
 import { MONTHS } from "./calendar.generated";
 import { MENU_WORDS } from "./menu/words";
+import { endWords, type EndsTable } from "./ends";
 
 export const INSEASON_FEED_FORMAT = "inseason-feed/1";
-export const INSEASON_LINKS_FORMAT = "inseason-links/2";
+export const INSEASON_LINKS_FORMAT = "inseason-links/3";
 
 export interface InSeasonRow {
   readonly id: string;
@@ -61,8 +62,8 @@ export interface InSeasonLinks {
   readonly format: typeof INSEASON_LINKS_FORMAT;
   /** the data release the ranges are resolved on (`pipeline.regs.inseason.resolve`); read only there (AGENTS 6) */
   readonly release: string;
-  /** INTERIM (until T517 ships the release's token -> words table): the words of every end token */
-  readonly words: Readonly<Record<string, string>>;
+  // (T517, inseason-links/3) no words ride in the links: every end token is said through the release's `display.ends`
+  // (`ends.ts`), which holds every curated notice's ends (publish refuses one the release lacks)
   readonly notices: Readonly<Record<string, { readonly from?: string; readonly to?: string;
                                               readonly waters: Readonly<Record<string, InSeasonWater>> }>>;
 }
@@ -80,15 +81,14 @@ export function parseInSeasonFeed(x: unknown): InSeasonFeed | null {
 const isNat = (n: unknown): n is number => Number.isSafeInteger(n) && (n as number) >= 0;
 const isRun = (r: unknown): boolean => Array.isArray(r) && r.length === 3 && Number.isSafeInteger(r[0])
   && isNat(r[1]) && isNat(r[2]) && (r[1] as number) < (r[2] as number);
-function isWater(w: unknown, words: Readonly<Record<string, string>>): w is InSeasonWater {
+function isWater(w: unknown): w is InSeasonWater {
   const x = w as InSeasonWater | null;
   if (!x || typeof x !== "object") return false;
   if (x.all === true) return x.runs === undefined && x.lakes === undefined && x.ends === undefined;
   const runs = x.runs ?? [], lakes = x.lakes ?? [], ends = x.ends ?? [];
   return Array.isArray(runs) && Array.isArray(lakes) && Array.isArray(ends) && runs.length + lakes.length > 0
     && runs.every(isRun) && lakes.every(isNat)
-    && ends.every((p) => Array.isArray(p) && p.length === 2 && p.every((t) => typeof t === "string"
-      && (t === MOUTH || t === SOURCE || (typeof words[t] === "string" && words[t]!.length > 0))));
+    && ends.every((p) => Array.isArray(p) && p.length === 2 && p.every((t) => typeof t === "string" && t.length > 0));
 }
 
 /** The links as the app reads them, or null: ANY notice it cannot read refuses the whole file (the caller reports it,
@@ -96,15 +96,14 @@ function isWater(w: unknown, words: Readonly<Record<string, string>>): w is InSe
 export function parseInSeasonLinks(x: unknown): InSeasonLinks | null {
   const l = x as Partial<InSeasonLinks> | null;
   if (!l || typeof l !== "object" || l.format !== INSEASON_LINKS_FORMAT || typeof l.release !== "string"
-      || !l.notices || typeof l.notices !== "object" || !l.words || typeof l.words !== "object") return null;
-  const words = l.words;
+      || !l.notices || typeof l.notices !== "object") return null;
   for (const n of Object.values(l.notices)) {
     if (!n || typeof n !== "object" || !n.waters || typeof n.waters !== "object") return null;
     const ws = Object.values(n.waters);
-    if (!ws.length || !ws.every((w) => isWater(w, words))) return null;
+    if (!ws.length || !ws.every(isWater)) return null;
     if ((n.from !== undefined && typeof n.from !== "string") || (n.to !== undefined && typeof n.to !== "string")) return null;
   }
-  return { format: INSEASON_LINKS_FORMAT, release: l.release, words, notices: l.notices };
+  return { format: INSEASON_LINKS_FORMAT, release: l.release, notices: l.notices };
 }
 
 /** "2026-07-30" for a local date. */
@@ -143,14 +142,8 @@ export interface InSeasonChange {
   readonly onRelease: boolean;
   /** the links' release (null: no links) — an off-release failure names it once */
   readonly linksRelease: string | null;
-  /** the end tokens' words (the links' INTERIM table) */
-  readonly words: Readonly<Record<string, string>>;
 }
 
-/** The waters a matched change is on. */
-export function inSeasonWaters(c: InSeasonChange): string[] {
-  return Object.keys(c.waters ?? {});
-}
 
 /** Every row of the feed in effect on `day` ("YYYY-MM-DD"), split into matched and not. Removed rows are never in. */
 export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | null, day: string,
@@ -167,24 +160,24 @@ export function joinInSeason(feed: InSeasonFeed | null, links: InSeasonLinks | n
     if ((span.from && span.from > day) || (span.to && span.to < day)) continue;
     const c: InSeasonChange = { id: r.id, region: r.region, water: r.water, text: r.change, ...span,
                                 source: feed.source, waters: link?.waters ?? null, onRelease,
-                                linksRelease: links?.release ?? null, words: links?.words ?? NO_WORDS };
+                                linksRelease: links?.release ?? null };
     (c.waters ? matched : unmatched).push(c);
   }
   return { matched, unmatched };
 }
 
-const NO_WORDS: Readonly<Record<string, string>> = {};
 const MOUTH = "mouth", SOURCE = "source";
 
 /**
  * (T518, T520) WHERE ON THE WATER, AS A SENTENCE — composed here only (AGENTS 33) from the covered stretches' end
  * tokens: "From A to B", "Upstream of A" (to the source), "Downstream of B" (from the mouth); several stretches joined
- * by "; ". The whole main line (mouth to source): null. Words: the links' table (T517 replaces it with the release's).
+ * by "; ". The whole main line (mouth to source): null. (T517) The words are the release's `display.ends` through the
+ * one end resolver every part name uses (`ends.ts` `endWords`): a token this release does not hold throws, naming it.
  */
-export function inSeasonWhere(ends: readonly InSeasonEnds[], words: Readonly<Record<string, string>>): string | null {
-  const say = (t: string) => words[t] ?? t;
-  const parts = ends.map(([lo, hi]) => (lo === MOUTH && hi === SOURCE ? null
-    : lo === MOUTH ? `Downstream of ${say(hi)}` : hi === SOURCE ? `Upstream of ${say(lo)}` : `From ${say(lo)} to ${say(hi)}`))
+export function inSeasonWhere(ends: readonly InSeasonEnds[], table: EndsTable): string | null {
+  const lo = (t: string) => endWords(table, t, "lo"), hi = (t: string) => endWords(table, t, "hi");
+  const parts = ends.map(([a, b]) => (a === MOUTH && b === SOURCE ? null
+    : a === MOUTH ? `Downstream of ${hi(b)}` : b === SOURCE ? `Upstream of ${lo(a)}` : `From ${lo(a)} to ${hi(b)}`))
     .filter((x): x is string => x !== null);
   return parts.length ? parts.join("; ") : null;
 }
@@ -202,12 +195,19 @@ export interface InSeasonCover {
   readonly where: string | null;
   /** why its ranges could not be placed on this device (shown on the whole water AND reported by the caller) */
   readonly failure: string | null;
+  /** (T517) why "Where" could not be said (an end this release's `display.ends` does not hold, or the table could not
+   *  be read): ONLY the "Where" line goes — the sections stay — and the caller reports it */
+  readonly whereFailure: string | null;
 }
 
 export const INSEASON_FAILURES = {
   offRelease: "in-season: the ranges are resolved on another data release than this device's",
   noLines: "in-season: this release's section lines could not be read",
   nothing: (id: string, item: string) => `in-season: ${id}'s ranges land on no section of ${item} in this release`,
+  /** (T517) an end the links name that this release's `display.ends` does not (publish refuses such links) */
+  noWords: (id: string, e: string) => `in-season: ${id}: ${e}`,
+  /** (T517) the release's `display.ends` could not be read: no "Where" can be said */
+  noTable: "in-season: this release's display.ends could not be read",
 } as const;
 
 /**
@@ -221,24 +221,31 @@ export const INSEASON_FAILURES = {
  * release, with no lines, or landing on nothing, the change is on the whole water with its ends and a `failure`.
  */
 export function inSeasonCover(c: InSeasonChange, item: string, water: readonly InSeasonSection[] | null,
-                              page: ReadonlySet<number> | null): InSeasonCover | null {
+                              page: ReadonlySet<number> | null, table: EndsTable | null): InSeasonCover | null {
   const w = c.waters?.[item];
   if (!w) return null;
-  if (w.all) return { sections: null, where: null, failure: null };
-  const where = inSeasonWhere(w.ends ?? [], c.words);
-  if (!c.onRelease) return { sections: null, where, failure: INSEASON_FAILURES.offRelease };
-  if (!water) return { sections: null, where, failure: INSEASON_FAILURES.noLines };
+  if (w.all) return { sections: null, where: null, failure: null, whereFailure: null };
+  // the words of its ends: the release's `display.ends` only (T517). An end it cannot say — or no table (`null`: it
+  // could not be read) — drops ONLY the "Where" line, and the caller reports it; the sections are placed as ever
+  let where: string | null = null, whereFailure: string | null = null;
+  if (!table) whereFailure = INSEASON_FAILURES.noTable;
+  else {
+    try { where = inSeasonWhere(w.ends ?? [], table); }
+    catch (e) { whereFailure = INSEASON_FAILURES.noWords(c.id, e instanceof Error ? e.message : String(e)); }
+  }
+  if (!c.onRelease) return { sections: null, where, failure: INSEASON_FAILURES.offRelease, whereFailure };
+  if (!water) return { sections: null, where, failure: INSEASON_FAILURES.noLines, whereFailure };
   const runs = w.runs ?? [];
   const lakes = water.filter((s) => !s.line).map((s) => s.sid).sort((a, b) => a - b);
   const lakeHit = new Set((w.lakes ?? []).map((i) => lakes[i]).filter((s): s is number => s !== undefined));
   const hit = water.filter((s) => (s.line
     ? runs.some(([b, m0, m1]) => b === s.line!.blk && m0 <= s.line!.from && s.line!.from < m1)
     : lakeHit.has(s.sid))).map((s) => s.sid).sort((a, b) => a - b);
-  if (!hit.length) return { sections: null, where, failure: INSEASON_FAILURES.nothing(c.id, item) };
+  if (!hit.length) return { sections: null, where, failure: INSEASON_FAILURES.nothing(c.id, item), whereFailure };
   const mine = page ? hit.filter((s) => page.has(s)) : hit;
   if (!mine.length) return null;
   const size = page ? page.size : water.length;
-  return { sections: mine, where: mine.length === size ? null : where, failure: null };
+  return { sections: mine, where: mine.length === size ? null : where, failure: null, whereFailure };
 }
 
 function dayWords(iso: string, year: boolean): string {

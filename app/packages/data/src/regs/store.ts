@@ -204,8 +204,14 @@ export async function openRegsStore(loader: RegsLoader, expect: RegsExpect = {})
       if (!loader.manifest.files.core) return opened(loader.db("core"), true);
       return loader.routed ? loader.routed("core") : opened(loader.db("core"), false);
     },
-    /** (T182) the water map's boxes (`part_geo`): the geo file, or water in a release cut before the move. */
-    async geo(): Promise<Db> { live(); return loader.manifest.files.geo ? opened(loader.db("geo"), false) : water; },
+    /** (T182) the water map's boxes (`part_geo`): the geo file. A release without one is refused (`missing`), never read
+     *  from water (the pre-T182 layout, no longer read). */
+    async geo(): Promise<Db> {
+      live();
+      if (!loader.manifest.files.geo)
+        throw new RegsStoreError("missing", `regs store: release ${loader.release} has no geo file — refused`);
+      return opened(loader.db("geo"), false);
+    },
   };
   const { clear, ...reads } = makeReads({ ...files, val });
   return {

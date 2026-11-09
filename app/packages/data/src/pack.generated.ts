@@ -688,7 +688,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     "tables": {}
   },
   "geo": {
-    "format": "geo/1",
+    "format": "geo/2",
     "kind": "sqlite",
     "tables": {
       "meta": [
@@ -698,7 +698,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_geo": [
         "ord",
         "part_ix",
-        "rank",
         "mid_sid",
         "mid_lon",
         "mid_lat",
@@ -1433,7 +1432,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     "tables": {}
   },
   "water": {
-    "format": "water/1",
+    "format": "water/3",
     "kind": "sqlite",
     "tables": {
       "akey": [
@@ -1496,16 +1495,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -1515,7 +1511,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -1525,12 +1520,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -1599,7 +1592,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-1": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -1626,16 +1619,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -1645,7 +1635,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -1655,12 +1644,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -1695,7 +1682,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-2": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -1722,16 +1709,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -1741,7 +1725,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -1751,12 +1734,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -1791,7 +1772,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-3": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -1818,16 +1799,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -1837,7 +1815,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -1847,12 +1824,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -1887,7 +1862,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-4": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -1914,16 +1889,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -1933,7 +1905,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -1943,12 +1914,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -1983,7 +1952,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-5": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -2010,16 +1979,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -2029,7 +1995,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -2039,12 +2004,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -2079,7 +2042,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-6": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -2106,16 +2069,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -2125,7 +2085,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -2135,12 +2094,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -2175,7 +2132,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-7a": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -2202,16 +2159,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -2221,7 +2175,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -2231,12 +2184,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -2271,7 +2222,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-7b": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -2298,16 +2249,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -2317,7 +2265,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -2327,12 +2274,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [
@@ -2367,7 +2312,7 @@ export const PACK_FILES: Record<string, PackFile> = {
     }
   },
   "water-8": {
-    "format": "water-slice/2",
+    "format": "water-slice/4",
     "kind": "sqlite",
     "tables": {
       "item": [
@@ -2394,16 +2339,13 @@ export const PACK_FILES: Record<string, PackFile> = {
         "akey",
         "ord",
         "label_s",
-        "short_s",
         "runs_s",
         "place_s",
-        "hint_s",
         "km",
         "closed_all_year",
         "paper_licence",
         "lo_s",
         "hi_s",
-        "run_s",
         "xp",
         "sections",
         "xruns",
@@ -2413,7 +2355,6 @@ export const PACK_FILES: Record<string, PackFile> = {
       "part_line": [
         "ord",
         "part_ix",
-        "stretch",
         "blk",
         "m0",
         "m1"
@@ -2423,12 +2364,10 @@ export const PACK_FILES: Record<string, PackFile> = {
         "mark_ix",
         "lon",
         "lat",
-        "label",
+        "token",
         "down_part",
         "up_parts",
         "confidence",
-        "down_stretch",
-        "up_stretches",
         "alt"
       ],
       "part_section": [

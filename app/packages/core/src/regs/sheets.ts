@@ -169,7 +169,7 @@ export function sheetOf(ctx: SheetCtx, key: SheetKey): SheetVM | null {
   if (key.startsWith("multi:r")) return multiSheet(key, ctx, +key.slice(7));
   if (key.startsWith("other:o")) return otherSheet(ctx, key, +key.slice(7));
   if (key.startsWith("sp:")) return fishSheet(ctx.inp, key, key.slice(3), ctx.env?.fish);
-  if (key === "parts") return partsSheet(key, ctx.inp);
+  if (key === "parts") return partsSheet(key, ctx.inp, ctx.names);
   return null;
 }
 

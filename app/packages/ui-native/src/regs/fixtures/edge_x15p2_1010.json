@@ -165,8 +165,8 @@
   "dot": "open",
   "name": "Fraser River",
   "place": {
-   "full": "CPR Bridge at Mission → Landstrom Bar sign zone boundary",
-   "short": "CPR Bridge at Mission → Landstrom Bar sign zone boundary"
+   "full": "CPR Bridge at Mission → Landstrom Bar sign zone boundary (km 156.4)",
+   "short": "CPR Bridge at Mission → Landstrom Bar sign zone boundary (km 156.4)"
   },
   "tabs": [
    {
@@ -2565,11 +2565,11 @@
      "items": [
       {
        "checked": false,
-       "long": null,
+       "long": "Within Landstrom Bar sign zone",
        "part": 2,
        "status": "closed",
        "sub": null,
-       "text": "Within Landstrom Bar sign zone"
+       "text": "Landstrom Bar sign zone boundary (km 156.4) → Landstrom Bar sign zone boundary (km 156.5)"
       },
       {
        "checked": true,
@@ -2577,7 +2577,7 @@
        "part": 1,
        "status": "open",
        "sub": null,
-       "text": "CPR Bridge at Mission → Landstrom Bar sign zone boundary"
+       "text": "CPR Bridge at Mission → Landstrom Bar sign zone boundary (km 156.4)"
       },
       {
        "checked": false,

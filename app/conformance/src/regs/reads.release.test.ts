@@ -10,7 +10,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { LadderFrameWire, VerdictWire } from "@app/core";
+import { spanName, type LadderFrameWire, type VerdictWire } from "@app/core";
 import { openRegsStore, type RegsStore } from "@app/data/regs";
 import { liveRelease, openReleaseDir, provinceStoreOf } from "../fixtureRelease";
 import { taps } from "./oracles";
@@ -47,16 +47,19 @@ describe.skipIf(!LIVE)(`T04 reads on the live release (${LIVE ?? "absent"})`, ()
   });
 
   // (T517) a part is one connected run of one rule set AND one DFO salmon chain: the Vedder's one rule set (grp 0) is
-  // one run (run 0) the chain cuts at the cable car crossing, so two parts, each with its own ends and the run's name
+  // one run (run 0) the chain cuts at the cable car crossing, so two parts, each with its own two END TOKENS (T517, owner
+  // 2026-11-09: no composed name ships), said by the one name function over the release's `display.ends`
   it("2. the Vedder's two parts: one run of one rule set, cut by the salmon chain", async () => {
     const licence = [rix("zp:salmon_stamp::salmon_stamp.r1"), rix("zp:steelhead::steelhead.r4")];
     const CABLE = "Cable car crossing (200 m downstream of Vedder Crossing bridge)";
     const piece = (partIx: number, sections: number, lo: string, hi: string, runs: string, km: number) => ({
-      itemOrd: V.item_ord, partIx, akey: VA, sections, grp: 0, run: 0, tidal: false, facts: {
-        order: partIx, label: "From the mouth up to the Vedder Crossing Bridge", short: `${lo} → ${hi}`, lo, hi,
-        run_name: "Mouth → Vedder Crossing Bridge", runs, place: null, hint: "Whole water", km, closed_all_year: false,
-        paper_licence: licence } });
-    expect(await st.parts(V.item_ord)).toEqual([
+      itemOrd: V.item_ord, partIx, akey: VA, sections, grp: 0, run: 0, tidal: false, name: `${lo} → ${hi}`, facts: {
+        order: partIx, label: "From the mouth up to the Vedder Crossing Bridge", runs, place: null, km,
+        closed_all_year: false, paper_licence: licence } });
+    const ends = (await st.statics()).ends;
+    const said = (await st.parts(V.item_ord)).map(({ facts, ...p }) => ({ ...p, name: spanName(ends, "Vedder River", facts!),
+      facts: { ...facts!, lo: undefined, hi: undefined } }));
+    expect(said).toEqual([
       piece(0, 4, "Mouth", CABLE, "From the mouth up to the cable car crossing (200 m downstream of Vedder Crossing bridge)", 12.72),
       piece(1, 1, CABLE, "Vedder Crossing Bridge",
             "From the cable car crossing (200 m downstream of Vedder Crossing bridge) up to the Vedder Crossing Bridge", 12.95)]);

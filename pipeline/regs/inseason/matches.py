@@ -180,6 +180,13 @@ class Matches(BaseModel):
         return v
 
 
+def end_tokens(doc: "Matches") -> List[str]:
+    """(T517 review finding 1) every end token the curated in-season matches ship (`mouth` / `source` aside: the
+    sentence's shape says them) — what the release's `display.ends` must hold words for."""
+    return sorted({t for m in doc.matches.values() for w in (m.waters or {}).values() for p in w.ends for t in p}
+                  - {"mouth", "source"})
+
+
 def default_path() -> Path:
     from pipeline.common.curated import CURATED
     return CURATED.inseason.notice_waters

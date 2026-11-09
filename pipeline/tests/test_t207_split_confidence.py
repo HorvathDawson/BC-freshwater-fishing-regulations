@@ -100,6 +100,7 @@ def test_the_export_carries_it_and_a_part_label_says_it():
     db = sqlite3.connect(":memory:")
     db.execute("CREATE TABLE split (split_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL, at TEXT NOT "
                "NULL, official_name TEXT, same_place_as TEXT, lake_id TEXT, confidence TEXT)")
+    db.execute("CREATE TABLE split_near (split_id TEXT PRIMARY KEY, token TEXT NOT NULL, m REAL NOT NULL)")
     db.executemany("INSERT INTO split VALUES (?,?,?,?,?,?,?,?)", [
         ("x__falls", "salmon viewing platform", "point", '[["gnis:1", 0.84]]', None, None, None, "low"),
         ("x__bridge", "Sayward Road bridge", "point", '[["gnis:1", 1.14]]', None, None, None, None)])

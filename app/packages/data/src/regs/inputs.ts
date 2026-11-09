@@ -137,7 +137,7 @@ async function choicesOnDay(store: InputsStore, parts: readonly PartRow[], picke
   }));
 }
 
-/** page mergedHtml's reads: only when the part's picker group is closed and holds ≥ 2 parts — each part's label, sections
+/** page mergedHtml's reads: only when the part's picker group is closed and holds ≥ 2 parts — each part's index, sections
  *  and the first of its day's decided closures (`broadOf` over its display frame, through its own via). */
 async function mergedParts(store: InputsStore, stored: ReadonlyMap<number, StoredRule>, sp: StoreStatics["exportSpecies"],
                            parts: readonly PartRow[], picker: Picker | null, partIx: number, day: Day, weekday: Weekday, calendarYear: number): Promise<readonly MergedPart[] | null> {
@@ -147,7 +147,8 @@ async function mergedParts(store: InputsStore, stored: ReadonlyMap<number, Store
   return Promise.all(g.parts.map(async (i): Promise<MergedPart> => {
     const p = parts[i];
     if (!p) throw new RegsInputsError(`regs: the picker names part ${i}, which the water does not have`);
-    const head = { partIx: i, label: p.facts?.label ?? "", sections: p.sections };
+    // (T517) no stored label rides along: the banner names each part by the one name function (`partNameOf`)
+    const head = { partIx: i, sections: p.sections };
     if (p.akey === null) return { ...head, broad: null };
     const k = await store.akey(p.akey);
     const [starts, moms, rs] = await Promise.all([store.segStarts(k.seg), k.mom === null ? null : store.segMoments(k.mom),
@@ -160,21 +161,22 @@ async function mergedParts(store: InputsStore, stored: ReadonlyMap<number, Store
 
 /**
  * The part a reader's tap opens. A tapped section resolves through water `part_section` (the part that holds it, P09);
- * a section the item's parts do not list, through its key: the first part whose akey is the section's (`section_akey`;
- * two parts sharing a key → the lower part_ix). Else — or with no section — the first part with a key, else part 0.
+ * a section none of the item's parts holds is a defect of the tap or the release, and THROWS (said on the page, never a
+ * part guessed from its key). With no section (a search, a link, a list) — a documented rule, pinned in
+ * inputs.test.ts — the water's first part with a key (river order: the lowest), else, for a water with no key at all
+ * (wholly outside B.C.), part 0.
  */
 export async function targetFor(store: InputsStore, item: string, section: number | null): Promise<RegsTarget> {
   const ord = await store.itemOrd(item);
   if (ord === null) throw new RegsInputsError(`regs: no water ${item} in the regs store`);
-  const parts = await store.parts(ord);
   const at = (partIx: number): RegsTarget => ({ kind: "part", item, partIx });
   if (section !== null) {
     const named = await store.sectionPart(ord, section);
-    if (named !== null) return at(named);
-    const a = await store.sectionAkey(section);
-    const i = a === 0 ? -1 : parts.findIndex((p) => p.akey === a);
-    if (i >= 0) return at(i);
+    if (named === null) throw new RegsInputsError(`regs: section ${section} is in none of ${item}'s parts (part_section)`);
+    return at(named);
   }
+  const parts = await store.parts(ord);
+  if (!parts.length) throw new RegsInputsError(`regs: ${item} has no parts`);
   const k = parts.findIndex((p) => p.akey !== null);
   return at(k >= 0 ? k : 0);
 }

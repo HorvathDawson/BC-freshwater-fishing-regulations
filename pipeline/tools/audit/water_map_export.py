@@ -12,7 +12,7 @@ map `app/design/regs-mock/maps.js`. Nothing here is drawn or worded by hand:
 
   parts      `part` / `part_section` (bundle) — each part of each item, in the export's part
              order (`waters[id].parts[i]` is bundle `part_ix` i: the counts are checked), named
-             by the answers' display (`display.waters[id].parts[i]`: label, short, hint).
+             by the answers' display (`display.waters[id].parts[i]`: label, short).
   order      mouth first. Within an item, by the display's `km` (the highest km of the part's
              main-stem runs); a part with no km (a side channel) goes after them. Between items,
              by the bundle's flow table (`section_down`: item B before item A when A drains into
@@ -311,7 +311,7 @@ def build_group(gid: str, items: Sequence[str], *, export_waters: Dict[str, dict
                                  f"export {p['sections']}")
             mine.append({"item": item, "name": w["name"], "kind": w.get("kind"), "v": v,
                          "picker": same.get(v, v), "label": dp.get("label"), "short": dp.get("short"),
-                         "hint": dp.get("hint"), "km": dp.get("km"), "runs": p.get("runs") or [],
+                         "km": dp.get("km"), "runs": p.get("runs") or [],
                          "sids": sids})
         parts += order_parts(mine)
 
@@ -335,7 +335,7 @@ def build_group(gid: str, items: Sequence[str], *, export_waters: Dict[str, dict
         xs = bbox([geom[s] for s in p["sids"] if s in geom])
         a, b = proj(xs[0], xs[3]), proj(xs[2], xs[1])
         out_parts.append({k: p[k] for k in ("item", "name", "kind", "v", "picker", "label", "short",
-                                            "hint", "km")}
+                                            "km")}
                          | {"s": rollup(status_string(code_on, s, dates) for s in p["sids"]),
                             "segs": segs, "box": [round(a[0]), round(a[1]), round(b[0]), round(b[1])],
                             "area": all(rings(geom[s])[0][1] for s in p["sids"] if s in geom)})

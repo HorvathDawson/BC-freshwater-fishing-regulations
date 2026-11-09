@@ -155,9 +155,25 @@ def section_static(ctx, data: dict, guide: dict, keys, parts) -> dict:
         add_subsets(rules, [ctx.B.rules[k] for k in order], (v for per in rows for v in per))
     order = sorted(ctx.B.index, key=ctx.B.index.__getitem__)
     add_sources(rules, doc, [f"{e}::{r}" for e, r in order])
-    return {"rules": rules,
-            "waters": produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__,
-                                    lic_ref=lic_ix.__getitem__, log=lambda *_: None,
-                                    store=ctx.store),
-            "strip": strip_legend(), "reasons": reasons_table(), "ends": end_table(doc),
+    waters = produce_parts(ctx.B, doc, keys, parts, rule_ref=ctx.rule_index.__getitem__, lic_ref=lic_ix.__getitem__,
+                           log=lambda *_: None, store=ctx.store)
+    # (T517) every part end a name says, those said at their place (`at_place`) among them
+    # (T517 review finding 1) ONE LIST of every end token anything ships: the part ends, the marks' tokens (the
+    # bundle's `part_mark.token`; a mark otherwise says its parts' ends) and the curated in-season notices' ends —
+    # `display.ends` holds words for each
+    from pipeline.regs.inseason import matches as _M
+    from pipeline.deliver.answers.common import connect as _connect
+    _b = _connect(ctx.B.path)
+    try:
+        marks = {t for (t,) in _b.execute("SELECT token FROM part_mark WHERE token IS NOT NULL")}
+    finally:
+        _b.close()
+    said = sorted({t for w in waters.values() for f in w["parts"] if f for t in (f["lo"], f["hi"]) if t}
+                  | set(_M.end_tokens(_M.load(_M.default_path()))) | marks)
+    ends = end_table(doc, said)
+    # (T517, owner 2026-11-09: fail fast) the names the app will compose, checked the moment parts and ends exist
+    from pipeline.deliver.answers.display.name_check import check as _name_check
+    _name_check(sorted((wid, doc["waters"][wid]["name"], w["parts"]) for wid, w in waters.items()), ends)
+    return {"rules": rules, "waters": waters,
+            "strip": strip_legend(), "reasons": reasons_table(), "ends": ends,
             "licensing": licensing_books(doc, data.get("licensing_ids") or [])}

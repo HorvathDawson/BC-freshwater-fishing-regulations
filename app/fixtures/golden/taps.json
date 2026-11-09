@@ -2,13 +2,13 @@
  "meta": {
   "generator": "app/tools/regs-recut/taps.py",
   "store": {
-   "format": "regs-store/4",
+   "format": "regs-store/5",
    "section_handles": "8b71b67f830be6eb",
    "reach_digest": "239d3203d1ef1007",
    "rule_ids_sha256": "ddafd3cfc412bdae",
-   "answers_sha256": "798a1587aee7f87a4d686a6d6983515a2b316d0bde9aa8dfd983d2ca289d6434",
-   "store_digest": "c339961f5751927e",
-   "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":18}}"
+   "answers_sha256": "378be17fe1722f9b7b12e051c6669245f3aa37bdcc3250e143e42725d11fc9a9",
+   "store_digest": "643b7dc2005ebf6b",
+   "layout": "{\"top\":[\"about\",\"spec\",\"schemas\",\"fish\",\"keys\",\"segments\",\"moments\",\"segment_moments\",\"parts\",\"places\",\"unnamed\",\"glossary\",\"sections\"],\"sections\":{\"ladder\":[\"version\",\"at\",\"reasons\",\"reason_state\",\"verdicts\",\"frames\"],\"rows\":[\"version\",\"at\",\"decided\",\"rows\",\"strips\",\"frames\"],\"gear\":[\"version\",\"at\",\"frames\",\"province_methods\",\"parent\",\"methods\",\"count_nouns\",\"moments\",\"conduct_means\"],\"licence\":[\"version\",\"at\",\"holds\",\"answers\",\"documents\",\"under_16\",\"frames\",\"profiles\",\"profile_dims\",\"residency_labels\",\"profile_labels\"],\"display\":[\"version\",\"at\",\"frames\",\"rules\",\"waters\",\"strip\",\"reasons\",\"ends\",\"licensing\"]},\"versions\":{\"ladder\":1,\"rows\":33,\"gear\":12,\"licence\":7,\"display\":20}}"
   },
   "golden": "d7b1ed353",
   "version": "v38",
@@ -36180,7 +36180,7 @@
   },
   "x19p1_1010": {
    "item": "gnis:2936",
-   "partIx": 4,
+   "partIx": 3,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -36581,14 +36581,14 @@
   },
   "x19p0_1010": {
    "item": "gnis:2936",
-   "partIx": 1,
+   "partIx": 2,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
    "goldenPartIx": 0,
    "grown": "T67 (owner 2026-10-24, decisions.md \"braids accepted\"; RULINGS E17, AGENTS 12): the Exchamsiks confluence cut runs straight across and the automatic length cuts moved off braid-spanned junctions (owner Q2); then T183 (owner 2026-10-24): the mainstem from the Ecological Reserve up to the Exchamsiks left section 2 and joined this part (3 stretches, 44 -> 48 sections); then T278 (r-62e2f3a8c81e, tidal cut split:skeena_river__tidal_boundary, gnis:2936 at 6.4 km): the Skeena below its tidal boundary is tidal (1 section, store part 9, unkeyed), so part 0 starts at the tidal boundary",
    "item_ord": 7452,
-   "akey": 869,
+   "akey": 870,
    "seg": 21,
    "mom": null,
    "nseg": 7,
@@ -36981,7 +36981,7 @@
   },
   "x19p2_1010": {
    "item": "gnis:2936",
-   "partIx": 9,
+   "partIx": 8,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -37380,7 +37380,7 @@
   },
   "x19p3_1010": {
    "item": "gnis:2936",
-   "partIx": 10,
+   "partIx": 9,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -37784,7 +37784,7 @@
   },
   "x19p6_1010": {
    "item": "gnis:2936",
-   "partIx": 8,
+   "partIx": 7,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -38292,7 +38292,7 @@
   },
   "x19p7_1010": {
    "item": "gnis:2936",
-   "partIx": 14,
+   "partIx": 13,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",
@@ -38813,7 +38813,7 @@
   },
   "x19p4_1010": {
    "item": "gnis:2936",
-   "partIx": 11,
+   "partIx": 10,
    "md": 1010,
    "date": "2026-10-10",
    "weekday": "Saturday",

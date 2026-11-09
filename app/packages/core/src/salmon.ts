@@ -914,8 +914,9 @@ const normRule = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim();
  * provincial key; never show it.
  */
 export function salmonTimelineKey(f: SalmonFacts, sid: number): string {
-  const P = f.payload, c = P.chains[f.chainOf(sid)];
-  if (!c) return "";
+  const k = f.chainOf(sid), P = f.payload, c = P.chains[k];
+  // (T517) a chain the payload lacks would read alike to another and join pieces it never compared: said, never ""
+  if (!c) throw new SalmonError(`salmon: section ${sid} is on chain ${k}, which the salmon file does not hold`);
   const runs = <T>(r: readonly number[], of: (i: number) => T) => r.map((x, k) => (k % 2 ? of(x) : x));
   const verdict = (i: number) => {
     const v = P.verdicts[i];

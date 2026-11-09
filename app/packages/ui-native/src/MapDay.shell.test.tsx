@@ -36,6 +36,7 @@ vi.mock("./MapScreen", () => ({
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
 const { openRegsFixture } = await import("@app/data/release/node");
+const { openRegsStore } = await import("@app/data/regs");
 
 const H = "d768d6e135e62b99";
 const INDEX = { handles: H, reachDigest: "", sections: 0, waters: 0, profiles: 0, codeOn: () => "base",
@@ -84,8 +85,13 @@ const press = (name: string) => act(() => { fireEvent.click(screen.getByRole("bu
 
 describe("the one day, from the map's calendar and the page's pill", () => {
   it("a day picked on the map colours the map and is the page's day; the page's Today is the map's today", async () => {
-    const source = makeFixtureSource();
-    TAP.sid = (await source.water("gnis:8634" as ItemId))!.sections[0]!;
+    // (T517) the tap is a section of the Chilliwack IN THE REGS RELEASE (its `part_section`): the dev fixture's own
+    // section ids are another sid space ("fixture-local"), and a section none of the water's parts holds is a shown
+    // failure now, never a part guessed from its key. The source maps that section to the Chilliwack, as a paired one does.
+    const fx = makeFixtureSource();
+    const st = await openRegsStore(openRegsFixture());
+    TAP.sid = (await st.navRows((await st.itemOrd("gnis:8634"))!)).sections[0]!.sid;
+    const source = { ...fx, itemForSection: async (s: number) => (s === TAP.sid ? "gnis:8634" as ItemId : fx.itemForSection(s as never)) };
     render(
       <GestureHandlerRootView>
         <Shell source={source} palette={LIGHT} theme="light" themeName="light" onTheme={() => {}}

@@ -15,25 +15,30 @@ import { carryRoute } from "./carry";
 import { openWater } from "./openWater";
 
 const BLK = 360000001, RIVER = "gnis:1" as ItemId, ORD = 7;
-/** A release: each section's handle, line and part (`stretch`: [part, stretch] for a part of two stretches). `runs`:
- *  its `part_line` (T388); absent, a release cut before it (`partLines` null: the pre-T388 `lines` path). */
-interface Sec { h: number; from: number; to: number; part: number | null; stretch?: number }
-function release(secs: Sec[], mids: Record<number, number>, stretchMids: Record<string, number> = {},
-                 runs: PartLine[] | null = null): PlaceReads {
+/** A release: each section's handle, line and part. `runs`: its `part_line` (T388; every water/2 release has it),
+ *  by default each part's sections on BLK merged (`runsOf`). */
+interface Sec { h: number; from: number; to: number; part: number | null }
+/** The runs of a release's sections: each part's sections on BLK merged, + `extra`. */
+const runsOf = (secs: Sec[], extra: PartLine[] = []): PartLine[] => {
+  const out: PartLine[] = [];
+  for (const s of secs) {
+    if (s.part === null) continue;
+    const last = out[out.length - 1];
+    if (last && last.partIx === s.part && last.m1 === s.from) out[out.length - 1] = { ...last, m1: s.to };
+    else out.push({ partIx: s.part, blk: BLK, m0: s.from, m1: s.to });
+  }
+  return [...out, ...extra];
+};
+function release(secs: Sec[], mids: Record<number, number>, runs: PartLine[] = runsOf(secs)): PlaceReads {
   const line = (h: number): SectionLine | null => {
     const s = secs.find((x) => x.h === h);
     return s ? { blk: BLK, from: s.from, to: s.to } : null;
   };
   const parts = [...new Set(secs.flatMap((s) => (s.part === null ? [] : [s.part])))];
   const nav: NavRows = {
-    geo: parts.map((p) => ({ partIx: p, rank: p, midSid: mids[p]!, mid: [0, 0], box: null })),
+    geo: parts.map((p) => ({ partIx: p, midSid: mids[p]!, mid: [0, 0], box: null })),
     marks: [], exit: null, continuesAs: null, continuesFrom: null,
     sections: secs.filter((s) => s.part !== null).map((s) => ({ sid: s.h, partIx: s.part! })),
-    stretches: Object.entries(stretchMids).map(([k, mid]) => {
-      const [p, st] = k.split(":").map(Number);
-      return { partIx: p!, stretch: st!, rank: st!, midSid: mid, mid: [0, 0] as const, box: null,
-               sids: secs.filter((s) => s.part === p && (s.stretch ?? 0) === st).map((s) => s.h) };
-    }),
   };
   return {
     hasLines: async () => true,
@@ -57,10 +62,10 @@ const B: Sec[] = [{ h: 20, from: 0, to: 1000, part: 0 }, { h: 21, from: 1000, to
                   { h: 22, from: 1800, to: 3000, part: 2 }, { h: 23, from: 3000, to: 5000, part: 3 },
                   { h: 24, from: 5000, to: 6000, part: null }];
 
-describe("(T369) a place across a re-split — a release cut before part_line (the pre-T388 `lines` path)", () => {
+describe("(T369) a place across a re-split", () => {
   const relA = release(A, { 0: 10, 1: 11, 2: 12 }), relB = release(B, { 0: 20, 1: 21, 2: 22, 3: 23 });
 
-  it("A's part 1 is the middle of its midpoint section; in B that place is part 2 (the index 1 is another part now)", async () => {
+  it("A's part 1 is the middle of its run; in B that place is part 2 (the index 1 is another part now)", async () => {
     const frame = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1, view: "map" })));
     const place = (await placeOf(relA, frame))!;
     expect(place).toEqual({ blk: BLK, m: 2000 });
@@ -74,22 +79,12 @@ describe("(T369) a place across a re-split — a release cut before part_line (t
       waterFrame(reduce(HOME, openWater({ item: RIVER, part: 2, view: "map" }))), null]);
   });
 
-  it("a place past the water's sections is an unnamed reach in either release; a place no section spans is gone, said", async () => {
+  it("a place past the water's sections is an unnamed reach by `lines`; a named link no part holds is gone, said", async () => {
     const reach = (await resolvePlace(relB, itemFor(B), { blk: BLK, m: 5500 }))!;
     expect(reach).toEqual({ sid: 24, item: null, part: null });
     const gone = await resolveStartLink(parseStartLink(`?regs=${RIVER}&blk=${BLK}&m=9000&view=map`)!, relB, itemFor(B));
     expect([waterFrame(gone.route), gone.notice]).toEqual([
       waterFrame(reduce(HOME, openWater({ item: RIVER, part: null, view: "map", whole: true }))), "place-gone"]);
-  });
-
-  it("a stretch: its own midpoint section, and back to the same stretch", async () => {
-    const S: Sec[] = [{ h: 1, from: 0, to: 1000, part: 0 }, { h: 2, from: 1000, to: 2000, part: 0, stretch: 1 },
-                      { h: 3, from: 2000, to: 3000, part: 1 }];
-    const rel = release(S, { 0: 1, 1: 3 }, { "0:0": 1, "0:1": 2 });
-    const frame = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, stretch: 1, view: "map" })));
-    const place = (await placeOf(rel, frame))!;
-    expect([place, await resolvePlace(rel, itemFor(S), place)]).toEqual([
-      { blk: BLK, m: 1500 }, { sid: 2, item: RIVER, part: 0, stretch: 1 }]);
   });
 
   it("no place where none is needed: browsing, a whole water, a water of one part; a release with no lines says so", async () => {
@@ -98,8 +93,9 @@ describe("(T369) a place across a re-split — a release cut before part_line (t
       placeOf(relA, null),
       placeOf(relA, waterFrame(reduce(HOME, openWater({ item: RIVER, view: "map", whole: true })))),
       placeOf(one, waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, view: "map" }))))])).toEqual([null, null, null]);
+    // an unnamed reach's place is the tapped section's middle, from `lines`: a release with none says so
     const none: PlaceReads = { ...relA, hasLines: async () => false };
-    await expect(placeOf(none, waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1 })))))
+    await expect(placeOf(none, waterFrame(reduce(HOME, openWater({ item: null, tapSid: 13 as SectionId })))))
       .rejects.toThrow("this release has no section_line");
   });
 });
@@ -112,14 +108,14 @@ describe("(T386, owner 2026-11-04) an unnamed reach open across a data update: c
   it("still unnamed in the new release: the section there, the frame kept", async () => {
     const a = await carryRoute(unnamed(13), relA, relB, { was: relA, now: relB, itemFor: itemFor(B) });
     expect(a).toEqual({ type: "carry", stack: [
-      { item: null, part: null, stretch: undefined, tapSid: 24, at: { lat: 49, lon: -122 }, view: "regs" }] });
+      { item: null, part: null, tapSid: 24, at: { lat: 49, lon: -122 }, view: "regs" }] });
   });
 
   it("now a named water's part: opened on it; no section spans it any more: dropped; no place reads: dropped", async () => {
     const named: Sec[] = [...B.slice(0, 4), { h: 24, from: 5000, to: 6000, part: 3 }];
     const relN = release(named, { 0: 20, 1: 21, 2: 22, 3: 23 });
     expect(await carryRoute(unnamed(13), relA, relN, { was: relA, now: relN, itemFor: itemFor(named) })).toEqual({ type: "carry",
-      stack: [{ item: RIVER, part: 3, stretch: undefined, tapSid: 24, at: { lat: 49, lon: -122 }, view: "regs" }] });
+      stack: [{ item: RIVER, part: 3, tapSid: 24, at: { lat: 49, lon: -122 }, view: "regs" }] });
     const gone = release(B.slice(0, 4), { 0: 20, 1: 21, 2: 22, 3: 23 });
     expect(await carryRoute(unnamed(13), relA, gone, { was: relA, now: gone, itemFor: itemFor(B) }))
       .toEqual({ type: "carry", stack: [] });
@@ -135,18 +131,6 @@ describe("(T386, owner 2026-11-04) an unnamed reach open across a data update: c
  */
 describe("(T388) a named water's place comes from part_line, never lines", () => {
   const SIDE = 360000002;
-  /** The runs of a release's sections: each part's (stretch's) sections on BLK merged, + `extra`. */
-  const runsOf = (secs: Sec[], extra: PartLine[] = []): PartLine[] => {
-    const out: PartLine[] = [];
-    for (const s of secs) {
-      if (s.part === null) continue;
-      const last = out[out.length - 1];
-      if (last && last.partIx === s.part && last.stretch === (s.stretch ?? 0) && last.m1 === s.from) {
-        out[out.length - 1] = { ...last, m1: s.to };
-      } else out.push({ partIx: s.part, stretch: s.stretch ?? 0, blk: BLK, m0: s.from, m1: s.to });
-    }
-    return [...out, ...extra];
-  };
   /** `rel` with every `lines` read refused and counted. */
   const noLines = (rel: PlaceReads) => {
     const asked: string[] = [];
@@ -155,8 +139,8 @@ describe("(T388) a named water's place comes from part_line, never lines", () =>
                              sectionAt: refuse("sectionAt") } as PlaceReads };
   };
   // part 1 also has a side channel on its own blue line, shorter than its main stem
-  const relA = release(A, { 0: 10, 1: 11, 2: 12 }, {}, runsOf(A, [{ partIx: 1, stretch: 0, blk: SIDE, m0: 0, m1: 300 }]));
-  const relB = release(B, { 0: 20, 1: 21, 2: 22, 3: 23 }, {}, runsOf(B));
+  const relA = release(A, { 0: 10, 1: 11, 2: 12 }, runsOf(A, [{ partIx: 1, blk: SIDE, m0: 0, m1: 300 }]));
+  const relB = release(B, { 0: 20, 1: 21, 2: 22, 3: 23 });
   const AT = { lat: 49.2, lon: -122.1 };
 
   it("writing: a part's place is the middle of its longest run; a TAPPED frame says its part's, not the tap's", async () => {
@@ -169,25 +153,15 @@ describe("(T388) a named water's place comes from part_line, never lines", () =>
     expect(await Promise.all([placeOf(reads, part), placeOf(reads, tapped), placeOf(reads, loose)]))
       .toEqual([{ blk: BLK, m: 2000 }, { blk: BLK, m: 2000 }, { blk: BLK, m: 4000 }]);
     expect(asked).toEqual([]);
-    // MUTATION PIN: the same release without part_line (cut before it) makes the place from `lines`
-    const old = noLines(release(A, { 0: 10, 1: 11, 2: 12 }));
-    await expect(placeOf(old.reads, part)).rejects.toThrow("lines read");
-    expect(old.asked).toEqual(["hasLines"]);
   });
 
-  it("a stretch: the middle of the stretch's own run; one part and one stretch: no place, tapped or not", async () => {
-    const S: Sec[] = [{ h: 1, from: 0, to: 1000, part: 0 }, { h: 2, from: 1000, to: 2000, part: 0, stretch: 1 },
-                      { h: 3, from: 2000, to: 3000, part: 1 }];
-    const { asked, reads } = noLines(release(S, { 0: 1, 1: 3 }, { "0:0": 1, "0:1": 2 }, runsOf(S)));
-    const st = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, stretch: 1, view: "map" })));
-    const tap = waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, view: "regs", tapSid: 2 as SectionId, at: AT })));
-    expect([await placeOf(reads, st), await placeOf(reads, tap)]).toEqual([{ blk: BLK, m: 1500 }, { blk: BLK, m: 1500 }]);
-    const one = noLines(release([{ h: 1, from: 0, to: 10, part: 0 }], { 0: 1 }, {}, []));
+  it("one part: no place, tapped or not", async () => {
+    const one = noLines(release([{ h: 1, from: 0, to: 10, part: 0 }], { 0: 1 }, []));
     expect(await Promise.all([
       placeOf(one.reads, waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, view: "map" })))),
       placeOf(one.reads, waterFrame(reduce(HOME, openWater({ item: RIVER, part: 0, view: "regs", tapSid: 1 as SectionId, at: AT }))))]))
       .toEqual([null, null]);
-    expect([asked, one.asked]).toEqual([[], []]);
+    expect(one.asked).toEqual([]);
   });
 
   it("opening: the part of THAT water whose run holds the place — across a re-split too — with no lines read", async () => {
@@ -199,7 +173,7 @@ describe("(T388) a named water's place comes from part_line, never lines", () =>
       waterFrame(reduce(HOME, openWater({ item: RIVER, part: 1, view: "map" }))),
       waterFrame(reduce(HOME, openWater({ item: RIVER, part: 2, view: "map" }))), null, null]);
     // the side channel is part 1's too
-    expect(await resolvePartPlace(a.reads, RIVER, ORD, (await relA.partLines(ORD))!, { blk: SIDE, m: 150 }))
+    expect(await resolvePartPlace(a.reads, RIVER, ORD, await relA.partLines(ORD), { blk: SIDE, m: 150 }))
       .toEqual({ sid: 11, item: RIVER, part: 1 });
     expect([a.asked, b.asked]).toEqual([[], []]);
   });
@@ -218,15 +192,12 @@ describe("(T388) a named water's place comes from part_line, never lines", () =>
   it("a place no run of THAT water holds is 'not on this map' — never another water, never the unnamed reach there", async () => {
     const { asked, reads } = noLines(relB);
     const whole = waterFrame(reduce(HOME, openWater({ item: RIVER, part: null, view: "map", whole: true })));
-    // 5500 is section 24, an unnamed reach in B: `lines` would open it (MUTATION PIN below); the named link does not
+    // 5500 is section 24, an unnamed reach in B: an unnamed link (`?blk=&m=`, below) opens it by `lines`; the named link does not
     for (const m of [5500, 9000]) {
       const gone = await resolveStartLink(parseStartLink(`?regs=${RIVER}&blk=${BLK}&m=${m}&view=map`)!, reads, itemFor(B));
       expect([m, waterFrame(gone.route), gone.notice]).toEqual([m, whole, "place-gone"]);
     }
     expect(asked).toEqual([]);
-    const old = await resolveStartLink(parseStartLink(`?regs=${RIVER}&blk=${BLK}&m=5500&view=map`)!,
-                                       release(B, { 0: 20, 1: 21, 2: 22, 3: 23 }), itemFor(B));
-    expect([waterFrame(old.route)?.item, waterFrame(old.route)?.tapSid, old.notice]).toEqual([null, 24, null]);
   });
 
   it("an UNNAMED reach is unchanged: its place and its link still read lines", async () => {

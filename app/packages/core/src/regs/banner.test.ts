@@ -47,8 +47,9 @@ function year(): (DisplayFrame | null)[] {
 function inputs(o: { day?: Day; byDay?: (DisplayFrame | null)[]; tidal?: boolean; merged?: MergedPart[] | null; closedGroup?: boolean } = {}): RegsInputs {
   return {
     day: o.day ?? D(6, 20), key: { tidal: !!o.tidal }, rules: R, partIx: 0,
-    statics: { exportSpecies: BOOK } as unknown as Statics,
-    item: { picker: { choices: [{ parts: [0, 1], closed: o.closedGroup ?? false, sections: 8, heading: "", text: "" }] } },
+    statics: { exportSpecies: BOOK, ends: { mouth: ["Mouth"], falls: ["Lower falls"], source: ["Source"] } } as unknown as Statics,
+    item: { id: "gnis:1", name: "Test River", parts: [{ lo: "mouth", hi: "falls" }, { lo: "falls", hi: "source" }],
+            picker: { choices: [{ parts: [0, 1], closed: o.closedGroup ?? false, sections: 8, heading: "", text: "" }] } },
     mergedParts: o.merged ?? null,
     year: { displayByDay: o.byDay ?? year() },
   } as unknown as RegsInputs;
@@ -120,10 +121,11 @@ describe("rawBanner / bannerOf", () => {
       .toEqual({ kind: "tidal", big: ["Tidal water"], paras: ["Tidal water: see DFO."], chain: [], reopen: null, merged: null });
   });
   it("mergedOf: a closed choice of ≥ 2 stretches lists each with its closure's level and book", () => {
-    const merged = [{ partIx: 0, label: "Lower", sections: 7, broad: RULES[1]! }, { partIx: 1, label: "Upper", sections: 1, broad: null }];
+    // (T517) each part named by the one name function over its end tokens (no stored label rides along)
+    const merged = [{ partIx: 0, sections: 7, broad: RULES[1]! }, { partIx: 1, sections: 1, broad: null }];
     expect(mergedOf(inputs({ closedGroup: true, merged }))).toEqual({ label: "Closed all year on 2 stretches (8 sections)", items: [
-      { text: "Lower · 7 sections", level: "This water", rule: "e1::r1", book: [{ t: "book", printed: 21, pdf: 23 }] },
-      { text: "Upper · 1 section", level: null, rule: null, book: [] }] });
+      { text: "Mouth → Lower falls · 7 sections", level: "This water", rule: "e1::r1", book: [{ t: "book", printed: 21, pdf: 23 }] },
+      { text: "Lower falls → Source · 1 section", level: null, rule: null, book: [] }] });
     expect(mergedOf(inputs({ closedGroup: false, merged }))).toBeNull();
   });
 });

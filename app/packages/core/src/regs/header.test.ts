@@ -8,21 +8,26 @@ import type { Choice, PartFacts, RegsInputs } from "./inputs";
 import type { Day } from "./model";
 
 const D = (month: number, day: number): Day => ({ month, day });
-const part = (label: string, short: string, o: Partial<PartFacts> = {}) =>
-  ({ label, short, runs: "", place: null, ...o }) as unknown as PartFacts;
+const ENDS = { mouth: ["Mouth"], cable: ["Cable car crossing"], bridge: ["Bridge"], falls: ["falls"], lake: ["lake"],
+               source: ["Source"], c: ["C"], b: ["B"] };
+/** A part's facts: its label and its two end TOKENS (`display.ends` above says them); none — the water's name. */
+const part = (label: string, lo: string | null, hi: string | null, o: Partial<PartFacts> = {}) =>
+  ({ label, lo, hi, runs: "", place: null, ...o }) as unknown as PartFacts;
 const choice = (parts: number[], text: string, sections: number, closed = false) =>
   ({ parts, text, sections, closed, heading: "" }) as Choice;
 function inputs(o: { parts?: (PartFacts | null)[]; choices?: Choice[]; partIx?: number; day?: Day; weekday?: string;
                      name?: string; kind?: string; sections?: number; partSections?: number[]; unnamed?: boolean } = {}): RegsInputs {
-  const parts = o.parts ?? [part("From the mouth up to the falls", "Mouth → falls", { runs: "From the mouth up to the falls" }),
-                            part("From the falls up to the lake", "Falls → lake…", { runs: "From the falls up to the lake" })];
+  const parts = o.parts ?? [part("From the mouth up to the falls", "mouth", "falls", { runs: "From the mouth up to the falls" }),
+                            part("From the falls up to the lake", "falls", "lake", { runs: "From the falls up to the lake" })];
   return {
     day: o.day ?? D(10, 10), weekday: o.weekday ?? "Saturday", partIx: o.partIx ?? 0,
-    item: o.unnamed ? null : { name: o.name ?? "Test River", kind: o.kind ?? "stream", sections: o.sections ?? 9,
+    item: o.unnamed ? null : { id: "gnis:1", name: o.name ?? "Test River", kind: o.kind ?? "stream", sections: o.sections ?? 9,
       parts, partSections: o.partSections ?? parts.map(() => 3),
       picker: o.choices === undefined ? { choices: [choice([0], "From the mouth up to the falls", 4), choice([1], "Upper river", 5)], headed: false }
         : o.choices.length ? { choices: o.choices, headed: false } : null },
     place: o.unnamed ? { label: "Region 5", name: "Unnamed stream" } : null,
+    // (T517) the release's `display.ends`: what a part's end tokens say
+    statics: { ends: ENDS },
   } as unknown as RegsInputs;
 }
 const today = D(10, 10);
@@ -33,49 +38,67 @@ describe("subtitleOf (page v36's subtitle)", () => {
   });
   it("a place before the runs; runs cut at 150 characters with an ellipsis", () => {
     const long = "word ".repeat(40).trim();
-    expect(subtitleOf(inputs({ parts: [part("a", "a", { place: "Upstream of X", runs: long }), part("b", "b")] })))
+    expect(subtitleOf(inputs({ parts: [part("a", null, null, { place: "Upstream of X", runs: long }), part("b", null, null)] })))
       .toBe(`stream · 4 sections · Upstream of X · ${long.slice(0, 150).replace(/\s+\S*$/, "")}…`);
   });
   it("a closed choice of stretches: 'closed all year'; one part: the part's sections, no tail; 1 section", () => {
     expect(subtitleOf(inputs({ choices: [choice([0, 1], "Closed all year · 2 stretches", 8, true)] }))).toBe("stream · 8 sections · closed all year");
-    expect(subtitleOf(inputs({ parts: [part("Whole water", "Whole water")], choices: [], kind: "lake", partSections: [1] }))).toBe("lake · 1 section");
+    expect(subtitleOf(inputs({ parts: [part("Whole water", null, null)], choices: [], kind: "lake", partSections: [1] }))).toBe("lake · 1 section");
   });
   it("an OPEN choice of two stretches says the part's runs; a one-part water counts its own sections, not its choice's", () => {
     expect(subtitleOf(inputs({ choices: [choice([0, 1], "Both stretches", 8)] }))).toBe("stream · 8 sections · From the mouth up to the falls");
-    expect(subtitleOf(inputs({ parts: [part("Whole water", "Whole water")], choices: [choice([0], "Whole water", 7)], partSections: [1] })))
+    expect(subtitleOf(inputs({ parts: [part("Whole water", null, null)], choices: [choice([0], "Whole water", 7)], partSections: [1] })))
       .toBe("stream · 1 section");
   });
 });
 
 describe("partLabels (prototype hereLabel / shortLabel)", () => {
-  it("the subtitle says the long label: full = long; short = the first part's short, uncut", () => {
+  it("the subtitle says the long label: full = long; short = the first part's name (`partNameOf`)", () => {
     expect(partLabels(inputs())).toEqual({ full: "From the mouth up to the falls", short: "Mouth → falls" });
   });
-  it("the subtitle does not say it: full = the uncut short; a cut short falls back to the long", () => {
-    expect(partLabels(inputs({ partIx: 1 }))).toEqual({ full: "Upper river", short: "Upper river" });
-    const p = inputs({ partIx: 1, parts: [part("a", "A"), part("b", "B → C", { runs: "the runs" })] });
+  it("the subtitle does not say it: full = the part's name too — no stored label stands in (T517)", () => {
+    expect(partLabels(inputs({ partIx: 1 }))).toEqual({ full: "falls → lake", short: "falls → lake" });
+    const p = inputs({ partIx: 1, parts: [part("a", null, null), part("b", "b", "c", { runs: "the runs" })] });
     expect(partLabels(p)).toEqual({ full: "B → C", short: "B → C" });
   });
-  it("no picker: the part's uncut short label, else its label (T16: the slot is empty only when it is the water's name)", () => {
-    const one = inputs({ parts: [part("Mouth to source", "Mouth → Source")], choices: [] });
+  it("no picker: the part's name; no ends — the water's name, so the slot is empty (T16)", () => {
+    const one = inputs({ parts: [part("Mouth to source", "mouth", "source")], choices: [] });
     expect(partLabels(one)).toEqual({ full: "Mouth → Source", short: "Mouth → Source" });
     expect(headerOf(one, { today, status: "open" }).place).toEqual({ full: "Mouth → Source", short: "Mouth → Source" });
-    expect(partLabels(inputs({ parts: [part("Mouth to source", "Mouth…")], choices: [] }))).toEqual({ full: "Mouth to source", short: "Mouth to source" });
+    const lake = inputs({ parts: [part("Whole lake", null, null)], choices: [], kind: "lake" });
+    expect([partLabels(lake), headerOf(lake, { today, status: "open" }).place]).toEqual([
+      { full: "Test River", short: "Test River" }, null]);
     expect(partLabels(inputs({ unnamed: true }))).toBeNull();
+  });
+  it("an unkeyed part (no facts: outside B.C.) is said as its water; a part the water lacks throws", () => {
+    expect(partLabels(inputs({ parts: [part("a", "mouth", "falls"), null], choices: [], partIx: 1 })))
+      .toEqual({ full: "Test River", short: "Test River" });
+    expect(() => partLabels(inputs({ choices: [], partIx: 5 }))).toThrow("regs: gnis:1 has no part 5");
   });
 });
 
-describe("(T517) a piece of a salmon-cut run is said by the whole run's name", () => {
-  const pieces = [part("From the mouth up to the bridge", "Mouth → Cable car crossing",
-                       { lo: "Mouth", hi: "Cable car crossing", run_name: "Mouth → Bridge" }),
-                  part("From the mouth up to the bridge", "Cable car crossing → Bridge",
-                       { lo: "Cable car crossing", hi: "Bridge", run_name: "Mouth → Bridge" })];
-  it("no picker: either piece read, the run's name (never the first piece's own ends)", () => {
+describe("(T517) a part is said as the water's map names the entry holding it (one name, every screen)", () => {
+  // (T517, owner 2026-11-09) each piece ships its two end tokens and no short: its own name is composed (`spanName`)
+  const pieces = [part("From the mouth up to the bridge", "mouth", "cable"), part("From the mouth up to the bridge", "cable", "bridge")];
+  // the map's names (`@app/core` `entryNames` over `mergeNav(group, live salmon key)`): the live salmon reads the two
+  // pieces alike (one entry, the run's name), or apart (two entries, each by its own ends)
+  const joined = new Map([[0, "Mouth → Bridge"], [1, "Mouth → Bridge"]]);
+  const apart = new Map([[0, "Mouth → Cable car crossing"], [1, "Cable car crossing → Bridge"]]);
+  it("no picker: either piece of a joined entry says the entry's name, in the header's place slot whole", () => {
     for (const partIx of [0, 1])
-      expect(partLabels(inputs({ parts: pieces, choices: [], partIx }))).toEqual({ full: "Mouth → Bridge", short: "Mouth → Bridge" });
+      expect(headerOf(inputs({ parts: pieces, choices: [], partIx }), { today, status: "open", names: joined }).place)
+        .toEqual({ full: "Mouth → Bridge", short: "Mouth → Bridge" });
   });
-  it("one choice holding both pieces: the run's name", () => {
-    expect(partLabels(inputs({ parts: pieces, choices: [choice([0, 1], "Lower river", 8)], partIx: 1 })))
+  it("the Dean's part 6 shape: a piece the live salmon keeps apart says its OWN entry's name, never the run's", () => {
+    expect(headerOf(inputs({ parts: pieces, choices: [], partIx: 1 }), { today, status: "open", names: apart }).place)
+      .toEqual({ full: "Cable car crossing → Bridge", short: "Cable car crossing → Bridge" });
+  });
+  it("before the map's group is read (no names): each piece by its own ends (the one name function), as the map lists it unjoined", () => {
+    expect(headerOf(inputs({ parts: pieces, choices: [], partIx: 1 }), { today, status: "open" }).place)
+      .toEqual({ full: "Cable car crossing → Bridge", short: "Cable car crossing → Bridge" });
+  });
+  it("one choice holding both pieces: its first part's entry name", () => {
+    expect(partLabels(inputs({ parts: pieces, choices: [choice([0, 1], "Lower river", 8)], partIx: 1 }), joined))
       .toEqual({ full: "Mouth → Bridge", short: "Mouth → Bridge" });
   });
 });
@@ -97,19 +120,19 @@ describe("headerOf", () => {
       tabs: [{ tab: "keep", label: "What you can keep" }, { tab: "gear", label: "Gear" }, { tab: "methods", label: "Methods" },
              { tab: "licence", label: "Licence" }] });
     // one part, a picker of one choice, an old caller's `canMap`: still no action key
-    for (const inp of [inputs({ parts: [part("Whole water", "Whole water")], choices: [] }),
-                       inputs({ parts: [part("Whole water", "Whole water")], choices: [choice([0], "Whole water", 1)] })])
+    for (const inp of [inputs({ parts: [part("Whole water", null, null)], choices: [] }),
+                       inputs({ parts: [part("Whole water", null, null)], choices: [choice([0], "Whole water", 1)] })])
       expect(Object.keys(headerOf(inp, { today, status: "open" }))).not.toContain("action");
     expect(Object.keys(headerOf(inputs(), { today, status: "open", canMap: true } as Parameters<typeof headerOf>[1])))
       .toEqual(["name", "dayWord", "date", "dateAria", "dot", "place", "tabs"]);
   });
   it("a label that is the water's own name leaves the slot empty", () => {
-    const h = headerOf(inputs({ name: "Kootenay Lake — Lower West Arm", parts: [part("x", "Kootenay Lake — Lower West Arm"), part("y", "y")] }),
+    const h = headerOf(inputs({ name: "Kootenay Lake — Lower West Arm", parts: [part("x", null, null), part("y", "b", "c")] }),
                        { today, status: "open" });
     expect(h.place).toBeNull();
   });
   it("a one-part water: the label slot is empty only when the label is the water's name", () => {
-    const h = headerOf(inputs({ name: "Wilkes Creek", parts: [part("Wilkes Creek", "Wilkes Creek")], choices: [] }),
+    const h = headerOf(inputs({ name: "Wilkes Creek", parts: [part("Wilkes Creek", null, null)], choices: [] }),
                        { today, status: "open" });
     expect(h.place).toBeNull();
   });

@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from pipeline.deliver.answers.common import AnswersError, when_words
 from pipeline.deliver.answers.display.rule import _num, cut_points, rule_facts
 from pipeline.deliver.answers.display.part import (
-    Water, part_km, part_label, part_labels, part_place, picker, runs_label, short_labels
+    Water, part_km, part_label, part_labels, part_place, picker, runs_label
 )
 
 
@@ -155,17 +155,6 @@ def record_kept(B, store, key_ix: int, rid: str) -> bool:
     return not took_part
 
 
-def _run_words(ex: int, multi: Dict[int, List[int]], ends_of: Dict[int, Optional[tuple]]) -> dict:
-    """T517 `lo` / `hi` (this piece's own two ends) and `run_name` (the whole run, its lowest piece's lower end to its
-    highest piece's upper end) for a piece of a run the salmon chain cuts; all None for a part that is its run."""
-    if ex not in multi:
-        return {"lo": None, "hi": None, "run_name": None}
-    ends = [ends_of[x] for x in multi[ex] if ends_of[x]]
-    mine = ends_of[ex]
-    return {"lo": mine[0] if mine else None, "hi": mine[1] if mine else None,
-            "run_name": f"{ends[0][0]} → {ends[-1][1]}" if ends else None}
-
-
 def _by_grp(item_id: str, w: dict, doc: dict):
     """T517: the water as its RULE-SET GROUPS (what a part was before T517): one pseudo-part per `grp`, its parts'
     runs together (mouth-upward km order kept as `compose_runs` lists them: upstream first) and sections summed —
@@ -199,27 +188,111 @@ def _by_grp(item_id: str, w: dict, doc: dict):
     return Water(item_id, {**w, "parts": merged}, doc), members
 
 
-def _shorts(W: "Water", labels: Sequence[str]) -> List[str]:
-    """Every part's name (`short_label`, its own two ends), two parts the same words would name told apart by their
-    full labels' distinguishing tail, else numbered — `short_labels` over the parts, the labels per group."""
-    from pipeline.deliver.answers.display.part import short_label
-    out = [short_label(W.doc, p, labels[i]) for i, p in enumerate(W.parts)]
-    for s_ in set(out):
-        ix = [i for i, t in enumerate(out) if t == s_]
-        if len(ix) < 2:
-            continue
-        for n, i in enumerate(ix, 1):
-            h = re.split(r" — | · ", labels[i], maxsplit=1)
-            tail = h[1] if len(h) > 1 and h[1] else ""
-            out[i] = f"{s_} · {tail}" if tail and len({labels[j] for j in ix}) > 1 else f"{s_} ({n})"
-    return out
+def _crossings(path: str) -> Dict[tuple, list]:
+    """{(item id, crossing token): [(km, the token of what stands there)]} — the bundle's `crossing_near` — and
+    {(item id, "part", part_ix): near token} — its `part_near`."""
+    from pipeline.deliver.answers.common import connect
+    db = connect(path)
+    try:
+        out: Dict[tuple, list] = {}
+        for iid, t, km, near in db.execute("SELECT i.item_id, c.token, c.km, c.near FROM crossing_near c "
+                                           "JOIN item i ON i.ord = c.ord ORDER BY i.item_id, c.token, c.km"):
+            out.setdefault((iid, t), []).append((km, near))
+        for iid, p, near in db.execute("SELECT i.item_id, n.part_ix, n.near FROM part_near n JOIN item i "
+                                       "ON i.ord = n.ord ORDER BY i.item_id, n.part_ix"):
+            out[(iid, "part", p)] = near
+        return out
+    finally:
+        db.close()
+
+
+def _names(W: "Water", crossings: Dict[tuple, List[Tuple[float, str]]]) -> List[dict]:
+    """T517 (owner 2026-11-09) every part's name facts: its two END TOKENS (`lo`, `hi`; the app composes "<lower> →
+    <upper>" from `display.ends`, `spanName`). A part with NO MAIN STEM (a lake, side channels only) ships none: the
+    app says its water's name — unless the water has several such parts, which then carry their side channels' ends
+    (`branch_end_tokens`). NO TWO PARTS OF ONE WATER SAY THE SAME NAME, none is numbered and none says "Within": an
+    end that is a CROSSING (`topology.is_crossing`: an area's boundary, the B.C. border, a region line, a river
+    polygon, an unnamed lake) is said NEAR what stands there (`topology.crossing_near`: the nearest named water
+    feature, at the border the nearest B.C. town) — else at its km — wherever the part's two ends say the same words
+    or its name is another part's; the part across that place says the same token (the mark there names it).
+    Anything still said twice stops the build (`name_check`)."""
+    from pipeline.deliver.answers.display.part import NEAR, PLACE, at_place, branch_end_tokens, end_name_of, \
+        end_tokens, end_words
+    from pipeline.deliver.bundle.topology import is_crossing
+    toks = [end_tokens(W.doc, p) for p in W.parts]
+    # a part with no main stem says its water's name — unless the water has several such parts, or it is a piece of a
+    # run the salmon chain cuts (its joined name runs from the first piece's lower end to the last's upper end)
+    run_n: Dict[tuple, int] = {}
+    for p in W.parts:
+        run_n[(p["grp"], p["run"])] = run_n.get((p["grp"], p["run"]), 0) + 1
+    several = sum(1 for t in toks if t is None) > 1
+    toks = [t if t is not None or run_n[(p["grp"], p["run"])] < 2 else branch_end_tokens(p)
+            for p, t in zip(W.parts, toks)]
+    ends: List[Optional[list]] = [[t[0], t[1]] if t else None for t in toks]
+    if several:
+        # several parts with no main stem: each said "<water> near <what it lies nearest>" (`topology.part_near`;
+        # lo = hi = "near:<token>"), the one thing that tells two side channels of unmeasured ends apart
+        for i, (p, t) in enumerate(zip(W.parts, toks)):
+            if t is None:
+                near = crossings.get((W.id, "part", W.export_ix[i]))
+                if near is None:
+                    raise AnswersError(f"display: {W.id} part {W.export_ix[i]}: one of several parts with no main "
+                                       f"stem, and no named water or B.C. town near it to tell it apart")
+                ends[i] = [f"near:{near}", f"near:{near}"]
+    water = W.w["name"]
+
+    def name(i: int) -> str:
+        if not ends[i]:
+            return water
+        if ends[i][0] == ends[i][1] and ends[i][0].startswith("near:"):
+            w = end_words(W.doc, ends[i][0], "from")
+            return f"{water} {w[:1].lower() + w[1:]}"
+        return end_name_of(W.doc, *ends[i])
+
+    def base(e: str) -> str:
+        return e.split(NEAR)[0].split(PLACE)[0]
+
+    def place(tok: str, km: float) -> str:
+        if NEAR in tok:
+            return at_place(base(tok), km)
+        got = [n for k, n in crossings.get((W.id, tok), ()) if abs(k - km) <= 0.05]
+        return f"{tok}{NEAR}{got[0]}" if got else at_place(tok, km)
+
+    def requalify(i: int, side: int, km: float) -> None:
+        """Say part i's end `side` at its place — and the same end of every part that meets it there."""
+        new = place(ends[i][side], km)
+        b = base(ends[i][side])
+        for j, t in enumerate(toks):
+            if ends[j] is None:
+                continue
+            for s2, k2 in ((0, t[2]), (1, t[3])):
+                if base(ends[j][s2]) == b and k2 is not None and abs(k2 - km) <= 0.05:
+                    ends[j][s2] = new
+    for i, t in enumerate(toks):                      # a river polygon has no name of its own: always said near
+        if t:
+            for side, km in ((0, t[2]), (1, t[3])):
+                if ends[i][side] == "polygon":
+                    requalify(i, side, km)
+    for _ in range(3):
+        said = [name(i) for i in range(len(W.parts))]
+        clash = [i for i in range(len(W.parts)) if ends[i] and not ends[i][0].startswith("near:") and (
+                 said.count(said[i]) > 1 or end_words(W.doc, ends[i][0], "to") == end_words(W.doc, ends[i][1], "from"))]
+        if not clash:
+            break
+        for i in clash:
+            t = toks[i]
+            for side, km in ((0, t[2]), (1, t[3])):
+                if is_crossing(base(ends[i][side])) and PLACE not in ends[i][side]:
+                    requalify(i, side, km)
+    return [{"lo": ends[i][0] if ends[i] else None, "hi": ends[i][1] if ends[i] else None}
+            for i in range(len(W.parts))]
 
 
 def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
                   rule_ref=None, lic_ref=None, log=print, store=None) -> Dict[str, dict]:
     """PURE: every named water's part facts, `{item_id: {"parts": [facts | null per EXPORT part],
     "picker": {...}, "unresolved_licensing": [record]}}`, a part's facts {order, label, runs,
-    place, hint, km, closed_all_year, paper_licence}; null for a part outside B.C. The part keys
+    place, km, closed_all_year, paper_licence}; null for a part outside B.C. The part keys
     are the keying module's (`common.part_keys`); the picker names parts by export index."""
     from pipeline.deliver.answers.common import rule_key
     rule_ref = rule_ref or (lambda k: k)
@@ -232,6 +305,7 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
     for k, x in (doc.get("licensing") or {}).items():
         if x.get("placement") == "unresolved":
             unresolved.setdefault(x["entry_id"], []).append(k)
+    crossings = _crossings(B.path)
     for item_id in sorted(parts):
         w = doc["waters"][item_id]
         W = Water(item_id, w, doc)
@@ -243,16 +317,8 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
         labels_g = part_labels(Wg)
         gi = {g: k for k, g in enumerate(Wg.export_ix)}
         labels = [labels_g[gi[p["grp"]]] for p in W.parts]
-        shorts = _shorts(W, labels)
-        # T517: a run the DFO salmon chain cuts into several parts (same grp, run) carries its pieces' own two ends
-        # and the whole run's name, so the map joins them and says them without composing prose
-        from pipeline.deliver.answers.display.part import run_ends
-        pieces: Dict[tuple, List[int]] = {}
-        for ex in W.export_ix:
-            q = w["parts"][ex]
-            pieces.setdefault((q["grp"], q["run"]), []).append(ex)
-        multi = {ex: sorted(v) for v in pieces.values() if len(v) > 1 for ex in v}
-        ends_of = {ex: run_ends(doc, w["parts"][ex]) for ex in multi}
+        # T517 (owner 2026-11-09): a part's name is its two end tokens; the app composes the words of any span shown
+        names = _names(W, crossings)
         closed = []
         facts: List[Optional[dict]] = [None] * len(w["parts"])
         for i, (ex, p) in enumerate(zip(W.export_ix, W.parts)):
@@ -262,10 +328,9 @@ def produce_parts(B, doc: dict, keys: Sequence[tuple], parts: Dict[str, list],
             closed.append(closed_memo[rk])
             k = gi[p["grp"]]
             facts[ex] = {
-                "order": i, "label": labels[i], "short": shorts[i],
-                **_run_words(ex, multi, ends_of), "runs": runs_label(doc, p),
+                "order": i, "label": labels[i], **names[i], "runs": runs_label(doc, p),
                 "place": part_place(Wg, k) or None,          # null: no entry heading
-                "hint": part_label(Wg, k), "km": part_km(p),
+                "km": part_km(p),
                 "closed_all_year": closed[-1],
                 "paper_licence": [rule_ref(r) for r in paper_licence(B, rk, w.get("kind"), store=store)]}
         shut = {p["grp"]: c for p, c in zip(W.parts, closed)}

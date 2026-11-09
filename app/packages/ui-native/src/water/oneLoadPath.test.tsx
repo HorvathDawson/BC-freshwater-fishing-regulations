@@ -6,7 +6,7 @@
  * → `parseStartLink` → `resolveStartLink`), then BOTH views are rendered on the regs fixture release and what they
  * draw is compared: the Regulations page's whole text (target part, access notices, Salmon card) and the Conditions
  * view's reach and "you are here" (the panel is stubbed to say what it was handed). The water Map view's own net is
- * `WaterMapView.test.tsx` (highlight, fit, stretch, ⤢).
+ * `WaterMapView.test.tsx` (highlight, fit, ⤢).
  *
  * MUTATION PINS: the old divergences, put back by hand, make the comparison fail (a step that kept the tap: D1/D2; a
  * tap reloaded without its tap marker: D5) — so the net can see what it is for.
@@ -79,12 +79,12 @@ async function until(ok: () => boolean, ms = 30_000): Promise<void> {
 /** What the two views of the route's frame DRAW. */
 async function drawn(r: Route): Promise<{ conditions: string; regs: string }> {
   const f = waterFrame(r)!;
-  render(<WaterConditions source={source} loader={lined} item={f.item} tapSid={f.tapSid} part={f.part} stretch={f.stretch}
+  render(<WaterConditions source={source} loader={lined} item={f.item} tapSid={f.tapSid} part={f.part}
                           from={f.at} palette={LIGHT} />);
   await until(() => !!screen.queryByTestId("panel"));
   const conditions = screen.getByTestId("panel").textContent!;
   cleanup();
-  render(<WaterScreen source={source} loader={lined} item={f.item} section={f.tapSid} part={f.part} stretch={f.stretch}
+  render(<WaterScreen source={source} loader={lined} item={f.item} section={f.tapSid} part={f.part}
                       day={DAY} palette={LIGHT} />);
   await until(() => !!screen.queryByTestId("regs-view"));
   // the Salmon card and the access notices come after the page: settled (unchanged across two polls) before it is read

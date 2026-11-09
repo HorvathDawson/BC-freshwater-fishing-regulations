@@ -18,6 +18,10 @@ import { openLineReads, type LineReads } from "@app/data/regs/place";
 import type { ReleaseLoader } from "@app/data/release";
 import { useAsync, usePoll } from "./async";
 
+const ids = new WeakMap<object, number>();
+let nextId = 0;
+const idOf = (o: object): number => { let i = ids.get(o); if (i === undefined) ids.set(o, i = ++nextId); return i; };
+
 /** How often the feed is asked again while the app is open (the source's own cache decides whether it fetches). */
 export const INSEASON_POLL_MS = 60 * 60_000;
 
@@ -57,8 +61,23 @@ export function useInSeason(source: InSeasonSource | null | undefined, epoch = 0
 export interface InSeasonPage {
   readonly item: string;
   readonly ord: number;
-  /** null: the whole water's page */
-  readonly partIx: number | null;
+  /** (T517) the page's parts: every piece of the map entry holding the page's part (a live-joined entry is several),
+   *  so its coverage is the entry's; null: the whole water's page */
+  readonly pieces: readonly number[] | null;
+}
+
+/**
+ * (T517) THE IN-SEASON PAGE OF A REGULATIONS PAGE: its water and the pieces of the map entry holding its part (`entries`,
+ * `useMapEntries`: every piece of a live-joined entry), so the banner covers what the map lights. Its own part alone —
+ * a documented rule — before the map's group is read (the entry it is before a salmon reading joins any), and for a
+ * part no entry holds (a tidal piece: never listed on the map). Null: no named water on the page.
+ */
+export function useInSeasonPage(item: { readonly id: string; readonly ord: number } | null, partIx: number | null,
+                                entries: { readonly pieces: ReadonlyMap<number, readonly number[]> } | null): InSeasonPage | null {
+  const pieces = partIx === null ? null : entries?.pieces.get(partIx) ?? [partIx];
+  const key = pieces ? pieces.join(",") : "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the page's identity: its water and its pieces
+  return useMemo(() => (item && pieces ? { item: item.id, ord: item.ord, pieces } : null), [item?.id, item?.ord, key]);
 }
 
 /** One change on one page, and where on it (`inSeasonCover`). */
@@ -79,7 +98,7 @@ const TOLD = new Set<string>();
  * this release. A failure (lines unreadable, off-release, ranges on nothing) shows the change on the whole water with
  * its ends, and is REPORTED (once per change, water and reason).
  */
-export function useInSeasonCovers(store: Pick<RegsStore, "navRows"> | null,
+export function useInSeasonCovers(store: Pick<RegsStore, "navRows" | "statics"> | null,
                                   lines: Pick<LineReads, "hasLines" | "sectionLine"> | null,
                                   page: InSeasonPage | null, day: Date | null): readonly InSeasonOnPage[] {
   const { data, release } = useContext(InSeasonContext);
@@ -99,21 +118,34 @@ export function useInSeasonCovers(store: Pick<RegsStore, "navRows"> | null,
       return { ord: page!.ord, water, partOf: new Map(nav.sections.map((s) => [s.sid, s.partIx] as const)) };
     },
     `inseason-lines:${page?.ord ?? ""}`, needs && !!store && !!lines);
+  // (T517) the release's `display.ends`: the words "Where" says (the statics are read once per store, prewarmed). One
+  // that could not be read never hides a notice: the changes are shown with no "Where", and that is reported
+  const ends = useAsync(async () => (await store!.statics()).ends, `inseason-ends:${store ? idOf(store) : ""}`,
+                        !!store && here.length > 0);
+  const table = ends.state === "ready" ? ends.value : null;
+  const tableWait = ends.state === "loading" && !!store && here.length > 0;
+  const pieces = page?.pieces ? page.pieces.join(",") : null;
   const out = useMemo(() => {
     const got = read.state === "ready" && read.value.ord === page?.ord ? read.value : null;
-    if (!page || (needs && (read.state === "loading" || (read.state === "ready" && !got)))) return [];
-    const onPage = got && page.partIx !== null
-      ? new Set([...got.partOf].filter(([, ix]) => ix === page.partIx).map(([sid]) => sid)) : null;
+    if (!page || tableWait || (needs && (read.state === "loading" || (read.state === "ready" && !got)))) return [];
+    const mine = page.pieces ? new Set(page.pieces) : null;
+    const onPage = got && mine ? new Set([...got.partOf].filter(([, ix]) => mine.has(ix)).map(([sid]) => sid)) : null;
     const res: InSeasonOnPage[] = [];
     for (const c of here) {
-      const cover = inSeasonCover(c, page.item, got?.water ?? null, onPage);
+      const cover = inSeasonCover(c, page.item, got?.water ?? null, onPage, table);
       if (cover) res.push({ change: c, cover });
     }
     return res;
-  }, [page?.item, page?.partIx, here, needs, read.state, read.state === "ready" ? read.value : null]);
+  }, [page?.item, pieces, here, needs, read.state, read.state === "ready" ? read.value : null, table, tableWait]);
   // (no silent fallbacks) a change shown on the whole water because it could not be placed is also reported
   useEffect(() => {
     for (const p of out) {
+      // (T517) a "Where" that could not be said: the line is gone, the notice and its sections stay — reported
+      const wf = p.cover.whereFailure;
+      if (wf && !TOLD.has(`${wf}|${p.change.id}|${page?.item}`)) {
+        TOLD.add(`${wf}|${p.change.id}|${page?.item}`);
+        reportFailure(new Error(wf));
+      }
       const f = p.cover.failure;
       if (!f) continue;
       const k = f === INSEASON_FAILURES.offRelease ? `off|${p.change.linksRelease}|${release}`
@@ -133,7 +165,7 @@ export function useReleaseLines(loader: Pick<ReleaseLoader, "manifest" | "db"> |
 }
 
 /** The banners on one Regulations page, for its day (null: today): `useInSeasonCovers`, worded. */
-export function useInSeasonBanners(store: Pick<RegsStore, "navRows"> | null,
+export function useInSeasonBanners(store: Pick<RegsStore, "navRows" | "statics"> | null,
                                    lines: Pick<LineReads, "hasLines" | "sectionLine"> | null,
                                    page: InSeasonPage | null, day: Date | null): readonly InSeasonBannerVM[] {
   const covers = useInSeasonCovers(store, lines, page, day);

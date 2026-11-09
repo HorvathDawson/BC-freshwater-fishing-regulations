@@ -1,26 +1,23 @@
 /**
  * THE WATER MAP'S NAVIGATION (P15): a water's parts in mouth-first order, the boundary marks between them, and a step
- * ▼ downstream / ▲ upstream over that STORED graph — the release's `part_geo` (rank, box), `part_mark` (a boundary: its
- * place, its label, the part below it and the parts above it) and `water_exit` (where the water's mouth goes), written
+ * ▼ downstream / ▲ upstream over that STORED graph — the release's `part_geo` (box), `part_mark` (a boundary: its
+ * place, its end token, the part below it and the parts above it) and `water_exit` (where the water's mouth goes), written
  * by the pipeline (P09). Nothing here is a regulation: it is which part is next to which, and the words for it.
  *
  * THE GROUP. A water is one item; a lake divided into closure areas (Kootenay Lake: Main Body, Upper and Lower West
  * Arm, each its own item `part_of` the lake, P09's KNOWN GAP) is the group of its sibling items, walked as one water
  * the way the prototype's map does (`regs-v11.html` `klwa`). Siblings are ordered by their exits (the one that leaves
  * the group is the lowest; each that flows into one already placed comes next), and an exit from one sibling into
- * another is a boundary mark with no place (the release draws none between items) and no label: its words are the two
- * parts' names without what they share (`markLabel`, the prototype's).
+ * another is a boundary mark with no place (the release draws none between items) and no end token: it says no words.
  *
- * STRETCHES (T204, owner 2026-10-25: "non-adjacent stretches of one part are SEPARATE stretches on the map, own label, own
- * selection"). A part the release splits into stretches (`part_stretch`: Kanaka Creek's part below the 112 Avenue bridge
- * AND above Cliff Park Falls) is walked as one entry PER STRETCH, in the release's stretch order, each lit, framed and
- * listed on its own; its marks say which stretch meets there (`down_stretch` / `up_stretches`). The regulations stay the
- * part's: every stretch of a part opens the same part.
+ * ONE PART, ONE CONNECTED RUN (T517). The release cuts a water into parts, each one connected stretch (`part_ix` is
+ * river order, mouth first); neighbouring parts of one run the DFO salmon chain cuts are joined on the map where the live
+ * salmon reads them alike (`mergeNav`). A joined entry knows every part it holds (`pieces`).
  *
  * THE STEP. ▲ takes the parts above the current one by the marks (a fork: a mark with two upper parts); ▼ the parts
  * below it (a fork too: two parts whose marks both say they sit below this one — the Zymoetz's source part has the main
  * stem and "A lake → McDonell Lake outlet" below it, and that lake part is reached ONLY that way). Where the marks say
- * nothing the order (`rank`) does, so every part stays reachable. At a fork the MAIN stem goes first: a side channel is
+ * nothing the order (`part_ix`) does, so every part stays reachable. At a fork the MAIN stem goes first: a side channel is
  * a branch from which the other branch is reachable going on in the same direction (it rejoins), and the main stem is
  * not — the Zymoetz's side channel rejoins above the canyon (`up_parts [0, 5]`).
  *
@@ -31,6 +28,7 @@
  * next (`next`), ▼ with nothing below steps into the next one's part. The step is the caller's to take: it opens the
  * other water (`crossUp` / `crossDown` say which, and where).
  */
+import { endWords, spanName, type EndsTable } from "./ends";
 import { waterNoun, WORDS } from "./regs/words";
 import type { Bbox } from "./searchGeometry";
 
@@ -40,32 +38,29 @@ export interface NavPart {
   readonly item: string;
   readonly itemName: string;
   readonly kind: string;
-  /** Its index in its item's `part` table — what the regulations page and the route name a part by. */
+  /** Its index in its item's `part` table — what the regulations page and the route name a part by, and its river
+   *  order (mouth first). An entry `mergeNav` joined is named by its lowest piece. */
   readonly partIx: number;
-  /** Mouth-first order within its item (`part_geo.rank`). */
-  readonly rank: number;
+  /** (T517) Every release part this entry holds, ascending: `[partIx]`, or the pieces of one run the live salmon joins.
+   *  What a frame's part is found by (`partAt`). */
+  readonly pieces: readonly number[];
   readonly label: string;
-  readonly short: string;
+  /** (T517, owner 2026-11-09) What its name is composed from (`@app/core` `spanName`, the one name function): its two
+   *  END TOKENS (a joined entry: its first piece's `lo`, its last piece's `hi`); both null — a lake, a whole water, an
+   *  unkeyed part — its water's name. */
+  readonly lo: string | null;
+  readonly hi: string | null;
   /** (T460) A side channel (the release's part with no km): a fork's branch, never a skipped part of the main stem. */
   readonly side?: boolean;
   /** (T517) Its rule-set group and connected run: parts sharing both are one run the DFO salmon chain cuts, which the
-   *  regular map joins (`mergeNav`). `lo` / `hi`: such a piece's own two ends; `runName`: the whole run's name. */
-  readonly grp?: number;
-  readonly run?: number;
-  readonly lo?: string | null;
-  readonly hi?: string | null;
-  readonly runName?: string;
+   *  map joins where the live salmon reads them alike (`mergeNav`). */
+  readonly grp: number;
+  readonly run: number;
   /** The box of its geometry `[w, s, e, n]` in degrees, or null where the builder wrote none. */
   readonly box: Bbox | null;
   /** A point on it (`part_geo.mid_lon / mid_lat`), in degrees. */
   readonly mid: readonly [number, number] | null;
   readonly sids: readonly number[];
-  /** (T204) Which stretch of its part this is (0 first, mouth up), and how many its part has; absent: one. */
-  readonly stretch?: number;
-  readonly stretches?: number;
-  /** (T228) For a stretch: its whole part's frame (`part_geo`), which a piece joined back into the whole part takes. */
-  readonly partBox?: Bbox | null;
-  readonly partMid?: readonly [number, number] | null;
 }
 
 /** (T207) How sure the curator is of where a cut stands — pipeline `models.splits.CONFIDENCE`; absent is high. */
@@ -75,17 +70,13 @@ export function isConfidence(v: unknown): v is Confidence {
   return v === "high" || v === "medium" || v === "low";
 }
 
-/** THE ONE SENTENCE for a cut's confidence (pipeline `confidence_words`, the same words): "" for high or absent, else
- *  "approximate location (low confidence)". */
-export function confidenceWords(c: Confidence | null | undefined): string {
-  return !c || c === "high" ? "" : `approximate location (${c} confidence)`;
-}
-
 /** A boundary between parts: `down` and `up` are indexes into the group's `parts`. No place: not drawn. */
 export interface NavMark {
   readonly lon: number | null;
   readonly lat: number | null;
-  readonly label: string | null;
+  /** (T517, water/3) the end token the two parts share here (`part_mark.token`, a key of `display.ends`), said by
+   *  `markLabel`; null: no named place (a side channel meets, a split lake's areas) — drawn with no words */
+  readonly token: string | null;
   readonly down: number;
   readonly up: readonly number[];
   /** T207: the named cut's confidence where it is not high (`part_mark.confidence`). */
@@ -104,6 +95,8 @@ export interface NavCross { readonly item: string; readonly name: string; readon
 export interface WaterGroup {
   /** Mouth-first. */
   readonly parts: readonly NavPart[];
+  /** (T517) The release's `display.ends`: the words every part's name is composed from (`partName`). */
+  readonly ends: EndsTable;
   readonly marks: readonly NavMark[];
   readonly exit: NavExit | null;
   /** The water this one goes on as, below its mouth (the Chilliwack's: the Vedder), or null. */
@@ -112,11 +105,11 @@ export interface WaterGroup {
   readonly prev: NavCross | null;
 }
 
-/** One `water_continue` row as an item's rows carry it: the other water (its ord, id and name — null where the
- *  release's core does not hold it), `part` this item's part at the junction and `otherPart` the other water's. */
+/** One `water_continue` row as an item's rows carry it: the other water (its ord, id and name, from core), `part` this
+ *  item's part at the junction and `otherPart` the other water's. */
 export interface ContinueRow {
   readonly ord: number; readonly part: number; readonly otherPart: number;
-  readonly item: string | null; readonly name: string | null;
+  readonly item: string; readonly name: string;
 }
 
 /** One item's rows from the release, as the data layer reads them (degrees, not microdegrees). */
@@ -126,25 +119,20 @@ export interface ItemNavRows {
   readonly name: string;
   readonly kind: string;
   /** `side` (T460): a side channel, the release's part with no km (`part.km` NULL), never a step on the main stem. */
-  readonly parts: readonly { readonly partIx: number; readonly label: string; readonly short: string; readonly side?: boolean;
-                              readonly grp?: number; readonly run?: number; readonly lo?: string | null;
-                              readonly hi?: string | null; readonly runName?: string }[];
-  readonly geo: readonly { readonly partIx: number; readonly rank: number; readonly box: Bbox | null;
+  readonly parts: readonly { readonly partIx: number; readonly label: string;
+                              readonly lo: string | null; readonly hi: string | null;
+                              readonly side?: boolean; readonly grp: number; readonly run: number }[];
+  /** (T278) the item's TIDAL pieces (no key, never listed): left out of `parts`, and a mark reaching one goes with it */
+  readonly tidal: readonly number[];
+  readonly geo: readonly { readonly partIx: number; readonly box: Bbox | null;
                            readonly mid: readonly [number, number] | null }[];
-  readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
+  readonly marks: readonly { readonly lon: number; readonly lat: number; readonly token: string | null;
                              readonly down: number; readonly up: readonly number[];
-                             readonly confidence?: Confidence;
-                             /** (T204) the stretch of `down`, and of each of `up` (same order); absent: stretch 0 */
-                             readonly downStretch?: number; readonly upStretches?: readonly number[] }[];
+                             readonly confidence?: Confidence }[];
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
-  /** (T204) `part_stretch`: every stretch of every part, for an item with a part of two or more (else absent or empty):
-   *  its part, its index in the part, its rank among the item's stretches (mouth first), its frame and its sids. */
-  readonly stretches?: readonly { readonly partIx: number; readonly stretch: number; readonly rank: number;
-                                  readonly box: Bbox | null; readonly mid: readonly [number, number] | null;
-                                  readonly sids: readonly number[] }[];
   /** `water_exit`: the receiving item's ord, the part it is met at, and — when the release names it — its id and name. */
-  readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
-                   readonly name: string | null;
+  readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string;
+                   readonly name: string;
                    /** (T345) the receiving part is tidal (its `part` row: no key, `province_except` "tidal") */
                    readonly tidal?: boolean } | null;
   /** `water_continue`: the water this one goes on as (`continuesAs`) and the one it goes on from (`continuesFrom`). */
@@ -152,15 +140,15 @@ export interface ItemNavRows {
   readonly continuesFrom?: ContinueRow | null;
 }
 
-/** (T517) The run facts a part carries into the group. */
-const runOf = (p: ItemNavRows["parts"][number]) =>
-  (p.runName ? { grp: p.grp, run: p.run, lo: p.lo ?? null, hi: p.hi ?? null, runName: p.runName } : {});
+/** A release defect in a water's map rows: thrown (the map then says it is unavailable, and the read reports it). */
+const defect = (i: ItemNavRows, what: string) => new Error(`water map: ${i.item} (ord ${i.ord}) ${what}`);
 
 /**
  * The group, from its items' rows. `all[0]` is the water opened; the others are its siblings (a split lake's other
- * parts) — in any order: they are ordered here by their exits. An item with no parts is left out.
+ * parts) — in any order: they are ordered here by their exits. An item with no parts is left out. `ends`: the release's
+ * `display.ends` (the parts' names are composed from it).
  */
-export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
+export function waterGroup(all: readonly ItemNavRows[], ends: EndsTable): WaterGroup {
   // an item with no part (a split lake itself: its closure areas own the parts) is not walked, and is no mouth
   const items = all.filter((i) => i.parts.length > 0);
   const byOrd = new Map(items.map((i) => [i.ord, i]));
@@ -168,113 +156,91 @@ export function waterGroup(all: readonly ItemNavRows[]): WaterGroup {
   const placed: ItemNavRows[] = [];
   const left = new Set(items.map((i) => i.ord));
   const outside = items.filter((i) => !i.exit || !byOrd.has(i.exit.ord));
-  for (const i of outside.length ? outside : items.slice(0, 1)) { placed.push(i); left.delete(i.ord); }
+  if (items.length && !outside.length) throw defect(items[0]!, "and its siblings flow into each other in a cycle: no mouth");
+  for (const i of outside) { placed.push(i); left.delete(i.ord); }
   for (let k = 0; k < placed.length; k += 1) {
     for (const i of items)
       if (left.has(i.ord) && i.exit?.ord === placed[k]!.ord) { placed.push(i); left.delete(i.ord); }
   }
-  for (const i of items) if (left.has(i.ord)) placed.push(i);      // a cycle or a stray: after the rest, as given
+  const stray = items.find((i) => left.has(i.ord));
+  if (stray) throw defect(stray, "is reached by no exit from the group's mouth (a cycle among its siblings)");
 
   const parts: NavPart[] = [];
-  const at = new Map<string, number>();                            // `${ord}:${partIx}:${stretch}` → index in `parts`
+  const at = new Map<string, number>();                            // `${ord}:${partIx}` → index in `parts`
   for (const i of placed) {
     const geo = new Map(i.geo.map((g) => [g.partIx, g]));
-    const facts = new Map(i.parts.map((p) => [p.partIx, p]));
     const sids = new Map<number, number[]>();
     for (const s of i.sections) {
       let l = sids.get(s.partIx);
       if (!l) sids.set(s.partIx, l = []);
       l.push(s.sid);
     }
-    const st = (i.stretches ?? []).filter((s) => facts.has(s.partIx));
-    if (st.length) {
-      // (T204) one entry per stretch, in the release's stretch order
-      const count = new Map<number, number>();
-      for (const s of st) count.set(s.partIx, (count.get(s.partIx) ?? 0) + 1);
-      for (const s of [...st].sort((a, b) => a.rank - b.rank || a.partIx - b.partIx || a.stretch - b.stretch)) {
-        const p = facts.get(s.partIx)!, whole = geo.get(s.partIx);
-        at.set(`${i.ord}:${s.partIx}:${s.stretch}`, parts.length);
-        parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: s.partIx, rank: s.rank,
-                     label: p.label, short: p.short, ...(p.side ? { side: true } : {}), ...runOf(p), box: s.box, mid: s.mid,
-                     sids: [...s.sids].sort((a, b) => a - b), stretch: s.stretch, stretches: count.get(s.partIx)!,
-                     ...(whole ? { partBox: whole.box, partMid: whole.mid } : {}) });
-      }
-      // a part the stretch rows miss (none should): after them, whole
-      for (const p of i.parts) if (!count.has(p.partIx)) {
-        const g = geo.get(p.partIx);
-        at.set(`${i.ord}:${p.partIx}:0`, parts.length);
-        parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, rank: g?.rank ?? parts.length,
-                     label: p.label, short: p.short, ...(p.side ? { side: true } : {}), ...runOf(p), box: g?.box ?? null, mid: g?.mid ?? null,
-                     sids: [...(sids.get(p.partIx) ?? [])].sort((a, b) => a - b) });
-      }
-      continue;
-    }
-    const ordered = [...i.parts].sort((a, b) =>
-      (geo.get(a.partIx)?.rank ?? Infinity) - (geo.get(b.partIx)?.rank ?? Infinity) || a.partIx - b.partIx);
-    for (const p of ordered) {
-      const g = geo.get(p.partIx);
-      at.set(`${i.ord}:${p.partIx}:0`, parts.length);
-      parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, rank: g?.rank ?? parts.length,
-                   label: p.label, short: p.short, ...(p.side ? { side: true } : {}), ...runOf(p), box: g?.box ?? null, mid: g?.mid ?? null,
-                   sids: [...(sids.get(p.partIx) ?? [])].sort((a, b) => a - b) });
+    // `part_ix` is river order, mouth first (T517)
+    for (const p of [...i.parts].sort((a, b) => a.partIx - b.partIx)) {
+      const g = geo.get(p.partIx), own = sids.get(p.partIx);
+      if (!g) throw defect(i, `part ${p.partIx} has no part_geo row`);
+      if (!own) throw defect(i, `part ${p.partIx} has no part_section row`);
+      at.set(`${i.ord}:${p.partIx}`, parts.length);
+      parts.push({ item: i.item, itemName: i.name, kind: i.kind, partIx: p.partIx, pieces: [p.partIx], label: p.label,
+                   lo: p.lo, hi: p.hi, grp: p.grp, run: p.run, ...(p.side ? { side: true } : {}),
+                   box: g.box, mid: g.mid, sids: [...own].sort((a, b) => a - b) });
     }
   }
-  const ix = (ord: number, partIx: number, stretch = 0) => at.get(`${ord}:${partIx}:${stretch}`);
+  const ix = (i: ItemNavRows, partIx: number, what: string) => {
+    const k = at.get(`${i.ord}:${partIx}`);
+    if (k === undefined) throw defect(i, `${what} names part ${partIx}, which it does not have`);
+    return k;
+  };
   const marks: NavMark[] = [];
   for (const i of placed) {
+    const tidal = new Set(i.tidal);
     for (const m of i.marks) {
-      const down = ix(i.ord, m.down, m.downStretch ?? 0);
-      const up = m.up.map((u, k) => ix(i.ord, u, m.upStretches?.[k] ?? 0)).filter((u): u is number => u !== undefined);
-      if (down !== undefined && up.length)
-        marks.push({ lon: m.lon, lat: m.lat, label: m.label, down, up, ...(m.confidence ? { confidence: m.confidence } : {}) });
+      // (T278) a boundary with a tidal piece goes with the piece (never listed); any other part it names must be here
+      if (tidal.has(m.down) || m.up.some((u) => tidal.has(u))) continue;
+      marks.push({ lon: m.lon, lat: m.lat, token: m.token, down: ix(i, m.down, "a part_mark"),
+                   up: m.up.map((u) => ix(i, u, "a part_mark")), ...(m.confidence ? { confidence: m.confidence } : {}) });
     }
     // a sibling flowing into a sibling: a boundary with no place, from the receiving part to this item's lowest part
     if (i.exit && byOrd.has(i.exit.ord) && i !== placed[0]) {
-      const down = ix(i.exit.ord, i.exit.part ?? 0) ?? ix(i.exit.ord, lowest(byOrd.get(i.exit.ord)!));
-      const up = ix(i.ord, lowest(i));
-      if (down !== undefined && up !== undefined) marks.push({ lon: null, lat: null, label: null, down, up: [up] });
+      const into = byOrd.get(i.exit.ord)!;
+      if (i.exit.part === null) throw defect(i, `flows into its sibling ${into.item} at no stored part (water_exit.down_part)`);
+      marks.push({ lon: null, lat: null, token: null, down: ix(into, i.exit.part, `${i.item}'s water_exit`),
+                   up: [ix(i, lowest(i), "its lowest part")] });
     }
   }
   const low = placed[0];
-  const exit = low?.exit && !byOrd.has(low.exit.ord) && low.exit.item !== null && low.exit.name !== null
+  const exit = low?.exit && !byOrd.has(low.exit.ord)
     ? { item: low.exit.item, name: low.exit.name, part: low.exit.part, ...(low.exit.tidal ? { tidal: true } : {}) } : null;
-  // across waters: only into a water outside the group that the release names, from a part this group holds
+  // across waters: only into a water outside the group (a sibling is the same water), from a part this group holds
   const cross = (i: ItemNavRows | undefined, c: ContinueRow | null | undefined): NavCross | null => {
-    if (!i || !c || byOrd.has(c.ord) || c.item === null || c.name === null) return null;
-    const at = ix(i.ord, c.part);
-    return at === undefined ? null : { item: c.item, name: c.name, part: c.otherPart, at };
+    if (!i || !c || byOrd.has(c.ord)) return null;
+    return { item: c.item, name: c.name, part: c.otherPart, at: ix(i, c.part, "its water_continue row") };
   };
   const top = placed.find((i) => i.continuesFrom);
-  return { parts, marks, exit, next: cross(low, low?.continuesAs), prev: cross(top, top?.continuesFrom) };
+  return { parts, ends, marks, exit, next: cross(low, low?.continuesAs), prev: cross(top, top?.continuesFrom) };
 }
 
 /**
- * (T228, owner 2026-10-28) WHICH NEIGHBOURING PIECES ARE ONE ON THE MAP: "adjacent sections are merged only when BOTH
- * the standard regulations AND the salmon regulations match" — and the no-access land never merges (T228 item 1: the
- * bundle's parts already break there). The release cuts a part's stretches wherever the DFO salmon chain changes
- * (pipeline `topology.by_chain`) and marks where two such stretches of ONE part meet; this joins every two stretches of
- * one part that share such a mark AND read the same salmon today (`salmonKey`, per section — the live DFO feed laid over
- * the release, so a feed that opens salmon on one of two pieces parts them, and one that closes it again joins them,
- * with no new release). A piece's key is its sections' keys; with no `salmonKey` (salmon not read) every such pair
- * joins, which is the part's stretches as before the cut. Stretches of one part that no mark joins (T204: another part
- * lies between) stay apart. Marks inside a joined piece go; the others, `next` / `prev`, follow the new indexes.
+ * (T228, owner 2026-10-28; T517, owner 2026-11-08: "I only want a single mode and stretches cover both types of regulation
+ * changes while adapting to new DFO rules") WHICH NEIGHBOURING PARTS ARE ONE ON THE MAP — the ONE join rule, every screen:
+ * two parts that share a mark join where they are of one run (same item, rule-set group `grp` and connected run `run`:
+ * the pieces the DFO salmon chain cuts, pipeline `topology.by_chain`) AND the LIVE salmon reads them alike (`salmonKey`,
+ * per section: the release's chains with the feed's rules over them, so a feed that opens salmon on one of two pieces
+ * parts them, and one that closes it again joins them, with no new release). With no reading (`salmonKey` null: not read
+ * yet, or a release with no salmon) nothing joins: a cut is never hidden on a guess. A joined entry holds every piece
+ * (`pieces`), its frame is their union, and its name runs from its first piece's lower end to its last piece's upper end
+ * (`lo` / `hi`, said by `spanName` like any part's). Marks inside a joined entry go; the others, `next` / `prev`, follow
+ * the new indexes.
  */
 export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | null): WaterGroup {
+  if (!salmonKey) return g;
   const n = g.parts.length;
   const root = Array.from({ length: n }, (_, i) => i);
   const find = (i: number): number => { while (root[i] !== i) i = root[i] = root[root[i]!]!; return i; };
-  const keyOf = (i: number) => salmonKey ? [...new Set(g.parts[i]!.sids.map(salmonKey))].sort().join("|") : "";
-  const keys = g.parts.map((_, i) => keyOf(i));
-  // (T517, owner 2026-11-08: "I only want a single mode and stretches cover both types of regulation changes while
-  // adapting to new DFO rules") ONE join rule, every mode: two parts of one run (same item, grp, run) join only where the
-  // LIVE salmon reads them alike (`salmonKey`: the release's chains with the feed's rules over them). With no reading
-  // (none yet) nothing joins across a part: a cut is never hidden on a guess. A T204 stretch of one part (a release cut
-  // before T517) joins as before.
+  const keys = g.parts.map((p) => [...new Set(p.sids.map(salmonKey))].sort().join("|"));
   const one = (a: number, b: number) => {
     const p = g.parts[a]!, q = g.parts[b]!;
-    if (p.item !== q.item || keys[a] !== keys[b]) return false;
-    return p.partIx === q.partIx
-      || (salmonKey !== null && p.runName !== undefined && p.grp === q.grp && p.run === q.run);
+    return p.item === q.item && keys[a] === keys[b] && p.grp === q.grp && p.run === q.run;
   };
   for (const m of g.marks) for (const u of m.up) if (u !== m.down && one(m.down, u)) {
     const a = find(m.down), b = find(u);
@@ -287,24 +253,18 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
     if (r === i) { newIx.set(i, groups.length); groups.push([i]); } else groups[newIx.get(r)!]!.push(i);
   }
   for (let i = 0; i < n; i += 1) newIx.set(i, newIx.get(find(i))!);
-  const count = new Map<string, number>(), seen = new Map<string, number>();
-  for (const gr of groups) { const p = g.parts[gr[0]!]!; const k = `${p.item}:${p.partIx}`; count.set(k, (count.get(k) ?? 0) + 1); }
   const parts: NavPart[] = groups.map((gr) => {
     const p = g.parts[gr[0]!]!;
-    const k = `${p.item}:${p.partIx}`, c = count.get(k)!, at = seen.get(k) ?? 0;
-    seen.set(k, at + 1);
+    if (gr.length === 1) return p;
     let box: Bbox | null = null;
     for (const i of gr) {
       const b = g.parts[i]!.box;
       if (b) box = box ? [Math.min(box[0], b[0]), Math.min(box[1], b[1]), Math.max(box[2], b[2]), Math.max(box[3], b[3])] : b;
     }
-    const { stretch: _s, stretches: _n, partBox, partMid, ...base } = p;
     const sids = [...new Set(gr.flatMap((i) => g.parts[i]!.sids))].sort((a, b) => a - b);
-    // the whole part again: its own frame (`part_geo`), as before the cut
-    if (c === 1 && gr.length > 1 && partBox !== undefined)
-      return { ...base, box: partBox ?? box ?? p.box, mid: partMid ?? p.mid, sids };
-    return { ...base, box: box ?? p.box, sids, ...(c > 1 ? { stretch: at, stretches: c } : {}),
-             ...(partBox !== undefined ? { partBox, partMid } : {}) };
+    const pieces = [...new Set(gr.flatMap((i) => g.parts[i]!.pieces))].sort((a, b) => a - b);
+    // the span's name: the first piece's lower end to the last piece's upper end (`spanName`)
+    return { ...p, box, sids, pieces, hi: g.parts[gr[gr.length - 1]!]!.hi };
   });
   const marks: NavMark[] = [];
   const had = new Set<string>();
@@ -316,33 +276,35 @@ export function mergeNav(g: WaterGroup, salmonKey: ((sid: number) => string) | n
     had.add(k);
     marks.push({ ...m, down, up });
   }
-  // (T517) pieces of one salmon-cut run joined: the whole run says the run's name (the pipeline's); a few of its pieces
-  // joined (salmon mode, alike today) say the lowest one's lower end and the highest one's upper end
-  const runSize = new Map<string, number>();
-  for (const p of g.parts) if (p.runName !== undefined) {
-    const k = `${p.item}:${p.grp}:${p.run}`;
-    runSize.set(k, (runSize.get(k) ?? 0) + 1);
-  }
-  const named = parts.map((p, i) => {
-    const gr = groups[i]!;
-    if (p.runName === undefined || gr.length < 2) return p;
-    const whole = gr.length === runSize.get(`${p.item}:${p.grp}:${p.run}`);
-    const lo = g.parts[gr[0]!]!.lo, hi = g.parts[gr[gr.length - 1]!]!.hi;
-    return { ...p, short: whole || !lo || !hi ? p.runName : `${lo} → ${hi}` };
-  });
   const at = (c: NavCross | null) => (c ? { ...c, at: newIx.get(c.at)! } : null);
-  return { parts: named, marks, exit: g.exit, next: at(g.next), prev: at(g.prev) };
+  return { parts, ends: g.ends, marks, exit: g.exit, next: at(g.next), prev: at(g.prev) };
 }
 
-/** An item's lowest part (`rank` 0, else its first). */
+/** An item's lowest part: its first in river order (`part_ix`, mouth first). */
 function lowest(i: ItemNavRows): number {
-  const g = [...i.geo].sort((a, b) => a.rank - b.rank)[0];
-  return g?.partIx ?? i.parts[0]?.partIx ?? 0;
+  return Math.min(...i.parts.map((p) => p.partIx));
 }
 
-/** The group index of an item's part, or -1. */
+/** The group index of the entry holding an item's part (any of its `pieces`: a joined entry holds several), or -1. */
 export function partAt(g: WaterGroup, item: string, partIx: number): number {
-  return g.parts.findIndex((p) => p.item === item && p.partIx === partIx);
+  return g.parts.findIndex((p) => p.item === item && p.pieces.includes(partIx));
+}
+
+/** (T517) THE NAME OF EVERY PART OF `item`, as the map names the entry holding it (`partName` over the group — the same
+ *  `mergeNav(group, live salmon key)` the map draws): what the Regulations header and the Parts sheet say, so no screen
+ *  names a part another way. */
+export function entryNames(g: WaterGroup, item: string): ReadonlyMap<number, string> {
+  const out = new Map<number, string>();
+  g.parts.forEach((p, i) => { if (p.item === item) for (const k of p.pieces) out.set(k, partName(g, i)); });
+  return out;
+}
+
+/** (T517) Every part of `item` → the pieces of the map entry holding it (a live-joined entry holds several): what a page
+ *  on one part reads its in-season coverage over, so the banner covers what the map lights. */
+export function entryPieces(g: WaterGroup, item: string): ReadonlyMap<number, readonly number[]> {
+  const out = new Map<number, readonly number[]>();
+  for (const p of g.parts) if (p.item === item) for (const k of p.pieces) out.set(k, p.pieces);
+  return out;
 }
 
 /** The group index of the part holding section `sid`, or -1. */
@@ -400,29 +362,11 @@ function skips(g: WaterGroup, at: number, c: number, dir: Dir): boolean {
 }
 
 /**
- * (T464) The part next in the order in `dir`, when it is another stretch of `at`'s own part and its own step back,
- * having no mark that way, falls back to `at`: then `at` steps to it too, so ▲ and ▼ agree (any other part next in the
- * order is not, a side channel's neighbour least of all). The upper Bulkley's "Morice River confluence → Source" is 7 stretches; the 6
- * upstream ones (a section each) have no marks, so each stepped ▼ to the one before by the order. The main stretch's ▲
- * had a mark of its own (to the side channel), so the order was never asked, and 6 of the Bulkley's 12 parts could
- * not be stepped to.
- */
-function fallsBackTo(g: WaterGroup, at: number, dir: Dir): number | null {
-  const n = dir === "up" ? at + 1 : at - 1;
-  if (n < 0 || n >= g.parts.length) return null;
-  const p = g.parts[at]!, q = g.parts[n]!;
-  if (p.stretch === undefined || q.item !== p.item || q.partIx !== p.partIx) return null;
-  return byMarks(g, n, dir === "up" ? "down" : "up").length === 0 ? n : null;
-}
-
-/**
  * The parts one step away in `dir`, the main stem first: by the marks, else (where they say nothing) the next part in
  * the order. Empty at the end.
  */
 export function stepsFrom(g: WaterGroup, at: number, dir: Dir): readonly number[] {
   const marked = byMarks(g, at, dir).filter((c) => !skips(g, at, c, dir));
-  const back = fallsBackTo(g, at, dir);
-  if (marked.length && back !== null && !marked.includes(back)) marked.push(back);
   if (!marked.length) {
     const n = dir === "up" ? at + 1 : at - 1;
     return n >= 0 && n < g.parts.length ? [n] : [];
@@ -450,7 +394,7 @@ export function crossDown(g: WaterGroup, at: number): NavCross | null {
 }
 
 /**
- * (T221, owner 2026-10-28) A water of ONE part (one stretch: `parts` counts each stretch) that goes on as / from no
+ * (T221, owner 2026-10-28) A water of ONE part (one entry of the map: pieces the live salmon joins are one) that goes on as / from no
  * other water (`next` / `prev`, the Vedder ↔ Chilliwack): its map has nothing to choose, so a search result opens its
  * Regulations and the water screen offers no Map view. A split lake's areas are parts of its group, so it is never solo.
  */
@@ -471,14 +415,25 @@ export function stepsUp(g: WaterGroup, at: number): readonly number[] {
 /** Whether more than one part of `item` is in the group (then a part is named by its short name). */
 const manyOf = (g: WaterGroup, i: number) => g.parts.filter((q) => q.item === g.parts[i]!.item).length > 1;
 
-/** A part's name on the map: its short name where its water has several parts, else its water's name. (T517) A part
- *  is one connected run, named by its own two ends in the pipeline (`answers.display.run_ends`); nothing here composes
- *  a name but `mergeNav`'s "lo → hi" for pieces the live salmon joins (one mode, T517). A stretch of a release cut before
- *  T517 keeps its count. */
+/** A part's name on the map: its own name where its water has several parts, else its water's name. (T517, owner
+ *  2026-11-09) The name is composed from the entry's two end tokens by the ONE name function (`spanName`, `ends.ts`) —
+ *  a part's, or a span the live salmon joins (its first piece's lower end to its last piece's upper end). */
 export function partName(g: WaterGroup, i: number): string {
-  const p = g.parts[i]!;
-  if (!p.stretches || p.stretches <= 1) return manyOf(g, i) ? p.short : p.itemName;
-  return `${p.short} · ${WATER_MAP_WORDS.stretchOf((p.stretch ?? 0) + 1, p.stretches)}`;
+  return manyOf(g, i) ? entryName(g, i) : entry(g, i).itemName;
+}
+
+/** Entry `i`'s own name, composed from its ends (`spanName`): what `partName` says where its water has several parts. */
+function entryName(g: WaterGroup, i: number): string {
+  const p = entry(g, i);
+  // a joined entry is a span (`last`: it must have both ends); one part, its own
+  return spanName(g.ends, p.itemName, p, p.pieces.length > 1 ? p : undefined);
+}
+
+/** Entry `i` of the group; an index it does not have throws (a caller's defect, never a guessed part). */
+function entry(g: WaterGroup, i: number): NavPart {
+  const p = g.parts[i];
+  if (!p) throw new Error(`water map: no part ${i} in a group of ${g.parts.length}`);
+  return p;
 }
 
 /** The water a part belongs to, said beside it where the water has several parts (else nothing). */
@@ -486,25 +441,17 @@ export function itemNote(g: WaterGroup, i: number): string {
   return manyOf(g, i) ? g.parts[i]!.itemName : "";
 }
 
-/** A boundary's words: its own label, else the two parts' names without what they share (the prototype's rule). A cut
- *  placed approximately says so (T207): "salmon viewing platform, approximate location (low confidence)". (T517) A label
- *  the release words as its parts' end (`end_name`) already carries that sentence: it is said once. */
-export function markLabel(g: WaterGroup, m: NavMark): string {
-  if (m.label) {
-    const cw = confidenceWords(m.confidence);
-    return cw && !m.label.endsWith(`, ${cw}`) ? `${m.label}, ${cw}` : m.label;
-  }
-  const a = g.parts[m.down]?.short ?? "", b = g.parts[m.up[0]!]?.short ?? "";
-  let k = 0;
-  while (k < a.length && a[k] === b[k]) k += 1;
-  k = a.lastIndexOf(" ", k) + 1;
-  return `${a.slice(k)} / ${b.slice(k)}`;
+/** (T517, owner 2026-11-09) A boundary's words: the end token its two parts share, said by the release's `display.ends`
+ *  (`endWords`, the one end resolver — the words already carry an approximate cut's confidence, T207); null: no named
+ *  place (no token) — the mark is drawn with no words. */
+export function markLabel(g: WaterGroup, m: NavMark): string | null {
+  return m.token === null ? null : endWords(g.ends, m.token, "hi");
 }
 
 /** The section ids of the current part (`selected`) and of the group's other parts (`water`). */
 export function navSections(g: WaterGroup, at: number): { selected: readonly number[]; water: readonly number[] } {
   return {
-    selected: g.parts[at]?.sids ?? [],
+    selected: entry(g, at).sids,
     water: g.parts.flatMap((p, i) => (i === at ? [] : p.sids)),
   };
 }
@@ -517,8 +464,7 @@ function around([lon, lat]: readonly [number, number], km = 1): Bbox {
 
 /** Where the camera frames part `i`: its box, else a kilometre around its midpoint; null when neither is stored. */
 export function partBounds(g: WaterGroup, i: number): Bbox | null {
-  const p = g.parts[i];
-  if (!p) return null;
+  const p = entry(g, i);
   return p.box ?? (p.mid ? around(p.mid) : null);
 }
 
@@ -552,6 +498,8 @@ export const WATER_MAP_WORDS = {
   whole: (noun: string) => `Whole ${noun}`,
   upstreamSide: "Upstream",
   downstreamSide: "Downstream",
+  /** A boundary mark, to a screen reader ("Boundary: <its end's words>"; one with no named place: "Boundary"). */
+  boundary: "Boundary",
   /** The close button's label; its glyph is the icon set's `close` (N1). */
   close: "Close",
   chooser: "Which way upstream?",
@@ -567,8 +515,6 @@ export const WATER_MAP_WORDS = {
   exit: (name: string) => `Flows into ${name} ›`,
   /** (T345) The mouth meets TIDAL water: said, not linked (owner 2026-10-31: "we aren't doing tidal"). */
   exitTidal: (name: string) => `Flows into the tidal ${name}`,
-  /** (T204) One of a part's separate stretches, in its name: "stretch 1 of 2". */
-  stretchOf: (k: number, n: number) => `stretch ${k} of ${n}`,
   loading: "Loading the parts of this water",
   /** No release to read the parts from, or it could not be read: the map is drawn, unlit. */
   unavailable: "The parts of this water are not available",
@@ -595,7 +541,7 @@ export function wholeLabel(g: WaterGroup, i: number, whole: boolean): string {
 /** The ⤢ button as a screen reader says it (no glyph): "Whole river", "Whole lake", "This part". */
 export function wholeAria(g: WaterGroup, i: number, whole: boolean): string {
   if (whole) return WATER_MAP_WORDS.thisPart;
-  return WATER_MAP_WORDS.whole(waterNoun(g.parts[i]?.kind ?? "stream", "page"));
+  return WATER_MAP_WORDS.whole(waterNoun(entry(g, i).kind, "page"));
 }
 
 /** Up / down into another water, on the button and to a screen reader alike: "Upstream into Chilliwack River". */
@@ -611,5 +557,6 @@ export function exitLabel(e: NavExit): string {
 
 /** What a boundary's mark says, for a screen reader. */
 export function markA11y(g: WaterGroup, m: NavMark): string {
-  return `Boundary: ${markLabel(g, m)}`;
+  const w = markLabel(g, m);
+  return w === null ? WATER_MAP_WORDS.boundary : `${WATER_MAP_WORDS.boundary}: ${w}`;
 }

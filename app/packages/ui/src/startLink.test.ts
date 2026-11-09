@@ -37,9 +37,9 @@ describe("parseStartLink (T41: the web test deep link)", () => {
 
   it("(T369) `part=` is not a link key (no older link form is read: owner 2026-11-03); the tools' `ix=` is a part; a place alone is a reach's", () => {
     expect(parseStartLink("?regs=gnis:19986&part=2&view=map", NOW)).toEqual(parseStartLink("?regs=gnis:19986&view=map", NOW));
-    const tool = parseStartLink("?regs=gnis:3137&ix=2&stretch=1&view=map", NOW)!;
+    const tool = parseStartLink("?regs=gnis:3137&ix=2&view=map", NOW)!;
     expect([waterFrame(tool.route), tool.notice]).toEqual([
-      waterFrame(reduce(HOME, openWater({ item: "gnis:3137" as ItemId, part: 2, stretch: 1, view: "map" }))), null]);
+      waterFrame(reduce(HOME, openWater({ item: "gnis:3137" as ItemId, part: 2, view: "map" }))), null]);
     const reach = parseStartLink("?blk=356364485&m=257011&view=conditions", NOW)!;
     expect([reach.route, reach.place, reach.arrive, reach.notice]).toEqual([
       HOME, { blk: 356364485, m: 257011, view: "conditions" }, null, null]);

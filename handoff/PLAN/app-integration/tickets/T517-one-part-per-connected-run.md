@@ -1,6 +1,6 @@
 # T517 — One part per connected run of same-rule sections, always in sync with the paint
 
-Status: OPEN — review fixes + owner 11-09 rules done on the side build, owner review before promote: side release `data/generated/side/t517/deliver/release/r-38de2e92be26` (with T510 + T519); contract water/2 + geo/2 + display 20; names = end tokens composed by one app function; paint-sync proves maximality on `section_touch` + lake gaps; nothing promoted. See "Review fixes" and "Names from ends". Part of T495 gate 1.
+Status: OPEN — both reviews' fixes + owner 11-09 rules done on the side build, owner review before promote: side release `data/generated/side/t517/deliver/release/r-9dbd77824c29` (with T510 + T519); contract water/3 + geo/2 + display 20 + inseason-links/3; names = end tokens composed by one app function; paint sync and name check pass on the shipped files; nothing promoted. See "Second review fixes". Part of T495 gate 1.
 `git stash` "T517 WIP: contiguous parts…" (derived.part_rows + schema UNIQUE). In-season work paused separately (notice
 audit). Supersedes T509's "What is left" (`short` on `part_stretch`, dropped). Part of T495 gate 1.
 
@@ -234,3 +234,50 @@ paint_sync.py:171; water-<r> slices unchecked. (10) build check that every multi
 span ending in a side channel would throw (hi from last piece) → refuse in build or use highest stem piece. (12) salmonKeyOf
 must throw for unloaded regions (chainOf default lets unread pieces join). (13) ui inseason `!table → []` hides banners →
 show whole-water + failure. (14) drop ALSO_READS paint/4. (15) bump water/3 or note display 20 carries lo_s/hi_s tokens.
+
+
+## Second review fixes (11-09, side release r-d6a596c32bd1)
+- (1) `display.ends` holds words for EVERY token anything ships — one list (`display.section`): part ends, mark tokens,
+  and the curated in-season notices' ends (`inseason.matches.end_tokens`; derived `lake:<wbk>:inlet|outlet`,
+  `trib:<item>`, `region:A|B`, `mu:A|B` get words in `part.end_name`; the export keeps a split a notice names). +8
+  tokens (6 in-season, 2 `near:`), 9,888 -> 9,896. Publish refuses a token the release lacks (`publish.ends_problems`,
+  the guard) and ships no `words` (inseason-links/3). App: a token with no words drops only "Where", reported.
+- (2) Marks ship a TOKEN (`part_mark.token`, water/3), never words: the parts' shared end (`release.build.mark_token`:
+  equal ends; an unkeyed side takes the keyed side's; across a lake the lake; two cuts at one place the lower part's
+  top), else the token the parts' runs share (`topology.mark_words`, the bundle's `part_mark.token`). 103 of 1,083
+  marks have none: each a side channel meeting its river at no named place. App: `endWords(token)`; no "a / b".
+- (3)(4)(5)(12)(13)(14) app: no stored-label fallbacks (header, Parts sheet, banner); in-season coverage on the joined
+  entry; "Within" gone; unloaded salmon regions throw; an unreadable ends table shows the notice without "Where";
+  paint/4 dropped.
+- (7) owner: a part with no main stem ships no ends and says its water's name; where a water has several (only Old
+  Kootenay River Channel today: two side channels of unmeasured ends) each says "<water> near <the nearest other named
+  water within 2 km, else B.C. town within 10 km>" (`topology.part_near`, lo = hi = `near:<token>`); a no-stem piece of a
+  multi-piece run carries its side channels' ends (Klinaklini).
+- (6) dead `short_label(s)`, `_run_short`, run_ends' area branch deleted. (8) `name_check.check_release` on the SHIPPED
+  water file beside the paint sync (names, run marks, run ends, slices); one TS<->Python fixture
+  (`app/packages/core/src/ends.parity.json`, read by `ends.parity.test.ts` and `test_name_check.py`). (9) paint sync:
+  no silent drop; tested on a built release. (10)(11) run rules in `name_check.run_problems`. (15) water/3.
+- Bindings vs live: the same 6 sections (T510's), nothing else. NOTE: this round's `build --side` re-ran the reach stage
+  (another lane's reach code, T524) and its new DFO gate stopped it after it had rewritten `reaches/full_next`; the
+  rewritten bindings diff to the same 6. The release was then made by the deliver stage alone on that reach output.
+- Size (gzip): release 21,587,945 live -> 21,801,735 (+0.99 %); water 2,500,340 -> 2,622,751.
+- Cultus Lake (T360 "parts not available" on HEAD): not reproduced on the side build — all 19,806 water groups load
+  through `loadWaterGroup`, and Cultus Lake (one part) opens on its Regulations as a solo water (`shots/T517-cultus-light.png`).
+- Shots (web, light, side release): `shots/T517-{fraser,dean,squamish,cultus}-light.png`.
+
+## Final round (11-09 midday)
+- Release r-9dbd77824c29 (deliver only, `--no-step-cache`; r-d6a596c32bd1 rebuilt with no cache came out byte-identical):
+  the web slices declared `water-slice/2` from a second hand-kept copy in `slices.py` while the contract said /4 —
+  the slices now take every format from the contract. Size (gzip): release 21,801,726 (+0.99 % vs live), water
+  2,622,744. Name check 0 and paint sync pass on the shipped files.
+- `answers.encode.decode` refuses a section of another version than the code reads, by name (a display 18 file read
+  by display 20 code failed as KeyError 'ends' — `test_card_gate_in_chain` on plain HEAD, live answers).
+- The regs fixture cut keeps each water a kept water flows into whole (its map group, T459) and core holds the item
+  row of where THOSE flow (`navRows` refuses an exit into an item core lacks).
+- Cultus Lake "parts of this water are not available" (T360 test bed on HEAD 229c464de): the APK was built from the
+  main tree with this lane's uncommitted water/3 / paint/5 readers and read staging (water/1) — T360's own note (4).
+  Not a data defect: on the side build every one of 19,806 groups loads (`loadWaterGroup`) and Cultus Lake opens as a
+  solo water (`shots/T517-cultus-light.png`). Committing the lane as one set with its release removes the mismatch.
+- Follow-up (not done): the app still READS paint/4 — the three frozen fixture releases
+  (`app/packages/data/dev/fixture-release/r-6d85601a9b99`, `r-6dfd7c1cf86a`, `r-cc200b480be5`) ship paint/4; re-cut
+  them with paint/5, then drop the paint/4 reader (review finding 14).

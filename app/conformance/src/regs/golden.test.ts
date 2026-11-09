@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { basename } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { KNOWN_VERSIONS } from "@app/core";
+import { KNOWN_VERSIONS, REGS_FORMATS } from "@app/core";
 import type { Db, Manifest } from "@app/data";
 import type { RegsLoader } from "@app/data/regs";
 import { regsFixtureDir } from "@app/data/release/node";
@@ -78,8 +78,8 @@ describe("openPaired: a release the app refuses is a reason, not a store", () =>
 
   it("wrong handles: a water file of another sid space than its manifest is refused", async () => {
     const at = await openPaired(openReleaseDir(FX, { db: (n, d) => (n === "water" ? withMeta(d, "section_handles", Z) : d) }));
-    expect(at).toEqual({ store: null, reason: `release ${rel} refused: regs store: water: format water/1 / handles ${Z} ` +
-      `are not the manifest's water/1 / ${oracle.section_handles} — refused` });
+    expect(at).toEqual({ store: null, reason: `release ${rel} refused: regs store: water: format ${REGS_FORMATS.water} / handles ${Z} ` +
+      `are not the manifest's ${REGS_FORMATS.water} / ${oracle.section_handles} — refused` });
   });
 
   it("a missing region file is refused at open, not as failures later", async () => {
@@ -146,7 +146,7 @@ describe("liveReleaseAt: a release built for another port is a skip with its rea
   it("a rows-30 / display-17 release (before the Keep tab's last choices moved to the pipeline) is a skip naming both", () => {
     const d = release("r-rows30", { ...sections, rows: 30, display: 17 });
     expect(liveReleaseAt({ RELEASE_DIR: d })).toEqual({ dir: null, reason: `release ${d} is rows 30 (this app reads 33), `
-      + "display 17 (this app reads 18): rebuild it (deliver all), then re-cut the goldens (sync.mjs)" });
+      + `display 17 (this app reads ${KNOWN_VERSIONS.display}): rebuild it (deliver all), then re-cut the goldens (sync.mjs)` });
   });
 
   it("a rows-31 / licence-6 release (before the four pipeline answers: Other fish stamps, the steelhead stamp, youth alternatives) is a skip naming both", () => {

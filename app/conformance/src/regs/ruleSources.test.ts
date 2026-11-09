@@ -7,6 +7,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { deflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
+import { KNOWN_VERSIONS, REGS_FORMATS } from "@app/core";
 import type { Db, Manifest, Row } from "@app/data";
 import { RegsBlobError, RegsStoreError, type RegsLoader } from "@app/data/regs";
 import { storeSource } from "./ruleSources";
@@ -15,12 +16,12 @@ const RULE = { entry_id: "r1:x", rule_id: "x.r1", type: "retention_limit", famil
   fields: { species: ["RB"], take: 2, period: "daily" }, prov: { rank: 0 } };
 const FACTS = { kind: "limit" };
 const BOOK = { fish: { RB: { name: "Rainbow trout" } }, groups: { ALL_GAME_FISH: { name: "All game fish", members: ["RB"] } } };
-const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 18 };
+const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: KNOWN_VERSIONS.display };
 const DICT = Buffer.from(JSON.stringify(RULE));
 const bytes = (o: unknown) => Buffer.from(JSON.stringify(o));
 const zdict = (o: unknown) => Buffer.concat([Buffer.from([0x02]), deflateRawSync(bytes(o), { dictionary: DICT })]);
 
-function release(ruleBlob: Uint8Array, dicts: Record<string, Uint8Array>, format = "water/1"): RegsLoader {
+function release(ruleBlob: Uint8Array, dicts: Record<string, Uint8Array>, format: string = REGS_FORMATS.water): RegsLoader {
   const db = new DatabaseSync(":memory:");
   db.exec(`CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT); CREATE TABLE zdict (tbl TEXT PRIMARY KEY, d BLOB);
     CREATE TABLE display_rule (id INTEGER PRIMARY KEY, j BLOB); CREATE TABLE rule (rix INTEGER PRIMARY KEY, j BLOB);
@@ -35,7 +36,8 @@ function release(ruleBlob: Uint8Array, dicts: Record<string, Uint8Array>, format
   const statics: Record<string, unknown> = { "answers.glossary": { version: 5, terms: [] }, "export.species": BOOK };
   for (const k of ["answers.fish", "answers.moments", "display.strip", "display.reasons", "gear.count_nouns", "gear.moments",
                    "gear.conduct_means", "licence.profiles", "licence.profile_dims", "licence.profile_labels",
-                   "licence.residency_labels", "export.licences", "export.conduct", "export.pdf_pages", "ladder.reasons", "ladder.reason_state"])
+                   "licence.residency_labels", "export.licences", "export.conduct", "export.pdf_pages", "ladder.reasons", "ladder.reason_state",
+                   "display.ends"])
     statics[k] = [];
   for (const [k, v] of Object.entries(statics)) db.prepare("INSERT INTO static VALUES (?, ?)").run(k, bytes(v));
   db.prepare("INSERT INTO akey VALUES (7, 3)").run();
@@ -72,7 +74,7 @@ describe("storeSource reads a release the app's way (openRegsStore → rules, st
 
   it("refuses a release the app refuses", async () => {
     await expect(storeSource(release(zdict(RULE), { rule: DICT }, "water/2")))
-      .rejects.toThrow(new RegsStoreError("format", "regs store: format water/2, this app reads water/1 — refused"));
+      .rejects.toThrow(new RegsStoreError("format", `regs store: format water/2, this app reads ${REGS_FORMATS.water} — refused`));
   });
 
   it("is null with no release", async () => {

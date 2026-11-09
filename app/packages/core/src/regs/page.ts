@@ -14,7 +14,7 @@ import { buildGearTop, gearAnswer, gearCtxOf } from "./gear";
 import { buildMethods } from "./methods";
 import { edgeKind } from "./edge";
 import { FISH, type FishManifest } from "./fish.generated";
-import { headerOf } from "./header";
+import { headerOf, type PartNames } from "./header";
 import type { RegsInputs } from "./inputs";
 import { keepOf } from "./keep";
 import { buildLicence } from "./licence";
@@ -33,6 +33,9 @@ export interface RegsPageOpts {
   readonly fish?: FishManifest;
   /** (T53) an unnamed section: the named water it flows into, for the header's label slot (`downstreamLabel`) */
   readonly downstream?: string | null;
+  /** (T517) the map's names of the parts (`header.ts` `PartNames`, `@app/ui` `useMapEntries`): the header's and the Parts
+   *  sheet's part names */
+  readonly names?: PartNames | null;
   /** test-harness page id only — sheet keys never embed it (contracts §6 #1) */
   readonly pid?: string;
 }
@@ -54,7 +57,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     version: "regs-v38",
     target: inp.target, day: inp.day, weekday: inp.weekday, today: sameDay(inp.day, opts.today), who: opts.who,
     status,
-    header: headerOf(inp, { today: opts.today, status, downstream: opts.downstream ?? null }),
+    header: headerOf(inp, { today: opts.today, status, downstream: opts.downstream ?? null, names: opts.names ?? null }),
     boats: boatsLine(inp),
     keep,
     gear, methods,
@@ -63,7 +66,7 @@ export function buildRegsPage(inp: RegsInputs, opts: RegsPageOpts): RegsPage {
     terms: Object.fromEntries(inp.statics.glossary.terms.map((t) => [t.id, t.term])),   // (T40) the ⓘ's spoken title
   };
   // T36: lazy and pure over the same inputs (a sheet is built when it is opened)
-  return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today, env }, key) };
+  return { ...page, sheet: (key: SheetKey) => sheetOf({ inp, page, today: opts.today, env, names: opts.names ?? null }, key) };
 }
 
 /**

@@ -71,14 +71,6 @@ export interface WaterFrame {
   /** (T203) The water Map opens on the WHOLE water (a search result's: the reader picks the section there). A step to another part drops it. */
   whole?: boolean;
   /**
-   * (T204, T345, T369 D6) Which STRETCH of `part` the frame is on: the RELEASE's stretch index (`part_stretch.stretch_ix`,
-   * 0 first, mouth up), where the release splits the part into stretches; absent: the first. Never the water map's piece
-   * index (a salmon join of stretches is display only: the map shows the piece HOLDING this stretch). On the frame, not
-   * held by the map, so every way to the same place — a step, a list pick, a reload of its URL, online or offline —
-   * draws the same (owner 2026-11-03: one load path per screen).
-   */
-  stretch?: number;
-  /**
    * (T221, owner 2026-10-28) A water of one part that goes on as / from no other (`@app/core` `soloWater`): its map has
    * nothing to choose, so the frame offers Regulations and Conditions only (`frameViews`). Set by a search result that
    * knew it, or by the Shell once the water's group is read (the `solo` action).
@@ -131,8 +123,6 @@ export type RouteAction =
       fromSearch?: boolean;
       /** (T203) The water Map opens framed on the whole water. */
       whole?: boolean;
-      /** (T204, T345) The stretch of `part` the water map is on (a start link's `stretch`). */
-      stretch?: number;
       /** (T221) The water is solo (one part, no continuation): no Map view. */
       solo?: boolean }
   /** (T48) Open or close search over the map on screen. */
@@ -143,7 +133,7 @@ export type RouteAction =
    * area — a sibling of the same water — which becomes the frame's water; the tap it was opened by was on another water,
    * so the frame forgets it.
    */
-  | { type: "part"; part: number; item?: ItemId; stretch?: number }
+  | { type: "part"; part: number; item?: ItemId }
   /**
    * (T369 D7) ⤢ on the water's Map: the frame's `whole` toggled — on the route (and so in the address), never held by
    * the map, so a view switch, back and a reload keep it. Nothing off the Map view.
@@ -222,7 +212,6 @@ const opened = (a: Extract<RouteAction, { type: "openWater" }>): WaterFrame | nu
                           view: a.view ?? "regs",
                           ...(a.item !== null && a.group && a.group.length > 1 ? { group: a.group } : {}),
                           ...(a.whole && (a.view ?? "regs") === "map" ? { whole: true } : {}),
-                          ...(a.stretch && a.part !== null && a.part !== undefined ? { stretch: a.stretch } : {}),
                           ...(a.solo && a.item !== null ? { solo: true } : {}) };
   if (f.item === null && tapSid === null) return null;
   return frameViews(f).includes(f.view) ? f : null;
@@ -271,14 +260,12 @@ export function reduce(r: Route, a: RouteAction): Route {
     case "part": {
       const t = top(r);
       if (t.item === null) return r;
-      // (T369 D1/D2) a move to ANOTHER part or stretch leaves the tapped point behind: a tap lies in one part, so the
-      // frame on the new part is that part's (its middle, the release's), exactly as a reload of its address draws it
-      const moved = a.part !== t.part || (a.stretch || 0) !== (t.stretch ?? 0);
-      const tap = moved ? { tapSid: null, at: null } : {};
+      // (T369 D1/D2) a move to ANOTHER part leaves the tapped point behind: a tap lies in one part, so the frame on
+      // the new part is that part's (its middle, the release's), exactly as a reload of its address draws it
+      const tap = a.part !== t.part ? { tapSid: null, at: null } : {};
       return a.item === undefined || a.item === t.item
-        ? withTop(r, { part: a.part, whole: undefined, stretch: a.stretch || undefined, ...tap })
-        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined, solo: undefined,
-                       stretch: a.stretch || undefined });
+        ? withTop(r, { part: a.part, whole: undefined, ...tap })
+        : withTop(r, { item: a.item, part: a.part, tapSid: null, at: null, whole: undefined, solo: undefined });
     }
     case "whole": {
       const t = top(r);

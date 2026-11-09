@@ -427,13 +427,15 @@ def test_no_section_handle_ships_in_either_file(pair):
 
 @pytest.mark.needs_bundle
 def test_only_named_lake_edges_ship(doc):
-    """21,636 lake edges are in the bundle's `split` table; only the ones an extent, a run or
-    `same_place_as` names ship, and every one an extent names does (E2's check, `dangling`)."""
+    """21,636 lake edges are in the bundle's `split` table; only the ones an extent, a run, `same_place_as` or (T517)
+    a curated in-season notice's end names ship, and every one an extent names does (E2's check, `dangling`)."""
+    from pipeline.regs.inseason import matches as M
+    inseason = set(M.end_tokens(M.load(M.default_path())))
     named = set(export_read._split_refs([x["fields"] for x in doc["rules"].values()]))
     named |= set(export_read._split_refs([x["fields"] for x in doc["licensing"].values()]))
     named |= set(export_read._split_refs([e.get("extents") for e in doc["entries"].values()]))
     edges = {k for k, x in doc["splits"].items() if x["kind"] == "lake_edge"}
-    assert edges and edges <= named | {x.get("same_place_as") for x in doc["splits"].values()}
+    assert edges and edges <= named | inseason | {x.get("same_place_as") for x in doc["splits"].values()}
     assert not [k for k in named if k not in doc["splits"]]
 
 

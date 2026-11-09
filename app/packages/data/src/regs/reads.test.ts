@@ -16,12 +16,13 @@ const X = (v: unknown) => `X'${Buffer.from(typeof v === "string" ? v : JSON.stri
 const H = "aaaaaaaaaaaaaaaa", R = "bbbbbbbbbbbbbbbb", I = "cccccccccccccccc";
 const META = (rows: Record<string, string>) => "CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);" +
   Object.entries(rows).map(([k, v]) => `INSERT INTO meta VALUES ('${k}', '${v}');`).join("");
-const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 18 };
+const VERSIONS = { ladder: 1, rows: 33, gear: 12, licence: 7, display: 20 };
 const FISH = ["BB", "CT", "RB"];
 const MOMENTS = [{ weekdays: ["Monday"], hours: null }, { weekdays: ["Sunday"], hours: null }];
 const STATICS: Record<string, unknown> = {
   "answers.glossary": { version: 5, terms: [] }, "answers.fish": FISH, "answers.moments": MOMENTS,
   "display.strip": [{ state: "open", bit: 0, label: "open", says: "Open." }], "display.reasons": {},
+  "display.ends": { mouth: ["Mouth"] },
   "gear.count_nouns": {}, "gear.moments": [], "gear.conduct_means": {}, "licence.profiles": ["p0"],
   "licence.profile_dims": [], "licence.profile_labels": [], "licence.residency_labels": {},
   "export.species": { fish: {}, groups: {} }, "export.licences": {}, "export.conduct": {},
@@ -41,7 +42,7 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
     all: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.all(q, ...p); },
     get: (q, ...p) => { asked.push(`${name}: ${q.split(" FROM ")[1]?.split(" ")[0]}`); return d.get(q, ...p); },
   });
-  const water = openInMemory("", META({ format: "water/1", blob_codec: "zdict", section_handles: H, reach_digest: R,
+  const water = openInMemory("", META({ format: "water/3", blob_codec: "zdict", section_handles: H, reach_digest: R,
     rule_ids_sha256: I, answers_sha256: "f", layout: JSON.stringify({ top: [], sections: {}, versions: VERSIONS }) }) + `
     CREATE TABLE zdict (tbl TEXT PRIMARY KEY, d BLOB NOT NULL);
     ${o.noDict ? "" : `INSERT INTO zdict VALUES ('rule', ${X(RULE)});`}
@@ -49,27 +50,27 @@ function seed(o: { badCells?: boolean; ruleGap?: boolean; noDict?: boolean; badS
     ${Object.entries(STATICS).map(([k, v]) => `INSERT INTO static VALUES ('${k}', ${X(v)});`).join("")}
     CREATE TABLE str (id INTEGER PRIMARY KEY, text TEXT NOT NULL);
     INSERT INTO str VALUES (0, 'gnis:1'), (1, 'stream'), (2, 'Mouth to the bridge'), (3, 'Mouth → Bridge'), (4, 'runs'),
-      (5, 'hint'), (6, 'Region 2'), (7, 'lake');
+      (6, 'Region 2'), (7, 'lake');
     CREATE TABLE item (item_ord INTEGER PRIMARY KEY, item_id INTEGER, shown INTEGER, picker INTEGER, unresolved TEXT, name TEXT,
       kind INTEGER, sections INTEGER, outside_bc INTEGER, entries TEXT, steelhead INTEGER, x BLOB);
     INSERT INTO item VALUES (3, 0, 1, 0, '[]', 'Test River', 1, 6, 1, '[4,9]', 2, ${X({ steelhead_source: ["curated list"] })});
-    CREATE TABLE part (item_ord INTEGER, part_ix INTEGER, akey INTEGER, ord INTEGER, label_s INTEGER, short_s INTEGER,
-      runs_s INTEGER, place_s INTEGER, hint_s INTEGER, km REAL, closed_all_year INTEGER, paper_licence TEXT, lo_s INTEGER,
-      hi_s INTEGER, run_s INTEGER, xp INTEGER, sections INTEGER, xruns INTEGER, grp INTEGER, run INTEGER,
+    CREATE TABLE part (item_ord INTEGER, part_ix INTEGER, akey INTEGER, ord INTEGER, label_s INTEGER,
+      runs_s INTEGER, place_s INTEGER, km REAL, closed_all_year INTEGER, paper_licence TEXT, lo_s INTEGER,
+      hi_s INTEGER, xp INTEGER, sections INTEGER, xruns INTEGER, grp INTEGER, run INTEGER,
       PRIMARY KEY (item_ord, part_ix));
-    INSERT INTO part VALUES (3, 0, 2, 0, 2, 3, 4, NULL, 5, 12.5, 0, '[7]', NULL, NULL, NULL, 0, 5, 0, 0, 0),
-      (3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ${o.tidalPart ? 1 : 0}, 1, 0, 1, 0);
+    INSERT INTO part VALUES (3, 0, 2, 0, 2, 4, NULL, 12.5, 0, '[7]', NULL, NULL, 0, 5, 0, 0, 0),
+      (3, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ${o.tidalPart ? 1 : 0}, 1, 0, 1, 0);
     CREATE TABLE xpart (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
     INSERT INTO xpart VALUES (0, ${X({ ruleset: null, licensing_set: null })}),
       (1, ${X({ ruleset: null, licensing_set: null, steelhead: "known", province_except: ["tidal"] })});
     CREATE TABLE picker (id INTEGER PRIMARY KEY, j BLOB NOT NULL);
     INSERT INTO picker VALUES (0, ${X({ choices: [], headed: false })});
-    CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL${o.lengths ? ", m INTEGER" : ""},
+    CREATE TABLE part_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL, part_ix INTEGER NOT NULL, m INTEGER,
                                PRIMARY KEY (ord, sid));
-    INSERT INTO part_section VALUES ${o.lengths ? "(3, 4097, 1, 1200), (3, 4098, 0, NULL), (3, 4099, 1, 30)" : "(3, 4097, 1), (3, 4098, 0)"};
-    ${o.partLine ? `CREATE TABLE part_line (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, stretch INTEGER NOT NULL,
-      blk INTEGER NOT NULL, m0 INTEGER NOT NULL, m1 INTEGER NOT NULL, PRIMARY KEY (ord, part_ix, stretch, blk, m0)) WITHOUT ROWID;
-    INSERT INTO part_line VALUES (3, 1, 0, -2300000000, 0, 120), (3, 0, 0, 356364584, 312, 6590), (3, 0, 1, 356364584, 7400, 9100);` : ""}
+    INSERT INTO part_section VALUES ${o.lengths ? "(3, 4097, 1, 1200), (3, 4098, 0, NULL), (3, 4099, 1, 30)" : "(3, 4097, 1, NULL), (3, 4098, 0, NULL)"};
+    CREATE TABLE part_line (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL,
+      blk INTEGER NOT NULL, m0 INTEGER NOT NULL, m1 INTEGER NOT NULL, PRIMARY KEY (ord, part_ix, blk, m0)) WITHOUT ROWID;
+    ${o.partLine ? "INSERT INTO part_line VALUES (3, 1, -2300000000, 0, 120), (3, 0, 356364584, 312, 6590), (3, 0, 356364584, 7400, 9100);" : ""}
     CREATE TABLE akey (akey INTEGER PRIMARY KEY, ruleset INTEGER, licensing_set INTEGER, steelhead_water INTEGER, steelhead INTEGER,
       steelhead_rules INTEGER, province_except INTEGER, home_region INTEGER, kind INTEGER, tidal INTEGER, seg INTEGER, mom INTEGER,
       nseg INTEGER);
@@ -152,8 +153,8 @@ describe("reads over water", () => {
     const st = await openRegsStore(seed().loader);
     expect(await st.parts(3)).toEqual([
       { itemOrd: 3, partIx: 0, akey: 2, sections: 5, grp: 0, run: 0, facts: { order: 0, label: "Mouth to the bridge",
-        short: "Mouth → Bridge", lo: null, hi: null, run_name: null,
-        runs: "runs", place: null, hint: "hint", km: 12.5, closed_all_year: false, paper_licence: [7] }, tidal: false },
+        lo: null, hi: null,
+        runs: "runs", place: null, km: 12.5, closed_all_year: false, paper_licence: [7] }, tidal: false },
       { itemOrd: 3, partIx: 1, akey: null, sections: 1, grp: 1, run: 0, facts: null, tidal: false },
     ]);
   });
@@ -184,7 +185,7 @@ describe("reads over water", () => {
     expect(rules.get(1)!.export.rule_id).toBe("x.r2");
     expect(await st.lics()).toEqual(new Map([[0, { entry_id: "e", record_id: "r" }]]));
     const s = await st.statics();
-    expect(Object.keys(s).sort()).toEqual(["conductMeans", "countNouns", "exportConduct", "exportLicences", "exportSpecies",
+    expect(Object.keys(s).sort()).toEqual(["conductMeans", "countNouns", "ends", "exportConduct", "exportLicences", "exportSpecies",
       "fish", "gearMoments", "glossary", "ladderReasonState", "ladderReasons", "moments", "pdfPages", "profileDims",
       "profileLabels", "profiles", "reasons", "residencyLabels", "strip"]);
     expect(s.fish).toEqual(FISH);
@@ -220,24 +221,22 @@ describe("reads over water", () => {
     expect(asked).toEqual(["water: part_section", "water: part_section", "water: part_section", "water: part_section"]);
   });
 
-  it("(T387) partLengths: a part's sections and their lengths (`part_section.m`, null unmeasured); null from a release cut before it", async () => {
+  it("(T387) partLengths: a part's sections and their lengths (`part_section.m`, null unmeasured)", async () => {
     const st = await openRegsStore(seed({ lengths: true }).loader);
-    expect([...(await st.partLengths(3, 1))!]).toEqual([[4097, 1200], [4099, 30]]);
-    expect([...(await st.partLengths(3, 0))!]).toEqual([[4098, null]]);
-    expect(await (await openRegsStore(seed().loader)).partLengths(3, 1)).toBeNull();
+    expect([...(await st.partLengths(3, 1))]).toEqual([[4097, 1200], [4099, 30]]);
+    expect([...(await st.partLengths(3, 0))]).toEqual([[4098, null]]);
   });
 
-  it("(T388) partLines: a water's part runs (`part_line`) by part, stretch, key, start; [] for another; null from a release cut before it", async () => {
+  it("(T388) partLines: a water's part runs (`part_line`) by part, key, start, in one keyed read; [] for another", async () => {
     const { loader, asked } = seed({ partLine: true });
     const st = await openRegsStore(loader);
     asked.length = 0;
     expect(await st.partLines(3)).toEqual([
-      { partIx: 0, stretch: 0, blk: 356364584, m0: 312, m1: 6590 }, { partIx: 0, stretch: 1, blk: 356364584, m0: 7400, m1: 9100 },
-      { partIx: 1, stretch: 0, blk: -2300000000, m0: 0, m1: 120 }]);
+      { partIx: 0, blk: 356364584, m0: 312, m1: 6590 }, { partIx: 0, blk: 356364584, m0: 7400, m1: 9100 },
+      { partIx: 1, blk: -2300000000, m0: 0, m1: 120 }]);
     expect(await st.partLines(4)).toEqual([]);
-    // a keyed read of the water first (it opens the water's own file before the schema is asked: never water-shared)
-    expect(asked.slice(0, 3)).toEqual(["water: part_section", "water: sqlite_master", "water: part_line"]);
-    expect(await (await openRegsStore(seed().loader)).partLines(3)).toBeNull();
+    expect(asked).toEqual(["water: part_line", "water: part_line"]);
+    expect(await (await openRegsStore(seed().loader)).partLines(3)).toEqual([]);
   });
 });
 

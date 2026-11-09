@@ -45,6 +45,14 @@ CHILLIWACK_LAKE = "wbk:329083341"     # Region 2 lake: no steelhead, the Q16 pai
 WATERS = (VEDDER, DUNCAN, LARDEAU_CREEK, CHILLIWACK_LAKE)
 
 
+def _name(doc, part):
+    """T517 (owner 2026-11-09): a part's name from its end tokens, as the app's `spanName` composes it; None: no main
+    stem (the app says the water's name)."""
+    from pipeline.deliver.answers.display.part import end_name_of, end_tokens
+    t = end_tokens(doc, part)
+    return end_name_of(doc, t[0], t[1]) if t else None
+
+
 @pytest.fixture(scope="module")
 def built(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
@@ -175,37 +183,43 @@ def test_every_licensing_record_and_rule_carries_its_book_pages(built):
 
 
 @pytest.mark.needs_bundle
-def test_every_part_has_a_short_label_from_its_ends(built):
+def test_every_part_has_a_name_from_its_ends(built):
+    """T517 (owner 2026-11-09): a part ships its two END TOKENS (`short` only without them); the name is composed from
+    `display.ends` the way the app's `spanName` does (`name_check.words`), and no two parts of a water say one name."""
+    from pipeline.deliver.answers.display.name_check import problems, words
     data, model = built
     ws = model.statics["display"]["waters"]
-    # T517: the Vedder's one rule set is two parts, cut where DFO's salmon area changes at the cable car crossing; each
-    # part's short is its own two ends, the run's name and the group's label are the whole run's
+    ends = model.statics["display"]["ends"]
+
+    def name(p, water="the water"):
+        return water if p["lo"] is None else f"{words(ends, p['lo'], 'lo')} → {words(ends, p['hi'], 'hi')}"
+    # T517: the Vedder's one rule set is two parts, cut where DFO's salmon area changes at the cable car crossing
     cable = "Cable car crossing (200 m downstream of Vedder Crossing bridge)"
     v = ws[VEDDER]["parts"][part_at(data, VEDDER, "mouth")]
-    assert v["short"] == f"Mouth → {cable}"
-    assert v["run_name"] == "Mouth → Vedder Crossing Bridge"
+    assert ("short" not in v, name(v)) == (True, f"Mouth → {cable}")
     assert v["label"] == "From the mouth up to the Vedder Crossing Bridge"
     up = ws[VEDDER]["parts"][part_at(data, VEDDER, "chilliwack_vedder_rivers__vedder_crossing_bridge")]
-    assert (up["short"], up["run_name"], up["label"]) == (
-        f"{cable} → Vedder Crossing Bridge", "Mouth → Vedder Crossing Bridge",
-        "From the mouth up to the Vedder Crossing Bridge")
-    assert ws[CHILLIWACK_LAKE]["parts"][0]["short"] == "Whole water"
+    assert name(up) == f"{cable} → Vedder Crossing Bridge"
+    # the whole run, as the app joins it: the first piece's lower end to the last piece's upper end
+    assert f"{words(ends, v['lo'], 'lo')} → {words(ends, up['hi'], 'hi')}" == "Mouth → Vedder Crossing Bridge"
+    lake = ws[CHILLIWACK_LAKE]["parts"][0]
+    assert (lake["lo"], lake["hi"]) == (None, None)           # a lake: no ends, the app says the water's name
+    names = {k: (data["waters"][k]["name"] if k in data.get("waters", {}) else k) for k in ws}
+    assert problems(sorted((k, names[k], w["parts"]) for k, w in ws.items()), ends) == []
     for item, w in ws.items():
-        shorts = [p["short"] for p in w["parts"] if p]
-        assert all(s and "…" not in s for s in shorts), item      # ROUND10 W3: never cut
-        assert len(set(shorts)) == len(shorts), item          # tells the parts apart
+        assert all(name(p) and "…" not in name(p) for p in w["parts"] if p), item      # ROUND10 W3: never cut
 
 
 def test_a_short_label_reads_the_run_ends():
     doc = {"splits": {"x__bridge": {"name": "Big Bridge"}}, "waters": {}}
     one = {"runs": [{"from": "x__bridge", "to": "mouth", "km_from": 3.0, "km_to": 0.0}]}
-    assert D.short_label(doc, one, "full") == "Mouth → Big Bridge"
+    assert _name(doc, one) == "Mouth → Big Bridge"
     two = {"runs": [{"from": "source", "to": "x__bridge", "km_from": 9.0},
                     {"from": "x__bridge", "to": "mouth", "km_from": 3.0}]}
-    assert D.short_label(doc, two, "full") == "Mouth → Source"      # T517: one run, its own two ends
+    assert _name(doc, two) == "Mouth → Source"      # T517: one run, its own two ends
     side = {"runs": [{"from": "a", "to": "b", "branch": True}]}
-    assert D.short_label(doc, side, "full") == "Side channel"
-    assert D.short_label(doc, {"runs": []}, "Whole water") == "Whole water"
+    assert _name(doc, side) is None                                 # no main stem: the water's name (app)
+    assert _name(doc, {"runs": []}) is None
 
 
 def test_t517_a_rule_set_group_says_its_salmon_cut_pieces_as_the_one_run_they_are():

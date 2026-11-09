@@ -347,7 +347,10 @@ def _sections() -> Tuple[Section, ...]:
         # ROUND UR6 4: display 17 (a part's `paper_licence` holds only record rules that speak there)
         # display 18 (owner rule 2026-10-21): a closed frame's `closers` — the closures that close the water, page v36
         # closersAt's choice of `closing` (`display.closers_of`), read by the banner, never re-chosen by the app
-        Section("display", 18, display.section_scope, prepare=display.section_prepare,
+        # display 20 (T517, owner 2026-11-09): a part is one connected run in river order and ships its two END TOKENS
+        # (`lo` / `hi`, words in the `ends` table); `short` only without ends; no two parts of a water say one name;
+        # `run_name` and `hint` gone
+        Section("display", 20, display.section_scope, prepare=display.section_prepare,
                 static=display.section_static, compose_from=("rows", "gear"),
                 compose=display.compose),
     )

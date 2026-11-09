@@ -780,10 +780,6 @@
        ],
        "title": "Hi"
       },
-      "hint": {
-       "title": "Hint",
-       "type": "string"
-      },
       "km": {
        "anyOf": [
         {
@@ -838,38 +834,18 @@
        ],
        "title": "Place"
       },
-      "run_name": {
-       "anyOf": [
-        {
-         "minLength": 1,
-         "type": "string"
-        },
-        {
-         "type": "null"
-        }
-       ],
-       "title": "Run Name"
-      },
       "runs": {
        "title": "Runs",
-       "type": "string"
-      },
-      "short": {
-       "minLength": 1,
-       "title": "Short",
        "type": "string"
       }
      },
      "required": [
       "order",
       "label",
-      "short",
       "lo",
       "hi",
-      "run_name",
       "runs",
       "place",
-      "hint",
       "km",
       "closed_all_year",
       "paper_licence"

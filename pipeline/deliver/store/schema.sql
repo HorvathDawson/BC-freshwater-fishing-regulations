@@ -114,16 +114,13 @@ CREATE TABLE part (
     akey            INTEGER REFERENCES akey(akey),
     ord             INTEGER,
     label_s         INTEGER REFERENCES str(id),
-    short_s         INTEGER REFERENCES str(id),     -- answers 2.7: the part strip's short name
     runs_s          INTEGER REFERENCES str(id),
     place_s         INTEGER REFERENCES str(id),
-    hint_s          INTEGER REFERENCES str(id),
     km              REAL,
     closed_all_year INTEGER CHECK (closed_all_year IN (0, 1)),
     paper_licence   TEXT,
-    lo_s            INTEGER REFERENCES str(id),     -- T517: a salmon-cut run's piece: its own lower end (else NULL)
-    hi_s            INTEGER REFERENCES str(id),     -- … its own upper end
-    run_s           INTEGER REFERENCES str(id),     -- … the whole run's name (what the regular map says)
+    lo_s            INTEGER REFERENCES str(id),     -- T517: the part's lower END TOKEN (a key of `display.ends`), or NULL
+    hi_s            INTEGER REFERENCES str(id),     -- … its upper end token
     xp              INTEGER NOT NULL REFERENCES xpart(id),
     sections        INTEGER NOT NULL,
     xruns           INTEGER NOT NULL REFERENCES runs(id),

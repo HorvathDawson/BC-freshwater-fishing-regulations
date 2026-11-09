@@ -72,6 +72,7 @@ export * from "./waterViews";
 export * from "./tabs";
 export * from "./spotWords";
 export * from "./uiWords";
+export * from "./ends";
 export * from "./waterNav";
 export * from "./mapRail";
 // (T385) the water header's Share: its words, and the production link it sends

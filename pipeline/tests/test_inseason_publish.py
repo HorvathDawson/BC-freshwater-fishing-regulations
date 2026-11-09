@@ -40,7 +40,7 @@ def test_publish_formats_a_resolved_file():
                                               "wbk:9": {"all": True}},
                                       effective={"to": "2026-12-31"})}, words={"x": "X", "unused": "U"})
     links = PUB.compile_links(doc, "d")
-    assert links == {"format": "inseason-links/2", "release": "r-1", "digest": "d", "words": {"x": "X"},
+    assert links == {"format": "inseason-links/3", "release": "r-1", "digest": "d",
                      "notices": {"is-aaaaaaaaaaaa": {
         "to": "2026-12-31", "waters": {"gnis:1": {"runs": [[7, 100, 300]], "lakes": [1], "ends": [["x", "source"]]},
                                        "wbk:9": {"all": True}}}}}
@@ -51,13 +51,20 @@ def test_publish_formats_a_resolved_file():
     (_doc({"is-aaaaaaaaaaaa": _m(unresolved="selects no section")}), "unresolved — selects no section"),
     (_doc({"is-aaaaaaaaaaaa": _m()}), "unresolved — no waters"),
     (_doc({"is-aaaaaaaaaaaa": _m(waters={"gnis:1": {"all": True}})}, release=""), "names no release"),
-    (_doc({"is-aaaaaaaaaaaa": _m(waters={"gnis:1": {"runs": [[7, 0, 9]], "ends": [["nowhere", "source"]]}})}),
-     "end 'nowhere' has no words"),
 ])
 def test_publish_refuses_an_unresolved_match(doc, words):
     with pytest.raises(PUB.Refused) as ex:
         PUB.compile_links(doc, "d")
     assert words in str(ex.value)
+
+
+def test_an_end_the_release_has_no_words_for_is_refused():
+    """T517 review finding 1: the release's `display.ends` says every end (the build puts every curated notice's ends
+    in it); publish refuses a link naming a token that release lacks — a notice changed since it was built."""
+    doc = _doc({"is-aaaaaaaaaaaa": _m(waters={"gnis:1": {"runs": [[7, 100, 300]], "ends": [["x", "source"]]}})})
+    links = PUB.compile_links(doc, "d")
+    assert PUB.ends_problems(links, {"x": ["X"]}, "r-1") == []
+    assert PUB.ends_problems(links, {}, "r-1") == ["is-aaaaaaaaaaaa: gnis:1 end 'x' has no words in r-1's display.ends"]
 
 
 def test_a_hand_edit_not_re_resolved_is_refused():

@@ -5,7 +5,7 @@
  * copies). The fixture's core holds only its 43 waters, so a mouth into a water it dropped is no exit here.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { crossDown, crossUp, markLabel, navSections, partName, stepsDown, stepsUp, type WaterGroup } from "@app/core";
+import { crossDown, crossUp, markLabel, navSections, partName, spanName, stepsDown, stepsUp, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, RegsInputsError, siblingItems, type RegsStore } from "@app/data/regs";
 import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/data/release/node";
 
@@ -13,7 +13,8 @@ let st: RegsStore, sec: SectionNames;
 beforeAll(async () => { const loader = openRegsFixtureWithLines(); st = await openRegsStore(loader); sec = sectionNames(loader); });
 
 const names = (g: WaterGroup) => g.parts.map((_, i) => partName(g, i));
-const marks = (g: WaterGroup) => g.marks.map((m) => `${markLabel(g, m)}: ${m.down} → ${m.up.join(",")}`);
+// a mark with no named place (no end token) says no words: "—" here
+const marks = (g: WaterGroup) => g.marks.map((m) => `${markLabel(g, m) ?? "—"}: ${m.down} → ${m.up.join(",")}`);
 const steps = (g: WaterGroup) =>
   g.parts.map((_, i) => `${stepsDown(g, i).join(",") || "-"}|${stepsUp(g, i).join(",") || "-"}`);
 
@@ -34,9 +35,10 @@ describe("the water map's group from the fixture release", () => {
       `${ORANGE}: 0 → 1`, "Tamihi Rapids Bridge: 1 → 2", "100 m below the Slesse Creek confluence: 2 → 3",
       "Chilliwack River Ecological Reserve boundary: 3 → 4"]);
     expect(steps(g)).toEqual(["-|1", "0|2", "1|3", "2|4", "3|-"]);
-    // the two pieces are one run of one rule set (`grp`, `run`), named whole by the run's name
-    expect(g.parts.slice(0, 2).map((p) => [p.grp, p.run, p.runName])).toEqual([
-      [1, 0, "Vedder Crossing Bridge → Tamihi Rapids Bridge"], [1, 0, "Vedder Crossing Bridge → Tamihi Rapids Bridge"]]);
+    // the two pieces are one run of one rule set (`grp`, `run`); the whole run's name is the one name function's over
+    // the first piece's lower end and the last piece's upper end (T517, owner 2026-11-09)
+    expect(g.parts.slice(0, 2).map((p) => [p.grp, p.run])).toEqual([[1, 0], [1, 0]]);
+    expect(spanName(g.ends, "Chilliwack River", g.parts[0]!, g.parts[1]!)).toBe("Vedder Crossing Bridge → Tamihi Rapids Bridge");
     expect(g.exit).toEqual({ item: "gnis:3062", name: "Vedder River", part: 1 });
     // (T441) named by stream key + start metre (Vedder 355999181:0, 356363467:0/4738/12723) and its lake's part
     // (T220, r-46be3c135e68) a restored braid piece joined part 0 (9 -> 10 sections; taps.py PART_RECOUNTED chw1_1010)
@@ -76,7 +78,7 @@ describe("the water map's group from the fixture release", () => {
       expect(names(g)).toEqual([
         "Kootenay Lake — Lower West Arm", "Kootenay Lake — Upper West Arm", "Kootenay Lake — Main Body"]);
       expect([marks(g), steps(g)]).toEqual([
-        ["Lower West Arm / Upper West Arm: 0 → 1", "Upper West Arm / Main Body: 1 → 2"], ["-|1", "0|2", "1|-"]]);
+        ["—: 0 → 1", "—: 1 → 2"], ["-|1", "0|2", "1|-"]]);
     }
   });
 
@@ -124,7 +126,7 @@ describe("the water map's group from the fixture release", () => {
         const ord = await st.itemOrd(p.item);
         const rows = await w.all("SELECT sid FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", ord, p.partIx);
         const { selected, water } = navSections(g, i);
-        // (T204) a part of several stretches: each lights its own sids, and together they are the part's rows
+        // (T517) each entry is one part (no salmon read: nothing joined): it lights exactly its part's rows
         const part = g.parts.flatMap((q) => (q.item === p.item && q.partIx === p.partIx ? q.sids : [])).sort((a, b) => a - b);
         expect([id, i, part]).toEqual([id, i, rows.map((r) => Number(r.sid))]);
         expect(selected.every((s) => part.includes(s))).toBe(true);

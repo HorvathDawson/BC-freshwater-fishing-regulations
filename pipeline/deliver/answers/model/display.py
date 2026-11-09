@@ -154,15 +154,14 @@ class PartFacts(Model):
     label: StrictStr
     #: answers 2.7 (A4): the part strip's short name, from the range's end labels ("Mouth → Vedder
     #: Crossing Bridge"); `label` stays the sheet's full name
-    short: StrictStr = Field(min_length=1)
-    #: T517: a piece of a run the DFO salmon chain cuts (parts sharing grp + run): its own two ends and the whole run's
-    #: name; None for a part that is its run (the map then says `short`)
+    #: T517: the part's two END TOKENS, mouth first (keys of `display.ends`; the same area token twice: "Within <area>";
+    #: "<token>@km<km>": an end said at its place) — the app composes every name from them; both None: the part has
+    #: no main stem and is the only such part of its water — the app says the water's name (owner 2026-11-09).
+    #: No two parts of one water say the same name (the build stops)
     lo: Optional[StrictStr] = Field(min_length=1)
     hi: Optional[StrictStr] = Field(min_length=1)
-    run_name: Optional[StrictStr] = Field(min_length=1)
     runs: StrictStr
     place: Optional[StrictStr]                        # None: no entry heading
-    hint: StrictStr
     km: Optional[Union[StrictInt, StrictFloat]]       # None: no run carries a measure
     closed_all_year: StrictBool
     paper_licence: Tuple[RuleIx, ...]

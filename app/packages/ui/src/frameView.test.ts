@@ -8,29 +8,28 @@ import type { ItemId, SectionId } from "@app/data";
 import { openRegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
 import { carryRoute, entryAt } from "./carry";
-import { frameHere, frameSection, frameStretch, type FrameNav } from "./frameView";
+import { frameHere, frameSection, type FrameNav } from "./frameView";
 import { openWater } from "./openWater";
 import { HOME, reduce, type Route, type WaterRoute } from "./route";
 import { parseStartLink, routeSearch } from "./startLink";
 
 const NAV: FrameNav = {
-  sections: [{ sid: 1, partIx: 0 }, { sid: 2, partIx: 0 }, { sid: 3, partIx: 1 }, { sid: 4, partIx: 1 }, { sid: 5, partIx: 1 }],
-  geo: [{ partIx: 0, rank: 0, midSid: 2, mid: [-122, 49], box: [-122.1, 48.9, -121.9, 49.1] },
-        { partIx: 1, rank: 1, midSid: 4, mid: [-121, 50], box: [-121.1, 49.9, -120.9, 50.1] }],
-  stretches: [{ partIx: 1, stretch: 0, rank: 1, midSid: 3, mid: [-121.05, 49.95], box: null, sids: [3] },
-              { partIx: 1, stretch: 1, rank: 2, midSid: 5, mid: [-120.95, 50.05], box: null, sids: [4, 5] }],
+  sections: [{ sid: 1, partIx: 0 }, { sid: 2, partIx: 0 }, { sid: 3, partIx: 1 }, { sid: 4, partIx: 2 }, { sid: 5, partIx: 2 }],
+  geo: [{ partIx: 0, midSid: 2, mid: [-122, 49], box: [-122.1, 48.9, -121.9, 49.1] },
+        { partIx: 1, midSid: 3, mid: [-121.05, 49.95], box: [-121.1, 49.9, -121, 50] },
+        { partIx: 2, midSid: 5, mid: [-120.95, 50.05], box: [-121, 50, -120.9, 50.1] }],
 };
 const W = "gnis:1" as ItemId;
-const f = (o: Partial<{ part: number | null; tapSid: number | null; at: { lat: number; lon: number } | null; stretch: number }>) =>
+const f = (o: Partial<{ part: number | null; tapSid: number | null; at: { lat: number; lon: number } | null }>) =>
   ({ item: W, part: null, tapSid: null, at: null, ...o }) as Parameters<typeof frameSection>[0];
 
 describe("(T369) the one reading of a frame", () => {
-  it("the reach: the tap in the part, else the stretch's middle, else the part's — never the water's first section", () => {
+  it("the reach: the tap in the part, else the part's middle — never the water's first section", () => {
     expect([
       frameSection(f({ part: 0, tapSid: 1 }), 0, NAV),            // the tap, in its part
       frameSection(f({ part: 0 }), 0, NAV),                       // the part's middle
-      frameSection(f({ part: 1, stretch: 1 }), 1, NAV),           // the stretch's middle
-      frameSection(f({ part: 1 }), 1, NAV),                       // the first stretch's
+      frameSection(f({ part: 2 }), 2, NAV),                       // another part's middle
+      frameSection(f({ part: 1 }), 1, NAV),
       frameSection(f({ part: 1, tapSid: 1 }), 1, NAV),            // a tap of another part is not this part's reach
       frameSection({ item: null, part: null, tapSid: 9 as SectionId, at: null }, null, null),
     ]).toEqual([1, 2, 5, 3, 3, 9]);
@@ -39,13 +38,8 @@ describe("(T369) the one reading of a frame", () => {
   it("\"you are here\": the tap's point, else the middle's own point (owner 2026-11-04: at the link's spot)", () => {
     const at = { lat: 49.05, lon: -122.05 };
     expect([frameHere(f({ part: 0, tapSid: 1, at }), 0, NAV), frameHere(f({ part: 0 }), 0, NAV),
-            frameHere(f({ part: 1, stretch: 1 }), 1, NAV), frameHere(f({ part: 0, tapSid: 1 }), 0, NAV)])
+            frameHere(f({ part: 2 }), 2, NAV), frameHere(f({ part: 0, tapSid: 1 }), 0, NAV)])
       .toEqual([at, { lon: -122, lat: 49 }, { lon: -120.95, lat: 50.05 }, null]);
-  });
-
-  it("the stretch: the frame's, else the one holding its tap, else the first", () => {
-    expect([frameStretch(f({ part: 1, stretch: 1 }), 1, NAV), frameStretch(f({ part: 1, tapSid: 5 }), 1, NAV),
-            frameStretch(f({ part: 1 }), 1, NAV)]).toEqual([1, 1, 0]);
   });
 });
 
@@ -77,9 +71,9 @@ describe("(T369 D5/D10/D11) the address keeps what defines the view, and gives i
 });
 
 describe("(T369 D8, owner 2026-11-04) a new release with a water open: the same place on the water", () => {
-  it("the point's entry: the box that holds it, the nearest middle", () => {
+  it("the point's part: the box that holds it, the nearest middle", () => {
     expect([entryAt(NAV, { lon: -122, lat: 49 }), entryAt(NAV, { lon: -120.96, lat: 50.04 }), entryAt(NAV, { lon: -100, lat: 60 })])
-      .toEqual([{ part: 0, stretch: 0 }, { part: 1, stretch: 1 }, { part: 1, stretch: 1 }]);
+      .toEqual([{ part: 0 }, { part: 2 }, { part: 2 }]);
   });
 
   it("carried into the same release, every named frame stays on its part (its tap dropped); an unnamed reach is left", async () => {
@@ -91,8 +85,8 @@ describe("(T369 D8, owner 2026-11-04) a new release with a water open: the same 
       { item: null, part: null, tapSid: 99 as SectionId, at: null, view: "regs" }] };
     const a = await carryRoute(r, st, st);
     expect(a).toEqual({ type: "carry", stack: [
-      { item: C, part: 2, tapSid: null, at: null, view: "conditions", stretch: undefined },
-      { item: C, part: 0, tapSid: null, at: null, view: "map", stretch: undefined }] });
+      { item: C, part: 2, tapSid: null, at: null, view: "conditions" },
+      { item: C, part: 0, tapSid: null, at: null, view: "map" }] });
     expect(reduce(r, a)).toEqual({ ...r, stack: (a as { stack: unknown }).stack });
     expect(reduce(r, { type: "carry", stack: [] })).toBe(HOME);
   });

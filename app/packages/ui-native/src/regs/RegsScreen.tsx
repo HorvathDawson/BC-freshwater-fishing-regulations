@@ -28,7 +28,7 @@ import { WaterInset } from "../WaterFrame";
 import { ReportLink } from "../menu/ReportLink";
 import { TYPE } from "../type";
 import { ViewSwipe, WaterViewsContext } from "../ViewSwipe";
-import { GUTTER, type Palette } from "../theme";
+import { type Palette } from "../theme";
 import { ReferenceFold } from "./ReferenceFold";
 import { KeepTab } from "./KeepTab";
 import { LineText, TermTitles, type KeepActions } from "./LineText";
@@ -264,9 +264,9 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
       {/* (T516, owner 2026-11-08) the "Handling fish" reference closes the page, after Licence: it is background reading,
           not one of the tabs (null on a closed day, as before) */}
       {methods && page.methods?.reference && (
-        <View testID="regs-reference" style={{ marginHorizontal: GUTTER }}>
+        <WaterInset testID="regs-reference">
           <ReferenceFold vm={page.methods.reference} palette={palette} actions={keepActions} initiallyOpen={referenceOpen} />
-        </View>
+        </WaterInset>
       )}
       {/* (T236) every page's foot: not legal advice, and how current its sources are — (owner 2026-11-04) as fine print
           under a hairline, so it does not read as part of the page */}

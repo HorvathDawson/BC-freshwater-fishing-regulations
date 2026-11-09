@@ -42,14 +42,12 @@ const NO_NEAR: readonly SectionId[] = [];
 /** The place kept for the "Flows into" line: the 44 px target the line has when it is drawn. */
 const EXIT_SLOT = 44;
 
-export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
+export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenWater, onShowRegs, onOtherSection,
                                onCross, onPart, whole = false, onWhole, day = null }: {
   loader: ReleaseLoader | null;
   item: ItemId;
   /** The frame's part (null: the part the Regulations view opens for `tapSid`). */
   part: number | null;
-  /** (T204, T345, T369 D6) The frame's RELEASE stretch of `part` (absent: its first). */
-  stretch?: number;
   tapSid: SectionId | null;
   palette: Palette;
   map: WaterMapMapProps;
@@ -62,7 +60,7 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   /** ▲ / ▼ into the water this one goes on from or as (`water_continue`), at its part there. */
   onCross: (item: ItemId, part: number) => void;
   /** A step to another part: the frame's part from now on (a split lake's other area: that water). */
-  onPart?: (item: ItemId, partIx: number, stretch?: number) => void;
+  onPart?: (item: ItemId, partIx: number) => void;
   /** (T203, T369 D7) The frame's ⤢: framed on the whole water (a search result's, or ⤢ pressed). */
   whole?: boolean;
   /** (T369 D7) ⤢ pressed: the frame's `whole` toggled (the route's `whole`), so it outlives this view. */
@@ -71,9 +69,9 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
   day?: Date | null;
 }) {
   const store = useRegsStore(loader);
-  // (T228) pieces of a part join only where salmon (the live DFO feed over the release) reads them alike
+  // (T228, T517) parts of one run join only where salmon (the live DFO feed over the release) reads them alike
   const salmonKey = useSalmonKey(loader, store.value ?? null, item);
-  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, stretch, onWhole);
+  const wm = useWaterMap(store.value ?? null, item, part, tapSid, onPart, whole, salmonKey, onWhole, loader);
   const vm = wm.value?.vm ?? null;
   const act = wm.value?.act ?? (() => {});
   // (T518) the provincial in-season changes on this water today, outlined on exactly their sections (the banner's own
@@ -84,7 +82,7 @@ export function WaterMapView({ loader, item, part, stretch = 0, tapSid, palette,
                         !!store.value);
   const ord = ordQ.state === "ready" && ordQ.value.item === item ? ordQ.value.ord : null;
   // (T520) on THE day the Regulations view reads (the Shell's map day): the banner and the outline agree
-  const covers = useInSeasonCovers(store.value ?? null, lines, ord === null ? null : { item, ord, partIx: null }, day);
+  const covers = useInSeasonCovers(store.value ?? null, lines, ord === null ? null : { item, ord, pieces: null }, day);
   const inSeason = useMemo(() => (vm && covers.length ? inSeasonSections(covers, [...vm.selected, ...vm.water]) : NO_NEAR),
     [covers, vm?.selected, vm?.water]);
   // (T459) the water this one flows into stays in colour (muted) while every other water is grey; the test bed's

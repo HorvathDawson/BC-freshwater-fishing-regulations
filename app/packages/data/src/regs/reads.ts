@@ -50,12 +50,12 @@ export interface PartRow {
 export interface PlaceRow extends AnswersPlace { readonly place: number }
 /**
  * (T388) ONE RUN OF A PART'S OWN STREAM (water `part_line`; pipeline `release/part_line.py`): the part's stream sections
- * of one stretch that lie end to end on one blue line, as the span [m0, m1) metres along stream key `blk` — the units
- * of `lines` / `StreamPlace`. Only a water whose links carry a place has rows (two or more parts, or a part of two or
- * more stretches); a part with no stream section (a lake) has none.
+ * that lie end to end on one blue line, as the span [m0, m1) metres along stream key `blk` — the units of `lines` /
+ * `StreamPlace`. Only a water whose links carry a place has rows (two or more parts); a part with no stream section (a
+ * lake) has none.
  */
 export interface PartLine {
-  readonly partIx: number; readonly stretch: number; readonly blk: number; readonly m0: number; readonly m1: number;
+  readonly partIx: number; readonly blk: number; readonly m0: number; readonly m1: number;
 }
 export interface RulesetRow { readonly sections: number; readonly reach: readonly number[]; readonly trib: readonly number[] }
 export interface StoredRule { readonly rix: number; readonly export: ExportRule; readonly facts: RuleFacts }
@@ -110,22 +110,20 @@ export interface RegsReads {
   /**
    * (T387) Each section of part `partIx` of item `itemOrd`, with its length along the water in metres (water
    * `part_section.m`: a line's length, a polygon's half perimeter — pipeline `bundle/access.py`); a section the build did
-   * not measure has null. null: the release predates `part_section.m` (it ships no section lengths).
+   * not measure has null.
    */
-  partLengths(itemOrd: number, partIx: number): Promise<ReadonlyMap<number, number | null> | null>;
+  partLengths(itemOrd: number, partIx: number): Promise<ReadonlyMap<number, number | null>>;
   /**
-   * (T388) Item `itemOrd`'s part runs (water `part_line`, by part, stretch, stream key, start): what a named water's
-   * link place is made from and resolved by, with no `lines` file. null: the release predates `part_line` (then the
-   * place is the pre-T388 `lines` one, `@app/ui` place.ts). Empty: the water has none (one part and one stretch, or
-   * no stream section).
+   * (T388) Item `itemOrd`'s part runs (water `part_line`, by part, stream key, start): what a named water's link place
+   * is made from and resolved by, with no `lines` file. Empty: the water has none (one part, or no stream section).
    */
-  partLines(itemOrd: number): Promise<readonly PartLine[] | null>;
+  partLines(itemOrd: number): Promise<readonly PartLine[]>;
   /**
-   * THE WATER MAP'S ROWS (P15) for item `itemOrd`, each one keyed read on its table's primary key: `part_geo` (rank,
-   * box, midpoint — microdegrees as degrees), `part_mark` (boundaries: down part, up parts), `part_section` (the sids of
-   * each part) and `water_exit` (the receiving item, named from core; null name when core does not hold it), and
-   * `water_continue` both ways (the stream this one goes on as, and the one it goes on from — the same watercourse
-   * under another name; pipeline `continuation.py`). A release cut before `water_continue` has none: no continuation.
+   * THE WATER MAP'S ROWS (P15) for item `itemOrd`, each one keyed read on its table's primary key: `part_geo` (box,
+   * midpoint — microdegrees as degrees; its `part_ix` is river order, mouth first), `part_mark` (boundaries: down part,
+   * up parts), `part_section` (the sids of each part) and `water_exit` (the receiving item, named from core; one core
+   * does not hold: damaged), and `water_continue` both ways (the stream this one goes on as, and the one it goes on
+   * from — the same watercourse under another name; pipeline `continuation.py`).
    */
   navRows(itemOrd: number): Promise<NavRows>;
   /**
@@ -137,28 +135,17 @@ export interface RegsReads {
 
 /** `navRows`: what the water map reads of one item beyond its `item` / `part` rows. */
 export interface NavRows {
-  readonly geo: readonly { readonly partIx: number; readonly rank: number; readonly midSid: number;
+  readonly geo: readonly { readonly partIx: number; readonly midSid: number;
                            readonly mid: readonly [number, number];
                            readonly box: readonly [number, number, number, number] | null }[];
-  readonly marks: readonly { readonly lon: number; readonly lat: number; readonly label: string | null;
+  readonly marks: readonly { readonly lon: number; readonly lat: number; readonly token: string | null;
                              readonly down: number; readonly up: readonly number[];
                              /** T207: the named cut's confidence where it is not high (`part_mark.confidence`) */
-                             readonly confidence?: Confidence;
-                             /** T204: the stretch of `down` and of each of `up` (`part_mark.down_stretch` /
-                              *  `up_stretches`); absent: stretch 0 */
-                             readonly downStretch?: number; readonly upStretches?: readonly number[] }[];
+                             readonly confidence?: Confidence }[];
   readonly sections: readonly { readonly sid: number; readonly partIx: number }[];
-  /** (T204) `part_stretch` (geo): a part's separate stretches, for a water with a part of two or more; empty for any
-   *  other water and for a release cut before T204. */
-  readonly stretches: readonly { readonly partIx: number; readonly stretch: number; readonly rank: number;
-                                 /** (T369) the stretch's midpoint section (`part_stretch.mid_sid`) */
-                                 readonly midSid: number;
-                                 readonly mid: readonly [number, number];
-                                 readonly box: readonly [number, number, number, number] | null;
-                                 readonly sids: readonly number[] }[];
-  readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string | null;
-                   readonly name: string | null } | null;
-  /** `water_continue`: the other water (named from core; null where core does not hold it), this water's part at the
+  readonly exit: { readonly ord: number; readonly part: number | null; readonly item: string;
+                   readonly name: string } | null;
+  /** `water_continue`: the other water (named from core; one core does not hold: damaged), this water's part at the
    *  junction (`part`) and the other's (`otherPart`). */
   readonly continuesAs: ContinueRow | null;
   readonly continuesFrom: ContinueRow | null;
@@ -170,8 +157,8 @@ export interface ReadBase {
   region(akey: number): Promise<Db>;
   sid(): Promise<Db>;
   core(): Promise<Db>;
-  /** (T182) the file holding `part_geo`: geo, or — a release cut before the move, a hand-built base — water. */
-  geo?(): Promise<Db>;
+  /** (T182) the file holding `part_geo`: geo. */
+  geo(): Promise<Db>;
   val<T = unknown>(table: string, blob: Cell): T;
 }
 
@@ -189,7 +176,7 @@ const SLOT = (1 << BLOCK_BITS) - 1;
 
 const STATICS: Readonly<Record<keyof StoreStatics, string>> = {
   glossary: "answers.glossary", fish: "answers.fish", moments: "answers.moments",
-  strip: "display.strip", reasons: "display.reasons",
+  strip: "display.strip", reasons: "display.reasons", ends: "display.ends",
   countNouns: "gear.count_nouns", gearMoments: "gear.moments", conductMeans: "gear.conduct_means",
   profiles: "licence.profiles", profileDims: "licence.profile_dims", profileLabels: "licence.profile_labels",
   residencyLabels: "licence.residency_labels",
@@ -369,7 +356,7 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
     parts: (ord) => once("parts", ord, async () => {
       const rows = await (await base.water()).all(
-        "SELECT part_ix, akey, ord, label_s, short_s, lo_s, hi_s, run_s, runs_s, place_s, hint_s, km, closed_all_year, " +
+        "SELECT part_ix, akey, ord, label_s, lo_s, hi_s, runs_s, place_s, km, closed_all_year, " +
         "paper_licence, sections, grp, run, " +
         "(SELECT j FROM xpart WHERE id = part.xp) AS xj " +
         "FROM part WHERE item_ord = ? ORDER BY part_ix", ord);
@@ -378,11 +365,13 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
         const s = (c: Cell) => reads.str(n(c));
         // (T286) every part's strings asked at once: one read for the whole water
         const opt = (c: Cell) => (c === null || c === undefined ? null : s(c));
-        const [label, short, runs, place, hint, lo, hi, runName] = p.ord === null || p.ord === undefined ? [] : await Promise.all([
-          s(p.label_s), s(p.short_s), s(p.runs_s), opt(p.place_s), s(p.hint_s), opt(p.lo_s), opt(p.hi_s), opt(p.run_s)]);
+        // (T517, owner 2026-11-09) `lo_s` / `hi_s` are the part's END TOKENS (keys of `display.ends`), never words: its name
+        // is composed by `@app/core` `spanName` (no ends: the water's name — no part ships a stored name)
+        const [label, runs, place, lo, hi] = p.ord === null || p.ord === undefined ? [] : await Promise.all([
+          s(p.label_s), s(p.runs_s), opt(p.place_s), opt(p.lo_s), opt(p.hi_s)]);
         const facts: PartFacts | null = p.ord === null || p.ord === undefined ? null : {
-          order: n(p.ord), label: label!, short: short!, lo: lo ?? null, hi: hi ?? null, run_name: runName ?? null,
-          runs: runs!, place: place ?? null, hint: hint!, km: nn(p.km),
+          order: n(p.ord), label: label!, lo: lo ?? null, hi: hi ?? null,
+          runs: runs!, place: place ?? null, km: nn(p.km),
           closed_all_year: n(p.closed_all_year) === 1, paper_licence: json<number[]>(p.paper_licence),
         };
         const xp = p.akey === null && p.xj !== null && p.xj !== undefined
@@ -558,85 +547,53 @@ export function makeReads(base: ReadBase): RegsReads & { clear(): void } {
 
     partLengths: (ord, partIx) => once("partLengths", `${ord}:${partIx}`, async () => {
       const w = await base.water();
-      // (T387) `m` is additive (still water/1): a release cut before it has no column. Read off `sqlite_master` (every
-      // water slice holds it whole), never `pragma_table_info`, which no slice answers: the whole water's (T129 walk)
-      const has = await once("hasPartLength", 0, async () => {
-        const r = await w.get("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'part_section'");
-        return /[\s(,]m\s+INTEGER\b/.test(String(r?.sql ?? ""));
-      });
-      if (!has) return null;
       const rows = await w.all("SELECT sid, m FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", ord, partIx);
       return new Map(rows.map((r) => [n(r.sid), r.m === null || r.m === undefined ? null : n(r.m)]));
     }),
 
     partLines: (ord) => once("partLines", ord, async () => {
-      const w = await base.water();
-      // (T388) `part_line` is an additive table (still water/1): a release cut before it has none. Read off
-      // `sqlite_master` (every water slice holds it whole), never `pragma_table_info` (the whole water's, T129). A keyed
-      // read of this water FIRST: it opens the file holding the water (its region's slice, or the whole water), so the
-      // schema is asked of a water file — a `sqlite_master` read with none open yet goes to `water-shared` (T370), which
-      // holds no part table and would say "no part_line" of a release that has it
-      await w.get("SELECT part_ix FROM part_section WHERE ord = ? LIMIT 1", ord);
-      const has = await once("hasPartLine", 0, async () =>
-        !!(await w.get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'part_line'")));
-      if (!has) return null;
-      const rows = await w.all("SELECT part_ix, stretch, blk, m0, m1 FROM part_line WHERE ord = ? "
-                               + "ORDER BY part_ix, stretch, blk, m0", ord);
-      return rows.map((r): PartLine => ({ partIx: n(r.part_ix), stretch: n(r.stretch), blk: n(r.blk), m0: n(r.m0),
-                                          m1: n(r.m1) }));
+      const rows = await (await base.water()).all("SELECT part_ix, blk, m0, m1 FROM part_line WHERE ord = ? "
+                                                  + "ORDER BY part_ix, blk, m0", ord);
+      return rows.map((r): PartLine => ({ partIx: n(r.part_ix), blk: n(r.blk), m0: n(r.m0), m1: n(r.m1) }));
     }),
 
     navRows: (ord) => once("navRows", ord, async () => {
-      const w = await base.water(), g = base.geo ? await base.geo() : w;
-      // (T204) `part_stretch` is additive: a release cut before it has no table
-      const hasStretch = await once("hasStretch", 0, async () =>
-        !!(await g.get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'part_stretch'")));
-      const [geo, marks, sections, exit, stretch] = await Promise.all([
-        g.all("SELECT part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY rank, part_ix", ord),
-        // `*`: `confidence` (T207) is additive, and a release cut before it has no column
-        w.all("SELECT * FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
+      const w = await base.water(), g = await base.geo();
+      const [geo, marks, sections, exit] = await Promise.all([
+        g.all("SELECT part_ix, mid_sid, mid_lon, mid_lat, w, s, e, n FROM part_geo WHERE ord = ? ORDER BY part_ix", ord),
+        w.all("SELECT lon, lat, token, down_part, up_parts, confidence FROM part_mark WHERE ord = ? ORDER BY mark_ix", ord),
         w.all("SELECT sid, part_ix FROM part_section WHERE ord = ? ORDER BY sid", ord),
-        w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord),
-        hasStretch ? g.all("SELECT part_ix, stretch_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n, sids FROM part_stretch "
-                           + "WHERE ord = ? ORDER BY part_ix, stretch_ix", ord) : Promise.resolve([] as Row[])]);
+        w.get("SELECT down_ord, down_part FROM water_exit WHERE ord = ?", ord)]);
       const core = await base.core();
-      const named = async (o: number) => core.get("SELECT item_id, name FROM item WHERE ord = ?", o);
-      const down = exit ? await named(n(exit.down_ord)) : null;
-      // `water_continue`, both ways, each on its key (ord, the primary key; next_ord, UNIQUE); absent from an older cut
-      const hasContinue = await once("hasContinue", 0, async () =>
-        !!(await w.get("SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'water_continue'")));
-      const [as, from] = hasContinue ? await Promise.all([
+      // the other water of an exit or a continuation is core's; one core does not hold is a damaged release (said)
+      const named = async (o: number, what: string) => {
+        const it = await core.get("SELECT item_id, name FROM item WHERE ord = ?", o);
+        if (!it) throw damaged(`water ${ord}'s ${what} names item ${o}, which core does not hold`);
+        return { item: String(it.item_id), name: String(it.name) };
+      };
+      const down = exit ? await named(n(exit.down_ord), "water_exit") : null;
+      // `water_continue`, both ways, each on its key (ord, the primary key; next_ord, UNIQUE)
+      const [as, from] = await Promise.all([
         w.get("SELECT part, next_ord AS other, next_part AS other_part FROM water_continue WHERE ord = ?", ord),
         w.get("SELECT next_part AS part, ord AS other, part AS other_part FROM water_continue WHERE next_ord = ?", ord),
-      ]) : [undefined, undefined];
+      ]);
       const cont = async (r: Row | undefined): Promise<ContinueRow | null> => {
         if (!r) return null;
-        const it = await named(n(r.other));
-        return { ord: n(r.other), part: n(r.part), otherPart: n(r.other_part),
-                 item: it ? String(it.item_id) : null, name: it ? String(it.name) : null };
+        return { ord: n(r.other), part: n(r.part), otherPart: n(r.other_part), ...(await named(n(r.other), "water_continue")) };
       };
       const none = (c: Cell) => c === null || c === undefined;
       return {
         geo: geo.map((g) => ({
-          partIx: n(g.part_ix), rank: n(g.rank), midSid: n(g.mid_sid), mid: [micro(g.mid_lon), micro(g.mid_lat)] as const,
+          partIx: n(g.part_ix), midSid: n(g.mid_sid), mid: [micro(g.mid_lon), micro(g.mid_lat)] as const,
           box: none(g.w) || none(g.s) || none(g.e) || none(g.n) ? null
             : [micro(g.w), micro(g.s), micro(g.e), micro(g.n)] as const })),
         marks: marks.map((m) => {
           const c = isConfidence(m.confidence) && m.confidence !== "high" ? m.confidence : null;
-          return { lon: micro(m.lon), lat: micro(m.lat), label: none(m.label) ? null : String(m.label),
-                   down: n(m.down_part), up: json<number[]>(m.up_parts), ...(c ? { confidence: c } : {}),
-                   ...(none(m.down_stretch) ? {} : { downStretch: n(m.down_stretch) }),
-                   ...(none(m.up_stretches) ? {} : { upStretches: json<number[]>(m.up_stretches) }) };
+          return { lon: micro(m.lon), lat: micro(m.lat), token: none(m.token) ? null : String(m.token),
+                   down: n(m.down_part), up: json<number[]>(m.up_parts), ...(c ? { confidence: c } : {}) };
         }),
         sections: sections.map((r) => ({ sid: n(r.sid), partIx: n(r.part_ix) })),
-        stretches: stretch.map((s) => ({
-          partIx: n(s.part_ix), stretch: n(s.stretch_ix), rank: n(s.rank), midSid: n(s.mid_sid),
-          mid: [micro(s.mid_lon), micro(s.mid_lat)] as const,
-          box: none(s.w) || none(s.s) || none(s.e) || none(s.n) ? null
-            : [micro(s.w), micro(s.s), micro(s.e), micro(s.n)] as const,
-          sids: json<number[]>(s.sids) })),
-        exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part),
-                       item: down ? String(down.item_id) : null, name: down ? String(down.name) : null } : null,
+        exit: exit ? { ord: n(exit.down_ord), part: nn(exit.down_part), ...down! } : null,
         continuesAs: await cont(as), continuesFrom: await cont(from),
       };
     }),

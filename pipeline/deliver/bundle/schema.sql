@@ -420,27 +420,38 @@ CREATE TABLE part_section (ord     INTEGER NOT NULL,
                            FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
 
 -- PART TOPOLOGY AND CAMERA HINTS (P09, `topology.py`): the map navigation's data, NO geometry (the tiles draw it).
--- `rank` mouth first within the water; the bbox in lon/lat; `mid_sid` + point where "Conditions here" opens.
+-- (T517: part_ix IS river order, mouth first) the bbox in lon/lat; `mid_sid` + point where "Conditions here" opens.
 -- `part_mark`: where two parts meet (the split's name, or NULL), the down part and the up parts (a JSON list);
 -- `confidence` the named split's when it is `medium` / `low` (T207), NULL for high or no split.
 -- `water_exit`: the water this one flows into and the part it enters. All keyed by `ord`: never across bundles.
-CREATE TABLE part_geo  (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL,
+CREATE TABLE part_geo  (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL,
                         mid_sid INTEGER NOT NULL, mid_lon REAL NOT NULL, mid_lat REAL NOT NULL,
                         w REAL, s REAL, e REAL, n REAL,
                         PRIMARY KEY (ord, part_ix),
                         FOREIGN KEY (ord, part_ix) REFERENCES part(ord, part_ix)) WITHOUT ROWID;
--- T204: a mark per meeting PLACE; `down_stretch` / `up_stretches` (a JSON list beside `up_parts`) say which stretch of
--- each part meets there, NULL when every one is stretch 0. `part_stretch`: every stretch of every part of a water that
--- has a part of two or more stretches (none for any other water), its `rank` mouth first among the water's stretches,
--- its midpoint and box as `part_geo`'s, and its section ids (a JSON list).
+-- T204: a mark per meeting PLACE (T517: and across a lake between two pieces of one run).
 CREATE TABLE part_mark (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon REAL NOT NULL, lat REAL NOT NULL,
                         label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, confidence TEXT,
-                        down_stretch INTEGER, up_stretches TEXT,
                         -- (T517) the other names of the place (a JSON list: a gauge cut's own name where a regulation's
                         -- boundary stands, said `label`), for search and the alias list; NULL: one name
                         alt TEXT,
+                        -- (T517 review finding 2) the end token the mark stands at (`topology.mark_words`); the release
+                        -- ships it where the parts' own ends say nothing there (`release.build.mark_token`)
+                        token TEXT,
                         PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID;
 CREATE TABLE water_exit (ord INTEGER PRIMARY KEY, down_ord INTEGER NOT NULL, down_part INTEGER, label TEXT);
+-- (T517) the nearest named feature to a gauge cut a part ends at (`topology.gauge_near`): the end token its words come
+-- from (a tributary's `confluence:<item>`, or a named cut of the water) and how far it stands, metres
+CREATE TABLE split_near (split_id TEXT PRIMARY KEY, token TEXT NOT NULL, m REAL NOT NULL) WITHOUT ROWID;
+-- (T517, owner 2026-11-09) what stands at each crossing of a named stream's main stem (`topology.crossing_near`): the
+-- crossing's token and km from the mouth, the end token naming the nearest named water feature within 2 km (else, at
+-- the B.C. border, `place:<B.C. town>` within 10 km) and how far — what a crossing two parts would share is said near
+-- (T517, owner 2026-11-09) where a part with NO main stem lies, for a water with several such parts
+-- (`topology.part_near`): the nearest other named water (`water:<item>`) within 2 km, else a B.C. town within 10 km
+CREATE TABLE part_near (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, near TEXT NOT NULL, m REAL NOT NULL,
+                        PRIMARY KEY (ord, part_ix)) WITHOUT ROWID;
+CREATE TABLE crossing_near (ord INTEGER NOT NULL, token TEXT NOT NULL, km REAL NOT NULL, near TEXT NOT NULL,
+                            m REAL NOT NULL, PRIMARY KEY (ord, token, km)) WITHOUT ROWID;
 -- (T369, owner 2026-11-03) WHERE EVERY STREAM SECTION LIES ON ITS OWN BLUE LINE: one row per STREAM handle (every one
 -- in B.C., named or not; a lake or wetland has no line and no row). `blk` the FWA stream key, `from_m` the section id's
 -- measure (`{blk}:{int(down_m)}`), `to_m` = int(the node's down_m + length_m) — cut to whole metres like the start, so a

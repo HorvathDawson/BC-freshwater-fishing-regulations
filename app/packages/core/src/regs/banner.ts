@@ -16,6 +16,7 @@
  * the rewrite would leave with no words is kept whole).
  */
 import { ruleBookLine } from "./book";
+import { partNameOf } from "./header";
 import { describe } from "./describe";
 import type { DisplayFrame, RegsInputs, RuleView } from "./inputs";
 import type { BannerVM, Day, StripVM } from "./model";
@@ -57,7 +58,8 @@ export function mergedOf(inp: RegsInputs): BannerVM["merged"] {
   return {
     label: WORDS.MERGED(g.parts.length, g.sections),
     items: inp.mergedParts.map((p) => ({
-      text: `${p.label}${WORDS.DOT}${p.sections} ${p.sections > 1 ? WORDS.SECTIONS : WORDS.SECTION}`,
+      // (T517) each part by the one name function (`partNameOf`, over its end tokens): no stored label
+      text: `${partNameOf(inp, p.partIx, null)}${WORDS.DOT}${p.sections} ${p.sections > 1 ? WORDS.SECTIONS : WORDS.SECTION}`,
       level: p.broad ? levelOf(p.broad) : null,
       rule: p.broad?.key ?? null, book: ruleBookLine(p.broad),
     })),

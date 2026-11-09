@@ -10,7 +10,7 @@ import { InSeasonContext, useInSeasonCovers, useInSeasonNotice, type InSeasonNot
 
 afterEach(cleanup);
 const ch = (id: string): InSeasonChange =>
-  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", waters: null, onRelease: true, linksRelease: null, words: {} });
+  ({ id, region: "4", water: "Kaslo River", text: "No fishing", from: null, to: null, source: "s", waters: null, onRelease: true, linksRelease: null });
 const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; } }; };
 
 function Probe({ rows, store, out }: { rows: InSeasonChange[]; store: ReturnType<typeof mem>; out: { s?: InSeasonNoticeState } }) {
@@ -48,46 +48,78 @@ describe("useInSeasonNotice", () => {
 describe("useInSeasonCovers (T520): one load path for the banner and the water map", () => {
   // a water (ord 5) of parts 0 [sids 1, 2] and 1 [sids 3, 4] on stream 7; a change covering sids 2-3
   const nav = { sections: [{ sid: 1, partIx: 0 }, { sid: 2, partIx: 0 }, { sid: 3, partIx: 1 }, { sid: 4, partIx: 1 }] };
-  const store = { navRows: async () => nav } as never;
+  // (T517) the release's `display.ends`: what "Where" says
+  const statics = async () => ({ ends: { a: ["A"], b: ["B"] } });
+  const store = { navRows: async () => nav, statics } as never;
   const lines = { hasLines: async () => true, sectionLine: async (h: number) => ({ blk: 7, from: (h - 1) * 100, to: h * 100 }) };
   const feed = { format: "inseason-feed/1" as const, fetchedAt: "x", source: "s", removed: [],
                  rows: [{ id: "is-a", region: "2", water: "W", effective: "", from: null, to: null, change: "No fishing" }] };
-  const links = (release: string) => ({ format: "inseason-links/2" as const, release, words: { a: "A", b: "B" },
+  const links = (release: string) => ({ format: "inseason-links/3" as const, release,
     notices: { "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [["a", "b"]] as const } } } } });
-  function Covers({ partIx, out }: { partIx: number | null; out: { v?: readonly InSeasonOnPage[] } }) {
-    out.v = useInSeasonCovers(store, lines, { item: "gnis:1", ord: 5, partIx }, null);
+  function Covers({ pieces, out, st = store, ln = links }: { pieces: readonly number[] | null; out: { v?: readonly InSeasonOnPage[] };
+                                                             st?: never; ln?: typeof links }) {
+    out.v = useInSeasonCovers(st, lines, { item: "gnis:1", ord: 5, pieces }, null);
+    void ln;
     return null;
   }
-  const at = (release: string, deviceRelease: string, partIx: number | null) => {
+  const at = (release: string, deviceRelease: string, partIx: number | null | readonly number[], o: { st?: never; ends?: [string, string] } = {}) => {
     const out: { v?: readonly InSeasonOnPage[] } = {};
-    render(<InSeasonContext.Provider value={{ matched: [], unmatched: [], release: deviceRelease,
-                                              data: { feed, links: links(release) } }}>
-      <Covers partIx={partIx} out={out} /></InSeasonContext.Provider>);
+    const l = links(release);
+    const data = o.ends ? { feed, links: { ...l, notices: { "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [o.ends] } } } } } }
+      : { feed, links: l };
+    render(<InSeasonContext.Provider value={{ matched: [], unmatched: [], release: deviceRelease, data }}>
+      <Covers pieces={partIx === null ? null : typeof partIx === "number" ? [partIx] : partIx} out={out} st={o.st} /></InSeasonContext.Provider>);
     return out;
   };
   it("a part page: its own covered sections and the ends; the water's page: every covered section", async () => {
     const p0 = at("r-1", "r-1", 0);
     await waitFor(() => expect(p0.v).toHaveLength(1));
-    expect(p0.v![0]!.cover).toEqual({ sections: [2], where: "From A to B", failure: null });
+    expect(p0.v![0]!.cover).toEqual({ sections: [2], where: "From A to B", failure: null, whereFailure: null });
     cleanup();
     const all = at("r-1", "r-1", null);
     await waitFor(() => expect(all.v).toHaveLength(1));
     expect(all.v![0]!.cover.sections).toEqual([2, 3]);
+  });
+  it("(T517) a page whose part the live salmon JOINS with the next covers the whole entry (every piece)", async () => {
+    const joined = at("r-1", "r-1", [0, 1]);
+    await waitFor(() => expect(joined.v).toHaveLength(1));
+    expect(joined.v![0]!.cover).toEqual({ sections: [2, 3], where: "From A to B", failure: null, whereFailure: null });
+  });
+  it("(T517) an end display.ends lacks drops only \"Where\": the sections stay, and it is reported", async () => {
+    const seen: unknown[] = [];
+    const off = setFailureSink((e) => { seen.push(e); });
+    const p0 = at("r-1", "r-1", 0, { ends: ["a", "gone"] });
+    await waitFor(() => expect(p0.v).toHaveLength(1));
+    expect(p0.v![0]!.cover).toEqual({ sections: [2], where: null, failure: null,
+      whereFailure: INSEASON_FAILURES.noWords("is-a", "ends: token gone is not in this release's display.ends") });
+    await waitFor(() => expect(seen.map((e) => (e as Error).message)).toContain(
+      INSEASON_FAILURES.noWords("is-a", "ends: token gone is not in this release's display.ends")));
+    off();
+  });
+  it("(T517) display.ends that could not be read never hides a notice: placed as ever, no \"Where\", reported", async () => {
+    const seen: unknown[] = [];
+    const off = setFailureSink((e) => { seen.push(e); });
+    const broken = { navRows: async () => nav, statics: async () => { throw new Error("statics unreadable"); } } as never;
+    const p0 = at("r-1", "r-1", 0, { st: broken });
+    await waitFor(() => expect(p0.v).toHaveLength(1));
+    expect(p0.v![0]!.cover).toEqual({ sections: [2], where: null, failure: null, whereFailure: INSEASON_FAILURES.noTable });
+    await waitFor(() => expect(seen.map((e) => (e as Error).message)).toContain(INSEASON_FAILURES.noTable));
+    off();
   });
   it("moving to another water never places its changes on the last water's lines (useAsync keeps the old answer)", async () => {
     // water 5 (Fraser-like, ord 5) and water 6 (Pitt-like, ord 6, sids 11-12): 6's lines are slow to come
     let release6: () => void = () => {};
     const slow = new Promise<void>((r) => { release6 = r; });
     const store2 = { navRows: async (ord: number) => (ord === 5 ? nav
-      : (await slow, { sections: [{ sid: 11, partIx: 0 }, { sid: 12, partIx: 0 }] })) } as never;
-    const both = { format: "inseason-links/2" as const, release: "r-1", words: { a: "A", b: "B" }, notices: {
+      : (await slow, { sections: [{ sid: 11, partIx: 0 }, { sid: 12, partIx: 0 }] })), statics } as never;
+    const both = { format: "inseason-links/3" as const, release: "r-1", notices: {
       "is-a": { waters: { "gnis:1": { runs: [[7, 100, 300]] as const, ends: [["a", "b"]] as const },
                           "gnis:2": { runs: [[7, 1000, 1100]] as const, ends: [["a", "b"]] as const } } } } };
     const lines2 = { hasLines: async () => true,
                      sectionLine: async (h: number) => ({ blk: 7, from: h < 10 ? (h - 1) * 100 : 1000 + (h - 11) * 100, to: 0 }) };
     const out: { v?: readonly InSeasonOnPage[] } = {};
     function P({ item, ord }: { item: string; ord: number }) {
-      out.v = useInSeasonCovers(store2, lines2, { item, ord, partIx: null }, null);
+      out.v = useInSeasonCovers(store2, lines2, { item, ord, pieces: null }, null);
       return null;
     }
     const wrap = (n: React.ReactNode) => <InSeasonContext.Provider value={{ matched: [], unmatched: [], release: "r-1",
@@ -106,7 +138,7 @@ describe("useInSeasonCovers (T520): one load path for the banner and the water m
     try {
       const off = at("r-1", "r-2", 0);
       await waitFor(() => expect(off.v).toHaveLength(1));
-      expect(off.v![0]!.cover).toEqual({ sections: null, where: "From A to B", failure: INSEASON_FAILURES.offRelease });
+      expect(off.v![0]!.cover).toEqual({ sections: null, where: "From A to B", failure: INSEASON_FAILURES.offRelease, whereFailure: null });
       await waitFor(() => expect(String(seen[0])).toContain("another data release"));
     } finally { undo(); }
   });

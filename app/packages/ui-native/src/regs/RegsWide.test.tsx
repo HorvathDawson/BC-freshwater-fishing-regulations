@@ -76,7 +76,7 @@ describe("T45 the Regulations view on a wide screen: same words, another arrange
   it("vedder_1010 in words: the desktop header and side column, whole", () => {
     mount("vedder_1010", "desktop");
     expect([text("regs-header"), text("regs-side")]).toEqual([
-      "Vedder RiverMouth → Vedder Crossing BridgeMouth → Vedder Crossing Bridge",
+      "Vedder RiverMouth → Cable car crossing (200 m downstream of Vedder Crossing bridge)Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge)",
       "TodayOct 10What you can keepGearMethodsLicence",
     ]);
   });

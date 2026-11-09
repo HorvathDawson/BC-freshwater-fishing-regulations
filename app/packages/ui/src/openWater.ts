@@ -33,8 +33,6 @@ export interface WaterOpen {
   fromSearch?: boolean;
   /** (T203) With view "map": the Map opens framed on the whole water. */
   whole?: boolean;
-  /** (T204, T345) The stretch of `part` the water map opens on (a start link's `stretch`). */
-  stretch?: number;
   /** (T58) The water's split-lake areas, itself among them (`siblingItems`): another area of a lake held is that lake. */
   group?: readonly ItemId[];
   /** (T221) The water is solo (one part, no continuation, `@app/core` `soloWater`): no Map view, Regulations in front. */
@@ -51,8 +49,7 @@ export function openWater(o: WaterOpen): RouteAction {
   const views = frameViews({ item: o.item, solo });
   const a: RouteAction = { type: "openWater", item: o.item, tapSid: o.tapSid ?? null, at: o.at ?? null,
                           part: o.part ?? null, view: views.includes(asked) ? asked : views[0]!,
-                          ...(o.group ? { group: o.group } : {}), ...(solo ? { solo: true } : {}),
-                          ...(o.stretch ? { stretch: o.stretch } : {}) };
+                          ...(o.group ? { group: o.group } : {}), ...(solo ? { solo: true } : {}) };
   const w = o.whole && a.view === "map" ? { ...a, whole: true } : a;
   return o.fromSearch ? { ...w, fromSearch: true } : w;
 }
@@ -79,13 +76,13 @@ export async function openTap(source: Pick<WaterSource, "itemForSection">, sid: 
   if (item !== null && item === except) return null;
   const [group, at2, isSolo] = await Promise.all([
     item !== null && groupOf ? groupOf(item) : undefined,
-    // (T369 D3) the tapped water opens AT its part (and the release's stretch holding the tap): one frame for it
+    // (T369 D3) the tapped water opens AT its part: one frame for it
     // (T368) a failed read opens part-less (each view asks the same `targetFor`), and is reported
     item !== null && partOf ? partOf(item, sid).catch(reported(null)) : null,
     // (T498) and KNOWING whether it is solo, as a search result does: told after it opened, its Map view dropped out of
     // the strip under the reader (the pane changed shape after it was shown). A failed read opens with the Map view.
     item !== null && solo ? solo(item).catch(reported(false)) : false]);
-  return openWater({ item, tapSid: sid, at, view, group, ...(at2 ? { part: at2.part, stretch: at2.stretch } : {}),
+  return openWater({ item, tapSid: sid, at, view, group, ...(at2 ? { part: at2.part } : {}),
                      ...(isSolo ? { solo: true } : {}) });
 }
 
@@ -127,11 +124,11 @@ export interface OpenerOptions {
    */
   solo?: (item: ItemId) => Promise<boolean>;
   /**
-   * (T369 D3) The part (and the release's stretch) a tapped section of a water opens at — the Regulations view's own
+   * (T369 D3) The part a tapped section of a water opens at — the Regulations view's own
    * answer (`frameView.ts` `regsPartOf`). Every tapped frame then carries its part from the start, so no view adopts one
    * later and the address names it. A read that fails opens part-less (each view asks the same `targetFor`).
    */
-  partOf?: (item: ItemId, sid: SectionId) => Promise<{ part: number; stretch?: number } | null>;
+  partOf?: (item: ItemId, sid: SectionId) => Promise<{ part: number } | null>;
 }
 
 /** The opener (`useOpenWater`'s value), React-free: what a test drives. */

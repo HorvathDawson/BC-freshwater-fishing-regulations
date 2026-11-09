@@ -40,6 +40,14 @@ from pipeline.deliver.bundle import continuation as C
 from pipeline.deliver.bundle import spans as SP
 
 
+
+def _name(doc, part):
+    """T517 (owner 2026-11-09): a part's name from its end tokens, as the app's `spanName` composes it; None: no main
+    stem (the app says the water's name)."""
+    from pipeline.deliver.answers.display.part import end_name_of, end_tokens
+    t = end_tokens(doc, part)
+    return end_name_of(doc, t[0], t[1]) if t else None
+
 def _piece(nid, blk, lo, hi, order=1, mag=1, kind="stream"):
     """A graph node as `spans.compute` and `continuation.graph_flow` read it: FWA stream order (Strahler) and magnitude
     (Shreve) are the piece's maxima, i.e. their values at its downstream end."""
@@ -211,13 +219,13 @@ def test_the_part_label_names_where_the_next_water_begins():
                    {"from": "source", "to": "mouth", "km_from": 60.0, "km_to": 0.0}]}]},
                "T": {"name": "Stamp River", "parts": []}}}
     chilliwack = {"runs": [{"from": "trb", "to": "continues:V", "km_from": 12.0, "km_to": 0.0}]}
-    assert D.short_label(doc, chilliwack, "x") == "Vedder Crossing Bridge → Tamihi Rapids Bridge"
+    assert _name(doc, chilliwack) == "Vedder Crossing Bridge → Tamihi Rapids Bridge"
     assert D.runs_label(doc, chilliwack) == "From the Vedder Crossing Bridge up to the Tamihi Rapids Bridge"
     begins = {"runs": [{"from": "trb", "to": "continues:Y", "km_from": 20.0, "km_to": 0.0}]}
-    assert D.short_label(doc, begins, "x") == "Bella Coola River begins → Tamihi Rapids Bridge"
+    assert _name(doc, begins) == "Bella Coola River begins → Tamihi Rapids Bridge"
     assert D.runs_label(doc, begins).startswith("From where it becomes the Bella Coola River up to")
     sproat = {"runs": [{"from": "trb", "to": "confluence:T", "km_from": 9.0, "km_to": 0.0}]}
-    assert D.short_label(doc, sproat, "x") == "Stamp River confluence → Tamihi Rapids Bridge"
+    assert _name(doc, sproat) == "Stamp River confluence → Tamihi Rapids Bridge"
 
 
 @pytest.mark.needs_bundle
@@ -238,7 +246,7 @@ def test_lower_ends_on_the_built_export(request):
         return sorted({r["to"] for p in X["waters"][item]["parts"] for r in p["runs"]
                        if r.get("km_to") == 0 and not r.get("branch")})
     assert lows("gnis:8634") == ["continues:gnis:3062"]                     # Chilliwack -> Vedder
-    labels = [D.short_label(X, p, "") for p in X["waters"]["gnis:8634"]["parts"]]
+    labels = [_name(X, p) for p in X["waters"]["gnis:8634"]["parts"]]
     # T517: the Chilliwack's lowest rule set is two parts, cut where DFO's salmon area changes 200 m above the bridge;
     # the lower one starts at the Vedder Crossing Bridge, where the river goes on as the Vedder
     signs = "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)"

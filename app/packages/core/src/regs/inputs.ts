@@ -13,6 +13,7 @@ import type {
 import type { Day, RegsTarget, Weekday } from "./model";
 import type { RuleKey } from "./line";
 import type { SpeciesBook } from "./names";
+import type { EndsTable } from "../ends";
 import type { Md } from "./time";
 
 export type { RowsValue, Row, Decided, GearAnswer, GearValue, StatusFrame, LicenceValue, ProfileAnswer, Holds,
@@ -28,7 +29,7 @@ export interface LadderFrameWire { readonly common: VerdictWire; readonly rows: 
 /** (T36 parts sheet) one picker choice's stored display status on the inputs' day, read through the choice's first part's
  *  key — the same frame that part's own page reads for its header and strip (`settled.status`); null: the part has no key. */
 export interface ChoiceDay { readonly partIx: number; readonly status: DisplayFrame["status"] | null }
-export interface MergedPart { readonly partIx: number; readonly label: string; readonly sections: number; readonly broad: RuleView | null }
+export interface MergedPart { readonly partIx: number; readonly sections: number; readonly broad: RuleView | null }
 
 export interface RegsYear {
   readonly segStarts: readonly number[];
@@ -98,4 +99,6 @@ export interface Statics {
   exportSpecies: SpeciesBook; exportLicences: unknown; exportConduct: Record<string, string>;
   ladderReasons: unknown; ladderReasonState: unknown;
   pdfPages: Readonly<Record<number, number>>;   // printed → pdf, for glossary pages; source pipeline.common.synopsis_pages — never compute
+  /** (T517) `display.ends`: every end token's words (`@app/core` `spanName` composes every part name from them) */
+  ends: EndsTable;
 }

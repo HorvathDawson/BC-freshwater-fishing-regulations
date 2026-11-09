@@ -468,13 +468,13 @@ def test_t182_lake_section_is_the_lowest_station_over_every_lake_holding_the_sec
 
 def test_t182_geo_is_part_geo_in_integer_microdegrees():
     con = sqlite3.connect(":memory:")
-    con.execute("CREATE TABLE part_geo (ord INTEGER, part_ix INTEGER, rank INTEGER, mid_sid INTEGER, mid_lon REAL, "
+    con.execute("CREATE TABLE part_geo (ord INTEGER, part_ix INTEGER, mid_sid INTEGER, mid_lon REAL, "
                 "mid_lat REAL, w REAL, s REAL, e REAL, n REAL)")
-    con.execute("INSERT INTO part_geo VALUES (11837, 0, 0, 7, -129.984551, 53.344782, -130.043061, 53.333981, "
+    con.execute("INSERT INTO part_geo VALUES (11837, 0, 7, -129.984551, 53.344782, -130.043061, 53.333981, "
                 "-129.902673, 53.361987)")
     B.geo_e6(con)
     assert con.execute("SELECT * FROM part_geo").fetchall() == [
-        (11837, 0, 0, 7, -129984551, 53344782, -130043061, 53333981, -129902673, 53361987)]
+        (11837, 0, 7, -129984551, 53344782, -130043061, 53333981, -129902673, 53361987)]
 
 
 # ---- the app's paint decoder reads what this encoder writes (core/src/paint.ts) --------------------------------------

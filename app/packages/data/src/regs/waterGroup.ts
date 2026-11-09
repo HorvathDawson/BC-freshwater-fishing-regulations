@@ -9,40 +9,43 @@ import { mergeNav, waterGroup, type ItemNavRows, type WaterGroup } from "@app/co
 import type { RegsReads } from "./reads";
 import { RegsInputsError } from "./inputs";
 
-export type GroupStore = Pick<RegsReads, "itemOrd" | "siblingOrds" | "item" | "parts" | "navRows">;
+export type GroupStore = Pick<RegsReads, "itemOrd" | "siblingOrds" | "item" | "parts" | "navRows" | "statics">;
 
 /** One item's rows for the group. */
 async function rowsOf(store: GroupStore, ord: number): Promise<ItemNavRows> {
   const [item, parts, nav] = await Promise.all([store.item(ord), store.parts(ord), store.navRows(ord)]);
   // (T345) the part the mouth meets, when it is TIDAL (the receiving water's tidal cut piece, never a listed part): the
   // exit says so, and the map says the line instead of opening the receiver at a part its map does not have (the
-  // Coquitlam into the Fraser's part 16 opened the Fraser on its first listed part, "2 stretches · stretch 1 of 2")
+  // Coquitlam into the Fraser's part 16 opened the Fraser on its first listed part)
   const ex = nav.exit;
   const tidal = !!ex && ex.part !== null && (await store.parts(ex.ord)).some((p) => p.partIx === ex.part && p.tidal);
   return {
     ord, item: item.id, name: item.name, kind: item.kind,
-    // (T278; owner T166 2026-10-28: no parts on tidal water) a tidal piece is never listed; `waterGroup` drops its
-    // stretches, sections and the marks that would reach it with it
-    parts: parts.filter((p) => !p.tidal).map((p) => ({ partIx: p.partIx, label: p.facts?.label ?? item.name, short: p.facts?.short ?? item.name,
-                                                       // (T517) its run, and a salmon-cut piece's own ends + the run's name
-                                                       grp: p.grp, run: p.run,
-                                                       ...(p.facts?.run_name ? { lo: p.facts.lo, hi: p.facts.hi, runName: p.facts.run_name } : {}),
+    // (T278; owner T166 2026-10-28: no parts on tidal water) a tidal piece is never listed; `waterGroup` drops it and the
+    // marks that reach it (`tidal`)
+    // (T517, owner 2026-11-09) a part is named from its two end tokens (`spanName`); with none — a lake, a whole water,
+    // and AN UNKEYED PART (outside B.C.: no key, no facts, no rules) — as its water ("Blanchard River"): navReads.test.ts
+    parts: parts.filter((p) => !p.tidal).map((p) => ({ partIx: p.partIx, grp: p.grp, run: p.run,
+                                                       ...(p.facts ? { label: p.facts.label, lo: p.facts.lo, hi: p.facts.hi }
+                                                         : { label: item.name, lo: null, hi: null }),
                                                        // (T460) a side channel has no km: a fork's branch, never a skip
                                                        ...(p.facts && p.facts.km === null ? { side: true } : {}) })),
-    geo: nav.geo, marks: nav.marks, sections: nav.sections, stretches: nav.stretches, exit: ex && tidal ? { ...ex, tidal: true } : ex,
+    tidal: parts.filter((p) => p.tidal).map((p) => p.partIx),
+    geo: nav.geo, marks: nav.marks, sections: nav.sections, exit: ex && tidal ? { ...ex, tidal: true } : ex,
     continuesAs: nav.continuesAs, continuesFrom: nav.continuesFrom,
   };
 }
 
-/** The group of the water `item` (its durable id): itself first, then a split lake's other closure areas. (T228) The
- *  pieces of a part the release cut where the salmon chain changes are joined where `salmonKey` reads them alike
- *  (`@app/core` `mergeNav`); with none, every such cut is joined — the part's stretches as before. */
+/** The group of the water `item` (its durable id): itself first, then a split lake's other closure areas. (T517) The
+ *  parts of one run the release cut where the salmon chain changes are joined where `salmonKey` — the LIVE salmon
+ *  reading, the one the map uses (`@app/ui` `useSalmonKey` / `salmonKeyOf`) — reads them alike (`@app/core` `mergeNav`);
+ *  with none (null: not read, or no salmon in the release) nothing joins: every part is its own entry. */
 export async function loadWaterGroup(store: GroupStore, item: string,
                                      salmonKey: ((sid: number) => string) | null = null): Promise<WaterGroup> {
   return mergeNav(await loadRawWaterGroup(store, item), salmonKey);
 }
 
-/** (T228) The group as the release cut it: every piece of a part apart (`mergeNav` joins them). */
+/** (T228) The group as the release cut it: every part apart (`mergeNav` joins them). */
 export async function loadRawWaterGroup(store: GroupStore, item: string): Promise<WaterGroup> {
   const ord = await store.itemOrd(item);
   if (ord === null) throw new RegsInputsError(`water map: no water ${item} in the regs store`);
@@ -50,8 +53,9 @@ export async function loadRawWaterGroup(store: GroupStore, item: string): Promis
   // (T345, one load path) the group's items in ONE order whichever of them was opened: a split lake's areas read from
   // any area are the same group, part for part and index for index (it was the opened item first, so a reload on one
   // area listed and stepped the parts in another order than a step into it from its sibling)
-  const all = await Promise.all([...new Set([ord, ...ords])].sort((a, b) => a - b).map((o) => rowsOf(store, o)));
-  return waterGroup(all);
+  const [all, statics] = await Promise.all([
+    Promise.all([...new Set([ord, ...ords])].sort((a, b) => a - b).map((o) => rowsOf(store, o))), store.statics()]);
+  return waterGroup(all, statics.ends);
 }
 
 /**

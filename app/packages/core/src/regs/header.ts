@@ -11,6 +11,7 @@
  * placeGo; page_v36 renderAll's subtitle (`[data-f="sub"]`), which hereLabel tests the long label against.
  */
 import { cutWords } from "./describe";
+import { spanName } from "../ends";
 import type { RegsInputs } from "./inputs";
 import type { Day, HeaderVM, Tab } from "./model";
 import { fmtDay } from "./strip";
@@ -18,12 +19,30 @@ import { WD3, WORDS } from "./words";
 import { WEEKDAYS } from "../calendar.generated";
 import { sameDay } from "../day";
 
-/** The data cut a label with "…" (a match key, never said). */
-const CUT = "…";
-const uncut = (s: string | null | undefined): string => (s && !s.includes(CUT) ? s : "");
-/** (T517) A part's name for the header: a piece of a run the DFO salmon chain cuts is said by the whole run's name (the
- *  pipeline's `run_name`, the run its rules cover), else its own short name. */
-const runShort = (p: { short: string; run_name?: string | null } | null | undefined): string => uncut(p?.run_name ?? p?.short);
+/** (T517) Each part's name as the water map names the entry holding it, by part index: `@app/core` `entryNames` over
+ *  the SAME `mergeNav(group, live salmon key)` the map draws (`@app/ui` `useMapEntries`), so the header, the Parts sheet
+ *  and the map say one name. */
+export type PartNames = ReadonlyMap<number, string>;
+
+/** (T517) THE NAME OF PART `partIx` on the page: the map's name for the entry holding it (`names`, which holds every
+ *  listed part: one it lacks throws). With NO names — a deliberate rule, pinned in header.test.ts: the water's group not
+ *  read yet, or the SEO pages, which read no group — the part's own, composed by the same one function (`spanName` over
+ *  its end tokens and the release's `display.ends`), which is what the map names it before a salmon reading joins any
+ *  part. A part with no facts (unkeyed: outside B.C.; a tidal piece, never on the map) is said as its water — the
+ *  `spanName` rule for a part with no ends. A page with no named water has no part name: throws. */
+export function partNameOf(inp: RegsInputs, partIx: number, names: PartNames | null | undefined): string {
+  const it = inp.item;
+  if (!it) throw new Error(`regs: a part name asked of a page with no named water (part ${partIx})`);
+  const p = it.parts[partIx];
+  if (p === undefined) throw new Error(`regs: ${it.id} has no part ${partIx}`);
+  if (p === null) return it.name;
+  if (names) {
+    const own = names.get(partIx);
+    if (own === undefined) throw new Error(`regs: the map names no part ${partIx} of ${it.id}`);
+    return own;
+  }
+  return spanName(inp.statics.ends, it.name, p);
+}
 const SUB_MAX = 150;
 const nParts = (inp: RegsInputs) => inp.item?.parts.filter(Boolean).length ?? 0;
 const choiceOf = (inp: RegsInputs) => inp.item?.picker?.choices.find((c) => c.parts.includes(inp.partIx)) ?? null;
@@ -34,7 +53,9 @@ export function subtitleOf(inp: RegsInputs): string {
   const it = inp.item;
   if (!it) return "";
   const many = nParts(inp) > 1, g = choiceOf(inp), dp = it.parts[inp.partIx] ?? null;
-  const n = many && g ? g.sections : (inp.item?.partSections[inp.partIx] ?? it.sections);
+  const own = it.partSections[inp.partIx];
+  if (own === undefined) throw new Error(`regs header: ${it.id} has no part ${inp.partIx} (partSections)`);
+  const n = many && g ? g.sections : own;
   let tail = "";
   if (many) {
     if (g && g.closed && g.parts.length > 1) tail = WORDS.DOT + WORDS.SUB_CLOSED_ALL_YEAR;
@@ -45,23 +66,19 @@ export function subtitleOf(inp: RegsInputs): string {
 
 /**
  * prototype hereLabel (`full`) and shortLabel (`short`). With a part picker: the choice's text is the long label; the full
- * label is the long one when the subtitle says it, else the choice's first part's short label unless the data cut it;
- * the short label is that short one, uncut, else the long. Without a picker the label is the part's short label, uncut,
- * else its label (T16: in the app every named part has one — D1 — so the prototype's "no water map, no label" does not
- * carry over; `headerOf` empties the slot only when the label is the water's own name). Null for an unnamed section or
- * a water with no part facts.
+ * label is the long one when the subtitle says it, else the name of the choice's first part; the short label is that
+ * name. Without a picker both are the part's name (`partNameOf`, the one name — T517: no stored label stands in;
+ * `headerOf` empties the slot when it is the water's own name). Null for an unnamed section.
  */
-export function partLabels(inp: RegsInputs): { full: string; short: string } | null {
+export function partLabels(inp: RegsInputs, names?: PartNames | null): { full: string; short: string } | null {
   const it = inp.item;
   if (!it) return null;
   const g = nParts(inp) > 1 ? choiceOf(inp) : null;
   if (g) {
-    const long = g.text, short = runShort(it.parts[g.parts[0]!]);
-    return { full: subtitleOf(inp).includes(long) ? long : short || long, short: short || long };
+    const long = g.text, short = partNameOf(inp, g.parts[0]!, names);
+    return { full: subtitleOf(inp).includes(long) ? long : short, short };
   }
-  const p = it.parts[inp.partIx];
-  if (!p) return null;
-  const s = runShort(p) || p.label;
+  const s = partNameOf(inp, inp.partIx, names);
   return { full: s, short: s };
 }
 
@@ -84,11 +101,15 @@ export function downstreamLabel(inp: RegsInputs, downstream: string | null | und
  *  page since map is now at the top tabs?"). The water's Map view, offered once by the view strip, lists the parts by
  *  name and picks one; the header keeps the part's NAME (`place`), so the reader always knows whose rules are shown. */
 export function headerOf(inp: RegsInputs, o: { today: Day; status: "open" | "closed" | "tidal" | "outside" | "unknown";
-                                               downstream?: string | null }): HeaderVM {
-  const name = inp.item?.name ?? inp.place?.name ?? "";
+                                               downstream?: string | null;
+                                               /** (T517) the map's names of the parts (`PartNames`) */
+                                               names?: PartNames | null }): HeaderVM {
+  // a named water's name, or an unnamed reach's (its place); a handle OUTSIDE B.C. has neither (T09: no key, no place,
+  // no item) and the header says no name — a documented rule, pinned by edge.test.ts
+  const name = inp.item ? inp.item.name : inp.place ? inp.place.name : "";
   const date = fmtDay(inp.day);
   const down = downstreamLabel(inp, o.downstream);
-  const lab = down ? { full: down, short: down } : partLabels(inp);
+  const lab = down ? { full: down, short: down } : partLabels(inp, o.names);
   // prototype placeRow: no label slot when the short label is the water's own name
   const lbl = lab && lab.short !== name ? lab.short : "";
   const tabs: readonly [Tab, string][] = [["keep", WORDS.TAB_KEEP], ["gear", WORDS.TAB_GEAR], ["methods", WORDS.TAB_METHODS], ["licence", WORDS.TAB_LICENCE]];

@@ -18,7 +18,9 @@ formats the app reads. What it keeps:
                  documents, under-16, the documents' answers), only for regions holding a kept key
   regs-sid       the blocks holding the kept waters' sections and the golden unnamed handles, every OTHER slot zeroed
                  (a slot that is kept always names a kept key)
-  core           `item`, `item_section`, `alias`, `item_alias` of the kept waters; no places
+  core           `item`, `item_section`, `alias`, `item_alias` of the kept waters (and the `item` row of each water
+                 a kept water exits into); no places. The water each kept water flows into is kept whole (its map
+                 group: T459 keeps it in colour)
   geo            (T182, when the source release has one) `part_geo` of the kept waters — water then has none
 
 Kept keys = the kept waters' parts' keys ∪ the keys of the kept section slots. Kept waters = taps.json `states[*].item`
@@ -176,6 +178,10 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
         if missing:
             raise FixtureError(f"regs fixture: release {src_id} has no water {', '.join(missing)}")
         kept_ords = set(ords.values())
+        # (T517 review sweep) the water each kept water's mouth flows into is kept whole too: the map keeps it in colour
+        # (T459, `useReceivingSections` reads its group: item, parts, sections, marks, exit, geo) — one level
+        kept_ords |= {o for (o,) in con["water"].execute(
+            f"SELECT down_ord FROM water_exit WHERE ord IN ({_ids(kept_ords)})")}
         akeys: Set[int] = {a for (a,) in con["water"].execute(
             f"SELECT akey FROM part WHERE item_ord IN ({_ids(kept_ords)}) AND akey IS NOT NULL")}
 
@@ -223,11 +229,8 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
         files["water"] = B.copy_file(work / "water.sqlite", {"s": src["water"]}, plan, {**meta["water"], **fix})
         # (T182) a release cut with the split files holds the water map's boxes in `geo`: the kept waters' rows
         if "geo" in src:
-            # (T204) and their stretches, when the release has the table
-            has_st = con["geo"].execute("SELECT 1 FROM sqlite_master WHERE name = 'part_stretch'").fetchone()
             files["geo"] = B.copy_file(work / "geo.sqlite", {"s": src["geo"]},
-                                       [("s", t, f"WHERE ord IN ({_ids(kept_ords)})")
-                                        for t in ("part_geo", "part_stretch") if t == "part_geo" or has_st],
+                                       [("s", "part_geo", f"WHERE ord IN ({_ids(kept_ords)})")],
                                        {**meta["geo"], **fix})
 
         zd = dict(con["water"].execute("SELECT tbl, d FROM zdict"))
@@ -249,8 +252,13 @@ def build(release: Path, items: Sequence[str], handles: Sequence[int], out_root:
             extra=sid_extra)
 
         ids_ = sorted(ords)
+        # (T517 review sweep) a kept water's exit names another water: core holds that water's `item` row too (its id
+        # and name — for the receiving waters kept above, the waters THEY flow into), or the app refuses the cut as a
+        # damaged release (`navRows`: an exit into an item core lacks)
+        exit_ords = {o for (o,) in con["water"].execute(
+            f"SELECT down_ord FROM water_exit WHERE ord IN ({_ids(kept_ords)})")}
         files["core"] = B.copy_file(work / "core.sqlite", {"s": src["core"]}, [
-            ("s", "item", f"WHERE ord IN ({_ids(kept_ords)})"),
+            ("s", "item", f"WHERE ord IN ({_ids(kept_ords | exit_ords)})"),
             ("s", "item_section", f"WHERE ord IN ({_ids(kept_ords)})"),
             ("s", "alias", f"WHERE item_id IN ({_strs(ids_)})"),
             ("s", "item_alias", f"WHERE item_id IN ({_strs(ids_)})"),

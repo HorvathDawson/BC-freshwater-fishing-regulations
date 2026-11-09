@@ -224,16 +224,18 @@ describe("<WaterMapView>", () => {
   // Skeena's Ecological Reserve part is a fork upstream. (T183, r-98c43091c440) Skeena section 2 starts at the Exchamsiks
   // cut: the Reserve is part 5 now (part 6 is the Exchamsiks host channel above the cut, still section 2), and its ▲ is
   // part 0 (which took in the mainstem up to the Exchamsiks) or that channel. (T517) part_ix is the river order: the
-  // Reserve is part 2, the mainstem above it part 3, the channel part 18
+  // Reserve is part 1 (named by its two crossings of the Reserve's boundary), the mainstem round it part 2 (from the tidal
+  // boundary: it joins the stem below and above the Reserve), the channel (no ends: said as its water) part 17
   it("a fork upstream: ▲ on the Skeena's Ecological Reserve opens the chooser, the main stem first", async () => {
-    mount("gnis:2936", 2);
+    mount("gnis:2936", 1);
     await ready();
-    expect(screen.getByTestId("water-map-name").textContent).toBe("Within Skeena River Ecological Reserve");
+    expect(screen.getByTestId("water-map-name").textContent).toBe(
+      "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence");
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const chooser = within(screen.getByRole("dialog", { name: "Which way upstream?" }));
-    const other = "Side channel";
+    const other = "Skeena River";
     expect(chooser.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(
-      ["Close", "Skeena River Ecological Reserve boundary → Exchamsiks River confluence", other]);
+      ["Close", "Tidal boundary → Exchamsiks River confluence", other]);
     fireEvent.click(chooser.getByRole("button", { name: other }));
     expect([screen.queryByRole("dialog"), screen.getByTestId("water-map-name").textContent]).toEqual([null, other]);
   }, 30_000);
@@ -261,7 +263,7 @@ describe("<WaterMapView>", () => {
     act(() => seen.props!.onPressMark!(2));
     const seenMark = [open(), `${back()} -> ${open()}`, `${back()} -> ${open()}`];
     cleanup(); routes.length = 0;
-    render(<Harness item="gnis:2936" part={2} />);   // (T517) the Skeena's Ecological Reserve is part 2 (river order)
+    render(<Harness item="gnis:2936" part={1} />);   // (T517) the Skeena's Ecological Reserve is part 1 (river order)
     await ready();
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
     const seenChooser = [open(), `${back()} -> ${open()}`];
@@ -304,10 +306,10 @@ describe("<WaterMapView>", () => {
 
   it("across waters: ▲ on the Vedder's top part opens the Chilliwack at its lowest part; ▼ on the Chilliwack's mouth part the Vedder", async () => {
     // (T517) the Vedder is two parts of one run (the DFO salmon chain cuts it at the cable car crossing): its mouth part
-    // is its end (the fixture's core does not hold the Sumas River, so the Vedder's mouth has no exit here), ▲ a step
+    // flows into the Sumas River (the fixture's core names every water a kept water flows into), ▲ a step
     mount("gnis:3062", 0);
     await ready();
-    expect(bar()).toBe("Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream");
+    expect(bar()).toBe("Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream | Flows into Sumas River ›");
     cleanup();
     const calls = mount("gnis:3062", 1);
     await ready();
@@ -437,9 +439,9 @@ describe("<WaterMapView>", () => {
       const f = waterFrame(route);
       if (!f || f.item === null) return null;
       const item = f.item;
-      return <WaterMapView loader={lined} item={item} part={f.part} stretch={f.stretch} tapSid={f.tapSid} whole={f.whole}
+      return <WaterMapView loader={lined} item={item} part={f.part} tapSid={f.tapSid} whole={f.whole}
                            palette={LIGHT} map={MAP} onOpenWater={() => {}} onShowRegs={() => {}} onOtherSection={() => {}}
-                           onCross={() => {}} onPart={(i, p, st) => go(partAction(item, i, p, st))}
+                           onCross={() => {}} onPart={(i, p) => go(partAction(item, i, p))}
                            onWhole={() => go({ type: "whole" })} />;
     }
     const drawn = () => JSON.stringify({
@@ -448,16 +450,16 @@ describe("<WaterMapView>", () => {
       fit: seen.props?.fit, marks: seen.props?.marks });
     const settle = () => act(() => new Promise((r) => setTimeout(r, 30)));
     const open = (o: Parameters<typeof openWater>[0]) => reduce(HOME, openWater(o));
-    /** (T369 D3) a TAP opens as the app's opener opens it: at the part (and stretch) the tapped section is in */
+    /** (T369 D3) a TAP opens as the app's opener opens it: at the part the tapped section is in */
     const tap = async (item: ItemId, sid: number, view: "map" | "regs" | "conditions" = "map") =>
       open({ item, tapSid: sid as SectionId, view, ...(await partOfTap(await store, item, sid as SectionId)) });
     /**
-     * What a frame's screens are drawn from: its water, part, stretch, view and ⤢, and its tap (T369 D5: the address
+     * What a frame's screens are drawn from: its water, part, view and ⤢, and its tap (T369 D5: the address
      * carries a tap as its place, `tap=1`, never a section id).
      */
     const drawnFrom = (r: Route) => {
       const f = waterFrame(r);
-      return f && { item: f.item, part: f.part, stretch: f.stretch || undefined, view: f.view, whole: f.whole || undefined,
+      return f && { item: f.item, part: f.part, view: f.view, whole: f.whole || undefined,
                     tapSid: f.tapSid };
     };
     /** Every URL a way in's routes made (the frame at every render): none may carry a section id (AGENTS rule 5). */
@@ -564,7 +566,7 @@ describe("<WaterMapView>", () => {
       expect(drawnFrom((await opened(await addressOf(regs))).route)).toEqual(drawnFrom(regs));
     }, 60_000);
 
-    it("(T517) the Zymoetz's source part above its lake part: ▲ into it and its URL reloaded draw the same (a T204 stretch reloaded as the lower)", async () => {
+    it("(T517) the Zymoetz's source part above its lake part: ▲ into it and its URL reloaded draw the same", async () => {
       const Z = "gnis:3137" as ItemId;
       // part_ix 4 is "McDonell Lake (3000 m downstream) → McDonell Lake outlet"; ▲ is the source part (part_ix 5)
       const [stepped, reloaded] = await wayIn(open({ item: Z, part: 4, view: "map" }), [up]);

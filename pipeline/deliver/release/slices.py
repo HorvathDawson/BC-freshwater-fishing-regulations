@@ -34,11 +34,14 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, Iterable, List, Set
 
+from pipeline.deliver.release import contract as C
 from pipeline.deliver.release import shards as SH
 
-CORE_SLICE_FORMAT = "core-slice/1"
-WATER_SLICE_FORMAT = "water-slice/2"
-WATER_SHARED_FORMAT = "water-shared/1"
+# (T517) the slices' formats are the CONTRACT's, never a second copy (a hand-kept "water-slice/2" shipped beside a
+# contract saying /4 and every app refused the slices)
+CORE_SLICE_FORMAT = C.FILES[f"core-{SH.REGIONS[0]}"]["format"]
+WATER_SLICE_FORMAT = C.FILES[f"water-{SH.REGIONS[0]}"]["format"]
+WATER_SHARED_FORMAT = C.FILES["water-shared"]["format"]
 #: (T370) the web file the region-wide water tables live in, beside the slices
 WATER_SHARED = "water-shared"
 
@@ -55,8 +58,8 @@ WATER_SLICE_ADDITIVE = ("water_continue", "part_line")
 WATER_SHARED_TABLES = ("akey", "akey_region", "ruleset", "seglist", "segmom", "rule", "display_rule", "lic", "static",
                        "place", "zdict")
 #: every column of water that names a `str` id (`str` keeps only these ids' rows)
-STR_COLUMNS = (("item", "item_id"), ("item", "kind"), ("part", "label_s"), ("part", "short_s"), ("part", "runs_s"),
-               ("part", "place_s"), ("part", "hint_s"), ("part", "lo_s"), ("part", "hi_s"), ("part", "run_s"), ("akey", "kind"), ("akey", "province_except"),
+STR_COLUMNS = (("item", "item_id"), ("item", "kind"), ("part", "label_s"), ("part", "runs_s"),
+               ("part", "place_s"), ("part", "lo_s"), ("part", "hi_s"), ("akey", "kind"), ("akey", "province_except"),
                ("akey", "home_region"), ("place", "label"))
 BLOCK_BITS, BLOCK = SH.BLOCK_BITS, SH.BLOCK
 

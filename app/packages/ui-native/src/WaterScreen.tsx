@@ -30,7 +30,7 @@ import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/d
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet, usePageSubject,
-         useDaylight, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
+         useDaylight, useInSeasonPage, useMapEntries, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
@@ -59,7 +59,7 @@ export function WaterScreen(p: Parameters<typeof WaterScreenBody>[0]) {
 }
 
 function WaterScreenBody({ source, item, palette, onBack, onRetry,
-                              loader = null, day = null, onDay, section = null, part = null, at = null, stretch: _stretch, fishImages, adiposeImages,
+                              loader = null, day = null, onDay, section = null, part = null, at = null, fishImages, adiposeImages,
                               start = null, onStarted, onPart, glance = false }: {
   /** The water; null for an unnamed reach (T53), which `section` then names — its regulations are that section's. */
   source: WaterSource; item: ItemId | null;
@@ -79,8 +79,6 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   part?: number | null;
   /** (T382) the frame's tapped point, else null: where the page's sunrise and sunset are for (else the water's point). */
   at?: LatLon | null;
-  /** (T369) The frame's release stretch: the page is the part's (one page per part), so it reads none of it. */
-  stretch?: number;
   palette: Palette; onBack?: () => void;
   /**
    * The fish pictures by species code (T20), for the regulations panel (the app registers the assets; T21 draws them).
@@ -114,7 +112,9 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const sunDay = { y: d.calendarYear, m: d.day.month, d: d.day.day };
   const sun = useSunLine(source, item, at, sunDay);
   const daylight = useDaylight(source, item, at, sunDay);   // (T473) the hours a daylight-only closure leaves open
-  const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null);
+  // (T517) the header and the Parts sheet name a part as the water's map does: the same group, the same live salmon
+  const entries = useMapEntries(loader, store.value ?? null, item);
+  const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null);
   const waterBook = useMemo(() => (inputs.value ? waterBookOf(inputs.value, regs) : undefined), [inputs.value, regs]);   // (T474; T60: not a page the lines already link)
   const regsError = store.error ?? found.error ?? inputs.error;
   // (T254) a refusal (a release that cannot answer) is not a dead line: no Try again for it
@@ -148,10 +148,8 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   // (T254) a release that ships salmon draws a card on every page: until it is in, its place says why
   const salmonExpected = !!loader?.manifest?.files?.salmon;
   // (T230) the provincial in-season changes matched to this water / part, in effect on THE day (informational)
-  const inSeasonPage = useMemo(() => (pageItem && inputs.value
-    ? { item: pageItem.id, ord: pageItem.ord, partIx: inputs.value.partIx } : null),
-    // the page's identity
-    [pageItem?.id, pageItem?.ord, inputs.value?.partIx]);
+  // (T517) the page covers the map entry holding its part (`inSeasonPageOf`)
+  const inSeasonPage = useInSeasonPage(pageItem, inputs.value?.partIx ?? null, entries);
   // (T520) where each lands: core's `inSeasonCover` over the water's section lines (read only for a part-covering change)
   const inSeasonLines = useReleaseLines(loader ?? null);
   const inSeason = useInSeasonBanners(store.value ?? null, inSeasonLines, inSeasonPage, day);

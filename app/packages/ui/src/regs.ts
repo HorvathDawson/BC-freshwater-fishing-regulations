@@ -26,6 +26,7 @@ import { itemsOfSections, loadRegsInputs, loadWaterGroup, openRegsStore, RegsSto
          type RegsStore } from "@app/data/regs";
 import { useAsync, type Async } from "./async";
 import { askOnce, peekAnswer } from "./answers";
+import { salmonKeyOf, type SalmonLoader as SalmonKeyLoader } from "./salmonKey";
 
 /** (T286) The test bed's "before" build (`EXPO_PUBLIC_REGS_ONE_BY_ONE=1`): no page held, every open read afresh. */
 const oneByOne = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne === true;
@@ -89,11 +90,16 @@ export function regsGroupOf(loader: RegsLoader): (item: ItemId) => Promise<reado
 }
 
 /**
- * (T221) Whether a water is solo — one part, going on as / from no other water (`@app/core` `soloWater` over its group,
- * `loadWaterGroup`): what the opener asks of a search result (solo: its Regulations, not its Map).
+ * (T221) Whether a water is solo — one entry on its map, going on as / from no other water (`@app/core` `soloWater` over
+ * its group, `loadWaterGroup`): what the opener asks of a search result (solo: its Regulations, not its Map). (T517) The
+ * group as its map joins it: the same live salmon key (`salmonKeyOf`), so two pieces the live salmon reads alike are one
+ * entry here as on the map.
  */
-export function regsSoloOf(loader: RegsLoader): (item: ItemId) => Promise<boolean> {
-  return async (item) => soloWater(await loadWaterGroup(await loadRegsStore(loader), item));
+export function regsSoloOf(loader: RegsLoader & SalmonKeyLoader): (item: ItemId) => Promise<boolean> {
+  return async (item) => {
+    const store = await loadRegsStore(loader);
+    return soloWater(await loadWaterGroup(store, item, await salmonKeyOf(loader, store, item)));
+  };
 }
 
 /**
@@ -185,7 +191,7 @@ async function pageSections(store: Pick<RegsStore, "navRows">, s: PageSubject): 
  * "in the one section not all clicks are equal"): paint's no-access rows and the `access` file's gentler ones (permit-only
  * land, reserves, private land) over every section of the page's subject, pooled by core (`partAccess`: each area with
  * the share of the part it covers, the sections weighed by their length along the water — the store's `partLengths`,
- * read only when the sections differ; a release without them says no share) and worded by core (`pageAccessNotices`:
+ * read only when the sections differ; a section unmeasured says no share) and worded by core (`pageAccessNotices`:
  * the banner, then the note). Empty: nothing to say.
  */
 export async function regsAccessNotices(loader: Pick<ReleaseLoader, "paint" | "access">,
@@ -200,7 +206,7 @@ export async function regsAccessNotices(loader: Pick<ReleaseLoader, "paint" | "a
   let lengths: (number | null)[] | null = null;
   if (subject.kind === "part" && accessNeedsWeights(rows)) {
     const m = await store.partLengths(subject.ord, subject.partIx);
-    lengths = m ? sids.map((sid) => m.get(sid) ?? null) : null;
+    lengths = sids.map((sid) => m.get(sid) ?? null);
   }
   const word = subject.kind === "section" ? "section" : subject.parts > 1 ? "part" : "water";
   return coreAccessNotices(partAccess(rows, lengths), word);
@@ -290,16 +296,18 @@ export function useRegulations(store: RegsStore | null, target: RegsTarget | nul
  * The page for those inputs (core `buildRegsPage`, T21): a `who` change rebuilds from the same inputs, no reload. Every
  * screen uses this; nobody calls buildRegsPage in a component.
  */
-export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day, downstream: string | null = null): RegsPage | null {
-  // (T53) `downstream`: an unnamed reach's named water down its flow — the header's label slot (core `downstreamLabel`)
+export function useRegsPage(inputs: RegsInputs | null, who: Who, today: Day, downstream: string | null = null,
+                            names: ReadonlyMap<number, string> | null = null): RegsPage | null {
+  // (T53) `downstream`: an unnamed reach's named water down its flow — the header's label slot (core `downstreamLabel`);
+  // (T517) `names`: the parts as the water's map names them (`useMapEntries`) — the header's and the Parts sheet's
   return useMemo(() => {
     if (!inputs) return null;
     const t = openProbe.on() ? performance.now() : 0;
-    const page = buildRegsPage(inputs, { today, who, downstream });
+    const page = buildRegsPage(inputs, { today, who, downstream, names });
     if (t) openProbe.span("build", performance.now() - t);
     return page;
   },
-    [inputs, who, today.month, today.day, downstream]);
+    [inputs, who, today.month, today.day, downstream, names]);
 }
 
 // ── (T286) the waters on screen, read before they are tapped ─────────────────────────────────────────────────────────────
@@ -415,15 +423,17 @@ export function useAnglerProfile(): readonly [Who, (who: Who) => void] {
  * Regulations view asks, so both answer alike.
  */
 export function useWaterPlace(loader: ReleaseLoader | null, source: Pick<WaterSource, "traceToGauge" | "waterFor">,
-                              item: ItemId | null, section: SectionId | null) {
+                              item: ItemId | null, section: SectionId | null,
+                              /** (T517) the parts as the water's map names them (`useMapEntries`) */
+                              names: ReadonlyMap<number, string> | null = null) {
   const store = useRegsStore(loader);
   const found = useRegsTarget(store.value ?? null, item, section);
   const inputs = useRegulations(store.value ?? null, found.value ?? null, null);
   const down = useDownstreamWater(source, item, section);
   const inp = inputs.value ?? null;
   const place = useMemo(() => (inp ? headerOf(inp, { today: regsDay(null).today, status: "unknown",
-                                                     downstream: down.value?.name ?? null }).place : null),
-                        [inp, down.value?.name]);
+                                                     downstream: down.value?.name ?? null, names }).place : null),
+                        [inp, down.value?.name, names]);
   // (T387) the page's subject — its part, never the tap — so this view's notices are its Regulations page's
   const subject = usePageSubject(inp);
   const access = useAccessNotices(loader, store.value ?? null, subject);

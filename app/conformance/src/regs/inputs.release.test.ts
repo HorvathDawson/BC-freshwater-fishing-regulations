@@ -7,7 +7,7 @@
  * packages/data/src/regs/inputs.test.ts.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import type { DisplayFrame, RegsInputs } from "@app/core";
+import { partNameOf, type DisplayFrame, type RegsInputs } from "@app/core";
 import { loadRegsInputs, RegsInputsError, targetFor, type RegsStore } from "@app/data/regs";
 import { baseUnnamedStream, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
 
@@ -108,7 +108,8 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
     const m = inp.mergedParts!;
     expect(m.length).toBe(2);
     expect(m.reduce((a, p) => a + p.sections, 0)).toBe(8);
-    expect(m.map((p) => p.label).every((l) => l.length > 0)).toBe(true);
+    // (T517) no stored label: each is named by the one name function (`partNameOf`) — never empty
+    expect(m.map((p) => partNameOf(inp, p.partIx, null)).every((l) => l.length > 0)).toBe(true);
     expect(m.map((p) => p.broad!.rank).sort()).toEqual([-1, 0]);
   });
 

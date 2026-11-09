@@ -424,7 +424,7 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
     await until(() => screen.queryAllByRole("radio").length > 0);
     const seen = [where()];
     const row = screen.getAllByRole("radio").find((r) => r.getAttribute("aria-checked") === "false"
-                                                     && /^Vedder Crossing Bridge → Tamihi Rapids Bridge/.test(r.getAttribute("aria-label") ?? ""))!;
+                                                     && /^Vedder Crossing Bridge → /.test(r.getAttribute("aria-label") ?? ""))!;
     await act(async () => { fireEvent.click(row); });
     seen.push(where());
     await view("Map"); await onWaterMap();

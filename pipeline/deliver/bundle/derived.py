@@ -172,14 +172,42 @@ def write(db: sqlite3.Connection, cov, places: Optional[Dict[int, Place]] = None
     prove(db, unnamed=places is not None)
 
 
+def join_touching(pieces: List[List[int]], touch: Dict[int, set]) -> List[List[int]]:
+    """T517 review: two stretches whose sections TOUCH are one run. `stretches` files a side channel under the
+    stretch it re-enters, so a braid that leaves above another group's piece of main stem and re-enters below it
+    (Wap Creek's channel inside Mount Griffin Ecological Reserve, past the 275 m of stem outside it; Nimpkish,
+    Skeena) left two parts of one key meeting with no mark — one painted run listed twice."""
+    root = list(range(len(pieces)))
+
+    def find(i: int) -> int:
+        while root[i] != i:
+            root[i] = root[root[i]]
+            i = root[i]
+        return i
+    at = {x: i for i, p in enumerate(pieces) for x in p}
+    for i, p in enumerate(pieces):
+        for x in p:
+            for y in touch.get(x, ()):
+                j = at.get(y)
+                if j is not None and find(i) != find(j):
+                    a, b = sorted((find(i), find(j)))
+                    root[b] = a
+    out: Dict[int, List[int]] = defaultdict(list)
+    for i, p in enumerate(pieces):
+        out[find(i)] += p
+    return [sorted(v) for _, v in sorted(out.items())]
+
+
 def _runs_of(db: sqlite3.Connection):
     """T517: what splits a same-rules group into its CONNECTED RUNS — the bundle's spans and touches, read once.
     Returns `split(o, groups)`: for one water `o` and its groups `{g: [sid]}`, `{g: [[sid] per run]}` plus each run's
     river key (`part_km`, km from the mouth of its main-stem top; None for no main stem). A run is
     `topology.stretches` (T204): a group's main-stem runs merged unless ANOTHER group of the water has a main-stem
     section in the gap between them (a lake on the course, or an unnamed piece, is not another part), side channels
-    joining the run they re-enter; a lake / polygon water, or a group with a section the spans do not hold, is one
-    run. So two runs of one group never touch, and every run is maximal."""
+    joining the run they re-enter, and any two of those whose sections touch (`section_touch`: a braid round another
+    group's piece of stem) joined; a lake / polygon water, or a group with a section the spans do not hold, is one
+    run. So two runs of one group never touch, and every run is maximal (`release.paint_sync` proves it on the
+    shipped parts against `section_touch`)."""
     from pipeline.deliver.bundle import spans as SP
     from pipeline.deliver.bundle.topology import part_km, stretches
     kind = dict(db.execute("SELECT ord, kind FROM item"))
@@ -209,9 +237,10 @@ def _runs_of(db: sqlite3.Connection):
                 out[g] = [(ss, None)]
                 continue
             other = [ab for h, v in stem.items() if h != g for ab in v]
-            pieces = [p["sids"] for p in stretches(runs, span, other)] or [ss]
+            pieces = join_touching([p["sids"] for p in stretches(runs, span, other)] or [ss], touch)
             out[g] = [(p, part_km(one(p) or [])) for p in pieces]
         return out
+
     return split
 
 
@@ -246,10 +275,10 @@ def part_rows(db: sqlite3.Connection) -> List[tuple]:
     from pipeline.deliver.bundle.access import mostly_inside
     closed_land = mostly_inside(db)
 
-    # T517: each section's DFO salmon chain is IN THE KEY (0 for a section in none, and for a bundle without the salmon
-    # table: a fixture), so every part is uniform for the salmon paint too, by construction
-    chain_of: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section")) if db.execute(
-        "SELECT 1 FROM sqlite_master WHERE name = 'salmon_section'").fetchone() else {}
+    # T517: each section's DFO salmon chain is IN THE KEY (0: a section in no chain — the unlisted chain, as the salmon
+    # file says it), so every part is uniform for the salmon paint too, by construction. The schema always holds the
+    # table (`salmon.write_bundle` fills it first); a bundle without it is refused by SQLite, never read as "no chain"
+    chain_of: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section"))
     groups: Dict[tuple, List[int]] = defaultdict(list)
     for o, sid in db.execute("SELECT ord, sid FROM item_section ORDER BY ord, sid"):
         groups[(o, rset.get(sid), lset.get(sid), ",".join(pe.get(sid, ())), sid in sw,

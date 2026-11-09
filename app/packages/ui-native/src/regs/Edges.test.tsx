@@ -18,7 +18,7 @@ import type { KeepActions } from "./LineText";
 import x31p from "./fixtures/edge_x31p_1010.json";
 import x15p2 from "./fixtures/edge_x15p2_1010.json";
 import unnamed from "./fixtures/edge_unnamed.json";
-import vedder1010 from "./fixtures/vedder_1010.json";
+import glenn501 from "./fixtures/glenn_501.json";
 
 afterEach(cleanup);
 
@@ -92,7 +92,8 @@ describe("10. an unnamed section (D11 a)", () => {
       cleanup();
       return s;
     };
-    const named = style(asPage(vedder1010).header), none = style(h);
+    // a named water whose name fits one line ("Mouth → Source"; the Vedder's part name now wraps: T517)
+    const named = style(asPage(glenn501).header), none = style(h);
     // (owner 2026-10-27) one line when the name fits: the empty slot is a named water's one line
     expect(named).toBe(none);
     expect(named).not.toBe("");

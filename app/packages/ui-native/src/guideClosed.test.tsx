@@ -41,19 +41,18 @@ describe("(T466) the closed example", { timeout: 60_000 }, () => {
     const store = await openRegsStore(loader);
     const ord = (await store.itemOrd(c!.item as ItemId))!;
     expect((await store.parts(ord))[c!.part]!.facts!.closed_all_year).toBe(true);
-    expect((await store.partLines(ord))!.some((r) => r.partIx === c!.part && r.blk === GUIDE_CLOSED.blk && r.m0 === GUIDE_CLOSED.from))
+    expect((await store.partLines(ord)).some((r) => r.partIx === c!.part && r.blk === GUIDE_CLOSED.blk && r.m0 === GUIDE_CLOSED.from))
       .toBe(true);
   });
 
   it("is none when the run is not a part closed all year, or not there, or the water is not: never another part", async () => {
     const real = await openRegsStore(loader);
-    const open: Pick<RegsReads, "itemOrd" | "parts" | "partLines"> = {
-      itemOrd: (i) => real.itemOrd(i), partLines: (o) => real.partLines(o),
+    const open: Pick<RegsReads, "itemOrd" | "parts" | "partLines" | "statics"> = {
+      itemOrd: (i) => real.itemOrd(i), partLines: (o) => real.partLines(o), statics: () => real.statics(),
       parts: async (o) => (await real.parts(o)).map((p) => (p.facts ? { ...p, facts: { ...p.facts, closed_all_year: false } } : p)),
     };
     expect(await findGuideClosed(source, open)).toBeNull();
     expect(await findGuideClosed(source, { ...open, parts: (o) => real.parts(o), partLines: async () => [] })).toBeNull();
-    expect(await findGuideClosed(source, { ...open, partLines: async () => null })).toBeNull();   // a release before part_line
     expect(await findGuideClosed({ searchNames: async () => [] }, real)).toBeNull();
   });
 

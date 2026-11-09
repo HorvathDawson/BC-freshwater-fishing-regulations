@@ -97,10 +97,15 @@ FILES = {
         "meta": ["k", "v"], "section_down": ["sid", "down_sid", "len", "lake"]}},
     "climate": {"format": "climate/1", "kind": "sqlite", "tables": {
         "meta": ["k", "v"], "gauge_clim": ["station", "parameter", "bands"]}},
-    "geo": {"format": "geo/1", "kind": "sqlite", "tables": {
-        # (T517) a part is one connected run, so `part_stretch` (T204's pieces of a part) is gone
-        "meta": ["k", "v"], "part_geo": ["ord", "part_ix", "rank", "mid_sid", "mid_lon", "mid_lat", "w", "s", "e", "n"]}},
-    "water": {"format": "water/1", "kind": "sqlite", "tables": {
+    # (T517) geo/2: a part is one connected run numbered in river order, so `part_stretch` is gone and `rank` (always
+    # part_ix) left the table
+    "geo": {"format": "geo/2", "kind": "sqlite", "tables": {
+        "meta": ["k", "v"], "part_geo": ["ord", "part_ix", "mid_sid", "mid_lon", "mid_lat", "w", "s", "e", "n"]}},
+    # (T517) water/3 (review finding 15): one part per connected run (`grp`, `run`; `lo_s` / `hi_s` its END TOKENS), part_ix renumbered in river
+    # order; `part.hint_s` / `short_s`, `part_mark.down_stretch` / `up_stretches` / `label` (now `token`) and
+    # `part_line.stretch` gone. An app reading
+    # water/1 refuses a water/2 release and the other way round (no reader of the old schema is kept)
+    "water": {"format": "water/3", "kind": "sqlite", "tables": {
         "akey": ["akey", "ruleset", "licensing_set", "steelhead_water", "steelhead", "steelhead_rules",
                  "province_except", "home_region", "kind", "tidal", "seg", "mom", "nseg"],
         "akey_region": ["akey", "region"],
@@ -111,17 +116,15 @@ FILES = {
         "lic": ["lix", "j"],
         "lset": ["set_id", "j"],
         "meta": ["k", "v"],
-        "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
-                 "closed_all_year", "paper_licence", "lo_s", "hi_s", "run_s", "xp", "sections", "xruns", "grp",
+        "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "runs_s", "place_s", "km",
+                 "closed_all_year", "paper_licence", "lo_s", "hi_s", "xp", "sections", "xruns", "grp",
                  "run"],
-        # `confidence` (T207), `down_stretch` / `up_stretches` (T204: which stretch of each part meets there, NULL when
-        # every one is stretch 0): ADDITIVE, last — still water/1; an older release has no columns
-        "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
-                      "up_stretches", "alt"],
+        # `confidence` (T207), `alt` (T517: the place's other names, a JSON list)
+        "part_mark": ["ord", "mark_ix", "lon", "lat", "token", "down_part", "up_parts", "confidence", "alt"],
         # (T388) each part's own stretch of stream as runs on its blue lines (part_line.py): the place a named link
-        # carries, so a named water never needs `lines`. ADDITIVE table — still water/1; an older release has none
-        "part_line": ["ord", "part_ix", "stretch", "blk", "m0", "m1"],
-        # `m` (T387: the section's length along the water, metres; NULL unmeasured): ADDITIVE, last — still water/1
+        # carries, so a named water never needs `lines`
+        "part_line": ["ord", "part_ix", "blk", "m0", "m1"],
+        # `m` (T387: the section's length along the water, metres; NULL unmeasured)
         "part_section": ["ord", "sid", "part_ix", "m"],
         "picker": _FRAME,
         "place": ["place", "regions", "label", "names"],
@@ -147,16 +150,15 @@ FILES = {
         "item_section": ["sid", "ord"], "meta": ["k", "v"], "name_source": ["item_id", "name", "src", "label"],
         "place": ["place_id", "osm", "name", "kind", "pop", "lat", "lon"]}} for r in SH.REGIONS},
     # (T370) a water slice holds only its region's own rows; the tables every region reads whole are `water-shared`
-    **{f"water-{r}": {"format": "water-slice/2", "kind": "sqlite", "tables": {
+    **{f"water-{r}": {"format": "water-slice/4", "kind": "sqlite", "tables": {
         "item": ["item_ord", "item_id", "shown", "picker", "unresolved", "name", "kind", "sections", "outside_bc",
                  "entries", "steelhead", "x"],
         "meta": ["k", "v"],
-        "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "short_s", "runs_s", "place_s", "hint_s", "km",
-                 "closed_all_year", "paper_licence", "lo_s", "hi_s", "run_s", "xp", "sections", "xruns", "grp",
+        "part": ["item_ord", "part_ix", "akey", "ord", "label_s", "runs_s", "place_s", "km",
+                 "closed_all_year", "paper_licence", "lo_s", "hi_s", "xp", "sections", "xruns", "grp",
                  "run"],
-        "part_mark": ["ord", "mark_ix", "lon", "lat", "label", "down_part", "up_parts", "confidence", "down_stretch",
-                      "up_stretches", "alt"],
-        "part_line": ["ord", "part_ix", "stretch", "blk", "m0", "m1"],             # (T388) by ord, as part_section
+        "part_mark": ["ord", "mark_ix", "lon", "lat", "token", "down_part", "up_parts", "confidence", "alt"],
+        "part_line": ["ord", "part_ix", "blk", "m0", "m1"],                        # (T388) by ord, as part_section
         "part_section": ["ord", "sid", "part_ix", "m"], "picker": _FRAME, "str": ["id", "text"],
         "water_continue": ["ord", "part", "next_ord", "next_part"],
         "water_exit": ["ord", "down_ord", "down_part"], "xpart": _FRAME}} for r in SH.REGIONS},

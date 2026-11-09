@@ -8,7 +8,7 @@ import { Platform } from "react-native";
 import type { ItemId, WaterSource } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { carryRoute, frameViews, loadRegsStore, regsGroupOf, regsPartOf, regsSoloOf, reportFailure, useOpenWater, useRegsStore,
-         useRoute, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
+         useRoute, useSalmonKey, useWaterGroup, waterFrame, type BrowseTab, type Route } from "@app/ui";
 import { backDepth, edgeBackDepth, useBack, useEdgeBack, useViewSwipe, type SystemBack } from "@app/ui";
 import { useRegulationKeys } from "@app/ui";
 import { placeReads } from "@app/ui/place";
@@ -99,7 +99,10 @@ export function useShellNav({ source, loader, systemBack, initialRoute, onRoute 
   const regsStore = useRegsStore(route.mode === "water" ? loader : null);
   // (T286) the regulations made ready while the reader looks at the map: a phone only (prewarm.native.ts)
   usePrewarmRegs(loader);
-  const soloGroup = useWaterGroup(regsStore.value ?? null, frame?.solo ? null : item);
+  // (T517) the group as the water's map joins it: the same live salmon key, so solo here is solo on the map
+  const soloItem = frame?.solo ? null : item;
+  const soloKey = useSalmonKey(route.mode === "water" ? loader : null, regsStore.value ?? null, soloItem);
+  const soloGroup = useWaterGroup(regsStore.value ?? null, soloItem, soloKey);
   useEffect(() => {
     const g = soloGroup.value;
     if (item !== null && g && g.parts[0]?.item === item && soloWater(g)) go({ type: "solo", item });

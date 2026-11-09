@@ -37,12 +37,12 @@ def test_the_midpoint_is_the_section_holding_half_the_stem_length():
 
 
 def test_marks_at_one_point_with_one_down_part_merge():
-    raw = [{"lon": -122.0, "lat": 49.1, "down": 0, "up": 2, "label": None},
-           {"lon": -122.0, "lat": 49.1, "down": 0, "up": 1, "label": "Bridge"},
-           {"lon": -122.1, "lat": 49.2, "down": 1, "up": 3, "label": None}]
+    raw = [{"lon": -122.0, "lat": 49.1, "down": 0, "up": 2, "label": None, "token": None},
+           {"lon": -122.0, "lat": 49.1, "down": 0, "up": 1, "label": "Bridge", "token": "x__bridge"},
+           {"lon": -122.1, "lat": 49.2, "down": 1, "up": 3, "label": None, "token": None}]
     assert T.merge_marks(raw) == [
-        {"lon": -122.0, "lat": 49.1, "down": 0, "up": [1, 2], "label": "Bridge"},
-        {"lon": -122.1, "lat": 49.2, "down": 1, "up": [3], "label": None}]
+        {"lon": -122.0, "lat": 49.1, "down": 0, "up": [1, 2], "label": "Bridge", "token": "x__bridge"},
+        {"lon": -122.1, "lat": 49.2, "down": 1, "up": [3], "label": None, "token": None}]
 
 
 def test_two_meeting_places_of_one_pair_of_parts_are_two_marks():
@@ -60,24 +60,38 @@ def test_a_mark_says_the_same_words_as_the_two_parts_names_there():
     doc = {"splits": {"x__bridge": {"name": "Big Bridge", "kind": "point"}}, "waters": {}}
     down = {"runs": [{"from": "x__bridge", "to": "mouth", "km_from": 3.0, "km_to": 0.0}]}
     up = {"runs": [{"from": "source", "to": "x__bridge", "km_from": 9.0, "km_to": 3.0}]}
-    assert T.mark_words(down, up, doc, doc["splits"]) == ("Big Bridge", None)
+    assert T.mark_words(down, up, doc, doc["splits"])[:2] == ("Big Bridge", None)
 
 
-def test_a_gauge_cut_is_said_by_the_regulations_own_split_there():
-    """T517 (Cruickshank 08HB074): a gauge cut that stands where a regulation's boundary does is named by that
-    boundary (`same_place_as`), else the nearest named cut on the water."""
-    from pipeline.deliver.answers.display.part import end_words
-    doc = {"splits": {"gauge__1": {"name": "08HB074 · Cruickshank River Near The Mouth", "kind": "gauge",
-                                   "water_id": "gnis:1", "km": 2.5},
-                      "park": {"name": "Strathcona Park boundary", "kind": "area", "water_id": "gnis:1", "km": 2.4},
+def test_a_gauge_cut_is_said_by_the_regulations_own_split_there_else_the_nearest_named_feature():
+    """T517 (review finding 7): a gauge cut a part ends at is named by the regulation's own split at that place
+    (`same_place_as`), else the nearest named feature on the ground (`near`, the bundle's `topology.gauge_near`) — at
+    it within `SAME_PLACE_M`, else "near" it. Its code and station name are never the place's words."""
+    from pipeline.deliver.answers.display.part import end_words, run_ends
+    from pipeline.deliver.answers.common import AnswersError
+    doc = {"splits": {"gauge__1": {"name": "08FC003 · Dean River Below Tanswanket Creek", "kind": "gauge",
+                                   "water_id": "gnis:1", "km": 121.9, "near": "confluence:gnis:2", "near_m": 80.0},
                       "far": {"name": "Moat Lake", "kind": "lake_edge", "water_id": "gnis:1", "km": 23.0}},
-           "waters": {}}
-    assert end_words(doc, "gauge__1", "from") == "Strathcona Park boundary"
-    # a named cut kilometres away is another place (the Dean's 08FC003 read "Side channel above Iltasyuko River")
-    doc["splits"]["park"]["km"] = 6.0
-    assert end_words(doc, "gauge__1", "from") == "08HB074 · Cruickshank River Near The Mouth"
+           "waters": {"gnis:2": {"name": "Tanswanket Creek"}}}
+    assert end_words(doc, "gauge__1", "from") == "Tanswanket Creek confluence"
+    doc["splits"]["gauge__1"]["near_m"] = 1500.0
+    assert end_words(doc, "gauge__1", "from") == "Near the Tanswanket Creek confluence"
     doc["splits"]["gauge__1"]["same_place_as"] = "far"
     assert end_words(doc, "gauge__1", "from") == "Moat Lake"
+    # a regulation's cut named after its gauge says its place, the gauge reference left to the alternates
+    doc["splits"]["sk"] = {"name": "above Babine River (WSC gauge 08EB005)", "kind": "point", "water_id": "gnis:1",
+                           "km": 337.7}
+    assert end_words(doc, "sk", "from") == "Above Babine River"
+    # a gauge cut with no regulation split and no named feature within `topology.NEAR_M` (2 km; the Dean's 08FC003:
+    # Tanswanket Creek's drawn sections are 13.2 km off) is said by its km — a deliberate rule, never the gauge's code
+    del doc["splits"]["gauge__1"]["same_place_as"], doc["splits"]["gauge__1"]["near"]
+    assert end_words(doc, "gauge__1", "from") == "km 121.9"
+    assert run_ends(doc, {"runs": [{"from": "gauge__1", "to": "mouth", "km_from": 121.9, "km_to": 0.0}]}) == \
+        ("Mouth", "km 121.9")
+    # MUTATION: with no km either it stops the build
+    doc["splits"]["gauge__1"]["km"] = None
+    with pytest.raises(AnswersError, match="no one km"):
+        end_words(doc, "gauge__1", "from")
 
 
 def test_a_gauge_cut_keeps_every_name_it_is_known_by():
@@ -247,15 +261,40 @@ def _watermap() -> dict:
     return json.loads(t[t.index("{"):t.rindex("}") + 1])["waters"]
 
 
-def _ranked(db, item: str) -> list[int]:
-    return [p for (p,) in db.execute("SELECT g.part_ix FROM part_geo g JOIN item i ON i.ord = g.ord "
-                                     "WHERE i.item_id = ? ORDER BY g.rank", (item,))]
-
-
 def _marks(db, item: str) -> list[tuple]:
     return [(d, tuple(json.loads(u)), lab) for d, u, lab in db.execute(
         "SELECT m.down_part, m.up_parts, m.label FROM part_mark m JOIN item i ON i.ord = m.ord "
         "WHERE i.item_id = ? ORDER BY m.mark_ix", (item,))]
+
+
+@pytest.mark.needs_bundle
+def test_the_chilliwack_and_the_cowichan_meet_as_the_prototype_draws_them(request):
+    """THE OUTSIDE REFERENCE (restored, review finding 9): the prototype's water map (`fixtures/watermap.js`, the
+    regs-v11 page's own data) draws each water as its rule-set stretches mouth up with the boundary between each. T517
+    cuts one more place (the DFO salmon chain, inside a run: the prototype draws no salmon cut) and lists no tidal
+    piece, so the bundle's parts JOINED by (grp, run), without tidal water, must be the prototype's stretches in the
+    same order, and the marks between them say the prototype's boundary words (`_end_short`: sign-post words off)."""
+    from pipeline.deliver.answers.display.part import _SIGN_WORDS
+    from pipeline.deliver.answers.common import cap
+    db = _bundle(request)
+    wm = _watermap()
+    for group, item in (("vedder", "gnis:8634"), ("cowichan", "gnis:12227")):
+        proto = [p for p in wm[group]["parts"] if p["item"] == item]
+        at = {i for i, p in enumerate(wm[group]["parts"]) if p["item"] == item}
+        want = [cap(_SIGN_WORDS.sub("", m["label"])) for m in wm[group]["marks"] if m["down"] in at and m["up"] in at]
+        (o,) = db.execute("SELECT ord FROM item WHERE item_id = ?", (item,)).fetchone()
+        parts = db.execute("SELECT part_ix, grp, run, set_id IS NULL FROM part WHERE ord = ? ORDER BY part_ix",
+                           (o,)).fetchall()
+        runs = []
+        for ix, g, r, tidal in parts:
+            if not tidal and (not runs or runs[-1][0] != (g, r)):
+                runs.append(((g, r), ix))
+        assert len(runs) == len(proto), (group, runs)
+        run_of = {ix: (g, r) for ix, g, r, tidal in parts if not tidal}
+        got = [lab for lab, d, u in db.execute("SELECT label, down_part, up_parts FROM part_mark WHERE ord = ? "
+                                               "ORDER BY mark_ix", (o,))
+               if d in run_of and all(x in run_of and run_of[x] != run_of[d] for x in json.loads(u))]
+        assert got == want, group
 
 
 @pytest.mark.needs_bundle
@@ -355,3 +394,26 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
     db.executemany("INSERT INTO item_section VALUES (1, ?)", [(1,), (2,), (3,)])
     got = T.keep_named(db, build, geoms)
     assert (got[1].length, got[2].length, got[3].geom_type) == (1.0, 9.0, "Polygon")
+
+
+#: (T517 review finding 10) marks with no words: every one is where a SIDE CHANNEL part meets another part — a channel
+#: leaves its river at no named place, so neither side has an end the other shares. Pinned as a KNOWN COUNT on the
+#: side build (2026-11-08, r-… T517 fix lane); a change moves this number and must say why. The assert in
+#: `topology.mark_words` (a mark's words are the parts' end words) is not weakened: it holds wherever two main stems meet.
+UNLABELLED_MARKS = 107                 # 112 before two parts meeting across a lake were said by the lake (5)
+
+
+@pytest.mark.needs_bundle
+def test_every_unlabelled_mark_is_a_side_channel_meeting_and_their_count_is_known(request):
+    db = _bundle(request)
+    rows = db.execute("SELECT m.ord, m.down_part, m.up_parts FROM part_mark m WHERE m.label IS NULL").fetchall()
+    side = set()
+    for o, ix, sids in db.execute("SELECT ps.ord, ps.part_ix, group_concat(ps.sid) FROM part_section ps "
+                                  "GROUP BY ps.ord, ps.part_ix"):
+        offs = [r[0] for r in db.execute(f"SELECT off_stem FROM section_span WHERE sid IN ({sids})")]
+        if offs and any(offs):
+            side.add((o, ix))
+    pairs = [(o, d, u) for o, d, us in rows for u in json.loads(us)]
+    assert all((o, d) in side or (o, u) in side for o, d, u in pairs), \
+        [p for p in pairs if (p[0], p[1]) not in side and (p[0], p[2]) not in side][:5]
+    assert len(pairs) == UNLABELLED_MARKS

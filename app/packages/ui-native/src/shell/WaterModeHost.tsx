@@ -42,8 +42,8 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
   return frame.view === "conditions"
     // THE ONE CONDITIONS PANEL OF A SECTION, from either map (a frame with no item is an unnamed reach).
     ? <WaterConditions source={source} item={item} tapSid={frame.tapSid} palette={palette} loader={loader}
-                       // (T369 D1) the frame's part and stretch: the reach shown is the frame's (`frameView.ts`)
-                       part={frame.part} stretch={frame.stretch}
+                       // (T369 D1) the frame's part: the reach shown is the frame's (`frameView.ts`)
+                       part={frame.part}
                        tiles={tiles} theme={theme}
                        // Temperature is not a hydrograph, so the chart falls back to whatever the station itself
                        // leads with; Flow and Level pass straight through — the map and the chart ask one question.
@@ -57,7 +57,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
     : frame.view === "map" && item !== null
       ? <WaterMap source={source} item={item} palette={palette}>
           {/* P15: the parts, lit and framed from the release; ▼ / ▲, marks, the mouth's exit */}
-          <WaterMapView loader={loader} day={mapDay} item={item} part={frame.part} stretch={frame.stretch} tapSid={frame.tapSid} whole={frame.whole} palette={palette}
+          <WaterMapView loader={loader} day={mapDay} item={item} part={frame.part} tapSid={frame.tapSid} whole={frame.whole} palette={palette}
                         map={{ at: tiles, theme, camera: waterCamera.current ?? camera.current,
                                basemap: mm.basemap, status: mapStatus, spots: spotLayer,
                                // T145: a tap off every spot clears the selected spot's pin, here as on the browse maps
@@ -70,7 +70,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                         onShowRegs={(id, p) => { for (const a of showRegsActions(item, id, p)) go(a); }}
                         // P15 follow-ups: a step is the frame's part (one water screen); ▲ / ▼ into the water this
                         // one goes on from or as opens it, Map in front (back returns here)
-                        onPart={(id, p, st) => go(partAction(item, id, p, st))}
+                        onPart={(id, p) => go(partAction(item, id, p))}
                         onCross={(id, p) => go(crossAction(id, p))}
                         // (T369 D7) ⤢ is the frame's: a route move, kept across views, back and a reload
                         onWhole={() => go({ type: "whole" })}
@@ -81,7 +81,7 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                      // T01: what the Regulations page reads — the release, the ONE day (the map's), the part tapped
                      // (T53: an unnamed reach, item null, is answered by the tapped section itself)
                      loader={loader} day={mapDay} onDay={onDay} section={frame.tapSid} at={frame.at}
-                     part={frame.part} stretch={frame.stretch} start={start} onStarted={onStarted}
+                     part={frame.part} start={start} onStarted={onStarted}
                      // (T58) a Parts sheet row is the frame's part, as a step on the water map is (one water screen)
                      onPart={item === null ? undefined : (p) => go(partAction(item, item, p))}
                      // NO `feed`. The view quotes no number, so it reads no gauge data — the Conditions view, one

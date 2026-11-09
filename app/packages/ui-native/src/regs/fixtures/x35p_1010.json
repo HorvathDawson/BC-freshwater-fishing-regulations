@@ -153,10 +153,7 @@
   "dayWord": "Today",
   "dot": "open",
   "name": "Bennett Lake",
-  "place": {
-   "full": "Whole water",
-   "short": "Whole water"
-  },
+  "place": null,
   "tabs": [
    {
     "label": "What you can keep",

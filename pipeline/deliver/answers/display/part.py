@@ -183,6 +183,39 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
     """`endName` — a run end in words."""
     if not e:
         return ""
+    if NEAR in str(e):
+        # T517 (owner 2026-11-09): a crossing two parts of one water would otherwise name alike (a border, an area's
+        # boundary, an unnamed lake, a river polygon), said near what stands there (`topology.crossing_near`)
+        base, at = str(e).split(NEAR, 1)
+        there = end_name(doc, at, side)
+        return f"near {there}" if base == "polygon" else f"{end_name(doc, base, side)} near {there}"
+    if PLACE in str(e):
+        # …or, with nothing named within reach, at its km from the mouth
+        base, km = str(e).rsplit(PLACE, 1)
+        return f"km {km}" if base == "polygon" else f"{end_name(doc, base, side)} (km {km})"
+    if str(e).startswith("lake:") and str(e).count(":") == 2:
+        # (T520 derived) where the main line enters / leaves a lake: `lake:<wbk>:inlet|outlet`
+        _, wbk, which = str(e).split(":")
+        nm = (doc["waters"].get(f"wbk:{wbk}") or {}).get("name")
+        if not nm:
+            raise AnswersError(f"run end {e!r}: lake wbk:{wbk} has no name in the export")
+        return f"the {nm} {which}"
+    if str(e).startswith("trib:"):
+        return end_name(doc, "confluence:" + str(e).split(":", 1)[1], side)       # (T520 derived) a confluence
+    if str(e).startswith(("region:", "mu:")) and "|" in str(e):
+        # (T520 derived) a region / management-unit boundary crossing, the downstream one first
+        head, pair = str(e).split(":", 1)
+        a, b = pair.split("|")
+        return f"the Region {a} / Region {b} boundary" if head == "region" else f"the MU {a} / MU {b} boundary"
+    if str(e).startswith("water:"):
+        nm = (doc["waters"].get(str(e).split(":", 1)[1]) or {}).get("name")
+        if not nm:
+            raise AnswersError(f"run end {e!r}: that water has no name in the export")
+        return nm                                       # another named water a part lies near (`topology.part_near`)
+    if str(e).startswith("place:"):
+        return str(e).split(":", 1)[1]                  # a B.C. town (`topology.crossing_near`)
+    if e == "polygon":
+        return "a river polygon"                        # never a part's end on its own: always said near or at km
     if e == "mouth":
         return "the mouth"
     if str(e).startswith("continues:"):
@@ -190,12 +223,20 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         # place is where that water begins (Chilliwack: "Vedder Crossing Bridge")
         y = e.split(":", 1)[1]
         b = begins_at(doc, y)
-        nm = (doc["waters"].get(y) or {}).get("name") or y
+        nm = (doc["waters"].get(y) or {}).get("name")
+        if not nm:
+            raise AnswersError(f"run end {e!r}: the water it goes on as has no name in the export")
         return end_name(doc, b, side) if b else f"where it becomes the {nm}"
     if e == "source":
         return "the top of the river" if side == "from" else "the source"
     if e == "bc_border":
         return "the B.C. border"
+    if str(e).startswith("km:"):
+        # T517: a place no named feature stands near, said by its km from the mouth (`_named_token`)
+        return f"km {e.split(':', 1)[1]}"
+    if str(e).startswith("near:"):
+        # T517: a gauge cut said by the named feature nearest it on the ground (`_named_token`)
+        return "near " + end_name(doc, e.split(":", 1)[1], side)
     splits = doc.get("splits") or {}
     sp = splits.get(e)
     if sp:
@@ -213,6 +254,8 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         return the + re.sub(r"^the ", "", nm0, flags=re.I) + km + (f", {cw}" if cw else "")
     head, _, ident = e.partition(":")
     nm = (doc["waters"].get(ident) or {}).get("name") if ident else ""
+    if ident and not nm and head in ("confluence", "lake_inlet", "lake_outlet"):
+        raise AnswersError(f"run end {e!r}: water {ident} has no name in the export")
     if head == "confluence":
         return f"the {nm} confluence" if nm else "a tributary confluence"
     if head == "lake_inlet":
@@ -223,7 +266,7 @@ def end_name(doc: dict, e: Optional[str], side: str = "") -> str:
         return ident
     if head == "region_line":
         return f"the Region {ident} line"
-    return e.replace("_", " ")
+    raise AnswersError(f"run end {e!r}: a token no rule names (T517: no fallback words)")
 
 
 def _run_txt(doc: dict, r: dict) -> str:
@@ -301,6 +344,11 @@ def runs_label(doc: dict, part: dict) -> str:
 _SIGN_WORDS = re.compile(r"^(?:the )?(?:fishing )?(?:boundary )?signs? (?:at |near )?", re.I)
 
 
+#: T517: a regulation's cut named after the gauge beside it ("above Babine River (WSC gauge 08EB005)"): the gauge
+#: reference is not the place's words (it stays an alternate, `end_variants`)
+_GAUGE_REF = re.compile(r"\s*\((?:WSC |ECCC )?(?:hydrometric )?(?:gauge|station) \d{2}[A-Z]{2}\d{3}\)", re.I)
+
+
 def _end_short(doc: dict, e: Optional[str], side: str) -> str:
     """A run end in a few words: "Mouth", "Source", "B.C. border", "Vedder Crossing Bridge"."""
     if e in ("mouth", "source"):
@@ -312,28 +360,33 @@ def _end_short(doc: dict, e: Optional[str], side: str) -> str:
     t = re.sub(r"^the ", "", t)
     t = _SIGN_WORDS.sub("", t) or t
     t = re.sub(r" of Canada\b", "", t) or t
-    return cap(t)
+    t = _GAUGE_REF.sub("", t) or t
+    return t if t.startswith("km ") else cap(t)       # a unit stays lower case ("km 121.9")
 
 
-#: T517: a named cut this close (km along the water) to a gauge cut stands at the same place; farther, it is another place
-SAME_PLACE_KM = 0.2
+#: T517: a feature this close (metres, on the ground) to a gauge cut stands AT it ("Tanswanket Creek confluence");
+#: farther, the end is said as near it ("near the Tanswanket Creek confluence")
+SAME_PLACE_M = 200
 
 
 def _named_token(doc: dict, e: Optional[str]) -> Optional[str]:
     """T517: the token a run end is SAID by. A gauge cut (`kind` gauge) is never the name of a place a regulation
-    ends at: the regulation's own split at the same place (`same_place_as`), else the nearest named non-gauge cut on
-    the same water within `SAME_PLACE_KM`, else the gauge itself (its name is then the only one the place has)."""
+    ends at (its code and station name stay an alternate: `end_variants`, the mark's `alt`): the regulation's own split
+    at the same place (`same_place_as`), else the NEAREST NAMED FEATURE on the ground (`near`, the bundle's
+    `topology.gauge_near`: a tributary's confluence or a named cut of the water, within `topology.NEAR_M`), said as
+    near it beyond `SAME_PLACE_M`; else BY ITS KM from the mouth ("km 121.9": the place has no name — a deliberate
+    rule, pinned in test_part_geo). A gauge cut at several places with neither stops the build."""
     splits = doc.get("splits") or {}
     sp = splits.get(e or "")
     if not sp or sp.get("kind") != "gauge":
         return e
     if sp.get("same_place_as") and sp["same_place_as"] in splits:
         return sp["same_place_as"]
-    w, km = sp.get("water_id"), sp.get("km")
-    near = sorted((abs(o["km"] - km), k) for k, o in splits.items()
-                  if w and km is not None and o.get("water_id") == w and o.get("km") is not None
-                  and o.get("kind") != "gauge" and o.get("name") and abs(o["km"] - km) <= SAME_PLACE_KM)
-    return near[0][1] if near else e
+    if sp.get("near"):
+        return sp["near"] if sp["near_m"] <= SAME_PLACE_M else "near:" + sp["near"]
+    if sp.get("km") is None:
+        raise AnswersError(f"gauge cut {e!r}: no regulation split, no named feature near it and no one km to say it by")
+    return f"km:{round(float(sp['km']), 1):g}"
 
 
 def end_variants(doc: dict, e: Optional[str], side: str) -> List[str]:
@@ -347,23 +400,40 @@ def end_variants(doc: dict, e: Optional[str], side: str) -> List[str]:
         sp = splits.get(t or "")
         if not sp:
             continue
-        for n in (_end_short(doc, t, side), sp.get("official_name")):
+        for n in (_end_short(doc, t, side), cap(re.sub(r"\bd/s\b", "downstream", sp["name"])) if _GAUGE_REF.search(
+                sp.get("name") or "") else None, sp.get("official_name")):
             if n and n not in out:
                 out.append(n)
     return out
 
 
-def end_table(doc: dict) -> Dict[str, List[str]]:
+#: T517: the separator of an end token said at its place (`at_place`): "<token>@km<km>"
+PLACE = "@km"
+#: T517: the separator of an end token said near what stands there: "<token>@near:<token>"
+NEAR = "@near:"
+
+
+def at_place(token: str, km: Optional[float]) -> str:
+    """T517 (owner 2026-11-09) an end token said at its PLACE — its km from the mouth, one decimal. A part end with no
+    km cannot be told from another one: the build stops."""
+    if km is None:
+        raise AnswersError(f"part end {token!r}: no km to tell it from another end of the same words")
+    return f"{token}{PLACE}{round(float(km), 1):g}"
+
+
+def end_table(doc: dict, extra: Sequence[str] = ()) -> Dict[str, List[str]]:
     """T517 THE ONE NAME SOURCE for a place a run can end at: {token: [words, other names…]} for EVERY split of the
     export (cut, area, region line, lake edge) and every end token a water's runs carry (confluence, lake inlet/outlet,
     mouth, source, a water that goes on as another) — what the part names, the marks and in-season "Where" say. The
     words are the `from` side's (`end_variants`); a token whose `to` side reads otherwise ("the source") carries it
     as `"to:" + words` last."""
-    toks = set(doc.get("splits") or {})
+    # every cut but a gauge (a gauge is a place's name only where a run ends at it: below), every run end token
+    toks = {k for k, v in (doc.get("splits") or {}).items() if v.get("kind") != "gauge"}
     for w in (doc.get("waters") or {}).values():
         for p in w.get("parts") or []:
             for r in p.get("runs") or []:
                 toks.update(t for t in (r.get("from"), r.get("to")) if t)
+    toks.update(extra)                          # the part ends said at their place (`at_place`)
     out: Dict[str, List[str]] = {}
     for t in sorted(toks):
         v = end_variants(doc, t, "from")
@@ -383,62 +453,55 @@ def end_words(doc: dict, e: Optional[str], side: str) -> str:
 
 def run_ends(doc: dict, part: dict) -> Optional[tuple]:
     """T517 THE ONE NAME OF A PART: (lower end, upper end) in words, mouth first — its lowest main-stem run's
-    downstream end and its highest run's upstream end (a lake's inlet and outlet runs joined, as `short_label`
-    reads them). None: no main-stem run (a lake, side channels only, an area) — the part is said by its label."""
+    downstream end and its highest run's upstream end. None: no main-stem run (a lake, side channels only) — the app says
+    the water's name."""
     rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
     main = [r for r in rs if not r.get("branch") and not _js(r.get("polygon"))]
-    if not main or any(r.get("from") and r.get("from") == r.get("to") and str(r["from"]).startswith("area:")
-                       for r in main):
-        return None                                  # a run within an area: said "Within …" (`_run_short`)
+    if not main:
+        return None
     km = [(r.get("km_from") if r.get("km_from") is not None else 0) for r in main]
     lo, hi = main[km.index(min(km))], main[km.index(max(km))]
     return end_words(doc, lo.get("to"), "to"), end_words(doc, hi.get("from"), "from")
 
 
-def _run_short(doc: dict, r: dict) -> str:
-    if _js(r.get("polygon")):
-        return "" if r["polygon"] == "whole" else str(r["polygon"])
-    if r.get("from") and r.get("from") == r.get("to") and str(r["from"]).startswith("area:"):
-        return "Within " + re.sub(r" boundary$", "", end_name(doc, r["from"]))
-    return f"{_end_short(doc, r.get('to'), 'to')} → {_end_short(doc, r.get('from'), 'from')}"
-
-
-def short_label(doc: dict, part: dict, label: str) -> str:
-    """A part's SHORT label, its NAME (answers 2.7, A4; T517): its own two ends, mouth upward (`run_ends`):
-    "Mouth → Vedder Crossing Bridge". A part is one connected run (T517), so there is no "N stretches". With no
-    main-stem run: a polygon or area run's own words, side channels only "Side channel" / "3 side channels", else
-    its full label, whole (W3). The full label (`label`) stays for the sheet."""
-    ends = run_ends(doc, part)
-    if ends:
-        return f"{ends[0]} → {ends[1]}"
+def end_tokens(doc: dict, part: dict) -> Optional[tuple]:
+    """T517 (owner 2026-11-09) A PART SHIPS ITS TWO END TOKENS, never a composed name: (lower end, upper end, the
+    lower end's km, the upper end's km), mouth first — its lowest main-stem run's downstream end and its highest
+    run's upstream end. The words come from the release's `display.ends` (`end_table`), composed by one app function.
+    None: no main-stem run (a lake, side channels only, a polygon) — the part keeps its `short`."""
     rs = [r for r in part.get("runs") or [] if not _js(r.get("polygon")) or r["polygon"] != "whole"]
-    main = [r for r in rs if not r.get("branch")]
-    side = [r for r in rs if r.get("branch")]
-    if len(main) == 1:
-        t = _run_short(doc, main[0])
-    elif main:
-        t = ""
-    elif side:
-        t = "Side channel" if len(side) == 1 else f"{len(side)} side channels"
-    else:
-        t = ""
-    return t or label
+    main = [r for r in rs if not r.get("branch") and not _js(r.get("polygon"))]
+    if not main:
+        return None
+    if any(r.get("km_from") is None for r in main):
+        raise AnswersError(f"part runs {[(r.get('from'), r.get('to')) for r in main]}: a main-stem run with no km")
+    lo = min(main, key=lambda r: r["km_from"])
+    hi = max(main, key=lambda r: r["km_from"])
+    if not lo.get("to") or not hi.get("from"):
+        raise AnswersError(f"part runs {[(r.get('from'), r.get('to')) for r in main]}: a main-stem end with no token")
+    return lo["to"], hi["from"], lo.get("km_to"), hi["km_from"]
 
 
-def short_labels(W: "Water", labels: Sequence[str]) -> List[str]:
-    """Every part's short label, in the page's part order; two parts the same short words would
-    name are told apart by their full labels' distinguishing tail (`labels`, `part_labels`), else
-    numbered."""
-    out = [short_label(W.doc, p, labels[i]) for i, p in enumerate(W.parts)]
-    for s in set(out):
-        ix = [i for i, t in enumerate(out) if t == s]
-        if len(ix) < 2:
-            continue
-        for n, i in enumerate(ix, 1):
-            h = re.split(r" — | · ", labels[i], maxsplit=1)
-            tail = h[1] if len(h) > 1 and h[1] else ""
-            out[i] = f"{s} · {tail}" if tail else f"{s} ({n})"
-    return out
+def branch_end_tokens(part: dict) -> Optional[tuple]:
+    """T517 (owner 2026-11-09) the two end tokens of a part with NO main stem (side channels only), read off its
+    side-channel runs the way `end_tokens` reads a main stem — only asked where one water has several such parts (a
+    single one is said by its water's name). None: no run with ends (a lake's polygon)."""
+    side = [r for r in part.get("runs") or [] if r.get("branch") and r.get("km_from") is not None
+            and r.get("from") and r.get("to")]
+    if not side:
+        return None
+    lo = min(side, key=lambda r: r["km_from"])
+    hi = max(side, key=lambda r: r["km_from"])
+    return lo["to"], hi["from"], lo.get("km_to"), hi["km_from"]
+
+
+def end_name_of(doc: dict, lo: str, hi: str) -> str:
+    """The words two end tokens stand for, as the app composes them from `display.ends` (`spanName`): "<lower> →
+    <upper>" — every part, an area's or a border's included (owner 2026-11-09: no "Within")."""
+    return f"{end_words(doc, lo, 'to')} → {end_words(doc, hi, 'from')}"
+
+
+
 
 
 def part_km(part: dict) -> Optional[float]:

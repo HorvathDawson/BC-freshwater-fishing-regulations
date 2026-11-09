@@ -227,3 +227,28 @@ def test_two_parts_of_one_water_never_touch_with_the_same_key():
     section_sets(db, {1: 7, 2: 7, 3: 7, 4: 7})
     finish(db)
     assert db.execute("SELECT COUNT(*), MIN(sections) FROM part WHERE ord = 1").fetchone() == (1, 4)
+
+
+def _braid():
+    """One River, stem 1-2-3 mouth up (sets 7, 8, 7) and a side channel 5 of set 7 that re-enters inside section 1's
+    range (measure 50) and leaves from section 3 — the braid round section 2 (Wap Creek's channel inside Mount Griffin
+    Ecological Reserve, past the 275 m of stem outside it)."""
+    db = _stream()
+    db.execute("DELETE FROM item_section WHERE sid = 4")
+    db.execute("DELETE FROM section_span WHERE sid = 4")
+    db.execute("DELETE FROM section_touch WHERE b = 4")
+    db.execute("INSERT INTO item_section (ord, sid) VALUES (1, 5)")
+    db.execute("INSERT INTO section_span (sid, lo_m, hi_m, lo, hi, off_stem) VALUES (5, 50, 50, 0, 4, 1)")
+    db.executemany("INSERT INTO section_touch (a, b) VALUES (?,?)", [(1, 5), (3, 5)])
+    section_sets(db, {1: 7, 2: 8, 3: 7, 5: 7})
+    return db
+
+
+def test_a_side_channel_that_braids_round_another_rule_set_joins_the_two_runs_it_touches():
+    """T517 review (Wap Creek 1/3, Nimpkish 2/4, Skeena 1/3): `stretches` filed the channel under the run it re-enters,
+    so the run above section 2 was a second part of set 7 that the channel TOUCHES — one painted run, two parts, no
+    mark between them. Touching stretches are one run: set 7 is one part (1, 3, 5), numbered after set 8 (its top is higher)."""
+    db = _braid()
+    finish(db)
+    rows = db.execute("SELECT part_ix, set_id, grp, run, sections FROM part WHERE ord = 1 ORDER BY part_ix").fetchall()
+    assert rows == [(0, 8, 1, 0, 1), (1, 7, 0, 0, 3)]       # river order: by the top of each part

@@ -4,7 +4,7 @@ import { httpInSeason } from "./inseason";
 
 const FEED = { format: "inseason-feed/1", fetchedAt: "2026-10-28T12:00:00Z", source: "s", removed: [],
                rows: [{ id: "is-a", region: "4", water: "W", effective: "", from: null, to: null, change: "No fishing" }] };
-const LINKS = { format: "inseason-links/2", release: "r-1", words: {}, notices: { "is-a": { waters: { "gnis:1": { all: true } } } } };
+const LINKS = { format: "inseason-links/3", release: "r-1", notices: { "is-a": { waters: { "gnis:1": { all: true } } } } };
 const mem = () => { let t: string | null = null; return { read: () => t, write: (x: string) => { t = x; } }; };
 const serve = (files: Record<string, unknown>): typeof fetch => (async (u: string) => {
   const name = String(u).split("/").pop()!;
@@ -34,7 +34,7 @@ describe("httpInSeason", () => {
       const old = { format: "inseason-links/1", matches: {} };
       const got = await httpInSeason("http://x", store, serve({ "index.json": FEED, "matches.json": old })).latest();
       expect(got?.links?.notices["is-a"]).toBeTruthy();
-      expect(String(seen[0])).toContain("not readable inseason-links/2");
+      expect(String(seen[0])).toContain("not readable inseason-links/3");
     } finally { undo(); }
   });
   it("nothing ever captured and nothing reached: null, never a throw", async () => {

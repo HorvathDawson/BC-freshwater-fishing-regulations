@@ -9,7 +9,7 @@
  *               same reach the reader TAPPED, the same "you are here". There is no browse-mode Conditions screen
  *               (the old browse-mode reach drill is folded in here). (T369) The reach and the point are the FRAME's,
  *               read by the one function (`@app/ui` `useFrameView`): the tap in the frame's part, else the middle of
- *               the frame's part / stretch (`mid_sid`, and its point: "you are here" at the link's spot) — the same
+ *               the frame's part (`mid_sid`, and its point: "you are here" at the link's spot) — the same
  *               whichever way the frame was reached (a search, a step, a list pick, a reload). An
  *               unnamed reach (no registry item) is a frame with `item: null` offering this view and its Regulations
  *               (T53); titled here with the store's name for it, as its Regulations page is.
@@ -20,8 +20,8 @@ import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useBasinDays, useFrameView, useRegsStore, useUnnamedName, useWater, useWaterBasin, useWaterBox, useWaterLine, useWaterName,
-         useWaterPlace } from "@app/ui";
+import { useBasinDays, useFrameView, useMapEntries, useRegsStore, useUnnamedName, useWater, useWaterBasin, useWaterBox, useWaterLine,
+         useWaterName, useWaterPlace } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { Selectable } from "./Text";
@@ -35,7 +35,7 @@ import { BasinDays } from "./BasinDays";
 import { usePaneReady } from "./shell/paneReveal";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
-                                  credits, horizon, onHorizon, loader = null, part = null, stretch }: {
+                                  credits, horizon, onHorizon, loader = null, part = null }: {
   source: WaterSource;
   /** (T53) the release, for an unnamed reach's name (the store's, as its Regulations page heads with); null: no name */
   loader?: ReleaseLoader | null;
@@ -43,9 +43,8 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   item: ItemId | null;
   /** The section the reader tapped — the reach this view is about. Null when the water was not opened by a tap. */
   tapSid: SectionId | null;
-  /** (T369 D1) The frame's part and release stretch: with no tap in it, the view is about that part's middle. */
+  /** (T369 D1) The frame's part: with no tap in it, the view is about that part's middle. */
   part?: number | null;
-  stretch?: number;
   palette: Palette;
   tiles?: TileEndpoints; theme?: string;
   /** Kept in step with the map's own flow/level switch — see ConditionsPanel. */
@@ -62,7 +61,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
 }) {
   // (T369) THE FRAME'S REACH AND POINT, read once from the release (`useFrameView`, the one reading of a frame)
   const store = useRegsStore(loader);
-  const fv = useFrameView(store.value ?? null, { item, part, tapSid, at: from ?? null, stretch });
+  const fv = useFrameView(store.value ?? null, { item, part, tapSid, at: from ?? null });
   // the water's sheet: its name (the title every view of it shows), and with no release (a dev source) its first reach
   const sheet = useWater(source, item);
   const section = loader ? fv.value?.section ?? null
@@ -83,7 +82,9 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const name = sheetName ?? (water.state === "ready" ? water.value?.name ?? null : null) ?? (unnamed.value ?? null);
   // (T367, owner 2026-11-04: "just like regs") the part's place label and the page's access notices — the banner and
   // the gentle note — as the Regulations view says them
-  const where = useWaterPlace(loader, source, item, section);
+  // (T517) the part named as the water's map names it (one name, every view)
+  const entries = useMapEntries(loader, store.value ?? null, item);
+  const where = useWaterPlace(loader, source, item, section, entries?.names ?? null);
   // (T377) THE WATER'S OWN WATERSHED GROUP and its days — its tap, else its own point; never the map's centre. The
   // quantity is the panel's own (`ConditionsPanel`: the map's Flow or Level); a tap on a day is the panel's horizon pick.
   const basin = useWaterBasin(source, { item, tapSid, at: from ?? null }, section !== null);

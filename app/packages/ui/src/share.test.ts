@@ -23,7 +23,7 @@ const PLACES: PlaceReads = {
   hasLines: async () => true,
   itemOrd: async () => null,
   parts: async () => [] as PartRow[],
-  navRows: async () => ({ geo: [], marks: [], exit: null, continuesAs: null, continuesFrom: null, sections: [], stretches: [] }) as NavRows,
+  navRows: async () => ({ geo: [], marks: [], exit: null, continuesAs: null, continuesFrom: null, sections: [] }) as NavRows,
   sectionPart: async () => null,
   partLines: async () => [],
   sectionLine: async (h) => (h === 40 ? { blk: BLK, from: 0, to: 1000 } : null),

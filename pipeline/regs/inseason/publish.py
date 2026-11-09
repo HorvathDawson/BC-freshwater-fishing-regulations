@@ -6,11 +6,10 @@ writes `<out>/matches.json` (default `GENERATED.inseason / "feed"`, which the lo
 `/feeds/inseason/`; staging / production: R2 `feeds/inseason/matches.json` through `pipeline.deliver.sync_inputs`).
 `--feed` copies a captured feed `index.json` there too (dev).
 
-FORMAT `inseason-links/2` (T520). Where a notice applies was resolved where the atlas is (`pipeline.regs.inseason.resolve`:
+FORMAT `inseason-links/3` (T520; /3, T517 review finding 1: no `words` — the release's `display.ends` says every end). Where a notice applies was resolved where the atlas is (`pipeline.regs.inseason.resolve`:
 the review app on save, its Re-resolve after a promote) and committed in `notice_waters.json`; this only copies it out:
 
-    {"format": "inseason-links/2", "release": "r-…", "digest": <sha of the curated file>,
-     "words": {token: words},                       INTERIM (T517 ships the release's token -> words table)
+    {"format": "inseason-links/3", "release": "r-…", "digest": <sha of the curated file>,
      "notices": {"is-…": {"from"?: "YYYY-MM-DD", "to"?: "YYYY-MM-DD",
                           "waters": {"gnis:…": {"all": true}
                                      | {"runs": [[blk, m0, m1], …], "lakes"?: [i, …], "ends": [[low, high], …]}}}}}
@@ -21,7 +20,8 @@ No part index, extent or section id (AGENTS 5); `ends` are TOKENS, the sentence 
 THE CHECKS LIVE HERE, ONCE (the feed has its own): a non-zero exit, nothing written, on
     - an unresolved match (`unresolved`, or no `waters`) — re-match it in the review app
     - a match whose `stamp` no longer fits its extents, the release and its waters (a hand edit not re-resolved)
-    - an end token with no words
+    - an end token the release's `display.ends` holds no words for (the release build puts every curated notice's
+      ends in it, `matches.end_tokens`: a token missing here is a notice changed since that release — rebuild it)
     - the file resolved on another release than `data/release/LATEST` (re-resolve in the review app, then commit)
     - that release not on disk, or a range not landing on its water there
 `--side-release DIR` checks against a SIDE build instead of LATEST (a release not promoted yet) — never by default.
@@ -39,7 +39,7 @@ from pathlib import Path
 
 from pipeline.regs.inseason import matches as M
 
-FORMAT = "inseason-links/2"
+FORMAT = "inseason-links/3"
 #: a water's own ends: core says them by the sentence's shape ("Upstream of …"), never by words
 NATURAL = frozenset({"mouth", "source"})
 
@@ -69,9 +69,6 @@ def compile_links(doc: M.Matches, digest: str) -> dict:
             if w.all:
                 waters[item] = {"all": True}
                 continue
-            for t in (t for pair in w.ends for t in pair if t not in NATURAL):
-                if not doc.words.get(t):
-                    bad.append(f"{rid} ({m.water}): {item} end {t!r} has no words")
             waters[item] = {"runs": [list(r) for r in w.runs], **({"lakes": list(w.lakes)} if w.lakes else {}),
                             "ends": [list(p) for p in w.ends]}
         row: dict = {}
@@ -83,9 +80,13 @@ def compile_links(doc: M.Matches, digest: str) -> dict:
         notices[rid] = row
     if bad:
         raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
-    used = {t for n in notices.values() for w in n["waters"].values() for p in w.get("ends", ()) for t in p} - NATURAL
-    return {"format": FORMAT, "release": doc.release, "digest": digest,
-            "words": {t: doc.words[t] for t in sorted(used)}, "notices": notices}
+    return {"format": FORMAT, "release": doc.release, "digest": digest, "notices": notices}
+
+
+def ends_problems(links: dict, ends: dict, release: str) -> list[str]:
+    """(T517 review finding 1) every end token the links name that the release's `display.ends` holds no words for."""
+    return [f"{rid}: {item} end {t!r} has no words in {release}'s display.ends" for rid, n in links["notices"].items()
+            for item, w in n["waters"].items() for p in w.get("ends", ()) for t in p if t not in NATURAL and t not in ends]
 
 
 def check_on_release(links: dict, rel) -> list[str]:
@@ -138,6 +139,9 @@ def main(argv: list[str] | None = None) -> int:
                       "ranges cannot be checked")
     from pipeline.regs.inseason import resolve as R
     bad = check_on_release(links, R.read_release(rel_dir))
+    # (T517 review finding 1) THE GUARD: every end the links name has words in that release's `display.ends`
+    from pipeline.deliver.answers.display.name_check import release_waters
+    bad += ends_problems(links, release_waters(rel_dir)[1], rel_dir.name)
     if bad:
         raise Refused("inseason.publish: refused —\n  " + "\n  ".join(bad))
     out = a.out or (GENERATED.inseason / "feed")

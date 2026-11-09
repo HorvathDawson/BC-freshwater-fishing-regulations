@@ -2,13 +2,12 @@
 
 The app draws lines and polygons from the tiles (feature id = sid). The bundle carries only what the tiles cannot say:
 
-  part_geo    (ord, part_ix): `rank` (mouth first within the water), the bbox (lon/lat), and the midpoint: `mid_sid`
-              and its point, where "Conditions here" opens (owner Q7).
+  part_geo    (ord, part_ix): the bbox (lon/lat), and the midpoint: `mid_sid` and its point, where "Conditions here"
+              opens (owner Q7). part_ix IS river order (T517, `derived.part_rows`; asserted here).
   part_mark   (ord, mark_ix): every PLACE two parts of a water meet (within TOUCH_M; T204: one mark per meeting
               place, not per pair of parts), with the split's name there (or NULL: the app shows no text), the
-              downstream part and the upstream parts, and — where a part has several stretches — which stretch of each
-              (`down_stretch`, `up_stretches`, NULL when every one is stretch 0). Side channels and lake splits make
-              the parts a graph, not a list.
+              downstream part and the upstream parts. Side channels and lake splits make the parts a graph, not a
+              list. T517: two neighbouring pieces of one run across a lake meet at a mark too (the lake).
   (T517: a part IS one connected run — `derived.part_rows` cuts the rule-set groups into their runs, the DFO salmon
               chain in the key — so there is no `part_stretch`; T204's `stretches` is what decides a run, there.)
   water_exit  (ord): the water this one flows into (`item_down`), and the receiving water's part it enters.
@@ -182,12 +181,13 @@ def merge_marks(raw: Sequence[dict]) -> List[dict]:
         if k in by:
             by[k]["up"] = sorted(set(by[k]["up"]) | {m["up"]})
             if not by[k]["label"] and m["label"]:
-                by[k]["label"] = m["label"]
+                by[k]["label"], by[k]["token"] = m["label"], m.get("token")
                 if m.get("confidence"):                  # T207: the named split's, with its name
                     by[k]["confidence"] = m["confidence"]
         else:
             by[k] = {"lon": m["lon"], "lat": m["lat"], "down": m["down"], "up": [m["up"]],
-                     "label": m["label"], **({"confidence": m["confidence"]} if m.get("confidence") else {}),
+                     "label": m["label"], "token": m.get("token"),
+                     **({"confidence": m["confidence"]} if m.get("confidence") else {}),
                      **({"alt": m["alt"]} if m.get("alt") else {})}
     return sorted(by.values(), key=lambda m: (m["down"], m["up"], m["lon"], m["lat"]))
 
@@ -200,28 +200,35 @@ def _stem_ends(p: dict) -> Tuple[Optional[str], Optional[str]]:
     return min(main, key=lambda r: r["km_from"]).get("to"), max(main, key=lambda r: r["km_from"]).get("from")
 
 
-def mark_words(down: dict, up: dict, doc: dict, splits: Dict[str, dict]) -> Tuple[Optional[str], Optional[str]]:
-    """T517: (a mark's words, its confidence) — `mark_alt` gives the other names it is known by. Where the lower part's top end IS the upper part's bottom end (one
+def mark_words(down: dict, up: dict, doc: dict, splits: Dict[str, dict]) -> Tuple[Optional[str], Optional[str],
+                                                                                 Optional[str]]:
+    """T517: (a mark's words, its confidence, the END TOKEN it stands at — what the release ships, `build.mark_token`)
+    — `mark_alt` gives the other names it is known by. Where the lower part's top end IS the upper part's bottom end (one
     token), the mark says that end in `end_words` — the same words the two parts' names say there (asserted). Else an
     end token the two parts' runs share; else the named split `split_at` finds; else (None, None)."""
     from pipeline.deliver.answers.display.part import _named_token, end_variants, end_words, run_ends
     natural = {None, "", "mouth", "source"}
     top, bottom = _stem_ends(down)[1], _stem_ends(up)[0]
     tok = top if top == bottom and top not in natural else None
+    if tok is None and (top or "").startswith("lake_outlet") and (bottom or "").startswith("lake_inlet"):
+        # T517 review finding 10: two parts that meet across a lake (the lower one's top its outlet, the upper one's
+        # bottom its inlet) meet AT the lake: the mark says it, as the upper part's name does
+        return end_words(doc, bottom, "from"), None, bottom
     if tok is None:
         ends = lambda p: {e for r in p.get("runs") or [] for e in (r.get("to"), r.get("from"))}  # noqa: E731
         common = sorted((ends(down) & ends(up)) - natural)
         tok = common[0] if common else None
     if tok is None:
         s = split_at(down, up, splits)
-        return (s["name"], s.get("confidence")) if s else (None, None)
+        sid = next((k for k, v in splits.items() if v is s), None) if s else None
+        return (s["name"], s.get("confidence"), sid) if s else (None, None, None)
     words = end_words(doc, tok, "from")
     if tok == top == bottom:
         a, b = run_ends(doc, down), run_ends(doc, up)
         if a and b and (a[1] != words or b[0] != end_words(doc, tok, "to")):
             raise SystemExit(f"part_mark: {tok!r} reads {words!r} on the mark but {a and a[1]!r} / {b and b[0]!r} "
                              f"on the parts it joins — one function names both (T517)")
-    return words, (splits.get(_named_token(doc, tok) or "") or {}).get("confidence")
+    return words, (splits.get(_named_token(doc, tok) or "") or {}).get("confidence"), tok
 
 
 def mark_alt(down: dict, up: dict, doc: dict) -> Optional[List[str]]:
@@ -408,6 +415,17 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         touch[b].add(a)
     splits = {sid: {"name": n, "confidence": c}
               for sid, n, c in db.execute("SELECT split_id, name, confidence FROM split")}
+    # T517: a gauge cut a part ends at is said by its nearest named feature — written BEFORE the splits are read for
+    # the marks' words, which name it
+    near_rows = gauge_near(db, geo, span, sids, kind)
+    db.executemany("INSERT INTO split_near (split_id, token, m) VALUES (?,?,?)", near_rows)
+    cov.filled("split_near", len(near_rows))
+    pn_rows = part_near(db, geo, span, sids, kind)
+    db.executemany("INSERT INTO part_near (ord, part_ix, near, m) VALUES (?,?,?,?)", pn_rows)
+    cov.filled("part_near", len(pn_rows))
+    cross_rows = crossing_near(db, geo, span, sids, kind)
+    db.executemany("INSERT INTO crossing_near (ord, token, km, near, m) VALUES (?,?,?,?,?)", cross_rows)
+    cov.filled("crossing_near", len(cross_rows))
     # T517: the words of a mark are `answers.display.end_words`' — the one function that names every run end
     from pipeline.deliver.export.read import read_splits
     words_doc = {"splits": read_splits(db), "waters": {i: {"name": n} for i, n in db.execute("SELECT item_id, name FROM item")}}
@@ -415,9 +433,11 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
     # T517: a part's whole key — two parts with ONE key are runs another part separates (else they would be one part),
     # so where they come within TOUCH_M of each other (across a short sign zone) they do not meet: no mark
     key_of = {(o, p): (g, c) for o, p, g, c in db.execute("SELECT ord, part_ix, grp, chain FROM part")}
-    # T228: each section's DFO salmon chain (written before this by `salmon.write_bundle`; a bundle without it: none)
-    chain: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section")) if db.execute(
-        "SELECT 1 FROM sqlite_master WHERE name = 'salmon_section'").fetchone() else {}
+    # T517 (owner 2026-11-08) THE LAKE GAP: two pieces of one run (grp, run) the salmon chain cut either side of a lake
+    # — ANY lake, named or not — meet AT the lake: a mark, so the app joins them by the one live rule (grp + run + live
+    # salmon key) as though the lake were not there; different rules either side are separate parts already
+    # T228: each section's DFO salmon chain (written before this by `salmon.write_bundle`; 0: the unlisted chain)
+    chain: Dict[int, int] = dict(db.execute("SELECT sid, chain FROM salmon_section"))
 
     def is_polygon_part(o: int, ss: List[int]) -> bool:
         if kind.get(o) != "stream":
@@ -474,7 +494,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
             g = unary_union(gs)
             shapes[(o, p["v"])] = g
             mid, pt = midpoint(p["sids"], p["poly"], g, rep[(o, p["v"])])
-            part_rows.append((o, p["v"], rank, mid, *ll(pt), *box(g)))
+            part_rows.append((o, p["v"], mid, *ll(pt), *box(g)))
         # T517: a part IS one connected run (`derived.part_rows`), so the nodes are the parts, in rank order, and the
         # rank is the part index (river order is decided once, there)
         for rank, p in enumerate(ranked):
@@ -505,11 +525,25 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
             lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
             gap_rows.append((o, dx, uy, round(lon, 6), round(lat, 6), k[0], k[1]))
 
+        def lake_gap(dn: dict, up: dict) -> bool:
+            """Two neighbouring pieces of one run with a lake between them (the lower one's top a lake outlet, the
+            upper one's bottom a lake inlet)."""
+            if (dn["v"], up["v"]) not in next_in_run:
+                return False
+            top, bottom = _stem_ends(dn["part"])[1], _stem_ends(up["part"])[0]
+            return (top or "").startswith("lake_outlet") and (bottom or "").startswith("lake_inlet")
+
         def stem_g(x):
             if "stem_g" not in x:
                 gs = [geo[s] for s in x["sids"] if s in geo and s in span and not span[s][4]]
                 x["stem_g"] = unary_union(gs) if gs else None
             return x["stem_g"]
+
+        # each run's pieces in river order: a lake gap joins only NEIGHBOURING pieces of one run
+        run_seq: Dict[tuple, List[int]] = defaultdict(list)
+        for x in nodes:
+            run_seq[grp_run[(o, x["v"])]].append(x["v"])
+        next_in_run = {(q[k], q[k + 1]) for q in run_seq.values() for k in range(len(q) - 1)}
 
         raw = []
         for i in range(len(nodes)):
@@ -518,7 +552,7 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                 if key_of[(o, dn["v"])] == key_of[(o, up["v"])]:
                     continue
                 a, b = dn["g"], up["g"]
-                if a.distance(b) > TOUCH_M:
+                if a.distance(b) > TOUCH_M and not lake_gap(dn, up):
                     continue
                 # the mark stands where the MAIN STEMS meet when they do: a cut swept across a braid also separates
                 # the side channel, and the nearest pair there put the mark on the braid (Cranberry canyon bottom)
@@ -527,13 +561,19 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                     a, b = sa, sb
                 pa, pb = nearest_points(a, b)
                 lon, lat = to_ll.transform((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
-                label, conf = mark_words(dn["part"], up["part"], words_doc, splits)
+                if a.distance(b) > TOUCH_M:           # a lake gap: the mark says the lake ("A lake")
+                    from pipeline.deliver.answers.display.part import end_words
+                    tok = _stem_ends(up["part"])[0]
+                    label, conf = end_words(words_doc, tok, "from"), None
+                else:
+                    label, conf, tok = mark_words(dn["part"], up["part"], words_doc, splits)
                 alt = mark_alt(dn["part"], up["part"], words_doc)
                 raw.append({"lon": round(lon, 6), "lat": round(lat, 6), "down": dn["v"], "up": up["v"],
-                            "label": label, "confidence": conf, **({"alt": alt} if alt else {})})
+                            "label": label, "token": tok if label else None, "confidence": conf,
+                            **({"alt": alt} if alt else {})})
         for k, m in enumerate(merge_marks(raw)):
             mark_rows.append((o, k, m["lon"], m["lat"], m["label"], m["down"], json.dumps(m["up"]),
-                              m.get("confidence"), None, None, json.dumps(m["alt"]) if m.get("alt") else None))
+                              m.get("confidence"), json.dumps(m["alt"]) if m.get("alt") else None, m.get("token")))
 
     mouth = _mouths(part_rows)
     shapes_of: Dict[int, List[Tuple[int, Geometry]]] = defaultdict(list)
@@ -558,13 +598,15 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
                 cand = (here.distance(g), d, p)
                 if best is None or cand < best:
                     best = cand
-        exits.append((o, cands[0], None, name.get(cands[0])) if best is None
-                     else (o, best[1], best[2], name.get(best[1])))
+        if best is None:                                # (T517 review: no silent exit with no part — 0 on 2026-11-08)
+            raise SystemExit(f"water_exit: {name.get(o)} (ord {o}) drains into {[name.get(d) for d in cands]}, "
+                             f"none of which has a drawn part")
+        exits.append((o, best[1], best[2], name.get(best[1])))
 
-    db.executemany("INSERT INTO part_geo (ord, part_ix, rank, mid_sid, mid_lon, mid_lat, w, s, e, n) "
-                   "VALUES (?,?,?,?,?,?,?,?,?,?)", part_rows)
-    db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence, "
-                   "down_stretch, up_stretches, alt) VALUES (?,?,?,?,?,?,?,?,?,?,?)", mark_rows)
+    db.executemany("INSERT INTO part_geo (ord, part_ix, mid_sid, mid_lon, mid_lat, w, s, e, n) "
+                   "VALUES (?,?,?,?,?,?,?,?,?)", part_rows)
+    db.executemany("INSERT INTO part_mark (ord, mark_ix, lon, lat, label, down_part, up_parts, confidence, alt, token) "
+                   "VALUES (?,?,?,?,?,?,?,?,?,?)", mark_rows)
     db.executemany("INSERT INTO water_exit (ord, down_ord, down_part, label) VALUES (?,?,?,?)", exits)
     # T228 DIAGNOSTIC: a salmon difference where no named split stands — a DFO place's edge not yet placed as a split.
     # Not cut, not named: the pieces stay one (the salmon bar shows its "see Salmon below" days) until the edge is placed
@@ -589,6 +631,236 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
           f"({no_measure:,} stream parts placed by section length: no route measure)")
 
 
+#: T517 (owner 2026-11-09: no fallback hides an error) a named feature farther than this from a gauge cut is not "near"
+#: it: the Dean's 08FC003 had only Tanswanket Creek's drawn sections 13.2 km away. Past it the cut is said by its km.
+NEAR_M = 2000.0
+
+
+def gauge_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[int, tuple],
+               sids: Dict[Tuple[int, int], List[int]], kind: Dict[int, str]) -> List[Tuple[str, str, float]]:
+    """T517 (review finding 7) THE NEAREST NAMED FEATURE TO A GAUGE CUT a part ends at: a gauge's code and station name
+    are never the words of a place a regulation's part ends at (they go to the mark's `alt`), so the end is said by what
+    stands nearest the cut on the ground — a named tributary's confluence (`item_down` into the water, distance to its
+    nearest drawn section), or a named non-gauge, non-length cut of the water (the end of its sections). Rows (split_id,
+    token, metres): `token` an end token the answers name (`confluence:<item>` or the cut's id). Only gauge cuts that are
+    a run end of a named water's section, and only a feature within `NEAR_M`: none farther (the answers then say the
+    cut by its km from the mouth, `part._named_token`)."""
+    from shapely.ops import nearest_points
+    kinds = dict(db.execute("SELECT split_id, kind FROM split"))
+    # a cut with a name of its own: never a gauge, never a length cut (`length:…`: its name is a generated description
+    # of an unnamed side channel's junction, "side channel above Iltasyuko River", not a named feature)
+    named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
+                 if n and kinds.get(k) != "gauge" and not k.startswith("length:")}
+    item_id = dict(db.execute("SELECT ord, item_id FROM item"))
+    owner = {x: o for (o, _p), ss in sids.items() for x in ss}
+    ends: Dict[Tuple[int, str], List[int]] = defaultdict(list)       # (water, token) -> the sections ending there
+    for x, r in span.items():
+        if x in owner:
+            for t in {r[2], r[3]} - {None}:
+                ends[(owner[x], t)].append(x)
+    tribs: Dict[int, List[int]] = defaultdict(list)
+    for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord"):
+        if kind.get(a) == "stream":
+            tribs[b].append(a)
+    secs_of: Dict[int, List[int]] = defaultdict(list)
+    for (o, _p), ss in sids.items():
+        secs_of[o] += ss
+    best: Dict[str, Tuple[float, str]] = {}           # one feature per cut: the nearest over every water it ends a part of
+    for (o, t), xs in sorted(ends.items()):
+        if kinds.get(t) != "gauge":
+            continue
+        gs = [geo[x] for x in sorted(xs) if x in geo]
+        if not gs:
+            continue
+        if len(gs) >= 2:
+            pa, pb = nearest_points(gs[0], gs[1])
+            from shapely.geometry import Point
+            pt = Point((pa.x + pb.x) / 2, (pa.y + pb.y) / 2)
+        else:
+            pt = gs[0].representative_point()
+        cands: List[Tuple[float, str]] = []
+        for tr in tribs.get(o, ()):
+            d = min((geo[x].distance(pt) for x in secs_of.get(tr, ()) if x in geo), default=None)
+            if d is not None:
+                cands.append((d, f"confluence:{item_id[tr]}"))
+        for (o2, c), cx in ends.items():
+            if o2 == o and c in named_cut:
+                d = min((geo[x].distance(pt) for x in cx if x in geo), default=None)
+                if d is not None:
+                    cands.append((d, c))
+        cands = [c for c in cands if c[0] <= NEAR_M]
+        if cands:
+            c = min(cands)
+            if t not in best or c < best[t]:
+                best[t] = c
+    return [(t, tok, round(d, 1)) for t, (d, tok) in sorted(best.items())]
+
+
+#: a named tributary whose drawn sections come no closer than this to the water's main stem meets it at no place the
+#: atlas draws (its named part starts far up): it is no feature ON the water
+TRIBUTARY_REACH_M = 200.0
+#: (owner 2026-11-09) a B.C.-border crossing with no named water feature within `NEAR_M` is said near the nearest
+#: B.C. town (`place`: city, town, village, hamlet) within this — "B.C. border near Osoyoos"
+TOWN_M = 10_000.0
+TOWN_KINDS = ("city", "town", "village", "hamlet")
+def part_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[int, tuple],
+              sids: Dict[Tuple[int, int], List[int]], kind: Dict[int, str]) -> List[tuple]:
+    """T517 (owner 2026-11-09) WHERE A PART WITH NO MAIN STEM LIES, for a water with several such parts (they are
+    said "<water> near <what>"): (ord, part_ix, the token of the nearest OTHER named water within `NEAR_M` — `water:
+    <item>` — else of the nearest B.C. town within `TOWN_M` — `place:<name>` —, metres). A part with neither gets no
+    row and its name cannot be told apart: `answers.display.name_check` stops the build."""
+    from pyproj import Transformer
+    from shapely.geometry import Point
+    from shapely.ops import unary_union
+    item_id = dict(db.execute("SELECT ord, item_id FROM item"))
+    stemless: Dict[int, List[int]] = defaultdict(list)
+    for (o, p), ss in sorted(sids.items()):
+        if kind.get(o) == "stream" and not any(x in span and not span[x][4] and span[x][0] is not None for x in ss):
+            stemless[o].append(p)
+    want = {o: ps for o, ps in stemless.items() if len(ps) > 1}
+    if not want:
+        return []
+    to3005 = Transformer.from_crs(4326, 3005, always_xy=True)
+    towns = [(Point(*to3005.transform(lon, lat)), name) for name, lon, lat in db.execute(
+        f"SELECT name, lon, lat FROM place WHERE kind IN ({','.join('?' * len(TOWN_KINDS))}) AND name IS NOT NULL "
+        "AND lat IS NOT NULL ORDER BY place_id", TOWN_KINDS)]
+    shapes: Dict[int, object] = {}
+    for (o, _p), ss in sids.items():
+        gs = [geo[x] for x in ss if x in geo]
+        if gs:
+            shapes[o] = unary_union([shapes[o], *gs]) if o in shapes else unary_union(gs)
+    out: List[tuple] = []
+    for o, ps in sorted(want.items()):
+        for p in ps:
+            g = unary_union([geo[x] for x in sids[(o, p)] if x in geo])
+            box = g.buffer(NEAR_M)
+            near = min(((g.distance(sg), item_id[w]) for w, sg in shapes.items() if w != o and sg.intersects(box)),
+                       default=None)
+            if near is not None:
+                out.append((o, p, f"water:{near[1]}", round(near[0], 1)))
+                continue
+            d, name = min(((g.distance(tp), nm) for tp, nm in towns), default=(None, None))
+            if d is not None and d <= TOWN_M:
+                out.append((o, p, f"place:{name}", round(d, 1)))
+    return out
+
+
+def is_crossing(t: Optional[str]) -> bool:
+    """An end token a part can share with another part of its water at ANOTHER place (said near what stands there)."""
+    return bool(t) and (t in ("bc_border", "polygon", "lake_inlet", "lake_outlet")
+                        or t.startswith(("area:", "region_line:")))
+
+
+def crossing_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[int, tuple],
+                  sids: Dict[Tuple[int, int], List[int]], kind: Dict[int, str]) -> List[tuple]:
+    """T517 (owner 2026-11-09) WHAT STANDS AT EACH CROSSING: for every place a named stream's main stem meets a token
+    two of its parts could share (`is_crossing`: an area's boundary, the B.C. border, a region line, a river polygon,
+    an unnamed lake), rows (ord, token, km from the mouth, the end token that names what stands there, metres):
+      * the nearest NAMED WATER FEATURE within `NEAR_M` along the stem — a named tributary that meets the stem
+        (`item_down` into the water, its drawn sections within `TRIBUTARY_REACH_M`: `confluence:<item>`) or a named cut
+        (not a gauge, not a length cut);
+      * else, for the B.C. border, the nearest B.C. town within `TOWN_M` (`place:<name>`);
+      * else no row — the answers then say the crossing at its km.
+    `answers.display.builders._names` reads it where two parts of one water would otherwise say one name."""
+    from pyproj import Transformer
+    from shapely.geometry import Point
+    from shapely.ops import nearest_points, unary_union
+    kinds = dict(db.execute("SELECT split_id, kind FROM split"))
+    named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
+                 if n and kinds.get(k) != "gauge" and not k.startswith("length:")}
+    item_id = dict(db.execute("SELECT ord, item_id FROM item"))
+    to3005 = Transformer.from_crs(4326, 3005, always_xy=True)
+    towns = [(Point(*to3005.transform(lon, lat)), name) for name, lon, lat in db.execute(
+        f"SELECT name, lon, lat FROM place WHERE kind IN ({','.join('?' * len(TOWN_KINDS))}) AND name IS NOT NULL "
+        "AND lat IS NOT NULL ORDER BY place_id", TOWN_KINDS)]
+    secs_of: Dict[int, List[int]] = defaultdict(list)
+    for (o, _p), ss in sids.items():
+        secs_of[o] += ss
+    tribs: Dict[int, List[int]] = defaultdict(list)
+    for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord"):
+        if kind.get(a) == "stream":
+            tribs[b].append(a)
+    out: List[tuple] = []
+    for o, ss in sorted(secs_of.items()):
+        if kind.get(o) != "stream":
+            continue
+        stem = sorted((x for x in ss if x in span and x in geo and not span[x][4] and span[x][0] is not None
+                       and span[x][1] is not None), key=lambda x: (span[x][0], x))
+        ends = [(t, m, x, side) for x in stem for t, m, side in ((span[x][2], span[x][0], "lo"),
+                                                                  (span[x][3], span[x][1], "hi")) if is_crossing(t)]
+        if not ends:
+            continue
+        feats: List[Tuple[float, str]] = []                 # (metres along the stem, token)
+        for x in stem:
+            for t, m in ((span[x][2], span[x][0]), (span[x][3], span[x][1])):
+                if t in named_cut:
+                    feats.append((float(m), t))
+        sg = unary_union([geo[x] for x in stem])
+        for tr in tribs.get(o, ()):
+            tg = [geo[x] for x in secs_of.get(tr, ()) if x in geo]
+            if not tg:
+                continue
+            tu = unary_union(tg)
+            if tu.distance(sg) > TRIBUTARY_REACH_M:
+                continue
+            p = nearest_points(sg, tu)[0]
+            x = min(stem, key=lambda s: (geo[s].distance(p), s))
+            feats.append((_measure_at(x, p, stem, span, geo), f"confluence:{item_id[tr]}"))
+        done = set()
+        for t, m, x, side in sorted(ends, key=lambda e: (e[1], e[0])):
+            key = (t, round(m / 1000.0, 2))
+            if key in done:
+                continue
+            done.add(key)
+            near = min(((abs(fm - m), ft) for fm, ft in feats if ft != t), default=None)
+            if near is not None and near[0] <= NEAR_M:
+                out.append((o, t, key[1], near[1], round(near[0], 1)))
+                continue
+            if t == "bc_border" and towns:
+                pt = _end_point(x, side, stem, span, geo)
+                d, name = min(((pt.distance(tp), nm) for tp, nm in towns), key=lambda v: (v[0], v[1]))
+                if d <= TOWN_M:
+                    out.append((o, t, key[1], f"place:{name}", round(d, 1)))
+    return out
+
+
+def _end_point(x: int, side: str, stem: List[int], span: Dict[int, tuple], geo: Dict[int, Geometry]):
+    """The drawn point of stem section `x`'s lower (`lo`) or upper (`hi`) end: the end of its line nearer the stem
+    section below it (else farther from the one above) — the line's own direction is not trusted."""
+    from shapely.geometry import Point
+    g = geo[x]
+    if g.geom_type == "MultiLineString":
+        from shapely.ops import linemerge
+        g = linemerge(g)
+    if g.geom_type != "LineString":
+        return g.representative_point()
+    a, b = Point(g.coords[0]), Point(g.coords[-1])
+    below = [s for s in stem if s != x and span[s][1] <= span[x][0]]
+    above = [s for s in stem if s != x and span[s][0] >= span[x][1]]
+    if below:
+        n = geo[max(below, key=lambda s: (span[s][1], s))]
+        low = a if a.distance(n) <= b.distance(n) else b
+    elif above:
+        n = geo[min(above, key=lambda s: (span[s][0], s))]
+        low = b if a.distance(n) <= b.distance(n) else a
+    else:
+        low = a
+    return low if side == "lo" else (b if low is a else a)
+
+
+def _measure_at(x: int, p, stem: List[int], span: Dict[int, tuple], geo: Dict[int, Geometry]) -> float:
+    """The main-stem measure (metres) of point `p` on stem section `x`, read from its lower end (`_end_point`)."""
+    from shapely.ops import linemerge
+    g = geo[x]
+    if g.geom_type == "MultiLineString":
+        g = linemerge(g)
+    if g.geom_type != "LineString" or g.length == 0:
+        return float(span[x][0])
+    f = g.project(p, normalized=True)
+    forward = _end_point(x, "lo", stem, span, geo).distance(g.interpolate(0.0)) < 1e-6
+    return span[x][0] + (f if forward else 1.0 - f) * (span[x][1] - span[x][0])
+
+
 def _mouths(part_rows: Sequence[tuple]) -> Dict[int, int]:
-    """{ord: the part_ix of rank 0}."""
-    return {o: p for o, p, rank, *_ in part_rows if rank == 0}
+    """{ord: its mouth part — part_ix 0, river order}."""
+    return {o: p for o, p, *_ in part_rows if p == 0}

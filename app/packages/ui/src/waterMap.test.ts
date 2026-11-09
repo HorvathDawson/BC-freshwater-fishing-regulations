@@ -4,7 +4,7 @@
  * release r-1bb06fa28daf wrote them (`part_geo`, `part_mark`, `part_section`, `water_exit`).
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import type { WaterGroup } from "@app/core";
+import { markLabel, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, type RegsStore } from "@app/data/regs";
 import { openRegsFixtureWithLines, sectionNames, type SectionNames } from "@app/data/release/node";
 import type { ItemId } from "@app/data";
@@ -184,24 +184,26 @@ describe("(T150) the parts of this water, listed under the map — the header's 
 describe("a fork upstream: the Skeena's Ecological Reserve", () => {
   it("▲ at the fork opens a chooser, the main stem first; a choice steps there", async () => {
     const g = await loadWaterGroup(st, "gnis:2936");
-    // (T517) river order: the tidal part 0 is no entry, so the Reserve (part 2) is index 1; the side channel is part 18
-    const reserve = waterMapStart(1);
-    expect([view(g, reserve).current.name, view(g, reserve).up])
-      .toEqual(["Within Skeena River Ecological Reserve", { label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null }]);
+    // (T517) river order: the tidal part 0 is no entry, so the Reserve (part 1) is index 0, named by its two crossings of
+    // the Reserve's boundary (no "Within"); the side channel (part 17, no ends) is said as its water
+    const reserve = waterMapStart(0);
+    expect([view(g, reserve).current.name, view(g, reserve).up]).toEqual([
+      "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence",
+      { label: "Upstream", aria: "Upstream", disabled: false, fork: true, cross: null }]);
     const open = run(g, reserve, { type: "up" });
     expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: 2, item: "gnis:2936", partIx: 3, name: "Skeena River Ecological Reserve boundary → Exchamsiks River confluence", note: "Skeena River" },
-      { ix: 17, item: "gnis:2936", partIx: 18, name: "Side channel", note: "Skeena River" }] });
-    expect(run(g, open, { type: "choose", to: 2 })).toEqual(waterMapStart(2));
-    expect(run(g, open, { type: "choose", to: 17 })).toEqual(waterMapStart(17));
+      { ix: 1, item: "gnis:2936", partIx: 2, name: "Tidal boundary → Exchamsiks River confluence", note: "Skeena River" },
+      { ix: 16, item: "gnis:2936", partIx: 17, name: "Skeena River", note: "Skeena River" }] });
+    expect(run(g, open, { type: "choose", to: 1 })).toEqual(waterMapStart(1));
+    expect(run(g, open, { type: "choose", to: 16 })).toEqual(waterMapStart(16));
     // not one of the ways up: nothing
-    expect(run(g, open, { type: "choose", to: 0 })).toBe(open);
+    expect(run(g, open, { type: "choose", to: 2 })).toBe(open);
     expect(run(g, open, { type: "closeChooser" })).toEqual(reserve);
     // the host channel above the cut is the highest part, and its own ▼ is a fork (section 2 and the Reserve meet it at
     // the Exchamsiks cut)
-    const side = view(g, waterMapStart(17));
-    expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Side channel", true, true]);
+    const side = view(g, waterMapStart(16));
+    expect([side.current.name, side.up.disabled, side.down.fork]).toEqual(["Skeena River", true, true]);
   });
 });
 
@@ -244,8 +246,8 @@ describe("every part is reached by ▼ / ▲ (P15 review: the Zymoetz's lake par
   it("(T517) the Zymoetz's runs either side of the lake part are parts of their own, in river order: ▼ walks them in stem order", async () => {
     const g = await loadWaterGroup(st, "gnis:3137");
     // 3: "Limonite Creek confluence → McDonell Lake (3000 m downstream)", 4: "McDonell Lake (3000 m downstream) → McDonell
-    // Lake outlet", 5: "McDonell Lake → Source" — each one part (no stretch of another), part_ix the river order
-    expect([3, 4, 5].map((i) => [g.parts[i]!.partIx, g.parts[i]!.stretch ?? 0])).toEqual([[3, 0], [4, 0], [5, 0]]);
+    // Lake outlet", 5: "McDonell Lake → Source" — each one part, part_ix the river order
+    expect([3, 4, 5].map((i) => [g.parts[i]!.partIx, g.parts[i]!.pieces])).toEqual([[3, [3]], [4, [4]], [5, [5]]]);
     const top = waterMapStart(5);
     expect(view(g, top).down).toEqual({ label: "Downstream", aria: "Downstream", disabled: false, fork: false, cross: null });
     expect(run(g, top, { type: "down" })).toEqual(waterMapStart(4));
@@ -300,10 +302,11 @@ describe("Cowichan, Vedder and the Kootenay Lake West Arm", () => {
     expect(view(g, waterMapStart(0)).marks[0]!.label).toBe("White triangle boundary sign located in Sandy Pool Regional Park, approximate location (medium confidence)");
   });
 
-  it("Vedder: two parts of one run (T517); its mouth is its end (its top part's ▲ goes on into the Chilliwack, above)", async () => {
+  it("Vedder: two parts of one run (T517); its mouth flows into the Sumas (its top part's ▲ goes on into the Chilliwack, above)", async () => {
     const g = await loadWaterGroup(st, "gnis:3062");
+    // (T517) the fixture's core names every water a kept water flows into, so the Vedder's mouth links the Sumas
     expect(g.parts.map((_, i) => bar(g, waterMapStart(i)))).toEqual([
-      "Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream",
+      "Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream | Flows into Sumas River ›",
       "Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge | Downstream | Upstream into Chilliwack River"]);
   });
 
@@ -418,7 +421,7 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
     expect(new Set(all).size).toBe(all.length);
     g.parts.forEach((_, i) => expect([...view(g, waterMapStart(i)).water].sort((a, b) => a - b))
       .toEqual(g.parts.flatMap((p, j) => (j === i ? [] : p.sids)).sort((a, b) => a - b)));
-    const lougheed = g.marks.find((m) => m.label === "Lougheed Highway Bridge")!;
+    const lougheed = g.marks.find((m) => markLabel(g, m) === "Lougheed Highway Bridge")!;
     expect([lougheed.down, lougheed.up]).toEqual([0, [1]]);
     // the list's pick lights the same part a step does
     expect(view(g, run(g, { ...waterMapStart(1), list: true }, { type: "part", ix: 0 })).selected).toEqual(await sec.streams(COQ_MARY_HILL));
@@ -437,7 +440,8 @@ describe("(T345) the Coquitlam: parts meet at the Lougheed bridge; the tidal Fra
 describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart draw ONE label", () => {
   it("the Fraser's Landstrom Bar sign zone: both ends of the zone named once, at every part they bound", async () => {
     const g = await loadWaterGroup(st, "gnis:39325");
-    const zone = g.marks.flatMap((m, ix) => (m.label === "Landstrom Bar sign zone boundary" ? [ix] : []));
+    // (T517) the zone's two ends are one end token said at two places: "… (km 156.4)" and "… (km 156.5)"
+    const zone = g.marks.flatMap((m, ix) => (markLabel(g, m)?.startsWith("Landstrom Bar sign zone boundary (km ") ? [ix] : []));
     expect(zone).toHaveLength(2);
     // every part that has one of the two marks at an end: the part around the zone and the zone itself
     const parts = [...new Set(zone.flatMap((ix) => [g.marks[ix]!.down, ...g.marks[ix]!.up]))];
@@ -455,7 +459,7 @@ describe("(T443, owner on 0.6.7) two marks with the same words a few steps apart
     expect(open.marks.find((m) => m.ix === zone[0])!.label).toBeNull();
   });
 
-  it("MUTATION PIN: labels a kilometre apart, or with other words, are both drawn", async () => {
+  it("MUTATION PIN: labels a kilometre apart, or of other ends, are both drawn", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
     const v = view(g, waterMapStart(1));
     expect(v.marks.filter((m) => m.label !== null).length).toBe(2);   // part 2's two ends, different words

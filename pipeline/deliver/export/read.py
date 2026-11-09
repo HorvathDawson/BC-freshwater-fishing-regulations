@@ -791,7 +791,10 @@ def read(bundle: Path) -> dict:
 
     sections = section_counts(db)
     db.close()
-    splits = referenced_edges(splits, entries, rules, licensing, waters)
+    # (T517 review finding 1) a cut an in-season notice ends at is named too (`display.ends` holds its words)
+    from pipeline.regs.inseason import matches as _M
+    inseason = _M.end_tokens(_M.load(_M.default_path()))
+    splits = referenced_edges(splits, entries, rules, licensing, waters, extra=inseason)
     # ---- the record duty an annual quota carries (`recorded_by` / `records_for`) ------------
     for q, cands in record_candidates(rules, rulesets).items():
         if len(cands) == 1:          # two would be ambiguous: left unlinked, `problems` says so
@@ -814,6 +817,8 @@ def read_splits(db) -> dict:
     them all in `at` and leaves both null; an area boundary (which crosses hundreds of waters) has
     neither — the run ending there carries the km."""
     out = {}
+    # (T517) a gauge cut's nearest named feature (`topology.gauge_near`)
+    near = {s: (t, m) for s, t, m in db.execute("SELECT split_id, token, m FROM split_near")}
     for sid, name, kind, at, official, same, lake_id, conf in db.execute(
             "SELECT split_id, name, kind, at, official_name, same_place_as, lake_id, confidence FROM split "
             "ORDER BY split_id"):
@@ -826,7 +831,8 @@ def read_splits(db) -> dict:
                     **({"same_place_as": same} if same else {}),
                     **({"lake_id": lake_id} if lake_id else {}),
                     # T207: only `medium` / `low`; absent is high
-                    **({"confidence": conf} if conf and conf != "high" else {})}
+                    **({"confidence": conf} if conf and conf != "high" else {}),
+                    **({"near": near[sid][0], "near_m": near[sid][1]} if sid in near else {})}
     for r in REGIONS:
         out[f"region_line:{r}"] = {"name": f"Region {r} boundary", "kind": "region_line",
                                    "water_id": None, "km": None}
@@ -847,21 +853,23 @@ def _split_refs(o):
 
 
 def referenced_edges(splits: dict, entries: dict, rules: dict, licensing: dict,
-                     waters: dict) -> dict:
+                     waters: dict, extra=()) -> dict:
     """ONLY THE LAKE EDGES SOMETHING NAMES. The bundle's `split` table holds every lake's edge on
     every river (`kind: lake_edge`, 21,636 rows) because a curated cut landing in a lake binds
     by one (E2); 68 are named by an extent, and the runs end at `lake_inlet:` / `lake_outlet:`
     tokens, never at an edge id. A row nothing in the file names is a name no page can ask for:
     it is left in the bundle. Every other kind of cut ships whole. What counts as naming: an
     extent's `splits` (rules, licensing, entries — nested carve-outs included), a run's ends, a
-    kept cut's `same_place_as`."""
+    kept cut's `same_place_as` or `near`, an end an in-season notice names (`extra`)."""
     refs = set(_split_refs([e.get("extents") for e in entries.values()]))
     refs |= set(_split_refs([x["fields"] for x in rules.values()]))
     refs |= set(_split_refs([x["fields"] for x in licensing.values()]))
     refs |= {r[k] for w in waters.values() for p in w["parts"] for r in p.get("runs") or ()
              for k in ("from", "to") if r.get(k)}
+    refs |= set(extra)                          # (T517) the in-season notices' ends
     keep = {k for k, x in splits.items() if x["kind"] != "lake_edge" or k in refs}
     keep |= {splits[k]["same_place_as"] for k in list(keep) if splits[k].get("same_place_as")}
+    keep |= {splits[k]["near"] for k in list(keep) if splits[k].get("near") in splits}     # (T517) a gauge's feature
     return {k: x for k, x in splits.items() if k in keep}
 
 

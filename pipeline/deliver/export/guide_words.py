@@ -408,6 +408,10 @@ SPLIT_TEXT = {
     "confidence": "ONLY on a curated cut whose place is not certain: `medium` or `low` (absent: "
                   "high). Say the cut's name with 'approximate location (low confidence)' wherever "
                   "it is named — a part's runs, a boundary on the map",
+    "near": "ONLY on a GAUGE cut a part ends at (T517): the end token of the nearest named feature on the ground — a "
+            "tributary's `confluence:<water id>` or another named cut of the water — and `near_m` how far it stands, "
+            "metres. Say that feature where the part's end is named; the gauge's own name is an alternate only",
+    "near_m": "with `near`: the metres between the gauge cut and that feature",
     "same_place_as": "ONLY on a cut at the SAME place as another cut of the same water (one "
                      "curated cut authored under two waters' lists — the Thompson River confluence "
                      "on the Fraser, as `fraser_river__…` and `thompson_river__…`): that other "

@@ -111,13 +111,17 @@ export function Place({ place, palette, coach: coachKey = "regs:place" }: { plac
                                                                           /** the walkthrough's key (null: none) */
                                                                           coach?: string | null }) {
   const [measured, setMeasured] = useState<number | null>(null);
+  const [measuredLabel, setMeasuredLabel] = useState<number | null>(null);
   const scale = useCappedScale();
   const lh = PLACE_LH * scale;
   const shown = place ? pickPlace(place, measured, lh) : "";
-  // (owner 2026-10-27) one line when the name fits, two only when it wraps. Before the measuring twin has laid out, a guess
-  // from the text's length (no jump for the common short name); the measure then settles it.
-  const wraps = place ? (measured ? measured > lh * 1.5 : place.full.length * scale > ONE_LINE_CHARS) : false;
-  const lines = wraps ? 2 : 1;
+  // (owner 2026-10-27) one line when the name fits, more only when it wraps. Before the measuring twin has laid out, a
+  // guess from the text's length (no jump for the common short name); the measure then settles it. (T517) A part's
+  // name is its two ends' words and may be long ("Mouth → Cable car crossing (200 m downstream of Vedder Crossing
+  // bridge)"): the row takes as many lines as the name shown needs, so nothing is ever cut (T40 at 200 % text)
+  const labelHeight = place && shown === place.full ? measured : measuredLabel;
+  const lines = !place ? 1 : labelHeight ? Math.max(1, Math.round(labelHeight / lh))
+    : Math.max(1, Math.ceil((shown.length * scale) / ONE_LINE_CHARS));
   const coach = useCoachTarget(coachKey ?? undefined);   // (T293) the walkthrough: which part of the water this is
   return (
     <View ref={coach} collapsable={false} style={{ paddingLeft: GUTTER, paddingRight: 12, paddingBottom: 6, marginTop: -2 }}>
@@ -127,6 +131,11 @@ export function Place({ place, palette, coach: coachKey = "regs:place" }: { plac
         // the measuring twin: the full label at the same width, invisible (react-native-web has no onTextLayout)
         <Text aria-hidden pointerEvents="none" onLayout={(e) => setMeasured(e.nativeEvent.layout.height)} maxFontSizeMultiplier={CAPPED_SCALE}
               style={[TYPE.metaSemi, { position: "absolute", left: GUTTER, right: 12, top: 0, opacity: 0 }]}>{place.full}</Text>
+      )}
+      {place && shown !== place.full && (
+        // and the label shown, when it is the short one: the lines the row takes
+        <Text aria-hidden pointerEvents="none" onLayout={(e) => setMeasuredLabel(e.nativeEvent.layout.height)} maxFontSizeMultiplier={CAPPED_SCALE}
+              style={[TYPE.metaSemi, { position: "absolute", left: GUTTER, right: 12, top: 0, opacity: 0 }]}>{shown}</Text>
       )}
     </View>
   );

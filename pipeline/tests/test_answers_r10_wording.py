@@ -22,6 +22,14 @@ from pipeline.tests import answers28_fixture as F
 OCT10 = (10, 10)
 
 
+
+def _name(doc, part):
+    """T517 (owner 2026-11-09): a part's name from its end tokens, as the app's `spanName` composes it; None: no main
+    stem (the app says the water's name)."""
+    from pipeline.deliver.answers.display.part import end_name_of, end_tokens
+    t = end_tokens(doc, part)
+    return end_name_of(doc, t[0], t[1]) if t else None
+
 def _g(water):
     out, _P = F.card(water, OCT10)
     return F.trout_group(out)
@@ -101,12 +109,12 @@ def test_w2_a_part_with_a_main_run_does_not_mention_its_side_channels():
     assert D.runs_label(DOC, {"runs": [MAIN, SIDE]}) == "From the mouth up to the CNR Mile 66 Trestle"
     assert D.runs_label(DOC, {"runs": [MAIN, SIDE, dict(SIDE, km_from=2.0)]}) == \
         "From the mouth up to the CNR Mile 66 Trestle"
-    assert D.short_label(DOC, {"runs": [MAIN, SIDE]}, "x") == "Mouth → CNR Mile 66 Trestle"
+    assert _name(DOC, {"runs": [MAIN, SIDE]}) == "Mouth → CNR Mile 66 Trestle"
 
 
 def test_w2_a_part_of_side_channels_only_keeps_its_words():
     assert D.runs_label(DOC, {"runs": [SIDE]}) == "Side channel, joining 4.1 km from the mouth"
-    assert D.short_label(DOC, {"runs": [SIDE]}, "x") == "Side channel"
+    assert _name(DOC, {"runs": [SIDE]}) is None                    # no main stem: the water's name (app)
 
 
 # W3 --------------------------------------------------------------------------------------------
@@ -114,11 +122,10 @@ def test_w3_a_short_label_never_cuts_an_end_name():
     doc = {"splits": {"prnp": {"name": "Pacific Rim National Park Reserve boundary"}},
            "waters": {"gnis:1": {"name": "Sikanni Chief River"}}}
     fontas = {"runs": [{"from": "bc_border", "to": "confluence:gnis:1", "km_from": 282.6, "km_to": 0.0}]}
-    assert D.short_label(doc, fontas, "x") == "Sikanni Chief River confluence → B.C. border"
+    assert _name(doc, fontas) == "Sikanni Chief River confluence → B.C. border"
     park = {"runs": [{"from": "prnp", "to": "mouth", "km_from": 3.0, "km_to": 0.0}]}
-    assert D.short_label(doc, park, "x") == "Mouth → Pacific Rim National Park Reserve boundary"
-    assert "…" not in D.short_label(doc, {"runs": []}, "Located immediately north and south of "
-                                                        "Bluey Lake · Whole water and more words")
+    assert _name(doc, park) == "Mouth → Pacific Rim National Park Reserve boundary"
+    assert _name(doc, {"runs": []}) is None
 
 
 def test_w3_a_full_label_hint_is_never_cut():

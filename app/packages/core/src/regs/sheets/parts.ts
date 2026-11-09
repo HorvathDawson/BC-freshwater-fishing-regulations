@@ -11,13 +11,12 @@
  * Not ported (D1): the prototype's "This prototype has no map of this water, so its parts are listed here." — the app
  * frames every named part on the map; the sheet is the list.
  */
+import { partNameOf, type PartNames } from "../header";
 import type { RegsInputs } from "../inputs";
 import type { SheetBlock, SheetVM } from "../model";
 import type { SheetKey } from "../sheetKey";
 import { WORDS } from "../words";
 
-/** The data cut a label with "…" (a match key, never said) — header.ts `uncut`. */
-const uncut = (s: string | null | undefined): string => (s && !s.includes("…") ? s : "");
 const longOf = (t: string) => t.replace(/ · \d+ sections?$/, "");
 
 type Status = NonNullable<RegsInputs["choicesOnDay"]>[number]["status"];
@@ -31,15 +30,14 @@ export function pickerOrder(picker: { readonly headed: boolean; readonly choices
   return [...heads.values()].flat();
 }
 
-export function partsSheet(key: SheetKey, inp: RegsInputs): SheetVM | null {
+export function partsSheet(key: SheetKey, inp: RegsInputs, names?: PartNames | null): SheetVM | null {
   const it = inp.item, days = inp.choicesOnDay, choices = it?.picker?.choices ?? [];
   if (!it || !it.picker || !days || choices.length < 2 || days.length !== choices.length) return null;
   const items = pickerOrder(it.picker).map((i) => {
     const c = choices[i]!;
     const part = days[i]!.partIx, long = longOf(c.text);
-    // (T517) a choice whose first part is a piece of a salmon-cut run is named by the whole run (`run_name`)
-    const first = it.parts[part];
-    const text = uncut(first?.run_name ?? first?.short) || long || it.name;
+    // (T517) a choice is named as the map names the entry holding its first part (`partNameOf`: one name, every screen)
+    const text = partNameOf(inp, part, names);
     return { text, sub: null, status: wordOf(days[i]!.status), long: long && long !== text ? long : null,
              checked: c.parts.includes(inp.partIx), part };
   });

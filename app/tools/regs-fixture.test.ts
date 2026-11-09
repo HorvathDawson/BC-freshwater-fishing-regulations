@@ -116,8 +116,17 @@ describe("T10 the committed regs fixture release", () => {
   it("2. keeps exactly the golden waters (taps.json states + leap) and every key they and the unnamed handles reach", () => {
     const golden = [...new Set([...Object.values(TAPS.states), ...TAPS.leap].map((s) => s.item))].sort();
     const core = (DB.core!.prepare("SELECT item_id AS i, ord FROM item ORDER BY item_id").all() as { i: string; ord: number }[]);
-    expect(core.map((r) => r.i)).toEqual(golden);
-    expect([...ids(DB.water!, "item", "item_ord")].sort((a, b) => a - b)).toEqual(core.map((r) => r.ord).sort((a, b) => a - b));
+    const goldenRows = core.filter((r) => golden.includes(r.i));
+    expect(goldenRows.map((r) => r.i)).toEqual(golden);
+    // (T517) every water a golden water flows into (`water_exit`) is kept whole too — the map draws the receiving water's
+    // part and greys the rest (T459), so its group must read — and core names where THOSE flow (a named exit, never an
+    // item core lacks: `navRows` refuses one). Nothing else is kept.
+    const into = (ords: readonly number[]) => new Set((DB.water!.prepare(
+      `SELECT DISTINCT down_ord AS o FROM water_exit WHERE ord IN (${ords.join(",")})`).all() as { o: number }[]).map((r) => r.o));
+    const keptOrds = [...new Set([...goldenRows.map((r) => r.ord), ...into(goldenRows.map((r) => r.ord))])].sort((a, b) => a - b);
+    expect([...ids(DB.water!, "item", "item_ord")].sort((a, b) => a - b)).toEqual(keptOrds);
+    expect(core.map((r) => r.ord).sort((a, b) => a - b))
+      .toEqual([...new Set([...keptOrds, ...into(keptOrds)])].sort((a, b) => a - b));
     for (const t of [...Object.values(TAPS.states), ...TAPS.leap])
       expect(ids(DB.water!, "akey", "akey").has(t.akey), `${t.item} akey ${t.akey}`).toBe(true);
     for (const u of TAPS.unnamed) expect(ids(DB.water!, "akey", "akey").has(u.akey), `handle ${u.handle}`).toBe(true);
@@ -167,7 +176,7 @@ describe("T10 the committed regs fixture release", () => {
       expect([n, m.section_handles, m.reach_digest, m.rule_ids_sha256]).toEqual([n, g.section_handles, g.reach_digest, g.rule_ids_sha256]);
     }
     expect(Object.fromEntries(Object.entries(MAN.files).map(([n, f]) => [n, f.format]))).toEqual({
-      core: "core/1", geo: "geo/1", water: "water/1", "regs-sid": "regs-sid/1",
+      core: "core/1", geo: "geo/2", water: "water/3", "regs-sid": "regs-sid/1",
       ...Object.fromEntries(["1", "2", "3", "4", "5", "6", "7a", "7b", "8"].map((r) => [`regs-${r}`, "regs-region/1"])) });
   });
 

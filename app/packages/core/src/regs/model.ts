@@ -348,4 +348,6 @@ export interface SourceRowVM { readonly key: RuleKey | null; readonly title: str
 export interface SheetCtx { readonly inp: RegsInputs; readonly page: Omit<RegsPage, "sheet">; readonly today: Day;
   /** (T36 part 2) the page's hydrated answers (place, settled day, card model, fish manifest) the row sheets (src:, other:)
    *  read — page.ts hands its own; absent: those sheets are null */
-  readonly env?: KeepEnv }
+  readonly env?: KeepEnv;
+  /** (T517) the map's names of the parts (`header.ts` `PartNames`): the Parts sheet's row names */
+  readonly names?: ReadonlyMap<number, string> | null }

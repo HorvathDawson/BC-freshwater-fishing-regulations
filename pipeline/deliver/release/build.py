@@ -47,7 +47,7 @@ import sqlite3
 import struct
 import tempfile
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from pipeline.deliver import lake_facts as LF
 from pipeline.deliver.release import contract as C
@@ -290,11 +290,11 @@ def lake_section(con: sqlite3.Connection, schema: str = "b") -> None:
 
 def geo_e6(con: sqlite3.Connection) -> None:
     """`part_geo` (copied from the bundle in degrees) as integer microdegrees (~0.1 m): a REAL is 8 bytes, these ~4."""
-    con.execute("CREATE TABLE part_geo_e6 (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, rank INTEGER NOT NULL, "
+    con.execute("CREATE TABLE part_geo_e6 (ord INTEGER NOT NULL, part_ix INTEGER NOT NULL, "
                 "mid_sid INTEGER NOT NULL, mid_lon INTEGER NOT NULL, mid_lat INTEGER NOT NULL, w INTEGER, "
                 "s INTEGER, e INTEGER, n INTEGER, PRIMARY KEY (ord, part_ix)) WITHOUT ROWID")
     e6 = lambda c: f"CAST(round({c} * 1000000) AS INTEGER)"  # noqa: E731
-    con.execute(f"INSERT INTO part_geo_e6 SELECT ord, part_ix, rank, mid_sid, {e6('mid_lon')}, {e6('mid_lat')}, "
+    con.execute(f"INSERT INTO part_geo_e6 SELECT ord, part_ix, mid_sid, {e6('mid_lon')}, {e6('mid_lat')}, "
                 f"{e6('w')}, {e6('s')}, {e6('e')}, {e6('n')} FROM part_geo ORDER BY ord, part_ix")
     con.execute("DROP TABLE part_geo")
     con.execute("ALTER TABLE part_geo_e6 RENAME TO part_geo")
@@ -385,6 +385,48 @@ def web_moments(release_dir: Path) -> Dict[str, tuple]:
     return out
 
 
+def mark_token(down_hi: Optional[str], up_lo: Optional[str], down_side: bool = False, up_side: bool = False,
+               down_keyed: bool = True, up_keyed: bool = True) -> Optional[str]:
+    """(T517 review finding 2) THE PLACE A MARK STANDS AT, as an end token — never stored words:
+      * the token the lower part's upper end and the upper part's lower end share (the answers say both ends of a
+        place alike, `builders._names`);
+      * a side that ships no ends (an UNKEYED part: outside B.C., tidal water) — the other side's end there;
+      * across a lake (the lower one's top its outlet, the upper one's bottom its inlet) — the upper one's (the lake);
+      * two main-stem parts whose ends are two cuts at one place (Little Qualicum's signs 35 m below the hatchery
+        fence and the fence) — the lower part's upper end;
+      * else None — and the release ships the token the parts' RUNS share there (`topology.mark_words`, the bundle's
+        `part_mark.token`; a part with no main stem ships no ends of its own), or none: a side channel meeting its
+        river at no named place."""
+    if down_hi is not None and down_hi == up_lo:
+        return down_hi
+    if not up_keyed and down_hi is not None:
+        return down_hi
+    if not down_keyed and up_lo is not None:
+        return up_lo
+    if (down_hi or "").startswith("lake_outlet") and (up_lo or "").startswith("lake_inlet"):
+        return up_lo
+    if down_side or up_side or down_hi is None or up_lo is None:
+        return None
+    return down_hi
+
+
+def mark_tokens(con: sqlite3.Connection) -> Dict[Tuple[int, int], str]:
+    """{(ord, mark_ix): token} for the water file's marks (`mark_token` over each up part, the first that says one)."""
+    s = dict(con.execute("SELECT id, text FROM str"))
+    part = {(o, ix): (s.get(lo), s.get(hi), km is None, akey is not None) for o, ix, lo, hi, km, akey in con.execute(
+        "SELECT item_ord, part_ix, lo_s, hi_s, km, akey FROM part")}
+    out: Dict[Tuple[int, int], str] = {}
+    for o, k, d, ups in con.execute("SELECT ord, mark_ix, down_part, up_parts FROM part_mark"):
+        dn = part[(o, d)]
+        for u in json.loads(ups):
+            up = part[(o, u)]
+            t = mark_token(dn[1], up[0], dn[2] and dn[3], up[2] and up[3], dn[3], up[3])
+            if t is not None:
+                out[(o, k)] = t
+                break
+    return out
+
+
 def bundle_continues(b: sqlite3.Connection) -> List[tuple]:
     """`water_continue` as the bundle wrote it (`pipeline.deliver.bundle.continuation`): copied, never derived here — the
     release reads nothing past the bundle (audit F07). A bundle without the table predates it and is refused."""
@@ -454,14 +496,16 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
             # camera hints as integer microdegrees (~0.1 m): a REAL is 8 bytes, these are ~4 (part_geo: the geo file)
             e6 = lambda c: f"CAST(round({c} * 1000000) AS INTEGER)"  # noqa: E731
             con.execute("CREATE TABLE part_mark_e6 (ord INTEGER NOT NULL, mark_ix INTEGER NOT NULL, lon INTEGER NOT NULL, "
-                        "lat INTEGER NOT NULL, label TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, "
-                        "confidence TEXT, down_stretch INTEGER, up_stretches TEXT, alt TEXT, "
+                        "lat INTEGER NOT NULL, token TEXT, down_part INTEGER NOT NULL, up_parts TEXT NOT NULL, "
+                        "confidence TEXT, alt TEXT, "
                         "PRIMARY KEY (ord, mark_ix)) WITHOUT ROWID")
-            # `confidence` (T207), `down_stretch` / `up_stretches` (T204): ADDITIVE, last, NULL for the common case
-            # (high; stretch 0) — still water/1; an older release has no columns
-            con.execute(f"INSERT INTO part_mark_e6 SELECT ord, mark_ix, {e6('lon')}, {e6('lat')}, label, down_part, up_parts, "
-                        "confidence, down_stretch, up_stretches, alt "
-                        "FROM part_mark ORDER BY ord, mark_ix")
+            # `confidence` (T207: NULL for high), `alt` (T517). (T517 review finding 2) a mark ships the END TOKEN its
+            # two parts share there (`mark_token`), named by the app through `display.ends` like every part: no stored words
+            tok = mark_tokens(con)
+            con.executemany("INSERT INTO part_mark_e6 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            [(o, k, lon, lat, tok.get((o, k), bt), d, u, c, a) for o, k, lon, lat, d, u, c, a, bt in
+                             con.execute(f"SELECT ord, mark_ix, {e6('lon')}, {e6('lat')}, down_part, up_parts, "
+                                         "confidence, alt, token FROM part_mark ORDER BY ord, mark_ix").fetchall()])
             con.execute("DROP TABLE part_mark")
             con.execute("ALTER TABLE part_mark_e6 RENAME TO part_mark")
             # the exit's label is the receiving water's name, which `item` already holds
@@ -518,7 +562,10 @@ def build(*, bundle: Path, store: Path, status_index: Path, export_dir: Path, ou
         # T517 (owner 2026-11-08: the parts and the painted colours "can never diverge"): held on the SHIPPED files,
         # before any pointer names the release
         from pipeline.deliver.release.paint_sync import check as _paint_sync
-        _paint_sync(final)
+        _paint_sync(final, bundle)
+        # T517 (owner 2026-11-09: fail fast; review finding 8): the names and run rules on the SHIPPED water file too
+        from pipeline.deliver.answers.display.name_check import check_release as _name_check
+        _name_check(final)
         from pipeline.deliver.release.manifest import write_latest
         write_latest(out_root, final.name)              # T72: the pointer every reader asks, not the newest mtime
         return final

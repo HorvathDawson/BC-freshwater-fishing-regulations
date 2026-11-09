@@ -8,7 +8,7 @@
  * the header, the parts list and the screen reader all say `partName`).
  */
 import { describe, expect, it } from "vitest";
-import { partName, type WaterGroup } from "@app/core";
+import { partName, spanName, type WaterGroup } from "@app/core";
 import { loadWaterGroup, openRegsStore, type RegsStore } from "@app/data/regs";
 import { liveReleaseAt, openReleaseDir } from "../conformance/src/fixtureRelease";
 
@@ -30,42 +30,47 @@ describe.skipIf(!at.dir)("(T517) every part is one connected run, named by its o
   it("the Fraser's lowest part: Mission → Landstrom Bar, then Landstrom Bar → Spuzzum Creek", async () => {
     const g = await loadWaterGroup(await open(), "gnis:39325");
     const n = names(g);
-    // (T517) the split's raw wording is cleaned ("The CPR Bridge…" → "CPR Bridge at Mission")
-    expect(n[0]).toBe("CPR Bridge at Mission → Landstrom Bar sign zone boundary");
-    expect(n).toContain("Landstrom Bar sign zone boundary → Spuzzum Creek confluence");
+    // (T517) the split's raw wording is cleaned ("The CPR Bridge…" → "CPR Bridge at Mission"); the zone's two ends are
+    // one boundary said at its place (owner 2026-11-09: no "(n)", no "Within")
+    expect(n[0]).toBe("CPR Bridge at Mission → Landstrom Bar sign zone boundary (km 156.4)");
+    expect(n).toContain("Landstrom Bar sign zone boundary (km 156.5) → Spuzzum Creek confluence");
   }, 60_000);
 
   it("formerly bare or counted stretches are parts with their own ends: the Fort Nelson, Kanaka Creek", async () => {
     const [fn, kanaka] = await Promise.all(["gnis:11819", "gnis:11318"].map(async (id) => loadWaterGroup(await open(), id)));
-    expect(names(fn!)).toEqual(["Mouth → Fort Nelson River Ecological Reserve boundary",
-      "Within Fort Nelson River Ecological Reserve", "Fort Nelson River Ecological Reserve boundary → Source"]);
+    expect(names(fn!)).toEqual(["Mouth → Fort Nelson River Ecological Reserve boundary (km 155.2)",
+      "Fort Nelson River Ecological Reserve boundary (km 155.2) → Fort Nelson River Ecological Reserve boundary (km 158)",
+      "Fort Nelson River Ecological Reserve boundary (km 158) → Source"]);
     expect(names(kanaka!)).toEqual(["CPR Bridge (tidal boundary) → 112 Avenue bridge", "112 Avenue bridge → Cliff Park Falls",
       "Cliff Park Falls → A lake outlet"]);
   }, 60_000);
 
-  it("no entry says 'N stretches' or 'stretch k of n', every one has a name, and none is one stretch of a part", async () => {
+  it("no entry says 'N stretches' or 'stretch k of n', every one has a name, and each is one part", async () => {
     for (const id of WATERS) {
       const g = await loadWaterGroup(await open(), id);
       const n = names(g);
       expect([id, n.filter((x) => /stretch/.test(x) || x.trim() === "")]).toEqual([id, []]);
-      expect([id, g.parts.filter((p) => p.stretches !== undefined).length]).toEqual([id, 0]);
+      // every entry is ONE part of the release (no salmon read: nothing joined)
+      expect([id, g.parts.filter((p) => p.pieces.length !== 1).length]).toEqual([id, 0]);
     }
   }, 60_000);
 
   it("a salmon-cut run's pieces: each by its own two ends; read alike, the run joins and says the run's name", async () => {
     const st = await open();
     const raw = await loadWaterGroup(st, "gnis:16075");
-    const cut = raw.parts.flatMap((p, i) => (p.runName !== undefined ? [i] : []));
+    // the pieces of a run the salmon chain cuts: two or more parts sharing a rule-set group and run
+    const runOf = (i: number) => `${raw.parts[i]!.grp}:${raw.parts[i]!.run}`;
+    const cut = raw.parts.flatMap((_, i) => (raw.parts.filter((_q, j) => runOf(j) === runOf(i)).length > 1 ? [i] : []));
     expect(cut.length).toBeGreaterThan(1);
-    expect(cut.map((i) => partName(raw, i))).toEqual(cut.map((i) => `${raw.parts[i]!.lo} → ${raw.parts[i]!.hi}`));
-    // one salmon reading for every section: pieces a mark joins are one entry — the whole Iltasyuko run by the run's
-    // name; a span short of its whole run by its outer pieces' ends ("A lake" → the source). The Anahim run's first
-    // piece meets the next across a lake (another item, no mark between them), so it stays its own entry.
+    // one salmon reading for every section: pieces a mark joins are one entry — each whole run by its first piece's lower
+    // end and its last piece's upper end (both runs are mark-connected on this release: T517 finding 10)
     const alike = await loadWaterGroup(st, "gnis:16075", () => "same");
-    expect([...new Set(cut.map((i) => raw.parts[i]!.runName!))]).toEqual(["Iltasyuko River confluence → Anahim Lake outlet",
-      "Anahim Lake → Source"]);
+    // each run's whole name: the one name function over its first piece's lower end and its last piece's upper end
+    const runs = [...new Set(cut.map(runOf))].map((k) => cut.filter((i) => runOf(i) === k));
+    expect(runs.map((r) => spanName(raw.ends, "Dean River", raw.parts[r[0]!]!, raw.parts[r[r.length - 1]!]!)))
+      .toEqual(["Iltasyuko River confluence → Anahim Lake outlet", "Anahim Lake → Source"]);
     expect(names(alike).slice(raw.parts.length - cut.length)).toEqual(["Iltasyuko River confluence → Anahim Lake outlet",
-      "Anahim Lake → A lake outlet", "A lake → Source"]);
+      "Anahim Lake → Source"]);
     expect(names(alike).slice(0, raw.parts.length - cut.length)).toEqual(names(raw).slice(0, raw.parts.length - cut.length));
   }, 60_000);
 });

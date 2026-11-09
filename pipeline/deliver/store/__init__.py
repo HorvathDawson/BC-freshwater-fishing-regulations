@@ -39,4 +39,6 @@ DEBUG_OUT = GENERATED.base / "debug" / "regs.sqlite"
 #: 3 (S1b): keys by content (no `akey.place`); `place` is a region set; `section_place`. MUs are
 #: not shipped (the bundle's `mu_set` / `section_ruleset.mus`; the tiles' MU layer).
 #: 4 (answers 2.7): `part.short_s`, the part strip's short name.
-FORMAT = "regs-store/4"
+#: 5 (T517): one part per connected run (`grp`, `run`, `lo_s` / `hi_s` END TOKENS), river order; `part.hint_s`,
+#: `short_s` gone (the app composes every name from the ends, or says the water's name)
+FORMAT = "regs-store/5"

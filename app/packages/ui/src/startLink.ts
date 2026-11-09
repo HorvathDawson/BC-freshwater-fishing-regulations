@@ -8,7 +8,7 @@
  * (T369, owner 2026-11-03) A LINK ADDRESSES A PLACE, NOT A PART NUMBER: `blk` + `m` (place.ts), the FWA stream key and a
  * distance along it, resolved in the release the app holds (`@app/ui/place` `resolveStartLink`, web-only) to the water and part there — named or
  * not (an unnamed reach's link is `?blk=&m=` alone). A water of one part, a lake and a split lake's closure area need no
- * place: the item is the address (no older link form is read: owner 2026-11-03). `ix=` (+ `stretch=`) is the browser tools' key — a part index in the release the
+ * place: the item is the address (no older link form is read: owner 2026-11-03). `ix=` is the browser tools' key — a part index in the release the
  * tool was cut against (a test affordance; the app never writes it).
  *
  * It decides nothing: the water opens through `openWater` (the one way in), the day is the Shell's one day, the angler
@@ -25,11 +25,11 @@ import { mapDayOf } from "./regs";
 import { HOME, reduce, waterFrame, type BrowseTab, type LatLon, type Route, type View } from "./route";
 
 /** The query keys a route owns (`routeSearch` writes them; the rest — angler, theme — are left as they were). `show`
- *  is read once at start and gone at the first write; `stretch` and `ix` are read, never written. (T369, owner
+ *  is read once at start and gone at the first write; `ix` is read, never written. (T369, owner
  *  2026-11-04: the address holds what defines the view a reader would share or reload into) `here` / `tap` the tapped
  *  point, `browse` the tab, `spot` an open spot, `date` the chosen day when not today, `horizon` the Conditions
  *  forecast day; transient UI (folds, scroll memory) is not in it. */
-export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "stretch", "ix", "view", "tab", "sheet", "scroll", "show",
+export const ROUTE_KEYS = ["regs", "blk", "m", "whole", "ix", "view", "tab", "sheet", "scroll", "show",
                           "here", "tap", "browse", "spot", "date", "horizon"] as const;
 const BROWSE_TABS: readonly BrowseTab[] = ["map", "conditions", "runs", "spots", "more"];
 
@@ -219,9 +219,8 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
     const v = q.get(k);
     return v === null ? null : /^\d+$/.test(v) ? Number(v) : bad(k, what);
   };
-  // `ix=` (+ `stretch=`): the browser tools' own part index
+  // `ix=`: the browser tools' own part index
   const ix = index("ix", "a part index");
-  const stretch = ix === null ? undefined : index("stretch", "a stretch index") ?? undefined;
   const part = where === null ? ix : null;
 
   const tabS = q.get("tab") ?? "keep";
@@ -246,7 +245,7 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   const place: LinkPlace | null = where && { ...where, view };
   // the whole water: asked (`whole=1`)
   const whole = view === "map" && part === null && q.get("whole") === "1";
-  const route = item === null ? HOME : reduce(HOME, openWater({ item: item as ItemId, part, view, stretch, whole }));
+  const route = item === null ? HOME : reduce(HOME, openWater({ item: item as ItemId, part, view, whole }));
   // (T369 D5) a tapped frame's address: the tap's point, or a tap with none
   const hereS = q.get("here");
   const hm = hereS === null ? null : /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(hereS);

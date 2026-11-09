@@ -246,14 +246,15 @@ describe("6. font scaling", () => {
     expect(keep.filter((t) => !t.id.startsWith("n:") && t.mfm !== "")).toEqual([]);
   });
 
-  it("the header's place row grows with the text (one line at 1×; at 2× this label wraps to two), and the label fit re-runs at the scaled line height", () => {
+  it("the header's place row grows with the text — as many lines as the name needs, never cut (T517: the Vedder's part " +
+     "name takes two at 1×, four at 2×) — and the label fit re-runs at the scaled line height", () => {
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(1);
     const r = mount();
     const place = () => (screen.getByTestId("regs-place") as HTMLElement).style.height;
-    expect(place()).toBe("16.22px");
+    expect(place()).toBe("32.44px");
     vi.spyOn(PixelRatio, "getFontScale").mockReturnValue(2);
     act(() => { window.dispatchEvent(new Event("resize")); });
-    expect(place()).toBe("64.88px");
+    expect(place()).toBe("129.76px");
     r.unmount();
   });
 });

@@ -6,7 +6,7 @@
  * the walk says so instead of pointing at a part that is not closed.
  */
 import { useEffect, useState } from "react";
-import { GUIDE_CLOSED, reportFailure } from "@app/core";
+import { GUIDE_CLOSED, reportFailure, spanName } from "@app/core";
 import type { ItemId, WaterSource } from "@app/data";
 import type { RegsLoader, RegsReads } from "@app/data/regs";
 import { loadRegsStore } from "@app/ui";
@@ -22,18 +22,19 @@ export interface GuideClosed {
 }
 
 export async function findGuideClosed(source: Pick<WaterSource, "searchNames">,
-                                      store: Pick<RegsReads, "itemOrd" | "parts" | "partLines">): Promise<GuideClosed | null> {
+                                      store: Pick<RegsReads, "itemOrd" | "parts" | "partLines" | "statics">): Promise<GuideClosed | null> {
   const hits = await source.searchNames(GUIDE_CLOSED.name, 10);
   const hit = hits.find((h) => h.name === GUIDE_CLOSED.name && h.kind === GUIDE_CLOSED.kind);
   if (!hit) return null;
   const ord = await store.itemOrd(hit.item as ItemId);
   if (ord === null) return null;
   const runs = await store.partLines(ord);
-  const run = runs?.find((r) => r.blk === GUIDE_CLOSED.blk && r.m0 === GUIDE_CLOSED.from);
+  const run = runs.find((r) => r.blk === GUIDE_CLOSED.blk && r.m0 === GUIDE_CLOSED.from);
   if (!run) return null;
   const facts = (await store.parts(ord))[run.partIx]?.facts;
   if (!facts?.closed_all_year) return null;
-  return { item: hit.item, name: hit.name, part: run.partIx, label: facts.short };
+  // (T517) the part's name, composed by the one name function from its end tokens (as the map's bar says it)
+  return { item: hit.item, name: hit.name, part: run.partIx, label: spanName((await store.statics()).ends, hit.name, facts) };
 }
 
 /**

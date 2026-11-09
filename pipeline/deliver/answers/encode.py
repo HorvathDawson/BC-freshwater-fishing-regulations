@@ -610,7 +610,7 @@ SPEC = {
             "what": "Derived display facts: per part key and segment the status index's code; per "
                     "export rule its kind, closure, size bands and plain sentence; per water each "
                     "export part's names and picker facts",
-            "version": "18",
+            "version": "20",
             "at": "[[frame index per segment] per key]",
             "frames": "[{status, closing, closers?, unless_opened?, strip}] — `status` base | own | closed (the verdicts' "
                       "`reading.closed` at the segment's moment: closed = every game fish under a "
@@ -693,7 +693,7 @@ SPEC = {
                        "(\"{by}\": write the rule that beat it), `won` said of that winner "
                        "(\"{rule}\": write the rule it beat)",
             "waters": "{item_id: {parts, picker, unresolved_licensing}} — `parts` aligned with "
-                      "the export's parts ({order, label, short, runs, place, hint, km, closed_all_year, "
+                      "the export's parts ({order, label, short (only without two ends), lo, hi (END TOKENS, keys of `ends`), runs, place, km, closed_all_year, "
                       "paper_licence [rule] (version 17, ROUND UR6: only record rules that speak on some day here — a "
                       "fish nobody may keep here is not named)} | null outside B.C.; `short` (version 6, answers 2.7) the "
                       "part strip's name from the range's end labels, mouth upward: \"Mouth → Vedder "
@@ -999,6 +999,13 @@ def decode(wire: dict, data: dict) -> Model:
         codec = CODECS.get(name)
         if codec is None:
             raise AnswersError(f"answers: the file holds section {name!r}, which no codec reads")
+        # (T517) a section of another version than this code reads is refused, by name, before any of its fields is
+        # read (a display 18 file read by display 20 code failed as KeyError 'ends')
+        want = SPEC["sections"][name]["version"]
+        if str(sec.get("version")) != want:
+            raise AnswersError(f"answers: section {name!r} is version {sec.get('version')}, this code reads {want} — "
+                               "rebuild the answers (python -m pipeline.deliver answers) or point the reader at the "
+                               "set built with this code (ANSWERS_EXPORT_DIR)")
         sections[name] = [[codec.decode_frame(sec, ref, rules, fish) for ref in at]
                           for at in sec["at"]]
         if codec.static_keys:

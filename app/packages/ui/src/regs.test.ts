@@ -124,10 +124,10 @@ describe("(T387) a page's access notices: its PART's, whatever was tapped", () =
     access: async () => { if (gentle instanceof Error) throw gentle; return gentle ? accessOf([PRIV], [9], [0], [1000]) : null; },
   });
   const LENS: Record<number, [number, number | null][]> = { 0: [[7, 1000], [8, 25]], 1: [[8, 25], [9, 3000]], 2: [[9, 3000]] };
-  const store = (lengths = true) => ({
+  const store = () => ({
     navRows: async () => ({ sections: [{ sid: 7, partIx: 0 }, { sid: 8, partIx: 0 }, { sid: 8, partIx: 1 },
                                        { sid: 9, partIx: 1 }, { sid: 9, partIx: 2 }] }) as never,
-    partLengths: async (ord: number, partIx: number) => { reads.push(`${ord}:${partIx}`); return lengths ? new Map(LENS[partIx]) : null; },
+    partLengths: async (ord: number, partIx: number) => { reads.push(`${ord}:${partIx}`); return new Map(LENS[partIx]); },
   });
   const part = (partIx: number, parts = 3): PageSubject => ({ kind: "part", item: "gnis:1", ord: 1, partIx, parts });
   const TAIL = ", closed to the public. The regulations below don't give you access.";
@@ -139,9 +139,6 @@ describe("(T387) a page's access notices: its PART's, whatever was tapped", () =
       `Under 1% of this part of the water is in Coquitlam Watershed${TAIL}`,
       "This part of the water crosses private land (about 99% of it)."]);
     expect(reads).toEqual(["1:1"]);
-    // a release that ships no lengths: the same areas, no share claimed
-    expect((await regsAccessNotices(loader(), store(false), part(1))).map((n) => n.text)).toEqual([
-      `Some of this part of the water is in Coquitlam Watershed${TAIL}`, "This part of the water crosses private land."]);
   });
 
   it("sections alike read no length; a one-part water is \"this water\"; an unnamed reach is its section", async () => {

@@ -63,7 +63,8 @@ describe("<SheetHost> over the frozen vedder_1010 page", () => {
     expect(screen.getByRole("heading", { name: "Parts of this water" })).toBeTruthy();
     const rows = screen.getAllByRole("radio");
     expect(rows.map((r) => [r.getAttribute("aria-label"), r.getAttribute("aria-checked")]))
-      .toEqual([["4 side channels · open", "true"], ["Mouth → Talchako River confluence · open", "false"]]);
+      // (T517) the side channels (no ends) are said as the water
+      .toEqual([["Bella Coola River · open", "true"], ["Mouth → Talchako River confluence · open", "false"]]);
     // (T517) part_ix is river order: the side channels are part 0, the main stem (row 2) part 1
     act(() => { rows[1]!.click(); });
     expect(onPart).toHaveBeenCalledWith(1);

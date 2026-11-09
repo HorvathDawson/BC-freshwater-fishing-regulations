@@ -73,7 +73,8 @@ describe("<RegsHeader>", () => {
       name: "Vedder River",
       pill: ["Today Oct 10, change date", "TodayOct 10"],
       buttons: 0,
-      place: "Mouth → Vedder Crossing Bridge",
+      // (T517) the page's part is the run's lower piece, named by its own two ends (the map joins it only on a live reading)
+      place: "Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge)",
       tabs: [["What you can keep", "true"], ["Gear", "false"], ["Methods", "false"], ["Licence", "false"]],
     });
     expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.open));
@@ -86,9 +87,9 @@ describe("<RegsHeader>", () => {
     expect(screen.getByTestId("regs-dot").style.backgroundColor).toBe(rgb(LIGHT.closed));
   });
 
-  it("(T150) bc1_501, a water of many parts: no Parts button — only the part's full label; the name row holds the pill alone", () => {
+  it("(T150) bc1_501, a water of many parts: no Parts button; (T517) its side channels have no ends, so the part is said as its water — the label slot is empty", () => {
     mount(headerOf("bc1_501"));
-    expect(drawn().place).toBe("4 side channels, joining 55–59.1 km from the mouth");
+    expect(drawn().place).toBe("");
     expect([screen.queryByRole("button", { name: /parts/i }), drawn().buttons]).toEqual([null, 0]);
   });
 

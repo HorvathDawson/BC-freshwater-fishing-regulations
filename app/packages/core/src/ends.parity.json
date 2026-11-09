@@ -1,0 +1,85 @@
+{
+  "about": "T517 (review finding 8): one fixture both composers read — app/packages/core/src/ends.ts spanName (ends.parity.test.ts) and pipeline/deliver/answers/display/name_check.py (test_name_check.py). Cases: a part, a lower end with to: words, ends said near / at km, a part with no ends (its water's name), a joined span (first lo -> last_hi).",
+  "ends": {
+    "mouth": [
+      "Mouth"
+    ],
+    "source": [
+      "Source",
+      "to:the source"
+    ],
+    "x__bridge": [
+      "Vedder Crossing Bridge"
+    ],
+    "x__cable": [
+      "Cable car crossing (200 m downstream of Vedder Crossing bridge)"
+    ],
+    "lake_outlet:wbk:1": [
+      "Chilliwack Lake outlet",
+      "to:Chilliwack Lake"
+    ],
+    "bc_border@near:place:Osoyoos": [
+      "B.C. border near Osoyoos"
+    ],
+    "bc_border@km72.1": [
+      "B.C. border (km 72.1)"
+    ],
+    "area:X@near:confluence:gnis:7": [
+      "X Ecological Reserve boundary near the Bowman Creek confluence"
+    ],
+    "near:water:wbk:6": [
+      "Near Six Mile Lake"
+    ]
+  },
+  "cases": [
+    {
+      "water": "Vedder River",
+      "lo": "mouth",
+      "hi": "x__cable",
+      "name": "Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge)"
+    },
+    {
+      "water": "Vedder River",
+      "lo": "x__cable",
+      "hi": "x__bridge",
+      "name": "Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge"
+    },
+    {
+      "water": "Chilliwack River",
+      "lo": "lake_outlet:wbk:1",
+      "hi": "source",
+      "name": "Chilliwack Lake → Source"
+    },
+    {
+      "water": "Petitot River",
+      "lo": "bc_border@near:place:Osoyoos",
+      "hi": "bc_border@km72.1",
+      "name": "B.C. border near Osoyoos → B.C. border (km 72.1)"
+    },
+    {
+      "water": "Wap Creek",
+      "lo": "area:X@near:confluence:gnis:7",
+      "hi": "source",
+      "name": "X Ecological Reserve boundary near the Bowman Creek confluence → Source"
+    },
+    {
+      "water": "Old Channel",
+      "lo": null,
+      "hi": null,
+      "name": "Old Channel"
+    },
+    {
+      "water": "Vedder River",
+      "lo": "mouth",
+      "hi": "x__cable",
+      "last_hi": "x__bridge",
+      "name": "Mouth → Vedder Crossing Bridge"
+    },
+    {
+      "water": "Old Kootenay River Channel",
+      "lo": "near:water:wbk:6",
+      "hi": "near:water:wbk:6",
+      "name": "Old Kootenay River Channel near Six Mile Lake"
+    }
+  ]
+}

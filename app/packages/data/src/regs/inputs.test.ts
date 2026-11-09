@@ -16,7 +16,7 @@ const SHUT: DisplayFrame = { status: "closed", closing: [[100, ["RB"]], [101, ["
 const rule = (rix: number, rank: number): StoredRule => ({ rix,
   export: { entry_id: `e${rix}`, rule_id: `r${rix}`, type: "t", family: "f", label: "L", verbatim: "V", fields: {}, prov: { rank } } as ExportRule,
   facts: { kind: "gate" } as unknown as RuleFacts });
-const facts = (label: string) => ({ order: 0, label, short: label, lo: null, hi: null, run_name: null, runs: label, place: null, hint: "", km: 1, closed_all_year: false,
+const facts = (label: string) => ({ order: 0, label, short: label, lo: null, hi: null, runs: label, place: null, km: 1, closed_all_year: false,
   paper_licence: [] });
 const cell = (ladder: number, display: number): CellIds => ({ ladder, rows: 1, gear: 9, licence: 4, display });
 
@@ -120,11 +120,11 @@ describe("loadRegsInputs: a part", () => {
     expect([mon.year!.displayByDay[165 - 1], mon.year!.displayByDay[167 - 1]]).toEqual([OPEN, SHUT]);
   });
 
-  it("mergedParts: a closed picker group of ≥ 2 parts → each part's label, sections and its first decided closure", async () => {
+  it("mergedParts: a closed picker group of ≥ 2 parts → each part's index (no stored label: T517), sections and first decided closure", async () => {
     const { store } = fake();
     const inp = await loadRegsInputs(store, { kind: "part", item: "gnis:1", partIx: 0 }, JUN15, "Monday", 2026);
-    expect(inp.mergedParts!.map((p) => [p.partIx, p.label, p.sections, p.broad?.rix, p.broad?.via]))
-      .toEqual([[0, "Mouth to bridge", 4, 101, "trib"], [1, "Above the bridge", 2, 101, "reach"]]);
+    expect(inp.mergedParts!.map((p) => [p.partIx, p.sections, p.broad?.rix, p.broad?.via]))
+      .toEqual([[0, 4, 101, "trib"], [1, 2, 101, "reach"]]);
   });
 
   it("mergedParts is null for an open group, and for a part whose group is one part", async () => {
@@ -199,12 +199,14 @@ describe("targetFor: the part a tap opens", () => {
   it("a section the water lists (part_section) opens its part", async () => {
     expect(await targetFor(fake().store, "gnis:1", 4097)).toEqual({ kind: "part", item: "gnis:1", partIx: 1 });
   });
-  it("a section it does not list: the first part on the section's key", async () => {
-    expect(await targetFor(fake().store, "gnis:1", 4098)).toEqual({ kind: "part", item: "gnis:1", partIx: 1 });
+  it("a section none of its parts holds: THROWS, said on the page — never a part guessed from the section's key", async () => {
+    await expect(targetFor(fake().store, "gnis:1", 4098))
+      .rejects.toEqual(new RegsInputsError("regs: section 4098 is in none of gnis:1's parts (part_section)"));
   });
-  it("no section (or one outside B.C.): the first part with a key", async () => {
+  it("no section (a search, a link — the documented rule): the first part with a key, in river order", async () => {
     expect(await targetFor(fake().store, "gnis:1", null)).toEqual({ kind: "part", item: "gnis:1", partIx: 0 });
-    expect(await targetFor(fake().store, "gnis:2", 1)).toEqual({ kind: "part", item: "gnis:2", partIx: 1 });
+    // gnis:2's part 0 has no key (outside B.C.): its first keyed part is 1
+    expect(await targetFor(fake().store, "gnis:2", null)).toEqual({ kind: "part", item: "gnis:2", partIx: 1 });
   });
   it("an unknown water", async () => {
     await expect(targetFor(fake().store, "nope", null)).rejects.toEqual(new RegsInputsError("regs: no water nope in the regs store"));

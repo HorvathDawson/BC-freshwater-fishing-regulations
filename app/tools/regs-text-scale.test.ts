@@ -210,6 +210,9 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
     expect(Object.entries(m).filter(([k, v]) => v.lines < (k.startsWith("sheet ") ? 3 : 36)).map(([k, v]) => `${k} ${v.lines}`)).toEqual([]);
     expect(Object.keys(m).filter((k) => k.startsWith("sheet ")).length).toBe(SHEET_KEYS.length * 2 * 2);
     // the evidence: the header's name row and place row grow with the text (two lines each at 2×), and how many line boxes
+    // (T517) the Vedder's part is named by its own two ends ("Mouth → Cable car crossing (200 m downstream of Vedder
+    // Crossing bridge)"): its place row takes the lines the name needs, from the length guess in this static layout
+    // (two at 1×, four at 2×) — never cut
     expect(Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith("sheet ")).map(([k, v]) => [k, `title ${v.title} place ${v.place}`])))
       .toMatchInlineSnapshot(`
         {
@@ -221,14 +224,14 @@ describe("T40 the Regulations view at 200 % text, laid out in Chrome", () => {
           "klwa_1010 desktop 2×": "title 48 place 32",
           "klwa_1010 phone 1×": "title 48 place 16",
           "klwa_1010 phone 2×": "title 117 place 32",
-          "vedder_1010 desktop 1×": "title 48 place 16",
-          "vedder_1010 desktop 2×": "title 48 place 65",
-          "vedder_1010 phone 1×": "title 48 place 16",
-          "vedder_1010 phone 2×": "title 60 place 65",
-          "vedder_615 desktop 1×": "title 48 place 16",
-          "vedder_615 desktop 2×": "title 48 place 65",
-          "vedder_615 phone 1×": "title 48 place 16",
-          "vedder_615 phone 2×": "title 60 place 65",
+          "vedder_1010 desktop 1×": "title 48 place 32",
+          "vedder_1010 desktop 2×": "title 48 place 130",
+          "vedder_1010 phone 1×": "title 48 place 32",
+          "vedder_1010 phone 2×": "title 60 place 130",
+          "vedder_615 desktop 1×": "title 48 place 32",
+          "vedder_615 desktop 2×": "title 48 place 130",
+          "vedder_615 phone 1×": "title 48 place 32",
+          "vedder_615 phone 2×": "title 60 place 130",
         }
       `);
   }, 180_000);
