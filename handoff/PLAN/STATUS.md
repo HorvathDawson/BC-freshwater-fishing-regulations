@@ -41,7 +41,13 @@ rows collapse). Old APK shows every notice "not on the map yet" until build 22 â
    - 11-09: T517 side build done (r-d62af06225a2; paint sync passes; 6 sections change rules, all T510; size +1.1%).
      Shots + moved list sent to owner. Opus review done: 5 major (paint-sync maximal check can't fail; joined piece opens map at wrong place;
      header vs map names differ; no format bump; lake gap = owner) + minors. Fix agent running, then side rebuild 14.
-     Owner 11-09: after the fixes, a SECOND fresh Opus review the same way, then fix again. Open owner item: Dean Anahim run has a lake
+     Owner 11-09: after the fixes, a SECOND fresh Opus review the same way, then fix again.
+     Owner 11-09 added to the fix round (agent running): lakes never split (only different rules do); names composed
+     in core from each part's two end tokens (no stored names); no " (n)" names: "Within <area>" and B.C.-border parts
+     named by their ends (border: nearest B.C. town if we hold a source); fallback sweep (delete or fail loudly).
+     T521 opened (unplaced DFO rules shown in app). Explainer: https://claude.ai/artifact/Sm3zaYhE2qYj79dDRWKkMY
+     Icons (launcher only): rounds 1-3 in icon-proposals/; owner likes the linocut trout; round 4 = map pin + sun over
+     waves (not the gov logo) + B.C. outline options. Owner picks, then wire into build-icons.mjs before build 22. Open owner item: Dean Anahim run has a lake
      between its pieces and no mark, so they never join.
 2. **Explainer artifact** (owner ask): the new part + in-season flow and format, why each decision, with visuals.
 3. Then the queue: build 22 (Play internal, `MLN_LOCAL_MAVEN` lean MapLibre; carries T509/T515/T516/T517/T520),
