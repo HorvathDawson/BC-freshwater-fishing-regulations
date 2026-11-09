@@ -184,6 +184,12 @@ def test_a_braid_pair_s_smaller_water_is_never_the_bigger_one_s_exit():
     puntledge = T.exit_receivers(27060, [12206], {27060: {12206}, 12206: set()}, {27060: [12206]},
                                  {27060: 13, 12206: 2}, {27060: "920-1", 12206: "920-"})
     assert puntledge == [12206]
+    # a lake on the river carries its code and is where the river goes (Okanagan River into Osoyoos Lake)
+    assert T.exit_receivers(1, [2], {1: {2}, 2: set()}, {1: [2]}, {1: 40, 2: 1}, {1: "300-", 2: "300-"},
+                            streams={1}) == [2]
+    # two channels of one river: the upper Jeperson Side Channel still exits into the lower (the Fraser is the main)
+    assert T.exit_receivers(5, [6], {5: {6}, 6: set()}, {5: [6]}, {9697: 300, 5: 5, 6: 1},
+                            {9697: "100-", 5: "100-", 6: "100-"}, streams={9697, 5, 6}) == [6]
     # without codes the old rule stands
     assert T.exit_receivers(9697, [14905], {9697: {14905}, 14905: set()}, {9697: [14905]}, size) == [14905]
 

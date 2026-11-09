@@ -301,8 +301,17 @@ def mouth_downs(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, se
     return out
 
 
+def code_top(codes: Dict[int, str], size: Dict[int, int]) -> Dict[str, int]:
+    """T519 {watershed code: the size of its biggest water} — which water is its code's main river."""
+    top: Dict[str, int] = {}
+    for x, c in codes.items():
+        top[c] = max(top.get(c, 0), size.get(x, 0))
+    return top
+
+
 def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: Dict[int, Sequence[int]],
-                   size: Optional[Dict[int, int]] = None, codes: Optional[Dict[int, str]] = None) -> List[int]:
+                   size: Optional[Dict[int, int]] = None, codes: Optional[Dict[int, str]] = None,
+                   streams: Optional[set] = None, top: Optional[Dict[str, int]] = None) -> List[int]:
     """The waters water `o` may EXIT into (T59): of its `item_down` receivers `cands`, every one that does not itself
     flow into `o`, directly or down a chain of waters — a side channel whose mouth is back on `o` (Annacis Channel on
     the Fraser: `mouths`, from `mouth_downs`), one that reaches it through another (the upper Jeperson Side Channel
@@ -335,8 +344,14 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
         # T519: FWA gives every channel of a river the river's watershed code. A SMALLER water whose main line is on
         # o's code is a channel of o (Morey Channel on the Fraser, since T497 named the delta's connectors), never
         # where o goes; a river of its own code (the Courtenay below the Puntledge) is
-        return codes is not None and size is not None and codes.get(d) is not None \
-            and codes.get(d) == codes.get(o) and size.get(d, 0) < size.get(o, 0)
+        if codes is None or size is None or codes.get(d) is None or codes.get(d) != codes.get(o):
+            return False
+        if streams is not None and d not in streams:
+            return False                        # a lake on the river carries its code: where the river goes, if any
+        # o must be its code's MAIN river (the biggest water on it): two side channels of one river (the upper
+        # Jeperson into the lower) keep their exit
+        tops = top if top is not None else code_top(codes, size)
+        return size.get(o, 0) == tops.get(codes[o], 0) and size.get(d, 0) < size.get(o, 0)
 
     def into_o(d: int) -> bool:
         if channel_of_o(d):
@@ -526,12 +541,14 @@ def write(db: sqlite3.Connection, geo: Dict[int, Geometry], cov,
         shapes_of[o].append((p, g))
     exits = []
     size_of = dict(db.execute("SELECT ord, COUNT(*) FROM item_section GROUP BY ord"))
+    streams = {o for o, k in kind.items() if k == "stream"}
+    tops = code_top(codes, size_of) if codes is not None else None
     downs: Dict[int, List[int]] = defaultdict(list)
     for a, b in db.execute("SELECT ord, down_ord FROM item_down ORDER BY ord, down_ord"):
         downs[a].append(b)
     for o, cands in sorted(downs.items()):
         if mouths is not None:
-            cands = exit_receivers(o, cands, mouths, downs, size_of, codes)
+            cands = exit_receivers(o, cands, mouths, downs, size_of, codes, streams, tops)
         if o not in mouth or not cands:
             continue
         here = shapes[(o, mouth[o])]
