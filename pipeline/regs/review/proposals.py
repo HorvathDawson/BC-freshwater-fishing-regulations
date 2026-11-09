@@ -1068,6 +1068,14 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                             edits.append({"file": _rel(path), "kind": "dfo",
                                           "location_id": m.target, "scope": "entry",
                                           "field": fld, "before": before, "after": val})
+                    # T525: a mark made on another extent than the file has now (`Mark.extent_before`) never lands over
+                    # it — the place moved after the owner looked (another mark landed, a hand edit); a mark whose own
+                    # fix has landed changes nothing, so it is not held
+                    seen = m.extent_before
+                    if seen is not None and edits and (seen.extents != (b.get("extents") or [])
+                                                       or seen.tributaries != b.get("tributaries")):
+                        problems.append("entry: the extent changed since this mark was made (it saw "
+                                        f"{json.dumps(seen.model_dump())}): mark the place again")
         else:
             found = _find_entry(src, m.target)
             if found is None:

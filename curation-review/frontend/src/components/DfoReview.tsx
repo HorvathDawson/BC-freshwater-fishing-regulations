@@ -13,12 +13,13 @@ import type {
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel, type EditPoint } from "./MapPanel";
 import { TopNav, FoldToggle, useFold } from "./TopNav";
-import { ExtentFixEditor, pointWords } from "./ExtentFixEditor";
+import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
+import { extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
 import { CuratedTag } from "./CuratedSaveBanner";
 import { current as writeThrough, subscribe as onWriteThrough } from "../curatedSave";
 import {
-  addPiece, dropPiece, effectOf, heldBy, markBody, previewOf, proposesCuts, saveWords, tribWords, withPiece,
+  addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, previewOf, proposesCuts, saveWords, tribWords, withPiece,
   type DfoCall, type DfoEffect,
 } from "../dfoExtent";
 
@@ -144,38 +145,17 @@ export function savedFixesOf(mark: DfoDetail["mark"] | null | undefined): Extent
   const own = fixes.filter((f) => f.scope === "entry");
   return own.length ? own : fixes.slice(0, 1);
 }
-/** (owner 2026-11-09) a curated extent in words: the op, its cuts by name, the waters it holds on */
-export function extentWords(e: DfoExtent,
-                            splitName: (id: string) => string = (x) => x, itemName: (id: string) => string = (x) => x): string {
-  const items = e.item_ids ?? (e.item_id ? [e.item_id] : []);
-  const cuts = (e.splits ?? []).map(splitName).join(" and ");
-  return (OP_WORDS[e.op] ?? e.op) + (cuts ? ` ${cuts}` : "") + (e.area_id ? ` ${e.area_id}` : "")
-    + (items.length ? ` · on ${items.map(itemName).join(", ")}` : "");
-}
 /** (owner 2026-11-09: "more obvious when fix extent overrides existing extent") the banner's headline per state */
 export const FIX_VS_WORDS: Record<string, string> = {
   replaces: "Your fix REPLACES the current extent",
   same: "Your fix is the same as the current extent",
   applied: "Fix applied — this is now the curated extent",
 };
-/** T524: the pieces in words, one after another ("… + …") */
-export function piecesWords(fs: ExtentFix[], splitName: (id: string) => string = (x) => x,
-                            itemName: (id: string) => string = (x) => x): string {
-  return fs.map((f, i) => (fs.length > 1 ? `piece ${i + 1}: ` : "") + fixWords(f, splitName, itemName)).join(" + ");
+/** words with each cut by its label; a cut with no label is an ERROR on screen (red), never a bare id */
+function Words({ parts, testid }: { parts: Part[]; testid?: string }) {
+  return <span data-testid={testid}>{parts.map((p, i) => (typeof p === "string" ? <span key={i}>{p}</span>
+    : <span key={i} className="field-error" data-testid="dfo-cut-unlabelled">cut {p.cut} has no label</span>))}</span>;
 }
-/** An extent fix in words: the op, its points by name, the items it holds on, the tributary call. */
-export function fixWords(f: ExtentFix, splitName: (id: string) => string = (x) => x,
-                         itemName: (id: string) => string = (x) => x): string {
-  const pts = f.points.map((p) => pointWords(p, splitName)).join(" and ");
-  return [(OP_WORDS[f.op] ?? f.op) + (pts ? ` ${pts}` : "") + (f.area ? ` ${f.area}` : ""),
-          f.items.length ? `on ${f.items.map(itemName).join(", ")}` : "on the entry's waters",
-          f.tributaries == null ? "tributaries as the place has them" : f.tributaries ? "with tributaries" : "without tributaries",
-  ].join(" · ");
-}
-const OP_WORDS: Record<string, string> = {
-  whole: "the whole water", upstream_of: "upstream of", downstream_of: "downstream of",
-  between: "between", within: "within an area", rest: "the rest", steelhead_waters: "steelhead waters",
-};
 const QUESTIONS: Record<"T" | "R", string> = {
   T: "DFO's words above are this place (water and area, as on the DFO page)",
   R: "The rows are this place's rules (species, dates, limits)",
@@ -636,9 +616,15 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   function acceptSuggestion() { draftFrom(suggestionFix(sugg, taken()), "the suggestion"); }
 
   const cuts = call === "change" && proposesCuts(fixes, splits);
+  // the server's ops and the points each takes: a piece half made holds the save (T525)
+  const [opPoints, setOpPoints] = useState<Record<string, number> | null>(null);
+  useEffect(() => { loadOps().then((xs) => setOpPoints(Object.fromEntries(xs.map((o) => [o.op, o.points]))),
+                                    failed("the extent ops")); }, []);
+  const incomplete = call === "change" && effect !== "keep"
+    ? (opPoints ? incompletePieces(fixes, opPoints) : ["the extent ops are still loading"]) : [];
   const groupTargets = (detail.group?.members ?? []).filter((m) => m.this || keep[m.id]).map((m) => m.id);
   const held = heldBy({ call, answers, problem, note, effect, cuts, cannotChange: now.cannot_change,
-                        extents: detail.location.binding.extents.length });
+                        extents: detail.location.binding.extents.length, incomplete });
 
   async function submit(defer = false) {
     setErrors([]);
@@ -661,7 +647,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
       const got = await api.postMark(body);
       const said = `saved ✓ ${detail.row.water || id}`
         + (groupTargets.length > 1 ? ` (+${groupTargets.length - 1} grouped)` : "")
-        + (body.extent_fix ? ` — the extent is now being replaced by: ${piecesWords(body.extent_fix, splitNameOf, itemNameOf)}`
+        + (body.extent_fix ? ` — the extent is now being replaced by: ${partsText(piecesParts(body.extent_fix, fixPartsOf))}`
           : " — the extent is unchanged");
       onMarked(got.reused ?? [], said);
     } catch (e) {
@@ -717,17 +703,19 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     return () => window.removeEventListener("keydown", onKey);
   });  // eslint-disable-line react-hooks/exhaustive-deps
 
-  const splitNameOf = (sid: string) => mapSplits.find((x) => x.id === sid)?.name
-    ?? shared.find((p) => p.id === sid)?.name ?? sid;
-  const itemNameOf = (iid: string) => items.find((x) => x.id === iid)?.name ?? iid;
+  // a cut by its label in the curated cuts file (`detail.cut_labels`), a proposed one by its name — else none (an error)
+  const cutLabel = (sid: string) => detail.cut_labels[sid] ?? shared.find((p) => p.id === sid)?.name
+    ?? [...splits, ...savedNew].find((n) => n.ref === sid)?.name ?? null;
+  const itemNameOf = (iid: string) => items.find((x) => x.id === iid)?.name ?? detail.item_names[iid] ?? iid;
   const wrongChecks = [...(["T", "R"] as const).filter((c) => answers[c] === "n"), ...(call === "wrong" ? ["P" as const] : [])];
   const problems = wrongChecks.flatMap((c) => mode.problems[c] ?? []);
   const loc = detail.location;
   const ex = loc.binding.extents;
   const tribNow = now.tributaries == null ? "" : `${now.tributaries ? "with" : "without"} tributaries`
     + (loc.binding.tributaries == null ? " (the DFO title)" : "");
-  const extentText = (exs: DfoExtent[]) => exs.map((e, i) => (exs.length > 1 ? `piece ${i + 1}: ` : "")
-    + extentWords(e, splitNameOf, itemNameOf)).join(" + ");
+  const extentText = (exs: DfoExtent[], testid?: string) =>
+    <Words testid={testid} parts={piecesParts(exs, (e) => extentParts(e, cutLabel, itemNameOf))} />;
+  const fixPartsOf = (f: ExtentFix) => fixParts(f, cutLabel, itemNameOf);
   // the owner's earlier mark said another extent than the file has now: said, and loadable into the draft
   const fv = detail.fix_vs_current;
   const markDiffers = fv?.state === "replaces";
@@ -778,7 +766,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             <div className="dfo-step">2 · The extent now — what the app uses today</div>
             <div className="dfo-now" data-testid="dfo-now">
               {!detail.items.length ? <span className="warn-text">not matched to the registry — nothing binds</span>
-                : ex.length ? <strong data-testid="dfo-now-words">{extentText(ex)}</strong>
+                : ex.length ? <strong>{extentText(ex, "dfo-now-words")}</strong>
                 : <span className="warn-text">none curated{detail.need.missing ? ` — needs ${detail.need.missing} cut${detail.need.missing === 1 ? "" : "s"}` : ""}</span>}
               <div className="dim" style={{ fontSize: 12 }}>
                 {tribNow && <>{tribNow} · </>}
@@ -896,9 +884,9 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               <div className="ext-row">
                 <span className="k" style={{ color: "#7c3aed" }}>suggested</span>
                 <span data-testid="dfo-suggestion-words">
-                  {sugg.suggestion.words ?? fixWords({ scope: "entry", op: sugg.suggestion.op,
+                  {sugg.suggestion.words ?? <Words parts={fixPartsOf({ scope: "entry", op: sugg.suggestion.op,
                     points: sugg.suggestion.points, items: sugg.suggestion.items,
-                    tributaries: sugg.suggestion.tributaries }, splitNameOf, itemNameOf)}</span>
+                    tributaries: sugg.suggestion.tributaries })} />}</span>
                 <span className={`badge suggest-${sugg.confidence}`} data-testid="dfo-suggestion-confidence">
                   {CONF_WORDS[sugg.confidence] ?? sugg.confidence}{sugg.matched === "partial" ? " · one end open" : ""}</span>
                 {!now.cannot_change.length && (
@@ -986,7 +974,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                     currentOp={i === 0 ? detail.need.op ?? undefined : "downstream_of"}
                     mapSplits={mapSplits} waters={items} value={pc}
                     onChange={(f) => setFixes((cur) => (f ? withPiece(cur, i, f) : dropPiece(cur, i)))}
-                    tributariesNow={tribNow} tributariesDrawn={showTribs}
+                    tributariesNow={tribNow} tributariesDrawn={showTribs} cutLabels={detail.cut_labels}
                     onPreview={(fc) => setFixPreview(fc)}
                     onPick={(cb) => setPick({ cb })} splitAt={splitAt}
                     newSplits={[
@@ -1034,8 +1022,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                       <span data-testid="dfo-effect-old" className={effect === "replace" ? "old" : undefined}>{ex.length ? extentText(ex) : "none curated"}
                         {tribNow ? ` · ${tribNow}` : ""}{reach?.resolvable ? ` · ${reach.n_sections} section(s)` : ""}</span>
                       <span className="k new">new</span>
-                      <span data-testid="dfo-effect-new">{piecesWords(fixes, splitNameOf, itemNameOf)}</span>
+                      <Words testid="dfo-effect-new" parts={piecesParts(fixes, fixPartsOf)} />
                     </div>
+                    {incomplete.length > 0 && <div className="field-error" data-testid="dfo-incomplete">
+                      Not ready to save: {incomplete.join("; ")}</div>}
                     <div className="dim" style={{ fontSize: 12 }}>Saved as Place {cuts ? "?" : "y"}. The save writes it to
                       the curated file within seconds; this place reloads with the result.</div></>
                 )}

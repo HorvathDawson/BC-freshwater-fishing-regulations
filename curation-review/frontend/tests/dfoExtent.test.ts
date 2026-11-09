@@ -4,8 +4,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  addPiece, dropPiece, effectOf, heldBy, markBody, placeAnswer, previewOf, proposesCuts, saveWords, tribWords, withPiece,
+  addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, placeAnswer, previewOf, proposesCuts, saveWords, tribWords, withPiece,
 } from "../src/dfoExtent.ts";
+import { extentParts, fixParts, partsText, piecesParts } from "../src/extentWords.ts";
 import type { DfoExtentNow, ExtentFix } from "../src/types.ts";
 
 const between = (a: string, b: string, trib: boolean | null = null): ExtentFix => ({
@@ -85,7 +86,7 @@ test("a change carries its pieces only when it changes the extent", () => {
 
 test("the save is held, in words, until it can be made", () => {
   const ok = { call: "keep" as const, answers: { T: "y", R: "y" } as const, problem: "", note: "", effect: "keep" as const,
-               cuts: false, cannotChange: [], extents: 1 };
+               cuts: false, cannotChange: [], extents: 1, incomplete: [] as string[] };
   assert.equal(heldBy(ok), "");
   assert.match(heldBy({ ...ok, answers: { T: "y" } }), /answer T and R/);
   assert.match(heldBy({ ...ok, call: null }), /pick your call/);
@@ -93,6 +94,8 @@ test("the save is held, in words, until it can be made", () => {
   assert.match(heldBy({ ...ok, call: "change" }), /is the extent now/);
   assert.equal(heldBy({ ...ok, call: "change", cuts: true }), "", "proposing a cut alone is a change");
   assert.match(heldBy({ ...ok, call: "change", effect: "replace", cannotChange: ["holds within_area"] }), /cannot be changed/);
+  assert.match(heldBy({ ...ok, call: "change", effect: "add", incomplete: ["piece 2 (downstream of): 1 of its 1 point not picked"] }),
+               /finish your change first — piece 2 \(downstream of\): 1 of its 1 point not picked/);
   assert.match(heldBy({ ...ok, call: "wrong" }), /problem/);
   assert.equal(heldBy({ ...ok, call: "wrong", problem: "wrong extent", note: "ends at Greendale" }), "");
 });
@@ -113,4 +116,33 @@ test("a reach line never reads as excluding the tributaries it walks", () => {
   assert.equal(tribWords(true, true), " (with tributaries)");
   assert.equal(tribWords(false, false), " (no tributaries)");
   assert.equal(tribWords(undefined, false), "");
+});
+
+// the server's own op table (`marks.OP_POINTS`), as GET /api/extent-fix/ops serves it
+const OPS = { whole: 0, upstream_of: 1, downstream_of: 1, between: 2, within: 0, rest: 0, steelhead_waters: 0 };
+
+test("a piece half made is named, with what it lacks (owner 11-09: the Chilliwack shot saved an empty piece)", () => {
+  assert.deepEqual(incompletePieces([COWICHAN, SUMAS], OPS), []);
+  const empty: ExtentFix = { scope: "entry", op: "downstream_of", points: [], items: [], tributaries: null };
+  assert.deepEqual(incompletePieces([COWICHAN, empty], OPS), ["piece 2 (downstream of): 1 of its 1 point not picked"]);
+  const half = { ...COWICHAN, points: [COWICHAN.points[0], { kind: "split" as const }] };
+  assert.deepEqual(incompletePieces([half], OPS), ["piece 1 (between): 1 of its 2 points not picked"]);
+  assert.deepEqual(incompletePieces([{ ...empty, op: "within" }], OPS), ["piece 1 (within an area): its area not picked"]);
+  assert.deepEqual(incompletePieces([{ ...empty, points: [{ kind: "coord" }] }], OPS),
+                   ["piece 1 (downstream of): 1 of its 1 point not picked"]);
+  assert.deepEqual(incompletePieces([{ ...empty, points: [{ kind: "confluence", name: "Slesse Creek" }] }], OPS), []);
+});
+
+test("an extent reads by its cuts' labels; a cut with no label is its own part, never a bare id", () => {
+  const label = (id: string) => ({ cowichan_river__cnr_trestle: "CNR Mile 66 Trestle" } as Record<string, string>)[id] ?? null;
+  const item = (id: string) => (id === "gnis:12227" ? "Cowichan River" : id);
+  const ex = { op: "between", splits: ["cowichan_river__cnr_trestle", "cowichan_river__nowhere"], item_id: "gnis:12227" };
+  const parts = extentParts(ex, label, item);
+  assert.deepEqual(parts, ["between", " ", "CNR Mile 66 Trestle", " and ", { cut: "cowichan_river__nowhere" },
+                           " · on Cowichan River"]);
+  assert.equal(partsText(parts), "between CNR Mile 66 Trestle and [cut cowichan_river__nowhere has no label] · on Cowichan River");
+  assert.equal(partsText(piecesParts([COWICHAN, SUMAS], (f) => fixParts(f, label, item))),
+               "piece 1: between CNR Mile 66 Trestle and [cut cowichan_river__white_triangle_boundary_sign_loc has no label]"
+               + " · on Cowichan River · tributaries as the place has them + piece 2: downstream of"
+               + " [cut sumas_river__barrow_town_pump_station has no label] · on gnis:26216 · tributaries as the place has them");
 });

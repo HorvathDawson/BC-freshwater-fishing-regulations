@@ -322,3 +322,59 @@ def test_a_fix_is_compared_as_the_place_binds(monkeypatch):
               extent_fix=[{**fix, "tributaries": True}])
     assert B.fix_vs_current(m, place, title)["state"] == "applied"           # what the title already says
     assert B.fix_vs_current(m, place, {"tributaries": False})["state"] == "replaces"
+
+
+def test_a_piece_half_made_is_refused():
+    """T525 (owner 2026-11-09, the Chilliwack shot): a place's second piece with no point picked is refused by the mark
+    model, naming what it lacks — the screen holds the save too (`dfoExtent.incompletePieces`)."""
+    whole = {"scope": "entry", "op": "between", "items": ["gnis:1"],
+             "points": [{"kind": "split", "split_id": "test_river__a"}, {"kind": "split", "split_id": "test_river__b"}]}
+    empty = {"scope": "entry", "op": "downstream_of", "items": [], "points": []}
+    with pytest.raises(ValueError, match="takes 1 split point, not 0"):
+        _mark({"text": "t", "records": [{"key": "entry", "meaning": "m", "binding": "b"}]}, extent_fix=[whole, empty])
+    with pytest.raises(ValueError, match="a split point names its split"):
+        _mark({"text": "t", "records": [{"key": "entry", "meaning": "m", "binding": "b"}]},
+              extent_fix=[whole, {**empty, "points": [{"kind": "split"}]}])
+
+
+def test_the_apply_refuses_a_mark_made_on_an_extent_that_has_moved(tmp_path):
+    """T525: a DFO mark keeps the extent it was made on (`Mark.extent_before`). The apply lands its fix only while the
+    file still has that extent — a place that moved after the owner looked (a hand edit, another mark) is refused,
+    naming what the mark saw; once the mark's own fix has landed it changes nothing and is not held."""
+    from pipeline.regs.review import proposals as P
+    a = {"op": "between", "splits": ["test_river__a", "test_river__b"], "item_id": "gnis:1"}
+    fix = {"scope": "entry", "op": "downstream_of", "items": ["gnis:1"],
+           "points": [{"kind": "split", "split_id": "test_river__a"}]}
+    splits = tmp_path / "splits.json"
+    splits.write_text(json.dumps({"waterbodies": []}))
+
+    def built(file_extents, seen):
+        ent, typed = _world(tmp_path, extents=file_extents)
+        m = _mark(D.prints_of(LOC, ent, typed), extent_fix=[fix],
+                  extent_before={"extents": seen, "tributaries": None})
+        return [p for p in P.build([m], P.Sources(entries_dir=ent, dfo_dir=ent, splits_path=splits))
+                if p["kind"] == "extent"]
+    ok = built([a], [a])
+    assert len(ok) == 1 and not any("changed since" in x for x in ok[0]["problems"])
+    moved = built([{**a, "splits": ["test_river__a", "test_river__c"]}], [a])
+    assert len(moved) == 1 and not moved[0]["applicable"]
+    assert moved[0]["problems"] == [f"entry: the extent changed since this mark was made (it saw "
+                                    f"{json.dumps({'extents': [a], 'tributaries': None})}): mark the place again"]
+    landed = built([{"op": "downstream_of", "splits": ["test_river__a"], "item_id": "gnis:1"}], [a])
+    assert landed == []                                  # its own fix is the extent now: applied, nothing to do
+    with pytest.raises(ValueError, match="only a DFO mark names the extent"):
+        M.Mark.model_validate({"scope": "entry", "target": "x", "verdict": "unsure", "answers": {"P": "?"},
+                               "reviewer": "t", "date": "2026-11-09", "pdf_sha256": SHA,
+                               "prints": {"text": "t", "records": [{"key": "entry", "meaning": "m", "binding": "b"}]},
+                               "extent_before": {"extents": []}})
+
+
+def test_every_cut_a_place_names_reads_by_its_label(monkeypatch):
+    """T525 (owner 2026-11-09: "the owner reviews by words"): a cut off this map (the Forks' Bulkley cuts on the Morice
+    place) is labelled from the curated cuts; a string that is no cut gets no label."""
+    B = _backend(monkeypatch)
+    got = B.cut_labels({"fix": [{"splits": ["bulkley_river__morice_river_into_bulkley_river_u100m"]}],
+                        "text": "not a cut"})
+    assert got == {"bulkley_river__morice_river_into_bulkley_river_u100m":
+                   "the Forks fishing boundary signs, 100 m up the upper Bulkley"}
+    assert B.item_names({"pieces": [{"items": ["gnis:2195"]}], "text": "not a water"}) == {"gnis:2195": "Bulkley River"}

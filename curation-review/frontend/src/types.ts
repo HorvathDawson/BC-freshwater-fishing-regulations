@@ -1240,6 +1240,10 @@ export interface DfoDetail {
   fix_proposal?: DfoFixProposal | null;
   fix_vs_current?: FixVsCurrent | null;
   extent_now: DfoExtentNow;
+  /** T525: the label of every cut this place's data names, from the curated cuts file (`dfo.cut_labels`) */
+  cut_labels: Record<string, string>;
+  /** T525: the name of every registry water this place's data names (`dfo.item_names`) */
+  item_names: Record<string, string>;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
 }
 

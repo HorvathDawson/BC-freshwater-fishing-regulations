@@ -25,7 +25,7 @@ import os
 from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-from typing import Iterable, Literal, Mapping, Optional, Sequence, Union
+from typing import Any, Iterable, Literal, Mapping, Optional, Sequence, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -215,6 +215,15 @@ class FixPoint(BaseModel):
             raise ValueError(f"a {self.kind} point names its "
                              + ("tributary" if self.kind == "confluence" else "lake"))
         return self
+
+
+class SeenExtent(BaseModel):
+    """T525: THE EXTENT A DFO MARK WAS MADE ON — the place's curated extents and its own tributary flag, as the file had
+    them when the owner looked (the review app's `dfo.extent_now`). The save refuses a mark whose place has moved since
+    (`dfo.mark_for`), and so does the apply (`proposals.build`): a mark never confirms or replaces an extent nobody saw."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    extents: list[dict[str, Any]]
+    tributaries: Optional[bool] = None
 
 
 class ExtentFix(BaseModel):
@@ -463,6 +472,8 @@ class Mark(BaseModel):
     #: missed): T185 writes the target's `duplicate_of` (confirmed), so the wording rides that place's
     #: extent. A DFO mark only; its one check is T (the words name that place).
     variant_of: Optional[str] = None
+    #: T525: the extent this DFO mark was made on (`SeenExtent`); a mark from before T525 has none
+    extent_before: Optional[SeenExtent] = None
 
     @field_validator("reviewer")
     @classmethod
@@ -635,6 +646,8 @@ class Mark(BaseModel):
             raise ValueError(f"an extent fix names new split(s) {dangling} the mark does not propose")
         if self.scope == "dfo" and (self.rule_id is not None or keys != ["entry"]):
             raise ValueError("a DFO mark holds exactly its location's prints")
+        if self.extent_before is not None and self.scope != "dfo":
+            raise ValueError("only a DFO mark names the extent it was made on")
         if self.lake_split_later and self.scope in ("split", "tidal"):
             raise ValueError("a lake split later is marked on an entry or a rule, not a split")
         return self
@@ -652,7 +665,7 @@ class Mark(BaseModel):
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
-                 "new_splits": [], "call": None, "group": None, "variant_of": None}
+                 "new_splits": [], "call": None, "group": None, "variant_of": None, "extent_before": None}
 
 
 def line(mark: Mark) -> str:

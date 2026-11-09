@@ -315,6 +315,40 @@ def extent_now(loc: dict, water: dict | None) -> dict:
             "tributaries": tributaries_now(loc, water), "seen": seen_extent(loc)}
 
 
+def _strings(x) -> set[str]:
+    """every string anywhere in a JSON-shaped value"""
+    if isinstance(x, str):
+        return {x}
+    if isinstance(x, dict):
+        return set().union(*map(_strings, x.values())) if x else set()
+    if isinstance(x, (list, tuple)):
+        return set().union(*map(_strings, x)) if x else set()
+    return set()
+
+
+def cut_labels(view) -> dict[str, str]:
+    """T525 (owner 2026-11-09: the owner reviews by WORDS): the label of every cut a place's view names anywhere — its
+    extent, the mark's fix, a fix proposal's or a suggestion's pieces, a group member's extent — from the curated cuts
+    (the resolved label, else the cuts file's, else the registry boundary's), so no cut reads as a bare id. A cut with
+    no label is left out: the screen shows it as an error."""
+    meta, records, bounds = reuse._splits_meta(), reuse._split_records(), reuse._boundary_index()
+    out = {}
+    for sid in _strings(view) & (set(meta) | set(records) | set(bounds)):
+        b = bounds.get(sid, (None, None))[1]
+        label = ((meta.get(sid) or {}).get("label") or records.get(sid, ("", {}))[1].get("label")
+                 or (getattr(b, "label", None) if b is not None else None))
+        if label:
+            out[sid] = label
+    return out
+
+
+def item_names(view) -> dict[str, str]:
+    """T525: the name of every registry water a place's view names (a fix piece on another water, the Forks' Bulkley),
+    so a piece reads "on Bulkley River", never "on gnis:2195"."""
+    reg = reuse._registry()
+    return {i: reg[i].name for i in _strings(view) if i in reg and reg[i].name}
+
+
 def seen_extent(loc: dict) -> dict:
     """The extent a mark is made on: the place's curated extents and its own tributary flag, as the file has them."""
     b = loc.get("binding") or {}
@@ -580,7 +614,7 @@ def detail(location_id: str) -> dict | None:
              "same_extent": seen_extent(locs[x["id"]][1]) == seen_extent(loc),
              "extent": seen_extent(locs[x["id"]][1])}
             for x in g["members"]]}
-    return reuse._json_safe({
+    view = {
         "row": _row(slug, loc, water, m, groups), "location": loc, "water": water, "group": group,
         "places": water_places(loc.get("water_id"), location_id) if loc.get("water_id") else [],
         "wordings": D.location_wordings(loc),
@@ -593,7 +627,8 @@ def detail(location_id: str) -> dict | None:
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
         "fix_vs_current": fix_vs_current(m, loc, water), "extent_now": extent_now(loc, water),
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
-    })
+    }
+    return reuse._json_safe({**view, "cut_labels": cut_labels(view), "item_names": item_names(view)})
 
 
 def rekeyed(mark: dict) -> dict:
@@ -986,9 +1021,9 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
     if got is None:
         raise KeyError(body.get("target"))
     _slug, loc, water = got
-    # T525: a mark is made on the extent the owner was shown (`extent_now.seen`, sent back as `extent_before`); one
-    # made on an extent that has moved since — another mark landed, a hand edit, a re-anchor — is refused, so a save
-    # never confirms or replaces an extent nobody looked at
+    # T525: a mark is made on the extent the owner was shown (`extent_now.seen`, sent back as `extent_before` and kept
+    # in the mark); one made on an extent that has moved since — another mark landed, a hand edit, a re-anchor — is
+    # refused, so a save never confirms or replaces an extent nobody looked at (the apply checks it again)
     if "extent_before" not in body:
         raise ValueError("a DFO mark names the extent it was made on (extent_before): reload the place")
     if body["extent_before"] != seen_extent(loc):
@@ -1014,8 +1049,7 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
     fixes = [{**f, "points": [{**p, "split_id": rename.get(p.get("split_id"), p.get("split_id"))}
                               if p.get("kind") == "new" else p for p in f.get("points") or []]}
              for f in body.get("extent_fix") or []]
-    data = {**{k: v for k, v in body.items() if k != "extent_before"}, "rule_id": None, "new_splits": stamped,
-            "date": date,
+    data = {**body, "rule_id": None, "new_splits": stamped, "date": date,
             **({"extent_fix": fixes} if fixes else {}),
             "pdf_sha256": pdf_sha256, "pages": [], "prints": now}
     mark = M.Mark.model_validate(data)

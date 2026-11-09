@@ -4,11 +4,12 @@ import type {
   AreaHit, ExtentFix, ExtentOp, ExtentOpInfo, ExtentPreview, FixPoint, FixPointKind, ItemHit, NamedRef, SplitHit,
 } from "../types";
 import { failed } from "../failures";
+import { pointWords } from "../extentWords";
 
 /** The ops and the owner's words for them, from the server only (`marks.OP_WORDS`, GET /api/extent-fix/ops). (T434) A
  *  failed read is shown; there is no copy here (a second copy of the policy drifts). */
 let opsOnce: Promise<ExtentOpInfo[]> | null = null;
-const loadOps = () => (opsOnce ??= api.extentOps().then((x) => x.ops).catch((e) => { opsOnce = null; throw e; }));
+export const loadOps = () => (opsOnce ??= api.extentOps().then((x) => x.ops).catch((e) => { opsOnce = null; throw e; }));
 
 /** Where a point comes from: a split on this map, any curated split, or a NEW point by anchor
  *  type (T164's anchor types: a tributary's confluence, a lake's inlet / outlet, a map click). */
@@ -22,14 +23,6 @@ const SOURCES: { v: string; kind: FixPointKind; words: string }[] = [
   // T164: a NEW split proposed in the same mark (the DFO mode's "add a split"), by its ref
   { v: "new", kind: "new", words: "a NEW split proposed below" },
 ];
-
-export function pointWords(p: FixPoint, splitName: (id: string) => string): string {
-  if (p.kind === "split") return p.split_id ? splitName(p.split_id) : "—";
-  if (p.kind === "new") return p.split_id ? `NEW split ${p.split_id}` : "—";
-  if (p.kind === "coord") return p.coord ? `${p.coord[1].toFixed(5)}, ${p.coord[0].toFixed(5)}` : "click the map";
-  const what = p.kind === "confluence" ? "confluence of" : p.kind === "lake_inlet" ? "inlet of" : "outlet of";
-  return `${what} ${p.name || p.item_id || "—"}`;
-}
 
 interface Props {
   scope: string;                       // "entry" or a rule id
@@ -62,6 +55,8 @@ interface Props {
   /** (owner 2026-11-09) what the place binds with now, in words ("with tributaries — the DFO title"): shown beside
    *  the call, which starts as the place's own (none = it keeps inheriting; T524 review) */
   tributariesNow?: string;
+  /** a cut's label from the curated cuts file, for a cut not on this map (T525: words, never a bare id) */
+  cutLabels?: Record<string, string>;
   /** whether the preview draws the tributary walk (the slow toggle); off, a walking binding still SAYS it walks */
   tributariesDrawn?: boolean;
 }
@@ -72,7 +67,7 @@ interface Props {
    in-memory copy (GET /extent-preview); a NEW point cannot be previewed until it is built. */
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
                                   onPreview, onPick, splitAt, newSplits = [], sources,
-                                  previewFn, defaultOpen = false, piece, tributariesNow = "",
+                                  previewFn, defaultOpen = false, piece, tributariesNow = "", cutLabels = {},
                                   tributariesDrawn = true }: Props) {
   const tid = piece ? `${scope}-p${piece + 1}` : scope;
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
@@ -82,7 +77,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
   const [preview, setPreview] = useState<ExtentPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [pickAt, setPickAt] = useState<number | null>(null);
-  const splitName = (id: string) => mapSplits.find((s) => s.id === id)?.name ?? id;
+  const splitName = (id: string) => cutLabels[id] ?? mapSplits.find((s) => s.id === id)?.name ?? `${id} (no label)`;
 
   const fix: ExtentFix = value ?? {
     scope, op: (ops.some((o) => o.op === currentOp) ? currentOp : "whole") as ExtentOp,

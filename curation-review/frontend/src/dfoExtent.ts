@@ -6,7 +6,8 @@
    is. Change starts FROM the curated extent (`DfoExtentNow.pieces`), and its effect — keep (nothing differs), replace
    or add a piece — is said before the save. Every mark names the extent it was made on (`extent_before`); the server
    refuses one made on an extent that has moved since. */
-import type { CheckAnswer, DfoExtentNow, ExtentFix, MarkPost, NewSplit } from "./types";
+import type { CheckAnswer, DfoExtentNow, ExtentFix, FixPoint, MarkPost, NewSplit } from "./types";
+import { OP_WORDS } from "./extentWords.ts";   // a runtime import: node runs this file too (tests/)
 
 export type DfoCall = "keep" | "change" | "unsure" | "wrong";
 export type DfoEffect = "keep" | "replace" | "add";
@@ -46,6 +47,25 @@ export function previewOf(fixes: ExtentFix[], i: number, f: ExtentFix): ExtentFi
   return all.length > 1 ? all : f;
 }
 
+/** a point that says where it is: a cut by id, a map point by its coordinates, a confluence / lake end by its water */
+const pointSet = (p: FixPoint | undefined) => !!p && (p.kind === "split" || p.kind === "new" ? !!p.split_id
+  : p.kind === "coord" ? !!p.coord : !!(p.name || p.item_id));
+
+/** WHAT EACH PIECE OF A CHANGE STILL LACKS, one line per incomplete piece — its points (as many as its op takes,
+ *  `opPoints`, the server's own `marks.OP_POINTS`) and, for `within`, its area. The save is held until there is none:
+ *  a piece is never saved half made (the server refuses one too, `marks.ExtentFix`). */
+export function incompletePieces(fixes: ExtentFix[], opPoints: Record<string, number>): string[] {
+  return fixes.flatMap((f, i) => {
+    const want = opPoints[f.op];
+    const what = `piece ${i + 1} (${OP_WORDS[f.op] ?? f.op})`;
+    if (want === undefined) return [`${what}: not an op the server knows`];
+    const set = Array.from({ length: want }, (_x, j) => f.points[j]).filter(pointSet).length;
+    const lacks = [...(set < want ? [`${want - set} of its ${want} point${want === 1 ? "" : "s"} not picked`] : []),
+                   ...(f.op === "within" && !f.area ? ["its area not picked"] : [])];
+    return lacks.length ? [`${what}: ${lacks.join(", ")}`] : [];
+  });
+}
+
 /** a change that proposes a cut not built yet (a NEW split, or a new point in a piece) cannot say Place y */
 export function proposesCuts(fixes: ExtentFix[], newSplits: NewSplit[]): boolean {
   return newSplits.length > 0 || fixes.some((f) => f.points.some((p) => p.kind !== "split"));
@@ -60,11 +80,14 @@ export function placeAnswer(call: DfoCall, cuts: boolean): CheckAnswer {
 /** why the save is held, or "" — the server's own rules, said before the save */
 export function heldBy(a: { call: DfoCall | null; answers: Partial<Record<"T" | "R", CheckAnswer>>; problem: string;
                             note: string; effect: DfoEffect; cuts: boolean; cannotChange: string[];
-                            extents: number }): string {
+                            extents: number; incomplete: string[] }): string {
   if (!a.answers.T || !a.answers.R) return "answer T and R first (y n ?)";
   if (!a.call) return "pick your call: keep it, change it, not sure, or wrong";
   if (a.call === "keep" && !a.extents) return "there is no extent to keep — change it (set one), or say not sure / wrong";
   if (a.call === "change" && a.cannotChange.length) return `this extent cannot be changed here: ${a.cannotChange.join("; ")}`;
+  if (a.call === "change" && a.effect !== "keep" && a.incomplete.length) {
+    return `finish your change first — ${a.incomplete.join("; ")}`;
+  }
   if (a.call === "change" && a.effect === "keep" && !a.cuts) return "your change is the extent now — pick “Right, keep it”";
   const n = a.call === "wrong" || a.answers.T === "n" || a.answers.R === "n";
   return n && !(a.problem && a.note.trim()) ? "a wrong answer needs a problem (pick one) and a note saying what is wrong" : "";

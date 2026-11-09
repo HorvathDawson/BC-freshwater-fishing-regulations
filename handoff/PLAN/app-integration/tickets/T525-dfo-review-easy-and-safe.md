@@ -124,5 +124,7 @@ Order: lands after T524, in the same files.
 - T524 review folded in: effective tributary call (`dfo.tributaries_now`), pieces compared as a set, `fix_extents`
   reuses `extent_of` with the proposals' point resolution, preview calls `DS.dead_pieces`, duplicate tributary rule and
   `savedFixOf` removed, TSX string pins replaced by `node --test tests/dfoExtent.test.ts` (run from test_review_dfo).
-- Left: an apply-time `extent_before` (the mark model, marks.py — the T524 lane's file) so a debounced write-through
-  also refuses a file that moved between save and apply.
+- Review pass 2 (coordinator 11-09): a half-made piece holds the save and is named in red (`incompletePieces`; the
+  mark model refuses it too); every cut and water reads by its label / name (`dfo.cut_labels`, `dfo.item_names`; a
+  cut with no label shows as an error, `extentWords.ts`); the mark keeps `extent_before` (`marks.SeenExtent`) and
+  `proposals.build` refuses a mark whose place moved since (a mark whose own fix landed is not held).
