@@ -572,6 +572,7 @@ use that as the sole source of future work."
 | T525 | DFO review screen easy + safe: current extent always visible, confirm keeps it, redo starts from it, every save shows old vs new | IN REVIEW — owner restarts the review app and looks | 6dad1d118 | owner 2026-11-09 "hard to use right now and feels like i will make bad data" |
 | T526 | DFO salmon is stale when not CHECKED for more than a day (feed `at`, not content date); no checked time = unknown + reported | DONE — worker unchanged | 5b283e295 | owner 2026-11-09 "older then a day … it wasnt checked" |
 | T527 | Gauge alerts stock-style: crosses above / below a value or a percentile for the day (presets + custom), once per crossing, 2 % re-arm; plain list + gauge → condition → value; v1.1 ±% / cadence replaced, ±% alerts refused + said | IN REVIEW (build 22) — phone check on the APK; worker unchanged | 402cf8b39 | owner 2026-11-09 "a clean alerting system like … stocks"; shots/T527-*.png |
+| T528 | River Forecast Centre flood + hazard advisories in Conditions: feeds worker fetches them, placed on waters/gauges in Python, UI from an owner-approved mockup | OPEN — later; mockup first | — | owner 2026-11-09 "not now … at least one mockup that i check off" |
 
 ## Order for open tickets
 
