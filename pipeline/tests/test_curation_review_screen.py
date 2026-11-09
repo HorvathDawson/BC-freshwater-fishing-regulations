@@ -378,6 +378,11 @@ def undecided_nanaimo(env):
     f.write_text(was, encoding="utf-8")
 
 
+def _seen(c, target: str) -> dict:
+    """T525: the extent the owner is shown on a place — what a DFO mark sends back as `extent_before`."""
+    return c.get(f"/api/dfo/locations/{target}").json()["extent_now"]["seen"]
+
+
 def test_a_dfo_place_wholly_in_tidal_water_is_proposed_and_the_owners_mark_decides_it(env, undecided_nanaimo):
     """T449: the Nanaimo's "tidal portions … from Cedar Bridge downstream" sits below its tidal limit (the Cedar Road
     bridge cut): the row is PROPOSED tidal water (still "needs a cut" — a proposal is never pre-accepted); the owner's
@@ -390,7 +395,7 @@ def test_a_dfo_place_wholly_in_tidal_water_is_proposed_and_the_owners_mark_decid
     assert got["state"] == "needs_cut" and got["tidal"]["status"] == "proposed", got
     assert got["tidal"]["split"] == "nanaimo_river__cedar_road_bridge"
     curated = _stamps(load_repo().base)
-    base = {"scope": "dfo", "target": NANAIMO_TIDAL, "reviewer": "tester"}
+    base = {"scope": "dfo", "target": NANAIMO_TIDAL, "extent_before": _seen(c, NANAIMO_TIDAL), "reviewer": "tester"}
     assert c.post("/api/marks", json={**base, "answers": {"P": "?"}, "call": "stream"}).status_code == 422
     r = c.post("/api/marks", json={**base, "answers": {"T": "y", "R": "y", "P": "y"}, "call": "tidal water"})
     assert r.status_code == 200, r.text
@@ -429,7 +434,8 @@ def test_a_dfo_anchor_is_checked_and_a_new_split_rides_the_mark_only(env):
     assert detail["verbatim"]["specific_area"].startswith("downstream of the confluence")
     assert any(h["name"] == "Quinsam River" for h in detail["hints"])
     curated = _stamps(load_repo().base)
-    body = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "n"},
+    body = {"scope": "dfo", "target": CAMPBELL, "extent_before": _seen(c, CAMPBELL),
+            "answers": {"T": "y", "R": "y", "P": "n"},
             "problem": "split missing", "note": "no Quinsam cut", "reviewer": "tester",
             "new_splits": [_QUINSAM],
             "extent_fix": [{"scope": "entry", "op": "downstream_of",
@@ -559,7 +565,8 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     other = CAMPBELL + "~2"
     assert c.get(f"/api/dfo/locations/{other}").status_code == 200
     curated = _stamps(load_repo().base)
-    first = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "n"},
+    first = {"scope": "dfo", "target": CAMPBELL, "extent_before": _seen(c, CAMPBELL),
+             "answers": {"T": "y", "R": "y", "P": "n"},
              "problem": "split missing", "note": "no Quinsam cut", "reviewer": "tester",
              "new_splits": [{**_QUINSAM, "ref": "n1"}]}
     r = c.post("/api/marks", json=first)
@@ -570,7 +577,7 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
     assert [p["id"] for p in seen].count(real) == 1 and seen[0]["coord"] and seen[0]["n_marks"] >= 1
     assert r.json()["new_splits"][0]["ref"] == real
     # another location proposes the same confluence under another ref and name: reused, not added
-    again = {**first, "target": other, "new_splits": [{**_QUINSAM, "ref": "n7", "name": "Quinsam"}],
+    again = {**first, "target": other, "extent_before": _seen(c, other), "new_splits": [{**_QUINSAM, "ref": "n7", "name": "Quinsam"}],
              "extent_fix": [{"scope": "entry", "op": "downstream_of",
                              "points": [{"kind": "new", "split_id": "n7"}]}]}
     r = c.post("/api/marks", json=again)
@@ -587,7 +594,8 @@ def test_a_proposed_split_is_shared_on_the_river_and_never_entered_twice(env):
         c.get(f"/api/dfo/locations/{CAMPBELL}").json()["proposed"])
     # Place y with an extent made of existing cuts only is recorded as it is (no new split)
     fix = {"scope": "entry", "op": "downstream_of", "points": [{"kind": "split", "split_id": "x"}]}
-    yes = {"scope": "dfo", "target": other, "answers": {"T": "y", "R": "y", "P": "y"},
+    yes = {"scope": "dfo", "target": other, "extent_before": _seen(c, other),
+           "answers": {"T": "y", "R": "y", "P": "y"},
            "reviewer": "tester", "extent_fix": [fix]}
     r = c.post("/api/marks", json=yes)
     assert r.status_code == 200 and r.json()["verdict"] == "verified", r.text
@@ -613,7 +621,8 @@ def test_a_dfo_extent_fix_is_saved_and_the_location_serves_it_back(env):
     pre-fills from); a later mark replaces it; a refused save says why."""
     c = env["client"]
     fix = {"scope": "entry", "op": "whole", "points": [], "items": ["gnis:39532"], "tributaries": False}
-    body = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "?"},
+    body = {"scope": "dfo", "target": CAMPBELL, "extent_before": _seen(c, CAMPBELL),
+            "answers": {"T": "y", "R": "y", "P": "?"},
             "note": "", "reviewer": "tester", "extent_fix": [fix]}
     assert c.post("/api/marks", json=body).status_code == 200
     got = c.get(f"/api/dfo/locations/{CAMPBELL}").json()["mark"]
@@ -623,9 +632,18 @@ def test_a_dfo_extent_fix_is_saved_and_the_location_serves_it_back(env):
     assert in_force and in_force[0]["extent_fix"][0]["op"] == "whole"
     later = {**body, "extent_fix": [{**fix, "tributaries": True}]}
     assert c.post("/api/marks", json=later).status_code == 200
-    assert c.get(f"/api/dfo/locations/{CAMPBELL}").json()["mark"]["extent_fix"][0]["tributaries"] is True
+    held = c.get(f"/api/dfo/locations/{CAMPBELL}").json()["mark"]
+    assert held["extent_fix"][0]["tributaries"] is True
     refused = c.post("/api/marks", json={**body, "answers": {}})        # nothing answered
     assert refused.status_code == 422 and refused.json()["detail"][0]["msg"]
+    # T525: a mark names the extent it was made on — one made on an extent that has moved since is refused, and so is
+    # one that names none; neither is saved
+    stale = {**later, "extent_before": {**body["extent_before"], "extents": [{"op": "whole"}]}}
+    r = c.post("/api/marks", json=stale)
+    assert r.status_code == 422 and "changed since you opened it" in r.json()["detail"][0]["msg"], r.text
+    r = c.post("/api/marks", json={k: v for k, v in later.items() if k != "extent_before"})
+    assert r.status_code == 422 and "extent_before" in r.json()["detail"][0]["msg"], r.text
+    assert c.get(f"/api/dfo/locations/{CAMPBELL}").json()["mark"] == held
 
 
 def test_an_offset_cut_resolves_off_its_reference_and_the_mark_stamps_the_reference(env):
@@ -639,7 +657,8 @@ def test_an_offset_cut_resolves_off_its_reference_and_the_mark_stamps_the_refere
     got = c.get(url, params={"split": json.dumps(ref)}).json()
     assert got["ok"] and got["ref"]["coord"] == at["coord"], got
     assert abs((got["ref"]["measure"] - got["measure"]) - 100) < 0.5        # 100 m downstream, along it
-    body = {"scope": "dfo", "target": CAMPBELL, "answers": {"T": "y", "R": "y", "P": "?"},
+    body = {"scope": "dfo", "target": CAMPBELL, "extent_before": _seen(c, CAMPBELL),
+            "answers": {"T": "y", "R": "y", "P": "?"},
             "reviewer": "tester", "new_splits": [ref],
             "extent_fix": [{"scope": "entry", "op": "downstream_of", "points": [{"kind": "new", "split_id": "r1"}]}]}
     r = c.post("/api/marks", json=body)

@@ -227,21 +227,11 @@ def _ts_function(src: str, name: str) -> str:
     return src[start:end]
 
 
-def test_accept_suggestion_prefills_the_editor_and_writes_nothing():
-    """"accept suggestion" sets the extent-fix editor's value (`setFix`) and the new splits it
-    names (`setSplits`) from `suggestionFix`, and posts nothing — the owner's Save extent is the
-    one write. Source pins (no JS runner in the repo) plus, when node + typescript are at hand, the
-    pure `suggestionFix` run on a real suggestion."""
+def test_a_suggestion_becomes_the_drafts_pieces_and_its_new_splits():
+    """"use as my change" fills the draft from `suggestionFix` — the pure function run here on a real suggestion
+    (node + the frontend's typescript): its pieces, its new splits renamed off any ref already taken, the points
+    following them. Nothing is posted by it: the save is the one write (`dfoExtent.markBody`, tests/dfoExtent.test.ts)."""
     src = DFO_TSX.read_text()
-    accept = src[src.index("function acceptSuggestion()"):src.index("\n  }\n", src.index("function acceptSuggestion()"))]
-    assert "suggestionFix(sugg" in accept and "setFixes(got.fixes)" in accept and "setSplits(" in accept
-    assert "api." not in accept and "submit(" not in accept          # accepting never writes
-    assert 'data-testid="dfo-accept-suggestion"' in src and "onClick={acceptSuggestion}" in src
-    assert "fixes.length ? fixes : [undefined]" in src and "value={pc}" in src   # the editor(s) show what was accepted
-    assert "suggested={suggestedFc}" in src and "detail.suggestion" in src
-    mp = (DFO_TSX.parent / "MapPanel.tsx").read_text()
-    assert '"suggested-lines"' in mp and "suggested = null" in mp
-
     tsc = REPO / "curation-review/frontend/node_modules/typescript/lib/typescript.js"
     node = shutil.which("node")
     if not (node and tsc.exists()):
@@ -275,25 +265,6 @@ def test_accept_suggestion_prefills_the_editor_and_writes_nothing():
     assert clash["newSplits"][0]["ref"] == "sg1-2" and clash["fix"]["points"][0]["split_id"] == "sg1-2"
     assert clash["fix"]["points"][1]["split_id"] == "skeena_river__cnr_railway_bridge_terrace"
     assert none is None
-
-    # (owner 2026-11-09) a new fix / piece starts on the place's tributary call — its own, else the DFO title's — and
-    # a reach line never reads as if a walking binding excluded its tributaries
-    fns = _ts_function(src, "tributaryDefault") + _ts_function(src, "tribWords")
-    js = (f"const ts = require({json.dumps(str(tsc))});\n"
-          f"const out = ts.transpileModule({json.dumps(fns)}, {{compilerOptions: {{module: ts.ModuleKind.CommonJS, "
-          f"target: ts.ScriptTarget.ES2020}}}}).outputText;\n"
-          "const m = {exports: {}}; new Function('module', 'exports', out)(m, m.exports);\n"
-          "const d = m.exports.tributaryDefault, w = m.exports.tribWords;\n"
-          "console.log(JSON.stringify([d({location: {binding: {tributaries: null}}, water: {tributaries: true}}),"
-          " d({location: {binding: {tributaries: false}}, water: {tributaries: true}}), d({location: null, water: null}),"
-          " w(true, false), w(true, true), w(false, false), w(undefined, false)]));\n")
-    title, own, nothing, off, on, none_, unknown = json.loads(
-        subprocess.run([node, "-e", js], capture_output=True, text=True, check=True).stdout)
-    assert title == {"call": True, "why": "DFO title: including tributaries"}
-    assert own == {"call": False, "why": "this place: without tributaries"}
-    assert nothing == {"call": None, "why": ""}
-    assert off == " (with tributaries — not drawn; tick Show tributaries to draw)" and on == " (with tributaries)"
-    assert none_ == " (no tributaries)" and unknown == ""
 
 
 # --------------------------------------------------------------------------- the split hunt

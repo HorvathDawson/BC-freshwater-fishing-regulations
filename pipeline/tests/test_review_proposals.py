@@ -541,22 +541,22 @@ def test_the_screen_says_when_a_fix_replaces_the_extent(monkeypatch):
                    "item_ids": ["gnis:3062", "gnis:8634"]}        # the order of the waters is no difference
         loc = {"location_id": CHILLIWACK_SUMAS, "binding": {"extents": [curated], "tributaries": None}}
         two = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL, SUMAS], new_splits=[BARROW])
-        got = dfo.fix_vs_current(two, loc)
+        got = dfo.fix_vs_current(two, loc, None)
         assert got["state"] == "replaces" and got["current"] == [curated] and len(got["fix"]) == 2
         one = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL])
-        assert dfo.fix_vs_current(one, loc)["state"] == "applied"
+        assert dfo.fix_vs_current(one, loc, None)["state"] == "applied"
         same = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL], verdict="verified",
                      answers={"T": "y", "R": "y", "P": "y"})
-        assert dfo.fix_vs_current(same, loc)["state"] == "same"
+        assert dfo.fix_vs_current(same, loc, None)["state"] == "same"
         tribs = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[{**CHIL, "tributaries": True}])
-        assert dfo.fix_vs_current(tribs, loc)["state"] == "replaces"
-        assert dfo.fix_vs_current(None, loc) is None
-        assert dfo.fix_vs_current(_mark(scope="dfo", target=CHILLIWACK_SUMAS), loc) is None
+        assert dfo.fix_vs_current(tribs, loc, None)["state"] == "replaces"
+        assert dfo.fix_vs_current(None, loc, None) is None
+        assert dfo.fix_vs_current(_mark(scope="dfo", target=CHILLIWACK_SUMAS), loc, None) is None
     finally:
         for mod in _MODS:
             sys.modules.pop(mod, None)
     tsx = (BACKEND.parent / "frontend/src/components/DfoReview.tsx").read_text()
-    assert 'data-testid="dfo-fix-vs-current"' in tsx and 'data-testid="dfo-row-fix-vs"' in tsx
+    assert 'data-testid="dfo-row-fix-vs"' in tsx       # the queue's tag; the place's own words: tests/dfoExtent.test.ts
     assert "Your fix REPLACES the current extent" in tsx and "Fix applied — this is now the curated extent" in tsx
 
 

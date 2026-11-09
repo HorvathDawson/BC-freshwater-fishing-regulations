@@ -1102,3 +1102,22 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
   color: #111; background: #fffd; padding: 0 3px; border-radius: 3px; pointer-events: none; }
 .edit-cut { background: #d97706; }
 .edit-reference { background: transparent; border: 3px solid #2563eb; width: 12px; height: 12px; }
+
+/* T525: the DFO review's one flow — DFO says, the extent now, your call */
+.dfo-step { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 2px 0 6px; font-weight: 600; }
+.dfo-now { border-left: 4px solid #c026d3; background: #fdf4ff; padding: 6px 10px; margin-bottom: 6px; }
+.dfo-calls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 8px 0; }
+.dfo-call { text-align: left; padding: 6px 8px; border: 1px solid var(--border); background: #fff; cursor: pointer; }
+.dfo-call b { display: block; }
+.dfo-call span { color: var(--muted); font-size: 12px; }
+.dfo-call.on { border: 2px solid #111; padding: 5px 7px; }
+.dfo-call:disabled { opacity: .45; cursor: not-allowed; }
+.dfo-draft { border-left: 4px dashed #0d9488; background: #f0fdfa; padding: 6px 10px; margin: 6px 0; }
+.dfo-effect { padding: 6px 10px; margin: 8px 0; border: 1px solid var(--ok-border); background: var(--ok-bg); }
+.dfo-effect.replace { border: 2px solid #b45309; background: #fff7ed; }
+.dfo-ov { display: grid; grid-template-columns: 40px 1fr; gap: 2px 8px; margin: 4px 0; font-size: 13px; }
+.dfo-ov .k { font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.dfo-ov .k.now { color: #c026d3; }
+.dfo-ov .k.new { color: #0d9488; }
+.dfo-ov .old { text-decoration: line-through; color: var(--muted); }
+.btn.primary.dfo-replace { background: #b45309; border-color: #b45309; }

@@ -460,6 +460,45 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
     return ex, problems
 
 
+#: T525: the fields of a curated extent an extent fix can say (`extent_of` writes exactly these)
+EXPRESSIBLE = frozenset({"op", "splits", "item_id", "item_ids", "area_id"})
+
+
+def unexpressed(extents: Iterable[Mapping]) -> list[str]:
+    """T525: why each curated extent CANNOT be said as an extent fix, one line per extent that cannot: the fields an
+    extent fix has no word for. A fix replacing such an extent would drop them, so it is refused (`build`), and the
+    review app offers no change of it (`fixes_of_extents`)."""
+    out = []
+    for i, ex in enumerate(extents):
+        extra = sorted(set(ex) - EXPRESSIBLE)
+        if extra:
+            out.append(f"extent {i + 1} ({ex.get('op')}) holds {', '.join(extra)}, which an extent fix cannot express: "
+                       "a hand edit")
+    return out
+
+
+def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) -> tuple[list, list[str]]:
+    """T525: A PLACE'S CURATED EXTENTS AS EXTENT FIXES — the pieces the review app's editor opens on, so a change
+    starts FROM the extent the place has (never from an empty editor or an old mark). The inverse of `extent_of`:
+    each extent's cuts as `split` points, its item(s), its area, and the place's own tributary flag as it is (None
+    stays "no call": the place keeps inheriting its water's). -> (fixes, why not): every extent `unexpressed` names,
+    or that the `ExtentFix` model refuses, is a line in `why not`, and no fixes are returned (a part of the extent
+    is never dropped)."""
+    from pipeline.regs.review.marks import ExtentFix
+    extents = list(extents)
+    why = unexpressed(extents)
+    fixes = []
+    for i, ex in enumerate(extents):
+        items = list(ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else []))
+        try:
+            fixes.append(ExtentFix(scope="entry", op=ex["op"], items=items, tributaries=tributaries,
+                                   points=[{"kind": "split", "split_id": s} for s in ex.get("splits") or []],
+                                   area=ex.get("area_id")))
+        except ValueError as e:
+            why.append(f"extent {i + 1} ({ex.get('op')}): {e}")
+    return ([], why) if why else (fixes, [])
+
+
 def _variant_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
     """A DFO wording ATTACHED AS A VARIANT (owner 2026-11-02): the target's `duplicate_of` set to the
     place it rewords, confirmed — the entry model's own variant link (`EntryLocation.is_variant`)."""
@@ -997,9 +1036,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
             # other mark holds one fix per scope (`Mark`), so this is the one-element list it always was
             got = sets.setdefault(f.scope, {})
             got.setdefault("extents", []).append(ex)
-            if f.tributaries is not None:
-                if tri_field in got and got[tri_field] != f.tributaries:
-                    problems.append(f"{f.scope}: the pieces call tributaries both in and out")
+            if f.tributaries is not None:                # one call for every piece: `marks.pieces_ok`
                 got[tri_field] = f.tributaries
         for scope, call in m.tributaries.items():
             want = call == "include"
@@ -1021,6 +1058,10 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                     if scope != "entry":
                         problems.append(f"a DFO location has no rule {scope}")
                         continue
+                    # T525: the extents an extent fix replaces must be ones it can say again — a field the review
+                    # editor cannot express (a `within_area`, `outside_areas`, ...) would be dropped by the write
+                    if "extents" in fields and fields["extents"] != b.get("extents"):
+                        problems += [f"entry: {x}" for x in unexpressed(b.get("extents") or [])]
                     for fld, val in fields.items():
                         before = b.get(fld, _MISSING)
                         if before != val:

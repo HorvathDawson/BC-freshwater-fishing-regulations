@@ -29,6 +29,7 @@ from pipeline.common.curated import GENERATED
 
 import preverify
 import reuse
+from pipeline.atlas.reach import dfo_salmon as DS
 from pipeline.regs.review import dfo as D
 
 #: the typed feed the app reads (generated); `CURATION_DFO_TYPED` points it at a copy (tests). The DFO entry files are
@@ -235,33 +236,89 @@ def tidal_of(loc: dict, water: dict | None, m) -> dict | None:
     return {**got, "status": "rejected" if call == "not tidal" else "proposed"}
 
 
-def _norm_extent(ex: dict) -> tuple:
-    """An extent as compared (owner 2026-11-09): op, its cuts in order, the waters it holds on as a set."""
-    items = ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else [])
-    return (ex.get("op"), tuple(ex.get("splits") or ()), tuple(sorted(items)), ex.get("area_id") or None)
+def _extent_key(ex: dict) -> str:
+    """An extent as compared (owner 2026-11-09): every field it has, the waters it holds on as a set."""
+    items = sorted(ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else []))
+    rest = {k: v for k, v in ex.items() if k not in ("item_id", "item_ids")}
+    return json.dumps({**rest, "items": items}, sort_keys=True)
 
 
-def fix_vs_current(m, loc: dict) -> dict | None:
-    """DOES THE MARK'S FIX REPLACE THE PLACE'S EXTENT? (owner 2026-11-09: "make it more obvious when fix extent overrides
-    existing extent"). None without a fix; else `{state, current, fix}` — `current` the curated extents, `fix` the mark's
-    pieces as extents (a NEW point names its proposal's ref, so it never equals a curated cut):
+def same_extents(a: list[dict], b: list[dict]) -> bool:
+    """Do two lists of extents bind the same? A place binds the UNION of its pieces, so they are compared as a set
+    (T524 review: the order they are listed in is no difference)."""
+    return sorted(map(_extent_key, a)) == sorted(map(_extent_key, b))
+
+
+def tributaries_now(loc: dict, water: dict | None) -> bool | None:
+    """THE TRIBUTARY CALL A PLACE BINDS WITH: its own flag, else its water's (the DFO title, "Morice River (including
+    tributaries)") — the builder's own inheritance (`entries.to_reach_input`)."""
+    own = (loc.get("binding") or {}).get("tributaries")
+    return own if own is not None else (water or {}).get("tributaries")
+
+
+def fix_extents(fixes) -> tuple[list[dict], list[str]]:
+    """THE EXTENTS A MARK'S FIX PIECES LAND AS — `proposals.extent_of` with each point resolved as the proposals
+    resolve it: a curated split by its id, a NEW split by the real id its proposal lands as (the mark read through
+    `rekeyed`), a T191 point (confluence / lake end / map point) by the id its anchor lands as (`real_ids`, the same
+    `place_groups`). -> (extents, problems): a point that names no split is a problem, never a guess."""
+    from pipeline.regs.review import proposals as P
+
+    def split_of(f, i, p):
+        if p.kind in ("split", "new"):
+            return p.split_id
+        ref = f"#{i}"
+        return real_ids(((ref, P._point_split(p, f.items[0] if len(f.items) == 1 else None, ref)),)).get(ref)
+
+    out, problems = [], []
+    for f in fixes:
+        ex, probs = P.extent_of(f, lambda i, p, _f=f: split_of(_f, i, p), rest_at_build=True)
+        out.append(ex)
+        problems += probs
+    return out, problems
+
+
+def fix_vs_current(m, loc: dict, water: dict | None) -> dict | None:
+    """DOES THE MARK'S FIX REPLACE THE PLACE'S EXTENT? (owner 2026-11-09: "make it more obvious when fix extent
+    overrides existing extent"). None without a fix; else `{state, current, fix, tributaries}` — `current` the curated
+    extents, `fix` the extents the mark's pieces land as (`fix_extents`, on the mark as shown: `rekeyed`):
 
       replaces  the fix differs from the curated extent: saving it / applying it REPLACES the extent
       same      it equals it, on a verified mark naming only existing cuts (T210: "the cuts are right")
       applied   it equals it on a wrong / unsure mark: the fix has LANDED — this is now the curated extent
-    A tributary call on the fix that differs from the place's own flag is a replacement too."""
-    fixes = [f for f in (getattr(m, "extent_fix", None) or []) if f.scope == "entry"] if m is not None else []
-    if not fixes:
+    Pieces are compared as a set (`same_extents`); a tributary call is compared as it BINDS (`tributaries_now`), so a
+    fix calling what the place already inherits from its DFO title replaces nothing."""
+    from pipeline.regs.review import marks as M
+    if m is None or not m.extent_fix:
         return None
+    fixes = [M.ExtentFix.model_validate(f) for f in rekeyed(json.loads(m.model_dump_json()))["extent_fix"]
+             if f["scope"] == "entry"]
     b = loc.get("binding") or {}
     current = list(b.get("extents") or [])
-    mine = [_piece_extent(f) for f in fixes]
+    mine, problems = fix_extents(fixes)
     call = next((f.tributaries for f in fixes if f.tributaries is not None), None)
-    same = ([_norm_extent(x) for x in mine] == [_norm_extent(x) for x in current]
-            and (call is None or call == b.get("tributaries")))
+    now = tributaries_now(loc, water)
+    same = not problems and same_extents(mine, current) and (call is None or call == now)
     state = "replaces" if not same else ("same" if m.verdict == "verified" else "applied")
-    return {"state": state, "current": current, "fix": mine,
-            "tributaries": {"current": b.get("tributaries"), "fix": call}}
+    return {"state": state, "current": current, "fix": mine, "tributaries": {"current": now, "fix": call}}
+
+
+def extent_now(loc: dict, water: dict | None) -> dict:
+    """T525: THE PLACE'S CURATED EXTENT AS THE REVIEW EDITOR OPENS ON IT — `pieces` (`proposals.fixes_of_extents`: a
+    change starts FROM the extent the place has, never from an empty editor or an old mark), `cannot_change` (why no
+    fix can say it again: a field the editor has no word for — the change is offered nowhere, never made by dropping
+    it), and `seen`: what the owner is shown, sent back with the mark (`extent_before`) so a save made on an extent
+    that has moved since is refused (`mark_for`)."""
+    from pipeline.regs.review import proposals as P
+    b = loc.get("binding") or {}
+    pieces, why = P.fixes_of_extents(b.get("extents") or [], b.get("tributaries"))
+    return {"pieces": [f.model_dump(mode="json") for f in pieces], "cannot_change": why,
+            "tributaries": tributaries_now(loc, water), "seen": seen_extent(loc)}
+
+
+def seen_extent(loc: dict) -> dict:
+    """The extent a mark is made on: the place's curated extents and its own tributary flag, as the file has them."""
+    b = loc.get("binding") or {}
+    return {"extents": list(b.get("extents") or []), "tributaries": b.get("tributaries")}
 
 
 def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None,
@@ -293,7 +350,7 @@ def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None
             "suggested": _suggested(loc["location_id"]),
             "pv": preverify.dfo(loc["location_id"]),
             "fix_proposed": fix_proposal(loc["location_id"]) is not None,
-            "fix_vs_current": (fvc["state"] if (fvc := fix_vs_current(m, loc)) else None),
+            "fix_vs_current": (fvc["state"] if (fvc := fix_vs_current(m, loc, water)) else None),
             "lake_area": lake_area(loc, water),
             "tidal": tidal,
             "new_splits": len(m.new_splits) if m is not None else 0,
@@ -517,7 +574,11 @@ def detail(location_id: str) -> dict | None:
              "water": locs[x["id"]][1].get("water") or "",
              "text": (locs[x["id"]][1].get("source_text") or {}).get("specific_area") or "",
              "status": locs[x["id"]][1].get("status") or "active",
-             "verify": _verify(states.get(x["id"]), locs[x["id"]][1], locs[x["id"]][2])["status"]}
+             "verify": _verify(states.get(x["id"]), locs[x["id"]][1], locs[x["id"]][2])["status"],
+             # T525: a member whose extent is not this place's is not ticked "same extent" by default, and a save
+             # carrying it is refused (`mark_for` checks every target against the extent the owner saw)
+             "same_extent": seen_extent(locs[x["id"]][1]) == seen_extent(loc),
+             "extent": seen_extent(locs[x["id"]][1])}
             for x in g["members"]]}
     return reuse._json_safe({
         "row": _row(slug, loc, water, m, groups), "location": loc, "water": water, "group": group,
@@ -530,7 +591,7 @@ def detail(location_id: str) -> dict | None:
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
-        "fix_vs_current": fix_vs_current(m, loc),
+        "fix_vs_current": fix_vs_current(m, loc, water), "extent_now": extent_now(loc, water),
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
     })
 
@@ -638,22 +699,12 @@ def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dic
     return _bind(entry, rule, limit, walks)
 
 
-def _piece_extent(fix) -> dict:
-    """One piece (`marks.ExtentFix`) as the extent the build reads."""
-    ex: dict = {"op": fix.op} if fix.op == "rest" else {"op": fix.op, "splits": [p.split_id for p in fix.points]}
-    if len(fix.items) == 1:
-        ex["item_id"] = fix.items[0]
-    elif fix.items:
-        ex["item_ids"] = list(fix.items)
-    return ex
-
-
 def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool = False) -> dict | None:
     """A PROPOSED EXTENT (`marks.ExtentFix`, scope "entry") resolved on a copy, read only. A NEW
     split (`new`, or a T191 new point) is not a split yet: no preview, and the answer says so.
-    T524: `fix` may be a LIST of pieces — the place binds their UNION, previewed as one; `pieces` says what each binds
-    alone (no walk), and a piece that binds nothing is said, never hidden in the union (the build refuses it too,
-    `reach.dfo_salmon.dead_pieces`)."""
+    T524: `fix` may be a LIST of pieces — the place binds their UNION, previewed as one; `dead_pieces` names (1-based)
+    each piece that binds nothing alone, never hidden in the union — the build's own check
+    (`reach.dfo_salmon.dead_pieces`), which refuses it too."""
     got = _locations().get(location_id)
     if got is None:
         return None
@@ -668,8 +719,10 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
         if f.op in ("steelhead_waters", "within"):
             return {"resolvable": False, "n_sections": None,
                     "why": f"op {f.op} is not previewed on a DFO location"}
+    exs, problems = fix_extents(fixes)
+    if problems:
+        return {"resolvable": False, "n_sections": None, "why": "; ".join(problems)}
     # a rest previews the remainder after every other PLACED extent on the water, as the build does
-    exs = [_piece_extent(f) for f in fixes]
     call = next((f.tributaries for f in fixes if f.tributaries is not None), None)
     try:
         entry, rule = _reach_input(loc, water, exs, call if tributaries else False)
@@ -678,18 +731,9 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
     except Exception as e:  # noqa: BLE001 — the Extent model refuses a malformed one
         return {"resolvable": False, "n_sections": None, "why": f"not an extent: {e}"}
     out = _bind(entry, rule, limit, walks)
-    if len(exs) > 1:
-        from pipeline.atlas.reach.build import build_reach
-        alone = []
-        for i, ex in enumerate(exs):
-            one = {**rule, "rule_id": f"{rule['rule_id']}~piece{i + 1}", "extents": [ex],
-                   "includes_tributaries": False, "tributaries_only": False}
-            b, _d = build_reach({**entry, "includes_tributaries": False}, one, reuse._registry(), reuse._graph())
-            alone.append(len(b.sections))
-        out["pieces"] = alone
-        dead = [i + 1 for i, n in enumerate(alone) if not n]
-        if dead:
-            out["dead_pieces"] = dead
+    dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph())
+    if dead:
+        out["dead_pieces"] = [i + 1 for i in dead]
     return out
 
 
@@ -942,6 +986,14 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
     if got is None:
         raise KeyError(body.get("target"))
     _slug, loc, water = got
+    # T525: a mark is made on the extent the owner was shown (`extent_now.seen`, sent back as `extent_before`); one
+    # made on an extent that has moved since — another mark landed, a hand edit, a re-anchor — is refused, so a save
+    # never confirms or replaces an extent nobody looked at
+    if "extent_before" not in body:
+        raise ValueError("a DFO mark names the extent it was made on (extent_before): reload the place")
+    if body["extent_before"] != seen_extent(loc):
+        raise ValueError(f"{loc['location_id']}: its extent changed since you opened it (now "
+                         f"{json.dumps(seen_extent(loc))}): reload the place and look again — nothing was saved")
     now = D.prints(loc, water, DFO_TYPED)
     stamped: list[dict] = []
     for raw in body.get("new_splits") or []:
@@ -962,7 +1014,8 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
     fixes = [{**f, "points": [{**p, "split_id": rename.get(p.get("split_id"), p.get("split_id"))}
                               if p.get("kind") == "new" else p for p in f.get("points") or []]}
              for f in body.get("extent_fix") or []]
-    data = {**body, "rule_id": None, "new_splits": stamped, "date": date,
+    data = {**{k: v for k, v in body.items() if k != "extent_before"}, "rule_id": None, "new_splits": stamped,
+            "date": date,
             **({"extent_fix": fixes} if fixes else {}),
             "pdf_sha256": pdf_sha256, "pages": [], "prints": now}
     mark = M.Mark.model_validate(data)

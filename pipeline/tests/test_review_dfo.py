@@ -207,19 +207,118 @@ def test_a_dfo_mark_with_an_extent_fix_round_trips_and_the_latest_mark_wins(tmp_
     assert M.latest(M.load(store))[("dfo", LOC, None)].extent_fix == []
 
 
-def test_the_dfo_screen_opens_on_the_saved_fix_and_says_when_it_saved_it():
-    """The editor PRE-FILLS from the mark in force (so marking again carries the fix on instead of
-    silently dropping it), is open on every location, draws the saved extent in its own colour,
-    and confirms or refuses a save in words. Source pins: there is no JS runner in the repo."""
+def test_the_dfo_screen_logic_runs():
+    """T525: what a DFO mark does to the place's extent — keep / not sure / wrong carry no fix, a change carries its
+    pieces only when it changes something and says keep / replace / add, pieces are added and dropped on the place's
+    one tributary call, a piece previews alone or in the union, every mark names the extent it was made on, the save
+    is held in words — run by node on the screen's own functions (`frontend/src/dfoExtent.ts`)."""
+    import shutil
+    import subprocess
     from pathlib import Path
-    root = Path(__file__).resolve().parents[2] / "curation-review/frontend/src/components"
-    dfo, editor, mp = ((root / n).read_text() for n in ("DfoReview.tsx", "ExtentFixEditor.tsx", "MapPanel.tsx"))
-    # T524: the saved extent is EVERY piece of the place (one editor each, "add another piece"; the union previewed)
-    assert "useState<ExtentFix[]>(savedAll)" in dfo and "savedFixesOf(was)" in dfo
-    assert "your extent (saved {was?.date" in dfo and "piecesWords(savedAll" in dfo
-    assert "<ExtentFixEditor key={i} defaultOpen" in dfo and "useState(!!value || defaultOpen)" in editor
-    assert 'data-testid="dfo-add-piece"' in dfo and "extent_fix: fixes" in dfo and "piecesWith(i, f)" in dfo
-    assert "preview.dead_pieces" in editor
-    assert 'data-testid="dfo-save-extent"' in dfo and "saved ✓" in dfo
-    assert 'data-testid="dfo-errors"' in dfo and "NOT SAVED" in dfo and 'role="alert"' in dfo
-    assert "saved={savedFc}" in dfo and "saved-lines" in mp
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not installed: the screen's functions are not run")
+    front = Path(__file__).resolve().parents[2] / "curation-review/frontend"
+    got = subprocess.run([node, "--test", "tests/dfoExtent.test.ts"], cwd=front, capture_output=True, text=True)
+    assert got.returncode == 0, got.stdout + got.stderr
+
+
+def test_every_curated_extent_opens_in_the_editor_or_says_why():
+    """T525: a change starts FROM the place's extent — every curated extent the editor can say opens as pieces that land
+    as exactly that extent again (`extent_of`), its tributary flag as it is (none stays inherited); one holding a field
+    an extent fix has no word for opens on nothing and says which field, so no change can drop it."""
+    from pathlib import Path
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.review import proposals as P
+    opened = refused = 0
+    for f in sorted(Path(CURATED.dfo_salmon.places).glob("region-*.json")):
+        for loc in json.loads(f.read_text(encoding="utf-8"))["locations"]:
+            b = loc.get("binding") or {}
+            exs = b.get("extents") or []
+            fixes, why = P.fixes_of_extents(exs, b.get("tributaries"))
+            if why:
+                refused += 1
+                assert not fixes and all("cannot express" in w or ": " in w for w in why), (loc["location_id"], why)
+                continue
+            back = [P.extent_of(x, lambda _i, p: p.split_id, rest_at_build=True) for x in fixes]
+            assert [e for e, _p in back] == exs and not any(p for _e, p in back), loc["location_id"]
+            assert all(x.tributaries == b.get("tributaries") for x in fixes)
+            opened += bool(exs)
+    assert opened > 100 and refused > 0
+    fixes, why = P.fixes_of_extents([{"op": "within", "area_id": "area:drains_to:pfma_28",
+                                      "within_area": "area:region:2"}], None)
+    assert fixes == [] and why == ["extent 1 (within) holds within_area, which an extent fix cannot express: a hand edit"]
+
+
+def test_a_fix_replacing_an_extent_it_cannot_say_again_is_refused(tmp_path):
+    """T525: an extent fix writes op / cuts / waters / area only, so replacing a curated extent that holds more (a
+    `within_area`) would drop it: the proposal names the field and is not applicable — the file keeps it."""
+    from pipeline.regs.review import proposals as P
+    held = {"op": "within", "area_id": "area:drains_to:pfma_28", "within_area": "area:region:1"}
+    ent, typed = _world(tmp_path, extents=[held])
+    splits = tmp_path / "splits.json"
+    splits.write_text(json.dumps({"waterbodies": []}))
+    m = _mark(D.prints_of(LOC, ent, typed),
+              extent_fix=[{"scope": "entry", "op": "whole", "items": ["gnis:1"], "points": []}])
+    got = [p for p in P.build([m], P.Sources(entries_dir=ent, dfo_dir=ent, splits_path=splits))
+           if p["kind"] == "extent"]
+    assert len(got) == 1 and not got[0]["applicable"]
+    assert got[0]["problems"] == ["entry: extent 1 (within) holds within_area, which an extent fix cannot express: "
+                                  "a hand edit"]
+
+
+def _backend(monkeypatch):
+    """the review backend's `dfo` module, fresh (its readers patched per test)"""
+    import sys
+    from pathlib import Path
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    sys.modules.pop("dfo", None)
+    import dfo
+    return dfo
+
+
+def test_a_mark_on_an_extent_that_moved_since_is_refused(monkeypatch):
+    """T525: a DFO mark names the extent the owner was shown (`extent_before`); `mark_for` refuses one that names none,
+    and one made on an extent the file no longer has — for every member of a group save too, so a member whose extent
+    differs is never labelled with it."""
+    B = _backend(monkeypatch)
+    ext = [{"op": "between", "splits": ["test_river__a", "test_river__b"], "item_id": "gnis:1"}]
+    here = {"location_id": LOC, "binding": {"extents": ext, "tributaries": None}}
+    other = {"location_id": LOC + "~2", "binding": {"extents": [{"op": "whole"}], "tributaries": None}}
+    monkeypatch.setattr(B, "_locations", lambda: {LOC: ("1", here, None), LOC + "~2": ("1", other, None)})
+    monkeypatch.setattr(B, "_groups", lambda: {LOC: {"id": "g", "members": [{"id": LOC}, {"id": LOC + "~2"}]}})
+    body = {"scope": "dfo", "target": LOC, "verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y"},
+            "reviewer": "t"}
+    with pytest.raises(ValueError, match="extent_before"):
+        B.mark_for(body, date="2026-11-09", pdf_sha256=SHA)
+    with pytest.raises(ValueError, match="changed since you opened it"):
+        B.mark_for({**body, "extent_before": {"extents": [{"op": "whole"}], "tributaries": None}},
+                   date="2026-11-09", pdf_sha256=SHA)
+    seen = B.seen_extent(here)
+    assert seen == {"extents": ext, "tributaries": None}
+    with pytest.raises(ValueError, match=r"~2: its extent changed since you opened it"):
+        B.marks_for_group({**body, "extent_before": seen, "targets": [LOC + "~2"]}, date="2026-11-09",
+                          pdf_sha256=SHA)
+
+
+def test_a_fix_is_compared_as_the_place_binds(monkeypatch):
+    """T524 review: the pieces of a place are a union (no order), and a tributary call is compared as the place BINDS
+    with it — its own flag, else its water's (the DFO title) — so a fix calling what the place already inherits
+    replaces nothing."""
+    B = _backend(monkeypatch)
+    a = {"op": "downstream_of", "splits": ["x__a"], "item_id": "gnis:1"}
+    b = {"op": "upstream_of", "splits": ["y__b"], "item_ids": ["gnis:3", "gnis:2"]}
+    assert B.same_extents([a, b], [{**b, "item_ids": ["gnis:2", "gnis:3"]}, a])
+    assert not B.same_extents([a], [a, b]) and not B.same_extents([a], [{**a, "within_area": "area:region:1"}])
+    loc = {"binding": {"tributaries": None}}
+    assert B.tributaries_now(loc, {"tributaries": True}) is True
+    assert B.tributaries_now({"binding": {"tributaries": False}}, {"tributaries": True}) is False
+    assert B.tributaries_now(loc, None) is None
+    monkeypatch.setattr(B, "rekeyed", lambda mark: mark)
+    fix = {"scope": "entry", "op": "downstream_of", "items": ["gnis:1"], "points": [{"kind": "split", "split_id": "x__a"}]}
+    place = {"binding": {"extents": [a], "tributaries": None}}
+    title = {"tributaries": True}
+    m = _mark({"text": "t", "records": [{"key": "entry", "meaning": "m", "binding": "b"}]},
+              extent_fix=[{**fix, "tributaries": True}])
+    assert B.fix_vs_current(m, place, title)["state"] == "applied"           # what the title already says
+    assert B.fix_vs_current(m, place, {"tributaries": False})["state"] == "replaces"

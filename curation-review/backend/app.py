@@ -284,6 +284,9 @@ class MarkPayload(BaseModel):
     #: owner 2026-11-02 (scope dfo): this wording is a variant of that DFO location — T185 writes its
     #: `duplicate_of` (confirmed). Its one check is T.
     variant_of: str | None = None
+    #: T525 (scope dfo): the place's extent the owner was shown — its curated extents and its own tributary flag
+    #: (`dfo.extent_now`'s `seen`); a DFO mark made on an extent that has moved since is refused (`dfo.mark_for`)
+    extent_before: dict | None = None
 
 
 #: EVERY SAVE THE SERVER REFUSES, on file (owner 2026-10-28: a refused save must be impossible to
@@ -371,6 +374,13 @@ def _post_mark(body: MarkPayload):
         data.pop("variant_of")
     elif not body.variant_of:
         data.pop("variant_of")
+    if body.scope != "dfo":
+        if body.extent_before is not None:
+            raise HTTPException(422, [{"path": "extent_before",
+                                       "msg": "only a DFO mark names the extent it was made on"}])
+        data.pop("extent_before")
+    elif body.extent_before is None:
+        data.pop("extent_before")
     if body.scope == "q154":
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])

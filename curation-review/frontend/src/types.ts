@@ -814,6 +814,8 @@ export interface MarkPost {
   new_splits?: NewSplit[];
   /** owner 2026-10-28: a DFO historic group — every member kept gets the same mark (one each) */
   targets?: string[];
+  /** T525 (dfo): the extent the mark was made on (`DfoExtentNow.seen`); the server refuses it when the file moved */
+  extent_before?: DfoSeenExtent;
   /** owner 2026-11-02 (dfo): this wording is a variant of that location (T185 writes duplicate_of) */
   variant_of?: string;
   /** T359 (tidal): "whole" — the whole water is tidal (Place y, no cut; the writer makes a `whole` row);
@@ -833,7 +835,7 @@ export interface FixPoint {
   /** kind coord: [lon, lat] */
   coord?: [number, number];
 }
-/** T191: a proposed extent, recorded IN THE MARK (never a file edit; T185 proposes the edit) */
+/** T191: a proposed extent, recorded IN THE MARK; the save writes it to the curated file (T325 write-through) */
 export interface ExtentFix {
   scope: string;              // "entry" or a rule id
   op: ExtentOp;
@@ -856,9 +858,7 @@ export interface ExtentPreview {
   geojson?: GeoJSON;
   /** whether the binding walks tributaries (true even when the slow walk is not drawn) */
   walks_tributaries?: boolean;
-  /** T524: a DFO place of several pieces — what each piece binds ALONE (no walk), in order */
-  pieces?: number[];
-  /** T524: the pieces (1-based) that bind nothing alone — the build refuses them */
+  /** T524: the pieces (1-based) that bind nothing alone — the build's own check, which refuses them */
   dead_pieces?: number[];
 }
 
@@ -1067,6 +1067,9 @@ export interface DfoRow {
 export interface DfoGroupMember {
   id: string; why: string | null; this: boolean; water: string; text: string; status: string;
   verify: VerifyStatus;
+  /** T525: its curated extent is this place's (else it starts unticked, and a save carrying it is refused) */
+  same_extent: boolean;
+  extent: DfoSeenExtent;
 }
 export type SuggestConfidence = "high" | "medium" | "low" | "none";
 /** A SUGGESTED extent (`pipeline.regs.dfo_salmon.suggest`): never applied — "accept suggestion"
@@ -1170,7 +1173,22 @@ export interface FixVsCurrent {
   fix: DfoExtent[];
   tributaries: { current: boolean | null; fix: boolean | null };
 }
-export interface DfoExtent { op: string; splits?: string[]; item_id?: string; item_ids?: string[] }
+export interface DfoExtent { op: string; splits?: string[]; item_id?: string; item_ids?: string[]; area_id?: string;
+  /** a field an extent fix cannot express (`within_area`, `outside_areas`, …) — kept, never dropped (T525) */
+  [field: string]: unknown }
+/** T525: the extent a mark is made on — the place's curated extents and its own tributary flag, as the file has them */
+export interface DfoSeenExtent { extents: DfoExtent[]; tributaries: boolean | null }
+/** T525 (`dfo.extent_now`): the place's curated extent as the editor opens on it */
+export interface DfoExtentNow {
+  /** the curated extents as extent-fix pieces — a change starts FROM them */
+  pieces: ExtentFix[];
+  /** why no extent fix can say this extent again (a field it has no word for): no change is offered */
+  cannot_change: string[];
+  /** the tributary call it binds with: its own, else its water's (the DFO title) */
+  tributaries: boolean | null;
+  /** what the mark sends back as `extent_before` */
+  seen: DfoSeenExtent;
+}
 export interface DfoWording { fingerprint: string | null; text: string; dates: string[];
   location_id?: string; status?: string; variant?: boolean; verify?: string | null }
 export interface DfoPlace {
@@ -1221,6 +1239,7 @@ export interface DfoDetail {
   /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */
   fix_proposal?: DfoFixProposal | null;
   fix_vs_current?: FixVsCurrent | null;
+  extent_now: DfoExtentNow;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
 }
 

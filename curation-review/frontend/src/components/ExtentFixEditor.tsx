@@ -59,21 +59,21 @@ interface Props {
   /** T524: which PIECE of a DFO place this editor is (0-based; absent = the one extent). Piece 1 keeps the plain
    *  test ids; a later piece's carry `-p<n>` */
   piece?: number;
-  /** (owner 2026-11-09) the tributary call a NEW fix starts on (the place's / DFO title's), and where it came from */
-  defaultTributaries?: boolean | null;
-  defaultTributariesWhy?: string;
+  /** (owner 2026-11-09) what the place binds with now, in words ("with tributaries — the DFO title"): shown beside
+   *  the call, which starts as the place's own (none = it keeps inheriting; T524 review) */
+  tributariesNow?: string;
   /** whether the preview draws the tributary walk (the slow toggle); off, a walking binding still SAYS it walks */
   tributariesDrawn?: boolean;
 }
 
 /* THE EXTENT-FIX EDITOR (T191). The reviewer proposes the extent — op, 1 or 2 split points, the
-   items it holds on, tributaries — and it is recorded IN THE MARK (`Mark.extent_fix`), never in a
-   file; T185 turns it into a proposed edit. The preview is the builder's own resolve on an
+   items it holds on, tributaries — and it is recorded IN THE MARK (`Mark.extent_fix`); saving the mark
+   writes it to the curated file (T325 write-through). The preview is the builder's own resolve on an
    in-memory copy (GET /extent-preview); a NEW point cannot be previewed until it is built. */
 export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, value, onChange,
                                   onPreview, onPick, splitAt, newSplits = [], sources,
-                                  previewFn, defaultOpen = false, piece, defaultTributaries = null,
-                                  defaultTributariesWhy = "", tributariesDrawn = true }: Props) {
+                                  previewFn, defaultOpen = false, piece, tributariesNow = "",
+                                  tributariesDrawn = true }: Props) {
   const tid = piece ? `${scope}-p${piece + 1}` : scope;
   const offered = SOURCES.filter((x) => (sources ? sources.includes(x.v) : x.v !== "new"));
   const [open, setOpen] = useState(!!value || defaultOpen);
@@ -86,7 +86,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
 
   const fix: ExtentFix = value ?? {
     scope, op: (ops.some((o) => o.op === currentOp) ? currentOp : "whole") as ExtentOp,
-    points: [], items: [], tributaries: defaultTributaries,
+    points: [], items: [], tributaries: null,
   };
   const want = ops.find((o) => o.op === fix.op)?.points ?? 0;
   const set = (patch: Partial<ExtentFix>) => { setPreview(null); onPreview(null); onChange({ ...fix, ...patch }); };
@@ -139,12 +139,12 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
     <div className="extent-fix" data-testid={`fix-${tid}`}>
       <div className="fix-row">
         <strong>{piece !== undefined && piece > 0 ? `Piece ${piece + 1}` : "Fix extent"}</strong>
-        <span className="dim">recorded in the mark, never in a file (T185 turns it into a proposed edit)</span>
+        <span className="dim">saving the mark writes it to the curated file</span>
         <span className="spacer" />
-        <button type="button" className="btn small" onClick={() => {
+        <button type="button" className="btn small" data-testid={`fix-drop-${tid}`} onClick={() => {
           // a DFO piece stays open: the editor at this place now shows the next piece (T524)
           onChange(null); onPreview(null); onPick(null); setPreview(null); if (piece === undefined) setOpen(false);
-        }}>remove</button>
+        }}>{piece === undefined ? "discard this fix" : "drop this piece"}</button>
       </div>
       <div className="fix-row">
         <span className="k">op</span>
@@ -190,31 +190,25 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
           <button key={w} type="button" className={`ans trib-call${(fix.tributaries ?? null) === v ? " on" : ""}`}
             aria-pressed={(fix.tributaries ?? null) === v} onClick={() => set({ tributaries: v })}>{w}</button>
         ))}
-        {defaultTributariesWhy && defaultTributaries !== null && (
-          <span className="dim" data-testid={`fix-trib-default-${tid}`}>
-            {(fix.tributaries ?? null) === defaultTributaries ? `${defaultTributaries ? "with" : "without"} tributaries ` : "differs from "}
-            ({defaultTributariesWhy})</span>
-        )}
+        {tributariesNow && <span className="dim" data-testid={`fix-trib-now-${tid}`}>now: {tributariesNow}</span>}
       </div>
       <div className="fix-row">
         <button type="button" className="btn small" disabled={busy} data-testid={`fix-preview-${tid}`}
           onClick={runPreview}>{busy ? "resolving…" : "preview on map"}</button>
         {preview && (preview.resolvable
           ? <span data-testid={`fix-preview-says-${tid}`}><strong>binds {preview.n_sections?.toLocaleString()} section(s)</strong>
-              {preview.truncated && " (drawing capped)"} · magenta on the map
+              {preview.truncated && " (drawing capped)"} · on the map
               {preview.outcomes && Object.values(preview.outcomes).some((o) => o !== "bound") &&
                 <span className="warn-text"> · {Object.entries(preview.outcomes).map(([k, v]) => `${k} ${v}`).join(", ")}</span>}
               {preview.walks_tributaries === true && <span data-testid={`fix-preview-tribs-${tid}`}>{tributariesDrawn
                 ? " · with tributaries" : " · with tributaries — not drawn; tick Show tributaries to draw"}</span>}
               {preview.walks_tributaries === false && <span> · no tributaries</span>}
-              {preview.pieces && <span> · the union of {preview.pieces.length} pieces (alone: {preview.pieces
-                .map((n, i) => `${i + 1}: ${n.toLocaleString()}`).join(", ")})</span>}
               {preview.dead_pieces?.length ? <span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
                 {" "}· piece {preview.dead_pieces.join(", ")} binds NOTHING alone — the build refuses it</span> : null}
             </span>
           : <span className="warn-text" data-testid={`fix-preview-says-${tid}`}>no preview: {preview.why}</span>)}
         {!preview && fix.points.some((p) => p && p.kind !== "split") && (
-          <span className="dim">a NEW point has no preview until T185 builds it</span>
+          <span className="dim">a NEW point has no preview until its cut is built (once the save lands)</span>
         )}
       </div>
     </div>
