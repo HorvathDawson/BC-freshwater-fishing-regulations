@@ -71,12 +71,15 @@ for a in "$@"; do
       [[ -n ${STOCK_MLN// /} ]] || { echo "build-apk: --stock-maplibre= needs a reason" >&2; exit 2; } ;;
   esac
 done
-if [[ -n $PLAY && -z $PROD ]]; then
+# (owner 2026-11-09) EVERY non-production build carries the patched MapLibre until the fix is in a MapLibre release — the
+# staging-page APK too, not only --play: MLN_LOCAL_MAVEN defaults to the kept lean repo
+if [[ -z $PROD && -z $STOCK_MLN && -z ${MLN_LOCAL_MAVEN:-} ]]; then export MLN_LOCAL_MAVEN="$REPO/cache/maplibre/fslean-m2"; fi
+if [[ -z $PROD ]]; then
   if [[ -n $STOCK_MLN ]]; then
     [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: --stock-maplibre with MLN_LOCAL_MAVEN set: pick one" >&2; exit 2; }
     echo "build-apk: STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
   else
-    [[ -n ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: a --play build carries the patched MapLibre (T420, T512): set" \
+    [[ -n ${MLN_LOCAL_MAVEN:-} ]] || { echo "build-apk: every non-production build carries the patched MapLibre (T420, T512): set" \
       "MLN_LOCAL_MAVEN=$REPO/cache/maplibre/fslean-m2 (made by app/tools/maplibre-patch/build.sh with the lean patch)," \
       "or say why not with --stock-maplibre=\"<reason>\"" >&2; exit 2; }
     MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
