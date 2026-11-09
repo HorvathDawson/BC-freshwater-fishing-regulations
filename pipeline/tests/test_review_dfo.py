@@ -218,8 +218,8 @@ def test_the_dfo_screen_logic_runs():
     import subprocess
     from pathlib import Path
     node = shutil.which("node")
-    if node is None:
-        pytest.skip("node is not installed: the screen's functions are not run")
+    # the review app runs on node; without it the screen's logic is unchecked, which must fail, never skip
+    assert node is not None, "node is not installed: the DFO screen's functions cannot be run"
     front = Path(__file__).resolve().parents[2] / "curation-review/frontend"
     got = subprocess.run([node, "--test", "--test-reporter=tap", "tests/*.test.ts"], cwd=front,
                          capture_output=True, text=True)
