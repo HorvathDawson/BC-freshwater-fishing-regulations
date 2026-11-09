@@ -16,6 +16,8 @@ export async function appUp(ctx, { launch = true, ms = 120_000 } = {}) {
     if (w.some((x) => /send you notifications/i.test(x))) ctx.flow('tap-text', { TEXT: 'Allow' });
     // a cleared app shows the first-run notice and the tour over the map: closed as a reader would
     else if (w.some((x) => /^(I understand|Skip|Before you fish|Welcome|Got it)$/.test(x))) ctx.flow('dismiss-first-run');
+    // (T360, 2026-11-09) the in-season changes sheet a fresh install opens over the map: closed as a reader would
+    else if (w.includes('In-season changes') && w.includes('Done')) ctx.flow('tap-text', { TEXT: 'Done' });
     else if (!ctx.device.pidOf()) ctx.device.launch();
     await ctx.device.sleep(3000);
   }

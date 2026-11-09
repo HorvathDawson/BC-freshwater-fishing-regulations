@@ -1,6 +1,6 @@
 # T360 — App memory footprint
 
-Status: PARTIAL 2026-11-05 — 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931 (Conditions still peaks ~410 MB on the emulator; real-phone GPU memory + Vulkan/OpenGL left)
+Status: PARTIAL 2026-11-09 — 25a6b7d54, 17d5f0dc3, fe0f4e659, 2bdcc1931, 84ef47b (peak 379 MB on the build-21-era APK; allocator decay A/B unfinished, held out of build 22; real-phone GPU memory + Vulkan/OpenGL left)
 
 Owner 2026-11-03: "could we look into the memory footprint of the app". Evidence: the two 0.4.0 foreground native
 crashes (T351) happened at 406 MB and 435 MB in use (one SIGSEGV); background LOW_MEMORY kills at 169 MB (0.3.0, 0.4.0).
@@ -176,3 +176,44 @@ wrapped. Owner 11-05: 6.3 MB is fine for now — salmon stays decoded at map loa
 This ticket now also carries the leftovers of: T245, T287, T317 — read each file's open items and finish them here; each closes pointing here.
 
 - 2026-11-08 (gate 2): same session. PSS boot 253, 10 pans 286, satellite 320, rule book 326, **Conditions 396 (native 217)**, Salmon 395, after RUNNING_CRITICAL trim 364 MB. No growth across 32 tab switches. Conditions is still the peak (~400 MB, unchanged from 11-05).
+
+## Round 7 (2026-11-09; runs `app/tools/testbed/out/runs/t360-{base3,decay2}`, normal emulator, staging, lean MapLibre)
+**Code (84ef47b), kept as clearly correct (bounded, no visual change), unit-tested:**
+- SQLite: one handle per file; `closeIdle(ms)` closes connections not mid-read, the next read reopens + rechecks meta. A
+  trim closes those idle 60 s; an applied update closes the replaced set's ~14 connections (held for the app's life before).
+- Panel cache per `WaterSource` (WeakMap): an update's new set never answers from the old numbering; old panels go with it.
+- Status index (`statusOf`): only the 2 newest keys held (every earlier release's index was kept).
+- Rule book: the same marks on the same book reuse `synopsis-open.pdf` (no 12 MB rewrite per open). The RAM spike was
+  already gone (T354: the book never enters JS); the remaining "double copy" was disk only.
+- Checked, NOT changed: salmon slices are bounded by the region count (≤ 11, 6.3 MB total, owner OK 11-05); salmonMemo is
+  per region set (tiny closures). MapLibre's ambient cache is disk (no RAM win).
+
+**Where the Conditions peak comes from (round 6 heapprofd + today):** ~28 MB live growth (Hermes ~12, MapLibre ~11);
+JS externals +11 MB (flow-area, gauges); the rest is freed MapLibre memory the allocator keeps (a CRITICAL trim's purge
+gives back 40 MB). Hence the experiment: `mallopt(M_DECAY_TIME, 1)` at start (the allocator returns freed pages ~1 s later
+instead of only on a trim). Patch: `app/tools/testbed/out/t360/t360-decay.patch` (also in worktree
+`../bcfr-t360`). NOT committed, NOT in build 22.
+
+| step (PSS / native MB) | base3: t512lean APK (11-08) | decay2: HEAD 229c464de + decay |
+|---|---|---|
+| boot | 254 / 124 | 233 / 127 |
+| 10 pans | 277 / 143 | 269 / 149 |
+| satellite on | 308 / 171 | 283 / 164 |
+| water page | 256 / 106 | 308 / 153 (opened on its Map view) |
+| rule book closed (2nd) | 289 / 122 | — (step failed: see below) |
+| Conditions | 356 / 186 | 314 / 159 |
+| map after Conditions | 377 / 204 | 313 / 162 |
+| Salmon | **379** / 206 | **314** / 164 |
+| after CRITICAL trim | 338 / 175 | 291 / 142 |
+
+Not a clean A/B: decay2 skipped the rule book (which leaves ~33 MB, base3 256 → 289) and is a newer app. Net of that,
+~−10 MB at Conditions and ~−30 MB at Salmon/after-trim: suggestive, inside run-to-run noise for one sample. The fair
+run (same worktree, decay off: `t360-nodecay`) was stopped for the T517 deliver; requeue it, then keep decay only if
+decay2 beats it by more than noise and pan frame time is unchanged.
+
+**Test-bed drift found:** (1) a fresh install opens the In-season changes sheet over the map; `appUp` now closes it by
+its Done (common.mjs). (2) On HEAD a search result opens the water on its MAP view, so the memory scenario's rule-book
+link is not on screen — the step needs a tap on Regulations first. (3) The Cultus Map view said "The parts of this
+water are not available" (HEAD 229c464de) — for the T517 lane to check. (4) The main working tree carries another
+lane's uncommitted format bumps (paint/5, water/3): a test-bed APK built from it cannot read staging ("map data could
+not be loaded"); build test-bed APKs from a clean worktree.

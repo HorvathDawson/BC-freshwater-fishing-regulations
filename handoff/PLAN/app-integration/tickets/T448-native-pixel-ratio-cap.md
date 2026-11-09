@@ -39,3 +39,10 @@ red/white hatch loses a little detail; renderer anti-aliasing stays at 2.625 (a 
 Mixed, within this emulator's run-to-run noise: its GPU is the Mac's passed through (fill is ~free there) and the stress is
 CPU (tile parse, JS), which the cap does not touch. The fill saving (42 % fewer pixels per frame, as the web proxy's −28..−32 %)
 can only show on the Pixel 9's own GPU: owner phone check.
+
+## Build 22 check (2026-11-08, read only)
+`MLN_LOCAL_MAVEN=$PWD/cache/maplibre/fslean-m2 deploy/staging/build-apk.sh --play` carries it: build-apk refuses a `--play`
+build without the lean AAR (`android-sdk-vulkan-13.6.1-fslean.aar`, present); the binding patch
+(`app/patches/@maplibre__maplibre-react-native@11.5.0.patch`) has `maxPixelRatio` + `prefetchZoomDelta`; `Map.native.tsx`
+passes the cap 2 (lab default `pixelCap: true`) and prefetch −1 / lab 4 (MapLibre's default). Left: the owner's phone check
+(OWNER-TODO "Phone check with build 22").

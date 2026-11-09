@@ -79,3 +79,10 @@ efficiency cores; the delta-3 run and a delta-4 repeat fell in a slow spell). De
 3 of 4 rows, all inside the ranges: no measurable gain, and no measurable cost (the extra z11 parents did not raise frame
 time). Not shipped. If the owner still sees bare streams during the glide on the Pixel 9, a delta-2 APK side by side is
 the honest check (the emulator cannot judge placeholder richness).
+
+## Build 22 check (2026-11-08, read only)
+`MLN_LOCAL_MAVEN=$PWD/cache/maplibre/fslean-m2 deploy/staging/build-apk.sh --play` carries it: build-apk refuses a `--play`
+build without the lean AAR (`android-sdk-vulkan-13.6.1-fslean.aar`, present); the binding patch
+(`app/patches/@maplibre__maplibre-react-native@11.5.0.patch`) has `maxPixelRatio` + `prefetchZoomDelta`; `Map.native.tsx`
+passes the cap 2 (lab default `pixelCap: true`) and prefetch −1 / lab 4 (MapLibre's default). Left: the owner's phone check
+(OWNER-TODO "Phone check with build 22").

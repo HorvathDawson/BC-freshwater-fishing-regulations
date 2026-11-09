@@ -28,3 +28,7 @@ Size: M.
   satellite + Conditions-layer steps and `PAN_GROUND=satellite` fail) — a flow to update, not an app crash.
 
 - 2026-11-08 (gate 2, T495): one ~28 min emulator session on 8fa19a6 (satellite, 2×16-swipe pans, gestures, the 30-step walkthrough, memory, 32 tab switches): 6/6 pass, no crash, ANR or tombstone. Crash store: no foreground crash from any 0.6.x build (every report is the emulator or the web, T494). Stays OPEN until the owner phone session (T495 gate 2).
+
+- 2026-11-09 (T360 round 7): emulator peak PSS 379 MB (Salmon, build-21-era lean APK) — under the reports' 406/435 MB;
+  HEAD + allocator decay experiment peaked at 314 MB (not a clean A/B, see T360). No crash in either run. Stays OPEN for
+  the owner's build-22 session (OWNER-TODO).
