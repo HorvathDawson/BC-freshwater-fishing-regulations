@@ -1,6 +1,6 @@
 # T525 — The DFO review screen is easy to follow and hard to get wrong
 
-Status: OPEN
+Status: IN REVIEW — owner restarts the review app and looks
 
 Owner 2026-11-09: "make app easier to review too right now the info is really hard to follow and extents already
 defined get lost when confirming vs redo. etc etc it is just hard to use right now and feels like i will make bad data".
@@ -110,3 +110,19 @@ Tests: `effectOf(now, draft)` (pure); seed round trip (`extent_of(seed(binding))
 place); keep posts no `extent_fix`; a stale `extent_before` makes the apply refuse; a differing group member starts
 unticked; Cowichan confirm records verified with no fix.
 Order: lands after T524, in the same files.
+
+## Implemented (2026-11-09, on T524)
+- Guards: the editor opens on the curated extent (`proposals.fixes_of_extents`, served as `extent_now`; 172 of 187
+  curated extents round-trip exactly, 15 hold a field a fix cannot say and offer no change); Keep / Not sure / Wrong
+  post no `extent_fix` (`frontend/src/dfoExtent.ts` `markBody`); every DFO mark sends `extent_before` and `dfo.mark_for`
+  refuses a missing or moved one, per group member too; `proposals.build` refuses replacing an extent holding
+  `within_area` / `outside_areas` / …; a group member whose extent differs starts unticked and shows its extent; the
+  editor / new-split wording says the save writes the curated file.
+- Layout: DFO says → the extent now (words, magenta, always drawn) → T, R and four calls → the effect (keep / REPLACES /
+  ADDS, now struck vs new) → one save button naming its effect. The draft is teal; after a save the place stays and
+  reloads once the write-through has run.
+- T524 review folded in: effective tributary call (`dfo.tributaries_now`), pieces compared as a set, `fix_extents`
+  reuses `extent_of` with the proposals' point resolution, preview calls `DS.dead_pieces`, duplicate tributary rule and
+  `savedFixOf` removed, TSX string pins replaced by `node --test tests/dfoExtent.test.ts` (run from test_review_dfo).
+- Left: an apply-time `extent_before` (the mark model, marks.py — the T524 lane's file) so a debounced write-through
+  also refuses a file that moved between save and apply.
