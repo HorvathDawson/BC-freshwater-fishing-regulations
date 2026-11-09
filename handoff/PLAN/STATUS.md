@@ -13,6 +13,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 11:50 — session stopped ~02:10, resumed
+- Nothing shipped overnight: no build 22, no Play upload, nothing promoted. Committed by 02:04: T524 (+ review fixes),
+  T525 round 1, T522 step cache (release builds use --no-step-cache until its review fixes land), T360 memory (+ review
+  fixes), T496 tool fallbacks, red-test fixes, Section E dead piece. Uncommitted, lanes resumed: T517 (verify + commit),
+  T525 round 2, T522 cache fixes, T360 swap proof, 2 remaining red tests.
+- Then: T517 verify → promote → T523 apply → rebuild (no step cache) → explainer → build 22 → emulator → Play internal.
+
 ## 2026-11-09 morning (owner back, review app closed) — owner asleep again 01:10, target 6:10am PDT
 - Owner labelled 100 items; last 25 marks committed (4c45bfd). Chilliwack/Sumas two-piece places marked "unsure" (T524
   proposals will settle them); the Forks not marked. T523 re-simulating against the new marks before it applies.
