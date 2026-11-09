@@ -40,7 +40,8 @@ rows collapse). Old APK shows every notice "not on the map yet" until build 22 �
 1. T517 lands → fresh high-effort Opus review → fixes → owner gets the moved list / parity list / sizes / shots.
    - 11-09: T517 side build done (r-d62af06225a2; paint sync passes; 6 sections change rules, all T510; size +1.1%).
      Shots + moved list sent to owner. Opus review done: 5 major (paint-sync maximal check can't fail; joined piece opens map at wrong place;
-     header vs map names differ; no format bump; lake gap = owner) + minors. Fix agent running, then side rebuild 14. Open owner item: Dean Anahim run has a lake
+     header vs map names differ; no format bump; lake gap = owner) + minors. Fix agent running, then side rebuild 14.
+     Owner 11-09: after the fixes, a SECOND fresh Opus review the same way, then fix again. Open owner item: Dean Anahim run has a lake
      between its pieces and no mark, so they never join.
 2. **Explainer artifact** (owner ask): the new part + in-season flow and format, why each decision, with visuals.
 3. Then the queue: build 22 (Play internal, `MLN_LOCAL_MAVEN` lean MapLibre; carries T509/T515/T516/T517/T520),
