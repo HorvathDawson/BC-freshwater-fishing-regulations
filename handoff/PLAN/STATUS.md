@@ -13,6 +13,21 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 ~15:10 — build 22 scope landed; release build running
+- Owner: build 22 also carries T526 (DFO stale = not CHECKED in 24 h, 5b283e295), T527 (stock-style gauge alerts +
+  percentile-of-day, 402cf8b39/1e1b56e3a; v1.1 ±% alerts refused + shown, never dropped), T470 WCAG (dark base + cvd
+  selection fixed, a9d19c7be/6f227a1c5; Q176 casing question on OWNER-TODO). App `pnpm check` exit 0 with all three.
+- T523 data (1d58354b3): 4 cut ids renamed at identical measures; Quatse mark line diff-proven; 332 DFO rows unchanged.
+  Squamish 9 mile moved 476 m down onto OSM 5L32. Barrow Town cut applied (9aaa6251c) + the owner's 2 Chilliwack marks
+  (0dca85f24, 0c983cc9c).
+- New atlas parity: the 2 "lost cut points" (Fraser, Columbia) are T510 rule A moving connector pieces to Strawberry /
+  Williamson Slough, Annacis, Baldy, Hotsprings Channel (lake boundary went with them; Columbia length cut shifted 627 m).
+- Running: `build --promote --force deliver --hold-latest` (heavy.sh). Then binding diff → `release --staging` →
+  in-season re-resolve → build 22 → emulator → feeds worker → Play internal.
+- Play listing: images upload, but every listing commit is 403 (an empty commit passes) — the store-listing permission
+  has not reached `…@canifishthis.iam.gserviceaccount.com` yet. Retrying; script `deploy/staging/play-listing-images.py`.
+- Owner 11-09: after Play internal ships, start a NEW chat for remaining loose ends + prep for the workflow review.
+
 ## 2026-11-09 ~14:40 — the Forks redone; T517 lane finished
 - **The Forks (action 1, DONE as a proposal):** owner confirmed the zone is THREE arms: 100 m up the Morice, 100 m up the
   upper Bulkley and ~1 km down the Bulkley. No cut was missing; the earlier T524 proposal had given the MORICE place the 2
