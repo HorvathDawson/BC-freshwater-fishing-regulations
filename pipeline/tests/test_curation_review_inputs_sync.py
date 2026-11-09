@@ -91,3 +91,18 @@ def test_it_fails_closed(monkeypatch):
         for k, v in env.items():
             monkeypatch.setenv(k, v)
         assert IS.from_env(REPO).enabled is on, env
+
+
+def test_it_is_spawned_never_forked(tmp_path, monkeypatch):
+    """A fork would run PROJ's atfork child handler before exec and could crash there (rc -11, no output: it did, once
+    an earlier test had loaded pyproj). With fork made impossible, the run still happens, in the app's root."""
+    import subprocess
+
+    def no_fork(*_a, **_k):
+        raise AssertionError("inputs sync forked: it must posix_spawn")
+    monkeypatch.setattr(subprocess, "_fork_exec", no_fork)
+    s = _sync(tmp_path, 'pwd -P > where\n')
+    s.request("inseason-match")
+    assert s.wait_idle(10)
+    assert s.status()["state"] == "done", s.status()
+    assert (tmp_path / "where").read_text().strip() == str(tmp_path.resolve())

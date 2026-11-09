@@ -19,6 +19,13 @@ are REFUSED there (re-resolve here, then commit), never rewritten outside `write
 `status()["inputs"]` names the ones that failed (`FAILED <name>: …` lines), so a refused match never hides that the DFO
 entries went up. FAILS CLOSED: off unless `CURATION_SYNC_INPUTS=1` (curation-review/run.sh sets it for the live tree).
 `CURATION_SYNC_CMD` replaces the command (tests).
+
+SPAWNED, NEVER FORKED (2026-11-09): this process has loaded PROJ (`reuse` maps through pyproj), and PROJ registers a
+pthread_atfork child handler that closes its SQLite handle cache. A fork from this multi-threaded server runs that
+handler in the child before exec, and it can crash there (SIGSEGV, rc -11, no output: the macOS crash report shows
+`fork` -> `_pthread_atfork_child_handlers` -> PROJ `SQLiteHandleCache` -> `sqlite3_log` -> `os_log`). `posix_spawn` runs
+no atfork handlers. `subprocess` takes its posix_spawn path only with `cwd=None` and `close_fds=False` (Python fds are
+non-inheritable anyway, PEP 446), so the working directory is set by `/bin/sh` in the child instead.
 """
 from __future__ import annotations
 
@@ -99,8 +106,8 @@ class InputsSync:
     def _run(self, reasons: list[str]) -> None:
         t0 = time.monotonic()
         try:
-            p = subprocess.run(self.cmd, cwd=self.root, capture_output=True, text=True, timeout=1800,
-                               env={**os.environ, "SYNC_INPUTS_FROM_REVIEW": "1"})
+            p = subprocess.run(spawn_argv(self.cmd, self.root), capture_output=True, text=True, timeout=1800,
+                               close_fds=False, env={**os.environ, "SYNC_INPUTS_FROM_REVIEW": "1"})
             rc, out = p.returncode, (p.stdout + p.stderr)
         except Exception as ex:                                  # noqa: BLE001 — said, never swallowed
             rc, out = 1, f"{type(ex).__name__}: {ex}"
@@ -134,6 +141,11 @@ class InputsSync:
 
     def status(self) -> dict:
         return {"enabled": self.enabled, **self.state}
+
+
+def spawn_argv(cmd: list[str], cwd: Path) -> list[str]:
+    """`cmd` run in `cwd` by `/bin/sh` (an absolute path, so `subprocess` may posix_spawn it: see the module docstring)."""
+    return ["/bin/sh", "-c", 'cd "$0" && exec "$@"', str(cwd), *cmd]
 
 
 def _now() -> str:
