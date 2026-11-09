@@ -31,11 +31,12 @@ from pipeline.deliver.store.common import StoreError
 def _run_all(monkeypatch, tmp_path, fail_at=None):
     ran = []
 
-    def step(args):
+    def step(args, steps=None):                     # (T522) `steps`: the step cache; this fake runs every step
         ran.append(args[0])
         if args[0] == fail_at:
             raise subprocess.CalledProcessError(1, args)
     monkeypatch.setattr(D, "_step", step)
+    monkeypatch.setattr(D, "step_declared", lambda *a, **k: ({}, {}))     # (T522) pinned in test_stepcache
     monkeypatch.setattr("pipeline.common.vintage.report_all", lambda *a, **k: (True, "ok"))
     monkeypatch.setattr(D, "out_dir_release_problems", lambda *a, **k: [])    # (T483) pinned in test_deliver_atomic
     try:

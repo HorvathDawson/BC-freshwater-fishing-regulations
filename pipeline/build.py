@@ -278,11 +278,11 @@ def clim_key() -> dict:
 
 def stage_code(stage: str, m: dict | None = None):
     """(T522) A stage's code input: for a TRACED stage with a recorded run, {"traced": the bytes now of the modules that
-    run imported}; else the digest of its `CODE` roots."""
+    run imported, "env": the interpreter and installed distributions}; else the digest of its `CODE` roots."""
     from pipeline.common import stepcache
     rec = ((m if m is not None else load_manifest())["stages"].get(stage) or {})
     if stage in TRACED and rec.get("code_files"):
-        return {"traced": stepcache.code_digest(stepcache.code_now(rec["code_files"]))}
+        return {"traced": stepcache.code_digest(stepcache.code_now(rec["code_files"])), "env": stepcache.env_fingerprint()}
     return code_digest(CODE[stage])
 
 
@@ -646,7 +646,7 @@ def _traced_key(stage: str, tdir: Path, keyd: dict):
     if tr.conflicts or stepcache.code_now(tr.modules) != tr.modules:
         moved = tr.conflicts or sorted(k for k, v in stepcache.code_now(tr.modules).items() if tr.modules[k] != v)
         return None, None, None, f"NOT keyed — {moved[0]} changed while it ran; the next build runs it again"
-    k2 = dict(keyd, code={"traced": stepcache.code_digest(tr.modules)})
+    k2 = dict(keyd, code={"traced": stepcache.code_digest(tr.modules), "env": stepcache.env_fingerprint()})
     return _sha(k2), input_digests(k2), dict(sorted(tr.modules.items())), \
         f"keyed on the {len(tr.modules)} modules it imported"
 

@@ -28,7 +28,7 @@ KEPT = [f for fs in WRITES.values() for f in fs if f != "regs.sqlite"]
 def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
     ran = []
 
-    def step(args):
+    def step(args, steps=None):                     # (T522) `steps`: the step cache; these fakes run every step
         name = args[0]
         ran.append(name)
         if name == fail_at:
@@ -49,6 +49,7 @@ def _fake_steps(monkeypatch, fail_at=None, vintage_ok=True):
         for f in WRITES[name]:
             (out / f).write_text(f"new {f}")
     monkeypatch.setattr(D, "_step", step)
+    monkeypatch.setattr(D, "step_declared", lambda *a, **k: ({}, {}))     # (T522) pinned in test_stepcache
     monkeypatch.setattr("pipeline.common.vintage.report_all",
                         lambda *a, **k: (vintage_ok, "vintage: ok" if vintage_ok else "VINTAGE MISMATCH"))
     monkeypatch.setattr(D, "out_dir_release_problems", lambda *a, **k: [])    # pinned on its own below (T483)
@@ -155,7 +156,7 @@ def test_a_scratch_out_dir_without_released_tiles_or_basemap_stops_before_any_st
     (tiles / "atlas.meta.json").write_text(json.dumps({"tile_version": "h.t1"}))
     dest = tmp_path / "out"
     ran = []
-    monkeypatch.setattr(D, "_step", lambda args: ran.append(args[0]))
+    monkeypatch.setattr(D, "_step", lambda args, steps=None: ran.append(args[0]))
     assert D.main(["all", "--out-dir", str(dest), "--tiles", str(tiles)]) == 1
     err = capsys.readouterr().err
     assert ran == [] and "basemap/bm-1/bm-1.pmtiles is missing" in err and "tiles/h.t1/atlas-h.t1.pmtiles" in err

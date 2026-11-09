@@ -54,4 +54,21 @@ Proof 2026-11-09, clean worktree (HEAD + T522 only), T517 side inputs, heavy lan
   a rule edit → as before (the bundle reruns and everything after it reads it).
 - Unit: `test_stepcache.py` 6 + `test_build_command.py` 23 green.
 
+## Review fixes (coordinator review of 0dbb9e6ad, 2026-11-09; tonight's release built with `--force deliver`)
+1. Inputs stamped WHEN READ (R size:mtime, L listing digest, E kind); `record()` re-checks them after hashing and keeps
+   nothing if one moved during the run (mutation: the step rewrites what it read → not kept, older record dropped).
+2. Key holds the interpreter + every installed distribution (`env_fingerprint`), steps and traced stages.
+3. One flock per step across lookup+restore and across record; restored outputs re-hashed in place.
+4. The bundle's newest-by-mtime reach pick is keyed: report.json stamps are declared when no `--reaches` is given.
+5. `os.access` / `os.lstat` (lexists) recorded; `dir_fd=` relative stat and `scandir(fd)` mark the run unkeyable
+   (X) — only `shutil.rmtree`'s deletion scans are skipped, by name.
+6. Tests: wiring (`_step` run→reuse→stage trace; `all` passes/omits the cache), `step_declared`, stage_code on a
+   module edit, a spawned worker's reads, a mid-run change, the lock, a torn restore; each checked against a code
+   mutation (removing the check fails its test). `test_deliver_atomic` / `test_card_gate_in_chain` fakes take `steps`.
+7. `modules_of` removed; `_trace` docstring corrected.
+Proof of the fixes (2026-11-09 midday, clean worktree HEAD + fixes, T517 side inputs, lane 1): cold 841 s, warm 29 s
+(7 steps reused), fresh 741 s; MUTATION — the reach run's rule_section.jsonl.gz re-gzipped (same 3,376 rows, new
+bytes): bundle reran ("reads changed: …rule_section.jsonl.gz"), rebuilt byte-identical, so every later step was reused
+(453 s). a/b/c/m: 65 files byte-identical. Tests unfiltered: test_stepcache 19 + build/deliver/review gates green.
+
 Depends: none. Size: M. Owner: no.

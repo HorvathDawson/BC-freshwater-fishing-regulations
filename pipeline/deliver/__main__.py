@@ -74,6 +74,8 @@ def _export(bundle: Path, out: Path) -> Path:
 #: (T522) the steps `all` may reuse: each writes files into the staging directory and nothing else. `release` and
 #: `runtiming` write release folders and take seconds: they always run.
 CACHED_STEPS = ("bundle", "verdicts", "status_index", "export", "answers", "card_check", "store")
+#: how a step is run: `<STEP_CMD> <step> <args…>` (a test points it at a stand-in step)
+STEP_CMD = [sys.executable, "-m", "pipeline.deliver"]
 
 
 class _Steps:
@@ -104,16 +106,15 @@ def _step(args: list, steps: "_Steps | None" = None) -> None:
     cache = steps.cache if steps is not None and name in CACHED_STEPS else None
     if cache is None:
         # (run under the stage's recorder when there is one: it inherits PIPELINE_TRACE)
-        subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True)
+        subprocess.run([*STEP_CMD, *args], check=True)
         print(f"pipeline.deliver: {name} done in {time.time() - t0:.0f}s", flush=True)   # T295: per-step timings
         return
     from pipeline.common import stepcache
     d = steps.d
     argv = [str(x).replace(str(d), "<staging>") for x in args]
     declared = steps.bundle_declared if name == "bundle" else steps.declared
-    rec, why = cache.lookup(name, argv, d, declared)
+    rec, why = cache.reuse(name, argv, d, declared)      # lookup + restore under the step's lock, re-verified
     if rec is not None:
-        cache.restore(name, rec, d)
         if steps.stage_trace:
             stepcache.write_modules_trace(Path(steps.stage_trace), rec["fingerprint"]["modules"], name)
         print(f"pipeline.deliver: {name} REUSED in {time.time() - t0:.0f}s ({why}; "
@@ -123,7 +124,7 @@ def _step(args: list, steps: "_Steps | None" = None) -> None:
     before = stepcache.snapshot(d, cache.memo)
     tdir = Path(tempfile.mkdtemp(prefix=f".trace-{name}-", dir=d.parent))
     try:
-        subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True,
+        subprocess.run([*STEP_CMD, *args], check=True,
                        env={**os.environ, "PIPELINE_TRACE": str(tdir)})
         trace = stepcache.Trace(tdir)
         print(f"pipeline.deliver: {name} {cache.record(name, argv, d, declared, before, trace)}", flush=True)
@@ -136,18 +137,21 @@ def _step(args: list, steps: "_Steps | None" = None) -> None:
     print(f"pipeline.deliver: {name} done in {time.time() - t0:.0f}s", flush=True)   # T295: per-step timings
 
 
-def step_declared(build_dir: Path) -> tuple[dict, dict]:
-    """(T522) What the recorder cannot see, for (every cached step, the bundle): stamps of every file under the source
-    tree and the atlas (GDAL and SQLite read them in C); the bundle also every curated file but the review state
-    (`build.NOT_BUILD_INPUTS`: the marks change with every review click and no stage reads them)."""
+def step_declared(build_dir: Path, reaches: Path | None = None) -> tuple[dict, dict]:
+    """(T522) What the recorder cannot key by content, for (every cached step, the bundle): stamps (size + mtime) of
+    every file under the source tree and the atlas — GDAL and SQLite read them in C. The bundle also: every curated
+    file but the review state (`build.NOT_BUILD_INPUTS`: the marks change with every review click and no stage reads
+    them); and, when no `--reaches` names its run, every reach run's report.json — the bundle PICKS the newest by mtime
+    (`bundle.build._reach_run`), a choice made on file times that content keys cannot see."""
     from pipeline.build import not_build_inputs
-    from pipeline.common.curated import CURATED, REPO_ROOT, SOURCE
+    from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
     from pipeline.common.stepcache import declared_stamps
     every = declared_stamps([Path(SOURCE), Path(build_dir)])
     skip = [Path(p).resolve() for p in not_build_inputs()]
     cur = {k: v for k, v in declared_stamps([Path(CURATED.base)]).items()
            if not any(s == (REPO_ROOT / k).resolve() or s in (REPO_ROOT / k).resolve().parents for s in skip)}
-    return every, {**every, **cur}
+    pick = {} if reaches is not None else declared_stamps(sorted(Path(GENERATED.reaches).glob("*/report.json")))
+    return every, {**every, **cur, **{f"reach-pick:{k}": v for k, v in pick.items()}}
 
 
 def canonical_homes(debug: bool = False) -> dict:
@@ -214,7 +218,7 @@ def _all(a) -> int:
     steps = None
     if not getattr(a, "no_step_cache", False):
         from pipeline.common.stepcache import StepCache
-        declared, bundle_declared = step_declared(a.build or GENERATED.require_build())
+        declared, bundle_declared = step_declared(a.build or GENERATED.require_build(), a.reaches)
         steps = _Steps(d, StepCache(base / "deliver-cache"), declared, bundle_declared)
     try:
         bundle = d / "bundle.sqlite"

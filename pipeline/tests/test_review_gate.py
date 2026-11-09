@@ -186,7 +186,8 @@ def test_deliver_all_cuts_against_the_tiles_it_is_given(tmp_path, monkeypatch):
     import pipeline.deliver.__main__ as D
     from pipeline.common import vintage
     steps, checked = [], []
-    monkeypatch.setattr(D, "_step", lambda args: steps.append(args))
+    monkeypatch.setattr(D, "_step", lambda args, steps_=None: steps.append(args))
+    monkeypatch.setattr(D, "step_declared", lambda *a, **k: ({}, {}))     # (T522) pinned in test_stepcache
     monkeypatch.setattr(vintage, "report_all", lambda tiles, arts, strict: (checked.append(tiles), (False, "x"))[1])
     tiles, out = tmp_path / "tiles", tmp_path / "deliver"
     assert D.main(["all", "--build", "B", "--reaches", "R", "--entries", "E", "--tiles", str(tiles),
