@@ -78,8 +78,9 @@ export function useReleaseBoot(opts: BootOptions | null, generation = 0, attempt
         inUse.current = booted;
         set({ state: "ready", booted, generation });
         // (T360) the replaced set is retired: each of its database connections closes once its last read is out (each
-        // was held open for the app's life), and none opens again. A failed close is reported.
-        if (prev && prev.loader !== booted.loader) prev.loader.retire().catch(reportFailure);
+        // was held open for the app's life). A screen not yet re-rendered onto the new set is still answered by the old
+        // one (no error, no report: an update is no failure). A failed close is reported.
+        if (prev && prev.loader !== booted.loader) prev.loader.retire(reportFailure).catch(reportFailure);
       },
       (e: unknown) => {
         if (pending) clearTimeout(pending);

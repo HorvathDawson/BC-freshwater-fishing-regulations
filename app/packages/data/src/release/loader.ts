@@ -102,10 +102,12 @@ export interface ReleaseLoader {
   closeIdle(idleMs: number): Promise<number>;
   /**
    * (T360) This set was REPLACED (an applied update): every connection closes as soon as its last read is out, and none
-   * opens again — a read that would reopen one, or a file never opened, is refused (ReleaseError). Resolves, once all
-   * are closed, to how many were; rejects with the first close that failed, after every close was tried.
+   * stays open after. A screen that still reads the old set before it re-renders onto the new one is ANSWERED, never
+   * refused (a normal update is no failure): the file (kept until the next launch) is opened for that read and closed
+   * when it is out. Resolves, once the open ones are closed, to how many were; rejects with the first close that failed,
+   * after every close was tried. A later close (after such a read) that fails goes to `failed`.
    */
-  retire(): Promise<number>;
+  retire(failed: (e: unknown) => void): Promise<number>;
   /**
    * (T186) Fetch a file's bytes ahead of need WITHOUT opening it: the source's own fetch, so it lands in the release
    * cache the later open reads (web; a phone's files are installed and never prefetched). Once per file per loader.
@@ -159,13 +161,13 @@ const WATER_SHARED: DbName = "water-shared";
    * (T360) A file's ONE handle: what `db()` hands out and every reader keeps. Its connection may be closed while idle
    * (`closeIdle`, on a trim) and the next read opens it again, checked again (0.1–0.3 ms on a phone: the file is opened
    * in place). A read or a shrink in flight is never closed under: each counts in `busy`, and a close waits for none of
-   * them but skips (closeIdle) or waits out (retire) a busy connection. A retired loader (`retire`) never opens again.
+   * them but skips (closeIdle) or waits out (retire) a busy connection. A retired loader (`retire`) keeps no
+   * connection open past the read that needed it.
    */
   interface Conn { raw: Promise<Db> | null; last: number; busy: number; drained: (() => void)[] }
   const conns = new Map<DbName, Conn>();
-  let retired = false;
-  const refusal = (name: DbName) =>
-    new ReleaseError(`${name}: release ${m.data_release} was replaced; its databases are closed`);
+  /** Set by `retire`: where a close after a retired set's late read reports a failure. */
+  let retired: ((e: unknown) => void) | null = null;
   const connect = (name: DbName, spec: NonNullable<Manifest["files"][string]>): Promise<Db> =>
     open(name, () => source.bytes(name)).then(async (d) => {
       const meta = Object.fromEntries((await d.all("SELECT k, v FROM meta")).map((r) => [r.k, r.v]));
@@ -180,7 +182,12 @@ const WATER_SHARED: DbName = "water-shared";
     try { return await f(); }
     finally {
       c.busy--; c.last = clock();
-      if (c.busy === 0) for (const wake of c.drained.splice(0)) wake();
+      if (c.busy === 0) {
+        const waiting = c.drained.splice(0);
+        for (const wake of waiting) wake();
+        // (T360) a retired set's late read is out: its connection closes now (retire's own wait closes the rest)
+        if (retired && !waiting.length && c.raw) shut(c).catch(retired);
+      }
     }
   };
   /**
@@ -210,7 +217,6 @@ const WATER_SHARED: DbName = "water-shared";
     conns.set(name, c);
     const use = <T>(f: (d: Db) => Promise<T>): Promise<T> => busy(c, async () => {
       if (!c.raw) {
-        if (retired) throw refusal(name);
         const p = connect(name, spec);
         c.raw = p;
         p.catch(() => { if (c.raw === p) c.raw = null; });
@@ -226,12 +232,16 @@ const WATER_SHARED: DbName = "water-shared";
   const db = (name: DbName): Promise<Db> => {
     const spec = m.files[name];
     if (!spec) return Promise.reject(new ReleaseError(`release ${m.data_release} has no file ${name}`));
-    if (retired && !dbs.has(name)) return Promise.reject(refusal(name));
     let p = dbs.get(name);
     if (!p) {
       touch(name);
       const first = connect(name, spec);
-      p = first.then(() => handle(name, spec, first));
+      p = first.then(() => {
+        const h = handle(name, spec, first);
+        // (T360) opened on a retired set: closed until a read needs it (that read opens it, then it closes again)
+        if (retired) shut(conns.get(name)!).catch(retired);
+        return h;
+      });
       p.catch(() => dbs.delete(name));          // a failure is not cached: the next ask tries again
       dbs.set(name, p);
     }
@@ -381,9 +391,9 @@ const WATER_SHARED: DbName = "water-shared";
       // checked and taken in one synchronous pass: a read starting meanwhile finds the connection gone and reopens
       return settle([...conns.values()].filter((c) => c.raw && c.busy === 0 && t - c.last >= idleMs).map(shut));
     },
-    retire() {
-      retired = true;
-      // each connection closes once its last read or shrink is out; none reopens (`use` refuses)
+    retire(failed) {
+      retired = failed;
+      // each connection closes once its last read or shrink is out; a later read's connection closes after it (`busy`)
       return settle([...conns.values()].map(async (c) => {
         while (c.busy > 0) await new Promise<void>((r) => c.drained.push(r));
         return shut(c);

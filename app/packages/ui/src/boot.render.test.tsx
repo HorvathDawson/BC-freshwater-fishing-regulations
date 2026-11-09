@@ -1,6 +1,6 @@
 /**
  * (T360) AN APPLIED UPDATE RETIRES THE SET IT REPLACED: once the new set is committed (ready on screen), the old loader is
- * retired — its database connections close and none reopens — and a failed close is reported. A first start retires
+ * retired — its database connections close, a late read is still answered — and a failed close is reported. A first start retires
  * nothing; a failed apply keeps the old set (nothing retired).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -36,6 +36,9 @@ describe("useReleaseBoot: the replaced set is retired (T360)", () => {
     rerender({ g: 1 });
     await waitFor(() => expect(result.current.state === "ready" && result.current.booted).toBe(b.booted));
     await waitFor(() => expect(a.retire).toHaveBeenCalledTimes(1));
+    (a.retire.mock.calls[0] as unknown as [(e: unknown) => void])[0](new Error("late close"));   // its reporter: the app's
+    expect(reported.map(String)).toEqual(["Error: late close"]);
+    reported.length = 0;
     expect([b.retire.mock.calls.length, reported]).toEqual([0, []]);
   });
 

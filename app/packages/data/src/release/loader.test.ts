@@ -116,8 +116,8 @@ describe("releaseLoader", () => {
     expect(o.closed).toEqual(["core"]);                            // core was still closed (every close is tried)
     expect(await water.all("SELECT 1")).toEqual([]);               // a failed close leaves the handle usable
   });
-  it("(T360) retire: a read in flight finishes, then every connection closes; nothing opens again", async () => {
-    const o = counted();
+  it("(T360) retire: a read in flight finishes, then every connection closes; a late read is answered, then closed", async () => {
+    const o = counted({ failClose: "regs-2" });
     const L = releaseLoader(m, src, o.open);
     const core = await L.db("core"), water = await L.db("water");
     await L.closeIdle(0);                                          // water reopens below; core stays closed
@@ -125,17 +125,21 @@ describe("releaseLoader", () => {
     const go = o.hold();
     const during = water.all("SELECT 2");                          // a read in flight at the swap
     await tick();
-    const retiring = L.retire();
+    const late: unknown[] = [];
+    const retiring = L.retire((e) => late.push(e));
     await tick();
     expect(o.closed).toEqual(["core", "water"]);                   // the first closes only (water's reopen is busy)
     go();
     await expect(during).resolves.toEqual([]);
     expect([await retiring, o.closed]).toEqual([1, ["core", "water", "water"]]);
-    // after the swap: a closed handle, and a file never opened, are refused — never reopened
-    await expect(core.all("SELECT 1")).rejects.toThrow("core: release r-1 was replaced; its databases are closed");
-    await expect(water.get("SELECT 1")).rejects.toThrow("was replaced");
-    await expect(L.db("regs-2")).rejects.toThrow("regs-2: release r-1 was replaced");
-    expect(o.opened).toEqual(["core", "water", "water"]);
+    // after the swap, a screen not yet re-rendered: answered (its file opened for the read), then closed again
+    await expect(core.all("SELECT 1")).resolves.toEqual([]);
+    await tick();
+    expect([o.opened.filter((n) => n === "core").length, o.closed.at(-1)]).toEqual([2, "core"]);
+    // a file first asked after the swap: answered too, nothing left open; a close that fails is reported, not thrown
+    await expect((await L.db("regs-2")).get("SELECT 1")).resolves.toBeUndefined();
+    await tick(); await tick();
+    expect([o.closed.filter((n) => n === "regs-2").length, late.map(String)]).toEqual([0, ["Error: regs-2: close failed", "Error: regs-2: close failed"]]);
   });
   it("the lake facts: decoded once on first ask against the release's handles; null when the release has none", async () => {
     const lakes = Uint8Array.from([0x42, 0x43, 0x4c, 0x4b, 1, 0xd7, 0x68, 0xd6, 0xe1, 0x35, 0xe6, 0x2b, 0x99, 0, 1, 12, 2, 0]);

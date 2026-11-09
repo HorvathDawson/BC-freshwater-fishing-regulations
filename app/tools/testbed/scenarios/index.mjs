@@ -24,6 +24,7 @@ import { memory } from './memory.mjs';
 import { waterNav } from './water-nav.mjs';
 import { heapprof } from './heapprof.mjs';
 import { edge } from './edge.mjs';
+import { retireSwap } from './retire-swap.mjs';
 import { feel } from './feel.mjs';
 import { partSteps } from './part-steps.mjs';
 import { tabSwitch } from './switch.mjs';
@@ -33,4 +34,4 @@ import { stepShots } from './step-shots.mjs';
 import { mapIdle, paneOpen } from './pane.mjs';
 import { switchPan } from './switch-pan.mjs';
 
-export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan];
+export const SCENARIOS = [install, feeds, bigUpdate, offline, spots, report, crash, crashBed, nearCold, satellite, pan, perf, regsOpen, updateFreeze, bgInstall, locate, gestures, walkthrough, gaugeOffline, memory, waterNav, heapprof, edge, feel, partSteps, tabSwitch, glide, photoZoom, stepShots, paneOpen, mapIdle, switchPan, retireSwap];
