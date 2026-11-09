@@ -388,14 +388,10 @@ SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
     ("6", "F"): [{"op": "within", "area_id": "area:basin:100-",
                   "within_area": "area:region:6"}],
     # E IS A RESIDUAL: "Other Mainland Watersheds" — the region minus its siblings. A rule's
-    # extents UNION, so this cannot be written as more extents; `outside_areas` is the subtraction.
-    # The list mirrors `Scope.minus` (B, C, D, F) and must be regenerated from it, never hand-held,
-    # or a newly added section silently leaves E too wide.
-    ("6", "E"): [{"op": "within", "area_id": "area:region:6",
-                  "outside_areas": ["area:basin:400-", "area:basin:500-",
-                                    "area:basin:100-", HAIDA_GWAII]},
-                 {"op": "within", "area_id": HAIDA_GWAII,
-                  "outside_areas": [HAIDA_GWAII]}],
+    # extents UNION, so this cannot be written as more extents; `outside_areas` is the subtraction,
+    # and it is COMPUTED on every load from B, C, D and F's own defaults (`residual_minus`): the
+    # list here is only the seed, overwritten before anything reads it.
+    ("6", "E"): [{"op": "within", "area_id": "area:region:6", "outside_areas": []}],
     ("4", "region"): [{"op": "within", "area_id": "area:region:4"}],
     # 5b is the Cariboo's COASTAL half (5a is the Fraser half). Bound by the MU list the page
     # prints, not by the watershed its title names: "region 5 minus the Fraser basin" tiles region
@@ -408,9 +404,6 @@ SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
 
 #: Scopes deliberately NOT in the table, and why. Held rather than guessed.
 SCOPE_HELD = {
-    ("6", "E"): "a RESIDUAL: region 6 minus B, C, D and F. A rule's extents UNION, so the "
-                "subtraction cannot be written as more extents, and `outside_area` takes an "
-                "`area:` id while B/C/F are walks. Needs a general `minus`.",
     ("5b", "region_PLACEHOLDER"): "scoped to Management Units 5-6 to 5-11, which has no area yet. Two "
                       "readings agree on the water and either would do: the MU list the page "
                       "prints (an `areas.json` mu_group row, like Haida Gwaii's), or the "
@@ -676,20 +669,69 @@ def load(slug: str, entries_dir: Path = ENTRIES_DIR, registry=None) -> EntryFile
 
 
 def _from_dict(d: dict) -> EntryFile:
-    return EntryFile(
+    return residual_minus(EntryFile(
         region=d["region"], region_number=d["region_number"], region_name=d["region_name"],
         structure=d.get("structure") or {},
         scopes=[Scope(**x) for x in d.get("scopes") or []],
         waters=[WaterBinding(**x) for x in d.get("waters") or []],
         locations=[EntryLocation.from_dict(x) for x in d.get("locations") or []],
-    )
+    ))
+
+
+#: the defaults a residual scope's area is written on (a named water inside E keeps its own extent)
+_RESIDUAL_DEFAULT_KINDS = ("section_default", "area_default")
+
+
+def sibling_areas(ef: EntryFile, scope: Scope) -> List[str]:
+    """(owner 2026-11-09) What a RESIDUAL scope subtracts, COMPUTED: the areas its siblings' section defaults bind
+    (Region 6 E = the region minus B, C, D and F), in `Scope.minus` order (a section closed whole: its closure row). Never a hand list: a sibling whose default
+    changes moves E with it. A sibling with no default, or one bound by anything but whole areas (`within`, no cuts or
+    items), cannot be subtracted as an area and is refused by name."""
+    out: List[str] = []
+    for sid in scope.minus:
+        # a section closed whole (Region 6 F: "no fishing for salmon") holds its area on its section-wide closure row
+        defaults = ([l for l in ef.locations if l.kind == "section_default" and l.section == sid]
+                    or [l for l in ef.locations if l.kind == "closure" and l.section == sid
+                        and l.location_id == f"{ef.region}:{sid.lower()}:closure"])
+        if len(defaults) != 1 or not defaults[0].binding.extents:
+            raise ValueError(f"dfo region {ef.region}: residual {scope.scope_id} subtracts {sid}, which has "
+                             f"{len(defaults)} section default(s) with an extent — need exactly one")
+        for ex in defaults[0].binding.extents:
+            if ex.op != "within" or not ex.area_id or ex.splits or ex.item_id or ex.item_ids or ex.outside_areas:
+                raise ValueError(f"dfo region {ef.region}: residual {scope.scope_id} subtracts {sid}, whose default "
+                                 f"{defaults[0].location_id} is not a whole area ({ex.op} {ex.area_id or ''}): "
+                                 "a residual can only subtract areas")
+            if ex.area_id not in out:
+                out.append(ex.area_id)
+    return out
+
+
+def residual_minus(ef: EntryFile) -> EntryFile:
+    """Every `within` extent of a default under a residual scope (E and its tidal sub-scopes) takes `outside_areas` =
+    `sibling_areas`, whatever the file held: the file's copy is rewritten on the next save."""
+    residual = [s for s in ef.scopes if s.kind == "residual"]
+    if not residual:
+        return ef
+    by_id = {s.scope_id: s for s in residual}
+    minus: dict[str, List[str]] = {}          # computed only when a default under it has an extent (a fresh seed has none)
+    for loc in ef.locations:
+        if loc.kind not in _RESIDUAL_DEFAULT_KINDS or not any(ex.op == "within" for ex in loc.binding.extents):
+            continue
+        hit = [r for r in ef.chain_for(loc.section) if r in by_id]
+        if not hit:
+            continue
+        if hit[0] not in minus:
+            minus[hit[0]] = sibling_areas(ef, by_id[hit[0]])
+        loc.binding.extents = [ex.model_copy(update={"outside_areas": list(minus[hit[0]])}) if ex.op == "within" else ex
+                               for ex in loc.binding.extents]
+    return ef
 
 
 def save(ef: EntryFile, entries_dir: Path = ENTRIES_DIR) -> Path:
     """(T435) VALIDATED, THEN ATOMIC: the file must read back as itself (`load`'s parse of `to_dict`) before it is
     written, and it lands by temp + replace — a crash or a bad entry never leaves a half or unreadable region file."""
     from pipeline.regs.parsing.io import atomic_write
-    d = ef.to_dict()
+    d = residual_minus(ef).to_dict()
     if _from_dict(json.loads(json.dumps(d))).to_dict() != d:
         raise ValueError(f"dfo entries region {ef.region}: does not read back as itself; nothing written")
     p = path_for(ef.region, entries_dir)

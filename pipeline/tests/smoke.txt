@@ -384,3 +384,4 @@ pipeline/tests/test_update_hydat_script.py::test_upload_without_credentials_stop
 pipeline/tests/test_water_continue.py::test_a_tributary_joining_mid_river_does_not
 pipeline/tests/test_wetland_drop.py::test_zone_and_area_only_rules_may_go_unseen
 pipeline/tests/test_wsc_relation.py::test_relation_whole_table
+pipeline/tests/test_dfo_residual.py::test_e_is_the_region_minus_its_siblings_areas
