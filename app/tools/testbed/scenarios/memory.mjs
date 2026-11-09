@@ -107,6 +107,8 @@ export const memory = {
       // a WATER row's link (the regional tables, printed p.20 on): only those carry a box to highlight (T215; a
       // provincial rule's p.9 opens unmarked)
       const LINK = process.env.BOOK_LINK ?? 'Rule book p\\.[2-9][0-9] ↗.*';
+      // (T360, 2026-11-09) a search result may open the water on its Map view: the link is on Regulations
+      if (ctx.device.screenText().includes('Regulations')) { ctx.flow('tap-text', { TEXT: 'Regulations' }); await ctx.device.sleep(1500); }
       ctx.flow('scroll-to', { TEXT: LINK });
       const link = ctx.device.screenText().find((x) => new RegExp(LINK).test(x)) ?? '';
       await measure('before rule book', 1000);
