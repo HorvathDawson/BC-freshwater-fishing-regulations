@@ -2,7 +2,7 @@
 hand-built rows, each MUTATED once to prove the check sees it."""
 from __future__ import annotations
 
-from pipeline.deliver.release.paint_sync import problems, status_profiles
+from pipeline.deliver.release.paint_sync import no_access_sids, problems, status_profiles
 
 #: one water (ord 1): part 0 = sections 1, 2; part 1 = 3; part 2 = 4, 5; marks 0|1 and 1|2
 PS = [(1, 1, 0), (1, 2, 0), (1, 3, 1), (1, 4, 2), (1, 5, 2)]
@@ -50,3 +50,12 @@ def test_the_status_runs_are_read_back_per_section():
         b += varint(1) + varint(366 << 3 | code)
     b += varint(2) + varint(1) + varint(2) + varint(2) + varint(1) + varint(0) + varint(1)
     assert status_profiles(bytes(b)) == {1: 0, 2: 0, 5: 1}
+
+
+def test_the_no_access_colour_is_read_by_the_tier_s_name_and_summed():
+    """The access half names its tier ("no_access"); a section is the colour over 500 permille, summed over areas
+    (Coquitlam: two no-access areas of 300 each) — caught on the T517 side build, where every part read 'not
+    no-access' and the check called the T226 breaks non-maximal."""
+    acc = {"areas": [("no_access", "A"), ("no_access", "B"), ("permit", "C")],
+           "rows": [(1, 0, 1000), (2, 0, 300), (2, 1, 300), (3, 0, 500), (4, 2, 1000)]}
+    assert no_access_sids(acc) == {1, 2}

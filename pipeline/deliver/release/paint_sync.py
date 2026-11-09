@@ -96,6 +96,17 @@ def problems(part_section: Iterable[Tuple[int, int, int]], parts: Mapping[Tuple[
     return out[:limit]
 
 
+def no_access_sids(access: Mapping[str, list]) -> set:
+    """The sections the map paints no-access: more than `NO_ACCESS_PERMILLE` of them in no-access land, summed over
+    their no-access areas (`access.mostly_inside`) — from paint's decoded access half ({areas: [(tier, name)], rows:
+    [(sid, area, permille)]}; the tier is its NAME)."""
+    permille: Dict[int, int] = defaultdict(int)
+    for sid, area, pm in access["rows"]:
+        if access["areas"][area][0] == "no_access":
+            permille[sid] += pm
+    return {s for s, pm in permille.items() if pm > NO_ACCESS_PERMILLE}
+
+
 def _sqlite(gz: Path, tmp: Path) -> sqlite3.Connection:
     p = tmp / gz.name.replace(".gz", "")
     p.write_bytes(gzip.decompress(gz.read_bytes()))
@@ -122,15 +133,10 @@ def check(release_dir: Path) -> None:
         parts = {k: v for k, v in parts.items() if k in named or v is not None}
     paint = decode_paint(gzip.decompress(path("paint").read_bytes()))
     profile = status_profiles(paint["status"])
-    tiers = paint["access"]["areas"]
-    permille: Dict[int, int] = defaultdict(int)
-    for sid, area, pm in paint["access"]["rows"]:
-        if tiers[area][0] == 0:                       # tier code 0: no_access (`access.TIERS` order)
-            permille[sid] += pm
+    no_access = no_access_sids(paint["access"])
     blobs = {name: gzip.decompress(path(name).read_bytes()) for name in files if name.startswith("salmon")}
     _, _, chains = decode_files(blobs)
-    bad = problems(ps, parts, marks, profile, (s for s, pm in permille.items() if pm > NO_ACCESS_PERMILLE),
-                   dict(chains))
+    bad = problems(ps, parts, marks, profile, no_access, dict(chains))
     if bad:
         raise PaintSyncError("paint sync (T517): the release lists parts the map does not paint as one run:\n  "
                              + "\n  ".join(bad))
