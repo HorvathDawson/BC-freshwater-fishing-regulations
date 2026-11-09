@@ -13,6 +13,25 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 ~17:30 — chat 9: T529 fixed, review app round 3 done, Section E computed
+- **T529 (staging site down):** /changes listed every water as "changed" because the rules key held T517's part end tokens.
+  It now compares what applies where (rule content + metres along the stream). r-6dce → r-d14: **2 waters changed**
+  (Fraser, Pitt: T510 connectors), 0 new, 0 gone, ≈6 KB. The kept r-6dce snapshot was re-keyed with the same function on
+  the water/1 reader. `build-seo --check-changes` (7 s) runs at build-seo start and in fast-fail. 6dd5ff5e8.
+  Running: site redeploy (export → build-seo → site.sh + smoke), then `release --staging --min-app-version 0.7.0`.
+- **Review app (T525 round 3, 75b1d2834):** one proposal per place, one plain status line, internals folded away.
+  **Owner: restart it and start reviewing.** Chilliwack/Sumas: your saved two-river fix lands with the next DFO save
+  (Barrow Town cut is built). Loc 54 now carries the same proposal (3148651ba).
+- **Section E (607286e2a):** it was a hand-copied list (same 4 areas). Now computed on every load/save from B, C, D, F's own
+  areas; same result, no binding moved. The removed "MU 6-12/6-13 minus itself" piece was a seed artefact: MU 6-12/6-13
+  is Haida Gwaii = D, which E excludes whole, so nothing was meant there.
+- Emulator: offline 15/15 (flow fix e816e82f3). Feeds' Retry step accepted the app's own re-check; feeds + big-update rerunning.
+- Play listing graphics: committed (permission had propagated). Prod feeds worker: exists (domain not live yet, T495).
+- MapLibre: every non-production APK now builds with the patched SDK by default (a359c9b8f, owner rule).
+- PART_GROWN goldens check names the expected part (ca2ad90b4).
+- New: T530 share a gauge from Conditions (lane running), T531 species under their calendar (waits on owner OK).
+- CI "pipeline / check" red on every push: 15 tests read the local atlas build; lane fixing it.
+
 ## 2026-11-09 ~16:15 — BUILD 22 ON PLAY INTERNAL; chat 8 ends (restart page: NEXT-SESSION-after-chat8.md)
 - Build 22 = 0.7.0, versionCode 22 (3d807829d), uploaded to the internal track; tester email sent.
 - Release r-d14bdb180f55: LATEST and on staging, minAppVersion 0.7.0.
