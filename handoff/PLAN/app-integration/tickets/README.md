@@ -568,7 +568,7 @@ use that as the sole source of future work."
 | T521 | A new DFO location with no mapped place still shows: matched water → its Salmon card's DFO rules; new water → the bell (worker unplaced.json `items`) | DONE | c7d4226b2, 1650a4b2f | owner 11-09 |
 | T522 | Rebuilds rerun only what changed: reach/deliver keyed on the code they imported; delivery steps reused when nothing they read moved (fast path in pipeline/README) | IN REVIEW — proof run | — | owner 2026-11-08 "the constant rebuilds take so long" |
 | T523 | A cut id keeps its direction: offset cuts end `_u<m>m`/`_d<m>m`, no truncation clash `_2`; rename Quatse weir + Stamp lagoon pairs, owner mark carried | OPEN | — | owner 2026-11-09 review app "should say up and downstream"; "could do _u and _d" |
-| T524 | A DFO place extent can be several pieces on different waters (union): Chilliwack-Vedder below Slesse + Sumas below Barrow Town pump station | OPEN | — | owner 2026-11-09 review app "needs 2 extents combined or a different representation" |
+| T524 | A DFO place extent can be several pieces on different waters (union): Chilliwack-Vedder below Slesse + Sumas below Barrow Town pump station; dead-piece build gate; Forks; replaces-extent banner | DONE | 355ef4cc8 | owner 2026-11-09 review app "needs 2 extents combined or a different representation" |
 | T525 | DFO review screen easy + safe: current extent always visible, confirm keeps it, redo starts from it, every save shows old vs new | OPEN | — | owner 2026-11-09 "hard to use right now and feels like i will make bad data" |
 
 ## Order for open tickets
