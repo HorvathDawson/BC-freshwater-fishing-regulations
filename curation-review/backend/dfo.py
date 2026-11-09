@@ -302,6 +302,36 @@ def fix_vs_current(m, loc: dict, water: dict | None) -> dict | None:
     return {"state": state, "current": current, "fix": mine, "tributaries": {"current": now, "fix": call}}
 
 
+def _built_cuts() -> set[str]:
+    """every cut the served atlas has built: the resolved cuts and the registry's boundaries (with their aliases)"""
+    return set(reuse._splits_meta()) | set(reuse._boundary_index())
+
+
+def saved_status(m, fvc: dict | None, built: set[str] | None = None) -> dict | None:
+    """T525 round 3 (owner 2026-11-09: "a save doesn't visibly update"): WHAT THE PLACE'S LAST SAVE DID, for the one
+    status line the screen shows. None without a mark; else `{state, date, verdict}` plus `cuts` for `waits_cut`:
+
+      landed      the extent is what the save asked (no fix, or its fix is the curated extent now)
+      waits_cut   its fix differs from the extent now because it names a cut the atlas has not built yet
+                  (`cuts`: their ids) — it lands after the next rebuild builds them
+      not_landed  its fix differs from the extent now and every cut it names is built: the write-through refused it
+                  or has not run (the screen adds the refusal's reason when it has one)
+      deferred    a defer: decides nothing
+    `fvc` is `fix_vs_current` for the same mark. Read only."""
+    if m is None:
+        return None
+    base = {"date": m.date, "verdict": getattr(m.verdict, "value", m.verdict)}
+    if base["verdict"] == "deferred":
+        return {**base, "state": "deferred"}
+    if not fvc or fvc["state"] != "replaces":
+        return {**base, "state": "landed"}
+    have = _built_cuts() if built is None else built
+    shown = rekeyed(json.loads(m.model_dump_json()))
+    cuts = sorted({p["split_id"] for f in shown.get("extent_fix") or [] for p in f.get("points") or []
+                   if p.get("kind") == "new" and p.get("split_id") and p["split_id"] not in have})
+    return {**base, "state": "waits_cut", "cuts": cuts} if cuts else {**base, "state": "not_landed"}
+
+
 def extent_now(loc: dict, water: dict | None) -> dict:
     """T525: THE PLACE'S CURATED EXTENT AS THE REVIEW EDITOR OPENS ON IT — `pieces` (`proposals.fixes_of_extents`: a
     change starts FROM the extent the place has, never from an empty editor or an old mark), `cannot_change` (why no
@@ -625,7 +655,8 @@ def detail(location_id: str) -> dict | None:
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
-        "fix_vs_current": fix_vs_current(m, loc, water), "extent_now": extent_now(loc, water),
+        "fix_vs_current": (fvc := fix_vs_current(m, loc, water)), "saved": saved_status(m, fvc),
+        "extent_now": extent_now(loc, water),
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
     }
     return reuse._json_safe({**view, "cut_labels": cut_labels(view), "item_names": item_names(view)})

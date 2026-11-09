@@ -128,3 +128,21 @@ Order: lands after T524, in the same files.
   mark model refuses it too); every cut and water reads by its label / name (`dfo.cut_labels`, `dfo.item_names`; a
   cut with no label shows as an error, `extentWords.ts`); the mark keeps `extent_before` (`marks.SeenExtent`) and
   `proposals.build` refuses a mark whose place moved since (a mark whose own fix landed is not held).
+
+## Round 3 (2026-11-09, owner: "still really bad, so confusing … multiple proposal streams … a save doesn't visibly update")
+- **One proposal per place**: Claude's fix proposal if there is one, else the suggestion (`dfoExtent.oneProposal`), in
+  words + violet on the map, one "use this" (fills a Change; the effect line says REPLACES). Not shown when it is the
+  extent now or while a save of yours waits to land. Reason, caveat source, hunt evidence, the other source: under
+  "details".
+- **One status line** after a save (`dfo.saved_status` + the write-through outcome, `dfoExtent.statusLine`): "Saving…",
+  "Refused: …", "Saved <date>. The extent now: …", "Saved. Takes effect after the next rebuild builds the new cut X.",
+  "Saved, not applied yet. Its cuts are built now: it lands with the next DFO save.", "Deferred. Nothing changed."
+  The save banner and the "your mark said … not the extent now" row are gone (what you saved: a disclosure on the line).
+- Fewer things: no ids, MU, "binding", T-numbers; queue rows lose the fix-vs / +split / group / row-count chips;
+  waters, notes and other places on the water fold under "more about this place"; the note box opens on demand; a
+  change naming a not-built cut says "takes effect after the next rebuild builds …" before the save.
+- Guards R1–R7 unchanged (markBody, extent_before, seeded editor, differing group member unticked, server refusals).
+- Found: Chilliwack/Sumas (~2): Barrow Town is built now; its saved two-piece fix has not landed because the
+  write-through has not run since (a dry run says it would apply). The next DFO save lands it.
+- Shots: `shots/T525-r3-forks.png`, `shots/T525-r3-forks-change.png`, `shots/T525-r3-chilliwack-sumas.png`,
+  `shots/T525-r3-whole-water.png`.

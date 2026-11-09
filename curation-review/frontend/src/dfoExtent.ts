@@ -6,7 +6,7 @@
    is. Change starts FROM the curated extent (`DfoExtentNow.pieces`), and its effect — keep (nothing differs), replace
    or add a piece — is said before the save. Every mark names the extent it was made on (`extent_before`); the server
    refuses one made on an extent that has moved since. */
-import type { CheckAnswer, DfoExtentNow, ExtentFix, FixPoint, MarkPost, NewSplit } from "./types";
+import type { CheckAnswer, DfoExtentNow, DfoSaved, ExtentFix, FixPoint, MarkPost, NewSplit } from "./types";
 import { OP_WORDS } from "./extentWords.ts";   // a runtime import: node runs this file too (tests/)
 
 export type DfoCall = "keep" | "change" | "unsure" | "wrong";
@@ -126,4 +126,54 @@ export function tribWords(walks: boolean | undefined, drawn: boolean): string {
   if (walks === true) return drawn ? " (with tributaries)" : " (with tributaries — not drawn; tick Show tributaries to draw)";
   if (walks === false) return " (no tributaries)";
   return "";
+}
+
+/* T525 ROUND 3 (owner 2026-11-09: "still really bad, so confusing … multiple proposal streams … a save doesn't visibly
+   update"): ONE proposal per place and ONE status line after a save. */
+
+/** THE ONE PROPOSAL a place shows: Claude's fix proposal (from the owner's note) when there is one, else the suggested
+ *  extent — never both as separate streams. It is not offered when it is the extent now, or while a save of the owner's
+ *  is waiting to land (`pending`: that save's pieces). */
+export function oneProposal<S>(fix: S | null | undefined, sugg: S | null | undefined):
+    { from: "fix" | "suggestion"; s: S } | null {
+  return fix ? { from: "fix", s: fix } : sugg ? { from: "suggestion", s: sugg } : null;
+}
+export function offerProposal(now: ExtentFix[], proposal: ExtentFix[], pending: ExtentFix[] | null): boolean {
+  // a save still waiting to land IS the owner's answer: no second stream beside it (its new cuts carry other refs than
+  // the proposal's, so comparing pieces would miss that they are the same)
+  if (pending && pending.length) return false;
+  return proposal.length > 0 && effectOf(now, proposal) !== "keep";
+}
+
+export type StatusTone = "ok" | "wait" | "bad";
+const VERDICT_WORDS: Record<string, string> = { verified: "", unsure: " as not sure", wrong: " as wrong" };
+
+/** THE ONE STATUS LINE of a place after a save, from the write-through's outcome (`outcome`, this session) and what the
+ *  last save did (`saved`, `dfo.saved_status`): saving → refused (the reason) → changed since → deferred → waits for a
+ *  cut → not applied → saved with the extent now. Null before any save. */
+export function statusLine(a: { saved: DfoSaved | null | undefined; outcome?: { state: string; why?: string | null } | null;
+                                saving: boolean; stale: boolean; nowText: string; cutName: (id: string) => string }):
+    { tone: StatusTone; text: string } | null {
+  const o = a.outcome;
+  if (a.saving || o?.state === "saving") return { tone: "wait", text: "Saving…" };
+  if (o?.state === "refused") return { tone: "bad", text: `Refused: ${o.why || "the server gave no reason"}` };
+  const s = a.saved;
+  if (!s) return null;
+  if (a.stale) return { tone: "wait", text: `Saved ${s.date}, but the place changed since. Check it again.` };
+  if (s.state === "deferred") return { tone: "wait", text: `Deferred ${s.date}. Nothing changed.` };
+  if (s.state === "waits_cut") {
+    const cuts = (s.cuts ?? []).map(a.cutName);
+    return { tone: "wait", text: `Saved ${s.date}. Takes effect after the next rebuild builds the new cut`
+      + `${cuts.length === 1 ? "" : "s"} ${cuts.join(" and ")}.` };
+  }
+  if (s.state === "not_landed") {
+    return { tone: "wait", text: `Saved ${s.date}, not applied yet. Its cuts are built now: it lands with the next DFO save.` };
+  }
+  return { tone: "ok", text: `Saved ${s.date}${VERDICT_WORDS[s.verdict] ?? ""}. The extent now: ${a.nowText || "none"}.` };
+}
+
+/** the new cuts a change names that are not built yet, by name — said before the save ("takes effect after …") */
+export function newCutsOf(fixes: ExtentFix[]): string[] {
+  return [...new Set(fixes.flatMap((f) => f.points.filter((p) => p.kind === "new" && p.split_id)
+    .map((p) => p.split_id as string)))];
 }

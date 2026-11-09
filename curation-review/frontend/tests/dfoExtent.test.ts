@@ -4,7 +4,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, placeAnswer, previewOf, proposesCuts, saveWords, tribWords, withPiece,
+  addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, newCutsOf, offerProposal, oneProposal, placeAnswer, previewOf,
+  proposesCuts, saveWords, statusLine, tribWords, withPiece,
 } from "../src/dfoExtent.ts";
 import { cutNamer, extentParts, fixParts, otherWaters, partsText, piecesParts } from "../src/extentWords.ts";
 import type { DfoExtentNow, ExtentFix } from "../src/types.ts";
@@ -159,4 +160,52 @@ test("the editor names a cut from every source a screen has, and says 'no label'
   assert.equal(name("b"), "picked by search");
   assert.equal(name("c"), "MAP: c");
   assert.equal(name("z"), "z (no label)");
+});
+
+// T525 round 3: one proposal per place, one status line after a save
+test("one proposal: the fix proposal wins over the suggestion; never offered when it is the extent now or already saved", () => {
+  assert.deepEqual(oneProposal("fix", "sugg"), { from: "fix", s: "fix" });
+  assert.deepEqual(oneProposal(null, "sugg"), { from: "suggestion", s: "sugg" });
+  assert.equal(oneProposal(null, undefined), null);
+  assert.equal(offerProposal([COWICHAN], [COWICHAN], null), false, "the proposal is the extent now");
+  assert.equal(offerProposal([COWICHAN], [GREENDALE], null), true);
+  assert.equal(offerProposal([COWICHAN], [GREENDALE], [GREENDALE]), false, "what the owner saved, waiting to land");
+  assert.equal(offerProposal([COWICHAN], [GREENDALE], [COWICHAN, SUMAS]), false, "any save waiting to land is the answer");
+  assert.equal(offerProposal([COWICHAN], [GREENDALE], []), true);
+  assert.equal(offerProposal([COWICHAN], [], null), false);
+});
+
+const BARROW: ExtentFix = { ...SUMAS, points: [{ kind: "new", split_id: "sumas_river__barrow_town_pump_station" }] };
+const line = (over: Partial<Parameters<typeof statusLine>[0]>) => statusLine({
+  saved: { state: "landed", date: "2026-11-09", verdict: "verified" }, outcome: null, saving: false, stale: false,
+  nowText: "downstream of Slesse line", cutName: (c) => (c === "sumas_river__barrow_town_pump_station" ? "Barrow Town Pump Station" : c),
+  ...over });
+
+test("the status line says what the last save did, in plain words", () => {
+  assert.equal(line({ saved: null }), null, "no save, no line");
+  assert.deepEqual(line({ saving: true }), { tone: "wait", text: "Saving…" });
+  assert.deepEqual(line({ outcome: { state: "saving" } }), { tone: "wait", text: "Saving…" });
+  assert.deepEqual(line({ outcome: { state: "refused", why: "the place moved since you looked" } }),
+                   { tone: "bad", text: "Refused: the place moved since you looked" });
+  assert.equal(line({})!.text, "Saved 2026-11-09. The extent now: downstream of Slesse line.");
+  assert.equal(line({ saved: { state: "landed", date: "2026-11-09", verdict: "unsure" } })!.text,
+               "Saved 2026-11-09 as not sure. The extent now: downstream of Slesse line.");
+  // Chilliwack / Sumas: saved, but the extent cannot change until the rebuild builds the new cut
+  assert.deepEqual(line({ saved: { state: "waits_cut", date: "2026-11-09", verdict: "unsure",
+                                   cuts: ["sumas_river__barrow_town_pump_station"] } }),
+                   { tone: "wait", text: "Saved 2026-11-09. Takes effect after the next rebuild builds the new cut Barrow Town Pump Station." });
+  assert.equal(line({ saved: { state: "not_landed", date: "2026-11-09", verdict: "verified" } })!.text,
+               "Saved 2026-11-09, not applied yet. Its cuts are built now: it lands with the next DFO save.");
+  assert.equal(line({ saved: { state: "deferred", date: "2026-11-09", verdict: "deferred" } })!.text,
+               "Deferred 2026-11-09. Nothing changed.");
+  assert.match(line({ stale: true })!.text, /changed since/);
+  for (const s of ["landed", "waits_cut", "not_landed", "deferred"] as const) {
+    const t = line({ saved: { state: s, date: "2026-11-09", verdict: "verified", cuts: ["sumas_river__barrow_town_pump_station"] } })!.text;
+    assert.doesNotMatch(t, /sumas_river__|T\d{3}|binding|extent_fix/, `${s}: no ids or internals`);
+  }
+});
+
+test("a change naming a cut not built yet says so before the save", () => {
+  assert.deepEqual(newCutsOf([COWICHAN, BARROW]), ["sumas_river__barrow_town_pump_station"]);
+  assert.deepEqual(newCutsOf([COWICHAN]), []);
 });

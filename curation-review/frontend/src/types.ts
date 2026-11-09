@@ -1207,6 +1207,14 @@ export interface DfoFixProposal {
   /** edits to existing splits, listed for the owner — never written */
   split_edits?: { split_id: string; field: string; before: unknown; after: unknown }[];
 }
+/** T525 r3 (`dfo.saved_status`): landed = the extent is what the save asked; waits_cut = it lands after the next
+ *  rebuild builds `cuts`; not_landed = it differs and every cut is built (refused or not run); deferred = decided nothing */
+export interface DfoSaved {
+  state: "landed" | "waits_cut" | "not_landed" | "deferred";
+  date: string;
+  verdict: string;
+  cuts?: string[];
+}
 export interface DfoDetail {
   row: DfoRow;
   location: {
@@ -1239,6 +1247,8 @@ export interface DfoDetail {
   /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */
   fix_proposal?: DfoFixProposal | null;
   fix_vs_current?: FixVsCurrent | null;
+  /** T525 r3: what the place's last save did (`dfo.saved_status`), for the one status line */
+  saved?: DfoSaved | null;
   extent_now: DfoExtentNow;
   /** T525: the label of every cut this place's data names, from the curated cuts file (`dfo.cut_labels`) */
   cut_labels: Record<string, string>;

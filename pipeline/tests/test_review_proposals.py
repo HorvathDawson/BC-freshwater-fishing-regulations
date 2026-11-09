@@ -552,12 +552,21 @@ def test_the_screen_says_when_a_fix_replaces_the_extent(monkeypatch):
         assert dfo.fix_vs_current(tribs, loc, None)["state"] == "replaces"
         assert dfo.fix_vs_current(None, loc, None) is None
         assert dfo.fix_vs_current(_mark(scope="dfo", target=CHILLIWACK_SUMAS), loc, None) is None
+        # T525 round 3 (owner: "a save doesn't visibly update"): what the last save did, for the one status line. The
+        # Chilliwack + Sumas save waits for the rebuild to build the new Barrow Town cut; once built it has not landed
+        # (refused or not run); a fix equal to the extent, or no fix, has landed; a defer decided nothing.
+        st = dfo.saved_status(two, dfo.fix_vs_current(two, loc, None), built=set())
+        assert st["state"] == "waits_cut" and len(st["cuts"]) == 1 and st["date"] == two.date
+        assert dfo.saved_status(two, dfo.fix_vs_current(two, loc, None), built=set(st["cuts"]))["state"] == "not_landed"
+        assert dfo.saved_status(one, dfo.fix_vs_current(one, loc, None), built=set())["state"] == "landed"
+        keep = _mark(scope="dfo", target=CHILLIWACK_SUMAS, verdict="verified", answers={"T": "y", "R": "y", "P": "y"})
+        assert dfo.saved_status(keep, None, built=set()) == {"state": "landed", "date": keep.date, "verdict": "verified"}
+        later = _mark(scope="dfo", target=CHILLIWACK_SUMAS, verdict="deferred", answers={"T": "y"}, note="unclear")
+        assert dfo.saved_status(later, None, built=set())["state"] == "deferred"
+        assert dfo.saved_status(None, None, built=set()) is None
     finally:
         for mod in _MODS:
             sys.modules.pop(mod, None)
-    tsx = (BACKEND.parent / "frontend/src/components/DfoReview.tsx").read_text()
-    assert 'data-testid="dfo-row-fix-vs"' in tsx       # the queue's tag; the place's own words: tests/dfoExtent.test.ts
-    assert "Your fix REPLACES the current extent" in tsx and "Fix applied — this is now the curated extent" in tsx
 
 
 def test_a_dead_piece_is_reported_once_however_many_variants_ride_it(monkeypatch):

@@ -16,11 +16,10 @@ import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
 import { extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
-import { CuratedTag } from "./CuratedSaveBanner";
-import { current as writeThrough, subscribe as onWriteThrough } from "../curatedSave";
+import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
-  addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, previewOf, proposesCuts, saveWords, tribWords, withPiece,
-  type DfoCall, type DfoEffect,
+  addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
+  proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect,
 } from "../dfoExtent";
 
 /** two clicks this close (m) are one cut — the server folds them the same way (`marks.SAME_CUT_M`) */
@@ -79,7 +78,6 @@ export function suggestionFix(s: DfoSuggestion | null | undefined, taken: string
   const fixes = (sg.pieces?.length ? sg.pieces : [sg]).map(asFix);
   return { fix: fixes[0], fixes, newSplits };
 }
-const CONF_WORDS: Record<string, string> = { high: "high", medium: "medium", low: "low", none: "—" };
 
 /** THE SPLIT HUNT's evidence for a suggestion (owner 2026-10-27): every hand-researched cut with
  *  its confidence, what it is, where (lat/lon, the snap to the FWA line), the sources and how the
@@ -145,20 +143,14 @@ export function savedFixesOf(mark: DfoDetail["mark"] | null | undefined): Extent
   const own = fixes.filter((f) => f.scope === "entry");
   return own.length ? own : fixes.slice(0, 1);
 }
-/** (owner 2026-11-09: "more obvious when fix extent overrides existing extent") the banner's headline per state */
-export const FIX_VS_WORDS: Record<string, string> = {
-  replaces: "Your fix REPLACES the current extent",
-  same: "Your fix is the same as the current extent",
-  applied: "Fix applied — this is now the curated extent",
-};
 /** words with each cut by its label; a cut with no label is an ERROR on screen (red), never a bare id */
 function Words({ parts, testid }: { parts: Part[]; testid?: string }) {
   return <span data-testid={testid}>{parts.map((p, i) => (typeof p === "string" ? <span key={i}>{p}</span>
     : <span key={i} className="field-error" data-testid="dfo-cut-unlabelled">cut {p.cut} has no label</span>))}</span>;
 }
 const QUESTIONS: Record<"T" | "R", string> = {
-  T: "DFO's words above are this place (water and area, as on the DFO page)",
-  R: "The rows are this place's rules (species, dates, limits)",
+  T: "DFO's words are this place",
+  R: "The rows are its rules",
 };
 const STATE_WORDS: Record<string, string> = {
   needs_cut: "needs a cut", bound: "bound", unbound: "no extent yet", no_water: "no water matched",
@@ -312,11 +304,6 @@ export function DfoReview({ mode }: Props) {
             {all ? <>
               <strong>{all.done}/{all.total}</strong> marked
               {live && <span className="dim"> · live {live.done}/{live.total}</span>}
-              <span className="dim"> · {all.by_state.needs_cut ?? 0} need a cut · {all.by_state.bound ?? 0} bound
-                {(all.by_state.tidal ?? 0) > 0 && <> · {all.by_state.tidal} tidal water</>}
-                · {all.new_splits} new split{all.new_splits === 1 ? "" : "s"} proposed</span>
-              {(all.by_verify.wrong ?? 0) + (all.by_verify.unsure ?? 0) > 0 &&
-                <span className="dim"> · {all.by_verify.wrong ?? 0} wrong, {all.by_verify.unsure ?? 0} unsure</span>}
             </> : "…"}
           </span>
           <FoldToggle fold={fold} set={(filters.region ? 1 : 0) + (filters.status !== "active" ? 1 : 0) + (filters.need ? 1 : 0) + (filters.verify ? 1 : 0) + (filters.lake ? 1 : 0) + (filters.q ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)} />
@@ -408,26 +395,16 @@ export function DfoReview({ mode }: Props) {
                 <span className={`badge dfo-${r.state}`}>{STATE_WORDS[r.state]}
                   {r.state === "needs_cut" && r.need.missing ? ` (${r.need.missing})` : ""}</span>
                 {r.verify !== "unmarked" && <span className={`badge verify-${r.verify}`}>{r.verify}</span>}
-                {r.fix_vs_current && <span className={`chip-tag fix-vs-${r.fix_vs_current}`} data-testid="dfo-row-fix-vs"
-                  title={FIX_VS_WORDS[r.fix_vs_current]}>{r.fix_vs_current === "replaces" ? "replaces extent"
-                    : r.fix_vs_current === "same" ? "same as current" : "fix applied"}</span>}
               </div>
               <div className="meta">
                 <span>r{r.region}{r.section ? ` · ${r.section}` : ""}</span>
                 {r.status !== "active" && (r.historic_only
                   ? <span className="chip-tag" data-testid="dfo-historic-only" title="no longer on the live page and no live wording rewords it: its own place on this water">historic only</span>
                   : <span className="chip-tag">dormant</span>)}
-                {r.new_splits > 0 && <span className="chip-tag new">+{r.new_splits} split</span>}
-                {r.group && <span className="chip-tag" data-testid="dfo-group-size"
-                  title="historic rewordings of this place — one extent decision labels the group">group of {r.group.size}</span>}
-                {r.suggested && r.verify === "unmarked" && <span className="chip-tag suggested"
-                  title="a suggested extent is waiting on this location">suggested · {r.suggested}</span>}
-                {r.fix_proposed && <span className="chip-tag suggested" data-testid="dfo-fix-chip"
-                  title="Claude proposed a fix from your note — open the item">fix proposed</span>}
-                {r.tidal?.status === "proposed" && <span className="chip-tag suggested" data-testid="dfo-tidal-chip"
-                  title={`proposed, not decided — ${r.tidal.why}`}>tidal water? proposed</span>}
+                {(r.fix_proposed || (r.suggested && r.verify === "unmarked")) && <span className="chip-tag suggested"
+                  data-testid="dfo-proposal-chip">proposal</span>}
+                {r.tidal?.status === "proposed" && <span className="chip-tag suggested" data-testid="dfo-tidal-chip">tidal?</span>}
                 {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
-                <span>{r.n_rows} row{r.n_rows === 1 ? "" : "s"}</span>
               </div>
               <div className="meta dfo-text">{r.text || "(the whole water)"}</div>
             </div>}
@@ -437,9 +414,9 @@ export function DfoReview({ mode }: Props) {
           <DfoLocation key={`${detail.row.id}|${version}`} detail={detail} mode={mode}
             nav={{ pos: idx + 1, total: rows.length, onNext: next ? () => open(next) : undefined,
                    onPrev: prev ? () => open(prev) : undefined }}
-            onMarked={(reused, saved) => {
-              setNotice(saved + (reused.length
-                ? ` · already proposed — reused: ${reused.map((r) => `${r.name} (${r.id})`).join(", ")}` : ""));
+            saving={landing === detail.row.id}
+            onMarked={() => {
+              // T525 r3: no banner — the place's own status line says what the save did once the write-through has run
               loadRows();
               setLanding(detail.row.id);
             }} />
@@ -471,10 +448,10 @@ const CALLS: { v: DfoCall; words: string; hint: string }[] = [
    the owner's call. Keep / Not sure / Wrong never carry an extent fix; Change opens on the extent now and says what the
    save does to it (keep / replace / add a piece) before it is made; the draft is teal on the map. Every mark names the
    extent it was made on, so a save on an extent that moved since is refused (`dfo.mark_for`). */
-function DfoLocation({ detail, mode, nav, onMarked }: {
+function DfoLocation({ detail, mode, nav, saving, onMarked }: {
   detail: DfoDetail; mode: Mode;
   nav: { pos: number; total: number; onNext?: () => void; onPrev?: () => void };
-  onMarked: (reused: { ref: string; id: string; name: string }[], saved: string) => void;
+  saving: boolean; onMarked: () => void;
 }) {
   const id = detail.row.id;
   const was = detail.mark;
@@ -513,7 +490,11 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [accepted, setAccepted] = useState("");
+  const [showNote, setShowNote] = useState(false);
   const since = useRef(Date.now());
+  // the write-through's word on this place's last save, this session (saving / refused + why)
+  const [outcome, setOutcome] = useState(() => writeThrough().outcomes[wtKey("dfo", id)] ?? null);
+  useEffect(() => onWriteThrough((s) => setOutcome(s.outcomes[wtKey("dfo", id)] ?? null)), [id]);
 
   // what the extent binds now — magenta, always
   useEffect(() => {
@@ -571,20 +552,26 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     setChecks((m) => ({ ...m, [ref]: got }));
   }
 
-  // THE SUGGESTED EXTENT (never applied): its points violet on the map, and its reach when every
-  // point already exists; "use as my change" fills the draft — the save is the write
+  // T525 r3: ONE PROPOSAL per place — Claude's fix proposal when there is one, else the suggested extent (never
+  // applied): its points violet on the map, and its reach when every point already exists; "use this" fills the draft
+  // — the save is the write
   const sugg = detail.suggestion ?? null;
+  // memoised on the detail: the map effect below keys on it (a fresh object per render re-fetched the preview forever)
+  const best = useMemo(() => oneProposal(detail.fix_proposal?.suggestion
+    ? ({ location_id: id, suggestion: detail.fix_proposal.suggestion } as unknown as DfoSuggestion) : null,
+    sugg?.suggestion ? sugg : null), [detail]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const bestS = best?.s ?? null;
   const [suggestedFc, setSuggestedFc] = useState<GeoJSON.FeatureCollection | null>(null);
   useEffect(() => {
     let live = true;
     setSuggestedFc(null);
-    const sg = sugg?.suggestion;
+    const sg = bestS?.suggestion;
     if (!sg) return;
     const pts: GeoJSON.Feature[] = sg.points.flatMap((p, i) => {
-      const meta = sugg?.points?.[i];
+      const meta = bestS?.points?.[i];
       const prop = p.kind === "new" ? detail.proposed.find((x) => x.id === p.split_id) : undefined;
       const at = meta?.coord ?? prop?.coord ?? (p.kind === "split" && p.split_id ? splitAt(p.split_id) : null);
-      return at ? [{ type: "Feature", properties: { label: `SUGGESTED ${i + 1}: ${meta?.label ?? p.split_id ?? ""}` },
+      return at ? [{ type: "Feature", properties: { label: `PROPOSAL ${i + 1}: ${meta?.label ?? cutLabel(p.split_id ?? "") ?? ""}` },
                      geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
     });
     setSuggestedFc({ type: "FeatureCollection", features: pts });
@@ -598,7 +585,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
         .catch(failed("the DFO reach preview"));
     }
     return () => { live = false; };
-  }, [id, sugg, showTribs]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, bestS, showTribs]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   /** a suggestion, a fix proposal or the owner's own earlier mark INTO THE DRAFT: the call becomes Change, and the
    *  effect line says what saving it does to the extent now — nothing is saved here */
@@ -609,11 +596,12 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
     setFixPreview(null);
     if (got.newSplits.length) setSplits((cur) => [...cur.filter((n) => !got.newSplits.some((x) => x.ref === n.ref)),
                                                   ...got.newSplits]);
-    setAccepted(`${what} is in your change below${got.newSplits.length ? ` with ${got.newSplits.length} new split`
-      + (got.newSplits.length === 1 ? "" : "s") : ""} — check it, then save (nothing is saved yet)`);
+    setAccepted(`${what} is in your change below. Nothing is saved yet.`);
   }
   const taken = () => [...splits.map((n) => n.ref), ...detail.proposed.map((p) => p.id), ...savedNew.map((n) => n.ref)];
-  function acceptSuggestion() { draftFrom(suggestionFix(sugg, taken()), "the suggestion"); }
+  function useProposal() { draftFrom(suggestionFix(bestS, taken()), "The proposal"); }
+  // the proposal as pieces, to compare with the extent now and with a save still waiting to land
+  const proposalFixes = useMemo(() => suggestionFix(bestS, [])?.fixes ?? [], [bestS]);
 
   const cuts = call === "change" && proposesCuts(fixes, splits);
   // the server's ops and the points each takes: a piece half made holds the save (T525)
@@ -629,6 +617,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   async function submit(defer = false) {
     setErrors([]);
     if (!defer && held) { setErrors([`Not saved yet — ${held}.`]); return; }
+    if (defer && !note.trim()) { setShowNote(true); setErrors(["A defer needs a note: say what is unclear."]); return; }
     if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
     setReviewer(reviewer.trim());
     setBusy(true);
@@ -644,16 +633,11 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
       const body = markBody({ target: id, call: call ?? "unsure", answers, problem, note, reviewer: reviewer.trim(),
                               seconds: Math.round((Date.now() - since.current) / 100) / 10, fixes, carried, now,
                               targets: groupTargets, defer });
-      const got = await api.postMark(body);
-      const said = `saved ✓ ${detail.row.water || id}`
-        + (groupTargets.length > 1 ? ` (+${groupTargets.length - 1} grouped)` : "")
-        + (body.extent_fix ? ` — the extent is now being replaced by: ${partsText(piecesParts(body.extent_fix, fixPartsOf))}`
-          : " — the extent is unchanged");
-      onMarked(got.reused ?? [], said);
+      await api.postMark(body);
+      onMarked();
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
-      setErrors([`NOT SAVED — ${fe ? "refused by the server" : "the save failed"}:`,
-        ...(fe ? fe.map((x) => (x.path ? `${x.path}: ` : "") + x.msg) : [String(e)])]);
+      setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
       window.setTimeout(() => document.querySelector('[data-testid="dfo-errors"]')
         ?.scrollIntoView({ block: "nearest" }), 0);
     } finally {
@@ -677,11 +661,10 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
           : { answers: {}, verdict: "deferred" as const,
               note: note.trim() || "not wholly in tidal water — its freshwater extent is still to curate" }),
       });
-      onMarked([], `saved ✓ ${detail.row.water || id} — ${accept ? "tidal water (binds nothing)" : "not tidal"}`);
+      onMarked();
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
-      setErrors([`NOT SAVED — ${fe ? "refused by the server" : "the save failed"}:`,
-        ...(fe ? fe.map((x) => (x.path ? `${x.path}: ` : "") + x.msg) : [String(e)])]);
+      setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
     } finally {
       setBusy(false);
     }
@@ -711,15 +694,23 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
   const problems = wrongChecks.flatMap((c) => mode.problems[c] ?? []);
   const loc = detail.location;
   const ex = loc.binding.extents;
-  const tribNow = now.tributaries == null ? "" : `${now.tributaries ? "with" : "without"} tributaries`
-    + (loc.binding.tributaries == null ? " (the DFO title)" : "");
+  const tribNow = now.tributaries == null ? "" : `${now.tributaries ? "with" : "without"} tributaries`;
   const extentText = (exs: DfoExtent[], testid?: string) =>
     <Words testid={testid} parts={piecesParts(exs, (e) => extentParts(e, cutLabel, itemNameOf))} />;
   const fixPartsOf = (f: ExtentFix) => fixParts(f, cutLabel, itemNameOf);
-  // the owner's earlier mark said another extent than the file has now: said, and loadable into the draft
-  const fv = detail.fix_vs_current;
-  const markDiffers = fv?.state === "replaces";
+  // T525 r3: what the last save did, in one line (the write-through's outcome first, then `dfo.saved_status`)
+  const pending = detail.saved && detail.saved.state !== "landed" && detail.saved.state !== "deferred"
+    ? savedFixesOf(was) : null;
+  const status = statusLine({
+    saved: detail.saved, outcome, saving, stale: detail.row.verify === "stale",
+    nowText: ex.length ? partsText(piecesParts(ex, (e) => extentParts(e, cutLabel, itemNameOf))) : "",
+    cutName: (c) => cutLabel(c) ?? c,
+  });
+  const offer = !!best && offerProposal(now.pieces, proposalFixes, pending);
+  const draftCuts = newCutsOf(fixes).map((c) => cutLabel(c) ?? c);
   const saveText = busy ? "saving…" : saveWords(call, effect);
+  const noteOpen = showNote || note.trim() !== "" || (call !== null && call !== "keep" && call !== "change")
+    || wrongChecks.length > 0;
 
   return (
     <div className="detail review-mode" data-testid="dfo-detail">
@@ -728,10 +719,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
           <div className="verify-bar">
             <div className="verify-row">
               <strong>{detail.row.water || detail.row.kind}</strong>
-              <span className="dim">r{detail.row.region}{loc.section ? ` · section ${loc.section}` : ""} · {loc.status}</span>
-              {was && <span className={`badge verify-${was.status}`} title={was.reasons.join(", ")}>
-                {was.status}{was.reasons.length ? ` (${was.reasons.join(", ")})` : ""} · {was.reviewer} {was.date}</span>}
-              <CuratedTag scope="dfo" target={id} />
+              <span className="dim">region {detail.row.region}{loc.status !== "active" ? " · no longer on the live page" : ""}</span>
               <span className="spacer" style={{ flex: 1 }} />
               <span className="verify-nav">
                 <button className="btn small" disabled={!nav.onPrev} onClick={nav.onPrev}>‹ k</button>
@@ -741,10 +729,24 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             </div>
           </div>
 
+          {status && (
+            <div className={`dfo-status ${status.tone}`} role="status" data-testid="dfo-status">
+              <span data-testid="dfo-status-text">{status.text}</span>
+              {pending && pending.length > 0 && (
+                <details className="dfo-more">
+                  <summary>what you saved</summary>
+                  <Words parts={piecesParts(pending, fixPartsOf)} />{" "}
+                  {!now.cannot_change.length && <button type="button" className="btn small" data-testid="dfo-load-mark"
+                    onClick={() => draftFrom({ fixes: pending, newSplits: [] }, "What you saved")}>load it into a change</button>}
+                </details>
+              )}
+            </div>
+          )}
+
           {errors.length > 0 && (
             <div className="errors dfo-errors" role="alert" data-testid="dfo-errors"
               style={{ position: "static", margin: "6px 0" }}>
-              {errors.map((e, i) => <div key={i} style={i === 0 && e.startsWith("NOT SAVED") ? { fontWeight: 700 } : undefined}>{e}</div>)}
+              {errors.map((e, i) => <div key={i} style={i === 0 ? { fontWeight: 700 } : undefined}>{e}</div>)}
             </div>
           )}
 
@@ -752,178 +754,128 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             <div className="dfo-step">1 · DFO says</div>
             <div className="evidence-head">
               <h3 style={{ margin: 0 }}>{detail.verbatim.waters}</h3>
-              {detail.page_url && <a href={detail.page_url} target="_blank" rel="noreferrer">the DFO page ↗</a>}
-              <span className="dim">{loc.location_id}</span>
+              {detail.page_url && <a href={detail.page_url} target="_blank" rel="noreferrer">DFO page ↗</a>}
             </div>
-            <div className="verbatim" data-testid="dfo-verbatim">{detail.verbatim.specific_area || "(no specific area — the whole water)"}</div>
-            {loc.duplicate_of && <div className="dim" style={{ fontSize: 12 }}>reworded copy of <code>{loc.duplicate_of}</code></div>}
-            <div className="coverage" style={{ marginTop: 4 }}>
-              {detail.rows.length ? detail.rows.join("\n") : "(no scraped rows ride on this location)"}
-            </div>
+            <div className="verbatim" data-testid="dfo-verbatim">{detail.verbatim.specific_area || "(the whole water)"}</div>
+            {detail.rows.length > 0 && <div className="coverage" style={{ marginTop: 4 }}>{detail.rows.join("\n")}</div>}
           </div>
 
           <div className="section entry-scope" data-testid="dfo-extent">
-            <div className="dfo-step">2 · The extent now — what the app uses today</div>
+            <div className="dfo-step">2 · The extent now</div>
             <div className="dfo-now" data-testid="dfo-now">
-              {!detail.items.length ? <span className="warn-text">not matched to the registry — nothing binds</span>
+              {!detail.items.length ? <span className="warn-text">no water found for it — nothing is drawn</span>
                 : ex.length ? <strong>{extentText(ex, "dfo-now-words")}</strong>
-                : <span className="warn-text">none curated{detail.need.missing ? ` — needs ${detail.need.missing} cut${detail.need.missing === 1 ? "" : "s"}` : ""}</span>}
+                : <span className="warn-text">none yet</span>}
               <div className="dim" style={{ fontSize: 12 }}>
                 {tribNow && <>{tribNow} · </>}
-                {reach ? (reach.resolvable ? `binds ${reach.n_sections} section(s)${tribWords(reach.walks_tributaries, showTribs)} — magenta on the map` : reach.why) : "resolving…"}
-                {" · "}{fv && !markDiffers ? `set by your mark of ${was?.date ?? "?"}` : "as the curated file has it"}
+                {reach ? (reach.resolvable ? `${reach.n_sections} section(s), magenta on the map` : reach.why) : "drawing…"}
+                {" · "}
+                <label className="dim" data-testid="dfo-show-tribs" title="also draw its tributaries (slow)">
+                  <input type="checkbox" checked={showTribs} onChange={(e) => toggleTribs(e.target.checked)} /> draw tributaries
+                  {loadingTribs && <span className="dim" data-testid="dfo-tribs-loading"> loading…</span>}
+                </label>
               </div>
               {now.cannot_change.length > 0 && <div className="warn-text" data-testid="dfo-cannot-change" style={{ fontSize: 12 }}>
-                No change is offered here — {now.cannot_change.join("; ")}</div>}
+                It cannot be changed here: {now.cannot_change.join("; ")}</div>}
             </div>
-            <div className="ext-row">
-              <span className="k">water</span>
-              {detail.items.map((i) => <span key={i.id} className="chip-tag" title={i.id}>{i.name} · MU {i.mus.join(", ")}</span>)}
-              <label className="dim" data-testid="dfo-show-tribs"
-                title="Off: the map draws only the place's own water(s). On: also walks and draws its tributaries (slow, large).">
-                <input type="checkbox" checked={showTribs} onChange={(e) => toggleTribs(e.target.checked)} /> Show tributaries
-                {loadingTribs && <span className="dim" data-testid="dfo-tribs-loading"> <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style><span className="spinner" aria-hidden="true"
-                  style={{ display: "inline-block", width: 10, height: 10, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite", verticalAlign: "-1px" }} /> loading tributaries…</span>}
-              </label>
-            </div>
-            {loc.binding.notes.length > 0 && <div className="ext-row"><span className="k">notes</span>{loc.binding.notes.join(" · ")}</div>}
-            {detail.splits.unplaced.length > 0 && (
-              <div className="ext-row dim">not on the map: {detail.splits.unplaced.map((u) => u.name).join(", ")}</div>
-            )}
-            {markDiffers && fv && (
-              <div className="ext-row warn-row" data-testid="dfo-mark-differs">
-                <span className="k">your mark</span>
-                <span>of {was?.date ?? "?"} said <strong>{extentText(fv.fix)}</strong> — not the extent now</span>
-                <button type="button" className="btn small" data-testid="dfo-load-mark"
-                  onClick={() => draftFrom({ fixes: savedFixesOf(was), newSplits: [] }, "your earlier mark's extent")}>
-                  load it into a change</button>
-              </div>
-            )}
             {detail.group && (
-              <div className="ext-row" data-testid="dfo-group">
-                <span className="k">group of {detail.group.members.length}</span>
-                <span className="dim"> the save labels every member ticked (one mark each); a member whose extent differs
-                  starts unticked</span>
+              <div className="ext-row" data-testid="dfo-group" style={{ display: "block" }}>
+                <div className="dim">Also saved on these older wordings of the same place (untick one that differs):</div>
                 <ul className="named-splits">
-                  {detail.group.members.map((m) => (
+                  {detail.group.members.filter((m) => !m.this).map((m) => (
                     <li key={m.id}>
-                      <label className="check" title={m.why ?? "the current place"}>
-                        <input type="checkbox" checked={m.this || !!keep[m.id]} disabled={m.this}
-                          data-testid="dfo-group-keep"
-                          onChange={(e) => setKeep((k) => ({ ...k, [m.id]: e.target.checked }))} />
-                        {" "}same extent
-                      </label>{" "}
-                      {m.this ? <strong>{m.text || "(whole water)"}</strong>
-                        : <a href={`#${DFO_HASH}${encodeURIComponent(m.id)}`}>{m.text || "(whole water)"}</a>}
-                      <span className="dim"> {m.status} · {m.verify}{m.why ? ` — ${m.why}` : " — current"}</span>
+                      <label className="check">
+                        <input type="checkbox" checked={!!keep[m.id]} data-testid="dfo-group-keep"
+                          onChange={(e) => setKeep((k) => ({ ...k, [m.id]: e.target.checked }))} />{" "}
+                        <a href={`#${DFO_HASH}${encodeURIComponent(m.id)}`}>{m.text || "(the whole water)"}</a>
+                      </label>
                       {!m.same_extent && <span className="warn-text" data-testid="dfo-group-differs">
-                        {" "}· its extent: {m.extent.extents.length ? extentText(m.extent.extents) : "none curated"}</span>}
+                        {" "}· its extent differs: {m.extent.extents.length ? extentText(m.extent.extents) : "none"}</span>}
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-            {(detail.places?.length ?? 0) > 0 ? (
-              <DfoPlaces places={detail.places!} href={(x) => `#${DFO_HASH}${encodeURIComponent(x)}`}
-                onAttached={(msg) => setAccepted(msg)} />
-            ) : detail.siblings.length > 0 && (
-              <details className="ext-row">
-                <summary className="dim">{detail.siblings.length} other reach{detail.siblings.length === 1 ? "" : "es"} on this water</summary>
+            <details className="dfo-more">
+              <summary>more about this place</summary>
+              <div className="ext-row">
+                <span className="k">waters</span>
+                {detail.items.map((i) => <span key={i.id} className="chip-tag">{i.name}</span>)}
+              </div>
+              {loc.binding.notes.length > 0 && <div className="ext-row"><span className="k">notes</span>{loc.binding.notes.join(" · ")}</div>}
+              {(detail.places?.length ?? 0) > 0 ? (
+                <DfoPlaces places={detail.places!} href={(x) => `#${DFO_HASH}${encodeURIComponent(x)}`}
+                  onAttached={(msg) => setAccepted(msg)} />
+              ) : detail.siblings.length > 0 && (
                 <ul className="named-splits">
                   {detail.siblings.map((s) => (
-                    <li key={s.id}><a href={`#${DFO_HASH}${encodeURIComponent(s.id)}`}>{s.text || "(whole water)"}</a>
-                      <span className="dim"> {s.status}{s.section ? ` · ${s.section}` : ""}</span></li>
+                    <li key={s.id}><a href={`#${DFO_HASH}${encodeURIComponent(s.id)}`}>{s.text || "(the whole water)"}</a></li>
                   ))}
                 </ul>
-              </details>
-            )}
+              )}
+            </details>
           </div>
 
           {tidal && (
             <div className="section dfo-tidal-proposal" data-testid="dfo-tidal-proposal">
               <div className="ext-row">
-                <span className="k" style={{ color: "#b45309" }}>{tidal.status === "proposed" ? "proposed: tidal water"
-                  : tidal.status === "accepted" ? "tidal water" : "not tidal (rejected)"}</span>
+                <span className="k" style={{ color: "#b45309" }}>{tidal.status === "proposed" ? "proposal: tidal water"
+                  : tidal.status === "accepted" ? "tidal water" : "not tidal"}</span>
                 <span data-testid="dfo-tidal-why">{tidal.why}</span>
               </div>
-              {tidal.status === "proposed" && <>
-                <div className="ext-row dim" style={{ fontSize: 12 }}>
-                  Accept: the place lies wholly in tidal water — it binds nothing on the freshwater map and is not
-                  counted as missing. Reject: it keeps needing its freshwater extent (the note below is kept).
-                </div>
+              {tidal.status === "proposed" && (
                 <div className="ext-row">
                   <button type="button" className="btn small" data-testid="dfo-tidal-accept" disabled={busy}
-                    onClick={() => void decideTidal("tidal water")}>accept: tidal water</button>
+                    title="it binds nothing on the freshwater map"
+                    onClick={() => void decideTidal("tidal water")}>yes, tidal water</button>
                   <button type="button" className="btn small" data-testid="dfo-tidal-reject" disabled={busy}
-                    onClick={() => void decideTidal("not tidal")}>reject: not tidal</button>
+                    title="it still needs its freshwater extent"
+                    onClick={() => void decideTidal("not tidal")}>no, not tidal</button>
                 </div>
-              </>}
+              )}
             </div>
           )}
-          {detail.fix_proposal && (
-            <div className="section dfo-fix-proposal" data-testid="dfo-fix-proposal">
+          {offer && best && (
+            <div className="section dfo-suggestion" data-testid="dfo-proposal">
               <div className="ext-row">
-                <span className="k" style={{ color: "#b45309" }}>{detail.fix_proposal.owner ? "needs you" : "fix proposed"}</span>
-                <span data-testid="dfo-fix-why">{detail.fix_proposal.why}</span>
-                {detail.fix_proposal.suggestion && !now.cannot_change.length && (
-                  <button type="button" className="btn small" data-testid="dfo-use-fix"
-                    title="puts this fix in your change — nothing is saved until you save"
-                    onClick={() => draftFrom(suggestionFix({ suggestion: detail.fix_proposal!.suggestion } as DfoSuggestion,
-                                                           taken()), "the fix proposal")}>use as my change</button>
-                )}
-              </div>
-              {(detail.fix_proposal.split_edits ?? []).map((e) => (
-                <div key={e.split_id + e.field} className="ext-row dim" style={{ fontSize: 12 }}>
-                  proposed split edit <code>{e.split_id}</code> {e.field}: {String(e.before)} → <strong>{String(e.after)}</strong> (not applied)
-                </div>
-              ))}
-            </div>
-          )}
-          {sugg?.suggestion && (
-            <div className="section dfo-suggestion" data-testid="dfo-suggestion">
-              <div className="ext-row">
-                <span className="k" style={{ color: "#7c3aed" }}>suggested</span>
-                <span data-testid="dfo-suggestion-words">
-                  {sugg.suggestion.words ?? <Words parts={fixPartsOf({ scope: "entry", op: sugg.suggestion.op,
-                    points: sugg.suggestion.points, items: sugg.suggestion.items,
-                    tributaries: sugg.suggestion.tributaries })} />}</span>
-                <span className={`badge suggest-${sugg.confidence}`} data-testid="dfo-suggestion-confidence">
-                  {CONF_WORDS[sugg.confidence] ?? sugg.confidence}{sugg.matched === "partial" ? " · one end open" : ""}</span>
+                <span className="k" style={{ color: "#7c3aed" }}>proposal</span>
+                <span data-testid="dfo-proposal-words">
+                  {best.s.suggestion?.words ?? <Words parts={piecesParts(proposalFixes, fixPartsOf)} />}</span>
                 {!now.cannot_change.length && (
-                  <button type="button" className="btn small" data-testid="dfo-accept-suggestion" onClick={acceptSuggestion}
-                    title="puts the suggestion in your change — nothing is saved until you save">use as my change</button>
+                  <button type="button" className="btn small" data-testid="dfo-use-proposal" onClick={useProposal}
+                    title="puts it in your change; nothing is saved until you save">use this</button>
                 )}
               </div>
-              <div className="ext-row dim" style={{ fontSize: 12 }}>{sugg.reason}</div>
-              {sugg.caveat && (
+              {best.from === "suggestion" && sugg?.caveat && (
                 <div className="ext-row" data-testid="dfo-suggestion-caveat" style={{ fontSize: 12, color: "#b45309" }}>
-                  read before using it: {sugg.caveat}</div>
+                  Careful: {sugg.caveat}</div>
               )}
-              <SuggestionCoverage sugg={sugg} />
-              {sugg.suggestion.new_splits.length > 0 && (
-                <div className="ext-row dim" style={{ fontSize: 12 }}>
-                  new split{sugg.suggestion.new_splits.length === 1 ? "" : "s"}:{" "}
-                  {sugg.suggestion.new_splits.map((n) => `${anchorWords(n)} (${n.confidence ?? defaultConfidence(n.anchor)} confidence)`).join(" · ")} — violet on the map</div>
-              )}
-              {sugg.hunt?.status === "found" && <HuntProposals hunt={sugg.hunt} />}
+              <details className="dfo-more" data-testid="dfo-proposal-details">
+                <summary>details</summary>
+                {best.from === "fix" && <div className="ext-row dim" style={{ fontSize: 12 }}>{detail.fix_proposal!.why}</div>}
+                {best.from === "suggestion" && sugg && <div className="ext-row dim" style={{ fontSize: 12 }}>{sugg.reason}</div>}
+                {best.from === "fix" && sugg?.suggestion && (
+                  <div className="ext-row dim" style={{ fontSize: 12 }}>The matcher also suggested: {sugg.suggestion.words
+                    ?? partsText(fixPartsOf({ scope: "entry", op: sugg.suggestion.op, points: sugg.suggestion.points,
+                         items: sugg.suggestion.items, tributaries: sugg.suggestion.tributaries }))}</div>
+                )}
+                {sugg && <SuggestionCoverage sugg={sugg} />}
+                {sugg?.hunt?.status === "found" && <HuntProposals hunt={sugg.hunt} />}
+              </details>
             </div>
           )}
-          {!sugg?.suggestion && detail.suggestion?.hunt?.status === "not_found" && (
+          {!offer && detail.suggestion?.hunt?.status === "not_found" && !ex.length && (
             <div className="section dfo-suggestion" data-testid="dfo-hunt-not-found">
-              <div className="ext-row">
-                <span className="k" style={{ color: "#7c3aed" }}>split hunt</span>
-                <span>not found — {detail.suggestion.hunt.why}</span>
-              </div>
-              <SuggestionCoverage sugg={detail.suggestion} />
+              <div className="ext-row dim">No proposal: {detail.suggestion.hunt.why}</div>
             </div>
           )}
 
           <div className="checklist" data-testid="dfo-checklist">
             <div className="dfo-step">3 · Your call <span className="dim" style={{ textTransform: "none", letterSpacing: 0 }}>
-              y n ? answer T, R, then the call · Enter saves · j k move</span></div>
+              keys: y n ? · Enter saves · j k move</span></div>
             {(["T", "R"] as const).map((c) => (
               <div key={c} className="check-row">
-                <strong>{c}</strong><span className="check-q">{QUESTIONS[c]}</span>
+                <span className="check-q">{QUESTIONS[c]}</span>
                 <span className="check-a">
                   {(["y", "n", "?"] as CheckAnswer[]).map((a) => (
                     <button key={a} type="button" className={`ans ans-${a === "?" ? "q" : a}${answers[c] === a ? " on" : ""}`}
@@ -939,9 +891,9 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                 return (
                   <button key={c.v} type="button" role="radio" aria-checked={call === c.v} disabled={off}
                     className={`dfo-call${call === c.v ? " on" : ""}`} data-testid={`dfo-call-${c.v}`}
-                    title={off ? now.cannot_change.join("; ") : undefined}
+                    title={off ? now.cannot_change.join("; ") : c.hint}
                     onClick={() => { setCall(c.v); setFixPreview(null); }}>
-                    <b>{c.words}</b><span>{c.v === "keep" && !ex.length ? "there is no extent yet" : c.hint}</span>
+                    <b>{c.words}</b>
                   </button>
                 );
               })}
@@ -952,8 +904,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
             {call === "change" && (
               <div className="dfo-draft" data-testid="dfo-draft">
                 <div className="dim" style={{ fontSize: 12 }}>
-                  {now.pieces.length ? "Starts from the extent now — change only what is wrong." : "There is no extent yet — set it."}
-                  {" "}Preview draws it teal on the map.</div>
+                  {now.pieces.length ? "Starts from the extent now. Change only what is wrong." : "There is no extent yet. Set it."}</div>
                 <NewSplits id={id} items={detail.items} hints={detail.hints} quote={detail.verbatim.specific_area}
                   op={detail.need.op} shared={shared} value={splits} onChange={setSplits} checks={checks}
                   onChecked={(ref, c) => setChecks((m) => ({ ...m, [ref]: c }))}
@@ -1006,29 +957,28 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
                 </select>
               </div>
             )}
-            <textarea className="check-note" placeholder="note (what is wrong or unclear, where the cut is)" value={note}
+            {noteOpen ? <textarea className="check-note" placeholder="note: what is wrong or unclear" value={note}
               onChange={(e) => setNote(e.target.value)} />
+              : <button type="button" className="btn small link" data-testid="dfo-add-note" onClick={() => setShowNote(true)}>+ note</button>}
 
             {call && (
               <div className={`dfo-effect ${call === "change" && effect !== "keep" ? "replace" : "keep"}`} data-testid="dfo-effect"
                 role="status">
                 {call !== "change" || effect === "keep" ? (
-                  <><strong data-testid="dfo-effect-head">Keeps the extent now — the curated file's extent does not change.</strong>
-                    {call === "change" && cuts && <div>Your new cut{splits.length === 1 ? "" : "s"} {splits.length ? "are" : "is"} proposed (Place ?).</div>}</>
+                  <strong data-testid="dfo-effect-head">Keeps the extent now.</strong>
                 ) : (
-                  <><strong data-testid="dfo-effect-head">{effect === "add" ? "Your change ADDS a piece to the extent now"
-                    : "Your change REPLACES the extent now"}</strong>
+                  <><strong data-testid="dfo-effect-head">{effect === "add" ? "ADDS a piece to the extent now"
+                    : "REPLACES the extent now"}</strong>
                     <div className="dfo-ov">
                       <span className="k now">now</span>
-                      <span data-testid="dfo-effect-old" className={effect === "replace" ? "old" : undefined}>{ex.length ? extentText(ex) : "none curated"}
-                        {tribNow ? ` · ${tribNow}` : ""}{reach?.resolvable ? ` · ${reach.n_sections} section(s)` : ""}</span>
+                      <span data-testid="dfo-effect-old" className={effect === "replace" ? "old" : undefined}>{ex.length ? extentText(ex) : "none"}</span>
                       <span className="k new">new</span>
                       <Words testid="dfo-effect-new" parts={piecesParts(fixes, fixPartsOf)} />
                     </div>
+                    {draftCuts.length > 0 && <div data-testid="dfo-effect-waits">Takes effect after the next rebuild builds
+                      the new cut{draftCuts.length === 1 ? "" : "s"} {draftCuts.join(" and ")}.</div>}
                     {incomplete.length > 0 && <div className="field-error" data-testid="dfo-incomplete">
-                      Not ready to save: {incomplete.join("; ")}</div>}
-                    <div className="dim" style={{ fontSize: 12 }}>Saved as Place {cuts ? "?" : "y"}. The save writes it to
-                      the curated file within seconds; this place reloads with the result.</div></>
+                      Not ready to save: {incomplete.join("; ")}</div>}</>
                 )}
               </div>
             )}
@@ -1038,7 +988,7 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
               <button className={`btn primary${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
                 disabled={busy || !!held} data-testid="dfo-save" onClick={() => void submit()}>{saveText}</button>
               <button className="btn small" disabled={busy} data-testid="dfo-defer"
-                title="decides nothing and changes nothing: the place stays to do (needs a note)"
+                title="decides nothing, changes nothing; needs a note"
                 onClick={() => void submit(true)}>defer</button>
             </div>
           </div>
@@ -1046,12 +996,12 @@ function DfoLocation({ detail, mode, nav, onMarked }: {
         <div className="detail-map">
           <div className="dim" style={{ fontSize: 12, marginBottom: 4 }}>
             <span style={{ color: "#c026d3" }}>magenta: the extent now</span>
-            {call === "change" && <> · <span style={{ color: "#0d9488" }}>teal: your change (after "preview on map")</span></>}
-            {" "}· <span style={{ color: "#7c3aed" }}>violet dashed: the suggestion</span> · amber labels: NEW splits proposed
+            {call === "change" && <> · <span style={{ color: "#0d9488" }}>teal: your change</span></>}
+            {offer && <> · <span style={{ color: "#7c3aed" }}>violet: the proposal</span></>}
           </div>
           <MapPanel itemId={detail.items[0]?.id ?? null} alsoItemIds={detail.items.slice(1).map((i) => i.id)}
             namedSplits={named} preview={(reach?.geojson ?? null) as GeoJSON.FeatureCollection | null}
-            saved={call === "change" ? fixPreview : null} suggested={suggestedFc} onPick={pick.cb}
+            saved={call === "change" ? fixPreview : null} suggested={offer ? suggestedFc : null} onPick={pick.cb}
             editPoints={editPoints} onMovePoint={(pid, ll) => void movePoint(pid, ll)} cutPreview={cutPv} />
         </div>
       </div>
@@ -1390,8 +1340,8 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
   const typeHint = TYPES.find((t) => t.v === type)?.hint;
   return (
     <div className="section extent-fix" data-testid="dfo-new-splits">
-      <div className="fix-row"><strong>New splits</strong>
-        <span className="dim">a cut the notice names that does not exist — proposed in the mark; the save adds it to the cuts file</span></div>
+      <div className="fix-row"><strong>New cuts</strong>
+        <span className="dim">only for a cut DFO names that the map does not have</span></div>
       {value.map((n) => (
         <div key={n.ref} className="fix-row" data-testid={`dfo-split-${n.ref}`}>
           <span className="chip-tag new">{n.ref}</span>

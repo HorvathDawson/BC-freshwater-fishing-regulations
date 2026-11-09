@@ -138,8 +138,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
   return (
     <div className="extent-fix" data-testid={`fix-${tid}`}>
       <div className="fix-row">
-        <strong>{piece !== undefined && piece > 0 ? `Piece ${piece + 1}` : "Fix extent"}</strong>
-        <span className="dim">saving the mark writes it to the curated file</span>
+        <strong>{piece !== undefined && piece > 0 ? `Piece ${piece + 1}` : "The new extent"}</strong>
         <span className="spacer" />
         <button type="button" className="btn small" data-testid={`fix-drop-${tid}`} onClick={() => {
           // a DFO piece stays open: the editor at this place now shows the next piece (T524)

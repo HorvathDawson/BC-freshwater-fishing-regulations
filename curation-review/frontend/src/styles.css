@@ -1121,3 +1121,10 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .dfo-ov .k.new { color: #0d9488; }
 .dfo-ov .old { text-decoration: line-through; color: var(--muted); }
 .btn.primary.dfo-replace { background: #b45309; border-color: #b45309; }
+/* T525 r3: the one status line after a save, and the folded "more" disclosures */
+.dfo-status { padding: 6px 10px; margin: 6px 0; font-weight: 600; border: 1px solid var(--ok-border); background: var(--ok-bg); }
+.dfo-status.wait { border-color: var(--warn-border); background: var(--warn-bg); color: var(--warn-text); }
+.dfo-status.bad { border: 2px solid #b91c1c; background: #fef2f2; color: #991b1b; }
+.dfo-status details { font-weight: 400; margin-top: 4px; }
+.dfo-more { font-size: 12px; margin: 4px 0; }
+.dfo-more > summary { cursor: pointer; color: var(--muted); }
