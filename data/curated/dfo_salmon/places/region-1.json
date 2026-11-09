@@ -2771,7 +2771,8 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "whole",
+            "item_id": "gnis:32101"
           }
         ],
         "tributaries": null,
