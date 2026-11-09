@@ -10,6 +10,13 @@
     python -m pipeline.deliver export [--bundle FILE] [--out FILE]
     python -m pipeline.deliver all --out-dir DIR [--build DIR] [--reaches DIR] [--entries DIR] [--tiles DIR] [--debug-json]
                                             [--hold-latest]   (T408: the new release waits in CANDIDATE)
+                                            [--no-step-cache] (T522: run every step; default reuses unchanged ones)
+
+STEP REUSE (T522): `all` keeps each step's outputs and what it read (`pipeline.common.stepcache`) in
+`deliver-cache/` beside the staging directory; a step whose arguments, staging inputs, declared inputs (the source
+tree, the atlas, and for the bundle the curated tree) and every file it read — its imported code included — are
+unchanged is reused, not run. An answers-only edit reruns answers, the card gate, the store and the release, not the
+bundle. The release and run-timing steps always run.
 
 The artifacts a client reads — the bundle, the status index, and the export pair
 (`ui-rules-export.json` + `ui-rules-guide.json`, one run) — are three commands
@@ -64,14 +71,83 @@ def _export(bundle: Path, out: Path) -> Path:
     return out
 
 
-def _step(args: list) -> None:
+#: (T522) the steps `all` may reuse: each writes files into the staging directory and nothing else. `release` and
+#: `runtiming` write release folders and take seconds: they always run.
+CACHED_STEPS = ("bundle", "verdicts", "status_index", "export", "answers", "card_check", "store")
+
+
+class _Steps:
+    """(T522) THE STEP CACHE of one `all` run (`pipeline.common.stepcache`): a step whose arguments, staging files,
+    declared inputs (`declared`) and every file it read last time — its code as imported included — are unchanged is
+    REUSED (its recorded outputs placed in staging), else it runs under the recorder and is kept. `cache` None: every
+    step runs and nothing is kept (`--no-step-cache`). When the enclosing build stage is itself recorded
+    (PIPELINE_TRACE set by `pipeline build`), each step's modules — run or reused — are added to that trace, so the
+    stage's code key names every step's code."""
+
+    def __init__(self, d: Path, cache, declared: dict | None, bundle_declared: dict | None):
+        import os
+        self.d, self.cache = d, cache
+        self.declared, self.bundle_declared = declared or {}, bundle_declared or {}
+        self.stage_trace = os.environ.get("PIPELINE_TRACE")
+
+
+def _step(args: list, steps: "_Steps | None" = None) -> None:
     """One step of the chain, as `python -m pipeline.deliver <step> …` in a fresh process."""
+    import os
+    import shutil
     import subprocess
+    import tempfile
     import time
     print(f"pipeline.deliver: {' '.join(args)}", flush=True)
     t0 = time.time()
-    subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True)
-    print(f"pipeline.deliver: {args[0]} done in {time.time() - t0:.0f}s", flush=True)   # T295: per-step timings
+    name = args[0]
+    cache = steps.cache if steps is not None and name in CACHED_STEPS else None
+    if cache is None:
+        # (run under the stage's recorder when there is one: it inherits PIPELINE_TRACE)
+        subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True)
+        print(f"pipeline.deliver: {name} done in {time.time() - t0:.0f}s", flush=True)   # T295: per-step timings
+        return
+    from pipeline.common import stepcache
+    d = steps.d
+    argv = [str(x).replace(str(d), "<staging>") for x in args]
+    declared = steps.bundle_declared if name == "bundle" else steps.declared
+    rec, why = cache.lookup(name, argv, d, declared)
+    if rec is not None:
+        cache.restore(name, rec, d)
+        if steps.stage_trace:
+            stepcache.write_modules_trace(Path(steps.stage_trace), rec["fingerprint"]["modules"], name)
+        print(f"pipeline.deliver: {name} REUSED in {time.time() - t0:.0f}s ({why}; "
+              f"{len(rec['outputs'])} output(s) from {cache.root / name})", flush=True)
+        return
+    print(f"pipeline.deliver: {name} runs: {why}", flush=True)
+    before = stepcache.snapshot(d, cache.memo)
+    tdir = Path(tempfile.mkdtemp(prefix=f".trace-{name}-", dir=d.parent))
+    try:
+        subprocess.run([sys.executable, "-m", "pipeline.deliver", *args], check=True,
+                       env={**os.environ, "PIPELINE_TRACE": str(tdir)})
+        trace = stepcache.Trace(tdir)
+        print(f"pipeline.deliver: {name} {cache.record(name, argv, d, declared, before, trace)}", flush=True)
+        if steps.stage_trace:
+            Path(steps.stage_trace).mkdir(parents=True, exist_ok=True)
+            for f in tdir.glob("*.trace"):
+                shutil.copyfile(f, Path(steps.stage_trace) / f"{name}-{f.name}")
+    finally:
+        shutil.rmtree(tdir, ignore_errors=True)
+    print(f"pipeline.deliver: {name} done in {time.time() - t0:.0f}s", flush=True)   # T295: per-step timings
+
+
+def step_declared(build_dir: Path) -> tuple[dict, dict]:
+    """(T522) What the recorder cannot see, for (every cached step, the bundle): stamps of every file under the source
+    tree and the atlas (GDAL and SQLite read them in C); the bundle also every curated file but the review state
+    (`build.NOT_BUILD_INPUTS`: the marks change with every review click and no stage reads them)."""
+    from pipeline.build import not_build_inputs
+    from pipeline.common.curated import CURATED, REPO_ROOT, SOURCE
+    from pipeline.common.stepcache import declared_stamps
+    every = declared_stamps([Path(SOURCE), Path(build_dir)])
+    skip = [Path(p).resolve() for p in not_build_inputs()]
+    cur = {k: v for k, v in declared_stamps([Path(CURATED.base)]).items()
+           if not any(s == (REPO_ROOT / k).resolve() or s in (REPO_ROOT / k).resolve().parents for s in skip)}
+    return every, {**every, **cur}
 
 
 def canonical_homes(debug: bool = False) -> dict:
@@ -135,6 +211,11 @@ def _all(a) -> int:
     base = dest.parent if dest else GENERATED.bundle.parent
     base.mkdir(parents=True, exist_ok=True)
     d = Path(tempfile.mkdtemp(prefix=".deliver-staging-", dir=base))
+    steps = None
+    if not getattr(a, "no_step_cache", False):
+        from pipeline.common.stepcache import StepCache
+        declared, bundle_declared = step_declared(a.build or GENERATED.require_build())
+        steps = _Steps(d, StepCache(base / "deliver-cache"), declared, bundle_declared)
     try:
         bundle = d / "bundle.sqlite"
         # EACH STEP IN ITS OWN PROCESS (DATAFLOW P1b, M10.1): CPython rarely hands a fragmented
@@ -145,15 +226,15 @@ def _all(a) -> int:
                         ("--tiles", a.tiles)):
             if v is not None:
                 b += [flag, str(v)]
-        _step(b)
-        _step(["verdicts", "--bundle", str(bundle), "--out", str(d / "verdicts.sqlite")])
-        _step(["status_index", "--bundle", str(bundle), "--out", str(d / "status_index.bin")])
-        _step(["export", "--bundle", str(bundle), "--out", str(d / "ui-rules-export.json")])
-        _step(["answers", "--bundle", str(bundle), "--export-dir", str(d)])
+        _step(b, steps)
+        _step(["verdicts", "--bundle", str(bundle), "--out", str(d / "verdicts.sqlite")], steps)
+        _step(["status_index", "--bundle", str(bundle), "--out", str(d / "status_index.bin")], steps)
+        _step(["export", "--bundle", str(bundle), "--out", str(d / "ui-rules-export.json")], steps)
+        _step(["answers", "--bundle", str(bundle), "--export-dir", str(d)], steps)
         # THE CARD GATE (P05): every number on every card of the answers just written, proved
         # against the bundle's rules; a problem stops the chain here, before anything is packaged
-        _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)])
-        _step(["store", "--bundle", str(bundle), "--export-dir", str(d), "--out", str(d / "regs.sqlite")])
+        _step(["card_check", "--bundle", str(bundle), "--export-dir", str(d)], steps)
+        _step(["store", "--bundle", str(bundle), "--export-dir", str(d), "--out", str(d / "regs.sqlite")], steps)
         # THE SHIPPED SET (P08): data/release/<data_release>/, from the files just made
         rel_root = (dest / "release") if dest else GENERATED.release
         tiles = ["--tiles", str(a.tiles), "--tiles-release-root", str(rel_root)] if a.tiles else []
@@ -286,6 +367,9 @@ def main(argv=None) -> int:
     al.add_argument("--debug-json", action="store_true",
                     help="also keep the regs store the release was cut from (regs.sqlite: in --out-dir, else "
                          "pipeline.deliver.store.DEBUG_OUT); by default none is kept (P20)")
+    al.add_argument("--no-step-cache", action="store_true",
+                    help="(T522) run every step and keep none (default: a step whose inputs are unchanged is reused "
+                         "from <out-dir parent or data/generated>/deliver-cache)")
     al.add_argument("--hold-latest", action="store_true",
                     help="(T408) name the new release in CANDIDATE, not LATEST: `pipeline release` moves LATEST "
                          "only after its checks pass")
@@ -296,6 +380,7 @@ def main(argv=None) -> int:
             a.out_dir = None
             a.debug_json = False
             a.hold_latest = False
+            a.no_step_cache = False
         return _all(a)
     if a.step == "runtiming":
         from pipeline.runtiming.feed.release import stage_base

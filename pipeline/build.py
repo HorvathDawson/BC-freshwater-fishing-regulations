@@ -10,6 +10,10 @@
     python -m pipeline build --side DIR [--atlas]   # EVERY stage into DIR, nothing live touched (a proof run)
     python -m pipeline build --hold-latest      # the new release waits in data/release/CANDIDATE (LATEST untouched)
 
+THE FAST PATH (T522) is this same command: reach and deliver key on the modules they really imported (`TRACED`), and
+`pipeline.deliver all` reuses every step whose inputs did not move (`pipeline.common.stepcache`); pipeline/README.md
+"The fast path" says which edit reruns what.
+
 A RELEASE is `python -m pipeline release --staging` (`pipeline/release.py`, T408): this build with --hold-latest, then
 the checks, then LATEST, then the staging upload. Run that, not this, to ship.
 
@@ -112,6 +116,14 @@ STAGE_GRAPH: tuple[Stage, ...] = (
 STAGES = tuple(st.name for st in STAGE_GRAPH)
 # What each stage's CODE is: a change to any .py file under these (tests excluded) reruns it.
 CODE = {st.name: st.code for st in STAGE_GRAPH}
+#: (T522) THE STAGES KEYED ON THE CODE THEY IMPORTED: each runs under the recorder (`pipeline/_trace.py`); the manifest
+#: keeps the modules its last run imported (`code_files`), and its code key is those files' bytes NOW — so an edit
+#: to the review app, an audit tool or the DFO suggester reruns neither. Before a stage's first recorded run it keys on
+#: `CODE` (its broad roots) as before. tiles and clim keep their hand-picked roots: they are NARROWER than what the
+#: process imports (P18: tiles are geometry only, names catch up with --labels).
+TRACED = ("reach", "deliver")
+#: (T522) `--force deliver`: the delivery also runs every step afresh (`deliver all --no-step-cache`)
+FRESH_STEPS = False
 #: (T266) curated paths that are REVIEW STATE or its export, read by the apply paths and never by a stage: in no key
 #: (T325) + the closed-domains list beside the marks: review state too, read by the exporter / apply / review app only
 NOT_BUILD_INPUTS = ("review.marks", "review.closed")
@@ -264,6 +276,16 @@ def clim_key() -> dict:
             "code": code_digest(CODE["clim"])}
 
 
+def stage_code(stage: str, m: dict | None = None):
+    """(T522) A stage's code input: for a TRACED stage with a recorded run, {"traced": the bytes now of the modules that
+    run imported}; else the digest of its `CODE` roots."""
+    from pipeline.common import stepcache
+    rec = ((m if m is not None else load_manifest())["stages"].get(stage) or {})
+    if stage in TRACED and rec.get("code_files"):
+        return {"traced": stepcache.code_digest(stepcache.code_now(rec["code_files"]))}
+    return code_digest(CODE[stage])
+
+
 def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     """Every stage's inputs, as digests (the key is `_sha` of these). `missing_ok`: the plan, before `clim`
     has made the envelope (`deliver_sources`)."""
@@ -275,6 +297,7 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
     from pipeline.regs.parsing.io import corpus_digest, read_all_entries
 
     atlas = {"handles": digest_for(build_dir), "registry": registry_digest_for(build_dir)}
+    m = load_manifest()
     corpus = corpus_digest(read_all_entries(registry=load_registry(str(build_dir / "registry.json"))))
     return {
         "clim": clim_key(),
@@ -286,10 +309,10 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                       tidal=_sha(tidal_splits(build_dir)),
                       # (T212) the whole waters the owner calls tidal
                       tidal_waters=_sha(tidal_waters(build_dir)),
-                      code=code_digest(CODE["reach"])),
+                      code=stage_code("reach", m)),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources=deliver_sources(missing_ok),
-                        code=code_digest(CODE["deliver"])),
+                        code=stage_code("deliver", m)),
         "tiles": tiles_key(build_dir),
     }
 
@@ -360,7 +383,7 @@ def commands(build_dir: Path) -> dict[str, list[str]]:
         "reach": py + ["pipeline.atlas.reach.cli", "--build", str(build_dir), "--out", str(h.reaches)],
         "deliver": py + ["pipeline.deliver", "all", "--build", str(build_dir)]
         + (["--reaches", str(h.reaches), "--tiles", str(h.tiles), "--out-dir", str(h.deliver)] if side else [])
-        + (["--hold-latest"] if HOLD_LATEST else []),
+        + (["--hold-latest"] if HOLD_LATEST else []) + (["--no-step-cache"] if FRESH_STEPS else []),
         "tiles": py + ["pipeline.deliver.tiles", "--build", str(build_dir), "--out", str(h.tiles)]
         + (["--release-root", str(h.release)] if side else []),
     }
@@ -446,6 +469,7 @@ def plan(build_dir: Path, force: set[str], why: dict | None = None) -> list[tupl
         if why is not None:
             now = input_digests(k[s])
             why.setdefault("inputs", {})[s] = now
+            why.setdefault("keys", {})[s] = k[s]
             if s in force:
                 why[s] = "forced"
             elif last is None:
@@ -465,7 +489,7 @@ _LOCK = threading.RLock()
 
 
 def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=(), jobs: int = 1,
-            inputs: dict | None = None, logs: Path | None = None) -> set[str]:
+            inputs: dict | None = None, logs: Path | None = None, keyd: dict | None = None) -> set[str]:
     """Run the plan's stages, at most `jobs` at once, each as soon as every stage it reads (`DEPENDS`,
     `READS_CONTENT`) is done; a stage that reads an earlier one BY CONTENT is keyed again once that one ran, and
     runs only if its key moved. With `jobs` > 1 each stage logs to `logs/<stage>.log`. A failed stage stops new
@@ -494,6 +518,8 @@ def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=(), jobs
                 if any(d in ran for d in READS_CONTENT.get(s, ())):
                     k_now = keys(build_dir)[s]      # taken again: it reads that stage's output by content
                     key = _sha(k_now)
+                    if keyd is not None:
+                        keyd[s] = k_now
                     if inputs is not None:
                         inputs[s] = input_digests(k_now)
                     go = go or key != (m["stages"].get(s) or {}).get("key")
@@ -508,6 +534,8 @@ def execute(build_dir: Path, rows, cmds: dict, run: dict, m: dict, skip=(), jobs
                     kw["inputs"] = inputs[s]
                 if log is not None:
                     kw["log"] = log
+                if keyd is not None and s in keyd:
+                    kw["keyd"] = keyd[s]
                 running[pool.submit(run_stage, s, cmds[s], key, run, m, **kw)] = s
             if not running:
                 if todo and not failures:
@@ -551,11 +579,12 @@ def _tree_rss_kb(root: int) -> int:
     return total
 
 
-def _run(cmd: list[str], log: Path | None = None, every: float = 5.0) -> tuple[int, int]:
+def _run(cmd: list[str], log: Path | None = None, every: float = 5.0, env: dict | None = None) -> tuple[int, int]:
     """Run `cmd` from the repo root (console, or `log`); returns (returncode, peak tree RSS in MB, sampled)."""
     fh = open(log, "w", encoding="utf-8") if log is not None else None
     try:
-        p = subprocess.Popen(cmd, cwd=REPO_ROOT, stdout=fh, stderr=subprocess.STDOUT if fh else None)
+        p = subprocess.Popen(cmd, cwd=REPO_ROOT, stdout=fh, stderr=subprocess.STDOUT if fh else None,
+                             env={**os.environ, **env} if env else None)
         peak = 0
         while True:
             try:
@@ -570,13 +599,23 @@ def _run(cmd: list[str], log: Path | None = None, every: float = 5.0) -> tuple[i
 
 
 def run_stage(stage: str, cmd: list[str], key: str, run: dict, m: dict, *, inputs: dict | None = None,
-              log: Path | None = None) -> None:
+              log: Path | None = None, keyd: dict | None = None) -> None:
+    import shutil
+    import tempfile
     where = f" (log: {log})" if log is not None else ""
     print(f"\n=== {stage}: {' '.join(cmd)}{where}", flush=True)
     if log is not None:
         log.parent.mkdir(parents=True, exist_ok=True)
+    # (T522) a TRACED stage runs under the recorder; its key is then re-taken on the modules it really imported
+    tdir = Path(tempfile.mkdtemp(prefix=f".trace-{stage}-", dir=MANIFEST.parent)) \
+        if stage in TRACED and keyd is not None else None
     t0 = time.time()
-    rc, peak = _run(cmd, log)
+    try:
+        rc, peak = _run(cmd, log, env={"PIPELINE_TRACE": str(tdir)} if tdir else None)
+        traced = _traced_key(stage, tdir, keyd) if (tdir is not None and rc == 0) else None
+    finally:
+        if tdir is not None:
+            shutil.rmtree(tdir, ignore_errors=True)
     secs = round(time.time() - t0)
     rec = {"stage": stage, "cmd": cmd, "key": key, "status": "ok" if rc == 0 else f"rc={rc}",
            "seconds": secs, "peak_mb": peak}
@@ -590,8 +629,26 @@ def run_stage(stage: str, cmd: list[str], key: str, run: dict, m: dict, *, input
             tail = ("\n" + "".join(log.read_text(encoding="utf-8", errors="replace").splitlines(True)[-30:])
                     if log is not None and log.exists() else "")
             raise SystemExit(f"build: {stage} failed (rc={rc}); the manifest says so: {MANIFEST}{tail}")
-        m["stages"][stage] = {"key": key, "at": run["started"], **({"inputs": inputs} if inputs else {})}
+        if traced is not None:
+            key, inputs, code_files, note = traced
+            print(f"=== {stage}: {note}", flush=True)
+        m["stages"][stage] = {"key": key, "at": run["started"], **({"inputs": inputs} if inputs else {}),
+                              **({"code_files": code_files} if traced is not None and code_files else {})}
         save_manifest(m)
+
+
+def _traced_key(stage: str, tdir: Path, keyd: dict):
+    """(T522) (key, inputs, code_files, note) for a traced stage that just ran: its key with the code part re-taken on
+    the modules its processes imported, as they were imported. A module edited while it ran (imported twice with two
+    contents, or changed on disk since) cannot key the run honestly: the key is None, so the next build runs it again."""
+    from pipeline.common import stepcache
+    tr = stepcache.Trace(tdir)
+    if tr.conflicts or stepcache.code_now(tr.modules) != tr.modules:
+        moved = tr.conflicts or sorted(k for k, v in stepcache.code_now(tr.modules).items() if tr.modules[k] != v)
+        return None, None, None, f"NOT keyed — {moved[0]} changed while it ran; the next build runs it again"
+    k2 = dict(keyd, code={"traced": stepcache.code_digest(tr.modules)})
+    return _sha(k2), input_digests(k2), dict(sorted(tr.modules.items())), \
+        f"keyed on the {len(tr.modules)} modules it imported"
 
 
 def timings(run: dict) -> str:
@@ -657,8 +714,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--status", action="store_true",
                     help="the last run: each stage's time, memory and status, and its logs (with --side: that run's)")
     a = ap.parse_args(argv)
-    global SIDE, MANIFEST, HOLD_LATEST
+    global SIDE, MANIFEST, HOLD_LATEST, FRESH_STEPS
     HOLD_LATEST = a.hold_latest
+    FRESH_STEPS = "deliver" in a.force
     if a.graph:
         print(graph_text())
         return 0
@@ -725,7 +783,7 @@ def main(argv: list[str] | None = None) -> int:
     logs = MANIFEST.parent / "build-logs" / run["started"].replace(":", "")
     try:
         execute(build_dir, rows, cmds, run, m, skip={"tiles"} if a.no_tiles else set(), jobs=a.jobs,
-                inputs=why.get("inputs"), logs=logs)
+                inputs=why.get("inputs"), logs=logs, keyd=why.get("keys"))
     finally:
         run["wall_seconds"] = round(time.time() - t_start)
         save_manifest(m)

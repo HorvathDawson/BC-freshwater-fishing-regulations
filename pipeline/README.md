@@ -35,6 +35,31 @@ time; heavy.sh is re-entrant for its own lock holder). Each stage is skipped whi
 (atlas, corpus, curated tree, source stamps, its own code) match its last successful run
 (`data/generated/build-manifest.json`). With `--jobs 2` a stage logs to `build-logs/<run>/<stage>.log`.
 
+### The fast path: rules, parts, names or wording changed (T522)
+
+```bash
+python -m pipeline build --dry-run                                            # what will run, and why
+scripts/heavy.sh build 50 -- .venv/bin/python -m pipeline build [--side DIR]   # only what changed runs
+```
+
+The same command as a full build; nothing to choose. Two caches make it fast, both keyed on CONTENT
+(`pipeline/common/stepcache.py`, recorder `pipeline/_trace.py`):
+
+- **Stages key on the code they imported.** reach and deliver run under the recorder; the manifest keeps the
+  modules each really imported, and only those files' bytes are their code key. An edit to the review app, an
+  audit tool, the DFO suggester or a test reruns neither (it used to rerun both: ~22 min).
+- **Delivery steps are reused.** Inside `pipeline.deliver all`, each step (bundle, verdicts, status index,
+  export, answers, card gate, store) is reused when its arguments, its staging inputs, the files it read (its
+  code as imported included), the directories it listed, the paths it probed and the declared inputs (source
+  tree and atlas stamps; for the bundle also the curated tree) are unchanged. An answers or wording edit
+  reruns answers → card gate → store → release (~4 min), not the bundle. The cache is
+  `data/generated/deliver-cache/` (a side run: `DIR/deliver-cache/`).
+
+What needs which stages: a rule edit (curated regulations) → reach + deliver; a parts / naming change in
+`pipeline/deliver/bundle` → deliver from the bundle on; answers / export / store / release code → deliver from
+that step on; a registry name (atlas sidecar) → reach + deliver; tile labels → `--labels`. `--force deliver`
+runs every step afresh (`deliver all --no-step-cache`).
+
 ## Review marks → curated files (T266, T408)
 
 ```bash
