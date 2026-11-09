@@ -47,7 +47,8 @@ rows collapse). Old APK shows every notice "not on the map yet" until build 22 â
      named by their ends (border: nearest B.C. town if we hold a source); fallback sweep (delete or fail loudly).
      T521 opened (unplaced DFO rules shown in app). Explainer: https://claude.ai/artifact/Sm3zaYhE2qYj79dDRWKkMY
      Icons (launcher only): rounds 1-3 in icon-proposals/; owner likes the linocut trout; round 4 = map pin + sun over
-     waves (not the gov logo) + B.C. outline options. Owner picks, then wire into build-icons.mjs before build 22. Open owner item: Dean Anahim run has a lake
+     waves (not the gov logo) + B.C. outline options. Owner 11-09 picked round4 "Leap across the sun" (interim until a real human-made icon); being wired into
+     build-icons.mjs + assets for build 22. Open owner item: Dean Anahim run has a lake
      between its pieces and no mark, so they never join.
 2. **Explainer artifact** (owner ask): the new part + in-season flow and format, why each decision, with visuals.
 3. Then the queue: build 22 (Play internal, `MLN_LOCAL_MAVEN` lean MapLibre; carries T509/T515/T516/T517/T520),
