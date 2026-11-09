@@ -363,7 +363,7 @@ class Generated(BaseModel):
     release: Path
 
     _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
-                           "runtiming", "inseason", "review", "release", mode="before")(_absolute)
+                           "runtiming", "inseason", "review", "sloughs", "release", mode="before")(_absolute)
 
     # --- builds -----------------------------------------------------------------------
 

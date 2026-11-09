@@ -150,6 +150,19 @@ class TestGeneratedTree:
         with pytest.raises(ValueError, match="disagrees with itself"):
             C.load_generated(bad)
 
+    def test_every_generated_path_is_absolute(self, gen):
+        # A relative path resolves against the process's cwd: the review backend runs from
+        # curation-review/backend, so `sloughs` (left out of the validator) 404'd its tab.
+        def walk(m):
+            for name in type(m).model_fields:
+                v = getattr(m, name)
+                if hasattr(type(v), "model_fields"):
+                    yield from walk(v)
+                elif hasattr(v, "is_absolute"):
+                    yield name, v
+        rel = [n for n, v in walk(gen) if not v.is_absolute()]
+        assert not rel, rel
+
     def test_nothing_under_generated_is_curated_or_source(self, gen, tree):
         # A generated path landing inside curated/ would mean a rebuild can destroy human
         # work — the one failure this whole layout exists to prevent.
