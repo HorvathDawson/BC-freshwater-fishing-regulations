@@ -576,12 +576,12 @@ export default function App() {
             {INSTALL_WORDS.failed}
           </Text>
           {bootUpdateVM ? (
-            <ErrorState palette={palette} size="body" style={{ textAlign: "center" }} testID="boot-app-update"
+            <ErrorState palette={palette} size="body" align="center" testID="boot-app-update"
                         message={[bootUpdateVM.text, bootUpdateVM.said].filter(Boolean).join(" ")}
                         onRetry={bootUpdateVM.button ? bootUpdate!.update : undefined}
                         retryLabel={bootUpdateVM.button?.label} retryTestID="boot-app-update-action" />
           ) : (
-            <ErrorState palette={palette} size="body" style={{ textAlign: "center" }}
+            <ErrorState palette={palette} size="body" align="center"
                         message={tooOld ? failed : firstRunOffline ? INSTALL_WORDS.firstRunOffline : INSTALL_WORDS.again}
                         onRetry={tooOld ? undefined : retryBoot} retryLabel={INSTALL_WORDS.retry} retryTestID="boot-retry" />
           )}

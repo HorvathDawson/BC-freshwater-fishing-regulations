@@ -10,11 +10,13 @@ import { Button } from "./Button";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-export function ErrorState({ palette, message, size = "small", onRetry, retryLabel, retryTestID, style, testID }: {
+export function ErrorState({ palette, message, size = "small", align = "start", onRetry, retryLabel, retryTestID, style, testID }: {
   palette: Palette;
   message: string;
   /** "body" on a page of its own; "small" inside a block (the default) */
   size?: "body" | "small";
+  /** "center" on a centred page (the boot screen): the line and its button both centre; "start" inside a block */
+  align?: "start" | "center";
   /** ask again; absent: no button */
   onRetry?: () => void;
   retryLabel?: string;
@@ -24,7 +26,8 @@ export function ErrorState({ palette, message, size = "small", onRetry, retryLab
   testID?: string;
 }) {
   const line = (
-    <Text testID={testID} accessibilityRole="alert" style={{ ...(size === "body" ? TYPE.body : TYPE.small), color: palette.closed, ...style }}>
+    <Text testID={testID} accessibilityRole="alert" style={{ ...(size === "body" ? TYPE.body : TYPE.small), color: palette.closed,
+                                                        ...(align === "center" ? { textAlign: "center" as const } : null), ...style }}>
       {message}
     </Text>
   );
@@ -33,7 +36,7 @@ export function ErrorState({ palette, message, size = "small", onRetry, retryLab
     <>
       {line}
       <Button palette={palette} kind="link" size={size === "body" ? "body" : "meta"} label={retryLabel} onPress={onRetry}
-              testID={retryTestID} style={{ alignSelf: "flex-start" }} />
+              testID={retryTestID} style={{ alignSelf: align === "center" ? "center" : "flex-start" }} />
     </>
   );
 }
