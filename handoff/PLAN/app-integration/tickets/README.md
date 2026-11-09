@@ -566,6 +566,8 @@ use that as the sole source of future work."
 | T519 | Fraser exit reads Morey Channel (own side channel) since T497; T59 rule regressed | OPEN — with T517 rebuild | — | T517 lane 2026-11-08 |
 | T520 | In-season links/2: FWA-range coverage resolved on the Mac, content ids, checks in publish only, publish from the Mac only (workflow deleted; carries T518) | IN REVIEW — owner look at shots, next APK | ece44d1f3, 46ce5a22d, fd09e65af, 9ef7e7600, 28c0c7869 | staging live (32/32 matched); owner: GitHub R2 secrets (OWNER-TODO); T517 to ship the token→words table |
 | T521 | A new DFO location with no mapped place still shows: matched water → its Salmon card's DFO rules; new water → the bell (worker unplaced.json `items`) | DONE | c7d4226b2, 1650a4b2f | owner 11-09 |
+| T522 | Rebuilds rerun only what changed: reach/deliver keyed on the code they imported; delivery steps reused when nothing they read moved (fast path in pipeline/README) | IN REVIEW — proof run | — | owner 2026-11-08 "the constant rebuilds take so long" |
+| T523 | A cut id keeps its direction: offset cuts end `_u<m>m`/`_d<m>m`, no truncation clash `_2`; rename Quatse weir + Stamp lagoon pairs, owner mark carried | OPEN | — | owner 2026-11-09 review app "should say up and downstream"; "could do _u and _d" |
 
 ## Order for open tickets
 
