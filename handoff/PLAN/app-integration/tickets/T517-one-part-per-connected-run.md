@@ -1,6 +1,6 @@
 # T517 — One part per connected run of same-rule sections, always in sync with the paint
 
-Status: OPEN — paused 2026-11-08 for the owner's fresh audit of part naming / sectioning (coordinator); WIP in
+Status: OPEN — side build done, owner review before promote: side release `data/generated/side/t517/deliver/release/r-d62af06225a2` (with T510 + T519); paint-sync passes; nothing promoted. Code 5f96628fe…(see Results). Part of T495 gate 1.
 `git stash` "T517 WIP: contiguous parts…" (derived.part_rows + schema UNIQUE). In-season work paused separately (notice
 audit). Supersedes T509's "What is left" (`short` on `part_stretch`, dropped). Part of T495 gate 1.
 
@@ -101,3 +101,34 @@ formerly bare water) light/dark. Nothing promoted.
 not "08HB074 · Cruickshank River Near The Mouth"); the gauge's own name (and any same-place cut / official spelling) is
 kept as an alternate on the mark (`part_mark.alt`, a JSON list, release water file) for search and the alias list. Not
 done: the app's search does not read marks yet.
+
+## Results (side build 2026-11-08, `data/generated/side/t517`, release r-d62af06225a2)
+- **Bindings:** every section's rule bindings identical to live except 6 — T510's 2 rule-changing connectors, its 2
+  slough-fold lakes, and one Columbia section id moved (`356570372:1834527` → `:1835154`, same rules). Details:
+  `shots/T510-moved.md`.
+- **Paint sync** (`release.paint_sync`, on the shipped files, in release `build()` before LATEST): 20,975 parts, 65,129
+  sections — each part one status profile, one no-access tier, one salmon chain; no two meeting parts share a key; every
+  section in one part. The live release FAILS it (T228 parts with two salmon chains), as expected. It caught three
+  real defects on the way: spurious marks between two runs of one key (now never made), and its own no-access read.
+- **Size** (gzip): release 21,587,945 → 21,834,278 (+1.1 %); water 2,500,340 → 2,636,159 (+5.4 %: the T520 `display.ends`
+  table is ~106 KB of it, names/run strings the rest); geo 630,325 → 595,727 (−5.5 %, `part_stretch` gone); core flat;
+  paint flat. Bundle 158.21 → 158.15 MB; export 6.92 → 6.95 MB (+0.5 %). Rule sets stay shared (`set_id`), never copied.
+- **Parity:** parts 20,708 → 20,975 (+267); Fraser map list 19 → 19, same order, no "stretch k of n"; Kanaka 3 → 3;
+  every picker the same length AND the same words (19,793 waters); bare "N stretches" names 180 → 0; marks without words
+  409 → 112; multi-chain runs 34 (76 parts); Dean map entries 34 → 10 on the release's salmon (one mode: fewer where the
+  live feed reads pieces alike); waters whose parts renumber: ~487 (golden taps: 87 of 121 states moved, 17 waters
+  `recut` T517). Gauge-named marks 2 → 2: Cruickshank (its Strathcona Park line is an area split with no place on the
+  water, so no regulation split stands within 0.2 km) and the Dean's 08FC003 (nothing named nearby; the nearest-by-km
+  rule named a cut 44 km away, so it is bounded) — both keep the gauge's own name.
+- **Exits (T519):** 3 change — the Fraser now reaches the sea (not Morey Channel); Inkaneep Creek exits into its lake
+  (was a channel of its own name); the upper Jeperson Side Channel no longer names the lower one (both on the Fraser's
+  code; the lower is the smaller).
+- **`display.ends`** (T520's one name source; answers display static, `regs-store` static row `display.ends`):
+  `{token: [words, other names…]}` for every split (cut, area, region line, lake edge) and every run end token
+  (confluence, lake inlet/outlet, mouth, source, continues); a last `"to:<words>"` where the lower end reads otherwise
+  ("the source"). Derived in-season points are not tokens of the bundle: not in it.
+- **Not done (left as follow-ups):** `part_geo.rank` and the stretch plumbing in the app's route/place/carry/frameView
+  stay (inert: every part is one stretch now); `hint_s` stays; app search does not read `part_mark.alt` yet; SEO
+  `rulesKey` keys by group + end tokens but not a split's curated position (not in the release).
+- Shots (side release, web, light/dark): `shots/T517-fraser-{light,dark}.png`, `shots/T517-dean-{light,dark}.png`,
+  `shots/T517-fortnelson-{light,dark}.png` (formerly "2 stretches · stretch 1 of 2"-style bare names).

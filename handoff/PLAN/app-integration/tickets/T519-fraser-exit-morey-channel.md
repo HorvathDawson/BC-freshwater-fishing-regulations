@@ -1,6 +1,6 @@
 # T519 — The Fraser's exit reads Morey Channel (its own side channel), not the sea
 
-Status: OPEN — found 2026-11-08 by the T517 lane; `test_part_geo::test_the_fraser_reaches_the_sea_and_its_side_channels_flow_into_it` fails on the live bundle with or without T517.
+Status: OPEN — fixed in the T517 side build (topology `channel_of_o`: a smaller stream on the main river's own watershed code is its channel, never its exit); 3 exits change (`T517` Results); owner review with T517 before promote.
 
 ## Found
 - T59 fixed the Fraser "flowing into" Annacis Channel (its own side channel). Since T497 renamed unnamed connectors, the

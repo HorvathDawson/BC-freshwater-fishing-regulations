@@ -2396,7 +2396,7 @@
       {
        "checked": true,
        "long": "4 side channels, joining 55–59.1 km from the mouth",
-       "part": 1,
+       "part": 0,
        "status": "open",
        "sub": null,
        "text": "4 side channels"
@@ -2404,7 +2404,7 @@
       {
        "checked": false,
        "long": "From the mouth up to the Talchako River confluence",
-       "part": 0,
+       "part": 1,
        "status": "open",
        "sub": null,
        "text": "Mouth → Talchako River confluence"
@@ -5681,7 +5681,7 @@
  "target": {
   "item": "gnis:11611",
   "kind": "part",
-  "partIx": 1
+  "partIx": 0
  },
  "terms": {
   "artificial_fly": "Artificial fly",

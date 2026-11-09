@@ -165,8 +165,8 @@
   "dot": "open",
   "name": "Fraser River",
   "place": {
-   "full": "2 stretches",
-   "short": "2 stretches"
+   "full": "CPR Bridge at Mission → Landstrom Bar sign zone boundary",
+   "short": "CPR Bridge at Mission → Landstrom Bar sign zone boundary"
   },
   "tabs": [
    {
@@ -2566,7 +2566,7 @@
       {
        "checked": false,
        "long": null,
-       "part": 6,
+       "part": 2,
        "status": "closed",
        "sub": null,
        "text": "Within Landstrom Bar sign zone"
@@ -2574,15 +2574,15 @@
       {
        "checked": true,
        "long": "Two stretches: from the CPR Bridge at Mission up to Landstrom Bar sign zone boundary, and from Landstrom Bar sign zone boundary up to the Spuzzum Creek confluence",
-       "part": 2,
+       "part": 1,
        "status": "open",
        "sub": null,
-       "text": "2 stretches"
+       "text": "CPR Bridge at Mission → Landstrom Bar sign zone boundary"
       },
       {
        "checked": false,
        "long": "From the Spuzzum Creek confluence up to the signs 2800 m downstream of Hell's Gate",
-       "part": 7,
+       "part": 4,
        "status": "open",
        "sub": null,
        "text": "Spuzzum Creek confluence → 2800 m downstream of Hell's Gate"
@@ -2590,7 +2590,7 @@
       {
        "checked": false,
        "long": "From the fishing boundary signs 6500 m downstream of Boston Bar up to the CNR bridge ~1km below Thompson",
-       "part": 4,
+       "part": 7,
        "status": "open",
        "sub": null,
        "text": "6500 m downstream of Boston Bar → CNR bridge ~1km below Thompson"
@@ -2598,7 +2598,7 @@
       {
        "checked": false,
        "long": "From the CNR bridge ~1km below Thompson up to the Thompson River confluence",
-       "part": 10,
+       "part": 8,
        "status": "closed",
        "sub": null,
        "text": "CNR bridge ~1km below Thompson → Thompson River confluence"
@@ -2606,7 +2606,7 @@
       {
        "checked": false,
        "long": "From BC Hydro's tail race outflow channel up to the Hwy 99 bridge at Lillooet",
-       "part": 11,
+       "part": 10,
        "status": "closed",
        "sub": null,
        "text": "BC Hydro's tail race outflow channel → Hwy 99 bridge at Lillooet"
@@ -2622,15 +2622,15 @@
       {
        "checked": false,
        "long": "3 stretches, including from the Thompson River confluence up to BC Hydro's tail race outflow channel",
-       "part": 3,
+       "part": 9,
        "status": "open",
        "sub": null,
-       "text": "Thompson River confluence → Region 5 boundary (3 stretches)"
+       "text": "Thompson River confluence → BC Hydro's tail race outflow channel"
       },
       {
        "checked": false,
        "long": "From Region 5 boundary up to Region 3 boundary",
-       "part": 13,
+       "part": 14,
        "status": "open",
        "sub": null,
        "text": "Region 5 boundary → Region 3 boundary"
@@ -2638,7 +2638,7 @@
       {
        "checked": false,
        "long": "From Region 3 boundary up to the Chilcotin River confluence",
-       "part": 5,
+       "part": 15,
        "status": "open",
        "sub": null,
        "text": "Region 3 boundary → Chilcotin River confluence"
@@ -2646,7 +2646,7 @@
       {
        "checked": false,
        "long": "From the Chilcotin River confluence up to the Williams Lake River confluence",
-       "part": 14,
+       "part": 16,
        "status": "open",
        "sub": null,
        "text": "Chilcotin River confluence → Williams Lake River confluence"
@@ -2654,7 +2654,7 @@
       {
        "checked": false,
        "long": "From the Williams Lake River confluence up to Region 7A boundary",
-       "part": 1,
+       "part": 17,
        "status": "open",
        "sub": null,
        "text": "Williams Lake River confluence → Region 7A boundary"
@@ -2662,7 +2662,7 @@
       {
        "checked": false,
        "long": "From Region 7A boundary up to Region 5 boundary",
-       "part": 15,
+       "part": 18,
        "status": "open",
        "sub": null,
        "text": "Region 7A boundary → Region 5 boundary"
@@ -2670,7 +2670,7 @@
       {
        "checked": false,
        "long": "From Region 5 boundary up to the top of the river (through 3 lakes)",
-       "part": 0,
+       "part": 19,
        "status": "open",
        "sub": null,
        "text": "Region 5 boundary → Source"
@@ -2678,7 +2678,7 @@
       {
        "checked": false,
        "long": "Closed all year · 2 stretches",
-       "part": 8,
+       "part": 5,
        "status": "closed",
        "sub": null,
        "text": "2800 m downstream of Hell's Gate → Hell's Gate"
@@ -5979,7 +5979,7 @@
  "target": {
   "item": "gnis:39325",
   "kind": "part",
-  "partIx": 2
+  "partIx": 1
  },
  "terms": {
   "artificial_fly": "Artificial fly",

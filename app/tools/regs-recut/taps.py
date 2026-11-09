@@ -244,6 +244,23 @@ def same_part(golden, store):
     return sn == n and (slab is not None and (slab.startswith(lab[:-1]) if lab.endswith("…") else slab == lab))
 
 
+#: T517 (owner 2026-11-08, "one part per connected adjacent stretch"): a part is a connected run, numbered mouth up; the
+#: golden part is its RULE-SET GROUP — the store's parts carrying the golden label, whose sections sum to the golden count.
+T517 = ("T517 (owner 2026-11-08): one part per connected run, numbered in river order — the golden part is the rule-set "
+        "group of the store's parts with its label (their sections summed), tapped at the group's lowest part")
+
+
+def t517_group(golden, parts):
+    """The lowest store part of the golden part's rule-set group (T517): the store parts carrying the golden label (its
+    full words: what the group is) — or None when no store part has it. Their summed sections may differ from the
+    golden's where an older declared recount (braid pieces, cut moves) already said so."""
+    lab, n = golden
+    if lab is None or lab == "closed all year":
+        return None
+    hit = sorted(ix for ix, (sl, _) in parts.items() if same_part((lab, parts[ix][1]), (sl, parts[ix][1])))
+    return hit[0] if hit else None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--release", default=None, help="the release folder whose regs store to read (default: data/release/LATEST)")
@@ -251,6 +268,9 @@ def main():
     ap.add_argument("--page", default=str(REPO / "app/fixtures/reference/page_v36.html"))
     ap.add_argument("--out", default=str(REPO / "app/fixtures/golden/taps.json"))
     ap.add_argument("--unnamed", type=int, default=20)
+    ap.add_argument("--previous-answers", default=None,
+                    help="(T517) the answers file of the release the declarations were written against: a declared "
+                         "part index is carried to the store part of the same rule-set group (its label)")
     a = ap.parse_args()
 
     html = Path(a.page).read_text()
@@ -265,19 +285,55 @@ def main():
     for o, sid in c.execute("select item_ord, item_id from item"):
         ord_of[s.s(sid)] = o
 
+    prev = json.loads(Path(a.previous_answers).read_text())["sections"]["display"]["waters"] \
+        if a.previous_answers else {}
+
+    def remap(item, ix):
+        """(T517) a declared part index of the previous release -> the store part of its rule-set group (same label)."""
+        old = (prev.get(item) or {}).get("parts") or []
+        if ix is None or ix >= len(old) or old[ix] is None:
+            return ix
+        hit = sorted(i for i, (lab, _) in store_parts(item).items() if lab == old[ix]["label"])
+        return hit[0] if hit else ix
+
     def store_parts(item):
         return {ix: (s.s(l) if l is not None else None, n) for ix, l, n in
                 c.execute("select part_ix, label_s, sections from part where item_ord=?", (ord_of[item],))}
 
+    t517: dict = {}
+
     def resolve(sid, st, item, part_ix):
-        """-> (part_ix to tap, None) or (None, gone record); raises SystemExit on an undeclared mismatch."""
+        """-> (part_ix to tap, None) or (None, gone record); raises SystemExit on an undeclared mismatch. (T517) A
+        state the release's river-order runs moved is resolved by `t517_group` first, and listed `recut`."""
         if item not in ord_of:
             return part_ix, None
         parts, g = store_parts(item), golden_part(st)
         closed = dict(c.execute("select part_ix, closed_all_year from part where item_ord=?", (ord_of[item],)))
+        # a state declared GONE stays gone: its label may still name another group (the Skeena Reserve's remainder)
+        gix = None if sid in PART_GONE else t517_group(g, parts)
+        if gix is None and sid not in PART_GONE and g[0] == "closed all year" and closed.get(part_ix) != 1:
+            # (T517) a closed state has no label: the river-order renumbering moved its closed part — the previous
+            # release's part at that index, carried by its label (`remap`); else the store's closed part of the golden
+            # size, else its lowest closed part
+            r = remap(item, PART_MOVED.get(sid, part_ix))         # a declared move names the previous release's index
+            shut = sorted(ix for ix, v in closed.items() if v == 1)
+            same = [ix for ix in shut if parts[ix][1] == g[1]]
+            gix = r if closed.get(r) == 1 else (same or shut or [None])[0]
+        if gix is not None:
+            # (T517) the store's rule-set group holds the golden part: tapped there, whatever older declaration the
+            # state carries (they described the release's parts before river order); listed `recut` where it moved
+            if gix != part_ix or parts[gix][1] != g[1]:
+                t517[sid] = gix
+            return gix, None
+        closed = dict(c.execute("select part_ix, closed_all_year from part where item_ord=?", (ord_of[item],)))
         if sid in PART_TIDAL:
             ix, tix, why = PART_TIDAL[sid]
+            ix = remap(item, ix)
             akeys = dict(c.execute("select part_ix, akey from part where item_ord=?", (ord_of[item],)))
+            # (T517) river order numbers the tidal piece (unkeyed, unlabelled) and its freshwater remainder anew
+            bare = [i for i, p in parts.items() if akeys.get(i) is None and p[0] is None]
+            if len(bare) == 1 and bare[0] != tix:
+                tix, t517[sid] = bare[0], bare[0]
             hit = [i for i, p in parts.items() if same_part(g, p)]
             if tix not in parts or akeys.get(tix) is not None or parts[tix][0] is not None or hit:
                 raise SystemExit(f"taps: PART_TIDAL {sid} does not describe the store: tidal part {tix} {parts.get(tix)} "
@@ -288,7 +344,7 @@ def main():
                 raise SystemExit(f"taps: PART_TIDAL {sid}: the freshwater remainder {ix} {parts.get(ix)} has no key")
             return ix, None
         if sid in PART_MOVED:
-            ix = PART_MOVED[sid]
+            ix = remap(item, PART_MOVED[sid])
             if g[0] in (None, "closed all year"):
                 # (T278) a closed state has no label to check: held to the store's part `ix` being closed all year
                 if closed.get(ix) != 1 or parts.get(ix, (None, -1))[1] < 1:
@@ -305,6 +361,7 @@ def main():
             return None, {"item": item, "partIx": part_ix, "nowIn": now_in, "reason": why}
         if sid in PART_RECOUNTED:
             ix, _ = PART_RECOUNTED[sid]
+            ix = remap(item, ix)
             lab, n = g
             got = parts.get(ix, (None, -1))
             if lab is None or got[1] == n or same_part((lab, got[1]), got) is not True \
@@ -314,6 +371,8 @@ def main():
         if part_ix not in parts:
             raise SystemExit(f"taps: {sid} names part {part_ix} of {item}, the store has parts {min(parts)}..{max(parts)}: "
                              "the release re-cut the water — declare the state in PART_MOVED / PART_GROWN / PART_GONE")
+        if sid in PART_GROWN and remap(item, part_ix) != part_ix:
+            part_ix = t517.setdefault(sid, remap(item, part_ix))
         ok = same_part(g, parts[part_ix])
         if sid in PART_GROWN:
             if ok is not False:
@@ -393,8 +452,10 @@ def main():
                                  if sid in PART_RECOUNTED else {}),
                               **(tap(item, ix, month, day, wd) if item else {"error": "no water"})}
     # the waters whose parts the release re-cut: every state of one sees a different list of parts than the golden's
+    for sid, gix in t517.items():
+        out["recut"][by_name[G["states"][sid]["water"]]] = T517
     for sid in (*PART_MOVED, *PART_GROWN, *PART_GONE, *PART_TIDAL):
-        if sid in GONE_NOT_RECUT:
+        if sid in GONE_NOT_RECUT or sid in t517:
             continue
         w = by_name[G["states"][sid]["water"]]
         out["recut"][w] = RECUT_WHY.get(sid) or out["recut"].get(w) or MOVED_WHY.get(sid) or T115
