@@ -10466,6 +10466,34 @@
      ]
     }
    ]
+  },
+  {
+   "name": "SUMAS RIVER",
+   "applies_to": {
+    "gnis_id": "26216"
+   },
+   "splits": [
+    {
+     "id": "sumas_river__barrow_town_pump_station",
+     "label": "Barrow Town Pump Station",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -122.112533,
+       49.114813
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "confidence": "medium",
+     "_note": "[T185 proposal 2026-11-09] proposed in review marks on 2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun, 2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2, 2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3, 2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2 — \"that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River\"",
+     "_coord": [
+      -122.112533,
+      49.114813
+     ]
+    }
+   ]
   }
  ]
 }
