@@ -13,6 +13,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 ~16:15 — BUILD 22 ON PLAY INTERNAL; chat 8 ends (restart page: NEXT-SESSION-after-chat8.md)
+- Build 22 = 0.7.0, versionCode 22 (3d807829d), uploaded to the internal track; tester email sent.
+- Release r-d14bdb180f55: LATEST and on staging, minAppVersion 0.7.0.
+  - The live release's reach was rebuilt from 1554faf6d. Its digest matched 5b70bda7, so the binding diff (136 rules) was read in full and every change is explained.
+  - In-season re-resolved: 32/32.
+  - Goldens re-cut (13b31d3f1).
+- Feeds worker: redeployed with the inseason-links/3 fix (53b90e7); all feeds ok.
+- Emulator: install PASS. Offline PASS except "Check now offline" and "slow line" (next chat).
+- Running at hand-off:
+  - The staging site deploy, which rebuilds the old web build that could not read 0.7.0 data.
+  - The fast-fail lane: 7 catchable late failures added under T483.
+- Next chat: the list in NEXT-SESSION-after-chat8.md, which is the loose ends plus prep for the Fable 5.2 workflow review.
+
 ## 2026-11-09 ~15:10 — build 22 scope landed; release build running
 - Owner: build 22 also carries T526 (DFO stale = not CHECKED in 24 h, 5b283e295), T527 (stock-style gauge alerts +
   percentile-of-day, 402cf8b39/1e1b56e3a; v1.1 ±% alerts refused + shown, never dropped), T470 WCAG (dark base + cvd
