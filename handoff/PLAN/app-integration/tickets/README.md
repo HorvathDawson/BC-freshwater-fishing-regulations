@@ -573,6 +573,7 @@ use that as the sole source of future work."
 | T526 | DFO salmon is stale when not CHECKED for more than a day (feed `at`, not content date); no checked time = unknown + reported | DONE — worker unchanged | 5b283e295 | owner 2026-11-09 "older then a day … it wasnt checked" |
 | T527 | Gauge alerts stock-style: crosses above / below a value or a percentile for the day (presets + custom), once per crossing, 2 % re-arm; plain list + gauge → condition → value; v1.1 ±% / cadence replaced, ±% alerts refused + said | IN REVIEW (build 22) — phone check on the APK; worker unchanged | 402cf8b39 | owner 2026-11-09 "a clean alerting system like … stocks"; shots/T527-*.png |
 | T528 | River Forecast Centre flood + hazard advisories in Conditions: feeds worker fetches them, placed on waters/gauges in Python, UI from an owner-approved mockup | OPEN — later; mockup first | — | owner 2026-11-09 "not now … at least one mockup that i check off" |
+| T529 | /changes compares a water's rules (text + where), not its parts: T517's re-cut made it 180 KB (budget 30 KB) and stopped the staging site redeploy — site down on 0.6.9 | OPEN — do first (site down) | — | owner 2026-11-09 "proper fix to the comparison, not a bigger limit" |
 
 ## Order for open tickets
 

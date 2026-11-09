@@ -41,7 +41,7 @@ The bigger goal is unchanged: **T495**, Play closed testing on production.
    by content, the skip guard, and the heavy precheck. Gaps left: `reach.cli` run directly still overwrites without a copy;
    only session.sh opts into the precheck.
 2. Emulator: fix the 2 failing offline steps (app or flow). Then run the feeds and big-update scenarios.
-3. **FIRST: the staging site is DOWN for the new data.** It still serves web 0.6.9, which cannot read r-d14bdb180f55
+3. **FIRST — T529: the staging site is DOWN for the new data.** It still serves web 0.6.9, which cannot read r-d14bdb180f55
    ("The map data could not be loaded"); the phone app (build 22) is fine. The redeploy (`pnpm -C app/apps/mobile
    export:web:staging` → `cd app && node tools/build-seo.mjs --release-dir ../data/release/r-d14bdb180f55 --app
    dist/web-staging --threads 4` → `bash deploy/staging/site.sh`) STOPPED at build-seo's budget: `/changes is 180379 B
