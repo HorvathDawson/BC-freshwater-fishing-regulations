@@ -256,7 +256,9 @@ def pieces_ok(fixes) -> None:
         raise ValueError("a DFO place's pieces are all on the place itself (scope entry)")
     if any(f.op == "rest" for f in fixes):
         raise ValueError("a rest is the remainder of the water: it is the place's only piece")
-    seen = [f.model_dump(mode="json", exclude={"tributaries"}) for f in fixes]
+    # a piece is its op, its cuts in order and the SET of waters it holds on (the order they were ticked in is no
+    # difference) — as `dfo.fix_vs_current` compares an extent
+    seen = [{**f.model_dump(mode="json", exclude={"tributaries"}), "items": sorted(f.items)} for f in fixes]
     if any(a == b for i, a in enumerate(seen) for b in seen[i + 1:]):
         raise ValueError("a DFO place lists each piece once")
     calls = {f.tributaries for f in fixes if f.tributaries is not None}

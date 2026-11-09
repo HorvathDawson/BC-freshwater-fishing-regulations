@@ -50,6 +50,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
     rows: List[dict] = []
     gone: List[str] = []
     dead: List[str] = []
+    checked: set = set()                 # the places whose pieces were checked: a variant riding its target's is not again
     for slug in _slugs():
         ef = E.load(slug, entries_dir or E.ENTRIES_DIR, registry=registry)
         gone += stale_bindings(ef, registry)
@@ -66,10 +67,10 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                 entry, rules = E.to_reach_input(target, [{}], water, siblings=by_id)
                 entry = {**entry, "entry_id": loc.location_id}
                 binding, _ = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False)
-                dead += [f"r{slug} {loc.location_id}: piece {i + 1} of {len(rules[0]['extents'])} "
-                         f"({rules[0]['extents'][i].get('op')} {rules[0]['extents'][i].get('splits') or ''} on "
-                         f"{rules[0]['extents'][i].get('item_ids') or rules[0]['extents'][i].get('item_id') or 'the water'})"
-                         for i in dead_pieces(entry, rules[0], registry, graph, outside=outside)]
+                if target.location_id not in checked:
+                    checked.add(target.location_id)
+                    dead += [_piece_words(slug, target.location_id, rules[0]["extents"], i)
+                             for i in dead_pieces(entry, rules[0], registry, graph, outside=outside)]
                 row["outcome"] = binding.outcome.value
                 if binding.outcome is Outcome.bound:
                     row["mapped"] = True
@@ -86,6 +87,13 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                          "review app's DFO mode before building:\n  " + "\n  ".join(dead))
     rows.sort(key=lambda r: r["location_id"])
     return rows
+
+
+def _piece_words(slug: str, location_id: str, extents: List[dict], i: int) -> str:
+    """One dead piece, named for the refusal: the place, which piece, its op, cuts and waters."""
+    ex = extents[i]
+    on = ex.get("item_ids") or ex.get("item_id") or "the water"
+    return f"r{slug} {location_id}: piece {i + 1} of {len(extents)} ({ex.get('op')} {ex.get('splits') or ''} on {on})"
 
 
 def dead_pieces(entry: dict, rule: dict, registry, graph, *, outside=None) -> List[int]:

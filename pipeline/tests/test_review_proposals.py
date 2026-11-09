@@ -390,15 +390,27 @@ BARROW = {"ref": "barrow", "anchor": "dam", "name": "Barrow Town Pump Station", 
           "on_item": "gnis:26216", "blk": "356352298", "measure": 5579.5}
 
 
+#: the commit T524 landed at: its region-2 / region-6 places hold the Chilliwack place (~3) as ONE piece and the Forks
+#: places as they were, so applying the owner's two-piece marks later never moves these tests
+T524_AT = "355ef4cc8"
+
+
+def _at_t524(path: Path, dst: Path) -> None:
+    rel = Path(path).resolve().relative_to(P.REPO.resolve()).as_posix()
+    dst.write_bytes(subprocess.run(["git", "show", f"{T524_AT}:{rel}"], cwd=P.REPO, capture_output=True,
+                                   check=True).stdout)
+
+
 @pytest.fixture()
 def src_now(tmp_path) -> P.Sources:
-    """Temp copies of the CURRENT region-2 / region-6 places and cuts (the two-piece places as they stand)."""
+    """FROZEN copies (at `T524_AT`) of the region-2 / region-6 places and the cuts: the one-piece places these tests
+    turn into two pieces."""
     cat, dfo = tmp_path / "cat", tmp_path / "dfo"
     cat.mkdir()
     dfo.mkdir()
     for name in ("region-2.json", "region-6.json"):
-        (dfo / name).write_bytes((Path(CURATED.dfo_salmon.places) / name).read_bytes())
-    (tmp_path / "splits.json").write_bytes(Path(CURATED.waters.cuts).read_bytes())
+        _at_t524(Path(CURATED.dfo_salmon.places) / name, dfo / name)
+    _at_t524(CURATED.waters.cuts, tmp_path / "splits.json")
     (tmp_path / "build").mkdir()
     (tmp_path / "build" / "registry.json").write_text(json.dumps({"items": []}))
     return P.Sources(entries_dir=cat, dfo_dir=dfo, splits_path=tmp_path / "splits.json", build=tmp_path / "build")
@@ -409,7 +421,8 @@ def test_a_dfo_mark_holds_several_pieces_and_any_other_mark_one_fix_per_scope():
     assert [f.items for f in m.extent_fix] == [["gnis:8634", "gnis:3062"], ["gnis:26216"]]
     with pytest.raises(ValueError, match="one extent fix per scope"):
         _mark(target=HATZIC, extent_fix=[{**CHIL}, {**SUMAS}])
-    for bad, why in (([CHIL, CHIL], "each piece once"),
+    reversed_items = {**CHIL, "items": list(reversed(CHIL["items"]))}     # the same piece, its waters ticked the other way
+    for bad, why in (([CHIL, CHIL], "each piece once"), ([CHIL, reversed_items], "each piece once"),
                      ([CHIL, {"scope": "entry", "op": "rest", "points": [], "items": []}], "only piece"),
                      ([{**CHIL, "tributaries": True}, {**SUMAS, "tributaries": False}], "one tributary call")):
         with pytest.raises(ValueError, match=why):
@@ -437,6 +450,17 @@ def test_two_pieces_land_as_the_places_extent_list_the_union(src_now):
     assert [e.op for e in E.EntryLocation.from_dict(loc).binding.extents] == ["downstream_of", "downstream_of"]
 
 
+#: a one-piece DFO mark as the model wrote it BEFORE T524 (`marks.line` at ff28e777d) — frozen
+ONE_PIECE_LINE = (
+    '{"scope":"dfo","target":"2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3","rule_id":null,'
+    '"verdict":"unsure","answers":{"T":"y","R":"y","P":"?"},"problem":null,"note":"","reviewer":"dawson",'
+    '"date":"2026-10-26","pdf_sha256":"0000000000000000000000000000000000000000000000000000000000000000","pages":[],'
+    '"prints":{"text":"t","records":[{"key":"entry","meaning":"m","binding":"b","reach":null,"answer":null}]},'
+    '"carried_by":null,"seconds":null,"extent_fix":[{"scope":"entry","op":"downstream_of","points":[{"kind":"split",'
+    '"split_id":"chilliwack_vedder_rivers__boundary_signs_below_slesse_creek","name":null,"item_id":null,"coord":null}],'
+    '"items":["gnis:8634","gnis:3062"],"tributaries":null,"area":null}]}\n')
+
+
 def test_one_piece_is_todays_mark_unchanged(src_now):
     """Parity: one piece writes exactly the one-element extents list it always did — here the place's own curated
     extent, so the mark is already applied (no proposal)."""
@@ -444,7 +468,8 @@ def test_one_piece_is_todays_mark_unchanged(src_now):
     applied: set = set()
     assert [p for p in P.build([m], src_now, applied=applied) if p["kind"] == "extent"] == []
     assert m.key in applied
-    assert M.line(m) == M.line(M.Mark.model_validate(json.loads(M.line(m))))
+    # the line is byte for byte the one the pre-T524 model wrote (ff28e777d's `marks.line` on the same mark)
+    assert M.line(_mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL])) == ONE_PIECE_LINE
 
 
 def test_a_piece_that_binds_nothing_is_named(monkeypatch):
@@ -533,3 +558,34 @@ def test_the_screen_says_when_a_fix_replaces_the_extent(monkeypatch):
     tsx = (BACKEND.parent / "frontend/src/components/DfoReview.tsx").read_text()
     assert 'data-testid="dfo-fix-vs-current"' in tsx and 'data-testid="dfo-row-fix-vs"' in tsx
     assert "Your fix REPLACES the current extent" in tsx and "Fix applied — this is now the curated extent" in tsx
+
+
+def test_a_dead_piece_is_reported_once_however_many_variants_ride_it(monkeypatch):
+    """A variant with no extent of its own rides its target's (`resolve_all`): the target's dead piece is ONE refusal,
+    named on the target, not one per wording."""
+    from types import SimpleNamespace as NS
+    from pipeline.atlas.reach import build as B
+    from pipeline.atlas.reach import dfo_salmon as DS
+    from pipeline.atlas.reach.models import Outcome, RuleBinding
+    from pipeline.regs.dfo_salmon import entries as E
+
+    def place(lid, resolved, dup=None):
+        return NS(location_id=lid, binding=NS(resolved=resolved), is_variant=dup is not None, duplicate_of=dup,
+                  water_id=None, tidal_water=False)
+    target = place("2:x:target", True)
+    ef = NS(locations=[place("2:x:target~2", False, target.location_id), target,
+                       place("2:x:target~3", False, target.location_id)], waters=[], water=lambda _w: None)
+    pieces = [{"op": "downstream_of", "splits": ["a"], "item_id": "gnis:1"},
+              {"op": "downstream_of", "splits": ["x"], "item_id": "gnis:2"}]
+    monkeypatch.setattr(DS, "_slugs", lambda: ["2"])
+    monkeypatch.setattr(E, "load", lambda *a, **k: ef)
+    monkeypatch.setattr(E, "to_reach_input", lambda loc, *a, **k: ({"entry_id": loc.location_id}, [
+        {"rule_id": "r", "extents": pieces}]))
+    monkeypatch.setattr(B, "build_reach", lambda entry, rule, *a, **k: (
+        RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.bound, ("1:0",)), []))
+    monkeypatch.setattr(DS, "dead_pieces", lambda *a, **k: [1])
+    with pytest.raises(ValueError) as got:
+        DS.resolve_all(None, None, outside=frozenset())
+    msg = str(got.value)
+    assert "1 piece(s)" in msg and msg.count("piece 2 of 2") == 1
+    assert "r2 2:x:target: piece 2 of 2 (downstream_of ['x'] on gnis:2)" in msg
