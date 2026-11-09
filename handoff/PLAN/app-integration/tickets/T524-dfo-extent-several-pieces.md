@@ -1,6 +1,6 @@
 # T524 — A DFO place's extent can be several pieces on different waters
 
-Status: DONE (2026-11-09; the owner restarts the review app, then marks the proposals)
+Status: DONE — 355ef4cc8 + 0df71bddc (review fixes) + 1b7801bfc (Section E dead piece) (2026-11-09; the owner restarts the review app, then marks the proposals)
 
 Owner 2026-11-09 (review app, DFO region 2): "from a line between 2 fishing boundary signs on either side of the
 Chilliwack River 100 m from the confluence of the Chilliwack River and Slesse Creek downstream including that portion
