@@ -21,3 +21,10 @@ off and the second one becomes `_2`. Labels are right ("(100 m upstream)" / "(10
   fix points by split id) must stay verified, not orphaned/stale — carry it the way renamed splits are carried
   (`regs/review/carry.py` `renamed_splits`, `curation-review/backend/dfo.py`), and prove orphan/stale counts unchanged.
 - Data change lands after the running T517 rebuild, never mid-build.
+
+## Also: Squamish "powerline crossing at 9 mile" sits too far upstream (owner 11-09)
+`squamish_river__powerline_crossing_at_9_mile` is anchored as the Cheakamus confluence + 1,500 m upstream (DFO's
+"approximately 1.5 km"), which lands a little above the real crossing. OSM + Esri imagery: two 500 kV lines (5L30
+49.786527,-123.186332; 5L32 49.785773,-123.185859) cross the Squamish under one cleared corridor. Fix: re-anchor as a
+point on the DOWNSTREAM line (5L32), since the DFO area is "downstream of the powerline crossing"; keep the id and
+label; note the source. Applied with the T523 data change, after the T517 rebuild.
