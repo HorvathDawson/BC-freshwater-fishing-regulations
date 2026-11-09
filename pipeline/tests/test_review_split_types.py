@@ -232,6 +232,44 @@ def test_assign_ids_numbers_clashes_by_anchor_not_order():
         "q": "w__x_2", "p": "w__x_3", "r": "w__y"}
 
 
+def test_an_offset_cut_pair_says_up_and_downstream_not_2(src):  # noqa: F811
+    """T523 (owner 11-09, Quatse): "100 m up and downstream of the weir" made `…_hatchery_weir_100_m` and `…_2`."""
+    up = _ns(anchor="coord", name="Quatse River Hatchery weir (100 m upstream)", coord=AT, offset_m=100.0)
+    down = _ns(anchor="coord", name="Quatse River Hatchery weir (100 m downstream)", coord=AT, offset_m=-100.0)
+    got = P.place_groups([("u", up, False, None), ("d", down, False, None)], src)
+    assert {k: v["id"] for k, v in got.items()} == {
+        "u": "cowichan_river__quatse_river_hatchery_weir_u100m",
+        "d": "cowichan_river__quatse_river_hatchery_weir_d100m"}
+    # the hand ids' convention, whole metres and fractions alike
+    assert P.split_base(_ns(anchor="coord", name="Morrison Creek into Puntledge River", coord=AT,
+                            offset_m=-1500.0), "PUNTLEDGE RIVER") == \
+        "puntledge_river__morrison_creek_into_puntledge_river_d1500m"
+    assert P.split_base(_ns(anchor="coord", name="x", coord=AT, offset_m=2.5), "W") == "w__x_u2.5m"
+
+
+def test_a_long_name_is_cut_at_a_word_never_into_a_clash():
+    """T523 (Stamp): `robertson_creek_hatchery_lagoon` was both the inlet and the outlet (cut at 32)."""
+    from pipeline.common import split_ids as I
+    rows = [("in", I.base("STAMP RIVER", "Robertson Creek Hatchery lagoon inlet"), "a"),
+            ("out", I.base("STAMP RIVER", "Robertson Creek Hatchery lagoon outlet"), "b")]
+    assert P.assign_ids(rows, set()) == {"in": "stamp_river__robertson_creek_hatchery_lagoon_inlet",
+                                         "out": "stamp_river__robertson_creek_hatchery_lagoon_outlet"}
+    long = "word " * 20                                      # 99 chars: back to the last whole word in 60
+    assert I.base("W", long) == "w__" + "_".join(["word"] * 12)
+    assert I.word_slug("a" * 70) == "a" * 60                 # one word longer than the limit is cut at it
+    # the same name twice is still a clash, numbered by anchor
+    same = [("p", I.base("W", "the bridge"), "b"), ("q", I.base("W", "the bridge"), "a")]
+    assert P.assign_ids(same, set()) == {"q": "w__the_bridge", "p": "w__the_bridge_2"}
+
+
+def test_tidal_mouth_ids_keep_their_shape():
+    """T523: the atlas mints tidal ids through the same `base` — a mouth is `<water>__tidal_boundary` as before."""
+    from pipeline.common import split_ids as I
+    assert I.base("Cook Creek", "tidal boundary") == "cook_creek__tidal_boundary"
+    assert I.base("Fraser River (lower)", "Mission bridge (tidal boundary)") == \
+        "fraser_river__mission_bridge_tidal_boundary"
+
+
 def test_a_mark_holds_a_real_id_as_its_ref():
     long = "little_qualicum_river__little_qualicum_falls_park_bound_2"
     m = _dfo_mark({"anchor": "area_boundary", "area": "LITTLE QUALICUM FALLS PARK"}, ref=long)

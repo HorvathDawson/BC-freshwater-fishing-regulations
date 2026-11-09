@@ -780,8 +780,9 @@ def proposal_digest(n) -> str:
 
 
 def split_base(n, water: str) -> str:
-    """THE SLUG a new split lands under, before a clash suffix: `<water>__<name or anchor>` (`common.split_ids`)."""
-    return _ids.base(water, n.name or n.anchor)
+    """THE SLUG a new split lands under, before a clash suffix: `<water>__<name or anchor>`, an offset cut ending
+    `_u100m` / `_d100m` (`common.split_ids`, T523)."""
+    return _ids.base(water, n.name or n.anchor, n.offset_m)
 
 
 #: the one id function (`common.split_ids.assign_ids`): the atlas mints tidal ids with it too (T326)
