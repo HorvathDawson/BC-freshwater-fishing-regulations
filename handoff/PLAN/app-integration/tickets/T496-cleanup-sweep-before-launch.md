@@ -55,3 +55,5 @@ rename DATA content without asking.
   bundle — none in files this pass touched; test_smoke_coverage passes.
 - App vitest: 44 files fail — regs fixture/store (the deleted fixture release r-fc17c4373686 is another lane's), paint/4
   vs paint/5 release boot, WaterMapView; check-tickets.test passed on its own rerun (15/15).
+
+Fallbacks fixed (dev tools): consistency.ts sources() now throws on an unreadable root; audit_splits.py _target_bounds and chain-build now raise naming the water; check-boundaries.mjs:101 kept (a not-yet-created layer is the tested contract for scratch trees).

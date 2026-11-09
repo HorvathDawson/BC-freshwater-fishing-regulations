@@ -45,8 +45,8 @@ def _target_bounds(fwa: FWADataAccessor, applies: Optional[dict]):
             g = fwa.get_features_by_attribute("streams", "BLUE_LINE_KEY", int(applies["blk"]))
         else:
             return None
-    except Exception:       # noqa: BLE001 — an audit's bbox only: a water the FWA reader cannot find has none
-        return None
+    except Exception as e:  # noqa: BLE001
+        raise RuntimeError(f"audit_splits: FWA lookup failed for applies_to={applies!r}: {e}") from e
     return None if (g is None or g.empty) else tuple(g.total_bounds)
 
 
@@ -77,11 +77,8 @@ def audit_splits(splits_path: Optional[Path] = None) -> list[dict]:
         bbox = (min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
         try:
             chains = build_blk_chains(load_stream_fids(_DATA, bbox=bbox), get_lake_wbk_kind(fwa, bbox))
-        except Exception:
-            for s in sp:
-                rows.append({"id": s["id"], "wb": wb["name"], "type": s["anchor"]["type"],
-                             "dist_m": None, "offset_m": s.get("_offset_m"), "resolved": False})
-            continue
+        except Exception as e:
+            raise RuntimeError(f"audit_splits: building chains failed for waterbody {wb['name']!r} bbox={bbox}: {e}") from e
         by_blk = {c.blk: c for c in chains}
         pts = resolve_split_defs([defs[s["id"]] for s in sp if s["id"] in defs], chains)
         by_split: dict = defaultdict(list)

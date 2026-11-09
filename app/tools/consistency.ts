@@ -19,7 +19,8 @@ export const UI_ROOTS = ["apps/mobile/src", "packages/ui/src", "packages/ui-nati
 
 export function sources(dir: string, out: string[] = []): string[] {
   let names: string[];
-  try { names = readdirSync(dir); } catch { return out; }
+  try { names = readdirSync(dir); }
+  catch (e) { throw new Error(`consistency scan: cannot read directory ${dir} (${(e as Error).message}); a missing root would make every check pass on zero files`); }
   for (const f of names) {
     if (f === "node_modules" || f === "dist" || f.startsWith(".") || f.startsWith("_")) continue;
     const p = join(dir, f);
