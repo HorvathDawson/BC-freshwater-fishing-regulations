@@ -336,14 +336,17 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
                     stack.append(y)
         return False
 
+    def distributary(d: int) -> bool:
+        # T519: a much smaller water whose own mouth reaches only the sea, met at o's mouth (or o's mouth reaching
+        # the sea itself) — a channel of o's delta (Morey Channel on the Fraser), never where o goes
+        return size is not None and size.get(d, 0) * DISTRIBUTARY_RATIO <= size.get(o, 0) \
+            and d in mouths and not mouths[d] and (d in mouths[o] or not mouths[o])
+
     def into_o(d: int) -> bool:
+        if distributary(d):
+            return True
         if d in mouths[o]:                      # o's own mouth reaches d: evidence for d, unless d is o's side channel
-            if size is None:
-                return False
-            small = size.get(d, 0) * DISTRIBUTARY_RATIO <= size.get(o, 0)
-            # a much smaller water o's mouth meets that flows back into o (a braid), or that itself reaches only the
-            # sea (a distributary of o's delta: Morey Channel, T519) is o's own channel, never where o goes
-            return small and (flows_into_o(d) or (d in mouths and not mouths[d]))
+            return size is not None and size.get(d, 0) < size.get(o, 0) and flows_into_o(d)
         return flows_into_o(d)
     return [d for d in cands if not into_o(d)]
 

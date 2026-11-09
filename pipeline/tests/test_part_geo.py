@@ -73,6 +73,9 @@ def test_a_gauge_cut_is_said_by_the_regulations_own_split_there():
                       "far": {"name": "Moat Lake", "kind": "lake_edge", "water_id": "gnis:1", "km": 23.0}},
            "waters": {}}
     assert end_words(doc, "gauge__1", "from") == "Strathcona Park boundary"
+    # a named cut kilometres away is another place (the Dean's 08FC003 read "Side channel above Iltasyuko River")
+    doc["splits"]["park"]["km"] = 6.0
+    assert end_words(doc, "gauge__1", "from") == "08HB074 · Cruickshank River Near The Mouth"
     doc["splits"]["gauge__1"]["same_place_as"] = "far"
     assert end_words(doc, "gauge__1", "from") == "Moat Lake"
 
@@ -182,6 +185,8 @@ def test_a_braid_pair_s_smaller_water_is_never_the_bigger_one_s_exit():
     # the live shape: Morey Channel's own mouth reaches only the sea (a distributary of the delta)
     sea = {9697: {14905}, 14905: set()}
     assert T.exit_receivers(9697, [14905], sea, {9697: [14905]}, size) == []
+    # the side build's shape: the Fraser's own mouth reaches the sea; item_down still lists Morey Channel
+    assert T.exit_receivers(9697, [14905], {9697: set(), 14905: set()}, {9697: [14905]}, size) == []
     # a creek whose mouth meets a small coastal river is not that river's channel: it is the creek that is smaller
     assert T.exit_receivers(1, [2], {1: {2}, 2: set()}, {1: [2]}, {1: 20, 2: 10}) == [2]
 

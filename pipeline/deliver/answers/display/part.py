@@ -315,10 +315,14 @@ def _end_short(doc: dict, e: Optional[str], side: str) -> str:
     return cap(t)
 
 
+#: T517: a named cut this close (km along the water) to a gauge cut stands at the same place; farther, it is another place
+SAME_PLACE_KM = 0.2
+
+
 def _named_token(doc: dict, e: Optional[str]) -> Optional[str]:
     """T517: the token a run end is SAID by. A gauge cut (`kind` gauge) is never the name of a place a regulation
     ends at: the regulation's own split at the same place (`same_place_as`), else the nearest named non-gauge cut on
-    the same water by km (Cruickshank: the gauge stands at the Strathcona Park line), else the gauge itself."""
+    the same water within `SAME_PLACE_KM`, else the gauge itself (its name is then the only one the place has)."""
     splits = doc.get("splits") or {}
     sp = splits.get(e or "")
     if not sp or sp.get("kind") != "gauge":
@@ -328,7 +332,7 @@ def _named_token(doc: dict, e: Optional[str]) -> Optional[str]:
     w, km = sp.get("water_id"), sp.get("km")
     near = sorted((abs(o["km"] - km), k) for k, o in splits.items()
                   if w and km is not None and o.get("water_id") == w and o.get("km") is not None
-                  and o.get("kind") != "gauge" and o.get("name"))
+                  and o.get("kind") != "gauge" and o.get("name") and abs(o["km"] - km) <= SAME_PLACE_KM)
     return near[0][1] if near else e
 
 
