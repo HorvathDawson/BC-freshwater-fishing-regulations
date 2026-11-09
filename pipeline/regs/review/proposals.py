@@ -993,9 +993,14 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         for fi, f in enumerate(m.extent_fix):
             ex, probs = extent_of(f, lambda i, p, _fi=fi: split_of(_fi, i, p), rest_at_build=m.scope == "dfo")
             problems += [f"{f.scope}: {x}" for x in probs]
-            sets.setdefault(f.scope, {})["extents"] = [ex]
+            # T524: a DFO mark's fixes are the PIECES of its place — every one lands, in order (the union); any
+            # other mark holds one fix per scope (`Mark`), so this is the one-element list it always was
+            got = sets.setdefault(f.scope, {})
+            got.setdefault("extents", []).append(ex)
             if f.tributaries is not None:
-                sets[f.scope][tri_field] = f.tributaries
+                if tri_field in got and got[tri_field] != f.tributaries:
+                    problems.append(f"{f.scope}: the pieces call tributaries both in and out")
+                got[tri_field] = f.tributaries
         for scope, call in m.tributaries.items():
             want = call == "include"
             got = sets.setdefault(scope, {})

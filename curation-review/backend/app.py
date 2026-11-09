@@ -876,13 +876,21 @@ def dfo_split_pick(location_id: str, kind: str, lon: float, lat: float, on_item:
 
 @app.get("/api/dfo/locations/{location_id:path}/extent-preview")
 def dfo_extent_preview(location_id: str, fix: str, limit: int = 6000, tributaries: bool = False):
-    """A proposed extent (`marks.ExtentFix`) on a DFO location resolved, READ ONLY."""
+    """A proposed extent (`marks.ExtentFix`) on a DFO location resolved, READ ONLY.
+    T524: `fix` may be a LIST — the place's pieces, resolved as their union (`marks.pieces_ok` refuses what a mark
+    would refuse)."""
     import json as _json
     import dfo
     from pydantic import ValidationError
     from pipeline.regs.review import marks as M
     try:
-        f = M.ExtentFix.model_validate(_json.loads(fix))
+        raw = _json.loads(fix)
+        f = ([M.ExtentFix.model_validate(x) for x in raw] if isinstance(raw, list)
+             else M.ExtentFix.model_validate(raw))
+        if isinstance(f, list):
+            if not f:
+                raise ValueError("no piece to preview")
+            M.pieces_ok(f)
     except (ValueError, ValidationError) as ex:
         raise HTTPException(422, str(ex))
     got = dfo.extent_preview(location_id, f, limit=limit, tributaries=tributaries)

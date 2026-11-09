@@ -245,6 +245,25 @@ class ExtentFix(BaseModel):
         return self
 
 
+def pieces_ok(fixes) -> None:
+    """T524: SEVERAL PIECES OF ONE DFO PLACE (`Mark.extent_fix` on a DFO mark) — refused, naming why, unless they make one
+    union: every piece on the place's own scope, no piece twice, no `rest` beside another piece (a rest IS the remainder
+    of the water, `CatalogueEntry` holds it to be the only extent), and one tributary call for the place (its binding
+    has one `tributaries` flag) — pieces that call it differently are refused, never one silently kept."""
+    if len(fixes) < 2:
+        return
+    if any(f.scope != ENTRY_KEY for f in fixes):
+        raise ValueError("a DFO place's pieces are all on the place itself (scope entry)")
+    if any(f.op == "rest" for f in fixes):
+        raise ValueError("a rest is the remainder of the water: it is the place's only piece")
+    seen = [f.model_dump(mode="json", exclude={"tributaries"}) for f in fixes]
+    if any(a == b for i, a in enumerate(seen) for b in seen[i + 1:]):
+        raise ValueError("a DFO place lists each piece once")
+    calls = {f.tributaries for f in fixes if f.tributaries is not None}
+    if len(calls) > 1:
+        raise ValueError("a DFO place's pieces make one tributary call (include or exclude), not both")
+
+
 #: T164: WHAT A NEW SPLIT IS ANCHORED TO — every anchor a DFO notice names a place by. `confluence`
 #: (a named tributary's mouth), `lake_inlet` / `lake_outlet` (where the water enters / leaves a lake),
 #: `bridge`, `dam`, `sign` (a crossing, a dam or a boundary sign — placed by a map point), `coord`
@@ -422,7 +441,8 @@ class Mark(BaseModel):
     #: a lake divided into areas, deferred (RULINGS K5); `lake_splits_later` lists every one.
     lake_split_later: bool = False
     #: T191: THE REVIEWER'S PROPOSED EXTENT FIX(ES), structured — at most one per scope ("entry"
-    #: or a rule id), on the same keys as `tributaries`. Only on a wrong or unsure mark: those are
+    #: or a rule id), on the same keys as `tributaries` — except a DFO mark, whose fixes are the PIECES of its place
+    #: (T524, `pieces_ok`: the place binds their union). Only on a wrong or unsure mark: those are
     #: the marks that become tickets (`tickets.TICKET_VERDICTS`), and a fix says the extent is wrong.
     extent_fix: list[ExtentFix] = Field(default_factory=list)
     #: T164: NEW SPLITS the reviewer proposes (a cut the extent needs that does not exist) — on a
@@ -580,7 +600,12 @@ class Mark(BaseModel):
                     only_existing and self.verdict == "verified"):
                 raise ValueError("an extent fix is proposed on a wrong or unsure mark")
             scopes = [f.scope for f in self.extent_fix]
-            if len(set(scopes)) != len(scopes):
+            if self.scope == "dfo":
+                # T524: A DFO PLACE'S EXTENT IS ITS PIECES — several fixes on the place's one scope, each an op on
+                # its own water(s) ("the Chilliwack below the Slesse line, and the Sumas below Barrow Town Pump
+                # Station"); the place binds their UNION. One piece is the mark as it always was.
+                pieces_ok(self.extent_fix)
+            elif len(set(scopes)) != len(scopes):
                 raise ValueError("one extent fix per scope")
             ok = ({self.rule_id} if self.scope == "rule" else
                   {ENTRY_KEY} | {k.split(":", 1)[1] for k in keys if k.startswith("rule:")})

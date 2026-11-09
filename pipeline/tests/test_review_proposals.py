@@ -372,3 +372,164 @@ def test_the_app_refuses_a_proposal_decision(src, tmp_path, monkeypatch):
     finally:
         for mod in _MODS:
             sys.modules.pop(mod, None)
+
+
+# --------------------------------------------------------------------------- T524: a DFO place of several pieces
+
+#: the owner's two-river place (region-2 location 56): the Chilliwack-Vedder below the Slesse line, INCLUDING the Sumas
+#: River below Barrow Town Pump Station to its natural end at the Fraser. The pump station has NO cut today: the Sumas
+#: "lake" (wbk 328997872, a 1 km river polygon) was absorbed into the Sumas River item, and its auto boundary with it, so
+#: a lake-outlet anchor is refused (`check_anchor`: no such lake) — dry run 2026-11-09. The Sumas piece starts at a NEW
+#: point cut 50 m below that polygon's outlet (`check_anchor`: Sumas River blk 356352298, measure 5579.5, snapped 0 m)
+CHILLIWACK_SUMAS = "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3"
+CHIL = {"scope": "entry", "op": "downstream_of", "items": ["gnis:8634", "gnis:3062"],
+        "points": [{"kind": "split", "split_id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"}]}
+SUMAS = {"scope": "entry", "op": "downstream_of", "items": ["gnis:26216"],
+         "points": [{"kind": "new", "split_id": "barrow"}]}
+BARROW = {"ref": "barrow", "anchor": "dam", "name": "Barrow Town Pump Station", "coord": [-122.112533, 49.114813],
+          "on_item": "gnis:26216", "blk": "356352298", "measure": 5579.5}
+
+
+@pytest.fixture()
+def src_now(tmp_path) -> P.Sources:
+    """Temp copies of the CURRENT region-2 / region-6 places and cuts (the two-piece places as they stand)."""
+    cat, dfo = tmp_path / "cat", tmp_path / "dfo"
+    cat.mkdir()
+    dfo.mkdir()
+    for name in ("region-2.json", "region-6.json"):
+        (dfo / name).write_bytes((Path(CURATED.dfo_salmon.places) / name).read_bytes())
+    (tmp_path / "splits.json").write_bytes(Path(CURATED.waters.cuts).read_bytes())
+    (tmp_path / "build").mkdir()
+    (tmp_path / "build" / "registry.json").write_text(json.dumps({"items": []}))
+    return P.Sources(entries_dir=cat, dfo_dir=dfo, splits_path=tmp_path / "splits.json", build=tmp_path / "build")
+
+
+def test_a_dfo_mark_holds_several_pieces_and_any_other_mark_one_fix_per_scope():
+    m = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL, SUMAS], new_splits=[BARROW])
+    assert [f.items for f in m.extent_fix] == [["gnis:8634", "gnis:3062"], ["gnis:26216"]]
+    with pytest.raises(ValueError, match="one extent fix per scope"):
+        _mark(target=HATZIC, extent_fix=[{**CHIL}, {**SUMAS}])
+    for bad, why in (([CHIL, CHIL], "each piece once"),
+                     ([CHIL, {"scope": "entry", "op": "rest", "points": [], "items": []}], "only piece"),
+                     ([{**CHIL, "tributaries": True}, {**SUMAS, "tributaries": False}], "one tributary call")):
+        with pytest.raises(ValueError, match=why):
+            _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=bad)
+
+
+def test_two_pieces_land_as_the_places_extent_list_the_union(src_now):
+    m = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL, SUMAS], new_splits=[BARROW])
+    props = P.build([m], src_now)
+    [cut] = [p for p in props if p["kind"] == "new_split"]
+    assert cut["edits"][0]["split"]["anchor"] == {"type": "point", "coord": [-122.112533, 49.114813], "is_lonlat": True}
+    assert cut["confidence"] == "medium"                  # a hand-placed point: the owner checks it on the map
+    [p] = [p for p in props if p["kind"] == "extent"]
+    assert p["applicable"], p["problems"]
+    assert p["depends_on"] == [cut["id"]]                 # the Sumas piece waits on its new cut
+    [ed] = [e for e in p["edits"] if e["field"] == "extents"]
+    assert ed["after"] == [
+        {"op": "downstream_of", "splits": ["chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"],
+         "item_ids": ["gnis:8634", "gnis:3062"]},
+        {"op": "downstream_of", "splits": [cut["split_id"]], "item_id": "gnis:26216"}]
+    # the place as the build reads it: both pieces, in order
+    [text] = [t for path, t in P.materialize([cut, p], src_now).items() if path.parent == src_now.dfo_dir]
+    loc = next(x for x in json.loads(text)["locations"] if x["location_id"] == CHILLIWACK_SUMAS)
+    from pipeline.regs.dfo_salmon import entries as E
+    assert [e.op for e in E.EntryLocation.from_dict(loc).binding.extents] == ["downstream_of", "downstream_of"]
+
+
+def test_one_piece_is_todays_mark_unchanged(src_now):
+    """Parity: one piece writes exactly the one-element extents list it always did — here the place's own curated
+    extent, so the mark is already applied (no proposal)."""
+    m = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL])
+    applied: set = set()
+    assert [p for p in P.build([m], src_now, applied=applied) if p["kind"] == "extent"] == []
+    assert m.key in applied
+    assert M.line(m) == M.line(M.Mark.model_validate(json.loads(M.line(m))))
+
+
+def test_a_piece_that_binds_nothing_is_named(monkeypatch):
+    """The build gate (`reach.dfo_salmon.dead_pieces`): each piece resolved alone; one that binds nothing is named,
+    never lost in the union. One piece is not checked (its own outcome says it)."""
+    from pipeline.atlas.reach import build as B
+    from pipeline.atlas.reach import dfo_salmon as DS
+    from pipeline.atlas.reach.models import Outcome, Reason, RuleBinding
+    calls = []
+
+    def fake(entry, rule, *a, **k):
+        calls.append(rule)
+        [ex] = rule["extents"]
+        assert rule["includes_tributaries"] is False and entry["includes_tributaries"] is False   # no walk
+        if ex["splits"] == ["x"]:                    # a cut that is not on this piece's water
+            return RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.unresolved, (), Reason.no_sections, ""), []
+        return RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.bound, ("1:0",)), []
+
+    monkeypatch.setattr(B, "build_reach", fake)
+    entry = {"entry_id": CHILLIWACK_SUMAS, "matched": [], "includes_tributaries": True}
+    good = [{"op": "downstream_of", "splits": ["a"], "item_ids": ["gnis:8634"]},
+            {"op": "downstream_of", "splits": ["b"], "item_id": "gnis:26216"}]
+    assert DS.dead_pieces(entry, {"rule_id": "r", "extents": good}, None, None) == []
+    assert DS.dead_pieces(entry, {"rule_id": "r", "extents": [good[0], {**good[1], "splits": ["x"]}]},
+                          None, None) == [1]
+    calls.clear()
+    assert DS.dead_pieces(entry, {"rule_id": "r", "extents": good[:1]}, None, None) == [] and not calls
+
+
+#: the Forks (region 6, owner 2026-11-09): "starts 100 meters upstream of the confluence and ends approximately 1 kilometre
+#: downstream" — the 100 m is on the upper Bulkley arm, the 1 km on the water below the Forks; the Morice arm is not in it
+FORKS = {"6:bulkley-river:bulkley-river-and-morice-river-wat", "6:morice-river:bulkley-river-and-morice-river-wat"}
+FORK_CUT = "bulkley_river__morice_river_into_bulkley_river"
+#: FWA (dry run 2026-11-09): below the Forks is the BULKLEY (blk 360873822, wsc 400-431358) — the Morice (blk 360885316,
+#: wsc 400-431358-585806) ends at the confluence. A = 360873822:164908 (100 m, upper Bulkley), B = 360873822:163908
+#: (1,000 m below). The Forks closure takes no tributaries: the Morice place's "(including tributaries)" would walk the
+#: whole Morice and upper-Bulkley systems from these 1.1 km, so the pieces say exclude.
+FORKS_A = {"scope": "entry", "op": "between", "items": ["gnis:2195"], "tributaries": False,
+           "points": [{"kind": "split", "split_id": FORK_CUT + "_u100m"}, {"kind": "split", "split_id": FORK_CUT}]}
+FORKS_B = {"scope": "entry", "op": "between", "items": ["gnis:2195"],
+           "points": [{"kind": "split", "split_id": FORK_CUT}, {"kind": "split", "split_id": FORK_CUT + "_d1000m"}]}
+
+
+def test_the_forks_is_two_pieces_on_both_places(src_now):
+    """Both Forks places (the Bulkley's row and the Morice's, the same words) take the same two pieces: 100 m up the
+    upper Bulkley to the confluence, and the confluence to ~1 km below. Existing cuts only, so Place y may carry it."""
+    for target in sorted(FORKS):
+        m = _mark(scope="dfo", target=target, extent_fix=[FORKS_A, FORKS_B], verdict="verified",
+                  answers={"T": "y", "R": "y", "P": "y"})
+        [p] = [p for p in P.build([m], src_now) if p["kind"] == "extent"]
+        assert p["applicable"], p["problems"]
+        [ed] = [e for e in p["edits"] if e["field"] == "extents"]
+        tri = [e for e in p["edits"] if e["field"] == "tributaries"]
+        assert [e["after"] for e in tri] == [False]          # 128 inherits none, 129 says include today
+        assert ed["after"] == [{"op": "between", "splits": [FORK_CUT + "_u100m", FORK_CUT], "item_id": "gnis:2195"},
+                               {"op": "between", "splits": [FORK_CUT, FORK_CUT + "_d1000m"], "item_id": "gnis:2195"}]
+
+
+def test_the_screen_says_when_a_fix_replaces_the_extent(monkeypatch):
+    """(owner 2026-11-09) "more obvious when fix extent overrides existing extent": `dfo.fix_vs_current` — a fix that
+    differs from the curated extent REPLACES it; equal on a verified existing-cuts mark is the same; equal on a wrong /
+    unsure mark has landed (applied). A different tributary call replaces too. No fix: nothing to say."""
+    monkeypatch.syspath_prepend(str(BACKEND))
+    for mod in _MODS:
+        sys.modules.pop(mod, None)
+    try:
+        import dfo
+        curated = {"op": "downstream_of", "splits": ["chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"],
+                   "item_ids": ["gnis:3062", "gnis:8634"]}        # the order of the waters is no difference
+        loc = {"location_id": CHILLIWACK_SUMAS, "binding": {"extents": [curated], "tributaries": None}}
+        two = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL, SUMAS], new_splits=[BARROW])
+        got = dfo.fix_vs_current(two, loc)
+        assert got["state"] == "replaces" and got["current"] == [curated] and len(got["fix"]) == 2
+        one = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL])
+        assert dfo.fix_vs_current(one, loc)["state"] == "applied"
+        same = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[CHIL], verdict="verified",
+                     answers={"T": "y", "R": "y", "P": "y"})
+        assert dfo.fix_vs_current(same, loc)["state"] == "same"
+        tribs = _mark(scope="dfo", target=CHILLIWACK_SUMAS, extent_fix=[{**CHIL, "tributaries": True}])
+        assert dfo.fix_vs_current(tribs, loc)["state"] == "replaces"
+        assert dfo.fix_vs_current(None, loc) is None
+        assert dfo.fix_vs_current(_mark(scope="dfo", target=CHILLIWACK_SUMAS), loc) is None
+    finally:
+        for mod in _MODS:
+            sys.modules.pop(mod, None)
+    tsx = (BACKEND.parent / "frontend/src/components/DfoReview.tsx").read_text()
+    assert 'data-testid="dfo-fix-vs-current"' in tsx and 'data-testid="dfo-row-fix-vs"' in tsx
+    assert "Your fix REPLACES the current extent" in tsx and "Fix applied — this is now the curated extent" in tsx

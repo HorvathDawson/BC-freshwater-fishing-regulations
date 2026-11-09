@@ -214,9 +214,12 @@ def test_the_dfo_screen_opens_on_the_saved_fix_and_says_when_it_saved_it():
     from pathlib import Path
     root = Path(__file__).resolve().parents[2] / "curation-review/frontend/src/components"
     dfo, editor, mp = ((root / n).read_text() for n in ("DfoReview.tsx", "ExtentFixEditor.tsx", "MapPanel.tsx"))
-    assert "useState<ExtentFix | null>(saved)" in dfo and "savedFixOf(was)" in dfo
-    assert "your extent (saved {was?.date" in dfo and "fixWords(saved" in dfo
-    assert "<ExtentFixEditor defaultOpen" in dfo and "useState(!!value || defaultOpen)" in editor
+    # T524: the saved extent is EVERY piece of the place (one editor each, "add another piece"; the union previewed)
+    assert "useState<ExtentFix[]>(savedAll)" in dfo and "savedFixesOf(was)" in dfo
+    assert "your extent (saved {was?.date" in dfo and "piecesWords(savedAll" in dfo
+    assert "<ExtentFixEditor key={i} defaultOpen" in dfo and "useState(!!value || defaultOpen)" in editor
+    assert 'data-testid="dfo-add-piece"' in dfo and "extent_fix: fixes" in dfo and "piecesWith(i, f)" in dfo
+    assert "preview.dead_pieces" in editor
     assert 'data-testid="dfo-save-extent"' in dfo and "saved ✓" in dfo
     assert 'data-testid="dfo-errors"' in dfo and "NOT SAVED" in dfo and 'role="alert"' in dfo
     assert "saved={savedFc}" in dfo and "saved-lines" in mp

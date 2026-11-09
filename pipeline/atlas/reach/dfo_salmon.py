@@ -14,6 +14,10 @@ for it on the card, and never draws it — unless the owner accepted it as WHOLL
 then `outcome: tidal_water`, and it is not missing anywhere. A VARIANT (`duplicate_of`, the same reach reworded) takes its target's extent and
 water when it has none of its own: it is the same place.
 
+A PLACE OF SEVERAL PIECES (T524: "the Chilliwack below the Slesse line, including the Sumas below Barrow Town Pump
+Station") is its `extents` list — each piece one op on its own water(s) — and binds their UNION; a piece that binds
+nothing on its own STOPS the run (`dead_pieces`), never drops out of the union unseen.
+
 `regional=False`: a DFO row's extent is its own words (a region default says `within area:region:6`, a closure
 `within_area`), and a water's own row applies along the whole water (user ruling 2026-09-25) — the provincial region
 limit is a provincial rule's, not DFO's.
@@ -45,6 +49,7 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
         outside = outside_bc(registry, graph)
     rows: List[dict] = []
     gone: List[str] = []
+    dead: List[str] = []
     for slug in _slugs():
         ef = E.load(slug, entries_dir or E.ENTRIES_DIR, registry=registry)
         gone += stale_bindings(ef, registry)
@@ -61,6 +66,10 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
                 entry, rules = E.to_reach_input(target, [{}], water, siblings=by_id)
                 entry = {**entry, "entry_id": loc.location_id}
                 binding, _ = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False)
+                dead += [f"r{slug} {loc.location_id}: piece {i + 1} of {len(rules[0]['extents'])} "
+                         f"({rules[0]['extents'][i].get('op')} {rules[0]['extents'][i].get('splits') or ''} on "
+                         f"{rules[0]['extents'][i].get('item_ids') or rules[0]['extents'][i].get('item_id') or 'the water'})"
+                         for i in dead_pieces(entry, rules[0], registry, graph, outside=outside)]
                 row["outcome"] = binding.outcome.value
                 if binding.outcome is Outcome.bound:
                     row["mapped"] = True
@@ -71,8 +80,36 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
     if gone:
         raise ValueError(f"dfo_salmon: {len(gone)} DFO water binding(s) name an item this registry does not have — "
                          "re-bind them (the review app's DFO mode) before building:\n  " + "\n  ".join(gone))
+    if dead:
+        raise ValueError(f"dfo_salmon: {len(dead)} piece(s) of a DFO place bind nothing on their own (T524: the place "
+                         "binds the UNION of its pieces, and a dead piece would drop silently) — fix the piece in the "
+                         "review app's DFO mode before building:\n  " + "\n  ".join(dead))
     rows.sort(key=lambda r: r["location_id"])
     return rows
+
+
+def dead_pieces(entry: dict, rule: dict, registry, graph, *, outside=None) -> List[int]:
+    """T524: THE PIECES OF A PLACE THAT BIND NOTHING — the index of every extent of a SEVERAL-piece place that, resolved
+    alone by the same `build_reach`, is not bound to a section of its own. The place binds the union of its pieces
+    (`classify` unions extents), so a piece naming a cut on the wrong water, or a water the place does not hold, would
+    vanish inside the union with nothing looking wrong; the build refuses it instead (`resolve_all`). Each piece is
+    resolved WITHOUT the tributary walk: what is checked is that the piece lands on its own water — the walk is the
+    union's, and it is the slow part. One piece is the place itself (its outcome already says it): not checked here."""
+    from pipeline.atlas.reach.build import build_reach
+    from pipeline.atlas.reach.models import Outcome
+
+    extents = rule.get("extents") or []
+    if len(extents) < 2:
+        return []
+    out = []
+    for i, ex in enumerate(extents):
+        one = {**rule, "rule_id": f"{rule['rule_id']}~piece{i + 1}", "extents": [ex],
+               "includes_tributaries": False, "tributaries_only": False}
+        b, _ = build_reach({**entry, "includes_tributaries": False}, one, registry, graph, outside=outside,
+                           regional=False)
+        if b.outcome is not Outcome.bound or not b.sections:
+            out.append(i)
+    return out
 
 
 def stale_bindings(ef, registry) -> List[str]:

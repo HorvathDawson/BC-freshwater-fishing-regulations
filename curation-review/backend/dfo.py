@@ -235,6 +235,35 @@ def tidal_of(loc: dict, water: dict | None, m) -> dict | None:
     return {**got, "status": "rejected" if call == "not tidal" else "proposed"}
 
 
+def _norm_extent(ex: dict) -> tuple:
+    """An extent as compared (owner 2026-11-09): op, its cuts in order, the waters it holds on as a set."""
+    items = ex.get("item_ids") or ([ex["item_id"]] if ex.get("item_id") else [])
+    return (ex.get("op"), tuple(ex.get("splits") or ()), tuple(sorted(items)), ex.get("area_id") or None)
+
+
+def fix_vs_current(m, loc: dict) -> dict | None:
+    """DOES THE MARK'S FIX REPLACE THE PLACE'S EXTENT? (owner 2026-11-09: "make it more obvious when fix extent overrides
+    existing extent"). None without a fix; else `{state, current, fix}` — `current` the curated extents, `fix` the mark's
+    pieces as extents (a NEW point names its proposal's ref, so it never equals a curated cut):
+
+      replaces  the fix differs from the curated extent: saving it / applying it REPLACES the extent
+      same      it equals it, on a verified mark naming only existing cuts (T210: "the cuts are right")
+      applied   it equals it on a wrong / unsure mark: the fix has LANDED — this is now the curated extent
+    A tributary call on the fix that differs from the place's own flag is a replacement too."""
+    fixes = [f for f in (getattr(m, "extent_fix", None) or []) if f.scope == "entry"] if m is not None else []
+    if not fixes:
+        return None
+    b = loc.get("binding") or {}
+    current = list(b.get("extents") or [])
+    mine = [_piece_extent(f) for f in fixes]
+    call = next((f.tributaries for f in fixes if f.tributaries is not None), None)
+    same = ([_norm_extent(x) for x in mine] == [_norm_extent(x) for x in current]
+            and (call is None or call == b.get("tributaries")))
+    state = "replaces" if not same else ("same" if m.verdict == "verified" else "applied")
+    return {"state": state, "current": current, "fix": mine,
+            "tributaries": {"current": b.get("tributaries"), "fix": call}}
+
+
 def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None,
          live_waters: set | None = None) -> dict:
     st = loc.get("source_text") or {}
@@ -264,6 +293,7 @@ def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None
             "suggested": _suggested(loc["location_id"]),
             "pv": preverify.dfo(loc["location_id"]),
             "fix_proposed": fix_proposal(loc["location_id"]) is not None,
+            "fix_vs_current": (fvc["state"] if (fvc := fix_vs_current(m, loc)) else None),
             "lake_area": lake_area(loc, water),
             "tidal": tidal,
             "new_splits": len(m.new_splits) if m is not None else 0,
@@ -500,6 +530,7 @@ def detail(location_id: str) -> dict | None:
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
+        "fix_vs_current": fix_vs_current(m, loc),
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
     })
 
@@ -607,34 +638,59 @@ def reach(location_id: str, limit: int = 6000, tributaries: bool = False) -> dic
     return _bind(entry, rule, limit, walks)
 
 
-def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool = False) -> dict | None:
-    """A PROPOSED EXTENT (`marks.ExtentFix`, scope "entry") resolved on a copy, read only. A NEW
-    split (`new`, or a T191 new point) is not a split yet: no preview, and the answer says so."""
-    got = _locations().get(location_id)
-    if got is None:
-        return None
-    _slug, loc, water = got
-    new = [p for p in fix.points if p.kind != "split"]
-    if new:
-        return {"resolvable": False, "n_sections": None, "why": "a NEW split is not a split yet: "
-                "its point is checked on the map (check anchor); the extent resolves once T185 "
-                "builds it"}
-    if fix.op in ("steelhead_waters", "within"):
-        return {"resolvable": False, "n_sections": None,
-                "why": f"op {fix.op} is not previewed on a DFO location"}
-    # a rest previews the remainder after every other PLACED extent on the water, as the build does
+def _piece_extent(fix) -> dict:
+    """One piece (`marks.ExtentFix`) as the extent the build reads."""
     ex: dict = {"op": fix.op} if fix.op == "rest" else {"op": fix.op, "splits": [p.split_id for p in fix.points]}
     if len(fix.items) == 1:
         ex["item_id"] = fix.items[0]
     elif fix.items:
         ex["item_ids"] = list(fix.items)
+    return ex
+
+
+def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool = False) -> dict | None:
+    """A PROPOSED EXTENT (`marks.ExtentFix`, scope "entry") resolved on a copy, read only. A NEW
+    split (`new`, or a T191 new point) is not a split yet: no preview, and the answer says so.
+    T524: `fix` may be a LIST of pieces — the place binds their UNION, previewed as one; `pieces` says what each binds
+    alone (no walk), and a piece that binds nothing is said, never hidden in the union (the build refuses it too,
+    `reach.dfo_salmon.dead_pieces`)."""
+    got = _locations().get(location_id)
+    if got is None:
+        return None
+    _slug, loc, water = got
+    fixes = list(fix) if isinstance(fix, (list, tuple)) else [fix]
+    new = [p for f in fixes for p in f.points if p.kind != "split"]
+    if new:
+        return {"resolvable": False, "n_sections": None, "why": "a NEW split is not a split yet: "
+                "its point is checked on the map (check anchor); the extent resolves once T185 "
+                "builds it"}
+    for f in fixes:
+        if f.op in ("steelhead_waters", "within"):
+            return {"resolvable": False, "n_sections": None,
+                    "why": f"op {f.op} is not previewed on a DFO location"}
+    # a rest previews the remainder after every other PLACED extent on the water, as the build does
+    exs = [_piece_extent(f) for f in fixes]
+    call = next((f.tributaries for f in fixes if f.tributaries is not None), None)
     try:
-        entry, rule = _reach_input(loc, water, [ex], fix.tributaries if tributaries else False)
-        walks = _walks_tributaries(*_reach_input(loc, water, [ex], fix.tributaries)) if not tributaries \
+        entry, rule = _reach_input(loc, water, exs, call if tributaries else False)
+        walks = _walks_tributaries(*_reach_input(loc, water, exs, call)) if not tributaries \
             else _walks_tributaries(entry, rule)
     except Exception as e:  # noqa: BLE001 — the Extent model refuses a malformed one
         return {"resolvable": False, "n_sections": None, "why": f"not an extent: {e}"}
-    return _bind(entry, rule, limit, walks)
+    out = _bind(entry, rule, limit, walks)
+    if len(exs) > 1:
+        from pipeline.atlas.reach.build import build_reach
+        alone = []
+        for i, ex in enumerate(exs):
+            one = {**rule, "rule_id": f"{rule['rule_id']}~piece{i + 1}", "extents": [ex],
+                   "includes_tributaries": False, "tributaries_only": False}
+            b, _d = build_reach({**entry, "includes_tributaries": False}, one, reuse._registry(), reuse._graph())
+            alone.append(len(b.sections))
+        out["pieces"] = alone
+        dead = [i + 1 for i, n in enumerate(alone) if not n]
+        if dead:
+            out["dead_pieces"] = dead
+    return out
 
 
 # --------------------------------------------------------------------------- anchors (read)

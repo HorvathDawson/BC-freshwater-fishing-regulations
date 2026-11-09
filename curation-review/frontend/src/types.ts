@@ -854,6 +854,12 @@ export interface ExtentPreview {
   outcomes?: Record<string, string>;
   truncated?: boolean;
   geojson?: GeoJSON;
+  /** whether the binding walks tributaries (true even when the slow walk is not drawn) */
+  walks_tributaries?: boolean;
+  /** T524: a DFO place of several pieces — what each piece binds ALONE (no walk), in order */
+  pieces?: number[];
+  /** T524: the pieces (1-based) that bind nothing alone — the build refuses them */
+  dead_pieces?: number[];
 }
 
 /** T189: a reviewer's tributary call — the water's tributaries should be in, or out */
@@ -1052,6 +1058,8 @@ export interface DfoRow {
   historic_only?: boolean;
   /** a fix proposal waits on this item (`dfo_fix_proposals.json`) */
   fix_proposed?: boolean;
+  /** (owner 2026-11-09) the mark's fix against the curated extent: replaces it / same as it / has landed */
+  fix_vs_current?: FixVsCurrentState | null;
   /** T449: wholly in tidal water — proposed / accepted / rejected, or null */
   tidal?: DfoTidal | null;
 }
@@ -1063,6 +1071,14 @@ export interface DfoGroupMember {
 export type SuggestConfidence = "high" | "medium" | "low" | "none";
 /** A SUGGESTED extent (`pipeline.regs.dfo_salmon.suggest`): never applied — "accept suggestion"
  *  pre-fills the extent-fix editor (`suggestionFix`); the owner's save is the only write. */
+/** T524: one piece of a DFO place's extent, as a suggestion / fix proposal carries it */
+export interface DfoPiece {
+  op: ExtentOp;
+  points: FixPoint[];
+  items: string[];
+  tributaries: boolean | null;
+  area?: string;
+}
 export interface DfoSuggestion {
   location_id: string;
   /** existing (every point a cut that exists or the owner proposed) | new | whole | partial | none */
@@ -1079,6 +1095,9 @@ export interface DfoSuggestion {
     words?: string;
     /** op within: the area */
     area?: string;
+    /** T524: a place of SEVERAL PIECES (each an op on its own water) — every piece, the first one included; the
+     *  place binds their union. Absent: the one piece above. */
+    pieces?: DfoPiece[];
   } | null;
   /** each point's label and, for a new one, where the data pins it */
   points?: { label: string; coord: [number, number] | null; kind: string; split_id?: string }[];
@@ -1143,6 +1162,14 @@ export interface DfoCount {
  *  check failing (`error`, region null) */
 export interface DfoVintageNote { region: string | null; kind: "typed_older" | "raw_old" | "error"; text: string }
 export interface DfoProgress { all: DfoCount; active: DfoCount; regions: Record<string, DfoCount>; vintage: DfoVintageNote[] }
+export type FixVsCurrentState = "replaces" | "same" | "applied";
+/** (owner 2026-11-09, `dfo.fix_vs_current`) the mark's fix (its pieces) beside the place's curated extent */
+export interface FixVsCurrent {
+  state: FixVsCurrentState;
+  current: DfoExtent[];
+  fix: DfoExtent[];
+  tributaries: { current: boolean | null; fix: boolean | null };
+}
 export interface DfoExtent { op: string; splits?: string[]; item_id?: string; item_ids?: string[] }
 export interface DfoWording { fingerprint: string | null; text: string; dates: string[];
   location_id?: string; status?: string; variant?: boolean; verify?: string | null }
@@ -1193,6 +1220,7 @@ export interface DfoDetail {
   suggestion?: DfoSuggestion | null;
   /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */
   fix_proposal?: DfoFixProposal | null;
+  fix_vs_current?: FixVsCurrent | null;
   mark: (MarkView & { new_splits?: NewSplit[] }) | null;
 }
 

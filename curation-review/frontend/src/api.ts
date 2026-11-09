@@ -274,7 +274,8 @@ export const api = {
     getJSON<AreaName[]>(`/api/dfo/locations/${encodeURIComponent(id)}/area-names?layer=${encodeURIComponent(layer)}`
       + `&q=${encodeURIComponent(q)}` + (onItem ? `&on_item=${encodeURIComponent(onItem)}` : "")),
   splitAnchors: () => getJSON<SplitAnchors>("/api/split-anchors"),
-  dfoExtentPreview: (id: string, fix: ExtentFix, tributaries = false) =>
+  /** T524: `fix` may be the place's PIECES — resolved as their union */
+  dfoExtentPreview: (id: string, fix: ExtentFix | ExtentFix[], tributaries = false) =>
     getJSON<ExtentPreview>(`/api/dfo/locations/${encodeURIComponent(id)}/extent-preview?fix=` +
       encodeURIComponent(JSON.stringify(fix)) + (tributaries ? "&tributaries=true" : "")),
 
