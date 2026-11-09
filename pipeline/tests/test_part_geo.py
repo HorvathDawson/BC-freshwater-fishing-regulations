@@ -179,6 +179,11 @@ def test_a_braid_pair_s_smaller_water_is_never_the_bigger_one_s_exit():
     assert T.exit_receivers(9697, [14905], mouths, downs, size) == []
     assert T.exit_receivers(14905, [9697], mouths, downs, size) == [9697]
     assert T.exit_receivers(9697, [14905], mouths, downs) == [14905]
+    # the live shape: Morey Channel's own mouth reaches only the sea (a distributary of the delta)
+    sea = {9697: {14905}, 14905: set()}
+    assert T.exit_receivers(9697, [14905], sea, {9697: [14905]}, size) == []
+    # a creek whose mouth meets a small coastal river is not that river's channel: it is the creek that is smaller
+    assert T.exit_receivers(1, [2], {1: {2}, 2: set()}, {1: [2]}, {1: 20, 2: 10}) == [2]
 
 
 def test_a_water_never_exits_into_a_water_that_flows_into_it():

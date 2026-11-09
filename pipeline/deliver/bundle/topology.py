@@ -301,6 +301,11 @@ def mouth_downs(graph, ids: Sequence[str], secs: Dict[int, set]) -> Dict[int, se
     return out
 
 
+#: T519: a water this many times smaller than the one whose mouth meets it, reaching only the sea, is that water's
+#: distributary (the Fraser's delta channels), not its exit
+DISTRIBUTARY_RATIO = 5
+
+
 def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: Dict[int, Sequence[int]],
                    size: Optional[Dict[int, int]] = None) -> List[int]:
     """The waters water `o` may EXIT into (T59): of its `item_down` receivers `cands`, every one that does not itself
@@ -333,7 +338,12 @@ def exit_receivers(o: int, cands: Sequence[int], mouths: Dict[int, set], downs: 
 
     def into_o(d: int) -> bool:
         if d in mouths[o]:                      # o's own mouth reaches d: evidence for d, unless d is o's side channel
-            return size is not None and size.get(d, 0) < size.get(o, 0) and flows_into_o(d)
+            if size is None:
+                return False
+            small = size.get(d, 0) * DISTRIBUTARY_RATIO <= size.get(o, 0)
+            # a much smaller water o's mouth meets that flows back into o (a braid), or that itself reaches only the
+            # sea (a distributary of o's delta: Morey Channel, T519) is o's own channel, never where o goes
+            return small and (flows_into_o(d) or (d in mouths and not mouths[d]))
         return flows_into_o(d)
     return [d for d in cands if not into_o(d)]
 
