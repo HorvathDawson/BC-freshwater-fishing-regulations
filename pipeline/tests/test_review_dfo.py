@@ -211,7 +211,9 @@ def test_the_dfo_screen_logic_runs():
     """T525: what a DFO mark does to the place's extent — keep / not sure / wrong carry no fix, a change carries its
     pieces only when it changes something and says keep / replace / add, pieces are added and dropped on the place's
     one tributary call, a piece previews alone or in the union, every mark names the extent it was made on, the save
-    is held in words — run by node on the screen's own functions (`frontend/src/dfoExtent.ts`)."""
+    is held in words — run by node on the screen's own functions (`frontend/src/dfoExtent.ts`, `extentWords.ts`), and
+    a refused save says when a later save of its item is in the store (`refusals.supersededBy`): every
+    `frontend/tests/*.test.ts`."""
     import shutil
     import subprocess
     from pathlib import Path
@@ -219,7 +221,9 @@ def test_the_dfo_screen_logic_runs():
     if node is None:
         pytest.skip("node is not installed: the screen's functions are not run")
     front = Path(__file__).resolve().parents[2] / "curation-review/frontend"
-    got = subprocess.run([node, "--test", "tests/dfoExtent.test.ts"], cwd=front, capture_output=True, text=True)
+    got = subprocess.run([node, "--test", "--test-reporter=tap", "tests/*.test.ts"], cwd=front,
+                         capture_output=True, text=True)
+    assert "# fail 0" in got.stdout and "# pass 0" not in got.stdout, got.stdout
     assert got.returncode == 0, got.stdout + got.stderr
 
 

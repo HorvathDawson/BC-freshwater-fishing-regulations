@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { current, drop, subscribe, type Refusal } from "../refusals";
+import { current, drop, subscribe, supersededBy, type Refusal } from "../refusals";
 import { Notice } from "./NoticeStack";
 import { failed } from "../failures";
 
@@ -20,6 +20,15 @@ export function RefusedSavesBanner() {
   const [asN, setAsN] = useState<{ key: string; problem: string; note: string } | null>(null);
   const [pProblems, setPProblems] = useState<string[]>([]);
   useEffect(() => subscribe(setList), []);
+  // owner 2026-11-09: a refusal whose item has been saved since (from this screen or another) says so — never dropped
+  const [since, setSince] = useState<Record<string, ReturnType<typeof supersededBy>>>({});
+  useEffect(() => {
+    let live = true;
+    Promise.all(list.map((r) => api.marksOn(r.target, r.scope).then((ms) => [r.key, supersededBy(r, ms)] as const)))
+      .then((got) => { if (live) setSince(Object.fromEntries(got)); })
+      .catch(failed("the saved marks of the refused items"));
+    return () => { live = false; };
+  }, [list]);
   useEffect(() => { if (asN && !pProblems.length) api.mode().then((m) => setPProblems(m.problems.P ?? [])).catch(failed("the P problems")); },
     [asN, pProblems.length]);
   if (!list.length) return null;
@@ -42,6 +51,9 @@ export function RefusedSavesBanner() {
             <code>{r.scope}</code> <code>{r.target}</code>{r.mark.rule_id ? ` / ${r.mark.rule_id}` : ""}
             <span style={{ opacity: 0.8 }}> · {new Date(r.at).toLocaleString()}</span>
             <div>{r.reasons.join(" · ")}</div>
+            {since[r.key] && <div data-testid="refused-superseded" style={{ fontWeight: 700 }}>
+              superseded: your saved mark of {since[r.key]!.date} ({since[r.key]!.verdict}) is in the store
+              {since[r.key]!.sameDay ? " — saved the same day: check it is the later one" : ""}</div>}
             <button className="btn" style={{ padding: "0 8px", marginRight: 6 }} disabled={busy === r.key}
               onClick={() => void retry(r)}>{busy === r.key ? "retrying…" : "retry"}</button>
             {fixWithPy(r) && <>
@@ -52,8 +64,8 @@ export function RefusedSavesBanner() {
                 data-testid="refused-retry-n" title="re-answer Place n (placement wrong — fix proposed) and retry"
                 onClick={() => setAsN({ key: r.key, problem: "", note: r.mark.note ?? "" })}>retry with P n…</button>
             </>}
-            <button className="btn" style={{ padding: "0 8px" }}
-              title="drop it from this list (you will redo it yourself)"
+            <button className={`btn${since[r.key] ? " primary" : ""}`} style={{ padding: "0 8px" }}
+              data-testid="refused-drop" title="drop it from this list (you will redo it yourself)"
               onClick={() => { if (window.confirm(`Drop the refused save of ${r.target}? It is not saved.`)) drop(r.key); }}>
               drop</button>
             {asN?.key === r.key && (

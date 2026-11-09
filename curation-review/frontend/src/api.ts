@@ -196,6 +196,9 @@ export const api = {
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),
   /** owner 2026-10-28: every mark in force accounted for — orphaned / stale ones listed */
+  /** the marks in force on one target (GET /api/marks?target=&scope=) */
+  marksOn: (target: string, scope: string) =>
+    getJSON<MarkView[]>(`/api/marks?target=${encodeURIComponent(target)}&scope=${encodeURIComponent(scope)}`),
   marksHealth: () => getJSON<MarksHealth>("/api/marks/health"),
 
   // --- T191: the extent-fix editor (reads only; the fix rides the mark) ---
