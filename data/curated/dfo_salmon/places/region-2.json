@@ -1662,7 +1662,8 @@
       "binding": {
         "extents": [
           {
-            "op": "whole"
+            "op": "whole",
+            "item_id": "gnis:19986"
           }
         ],
         "tributaries": null,
