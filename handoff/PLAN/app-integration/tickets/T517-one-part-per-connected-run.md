@@ -1,6 +1,6 @@
 # T517 — One part per connected run of same-rule sections, always in sync with the paint
 
-Status: OPEN — side build done, owner review before promote: side release `data/generated/side/t517/deliver/release/r-d62af06225a2` (with T510 + T519); paint-sync passes; nothing promoted. Code 5f96628fe…(see Results). Part of T495 gate 1.
+Status: OPEN — review fixes + owner 11-09 rules done on the side build, owner review before promote: side release `data/generated/side/t517/deliver/release/r-38de2e92be26` (with T510 + T519); contract water/2 + geo/2 + display 20; names = end tokens composed by one app function; paint-sync proves maximality on `section_touch` + lake gaps; nothing promoted. See "Review fixes" and "Names from ends". Part of T495 gate 1.
 `git stash` "T517 WIP: contiguous parts…" (derived.part_rows + schema UNIQUE). In-season work paused separately (notice
 audit). Supersedes T509's "What is left" (`short` on `part_stretch`, dropped). Part of T495 gate 1.
 
@@ -139,5 +139,98 @@ done: the app's search does not read marks yet.
   found on the way (733b7e5c6): mark confidence words said once; header/Parts sheet say the run's `run_name`; picking
   list row 0 from the whole-water view now opens it. Open for the owner: the Dean's Anahim run (grp 4, run 0) has a
   lake between its two pieces and no mark, so they never join even when salmon reads alike.
-- Commits: c4ce4b8b4 (T510), 5f96628fe … c412c8a9d (pipeline + app), 036ba4ba4 (fixtures, tickets, shots), 733b7e5c6
+- Commits (first pass): c4ce4b8b4 (T510), 5f96628fe … c412c8a9d (pipeline + app), 036ba4ba4 (fixtures, tickets, shots), 733b7e5c6
   (app tests), e254e4ade (pipeline tests).
+
+
+## Lake gap rule (owner 2026-11-08, final; replaces the HOLD on review finding 5 and the named/unnamed draft)
+Different rules on the two sides of a lake: separate pieces, always. The SAME rules: one entry, across ANY lake, named
+or not. A same-key run already crosses lakes as one part (T204: a lake on the course is not another part); where the
+DFO salmon chain cut a run into pieces either side of a lake, `topology` writes a mark ("A lake") between the two
+neighbouring pieces of one (grp, run), so `mergeNav` joins them by the one live rule (grp + run + live salmon key) like
+any other neighbours, and they separate on their own when the live salmon differs. The paint sync counts every lake gap
+on a stem as adjacency (`paint_sync.lake_gaps`). Today: 2 joins added — Dean grp 4 pieces 7↔8 and Pelican Creek 0↔1
+(both lakes unnamed); 0 named-lake gaps lie between pieces of one run, so the final rule moved no count. Rejected by the
+owner: cutting every run at every named lake (+12.5 % parts, 1,770 waters).
+
+## Names from ends (owner 2026-11-09)
+- A part ships only its two END TOKENS (`lo`, `hi`; `short` only for a part with no two ends: a lake, a whole water,
+  side channels only, a polygon). `display.ends` turns tokens into words; ONE app function, `spanName`
+  (`app/packages/core/src/ends.ts`), composes every name — one part, or a live-joined span (first piece's lo → last
+  piece's hi) — for the header, map list, Parts sheet, solo checks, share/SEO and in-season "Where". `run_name`,
+  `dup`, the merged-name composition and `hint` are gone (display 20).
+- No "(n)", no "Within", no two parts of a water with one name. The 25 numbered names were 4 groups, none a missed join
+  (alternating rule sets, or pieces apart by outside-B.C. pieces / unnamed lakes): Within-area pieces (Wap, Canyon,
+  Carmanah, Hoodas — "Within" was also FALSE for the pieces outside the reserve), B.C.-border pieces (Blanchard,
+  Petitot, Sleigh), unnamed-lake pieces (Meldrum, Riske). A CROSSING end (an area's boundary, the B.C. border, a region
+  line, a river polygon, an unnamed lake) is said near what stands there (`topology.crossing_near`: the nearest named
+  water feature within 2 km along the stem; at the border, else the nearest B.C. town within 10 km from the bundle's
+  `place`, OSM, B.C. only), else at its km from the mouth — only where the part's two ends would say the same words or
+  its name is another part's. A gauge cut with no regulation split and no named feature within 2 km is said by its km
+  (the Dean's 08FC003: "km 121.9"; Tanswanket Creek's drawn sections are 13.2 km off).
+- Visible names changed vs r-d73eba6565e1: 111 of 20,746 keyed parts, all intended: 55 former "Within <area>", 25
+  former "(n)", 31 "X boundary → X boundary" crossings now told apart (e.g. "Region 5 boundary (km 24.7) → Region 5
+  boundary (km 33.3)", "Codd Wetland Ecological Conservancy Area boundary near the McKenzie Creek confluence → … near
+  the Donegani Creek confluence"), and the Dean's gauge end. No town was within 10 km of the 3 border waters'
+  crossings, so they read "B.C. border (km …)" or near a creek.
+- FAIL FAST: `answers.display.name_check` runs in the answers step the moment parts and ends exist (duplicate, "(n)",
+  gauge code, missing/one-sided end token, token with no words, "Within") and stops the build; standalone on a built
+  release in 0.2 s: `python -m pipeline.deliver.answers.display.name_check <release dir>` (r-38de2e92be26: 0
+  problems). Mutation tests: `test_name_check.py`.
+- Size: names were interned strings that compress well — water 2,620,499 -> 2,619,970 gz (−529 B), release total
+  −96 B. Flat, not smaller.
+
+## Fallbacks swept (owner 2026-11-09)
+Pipeline, made loud: unknown end token words (was `token.replace("_", " ")`); a run end on a water with no name (was
+its id); `gauge_near` unbounded (now 2 km, else km words); a part end with no km; an exit with no drawn part (0 today);
+the "no salmon_section table → no chain" guards (dead: the schema always holds it). Kept, documented + tested:
+`order_parts` puts parts with no km last (side channels, lake parts); a bare unnamed lake / tributary token says "a
+lake" / "a tributary confluence" (FWA has no name for it). App (`waterGroup`, `navRows`, `waterMapStartIx`,
+`waterMapView`, `navSections`/`partBounds`, `partNameOf`, Parts sheet, header, `targetFor`, frameView/place): made
+loud — throw, the view shows the failure and reports it; kept with tests: no salmon reading → nothing joins; an unkeyed
+(outside B.C.) part is named by its water; marks touching a tidal piece drop with it; a frame with no part opens at the
+mouth; `targetFor` with no tapped section opens the first keyed part; partBounds uses the midpoint without a box;
+steps follow part order where no mark says; receiving-water mismatch is reported and drawn grey.
+
+## Review fixes (2026-11-08, side release r-d73eba6565e1)
+Side builds this round: deliver stage only each time (atlas, reach and tiles "up to date": nothing upstream changed).
+1. Maximal runs: Wap Creek 1/3, Nimpkish 2/4, Skeena 1/3 were ONE run (a side channel inside one rule set braids past
+   another set's short stem piece and touches both) — `derived.join_touching` joins stretches whose sections touch
+   (parts 20,975 -> 20,972). `paint_sync` now proves maximality on the bundle's `section_touch` (+ unnamed-lake gaps),
+   never on the marks the build chose, and coverage against `item_section` (missing, twice, wrong water); mutation test
+   through the build's own parts (`test_paint_sync::test_the_build_s_own_parts_pass_and_without_the_run_join_they_fail`).
+   It named exactly those 3 pairs on r-d62af06225a2.
+2-3, 8 (app): a joined entry knows all its pieces (`NavPart.pieces`); header, Parts sheet, solo checks and the receiving
+   water read the same live `mergeNav` structure (`entryNames`, one name source); stretch plumbing, `fallsBackTo`,
+   old-release probes removed.
+4. Contract: water/2 (no `part.hint_s`, `part_mark.down_stretch/up_stretches`, `part_line.stretch`), geo/2 (no
+   `part_geo.rank`), water-slice/3, display 19, regs-store/5; the app refuses a mismatch with a shown failure.
+6. No numbered names at all (see "Names from ends"). The 41 NULL shorts are the unkeyed (outside B.C.) parts: the app
+   shows the water's name, never lists them in the Parts sheet.
+7. A gauge cut a part ends at is said by the nearest named feature within 2 km (`topology.gauge_near` -> export split
+   `near`), else its km: Cruickshank "Near the Comox Creek confluence", Skeena "Above Babine River", the Dean "km
+   121.9"; gauge names only in `part_mark.alt`. Gauge-coded names 6 -> 0.
+9. The prototype water map check is back (`test_part_geo::test_the_chilliwack_and_the_cowichan_meet_as_the_prototype_
+   draws_them`: runs joined by (grp, run), tidal off, marks = the prototype's words). The Kanaka T204 test was not lost:
+   it is `test_kanaka_is_four_runs…` (T204's stretches are parts since T517; both marks still asserted).
+10. 107 unlabelled marks, every one where a side-channel part meets another (a channel leaves at no named place): a known
+   count, pinned (`test_part_geo::UNLABELLED_MARKS`); 5 more (two parts meeting across a lake) now say the lake. The
+   `mark_words` assert is unchanged.
+- Bindings vs live: the same 6 sections (T510's), nothing else (`binding_diff`, 123 rules all within those 6).
+- Size (gzip): release 21,587,945 live -> 21,796,497 (+0.97 %; -37,781 vs r-d62af06225a2); water 2,619,970; geo 595,092.
+
+## Second review (11-09, fresh Opus, read-only on 9fdc8b8e3 + working tree)
+MAJOR: (1) 5/32 in-season ends are derived tokens missing from `display.ends` (lake outlet/inlet, region:a|b, trib:gnis) →
+"Where" fails and the notice falls back to the whole water; publish.py must refuse tokens not in the target release's
+display.ends; a words failure must drop only "Where", not the sections. (2) Boundary-mark labels are a second stored
+naming path (topology.py mark_words, before `_names` re-places @near/@km clashes; app markLabel "a / b" fallback) → ship
+mark end token, app names it via endWords. (3) banner.ts:60 / inputs.ts:150 (`?? ""`), header.ts:85 and sheets/parts.ts:41
+fall back to stored labels → name via spanName/partNameOf, throw on missing facts. (4) ui inseason onPage uses one piece,
+not the joined entry → build from merged entry's pieces.
+MINOR: (5) ends.ts "Within" branch dead → delete, throw on lo==hi. (6) part.short_labels + run_ends branch dead → delete.
+(7) parts with no main stem still ship stored `short` → OWNER CALL. (8) wire name_check on the SHIPPED release next to
+paint_sync in build.py; one TS↔Python parity fixture. (9) paint_sync check() untested on shipped files; silent drop at
+paint_sync.py:171; water-<r> slices unchecked. (10) build check that every multi-piece run is mark-connected. (11) joined
+span ending in a side channel would throw (hi from last piece) → refuse in build or use highest stem piece. (12) salmonKeyOf
+must throw for unloaded regions (chainOf default lets unread pieces join). (13) ui inseason `!table → []` hides banners →
+show whole-water + failure. (14) drop ALSO_READS paint/4. (15) bump water/3 or note display 20 carries lo_s/hi_s tokens.
