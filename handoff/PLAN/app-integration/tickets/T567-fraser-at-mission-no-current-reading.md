@@ -52,3 +52,14 @@ Depends: —. Size: S. Owner: no.
 - Web app on the same water looks right (owner). Compare: the web deploy's commit vs 2e8bedf, and the lead gauge each picks.
 - Tomorrow: reproduce on the emulator with this release + feed; fix lead-gauge choice (one lead per water whatever the
   quantity, or said plainly when it must differ), the figure's quantity, then T568's block order.
+
+## Shot 5 (21:19, the gauge list under Flow) — the day asked is a FORECAST day, not Now
+- "forecast from 6 gauges nearby", fold "6 not counted this far ahead": the sheet is on a day ahead. Members counted:
+  Mission 08MH024 70%, Hansard 08KA004 6%, Shelley 08KB001 6%, Hope 08MF005 6%, Above Texas Creek 08MF040 6%, McBride
+  08KA005 5%.
+- This explains the pictures: ahead, Mission has a FLOW forecast (CLEVER) and no ranked level forecast, so it leads
+  under Flow and drops out under Level, where Hansard leads. The card's figure under the list is still TODAY'S gauge
+  reading (1.548 m level) while everything above it is about the forecast day in flow.
+- So the defects are: (1) on a forecast day the card shows today's reading in whatever quantity the gauge has, with
+  nothing saying it is today's and not the day asked; (2) the lead gauge flips with the quantity because each
+  quantity's forecast coverage differs; (3) the web app may simply have been on Now. Check the day chip first tomorrow.
