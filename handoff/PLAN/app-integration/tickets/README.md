@@ -632,6 +632,10 @@ use that as the sole source of future work."
 | T591 | A test that the checklist's places cache goes stale when it must | DONE | 4089f60cd | T532 leftover e; five inputs, one test |
 | T592 | A saved place's map legend still lists "proposal (not applied)" | DONE | 4089f60cd | T532 leftover f; our proposal leaves the map once the place holds his save |
 | T593 | Keep DFO's heading bytes verbatim in the scrape | OPEN — ticket only | — | T532 leftover h; lands with the next scrape the owner runs (T549's lane) |
+| T594 | Satellite view is not hidden by the stream lines | OPEN | — | owner report 2026-11-10 (worker report 442a0ecc); owner picks the look |
+| T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | OPEN | — | worker /crashes read 2026-11-10 |
+| T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | OPEN | — | worker /crashes 2026-11-10, kind 4219b587 |
+| T597 | Two feeds worker run failures 11-09/10 explained and guarded (gauges all-404 at 00:05 UTC; in-season format ahead of the worker) | OPEN | — | /status.json 2026-11-10; overlaps T550, T558 |
 
 ## Order for open tickets
 
