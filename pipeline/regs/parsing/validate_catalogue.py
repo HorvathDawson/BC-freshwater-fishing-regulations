@@ -429,6 +429,51 @@ def count_in_words(value, verbatim: str, field: str = "take") -> bool:
                for w in words)
 
 
+def number_printed(value, verbatim: str) -> bool:
+    """Is `value` printed in `verbatim` as a WHOLE number (T553 item 5)? A plain substring test let `take: 1` pass on
+    "Oct 16", "10" or "15 cm", so a quote that states no 1 at all carried one (`z7a:daily_quotas` r5). The digits must
+    not be part of a longer number: no digit or decimal point before, no digit or ".digit" after."""
+    printed = f"{value:g}" if isinstance(value, float) else str(value)
+    return re.search(rf"(?<![\d.]){re.escape(printed)}(?!\d|\.\d)", verbatim or "") is not None
+
+
+def dates_off_their_line(entry: CatalogueEntry) -> list[str]:
+    """ADVISORIES: a dated rule whose own sentence prints no range must find each of its dates on the
+    printed line its quote is on, or the line the quote runs onto (T553 item 5).
+
+    The row-level season checks (`catalogue_parts.checks`) only ask that every printed range is
+    carried by SOME rule, and police the `;` case; a season could sit on the wrong sibling and
+    pass. Advisory, not a refusal: a `when` that is the complement of printed months ("except during
+    the months of February and July", Tchesinkut Lake) is right and prints no range. A quote printed
+    twice in its row cannot be placed on a line and is not asked."""
+    from pipeline.regs.parsing.catalogue_parts.checks import _unique_span, printed_ranges
+    hay, breaks = "", []
+    for line in entry.regs_verbatim.split("\n"):
+        got = squash(line)
+        if got:
+            if hay:
+                breaks.append(len(hay))
+                hay += " "
+            hay += got
+    bounds = [0] + breaks + [len(hay)]
+    out: list[str] = []
+    for r in entry.rules:
+        if not (r.when and r.when.dates) or r.lift_only or printed_ranges(squash(r.verbatim)):
+            continue
+        span = _unique_span(hay, squash(r.verbatim))
+        if span is None:
+            continue
+        first = max(k for k, b in enumerate(bounds[:-1]) if b <= span[0])
+        last = max(k for k, b in enumerate(bounds) if b < span[1])
+        near = printed_ranges(hay[bounds[first]:bounds[min(len(bounds) - 1, last + 2)]])
+        far = [d.words() for d in r.when.dates if d not in near]
+        if far:
+            out.append(f"ADVISORY: {r.rule_id}: its `when` ({', '.join(far)}) is not printed on its quote's line or "
+                       f"the next, and its own sentence prints no date — check the season is this rule's, not a "
+                       f"sibling's")
+    return out
+
+
 def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
     """THE GATE AFTER THE MODEL: what `CatalogueEntry` cannot see from one field, run on a
     validated entry. Returns `(path, message)` pairs, `path` in the entry's own JSON keys
@@ -465,11 +510,11 @@ def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
             if value in (None, 0):
                 continue
             printed = f"{value:g}" if isinstance(value, float) else str(value)
-            if field in spell and any(f"{x:g}" in rule.verbatim for x in spell[field]):
+            if field in spell and any(number_printed(x, rule.verbatim) for x in spell[field]):
                 continue
             if field in COUNT_FIELDS and count_in_words(value, rule.verbatim, field):
                 continue
-            if printed not in rule.verbatim:
+            if not number_printed(value, rule.verbatim):
                 out.append((["rules", i] + _field_path(field),
                             f"{rule.rule_id}: {field}={printed} does not appear in its own "
                             f"verbatim ({rule.verbatim[:70]!r})"))
@@ -486,7 +531,7 @@ def post_model_checks(entry: CatalogueEntry) -> list[tuple[list, str]]:
         doing = getattr(x, "doing", None)
         for j, b in enumerate((doing.lengths if doing else None) or []):
             for f, v in (("min_cm", b.min_cm), ("max_cm", b.max_cm)):
-                if v and str(v) not in x.verbatim:
+                if v and not number_printed(v, x.verbatim):
                     out.append((["licensing", k, "doing", "lengths", j, f],
                                 f"licensing {x.id}: doing.lengths[{j}].{f}={v} does not appear "
                                 f"in its own verbatim ({x.verbatim[:70]!r})"))
@@ -584,6 +629,7 @@ def gate(entry_data: dict, *, menu: dict | None, registry,
       THE MODEL           `CatalogueEntry`
       the printed row     layer 3                   needs `source_text`
       after the model     `post_model_checks`
+      dates off the line  advisory                  `dates_off_their_line`
       long row, one rule  advisory                  needs `source_text`
 
     `menu` is the cut-point menu: ingest passes the row's batch item (what the parser was shown);
@@ -627,9 +673,9 @@ def gate(entry_data: dict, *, menu: dict | None, registry,
 
     # A row whose printed text is long but which produced one short rule has almost certainly
     # dropped something. Advisory, not fatal — some rows really are one sentence.
-    advisories: tuple[str, ...] = ()
+    advisories: tuple[str, ...] = tuple(dates_off_their_line(entry))
     if source_text and len(squash(source_text)) > 200 and len(entry.rules) == 1:
-        advisories = (
+        advisories += (
             f"ADVISORY: {len(squash(source_text))} characters of source produced a single rule — "
             f"check for a restriction you have not carried across",)
     return Verdict(entry, tuple(refusals), None, advisories)

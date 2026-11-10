@@ -336,7 +336,7 @@
     {
      "rule_id": "trout_char_quota.r5",
      "type": "retention_limit",
-     "verbatim": "NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length.",
+     "verbatim": "1 bull trout (Dolly Varden) NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length.",
      "species": [
       "DV"
      ],

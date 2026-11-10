@@ -517,3 +517,37 @@ def test_a_rule_clipped_by_within_area_holds_only_what_lies_in_the_clip(lift, ta
 def test_a_lift_inside_the_clip_still_passes(lift, target):
     from pipeline.regs.parsing.validate_catalogue import exemptions_stay_inside_what_they_lift
     assert exemptions_stay_inside_what_they_lift(_lift_entry(lift, target)) == []
+
+
+def test_a_number_matches_only_as_a_whole_number():
+    """T553 item 5. The guard was a substring test: `take: 1` passed on "Oct 16", "10" or "15 cm", so
+    `z7a:daily_quotas` r5 carried a 1 its quote never printed (the quote now opens with "1 bull trout")."""
+    from pipeline.regs.parsing.validate_catalogue import number_printed
+    assert number_printed(1, "1 bull trout (Dolly Varden)") and number_printed(1, "only 1.")
+    assert not number_printed(1, "retained Oct 16-Aug 14") and not number_printed(1, "Kokanee: 10")
+    assert not number_printed(5, "15 cm") and not number_printed(50, "150 m")
+    assert number_printed(7.5, "max 7.5 kW") and not number_printed(7.5, "17.5 kW")
+    assert not number_printed(1, "1.5 m") and number_printed(30, "30-50 cm")
+    src = ("NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken "
+           "from lakes.")
+    when = {"dates": [{"from_month": 10, "from_day": 16, "to_month": 8, "to_day": 14}]}
+    _, msgs = _gated(_entry([_quota(verbatim=src, species=["DV"], take=1, when=when)], regs=src), src)
+    assert any("take=1 does not appear" in m for m in msgs)                  # mutation: the old z7a quote
+
+
+def test_a_season_not_on_the_rules_line_is_an_advisory():
+    """T553 item 5. A dated rule whose own sentence prints no range must find its dates on its quote's printed
+    line or the next; else an ADVISORY (not fatal: a complement of printed months is right and prints no range)."""
+    from pipeline.regs.parsing.validate_catalogue import dates_off_their_line
+    from pipeline.regs.parsing.catalogue import CatalogueEntry
+    regs = "Bait ban\nTrout catch and release\nNo fishing Apr 1-June 30"
+    dated = {"from_month": 4, "from_day": 1, "to_month": 6, "to_day": 30}
+
+    def ent(quote):
+        return CatalogueEntry.model_validate(_entry([
+            {"rule_id": "t.r1", "type": "bait_restriction", "verbatim": quote,
+             "gear": [{"slot": "bait", "ban": ["any_bait"]}], "when": {"dates": [dated]},
+             "extents": [{"op": "whole"}]}], regs=regs))
+    far = dates_off_their_line(ent("Bait ban"))
+    assert len(far) == 1 and far[0].startswith("ADVISORY: t.r1") and "Apr 1-Jun 30" in far[0]
+    assert dates_off_their_line(ent("Trout catch and release")) == []        # the next line prints it
