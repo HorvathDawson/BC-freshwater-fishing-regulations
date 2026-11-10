@@ -1,6 +1,6 @@
 # T599 — Study: one structure for the pipeline's outputs, side files and intermediates (Zarr or other)
 
-Status: OPEN
+Status: DONE
 
 Source: owner 2026-11-10: "if we should restructure the data outputs and side cars and intermediates etc to all live in
 a nicely structured ZAR or similar maybe? We should see if it makes sense. Would it give us benefit … other options
@@ -28,3 +28,7 @@ should be considered too because we want it to be easy to fit and manage and eas
   one recommendation, the first step. Plain words; the owner decides from it.
 
 Depends: —. Size: M (study). Owner: decides after the findings.
+
+## DECIDED 2026-11-10 (owner: "the recommendation looks good and is cleaner than what we have now")
+Do not switch formats. App and web packages (bundle, tiles, packed files) stay packaged on their own as today.
+Step 1 → T547. Step 2 → T600. Step 3 → T601. Step 4 → T602. Step 5 only if measured.

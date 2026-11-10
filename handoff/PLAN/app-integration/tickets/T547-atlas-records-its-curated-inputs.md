@@ -49,3 +49,9 @@ Fix the items above in severity order, one commit per item where they are separa
 Editing a cut, a name variant or an area after the atlas build makes release preflight stop and name the file. Lake-boundary clash suffixes are ordered by the boundary itself; a promote check fails if a boundary id named by a curated rule changes its lake. The five lakes no longer answer to West Road / Blackwater River (needs an atlas rebuild).
 
 Depends: —. Size: M. Owner: no.
+
+## Added 2026-11-10 from T599 (owner accepted the recommendation)
+This ticket is step 1 of the T599 plan, "curated guard": the atlas writes a digest per curated file it read into
+`graph.pkl.meta.json` (`input_hashes`, empty today); `pipeline release` refuses an atlas older than its curated
+inputs and names the file; a test runs the build steps against a read-only copy of the curated tree and fails if any
+step changes it. See `handoff/PLAN/app-integration/T599-findings.md` §5.

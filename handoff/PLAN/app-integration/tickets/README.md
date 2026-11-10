@@ -637,7 +637,10 @@ use that as the sole source of future work."
 | T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | OPEN | — | worker /crashes 2026-11-10, kind 4219b587 |
 | T597 | Two feeds worker run failures 11-09/10 explained and guarded (gauges all-404 at 00:05 UTC; in-season format ahead of the worker) | OPEN | — | /status.json 2026-11-10; overlaps T550, T558 |
 | T598 | "Days in 10" replaces the percentile wherever the reader sees it | IN REVIEW | eb4bf2168 | built; owner looks at the short form ("8 in 10 days higher") in ../T598-shots/ |
-| T599 | Study: one structure for the pipeline's outputs, side files and intermediates (Zarr or other) | OPEN | — | owner 2026-11-10; study only, owner decides from the findings |
+| T599 | Study: one structure for the pipeline's outputs, side files and intermediates (Zarr or other) | DONE | a9587aabc | owner accepted 2026-11-10: no format switch; four-class split + one curated writer; steps → T547, T600, T601, T602 |
+| T600 | One writer for curated data (validate, backup, atomic, log, provenance; no build step writes curated) | OPEN | — | T599 step 2; after T547 |
+| T601 | Every reader knows a build is finished and which version it reads (COMPLETE marker, one latest(), feed format tag) | OPEN | — | T599 step 3; overlaps T549, T555, T557, T585 |
+| T602 | Tidy the data layout into fetched, curated, built, released (rules page; nothing built beside a source) | OPEN | — | T599 step 4; after T600, T601 |
 
 ## Order for open tickets
 
