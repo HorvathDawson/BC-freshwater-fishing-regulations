@@ -64,8 +64,13 @@ export deletes every review older than the batches it writes), and keeps them in
 **A repass does not overwrite a curator's edit.** Ingest records a digest of every entry it writes
 in the work dir's `ingested.json`. It replaces an entry already on disk only if the file's copy is
 still the one it wrote; an entry edited since — or one the ledger never saw — is reported as KEPT
-and left alone. `run_parse.sh ingest --replace-edited` overrides that once you have read the report
-(`repass --replace-edited` does it in the same run).
+and left alone. To act on the report one entry at a time (T553), name it:
+`python -m pipeline.regs.parsing.ingest_catalogue --batch … --response … --out data/curated/regulations/synopsis
+--replace-entry <entry_id>` (repeatable). `run_parse.sh ingest --replace-edited` replaces every KEPT entry at once
+(`repass --replace-edited` does it in the same run). Either way the curator's placement is carried onto the re-parse
+(`carry_curation`: the entry's extents / tributary scope / tidal / anadromous_rainbow / scope_note, and the placement
+fields of every rule or licensing record whose quote is unchanged), and each record that could not be carried is
+listed; `--no-carry` replaces whole.
 
 **The ledger is seeded, not grown from nothing.** Without `ingested.json` every entry is one the
 ledger never saw, so a repass would keep all of them. `run_parse.sh seed-ledger`
@@ -99,5 +104,7 @@ keeps one edited after the seed. It was seeded on 2026-09-23 (1,480 entries).
   a whole, through `CatalogueFile`; an untouched neighbour is written back byte for byte.
 - Nothing partial is written: an entry validates whole or is reported and left out.
 - The region files are the durable progress. The work dir is transient — deleting it never loses
-  a parsed entry, but it does lose the review findings and the ledger. Re-seed it
-  (`run_parse.sh seed-ledger`) before the next repass, or that repass keeps every existing entry.
+  a parsed entry, but it does lose the review findings and the ledger. Re-seeding is NOT a routine
+  step: it declares every entry on disk unedited, so the next repass would replace curated entries
+  (their placement is carried, the rest is the re-parse's). Seed only after the work dir was lost or
+  a new book was adopted (annual runbook step 9), and act on KEPT entries with `--replace-entry`.

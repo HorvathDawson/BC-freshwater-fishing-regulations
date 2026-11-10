@@ -22,8 +22,14 @@ And one guard, because a re-parse replaces an entry wholesale and there is no `l
   entry already on disk, ingest compares the file's copy with the ledger. If they differ — a
   curator bound a reach, added a tributary exclude, or anything else since the parse — or the
   ledger has no record of it, the entry is KEPT and reported, and nothing about it is written.
-  `--replace-edited` overrides that after you have read the report (the curated files are in
-  git, so `git diff` shows what the replace changed).
+  `--replace-entry <entry_id>` (repeatable) replaces ONE such entry after you have read the
+  report; `--replace-edited` replaces every one in the run (the curated files are in git, so
+  `git diff` shows what the replace changed). EITHER WAY THE CURATOR'S PLACEMENT IS CARRIED
+  (T553 item 4): the edited copy's entry-level placement and curation (`CARRIED_ENTRY_FIELDS`) and,
+  for every rule / licensing record whose id AND quote are unchanged, its placement fields
+  (`fingerprint.PLACEMENT_FIELDS`: extents, tributary scope and excludes, undrawn part, side …)
+  are kept on the re-parsed entry, and every one that could not be carried is listed.
+  `--no-carry` replaces whole.
 
   THE LEDGER IS SEEDED, NOT GROWN FROM NOTHING. With no `ingested.json` every entry is one "the
   ledger never saw", so the first repass would keep all of them. `--seed-ledger` records every
@@ -228,10 +234,60 @@ def seed_ledger(out_dir: Path, ledger: Path) -> int:
     return len(record)
 
 
+#: The entry's own fields a curator sets that the parser never does (or that a curator corrects):
+#: where the entry lands, and what the book states about its water but lists nowhere.
+CARRIED_ENTRY_FIELDS = ("extents", "includes_tributaries", "tidal", "anadromous_rainbow", "scope_note")
+
+
+def carry_curation(on_disk: dict, new: CatalogueEntry) -> tuple[CatalogueEntry, list[str]]:
+    """`new` (a re-parse) with the curated placement of `on_disk` (the edited copy) carried onto it.
+
+    Entry level: `CARRIED_ENTRY_FIELDS`, the disk copy's value (or its absence). Per record: a rule
+    (by `rule_id`) or licensing record (by `id`) whose quote is unchanged (squashed) takes the disk
+    copy's `PLACEMENT_FIELDS` — it is the same statement, so where the curator put it still holds.
+    A record whose quote changed, or that the re-parse dropped, carries nothing: it is named in the
+    returned notes, for the curator to place again. The result is re-validated whole."""
+    from pipeline.regs.review.fingerprint import PLACEMENT_FIELDS
+    nd = dump_entry(new)
+    notes: list[str] = []
+    for f in CARRIED_ENTRY_FIELDS:
+        if nd.get(f) != on_disk.get(f):
+            notes.append(f"carried entry {f}")
+        if f in on_disk:
+            nd[f] = on_disk[f]
+        else:
+            nd.pop(f, None)
+    for group, key in (("rules", "rule_id"), ("licensing", "id")):
+        old = {r.get(key): r for r in on_disk.get(group) or []}
+        seen = set()
+        for rec in nd.get(group) or []:
+            was = old.get(rec.get(key))
+            if was is None or squash(was.get("verbatim") or "") != squash(rec.get("verbatim") or ""):
+                continue
+            seen.add(rec.get(key))
+            moved = sorted(f for f in PLACEMENT_FIELDS if rec.get(f) != was.get(f))
+            for f in PLACEMENT_FIELDS:
+                if f in was:
+                    rec[f] = was[f]
+                else:
+                    rec.pop(f, None)
+            if moved:
+                notes.append(f"carried {rec.get(key)}: {', '.join(moved)}")
+        for k, was in old.items():
+            if k not in seen and any(f in was for f in PLACEMENT_FIELDS):
+                notes.append(f"NOT carried {k}: its quote changed or the re-parse dropped it — place it again")
+    return CatalogueEntry.model_validate(nd), notes
+
+
 def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = False, *,
-          ledger: Path, replace_edited: bool = False) -> tuple[dict[str, int], list[str]]:
+          ledger: Path, replace_edited: bool = False, replace_ids: frozenset = frozenset(),
+          carry: bool = True, report: list | None = None) -> tuple[dict[str, int], list[str]]:
     """Merge into region files by the entry's own `region`, replacing an entry of the same id —
     unless the copy on disk is not the one ingest last wrote (see the module docstring).
+
+    An edited entry is replaced only when `replace_edited` or its id is in `replace_ids`, and then
+    with its curation carried (`carry_curation`) unless `carry` is False. `report` collects one
+    line per such replace (what was carried, what could not be).
 
     Returns ({file name: entries written}, [entry ids KEPT because they were edited])."""
     record = _read_ledger(ledger)
@@ -245,12 +301,20 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
         path = out_dir / f"region-{region}.json"
         merged: dict[str, object] = dict(io.read_entryfile(path, missing_ok=True))   # file order; may create it
         n = 0
-        for e in entries:
+        for i, e in enumerate(entries):
             on_disk = merged.get(e.entry_id)
-            if on_disk is not None and not replace_edited \
-                    and record.get(e.entry_id) != digest(on_disk):
-                kept.append(e.entry_id)
-                continue
+            if on_disk is not None and record.get(e.entry_id) != digest(on_disk):
+                if not (replace_edited or e.entry_id in replace_ids):
+                    kept.append(e.entry_id)
+                    continue
+                if carry:
+                    e, notes = carry_curation(on_disk, e)
+                    entries[i] = e
+                    if report is not None:
+                        report.append(f"REPLACED {e.entry_id} (edited)"
+                                      + "".join(f"\n    {x}" for x in notes))
+                elif report is not None:
+                    report.append(f"REPLACED {e.entry_id} (edited) WHOLE — nothing carried (--no-carry)")
             merged[e.entry_id] = e
             n += 1
         # write_entryfile validates the WHOLE file as written — a duplicate entry_id or a
@@ -268,7 +332,7 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
 
 def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
         dry_run: bool = False, ledger: Path | None = None, replace_edited: bool = False,
-        rows_path: Path | None = None) -> int:
+        rows_path: Path | None = None, replace_ids: frozenset = frozenset(), carry: bool = True) -> int:
     drift = check_rows_digest(batch_paths, rows_path)
     if drift:
         print(f"FAIL {drift}\nnothing ingested")
@@ -289,8 +353,15 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
     for m in missing:
         print(f"FAIL {m}: no response row — the model never returned it (not rejected: never seen)")
 
+    unknown = sorted(set(replace_ids) - set(accepted))
+    for u in unknown:
+        print(f"FAIL --replace-entry {u}: not an accepted entry of this run — nothing to replace it with")
+    report: list[str] = []
     written, kept = write(accepted, Path(out_dir), dry_run=dry_run,
-                          ledger=ledger or default_ledger(), replace_edited=replace_edited)
+                          ledger=ledger or default_ledger(), replace_edited=replace_edited,
+                          replace_ids=frozenset(replace_ids), carry=carry, report=report)
+    for line in report:
+        print(line)
     rejected = len(candidates) - len(accepted)
     print(f"\n{len(accepted)}/{len(candidates)} entries accepted"
           + (f", {rejected} rejected" if rejected else "")
@@ -304,8 +375,9 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
               f"applied:")
         for eid in kept:
             print(f"  {eid}")
-        print("  Compare each with its response; re-run with --replace-edited to overwrite them.")
-    return 1 if (rejected or kept or missing or dupes) else 0
+        print("  Compare each with its response; re-run with --replace-entry <id> (one entry; its placement is "
+              "carried) or --replace-edited (all of them).")
+    return 1 if (rejected or kept or missing or dupes or unknown) else 0
 
 
 def main() -> None:
@@ -326,8 +398,12 @@ def main() -> None:
     ap.add_argument("--ledger", type=Path, default=None,
                     help="what ingest last wrote, per entry (default: <work dir>/ingested.json)")
     ap.add_argument("--replace-edited", action="store_true",
-                    help="replace entries even where the curated copy differs from what ingest "
-                    "last wrote — overwrites curator edits; read the KEPT report first")
+                    help="replace EVERY entry whose curated copy differs from what ingest last wrote "
+                    "(placement carried unless --no-carry); read the KEPT report first")
+    ap.add_argument("--replace-entry", action="append", default=[], metavar="ENTRY_ID",
+                    help="replace this one edited entry (repeatable); its curated placement is carried")
+    ap.add_argument("--no-carry", action="store_true",
+                    help="with --replace-entry/--replace-edited: replace whole, carrying no curation")
     ap.add_argument("--seed-ledger", action="store_true",
                     help="record every entry now in --out as ingest's own write (see the module "
                     "docstring), and ingest nothing")
@@ -341,7 +417,8 @@ def main() -> None:
     if not (a.batch and a.response):
         ap.error("--batch and --response are required (or --seed-ledger)")
     sys.exit(run(a.batch, a.response, a.out, dry_run=a.dry_run, ledger=a.ledger,
-                 replace_edited=a.replace_edited, rows_path=a.rows))
+                 replace_edited=a.replace_edited, rows_path=a.rows,
+                 replace_ids=frozenset(a.replace_entry), carry=not a.no_carry))
 
 
 if __name__ == "__main__":

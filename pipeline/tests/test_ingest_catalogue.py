@@ -314,8 +314,8 @@ def test_a_reparse_keeps_an_entry_a_curator_edited(tmp_path):
     written, kept = write(second, out, ledger=ledger)
     assert kept == ["r3:tranquille@3-29"] and written == {"region-3.json": 0}
     assert _on_disk(out)[0]["rules"][0]["extents"][0]["within_area"] == "area:region:3"
-    # …and only an explicit override replaces it
-    _, kept = write(second, out, ledger=ledger, replace_edited=True)
+    # …and only an explicit override replaces it; --no-carry replaces it whole
+    _, kept = write(second, out, ledger=ledger, replace_edited=True, carry=False)
     assert kept == []
     assert "within_area" not in _on_disk(out)[0]["rules"][0]["extents"][0]
 
@@ -416,3 +416,37 @@ def test_rows_digest_is_read_and_drift_refuses_the_ingest(tmp_path):
     out = tmp_path / "out"
     assert run([batch("b4.json", "0" * 64)], [], str(out), rows_path=rows, ledger=tmp_path / "l.json") == 1
     assert not out.exists()
+
+
+def test_replace_entry_replaces_one_edited_entry_and_carries_its_placement(tmp_path):
+    """T553 item 4. The guard was all-or-nothing (`--replace-edited` for every entry in the run), and a replace threw
+    away the curator's placement — fields the parser never writes. `replace_ids` names one entry; a rule whose quote
+    is unchanged keeps the disk copy's placement, the entry keeps its curated fields, and what cannot be carried (a
+    rule whose quote changed) is named."""
+    ledger = tmp_path / "ingested.json"
+    out, first = _ingest_once(tmp_path)
+    write(first, out, ledger=ledger)
+    doc = json.loads((out / "region-3.json").read_text())
+    curated = [{"op": "whole", "within_area": "area:region:3"}]
+    EXCL = [{"op": "whole", "item_id": "gnis:21681", "walk_past": True}]
+    doc["entries"][0]["rules"][0]["extents"] = curated
+    doc["entries"][0]["rules"][0]["tributary_excludes"] = EXCL
+    doc["entries"][0]["anadromous_rainbow"] = True
+    (out / "region-3.json").write_text(json.dumps(doc))              # the curator's edit
+    _, second = _ingest_once(tmp_path)
+    _, kept = write(second, out, ledger=ledger, replace_ids=frozenset({"some:other@1-1"}))
+    assert kept == ["r3:tranquille@3-29"]                            # naming another entry replaces nothing
+    report: list[str] = []
+    written, kept = write(second, out, ledger=ledger, replace_ids=frozenset({"r3:tranquille@3-29"}), report=report)
+    assert kept == [] and written == {"region-3.json": 1}
+    disk = _on_disk(out)[0]
+    assert disk["rules"][0]["extents"] == curated and disk["rules"][0]["tributary_excludes"] == EXCL
+    assert disk["anadromous_rainbow"] is True
+    assert "carried t.r1" in report[0] and "carried entry anadromous_rainbow" in report[0]
+    # a rule whose quote changed carries nothing and is named
+    from pipeline.regs.parsing.ingest_catalogue import carry_curation
+    _, third = _ingest_once(tmp_path, rules=[{"rule_id": "t.r1", "type": "bait_restriction", "verbatim": "Bait ban.",
+                                              "gear": [{"slot": "bait", "ban": ["any_bait"]}]}])
+    got, notes = carry_curation(disk, third["r3:tranquille@3-29"])
+    assert got.rules[0].extents != curated and not got.rules[0].tributary_excludes
+    assert any(n.startswith("NOT carried t.r1") for n in notes)
