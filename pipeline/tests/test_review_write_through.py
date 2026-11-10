@@ -611,3 +611,46 @@ def test_only_ponds_are_closed_in_the_curated_list():
     assert set(got) == {"ponds", "proposals"} and got["ponds"]["scopes"] == ["q154"] and got["ponds"]["final"] is None
     assert got["proposals"]["scopes"] == ["proposal"] and got["proposals"]["final"] is None   # T331 item 6
     assert C.path() == Path(CURATED.review.marks).parent / "closed.json"
+
+
+# --------------------------------------------------------------------------- T587: a grouping decision, there and back
+
+def _grouping(target: str, **which) -> M.Mark:
+    return M.Mark.model_validate({
+        "scope": "dfo", "target": target, "verdict": "verified", "answers": {"T": "y"}, "reviewer": "dawson",
+        "date": "2026-11-10", "pdf_sha256": SHA, **which,
+        "prints": {"text": "t", "records": [{"key": "entry", "meaning": "m", "binding": "b"}]}})
+
+
+def test_taking_a_wording_out_of_its_group_and_adding_it_back_lands_both_ways(wt):
+    """T587 (T532 rounds 5–6): "not the same place" then "same place as…" through the write-through the owner's server
+    runs — the background DFO apply, one commit per decision. The link leaves the places file, then returns, and the
+    file ends byte-equal to where it started."""
+    f = wt["repo"] / "data/curated/dfo_salmon/region-1.json"
+    doc = json.loads(f.read_text())
+    base = next(x for x in doc["locations"] if x["location_id"] == COWICHAN)
+    other = COWICHAN + "~9"
+    doc["locations"].append({**base, "location_id": other, "duplicate_of": COWICHAN, "duplicate_confirmed": True})
+    f.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+    _git(wt["repo"], "commit", "-qm", "an older wording, linked", "--", str(f))
+    start, commits = f.read_bytes(), len(_git(wt["repo"], "log", "--format=%s").splitlines())
+    link = lambda: {k: next(x for x in json.loads(f.read_text())["locations"] if x["location_id"] == other).get(k)  # noqa: E731
+                    for k in ("duplicate_of", "duplicate_confirmed")}
+
+    r = _post_built(wt, _grouping(other, not_variant_of=COWICHAN), not_variant_of=COWICHAN, verdict="verified")
+    assert r.status_code == 200, r.text
+    assert wt["WT"].wait_idle(30)
+    st = wt["client"].get("/api/review/write-through").json()
+    assert st["outcomes"][f"dfo|{other}|"]["state"] == "saved", st["outcomes"]
+    assert link() == {"duplicate_of": None, "duplicate_confirmed": False}, "taken out: the link is gone from the file"
+    assert len(_git(wt["repo"], "log", "--format=%s").splitlines()) == commits + 1
+    assert f.read_bytes() != start
+
+    r = _post_built(wt, _grouping(other, variant_of=COWICHAN), variant_of=COWICHAN, verdict="verified")
+    assert r.status_code == 200, r.text
+    assert wt["WT"].wait_idle(30)
+    st = wt["client"].get("/api/review/write-through").json()
+    assert st["outcomes"][f"dfo|{other}|"]["state"] == "saved", st["outcomes"]
+    assert link() == {"duplicate_of": COWICHAN, "duplicate_confirmed": True}, "added back: the link returns"
+    assert len(_git(wt["repo"], "log", "--format=%s").splitlines()) == commits + 2
+    assert f.read_bytes() == start, "there and back leaves the file as it was"
