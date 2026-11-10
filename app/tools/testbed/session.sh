@@ -95,8 +95,9 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
   CHANNEL=test
   # --local: the emulator's name for this machine, and no update channel (the test channel is staging's `test/` prefix)
   if [[ $ENV == local ]]; then export EXPO_PUBLIC_DATA_BASE=http://10.0.2.2:39217; CHANNEL=; fi
+  source "$ROOT/app/tools/testbed/lib/test-tag.sh"   # (T595) every test-bed build is tagged `test`
   t0=$(date +%s)
-  ( cd android && EXPO_PUBLIC_APP_ENV=$ENV EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=$CHANNEL EXPO_PUBLIC_PAN_PROBE=${TESTBED_PROBE:-1} EXPO_PUBLIC_TEST_REPORTS=1 EXPO_PUBLIC_MAP_LAB=1 \
+  ( cd android && EXPO_PUBLIC_APP_ENV=$ENV EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=$CHANNEL EXPO_PUBLIC_PAN_PROBE=${TESTBED_PROBE:-1} EXPO_PUBLIC_MAP_LAB=1 \
       ./gradlew app:assembleRelease --max-workers=4 -PreactNativeArchitectures=arm64-v8a -x lint ) >"$OUT/gradle.log" 2>&1 \
     || { log "gradle failed (out/gradle.log)"; tail -30 "$OUT/gradle.log"; exit 1; }
   cp android/app/build/outputs/apk/release/app-release.apk "$APK"

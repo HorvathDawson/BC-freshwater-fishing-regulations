@@ -21,9 +21,11 @@ export EXPO_PUBLIC_MAP_LAB=1   # (T420) the map lab (staging only)
 export EXPO_PUBLIC_APP_ENV=staging EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_CONTACT=${EXPO_PUBLIC_CONTACT:-support@canifishthis.ca}
 # (T313) --probes: the test bed's measuring switches only ([pan] [open] [stall] [target] [heap] in the log), on the live
 # channel; (T362) its crash and problem reports tagged `test` (the crash scenario crashes it on purpose)
-if [[ " $* " == *" --probes "* ]]; then export EXPO_PUBLIC_PAN_PROBE=1 EXPO_PUBLIC_TEST_REPORTS=1; fi
+# (T595) a simulator build is never the owner's or a store's: ALWAYS tagged `test`, whatever the flags (one place)
+source "$REPO/app/tools/testbed/lib/test-tag.sh"
+if [[ " $* " == *" --probes "* ]]; then export EXPO_PUBLIC_PAN_PROBE=1; fi
 if [[ " $* " == *" --testbed "* ]]; then
-  export EXPO_PUBLIC_UPDATE_CHANNEL=test EXPO_PUBLIC_PAN_PROBE=1 EXPO_PUBLIC_TEST_REPORTS=1
+  export EXPO_PUBLIC_UPDATE_CHANNEL=test EXPO_PUBLIC_PAN_PROBE=1
 fi
 M=app/apps/mobile
 SHA_FULL=$(git rev-parse HEAD)
