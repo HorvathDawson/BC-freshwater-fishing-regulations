@@ -1,6 +1,6 @@
 # T599 — Study: one structure for the pipeline's outputs, side files and intermediates (Zarr or other)
 
-Status: DONE
+Status: DONE — a9587aabc
 
 Source: owner 2026-11-10: "if we should restructure the data outputs and side cars and intermediates etc to all live in
 a nicely structured ZAR or similar maybe? We should see if it makes sense. Would it give us benefit … other options
