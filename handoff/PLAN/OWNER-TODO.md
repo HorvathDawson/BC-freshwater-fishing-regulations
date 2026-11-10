@@ -6,11 +6,12 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **Review app: start the DFO reviews (T525 round 3, 2026-11-09).** Restart it (`bash curation-review/run.sh`). Save
-  the two Forks fixes (three arms: 100 m up the Morice, 100 m up the upper Bulkley, ~1 km down the lower Bulkley) and the
-  Chilliwack/Sumas ones (loc 54 now carries the same two-river proposal as wording 56). Your saved Chilliwack fix lands with
-  the next DFO save (the Barrow Town cut is built). A checklist-style redesign (each DFO claim one row, ✓/✗ on the map) is
-  being mocked up for you to approve.
+- **Review app: the checklist is ready (T532, 2026-11-09).** Restart it (`bash curation-review/run.sh`). DFO tab = DFO
+  places; Entries → "Extents checklist" = regulation extents (both together per water: 3,686 places on 1,374 waters).
+  One water at a time; each row ✓/?/✗ with its map pin; "All correct" or "Something's wrong" (→ change the extent).
+  Two small calls, defaults in use: (1) ✗ also flags "tributaries walked but the words don't say" and "a carve-out the
+  words never state" — default: keep ✗ (look at it), say "make those ?" otherwise; (2) a check saves on the place only, not
+  on its older rewordings (they are dormant) — default: yes.
 - **T531 (2026-11-09): species under their own calendar** (salmon under DFO, the rest under B.C. rules; legend text full
   contrast). Say OK and a mockup comes first.
 - **Q176 map line contrast (T470, 2026-11-09).** Industry standard (WCAG 3:1 for map lines) now holds in dark mode
