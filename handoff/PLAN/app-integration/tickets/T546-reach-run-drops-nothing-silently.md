@@ -1,6 +1,6 @@
 # T546 — Reach run: a curated id, scope or closure piece that cannot be placed stops the run or is counted by the release check
 
-Status: OPEN.
+Status: IN REVIEW — 3d19bf818, ff4864aec, bc745b149, 13b75473a, 1036ccd51, b90c57268, 461509f03. Items 1, 2, 3, 6, 7, 8 done; 4 and 5 in part (DFO tidal/owned and a gate on every unplaced reason are owner decisions). Proof: reach-only rerun 2026-11-10 against data/generated/atlas/full — rules digest unchanged (1a11ea11a5b3fb3e), binding diff vs live: 0 rules, 21 DFO places moved (curated DFO edits since the live run; Morice -11), 2 unplaced pieces + 1 partial override listed standing.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 2 of 17; highest severity 3 of 5.
 
