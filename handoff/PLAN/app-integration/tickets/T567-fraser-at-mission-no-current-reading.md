@@ -63,3 +63,8 @@ Depends: —. Size: S. Owner: no.
 - So the defects are: (1) on a forecast day the card shows today's reading in whatever quantity the gauge has, with
   nothing saying it is today's and not the day asked; (2) the lead gauge flips with the quantity because each
   quantity's forecast coverage differs; (3) the web app may simply have been on Now. Check the day chip first tomorrow.
+
+## Owner's rule 2026-11-09 (for the fix)
+"forecast days still need to show current day on the chart i think to make it easy for user to know." So on a forecast
+day the chart keeps today in view: the readings up to now, a marked "today", then the forecast out to the day asked
+(marked too). Today's figure stays on the card, labelled as today's; the day asked gets its own forecast figure.
