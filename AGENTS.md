@@ -250,8 +250,8 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
 36. **Read curated paths through `pipeline.common.curated.CURATED`, never as a literal.**
     `from pipeline.common.curated import CURATED` then `CURATED.waters.cuts`. The tree is pydantic-
     validated at first access, so a bad path fails naming the key instead of returning an
-    empty list four builds later. `ProjectConfig.get_path` returns `Path()` for a missing
-    key — silently the current directory — which is how a `--splits` flag with no default
+    empty list four builds later. `ProjectConfig.get_path` used to return `Path()` for a missing
+    key (it raises since T435) — silently the current directory — which is how a `--splits` flag with no default
     dropped all 376 curated cuts from three full builds with nothing looking wrong.
 
 36a. **Curated names (T324, owner 2026-11-05):** `*_calls.json` = the owner's per-item decisions, `*_waters.json` = a
@@ -343,7 +343,7 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     - **Review write-through refuses a big shrink** (`pipeline/regs/review/apply.py` SHRINK_LIMIT): a write that drops
       more than 10 rows from a curated file is refused. `--accept-shrink` is for a shrink the OWNER asked for, never to
       get a run through. Review loaders raise on a missing input.
-    - **Paths come from `config.yaml`** (CURATED / GENERATED / SOURCE, `pipeline/project_config.get_path`, which raises
+    - **Paths come from `config.yaml`** (CURATED / GENERATED / SOURCE, `project_config.py` (repo root) `get_path`, which raises
       on an unknown key): no literal `"data/..."` path in pipeline code (CI greps for it; tests are exempt).
     - **Review app API**: the route table in `curation-review/API.md` is generated (`python curation-review/api_routes.py
       --write`); a route added or removed regenerates it in the same commit. No "splits" domain (lake splits are

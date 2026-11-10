@@ -1,6 +1,7 @@
 # T508 — A water opened into its Map or Conditions view appears in one piece
 
-Status: IN REVIEW — f2428537b, 02364791a (+ testbed 49dd973d3); owner sees it on the next APK. Follow-up of T498. Part of T495 (smooth map).
+Status: IN REVIEW — f2428537b, 02364791a (+ testbed 49dd973d3), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Map / Conditions views open whole).
+Earlier: IN REVIEW — f2428537b, 02364791a (+ testbed 49dd973d3); owner sees it on the next APK. Follow-up of T498. Part of T495 (smooth map).
 
 T498 holds a water's Regulations pane hidden over the frozen browse map until it is drawn whole. The Conditions and Map
 views carry their own live MapLibre map and were left out: Search → Open on the Fraser lands on its Map view and shows

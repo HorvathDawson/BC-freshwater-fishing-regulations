@@ -1,6 +1,7 @@
 # T527 — Gauge alerts, stock-style: crosses above / below a value or a percentile for the day
 
-Status: IN REVIEW (build 22) — phone check on the APK (checklist below); worker unchanged
+Status: IN REVIEW — 402cf8b39, 1e1b56e3a, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (the checklist below); worker unchanged.
+Earlier: IN REVIEW (build 22) — phone check on the APK (checklist below); worker unchanged
 
 Owner 2026-11-09: "we want it to be a clean alerting system like you would have for stocks. also we want the percentile
 alert so percentile on the day (like it passes the median or the 75th percentile or whatever percentile …)".

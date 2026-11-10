@@ -1,6 +1,7 @@
 # T493 — A creek shows a gap where its small lake drops out zoomed out
 
-Status: IN REVIEW — slough fix `fill_zooms` (41bf8e309, 0031f1997) + side build + shots done; left: owner look at the shots, ships with the next tiles rebuild (on T497's atlas). Was: PARTIAL (reopened 2026-11-08) — owner phone: Nicomen / Camp Slough still gap; the 8494959a2 link covers lakes only. Owner 2026-11-07 (Foley Lake on Foley Creek).
+Status: IN REVIEW — 68b6d132d (8494959a2 was its worktree copy), 41bf8e309, 0031f1997; tiles shipped in r-6dce77a24e6a and r-d14bdb180f55; owner: OWNER-TODO "Phone check with build 22" (Foley Lake, Nicomen / Camp Slough zoomed out; `shots/T493-*.png`).
+Earlier: IN REVIEW — slough fix `fill_zooms` (41bf8e309, 0031f1997) + side build + shots done; left: owner look at the shots, ships with the next tiles rebuild (on T497's atlas). Was: PARTIAL (reopened 2026-11-08) — owner phone: Nicomen / Camp Slough still gap; the 8494959a2 link covers lakes only. Owner 2026-11-07 (Foley Lake on Foley Creek).
 
 Zoomed out, a small lake leaves the tiles before its creek does. The creek's line stops at the lake's shore and starts
 again on the far side, so the creek looks broken.

@@ -1,6 +1,7 @@
 # T487 — Share a gauge's conditions as a public page of its own (future)
 
-Status: IN REVIEW — built + on staging (df77c117f, 1554faf6d, 5f8eece82); proof pending: owner look at a page + a shared link's preview. Was OPEN — owner 2026-11-08: do it now (after T497). Owner 2026-11-07 (scope answered the same day).
+Status: IN REVIEW — df77c117f, 1554faf6d, 5f8eece82, on staging; owner: OWNER-TODO "Look at" (a staging /gauge page + a shared link's preview).
+Earlier: IN REVIEW — built + on staging (df77c117f, 1554faf6d, 5f8eece82); proof pending: owner look at a page + a shared link's preview. Was OPEN — owner 2026-11-08: do it now (after T497). Owner 2026-11-07 (scope answered the same day).
 
 Owner: a way to share the conditions for a river that creates a new page — a nice viewer of them, nicely shared, with a
 link back to the app.

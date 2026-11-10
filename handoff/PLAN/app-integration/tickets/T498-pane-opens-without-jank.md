@@ -1,6 +1,7 @@
 # T498 — The rules / conditions pane opens in one piece
 
-Status: IN REVIEW — b9103af33, 47299ccad (+ testbed c23affc58); owner sees it on the next APK. Owner 2026-11-08 (phone, 0.6.9). Part of T495 (smooth map).
+Status: IN REVIEW — b9103af33, 47299ccad (+ testbed c23affc58), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (a pane opens whole).
+Earlier: IN REVIEW — b9103af33, 47299ccad (+ testbed c23affc58); owner sees it on the next APK. Owner 2026-11-08 (phone, 0.6.9). Part of T495 (smooth map).
 
 Tapping a stream opens the pane in a janky, flickery way: the page shows, then its content loads in. Ideal: build the
 content first, then show the finished pane.

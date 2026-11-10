@@ -1,6 +1,7 @@
 # T501 — "Where you can't fish" in short lines
 
-Status: IN REVIEW — 657f6e244; ships with the next release (owner reads the two lines). Owner 2026-11-08 (phone, 0.6.9).
+Status: IN REVIEW — 657f6e244, in r-6dce77a24e6a + r-d14bdb180f55; owner: OWNER-TODO "Phone check with build 22" (the two "Where you can't fish" lines).
+Earlier: IN REVIEW — 657f6e244; ships with the next release (owner reads the two lines). Owner 2026-11-08 (phone, 0.6.9).
 
 Today: "No fishing: within 23 m (75 ft) downstream of the lower entrance to any fishway, canal, obstacle or leap ·
 Rule book p.9 ↗" and "No fishing: within a 100 m (330 ft) radius of any government facility operated for counting,

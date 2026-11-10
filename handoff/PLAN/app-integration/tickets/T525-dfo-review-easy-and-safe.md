@@ -1,6 +1,7 @@
 # T525 — The DFO review screen is easy to follow and hard to get wrong
 
-Status: IN REVIEW — owner restarts the review app and looks
+Status: IN REVIEW — 6dad1d118, 75b1d2834 (round 3); owner: OWNER-TODO "Review app: start the DFO reviews" (restart it and look).
+Earlier: IN REVIEW — owner restarts the review app and looks
 
 Owner 2026-11-09: "make app easier to review too right now the info is really hard to follow and extents already
 defined get lost when confirming vs redo. etc etc it is just hard to use right now and feels like i will make bad data".

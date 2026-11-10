@@ -66,9 +66,9 @@ The design prototype (`app/design/`) was deleted in T87 (2026-10-28); git keeps 
 
 ## Gates (`pnpm check`, the order is `package.json` `scripts.check`)
 
-tickets → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → gauge-policy / calendar / fish / answers / pack
+tickets → boundaries → platform (pairs complete; no inline `Platform.OS` / `typeof window` outside `INLINE_ALLOWED`, README "Web and native code") → style → colours → spinner → splash → gauge-policy / calendar / fish / answers / pack
 (generated files current) → deps → **knip** (no unused file, export or dependency; allowances with reasons in
-`knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → test (vitest: packages, conformance, `tools/*.test.ts`).
+`knip.jsonc`) → typecheck (`tsc -b`, `noUnusedLocals`) → typecheck:seo → promises → test (vitest: packages, conformance, `tools/*.test.ts`).
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk, or when the release
 is not the one `taps.json` was cut from; `scripts/test-full.sh` (Tier 2) runs its app step with it set (T432), and a plain
 `pnpm check` does not. `tools/no-silent-skips.test.ts` counts every app skip site against its allowlist. `tools/vintage-pins.test.ts` refuses an id literal a new release would move.

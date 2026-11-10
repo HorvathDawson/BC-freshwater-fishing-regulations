@@ -21,7 +21,7 @@ with the default Claude uses until you answer). Newest first inside each section
   try it. Shots: `tickets/shots/T470-wcag-*.png`.
 - **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
   `CONFIRM_PROD=r-d14bdb180f55 python -m pipeline release --prod r-d14bdb180f55` (or the newer release by then).
-- **Phone check with build 22 (Play internal), ~5 min — T401 edge pop-in + T448 pixel cap (2026-11-08).** Build 22 carries
+- **Phone check with build 22 (Play internal), ~15 min — T401 edge pop-in, T448 pixel cap, crashes, then the build-22 tickets (2026-11-09).** Build 22 carries
   the lean MapLibre patch, the pixel cap at 2 and MapLibre's own prefetch (4). Use the **Map tab**, Regulations view.
   1. **T401, Fraser Valley z11 (around Chilliwack), then Coquitlam z13:** 3–4 quick flings one way, then back. Look at
      the screen EDGES during the glide: do small creeks appear late (bare big rivers first, creeks popping in)? Say
@@ -31,6 +31,20 @@ with the default Claude uses until you answer). Newest first inside each section
      fewer pixels)? Then © chip → *Pixel cap 2* OFF → same pans: sharper? smoother or laggier? Say which you keep.
   3. **T351/T360:** after ~10 min of use (map, a water page, the rule book, Conditions), any crash or freeze? Nothing to
      open; a crash reports itself.
+  4. **The build-22 tickets (each IN REVIEW until you say "fine" or what is wrong; ~10 min):**
+     - Map: main map smooth on the Pixel (T512); Foley Lake and Nicomen / Camp Slough zoomed out draw no gap (T493).
+     - A water's pane: opens whole, no load-in, in Regulations, Conditions and Map (T498, T508); its Map tab left open on
+       the lowest Fraser stretch does not flicker (T499).
+     - Fraser: parts named by their own ends (T509, T517); its exit reads the sea, not Morey Channel (T519); an in-season
+       notice says "Where: …" and outlines only its sections (Fraser part 2; T518/T520).
+     - Regulations page: release / closed show only the word + ⓘ (T500); "Where you can't fish" in two short lines
+       (T501); no repeat of the table under the salmon rows (T502); Vedder salmon section folded into the species rows
+       (T482).
+     - Conditions: sources and notes at the bottom (T506). Gauge alerts: the checklist in T527.
+     - The walkthrough: Falls and dams, spot creation, the closed-all-year example (T466).
+- **Look at (no phone needed, 2026-11-09):** `tickets/shots/T488-applied.png` (park borders, light) · `tickets/shots/T520-*.png`
+  (in-season ends) · `tickets/shots/T510-moved.md` (Strawberry / Widgeon lose night + steelhead closures: OK?) · a staging
+  gauge page (https://staging.canifishthis.ca/gauges) and the preview card when you share its link (T487, T511).
 
 - **ANSWERED 11-05:** T260 switches = ink fill; CF token kept until prod (T404); Apple install id declared as Device ID
   (not linked); Heber: carry ignores whitespace-only changes; audits T333–T335 scoped (all areas, report + fix tickets,
@@ -277,9 +291,9 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   beside the old one, and for two months watch Pages > Not found (404) and Redirect error (the 19,331 old `/waterbody/` URLs
   should show as Page with redirect). Deploy the generated `_worker.js` with `run_worker_first = ["/waterbody/*"]` (T86 hosting).
 
-- **T371 (batch 7): Play Closed testing for 0.5.0.** In the Play Console: create the Closed testing track and a tester
+- **T371 (batch 7): Play Closed testing (the build is T495's gated production build; 0.5.0 originally).** In the Play Console: create the Closed testing track and a tester
   list (at least 12 people who will opt in and stay for 14 days), fill the app-content forms (Claude drafts the data
-  safety answers and listing text). Then roll 0.5.0 out there; that starts Google's clock for production access.
+  safety answers and listing text). Then roll that build out there; that starts Google's clock for production access.
   Drafts ready (2026-11-04): `play/data-safety.md` and `play/listing.md`. Confirm the items marked OWNER: install id
   means Device IDs = Yes; the report's map centre counts as approximate location; App interactions is new; Open-Meteo
   and Esri sharing (you decided these 10-29); the app name ("Can I Fish?" or "Can I Fish This?"); whether to round

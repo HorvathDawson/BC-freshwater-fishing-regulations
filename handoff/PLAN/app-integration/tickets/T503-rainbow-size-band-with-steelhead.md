@@ -1,6 +1,7 @@
 # T503 — Rainbow size says the band (30–50 cm) where steelhead rules apply too
 
-Status: IN REVIEW — 2477ab293; ships with the next release. Owner 2026-11-08 (phone).
+Status: DONE — 2477ab293; proved by `test_answers_r20i.py` / `test_answers_t475_quota_wording.py` (the band wording) and the releases built from it (r-6dce77a24e6a, r-d14bdb180f55).
+Earlier: IN REVIEW — 2477ab293; ships with the next release. Owner 2026-11-08 (phone).
 
 The trout row reads "Up to 2 rainbow trout · 30 cm (12 in) or longer · release any shorter". Where the water also has
 steelhead rules (a rainbow over 50 cm is a steelhead), that reads as if any rainbow over 30 cm may be kept. Say the band:

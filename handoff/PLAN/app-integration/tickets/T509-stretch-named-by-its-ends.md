@@ -1,6 +1,7 @@
 # T509 — The Fraser's lowest part reads "2 stretches · stretch 1 of 2": name a stretch by its own ends
 
-Status: IN REVIEW — 48710b7cb, ed962781d (owner "Ends only"); the 114 bare names are done by T517 (one part per run: 0 bare names on its side release r-d62af06225a2), which replaces `stretchEnds`; owner sees it with T517.
+Status: IN REVIEW — 48710b7cb, ed962781d, b569fb5e2 + T517, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Fraser parts named by their ends).
+Earlier: IN REVIEW — 48710b7cb, ed962781d (owner "Ends only"); the 114 bare names are done by T517 (one part per run: 0 bare names on its side release r-d62af06225a2), which replaces `stretchEnds`; owner sees it with T517.
 
 Owner 2026-11-08 (r-6dce77a24e6a, shot `shots/T499-before.png` left): the Fraser's Map view, lowest part, reads
 "PART 1 OF 19 · FRASER RIVER / 2 stretches · stretch 1 of 2". Weird for the lowest part.

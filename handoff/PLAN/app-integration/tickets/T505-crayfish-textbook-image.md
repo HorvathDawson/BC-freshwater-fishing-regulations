@@ -1,6 +1,7 @@
 # T505 — A crayfish picture in the same textbook look
 
-Status: IN REVIEW — 17ec1d9b0; owner approved the picture 2026-11-08 ("The Cray fish is good"); in the app from the next build.
+Status: DONE — 17ec1d9b0; owner approved the picture 2026-11-08; in build 22 (3d807829d).
+Earlier: IN REVIEW — 17ec1d9b0; owner approved the picture 2026-11-08 ("The Cray fish is good"); in the app from the next build.
 
 The fish pictures share one textbook (scientific illustration) look; the crayfish does not match. Find a crayfish
 (signal crayfish, Pacifastacus leniusculus — B.C.'s native one) illustration in the same style, with a licence that allows

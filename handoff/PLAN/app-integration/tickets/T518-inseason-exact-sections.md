@@ -1,6 +1,7 @@
 # T518 — An in-season notice shows on exactly the sections it covers, not its whole part
 
-Status: IN REVIEW — carried by T520 (ece44d1f3, 46ce5a22d, fd09e65af): banner says "Where: <ends>", the water map outlines exactly the covered sections; shots/T520-*.png light + dark (Fraser part 2, Pitt part 0). Proof pending: the next APK.
+Status: IN REVIEW — carried by T520 (ece44d1f3, 46ce5a22d, fd09e65af), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (a notice's "Where:" + map outline, Fraser part 2).
+Earlier: IN REVIEW — carried by T520 (ece44d1f3, 46ce5a22d, fd09e65af): banner says "Where: <ends>", the water map outlines exactly the covered sections; shots/T520-*.png light + dark (Fraser part 2, Pitt part 0). Proof pending: the next APK.
 
 Owner 2026-11-08: "Shouldnt we make it only go on the parts it covers?" (5 notices end partway through a part, e.g. the
 Fraser part 2 notice covers 25 of 28 sections; today the page shows the banner flagged "on part of this stretch").

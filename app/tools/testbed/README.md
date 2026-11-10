@@ -7,6 +7,8 @@ and recorded; the report is `out/runs/<stamp>/index.html` (plus `report.md`, `re
 
 ## Scenarios
 
+The main ones below; every scenario (perf, pan, gesture and pane probes too) is in `scenarios/index.mjs`, in run order.
+
 | id | what it proves |
 |---|---|
 | `install` | a clean app downloads the whole release on Wi-Fi and opens the map; every source checked on start |
@@ -17,7 +19,6 @@ and recorded; the report is `out/runs/<stamp>/index.html` (plus `report.md`, `re
 | `report` | Report a problem offline → "saved on this device"; survives a restart; flushed on reconnect; the staging feeds worker holds it (`GET /reports`, read only) |
 | `near-cold` | (T264) ten cold starts (offline/online alternating), a town tapped FIRST: its waters are listed every time and no failed near read is logged (`NEAR_COLD_RUNS=n`) |
 | `part-steps` | (T411) Coquitlam → Map → ▼ to Part 1 → ▲ once: no section of the water drawn by the water copy AND the atlas at once (`[copydraw]`); each kept section's `copy_until` in `T411-copy-log.txt` (`STEPS_VIA=tap` for the map-tap way in) |
-
 | `photo-zoom` | (T454) a spot with two photos: the viewer double-tap zooms in, a drag pans, a sideways swipe while zoomed keeps the photo, a pinch zooms, double-tap returns to the fit, a swipe at the fit changes the photo; screenshots + a 30 s recording in `out/t454/` |
 | `crash-bed` | (T242) an unhandled promise rejection, an uncaught JS error (fatal: kept, sent at the next start, its exit record not sent again) and a native crash (SIGSEGV via `adb root`, Android's CRASH_NATIVE record) each reach the feeds worker's OWN `POST /crash` handler, run locally by `crash-stub/server.mjs` over an in-memory bucket. Needs `session.sh --crash-stub`; run with `run.mjs --no-r2`. Nothing goes to staging |
 
@@ -30,12 +31,14 @@ test/ already names the live release and stops if not (T442: a stale test/ names
 `install` runs first and leaves the app holding the current staging release; the others build on it (none clears the
 app again: a fresh install is ~500 MB).
 
-## Last run (2026-10-29, all six scenarios)
+## Last run (2026-11-09, build 22 code, r-d14bdb180f55 on the test channel)
 
-`handoff/PLAN/app-integration/T255-shots/run-final/index.html` (report + shots). install FAIL (T262: the first install
-dies of OutOfMemoryError, crash-loops, resumes), feeds PASS, big-update FAIL on two steps (bell: T263; Wi-Fi return
-does not start the held download: T265 — "Check now" does), offline PASS, spots PASS, report PASS. A step tagged with
-a ticket is a known app gap: it turns green when that ticket lands.
+Reports under `out/runs/` (gitignored, `index.html` + `report.md` each): `2026-11-09T22-54-43` install PASS 4/4 (first
+run downloaded and up in 84 s), offline 13/15 (the two flow steps "Check now offline" / "slow line"); after the flow fix
+(e816e82f3) `2026-11-09T23-09-33` offline PASS 15/15, feeds 7/8 (Retry step: the app had re-checked on its own, so no
+Retry button was left); with that step accepting the re-check (`scenarios/feeds.mjs`), `2026-11-09T23-57-09` feeds PASS 7/7. Not rerun since
+2026-10-29: big-update, spots, report. A step tagged with a ticket is a known app gap: it turns green when that ticket
+lands.
 
 ## Run it locally
 

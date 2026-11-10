@@ -1,6 +1,7 @@
 # T466 — Walkthrough follow-ups from the owner's 0.6.8 phone check
 
-Status: IN REVIEW — bc938e624 (owner phone check; the new steps' words are Claude's draft)
+Status: IN REVIEW — 5c9ddce42 (bc938e624 was its worktree copy), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (the walkthrough).
+Earlier: IN REVIEW — bc938e624 (owner phone check; the new steps' words are Claude's draft)
 
 Owner: "the walkthrough generally is pretty good but for dams and obstacles it never scrolled down on the menu to show
 it, and the spots tutorial seemed rushed or didn't really show how to create a spot. Also how would it work when salmon

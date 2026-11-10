@@ -1,7 +1,7 @@
 # T371 — 0.5.0 to Play CLOSED testing (start the clock for a production release)
 
-Status: IN PROGRESS — 2026-11-05: the build to promote is now **0.6.2, versionCode 11** (on internal since 11-05), not 0.5.0; promote after 2–3 clean internal days. Drafts re-checked 11-05: data-safety current; the Apple/store privacy draft caught up (T244). — the Claude drafts are done (data-safety + listing, 2026-11-04). The Console steps are the owner's. Batch 7 of RELEASE-PLAN-0.5.0 (owner 2026-11-03: "release 0.5.0 to closed testing from internal testing so
-we can start getting requirements for google play release").
+Status: IN PROGRESS — Claude's drafts done (play/data-safety.md, play/listing.md); owner: the Play Console steps (OWNER-TODO "T371"). The build to promote is T495's gated production build; build 22 (0.7.0, staging) is the newest internal one (2026-11-09).
+Earlier: IN PROGRESS — 2026-11-05: the build to promote is now **0.6.2, versionCode 11** (on internal since 11-05), not 0.5.0; promote after 2–3 clean internal days. Drafts re-checked 11-05: data-safety current; the Apple/store privacy draft caught up (T244). — the Claude drafts are done (data-safety + listing, 2026-11-04). The Console steps are the owner's. Batch 7 of RELEASE-PLAN-0.5.0 (owner 2026-11-03: "release 0.5.0 to closed testing from internal testing so we can start getting requirements for google play release").
 
 ## Why
 Production access on Google Play for a PERSONAL developer account (created after Nov 2023) needs a closed test first:

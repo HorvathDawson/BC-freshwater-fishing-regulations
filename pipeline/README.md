@@ -60,9 +60,9 @@ What needs which stages: a rule edit (curated regulations) → reach + deliver; 
 that step on; a registry name (atlas sidecar) → reach + deliver; tile labels → `--labels`. `--force deliver`
 runs every step afresh (`deliver all --no-step-cache`).
 
-**Release builds run with `--no-step-cache`** (`pipeline build --force deliver`) until the step cache's read set is
-proved complete on every run (T522: the bundle's recorded read count varied between runs on the same inputs). The
-step cache is for iteration.
+`pipeline release` builds WITH the step cache (`build --hold-latest`, `pipeline/release.py` `build_cmd`): the bundle's
+varying read count was the import system's reads, fixed in 30d36b7e8 (T522: same reads on identical inputs). To rule
+the cache out, `python -m pipeline build --force deliver --hold-latest` runs every delivery step afresh.
 
 ## Review marks → curated files (T266, T408)
 

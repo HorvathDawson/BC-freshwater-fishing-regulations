@@ -1,6 +1,7 @@
 # T529 — /changes compares a water's rules, not its parts (staging site is down until this lands)
 
-Status: OPEN — ship-blocker for the staging site (do first)
+Status: IN REVIEW — 6dd5ff5e8; staging site serves 0.7.0 (site_gate ok, 2026-11-09); left (Claude): the site smoke + `release --staging --min-app-version 0.7.0` rerun.
+Earlier: OPEN — ship-blocker for the staging site (do first)
 
 ## What broke (2026-11-09)
 - Release r-d14bdb180f55 (LATEST, on staging, `minAppVersion 0.7.0`) carries T517's new parts and names (water/3,

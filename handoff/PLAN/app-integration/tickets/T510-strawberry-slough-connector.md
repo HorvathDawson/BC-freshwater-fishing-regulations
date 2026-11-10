@@ -1,6 +1,7 @@
 # T510 — A channel joining the Fraser to Strawberry Slough is filed under the Fraser
 
-Status: OPEN — rule A c4ce4b8b4; side build done (T517 side release r-d62af06225a2): exactly the 13 connector sections + 2 slough-fold lakes moved (`shots/T510-moved.md`; Strawberry and Widgeon LOSE night/steelhead closures); owner review before promote. Follow-up of T497. Part of T495 gate 1.
+Status: IN REVIEW — c4ce4b8b4 (rule A, owner 11-08), in r-d14bdb180f55 (52298df0a); owner: OWNER-TODO "Look at" (`shots/T510-moved.md`: Strawberry and Widgeon lose night/steelhead closures — a loosening).
+Earlier: OPEN — rule A c4ce4b8b4; side build done (T517 side release r-d62af06225a2): exactly the 13 connector sections + 2 slough-fold lakes moved (`shots/T510-moved.md`; Strawberry and Widgeon LOSE night/steelhead closures); owner review before promote. Follow-up of T497. Part of T495 gate 1.
 
 Owner 2026-11-08: "there is a little stream that connects between Fraser and Strawberry Slough that I feel like should
 be Strawberry, not Fraser."
