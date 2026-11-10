@@ -4503,7 +4503,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_ids": [
+              "blk:355993381",
+              "wsc:100-046202-028692-080600"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
