@@ -13,6 +13,12 @@ the next promotion, so the derivatives that still carry its digest can be rebuil
 Renames, never copies: an atlas is ~9 GB. Refuses a candidate with no handle table, a candidate
 that IS the current build, and a `.prev` that a shipped artifact still carries (it would be
 deleted).
+
+(T547 §3) Refuses, too, when a boundary id a CURATED RULE names (an extent's `splits`, in the synopsis corpus or
+the DFO places) keeps its id but now means another place (`ref`, e.g. `lake:<wbk>`): a lake boundary's clash suffix
+(`_2`, `_3`) follows node order, so a rebuild can swap two lakes under one rule with every check passing.
+`--accept-moved-boundaries` goes on after reading the list. An id that is gone is listed, not refused: the reach run
+reports its rule unresolved.
 """
 from __future__ import annotations
 
@@ -26,9 +32,52 @@ from pipeline.common.curated import GENERATED
 from pipeline.common.section_handles import FILENAME as HANDLES
 
 
+def _boundary_refs(build: Path) -> dict[str, set[str]]:
+    """{boundary id: every `ref` it has} in an atlas's registry.json (an id may sit on several items)."""
+    import json
+    out: dict[str, set[str]] = {}
+    for it in json.loads((Path(build) / "registry.json").read_text(encoding="utf-8")).get("items", []):
+        for b in it.get("boundaries", []):
+            out.setdefault(b["id"], set()).add(b.get("ref", ""))
+    return out
+
+
+def curated_boundary_ids() -> set[str]:
+    """Every boundary id a curated rule names: each string in an extent's `splits`, in the synopsis corpus and the DFO
+    places (read-only)."""
+    import json
+    from pipeline.common.curated import CURATED
+    out: set[str] = set()
+
+    def walk(v):
+        if isinstance(v, dict):
+            for k, x in v.items():
+                if k == "splits" and isinstance(x, list):
+                    out.update(s for s in x if isinstance(s, str))
+                else:
+                    walk(x)
+        elif isinstance(v, list):
+            for x in v:
+                walk(x)
+    for d in (CURATED.regulations.synopsis, CURATED.dfo_salmon.places):
+        for f in sorted(Path(d).glob("*.json")):
+            walk(json.loads(f.read_text(encoding="utf-8")))
+    return out
+
+
+def moved_boundaries(target: Path, candidate: Path, named: set[str]) -> tuple[list[str], list[str]]:
+    """(moved, gone): the `named` boundary ids whose `ref` differs between the two registries, and those the
+    candidate no longer has, each as one readable line."""
+    old, new = _boundary_refs(target), _boundary_refs(candidate)
+    moved = [f"{i}: {', '.join(sorted(old[i]))} -> {', '.join(sorted(new[i]))}"
+             for i in sorted(named & old.keys() & new.keys()) if old[i] != new[i]]
+    gone = [f"{i}: {', '.join(sorted(old[i]))}" for i in sorted((named & old.keys()) - new.keys())]
+    return moved, gone
+
+
 def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
             log=print, target: Path | None = None, tiles: Path | None = None,
-            bundle: Path | None = None) -> dict:
+            bundle: Path | None = None, accept_moved: bool = False) -> dict:
     """Make `candidate` the build called `name` (default: the configured default build) — or the
     build directory `target` (T136: a scratch atlas a review rehearsal serves). `tiles` / `bundle`
     are the shipped artifacts whose atlas the `.prev` may still be (default: the live ones). Returns
@@ -50,9 +99,22 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
                              capture_output=True, text=True, check=False)
         parity = (got.stdout + got.stderr).strip()
         log(parity)
+    moved: list[str] = []
+    if target.is_dir() and (target / "registry.json").exists():
+        moved, gone = moved_boundaries(target, candidate, curated_boundary_ids())
+        if gone:
+            log(f"promote: {len(gone)} boundary id(s) a curated rule names are gone (their rules will be unresolved):\n  "
+                + "\n  ".join(gone))
+        if moved:
+            log(f"promote: {len(moved)} boundary id(s) a curated rule names now mean ANOTHER place (T547 §3):\n  "
+                + "\n  ".join(moved))
     if dry_run:
         return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity,
-                "dry_run": True}
+                "moved": moved, "dry_run": True}
+    if moved and not accept_moved:
+        raise SystemExit(f"promote: refused — {len(moved)} boundary id(s) a curated rule names moved to another place "
+                         "(listed above). Fix the rules (or the ids) first, or promote with --accept-moved-boundaries "
+                         "after reading the list")
     if prev.exists():
         from pipeline.common.vintage import promoted_atlas
         carrier = promoted_atlas(prev, Path(tiles) if tiles else GENERATED.tiles,
@@ -70,7 +132,7 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
         log(f"  {target.name} -> {prev.name}")
     candidate.rename(target)
     log(f"  {candidate.name} -> {target.name}")
-    return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity}
+    return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity, "moved": moved}
 
 
 def _same_handles(a: Path, b: Path) -> bool:
@@ -95,8 +157,11 @@ def main(argv=None) -> int:
     ap.add_argument("--bundle", type=Path, default=None,
                     help="the bundle the .prev may still be the atlas of (default: the live bundle)")
     ap.add_argument("--dry-run", action="store_true", help="print the parity report and stop")
+    ap.add_argument("--accept-moved-boundaries", action="store_true",
+                    help="(T547) promote although a boundary id a curated rule names now means another place")
     a = ap.parse_args(argv)
-    promote(a.candidate, a.to, dry_run=a.dry_run, target=a.target, tiles=a.tiles, bundle=a.bundle)
+    promote(a.candidate, a.to, dry_run=a.dry_run, target=a.target, tiles=a.tiles, bundle=a.bundle,
+            accept_moved=a.accept_moved_boundaries)
     return 0
 
 

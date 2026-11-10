@@ -146,13 +146,16 @@ def test_the_record_moves_only_the_meta_file(tmp_path):
         "curated:waters.cuts": "anchors:00"}
 
 
+#: modules under pipeline/atlas that are not the build: promote reads the corpus to check the rules' boundary ids
+NOT_THE_BUILD = ("promote.py",)
 #: modules the atlas build imports from outside pipeline/atlas to read a curated file
 INDIRECT = ("pipeline/tools/slough_calls.py", "pipeline/gauges/matches.py", "pipeline/gauges/review.py")
 
 
 def test_every_curated_key_the_atlas_build_names_is_an_input_or_a_listed_non_input():
     files = [p for p in (REPO / "pipeline/atlas").rglob("*.py")
-             if not {"reach", "tests", "__pycache__"} & set(p.relative_to(REPO / "pipeline/atlas").parts)]
+             if not {"reach", "tests", "__pycache__"} & set(p.relative_to(REPO / "pipeline/atlas").parts)
+             and p.name not in NOT_THE_BUILD]
     files += [REPO / f for f in INDIRECT]
     named = set()
     for p in files:
@@ -202,3 +205,37 @@ def test_no_cheap_build_step_writes_the_curated_tree(tmp_path):
     finally:
         for p in [root, *root.rglob("*")]:
             p.chmod(p.stat().st_mode | stat.S_IWUSR)
+
+
+# --------------------------------------------------------------- T547 §3: a rule's boundary id must keep its place
+
+def _reg(d: Path, bounds: dict[str, str]) -> Path:
+    from pipeline.common.section_handles import FILENAME
+    d.mkdir(parents=True)
+    (d / FILENAME).write_text(d.name)
+    (d / "registry.json").write_text(json.dumps({"items": [
+        {"id": "gnis:1", "boundaries": [{"id": i, "ref": r} for i, r in bounds.items()]}]}))
+    return d
+
+
+def test_promote_refuses_a_rule_boundary_that_moved_to_another_lake(tmp_path, monkeypatch):
+    from pipeline.atlas import promote as PR
+    named = "nanaimo_river__nanaimo_lakes_2"
+    target = _reg(tmp_path / "full", {"nanaimo_river__nanaimo_lakes": "lake:329101304", named: "lake:329101307",
+                                      "x__gone": "lake:1", "y__unnamed": "lake:5"})
+    cand = _reg(tmp_path / "full_next", {"nanaimo_river__nanaimo_lakes": "lake:329101307", named: "lake:329101304",
+                                         "y__unnamed": "lake:6"})
+    monkeypatch.setattr(PR, "curated_boundary_ids", lambda: {named, "x__gone"})
+    kw = dict(target=target, tiles=tmp_path / "tiles", bundle=tmp_path / "b.sqlite", log=lambda *_: None)
+    assert PR.promote(cand, dry_run=True, **kw)["moved"] == [f"{named}: lake:329101307 -> lake:329101304"]
+    with pytest.raises(SystemExit, match="1 boundary id"):
+        PR.promote(cand, **kw)
+    assert (target / "registry.json").exists() and cand.exists()          # nothing renamed
+    got = PR.promote(cand, accept_moved=True, **kw)
+    assert got["moved"] and json.loads((target / "registry.json").read_text())["items"][0]["boundaries"][1]["ref"] \
+        == "lake:329101304"
+
+
+def test_the_curated_rules_name_the_suffixed_lake_boundary():
+    from pipeline.atlas import promote as PR
+    assert "nanaimo_river__nanaimo_lakes_2" in PR.curated_boundary_ids()

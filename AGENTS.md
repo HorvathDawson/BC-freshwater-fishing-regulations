@@ -768,6 +768,8 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     atlas behind any of them, naming the file (`--ship-stale-atlas REASON` goes on, printed); `pipeline build` prints the
     same list as a warning. `python -m pipeline.atlas.inputs` asks; `--backfill` proves an older atlas's inputs by git
     and records only what it proved. A new curated read in the atlas build goes into `ATLAS_INPUTS` (test).
+    `pipeline.atlas.promote` refuses a candidate in which a boundary id a curated rule names (an extent's `splits`) now
+    has another `ref` (a lake clash suffix `_2` swapped); `--accept-moved-boundaries` after reading the list.
 63. **A tributary walk never enters the entry's own water** (`tributaries.THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`,
     2026-10-11). Every non-area item the entry matches is governed by the rule's extents, never collected by the walk —
     even when FWA codes it as a tributary (the Chilliwack is a "tributary" of the Vedder: after the Vedder's cut moved
