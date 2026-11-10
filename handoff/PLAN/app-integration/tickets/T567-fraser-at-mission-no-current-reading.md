@@ -85,3 +85,15 @@ day the chart keeps today in view: the readings up to now, a marked "today", the
   day (its chart still shows its level record); B) keep a lead per quantity and say so on the card ("Level this day:
   Hansard, Mission has no level forecast"). A matches "one lead per water"; B keeps a forecast figure on the card.
 - Tests: `conditions.render.test.tsx`, `ConditionsPanel.test.tsx`, `hydrograph.zoom.test.ts`, `leadGauge.test.ts`.
+
+## Owner decision 2026-11-10 (verbatim) and part (b) done
+"flow is always the leading option. flow is what we care about most. [level] is just auxiliary."
+- ONE lead per water and day, chosen in FLOW (`leadOver`, data `standing.ts`; read once in `useConditionsView`, so card,
+  row list, map dot and chart all read it). Level never picks its own lead. Only where no gauge answers in flow that day
+  does the lead fall to the level ranking, and the card says so (`LEVEL_ONLY_LEAD`, core).
+- Under Level on a forecast day, a lead without a level forecast keeps its place; the card says so in the figure's place
+  (core `leadGapLine`, asserted whole in `conditions.test.ts`), the chart shows its record. No switch to another gauge.
+- Conformance (`leadGauge.test.ts`): Now and day 3, Flow and Level -> the same lead (Hansard now, Mission day 3), one code path.
+- Defaults to Level: only `ConditionsPanel.tsx` `shown = param ?? vm.reading?.quantity ?? "level"` (when the station's
+  quantities are not yet known); every ask default is Flow ("discharge"). Not changed.
+- Web shots on staging data (Fraser, CPR Bridge at Mission -> Landstrom Bar): `T568-shots/`; see T568. Emulator: not run.

@@ -139,6 +139,17 @@ export function forecastFigureLine(dayName: string, reads: string): string {
   return `${dayName}, forecast: ${reads}`;
 }
 
+/**
+ * (T567, owner 2026-11-10) THE LEAD GAUGE IS CHOSEN IN FLOW; under Level, on a day when it has no level forecast, the card
+ * says so in the figure's place and never swaps to another gauge.
+ */
+export function leadGapLine(dayName: string): string {
+  return `${dayName}: this gauge has a flow forecast but no water level forecast. Show Flow to see it.`;
+}
+
+/** (T567) The water reports level only today, so its lead gauge was chosen on level. */
+export const LEVEL_ONLY_LEAD = "No gauge here reports flow today, so the gauge shown is chosen on water level.";
+
 /** The chart's mark for the day asked: "WED 12 NOV". */
 export function forecastDayMark(dayName: string): string {
   return dayName.toUpperCase();

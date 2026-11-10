@@ -519,3 +519,11 @@ describe("silent panel members", () => {
   // T157 review: under "Not counted this far ahead" a member no run reaches lost its reason ("Liard River (last 20 Oct …)"
   // read as if it had a forecast too). Mutation: `silentMember` ignoring `counted` -> the expectation above fails.
 });
+
+import { leadGapLine as _gap, LEVEL_ONLY_LEAD as _lo } from "./conditions";
+describe("T567 lead gauge words", () => {
+  it("says the gap and the level-only lead whole", () => {
+    expect(_gap("Wed 12 Nov")).toBe("Wed 12 Nov: this gauge has a flow forecast but no water level forecast. Show Flow to see it.");
+    expect(_lo).toBe("No gauge here reports flow today, so the gauge shown is chosen on water level.");
+  });
+});

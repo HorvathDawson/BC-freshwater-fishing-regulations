@@ -3,10 +3,10 @@
  * its routes, the route map's colouring, the lead gauge's reading or its quiet head, and the gauge switcher.
  */
 import { useMemo, useRef, useState } from "react";
-import { speaks, sheetLead, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
+import { speaks, leadOver, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
-         forecastFigureLine, donorReads, donorSilent, freshness, gaugeCountLine, noGaugeSentence,
+         forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
          readingAgeLine, readingHeading, readingIn, readingStandingLine, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcNow, now } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
@@ -101,6 +101,8 @@ export interface ConditionsVM {
   gaugeGroups: readonly GaugeGroupVM<GaugeChoiceVM>[] | null;
   /** (T568/T567) The forecast day asked, for the chart's mark beside today's: its clock instant and words; null on Now / Change. */
   ahead: { at: number; label: string } | null;
+  /** (owner 2026-11-10) No gauge of this water answers in flow that day: the lead was chosen on level; the card says so. */
+  leadNote: string | null;
   /** (T168) Each station's side, for the donor panel; null until read. */
   sides: GaugeSides;
   /** (T168) "2 gauges on this water · 5 estimating from other waters · 6 not reporting" (core `gaugeCountLine`). */
@@ -155,7 +157,11 @@ export function useConditionsView(
    * with no panel it quoted a gauge the map left uncoloured, and a gauged lake (no `section_gauge` row) read nothing.
    */
   const [picked, select] = useState<StationId | null>(null);
-  const lead: StationId | null = sheetLead(speaker, panel.rows, picked);
+  // (owner 2026-11-10) ONE LEAD per water and day, chosen in FLOW whatever the chart shows (`leadOver`); level ranks it
+  // only where no gauge answers in flow. The two asks are the same ones the rows come from (cached; one of them is `asked`).
+  const flowAsk = usePanelAsk(source, feed, section, "discharge", horizon, lakes);
+  const levelAsk = usePanelAsk(source, feed, section, "level", horizon, lakes);
+  const { lead, levelOnly } = leadOver(speaker, { discharge: flowAsk.value.rows, level: levelAsk.value.rows }, picked);
   const got = useStationReading(source, lead);
   const c = got.state === "ready" ? got.value : null;
   // (T168) on this water or a donor: every station that speaks for the section — the panel's members, a lake's own
@@ -196,7 +202,9 @@ export function useConditionsView(
       stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
       figures: { ...(c.discharge != null ? { discharge: c.discharge } : {}), ...(c.level != null ? { level: c.level } : {}) },
       scope: dayName ? FORECAST_DAY_WORDS.today : null,
-      forecast: dayName && leadRow ? forecastFigureLine(dayName, donorReads(leadRow, ask)) : null,
+      forecast: dayName && leadRow
+        ? (quantity === "level" && donorState(leadRow, ask).kind === "flow-only" ? leadGapLine(dayName)
+           : forecastFigureLine(dayName, donorReads(leadRow, ask))) : null,
       standing: readingStandingLine(c.percentile, c.standing as Standing | null),
       percentile: c.percentile ?? null,
       age: readingAgeLine(freshness(c.fetchedAt, now()), c.observedAt),
@@ -226,10 +234,12 @@ export function useConditionsView(
     noGauge: noGaugeSentence(),
     // THE MATCH RECORD, only for a station that speaks here: where the panel could not answer, how this reach reaches
     // the one of its donors it was matched to. Never a trace to a gauge the map does not colour by.
-    trace: !panel.answer.ok && traced.state === "ready" && speaks(speaker, traced.value.station)
+    // (T568, shot 2026-11-10) ONLY where the panel has no gauges to draw (`no-station`, `offline`): a refusal that is about
+    // the day or quantity asked has its donor map, and this trace's own map stood above it, moving it down the page.
+    trace: !panel.answer.ok && (panel.answer.why === "no-station" || panel.answer.why === "offline") && traced.state === "ready" && speaks(speaker, traced.value.station)
       ? traced.value : null,
     gauges: gaugeChoices(panel.rows, lead, { ref: today.getTime(), horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
-    ahead, sides, count,
+    ahead, sides, count, leadNote: levelOnly ? LEVEL_ONLY_LEAD : null,
   };
 }

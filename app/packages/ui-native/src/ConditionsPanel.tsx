@@ -274,6 +274,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                                    ["year", W.spanShort.year, W.span.year]] as const} />
                   </>} />
       {readingRows}
+      {vm.leadNote && <Text testID="lead-note" style={{ ...TYPE.meta, color: palette.sub }}>{vm.leadNote}</Text>}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
       {chart.state === "loading" && (
         <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />

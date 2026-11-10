@@ -4,13 +4,13 @@
  * and no ranked level forecast, so the lead flips with the quantity on a forecast day (the web was on Now).
  *
  * Both platforms draw the one `ConditionsPanel` over `useConditionsView` (rule 23), whose lead is `sheetLead` over
- * `answerFrom`'s rows: so one table of (quantity, day) -> lead, over one hand-made feed in the owner's shape, is what
+ * `answerFrom`'s rows: so one table of (quantity, day) -> lead (owner 2026-11-10: flow picks it, level never does), over one hand-made feed in the owner's shape, is what
  * either would pick, and no platform-specific file may exist to fork it.
  */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { answerFrom, sheetLead, speakerFor, type Panel } from "@app/data";
+import { answerFrom, leadOver, speakerFor, type Panel } from "@app/data";
 
 const member = (station: string, role: "up" | "down") =>
   ({ station: station as never, role, areaKm2: 60, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true });
@@ -28,15 +28,29 @@ const INDEX = {
 };
 
 function leadOf(q: "discharge" | "level", h: 0 | 3): string | null {
-  const a = answerFrom(PANEL, INDEX as never, q, h);
-  return sheetLead(speakerFor(PANEL, undefined), a.rows, null);
+  // the quantity asked never picks the lead: the hook reads the flow and level answers, `leadOver` chooses once
+  void q;
+  const rows = { discharge: answerFrom(PANEL, INDEX as never, "discharge", h).rows,
+                 level: answerFrom(PANEL, INDEX as never, "level", h).rows };
+  return leadOver(speakerFor(PANEL, undefined), rows, null).lead;
 }
 
 describe("the lead gauge of Fraser at Mission, from one feed", () => {
   it("is the same function of (quantity, day) wherever it is asked", () => {
     expect({ flowNow: leadOf("discharge", 0), levelNow: leadOf("level", 0),
              flowDay3: leadOf("discharge", 3), levelDay3: leadOf("level", 3) })
-      .toEqual({ flowNow: "08KA004", levelNow: "08KA004", flowDay3: "08MH024", levelDay3: "08KA004" });
+      .toEqual({ flowNow: "08KA004", levelNow: "08KA004", flowDay3: "08MH024", levelDay3: "08MH024" });
+  });
+
+  it("falls to the level ranking only where no gauge answers in flow", () => {
+    const levelOnly = { listed: ["08MH024"], stations: { "08MH024": INDEX.stations["08MH024"] } };
+    const p: Panel = { areaKm2: 50, members: [member("08MH024", "down")] };
+    const rows = { discharge: answerFrom(p, levelOnly as never, "discharge", 0).rows,
+                   level: answerFrom(p, levelOnly as never, "level", 0).rows };
+    expect(leadOver(speakerFor(p, undefined), rows, null)).toEqual({ lead: "08MH024", levelOnly: true });
+    const both = { discharge: answerFrom(PANEL, INDEX as never, "discharge", 0).rows,
+                   level: answerFrom(PANEL, INDEX as never, "level", 0).rows };
+    expect(leadOver(speakerFor(PANEL, undefined), both, null).levelOnly).toBe(false);
   });
 
   it("has one code path: no platform file forks the panel or its view", () => {

@@ -82,6 +82,23 @@ export function sheetLead(speaker: Speaker | null,
 }
 
 /**
+ * (T567, owner 2026-11-10: "flow is always the leading option. flow is what we care about most. [level] is just
+ * auxiliary.") THE ONE LEAD OF A WATER AND DAY, chosen in FLOW whatever the chart shows: `sheetLead` over the flow
+ * answer's rows. Only where NO gauge of the water answers in flow that day does the lead fall to the level answer's
+ * ranking (`levelOnly`: the card says so). Level never picks its own lead. The card, the row list, the dot and the chart
+ * read this one answer.
+ */
+export function leadOver(speaker: Speaker | null,
+                         rows: { readonly discharge: readonly { readonly station: StationId; readonly percentile: number | null }[];
+                                 readonly level: readonly { readonly station: StationId; readonly percentile: number | null }[] },
+                         picked: StationId | null): { lead: StationId | null; levelOnly: boolean } {
+  const flowAnswers = speaker?.kind === "panel" && rows.discharge.some((r) => donorCounted(r));
+  const levelAnswers = speaker?.kind === "panel" && rows.level.some((r) => donorCounted(r));
+  if (flowAnswers || !levelAnswers) return { lead: sheetLead(speaker, rows.discharge, picked), levelOnly: false };
+  return { lead: sheetLead(speaker, rows.level, picked), levelOnly: true };
+}
+
+/**
  * THE STATIC HALF, for one release: each section's class, the classes, and the basins' stations. Built once per release
  * (`WaterSource.standingClasses`); the map labels a section with `classOf` as its tile arrives.
  */

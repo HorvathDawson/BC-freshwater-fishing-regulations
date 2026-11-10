@@ -42,3 +42,12 @@ stale update on the phone. Look at it with this.
 - Tests: `panel.frame.test.ts` (camera, key, bbox equal for Flow and Level, today and +3; a refusal keeps the map),
   `DonorPanel.map.test.tsx` (map before chart on an answer and on a refusal).
 - Not run on the emulator or the web build (no new APK may be built this session).
+
+## Seen in the web shots 2026-11-10 (staging data, web build on :39240)
+- Four shots in `../T568-shots/` (web-now-flow, web-now-level, web-day-flow, web-day-level; day = Fri 13). The map sits above
+  the chart and its frame is the same on the toggle; the lead (Hope 08MF005 on today's feed) is the same in both.
+- DEFECT found by the shot: on a forecast day under Level the refusal drew `GaugeTrace` ("How this spot reaches the gauge",
+  with its own map and a table) above the donor map, pushing the map down by ~400 px. Fixed: the trace is drawn only where the
+  panel has no gauges (`no-station`, `offline`). The headline above the map still differs by quantity (estimate vs "No
+  estimate"), so the map's top moves ~60 px between Flow and Level on a forecast day.
+- Not run on the emulator.
