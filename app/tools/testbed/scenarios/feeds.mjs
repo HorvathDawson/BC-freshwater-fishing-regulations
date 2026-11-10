@@ -58,12 +58,15 @@ export const feeds = {
     });
     await ctx.step('feed back → Retry clears the error', async () => {
       ctx.updates('reset');
-      ctx.flow('tap-text', { TEXT: 'Retry' });
+      // (2026-11-09) the app may re-check by itself once the feed is back (the open sheet then says "No notifications"):
+      // Retry is pressed when it is still offered; either way the error must be gone
+      const retry = ctx.device.screenText().some((w) => /^Retry$/.test(w));
+      if (retry) ctx.flow('tap-text', { TEXT: 'Retry' });
       await ctx.device.sleep(5000);
       await toMap(ctx);
       const l = syncLabel(ctx);
       if (!l || /could not update/.test(l)) throw new Error(`still failed: ${l}`);
-      return l;
+      return `${l} · ${retry ? 'cleared by Retry' : 'cleared by the app\'s own re-check before Retry'}`;
     });
   },
 };
