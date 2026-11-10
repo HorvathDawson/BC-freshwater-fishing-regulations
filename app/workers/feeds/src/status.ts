@@ -1,7 +1,7 @@
 // T225 follow-up (owner 2026-10-28): the feeds' status — written by every run to R2 private/feeds/status.json, served
 // (no auth, small) as GET /status (HTML) and GET /status.json, and the alert hook: FEED_NOTIFY_URL is told ONCE per
 // state change of a feed (ok → degraded / failing / stale and back), never once per run.
-import type { Fetch, Meter, Store } from "./io";
+import { readStored, type Fetch, type Meter, type Store } from "./io";
 import { body as notifyBody } from "./notify";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 
@@ -77,15 +77,13 @@ export function stateOf(f: Pick<FeedStatus, "lastRun" | "lastSuccess" | "cadence
   return f.lastRun.held.length ? "degraded" : "ok";
 }
 
+/** The status. Absent: a fresh one. (T558) A failed read or another format THROWS (readStored): written back fresh it
+ *  would erase every other feed's last success, failures, announced state and 7-day health. */
 export async function readStatus(priv: Store): Promise<Status> {
-  try {
-    const t = await priv.get(STATUS_KEY);
-    const s = t === null ? null : JSON.parse(t);
-    if (s && s.format === "feeds-status/1") return s;
-  } catch {
-    /* rebuilt below */
-  }
-  return { format: "feeds-status/1", updated: new Date(0).toISOString(), feeds: {} };
+  const s = await readStored<Status>(priv, STATUS_KEY);
+  if (s === null) return { format: "feeds-status/1", updated: new Date(0).toISOString(), feeds: {} };
+  if (s && s.format === "feeds-status/1" && s.feeds && typeof s.feeds === "object") return s;
+  throw new Error(`${STATUS_KEY} is not feeds-status/1; fix or delete it`);
 }
 
 /** Recompute every feed's state at `now` (staleness moves with the clock, not only with runs). */

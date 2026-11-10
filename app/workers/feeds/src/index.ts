@@ -15,7 +15,7 @@
 // R2 layout (one bucket): published  feeds/live/  feeds/dfo/  feeds/inseason/   (the data worker serves these)
 //                         private    private/feeds/{gauges,dfo,inseason,notify}/, private/feeds/status.json,
 //                                    private/reports/<day>/<id>.json (T237: POST /report, GET /reports; src/reports.ts)
-import { meteredFetch, meteredStore, newMeter, r2Store, setDeployId, type Meter, type R2BucketLike } from "./io";
+import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
@@ -189,12 +189,8 @@ export async function noDataStations(
   const out = new Set<string>();
   const events: FeedEvent[] = [];
   if (!asked) return { listedNoData: out, events }; // a run where nothing answered says nothing about single stations
-  let was: Record<string, string> = {};
-  try {
-    was = JSON.parse((await priv.get(NODATA_KEY)) ?? "{}") ?? {};
-  } catch {
-    was = {};
-  }
+  // (T558) absent = no streaks; a failed read fails the run (readStored): read as empty, every streak would restart
+  const was: Record<string, string> = (await readStored<Record<string, string>>(priv, NODATA_KEY)) ?? {};
   const next: Record<string, string> = {};
   for (const st of failed) {
     if (health.failedUrls.get(HOURLY(st)) !== "http_404") continue;
@@ -553,7 +549,17 @@ export default {
     }
     if (req.method === "GET" && (url.pathname === "/status" || url.pathname === "/status.json")) {
       const now = new Date();
-      const st = refresh(await readStatus(r2Store(env.BUCKET, STATUS_PREFIX)), now);
+      // (T558) a status that cannot be read is a 503 naming why, never "every feed: never run" with a 200
+      let st: Awaited<ReturnType<typeof readStatus>>;
+      try {
+        st = refresh(await readStatus(r2Store(env.BUCKET, STATUS_PREFIX)), now);
+      } catch (e) {
+        const error = `the feeds' status could not be read: ${e instanceof Error ? e.message : String(e)}`;
+        console.error(JSON.stringify({ job: "status", error }));
+        return url.pathname === "/status.json"
+          ? Response.json({ ok: false, error }, { status: 503, headers: { "Cache-Control": "no-store" } })
+          : new Response(error, { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+      }
       // (T246) the last backup run beside the feeds (null: none yet)
       const bk = await (async () => { try { return JSON.parse((await env.BUCKET.get(BACKUP_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
       // (T271) the last report purge: when, and how many reports it deleted

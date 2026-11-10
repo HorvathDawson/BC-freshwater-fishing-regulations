@@ -18,7 +18,7 @@
 //
 // State (private): notify/state.json — {told: {key: at}, pending: [...], lastDigest}. A key is forgotten after a year.
 import { body as webhookBody } from "./notify";
-import type { Fetch, Store } from "./io";
+import { readStored, type Fetch, type Store } from "./io";
 import { apkSection, render, sectionFor, type ApkInfo, type RenderCtx } from "./email";
 
 export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report" | "crash" | "skill" | "runtiming" | "card";
@@ -78,14 +78,13 @@ const KIND_TITLE: Record<EventKind, string> = {
   runtiming: "Run timing",
 };
 
+/** The outbox. Absent: a fresh one. (T558) A failed read or a body of the wrong shape THROWS (readStored): written back
+ *  empty it would erase every told key and the queued digest. */
 export async function readState(store: Store): Promise<NotifyState> {
-  try {
-    const s = JSON.parse((await store.get(NOTIFY_STATE)) ?? "null");
-    if (s && typeof s.told === "object" && Array.isArray(s.pending)) return s;
-  } catch {
-    /* fresh */
-  }
-  return { told: {}, pending: [], lastDigest: null };
+  const s = await readStored<NotifyState>(store, NOTIFY_STATE);
+  if (s === null) return { told: {}, pending: [], lastDigest: null };
+  if (s && typeof s.told === "object" && s.told !== null && Array.isArray(s.pending)) return s;
+  throw new Error(`${NOTIFY_STATE} is not an outbox (no told / pending); fix or delete it`);
 }
 
 const ORDER: EventKind[] = ["dfo", "inseason", "health", "report", "crash", "hydat", "runtiming", "roster", "skill"];

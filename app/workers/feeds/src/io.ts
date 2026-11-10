@@ -144,6 +144,22 @@ export function skipSameStore<S extends Store>(s: S, manifest: WriteManifest, o:
   return out;
 }
 
+/**
+ * (T558) A stored JSON object: null ONLY when it does not exist. A read that fails (R2 trouble) or a body that does not
+ * parse THROWS, naming the key: "could not read" is never "nothing stored yet", because the caller writes its state back
+ * and an empty answer written back erases it (the outbox's told keys, every feed's status). The run fails and says so; the
+ * last good object stands.
+ */
+export async function readStored<T = unknown>(store: Pick<Store, "get">, key: string): Promise<T | null> {
+  const t = await store.get(key);
+  if (t === null) return null;
+  try {
+    return JSON.parse(t) as T;
+  } catch (e) {
+    throw new Error(`${key} is stored but does not parse (${e instanceof Error ? e.message : String(e)}); fix or delete it`);
+  }
+}
+
 export async function loadManifest(priv: Store, key: string): Promise<WriteManifest> {
   try {
     const t = await priv.get(key);

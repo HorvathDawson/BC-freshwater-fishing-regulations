@@ -298,12 +298,15 @@ function carry(prev: Json, slug: string, verdicts: Interner<unknown>, gears: Int
   return out;
 }
 
+/** (T558) absent → `dflt`; a failed read or a body that does not parse THROWS: the last feed read as `{}` would publish a
+ *  region whose fetch also failed with no places at all. The run fails, the last good files stand. */
 async function readJson(store: Store, k: string, dflt: Json): Promise<Json> {
+  const t = await store.get(k);
+  if (t === null) return dflt;
   try {
-    const t = await store.get(k);
-    return t === null ? dflt : loads(t);
-  } catch {
-    return dflt;
+    return loads(t);
+  } catch (e) {
+    throw new Error(`${k} is stored but does not parse (${e instanceof Error ? e.message : String(e)}); fix or delete it`);
   }
 }
 

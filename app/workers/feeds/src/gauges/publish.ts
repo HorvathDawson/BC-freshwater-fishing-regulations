@@ -4,7 +4,7 @@
 //           HYDAT tier in Python)
 //   priv  — never served: runs/ (append-only, see skill.ts), temp_history.json, notified.json (`<out>.notified.json`),
 //           roster.json (the realtime roster, when `deps.roster` is not passed)
-import { contentHash, rev, type Fetch, type Meter, type Store } from "../io";
+import { contentHash, readStored, rev, type Fetch, type Meter, type Store } from "../io";
 import { sendDue } from "../notify";
 import { combineDay, forecastDays, gaugeScale, modelName, stale, stationChange, type Rank } from "./change";
 import { ATTRIBUTION, fetchSummary, timeout, withSeries, type Runs, type Summary } from "./forecast";
@@ -768,13 +768,12 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const forecast = a.forecast || {};
   let before: unknown = null;
   let prevStations: Record<string, any> = {};
-  try {
-    const t = await feed.get("index.json");
-    const j = t === null ? null : JSON.parse(t);
+  // (T558) absent = a first run; a failed read or a body that does not parse fails the run (readStored): read as empty,
+  // the stations that failed this run would be dropped instead of carried
+  {
+    const j = await readStored<{ maintenance?: unknown; stations?: Record<string, any> }>(feed, "index.json");
     before = j?.maintenance ?? null;
     if (j && j.stations && typeof j.stations === "object") prevStations = j.stations;
-  } catch {
-    before = null;
   }
   const envelope: Record<string, any> = (clim || {}).stations ?? {};
   const release: string | null = (clim || {}).release ?? null;

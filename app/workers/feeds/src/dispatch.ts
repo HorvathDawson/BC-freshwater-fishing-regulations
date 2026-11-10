@@ -5,7 +5,7 @@
 // Without it nothing is started and the email keeps today's "press the button" steps. A start is recorded per workflow +
 // version in R2 (private/feeds/dispatch/<workflow>.json), so one version starts one run; a failed start is retried at
 // most every RETRY_MS and the email says why it failed (never silent).
-import type { Store } from "./io";
+import { readStored, type Store } from "./io";
 
 export const REPO = "HorvathDawson/BC-freshwater-fishing-regulations";
 /** workflow_dispatch runs the file as it is on this ref (the dev branch until the workflows are on main) */
@@ -41,12 +41,8 @@ export async function dispatchOnce(
   if (!env.GITHUB_DISPATCH_TOKEN) return { state: "no-token" };
   const ref = env.GITHUB_DISPATCH_REF || DEFAULT_REF;
   const key = `${workflow}.json`;
-  let last: (Dispatch & { version?: string }) | null = null;
-  try {
-    last = JSON.parse((await store.get(key)) ?? "null");
-  } catch {
-    last = null;
-  }
+  // (T558) absent = never started; a failed read THROWS (readStored): read as "never", the same version starts twice
+  const last = await readStored<Dispatch & { version?: string }>(store, key);
   if (last && last.version === version && last.state === "started") return last;
   if (last && last.version === version && last.state === "failed" && now.getTime() - Date.parse(last.at) < RETRY_MS) return last;
 
