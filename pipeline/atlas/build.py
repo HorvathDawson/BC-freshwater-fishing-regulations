@@ -464,6 +464,7 @@ class _Build:
         self.tidal_limits: list = []    # T326: waters/tidal_limits.json (gauge_cuts)
         self.tidal_ids: dict = {}       # {blk: id} of every mouth alias and tidal cut (`tidal.ids`)
         self.tidal_placed: dict = {}    # {blk: where each mouth alias went} (alias_tidal_mouths)
+        self.input_hashes: dict = {}    # T547: {input key: digest} (`atlas.inputs`), set by main before any read
 
     def tick(self, label: str) -> None:
         now = self._clock()
@@ -479,6 +480,10 @@ def main(argv: list[str] | None = None) -> None:
     _refuse_promoted(args)
     fwa = FWADataAccessor(args.gpkg)
     b = _Build(args, fwa, _bbox(args, fwa))
+    # T547: a digest of every curated input, taken BEFORE any is read (an edit made during the build is not recorded as
+    # built); written with graph.pkl (`graph.pkl.meta.json` `input_hashes`), checked by `pipeline release`
+    from pipeline.atlas import inputs as _inputs
+    b.input_hashes = _inputs.digests(_inputs.build_paths(args))
     load_fwa(b)
     build_graph(b)
     add_waters(b)
@@ -1367,8 +1372,8 @@ def write_graph(b: _Build) -> None:
         with (out / "waterbody_polys.pkl").open("wb") as _fh:
             _pk.dump({f"lake:{w}": pl for w, pl in wb_polys.items()}, _fh, protocol=5)
         print(f"  wrote waterbody_polys.pkl ({len(wb_polys):,} outlines)")
-    write_artifact(graph, str(out / "graph.pkl"))
-    write_artifact(geoms, str(out / "geometries.pkl"))
+    write_artifact(graph, str(out / "graph.pkl"), input_hashes=b.input_hashes)
+    write_artifact(geoms, str(out / "geometries.pkl"), input_hashes=b.input_hashes)
     b.out = out
 
 
