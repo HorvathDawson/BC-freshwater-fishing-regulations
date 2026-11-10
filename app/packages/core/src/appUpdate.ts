@@ -41,6 +41,8 @@ export const APP_UPDATE_WORDS = {
   working: "Starting the update…",
   /** failures, said under the button (the hook reports them) */
   checkFailed: "Could not check for a newer version of the app.",
+  /** (T595) a phone with no Google Play to answer (an emulator, a de-Googled phone): a known state, not a failure */
+  noPlay: "This phone has no Google Play to ask, so the app cannot check for a newer version.",
   startFailed: "The update could not start.",
   offline: "No connection. Try again when you are online.",
   /** the bell's label aloud */
@@ -198,7 +200,18 @@ export type AppUpdateCheck =
   | { readonly state: "unknown" }
   | { readonly state: "current" }
   | { readonly state: "available"; readonly version: string | null; readonly notes?: readonly string[] | null }
-  | { readonly state: "failed"; readonly offline: boolean };
+  | { readonly state: "failed"; readonly offline: boolean; readonly noPlay?: boolean };
+
+/**
+ * (T595) The Play check could not run because this phone has no Play service to bind ("Failed to bind to the service":
+ * an emulator image without the Play Store, a phone without Google services). A STATE the app knows and says
+ * (`APP_UPDATE_WORDS.noPlay`), never an error report.
+ */
+export function isNoPlayService(e: unknown): boolean {
+  const x = e as { name?: unknown; message?: unknown } | null;
+  return !!x && typeof x === "object"
+    && (x.name === "NoPlayService" || (typeof x.message === "string" && /Failed to bind to the service/i.test(x.message)));
+}
 
 /** What the button last did. */
 export type AppUpdateStart = "idle" | "working" | "downloading" | "opened" | "listing" | "none" | "failed" | "offline";
@@ -257,6 +270,11 @@ function appUpdateVMBare(i: { channel: AppUpdateChannel; check: AppUpdateCheck; 
     const v = i.check.version && parseSemver(i.check.version) ? i.check.version : null;
     return { strength: "gentle", title: W.title, text: v ? W.availableVersion(v) : W.available, sub: null,
              label: W.label.available, counts: true, button: button(false), said, failed: startFailed };
+  }
+  // (T595) no Play service on this phone: said as what it is, with no button
+  if (i.check.state === "failed" && i.check.noPlay) {
+    return { strength: "gentle", title: W.title, text: W.noPlay, sub: null, label: W.noPlay, counts: false,
+             button: null, said: null, failed: false };
   }
   // a check that failed for a reason other than the connection: said, quietly, with no button
   if (i.check.state === "failed" && !i.check.offline) {

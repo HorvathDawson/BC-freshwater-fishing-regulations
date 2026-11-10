@@ -79,6 +79,19 @@ describe("useAppUpdate", () => {
       expect([out2.c!.vm, store2.read(), got.length]).toEqual([null, null, 1]);
     } finally { undo(); }
   });
+  it("(T595) a phone with no Play service: a known state, said as one and never reported", async () => {
+    const got: unknown[] = [];
+    const undo = setFailureSink((e) => got.push(e));
+    try {
+      const out: { c?: AppUpdateControl | null } = {};
+      const { p } = port({ check: () => Promise.reject(new Error("Failed to bind to the service")) });
+      render(<Probe p={p} store={mem()} out={out} />);
+      await flush();
+      expect(out.c!.vm).toMatchObject({ text: "This phone has no Google Play to ask, so the app cannot check for a newer version.",
+                                       failed: false, button: null });
+      expect(got).toEqual([]);
+    } finally { undo(); }
+  });
   it("the strong prompt: Update starts the immediate flow; a failed start is said and reported", async () => {
     const got: unknown[] = [];
     const undo = setFailureSink((e) => got.push(e));

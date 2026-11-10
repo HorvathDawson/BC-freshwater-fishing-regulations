@@ -8,10 +8,10 @@
  * comes back online, and when a new-version notification is tapped (`ask`); the bell, its badge and its label all read
  * this one state. (2026-11-05: a once-a-day cap here is why 0.6.0 did not notice 0.6.1.)
  * FAILURES (T368): a check or a start that fails is said in the section and reported; the environment's (offline, a
- * dropped line) is said and never reported, and an offline check says nothing at all.
+ * dropped line) and a phone with no Play service (T595) are said and never reported, and an offline check says nothing at all.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { appUpdateVM, isEnvironment, now, readAppUpdateSaved, reportFailure, shouldCheckAppUpdate, wallIso,
+import { appUpdateVM, isEnvironment, isNoPlayService, now, readAppUpdateSaved, reportFailure, shouldCheckAppUpdate, wallIso,
          type AppUpdateChannel, type AppUpdateCheck, type AppUpdateSaved, type AppUpdateStart,
          type AppUpdateVM } from "@app/core";
 
@@ -68,10 +68,12 @@ export function useAppUpdate(port: AppUpdatePort | null, store: AppUpdateStore |
       try { store?.write(JSON.stringify(next)); } catch (e) { reportFailure(e); }   // asked again next opening
       setCheck(asCheck(next));
     }, (e: unknown) => {
+      const noPlay = isNoPlayService(e);
       const offline = isEnvironment(e);
-      // shown, and reported unless it is the connection's (asked again on the next return or when back online)
-      if (!offline) reportFailure(e);
-      setCheck({ state: "failed", offline });
+      // shown, and reported unless it is the connection's (asked again on the next return or when back online) or a
+      // phone with no Play service (T595: a known state, said as one)
+      if (!offline && !noPlay) reportFailure(e);
+      setCheck({ state: "failed", offline, ...(noPlay ? { noPlay } : {}) });
     }).finally(() => { asking.current = false; });
   }, [port, store, channel, today, o.offline, o.ask, o.resume]);
 
