@@ -22,3 +22,17 @@ Depends: T551. Size: S–M. Owner: no (item 5 decided).
 
 ## DECIDED 2026-11-10 (owner: "use the dates instead")
 Item 5: the static hub pages print dates, never day-relative words. No daily rebuild.
+
+## DECIDED 2026-11-10, later (owner; replaces "print dates" above)
+The list pages carry less. Owner: "maybe carry less regulation info on them, instead just linking to real reg pages";
+"it should link to the current day's map instead of Saturday"; "opening and closures for region can go too. too much
+info for this page".
+- Region, A–Z and topic pages: names and links to the water pages, plus facts that do not depend on the day. No
+  "open today / closed today" words.
+- "What is open this weekend" pages go. Each region page links to the live app's map for that region, opening on the
+  current day (the app works out open/closed itself).
+- "Waters opening and closing soon" pages go.
+- The removed addresses redirect to their region page (or the map link), are dropped from the sitemap, and the site
+  checks (no orphan water, duplicate titles, page budget) still pass. The "rule changes" page was not discussed: keep
+  it, with dates, and say so in the report.
+- No daily rebuild.
