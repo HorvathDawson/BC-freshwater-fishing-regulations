@@ -1428,6 +1428,8 @@ export interface DfoDetail {
   /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */
   fix_proposal?: DfoFixProposal | null;
   fix_vs_current?: FixVsCurrent | null;
+  /** T589: cut proposals on this water the owner took back (`proposal_overrides.json`, `withdrawn`): listed, never offered */
+  withdrawn?: { id: string; name: string; why: string; by: string; date: string }[];
   /** T573: ENTRY B of this DFO row — the closure derived from its exclusion list, a proposal (`dfo.closure_view`) */
   closure?: DfoClosure | null;
   /** T525 r3: what the place's last save did (`dfo.saved_status`), for the one status line */

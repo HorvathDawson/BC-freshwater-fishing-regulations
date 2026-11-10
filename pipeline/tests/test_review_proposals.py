@@ -609,3 +609,26 @@ def test_a_side_directory_never_merges_two_ids_alike_in_their_first_40_character
     assert P.side_dir({"id": "split-n2", "digest": "abcdef0123"}) == f"data/generated/side/t185-{P._slug('split-n2', 40)}-abcdef", \
         "an id that fits keeps the directory it had"
     assert P._slug(long_a, 40) == P._slug(long_b, 40), "the bare cut is the same for both: the hash is what tells them apart"
+
+
+def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn():
+    """T589 (the Allco fence): `proposal_overrides.json` could only set a confidence — a cut the owner replaced stayed a
+    proposal for ever. `withdrawn` takes it out of every reader (`marks.amend`) and `withdrawn_groups` lists it."""
+    cut = {"ref": "fence", "anchor": "coord", "name": "the hatchery fence", "on_item": "gnis:1", "coord": [-122.5, 49.2]}
+    keep = {"ref": "bridge", "anchor": "coord", "name": "the bridge", "on_item": "gnis:1", "coord": [-122.6, 49.3]}
+    groups = [{"id": n["ref"], "split": M.NewSplit.model_validate(n), "members": [M.NewSplit.model_validate(n)], "marks": []}
+              for n in (cut, keep)]
+    ov = M.ConfidenceOverride.model_validate({"match": cut, "withdrawn": True, "by": "owner", "date": "2026-11-10",
+                                              "note": "replaced by the park boundary signs"})
+    assert [g["id"] for g in M.amend(groups, [ov])] == ["bridge"]
+    assert [g["id"] for g in M.with_confidence(groups, [ov])] == ["bridge"]
+    [w] = M.withdrawn_groups(groups, [ov])
+    assert w["id"] == "fence" and w["withdrawn"] == {"by": "owner", "date": "2026-11-10", "note": "replaced by the park boundary signs"}
+    assert [g["id"] for g in M.amend(groups, [])] == ["fence", "bridge"] and M.withdrawn_groups(groups, []) == []
+    with pytest.raises(ValueError, match="says why"):
+        M.ConfidenceOverride.model_validate({"match": cut, "withdrawn": True, "by": "owner", "date": "2026-11-10"})
+    with pytest.raises(ValueError, match="no other call"):
+        M.ConfidenceOverride.model_validate({"match": cut, "withdrawn": True, "confidence": "low", "by": "o",
+                                             "date": "2026-11-10", "note": "x"})
+    # the curated file as it is today withdraws nothing (the Allco click is the owner's)
+    assert not any(o.withdrawn for o in M.load_overrides(CURATED.review.proposal_overrides))

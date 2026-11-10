@@ -761,6 +761,11 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
               </>}
           </div>
         )}
+        {d?.withdrawn && d.withdrawn.length > 0 && (
+          <div className="dim" data-testid="ck-withdrawn" style={{ margin: "0 8px 8px" }}>
+            Withdrawn cut proposals on this water (not built, not offered): {d.withdrawn.map((w, i) => (
+              <span key={w.id}>{i ? "; " : ""}“{w.name}” — {w.why} ({w.by}, {w.date})</span>))}
+          </div>)}
         {!needs && d && loaded.proposal && onEdit && !pc.held && !doneBySave && (
           <div className="ck-lead" data-testid="ck-proposal-block">
             <b>We propose another extent for this place (not applied).</b>

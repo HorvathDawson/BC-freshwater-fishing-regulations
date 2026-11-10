@@ -1189,6 +1189,8 @@ class ConfidenceOverride(BaseModel):
                   anchor / area / area_end …) — what a mark's note asked of the PROPOSED split
       offsets     the cut is a REFERENCE, not a cut: one cut per offset off it, along the water
                   (`NewSplit.offset_m`, + upstream, - downstream) — "100 m up and down of the weir"
+      withdrawn   (T589) the proposal is TAKEN BACK: it is not built, not offered by any picker, and listed as
+                  withdrawn with its note (`withdrawn_groups`) — never silently gone. The note says why.
 
     The result is still a PROPOSAL (T185 lands it after its side rebuild); nothing is accepted here."""
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -1196,14 +1198,19 @@ class ConfidenceOverride(BaseModel):
     confidence: Optional[Confidence] = None
     set: dict = Field(default_factory=dict)
     offsets: list[float] = Field(default_factory=list)
+    withdrawn: bool = False
     by: str = Field(..., min_length=1)
     date: str
     note: str = ""
 
     @model_validator(mode="after")
     def _some_call(self) -> "ConfidenceOverride":
-        if not (self.confidence or self.set or self.offsets):
-            raise ValueError("an override makes a call: confidence, set or offsets")
+        if not (self.confidence or self.set or self.offsets or self.withdrawn):
+            raise ValueError("an override makes a call: confidence, set, offsets or withdrawn")
+        if self.withdrawn and (self.confidence or self.set or self.offsets):
+            raise ValueError("a withdrawn proposal takes no other call")
+        if self.withdrawn and not self.note.strip():
+            raise ValueError("a withdrawn proposal says why (note)")
         if any(not o for o in self.offsets) or len(set(self.offsets)) != len(self.offsets):
             raise ValueError("offsets are distinct and non-zero")
         bad = set(self.set) - set(NewSplit.model_fields) | ({"ref"} & set(self.set))
@@ -1274,6 +1281,18 @@ def proposal_groups(marks: Iterable[Mark]) -> list[dict]:
     return out
 
 
+def withdrawn_groups(groups: Iterable[dict], overrides: Sequence[ConfidenceOverride] = ()) -> list[dict]:
+    """T589: THE PROPOSED SPLITS THE OWNER TOOK BACK (an override with `withdrawn`): the `proposal_groups` rows `amend`
+    leaves out, each with `withdrawn` = {by, date, note} — what a screen lists so one is never silently gone."""
+    out = []
+    for g in groups:
+        members = [m if isinstance(m, NewSplit) else NewSplit.model_validate(m) for m in g["members"]]
+        o = next((o for o in overrides if o.withdrawn and o.matches(members)), None)
+        if o is not None:
+            out.append({**g, "withdrawn": {"by": o.by, "date": o.date, "note": o.note}})
+    return out
+
+
 def _offset_words(off: float) -> str:
     return f"{abs(off):g} m {'upstream' if off > 0 else 'downstream'}"
 
@@ -1287,6 +1306,8 @@ def amend(groups: Iterable[dict], overrides: Sequence[ConfidenceOverride] = ()) 
     for g in groups:
         members = [m if isinstance(m, NewSplit) else NewSplit.model_validate(m) for m in g["members"]]
         split = g["split"] if isinstance(g["split"], NewSplit) else NewSplit.model_validate(g["split"])
+        if any(o.withdrawn and o.matches(members) for o in overrides):
+            continue                                  # T589: taken back — listed by `withdrawn_groups`, never built
         # T355: a cut the owner EDITED in a mark (`NewSplit.amends`) is as the edit says: the edit is
         # the later call, so an earlier override's set / offsets no longer apply to it
         o = None if split.amends else next(

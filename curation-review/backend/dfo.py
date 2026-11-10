@@ -80,6 +80,21 @@ def _proposals() -> list[dict]:
 
 
 _PROPOSALS_MEMO = reuse._Memo()
+_WITHDRAWN_MEMO = reuse._Memo()
+
+
+def withdrawn_on(items: list[str]) -> list[dict]:
+    """T589: the cut proposals on this river the owner TOOK BACK (`marks.withdrawn_groups`): {id, name, why, by, date}
+    — listed where proposals are listed, never offered by a picker"""
+    from pipeline.common.curated import CURATED
+    from pipeline.regs.review import marks as M
+    ov = CURATED.review.proposal_overrides
+    rows = _WITHDRAWN_MEMO.get((reuse._stamp((reuse.MARKS_PATH, ov)), M.withdrawn_groups, M.load),
+                               lambda: M.withdrawn_groups(M.proposal_groups(M.load(reuse.MARKS_PATH)),
+                                                          M.load_overrides(ov)))
+    blks = {str(n.blk) for _nid, n, _g in _line_sections(items)} if items else set()
+    return [{"id": g["id"], "name": g["split"].name or g["id"], "why": g["withdrawn"]["note"],
+             "by": g["withdrawn"]["by"], "date": g["withdrawn"]["date"]} for g in rows if _on_river(g, items, blks)]
 
 
 def _proposal_view(p: dict) -> dict:
@@ -740,6 +755,7 @@ def detail(location_id: str) -> dict | None:
         "rows": rows, "rules": labels, "need": D.need(loc),
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
+        "withdrawn": withdrawn_on(list((water or {}).get("item_ids") or [])),
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
         "closure": closure_view(location_id),
         "fix_vs_current": (fvc := fix_vs_current(m, loc, water)), "saved": saved_status(m, fvc),
