@@ -22,3 +22,11 @@ this is important to fix too".
 3. Test: the camera and key are equal for Flow and Level on a mixed panel.
 
 Depends: T567. Size: S. Owner: one question.
+
+## Owner's answer 2026-11-09
+"the whole map jumps position from above the chart to below it." So it is the ORDER of the sheet's blocks that changes
+with the quantity, not the camera. Work item 2 becomes: the map keeps one place in the sheet (above the chart) whatever
+is asked and whether or not the estimate answers; find what orders the blocks (the refusal branch of `donorView` returns
+no map, and the Conditions sheet lays the chart and the map out by what it has). The camera point stays as a second check.
+Owner also: a forecast showed under Level for Mission in the phone app only, not the web app (picture to come): maybe a
+stale update on the phone. Look at it with this.
