@@ -911,6 +911,8 @@ export interface WaterPlace {
 }
 export interface WaterView {
   water_key: string; water: string; places: WaterPlace[];
+  /** said under the list's header (a place shown alone: it is not in the queue) */
+  note?: string;
   /** DFO's water heading with its "(including tributaries)" qualifier */
   heading?: string;
   cut_labels: Record<string, string>; item_names: Record<string, string>;
@@ -1316,13 +1318,22 @@ export interface DfoPlace {
 /** T573: the closed-areas entry of a DFO row: one rule ("No fishing, year-round") on named areas, each with DFO's own
  *  words and — when a proposal places it — its two ends on the water and its length */
 export interface DfoClosureArea {
-  name: string; words: string; metres: number | null;
+  key: string; item: string; name: string; words: string; metres: number | null;
+  /** one model, two shapes: a stretch between two cuts, or a circle (centre + radius); a line across a lake is listed, not placed */
+  kind: "stretch" | "circle" | "line" | "unknown";
+  /** placed · changed (reworded: check again) · radius (the words give another radius) · unplaced · not live (DFO's
+   *  live page no longer names it: kept on file, never drawn) */
+  state: "placed" | "changed" | "radius" | "unplaced" | "not live";
+  note: string; confidence?: string | null; placed_note?: string;
   ends: { label: string; new: boolean; coord: [number, number] | null; measure: number | null; why?: string }[];
+  centre?: [number, number]; radius_m?: number;
+  /** a circle at true ground radius: a closed [lon, lat] ring */
+  ring?: [number, number][];
 }
 export interface DfoClosure {
   error?: string;
   id: string; derived_from: string; title: string; rule: { verbatim: string }; areas: DfoClosureArea[];
-  proposed: boolean; why?: string | null; new_cuts: string[]; said_by?: string;
+  proposed: boolean; row_live: boolean; new_cuts: string[]; said_by?: string;
 }
 export interface DfoFixProposal {
   why: string;

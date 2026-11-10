@@ -755,24 +755,46 @@ def _closures_path() -> Path:
     return Path(GENERATED.review) / "dfo_closure_entries.json"
 
 
+def _closed_geometry_path() -> Path:
+    if os.environ.get("CURATION_DFO_CLOSED_GEOMETRY"):
+        return Path(os.environ["CURATION_DFO_CLOSED_GEOMETRY"])
+    return Path(GENERATED.review) / "dfo_closed_area_geometry.json"
+
+
 def closure_view(location_id: str) -> dict | None:
     """THE CLOSED-AREAS ENTRY OF A PLACE (T573, owner 2026-11-10: "it should become 2 entries"): entry B derived from
-    this place's row, and — when a proposal places its areas (`dfo_fix_proposals.json` under `<id>#closed`) — each
-    area's two ends on the water, resolved by the server's own anchor check, with its length. Read only; a proposal:
-    nothing in the places files or the feed holds it. A file that cannot be read is said (`error`)."""
+    this place's row, each of its pieces joined to its placement BY THE LIVE ROW (`closures.attach`: a piece whose item
+    DFO dropped is listed "not live" and carries nothing to draw). A placed stretch has its two ends on the water (the
+    server's own anchor check) and its length; a placed circle its centre, its radius and its ring at true ground
+    radius (`closures.circle_polygon`). Read only; proposals: nothing in the places files or the feed holds them. A
+    file that cannot be read, or a record that is not the schema, is said (`error`)."""
+    from pipeline.regs.dfo_salmon import closures as K
     from pipeline.regs.review import marks as M
     p = _closures_path()
     if not p.exists():
         return None
     try:
-        entry = (json.loads(p.read_text(encoding="utf-8")).get("entries") or {}).get(location_id + "#closed")
+        entries = json.loads(p.read_text(encoding="utf-8")).get("entries") or {}
+        entry = entries.get(location_id + "#closed")
     except (OSError, ValueError) as ex:
         return {"error": f"the closure entries file cannot be read: {ex}"}
     if entry is None:
         return None
-    prop = fix_proposal(location_id + "#closed") or {}
-    sg = prop.get("suggestion") or {}
-    new = {n["ref"]: n for n in sg.get("new_splits") or []}
+    geo, new = [], {}
+    gp = _closed_geometry_path()
+    if gp.exists():
+        try:
+            doc = json.loads(gp.read_text(encoding="utf-8"))
+            geo, new = list(doc.get("pieces") or []), {n["ref"]: n for n in doc.get("new_splits") or []}
+        except (OSError, ValueError) as ex:
+            return {"error": f"the closed-area placements file cannot be read: {ex}"}
+    got = _locations().get(location_id)
+    live = bool(got) and (got[1].get("status") or "active") == "active"
+    try:
+        # the owner's rule: a piece exists only while DFO's LIVE page names its item (per item, across this water's rows)
+        pieces = K.attach(entry, geo, live=K.live_keys(entries, entry.get("water_id")))
+    except ValueError as ex:
+        return {"error": f"a closed-area placement is not the schema: {ex}"}
     bounds = reuse._boundary_index()
 
     def end(pt: dict) -> dict:
@@ -784,19 +806,29 @@ def closure_view(location_id: str) -> dict | None:
                     "coord": [round(ll[0], 6), round(ll[1], 6)] if ll else None,
                     "measure": (reuse._splits_meta().get(sid) or {}).get("route_measure")}
         n = new.get(sid)
-        got = check_anchor(location_id, M.NewSplit.model_validate(n)) if n else {"ok": False, "why": "no such new cut"}
-        return {"label": (n or {}).get("name") or sid, "new": True, "coord": got.get("coord"),
-                "measure": got.get("measure"), **({} if got.get("ok") else {"why": got.get("why")})}
+        chk = check_anchor(location_id, M.NewSplit.model_validate(n)) if n else {"ok": False, "why": "no such new cut"}
+        return {"label": (n or {}).get("name") or sid, "new": True, "coord": chk.get("coord"),
+                "measure": chk.get("measure"), **({} if chk.get("ok") else {"why": chk.get("why")})}
     areas = []
-    pieces = sg.get("pieces") or []
-    for i, a in enumerate(entry.get("areas") or []):
-        piece = pieces[i] if i < len(pieces) else None
-        ends = [end(pt) for pt in (piece or {}).get("points") or []]
-        ms = [e.get("measure") for e in ends]
-        areas.append({**a, "ends": ends,
-                      "metres": round(abs(ms[0] - ms[1])) if len(ms) == 2 and None not in ms else None})
-    return reuse._json_safe({**entry, "areas": areas, "proposed": bool(pieces), "why": prop.get("why"),
-                             "new_cuts": [n.get("name") or n["ref"] for n in new.values()]})
+    for a in pieces:
+        g = a.pop("geometry")
+        shown = g is not None and a["state"] != "not live"          # never drawn while DFO's row does not name it
+        out = {**a, "ends": [], "metres": None, "confidence": (g or {}).get("confidence"),
+               "placed_note": (g or {}).get("note") or (g or {}).get("centre_from") or ""}
+        if shown and g["kind"] == "stretch":
+            out["ends"] = [end(pt) for pt in g["points"]]
+            ms = [e.get("measure") for e in out["ends"]]
+            out["metres"] = round(abs(ms[0] - ms[1])) if len(ms) == 2 and None not in ms else None
+        elif shown and g["kind"] == "circle":
+            out["centre"], out["radius_m"] = g["centre"], g["radius_m"]
+            out["ring"] = K.circle_polygon(tuple(g["centre"]), g["radius_m"])
+        areas.append(out)
+    return reuse._json_safe({**entry, "areas": areas, "row_live": live,
+                             "proposed": any(a["state"] in ("placed", "changed", "radius") for a in areas),
+                             "new_cuts": [n.get("name") or n["ref"] for n in new.values()
+                                          if any(pt.get("split_id") == n["ref"] for g in geo
+                                                 if g.get("water_id") == entry.get("water_id")
+                                                 for pt in g.get("points") or [])]})
 
 
 def _heading(loc: dict, water: dict | None) -> str:

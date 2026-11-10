@@ -482,6 +482,10 @@ def test_dfos_heading_gets_its_tributary_qualifier_back_and_the_tributaries_row_
     assert C.dfo_heading(loc, {"tributaries": True}) == "Morice River (including tributaries)"
     assert C.dfo_heading(loc, {"tributaries": False}) == "Morice River (excluding tributaries)"
     assert C.dfo_heading(loc, {"tributaries": None}) == C.dfo_heading(loc, None) == "Morice River"
+    # never against the place: its own words (or its own call) speak of tributaries -> the bare name
+    babine = {"water": "Babine Lake", "source_text": {"waters": "Babine Lake", "specific_area": "Babine Lake excluding tributaries and …"}}
+    assert C.dfo_heading(babine, {"tributaries": True}) == "Babine Lake"
+    assert C.dfo_heading({**loc, "binding": {"tributaries": False}}, {"tributaries": True}) == "Morice River"
     kept = {"source_text": {"waters": "Alouette River and tributaries"}}
     assert C.dfo_heading(kept, {"tributaries": True}) == "Alouette River and tributaries"      # never said twice
     ctx = C.Context(labels={}, items={"i1": "Morice River"}, built=frozenset(), pending=frozenset(), points={})

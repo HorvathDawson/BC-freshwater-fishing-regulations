@@ -31,14 +31,23 @@
    },
    "areas": [
     {
+     "key": "00673ca0afe5",
+     "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+     "kind": "stretch",
      "name": "Deadman",
      "words": "from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek."
     },
     {
+     "key": "5adc77c1f78d",
+     "item": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+     "kind": "stretch",
      "name": "Juniper",
      "words": "from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W."
     },
     {
+     "key": "c76883c57564",
+     "item": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft.",
+     "kind": "stretch",
      "name": "Ashcroft",
      "words": "from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft."
     }
@@ -76,19 +85,286 @@
    },
    "areas": [
     {
+     "key": "00673ca0afe5",
+     "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+     "kind": "stretch",
      "name": "Deadman",
      "words": "from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek."
     },
     {
+     "key": "5adc77c1f78d",
+     "item": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+     "kind": "stretch",
      "name": "Juniper",
      "words": "from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W."
     },
     {
+     "key": "c76883c57564",
+     "item": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft.",
+     "kind": "stretch",
      "name": "Ashcroft",
      "words": "from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft."
     }
    ],
    "source_words": "From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provincial Park Please note that no fishing is allowed in the following areas, year-round:"
+  },
+  "6:babine-lake:babine-lake-excluding-tributaries~2#closed": {
+   "id": "6:babine-lake:babine-lake-excluding-tributaries~2#closed",
+   "derived_from": "6:babine-lake:babine-lake-excluding-tributaries~2",
+   "kind": "closure",
+   "water": "Babine Lake",
+   "water_id": "6:babine-lake",
+   "region": "6",
+   "status": "dormant",
+   "title": "Babine Lake: closed in 14 named areas",
+   "rule": {
+    "type": "retention_limit",
+    "species": [
+     "SA"
+    ],
+    "take": 0,
+    "may_target": false,
+    "verbatim": "Closed"
+   },
+   "areas": [
+    {
+     "key": "f4c347aad97f",
+     "item": "Morrison Creek",
+     "kind": "circle",
+     "name": "Morrison Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Morrison Creek"
+    },
+    {
+     "key": "379a9388f532",
+     "item": "Six Mile Creek",
+     "kind": "circle",
+     "name": "Six Mile Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Six Mile Creek"
+    },
+    {
+     "key": "c6d917f3f165",
+     "item": "Pierre Creek",
+     "kind": "circle",
+     "name": "Pierre Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Pierre Creek"
+    },
+    {
+     "key": "36f5b357ebcf",
+     "item": "Pendleton Creek",
+     "kind": "circle",
+     "name": "Pendleton Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Pendleton Creek"
+    },
+    {
+     "key": "963a5557f71b",
+     "item": "Hazelwood Creek",
+     "kind": "circle",
+     "name": "Hazelwood Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Hazelwood Creek"
+    },
+    {
+     "key": "00503bc8b63e",
+     "item": "Twain Creek",
+     "kind": "circle",
+     "name": "Twain Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Twain Creek"
+    },
+    {
+     "key": "0e1518e92322",
+     "item": "Tachek Creek",
+     "kind": "circle",
+     "name": "Tachek Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Tachek Creek"
+    },
+    {
+     "key": "c2013e4ac580",
+     "item": "Five Mile Creek",
+     "kind": "circle",
+     "name": "Five Mile Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Five Mile Creek"
+    },
+    {
+     "key": "f3116ad57dbe",
+     "item": "Four Mile Creek",
+     "kind": "circle",
+     "name": "Four Mile Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Four Mile Creek"
+    },
+    {
+     "key": "6b5f946bc1eb",
+     "item": "Sockeye Creek",
+     "kind": "circle",
+     "name": "Sockeye Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Sockeye Creek"
+    },
+    {
+     "key": "40d829f72ad9",
+     "item": "Big Loon Creek",
+     "kind": "circle",
+     "name": "Big Loon Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Big Loon Creek"
+    },
+    {
+     "key": "6fb2db5fc268",
+     "item": "Tsezakwa Creek",
+     "kind": "circle",
+     "name": "Tsezakwa Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Tsezakwa Creek"
+    },
+    {
+     "key": "924055c5ebd6",
+     "item": "Pinkut Creek",
+     "kind": "circle",
+     "name": "Pinkut Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Pinkut Creek"
+    },
+    {
+     "key": "d8c7cac1841a",
+     "item": "east of a line from Gullwing Creek to south shore of Babine Lake",
+     "kind": "line",
+     "name": "east of a line from Gullwing Creek to south shore of Babine ",
+     "words": "closed east of a line from Gullwing Creek to south shore of Babine Lake"
+    }
+   ],
+   "source_words": "Babine Lake excluding tributaries and those waters within a 400 m radius of the following tributary streams: Also closed east of a line from Gullwing Creek to south shore of Babine Lake."
+  },
+  "6:babine-lake:babine-lake-excluding-tributaries~3#closed": {
+   "id": "6:babine-lake:babine-lake-excluding-tributaries~3#closed",
+   "derived_from": "6:babine-lake:babine-lake-excluding-tributaries~3",
+   "kind": "closure",
+   "water": "Babine Lake",
+   "water_id": "6:babine-lake",
+   "region": "6",
+   "status": "active",
+   "title": "Babine Lake: closed in 13 named areas",
+   "rule": {
+    "type": "retention_limit",
+    "species": [
+     "SA"
+    ],
+    "take": 0,
+    "may_target": false,
+    "verbatim": "Closed"
+   },
+   "areas": [
+    {
+     "key": "f4c347aad97f",
+     "item": "Morrison Creek",
+     "kind": "circle",
+     "name": "Morrison Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Morrison Creek"
+    },
+    {
+     "key": "379a9388f532",
+     "item": "Six Mile Creek",
+     "kind": "circle",
+     "name": "Six Mile Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Six Mile Creek"
+    },
+    {
+     "key": "c6d917f3f165",
+     "item": "Pierre Creek",
+     "kind": "circle",
+     "name": "Pierre Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Pierre Creek"
+    },
+    {
+     "key": "36f5b357ebcf",
+     "item": "Pendleton Creek",
+     "kind": "circle",
+     "name": "Pendleton Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Pendleton Creek"
+    },
+    {
+     "key": "963a5557f71b",
+     "item": "Hazelwood Creek",
+     "kind": "circle",
+     "name": "Hazelwood Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Hazelwood Creek"
+    },
+    {
+     "key": "00503bc8b63e",
+     "item": "Twain Creek",
+     "kind": "circle",
+     "name": "Twain Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Twain Creek"
+    },
+    {
+     "key": "0e1518e92322",
+     "item": "Tachek Creek",
+     "kind": "circle",
+     "name": "Tachek Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Tachek Creek"
+    },
+    {
+     "key": "c2013e4ac580",
+     "item": "Five Mile Creek",
+     "kind": "circle",
+     "name": "Five Mile Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Five Mile Creek"
+    },
+    {
+     "key": "f3116ad57dbe",
+     "item": "Four Mile Creek",
+     "kind": "circle",
+     "name": "Four Mile Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Four Mile Creek"
+    },
+    {
+     "key": "6b5f946bc1eb",
+     "item": "Sockeye Creek",
+     "kind": "circle",
+     "name": "Sockeye Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Sockeye Creek"
+    },
+    {
+     "key": "40d829f72ad9",
+     "item": "Big Loon Creek",
+     "kind": "circle",
+     "name": "Big Loon Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Big Loon Creek"
+    },
+    {
+     "key": "6fb2db5fc268",
+     "item": "Tsezakwa Creek",
+     "kind": "circle",
+     "name": "Tsezakwa Creek",
+     "radius_m": 400.0,
+     "words": "within a 400 m radius of the mouth of Tsezakwa Creek"
+    },
+    {
+     "key": "d8c7cac1841a",
+     "item": "east of a line from Gullwing Creek to south shore of Babine Lake",
+     "kind": "line",
+     "name": "east of a line from Gullwing Creek to south shore of Babine ",
+     "words": "closed east of a line from Gullwing Creek to south shore of Babine Lake"
+    }
+   ],
+   "source_words": "Babine Lake excluding tributaries and those waters within a 400 m radius of the following tributary streams: Also closed east of a line from Gullwing Creek to south shore of Babine Lake. Note: Barbed hooks are authorized in Babine Lake."
   }
  }
 }

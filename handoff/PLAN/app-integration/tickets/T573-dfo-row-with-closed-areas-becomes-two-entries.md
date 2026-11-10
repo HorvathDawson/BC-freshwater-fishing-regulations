@@ -39,3 +39,55 @@ Owner 2026-11-10, on the Thompson (T572): "we need a way to represent this … i
 - Babine Lake (two wordings): "excluding … those waters within a 400 m radius of … Morrison Creek, Six Mile Creek" is a
   radius closure around tributary mouths, not named stretches: not derived; it needs its own decision.
 - In the review app entry B cannot be SAVED yet (it is not a place); the owner reviews it on entry A's screen.
+
+## ONE MODEL, TWO SHAPES (owner 2026-11-10: "i think we could model babine similar? … draw circles at the right radius")
+An excluded area is a PIECE of entry B, keyed to its own item in the row's exclusion list. A piece is:
+- `stretch` — between two cuts on a stream (the Thompson: "Deadman - from … to …");
+- `circle` — a centre and a radius in metres (Babine Lake: "within a 400 m radius of … Morrison Creek, …");
+- `line` — a line across a lake (Babine: "closed east of a line from Gullwing Creek to south shore"): named and
+  listed, never placed here (a lake divided by a line is deferred).
+
+THE STORED SHAPE (`closures.PieceGeometry`, validated wherever it is read; the same record is what a save will write):
+```
+{"key": "<12 hex: piece_key of DFO's words for the item>", "water_id": "6:babine-lake", "name": "Morrison Creek",
+ "item": "<DFO's words it was curated for>", "on_item": "<registry water it lies on>",
+ "kind": "circle",  "centre": [lon, lat], "radius_m": 400, "centre_from": "…", "confidence": "high|medium|low"}
+{…same head…, "kind": "stretch", "points": [{"kind": "split"|"new", "split_id": "…"}, {…}]}
+```
+A stretch has exactly two ends and no centre; a circle a centre in B.C. and a radius, no ends; anything else is refused.
+Placements live in `data/generated/review/dfo_closed_area_geometry.json` (proposals) until the owner accepts them.
+
+BABINE LAKE, as derived from the stored rows: the live wording names 12 creeks (the older one 13: Pinkut Creek was
+dropped), each a 400 m circle, plus the Gullwing Creek line. THE RULE ON ENTRY B IS WHAT THE WORDS SAY: the row
+"exclud[es] … those waters" from the Babine Lake opening and says "Also closed east of a line …"; it names no season
+and never says "no fishing". So entry B's rule reads "Closed" with no dates — whether that means no fishing for salmon
+year-round there is the owner's reading to confirm.
+CENTRES (proposals, from our own network: each creek's mouth, nearest the lake's outline): placed 7 — Twain, Tachek,
+Five Mile, Four Mile, Big Loon (mouth on the outline: high), Morrison (298 m off) and Pierre (229 m off: medium).
+NOT placed 6 — Six Mile, Pendleton, Hazelwood, Sockeye (no stream of that name reaches the lake in the registry),
+Tsezakwa (its named line ends 2.3 km from the lake), Pinkut (11.6 km: and not on the live page).
+A circle is drawn at TRUE GROUND RADIUS (`closures.circle_polygon`: a geodesic ring, within 1 % at 55° N in every
+direction), over the lake, in the closed colour; clicking its line in the panel flies the map to it.
+
+## ENTRY B IS NEVER FREE-STANDING (owner 2026-11-10: "circles should only show up when that entry is in the dfo page
+too (if they remove it circles should go away)")
+`closures.attach` joins placements to the row PER ITEM, by `piece_key` (DFO's words for the item, case and spacing
+aside), against the items DFO's LIVE page carries for the water (`closures.live_keys`):
+- item removed → only that piece goes "not live": kept on file, never drawn, never bound (Babine's Pinkut Creek today);
+- clause or place removed → no entry B is derived / every piece of an older wording is not live;
+- item restored → placed again from the file, nothing re-curated (waters never move, rules churn);
+- item reworded → "changed, check again" (matched by its name, the geometry offered and flagged, never silently kept);
+  a radius in the words that is not the stored radius → "radius differs", both numbers said.
+Tests: `test_dfo_closures.py::test_entry_b_is_never_free_standing_item_removed_clause_removed_restored_reworded`.
+
+## LATER (not built; each waits on the owner)
+- EDITING a piece in the review app (move a circle's centre by a map click, change a radius, set a stretch's ends) and
+  SAVING it: the app's one write is a mark, so this needs a mark that carries a `PieceGeometry` and its write-through
+  into a curated file; today the placements are read-only proposals.
+- THE BUILD: circles are not bound into the atlas / reach (a lake divided into closure areas is deferred; a polygon
+  that straddles sections is marked, not cut). When taken up: the reach step would mark the lake's sections a circle
+  touches and carry the circle as the closure's own geometry in the bundle; the app would draw the circle on the lake
+  and answer "closed" inside it. Stretches integrate as in "NOT built" above. `attach`'s rule goes with them: a piece
+  not on the live page is neither bound nor drawn.
+- Derivation is one new module, `pipeline/regs/dfo_salmon/closures.py`, with no call site in the scrape, the typed
+  feed or `entries.py` yet (T549's lane: see the note there).

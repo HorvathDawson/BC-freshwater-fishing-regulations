@@ -1,0 +1,236 @@
+{
+ "_about": "THE PLACEMENT OF ENTRY B's PIECES (T573): one record per excluded item of a DFO row (pipeline.regs.dfo_salmon.closures.PieceGeometry) — a stretch between two cuts or a circle (centre + radius). PROPOSALS for the owner; nothing in the places files, the atlas or the feed reads this. Joined to the LIVE row by item key (closures.attach): a piece whose item DFO drops stays here, marked not live by the reader.",
+ "pieces": [
+  {
+   "key": "00673ca0afe5",
+   "water_id": "3:thompson-river",
+   "name": "Deadman",
+   "item": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_deadman_upper_signs"
+    },
+    {
+     "kind": "split",
+     "split_id": "thompson_river__cnr_bridge"
+    }
+   ],
+   "confidence": "medium",
+   "note": ""
+  },
+  {
+   "key": "5adc77c1f78d",
+   "water_id": "3:thompson-river",
+   "name": "Juniper",
+   "item": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_juniper_upper_signs"
+    },
+    {
+     "kind": "new",
+     "split_id": "thompson_juniper_lower_signs"
+    }
+   ],
+   "confidence": "low",
+   "note": "the Juniper upper signs are the owner's choice (two DFO descriptions 2.8 km apart)"
+  },
+  {
+   "key": "c76883c57564",
+   "water_id": "3:thompson-river",
+   "name": "Ashcroft",
+   "item": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft.",
+   "kind": "stretch",
+   "on_item": "gnis:39492",
+   "points": [
+    {
+     "kind": "new",
+     "split_id": "thompson_bonaparte_mouth"
+    },
+    {
+     "kind": "new",
+     "split_id": "thompson_ashcroft_hwy_97c_bridge"
+    }
+   ],
+   "confidence": "medium",
+   "note": ""
+  },
+  {
+   "key": "f4c347aad97f",
+   "water_id": "6:babine-lake",
+   "name": "Morrison Creek",
+   "item": "Morrison Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.286131,
+    55.152225
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the mouth of Morrison Creek (gnis:14946) on Babine Lake, from the FWA network (298 m from the lake's outline)",
+   "confidence": "medium"
+  },
+  {
+   "key": "c6d917f3f165",
+   "water_id": "6:babine-lake",
+   "name": "Pierre Creek",
+   "item": "Pierre Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.853488,
+    54.633599
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the mouth of Pierre Creek (gnis:8064) on Babine Lake, from the FWA network (229 m from the lake's outline)",
+   "confidence": "medium"
+  },
+  {
+   "key": "00503bc8b63e",
+   "water_id": "6:babine-lake",
+   "name": "Twain Creek",
+   "item": "Twain Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.811923,
+    54.609803
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the mouth of Twain Creek (gnis:30172) on Babine Lake, from the FWA network (0 m from the lake's outline)",
+   "confidence": "high"
+  },
+  {
+   "key": "0e1518e92322",
+   "water_id": "6:babine-lake",
+   "name": "Tachek Creek",
+   "item": "Tachek Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.115672,
+    54.799465
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the mouth of Tachek Creek (gnis:23132) on Babine Lake, from the FWA network (0 m from the lake's outline)",
+   "confidence": "high"
+  },
+  {
+   "key": "c2013e4ac580",
+   "water_id": "6:babine-lake",
+   "name": "Five Mile Creek",
+   "item": "Five Mile Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.60043,
+    55.255854
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the mouth of Five Mile Creek (gnis:37800) on Babine Lake, from the FWA network (0 m from the lake's outline)",
+   "confidence": "high"
+  },
+  {
+   "key": "f3116ad57dbe",
+   "water_id": "6:babine-lake",
+   "name": "Four Mile Creek",
+   "item": "Four Mile Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.312955,
+    54.461777
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the mouth of Four Mile Creek (gnis:37801) on Babine Lake, from the FWA network (0 m from the lake's outline)",
+   "confidence": "high"
+  },
+  {
+   "key": "40d829f72ad9",
+   "water_id": "6:babine-lake",
+   "name": "Big Loon Creek",
+   "item": "Big Loon Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.919595,
+    54.790268
+   ],
+   "radius_m": 400.0,
+   "centre_from": "the mouth of Big Loon Creek (gnis:13041) on Babine Lake, from the FWA network (0 m from the lake's outline)",
+   "confidence": "high"
+  }
+ ],
+ "new_splits": [
+  {
+   "ref": "thompson_deadman_upper_signs",
+   "anchor": "bridge",
+   "name": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
+   "on_item": "gnis:39492",
+   "coord": [
+    -120.87265,
+    50.75654
+   ],
+   "offset_m": -1000,
+   "confidence": "medium",
+   "quote": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+   "note": "bridge point: BC MoTI road structure 'SAVONA' (Hwy 1) over the Thompson, 50.75654,-120.87265; the cut is 1,000 m down the river from it ('approximately' is DFO's word)"
+  },
+  {
+   "ref": "thompson_juniper_upper_signs",
+   "anchor": "sign",
+   "name": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
+   "on_item": "gnis:39492",
+   "coord": [
+    -121.13517,
+    50.78155
+   ],
+   "offset_m": 4000,
+   "confidence": "low",
+   "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+   "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs. The other reading, 1.5 km below the park's downstream boundary, lands 2.8 km further down (the closed area would be 1.2 km long, not 'approximately 4 km'): the owner's call"
+  },
+  {
+   "ref": "thompson_juniper_lower_signs",
+   "anchor": "sign",
+   "name": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
+   "on_item": "gnis:39492",
+   "coord": [
+    -121.13517,
+    50.78155
+   ],
+   "confidence": "high",
+   "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
+   "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line"
+  },
+  {
+   "ref": "thompson_bonaparte_mouth",
+   "anchor": "confluence",
+   "name": "Bonaparte River",
+   "item_id": "gnis:38393",
+   "on_item": "gnis:39492",
+   "confidence": "high",
+   "quote": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River",
+   "note": "the Bonaparte's mouth on the Thompson (FWA)"
+  },
+  {
+   "ref": "thompson_ashcroft_hwy_97c_bridge",
+   "anchor": "bridge",
+   "name": "Hwy 97C bridge in Ashcroft",
+   "on_item": "gnis:39492",
+   "coord": [
+    -121.28188,
+    50.72701
+   ],
+   "confidence": "high",
+   "quote": "to Hwy 97C bridge in Ashcroft",
+   "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188"
+  }
+ ]
+}

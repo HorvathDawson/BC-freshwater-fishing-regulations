@@ -519,7 +519,11 @@ def dfo_heading(loc: Mapping, water: Optional[Mapping]) -> str:
     st = loc.get("source_text") or {}
     name = str(st.get("waters") or loc.get("water") or "")
     call = (water or {}).get("tributaries")
-    if call is None or "tributar" in name.lower():
+    own = (loc.get("binding") or {}).get("tributaries")
+    said = "tributar" in str(st.get("specific_area") or "").lower()
+    # never said twice, and never AGAINST the place: a place whose own words (or own call) speak of tributaries keeps
+    # the bare name (Babine Lake: the water's flag says including, this place says "excluding tributaries")
+    if call is None or "tributar" in name.lower() or said or (own is not None and own != call):
         return name
     return f"{name} ({'including' if call else 'excluding'} tributaries)"
 

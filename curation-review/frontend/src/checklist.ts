@@ -250,16 +250,31 @@ export function arrange(queue: CheckPlace[], o: { easiest: boolean; hideDone: bo
     .sort((a, b) => rank(a.p) - rank(b.p) || a.i - b.i).map((x) => x.p)), hidden };
 }
 
-/** ENTRY B ON THE MAP (T573): each closed area whose two ends are placed, as a pair to walk the river between */
-export function closedPairs(areas: { ends: { coord: [number, number] | null }[] }[]): [[number, number], [number, number]][] {
-  return areas.flatMap((a) => (a.ends.length === 2 && a.ends[0].coord && a.ends[1].coord
+type ClosedArea = { name: string; metres: number | null; state?: string; kind?: string; radius_m?: number; note?: string;
+                    ends: { label: string; new: boolean; coord?: [number, number] | null }[]; ring?: [number, number][] };
+const drawn = (a: ClosedArea) => a.state !== "not live";
+/** ENTRY B ON THE MAP (T573): each closed STRETCH whose two ends are placed, as a pair to walk the river between — never
+ *  one DFO's live page no longer names */
+export function closedPairs(areas: ClosedArea[]): [[number, number], [number, number]][] {
+  return areas.filter(drawn).flatMap((a) => (a.ends.length === 2 && a.ends[0].coord && a.ends[1].coord
     ? [[a.ends[0].coord, a.ends[1].coord] as [[number, number], [number, number]]] : []));
 }
-/** one closed area in a line: its name, its length, between which ends */
-export function closedLine(a: { name: string; metres: number | null; ends: { label: string; new: boolean }[] }): string {
+/** …and each closed CIRCLE as a polygon at true ground radius (the server's ring), same rule */
+export function closedCircles(areas: ClosedArea[]): GeoJSON.FeatureCollection {
+  return { type: "FeatureCollection", features: areas.filter((a) => drawn(a) && a.ring && a.ring.length > 3).map((a) => ({
+    type: "Feature" as const, properties: { name: a.name, flagged: a.state === "changed" || a.state === "radius" },
+    geometry: { type: "Polygon" as const, coordinates: [a.ring!] } })) };
+}
+/** one closed area in a line: its name, its size, where — and when it is not live, changed or not placed, that first */
+export function closedLine(a: ClosedArea): string {
   const len = a.metres == null ? "" : a.metres >= 1000 ? ` · ${(a.metres / 1000).toFixed(1)} km` : ` · ${a.metres} m`;
+  if (a.state === "not live") return `${a.name}: no longer on DFO's page — kept on file, not drawn`;
+  const flag = a.state === "changed" ? "CHANGED, check again — " : a.state === "radius" ? "RADIUS DIFFERS — " : "";
+  if (a.kind === "circle")
+    return `${flag}${a.name}: ${a.ring ? `a ${a.radius_m} m circle at its mouth` : `a ${a.radius_m} m circle, its mouth not placed yet`}`;
+  if (a.kind === "line") return `${a.name}: a line across the lake, not placed (deferred)`;
   const ends = a.ends.length === 2 ? `: ${a.ends.map((e) => `${e.new ? "NEW cut " : ""}${e.label}`).join(" → ")}` : ": not placed yet";
-  return `${a.name}${len}${ends}`;
+  return `${flag}${a.name}${len}${ends}`;
 }
 
 /** THE NEXT WATER WITH WORK LEFT, from anywhere (owner 2026-11-09: "is there a button to go to next river?"): the

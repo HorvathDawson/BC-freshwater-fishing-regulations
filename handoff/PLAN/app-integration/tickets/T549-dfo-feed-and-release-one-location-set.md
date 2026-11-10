@@ -91,3 +91,10 @@ Fix the items above in severity order, one commit per item where they are separa
 A test diffs feed location ids against the release chains: a feed place with no chain shows as a text row with a caveat; a dropped place raises an owner notice. The app shows a held row as held. A `proposed` wording does not clear the guard. The stale line has margin over the heartbeat (no daily false "out of date"). A missing chain has one answer.
 
 Depends: —. Size: L. Owner: no.
+
+## Note from the review-app lane (T573, 2026-11-10)
+A new module `pipeline/regs/dfo_salmon/closures.py` DERIVES a second entry ("entry B": a closure) from a stored row's
+exclusion list, with its ids `<location id>#closed`. It is read only by the review app today (via
+`data/generated/review/dfo_closure_entries.json`); it has NO call site in `entries.py`, `typed.py` or `feed.py` and
+touches no file of this ticket. When entry B is accepted into the location set, the feed and the release must take it
+from the same place (this ticket's one location set): see T573 "NOT built".

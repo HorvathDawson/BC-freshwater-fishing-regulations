@@ -287,4 +287,15 @@ test("entry B: a closed area reads in one line and draws only when both its ends
   assert.equal(closedLine({ ...dead, metres: 420 }), "Deadman · 420 m: NEW cut upper signs → CNR bridge");
   assert.equal(closedLine(none), "Juniper: not placed yet");
   assert.deepEqual(closedPairs([dead, none, { ...dead, ends: [dead.ends[0], { ...dead.ends[1], coord: null }] }]), [[[-120.88, 50.75], [-120.92, 50.74]]]);
+  // one model, two shapes; and never drawn while DFO's page does not name it
+  const { closedCircles } = await import("../src/checklist.ts");
+  const ring = [[-126, 55], [-126.01, 55], [-126, 55.01], [-126, 55]] as [number, number][];
+  const circle = { name: "Morrison Creek", kind: "circle", state: "placed", radius_m: 400, metres: null, ends: [], ring };
+  assert.equal(closedLine(circle), "Morrison Creek: a 400 m circle at its mouth");
+  assert.equal(closedLine({ ...circle, ring: undefined, state: "unplaced" }), "Morrison Creek: a 400 m circle, its mouth not placed yet");
+  assert.equal(closedLine({ ...circle, state: "radius" }), "RADIUS DIFFERS — Morrison Creek: a 400 m circle at its mouth");
+  assert.equal(closedLine({ ...circle, state: "not live" }), "Morrison Creek: no longer on DFO's page — kept on file, not drawn");
+  assert.equal(closedLine({ ...dead, state: "changed" }), "CHANGED, check again — Deadman · 3.6 km: NEW cut upper signs → CNR bridge");
+  assert.equal(closedCircles([circle, { ...circle, state: "not live" }, { ...circle, ring: undefined }]).features.length, 1);
+  assert.deepEqual(closedPairs([{ ...dead, state: "not live" }]), []);
 });

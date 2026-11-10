@@ -669,6 +669,30 @@ def water_key_of(place_id: str) -> str | None:
     return by.get(g["canonical"]) if g else None
 
 
+def water_alone(place_id: str) -> dict | None:
+    """A DFO PLACE THAT IS NOT IN THE CHECKLIST QUEUE, opened by its link (a lake sub-area: "lake split later", owner
+    2026-10-28): the one-place view of its water, said as such — never a 404 on a place that exists."""
+    import dfo
+    got = dfo._locations().get(place_id)
+    if got is None:
+        return None
+    _s, loc, w = got
+    r = next((x for x in dfo._rows() if x["id"] == place_id), {})
+    b = loc.get("binding") or {}
+    exts = list(b.get("extents") or [])
+    chk = dfo_rows(loc, w, dfo._states().get(place_id), context(), r.get("verify"))
+    place = {"source": "dfo", "id": place_id, "text": (loc.get("source_text") or {}).get("specific_area") or "",
+             "live": (loc.get("status") or "active") == "active", "check": chk["check"], "bad": chk["summary"]["bad"],
+             "state": r.get("state"), "extents": exts, "tributaries": dfo.tributaries_now(loc, w), "extent_key": "",
+             "older_of": None, "duplicate_of": None, "confirmed": False, "apart": False, "seen": dfo.seen_extent(loc),
+             "last_seen": None, "proposal": bool(r.get("suggested") or r.get("fix_proposed")), "ease": None,
+             "same": place_id, "why": []}
+    view = {"water_key": f"alone:{place_id}", "water": loc.get("water") or "", "heading": C.dfo_heading(loc, w),
+            "places": [place],
+            "note": "This place is not in the checklist queue (a part of a lake: lake splits are deferred); it is shown alone."}
+    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view), "item_names": dfo.item_names(view)})
+
+
 def water(water_key: str, source: str = "dfo") -> dict | None:
     """EVERY PLACE ON ONE WATER, ALL IN SIGHT (owner 2026-11-09: "for a river show all historical boundaries too"): the
     queue's places on it (DFO first, then its regulation extents when `source` takes them) and, under each DFO place,

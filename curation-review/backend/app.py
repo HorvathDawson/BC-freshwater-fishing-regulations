@@ -901,6 +901,8 @@ def checks_water(place: str, source: str = "dfo"):
     got = checks.water(key, source) if key else None
     if got is None and key and source != "all":        # a place of the other source, opened by its link
         got = checks.water(key, "all")
+    if got is None and not key:                        # a DFO place the queue leaves out (a lake sub-area), by its link
+        got = checks.water_alone(place)
     if got is None:
         raise HTTPException(404, f"no water in the checklist holds {place}")
     return got
