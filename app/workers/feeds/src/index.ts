@@ -25,7 +25,7 @@ import { readStatus, record, recordHealth, refresh, servedStatus, statusHtml, ST
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
-import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
+import { forgetReport, runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
 import { crashEvents, handleCrash, listCrashesCounted, parseClasses, purgeCrashes } from "./crashes";
 import { cardEvents, runCards, type CardBucket, type CardRun } from "./gauges/card/card";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
@@ -604,6 +604,19 @@ export default {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const r = await runTimingCheck(env);
       return Response.json(r, { status: r.ok ? 200 : 500 });
+    }
+    if (url.pathname === "/run/forget-report" && req.method === "POST") {
+      // (T559) a report deleted on request (privacy page: "within 30 days"): the live object and every backup copy
+      if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
+      const id = url.searchParams.get("id") ?? "";
+      if (!/^[0-9a-f]{16}$/.test(id)) return new Response("id must be the report's 16 hex characters", { status: 400 });
+      if (!env.BACKUP) return Response.json({ ok: false, error: "no BACKUP binding: the backup copies were not deleted" }, { status: 500 });
+      try {
+        const r = await forgetReport(env.BUCKET as unknown as SrcBucket & { delete(k: string): Promise<void> }, env.BACKUP, id, new Date());
+        return Response.json({ ok: true, id, ...r });
+      } catch (e) {
+        return Response.json({ ok: false, id, error: String((e as Error)?.message ?? e) }, { status: 500 });
+      }
     }
     if (url.pathname === "/run/backup" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });

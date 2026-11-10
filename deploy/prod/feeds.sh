@@ -26,6 +26,15 @@ fi
 # REPORT_SALT is required (no salt = every report and crash answered 503); the placeholder script set it
 npx --prefix app wrangler secret list -c "$C" | grep -q 'REPORT_SALT' || {
   echo "REPORT_SALT is not set on $NAME: CONFIRM_PROD=$NAME deploy/prod/feeds-placeholder.sh (or wrangler secret put REPORT_SALT -c $C)" >&2; exit 1; }
+# (T559) the backups keep the privacy page's dates only while the backup bucket's daily/ copies expire within 30 days
+# (app/workers/feeds/src/backup.ts DAILY_KEEP_DAYS; personal records are never copied to monthly/)
+BK=$(sed -n 's/^BACKUP_BUCKET_NAME = "\(.*\)"/\1/p' "$C")
+LC=$(npx --prefix app wrangler r2 bucket lifecycle list "$BK")
+DAILY_DAYS=$(printf '%s\n' "$LC" | awk '/^prefix:/ {p=$2} /^action:/ && p=="daily/" && /Expire objects after/ {print $(NF-1); exit}')
+[[ -n "$DAILY_DAYS" && "$DAILY_DAYS" -le 30 ]] || {
+  echo "the backup bucket $BK has no daily/ expiry of 30 days or less (found: '${DAILY_DAYS:-none}'): the privacy page's 180/90-day" >&2
+  echo "promises would not hold in the backups. Set it: npx --prefix app wrangler r2 bucket lifecycle add $BK daily-30d daily/ --expire-days 30" >&2
+  exit 1; }
 TOKF=app/workers/feeds/.run-token.prod
 [[ -s $TOKF ]] || { echo "no $TOKF: write the production RUN_TOKEN there (the value given to feeds-placeholder.sh)" >&2; exit 1; }
 npx --prefix app wrangler deploy -c "$C"

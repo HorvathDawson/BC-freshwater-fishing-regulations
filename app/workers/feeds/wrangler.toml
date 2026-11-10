@@ -30,7 +30,8 @@ namespace_id = "2370"
 simple = { limit = 1, period = 10 }
 
 # T246: the backup bucket (src/backup.ts; daily/ + monthly/ snapshots of private/ and the feed state). Never served by a
-# worker. Retention = its lifecycle rules (daily/ 30 d, monthly/ 400 d, curated/ 365 d, restore-test/ 1 d).
+# worker. Retention = its lifecycle rules (daily/ 30 d, monthly/ 400 d, curated/ 365 d, restore-test/ 1 d; read 2026-11-10).
+# (T559) Reports and error kinds go into daily/ only, while their copy expires before the privacy page's date; never monthly/.
 [[r2_buckets]]
 binding = "BACKUP"
 bucket_name = "bc-fishing-regulations-staging-backup"
