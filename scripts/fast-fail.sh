@@ -130,7 +130,7 @@ step "/changes within budget (LATEST vs kept snapshot)" changes_budget
 # caught (2026-11-09, T545): two of the owner's DFO marks (Chilliwack/Vedder, saved in one group) never reached
 # dfo_salmon/places/region-2.json and read "saved"; no build or release looked. Read-only, ~2 s: every mark in force is
 # in its curated file, or is on the dated allow-list (`pipeline/regs/review/apply.py` NOT_LANDED_OK)
-step "review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check
+step "review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check --waiting-ok
 
 # caught 2026-11-07: app/tools/pin-study.mjs held hex colours; the colour gate flagged it only after the build (T481)
 step "colours" node app/tools/check-colours.mjs

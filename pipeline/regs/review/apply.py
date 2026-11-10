@@ -445,8 +445,10 @@ def check(*, marks: Optional[Path] = None, build: Optional[Path] = None,
             "allow": dict(allow), "log": said.getvalue()}
 
 
-def print_check(got: dict) -> int:
-    """`check`, said: one line per mark that has not landed; 0 when every one has (or is allowed), else 1."""
+def print_check(got: dict, *, waiting_ok: bool = False) -> int:
+    """`check`, said: one line per mark that has not landed; 0 when every one has (or is allowed), else 1.
+    `waiting_ok` (fast-fail): a mark that only WAITS (a side rebuild, an owner decision) is listed but does not
+    fail, so the owner's labelling cannot turn every lane's fast-fail red; release preflight stays strict."""
     def line(r: dict) -> str:
         who = ", ".join(r["marks"]) or r.get("id") or r.get("domain") or "?"
         return f"  {r['status']:8} {r.get('domain') or '-':8} {who}: {str(r['why']).splitlines()[0][:300]}"
@@ -458,6 +460,15 @@ def print_check(got: dict) -> int:
     for k in got["unused_allow"]:
         print(f"  note: NOT_LANDED_OK lists {k}, which is not waiting any more — take the row out "
               "(pipeline/regs/review/apply.py)")
+    held = [r for r in got["not_landed"] if r["status"] == "waiting"] if waiting_ok else []
+    if held:
+        print(f"review marks: {len(held)} WAITING (listed, not failing here; a release stops on them):")
+        for r in held:
+            print(line(r))
+        got = {**got, "not_landed": [r for r in got["not_landed"] if r not in held]}
+        got["ok"] = not got["not_landed"]
+        if got["ok"]:
+            return 0
     if got["ok"]:
         print(f"review marks: every mark in force has landed ({len(got['allowed'])} allowed to wait, "
               f"{got['followups']} tidal follow-up(s) decide nothing)")
@@ -487,6 +498,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     ap.add_argument("--check", action="store_true",
                     help="T545, read-only: list every mark in force that has not landed; exit 1 when there is one "
                          "that is not on NOT_LANDED_OK")
+    ap.add_argument("--waiting-ok", action="store_true",
+                    help="with --check: list marks that only wait (a side rebuild, an owner decision) without "
+                         "failing; refused, stale and would-land rows still fail")
     a = ap.parse_args(argv)
     bad = [d for d in a.domains if d not in E.DOMAINS]
     if bad:
@@ -494,7 +508,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     if a.check:
         if a.domains or a.dry_run or a.accept_shrink or a.accept_new_names:
             ap.error("--check takes no domain and no other mode: it checks every open domain")
-        return print_check(check(marks=a.marks, build=a.build))
+        return print_check(check(marks=a.marks, build=a.build), waiting_ok=a.waiting_ok)
     return run(a.domains, marks=a.marks, build=a.build, side_checked=tuple(a.side_checked),
                dry_run=a.dry_run, accept_shrink=a.accept_shrink, commit=not a.no_commit,
                accept_new=a.accept_new_names)["rc"]
