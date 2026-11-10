@@ -36,3 +36,19 @@ Depends: —. Size: S. Owner: no.
   default". The card code is shared, so the difference is what each holds (the phone's build vs the web deploy, its
   kept feed / bundle, or which gauge leads). Not reproduced. Do with T568 on the emulator: same water, web and app side
   by side; a conformance test that both pick the same lead gauge and quantity from one feed.
+
+## Owner's evidence 2026-11-09 21:17 PT (shots/T567-phone-1..4; a report was also sent from About)
+- Phone: 0.7.2 build 24, commit 2e8bedf, STAGING, release r-a178299f6005, tiles d5242c0c70509877.18ef9c824054. Updates
+  log (exported 04:17:50Z): gauges index last changed 04:07:49Z (7c339f84 → c2dd0f85), 304 since; release applied
+  02:28:22Z. So the phone's data is current: this is not a stale phone.
+- Water: Fraser River, CPR Bridge at Mission → Landstrom Bar sign zone boundary (km 156.4).
+- Shot 2, Flow: card "Fraser River at Mission", figure "1.548 m · Normal · 66th percentile" over a m³/s chart (CLEVER
+  forecast, no reading line). Fixed in 9a9a247d1 (not on the phone yet).
+- Shot 3, Level: the card SWITCHES GAUGE to "Fraser River at Hansard" (far upstream, near Prince George) and shows
+  "197 m³/s · 2.18 m stage · 27th percentile" over a level chart. Two more defects: (a) the lead gauge changes with the
+  quantity (owner: "it is like it is showing different gauges by default"), and Hansard leading a Mission reach under
+  Level looks wrong in itself; (b) the figure again leads with the other quantity (flow over a level chart) — the
+  9a9a247d1 guard does not cover it if `reading.quantity` says level while the figure leads with m³/s: check.
+- Web app on the same water looks right (owner). Compare: the web deploy's commit vs 2e8bedf, and the lead gauge each picks.
+- Tomorrow: reproduce on the emulator with this release + feed; fix lead-gauge choice (one lead per water whatever the
+  quantity, or said plainly when it must differ), the figure's quantity, then T568's block order.
