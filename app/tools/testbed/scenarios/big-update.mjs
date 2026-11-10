@@ -34,9 +34,11 @@ export const bigUpdate = {
       return l;
     });
     await ctx.step('the bell lists the update waiting', async () => {
-      const bell = ctx.device.screenText().find((w) => /update/i.test(w) && /bell|Notices|waiting|available/i.test(w) && !/^Refresh data/.test(w));
-      if (!bell) throw new Error('no bell entry for an update waiting for Wi-Fi (the bell lists in-season changes and failed updates only) — ticket T263');
-      return bell;
+      // (T263, ae4181e30) the bell's "Data update" row: opened, as a reader would (the closed bell shows only a count)
+      ctx.flow('open-bell');
+      const row = await ctx.waitText(/New regulations ready to download — waiting for Wi-Fi/, 10_000);
+      ctx.flow('tap-text', { TEXT: 'Done' });
+      return row;
     });
     await ctx.step('More → Data says it', async () => {
       ctx.flow('tab', { TAB: 'More' });

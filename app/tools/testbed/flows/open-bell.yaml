@@ -1,4 +1,4 @@
-# The top bar's bell (in-season changes not on the map + updates that failed).
+# The top bar's bell (in-season changes not on the map, updates that failed, and a data update waiting / ready, T263).
 appId: ca.canifishthis.app
 ---
 - tapOn: { id: "inseason-bell" }
