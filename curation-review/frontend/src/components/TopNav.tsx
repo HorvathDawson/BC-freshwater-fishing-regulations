@@ -2,6 +2,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { isTyping } from "../review";
 import { useClosed } from "./Locked";
 import { failed } from "../failures";
+import { api } from "../api";
+import type { Ready } from "../types";
 
 /* THE ONE TOP BAR (owner 2026-10-28: "make the tabs easier to switch between"). Every view renders this
    as its first row: the main tabs (short label, a done/total badge, a 1-9 / g+letter key), then — only for
@@ -85,6 +87,43 @@ function refreshBadges() {
   window.setTimeout(async () => { for (const job of jobs) await job(); }, 1000);
 }
 
+/* ---- (T541) WHICH BACKEND THIS IS: its start commit, marks store and write-through, from GET /api/ready, read once a
+   minute. A backend started on an older commit (a second run.sh whose backend died on a taken port left the OLD one
+   answering) gets a banner: its code, marks store and write-through are that commit's. ---- */
+let ready: Ready | null = null;
+let readyAt = 0;
+function refreshReady() {
+  if (Date.now() - readyAt < 60_000) return;
+  readyAt = Date.now();
+  api.ready().then((r) => { ready = r; emit(); }).catch(failed("the backend's identity (/api/ready)"));
+}
+const short = (c: string | null) => (c ? c.slice(0, 9) : "?");
+
+function BackendLine() {
+  if (!ready) return null;
+  const b = ready.backend;
+  return (
+    <span className="topnav-backend" data-testid="backend-line"
+      title={`backend pid ${b.pid}, started on ${b.started_commit ?? "?"}; HEAD now ${b.head_now ?? "?"}; marks ${b.marks_path}`}>
+      backend {short(b.started_commit)} · write-through {b.write_through ? "on" : "OFF"} · marks {b.marks_path.split("/").slice(-3).join("/")}
+    </span>
+  );
+}
+
+function BackendBanner() {
+  if (!ready) return null;
+  const b = ready.backend;
+  if (b.head_moved === false) return null;
+  return (
+    <div className="topnav-row pending-build" role="alert" data-testid="backend-stale">
+      {b.head_moved
+        ? <>This backend (pid {b.pid}) started on commit {short(b.started_commit)}; the repo is now at {short(b.head_now)}, so it
+            may be serving old code. Stop it (Ctrl-C in its terminal) and run <code className="cmd">bash curation-review/run.sh</code> again.</>
+        : <>Cannot tell whether this backend (pid {b.pid}) is the repo's current code: {b.git_error ?? "git gave no commit"}.</>}
+    </div>
+  );
+}
+
 export function TopNav({ active, sub, right }: {
   active: TabId;
   /** the active sub-tab's id (see SUBS) */
@@ -100,7 +139,9 @@ export function TopNav({ active, sub, right }: {
     const l = () => tick((n) => n + 1);
     listeners.add(l);
     refreshBadges();
-    return () => { listeners.delete(l); };
+    refreshReady();
+    const t = window.setInterval(refreshReady, 60_000);
+    return () => { listeners.delete(l); window.clearInterval(t); };
   }, []);
   useEffect(() => {
     let g = 0; // a pending "g" (go to) press
@@ -134,8 +175,10 @@ export function TopNav({ active, sub, right }: {
           ))}
         </div>
         <div className="spacer" />
+        <BackendLine />
         {right}
       </div>
+      <BackendBanner />
       {subs && (
         <div className="topnav-row topnav-sub" role="tablist" data-testid="subnav">
           {subs.map((s) => (

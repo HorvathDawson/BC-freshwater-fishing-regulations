@@ -13,6 +13,7 @@ import type { InputsSync, CheckPlace, CheckProgress, PlaceCheck,
   Status,
   RuleResolved,
   PendingBuild,
+  Ready,
   QueueOrder,
   ReviewFilter,
   MarkView,
@@ -195,6 +196,8 @@ export const api = {
   },
   /** T133: every entry and split awaiting its build, and the command(s) to run */
   pendingBuild: () => getJSON<PendingBuild>("/api/build"),
+  /** T541: warm-up, and which backend this is (start commit, HEAD moved, marks store, write-through) */
+  ready: () => getJSON<Ready>("/api/ready"),
   /** owner 2026-10-28: every mark in force accounted for — orphaned / stale ones listed */
   /** the marks in force on one target (GET /api/marks?target=&scope=) */
   marksOn: (target: string, scope: string) =>

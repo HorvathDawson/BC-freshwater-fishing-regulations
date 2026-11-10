@@ -156,11 +156,54 @@ def _warm_at_startup():
         threading.Thread(target=_health, name="marks-health", daemon=True).start()
 
 
+def _repo_head() -> tuple[str | None, str | None]:
+    """(HEAD commit, None) of the checkout this backend serves, or (None, why not) — never a silent blank. Read from
+    the .git files (HEAD -> its ref, loose or packed; a worktree's `gitdir:` / `commondir`): the backend starts no
+    process (`test_curation_review_safety`)."""
+    try:
+        git = reuse._ROOT / ".git"
+        gitdir = git
+        if git.is_file():                                        # a worktree: ".git" names its gitdir
+            gitdir = Path(git.read_text(encoding="utf-8").split("gitdir:", 1)[1].strip())
+            if not gitdir.is_absolute():
+                gitdir = (reuse._ROOT / gitdir).resolve()
+        common = gitdir
+        if (gitdir / "commondir").is_file():
+            common = (gitdir / (gitdir / "commondir").read_text(encoding="utf-8").strip()).resolve()
+        head = (gitdir / "HEAD").read_text(encoding="utf-8").strip()
+        if not head.startswith("ref: "):
+            return head, None                                    # detached
+        ref = head[5:].strip()
+        for base in (gitdir, common):
+            if (base / ref).is_file():
+                return (base / ref).read_text(encoding="utf-8").strip(), None
+        packed = common / "packed-refs"
+        if packed.is_file():
+            for ln in packed.read_text(encoding="utf-8").splitlines():
+                if ln.endswith(" " + ref) and not ln.startswith(("#", "^")):
+                    return ln.split()[0], None
+        return None, f"HEAD names {ref}, which no ref file or packed-refs holds"
+    except (OSError, IndexError) as ex:
+        return None, f"{type(ex).__name__}: {ex}"
+
+
+#: (T541) WHICH BACKEND THIS IS: the commit it started on — run.sh and the app header name it, and the header
+#: shows a banner when HEAD has moved since (the code / marks store / write-through a stale copy serves)
+_STARTED_COMMIT, _STARTED_GIT_ERROR = _repo_head()
+
+
 @app.get("/api/ready")
 def get_ready():
     """THE READY SIGNAL: whether the backend has loaded what a first entry needs (`reuse.warm`),
-    step by step with the time each finished — poll it before the reviewer starts."""
-    return reuse.readiness()
+    step by step with the time each finished — poll it before the reviewer starts. (T541) `backend`: this
+    process's pid, the commit it started on, HEAD now (`head_moved`: they differ; None = git could not say, and
+    `git_error` says why), its marks store and whether write-through is on."""
+    head, err = _repo_head()
+    moved = None if (head is None or _STARTED_COMMIT is None) else head != _STARTED_COMMIT
+    return {**reuse.readiness(),
+            "backend": {"pid": os.getpid(), "started_commit": _STARTED_COMMIT, "head_now": head,
+                        "head_moved": moved, "git_error": _STARTED_GIT_ERROR or err,
+                        "marks_path": str(reuse.MARKS_PATH), "write_through": bool(WRITE_THROUGH.enabled)}}
 
 
 @app.get("/api/marks/health")

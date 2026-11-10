@@ -378,6 +378,27 @@ export interface Vintage {
   commands: string[];
 }
 
+/** GET /api/ready — the warm-up signal, and (T541) which backend process this is. */
+export interface Ready {
+  ready: boolean;
+  warming: boolean;
+  seconds: number | null;
+  error: string | null;
+  done: { step: string; at_s: number }[];
+  todo: string[];
+  backend: {
+    pid: number;
+    /** the commit the backend started on (null: git could not say, `git_error` why) */
+    started_commit: string | null;
+    head_now: string | null;
+    /** HEAD has moved since the backend started: its code / marks store / write-through may be stale */
+    head_moved: boolean | null;
+    git_error: string | null;
+    marks_path: string;
+    write_through: boolean;
+  };
+}
+
 /** GET /api/build — the pending-build panel (PLAN §5). */
 export interface PendingBuild {
   built: Record<string, unknown>;

@@ -172,6 +172,14 @@ def _flip_tributaries(e):
 CUR = (V.CURRENT, [])
 
 
+def test_ready_names_this_backend(app_env):
+    """T541: /api/ready says which backend this is — its pid, start commit, HEAD now, marks store, write-through."""
+    b = app_env["client"].get("/api/ready").json()["backend"]
+    assert b["pid"] == os.getpid() and b["git_error"] is None
+    assert len(b["started_commit"]) == 40 and b["head_moved"] is (b["head_now"] != b["started_commit"])
+    assert b["marks_path"] == str(app_env["reuse"].MARKS_PATH) and isinstance(b["write_through"], bool)
+
+
 def test_an_entry_edit_awaits_reach_and_deliver_then_clears_without_a_restart(app_env):
     env = app_env
     assert _vintage(env, BULL) == CUR
@@ -182,6 +190,10 @@ def test_an_entry_edit_awaits_reach_and_deliver_then_clears_without_a_restart(ap
         assert _vintage(env, BULL) == want
         pend = env["client"].get("/api/build").json()
         assert [x["entry_id"] for x in pend["entries"]] == [BULL]
+        # T541: the server-less CLI reads the same answer off disk (one implementation, `regs.review.pending`)
+        from pipeline.regs.review import pending as P
+        assert json.loads(json.dumps(P.on_disk(env["reuse"].rebuild_target()))) == pend
+        assert P.summary_line(pend).startswith("1 review entry and 0 split(s)")
         # the tool serves COPIES, so the rebuild it prints is of the copies (T136), never the live tree
         assert pend["commands"] == V.rebuild_commands([V.Waiting.reach_entry], env["reuse"].rebuild_target())
         assert pend["commands"][0].endswith(f"--entries {env['cat']} --out {env['tmp'] / 'reach'}")
