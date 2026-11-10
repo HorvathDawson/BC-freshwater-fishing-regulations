@@ -12,3 +12,7 @@ Findings, with file:line, the state that shows each and the proposed fix: `hando
 Acceptance: each finding named above no longer reproduces, and the test or gate the findings file proposes for it is in.
 
 Depends: T567. Size: M. Owner: no.
+
+## DECIDED 2026-11-10 (owner)
+Keep the estimate sentence "Lower than 8 days in 10": "i like it", and it is "easier for a user uneducated to
+understand" than a percentile. Plain "days in 10" wording stays for estimates; do not replace it with a percentile.
