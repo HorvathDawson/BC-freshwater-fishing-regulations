@@ -13,6 +13,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 midday — T568/T567 fixed in code; audit T580 done → T581–T586
+- T568/T567 (1c57e7c07, tests only so far): one map block above the chart, one frame for Flow and Level; a forecast day
+  labels "Today's reading" and marks the day; the figure is in the chart's quantity. Web vs phone was Now vs a forecast
+  day, not a platform difference.
+- Owner rule 11-10: Flow always leads, Level is auxiliary. Running: ONE agent making the lead gauge one per water and
+  day (chosen in Flow), then web + emulator shots into `T568-shots/`.
+- Audit T580 (read-only, `app-integration/T580-findings.md`): 15 places one water can show differently, 11 confirmed by
+  reading. Fix tickets: T581 card/chart/alert use the asked quantity, T582 one day per water + same kept state (owner:
+  one day or two labelled), T583 one wording for a standing, T584 same Conditions whatever the way in, T585 feed and
+  release provenance (with T550), T586 small ones (owner: silent gauge dot).
+- Next: T581, T582 (default one day), T584, T583, then T569, T570, T546 → …
+
 ## 2026-11-10 — chat 11 started: the ticket list from NEXT-SESSION-after-chat10.md, one agent at a time
 - Running: ONE agent on T568 (gauge map keeps its place above the chart) + T567's open parts (forecast day keeps today
   in view, one lead gauge, figure matches the chart, web = phone test). No APK, no deploy.
