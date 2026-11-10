@@ -103,6 +103,13 @@ SPOKEN: dict[str, Callable[[E.Decided], set[str]]] = {
 }
 
 
+#: T545 item 6 — the domains whose file is FROZEN against rows nobody accepted: found_names.json takes most of its
+#: rows from the generated candidates' auto-accept flag (no mark), so a re-mine could add names on the next save. A
+#: row that is not in the file and that the owner never spoke about (`SPOKEN`) is refused; `--accept-new-names` is the
+#: explicit act that takes a re-mine's new auto-accepted names in.
+FROZEN = ("names",)
+
+
 def _rel(p: Path) -> str:
     return E._rel(p)
 
@@ -207,7 +214,7 @@ def _commit(domain: str, path: Path, old: Optional[str], gone: list[str]) -> str
 
 
 def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink: bool = False,
-                report: Optional[dict] = None, commit: bool = False) -> list[Path]:
+                report: Optional[dict] = None, commit: bool = False, accept_new: bool = False) -> list[Path]:
     """Run a file domain's writer; write (or, dry, print) what changed. Returns the files that differ. THE ONE WRITE
     PATH of the file domains (the review app's write-through, `review.apply`, and each tool's own command): atomic,
     utf-8, and guarded —
@@ -217,6 +224,9 @@ def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink
       * every row a write drops is NAMED (printed, and in `report["dropped"]`).
 
     `accept_shrink` lets both through (a drop the OWNER asked for).
+
+      * a FROZEN domain's write (names) that ADDS a row the owner never spoke about RAISES, naming the rows (T545
+        item 6: a re-mined candidates file must not add shipped names on the next save); `accept_new` lets it through.
 
     `commit` (T541, what `run` asks for): the written file is COMMITTED by its path, as a proposal is — refused
     before anything is written when the file already has uncommitted changes (the commit would sweep them in), put
@@ -245,6 +255,16 @@ def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink
             if dirty:
                 raise ValueError(f"{_rel(path)} has uncommitted changes — commit or restore it first (the save's "
                                  "commit would sweep them in); nothing written")
+        if domain in FROZEN and path.exists() and not accept_new:
+            have = row_keys(path.read_text(encoding="utf-8"))
+            said = SPOKEN[domain](decided)
+            new = [w for k, w in row_keys(text).items() if k not in have and k not in said]
+            if new:
+                raise ValueError(
+                    f"{_rel(path)}: would add {len(new)} row(s) nobody accepted (no mark, no owner call: the "
+                    "candidates were regenerated?) — " + "; ".join(new[:10])
+                    + (f"; … {len(new) - 10} more" if len(new) > 10 else "")
+                    + f" — refused. If meant: python -m pipeline.regs.review.apply {domain} --accept-new-names")
         changed.append(path)
         report = {} if report is None else report
         report.setdefault("dropped", []).extend(gone.values())
@@ -276,7 +296,7 @@ def domain_of(scope: str) -> Optional[str]:
 
 def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
         build: Optional[Path] = None, side_checked: tuple = (), dry_run: bool = False,
-        accept_shrink: bool = False, commit: bool = True) -> dict:
+        accept_shrink: bool = False, commit: bool = True, accept_new: bool = False) -> dict:
     """The marks' decisions (in memory), then each asked domain's writer (every open one when `domains` is empty). Returns
     {rc, domains, skipped: {domain: why}, files: [changed final files], events: [...]}, where an event is one
     outcome on the marks behind it — {domain, status: applied | written | refused | waiting | would, why,
@@ -331,7 +351,7 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
                                      "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
                 report: dict = {}
                 changed = write_files(d, decided, dry_run=dry_run, accept_shrink=accept_shrink, report=report,
-                                      commit=commit)
+                                      commit=commit, accept_new=accept_new)
             except ValueError as ex:                               # T429 / T545: a refusal, said on the domain
                 print(str(ex))
                 out["rc"] = 2
@@ -460,6 +480,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                     help="apply_proposals: this cut-changing proposal's side rebuild was made and read elsewhere")
     ap.add_argument("--accept-shrink", action="store_true",
                     help=f"write a file even when it drops more than {SHRINK_LIMIT} rows (T429)")
+    ap.add_argument("--accept-new-names", action="store_true",
+                    help="names: take in names the regenerated candidates auto-accept that nobody marked (T545)")
     ap.add_argument("--no-commit", action="store_true",
                     help="file domains (tidal / sloughs / names): write the file, do not commit it")
     ap.add_argument("--check", action="store_true",
@@ -470,11 +492,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     if bad:
         ap.error(f"unknown domain(s) {', '.join(bad)} — one of {', '.join(E.DOMAINS)}")
     if a.check:
-        if a.domains or a.dry_run or a.accept_shrink:
+        if a.domains or a.dry_run or a.accept_shrink or a.accept_new_names:
             ap.error("--check takes no domain and no other mode: it checks every open domain")
         return print_check(check(marks=a.marks, build=a.build))
     return run(a.domains, marks=a.marks, build=a.build, side_checked=tuple(a.side_checked),
-               dry_run=a.dry_run, accept_shrink=a.accept_shrink, commit=not a.no_commit)["rc"]
+               dry_run=a.dry_run, accept_shrink=a.accept_shrink, commit=not a.no_commit,
+               accept_new=a.accept_new_names)["rc"]
 
 
 if __name__ == "__main__":

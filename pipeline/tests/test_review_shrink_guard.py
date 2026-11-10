@@ -64,7 +64,7 @@ def out(tmp_path, monkeypatch):
     p.write_text(_doc(40))
     want = [40]
     monkeypatch.setitem(AP.WRITERS, "names", lambda d: {p: _doc(want[0])})
-    monkeypatch.setitem(AP.SPOKEN, "names", lambda d: set(AP.row_keys(_doc(40))))   # every row was marked once
+    monkeypatch.setitem(AP.SPOKEN, "names", lambda d: set(AP.row_keys(_doc(45))))   # every row was marked once
     return p, want
 
 
@@ -167,3 +167,22 @@ def test_every_mark_ever_made_explains_its_row_a_cleared_one_too():
                                       **kw})
     d = E.decide([mark("verified", call="stream", answers={"P": "y"}), mark("cleared")])
     assert not d.scope("slough") and AP.SPOKEN["sloughs"](d) == {"7"}
+
+
+def test_a_name_nobody_accepted_is_never_added_to_the_frozen_file(tmp_path, monkeypatch, capsys):
+    """T545 item 6: found_names.json takes rows from the candidates' auto-accept flag; a re-mine must not add one on
+    the next save. A name the owner marked (or called) is added as ever; `accept_new` is the explicit way in."""
+    p = tmp_path / "found_names.json"
+    p.write_text(_named("Kept Creek"))
+    monkeypatch.setitem(AP.WRITERS, "names", lambda d: {p: _named("Kept Creek", "Mined Creek")})
+    spoken: set = set()
+    monkeypatch.setitem(AP.SPOKEN, "names", lambda d: spoken)
+    with pytest.raises(ValueError, match=r"would add 1 row\(s\) nobody accepted .*Mined Creek \(blk:1~Mined Creek\)"):
+        AP.write_files("names", None, dry_run=False)
+    assert sorted(AP.row_keys(p.read_text())) == ["blk:0~Kept Creek"]
+    spoken.add("blk:1~Mined Creek")                                 # the owner accepted it: it lands
+    assert AP.write_files("names", None, dry_run=False) == [p]
+    p.write_text(_named("Kept Creek"))
+    spoken.clear()
+    assert AP.write_files("names", None, dry_run=False, accept_new=True) == [p]
+    assert sorted(AP.row_keys(p.read_text())) == ["blk:0~Kept Creek", "blk:1~Mined Creek"]
