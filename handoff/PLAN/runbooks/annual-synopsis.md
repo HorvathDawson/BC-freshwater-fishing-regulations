@@ -168,7 +168,13 @@ note it for hand curation.
 - `review_ids.txt` = added + changed: the owner's review list. `removed` = rows to confirm gone.
 - The province/zone tables are not parsed: the owner compares the new book's region pages (and
   `data/curated/regulations/reference/*.md`, the hand transcriptions) with last year's by eye; Claude edits the `z…`
-  entries and reference files to match, each edit a reviewed change.
+  entries and reference files to match, each edit a reviewed change. Then pin them to the new print (T553; seconds,
+  reads the new `data/source/fishing_synopsis.pdf`): `.venv/bin/python -m pytest -q
+  pipeline/tests/test_base_rules_in_print.py pipeline/tests/test_catalogue_entries.py` — every number, date and
+  "word number" pair of every `z…` entry on its `source_pages`, and of every reference file on its pages
+  (`REFERENCE_PAGES`). A figure the new book does not print is an owner question (`DISAGREE`), never edited to pass.
+  If the new layout moves the column gutters, fix `synopsis_print.GUTTERS` (`python -m pipeline.common.synopsis_print
+  13` prints a page as read).
 - Review in the app happens after step 10 builds the new book (the app reviews built entries only, AGENTS 65): start it
   as usual (`bash curation-review/run.sh`) and open `http://127.0.0.1:5173/?ids=$W/review_ids.txt` ($W spelled out,
   e.g. `?ids=data/generated/scratch/synopsis-2027-29/review_ids.txt`; any path under the repo). The queue lists only those entries, with "N of M reviewed"; an id that matches no entry is

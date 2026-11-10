@@ -139,7 +139,8 @@ def _transcription_only(text: str) -> str:
     SECOND half is not provenance — it is our own commentary quoted back. That is exactly what
     happened: `z7a:stocked_lakes` stored a markdown table row, pipes and backticks included.
     """
-    for marker in ("\n## Checked against", "\n## What this settles", "\n## What this decides"):
+    for marker in ("\n## Checked against", "\n## What this settles", "\n## What this decides",
+                   "\n## What these definitions decide"):
         i = text.find(marker)
         if i >= 0:
             text = text[:i]
@@ -197,28 +198,82 @@ def test_a_rule_quotes_its_OWN_region_not_another():
     ref = CURATED.regulations.reference
     assert ref.exists(), f"no reference transcriptions at {ref} (tracked in git)"
 
-    def blob(*names: str) -> str:
-        out = []
-        for n in names:
-            p = ref / f"{n}.md"
-            if p.exists():
-                out.append(_transcription_only(p.read_text(encoding="utf-8")))
-        return _norm(" ".join(out))
-
-    shared = ("provincial-regulations", "licensing", "definitions", "water-specific-tables")
     strays: list[str] = []
     for p, e in _authored_entries():
-        region = p.stem.replace("region-", "")
-        allowed = blob(f"region-{region}", *shared)
-        if not allowed:
-            continue
+        allowed = _own_chapter(p)
+        assert allowed, f"{p.name}: no transcription of its chapter in {ref}"
         for r in e.rules:
             needle = _norm(r.verbatim)
-            if len(needle) < 25 or needle in allowed:
-                continue
-            strays.append(f"{p.name}: {e.entry_id}::{r.rule_id}\n      {r.verbatim[:100]}")
+            if len(needle) < 25:
+                continue                      # the short ones: test_a_SHORT_quote_is_its_own_chapters_…
+            if needle not in allowed:
+                strays.append(f"{p.name}: {e.entry_id}::{r.rule_id}\n      {r.verbatim[:100]}")
     assert not strays, (
         f"{len(strays)} rule(s) quote another region's chapter:\n  " + "\n  ".join(strays[:12]))
+
+
+_SHARED = ("provincial-regulations", "licensing", "definitions", "water-specific-tables")
+
+
+def _own_chapter(p: Path) -> str:
+    """The transcriptions a zone file may quote: its own region's chapter and the provincial ones."""
+    ref = CURATED.regulations.reference
+    names = (f"region-{p.stem.replace('region-', '')}",) + _SHARED
+    return _norm(" ".join(_transcription_only((ref / f"{n}.md").read_text(encoding="utf-8"))
+                          for n in names if (ref / f"{n}.md").exists()))
+
+
+def _quotes(needle: str, hay: str) -> bool:
+    """`needle` is in `hay` as whole words: "trout: 4" is not found inside "trout: 45", nor "1 over 50" inside
+    "11 over 50" (T553: a short quote was skipped before, so a changed number in one was invisible)."""
+    import re
+    return bool(needle) and re.search(r"(?<![a-z0-9])" + re.escape(needle) + r"(?![a-z0-9])", hay) is not None
+
+
+def test_a_SHORT_quote_is_its_own_chapters_on_word_boundaries():
+    """T553 item 1.1. The two tests above skip a quote under 25 characters, and those are the quota lines:
+    `z1:daily_quotas` "Trout: 4", `z1:hg_quota` "Kokanee: 10" — 99 rules, 91 carrying a `take`. Checked here against
+    the rule's OWN chapter (plus the provincial ones), on word boundaries so the number cannot hide inside a longer one.
+    Mutation: "Trout: 4" -> "Trout: 6" is not in Region 1's transcription and fails."""
+    assert not _quotes(_norm("Trout: 6"), _own_chapter(DIR / "region-1.json"))
+    assert not _quotes(_norm("Trout: 4"), _norm("Trout: 45"))
+    bad: list[str] = []
+    n = 0
+    for p, e in _authored_entries():
+        allowed = _own_chapter(p)
+        for r in e.rules:
+            needle = _norm(r.verbatim)
+            if len(needle) >= 25:
+                continue
+            n += 1
+            if not _quotes(needle, allowed):
+                bad.append(f"{p.name}: {e.entry_id}::{r.rule_id} {r.verbatim!r}")
+    assert n > 90, f"only {n} short zone quotes — the corpus or the length rule moved"
+    assert not bad, f"{len(bad)} short zone quote(s) not in their own chapter's transcription:\n  " + "\n  ".join(bad)
+
+
+def test_every_zone_LICENSING_quote_is_in_its_chapter_or_on_its_printed_page():
+    """T553 item 1.2. Licensing quotes were never checked against anything outside the entry. Each must be in its own
+    chapter's transcription (whole words) or printed word for word on its entry's `source_pages` of the repo PDF
+    (`synopsis_print.quoted`): 8 of 47 are only the second — Classified Waters and basic licence paragraphs on p.6-7
+    that `licensing.md` does not transcribe."""
+    from pipeline.regs.parsing.catalogue_parts.licensing import licensing_verbatims
+    from pipeline.common.synopsis_print import quoted
+    assert quoted("each licence may not exceed 8 consecutive days", [7])
+    assert not quoted("each licence may not exceed 9 consecutive days", [7])        # mutation
+    bad: list[str] = []
+    n = 0
+    for p, e in _authored_entries():
+        allowed = _own_chapter(p)
+        for rec in e.licensing:
+            for q in licensing_verbatims(rec):
+                n += 1
+                if _quotes(_norm(q), allowed) or quoted(q, e.source_pages):
+                    continue
+                bad.append(f"{p.name}: {e.entry_id}::{rec.id} p.{e.source_pages}\n      {q[:100]}")
+    assert n > 40, f"only {n} zone licensing quotes — the corpus moved"
+    assert not bad, (f"{len(bad)} zone licensing quote(s) in neither the transcription nor the printed page:\n  "
+                     + "\n  ".join(bad))
 
 
 @pytest.mark.needs_source
