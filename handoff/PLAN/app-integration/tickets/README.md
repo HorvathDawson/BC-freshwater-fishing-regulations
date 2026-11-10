@@ -641,6 +641,7 @@ use that as the sole source of future work."
 | T600 | One writer for curated data (validate, backup, atomic, log, provenance; no build step writes curated) | OPEN | — | T599 step 2; after T547 |
 | T601 | Every reader knows a build is finished and which version it reads (COMPLETE marker, one latest(), feed format tag) | OPEN | — | T599 step 3; overlaps T549, T555, T557, T585 |
 | T602 | Tidy the data layout into fetched, curated, built, released (rules page; nothing built beside a source) | OPEN | — | T599 step 4; after T600, T601 |
+| T603 | The emulator test bed covers saved spots (saved through the UI or one seeding helper) and the two-days line; scroll check for the blank route map | OPEN | — | owner 2026-11-10; after the app lanes |
 
 ## Order for open tickets
 
