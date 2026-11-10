@@ -104,6 +104,8 @@ class Source:
     place_only: bool = False
     #: a part of the water the extent holds as a NOTE, never drawn (`undrawn_part`)
     undrawn: str = ""
+    #: whose words these are, for the rows that ask the owner to read them ("DFO", "the regulation"); not in the digest
+    whose: str = "the source"
 
 
 # --------------------------------------------------------------------------- words
@@ -479,8 +481,9 @@ def rows(source: Source, extents: Sequence[Mapping], *, own_items: Sequence[str]
     named = _tokens(source.water).union(*(_tokens(_name(i, ctx)) for i in own)) | {"upstream", "downstream"}
     left = [c.text for c in clauses if not c.used and not c.toks <= named]
     if left:
-        out.append(_row("unchecked", " … ".join(left), "words not checked", BAD,
-                        "no row checks these words: read them"))
+        # owner 2026-11-09: the row says what to DO (it stays ✗ until the owner ticks it: unsure is never ✓)
+        out.append(_row("unchecked", " … ".join(left), "no row checks these words", BAD,
+                        f"read {source.whose}'s words against the map, then tick"))
     for n, r in enumerate(out, 1):
         r["n"] = n
         r.pop("_at", None)
@@ -513,7 +516,7 @@ def dfo_source(loc: Mapping, water: Optional[Mapping]) -> Source:
     st = loc.get("source_text") or {}
     ex = tuple(e for e in st.get("excludes") or [] if isinstance(e, str))
     return Source(water=str(st.get("waters") or loc.get("water") or ""), place=str(st.get("specific_area") or ""),
-                  excludes=ex)
+                  excludes=ex, whose="DFO")
 
 
 def rule_source(entry: Mapping, rule: Mapping) -> Source:
@@ -526,4 +529,4 @@ def rule_source(entry: Mapping, rule: Mapping) -> Source:
                                                    for u in rule.get("unresolved_locators") or []]
     place = "; ".join(p for p in own if p.strip())
     return Source(water=name, place=place or str(rule.get("verbatim") or ""), place_only=not place,
-                  undrawn=str(rule.get("undrawn_part") or "").strip())
+                  undrawn=str(rule.get("undrawn_part") or "").strip(), whose="the regulation")

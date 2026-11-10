@@ -2,7 +2,7 @@
    human check too"): each listed with its own DFO words (what differs from the shown place's marked), its extent now in
    words and a "same place" tick that starts UNTICKED; the line under them names exactly what the save writes. One
    component for the checklist and the change editor (logic: `checklist.ts` wordDiff / untickable / groupLine). */
-import { groupLine, untickable, wordDiff } from "../checklist";
+import { groupLine, tickAll, untickable, wordDiff } from "../checklist";
 import type { ReactNode } from "react";
 import type { DfoGroupMember, DfoSeenExtent } from "../types";
 
@@ -15,6 +15,16 @@ export function OlderWordings({ members, shownText, same, setSame, fix, checklis
   return (
     <div className="ext-row" data-testid="older-wordings" style={{ display: "block" }}>
       <div className="dim">Older wordings of this place — tick each one you have read and is the same place:</div>
+      {/* owner 2026-11-09: confirm a group in one go — the fast way to the same ticks (they still start unticked) */}
+      {(() => {
+        const all = tickAll(members, fix, checklist);
+        const on = all.size > 0 && [...all].every((x) => same.has(x));
+        return all.size > 0 && (
+          <button type="button" className="btn small" data-testid="older-all" aria-pressed={on}
+            title="ticks every older wording below that can be ticked; nothing is saved until you save"
+            onClick={() => setSame(on ? new Set() : all)}>
+            {on ? "Untick all" : `These ${all.size + 1} wordings are the same place`}</button>);
+      })()}
       <ul className="named-splits">
         {others.map((m) => {
           const why = untickable(m, fix, checklist);
@@ -31,7 +41,8 @@ export function OlderWordings({ members, shownText, same, setSame, fix, checklis
               <div className="dim" style={{ fontSize: 12 }}>
                 its extent now: {m.extent.extents.length ? extentWords(m.extent) : "none"}
                 {m.same_extent ? " (the same as this place's)" : <b className="warn-text"> — differs: a tick gives it this place's extent</b>}
-                {checklist && m.check !== "checked" && m.check !== "wrong" ? " · older wording not confirmed" : ""}
+                {checklist && m.check === "earlier" ? " · verified earlier"
+                  : checklist && m.check !== "checked" && m.check !== "wrong" ? " · older wording not confirmed" : ""}
               </div>
               {why && <div className="warn-text" style={{ fontSize: 12 }} data-testid="older-untickable">Cannot be ticked: {why}. Left for you.</div>}
             </li>);

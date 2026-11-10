@@ -137,3 +137,41 @@ places (rows and pins change, the map stays). Pinned by `test_the_queue_never_le
 - Tests: `test_review_dfo.py::test_a_save_on_older_wordings_writes_each_ticked_one_and_gives_a_differing_one_this_extent`,
   `::test_an_older_wording_holding_what_a_fix_cannot_say_is_refused_by_name`, `::test_a_check_on_older_wordings_carries_each_ones_own_digest`,
   `test_review_checklist.py::test_a_pending_or_unknown_cut_is_never_ok` (pending → ✗), `frontend/tests/checklist.test.ts`.
+
+## Owner 2026-11-09 (after trying it): earlier work counts, lead with the fix, the water in sight
+"the review app doesnt show how many I already did unless they are gone? the ui is unintuitive too. we should for a river
+show all historical boundaries too and have a nice way to confirm if the same location different wording items are
+correct (have them grouped then you confirm them to start) then we should be able to combine other items too". Also:
+P1 quick confirm and Tidal are done: off the bar.
+- Nav: Entries → "P1 quick confirm", the top "Tidal" tab and DFO → "Tidal" are off the bar (`TopNav.tsx`); the views
+  and routes stay (`#p1/`, `#tidal/` still open).
+- WHAT COUNTS AS DONE (`checks.DONE_STATES`): a check (`checked`), a wrong check (`wrong`), and `earlier` — "a VERIFIED
+  mark made before the checklist (it carries none) that the marks' own staleness still calls verified". DFO: the queue's
+  `verify == "verified"` (`dfo._verify` = `marks.status`, a landed fix holding); a regulation rule: `marks.status` on
+  the entry's prints now says verified AND its P answer is y. No second staleness rule. An earlier wrong / unsure /
+  stale mark stays not done and the status line says what it was. Header: "80 of 287 done · 207 left"; status line:
+  "Verified earlier (2026-11-02), before the checklist."; filter chips: to check / needs extent / verified earlier /
+  changed / has ✗. An older wording verified earlier counts as confirmed (`older_unconfirmed`).
+- A place with no extent (DFO state unbound / needs_cut, or a "no extent" row) LEADS WITH THE FIX: one line of what it
+  needs ("No extent yet: this place needs two points on Fraser River."), its one proposal (the editor's own:
+  `proposalOf`, offered as the editor offers it) in words and violet on the map, "Use this proposal" (opens the T525
+  editor with it in the draft: `DfoLocation initialDraft`) / "Set the extent…"; "All correct" is not the primary button
+  there. Nothing is applied here: the editor's save is the only write, every guard its own.
+- THE WATER'S PLACES above the rows (`GET /api/checks/water?place=`, `checks.water`): every place on the water, older
+  wordings and no-longer-live ones too (and its regulation extents under "both"), each with its words, its extent in
+  words and one chip (done / verified earlier / reported wrong / needs extent / changed / has ✗ / to check); click =
+  open. Same places sit under one heading ("same place, 3 wordings"), grouped by data that exists (`checks.same_place`:
+  an older wording of the place, DFO's `duplicate_of`, the identical extent). The map draws every DFO extent on the
+  water faintly (`/api/checks/water/reach`, one reach per distinct extent, tributaries not walked), the shown one
+  strong; hovering a place in the list draws its extent darker. Regulation extents are listed, not drawn faintly.
+- "These N wordings are the same place" (`OlderWordings`, `checklist.tickAll`): ticks every older wording that can be
+  ticked (they still start unticked; one save, the existing group save). "Same place as…" on a no-extent place: pick
+  another DFO place on the water that has an extent (DFO's own rewording link first) → the editor opens with that
+  place's pieces as this place's draft; the owner confirms and saves there.
+- The row for words no row covers reads "no row checks these words · read DFO's words against the map, then tick"
+  (still ✗ until ticked).
+- Tests: `test_review_checklist.py` (earlier marks, the P guard, progress, grouping, the row's words),
+  `frontend/tests/checklist.test.ts`. Shots: `.playwright-mcp/t532-ux-1.png` … `-3.png`.
+- Not done: a group save across places that are only linked by `duplicate_of` / identical extent (the server writes
+  a group only for `dfo._groups` members: "Same place as…" covers them one at a time); faint geometry for regulation
+  extents.

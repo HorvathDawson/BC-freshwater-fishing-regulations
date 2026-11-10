@@ -265,7 +265,7 @@ export default function App() {
     return <ReportsView />;
   }
   if (checks) {
-    return mode ? <CheckReview mode={mode} source="all" />
+    return mode ? <CheckReview key="checks" mode={mode} source="all" />
       : <div className="app"><TopNav active="entries" sub="checks" /><div className="empty-state">loading…</div></div>;
   }
   if (p1) {
@@ -284,7 +284,7 @@ export default function App() {
     return <TidalReview mode={mode} />;
   }
   if (dfo && mode) {
-    return <CheckReview mode={mode} source="dfo" />;
+    return <CheckReview key="dfo" mode={mode} source="dfo" />;
   }
 
   return (

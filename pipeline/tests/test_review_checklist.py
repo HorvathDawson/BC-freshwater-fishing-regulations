@@ -179,8 +179,12 @@ def _backend(monkeypatch, name):
     import sys
     from pathlib import Path
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    # taken out again at once: a `checks` left in sys.modules stays bound to THIS test's `reuse` (its marks store),
+    # and a later test's fresh app then read its rule marks from the wrong store (order-dependent "unchecked")
     sys.modules.pop(name, None)
-    return __import__(name)
+    mod = __import__(name)
+    sys.modules.pop(name, None)
+    return mod
 
 
 def test_the_queue_never_leaves_a_water_before_all_its_places(monkeypatch):
@@ -243,3 +247,92 @@ def test_one_water_joins_both_sources_on_a_shared_registry_water(monkeypatch):
                        {"source": "regs", "water": "Zone A", "water_key": "name:zone a", "items": []}])
     assert [p["water_key"] for p in got] == ["g1", "g1", "name:zone a"]
     assert [p["water"] for p in got] == ["Chilliwack/Vedder", "Chilliwack/Vedder", "Zone A"]
+
+
+# ---- owner 2026-11-09 (after trying it): earlier work counts; the water's places grouped
+
+def _earlier_mark(verdict="verified", answers=None, **kw):
+    """a mark made before the checklist: no `checklist` on it"""
+    base = {k: v for k, v in _mark(verdict, []).items() if k != "checklist"}
+    return M.Mark.model_validate({**base, "answers": answers or {"T": "y", "R": "y", "P": "y"}, **kw})
+
+
+def test_a_verified_mark_from_before_the_checklist_is_done_only_while_the_marks_own_staleness_holds_it(monkeypatch):
+    """owner 2026-11-09: "the review app doesnt show how many I already did". An earlier VERIFIED mark the existing
+    machinery still calls verified is `earlier` (done); one it calls stale, or a wrong / unsure one, stays unchecked —
+    no second staleness rule: the status handed in IS `marks.status`'s."""
+    B = _backend(monkeypatch, "checks")
+    m = _earlier_mark()
+    assert B.check_state(m, "x", "verified") == "earlier"
+    assert B.check_state(m, "x", "stale") == "unchecked"
+    assert B.check_state(m, "x", None) == "unchecked"                      # never done on the verdict alone
+    wrong = _earlier_mark("wrong", {"T": "y", "R": "y", "P": "n"}, problem="split missing", note="n")
+    assert B.check_state(wrong, "x", "wrong") == "unchecked"
+    got = B._with_check([], "x", wrong, "wrong")
+    assert got["check"] == "unchecked" and got["earlier"] == {"date": "2026-11-09", "status": "wrong", "note": "n"}
+    assert "checked" not in got
+    # a checklist mark is judged by its digest alone, whatever the old status says
+    ck = M.Mark.model_validate(_mark("verified", [{"n": 1, "kind": "water", "state": "ok"}]))
+    assert B.check_state(ck, "fedcba9876543210", "verified") == "stale"
+    assert "earlier" not in B._with_check([], "0123456789abcdef", ck, "verified")
+
+
+def test_a_rule_mark_counts_as_earlier_only_with_its_place_check_answered_yes(monkeypatch):
+    B = _backend(monkeypatch, "checks")
+    from pipeline.regs.review import marks as MM
+    monkeypatch.setattr(B.reuse, "_prints", lambda e: None)
+    monkeypatch.setattr(B.reuse, "applied_keys", lambda: frozenset())
+    said = {"status": "verified"}
+    monkeypatch.setattr(MM, "status", lambda m, now, applied=(): dict(said))
+    assert B._rule_earlier({}, None) is None
+    assert B._rule_earlier({}, _earlier_mark()) == "verified"
+    # (the model lets a verified mark skip P only as a variant link; the guard is on the answer itself)
+    from types import SimpleNamespace
+    no_p = SimpleNamespace(checklist=None, verdict="verified", answers={"T": "y"})
+    assert B._rule_earlier({}, no_p) == "verified without the place check"
+    said["status"] = "stale"
+    assert B._rule_earlier({}, _earlier_mark()) == "stale"
+    assert B.check_state(_earlier_mark(), "x", B._rule_earlier({}, _earlier_mark())) == "unchecked"
+
+
+def test_progress_counts_earlier_work_as_done_per_water_and_overall(monkeypatch):
+    B = _backend(monkeypatch, "checks")
+    s = {"ok": 1, "bad": 0, "worst": "ok"}
+    places = [{"water_key": "a", "water": "A", "check": c, "summary": s, **kw} for c, kw in [
+        ("earlier", {}), ("checked", {}), ("unchecked", {"state": "needs_cut"}), ("stale", {})]]
+    places.append({"water_key": "b", "water": "B", "check": "wrong", "summary": s, "state": "unbound"})
+    got = B.progress_of(places)
+    assert (got["total"], got["done"], got["left"], got["needs"]) == (5, 3, 2, 2)
+    assert got["waters"] == {"a": {"water": "A", "total": 4, "done": 2}, "b": {"water": "B", "total": 1, "done": 1}}
+    assert got["by_check"] == {"earlier": 1, "checked": 1, "unchecked": 1, "stale": 1, "wrong": 1}
+    assert B._matches(places[0], "earlier") and not B._matches(places[0], "todo")
+    assert B._matches(places[2], "needs") and not B._matches(places[1], "needs")
+
+
+def test_the_waters_places_are_grouped_by_the_data_that_exists(monkeypatch):
+    """same place = an older wording of the place, DFO's own rewording link, or the identical extent (same source) — a
+    place with no extent matches nothing by extent; the group is named by its first place in list order"""
+    B = _backend(monkeypatch, "checks")
+    p = lambda i, **kw: {"id": i, "source": "dfo", "extent_key": "", "older_of": None, "duplicate_of": None, **kw}  # noqa: E731
+    got = B.same_place([p("a", extent_key="k1"), p("a-old", older_of="a"), p("b"), p("c"),
+                        p("d", duplicate_of="b"), p("e", extent_key="k1"), p("r", source="regs", extent_key="k1"),
+                        p("f", duplicate_of="gone")])
+    assert {i: g["same"] for i, g in got.items()} == {"a": "a", "a-old": "a", "e": "a", "b": "b", "d": "b", "c": "c",
+                                                      "r": "r", "f": "f"}
+    assert got["a-old"]["why"] == ["an older wording of the place"]
+    assert got["e"]["why"] == ["the identical extent"] and got["d"]["why"] == ["DFO lists it as a rewording"]
+    assert got["c"]["why"] == [] and got["b"]["why"] == ["DFO lists it as a rewording"]
+
+
+def test_the_row_for_words_no_row_checks_says_what_to_do_and_stays_bad():
+    """owner 2026-11-09: "words not checked · read them" told the owner nothing — the row says to read the source's
+    words against the map, then tick; it is still ✗ (unsure is never ✓), and the wording is not in the digest"""
+    loc = {"source_text": {"waters": "A River", "specific_area": "near the old cannery wharf"}}
+    src = C.dfo_source(loc, None)
+    r = [x for x in C.rows(src, [{"op": "whole", "item_id": "i1"}], own_items=["i1"], ctx=C.Context(
+        labels={}, items={"i1": "A River"}, built=frozenset(), pending=frozenset(), points={})) if x["kind"] == "unchecked"]
+    assert len(r) == 1 and r[0]["state"] == "bad"
+    assert r[0]["reason"] == "read DFO's words against the map, then tick"
+    assert C.rule_source({"name": "A"}, {"verbatim": "x"}).whose == "the regulation"
+    import dataclasses
+    assert C.digest(src, []) == C.digest(dataclasses.replace(src, whose="anyone"), [])

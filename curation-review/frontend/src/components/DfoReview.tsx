@@ -176,12 +176,48 @@ const CALLS: { v: DfoCall; words: string; hint: string }[] = [
    the owner's call. Keep / Not sure / Wrong never carry an extent fix; Change opens on the extent now and says what the
    save does to it (keep / replace / add a piece) before it is made; the draft is teal on the map. Every mark names the
    extent it was made on, so a save on an extent that moved since is refused (`dfo.mark_for`). */
-export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall = null, onBack }: {
+/** what the checklist hands the editor to start from (T532): the place's one proposal, or another place's extent as
+ *  pieces ("same place as…") — put in the DRAFT only; the owner's save here is the write, every guard its own */
+export type InitialDraft = "proposal" | { fixes: ExtentFix[]; what: string };
+
+/** THE ONE PROPOSAL of a place (T525 r3), for any screen that shows it: Claude's fix proposal, else the suggestion */
+export function proposalOf(detail: DfoDetail) {
+  const sugg = detail.suggestion ?? null;
+  return oneProposal(detail.fix_proposal?.suggestion
+    ? ({ location_id: detail.row.id, suggestion: detail.fix_proposal.suggestion } as unknown as DfoSuggestion) : null,
+    sugg?.suggestion ? sugg : null);
+}
+
+/** the proposal's points as labelled map points (`PROPOSAL 1: …`); `label` names a cut that has no label of its own */
+export function proposalPoints(detail: DfoDetail, s: DfoSuggestion | null, label: (sid: string) => string | null): GeoJSON.Feature[] {
+  const sg = s?.suggestion;
+  if (!sg) return [];
+  return sg.points.flatMap((p, i) => {
+    const meta = s?.points?.[i];
+    const prop = p.kind === "new" ? detail.proposed.find((x) => x.id === p.split_id) : undefined;
+    const fresh = p.kind === "new" ? (sg.new_splits ?? []).find((n) => n.ref === p.split_id) : undefined;
+    const cut = p.kind === "split" && p.split_id ? detail.splits.features.find((x) => x.properties.split_id === p.split_id) : undefined;
+    const at = meta?.coord ?? prop?.coord ?? fresh?.coord ?? cut?.geometry.coordinates ?? null;
+    return at ? [{ type: "Feature", properties: { label: `PROPOSAL ${i + 1}: ${meta?.label ?? label(p.split_id ?? "") ?? fresh?.name ?? ""}` },
+                   geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
+  });
+}
+/** can the proposal's reach be drawn now: every point a cut that exists, the op's points all there */
+export function proposalDraws(s: DfoSuggestion | null): boolean {
+  const sg = s?.suggestion;
+  if (!sg) return false;
+  const want = { whole: 0, upstream_of: 1, downstream_of: 1, between: 2 }[sg.op as string];
+  return (sg.op === "whole" || sg.points.every((p) => p.kind === "split")) && want === sg.points.length;
+}
+
+export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall = null, onBack, initialDraft = null }: {
   detail: DfoDetail; mode: Mode;
   nav: { pos: number; total: number; onNext?: () => void; onPrev?: () => void };
   saving: boolean; onMarked: () => void;
   /** T532: the checklist's "change the extent" opens here with Change picked; `onBack` returns to the checklist */
   initialCall?: DfoCall | null; onBack?: () => void;
+  /** T532: the draft the checklist opens the editor on ("Use this proposal", "Same place as…"); nothing is saved */
+  initialDraft?: InitialDraft | null;
 }) {
   const id = detail.row.id;
   const was = detail.mark;
@@ -286,9 +322,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // — the save is the write
   const sugg = detail.suggestion ?? null;
   // memoised on the detail: the map effect below keys on it (a fresh object per render re-fetched the preview forever)
-  const best = useMemo(() => oneProposal(detail.fix_proposal?.suggestion
-    ? ({ location_id: id, suggestion: detail.fix_proposal.suggestion } as unknown as DfoSuggestion) : null,
-    sugg?.suggestion ? sugg : null), [detail]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const best = useMemo(() => proposalOf(detail), [detail]);
   const bestS = best?.s ?? null;
   const [suggestedFc, setSuggestedFc] = useState<GeoJSON.FeatureCollection | null>(null);
   useEffect(() => {
@@ -296,17 +330,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
     setSuggestedFc(null);
     const sg = bestS?.suggestion;
     if (!sg) return;
-    const pts: GeoJSON.Feature[] = sg.points.flatMap((p, i) => {
-      const meta = bestS?.points?.[i];
-      const prop = p.kind === "new" ? detail.proposed.find((x) => x.id === p.split_id) : undefined;
-      const at = meta?.coord ?? prop?.coord ?? (p.kind === "split" && p.split_id ? splitAt(p.split_id) : null);
-      return at ? [{ type: "Feature", properties: { label: `PROPOSAL ${i + 1}: ${meta?.label ?? cutLabel(p.split_id ?? "") ?? ""}` },
-                     geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
-    });
+    const pts = proposalPoints(detail, bestS, cutLabel);
     setSuggestedFc({ type: "FeatureCollection", features: pts });
-    const built = sg.op === "whole" || sg.points.every((p) => p.kind === "split");
-    const want = { whole: 0, upstream_of: 1, downstream_of: 1, between: 2 }[sg.op as string];
-    if (built && want === sg.points.length) {
+    if (proposalDraws(bestS)) {
       api.dfoExtentPreview(id, { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
                                  tributaries: sg.tributaries }, showTribs)
         .then((r) => live && r.resolvable && setSuggestedFc({ type: "FeatureCollection",
@@ -331,6 +357,11 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   function useProposal() { draftFrom(suggestionFix(bestS, taken()), "The proposal"); }
   // the proposal as pieces, to compare with the extent now and with a save still waiting to land
   const proposalFixes = useMemo(() => suggestionFix(bestS, [])?.fixes ?? [], [bestS]);
+  // T532: opened from the checklist ON a draft — the proposal, or another place's extent — once, at mount
+  useEffect(() => {
+    if (initialDraft === "proposal") useProposal();
+    else if (initialDraft) draftFrom({ fixes: initialDraft.fixes, newSplits: [] }, initialDraft.what);
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const cuts = call === "change" && proposesCuts(fixes, splits);
   // the server's ops and the points each takes: a piece half made holds the save (T525)

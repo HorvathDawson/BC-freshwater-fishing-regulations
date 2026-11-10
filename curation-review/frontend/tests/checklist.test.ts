@@ -1,9 +1,10 @@
 // T532: the checklist screen's logic — run by `node --test` from pipeline/tests/test_review_dfo.py.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { checkBody, checkStatus, groupLine, groupSave, hintWords, openRows, pinsFc, problemOf, step, untickable, where,
+import { checkBody, checkStatus, chipOf, earlierWords, groupHeading, groupLine, groupSave, hintWords, needWords,
+  needsExtent, openRows, pinsFc, problemOf, progressWords, sameAsOptions, step, tickAll, untickable, waterGroups, where,
   wordDiff, wrongNote } from "../src/checklist.ts";
-import type { CheckPlace, CheckRow, DfoGroupMember, PlaceCheck } from "../src/types.ts";
+import type { CheckPlace, CheckRow, DfoGroupMember, PlaceCheck, WaterPlace } from "../src/types.ts";
 
 const row = (n: number, kind: CheckRow["kind"], state: CheckRow["state"], coord?: [number, number]): CheckRow =>
   ({ n, kind, state, quote: `q${n}`, ours: `o${n}`, reason: state === "ok" ? "" : "why", anchor: coord ? { coord } : {} });
@@ -115,4 +116,62 @@ test("an older wording's words mark what differs from the shown place's", () => 
   const got = wordDiff("From the Vedder Crossing bridge downstream", "From Vedder Crossing to the Fraser downstream");
   assert.deepEqual(got.filter((t) => t.diff).map((t) => t.w), ["to", "the", "Fraser"]);
   assert.deepEqual(got.map((t) => t.w).join(" "), "From Vedder Crossing to the Fraser downstream");
+});
+
+// ---- owner 2026-11-09 (after trying it): earlier work counts, a no-extent place leads with the fix, the water in sight
+
+test("a verified mark made before the checklist reads as done; any other earlier mark says what it was", () => {
+  const earlier = { date: "2026-11-02", status: "verified", note: "" };
+  assert.equal(checkStatus({ ...PC, check: "earlier", earlier }), "Verified earlier (2026-11-02), before the checklist.");
+  assert.equal(checkStatus({ ...PC, check: "unchecked", earlier: { date: "2026-11-02", status: "unsure", note: "which bridge?" } }),
+    "Not checked yet. Your earlier mark (2026-11-02) was: not sure — which bridge?.");
+  assert.match(earlierWords({ date: "2026-11-02", status: "stale", note: "" }), /no longer holds/);
+  assert.equal(checkStatus({ ...PC, check: "unchecked" }), "Not checked yet.");
+  assert.equal(progressWords({ done: 88, total: 287, left: 199 }), "88 of 287 done · 199 left");
+});
+
+test("a place with no extent says what it needs", () => {
+  const need = { op: "between", points: 2, have: 0, bound: false, missing: 2 };
+  assert.equal(needsExtent("needs_cut", ROWS), true);
+  assert.equal(needsExtent("unbound", ROWS), true);
+  assert.equal(needsExtent("bound", ROWS), false);
+  assert.equal(needsExtent("bound", [{ ...ROWS[0], kind: "where", ours: "no extent" }]), true);
+  assert.equal(needWords(need, "Fraser River", 0), "No extent yet: this place needs two points on Fraser River.");
+  assert.equal(needWords({ ...need, op: "upstream_of", points: 1 }, "Fraser River", 0),
+    "No extent yet: this place needs one point on Fraser River.");
+  assert.equal(needWords({ ...need, op: null, points: null }, "", 0), "No extent yet: set this place's extent.");
+});
+
+const wp = (id: string, o: Partial<WaterPlace> = {}): WaterPlace => ({ source: "dfo", id, text: id, live: true,
+  check: "unchecked", bad: 0, state: "bound", extents: [{ op: "whole" }], tributaries: null, extent_key: `k-${id}`,
+  older_of: null, duplicate_of: null, proposal: false, same: id, why: [], ...o });
+
+test("the water's places: one chip each, the same place under one heading", () => {
+  assert.equal(chipOf(wp("a", { check: "checked" })), "done");
+  assert.equal(chipOf(wp("a", { check: "earlier" })), "verified earlier");
+  assert.equal(chipOf(wp("a", { check: "wrong" })), "reported wrong");
+  assert.equal(chipOf(wp("a", { extents: [], state: "needs_cut" })), "needs extent");
+  assert.equal(chipOf(wp("a", { check: "stale" })), "changed");
+  assert.equal(chipOf(wp("a", { bad: 2 })), "has ✗");
+  assert.equal(chipOf(wp("a")), "to check");
+  const places = [wp("a"), wp("b"), wp("a2", { same: "a", why: ["an older wording of the place"], live: false }),
+                  wp("c", { same: "a", why: ["the identical extent"] })];
+  const gs = waterGroups(places);
+  assert.deepEqual(gs.map((g) => g.places.map((p) => p.id)), [["a", "a2", "c"], ["b"]]);
+  assert.deepEqual(gs[0].why, ["an older wording of the place", "the identical extent"]);
+  assert.equal(groupHeading(gs[0]), "same place, 3 wordings");
+  assert.equal(groupHeading(gs[1]), "");
+});
+
+test("same place as: only DFO places that have an extent, one per extent, DFO's own rewording link first", () => {
+  const places = [wp("me", { extents: [], extent_key: "", duplicate_of: "old" }), wp("x"), wp("x2", { extent_key: "k-x" }),
+                  wp("none", { extents: [], extent_key: "" }), wp("r", { source: "regs" }), wp("old", { live: false })];
+  assert.deepEqual(sameAsOptions(places, "me").map((p) => p.id), ["old", "x"]);
+});
+
+test("these N wordings are the same place: ticks every tickable older wording, never one that cannot be", () => {
+  assert.deepEqual([...tickAll(GROUP, false, true)].sort(), ["b", "c"]);       // d holds what a fix cannot say
+  const g = groupSave("a", GROUP, tickAll(GROUP, false, true), false, true);
+  assert.deepEqual(g.targets, ["a", "b", "c"]);
+  assert.deepEqual([...tickAll([mem("a", { this: true })], false, true)], []);
 });

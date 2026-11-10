@@ -1,7 +1,7 @@
 // Tiny typed API client matching curation-review/API.md.
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
-import type { InputsSync, CheckPlace, CheckProgress, PlaceCheck,
+import type { InputsSync, CheckPlace, CheckProgress, PlaceCheck, WaterReach, WaterView,
   EntryKind,
   FieldError,
   EntryDetail,
@@ -262,6 +262,9 @@ export const api = {
     getJSON<CheckPlace[]>(`/api/checks/queue?${new URLSearchParams({ source, ...(filter ? { filter } : {}),
                                                                      ...(q ? { q } : {}) })}`),
   checksProgress: (source: "dfo" | "regs" | "all") => getJSON<CheckProgress>(`/api/checks/progress?source=${source}`),
+  checksWater: (place: string, source: "dfo" | "regs" | "all") =>
+    getJSON<WaterView>(`/api/checks/water?${new URLSearchParams({ place, source })}`),
+  checksWaterReach: (key: string) => getJSON<WaterReach>(`/api/checks/water/reach?${new URLSearchParams({ key })}`),
   checkDfo: (id: string) => getJSON<PlaceCheck>(`/api/checks/dfo/${encodeURIComponent(id)}`),
   checkRule: (entryId: string, ruleId: string) =>
     getJSON<PlaceCheck>(`/api/checks/rule/${encodeURIComponent(entryId)}/${encodeURIComponent(ruleId)}`),

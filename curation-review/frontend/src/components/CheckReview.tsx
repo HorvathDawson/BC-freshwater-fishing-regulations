@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, DfoDetail, EntryDetail, ExtentFix, Mode,
-  PlaceCheck } from "../types";
+  PlaceCheck, WaterPlace, WaterReach, WaterView } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { checkBody, checkStatus, groupSave, hintWords, openRows, pinsFc, step, where } from "../checklist";
+import { checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+  pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
+import { offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
 import { statusLine } from "../dfoExtent";
-import { extentParts, partsText, piecesParts } from "../extentWords";
+import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
 import { MapPanel } from "./MapPanel";
 import { TopNav } from "./TopNav";
-import { DfoLocation, savedFixesOf } from "./DfoReview";
+import { DfoLocation, proposalDraws, proposalOf, proposalPoints, savedFixesOf, suggestionFix, type InitialDraft } from "./DfoReview";
 import { CloseX } from "./NoticeStack";
 import { DfoVintageBanner } from "./DfoVintageBanner";
 import { InputsSyncLine } from "./InputsSyncLine";
@@ -22,10 +24,15 @@ import { InputsSyncLine } from "./InputsSyncLine";
    "All correct" (every row ✓ or ticked) or "Something's wrong" (pick the rows, a note) — each a mark. A change of
    extent is the T525 editor, reached from "Something's wrong" (every guard R1–R7 is its own). The queue is BY WATER
    (owner 2026-11-09: "review a whole river or waterbody at one time"): a water's places come together, its map stays
-   loaded while stepping through them, progress is said per water and overall. */
+   loaded while stepping through them, progress is said per water and overall.
+   Owner 2026-11-09 (after trying it): EARLIER WORK COUNTS (a verified mark made before the checklist is done, said so);
+   a place with NO EXTENT leads with the fix (what it needs, the one proposal, "Use this proposal" / "Set the extent…" /
+   "Same place as…" — each opens the editor, whose save is the only write); and THE WATER'S PLACES are all in sight
+   above the rows (older wordings too, same places grouped, every extent faint on the map). */
 
 export type CheckSource = "dfo" | "regs" | "all";
-const FILTERS: [string, string][] = [["", "all"], ["todo", "unchecked"], ["stale", "changed"], ["bad", "has ✗"]];
+const FILTERS: [string, string][] = [["", "all"], ["todo", "to check"], ["needs", "needs extent"],
+  ["earlier", "verified earlier"], ["stale", "changed"], ["bad", "has ✗"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
 const hashOf = (source: CheckSource) => (source === "dfo" ? "dfo/" : "checks/");
 
@@ -37,6 +44,10 @@ interface Loaded {
   dfo?: DfoDetail; entry?: EntryDetail;
   /** the cuts on the map, labelled (filtered to the ones the rows name) */
   named: EntrySplits | null;
+  /** DFO: the place's ONE proposal (the editor's own, `proposalOf`), when it would change the extent now: in words,
+   *  and on the map (its points, and its reach when every point is a cut that exists) — never applied here */
+  proposal?: { words: string; confidence: string | null; caveat: string | null; from: "fix" | "suggestion";
+               fc: GeoJSON.FeatureCollection } | null;
 }
 
 export function CheckReview({ mode, source: initial }: { mode: Mode; source: CheckSource }) {
@@ -53,7 +64,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     return h.startsWith(prefix) ? h.slice(prefix.length) || null : null;
   });
   const [loaded, setLoaded] = useState<Loaded | null>(null);
-  const [editing, setEditing] = useState(false);
+  // the T525 editor, opened from the checklist — on the extent now, or on a draft (the proposal / another place's extent)
+  const [editing, setEditing] = useState<{ draft: InitialDraft | null } | null>(null);
+  // the water the shown place is on: every place, older wordings too (`checks.water`), and its DFO extents' geometry
+  const [waterView, setWaterView] = useState<(WaterView & { at: string }) | null>(null);
+  const [waterReach, setWaterReach] = useState<{ key: string; fc: WaterReach } | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
 
   const [version, setVersion] = useState(0);
   const [staleMarks, setStaleMarks] = useState(0);
@@ -68,7 +84,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 
   const open = useCallback((id: string) => {
     setSelected(id);
-    setEditing(false);
+    setEditing(null);
     window.history.replaceState(null, "", `#${prefix}${encodeURIComponent(id)}`);
   }, [prefix]);
   useEffect(() => {
@@ -79,6 +95,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, [prefix]);
+  // the editor (and the draft it was opened on) belongs to ONE place: any move to another place closes it
+  useEffect(() => { setEditing(null); }, [selected]);
   // the first place of the list when the URL names none
   useEffect(() => { if (!selected && queue?.length) open(queue[0].id); }, [queue, selected, open]);
 
@@ -87,14 +105,41 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     if (!selected) return;
     let live = true;
     const id = selected;
-    loadPlace(id, place).then((got) => { if (live) setLoaded(got); })
+    const onWater = waterView?.places.some((p) => p.id === id) ? waterView.water_key : null;
+    loadPlace(id, place, onWater).then((got) => { if (live) setLoaded(got); })
       .catch((e) => live && setError(`${id}: ${e}`));
     return () => { live = false; };
   }, [selected, version]);  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // the water's places: read when the shown place is not on the water held, or after a save
+  const stamp = `${source}|${version}`;
+  useEffect(() => {
+    if (!selected) return;
+    if (waterView && waterView.at === stamp && waterView.places.some((p) => p.id === selected)) return;
+    let live = true;
+    api.checksWater(selected, source).then((w) => { if (live) setWaterView({ ...w, at: stamp }); })
+      .catch((e) => live && setError(`the water's places (${selected}): ${e}`));
+    return () => { live = false; };
+  }, [selected, stamp]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const waterKey = waterView?.water_key ?? null;
+  const drawable = !!waterView?.places.some((p) => p.source === "dfo" && p.extents.length > 0);
+  useEffect(() => {
+    if (!waterKey || !drawable) return;
+    let live = true;
+    api.checksWaterReach(waterKey).then((fc) => { if (live) setWaterReach({ key: waterKey, fc: { ...fc,
+      // a feature's places as one string (a GeoJSON property that is a list does not reach the map's filters)
+      features: fc.features.map((f) => ({ ...f, properties: { ...f.properties,
+        places: `\n${((f.properties?.places ?? []) as string[]).join("\n")}\n` } })) } }); })
+      .catch((e) => live && setError(`the water's other extents: ${e}`));
+    return () => { live = false; };
+  }, [waterKey, drawable, version]);
+
   const nav = useRef({ next: null as string | null, prev: null as string | null });
   const list = queue ?? [];
-  nav.current = { next: step(list, selected, 1), prev: selected ? step(list, selected, -1) : null };
+  // an older wording is not a queue row: prev / next and the position are those of the place it rides
+  const rides = selected && !list.some((p) => p.id === selected)
+    ? waterView?.places.find((p) => p.id === selected)?.older_of ?? selected : selected;
+  nav.current = { next: step(list, rides, 1), prev: rides ? step(list, rides, -1) : null };
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
       if (isTyping(ev.target) || ev.metaKey || ev.ctrlKey || ev.altKey) return;
@@ -105,8 +150,9 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const at = where(list, selected);
-  const water = place && progress?.waters[place.water_key];
+  const at = where(list, rides);
+  const ridden = place ?? list.find((p) => p.id === rides) ?? null;
+  const water = ridden && progress?.waters[ridden.water_key];
   const waters = useMemo(() => {
     const seen = new Map<string, CheckPlace>();
     for (const p of list) if (!seen.has(p.water_key)) seen.set(p.water_key, p);
@@ -118,8 +164,8 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     <header className="ck-head">
       <h1 data-testid="ck-title">{cur?.title ?? place?.water ?? "…"}<small>{cur?.sub ?? ""}</small></h1>
       <span className="ck-progress" data-testid="ck-progress">
-        {progress ? <><b>{progress.done}</b> of {progress.total} checked</> : "…"}
-        {water && <span data-testid="ck-water-progress"> · {water.water}: {water.done} of {water.total}</span>}
+        {progress ? <b>{progressWords(progress)}</b> : "…"}
+        {water && <span data-testid="ck-water-progress"> · {water.water}: {water.done} of {water.total} done</span>}
         {place?.older_unconfirmed ? <span className="warn-text" data-testid="ck-older-unconfirmed"> · {place.older_unconfirmed}
           {" "}older wording{place.older_unconfirmed > 1 ? "s" : ""} not confirmed</span> : null}
       </span>
@@ -148,11 +194,13 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
             <button key={k} role="tab" aria-selected={filter === k} data-testid={`ck-filter-${k || "all"}`}
               onClick={() => setFilter(k)}>{w}
               {progress && k === "todo" ? ` ${(progress.by_check.unchecked ?? 0) + (progress.by_check.stale ?? 0)}`
+                : progress && k === "needs" ? ` ${progress.needs ?? 0}`
+                : progress && k === "earlier" ? ` ${progress.by_check.earlier ?? 0}`
                 : progress && k === "stale" ? ` ${progress.by_check.stale ?? 0}`
                 : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}` : ""}
             </button>))}
         </span>
-        <select aria-label="jump to a water" data-testid="ck-water" value={place?.water_key ?? ""}
+        <select aria-label="jump to a water" data-testid="ck-water" value={ridden?.water_key ?? ""}
           onChange={(e) => { const p = list.find((x) => x.water_key === e.target.value); if (p) open(p.id); }}>
           {waters.map((p) => <option key={p.water_key} value={p.water_key}>{p.water} · r{p.region}</option>)}
         </select>
@@ -169,20 +217,27 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
       {editing && cur?.dfo ? (
         <div className="main">
           <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
-            nav={{ pos: at.pos, total: at.total }} saving={false}
-            onBack={() => setEditing(false)}
-            onMarked={() => { setEditing(false); loadQueue(); setVersion((v) => v + 1); }} />
+            initialDraft={editing.draft} nav={{ pos: at.pos, total: at.total }} saving={false}
+            onBack={() => setEditing(null)}
+            onMarked={() => { setEditing(null); loadQueue(); setVersion((v) => v + 1); }} />
         </div>
       ) : (
         <main className="ck-main">
           <div className="ck-map">
             {/* ONE MAP PER WATER: keyed by the water, so stepping its places changes rows and pins, never the map */}
-            {cur ? <CheckMap key={cur.place.water_key} loaded={cur} /> : <div className="empty-state">loading…</div>}
+            {cur ? <CheckMap key={cur.place.water_key} loaded={cur} faintOn={hover}
+              faint={waterReach && waterReach.key === waterKey ? waterReach.fc : null} /> : <div className="empty-state">loading…</div>}
           </div>
-          {cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur}
-            onSaved={() => { loadQueue(); setVersion((v) => v + 1); }}
-            onChange={cur.dfo && !cur.dfo.extent_now.cannot_change.length ? () => setEditing(true) : undefined} />
-            : <aside className="ck-side"><div className="empty-state">{queue && !list.length ? "Nothing matches." : "loading…"}</div></aside>}
+          <aside className="ck-side">
+            {waterView && waterView.places.some((p) => p.id === selected) && (
+              <WaterList view={waterView} selected={selected} onOpen={open} onHover={setHover}
+                undrawn={waterReach && waterReach.key === waterKey ? waterReach.fc.failed : []} />)}
+            {cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur}
+              water={waterView && waterView.places.some((p) => p.id === cur.id) ? waterView : null}
+              onSaved={() => { loadQueue(); setVersion((v) => v + 1); }}
+              onEdit={cur.dfo && !cur.dfo.extent_now.cannot_change.length ? (draft) => setEditing({ draft }) : undefined} />
+              : <div className="empty-state">{queue && !list.length ? "Nothing matches." : "loading…"}</div>}
+          </aside>
         </main>
       )}
     </div>
@@ -190,7 +245,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 }
 
 /** everything one place shows: its rows, and the map's layers */
-async function loadPlace(id: string, place: CheckPlace | null): Promise<Loaded> {
+async function loadPlace(id: string, place: CheckPlace | null, onWater: string | null = null): Promise<Loaded> {
   const isRule = place ? place.source === "regs" : id.includes("#");
   if (!isRule) {
     const [check, d] = await Promise.all([api.checkDfo(id), api.dfoLocation(id)]);
@@ -201,9 +256,31 @@ async function loadPlace(id: string, place: CheckPlace | null): Promise<Loaded> 
       const pv = await api.dfoExtentPreview(id, saved as ExtentFix[], false).catch((e) => { failed("the saved extent's preview")(e); return null; });
       if (pv?.resolvable) pending = (pv.geojson ?? null) as GeoJSON.FeatureCollection | null;
     }
-    const p: CheckPlace = place ?? { source: "dfo", id, water: d.row.water, water_key: d.items.map((i) => i.id).sort().join("|"),
+    const p: CheckPlace = place ?? { source: "dfo", id, water: d.row.water,
+      water_key: onWater ?? d.items.map((i) => i.id).sort().join("|"),
       region: d.row.region, text: d.row.text, summary: check.summary, check: check.check };
-    return { id, place: p, check, dfo: d, named: d.splits, items: d.items.map((i) => ({ id: i.id, name: i.name })),
+    // THE ONE PROPOSAL (the editor's own: Claude's fix proposal, else the suggestion), offered as the editor offers it
+    const best = proposalOf(d);
+    const fixes = suggestionFix(best?.s ?? null, [])?.fixes ?? [];
+    let proposal: Loaded["proposal"] = null;
+    if (best && !d.extent_now.cannot_change.length && offerProposal(d.extent_now.pieces, fixes, saved?.length ? saved : null)) {
+      const label = (sid: string) => d.cut_labels[sid] ?? d.proposed.find((x) => x.id === sid)?.name
+        ?? best.s.suggestion?.new_splits?.find((n) => n.ref === sid)?.name ?? null;
+      const name = (i: string) => d.item_names[i] ?? d.items.find((x) => x.id === i)?.name ?? i;
+      // its points are what the map flies to when the place has no extent of its own to fit (`fit`)
+      let feats: GeoJSON.Feature[] = proposalPoints(d, best.s, label).map((f) => ({ ...f, properties: { ...f.properties, fit: true } }));
+      const sg = best.s.suggestion!;
+      if (proposalDraws(best.s)) {
+        const pv = await api.dfoExtentPreview(id, { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
+          tributaries: sg.tributaries }, false).catch((e) => { failed("the proposal's preview")(e); return null; });
+        if (pv?.resolvable) feats = [...((pv.geojson?.features ?? []) as GeoJSON.Feature[]), ...feats];
+      }
+      proposal = { words: sg.words ?? partsText(piecesParts(fixes, (f) => fixParts(f, label, name))),
+                   from: best.from, confidence: best.from === "suggestion" ? d.suggestion?.confidence ?? null : null,
+                   caveat: best.from === "suggestion" ? d.suggestion?.caveat ?? null : null,
+                   fc: { type: "FeatureCollection", features: feats } };
+    }
+    return { id, place: p, check, dfo: d, named: d.splits, items: d.items.map((i) => ({ id: i.id, name: i.name })), proposal,
              reach: reach?.resolvable ? (reach.geojson as GeoJSON.FeatureCollection) : null, pending,
              title: d.verbatim.waters || d.row.water, sub: `DFO region ${d.row.region}${d.row.status !== "active" ? " · no longer on the live page" : ""}`,
              words: d.verbatim.specific_area || "(no area given: the whole water)", pageUrl: d.page_url };
@@ -212,7 +289,8 @@ async function loadPlace(id: string, place: CheckPlace | null): Promise<Loaded> 
   const [check, e, named] = await Promise.all([api.checkRule(entryId, ruleId), api.entry(entryId),
     api.splits(entryId).catch((x) => { failed("the entry's cuts")(x); return null; })]);
   const items = [...(e.item ? [{ id: e.item.id, name: e.item.name }] : []), ...(e.also_items ?? []).map((a) => ({ id: a.id, name: a.name }))];
-  const p: CheckPlace = place ?? { source: "regs", id, water: check.source?.name ?? entryId, water_key: items.map((i) => i.id).sort().join("|"),
+  const p: CheckPlace = place ?? { source: "regs", id, water: check.source?.name ?? entryId,
+    water_key: onWater ?? items.map((i) => i.id).sort().join("|"),
     region: check.source?.region ?? "", text: check.source?.verbatim ?? "", summary: check.summary, check: check.check,
     entry_id: entryId, rule_id: ruleId };
   return { id, place: p, check, entry: e, named, items, reach: check.reach?.geojson ?? null,
@@ -222,7 +300,7 @@ async function loadPlace(id: string, place: CheckPlace | null): Promise<Loaded> 
 }
 
 /** the water's map: the extent now in one colour, a save not drawn yet dashed, a numbered pin per row */
-function CheckMap({ loaded }: { loaded: Loaded }) {
+function CheckMap({ loaded, faint, faintOn }: { loaded: Loaded; faint: GeoJSON.FeatureCollection | null; faintOn: string | null }) {
   const [on, setOn] = useState<number | null>(null);
   useEffect(() => {
     const h = (e: Event) => setOn((e as CustomEvent<number | null>).detail);
@@ -241,8 +319,11 @@ function CheckMap({ loaded }: { loaded: Loaded }) {
   return (
     <>
       <div className="ck-key"><span><i />the extent now</span>
-        {loaded.pending && <span><i className="dash" />saved, not drawn yet</span>}</div>
+        {loaded.pending && <span><i className="dash" />saved, not drawn yet</span>}
+        {loaded.proposal && <span><i className="prop" />proposal (not applied)</span>}
+        {faint && faint.features.length > 0 && <span><i className="faint" />this water's other extents</span>}</div>
       <MapPanel itemId={loaded.items[0]?.id ?? null} alsoItemIds={loaded.items.slice(1).map((i) => i.id)}
+        suggested={loaded.proposal?.fc ?? null} fitSuggested={!loaded.reach?.features.length} faint={faint} faintOn={faintOn}
         namedSplits={named} preview={loaded.reach} pending={loaded.pending} pins={pins} fitPreview={loaded.id === first.current} minimal
         onPin={(n) => window.dispatchEvent(new CustomEvent("ck-pin-pick", { detail: n }))} />
     </>
@@ -252,8 +333,13 @@ function CheckMap({ loaded }: { loaded: Loaded }) {
 const pinTo = (n: number | null) => window.dispatchEvent(new CustomEvent("ck-pin", { detail: n }));
 
 /** the rows and the one decision */
-function CheckPanel({ loaded, onSaved, onChange }: { loaded: Loaded; onSaved: () => void; onChange?: () => void }) {
+function CheckPanel({ loaded, water, onSaved, onEdit }: {
+  loaded: Loaded; water: WaterView | null; onSaved: () => void;
+  /** open the T525 editor: on the extent now (null), or on a draft — undefined when no fix can say the extent */
+  onEdit?: (draft: InitialDraft | null) => void;
+}) {
   const pc = loaded.check;
+  const onChange = onEdit ? () => onEdit(null) : undefined;
   const [ticked, setTicked] = useState<Set<number>>(() => new Set(
     (pc.check === "checked" ? pc.checked?.rows.filter((r) => r.ticked).map((r) => r.n) : []) ?? []));
   const [wrong, setWrong] = useState<Set<number>>(new Set());
@@ -313,14 +399,90 @@ function CheckPanel({ loaded, onSaved, onChange }: { loaded: Loaded; onSaved: ()
   const status = busy ? "Saving…" : checkStatus(pc);
   const extentNote = saved && d?.saved && d.saved.state !== "landed" ? saved.text : "";
 
+  // A PLACE WITH NO EXTENT LEADS WITH THE FIX (owner 2026-11-09): what it needs, the one proposal, the way to set it.
+  // Not while a save of its own waits to land (that is said as held, below).
+  const needs = !!d && !pc.held && needsExtent(d.row.state, pc.rows);
+  const options = useMemo(() => (needs && water ? sameAsOptions(water.places, loaded.id) : []), [needs, water, loaded.id]);
+  const me = water?.places.find((p) => p.id === loaded.id);
+  const [sameAs, setSameAs] = useState("");
+  useEffect(() => {   // DFO's own link first: the place it lists this one as a rewording of
+    const linked = options.find((o) => me && (me.duplicate_of === o.id || o.duplicate_of === me.id));
+    setSameAs((cur) => cur || linked?.id || "");
+  }, [options, me]);
+  const wLabel = (c: string) => water?.cut_labels[c] ?? cutLabel(c);
+  const wName = (i: string) => water?.item_names[i] ?? itemName(i);
+  const wordsOf = (p: WaterPlace) => partsText(piecesParts(p.extents, (x) => extentParts(x, wLabel, wName)));
+  async function useSameAs() {
+    const o = options.find((x) => x.id === sameAs);
+    if (!o || !onEdit) return;
+    setErrors([]);
+    setBusy(true);
+    try {
+      // the other place's extent AS THE EDITOR READS IT (`dfo.extent_now`): its pieces go into this place's draft
+      const other = await api.dfoLocation(o.id);
+      if (other.extent_now.cannot_change.length || !other.extent_now.pieces.length) {
+        setErrors([`Its extent cannot be given to this place here: ${other.extent_now.cannot_change.join("; ") || "it has none"}`]);
+        return;
+      }
+      onEdit({ fixes: other.extent_now.pieces, what: `The extent of “${(o.text || "(the whole water)").slice(0, 80)}”` });
+    } catch (e) {
+      setErrors([`Its extent could not be read: ${e}`]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <aside className="ck-side" data-testid="ck-panel">
+    <div className="ck-panel" data-testid="ck-panel">
       <div className="ck-words">
+        <div className="ck-sec">This place{d && d.row.status !== "active" ? " · no longer on the live page" : ""}</div>
         <span data-testid="ck-words">{loaded.words}</span>
         {loaded.pageUrl && <> · <a href={loaded.pageUrl} target="_blank" rel="noreferrer">DFO page ↗</a></>}
-        <div className="dim">{pc.rows.length} claims</div>
+        {(pc.check !== "unchecked" || pc.earlier) && <div className={`ck-status-top ${pc.check}`} data-testid="ck-status-top">{checkStatus(pc)}</div>}
       </div>
       <div className="ck-rows" data-testid="ck-rows" onMouseLeave={() => pinTo(picked)}>
+        {needs && d && (
+          <div className="ck-lead" data-testid="ck-lead">
+            <b data-testid="ck-need">{needWords(d.need, d.row.water, ext.length)}</b>
+            {loaded.proposal && onEdit ? (
+              <>
+                <div className="ck-prop">
+                  <span className="k">proposal</span> <span data-testid="ck-proposal-words">{loaded.proposal.words}</span>
+                  {loaded.proposal.confidence && <span className="chip-tag"> {loaded.proposal.confidence} confidence</span>}
+                </div>
+                {loaded.proposal.caveat && <div className="warn-text" data-testid="ck-proposal-caveat">Careful: {loaded.proposal.caveat}</div>}
+                <div className="dim">Violet on the map. It is a proposal: nothing is saved until you save in the editor.</div>
+                <div className="ck-btns">
+                  <button data-testid="ck-use-proposal" disabled={busy} onClick={() => onEdit("proposal")}>Use this proposal</button>
+                  <button className="alt" data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Set the extent…</button>
+                </div>
+              </>
+            ) : onEdit ? (
+              <div className="ck-btns">
+                <button data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Set the extent…</button>
+              </div>
+            ) : <div className="warn-text">It cannot be changed here: {d.extent_now.cannot_change.join("; ")}</div>}
+            {onEdit && options.length > 0 && (
+              <div className="ck-sameas" data-testid="ck-sameas">
+                <label>Same place as…{" "}
+                  <select value={sameAs} aria-label="same place as" data-testid="ck-sameas-pick" onChange={(e) => setSameAs(e.target.value)}>
+                    <option value="">pick a place on this water</option>
+                    {options.map((o) => <option key={o.id} value={o.id}>
+                      {(o.text || "(the whole water)").slice(0, 70)}{o.live ? "" : " (older)"}</option>)}
+                  </select>
+                </label>
+                <button type="button" className="btn small" data-testid="ck-sameas-use" disabled={!sameAs || busy}
+                  title="opens the editor with that place's extent as this place's; you confirm and save there"
+                  onClick={() => void useSameAs()}>Use its extent…</button>
+                {sameAs && options.find((o) => o.id === sameAs) && <div className="dim" data-testid="ck-sameas-extent">
+                  its extent: {wordsOf(options.find((o) => o.id === sameAs)!)}
+                  {me && (me.duplicate_of === sameAs || options.find((o) => o.id === sameAs)!.duplicate_of === me.id)
+                    ? " · DFO lists these as rewordings of each other" : ""}</div>}
+              </div>
+            )}
+          </div>
+        )}
+        <div className="ck-sec" style={{ padding: "6px 8px 0" }}>{pc.rows.length} claims{needs ? " (nothing to check until it has an extent)" : ""}</div>
         {pc.rows.map((r) => (
           <Row key={r.n} r={r} ticked={ticked.has(r.n)} wrong={wrong.has(r.n)} on={picked === r.n} wrongMode={wrongMode}
             onHover={() => pinTo(r.n)}
@@ -335,7 +497,8 @@ function CheckPanel({ loaded, onSaved, onChange }: { loaded: Loaded; onSaved: ()
         {!wrongMode ? (
           <>
             <div className="ck-btns">
-              <button data-testid="ck-allok" disabled={left > 0 || busy || !!pc.held} onClick={() => void save("ok")}>All correct</button>
+              <button data-testid="ck-allok" className={needs ? "alt" : undefined} disabled={left > 0 || busy || !!pc.held}
+                onClick={() => void save("ok")}>{pc.check === "earlier" ? "All correct (check it again)" : "All correct"}</button>
               <button className="alt" data-testid="ck-wrong" disabled={busy || !!pc.held} onClick={() => {
                 setWrongMode(true); setWrong(new Set(openRows(pc.rows, ticked).map((r) => r.n))); }}>Something's wrong</button>
             </div>
@@ -364,7 +527,63 @@ function CheckPanel({ loaded, onSaved, onChange }: { loaded: Loaded; onSaved: ()
           {pc.checked?.note && pc.check !== "unchecked" ? <span className="dim"> · {pc.checked.note.slice(0, 160)}</span> : null}
         </div>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+/** THE WATER'S PLACES, ALL IN SIGHT (owner 2026-11-09: "for a river show all historical boundaries too … have them
+ *  grouped"): every place on the water — live, no longer live, older wordings, its regulation extents — with its words,
+ *  its extent in a few words and one state chip; places the data calls the same place under one heading. Click = open;
+ *  hover = its extent stronger on the map. */
+function WaterList({ view, selected, onOpen, onHover, undrawn }: {
+  view: WaterView; selected: string | null; onOpen: (id: string) => void; onHover: (id: string | null) => void;
+  undrawn: { id: string; why: string }[];
+}) {
+  const groups = useMemo(() => waterGroups(view.places), [view.places]);
+  const label = (c: string) => view.cut_labels[c] ?? null;
+  const name = (i: string) => view.item_names[i] ?? i;
+  const done = view.places.filter(isDone).length;
+  const [open, setOpen] = useState(() => {
+    try { return window.localStorage.getItem("ck-water-list") !== "0"; } catch { return true; }
+  });
+  const toggle = () => setOpen((o) => {
+    try { window.localStorage.setItem("ck-water-list", o ? "0" : "1"); } catch { /* per-viewer only */ }
+    return !o;
+  });
+  useEffect(() => {
+    document.querySelector('.ck-wl [aria-current="true"]')?.scrollIntoView({ block: "nearest" });
+  }, [selected, open]);
+  return (
+    <div className="ck-wl" data-testid="ck-water-list" onMouseLeave={() => onHover(null)}>
+      <button type="button" className="ck-sec ck-wl-head" aria-expanded={open} onClick={toggle}>
+        {open ? "▾" : "▸"} {view.water}: {view.places.length} place{view.places.length === 1 ? "" : "s"} and wordings
+        {" · "}{done} done · {view.places.length - done} left</button>
+      {open && (
+        <div className="ck-wl-rows">
+          {groups.map((g) => (
+            <div key={g.same} className={g.places.length > 1 ? "ck-wg" : undefined} data-testid={g.places.length > 1 ? "ck-water-group" : undefined}>
+              {g.places.length > 1 && <div className="ck-wg-head" title={g.why.join(" · ")}>{groupHeading(g)}
+                <span className="dim"> · {g.why.join(" · ")}</span></div>}
+              {g.places.map((p) => {
+                const chip = chipOf(p);
+                return (
+                  <button type="button" key={p.id} className="ck-wp" aria-current={p.id === selected} data-testid="ck-water-place"
+                    onMouseEnter={() => onHover(p.id)} onClick={() => onOpen(p.id)}>
+                    <span className={`ck-chip ${chip.replace(/[^a-z]+/g, "-")}`}>{chip}</span>
+                    <span className="t">{p.source === "regs" ? <i>{p.name ? `${p.name}: ` : ""}</i> : null}
+                      {(p.text || "(the whole water)").slice(0, 110)}{(p.text || "").length > 110 ? "…" : ""}</span>
+                    <span className="e">{p.source === "regs" ? "regulation · " : ""}
+                      {p.extents.length ? partsText(piecesParts(p.extents, (x) => extentParts(x, label, name))) : "no extent"}
+                      {p.live ? "" : " · no longer live"}</span>
+                  </button>);
+              })}
+            </div>
+          ))}
+          {undrawn.length > 0 && <div className="warn-text" data-testid="ck-water-undrawn" style={{ fontSize: 12, padding: "2px 8px" }}>
+            {undrawn.length} extent{undrawn.length > 1 ? "s" : ""} on this water could not be drawn: {undrawn[0].why}</div>}
+        </div>
+      )}
+    </div>
   );
 }
 

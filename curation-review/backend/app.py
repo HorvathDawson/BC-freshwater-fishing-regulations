@@ -863,6 +863,32 @@ def checks_progress(source: str = "dfo"):
     return checks.progress(source)
 
 
+@app.get("/api/checks/water")
+def checks_water(place: str, source: str = "dfo"):
+    """Every place on the water `place` (a queue place or an older wording) is on, older wordings too, each with its
+    extent and its same-place group (`checks.water`)."""
+    import checks
+    if source not in ("dfo", "regs", "all"):
+        raise HTTPException(422, "source is dfo, regs or all")
+    key = checks.water_key_of(place)
+    got = checks.water(key, source) if key else None
+    if got is None and key and source != "all":        # a place of the other source, opened by its link
+        got = checks.water(key, "all")
+    if got is None:
+        raise HTTPException(404, f"no water in the checklist holds {place}")
+    return got
+
+
+@app.get("/api/checks/water/reach")
+def checks_water_reach(key: str):
+    """What each DFO extent on one water binds, as geometry (`checks.water_reach`)."""
+    import checks
+    got = checks.water_reach(key)
+    if got is None:
+        raise HTTPException(404, f"no DFO place on water {key}")
+    return got
+
+
 @app.get("/api/checks/dfo/{location_id:path}")
 def checks_dfo(location_id: str):
     """One DFO place's checklist rows (`checks.dfo_check`)."""

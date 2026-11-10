@@ -858,7 +858,11 @@ export interface CheckRow {
   anchor: { cuts?: string[]; items?: string[]; areas?: string[]; coord?: [number, number]; tributaries?: boolean;
             area_kind?: string | null };
 }
-export type CheckState = "unchecked" | "stale" | "checked" | "wrong";
+/** `earlier` (owner 2026-11-09): a verified mark made before the checklist that still holds — done, never re-asked */
+export type CheckState = "unchecked" | "stale" | "checked" | "earlier" | "wrong";
+/** a mark in force that carries no checklist: its status by the marks' own staleness (verified / wrong / unsure /
+ *  deferred / stale) */
+export interface EarlierMark { date: string; status: string; note: string }
 export interface CheckedRow { n: number; kind: string; state: RowState; ticked?: boolean; wrong?: boolean }
 export interface CheckedList { digest: string; rows: CheckedRow[] }
 /** one place's checklist (GET /api/checks/dfo/<id>, /api/checks/rule/<entry>/<rule>) */
@@ -868,6 +872,7 @@ export interface PlaceCheck {
   /** DFO: a save of the owner's still waits to land — a check now would replace it, so none is offered */
   held?: string;
   checked?: { date: string; verdict: string; note: string; rows: CheckedRow[] };
+  earlier?: EarlierMark;
   /** a regulation rule: what it binds, as geometry (the builder's own reach, capped) */
   reach?: { n_sections: number | null; truncated: boolean; geojson: GeoJSON.FeatureCollection };
   source?: { entry_id: string; rule_id: string; name: string; verbatim: string; region: string; pages: number[] };
@@ -878,9 +883,24 @@ export interface CheckPlace {
   summary: PlaceCheck["summary"]; check: CheckState; new?: boolean; entry_id?: string; rule_id?: string;
   /** DFO: its older wordings, and how many have no check in force ("older wording not confirmed") */
   older?: number; older_unconfirmed?: number;
+  /** DFO: the extent's state (`dfo._row`) — unbound / needs_cut have nothing to check yet; a proposal waits for it */
+  state?: DfoState | null; proposal?: boolean; earlier?: EarlierMark;
 }
+/** one place on a water (GET /api/checks/water): the queue's places and, under each DFO place, its older wordings */
+export interface WaterPlace {
+  source: "dfo" | "regs"; id: string; text: string; live: boolean; check: CheckState; bad: number;
+  state: DfoState | null; extents: DfoExtent[]; tributaries: boolean | null; extent_key: string;
+  older_of: string | null; duplicate_of: string | null; proposal: boolean; earlier?: EarlierMark; name?: string;
+  /** the same-place group it sits in (the group's first id) and why (`checks.same_place`) */
+  same: string; why: string[];
+}
+export interface WaterView {
+  water_key: string; water: string; places: WaterPlace[];
+  cut_labels: Record<string, string>; item_names: Record<string, string>;
+}
+export type WaterReach = GeoJSON.FeatureCollection & { failed: { id: string; why: string }[] };
 export interface CheckProgress {
-  total: number; done: number; by_check: Partial<Record<CheckState, number>>;
+  total: number; done: number; left: number; needs: number; by_check: Partial<Record<CheckState, number>>;
   by_worst: Partial<Record<RowState, number>>; rows: Partial<Record<RowState, number>>;
   older_unconfirmed?: number;
   waters: Record<string, { water: string; total: number; done: number }>;

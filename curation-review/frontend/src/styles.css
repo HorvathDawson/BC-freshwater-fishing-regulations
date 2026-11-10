@@ -1195,3 +1195,38 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 /* T541: which backend this is (its start commit, write-through, marks store), and the banner when HEAD has moved */
 .topnav-backend { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
 .topnav-row.pending-build { border-radius: 0; margin: 0; }
+
+/* T532 (owner 2026-11-09): the water's places above the rows, the lead of a place with no extent, the status up top */
+.ck-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.ck-sec { font-size: 11px; font-weight: 650; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.ck-wl { border-bottom: 1px solid var(--ck-line); display: flex; flex-direction: column; min-height: 0; flex: 0 0 auto; max-height: 28%; }
+.ck-panel .ck-rows { min-height: 150px; }
+.ck-foot [data-testid="older-wordings"] { max-height: 130px; overflow: auto; }
+.ck-wl-head { border: 0; background: none; text-align: left; padding: 8px 16px 6px; cursor: pointer; font-family: inherit; }
+.ck-wl-rows { overflow: auto; padding: 0 8px 8px; }
+.ck-wg { border-left: 3px solid var(--ck-line); margin: 4px 0 4px 6px; padding-left: 4px; }
+.ck-wg-head { font-size: 12px; font-weight: 600; padding: 2px 8px; }
+.ck-wg-head .dim { font-weight: 400; }
+.ck-wp { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 1px; width: 100%; text-align: left; border: 0; background: none;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 12.5px; color: inherit; }
+.ck-wp:hover { background: var(--ck-soft); }
+.ck-wp[aria-current="true"] { background: var(--ck-soft); box-shadow: inset 3px 0 0 var(--ck-extent); }
+.ck-wp .t { min-width: 0; }
+.ck-wp .e { grid-column: 2; color: var(--muted); font-size: 12px; }
+.ck-chip { align-self: start; font-size: 10.5px; font-weight: 650; padding: 1px 6px; border-radius: 9px; white-space: nowrap; border: 1px solid var(--ck-line); color: var(--muted); }
+.ck-chip.done, .ck-chip.verified-earlier { color: var(--ck-ok); background: var(--ck-ok-bg); border-color: transparent; }
+.ck-chip.needs-extent { color: #5b21b6; background: #ede9fe; border-color: transparent; }
+.ck-chip.has-, .ck-chip.reported-wrong { color: var(--ck-bad); background: var(--ck-bad-bg); border-color: transparent; }
+.ck-chip.changed { color: var(--ck-unk); background: var(--ck-unk-bg); border-color: transparent; }
+.ck-status-top { font-size: 12px; margin-top: 4px; color: var(--muted); }
+.ck-status-top.checked, .ck-status-top.earlier { color: var(--ck-ok); font-weight: 600; }
+.ck-status-top.stale { color: var(--ck-unk); font-weight: 600; }
+.ck-status-top.wrong { color: var(--ck-bad); font-weight: 600; }
+.ck-lead { margin: 6px 8px 8px; padding: 10px 12px; border: 1.5px solid #7c3aed; border-radius: 8px; background: #faf8ff; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.ck-lead .k { color: #7c3aed; font-weight: 650; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
+.ck-lead .ck-btns button:not(.alt) { background: #5b21b6; border-color: #5b21b6; }
+.ck-sameas { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-top: 1px solid var(--ck-line); padding-top: 8px; }
+.ck-sameas select { max-width: 250px; font-size: 12px; }
+.ck-sameas .dim { flex-basis: 100%; font-size: 12px; }
+.ck-key i.prop { background: none; border-top: 3px dashed #7c3aed; height: 0; }
+.ck-key i.faint { background: #475569; opacity: .35; height: 7px; }

@@ -7,7 +7,9 @@ never jump between waters").
     dfo_check(id)         one DFO place: rows, digest, summary, its check state
     rule_check(e, r)      one regulation rule: the same
     queue(source, ...)    every place of a source (dfo | regs | all), grouped by water, with its summary and check state
-    progress(...)         checked / total over the whole list, by state, per water
+    progress(...)         done / total over the whole list, by state, per water
+    water(key, source)    every place on ONE water — older wordings too — each with its extent, grouped by same place
+    water_reach(key)      what each of the water's DFO extents binds, as geometry (the faint lines under the shown one)
 
 READ ONLY. The rows resolve nothing (AGENTS 16): the cuts built are the served atlas's (`dfo._built_cuts`), the
 tributary call the builder's own (`classify.wants_tributaries`, `dfo.tributaries_now`). A check is a mark
@@ -24,7 +26,12 @@ from pipeline.regs.review import checklist as C
 #: the most sections a regulation's reach draws (a zone table binds tens of thousands)
 REACH_LIMIT = 3000
 #: a place's check state, in the order the filters offer them
-CHECK_STATES = ("unchecked", "stale", "checked", "wrong")
+CHECK_STATES = ("unchecked", "stale", "checked", "earlier", "wrong")
+#: the states that count as DONE (owner 2026-11-09: "the review app doesnt show how many I already did"): a check, a
+#: wrong check, and `earlier` — a verified mark made before the checklist that the marks' own staleness still holds
+DONE_STATES = ("checked", "earlier", "wrong")
+#: the DFO extent states (`dfo._row`) with nothing to check yet: the place leads with its fix, not with ✗ rows
+NEEDS_EXTENT = ("unbound", "needs_cut")
 
 
 class _Lazy(Mapping):
@@ -152,21 +159,31 @@ def context() -> C.Context:
 
 # --------------------------------------------------------------------------- the check state
 
-def check_state(mark, digest: str) -> str:
-    """unchecked (no checklist mark in force, or a defer) · stale (its digest is not the place's now: the words or the
-    extent changed) · checked (all correct) · wrong (rows picked wrong)"""
-    if mark is None or getattr(mark, "checklist", None) is None or mark.verdict not in ("verified", "wrong"):
+def check_state(mark, digest: str, earlier: str | None = None) -> str:
+    """unchecked (no mark in force, a defer, or an earlier mark that is not a verified one still holding) · stale (its
+    digest is not the place's now: the words or the extent changed) · checked (all correct) · wrong (rows picked
+    wrong) · earlier (owner 2026-11-09: a VERIFIED mark made before the checklist — it carries none — that the marks'
+    own staleness still calls verified: `earlier` is that status, `marks.status`; it is done, never re-asked).
+    No second staleness rule: a mark `marks.status` calls stale is unchecked here."""
+    if mark is None or mark.verdict not in ("verified", "wrong"):
         return "unchecked"
+    if getattr(mark, "checklist", None) is None:
+        return "earlier" if mark.verdict == "verified" and earlier == "verified" else "unchecked"
     if mark.checklist.digest != digest:
         return "stale"
     return "checked" if mark.verdict == "verified" else "wrong"
 
 
-def _with_check(rs: list[dict], digest: str, mark) -> dict:
-    out = {"rows": rs, "digest": digest, "summary": C.summary(rs), "check": check_state(mark, digest)}
+def _with_check(rs: list[dict], digest: str, mark, earlier: str | None = None) -> dict:
+    """`earlier`: the status the marks' own machinery gives a mark with no checklist (verified / wrong / unsure /
+    deferred / stale) — said on the place whatever it is, done only when verified"""
+    out = {"rows": rs, "digest": digest, "summary": C.summary(rs), "check": check_state(mark, digest, earlier)}
     if mark is not None and getattr(mark, "checklist", None) is not None:
         out["checked"] = {"date": mark.date, "verdict": mark.verdict, "note": mark.note,
                           "rows": [r.model_dump() for r in mark.checklist.rows]}
+    elif mark is not None:
+        out["earlier"] = {"date": mark.date, "status": earlier or getattr(mark.verdict, "value", mark.verdict),
+                          "note": mark.note}
     return out
 
 
@@ -199,7 +216,12 @@ def dfo_inputs(loc: dict, water: dict | None, m) -> dict:
             "only": bool(b.get("tributaries_only")), "excludes": list(b.get("tributary_excludes") or [])}
 
 
-def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None) -> dict:
+def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None, verify: str | None = None) -> dict:
+    """`verify`: the DFO queue's word for the mark in force (`dfo._verify`, the rows' `verify`); read here when not
+    handed in and the mark carries no checklist (an earlier mark)"""
+    if verify is None and m is not None and getattr(m, "checklist", None) is None:
+        import dfo
+        verify = dfo._verify(m, loc, water)["status"]
     src = C.dfo_source(loc, water)
     x = dfo_inputs(loc, water, m)
     rs = C.rows(src, x["extents"], own_items=(water or {}).get("item_ids") or [], ctx=ctx or context(),
@@ -208,7 +230,7 @@ def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None) -> 
     # the digest is of the CURATED extent (a save waiting to land is not what a check confirms)
     dg = C.digest(src, x["curated"], tributaries=x["curated_tributaries"], tributaries_only=x["only"],
                   tributary_excludes=x["excludes"])
-    out = _with_check(rs, dg, m)
+    out = _with_check(rs, dg, m, verify)
     if x["held"]:
         out["held"] = x["held"]
     return out
@@ -248,7 +270,21 @@ def rule_rows(entry: dict, rule: dict, mark, ctx: C.Context | None = None) -> di
     rs = C.rows(src, exts, own_items=entry.get("matched") or [], ctx=ctx or context(), tributaries=trib,
                 tributaries_only=only, tributary_excludes=tex)
     dg = C.digest(src, exts, tributaries=trib, tributaries_only=only, tributary_excludes=tex)
-    return _with_check(rs, dg, mark)
+    return _with_check(rs, dg, mark, _rule_earlier(entry, mark))
+
+
+def _rule_earlier(entry: dict, mark) -> str | None:
+    """An EARLIER rule mark's status (one with no checklist), by the rule marks' own staleness (`marks.status` on the
+    entry's prints now, a landed fix holding — what the Entries queue shows). A verified one counts only with its
+    place check answered yes (P = y): the checklist is the place's check."""
+    if mark is None or getattr(mark, "checklist", None) is not None:
+        return None
+    from pipeline.regs.review import marks as M
+    st = M.status(mark, reuse._prints(entry), applied=reuse.applied_keys())["status"]
+    st = getattr(st, "value", st)
+    if st == "verified" and (mark.answers or {}).get("P") != "y":
+        return "verified without the place check"
+    return st
 
 
 def _rule_marks() -> dict:
@@ -283,6 +319,7 @@ def _dfo_places() -> list[dict]:
     how many of its older wordings have no check in force)"""
     import dfo
     states, locs, ctx, groups = dfo._states(), dfo._locations(), context(), dfo._groups()
+    verify = {r["id"]: r["verify"] for r in dfo._rows()}
     out = []
     for r in dfo._rows():
         if r["lake_area"] or (r["status"] != "active" and not r["historic_only"]):
@@ -291,18 +328,22 @@ def _dfo_places() -> list[dict]:
         if g and g["canonical"] != r["id"] and g["canonical"] in locs:
             continue
         _s, loc, water = locs[r["id"]]
-        got = dfo_rows(loc, water, states.get(r["id"]), ctx)
+        got = dfo_rows(loc, water, states.get(r["id"]), ctx, r["verify"])
         items = list((water or {}).get("item_ids") or [])
         # owner 2026-11-09: an older wording is checked only when the owner ticks it "same place" — one not checked
         # (or whose check went stale) keeps its place in the queue, flagged on the place it rides
         older = [m["id"] for m in ((groups.get(r["id"]) or {}).get("members") or [])
                  if m["id"] != r["id"] and m["id"] in locs]
         unconfirmed = sum(1 for o in older
-                          if dfo_rows(locs[o][1], locs[o][2], states.get(o), ctx)["check"] in ("unchecked", "stale"))
+                          if dfo_rows(locs[o][1], locs[o][2], states.get(o), ctx, verify.get(o))["check"]
+                          not in DONE_STATES)
         out.append({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
                     "items": items,
                     "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
                     "check": got["check"], "new": r["verify"] == "unmarked",
+                    # what the place needs before any row can be checked: no extent (unbound), or a cut (needs_cut)
+                    "state": r["state"], "proposal": bool(r["suggested"] or r["fix_proposed"]),
+                    **({"earlier": got["earlier"]} if "earlier" in got else {}),
                     **({"older": len(older), "older_unconfirmed": unconfirmed} if older else {})})
     return out
 
@@ -321,7 +362,8 @@ def _regs_places() -> list[dict]:
                         "rule_id": r.get("rule_id"), "water": name, "water_key": _water_key(items, name),
                         "items": items,
                         "region": str(e.get("region") or region), "text": r.get("verbatim") or "",
-                        "summary": got["summary"], "check": got["check"]})
+                        "summary": got["summary"], "check": got["check"],
+                        **({"earlier": got["earlier"]} if "earlier" in got else {})})
     return out
 
 
@@ -389,7 +431,9 @@ def _matches(p: dict, want: str | None) -> bool:
         return p["check"] in ("unchecked", "stale") or p.get("older_unconfirmed", 0) > 0
     if want == "bad":
         return p["summary"]["bad"] > 0
-    raise ValueError(f"filter is one of todo, bad, {', '.join(CHECK_STATES)}")
+    if want == "needs":                      # a DFO place with no extent yet, or waiting on a cut
+        return p.get("state") in NEEDS_EXTENT
+    raise ValueError(f"filter is one of todo, bad, needs, {', '.join(CHECK_STATES)}")
 
 
 def queue(source: str = "dfo", filter: str | None = None, q: str | None = None) -> list[dict]:
@@ -406,17 +450,167 @@ def queue(source: str = "dfo", filter: str | None = None, q: str | None = None) 
 
 
 def progress(source: str = "dfo") -> dict:
-    """checked / total over the WHOLE list (filters never change it), the counts by check state and by worst row
-    state, and per water"""
-    rows = [p for p in _places() if source == "all" or p["source"] == source]
-    done = lambda rs: sum(1 for p in rs if p["check"] in ("checked", "wrong"))  # noqa: E731
+    """done / total over the WHOLE list (filters never change it), the counts by check state and by worst row
+    state, and per water. DONE (`DONE_STATES`): checked, checked wrong, or verified earlier and still holding."""
+    return progress_of([p for p in _places() if source == "all" or p["source"] == source])
+
+
+def progress_of(rows: list[dict]) -> dict:
+    """`progress` over the given places. Pure."""
     waters: dict[str, dict] = {}
     for p in rows:
         w = waters.setdefault(p["water_key"], {"water": p["water"], "total": 0, "done": 0})
         w["total"] += 1
-        w["done"] += p["check"] in ("checked", "wrong")
-    return {"total": len(rows), "done": done(rows), "by_check": dict(Counter(p["check"] for p in rows)),
+        w["done"] += p["check"] in DONE_STATES
+    done = sum(1 for p in rows if p["check"] in DONE_STATES)
+    return {"total": len(rows), "done": done, "left": len(rows) - done,
+            "needs": sum(1 for p in rows if p.get("state") in NEEDS_EXTENT),
+            "by_check": dict(Counter(p["check"] for p in rows)),
             "by_worst": dict(Counter(p["summary"]["worst"] for p in rows)),
             "rows": dict(sum((Counter({s: p["summary"][s] for s in C.STATES}) for p in rows), Counter())),
             "older_unconfirmed": sum(p.get("older_unconfirmed", 0) for p in rows),
             "waters": waters}
+
+
+# --------------------------------------------------------------------------- one water, all in sight
+
+def same_place(places: list[dict]) -> dict[str, dict]:
+    """WHICH OF A WATER'S PLACES ARE THE SAME PLACE (owner 2026-11-09: "have them grouped then you confirm them"), from
+    the data that exists — never a new matcher: an older wording rides its place (`older_of`, `dfo._groups`), DFO lists
+    it as a rewording (`duplicate_of`), or the two hold the IDENTICAL extent (`extent_key`, same source; a place with no
+    extent matches nothing by it). -> id -> {"same": the group's first id in list order, "why": [...]}. A grouping is
+    a prior shown to the owner; it confirms nothing. Pure."""
+    ids = [p["id"] for p in places]
+    parent = {i: i for i in ids}
+
+    def find(x: str) -> str:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+    why: dict[str, list[str]] = {i: [] for i in ids}
+
+    def join(a: str, b: str, word: str) -> None:
+        if a not in parent or b not in parent or a == b:
+            return
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[max(ra, rb, key=ids.index)] = min(ra, rb, key=ids.index)
+        for x in (a, b):
+            if word not in why[x]:
+                why[x].append(word)
+    by_extent: dict[tuple, str] = {}
+    for p in places:
+        if p.get("older_of"):
+            join(p["id"], p["older_of"], "an older wording of the place")
+        if p.get("duplicate_of"):
+            join(p["id"], p["duplicate_of"], "DFO lists it as a rewording")
+        if p.get("extent_key"):
+            first = by_extent.setdefault((p["source"], p["extent_key"]), p["id"])
+            join(p["id"], first, "the identical extent")
+    return {i: {"same": find(i), "why": why[i]} for i in ids}
+
+
+def _extent_key(extents: list[dict], tributaries, only: bool = False) -> str:
+    import dfo
+    return "" if not extents else "|".join(sorted(map(dfo._extent_key, extents))) + f"#{tributaries}#{only}"
+
+
+def water_key_of(place_id: str) -> str | None:
+    """the water a place is on: its own queue row's, or — an older wording — the place it rides"""
+    import dfo
+    by = {p["id"]: p["water_key"] for p in _places()}
+    if place_id in by:
+        return by[place_id]
+    g = dfo._groups().get(place_id)
+    return by.get(g["canonical"]) if g else None
+
+
+def water(water_key: str, source: str = "dfo") -> dict | None:
+    """EVERY PLACE ON ONE WATER, ALL IN SIGHT (owner 2026-11-09: "for a river show all historical boundaries too"): the
+    queue's places on it (DFO first, then its regulation extents when `source` takes them) and, under each DFO place,
+    its older wordings — each with its words, its extent now (the frontend says it in words: `cut_labels`,
+    `item_names`), whether it is on the live page, its check state, and the group it sits in (`same_place`). Read
+    only."""
+    import dfo
+    mine = [p for p in _places() if p["water_key"] == water_key and (source == "all" or p["source"] == source)]
+    if not mine:
+        return None
+    locs, states, ctx, groups = dfo._locations(), dfo._states(), context(), dfo._groups()
+    rows = {r["id"]: r for r in dfo._rows()}
+    rules = None
+    out: list[dict] = []
+
+    def dfo_place(lid: str, queued: dict | None, older_of: str | None) -> dict:
+        _s, loc, w = locs[lid]
+        r = rows.get(lid) or {}
+        b = loc.get("binding") or {}
+        exts = list(b.get("extents") or [])
+        got = queued or dfo_rows(loc, w, states.get(lid), ctx, r.get("verify"))
+        return {"source": "dfo", "id": lid, "text": (loc.get("source_text") or {}).get("specific_area") or "",
+                "live": (loc.get("status") or "active") == "active", "check": got["check"],
+                "bad": got["summary"]["bad"], "state": r.get("state"), "extents": exts,
+                "tributaries": dfo.tributaries_now(loc, w),
+                "extent_key": _extent_key(exts, dfo.tributaries_now(loc, w), bool(b.get("tributaries_only"))),
+                "older_of": older_of, "duplicate_of": loc.get("duplicate_of"),
+                "proposal": bool(r.get("suggested") or r.get("fix_proposed")),
+                **({"earlier": got["earlier"]} if "earlier" in got else {})}
+    for p in mine:
+        if p["source"] == "dfo":
+            out.append(dfo_place(p["id"], p, None))
+            for m in (groups.get(p["id"]) or {}).get("members") or []:
+                if m["id"] != p["id"] and m["id"] in locs:
+                    out.append(dfo_place(m["id"], None, p["id"]))
+        else:
+            if rules is None:
+                rules = {(e["entry_id"], r.get("rule_id")): (e, r) for _rg, e in reuse._all_entries()
+                         for r in e.get("rules") or [] if isinstance(r, dict)}
+            e, r = rules[(p["entry_id"], p["rule_id"])]
+            exts = [x for x in r.get("extents") or [] if isinstance(x, dict)]
+            out.append({"source": "regs", "id": p["id"], "text": p["text"], "live": True, "check": p["check"],
+                        "bad": p["summary"]["bad"], "state": None, "extents": exts, "tributaries": None,
+                        "extent_key": f"{_extent_key(exts, None, bool(r.get('tributaries_only')))}", "older_of": None,
+                        "duplicate_of": None, "proposal": False, "name": p.get("place_water") or p["water"],
+                        **({"earlier": p["earlier"]} if "earlier" in p else {})})
+    same = same_place(out)
+    out = [{**p, **same[p["id"]]} for p in out]
+    view = {"water_key": water_key, "water": mine[0]["water"], "places": out}
+    return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view), "item_names": dfo.item_names(view)})
+
+
+#: the most sections one place's extent draws faintly (the water's own line, never its tributaries)
+WATER_REACH_LIMIT = 1500
+_WATER_REACH = reuse._Memo()
+
+
+def water_reach(water_key: str) -> dict | None:
+    """WHAT EACH OF THE WATER'S DFO EXTENTS BINDS, as geometry (the builder's own `dfo.reach`, tributaries not walked):
+    one reach per distinct extent, each feature naming the places that hold it (`places`) — drawn faintly under the
+    shown place's, so every boundary DFO has used on the river is in sight. Regulation extents are not drawn here (a
+    zone table binds tens of thousands of sections). `failed`: the places whose extent could not be drawn, said."""
+    import dfo
+    got = water(water_key, "dfo")
+    if got is None:
+        return None
+    # kept per water while the marks / DFO rows / served atlas hold
+    held = _WATER_REACH.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context()), dict)
+    if water_key in held:
+        return held[water_key]
+    by: dict[str, list[str]] = {}
+    for p in got["places"]:
+        if p["extent_key"]:
+            by.setdefault(p["extent_key"], []).append(p["id"])
+    feats, failed = [], []
+    for ids in by.values():
+        try:
+            r = dfo.reach(ids[0], limit=WATER_REACH_LIMIT)
+        except Exception as ex:  # noqa: BLE001 — said on the screen (`failed`), the other extents still draw
+            failed.append({"id": ids[0], "why": f"{type(ex).__name__}: {ex}"})
+            continue
+        if not r or not r.get("resolvable"):
+            failed.append({"id": ids[0], "why": (r or {}).get("why") or "no reach"})
+            continue
+        for f in (r["geojson"] or {}).get("features") or []:
+            feats.append({**f, "properties": {**(f.get("properties") or {}), "places": ids}})
+    held[water_key] = reuse._json_safe({"type": "FeatureCollection", "features": feats, "failed": failed})
+    return held[water_key]

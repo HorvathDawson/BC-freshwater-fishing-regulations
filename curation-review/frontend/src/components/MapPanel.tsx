@@ -76,6 +76,10 @@ interface Props {
   onPin?: (n: number) => void;
   /** false: a new preview does not move the view (the checklist keeps a water's map while stepping its places) */
   fitPreview?: boolean;
+  /** T532: THE WATER'S OTHER EXTENTS, faint under everything (every boundary DFO has used on the river); a feature's
+   *  `places` is "\n<id>\n<id>\n" and `faintOn` (a place id) draws that place's stronger (a hover in the list) */
+  faint?: GeoJSON.FeatureCollection | null;
+  faintOn?: string | null;
   /** T532: the checklist's map — no status line, no reach picker, no legend (the page says the one colour) */
   minimal?: boolean;
 }
@@ -179,7 +183,7 @@ export function MapPanel({
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
   satellite = false, editPoints = [], onMovePoint, cutPreview = null, pending = null, pins = null, onPin,
-  fitPreview = true, minimal = false,
+  fitPreview = true, minimal = false, faint = null, faintOn = null,
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -310,6 +314,7 @@ export function MapPanel({
           suggested: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           cutpreview: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           pending: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          faint: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           pins: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
@@ -395,6 +400,11 @@ export function MapPanel({
             paint: { "text-color": ["case", ["get", "to_verify"], "#92400e", NAMED_COLOR],
                      "text-halo-color": "#fff", "text-halo-width": 2,
                      "text-opacity": ["case", ["get", "_on"], 1, 0.35] } },
+          // T532: the water's other extents — slate, faint; the one hovered in the list stronger
+          { id: "faint-lines", type: "line", source: "faint", filter: ["!=", ["geometry-type"], "Point"],
+            paint: { "line-color": "#475569", "line-width": 9, "line-opacity": 0.22 } },
+          { id: "faint-on", type: "line", source: "faint", filter: ["==", ["get", "places"], "\u0000"],
+            paint: { "line-color": "#0f172a", "line-width": 6, "line-opacity": 0.7 } },
           // DFO: the SUGGESTED extent — violet, dashed, under the saved extent (never applied)
           { id: "suggested-lines", type: "line", source: "suggested",
             filter: ["all", ["!=", ["geometry-type"], "Point"], ["!", ["has", "color"]]],
@@ -757,6 +767,22 @@ export function MapPanel({
         ?.setData((pins ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection);
     });
   }, [pins]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      (m.getSource("faint") as maplibregl.GeoJSONSource | undefined)
+        ?.setData((faint ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection);
+    });
+  }, [faint]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      if (m.getLayer("faint-on"))
+        m.setFilter("faint-on", faintOn ? ["in", `\n${faintOn}\n`, ["get", "places"]] : ["==", ["get", "places"], "\u0000"]);
+    });
+  }, [faintOn]);
   const previewRef = useRef(preview);
   previewRef.current = preview;
   const onPinRef = useRef(onPin);

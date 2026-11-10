@@ -479,6 +479,8 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 | GET | `/api/checks/progress` | Checked / total over the whole list, by check state and worst row, per water (`checks.progress`). |
 | GET | `/api/checks/queue` | THE CHECKLIST QUEUE (`checks.queue`): every place of `source` (dfo \| regs \| all) grouped by water, each with |
 | GET | `/api/checks/rule/{entry_id}/{rule_id}` | One regulation rule's checklist rows (`checks.rule_check`). |
+| GET | `/api/checks/water` | Every place on the water `place` (a queue place or an older wording) is on, older wordings too, each with its |
+| GET | `/api/checks/water/reach` | What each DFO extent on one water binds, as geometry (`checks.water_reach`). |
 | GET | `/api/dfo/cascade-regions` | Every region's DFO cascade (`region_cascade.regions`): the page's region-wide scopes and section |
 | GET | `/api/dfo/cascade-regions/{slug}/map` | One region's outline and each scope's coverage (`region_cascade.region_map`), plus its check. |
 | GET | `/api/dfo/cascade/{name}` | T229 THE CASCADE of one watershed (`cascade.cascade`): every section coloured by the DFO |
