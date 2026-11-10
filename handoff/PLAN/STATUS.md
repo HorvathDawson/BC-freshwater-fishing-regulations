@@ -13,6 +13,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 evening — BUILD 23 (0.7.1) ON PLAY INTERNAL
+- versionCode 23 (5f2cd806e), patched MapLibre verified (libmaplibre build id 7bf3dc29); tester email sent. Adds T530 (share
+  a gauge from Conditions). Data: r-a178299f6005 (min app 0.7.0). Owner: the build-22 phone check applies to build 23,
+  plus T530 (share sheet + the link's preview).
+- T531 mockup (species under their calendar) in progress — mockup only, linked from the ticket.
+
 ## 2026-11-09 ~17:30 — chat 9: T529 fixed, review app round 3 done, Section E computed
 - **T529 (staging site down):** /changes listed every water as "changed" because the rules key held T517's part end tokens.
   It now compares what applies where (rule content + metres along the stream). r-6dce → r-d14: **2 waters changed**
