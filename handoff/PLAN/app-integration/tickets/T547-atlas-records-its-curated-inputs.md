@@ -1,6 +1,6 @@
 # T547 — Atlas records the curated inputs it was built from; a release refuses an atlas older than its cuts, names or areas
 
-Status: OPEN.
+Status: IN REVIEW — 9c701a58b, 7377a604a, 4a787ac5d, 1db9d5d8a, 4acd5d0f1 (§1, §2, §4 and §3's promote check done; §3's suffix order and §5 need an atlas rebuild, not done); proof pending: one owner-run full build showing the same outputs as today (command below).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 3 of 17; highest severity 3 of 5.
 
@@ -62,3 +62,32 @@ bundle, tiles and release as the reference. After it, one full build must give t
 hashes (or a diff where every difference is explained and expected, e.g. the new input digests in a meta file), same
 tiles, same app and web packages. The build, release and staging commands the owner uses keep working unchanged, or
 the change is listed in the ticket and in AGENTS.md. A step that cannot show this is not done.
+
+## Done 2026-11-10
+- **§1 + §2 (one fix), 9c701a58b + 7377a604a.** `pipeline/atlas/inputs.py`: the build writes one digest per curated input
+  (cuts by anchor, tidal, name variants, found names, added lakes / streams / areas, area closures, slough calls, the
+  gpkg stamp) into `graph.pkl.meta.json` `input_hashes`, taken before any is read. `python -m pipeline release --staging`
+  stops at preflight naming each file the atlas is behind (`--ship-stale-atlas REASON` goes on, printed; the dry run
+  says it); `pipeline build` prints the same list as a warning (a reach rerun on the old atlas stays allowed).
+  `python -m pipeline.atlas.inputs` asks; `--backfill` proved the live atlas (`full`, built 2026-11-09 14:34): all 10
+  inputs committed before the build and clean, cuts also by `split_anchors.json` = the 453 anchors now, gpkg mtime
+  2026-09-15. The live atlas passes. `gauges.matches` is not recorded (its own record, T159).
+  Read-only curated tree: `test_no_cheap_build_step_writes_the_curated_tree` runs check_curated --waters, atlas.inputs,
+  `pipeline build --dry-run` and `review.apply --check` on a read-only `CURATED_ROOT` copy; the tree is unchanged.
+- **§3, promote check only, 4a787ac5d.** `pipeline.atlas.promote` refuses a candidate in which a boundary id a curated
+  rule names (an extent's `splits`, corpus + DFO places: 480 ids) has another `ref` (`--accept-moved-boundaries`).
+- **§4, 1db9d5d8a.** `COMPLETE.json` written last by the atlas build (removed at start); promote refuses a candidate
+  without it (`--no-marker REASON`), refuses a net boundary loss (`--accept-boundary-loss`), restores the served atlas if
+  the second rename fails; `pipeline build --atlas` clears an old `_next`.
+
+## Consistent with today's builds — what is shown, what is left
+Shown without a build: the record changes only `graph.pkl.meta.json` (pickle bytes identical with or without it,
+`test_the_record_moves_only_the_meta_file`); `COMPLETE.json` is a new file in the atlas dir that no stage key, bundle,
+tile or release step reads; no stage key reads the meta file. Changed commands, all refusals that did not exist: release
+preflight (atlas behind), promote (unfinished / moved rule boundary / net loss); listed in AGENTS.md (T408 paragraph).
+Left (owner decides, heavy): one full build into a side dir, compared with today's release:
+`HEAVY_LOCK=heavy-job-2.lock scripts/heavy.sh t547-side 50 -- python -m pipeline build --side data/generated/scratch/t547 --atlas --jobs 2`
+then diff the side release manifest's file sha256s against `data/release/$(cat data/release/LATEST)/manifest.json`;
+expected difference: none outside the atlas meta / marker, beyond what other lanes' commits since the live release
+change (reach / DFO code moved the reach and deliver keys on 2026-11-10); to isolate T547, build at 74fd6c822 and at
+4acd5d0f1 and compare those two.
