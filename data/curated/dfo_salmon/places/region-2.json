@@ -4026,7 +4026,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "serpentine_river__168th_street_at_bothwell_park"
+            ],
+            "item_id": "gnis:24978"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
