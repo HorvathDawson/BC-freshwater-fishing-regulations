@@ -23,8 +23,9 @@ T408) and runs each domain's WRITER, which puts it into the domain's final curat
      ponds     — (closed, T329: nothing reads a pond call)
 
 `apply_proposals` keeps every guard it had: the binding check, one commit per proposal (`git commit -- <paths>`), a
-cut that changes waits for its side rebuild (the commands are printed). The file writers write their file; commit
-it yourself. `--dry-run` prints what would change and writes nothing. A file write NAMES every row it drops, and is
+cut that changes waits for its side rebuild (the commands are printed). The file writers write their file and COMMIT
+it the same way (T541: `git commit -- <file>`; refused when the file already has uncommitted changes, put back when
+the commit fails; `--no-commit` leaves it to you). `--dry-run` prints what would change and writes nothing. A file write NAMES every row it drops, and is
 refused when it would drop a row no mark in force explains (`write_files`, T545).
 
 A CLOSED domain (`review.closed`: one that feeds nothing — ponds, T329) is skipped with a line saying so.
@@ -163,8 +164,50 @@ def dropped_rows(path: Path, text: str) -> dict[str, str]:
     return {k: w for k, w in row_keys(path.read_text(encoding="utf-8")).items() if k not in new}
 
 
+def _git(*args: str):
+    import subprocess
+    from pipeline.regs.review import proposals as P
+    return subprocess.run(["git", *args], cwd=P.REPO, capture_output=True, text=True)
+
+
+def not_committable(path: Path) -> Optional[str]:
+    """Why a file domain's file cannot be committed (T541): it is outside the repository (a sandbox `CURATED_ROOT`, a
+    test's temp file) or git ignores it; None for a file of the repository."""
+    from pipeline.regs.review import proposals as P
+    try:
+        Path(path).resolve().relative_to(Path(P.REPO).resolve())
+    except ValueError:
+        return "outside the repository"
+    return "ignored by git" if _git("check-ignore", "-q", "--", str(path)).returncode == 0 else None
+
+
+def _commit(domain: str, path: Path, old: Optional[str], gone: list[str]) -> str:
+    """Commit ONE written file by its path (`git commit -- <path>`, as `apply_proposals` does); its short sha. A commit
+    that fails puts the file back and RAISES."""
+    from pipeline.regs.parsing.io import atomic_write
+    from pipeline.regs.review import proposals as P
+    new_file = _git("ls-files", "--error-unmatch", "--", str(path)).returncode != 0
+    name = Path(path).resolve().relative_to(Path(P.REPO).resolve()).as_posix()      # in the repository: `not_committable`
+    msg = (f"T325 apply {domain}: {name} from the review marks\n\n"
+           f"Written by the {domain} writer (`python -m pipeline.regs.review.apply {domain}`, the review app's "
+           "write-through) from the marks in force.\n"
+           + "".join(f"Dropped: {w}\n" for w in gone))
+    got = _git("add", "--", str(path)) if new_file else None
+    if got is None or got.returncode == 0:
+        got = _git("commit", "-m", msg, "--", str(path))
+    if got.returncode != 0:
+        if old is None:
+            _git("reset", "-q", "--", str(path))
+            Path(path).unlink(missing_ok=True)
+        else:
+            atomic_write(path, old)
+        raise ValueError(f"{_rel(path)}: git commit failed, the file is put back — "
+                         f"{(got.stderr or got.stdout).strip()[:300]}")
+    return _git("rev-parse", "--short", "HEAD").stdout.strip()
+
+
 def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink: bool = False,
-                report: Optional[dict] = None) -> list[Path]:
+                report: Optional[dict] = None, commit: bool = False) -> list[Path]:
     """Run a file domain's writer; write (or, dry, print) what changed. Returns the files that differ. THE ONE WRITE
     PATH of the file domains (the review app's write-through, `review.apply`, and each tool's own command): atomic,
     utf-8, and guarded —
@@ -173,7 +216,12 @@ def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink
       * a write that drops ANY row the owner has not spoken about (`SPOKEN`) RAISES, naming the rows (T545);
       * every row a write drops is NAMED (printed, and in `report["dropped"]`).
 
-    `accept_shrink` lets both through (a drop the OWNER asked for)."""
+    `accept_shrink` lets both through (a drop the OWNER asked for).
+
+    `commit` (T541, what `run` asks for): the written file is COMMITTED by its path, as a proposal is — refused
+    before anything is written when the file already has uncommitted changes (the commit would sweep them in), put
+    back when the commit fails. A file that is not the repository's (`not_committable`) is written and said to be
+    uncommitted. `report["sha"]` is {file: sha}, `report["uncommitted"]` [(file, why)]."""
     changed = []
     for path, text in WRITERS[domain](decided).items():
         if path.exists() and path.read_text(encoding="utf-8") == text:
@@ -191,16 +239,31 @@ def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink
                 + "; ".join(loose[:10]) + (f"; … {len(loose) - 10} more" if len(loose) > 10 else "")
                 + f" — refused; a review input regenerated or moved? If meant: python -m pipeline.regs.review.apply "
                   f"{domain} --accept-shrink")
+        loose_file = not_committable(path) if commit and not dry_run else None
+        if commit and not dry_run and loose_file is None:
+            dirty = [ln for ln in _git("status", "--porcelain", "--", str(path)).stdout.splitlines() if ln.strip()]
+            if dirty:
+                raise ValueError(f"{_rel(path)} has uncommitted changes — commit or restore it first (the save's "
+                                 "commit would sweep them in); nothing written")
         changed.append(path)
-        if report is not None:
-            report.setdefault("dropped", []).extend(gone.values())
+        report = {} if report is None else report
+        report.setdefault("dropped", []).extend(gone.values())
         if dry_run:
             print(f"== {domain}: would write {_rel(path)}")
             sys.stdout.write(_diff(path, text)[:20000])
         else:
             from pipeline.regs.parsing.io import atomic_write
+            old = path.read_text(encoding="utf-8") if path.exists() else None
             atomic_write(path, text)
-            print(f"{domain}: wrote {_rel(path)} — commit it: git commit -- {_rel(path)}")
+            if not commit:
+                print(f"{domain}: wrote {_rel(path)} — commit it: git commit -- {_rel(path)}")
+            elif loose_file:
+                report.setdefault("uncommitted", []).append((_rel(path), loose_file))
+                print(f"{domain}: wrote {_rel(path)} — NOT committed ({loose_file})")
+            else:
+                sha = _commit(domain, path, old, list(gone.values()))
+                report.setdefault("sha", {})[_rel(path)] = sha
+                print(f"{domain}: wrote {_rel(path)} -> {sha}")
         for w in gone.values():
             print(f"{domain}: {'would drop' if dry_run else 'DROPPED'} {w}")
     return changed
@@ -213,13 +276,16 @@ def domain_of(scope: str) -> Optional[str]:
 
 def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
         build: Optional[Path] = None, side_checked: tuple = (), dry_run: bool = False,
-        accept_shrink: bool = False) -> dict:
+        accept_shrink: bool = False, commit: bool = True) -> dict:
     """The marks' decisions (in memory), then each asked domain's writer (every open one when `domains` is empty). Returns
     {rc, domains, skipped: {domain: why}, files: [changed final files], events: [...]}, where an event is one
     outcome on the marks behind it — {domain, status: applied | written | refused | waiting | would, why,
     marks: [{scope, target, rule_id}]} — the review app's write-through shows each on its item.
 
-    Conflicting decisions (`export.refusals`) write nothing and are one refused event."""
+    Conflicting decisions (`export.refusals`) write nothing and are one refused event.
+
+    `commit` (T541): a file domain's written file is committed by its path, as each proposal is (`write_files`); its
+    `written` event carries the `sha`."""
     from pipeline.regs.review import apply_proposals as A
     from pipeline.regs.review import closed as C
     shut = C.entries(C.path(marks))
@@ -264,7 +330,8 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
                                      **({"followup": True} if s.get("followup") else {}),
                                      "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
                 report: dict = {}
-                changed = write_files(d, decided, dry_run=dry_run, accept_shrink=accept_shrink, report=report)
+                changed = write_files(d, decided, dry_run=dry_run, accept_shrink=accept_shrink, report=report,
+                                      commit=commit)
             except ValueError as ex:                               # T429 / T545: a refusal, said on the domain
                 print(str(ex))
                 out["rc"] = 2
@@ -273,10 +340,13 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
             out["events"] += said
             out["files"] += [str(p) for p in changed]
             gone = report.get("dropped") or []
+            shas = sorted(set((report.get("sha") or {}).values()))
             out["events"].append({"domain": d, "status": "would" if dry_run else "written",
                                   "why": (", ".join(_rel(p) for p in changed) or "current")
-                                  + (f"; dropped: {'; '.join(gone)}" if gone else ""), "marks": [],
-                                  "files": [_rel(p) for p in changed], "dropped": gone})
+                                  + (f"; dropped: {'; '.join(gone)}" if gone else "")
+                                  + "".join(f"; {f} NOT committed ({why})" for f, why in report.get("uncommitted") or ()),
+                                  "marks": [], "files": [_rel(p) for p in changed], "dropped": gone,
+                                  **({"sha": ", ".join(shas)} if shas else {})})
     # the proposal writer, once, over every proposal domain asked for
     scopes = [s for d in want if d in PROPOSAL_DOMAINS for s in E.DOMAINS[d]]
     if scopes:
@@ -390,6 +460,8 @@ def main(argv: Optional[list[str]] = None) -> int:
                     help="apply_proposals: this cut-changing proposal's side rebuild was made and read elsewhere")
     ap.add_argument("--accept-shrink", action="store_true",
                     help=f"write a file even when it drops more than {SHRINK_LIMIT} rows (T429)")
+    ap.add_argument("--no-commit", action="store_true",
+                    help="file domains (tidal / sloughs / names): write the file, do not commit it")
     ap.add_argument("--check", action="store_true",
                     help="T545, read-only: list every mark in force that has not landed; exit 1 when there is one "
                          "that is not on NOT_LANDED_OK")
@@ -402,7 +474,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             ap.error("--check takes no domain and no other mode: it checks every open domain")
         return print_check(check(marks=a.marks, build=a.build))
     return run(a.domains, marks=a.marks, build=a.build, side_checked=tuple(a.side_checked),
-               dry_run=a.dry_run, accept_shrink=a.accept_shrink)["rc"]
+               dry_run=a.dry_run, accept_shrink=a.accept_shrink, commit=not a.no_commit)["rc"]
 
 
 if __name__ == "__main__":

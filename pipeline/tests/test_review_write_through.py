@@ -170,6 +170,57 @@ def test_a_slough_mark_writes_slough_calls_in_the_request(wt):
     assert _waters(tmp / "slough_calls.json") == []
 
 
+# --------------------------------------------------------------------------- T541: a file domain commits its file
+
+@pytest.fixture()
+def tracked(wt):
+    """The sloughs file INSIDE the temp git repo, committed empty (as the live curated file is)."""
+    from pipeline.tools import slough_calls as SC
+    f = wt["repo"] / "data/curated/slough_calls.json"
+    f.write_text(SC.document([]))
+    _git(wt["repo"], "add", "--", str(f))
+    _git(wt["repo"], "commit", "-qm", "sloughs", "--", str(f))
+    real = AP.WRITERS["sloughs"]
+    wt["mp"].setitem(AP.WRITERS, "sloughs", lambda d: {f: t for t in real(d).values()})
+    return f
+
+
+def test_a_file_domain_save_commits_its_file_and_says_the_commit(wt, tracked):
+    r = wt["client"].post("/api/marks", json={**SLOUGH, "target": "1", "call": "stream"})
+    got = r.json()["write_through"]
+    assert got["state"] == "done" and _waters(tracked) == ["1"], got
+    head = _git(wt["repo"], "rev-parse", "--short", "HEAD").strip()
+    assert got["sha"] == head and got["outcomes"]["slough|1|"]["sha"] == head
+    assert _git(wt["repo"], "log", "-1", "--format=%s") == "T325 apply sloughs: data/curated/slough_calls.json from the review marks\n"
+    assert _git(wt["repo"], "show", "--stat", "--format=", "HEAD").split("|")[0].strip() == "data/curated/slough_calls.json"
+    assert _git(wt["repo"], "status", "--porcelain", "--", str(tracked)) == ""
+
+
+def test_a_file_domain_refuses_a_file_that_is_already_dirty(wt, tracked):
+    """The save's commit would sweep the other edit in: nothing is written, the mark stays, the save says why."""
+    tracked.write_text(tracked.read_text() + "\n")
+    before, head = tracked.read_text(), _git(wt["repo"], "rev-parse", "HEAD")
+    got = wt["client"].post("/api/marks", json={**SLOUGH, "target": "1", "call": "stream"}).json()["write_through"]
+    assert got["state"] == "refused" and "uncommitted changes" in got["why"], got
+    assert tracked.read_text() == before and _git(wt["repo"], "rev-parse", "HEAD") == head
+    assert '"target": "1"' in wt["store"].read_text() or '"target":"1"' in wt["store"].read_text()
+
+
+def test_a_file_domain_commit_that_fails_puts_the_file_back(wt, tracked):
+    before = tracked.read_text()
+    real = AP._git
+    wt["mp"].setattr(AP, "_git", lambda *a: real("commit", "--no-such-flag") if a[0] == "commit" else real(*a))
+    got = wt["client"].post("/api/marks", json={**SLOUGH, "target": "1", "call": "stream"}).json()["write_through"]
+    assert got["state"] == "refused" and "git commit failed, the file is put back" in got["why"], got
+    assert tracked.read_text() == before
+
+
+def test_a_file_outside_the_repository_is_written_and_said_uncommitted(wt):
+    got = AP.run(["sloughs"], marks=wt["store"])
+    [e] = [e for e in got["events"] if e["status"] == "written"]
+    assert "NOT committed (outside the repository)" in e["why"] and "sha" not in e
+
+
 def test_accept_all_is_one_request_and_writes_once(wt):
     c, tmp = wt["client"], wt["tmp"]
     r = c.post("/api/marks", json={**SLOUGH, "targets": ["1", "2", "3"], "call": "stream"})

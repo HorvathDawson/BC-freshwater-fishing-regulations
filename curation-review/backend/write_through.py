@@ -8,7 +8,8 @@ After the server appends a mark (one, or a batch: one request), it runs THAT DOM
 
   domain               writer                                   when
   sloughs, names,      file writer (slough_calls / mined_names / IN THE REQUEST (< 1 s) — the response says done
-  tidal                tidal_limits, T326)
+  tidal                tidal_limits, T326), then ONE commit of   and names the commit (`sha`, T541); a file with
+                       the file by its path                      uncommitted changes refuses the save's write
   dfo, entries,        apply_proposals: binding check, one       IN THE BACKGROUND, debounced (`DEBOUNCE_S`): the
   splits               commit per proposal (`git commit --`)     binding check is seconds warm, ~20 s cold. The
                                                                  response says "saving"; GET /api/review/write-through
@@ -88,7 +89,7 @@ class WriteThrough:
                 self._apply.release()
             d = self.domains[dom]
             return {"domain": dom, "state": d["state"], "why": d.get("why"), "files": d.get("files", []),
-                    "dropped": d.get("dropped", []),
+                    "dropped": d.get("dropped", []), "sha": d.get("sha"),
                     "outcomes": {k: self.outcomes[k] for k in keys if k in self.outcomes}}
         self._schedule(dom, keys)
         return {"domain": dom, "state": "saving"}
@@ -164,12 +165,15 @@ class WriteThrough:
                 self.outcomes[k] = {"state": st, "why": e.get("why"), "domain": e.get("domain"), "at": at,
                                     **({"sha": e["sha"]} if e.get("sha") else {})}
         named = {key(m.get("scope"), m.get("target"), m.get("rule_id")) for e in events for m in e.get("marks") or ()}
+        # T541: a file domain's write is committed like a proposal — the commit is said on the domain and its marks
+        shas = {e.get("domain"): e["sha"] for e in events if e.get("status") == "written" and e.get("sha")}
         for dom, keys in marked.items():
             for k in keys:
                 if whole:
                     self.outcomes[k] = {"state": "refused", "why": whole, "domain": dom, "at": at}
                 elif k not in named:                       # nothing to land, or landed by a file writer
-                    self.outcomes[k] = {"state": "saved", "why": None, "domain": dom, "at": at}
+                    self.outcomes[k] = {"state": "saved", "why": None, "domain": dom, "at": at,
+                                        **({"sha": shas[dom]} if dom in shas else {})}
         refused = [e for e in events if e.get("status") == "refused"]
         files = [AP._rel(Path(f)) for f in got.get("files") or ()]
         for dom in domains:
@@ -177,6 +181,7 @@ class WriteThrough:
             bad = whole or any(self.outcomes.get(k, {}).get("state") == "refused" for k in marked.get(dom, ()))
             self.domains[dom] = {"state": "refused" if bad else "done", "at": at, "took_s": took, "files": files,
                                  "why": whole or "; ".join(e["why"] for e in mine)[:2000] or None,
+                                 "sha": shas.get(dom),
                                  # T545: every row this apply took OUT of the domain's curated file, by name
                                  "dropped": [x for e in events if e.get("domain") == dom
                                              for x in e.get("dropped") or ()],
