@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { compose, deliver, mime, NOTIFY_STATE, readState, type FeedEvent, type NotifyConfig } from "../src/events";
 import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
-import { buildFeed, diff, effectiveDates, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
+import { buildFeed, diff, effectiveDates, undatedEvent, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
 import { MemStore } from "./dfo.scenario";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
@@ -323,6 +323,15 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     expect(regionOf("Provincial level information")).toBe("provincial");
     expect(effectiveDates("Sept 16, 2025")).toEqual({ from: "2025-09-16", to: null });
     expect(effectiveDates("whenever")).toEqual({ from: null, to: null });
+    // (T548) an open end keeps its start; a start with no year takes the end's
+    expect(effectiveDates("April 1, 2027 until further notice")).toEqual({ from: "2027-04-01", to: null });
+    expect(effectiveDates("July 30 to September 15, 2026")).toEqual({ from: "2026-07-30", to: "2026-09-15" });
+    expect(effectiveDates("July 4, 2025 to August 31, 2025")).toEqual({ from: "2025-07-04", to: "2025-08-31" });
+    const row = (effective: string) => ({ section: "Region 3", water: "W", change: "No fishing", effective });
+    expect(undatedEvent([row("Sept 16, 2025"), row(""), row("April 1, 2027 until further notice")], "t")).toEqual([]);
+    const [u] = undatedEvent([row("whenever"), row("Sept 16, 2025")], "t");
+    expect([u!.key.startsWith("inseason-undated:"), u!.title, (u!.data as { undated: unknown[] }).undated.length])
+      .toEqual([true, "1 in-season row has an effective date the feed cannot read (shown as in force now)", 1]);
     expect(parseChange("Trout/char daily quota = 1 (none under 30 cm) and bait ban")).toMatchObject({ kinds: ["limit", "bait"], dailyQuota: 1, species: ["trout", "char"] });
     expect(parseChange("Something new")).toBeUndefined();
     const f = buildFeed([{ section: "Region 2 - Lower Mainland", water: "A", change: "No fishing", effective: "" }], null, "2026-10-28T00:00:00Z", "h", true);

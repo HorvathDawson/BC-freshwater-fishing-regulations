@@ -164,6 +164,7 @@ export async function runInSeason(deps: {
     at: (deps.now ?? new Date()).toISOString(), data: { duplicates: collapsed.dups, source: SOURCE_URL },
   }] : [];
   if (collapsed.dups.length) log(`in-season: ${collapsed.dups.length} row(s) printed twice, collapsed`);
+  dupEvents.push(...undatedEvent(rows, (deps.now ?? new Date()).toISOString()));
   const sha = contentHash(JSON.stringify(rows));
   let prev: Snapshot | null = null;
   try {
@@ -331,14 +332,33 @@ function isoDate(s: string): string | null {
   if (i < 0 || d < 1 || d > 31) return null;
   return `${m[3]}-${String(i + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
+/** (T548) An effective cell's dates. Two sides: each side that reads is kept ("April 1, 2027 until further notice" keeps
+ *  its start, so a future-dated notice is not shown at once); a start with no year takes the end's ("July 30 to
+ *  September 15, 2026"). A cell that yields no date at all is said to the owner (`undatedEvent`). */
 export function effectiveDates(s: string): { from: string | null; to: string | null } {
   const parts = s.split(/\s+(?:to|-|–|until)\s+/i);
   if (parts.length === 2) {
-    const a = isoDate(parts[0]!);
     const b = isoDate(parts[1]!);
-    return a && b ? { from: a, to: b } : { from: null, to: null };
+    const a = isoDate(parts[0]!) ?? (b ? isoDate(`${parts[0]!.trim()}, ${b.slice(0, 4)}`) : null);
+    return { from: a, to: b };
   }
   return { from: isoDate(s), to: null };
+}
+
+/** (T548) the rows whose effective cell is printed but yields no date: said to the owner ONCE per set (keyed by them),
+ *  so each gets a curated `effective` — such a row is otherwise in force from the day it appears */
+export function undatedEvent(rows: readonly Row[], at: string): FeedEvent[] {
+  const bad = rows.filter((r) => r.effective.trim() !== "" && (() => {
+    const d = effectiveDates(r.effective);
+    return d.from === null && d.to === null;
+  })());
+  if (!bad.length) return [];
+  return [{
+    key: `inseason-undated:${contentHash(JSON.stringify(bad))}`, kind: "inseason",
+    title: `${bad.length} in-season ${bad.length === 1 ? "row has" : "rows have"} an effective date the feed cannot read (shown as in force now)`,
+    text: `${bad.map((r) => `${r.section} · ${r.water} — effective "${r.effective}"`).join("\n")}\n\nGive each a curated \`effective\` in data/curated/inseason/notice_waters.json.\n\nSource: ${SOURCE_URL}`,
+    at, data: { undated: bad, source: SOURCE_URL },
+  }];
 }
 
 const SPECIES = ["steelhead", "rainbow trout", "bull trout", "lake trout", "cutthroat trout", "brook trout", "dolly varden", "kokanee", "whitefish", "burbot", "salmon", "trout", "char"];

@@ -167,7 +167,15 @@ export function inSeasonSection(events: FeedEvent[], source: string): Section {
       ...removed.filter((r) => region(r.section) === rg).map((r) => ({ name: r.water, text: r.change, note: ["removed from the page", eff(r)].filter(Boolean).join(" · ") })),
     ],
   }));
+  // (T548) events carrying no diff (a duplicated row, T520; an effective cell the feed cannot read): each said by its
+  // own title and text, never an empty section
+  const other = events.filter((e) => !e.data?.added && !e.data?.changed && !e.data?.removed);
+  if (other.length) blocks.push({ title: "Needs a look", items: other.map(generic) });
   const parts = [added.length ? `${added.length} added` : "", changed.length ? `${changed.length} changed` : "", removed.length ? `${removed.length} removed` : ""].filter(Boolean);
+  if (!parts.length) return { heading: `In-season: ${plural(other.length, "item")} to look at`,
+                              subject: other.length === 1 ? other[0]!.title : `In-season: ${plural(other.length, "item")} to look at`,
+                              blocks, steps: [{ text: `Read the rows on the province's page: ${source}` }],
+                              why: "The in-season check found rows it could not read as printed." };
   return {
     heading: `In-season regulation changes: ${parts.join(", ")} — ${listRegions(regions)}`,
     subject: `In-season: ${parts.join(", ")} (${listRegions(regions)})`,

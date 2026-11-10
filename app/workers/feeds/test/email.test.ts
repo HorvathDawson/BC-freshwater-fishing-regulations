@@ -123,3 +123,14 @@ describe("(T320) a DFO page's general text changed", () => {
     expect(URGENT).toContain(ev[0]!.kind);
   });
 });
+
+describe("(T548) an in-season event with no diff (an undated effective cell, a duplicated row)", () => {
+  it("is said by its own title and text, never an empty section", async () => {
+    const { undatedEvent } = await import("../src/inseason");
+    const ev = undatedEvent([{ section: "Region 3 - Thompson-Nicola", water: "Salmon River", change: "No fishing", effective: "whenever" }], at);
+    const [m] = compose(ev, false, ctx);
+    expect(m!.subject).toContain("1 in-season row has an effective date the feed cannot read");
+    expect(m!.text).toContain('Region 3 - Thompson-Nicola · Salmon River — effective "whenever"');
+    expect(m!.text.startsWith("In-season: 1 item to look at")).toBe(true);
+  });
+});
