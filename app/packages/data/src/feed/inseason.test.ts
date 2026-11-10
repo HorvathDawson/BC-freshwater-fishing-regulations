@@ -37,6 +37,30 @@ describe("httpInSeason", () => {
       expect(String(seen[0])).toContain("not readable inseason-links/3");
     } finally { undo(); }
   });
+  it("(T548) an index that came back unreadable (a format bump): reported, the capture answers", async () => {
+    const store = mem();
+    await httpInSeason("http://x", store, serve({ "index.json": FEED, "matches.json": LINKS })).latest();
+    const seen: unknown[] = [];
+    const undo = setFailureSink((e) => seen.push(e));
+    try {
+      const got = await httpInSeason("http://x", store, serve({ "index.json": { ...FEED, format: "inseason-feed/2" },
+                                                                "matches.json": LINKS })).latest();
+      expect(got?.feed.fetchedAt).toBe(FEED.fetchedAt);
+      expect(seen.map(String)).toEqual(["Error: in-season index.json: not a readable inseason-feed/1 feed — refused"]);
+    } finally { undo(); }
+  });
+  it("(T548) the update service's offer: a feed it cannot read throws (never marked seen); a readable one re-fetches", async () => {
+    let asked = 0;
+    const f = (async (u: string) => { asked++; return serve({ "index.json": FEED, "matches.json": LINKS })(u); }) as unknown as typeof fetch;
+    const src = httpInSeason("http://x", mem(), f);
+    await src.latest();
+    expect(() => src.offer!(JSON.stringify({ ...FEED, format: "inseason-feed/2" }))).toThrow("not a readable inseason-feed/1 feed");
+    await src.latest();
+    expect(asked).toBe(2);                              // refused: what was held still answers
+    src.offer!(JSON.stringify(FEED));
+    await src.latest();
+    expect(asked).toBe(4);                              // taken: the pair is fetched again
+  });
   it("nothing ever captured and nothing reached: null, never a throw", async () => {
     expect(await httpInSeason("http://x", mem(), serve({})).latest()).toBeNull();
   });

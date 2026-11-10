@@ -8,7 +8,7 @@
  * kept with the captured links, never with none: an outage of one file must not turn matched changes into the
  * "not on the map yet" notice. Asked once per `ttlMs`; every answer resolves, never rejects.
  */
-import { parseInSeasonFeed, reported, parseInSeasonLinks, type InSeasonFeed, type InSeasonLinks } from "@app/core";
+import { INSEASON_FEED_FORMAT, parseInSeasonFeed, reported, parseInSeasonLinks, type InSeasonFeed, type InSeasonLinks } from "@app/core";
 
 export interface InSeasonStore { read(): string | null; write(text: string): void }
 export interface InSeasonData { readonly feed: InSeasonFeed; readonly links: InSeasonLinks | null }
@@ -17,6 +17,12 @@ export interface InSeasonSource {
   latest(): Promise<InSeasonData | null>;
   /** (T231) The update service saw the feed move: forget what is held, so the next `latest()` fetches the pair. */
   refresh?(): void;
+  /**
+   * (T548) The update service's apply: the index it fetched, THROWING when it is not a readable `inseason-feed/1` (a
+   * format bump, a row the app cannot read) — so the service shows and reports it and does not mark the feed seen —
+   * else as `refresh`.
+   */
+  offer?(text: string): void;
 }
 
 export const INSEASON_TTL_MS = 60 * 60_000;
@@ -48,6 +54,8 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
   const get = async (): Promise<InSeasonData | null> => {
     const [f, l] = await Promise.all([getJson("index.json"), getJson("matches.json")]);
     const feed = parseInSeasonFeed(f);
+    // (T548) a body that came back but is not a feed this app reads is REPORTED; the capture answers meanwhile
+    if (f !== null && !feed) reported(null)(new Error(`in-season index.json: not a readable ${INSEASON_FEED_FORMAT} feed — refused`));
     const was = captured();
     if (!feed || (was && feed.fetchedAt < was.feed.fetchedAt)) return was;
     // (T520) links that came back but will not read (another format, a notice it cannot place) are REPORTED; the
@@ -64,5 +72,9 @@ export function httpInSeason(base: string, store?: InSeasonStore, fetchImpl: typ
       return held.p;
     },
     refresh() { held = null; },
+    offer(text) {
+      if (!parseInSeasonFeed(JSON.parse(text))) throw new Error(`not a readable ${INSEASON_FEED_FORMAT} feed`);
+      held = null;
+    },
   };
 }

@@ -335,7 +335,8 @@ export default function App() {
       { id: "gauges", url: ENDPOINTS.checks.gauges,
         apply: (text) => { feed.offer!(JSON.parse(text)); void feed.syncObservations?.(); } },
       { id: "dfo", url: ENDPOINTS.checks.dfo, apply: (text) => salmonFeed.offer!(text) },
-      { id: "inseason", url: ENDPOINTS.checks.inseason, apply: () => inSeason.refresh?.() },
+      // (T548) a feed this app cannot read throws: shown and reported, never recorded as updated
+      { id: "inseason", url: ENDPOINTS.checks.inseason, apply: (text) => inSeason.offer!(text) },
     ],
     release: {
       manifestUrl: ENDPOINTS.manifest,
