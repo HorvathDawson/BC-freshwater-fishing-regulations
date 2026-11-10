@@ -1,6 +1,8 @@
 # T512 — Laggy main map on the Pixel 9 (Play 0.6.9 build 21): the build shipped the stock MapLibre again
 
-Status: IN REVIEW — GUARD (`build-apk.sh --play` refuses stock MapLibre); build 22 went to Play through it; owner: OWNER-TODO "Phone check with build 22" (main map lag on the Pixel).
+Status: DONE — 1d504150c, 55d654a50; owner 2026-11-09 on build 24: fine ("okay but not perfect … switching between the maps causes issues sometimes" → T566)
+
+Was: IN REVIEW — GUARD (`build-apk.sh --play` refuses stock MapLibre); build 22 went to Play through it; owner: OWNER-TODO "Phone check with build 22" (main map lag on the Pixel).
 Earlier: IN REVIEW — GUARD; owner runs the next Play build with the patched MapLibre. Owner 2026-11-08 (Pixel 9 "tokay", trace `~/Downloads/trace-tokay-CP3A.261005.005-2026-11-08-12-15-47.perfetto-trace`): "laggy map … worst on the main map page. Conditions is very fast, and when switching between maps it gets worse." Follow-up of T420.
 
 ## The trace (Perfetto trace processor; app `ca.canifishthis.app` versionCode 21; 11 s, ~8.5 s of it panning)

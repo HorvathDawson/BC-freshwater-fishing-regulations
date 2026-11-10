@@ -1,6 +1,8 @@
 # T448 — Native map: cap the drawing density like the web (pixel ratio ≤ 2)
 
-Status: PARTIAL — Android built and measured 2026-11-06 (26c59849f): the map's surface is 823×1567 instead of 1080×2057 (−42 % pixels), same scale, same tap. Left: the owner's phone check (the emulator cannot show fill savings), iOS (not done).
+Status: DONE — 26c59849f; owner 2026-11-09 on build 24: keep cap 2 ("I notice no different"); iOS half stays with T88
+
+Was: PARTIAL — Android built and measured 2026-11-06 (26c59849f): the map's surface is 823×1567 instead of 1080×2057 (−42 % pixels), same scale, same tap. Left: the owner's phone check (the emulator cannot show fill savings), iOS (not done).
 
 Source: T420 (2026-11-06, 2b891823f): the web map now draws at `min(devicePixelRatio, 2)` (`packages/map/src/web/
 pixelRatio.ts`) — 28–32 % less frame time at z10–z12 on a Pixel 9 Chrome proxy (412×915 @ 2.625). MapLibre Native on

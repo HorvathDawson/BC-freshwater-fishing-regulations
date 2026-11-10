@@ -1,6 +1,8 @@
 # T351 — Native crash in the foreground on Android 37 (0.4.0): no stack, cause unknown
 
-Status: OPEN (from T346, 2026-11-02).
+Status: DONE — 215f171bc, c087e337d; owner 2026-11-09 on build 24: no crash or freeze
+
+Was: OPEN (from T346, 2026-11-02).
 
 Evidence (staging crash store, `private/crashes/`): two foreground native exits on 0.4.0 (build 7, 89ebd94), platform
 android 37, route "other":

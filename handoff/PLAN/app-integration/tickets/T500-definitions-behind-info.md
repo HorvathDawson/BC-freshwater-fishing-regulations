@@ -1,6 +1,8 @@
 # T500 — Release / closed definitions only behind the ⓘ
 
-Status: IN REVIEW — 0cab98ff5, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (release / closed: word + ⓘ only).
+Status: DONE — 0cab98ff5, 3d807829d; owner 2026-11-09 on build 24: fine
+
+Was: IN REVIEW — 0cab98ff5, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (release / closed: word + ⓘ only).
 Earlier: IN REVIEW — 0cab98ff5; owner sees it on the next build. Owner 2026-11-08 (phone, 0.6.9).
 
 The main view prints the definitions under the words ("release — You may fish for it, but every one you catch must go

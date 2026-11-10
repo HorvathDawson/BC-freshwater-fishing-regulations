@@ -1,6 +1,8 @@
 # T420 — Panning the map feels laggy on web AND app (even a Pixel 9): streams load in slowly, then the pan stutters
 
-Status: PARTIAL — the app's share FIXED 2026-11-06 (deb635819, "Fixed: tile ids once per watch"): stressed emulator z13 travelling flings p50 83.5 → 49.7 ms, map frames 309 → 419, tile events 958 → 37. Web (owner 11-06: ONLY mobile Chrome on the Pixel 9) capped at 2 device px per CSS px (2b891823f): proxy frame time −28 to −32 % at z10–z12. Left: MapLibre's own tile parsing on a slow CPU (~17 % of moving frames still lack a tile), a native pixel-ratio cap (binding patch), a phone check. Measured in simulation 2026-11-06 (c1c838f58): reproduced only on a CPU-starved emulator. Was: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
+Status: DONE — c1c838f58, deb635819, 2b891823f, a893b06fe; owner 2026-11-09 on build 24: smooth enough (T512 answer); residual → T566, T401
+
+Was: PARTIAL — the app's share FIXED 2026-11-06 (deb635819, "Fixed: tile ids once per watch"): stressed emulator z13 travelling flings p50 83.5 → 49.7 ms, map frames 309 → 419, tile events 958 → 37. Web (owner 11-06: ONLY mobile Chrome on the Pixel 9) capped at 2 device px per CSS px (2b891823f): proxy frame time −28 to −32 % at z10–z12. Left: MapLibre's own tile parsing on a slow CPU (~17 % of moving frames still lack a tile), a native pixel-ratio cap (binding patch), a phone check. Measured in simulation 2026-11-06 (c1c838f58): reproduced only on a CPU-starved emulator. Was: OPEN (owner 2026-11-05, on 0.6.1 from Play internal, Pixel 9: "the panning on the map still feels very laggy even on a pixel 9 phone … it is
 like the streams load in slow then lag").
 
 Two symptoms, maybe one cause: (1) the stream lines arrive late after a pan (tiles or their layers decoding/painting

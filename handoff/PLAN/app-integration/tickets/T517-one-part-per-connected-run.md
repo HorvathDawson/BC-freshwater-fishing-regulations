@@ -1,6 +1,8 @@
 # T517 — One part per connected run of same-rule sections, always in sync with the paint
 
-Status: IN REVIEW — 5f96628fe, f3bc6a83e (owner 11-09 rules; named-lake split rejected by the owner), in r-d14bdb180f55 (52298df0a) + in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (parts and their names, Fraser).
+Status: DONE — 5f96628fe, f3bc6a83e, d14bdb180f55, 52298df0a; owner 2026-11-09 on build 24: fine
+
+Was: IN REVIEW — 5f96628fe, f3bc6a83e (owner 11-09 rules; named-lake split rejected by the owner), in r-d14bdb180f55 (52298df0a) + in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (parts and their names, Fraser).
 Earlier: OPEN — both reviews' fixes + owner 11-09 rules done on the side build, owner review before promote: side release `data/generated/side/t517/deliver/release/r-9dbd77824c29` (with T510 + T519); contract water/3 + geo/2 + display 20 + inseason-links/3; names = end tokens composed by one app function; paint sync and name check pass on the shipped files; nothing promoted. See "Second review fixes". Part of T495 gate 1. `git stash` "T517 WIP: contiguous parts…" (derived.part_rows + schema UNIQUE). In-season work paused separately (notice audit). Supersedes T509's "What is left" (`short` on `part_stretch`, dropped). Part of T495 gate 1.
 
 Owner 2026-11-08: "Yes one part per connected adjacent stretch. And we need to make sure it will always be synced to the

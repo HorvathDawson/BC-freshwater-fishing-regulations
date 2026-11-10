@@ -1,6 +1,8 @@
 # T502 — The words under the salmon table repeat the table
 
-Status: IN REVIEW — a540631bb, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (words under the salmon table).
+Status: DONE — a540631bb, 3d807829d; owner 2026-11-09 on build 24: fine
+
+Was: IN REVIEW — a540631bb, in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (words under the salmon table).
 Earlier: IN REVIEW — a540631bb; owner sees it on the next build. Owner 2026-11-08 (phone, 0.6.9; T482 did not touch this block).
 
 Under the species rows the card prints DFO's words once per group of species (`SalmonCard` `Says`, core

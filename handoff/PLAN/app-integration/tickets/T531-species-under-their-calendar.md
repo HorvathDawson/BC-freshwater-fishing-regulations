@@ -1,6 +1,8 @@
 # T531 — Each calendar sits with its own species (Regulations: What you can keep)
 
-Status: IN REVIEW — owner phone look on 0.7.2 (mockup approved 2026-11-09: "i like the new mockup more please add as new patch release")
+Status: DONE — cb1e01549; owner 2026-11-09 on build 24: fine
+
+Was: IN REVIEW — owner phone look on 0.7.2 (mockup approved 2026-11-09: "i like the new mockup more please add as new patch release")
 
 Owner 2026-11-09 (Vedder River screenshot): salmon should live under the "SALMON (DFO)" calendar and trout/char, kokanee,
 whitefish under the "GAME FISH (B.C. RULES)" calendar; "either way we want the text to be easier to have visible".

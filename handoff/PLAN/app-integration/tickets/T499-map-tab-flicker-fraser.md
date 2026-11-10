@@ -1,6 +1,8 @@
 # T499 — Map tab in the rules pane flickers, left open on the lowest Fraser stretch
 
-Status: IN REVIEW — 0fee60f85 (+ testbed c23affc58), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Map tab on the lowest Fraser stretch).
+Status: DONE — 0fee60f85, c23affc58, 3d807829d; owner 2026-11-09 on build 24: fine
+
+Was: IN REVIEW — 0fee60f85 (+ testbed c23affc58), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (Map tab on the lowest Fraser stretch).
 Earlier: IN REVIEW — 0fee60f85 (+ testbed c23affc58); owner sees it on the next APK. Owner 2026-11-08 (phone, 0.6.9). Part of T495 (smooth map).
 
 With the pane's Map tab left open on the lowest Fraser stretch, the map flickered now and then with no input.

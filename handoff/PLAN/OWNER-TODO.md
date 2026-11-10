@@ -12,40 +12,14 @@ with the default Claude uses until you answer). Newest first inside each section
   Two small calls, defaults in use: (1) ✗ also flags "tributaries walked but the words don't say" and "a carve-out the
   words never state" — default: keep ✗ (look at it), say "make those ?" otherwise; (2) a check saves on the place only, not
   on its older rewordings (they are dormant) — default: yes.
-- **T531 (2026-11-09): species under their own calendar** (salmon under DFO, the rest under B.C. rules; legend text full
-  contrast). Say OK and a mockup comes first.
-- **Q176 map line contrast (T470, 2026-11-09).** Industry standard (WCAG 3:1 for map lines) now holds in dark mode
-  (dark base blue lightened; colour-blind selection deepened; dark closed already passes at 3.67:1). In LIGHT and
-  colour-blind themes, "has regs" amber, base blue and missing grey stay under 3:1 on pale ground (1.8–2.0): a recolour
-  that passes would make amber look like closed again (your T47 complaint). The standard fix is a thin darker edge
-  (casing) under each line — costs some map speed and changes the calm look. Default: no casing. Say "add casing" to
-  try it. Shots: `tickets/shots/T470-wcag-*.png`.
 - **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
   `CONFIRM_PROD=r-a178299f6005 python -m pipeline release --prod r-a178299f6005` (or the newer release by then).
-- **Phone check with build 24 (0.7.2, Play internal; was builds 22–23), ~15 min — T401 edge pop-in, T448 pixel cap, crashes, then the build-22 tickets (2026-11-09).** Build 22 carries
-  the lean MapLibre patch, the pixel cap at 2 and MapLibre's own prefetch (4). Use the **Map tab**, Regulations view.
-  1. **T401, Fraser Valley z11 (around Chilliwack), then Coquitlam z13:** 3–4 quick flings one way, then back. Look at
-     the screen EDGES during the glide: do small creeks appear late (bare big rivers first, creeks popping in)? Say
-     "fine", "pops during the glide" or "still bare once stopped". If it pops: long-press the © chip → *Prefetch delta 2*
-     → Close → same flings; say whether the edges fill sooner.
-  2. **T448, Lower Mainland z7–z9 and Coquitlam z13:** is the map's text and line work sharp enough (the cap draws ~40 %
-     fewer pixels)? Then © chip → *Pixel cap 2* OFF → same pans: sharper? smoother or laggier? Say which you keep.
-  3. **T351/T360:** after ~10 min of use (map, a water page, the rule book, Conditions), any crash or freeze? Nothing to
-     open; a crash reports itself.
-  4. **The build-22 tickets (each IN REVIEW until you say "fine" or what is wrong; ~10 min):**
-     - Map: main map smooth on the Pixel (T512); Foley Lake and Nicomen / Camp Slough zoomed out draw no gap (T493).
-     - A water's pane: opens whole, no load-in, in Regulations, Conditions and Map (T498, T508); its Map tab left open on
-       the lowest Fraser stretch does not flicker (T499).
-     - Fraser: parts named by their own ends (T509, T517); its exit reads the sea, not Morey Channel (T519); an in-season
-       notice says "Where: …" and outlines only its sections (Fraser part 2; T518/T520).
-     - Regulations page: release / closed show only the word + ⓘ (T500); "Where you can't fish" in two short lines
-       (T501); no repeat of the table under the salmon rows (T502); Vedder salmon section folded into the species rows
-       (T482).
-     - Conditions: sources and notes at the bottom (T506). Gauge alerts: the checklist in T527.
-     - The walkthrough: Falls and dams, spot creation, the closed-all-year example (T466).
-- **Look at (no phone needed, 2026-11-09):** `tickets/shots/T488-applied.png` (park borders, light) · `tickets/shots/T520-*.png`
-  (in-season ends) · `tickets/shots/T510-moved.md` (Strawberry / Widgeon lose night + steelhead closures: OK?) · a staging
-  gauge page (https://staging.canifishthis.ca/gauges) and the preview card when you share its link (T487, T511).
+- **Phone check with build 24: DONE 2026-11-09** (answers on the owner checks page,
+  https://claude.ai/artifact/5LRBFFgvYeTRnygSBWvZbM). 20 tickets closed on "fine". Follow-ups filed: T563 (percentile
+  alert follows each day), T564 (gauge page: forecast + readable chart), T565 (in-season notice at the top), T566 (map
+  switching), T567 (Fraser at Mission reading); T401 pop-in kept, minor. **One question back to you: T498/T508 "a
+  water's pane opens whole" was marked Not right with no note: which tab, and what loads late?**
+- **Review app look (T532):** "will check soon". Ticket work waits for your green light (one agent at a time).
 
 - **ANSWERED 11-05:** T260 switches = ink fill; CF token kept until prod (T404); Apple install id declared as Device ID
   (not linked); Heber: carry ignores whitespace-only changes; audits T333–T335 scoped (all areas, report + fix tickets,

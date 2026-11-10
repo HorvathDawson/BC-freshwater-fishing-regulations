@@ -1,6 +1,8 @@
 # T511 — The gauge share card: forecast in words, a readable axis, the normal range behind the chart
 
-Status: IN REVIEW — 35276cdc2, in the staging feeds worker deployed at 53b90e7f9; owner: OWNER-TODO "Look at" (a shared gauge link's preview card, with T487).
+Status: DONE — 35276cdc2, 53b90e7f9; owner 2026-11-09 on build 24: card shares; page follow-up → T564
+
+Was: IN REVIEW — 35276cdc2, in the staging feeds worker deployed at 53b90e7f9; owner: OWNER-TODO "Look at" (a shared gauge link's preview card, with T487).
 Earlier: IN REVIEW — 35276cdc2; owner looks at a shared link's preview (not deployed: feeds worker deploy is the owner's / next release). Follow-up of T487 (owner 2026-11-08, after seeing the Chilliwack at Vedder Crossing card).
 
 ## Asked

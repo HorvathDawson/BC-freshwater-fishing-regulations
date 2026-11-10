@@ -1,6 +1,8 @@
 # T466 — Walkthrough follow-ups from the owner's 0.6.8 phone check
 
-Status: IN REVIEW — 5c9ddce42 (bc938e624 was its worktree copy), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (the walkthrough).
+Status: DONE — 5c9ddce42, bc938e624, 3d807829d; owner 2026-11-09 on build 24: tour fine
+
+Was: IN REVIEW — 5c9ddce42 (bc938e624 was its worktree copy), in build 22 (3d807829d); owner: OWNER-TODO "Phone check with build 22" (the walkthrough).
 Earlier: IN REVIEW — bc938e624 (owner phone check; the new steps' words are Claude's draft)
 
 Owner: "the walkthrough generally is pretty good but for dams and obstacles it never scrolled down on the menu to show

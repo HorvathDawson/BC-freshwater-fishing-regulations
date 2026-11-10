@@ -1,6 +1,8 @@
 # T530 — Share a gauge from the Conditions tab (the button T487 promised)
 
-Status: IN REVIEW — phone look on the next APK
+Status: DONE — 20fee8f08; owner 2026-11-09 on build 24: shares; forecast missing on the gauge page → T564
+
+Was: IN REVIEW — phone look on the next APK
 
 Owner 2026-11-09: "there is no button in the conditions tab to share the conditions gauge cards that we made before … make
 sure it is cleanly done".

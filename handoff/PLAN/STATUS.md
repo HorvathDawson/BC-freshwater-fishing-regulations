@@ -13,6 +13,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 late night — owner's build 24 phone check recorded; HOLD until the review app look
+- 24 of 25 answers on the owner checks page. Closed on "fine": T351, T420, T448, T466, T482, T487, T488, T493, T499, T500,
+  T501, T502, T506, T510, T511, T512, T517, T519, T520, T527, T530, T531. Q176: no casing.
+- New from his notes: T563 percentile alert follows each day's percentile (replaces the kept line), T564 gauge page needs
+  the forecast + a readable chart, T565 in-season notice at the top (not under salmon), T566 map switching issues, T567
+  Fraser at Mission shows no reading in the app but does on its page. T401 pop-in: minor, kept for later.
+- Open question to the owner: T498/T508 marked "Not right" with no note.
+- **Owner rule 11-09: no major credit use until he has tried the review app; then one agent at a time (an agent may take
+  several tickets).**
+
 ## 2026-11-09 night — two workflow reviews → 30 tickets; REVIEW APP READY (restart it)
 - **Reviews:** process (T533–T544) and the whole data pipeline (T545–T561: 114 verified findings). Open-ticket audit
   applied (T322, T408, T529, T509, T518, T525 closed; T86, T198 merged): `handoff/PLAN/ticket-audit-2026-11-09.md`.
