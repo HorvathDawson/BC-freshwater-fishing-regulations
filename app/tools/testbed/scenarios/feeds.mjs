@@ -60,8 +60,12 @@ export const feeds = {
       ctx.updates('reset');
       // (2026-11-09) the app may re-check by itself once the feed is back (the open sheet then says "No notifications"):
       // Retry is pressed when it is still offered; either way the error must be gone
-      const retry = ctx.device.screenText().some((w) => /^Retry$/.test(w));
-      if (retry) ctx.flow('tap-text', { TEXT: 'Retry' });
+      let retry = ctx.device.screenText().some((w) => /^Retry$/.test(w));
+      if (retry) {
+        // the re-check can land between the look and the tap (2026-11-09 run 23-57-09): a Retry gone by then is not a failure
+        try { ctx.flow('tap-text', { TEXT: 'Retry' }); }
+        catch (e) { if (ctx.device.screenText().some((w) => /^Retry$/.test(w))) throw e; retry = false; }
+      }
       await ctx.device.sleep(5000);
       await toMap(ctx);
       const l = syncLabel(ctx);
