@@ -30,7 +30,13 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - MapLibre: every non-production APK now builds with the patched SDK by default (a359c9b8f, owner rule).
 - PART_GROWN goldens check names the expected part (ca2ad90b4).
 - New: T530 share a gauge from Conditions (lane running), T531 species under their calendar (waits on owner OK).
-- CI "pipeline / check" red on every push: 15 tests read the local atlas build; lane fixing it.
+- CI "pipeline / check" GREEN again (run 42724486763, cbca1f306 + cb2d2e772): deliver tests no longer read the local atlas,
+  Barrow Town cut counted (452 → 453), a T517 hard-coded path fixed. Fast-fail now runs changed pipeline tests "as CI"
+  (builds hidden) and CI's path gate.
+- **Staging site FIXED** on r-d14bdb180f55: serves app 0.7.0, smoke 18/18, site gate passes. `release --staging` reran:
+  stopped at preflight only on the T532 lane's uncommitted files; rerun once they land.
+- T530 built (de39a5f2…, pnpm check 7038 pass); follow-up: the app's "has a page" uses the site's exact rule.
+- T532 (checklist review, one water at a time) in progress; ledger close-out + docs audit lane running.
 
 ## 2026-11-09 ~16:15 — BUILD 22 ON PLAY INTERNAL; chat 8 ends (restart page: NEXT-SESSION-after-chat8.md)
 - Build 22 = 0.7.0, versionCode 22 (3d807829d), uploaded to the internal track; tester email sent.
