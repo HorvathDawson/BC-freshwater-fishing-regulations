@@ -16,7 +16,7 @@ const who = { reviewer: "dawson", seconds: 3 };
 
 test("All correct waits for every ✗ row to be ticked", () => {
   assert.deepEqual(openRows(ROWS, new Set()).map((r) => r.n), [3, 4]);
-  assert.equal(hintWords(ROWS, new Set([3])), "1 row not matching — tick each one you have checked, or report it.");
+  assert.equal(hintWords(ROWS, new Set([3])), "1 row not matching — tick the ✗ box on each one you have checked, or use “Report a problem with it”.");
   assert.equal(hintWords(ROWS, new Set([3, 4])), "Every row matches.");
 });
 
@@ -269,4 +269,11 @@ test("hide done, and easiest first: least work first, a water never split, the s
   // d (2) < b (0 + 5) < a (6); the finished water c last; inside b the easiest place first; a's done place last
   assert.deepEqual(arrange(q, { easiest: true, hideDone: false }).list.map((x) => x.id), ["d1", "b1", "b2", "a1", "a2", "c1"]);
   assert.deepEqual(arrange(q, { easiest: true, hideDone: true }).list.map((x) => x.id), ["d1", "b1", "b2", "a1"]);
+});
+
+test("a confirm-as-it-is from the inline editor reads as confirmed by him, not as verified earlier", async () => {
+  const { placeState, checkStatus } = await import("../src/checklist.ts");
+  const earlier = { date: "2026-11-10", status: "verified", note: "confirmed as it is by the owner from the checklist's editor (the draft equalled the extent) · T and R not asked" };
+  assert.equal(placeState({ editing: false, check: "earlier", earlierDate: "2026-11-10", confirmedAsIs: true, hasExtent: true }).text, "Confirmed by you (2026-11-10)");
+  assert.equal(checkStatus({ ...PC, check: "earlier", earlier }), "Confirmed by you (2026-11-10): the extent as it is.");
 });

@@ -16,7 +16,7 @@ import { coveredWords, groupSave, saveForAll } from "../checklist";
 import { OlderWordings } from "./OlderWordings";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
-  addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
+  CONFIRMED_AS_IS, addPiece, dropPiece, effectOf, heldBy, incompletePieces, inlineAction, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
   proposesCuts, saveWords, statusLine, withPiece, type DfoCall, type DfoEffect,
 } from "../dfoExtent";
 
@@ -486,7 +486,11 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // needs both answered, so they go as y and the note says where the y came from
   const asked: Partial<Record<"T" | "R", CheckAnswer>> = embedded ? { T: "y", R: "y" } : answers;
   const IMPLIED = "T and R not asked: implied yes by the owner saving this extent from the checklist";
-  const held = heldBy({ call, answers: asked, problem, note, effect, cuts, cannotChange: now.cannot_change,
+  // r9: inline, a draft that equals the extent now is CONFIRMED as it is (the keep mark) — it is never "held" on a
+  // button that is not on this screen
+  const inline = embedded ? inlineAction({ changes: changes || cuts, extents: detail.location.binding.extents.length }) : null;
+  const asKeep = inline?.kind === "confirm";
+  const held = heldBy({ call: asKeep ? "keep" : call, answers: asked, problem, note, effect, cuts, cannotChange: asKeep ? [] : now.cannot_change,
                         extents: detail.location.binding.extents.length, incomplete });
 
   // r6 (inline): one save for EVERY wording of the place, or for this wording only
@@ -507,8 +511,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
         // a point naming a split THIS location's earlier mark proposed
         ...savedNew.filter((n) => used.includes(n.ref) && !splits.some((x) => x.ref === n.ref)
           && !shared.some((p) => p.id === n.ref))];
-      const body = markBody({ target: id, call: call ?? "unsure", answers: asked, problem,
-                              note: embedded && !defer ? [note.trim(), IMPLIED].filter(Boolean).join(" · ") : note, reviewer: reviewer.trim(),
+      const body = markBody({ target: id, call: asKeep && !defer ? "keep" : call ?? "unsure", answers: asked, problem,
+                              note: embedded && !defer ? [note.trim(), asKeep ? CONFIRMED_AS_IS : "", IMPLIED].filter(Boolean).join(" · ") : note, reviewer: reviewer.trim(),
                               seconds: Math.round((Date.now() - since.current) / 100) / 10, fixes, carried, now,
                               group: embedded ? (all && forAll ? forAll.group : null) : group, defer });
       await api.postMark(body);
@@ -596,7 +600,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
         <div className={embedded ? undefined : "detail-content"}>
           {embedded ? (
             <div className="ck-inline-head">
-              <span className="ck-sec">Your draft · on the map in teal · nothing is saved until "Save this extent"</span>
+              <span className="ck-sec">Your draft · on the map in teal · nothing is saved until you press the save button at the bottom</span>
               <span style={{ flex: 1 }} />
               <button type="button" className="btn small link" data-testid="ck-full-editor" onClick={embedded.onFull}
                 title="the full editor page, in case something is missing here">open the full editor</button>
@@ -850,7 +854,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               <div className={`dfo-effect ${call === "change" && effect !== "keep" ? "replace" : "keep"}`} data-testid="dfo-effect"
                 role="status">
                 {call !== "change" || effect === "keep" ? (
-                  <strong data-testid="dfo-effect-head">Keeps the extent now.</strong>
+                  <strong data-testid="dfo-effect-head">{asKeep ? "Your draft is the extent now: nothing to change. Confirm it as it is below, or edit a point above."
+                    : "Keeps the extent now."}</strong>
                 ) : (
                   <><strong data-testid="dfo-effect-head">{effect === "add" ? "ADDS a piece to the extent now"
                     : "REPLACES the extent now"}</strong>
@@ -882,9 +887,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                   onClick={() => void submit(false, true)}>
                   Save this extent for all {forAll.covered.length + 1} wordings of this place</button>)}
               <button className={`btn ${forAll && forAll.covered.length > 0 && changes ? "small" : "primary"}${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
-                disabled={busy || !!held || (!!embedded && !changes)} data-testid="dfo-save" onClick={() => void submit()}>
-                {embedded && !busy ? (changes ? (forAll && forAll.covered.length > 0 ? "Save for this wording only" : "Save this extent")
-                  : "Nothing changed yet (nothing to save)") : saveText}</button>
+                disabled={busy || !!held || inline?.kind === "none"} data-testid="dfo-save" onClick={() => void submit()}>
+                {inline && !busy ? (inline.kind === "save" && forAll && forAll.covered.length > 0 && changes ? "Save for this wording only" : inline.label)
+                  : saveText}</button>
               {embedded && <button className="btn small" disabled={busy} onClick={onBack}>Discard my changes</button>}
               <button className="btn small" disabled={busy} data-testid="dfo-defer"
                 title="decides nothing, changes nothing; needs a note"

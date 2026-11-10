@@ -387,3 +387,23 @@ when it saves".
 - Proposals of several pieces with new cuts draw an approximate stretch per piece (the Thompson: three of four; the
   first starts at the Kamloops Lake cut, whose map point is the lake, so it is said and not drawn).
 - T571 / T572: proposals built, see those tickets.
+
+## Round 9 (owner 2026-11-10: "this is no right, keep it button…")
+- THE DEAD END: inline, a draft equal to the extent now read "Save held: your change is the extent now — pick “Right,
+  keep it”" with a greyed save; that button only exists on the full editor page. Now the inline editor's one action
+  (`dfoExtent.inlineAction`) is "Confirm it as it is (saves)" in that case — the keep mark (T, R, P yes, no extent
+  fix), its note saying "confirmed as it is by the owner from the checklist's editor"; the place then reads
+  "Confirmed by you (date)" and the screen goes on to the next place.
+- EVERY MESSAGE THAT NAMES A CONTROL, checked against the screen it shows on:
+  fixed — the one above; the rows hint "tick each one you have checked, or report it" (now "tick the ✗ box on each one
+  you have checked, or use “Report a problem with it”"); the draft header 'nothing is saved until "Save this extent"'
+  (the button can read "Save this extent for all N wordings…": now "until you press the save button at the bottom").
+  fine — "Put it back with “Same place as…”", "take it out of the group", "Preview this proposal…", "Edit this extent",
+  the older-wordings ticks.
+  cannot show inline — "pick your call: keep it, change it, not sure, or wrong" (the inline call is always change);
+  the server's "pick one from the list under the checklist" and "all correct needs every row ✓ or ticked" (the
+  checklist derives the problem itself and disables Confirm until the rows are ticked): left as they are for the full
+  editor page, where those controls exist.
+- A SAVE TOOK 8 s (16 s cold): every POST /api/marks recomputed `applied_keys`, which built every pending proposal and
+  line-diffed whole files (`_splice`) only to parse the result. `materialize(splice=False)` for that validation:
+  one save 16.3 s → 0.6 s in the same harness.

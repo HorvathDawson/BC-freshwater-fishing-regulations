@@ -299,9 +299,12 @@ def apply_edit(doc: dict, ed: Mapping, *, strict: bool = True) -> None:
         t[ed["field"]] = copy.deepcopy(ed["after"])
 
 
-def materialize(props: Iterable[Mapping], src: Sources, *, strict: bool = True) -> dict[Path, str]:
+def materialize(props: Iterable[Mapping], src: Sources, *, strict: bool = True, splice: bool = True) -> dict[Path, str]:
     """THE FILES' NEW TEXT with every edit of `props` made, in order: {path: text} for each file
-    they touch (a file's untouched lines keep their spelling, `_splice`). Writes nothing."""
+    they touch (a file's untouched lines keep their spelling, `_splice`). Writes nothing.
+    `splice=False`: the text as the serialiser writes it — the same JSON, for a caller that only PARSES it (`build`'s
+    validation). The line diff that keeps hand spelling cost ~0.65 s per proposal on the cuts file: every save in the
+    review app waited 8–16 s on it through `applied_keys` (T532 r9)."""
     docs: dict[Path, dict] = {}
     for p in props:
         for ed in p["edits"]:
@@ -313,7 +316,7 @@ def materialize(props: Iterable[Mapping], src: Sources, *, strict: bool = True) 
     out: dict[Path, str] = {}
     for path, doc in docs.items():
         text = src.text(path)
-        out[path] = _splice(text, _dump(json.loads(text), text), _dump(doc, text))
+        out[path] = _splice(text, _dump(json.loads(text), text), _dump(doc, text)) if splice else _dump(doc, text)
     return out
 
 
@@ -1176,7 +1179,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
             continue
         chain = [by_id[d] for d in p["depends_on"] if d in by_id] + [p]
         try:
-            texts = materialize(chain, src)
+            texts = materialize(chain, src, splice=False)      # parsed below, never written: no spelling to keep
         except ValueError as ex:
             p["problems"].append(str(ex))
             p["applicable"] = False

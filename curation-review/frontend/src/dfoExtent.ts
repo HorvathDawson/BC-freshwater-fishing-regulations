@@ -93,6 +93,17 @@ export function heldBy(a: { call: DfoCall | null; answers: Partial<Record<"T" | 
   return n && !(a.problem && a.note.trim()) ? "a wrong answer needs a problem (pick one) and a note saying what is wrong" : "";
 }
 
+/** THE INLINE EDITOR'S ONE ACTION (T532 r9, owner 2026-11-10: "this is no right, keep it button…"): a message must
+ *  never name a control that is not on screen, so when the draft IS the extent now the action offered is the confirm
+ *  itself. -> save (the draft changes the extent) · confirm (the draft equals an extent the place has: one enabled
+ *  button that confirms it as it is) · none (no extent and nothing drawn yet) */
+export const CONFIRMED_AS_IS = "confirmed as it is by the owner from the checklist's editor (the draft equalled the extent)";
+export function inlineAction(a: { changes: boolean; extents: number }): { kind: "save" | "confirm" | "none"; label: string } {
+  if (a.changes) return { kind: "save", label: "Save this extent" };
+  if (a.extents > 0) return { kind: "confirm", label: "Confirm it as it is (saves)" };
+  return { kind: "none", label: "Nothing drawn yet (nothing to save)" };
+}
+
 /** the save button's words: what it will do to the extent */
 export function saveWords(call: DfoCall | null, effect: DfoEffect): string {
   if (call === "change" && effect === "replace") return "Save: replace extent";

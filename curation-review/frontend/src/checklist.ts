@@ -11,7 +11,7 @@ export function openRows(rows: CheckRow[], ticked: Set<number>): CheckRow[] {
 /** the hint under the two buttons */
 export function hintWords(rows: CheckRow[], ticked: Set<number>): string {
   const left = openRows(rows, ticked).length;
-  return left ? `${left} row${left > 1 ? "s" : ""} not matching — tick each one you have checked, or report it.`
+  return left ? `${left} row${left > 1 ? "s" : ""} not matching — tick the ✗ box on each one you have checked, or use “Report a problem with it”.`
     : "Every row matches.";
 }
 
@@ -73,6 +73,7 @@ export function checkStatus(pc: PlaceCheck): string {
   if (pc.check === "stale" && pc.differs) return "The extent is no longer the one you saved: check it again.";
   if (pc.check === "stale") return "Its words or its extent changed since it was checked: check it again.";
   // owner 2026-11-09: earlier work counts — a verified mark made before the checklist that still holds is done
+  if (pc.check === "earlier" && pc.earlier?.note.includes("confirmed as it is by the owner")) return `Confirmed by you (${pc.earlier.date}): the extent as it is.`;
   if (pc.check === "earlier" && pc.earlier) return `Verified earlier (${pc.earlier.date}), before the checklist.`;
   if (pc.earlier && pc.check === "unchecked") return `Not checked yet. ${earlierWords(pc.earlier)}`;
   if (!pc.checked || pc.check === "unchecked") return "Not checked yet.";
@@ -344,6 +345,8 @@ export function tickAll(members: DfoGroupMember[], fix: boolean, checklist: bool
 export type PlaceTone = "none" | "draft" | "wait" | "saved" | "confirmed" | "bad";
 export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; checkedDate?: string | null;
                                 earlierDate?: string | null; saved?: { state: string; date: string } | null;
+                                /** the mark in force is his confirm-as-it-is from the inline editor (`CONFIRMED_AS_IS`) */
+                                confirmedAsIs?: boolean;
                                 hasExtent: boolean }): { tone: PlaceTone; text: string } {
   if (a.editing) return { tone: "draft", text: "You are previewing a draft: not saved" };
   // his own extent save (`pc.saved`): done while the place holds it; not applied is a fault, said in red
@@ -351,7 +354,8 @@ export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; ch
   if (a.check === "saved" && a.saved) return { tone: a.saved.state === "applying" ? "wait" : "confirmed", text: savedWords(a.saved) };
   if (a.check === "stale") return { tone: "wait", text: "Changed since it was saved or checked: check it again" };
   if (a.check === "checked" && a.checkedDate) return { tone: "confirmed", text: `Confirmed by you (${a.checkedDate})` };
-  if (a.check === "earlier" && a.earlierDate) return { tone: "confirmed", text: `Verified earlier (${a.earlierDate})` };
+  if (a.check === "earlier" && a.earlierDate)
+    return { tone: "confirmed", text: `${a.confirmedAsIs ? "Confirmed by you" : "Verified earlier"} (${a.earlierDate})` };
   if (a.saved && a.saved.state === "landed" && a.hasExtent) return { tone: "saved", text: "Saved and on the map" };
   return { tone: "none", text: "Nothing saved yet" };
 }

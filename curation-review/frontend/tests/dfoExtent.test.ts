@@ -214,3 +214,11 @@ test("a change naming a cut not built yet says so before the save", () => {
   assert.deepEqual(newCutsOf([COWICHAN, BARROW]), ["sumas_river__barrow_town_pump_station"]);
   assert.deepEqual(newCutsOf([COWICHAN]), []);
 });
+
+test("inline, a draft that IS the extent now offers the confirm itself — never a button that is not on screen", async () => {
+  const { inlineAction, CONFIRMED_AS_IS } = await import("../src/dfoExtent.ts");
+  assert.deepEqual(inlineAction({ changes: true, extents: 1 }), { kind: "save", label: "Save this extent" });
+  assert.deepEqual(inlineAction({ changes: false, extents: 1 }), { kind: "confirm", label: "Confirm it as it is (saves)" });
+  assert.equal(inlineAction({ changes: false, extents: 0 }).kind, "none");
+  assert.match(CONFIRMED_AS_IS, /confirmed as it is by the owner/);
+});
