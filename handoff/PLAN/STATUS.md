@@ -13,6 +13,18 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 night — two workflow reviews → 30 tickets; REVIEW APP READY (restart it)
+- **Reviews:** process (T533–T544) and the whole data pipeline (T545–T561: 114 verified findings). Open-ticket audit
+  applied (T322, T408, T529, T509, T518, T525 closed; T86, T198 merged): `handoff/PLAN/ticket-audit-2026-11-09.md`.
+- **Order (owner):** review app first, then by severity: T546, T547, T548 (in-season, sev 5), T549, T550, T551, T552,
+  T553; then T554–T561 and T533–T544. Owner answers: Q178 not now, Q179 shorten backups, Q180 PSF primary, DFO surveys
+  in addition.
+- **Review app (T545 partial, T541 done):** proposal ids no longer collide (both Chilliwack marks landed); a save that
+  does not land says so; file domains commit themselves; `python -m pipeline.regs.review.apply --check` in fast-fail
+  (waiting marks listed) and release preflight (strict); run.sh refuses a taken port and proves its backend; the header
+  names the backend's commit. Leftovers: T562. Checked: 187 targeted tests pass, fast-fail green, a start on spare ports.
+- **Owner checks page:** https://claude.ai/artifact/5LRBFFgvYeTRnygSBWvZbM (answers read by Claude).
+
 ## 2026-11-09 late — BUILD 24 (0.7.2) ON PLAY INTERNAL; review app: unsure = ✗, older wordings need a tick
 - versionCode 24 (2e8bedfb4), patched MapLibre (7bf3dc29), tester email sent. Adds T531 (each calendar with its own fish;
   a DFO row with no calendar gets its own "Salmon (DFO)" block; legends full ink). Owner: phone look on 0.7.2.

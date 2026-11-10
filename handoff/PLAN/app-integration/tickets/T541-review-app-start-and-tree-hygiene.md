@@ -1,6 +1,6 @@
 # T541 — Review app: run.sh proves its backend started; review outputs stop dirtying the tree
 
-Status: OPEN.
+Status: DONE — 994b17e3a, f0390ac67, 50072cc45, 1d1e01d51, ccc732b71 (item 2, by the T545 lane); leftovers in T562
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 9.
 
