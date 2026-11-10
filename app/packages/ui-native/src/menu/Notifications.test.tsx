@@ -245,6 +245,15 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
     expect(screen.queryByTestId("alert-me")).toBeNull();
   });
 
+  it("prefills the card's figure, not the raw reading (3.199 m is the card's 3.2)", async () => {
+    const { c } = controls();
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={{ ...target, quantity: "level", current: 3.199 }} source={source} /></NotifyRoot>);
+    fireEvent.click(screen.getByTestId("alert-me-open"));
+    await flush();
+    expect((screen.getByTestId("alert-form-value") as HTMLInputElement).value).toBe("3.2");
+  });
+
   it("opens on this gauge, prefilled with the reading now; the summary says what will happen", async () => {
     const { c, platform } = controls();
     const { source } = fakeSource();

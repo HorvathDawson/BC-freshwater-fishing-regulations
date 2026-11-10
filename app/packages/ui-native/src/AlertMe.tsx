@@ -16,7 +16,7 @@
 import { useState } from "react";
 import { TextInput, View } from "react-native";
 import {
-  ALERT_DIRECTIONS, alertContextLine, alertSummary, CONDITIONS_WORDS, NOTIFY_WORDS, now, parseAlertValue, percentileByDay,
+  ALERT_DIRECTIONS, alertContextLine, alertSummary, CONDITIONS_WORDS, figure, NOTIFY_WORDS, now, parseAlertValue, percentileByDay,
   percentileOk, PERCENTILE_PRESETS, type AlertDirection, type AlertQuantity, type AlertThreshold, type GaugeAlertRule,
 } from "@app/core";
 import type { WaterSource } from "@app/data";
@@ -123,7 +123,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
   const [quantity, setQuantity] = useState<AlertQuantity>(gauge.quantity);
   const [direction, setDirection] = useState<AlertDirection>("above");
   const [lineKind, setLineKind] = useState<AlertThreshold["kind"]>("value");
-  const [text, setText] = useState(gauge.current !== null ? String(gauge.current) : "");
+  const [text, setText] = useState(gauge.current !== null ? figure(gauge.current) : "");
   const [pct, setPct] = useState<number | "custom">(75);
   const [pctText, setPctText] = useState("");
   const [bad, setBad] = useState(false);
@@ -164,7 +164,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
                     testID={`alert-form-q-${q}`}
                     onPress={() => {
                       // the number typed was in the other quantity's units: start again from this one's reading
-                      if (q !== quantity) setText(q === gauge.quantity && gauge.current !== null ? String(gauge.current) : "");
+                      if (q !== quantity) setText(q === gauge.quantity && gauge.current !== null ? figure(gauge.current) : "");
                       setQuantity(q); setBad(false);
                     }} />
             ))}
