@@ -145,12 +145,16 @@ Claude never runs either (AGENTS 1, CLAUDE.md), not even when asked to "run it" 
 
 ```bash
 .venv/bin/python -m pipeline.regs.parsing.ingest_catalogue --batch $W/parse/batches/batch_*.json \
-  --response $W/parse/responses/batch_*.json --out $W/book --ledger $W/parse/ingested.json --dry-run
+  --response $W/parse/responses/batch_*.json --out $W/book --ledger $W/parse/ingested.json \
+  --rows $W/extraction/synopsis_raw_data.json --dry-run
 .venv/bin/python -m pipeline.regs.parsing.ingest_catalogue --batch $W/parse/batches/batch_*.json \
-  --response $W/parse/responses/batch_*.json --out $W/book --ledger $W/parse/ingested.json
+  --response $W/parse/responses/batch_*.json --out $W/book --ledger $W/parse/ingested.json \
+  --rows $W/extraction/synopsis_raw_data.json
 ```
 
-Writes `$W/book` only. Every `FAIL` line is an entry left out — it then shows as REMOVED in step 8 although step 4
+Writes `$W/book` only. `--rows` is the extraction step 5 exported from: ingest refuses batches whose `rows_digest`
+is another extraction's, and writes nothing (T553). Every `FAIL` line is an entry left out — a rejected entry, a row the
+model never returned (`no response row`) or an index answered twice — it then shows as REMOVED in step 8 although step 4
 listed it as changed. Fix it (re-dispatch that batch: owner, `dispatch --work-dir $W/parse --only <batch no.> --force`) or
 note it for hand curation.
 

@@ -52,7 +52,7 @@ def load_batch(paths: list[str]) -> dict[str, dict]:
     The agent is told to copy each item's `index` back verbatim, and that is the reliable join:
     `entry_id` is a value the model retypes, so keying on it alone makes a typo look like an
     invented entry. A batch file is ours — `{batch, rows_digest, items: [...]}` — and nothing
-    else is read."""
+    else is read (`rows_digest` by `check_rows_digest`)."""
     items: dict[str, dict] = {}
     for p in paths:
         data = json.loads(Path(p).read_text(encoding="utf-8"))
@@ -60,6 +60,48 @@ def load_batch(paths: list[str]) -> dict[str, dict]:
             items.setdefault(str(it["entry_id"]), it)
             items[f"#{it['index']}"] = it
     return items
+
+
+def check_rows_digest(batch_paths: list[str], rows_path: Path | None = None) -> str | None:
+    """None when every batch was exported from the rows ingest would read now; else the problem.
+
+    Each batch carries `rows_digest` (`batch_exporter.compute_rows_digest` over every extracted row). A batch exported
+    before the extraction moved hands the model rows that are no longer the book's, and ingest takes `regs_verbatim`
+    from the batch — so the stored text would silently be last extraction's (T553 item 2: the field was written and
+    never read). `rows_path` is the extraction the export read (`--rows`; default the live
+    `synopsis_raw_data.json`)."""
+    from pipeline.regs.parsing.batch_exporter import compute_rows_digest
+    from pipeline.regs.parsing.rows import load_synopsis_rows
+    got: dict[str, list[str]] = defaultdict(list)
+    for p in batch_paths:
+        d = json.loads(Path(p).read_text(encoding="utf-8")).get("rows_digest")
+        got[str(d)].append(Path(p).name)
+    if len(got) > 1:
+        return ("the batches come from different exports (rows_digest " +
+                "; ".join(f"{d[:12]}: {', '.join(sorted(n)[:3])}" for d, n in sorted(got.items())) + ")")
+    (stored, names), = got.items()
+    now = compute_rows_digest(load_synopsis_rows(rows_path))
+    if stored != now:
+        return (f"the batches ({len(names)}) were exported from other rows than {rows_path or 'the live extraction'} "
+                f"(rows_digest {stored[:12]} vs now {now[:12]}): re-export, or pass the --rows the export read")
+    return None
+
+
+def coverage(batch: dict[str, dict], candidates: list[dict]) -> tuple[list[str], list[str]]:
+    """([batch item with NO response row], [index answered more than once]), each as `#index entry_id`.
+
+    A rejected candidate prints a FAIL line; a row the model never returned printed nothing and counted nowhere, so in
+    the annual update a changed row it skipped surfaced only as `removed` — the list the owner confirms as gone from
+    the book. And a second row with one index silently replaced the first (T553 item 2)."""
+    items = {k[1:]: v for k, v in batch.items() if k.startswith("#")}
+    seen: dict[str, int] = defaultdict(int)
+    for c in candidates:
+        if c.get("_batch_index") is not None:
+            seen[str(c["_batch_index"])] += 1
+    missing = [f"#{i} {items[i].get('entry_id')}" for i in sorted(items, key=int) if not seen.get(i)]
+    dupes = [f"#{i} {items[i].get('entry_id') if i in items else '<not in the batch>'}"
+             for i in sorted(seen, key=int) if seen[i] > 1]
+    return missing, dupes
 
 
 def response_rows(path: str | Path) -> list[dict]:
@@ -225,20 +267,35 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
 
 
 def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
-        dry_run: bool = False, ledger: Path | None = None, replace_edited: bool = False) -> int:
+        dry_run: bool = False, ledger: Path | None = None, replace_edited: bool = False,
+        rows_path: Path | None = None) -> int:
+    drift = check_rows_digest(batch_paths, rows_path)
+    if drift:
+        print(f"FAIL {drift}\nnothing ingested")
+        return 1
     batch = load_batch(batch_paths)
     candidates: list[dict] = []
     for p in response_paths:
         candidates += response_rows(p)
+    missing, dupes = coverage(batch, candidates)
+    if dupes:       # which of two answers is the model's? neither is written
+        twice = {d.split()[0][1:] for d in dupes}
+        candidates = [c for c in candidates if str(c.get("_batch_index")) not in twice]
     accepted, problems = ingest(candidates, batch, registry=ingest_registry())
     for p in problems:
         print(("WARN " if p.startswith("ADVISORY") else "FAIL ") + p)
+    for d in dupes:
+        print(f"FAIL {d}: answered more than once in the responses — neither answer is written")
+    for m in missing:
+        print(f"FAIL {m}: no response row — the model never returned it (not rejected: never seen)")
 
     written, kept = write(accepted, Path(out_dir), dry_run=dry_run,
                           ledger=ledger or default_ledger(), replace_edited=replace_edited)
     rejected = len(candidates) - len(accepted)
     print(f"\n{len(accepted)}/{len(candidates)} entries accepted"
-          + (f", {rejected} rejected" if rejected else ""))
+          + (f", {rejected} rejected" if rejected else "")
+          + (f", {len(missing)} batch row(s) with no response" if missing else "")
+          + (f", {len(dupes)} index(es) answered twice" if dupes else ""))
     for name, n in sorted(written.items()):
         print(f"  {'would write' if dry_run else 'wrote'} {n} entries -> {name}")
     if kept:
@@ -248,7 +305,7 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
         for eid in kept:
             print(f"  {eid}")
         print("  Compare each with its response; re-run with --replace-edited to overwrite them.")
-    return 1 if (rejected or kept) else 0
+    return 1 if (rejected or kept or missing or dupes) else 0
 
 
 def main() -> None:
@@ -263,6 +320,9 @@ def main() -> None:
                     help="candidate JSON from the agent; a glob is fine")
     ap.add_argument("--out", default="data/curated/regulations/synopsis")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--rows", type=Path, default=None,
+                    help="the extraction the batches were exported from (the exporter's --rows; default the live "
+                    "synopsis_raw_data.json) — its digest must equal every batch's rows_digest")
     ap.add_argument("--ledger", type=Path, default=None,
                     help="what ingest last wrote, per entry (default: <work dir>/ingested.json)")
     ap.add_argument("--replace-edited", action="store_true",
@@ -281,7 +341,7 @@ def main() -> None:
     if not (a.batch and a.response):
         ap.error("--batch and --response are required (or --seed-ledger)")
     sys.exit(run(a.batch, a.response, a.out, dry_run=a.dry_run, ledger=a.ledger,
-                 replace_edited=a.replace_edited))
+                 replace_edited=a.replace_edited, rows_path=a.rows))
 
 
 if __name__ == "__main__":

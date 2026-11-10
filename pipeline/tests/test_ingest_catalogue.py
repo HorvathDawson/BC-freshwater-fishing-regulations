@@ -381,3 +381,38 @@ def test_a_seeded_ledger_lets_a_repass_replace_an_unedited_entry_and_keeps_an_ed
     doc["entries"][0]["rules"][0]["review_reason"] = "a curator's note, after the seed"
     (out / "region-3.json").write_text(json.dumps(doc))
     assert write(first, out, ledger=ledger)[1] == ["r3:tranquille@3-29"], "edited after: kept"
+
+
+def test_a_batch_row_with_no_response_and_a_twice_answered_index_are_named():
+    """T553 item 2. A row the model never returned was no candidate, so no FAIL line and exit 0; two rows with one
+    index silently kept the later. `coverage` names both; `run` prints them as FAIL and exits 1."""
+    from pipeline.regs.parsing.ingest_catalogue import coverage
+    batch = {"#0": {"entry_id": "a"}, "a": {"entry_id": "a"}, "#1": {"entry_id": "b"}, "b": {"entry_id": "b"},
+             "#2": {"entry_id": "c"}, "c": {"entry_id": "c"}}
+    missing, dupes = coverage(batch, [{"_batch_index": 0}, {"_batch_index": 2}, {"_batch_index": 2}])
+    assert missing == ["#1 b"]
+    assert dupes == ["#2 c"]
+    assert coverage(batch, [{"_batch_index": i} for i in range(3)]) == ([], [])
+
+
+def test_rows_digest_is_read_and_drift_refuses_the_ingest(tmp_path):
+    """T553 item 2. The exporter wrote `rows_digest` "so ingest can detect data drift since export"; nothing read it.
+    A batch from other rows, or batches from two exports, refuse the run before anything is written."""
+    from pipeline.regs.parsing.batch_exporter import compute_rows_digest
+    from pipeline.regs.parsing.ingest_catalogue import check_rows_digest, run
+    pages = [{"context": {"region": "3"}, "rows": [{"water": "TRANQUILLE LAKE", "raw_regs": SRC}]}]
+    rows = tmp_path / "synopsis_raw_data.json"
+    rows.write_text(json.dumps(pages), encoding="utf-8")
+    from pipeline.regs.parsing.rows import load_synopsis_rows
+    good = compute_rows_digest(load_synopsis_rows(rows))
+
+    def batch(name, digest):
+        p = tmp_path / name
+        p.write_text(json.dumps({"batch": 0, "rows_digest": digest, "items": []}), encoding="utf-8")
+        return str(p)
+    assert check_rows_digest([batch("b0.json", good)], rows) is None
+    assert "other rows" in check_rows_digest([batch("b1.json", "0" * 64)], rows)
+    assert "different exports" in check_rows_digest([batch("b2.json", good), batch("b3.json", "f" * 64)], rows)
+    out = tmp_path / "out"
+    assert run([batch("b4.json", "0" * 64)], [], str(out), rows_path=rows, ledger=tmp_path / "l.json") == 1
+    assert not out.exists()
