@@ -26,7 +26,7 @@ import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summar
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
 import { runBackup, BACKUP_STATUS_KEY, type DstBucket, type SrcBucket } from "./backup";
-import { crashEvents, handleCrash, listCrashes, purgeCrashes } from "./crashes";
+import { crashEvents, handleCrash, listCrashesCounted, parseClasses, purgeCrashes } from "./crashes";
 import { cardEvents, runCards, type CardBucket, type CardRun } from "./gauges/card/card";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
@@ -532,7 +532,10 @@ export default {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) return new Response("since must be YYYY-MM-DD", { status: 400 });
-      return Response.json({ crashes: await listCrashes(env.BUCKET, since, 500, url.searchParams.get("test") === "1", url.searchParams.get("background") === "1") }, { headers: { "Cache-Control": "no-store" } });
+      // (T595) the defects unless `?class=all` / `?class=network,expected`; `counts` says what the default left out
+      const classes = parseClasses(url.searchParams.get("class"));
+      if (!classes) return new Response("class must be all, or a list of defect, network, expected", { status: 400 });
+      return Response.json(await listCrashesCounted(env.BUCKET, since, 500, url.searchParams.get("test") === "1", url.searchParams.get("background") === "1", classes), { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/reports" && req.method === "GET") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });

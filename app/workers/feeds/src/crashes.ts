@@ -14,7 +14,11 @@
 //                       is one object across versions and browsers and a repeat only moves `last` and `count`. NO IP,
 //                       User-Agent or country is stored.
 //   GET /crashes        (Bearer RUN_TOKEN) every kind seen since `?since=YYYY-MM-DD`, newest first; (T352) background OS
-//                       kills only with `?background=1`.
+//                       kills only with `?background=1`. (T595) Each kind carries a `class` — `defect` (needs a fix),
+//                       `network` (a line that failed, already shown to the reader) or `expected` (a state the app knows:
+//                       an old app meeting a newer release, a phone with no Play service) — and the list is the DEFECTS
+//                       unless `?class=all` (or `?class=network,expected`). Nothing is dropped: the others are stored,
+//                       counted (`counts`) and reachable.
 //   the digest          `crashEvents` (the gauge run): a kind whose `first` is today or yesterday and that the outbox has not
 //                       told → one digest line (not urgent). A repeat of a known kind is never told again. (T352) A
 //                       background OS kill is never told: it is not a crash.
@@ -69,6 +73,8 @@ export type CrashPayload = CrashPayloadV1 | CrashPayloadV2;
 export interface CrashKind {
   format: "crash-kind/1";
   test?: true;
+  /** (T595) set on the way out (`listCrashes`), from the sample: never stored, so a rule change reclassifies old kinds */
+  class?: CrashClass;
   hash: string;
   first: string;
   last: string;
@@ -154,6 +160,28 @@ export async function crashHash(c: Pick<CrashPayload, "name" | "message" | "stac
   return (await sha256hex([c.name, c.message.replace(/[0-9]+/g, "#"), ...frames].join("\n"))).slice(0, 16);
 }
 
+/** (T595) what a kind IS: a `defect` needs a fix; `network` is a failed line (shown to the reader already); `expected` is a
+ *  state the app knows and says (an old app meeting a newer release, a phone with no Play service). */
+export const CRASH_CLASSES = ["defect", "network", "expected"] as const;
+export type CrashClass = (typeof CRASH_CLASSES)[number];
+const EXPECTED = [
+  /Failed to bind to the service/i,                // no Play service to answer the own-version check (T390)
+  /release r-[\w-]+ is not one this app reads/i,    // an old app refusing a newer release, and prompting for the update
+  /is not one this app reads/i,
+];
+const NETWORK = [
+  /UnknownHostException|Unable to resolve host|SocketTimeout|ConnectException|SSLException|ECONNRESET|ETIMEDOUT/i,
+  /Failed to fetch|Network request failed|Load failed|NetworkError when attempting to fetch/i,
+  /\bHTTP 5\d\d\b/,                                // a server's 5xx: the line or the host, not this app
+  /fetch failed|timed out|the manifest could not be read/i,
+];
+export function classifyCrash(s: Pick<CrashPayload, "name" | "message">): CrashClass {
+  const text = `${s.name}: ${s.message}`;
+  if (EXPECTED.some((r) => r.test(text))) return "expected";
+  if (NETWORK.some((r) => r.test(text))) return "network";
+  return "defect";
+}
+
 export const crashKey = (hash: string) => `${CRASHES_PREFIX}${hash}.json`;
 
 /** POST /crash */
@@ -206,9 +234,29 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
 const kindKeys = async (bucket: R2BucketLike, max: number) =>
   (await listKeys(bucket, CRASHES_PREFIX, max)).filter((k) => !k.startsWith(LIMITS_PREFIX));
 
-/** GET /crashes (authed): the kinds last seen on or after `since` (YYYY-MM-DD), newest first. */
-export async function listCrashes(bucket: R2BucketLike, since: string, max = 500, withTest = false, withBackground = false): Promise<CrashKind[]> {
+/** `?class=` → the classes asked for: absent = the defects; `all`; or a comma list of class names (unknown names refused). */
+export function parseClasses(q: string | null): CrashClass[] | null {
+  if (q === null || q === "") return ["defect"];
+  if (q === "all") return [...CRASH_CLASSES];
+  const want = q.split(",").map((x) => x.trim());
+  return want.every((x) => (CRASH_CLASSES as readonly string[]).includes(x)) ? (want as CrashClass[]) : null;
+}
+
+/**
+ * GET /crashes (authed): the kinds last seen on or after `since` (YYYY-MM-DD), newest first. (T595) Each carries its
+ * `class`; only the `classes` asked for are listed (default: the defects). `counts` is how many kinds of each class there
+ * were in range, so nothing is hidden by the default.
+ */
+export async function listCrashes(bucket: R2BucketLike, since: string, max = 500, withTest = false, withBackground = false,
+                                  classes: readonly CrashClass[] = ["defect"]): Promise<CrashKind[]> {
+  return (await listCrashesCounted(bucket, since, max, withTest, withBackground, classes)).crashes;
+}
+
+export async function listCrashesCounted(bucket: R2BucketLike, since: string, max = 500, withTest = false, withBackground = false,
+                                         classes: readonly CrashClass[] = ["defect"]):
+    Promise<{ crashes: CrashKind[]; counts: Record<CrashClass, number> }> {
   const out: CrashKind[] = [];
+  const counts: Record<CrashClass, number> = { defect: 0, network: 0, expected: 0 };
   const keys = [...await kindKeys(bucket, max), ...(withTest ? await listKeys(bucket, TEST_CRASHES_PREFIX, max) : [])];
   for (const k of keys) {
     const o = await bucket.get(k);
@@ -216,16 +264,20 @@ export async function listCrashes(bucket: R2BucketLike, since: string, max = 500
     try {
       const c = JSON.parse(await o.text()) as CrashKind;
       if (c.background && !withBackground) continue;      // (T352) not a crash: out of the counts unless asked for
-      if (c.last.slice(0, 10) >= since) out.push(k.startsWith(TEST_CRASHES_PREFIX) ? { ...c, test: true } : c);
+      if (c.last.slice(0, 10) < since) continue;
+      const cls = classifyCrash(c.sample);
+      counts[cls]++;
+      if (classes.includes(cls)) out.push({ ...c, class: cls, ...(k.startsWith(TEST_CRASHES_PREFIX) ? { test: true as const } : {}) });
     } catch { /* skipped */ }
   }
-  return out.sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0));
+  return { crashes: out.sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0)), counts };
 }
 
 /** One digest line per NEW error kind (first seen today or yesterday) the outbox has not told. */
 export async function crashEvents(bucket: R2BucketLike, known: (key: string) => boolean, now: Date, at: string): Promise<FeedEvent[]> {
   const recent = new Set([0, 1].map((i) => new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10)));
   const events: FeedEvent[] = [];
+  const others: Record<string, number> = {};
   for (const k of await kindKeys(bucket, 500)) {
     const hash = /\/([0-9a-f]{16})\.json$/.exec(k)?.[1];
     if (!hash || known(`crash:${hash}`)) continue;
@@ -234,7 +286,19 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
     let c: CrashKind;
     try { c = JSON.parse(await o.text()); } catch { continue; }
     if (c.background) continue;                             // (T352) a background OS kill is not a crash: never told
-    if (recent.has(c.first.slice(0, 10))) events.push(crashEvent(c, at));
+    if (!recent.has(c.first.slice(0, 10))) continue;
+    // (T595) only a defect is a line of its own; the others are counted in ONE line below, never dropped
+    const cls = classifyCrash(c.sample);
+    if (cls === "defect") events.push(crashEvent(c, at));
+    else others[cls] = (others[cls] ?? 0) + 1;
+  }
+  const n = Object.values(others).reduce((a, b) => a + b, 0);
+  const key = `crash-other:${now.toISOString().slice(0, 10)}`;
+  if (n > 0 && !known(key)) {
+    const parts = Object.entries(others).sort(([a], [b]) => (a < b ? -1 : 1)).map(([cls, k]) => `${k} ${cls}`).join(", ");
+    events.push({ key, kind: "crash", title: `${n} new error kind${n === 1 ? "" : "s"} that are not defects (${parts})`,
+                  text: `${n} error kind${n === 1 ? "" : "s"} first seen today or yesterday are not defects: ${parts}. ` +
+                        `List them: GET /crashes?class=network,expected on the feeds worker (Bearer RUN_TOKEN).`, at });
   }
   return events;
 }

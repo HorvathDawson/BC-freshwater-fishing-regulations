@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import worker from "../src/index";
 import { compose } from "../src/events";
-import { crashEvents, crashHash, handleCrash, purgeCrashes, validateCrash, CRASH_PER_DAY } from "../src/crashes";
+import { classifyCrash, crashEvents, crashHash, handleCrash, listCrashes, listCrashesCounted, parseClasses, purgeCrashes, validateCrash, CRASH_PER_DAY } from "../src/crashes";
 import type { R2BucketLike } from "../src/io";
 
 /** (T431) the required secret (a worker without it answers 503) */
@@ -234,5 +234,53 @@ describe("env local (T352)", () => {
       }
       expect([...BUCKET.m.keys()]).toEqual([]);
     }
+  });
+});
+
+describe("(T595) a class on each kind: defect / network / expected", () => {
+  it("classifies the kinds the worker has seen", () => {
+    const c = (name: string, message: string) => classifyCrash({ name, message });
+    expect(c("Error", "Failed to check for updates: Failed to bind to the service")).toBe("expected");
+    expect(c("Error", "release r-d14bdb180f55 is not one this app reads")).toBe("expected");
+    expect(c("BootError", "first run: the manifest could not be read (HTTP 504)")).toBe("network");
+    expect(c("Error", "update: fetch failed: UnknownHostException")).toBe("network");
+    expect(c("TypeError", "Failed to fetch")).toBe("network");
+    expect(c("NoSuchFileException", "/data/user/0/x/water.sqlite.part")).toBe("defect");
+    expect(c("TypeError", "undefined is not an object (evaluating 'x.items')")).toBe("defect");
+  });
+
+  it("?class: absent = defects; all; a list; anything else refused", () => {
+    expect(parseClasses(null)).toEqual(["defect"]);
+    expect(parseClasses("all")).toEqual(["defect", "network", "expected"]);
+    expect(parseClasses("network,expected")).toEqual(["network", "expected"]);
+    expect(parseClasses("bogus")).toBeNull();
+  });
+
+  async function seeded() {
+    const BUCKET = new MemBucket();
+    const env = { BUCKET, REPORT_SALT: SALT };
+    for (const [i, m] of ["undefined is not an object", "Failed to bind to the service", "Failed to fetch"].entries())
+      await handleCrash(post(crash({ message: m, name: i === 2 ? "TypeError" : "Error" }), `198.51.100.${i + 1}`), env, at("2026-11-09T20:00:00Z"));
+    return { BUCKET, env };
+  }
+
+  it("GET /crashes lists only defects by default, counts the rest, and drops nothing", async () => {
+    const { BUCKET } = await seeded();
+    const def = await listCrashesCounted(BUCKET, "2000-01-01");
+    expect(def.crashes.map((k) => k.sample.message)).toEqual(["undefined is not an object"]);
+    expect(def.crashes[0]!.class).toBe("defect");
+    expect(def.counts).toEqual({ defect: 1, network: 1, expected: 1 });
+    const others = await listCrashes(BUCKET, "2000-01-01", 500, false, false, ["network", "expected"]);
+    expect(others.map((k) => k.class).sort()).toEqual(["expected", "network"]);
+    expect([...BUCKET.m.keys()].filter((k) => !k.includes("/limits/"))).toHaveLength(3);      // all three still stored
+  });
+
+  it("the digest: a line per new defect, the others counted in ONE line, told once", async () => {
+    const { BUCKET } = await seeded();
+    const ev = await crashEvents(BUCKET, () => false, at("2026-11-09T21:00:00Z"), "2026-11-09T21:00:00Z");
+    expect(ev).toHaveLength(2);
+    const other = ev.find((e) => e.key.startsWith("crash-other:"))!;
+    expect(other.title).toBe("2 new error kinds that are not defects (1 expected, 1 network)");
+    expect(await crashEvents(BUCKET, (k) => k === other.key, at("2026-11-09T21:00:00Z"), "x")).toHaveLength(1);
   });
 });
