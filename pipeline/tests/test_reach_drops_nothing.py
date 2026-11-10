@@ -102,3 +102,47 @@ def test_the_review_app_path_gets_the_same_verdict_by_construction():
     clip, _ = entry_scope(e, ["gnis:1"], reg, g)
     b, _ = build_reach(e, e["rules"][0], reg, g, covered=["gnis:1"], clip=clip)
     assert b.reason.value == "scope_unresolved"
+
+
+# ------------------------------------------------------------------ item 3: an unplaced piece is counted
+
+def test_every_withheld_piece_is_listed_with_its_reason():
+    """Mutation: `report.unplaced = []` (or drop the `scope_unclassified` branch of `unplaced_pieces`) — the
+    Noons Creek / Seymour River pieces are again only lines in rule_diagnostic.jsonl."""
+    from pipeline.atlas.reach.build import unplaced_pieces
+    from pipeline.atlas.reach.models import Diagnostic
+    diags = [
+        Diagnostic("r2:noons_creek@2-8", "noons_creek.r1", "unclassified",
+                   {"pieces": ["-2200000392:0"], "included": False,
+                    "reasons": {"-2200000392:0": "flows_to_the_sea_unjoined"}}),
+        Diagnostic("r2:x@2-8", "", "scope_unclassified",
+                   {"pieces": ["b:0", "b:10"], "reasons": {"b:0": "meets_the_line_at_the_cut"}}),
+        Diagnostic("r2:y@2-8", "y.r1", "ambiguous_cut", {"pieces": ["c:0"]}),
+    ]
+    got = unplaced_pieces(diags)
+    assert [(x["entry_id"], x["piece"], x["reason"]) for x in got] == [
+        ("r2:noons_creek@2-8", "-2200000392:0", "flows_to_the_sea_unjoined"),
+        ("r2:x@2-8", "b:0", "meets_the_line_at_the_cut"),
+        ("r2:x@2-8", "b:10", "unknown")]
+
+
+def test_a_scope_unclassified_piece_carries_reasons_so_the_straddle_gate_sees_it(monkeypatch):
+    """Mutation: drop `reasons` from the `scope_unclassified` payload — `straddle_gate` reads only `reasons`,
+    so a straddler lost at the entry's scope passed the gate (T546 item 3)."""
+    from pipeline.atlas.reach.build import StraddleGateError, straddle_gate
+    import pipeline.atlas.reach.build as B
+    g, reg = _river()
+    e = _scoped({"op": "upstream_of", "splits": ["x_river__lake_1"]})
+
+    def fake(*a, why=None, **k):
+        if why is not None:
+            why["c1"] = "straddles_the_cut"
+        return ["c1"]
+    monkeypatch.setattr(B, "scope_unclassified", fake)
+    res = build_reaches([("1", e)], reg, g)
+    d = [x for x in res.diagnostics if x.kind == "scope_unclassified"][0]
+    assert d.payload["reasons"] == {"c1": "straddles_the_cut"}
+    assert res.report.unplaced == [{"entry_id": "r1:x_river@1-1", "rule_id": "", "piece": "c1",
+                                    "reason": "straddles_the_cut", "kind": "scope_unclassified"}]
+    with pytest.raises(StraddleGateError, match="c1"):
+        straddle_gate(res.diagnostics)

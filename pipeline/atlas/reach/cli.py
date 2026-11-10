@@ -102,6 +102,18 @@ def main() -> int:
         print(f"  scope unresolved: {len(r.scope_unresolved)} entr{'y' if len(r.scope_unresolved) == 1 else 'ies'}")
         for eid in r.scope_unresolved:
             print(f"{'!!' if held.get(eid) else '  '}   {eid}  ({held.get(eid, 0)} rule(s) held unresolved)")
+    if r.unplaced:
+        # T546 item 3: LOUD — each piece the reach could not place is withheld from its rule (never placed by
+        # a rule of thumb, AGENTS 12); a closure piece left out is water an angler is told is open
+        by_reason: dict[str, int] = {}
+        for x in r.unplaced:
+            by_reason[x["reason"]] = by_reason.get(x["reason"], 0) + 1
+        print(f"!! {len(r.unplaced)} piece(s) unplaced, withheld from their rule(s): "
+              + ", ".join(f"{k} {v}" for k, v in sorted(by_reason.items())))
+        for x in r.unplaced[:40]:
+            print(f"!!   {x['entry_id']} {x['rule_id'] or '(entry scope)'}  {x['piece']}  ({x['reason']})")
+        if len(r.unplaced) > 40:
+            print(f"!!   … {len(r.unplaced) - 40} more (report.json `unplaced`)")
     for k, v in sorted(r.outcomes.items()):
         print(f"  {k:<12} {v:,}")
     for k, v in sorted(r.reasons.items(), key=lambda kv: -kv[1]):

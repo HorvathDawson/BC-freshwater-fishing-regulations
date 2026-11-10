@@ -158,11 +158,15 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         # place, so a braid straddling the row's cut left EVERY rule of the row with no word said
         # — the Peace's side channels across the Site C reach were covered by none of its three
         # rows. Reported per entry (rule_id ""), never placed: the curator decides (AGENTS 12).
-        lost = scope_unclassified(e, covered, registry, graph, clip, resolved=scoped)
+        lost_why: dict[str, str] = {}
+        lost = scope_unclassified(e, covered, registry, graph, clip, resolved=scoped, why=lost_why)
         if lost:
+            # `reasons` (T546 item 3): the reach's typed words per piece, as a rule's `unclassified` carries
+            # them — without them the straddle gate could never see a piece lost at the entry's scope
             diagnostics.append(Diagnostic(entry_id, "", "scope_unclassified", {
-                "pieces": lost, "why": "the entry's scope straddles or cannot place these; "
-                                       "no rule of the entry binds them"}))
+                "pieces": lost, "reasons": {p: lost_why.get(p, "unknown") for p in lost},
+                "why": "the entry's scope straddles or cannot place these; "
+                       "no rule of the entry binds them"}))
 
         for rule in e.get("rules") or []:
             report.n_rules += 1
@@ -297,6 +301,7 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
             report.reasons[b.reason.value] = report.reasons.get(b.reason.value, 0) + 1
     for d in diagnostics:
         report.diagnostics[d.kind] = report.diagnostics.get(d.kind, 0) + 1
+    report.unplaced = unplaced_pieces(diagnostics)
     report.seconds = round(time.time() - t0, 1)
 
     # Totality (doc 10 ⑪ + ㊳): every rule appears exactly once. RuleBinding's own
@@ -1163,10 +1168,11 @@ def entry_scope(e: dict, covered: list[str], registry, graph, *, resolved=None):
 
 
 def scope_unclassified(e: dict, covered: list[str], registry, graph, clip, *,
-                       resolved=None) -> list[str]:
+                       resolved=None, why: dict | None = None) -> list[str]:
     """The pieces the entry's scope extents report as unplaceable (straddling), minus any its
     scope placed anyway — what `entry_scope` silently leaves out of every rule of the row.
-    `resolved`: `scope_resolutions` already made (the reach run passes the one `entry_scope` read)."""
+    `resolved`: `scope_resolutions` already made (the reach run passes the one `entry_scope` read).
+    `why`: a dict to fill with each piece's typed reason (`extent`'s `unclassified_why`)."""
     out: set[str] = set()
     pairs = resolved if resolved is not None else (
         (sc, None) for sc in e.get("extents") or [])
@@ -1177,7 +1183,29 @@ def scope_unclassified(e: dict, covered: list[str], registry, graph, clip, *,
             got = _resolve.resolve_extent(registry, graph, covered, sc)
         if got is not None:
             out |= set(got.get("unclassified") or ())
+            if why is not None:
+                for p, w in (got.get("unclassified_why") or {}).items():
+                    why.setdefault(p, w)
     return sorted(out - set(clip or ()))
+
+
+def unplaced_pieces(diagnostics) -> list[dict]:
+    """T546 item 3: EVERY PIECE THE RUN WITHHELD FROM A BINDING — one row per (entry, rule, piece) of an
+    `unclassified` (not included) or `scope_unclassified` diagnostic, with its typed reason. Written to
+    `report.json` (`unplaced`), printed by the CLI and counted by the binding diff, so a closure piece the
+    reach cannot place (Noons Creek, Seymour River below the cut) is never only a line in a diagnostics file."""
+    out = []
+    for d in diagnostics:
+        if d.kind not in ("unclassified", "scope_unclassified"):
+            continue
+        pay = d.payload or {}
+        if pay.get("included"):
+            continue
+        reasons = pay.get("reasons") or {}
+        for p in pay.get("pieces") or ():
+            out.append({"entry_id": d.entry_id, "rule_id": d.rule_id, "piece": p,
+                        "reason": reasons.get(p, "unknown"), "kind": d.kind})
+    return sorted(out, key=lambda x: (x["entry_id"], x["rule_id"], x["piece"]))
 
 
 def _row_water(ex: dict, matched=()) -> bool:
