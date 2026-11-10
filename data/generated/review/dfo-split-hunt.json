@@ -130,20 +130,6 @@
    ],
    "notes": "guess: the lagoon's outlet sits near the Robertson Creek mouth; not mapped."
   },
-  "allco_fence": {
-   "anchor": "sign",
-   "name": "Allco Park boundary signs (Allco hatchery fence)",
-   "lat": 49.247,
-   "lon": -122.5336,
-   "confidence": "medium",
-   "description": "the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end",
-   "sources": [
-    "https://www.openstreetmap.org/way/1154159739",
-    "https://www.openstreetmap.org/way/1154159759",
-    "https://www.openstreetmap.org/way/1057532557"
-   ],
-   "notes": "Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347."
-  },
   "birkenhead_bridge": {
    "anchor": "bridge",
    "name": "Birkenhead Bridge (Portage Road)",
@@ -816,7 +802,9 @@
    "op": "downstream_of",
    "ends": [
     {
-     "cut": "allco_fence"
+     "split": "alouette_river__alouette_boundary_signs",
+     "confidence": "high",
+     "note": "owner 2026-11-09: the curated Alouette boundary signs cut (49.2465,-122.53467, the synopsis' own point) IS the line of signs in Allco Park; the hunted hatchery-fence cut was not needed and is withdrawn"
     }
    ],
    "notes": "'downstream of a line between 2 signs in Allco Park'."
@@ -825,7 +813,9 @@
    "op": "downstream_of",
    "ends": [
     {
-     "cut": "allco_fence"
+     "split": "alouette_river__alouette_boundary_signs",
+     "confidence": "high",
+     "note": "owner 2026-11-09: the curated Alouette boundary signs cut (49.2465,-122.53467, the synopsis' own point) IS the line of signs in Allco Park; the hunted hatchery-fence cut was not needed and is withdrawn"
     }
    ],
    "notes": "'downstream of a line between two signs in Allco Park'."
@@ -837,7 +827,9 @@
      "auto": 0
     },
     {
-     "cut": "allco_fence"
+     "split": "alouette_river__alouette_boundary_signs",
+     "confidence": "high",
+     "note": "owner 2026-11-09: the curated Alouette boundary signs cut (49.2465,-122.53467, the synopsis' own point) IS the line of signs in Allco Park; the hunted hatchery-fence cut was not needed and is withdrawn"
     }
    ],
    "notes": "216th Street bridge (curated) up to the Allco Park signs."
