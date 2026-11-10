@@ -12,7 +12,7 @@
 // Private: inseason/latest.json (the snapshot), inseason/history/<stamp>.json (each changed snapshot).
 import { classOfStatus, SourceError } from "./health";
 import type { Fetch, Meter, Store } from "./io";
-import { contentHash, loadManifest, skipSameStore } from "./io";
+import { contentHash, loadManifest, readStored, skipSameStore } from "./io";
 import type { FeedEvent } from "./events";
 import { parseHtml, Str, Tag } from "./dfo/html";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
@@ -123,6 +123,9 @@ export interface InSeasonResult {
   first: boolean;
   diff: Diff | null;
   events: FeedEvent[];
+  /** (T558) with `holdSnapshot`: writes the new snapshot (latest.json + history). The caller runs it only once the
+   *  run's events are safely in the outbox, so a failed hand-over computes the same diff again next run */
+  save?: () => Promise<void>;
 }
 
 const SUSPECT = "suspect.json";
@@ -137,6 +140,8 @@ export async function runInSeason(deps: {
   now?: Date;
   html?: string;
   log?: (s: string) => void;
+  /** (T558) do not write the new snapshot: return it as `save` (the worker runs it after the outbox took the events) */
+  holdSnapshot?: boolean;
 }): Promise<InSeasonResult> {
   const log = deps.log ?? (() => {});
   const now = deps.now ?? new Date();
@@ -166,12 +171,9 @@ export async function runInSeason(deps: {
   if (collapsed.dups.length) log(`in-season: ${collapsed.dups.length} row(s) printed twice, collapsed`);
   dupEvents.push(...undatedEvent(rows, (deps.now ?? new Date()).toISOString()));
   const sha = contentHash(JSON.stringify(rows));
-  let prev: Snapshot | null = null;
-  try {
-    prev = JSON.parse((await deps.priv.get("latest.json")) ?? "null");
-  } catch {
-    prev = null;
-  }
+  // (T558) absent = the first run; a failed read fails the run (readStored): read as "no snapshot", the changes since the
+  // last one would be taken for a baseline and never told
+  const prev = await readStored<Snapshot>(deps.priv, "latest.json");
   // ROBUSTNESS (owner 2026-10-28): a page that reads as empty — or lost most of its rows at once — is a block page or a
   // redesign, not "everything was rescinded": nothing is written (the last good feed stands) and the run fails `parse`
   // (or `blocked` when the body says so). A real mass removal (the same non-empty reading SUSPECT_RUNS runs running) is
@@ -199,11 +201,14 @@ export async function runInSeason(deps: {
     log(`in-season: ${rows.length} rows in ${sections} sections, unchanged`);
     return { feed, rows: rows.length, sections, changed: false, first: false, diff: null, events: dupEvents };
   }
-  await deps.priv.put("latest.json", JSON.stringify(snap));
-  await deps.priv.put(`history/${now.toISOString().replace(/[-:]/g, "").slice(0, 15)}.json`, JSON.stringify(snap));
+  const save = async () => {
+    await deps.priv.put("latest.json", JSON.stringify(snap));
+    await deps.priv.put(`history/${now.toISOString().replace(/[-:]/g, "").slice(0, 15)}.json`, JSON.stringify(snap));
+  };
+  const held = deps.holdSnapshot ? { save } : (await save(), {});
   if (!prev) {
     log(`in-season: first snapshot, ${rows.length} rows in ${sections} sections (the baseline: nothing to tell)`);
-    return { feed, rows: rows.length, sections, changed: true, first: true, diff: null, events: dupEvents };
+    return { feed, rows: rows.length, sections, changed: true, first: true, diff: null, events: dupEvents, ...held };
   }
   const d = diff(prev.rows, rows);
   const n = d.added.length + d.changed.length + d.removed.length;
@@ -220,7 +225,7 @@ export async function runInSeason(deps: {
         },
       ]
     : [];
-  return { feed, rows: rows.length, sections, changed: true, first: false, diff: d, events: [...dupEvents, ...events] };
+  return { feed, rows: rows.length, sections, changed: true, first: false, diff: d, events: [...dupEvents, ...events], ...held };
 }
 
 /** (T486) rewritten at least this often though unchanged: UNDER the daily cron (14:45 UTC Nov–May), so each daily run

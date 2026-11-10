@@ -229,6 +229,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   const fetch_ = resilientFetch(meteredFetch(sourceFetch, m), health);
   const logs: string[] = [];
   const log = (s: string) => logs.push(s);
+  // (T558 W8) a step that failed inside a run that goes on: kept in the result AND printed (a cron prints nothing else)
+  const stepErrors: string[] = [];
+  const logErr = (s: string) => { logs.push(s); stepErrors.push(s); console.error(JSON.stringify({ job, stepError: s })); };
+  let saveInSeason: (() => Promise<void>) | undefined;
   const t0 = Date.now(); // Workers' clock advances only across I/O: this is wall time, not CPU (CPU: tail / observability)
   const started = new Date();
   const at = started.toISOString();
@@ -274,7 +278,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       summary.cards = { ok: cards.ok, listed: cards.listed, drawn: cards.drawn, unchanged: cards.unchanged, failed: cards.failed.length, ms: cards.ms, ...(cards.error ? { error: cards.error } : {}) };
       counts.cardsDrawn = cards.drawn;
       counts.cardsFailed = cards.failed.length + (cards.ok ? 0 : 1);
-      if (!cards.ok) log(`cards: not drawn (${cards.error})`);
+      if (!cards.ok) logErr(`cards: not drawn (${cards.error})`);
       // (T237) problem reports received since the last run: one digest line each (not urgent)
       try {
         const ns = await readState(r2Store(env.BUCKET, STATUS_PREFIX));
@@ -285,7 +289,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         // (T487) the card run's failures and the cards the site found missing (one line each, once)
         events.push(...(await cardEvents(env.BUCKET as unknown as CardBucket, cards, (k) => !!ns.told[k] || pend.has(k), at)));
       } catch (e) {
-        log(`reports: not read (${String(e)})`);
+        logErr(`reports: not read (${String(e)})`);
       }
       // owner 2026-10-29: a station the breaker skipped was never asked: not a failure, its last good entry is carried
       const skipped = (s.failed ?? []).filter((st) => health.failedUrls.get(HOURLY(st)) === "circuit");
@@ -348,7 +352,9 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         meter: m,
         now: started,
         log,
+        holdSnapshot: true,   // (T558) saved below, once the outbox has its events; a dry run saves nothing
       });
+      saveInSeason = s.save;
       counts = {
         rows: s.rows, sections: s.sections, pageChanged: s.changed ? 1 : 0,
         unmatched: s.feed?.unmatched ?? 0, new: s.feed?.new ?? 0, changed: s.feed?.changed ?? 0, removed: s.feed?.removed ?? 0,
@@ -366,25 +372,47 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     else summary = { ...summary, errorClass: classOfError(e) };
   }
   const wallMs = Date.now() - t0;
-  // the status (private/feeds/status.json) and the outbox — never fail the run
+  // (T558) the status (private/feeds/status.json) and the outbox. The status is written whatever the outbox does; a step
+  // that fails is printed and kept in the result (`stepErrors`), never only in a log no cron prints
+  const priv = r2Store(env.BUCKET, STATUS_PREFIX);
   let notify: unknown = null;
+  let st: Awaited<ReturnType<typeof readStatus>> | null = null;
   try {
-    const priv = r2Store(env.BUCKET, STATUS_PREFIX);
-    const st = await readStatus(priv);
-    // a source that answered nothing usable this run (and is not expected to): the feed published without it → degraded
-    for (const [n, r] of Object.entries(health.sources))
-      if (r.ok === 0 && r.fail > 0 && !held.some((h) => h.where === `source ${n}`))
-        held.push({ where: `source ${n}`, why: `nothing usable this run (${fmtErrors(r.errors)}); last good data kept` });
-    const alerts = record(st, job, { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources }, new Date());
-    const down = recordHealth(st, job, health, at);
-    if (!opts.dryNotify) for (const a of alerts) st.feeds[a.job]!.announced = a.to; // the outbox retries a failed send
-    events.push(...healthEvents(alerts, at), ...sourceDownEvents(job, down, st, at));
-    notify = await deliver(events, { store: r2Store(env.BUCKET, STATUS_PREFIX), config: notifyConfig(env), fetch, now: new Date(), dryRun: opts.dryNotify, log });
-    await priv.put(STATUS_KEY, JSON.stringify(st), { contentType: "application/json", cacheControl: "no-store" });
+    st = await readStatus(priv);
   } catch (e) {
-    log(`status/notify: not written (${String(e)})`);
+    logErr(`status: not read, so not written (${String((e as Error)?.message ?? e)})`);
   }
-  return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, log: logs.slice(-40) };
+  // a source that answered nothing usable this run (and is not expected to): the feed published without it → degraded
+  for (const [n, r] of Object.entries(health.sources))
+    if (r.ok === 0 && r.fail > 0 && !held.some((h) => h.where === `source ${n}`))
+      held.push({ where: `source ${n}`, why: `nothing usable this run (${fmtErrors(r.errors)}); last good data kept` });
+  let alerts: Alert[] = [];
+  if (st) {
+    alerts = record(st, job, { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources }, new Date());
+    const down = recordHealth(st, job, health, at);
+    events.push(...healthEvents(alerts, at), ...sourceDownEvents(job, down, st, at));
+  }
+  let queued = false;
+  try {
+    notify = await deliver(events, { store: priv, config: notifyConfig(env), fetch, now: new Date(), dryRun: opts.dryNotify, log });
+    queued = !opts.dryNotify;
+  } catch (e) {
+    logErr(`notify: the outbox could not take this run's ${events.length} message(s) (${String((e as Error)?.message ?? e)}); they are raised again next run`);
+  }
+  // (T558) the in-season snapshot moves on only once its diff is in the outbox: otherwise the next run computes it again
+  if (saveInSeason && queued) {
+    try { await saveInSeason(); } catch (e) { logErr(`in-season: snapshot not saved (${String((e as Error)?.message ?? e)}); the same diff is told again next run`); }
+  }
+  if (st) {
+    // an alert counts as announced only once the outbox has it (sent, or queued and retried)
+    if (queued) for (const a of alerts) st.feeds[a.job]!.announced = a.to;
+    try {
+      await priv.put(STATUS_KEY, JSON.stringify(st), { contentType: "application/json", cacheControl: "no-store" });
+    } catch (e) {
+      logErr(`status: not written (${String((e as Error)?.message ?? e)})`);
+    }
+  }
+  return { job, ok: error === null, error, wallMs, meter: m, sources: health.sources, failingParts: Object.keys(health.parts).length, summary, notify, stepErrors, log: logs.slice(-40) };
 }
 
 /** what a DFO run left held: whole regions (page / structure), stale regions (fetch failed), single places */
@@ -654,7 +682,11 @@ export default {
     if (job === "backup") { ctx.waitUntil(Promise.allSettled([backup(env), purge(env)])); return; }
     if (job === "skill") { ctx.waitUntil(skill(env)); return; }
     if (job === "runtiming") { ctx.waitUntil(runTimingCheck(env)); return; }
-    ctx.waitUntil(run(job, env).then((r) => console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter }))));
+    // (T558 W8) a failed run prints its error and the tail of its log (the step errors were printed as they happened)
+    ctx.waitUntil(run(job, env).then((r) => {
+      console.log(JSON.stringify({ job, ok: r.ok, wallMs: r.wallMs, meter: r.meter, stepErrors: r.stepErrors.length }));
+      if (!r.ok) console.error(JSON.stringify({ job, error: r.error, log: r.log.slice(-10) }));
+    }));
   },
 };
 export { JOBS };
