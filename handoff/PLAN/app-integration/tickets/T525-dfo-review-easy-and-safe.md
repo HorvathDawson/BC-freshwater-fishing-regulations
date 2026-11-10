@@ -1,6 +1,8 @@
 # T525 — The DFO review screen is easy to follow and hard to get wrong
 
-Status: IN REVIEW — 6dad1d118, 75b1d2834 (round 3); owner: OWNER-TODO "Review app: start the DFO reviews" (restart it and look).
+Status: DONE — 6dad1d118, 75b1d2834; the checklist (T532) is the review screen now, owner look is on T532 (2026-11-09 audit)
+
+Was: IN REVIEW — 6dad1d118, 75b1d2834 (round 3); owner: OWNER-TODO "Review app: start the DFO reviews" (restart it and look).
 Earlier: IN REVIEW — owner restarts the review app and looks
 
 Owner 2026-11-09: "make app easier to review too right now the info is really hard to follow and extents already

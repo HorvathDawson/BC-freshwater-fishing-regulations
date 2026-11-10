@@ -1,6 +1,8 @@
 # T322 — Fold the owner-confirmed slough/canal polygons into their streams (own side build + mechanical binding gate)
 
-Status: PARTIAL — code done; fold ON since 9ee36a5f1 (2026-11-03), 1st side build (data/generated/side/t322) STOPPED at the gate: an Okanagan River Oxbow (wbk 329460316) folded into Park Rill and spread the oxbows' spring-closure exemption (8 sections). Owner 11-03: keep it its own water -> efe94fb (a water of another name is never absorbed). 2nd side build RUNNING into data/generated/side/t322b (log data/generated/side/t322b.log; t322/ refused a rebuild because live tiles share its handle digest). (762586d4d, c31772b77, a4ce0f996). Split out of T55
+Status: DONE — c3eb2b63f, 033cfb90b; fold on and promoted (r-4df5bccc9360); closed by the 2026-11-09 ticket audit
+
+Was: PARTIAL — code done; fold ON since 9ee36a5f1 (2026-11-03), 1st side build (data/generated/side/t322) STOPPED at the gate: an Okanagan River Oxbow (wbk 329460316) folded into Park Rill and spread the oxbows' spring-closure exemption (8 sections). Owner 11-03: keep it its own water -> efe94fb (a water of another name is never absorbed). 2nd side build RUNNING into data/generated/side/t322b (log data/generated/side/t322b.log; t322/ refused a rebuild because live tiles share its handle digest). (762586d4d, c31772b77, a4ce0f996). Split out of T55
 (measurements in T55 "Fold: what is needed", 675265492).
 
 ## Rule (owner 2026-10-30, corrected twice)

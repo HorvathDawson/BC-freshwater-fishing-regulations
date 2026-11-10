@@ -1,6 +1,8 @@
 # T529 — /changes compares a water's rules, not its parts (staging site is down until this lands)
 
-Status: IN REVIEW — 6dd5ff5e8; staging site serves 0.7.0 (site_gate ok, 2026-11-09); left (Claude): the site smoke + `release --staging --min-app-version 0.7.0` rerun.
+Status: DONE — 6dd5ff5e8; site smoke 18/18 and release --staging rerun done (r-a178299f6005)
+
+Was: IN REVIEW — 6dd5ff5e8; staging site serves 0.7.0 (site_gate ok, 2026-11-09); left (Claude): the site smoke + `release --staging --min-app-version 0.7.0` rerun.
 Earlier: OPEN — ship-blocker for the staging site (do first)
 
 ## What broke (2026-11-09)

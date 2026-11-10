@@ -1,6 +1,8 @@
 # T198 — SEO hosting redirect and measurement setup
 
-Status: BLOCKED (owner; merged into T409, 2026-11-05 audit) — was: BLOCKED (owner) — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); all code/config done (host worker, prod wrangler, HSTS, 301s, measurement checklist seo/MEASURE.md); left: owner steps in OWNER-TODO (www.canifishthis.ca rule drops the path, Search Console/Bing, prod deploy).
+Status: DROPPED — merged into T404 (PRODUCTION.md runbook holds the owner steps); code done 21a2d17ff, b1a5c7fa8 (2026-11-09 audit)
+
+Was: BLOCKED (owner; merged into T409, 2026-11-05 audit) — was: BLOCKED (owner) — 21a2d17ff, b1a5c7fa8 (+ 1c4dd582, 435ce2d8); all code/config done (host worker, prod wrangler, HSTS, 301s, measurement checklist seo/MEASURE.md); left: owner steps in OWNER-TODO (www.canifishthis.ca rule drops the path, Search Console/Bing, prod deploy).
 
 Source: T188 plan, handoff/PLAN/seo/PLAN.md sections 2, 4 and 8.
 ## Work

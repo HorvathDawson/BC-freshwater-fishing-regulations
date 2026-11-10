@@ -6,6 +6,9 @@ Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, ever
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.
 
+## Owner 2026-11-09 (Q179)
+"sure": shorten / purge the backups to match the privacy page. Owner: no.
+
 ## Today
 ### 1. Backups keep problem reports (with emails) and crash records long after the privacy page says they are deleted
 Severity 3, divergence, confirmed; area gaps.

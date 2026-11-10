@@ -6,6 +6,9 @@ Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, ever
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.
 
+## Owner 2026-11-09 (Q180)
+"dfo surveys are just in addition to psf curve. psf is primary." So the fix for the old-survey item is not an age limit: the PSF curve is always the primary curve; a DFO survey is shown in addition and never replaces it (change the replace rule in bind.py, record in decisions.md). Owner: no.
+
 ## Today
 ### 1. Run-timing build has no floor check: an upstream column or page change can publish an empty or collapsed feed
 Severity 4, missing-check, confirmed, reaches an angler; area forecast-runtiming.

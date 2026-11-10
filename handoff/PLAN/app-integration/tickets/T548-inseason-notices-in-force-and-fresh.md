@@ -6,6 +6,9 @@ Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, ever
 
 Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.
 
+## Owner 2026-11-09 (Q178)
+"not right now": a posted closure does not change status or the main-map colour (as built). That item is out of scope here; the rest stands. Owner: no.
+
 ## Today
 ### 1. A notice with one printed seasonal window is hidden after that window's first year, while it is still in force
 Severity 5, wrong-or-missing-data, confirmed, reaches an angler; area inseason.
