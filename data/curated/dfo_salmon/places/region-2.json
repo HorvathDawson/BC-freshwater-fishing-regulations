@@ -3276,7 +3276,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "stave_river__hayward_lake",
+              "stave_river__cpr_bridge_tidal_boundary"
+            ],
+            "item_id": "gnis:14589"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
