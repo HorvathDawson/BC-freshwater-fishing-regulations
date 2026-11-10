@@ -55,3 +55,12 @@ def test_publish_plan_does_not_stamp(tmp_path, monkeypatch):
     monkeypatch.setattr(PUB, "GENERATED", type("G", (), {"release": tmp_path})())
     assert PUB.main(["--release", str(r), "--min-app-version", "0.2.0"]) == 0
     assert "published" not in json.loads((r / "manifest.json").read_text())
+
+
+def test_t551_publish_day_is_the_bc_day():
+    """23:30 PT on Nov 9 is 06:30Z on Nov 10: the stamp reads the B.C. day, as the app's clock does (UTC-7 all year)."""
+    import datetime as dt
+    from pipeline.deliver.release.stamp import bc_today
+    utc = dt.timezone.utc
+    assert bc_today(dt.datetime(2026, 11, 10, 6, 30, tzinfo=utc)) == dt.date(2026, 11, 9)
+    assert bc_today(dt.datetime(2026, 11, 10, 7, 0, tzinfo=utc)) == dt.date(2026, 11, 10)

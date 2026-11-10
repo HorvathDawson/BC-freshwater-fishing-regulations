@@ -89,10 +89,9 @@ def main(argv=None) -> int:
     if release is None:
         raise SystemExit(f"publish: no release under {root} — python -m pipeline.deliver release")
     if a.yes:                                    # T251: the publish day (and the app gate) stamped, never by the build
-        import datetime as dt
-        from pipeline.deliver.release.stamp import stamp_file
+        from pipeline.deliver.release.stamp import bc_today, stamp_file
         kw = {} if a.min_app_version is None else {"min_app_version": a.min_app_version}
-        stamp_file(Path(release) / "manifest.json", today=dt.datetime.now(dt.timezone.utc).date(), **kw)
+        stamp_file(Path(release) / "manifest.json", today=bc_today(), **kw)
     puts = plan(Path(release), root)
     for p in puts:
         print(f"{'PUT ' if a.yes else 'plan'} {p.key}  ({p.path.stat().st_size:,} B, {p.cache}"

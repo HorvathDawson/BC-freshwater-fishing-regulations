@@ -22,6 +22,15 @@ import json
 import re
 from pathlib import Path
 
+# (T551) B.C. is on permanent daylight time, UTC-7 all year from 2026-03-08 (the app's clock.ts says the same)
+BC_UTC_OFFSET = dt.timezone(dt.timedelta(hours=-7))
+
+
+def bc_today(now: dt.datetime | None = None) -> dt.date:
+    """The B.C. day of an instant (default: now): the day the app's "Regulations as of" and every other day is on."""
+    return (now or dt.datetime.now(dt.timezone.utc)).astimezone(BC_UTC_OFFSET).date()
+
+
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
 _UNSET = object()
 
@@ -54,10 +63,10 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("manifest", type=Path)
     ap.add_argument("--min-app-version", default=None)
-    ap.add_argument("--today", default=None, help="ISO day (default: today, UTC)")
+    ap.add_argument("--today", default=None, help="ISO day (default: today, B.C. clock)")
     ap.add_argument("--restamp", action="store_true", help="set published to today even when already set")
     a = ap.parse_args(argv)
-    today = dt.date.fromisoformat(a.today) if a.today else dt.datetime.now(dt.timezone.utc).date()
+    today = dt.date.fromisoformat(a.today) if a.today else bc_today()
     kw = {} if a.min_app_version is None else {"min_app_version": a.min_app_version}
     out = stamp_file(a.manifest, today=today, restamp=a.restamp, **kw)
     print(f"stamped {a.manifest}: published {out['published']}"
