@@ -21,6 +21,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.3", date: "2026-11-10", notes: [
+      "Gauge standings read in plain words: 'lower than 8 days in 10' instead of a percentile",
+      "Flow leads: one gauge per river and day is chosen in flow, and Level never switches it; a gauge that reports only level says so",
+      "The gauge map stays above the chart when you switch between Flow and Level",
+      "Conditions and the map say which day they show; the app opens on today",
+      "Report a problem from a water's Conditions or Map, already filled with the gauge and chart you were looking at",
+    ],
+  },
+  {
     version: "0.7.2", date: "2026-11-09", notes: [
       "Each calendar sits with its own fish: salmon under DFO, the rest under B.C. rules",
       "Calendar legends are easier to read",
