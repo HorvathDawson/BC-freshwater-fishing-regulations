@@ -212,7 +212,8 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                 It has no stretch of its own. It applies to {preview.others.length} placed place{preview.others.length === 1 ? "" : "s"} of this water right now
                 {preview.others.length ? ": " + preview.others.map((o) => `“${o.text.slice(0, 70)}” (${o.extent})`).join("; ") : ""}.
                 {preview.others_unplaced?.length ? ` Not included until placed: ${preview.others_unplaced.map((o) => `“${o.text.slice(0, 60)}”`).join("; ")}.` : ""}
-                {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.</span>}
+                {" "}A place placed later joins by itself; it is never taken out of “the rest of the water”.
+                {preview.one_sibling && <span className="warn-text" style={{ display: "block" }} data-testid="fix-one-sibling">{preview.one_sibling}</span>}</span>}
               {preview.dead_pieces?.length ? <span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
                 {" "}· piece {preview.dead_pieces.join(", ")} binds NOTHING alone — the build refuses it.
                 {(preview.dead_why ?? []).map((w, i) => <span key={i} style={{ display: "block" }} data-testid="fix-dead-why">{w}</span>)}</span> : null}

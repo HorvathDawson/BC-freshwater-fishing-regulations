@@ -756,6 +756,9 @@ def detail(location_id: str) -> dict | None:
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
         "withdrawn": withdrawn_on(list((water or {}).get("item_ids") or [])),
+        # T607: a place saved as "all the other placed places on this water" — which places that is right now
+        "other_places": (other_places_of(loc) if any(e.get("op") == "other_places"
+                                                     for e in (loc.get("binding") or {}).get("extents") or []) else None),
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
         "closure": closure_view(location_id),
         "fix_vs_current": (fvc := fix_vs_current(m, loc, water)), "saved": saved_status(m, fvc),
@@ -1119,7 +1122,15 @@ def other_places_of(loc: dict) -> dict:
             placed.append({"id": lid, "text": text, "extent": ", ".join(M_OP_WORDS(e.get("op")) for e in ex)})
         elif (l.get("status") or "active") == "active":
             unplaced.append({"id": lid, "text": text})
-    return {"others": placed, "others_unplaced": unplaced}
+    out = {"others": placed, "others_unplaced": unplaced}
+    if len(placed) == 1:
+        # T611: with ONE placed sibling the two cover the same sections and the salmon chain's order falls to the
+        # location id (`deliver.salmon.chain_order`) — this place could answer before the place it rides on
+        out["one_sibling"] = ("Only one other place of this water is placed. Until ticket T611 is done, this place and "
+                              f"“{placed[0]['text'][:70]}” cover the same water and which one answers first is "
+                              "decided by their ids, not by which is the named place: where that place closes, this "
+                              "one could read as open. Safe once a second place is placed, or T611 lands.")
+    return out
 
 
 def M_OP_WORDS(op) -> str:

@@ -961,6 +961,8 @@ export interface ExtentPreview {
   /** T607 (op other_places): the places it applies to right now, and the water's places with no extent yet */
   others?: { id: string; text: string; extent: string }[];
   others_unplaced?: { id: string; text: string }[];
+  /** T611: exactly one placed sibling — the chain's order between the two is by id; the warning, in words */
+  one_sibling?: string;
   resolvable: boolean;
   why: string | null;
   n_sections: number | null;
@@ -1437,6 +1439,9 @@ export interface DfoDetail {
   /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */
   fix_proposal?: DfoFixProposal | null;
   fix_vs_current?: FixVsCurrent | null;
+  /** T607: the place is saved as "all the other placed places on this water": which places that is right now */
+  other_places?: { others: { id: string; text: string; extent: string }[]; others_unplaced: { id: string; text: string }[];
+                   one_sibling?: string } | null;
   /** T589: cut proposals on this water the owner took back (`proposal_overrides.json`, `withdrawn`): listed, never offered */
   withdrawn?: { id: string; name: string; why: string; by: string; date: string }[];
   /** T573: ENTRY B of this DFO row — the closure derived from its exclusion list, a proposal (`dfo.closure_view`) */

@@ -528,6 +528,16 @@ def fixes_of_extents(extents: Iterable[Mapping], tributaries: Optional[bool]) ->
     return ([], why) if why else (fixes, [])
 
 
+def grouping_note(m) -> str:
+    """the note a "same place" mark leaves on the place: his own words and the date, else that he confirmed it, when,
+    and which mark (12 hex of the mark's stored line, `recheck.mark_digest`)"""
+    from pipeline.regs.review import recheck as RC
+    said = " ".join((m.note or "").split())
+    if said:
+        return f"{said} — owner confirmed same place {m.date}"
+    return f"owner confirmed same place, {m.date}, mark {RC.mark_digest(m)}"
+
+
 def _variant_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
     """A DFO wording ATTACHED AS A VARIANT (owner 2026-11-02): the target's `duplicate_of` set to the
     place it rewords, confirmed — the entry model's own variant link (`EntryLocation.is_variant`)."""
@@ -549,6 +559,15 @@ def _variant_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
             if before != val:
                 edits.append({"file": _rel(path), "kind": "dfo_loc", "location_id": m.target,
                               "scope": "entry", "field": fld, "before": before, "after": val})
+        # WHY IT IS THE SAME PLACE, ON THE PLACE (T610): a confirmed grouping carries its reasoning in the binding's
+        # notes ("an exemption that carries no reasoning is indistinguishable from a mistake",
+        # `test_a_curator_confirmed_grouping_records_why_it_crossed_an_op`) — the grouping apply wrote the link and
+        # no note (the owner's Serpentine link, 2026-11-10). The note is the owner's own, from his mark; with none,
+        # that he confirmed it, when, and on which mark. Written once: a place that has a note keeps it.
+        b = loc.get("binding") or {}
+        if not problems and not (b.get("notes") or []):
+            edits.append({"file": _rel(path), "kind": "dfo", "location_id": m.target, "scope": "entry",
+                          "field": "notes", "before": b.get("notes", _MISSING), "after": [grouping_note(m)]})
     return {"id": pid + "-variant", "kind": "extent", "target": m.target, "scope": m.scope,
             "rule_id": None, "title": f"{m.target}: a wording of {m.variant_of} (variant)",
             "marks": [who], "edits": edits, "depends_on": [], "problems": problems,

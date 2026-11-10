@@ -630,7 +630,9 @@ def test_taking_a_wording_out_of_its_group_and_adding_it_back_lands_both_ways(wt
     doc = json.loads(f.read_text())
     base = next(x for x in doc["locations"] if x["location_id"] == COWICHAN)
     other = COWICHAN + "~9"
-    doc["locations"].append({**base, "location_id": other, "duplicate_of": COWICHAN, "duplicate_confirmed": True})
+    # a confirmed grouping carries its why (T610): the start state has its note, so there-and-back adds none
+    doc["locations"].append({**base, "location_id": other, "duplicate_of": COWICHAN, "duplicate_confirmed": True,
+                             "binding": {**base["binding"], "extents": [], "notes": ["DFO reworded it; owner confirmed"]}})
     f.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
     _git(wt["repo"], "commit", "-qm", "an older wording, linked", "--", str(f))
     start, commits = f.read_bytes(), len(_git(wt["repo"], "log", "--format=%s").splitlines())
@@ -669,3 +671,30 @@ def test_a_place_saved_as_all_the_other_places_lands_as_that_kind(wt):
     loc = next(x for x in json.loads((wt["repo"] / "data/curated/dfo_salmon/region-1.json").read_text())["locations"]
                if x["location_id"] == COWICHAN)
     assert loc["binding"]["extents"] == [{"op": "other_places"}]
+
+
+def test_a_same_place_save_writes_why_on_the_place(wt):
+    """T610: the grouping apply wrote the link and NO note, and `test_a_curator_confirmed_grouping_records_why_it_
+    crossed_an_op` failed on the owner's Serpentine link. The note is his own (the mark's), else that he confirmed
+    it, when, and on which mark; a place that already has a note keeps it."""
+    from pipeline.regs.review import recheck as RC
+    f = wt["repo"] / "data/curated/dfo_salmon/region-1.json"
+    doc = json.loads(f.read_text())
+    base = next(x for x in doc["locations"] if x["location_id"] == COWICHAN)
+    blank = {**base["binding"], "extents": [], "notes": []}
+    a, b = COWICHAN + "~7", COWICHAN + "~8"
+    doc["locations"] += [{**base, "location_id": a, "binding": blank}, {**base, "location_id": b, "binding": blank}]
+    f.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+    _git(wt["repo"], "commit", "-qm", "two more wordings", "--", str(f))
+    said = _grouping(a, variant_of=COWICHAN).model_copy(update={"note": "DFO dropped the park's name"})
+    bare = _grouping(b, variant_of=COWICHAN)
+    for m in (said, bare):
+        r = _post_built(wt, m, variant_of=COWICHAN, verdict="verified")
+        assert r.status_code == 200, r.text
+        assert wt["WT"].wait_idle(30)
+    got = {x["location_id"]: x for x in json.loads(f.read_text())["locations"]}
+    assert got[a]["duplicate_confirmed"] is True and got[a]["binding"]["notes"] == [
+        "DFO dropped the park's name — owner confirmed same place 2026-11-10"]
+    assert got[b]["binding"]["notes"] == [f"owner confirmed same place, 2026-11-10, mark {RC.mark_digest(bare)}"]
+    st = wt["client"].get("/api/review/write-through").json()
+    assert all(st["outcomes"][f"dfo|{t}|"]["state"] == "saved" for t in (a, b)), st["outcomes"]

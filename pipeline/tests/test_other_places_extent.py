@@ -186,3 +186,28 @@ def test_the_checklist_reads_the_list(monkeypatch, tmp_path):
     assert B.recheck_of("dfo", "x:place", old) == {"reason": "why", "by": "owner", "date": "2026-11-10"}
     assert B.recheck_of("dfo", "x:place", new) is None and B.recheck_of("dfo", "x:place", None) is None
     assert "stale" not in B.DONE_STATES, "a listed place is given the not-done state `stale` (`checks.dfo_rows`)"
+
+
+def test_the_review_app_names_the_places_it_covers_and_warns_when_there_is_only_one(monkeypatch):
+    """T611: with exactly ONE placed sibling the salmon chain orders the two by id (`deliver.salmon.chain_order`: tier,
+    fewer sections, id) — the app says so on the place, naming the ticket, until the chain has the rule"""
+    import sys
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    sys.modules.pop("dfo", None)
+    import dfo as BD
+    sys.modules.pop("dfo", None)
+
+    def loc(i, extents, status="active"):
+        return ("1", {"location_id": f"x:{i}", "water_id": "x", "status": status, "binding": {"extents": extents},
+                      "source_text": {"specific_area": f"words of {i}"}}, None)
+    me = loc("open", [{"op": "other_places"}])[1]
+    world = dict([("x:open", loc("open", [{"op": "other_places"}])), ("x:a", loc("a", [{"op": "whole"}])),
+                  ("x:b", loc("b", [])), ("x:gone", loc("gone", [], "dormant")),
+                  ("y:z", ("1", {"location_id": "y:z", "water_id": "y", "binding": {"extents": [{"op": "whole"}]}}, None))])
+    monkeypatch.setattr(BD, "_locations", lambda: world)
+    got = BD.other_places_of(me)
+    assert [o["id"] for o in got["others"]] == ["x:a"] and [o["id"] for o in got["others_unplaced"]] == ["x:b"]
+    assert "T611" in got["one_sibling"] and "words of a" in got["one_sibling"]
+    world["x:c"] = loc("c", [{"op": "rest"}])
+    got = BD.other_places_of(me)
+    assert [o["id"] for o in got["others"]] == ["x:a", "x:c"] and "one_sibling" not in got
