@@ -589,6 +589,23 @@ use that as the sole source of future work."
 | T542 | Emulator suites wait on conditions; static check that every id and label a step uses exists | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 10; after T534 |
 | T543 | CI: constraints.txt on every install, timeouts, cancel superseded runs, app-ci paths cover the parity tests | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 11 |
 | T544 | Staging site deploy is one command; the site names the release it was built on and the smoke compares it | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 12 |
+| T545 | Review marks: every mark in force lands in its curated file or the save says it did not | OPEN | — | data pipeline review 2026-11-09 (verified); rank 1, severity 3, 7 findings |
+| T546 | Reach run: a curated id, scope or closure piece that cannot be placed stops the run or is counted by the release check | OPEN | — | data pipeline review 2026-11-09 (verified); rank 2, severity 3, 8 findings |
+| T547 | Atlas records the curated inputs it was built from; a release refuses an atlas older than its cuts, names or areas | OPEN | — | data pipeline review 2026-11-09 (verified); rank 3, severity 3, 5 findings |
+| T548 | In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it | OPEN | — | data pipeline review 2026-11-09 (verified); rank 4, severity 5, 10 findings |
+| T549 | DFO salmon: feed and release agree on the location set; a place the app cannot show is said, never dropped | OPEN | — | data pipeline review 2026-11-09 (verified); rank 5, severity 4, 11 findings |
+| T550 | Gauges: a reading's age gates its rank, level percentiles survive datum shifts, one day for the percentile | OPEN | — | data pipeline review 2026-11-09 (verified); rank 6, severity 4, 6 findings |
+| T551 | "Today" rolls over at midnight B.C. time everywhere, from one clock; site pages do not print a stale day | OPEN | — | data pipeline review 2026-11-09 (verified); rank 7, severity 4, 8 findings |
+| T552 | Run timing and forecasts: floor checks, error bodies read as errors, a new NuSEDS really rebuilds, age rule for old surveys | OPEN | — | data pipeline review 2026-11-09 (verified); rank 8, severity 4, 8 findings |
+| T553 | Base rules pinned to the printed book: zone/provincial quota numbers, row text equals the extraction, missing rows noticed | OPEN | — | data pipeline review 2026-11-09 (verified); rank 9, severity 4, 7 findings |
+| T554 | Gauge alerts say when their gauge is silent; alert rules stored safely; one writer for the HYDAT envelope | OPEN | — | data pipeline review 2026-11-09 (verified); rank 10, severity 3, 5 findings |
+| T555 | Update service: a refused release never reads "Updated"; one byte count; every format bump is gated; saved ids follow aliases | OPEN | — | data pipeline review 2026-11-09 (verified); rank 11, severity 3, 5 findings |
+| T556 | Python and TypeScript copies of one rule are pinned by shared fixtures: DFO parser + fingerprint, feed formats; parity tests never skip silently | OPEN | — | data pipeline review 2026-11-09 (verified); rank 12, severity 3, 4 findings |
+| T557 | One gauge publisher (the worker); the gauge feed carries a format version the app checks | OPEN | — | data pipeline review 2026-11-09 (verified); rank 13, severity 3, 4 findings |
+| T558 | Feeds worker: a failed state read is not written back empty; the owner hears when crons, backup or email stop; queued reports are not lost | OPEN | — | data pipeline review 2026-11-09 (verified); rank 14, severity 3, 8 findings |
+| T559 | Privacy: backups and rate-limit records are deleted when the privacy page says they are | OPEN | — | data pipeline review 2026-11-09 (verified); rank 15, severity 3, 2 findings |
+| T560 | One home for shared helpers: id slug, name key, live release reader, atomic write, cut tolerances | OPEN | — | data pipeline review 2026-11-09 (verified); rank 16, severity 2, 8 findings |
+| T561 | Static layers: real source dates, no-access overlap, OSM fetch checks; pipeline docs match the code | OPEN | — | data pipeline review 2026-11-09 (verified); rank 17, severity 2, 8 findings |
 
 ## Order for open tickets
 
@@ -658,6 +675,9 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 | Q176 | T470 | WCAG 1.4.11 (3:1 on the ground): light and colour-blind own / base / missing lines are 1.8–2.0:1 on the light basemap, and recolouring cannot reach 3:1 without undoing T47 (closed vs own). Add a casing (a darker edge under each stream / lake outline, same hue), at a frame cost and a visible change? | no casing; the under-3:1 marks stay recorded in tools/map-contrast.test.ts | owner |
 | Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
+| Q178 | T548 | A posted in-season closure never changes a water's status or main-map colour (T230/T472 as built; the page banner and page map do show it). Should it? | no — as built | owner |
+| Q179 | T559 | Backups keep reports + crash records past the privacy page's promise: shorten the backups to match the page, or change the page? | shorten / purge the backups | owner |
+| Q180 | T552 | DFO surveys replace the PSF spawning curve "where better" (owner 10-24) with no age limit (Hoy Creek: 1996–2012). Add an age limit? | yes — a DFO series whose last year is over 15 years old does not replace PSF | owner |
 
 ### Answered (recently, for the record)
 - Q170 — owner 2026-11-07: B ("Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom"); built in T470, the order × zoom fade is one block (`fadeByOrder`).

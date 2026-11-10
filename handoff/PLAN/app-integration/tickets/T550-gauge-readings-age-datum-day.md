@@ -1,0 +1,58 @@
+# T550 — Gauges: a reading's age gates its rank, level percentiles survive datum shifts, one day for the percentile
+
+Status: OPEN.
+
+Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 6 of 17; highest severity 4 of 5.
+
+Line numbers are the reviewers' and may be off by a few; "Second opinion" is what the verifier corrected. Fixes are proposals: re-read the code before building.
+
+## Today
+### 1. A reading days old is ranked and counted as today's: nothing gates on the reading's own age, and the worker's `stale` flag is never read
+Severity 4, wrong-or-missing-data, confirmed, reaches an angler; area gauges-hydat.
+- Evidence: app/packages/core/src/conditions.ts:362-368 `donorState` returns `reads` whenever `percentile !== null`; `observedAt` is only looked at when the percentile is null. app/packages/data/src/panel.ts:197-212 `reading()` and :262-284 weigh the row with no age test. The worker carries a failed station's last entry for up to 3 days with `stale: true, staleSince` (app/workers/feeds/src/gauges/publish.ts:447, 1016-1023), but no app file reads `stale`/`staleSince` (grep of core, data, ui, map: none; the Index types in feed/http.ts:67 and panel.ts:167 do not declare them). Freshness is judged on the index's `fetchedAt` (core/freshness.ts:22-30), not the reading. The worker has no reading-age watchdog either (index.ts counts answered/failed only), which is how T513 ran unnoticed.
+- Example: Staging index 2026-11-10T02:05Z: 08HB022 (Nile Creek near Bowser) observedAt 2026-11-08T04:40-08:00 (37 h old), percentile 0.95, no stale flag. Also 08KE016 (19 h) and 08NM240 (21 h). All three count as today's reading.
+- Second opinion: Not fully hidden: the gauge's own reading line prints `observed <time>` (core/freshness.ts:62-70, ui/src/panel/conditions.ts:185). But a counted donor's last-report line is suppressed (ui/src/panel/donor.ts:306) and nothing changes the answer, weight or map colour. Alerts already have their own 6 h gate (core/alerts.ts:78,147), so a second age rule exists that the fix should reuse. I did not fetch staging, so the three staging station ids are unverified; the local index shows the same pattern.
+- Proposed fix: One age rule in core (for example a reading older than 6 h is not `reads`; it becomes `quiet` with its last-report line), used by donorState, the map and the share card. Read the worker's `stale` flag. Add a worker health count of entries older than N hours, degraded past a share.
+
+### 2. Level percentiles pool HYDAT levels across datum or gauge shifts with no check, so the Level ranking is wrong at some stations
+Severity 4, wrong-or-missing-data, confirmed, reaches an angler; area gauges-hydat.
+- Evidence: pipeline/gauges/feed/climatology.py:205-232 pools every DLY_LEVELS value of a station into one envelope. Nothing in pipeline/gauges reads HYDAT's datum tables (grep for `datum` finds only a comment in shed.py:326). The worker ranks the live level against that envelope (app/workers/feeds/src/gauges/publish.ts:936-940). HYDAT 20261019 queried read-only: 08HD006 November mean level is 3.3-3.9 m for 2011-2014 and 6.6-7.9 m for 2015-2024 at similar flows (116 m3/s at 3.88 m in 2014; 122 m3/s at 7.35 m in 2020), a step of about 3.5 m.
+- Example: Staging index 2026-11-10: 08HD006 (Salmon River near Sayward) level percentile 0.05 ("bottom tenth") while its flow percentile is 0.79 at the same instant. 15 of 298 stations with both differ by 0.5 or more (08CE005 0.05 vs 0.87 on a 3-year level record; 08MH153 0.84 vs 0.05; 08LB024 0.84 vs 0.05).
+- Second opinion: The step is real, but the proposed 'use HYDAT datum tables' fix would miss it: STN_DATUM_CONVERSION has no row for 08HD006, so a step detector is needed. 08HD006's live level ranks at the BOTTOM although the recent record is the high one, so the live feed's level is likely on a different datum from recent HYDAT as well; that is a second cause (live vs archive datum), not only pooling. 08MH153 shows no step in HYDAT, so its mismatch is not explained by this finding. '119 stations default to level' is unverified: the local Oct 28 index has 71 of 434.
+- Proposed fix: In climatology: detect a level step (per-year median jump against flow, or HYDAT datum tables) and keep only the record since the last shift, with gauge_stats saying so. Add a build check listing stations whose level and flow percentiles of the same daily record disagree past a threshold, for owner review.
+
+### 3. The gauge run stays healthy with no climatology or a shrunken station list
+Severity 3, missing-check, partly, reaches an angler; area gauges-hydat.
+- Evidence: app/workers/feeds/src/gauges/publish.ts:484-486: a missing feeds/live/clim.json leaves `clim = null`, so every percentile is null and `release` is null; `maintenanceNotices` (:131) then says nothing and the index is written (:1040). index.ts:256-257 only records `withPercentile`; no check uses it. Station list: `listedStations` (liveness.ts:19-27) returns null only when empty; any non-empty answer becomes the whole ask list (publish.ts:476). Stations not in `ids` are not carried (:1014 covers `a.ids` only), and health is answered/asked of the smaller list (index.ts:219).
+- Example: Clearing and re-uploading staging R2 (allowed), or a prod bucket seeded before feeds-hydat.yml has uploaded clim.json, gives an index of 432 stations with every percentile null and status ok. A truncated hydrometric_StationList.csv with 40 BC rows gives a 40-station index, also ok.
+- Second opinion: The clim half stands in full. The station-list half is overstated: with a roster present, a truncated list makes rosterDrift report every missing station as `left` (publish.ts:477,481-482), which becomes a `roster` maintenance notice (:139-143) and a feed event to the owner (index.ts:258-266). So it is not silent; but the notice reads as routine roster drift, the index is still written with the small list, and the run is not marked degraded. Without a roster (priv roster.json absent) there is no signal at all.
+- Proposed fix: Fail the run and keep the last index when clim.json is absent or `withPercentile` falls below a share of the previous index. Fall back to the roster and flag degraded when the listed count drops more than about 20% against the previous `listed`.
+
+### 4. Gauge run fails whole once a day at 00:05 UTC (ECCC /today/ rollover), then runs degraded for hours
+Severity 3, wrong-or-missing-data, partly, reaches an angler; area feeds-worker.
+- Evidence: app/workers/feeds/src/gauges/publish.ts:16 reads everything from dd.weather.gc.ca/today/...; index.ts:312 throws 'no station answered' when answered===0 (index kept). Staging /status.json read 2026-11-10T02:08Z: gauges lastError at 00:05:23Z 'no station answered (asked 428)'; eccc-hourly 7-day http_404 = 2603 (about 6 x 428), eccc-station-list 6 x 404 in 7 days, last at 00:05:23Z; eccc-daily 404 on 4 runs in a row, feed state 'degraded' (held: source eccc-daily). The daily pattern is inferred from those counts. No code handles the UTC date change.
+- Example: status.json feeds.gauges.lastError = {at: 2026-11-10T00:05:23.413Z, error: 'no station answered (asked 428); index.json kept (last good)'}
+- Second opinion: The mechanism is real in code: one fixed /today/ path, no UTC date-change handling, an all-404 run is a failed run. That ECCC's /today/ is empty at 00:05 UTC and that this happens daily is the finder's inference from status counts I could not reproduce; treat the frequency as unproven until a week of status history is read. Impact is smaller than stated: stations keep their last good entry and index.json is kept, and gauge health only rides the daily digest. Line refs are right.
+- Proposed fix: Treat an all-404 answer just after 00:00 UTC as expected: read the previous day's directory, or skip without counting a failed run. Give eccc-daily an expect404 policy until the day's first file exists. Add a test with an all-404 fixture at 00:05 UTC.
+
+### 5. The feed ranks against the UTC day's band, the app against the reading's local day: one reading, two percentiles every evening
+Severity 2, divergence, confirmed, reaches an angler; area gauges-hydat.
+- Evidence: Worker: publish.ts:178-180 `bandFor(bands, when)` uses `yday(when)` of `now` in UTC (called at :912, :938); Python twin publish.py:574 `when.timetuple().tm_yday` with `now = datetime.now(timezone.utc)` (:725). App: charts and alerts use `calendarDayOfYear(<reading stamp>)`, the reading's own local date (data/src/sql/shared.ts:284, core/alerts.ts:121, core/day.ts:38). From 16:00 PST to midnight the feed is on tomorrow's band. app/tools/one-formula.test.ts:254-270 feeds both sides the same day number, so it cannot see this.
+- Example: Index written 2026-11-10T02:05Z ranks 08MF005's 17:10 PST Nov 9 reading against day 314; the app's chart band and a percentile alert use day 313. Over clim.json (1,959 stations) a one-day shift moves the median's rank by more than 2 points on 29% of station-days and more than 5 points on 8%.
+- Second opinion: Nothing overstated; the figures reproduce. The size per reading is small (one fifth of a pentad step), and it is a display/alert-threshold inconsistency for 8 hours a day, not a wrong standing. T107 is DONE and covers the formula only, not which day is fed in.
+- Proposed fix: Rank against the reading's own local day in both publishers (the day of `r.at`, as `localDay` already derives at publish.ts:354). Extend the one-formula test to pass a timestamp at 17:00 PST, not a day number.
+
+### 6. read_match treats any unknown trust word as matched; the file's own `status` contradicts `trust` on 22 rows
+Severity 2, fragility, confirmed; area gauges-hydat.
+- Evidence: pipeline/gauges/matches.py:160-163: `r["status"] = {"wrong": "unresolved", "none": "no_match", "candidate": "unresolved"}.get(trust, "matched")`, so a typo or a new word ("rejected", "Wrong") places the station. :164 silently drops unknown keys. There is no version or schema check on the one frozen file. data/curated/gauges/matches.json has 22 rows with `trust: "wrong"` and `status: "matched"` (written by promote.py:147), correct only because the single reader overrides status.
+- Example: Counter of (trust, status) in matches.json: (auto, matched) 1850; (reviewed, matched) 208; (wrong, matched) 22; (none, no_match) 1; (bound, matched) 1. Any second reader keying on `status` (a review tool, jq, a future TS reader) would place 22 stations a person marked wrong.
+- Second opinion: Accurate and correctly labelled latent: every current reader goes through read_match, and a wrong/none row is also written with empty wbk/wsc (promote.py:147-149), so even a reader keying on `status` would have nothing to place by key, only by coordinate. The real exposure is a mistyped or new trust word after a hand edit.
+- Proposed fix: Make the trust vocabulary a closed set that raises on anything else. Have promote write a `status` that agrees with `trust`, or drop `status` from promoted rows. Add both to check_curated.
+
+## Work
+Fix the items above in severity order, one commit per item where they are separable. Anything found and not done becomes a new ticket.
+
+## Acceptance
+A reading older than the limit is not ranked or counted and the map says so (test with a 3-day-old reading). 08HD006 level no longer ranks at the bottom (step detector, listed stations). Feed and app give one percentile for an evening reading. A run with no climatology or an all-404 ECCC answer is not healthy; the 00:05 UTC case is measured for a week first.
+
+Depends: —. Size: L. Owner: no.
