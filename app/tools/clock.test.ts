@@ -17,6 +17,8 @@ const APP = fileURLToPath(new URL("..", import.meta.url));
 const ROOTS = ["packages/core/src", "packages/data/src", "packages/ui/src", "packages/ui-native/src",
   "packages/map/src", "apps/mobile/src"];
 const CLOCK = "packages/core/src/clock.ts";
+/** (T551) where a SECOND B.C. clock is also banned: the static site's tooling and the feeds worker (card, page, share). */
+const ALSO_ROOTS = ["tools/seo", "workers/feeds/src"];
 
 /** The frame timers (`performance.now()`), per file: how many, and why. */
 const FRAME_TIMERS: Record<string, { n: number; why: string }> = {
@@ -48,6 +50,18 @@ const code = (src: string): string =>
 const CLOCK_READ = /\bDate\s*\.\s*now\s*\(|\bnew\s+Date\s*(\(\s*\)|(?![\s(]))/g;
 const FRAME_READ = /\bperformance\s*(\?\.)?\s*\.?\s*now\s*(\?\.)?\s*\(/g;
 
+/**
+ * (T551, T580 F15) A SECOND B.C. CLOCK: a device-zone reading of an instant -- `getHours()` / `getMinutes()` /
+ * `getTimezoneOffset()` -- or a zone named for `Intl` (`timeZone:`). Only `day.ts` (the stamp formatters, whose `zone`
+ * parameter is a test seam) and `clock.ts` may; everything else says an instant through `bcFields` / `localStamp` /
+ * `bcClockTime`, or reads the day's own fields from `bcNow()` (`getDate()`, `getMonth()`: a wall-clock Date).
+ */
+const SECOND_CLOCK = /\.\s*(getHours|getMinutes|getTimezoneOffset)\s*\(|\btimeZone\s*:/g;
+const CLOCK_HOMES = new Set([CLOCK, "packages/core/src/day.ts"]);
+/** Known second clocks, as many as listed (fix, then delete the line). The gauge page's script ships as one plain script that may import only core's `figure`, so the B.C. words must be inlined by `clientScript` first. */
+const KNOWN_SECOND_CLOCKS: Record<string, number> = { "tools/seo/gaugeClient.ts": 3 };
+function secondClocks(src: string): number { return (code(src).match(SECOND_CLOCK) ?? []).length; }
+
 function clockReads(src: string): number { return (code(src).match(CLOCK_READ) ?? []).length; }
 function frameReads(src: string): number { return (code(src).match(FRAME_READ) ?? []).length; }
 
@@ -63,6 +77,16 @@ describe("one clock (T382)", () => {
       .map((p) => [p, clockReads(readFileSync(join(APP, p), "utf8"))] as const)
       .filter(([, n]) => n > 0).map(([p, n]) => `${p}: ${n}`);
     expect(bad, "take now() (an instant) or bcNow() (the day) from @app/core").toEqual([]);
+  });
+
+  it("no file but clock.ts and day.ts says an instant in the device's zone or names a zone", () => {
+    const wider = [...all, ...ALSO_ROOTS.flatMap((r) => sources(join(APP, r))).map((p) => relative(APP, p))];
+    expect(wider.some((p) => p.startsWith("tools/seo/")) && wider.some((p) => p.startsWith("workers/feeds/src/"))).toBe(true);
+    const seen = Object.fromEntries(wider.filter((p) => !CLOCK_HOMES.has(p))
+      .map((p) => [p, secondClocks(readFileSync(join(APP, p), "utf8"))] as const).filter(([, n]) => n > 0));
+    const bad = Object.entries(seen).filter(([p, n]) => KNOWN_SECOND_CLOCKS[p] !== n).map(([p, n]) => `${p}: ${n}`);
+    for (const p of Object.keys(KNOWN_SECOND_CLOCKS)) if (!(p in seen)) bad.push(`${p}: listed, but now clean -- delete it from KNOWN_SECOND_CLOCKS`);
+    expect(bad, "say an instant with bcFields / localStamp / bcClockTime from @app/core").toEqual([]);
   });
 
   it("clock.ts is where the clock is read", () => {
@@ -92,6 +116,12 @@ describe("the scan itself (mutation pins)", () => {
     expect(clockReads("/** an instant is `Date.now()` */ const x = 1; // new Date()")).toBe(0);
     expect(clockReads("const t = performance.now();")).toBe(0);
     expect(clockReads("const t = now(); const d = bcNow();")).toBe(0);
+  });
+  it("catches a second clock: device-zone getters and a named zone", () => {
+    expect(secondClocks("const h = new Date(ms).getHours();")).toBe(1);
+    expect(secondClocks("d.getMinutes(); d . getTimezoneOffset ()")).toBe(2);
+    expect(secondClocks("Intl.DateTimeFormat('en', { timeZone: 'America/Vancouver' })")).toBe(1);
+    expect(secondClocks("bcNow().getDate(); w.getUTCHours(); // d.getHours()")).toBe(0);
   });
   it("counts frame timers", () => {
     expect(frameReads("globalThis.performance?.now?.() ?? 0; performance.now()")).toBe(2);

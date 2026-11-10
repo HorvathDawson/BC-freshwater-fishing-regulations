@@ -3,7 +3,7 @@
  * `makeReleaseSource` (`../release/source.ts`) asks the release's files and hands the rows here; a test may hand rows
  * from any SQLite with the pipeline bundle's columns. (Its second reader, the dev bundle's, was retired in T61.)
  */
-import { bandAt, boxOfParts, CHANGE_POLICY, calendarDayOfYear, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, shownParameter, type Band,
+import { bandAt, boxOfParts, CHANGE_POLICY, calendarDayOfYear, localDate, describeBy, metresOfBucket, rankPointers, rankWaters, relOfCode, shownParameter, type Band,
          type Bbox, type NearPlace, now as clockNow } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { Aged, GaugeLink, GaugeWaters, ItemId, NameHit, NearHit, Parameter, PanelRoute, PointerHit, SectionId,
@@ -227,9 +227,10 @@ export function seriesOf(pentads: (Band | null)[], obs: Observations | null, spa
      * belong at their own: on 73 buckets a whole autumn is fourteen points. `bandAt`
      * interpolates between pentads, which is what it is for.
      */
-    const at = obs?.at.length ? new Date(obs.at[obs.at.length - 1]!) : new Date(clockNow());
-    const year = at.getUTCFullYear();
-    const today = calendarDayOfYear(at.toISOString().slice(0, 10));
+    // (T551) the chart's "today" and year are the B.C. day of its last observation (after 17:00 PT the UTC date is tomorrow)
+    const atDay = localDate(obs?.at.length ? new Date(obs.at[obs.at.length - 1]!).getTime() : clockNow());
+    const year = Number(atDay.slice(0, 4));
+    const today = calendarDayOfYear(atDay);
     const days = Math.min(daysInYear(year), today + 31);
     const values: (number | null)[] = Array.from({ length: days }, () => null);
     const stamps: string[] = Array.from({ length: days }, (_, i) => dayStamp(year, i));

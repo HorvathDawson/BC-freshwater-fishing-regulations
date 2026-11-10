@@ -15,6 +15,7 @@
 //                  that words the standing (T511). No open / closed status: the card is conditions only.
 //   climatology    feeds/live/clim.json, read ONCE per run (and only when a card is to be drawn), kept for the listed
 //                  stations; a run without it draws cards without the band and says so (an event).
+import { bcDayWords, bcStampWords, bcWeekdayAbbr, localDate } from "../../../../../packages/core/src/day";
 import { standing } from "../../../../../packages/core/src/flow";
 import { figure, standingHeadline } from "../../../../../packages/core/src/standing";
 import { byWeekdays, forecastDueBy, STALE_AFTER } from "../../../../../packages/core/src/staleness";
@@ -35,7 +36,6 @@ export const CARD_CACHE = "public, max-age=900";
 export const STATIONS_PATH = "/gauge/stations.json";
 /** the site card's colours: the app's accent and the ink on it (tools/seo html.ts SHARE_GROUND / SHARE_INK; a test holds them equal) */
 export const CARD_GROUND = "#5F26E0", CARD_INK = "#FFFFFF";
-const ZONE = "America/Vancouver";
 const DAY = 86_400_000, WEEK = 7 * DAY;
 const MODELS = ["CLEVER", "COFFEE", "ELF"];
 
@@ -103,12 +103,10 @@ export const RETURNS_WITHIN = 0.25;
 export const BRIEF_MS = 2 * DAY;
 /** a reading this far under the past week's peak is on the way down from it (receding) */
 export const PEAK_BEFORE = 1.3;
-const weekday = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, weekday: "short" });
-const monthDay = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, month: "short", day: "numeric" });
 /** "Wed" within six days, "Nov 14" beyond (a weekday alone would be ambiguous in a 10-day run); "today" the same Pacific day */
 export function byWhen(t: number, now: number): string {
   if (dayOf(t) === dayOf(now)) return "today";
-  return t - now < 6 * DAY ? weekday.format(new Date(t)) : monthDay.format(new Date(t));
+  return t - now < 6 * DAY ? bcWeekdayAbbr(t) : bcDayWords(t);
 }
 /** two significant figures: "49.3" -> "49", "172" -> "170", "2.43" -> "2.4" (a card does not claim more) */
 export const about = (v: number): string => String(Number(v.toPrecision(2)));
@@ -170,10 +168,9 @@ export function normalRange(bands: Record<string, Array<number | null>> | undefi
 
 export { figure };
 
-const stamp = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
-export const pacific = (t: number): string => stamp.format(new Date(t));
-const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
-const dayOf = (t: number) => dayFmt.format(new Date(t));
+/** (T551) B.C.'s clock from core -- the app's own, not the runtime's tz data */
+export const pacific = bcStampWords;
+const dayOf = localDate;
 
 /** what a card shows, from the station's file (null: the feed has no file for it) */
 export function cardModel(station: string, name: string, f: CardStation | null, now: number, clim?: Bands | null): CardModel {

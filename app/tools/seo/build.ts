@@ -23,6 +23,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openRegsStore } from "@app/data/regs";
 import { openRegsFixture, openReleaseDir, regsFixtureDir } from "@app/data/release/node";
+import { bcNow } from "@app/core";
 import type { ItemId } from "@app/data";
 import { makeReleaseSource } from "@app/data/release";
 import type { AdiposeImages, FishImages } from "@app/ui-native";
@@ -246,7 +247,7 @@ export async function main(args: readonly string[]): Promise<void> {
   if (dir && args.includes("--check-changes")) return void (await checkChanges(dir, opt(args, "--previous")));
   if ((!dir && !fixture) || (dir && !appDir)) throw new Error("usage: build-seo.mjs --release-dir <folder> --app <web export> | --fixture [--app <web export>]  [--out DIR] [--slug-map FILE --update-slugs] [--previous snapshot.json] [--date YYYY-MM-DD]");
   const loader = fixture ? openRegsFixture() : openReleaseDir(resolve(dir!));
-  const date = opt(args, "--date"), now = date ? new Date(`${date}T12:00:00`) : new Date();
+  const date = opt(args, "--date"), now = date ? new Date(`${date}T12:00:00`) : bcNow();   // (T551) the B.C. day, not the build machine's
   const slugFile = resolve(opt(args, "--slug-map") ?? SLUG_MAP_FILE);
   const prevFile = opt(args, "--previous") ?? (fixture ? null : previousSnapshot(SNAPSHOT_DIR, loader.release));
   // (T529) the /changes budget, checked in seconds before the ~15 min page build
@@ -317,7 +318,7 @@ async function checkChanges(dir: string, prevArg: string | null): Promise<void> 
 
 /** `--snapshot-only`: the snapshot of a release no page was built for (rules hashes; no page lastmods), kept for the next diff. */
 async function snapshotOnly(dir: string, args: readonly string[]): Promise<void> {
-  const date = opt(args, "--date"), now = date ? new Date(`${date}T12:00:00`) : new Date();
+  const date = opt(args, "--date"), now = date ? new Date(`${date}T12:00:00`) : bcNow();   // (T551) the B.C. day, not the build machine's
   const slugFile = resolve(opt(args, "--slug-map") ?? SLUG_MAP_FILE);
   const built = await buildAll({ loader: openReleaseDir(resolve(dir)), on: buildDayOf(now), bare: true,
     slugMap: existsSync(slugFile) ? (JSON.parse(readFileSync(slugFile, "utf8")) as SlugMap) : EMPTY_SLUG_MAP });

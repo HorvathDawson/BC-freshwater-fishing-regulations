@@ -36,7 +36,7 @@ describe("the DFO feed over the release", () => {
     const coho = (c: typeof was) => c.rows.find((r) => r.label.includes("Coho"))!.status;
     expect([coho(was), coho(now)]).toEqual(["closed", "open"]);
     expect(now.asOf).toBe("DFO page dated Oct 20, 2026");
-    expect(salmonFeedLine(live)).toMatch(/^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m$/);
+    expect(salmonFeedLine(live)).toMatch(/^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m PT$/);
     expect([salmonFeedLine(release()), salmonFeedOf(release())]).toEqual([null, null]);
   });
 
@@ -144,6 +144,18 @@ describe("the line by the mode switch (T276)", () => {
     expect(salmonCheckedLine(release())).toBeNull();
     expect(salmonCheckedLine(null)).toBeNull();
   });
+
+  it("T551: the legend's date and the card's line are ONE B.C. stamp, whatever zone the device is in", () => {
+    const f = feed();
+    // 00:15 UTC Aug 15 is 17:15 PT Aug 14: the legend used the UTC date (Aug 15) beside a card saying Aug 14
+    const at = "2026-08-15T00:15:00Z";
+    const withAt = withSalmonFeed(release(), { ...f, at });
+    expect(salmonCheckedLine(withAt)).toBe("DFO rules checked Aug 14");
+    expect(salmonFeedLine(withAt)).toBe("Checked with DFO Aug 14, 2026, 5:15 pm PT");
+    // and the two agree on a fetch just past B.C. midnight (07:05 UTC = 00:05 PT)
+    const late = withSalmonFeed(release(), { ...f, at: "2026-11-10T07:05:00Z" });
+    expect([salmonCheckedLine(late), salmonFeedLine(late)]).toEqual(["DFO rules checked Nov 10", "Checked with DFO Nov 10, 2026, 12:05 am PT"]);
+  });
 });
 
 describe("(T321) the feed's rows in DFO's words", () => {
@@ -229,7 +241,7 @@ describe("(T521) the feed's unplaced places", () => {
   it("an unplaced list that was not read is shown: on the card's feed line and in the bell", () => {
     const f = { ...feed(), unplaced: 2 };
     expect(salmonFeedLine(withSalmonFeed(release(), f))).toMatch(
-      /^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m \(2 DFO places not yet on the map could not be read\)$/);
+      /^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m PT \(2 DFO places not yet on the map could not be read\)$/);
     const msg = "2 DFO places not yet on the map could not be read. They will show when the next check reads them.";
     expect(dfoNoticeRows(f)).toEqual({ rows: [], unread: msg, count: 1, label: msg });
   });

@@ -102,10 +102,10 @@ describe("the Salmon card", () => {
   });
 
   it("(T211 part 2) read through the live feed: the capture's time under the page date", () => {
-    const card = { ...salmonCard(FACTS, { sids: [101], item: null }, JUL20), checked: "Checked with DFO Oct 27, 2026, 11:04 am" };
+    const card = { ...salmonCard(FACTS, { sids: [101], item: null }, JUL20), checked: "Checked with DFO Oct 27, 2026, 11:04 am PT" };
     render(<SalmonCard card={card} palette={LIGHT} />);
     fireEvent.click(screen.getByTestId("salmon-source-summary"));
-    expect(screen.getByTestId("salmon-checked").textContent).toBe("Checked with DFO Oct 27, 2026, 11:04 am");
+    expect(screen.getByTestId("salmon-checked").textContent).toBe("Checked with DFO Oct 27, 2026, 11:04 am PT");
   });
 
   it("(T394) each species row wears its SPAWNING look (owner 2026-10-31, T343 item 6), never the ocean one", () => {

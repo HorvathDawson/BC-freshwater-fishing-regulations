@@ -15,6 +15,8 @@
  * than the capture (`pickSalmon`).
  */
 import { MONTHS } from "./calendar.generated";
+import { BC_TIME_LABEL } from "./clock";
+import { bcFields } from "./day";
 import { dfoRow, salmonCard, type SalmonUnplacedPlace, type SalmonCardVM, type SalmonFacts, type SalmonGearInput, type SalmonMapStatus, type SalmonNote, type SalmonBucket, type SalmonHours, type SalmonShared, type SalmonSizes, type SalmonWords } from "./salmon";
 
 type Payload = SalmonFacts["payload"];
@@ -221,8 +223,8 @@ export function salmonCheckedLine(f: SalmonFacts | null): string | null {
   const at = salmonFeedOf(f)?.at;
   const d = at ? new Date(at) : null;
   if (!d || Number.isNaN(d.getTime())) return null;
-  const m = MONTHS[d.getUTCMonth()];   // the calendar spec's month names (gate 4: one calendar spec)
-  return `DFO rules checked ${m} ${d.getUTCDate()}`;
+  const b = bcFields(d.getTime());      // (T551) the B.C. day, the same one the card's line below says
+  return `DFO rules checked ${MONTHS[b.month - 1]} ${b.day}`;   // the calendar spec's month names (gate 4)
 }
 
 /** The feed a salmon file was read through, or null (the release's own). */
@@ -246,14 +248,15 @@ function releaseOnly(f: SalmonFacts): SalmonFacts {
   return { handles: f.handles, chains: f.chains, chainOf: (sid) => f.chainOf(sid), payload: { ...P, unmapped }, loaded: f.loaded };
 }
 
-/** The card's line for the feed: "Checked with DFO Oct 27, 2026, 11:04 am" (local), the stale regions said. */
+/** The card's line for the feed: "Checked with DFO Oct 27, 2026, 11:04 am" (B.C. clock, labelled), the stale regions said. */
 export function salmonFeedLine(f: SalmonFacts | null): string | null {
   const live = salmonFeedOf(f);
   if (!live) return null;
   const t = new Date(live.at);
   if (Number.isNaN(t.getTime())) return null;
-  const h = t.getHours(), mm = String(t.getMinutes()).padStart(2, "0");
-  const when = `${MONTHS[t.getMonth()]} ${t.getDate()}, ${t.getFullYear()}, ${h % 12 || 12}:${mm} ${h < 12 ? "am" : "pm"}`;
+  // (T551, T580 F15) B.C.'s clock, labelled, not the device's `getHours()`: Hermes (OS tz data) and Chrome (ICU) disagreed
+  const b = bcFields(t.getTime()), h = b.hour, mm = String(b.minute).padStart(2, "0");
+  const when = `${MONTHS[b.month - 1]} ${b.day}, ${b.year}, ${h % 12 || 12}:${mm} ${h < 12 ? "am" : "pm"} ${BC_TIME_LABEL}`;
   const stale = live.stale.length
     ? ` (Region ${live.stale.map((s) => s.toUpperCase()).join(", ")} could not be read; its earlier rules shown)` : "";
   const n = live.unplacedUnread ?? 0;

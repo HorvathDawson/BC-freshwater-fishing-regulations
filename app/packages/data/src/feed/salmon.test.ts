@@ -87,7 +87,7 @@ describe("httpSalmonFeed: the unplaced list (T521)", () => {
                                   httpSalmonFeed("http://x", mem(), fetchImpl));
       const s = await live.salmon();
       expect(got.map((e) => (e as Error).message)).toEqual(["dfo unplaced.json: HTTP 503"]);
-      expect(salmonFeedLine(s)).toMatch(/^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m \(1 DFO place not yet on the map could not be read\)$/);
+      expect(salmonFeedLine(s)).toMatch(/^Checked with DFO Oct 27, 2026, \d{1,2}:\d\d [ap]m PT \(1 DFO place not yet on the map could not be read\)$/);
     } finally { undo(); }
   });
 

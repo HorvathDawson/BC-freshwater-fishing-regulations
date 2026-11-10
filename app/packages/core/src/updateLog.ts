@@ -6,6 +6,7 @@
  * Updates log page, copyable whole for a bug report (`updateLogText`). Production builds keep none.
  */
 import { MENU_WORDS } from "./menu";
+import { bcFields } from "./day";
 import type { UpdateSourceKey } from "./updates";
 
 export const UPDATE_LOG_CAP = 200;
@@ -135,7 +136,7 @@ export interface UpdateLogRowVM {
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
-const clock = (ms: number) => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+const clock = (ms: number) => { const f = bcFields(ms); return `${pad(f.hour)}:${pad(f.minute)}:${pad(Math.floor(ms / 1000) % 60)}`; };
 
 /** "0 B", "812 B", "12.4 kB", "3.1 MB" */
 export function byteWords(n: number): string {

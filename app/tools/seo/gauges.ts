@@ -79,7 +79,7 @@ export function gaugeConfig(g: GaugeModel, release: string): GaugeConfig {
     facts: `${LIVE.data}/feeds/cards/${g.station}.json`,
     weather: g.lat === null || g.lon === null ? null
       : `${OPEN_METEO}?${weatherPlace(g.lat, g.lon)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m` +
-        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=America%2FVancouver&forecast_days=5",
+        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&timezone=Etc%2FGMT%2B7&forecast_days=5",
     weatherAttribution: OPEN_METEO_ATTRIBUTION, sky: SKY,
     crash: LIVE.crash, env: LIVE.env, release,
   };
