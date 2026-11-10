@@ -144,9 +144,17 @@ def main() -> int:
         print(f"\nwrote {args.out}: " + " · ".join(f"{k} {v:,}" for k, v in counts.items()))
         # (T211) THE DFO SALMON LOCATIONS, placed by the same `build_reach` — beside the tables, outside the rules' digest
         from pipeline.atlas.reach import dfo_salmon
-        rows = dfo_salmon.resolve_all(registry, graph, outside=result.outside or None)
+        dfo_diags: list = []
+        rows = dfo_salmon.resolve_all(registry, graph, outside=result.outside or None, diagnostics=dfo_diags)
         d = dfo_salmon.write(Path(args.out), rows)
-        print(f"  dfo salmon   {sum(r['mapped'] for r in rows):,} of {len(rows):,} locations placed (digest {d})")
+        n = dfo_salmon.write_diagnostics(Path(args.out), dfo_diags)
+        print(f"  dfo salmon   {sum(r['mapped'] for r in rows):,} of {len(rows):,} locations placed (digest {d}), "
+              f"{n:,} diagnostic(s)")
+        loud = [x for x in dfo_diags if x["kind"] == "unclassified"]
+        for x in loud:
+            # T546 item 4: a DFO place's piece the reach could not place, as the provincial ones are printed
+            print(f"!!   dfo {x['location_id']}  unplaced {x['payload'].get('pieces')} "
+                  f"({', '.join(sorted(set((x['payload'].get('reasons') or {}).values()))) or 'no reason'})")
 
     if args.against:
         print("\n" + "=" * 72)

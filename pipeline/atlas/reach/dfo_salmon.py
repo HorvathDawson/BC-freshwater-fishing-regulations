@@ -31,6 +31,9 @@ from pathlib import Path
 from typing import Iterable, Iterator, List, Optional
 
 FILE = "dfo_salmon.jsonl.gz"
+#: T546 item 4: what `build_reach` said of each placed location (ambiguous_cut picks, unclassified pieces, the
+#: walk, …) — it used to be discarded. Beside FILE, outside the rules' digest; the binding diff compares it.
+DIAG_FILE = "dfo_salmon_diagnostic.jsonl"
 
 
 def _slugs() -> List[str]:
@@ -38,8 +41,11 @@ def _slugs() -> List[str]:
     return [s for s in ALL_SLUGS if not PAGES[s].is_stub]
 
 
-def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=None) -> List[dict]:
-    """One row per curated location, sorted by location_id: `{location_id, region, mapped, outcome, reason, sections}`."""
+def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=None,
+                diagnostics: Optional[list] = None) -> List[dict]:
+    """One row per curated location, sorted by location_id: `{location_id, region, mapped, outcome, reason, sections}`.
+    `diagnostics`: a list to fill with `{location_id, region, kind, payload}` per diagnostic `build_reach` emitted
+    for a placed location (T546 item 4; `write_diagnostics`)."""
     from pipeline.atlas.reach.build import build_reach
     from pipeline.atlas.reach.models import Outcome
     from pipeline.atlas.reach.outside import outside_bc
@@ -66,7 +72,10 @@ def resolve_all(registry, graph, *, entries_dir: Optional[Path] = None, outside=
             if target.binding.resolved:
                 entry, rules = E.to_reach_input(target, [{}], water, siblings=by_id)
                 entry = {**entry, "entry_id": loc.location_id}
-                binding, _ = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False)
+                binding, diags = build_reach(entry, rules[0], registry, graph, outside=outside, regional=False)
+                if diagnostics is not None:
+                    diagnostics.extend({"location_id": loc.location_id, "region": slug, "kind": d.kind,
+                                        "payload": d.payload} for d in diags)
                 if target.location_id not in checked:
                     checked.add(target.location_id)
                     dead += [_piece_words(slug, target.location_id, rules[0]["extents"], i)
@@ -137,6 +146,16 @@ def write(out_dir: Path, rows: Iterable[dict]) -> str:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_bytes(gzip.compress(raw, compresslevel=6, mtime=0))
     return hashlib.sha256(raw).hexdigest()[:16]
+
+
+def write_diagnostics(out_dir: Path, diags: Iterable[dict]) -> int:
+    """Write `dfo_salmon_diagnostic.jsonl`, sorted (location, kind, payload): byte-identical reruns. Returns the count."""
+    rows = sorted((json.dumps(d, sort_keys=True, ensure_ascii=False, separators=(",", ":")) for d in diags),
+                  key=lambda line: (json.loads(line)["location_id"], json.loads(line)["kind"], line))
+    p = Path(out_dir) / DIAG_FILE
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("".join(r + "\n" for r in rows), encoding="utf-8")
+    return len(rows)
 
 
 def read(run_dir: Path) -> Iterator[dict]:

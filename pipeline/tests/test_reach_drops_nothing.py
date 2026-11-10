@@ -146,3 +146,34 @@ def test_a_scope_unclassified_piece_carries_reasons_so_the_straddle_gate_sees_it
                                     "reason": "straddles_the_cut", "kind": "scope_unclassified"}]
     with pytest.raises(StraddleGateError, match="c1"):
         straddle_gate(res.diagnostics)
+
+
+# ------------------------------------------------------------------ item 4: a DFO place's diagnostics are kept
+
+def test_a_dfo_places_diagnostics_are_written_not_discarded(monkeypatch, tmp_path):
+    """Mutation: `binding, _ = build_reach(...)` in `dfo_salmon.resolve_all` — the ambiguous-cut pick and the
+    unplaced piece of a DFO place vanish again."""
+    from types import SimpleNamespace
+    from pipeline.atlas.reach import build as B
+    from pipeline.atlas.reach import dfo_salmon as D
+    from pipeline.atlas.reach.models import Diagnostic, Outcome, RuleBinding
+    from pipeline.regs.dfo_salmon import entries as E
+    loc = SimpleNamespace(location_id="2:x:below", binding=SimpleNamespace(resolved=True), is_variant=False,
+                          duplicate_of=None, water_id=None, tidal_water=False)
+    ef = SimpleNamespace(locations=[loc], waters=[], water=lambda w: None)
+    monkeypatch.setattr(D, "_slugs", lambda: ["2"])
+    monkeypatch.setattr(E, "load", lambda *a, **k: ef)
+    monkeypatch.setattr(E, "to_reach_input", lambda *a, **k: ({"entry_id": "?"}, [{"rule_id": "p", "extents": [{}]}]))
+    monkeypatch.setattr(B, "build_reach", lambda e, *a, **k: (
+        RuleBinding(e["entry_id"], "p", Outcome.bound, ("s1",)),
+        [Diagnostic(e["entry_id"], "p", "unclassified", {"pieces": ["s9"], "reasons": {"s9": "leaves_bc_unjoined"}}),
+         Diagnostic(e["entry_id"], "p", "ambiguous_cut", {"split": "c", "used_m": 10.0})]))
+    got: list = []
+    rows = D.resolve_all({}, None, outside=frozenset(), diagnostics=got)
+    assert rows[0]["sections"] == ["s1"]
+    assert sorted(d["kind"] for d in got) == ["ambiguous_cut", "unclassified"]
+    assert all(d["location_id"] == "2:x:below" and d["region"] == "2" for d in got)
+    assert D.write_diagnostics(tmp_path, got) == 2
+    first = (tmp_path / D.DIAG_FILE).read_bytes()
+    D.write_diagnostics(tmp_path, list(reversed(got)))
+    assert (tmp_path / D.DIAG_FILE).read_bytes() == first          # sorted: byte-identical whatever the order
