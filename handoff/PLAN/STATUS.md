@@ -13,6 +13,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 late — review app: withdraw a cut, this water's cuts first, the landed check on screen
+- 680c1d6eb (T589): a cut proposal can be withdrawn (one entry in `proposal_overrides.json`, with why): not built, not
+  offered, listed as withdrawn on its water. The Allco fence itself is not withdrawn: your call.
+- af76fda95 (T590): the cut search lists this water's cuts first; every new cut says its nearest existing cut and,
+  within 200 m, to use that one. Open: a one-click swap in the place editor, and the stored suggestions.
+- aed6f6a25 (T562 item 4): the app lists saved marks that are not in their curated file, and shows what a file save
+  took out and its commit. 780c6e6e2 (T587): taking a wording out of its group and back, tested through the real save.
+- 1769c10d3: a closed area's save no longer reads "Nothing saved yet · Saved just now".
+- Not looked at in a browser this round (memory was under the 50% gate while the other chat's heavy jobs ran): the
+  new banner, the withdrawn line, the dead-piece message. Waits on the owner: T588, T562 items 1 (older marks) and 6.
+
 ## 2026-11-10 night — build 25 (0.7.3) on Play internal; staging site + feeds worker deployed (chat 11)
 - **On the owner's phone after an update:** T567, T568, T569, T570, T581, T582, T583, T586, T598. All passed on the
   emulator (shots in APK-25-shots). Not checked there: saved-spot chips (the emulator has no spots); the
