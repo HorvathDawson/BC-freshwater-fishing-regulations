@@ -79,8 +79,13 @@ def _tidal(decided: E.Decided) -> dict[Path, str]:
 #: domain -> its FILE writer: the decided data -> {final curated file: its text} (fast: the write-through runs these
 #: in the request).
 def _closed_areas(decided: E.Decided) -> dict[Path, str]:
+    """T573: the closed areas the owner confirmed (`closed_areas.build`). The file is BORN with his first confirm:
+    with nothing confirmed and no file there is nothing to write (an empty file would read as "marks not landed")."""
     from pipeline.regs.review import closed_areas as CA
-    return {CA.path(): CA.document(CA.build(decided))}
+    rows = CA.build(decided)
+    if not rows and not CA.path().exists():
+        return {}
+    return {CA.path(): CA.document(rows)}
 
 
 WRITERS: dict[str, Callable[[E.Decided], dict[Path, str]]] = {"sloughs": _sloughs, "names": _names, "tidal": _tidal,

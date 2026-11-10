@@ -126,6 +126,9 @@ def test_the_writer_writes_its_own_file_and_nothing_else(tmp_path):
     out = AP.WRITERS["closed_areas"](_decided(tmp_path, [_mark(CIRCLE)]))
     assert list(out) == [CA.path()] and CA.path().name == "closed_areas.json"
     assert CA.path().parent == Path(CURATED.dfo_salmon.places).parent
+    # the file is born with his first confirm: nothing confirmed and no file = nothing to write (the landed check
+    # must not read a missing file as "marks not landed")
+    assert not CA.path().exists() and AP.WRITERS["closed_areas"](_decided(tmp_path, [])) == {}
     assert not CA.path().is_relative_to(Path(CURATED.dfo_salmon.places)), "never inside the places files"
 
 
