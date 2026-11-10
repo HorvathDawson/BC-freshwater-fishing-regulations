@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { STYLE_META } from "./style";
-import { SECTION_LAYERS, TAP_GROUPS, VISIBLE_LAYERS, firstSection, sectionIdOf, stateHandle, stateTarget, tapBox,
+import { SECTION_LAYERS, TAP_GROUPS, TAP_RINGS, pickSection, VISIBLE_LAYERS, firstSection, sectionIdOf, stateHandle, stateTarget, tapBox,
          visibleSections } from "./sections";
 
 describe("a section id off a rendered feature", () => {
@@ -77,5 +77,33 @@ describe("the layers a section is read from", () => {
         { source: "atlas", sourceLayer: "lake" }, { source: "atlas", sourceLayer: "wetland" },
         { source: "atlas", sourceLayer: "wetland" }, { source: "basins", sourceLayer: "basin" }, null,
       ]);
+  });
+});
+
+describe("(T621, G4) the nearest water under a press wins, on both maps", () => {
+  const half = (b: [[number, number], [number, number]]) => (b[1][0] - b[0][0]) / 2;
+  it("one water in the box: one query, that water", async () => {
+    const seen: number[] = [];
+    const got = await pickSection(async (b, g) => { seen.push(half(b)); return g.as === "stream" ? [{ id: 4 }] : []; }, 100, 100);
+    expect([got, seen]).toEqual([{ layer: "stream", id: 4 }, [12]]);
+  });
+  it("two waters: the smallest ring holding one decides, whatever order the engine lists the wide box in", async () => {
+    const seen: number[] = [];
+    const got = await pickSection(async (b, g) => {
+      seen.push(half(b));
+      if (g.as !== "stream") return [];
+      return half(b) <= TAP_RINGS[0]! ? [{ id: 11 }] : [{ id: 99 }, { id: 11 }];     // the far creek listed first
+    }, 100, 100);
+    expect([got, seen]).toEqual([{ layer: "stream", id: 11 }, [12, 2]]);
+  });
+  it("two waters, none in the inner rings: the wide box's first hit, as before", async () => {
+    const got = await pickSection(async (b, g) => g.as === "stream" && half(b) === 12 ? [{ id: 9 }, { id: 8 }] : [], 0, 0);
+    expect(got).toEqual({ layer: "stream", id: 9 });
+  });
+  it("a stream in the box beats a lake; nothing, and a missing map, answer null", async () => {
+    expect(await pickSection(async (b, g) => (g.as === "lake" ? [{ id: 5 }] : [{ id: "6" }]), 0, 0))
+      .toEqual({ layer: "stream", id: 6 });
+    expect(await pickSection(async () => [], 0, 0)).toBeNull();
+    expect(await pickSection(async () => null, 0, 0)).toBeNull();
   });
 });

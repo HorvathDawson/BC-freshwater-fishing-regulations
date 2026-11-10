@@ -7,7 +7,7 @@
 import { bboxOfGeometry, unionBbox, type Bbox, type SectionKey } from "@app/core";
 import { baseAdapter, type MapAdapter, type MapRenderer } from "./contract";
 import {
-  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, TAP_GROUPS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, firstSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
+  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, pickSection, onceSink, sectionIdOf, stateHandle, tapBox, visibleSections,
 } from "../sections";
 import { mirrorSink, type CopyTarget, type LitFeature, type WaterCopy } from "../water-copy";
 
@@ -78,16 +78,10 @@ export function webRenderer(m: GlMapSlice, maxZoom: number, mirror?: CopyMirror)
     fitBounds: (b, { padding, duration }) =>
       void m.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding, maxZoom, duration }),
     easeTo: (c, { duration }) => void m.easeTo({ center: [c.lon, c.lat], zoom: c.zoom, duration }),
-    press: async (x, y) => {
-      const box = tapBox(x, y);
-      for (const g of TAP_GROUPS) {
-        const layers = present(g.layers);
-        if (!layers.length) continue;
-        const id = firstSection(m.queryRenderedFeatures(box, { layers }));
-        if (id !== null) return { layer: g.as, id };
-      }
-      return null;
-    },
+    press: (x, y) => pickSection(async (box, g) => {
+      const layers = present(g.layers);
+      return layers.length ? m.queryRenderedFeatures(box, { layers }) : [];
+    }, x, y),
     pressObstacle: async (x, y) => {
       const layers = present(OBSTACLE_LAYERS);
       return layers.length ? firstObstacle(m.queryRenderedFeatures(tapBox(x, y), { layers })) : null;

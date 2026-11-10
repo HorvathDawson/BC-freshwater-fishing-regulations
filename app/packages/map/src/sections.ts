@@ -30,6 +30,41 @@ export const TAP_GROUPS: readonly { as: string; layers: readonly string[] }[] = 
 /** Half the tap box. A river is a one-pixel line and a finger about forty-four: 12 px each way is a fingertip. */
 export const TAP_RADIUS = 12;
 
+/** (T621, G4) Rings narrower than the tap box, innermost first, tried only when the box holds more than one water. */
+export const TAP_RINGS: readonly number[] = [2, 6];
+
+/** The box of a given radius around a press (`tapBox` is the outer ring, `TAP_RADIUS`). */
+export function tapRing(x: number, y: number, r: number): [[number, number], [number, number]] {
+  return [[x - r, y - r], [x + r, y + r]];
+}
+
+/**
+ * (T621, G4) THE SECTION UNDER A PRESS, NEAREST FIRST, for both renderers. Each engine lists hits in its own order
+ * (tile order within a layer), so a creek meeting a river could open either one. The tap box is asked once; only when
+ * it holds MORE THAN ONE water are the narrower rings asked, innermost first, and the first ring holding a section
+ * decides (still the stream group before still water). No geometry: the phone's bridge cannot project synchronously.
+ * A ring that finds nothing (a hit only in the wide box) falls back to the wide box's own first hit.
+ */
+export async function pickSection(
+  query: (box: [[number, number], [number, number]], group: { as: string; layers: readonly string[] })
+    => Promise<readonly { id?: unknown }[] | null>,
+  x: number, y: number,
+): Promise<{ layer: string; id: number } | null> {
+  for (const g of TAP_GROUPS) {
+    const wide = await query(tapBox(x, y), g);
+    if (wide === null) return null;
+    const first = firstSection(wide);
+    if (first === null) continue;
+    if (visibleSections(wide).length > 1)
+      for (const r of TAP_RINGS) {
+        const id = firstSection((await query(tapRing(x, y, r), g)) ?? []);
+        if (id !== null) return { layer: g.as, id };
+      }
+    return { layer: g.as, id: first };
+  }
+  return null;
+}
+
 /**
  * (T173) THE FISH OBSTACLE MARKS, asked BEFORE the water (`MapRenderer.pressObstacle`): a mark sits on a river, and a
  * finger on the mark means the mark. Only while its switch is on — a hidden layer answers no query.

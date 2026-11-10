@@ -19,7 +19,7 @@ import type { SectionKey } from "@app/core";
 import { unionBbox, bboxOfGeometry, type Bbox } from "@app/core";
 import { baseAdapter, type MapAdapter, type MapRenderer } from "./contract";
 import {
-  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, SECTION_SOURCE_LAYERS, TAP_GROUPS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, firstSection,
+  NOT_FISHING_LAYERS, OBSTACLE_LAYERS, SECTION_SOURCE_LAYERS, TIDAL_LAYERS, anyTidal, VISIBLE_LAYERS, WATER_SOURCE_LAYERS, firstNotFishing, firstObstacle, pickSection,
   onceSink, sectionIdOf, stateHandle,
   tapBox, visibleSections,
 } from "../sections";
@@ -99,16 +99,10 @@ export function nativeRenderer(refs: NativeRefs, report: (e: unknown) => void, m
       padding: { top: padding, right: padding, bottom: padding, left: padding }, duration, easing: "ease",
     }),
     easeTo: (c, { duration }) => refs.camera()?.easeTo({ center: [c.lon, c.lat], zoom: c.zoom, duration, easing: "ease" }),
-    press: async (x, y) => {
-      const box = tapBox(x, y);
-      for (const g of TAP_GROUPS) {
-        const m = refs.map();
-        if (!m) return null;
-        const id = firstSection(await m.queryRenderedFeatures(box, { layers: [...g.layers] }));
-        if (id !== null) return { layer: g.as, id };
-      }
-      return null;
-    },
+    press: (x, y) => pickSection(async (box, g) => {
+      const m = refs.map();
+      return m ? m.queryRenderedFeatures(box, { layers: [...g.layers] }) : null;
+    }, x, y),
     pressObstacle: async (x, y) => {
       const m = refs.map();
       return m ? firstObstacle(await m.queryRenderedFeatures(tapBox(x, y), { layers: [...OBSTACLE_LAYERS] })) : null;
