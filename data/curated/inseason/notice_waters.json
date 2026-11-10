@@ -538,6 +538,34 @@
       },
       "stamp": "c50daef579358559"
     },
+    "is-1cf72da5a533": {
+      "region": "4",
+      "water": "Kaslo River",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:11345",
+          "splits": [
+            "trib:gnis:11410"
+          ]
+        }
+      ],
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-d55f2ace6f8e, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end). Check it.",
+      "by": "claude",
+      "at": "2026-11-10T03:57:10Z",
+      "source": "claude",
+      "waters": {
+        "gnis:11345": {
+          "runs": [
+            [356567321, 526, 29241]
+          ],
+          "ends": [
+            ["mouth", "trib:gnis:11410"]
+          ]
+        }
+      },
+      "stamp": "9436558662d1adaf"
+    },
     "is-20205c2b98c9": {
       "region": "4",
       "water": "Lodgepole Creek (upstream of falls)",
@@ -770,6 +798,40 @@
       },
       "stamp": "0faaf65a7955d976"
     },
+    "is-4eaad82900f8": {
+      "region": "4",
+      "water": "Duncan River",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:22255",
+          "splits": [
+            "duncan_river__duncan_dam"
+          ]
+        }
+      ],
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-695fd31ebf80, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
+      "by": "claude",
+      "at": "2026-11-10T03:57:10Z",
+      "source": "claude",
+      "waters": {
+        "gnis:22255": {
+          "runs": [
+            [356364729, 0, 1699],
+            [356364730, 0, 4200],
+            [356364732, 0, 690],
+            [356365277, 1196, 2488],
+            [356365279, 86, 1824],
+            [356365282, 0, 620],
+            [356570552, 438, 9904]
+          ],
+          "ends": [
+            ["mouth", "duncan_river__duncan_dam"]
+          ]
+        }
+      },
+      "stamp": "af181c87af6cc25a"
+    },
     "is-50ac6c61eb00": {
       "region": "4",
       "water": "Perry Creek",
@@ -806,6 +868,27 @@
         }
       },
       "stamp": "4383f8b766e77c3d"
+    },
+    "is-546bc1e74bbc": {
+      "region": "4",
+      "water": "Keen Creek",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11410",
+          "splits": []
+        }
+      ],
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-0762f7371d1a, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo). Check it.",
+      "by": "claude",
+      "at": "2026-11-10T03:57:11Z",
+      "source": "claude",
+      "waters": {
+        "gnis:11410": {
+          "all": true
+        }
+      },
+      "stamp": "9cb0ba273b168c96"
     },
     "is-689cae172c40": {
       "region": "1",
@@ -1972,6 +2055,252 @@
       },
       "stamp": "a0b4dd106247f25a"
     },
+    "is-7826b2108311": {
+      "region": "2",
+      "water": "Fraser River",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": ["fraser_river__the_cpr_bridge_at_mission", "fraser_river__spuzzum_creek_into_fraser_river"]
+        }
+      ],
+      "effective": {
+        "from": "2026-09-01",
+        "to": "2026-11-15"
+      },
+      "note": "i think spuzzum is the 2->3 boundary",
+      "by": "Dawson",
+      "at": "2026-11-10T03:45:26Z",
+      "source": "owner",
+      "waters": {
+        "gnis:39325": {
+          "runs": [
+            [355991887, 0, 1537],
+            [355991893, 0, 1108],
+            [355991896, 0, 2748],
+            [355992048, 0, 6391],
+            [355992195, 0, 4865],
+            [355992251, 0, 1020],
+            [355992255, 0, 4316],
+            [355992314, 0, 4315],
+            [355992315, 0, 875],
+            [355992317, 0, 1283],
+            [355992359, 0, 3143],
+            [355992484, 0, 3633],
+            [355992485, 0, 2136],
+            [355993147, 0, 563],
+            [355994425, 0, 1679],
+            [355995295, 0, 1676],
+            [355996061, 0, 1385],
+            [355996062, 0, 1779],
+            [355996063, 0, 2135],
+            [355996184, 214, 1509],
+            [355996304, 0, 2275],
+            [355997500, 0, 2610],
+            [356000032, 0, 1282],
+            [356001015, 0, 1162],
+            [356001526, 0, 1581],
+            [356001890, 0, 1034],
+            [356364114, 76506, 196966]
+          ],
+          "ends": [
+            ["fraser_river__the_cpr_bridge_at_mission", "fraser_river__spuzzum_creek_into_fraser_river"]
+          ]
+        }
+      },
+      "stamp": "c5059028382782b4"
+    },
+    "is-79fcd6f4a6bc": {
+      "region": "8",
+      "water": "Granby River’s Tributaries",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:18775",
+          "splits": [],
+          "tributaries": "only"
+        }
+      ],
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-69d2a07100fc, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
+      "by": "claude",
+      "at": "2026-11-10T03:57:12Z",
+      "source": "claude",
+      "waters": {
+        "gnis:10323": {
+          "all": true
+        },
+        "gnis:10644": {
+          "all": true
+        },
+        "gnis:10830": {
+          "all": true
+        },
+        "gnis:10949": {
+          "all": true
+        },
+        "gnis:10951": {
+          "all": true
+        },
+        "gnis:11929": {
+          "all": true
+        },
+        "gnis:13187": {
+          "all": true
+        },
+        "gnis:13421": {
+          "all": true
+        },
+        "gnis:14458": {
+          "all": true
+        },
+        "gnis:14467": {
+          "all": true
+        },
+        "gnis:14902": {
+          "all": true
+        },
+        "gnis:14935": {
+          "all": true
+        },
+        "gnis:16048": {
+          "all": true
+        },
+        "gnis:17252": {
+          "all": true
+        },
+        "gnis:17745": {
+          "all": true
+        },
+        "gnis:17804": {
+          "all": true
+        },
+        "gnis:17807": {
+          "all": true
+        },
+        "gnis:19099": {
+          "all": true
+        },
+        "gnis:19226": {
+          "all": true
+        },
+        "gnis:19780": {
+          "all": true
+        },
+        "gnis:20392": {
+          "all": true
+        },
+        "gnis:20516": {
+          "all": true
+        },
+        "gnis:20571": {
+          "all": true
+        },
+        "gnis:20998": {
+          "all": true
+        },
+        "gnis:21588": {
+          "all": true
+        },
+        "gnis:21644": {
+          "all": true
+        },
+        "gnis:21717": {
+          "all": true
+        },
+        "gnis:21844": {
+          "all": true
+        },
+        "gnis:22539": {
+          "all": true
+        },
+        "gnis:2256": {
+          "all": true
+        },
+        "gnis:2262": {
+          "all": true
+        },
+        "gnis:22656": {
+          "all": true
+        },
+        "gnis:22670": {
+          "all": true
+        },
+        "gnis:23240": {
+          "all": true
+        },
+        "gnis:23519": {
+          "all": true
+        },
+        "gnis:23681": {
+          "all": true
+        },
+        "gnis:24514": {
+          "all": true
+        },
+        "gnis:25241": {
+          "all": true
+        },
+        "gnis:2598": {
+          "all": true
+        },
+        "gnis:26497": {
+          "all": true
+        },
+        "gnis:26606": {
+          "all": true
+        },
+        "gnis:2724": {
+          "all": true
+        },
+        "gnis:27402": {
+          "all": true
+        },
+        "gnis:27621": {
+          "all": true
+        },
+        "gnis:28720": {
+          "all": true
+        },
+        "gnis:28772": {
+          "all": true
+        },
+        "gnis:28922": {
+          "all": true
+        },
+        "gnis:29998": {
+          "all": true
+        },
+        "gnis:3013": {
+          "all": true
+        },
+        "gnis:30197": {
+          "all": true
+        },
+        "gnis:3026": {
+          "all": true
+        },
+        "gnis:32062": {
+          "all": true
+        },
+        "gnis:32148": {
+          "all": true
+        },
+        "gnis:39547": {
+          "all": true
+        },
+        "gnis:8066": {
+          "all": true
+        },
+        "gnis:9620": {
+          "all": true
+        },
+        "gnis:9707": {
+          "all": true
+        }
+      },
+      "stamp": "e7b1cb33dc36a612"
+    },
     "is-8cd37f6e5bf9": {
       "region": "2",
       "water": "Fraser River",
@@ -3024,6 +3353,35 @@
         }
       },
       "stamp": "e6409480c0d2e86f"
+    },
+    "is-f9e5db230277": {
+      "region": "4",
+      "water": "Alexander Creek (downstream of the easternmost Hwy 3 bridge)",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ],
+          "tributaries": "include"
+        }
+      ],
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-00172e79bde1, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
+      "by": "claude",
+      "at": "2026-11-10T03:57:08Z",
+      "source": "claude",
+      "waters": {
+        "gnis:9343": {
+          "runs": [
+            [356566667, 0, 4681]
+          ],
+          "ends": [
+            ["mouth", "alexander_creek__easternmost_hwy_3"]
+          ]
+        }
+      },
+      "stamp": "bc1578e11035ebb9"
     }
   },
   "history": [
@@ -4112,6 +4470,98 @@
       "action": "rekey",
       "by": "claude",
       "note": "T520: the row id is its content now (was is-ecfd33ebcc81)"
+    },
+    {
+      "at": "2026-11-10T03:45:26Z",
+      "id": "is-7826b2108311",
+      "action": "set",
+      "by": "Dawson",
+      "note": "i think spuzzum is the 2->3 boundary",
+      "extents": [
+        {
+          "op": "between",
+          "item_id": "gnis:39325",
+          "splits": ["fraser_river__the_cpr_bridge_at_mission", "fraser_river__spuzzum_creek_into_fraser_river"]
+        }
+      ]
+    },
+    {
+      "at": "2026-11-10T03:57:08Z",
+      "id": "is-f9e5db230277",
+      "action": "set",
+      "by": "claude",
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-00172e79bde1, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:9343",
+          "splits": [
+            "alexander_creek__easternmost_hwy_3"
+          ],
+          "tributaries": "include"
+        }
+      ]
+    },
+    {
+      "at": "2026-11-10T03:57:10Z",
+      "id": "is-4eaad82900f8",
+      "action": "set",
+      "by": "claude",
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-695fd31ebf80, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:22255",
+          "splits": [
+            "duncan_river__duncan_dam"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-11-10T03:57:10Z",
+      "id": "is-1cf72da5a533",
+      "action": "set",
+      "by": "claude",
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-d55f2ace6f8e, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: Claude 2026-10-29 at owner's request — check: rescind row (informational): the Kaslo River below the Keen Creek confluence to its mouth at Kootenay Lake (the mouth is the river's end). Check it.",
+      "extents": [
+        {
+          "op": "downstream_of",
+          "item_id": "gnis:11345",
+          "splits": [
+            "trib:gnis:11410"
+          ]
+        }
+      ]
+    },
+    {
+      "at": "2026-11-10T03:57:11Z",
+      "id": "is-546bc1e74bbc",
+      "action": "set",
+      "by": "claude",
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-0762f7371d1a, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: Claude 2026-10-29 at owner's request — check: rescind row (informational): Keen Creek whole water (owner: no falls split for now; the rescinded closure was downstream of the falls ~6 km from the Kaslo). Check it.",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:11410",
+          "splits": []
+        }
+      ]
+    },
+    {
+      "at": "2026-11-10T03:57:12Z",
+      "id": "is-79fcd6f4a6bc",
+      "action": "set",
+      "by": "claude",
+      "note": "PROPOSAL (Claude 2026-11-09): carried from is-69d2a07100fc, the same region and water under the row's earlier id (the feed's ids changed). Earlier note: auto. Check it.",
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "gnis:18775",
+          "splits": [],
+          "tributaries": "only"
+        }
+      ]
     }
   ]
 }

@@ -297,7 +297,7 @@ def resolve_all(by: str = "") -> dict:
     return {"release": rel.name, "unresolved": bad}
 
 
-def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "") -> dict:
+def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "", source: str = "owner") -> dict:
     """SET (extents given) or CLEAR (None / []) one row's match, with a history row carrying `note`. Refused:
     no note, an id the feed does not hold (rows or removed), a malformed extent, an unknown water or split, an
     extent that binds nothing. Written by `writes.commit` (backup + atomic) under `writes.LOCK`."""
@@ -341,7 +341,8 @@ def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "
             r = rows[rid]
             try:
                 match = M.stamped(M.Match(region=str(r.get("region") or ""), water=str(r.get("water") or ""),
-                                          extents=exts, effective=eff, note=note, by=by, at=at, waters=waters),
+                                          extents=exts, effective=eff, note=note, by=by, at=at, waters=waters,
+                                          source=source),
                                   rel.name)
             except (ValidationError, ValueError) as ex:
                 raise Refused(str(ex))
