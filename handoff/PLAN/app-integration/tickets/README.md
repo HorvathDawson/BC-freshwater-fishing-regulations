@@ -644,6 +644,7 @@ use that as the sole source of future work."
 | T603 | The emulator test bed covers saved spots (saved through the UI or one seeding helper) and the two-days line; scroll check for the blank route map | OPEN | — | owner 2026-11-10; after the app lanes |
 | T604 | The chart's day marks are readable: no overlapping labels, today is obvious (two-days chart) | IN REVIEW — owner looks at the T604-shots and the phone; left: emulator shots | 90e41efc6 | owner 2026-11-10 on build 25, with a shot |
 | T605 | One B.C. clock: what T551 left (gauge page script, items 3/4/8, re-read on return to the app, static hub day words) | OPEN | — | T551 report 2026-11-10; owner: hub pages print dates or rebuild daily |
+| T606 | Atlas inputs: what T547 left (side-build proof, clash suffix numbering + lake names at the next rebuild, cache key, cut label edits) | OPEN | — | T547 report 2026-11-10 |
 
 ## Order for open tickets
 
