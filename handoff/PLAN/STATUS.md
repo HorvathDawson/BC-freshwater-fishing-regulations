@@ -13,6 +13,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 night — build 25 (0.7.3) on Play internal; staging site + feeds worker deployed (chat 11)
+- **On the owner's phone after an update:** T567, T568, T569, T570, T581, T582, T583, T586, T598. All passed on the
+  emulator (shots in APK-25-shots). Not checked there: saved-spot chips (the emulator has no spots); the
+  regulations-day line when the two days differ.
+- **Deployed:** feeds worker (staging) eaacba90, all three feeds ok; staging site on r-a178299f6005, smoke 18/18.
+- **Seen, not blocking:** the Conditions route map drew blank dark green once while scrolling; the alert editor
+  prefilled 3.199 where the card shows 3.2 m (being fixed with T596).
+- **Running, six agents:** T546, T547, T553 (pipeline); T551 (one B.C. clock), T548 (in-season notices), T596 + T595.
+- **Owner:** update to 0.7.3 (25) from Play internal and look at the items above.
+
 ## 2026-11-10 evening — data layout decided (T599); agents now run in parallel (chat 11)
 - **Data layout (T599, decided):** no format switch (Zarr does not fit; our array data is tiny). Keep today's formats;
   split data strictly into fetched, curated, built, released; one writer for curated data. App and web packages stay
