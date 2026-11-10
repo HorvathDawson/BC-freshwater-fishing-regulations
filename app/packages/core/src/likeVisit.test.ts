@@ -171,3 +171,12 @@ describe("(T284) the plain reasons", () => {
       "Air temperature: 4° cooler", "Wind: 3 km/h calmer"]);
   });
 });
+
+describe("(T620 G13) one weather number", () => {
+  it("a 13.6 degree visit is 14°C everywhere; rain keeps a decimal", async () => {
+    const { weatherFigure } = await import("./weatherFigure");
+    expect([weatherFigure("temp", 13.6), weatherFigure("wind", 21.5), weatherFigure("rain", 2.46),
+            weatherFigure("cloud", 40.4), weatherFigure("pressure", 1012.6)])
+      .toEqual(["14°C", "22 km/h", "2.5 mm", "40%", "1013 hPa"]);
+  });
+});

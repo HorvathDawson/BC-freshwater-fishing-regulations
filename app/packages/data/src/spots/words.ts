@@ -4,7 +4,7 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, localStamp, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
+import { CONDITIONS_WORDS, localDate, localDateTime, localStamp, weatherFigure, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
          shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
@@ -393,7 +393,7 @@ export function spotRowLines(spot: Spot): [string, string] {
     : g && f
     ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${daysInTen(g.percentile)}` : ""}`
     : "no gauge";
-  const weather = w?.tempC != null ? `${w.tempC}°C${w.backfilled ? " (filled in)" : ""}` : "no weather";
+  const weather = w?.tempC != null ? `${weatherFigure("temp", w.tempC)}${w.backfilled ? " (filled in)" : ""}` : "no weather";
   return [`${localDate(spot.visitedAt ?? spot.createdAt)} · ${gauge} · ${weather}`,
           `${spot.lat.toFixed(4)}, ${spot.lon.toFixed(4)}`];
 }

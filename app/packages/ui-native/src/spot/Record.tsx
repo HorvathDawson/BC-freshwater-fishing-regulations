@@ -5,7 +5,7 @@
 import { View } from "react-native";
 import { Text } from "../Text";
 import { DAY_PANEL_WORDS, savedGauges, spotReadingFigure, visitDay, type Spot } from "@app/data/spots";
-import { SPOT_RECORD_WORDS } from "@app/core";
+import { SPOT_RECORD_WORDS, weatherFigure } from "@app/core";
 import { DonorPanel } from "../DonorPanel";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
@@ -90,16 +90,16 @@ export function WeatherRecord({ spot, palette }: { spot: Spot; palette: Palette 
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12,
                          flexWrap: "wrap" }}>
             <Text selectable style={{ ...TYPE.figureBig, fontSize: 32, color: palette.ink }}>
-              {w.tempC}°C
+              {weatherFigure("temp", w.tempC)}
             </Text>
             {w.windKph != null && (
               <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>
-                wind {Math.round(w.windKph)} km/h
+                wind {weatherFigure("wind", w.windKph)}
               </Text>
             )}
             {w.rain3h != null && (
               <Text selectable style={{ ...TYPE.figure, color: palette.sub }}>
-                rain {w.rain3h} mm
+                rain {weatherFigure("rain", w.rain3h)}
               </Text>
             )}
           </View>

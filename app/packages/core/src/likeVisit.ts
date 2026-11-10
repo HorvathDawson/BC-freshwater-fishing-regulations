@@ -30,6 +30,7 @@ import { bcNow } from "./clock";
 import { shiftDay, wallIso } from "./day";
 import { agoWords } from "./freshness";
 import { CHANGE_LOW_WATER, CHANGE_LOW_WATER_MARK } from "./change";
+import { weatherFigure } from "./weatherFigure";
 
 /** The factors, in the order a day's working lists them. */
 export type LikeFactorKey = "flow" | "rain" | "cloud" | "pressure" | "temp" | "wind";
@@ -162,11 +163,7 @@ export const LIKE_WORDS = {
 function said(key: LikeFactorKey, v: number): string {
   switch (key) {
     case "flow": return daysShort(v);
-    case "temp": return `${Math.round(v)}°C`;
-    case "rain": return `${round1(v)} mm`;
-    case "wind": return `${Math.round(v)} km/h`;
-    case "cloud": return `${Math.round(v)}%`;
-    case "pressure": return `${Math.round(v)} hPa`;
+    case "temp": case "rain": case "wind": case "cloud": case "pressure": return weatherFigure(key, v);
   }
 }
 
