@@ -27,3 +27,8 @@ saved spots too, we could mock it?"
 - A test bed run fails if the saved-spot chips, the alert editor wording or the two-days line are missing or cut off.
 
 Depends: T582, T598. Size: S–M. Owner: no.
+
+## Added 2026-11-10 (T595 leftovers)
+5. A staging APK running on an emulator reports as `test` (app-side emulator detection sets the test tag), so emulator
+   installs of the owner build stop filing real error kinds.
+6. Class the kind `SecurityException: Unsupported path /data/local/tmp/…` (an emulator-only path) as `expected`.
