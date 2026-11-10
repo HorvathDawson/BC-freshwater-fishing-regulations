@@ -254,6 +254,18 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
     expect((screen.getByTestId("alert-form-value") as HTMLInputElement).value).toBe("3.2");
   });
 
+  it("(T620 G11) opened with no card figure (More → Add an alert): the box fills from the series, one 'now' in both lines", async () => {
+    const { c } = controls();
+    const { source } = fakeSource();
+    render(<NotifyRoot controls={c}><AlertMe palette={LIGHT} target={{ ...target, current: null }} source={source} /></NotifyRoot>);
+    fireEvent.click(screen.getByTestId("alert-me-open"));
+    await flush();
+    expect((screen.getByTestId("alert-form-value") as HTMLInputElement).value).toBe("42.5");
+    expect(screen.getByTestId("alert-form-context").textContent).toContain("Now 42.5 m³/s");
+    fireEvent.change(screen.getByTestId("alert-form-value"), { target: { value: "40" } });
+    expect(line()).toContain("It is above that now (42.5 m³/s)");
+  });
+
   it("opens on this gauge, prefilled with the reading now; the summary says what will happen", async () => {
     const { c, platform } = controls();
     const { source } = fakeSource();

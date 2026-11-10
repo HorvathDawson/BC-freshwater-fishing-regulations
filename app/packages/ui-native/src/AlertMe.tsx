@@ -13,14 +13,14 @@
  * Draws nothing where the app has no notifications (the web, a test). Every word is core's (`NOTIFY_WORDS`); the state
  * and actions are `@app/ui` `useNotifications`.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TextInput, View } from "react-native";
 import {
   ALERT_DIRECTIONS, alertContextLine, alertSummary, CONDITIONS_WORDS, figure, NOTIFY_WORDS, now, parseAlertValue, percentileByDay,
   percentileOk, PERCENTILE_PRESETS, type AlertDirection, type AlertQuantity, type AlertThreshold, type GaugeAlertRule,
 } from "@app/core";
 import type { WaterSource } from "@app/data";
-import { alertNowValue, useAlertContext, useAlertRecord, useNotifications, type AlertRecord, type NotificationsVM } from "@app/ui";
+import { alertNow, useAlertContext, useAlertRecord, useNotifications, type AlertRecord, type NotificationsVM } from "@app/ui";
 import { Text } from "./Text";
 import { Button } from "./Button";
 import { Chip } from "./Chip";
@@ -130,6 +130,12 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
   const [busy, setBusy] = useState(false);
   const ctx = useAlertContext(source, gauge.station, quantity);
   const rec = useAlertRecord(source, gauge.station, quantity);
+  // (T620 G11) ONE "now" for the context line, the summary and the value box, whichever way the editor was opened
+  const nowIs = alertNow(quantity, gauge, ctx);
+  const typedByReader = useRef(gauge.current !== null);   // a card's figure is already in the box
+  useEffect(() => {
+    if (!typedByReader.current && nowIs !== null) { typedByReader.current = true; setText(figure(nowIs.value)); }
+  }, [nowIs]);
   const why = recordWhy(rec, quantity);
   // percentile picked but this quantity has no record (another quantity picked): nothing to save, the reason said
   const percentile = lineKind === "percentile" && why === null;
@@ -151,7 +157,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
   const typed = percentile ? (pct === "custom" ? pctText.trim() !== "" : true) : text.trim() !== "";
   const message = lineKind === "percentile" && why !== null ? why
     : (bad || (!ok && typed)) ? (lineKind === "percentile" ? E.badPct : E.bad)
-    : draft ? alertSummary(draft, ctx.current) : lineKind === "value" ? E.value(quantity) : E.customLabel;
+    : draft ? alertSummary(draft, nowIs) : lineKind === "value" ? E.value(quantity) : E.customLabel;
   return (
     <View testID="alert-form" style={{ gap: SPACE.s3, padding: SPACE.s3, borderWidth: 1, borderColor: palette.line2,
                                        borderRadius: palette.r.box, backgroundColor: palette.wash }}>
@@ -164,7 +170,11 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
                     testID={`alert-form-q-${q}`}
                     onPress={() => {
                       // the number typed was in the other quantity's units: start again from this one's reading
-                      if (q !== quantity) setText(q === gauge.quantity && gauge.current !== null ? figure(gauge.current) : "");
+                      if (q !== quantity) {
+                        const card = q === gauge.quantity && gauge.current !== null;
+                        setText(card ? figure(gauge.current!) : "");
+                        typedByReader.current = card;   // another quantity: its own reading fills the box once the series is in
+                      }
                       setQuantity(q); setBad(false);
                     }} />
             ))}
@@ -194,7 +204,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
       {lineKind === "value" && (
         <Field palette={palette} label={E.value(quantity)}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
-            <TextInput testID="alert-form-value" value={text} onChangeText={(t) => { setText(t); setBad(false); }}
+            <TextInput testID="alert-form-value" value={text} onChangeText={(t) => { typedByReader.current = true; setText(t); setBad(false); }}
                        accessibilityLabel={E.value(quantity)} placeholder={E.value(quantity)}
                        placeholderTextColor={palette.faint} keyboardType="decimal-pad" inputMode="decimal"
                        style={{ ...TYPE.body, color: palette.ink, borderWidth: 1.5, borderColor: bad ? palette.closed : palette.ink,
@@ -203,7 +213,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
             <Text style={{ ...TYPE.bodyStrong, color: palette.sub }}>{CONDITIONS_WORDS.unit[quantity]}</Text>
           </View>
           <Text testID="alert-form-context" accessibilityLiveRegion="polite" style={{ ...TYPE.small, color: palette.sub }}>
-            {ctx.loading ? E.loading : alertContextLine(quantity, alertNowValue(quantity, gauge, ctx.current?.value ?? null), ctx.normal)}
+            {ctx.loading ? E.loading : alertContextLine(quantity, nowIs?.value ?? null, ctx.normal)}
           </Text>
         </Field>
       )}

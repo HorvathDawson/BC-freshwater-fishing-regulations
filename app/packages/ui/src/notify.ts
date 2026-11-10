@@ -9,7 +9,7 @@
  * allowing it later in the phone's settings is all it takes. A refusal is the environment's: never reported.
  */
 import { createElement, useCallback, useContext, useEffect, useMemo, useState, createContext, type ReactNode } from "react";
-import { findGauges, hasRecord, normalRangeOf, reportFailure, type AlertNow, type AlertQuantity, type Band,
+import { findGauges, hasRecord, now as coreNow, normalRangeOf, reportFailure, type AlertNow, type AlertQuantity, type Band,
          type GaugeAlertRule } from "@app/core";
 import {
   dismissRefused, notifyActive, putRule as put, removeRule as drop, setAppVersionNotice, setNotifyOn, setRuleOn as ruleOn,
@@ -160,6 +160,18 @@ export function useAlertContext(source: WaterSource, station: string, quantity: 
 export function alertNowValue(quantity: AlertQuantity, card: { quantity: AlertQuantity; current: number | null },
                               series: number | null): number | null {
   return quantity === card.quantity && card.current !== null ? card.current : series;
+}
+
+/**
+ * (T620 G11) THE ONE "NOW" OF THE ALERT EDITOR, as `alertSummary` wants it: the value `alertNowValue` chose and the
+ * time of the series' last point. The context line ("Now …"), the summary ("It is above that now …") and the value box's
+ * prefill all read THIS, so no two of them can print two readings, and the editor opened from More (no card figure) and
+ * from a gauge card agree once the series is in. Null: no reading at all.
+ */
+export function alertNow(quantity: AlertQuantity, card: { quantity: AlertQuantity; current: number | null },
+                         ctx: { current: { value: number; at: string } | null }): AlertNow | null {
+  const value = alertNowValue(quantity, card, ctx.current?.value ?? null);
+  return value === null ? null : { value, at: ctx.current?.at ?? new Date(coreNow()).toISOString() };
 }
 
 /**
