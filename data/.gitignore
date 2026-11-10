@@ -59,6 +59,13 @@ release/
 # committed because the review app reads them. The app's own refused-saves log is runtime state, not committed.
 !generated/review/
 generated/review/refused-saves.jsonl
+# T541: run logs, caches and derived summaries beside the committed inputs — never review inputs, so never tracked
+# (they dirtied every `git status` and rode in on another lane's `git add -A`): the write-through's run log
+# (curation-review/backend/write_through.py), the PFMA basin -> Area cache (backend/region_cascade.py), and the
+# Markdown summaries `pipeline.regs.dfo_salmon.suggest` writes beside its committed JSON
+generated/review/write-through.jsonl
+generated/review/pfma_basin_areas.json
+generated/review/dfo-*.md
 # T324 (owner 2026-11-05): the gauge REVIEW QUEUE (`pipeline.gauges.generate.promote` writes it beside the curated
 # matches.json) is machine output, so it lives here, not in ../curated/. Committed because `check_curated --ci` reads it
 # in CI (a queued station is not STALE). `generated/gauges/` is un-excluded only to reach this one file.
