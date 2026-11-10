@@ -16,7 +16,6 @@
  *                 no word reaches the app (an index from before notices, a run that could not check) does `ms` decide
  *   by "weekdays" (T347) issued on working days only: current until the next working day's issue plus a grace
  *                 (`forecastDueBy`), so Friday's run holds the weekend and a holiday Monday
- *   by "notRead"  the app does not read it: unknown, the reader's to check
  *   by "live"     fetched on demand: it has no age to hold
  */
 import { CHANGE_POLICY, FORECAST_HOLIDAYS } from "./gauge-policy.generated";
@@ -26,7 +25,6 @@ export type StaleRule =
   | { readonly by: "notice"; readonly ms: number }
   | { readonly by: "weekdays" }
   | { readonly by: "release" }
-  | { readonly by: "notRead" }
   | { readonly by: "live" };
 
 const MIN = 60_000;
@@ -71,8 +69,13 @@ export const STALE_AFTER = {
   synopsis: { by: "release" },
   /** The map's tiles: built with the release, proven one pair with its data (P11). */
   tiles: { by: "release" },
-  /** The Province's in-season changes: not read by the app. */
-  inseason: { by: "notRead" },
+  /**
+   * (T548) B.C. Fish and Wildlife's in-season changes (the Province's page, read by the feeds worker since T225 and by
+   * the app since T230), by the feed's own `fetchedAt` — rewritten at least every 20 h even when the page did not
+   * change (`FEED_HEARTBEAT_MS`, app/workers/feeds/src/inseason.ts), as DFO's is (T526). Not rewritten for more than a
+   * day: the worker is blocked or failing, and the notices shown are likely out of date. No time: unknown.
+   */
+  inseason: { by: "age", ms: DAY },
   /** Weather: fetched with each saved spot. */
   weather: { by: "live" },
   /** Satellite imagery: fetched while online. */

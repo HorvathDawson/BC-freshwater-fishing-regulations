@@ -27,6 +27,11 @@ export interface SourcesInput {
    * release's date.
    */
   dfoCheckedAt?: string | null;
+  /**
+   * (T548) When the feeds worker last wrote the in-season feed this device holds (its ISO `fetchedAt`). Null / absent:
+   * no feed read yet: unknown.
+   */
+  inseasonFetchedAt?: string | null;
   /** When the live gauge feed was last fetched (its ISO instant, the data facts' `fetchedAt`), or null. */
   feedFetchedAt: string | null;
   /**

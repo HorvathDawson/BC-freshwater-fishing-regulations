@@ -3,12 +3,12 @@
  * Shell, unchanged). The top bar, the search sheet, the legend and the tab bar are the Shell's, drawn over these.
  */
 import { dayLabel, type DayRange, type NotFishingKind, type SectionKey, type SyncVM, now as clockNow } from "@app/core";
-import { useCallback, type MutableRefObject } from "react";
+import { useCallback, useContext, type MutableRefObject } from "react";
 import { Platform, View } from "react-native";
 import { openProbe, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
-         mapError, type SpotPhotos, type SyncState } from "@app/ui";
+         mapError, InSeasonContext, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { hiddenLayers, shownLayers } from "@app/map/colours";
@@ -108,9 +108,12 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                      lat !== undefined && lon !== undefined ? { lat, lon } : null, conditions ? "conditions" : "regs");
   }, [tab, flowParam, opener, picking, col.runsFeed, onRuns, regsPrefetch]);
   /** What More's Data block reads (T167: the only place a source's date and freshness are drawn): the release's dates, the pair, the feed's age. */
+  const inseasonFetchedAt = useContext(InSeasonContext).data?.feed.fetchedAt ?? null;
   const dataFacts = {
     sources: loader?.manifest?.sources ?? null, validUntil: loader?.manifest?.regulations?.valid_until ?? null,
     tiles: vintage.tiles ?? null, tilesPaired: vintage.ok, feedFetchedAt: syncState.feedFetchedAt, dfoCheckedAt, now: clockNow(),
+    // (T548) when the feeds worker last wrote the in-season feed this device holds: its Data row's age
+    inseasonFetchedAt,
     // the feed's word on HYDAT (its maintenance notice), read with the sync state; never handed to the sync icon
     hydatNotice: syncState.hydatNotice,
     // (T68) the feed index's newest forecast run, for the Forecasts line

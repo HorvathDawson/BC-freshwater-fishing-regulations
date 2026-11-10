@@ -20,6 +20,8 @@ const LIVE: DataInput = {
   forecastIssuedAt: new Date(NOW - 9 * H).toISOString(),
   // (T526) DFO is judged on when it was last CHECKED, not on its content date
   dfoCheckedAt: new Date(NOW - 5 * H).toISOString(),
+  // (T548) the in-season feed, by when the feeds worker last wrote it
+  inseasonFetchedAt: new Date(NOW - 2 * H).toISOString(),
 };
 /** a row as drawn (name | right-hand text) and as said aloud */
 const rows = (d: DataInput) => dataVM(d).rows.map((r) => `${r.name} | ${r.shown}`);
@@ -31,6 +33,7 @@ describe("the Data block: always on More, compact — every source, one row each
      "stale", () => {
     expect(rows(LIVE)).toEqual([
       "Synopsis | 2025–2027 edition",
+      "In-season changes | 2h ago",
       "DFO salmon | 5h ago",
       "Freshwater Atlas | Jul 15, 2026",
       "Map tiles | Matches the data",
@@ -46,6 +49,7 @@ describe("the Data block: always on More, compact — every source, one row each
   it("every row is said aloud whole: name, date, state — the state the dot draws", () => {
     expect(dataVM(LIVE).rows.map((r) => r.label)).toEqual([
       "Synopsis: 2025–2027 edition. Unknown.",
+      "In-season changes: 2h ago. Up to date.",
       "DFO salmon: 5h ago. Up to date.",
       "Freshwater Atlas: Jul 15, 2026. Up to date.",
       "Map tiles: Matches the data. Up to date.",
@@ -58,12 +62,20 @@ describe("the Data block: always on More, compact — every source, one row each
     ]);
   });
 
-  it("the rows are the app's ONE source list (SOURCE_ORDER) less the in-season changes, which are the warning", () => {
-    expect([...DATA_ROWS]).toEqual(SOURCE_ORDER.filter((k) => k !== "inseason"));
+  it("the rows are the app's ONE source list (SOURCE_ORDER), the in-season feed's age among them (T548)", () => {
+    expect([...DATA_ROWS]).toEqual([...SOURCE_ORDER]);
     expect(dataVM(LIVE).rows.map((r) => r.k)).toEqual([...DATA_ROWS]);
   });
 
-  it("the in-season changes: never a row, always the warning, with the Province's page", () => {
+  it("(T548) the in-season feed not rewritten for more than a day: its row says so, and the block counts it", () => {
+    const old = { ...LIVE, feedFetchedAt: new Date(NOW - H).toISOString(), inseasonFetchedAt: new Date(NOW - 3 * 24 * H).toISOString() };
+    expect(row(old, "inseason").shown).toBe("3d ago · Likely out of date");
+    expect(row(old, "inseason").label).toBe("In-season changes: 3d ago. Likely out of date.");
+    expect(sum(old)).toBe("stale: 1 likely out of date");
+    expect(row({ inseasonFetchedAt: null }, "inseason").label).toBe("In-season changes: Not checked yet. Unknown.");
+  });
+
+  it("the in-season changes: the warning stands above the rows, with the Province's page", () => {
     expect(dataVM(LIVE).inseason).toEqual({
       title: "In-season changes",
       text: "Shown on the waters they apply to. Some may not be placed on the map yet, so check the Province's notices before you fish.",
@@ -105,7 +117,7 @@ describe("the Data block: always on More, compact — every source, one row each
       const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
       const v = dataVM({ ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
                          forecastIssuedAt: new Date(now - H).toISOString(),
-                         dfoCheckedAt: new Date(now - H).toISOString(), now });
+                         dfoCheckedAt: new Date(now - H).toISOString(), inseasonFetchedAt: new Date(now - H).toISOString(), now });
       return `${v.rows[0]!.name} | ${v.rows[0]!.shown} | ${v.summary.label}`;
     };
     expect([at(new Date(2027, 2, 31, 23, 59).getTime()), at(new Date(2027, 3, 1, 0, 1).getTime())]).toEqual([
@@ -140,7 +152,8 @@ describe("the Data block: always on More, compact — every source, one row each
     const sources = { synopsis: LIVE.sources!.synopsis, dfo: day, fwa: day, basemap: day, hydat: day };
     const base: DataInput = { ...LIVE, sources, validUntil: "2027-03-31", feedFetchedAt: new Date(now - H).toISOString(),
                               forecastIssuedAt: new Date(now - H).toISOString(),
-                              dfoCheckedAt: new Date(now - H).toISOString(), now };
+                              dfoCheckedAt: new Date(now - H).toISOString(),
+                              inseasonFetchedAt: new Date(now - H).toISOString(), now };
     expect([
       sum(base),
       sum({ ...base, tilesPaired: false }),
@@ -158,6 +171,7 @@ describe("the Data block: always on More, compact — every source, one row each
     const fresh: DataInput = { ...LIVE, validUntil: "2027-03-31", feedFetchedAt: new Date(NOW - H).toISOString() };
     expect(rows({ ...fresh, newRelease: "r-new" })).toEqual([
       "Synopsis | Valid to Mar 31, 2027 · Likely out of date",
+      "In-season changes | 2h ago",
       "DFO salmon | 5h ago",
       "Freshwater Atlas | Jul 15, 2026",
       "Map tiles | Matches the data · Likely out of date",

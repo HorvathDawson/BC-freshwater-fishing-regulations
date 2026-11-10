@@ -111,6 +111,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
         + "Province's in-season changes ↗",
       drawn: [
         "Synopsis2025–2027 edition",
+        "In-season changesNot checked yet",
         "DFO salmonNot checked yet",
         "Freshwater AtlasNo date recorded",
         "Map tilesMatches the data",
@@ -123,6 +124,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
       ],
       aloud: [
         "Synopsis: 2025–2027 edition. Unknown.",
+        "In-season changes: Not checked yet. Unknown.",
         "DFO salmon: Not checked yet. Unknown.",
         "Freshwater Atlas: No date recorded. Unknown.",
         "Map tiles: Matches the data. Up to date.",
@@ -136,7 +138,7 @@ describe("the More tab (T48; owner 2026-10-22 refinement; T167)", () => {
     });
     // each row's dot is its state's shape: filled for an age, a ring for none
     expect(screen.getAllByTestId(/^data-row-/).map((e) => e.querySelector("[data-testid^=fresh-]")!.getAttribute("data-testid")))
-      .toEqual(["fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-fresh", "fresh-fresh", "fresh-unknown",
+      .toEqual(["fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-unknown", "fresh-fresh", "fresh-fresh", "fresh-unknown",
                 "fresh-stale", "fresh-fresh", "fresh-live", "fresh-live"]);
     // the map tiles say their state, never their hash, on the tab
     expect(text("more-data")).not.toContain("d768d6e1");
@@ -277,7 +279,7 @@ describe("a page", () => {
     expect(screen.getAllByTestId(/^source-(?!detail-)/).map((e) => e.textContent)).toEqual([
       "SynopsisProvince of British Columbia. The printed regulations this app reads."
         + "2025–2027 BC Freshwater Fishing Regulations Synopsis",
-      "In-season changesProvince of British Columbia. Not read by this app.",
+      "In-season changesProvince of British Columbia. Shown on the waters they apply to, as posted.",
       "DFO salmonFisheries and Oceans Canada. The federal salmon limits and closures.",
       "Freshwater AtlasProvince of British Columbia. Contains information licensed under the Open Government Licence – "
         + "British Columbia.",

@@ -2,7 +2,9 @@
 // ran every 6 h (archive/pipeline/recurring/in_season/scraper.py; it opened a GitHub issue for unmatched waters). Here:
 // read the page's accordion (Provincial + Regions 1–8: Water | In-season correction/change | Effective date), compare
 // with the last snapshot (private), and tell the owner what was ADDED, CHANGED or REMOVED — the diff, by email.
-// Nothing is published: the in-season rows are not in the app yet (binding them to waters is curation work).
+// (T230) The rows are also published as the app's feed (`feeds/inseason/index.json`), rewritten at least every
+// `FEED_HEARTBEAT_MS` so the app can tell a stopped worker from a quiet page (T548, `STALE_AFTER.inseason`); a row is
+// placed on its waters by the curated links (`matches.json`), and one with no link is listed app-wide.
 //
 // The page sits behind Akamai: Python needed a Chrome TLS fingerprint from GitHub's runners. A Worker sends a browser
 // User-Agent; a refusal is a failed run (status page + health alert), never an empty snapshot.
@@ -211,7 +213,7 @@ export async function runInSeason(deps: {
           key: `inseason:${sha}`,
           kind: "inseason",
           title: `${d.added.length} added, ${d.changed.length} changed, ${d.removed.length} removed on the provincial in-season page`,
-          text: `${diffText(d)}\n\nSource: ${SOURCE_URL}\n(The in-season rows are not in the app yet: bind any that matter in curation.)`,
+          text: `${diffText(d)}\n\nSource: ${SOURCE_URL}\n(Rows with no curated link are shown in the app's not-on-the-map-yet list: bind any that matter in curation.)`,
           at: now.toISOString(),
           data: { added: d.added, changed: d.changed, removed: d.removed, source: SOURCE_URL },
         },

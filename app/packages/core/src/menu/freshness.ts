@@ -18,7 +18,7 @@ export function isoDayWords(day: string | null | undefined): string | null {
  * HOW FRESH A SOURCE IS (owner 2026-10-22: "when each feed was last updated … and if any are likely out of date"):
  *   fresh    inside its expected cadence
  *   stale    older than its expected cadence: LIKELY out of date (a cadence is an expectation, not a promise)
- *   unknown  no date recorded, or a source the app does not read — never guessed fresh
+ *   unknown  no date recorded — never guessed fresh
  *   live     fetched on demand (weather with a spot, imagery while online): it has no age to hold
  */
 export type SourceFreshness = "fresh" | "stale" | "unknown" | "live";
@@ -29,8 +29,6 @@ export const FRESHNESS_WORDS = {
   stale: "Likely out of date",
   unknown: "Unknown",
   live: "Live",
-  /** the in-season changes: the app does not read them, so their freshness is the reader's to check */
-  notRead: "Not read",
   /** the regulations past their last day: not "likely" — the edition has lapsed (`regsLapsed`) */
   lapsed: "Out of date",
   /**
@@ -78,6 +76,11 @@ function ageMs(k: AgeKey, s: SourcesInput): number | null {
     const t = typeof s.dfoCheckedAt === "string" ? Date.parse(s.dfoCheckedAt) : NaN;
     return Number.isFinite(t) ? s.now - t : null;
   }
+  if (k === "inseason") {
+    // (T548) when the feeds worker last wrote the in-season feed (its `fetchedAt`), whatever the page said
+    const t = typeof s.inseasonFetchedAt === "string" ? Date.parse(s.inseasonFetchedAt) : NaN;
+    return Number.isFinite(t) ? s.now - t : null;
+  }
   if (k === "fwa" || k === "basemap" || k === "hydat") return dayAgeMs(s.sources?.[k]?.date, s.now);
   return null;
 }
@@ -100,13 +103,13 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
 /**
  * ONE SOURCE'S FRESHNESS, by its rule in THE ONE TABLE (`STALE_AFTER`, staleness.ts):
  *   age       the feed (its index's own `fetchedAt`), the forecasts (the index's newest run, `forecastIssuedAt`; none
- *             running: the feed's own freshness) and dfo (when the feeds worker last checked DFO, T526) and fwa / basemap / hydat (the release's date for each)
+ *             running: the feed's own freshness), dfo (when the feeds worker last checked DFO, T526), the in-season
+ *             changes (the feed's `fetchedAt`, T548) and fwa / basemap / hydat (the release's date for each)
  *             against the table's line; never checked or not recorded, unknown
  *   notice    hydat: the feed's notice — due "Newer release out"; clear, up to date whatever the age ONLY when the
  *             release's `sources.hydat.date` is the feed's newest HYDAT, "Newer release out" when the release is
  *             older (the app's data has not caught up); no word or no release date, the age line as above
  *   release   synopsis / tiles (`byRelease`)
- *   notRead   the in-season changes: unknown ("Not read")
  *   live      weather / imagery
  */
 export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM {
@@ -134,7 +137,6 @@ export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM 
       return badge(byCadence(k as AgeKey, ageMs(k as AgeKey, s)));
     }
     case "release": return byRelease(k, s);
-    case "notRead": return badge("unknown", FRESHNESS_WORDS.notRead);
     case "live": return badge("live");
   }
 }

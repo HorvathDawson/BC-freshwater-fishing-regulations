@@ -6,6 +6,7 @@
  */
 import { agoWords } from "../freshness";
 import { isoDayWords } from "./freshness";
+import { byCadence } from "../staleness";
 
 export const LEGAL_WORDS = {
   /** the Regulations page's foot, every page */
@@ -36,6 +37,8 @@ export const LEGAL_WORDS = {
     /** the salmon answer is the release's own file (no feed captured, or the release is newer) */
     salmonRelease: "salmon from the release",
     inSeason: (ago: string) => `in-season ${ago}`,
+    /** (T548) the feed not rewritten for more than its line (`STALE_AFTER.inseason`): the notices may be out of date */
+    inSeasonStale: (ago: string) => `in-season ${ago}, likely out of date`,
     inSeasonNone: "in-season not checked",
   },
 } as const;
@@ -79,14 +82,17 @@ export interface AsOfInput {
   readonly now: number;
 }
 
-/** "Regulations as of Oct 27, 2026 · salmon feed 3h ago · in-season 1h ago". */
+/** "Regulations as of Oct 27, 2026 · salmon feed 3h ago · in-season 1h ago" ("in-season 3d ago, likely out of date"
+ *  past the in-season feed's line, T548: the one table's rule, `byCadence`). */
 export function asOfLine(i: AsOfInput): string {
   const w = LEGAL_WORDS.asOf;
   const day = isoDayWords(regsAsOfDay(i.release));
   const parts = [day ? w.regs(day) : w.regsUndated];
   if (i.salmonAt !== undefined)
     parts.push(i.salmonAt && Number.isFinite(Date.parse(i.salmonAt)) ? w.salmon(agoWords(i.salmonAt, i.now)) : w.salmonRelease);
-  parts.push(i.inSeasonAt && Number.isFinite(Date.parse(i.inSeasonAt)) ? w.inSeason(agoWords(i.inSeasonAt, i.now))
-    : w.inSeasonNone);
+  const at = i.inSeasonAt && Number.isFinite(Date.parse(i.inSeasonAt)) ? i.inSeasonAt : null;
+  parts.push(at === null ? w.inSeasonNone
+    : byCadence("inseason", i.now - Date.parse(at)) === "stale" ? w.inSeasonStale(agoWords(at, i.now))
+    : w.inSeason(agoWords(at, i.now)));
   return parts.join(" · ");
 }

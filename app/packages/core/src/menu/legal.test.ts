@@ -13,6 +13,12 @@ describe("the regulations' as-of line (T236)", () => {
                       inSeasonAt: "2026-10-28T17:00:00Z", now: NOW }))
       .toBe("Regulations as of Oct 27, 2026 · salmon feed 3h ago · in-season 1h ago");
   });
+  it("(T548) an in-season feed not rewritten for more than a day says it is likely out of date", () => {
+    expect(asOfLine({ release: { published: "2026-10-27" }, inSeasonAt: "2026-10-27T17:00:00Z", now: NOW }))
+      .toBe("Regulations as of Oct 27, 2026 · in-season 25h ago, likely out of date");
+    expect(asOfLine({ release: { published: "2026-10-27" }, inSeasonAt: "2026-10-27T18:00:00Z", now: NOW }))
+      .toBe("Regulations as of Oct 27, 2026 · in-season 24h ago");
+  });
   it("leaves the salmon part out on a page with no salmon, and says the release's own salmon file", () => {
     expect(asOfLine({ release: null, inSeasonAt: null, now: NOW }))
       .toBe("Regulations: release date not stated · in-season not checked");

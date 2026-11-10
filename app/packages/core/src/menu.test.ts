@@ -162,7 +162,7 @@ describe("sources and credits (T167: references apart — no dates, no freshness
     expect(vm.rows).toEqual([
       { k: "synopsis", name: "Synopsis", from: "Province of British Columbia. The printed regulations this app reads.",
         detail: "2025–2027 BC Freshwater Fishing Regulations Synopsis" },
-      { k: "inseason", name: "In-season changes", from: "Province of British Columbia. Not read by this app.", detail: null },
+      { k: "inseason", name: "In-season changes", from: "Province of British Columbia. Shown on the waters they apply to, as posted.", detail: null },
       { k: "dfo", name: "DFO salmon", from: "Fisheries and Oceans Canada. The federal salmon limits and closures.",
         detail: null },
       { k: "fwa", name: "Freshwater Atlas", from: "Province of British Columbia. Contains information licensed under the "
@@ -220,7 +220,7 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       dfo: { by: "age", ms: D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
       hydat: { by: "notice", ms: 548 * D },
       synopsis: { by: "release" }, tiles: { by: "release" },
-      inseason: { by: "notRead" }, weather: { by: "live" }, imagery: { by: "live" },
+      inseason: { by: "age", ms: D }, weather: { by: "live" }, imagery: { by: "live" },
     });
   });
 
@@ -389,12 +389,15 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       null]);
   });
 
-  it("the map tiles by the proven pair and the release; the in-season changes not read; weather and imagery live", () => {
+  it("the map tiles by the proven pair and the release; the in-season feed by its fetchedAt (T548); weather and " +
+     "imagery live", () => {
+    const iso = (ago: number) => new Date(now - ago).toISOString();
     expect([at("tiles", { tilesPaired: true }, now), at("tiles", { tilesPaired: false }, now),
             at("tiles", { tilesPaired: null }, now), at("tiles", { tilesPaired: true, newRelease: "r-new" }, now),
-            at("inseason", {}, now), at("weather", {}, now), at("imagery", {}, now)])
+            at("inseason", {}, now), at("inseason", { inseasonFetchedAt: iso(24 * H) }, now),
+            at("inseason", { inseasonFetchedAt: iso(25 * H) }, now), at("weather", {}, now), at("imagery", {}, now)])
       .toEqual(["tiles Up to date", "tiles Likely out of date", "tiles Unknown", "tiles Likely out of date",
-                "inseason Not read", "weather Live", "imagery Live"]);
+                "inseason Unknown", "inseason Up to date", "inseason Likely out of date", "weather Live", "imagery Live"]);
   });
 
   it("MUTATION PIN: the gauges and the regulations do not share one line — a feed past its hours is stale while the " +

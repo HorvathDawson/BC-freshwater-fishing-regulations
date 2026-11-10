@@ -10,7 +10,8 @@ export const APP_NAME = "Can I Fish This?";
 
 /**
  * (T167) WHERE THE PROVINCE POSTS ITS IN-SEASON CHANGES — the section of its fishing-regulations page that lists them
- * by region (anchor `#In-Season-changes`, read 2026-10-23). The app does not read them; the More tab links here.
+ * by region (anchor `#In-Season-changes`, read 2026-10-23). The app reads them through the feeds worker (T230) and shows
+ * them on the waters they apply to; the More tab links here for the reader to check.
  */
 export const INSEASON_URL =
   "https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/fishing/fishing-regulations#In-Season-changes";
@@ -118,7 +119,7 @@ export const MENU_WORDS = {
     },
     from: {
       synopsis: `${P.province}. The printed regulations this app reads.`,
-      inseason: `${P.province}. Not read by this app.`,
+      inseason: `${P.province}. Shown on the waters they apply to, as posted.`,
       dfo: "Fisheries and Oceans Canada. The federal salmon limits and closures.",
       fwa: `${P.province}. Contains information licensed under the Open Government Licence – `
         + "British Columbia.",

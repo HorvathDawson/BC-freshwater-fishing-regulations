@@ -4,8 +4,8 @@
  * formatted into the main tab without adding much bulk").
  *
  *   menuVM    the More tab, top to bottom: a back to the tab the reader came from; the DATA block — always shown,
- *             compact: the in-season changes' warning (the app does not read them) with the Province's link, then ONE
- *             ROW PER SOURCE the app reads (every one of them, the owner's names): its date or age and a freshness dot,
+ *             compact: the in-season changes' warning (some may not be placed yet) with the Province's link, then ONE
+ *             ROW PER SOURCE the app reads (the in-season feed's own age among them, T548) (every one of them, the owner's names): its date or age and a freshness dot,
  *             the state in words only where it asks the reader to look; Display (the app's colours as preview
  *             tiles); the pages that open over the tab (Glossary, Sources and credits, About, Report a problem); and
  *             Contact, inline at the bottom
@@ -19,7 +19,7 @@
  * `MENU_WORDS.sources.names` (menu/words.ts), read here and by the Sources and credits page; neither is restated.
  */
 import {
-  contactVM, forecastWhen, FRESHNESS_WORDS, sourceFreshness, isoDayWords, INSEASON_URL, MENU_WORDS, regsLapsed, SOURCE_ORDER,
+  contactVM, forecastWhen, sourceFreshness, isoDayWords, INSEASON_URL, MENU_WORDS, regsLapsed, SOURCE_ORDER,
   type ContactVM, type FreshnessVM, type MenuPageKey, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { agoWords } from "./freshness";
@@ -68,8 +68,8 @@ export const MORE_WORDS = {
   },
 } as const;
 
-/** The sources the Data block lists as rows: every source the app reads but the in-season changes (its warning). */
-export const DATA_ROWS: readonly SourceDateKey[] = SOURCE_ORDER.filter((k) => k !== "inseason");
+/** The sources the Data block lists as rows: every source the app reads (T548: the in-season feed's age too). */
+export const DATA_ROWS: readonly SourceDateKey[] = SOURCE_ORDER;
 
 export interface DataRowVM {
   readonly k: SourceDateKey;
@@ -87,7 +87,7 @@ export interface DataBlockVM {
   readonly title: string;
   /** one badge for the whole block: a newer release, else how many are likely out of date, else unknown, else fresh */
   readonly summary: { readonly kind: "fresh" | "stale" | "unknown"; readonly label: string };
-  /** the in-season changes: never read, always said, with where to read them */
+  /** the in-season changes' warning (some may not be placed yet), always said, with where to read them */
   readonly inseason: { readonly title: string; readonly text: string; readonly link: { readonly label: string; readonly url: string } };
   readonly rows: readonly DataRowVM[];
   /** said when the server names a newer data release than the one in use; null otherwise */
@@ -118,7 +118,9 @@ function rowWhen(k: SourceDateKey, s: SourcesInput): string {
       const years = /^(\d{4}[–-]\d{4})\b/.exec(s.sources?.synopsis?.title ?? "")?.[1];
       return until ? w.validTo(until) : printed ? w.printed(printed) : years ? w.edition(years) : w.notRecorded;
     }
-    case "inseason": return FRESHNESS_WORDS.notRead;   // never a row (its warning stands above them)
+    // (T548) when the feeds worker last wrote the feed this device holds
+    case "inseason": return s.inseasonFetchedAt != null && Number.isFinite(Date.parse(s.inseasonFetchedAt))
+      ? agoWords(s.inseasonFetchedAt, s.now) : w.notChecked;
     case "dfo": return s.dfoCheckedAt != null && Number.isFinite(Date.parse(s.dfoCheckedAt))
       ? agoWords(s.dfoCheckedAt, s.now) : w.notChecked;   // (T526) last CHECKED, not the release's date
     case "fwa": case "basemap": case "hydat": return isoDayWords(s.sources?.[k]?.date) ?? w.notRecorded;
@@ -147,7 +149,6 @@ export function dataVM(s: DataInput): DataBlockVM {
   const W = MORE_WORDS.data;
   const rows = DATA_ROWS.map((k) => dataRow(k, s));
   const stale = rows.filter((r) => r.badge.kind === "stale").length;
-  // the in-season changes are not a row (their warning stands above the rows) and never make the block "unknown"
   const unknown = rows.some((r) => r.badge.kind === "unknown");
   const S = W.summary;
   // a lapsed edition is not "likely" out of date: it leads, and the other stale rows follow it

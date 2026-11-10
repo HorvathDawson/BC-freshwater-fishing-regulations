@@ -27,7 +27,7 @@ describe("(T180) words moved from components to core, composed whole", () => {
     const f = MENU_WORDS.sources.from;
     expect([f.synopsis, f.inseason, f.fwa, f.basemap, f.hydat, f.feed, f.forecast, f.weather]).toEqual([
       "Province of British Columbia. The printed regulations this app reads.",
-      "Province of British Columbia. Not read by this app.",
+      "Province of British Columbia. Shown on the waters they apply to, as posted.",
       "Province of British Columbia. Contains information licensed under the Open Government Licence – British Columbia.",
       "© OpenStreetMap contributors. © Protomaps.",
       "Environment and Climate Change Canada. Historical hydrometric data, under the Open Government Licence – Canada.",
