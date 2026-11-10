@@ -13,6 +13,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 evening — plain "days in 10" wording (T598, in review); land names from zoom 12 (T570, in review)
+- **Plain wording in place of the percentile (T598):** the card reads "Below normal · lower than 8 days in 10 for the
+  date". Small places (map dot label, chips) use a short form, "8 in 10 days higher". The far ends say "lower than
+  almost every day on record", never "10 days in 10". "Percentile" is left only in one Help line; a gate refuses it
+  elsewhere. Phone-only places (saved spot, chips, alert editor) were checked as words, not on screen.
+- **Indigenous land names (T570):** start at zoom 12 (was 9); the owner approved the shots. Not deployed yet.
+- **Next:** an emulator run of today's app fixes, then staging (site + feeds worker) and one APK to Play internal, so
+  the owner can check about ten tickets on the phone. Then T585 + T550 and the data-correctness list.
+
 ## 2026-11-10 late afternoon — two days each labelled (T582, in review); land-name zoom shots ready (chat 11)
 - **Two days, each labelled (T582, in review):** Conditions says which day it shows ("Conditions: today") and names the
   regulations day under it, marked on the chart, or "<day> is past the forecast". The water's Map tab says "Map: rules
