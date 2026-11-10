@@ -1166,6 +1166,10 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
         return {"resolvable": False, "n_sections": None, "why": f"not an extent: {e}"}
     out = _bind(entry, rule, limit, walks)
     dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph())
+    # a place of ONE piece that binds nothing is dead too (seen on screen 2026-11-10: "binds 0 section(s) · unresolved"
+    # with no reason — `dead_pieces` speaks only of a piece among several): it gets the same plain-words why
+    if not dead and len(fixes) == 1 and out.get("resolvable") and out.get("n_sections") == 0:
+        dead = [0]
     if dead:
         out["dead_pieces"] = [i + 1 for i in dead]
         out["dead_why"] = dead_why(fixes, list(dead), water)
