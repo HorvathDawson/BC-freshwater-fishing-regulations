@@ -19,8 +19,15 @@ cleanup dropped the parenthetical that carries the reach, collapsing MICHEL CREE
 downstream rows to one indistinguishable label. The readable form is `display_name`, and a combined
 entry's several items are surfaced in the review UI from `matched`.
 
+A `matched` ALREADY SET IS NEVER OVERWRITTEN BY DEFAULT (T546 item 5). The entry's `matched` is what the reach
+build and the review app read; the matcher's answer is the second copy. The unconditional restamp would have
+dropped ids a curator added (2026-11-10: 6 entries disagree, 4 of them hold an id the matcher does not give —
+Seton's canal, Shuswap, Stave, Sumallo). By default an EMPTY `matched` is stamped and every other disagreement
+is LISTED; `--restamp ENTRY_ID` (repeatable) restamps the named entries, `--restamp-all` all of them.
+
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --dry-run
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --registry data/generated/atlas/full/registry.json
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --restamp r2:nelson_creek@2-8
 """
 
 from __future__ import annotations
@@ -56,8 +63,12 @@ def matched_ids(registry_path: str | Path, overrides_path: str | Path | None) ->
     return out
 
 
-def backfill(entries_dir: Path, ids: dict[str, dict], dry_run: bool = False) -> dict:
-    report: dict[str, list] = {"stamped": [], "combined": []}
+def backfill(entries_dir: Path, ids: dict[str, dict], dry_run: bool = False, *,
+             restamp: set[str] | frozenset[str] = frozenset(), restamp_all: bool = False) -> dict:
+    """Stamp the matcher's ids onto every entry whose `matched` is EMPTY, and onto those `restamp` names (all,
+    with `restamp_all`). Every other entry whose `matched` differs from the matcher's is left alone and listed
+    in `disagree` as `(region, entry_id, entry's ids, matcher's ids)`."""
+    report: dict[str, list] = {"stamped": [], "combined": [], "disagree": []}
     for path in sorted(Path(entries_dir).glob("region-*.json")):
         region = path.stem.split("region-")[1]
         by_id = io.read_entryfile(path)
@@ -65,6 +76,9 @@ def backfill(entries_dir: Path, ids: dict[str, dict], dry_run: bool = False) -> 
         for eid, e in by_id.items():
             want = ids.get(eid)
             if not want or e.get("matched") == want["matched"]:
+                continue
+            if e.get("matched") and not restamp_all and eid not in restamp:
+                report["disagree"].append((region, eid, list(e["matched"]), list(want["matched"])))
                 continue
             e["matched"] = want["matched"]
             changed = True
@@ -84,17 +98,28 @@ def main() -> None:
     ap.add_argument("--entries-dir", help="catalogue region files dir (default: "
                     "data/curated/regulations/synopsis).")
     ap.add_argument("--dry-run", action="store_true", help="report only; write nothing.")
+    ap.add_argument("--restamp", action="append", default=[], metavar="ENTRY_ID",
+                    help="overwrite this entry's non-empty `matched` with the matcher's (repeatable)")
+    ap.add_argument("--restamp-all", action="store_true",
+                    help="overwrite EVERY differing `matched` (drops ids a curator added — read the list first)")
     args = ap.parse_args()
 
     ids = matched_ids(args.registry or default_registry_path(), args.overrides)
     entries_dir = Path(args.entries_dir) if args.entries_dir else io.entries_dir()
-    report = backfill(entries_dir, ids, dry_run=args.dry_run)
+    report = backfill(entries_dir, ids, dry_run=args.dry_run, restamp=set(args.restamp),
+                      restamp_all=args.restamp_all)
 
     verb = "[dry-run] would stamp" if args.dry_run else "stamped"
     print(f"{verb} `matched` on {len(report['stamped'])} entry(ies)")
     print(f"  of which COMBINED (cover several registry items): {len(report['combined'])}")
     for region, eid, want in report["combined"]:
         print(f"    [{region}] {eid}  ->  {', '.join(want)}")
+    if report["disagree"]:
+        print(f"LEFT ALONE: {len(report['disagree'])} entry(ies) whose `matched` differs from the matcher's "
+              "(restamp one with --restamp ENTRY_ID):")
+        for region, eid, have, want in report["disagree"]:
+            print(f"    [{region}] {eid}  entry only: {sorted(set(have) - set(want))}  "
+                  f"matcher only: {sorted(set(want) - set(have))}")
 
 
 if __name__ == "__main__":

@@ -42,7 +42,7 @@ def test_only_matched_moves(tmp_path):
     backfill(tmp_path, {"gnis:8634": {"matched": ["gnis:8634"], "name": "Chilliwack River"}})
     before = json.loads(path.read_text())["entries"][0]
     backfill(tmp_path, {"gnis:8634": {"matched": ["gnis:8634", "gnis:3062"],
-                                      "name": "CHILLIWACK / VEDDER RIVERS"}})
+                                      "name": "CHILLIWACK / VEDDER RIVERS"}}, restamp={"gnis:8634"})
     after = json.loads(path.read_text())["entries"][0]
 
     assert before["matched"] == ["gnis:8634"]
@@ -63,3 +63,15 @@ def test_dry_run_writes_nothing(tmp_path):
     assert backfill(tmp_path, {"gnis:8634": {"matched": ["gnis:8634", "gnis:3062"], "name": "x"}},
                     dry_run=True)["stamped"]
     assert path.read_text() == before
+
+
+def test_a_set_matched_is_listed_not_overwritten_unless_named(tmp_path):
+    """T546 item 5. Mutation: drop the `disagree` branch — a curator's added id (Seton's canal polygon) is
+    silently dropped by the next backfill."""
+    path = _write(tmp_path, [_entry("r3:seton@3-16", "Seton River", matched=["gnis:1", "wbk:canal"])])
+    want = {"r3:seton@3-16": {"matched": ["gnis:1"], "name": "SETON RIVER"}}
+    rep = backfill(tmp_path, want)
+    assert rep["stamped"] == [] and rep["disagree"] == [("2", "r3:seton@3-16", ["gnis:1", "wbk:canal"], ["gnis:1"])]
+    assert json.loads(path.read_text())["entries"][0]["matched"] == ["gnis:1", "wbk:canal"]
+    assert backfill(tmp_path, want, restamp={"r3:seton@3-16"})["stamped"] == ["r3:seton@3-16"]
+    assert json.loads(path.read_text())["entries"][0]["matched"] == ["gnis:1"]
