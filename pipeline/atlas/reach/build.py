@@ -112,6 +112,14 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
         raise SystemExit("reach: records name an item this registry folded into another "
                          "(`registry.flowing`) — read the corpus with the registry, or fix the "
                          "file:\n  " + "\n  ".join(bad))
+    # A NAMED ITEM THIS REGISTRY DOES NOT HAVE STOPS THE RUN (T546 items 1 + 6), as the DFO places'
+    # `stale_bindings` and the steelhead list already do. `covered_ids` filters such an id out (a gone
+    # id must not widen the scope), which left a multi-item row narrowed with no word said.
+    bad = gone_refs(ents, registry)
+    if bad:
+        raise SystemExit(f"reach: {len(bad)} record id(s) name an item this registry does not have (a "
+                         "re-keyed or pruned water) — re-stamp `matched` (`regs.parsing.backfill_matched`) "
+                         "or fix the extent:\n  " + "\n  ".join(bad))
     outside = outside_bc(registry, graph)
     # The waters more than one region prints a row for: those rows stay in their own region; every
     # other row applies along its water's whole length (`outside.region_limit`).
@@ -1180,6 +1188,32 @@ def split_parent_refs(entries, registry, graph) -> list[str]:
     `pipeline.atlas.waters.added_lakes.split_parents`). Empty = clean."""
     from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents, split_parents
     return refs_to_parents(entries, split_parents(registry))
+
+
+def gone_refs(entries, registry) -> list[str]:
+    """Every item id an entry names — `matched`, an extent's `item_id` / `item_ids` / `outside_items`
+    (entry, rule, licensing, carve-out: `registry.flowing.ID_KEYS`) — that is neither an item of this
+    registry nor an id it absorbed (those are `absorbed_refs`' to name). One line each; empty = clean."""
+    from pipeline.atlas.registry.flowing import ID_KEYS, alias_map
+    amap = alias_map(registry)
+    out: list[str] = []
+
+    def scan(o, where: str) -> None:
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k in ID_KEYS:
+                    for i in ([v] if isinstance(v, str) else list(v or ())):
+                        if i not in registry and i not in amap:
+                            out.append(f"{where} {k}: {i}")
+                else:
+                    scan(v, where)
+        elif isinstance(o, list):
+            for x in o:
+                scan(x, where)
+
+    for e in iter_entries(entries):
+        scan(e, str(e.get("entry_id") or "?"))
+    return out
 
 
 def _area_scope(entry: dict) -> bool:
