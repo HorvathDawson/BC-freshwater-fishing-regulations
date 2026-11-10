@@ -1,4 +1,4 @@
-# T612 — The public pages and share cards use the app's own words and day
+# T622 — The public pages and share cards use the app's own words and day
 
 Status: OPEN
 
