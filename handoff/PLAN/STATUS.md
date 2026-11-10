@@ -13,6 +13,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 afternoon — Flow leads (T567 b); T581, T586, T584 in review
+- 694479e25: one lead gauge per water and day, chosen in Flow (`leadOver`); web shots in `T568-shots/`.
+- 5a2e4117b: the card stays on the asked quantity (a level-only lead says so, offers Level); card and alert editor read
+  one figure; a silent gauge keeps a muted dot ("level only" / "flow only"); the group strip and sun line ask from the
+  frame's point; the map's top is the same px on Flow and Level (530 / 530 at Hope, +3 days). App check green (7094).
+- Not seen: emulator / native, the alert editor on screen. Seen for T585/T550: staging 404s on `feeds/live/08MF0xx.json`.
+- Running: ONE agent on T583 (one wording for a standing) + T569 (report a problem from any screen).
+- Waits on the owner: T582 (two days, each labelled, soft link: proposed), T570 zoom pick.
+
 ## 2026-11-10 midday — T568/T567 fixed in code; audit T580 done → T581–T586
 - T568/T567 (1c57e7c07, tests only so far): one map block above the chart, one frame for Flow and Level; a forecast day
   labels "Today's reading" and marks the day; the figure is in the chart's quantity. Web vs phone was Now vs a forecast
