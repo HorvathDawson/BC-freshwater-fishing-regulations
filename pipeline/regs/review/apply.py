@@ -24,7 +24,8 @@ T408) and runs each domain's WRITER, which puts it into the domain's final curat
 
 `apply_proposals` keeps every guard it had: the binding check, one commit per proposal (`git commit -- <paths>`), a
 cut that changes waits for its side rebuild (the commands are printed). The file writers write their file; commit
-it yourself. `--dry-run` prints what would change and writes nothing.
+it yourself. `--dry-run` prints what would change and writes nothing. A file write NAMES every row it drops, and is
+refused when it would drop a row no mark in force explains (`write_files`, T545).
 
 A CLOSED domain (`review.closed`: one that feeds nothing — ponds, T329) is skipped with a line saying so.
 
@@ -79,6 +80,28 @@ def _tidal(decided: E.Decided) -> dict[Path, str]:
 WRITERS: dict[str, Callable[[E.Decided], dict[Path, str]]] = {"sloughs": _sloughs, "names": _names, "tidal": _tidal}
 
 
+def _ever(decided: E.Decided, scope: str) -> set[str]:
+    return {t for s, t in decided.ever if s == scope}
+
+
+def _names_spoken(decided: E.Decided) -> set[str]:
+    from pipeline.regs.review import names as N
+    return _ever(decided, "name") | set(N.owner_calls())
+
+
+#: T545 — domain -> THE ROWS THE OWNER HAS SPOKEN ABOUT (`row_keys` keys): the target of every mark in the store, a
+#: cleared one too (`Decided.ever`), and, for names, the owner's single-row calls. A row that leaves its file is
+#: explained only when it is one of these (an un-mark, a reject, a mark gone stale — each said on its item); any other
+#: row that would vanish is a review input that moved (candidates regenerated, an auto-accept flag flipped), and the
+#: write is refused.
+SPOKEN: dict[str, Callable[[E.Decided], set[str]]] = {
+    "sloughs": lambda d: _ever(d, "slough"),
+    "names": _names_spoken,
+    "tidal": lambda d: {t.partition(":")[2] for t in _ever(d, "tidal")}
+    | {str(n.blk) for m in d.scope("tidal") for n in m.new_splits if n.blk},
+}
+
+
 def _rel(p: Path) -> str:
     return E._rel(p)
 
@@ -113,9 +136,44 @@ def shrink_refusal(path: Path, text: str) -> Optional[str]:
     return None
 
 
-def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink: bool = False) -> list[Path]:
-    """Run a file domain's writer; write (or, dry, print) what changed. Returns the files that differ. A write that
-    drops more than `SHRINK_LIMIT` rows RAISES unless `accept_shrink` (T429)."""
+def row_keys(text: str) -> dict[str, str]:
+    """A file domain's rows, key -> how the row is NAMED: a found name by its candidate id, a slough by its wbk, a
+    tidal limit by its blue line."""
+    import json
+    doc = json.loads(text)
+    out: dict[str, str] = {}
+    for r in doc.get("entries") or ():
+        names = [n for n in r.get("names") or () if n.get("candidate")]
+        for n in names:
+            out[str(n["candidate"])] = f"{n.get('name')} ({n['candidate']})"
+        if not names:
+            k = json.dumps(r, sort_keys=True, ensure_ascii=False)
+            out[k] = k[:120]
+    for r in doc.get("waters") or ():
+        k = str(r.get("wbk") or r.get("blk"))
+        out[k] = f"{k} {r.get('name') or ''}".strip()
+    return out
+
+
+def dropped_rows(path: Path, text: str) -> dict[str, str]:
+    """The rows `path` holds that `text` lacks (T545): key -> name."""
+    if not path.exists():
+        return {}
+    new = row_keys(text)
+    return {k: w for k, w in row_keys(path.read_text(encoding="utf-8")).items() if k not in new}
+
+
+def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink: bool = False,
+                report: Optional[dict] = None) -> list[Path]:
+    """Run a file domain's writer; write (or, dry, print) what changed. Returns the files that differ. THE ONE WRITE
+    PATH of the file domains (the review app's write-through, `review.apply`, and each tool's own command): atomic,
+    utf-8, and guarded —
+
+      * a write that drops more than `SHRINK_LIMIT` rows RAISES (T429);
+      * a write that drops ANY row the owner has not spoken about (`SPOKEN`) RAISES, naming the rows (T545);
+      * every row a write drops is NAMED (printed, and in `report["dropped"]`).
+
+    `accept_shrink` lets both through (a drop the OWNER asked for)."""
     changed = []
     for path, text in WRITERS[domain](decided).items():
         if path.exists() and path.read_text(encoding="utf-8") == text:
@@ -124,7 +182,18 @@ def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink
         why = None if accept_shrink else shrink_refusal(path, text)
         if why:
             raise ValueError(why)
+        gone = dropped_rows(path, text)
+        spoken = SPOKEN[domain](decided) if gone else set()
+        loose = [w for k, w in gone.items() if k not in spoken]
+        if loose and not accept_shrink:
+            raise ValueError(
+                f"{_rel(path)}: would drop {len(loose)} row(s) that no mark in force explains — "
+                + "; ".join(loose[:10]) + (f"; … {len(loose) - 10} more" if len(loose) > 10 else "")
+                + f" — refused; a review input regenerated or moved? If meant: python -m pipeline.regs.review.apply "
+                  f"{domain} --accept-shrink")
         changed.append(path)
+        if report is not None:
+            report.setdefault("dropped", []).extend(gone.values())
         if dry_run:
             print(f"== {domain}: would write {_rel(path)}")
             sys.stdout.write(_diff(path, text)[:20000])
@@ -132,6 +201,8 @@ def write_files(domain: str, decided: E.Decided, *, dry_run: bool, accept_shrink
             from pipeline.regs.parsing.io import atomic_write
             atomic_write(path, text)
             print(f"{domain}: wrote {_rel(path)} — commit it: git commit -- {_rel(path)}")
+        for w in gone.values():
+            print(f"{domain}: {'would drop' if dry_run else 'DROPPED'} {w}")
     return changed
 
 
@@ -174,28 +245,38 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
     # the file writers
     for d in want:
         if d in WRITERS:
-            if d == "sloughs":
-                from pipeline.tools import slough_calls as S
-                for s in S.build(decided)[1]:
-                    out["events"].append({"domain": d, "status": "refused", "why": s["why"],
-                                          "marks": [{"scope": "slough", "target": s["wbk"], "rule_id": None}]})
-            if d == "tidal":                  # T326: a mark that sets no limit says why, on its item
-                from pipeline.tools import tidal_limits as TL
-                for s in TL.build(decided)[1]:
-                    out["events"].append({"domain": d, "status": "waiting", "why": s["why"],
-                                          **({"followup": True} if s.get("followup") else {}),
-                                          "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
             try:
-                changed = write_files(d, decided, dry_run=dry_run, accept_shrink=accept_shrink)
-            except ValueError as ex:                               # T429: a shrink refused, said on the domain
+                said: list[dict] = []
+                if d == "sloughs":
+                    from pipeline.tools import slough_calls as S
+                    for s in S.build(decided)[1]:
+                        said.append({"domain": d, "status": "refused", "why": s["why"],
+                                     "marks": [{"scope": "slough", "target": s["wbk"], "rule_id": None}]})
+                if d == "names":              # T545: a name mark gone stale says so on its item (as a slough's does)
+                    from pipeline.tools import mined_names as MN
+                    for s in MN.stale(decided):
+                        said.append({"domain": d, "status": "refused", "why": s["why"],
+                                     "marks": [{"scope": "name", "target": s["target"], "rule_id": None}]})
+                if d == "tidal":              # T326: a mark that sets no limit says why, on its item
+                    from pipeline.tools import tidal_limits as TL
+                    for s in TL.build(decided)[1]:
+                        said.append({"domain": d, "status": "waiting", "why": s["why"],
+                                     **({"followup": True} if s.get("followup") else {}),
+                                     "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
+                report: dict = {}
+                changed = write_files(d, decided, dry_run=dry_run, accept_shrink=accept_shrink, report=report)
+            except ValueError as ex:                               # T429 / T545: a refusal, said on the domain
                 print(str(ex))
                 out["rc"] = 2
                 out["events"].append({"domain": d, "status": "refused", "why": str(ex), "marks": []})
                 continue
+            out["events"] += said
             out["files"] += [str(p) for p in changed]
+            gone = report.get("dropped") or []
             out["events"].append({"domain": d, "status": "would" if dry_run else "written",
-                                  "why": ", ".join(_rel(p) for p in changed) or "current", "marks": [],
-                                  "files": [_rel(p) for p in changed]})
+                                  "why": (", ".join(_rel(p) for p in changed) or "current")
+                                  + (f"; dropped: {'; '.join(gone)}" if gone else ""), "marks": [],
+                                  "files": [_rel(p) for p in changed], "dropped": gone})
     # the proposal writer, once, over every proposal domain asked for
     scopes = [s for d in want if d in PROPOSAL_DOMAINS for s in E.DOMAINS[d]]
     if scopes:
@@ -205,7 +286,7 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
         args += ["--dry-run"] if dry_run else []
         print(f"proposals ({', '.join(d for d in want if d in PROPOSAL_DOMAINS)}): apply_proposals {' '.join(args)}")
         rc, events = A.run(args)
-        out["rc"] = rc
+        out["rc"] = max(out["rc"], rc)                     # a file domain's refusal (2) is not lost to a clean apply
         for e in events:
             sc = {m.get("scope") for m in e.get("marks") or ()}
             e["domain"] = next((domain_of(x) for x in sc if domain_of(x)), None)

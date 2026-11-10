@@ -67,6 +67,9 @@ class Decided:
     provenance: Mapping = field(default_factory=dict)  # mark key -> provenance dict
     #: the owner's pre-Tab tidal calls file folded in first (repo-relative), or None
     tidal_decisions: Optional[str] = None
+    #: T545: (scope, target) of EVERY mark in the store, a cleared or superseded one too — what the owner has ever
+    #: spoken about (`apply.SPOKEN`: a row that leaves a curated file is explained only by one of these)
+    ever: frozenset = frozenset()
 
     def latest(self) -> dict:
         return {m.key: m for m in self.inforce}
@@ -98,7 +101,8 @@ def decide(marks: Iterable[M.Mark], *, tidal_decisions: Optional[Path] = None,
     inforce = tuple(M.latest(history).values())
     d = Decided(inforce=inforce, groups=tuple(M.proposal_groups(history)),
                 provenance={m.key: prov[m.key] for m in inforce},
-                tidal_decisions=_rel(Path(tidal_decisions)) if tidal_decisions else None)
+                tidal_decisions=_rel(Path(tidal_decisions)) if tidal_decisions else None,
+                ever=frozenset((m.scope, str(m.target)) for m in history))
     conflicts = refusals(d)
     if conflicts:
         raise ValueError("review.export: conflicting decisions — nothing exported:\n  " + "\n  ".join(conflicts))
@@ -133,7 +137,7 @@ def load(marks: Optional[Path] = None, closed: Optional[Iterable[str]] = None) -
         return d
     keep = tuple(m for m in d.inforce if m.scope not in gone)
     return Decided(inforce=keep, groups=d.groups, provenance={m.key: d.provenance[m.key] for m in keep},
-                   tidal_decisions=d.tidal_decisions)
+                   tidal_decisions=d.tidal_decisions, ever=d.ever)
 
 
 def main(argv: Optional[list[str]] = None) -> int:

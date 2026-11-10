@@ -20,8 +20,9 @@ A file domain also goes to the background when an apply is already running (mark
 NEVER LOSE A MARK: the mark is appended BEFORE any of this, and nothing here touches marks.jsonl. An apply that
 refuses (a failed binding check, a file with uncommitted changes, a stale slough mark, conflicting decisions, any
 error) leaves the mark in the store; the reason is returned (in-request) or held per item (background), shown on the
-item in the app, and logged (`log_path`, one JSON line per run with a refusal). Every curated write is a temp file +
-rename (`parsing.io.atomic_write`); apply_proposals puts a file back when its commit fails.
+item in the app, and logged (`log_path`, one JSON line per run with a refusal). A row an apply takes OUT of a file
+domain's curated file is named: in the response / the domain's status (`dropped`) and in the log (T545). Every curated
+write is a temp file + rename (`parsing.io.atomic_write`); apply_proposals puts a file back when its commit fails.
 
 ON BY DEFAULT only when the server writes the curated marks store; a server over a temp store (every test, a second
 copy of the tool) writes no curated file unless `CURATION_WRITE_THROUGH=1`. `CURATION_WRITE_THROUGH=0` turns it off.
@@ -87,6 +88,7 @@ class WriteThrough:
                 self._apply.release()
             d = self.domains[dom]
             return {"domain": dom, "state": d["state"], "why": d.get("why"), "files": d.get("files", []),
+                    "dropped": d.get("dropped", []),
                     "outcomes": {k: self.outcomes[k] for k in keys if k in self.outcomes}}
         self._schedule(dom, keys)
         return {"domain": dom, "state": "saving"}
@@ -175,6 +177,9 @@ class WriteThrough:
             bad = whole or any(self.outcomes.get(k, {}).get("state") == "refused" for k in marked.get(dom, ()))
             self.domains[dom] = {"state": "refused" if bad else "done", "at": at, "took_s": took, "files": files,
                                  "why": whole or "; ".join(e["why"] for e in mine)[:2000] or None,
+                                 # T545: every row this apply took OUT of the domain's curated file, by name
+                                 "dropped": [x for e in events if e.get("domain") == dom
+                                             for x in e.get("dropped") or ()],
                                  "waiting": [e["why"] for e in events
                                              if e.get("status") == "waiting" and e.get("domain") == dom][:20]}
         if files and self.on_files is not None:
@@ -182,9 +187,13 @@ class WriteThrough:
                 self.on_files(files)
             except Exception:                                      # noqa: BLE001 — logged; the apply stands
                 _log.exception("write-through: the inputs sync could not be started")
-        if whole or refused:
+        dropped = [x for e in events for x in e.get("dropped") or ()]
+        if whole or refused or dropped:
             self._log({"at": at, "domains": domains, "rc": got.get("rc"), "error": err, "took_s": took,
-                       "marked": marked, "refused": refused})
+                       "marked": marked, "refused": refused, **({"dropped": dropped} if dropped else {})})
+        if dropped:
+            _log.warning("WRITE-THROUGH DROPPED %s: %s", ",".join(domains), "; ".join(dropped)[:500])
+        if whole or refused:
             _log.warning("WRITE-THROUGH REFUSED %s: %s", ",".join(domains),
                          whole or "; ".join(f"{e.get('id') or e.get('domain')}: {e['why']}" for e in refused)[:500])
 

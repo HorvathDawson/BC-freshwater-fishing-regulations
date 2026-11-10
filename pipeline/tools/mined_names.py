@@ -21,9 +21,10 @@ from pipeline.regs.review import marks as M
 from pipeline.regs.review import names as N
 
 
-def decisions(decided) -> dict[str, tuple[str, str]]:
+def decisions(decided, stale: list | None = None) -> dict[str, tuple[str, str]]:
     """candidate id -> (call, who) from the latest VERIFIED, non-stale name mark — the marks' decisions
-    (`review.export.load`; a marks path is decided in memory first)."""
+    (`review.export.load`; a marks path is decided in memory first). A mark whose candidate is gone or changed
+    decides nothing and is appended to `stale` as {target, why} (T545: said on its item, as a stale slough is)."""
     from pipeline.regs.review import export as E
     if not isinstance(decided, E.Decided):
         decided = E.decide(M.load(decided))
@@ -32,10 +33,21 @@ def decisions(decided) -> dict[str, tuple[str, str]]:
         if m.scope != "name" or m.verdict != "verified" or m.call not in ("accept", "reject"):
             continue
         now = N.prints_of(m.target)
-        if now is None or M.status(m, M.Prints.model_validate(now))["status"] != "verified":
+        st = None if now is None else M.status(m, M.Prints.model_validate(now))
+        if st is None or st["status"] != "verified":
+            if stale is not None:
+                stale.append({"target": m.target, "why": "candidate gone (not in the name candidates)" if st is None
+                              else "stale: " + ", ".join(st["reasons"])})
             continue                      # stale: the candidate changed since the mark
         out[m.target] = (m.call, f"owner mark {m.date} ({m.reviewer})")
     return out
+
+
+def stale(decided) -> list[dict]:
+    """The name marks in force that decide nothing because their candidate is gone or changed: [{target, why}]."""
+    got: list[dict] = []
+    decisions(decided, got)
+    return got
 
 
 def build(decided) -> list[dict]:
@@ -87,17 +99,15 @@ def document(got: list[dict]) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    from pipeline.regs.review import export as E
-    out = CURATED.waters.found_names
-    got = build(E.load())
-    text = json.dumps(document(got), indent=1, ensure_ascii=False) + "\n"
+    # T545: ONE WRITE PATH — the names domain of `review.apply` (atomic, utf-8, the shrink guard, dropped rows named)
+    from pipeline.regs.review import apply as AP
     if "--check" in argv:
-        same = out.read_text() == text
-        print("found_names.json is current" if same else "found_names.json is OUT OF DATE")
+        got = AP.run(["names"], dry_run=True)
+        same = got["rc"] == 0 and not got["files"]
+        print("found_names.json is current" if same else
+              "found_names.json is OUT OF DATE — python -m pipeline.tools.mined_names")
         return 0 if same else 1
-    out.write_text(text)
-    print(f"{len(got)} accepted names -> {out}")
-    return 0
+    return AP.run(["names"])["rc"]
 
 
 if __name__ == "__main__":

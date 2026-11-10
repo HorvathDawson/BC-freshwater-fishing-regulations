@@ -52,10 +52,15 @@ def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, lis
     if src is None:
         src = P.Sources.live()
     if existing is None:
-        try:
-            existing = T.load()
-        except SystemExit:
+        from pipeline.common.curated import CURATED
+        if not Path(CURATED.waters.tidal).exists():        # the first write: no owner row to keep (said, T545)
+            print(f"tidal: no {CURATED.waters.tidal} yet — written from the marks alone")
             existing = []
+        else:
+            try:
+                existing = T.load()                        # a file that does not parse is REFUSED, never read as empty
+            except SystemExit as ex:
+                raise ValueError(f"tidal: the file's own rows cannot be read, nothing written — {ex}") from ex
     splits_doc = src.doc(src.splits_path)
     have = {sp["id"]: sp for wb in splits_doc.get("waterbodies") or [] for sp in wb.get("splits") or [] if sp.get("id")}
     latest = decided.inforce
@@ -141,21 +146,15 @@ def main(argv: Optional[list[str]] = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.tools.tidal_limits", description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true", help="exit 1 when the file is not what the marks say")
     a = ap.parse_args(argv)
-    from pipeline.common.curated import CURATED
-    from pipeline.regs.review import export as E
-    rows, skipped = build(E.load())
-    text = document(rows)
-    path = Path(CURATED.waters.tidal)
-    counts = {k: sum(1 for r in rows if r.limit == k) for k in T.LIMITS}
-    print(f"tidal: {counts}; {len(skipped)} not written (follow-ups)")
+    # T545: ONE WRITE PATH — the tidal domain of `review.apply` (atomic, the shrink guard, every dropped row named)
+    from pipeline.regs.review import apply as AP
     if a.check:
-        same = path.exists() and path.read_text(encoding="utf-8") == text
-        print("current" if same else f"{path} is NOT what the marks say")
+        got = AP.run(["tidal"], dry_run=True)
+        same = got["rc"] == 0 and not got["files"]
+        print("current" if same else "waters/tidal_limits.json is NOT what the marks say — "
+              "python -m pipeline.tools.tidal_limits")
         return 0 if same else 1
-    from pipeline.regs.parsing.io import atomic_write
-    atomic_write(path, text)
-    print(f"wrote {path}")
-    return 0
+    return AP.run(["tidal"])["rc"]
 
 
 if __name__ == "__main__":

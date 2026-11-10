@@ -79,22 +79,16 @@ def load(path: Optional[Path] = None) -> frozenset[str]:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    from pipeline.common.curated import CURATED
-    from pipeline.regs.review import export as E
+    # T545: ONE WRITE PATH — the sloughs domain of `review.apply` (atomic, the shrink guard, every dropped row named)
+    from pipeline.regs.review import apply as AP
     argv = sys.argv[1:] if argv is None else argv
-    out = Path(CURATED.waters.slough_calls)
-    rows, skipped = build(E.load())
-    text = document(rows)
-    for s in skipped:
-        print(f"  skipped {s['wbk']}: {s['why']}")
     if "--check" in argv:
-        same = out.exists() and out.read_text(encoding="utf-8") == text
+        got = AP.run(["sloughs"], dry_run=True)
+        same = got["rc"] == 0 and not got["files"]
         print("slough_calls.json is current" if same else
               "slough_calls.json is OUT OF DATE — python -m pipeline.tools.slough_calls")
         return 0 if same else 1
-    out.write_text(text, encoding="utf-8")
-    print(f"{len(rows)} confirmed slough call(s) -> {out} ({len(skipped)} skipped)")
-    return 0
+    return AP.run(["sloughs"])["rc"]
 
 
 if __name__ == "__main__":

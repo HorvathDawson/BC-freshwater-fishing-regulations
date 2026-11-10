@@ -165,6 +165,8 @@ def test_a_slough_mark_writes_slough_calls_in_the_request(wt):
     r = c.post("/api/marks", json={"scope": "slough", "verdict": "cleared", "answers": {}, "reviewer": "test",
                                    "target": "1", "note": "oops"})
     assert r.status_code == 200 and r.json()["write_through"]["state"] == "done"
+    assert r.json()["write_through"]["dropped"] == ["1"]            # T545: the row a save takes out is named
+    assert json.loads((tmp / "write-through.jsonl").read_text().splitlines()[-1])["dropped"] == ["1"]
     assert _waters(tmp / "slough_calls.json") == []
 
 
@@ -186,6 +188,26 @@ def test_a_name_mark_writes_mined_names_in_the_request(wt):
     assert r.json()["write_through"]["state"] == "done"
     doc = json.loads((tmp / "found_names.json").read_text())
     assert [n["name"] for e in doc["entries"] if e["target"]["blks"] == ["2"] for n in e["names"]] == ["Review Creek"]
+
+
+def test_a_name_mark_gone_stale_says_so_and_its_dropped_name_is_named(wt):
+    """T545: the candidates were re-mined under an accepted name — the mark decides nothing now. It is said on the
+    item (a refused event, as a stale slough is) and the name that leaves found_names.json is named."""
+    c, tmp = wt["client"], wt["tmp"]
+    assert c.post("/api/marks", json={"scope": "name", "answers": {"P": "y"}, "reviewer": "test",
+                                      "target": "blk:2~review-creek", "call": "accept"}).status_code == 200
+    from pipeline.regs.review import names as N
+    moved = json.loads(json.dumps(NAMES))
+    moved[0]["sources"][0]["source_ref"] = "another way"            # same id, another source: the prints moved
+    (tmp / "cands.json").write_text(json.dumps({"candidates": moved}))
+    N._load.cache_clear()
+    got = AP.run(["names"], marks=wt["store"])
+    refused = [e for e in got["events"] if e["status"] == "refused"]
+    assert [e["marks"] for e in refused] == [[{"scope": "name", "target": "blk:2~review-creek", "rule_id": None}]]
+    assert refused[0]["why"].startswith("stale: ")
+    written = next(e for e in got["events"] if e["status"] == "written")
+    assert written["dropped"] == ["Review Creek (blk:2~review-creek)"]
+    assert json.loads((tmp / "found_names.json").read_text())["entries"] == []
 
 
 def _dfo_mark() -> M.Mark:
