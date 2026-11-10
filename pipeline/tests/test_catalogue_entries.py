@@ -117,18 +117,18 @@ def test_an_unbound_rule_is_flagged():
 
 
 def _norm(text: str) -> str:
-    """Normalise away everything that carries no meaning: markdown emphasis, the three dash
-    characters the synopsis mixes, and spacing around them. What survives is the words."""
+    """The gate's `squash` (emphasis, blockquotes, bullets, dash variants, spacing, case) plus the two
+    folds a hand transcription needs on top (T553 item 7): every markdown table `|` (squash takes only
+    a line-start one) and the spacing round a dash, and curly quotes straight. One normaliser, two
+    extra folds — no second copy of the first. Same output as the old copy on every zone quote and
+    transcription (5,064 texts measured; the only differences were `[Includes Tributaries]` on water
+    rows, which never reach this)."""
     import re
-    t = text.replace("*", "").replace("**", "")
-    t = re.sub(r"(?m)^\s*>\s?", " ", t)                 # blockquote markers
-    t = re.sub(r"(?m)^\s*[-•]\s+", " ", t)              # list bullets
-    t = t.replace("|", " ")                              # markdown table cells
-    t = re.sub(r"[\u2010-\u2015\u2212-]", "-", t)      # hyphen, en/em dash, minus
+    from pipeline.regs.parsing.catalogue import squash
+    t = squash(text.replace("|", " "))
     t = re.sub(r"\s*-\s*", "-", t)
     t = re.sub(r"[\u2018\u2019]", "'", t)
-    t = re.sub(r"[\u201c\u201d]", '"', t)
-    return " ".join(t.split()).lower()
+    return re.sub(r"[\u201c\u201d]", '"', t)
 
 
 def _transcription_only(text: str) -> str:
