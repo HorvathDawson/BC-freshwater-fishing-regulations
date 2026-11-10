@@ -13,6 +13,20 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 — review app: the closed areas (entry B) can be confirmed, moved and placed (T573)
+- 4089f60cd: each closed area of a DFO row is its own save. Confirm, move a circle (click the map, type the radius),
+  change a stretch's two ends (an existing cut, or a click on the river), place one yourself, or report it. Saves go
+  to a file of their own (`data/curated/dfo_salmon/closed_areas.json`); no place file and no earlier mark moves.
+- Babine: the rule reads "No fishing for salmon" as your reading; mouths are now where the creek meets the shore
+  (Tachek moved 773 m); Pinkut Creek is placed and listed under "not on the live page — kept ready" (grey, dashed).
+  Tsezakwa is proposed on Nilkitkwa Lake (medium), Pendleton on an unnamed stream at Pendleton Bay (low); Six Mile,
+  Hazelwood and Sockeye are not found: place them yourself.
+- Thompson: the place's words read whole; both Juniper readings are marked on the map to pick from. A new cut within
+  200 m of an existing one is offered as the existing one (none of the five is that close).
+- 0f6e7607c: small review-marks leftovers (T562 items 5, 7) and the failing "no second copy" test.
+- Waits on the owner: each closed area (confirm / move), the Juniper upper signs, the three unplaced mouths,
+  T588 (what "save for all" should cover). Not built: entry B in the atlas / feed / app.
+
 ## 2026-11-10 afternoon — Flow leads (T567 b); T581, T586, T584 in review
 - 694479e25: one lead gauge per water and day, chosen in Flow (`leadOver`); web shots in `T568-shots/`.
 - 5a2e4117b: the card stays on the asked quantity (a level-only lead says so, offers Level); card and alert editor read
