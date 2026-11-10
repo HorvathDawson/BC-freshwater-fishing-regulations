@@ -24,6 +24,27 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Not looked at in a browser this round (memory was under the 50% gate while the other chat's heavy jobs ran): the
   new banner, the withdrawn line, the dead-piece message. Waits on the owner: T588, T562 items 1 (older marks) and 6.
 
+## 2026-11-10 late night — audits read, fixes running in parallel (chat 11)
+- **In review since build 25:** T548 (in-season notices), T551 (one B.C. clock; leftovers T605), T595 + T596 (error
+  kinds classed; download race fixed), T604 (chart day marks readable; web only), T547 (atlas records its curated
+  inputs; a staging release refuses a stale atlas). None of these are in an APK or deployed yet.
+- **Owner decisions today:** T599 no format switch (steps T547, T600, T601, T602, each must reproduce today's builds);
+  T598 "days in 10"; T570 zoom 12; T605 list pages carry names and links only, weekend and opening/closing pages go,
+  link to today's map; agents in parallel where files do not collide.
+- **Audits (T608):** C worker: 20 findings → T558, T559, T609. B web vs phone: 28 findings → T620, T621, T622.
+  D depth charts + stocking: parked by the owner; the page is https://claude.ai/artifact/7Dn9FwZu3N1aMGxsCR4ea3
+  (file `scratchpad/lake-depth-and-stocking.html` in chat 11; rebuild from T608D-findings.md if lost). A (rules vs
+  sources) still running; DFO placement gaps are listed apart (owner's labelling is not done).
+- **Running:** T546, T553 (pipeline); T558 + T559 + T609 (worker); T620, T621, T622 + T605 (app, map, public pages);
+  audit A; D follow-up (why 697 sheets are flagged vectorized; the matching criteria, written for the owner to check);
+  a side atlas build for T547's same-outputs proof (T606 item 1; log `scratchpad/t547-side.log`).
+- **Owed when the lanes are quiet:** one full `pnpm check` + pipeline suite, with every failure traced (a T596 run saw
+  9 failing files, a T547 run 7; most were other lanes mid-work); then an emulator run (T603) and build 26.
+- **Queue after that:** T550 + T585, T549, T552, T554–T557, T560, T561, T563–T566, T594, T597, T600–T603, T606,
+  then process T533–T540, T542–T544.
+- **Ticket numbers:** chat 11 uses T620–T639; chat 10 has T613–T619 and T640–T659.
+- **Owner:** look at build 25; T582 wording (is the two-days line clear?); the four decisions on the artifact page.
+
 ## 2026-11-10 night — build 25 (0.7.3) on Play internal; staging site + feeds worker deployed (chat 11)
 - **On the owner's phone after an update:** T567, T568, T569, T570, T581, T582, T583, T586, T598. All passed on the
   emulator (shots in APK-25-shots). Not checked there: saved-spot chips (the emulator has no spots); the
