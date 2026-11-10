@@ -12,4 +12,13 @@ Findings, with file:line, the state that shows each and the proposed fix: `hando
 
 Acceptance: each finding named above no longer reproduces, and the test or gate the findings file proposes for it is in.
 
-Depends: T567. Size: M. Owner: yes (F2: one day or two labelled).
+Depends: T567. Size: M. Owner: no (decided 2026-11-10).
+
+## DECIDED 2026-11-10 (owner: "i trust your way of handling it"; replaces the "one day" default above)
+Two days, each labelled, with a soft link. The forecast is a short window; regulations can be asked for any day.
+- Regulations day = the day the angler plans to fish: any date, from the map's day picker. Conditions keeps its own
+  window: today plus the forecast days. Changing the day inside Conditions never moves the regulations day.
+- Each tab says which day it shows, so a tab switch never changes the day silently.
+- Soft link: a regulations day inside the forecast window opens Conditions with that day marked on the chart; one past
+  the window shows today and the forecast with one line, "<day> is past the forecast."
+- Web and phone restore the same: Conditions reopens on today unless the link carries a day (F3).
