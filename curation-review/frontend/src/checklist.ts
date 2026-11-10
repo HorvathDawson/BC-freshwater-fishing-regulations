@@ -417,3 +417,12 @@ export const LEAVE_DRAFT = "You have an unsaved draft: save it, or discard it?\n
 export function showsProposal(check: { check?: string | null; held?: unknown } | null | undefined): boolean {
   return !!check && !check.held && check.check !== "saved" && check.check !== "unapplied";
 }
+
+/** THE STATE LINE'S TWO HALVES. The place's state is about its OWN extent; a closed area just saved is another thing —
+ *  said first, with the place's state named as the place's ("Nothing saved yet · Saved just now: <area>" read as a
+ *  contradiction, T573). Any other save note follows the state as before. */
+export function headline(state: string, saved: { what: string; words: string } | null): { lead: string; rest: string } {
+  if (!saved || !saved.words) return { lead: state, rest: "" };
+  if (saved.what === "area") return { lead: `Closed area saved: ${saved.words}`, rest: `this place's own extent: ${state}` };
+  return { lead: state, rest: saved.words };
+}

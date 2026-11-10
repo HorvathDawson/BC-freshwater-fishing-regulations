@@ -5,7 +5,7 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, showsProposal, closedCircles, closedPairs, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, showsProposal, headline, closedCircles, closedPairs, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
 import { markBody, offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
@@ -233,13 +233,14 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const savedWords = !cur || !savedNote || savedNote.id !== cur.id ? "" : savedNote.what === "confirm" ? "Saved: your confirmation"
     : savedNote.what === "problem" ? "Saved: your problem report"
     : savedNote.what === "group" ? `Saved just now: ${savedNote.text ?? "your grouping decision"}`
-    : savedNote.what === "area" ? `Saved just now: ${savedNote.text ?? "the closed area"}`
+    : savedNote.what === "area" ? savedNote.text ?? "the closed area"
     : `Saved: ${pendingFix.length ? partsText(piecesParts(pendingFix, (f) => fixParts(f, labelOf, nameOf)))
         : d0?.location.binding.extents.length ? partsText(piecesParts(d0.location.binding.extents, (x) => extentParts(x, labelOf, nameOf)))
         : "your mark"}${savedNote.text ?? ""}`;
   const stateLine = state && (
     <div className={`ck-state ${state.tone}`} role="status" data-testid="ck-state">
-      <b>{state.text}</b>{savedWords && <span data-testid="ck-saved-note"> · {savedWords}</span>}
+      {(() => { const h = headline(state.text, savedWords ? { what: savedNote?.what ?? "", words: savedWords } : null);
+        return <><b>{h.lead}</b>{h.rest && <span data-testid="ck-saved-note"> · {h.rest}</span>}</>; })()}
     </div>);
 
   // from anywhere: the next water that still has work, and whether this water is finished

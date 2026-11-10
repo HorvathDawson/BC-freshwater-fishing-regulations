@@ -323,3 +323,11 @@ test("T592: our proposal is shown only while the place does not hold the owner's
   assert.equal(showsProposal({ check: "unchecked", held: { why: "x" } }), false);
   assert.equal(showsProposal(null), false);
 });
+
+test("T573: a closed area's save is said apart from the place's own state", async () => {
+  const { headline } = await import("../src/checklist.ts");
+  assert.deepEqual(headline("Nothing saved yet", { what: "area", words: "Twain Creek: confirmed as placed." }),
+    { lead: "Closed area saved: Twain Creek: confirmed as placed.", rest: "this place's own extent: Nothing saved yet" });
+  assert.deepEqual(headline("Done", { what: "confirm", words: "Saved: your confirmation" }), { lead: "Done", rest: "Saved: your confirmation" });
+  assert.deepEqual(headline("Done", null), { lead: "Done", rest: "" });
+});
