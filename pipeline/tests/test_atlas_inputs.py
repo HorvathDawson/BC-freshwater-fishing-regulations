@@ -215,6 +215,7 @@ def _reg(d: Path, bounds: dict[str, str]) -> Path:
     (d / FILENAME).write_text(d.name)
     (d / "registry.json").write_text(json.dumps({"items": [
         {"id": "gnis:1", "boundaries": [{"id": i, "ref": r} for i, r in bounds.items()]}]}))
+    I.write_complete(d, {})
     return d
 
 
@@ -224,7 +225,7 @@ def test_promote_refuses_a_rule_boundary_that_moved_to_another_lake(tmp_path, mo
     target = _reg(tmp_path / "full", {"nanaimo_river__nanaimo_lakes": "lake:329101304", named: "lake:329101307",
                                       "x__gone": "lake:1", "y__unnamed": "lake:5"})
     cand = _reg(tmp_path / "full_next", {"nanaimo_river__nanaimo_lakes": "lake:329101307", named: "lake:329101304",
-                                         "y__unnamed": "lake:6"})
+                                         "y__unnamed": "lake:6", "z__new": "lake:7"})   # no net loss
     monkeypatch.setattr(PR, "curated_boundary_ids", lambda: {named, "x__gone"})
     kw = dict(target=target, tiles=tmp_path / "tiles", bundle=tmp_path / "b.sqlite", log=lambda *_: None)
     assert PR.promote(cand, dry_run=True, **kw)["moved"] == [f"{named}: lake:329101307 -> lake:329101304"]
@@ -239,3 +240,61 @@ def test_promote_refuses_a_rule_boundary_that_moved_to_another_lake(tmp_path, mo
 def test_the_curated_rules_name_the_suffixed_lake_boundary():
     from pipeline.atlas import promote as PR
     assert "nanaimo_river__nanaimo_lakes_2" in PR.curated_boundary_ids()
+
+
+# ------------------------------------------------------- T547 §4: only a finished build is promoted, and safely
+
+def test_promote_refuses_an_unfinished_candidate(tmp_path):
+    from pipeline.atlas import promote as PR
+    target = _reg(tmp_path / "full", {"a__lake": "lake:1"})
+    cand = _reg(tmp_path / "full_next", {"a__lake": "lake:1"})
+    kw = dict(target=target, tiles=tmp_path / "tiles", bundle=tmp_path / "b.sqlite", log=lambda *_: None)
+    I.clear_complete(cand)                                  # a build that started and died
+    with pytest.raises(SystemExit, match="not a finished atlas: no COMPLETE.json"):
+        PR.promote(cand, **kw)
+    I.write_complete(cand, {})
+    (cand / "registry.json").rename(cand / "registry.json.gone")   # listed, then missing: refused by the handles check
+    with pytest.raises(SystemExit, match="not a finished atlas"):
+        PR.promote(cand, **kw)
+    (cand / "registry.json.gone").rename(cand / "registry.json")
+    (cand / "extra.json").write_text("{}")
+    I.write_complete(cand, {})
+    (cand / "extra.json").unlink()
+    with pytest.raises(SystemExit, match="extra.json is listed in COMPLETE.json and missing"):
+        PR.promote(cand, **kw)
+    I.clear_complete(cand)
+    assert PR.promote(cand, no_marker="a sidecars --out farm", **kw)["to"] == str(target.resolve())
+
+
+def test_a_net_boundary_loss_is_refused_unless_accepted(tmp_path, monkeypatch):
+    from pipeline.atlas import promote as PR
+    assert PR.boundary_loss("items  ...\nboundaries  before 27,197   after 27,190   delta -7\n") == 7
+    assert PR.boundary_loss("boundaries  before 10   after 12   delta +2") == 0
+    target = _reg(tmp_path / "full", {"a__lake": "lake:1"})
+    cand = _reg(tmp_path / "full_next", {"a__lake": "lake:1"})
+
+    class Done:
+        stdout, stderr = "boundaries  before 2   after 1   delta -1\n", ""
+    monkeypatch.setattr(PR.subprocess, "run", lambda *a, **k: Done)
+    kw = dict(target=target, tiles=tmp_path / "tiles", bundle=tmp_path / "b.sqlite", log=lambda *_: None)
+    with pytest.raises(SystemExit, match="1 fewer boundaries"):
+        PR.promote(cand, **kw)
+    assert cand.exists()
+    PR.promote(cand, accept_loss=True, **kw)
+    assert not cand.exists()
+
+
+def test_a_failed_second_rename_restores_the_served_atlas(tmp_path, monkeypatch):
+    from pipeline.atlas import promote as PR
+    target = _reg(tmp_path / "full", {"a__lake": "lake:1"})
+    cand = _reg(tmp_path / "full_next", {"a__lake": "lake:1"})
+    real = Path.rename
+
+    def rename(self, dst):
+        if self.name == "full_next":
+            raise OSError("disk said no")
+        return real(self, dst)
+    monkeypatch.setattr(Path, "rename", rename)
+    with pytest.raises(OSError, match="disk said no"):
+        PR.promote(cand, target=target, tiles=tmp_path / "tiles", bundle=tmp_path / "b.sqlite", log=lambda *_: None)
+    assert (target / "registry.json").exists() and not (tmp_path / "full.prev").exists() and cand.exists()

@@ -62,6 +62,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -675,6 +676,10 @@ def atlas_stage(build_dir: Path, promote: bool, run: dict, m: dict) -> bool:
     the rest of the build should go on (it reads the PROMOTED atlas)."""
     nxt = (SIDE / "atlas" / (build_dir.name + "_next")) if SIDE is not None else \
         build_dir.with_name(build_dir.name + "_next")
+    if nxt.is_dir():
+        # (T547 §4) never build into an older run's files: a stale registry beside a new graph promoted as one atlas
+        print(f"build: clearing {nxt} (an earlier atlas build's files) before building into it", flush=True)
+        shutil.rmtree(nxt)
     run_stage("atlas", [sys.executable, "-m", "pipeline.atlas.build", "--full", "--out", str(nxt)],
               "-", run, m)
     run_stage("parity", [sys.executable, "-m", "pipeline.atlas.promote", str(nxt), "--dry-run"],

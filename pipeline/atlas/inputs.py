@@ -189,6 +189,38 @@ def behind(build_dir: Path, now: dict[str, str] | None = None) -> list[str]:
     return out
 
 
+# ---------------------------------------------------------------------------------------------------------- finished
+
+#: (T547 §4) THE LAST FILE AN ATLAS BUILD WRITES: its input digests and every file it wrote. Removed when a build starts
+#: into a directory, so a build that died leaves none; `pipeline.atlas.promote` refuses a candidate without it.
+COMPLETE = "COMPLETE.json"
+
+
+def clear_complete(out: Path) -> None:
+    """A build starting into `out`: whatever finished there before is no longer this build."""
+    (Path(out) / COMPLETE).unlink(missing_ok=True)
+
+
+def write_complete(out: Path, input_hashes: dict[str, str]) -> Path:
+    out = Path(out)
+    files = sorted(p.name for p in out.iterdir() if p.name != COMPLETE and not p.name.endswith(".tmp"))
+    p = out / COMPLETE
+    tmp = p.with_name(p.name + ".tmp")
+    tmp.write_text(json.dumps({"input_hashes": input_hashes, "files": files,
+                               "at": time.strftime("%Y-%m-%dT%H:%M:%S")}, indent=1) + "\n", encoding="utf-8")
+    os.replace(tmp, p)
+    return p
+
+
+def complete_problems(build: Path) -> list[str]:
+    """Why `build` is not a finished atlas: no marker, or a file the marker lists is missing. [] = finished."""
+    p = Path(build) / COMPLETE
+    if not p.is_file():
+        return [f"no {COMPLETE} — the build did not finish (or predates T547)"]
+    files = json.loads(p.read_text(encoding="utf-8")).get("files") or []
+    return [f"{f} is listed in {COMPLETE} and missing" for f in files if not (Path(build) / f).exists()]
+
+
 # ---------------------------------------------------------------------------------------------------------- backfill
 
 def _git(*args: str) -> str:

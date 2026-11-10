@@ -207,6 +207,8 @@ def test_promote_to_a_directory(tmp_path):
         d.mkdir()
         (d / FILENAME).write_text(h)
         (d / "registry.json").write_text("{}")
+    from pipeline.atlas.inputs import write_complete
+    write_complete(cand, {})                    # T547 §4: the atlas build's finished marker
     got = PR.promote(cand, target=target, tiles=tmp_path / "tiles", bundle=tmp_path / "b.sqlite",
                      log=lambda *_: None)
     assert (got["to"], got["prev"]) == (str(target.resolve()), str((tmp_path / "full.prev").resolve()))

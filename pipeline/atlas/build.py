@@ -484,6 +484,7 @@ def main(argv: list[str] | None = None) -> None:
     # built); written with graph.pkl (`graph.pkl.meta.json` `input_hashes`), checked by `pipeline release`
     from pipeline.atlas import inputs as _inputs
     b.input_hashes = _inputs.digests(_inputs.build_paths(args))
+    _inputs.clear_complete(args.out)                # T547 §4: a build that dies here leaves no marker
     load_fwa(b)
     build_graph(b)
     add_waters(b)
@@ -493,6 +494,7 @@ def main(argv: list[str] | None = None) -> None:
     write_graph(b)
     build_registry(b)
     write_sidecars(b)
+    _inputs.write_complete(b.out, b.input_hashes)   # T547 §4: LAST — promote refuses a candidate without it
 
 
 def load_fwa(b: _Build) -> None:

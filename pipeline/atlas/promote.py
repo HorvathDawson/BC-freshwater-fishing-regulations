@@ -19,6 +19,11 @@ the DFO places) keeps its id but now means another place (`ref`, e.g. `lake:<wbk
 (`_2`, `_3`) follows node order, so a rebuild can swap two lakes under one rule with every check passing.
 `--accept-moved-boundaries` goes on after reading the list. An id that is gone is listed, not refused: the reach run
 reports its rule unresolved.
+
+(T547 §4) A candidate must be FINISHED: the atlas build writes `COMPLETE.json` last (`atlas.inputs.COMPLETE`) and
+removes it when it starts, so a build that died, or an older run's files in a reused `_next`, is refused
+(`--no-marker REASON` for a candidate made another way, e.g. a `sidecars --out` farm). A NET BOUNDARY LOSS in the
+parity report refuses too (`--accept-boundary-loss` after reading it). If the second rename fails the first is undone.
 """
 from __future__ import annotations
 
@@ -77,7 +82,8 @@ def moved_boundaries(target: Path, candidate: Path, named: set[str]) -> tuple[li
 
 def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
             log=print, target: Path | None = None, tiles: Path | None = None,
-            bundle: Path | None = None, accept_moved: bool = False) -> dict:
+            bundle: Path | None = None, accept_moved: bool = False, accept_loss: bool = False,
+            no_marker: str | None = None) -> dict:
     """Make `candidate` the build called `name` (default: the configured default build) — or the
     build directory `target` (T136: a scratch atlas a review rehearsal serves). `tiles` / `bundle`
     are the shipped artifacts whose atlas the `.prev` may still be (default: the live ones). Returns
@@ -90,6 +96,13 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
     if not (candidate / HANDLES).exists() or not (candidate / "registry.json").exists():
         raise SystemExit(f"promote: {candidate} is not a finished atlas (no {HANDLES} / "
                          f"registry.json)")
+    from pipeline.atlas.inputs import complete_problems
+    unfinished = complete_problems(candidate)
+    if unfinished and no_marker is None:
+        raise SystemExit(f"promote: {candidate} is not a finished atlas: {'; '.join(unfinished)} — rebuild it "
+                         "(python -m pipeline build --atlas), or --no-marker REASON for a candidate made another way")
+    if unfinished:
+        log(f"promote: {candidate.name} has no finished-build marker, promoted anyway (--no-marker): {no_marker}")
     if candidate == target:
         raise SystemExit(f"promote: {candidate} already is the promoted build")
     parity = ""
@@ -111,6 +124,11 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
     if dry_run:
         return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity,
                 "moved": moved, "dry_run": True}
+    lost = boundary_loss(parity)
+    if lost and not accept_loss:
+        raise SystemExit(f"promote: refused — the candidate has {lost:,} fewer boundaries than {target.name} (the parity "
+                         "report above lists the items). A lost cut is a rule that no longer binds; promote with "
+                         "--accept-boundary-loss after reading it")
     if moved and not accept_moved:
         raise SystemExit(f"promote: refused — {len(moved)} boundary id(s) a curated rule names moved to another place "
                          "(listed above). Fix the rules (or the ids) first, or promote with --accept-moved-boundaries "
@@ -130,9 +148,26 @@ def promote(candidate: Path, name: str | None = None, *, dry_run: bool = False,
     if target.is_dir():
         target.rename(prev)
         log(f"  {target.name} -> {prev.name}")
-    candidate.rename(target)
+    try:
+        candidate.rename(target)
+    except OSError:
+        if prev.is_dir() and not target.exists():
+            prev.rename(target)                     # undo the first rename: the old atlas stays served
+            log(f"  rename failed: {prev.name} -> {target.name} restored")
+        raise
     log(f"  {candidate.name} -> {target.name}")
     return {"from": str(candidate), "to": str(target), "prev": str(prev), "parity": parity, "moved": moved}
+
+
+def boundary_loss(parity: str) -> int:
+    """The net number of boundaries the candidate lost, from build_parity's `boundaries  before N   after M` line
+    (0 when it gained or held, or when there was no current atlas to compare)."""
+    import re
+    m = re.search(r"^boundaries\s+before ([\d,]+)\s+after ([\d,]+)", parity, re.M)
+    if not m:
+        return 0
+    before, after = (int(x.replace(",", "")) for x in m.groups())
+    return max(0, before - after)
 
 
 def _same_handles(a: Path, b: Path) -> bool:
@@ -159,9 +194,15 @@ def main(argv=None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="print the parity report and stop")
     ap.add_argument("--accept-moved-boundaries", action="store_true",
                     help="(T547) promote although a boundary id a curated rule names now means another place")
+    ap.add_argument("--accept-boundary-loss", action="store_true",
+                    help="(T547) promote although the candidate has fewer boundaries than the current atlas")
+    ap.add_argument("--no-marker", default=None, metavar="REASON",
+                    help="(T547) promote a candidate with no COMPLETE.json (not made by the atlas build); printed")
     a = ap.parse_args(argv)
+    if a.no_marker is not None and not a.no_marker.strip():
+        ap.error("--no-marker needs a reason, which is printed")
     promote(a.candidate, a.to, dry_run=a.dry_run, target=a.target, tiles=a.tiles, bundle=a.bundle,
-            accept_moved=a.accept_moved_boundaries)
+            accept_moved=a.accept_moved_boundaries, accept_loss=a.accept_boundary_loss, no_marker=a.no_marker)
     return 0
 
 
