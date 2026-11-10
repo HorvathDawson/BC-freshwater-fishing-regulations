@@ -1,6 +1,6 @@
 # T596 — A release download fails with "NoSuchFileException … .sqlite.part"
 
-Status: OPEN
+Status: IN REVIEW (845734782)
 
 Source: worker `GET /crashes` 2026-11-10, kind 4219b587: once, the owner's phone (install c909e605), 0.7.0 build 22,
 2026-11-09 23:07 UTC, while taking release r-d14bdb180f55: `java.nio.file.NoSuchFileException:

@@ -616,7 +616,7 @@ use that as the sole source of future work."
 | T569 | Report a problem from the screen you are on (Conditions has no way in) | IN REVIEW | 774befd64 | worker deploy needed for the new keys |
 | T570 | Indigenous land names show only when zoomed in a lot more | IN REVIEW | 0fd94a0a9 | names start at zoom 12 (was 9), owner approved the shots 2026-11-10; phone check on the next APK |
 | T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | DONE | f1acba096 | owner 2026-11-10: "should never happen … look for other things like that" |
-| T581 | The gauge card, chart and alert editor all use the quantity asked | IN REVIEW | 5a2e4117b | T580 F1, F7 |
+| T581 | The gauge card, chart and alert editor all use the quantity asked | IN REVIEW | 5a2e4117b a807fbba1 | T580 F1, F7 |
 | T582 | One day per water screen, and the same kept state on web and phone | IN REVIEW | 52eed5c80 | two days each labelled + soft link (Conditions marks the regs day or says it is past the forecast); address keeps day, not horizon; web shots; owner confirms on the phone |
 | T583 | One wording for a gauge's standing, everywhere | IN REVIEW | dad265255 | owner: estimate sentence |
 | T584 | Conditions reads the same whatever the way in (group strip, picks, part step) | IN REVIEW | 5a2e4117b | T580 F5, F6, F11 |
@@ -633,8 +633,8 @@ use that as the sole source of future work."
 | T592 | A saved place's map legend still lists "proposal (not applied)" | DONE | 4089f60cd | T532 leftover f; our proposal leaves the map once the place holds his save |
 | T593 | Keep DFO's heading bytes verbatim in the scrape | OPEN — ticket only | — | T532 leftover h; lands with the next scrape the owner runs (T549's lane) |
 | T594 | Satellite view is not hidden by the stream lines | OPEN | — | owner report 2026-11-10 (worker report 442a0ecc); owner picks the look |
-| T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | OPEN | — | worker /crashes read 2026-11-10 |
-| T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | OPEN | — | worker /crashes 2026-11-10, kind 4219b587 |
+| T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | IN REVIEW | b1f252e7c 5af74464c 40d8abb75 | worker /crashes read 2026-11-10 |
+| T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | IN REVIEW | 845734782 | worker /crashes 2026-11-10, kind 4219b587 |
 | T597 | Two feeds worker run failures 11-09/10 explained and guarded (gauges all-404 at 00:05 UTC; in-season format ahead of the worker) | OPEN | — | /status.json 2026-11-10; overlaps T550, T558 |
 | T598 | "Days in 10" replaces the percentile wherever the reader sees it | IN REVIEW | eb4bf2168 | built; owner looks at the short form ("8 in 10 days higher") in ../T598-shots/ |
 | T599 | Study: one structure for the pipeline's outputs, side files and intermediates (Zarr or other) | DONE | a9587aabc | owner accepted 2026-11-10: no format switch; four-class split + one curated writer; steps → T547, T600, T601, T602 |

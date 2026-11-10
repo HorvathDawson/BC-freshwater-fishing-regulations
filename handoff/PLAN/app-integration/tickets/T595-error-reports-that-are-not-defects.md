@@ -1,6 +1,6 @@
 # T595 — Error reports that are not defects stop arriving as errors
 
-Status: OPEN
+Status: IN REVIEW (b1f252e7c, 5af74464c, 40d8abb75; worker change waits for the next feeds deploy; items 2: test-bed + simulator builds tagged, an owner-APK installed on an emulator is not — see proposal)
 
 Source: worker `GET /crashes` read 2026-11-10 (40 kinds since 10-29). Owner: "get feed worker reports and errors and make
 sure all are covered."
