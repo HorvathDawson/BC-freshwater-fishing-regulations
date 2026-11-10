@@ -1,6 +1,6 @@
 # T587 — Taking a wording out of its group and adding it back, through the real write-through path
 
-Status: OPEN
+Status: DONE — 780c6e6e2, 2026-11-10 — `test_review_write_through.py::test_taking_a_wording_out_of_its_group_and_adding_it_back_lands_both_ways` (the mutation was not run by hand: the test asserts the file's link directly after each apply)
 
 Source: T532 rounds 5–6 (the checklist's grouping decisions), leftover a.
 

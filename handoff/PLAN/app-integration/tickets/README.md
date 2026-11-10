@@ -625,7 +625,7 @@ use that as the sole source of future work."
 | T571 | Sheldens Creek: the "Spur 19 Bridge site" cut looks misplaced | IN REVIEW | — | 11-10: the data cannot name the Spur 19 crossing; a low-confidence alternative waits as a proposal;  owner's problem report 2026-11-09: "i think spur 19 is at completely the wrong spot?" |
 | T572 | Thompson River: three year-round closed areas inside one DFO place | IN REVIEW | — | 11-10: proposed as 4 open stretches, 5 new cuts; the Juniper upper signs are his choice;  owner's problem report 2026-11-09: "need to figure out how to represent all of these" |
 | T573 | A DFO row that names closed areas becomes two entries (the Thompson, Babine Lake) | IN REVIEW | e4f98d84e, c21037796 + 11-10 | owner 2026-11-10: entry B is saveable per area (confirm / move / place / report), mouths on the shore, older-only items kept ready; the build side waits on him |
-| T587 | Taking a wording out of its group and adding it back, through the real write-through path (a test) | OPEN | — | T532 leftover a |
+| T587 | Taking a wording out of its group and adding it back, through the real write-through path (a test) | DONE | 780c6e6e2 | T532 leftover a |
 | T588 | "Save for all wordings": what it should cover | OPEN — owner question | — | T532 leftover b; today: the older wordings only |
 | T589 | A cut proposal can be withdrawn (the Allco fence) | OPEN | — | T532 leftover c; the Allco click is the owner's |
 | T590 | Cut pickers offer this water's cuts first, and the nearest existing cut | OPEN | — | T532 leftover d; owner 11-10: reuse an existing cut within 200 m (built for entry B in T573) |
