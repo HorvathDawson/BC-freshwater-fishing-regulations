@@ -213,3 +213,17 @@ when it saves".
 - "if proposal is on an existing cut then it should highlight that cut" — a proposal / draft point that is an existing
   cut rings that cut's own marker (violet for the proposal, teal for the draft); only a new cut gets a marker ("new
   cut, not built").
+
+## Owner 2026-11-09, round 4
+- Every new cut of a proposal / draft has its marker, whatever its anchor: its position is the server's own
+  (`api.dfoAnchor`, `newCutChecks`) — an offset from a cut ("23 m below … dyke gates") has no coordinate of its own.
+  Only when the server gives none is it put at the base cut, labelled "position approximate". The approximate stretch
+  then draws for these too.
+- After "Save this extent" or "Confirm…": "Saved: …" shows, then the next NOT-done place on the same water opens
+  (`checklist.nextAfterSave`, list order, wrapping); none left → "<Water>: all N places done" with one button to the
+  next water with work. A problem report or a refusal stays on the place.
+- WHAT COUNTS AS DONE, added: `saved` — "the owner's extent save is in force and waits only for its new cut to be
+  built or the write-through to apply it" (`dfo.saved_status` waits_cut / not_landed). Counted in done (overall, per
+  water, the list chip "saved, waits build"), filter chip "waiting on a build N", state line "Saved by you (date):
+  done — waiting only for the new cut to be built". The mark and its verdict are untouched. Once nothing waits, the
+  ordinary rules judge the place again.

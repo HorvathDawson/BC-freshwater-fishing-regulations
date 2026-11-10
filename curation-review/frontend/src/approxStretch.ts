@@ -76,5 +76,5 @@ export function approxBetween(fc: GeoJSON.FeatureCollection | null, a: LL, b: LL
   if (!dist.has(nb)) return { why: "this water's lines do not join up between the two points" };
   const line: LL[] = [];
   for (let k: string | undefined = nb; k; k = prev.get(k)) line.push(at.get(k) as LL);
-  return { line: line.reverse(), km: Math.round((dist.get(nb) ?? 0) / 100) / 10 };
+  return { line: line.reverse(), km: Math.round(dist.get(nb) ?? 0) / 1000 };
 }

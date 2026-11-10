@@ -62,7 +62,12 @@ export function checkBody(target: { source: "dfo"; id: string; seen: unknown } |
 }
 
 /** the one status line of the check in force: what was saved and when, or why it must be checked again */
+export function savedWords(s: { state: string; date: string }): string {
+  return s.state === "waits_cut" ? `Saved by you (${s.date}): done — waiting only for the new cut to be built`
+    : `Saved by you (${s.date}): done — waiting only to be applied to the map data`;
+}
 export function checkStatus(pc: PlaceCheck): string {
+  if (pc.check === "saved" && pc.saved) return `${savedWords(pc.saved)}.`;
   if (pc.check === "stale") return "Its words or its extent changed since it was checked: check it again.";
   // owner 2026-11-09: earlier work counts — a verified mark made before the checklist that still holds is done
   if (pc.check === "earlier" && pc.earlier) return `Verified earlier (${pc.earlier.date}), before the checklist.`;
@@ -202,17 +207,34 @@ export function needWords(need: DfoRow["need"], water: string, extents: number):
 
 /* THE WATER'S PLACES, ALL IN SIGHT (owner 2026-11-09: "for a river show all historical boundaries too"). */
 
-export type PlaceChip = "done" | "verified earlier" | "reported wrong" | "needs extent" | "changed" | "has ✗" | "to check";
+export type PlaceChip = "saved, waits build" | "done" | "verified earlier" | "reported wrong" | "needs extent" | "changed" | "has ✗" | "to check";
 /** the one state chip of a place in the water's list */
 export function chipOf(p: Pick<WaterPlace, "check" | "state" | "extents" | "bad">): PlaceChip {
   if (p.check === "checked") return "done";
+  if (p.check === "saved") return "saved, waits build";
   if (p.check === "earlier") return "verified earlier";
   if (p.check === "wrong") return "reported wrong";
   if (!p.extents.length || p.state === "unbound" || p.state === "needs_cut") return "needs extent";
   if (p.check === "stale") return "changed";
   return p.bad > 0 ? "has ✗" : "to check";
 }
-export const isDone = (p: Pick<WaterPlace, "check">) => p.check === "checked" || p.check === "earlier" || p.check === "wrong";
+export const isDone = (p: { check: PlaceCheck["check"] }) =>
+  p.check === "checked" || p.check === "earlier" || p.check === "saved" || p.check === "wrong";
+
+/** AFTER A SAVE OR A CONFIRM, GO ON BY ITSELF (owner 2026-11-09: "it should go to next on that river if there is any
+ *  left"): the next NOT-done place on the same water, in list order from the one saved (wrapping); when the water has
+ *  none left, the first not-done place of the next water with work (`nextWater`), and the water's count. */
+export function nextAfterSave(queue: CheckPlace[], id: string):
+    { next: string } | { next: null; water: string; total: number; nextWater: CheckPlace | null } {
+  const i = queue.findIndex((p) => p.id === id);
+  if (i < 0) return { next: null, water: "", total: 0, nextWater: null };
+  const key = queue[i].water_key;
+  const round = [...queue.slice(i + 1), ...queue.slice(0, i)];
+  const here = round.find((p) => p.water_key === key && !isDone(p));
+  if (here) return { next: here.id };
+  return { next: null, water: queue[i].water, total: queue.filter((p) => p.water_key === key).length,
+           nextWater: round.find((p) => p.water_key !== key && !isDone(p)) ?? null };
+}
 
 export interface WaterGroup { same: string; places: WaterPlace[]; why: string[] }
 /** the list grouped: places the data calls the same place sit under one heading, in the order the first one comes */
@@ -257,7 +279,7 @@ export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; ch
                                 hasExtent: boolean }): { tone: PlaceTone; text: string } {
   if (a.editing) return { tone: "draft", text: "You are previewing a draft: not saved" };
   if (a.saved && (a.saved.state === "waits_cut" || a.saved.state === "not_landed"))
-    return { tone: "wait", text: `Saved (${a.saved.date}) — waiting to be drawn on the map` };
+    return { tone: "confirmed", text: savedWords(a.saved) };
   if (a.check === "checked" && a.checkedDate) return { tone: "confirmed", text: `Confirmed by you (${a.checkedDate})` };
   if (a.check === "earlier" && a.earlierDate) return { tone: "confirmed", text: `Verified earlier (${a.earlierDate})` };
   if (a.saved && a.saved.state === "landed" && a.hasExtent) return { tone: "saved", text: "Saved and on the map" };

@@ -336,3 +336,29 @@ def test_the_row_for_words_no_row_checks_says_what_to_do_and_stays_bad():
     assert C.rule_source({"name": "A"}, {"verbatim": "x"}).whose == "the regulation"
     import dataclasses
     assert C.digest(src, []) == C.digest(dataclasses.replace(src, whose="anyone"), [])
+
+
+def test_an_extent_save_waiting_only_on_its_cut_is_done_in_a_state_of_its_own(monkeypatch):
+    """owner 2026-11-09: "if you save extent with a new cut it should show as complete … just needing cut added" — the
+    place is `saved` (done, its own filter), never "your earlier mark was: not sure"; the mark is not touched, and once
+    nothing waits any more the place is judged by the ordinary rules again (never silently done)"""
+    B = _backend(monkeypatch, "checks")
+    x = {"extents": [], "landed": [], "tributaries": None, "curated": [], "curated_tributaries": None, "only": False,
+         "excludes": [], "held": "your save of 2026-11-09 has not landed yet",
+         "waits": {"state": "waits_cut", "date": "2026-11-09", "cuts": ["a_river__the_bridge"]}}
+    monkeypatch.setattr(B, "dfo_inputs", lambda loc, water, m: x)
+    loc = {"source_text": {"waters": "A River", "specific_area": "below the bridge"}}
+    ctx = C.Context(labels={}, items={}, built=frozenset(), pending=frozenset(), points={})
+    unsure = _earlier_mark("verified")           # any mark with no checklist: its old status would read "unsure"
+    got = B.dfo_rows(loc, None, unsure, ctx, "unsure")
+    assert got["check"] == "saved" and got["saved"]["state"] == "waits_cut" and "earlier" not in got
+    assert "saved" in B.DONE_STATES and "saved" in B.CHECK_STATES
+    s = {"ok": 1, "bad": 0, "worst": "ok"}
+    p = B.progress_of([{"water_key": "a", "water": "A", "check": "saved", "summary": s},
+                       {"water_key": "a", "water": "A", "check": "unchecked", "summary": s}])
+    assert (p["done"], p["left"], p["waters"]["a"]["done"]) == (1, 1, 1)
+    assert B._matches({"check": "saved", "summary": s}, "saved") and not B._matches({"check": "saved", "summary": s}, "todo")
+    # nothing waits any more (it landed, or what was built is another extent): the ordinary rules judge it again
+    x.update(held=None, waits=None)
+    again = B.dfo_rows(loc, None, unsure, ctx, "unsure")
+    assert again["check"] == "unchecked" and again["earlier"]["status"] == "unsure"

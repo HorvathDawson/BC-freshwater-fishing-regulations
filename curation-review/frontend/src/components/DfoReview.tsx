@@ -189,8 +189,25 @@ export function proposalOf(detail: DfoDetail) {
 }
 
 /** the proposal's points as labelled map points (`PROPOSAL 1: …`); `label` names a cut that has no label of its own */
+/** T532 r4: WHERE EVERY NEW CUT STANDS, by the server's own resolver (`api.dfoAnchor`), whatever its anchor (a point,
+ *  a confluence, an offset from a cut, a lake, an area boundary, the border). Only when the server gives no position
+ *  is a cut offset from an existing one put at that base cut, marked `approximate`. A failed read is reported. */
+export async function newCutChecks(id: string, cuts: NewSplit[], splitAt: (sid: string) => [number, number] | null):
+    Promise<Record<string, AnchorCheck>> {
+  const out: Record<string, AnchorCheck> = {};
+  for (const n of cuts) {
+    let got: AnchorCheck | null = null;
+    try { got = await api.dfoAnchor(id, n); } catch (e) { failed(`the position of the new cut ${n.ref}`)(e); }
+    const base = n.split_id ? splitAt(n.split_id) : null;
+    if (got?.ok && got.coord) out[n.ref] = got;
+    else if (!n.coord && base) out[n.ref] = { ok: false, why: got?.why ?? "the server gave no position", coord: base, approximate: true };
+    else if (got) out[n.ref] = got;
+  }
+  return out;
+}
+
 export function proposalPoints(detail: DfoDetail, s: DfoSuggestion | null, label: (sid: string) => string | null,
-                               newOnly = false): GeoJSON.Feature[] {
+                               newOnly = false, checks: Record<string, AnchorCheck> = {}): GeoJSON.Feature[] {
   const sg = s?.suggestion;
   if (!sg) return [];
   return sg.points.flatMap((p, i) => {
@@ -200,8 +217,9 @@ export function proposalPoints(detail: DfoDetail, s: DfoSuggestion | null, label
     const prop = p.kind === "new" ? detail.proposed.find((x) => x.id === p.split_id) : undefined;
     const fresh = p.kind === "new" ? (sg.new_splits ?? []).find((n) => n.ref === p.split_id) : undefined;
     const cut = p.kind === "split" && p.split_id ? detail.splits.features.find((x) => x.properties.split_id === p.split_id) : undefined;
-    const at = meta?.coord ?? prop?.coord ?? fresh?.coord ?? cut?.geometry.coordinates ?? null;
-    return at ? [{ type: "Feature", properties: { label: `PROPOSAL ${i + 1}: ${newOnly && p.kind === "new" ? "new cut, not built — " : ""}${meta?.label ?? label(p.split_id ?? "") ?? fresh?.name ?? ""}` },
+    const ck = p.kind === "new" ? checks[p.split_id ?? ""] : undefined;
+    const at = ck?.coord ?? meta?.coord ?? prop?.coord ?? fresh?.coord ?? cut?.geometry.coordinates ?? null;
+    return at ? [{ type: "Feature", properties: { label: `PROPOSAL ${i + 1}: ${newOnly && p.kind === "new" ? `new cut, not built${ck?.approximate ? " (position approximate)" : ""} — ` : ""}${meta?.label ?? label(p.split_id ?? "") ?? fresh?.name ?? ""}` },
                    geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
   });
 }
@@ -406,7 +424,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
     const where = (pt: ExtentFix["points"][number]): [number, number] | null => {
       const sid = pt.split_id ?? "";
       return (pt.kind === "split" ? splitAt(sid)
-        : pt.kind === "new" ? (splits.find((n) => n.ref === sid)?.coord ?? detail.proposed.find((x) => x.id === sid)?.coord ?? null)
+        : pt.kind === "new" ? (checks[sid]?.coord ?? splits.find((n) => n.ref === sid)?.coord ?? detail.proposed.find((x) => x.id === sid)?.coord ?? null)
         : pt.coord ?? null) as [number, number] | null;
     };
     // an approximate stretch is offered for ONE piece between two points whose places are known
@@ -442,7 +460,16 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
       }).catch((e) => { if (live) only(`the preview failed: ${e}`); failed("the draft's preview")(e); });
     }, 250);
     return () => { live = false; window.clearTimeout(t); };
-  }, [embedded, call, fixes, opPoints, showTribs, splits]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [embedded, call, fixes, opPoints, showTribs, splits, checks]);  // eslint-disable-line react-hooks/exhaustive-deps
+  // r4: every new cut of the draft gets its position from the server (an offset from a cut has no coordinate of its own)
+  useEffect(() => {
+    if (!embedded) return;
+    const need = splits.filter((n) => !checks[n.ref]);
+    if (!need.length) return;
+    let live = true;
+    void newCutChecks(id, need, splitAt).then((got) => { if (live && Object.keys(got).length) setChecks((m) => ({ ...got, ...m })); });
+    return () => { live = false; };
+  }, [embedded, splits]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!embedded) return;
     embedded.onMap({ draft: call === "change" ? fixPreview : null, cutPreview: cutPv, named, editPoints, onPick: pick.cb,
@@ -768,7 +795,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                 </Fold>
                 {embedded && liveWhy && <div className="dim" data-testid="ck-live-why" style={{ fontSize: 12 }}>
                   {approx && approxGot && "km" in approxGot
-                    ? <><b>Approximate</b> (dashed on the map, about {approxGot.km} km along the river): {liveWhy} — the exact stretch is drawn after the next rebuild.</>
+                    ? <><b>Approximate</b> (dashed on the map, about {approxGot.km < 1 ? `${Math.round(approxGot.km * 1000)} m` : `${approxGot.km.toFixed(1)} km`} along the river): {liveWhy} — the exact stretch is drawn after the next rebuild.</>
                     : <>Not drawn as a stretch yet (its points are on the map): {liveWhy}
                       {approx && approxGot && "why" in approxGot ? ` — and no approximate stretch could be drawn: ${approxGot.why}` : ""}</>}</div>}
                 {moveErr && <div className="fix-row warn-text inline-notice" data-testid="dfo-move-refused">
@@ -1442,7 +1469,7 @@ export function editPointsOf(splits: NewSplit[], checks: Record<string, AnchorCh
     const c = checks[n.ref];
     const at = (c?.coord ?? n.coord) as [number, number] | null | undefined;
     if (at) out.push({ id: `cut:${n.ref}`, coord: at, kind: "cut",
-      label: `NEW ${n.ref}${n.offset_m ? ` (${n.offset_m > 0 ? "+" : ""}${n.offset_m} m)` : ""}` });
+      label: `NEW ${n.ref}${n.offset_m ? ` (${n.offset_m > 0 ? "+" : ""}${n.offset_m} m)` : ""}${c?.approximate ? " · position approximate" : ""}` });
     const r = n.offset_m ? (c?.ref?.coord ?? n.coord) as [number, number] | null | undefined : null;
     if (r && n.coord && !refs.has(refKey(n.coord as [number, number]))) {
       refs.set(refKey(n.coord as [number, number]), { id: `ref:${refKey(n.coord as [number, number])}`, coord: r,

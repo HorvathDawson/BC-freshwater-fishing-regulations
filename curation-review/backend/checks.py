@@ -26,10 +26,14 @@ from pipeline.regs.review import checklist as C
 #: the most sections a regulation's reach draws (a zone table binds tens of thousands)
 REACH_LIMIT = 3000
 #: a place's check state, in the order the filters offer them
-CHECK_STATES = ("unchecked", "stale", "checked", "earlier", "wrong")
+CHECK_STATES = ("unchecked", "stale", "checked", "earlier", "saved", "wrong")
 #: the states that count as DONE (owner 2026-11-09: "the review app doesnt show how many I already did"): a check, a
 #: wrong check, and `earlier` — a verified mark made before the checklist that the marks' own staleness still holds
-DONE_STATES = ("checked", "earlier", "wrong")
+#: `saved` (owner 2026-11-09: "if you save extent with a new cut it should show as complete … just needing cut added"):
+#: the owner's extent save is in force and waits only for its new cut to be built or the write-through to apply it
+#: (`dfo.saved_status` waits_cut / not_landed). The mark and its verdict are untouched; once the save lands the place
+#: is judged again by the rules above (a built extent that is not what was saved is no longer this state).
+DONE_STATES = ("checked", "earlier", "saved", "wrong")
 #: the DFO extent states (`dfo._row`) with nothing to check yet: the place leads with its fix, not with ✗ rows
 NEEDS_EXTENT = ("unbound", "needs_cut")
 
@@ -212,6 +216,7 @@ def dfo_inputs(loc: dict, water: dict | None, m) -> dict:
                    if st["state"] == "waits_cut" else " (the write-through has not applied it)")
                 + ": a check now would replace it — check the place once it lands, or change it again")
     return {"extents": extents, "landed": landed, "tributaries": trib, "held": held,
+            "waits": ({"state": st["state"], "date": st["date"], "cuts": list(st.get("cuts") or [])} if held else None),
             "curated": list(b.get("extents") or []), "curated_tributaries": dfo.tributaries_now(loc, water),
             "only": bool(b.get("tributaries_only")), "excludes": list(b.get("tributary_excludes") or [])}
 
@@ -233,6 +238,9 @@ def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None, ver
     out = _with_check(rs, dg, m, verify)
     if x["held"]:
         out["held"] = x["held"]
+        # the owner's own extent save, waiting only to be built / applied: done, in a state of its own
+        out["check"], out["saved"] = "saved", x["waits"]
+        out.pop("earlier", None)
     return out
 
 

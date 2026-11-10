@@ -5,7 +5,7 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { HOW_IT_WORKS, LEAVE_DRAFT, placeState, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+import { HOW_IT_WORKS, LEAVE_DRAFT, nextAfterSave, placeState, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
 import { offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
@@ -13,7 +13,7 @@ import { statusLine } from "../dfoExtent";
 import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
 import { MapPanel } from "./MapPanel";
 import { TopNav } from "./TopNav";
-import { DfoLocation, proposalDraws, proposalOf, proposalPoints, savedFixesOf, suggestionFix, type EditLayers,
+import { DfoLocation, newCutChecks, proposalDraws, proposalOf, proposalPoints, savedFixesOf, suggestionFix, type EditLayers,
   type InitialDraft } from "./DfoReview";
 import { CloseX } from "./NoticeStack";
 import { DfoVintageBanner } from "./DfoVintageBanner";
@@ -33,7 +33,7 @@ import { InputsSyncLine } from "./InputsSyncLine";
 
 export type CheckSource = "dfo" | "regs" | "all";
 const FILTERS: [string, string][] = [["", "all"], ["todo", "to check"], ["needs", "needs extent"],
-  ["earlier", "verified earlier"], ["stale", "changed"], ["bad", "has ✗"]];
+  ["earlier", "verified earlier"], ["saved", "waiting on a build"], ["stale", "changed"], ["bad", "has ✗"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
 /** the rows about where the extent runs: a click on one (DFO) opens the inline editor */
 const EDIT_KINDS = ["where", "from", "to", "also", "tributaries"];
@@ -96,8 +96,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 
   // "Saved: …" after a save, kept until he moves on (`id`: the place it was saved on)
   const [savedNote, setSavedNote] = useState<{ id: string; what: "extent" | "confirm" | "problem" } | null>(null);
+  // after a save / confirm: the water has none left — said, with the next water that has work
+  const [waterDone, setWaterDone] = useState<{ id: string; water: string; total: number; next: CheckPlace | null } | null>(null);
+  const shown = useRef<string | null>(null);
   const draft = useRef(false);
   const open = useCallback((id: string) => {
+    setWaterDone(null);
     // leaving a place with an unsaved draft asks once
     if (draft.current && !window.confirm(LEAVE_DRAFT)) return;
     draft.current = false;
@@ -178,6 +182,21 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     return [...seen.values()];
   }, [list]);
   const cur = loaded && loaded.id === selected ? loaded : null;
+  shown.current = selected;
+  /** AFTER A SAVE OR A CONFIRM: reload, show "Saved: …" briefly, then go on to the next not-done place of the water
+   *  (a problem report stays on the place) */
+  const afterSave = (id: string, what: "extent" | "confirm" | "problem") => {
+    setSavedNote({ id, what });
+    setEditing(null);
+    loadQueue();
+    setVersion((v) => v + 1);
+    if (what === "problem") return;
+    api.checksQueue(source, "", "").then((all) => {
+      const t = nextAfterSave(all, id);
+      if (t.next !== null) { const to = t.next; window.setTimeout(() => { if (shown.current === id && !draft.current) open(to); }, 1600); }
+      else if (t.total) setWaterDone({ id, water: t.water, total: t.total, next: t.nextWater });
+    }).catch(failed("the next place after the save"));
+  };
   draft.current = !!editing && !editing.full && !!layers?.dirty;
   const d0 = cur?.dfo;
   const state = cur ? placeState({ editing: !!editing, check: cur.check.check, checkedDate: cur.check.checked?.date,
@@ -193,6 +212,11 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const stateLine = state && (
     <div className={`ck-state ${state.tone}`} role="status" data-testid="ck-state">
       <b>{state.text}</b>{savedWords && <span data-testid="ck-saved-note"> · {savedWords}</span>}
+      {waterDone && cur && waterDone.id === cur.id && (
+        <div data-testid="ck-water-done"><b>{waterDone.water}: all {waterDone.total} places done.</b>{" "}
+          {waterDone.next ? <button type="button" className="btn small" data-testid="ck-next-water"
+            onClick={() => open(waterDone.next!.id)}>Go to the next water with work left: {waterDone.next.water}</button>
+            : "Nothing is left in this list."}</div>)}
     </div>);
 
   const header = (
@@ -231,6 +255,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
               {progress && k === "todo" ? ` ${(progress.by_check.unchecked ?? 0) + (progress.by_check.stale ?? 0)}`
                 : progress && k === "needs" ? ` ${progress.needs ?? 0}`
                 : progress && k === "earlier" ? ` ${progress.by_check.earlier ?? 0}`
+                : progress && k === "saved" ? ` ${progress.by_check.saved ?? 0}`
                 : progress && k === "stale" ? ` ${progress.by_check.stale ?? 0}`
                 : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}` : ""}
             </button>))}
@@ -282,12 +307,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                     initialDraft={editing.draft} nav={{ pos: at.pos, total: at.total }} saving={false}
                     embedded={{ onMap: setLayers, onFull: () => setEditing({ draft: editing.draft, full: true }) }}
                     onBack={() => setEditing(null)}
-                    onMarked={() => { setSavedNote({ id: cur.id, what: "extent" }); setEditing(null); loadQueue(); setVersion((v) => v + 1); }} />
+                    onMarked={() => afterSave(cur.id, "extent")} />
                 </div>
               </div>
             ) : cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur} top={stateLine}
               water={waterView && waterView.places.some((p) => p.id === cur.id) ? waterView : null}
-              onSaved={(what) => { setSavedNote({ id: cur.id, what }); loadQueue(); setVersion((v) => v + 1); }}
+              onSaved={(what) => afterSave(cur.id, what)}
               onEdit={cur.dfo && !cur.dfo.extent_now.cannot_change.length ? (draft) => setEditing({ draft }) : undefined} />
               : <div className="empty-state">{queue && !list.length ? "Nothing matches." : "loading…"}</div>}
           </aside>
@@ -321,7 +346,10 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
         ?? best.s.suggestion?.new_splits?.find((n) => n.ref === sid)?.name ?? null;
       const name = (i: string) => d.item_names[i] ?? d.items.find((x) => x.id === i)?.name ?? i;
       // its points are what the map flies to when the place has no extent of its own to fit (`fit`)
-      let feats: GeoJSON.Feature[] = proposalPoints(d, best.s, label, true).map((f) => ({ ...f, properties: { ...f.properties, fit: true } }));
+      // every new cut where the server's resolver puts it (an offset from a cut has no coordinate of its own)
+      const at = (sid: string) => (d.splits.features.find((x) => x.properties.split_id === sid)?.geometry.coordinates ?? null) as [number, number] | null;
+      const cuts = await newCutChecks(id, (best.s.suggestion?.new_splits ?? []).filter((n) => !n.coord), at);
+      let feats: GeoJSON.Feature[] = proposalPoints(d, best.s, label, true, cuts).map((f) => ({ ...f, properties: { ...f.properties, fit: true } }));
       const sg = best.s.suggestion!;
       if (proposalDraws(best.s)) {
         const pv = await api.dfoExtentPreview(id, { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
@@ -579,7 +607,10 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
               <button className="alt" data-testid="ck-wrong" disabled={busy || !!pc.held} onClick={() => {
                 setWrongMode(true); setWrong(new Set(openRows(pc.rows, ticked).map((r) => r.n))); }}>Report a problem with it</button>
             </div>
-            <div className="hint" data-testid="ck-hint">{pc.held ? <>Held: {pc.held}.{onChange && <> <button type="button"
+            <div className="hint" data-testid="ck-hint">{pc.check === "saved" ? <>Nothing to do here now: your saved extent is done and waits to be built.
+              After the rebuild it comes back only if what was built is not what you saved.{onChange && <> <button type="button"
+              className="link" data-testid="ck-change-held" onClick={onChange}>Edit the extent (draft, nothing saved)</button></>}</>
+              : pc.held ? <>Held: {pc.held}.{onChange && <> <button type="button"
               className="link" data-testid="ck-change-held" onClick={onChange}>Change the extent…</button></>}</>
               : hintWords(pc.rows, ticked)}</div>
           </>

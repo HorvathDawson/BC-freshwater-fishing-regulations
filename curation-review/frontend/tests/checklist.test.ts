@@ -183,10 +183,32 @@ test("the place's one state line is one of exactly six", async () => {
   assert.equal(placeState({ ...base, editing: true, check: "checked", checkedDate: "2026-11-09" }).text,
     "You are previewing a draft: not saved");
   assert.equal(placeState({ ...base, saved: { state: "waits_cut", date: "2026-11-09" } }).text,
-    "Saved (2026-11-09) — waiting to be drawn on the map");
+    "Saved by you (2026-11-09): done — waiting only for the new cut to be built");
   assert.equal(placeState({ ...base, saved: { state: "landed", date: "2026-11-09" } }).text, "Saved and on the map");
   assert.equal(placeState({ ...base, saved: { state: "landed", date: "2026-11-09" }, hasExtent: false }).text, "Nothing saved yet");
   assert.equal(placeState({ ...base, check: "checked", checkedDate: "2026-11-09" }).text, "Confirmed by you (2026-11-09)");
   assert.equal(placeState({ ...base, check: "earlier", earlierDate: "2026-11-02" }).text, "Verified earlier (2026-11-02)");
   assert.equal(placeState({ ...base, saved: { state: "deferred", date: "2026-11-09" } }).text, "Nothing saved yet");
+});
+
+test("after a save: the next not-done place on the same water, else the next water with work", async () => {
+  const { nextAfterSave, placeState, checkStatus, chipOf, isDone } = await import("../src/checklist.ts");
+  const p = (id: string, water_key: string, check: CheckPlace["check"]): CheckPlace => ({ source: "dfo", id, water: water_key.toUpperCase(),
+    water_key, region: "2", text: id, summary: { ok: 1, bad: 0, worst: "ok" }, check });
+  const q = [p("a1", "a", "unchecked"), p("a2", "a", "saved"), p("a3", "a", "earlier"), p("a4", "a", "stale"),
+             p("b1", "b", "checked"), p("b2", "b", "unchecked")];
+  assert.deepEqual(nextAfterSave(q, "a2"), { next: "a4" });                 // skips the done one, list order
+  assert.deepEqual(nextAfterSave(q, "a4"), { next: "a1" });                 // wraps on its own water before leaving it
+  const done = q.map((x) => (x.water_key === "a" ? { ...x, check: "checked" as const } : x));
+  assert.deepEqual(nextAfterSave(done, "a2"), { next: null, water: "A", total: 4, nextWater: done[5] });
+  const all = done.map((x) => ({ ...x, check: "checked" as const }));
+  assert.equal((nextAfterSave(all, "a2") as { nextWater: unknown }).nextWater, null);
+  // an extent save waiting only on its cut is done, and never reads "your earlier mark was: not sure"
+  assert.equal(isDone({ check: "saved" }), true);
+  const saved = { state: "waits_cut" as const, date: "2026-11-09", cuts: ["c"] };
+  assert.equal(placeState({ editing: false, check: "saved", saved, hasExtent: false }).text,
+    "Saved by you (2026-11-09): done — waiting only for the new cut to be built");
+  assert.equal(checkStatus({ ...PC, check: "saved", saved, earlier: { date: "2026-11-09", status: "unsure", note: "x" } }),
+    "Saved by you (2026-11-09): done — waiting only for the new cut to be built.");
+  assert.equal(chipOf({ check: "saved", state: "needs_cut", extents: [], bad: 1 }), "saved, waits build");
 });
