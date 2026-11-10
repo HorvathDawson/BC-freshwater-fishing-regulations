@@ -455,6 +455,8 @@ def _refuse_stale_checklist(body: MarkPayload) -> None:
         raise HTTPException(422, [{"path": "checklist", "msg": "a checklist is on a DFO place or a regulation rule"}])
     if now is None:
         raise HTTPException(404, f"{body.scope} {body.target} not found")
+    if now.get("held"):
+        raise HTTPException(422, [{"path": "checklist", "msg": now["held"]}])
     if (body.checklist or {}).get("digest") != now["digest"]:
         raise HTTPException(422, [{"path": "checklist", "msg": "its words or its extent changed since you opened it: "
                                    "reload the place and check it again — nothing was saved"}])

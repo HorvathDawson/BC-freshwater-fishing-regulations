@@ -10,7 +10,8 @@ import { applyPv, PV_DEFAULT, PvControls, type PvFilter } from "./components/Pre
 import { EntryDetail } from "./components/EntryDetail";
 import { ProgressBar } from "./components/ProgressBar";
 import { isTyping, keepSelected, nextUnsure, paceSamples, recordPace } from "./review";
-import { DFO_HASH, DfoReview } from "./components/DfoReview";
+import { DFO_HASH } from "./components/DfoReview";
+import { CheckReview } from "./components/CheckReview";
 import { TIDAL_HASH, TidalReview } from "./components/TidalReview";
 import { SLOUGH_HASH, SloughReview } from "./components/SloughReview";
 import { LockedView, useClosed } from "./components/Locked";
@@ -273,7 +274,7 @@ export default function App() {
     return <TidalReview mode={mode} />;
   }
   if (dfo && mode) {
-    return <DfoReview mode={mode} />;
+    return <CheckReview mode={mode} source="dfo" />;
   }
 
   return (

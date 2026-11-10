@@ -68,3 +68,26 @@ places (rows and pins change, the map stays). Pinned by `test_the_queue_never_le
 - Tests `pipeline/tests/test_review_checklist.py`: every curated DFO place and every rule with extents (no crash, every
   place phrase quoted by a row or listed as unchecked), planted mutations (exception dropped, tributaries flipped,
   pending / unknown cut, a named end with no cut), digest stale on words / extent, mark rules, queue by water.
+
+## Phase 2 — the DFO screen (2026-11-09)
+- The DFO tab (`#dfo/<id>`) is the checklist (`frontend/src/components/CheckReview.tsx`, logic `src/checklist.ts`, run
+  by `node --test tests/checklist.test.ts`): header with the place, "N of M checked" over the whole list, "<water>: i of
+  n", ‹ pos of total ›; filters all / unchecked / has ✗ / has ? (a filter keeps whole waters); a water picker and a
+  search. Big map (the existing MapPanel): the extent now in one colour, a save not drawn yet dashed (`pending`),
+  numbered pins per row (`pins`, tap a pin = its row); the view fits the first place of a water and stays while its
+  other places are stepped (one MapPanel per water).
+- Rows → "All correct" (enabled when every row is ✓ or ticked) / "Something's wrong" (pick rows + note → a wrong
+  mark, problem from the rows' kinds) → one status line ("Checked <date>: all correct · 6 rows, 1 ticked by eye", or
+  stale: "check it again"; plus the extent save's line when one waits). "Change the extent instead…" opens the T525
+  place screen (`DfoLocation`, Change picked, ← back) — every guard R1–R7 is its own; a check never carries a fix and
+  always sends `extent_before`.
+- A place whose own save has not landed yet (waits for its cut / the write-through) is HELD: a check would supersede
+  that save, so neither button is offered (and POST /api/marks refuses it); the rows show the saved pieces with ?.
+  The digest is the curated extent's, so a landing makes the check stale.
+- New DFO places on the live page arrive as unchecked rows (the queue reads the live DFO rows); historic rewordings
+  ride their place (as before), the checklist marks the place only.
+- The round-3 queue/list screen is gone (its place screen stays as the change editor).
+- Shots: `shots/T532-dfo-chilliwack.png`, `-dfo-forks.png`, `-dfo-chemainus.png`, `-dfo-chilliwack-wrong.png`,
+  `-dfo-change.png`.
+- Tests: `test_curation_review_screen.py::test_a_checklist_is_saved_only_on_the_rows_the_place_has_now` (stale digest
+  refused, open rows refused, held place refused, P-only mark kept, queue by water, nothing under data/curated).

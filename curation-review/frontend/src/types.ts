@@ -796,8 +796,8 @@ export interface MarkPost {
   scope: "entry" | "rule" | "dfo" | "tidal";
   target: string;
   rule_id?: string | null;
-  /** "verified" only with `variant_of` (its one check is T) */
-  verdict?: "deferred" | "verified";
+  /** "verified" only with `variant_of` (its one check is T) or a checklist; "wrong" with a checklist (T532) */
+  verdict?: "deferred" | "verified" | "wrong";
   answers: Partial<Record<Check, CheckAnswer>>;
   problem?: string | null;
   note?: string;
@@ -821,6 +821,40 @@ export interface MarkPost {
   /** T359 (tidal): "whole" — the whole water is tidal (Place y, no cut; the writer makes a `whole` row);
    *  T449 (dfo): "tidal water" accepts a place proposed as wholly tidal, "not tidal" rejects it */
   call?: "whole" | "tidal water" | "not tidal";
+  /** T532 (dfo, rule): the checklist the mark answers — the server refuses it when its digest is not the place's now */
+  checklist?: CheckedList;
+}
+
+/* ---------------------------------------------------------------- T532: the checklist */
+export type RowState = "ok" | "unsure" | "bad";
+export type RowKind = "water" | "where" | "from" | "to" | "also" | "area" | "tributaries" | "except" | "unchecked";
+/** one generated row (`review.checklist.rows`): a claim, the phrase that names it, what ours does, its state */
+export interface CheckRow {
+  n: number; kind: RowKind; quote: string; ours: string; state: RowState; reason: string;
+  anchor: { cuts?: string[]; items?: string[]; areas?: string[]; coord?: [number, number]; tributaries?: boolean;
+            area_kind?: string | null };
+}
+export type CheckState = "unchecked" | "stale" | "checked" | "wrong";
+export interface CheckedRow { n: number; kind: string; state: RowState; ticked?: boolean; wrong?: boolean }
+export interface CheckedList { digest: string; rows: CheckedRow[] }
+/** one place's checklist (GET /api/checks/dfo/<id>, /api/checks/rule/<entry>/<rule>) */
+export interface PlaceCheck {
+  rows: CheckRow[]; digest: string; summary: { ok: number; unsure: number; bad: number; worst: RowState };
+  check: CheckState;
+  /** DFO: a save of the owner's still waits to land — a check now would replace it, so none is offered */
+  held?: string;
+  checked?: { date: string; verdict: string; note: string; rows: CheckedRow[] };
+  source?: { entry_id: string; rule_id: string; name: string; verbatim: string; region: string; pages: number[] };
+}
+/** one place in the checklist queue (GET /api/checks/queue): grouped by water */
+export interface CheckPlace {
+  source: "dfo" | "regs"; id: string; water: string; water_key: string; region: string; text: string;
+  summary: PlaceCheck["summary"]; check: CheckState; new?: boolean; entry_id?: string; rule_id?: string;
+}
+export interface CheckProgress {
+  total: number; done: number; by_check: Partial<Record<CheckState, number>>;
+  by_worst: Partial<Record<RowState, number>>; rows: Partial<Record<RowState, number>>;
+  waters: Record<string, { water: string; total: number; done: number }>;
 }
 
 /** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */

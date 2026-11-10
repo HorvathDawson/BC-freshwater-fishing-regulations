@@ -68,6 +68,14 @@ interface Props {
    *  top: its cuts (`kind: cut`), an offset cut's reference (`kind: reference`, hollow), an area's edge
    *  (a line), and pick candidates (`kind: mouth`, a tributary's mouth). Drawn only — nothing is computed. */
   cutPreview?: GeoJSON.FeatureCollection | null;
+  /** T532: a SAVED extent not drawn yet (saved, its cut not built or not applied) — the preview's colour, dashed */
+  pending?: GeoJSON.FeatureCollection | null;
+  /** T532: the checklist's NUMBERED PINS — points with `n`, `state` (ok | unsure | bad) and `on` (ringed) */
+  pins?: GeoJSON.FeatureCollection | null;
+  /** T532: a click on a pin hands back its number */
+  onPin?: (n: number) => void;
+  /** false: a new preview does not move the view (the checklist keeps a water's map while stepping its places) */
+  fitPreview?: boolean;
 }
 
 export interface EditPoint { id: string; coord: [number, number]; label: string; kind: "reference" | "cut" }
@@ -168,7 +176,8 @@ export function MapPanel({
   onSelectSplit, reloadKey = 0, focusItemId = null,
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
-  satellite = false, editPoints = [], onMovePoint, cutPreview = null,
+  satellite = false, editPoints = [], onMovePoint, cutPreview = null, pending = null, pins = null, onPin,
+  fitPreview = true,
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -298,6 +307,8 @@ export function MapPanel({
           saved: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           suggested: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           cutpreview: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          pending: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          pins: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
           ...layers("protomaps", LIGHT),
@@ -441,6 +452,10 @@ export function MapPanel({
                       "text-anchor": "bottom", "text-font": ["Noto Sans Medium"],
                       "text-allow-overlap": true },
             paint: { "text-color": "#9d174d", "text-halo-color": "#fff", "text-halo-width": 2 } },
+          // T532: a saved extent not drawn yet — the extent's colour, dashed
+          { id: "pending-lines", type: "line", source: "pending",
+            filter: ["!=", ["geometry-type"], "Point"],
+            paint: { "line-color": "#db2777", "line-width": 5, "line-opacity": 0.9, "line-dasharray": [1, 1.6] } },
           // T355: a new split's cut as the build resolves it — orange, on top of every extent
           { id: "cutpreview-lines", type: "line", source: "cutpreview",
             filter: ["!=", ["geometry-type"], "Point"],
@@ -455,6 +470,17 @@ export function MapPanel({
             layout: { "text-field": ["get", "label"], "text-size": 12, "text-offset": [0, 1.3],
                       "text-anchor": "top", "text-font": ["Noto Sans Medium"], "text-allow-overlap": true },
             paint: { "text-color": "#9a3412", "text-halo-color": "#fff", "text-halo-width": 2 } },
+          // T532: the checklist's numbered pins, one per row (green ✓, amber ?, red ✗), the picked one ringed
+          { id: "pins-ring", type: "circle", source: "pins", filter: ["get", "on"],
+            paint: { "circle-radius": 17, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": "#1d4ed8",
+                     "circle-stroke-width": 3 } },
+          { id: "pins-dot", type: "circle", source: "pins",
+            paint: { "circle-radius": 12, "circle-stroke-color": "#fff", "circle-stroke-width": 2.5,
+                     "circle-color": ["match", ["get", "state"], "ok", "#1f7a45", "unsure", "#9a6200", "#b3261e"] } },
+          { id: "pins-n", type: "symbol", source: "pins",
+            layout: { "text-field": ["get", "n"], "text-size": 13, "text-font": ["Noto Sans Medium"],
+                      "text-allow-overlap": true, "text-ignore-placement": true },
+            paint: { "text-color": "#fff" } },
           { id: "measure-line", type: "line", source: "measure",
             filter: ["==", ["geometry-type"], "LineString"],
             paint: { "line-color": "#7c3aed", "line-width": 2, "line-dasharray": [2, 1] } },
@@ -690,7 +716,7 @@ export function MapPanel({
       if (!src) return;
       const fc = preview ?? { type: "FeatureCollection", features: [] };
       src.setData(fc);
-      if ((preview?.features ?? []).some((f) => f.geometry?.type !== "Point")) {
+      if (fitPreview && (preview?.features ?? []).some((f) => f.geometry?.type !== "Point")) {
         const b = bounds(fc as GeoJSON.FeatureCollection);
         if (b) m.fitBounds(b, { padding: 50, maxZoom: 13, duration: 500 });
       }
@@ -711,6 +737,42 @@ export function MapPanel({
       if (!b.isEmpty()) m.fitBounds(b, { padding: 80, maxZoom: 14, duration: 400 });
     });
   }, [cutPreview]);
+
+  // T532: the pending extent (dashed) and the numbered pins; the view stays put
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      (m.getSource("pending") as maplibregl.GeoJSONSource | undefined)
+        ?.setData((pending ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection);
+    });
+  }, [pending]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      (m.getSource("pins") as maplibregl.GeoJSONSource | undefined)
+        ?.setData((pins ?? { type: "FeatureCollection", features: [] }) as GeoJSON.FeatureCollection);
+    });
+  }, [pins]);
+  const previewRef = useRef(preview);
+  previewRef.current = preview;
+  const onPinRef = useRef(onPin);
+  onPinRef.current = onPin;
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const click = (e: maplibregl.MapLayerMouseEvent) => {
+      const n = Number(e.features?.[0]?.properties?.n);
+      if (n && onPinRef.current) onPinRef.current(n);
+    };
+    const enter = () => { m.getCanvas().style.cursor = "pointer"; };
+    const leave = () => { m.getCanvas().style.cursor = ""; };
+    m.on("click", "pins-dot", click);
+    m.on("mouseenter", "pins-dot", enter);
+    m.on("mouseleave", "pins-dot", leave);
+    return () => { m.off("click", "pins-dot", click); m.off("mouseenter", "pins-dot", enter); m.off("mouseleave", "pins-dot", leave); };
+  }, []);
 
   // the SAVED extent fix (DFO), teal; the view stays where the extent already put it
   useEffect(() => {
@@ -764,7 +826,10 @@ export function MapPanel({
           // fitNamed false (Tidal): the view opens ON the selected point, not the whole water
           m.jumpTo({ center: sel.geometry.coordinates as [number, number], zoom: selectZoom });
         } else {
-          const b = bounds(colored);
+          // T532: the checklist opens a water ON its place's extent, when it has one
+          const pv = previewRef.current;
+          const lines = fitPreview && pv && pv.features.some((f) => f.geometry?.type !== "Point");
+          const b = bounds(lines ? pv! : colored);
           if (b) m.fitBounds(b, { padding: 40, maxZoom: 14, duration: 0 });
         }
       }

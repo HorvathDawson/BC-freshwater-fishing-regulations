@@ -1128,3 +1128,64 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .dfo-status details { font-weight: 400; margin-top: 4px; }
 .dfo-more { font-size: 12px; margin: 4px 0; }
 .dfo-more > summary { cursor: pointer; color: var(--muted); }
+
+/* ---- T532: the checklist (owner-approved round-4 mockup, shots/T532-mockup.html) ---- */
+.ck-mode { --ck-extent: #c2187a; --ck-soft: rgba(194, 24, 122, .12); --ck-ok: #1f7a45; --ck-ok-bg: #e3f3e9;
+  --ck-bad: #b3261e; --ck-bad-bg: #fbe5e3; --ck-unk: #9a6200; --ck-unk-bg: #fbf0d9; --ck-line: #e2e0db; }
+.ck-head { display: flex; align-items: center; gap: 14px; padding: 8px 16px; border-bottom: 1px solid var(--ck-line); background: var(--panel); }
+.ck-head h1 { font-size: 17px; margin: 0; font-weight: 650; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ck-head h1 small { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 8px; }
+.ck-progress { color: var(--muted); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ck-progress b { color: var(--text, #111); }
+.ck-nav { display: flex; align-items: center; gap: 6px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ck-nav button { border: 1px solid var(--ck-line); background: var(--panel); width: 32px; height: 32px; border-radius: 6px; font-size: 16px; cursor: pointer; }
+.ck-nav button:disabled { opacity: .35; cursor: default; }
+.ck-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 6px 16px; border-bottom: 1px solid var(--ck-line); font-size: 12px; color: var(--muted); }
+.ck-bar select, .ck-bar input { font-size: 12px; max-width: 260px; }
+.ck-chips { display: inline-flex; gap: 4px; }
+.ck-chips button { border: 0; background: none; color: var(--muted); padding: 4px 8px; border-radius: 5px; cursor: pointer; font: inherit; }
+.ck-chips button[aria-selected="true"] { background: var(--panel); color: inherit; box-shadow: 0 0 0 1px var(--ck-line); }
+.ck-main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 480px; min-height: 0; }
+.ck-map { position: relative; min-height: 0; border-right: 1px solid var(--ck-line); display: flex; flex-direction: column; }
+.ck-map > div:last-child { flex: 1; min-height: 0; }
+.ck-key { position: absolute; left: 12px; top: 64px; z-index: 5; background: var(--panel); border: 1px solid var(--ck-line); border-radius: 6px; padding: 6px 10px; font-size: 12px; display: flex; gap: 14px; }
+.ck-key i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; background: #db2777; vertical-align: middle; margin-right: 6px; }
+.ck-key i.dash { background: none; border-top: 3px dashed #db2777; height: 0; }
+.ck-side { display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
+.ck-words { padding: 12px 16px 4px; font-size: 13px; }
+.ck-words .dim { font-size: 12px; margin-top: 2px; }
+.ck-rows { flex: 1; overflow: auto; padding: 4px 8px 8px; }
+.ck-row { display: grid; grid-template-columns: 28px 1fr 30px; gap: 10px; align-items: start; padding: 10px 8px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+.ck-row + .ck-row { border-top-color: var(--ck-line); border-top-left-radius: 0; border-top-right-radius: 0; }
+.ck-row:hover, .ck-row.on { background: var(--ck-soft); }
+.ck-row .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; }
+.ck-row.ok .n { background: var(--ck-ok); } .ck-row.bad .n { background: var(--ck-bad); } .ck-row.unsure .n { background: var(--ck-unk); }
+.ck-row .q { font-size: 14px; }
+.ck-row .q b { font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-right: 6px; }
+.ck-row .q q { quotes: "\201C" "\201D"; }
+.ck-row .ours { font-size: 13px; margin-top: 3px; color: var(--muted); }
+.ck-row .ours span { font-weight: 600; }
+.ck-row.ok .ours span { color: var(--ck-ok); } .ck-row.bad .ours span { color: var(--ck-bad); } .ck-row.unsure .ours span { color: var(--ck-unk); }
+.ck-row .tick { width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid var(--ck-line); background: var(--panel); display: grid; place-items: center; font-size: 15px; cursor: pointer; color: var(--muted); padding: 0; }
+.ck-row .tick:disabled { cursor: default; }
+.ck-row.ok .tick, .ck-row.ticked .tick { border-color: var(--ck-ok); color: var(--ck-ok); background: var(--ck-ok-bg); }
+.ck-row.bad:not(.ticked) .tick { border-color: var(--ck-bad); color: var(--ck-bad); background: var(--ck-bad-bg); }
+.ck-row.unsure:not(.ticked) .tick { border-color: var(--ck-unk); color: var(--ck-unk); background: var(--ck-unk-bg); }
+.ck-row.wrongpick { outline: 2px solid var(--ck-bad); outline-offset: -2px; }
+.ck-foot { border-top: 1px solid var(--ck-line); padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ck-btns { display: flex; gap: 8px; }
+.ck-btns button { flex: 1; height: 42px; border-radius: 8px; font: 600 14px system-ui, sans-serif; cursor: pointer; border: 1.5px solid #1d1f22; background: #1d1f22; color: #fff; }
+.ck-btns button.alt { background: var(--panel); color: inherit; border-color: var(--ck-line); }
+.ck-btns button:disabled { opacity: .35; cursor: not-allowed; }
+.ck-foot .hint { font-size: 12px; color: var(--muted); }
+.ck-wrongbox { display: flex; flex-direction: column; gap: 8px; }
+.ck-wrongbox input, .ck-foot > input { height: 36px; border: 1px solid var(--ck-line); border-radius: 6px; padding: 0 10px; font: inherit; }
+.ck-status { font-size: 13px; color: var(--muted); }
+.ck-status b { color: inherit; font-weight: 600; }
+@media (max-width: 820px) {
+  .ck-main { grid-template-columns: 1fr; grid-template-rows: 46vh auto; overflow: auto; }
+  .ck-map { border-right: 0; border-bottom: 1px solid var(--ck-line); height: 46vh; min-height: 280px; }
+  .ck-rows { overflow: visible; }
+  .ck-foot { position: sticky; bottom: 0; background: var(--panel); }
+}
+.ck-wrongbox .link, .ck-foot .link { align-self: flex-start; border: 0; background: none; color: var(--accent); padding: 0; font-size: 13px; cursor: pointer; text-decoration: underline; }

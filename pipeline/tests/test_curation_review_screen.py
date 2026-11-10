@@ -665,3 +665,39 @@ def test_an_offset_cut_resolves_off_its_reference_and_the_mark_stamps_the_refere
     assert r.status_code == 200, r.text
     ns = r.json()["new_splits"][0]
     assert ns["offset_m"] == -100 and ns["measure"] == got["ref"]["measure"] and ns["coord"] == at["coord"]
+
+
+def test_a_checklist_is_saved_only_on_the_rows_the_place_has_now(env):
+    """T532: the checklist screen's two saves are marks with `checklist` — refused on a stale digest, refused as "all
+    correct" while a ? / ✗ row is open, kept as a P-only DFO mark with its rows; the place reads checked in the queue
+    (grouped by water) and nothing under data/curated is written by the app."""
+    c = env["client"]
+    base = {"scope": "dfo", "extent_before": _seen(c, CAMPBELL), "reviewer": "tester", "answers": {"P": "y"},
+            "verdict": "verified"}
+    pc = c.get(f"/api/checks/dfo/{CAMPBELL}").json()
+    if pc.get("held"):                  # a save of the owner's still waits to land: a check would replace it
+        r = c.post("/api/marks", json={**base, "target": CAMPBELL, "checklist": {"digest": pc["digest"], "rows": [
+            {"n": x["n"], "kind": x["kind"], "state": x["state"], "ticked": True} for x in pc["rows"]]}})
+        assert r.status_code == 422 and "has not landed yet" in r.text, r.text
+    target = next(p["id"] for p in c.get("/api/checks/queue", params={"source": "dfo"}).json()
+                  if not c.get(f"/api/checks/dfo/{p['id']}").json().get("held"))
+    pc = c.get(f"/api/checks/dfo/{target}").json()
+    assert pc["check"] in ("unchecked", "stale", "checked", "wrong") and pc["rows"][0]["kind"] == "water"
+    rows = [{"n": r["n"], "kind": r["kind"], "state": r["state"]} for r in pc["rows"]]
+    base = {**base, "target": target, "extent_before": _seen(c, target)}
+    curated = _stamps(load_repo().base)
+    stale = c.post("/api/marks", json={**base, "checklist": {"digest": "0" * 16, "rows": rows}})
+    assert stale.status_code == 422 and "changed since you opened it" in stale.text
+    if any(r["state"] != "ok" for r in rows):
+        held = c.post("/api/marks", json={**base, "checklist": {"digest": pc["digest"], "rows": rows}})
+        assert held.status_code == 422 and "every row" in held.text, held.text
+    ticked = [{**r, "ticked": r["state"] != "ok"} for r in rows]
+    r = c.post("/api/marks", json={**base, "checklist": {"digest": pc["digest"], "rows": ticked}})
+    assert r.status_code == 200, r.text
+    assert c.get(f"/api/checks/dfo/{target}").json()["check"] == "checked"
+    q = c.get("/api/checks/queue", params={"source": "dfo"}).json()
+    keys = [p["water_key"] for p in q]
+    assert all(k not in keys[:i] or keys[i - 1] == k for i, k in enumerate(keys)), "the queue left a water and came back"
+    assert next(p for p in q if p["id"] == target)["check"] == "checked"
+    assert c.get("/api/checks/progress", params={"source": "dfo"}).json()["done"] >= 1
+    assert _stamps(load_repo().base) == curated, "a checklist mark wrote under data/curated"

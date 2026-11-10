@@ -1,18 +1,14 @@
 import { CloseX } from "./NoticeStack";
-import { DfoVintageBanner } from "./DfoVintageBanner";
-import { InputsSyncLine } from "./InputsSyncLine";
 import { DfoPlaces } from "./DfoPlaces";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { applyPv, PV_DEFAULT, PvBadge, PvControls, type PvFilter } from "./Preverify";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
 import type {
-  AnchorCheck, AnchorKind, CheckAnswer, DfoDetail, DfoExtent, DfoHunt, DfoPiece, DfoProgress, DfoRow, DfoSuggestion, EntrySplits,
+  AnchorCheck, AnchorKind, CheckAnswer, DfoDetail, DfoExtent, DfoHunt, DfoPiece, DfoSuggestion, EntrySplits,
   ExtentFix, ExtentPreview, Mode, NamedRef, NewSplit, ProposedSplit, SplitAnchors, SplitConfidence, SplitPick,
   SplitPreview, Tributary,
 } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel, type EditPoint } from "./MapPanel";
-import { TopNav, FoldToggle, useFold } from "./TopNav";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
 import { extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
@@ -152,281 +148,11 @@ const QUESTIONS: Record<"T" | "R", string> = {
   T: "DFO's words are this place",
   R: "The rows are its rules",
 };
-const STATE_WORDS: Record<string, string> = {
-  needs_cut: "needs a cut", bound: "bound", unbound: "no extent yet", no_water: "no water matched",
-  tidal: "tidal water",
-};
-const VERIFY: [string, string][] = [
-  ["", "all"], ["todo", "to do"], ["unmarked", "never marked"], ["stale", "changed since marked"],
-  ["wrong", "wrong"], ["unsure", "unsure"], ["deferred", "deferred"], ["verified", "verified"],
-];
 
 export const DFO_HASH = "dfo/";
 
-/** what counts as DONE for the fold (owner 2026-11-02): a mark that decides — verified or wrong. "?"
- *  (unsure), deferred, stale and unmarked are not done. */
-export const DONE = new Set<string>(["verified", "wrong"]);
-export const waterKey = (r: DfoRow) => `${r.region}|${r.water_id ?? ""}|${r.water}`;
-const waterCount = (rows: DfoRow[]) => new Set(rows.map(waterKey)).size;
-
-/** THE SEARCH BOX (owner 2026-11-02): the waters whose name, region, or any place wording — a
- *  rewording or variant riding a place included (`all`: every row, members too) — holds the words,
- *  case-insensitive; a matching water keeps all its places. Empty: the list as it is. Pure. */
-export function searchWaters(rows: DfoRow[], all: DfoRow[], q: string): DfoRow[] {
-  const want = q.trim().toLowerCase();
-  if (!want) return rows;
-  const hit = new Set<string>();
-  for (const r of all) {
-    const hay = `${r.water} ${r.text} r${r.region} region ${r.region} ${r.id}`.toLowerCase();
-    if (hay.includes(want)) hit.add(waterKey(r));
-  }
-  return rows.filter((r) => hit.has(waterKey(r)));
-}
-
-/** THE QUEUE BY WATER (owner 2026-11-02): one row per PLACE — a group member that is not its place's
- *  canonical location is listed inside the place, not as its own row — and each water's places
- *  together, waters in the order their first place comes in review order. Pure. */
-export function byWater(rows: DfoRow[]): DfoRow[] {
-  const places = rows.filter((r) => !r.group || r.group.canonical === r.id
-    || !rows.some((x) => x.id === r.group!.canonical));
-  const order: string[] = [];
-  const by = new Map<string, DfoRow[]>();
-  for (const r of places) {
-    const k = `${r.region}|${r.water_id ?? ""}|${r.water}`;
-    if (!by.has(k)) { by.set(k, []); order.push(k); }
-    by.get(k)!.push(r);
-  }
-  return order.flatMap((k) => by.get(k)!);
-}
-
-interface Props {
-  mode: Mode;
-}
-
-/* THE DFO REVIEW MODE (T164): every scraped DFO salmon extent — the notice's own words, its rows,
-   its curated extent on the map with the cuts on its water labelled — and a mark: T R P, an extent
-   fix, and NEW SPLIT proposals by anchor (confluence, lake inlet / outlet, bridge, dam, signs, a map
-   point, an existing split). Everything goes in the mark (POST /api/marks, scope "dfo"); the server's
-   write-through (T325) then lands it in the curated files — the place reloads with what they say (T525). */
-export function DfoReview({ mode }: Props) {
-  const [allRows, setRows] = useState<DfoRow[]>([]);
-  // owner 2026-10-28: "loading…" until the first queue arrives, never "0 locations"
-  const [loaded, setLoaded] = useState(false);
-  const [pvf, setPvf] = useState<PvFilter>(PV_DEFAULT);
-  // owner 2026-11-02: GROUPED BY WATER — one item per place (a historic rewording rides its place,
-  // listed inside it), each water's places together, waters in review order (first row's place)
-  // owner 2026-11-02: a search box over the list (water name, any wording or variant, region), client side
-  const [find, setFind] = useState("");
-  const rows = useMemo(() => searchWaters(byWater(applyPv(allRows, pvf)), allRows, find), [allRows, pvf, find]);
-  // a water whose places are all done collapses to its heading; a click opens it again
-  const [opened, setOpened] = useState<Record<string, boolean>>({});
-  const [progress, setProgress] = useState<DfoProgress | null>(null);
-  const fold = useFold("dfo");
-  const [filters, setFilters] = useState({ region: "", status: "active", need: "", verify: "", q: "", lake: "" });
-  const [selected, setSelected] = useState<string | null>(() => {
-    const h = decodeURIComponent(window.location.hash.slice(1));
-    return h.startsWith(DFO_HASH) ? h.slice(DFO_HASH.length) || null : null;
-  });
-  const [detail, setDetail] = useState<DfoDetail | null>(null);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  // T525: AFTER A SAVE THE PLACE STAYS OPEN until the write-through has run, then reloads as the curated file has it
-  // now (a refusal shows on it, `CuratedTag`); moving on is the owner's j
-  const [landing, setLanding] = useState<string | null>(null);
-  const [version, setVersion] = useState(0);
-  useEffect(() => {
-    if (!landing) return;
-    let done = false;
-    const reload = () => {
-      if (done) return;
-      done = true;
-      setLanding(null);
-      api.dfoLocation(landing).then((d) => { setDetail(d); setVersion((v) => v + 1); })
-        .catch(failed("the DFO location"));
-    };
-    if (!writeThrough().saving) { reload(); return; }
-    return onWriteThrough((s) => { if (!s.saving) reload(); });
-  }, [landing]);  // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadRows = useCallback(() => {
-    api.dfoQueue(filters).then((r) => { setRows(r); setLoaded(true); }).catch((e) => setError(String(e)));
-    // shown, never swallowed: the progress carries the vintage check (T366), so a failed load would hide that too
-    api.dfoProgress().then(setProgress).catch((e) => setError(`DFO progress did not load (so whether the rows are current is unknown): ${e}`));
-  }, [filters]);
-  useEffect(() => { loadRows(); }, [loadRows]);
-
-  const open = useCallback((id: string) => {
-    setSelected(id);
-    window.history.replaceState(null, "", `#${DFO_HASH}${encodeURIComponent(id)}`);
-  }, []);
-  // a link to another place (#dfo/<id>, the places panel) opens it here
-  useEffect(() => {
-    const onHash = () => {
-      const h = decodeURIComponent(window.location.hash.slice(1));
-      if (h.startsWith(DFO_HASH) && h.length > DFO_HASH.length) setSelected(h.slice(DFO_HASH.length));
-    };
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
-  useEffect(() => {
-    if (!selected) { setDetail(null); return; }
-    setDetail(null);
-    api.dfoLocation(selected).then(setDetail).catch((e) => setError(String(e)));
-  }, [selected]);
-
-  const idx = rows.findIndex((r) => r.id === selected);
-  const next = idx >= 0 && idx < rows.length - 1 ? rows[idx + 1].id : !selected && rows.length ? rows[0].id : null;
-  const prev = idx > 0 ? rows[idx - 1].id : null;
-  const nav = useRef({ next, prev });
-  nav.current = { next, prev };
-  useEffect(() => {
-    const onKey = (ev: KeyboardEvent) => {
-      if (isTyping(ev.target) || ev.metaKey || ev.ctrlKey || ev.altKey) return;
-      if (ev.key === "j" && nav.current.next) { open(nav.current.next); ev.preventDefault(); }
-      else if (ev.key === "k" && nav.current.prev) { open(nav.current.prev); ev.preventDefault(); }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
-  useEffect(() => {
-    if (!selected) return;
-    document.querySelector(`[data-dfo="${CSS.escape(selected)}"]`)?.scrollIntoView({ block: "nearest" });
-  }, [selected, rows]);
-
-  const set = (patch: Partial<typeof filters>) => setFilters((f) => ({ ...f, ...patch }));
-  const all = progress?.all, live = progress?.active;
-  const pct = all && all.total ? (100 * all.done) / all.total : 0;
-  return (
-    <div className="app dfo-mode" data-testid="dfo-mode">
-      <div className="filterbar-wrap">
-        <TopNav active="dfo" sub="extents" right={<>
-          <span className="progress dfo-progress" data-testid="dfo-progress">
-            {all ? <>
-              <strong>{all.done}/{all.total}</strong> marked
-              {live && <span className="dim"> · live {live.done}/{live.total}</span>}
-            </> : "…"}
-          </span>
-          <FoldToggle fold={fold} set={(filters.region ? 1 : 0) + (filters.status !== "active" ? 1 : 0) + (filters.need ? 1 : 0) + (filters.verify ? 1 : 0) + (filters.lake ? 1 : 0) + (filters.q ? 1 : 0) + (pvf.pv || pvf.first ? 1 : 0)} />
-        </>} />
-        {fold.open && (
-        <div className="filterbar filterbar-more" data-testid="filters-more">
-          <div>
-            <label>region</label>
-            <select aria-label="DFO region" value={filters.region} onChange={(e) => set({ region: e.target.value })}>
-              <option value="">all</option>
-              {Object.entries(progress?.regions ?? {}).map(([r, c]) => (
-                <option key={r} value={r}>{r} ({c.done}/{c.total})</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>page</label>
-            <select aria-label="live or dormant" value={filters.status} onChange={(e) => set({ status: e.target.value })}>
-              <option value="active">live page</option>
-              <option value="dormant">dormant (archived)</option>
-              <option value="">both</option>
-            </select>
-          </div>
-          <div>
-            <label>extent</label>
-            <select aria-label="extent state" value={filters.need} onChange={(e) => set({ need: e.target.value })}>
-              <option value="">any</option>
-              {Object.entries(STATE_WORDS).map(([k, w]) => <option key={k} value={k}>{w}</option>)}
-            </select>
-          </div>
-          <div>
-            <label>review</label>
-            <select aria-label="DFO review" value={filters.verify} onChange={(e) => set({ verify: e.target.value })}>
-              {VERIFY.map(([k, w]) => <option key={k} value={k}>{w}</option>)}
-            </select>
-          </div>
-          <div>
-            <label>lake areas</label>
-            <select aria-label="lake split later" data-testid="dfo-lake-filter" value={filters.lake}
-              onChange={(e) => set({ lake: e.target.value })}>
-              <option value="">hide lake split later</option>
-              <option value="all">show all</option>
-              <option value="later">only lake split later</option>
-            </select>
-          </div>
-          <PvControls value={pvf} onChange={setPvf} rows={allRows} />
-          <input className="dfo-search" placeholder="water or words…" value={filters.q}
-            onChange={(e) => set({ q: e.target.value })} aria-label="search DFO" />
-                  </div>
-        )}
-        <div className="filterbar-line"><div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)" }} /></div>
-      </div>
-      {progress && <DfoVintageBanner notes={progress.vintage} />}
-      {/* (T520) a DFO write-through that wrote an entries / wording file went to staging: what became of it */}
-      <InputsSyncLine reason="write-through" />
-      {notice && <div className="notice inline-notice" data-testid="dfo-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
-        <span style={{ flex: 1 }}>{notice}</span><CloseX onClick={() => setNotice("")} /></div>}
-      {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
-        <span style={{ flex: 1 }}>{error}</span><CloseX onClick={() => setError("")} /></div>}
-      <div className="main">
-        <div className="queue" data-testid="dfo-queue">
-          <div className="dfo-find inline-notice" style={{ padding: "4px 6px" }}>
-            <input type="search" placeholder="find a water, a wording, a region…" value={find} aria-label="find a water"
-              data-testid="dfo-find" onChange={(e) => setFind(e.target.value)} style={{ flex: 1 }} />
-            {find && <span className="dim" data-testid="dfo-find-count">{waterCount(rows)} water{waterCount(rows) === 1 ? "" : "s"} · {rows.length} place{rows.length === 1 ? "" : "s"}</span>}
-          </div>
-          <div className="queue-group">{loaded ? <>{rows.length} place{rows.length === 1 ? "" : "s"} on {waterCount(rows)} water{waterCount(rows) === 1 ? "" : "s"}</> : "loading…"}</div>
-          {rows.map((r, i) => {
-            const k = waterKey(r);
-            const first = i === 0 || waterKey(rows[i - 1]) !== k;
-            const mine = rows.filter((x) => waterKey(x) === k);
-            const done = mine.every((x) => DONE.has(x.verify));
-            const shut = done && !opened[k] && !mine.some((x) => x.id === selected);
-            return (<div key={r.id}>
-            {first && (
-              <div className={`queue-group dfo-water-head${done ? " done" : ""}`} data-testid="dfo-water-head"
-                style={done ? { cursor: "pointer" } : undefined} title={done ? (shut ? "every place is marked — click to open" : "click to fold") : undefined}
-                onClick={done ? () => setOpened((o) => ({ ...o, [k]: shut })) : undefined}>
-                {done && <span>{shut ? "▸ " : "▾ "}</span>}
-                {r.water || r.kind} <span className="dim">· r{r.region} · {mine.length} place(s)</span>
-                {done && <span className="chip-tag" data-testid="dfo-water-done"> ✓ done ({mine.length})</span>}
-              </div>
-            )}
-            {!shut && <div data-dfo={r.id} className={`queue-row${r.id === selected ? " selected" : ""}`}
-              onClick={() => open(r.id)}>
-              <div className="name">
-                {r.water || r.kind}
-                {r.lake_area && <span className="badge sev-chip sev-later" data-testid="dfo-lake-later" title="a sub-area of a lake: needs a lake split, deferred (owner 2026-10-28)">lake split later</span>}
-                <span className={`badge dfo-${r.state}`}>{STATE_WORDS[r.state]}
-                  {r.state === "needs_cut" && r.need.missing ? ` (${r.need.missing})` : ""}</span>
-                {r.verify !== "unmarked" && <span className={`badge verify-${r.verify}`}>{r.verify}</span>}
-              </div>
-              <div className="meta">
-                <span>r{r.region}{r.section ? ` · ${r.section}` : ""}</span>
-                {r.status !== "active" && (r.historic_only
-                  ? <span className="chip-tag" data-testid="dfo-historic-only" title="no longer on the live page and no live wording rewords it: its own place on this water">historic only</span>
-                  : <span className="chip-tag">dormant</span>)}
-                {(r.fix_proposed || (r.suggested && r.verify === "unmarked")) && <span className="chip-tag suggested"
-                  data-testid="dfo-proposal-chip">proposal</span>}
-                {r.tidal?.status === "proposed" && <span className="chip-tag suggested" data-testid="dfo-tidal-chip">tidal?</span>}
-                {r.verify === "unmarked" && <PvBadge pv={r.pv} />}
-              </div>
-              <div className="meta dfo-text">{r.text || "(the whole water)"}</div>
-            </div>}
-          </div>); })}
-        </div>
-        {detail ? (
-          <DfoLocation key={`${detail.row.id}|${version}`} detail={detail} mode={mode}
-            nav={{ pos: idx + 1, total: rows.length, onNext: next ? () => open(next) : undefined,
-                   onPrev: prev ? () => open(prev) : undefined }}
-            saving={landing === detail.row.id}
-            onMarked={() => {
-              // T525 r3: no banner — the place's own status line says what the save did once the write-through has run
-              loadRows();
-              setLanding(detail.row.id);
-            }} />
-        ) : (
-          <div className="detail"><div className="empty-state">{selected ? "loading…" : "Select a DFO location from the queue."}</div></div>
-        )}
-      </div>
-    </div>
-  );
-}
+/* T532: the DFO tab is the checklist (`CheckReview`); this file keeps the T525 place screen (`DfoLocation`), opened
+   from the checklist's "Something's wrong → change the extent", and its editors. */
 
 let nextRef = 1;
 const newRef = (taken: string[]) => {
@@ -448,16 +174,18 @@ const CALLS: { v: DfoCall; words: string; hint: string }[] = [
    the owner's call. Keep / Not sure / Wrong never carry an extent fix; Change opens on the extent now and says what the
    save does to it (keep / replace / add a piece) before it is made; the draft is teal on the map. Every mark names the
    extent it was made on, so a save on an extent that moved since is refused (`dfo.mark_for`). */
-function DfoLocation({ detail, mode, nav, saving, onMarked }: {
+export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall = null, onBack }: {
   detail: DfoDetail; mode: Mode;
   nav: { pos: number; total: number; onNext?: () => void; onPrev?: () => void };
   saving: boolean; onMarked: () => void;
+  /** T532: the checklist's "change the extent" opens here with Change picked; `onBack` returns to the checklist */
+  initialCall?: DfoCall | null; onBack?: () => void;
 }) {
   const id = detail.row.id;
   const was = detail.mark;
   const now = detail.extent_now;
   const [answers, setAnswers] = useState<Partial<Record<"T" | "R", CheckAnswer>>>({});
-  const [call, setCall] = useState<DfoCall | null>(null);
+  const [call, setCall] = useState<DfoCall | null>(initialCall);
   const [problem, setProblem] = useState("");
   const [note, setNote] = useState("");
   const [reviewer, setName] = useState(getReviewer);
@@ -718,6 +446,8 @@ function DfoLocation({ detail, mode, nav, saving, onMarked }: {
         <div className="detail-content">
           <div className="verify-bar">
             <div className="verify-row">
+              {onBack && <button type="button" className="btn small" data-testid="dfo-back" onClick={onBack}>
+                ← back to the checklist</button>}
               <strong>{detail.row.water || detail.row.kind}</strong>
               <span className="dim">region {detail.row.region}{loc.status !== "active" ? " · no longer on the live page" : ""}</span>
               <span className="spacer" style={{ flex: 1 }} />

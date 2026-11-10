@@ -70,9 +70,17 @@ def _item_point(iid: str):
     lines = [s for s in it.section_ids if not str(s).startswith("lake:")] or list(it.section_ids)
     if not lines:
         return None
-    g = reuse._geoms().get(lines[len(lines) // 2])
-    if g is None or g.is_empty:
+    # a pin in the middle of the water: the section nearest the centre of all its sections (ids are in no order)
+    geoms = reuse._geoms()
+    gs = [g for g in (geoms.get(s_) for s_ in lines) if g is not None and not g.is_empty]
+    if not gs:
         return None
+    mids = [g.interpolate(0.5, normalized=True) if g.geom_type in ("LineString", "MultiLineString")
+            else g.representative_point() for g in gs]
+    w = [max(g.length, 1.0) for g in gs]          # weighted by length: a braid's many short pieces do not pull it
+    cx = sum(m.x * k for m, k in zip(mids, w)) / sum(w)
+    cy = sum(m.y * k for m, k in zip(mids, w)) / sum(w)
+    g = min(zip(gs, mids), key=lambda gm: (gm[1].x - cx) ** 2 + (gm[1].y - cy) ** 2)[0]
     p = g.interpolate(0.5, normalized=True) if g.geom_type in ("LineString", "MultiLineString") \
         else g.representative_point()
     x, y = reuse._to_lonlat()(p.x, p.y)
@@ -149,7 +157,14 @@ def dfo_inputs(loc: dict, water: dict | None, m) -> dict:
         landed = [dfo._extent_key(x) in now for x in extents]
         if fvc["tributaries"]["fix"] is not None:
             trib = fvc["tributaries"]["fix"]
-    return {"extents": extents, "landed": landed, "tributaries": trib,
+    held = None
+    if st and st["state"] in ("waits_cut", "not_landed"):
+        held = (f"your save of {st['date']} has not landed yet"
+                + (f" (it waits for the new cut{'s' if len(st.get('cuts') or []) > 1 else ''} to be built)"
+                   if st["state"] == "waits_cut" else " (the write-through has not applied it)")
+                + ": a check now would replace it — check the place once it lands, or change it again")
+    return {"extents": extents, "landed": landed, "tributaries": trib, "held": held,
+            "curated": list(b.get("extents") or []), "curated_tributaries": dfo.tributaries_now(loc, water),
             "only": bool(b.get("tributaries_only")), "excludes": list(b.get("tributary_excludes") or [])}
 
 
@@ -159,9 +174,13 @@ def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None) -> 
     rs = C.rows(src, x["extents"], own_items=(water or {}).get("item_ids") or [], ctx=ctx or context(),
                 tributaries=x["tributaries"], tributaries_only=x["only"], tributary_excludes=x["excludes"],
                 landed=x["landed"])
-    dg = C.digest(src, x["extents"], tributaries=x["tributaries"], tributaries_only=x["only"],
+    # the digest is of the CURATED extent (a save waiting to land is not what a check confirms)
+    dg = C.digest(src, x["curated"], tributaries=x["curated_tributaries"], tributaries_only=x["only"],
                   tributary_excludes=x["excludes"])
-    return _with_check(rs, dg, m)
+    out = _with_check(rs, dg, m)
+    if x["held"]:
+        out["held"] = x["held"]
+    return out
 
 
 def dfo_check(location_id: str) -> dict | None:

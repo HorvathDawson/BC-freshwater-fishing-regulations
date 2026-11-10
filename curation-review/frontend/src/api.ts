@@ -1,7 +1,7 @@
 // Tiny typed API client matching curation-review/API.md.
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
-import type { InputsSync,
+import type { InputsSync, CheckPlace, CheckProgress, PlaceCheck,
   EntryKind,
   FieldError,
   EntryDetail,
@@ -254,6 +254,14 @@ export const api = {
     return getJSON<DfoRow[]>(`/api/dfo/queue${qs ? `?${qs}` : ""}`);
   },
   dfoProgress: () => getJSON<DfoProgress>("/api/dfo/progress"),
+  // --- T532: the checklist (reads; a check goes through postMark with `checklist`) ---
+  checksQueue: (source: "dfo" | "regs" | "all", filter = "", q = "") =>
+    getJSON<CheckPlace[]>(`/api/checks/queue?${new URLSearchParams({ source, ...(filter ? { filter } : {}),
+                                                                     ...(q ? { q } : {}) })}`),
+  checksProgress: (source: "dfo" | "regs" | "all") => getJSON<CheckProgress>(`/api/checks/progress?source=${source}`),
+  checkDfo: (id: string) => getJSON<PlaceCheck>(`/api/checks/dfo/${encodeURIComponent(id)}`),
+  checkRule: (entryId: string, ruleId: string) =>
+    getJSON<PlaceCheck>(`/api/checks/rule/${encodeURIComponent(entryId)}/${encodeURIComponent(ruleId)}`),
   dfoLocation: (id: string) => getJSON<DfoDetail>(`/api/dfo/locations/${encodeURIComponent(id)}`),
   /** the tributary walk is skipped unless `tributaries` (the Extents map's "Show tributaries") */
   dfoReach: (id: string, tributaries = false) =>
