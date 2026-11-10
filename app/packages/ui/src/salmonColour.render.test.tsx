@@ -8,13 +8,13 @@
  *              feed handed to the map is the SAME object whichever way the toggle is set — so a toggle reaches no
  *              engine, no labels, no network
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import type { SalmonFacts } from "@app/core";
+import { wallIso, type SalmonFacts } from "@app/core";
 import type { WaterSource } from "@app/data";
 import { mapModes, type MapModeInput } from "./mapModes";
-import { useSalmonColour, type RegsLayer } from "./salmonColour";
+import { useMethodColour, useSalmonColour, type RegsLayer } from "./salmonColour";
 
 const FACTS = { handles: "0".repeat(16), chains: 1, chainOf: () => 0,
                 payload: { chains: [{ m: [0, 3] }] } } as unknown as SalmonFacts;
@@ -110,5 +110,22 @@ describe("useSalmonColour: fetched once, before the toggle, and the same feed wh
     rerender({ mapTab: false });
     rerender({ mapTab: true });
     expect(asked).toEqual(["salmonFacts"]);
+  });
+});
+
+describe("T551: no day picked is B.C.'s today, and it rolls over", () => {
+  afterEach(() => { vi.useRealTimers(); });
+  it("the salmon and gear feeds move to the new day at midnight with no pick and no tap", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+    vi.setSystemTime(Date.parse("2026-11-10T06:59:50Z"));        // 23:59:50 PT, Nov 9
+    const src = { salmonFacts: async () => FACTS, methodFacts: async () => ({}) } as unknown as WaterSource;
+    const { result } = renderHook(() => ({
+      s: useSalmonColour({ source: src, paired: true, statusOk: true, mapTab: true, day: null }),
+      m: useMethodColour({ source: src, paired: true, statusOk: true, mapTab: true, day: null }),
+    }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect([wallIso(result.current.s.feed!.day), wallIso(result.current.m.feed!.day)]).toEqual(["2026-11-09", "2026-11-09"]);
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
+    expect([wallIso(result.current.s.feed!.day), wallIso(result.current.m.feed!.day)]).toEqual(["2026-11-10", "2026-11-10"]);
   });
 });

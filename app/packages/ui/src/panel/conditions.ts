@@ -8,8 +8,9 @@ import { speaks, leadOver, throughLakeStations, type DonorRow, type Horizon, typ
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
          readingAgeLine, readingHeading, readingIn, standingLong, shownParameter, stageLine, stateAt,
-         type GaugeTrace, type SectionKey, type Standing, bcNow, now } from "@app/core";
+         type GaugeTrace, type SectionKey, type Standing, bcMidnight, shiftDay, wallIso, now } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
+import { useBcToday } from "../today";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
 import { useLastReports, type PanelFeed } from "./feed";
 import { useJoinedRoutes, usePanelAsk, usePanelStandings, useRoutes, useSpeaker } from "./standings";
@@ -138,11 +139,16 @@ export function useConditionsView(
   const lakes = useMemo(() => throughLakeStations(routes), [routes]);
   const asked = usePanelAsk(source, feed, section, quantity, horizon, lakes);
   const panel = useLastReports(feed, useJoinedRoutes(asked.value, routes));
-  const today = useMemo(() => day ?? bcNow(), [day]);
+  const nowDay = useBcToday();                  // (T551) rolls over at B.C. midnight
+  const today = day ?? nowDay;
+  // (T551, T580 F15) THE INSTANT THE DAY IS ASKED AT: a picked day is B.C.'s midnight of it, today is now (read once, again at
+  // the roll-over) -- never the day's device-local fields read back as an instant
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-read when the day changes, not on every render
+  const ref = useMemo(() => (day ? bcMidnight(wallIso(day)) : now()), [day, nowDay]);
   // THE ROUTES OF THE MEMBERS THAT SPEAK — the route map's own chain (`donorView`): a silent member has no pin, so its
   // route is not coloured either.
   const chain = useMemo<readonly SectionKey[]>(
-    () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref: today.getTime(), horizon }))
+    () => [...new Set(panel.rows.filter((r) => !donorSilent(r, { ref, horizon }))
                                 .flatMap((r) => r.route?.path ?? []))], [panel.rows, today, horizon]);
   const standings = usePanelStandings(source, feed, chain as readonly SectionId[], quantity,
                                       horizon);
@@ -181,7 +187,7 @@ export function useConditionsView(
     : speaker?.kind === "lake" ? speaker.station : "";
   const stations = useMemo(() => (stationKey ? stationKey.split(",") as StationId[] : []), [stationKey]);
   const sides = useGaugeSides(source, section, stations);
-  const ask = { ref: today.getTime(), horizon };
+  const ask = { ref, horizon };
   const count = !sides ? null
     : speaker?.kind === "lake"
       ? (got.state === "ready" ? gaugeCountLine([{ side: sides.get(speaker.station) ?? "donor",
@@ -197,7 +203,7 @@ export function useConditionsView(
   const dayName = forecastDayName(today, horizon);
   const leadRow = panel.rows.find((r) => r.station === lead);
   const ahead = dayName
-    ? { at: new Date(today.getFullYear(), today.getMonth(), today.getDate() + aheadDays(horizon), 12).getTime(),
+    ? { at: bcMidnight(wallIso(shiftDay(today, aheadDays(horizon)))) + 12 * 3_600_000,
         label: forecastDayMark(dayName) } : null;
   let reading: ReadingVM | null = null;
   // THE DECLARED QUANTITY (T106): the publisher's `parameter`, the one its percentile is about. 08ME030 reports both
@@ -227,8 +233,8 @@ export function useConditionsView(
   // Said once the reading has been asked for and is not there — not while it is on its way. A gauged lake with nothing
   // to say today is its own gauge gone quiet (the map's sentinel), never the no-gauge refusal (T105 review).
   const quiet: QuietVM | null = got.state === "loading" || reading ? null
-    : row ? quietHead(name, row, today.getTime(), horizon)
-    : speaker?.kind === "lake" ? lakeQuietHead(name, c?.observedAt ?? null, today.getTime(), horizon)
+    : row ? quietHead(name, row, ref, horizon)
+    : speaker?.kind === "lake" ? lakeQuietHead(name, c?.observedAt ?? null, ref, horizon)
     : null;
 
   return {
@@ -250,7 +256,7 @@ export function useConditionsView(
     // the day or quantity asked has its donor map, and this trace's own map stood above it, moving it down the page.
     trace: !panel.answer.ok && (panel.answer.why === "no-station" || panel.answer.why === "offline") && traced.state === "ready" && speaks(speaker, traced.value.station)
       ? traced.value : null,
-    gauges: gaugeChoices(panel.rows, lead, { ref: today.getTime(), horizon }),
+    gauges: gaugeChoices(panel.rows, lead, { ref, horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
     ahead, sides, count, leadNote: levelOnly ? LEVEL_ONLY_LEAD : null,
   };

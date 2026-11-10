@@ -97,6 +97,44 @@ export function bcMidnight(isoDay: string): number {
   return fromBcWall(Date.UTC(y, m - 1, d));
 }
 
+/** (T551) The instant the NEXT B.C. day begins after `ms`: when "today" rolls over. */
+export function nextBcMidnight(ms: number): number {
+  const w = bcWall(ms);
+  return fromBcWall(Date.UTC(w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate() + 1));
+}
+
+/**
+ * (T551) An instant as B.C.'s calendar and clock fields (month 1–12, hour 0–23, 24-hour): the one reading of a stamp's
+ * parts, so a line that words a date or time never reaches for the device's `getHours()`.
+ */
+export function bcFields(ms: number): { year: number; month: number; day: number; hour: number; minute: number } {
+  const w = bcWall(ms);
+  return { year: w.getUTCFullYear(), month: w.getUTCMonth() + 1, day: w.getUTCDate(), hour: w.getUTCHours(),
+           minute: w.getUTCMinutes() };
+}
+
+/**
+ * (T551) THE B.C. WORDS FOR AN INSTANT, one set for the app, the gauge card (worker) and the gauge page (browser), so a
+ * reading is never stamped on two different wall clocks (the card read `America/Vancouver` from tz data, which turns back
+ * to UTC−8 on 1 Nov 2026; the app's clock is UTC−7 all year, `clock.ts`).
+ *   bcDayWords    "Nov 9", or "Mon, Nov 9" with the weekday
+ *   bcWeekdayAbbr "Mon"
+ *   bcStampWords  "Nov 9, 11:04 a.m. PT"
+ */
+export function bcDayWords(ms: number, weekday = false): string {
+  const w = bcWall(ms);
+  return `${weekday ? `${weekdayAbbr(w.getUTCDay())}, ` : ""}${monthAbbr(w.getUTCMonth())} ${w.getUTCDate()}`;
+}
+export const bcWeekdayAbbr = (ms: number): string => weekdayAbbr(bcWall(ms).getUTCDay());
+export function bcStampWords(ms: number): string {
+  const f = bcFields(ms);
+  return `${bcDayWords(ms)}, ${f.hour % 12 || 12}:${pad2(f.minute)} ${f.hour < 12 ? "a.m." : "p.m."} ${BC_TIME_LABEL}`;
+}
+/** "Mon, Nov 9": a CALENDAR day ("YYYY-MM-DD"), said as that day (parsed at B.C. noon, so no zone moves it). */
+export function bcIsoDayWords(isoDay: string): string {
+  return bcDayWords(bcMidnight(isoDay) + 12 * HOUR_MS, true);
+}
+
 /** The B.C. hour of an instant, 0–23. */
 export function bcHour(ms: number): number {
   return bcWall(ms).getUTCHours();

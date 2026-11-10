@@ -31,6 +31,7 @@ import { salmonKeyOf, type SalmonLoader as SalmonKeyLoader } from "./salmonKey";
 /** (T286) The test bed's "before" build (`EXPO_PUBLIC_REGS_ONE_BY_ONE=1`): no page held, every open read afresh. */
 const oneByOne = (): boolean => (globalThis as { __regsOneByOne?: boolean }).__regsOneByOne === true;
 import { useFeedVersion } from "./feedVersion";
+import { useBcToday } from "./today";
 
 // ── the store ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -246,7 +247,8 @@ export function useSalmonCard(loader: SalmonLoader | null, store: Pick<RegsStore
                               /** (T254) a new number asks again (Try again; the line coming back after a failure) */
                               retry = 0): Async<SalmonCardLiveVM | null> {
   const asks = !!loader && !!store && !!page;
-  const on = mapDay ?? bcNow();
+  const today = useBcToday();             // (T551) no day picked = today, which rolls over at midnight
+  const on = mapDay ?? today;
   const dayKey = `${on.getFullYear()}-${on.getMonth() + 1}-${on.getDate()}`;
   // (owner 2026-10-29) a DFO feed the update service took redraws the open page's card in place: a refresh
   const dfo = useFeedVersion("dfo");

@@ -16,7 +16,8 @@ import type { WaterSource } from "@app/data";
 import { useAsync } from "./async";
 import { useFeedVersion } from "./feedVersion";
 import { sameFacts, sourceKey } from "./conditionsColour";
-import { bcNow } from "@app/core";
+import { wallIso } from "@app/core";
+import { useBcToday } from "./today";
 
 /** Which regulations the Map tab paints: the provincial day's status (bait ban / fly only marked on it, T213), or DFO's
  *  salmon. (T261) Run timing left this switch for its own tab, Runs. */
@@ -53,9 +54,11 @@ export function useSalmonColour(i: { source: WaterSource; paired: boolean; statu
   // (T287) and an applied update in the same section numbering is a refresh too (`sameFacts`)
   const facts = useAsync(() => i.source.salmonFacts(), `${key}#${dfo}`, asked === key, sameFacts("salmonfacts", i.source) ?? key);
   const f = facts.state === "ready" ? facts.value : null;
-  const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
+  // (T551) no day picked = B.C.'s today, which rolls over at midnight (`useBcToday`), so the key carries it
+  const today = useBcToday();
+  const dayKey = wallIso(i.day ?? today);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
-  const day = useMemo(() => i.day ?? bcNow(), [dayKey]);
+  const day = useMemo(() => i.day ?? today, [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   const loading = asked === key && facts.state === "loading";
   const offered = i.onDemand ? i.paired && facts.state !== "failed" && !(facts.state === "ready" && f === null)
@@ -84,9 +87,11 @@ export function useMethodColour(i: { source: WaterSource; paired: boolean; statu
   const facts = useAsync(() => i.source.methodFacts?.() ?? Promise.resolve(null), key, asked === key,
                          sameFacts("methodfacts", i.source));
   const f = facts.state === "ready" ? facts.value : null;
-  const dayKey = i.day ? `${i.day.getFullYear()}-${i.day.getMonth()}-${i.day.getDate()}` : "today";
+  // (T551) no day picked = B.C.'s today, which rolls over at midnight (`useBcToday`), so the key carries it
+  const today = useBcToday();
+  const dayKey = wallIso(i.day ?? today);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the day's identity is its date, not the Date object
-  const day = useMemo(() => i.day ?? bcNow(), [dayKey]);
+  const day = useMemo(() => i.day ?? today, [dayKey]);
   const feed = useMemo(() => (f && i.paired ? { facts: f, day } : null), [f, day, i.paired]);
   return { feed };
 }

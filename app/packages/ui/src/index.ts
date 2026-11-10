@@ -11,6 +11,7 @@
  * Move it into a hook and the urge disappears.
  */
 export * from "./async";
+export * from "./today";
 export * from "./answers";
 export * from "./chartPrefs";
 export * from "./heldHeight";

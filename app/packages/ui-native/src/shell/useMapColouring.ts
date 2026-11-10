@@ -3,10 +3,10 @@
  * Conditions colouring and its horizon — decided in `@app/ui` hooks and only gathered here for the Shell (T62 3.4).
  */
 import { chooseLayer, chooseShow, layersVM, withImageryCredit, type Horizon, type SalmonMapStatus, type SectionKey,
-         type WaterStatus, bcNow } from "@app/core";
+         type WaterStatus } from "@app/core";
 import { useCallback, useMemo, useState } from "react";
 import type { GaugeFeed, RunTimingSource, WaterSource, SectionId } from "@app/data";
-import { useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
+import { useBcToday, useMapModes, useLayerChoice, type BrowseTab, type FlowParam, type LayerStore } from "@app/ui";
 import { viewBasinAsk, useBasinDays, useViewBasin, useConditionsColour, useGaugeGeoJSON, useLakeColour, lakeModesReady, lakeValuesCarried, usePairing,
          useStatusIndex, statusFeed, useHorizon, useHorizonPick, flowHorizon, horizonChips, useImageryReach,
          useMethodColour, useRegsLayer, useRunTiming, useSalmonColour, type PairingInput, type RegsLayer, type RunSpeciesStore,
@@ -118,7 +118,8 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
   const statusIndex = useStatusIndex(status);
   const statusOk = statusIndex !== null && paired;
   // THE LAKE MODES' VALUES (Stocked, Depth): the release's lake facts, labelled per tile by the same engine
-  const lakeFeed = useLakeColour({ source, paired, today: bcNow() });
+  const today = useBcToday();   // (T551) B.C.'s today, rolling over at midnight: every "no day picked" below keeps up
+  const lakeFeed = useLakeColour({ source, paired, today });
   // PREPARED, NOT FED (owner 2026-10-21): a lake mode with no values in the release is greyed in Layers and drawn plain
   const lakeReady = useMemo(() => lakeModesReady(lakeFeed), [lakeFeed]);
   /*
@@ -233,9 +234,9 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
     setPicked((p) => (p && p.layer === regsShown && p.cls === cls ? null : { layer: regsShown, cls })), [regsShown]);
   const statusOnly = regsShown === "standard" ? isolated as WaterStatus | null : null;
   const mapStatus = useMemo(() => {
-    const f = statusFeed({ statusOk, index: statusIndex, day: mapDay ?? bcNow() });
+    const f = statusFeed({ statusOk, index: statusIndex, day: mapDay ?? today });
     return f && { ...f, only: statusOnly };
-  }, [statusOk, statusIndex, mapDay, statusOnly]);
+  }, [statusOk, statusIndex, mapDay, today, statusOnly]);
   // the map labels each tile with the salmon chains on the Map tab whatever the toggle says (instant toggle)
   const salmonOnly = regsShown === "salmon" ? isolated as SalmonMapStatus | null : null;
   const salmonFeed = useMemo(() => (mapTab === "map" && salmon.feed ? { ...salmon.feed, only: salmonOnly } : null),
