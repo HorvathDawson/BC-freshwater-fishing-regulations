@@ -762,6 +762,12 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     binding diff vs the live release; a diff STOPS until `--accept-diff <its json>`) → LATEST → staging upload; resumable,
     ledger `data/generated/release/ledger.json`. `--prod <r-id>` re-uploads that same checked release and refuses an agent:
     agents never run it. Runbook `handoff/PLAN/runbooks/release.md`.
+    **T547 (2026-11-10): THE ATLAS RECORDS ITS CURATED INPUTS** (`pipeline/atlas/inputs.py`): the build writes one digest
+    per input it reads (cuts by anchor, tidal limits, name variants, found names, added lakes/streams/areas, area
+    closures, slough calls, the gpkg stamp) into `graph.pkl.meta.json` `input_hashes`. Release preflight STOPS on an
+    atlas behind any of them, naming the file (`--ship-stale-atlas REASON` goes on, printed); `pipeline build` prints the
+    same list as a warning. `python -m pipeline.atlas.inputs` asks; `--backfill` proves an older atlas's inputs by git
+    and records only what it proved. A new curated read in the atlas build goes into `ATLAS_INPUTS` (test).
 63. **A tributary walk never enters the entry's own water** (`tributaries.THE_WALK_NEVER_ENTERS_THE_ENTRYS_OWN_WATER`,
     2026-10-11). Every non-area item the entry matches is governed by the rule's extents, never collected by the walk —
     even when FWA codes it as a tributary (the Chilliwack is a "tributary" of the Vedder: after the Vedder's cut moved

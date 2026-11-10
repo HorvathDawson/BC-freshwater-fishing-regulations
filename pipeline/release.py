@@ -10,7 +10,10 @@ where it stopped (every stage below is skipped when it is already done for this 
 
   1 preflight  `scripts/fast-fail.sh` first (T483, AGENTS 20a: the cheap checks, a minute or two; `--no-fast-fail
                REASON` skips it and prints the reason); code and data/curated committed (the review log marks.jsonl
-               and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); every review mark in
+               and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); the atlas is not behind
+               a curated input it was built from (T547, `atlas.inputs.behind`: a cut, name, area, added water, tidal
+               limit or slough call edited after the atlas build is named, and the run stops unless
+               `--ship-stale-atlas REASON`); every review mark in
                force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); HEAD pushed to
                origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
                copy — found only at stage 6 on 2026-11-07); the live staging SITE is at least the min app the release
@@ -124,6 +127,13 @@ def marks_landed() -> tuple[bool, str]:
     if got.returncode not in (0, 1):
         raise RuntimeError(f"review.apply --check failed (rc={got.returncode}): {(got.stderr or got.stdout)[-800:]}")
     return got.returncode == 0, got.stdout.strip()
+
+
+def atlas_behind() -> list[str]:
+    """(T547) Each curated input the live atlas is behind (`pipeline.atlas.inputs.behind`), one line per file; [] when
+    it is current. The release build reads this atlas (`pipeline build` rebuilds it only with --atlas)."""
+    from pipeline.atlas.inputs import behind
+    return behind(GENERATED.require_build())
 
 
 def git_head() -> str:
@@ -308,6 +318,7 @@ def diff_summary(rep: dict) -> str:
 class Ctx:
     accept_diff: Path | None = None
     no_fast_fail: str | None = None  # why scripts/fast-fail.sh is skipped (printed); None runs it
+    stale_atlas: str | None = None   # (T547) why an atlas behind its curated inputs ships anyway (printed); None stops
     baseline: Path | None = None
     min_app: str | None = None
     jobs: int = 2
@@ -340,6 +351,19 @@ def stage_preflight(ctx: Ctx) -> str:
                    + (" …" if len(dirty) > 8 else ""),
                    "commit them (a release is built from committed code and curated data only; marks.jsonl may "
                    "stay dirty), then rerun")
+    try:
+        behind = atlas_behind()
+    except (OSError, ValueError) as e:
+        raise Stop("preflight", f"cannot tell whether the atlas is current with its curated inputs: {e}",
+                   "run `python -m pipeline.atlas.inputs` and fix what it says, then rerun")
+    if behind and ctx.stale_atlas is None:
+        raise Stop("preflight", f"the atlas is behind {len(behind)} curated input(s) it was built from (T547):\n    "
+                   + "\n    ".join(behind),
+                   "rebuild the atlas (`python -m pipeline build --atlas --promote`), then rerun; or ship the old atlas "
+                   "with --ship-stale-atlas REASON")
+    if behind:
+        print(f"    atlas behind {len(behind)} input(s), SHIPPED ANYWAY (--ship-stale-atlas): {ctx.stale_atlas}",
+              flush=True)
     try:
         landed, said = marks_landed()
     except RuntimeError as e:
@@ -576,6 +600,14 @@ def dry_run(ctx: Ctx) -> int:
                              f"WOULD STOP: {len(dirty)} uncommitted path(s): {', '.join(dirty[:8])}")
           + f"  (HEAD {git_head()[:12]}; marks.jsonl / closed.json may be dirty)")
     try:
+        behind = atlas_behind()
+        print("             " + ("ok: the atlas is current with its curated inputs" if not behind else
+                                 ("SHIPS ANYWAY (--ship-stale-atlas)" if ctx.stale_atlas is not None else "WOULD STOP")
+                                 + f": the atlas is behind {len(behind)} input(s):\n               "
+                                 + "\n               ".join(behind)))
+    except (OSError, ValueError) as e:
+        print(f"             WOULD STOP: cannot tell whether the atlas is current ({e})")
+    try:
         landed, said = marks_landed()
         print("             " + ("ok: " + said.splitlines()[-1] if landed else "WOULD STOP: " + next(
             (ln for ln in said.splitlines() if "NOT LANDED" in ln), said)
@@ -694,6 +726,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="the oldest app allowed to apply the release (default: the live release's stamp)")
     ap.add_argument("--no-fast-fail", default=None, metavar="REASON",
                     help="skip scripts/fast-fail.sh (T483); the reason is required and printed")
+    ap.add_argument("--ship-stale-atlas", default=None, metavar="REASON",
+                    help="(T547) go on with an atlas behind its curated inputs; the reason is required and printed")
     ap.add_argument("--jobs", type=int, default=2, help="the build's --jobs (default 2, at most 4)")
     ap.add_argument("--reupload", action="store_true", help="upload to staging again even if the ledger says it is")
     a = ap.parse_args(argv)
@@ -705,8 +739,10 @@ def main(argv: list[str] | None = None) -> int:
         return prod(a.prod)
     if a.no_fast_fail is not None and not a.no_fast_fail.strip():
         ap.error('--no-fast-fail needs a reason, which is printed: --no-fast-fail "<why the cheap checks are skipped>"')
+    if a.ship_stale_atlas is not None and not a.ship_stale_atlas.strip():
+        ap.error('--ship-stale-atlas needs a reason, which is printed: --ship-stale-atlas "<why the old atlas ships>"')
     ctx = Ctx(accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
-              reupload=a.reupload, no_fast_fail=a.no_fast_fail)
+              reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas)
     return dry_run(ctx) if a.dry_run else staging(ctx)
 
 

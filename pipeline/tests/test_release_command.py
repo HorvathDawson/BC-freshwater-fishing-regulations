@@ -72,6 +72,8 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "git_pushed", lambda: w["pushed"])
     w["landed"] = (True, "review marks: every mark in force has landed")
     monkeypatch.setattr(R, "marks_landed", lambda: w["landed"])
+    w["atlas_behind"] = []
+    monkeypatch.setattr(R, "atlas_behind", lambda: list(w["atlas_behind"]))
     monkeypatch.setattr(R, "binding_diff", diff)
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
@@ -112,6 +114,30 @@ def test_uncommitted_code_stops_before_anything_runs(world, capsys):
     assert world["calls"] == [] and _latest(world) == LIVE
     err = capsys.readouterr().err
     assert "STOPPED at preflight" in err and "pipeline/build.py" in err
+
+
+def test_an_atlas_behind_its_curated_inputs_stops_naming_the_file(world, capsys):
+    """T547: a cut / name / area edited after the atlas build stops the release before anything runs, naming the file;
+    --ship-stale-atlas REASON goes on and prints the reason."""
+    world["atlas_behind"] = ["cuts.json (curated:waters.cuts): changed since the atlas was built — rebuild: x"]
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at preflight" in err and "cuts.json (curated:waters.cuts)" in err and "--ship-stale-atlas" in err
+    assert world["calls"] == [] and _latest(world) == LIVE
+    with pytest.raises(SystemExit):
+        _staging(ship_stale_atlas=" ")
+    assert _staging(ship_stale_atlas="owner: names only, rebuild next week") == 0
+    assert "SHIPPED ANYWAY (--ship-stale-atlas): owner: names only, rebuild next week" in capsys.readouterr().out
+
+
+def test_the_dry_run_says_whether_the_atlas_is_behind(world, capsys):
+    world["atlas_behind"] = ["slough_calls.json (curated:waters.slough_calls): changed since the atlas was built"]
+    assert R.main(["--staging", "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert "WOULD STOP: the atlas is behind 1 input(s)" in out and "slough_calls.json" in out
+    world["atlas_behind"] = []
+    assert R.main(["--staging", "--dry-run"]) == 0
+    assert "ok: the atlas is current with its curated inputs" in capsys.readouterr().out
 
 
 def test_a_failed_build_leaves_latest_and_uploads_nothing(world, capsys):

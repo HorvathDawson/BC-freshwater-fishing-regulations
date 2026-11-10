@@ -692,6 +692,21 @@ def atlas_stage(build_dir: Path, promote: bool, run: dict, m: dict) -> bool:
     return True
 
 
+def atlas_inputs_warning(build_dir: Path) -> str | None:
+    """(T547) A warning naming each curated input the atlas is behind (`atlas.inputs.behind`), or None when it is
+    current. A warning, not a stop: a reach rerun on the old atlas is how a curator checks a placement; `pipeline
+    release` is what refuses to SHIP it."""
+    from pipeline.atlas.inputs import behind
+    try:
+        bad = behind(build_dir)
+    except (OSError, ValueError) as e:
+        return f"build: WARNING — cannot tell whether the atlas is current with its curated inputs: {e}"
+    if not bad:
+        return None
+    return (f"build: WARNING — the atlas is behind {len(bad)} curated input(s) it was built from; the stages below read "
+            "the OLD atlas and `pipeline release` refuses it (T547):\n  " + "\n  ".join(bad))
+
+
 def keep_live_baseline() -> str:
     """(T483 fast-fail; caught 2026-11-09) a live build about to rerun reach keeps LATEST's reach run first — the copy
     `pipeline release` diffs against (data/generated/release/baseline/<LATEST>/, `release.keep_baseline`). Lanes had run
@@ -793,6 +808,9 @@ def main(argv: list[str] | None = None) -> int:
     rows = plan(build_dir, set(a.force) | ({"tiles"} if a.labels else set()), why)
     cmds = commands(build_dir)
     print(f"build: atlas {build_dir}" + (f" — SIDE run into {SIDE}" if SIDE is not None else ""))
+    warn = atlas_inputs_warning(build_dir)
+    if warn:
+        print(warn, flush=True)
     for s, key, go in rows:
         skip = a.no_tiles and s == "tiles"
         print(f"  {s:<8} {key}  {'skip (--no-tiles)' if skip else 'RUN' if go else 'up to date'}"
