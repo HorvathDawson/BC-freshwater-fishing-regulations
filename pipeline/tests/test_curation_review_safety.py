@@ -403,3 +403,39 @@ def test_the_verdict_rule_is_pinned_by_mutation():
 
     assert _verdict_agrees_with_the_model(lenient) != []
     assert _verdict_agrees_with_the_model(soft) != []
+
+
+def test_the_landed_check_is_served_once_in_the_background_and_a_failure_is_said(monkeypatch):
+    """T562 item 4: `apply --check` on screen — GET /api/review/not-landed starts it once (never per request), says
+    "checking" meanwhile, and a check that raises is reported, not swallowed. Read only."""
+    import sys
+    import time
+    from pathlib import Path
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    import app as A
+    from fastapi.testclient import TestClient
+    from pipeline.regs.review import apply as AP
+    calls = []
+
+    def fake(**kw):
+        calls.append(kw)
+        if len(calls) > 1:
+            raise RuntimeError("boom")
+        return {"ok": False, "not_landed": [{"domain": "sloughs", "status": "stale", "why": "w", "marks": []}], "allowed": []}
+    monkeypatch.setattr(AP, "check", fake)
+    monkeypatch.setattr(A, "_NOT_LANDED", {"state": "idle"})
+    c = TestClient(A.app)
+
+    def settled():
+        for _ in range(100):
+            got = c.get("/api/review/not-landed").json()
+            if got["state"] != "checking":
+                return got
+            time.sleep(0.02)
+        raise AssertionError("the landed check never finished")
+    got = settled()
+    assert got["state"] == "done" and got["ok"] is False and got["not_landed"][0]["domain"] == "sloughs"
+    assert settled() == got and len(calls) == 1, "once per process, not per request"
+    monkeypatch.setattr(A, "_NOT_LANDED", {"state": "idle"})
+    bad = settled()
+    assert bad["state"] == "failed" and "boom" in bad["why"]

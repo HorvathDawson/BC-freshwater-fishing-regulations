@@ -530,6 +530,7 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 | GET | `/api/reports/section` | The tapped section of a report as map geometry — empty when the report's tiles are another vintage. |
 | GET | `/api/review/closed` | T325: the closed review domains (they feed nothing), each with its scopes — the app shows a "closed" notice. |
 | GET | `/api/review/ids` | ONLY THESE ENTRIES (T414): the ids file `path` names (the yearly diff's `--ids-out`, under the |
+| GET | `/api/review/not-landed` | THE MARKS IN FORCE THAT ARE NOT IN THEIR CURATED FILE (`apply.check`, read only): {state: checking \| done \| |
 | GET | `/api/review/p1` | THE P1 PASS (owner 2026-10-28, `p1.view`): counts by risk and by the second check, the |
 | GET | `/api/review/progress` | Done / to do per tier (PLAN §3) and overall — the progress bar; the ETA is the screen's, |
 | GET | `/api/review/tickets` | THE TICKET EXPORT (T135): every wrong and unsure mark in force as ticket text, with what |

@@ -331,3 +331,20 @@ test("T573: a closed area's save is said apart from the place's own state", asyn
   assert.deepEqual(headline("Done", { what: "confirm", words: "Saved: your confirmation" }), { lead: "Done", rest: "Saved: your confirmation" });
   assert.deepEqual(headline("Done", null), { lead: "Done", rest: "" });
 });
+
+test("T562: the landed check and a file save's dropped rows, in words", async () => {
+  const { notLandedWords, domainSaveWords } = await import("../src/curatedSave.ts");
+  assert.equal(notLandedWords({ state: "checking" }), null);
+  assert.equal(notLandedWords({ state: "done", ok: true, not_landed: [] }), null);
+  const stale = { domain: "sloughs", status: "stale", why: "slough_calls.json is not what the marks say", marks: [] };
+  const waits = { domain: "dfo", status: "waiting", why: "waits on a new split", marks: ["dfo|2:x|"] };
+  const both = notLandedWords({ state: "done", ok: false, not_landed: [stale, waits] })!;
+  assert.equal(both.tone, "warn");
+  assert.equal(both.head, "1 saved mark is NOT in the curated files (and 1 wait for a cut to be built)");
+  assert.deepEqual(both.rows, ["stale · sloughs — slough_calls.json is not what the marks say"]);
+  const only = notLandedWords({ state: "done", ok: true, not_landed: [waits] })!;
+  assert.deepEqual([only.tone, only.head], ["info", "1 saved mark waits for a cut to be built before landing"]);
+  assert.equal(notLandedWords({ state: "failed", why: "boom" })!.tone, "error");
+  assert.deepEqual(domainSaveWords({ names: { state: "done", files: ["found_names.json"], sha: "0123456789abcdef", dropped: ["Review Creek"] }, dfo: { state: "done" } }),
+    { dropped: ["names: Review Creek"], commits: ["names: found_names.json · commit 012345678"] });
+});

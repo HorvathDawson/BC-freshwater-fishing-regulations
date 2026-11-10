@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import re
+import threading
 from pathlib import Path
 from collections import Counter
 
@@ -140,6 +141,35 @@ def review_write_through(target: str | None = None):
     """What the write-through did: per domain (saving / done / refused, the files written, proposals waiting on a
     side rebuild) and per marked item (saved / saving / refused / waiting, and why)."""
     return WRITE_THROUGH.status(target)
+
+
+#: T562 item 4: THE LANDED CHECK, ON SCREEN — `python -m pipeline.regs.review.apply --check` (T545: every mark in force
+#: is in its curated file, or listed) was only a command and a fast-fail step. The app runs it ONCE per process, in the
+#: background, the first time the screen asks; the banner lists what has not landed. Read only.
+_NOT_LANDED: dict = {"state": "idle"}
+_NOT_LANDED_LOCK = threading.Lock()
+
+
+def _run_not_landed() -> None:
+    from pipeline.regs.review import apply as AP
+    try:
+        got = AP.check(marks=reuse.MARKS_PATH)
+        _NOT_LANDED.update({"state": "done", "ok": bool(got.get("ok")), "not_landed": got.get("not_landed") or [],
+                            "allowed": len(got.get("allowed") or ())})
+    except Exception as ex:                       # shown on the screen, never swallowed (no silent fallbacks)
+        _NOT_LANDED.update({"state": "failed", "why": f"{type(ex).__name__}: {ex}"[:500]})
+
+
+@app.get("/api/review/not-landed")
+def review_not_landed():
+    """THE MARKS IN FORCE THAT ARE NOT IN THEIR CURATED FILE (`apply.check`, read only): {state: checking | done |
+    failed, ok, not_landed: [{domain, status, why, marks}], why}. Computed once per server process, in the
+    background, started by the first ask."""
+    with _NOT_LANDED_LOCK:
+        if _NOT_LANDED["state"] == "idle":
+            _NOT_LANDED["state"] = "checking"
+            threading.Thread(target=_run_not_landed, name="not-landed", daemon=True).start()
+    return dict(_NOT_LANDED)
 
 
 #: WARM AT STARTUP (T136, PLAN §4 phase 5): `CURATION_WARM=1` (run.sh sets it) loads every cache a
