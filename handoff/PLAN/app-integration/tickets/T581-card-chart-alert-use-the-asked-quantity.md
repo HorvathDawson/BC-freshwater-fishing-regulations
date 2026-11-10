@@ -1,6 +1,6 @@
 # T581 — The gauge card, chart and alert editor all use the quantity asked
 
-Status: OPEN
+Status: IN REVIEW — 5a2e4117b (Held at HEAD (F1: card became a Level card under Flow; F7: editor prefill empty under Level). Fixed: `cardQuantity` (the asked quantity always; a silent station says so in the row's words and offers the other as the one Show choice; Flow while unknown), `currentFigure` + `alertNowValue` (card and editor read one figure). Tests: ui/src/cardQuantity.test.ts. Web shots ../T581-shots/ (F1); the alert editor does not exist on web (phone only), so F7 is test-only. Reaches the phone with the next build; owner confirms there.)
 
 Source: T580 audit 2026-11-10 (owner: "stuff like this should never happen … look for other things like that").
 Findings, with file:line, the state that shows each and the proposed fix: `handoff/PLAN/app-integration/T580-findings.md`.
