@@ -802,11 +802,11 @@ def piece_shape(location_id: str, g: dict, new: dict | None = None) -> dict:
     from pipeline.regs.dfo_salmon import closures as K
     from pipeline.regs.review import marks as M
     new = {**(new or {}), **{n["ref"]: n for n in g.get("new_splits") or []}}
-    bounds = reuse._boundary_index()
 
     def end(pt: dict) -> dict:
         sid = pt.get("split_id")
         if pt.get("kind") == "split":
+            bounds = reuse._boundary_index()         # only a stretch's end reads the build (a circle needs none)
             q = reuse._split_point(sid)
             ll = reuse._to_lonlat()(q.x, q.y) if q is not None else None
             return {"label": getattr(bounds.get(sid, (None, None))[1], "label", None) or sid, "new": False,
