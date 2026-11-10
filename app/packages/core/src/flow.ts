@@ -24,13 +24,6 @@ export function standing(percentile: number | null): Standing {
   return "much-above";
 }
 
-export function standingWord(s: Standing): string {
-  return {
-    "much-below": "MUCH BELOW NORMAL", below: "BELOW NORMAL", normal: "NORMAL",
-    above: "ABOVE NORMAL", "much-above": "MUCH ABOVE NORMAL", "no-record": "NO RECORD",
-  }[s];
-}
-
 /*
  * PLAIN ENGLISH FOR A PERCENTILE ------------------------------------------------------
  *
@@ -75,11 +68,6 @@ export function percentileOrdinal(p: number): string {
   // Below one per cent keeps a decimal: rounding to "0th" would say the river has never
   // been lower, which is a different and much stronger claim.
   return ordinal(pct < 1 ? Number(pct.toFixed(1)) : Math.round(pct));
-}
-
-/** The same thing with the `p` prefix, for a chip where the word does not fit. */
-export function percentileLabel(p: number): string {
-  return `p${percentileOrdinal(p)}`;
 }
 
 /**
@@ -132,44 +120,6 @@ export function seasonPhrase(when: Date): string {
   const month = MONTHS[when.getMonth()]!;
   const d = when.getDate();
   return `${d <= 10 ? "early" : d <= 20 ? "mid" : "late"} ${month}`;
-}
-
-/**
- * "lower than about 7 days in 10" — a percentile as a count out of ten.
- *
- * OUT OF TEN AND NOT OUT OF A HUNDRED, because the underlying number is not good to a
- * hundredth: the transfer error alone is ±11.7 points at best. Ten is the precision the
- * evidence supports and also the one people picture.
- *
- * Phrased as "lower/higher than N of 10" rather than "in the Nth percentile" because the
- * comparison is the part that means something, and it is the part a percentile hides.
- */
-export function inTen(percentile: number): string {
-  const below = Math.round(percentile * 10);
-  if (below <= 0) return "lower than almost every day on record for this time of year";
-  if (below >= 10) return "higher than almost every day on record for this time of year";
-  const side = below <= 5
-    ? `lower than ${10 - below} days in 10`
-    : `higher than ${below} days in 10`;
-  return `${side} at this time of year`;
-}
-
-/**
- * The headline a reader sees before any number: what the water is doing, in four words.
- *
- * Deliberately NOT `standingWord`. That one is a technical label for a band ("MUCH BELOW
- * NORMAL"), used where the band itself is the point — a legend, a chart axis. This is the
- * sentence at the top of a screen, and it is written the way a person would say it.
- */
-export function plainStanding(s: Standing): string {
-  return {
-    "much-below": "Very low for the time of year",
-    below: "Low for the time of year",
-    normal: "About normal for the time of year",
-    above: "High for the time of year",
-    "much-above": "Very high for the time of year",
-    "no-record": "No record to compare against",
-  }[s];
 }
 
 /**

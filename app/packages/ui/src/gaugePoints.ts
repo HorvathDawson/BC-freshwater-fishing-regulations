@@ -10,7 +10,7 @@
  * Stations with no reading today are DROPPED rather than drawn bare. A dot with no number
  * invites the reader to assume the map failed rather than that the station is quiet.
  */
-import { changeDotLabel, changeRatio, OTHER_QUANTITY_WORDS, percentileLabel, readingIn, shownParameter,
+import { changeDotLabel, changeRatio, OTHER_QUANTITY_WORDS, percentileSaid, figure, readingIn, shownParameter,
          zoomForMagnitude } from "@app/core";
 import { otherOnly, reading, type GaugeFeed, type Horizon, type Parameter } from "@app/data";
 import { toRamp } from "./routeColour";
@@ -49,11 +49,11 @@ export function gaugeLabel(now: { discharge: number | null; level: number | null
     const shown = shownParameter(now);              // the declared quantity, never inferred (T106)
     const v = readingIn(now, shown);
     if (v !== null)
-      parts.push(shown === "level" ? `${v.toFixed(2)} m` : `${v} m³/s`);
+      parts.push(`${figure(v)} ${shown === "level" ? "m" : "m³/s"}`);
   }
   // THE SAME LABEL THE SHEET USES. This rounded while the chip kept a decimal below 1%,
   // so a dot could read "p1st" beside a sheet saying "p0.4th" about that very station.
-  if (percentile !== null) parts.push(percentileLabel(percentile));
+  if (percentile !== null) parts.push(percentileSaid(percentile));
   return parts.length ? parts.join(" · ") : null;
 }
 

@@ -27,7 +27,8 @@
  *
  * Every word the notifications and their settings draw is here (AGENTS 33: tests pin the finished strings).
  */
-import { CONDITIONS_WORDS, chartFigure } from "./conditions";
+import { CONDITIONS_WORDS } from "./conditions";
+import { figure, percentileName, percentileSpan } from "./standing";
 import { bcClockTime } from "./clock";
 import { calendarDayOfYear, localStamp } from "./day";
 import { monthAbbr, ordinal, valueAtPercentile, type Band } from "./flow";
@@ -260,7 +261,7 @@ export function migrateAlertRule(r: unknown): Migrated {
     return { rule: { ...base, direction: old, threshold: { kind: "value", value: o.value } } };
   if ((old === "rise" || old === "fall") && typeof o.value === "number" && Number.isFinite(o.value)) {
     const q = CONDITIONS_WORDS.quantity[o.quantity];
-    return { refused: { line: `${stationName} · ${q} ${old === "rise" ? "rises" : "falls"} ${chartFigure(o.value)} % or more within 24 h`,
+    return { refused: { line: `${stationName} · ${q} ${old === "rise" ? "rises" : "falls"} ${figure(o.value)} % or more within 24 h`,
                         why: NOTIFY_WORDS.refused.change } };
   }
   return unreadable;
@@ -271,8 +272,6 @@ export function migrateAlertRule(r: unknown): Migrated {
 const unitOf = (q: AlertQuantity) => CONDITIONS_WORDS.unit[q];
 const quantityWord = (q: AlertQuantity) => CONDITIONS_WORDS.quantity[q].toLowerCase();
 
-/** "the median" (50), else "the 75th percentile". */
-export const percentileName = (pct: number): string => (pct === 50 ? "the median" : `the ${ordinal(pct)} percentile`);
 
 /** "Nov 9", from the reading's own date (the day whose line it was checked against). */
 export function readingDay(at: string): string {
@@ -332,10 +331,10 @@ export const NOTIFY_WORDS = {
     save: "Save alert",
     cancel: "Cancel",
     bad: "Type a number.",
-    badPct: `Type a whole number from ${PERCENTILE_MIN} to ${PERCENTILE_MAX}: the record holds the 10th to the 90th percentile.`,
-    now: (q: AlertQuantity, v: number) => `Now ${chartFigure(v)} ${unitOf(q)}`,
+    badPct: `Type a whole number from ${PERCENTILE_MIN} to ${PERCENTILE_MAX}: the record holds ${percentileSpan(10, 90)}.`,
+    now: (q: AlertQuantity, v: number) => `Now ${figure(v)} ${unitOf(q)}`,
     nowUnknown: "No reading now",
-    normal: (q: AlertQuantity, lo: number, hi: number) => `normal today ${chartFigure(lo)}–${chartFigure(hi)} ${unitOf(q)}`,
+    normal: (q: AlertQuantity, lo: number, hi: number) => `normal today ${figure(lo)}–${figure(hi)} ${unitOf(q)}`,
     normalUnknown: "no normal range for today",
     loading: "Reading the gauge…",
     /** why the percentile line cannot be picked (the chip is shown disabled, with this under it) */
@@ -384,7 +383,7 @@ export const NOTIFY_WORDS = {
 
 /** The line in words: "30 m³/s" / "the 75th percentile for the day". */
 function thresholdWords(r: Pick<GaugeAlertRule, "quantity" | "threshold">): string {
-  return r.threshold.kind === "value" ? `${chartFigure(r.threshold.value)} ${unitOf(r.quantity)}`
+  return r.threshold.kind === "value" ? `${figure(r.threshold.value)} ${unitOf(r.quantity)}`
     : `${percentileName(r.threshold.pct)} for the day`;
 }
 
@@ -415,11 +414,11 @@ export function alertSummary(r: Pick<GaugeAlertRule, "quantity" | "direction" | 
   const line = now ? thresholdAt(r.threshold, now.at) : null;
   if (r.threshold.kind === "percentile")
     parts.push(line !== null && now
-      ? `The line moves with the date: ${chartFigure(line)} ${u} for ${readingDay(now.at)}.`
+      ? `The line moves with the date: ${figure(line)} ${u} for ${readingDay(now.at)}.`
       : "The line moves with the date.");
   parts.push(`It is ready again once the ${q} is back ${r.direction === "above" ? "below" : "above"} the line.`);
   if (now && line !== null && isPast(r.direction, now.value, line))
-    parts.push(`It is ${r.direction} that now (${chartFigure(now.value)} ${u}), so the first notification comes after it crosses back and then ${r.direction} again.`);
+    parts.push(`It is ${r.direction} that now (${figure(now.value)} ${u}), so the first notification comes after it crosses back and then ${r.direction} again.`);
   return parts.join(" ");
 }
 
@@ -443,11 +442,11 @@ export function alertContextLine(q: AlertQuantity, current: number | null, norma
 export function alertNotification(r: GaugeAlertRule, reading: AlertReading): { title: string; body: string } {
   const where = r.water?.name ?? r.stationName;
   const u = unitOf(r.quantity);
-  const line = r.threshold.kind === "value" ? `${chartFigure(r.threshold.value)} ${u}`
+  const line = r.threshold.kind === "value" ? `${figure(r.threshold.value)} ${u}`
     : `${percentileName(r.threshold.pct)} for ${readingDay(reading.at)}`;
   return {
     title: `${where}: ${quantityWord(r.quantity)} alert`,
-    body: `${r.stationName} crossed ${r.direction} ${line} — ${chartFigure(reading.value)} ${u} at ${bcClockTime(Date.parse(reading.at))}.`,
+    body: `${r.stationName} crossed ${r.direction} ${line} — ${figure(reading.value)} ${u} at ${bcClockTime(Date.parse(reading.at))}.`,
   };
 }
 

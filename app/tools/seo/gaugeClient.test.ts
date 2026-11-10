@@ -4,9 +4,10 @@
  * its failure reports held to the feeds worker's own crash validator (wire parity).
  */
 import { describe, expect, it } from "vitest";
-import { chartFigure } from "@app/core";
+import { figure } from "@app/core";
+import { clientScript } from "./gauges";
 import { validateCrash } from "../../workers/feeds/src/crashes";
-import { ago, chartSvg, crashReport, figure, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
+import { ago, chartSvg, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -92,7 +93,8 @@ describe("T487 the gauge page's live half", () => {
     expect(off.sent).toEqual([]);
   });
 
-  it("the page's figure rule is core's", () => {
-    for (const v of [0, 0.123, 4.567, 9.999, 22.24, 99.95, 100.4, 1060.4, -3.21]) expect(figure(v), String(v)).toBe(chartFigure(v));
+  it("the shipped script carries core's figure, written from the function itself", () => {
+    expect(clientScript()).toContain(`const figure=${figure.toString()};`);
+    expect(clientScript()).not.toMatch(/^import /m);
   });
 });

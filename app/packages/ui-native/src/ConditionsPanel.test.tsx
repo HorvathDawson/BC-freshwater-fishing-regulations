@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
-import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, noGaugeSentence, readingHeading, readingStandingLine,
+import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, noGaugeSentence, readingHeading, standingLong,
          stageLine, TIDAL_NOTE, BACKWATER_NOTE } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
@@ -53,7 +53,7 @@ describe("the conditions panel", () => {
     expect(screen.getByText("12.5")).toBeTruthy();
     expect(screen.getByText("m³/s")).toBeTruthy();
     expect(screen.getByText(`· ${stageLine(1.2)}`)).toBeTruthy();   // (T367) beside the figure, after a dot
-    expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy();
+    expect(screen.getByText(standingLong(0.15, "below"))).toBeTruthy();
     expect(screen.getByText("Below normal · 15th percentile for the date")).toBeTruthy();
     // The donor panel above it is drawn for the CHOSEN day.
     expect(screen.getByText("3rd–27th percentile for early September · this spot drains "
@@ -69,7 +69,7 @@ describe("the conditions panel", () => {
     await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
     expect([screen.getByTestId("reading-figure").textContent, screen.queryByText("m")?.textContent])
       .toEqual(["2.18", "m"]);
-    expect(screen.getByText(`${readingStandingLine(0.27, "below")} (ranked on flow)`)).toBeTruthy();
+    expect(screen.getByText(`${standingLong(0.27, "below")} (ranked on flow)`)).toBeTruthy();
     expect(screen.queryByText("m³/s")).toBeNull();
     cleanup();
     clearPanelCache();
@@ -95,7 +95,7 @@ describe("the conditions panel", () => {
     await waitFor(() => expect(screen.getByTestId("reading-scope")).toBeTruthy());
     expect([screen.getByTestId("reading-scope").textContent, screen.getByTestId("reading-figure").textContent,
             screen.getByTestId("reading-forecast").textContent])
-      .toEqual(["Today's reading", "12.5", "Mon 7 Sep, forecast: Reads lower than 6 days in 10 at this time of year."]);
+      .toEqual(["Today's reading", "12.5", "Mon 7 Sep, forecast: Reads normal · 40th percentile."]);
   });
 
   it("refuses in words where no gauge may speak", async () => {
@@ -126,7 +126,7 @@ describe("the conditions panel", () => {
                             scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.fold })).toBeTruthy());
     fold();
-    await waitFor(() => expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(standingLong(0.15, "below"))).toBeTruthy());
     expect(screen.queryByText(TIDAL_NOTE)).toBeNull();
   });
 
@@ -153,7 +153,7 @@ describe("the conditions panel", () => {
                             scroll={false} day={new Date(2026, 8, 4, 12)} />);
     await waitFor(() => expect(screen.getByRole("button", { name: CONDITIONS_WORDS.fold })).toBeTruthy());
     fold();
-    await waitFor(() => expect(screen.getByText(readingStandingLine(0.15, "below"))).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(standingLong(0.15, "below"))).toBeTruthy());
     expect(screen.queryByText(BACKWATER_NOTE)).toBeNull();
   });
 });

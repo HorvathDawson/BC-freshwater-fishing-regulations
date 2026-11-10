@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PNG } from "pngjs";
-import { chartFigure, plainStanding, standing } from "../../../packages/core/src/index";
+import { figure as coreFigure, standing, standingHeadline } from "../../../packages/core/src/index";
 import { about, byWhen, CARD_GROUND, CARD_H, CARD_INK, CARD_W, CARD_STATE, cardEvents, cardFacts, cardModel, cardSig, drawCard, figure, niceTicks, normalRange, outlookOf, runCards,
          type CardBucket, type CardStation } from "../src/gauges/card/card";
 import { FACES, FONT_SHA256 } from "../src/gauges/card/glyphs.generated";
@@ -57,9 +57,11 @@ describe("the card's letters and colours are the app's", () => {
     const t = (meta as { themes: Record<string, Record<string, string>> }).themes.light!;
     expect([CARD_GROUND, CARD_INK]).toEqual([t["color.ui.accent"], t["color.ui.on-accent"]]);
   });
-  it("figures are core's chartFigure; standing words are core's", () => {
-    for (const v of [0, 0.123, 4.567, 22.24, 99.95, 100.4, 1060.4, -3.2]) expect(figure(v)).toBe(chartFigure(v));
-    expect(cardModel("08MH001", "X", station(), NOW).standing).toBe(plainStanding(standing(0.05)));
+  it("figures are core's figure; standing words are core's, whole (T583)", () => {
+    expect(figure).toBe(coreFigure);
+    for (const v of [0, 0.123, 4.567, 22.24, 99.95, 100.4, 1060.4, -3.2]) expect(figure(v)).toBe(coreFigure(v));
+    expect(cardModel("08MH001", "X", station(), NOW).standing).toBe(standingHeadline(standing(0.05)));
+    expect(cardModel("08MH001", "X", station(), NOW).standing).toBe("Much below normal for the time of year");
   });
   it("a long name wraps to two lines and is cut with an ellipsis, each within the width", () => {
     const l = wrap("title", "Nowhere Creek near Somewhere With A Very Long Name That Never Ends At All", 1072, 2);

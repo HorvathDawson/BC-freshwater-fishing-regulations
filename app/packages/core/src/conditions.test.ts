@@ -7,14 +7,15 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  CONDITIONS_WORDS, chartFigure, chartLabel, chartReadoutLine, disagreeNote, donorBecause,
+  CONDITIONS_WORDS, chartLabel, chartReadoutLine, disagreeNote, donorBecause,
   donorFacts, donorLastReport, donorSilent, horizonDateChip, lastDataStamp, silentLine,
   donorKeyLabel, donorPinTitle, donorReads, donorReason, donorRowLabel, donorShare,
   donorWeightLine, estimateHeadline, estimateRange, estimateSentence, forecastChartLabel,
   forecastModelOption, forecastRunLine, HORIZON_LABELS, HORIZONS, horizonChipLabel,
-  noChartSentence, noGaugeSentence, readingHeading, readingStandingLine, regulatedNote,
+  noChartSentence, noGaugeSentence, readingHeading, regulatedNote,
   shortRecordNote, sizeApart, stageLine, TIDAL_NOTE, tidalNote, BACKWATER_NOTE, backwaterNote, unplacedNote, type DonorFacts,
 } from "./conditions";
+import { figure as chartFigure, standingLong } from "./standing";
 import type { Estimate, NoEstimate } from "./trust";
 
 const row = (over: Partial<DonorFacts> = {}): DonorFacts => ({
@@ -142,8 +143,7 @@ describe("donorBecause: the model's three factors in words", () => {
 
 describe("the donor row's other lines", () => {
   it("says what the gauge itself reads", () => {
-    expect(donorReads(row({ percentile: 0.2 }))).toBe("Reads lower than 8 days in 10 at "
-                                                      + "this time of year.");
+    expect(donorReads(row({ percentile: 0.2 }))).toBe("Reads below normal · 20th percentile.");
     expect(donorReads(row({ percentile: null }))).toBe("Not reporting today.");
   });
 
@@ -182,7 +182,7 @@ describe("the donor row's other lines", () => {
 
 describe("the estimate's headline, sentence and range", () => {
   it("leads with plain words", () => {
-    expect(estimateHeadline(est())).toBe("Low for the time of year");
+    expect(estimateHeadline(est())).toBe("Below normal for the time of year");
   });
 
   it("says now and forecast, one gauge and several", () => {
@@ -289,10 +289,10 @@ describe("the gauge reading under the estimate", () => {
   });
 
   it("ranks it with core's band word, or says there is nothing to rank against", () => {
-    expect(readingStandingLine(0.15, "below")).toBe("Below normal · 15th percentile for the date");
-    expect(readingStandingLine(0.004, null))
-      .toBe("No record · 0.4th percentile for the date");
-    expect(readingStandingLine(null, "below"))
+    expect(standingLong(0.15, "below")).toBe("Below normal · 15th percentile for the date");
+    expect(standingLong(0.004, null))
+      .toBe("Much below normal · 0.4th percentile for the date");
+    expect(standingLong(null, "below"))
       .toBe("There is a reading here, but no record to compare it against.");
   });
 
@@ -387,7 +387,7 @@ describe("a quiet gauge: what it says and when it last spoke (owner 2026-10-21)"
     expect(donorReads(row({ percentile: null }), { ref: REF, horizon: 3 }))
       .toBe("No forecast for this gauge that far ahead.");
     expect(donorReads(row({ percentile: 0.2 }), { ref: REF, horizon: 3 }))
-      .toBe("Reads lower than 8 days in 10 at this time of year.");
+      .toBe("Reads below normal · 20th percentile.");
   });
   it("names the last report local and labelled, or says it is not known", () => {
     expect(donorLastReport("2026-10-18T20:30:00-08:00", VAN)).toBe("Last reported 2026-10-18 at 21:30 PDT.");
@@ -463,7 +463,7 @@ describe("silent panel members", () => {
       [true, "Not reporting today."],
       [false, "Reporting, but its reading cannot be ranked today."],
       [true, "Not a real-time gauge."],
-      [false, "Reads lower than 6 days in 10 at this time of year."],
+      [false, "Reads normal · 40th percentile."],
     ]);
   });
 

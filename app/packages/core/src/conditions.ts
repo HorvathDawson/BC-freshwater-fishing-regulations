@@ -9,8 +9,9 @@
  * NO DATA TYPES FROM `@app/data` — core sits below it. A donor row is taken structurally
  * (`DonorFacts`), which `DonorRow` satisfies as it stands.
  */
-import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plainStanding,
-         seasonPhrase, standing, standingWord, type Standing } from "./flow";
+import { catchmentLabel, confidenceWord, 
+         seasonPhrase, standing } from "./flow";
+import { figure, inTen, percentileNear, percentileRange, standingHeadline, standingReads } from "./standing";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr } from "./flow";
@@ -193,8 +194,8 @@ export function legendTickLabel(count: number, where: string): string {
 export const FLOW_LEGEND = {
   title: { discharge: "Flow vs. past years, this date", level: "Water level vs. past years, this date" },
   low: "Low", mid: "Normal", high: "High",
-  /** (T180) a histogram tick's place on the scale, aloud (`ordinal`: `percentileOrdinal`'s "20th") */
-  near: (ordinal: string) => `near the ${ordinal} percentile`,
+  /** (T180) a histogram tick's place on the scale, aloud (a percentile, 0–1) */
+  near: (percentile: number) => percentileNear(percentile),
   /** (T180) the ramp bar's name aloud: the title, its two ends and the bracket's word */
   scale: (title: string, low: string, high: string, mid: string) =>
     `${title}: colours from ${low.toLowerCase()} to ${high.toLowerCase()}; ${mid.toLowerCase()} is the middle half of `
@@ -482,7 +483,7 @@ export function donorReads(r: DonorReading, o: DonorAsk = {}): string {
   const s = donorState(r, o);
   switch (s.kind) {
     case "reads":
-      return o.horizon === "change" ? changeReads(changeRatio(s.percentile)) : `Reads ${inTen(s.percentile)}.`;
+      return o.horizon === "change" ? changeReads(changeRatio(s.percentile)) : standingReads(s.percentile);
     case "not-realtime": return "Not a real-time gauge.";
     case "flow-only": return "Has a flow forecast this far ahead, but no level forecast ranked against its record.";
     case "forecast-unranked": return "Has a forecast this far ahead, but no record to compare it with.";
@@ -635,7 +636,7 @@ export function donorKeyLabel(r: DonorFacts, atSpot: boolean): string {
 
 /** The headline: what the water is doing, before any number. Under Change, what it is expected to do. */
 export function estimateHeadline(e: Estimate, horizon: Horizon = 0): string {
-  return horizon === "change" ? changeHeadline(changeRatio(e.percentile)) : plainStanding(standing(e.percentile));
+  return horizon === "change" ? changeHeadline(changeRatio(e.percentile)) : standingHeadline(standing(e.percentile));
 }
 
 /** "Lower than 8 days in 10 at this time of year — fairly confident, from 2 gauges nearby." */
@@ -647,12 +648,6 @@ export function estimateSentence(e: Estimate, horizon: Horizon, changeEnds?: { f
   return `${w.charAt(0).toUpperCase()}${w.slice(1)} — ${confidenceWord(e.plusMinus)}, `
     + `${horizon === 0 ? "from" : "forecast from"} ${gauges} nearby.`;
 }
-
-/**
- * An interval endpoint, clamped to 1–99: the envelope stops at p10/p90 because the
- * extremes do not interpolate, so a range may not claim the record's own ends.
- */
-const bound = (n: number) => ordinal(Math.max(1, Math.min(99, Math.round(n))));
 
 const DAY_MS = 86_400_000;
 
@@ -666,7 +661,7 @@ export function estimateRange(e: Estimate, day: Date, horizon: Horizon,
                               areaKm2: number | null): string {
   const [lo, hi] = interval(e);
   const base = horizon === "change" ? changeRange(lo / 100, hi / 100)
-    : `${bound(lo)}–${bound(hi)} percentile for ` + seasonPhrase(new Date(day.getTime() + aheadDays(horizon) * DAY_MS));
+    : `${percentileRange(lo, hi)} for ` + seasonPhrase(new Date(day.getTime() + aheadDays(horizon) * DAY_MS));
   return areaKm2 != null ? `${base} · this spot drains ${catchmentLabel(areaKm2)}` : base;
 }
 
@@ -796,15 +791,6 @@ export function readingHeading(name: string): string {
   return `AT ${name.toUpperCase()}`;
 }
 
-/** The reading ranked with core's band word, or the admission there is nothing to rank by. */
-export function readingStandingLine(percentile: number | null,
-                                    band: Standing | null): string {
-  if (percentile == null) return "There is a reading here, but no record to compare it against.";
-  // (T367) sentence case beside its coloured dot on the gauge card: the caps shouted over the number
-  const word = standingWord(band ?? "no-record").toLowerCase();
-  return `${word[0]!.toUpperCase()}${word.slice(1)} · ${percentileOrdinal(percentile)} percentile for the date`;
-}
-
 /** The stage, beside a discharge. */
 export function stageLine(level: number): string {
   return `${level} ${CONDITIONS_WORDS.unit.level} stage`;
@@ -853,14 +839,6 @@ export function forecastRunLine(run: ForecastRunFacts & { issuedAt: string },
 
 /* ------------------------------------------------------------- the read-out ---- */
 
-/** A chart value as a reader reads it: three figures, no false precision. */
-export function chartFigure(v: number): string {
-  const a = Math.abs(v);
-  if (a >= 100) return String(Math.round(v));
-  if (a >= 10) return String(Math.round(v * 10) / 10);
-  return String(Math.round(v * 100) / 100);
-}
-
 export interface ReadoutFacts {
   /** The sample's instant (epoch ms). */
   t: number;
@@ -882,8 +860,8 @@ export function chartReadoutLine(f: ReadoutFacts, zone?: string): string {
   // A DAILY SAMPLE NAMES A CALENDAR DAY, stamped "YYYY-MM-DD" (UTC midnight): it is said as that day, never pushed
   // into the evening before by a time zone.
   const when = f.daily ? new Date(f.t).toISOString().slice(0, 10) : localStamp(f.t, zone);
-  const what = `${chartFigure(f.value)} ${f.unit}${f.kind === "forecast" ? " forecast" : ""}`;
-  const norm = f.median != null && Number.isFinite(f.median) ? ` · median ${chartFigure(f.median)}` : "";
+  const what = `${figure(f.value)} ${f.unit}${f.kind === "forecast" ? " forecast" : ""}`;
+  const norm = f.median != null && Number.isFinite(f.median) ? ` · median ${figure(f.median)}` : "";
   return `${when} · ${what}${norm}`;
 }
 

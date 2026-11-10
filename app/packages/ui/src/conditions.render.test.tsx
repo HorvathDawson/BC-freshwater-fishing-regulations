@@ -12,7 +12,7 @@ import { donorBecause, donorFacts, donorLastReport, donorPinTitle, donorReads, d
          donorRowLabel, donorWeightLine, estimateHeadline, estimateRange, estimateSentence,
          freshness, HORIZONS, HORIZON_LABELS, horizonChipLabel, horizonDateChip, bcNow, localStamp, noGaugeSentence,
          readingAgeLine, readingHeading,
-         readingStandingLine, stageLine, unplacedNote } from "@app/core";
+         standingLong, stageLine, unplacedNote } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache, donorView, horizonChips, lakeQuietHead, useConditionsView, usePanelStandings, type DonorRow,
          type PanelAnswer } from "./panel";
@@ -252,7 +252,7 @@ describe("useConditionsView", () => {
       heading: readingHeading("Lead Creek near Town"), title: "Lead Creek near Town",
       figure: 12.5, unit: "m³/s", quantity: "discharge",
       stage: stageLine(1.2),
-      standing: readingStandingLine(0.15, "below"),
+      standing: standingLong(0.15, "below"),
     });
     // LOCAL AND LABELLED (P16): the same instant, in the reader's clock with its zone named.
     expect(vm.reading?.age).toBe(readingAgeLine(freshness(Date.now() - 5 * 60_000, Date.now()),
@@ -270,7 +270,7 @@ describe("useConditionsView", () => {
       useConditionsView(source, SEC, DAY, 3, { feed: ahead, quantity: "discharge" }));
     await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
     const r = result.current.reading!;
-    expect([r.figure, r.scope, r.forecast]).toEqual([12.5, "Today's reading", "Mon 7 Sep, forecast: Reads lower than 6 days in 10 at this time of year."]);
+    expect([r.figure, r.scope, r.forecast]).toEqual([12.5, "Today's reading", "Mon 7 Sep, forecast: Reads normal · 40th percentile."]);
     expect(r.figures).toEqual({ discharge: 12.5, level: 1.2 });
     expect(result.current.ahead).toEqual({ at: new Date(2026, 8, 7, 12).getTime(), label: "MON 7 SEP" });
   });
@@ -304,7 +304,7 @@ describe("useConditionsView", () => {
     expect(result.current.lead).toBe("OTHER");
     expect(result.current.reading).toMatchObject({
       heading: readingHeading("Other River at Bridge"), title: "Other River at Bridge", unit: "m", quantity: "level", stage: null,
-      standing: readingStandingLine(null, null) });
+      standing: standingLong(null, null) });
   });
 
   it("no panel and no lake: the matched station is never quoted — the sheet refuses, as the map leaves it uncoloured (T105)", async () => {
@@ -333,7 +333,7 @@ describe("useConditionsView", () => {
       .toEqual(["LAKE", {
         heading: readingHeading("Lake at Outlet"), title: "Lake at Outlet", figure: 2.31, unit: "m",
         quantity: "level", stage: null, figures: { level: 2.31 }, scope: null, forecast: null,
-        standing: readingStandingLine(0.6, "normal"), percentile: 0.6 }, false, null,
+        standing: standingLong(0.6, "normal"), percentile: 0.6 }, false, null,
         // the donor panel says the lake is read at its own gauge — not answerFrom's "no gauge on this water"
         { ok: false, why: "own-gauge" }]);
   });
@@ -378,7 +378,7 @@ describe("useConditionsView", () => {
       heading: readingHeading("Lead Creek near Town"), title: "Lead Creek near Town",
       figure: 4.162, unit: "m", quantity: "level",
       stage: null,                                        // the stage line is said beside a discharge only
-      standing: readingStandingLine(0.432, "normal"), percentile: 0.432,
+      standing: standingLong(0.432, "normal"), percentile: 0.432,
       figures: { discharge: 5.46, level: 4.162 }, scope: null, forecast: null,
     });
     // and declared discharge, the same two values: the discharge, with its stage beside it

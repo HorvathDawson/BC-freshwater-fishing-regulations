@@ -38,7 +38,7 @@ describe("(T180) words moved from components to core, composed whole", () => {
   });
 
   it("the legend ramp's lines aloud", () => {
-    expect(FLOW_LEGEND.near("20th")).toBe("near the 20th percentile");
+    expect(FLOW_LEGEND.near(0.2)).toBe("near the 20th percentile");
     expect(FLOW_LEGEND.scale(FLOW_LEGEND.title.discharge, FLOW_LEGEND.low, FLOW_LEGEND.high, FLOW_LEGEND.mid))
       .toBe("Flow vs. past years, this date: colours from low to high; normal is the middle half of past years");
   });

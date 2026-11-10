@@ -27,7 +27,7 @@ describe("the browse map's dot for a station silent in the asked quantity", () =
     const p = props("flow");
     expect(p.map((x) => x.station)).toEqual(["08KA004", "08MH024"]);
     expect(p[1]).toEqual({ station: "08MH024", name: "Fraser R at Mission", label: "level only", ramp: null, muted: true, minz: expect.any(Number) });
-    expect(p[0]).toMatchObject({ station: "08KA004", label: "p27th", ramp: 27 });
+    expect(p[0]).toMatchObject({ station: "08KA004", label: "27th percentile", ramp: 27 });
     expect(p[0]).not.toHaveProperty("muted");
   });
 

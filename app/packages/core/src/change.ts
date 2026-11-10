@@ -12,7 +12,8 @@
  * Change chip is greyed "Flow only" and a tap moves to Flow (T130, `horizonChips` / `pickHorizon` in @app/ui).
  */
 import { CHANGE_POLICY } from "./gauge-policy.generated";
-import { monthAbbr, percentileOrdinal, plainStanding, standing, weekdayAbbr } from "./flow";
+import { monthAbbr, percentileOrdinal, standing, weekdayAbbr } from "./flow";
+import { percentileSaid, standingHeadline } from "./standing";
 import { normCdf, probit } from "./trust";
 
 export { CHANGE_POLICY };
@@ -232,7 +233,7 @@ export function changeReachNote(c: SourceChange, today: string): string | null {
  */
 function forTheDate(e: ChangeEnd): string {
   if (e.percentile === undefined) return "";
-  return ` (${percentileOrdinal(e.percentile)} percentile, ${plainStanding(standing(e.percentile)).toLowerCase()})`;
+  return ` (${percentileSaid(e.percentile)}, ${standingHeadline(standing(e.percentile)).toLowerCase()})`;
 }
 
 /**
@@ -313,7 +314,7 @@ export function changeSentence(ratio: number, confidence: string, donors: number
   const what = changeKind(ratio) === "steady"
     ? "Staying near today's flow"
     : ends
-      ? `At its ${ratio >= 1 ? "highest" : "lowest"}, from the ${percentileOrdinal(ends.from)} percentile today to about `
+      ? `At its ${ratio >= 1 ? "highest" : "lowest"}, from the ${percentileSaid(ends.from)} today to about `
         + `the ${percentileOrdinal(ends.to)} (${ratioWords(ratio)})`
       : `At its ${ratio >= 1 ? "highest" : "lowest"}, ${ratioWords(ratio)}`;
   return `${what} — ${confidence}, forecast from ${gauges} nearby.`;

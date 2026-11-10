@@ -10,6 +10,7 @@
  */
 
 export * from "./flow";
+export * from "./standing";
 export * from "./trace";
 export * from "./ladder";
 export * from "./trust";

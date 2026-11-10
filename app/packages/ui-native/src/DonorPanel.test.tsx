@@ -224,7 +224,7 @@ describe("the donor panel", () => {
 
   it("leads with a sentence, not a percentile", () => {
     draw({ value: answer({ percentile: 0.15 }) });
-    expect(screen.getByText("Low for the time of year")).toBeTruthy();
+    expect(screen.getByText("Below normal for the time of year")).toBeTruthy();
     expect(screen.getByText("Lower than 8 days in 10 at this time of year — fairly "
                             + "confident, from 2 gauges nearby.")).toBeTruthy();
   });
@@ -284,7 +284,7 @@ describe("the donor panel", () => {
 
   it("says what each gauge itself reads, in the same words as the headline", () => {
     draw({ value: { ...answer(), rows: [row("08MH001", { percentile: 0.2 })] } });
-    expect(screen.getByText("Reads lower than 8 days in 10 at this time of year."))
+    expect(screen.getByText("Reads below normal · 20th percentile."))
       .toBeTruthy();
   });
 

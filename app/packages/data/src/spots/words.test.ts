@@ -70,7 +70,7 @@ describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
       reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.038, at: null },
       weather: { window: null, tempC: 14, windKph: null, windDir: null, rain3h: null, pressureHpa: null, code: null,
                  at: null, backfilled: true },
-    }))[0]).toBe("2026-08-30 · 15.7 m³/s · p4th · 14°C (filled in)");
+    }))[0]).toBe("2026-08-30 · 15.7 m³/s · 4th percentile · 14°C (filled in)");
   });
 
   it("leaves out a percentile that was never known", () => {
@@ -89,7 +89,7 @@ describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
             spotRowLines(spot({ ...later, dayFlow: { state: "none", station: "08MH001", date: "2026-08-30",
                                                      why: "no-discharge", askedAt: 0 } }))[0]])
       .toEqual(["2026-08-30 · flow that day not read yet · no weather",
-                "2026-08-30 · 15.7 m³/s · p4th · no weather",
+                "2026-08-30 · 15.7 m³/s · 4th percentile · no weather",
                 "2026-08-30 · no flow that day · no weather"]);
   });
 
@@ -103,10 +103,10 @@ describe("spotRowLines — the list row, by the LOCAL day of the visit", () => {
             spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "level" } }))[0],
             // declared discharge with no discharge: no number under the wrong unit
             spotRowLines(spot({ reading: { ...both, discharge: null, parameter: "discharge" } }))[0]])
-      .toEqual(["2026-08-30 · 4.162 m · p43rd · no weather",
-                "2026-08-30 · 5.46 m³/s · p43rd · no weather",
-                "2026-08-30 · 5.46 m³/s · p43rd · no weather",
-                "2026-08-30 · 4.162 m · p43rd · no weather",
+      .toEqual(["2026-08-30 · 4.162 m · 43rd percentile · no weather",
+                "2026-08-30 · 5.46 m³/s · 43rd percentile · no weather",
+                "2026-08-30 · 5.46 m³/s · 43rd percentile · no weather",
+                "2026-08-30 · 4.162 m · 43rd percentile · no weather",
                 "2026-08-30 · no gauge · no weather"]);
   });
 });

@@ -4,7 +4,7 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
-import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, percentileOrdinal, standing } from "@app/core";
+import { FLOW_LEGEND, KEY_ISOLATE_WORDS, legendCount, legendTickLabel, standing } from "@app/core";
 import { ScrollView, useWindowDimensions, View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -267,7 +267,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
             // (T243) a labelled picture, said as one: a label on a role-less view is ignored by screen readers (axe)
             <View key={i} accessibilityRole="image"
                   accessibilityLabel={legendTickLabel(c, markWords ? markWords((i + 0.5) / BINS)
-                                                      : FLOW_LEGEND.near(percentileOrdinal((i + 0.5) / BINS)))}
+                                                      : FLOW_LEGEND.near((i + 0.5) / BINS))}
                   style={{ position: "absolute", bottom: BAR, left: pct(i / BINS), width: pct(1 / BINS),
                            paddingHorizontal: 0.5 }}>
               <View style={{ height: Math.max(3, (c / peak) * TICKS), backgroundColor: palette.ink, opacity: 0.8 }} />

@@ -8,9 +8,10 @@ import { describe, expect, it } from "vitest";
 import {
   ALERT_STALE_MS, alertContextLine, alertLine, alertListLine, alertNotification, alertSummary, evaluateAlert,
   evaluateAlerts, findGauges, hasRecord, migrateAlertRule, newestReading, normalRangeOf, parseAlertValue,
-  percentileByDay, percentileName, percentileOk, rearmMargin, readingDay, runLine, thresholdAt, NOTIFY_WORDS,
+  percentileByDay, percentileOk, rearmMargin, readingDay, runLine, thresholdAt, NOTIFY_WORDS,
   type AlertReading, type AlertRuleState, type AlertThreshold, type GaugeAlertRule,
 } from "./alerts";
+import { percentileName } from "./standing";
 import { calendarDayOfYear } from "./day";
 import { ordinal, percentileInBand, valueAtPercentile, type Band } from "./flow";
 

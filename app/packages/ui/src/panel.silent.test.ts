@@ -55,8 +55,8 @@ describe("a silent panel member", () => {
     // Weight order is LEAD, SECOND, then the weight-0 members in panel order: STALE, COAL, RANKLESS, GONE.
     expect(answer().rows.map((r) => r.station)).toEqual(["LEAD", "SECOND", "STALE", "COAL", "RANKLESS", "GONE"]);
     expect(vm.rows.map((r) => [r.station, r.row, r.quiet, r.reads])).toEqual([
-      ["LEAD", 0, false, "Reads lower than 8 days in 10 at this time of year."],
-      ["SECOND", 1, false, "Reads lower than 7 days in 10 at this time of year."],
+      ["LEAD", 0, false, "Reads below normal · 20th percentile."],
+      ["SECOND", 1, false, "Reads normal · 30th percentile."],
       ["RANKLESS", 4, true, "Reporting, but its reading cannot be ranked today."],
     ]);
   });

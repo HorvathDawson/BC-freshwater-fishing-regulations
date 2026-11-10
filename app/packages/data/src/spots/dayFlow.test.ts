@@ -194,7 +194,7 @@ describe("the visit day's flow on a spot", () => {
     const got = await fillDayFlow(s, { source: source(), hydat: hydat({ kind: "none" }) }, SAVED);
     expect(got.spot.dayFlow).toEqual({ state: "filled", station: "08MH001", date: "2026-10-20", discharge: 30,
                                        percentile: 0.375, place: 0.375, source: "feed", filledAt: SAVED });
-    expect(dayFlowLine(got.spot.dayFlow)).toBe("30.0 m³/s, the 38th percentile for the date — filled in from the day's "
+    expect(dayFlowLine(got.spot.dayFlow)).toBe("30 m³/s, the 38th percentile for the date — filled in from the day's "
       + "record (ECCC's daily mean, provisional, 20 Oct 2026).");
   });
 

@@ -7,7 +7,8 @@
  * The group's name is AS SOURCED ("Chilliwack River"); the word around it is here. A day no gauge in the group reaches
  * says so — never a blank.
  */
-import { standing, standingWord, type Standing } from "./flow";
+import { standing, type Standing } from "./flow";
+import { bandWord } from "./standing";
 import { DAY_HORIZONS, HORIZON_LABELS, horizonDateChip, type DayHorizon, type Horizon } from "./conditions";
 
 export const BASIN_DAYS_WORDS = {
@@ -57,7 +58,6 @@ export interface BasinDaysVM {
   readonly noneKey: string | null;
 }
 
-const sentence = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 
 /**
  * THE LIST: one row per day horizon, in order. `standings` holds the group's value for each day it has one (a day
@@ -69,7 +69,7 @@ export function basinDaysVM(name: string, standings: ReadonlyMap<DayHorizon, num
     const p = standings.get(d);
     const has = typeof p === "number" && Number.isFinite(p);
     const s = has ? standing(p) : null;
-    const word = s ? sentence(standingWord(s)) : BASIN_DAYS_WORDS.none;
+    const word = s ? bandWord(s) : BASIN_DAYS_WORDS.none;
     const lit = d === on;
     return { day: d, chip: horizonDateChip(d, now), standing: s, percentile: has ? p : null, word,
              label: `${HORIZON_LABELS[d].accessible}: ${word.toLowerCase()}${lit ? ", showing" : ""}`, on: lit };

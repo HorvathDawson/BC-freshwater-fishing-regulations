@@ -4,6 +4,7 @@
  * weather window), and the Spots list. Started with the one FIGURE (the weather window's column heads, an hour either
  * side of the visit) so that no component types a number of its own (`tools/data-vs-ui.test.ts`).
  */
+import { standingLong } from "./standing";
 export const SPOT_WINDOW = {
   /** The column heads: the hour before, the visit, the hour after. */
   before: "−1 h", at: "visit", after: "+1 h",
@@ -80,7 +81,7 @@ export const SPOT_RECORD_WORDS = {
   noReading: "No gauge is entitled to speak for this water, so no reading was recorded. A station draining a far "
     + "larger watershed would have given a number, and the number would have been wrong.",
   /** the reading's standing, said plainly: "42nd percentile for the time of year" */
-  standing: (ordinal: string) => `${ordinal} percentile for the time of year`,
+  standing: (percentile: number) => standingLong(percentile),
   weather: "Weather",
   noWeather: "No weather was recorded for this spot.",
 } as const;

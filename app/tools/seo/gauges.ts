@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { bestServes, gaugePath, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { bestServes, figure, gaugePath, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -57,9 +57,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export function clientScript(): string {
   const src = readFileSync(join(HERE, "gaugeClient.ts"), "utf8");
   const js = ts.transpileModule(src, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText
-    .replace(/^export /gm, "");
-  if (/^\s*import\b/m.test(js)) throw new Error("seo: gaugeClient.ts must not import anything (it ships as one plain script)");
-  return `(function(){"use strict";\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
+    .replace(/^export /gm, "").replace(/^import \{ figure \} from "@app\/core";\n/m, "");
+  if (/^\s*import\b/m.test(js)) throw new Error("seo: gaugeClient.ts must not import anything but core's figure (it ships as one plain script)");
+  // (T583) THE FIGURE IS CORE'S, written into the script from the function itself: the page cannot round differently
+  return `(function(){"use strict";\nconst figure=${figure.toString()};\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
 }
 
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */

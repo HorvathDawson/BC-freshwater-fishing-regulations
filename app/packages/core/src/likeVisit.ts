@@ -24,7 +24,8 @@
  * per day by the publisher's one rule (the first flood model, else ELF). A day ELF made is scored like any other and
  * SAYS so — the factor names the model and the day carries the low-water caveat (`CHANGE_LOW_WATER`, T144).
  */
-import { monthAbbr, percentileOrdinal, weekdayAbbr } from "./flow";
+import { monthAbbr, weekdayAbbr } from "./flow";
+import { percentileSaid } from "./standing";
 import { bcNow } from "./clock";
 import { shiftDay, wallIso } from "./day";
 import { agoWords } from "./freshness";
@@ -160,7 +161,7 @@ export const LIKE_WORDS = {
 /** One value in its unit: "42nd percentile", "14°C", "2.5 mm", "8 km/h", "40%". */
 function said(key: LikeFactorKey, v: number): string {
   switch (key) {
-    case "flow": return `${percentileOrdinal(v)} percentile`;
+    case "flow": return percentileSaid(v);
     case "temp": return `${Math.round(v)}°C`;
     case "rain": return `${round1(v)} mm`;
     case "wind": return `${Math.round(v)} km/h`;

@@ -15,7 +15,8 @@
 //                  that words the standing (T511). No open / closed status: the card is conditions only.
 //   climatology    feeds/live/clim.json, read ONCE per run (and only when a card is to be drawn), kept for the listed
 //                  stations; a run without it draws cards without the band and says so (an event).
-import { plainStanding, standing } from "../../../../../packages/core/src/flow";
+import { standing } from "../../../../../packages/core/src/flow";
+import { figure, standingHeadline } from "../../../../../packages/core/src/standing";
 import { byWeekdays, forecastDueBy, STALE_AFTER } from "../../../../../packages/core/src/staleness";
 import { ATTRIBUTION } from "../forecast";
 import { bandFor, PCTILES } from "../publish";
@@ -167,13 +168,7 @@ export function normalRange(bands: Record<string, Array<number | null>> | undefi
   return out.length >= 2 ? out : null;
 }
 
-/** three figures, no false precision — core conditions.ts `chartFigure` (a test holds the two equal) */
-export function figure(v: number): string {
-  const a = Math.abs(v);
-  if (a >= 100) return String(Math.round(v));
-  if (a >= 10) return String(Math.round(v * 10) / 10);
-  return String(Math.round(v * 100) / 100);
-}
+export { figure };
 
 const stamp = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE, month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
 export const pacific = (t: number): string => stamp.format(new Date(t));
@@ -225,7 +220,7 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     unit,
     reading: v,
     value: v === null ? null : `${figure(v)} ${parameter === "level" ? "m" : "m³/s"}`,
-    standing: v === null ? null : plainStanding(standing(nowRow?.percentile ?? null)),
+    standing: v === null ? null : standingHeadline(standing(nowRow?.percentile ?? null)),
     atMs: Number.isFinite(t) ? t : null,
     at: Number.isFinite(t) ? pacific(t) : null,
     stale: !Number.isFinite(t) || now - t > STALE_AFTER.feed.ms,

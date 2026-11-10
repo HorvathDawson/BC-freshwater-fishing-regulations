@@ -97,22 +97,22 @@ describe("the station's daily means", () => {
 
   it("draws each day as a value and its place in the envelope", () => {
     expect(week.map((d) => leadUpGaugeCells(d, "discharge"))).toEqual([
-      { value: "50.0", place: "p63rd" }, { value: "—", place: "" }, { value: "9.14", place: "≤p10" },
-      { value: "120", place: "≥p90" }, { value: "20.0", place: "p25th" }]);
+      { value: "50", place: "63rd percentile" }, { value: "—", place: "" }, { value: "9.14", place: "≤10th percentile" },
+      { value: "120", place: "≥90th percentile" }, { value: "20", place: "25th percentile" }]);
     expect(leadUpGaugeCells(g("2026-08-23", null, null, 1.4231, 0.5), "level"))
-      .toEqual({ value: "1.42", place: "p50th" });
+      .toEqual({ value: "1.42", place: "50th percentile" });
   });
 
   it("says each day whole", () => {
     expect(week.map((d) => leadUpGaugeSentence(d, "discharge"))).toEqual([
-      "Sun Aug 23: 50.0 m³/s, the 63rd percentile for the day",
+      "Sun Aug 23: 50 m³/s, the 63rd percentile for the day",
       "Mon Aug 24: no daily mean recorded",
       "Tue Aug 25: 9.14 m³/s, at or below the 10th percentile for the day",
       "Wed Aug 26: 120 m³/s, at or above the 90th percentile for the day",
-      "Thu Aug 27: 20.0 m³/s, the 25th percentile for the day",
+      "Thu Aug 27: 20 m³/s, the 25th percentile for the day",
     ]);
     expect(leadUpGaugeSentence(g("2026-08-23", 3.2, null), "discharge"))
-      .toBe("Sun Aug 23: 3.20 m³/s, no record to compare it with");
+      .toBe("Sun Aug 23: 3.2 m³/s, no record to compare it with");
   });
 
   it("says a value ON p10 / p90 truthfully: the ranking clamps at the edge, so the words say 'at or' (T107 review)", () => {
@@ -120,8 +120,8 @@ describe("the station's daily means", () => {
     const onEdge = [g("2026-08-23", 0, placeInBand(0, [0, 0, 0, 0.4, 1.7])),
                     g("2026-08-24", 1.7, placeInBand(1.7, [0, 0, 0, 0.4, 1.7]))];
     expect(onEdge.map((d) => [leadUpGaugeSentence(d, "discharge"), leadUpGaugeCells(d, "discharge").place])).toEqual([
-      ["Sun Aug 23: 0.00 m³/s, at or below the 10th percentile for the day", "≤p10"],
-      ["Mon Aug 24: 1.70 m³/s, at or above the 90th percentile for the day", "≥p90"],
+      ["Sun Aug 23: 0 m³/s, at or below the 10th percentile for the day", "≤10th percentile"],
+      ["Mon Aug 24: 1.7 m³/s, at or above the 90th percentile for the day", "≥90th percentile"],
     ]);
   });
 
@@ -138,15 +138,15 @@ describe("the station's daily means", () => {
   });
 
   it("names the week's direction from its first and last known days", () => {
-    expect(leadUpGaugeTrend(week, "discharge")).toBe("Flow fell over the week: 50.0 → 20.0 m³/s");
+    expect(leadUpGaugeTrend(week, "discharge")).toBe("Flow fell over the week: 50 → 20 m³/s");
     expect(leadUpGaugeTrend([g("2026-08-23", 20, null), g("2026-08-29", 30, null)], "discharge"))
-      .toBe("Flow rose over the week: 20.0 → 30.0 m³/s");
+      .toBe("Flow rose over the week: 20 → 30 m³/s");
     expect(leadUpGaugeTrend([g("2026-08-23", 41.2, null), g("2026-08-29", 42, null)], "discharge"))
-      .toBe("Flow held steady over the week: 41.2 → 42.0 m³/s");
+      .toBe("Flow held steady over the week: 41.2 → 42 m³/s");
     expect(leadUpGaugeTrend([g("2026-08-23", null, null, 1.2), g("2026-08-29", null, null, 1.21)], "level"))
-      .toBe("Level held steady over the week: 1.20 → 1.21 m");
+      .toBe("Level held steady over the week: 1.2 → 1.21 m");
     expect(leadUpGaugeTrend([g("2026-08-23", null, null, 1.2), g("2026-08-29", null, null, 1.35)], "level"))
-      .toBe("Level rose over the week: 1.20 → 1.35 m");
+      .toBe("Level rose over the week: 1.2 → 1.35 m");
   });
 
   it("claims no direction from fewer than two days", () => {

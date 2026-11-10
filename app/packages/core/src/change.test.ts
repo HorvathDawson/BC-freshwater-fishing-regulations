@@ -44,33 +44,33 @@ const FALL: RunChange = {
 describe("one model's expected change, said whole", () => {
   it("a spike between the sampled days: dated, and when it is back down", () => {
     expect(changeLine("CLEVER", SPIKE, TODAY)).toBe(
-      "CLEVER: rises to about 25× today's flow on Mon (77th percentile, high for the time of year), back down by Tue.");
+      "CLEVER: rises to about 25× today's flow on Mon (77th percentile, above normal for the time of year), back down by Tue.");
   });
 
   it("a step: dated, and that it stays up", () => {
     expect(changeLine("CLEVER", STEP, TODAY)).toBe(
-      "CLEVER: rises to about 3× today's flow by Wed (59th percentile, about normal for the time of year) and stays up.");
+      "CLEVER: rises to about 3× today's flow by Wed (59th percentile, normal for the time of year) and stays up.");
   });
 
   it("a fall a week or more out names the date as well as the day", () => {
     expect(changeLine("ELF", FALL, TODAY)).toBe(
-      "ELF: falls to about 60% of today's flow by Sun 1 Nov (15th percentile, low for the time of year).");
+      "ELF: falls to about 60% of today's flow by Sun 1 Nov (15th percentile, below normal for the time of year).");
   });
 
   it("a move still going on the last day shown is never said to stay up: the forecast stops there (T52 review)", () => {
     // 08EE020's ELF run as read: its window ends Sun 1 Nov, the very day of its lowest
     const fallDays: RunChange["days"] = [["2026-10-31", 6.7, 6.7], ["2026-11-01", 6.5968, 6.5968]];
     expect(changeLine("ELF", { ...FALL, days: fallDays }, TODAY)).toBe(
-      "ELF: falls to about 60% of today's flow by Sun 1 Nov (15th percentile, low for the time of year), still falling on the last day "
+      "ELF: falls to about 60% of today's flow by Sun 1 Nov (15th percentile, below normal for the time of year), still falling on the last day "
       + "shown.");
     // a COFFEE run (five days) still climbing on its last
     const open: RunChange = { ...STEP, days: [["2026-10-27", 1.5, 1.6], ["2026-10-28", 2.0, 2.127]] };
     expect(changeLine("COFFEE", open, TODAY)).toBe(
-      "COFFEE: rises to about 3× today's flow by Wed (59th percentile, about normal for the time of year), still rising on the last day "
+      "COFFEE: rises to about 3× today's flow by Wed (59th percentile, normal for the time of year), still rising on the last day "
       + "shown.");
     // the same peak with a day after it, held: a step
     expect(changeLine("COFFEE", { ...open, days: [...open.days, ["2026-10-29", 2.1, 2.12]] }, TODAY)).toBe(
-      "COFFEE: rises to about 3× today's flow by Wed (59th percentile, about normal for the time of year) and stays up.");
+      "COFFEE: rises to about 3× today's flow by Wed (59th percentile, normal for the time of year) and stays up.");
   });
 
   it("steady says so, and says nothing of the record", () => {
@@ -81,21 +81,21 @@ describe("one model's expected change, said whole", () => {
     const both: RunChange = { ...SPIKE, dir: "both",
       trough: { day: "2026-10-30", ratio: 0.4, value: 0.19, back: null } };
     expect(changeLine("CLEVER", both, TODAY)).toBe(
-      "CLEVER: rises to about 25× today's flow by Mon (77th percentile, high for the time of year), "
+      "CLEVER: rises to about 25× today's flow by Mon (77th percentile, above normal for the time of year), "
       + "then falls to about 40% of today's flow by Fri 30 Oct.");
   });
 
   it("(T367) the end's percentile is said whenever the station has a record, a small move too; never without one", () => {
     const small = { ...SPIKE, peak: { ...SPIKE.peak, points: CHANGE_POLICY.bigPoints - 0.01 } };
     expect(changeLine("CLEVER", small, TODAY)).toBe(
-      "CLEVER: rises to about 25× today's flow on Mon (77th percentile, high for the time of year), back down by Tue.");
+      "CLEVER: rises to about 25× today's flow on Mon (77th percentile, above normal for the time of year), back down by Tue.");
     const unranked = { ...SPIKE, peak: { ...SPIKE.peak, percentile: undefined, points: undefined } };
     expect(changeLine("CLEVER", unranked, TODAY)).toBe("CLEVER: rises to about 25× today's flow on Mon, back down by Tue.");
   });
 
   it("(T367) unnamed, the station's own line opens on what happens; the models are one quiet note", () => {
     expect(changeLine(null, STEP, TODAY)).toBe(
-      "Rises to about 3× today's flow by Wed (59th percentile, about normal for the time of year) and stays up.");
+      "Rises to about 3× today's flow by Wed (59th percentile, normal for the time of year) and stays up.");
     expect([changeShort(SPIKE, TODAY), changeShort(FALL, TODAY), changeShort({ ...FALL, dir: "steady" }, TODAY)])
       .toEqual(["rises to 23× (Mon)", "falls to 0.6× (Sun 1 Nov)", "little change"]);
     expect(changeModelsNote([{ model: "CLEVER", change: SPIKE }, { model: "COFFEE", change: { ...FALL, dir: "steady" } }], TODAY))
@@ -292,7 +292,7 @@ describe("the station's change, by the models the publisher chose (T144)", () =>
 
   it("says a joined change as one line", () => {
     expect(changeSourceLine(JOINED, TODAY)).toBe(
-      "CLEVER and COFFEE together: rises to more than 100× today's flow on Sun (95th percentile, very high for the time of year), "
+      "CLEVER and COFFEE together: rises to more than 100× today's flow on Sun (95th percentile, much above normal for the time of year), "
       + "back down by Mon.");
   });
 

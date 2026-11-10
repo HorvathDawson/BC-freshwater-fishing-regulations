@@ -4,7 +4,7 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, weekdayAbbr, percentileLabel, percentileOrdinal, readingIn,
+import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, weekdayAbbr, figure, percentileSaid, placeChip, placeSaid, readingIn,
          shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
@@ -118,18 +118,15 @@ export function leadUpQuantity(days: readonly DailyGauge[],
 const UNIT = CONDITIONS_WORDS.unit;
 /** The unit the strip's column is headed with: "m³/s" for flow, "m" for level. */
 export const leadUpUnit = (q: "discharge" | "level"): string => UNIT[q];
-/** A daily mean at the precision the number supports: "9.14", "41.2", "120"; a level to the centimetre. */
-const figure = (v: number, q: "discharge" | "level"): string =>
-  q === "level" ? v.toFixed(2) : v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : String(Math.round(v));
 const valueOf = (d: DailyGauge, q: "discharge" | "level") => (q === "level" ? d.level : d.discharge);
 const placeOf = (d: DailyGauge, q: "discharge" | "level") => (q === "level" ? d.levelPlace : d.dischargePlace);
 
 /**
- * "p63rd", "≤p10", "≥p90", or nothing — the chip under a day's value. AT OR past the edge (T107): the ranking is the
+ * "63rd percentile", "≤10th percentile", "≥90th percentile", or nothing — the chip under a day's value. AT OR past the edge (T107): the ranking is the
  * feed's `percentile_of`, which clamps a value ON p10 / p90 too, so "<p10" would be false for a dry creek at 0 on p10 0.
  */
-const placeChip = (p: DayPlace | null): string =>
-  p === null ? "" : p === "below" ? "≤p10" : p === "above" ? "≥p90" : percentileLabel(p);
+const chipOf = (p: DayPlace | null): string =>
+  p === null ? "" : placeChip(p);
 
 /** A gauge day the feed had not published yet (no mean, not settled as none): a refresh asks for it again. */
 const stillToCome = (d: DailyGauge) => d.discharge === null && d.level === null && !d.none;
@@ -137,8 +134,8 @@ const stillToCome = (d: DailyGauge) => d.discharge === null && d.level === null 
 /** A lead-up gauge day as the strip draws it; a day still to come says so under its dash. */
 export function leadUpGaugeCells(d: DailyGauge, q: "discharge" | "level"): { value: string; place: string } {
   const v = valueOf(d, q);
-  return { value: v === null ? DASH : figure(v, q),
-           place: v === null ? (stillToCome(d) ? "not yet" : "") : placeChip(placeOf(d, q)) };
+  return { value: v === null ? DASH : figure(v),
+           place: v === null ? (stillToCome(d) ? "not yet" : "") : chipOf(placeOf(d, q)) };
 }
 
 /** The day said whole: "Sun Aug 23: 50.0 m³/s, the 63rd percentile for the day". */
@@ -148,11 +145,8 @@ export function leadUpGaugeSentence(d: DailyGauge, q: "discharge" | "level"): st
   if (v === null && stillToCome(d)) return `${p.wd} ${p.mon} ${p.d}: no daily mean published yet`;
   if (v === null) return `${p.wd} ${p.mon} ${p.d}: no daily mean recorded`;
   const at = placeOf(d, q);
-  const where = at === null ? "no record to compare it with"
-    : at === "below" ? "at or below the 10th percentile for the day"
-    : at === "above" ? "at or above the 90th percentile for the day"
-    : `the ${percentileOrdinal(at)} percentile for the day`;
-  return `${p.wd} ${p.mon} ${p.d}: ${figure(v, q)} ${UNIT[q]}, ${where}`;
+  const where = at === null ? "no record to compare it with" : placeSaid(at, "day");
+  return `${p.wd} ${p.mon} ${p.d}: ${figure(v)} ${UNIT[q]}, ${where}`;
 }
 
 /**
@@ -168,7 +162,7 @@ export function leadUpGaugeTrend(days: readonly DailyGauge[], q: "discharge" | "
   const moved = q === "level" ? b - a : a === 0 ? (b > 0 ? 1 : 0) : b / a - 1;
   const step = q === "level" ? 0.05 : 0.1;
   const verb = moved >= step ? "rose" : moved <= -step ? "fell" : "held steady";
-  return `${q === "level" ? "Level" : "Flow"} ${verb} over the week: ${figure(a, q)} → ${figure(b, q)} ${UNIT[q]}`;
+  return `${q === "level" ? "Level" : "Flow"} ${verb} over the week: ${figure(a)} → ${figure(b)} ${UNIT[q]}`;
 }
 
 /** Under the gauge row: whose means they are, and whether they were filled in afterwards. */
@@ -269,11 +263,8 @@ export function dayFlowLine(df: Spot["dayFlow"]): string | null {
         + "stands in for a flow."
       : `Station ${df.station}'s record holds no flow for ${on}.`;
   const p = df.place;
-  const where = p === null ? "no record to rank it against"
-    : p === "below" ? "at or below the 10th percentile for the date"
-    : p === "above" ? "at or above the 90th percentile for the date"
-    : `the ${percentileOrdinal(p)} percentile for the date`;
-  return `${figure(df.discharge, "discharge")} ${UNIT.discharge}, ${where} — filled in from the day's record `
+  const where = p === null ? "no record to rank it against" : placeSaid(p, "date");
+  return `${figure(df.discharge)} ${UNIT.discharge}, ${where} — filled in from the day's record `
     + `(${DAY_SOURCE[df.source]}, ${on}).`;
 }
 
@@ -374,7 +365,7 @@ function tripDayGauge(spot: Spot): string {
   const df = spot.dayFlow;
   if (df?.state === "filled") {
     const pct = df.percentile;             // the day's own ranking (a spot record, not a donor's state)
-    return `${figure(df.discharge, "discharge")} ${UNIT.discharge}${pct === null ? "" : ` · ${percentileLabel(pct)}`}`;
+    return `${figure(df.discharge)} ${UNIT.discharge}${pct === null ? "" : ` · ${percentileSaid(pct)}`}`;
   }
   if (df?.state === "none") return "no flow that day";
   return spot.reading?.station || df ? "flow that day not read yet" : "no gauge";
@@ -390,7 +381,7 @@ export function spotRowLines(spot: Spot): [string, string] {
   const g = spot.reading, w = spot.weather, f = spotReadingFigure(g);
   const gauge = isBackdated(spot) && !readingIsTheDays(spot) ? tripDayGauge(spot)
     : g && f
-    ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${percentileLabel(g.percentile)}` : ""}`
+    ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${percentileSaid(g.percentile)}` : ""}`
     : "no gauge";
   const weather = w?.tempC != null ? `${w.tempC}°C${w.backfilled ? " (filled in)" : ""}` : "no weather";
   return [`${localDate(spot.visitedAt ?? spot.createdAt)} · ${gauge} · ${weather}`,

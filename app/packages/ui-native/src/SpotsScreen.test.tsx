@@ -74,7 +74,7 @@ describe("<SpotsScreen>", () => {
     mount([spot({ reading: { station: "08MH001", discharge: 15.7, level: null, percentile: 0.038, at: null },
                   weather: { window: null, tempC: 14, windKph: null, windDir: null, rain3h: null, pressureHpa: null,
                              code: null, at: null } })]);
-    expect(screen.getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · 15.7 m³/s · p4th · 14°C\n49.0974, -121.9675");
+    expect(screen.getByTestId("spot-row-s1").textContent).toBe("2026-08-30 · 15.7 m³/s · 4th percentile · 14°C\n49.0974, -121.9675");
   });
 
   it("draws a spot's first photo from its reference, through the photo store", async () => {

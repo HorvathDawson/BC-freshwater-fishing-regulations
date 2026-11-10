@@ -15,7 +15,7 @@ import { useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
-import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
+import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figure as figureText, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
          forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
@@ -219,7 +219,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           {/* (T367) THE FIGURE AS A STAT: large in the display face, its unit small beside it, the stage after a dot —
               the monospace figure in the chart's teal read as code beside the rest of the card */}
           <View style={{ flexDirection: "row", alignItems: "baseline", columnGap: SPACE.s2, flexWrap: "wrap" }}>
-            <Text testID="reading-figure" style={{ ...TYPE.title, color: palette.ink }}>{figure}</Text>
+            <Text testID="reading-figure" style={{ ...TYPE.title, color: palette.ink }}>{figureText(figure)}</Text>
             <Text style={{ ...TYPE.bodyStrong, color: palette.sub }}>{UNIT[shown]}</Text>
             {/* BOTH NUMBERS WHERE THERE ARE BOTH. */}
             {reading.quantity === shown && reading.stage && (

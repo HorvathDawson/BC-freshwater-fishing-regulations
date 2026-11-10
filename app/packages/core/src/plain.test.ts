@@ -6,7 +6,8 @@
  * interval is 40 points wide.
  */
 import { describe, expect, it } from "vitest";
-import { confidenceWord, inTen, plainStanding, seasonPhrase, standing } from "./flow";
+import { confidenceWord, seasonPhrase, standing } from "./flow";
+import { inTen, standingHeadline } from "./standing";
 import { probit } from "./trust";
 
 describe("saying a percentile in plain words", () => {
@@ -33,9 +34,9 @@ describe("saying a percentile in plain words", () => {
   });
 
   it("gives a headline in words a person would use", () => {
-    expect(plainStanding(standing(0.03))).toBe("Very low for the time of year");
-    expect(plainStanding(standing(0.5))).toBe("About normal for the time of year");
-    expect(plainStanding(standing(null))).toBe("No record to compare against");
+    expect(standingHeadline(standing(0.03))).toBe("Much below normal for the time of year");
+    expect(standingHeadline(standing(0.5))).toBe("Normal for the time of year");
+    expect(standingHeadline(standing(null))).toBe("No record to compare against");
   });
 
   it("sounds less sure as the interval widens", () => {

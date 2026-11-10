@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandAt, PENTADS, standing, standingWord, TRUST_FLOOR, trustWord,
+import { bandAt, PENTADS, standing, TRUST_FLOOR, trustWord,
          type Band } from "./flow";
 
 describe("standing", () => {
@@ -11,7 +11,7 @@ describe("standing", () => {
   });
   it("no record is not normal", () => {
     expect(standing(null)).toBe("no-record");
-    expect(standingWord(standing(null))).toBe("NO RECORD");
+    expect(standing(null)).toBe("no-record");
   });
 });
 

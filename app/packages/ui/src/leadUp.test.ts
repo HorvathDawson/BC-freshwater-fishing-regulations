@@ -42,16 +42,16 @@ describe("leadUpView", () => {
       gauge: {
         unit: "m³/s",
         days: [
-          { label: "Sun Aug 23: 50.0 m³/s, the 50th percentile for the day", day: "Sun 23", value: "50.0", place: "p50th" },
-          { label: "Mon Aug 24: 45.0 m³/s, the 50th percentile for the day", day: "Mon 24", value: "45.0", place: "p50th" },
+          { label: "Sun Aug 23: 50 m³/s, the 50th percentile for the day", day: "Sun 23", value: "50", place: "50th percentile" },
+          { label: "Mon Aug 24: 45 m³/s, the 50th percentile for the day", day: "Mon 24", value: "45", place: "50th percentile" },
           { label: "Tue Aug 25: no daily mean recorded", day: "Tue 25", value: "—", place: "" },
-          { label: "Wed Aug 26: 35.0 m³/s, the 50th percentile for the day", day: "Wed 26", value: "35.0", place: "p50th" },
-          { label: "Thu Aug 27: 30.0 m³/s, the 50th percentile for the day", day: "Thu 27", value: "30.0", place: "p50th" },
-          { label: "Fri Aug 28: 25.0 m³/s, the 50th percentile for the day", day: "Fri 28", value: "25.0", place: "p50th" },
-          { label: "Sat Aug 29: 20.0 m³/s, at or below the 10th percentile for the day", day: "Sat 29", value: "20.0",
-            place: "≤p10" },
+          { label: "Wed Aug 26: 35 m³/s, the 50th percentile for the day", day: "Wed 26", value: "35", place: "50th percentile" },
+          { label: "Thu Aug 27: 30 m³/s, the 50th percentile for the day", day: "Thu 27", value: "30", place: "50th percentile" },
+          { label: "Fri Aug 28: 25 m³/s, the 50th percentile for the day", day: "Fri 28", value: "25", place: "50th percentile" },
+          { label: "Sat Aug 29: 20 m³/s, at or below the 10th percentile for the day", day: "Sat 29", value: "20",
+            place: "≤10th percentile" },
         ],
-        trend: "Flow fell over the week: 50.0 → 20.0 m³/s",
+        trend: "Flow fell over the week: 50 → 20 m³/s",
         meta: "08MH001 · daily means",
         pending: null,
       },
@@ -125,9 +125,9 @@ describe("leadUpView", () => {
             say(leadUpView({ ...lu, parameter: "discharge" }, { ...offline, parameter: "level" })),
             // nothing declared anywhere (saved before T106): discharge, core's default — and a level-only week has none
             say(leadUpView(lu, offline))]).toEqual([
-      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
-      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
-      ["m", "Level rose over the week: 1.00 → 1.60 m", null],
+      ["m", "Level rose over the week: 1 → 1.6 m", null],
+      ["m", "Level rose over the week: 1 → 1.6 m", null],
+      ["m", "Level rose over the week: 1 → 1.6 m", null],
       [null, null, "The station has no daily means for that week."]]);
   });
 

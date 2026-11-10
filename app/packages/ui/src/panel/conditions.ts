@@ -7,7 +7,7 @@ import { speaks, leadOver, throughLakeStations, type DonorRow, type Horizon, typ
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
          forecastFigureLine, donorReads, donorSilent, donorState, leadGapLine, LEVEL_ONLY_LEAD, freshness, gaugeCountLine, noGaugeSentence,
-         readingAgeLine, readingHeading, readingIn, readingStandingLine, shownParameter, stageLine, stateAt,
+         readingAgeLine, readingHeading, readingIn, standingLong, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcNow, now } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
 import { routeLabels, routeValues, type RouteColourVM } from "../routeColour";
@@ -217,7 +217,7 @@ export function useConditionsView(
       forecast: dayName && leadRow
         ? (quantity === "level" && donorState(leadRow, ask).kind === "flow-only" ? leadGapLine(dayName)
            : forecastFigureLine(dayName, donorReads(leadRow, ask))) : null,
-      standing: readingStandingLine(c.percentile, c.standing as Standing | null),
+      standing: standingLong(c.percentile, c.standing as Standing | null),
       percentile: c.percentile ?? null,
       age: readingAgeLine(freshness(c.fetchedAt, now()), c.observedAt),
     };

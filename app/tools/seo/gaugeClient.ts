@@ -14,6 +14,7 @@
  * NO IMPORTS: the build (gauges.ts `clientScript`) transpiles this file to one plain script; everything it needs from
  * the app's packages (words, the weather URL, attributions) arrives in the page's config.
  */
+import { figure } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -79,13 +80,7 @@ export function forecastHtml(f: Facts, now: number): string {
   return `<p class="small">No flow forecast for this gauge.</p>`;
 }
 
-/** three figures, no false precision — core conditions.ts `chartFigure` (a test holds the two equal) */
-export function figure(v: number): string {
-  const a = Math.abs(v);
-  if (a >= 100) return String(Math.round(v));
-  if (a >= 10) return String(Math.round(v * 10) / 10);
-  return String(Math.round(v * 100) / 100);
-}
+// `figure` is core's (standing.ts, T583): clientScript() writes its source into the shipped script, so it is not typed twice
 
 const DAY = 86_400_000;
 const dayLabel = (t: number) => new Date(t).toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "America/Vancouver" });
