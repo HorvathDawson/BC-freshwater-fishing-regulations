@@ -511,11 +511,25 @@ def digest(source: Source, extents: Sequence[Mapping], *, tributaries: Optional[
 # --------------------------------------------------------------------------- the two sources
 
 
+def dfo_heading(loc: Mapping, water: Optional[Mapping]) -> str:
+    """DFO'S WATER HEADING WITH ITS TRIBUTARY QUALIFIER (owner 2026-11-09: "Morice River (including tributaries) in dfo
+    page but in review app it isnt showing the includes tributary part"). The scrape keeps the name without it and the
+    qualifier as the water's `tributaries` flag (true: "(including tributaries)", false: "(excluding tributaries)"),
+    so the heading is put back from the flag — DFO's meaning, not its bytes."""
+    st = loc.get("source_text") or {}
+    name = str(st.get("waters") or loc.get("water") or "")
+    call = (water or {}).get("tributaries")
+    if call is None or "tributar" in name.lower():
+        return name
+    return f"{name} ({'including' if call else 'excluding'} tributaries)"
+
+
 def dfo_source(loc: Mapping, water: Optional[Mapping]) -> Source:
-    """A DFO place's words: the waters line, the specific area, and DFO's own exclusions."""
+    """A DFO place's words: the waters heading (with its tributary qualifier, `dfo_heading` — the tributaries row
+    reads it), the specific area, and DFO's own exclusions."""
     st = loc.get("source_text") or {}
     ex = tuple(e for e in st.get("excludes") or [] if isinstance(e, str))
-    return Source(water=str(st.get("waters") or loc.get("water") or ""), place=str(st.get("specific_area") or ""),
+    return Source(water=dfo_heading(loc, water), place=str(st.get("specific_area") or ""),
                   excludes=ex, whose="DFO")
 
 

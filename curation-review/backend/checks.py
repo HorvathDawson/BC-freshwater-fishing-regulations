@@ -181,6 +181,55 @@ def check_state(mark, digest: str, earlier: str | None = None) -> str:
     return "checked" if mark.verdict == "verified" else "wrong"
 
 
+#: EASIEST FIRST (owner 2026-11-10: "a way to order them by easiest first"): how much work a place is for him with
+#: the priors we have, as (rank, the word shown on its row). Lower is easier; a done place has no rank.
+EASE = (("confirm only", "it has its extent and no ✗ row: look and confirm"),
+        ("proposal ready", "a high-confidence proposal on cuts that are built: preview, then save"),
+        ("one click", "another wording of the same place has its extent saved: one click gives it the same"),
+        ("proposal to check", "a medium / low-confidence proposal (or ours from his note) on cuts that are built"),
+        ("changed", "its words or its extent changed since it was saved or checked: check it again"),
+        ("new cut needed", "a proposal that needs a cut not built yet"),
+        ("no proposal", "no extent and no proposal: draw it"),
+        ("has ✗", "it has its extent, but rows do not match: read them, tick or fix"),
+        ("fault", "a save that was not applied: nothing for him to do"))
+
+
+def ease_of(*, check: str, has_extent: bool, bad: int, twin: bool = False, proposal: dict | None = None) -> dict | None:
+    """THE EASE OF ONE PLACE -> {"rank", "word"} (`EASE`), None when it is done. `proposal`: {"confidence", "new_cut"}
+    of the one proposal the place shows (`dfo.fix_proposal`, else `dfo.suggestion`), None without one. Pure."""
+    if check in DONE_STATES:
+        return None
+    if check == "unapplied":
+        word = "fault"
+    elif check == "stale":
+        word = "changed"
+    elif has_extent:
+        word = "has ✗" if bad else "confirm only"
+    elif twin:
+        word = "one click"
+    elif proposal is None:
+        word = "no proposal"
+    elif proposal.get("new_cut"):
+        word = "new cut needed"
+    else:
+        word = "proposal ready" if proposal.get("confidence") == "high" else "proposal to check"
+    return {"rank": [w for w, _ in EASE].index(word), "word": word}
+
+
+def _proposal_facts(location_id: str, built: frozenset | None = None) -> dict | None:
+    """the one proposal a DFO place shows (the editor's rule: the fix proposal, else the suggestion): its confidence
+    and whether any point of it is a cut not built yet"""
+    import dfo
+    fp, sg = dfo.fix_proposal(location_id), dfo.suggestion(location_id)
+    s = (fp or {}).get("suggestion") or (sg or {}).get("suggestion")
+    if not s:
+        return None
+    pts = [p for piece in (s.get("pieces") or [s]) for p in piece.get("points") or []]
+    built = context().built if built is None else built        # the served atlas's cuts, read once per context
+    new = bool(s.get("new_splits")) or any(p.get("kind") != "split" or p.get("split_id") not in built for p in pts)
+    return {"confidence": None if (fp or {}).get("suggestion") else (sg or {}).get("confidence"), "new_cut": new}
+
+
 def _with_check(rs: list[dict], digest: str, mark, earlier: str | None = None) -> dict:
     """`earlier`: the status the marks' own machinery gives a mark with no checklist (verified / wrong / unsure /
     deferred / stale) — said on the place whatever it is, done only when verified"""
@@ -427,6 +476,9 @@ def _dfo_places() -> list[dict]:
                     "check": got["check"], "new": r["verify"] == "unmarked",
                     # what the place needs before any row can be checked: no extent (unbound), or a cut (needs_cut)
                     "state": r["state"], "proposal": bool(r["suggested"] or r["fix_proposed"]),
+                    "ease": ease_of(check=got["check"], has_extent=bool((loc.get("binding") or {}).get("extents")),
+                                    bad=got["summary"]["bad"], proposal=_proposal_facts(r["id"]),
+                                    twin=any((locs[o][1].get("binding") or {}).get("extents") for o in older)),
                     **({"earlier": got["earlier"]} if "earlier" in got else {}),
                     **({"older": len(older), "older_unconfirmed": unconfirmed} if older else {})})
     return out
@@ -447,6 +499,7 @@ def _regs_places() -> list[dict]:
                         "items": items,
                         "region": str(e.get("region") or region), "text": r.get("verbatim") or "",
                         "summary": got["summary"], "check": got["check"],
+                        "ease": ease_of(check=got["check"], has_extent=True, bad=got["summary"]["bad"]),
                         **({"earlier": got["earlier"]} if "earlier" in got else {})})
     return out
 
@@ -650,7 +703,18 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
                 # the last date DFO's page carried this wording (`review.dfo.location_wordings`)
                 "last_seen": max((d_ for w_ in D.location_wordings(loc) for d_ in w_.get("dates") or []), default=None),
                 "proposal": bool(r.get("suggested") or r.get("fix_proposed")),
+                "ease": ease_of(check=got["check"], has_extent=bool(exts), bad=got["summary"]["bad"],
+                                proposal=_proposal_facts(lid), twin=lid in twins),
                 **({"earlier": got["earlier"]} if "earlier" in got else {})}
+    # a wording with no extent whose group (the place it rides, or a wording riding it) has one: one click gives it
+    twins: set[str] = set()
+    for p in mine:
+        if p["source"] != "dfo":
+            continue
+        ids = [m["id"] for m in (groups.get(p["id"]) or {}).get("members") or [] if m["id"] in locs] or [p["id"]]
+        has = [i for i in ids if (locs[i][1].get("binding") or {}).get("extents")]
+        if has:
+            twins |= {i for i in ids if i not in has}
     for p in mine:
         if p["source"] == "dfo":
             out.append(dfo_place(p["id"], p, None))
@@ -666,11 +730,15 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
             out.append({"source": "regs", "id": p["id"], "text": p["text"], "live": True, "check": p["check"],
                         "bad": p["summary"]["bad"], "state": None, "extents": exts, "tributaries": None,
                         "extent_key": f"{_extent_key(exts, None, bool(r.get('tributaries_only')))}", "older_of": None,
+                        "ease": p.get("ease"),
                         "duplicate_of": None, "confirmed": False, "apart": False, "proposal": False, "name": p.get("place_water") or p["water"],
                         **({"earlier": p["earlier"]} if "earlier" in p else {})})
     same = same_place(out)
     out = [{**p, **same[p["id"]]} for p in out]
-    view = {"water_key": water_key, "water": mine[0]["water"], "places": out}
+    first = next((p for p in mine if p["source"] == "dfo"), None)
+    view = {"water_key": water_key, "water": mine[0]["water"], "places": out,
+            # DFO's heading with its tributary qualifier put back (`checklist.dfo_heading`)
+            "heading": C.dfo_heading(locs[first["id"]][1], locs[first["id"]][2]) if first else mine[0]["water"]}
     return reuse._json_safe({**view, "cut_labels": dfo.cut_labels(view), "item_names": dfo.item_names(view)})
 
 

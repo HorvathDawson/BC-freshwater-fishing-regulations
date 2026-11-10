@@ -891,14 +891,17 @@ export interface CheckPlace {
   older?: number; older_unconfirmed?: number;
   /** DFO: the extent's state (`dfo._row`) — unbound / needs_cut have nothing to check yet; a proposal waits for it */
   state?: DfoState | null; proposal?: boolean; earlier?: EarlierMark;
+  /** how much work the place is (`checks.ease_of`): lower rank = easier; null when done */
+  ease?: Ease | null;
 }
+export interface Ease { rank: number; word: string }
 /** one place on a water (GET /api/checks/water): the queue's places and, under each DFO place, its older wordings */
 export interface WaterPlace {
   source: "dfo" | "regs"; id: string; text: string; live: boolean; check: CheckState; bad: number;
   state: DfoState | null; extents: DfoExtent[]; tributaries: boolean | null; extent_key: string;
   older_of: string | null; duplicate_of: string | null; proposal: boolean; earlier?: EarlierMark; name?: string;
   /** DFO: its same-place link is the owner's decision (`confirmed`); he took it out of its group (`apart`) */
-  confirmed?: boolean; apart?: boolean;
+  confirmed?: boolean; apart?: boolean; ease?: Ease | null;
   /** DFO: the extent a mark on it is made on (`extent_before`) */
   seen?: DfoSeenExtent;
   /** DFO: the last date its page carried this wording */
@@ -908,6 +911,8 @@ export interface WaterPlace {
 }
 export interface WaterView {
   water_key: string; water: string; places: WaterPlace[];
+  /** DFO's water heading with its "(including tributaries)" qualifier */
+  heading?: string;
   cut_labels: Record<string, string>; item_names: Record<string, string>;
 }
 export type WaterReach = GeoJSON.FeatureCollection & { failed: { id: string; why: string }[] };
@@ -955,6 +960,8 @@ export interface ExtentPreview {
   walks_tributaries?: boolean;
   /** T524: the pieces (1-based) that bind nothing alone — the build's own check, which refuses them */
   dead_pieces?: number[];
+  /** T532 r7: one line per dead piece, in plain words: why it binds nothing and what to do */
+  dead_why?: string[];
 }
 
 /** T189: a reviewer's tributary call — the water's tributaries should be in, or out */

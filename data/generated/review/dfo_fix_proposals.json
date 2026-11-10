@@ -420,10 +420,10 @@
    }
   },
   "6:bulkley-river:bulkley-river-and-morice-river-wat": {
-   "why": "Owner 11-09: the Forks zone is THREE arms — 100 m up the Morice, 100 m up the upper Bulkley, ~1 km down the Bulkley. FWA: below the confluence the water is the BULKLEY (blk 360873822, gnis 2195); the Morice (gnis 14918) ends at the confluence. Each place binds its own water's arms: this Bulkley place = 100 m up the upper Bulkley (360873822:164908) + the 1 km below (360873822:163908), both existing cuts; the Morice place holds the Morice's 100 m. Tributaries excluded.",
+   "why": "Owner 2026-11-09 (round 7): \"for morice river i cant add bulkley to extents … for the forks it is needed … bulkley 100m up to 1000m down on bulkley too\". DFO's own words for this place: \"waters within the four white triangular fishing boundary signs located at the confluence of the Bulkley River and Morice River … The closure starts 100 meters upstream of the confluence and ends approximately 1 kilometre downstream\" — so the distances are DFO's (100 m up each arm, about 1 km down), not ours. The whole zone as 2 pieces on EXISTING built cuts, no new cut: the Morice's last 100 m (morice_river__bulkley_confluence_u100m → morice_river__bulkley_confluence) and the Bulkley from 100 m up the upper Bulkley to 1 km below the confluence (bulkley_river__morice_river_into_bulkley_river_u100m → …_d1000m; in FWA the water below the confluence is the Bulkley). Tributaries excluded on both pieces: a short piece 'including tributaries' would walk the whole system above it. This place's extent now is the Bulkley piece only; the proposal ADDS the Morice piece, so either wording alone shows the whole zone.",
    "status": "proposed",
-   "date": "2026-11-09",
-   "by": "claude (T524), from the notice's words + an FWA check",
+   "date": "2026-11-10",
+   "by": "claude, from DFO's words + the owner's round-7 words; replaces the 11-09 one-water proposal",
    "suggestion": {
     "op": "between",
     "items": [
@@ -437,7 +437,7 @@
      },
      {
       "kind": "split",
-      "split_id": "bulkley_river__morice_river_into_bulkley_river"
+      "split_id": "bulkley_river__morice_river_into_bulkley_river_d1000m"
      }
     ],
     "new_splits": [],
@@ -455,37 +455,36 @@
        },
        {
         "kind": "split",
-        "split_id": "bulkley_river__morice_river_into_bulkley_river"
+        "split_id": "bulkley_river__morice_river_into_bulkley_river_d1000m"
        }
       ]
      },
      {
       "op": "between",
       "items": [
-       "gnis:2195"
+       "gnis:14918"
       ],
       "tributaries": false,
       "points": [
        {
         "kind": "split",
-        "split_id": "bulkley_river__morice_river_into_bulkley_river"
+        "split_id": "morice_river__bulkley_confluence_u100m"
        },
        {
         "kind": "split",
-        "split_id": "bulkley_river__morice_river_into_bulkley_river_d1000m"
+        "split_id": "morice_river__bulkley_confluence"
        }
       ]
      }
     ],
-    "words": "2 pieces on the Bulkley: (1) 100 m up the upper Bulkley to the Morice confluence; (2) the confluence down ~1 km; no tributaries (the Morice place holds the Morice's 100 m)"
+    "words": "the whole Forks zone, 2 pieces: the Bulkley from 100 m up the upper Bulkley to 1 km below the confluence + the Morice's last 100 m; no tributaries"
    }
   },
   "6:morice-river:bulkley-river-and-morice-river-wat": {
-   "why": "Owner 11-09: the Forks zone is THREE arms — 100 m up the Morice, 100 m up the upper Bulkley, ~1 km down the Bulkley (in FWA the water below the confluence is the Bulkley; the Morice ends there). DFO lists the zone twice, once per water, so each place binds its own water's arm and the two together are the zone: this Morice place = the Morice's last 100 m (existing cuts morice_river__bulkley_confluence_u100m → morice_river__bulkley_confluence); the Bulkley place holds the other 2 arms. Tributaries excluded: from a 100 m piece 'including tributaries' would walk the whole Morice system. Replaces the earlier T524 proposal, which wrongly gave this place the 2 Bulkley arms and dropped the Morice.",
+   "why": "Owner 2026-11-09 (round 7): \"for morice river i cant add bulkley to extents … for the forks it is needed … bulkley 100m up to 1000m down on bulkley too\". DFO's own words for this place: \"waters within the four white triangular fishing boundary signs located at the confluence of the Bulkley River and Morice River … The closure starts 100 meters upstream of the confluence and ends approximately 1 kilometre downstream\" — so the distances are DFO's (100 m up each arm, about 1 km down), not ours. The whole zone as 2 pieces on EXISTING built cuts, no new cut: the Morice's last 100 m (morice_river__bulkley_confluence_u100m → morice_river__bulkley_confluence) and the Bulkley from 100 m up the upper Bulkley to 1 km below the confluence (bulkley_river__morice_river_into_bulkley_river_u100m → …_d1000m; in FWA the water below the confluence is the Bulkley). Tributaries excluded on both pieces: a short piece 'including tributaries' would walk the whole system above it. This place's extent now is the Morice piece only; the proposal ADDS the Bulkley piece.",
    "status": "proposed",
-   "date": "2026-11-09",
-   "by": "claude, from the notice's words + the owner's reading (11-09)",
-   "owner": true,
+   "date": "2026-11-10",
+   "by": "claude, from DFO's words + the owner's round-7 words; replaces the 11-09 one-water proposal",
    "suggestion": {
     "op": "between",
     "items": [
@@ -520,9 +519,26 @@
         "split_id": "morice_river__bulkley_confluence"
        }
       ]
+     },
+     {
+      "op": "between",
+      "items": [
+       "gnis:2195"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "split",
+        "split_id": "bulkley_river__morice_river_into_bulkley_river_u100m"
+       },
+       {
+        "kind": "split",
+        "split_id": "bulkley_river__morice_river_into_bulkley_river_d1000m"
+       }
+      ]
      }
     ],
-    "words": "1 piece on the Morice: its last 100 m, up from the Forks; no tributaries (the Bulkley place holds the upper-Bulkley 100 m and the 1 km below)"
+    "words": "the whole Forks zone, 2 pieces: the Morice's last 100 m + the Bulkley from 100 m up the upper Bulkley to 1 km below the confluence; no tributaries"
    }
   },
   "6:e:section": {

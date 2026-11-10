@@ -209,7 +209,8 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
                 ? " · with tributaries" : " · with tributaries — not drawn; tick Show tributaries to draw"}</span>}
               {preview.walks_tributaries === false && <span> · no tributaries</span>}
               {preview.dead_pieces?.length ? <span className="warn-text" data-testid={`fix-dead-pieces-${tid}`}>
-                {" "}· piece {preview.dead_pieces.join(", ")} binds NOTHING alone — the build refuses it</span> : null}
+                {" "}· piece {preview.dead_pieces.join(", ")} binds NOTHING alone — the build refuses it.
+                {(preview.dead_why ?? []).map((w, i) => <span key={i} style={{ display: "block" }} data-testid="fix-dead-why">{w}</span>)}</span> : null}
             </span>
           : <span className="warn-text" data-testid={`fix-preview-says-${tid}`}>no preview: {preview.why}</span>)}
         {!preview && fix.points.some((p) => p && p.kind !== "split") && (

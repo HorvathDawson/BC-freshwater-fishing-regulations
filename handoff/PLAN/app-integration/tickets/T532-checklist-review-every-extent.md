@@ -338,3 +338,25 @@ when it saves".
 - THE NEXT WATER, always there ("is there a button to go to next river?"): "Next water with work left →" in the screen
   header from anywhere (`checklist.nextWaterWithWork`); when the open water has none left, "<Water>: all N places
   done." with "Go to the next water with work left: <Water>" under the water list's header and in the done block.
+
+## Round 7 (owner 2026-11-09 / 11-10)
+- DFO'S HEADING: "Morice River (including tributaries)" is shown again (title, water list header) and the tributaries
+  row reads it. The qualifier is dropped at the SCRAPE: the places files keep the bare name and the water's
+  `tributaries` flag (56 waters true, 1 false, 104 none); `checklist.dfo_heading` puts it back from the flag — DFO's
+  meaning, not its bytes. No stored name was changed.
+- A PIECE THAT BINDS NOTHING SAYS WHY (`dfo.dead_why`, in the preview): his Forks piece on Bulkley River ran between
+  the MORICE's confluence cut and a Bulkley cut, so nothing lay between them on the Bulkley; the message names the
+  stray cut, the water it is on, and the nearest cut on the piece's own water ("Morice River → Bulkley River").
+- THE FORKS PROPOSAL (ours, `dfo_fix_proposals.json`, both the Morice and the Bulkley wording): the whole zone as two
+  pieces on EXISTING built cuts — the Morice's last 100 m, and the Bulkley from 100 m up the upper Bulkley to 1 km
+  below the confluence. The distances are DFO's own ("starts 100 meters upstream of the confluence and ends
+  approximately 1 kilometre downstream"). A place that already HAS an extent now shows its proposal in the panel
+  with "Preview this proposal on the map (nothing saved)"; a proposal of several pieces previews every piece.
+- HIDE DONE (default on, remembered) and EASIEST FIRST (remembered), in the list and in a water's list; the count
+  says how many done are hidden. THE ORDER (`checks.EASE`, the word on each row): confirm only → proposal ready
+  (high confidence, built cuts) → one click (a twin of a saved wording) → proposal to check (medium / low, or ours
+  from his note) → changed → new cut needed → no proposal → has ✗ → fault. Waters: least total work first (the sum of
+  their not-done places' ranks, then how many are left); a water is never split; "Next water with work left" follows.
+- HIS PROBLEM REPORTS since 2026-11-09 (the marks store): Sheldens Creek → T571; Thompson River → T572. No report on
+  the Morice reached the store: "Report a problem with it" is two steps and the save box was easy to miss — it is now
+  scrolled into view and says "Step 2 of 2 — nothing is saved until 'Save the problem report'".

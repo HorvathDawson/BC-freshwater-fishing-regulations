@@ -690,7 +690,8 @@ def detail(location_id: str) -> dict | None:
         "places": water_places(loc.get("water_id"), location_id) if loc.get("water_id") else [],
         "wordings": D.location_wordings(loc),
         "items": [_item_ref(i) for i in (water or {}).get("item_ids") or []],
-        "page_url": D.page_url(slug), "verbatim": {"waters": st.get("waters") or loc.get("water"),
+        # the heading with its "(including tributaries)" qualifier put back (`checklist.dfo_heading`)
+        "page_url": D.page_url(slug), "verbatim": {"waters": _heading(loc, water),
                                                    "specific_area": st.get("specific_area") or ""},
         "rows": rows, "rules": labels, "need": D.need(loc),
         "splits": _splits_fc(loc, water),
@@ -701,6 +702,51 @@ def detail(location_id: str) -> dict | None:
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
     }
     return reuse._json_safe({**view, "cut_labels": cut_labels(view), "item_names": item_names(view)})
+
+
+def _heading(loc: dict, water: dict | None) -> str:
+    from pipeline.regs.review import checklist as CL
+    return CL.dfo_heading(loc, water)
+
+
+def dead_why(fixes, dead: list[int], water: dict | None) -> list[str]:
+    """WHY A PIECE BINDS NOTHING, in plain words (owner 2026-11-09, the Forks: a piece on Bulkley River between a cut
+    of the MORICE and a cut of the Bulkley): a `between` / upstream / downstream piece holds on its own waters (`items`,
+    else the place's), so a point that is a cut on ANOTHER water gives it nothing to run between. -> one line per dead
+    piece naming the stray cut, the water it is on, and the cuts that ARE on the piece's water."""
+    reg, bounds = reuse._registry(), reuse._boundary_index()
+    label = lambda s: getattr(bounds[s][1], "label", None) or s            # noqa: E731
+    name = lambda i: getattr(reg.get(i), "name", None) or i                # noqa: E731
+    out = []
+    for i in dead:
+        f = fixes[i]
+        items = list(f.items) or list((water or {}).get("item_ids") or [])
+        on = ", ".join(name(x) for x in items) or "its water"
+        stray = [(p.split_id, bounds[p.split_id][0]) for p in f.points
+                 if p.kind == "split" and p.split_id in bounds and bounds[p.split_id][0] not in items]
+        here = [s for s, (it, _b) in bounds.items() if it in items]
+
+        def at(sid):
+            try:
+                return reuse._split_point(sid)
+            except Exception:  # noqa: BLE001 — a cut the atlas cannot place is simply not offered as the nearest
+                return None
+
+        def nearest(sid) -> str | None:
+            p0 = at(sid)
+            cand = [(p0.distance(q), c) for c in here if p0 is not None and (q := at(c)) is not None]
+            return label(min(cand)[1]) if cand else None
+        if stray:
+            tips = [n for s, _it in stray if (n := nearest(s))]
+            out.append(f"piece {i + 1} is on {on}, but " + " and ".join(
+                f"“{label(s)}” is a cut on {name(it)}" for s, it in stray)
+                + f": a piece runs between cuts on its own water. Pick the cut on {on} instead"
+                + (f" — the nearest one there is “{tips[0]}”" if tips else
+                   f" (cuts there: {'; '.join(sorted(map(label, here))[:8])})" if here else f" ({on} has no cut yet: add a new cut)") + ".")
+        else:
+            out.append(f"piece {i + 1} binds nothing on {on}: its cuts are there but no stretch lies between them as "
+                       "given (the same cut twice, or the op runs away from the other point). Check the op and the points.")
+    return out
 
 
 def _member_check(mid: str, m) -> dict:
@@ -849,6 +895,7 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
     dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph())
     if dead:
         out["dead_pieces"] = [i + 1 for i in dead]
+        out["dead_why"] = dead_why(fixes, list(dead), water)
     return out
 
 

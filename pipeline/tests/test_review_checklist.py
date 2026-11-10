@@ -473,3 +473,58 @@ def test_the_owners_two_piece_alouette_save_reads_as_built_as_saved():
     assert BD.same_extents(mine, curated)
     assert not BD.same_extents(mine, curated[:1])                    # a piece missing is a difference
     sys.modules.pop("dfo", None)
+
+
+def test_dfos_heading_gets_its_tributary_qualifier_back_and_the_tributaries_row_reads_it():
+    """owner 2026-11-09: "Morice River (including tributaries) in dfo page but in review app it isnt showing the includes
+    tributary part" — the scrape keeps the qualifier as the water's flag; the heading and the row put it back"""
+    loc = {"water": "Morice River", "source_text": {"waters": "Morice River", "specific_area": "below Lamprey Creek."}}
+    assert C.dfo_heading(loc, {"tributaries": True}) == "Morice River (including tributaries)"
+    assert C.dfo_heading(loc, {"tributaries": False}) == "Morice River (excluding tributaries)"
+    assert C.dfo_heading(loc, {"tributaries": None}) == C.dfo_heading(loc, None) == "Morice River"
+    kept = {"source_text": {"waters": "Alouette River and tributaries"}}
+    assert C.dfo_heading(kept, {"tributaries": True}) == "Alouette River and tributaries"      # never said twice
+    ctx = C.Context(labels={}, items={"i1": "Morice River"}, built=frozenset(), pending=frozenset(), points={})
+    src = C.dfo_source(loc, {"tributaries": True})
+    trib = lambda walks: next(r for r in C.rows(src, [{"op": "whole", "item_id": "i1"}], own_items=["i1"], ctx=ctx,   # noqa: E731
+                                                tributaries=walks) if r["kind"] == "tributaries")
+    assert trib(True)["state"] == "ok" and "including tributaries" in trib(True)["quote"].lower()
+    assert trib(False)["state"] == "bad"                     # the heading takes them in, ours does not walk them
+
+
+def test_easiest_first_ranks_a_place_by_the_work_it_is_and_says_why(monkeypatch):
+    """owner 2026-11-10: "order them by easiest first" — the order, and the word shown on each row"""
+    B = _backend(monkeypatch, "checks")
+    e = lambda **kw: B.ease_of(**{"check": "unchecked", "has_extent": False, "bad": 0, **kw})   # noqa: E731
+    got = [e(has_extent=True), e(proposal={"confidence": "high", "new_cut": False}), e(twin=True),
+           e(proposal={"confidence": "low", "new_cut": False}), e(check="stale", has_extent=True),
+           e(proposal={"confidence": "high", "new_cut": True}), e(), e(has_extent=True, bad=2),
+           e(check="unapplied", has_extent=True)]
+    assert [g["word"] for g in got] == ["confirm only", "proposal ready", "one click", "proposal to check", "changed",
+                                        "new cut needed", "no proposal", "has ✗", "fault"]
+    assert [g["rank"] for g in got] == list(range(9))
+    assert all(B.ease_of(check=c, has_extent=True, bad=3) is None for c in B.DONE_STATES)        # done: no rank
+    assert e(twin=True, proposal={"confidence": "high", "new_cut": False})["word"] == "one click"  # the twin wins
+
+
+def test_a_dead_piece_says_why_in_plain_words_and_names_the_cut_to_pick(monkeypatch):
+    """owner 2026-11-09 (the Forks): his piece on Bulkley River ran between the MORICE's confluence cut and a Bulkley
+    cut — it bound nothing and the screen only said "binds NOTHING". Now: which cut is on which water, and the nearest
+    cut on the piece's own water."""
+    BD = _backend(monkeypatch, "dfo")
+    from types import SimpleNamespace as NS
+    from shapely.geometry import Point
+    monkeypatch.setattr(BD.reuse, "_registry", lambda: {"m": NS(name="Morice River"), "b": NS(name="Bulkley River")})
+    monkeypatch.setattr(BD.reuse, "_boundary_index", lambda: {
+        "m_conf": ("m", NS(label="Bulkley River confluence (the Forks)")), "b_conf": ("b", NS(label="Morice River → Bulkley River")),
+        "b_up": ("b", NS(label="100 m up the upper Bulkley")), "b_far": ("b", NS(label="Quick bridge"))})
+    monkeypatch.setattr(BD.reuse, "_split_point", lambda s: {"m_conf": Point(0, 0), "b_conf": Point(1, 0), "b_up": Point(90, 0),
+                                                            "b_far": Point(9000, 0)}[s])
+    piece = lambda a, b, items: M.ExtentFix(scope="entry", op="between", items=items, tributaries=None,   # noqa: E731
+                                            points=[{"kind": "split", "split_id": a}, {"kind": "split", "split_id": b}])
+    fixes = [piece("m_conf", "m_conf", ["m"]), piece("m_conf", "b_up", ["b"])]
+    got = BD.dead_why(fixes, [1], {"item_ids": ["m"]})
+    assert got == ["piece 2 is on Bulkley River, but “Bulkley River confluence (the Forks)” is a cut on Morice River: a piece "
+                   "runs between cuts on its own water. Pick the cut on Bulkley River instead — the nearest one there is "
+                   "“Morice River → Bulkley River”."]
+    assert "its cuts are there but no stretch lies between them" in BD.dead_why(fixes, [0], {"item_ids": ["m"]})[0]

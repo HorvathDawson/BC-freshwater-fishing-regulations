@@ -5,7 +5,7 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { HOW_IT_WORKS, LEAVE_DRAFT, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
 import { markBody, offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
@@ -166,7 +166,13 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   }, [waterKey, drawable, version]);
 
   const nav = useRef({ next: null as string | null, prev: null as string | null });
-  const list = queue ?? [];
+  // owner 2026-11-10: "order them by easiest first and … hide the ones that are done" — both remembered
+  const [hideDone, setHideDone] = useState(() => pref("ck-hide-done", true));
+  const [easiest, setEasiest] = useState(() => pref("ck-easiest-first", false));
+  // (a filter that ASKS for done places — verified earlier, saved by you — shows them whatever the toggle says)
+  const hiding = hideDone && !["earlier", "saved"].includes(filter);
+  const arranged = useMemo(() => arrange(queue ?? [], { easiest, hideDone: hiding, keep: selected }), [queue, easiest, hiding, selected]);
+  const list = arranged.list;
   // an older wording is not a queue row: prev / next and the position are those of the place it rides
   const rides = selected && !list.some((p) => p.id === selected)
     ? waterView?.places.find((p) => p.id === selected)?.older_of ?? selected : selected;
@@ -227,7 +233,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 
   // from anywhere: the next water that still has work, and whether this water is finished
   const nextWater = useMemo(() => nextWaterWithWork(list, rides ?? null), [list, rides]);
-  const here = useMemo(() => waterLeft(list, ridden?.water_key ?? null), [list, ridden]);
+  const here = useMemo(() => waterLeft(queue ?? [], ridden?.water_key ?? null), [queue, ridden]);
   const waterDoneLine = ridden && here.total > 0 && here.left === 0 ? (
     <div className="ck-water-done" data-testid="ck-water-done">
       <b>{ridden.water}: all {here.total} places done.</b>{" "}
@@ -285,7 +291,11 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
           {waters.map((p) => <option key={p.water_key} value={p.water_key}>{p.water} · r{p.region}</option>)}
         </select>
         <input type="search" placeholder="find a water or words…" value={q} aria-label="find" onChange={(e) => setQ(e.target.value)} />
-        <span className="dim">{queue ? `${list.length} places on ${waters.length} waters` : "loading…"}</span>
+        <label className="ck-toggle" title="done = saved by you, verified earlier, confirmed, or reported"><input type="checkbox" data-testid="ck-hide-done"
+          checked={hideDone} onChange={(e) => { setHideDone(e.target.checked); setPref("ck-hide-done", e.target.checked); }} /> hide done</label>
+        <label className="ck-toggle" title="the waters with the least work first, and the easiest place first on each water; the word on each row says why"><input type="checkbox" data-testid="ck-easiest"
+          checked={easiest} onChange={(e) => { setEasiest(e.target.checked); setPref("ck-easiest-first", e.target.checked); }} /> easiest first</label>
+        <span className="dim" data-testid="ck-count">{queue ? `${list.length} places on ${waters.length} waters${arranged.hidden ? ` · ${arranged.hidden} done hidden` : ""}` : "loading…"}</span>
         {staleMarks > 0 && <span className="dim" data-testid="ck-stale-marks"
           title="marks in force whose target moved since (every review tab): the queue lists them as changed">
           · {staleMarks} mark{staleMarks === 1 ? "" : "s"} stale</span>}
@@ -313,6 +323,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
           <aside className="ck-side">
             {waterView && waterView.places.some((p) => p.id === selected) && (
               <WaterList view={waterView} selected={selected} onOpen={open} onHover={setHover} done={waterDoneLine}
+                hideDone={hideDone} easiest={easiest}
                 undrawn={waterReach && waterReach.key === waterKey ? waterReach.fc.failed : []} />)}
             {cur && editing && cur.dfo ? (
               <div className="ck-panel" data-testid="ck-inline-editor">
@@ -371,13 +382,15 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
       const cuts = await newCutChecks(id, (best.s.suggestion?.new_splits ?? []).filter((n) => !n.coord), at);
       let feats: GeoJSON.Feature[] = proposalPoints(d, best.s, label, true, cuts).map((f) => ({ ...f, properties: { ...f.properties, fit: true } }));
       const sg = best.s.suggestion!;
-      if (proposalDraws(best.s)) {
-        const pv = await api.dfoExtentPreview(id, { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
+      // EVERY piece of the proposal (the Forks: one on the Morice, one on the Bulkley), when each names only cuts that exist
+      const whole = fixes.length > 1 && fixes.every((f) => f.points.every((x) => x.kind === "split"));
+      if (whole || proposalDraws(best.s)) {
+        const pv = await api.dfoExtentPreview(id, whole ? fixes : { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
           tributaries: sg.tributaries }, false).catch((e) => { failed("the proposal's preview")(e); return null; });
         if (pv?.resolvable) feats = [...((pv.geojson?.features ?? []) as GeoJSON.Feature[]), ...feats];
       }
       proposal = { words: sg.words ?? partsText(piecesParts(fixes, (f) => fixParts(f, label, name))),
-                   ring: sg.points.filter((x) => x.kind === "split" && x.split_id).map((x) => x.split_id as string),
+                   ring: fixes.flatMap((f) => f.points).filter((x) => x.kind === "split" && x.split_id).map((x) => x.split_id as string),
                    from: best.from, confidence: best.from === "suggestion" ? d.suggestion?.confidence ?? null : null,
                    caveat: best.from === "suggestion" ? d.suggestion?.caveat ?? null : null,
                    fc: { type: "FeatureCollection", features: feats } };
@@ -459,6 +472,8 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
     (pc.check === "checked" ? pc.checked?.rows.filter((r) => r.ticked).map((r) => r.n) : []) ?? []));
   const [wrong, setWrong] = useState<Set<number>>(new Set());
   const [wrongMode, setWrongMode] = useState(false);
+  // "Report a problem" is two steps (pick the rows, then save): the save box is brought into view so it is not missed
+  useEffect(() => { if (wrongMode) document.querySelector('[data-testid="ck-wrongbox"]')?.scrollIntoView({ block: "nearest" }); }, [wrongMode]);
   const [note, setNote] = useState("");
   const [reviewer, setName] = useState(getReviewer);
   const [busy, setBusy] = useState(false);
@@ -697,6 +712,17 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
             <div className="dim">One click, saved as your mark on this wording. Not the same place? Take it out of the group below.</div>
           </div>
         )}
+        {!needs && d && loaded.proposal && onEdit && !pc.held && !doneBySave && (
+          <div className="ck-lead" data-testid="ck-proposal-block">
+            <b>We propose another extent for this place (not applied).</b>
+            <div className="ck-prop"><span className="k">proposal</span> <span data-testid="ck-proposal-words">{loaded.proposal.words}</span>
+              {loaded.proposal.confidence && <span className="chip-tag"> {loaded.proposal.confidence} confidence</span>}</div>
+            <div className="dim">Violet on the map beside the extent now. Previewing saves nothing: you save with "Save this extent".</div>
+            <div className="ck-btns">
+              <button className="alt" data-testid="ck-use-proposal" disabled={busy} onClick={() => onEdit("proposal")}>Preview this proposal on the map (nothing saved)</button>
+            </div>
+          </div>
+        )}
         {needs && d && (
           <div className="ck-lead" data-testid="ck-lead">
             <b data-testid="ck-need">{needWords(d.need, d.row.water, ext.length)}</b>
@@ -786,7 +812,7 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
           </>
         ) : (
           <div className="ck-wrongbox" data-testid="ck-wrongbox">
-            <div className="hint">Tap the row(s) that are wrong{wrong.size ? ` (${[...wrong].sort((a, b) => a - b).join(", ")})` : ""}.</div>
+            <div className="hint"><b>Step 2 of 2 — nothing is saved until “Save the problem report”.</b> Tap the row(s) that are wrong{wrong.size ? ` (${[...wrong].sort((a, b) => a - b).join(", ")})` : ""}.</div>
             <input placeholder="note (optional)" value={note} onChange={(e) => setNote(e.target.value)} aria-label="note" />
             <div className="ck-btns">
               <button data-testid="ck-save-wrong" disabled={busy || !wrong.size} onClick={() => void save("wrong")}>Save the problem report</button>
@@ -814,13 +840,27 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
  *  grouped"): every place on the water — live, no longer live, older wordings, its regulation extents — with its words,
  *  its extent in a few words and one state chip; places the data calls the same place under one heading. Click = open;
  *  hover = its extent stronger on the map. */
-function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine }: {
+const pref = (k: string, dflt: boolean) => {
+  try { const v = window.localStorage.getItem(k); return v == null ? dflt : v === "1"; } catch { return dflt; }
+};
+const setPref = (k: string, v: boolean) => { try { window.localStorage.setItem(k, v ? "1" : "0"); } catch { /* per-viewer only */ } };
+
+function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine, hideDone, easiest }: {
+  hideDone: boolean; easiest: boolean;
   view: WaterView; selected: string | null; onOpen: (id: string) => void; onHover: (id: string | null) => void;
   /** the water is finished: said under the header, with the way to the next water */
   done?: React.ReactNode;
   undrawn: { id: string; why: string }[];
 }) {
-  const groups = useMemo(() => waterGroups(view.places), [view.places]);
+  // hide done rows (the shown one stays; a group stays whole while any of its rows is not done), easiest first
+  const groups = useMemo(() => {
+    let gs = waterGroups(view.places);
+    if (hideDone) gs = gs.filter((g) => g.places.some((p) => !isDone(p) || p.id === selected));
+    const rank = (p: WaterPlace) => (isDone(p) ? 99 : p.ease?.rank ?? 50);
+    if (easiest) gs = gs.map((g, i) => ({ g, i, r: Math.min(...g.places.map(rank)) })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.g);
+    return gs;
+  }, [view.places, hideDone, easiest, selected]);
+  const hiddenRows = view.places.length - groups.reduce((n, g) => n + g.places.length, 0);
   const label = (c: string) => view.cut_labels[c] ?? null;
   const name = (i: string) => view.item_names[i] ?? i;
   const done = view.places.filter(isDone).length;
@@ -849,8 +889,8 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine }:
       {open && <button type="button" className="btn small ck-wl-tall" data-testid="ck-water-list-tall" onClick={toggleTall}
         title="how much of the panel this list takes">{tall ? "shorter list" : "taller list"}</button>}
       <button type="button" className="ck-sec ck-wl-head" aria-expanded={open} onClick={toggle}>
-        {open ? "▾" : "▸"} {view.water}: {view.places.length} place{view.places.length === 1 ? "" : "s"} and wordings
-        {" · "}{done} done · {view.places.length - done} left</button>
+        {open ? "▾" : "▸"} {view.heading ?? view.water}: {view.places.length} place{view.places.length === 1 ? "" : "s"} and wordings
+        {" · "}{done} done · {view.places.length - done} left{hiddenRows ? ` · ${hiddenRows} done hidden` : ""}</button>
       {doneLine}
       {open && (
         <div className="ck-wl-rows">
@@ -864,6 +904,7 @@ function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine }:
                   <button type="button" key={p.id} className="ck-wp" aria-current={p.id === selected} data-testid="ck-water-place"
                     onMouseEnter={() => onHover(p.id)} onClick={() => onOpen(p.id)}>
                     <span className={`ck-chip ${chip.replace(/[^a-z]+/g, "-")}`}>{chip}</span>
+                    {p.ease && p.ease.word !== chip && <span className="ck-ease" data-testid="ck-ease" title="how much work it is: the easiest-first order goes by this">{p.ease.word}</span>}
                     <span className="t">{p.source === "regs" ? <i>{p.name ? `${p.name}: ` : ""}</i> : null}
                       {(p.text || "(the whole water)").slice(0, 110)}{(p.text || "").length > 110 ? "…" : ""}</span>
                     <span className="e">{p.source === "regs" ? "regulation · " : ""}

@@ -255,3 +255,18 @@ test("the next water with work, from anywhere; a water's left count; a group's w
   assert.deepEqual(groupStillNeeds(ms).map((m) => m.id), ["d", "e", "f"]);
   assert.deepEqual(groupStillNeeds(ms.slice(0, 3)), []);
 });
+
+test("hide done, and easiest first: least work first, a water never split, the shown place kept", async () => {
+  const { arrange } = await import("../src/checklist.ts");
+  const p = (id: string, water_key: string, check: CheckPlace["check"], rank?: number): CheckPlace => ({ source: "dfo", id, water: water_key,
+    water_key, region: "2", text: id, summary: { ok: 1, bad: 0, worst: "ok" }, check, ease: rank == null ? null : { rank, word: `r${rank}` } });
+  const q = [p("a1", "a", "unchecked", 6), p("a2", "a", "saved"), p("b1", "b", "unchecked", 0), p("b2", "b", "unchecked", 5),
+             p("c1", "c", "checked"), p("d1", "d", "unchecked", 2)];
+  assert.deepEqual(arrange(q, { easiest: false, hideDone: false }).list.map((x) => x.id), q.map((x) => x.id));
+  const hid = arrange(q, { easiest: false, hideDone: true, keep: "c1" });
+  assert.deepEqual(hid.list.map((x) => x.id), ["a1", "b1", "b2", "c1", "d1"]);      // done hidden, the shown one kept
+  assert.equal(hid.hidden, 1);
+  // d (2) < b (0 + 5) < a (6); the finished water c last; inside b the easiest place first; a's done place last
+  assert.deepEqual(arrange(q, { easiest: true, hideDone: false }).list.map((x) => x.id), ["d1", "b1", "b2", "a1", "a2", "c1"]);
+  assert.deepEqual(arrange(q, { easiest: true, hideDone: true }).list.map((x) => x.id), ["d1", "b1", "b2", "a1"]);
+});

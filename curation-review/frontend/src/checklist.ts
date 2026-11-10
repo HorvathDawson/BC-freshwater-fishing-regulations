@@ -225,6 +225,30 @@ export function chipOf(p: Pick<WaterPlace, "check" | "state" | "extents" | "bad"
 export const isDone = (p: { check: PlaceCheck["check"] }) =>
   p.check === "checked" || p.check === "earlier" || p.check === "saved" || p.check === "wrong";
 
+/** THE LIST AS HE WANTS IT (owner 2026-11-10: "order them by easiest first and … hide the ones that are done"):
+ *  `hideDone` drops done places (the one shown, `keep`, always stays); `easiest` puts the waters with the least work
+ *  first — by the SUM of their not-done places' ease ranks, then by how many are left, then the list's own order — and
+ *  within a water the easiest place first (done ones last). A water is never split: all its places stay together.
+ *  -> the list, and how many done places were hidden. */
+export function arrange(queue: CheckPlace[], o: { easiest: boolean; hideDone: boolean; keep?: string | null }):
+    { list: CheckPlace[]; hidden: number } {
+  const shown = o.hideDone ? queue.filter((p) => !isDone(p) || p.id === o.keep) : queue;
+  const hidden = queue.length - shown.length;
+  if (!o.easiest) return { list: shown, hidden };
+  const rank = (p: CheckPlace) => (isDone(p) ? 99 : p.ease?.rank ?? 50);
+  const waters = new Map<string, CheckPlace[]>();
+  for (const p of shown) waters.set(p.water_key, [...(waters.get(p.water_key) ?? []), p]);
+  const order = [...waters.keys()];
+  const work = (k: string) => {
+    const left = waters.get(k)!.filter((p) => !isDone(p));
+    return { sum: left.reduce((n, p) => n + rank(p), 0), n: left.length };
+  };
+  const sorted = order.map((k, i) => ({ k, i, ...work(k) })).sort((a, b) =>
+    (a.n === 0 ? 1 : 0) - (b.n === 0 ? 1 : 0) || a.sum - b.sum || a.n - b.n || a.i - b.i);
+  return { list: sorted.flatMap(({ k }) => waters.get(k)!.map((p, i) => ({ p, i }))
+    .sort((a, b) => rank(a.p) - rank(b.p) || a.i - b.i).map((x) => x.p)), hidden };
+}
+
 /** THE NEXT WATER WITH WORK LEFT, from anywhere (owner 2026-11-09: "is there a button to go to next river?"): the
  *  first not-done place on another water, in list order after the shown place (wrapping); null when none is left */
 export function nextWaterWithWork(queue: CheckPlace[], id: string | null): CheckPlace | null {
