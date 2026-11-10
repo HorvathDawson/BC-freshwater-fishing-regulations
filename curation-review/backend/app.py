@@ -304,7 +304,7 @@ def get_entries(region: str | None = None, status: str | None = None,
 
 #: what a reviewer marks: an entry, or one rule of a zone entry (T184: entries only); T164: a DFO
 #: salmon location (the DFO review mode); T212: a proposed tidal boundary (the Tidal mode)
-REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal", "slough", "q154", "name")
+REVIEW_SCOPES = ("entry", "rule", "dfo", "tidal", "slough", "q154", "name", "closed_area")
 
 
 class MarkPayload(BaseModel):
@@ -350,6 +350,9 @@ class MarkPayload(BaseModel):
     #: T532 (scope dfo): this wording is NOT the same place as that DFO location — taken out of its group
     #: (`marks.Mark.not_variant_of`); undone by a later `variant_of`. Its one check is T.
     not_variant_of: str | None = None
+    #: T573 (scope closed_area): the placement of one closed area the owner confirms — a stretch between two cuts or a
+    #: circle (centre + radius), `dfo_salmon.closures.PieceGeometry`; the target is `<water_id>#<piece key>`
+    piece: dict | None = None
     #: T525 (scope dfo): the place's extent the owner was shown — its curated extents and its own tributary flag
     #: (`dfo.extent_now`'s `seen`); a DFO mark made on an extent that has moved since is refused (`dfo.mark_for`)
     extent_before: dict | None = None
@@ -466,6 +469,10 @@ def _post_mark(body: MarkPayload):
         data.pop("checklist")
     else:
         _refuse_stale_checklist(body)
+    if body.scope != "closed_area":
+        if body.piece is not None:
+            raise HTTPException(422, [{"path": "piece", "msg": "only a closed-area mark carries a placement"}])
+        data.pop("piece")
     if body.scope == "q154":
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
@@ -1003,6 +1010,24 @@ def dfo_anchor(location_id: str, split: str):
         return dfo.check_anchor(location_id, ns)
     except KeyError:
         raise HTTPException(404, f"DFO location {location_id} not found")
+
+
+@app.get("/api/dfo/locations/{location_id:path}/closed-area-preview")
+def dfo_closed_area_preview(location_id: str, piece: str):
+    """A CLOSED AREA's placement being edited, drawn before it is saved (`dfo.piece_preview`, READ ONLY): `piece` is one
+    `closures.PieceGeometry` as JSON — a stretch's two ends on the water and its length, a circle's ring at true ground
+    radius. 422 when it is not the schema."""
+    import json as _json
+    import dfo
+    from pydantic import ValidationError
+    from pipeline.regs.review import marks as M
+    try:
+        return dfo.piece_preview(location_id, _json.loads(piece))
+    except KeyError:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    except (ValueError, ValidationError) as ex:
+        raise HTTPException(422, [{"path": "piece", "msg": M.refusal_words(
+            ex.errors()[0]["msg"] if isinstance(ex, ValidationError) else str(ex))}])
 
 
 @app.get("/api/split-anchors")

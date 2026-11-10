@@ -78,7 +78,13 @@ def _tidal(decided: E.Decided) -> dict[Path, str]:
 
 #: domain -> its FILE writer: the decided data -> {final curated file: its text} (fast: the write-through runs these
 #: in the request).
-WRITERS: dict[str, Callable[[E.Decided], dict[Path, str]]] = {"sloughs": _sloughs, "names": _names, "tidal": _tidal}
+def _closed_areas(decided: E.Decided) -> dict[Path, str]:
+    from pipeline.regs.review import closed_areas as CA
+    return {CA.path(): CA.document(CA.build(decided))}
+
+
+WRITERS: dict[str, Callable[[E.Decided], dict[Path, str]]] = {"sloughs": _sloughs, "names": _names, "tidal": _tidal,
+                                                               "closed_areas": _closed_areas}
 
 
 def _ever(decided: E.Decided, scope: str) -> set[str]:
@@ -97,6 +103,7 @@ def _names_spoken(decided: E.Decided) -> set[str]:
 #: write is refused.
 SPOKEN: dict[str, Callable[[E.Decided], set[str]]] = {
     "sloughs": lambda d: _ever(d, "slough"),
+    "closed_areas": lambda d: _ever(d, "closed_area"),
     "names": _names_spoken,
     "tidal": lambda d: {t.partition(":")[2] for t in _ever(d, "tidal")}
     | {str(n.blk) for m in d.scope("tidal") for n in m.new_splits if n.blk},
@@ -126,10 +133,11 @@ SHRINK_LIMIT = 10
 
 
 def rows_in(text: str) -> int:
-    """The rows of a file domain's document: `entries` (found names) or `waters` (sloughs, tidal)."""
+    """The rows of a file domain's document: `entries` (found names), `waters` (sloughs, tidal) or `pieces` (closed
+    areas)."""
     import json
     doc = json.loads(text)
-    return len(doc.get("entries") or doc.get("waters") or ())
+    return len(doc.get("entries") or doc.get("waters") or doc.get("pieces") or ())
 
 
 def shrink_refusal(path: Path, text: str) -> Optional[str]:
@@ -159,6 +167,9 @@ def row_keys(text: str) -> dict[str, str]:
             out[k] = k[:120]
     for r in doc.get("waters") or ():
         k = str(r.get("wbk") or r.get("blk"))
+        out[k] = f"{k} {r.get('name') or ''}".strip()
+    for r in doc.get("pieces") or ():            # T573: a closed area, by its mark target (`<water_id>#<piece key>`)
+        k = f"{r.get('water_id')}#{r.get('key')}"
         out[k] = f"{k} {r.get('name') or ''}".strip()
     return out
 

@@ -116,7 +116,7 @@
    "water_id": "6:babine-lake",
    "region": "6",
    "status": "dormant",
-   "title": "Babine Lake: closed in 14 named areas",
+   "title": "Babine Lake: no fishing for salmon in 14 named areas",
    "rule": {
     "type": "retention_limit",
     "species": [
@@ -124,7 +124,9 @@
     ],
     "take": 0,
     "may_target": false,
-    "verbatim": "Closed"
+    "verbatim": "No fishing for salmon",
+    "dfo_words": "Closed",
+    "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”"
    },
    "areas": [
     {
@@ -249,7 +251,7 @@
    "water_id": "6:babine-lake",
    "region": "6",
    "status": "active",
-   "title": "Babine Lake: closed in 13 named areas",
+   "title": "Babine Lake: no fishing for salmon in 13 named areas",
    "rule": {
     "type": "retention_limit",
     "species": [
@@ -257,7 +259,9 @@
     ],
     "take": 0,
     "may_target": false,
-    "verbatim": "Closed"
+    "verbatim": "No fishing for salmon",
+    "dfo_words": "Closed",
+    "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the circles (no fishing salmon)”"
    },
    "areas": [
     {

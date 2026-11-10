@@ -50,7 +50,7 @@ import type { InputsSync, CheckPlace, CheckProgress, PlaceCheck, WaterReach, Wat
   InSeasonMatchPost,
   InSeasonPreview,
   InSeasonQueue,
-  InSeasonRow,
+  InSeasonRow, ClosedPiece, ClosedPreview,
 } from "./types";
 
 /** (T434) a failed answer's words: the server's JSON `detail` (a 503 {detail} names the missing input), else its status */
@@ -273,6 +273,17 @@ export const api = {
   dfoReach: (id: string, tributaries = false) =>
     getJSON<ExtentPreview & { walks_tributaries?: boolean }>(
       `/api/dfo/locations/${encodeURIComponent(id)}/reach${tributaries ? "?tributaries=true" : ""}`),
+  /** T573: a closed area's placement being edited, drawn before it is saved (read only) */
+  closedAreaPreview: async (id: string, piece: ClosedPiece): Promise<ClosedPreview> => {
+    const url = `/api/dfo/locations/${encodeURIComponent(id)}/closed-area-preview?piece=${encodeURIComponent(JSON.stringify(piece))}`;
+    const res = await fetch(url);
+    if (res.status === 422) {
+      const body = await res.json() as { detail?: { msg: string }[] | string };
+      return { ok: false, why: Array.isArray(body.detail) ? body.detail.map((d) => d.msg).join("; ") : String(body.detail ?? "refused"), ends: [], metres: null };
+    }
+    if (!res.ok) throw await failure(res, url);
+    return (await res.json()) as ClosedPreview;
+  },
   dfoAnchor: (id: string, split: NewSplit) =>
     getJSON<AnchorCheck>(`/api/dfo/locations/${encodeURIComponent(id)}/anchor?split=` +
       encodeURIComponent(JSON.stringify(split))),

@@ -814,8 +814,10 @@ export interface IdList {
 /** What the reviewer sends (`POST /api/marks`); the server stamps the rest. No `verdict`: the
  *  answers decide it (`marks.verdict_from_answers`) — except `deferred`, which is the reviewer's own call. */
 export interface MarkPost {
-  scope: "entry" | "rule" | "dfo" | "tidal";
+  scope: "entry" | "rule" | "dfo" | "tidal" | "closed_area";
   target: string;
+  /** T573 (scope closed_area): the placement the owner confirms */
+  piece?: ClosedPiece | null;
   rule_id?: string | null;
   /** "verified" only with `variant_of` (its one check is T) or a checklist; "wrong" with a checklist (T532) */
   verdict?: "deferred" | "verified" | "wrong";
@@ -1325,15 +1327,53 @@ export interface DfoClosureArea {
    *  live page no longer names it: kept on file, never drawn) */
   state: "placed" | "changed" | "radius" | "unplaced" | "not live";
   note: string; confidence?: string | null; placed_note?: string;
-  ends: { label: string; new: boolean; coord: [number, number] | null; measure: number | null; why?: string }[];
+  ends: ClosedEnd[];
   centre?: [number, number]; radius_m?: number;
   /** a circle at true ground radius: a closed [lon, lat] ring */
   ring?: [number, number][];
+  /** a line across a lake, placed by hand: its two ends */
+  line?: [number, number][];
+  /** the mark this area takes (scope `closed_area`): `<water id>#<key>` */
+  target: string;
+  /** DFO's live page names it now. An item only an older wording names is listed and reviewable, never bound */
+  live: boolean;
+  /** under "not live": whether a placement is on file for it */
+  held?: "placed" | "unplaced" | "changed" | "radius";
+  /** the owner confirmed this placement (it is in the curated closed-areas file); else it is a proposal */
+  confirmed: boolean;
+  mark: { verdict: string; date: string; note: string } | null;
+  /** the placement as stored (what a Confirm sends back); null when nothing places it */
+  piece: ClosedPiece | null;
+  /** an end DFO describes two ways: each candidate a whole placement to take */
+  candidates?: { label: string; why: string; end: number; piece: ClosedPiece; coord: [number, number] | null;
+                 metres: number | null; is_now: boolean }[];
 }
+/** `closures.PieceGeometry`: one closed area's placement — a stretch between two cuts, a circle, or a line */
+export interface ClosedPiece {
+  key: string; water_id: string; name: string; item: string; on_item: string;
+  kind: "stretch" | "circle" | "line";
+  points?: { kind: "split" | "new"; split_id: string }[];
+  new_splits?: NewSplit[];
+  centre?: [number, number]; radius_m?: number;
+  line?: [number, number][];
+  centre_from?: string; confidence?: string; note?: string;
+}
+export interface ClosedEnd { label: string; new: boolean; coord: [number, number] | null; measure: number | null; why?: string;
+  /** owner 2026-11-10: the existing cut nearest a NEW one on the same line; `near` = close enough to use instead */
+  nearest?: { split_id: string; label: string; metres: number; near: boolean } }
+export interface ClosedPreview { ok: boolean; why: string | null; ends: ClosedEnd[]; metres: number | null;
+  ring?: [number, number][]; centre?: [number, number]; radius_m?: number; line?: [number, number][] }
 export interface DfoClosure {
   error?: string;
-  id: string; derived_from: string; title: string; rule: { verbatim: string }; areas: DfoClosureArea[];
+  id: string; derived_from: string; title: string; areas: DfoClosureArea[];
+  /** `reading`: the rule's words are the OWNER's reading of DFO's (`dfo_words`), said as such */
+  rule: { verbatim: string; reading?: string; dfo_words?: string };
   proposed: boolean; row_live: boolean; new_cuts: string[]; said_by?: string;
+  water_id: string;
+  /** the registry water the place is on (a new piece lies on it) */
+  on_item: string | null;
+  /** how close (m) a new cut may be to an existing one before the existing one is offered instead */
+  near_m: number;
 }
 export interface DfoFixProposal {
   why: string;
@@ -1368,7 +1408,8 @@ export interface DfoDetail {
            match: { status?: string; via?: string } } | null;
   items: { id: string; name: string; kind: string | null; mus: string[]; n_sections: number }[];
   page_url: string | null;
-  verbatim: { waters: string; specific_area: string };
+  /** `full`: the words whole — the excluded items DFO lists apart put back in the sentence (`checklist.full_words`) */
+  verbatim: { waters: string; specific_area: string; full?: string };
   rows: string[];
   rules: { rule_id: string; label: string; verbatim: string }[];
   need: DfoRow["need"];

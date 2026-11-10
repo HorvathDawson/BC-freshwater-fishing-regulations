@@ -56,6 +56,16 @@ RADIUS_RE = re.compile(r"within\s+a?\s*(?P<m>\d+(?:\.\d+)?)\s*(?P<unit>km|m)\b[^
 LINE_RE = re.compile(r"(?:also\s+)?closed\s+(?P<words>(?:east|west|north|south)\w*\s+of\s+a\s+line[^.]*)", re.I)
 
 
+#: THE OWNER'S READING of words DFO leaves open, per water (never guessed in code): Babine Lake's row only "exclud[es] …
+#: those waters" and says "closed"; owner 2026-11-10: "babine is closed in the circles (no fishing salmon)". Shown as
+#: his reading, beside DFO's own word.
+OWNER_READINGS: dict[str, dict] = {
+    "6:babine-lake": {"verbatim": "No fishing for salmon", "of": "Closed",
+                      "reading": "the owner's reading, 2026-11-10, of DFO's word “closed”: “babine is closed in the "
+                                 "circles (no fishing salmon)”"},
+}
+
+
 def piece_key(text: str) -> str:
     """THE KEY OF ONE EXCLUDED ITEM: its words as DFO wrote them, case and spacing aside. A reworded item is another key
     (it reads "changed", never silently kept)."""
@@ -116,13 +126,17 @@ def closure_entry(loc: Mapping, because: Optional[str] = None) -> dict:
     # are excluded and "closed" (Babine Lake: no season is named, so none is claimed)
     says_no_fishing = bool(re.search(r"\bno\s+fishing\b", _text(loc), re.I)) or because is not None
     words = ("No fishing, year-round" if year_round else "No fishing") if says_no_fishing else "Closed"
+    read = OWNER_READINGS.get(str(loc.get("water_id")))
+    read = read if read is not None and read["of"] == words else None      # only of the words it was a reading of
+    dfo_words, words = words, (read["verbatim"] if read else words)
     return {"id": lid + SUFFIX, "derived_from": lid, "kind": "closure", "water": loc.get("water"),
             "water_id": loc.get("water_id"), "region": loc.get("region"), "status": loc.get("status") or "active",
             "title": f"{loc.get('water') or ''}: {words.lower()} in {len(areas(loc))} named areas".strip(": "),
             # the rule in the catalogue's own shape (what the Region 6 section-F closure carries): all salmon, take 0
             "rule": {"type": "retention_limit", "species": ["SA"], "take": 0, "may_target": False, "verbatim": words,
                      **({"when": {"dates": [{"from_month": 1, "from_day": 1, "to_month": 12, "to_day": 31}]}}
-                        if year_round else {})},
+                        if year_round else {}),
+                     **({"dfo_words": dfo_words, "reading": read["reading"]} if read else {})},
             "areas": areas(loc), "source_words": _text(loc),
             **({"said_by": because} if because else {})}
 
@@ -166,26 +180,44 @@ class PieceGeometry(BaseModel):
     water_id: str = Field(..., min_length=1)
     name: str = Field(..., min_length=1)
     item: str = Field(..., min_length=1)
-    kind: Literal["stretch", "circle"]
+    kind: Literal["stretch", "circle", "line"]
     on_item: str = Field(..., min_length=1)
     points: Optional[list[FixPointRef]] = None
+    #: a stretch end that is a NEW cut: its definition (`marks.NewSplit`'s fields: ref, anchor, on_item, coord, …),
+    #: carried with the piece so the record stands alone (validated as a NewSplit by the mark that saves it)
+    new_splits: Optional[list[dict]] = None
     centre: Optional[tuple[float, float]] = None
     radius_m: Optional[float] = Field(default=None, gt=0, le=20000)
+    #: a LINE across a lake ("closed east of a line from … to …"): its two ends, [lon, lat] each — placed by hand
+    line: Optional[list[tuple[float, float]]] = None
     centre_from: Optional[str] = None
     confidence: Optional[Literal["high", "medium", "low"]] = None
     note: str = ""
 
     @model_validator(mode="after")
     def _shape(self) -> "PieceGeometry":
-        if self.kind == "stretch":
-            if not self.points or len(self.points) != 2 or self.centre is not None or self.radius_m is not None:
-                raise ValueError("a stretch has exactly two ends and no centre or radius")
-        else:
-            if self.centre is None or self.radius_m is None or self.points:
-                raise ValueError("a circle has a centre and a radius and no ends")
-            lon, lat = self.centre
+        def in_bc(pt) -> None:
+            lon, lat = pt
             if not (-140.0 <= lon <= -113.0 and 47.0 <= lat <= 61.0):
-                raise ValueError(f"a circle's centre is [lon, lat] in British Columbia, not {self.centre}")
+                raise ValueError(f"a point is [lon, lat] in British Columbia, not {tuple(pt)}")
+        if self.kind == "stretch":
+            if (not self.points or len(self.points) != 2 or self.centre is not None or self.radius_m is not None
+                    or self.line is not None):
+                raise ValueError("a stretch has exactly two ends and no centre, radius or line")
+            refs = {n.get("ref") for n in self.new_splits or []}
+            lost = [p.split_id for p in self.points if p.kind == "new" and self.new_splits is not None and p.split_id not in refs]
+            if lost:
+                raise ValueError(f"a stretch's new end is defined with it: {lost} is not among its new cuts")
+        elif self.kind == "circle":
+            if self.centre is None or self.radius_m is None or self.points or self.line is not None or self.new_splits:
+                raise ValueError("a circle has a centre and a radius and no ends")
+            in_bc(self.centre)
+        else:
+            if (not self.line or len(self.line) != 2 or self.points or self.centre is not None
+                    or self.radius_m is not None or self.new_splits):
+                raise ValueError("a line has exactly two ends [lon, lat] and nothing else")
+            for pt in self.line:
+                in_bc(pt)
         return self
 
 
@@ -210,7 +242,18 @@ def live_keys(entries: Mapping[str, Mapping], water_id) -> set[str]:
             for a in e.get("areas") or []}
 
 
-def attach(entry: Mapping, geometry: Iterable[Mapping], live: Optional[Iterable[str]] = None) -> list[dict]:
+def water_areas(entries: Mapping[str, Mapping], water_id) -> list[dict]:
+    """every excluded item ANY stored wording of the water names (first seen wins), for `attach`'s `others`"""
+    seen: dict[str, dict] = {}
+    for e in entries.values():
+        if e.get("water_id") == water_id:
+            for a in e.get("areas") or []:
+                seen.setdefault(a["key"], a)
+    return list(seen.values())
+
+
+def attach(entry: Mapping, geometry: Iterable[Mapping], live: Optional[Iterable[str]] = None,
+           others: Optional[Iterable[Mapping]] = None) -> list[dict]:
     """ENTRY B'S PIECES WITH THEIR GEOMETRY, BY THE LIVE ROW (the owner's rule: never free-standing). For each item of
     the row -> its piece plus `geometry` (the stored record, or None) and `state`:
 
@@ -224,6 +267,10 @@ def attach(entry: Mapping, geometry: Iterable[Mapping], live: Optional[Iterable[
     on file, NEVER drawn or bound (it comes back as placed if DFO restores the words). `live`: the item keys DFO's live
     page carries for this water (`live_keys`); an item of this entry that is not among them (the entry is an older
     wording and the live row dropped the item, or the whole clause) is not live too. None: the entry IS the live row.
+    `others`: the items OTHER stored wordings of this water name (areas, any order). GENERAL RULE (owner 2026-11-10,
+    Pinkut Creek: "we should have both mapped out in case they go back to old wording"): every excluded item of ANY
+    stored wording is listed, mappable and reviewable — one this row does not name is "not live" (`held`: placed /
+    unplaced says whether a placement is on file for it), and only live ones take effect. Every row carries `live`.
     Pure."""
     live = None if live is None else set(live)
     recs = [PieceGeometry.model_validate(g) for g in geometry if g.get("water_id") == entry.get("water_id")]
@@ -240,15 +287,31 @@ def attach(entry: Mapping, geometry: Iterable[Mapping], live: Optional[Iterable[
             used.add(r.key)
             if r.kind == "circle" and a.get("radius_m") is not None and abs(r.radius_m - a["radius_m"]) > 0.5:
                 state, note = "radius", f"DFO's words say {a['radius_m']:g} m, the stored circle is {r.radius_m:g} m"
+            elif state == "placed" and r.kind != a["kind"] and a["kind"] != "unknown":
+                state, note = "changed", f"stored as a {r.kind}, DFO's words now read as a {a['kind']}"
             elif state == "changed":
                 note = f"curated for “{r.item}”; DFO's words are now “{a['item']}”"
+        held = state
         if live is not None and a["key"] not in live:
-            state, note = "not live", "DFO's live page no longer names it: kept on file, not drawn"
-        out.append({**a, "state": state, "note": note, "geometry": r.model_dump(mode="json") if r is not None else None})
+            state, note = "not live", "DFO's live page no longer names it: kept ready, never bound"
+        out.append({**a, "state": state, "held": held, "live": state != "not live", "note": note,
+                    "geometry": r.model_dump(mode="json") if r is not None else None})
+    named = {a["key"] for a in entry.get("areas") or []}
+    for a in others or []:                      # an older (or another) wording's item this row does not name
+        if a["key"] in named or a["key"] in used:
+            continue
+        r = by_key.get(a["key"])
+        named.add(a["key"])
+        if r is not None:
+            used.add(r.key)
+        out.append({**a, "state": "not live", "held": "placed" if r is not None else "unplaced", "live": False,
+                    "note": "only an older wording names it: kept ready, never bound",
+                    "geometry": r.model_dump(mode="json") if r is not None else None})
     for r in recs:
         if r.key not in used:
             out.append({"key": r.key, "item": r.item, "kind": r.kind, "name": r.name, "words": r.item,
-                        "state": "not live", "note": "DFO's row no longer names it: kept on file, not drawn",
+                        "state": "not live", "held": "placed", "live": False,
+                        "note": "no stored wording names it any more: kept ready, never bound",
                         "geometry": r.model_dump(mode="json"), **({"radius_m": r.radius_m} if r.kind == "circle" else {})})
     return out
 

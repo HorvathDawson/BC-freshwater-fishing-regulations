@@ -69,12 +69,13 @@
    "kind": "circle",
    "on_item": "wbk:329026676",
    "centre": [
-    -126.286131,
-    55.152225
+    -126.285975,
+    55.152191
    ],
    "radius_m": 400.0,
-   "centre_from": "the mouth of Morrison Creek (gnis:14946) on Babine Lake, from the FWA network (298 m from the lake's outline)",
-   "confidence": "medium"
+   "centre_from": "where Morrison Creek's own channel (FWA blue line 360829558) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
   },
   {
    "key": "c6d917f3f165",
@@ -84,12 +85,29 @@
    "kind": "circle",
    "on_item": "wbk:329026676",
    "centre": [
-    -125.853488,
-    54.633599
+    -125.852707,
+    54.63325
    ],
    "radius_m": 400.0,
-   "centre_from": "the mouth of Pierre Creek (gnis:8064) on Babine Lake, from the FWA network (229 m from the lake's outline)",
-   "confidence": "medium"
+   "centre_from": "where Pierre Creek's own channel (FWA blue line 360871635) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "key": "36f5b357ebcf",
+   "water_id": "6:babine-lake",
+   "name": "Pendleton Creek",
+   "item": "Pendleton Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.71129,
+    54.524497
+   ],
+   "radius_m": 400.0,
+   "centre_from": "BC Geographic Names has Pendleton Bay on Babine Lake (name id 6951) and a Pendleton Creek with no point at the lake; the network has no stream of that name. Proposed: the largest UNNAMED stream meeting the shore within 1500 m of that point (FWA blue line 360807538, order 3, 590 m from it; 3 segments meet the shore there)",
+   "confidence": "low",
+   "note": ""
   },
   {
    "key": "00503bc8b63e",
@@ -103,8 +121,9 @@
     54.609803
    ],
    "radius_m": 400.0,
-   "centre_from": "the mouth of Twain Creek (gnis:30172) on Babine Lake, from the FWA network (0 m from the lake's outline)",
-   "confidence": "high"
+   "centre_from": "where Twain Creek's own channel (FWA blue line 360816333) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
   },
   {
    "key": "0e1518e92322",
@@ -114,12 +133,13 @@
    "kind": "circle",
    "on_item": "wbk:329026676",
    "centre": [
-    -126.115672,
-    54.799465
+    -126.126354,
+    54.802675
    ],
    "radius_m": 400.0,
-   "centre_from": "the mouth of Tachek Creek (gnis:23132) on Babine Lake, from the FWA network (0 m from the lake's outline)",
-   "confidence": "high"
+   "centre_from": "where Tachek Creek's own channel (FWA blue line 360886739) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
   },
   {
    "key": "c2013e4ac580",
@@ -133,8 +153,9 @@
     55.255854
    ],
    "radius_m": 400.0,
-   "centre_from": "the mouth of Five Mile Creek (gnis:37800) on Babine Lake, from the FWA network (0 m from the lake's outline)",
-   "confidence": "high"
+   "centre_from": "where Five Mile Creek's own channel (FWA blue line 360700441) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
   },
   {
    "key": "f3116ad57dbe",
@@ -148,8 +169,9 @@
     54.461777
    ],
    "radius_m": 400.0,
-   "centre_from": "the mouth of Four Mile Creek (gnis:37801) on Babine Lake, from the FWA network (0 m from the lake's outline)",
-   "confidence": "high"
+   "centre_from": "where Four Mile Creek's own channel (FWA blue line 360841786) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
   },
   {
    "key": "40d829f72ad9",
@@ -163,8 +185,41 @@
     54.790268
    ],
    "radius_m": 400.0,
-   "centre_from": "the mouth of Big Loon Creek (gnis:13041) on Babine Lake, from the FWA network (0 m from the lake's outline)",
-   "confidence": "high"
+   "centre_from": "where Big Loon Creek's own channel (FWA blue line 360828707) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
+  },
+  {
+   "key": "6fb2db5fc268",
+   "water_id": "6:babine-lake",
+   "name": "Tsezakwa Creek",
+   "item": "Tsezakwa Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -126.640477,
+    55.338244
+   ],
+   "radius_m": 400.0,
+   "centre_from": "Tsezakwa Creek does not reach this lake: its channel enters Nilkitkwa Lake (2115 m from this lake's outline). The centre is where it meets Nilkitkwa Lake's outline",
+   "confidence": "medium",
+   "note": ""
+  },
+  {
+   "key": "924055c5ebd6",
+   "water_id": "6:babine-lake",
+   "name": "Pinkut Creek",
+   "item": "Pinkut Creek",
+   "kind": "circle",
+   "on_item": "wbk:329026676",
+   "centre": [
+    -125.460055,
+    54.446296
+   ],
+   "radius_m": 400.0,
+   "centre_from": "where Pinkut Creek's own channel (FWA blue line 360886207) meets the lake's outline; the in-lake connector line is not counted",
+   "confidence": "high",
+   "note": ""
   }
  ],
  "new_splits": [
@@ -232,5 +287,32 @@
    "quote": "to Hwy 97C bridge in Ashcroft",
    "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188"
   }
- ]
+ ],
+ "looked": {
+  "6:babine-lake#379a9388f532": "no stream named Six Mile / Sixmile Creek in the FWA network within 6 km of the lake, and no BC Geographic Names creek of that name at the lake. By local accounts it is near Four Mile Creek at the lake's east end: three unnamed streams meet the shore within 2 km of Four Mile's mouth, none provably it",
+  "6:babine-lake#963a5557f71b": "no stream named Hazelwood (or Heazlewood) Creek in the FWA network within 6 km of the lake; BC Geographic Names' only Heazlewood Creek is not at Babine Lake",
+  "6:babine-lake#6b5f946bc1eb": "no stream named Sockeye Creek in the FWA network within 6 km of the lake; BC Geographic Names' Sockeye Creeks are not at Babine Lake"
+ },
+ "alternatives": {
+  "3:thompson-river#5adc77c1f78d": [
+   {
+    "end": 0,
+    "label": "4 km above the lower signs",
+    "why": "DFO: “downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W” — 4,000 m up the river from DFO's own coordinate (the closed area is then 4.0 km)",
+    "point": {
+     "kind": "new",
+     "split_id": "thompson_juniper_upper_signs"
+    }
+   },
+   {
+    "end": 0,
+    "label": "1.5 km below Juniper Beach Park",
+    "why": "DFO: “approximately 1.5 km downstream from Juniper Beach Park” — 1,500 m below the park's downstream boundary is 37 m from the existing cut at Battle Creek's confluence, so that existing cut is proposed (the closed area is then 1.2 km, not “approximately 4 km”)",
+    "point": {
+     "kind": "split",
+     "split_id": "length:356364690:94205"
+    }
+   }
+  ]
+ }
 }

@@ -548,3 +548,22 @@ def rule_source(entry: Mapping, rule: Mapping) -> Source:
     place = "; ".join(p for p in own if p.strip())
     return Source(water=name, place=place or str(rule.get("verbatim") or ""), place_only=not place,
                   undrawn=str(rule.get("undrawn_part") or "").strip(), whose="the regulation")
+
+
+def full_words(area: str, excludes: Sequence[str] = ()) -> str:
+    """A DFO PLACE'S WORDS, WHOLE (owner 2026-11-10: the Thompson read "…Gold Pan Provincial Park, except:" and stopped).
+    DFO's page keeps the excluded items as a list apart from the sentence that introduces them; the list is put back
+    where the sentence leaves off — after the colon that introduces it (its last when it ends the words, else its first:
+    Babine Lake's "…the following tributary streams: Also closed east of a line…"). No list, or no colon to hang it on
+    (then it follows the words): never dropped."""
+    items = [e.strip().rstrip(".") for e in excludes if isinstance(e, str) and e.strip()]
+    area = (area or "").strip()
+    if not items:
+        return area
+    listed = "; ".join(items) + "."
+    if area.endswith(":"):
+        return f"{area} {listed}"
+    at = area.find(": ")
+    if at < 0:
+        return f"{area}{'' if area.endswith('.') or not area else '.'} Except: {listed}".strip()
+    return f"{area[:at + 1]} {listed} {area[at + 2:]}"

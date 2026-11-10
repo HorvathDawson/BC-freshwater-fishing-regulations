@@ -42,7 +42,7 @@ class StaleReason(str, Enum):
 #: the order reasons are reported in (and the order of the enum)
 STALE_REASONS: tuple[StaleReason, ...] = tuple(StaleReason)
 
-Scope = Literal["entry", "rule", "split", "dfo", "tidal", "slough", "q154", "name"]
+Scope = Literal["entry", "rule", "split", "dfo", "tidal", "slough", "q154", "name", "closed_area"]
 #: T55 (owner 2026-10-28): the owner's call on a slough / canal candidate (`review.slough`)
 SloughCall = Literal["stream", "not stream"]
 #: Q154 (owner 2026-10-28): the owner's call on a sample small pond a river runs through (`review.q154`)
@@ -87,6 +87,9 @@ CHECKS: dict[str, tuple[str, ...]] = {"entry": ("T", "R", "P", "A"),
                                       # the call (`Mark.call`) is right. Accepting the pre-mark is
                                       # P y with call "stream"
                                       "slough": ("P",),
+                                      # T573: one closed area of a DFO row's entry B (a stretch or a circle) — P only:
+                                      # is it placed right
+                                      "closed_area": ("P",),
                                       # Q154: a sample pond (`review.q154`) — P only: the call
                                       # (pool = river rules / real lake) is right; unsure is P ?
                                       "q154": ("P",),
@@ -424,7 +427,7 @@ NewSplit.model_rebuild()
 class RecordPrint(BaseModel):
     """One record's fingerprints (`fingerprint.entry_records`)."""
     model_config = ConfigDict(extra="forbid", frozen=True)
-    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|slough:.+|q154:.+|name:.+)$")
+    key: str = Field(..., pattern=r"^(entry|rule:.+|lic:.+|split:.+|slough:.+|q154:.+|name:.+|closed_area:.+)$")
     meaning: str
     binding: str
     reach: Optional[str] = None
@@ -496,6 +499,9 @@ class Mark(BaseModel):
     #: its `duplicate_of` — the entry model's own CONTESTED state: it stands alone, needs its own extent, and no
     #: grouping re-absorbs it. Undone by a later `variant_of` mark. A DFO mark only; its one check is T.
     not_variant_of: Optional[str] = None
+    #: T573 (scope closed_area): THE PLACEMENT OF ONE CLOSED AREA the owner confirms — `dfo_salmon.closures.PieceGeometry`
+    #: (a stretch between two cuts, or a circle: centre + radius). The target is `<water_id>#<piece key>`.
+    piece: Optional[dict] = None
     #: T525: the extent this DFO mark was made on (`SeenExtent`); a mark from before T525 has none
     extent_before: Optional[SeenExtent] = None
     #: T532: the checklist this mark answers (a DFO place or a regulation rule): its one check is P, the place
@@ -553,7 +559,7 @@ class Mark(BaseModel):
             if (self.answers or self.call is not None or self.problem or self.tributaries
                     or self.extent_fix or self.new_splits or self.lake_split_later
                     or self.group is not None or self.variant_of is not None
-                    or self.not_variant_of is not None):
+                    or self.not_variant_of is not None or self.piece is not None):
                 raise ValueError("a cleared mark carries no answers, call or proposal")
             return self
         extra = sorted(set(self.answers) - set(need))
@@ -583,6 +589,26 @@ class Mark(BaseModel):
             if self.call not in (None, "stream", "not stream"):
                 raise ValueError("a slough call is stream or not stream")
             return self
+        if self.scope == "closed_area":
+            # T573: one closed area of entry B — the owner's confirm carries the placement he confirms (validated: one
+            # schema, a kind); a wrong mark says what is wrong and may carry none
+            if keys != [f"closed_area:{self.target}"] or self.prints.text is not None:
+                raise ValueError("a closed-area mark holds exactly its area's prints")
+            if self.verdict == "verified" and self.piece is None:
+                raise ValueError("a confirmed closed area carries the placement it confirms")
+            if self.piece is not None:
+                from pipeline.regs.dfo_salmon.closures import PieceGeometry
+                g = PieceGeometry.model_validate(self.piece)
+                if f"{g.water_id}#{g.key}" != self.target:
+                    raise ValueError("the placement is another area's (its water and key are not this mark's target)")
+                for n in g.new_splits or []:              # a new end is a real `NewSplit`, as on any other mark
+                    NewSplit.model_validate(n)
+            if (self.tributaries or self.extent_fix or self.new_splits or self.lake_split_later or self.call is not None
+                    or self.rule_id is not None):
+                raise ValueError("a closed-area mark carries only its placement")
+            return self
+        if self.piece is not None:
+            raise ValueError("only a closed-area mark carries a placement")
         if self.scope == "q154":
             if keys != [f"q154:{self.target}"] or self.prints.text is not None:
                 raise ValueError("a q154 mark holds exactly its sample pond's prints")
@@ -710,7 +736,7 @@ class Mark(BaseModel):
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
-                 "new_splits": [], "call": None, "group": None, "variant_of": None, "not_variant_of": None,
+                 "new_splits": [], "call": None, "group": None, "variant_of": None, "not_variant_of": None, "piece": None,
                  "extent_before": None,
                  "checklist": None}
 
@@ -1003,6 +1029,10 @@ def target_prints(mark: Mark, entries: Mapping[str, Mapping], ctx) -> Optional["
     if mark.scope == "q154":                      # Q154: a sample small pond (`review.q154`)
         from pipeline.regs.review import q154 as Q
         got = Q.prints_of(mark.target)
+        return Prints.model_validate(got) if got is not None else None
+    if mark.scope == "closed_area":               # T573: one closed area of a DFO row (`review.closed_areas`)
+        from pipeline.regs.review import closed_areas as CA
+        got = CA.prints_of(mark.target)
         return Prints.model_validate(got) if got is not None else None
     if mark.scope == "name":                      # T224: a name-variant candidate (`review.names`)
         from pipeline.regs.review import names as N

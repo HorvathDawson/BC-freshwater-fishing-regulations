@@ -1,6 +1,6 @@
 # T573 — A DFO row that names closed areas inside its words becomes two entries (the Thompson)
 
-Status: IN REVIEW — owner looks (the review side is built as a proposal; the build side below waits on him)
+Status: IN REVIEW — owner confirms / moves each closed area in the review app (entry B is saveable since 2026-11-10); the build side below waits on him
 
 Owner 2026-11-10, on the Thompson (T572): "we need a way to represent this … it is like it should become 2 entries?"
 
@@ -91,3 +91,63 @@ Tests: `test_dfo_closures.py::test_entry_b_is_never_free_standing_item_removed_c
   not on the live page is neither bound nor drawn.
 - Derivation is one new module, `pipeline/regs/dfo_salmon/closures.py`, with no call site in the scrape, the typed
   feed or `entries.py` yet (T549's lane: see the note there).
+
+
+## ENTRY B IS SAVEABLE (2026-11-10) — one mark per closed area, a curated file of its own
+- THE MARK: scope `closed_area`, target `<water id>#<piece key>`, one check (P). "Confirm" carries the placement it
+  confirms (`Mark.piece`, a `closures.PieceGeometry`: its water and key must be the target's); "Something's wrong"
+  carries none and needs a note. No other mark may carry a placement. Its prints are DFO's words for the item.
+- THE FILE: `data/curated/dfo_salmon/closed_areas.json` (`pipeline/regs/review/closed_areas.py`), a FILE domain
+  (`closed_areas`) written in the request like sloughs / names / tidal: only confirmed areas, each with
+  `confirmed_by` / `confirmed_on`. A later "wrong" takes its area out (the proposal shows again). The file does not
+  exist until his first confirm. NOTHING ELSE MOVES: no places file changes by a byte and no existing mark's prints
+  are touched (test: `test_review_closed_areas.py::test_confirming_a_circle_writes_the_file…` hashes the places tree
+  before and after; `git diff --stat data/curated/dfo_salmon` is empty after the sandbox click-through).
+- WHAT IS SHOWN: his confirmed placement wins over our proposal for the same item (`dfo.closure_view`); each area says
+  "confirmed by you <date>" / "you said something's wrong" / "our proposal: not confirmed" / "not placed".
+- IN THE APP (the place's "B · closed areas" block, `frontend/src/components/ClosedAreas.tsx`), per area:
+  Confirm · Move it / change the radius (circle: click the map or drag its marker, type the radius) · Change its ends
+  (stretch: each end is an existing cut by search, or a click on the river = a new cut resolved on the water and
+  stamped in the mark) · Place it yourself (an unplaced mouth, the Gullwing line: two clicks) · Something's wrong.
+  The draft is teal on the same map, drawn by the server's own rule (`GET …/closed-area-preview`, read only) before it is saved.
+- THE SCHEMA grew: `kind: "line"` with `line: [[lon, lat], [lon, lat]]`; a stretch carries its NEW ends' definitions
+  with it (`new_splits`, each a `marks.NewSplit`), so one record stands alone.
+- Not counted in the place's "done": the areas are their own marks; the place's state is still its extent (entry A).
+
+## THE OWNER'S ANSWERS, 2026-11-10
+1. BABINE'S RULE: "babine is closed in the circles (no fishing salmon)". Entry B's rule on Babine reads "No fishing
+   for salmon", recorded as HIS reading of DFO's word "closed" (`closures.OWNER_READINGS`, shown beside DFO's own word:
+   `rule.dfo_words` / `rule.reading`). The derivation alone still reads "Closed".
+2. REUSE AN EXISTING CUT: "if one is near one that already existed use the already existing one". NEAR = 200 m along
+   the water's line (`dfo.NEAR_M`). Every new end shows its nearest existing cut and the metres; within 200 m the
+   existing cut is offered ("use it instead") in the list and in the editor right after a map click.
+   Thompson's new cuts, nearest existing cut on the river: Deadman upper signs 486 m (gauge 08LF033) · Juniper upper
+   signs 2,810 m (Battle Creek confluence) · Juniper lower signs 1,190 m (Battle Creek) · Bonaparte mouth 868 m (CNR
+   bridge) · Hwy 97C bridge 3,209 m (CNR bridge) — none within 200 m, all stay new cuts. The OTHER reading of the
+   Juniper upper signs (1.5 km below the park) lands 37 m from the existing Battle Creek confluence cut, so that
+   candidate IS the existing cut. Babine's centres: nearest existing cut 2 – 23 km away, except Pinkut Creek (its fish
+   fence cut is 70 m up the creek: the centre stays on the shore, as he asked in 3).
+3. THE MOUTHS: "where stream meets lake (not including the connecting stream)". `pipeline/regs/dfo_salmon/
+   closure_mouths.py` (`python -m pipeline.regs.dfo_salmon.closure_mouths` rewrites the circle proposals): the centre is
+   where the creek's own channel meets the lake polygon's outline, from the source network; the in-lake construction
+   line is dropped first. Re-derived 2026-11-10:
+   high — Morrison (moved 11 m), Pierre (64 m), Twain (0), Tachek (773 m: the old centre was the connector's end),
+   Five Mile (0), Four Mile (0), Big Loon (0), Pinkut (new);
+   medium — Tsezakwa: it does not reach Babine Lake; its channel enters Nilkitkwa Lake (2.1 km down the outlet), the
+   centre is on that lake's outline (BC Geographic Names' point for the creek is 60 m from it);
+   low — Pendleton: no stream of the name; BC Geographic Names has Pendleton Bay; the largest UNNAMED stream meeting
+   the shore within 1.5 km of the bay point (order 3, 590 m from it);
+   not placed — Six Mile, Hazelwood, Sockeye: no stream of the name (or Sixmile / Heazlewood) in the network within
+   6 km, none in BC Geographic Names at the lake; what was tried is shown on each ("Place it yourself").
+4. JUNIPER'S UPPER SIGNS: both readings are marked on the map and listed as buttons ("4 km above the lower signs":
+   a 4.0 km closed area · "1.5 km below Juniper Beach Park": the Battle Creek cut, 1.2 km); he picks one or clicks
+   his own. (`alternatives` in the proposals file.)
+5. THE WORDS WERE CUT OFF at "except:" — DFO keeps the excluded items as a list apart; they are put back in the
+   sentence (`checklist.full_words`, served as `verbatim.full`): the Thompson and Babine read whole.
+6. PINKUT CREEK: "we should have both mapped out in case they go back to old wording". GENERAL RULE: every excluded
+   item of ANY stored wording of the place is listed, placed and reviewable; only live ones take effect. An item only
+   an older wording names is under "Not on the live page — kept ready", drawn grey and dashed in the review app only,
+   never bound, never in the app. Its mark does not depend on liveness (the prints are DFO's words for the item), so
+   when the words return it is live again with no re-curation. Thompson's older wording names the same three areas.
+   Tests: `test_dfo_closures.py::test_an_item_only_an_older_wording_names_is_reviewable_not_live_and_live_again…`,
+   `test_review_closed_areas.py::test_prints_are_dfos_words_from_any_stored_wording…`.

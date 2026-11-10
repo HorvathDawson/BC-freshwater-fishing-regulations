@@ -494,12 +494,18 @@ export function MapPanel({
             paint: { "line-color": "#0f766e", "line-width": 7, "line-opacity": 0.9, "line-dasharray": [1.2, 1] } },
           // T573: the closed areas of a DFO row (entry B) — red, over the open stretch
           { id: "closedshapes-fill", type: "fill", source: "closedshapes",
-            paint: { "fill-color": "#b91c1c", "fill-opacity": ["case", ["get", "flagged"], 0.12, 0.28] } },
-          { id: "closedshapes-edge", type: "line", source: "closedshapes",
-            paint: { "line-color": "#b91c1c", "line-width": 2.5, "line-dasharray": [2, 1.2] } },
+            filter: ["==", ["geometry-type"], "Polygon"],
+            paint: { "fill-color": ["case", ["to-boolean", ["get", "draft"]], "#0d9488", ["to-boolean", ["get", "muted"]], "#64748b", "#b91c1c"],
+                     "fill-opacity": ["case", ["to-boolean", ["get", "muted"]], 0.1, ["to-boolean", ["get", "flagged"]], 0.12, 0.28] } },
+          // live = the closed red; the owner's unsaved change = teal; one not on DFO's live page = grey, long dashes (T573)
+          { id: "closedshapes-edge", type: "line", source: "closedshapes", filter: ["!", ["to-boolean", ["get", "muted"]]],
+            paint: { "line-color": ["case", ["to-boolean", ["get", "draft"]], "#0d9488", "#b91c1c"], "line-width": 2.5, "line-dasharray": [2, 1.2] } },
+          { id: "closedshapes-edge-muted", type: "line", source: "closedshapes", filter: ["to-boolean", ["get", "muted"]],
+            paint: { "line-color": "#475569", "line-width": 2, "line-dasharray": [4, 3] } },
           { id: "closedshapes-name", type: "symbol", source: "closedshapes",
             layout: { "text-field": ["get", "name"], "text-size": 11, "text-font": ["Noto Sans Medium"], "text-allow-overlap": false },
-            paint: { "text-color": "#7f1d1d", "text-halo-color": "#fff", "text-halo-width": 2 } },
+            paint: { "text-color": ["case", ["to-boolean", ["get", "muted"]], "#475569", ["to-boolean", ["get", "draft"]], "#0f766e", "#7f1d1d"],
+                     "text-halo-color": "#fff", "text-halo-width": 2 } },
           { id: "closed-lines", type: "line", source: "closed",
             paint: { "line-color": "#b91c1c", "line-width": 8, "line-opacity": 0.9, "line-dasharray": [0.8, 0.6] } },
           // T532: a saved extent not drawn yet — the extent's colour, dashed

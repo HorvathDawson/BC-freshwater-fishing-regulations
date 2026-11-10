@@ -487,6 +487,7 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 | GET | `/api/dfo/locations/{location_id:path}` | One DFO location: the notice's words verbatim, its scraped rows, its curated extent, the |
 | GET | `/api/dfo/locations/{location_id:path}/anchor` | A PROPOSED NEW SPLIT's anchor resolved, READ ONLY (`dfo.check_anchor`): `split` is one |
 | GET | `/api/dfo/locations/{location_id:path}/area-names` | T355: an area_boundary's name, as you type — up to 15 names of `layer` containing `q`, prefix |
+| GET | `/api/dfo/locations/{location_id:path}/closed-area-preview` | A CLOSED AREA's placement being edited, drawn before it is saved (`dfo.piece_preview`, READ ONLY): `piece` is one |
 | GET | `/api/dfo/locations/{location_id:path}/extent-preview` | A proposed extent (`marks.ExtentFix`) on a DFO location resolved, READ ONLY. |
 | GET | `/api/dfo/locations/{location_id:path}/reach` | What the location's curated extent binds NOW (`build_reach`), as geometry. The tributary |
 | GET | `/api/dfo/locations/{location_id:path}/split-pick` | T355: what a map click names for a new split — `kind` tributary \| lake \| area (`split_preview.pick`). |

@@ -661,7 +661,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               <h3 style={{ margin: 0 }}>{detail.verbatim.waters}</h3>
               {detail.page_url && <a href={detail.page_url} target="_blank" rel="noreferrer">DFO page ↗</a>}
             </div>
-            <div className="verbatim" data-testid="dfo-verbatim">{detail.verbatim.specific_area || "(the whole water)"}</div>
+            <div className="verbatim" data-testid="dfo-verbatim">{detail.verbatim.full || detail.verbatim.specific_area || "(the whole water)"}</div>
             {detail.rows.length > 0 && <div className="coverage" style={{ marginTop: 4 }}>{detail.rows.join("\n")}</div>}
           </div>
 

@@ -294,8 +294,32 @@ test("entry B: a closed area reads in one line and draws only when both its ends
   assert.equal(closedLine(circle), "Morrison Creek: a 400 m circle at its mouth");
   assert.equal(closedLine({ ...circle, ring: undefined, state: "unplaced" }), "Morrison Creek: a 400 m circle, its mouth not placed yet");
   assert.equal(closedLine({ ...circle, state: "radius" }), "RADIUS DIFFERS — Morrison Creek: a 400 m circle at its mouth");
-  assert.equal(closedLine({ ...circle, state: "not live" }), "Morrison Creek: no longer on DFO's page — kept on file, not drawn");
+  assert.equal(closedLine({ ...circle, state: "not live", held: "placed" }), "Morrison Creek: not on DFO's live page — a 400 m circle, kept ready (never bound while it is not live)");
+  assert.equal(closedLine({ ...circle, state: "not live", held: "unplaced" }), "Morrison Creek: not on DFO's live page — not placed yet (never bound while it is not live)");
   assert.equal(closedLine({ ...dead, state: "changed" }), "CHANGED, check again — Deadman · 3.6 km: NEW cut upper signs → CNR bridge");
-  assert.equal(closedCircles([circle, { ...circle, state: "not live" }, { ...circle, ring: undefined }]).features.length, 1);
+  // owner 2026-11-10 (Pinkut): one not on the live page IS drawn in the review app — muted, named so — never as live
+  const drawn = closedCircles([circle, { ...circle, state: "not live" }, { ...circle, ring: undefined }]).features;
+  assert.deepEqual(drawn.map((f) => [f.properties!.name, f.properties!.muted]), [["Morrison Creek", false], ["Morrison Creek (not live)", true]]);
+  const line = closedCircles([{ ...circle, ring: undefined, kind: "line", line: [[-125.3, 54.4], [-125.2, 54.4]] }]).features;
+  assert.equal(line[0].geometry.type, "LineString");
+  const { areaStatus, areaGroups } = await import("../src/checklist.ts");
+  assert.deepEqual(areaStatus({ ...circle, confirmed: true, mark: { verdict: "verified", date: "2026-11-10" } }), { words: "confirmed by you 2026-11-10", tone: "done" });
+  assert.equal(areaStatus({ ...circle, confirmed: false, mark: { verdict: "wrong", date: "2026-11-10" } }).tone, "wrong");
+  assert.equal(areaStatus({ ...circle, confirmed: false, mark: null }).words, "our proposal: not confirmed");
+  assert.equal(areaStatus({ ...circle, state: "unplaced", ring: undefined }).words, "not placed: place it yourself");
+  assert.equal(areaStatus({ ...circle, state: "not live", held: "unplaced" }).words, "not placed: place it yourself");
+  assert.equal(areaStatus({ ...circle, state: "not live", held: "placed" }).words, "our proposal: not confirmed");
+  const g = areaGroups([circle, { ...circle, name: "Pinkut Creek", state: "not live" }]);
+  assert.deepEqual([g.live.map((a) => a.name), g.kept.map((a) => a.name)], [["Morrison Creek"], ["Pinkut Creek"]]);
   assert.deepEqual(closedPairs([{ ...dead, state: "not live" }]), []);
+});
+
+test("T592: our proposal is shown only while the place does not hold the owner's own save", async () => {
+  const { showsProposal } = await import("../src/checklist.ts");
+  assert.equal(showsProposal({ check: "unchecked" }), true);
+  assert.equal(showsProposal({ check: "stale" }), true);
+  assert.equal(showsProposal({ check: "saved" }), false);
+  assert.equal(showsProposal({ check: "unapplied" }), false);
+  assert.equal(showsProposal({ check: "unchecked", held: { why: "x" } }), false);
+  assert.equal(showsProposal(null), false);
 });

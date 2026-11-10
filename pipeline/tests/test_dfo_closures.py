@@ -72,7 +72,12 @@ def test_the_review_app_serves_entry_b_and_says_when_it_is_not_placed(tmp_path, 
         ("Deadman", "unplaced", [], None), ("Juniper", "unplaced", [], None), ("Ashcroft", "unplaced", [], None)]
     # a circle on file is served with its ring at true radius — and ONLY while the live page names its item
     live = BD.closure_view("6:babine-lake:babine-lake-excluding-tributaries~3")
-    assert all(a["state"] == "unplaced" and "ring" not in a for a in live["areas"])
+    assert all(a["state"] == "unplaced" and "ring" not in a for a in live["areas"] if a["live"])
+    # GENERAL RULE (owner 2026-11-10, Pinkut Creek): an item only an OLDER wording names is listed on the live row too —
+    # not live, reviewable, with nothing on file yet
+    [kept] = [a for a in live["areas"] if not a["live"]]
+    assert (kept["name"], kept["state"], kept["held"], kept["target"]) == (
+        "Pinkut Creek", "not live", "unplaced", "6:babine-lake#" + kept["key"])
     morrison = next(a for a in live["areas"] if a["name"] == "Morrison Creek")
     pinkut_key = next(a["key"] for a in BD.closure_view("6:babine-lake:babine-lake-excluding-tributaries~2")["areas"] if a["name"] == "Pinkut Creek")
     g = tmp_path / "geo.json"
@@ -82,7 +87,12 @@ def test_the_review_app_serves_entry_b_and_says_when_it_is_not_placed(tmp_path, 
     monkeypatch.setenv("CURATION_DFO_CLOSED_GEOMETRY", str(g))
     old = {a["name"]: a for a in BD.closure_view("6:babine-lake:babine-lake-excluding-tributaries~2")["areas"]}
     assert old["Morrison Creek"]["state"] == "placed" and len(old["Morrison Creek"]["ring"]) == 73
-    assert old["Pinkut Creek"]["state"] == "not live" and "ring" not in old["Pinkut Creek"]      # DFO's live page dropped Pinkut Creek
+    # DFO's live page dropped Pinkut Creek: NOT LIVE (never bound), yet its circle is served — flagged `live: false` — so
+    # the review app can draw it muted and the owner can check it ("both mapped out in case they go back")
+    pk = old["Pinkut Creek"]
+    assert pk["state"] == "not live" and pk["live"] is False and pk["held"] == "placed" and len(pk["ring"]) == 73
+    on_live = {a["name"]: a for a in BD.closure_view("6:babine-lake:babine-lake-excluding-tributaries~3")["areas"]}
+    assert on_live["Pinkut Creek"]["live"] is False and on_live["Pinkut Creek"]["piece"]["centre"] == [-126.3, 55.1]
     g.write_text(json.dumps({"pieces": [{**rec(morrison["key"], "Morrison Creek"), "radius_m": -1}]}))
     assert "not the schema" in BD.closure_view("6:babine-lake:babine-lake-excluding-tributaries~3")["error"]
     assert BD.closure_view("1:nanaimo-river:whole") is None
@@ -104,7 +114,12 @@ def test_babine_lakes_mouths_are_circles_of_dfos_radius_and_its_rule_is_what_the
     assert circles[0]["name"] == "Morrison Creek" and circles[0]["words"] == "within a 400 m radius of the mouth of Morrison Creek"
     assert [a["kind"] for a in b["areas"] if a["kind"] != "circle"] == ["line"]          # "closed east of a line from Gullwing Creek…"
     # DFO's words exclude these waters and call them closed; they name no season and do not say "no fishing"
-    assert b["rule"]["verbatim"] == "Closed" and "when" not in b["rule"]
+    # … so the derivation alone reads "Closed"; what it MEANS is the owner's reading (2026-11-10: "babine is closed in the
+    # circles (no fishing salmon)"), recorded as his and shown beside DFO's own word — never passed off as DFO's
+    assert b["rule"]["dfo_words"] == "Closed" and "when" not in b["rule"]
+    assert b["rule"]["verbatim"] == "No fishing for salmon" and "owner's reading, 2026-11-10" in b["rule"]["reading"]
+    thompson = next(e for k, e in got.items() if k.startswith("3:thompson-river"))
+    assert "reading" not in thompson["rule"] and thompson["rule"]["verbatim"] == "No fishing, year-round"
     assert len([a for a in got[BABINE_OLD + "#closed"]["areas"] if a["kind"] == "circle"]) == 13     # the older wording also named Pinkut Creek
 
 
@@ -174,3 +189,45 @@ def test_entry_b_is_never_free_standing_item_removed_clause_removed_restored_rew
               "points": [{"kind": "split", "split_id": "a__b"}, {"kind": "split", "split_id": "a__c"}]}]
     ch = K.attach(renamed, geo_t)[0]
     assert ch["state"] == "changed" and "NEW rail bridge" in ch["note"]
+
+
+def test_an_item_only_an_older_wording_names_is_reviewable_not_live_and_live_again_with_no_recuration():
+    """owner 2026-11-10 (Pinkut Creek): "we should have both mapped out in case they go back to old wording" """
+    old, new = _row(["A Creek", "B Creek"]), _row(["A Creek"])
+    entries = {"old#closed": K.closure_entry({**old, "location_id": "x:old", "status": "dormant"}),
+               "new#closed": K.closure_entry({**new, "location_id": "x:new"})}
+    wid = entries["new#closed"]["water_id"]
+    b_key = next(a["key"] for a in entries["old#closed"]["areas"] if a["name"] == "B Creek")
+    geo = [{"key": b_key, "water_id": wid, "name": "B Creek", "item": "B Creek", "kind": "circle", "on_item": "wbk:1",
+            "centre": [-126.0, 55.0], "radius_m": 400}]
+    others = K.water_areas(entries, wid)
+    # with nothing on file: listed on the LIVE row, not live, to be placed
+    b = next(a for a in K.attach(entries["new#closed"], [], live=K.live_keys(entries, wid), others=others) if a["name"] == "B Creek")
+    assert (b["state"], b["held"], b["live"], b["geometry"]) == ("not live", "unplaced", False, None)
+    # curated while not live: its geometry is offered, still not live
+    b = next(a for a in K.attach(entries["new#closed"], geo, live=K.live_keys(entries, wid), others=others) if a["name"] == "B Creek")
+    assert (b["state"], b["held"], b["live"]) == ("not live", "placed", False) and b["geometry"]["centre"] == [-126.0, 55.0]
+    # DFO goes back to the old words: live and placed from the same record, nothing re-curated
+    back = {"new#closed": K.closure_entry({**old, "location_id": "x:new"})}
+    b = next(a for a in K.attach(back["new#closed"], geo, live=K.live_keys(back, wid), others=K.water_areas(back, wid)) if a["name"] == "B Creek")
+    assert (b["state"], b["live"]) == ("placed", True)
+
+
+def test_the_centre_is_where_the_creeks_own_channel_meets_the_shore_never_the_in_lake_connector():
+    """owner 2026-11-10: "where stream meets lake (not including the connecting stream)" """
+    from shapely.geometry import LineString, Polygon
+    from pipeline.regs.dfo_salmon import closure_mouths as CM
+    lake = Polygon([(0, 0), (1000, 0), (1000, 1000), (0, 1000)])
+    other = Polygon([(3000, 0), (3500, 0), (3500, 500), (3000, 500)])
+    segs = [({"GNIS_NAME": "A Creek", "WATERBODY_KEY": None, "BLUE_LINE_KEY": 1, "STREAM_ORDER": 2}, LineString([(-800, 500), (0, 500)])),
+            ({"GNIS_NAME": "A Creek", "WATERBODY_KEY": 9, "BLUE_LINE_KEY": 1, "STREAM_ORDER": 2}, LineString([(0, 500), (600, 500)])),   # in-lake connector
+            ({"GNIS_NAME": "Far Creek", "WATERBODY_KEY": None, "BLUE_LINE_KEY": 2, "STREAM_ORDER": 1}, LineString([(3250, 900), (3250, 500)])),
+            ({"GNIS_NAME": None, "WATERBODY_KEY": None, "BLUE_LINE_KEY": 3, "STREAM_ORDER": 3}, LineString([(500, 1400), (500, 1000)])),
+            ({"GNIS_NAME": "Cross Creek", "WATERBODY_KEY": None, "BLUE_LINE_KEY": 4, "STREAM_ORDER": 5}, LineString([(600, 1400), (600, 1000)]))]
+    a = CM.shore_mouth(lake, 9, segs, "A Creek")
+    assert a["confidence"] == "high" and (round(a["centre"].x), round(a["centre"].y)) == (0, 500)       # the shore, not (600, 500)
+    far = CM.shore_mouth(lake, 9, segs, "Far Creek", [("Other Lake", other)])
+    assert far["confidence"] == "medium" and round(far["centre"].y) == 500 and "Other Lake" in far["why"]
+    assert "looked" in CM.shore_mouth(lake, 9, segs, "Nowhere Creek")
+    hint = CM.shore_mouth(lake, 9, segs, "Bay Creek", hint={"near": [550, 1000], "why": "a bay of that name"}, to_albers=lambda x, y: (x, y))
+    assert hint["confidence"] == "low" and hint["stream"] == 3, "the unnamed stream at the hint, never another named creek"

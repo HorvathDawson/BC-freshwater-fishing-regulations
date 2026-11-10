@@ -1270,6 +1270,10 @@ def marks_view(target: str | None = None, scope: str | None = None) -> list[dict
                 from pipeline.regs.review import slough as S
                 got = S.prints_of(tgt)
                 now = Prints.model_validate(got) if got is not None else None
+            elif m.scope == "closed_area":             # T573: one closed area of a DFO row's entry B
+                from pipeline.regs.review import closed_areas as CA
+                got = CA.prints_of(tgt)
+                now = Prints.model_validate(got) if got is not None else None
             elif m.scope == "tidal":                   # T212: a proposed tidal boundary
                 from pipeline.regs.review import tidal as T
                 got = T.prints_of(tgt)
@@ -1512,7 +1516,7 @@ def post_mark(body: dict) -> dict:
         # T185 (owner 2026-10-27): the marks ARE the decisions — there is no accept step
         raise ValueError("a proposal is not marked: the marks behind it are the decision "
                          "(Claude applies them, `apply_proposals`)")
-    if scope not in ("entry", "rule", "dfo", "tidal", "slough", "q154", "name"):
+    if scope not in ("entry", "rule", "dfo", "tidal", "slough", "q154", "name", "closed_area"):
         raise ValueError(f"a mark is on an entry or one of its rules, not a {scope}")
     with writes.LOCK, M.store_lock(MARKS_PATH):          # threads, then other processes
         batch = None
@@ -1528,6 +1532,23 @@ def post_mark(body: dict) -> dict:
             import variants
             batch = variants.marks_for(body, date=_dt.date.today().isoformat(), pdf_sha256=_pdf_sha256())
             mark, now, reused = batch[-1], None, []
+        elif scope == "closed_area":
+            # T573: one closed area of a DFO row's entry B — the owner's confirm (with the placement he confirms: a
+            # stretch or a circle, validated by the mark) or "something's wrong"; its prints are DFO's words for the
+            # item, and there are none unless DFO's LIVE page names it
+            import dfo
+            from pipeline.regs.review import closed_areas as CA
+            prints = CA.prints_of(target)
+            if prints is None:
+                raise ValueError("no stored DFO wording names this closed area: there is nothing to confirm")
+            answers = body.get("answers") or {}
+            mark = M.Mark.model_validate({
+                "scope": scope, "target": target, "answers": answers, "problem": body.get("problem"),
+                "note": body.get("note") or "", "reviewer": body.get("reviewer"), "seconds": body.get("seconds"),
+                "piece": dfo.stamp_piece(target, body.get("piece"), body.get("location_id")),
+                "verdict": body.get("verdict") or M.verdict_from_answers(scope, answers),
+                "date": _dt.date.today().isoformat(), "pdf_sha256": _pdf_sha256(), "pages": [], "prints": prints})
+            now, reused = None, []
         elif scope == "q154":
             # Q154: a sample small pond — the owner's pool / real lake call; the same one commit below
             import ponds
@@ -1572,7 +1593,7 @@ def post_mark(body: dict) -> dict:
             now = None
         marks = batch or [mark]
         writes.commit([(MARKS_PATH, M.appended(MARKS_PATH, marks))], "mark")
-    if scope in ("slough", "q154", "name"):
+    if scope in ("slough", "q154", "name", "closed_area"):
         return {**_mark_view(mark, mark.prints), "n": len(marks)}
     view = _mark_view(mark, now if scope in ("dfo", "tidal") else _prints(e))
     if reused:                       # T210: "already proposed — reused", said back to the screen

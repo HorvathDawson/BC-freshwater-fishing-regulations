@@ -734,7 +734,9 @@ def detail(location_id: str) -> dict | None:
         "items": [_item_ref(i) for i in (water or {}).get("item_ids") or []],
         # the heading with its "(including tributaries)" qualifier put back (`checklist.dfo_heading`)
         "page_url": D.page_url(slug), "verbatim": {"waters": _heading(loc, water),
-                                                   "specific_area": st.get("specific_area") or ""},
+                                                   "specific_area": st.get("specific_area") or "",
+                                                   # …and the words WHOLE: the excluded items put back in the sentence
+                                                   "full": _full_words(st)},
         "rows": rows, "rules": labels, "need": D.need(loc),
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
@@ -761,6 +763,110 @@ def _closed_geometry_path() -> Path:
     return Path(GENERATED.review) / "dfo_closed_area_geometry.json"
 
 
+#: owner 2026-11-10: "if one is near one that already existed use the already existing one" — a NEW cut this close
+#: (metres along the water) to an existing cut on the same line is flagged, and the existing one offered instead
+NEAR_M = 200.0
+
+
+def nearest_cut(blk, measure) -> dict | None:
+    """the existing curated cut nearest a point of a water's line: {split_id, label, metres, near} (`near`: within
+    `NEAR_M`), or None when the line has no cut"""
+    if blk is None or measure is None:
+        return None
+    best = None
+    for sid, m in reuse._splits_meta().items():
+        if str(m.get("blk")) != str(blk) or m.get("route_measure") is None:
+            continue
+        d = abs(m["route_measure"] - measure)
+        if best is None or d < best[0]:
+            best = (d, sid, m)
+    if best is None:
+        return None
+    return {"split_id": best[1], "label": best[2].get("label") or best[1], "metres": round(best[0]),
+            "near": best[0] <= NEAR_M}
+
+
+def _whole_piece(g: dict, new: dict) -> dict:
+    """the piece standing alone: a stretch's NEW ends carry their definitions (a proposal file keeps them beside the
+    pieces; the mark that confirms one holds everything it confirms)"""
+    refs = [pt["split_id"] for pt in g.get("points") or [] if pt.get("kind") == "new"]
+    if g.get("kind") != "stretch" or g.get("new_splits") is not None or not refs:
+        return g
+    return {**g, "new_splits": [new[r] for r in refs if r in new]}
+
+
+def piece_shape(location_id: str, g: dict, new: dict | None = None) -> dict:
+    """WHAT ONE PLACEMENT DRAWS (`closures.PieceGeometry` as a dict): a stretch's two ends on the water (the server's
+    own anchor check for a new cut; `why` when one does not land) and its length, a circle's ring at true ground
+    radius, a line's two ends. Read only."""
+    from pipeline.regs.dfo_salmon import closures as K
+    from pipeline.regs.review import marks as M
+    new = {**(new or {}), **{n["ref"]: n for n in g.get("new_splits") or []}}
+    bounds = reuse._boundary_index()
+
+    def end(pt: dict) -> dict:
+        sid = pt.get("split_id")
+        if pt.get("kind") == "split":
+            q = reuse._split_point(sid)
+            ll = reuse._to_lonlat()(q.x, q.y) if q is not None else None
+            return {"label": getattr(bounds.get(sid, (None, None))[1], "label", None) or sid, "new": False,
+                    "coord": [round(ll[0], 6), round(ll[1], 6)] if ll else None,
+                    "measure": (reuse._splits_meta().get(sid) or {}).get("route_measure"),
+                    **({} if q is not None else {"why": f"no cut {sid} in the curated splits"})}
+        n = new.get(sid)
+        chk = check_anchor(location_id, M.NewSplit.model_validate(n)) if n else {"ok": False, "why": "no such new cut"}
+        near = nearest_cut(chk.get("blk"), chk.get("measure")) if chk.get("ok") else None
+        return {"label": (n or {}).get("name") or "a new cut placed by hand", "new": True, "coord": chk.get("coord"),
+                "measure": chk.get("measure"), **({} if chk.get("ok") else {"why": chk.get("why")}),
+                **({"nearest": near} if near else {})}
+    out: dict = {"ends": [], "metres": None}
+    if g["kind"] == "stretch":
+        out["ends"] = [end(pt) for pt in g["points"]]
+        ms = [e.get("measure") for e in out["ends"]]
+        out["metres"] = round(abs(ms[0] - ms[1])) if len(ms) == 2 and None not in ms else None
+    elif g["kind"] == "circle":
+        out["centre"], out["radius_m"] = g["centre"], g["radius_m"]
+        out["ring"] = K.circle_polygon(tuple(g["centre"]), g["radius_m"])
+    elif g["kind"] == "line":
+        out["line"] = g["line"]
+    return out
+
+
+def piece_preview(location_id: str, piece: dict) -> dict:
+    """A PLACEMENT THE OWNER IS EDITING, drawn before he saves it (T573): validated as the schema (ValueError says
+    what is wrong), then `piece_shape`. `ok` is false, with why, when an end does not land on the water. KeyError: no
+    such location. Read only."""
+    from pipeline.regs.dfo_salmon import closures as K
+    if _locations().get(location_id) is None:
+        raise KeyError(location_id)
+    g = K.PieceGeometry.model_validate(piece).model_dump(mode="json", exclude_none=True)
+    shape = piece_shape(location_id, g)
+    bad = [e["why"] for e in shape["ends"] if e.get("why")]
+    return reuse._json_safe({"ok": not bad, "why": "; ".join(bad) or None, **shape})
+
+
+def stamp_piece(target: str, piece: dict | None, location_id: str | None = None) -> dict | None:
+    """a closed-area mark's placement as it is STORED: each new cut placed by hand resolved on the water and its point
+    stamped (`check_anchor`; ValueError when it does not land), as `mark_for` does for a DFO mark's new cuts"""
+    from pipeline.regs.review import closed_areas as CA
+    from pipeline.regs.review import marks as M
+    if not piece or not piece.get("new_splits"):
+        return piece
+    loc = location_id or next(iter((CA.items().get(target) or {}).get("rows") or []), None)
+    if loc is None or _locations().get(loc) is None:
+        raise ValueError("no DFO row names this closed area: its new cut cannot be placed on a water")
+    out = []
+    for n in piece["new_splits"]:
+        ns = M.NewSplit.model_validate(n)
+        res = check_anchor(loc, ns)
+        if not res.get("ok"):
+            raise ValueError(f"the new cut does not land on the water: {res.get('why')}")
+        at = res.get("ref") or res
+        out.append({**n, "blk": at["blk"], "measure": at["measure"], "on_item": res.get("on_item"),
+                    "coord": list(at["coord"])})
+    return {**piece, "new_splits": out}
+
+
 def closure_view(location_id: str) -> dict | None:
     """THE CLOSED-AREAS ENTRY OF A PLACE (T573, owner 2026-11-10: "it should become 2 entries"): entry B derived from
     this place's row, each of its pieces joined to its placement BY THE LIVE ROW (`closures.attach`: a piece whose item
@@ -780,55 +886,79 @@ def closure_view(location_id: str) -> dict | None:
         return {"error": f"the closure entries file cannot be read: {ex}"}
     if entry is None:
         return None
-    geo, new = [], {}
+    geo, new, looked, alts = [], {}, {}, {}
     gp = _closed_geometry_path()
     if gp.exists():
         try:
             doc = json.loads(gp.read_text(encoding="utf-8"))
             geo, new = list(doc.get("pieces") or []), {n["ref"]: n for n in doc.get("new_splits") or []}
+            looked, alts = doc.get("looked") or {}, doc.get("alternatives") or {}
         except (OSError, ValueError) as ex:
             return {"error": f"the closed-area placements file cannot be read: {ex}"}
     got = _locations().get(location_id)
     live = bool(got) and (got[1].get("status") or "active") == "active"
+    # WHAT THE OWNER CONFIRMED (the curated file his closed-area marks write) comes before any proposal of ours, per item
+    from pipeline.regs.review import closed_areas as CA
+    from pipeline.regs.review import marks as MK
+    try:
+        mine = CA.confirmed()
+    except (OSError, ValueError) as ex:
+        return {"error": f"the confirmed closed areas file cannot be read: {ex}"}
+    done = {(g.get("water_id"), g.get("key")) for g in mine}
+    geo = mine + [g for g in geo if (g.get("water_id"), g.get("key")) not in done]
+    for g in mine:
+        for n in g.get("new_splits") or []:
+            new.setdefault(n["ref"], n)
+    inforce = {m.target: m for m in MK.latest(MK.load(reuse.MARKS_PATH)).values() if m.scope == "closed_area"}
     try:
         # the owner's rule: a piece exists only while DFO's LIVE page names its item (per item, across this water's rows)
-        pieces = K.attach(entry, geo, live=K.live_keys(entries, entry.get("water_id")))
+        pieces = K.attach(entry, geo, live=K.live_keys(entries, entry.get("water_id")),
+                          others=K.water_areas(entries, entry.get("water_id")))
     except ValueError as ex:
         return {"error": f"a closed-area placement is not the schema: {ex}"}
-    bounds = reuse._boundary_index()
-
-    def end(pt: dict) -> dict:
-        sid = pt.get("split_id")
-        if pt.get("kind") == "split":
-            q = reuse._split_point(sid)
-            ll = reuse._to_lonlat()(q.x, q.y) if q is not None else None
-            return {"label": getattr(bounds.get(sid, (None, None))[1], "label", None) or sid, "new": False,
-                    "coord": [round(ll[0], 6), round(ll[1], 6)] if ll else None,
-                    "measure": (reuse._splits_meta().get(sid) or {}).get("route_measure")}
-        n = new.get(sid)
-        chk = check_anchor(location_id, M.NewSplit.model_validate(n)) if n else {"ok": False, "why": "no such new cut"}
-        return {"label": (n or {}).get("name") or sid, "new": True, "coord": chk.get("coord"),
-                "measure": chk.get("measure"), **({} if chk.get("ok") else {"why": chk.get("why")})}
     areas = []
     for a in pieces:
         g = a.pop("geometry")
-        shown = g is not None and a["state"] != "not live"          # never drawn while DFO's row does not name it
+        shown = g is not None      # a not-live piece is drawn ONLY here, muted, to be checked (`live`: false) — never bound
+        target = CA.target_of(entry.get("water_id"), a["key"])
+        mk = inforce.get(target)
         out = {**a, "ends": [], "metres": None, "confidence": (g or {}).get("confidence"),
-               "placed_note": (g or {}).get("note") or (g or {}).get("centre_from") or ""}
-        if shown and g["kind"] == "stretch":
-            out["ends"] = [end(pt) for pt in g["points"]]
-            ms = [e.get("measure") for e in out["ends"]]
-            out["metres"] = round(abs(ms[0] - ms[1])) if len(ms) == 2 and None not in ms else None
-        elif shown and g["kind"] == "circle":
-            out["centre"], out["radius_m"] = g["centre"], g["radius_m"]
-            out["ring"] = K.circle_polygon(tuple(g["centre"]), g["radius_m"])
+               "placed_note": (g or {}).get("note") or (g or {}).get("centre_from") or "",
+               # the mark it takes (`closed_area`), whether HE confirmed this placement, and the piece as stored
+               "target": target, "confirmed": g is not None and (g.get("water_id"), g.get("key")) in done,
+               "mark": ({"verdict": getattr(mk.verdict, "value", mk.verdict), "date": mk.date, "note": mk.note}
+                        if mk is not None else None),
+               "piece": _whole_piece(g, new) if shown else None}
+        if shown:
+            out.update(piece_shape(location_id, g, new))
+        elif looked.get(target):
+            out["placed_note"] = looked[target]            # what was tried before it was left for him to place
+        # THE CANDIDATES for an end DFO describes two ways (the Juniper upper signs): each a whole placement he can take
+        cands = []
+        for alt in (alts.get(target) or []) if shown and g["kind"] == "stretch" and not out["confirmed"] else []:
+            pts = list(g["points"])
+            pts[alt["end"]] = alt["point"]
+            cand = _whole_piece({**{k: v for k, v in g.items() if k != "new_splits"}, "points": pts}, new)
+            shape = piece_shape(location_id, cand, new)
+            cands.append({"label": alt["label"], "why": alt.get("why") or "", "end": alt["end"], "piece": cand,
+                          "coord": shape["ends"][alt["end"]].get("coord"), "metres": shape.get("metres"),
+                          "is_now": pts == list(g["points"])})
+        if cands:
+            out["candidates"] = cands
         areas.append(out)
-    return reuse._json_safe({**entry, "areas": areas, "row_live": live,
+    items = list(((got[2] if got else None) or {}).get("item_ids") or [])
+    return reuse._json_safe({**entry, "areas": areas, "row_live": live, "on_item": items[0] if items else None,
+                             "near_m": NEAR_M,
                              "proposed": any(a["state"] in ("placed", "changed", "radius") for a in areas),
                              "new_cuts": [n.get("name") or n["ref"] for n in new.values()
                                           if any(pt.get("split_id") == n["ref"] for g in geo
                                                  if g.get("water_id") == entry.get("water_id")
                                                  for pt in g.get("points") or [])]})
+
+
+def _full_words(st: dict) -> str:
+    from pipeline.regs.review import checklist as CL
+    return CL.full_words(st.get("specific_area") or "", st.get("excludes") or ())
 
 
 def _heading(loc: dict, water: dict | None) -> str:

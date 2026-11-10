@@ -251,7 +251,9 @@ export function arrange(queue: CheckPlace[], o: { easiest: boolean; hideDone: bo
 }
 
 type ClosedArea = { name: string; metres: number | null; state?: string; kind?: string; radius_m?: number; note?: string;
-                    ends: { label: string; new: boolean; coord?: [number, number] | null }[]; ring?: [number, number][] };
+                    ends: { label: string; new: boolean; coord?: [number, number] | null }[]; ring?: [number, number][];
+                    line?: [number, number][]; live?: boolean; held?: string; confirmed?: boolean;
+                    mark?: { verdict: string; date: string } | null };
 const drawn = (a: ClosedArea) => a.state !== "not live";
 /** ENTRY B ON THE MAP (T573): each closed STRETCH whose two ends are placed, as a pair to walk the river between — never
  *  one DFO's live page no longer names */
@@ -261,18 +263,37 @@ export function closedPairs(areas: ClosedArea[]): [[number, number], [number, nu
 }
 /** …and each closed CIRCLE as a polygon at true ground radius (the server's ring), same rule */
 export function closedCircles(areas: ClosedArea[]): GeoJSON.FeatureCollection {
-  return { type: "FeatureCollection", features: areas.filter((a) => drawn(a) && a.ring && a.ring.length > 3).map((a) => ({
-    type: "Feature" as const, properties: { name: a.name, flagged: a.state === "changed" || a.state === "radius" },
-    geometry: { type: "Polygon" as const, coordinates: [a.ring!] } })) };
+  // owner 2026-11-10 (Pinkut Creek): an item only an older wording names is drawn HERE ONLY, muted (`muted`: grey,
+  // dashed), so it can be checked; a line across a lake placed by hand is drawn as its line
+  const shapes = areas.filter((a) => a.ring && a.ring.length > 3).map((a) => ({
+    type: "Feature" as const,
+    properties: { name: drawn(a) ? a.name : `${a.name} (not live)`, flagged: a.state === "changed" || a.state === "radius", muted: !drawn(a) },
+    geometry: { type: "Polygon" as const, coordinates: [a.ring!] } }));
+  const lines = areas.filter((a) => a.line && a.line.length === 2).map((a) => ({
+    type: "Feature" as const, properties: { name: a.name, flagged: false, muted: !drawn(a) },
+    geometry: { type: "LineString" as const, coordinates: a.line! } }));
+  return { type: "FeatureCollection", features: [...shapes, ...lines] };
+}
+/** WHERE ONE CLOSED AREA STANDS, in the owner's words: his confirm, his "wrong", or a proposal waiting for him */
+export function areaStatus(a: ClosedArea): { words: string; tone: "done" | "wrong" | "todo" } {
+  if (a.confirmed) return { words: `confirmed by you${a.mark?.date ? ` ${a.mark.date}` : ""}`, tone: "done" };
+  if (a.mark?.verdict === "wrong") return { words: `you said something's wrong${a.mark.date ? ` ${a.mark.date}` : ""}`, tone: "wrong" };
+  const placed = a.state === "not live" ? a.held !== "unplaced" : a.state !== "unplaced";
+  return { words: placed ? "our proposal: not confirmed" : "not placed: place it yourself", tone: "todo" };
+}
+/** the areas in the order they are listed: the live ones, then those only an older wording names ("kept ready") */
+export function areaGroups<T extends ClosedArea>(areas: T[]): { live: T[]; kept: T[] } {
+  return { live: areas.filter(drawn), kept: areas.filter((a) => !drawn(a)) };
 }
 /** one closed area in a line: its name, its size, where — and when it is not live, changed or not placed, that first */
 export function closedLine(a: ClosedArea): string {
   const len = a.metres == null ? "" : a.metres >= 1000 ? ` · ${(a.metres / 1000).toFixed(1)} km` : ` · ${a.metres} m`;
-  if (a.state === "not live") return `${a.name}: no longer on DFO's page — kept on file, not drawn`;
+  if (a.state === "not live")
+    return `${a.name}: not on DFO's live page — ${a.held === "unplaced" ? "not placed yet" : a.kind === "circle" ? `a ${a.radius_m} m circle, kept ready` : "kept ready"} (never bound while it is not live)`;
   const flag = a.state === "changed" ? "CHANGED, check again — " : a.state === "radius" ? "RADIUS DIFFERS — " : "";
   if (a.kind === "circle")
     return `${flag}${a.name}: ${a.ring ? `a ${a.radius_m} m circle at its mouth` : `a ${a.radius_m} m circle, its mouth not placed yet`}`;
-  if (a.kind === "line") return `${a.name}: a line across the lake, not placed (deferred)`;
+  if (a.kind === "line") return `${a.name}: a line across the lake, ${a.line ? "placed by hand" : "not placed"}`;
   const ends = a.ends.length === 2 ? `: ${a.ends.map((e) => `${e.new ? "NEW cut " : ""}${e.label}`).join(" → ")}` : ": not placed yet";
   return `${flag}${a.name}${len}${ends}`;
 }
@@ -390,3 +411,9 @@ export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; ch
 export const HOW_IT_WORKS = "1 Look at the extent on the map against DFO's words · 2 Fix it if needed (preview, then save) · 3 Confirm it";
 /** asked once when leaving a place with an unsaved draft */
 export const LEAVE_DRAFT = "You have an unsaved draft: save it, or discard it?\n\nOK = discard it and move on · Cancel = stay here so you can save it";
+
+/** T592: OUR PROPOSAL IS SHOWN (drawn, listed in the legend, offered) only while the place does not hold the owner's
+ *  own save — once he saved an extent (landed, or waiting for its cut) or the place is held, his is the one shown */
+export function showsProposal(check: { check?: string | null; held?: unknown } | null | undefined): boolean {
+  return !!check && !check.held && check.check !== "saved" && check.check !== "unapplied";
+}

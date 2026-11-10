@@ -545,3 +545,31 @@ def test_a_cut_carried_across_braids_is_drawn_on_its_own_water(monkeypatch):
             {"split_id": "c", "blk": "only", "route_measure": 5.0, "concern": "picked up"}]
     got = R.host_rows(rows)
     assert got["a"]["blk"] == "host" and got["b"]["blk"] == "out" and got["c"]["blk"] == "only"
+
+
+def test_the_places_cache_goes_stale_on_each_thing_it_is_made_from_and_on_nothing_else(monkeypatch):
+    """T591: the checklist's places are memoised (T532 r8, speed). Each of its five inputs must miss the memo — a
+    missed one shows the owner a place as not done after he saved it — and a read with nothing changed must hit."""
+    import sys
+    B = _backend(monkeypatch, "checks")
+    reuse, dfo = sys.modules["reuse"], sys.modules.get("dfo") or __import__("dfo")
+    now = {"marks": 1, "rows": ("rows",), "ctx": ("ctx",), "entries": 1, "apply": 1}
+    built = []
+    monkeypatch.setattr(reuse, "_stamp", lambda paths: ("marks", now["marks"]))
+    monkeypatch.setattr(reuse, "_dir_stamp", lambda d: ("entries", now["entries"]))
+    monkeypatch.setattr(dfo, "_rows", lambda: now["rows"])
+    monkeypatch.setattr(B, "context", lambda: now["ctx"])
+    monkeypatch.setattr(B, "apply_stamp", lambda: (now["apply"],))
+    monkeypatch.setattr(B, "_dfo_places", lambda: built.append(1) or [])
+    monkeypatch.setattr(B, "_regs_places", lambda: [])
+    monkeypatch.setattr(B, "_PLACES", reuse._Memo())
+    B._places()
+    B._places()
+    assert len(built) == 1, "nothing changed: one computation"
+    for part, new in (("marks", 2), ("rows", ("other rows",)), ("ctx", ("other ctx",)), ("entries", 2), ("apply", 2)):
+        now[part] = new
+        n = len(built)
+        B._places()
+        assert len(built) == n + 1, f"a change of {part} must recompute the places"
+        B._places()
+        assert len(built) == n + 1, f"…and only once ({part})"

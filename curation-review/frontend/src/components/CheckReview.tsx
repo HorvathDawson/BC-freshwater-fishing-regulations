@@ -5,7 +5,7 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, closedCircles, closedLine, closedPairs, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, showsProposal, closedCircles, closedPairs, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
 import { markBody, offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
@@ -13,6 +13,7 @@ import { statusLine } from "../dfoExtent";
 import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
 import { MapPanel } from "./MapPanel";
 import { TopNav } from "./TopNav";
+import { ClosedAreas, type AreaEditLayers } from "./ClosedAreas";
 import { DfoLocation, newCutChecks, proposalDraws, proposalOf, proposalPoints, savedFixesOf, suggestionFix, type EditLayers,
   type InitialDraft } from "./DfoReview";
 import { CloseX } from "./NoticeStack";
@@ -101,7 +102,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   useEffect(() => { loadQueue(); }, [loadQueue]);
 
   // "Saved: …" after a save, kept until he moves on (`id`: the place it was saved on)
-  const [savedNote, setSavedNote] = useState<{ id: string; what: "extent" | "confirm" | "problem" | "group"; text?: string } | null>(null);
+  const [savedNote, setSavedNote] = useState<{ id: string; what: "extent" | "confirm" | "problem" | "group" | "area"; text?: string } | null>(null);
   const shown = useRef<string | null>(null);
   const draft = useRef(false);
   const open = useCallback((id: string) => {
@@ -205,12 +206,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   shown.current = selected;
   /** AFTER A SAVE OR A CONFIRM: reload, show "Saved: …" briefly, then go on to the next not-done place of the water
    *  (a problem report stays on the place) */
-  const afterSave = (id: string, what: "extent" | "confirm" | "problem" | "group", text?: string) => {
+  const afterSave = (id: string, what: "extent" | "confirm" | "problem" | "group" | "area", text?: string) => {
     setSavedNote({ id, what, text });
     setEditing(null);
     const fresh = loadQueue();
     setVersion((v) => v + 1);
-    if (what === "problem" || what === "group") return;
+    if (what === "problem" || what === "group" || what === "area") return;      // stays on the place
     // the whole list of this source: the one `loadQueue` just read when no filter is on, else its own read
     (!filter && !q.trim() ? fresh : api.checksQueue(source, "", "")).then((all) => {
       if (!all) return;
@@ -232,6 +233,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const savedWords = !cur || !savedNote || savedNote.id !== cur.id ? "" : savedNote.what === "confirm" ? "Saved: your confirmation"
     : savedNote.what === "problem" ? "Saved: your problem report"
     : savedNote.what === "group" ? `Saved just now: ${savedNote.text ?? "your grouping decision"}`
+    : savedNote.what === "area" ? `Saved just now: ${savedNote.text ?? "the closed area"}`
     : `Saved: ${pendingFix.length ? partsText(piecesParts(pendingFix, (f) => fixParts(f, labelOf, nameOf)))
         : d0?.location.binding.extents.length ? partsText(piecesParts(d0.location.binding.extents, (x) => extentParts(x, labelOf, nameOf)))
         : "your mark"}${savedNote.text ?? ""}`;
@@ -407,7 +409,7 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
     return { id, place: p, check, dfo: d, named: d.splits, items: d.items.map((i) => ({ id: i.id, name: i.name })), proposal,
              reach: reach?.resolvable ? (reach.geojson as GeoJSON.FeatureCollection) : null, pending,
              title: d.verbatim.waters || d.row.water, sub: `DFO region ${d.row.region}${d.row.status !== "active" ? " · no longer on the live page" : ""}`,
-             words: d.verbatim.specific_area || "(no area given: the whole water)", pageUrl: d.page_url };
+             words: d.verbatim.full || d.verbatim.specific_area || "(no area given: the whole water)", pageUrl: d.page_url };
   }
   const [entryId, ruleId] = id.split("#");
   const [check, e, named] = await Promise.all([api.checkRule(entryId, ruleId), api.entry(entryId),
@@ -443,8 +445,21 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
     window.addEventListener("ck-fly", h);
     return () => window.removeEventListener("ck-fly", h);
   }, []);
-  const closedNow = useMemo(() => closedPairs(loaded.dfo?.closure?.areas ?? []), [loaded.dfo]);
-  const circlesNow = useMemo(() => closedCircles(loaded.dfo?.closure?.areas ?? []), [loaded.dfo]);
+  // T573: the closed area being placed / moved in the panel (`ClosedAreas`): its draft, its markers, its map click
+  const [area, setArea] = useState<AreaEditLayers | null>(null);
+  useEffect(() => {
+    const h = (e: Event) => setArea((e as CustomEvent<AreaEditLayers | null>).detail);
+    window.addEventListener("ck-area-edit", h);
+    return () => window.removeEventListener("ck-area-edit", h);
+  }, []);
+  const closedNow = useMemo(() => [...closedPairs(loaded.dfo?.closure?.areas ?? []), ...(area?.pairs ?? [])], [loaded.dfo, area]);
+  const circlesNow = useMemo(() => {
+    const fc = closedCircles(loaded.dfo?.closure?.areas ?? []);
+    return area ? { ...fc, features: [...fc.features, ...area.shapes.features] } : fc;
+  }, [loaded.dfo, area]);
+  const kept = (loaded.dfo?.closure?.areas ?? []).some((a) => !a.live && (a.ring || a.line));
+  // T592: our proposal leaves the map and its legend once the place holds his own save
+  const prop = showsProposal(loaded.check) ? loaded.proposal ?? null : null;
   // the view fits the FIRST place opened on this water; stepping its other places keeps it (the map stays)
   const first = useRef(loaded.id);
   // the cuts the rows name, labelled (never every cut on the water: the rows are what is checked)
@@ -457,19 +472,21 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
     <>
       <div className="ck-key"><span><i />the extent now</span>
         {loaded.pending && <span><i className="dash" />saved, not drawn yet</span>}
-        {loaded.proposal && !edit && <span><i className="prop" />proposal (not applied)</span>}
+        {prop && !edit && <span data-testid="ck-key-proposal"><i className="prop" />proposal (not applied)</span>}
         {edit && edit.editPoints.length > 0 && <span><i className="newcut" />new cut, not built</span>}
         {edit && <span><i className="draft" />your change (not saved)</span>}
-        {(closedNow.length > 0 || circlesNow.features.length > 0) && <span><i className="closed" />closed (entry B, a proposal)</span>}
+        {(closedNow.length > 0 || circlesNow.features.length > 0) && <span><i className="closed" />closed (entry B)</span>}
+        {kept && <span><i className="kept" />not on the live page: kept ready</span>}
+        {area && area.shapes.features.length + area.pairs.length > 0 && !edit && <span><i className="draft" />your change (not saved)</span>}
         {edit?.approx && <span><i className="approx" />approximate: the exact stretch is drawn after the next rebuild</span>}
-        {(edit ? edit.ring.length > 0 : !!loaded.proposal?.ring.length) && <span><i className="ring" />ringed: an existing cut it uses</span>}
+        {(edit ? edit.ring.length > 0 : !!prop?.ring.length) && <span><i className="ring" />ringed: an existing cut it uses</span>}
         {faint && faint.features.length > 0 && <span><i className="faint" />this water's other extents</span>}</div>
       <MapPanel itemId={loaded.items[0]?.id ?? null} alsoItemIds={loaded.items.slice(1).map((i) => i.id)}
-        suggested={edit ? null : loaded.proposal?.fc ?? null} fitSuggested={!loaded.reach?.features.length} faint={faint} faintOn={faintOn}
+        suggested={edit ? null : prop?.fc ?? null} fitSuggested={!loaded.reach?.features.length} faint={faint} faintOn={faintOn}
         approx={edit?.approx ?? null} onApprox={edit?.onApprox} closed={closedNow} closedShapes={circlesNow} flyTo={fly}
-        ringSplits={edit ? edit.ring : loaded.proposal?.ring ?? []} ringColor={edit ? "#0d9488" : "#7c3aed"}
-        saved={edit?.draft ?? null} fitSaved cutPreview={edit?.cutPreview ?? null} editPoints={edit?.editPoints ?? []}
-        onMovePoint={edit?.onMovePoint} onPick={edit?.onPick ?? null}
+        ringSplits={edit ? edit.ring : prop?.ring ?? []} ringColor={edit ? "#0d9488" : "#7c3aed"}
+        saved={edit?.draft ?? null} fitSaved cutPreview={edit?.cutPreview ?? null} editPoints={edit ? edit.editPoints : area?.points ?? []}
+        onMovePoint={edit ? edit.onMovePoint : area?.onMovePoint} onPick={edit ? edit.onPick ?? null : area?.onPick ?? null}
         namedSplits={edit ? edit.named : named} preview={loaded.reach} pending={loaded.pending} pins={edit ? null : pins} fitPreview={loaded.id === first.current} minimal
         onPin={(n) => window.dispatchEvent(new CustomEvent("ck-pin-pick", { detail: n }))} />
     </>
@@ -481,7 +498,7 @@ const pinTo = (n: number | null) => window.dispatchEvent(new CustomEvent("ck-pin
 /** the rows and the one decision */
 function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
   waterDone?: React.ReactNode;
-  loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem" | "group" | "extent", text?: string) => void; top?: React.ReactNode;
+  loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem" | "group" | "extent" | "area", text?: string) => void; top?: React.ReactNode;
   /** open the T525 editor: on the extent now (null), or on a draft — undefined when no fix can say the extent */
   onEdit?: (draft: InitialDraft | null) => void;
 }) {
@@ -734,24 +751,13 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
         {d?.closure && (
           <div className="ck-two" data-testid="ck-two-entries">
             {d.closure.error ? <div className="warn-text">{d.closure.error}</div> : <>
-              <b>This DFO row is two entries (a proposal, nothing accepted):</b>
+              <b>This DFO row is two entries:</b>
               <div className="ck-entry a" data-testid="ck-entry-a"><span className="k">A · open water</span> DFO's rules for this place on the whole stretch its words name
                 {ext.length ? <> — now: {partsText(piecesParts(ext, (x) => extentParts(x, cutLabel, itemName)))}</> : loaded.proposal ? <> — proposed: {loaded.proposal.words}</> : null}.
                 This is the place you are on.</div>
-              <div className="ck-entry b" data-testid="ck-entry-b"><span className="k">B · closed areas</span> “{d.closure.rule.verbatim}” on {d.closure.areas.filter((a) => a.state !== "not live").length} areas, red on the map
-                {d.closure.proposed ? "" : " (not placed yet)"}. Each exists only while DFO's page names it:
-                <ol className="dfo-pieces">
-                  {d.closure.areas.map((a) => (
-                    <li key={a.key} data-testid="ck-closed-area" className={a.state === "not live" ? "dim" : undefined}
-                      style={a.centre || a.ends[0]?.coord ? { cursor: "pointer" } : undefined} title={a.centre || a.ends[0]?.coord ? "show it on the map" : undefined}
-                      onClick={() => { const at = a.centre ?? a.ends[0]?.coord; if (at && a.state !== "not live") window.dispatchEvent(new CustomEvent("ck-fly", { detail: at })); }}>
-                      <b className={a.state === "changed" || a.state === "radius" ? "warn-text" : undefined}>{closedLine(a)}</b>
-                      {a.confidence ? <span className="chip-tag"> {a.confidence} confidence</span> : null}
-                      <div className="dim">DFO: “{a.words}”{a.note ? ` · ${a.note}` : ""}{a.placed_note ? ` · ${a.placed_note}` : ""}</div></li>))}
-                </ol>
-                {d.closure.new_cuts.length > 0 && <div className="dim">{d.closure.new_cuts.length} of its cuts are new and not built.</div>}
-                <div className="dim">Entry B is derived from this row's words and is not a place in the data yet: it cannot be saved here until it is accepted into the DFO places (T573).</div>
-              </div></>}
+              <ClosedAreas closure={d.closure} locationId={loaded.id} reviewer={reviewer} onError={setErrors}
+                onSaved={(text) => onSaved("area", text)} />
+              </>}
           </div>
         )}
         {!needs && d && loaded.proposal && onEdit && !pc.held && !doneBySave && (

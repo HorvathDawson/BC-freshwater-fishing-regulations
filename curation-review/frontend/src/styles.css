@@ -1303,3 +1303,15 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-entry.a .k { color: var(--ck-extent); } .ck-entry.b .k { color: #b91c1c; }
 .ck-entry.b { border-left: 3px solid #b91c1c; padding-left: 8px; }
 .ck-key i.closed { background: none; border-top: 4px dashed #b91c1c; height: 0; }
+
+/* T573: entry B's areas, each confirmed / moved / reported on its own */
+.ck-key i.kept { background: none; border-top: 3px dashed #475569; height: 0; }
+.ck-area-state { font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .03em; margin-left: 4px; }
+.ck-area-state.done { color: #15803d; } .ck-area-state.wrong { color: #b45309; } .ck-area-state.todo { color: #64748b; }
+.ck-area-btns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0; }
+.ck-area-edit { margin: 6px 0; padding: 8px; border: 1.5px solid #0d9488; border-radius: 6px; display: flex; flex-direction: column; gap: 6px; }
+.ck-area-edit textarea { width: 100%; font: inherit; }
+.ck-area-edit input[type=number] { width: 90px; }
+.ck-cands { margin: 4px 0; padding: 6px 8px; border: 1.5px dashed #b45309; border-radius: 6px; }
+.ck-cand { margin-top: 4px; }
+li.ck-kept > div:first-child b { color: #475569; }
