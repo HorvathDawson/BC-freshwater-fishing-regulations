@@ -1,6 +1,6 @@
 # T551 — "Today" rolls over at midnight B.C. time everywhere, from one clock; site pages do not print a stale day
 
-Status: OPEN.
+Status: IN REVIEW (d3b7f080e, e1142f148, 7af7f39e4). Done: items 1, 2 (except the gauge page script), 5 (card; not the page script), 6, 7; item 8 not done. Not done: items 3 and 4 (the static hubs' day words and rebuild cadence: owner choice, see the report), the gauge page script's own zone formatting (`tools/seo/gaugeClient.ts`, listed in `KNOWN_SECOND_CLOCKS` in `app/tools/clock.test.ts`), item 8's helper dedupe. Gate: `app/tools/clock.test.ts` bans a second B.C. clock (`getHours`/`getMinutes`/`getTimezoneOffset`/`timeZone:`) outside clock.ts and day.ts.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 7 of 17; highest severity 4 of 5.
 
