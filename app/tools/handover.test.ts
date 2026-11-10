@@ -235,7 +235,7 @@ describe("the basin/river handover", () => {
       "stream-nobaseline": 8, water_river: 9, stream__label: 8, lake__label: 8, lake_flowing: 8,
       not_fishing_water: 8, not_fishing_water__edge: 8, wetland: 8, wetland_flowing: 8, under_lake: 8, contour: 8,
       // and the areas and the gauges (review 2026-10-22: hatches at Liumchen and gauge dots drawn on the field)
-      indigenous_land: 8, indigenous_land__edge: 11, indigenous_land__label: 9,
+      indigenous_land: 8, indigenous_land__edge: 11, indigenous_land__label: 12,
       no_access: 8, no_access__edge: 10, no_access__label: 9,
       no_access_permit: 8, no_access_permit__edge: 10, no_access_permit__label: 9,
       eco_reserve: 8, eco_reserve__edge: 10, eco_reserve__label: 8,
