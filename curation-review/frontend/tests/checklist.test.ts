@@ -175,3 +175,18 @@ test("these N wordings are the same place: ticks every tickable older wording, n
   assert.deepEqual(g.targets, ["a", "b", "c"]);
   assert.deepEqual([...tickAll([mem("a", { this: true })], false, true)], []);
 });
+
+test("the place's one state line is one of exactly six", async () => {
+  const { placeState } = await import("../src/checklist.ts");
+  const base = { editing: false, check: "unchecked" as const, hasExtent: true };
+  assert.equal(placeState({ ...base, hasExtent: false }).text, "Nothing saved yet");
+  assert.equal(placeState({ ...base, editing: true, check: "checked", checkedDate: "2026-11-09" }).text,
+    "You are previewing a draft: not saved");
+  assert.equal(placeState({ ...base, saved: { state: "waits_cut", date: "2026-11-09" } }).text,
+    "Saved (2026-11-09) — waiting to be drawn on the map");
+  assert.equal(placeState({ ...base, saved: { state: "landed", date: "2026-11-09" } }).text, "Saved and on the map");
+  assert.equal(placeState({ ...base, saved: { state: "landed", date: "2026-11-09" }, hasExtent: false }).text, "Nothing saved yet");
+  assert.equal(placeState({ ...base, check: "checked", checkedDate: "2026-11-09" }).text, "Confirmed by you (2026-11-09)");
+  assert.equal(placeState({ ...base, check: "earlier", earlierDate: "2026-11-02" }).text, "Verified earlier (2026-11-02)");
+  assert.equal(placeState({ ...base, saved: { state: "deferred", date: "2026-11-09" } }).text, "Nothing saved yet");
+});

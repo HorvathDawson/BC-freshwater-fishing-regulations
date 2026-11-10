@@ -210,7 +210,24 @@ export function proposalDraws(s: DfoSuggestion | null): boolean {
   return (sg.op === "whole" || sg.points.every((p) => p.kind === "split")) && want === sg.points.length;
 }
 
-export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall = null, onBack, initialDraft = null }: {
+/** T532 round 2 (owner 2026-11-09: "it just opened up a completely different page … hard to follow"): the editor
+ *  EMBEDDED in the checklist's side panel. It draws no map of its own: its layers go up (`onMap`) to the checklist's
+ *  map, which stays put; `onFull` opens the full page in case something is missing inline. */
+export interface EditLayers {
+  draft: GeoJSON.FeatureCollection | null; cutPreview: GeoJSON.FeatureCollection | null; named: EntrySplits;
+  editPoints: EditPoint[]; onPick: ((ll: [number, number]) => void) | null;
+  onMovePoint: (id: string, ll: [number, number]) => void;
+  /** the draft differs from the extent now: leaving the place asks first */
+  dirty: boolean;
+}
+export interface Embedded { onMap: (layers: EditLayers | null) => void; onFull: () => void }
+
+function Fold({ on, summary, open, children, testid }: { on: boolean; summary: string; open?: boolean; children: React.ReactNode; testid?: string }) {
+  return on ? <details className="dfo-more ck-more" data-testid={testid} open={open}><summary>{summary}</summary>{children}</details>
+    : <>{children}</>;
+}
+
+export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall = null, onBack, initialDraft = null, embedded = null }: {
   detail: DfoDetail; mode: Mode;
   nav: { pos: number; total: number; onNext?: () => void; onPrev?: () => void };
   saving: boolean; onMarked: () => void;
@@ -218,6 +235,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   initialCall?: DfoCall | null; onBack?: () => void;
   /** T532: the draft the checklist opens the editor on ("Use this proposal", "Same place as…"); nothing is saved */
   initialDraft?: InitialDraft | null;
+  embedded?: Embedded | null;
 }) {
   const id = detail.row.id;
   const was = detail.mark;
@@ -371,6 +389,44 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const incomplete = call === "change" && effect !== "keep"
     ? (opPoints ? incompletePieces(fixes, opPoints) : ["the extent ops are still loading"]) : [];
   const changes = call === "change" && effect !== "keep";
+  // EMBEDDED: the draft is drawn LIVE on the checklist's map — its reach (the server's own preview) once every piece
+  // is whole and names only cuts that exist, and its points labelled either way (a NEW cut has no reach until built)
+  const [liveWhy, setLiveWhy] = useState("");
+  useEffect(() => {
+    if (!embedded || call !== "change" || !opPoints) return;
+    const pts: GeoJSON.Feature[] = fixes.flatMap((f) => f.points.flatMap((pt, i) => {
+      const sid = pt.split_id ?? "";
+      const at = pt.kind === "split" ? splitAt(sid)
+        : pt.kind === "new" ? (splits.find((n) => n.ref === sid)?.coord ?? detail.proposed.find((x) => x.id === sid)?.coord ?? null)
+        : pt.coord ?? null;
+      return at ? [{ type: "Feature", properties: { label: `${i + 1}: ${pt.kind === "new" ? "NEW " : ""}${cutLabel(sid) ?? pt.name ?? ""}` },
+                     geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
+    }));
+    const only = (why: string) => { setFixPreview({ type: "FeatureCollection", features: pts }); setLiveWhy(why); };
+    if (!fixes.length) { only(""); return; }
+    const inc = incompletePieces(fixes, opPoints);
+    if (inc.length) { only(inc.join("; ")); return; }
+    let live = true;
+    const t = window.setTimeout(() => {
+      api.dfoExtentPreview(id, fixes.length > 1 ? fixes : fixes[0], showTribs).then((r) => {
+        if (!live) return;
+        if (!r.resolvable) {
+          only(/NEW split/.test(r.why ?? "") ? "it uses a new cut that is not built yet — the stretch is drawn after the next rebuild"
+            : r.why ?? "it does not resolve");
+          return;
+        }
+        setFixPreview({ type: "FeatureCollection", features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] });
+        setLiveWhy("");
+      }).catch((e) => { if (live) only(`the preview failed: ${e}`); failed("the draft's preview")(e); });
+    }, 250);
+    return () => { live = false; window.clearTimeout(t); };
+  }, [embedded, call, fixes, opPoints, showTribs, splits]);  // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!embedded) return;
+    embedded.onMap({ draft: call === "change" ? fixPreview : null, cutPreview: cutPv, named, editPoints, onPick: pick.cb,
+                     onMovePoint: (pid, ll) => void movePoint(pid, ll), dirty: changes });
+  }, [fixPreview, cutPv, named, editPoints, pick, call, changes]);  // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => embedded?.onMap(null), []);  // eslint-disable-line react-hooks/exhaustive-deps
   const group = detail.group ? groupSave(id, detail.group.members, same, changes, false) : null;
   const held = heldBy({ call, answers, problem, note, effect, cuts, cannotChange: now.cannot_change,
                         extents: detail.location.binding.extents.length, incomplete });
@@ -474,10 +530,19 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
     || wrongChecks.length > 0;
 
   return (
-    <div className="detail review-mode" data-testid="dfo-detail">
-      <div className="detail-cols">
-        <div className="detail-content">
-          <div className="verify-bar">
+    <div className={embedded ? "ck-inline" : "detail review-mode"} data-testid="dfo-detail">
+      <div className={embedded ? undefined : "detail-cols"}>
+        <div className={embedded ? undefined : "detail-content"}>
+          {embedded ? (
+            <div className="ck-inline-head">
+              <span className="ck-sec">Your draft · on the map in teal · nothing is saved until "Save this extent"</span>
+              <span style={{ flex: 1 }} />
+              <button type="button" className="btn small link" data-testid="ck-full-editor" onClick={embedded.onFull}
+                title="the full editor page, in case something is missing here">open the full editor</button>
+              <button type="button" className="btn small" data-testid="ck-edit-cancel" onClick={onBack}
+                title="closes the editor; nothing is saved">Discard my changes</button>
+            </div>
+          ) : <div className="verify-bar">
             <div className="verify-row">
               {onBack && <button type="button" className="btn small" data-testid="dfo-back" onClick={onBack}>
                 ← back to the checklist</button>}
@@ -490,7 +555,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                 <button className="btn small" disabled={!nav.onNext} onClick={nav.onNext}>j ›</button>
               </span>
             </div>
-          </div>
+          </div>}
 
           {status && (
             <div className={`dfo-status ${status.tone}`} role="status" data-testid="dfo-status">
@@ -513,6 +578,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             </div>
           )}
 
+          <Fold on={!!embedded} testid="ck-more" summary="more: DFO's rule lines, the extent now, the proposal's details">
           <div className="source-pin" data-testid="dfo-source">
             <div className="dfo-step">1 · DFO says</div>
             <div className="evidence-head">
@@ -620,8 +686,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             </div>
           )}
 
+          </Fold>
           <div className="checklist" data-testid="dfo-checklist">
-            <div className="dfo-step">3 · Your call <span className="dim" style={{ textTransform: "none", letterSpacing: 0 }}>
+            <div className="dfo-step">{embedded ? "Your call" : "3 · Your call"} <span className="dim" style={{ textTransform: "none", letterSpacing: 0 }}>
               keys: y n ? · Enter saves · j k move</span></div>
             {(["T", "R"] as const).map((c) => (
               <div key={c} className="check-row">
@@ -635,7 +702,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                 </span>
               </div>
             ))}
-            <div className="dfo-calls" role="radiogroup" aria-label="your call">
+            {!embedded && <div className="dfo-calls" role="radiogroup" aria-label="your call">
               {CALLS.map((c) => {
                 const off = c.v === "change" && now.cannot_change.length > 0;
                 return (
@@ -647,7 +714,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                   </button>
                 );
               })}
-            </div>
+            </div>}
             {accepted && <div className="ext-row notice inline-notice" role="status" data-testid="dfo-accepted">
               <span style={{ flex: 1 }}>{accepted}</span><CloseX onClick={() => setAccepted("")} /></div>}
 
@@ -655,6 +722,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               <div className="dfo-draft" data-testid="dfo-draft">
                 <div className="dim" style={{ fontSize: 12 }}>
                   {now.pieces.length ? "Starts from the extent now. Change only what is wrong." : "There is no extent yet. Set it."}</div>
+                <Fold on={!!embedded} testid="ck-new-cuts" summary={`new cuts${splits.length ? ` (${splits.length} in this change)` : ": only for a cut DFO names that the map does not have"}`}>
                 <NewSplits id={id} items={detail.items} hints={detail.hints} quote={detail.verbatim.specific_area}
                   op={detail.need.op} shared={shared} value={splits} onChange={setSplits} checks={checks}
                   onChecked={(ref, c) => setChecks((m) => ({ ...m, [ref]: c }))}
@@ -668,6 +736,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                       items: cur[0]?.items ?? [], tributaries: cur[0]?.tributaries ?? null }));
                     setFixPreview(null);
                   }} />
+                </Fold>
+                {embedded && liveWhy && <div className="dim" data-testid="ck-live-why" style={{ fontSize: 12 }}>
+                  Not drawn as a stretch yet (its points are on the map): {liveWhy}</div>}
                 {moveErr && <div className="fix-row warn-text inline-notice" data-testid="dfo-move-refused">
                   <span style={{ flex: 1 }}>not moved: {moveErr}</span><CloseX onClick={() => setMoveErr("")} /></div>}
                 {(fixes.length ? fixes : [undefined]).map((pc, i) => (
@@ -736,14 +807,16 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             <div className="verdict-bar" style={{ position: "static", margin: 0 }}>
               <input placeholder="your name" value={reviewer} onChange={(e) => setName(e.target.value)} aria-label="reviewer" />
               <button className={`btn primary${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
-                disabled={busy || !!held} data-testid="dfo-save" onClick={() => void submit()}>{saveText}</button>
+                disabled={busy || !!held || (!!embedded && !changes)} data-testid="dfo-save" onClick={() => void submit()}>
+                {embedded && !busy ? (changes ? "Save this extent" : "Nothing changed yet (nothing to save)") : saveText}</button>
+              {embedded && <button className="btn small" disabled={busy} onClick={onBack}>Discard my changes</button>}
               <button className="btn small" disabled={busy} data-testid="dfo-defer"
                 title="decides nothing, changes nothing; needs a note"
                 onClick={() => void submit(true)}>defer</button>
             </div>
           </div>
         </div>
-        <div className="detail-map">
+        {!embedded && <div className="detail-map">
           <div className="dim" style={{ fontSize: 12, marginBottom: 4 }}>
             <span style={{ color: "#c026d3" }}>magenta: the extent now</span>
             {call === "change" && <> · <span style={{ color: "#0d9488" }}>teal: your change</span></>}
@@ -753,7 +826,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             namedSplits={named} preview={(reach?.geojson ?? null) as GeoJSON.FeatureCollection | null}
             saved={call === "change" ? fixPreview : null} suggested={offer ? suggestedFc : null} onPick={pick.cb}
             editPoints={editPoints} onMovePoint={(pid, ll) => void movePoint(pid, ll)} cutPreview={cutPv} />
-        </div>
+        </div>}
       </div>
     </div>
   );

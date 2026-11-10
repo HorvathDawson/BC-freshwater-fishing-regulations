@@ -5,7 +5,7 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+import { HOW_IT_WORKS, LEAVE_DRAFT, placeState, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
 import { offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
@@ -13,7 +13,8 @@ import { statusLine } from "../dfoExtent";
 import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
 import { MapPanel } from "./MapPanel";
 import { TopNav } from "./TopNav";
-import { DfoLocation, proposalDraws, proposalOf, proposalPoints, savedFixesOf, suggestionFix, type InitialDraft } from "./DfoReview";
+import { DfoLocation, proposalDraws, proposalOf, proposalPoints, savedFixesOf, suggestionFix, type EditLayers,
+  type InitialDraft } from "./DfoReview";
 import { CloseX } from "./NoticeStack";
 import { DfoVintageBanner } from "./DfoVintageBanner";
 import { InputsSyncLine } from "./InputsSyncLine";
@@ -34,6 +35,8 @@ export type CheckSource = "dfo" | "regs" | "all";
 const FILTERS: [string, string][] = [["", "all"], ["todo", "to check"], ["needs", "needs extent"],
   ["earlier", "verified earlier"], ["stale", "changed"], ["bad", "has ✗"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
+/** the rows about where the extent runs: a click on one (DFO) opens the inline editor */
+const EDIT_KINDS = ["where", "from", "to", "also", "tributaries"];
 const hashOf = (source: CheckSource) => (source === "dfo" ? "dfo/" : "checks/");
 
 interface Loaded {
@@ -65,7 +68,14 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   });
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   // the T525 editor, opened from the checklist — on the extent now, or on a draft (the proposal / another place's extent)
-  const [editing, setEditing] = useState<{ draft: InitialDraft | null } | null>(null);
+  // Round 2 (owner 2026-11-09): INLINE, in the side panel — the map stays put and draws the draft (`layers`); the
+  // full page (`full`) stays one small link away
+  const [editing, setEditingRaw] = useState<{ draft: InitialDraft | null; full?: boolean } | null>(null);
+  const [layers, setLayers] = useState<EditLayers | null>(null);
+  const setEditing = useCallback((e: { draft: InitialDraft | null; full?: boolean } | null) => {
+    setEditingRaw(e);
+    if (!e || e.full) setLayers(null);
+  }, []);
   // the water the shown place is on: every place, older wordings too (`checks.water`), and its DFO extents' geometry
   const [waterView, setWaterView] = useState<(WaterView & { at: string }) | null>(null);
   const [waterReach, setWaterReach] = useState<{ key: string; fc: WaterReach } | null>(null);
@@ -82,7 +92,14 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   }, [source, filter, q]);
   useEffect(() => { loadQueue(); }, [loadQueue]);
 
+  // "Saved: …" after a save, kept until he moves on (`id`: the place it was saved on)
+  const [savedNote, setSavedNote] = useState<{ id: string; what: "extent" | "confirm" | "problem" } | null>(null);
+  const draft = useRef(false);
   const open = useCallback((id: string) => {
+    // leaving a place with an unsaved draft asks once
+    if (draft.current && !window.confirm(LEAVE_DRAFT)) return;
+    draft.current = false;
+    setSavedNote(null);
     setSelected(id);
     setEditing(null);
     window.history.replaceState(null, "", `#${prefix}${encodeURIComponent(id)}`);
@@ -159,6 +176,22 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     return [...seen.values()];
   }, [list]);
   const cur = loaded && loaded.id === selected ? loaded : null;
+  draft.current = !!editing && !editing.full && !!layers?.dirty;
+  const d0 = cur?.dfo;
+  const state = cur ? placeState({ editing: !!editing, check: cur.check.check, checkedDate: cur.check.checked?.date,
+    earlierDate: cur.check.earlier?.date, saved: d0?.saved ?? null, hasExtent: !!d0?.location.binding.extents.length }) : null;
+  const labelOf = (c: string) => d0?.cut_labels[c] ?? d0?.proposed.find((x) => x.id === c)?.name ?? null;
+  const nameOf = (i: string) => d0?.item_names[i] ?? i;
+  const pendingFix = d0?.saved && d0.saved.state !== "landed" && d0.saved.state !== "deferred" ? savedFixesOf(d0.mark) : [];
+  const savedWords = !cur || !savedNote || savedNote.id !== cur.id ? "" : savedNote.what === "confirm" ? "Saved: your confirmation"
+    : savedNote.what === "problem" ? "Saved: your problem report"
+    : `Saved: ${pendingFix.length ? partsText(piecesParts(pendingFix, (f) => fixParts(f, labelOf, nameOf)))
+        : d0?.location.binding.extents.length ? partsText(piecesParts(d0.location.binding.extents, (x) => extentParts(x, labelOf, nameOf)))
+        : "your mark"}`;
+  const stateLine = state && (
+    <div className={`ck-state ${state.tone}`} role="status" data-testid="ck-state">
+      <b>{state.text}</b>{savedWords && <span data-testid="ck-saved-note"> · {savedWords}</span>}
+    </div>);
 
   const header = (
     <header className="ck-head">
@@ -210,11 +243,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
           title="marks in force whose target moved since (every review tab): the queue lists them as changed">
           · {staleMarks} mark{staleMarks === 1 ? "" : "s"} stale</span>}
       </div>
+      <div className="ck-how" data-testid="ck-how">{HOW_IT_WORKS}</div>
       {dfoProgress && <DfoVintageBanner notes={dfoProgress.vintage} />}
       <InputsSyncLine reason="write-through" />
       {error && <div className="errors inline-notice" style={{ margin: "2px 8px", padding: "2px 8px" }}>
         <span style={{ flex: 1 }}>{error}</span><CloseX onClick={() => setError("")} /></div>}
-      {editing && cur?.dfo ? (
+      {editing?.full && cur?.dfo ? (
         <div className="main">
           <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
             initialDraft={editing.draft} nav={{ pos: at.pos, total: at.total }} saving={false}
@@ -226,15 +260,32 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
           <div className="ck-map">
             {/* ONE MAP PER WATER: keyed by the water, so stepping its places changes rows and pins, never the map */}
             {cur ? <CheckMap key={cur.place.water_key} loaded={cur} faintOn={hover}
+              edit={editing ? layers : null}
               faint={waterReach && waterReach.key === waterKey ? waterReach.fc : null} /> : <div className="empty-state">loading…</div>}
           </div>
           <aside className="ck-side">
             {waterView && waterView.places.some((p) => p.id === selected) && (
               <WaterList view={waterView} selected={selected} onOpen={open} onHover={setHover}
                 undrawn={waterReach && waterReach.key === waterKey ? waterReach.fc.failed : []} />)}
-            {cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur}
+            {cur && editing && cur.dfo ? (
+              <div className="ck-panel" data-testid="ck-inline-editor">
+                {stateLine}
+                <div className="ck-words">
+                  <div className="ck-sec">This place · DFO's words</div>
+                  <span data-testid="ck-words">{cur.words}</span>
+                  {cur.pageUrl && <> · <a href={cur.pageUrl} target="_blank" rel="noreferrer">DFO page ↗</a></>}
+                </div>
+                <div className="ck-inline-scroll">
+                  <DfoLocation key={`${cur.id}|${version}`} detail={cur.dfo} mode={mode} initialCall="change"
+                    initialDraft={editing.draft} nav={{ pos: at.pos, total: at.total }} saving={false}
+                    embedded={{ onMap: setLayers, onFull: () => setEditing({ draft: editing.draft, full: true }) }}
+                    onBack={() => setEditing(null)}
+                    onMarked={() => { setSavedNote({ id: cur.id, what: "extent" }); setEditing(null); loadQueue(); setVersion((v) => v + 1); }} />
+                </div>
+              </div>
+            ) : cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur} top={stateLine}
               water={waterView && waterView.places.some((p) => p.id === cur.id) ? waterView : null}
-              onSaved={() => { loadQueue(); setVersion((v) => v + 1); }}
+              onSaved={(what) => { setSavedNote({ id: cur.id, what }); loadQueue(); setVersion((v) => v + 1); }}
               onEdit={cur.dfo && !cur.dfo.extent_now.cannot_change.length ? (draft) => setEditing({ draft }) : undefined} />
               : <div className="empty-state">{queue && !list.length ? "Nothing matches." : "loading…"}</div>}
           </aside>
@@ -300,7 +351,11 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
 }
 
 /** the water's map: the extent now in one colour, a save not drawn yet dashed, a numbered pin per row */
-function CheckMap({ loaded, faint, faintOn }: { loaded: Loaded; faint: GeoJSON.FeatureCollection | null; faintOn: string | null }) {
+function CheckMap({ loaded, faint, faintOn, edit }: {
+  loaded: Loaded; faint: GeoJSON.FeatureCollection | null; faintOn: string | null;
+  /** the inline editor's layers while it is open: its draft (teal), new cuts, every cut on the water to pick from */
+  edit: EditLayers | null;
+}) {
   const [on, setOn] = useState<number | null>(null);
   useEffect(() => {
     const h = (e: Event) => setOn((e as CustomEvent<number | null>).detail);
@@ -321,10 +376,13 @@ function CheckMap({ loaded, faint, faintOn }: { loaded: Loaded; faint: GeoJSON.F
       <div className="ck-key"><span><i />the extent now</span>
         {loaded.pending && <span><i className="dash" />saved, not drawn yet</span>}
         {loaded.proposal && <span><i className="prop" />proposal (not applied)</span>}
+        {edit && <span><i className="draft" />your change (not saved)</span>}
         {faint && faint.features.length > 0 && <span><i className="faint" />this water's other extents</span>}</div>
       <MapPanel itemId={loaded.items[0]?.id ?? null} alsoItemIds={loaded.items.slice(1).map((i) => i.id)}
         suggested={loaded.proposal?.fc ?? null} fitSuggested={!loaded.reach?.features.length} faint={faint} faintOn={faintOn}
-        namedSplits={named} preview={loaded.reach} pending={loaded.pending} pins={pins} fitPreview={loaded.id === first.current} minimal
+        saved={edit?.draft ?? null} fitSaved cutPreview={edit?.cutPreview ?? null} editPoints={edit?.editPoints ?? []}
+        onMovePoint={edit?.onMovePoint} onPick={edit?.onPick ?? null}
+        namedSplits={edit ? edit.named : named} preview={loaded.reach} pending={loaded.pending} pins={pins} fitPreview={loaded.id === first.current} minimal
         onPin={(n) => window.dispatchEvent(new CustomEvent("ck-pin-pick", { detail: n }))} />
     </>
   );
@@ -333,8 +391,8 @@ function CheckMap({ loaded, faint, faintOn }: { loaded: Loaded; faint: GeoJSON.F
 const pinTo = (n: number | null) => window.dispatchEvent(new CustomEvent("ck-pin", { detail: n }));
 
 /** the rows and the one decision */
-function CheckPanel({ loaded, water, onSaved, onEdit }: {
-  loaded: Loaded; water: WaterView | null; onSaved: () => void;
+function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
+  loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem") => void; top?: React.ReactNode;
   /** open the T525 editor: on the extent now (null), or on a draft — undefined when no fix can say the extent */
   onEdit?: (draft: InitialDraft | null) => void;
 }) {
@@ -379,7 +437,7 @@ function CheckPanel({ loaded, water, onSaved, onEdit }: {
       await api.postMark(checkBody(target, pc, call, ticked, wrong, note,
         { reviewer: reviewer.trim(), seconds: Math.round((Date.now() - since.current) / 100) / 10 }, group));
       setWrongMode(false);
-      onSaved();
+      onSaved(call === "ok" ? "confirm" : "problem");
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
       setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
@@ -434,11 +492,20 @@ function CheckPanel({ loaded, water, onSaved, onEdit }: {
 
   return (
     <div className="ck-panel" data-testid="ck-panel">
+      {top}
       <div className="ck-words">
         <div className="ck-sec">This place{d && d.row.status !== "active" ? " · no longer on the live page" : ""}</div>
         <span data-testid="ck-words">{loaded.words}</span>
         {loaded.pageUrl && <> · <a href={loaded.pageUrl} target="_blank" rel="noreferrer">DFO page ↗</a></>}
-        {(pc.check !== "unchecked" || pc.earlier) && <div className={`ck-status-top ${pc.check}`} data-testid="ck-status-top">{checkStatus(pc)}</div>}
+        {d && ext.length > 0 && (
+          <div className="ck-extent-now" data-testid="ck-extent-now">
+            <span className="ck-sec">The extent now</span>{" "}
+            {partsText(piecesParts(ext, (x) => extentParts(x, cutLabel, itemName)))}
+            {d.extent_now.tributaries != null ? ` · ${d.extent_now.tributaries ? "with" : "without"} tributaries` : ""}
+            {onEdit && !pc.held && <>{" "}<button type="button" className="btn small" data-testid="ck-edit-extent"
+              title="opens a draft of this extent here; nothing is saved until you press Save this extent"
+              onClick={() => onEdit(null)}>Edit this extent (draft, nothing saved)</button></>}
+          </div>)}
       </div>
       <div className="ck-rows" data-testid="ck-rows" onMouseLeave={() => pinTo(picked)}>
         {needs && d && (
@@ -451,20 +518,20 @@ function CheckPanel({ loaded, water, onSaved, onEdit }: {
                   {loaded.proposal.confidence && <span className="chip-tag"> {loaded.proposal.confidence} confidence</span>}
                 </div>
                 {loaded.proposal.caveat && <div className="warn-text" data-testid="ck-proposal-caveat">Careful: {loaded.proposal.caveat}</div>}
-                <div className="dim">Violet on the map. It is a proposal: nothing is saved until you save in the editor.</div>
+                <div className="dim">Its points are violet on the map. Previewing saves nothing: you save with "Save this extent".</div>
                 <div className="ck-btns">
-                  <button data-testid="ck-use-proposal" disabled={busy} onClick={() => onEdit("proposal")}>Use this proposal</button>
-                  <button className="alt" data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Set the extent…</button>
+                  <button data-testid="ck-use-proposal" disabled={busy} onClick={() => onEdit("proposal")}>Preview this proposal on the map (nothing saved)</button>
+                  <button className="alt" data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Draw it myself</button>
                 </div>
               </>
             ) : onEdit ? (
               <div className="ck-btns">
-                <button data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Set the extent…</button>
+                <button data-testid="ck-set-extent" disabled={busy} onClick={() => onEdit(null)}>Draw the extent myself (opens a draft, nothing saved)</button>
               </div>
             ) : <div className="warn-text">It cannot be changed here: {d.extent_now.cannot_change.join("; ")}</div>}
             {onEdit && options.length > 0 && (
               <div className="ck-sameas" data-testid="ck-sameas">
-                <label>Same place as…{" "}
+                <label>Copy the extent from another place on this river:{" "}
                   <select value={sameAs} aria-label="same place as" data-testid="ck-sameas-pick" onChange={(e) => setSameAs(e.target.value)}>
                     <option value="">pick a place on this water</option>
                     {options.map((o) => <option key={o.id} value={o.id}>
@@ -473,7 +540,7 @@ function CheckPanel({ loaded, water, onSaved, onEdit }: {
                 </label>
                 <button type="button" className="btn small" data-testid="ck-sameas-use" disabled={!sameAs || busy}
                   title="opens the editor with that place's extent as this place's; you confirm and save there"
-                  onClick={() => void useSameAs()}>Use its extent…</button>
+                  onClick={() => void useSameAs()}>Preview its extent here (nothing saved)</button>
                 {sameAs && options.find((o) => o.id === sameAs) && <div className="dim" data-testid="ck-sameas-extent">
                   its extent: {wordsOf(options.find((o) => o.id === sameAs)!)}
                   {me && (me.duplicate_of === sameAs || options.find((o) => o.id === sameAs)!.duplicate_of === me.id)
@@ -486,7 +553,9 @@ function CheckPanel({ loaded, water, onSaved, onEdit }: {
         {pc.rows.map((r) => (
           <Row key={r.n} r={r} ticked={ticked.has(r.n)} wrong={wrong.has(r.n)} on={picked === r.n} wrongMode={wrongMode}
             onHover={() => pinTo(r.n)}
-            onClick={() => { if (wrongMode) setWrong((w) => toggle(w, r.n)); else { setPicked(r.n); pinTo(r.n); } }}
+            onClick={() => { if (wrongMode) setWrong((w) => toggle(w, r.n));
+              // a row about WHERE the extent runs opens the inline editor on it (the pin stays picked on the map)
+              else { setPicked(r.n); pinTo(r.n); if (onEdit && !pc.held && EDIT_KINDS.includes(r.kind)) onEdit(null); } }}
             onTick={() => setTicked((t) => toggle(t, r.n))} />
         ))}
       </div>
@@ -498,9 +567,9 @@ function CheckPanel({ loaded, water, onSaved, onEdit }: {
           <>
             <div className="ck-btns">
               <button data-testid="ck-allok" className={needs ? "alt" : undefined} disabled={left > 0 || busy || !!pc.held}
-                onClick={() => void save("ok")}>{pc.check === "earlier" ? "All correct (check it again)" : "All correct"}</button>
+                onClick={() => void save("ok")}>{`${pc.check === "earlier" || pc.check === "checked" ? "Confirm again" : "Confirm"}: the extent matches ${d ? "DFO's" : "the regulation's"} words (saves)`}</button>
               <button className="alt" data-testid="ck-wrong" disabled={busy || !!pc.held} onClick={() => {
-                setWrongMode(true); setWrong(new Set(openRows(pc.rows, ticked).map((r) => r.n))); }}>Something's wrong</button>
+                setWrongMode(true); setWrong(new Set(openRows(pc.rows, ticked).map((r) => r.n))); }}>Report a problem with it</button>
             </div>
             <div className="hint" data-testid="ck-hint">{pc.held ? <>Held: {pc.held}.{onChange && <> <button type="button"
               className="link" data-testid="ck-change-held" onClick={onChange}>Change the extent…</button></>}</>
@@ -511,12 +580,12 @@ function CheckPanel({ loaded, water, onSaved, onEdit }: {
             <div className="hint">Tap the row(s) that are wrong{wrong.size ? ` (${[...wrong].sort((a, b) => a - b).join(", ")})` : ""}.</div>
             <input placeholder="note (optional)" value={note} onChange={(e) => setNote(e.target.value)} aria-label="note" />
             <div className="ck-btns">
-              <button data-testid="ck-save-wrong" disabled={busy || !wrong.size} onClick={() => void save("wrong")}>Save: wrong rows</button>
-              <button className="alt" onClick={() => { setWrongMode(false); setWrong(new Set()); }}>Cancel</button>
+              <button data-testid="ck-save-wrong" disabled={busy || !wrong.size} onClick={() => void save("wrong")}>Save the problem report</button>
+              <button className="alt" onClick={() => { setWrongMode(false); setWrong(new Set()); }}>Back (nothing saved)</button>
             </div>
             {onChange && <button type="button" className="btn small link" data-testid="ck-change"
               title="the extent editor, starting from the extent now; the save says what it replaces"
-              onClick={onChange}>Change the extent instead…</button>}
+              onClick={onChange}>Edit the extent instead (draft, nothing saved)</button>}
           </div>
         )}
         {!getReviewer() && <input placeholder="your name" value={reviewer} aria-label="reviewer" onChange={(e) => setName(e.target.value)} />}

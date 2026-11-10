@@ -80,6 +80,8 @@ interface Props {
    *  `places` is "\n<id>\n<id>\n" and `faintOn` (a place id) draws that place's stronger (a hover in the list) */
   faint?: GeoJSON.FeatureCollection | null;
   faintOn?: string | null;
+  /** T532: fit the view to the saved / draft extent the FIRST time it has something (the inline editor's draft) */
+  fitSaved?: boolean;
   /** T532: the checklist's map — no status line, no reach picker, no legend (the page says the one colour) */
   minimal?: boolean;
 }
@@ -183,7 +185,7 @@ export function MapPanel({
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
   satellite = false, editPoints = [], onMovePoint, cutPreview = null, pending = null, pins = null, onPin,
-  fitPreview = true, minimal = false, faint = null, faintOn = null,
+  fitPreview = true, minimal = false, faint = null, faintOn = null, fitSaved = false,
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -803,6 +805,7 @@ export function MapPanel({
   }, []);
 
   // the SAVED extent fix (DFO), teal; the view stays where the extent already put it
+  const fittedSaved = useRef(false);
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -811,6 +814,16 @@ export function MapPanel({
       if (!src) return;
       const fc = saved ?? { type: "FeatureCollection", features: [] };
       src.setData(fc as GeoJSON.FeatureCollection);
+      if (!saved) fittedSaved.current = false;
+      if (fitSaved && saved?.features.length && !fittedSaved.current) {
+        const b = new maplibregl.LngLatBounds();
+        const walk = (c: unknown): void => {
+          if (Array.isArray(c) && typeof c[0] === "number") b.extend(c as [number, number]);
+          else if (Array.isArray(c)) c.forEach(walk);
+        };
+        for (const f of saved.features) if (f.geometry && "coordinates" in f.geometry) walk(f.geometry.coordinates);
+        if (!b.isEmpty()) { fittedSaved.current = true; m.fitBounds(b, { padding: 90, maxZoom: 13, duration: 400 }); }
+      }
     });
   }, [saved]);
 

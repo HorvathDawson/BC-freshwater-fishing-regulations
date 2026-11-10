@@ -248,3 +248,22 @@ export function sameAsOptions(places: WaterPlace[], id: string): WaterPlace[] {
 export function tickAll(members: DfoGroupMember[], fix: boolean, checklist: boolean): Set<string> {
   return new Set(members.filter((m) => !m.this && !untickable(m, fix, checklist)).map((m) => m.id));
 }
+
+/* THE ONE STATE LINE of a place (owner 2026-11-09: "need to know when it saves"): exactly one of six, colour-coded. A
+   mark holds its date, not a time, so "Saved" says the date. */
+export type PlaceTone = "none" | "draft" | "wait" | "saved" | "confirmed";
+export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; checkedDate?: string | null;
+                                earlierDate?: string | null; saved?: { state: string; date: string } | null;
+                                hasExtent: boolean }): { tone: PlaceTone; text: string } {
+  if (a.editing) return { tone: "draft", text: "You are previewing a draft: not saved" };
+  if (a.saved && (a.saved.state === "waits_cut" || a.saved.state === "not_landed"))
+    return { tone: "wait", text: `Saved (${a.saved.date}) — waiting to be drawn on the map` };
+  if (a.check === "checked" && a.checkedDate) return { tone: "confirmed", text: `Confirmed by you (${a.checkedDate})` };
+  if (a.check === "earlier" && a.earlierDate) return { tone: "confirmed", text: `Verified earlier (${a.earlierDate})` };
+  if (a.saved && a.saved.state === "landed" && a.hasExtent) return { tone: "saved", text: "Saved and on the map" };
+  return { tone: "none", text: "Nothing saved yet" };
+}
+/** the three steps, one line under the header */
+export const HOW_IT_WORKS = "1 Look at the extent on the map against DFO's words · 2 Fix it if needed (preview, then save) · 3 Confirm it";
+/** asked once when leaving a place with an unsaved draft */
+export const LEAVE_DRAFT = "You have an unsaved draft: save it, or discard it?\n\nOK = discard it and move on · Cancel = stay here so you can save it";

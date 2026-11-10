@@ -175,3 +175,26 @@ P1 quick confirm and Tidal are done: off the bar.
 - Not done: a group save across places that are only linked by `duplicate_of` / identical extent (the server writes
   a group only for `dfo._groups` members: "Same place as…" covers them one at a time); faint geometry for regulation
   extents.
+
+## Owner 2026-11-09, round 2: the editor INLINE, and words that say what happens
+"when i click use this proposal … it just opened up a completely different page … hard to follow … view extent there
+then you can edit it if needed … show the original text"; "it should be more obvious what the text means … need to know
+when it saves".
+- No page swap: every way into the editor opens it INSIDE the side panel (`DfoLocation embedded`), under "This place ·
+  DFO's words"; the checklist map stays and draws the draft in teal (`EditLayers`: the server's `/extent-preview` reach
+  when every point is a cut that exists, the points labelled either way; fits to the draft once). The save is the
+  editor's own (same mark, R1–R7, T and R still answered). "open the full editor" keeps the old page one link away.
+- A place with an extent says it in words with "Edit this extent (draft, nothing saved)"; a click on a where / from /
+  to / also / tributaries row opens the editor (it is not focused on that row's piece).
+- DFO's rule lines, the extent now and the proposal's details are in a closed "more" fold; new cuts in their own fold.
+- Words: "Preview this proposal on the map (nothing saved)" · "Draw it myself" · "Copy the extent from another place
+  on this river" / "Preview its extent here (nothing saved)" · "Save this extent" (the only button that writes an
+  extent; off until the draft changes something) · "Discard my changes" · "Confirm: the extent matches DFO's words
+  (saves)" · "Report a problem with it" / "Save the problem report".
+- One state line at the top (`checklist.placeState`), exactly one of: "Nothing saved yet" · "You are previewing a
+  draft: not saved" · "Saved (date) — waiting to be drawn on the map" · "Saved and on the map" · "Confirmed by you
+  (date)" · "Verified earlier (date)" (a mark holds a date, not a time); after a save "Saved: <the extent>" stays
+  until he moves on. Leaving with an unsaved draft asks once. Under the header: "1 Look at the extent on the map
+  against DFO's words · 2 Fix it if needed (preview, then save) · 3 Confirm it".
+- Not done: a draft that names a NEW cut is shown as its points only (the stretch draws after the rebuild builds the
+  cut); a row click does not focus its piece; T and R are still two answers before the save.

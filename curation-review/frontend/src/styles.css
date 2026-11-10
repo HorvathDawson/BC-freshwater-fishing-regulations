@@ -1230,3 +1230,23 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-sameas .dim { flex-basis: 100%; font-size: 12px; }
 .ck-key i.prop { background: none; border-top: 3px dashed #7c3aed; height: 0; }
 .ck-key i.faint { background: #475569; opacity: .35; height: 7px; }
+
+/* T532 round 2: the extent editor inline in the checklist's side panel */
+.ck-inline-scroll { flex: 1; min-height: 0; overflow: auto; padding: 4px 12px 12px; }
+.ck-inline { font-size: 13px; }
+.ck-inline-head { display: flex; align-items: center; gap: 8px; padding: 6px 0; position: sticky; top: 0; background: var(--panel); z-index: 2; }
+.ck-inline .checklist { border: 0; padding: 0; }
+.ck-inline .verdict-bar { position: sticky !important; bottom: 0; background: var(--panel); padding: 8px 0; display: flex; gap: 8px; flex-wrap: wrap; }
+.ck-inline .verdict-bar .btn.primary { flex: 1; min-height: 38px; font-weight: 650; }
+.ck-more > summary { cursor: pointer; color: var(--muted); font-size: 12px; padding: 4px 0; }
+.ck-extent-now { font-size: 13px; margin-top: 6px; }
+.ck-key i.draft { background: #0d9488; }
+
+/* T532 round 2: the one state line of the place, and the three steps */
+.ck-state { padding: 7px 16px; font-size: 13px; border-bottom: 1px solid var(--ck-line); background: #f3f4f6; color: #374151; }
+.ck-state.draft { background: #ccfbf1; color: #115e59; }
+.ck-state.wait { background: var(--ck-unk-bg); color: var(--ck-unk); }
+.ck-state.saved { background: #e0e7ff; color: #3730a3; }
+.ck-state.confirmed { background: var(--ck-ok-bg); color: var(--ck-ok); }
+.ck-how { padding: 4px 16px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--ck-line); }
+.ck-btns button { height: auto; min-height: 42px; padding: 6px 8px; line-height: 1.25; }
