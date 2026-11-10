@@ -33,7 +33,7 @@ BACKEND = REPO / "curation-review" / "backend"
 ADAM = "r1:adam_river_except_eve_river@1-10"
 ZONE = "z4:daily_quotas"
 _MODS = ("app", "reuse", "model_api", "answer", "synopsis_pages", "writes", "review", "evidence",
-         "dfo", "inseason")
+         "dfo", "inseason", "checks")
 #: T164: a DFO location with no extent yet, and the tributary whose confluence it names
 CAMPBELL = "1:campbell-river:downstream-of-the-confluence-with"
 _QUINSAM = {"ref": "n1", "anchor": "confluence", "name": "Quinsam River", "item_id": "gnis:27883",
