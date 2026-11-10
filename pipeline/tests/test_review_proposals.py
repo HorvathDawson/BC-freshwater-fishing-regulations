@@ -598,3 +598,14 @@ def test_a_dead_piece_is_reported_once_however_many_variants_ride_it(monkeypatch
     msg = str(got.value)
     assert "1 piece(s)" in msg and msg.count("piece 2 of 2") == 1
     assert "r2 2:x:target: piece 2 of 2 (downstream_of ['x'] on gnis:2)" in msg
+
+
+def test_a_side_directory_never_merges_two_ids_alike_in_their_first_40_characters():
+    """T562 item 5: the id part of the side-rebuild directory was a bare cut at 40 — two long split-proposal ids with the
+    same digest prefix shared one directory, so one side rebuild vouched for the other"""
+    long_a, long_b = "split-" + "x" * 60 + "-one", "split-" + "x" * 60 + "-two"
+    a, b = P.side_dir({"id": long_a, "digest": "abcdef0123"}), P.side_dir({"id": long_b, "digest": "abcdef9999"})
+    assert a != b
+    assert P.side_dir({"id": "split-n2", "digest": "abcdef0123"}) == f"data/generated/side/t185-{P._slug('split-n2', 40)}-abcdef", \
+        "an id that fits keeps the directory it had"
+    assert P._slug(long_a, 40) == P._slug(long_b, 40), "the bare cut is the same for both: the hash is what tells them apart"

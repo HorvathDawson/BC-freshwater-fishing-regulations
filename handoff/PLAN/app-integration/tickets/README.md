@@ -589,7 +589,7 @@ use that as the sole source of future work."
 | T542 | Emulator suites wait on conditions; static check that every id and label a step uses exists | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 10; after T534 |
 | T543 | CI: constraints.txt on every install, timeouts, cancel superseded runs, app-ci paths cover the parity tests | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 11 |
 | T544 | Staging site deploy is one command; the site names the release it was built on and the smoke compares it | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 12 |
-| T545 | Review marks: every mark in force lands in its curated file or the save says it did not | PARTIAL — left in T562 | 700091331, ae1390ec2, c2309ea74, 20e14339b, f78f166fc | data pipeline review 2026-11-09 (verified); rank 1, severity 3, 7 findings |
+| T545 | Review marks: every mark in force lands in its curated file or the save says it did not | DONE — the rest is T562's list | 700091331, ae1390ec2, c2309ea74, 20e14339b, f78f166fc | data pipeline review 2026-11-09 (verified); rank 1, severity 3, 7 findings |
 | T546 | Reach run: a curated id, scope or closure piece that cannot be placed stops the run or is counted by the release check | OPEN | — | data pipeline review 2026-11-09 (verified); rank 2, severity 3, 8 findings |
 | T547 | Atlas records the curated inputs it was built from; a release refuses an atlas older than its cuts, names or areas | OPEN | — | data pipeline review 2026-11-09 (verified); rank 3, severity 3, 5 findings |
 | T548 | In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it | OPEN | — | data pipeline review 2026-11-09 (verified); rank 4, severity 5, 10 findings |
@@ -606,7 +606,7 @@ use that as the sole source of future work."
 | T559 | Privacy: backups and rate-limit records are deleted when the privacy page says they are | OPEN | — | data pipeline review 2026-11-09 (verified); rank 15, severity 3, 2 findings |
 | T560 | One home for shared helpers: id slug, name key, live release reader, atomic write, cut tolerances | OPEN | — | data pipeline review 2026-11-09 (verified); rank 16, severity 2, 8 findings |
 | T561 | Static layers: real source dates, no-access overlap, OSM fetch checks; pipeline docs match the code | OPEN | — | data pipeline review 2026-11-09 (verified); rank 17, severity 2, 8 findings |
-| T562 | Review marks, what T545 and T541 left: changed-extent guard for older marks, found-name freeze, lake names, check list in the app | OPEN | — | T545 + T541 lane reports 2026-11-09 |
+| T562 | Review marks, what T545 and T541 left: changed-extent guard for older marks, found-name freeze, lake names, check list in the app | PARTIAL — items 5, 7 done 11-10 (and the on_disk name clash); 1–4, 6 open | — | T545 + T541 lane reports 2026-11-09 |
 | T563 | A percentile alert follows each day's percentile, not the line of the day it was saved | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T564 | Public gauge page: the forecast is on it, and the chart is large and readable | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T565 | An in-season notice sits at the top of the Regulations page, not under salmon | OPEN | — | owner 2026-11-09 (owner checks page) |

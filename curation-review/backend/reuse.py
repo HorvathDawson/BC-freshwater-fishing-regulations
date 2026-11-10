@@ -1338,18 +1338,16 @@ def _built_for(key: tuple):
 def _anchors_now(e: dict) -> dict[str, str]:
     """split id -> its anchor digest in splits.json NOW, for every split the entry's binding reads
     (`fingerprint.entry_split_ids`). A named id splits.json does not have is the gate's to refuse."""
-    from pipeline.atlas.splits.splits import anchor_digest
-    from pipeline.regs.review import fingerprint as F
+    from pipeline.regs.review import pending as _P
     ctx = _splits_context()
     # memoised on the context (a new one per splits.json / registry) by the entry's content: the
-    # queue asks for every entry, and `entry_split_ids` scans every split (owner 2026-10-28: ~1 s)
+    # queue asks for every entry, and `entry_split_ids` scans every split (owner 2026-10-28: ~1 s).
+    # The rule itself is `pending.anchors_now` — one copy (T562)
     memo = ctx.__dict__.setdefault("anchors_memo", {})
     key = json.dumps(e, sort_keys=True, ensure_ascii=False, default=str)
     got = memo.get(key)
     if got is None:
-        idx = ctx.split_index
-        got = memo[key] = {sid: anchor_digest(idx[sid]) for sid in sorted(F.entry_split_ids(e, ctx))
-                           if sid in idx}
+        got = memo[key] = _P.anchors_now(e, ctx)
     return dict(got)
 
 

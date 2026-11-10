@@ -192,7 +192,7 @@ def test_an_entry_edit_awaits_reach_and_deliver_then_clears_without_a_restart(ap
         assert [x["entry_id"] for x in pend["entries"]] == [BULL]
         # T541: the server-less CLI reads the same answer off disk (one implementation, `regs.review.pending`)
         from pipeline.regs.review import pending as P
-        assert json.loads(json.dumps(P.on_disk(env["reuse"].rebuild_target()))) == pend
+        assert json.loads(json.dumps(P.pending_on_disk(env["reuse"].rebuild_target()))) == pend
         assert P.summary_line(pend).startswith("1 review entry and 0 split(s)")
         # the tool serves COPIES, so the rebuild it prints is of the copies (T136), never the live tree
         assert pend["commands"] == V.rebuild_commands([V.Waiting.reach_entry], env["reuse"].rebuild_target())

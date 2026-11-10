@@ -2,7 +2,7 @@
 
 | file | kind | written by | read by |
 |---|---|---|---|
-| `marks.jsonl` | reviewed | the review app — APPEND-ONLY, never edited by hand or by a tool | `pipeline.regs.review.apply` (write-through to each domain's final file), the review app |
+| `marks.jsonl` | reviewed | the review app — APPEND-ONLY, never edited by hand; the one tool that rewrites it is a migration's carry through `pipeline.regs.review.commit_marks` (lines removed, none added, said in its commit) | `pipeline.regs.review.apply` (write-through to each domain's final file), the review app |
 | `closed.json` | authored | hand (`pipeline.regs.review.closed`) | apply + review app skip a closed domain |
 | `proposal_overrides.json` | authored | hand (a proposed cut's confidence) | `marks.proposals`; folded away by T326 |
 

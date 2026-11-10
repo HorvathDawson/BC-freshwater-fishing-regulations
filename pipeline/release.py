@@ -615,7 +615,7 @@ def dry_run(ctx: Ctx) -> int:
     # (T541) informational: what the review app's pending-build panel lists, read with no server — never a stop
     try:
         from pipeline.regs.review import pending as _pending
-        print(f"review           {_pending.summary_line(_pending.on_disk())}  "
+        print(f"review           {_pending.summary_line(_pending.pending_on_disk())}  "
               "(python -m pipeline.regs.review.pending lists them)")
     except Exception as e:  # noqa: BLE001 — shown, never swallowed: the dry run still prints the rest of the plan
         print(f"review           COULD NOT READ the pending review build ({type(e).__name__}: {e})")

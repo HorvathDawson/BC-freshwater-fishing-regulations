@@ -55,7 +55,7 @@ def pending(entries: Iterable[tuple[str, Mapping]], ctx, built, target,
             "commands": V.rebuild_commands(reasons, target)}
 
 
-def on_disk(target=None) -> dict:
+def pending_on_disk(target=None) -> dict:
     """`pending` over the live tree (default `vintage.Target.canonical()`, the paths the review app serves when no
     `CURATION_*` copy is set): the catalogue region files read with the served registry, splits.json, and the
     vintage on disk."""
@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.pending", description=__doc__.split("\n")[0])
     ap.add_argument("--json", action="store_true", help="print the whole result as JSON")
     a = ap.parse_args(argv)
-    got = on_disk()
+    got = pending_on_disk()
     if a.json:
         json.dump(got, sys.stdout, indent=1, ensure_ascii=False)
         print()

@@ -7,7 +7,7 @@ proposal"): the pass `suggest.run` makes over its rows once the matcher and the 
                           suggestion is weaker ADOPTS the cluster's best one. Each row says which.
     classify(row)         WHY a location is unplaced, one word (`WHY`).
     outcome(row)          what it gets: existing / whole / new_<conf> / unresolvable.
-    coverage_md(...)      the summary (`handoff/PLAN/curation-review/dfo-coverage.md`).
+    coverage_md(...)      the summary (`data/generated/review/dfo-coverage.md`, written by `suggest`).
 
 Read only, like the rest of suggest: the rows are suggestions the review app's DFO mode shows; the owner's
 mark is the only write. Memory `dfo-salmon-churn-asymmetry`: waters never move, scope text drifts — so a
