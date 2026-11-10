@@ -260,3 +260,19 @@ when it saves".
   `variant_of` mark already sets it true); (c) `review.dfo.groups` / `places` honouring it for wordings grouped by
   the alike-wording matcher too, not only by `duplicate_of`; (d) `checks.same_place` reading it, so the identical-
   extent grouping does not put the wording straight back; (e) the button, its "saved" line, tests.
+
+## Owner 2026-11-09, round 5 additions 2 and 3
+- A same-place group in the water list is ONE CLOSED BOX: border and background around exactly its rows, the header
+  inside at the top ("These 2 wordings are the same place"), clear space above and below.
+- Every DFO row of the list says "live" or "no longer live, last seen <date>" (`WaterPlace.last_seen`).
+- THE LIST'S COVERAGE, measured 2026-11-09. Alouette: 6 DFO wordings in the files (3 live, 3 no longer live), 6 in
+  the list — none dropped. Whole list: 332 water-bound DFO wordings, 301 shown in some water's list, 31 not:
+  19 no-longer-live wordings on waters with NO live wording (the whole water is off the queue: `_dfo_places` keeps a
+  dormant place only when its water is still on the live page) and 12 lake sub-areas (hidden everywhere as "lake
+  split later", owner 2026-10-28). No DFO location holds more than one wording of its own. To show the 19: let
+  `_dfo_places` / `checks.water` take dormant-only waters (a queue filter "no longer on the live page"), an owner call.
+- NOT DONE, with the refute decision (one change): "Add a wording to this group" / "Same place as…" on a list row.
+  The attach half exists (`variant_of` mark → `duplicate_of` + `duplicate_confirmed: true`, the full editor's "more
+  about this place" → attach), but it cannot be undone in the app until the refute decision exists, and the owner's
+  rule is that a grouping he makes is reversible. Build both together: the mark field for "not the same place", the
+  write-through for it, the group readers honouring it, then the two buttons on the group box.

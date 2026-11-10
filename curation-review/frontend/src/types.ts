@@ -895,6 +895,8 @@ export interface WaterPlace {
   source: "dfo" | "regs"; id: string; text: string; live: boolean; check: CheckState; bad: number;
   state: DfoState | null; extents: DfoExtent[]; tributaries: boolean | null; extent_key: string;
   older_of: string | null; duplicate_of: string | null; proposal: boolean; earlier?: EarlierMark; name?: string;
+  /** DFO: the last date its page carried this wording */
+  last_seen?: string | null;
   /** the same-place group it sits in (the group's first id) and why (`checks.same_place`) */
   same: string; why: string[];
 }

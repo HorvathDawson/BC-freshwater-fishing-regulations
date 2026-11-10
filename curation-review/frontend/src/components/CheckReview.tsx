@@ -729,7 +729,7 @@ function WaterList({ view, selected, onOpen, onHover, undrawn }: {
                       {(p.text || "(the whole water)").slice(0, 110)}{(p.text || "").length > 110 ? "…" : ""}</span>
                     <span className="e">{p.source === "regs" ? "regulation · " : ""}
                       {p.extents.length ? partsText(piecesParts(p.extents, (x) => extentParts(x, label, name))) : "no extent"}
-                      {p.live ? "" : " · no longer live"}</span>
+                      {p.source !== "dfo" ? "" : p.live ? " · live" : ` · no longer live${p.last_seen ? `, last seen ${p.last_seen}` : ""}`}</span>
                   </button>);
               })}
             </div>

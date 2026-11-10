@@ -599,6 +599,7 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
     mine = [p for p in _places() if p["water_key"] == water_key and (source == "all" or p["source"] == source)]
     if not mine:
         return None
+    from pipeline.regs.review import dfo as D
     locs, states, ctx, groups = dfo._locations(), dfo._states(), context(), dfo._groups()
     rows = {r["id"]: r for r in dfo._rows()}
     rules = None
@@ -616,6 +617,8 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
                 "tributaries": dfo.tributaries_now(loc, w),
                 "extent_key": _extent_key(exts, dfo.tributaries_now(loc, w), bool(b.get("tributaries_only"))),
                 "older_of": older_of, "duplicate_of": loc.get("duplicate_of"),
+                # the last date DFO's page carried this wording (`review.dfo.location_wordings`)
+                "last_seen": max((d_ for w_ in D.location_wordings(loc) for d_ in w_.get("dates") or []), default=None),
                 "proposal": bool(r.get("suggested") or r.get("fix_proposed")),
                 **({"earlier": got["earlier"]} if "earlier" in got else {})}
     for p in mine:
