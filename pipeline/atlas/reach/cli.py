@@ -79,7 +79,16 @@ def main() -> int:
                            handles=digest_for(build), steelhead_list=load_list(),
                            tidal_splits=tidal_ids, tidal_waters=tidal_whole)
     r = result.report
+    # T546 item 7: the curated override ids this registry lacks — the matcher's `unresolved_ids` had no reader,
+    # so a partly resolved override bound the ids that resolved and dropped the rest unseen
+    from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
+    from pipeline.regs.matching.matcher import load_overrides, override_id_gaps
+    r.override_id_gaps = override_id_gaps(load_overrides(DEFAULT_OVERRIDES), registry)
     print(f"{r.n_entries:,} entries · {r.n_rules:,} rules · {r.seconds}s")
+    for x in r.override_id_gaps:
+        print(f"{'!!' if x['resolved'] else '  '} override {x['name']} {'/'.join(x['mu'])}: {len(x['unresolved'])} "
+              f"id(s) in no registry item ({x['resolved']} resolved"
+              f"{' — the row binds only those' if x['resolved'] else ', the row is unmatched'}): {x['unresolved'][:3]}")
     if r.tidal_cuts:
         print(f"  tidal        {len(r.tidal_cuts)} tidal boundar{'y' if len(r.tidal_cuts) == 1 else 'ies'} / whole "
               f"water(s), {sum(c['sections'] for c in r.tidal_cuts):,} section(s) made tidal")

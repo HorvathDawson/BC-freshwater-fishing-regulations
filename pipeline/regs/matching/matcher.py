@@ -285,6 +285,26 @@ def override_typed_ids(e: dict) -> list[str]:
     return ids
 
 
+def override_id_gaps(overrides: list[dict], registry: dict[str, RegistryItem], id_index=None) -> list[dict]:
+    """T546 item 7: EVERY CURATED OVERRIDE ID THE REGISTRY DOES NOT HAVE — the one consumer of what `match_row`
+    puts in `unresolved_ids` (the "resolver" that was to bind them was never built). One row per override with a
+    typed id no registry item carries: `{name, mu, unresolved, resolved}`. `resolved > 0` is a PARTIAL override:
+    the row binds the ids that resolved and the rest drop with nothing said (OKANAGAN RIVER OXBOWS, 26 wsc
+    channels). `resolved == 0` is a feature pin: the row is unmatched, which the matcher already says."""
+    idx = build_id_index(registry) if id_index is None else id_index
+    out: list[dict] = []
+    for e in overrides:
+        if e.get("skip"):
+            continue
+        typed = override_typed_ids(e)
+        gone = [t for t in typed if not idx.get(t)]
+        if gone:
+            c = e.get("criteria") or {}
+            out.append({"name": c.get("name_verbatim") or "", "mu": list(c.get("mus") or ()),
+                        "unresolved": gone, "resolved": len(typed) - len(gone)})
+    return sorted(out, key=lambda x: (x["name"], x["mu"]))
+
+
 def _name_resolve(index: int, water: str, lookup: str, via: str, registry, name_index, rn, row_mus) -> MatchResult:
     cands = list(name_index.get(lookup, []))
     if not cands:

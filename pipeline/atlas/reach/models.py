@@ -157,6 +157,9 @@ class BuildReport:
     #: T546 item 3: every piece withheld from a binding (`build.unplaced_pieces`):
     #: `{entry_id, rule_id, piece, reason, kind}` — printed by the CLI, counted by the binding diff
     unplaced: list = field(default_factory=list)
+    #: T546 item 7: curated override ids (book_name_links.json) no registry item carries
+    #: (`matcher.override_id_gaps`): `{name, mu, unresolved, resolved}`; filled by the CLI
+    override_id_gaps: list = field(default_factory=list)
     #: Rules bound to their DIRECT sections only, pending the tributary walk.
     tributaries_pending: int = 0
     #: Licensing records by `kind:placement` (see `pipeline.atlas.reach.licensing`).

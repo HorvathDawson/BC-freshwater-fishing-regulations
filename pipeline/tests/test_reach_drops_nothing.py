@@ -177,3 +177,20 @@ def test_a_dfo_places_diagnostics_are_written_not_discarded(monkeypatch, tmp_pat
     first = (tmp_path / D.DIAG_FILE).read_bytes()
     D.write_diagnostics(tmp_path, list(reversed(got)))
     assert (tmp_path / D.DIAG_FILE).read_bytes() == first          # sorted: byte-identical whatever the order
+
+
+# ------------------------------------------------------------------ item 7: an override id that hits nothing
+
+def test_an_override_id_no_registry_item_carries_is_listed():
+    """Mutation: drop `override_id_gaps` (or its partial rows) — OKANAGAN RIVER OXBOWS binds its 41 resolved
+    ids and its 26 dead wsc channels drop with nothing said."""
+    from pipeline.regs.matching.matcher import override_id_gaps
+    from pipeline.tests.test_registry_flowing import _item
+    reg = {"gnis:1": _item("gnis:1", "X River", "stream", ["r0"], refs=("gnis:1",)),
+           "wbk:7": _item("wbk:7", "Oxbow", "lake", ["lake:7"], refs=("wbk:7",))}
+    ov = [{"criteria": {"name_verbatim": "X OXBOWS", "mus": ["8-1"]}, "waterbody_keys": ["7"],
+           "fwa_watershed_codes": ["300-432687-461418"]},
+          {"criteria": {"name_verbatim": "X RIVER", "mus": []}, "gnis_ids": ["1"]},
+          {"criteria": {"name_verbatim": "GONE", "mus": []}, "skip": True, "gnis_ids": ["404"]}]
+    assert override_id_gaps(ov, reg) == [{"name": "X OXBOWS", "mu": ["8-1"],
+                                          "unresolved": ["wsc:300-432687-461418"], "resolved": 1}]
