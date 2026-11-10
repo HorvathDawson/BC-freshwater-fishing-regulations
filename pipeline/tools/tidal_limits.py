@@ -45,7 +45,7 @@ def _dem_point(n) -> bool:
 
 
 def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, list[dict]]:
-    """(rows, skipped [{target, why}]) — the file's rows from the decided data (`review.export.Decided`), the curated
+    """(rows, skipped [{target, why, followup?}]) — the file's rows from the decided data (`review.export.Decided`), the curated
     splits and the atlas (`proposals.Sources`), keeping the owner's own rows of `existing` (no mark)."""
     from pipeline.regs.review import proposals as P
     from pipeline.regs.review import tidal as TC
@@ -129,7 +129,7 @@ def build(decided, src=None, existing: Optional[list] = None) -> tuple[list, lis
                 # the owner's own row already decides the water: the mark is newer words, not a decision
                 why += (f" — tidal.json already holds the owner's own `{held.limit}` row ({held.decided}); "
                         "re-mark to confirm it")
-            skipped.append({"target": m.target, "why": why})
+            skipped.append({"target": m.target, "why": why, "followup": True})   # decides nothing: nothing to land
     return sorted(rows.values(), key=lambda r: int(r.blk)), skipped
 
 

@@ -10,7 +10,8 @@ where it stopped (every stage below is skipped when it is already done for this 
 
   1 preflight  `scripts/fast-fail.sh` first (T483, AGENTS 20a: the cheap checks, a minute or two; `--no-fast-fail
                REASON` skips it and prints the reason); code and data/curated committed (the review log marks.jsonl
-               and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); HEAD pushed to
+               and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); every review mark in
+               force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); HEAD pushed to
                origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
                copy — found only at stage 6 on 2026-11-07); the live staging SITE is at least the min app the release
                goes up with (`deliver.release.site_gate`; 2026-11-09 the smoke test found a 0.6.9 site under a 0.7.0
@@ -113,6 +114,16 @@ def git_dirty() -> list[str]:
                (CURATED.review.marks, CURATED.review.closed)}
     paths = [ln[3:].split(" -> ")[-1].strip().strip('"') for ln in out.splitlines() if ln.strip()]
     return [p for p in paths if p not in allowed]
+
+
+def marks_landed() -> tuple[bool, str]:
+    """(T545) Has every review mark in force landed in its curated file (`review.apply --check`, read-only, ~2 s)?
+    (ok, what it printed). fast-fail runs it too; preflight asks again itself so `--no-fast-fail` cannot skip it."""
+    got = subprocess.run([sys.executable, "-m", "pipeline.regs.review.apply", "--check"], cwd=REPO_ROOT,
+                         capture_output=True, text=True)
+    if got.returncode not in (0, 1):
+        raise RuntimeError(f"review.apply --check failed (rc={got.returncode}): {(got.stderr or got.stdout)[-800:]}")
+    return got.returncode == 0, got.stdout.strip()
 
 
 def git_head() -> str:
@@ -329,6 +340,14 @@ def stage_preflight(ctx: Ctx) -> str:
                    + (" …" if len(dirty) > 8 else ""),
                    "commit them (a release is built from committed code and curated data only; marks.jsonl may "
                    "stay dirty), then rerun")
+    try:
+        landed, said = marks_landed()
+    except RuntimeError as e:
+        raise Stop("preflight", str(e), "run `python -m pipeline.regs.review.apply --check` and fix what it says")
+    if not landed:
+        raise Stop("preflight", "review marks in force have not landed in their curated files:\n" + said,
+                   "land them (`python -m pipeline.regs.review.apply`, then commit a file it names), or put a mark "
+                   "that must wait on NOT_LANDED_OK (pipeline/regs/review/apply.py), then rerun")
     try:
         pushed = git_pushed()
     except (subprocess.CalledProcessError, RuntimeError) as e:
@@ -556,6 +575,13 @@ def dry_run(ctx: Ctx) -> int:
     print("             " + ("ok: code + data/curated committed" if not dirty else
                              f"WOULD STOP: {len(dirty)} uncommitted path(s): {', '.join(dirty[:8])}")
           + f"  (HEAD {git_head()[:12]}; marks.jsonl / closed.json may be dirty)")
+    try:
+        landed, said = marks_landed()
+        print("             " + ("ok: " + said.splitlines()[-1] if landed else "WOULD STOP: " + next(
+            (ln for ln in said.splitlines() if "NOT LANDED" in ln), said)
+            + "  (python -m pipeline.regs.review.apply --check lists them)"))
+    except RuntimeError as e:
+        print(f"             WOULD STOP: {e}")
     try:
         pushed = "ok: HEAD is on" if git_pushed() else "WOULD STOP: HEAD is not on"
     except (subprocess.CalledProcessError, RuntimeError) as e:

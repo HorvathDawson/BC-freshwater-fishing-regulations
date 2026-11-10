@@ -303,6 +303,45 @@ def test_a_proposal_the_apply_never_reached_is_said_not_saved(wt):
     assert o["state"] == "refused" and "neither applied nor reported" in o["why"], o
 
 
+# --------------------------------------------------------------------------- T545: the gate (`apply --check`)
+
+def test_check_lists_every_mark_in_force_that_has_not_landed(wt, capsys):
+    """A mark saved while nothing applied it (the server off, an apply that never ran): `check` names it, per mark
+    for a proposal and per file for a file domain; an apply empties the list. It writes nothing."""
+    store, f = wt["store"], wt["repo"] / "data/curated/dfo_salmon/region-1.json"
+    assert AP.run(None, marks=store)["rc"] == 0                     # the temp file domains' first files
+    assert AP.check(marks=store)["ok"]
+    wt["WT"].enabled = False                                        # marks are saved, nothing lands
+    assert _post_built(wt, _dfo_mark()).json()["write_through"]["state"] == "off"
+    assert wt["client"].post("/api/marks", json={**SLOUGH, "target": "1", "call": "stream"}).status_code == 200
+    before = f.read_text()
+    got = AP.check(marks=store)
+    assert not got["ok"] and f.read_text() == before and _waters(wt["tmp"] / "slough_calls.json") == []
+    assert {(r["domain"], r["status"]) for r in got["not_landed"]} == {("dfo", "would"), ("sloughs", "stale")}
+    assert [r["marks"] for r in got["not_landed"] if r["domain"] == "dfo"] == [[f"dfo|{COWICHAN}|"]]
+    assert AP.print_check(got) == 1
+    said = capsys.readouterr().out
+    assert "2 NOT LANDED" in said and f"dfo|{COWICHAN}|" in said and "slough_calls.json" in said
+    # ALLOWED TO WAIT: only by the mark's own key — and a stale file is never allowed
+    ok = AP.check(marks=store, allow={f"dfo|{COWICHAN}|": {"date": "2026-11-09", "why": "test"}})
+    assert [r["domain"] for r in ok["allowed"]] == ["dfo"] and [r["domain"] for r in ok["not_landed"]] == ["sloughs"]
+    assert AP.check(marks=store, allow={"dfo|another|": {"date": "d", "why": "w"}})["unused_allow"] == ["dfo|another|"]
+    # the apply lands both; the list is empty
+    assert AP.run(None, marks=store)["rc"] == 0
+    got = AP.check(marks=store)
+    assert got["ok"] and not got["not_landed"] and AP.print_check(got) == 0
+
+
+def test_check_lists_a_refused_mark(wt):
+    store = wt["store"]
+    assert AP.run(None, marks=store)["rc"] == 0
+    with open(store, "a") as fh:                                    # a place that does not exist: not applicable
+        fh.write(M.line(_dfo_mark().model_copy(update={"target": "1:no-such-river:nowhere"})))
+    got = AP.check(marks=store)
+    assert [(r["status"], r["marks"]) for r in got["not_landed"]] == [("refused", ["dfo|1:no-such-river:nowhere|"])]
+    assert "no DFO location" in got["not_landed"][0]["why"]
+
+
 def test_an_entry_mark_lands_in_its_catalogue_file_in_the_background(wt):
     mark = M.Mark.model_validate({
         "scope": "entry", "target": HATZIC, "verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y", "A": "y"},

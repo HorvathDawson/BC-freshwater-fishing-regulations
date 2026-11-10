@@ -70,6 +70,8 @@ def world(tmp_path: Path, monkeypatch):
 
     monkeypatch.setattr(R, "run_fast_fail", fast_fail)
     monkeypatch.setattr(R, "git_pushed", lambda: w["pushed"])
+    w["landed"] = (True, "review marks: every mark in force has landed")
+    monkeypatch.setattr(R, "marks_landed", lambda: w["landed"])
     monkeypatch.setattr(R, "binding_diff", diff)
     monkeypatch.setattr(R, "diff_summary", lambda rep: f"{rep['rules_changed']} rule(s) bind different sections")
     # the manifest check's real body reads the size gate and publish.plan over real release files: pinned elsewhere
@@ -216,6 +218,16 @@ def test_an_unpushed_head_stops_at_preflight_not_at_the_upload(world, capsys):
     assert _staging() == 1
     err = capsys.readouterr().err
     assert "STOPPED at preflight" in err and "not on origin/redesign/stream-sections" in err and "git push" in err
+    assert world["calls"] == [] and _latest(world) == LIVE
+
+
+def test_marks_that_have_not_landed_stop_at_preflight_even_without_fast_fail(world, capsys):
+    """T545: two owner marks read "saved" and were in no curated file; no release looked."""
+    world["landed"] = (False, "review marks: 1 NOT LANDED in the curated files:\n  would dfo dfo|2:some-river:x|: y")
+    for kw in ({}, {"no_fast_fail": "fast-fail is down"}):
+        assert _staging(**kw) == 1
+        err = capsys.readouterr().err
+        assert "STOPPED at preflight" in err and "dfo|2:some-river:x|" in err and "review.apply" in err
     assert world["calls"] == [] and _latest(world) == LIVE
 
 

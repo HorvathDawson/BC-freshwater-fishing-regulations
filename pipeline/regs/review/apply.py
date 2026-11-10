@@ -7,6 +7,7 @@ locks nothing. This command is the same apply by hand — a catch-up after marks
     python -m pipeline.regs.review.apply                 # every open domain
     python -m pipeline.regs.review.apply dfo             # one domain (or several: dfo tidal)
     python -m pipeline.regs.review.apply dfo --dry-run   # what would land; writes nothing
+    python -m pipeline.regs.review.apply --check         # T545: every mark in force has landed? exit 1 + the list
 
 Marking is unchanged: one click in the review app appends a mark to marks.jsonl. This command then reads what the
 marks decide IN MEMORY (`review.export.load`: the marks in force, a closed domain's left out — no intermediate file,
@@ -26,6 +27,12 @@ cut that changes waits for its side rebuild (the commands are printed). The file
 it yourself. `--dry-run` prints what would change and writes nothing.
 
 A CLOSED domain (`review.closed`: one that feeds nothing — ponds, T329) is skipped with a line saying so.
+
+THE GATE (T545): `--check` (`check`) is read-only — the dry run of every open domain, as a list of what the marks in
+force decide that the curated files do not say: a file a writer would change, a proposal that would land, one that is
+refused, one that waits. `scripts/fast-fail.sh` and `pipeline release` preflight run it, so no release is built from
+files that lag the owner's marks unsaid. A mark that is KNOWN to wait (an owner decision, a side rebuild not made
+yet) passes only while it is on `NOT_LANDED_OK`, by key, dated, with its reason.
 """
 from __future__ import annotations
 
@@ -176,6 +183,7 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
                 from pipeline.tools import tidal_limits as TL
                 for s in TL.build(decided)[1]:
                     out["events"].append({"domain": d, "status": "waiting", "why": s["why"],
+                                          **({"followup": True} if s.get("followup") else {}),
                                           "marks": [{"scope": "tidal", "target": s["target"], "rule_id": None}]})
             try:
                 changed = write_files(d, decided, dry_run=dry_run, accept_shrink=accept_shrink)
@@ -186,7 +194,8 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
                 continue
             out["files"] += [str(p) for p in changed]
             out["events"].append({"domain": d, "status": "would" if dry_run else "written",
-                                  "why": ", ".join(_rel(p) for p in changed) or "current", "marks": []})
+                                  "why": ", ".join(_rel(p) for p in changed) or "current", "marks": [],
+                                  "files": [_rel(p) for p in changed]})
     # the proposal writer, once, over every proposal domain asked for
     scopes = [s for d in want if d in PROPOSAL_DOMAINS for s in E.DOMAINS[d]]
     if scopes:
@@ -204,6 +213,92 @@ def run(domains: Optional[list[str]] = None, *, marks: Optional[Path] = None,
     return out
 
 
+#: T545 — THE MARKS KNOWN NOT TO HAVE LANDED, which `check` lets through: mark key (`scope|target|rule_id`) ->
+#: {date, why}. Explicit and dated: a row is added by hand with its reason (an owner decision that is open, a side
+#: rebuild that is queued) and taken out when the mark lands (`check` names a row that is no longer needed).
+NOT_LANDED_OK: dict[str, dict] = {
+    "tidal|tidal:354151091|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
+    "tidal|tidal:360848786|": {"date": "2026-11-09", "why": "T359: does a confirmed DEM point become a cut? (owner)"},
+}
+
+
+def mark_key(m: dict) -> str:
+    """A mark's key as the write-through and `NOT_LANDED_OK` spell it."""
+    return f"{m.get('scope')}|{m.get('target')}|{m.get('rule_id') or ''}"
+
+
+def check(*, marks: Optional[Path] = None, build: Optional[Path] = None,
+          allow: Optional[dict[str, dict]] = None) -> dict:
+    """T545, READ-ONLY: what the marks in force decide that the curated files do not say NOW. Returns
+    {ok, not_landed: [row], allowed: [row], followups: n, unused_allow: [key]}; a row is {domain, status, why,
+    marks: [key], id?}:
+
+      stale     a file domain's writer would change its file (tidal / sloughs / names)
+      would     a proposal that an apply would land now
+      refused   a proposal / a mark the apply refuses (not applicable, an id two proposals share, a stale slough
+                mark, conflicting decisions, a shrink)
+      waiting   a proposal / a tidal mark that waits (a side rebuild, an owner decision)
+
+    `ok` is False when any row is not allowed. A row is allowed only when EVERY mark behind it is in `allow`
+    (default `NOT_LANDED_OK` for the curated store, nothing for any other store); a row with no mark (a stale file,
+    a whole-domain refusal) is never allowed. A tidal FOLLOW-UP (a mark that is not Place y: it decides nothing, so
+    nothing of it can land) is counted, not listed."""
+    import contextlib
+    import io
+    from pipeline.common.curated import CURATED
+    if allow is None:
+        own = marks is None or Path(marks).resolve() == Path(CURATED.review.marks).resolve()
+        allow = NOT_LANDED_OK if own else {}
+    said = io.StringIO()
+    with contextlib.redirect_stdout(said):               # the dry run prints every diff; the gate prints its list
+        out = run(None, marks=marks, build=build, dry_run=True)
+    rows: list[dict] = []
+    followups = 0
+    for e in out["events"]:
+        st = e.get("status")
+        if e.get("files"):                               # a file writer's own event: it would change its file
+            rows.append({"domain": e.get("domain"), "status": "stale", "marks": [],
+                         "why": f"{', '.join(e['files'])} is not what the marks say — "
+                                f"python -m pipeline.regs.review.apply {e.get('domain')}"})
+        elif e.get("followup"):
+            followups += 1
+        elif st in ("refused", "waiting") or (st == "would" and e.get("id")):
+            rows.append({"domain": e.get("domain"), "status": st, "why": e.get("why") or "",
+                         "marks": [mark_key(m) for m in e.get("marks") or ()],
+                         **({"id": e["id"]} if e.get("id") else {})})
+    allowed = [r for r in rows if r["marks"] and all(k in allow for k in r["marks"])]
+    bad = [r for r in rows if r not in allowed]
+    used = {k for r in allowed for k in r["marks"]}
+    return {"ok": not bad, "not_landed": bad, "allowed": allowed, "followups": followups,
+            "skipped": out["skipped"], "unused_allow": sorted(k for k in allow if k not in used),
+            "allow": dict(allow), "log": said.getvalue()}
+
+
+def print_check(got: dict) -> int:
+    """`check`, said: one line per mark that has not landed; 0 when every one has (or is allowed), else 1."""
+    def line(r: dict) -> str:
+        who = ", ".join(r["marks"]) or r.get("id") or r.get("domain") or "?"
+        return f"  {r['status']:8} {r.get('domain') or '-':8} {who}: {str(r['why']).splitlines()[0][:300]}"
+    if got["skipped"]:
+        print(f"review marks: closed domain(s), not checked: {', '.join(got['skipped'])}")
+    for r in got["allowed"]:
+        k = got["allow"].get(r["marks"][0]) or {}
+        print(line(r) + f"\n           allowed ({k.get('date')}: {k.get('why')})")
+    for k in got["unused_allow"]:
+        print(f"  note: NOT_LANDED_OK lists {k}, which is not waiting any more — take the row out "
+              "(pipeline/regs/review/apply.py)")
+    if got["ok"]:
+        print(f"review marks: every mark in force has landed ({len(got['allowed'])} allowed to wait, "
+              f"{got['followups']} tidal follow-up(s) decide nothing)")
+        return 0
+    print(f"review marks: {len(got['not_landed'])} NOT LANDED in the curated files:")
+    for r in got["not_landed"]:
+        print(line(r))
+    print("  land them: python -m pipeline.regs.review.apply   (--dry-run shows the diffs); a mark that must wait "
+          "goes on NOT_LANDED_OK in pipeline/regs/review/apply.py, dated, with its reason")
+    return 1
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m pipeline.regs.review.apply", description=__doc__.split("\n")[0])
     ap.add_argument("domains", nargs="*", metavar="DOMAIN", help=f"one of {', '.join(E.DOMAINS)} (default: every open one)")
@@ -214,10 +309,17 @@ def main(argv: Optional[list[str]] = None) -> int:
                     help="apply_proposals: this cut-changing proposal's side rebuild was made and read elsewhere")
     ap.add_argument("--accept-shrink", action="store_true",
                     help=f"write a file even when it drops more than {SHRINK_LIMIT} rows (T429)")
+    ap.add_argument("--check", action="store_true",
+                    help="T545, read-only: list every mark in force that has not landed; exit 1 when there is one "
+                         "that is not on NOT_LANDED_OK")
     a = ap.parse_args(argv)
     bad = [d for d in a.domains if d not in E.DOMAINS]
     if bad:
         ap.error(f"unknown domain(s) {', '.join(bad)} — one of {', '.join(E.DOMAINS)}")
+    if a.check:
+        if a.domains or a.dry_run or a.accept_shrink:
+            ap.error("--check takes no domain and no other mode: it checks every open domain")
+        return print_check(check(marks=a.marks, build=a.build))
     return run(a.domains, marks=a.marks, build=a.build, side_checked=tuple(a.side_checked),
                dry_run=a.dry_run, accept_shrink=a.accept_shrink)["rc"]
 
