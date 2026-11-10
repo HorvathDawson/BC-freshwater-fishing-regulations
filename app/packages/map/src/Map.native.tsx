@@ -49,6 +49,7 @@ import { SPOT_SOURCE, spotBoxImage, spotBoxName, spotImages, spotsData, spotsLay
 import { baseAdapter } from "./adapters/contract";
 import { nativeRenderer } from "./adapters/native";
 import { mapChrome } from "./chrome";
+import { zoomStep } from "./zoom-step";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
 import { litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
@@ -105,7 +106,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch, insetBottom = 0, onOpenLink, onDrawn }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0, insetTop: _noTopInset, zoomControls, trace: _noTrace, onOpenLink, onDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -880,6 +881,19 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
           {marks.map((k, i) => (
             <Pressable key={i} onPress={() => onPressMark?.(i)} accessibilityRole="button" aria-label={k.a11y}>
               <Text>{k.label ?? ""}</Text>
+            </Pressable>))}
+        </View>) : null}
+      {zoomControls ? (
+        // (T621, G15) the + / − a small map in a scrolling sheet owes a reader (MapProps.zoomControls): the web has them from
+        // MapLibre's NavigationControl, top-right, square, a hard ink edge. One level a press, inside the camera's limits.
+        <View accessibilityLabel="zoom" style={{ position: "absolute", right: 10, top: 10, borderWidth: 1.5, borderColor: furniture.ink,
+                                                backgroundColor: furniture.card }}>
+          {([["Zoom in", "+", 1], ["Zoom out", "\u2212", -1]] as const).map(([label, glyph, dir]) => (
+            <Pressable key={label} accessibilityRole="button" aria-label={label} testID={`zoom:${dir}`}
+                       style={{ width: 36, height: 36, alignItems: "center", justifyContent: "center",
+                                borderTopWidth: dir === -1 ? 1.5 : 0, borderColor: furniture.ink }}
+                       onPress={() => renderer.easeTo({ ...camNow.current, zoom: zoomStep(camNow.current.zoom, dir) }, { duration: 250 })}>
+              <Text style={{ color: furniture.ink, fontSize: 20, lineHeight: 22, fontFamily: "Archivo_600SemiBold" }}>{glyph}</Text>
             </Pressable>))}
         </View>) : null}
       {callout ? (

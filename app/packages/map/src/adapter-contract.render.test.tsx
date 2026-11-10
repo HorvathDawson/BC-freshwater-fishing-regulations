@@ -660,12 +660,24 @@ describe("the gesture policy reaches each renderer", () => {
 });
 
 describe("native only", () => {
+it("(T621, G15) zoomControls puts + / − on a bare phone map, one level a press; without it, none", async () => {
+  const { unmount } = render(<NativeMap {...base({ data: undefined, highlight: undefined, bare: true })} />);
+  await waitFor(() => expect(native.props).toBeTruthy());
+  expect(screen.queryByLabelText("Zoom in")).toBeNull();
+  unmount();
+  render(<NativeMap {...base({ data: undefined, highlight: undefined, bare: true, zoomControls: true })} />);
+  log.length = 0;
+  fireEvent.click(await screen.findByLabelText("Zoom in"));
+  fireEvent.click(screen.getByLabelText("Zoom out"));
+  expect(log).toEqual(["ease [-122,49] z10 250ms", "ease [-122,49] z8 250ms"]);
+});
+
 it("(T621, G19) a tap on a titled pin shows its words, as the web's popup does; another tap puts them away", async () => {
   answer = (layers) => (layers.includes("t317-pins-dot") ? [{ properties: { title: "Upstream gauge", i: "0" } }] : []);
   render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressFeature: vi.fn(),
                                pins: [{ lat: 49.1, lon: -122.3, title: "Upstream gauge" }] })} />);
   await waitFor(() => expect(native.props).toBeTruthy());
-  await act(async () => { native.props!.onDidFinishRenderingMapFully?.(); });
+  await act(async () => { (native.props!.onDidFinishRenderingMapFully as (() => void) | undefined)?.(); });
   PLATFORMS.native.tap(100, 200, -122.3, 49.1);
   expect(await screen.findByText("Upstream gauge")).toBeTruthy();
   answer = () => [];
