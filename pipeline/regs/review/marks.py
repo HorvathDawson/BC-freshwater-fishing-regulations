@@ -217,6 +217,25 @@ class FixPoint(BaseModel):
         return self
 
 
+class CheckedRow(BaseModel):
+    """T532: one checklist row as the reviewer saw it — its number, kind and state (`review.checklist.rows`), whether
+    they ticked it (checked a ? / ✗ row by eye) and whether they picked it as wrong."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    n: int = Field(..., ge=1)
+    kind: str
+    state: Literal["ok", "unsure", "bad"]
+    ticked: bool = False
+    wrong: bool = False
+
+
+class Checklist(BaseModel):
+    """T532: THE CHECKLIST A MARK WAS MADE ON — the rows' digest (`checklist.digest`: the words and the extent) and the
+    rows. A check whose digest is not the place's now is stale (re-checked, never silently kept)."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    digest: str = Field(..., pattern=r"^[0-9a-f]{16}$")
+    rows: list[CheckedRow] = Field(..., min_length=1)
+
+
 class SeenExtent(BaseModel):
     """T525: THE EXTENT A DFO MARK WAS MADE ON — the place's curated extents and its own tributary flag, as the file had
     them when the owner looked (the review app's `dfo.extent_now`). The save refuses a mark whose place has moved since
@@ -474,6 +493,8 @@ class Mark(BaseModel):
     variant_of: Optional[str] = None
     #: T525: the extent this DFO mark was made on (`SeenExtent`); a mark from before T525 has none
     extent_before: Optional[SeenExtent] = None
+    #: T532: the checklist this mark answers (a DFO place or a regulation rule): its one check is P, the place
+    checklist: Optional[Checklist] = None
 
     @field_validator("reviewer")
     @classmethod
@@ -497,6 +518,16 @@ class Mark(BaseModel):
             if self.variant_of == self.target:
                 raise ValueError("a wording is not a variant of itself")
             need = ("T",)
+        if self.checklist is not None and self.verdict != CLEARED:
+            # T532: a checklist checks the PLACE only — every row ✓ or ticked is P y; a row picked wrong is P n
+            if self.scope not in ("dfo", "rule"):
+                raise ValueError("a checklist is on a DFO place or a regulation rule")
+            need = ("P",)
+            open_rows = [r.n for r in self.checklist.rows if r.state != "ok" and not r.ticked and not r.wrong]
+            if self.verdict == "verified" and (open_rows or any(r.wrong for r in self.checklist.rows)):
+                raise ValueError(f"all correct needs every row ✓ or ticked (open: {open_rows})")
+            if self.verdict == "wrong" and not any(r.wrong for r in self.checklist.rows):
+                raise ValueError("a wrong checklist names the row(s) that are wrong")
         if self.group is not None and self.scope != "dfo":
             raise ValueError("only a DFO mark is recorded with a group")
         if (self.scope == "rule") != (self.rule_id is not None):
@@ -665,7 +696,8 @@ class Mark(BaseModel):
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
-                 "new_splits": [], "call": None, "group": None, "variant_of": None, "extent_before": None}
+                 "new_splits": [], "call": None, "group": None, "variant_of": None, "extent_before": None,
+                 "checklist": None}
 
 
 def line(mark: Mark) -> str:

@@ -475,6 +475,10 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 | GET | `/api/answer` | The EFFECTIVE answer an angler gets: `read.effective_rules` on one bundle section, one day, |
 | GET | `/api/areas/search` | The atlas's areas whose id or name contains `q` — the "within an area" op's pick list. |
 | GET | `/api/build` | THE PENDING BUILD (T133, PLAN §5): every entry and split awaiting its build, why, the |
+| GET | `/api/checks/dfo/{location_id:path}` | One DFO place's checklist rows (`checks.dfo_check`). |
+| GET | `/api/checks/progress` | Checked / total over the whole list, by check state and worst row, per water (`checks.progress`). |
+| GET | `/api/checks/queue` | THE CHECKLIST QUEUE (`checks.queue`): every place of `source` (dfo \| regs \| all) grouped by water, each with |
+| GET | `/api/checks/rule/{entry_id}/{rule_id}` | One regulation rule's checklist rows (`checks.rule_check`). |
 | GET | `/api/dfo/cascade-regions` | Every region's DFO cascade (`region_cascade.regions`): the page's region-wide scopes and section |
 | GET | `/api/dfo/cascade-regions/{slug}/map` | One region's outline and each scope's coverage (`region_cascade.region_map`), plus its check. |
 | GET | `/api/dfo/cascade/{name}` | T229 THE CASCADE of one watershed (`cascade.cascade`): every section coloured by the DFO |

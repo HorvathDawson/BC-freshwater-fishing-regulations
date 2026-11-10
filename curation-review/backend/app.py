@@ -287,6 +287,9 @@ class MarkPayload(BaseModel):
     #: T525 (scope dfo): the place's extent the owner was shown — its curated extents and its own tributary flag
     #: (`dfo.extent_now`'s `seen`); a DFO mark made on an extent that has moved since is refused (`dfo.mark_for`)
     extent_before: dict | None = None
+    #: T532 (scope dfo or rule): the checklist the mark answers — `marks.Checklist` {digest, rows}; refused when its
+    #: digest is not the place's now (the words or the extent moved since the owner looked)
+    checklist: dict | None = None
 
 
 #: EVERY SAVE THE SERVER REFUSES, on file (owner 2026-10-28: a refused save must be impossible to
@@ -381,6 +384,10 @@ def _post_mark(body: MarkPayload):
         data.pop("extent_before")
     elif body.extent_before is None:
         data.pop("extent_before")
+    if body.checklist is None:
+        data.pop("checklist")
+    else:
+        _refuse_stale_checklist(body)
     if body.scope == "q154":
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a Q154 mark names one sample pond"}])
@@ -432,6 +439,25 @@ def _post_mark(body: MarkPayload):
     except ValueError as ex:
         raise HTTPException(422, [{"path": "", "msg": refusal_words(str(ex))}])
     return _written_through(got, body)
+
+
+def _refuse_stale_checklist(body: MarkPayload) -> None:
+    """T532: a checklist is saved only on the rows the place has NOW (same digest) — never on words or an extent that
+    moved since the owner looked, and never for a group (each member has its own rows)."""
+    import checks
+    if body.scope == "dfo":
+        if body.targets:
+            raise HTTPException(422, [{"path": "targets", "msg": "a checklist is saved on one place at a time"}])
+        now = checks.dfo_check(body.target)
+    elif body.scope == "rule":
+        now = checks.rule_check(body.target, body.rule_id or "")
+    else:
+        raise HTTPException(422, [{"path": "checklist", "msg": "a checklist is on a DFO place or a regulation rule"}])
+    if now is None:
+        raise HTTPException(404, f"{body.scope} {body.target} not found")
+    if (body.checklist or {}).get("digest") != now["digest"]:
+        raise HTTPException(422, [{"path": "checklist", "msg": "its words or its extent changed since you opened it: "
+                                   "reload the place and check it again — nothing was saved"}])
 
 
 def _written_through(got, body: MarkPayload):
@@ -741,6 +767,47 @@ def dfo_queue(region: str | None = None, status: str | None = None, need: str | 
     if lake and lake not in ("later", "all"):
         raise HTTPException(422, [{"path": "lake", "msg": "lake is later | all (default: lake split later hidden)"}])
     return dfo.queue(region=region, status=status, need=need, verify=verify, q=q, lake=lake)
+
+
+# --------------------------------------------------------------------------- T532: the checklist (reads)
+
+@app.get("/api/checks/queue")
+def checks_queue(source: str = "dfo", filter: str | None = None, q: str | None = None):
+    """THE CHECKLIST QUEUE (`checks.queue`): every place of `source` (dfo | regs | all) grouped by water, each with
+    its rows' summary and its check state; `filter` (todo | unchecked | stale | checked | wrong | bad | unsure) keeps
+    every place of a water any of whose places matches."""
+    import checks
+    try:
+        return checks.queue(source, filter, q)
+    except ValueError as ex:
+        raise HTTPException(422, [{"path": "", "msg": str(ex)}])
+
+
+@app.get("/api/checks/progress")
+def checks_progress(source: str = "dfo"):
+    """Checked / total over the whole list, by check state and worst row, per water (`checks.progress`)."""
+    import checks
+    return checks.progress(source)
+
+
+@app.get("/api/checks/dfo/{location_id:path}")
+def checks_dfo(location_id: str):
+    """One DFO place's checklist rows (`checks.dfo_check`)."""
+    import checks
+    got = checks.dfo_check(location_id)
+    if got is None:
+        raise HTTPException(404, f"DFO location {location_id} not found")
+    return got
+
+
+@app.get("/api/checks/rule/{entry_id}/{rule_id}")
+def checks_rule(entry_id: str, rule_id: str):
+    """One regulation rule's checklist rows (`checks.rule_check`)."""
+    import checks
+    got = checks.rule_check(entry_id, rule_id)
+    if got is None:
+        raise HTTPException(404, f"rule {entry_id}/{rule_id} not found")
+    return got
 
 
 @app.get("/api/dfo/progress")

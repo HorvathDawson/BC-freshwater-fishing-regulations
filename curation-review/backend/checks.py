@@ -1,0 +1,318 @@
+"""THE CHECKLIST (T532): every DFO place and every regulation extent as generated rows (`review.checklist`), the
+place's check state, and the queue grouped BY WATER (owner 2026-11-09: "review a whole river or waterbody at one time,
+never jump between waters").
+
+    context()             what the build knows, for the row generator: cut labels, built / pending cuts, water names,
+                          pins (a cut's point, a water's middle) — read from the served atlas and the curated cuts
+    dfo_check(id)         one DFO place: rows, digest, summary, its check state
+    rule_check(e, r)      one regulation rule: the same
+    queue(source, ...)    every place of a source (dfo | regs | all), grouped by water, with its summary and check state
+    progress(...)         checked / total over the whole list, by state, per water
+
+READ ONLY. The rows resolve nothing (AGENTS 16): the cuts built are the served atlas's (`dfo._built_cuts`), the
+tributary call the builder's own (`classify.wants_tributaries`, `dfo.tributaries_now`). A check is a mark
+(`marks.Checklist`), posted through the one write.
+"""
+from __future__ import annotations
+
+from collections import Counter
+from collections.abc import Mapping
+
+import reuse
+from pipeline.regs.review import checklist as C
+
+#: a place's check state, in the order the filters offer them
+CHECK_STATES = ("unchecked", "stale", "checked", "wrong")
+
+
+class _Lazy(Mapping):
+    """a mapping computed key by key (a pin's point is a geometry read; only the rows shown need it)"""
+
+    def __init__(self, fn, keys=None):
+        self._fn, self._keys, self._got = fn, keys, {}
+
+    def __getitem__(self, k):
+        if k not in self._got:
+            self._got[k] = self._fn(k)
+        if self._got[k] is None:
+            raise KeyError(k)
+        return self._got[k]
+
+    def __contains__(self, k):
+        try:
+            self[k]
+            return True
+        except KeyError:
+            return False
+
+    def __iter__(self):
+        return iter(self._keys or ())
+
+    def __len__(self):
+        return len(self._keys or ())
+
+
+def _cut_point(sid: str):
+    try:
+        p = reuse._split_point(sid)
+    except Exception:  # noqa: BLE001 — a cut the atlas cannot place has no pin; its row still shows
+        return None
+    if p is None:
+        return None
+    x, y = reuse._to_lonlat()(p.x, p.y)
+    return (round(x, 6), round(y, 6))
+
+
+def _item_point(iid: str):
+    it = reuse._registry().get(iid)
+    if it is None:
+        return None
+    lines = [s for s in it.section_ids if not str(s).startswith("lake:")] or list(it.section_ids)
+    if not lines:
+        return None
+    g = reuse._geoms().get(lines[len(lines) // 2])
+    if g is None or g.is_empty:
+        return None
+    p = g.interpolate(0.5, normalized=True) if g.geom_type in ("LineString", "MultiLineString") \
+        else g.representative_point()
+    x, y = reuse._to_lonlat()(p.x, p.y)
+    return (round(x, 6), round(y, 6))
+
+
+def _point(k: str):
+    return _item_point(k) if ":" in k and not k.startswith("area:") else _cut_point(k)
+
+
+def _ctx_now() -> C.Context:
+    import dfo
+    meta, records, bounds = reuse._splits_meta(), reuse._split_records(), reuse._boundary_index()
+    labels = {sid: sp.get("label") for sid, (_w, sp) in records.items() if sp.get("label")}
+    labels.update({sid: getattr(b, "label", None) for sid, (_i, b) in bounds.items() if getattr(b, "label", None)})
+    labels.update({sid: m["label"] for sid, m in meta.items() if m.get("label")})
+    built = frozenset(dfo._built_cuts())
+    proposed = {}
+    for p in dfo._proposals():
+        rid = dfo.real_ids().get(p["id"], p["id"])
+        n = p["split"]
+        proposed[rid] = n.name or n.anchor
+    labels.update({k: v for k, v in proposed.items() if k not in labels and v})
+    pending = frozenset((set(records) | set(proposed)) - built)
+    reg = reuse._registry()
+    items = _Lazy(lambda i: getattr(reg.get(i), "name", None) or None)
+    return C.Context(labels=labels, items=items, built=built, pending=pending, points=_Lazy(_point))
+
+
+_CTX = reuse._Memo()
+
+
+def context() -> C.Context:
+    from pipeline.common.curated import CURATED
+    return _CTX.get((reuse._stamp((reuse.MARKS_PATH, reuse.SPLITS_JSON_PATH, reuse.REGISTRY_PATH,
+                                   CURATED.review.proposal_overrides)), reuse._registry()), _ctx_now)
+
+
+# --------------------------------------------------------------------------- the check state
+
+def check_state(mark, digest: str) -> str:
+    """unchecked (no checklist mark in force, or a defer) · stale (its digest is not the place's now: the words or the
+    extent changed) · checked (all correct) · wrong (rows picked wrong)"""
+    if mark is None or getattr(mark, "checklist", None) is None or mark.verdict not in ("verified", "wrong"):
+        return "unchecked"
+    if mark.checklist.digest != digest:
+        return "stale"
+    return "checked" if mark.verdict == "verified" else "wrong"
+
+
+def _with_check(rs: list[dict], digest: str, mark) -> dict:
+    out = {"rows": rs, "digest": digest, "summary": C.summary(rs), "check": check_state(mark, digest)}
+    if mark is not None and getattr(mark, "checklist", None) is not None:
+        out["checked"] = {"date": mark.date, "verdict": mark.verdict, "note": mark.note,
+                          "rows": [r.model_dump() for r in mark.checklist.rows]}
+    return out
+
+
+# --------------------------------------------------------------------------- DFO
+
+def dfo_inputs(loc: dict, water: dict | None, m) -> dict:
+    """the place's extent as the rows read it: the curated pieces — or, while the owner's save waits for its cut or
+    the write-through (`dfo.saved_status`), the saved pieces, each marked landed or not"""
+    import dfo
+    b = loc.get("binding") or {}
+    extents = list(b.get("extents") or [])
+    trib = dfo.tributaries_now(loc, water)
+    landed = [True] * len(extents)
+    fvc = dfo.fix_vs_current(m, loc, water) if m is not None and m.extent_fix else None
+    st = dfo.saved_status(m, fvc) if fvc else None
+    if st and st["state"] in ("waits_cut", "not_landed"):
+        now = {dfo._extent_key(x) for x in extents}
+        extents = list(fvc["fix"])
+        landed = [dfo._extent_key(x) in now for x in extents]
+        if fvc["tributaries"]["fix"] is not None:
+            trib = fvc["tributaries"]["fix"]
+    return {"extents": extents, "landed": landed, "tributaries": trib,
+            "only": bool(b.get("tributaries_only")), "excludes": list(b.get("tributary_excludes") or [])}
+
+
+def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None) -> dict:
+    src = C.dfo_source(loc, water)
+    x = dfo_inputs(loc, water, m)
+    rs = C.rows(src, x["extents"], own_items=(water or {}).get("item_ids") or [], ctx=ctx or context(),
+                tributaries=x["tributaries"], tributaries_only=x["only"], tributary_excludes=x["excludes"],
+                landed=x["landed"])
+    dg = C.digest(src, x["extents"], tributaries=x["tributaries"], tributaries_only=x["only"],
+                  tributary_excludes=x["excludes"])
+    return _with_check(rs, dg, m)
+
+
+def dfo_check(location_id: str) -> dict | None:
+    import dfo
+    got = dfo._locations().get(location_id)
+    if got is None:
+        return None
+    _s, loc, water = got
+    return reuse._json_safe(dfo_rows(loc, water, dfo._states().get(location_id)))
+
+
+# --------------------------------------------------------------------------- regulations
+
+def rule_rows(entry: dict, rule: dict, mark, ctx: C.Context | None = None) -> dict:
+    from pipeline.atlas.reach.classify import wants_tributaries
+    src = C.rule_source(entry, rule)
+    only = bool(rule.get("tributaries_only"))
+    trib = bool(wants_tributaries(rule, entry)) and not only
+    exts = [x for x in rule.get("extents") or [] if isinstance(x, dict)]
+    tex = [x for x in rule.get("tributary_excludes") or [] if isinstance(x, dict)]
+    rs = C.rows(src, exts, own_items=entry.get("matched") or [], ctx=ctx or context(), tributaries=trib,
+                tributaries_only=only, tributary_excludes=tex)
+    dg = C.digest(src, exts, tributaries=trib, tributaries_only=only, tributary_excludes=tex)
+    return _with_check(rs, dg, mark)
+
+
+def _rule_marks() -> dict:
+    from pipeline.regs.review import marks as M
+    return {(m.target, m.rule_id): m for m in M.latest(M.load(reuse.MARKS_PATH)).values() if m.scope == "rule"}
+
+
+def rule_check(entry_id: str, rule_id: str) -> dict | None:
+    found = reuse._find(entry_id)
+    if found is None:
+        return None
+    e = found[1]
+    r = next((x for x in e.get("rules") or [] if isinstance(x, dict) and x.get("rule_id") == rule_id), None)
+    if r is None:
+        return None
+    out = rule_rows(e, r, _rule_marks().get((entry_id, rule_id)))
+    out["source"] = {"entry_id": entry_id, "rule_id": rule_id, "name": e.get("display_name") or e.get("name"),
+                     "verbatim": r.get("verbatim") or "", "region": e.get("region"),
+                     "pages": [p for p in e.get("source_pages") or [] if isinstance(p, int)]}
+    return reuse._json_safe(out)
+
+
+# --------------------------------------------------------------------------- the queue, by water
+
+def _dfo_places() -> list[dict]:
+    """one row per DFO place (a historic rewording rides its place, as the DFO queue lists them)"""
+    import dfo
+    states, locs, ctx = dfo._states(), dfo._locations(), context()
+    out = []
+    for r in dfo._rows():
+        if r["lake_area"] or (r["status"] != "active" and not r["historic_only"]):
+            continue
+        g = r.get("group")
+        if g and g["canonical"] != r["id"] and g["canonical"] in locs:
+            continue
+        _s, loc, water = locs[r["id"]]
+        got = dfo_rows(loc, water, states.get(r["id"]), ctx)
+        items = list((water or {}).get("item_ids") or [])
+        out.append({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
+                    "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
+                    "check": got["check"], "new": r["verify"] == "unmarked"})
+    return out
+
+
+def _regs_places() -> list[dict]:
+    marks, ctx = _rule_marks(), context()
+    out = []
+    for region, e in reuse._all_entries():
+        for r in e.get("rules") or []:
+            if not isinstance(r, dict) or not r.get("extents"):
+                continue
+            got = rule_rows(e, r, marks.get((e["entry_id"], r.get("rule_id"))), ctx)
+            items = list(e.get("matched") or [])
+            name = e.get("display_name") or e.get("name") or e["entry_id"]
+            out.append({"source": "regs", "id": f"{e['entry_id']}#{r.get('rule_id')}", "entry_id": e["entry_id"],
+                        "rule_id": r.get("rule_id"), "water": name, "water_key": _water_key(items, name),
+                        "region": str(e.get("region") or region), "text": r.get("verbatim") or "",
+                        "summary": got["summary"], "check": got["check"]})
+    return out
+
+
+def _water_key(items: list[str], name: str) -> str:
+    """ONE WATER: its registry waters (a DFO place and a regulation row on the same river sit together), else its
+    name"""
+    return "|".join(sorted(items)) if items else f"name:{name.strip().lower()}"
+
+
+_PLACES = reuse._Memo()
+
+
+def _places() -> list[dict]:
+    import dfo
+    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context(), reuse.regions()),
+                       lambda: by_water(_dfo_places() + _regs_places()))
+
+
+def by_water(places: list[dict]) -> list[dict]:
+    """THE QUEUE BY WATER (owner 2026-11-09): every place on one water before the next water — a water's DFO places
+    and its regulation extents together, DFO first — waters in the order their first place comes. Pure."""
+    order: list[str] = []
+    by: dict[str, list[dict]] = {}
+    for p in places:
+        if p["water_key"] not in by:
+            by[p["water_key"]] = []
+            order.append(p["water_key"])
+        by[p["water_key"]].append(p)
+    return [p for k in order for p in sorted(by[k], key=lambda x: x["source"] != "dfo")]
+
+
+def _matches(p: dict, want: str | None) -> bool:
+    if not want:
+        return True
+    if want in CHECK_STATES:
+        return p["check"] == want
+    if want == "todo":
+        return p["check"] in ("unchecked", "stale")
+    if want == "bad":
+        return p["summary"]["bad"] > 0
+    if want == "unsure":
+        return p["summary"]["unsure"] > 0
+    raise ValueError(f"filter is one of todo, bad, unsure, {', '.join(CHECK_STATES)}")
+
+
+def queue(source: str = "dfo", filter: str | None = None, q: str | None = None) -> list[dict]:
+    """every place of `source` (dfo | regs | all), grouped by water; `filter` keeps a WHOLE WATER when any of its
+    places matches (a water is reviewed at one time), `q` a substring of the water or the words"""
+    if source not in ("dfo", "regs", "all"):
+        raise ValueError("source is dfo, regs or all")
+    rows = [p for p in _places() if source == "all" or p["source"] == source]
+    keep = {p["water_key"] for p in rows if _matches(p, filter)}
+    if q and q.strip():
+        want = q.strip().casefold()
+        keep &= {p["water_key"] for p in rows if want in p["water"].casefold() or want in p["text"].casefold()}
+    return [p for p in rows if p["water_key"] in keep]
+
+
+def progress(source: str = "dfo") -> dict:
+    """checked / total over the WHOLE list (filters never change it), the counts by check state and by worst row
+    state, and per water"""
+    rows = [p for p in _places() if source == "all" or p["source"] == source]
+    done = lambda rs: sum(1 for p in rs if p["check"] in ("checked", "wrong"))  # noqa: E731
+    waters: dict[str, dict] = {}
+    for p in rows:
+        w = waters.setdefault(p["water_key"], {"water": p["water"], "total": 0, "done": 0})
+        w["total"] += 1
+        w["done"] += p["check"] in ("checked", "wrong")
+    return {"total": len(rows), "done": done(rows), "by_check": dict(Counter(p["check"] for p in rows)),
+            "by_worst": dict(Counter(p["summary"]["worst"] for p in rows)),
+            "rows": dict(sum((Counter({s: p["summary"][s] for s in C.STATES}) for p in rows), Counter())),
+            "waters": waters}

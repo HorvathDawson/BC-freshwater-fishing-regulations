@@ -1,6 +1,6 @@
 # T532 — Checklist review for every extent (DFO places and the regulations' own extents), one interface
 
-Status: OPEN
+Status: IN PROGRESS
 
 Owner 2026-11-09, on the round-4 mockup (shots: scratchpad t525-r4-*.png; copied to shots/T532-mockup-*.png): "definitely
 better. need to make it play nice with entire list + future items when dfo adds new ones. also should have similar quality
@@ -42,3 +42,29 @@ Test: the queue order never leaves a water before all its places are listed.
 - Tests: row generator over every curated place (no crash, every source phrase covered or listed as unchecked), a planted
   missing exception / tributary mismatch / pending cut each yields ✗ or ?, stale-on-change.
 - Shots of the 3 mockup places + 2 regulation extents, owner look.
+
+## Owner 2026-11-09 (later): a whole water at one time
+Review a whole river or waterbody at one time, never jump between waters: the queue and prev/next are grouped by water
+(every place on one water before the next; in phase 3 a water's DFO places and regulation extents together), progress
+per water ("Chilliwack River: 3 of 7") as well as overall, and the water's map stays loaded while stepping through its
+places (rows and pins change, the map stays). Pinned by `test_the_queue_never_leaves_a_water_before_all_its_places`.
+
+## Phase 1 — the row generator (2026-11-09)
+- `pipeline/regs/review/checklist.py`: `rows(source, extents, …)` → numbered rows {kind, quote, ours, state, reason,
+  anchor}; kinds water / where / from / to / also / area / tributaries / except / unchecked. Pure: the backend hands in
+  a `Context` (cut labels, built cuts = the served atlas's, pending = in the cuts file or proposed by a mark but not
+  built, water names, pins). `dfo_source` / `rule_source` (the row's name with its ✱ "Incl. Tribs", `extent_text` /
+  `unresolved_locators`, else the verbatim's place phrases); `digest` (words + extent, pieces as a set) → stale.
+- States: ✓ built and named by the words; ? saved / not built, or words no row checks; ✗ an exception not cut out, a
+  tributary call against the words (or tributaries walked with no word for them), a named end with no cut, a carve-out
+  the words never state, the whole water where the words name a part, a cut no word names.
+- A check is a mark: `marks.Checklist` {digest, rows (n, kind, state, ticked, wrong)}; its one check is P; "all
+  correct" needs every row ✓ or ticked, "wrong" names its rows. POST /api/marks refuses a checklist whose digest is
+  not the place's now.
+- Backend `curation-review/backend/checks.py` + GET /api/checks/{queue,progress,dfo/<id>,rule/<entry>/<rule>}: the
+  queue by water (a water = its registry items; DFO places then regulation rules), filters keep a whole water.
+- Counts (served atlas, 2026-11-09): DFO 332 places → 1,085 rows ✓ 709 · ? 134 · ✗ 242; regulations 3,354 rules →
+  ✓ 10,018 · ? 178 · ✗ 503 (CI, cuts file as built: `test_review_checklist.py` prints them).
+- Tests `pipeline/tests/test_review_checklist.py`: every curated DFO place and every rule with extents (no crash, every
+  place phrase quoted by a row or listed as unchecked), planted mutations (exception dropped, tributaries flipped,
+  pending / unknown cut, a named end with no cut), digest stale on words / extent, mark rules, queue by water.
