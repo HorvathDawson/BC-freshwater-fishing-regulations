@@ -9,8 +9,8 @@
  *
  * IN EFFECT on a day: the row is on the page (not `removed`), its `from` (if any) is on or before the day and its `to`
  * (if any) on or after it. `to` is the curated override's, else the feed's, else — for a change whose text prints ONE
- * date range (`parsed.window`) — that range's end in the `from` year (rolling to the next year when it ends before it
- * starts). A row with only a `from` stays in effect until the page drops it.
+ * date range (`parsed.window`) that OPENS on its `from` day (a one-off, T548) — that range's end. A row with only a
+ * `from` (a yearly window included) stays in effect until the page drops it.
  *
  * WHERE (T520, links/2): per water, `all` or FWA RANGES resolved on one release where the atlas is (never a part index
  * or a section id); `inSeasonCover` reads them over the water's section lines — the one core every view of it reads.
@@ -113,17 +113,25 @@ export function isoDayOf(d: Date): string {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** When a row is in force: the curated override, else the feed's dates, else its one printed window's end. */
+/**
+ * When a row is in force: the curated override, else the feed's dates, else — ONLY for a one-off window — its one
+ * printed window's end. (T548) A window is one-off when it OPENS on the row's `from` day ("July 30, 2026" / "No fishing
+ * July 30 to September 15"): its end in the `from` year (rolling on over the new year). Any other printed window is a
+ * yearly season the notice sets ("Sept 16, 2025" / "... August 15 to December 31"): no end is inferred, and the row
+ * stays in force until the page drops it or a printed / curated `to` passes. One case file pins this rule and
+ * `pipeline.regs.inseason.matches.span` (`inseason-span.parity.json`).
+ */
 export function inSeasonSpan(row: InSeasonRow, link?: { from?: string; to?: string }): { from: string | null; to: string | null } {
   const from = link?.from ?? row.from ?? null;
   let to = link?.to ?? row.to ?? null;
   const w = row.parsed?.window;
   const kinds = row.parsed?.kinds ?? [];
-  if (!to && from && w && w.to_month && w.to_day && !kinds.includes("rescind") && !kinds.includes("clarification")) {
+  if (!to && from && w && w.to_month && w.to_day && w.from_month && w.from_day
+      && from.slice(5) === `${pad(w.from_month)}-${pad(w.from_day)}`
+      && !kinds.includes("rescind") && !kinds.includes("clarification")) {
     const y = Number(from.slice(0, 4));
-    let end = `${y}-${pad(w.to_month)}-${pad(w.to_day)}`;
-    if (w.from_month && w.from_day && end < `${y}-${pad(w.from_month)}-${pad(w.from_day)}`) end = `${y + 1}-${end.slice(5)}`;
-    if (end >= from) to = end;
+    const end = `${y}-${pad(w.to_month)}-${pad(w.to_day)}`;
+    to = end < from ? `${y + 1}-${end.slice(5)}` : end;
   }
   return { from, to };
 }

@@ -8,6 +8,9 @@ import {
 import parity from "./inseason-cover.parity.json" with { type: "json" };
 const PARITY = parity as unknown as {
   water: InSeasonSection[]; cases: { name: string; runs: number[][]; lakes: number[]; expect: number[] }[] };
+import spanCases from "./inseason-span.parity.json" with { type: "json" };
+const SPAN = spanCases as unknown as { cases: { name: string; row: Partial<InSeasonRow> & { id: string };
+  effective?: { from?: string; to?: string }; expect: [string | null, string | null]; inForce: Record<string, boolean> }[] };
 
 const SRC = "https://www2.gov.bc.ca/fishing-regulations";
 const row = (o: Partial<InSeasonRow> & { id: string }): InSeasonRow =>
@@ -42,18 +45,21 @@ describe("in-season: reading the feed and links", () => {
   });
 });
 
+describe("one case file, two readers (T548): Python span and inSeasonSpan agree", () => {
+  for (const c of SPAN.cases)
+    it(c.name, () => {
+      const r = row({ ...c.row, id: c.row.id });
+      expect(inSeasonSpan(r, c.effective)).toEqual({ from: c.expect[0], to: c.expect[1] });
+      const links = c.effective ? parseInSeasonLinks({ format: "inseason-links/3", release: "r-1",
+        notices: { [r.id]: { ...c.effective, waters: { "gnis:1": { all: true } } } } }) : null;
+      for (const [day, want] of Object.entries(c.inForce)) {
+        const j = joinInSeason(feed([r]), links, day);
+        expect([day, j.matched.length + j.unmatched.length === 1]).toEqual([day, want]);
+      }
+    });
+});
+
 describe("in-season: when a row is in effect", () => {
-  it("override > feed > the one printed window's end, in the from year", () => {
-    const r = row({ id: "is-a", from: "2026-07-30", parsed: { kinds: ["closure"], window: { from_month: 7, from_day: 30, to_month: 9, to_day: 15 } } });
-    expect(inSeasonSpan(r)).toEqual({ from: "2026-07-30", to: "2026-09-15" });
-    expect(inSeasonSpan({ ...r, to: "2026-08-31" })).toEqual({ from: "2026-07-30", to: "2026-08-31" });
-    expect(inSeasonSpan(r, { to: "2026-10-01" })).toEqual({ from: "2026-07-30", to: "2026-10-01" });
-    // a window over the new year rolls on; a rescind's quoted window is not its end
-    expect(inSeasonSpan(row({ id: "x", from: "2026-11-01", parsed: { kinds: ["closure"], window: { from_month: 11, from_day: 1, to_month: 3, to_day: 31 } } })).to)
-      .toBe("2027-03-31");
-    expect(inSeasonSpan(row({ id: "x", from: "2026-04-01", parsed: { kinds: ["rescind"], window: { from_month: 4, from_day: 1, to_month: 6, to_day: 30 } } })).to)
-      .toBeNull();
-  });
   it("joins: removed rows never, a future or past row not, matched vs unmatched by the links", () => {
     const f = feed([row({ id: "is-a", from: "2026-01-01" }), row({ id: "is-b", from: "2026-11-01" }),
                     row({ id: "is-c", from: "2025-07-04", to: "2025-08-31" }), row({ id: "is-d" }), row({ id: "is-e" })], ["is-e"]);

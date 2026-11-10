@@ -146,22 +146,21 @@ def test_place_words():
     assert R.interim_words("x", "Josephine Falls") == "Josephine Falls"
 
 
-@pytest.mark.parametrize("row,eff,want", [
-    ({"from": "2026-07-04", "to": "2026-08-31"}, None, ("2026-07-04", "2026-08-31")),
-    ({"from": "2026-07-04", "to": None}, M.Effective(to="2026-09-01"), ("2026-07-04", "2026-09-01")),
-    # one printed window, no `to`: its end in the from year …
-    ({"from": "2026-07-01", "parsed": {"kinds": ["closure"], "window": {"from_month": 7, "from_day": 30,
-                                                                         "to_month": 9, "to_day": 15}}},
-     None, ("2026-07-01", "2026-09-15")),
-    # … rolling to the next year when it ends before it starts
-    ({"from": "2026-10-15", "parsed": {"window": {"from_month": 10, "from_day": 15, "to_month": 1, "to_day": 31}}},
-     None, ("2026-10-15", "2027-01-31")),
-    ({"from": "2026-07-01", "parsed": {"kinds": ["rescind"], "window": {"to_month": 9, "to_day": 15}}},
-     None, ("2026-07-01", None)),
-])
-def test_span_is_cores_rule(row, eff, want):
-    """The same cases as `app/packages/core/src/inseason.test.ts` `inSeasonSpan`."""
-    assert M.span(row, eff) == want
+def _span_cases():
+    from pipeline.common.curated import REPO_ROOT
+    fx = json.loads((REPO_ROOT / "app/packages/core/src/inseason-span.parity.json").read_text(encoding="utf-8"))
+    return fx["cases"]
+
+
+@pytest.mark.parametrize("case", _span_cases(), ids=lambda c: c["name"][:60])
+def test_span_is_cores_rule(case):
+    """(T548) ONE case file, two readers: `app/packages/core/src/inseason-span.parity.json` gives `expect` here and in
+    core's `inSeasonSpan`; `inForce` is the same `from <= day <= to` test `joinInSeason` makes."""
+    eff = M.Effective(**case["effective"]) if case.get("effective") else None
+    frm, to = M.span(case["row"], eff)
+    assert [frm, to] == case["expect"]
+    for day, want in case["inForce"].items():
+        assert (not (frm and frm > day) and not (to and to < day)) == want, day
 
 
 def test_the_curated_file_publishes():
