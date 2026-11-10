@@ -1,6 +1,6 @@
 # T589 — A cut proposal can be withdrawn (the Allco fence)
 
-Status: IN REVIEW — 680c1d6eb, 2026-11-10: the withdraw call is built and tested (`marks.ConfidenceOverride.withdrawn`, `marks.withdrawn_groups`, the panel's "Withdrawn cut proposals" line). NOT done: withdrawing the Allco cut itself (the owner's call: one entry in `data/curated/review/proposal_overrides.json` with `withdrawn: true` and a note; there is no button for it yet). Not looked at in a browser (nothing is withdrawn today)
+Status: PARTIAL — 680c1d6eb, 54a06dc89 (2026-11-10): the withdraw call is built and the Allco fence cut is withdrawn by the owner; the button to withdraw one himself is open (it needs a new mark kind and a writer: see below)
 
 Source: T532 round 6, leftover c.
 
@@ -16,3 +16,18 @@ Allco cut withdrawn is absent from `proposed_on` and present in the withdrawn li
 is the owner's click, not a default.
 
 Depends: —. Size: S–M. Owner: no (the Allco click is his).
+
+## Owner 2026-11-10: "yes" — the Allco fence cut is withdrawn (54a06dc89)
+One entry in `data/curated/review/proposal_overrides.json` (`withdrawn: true`, "withdrawn by the owner 2026-11-10").
+Checked on the real marks: it is out of `marks.amend` / `marks.proposals` (not built, not offered), on
+`marks.withdrawn_groups`, no mark in force uses it as a point, and the landed check is unchanged (19 waiting, as
+before). Seen on screen on the Alouette place: "Withdrawn cut proposals on this water (not built, not offered): “Allco
+Park boundary signs (Allco hatchery fence)” — withdrawn by the owner 2026-11-10 …" (`.playwright-mcp/
+t589-withdrawn-line-and-landed-banner.png`).
+
+## Still open: a button to withdraw one himself
+NOT built. The app serves exactly one write, a mark (`test_curation_review_safety.py` pins it), and the overrides file
+is not written from marks. A button therefore needs: a mark that says "withdraw this proposed cut" (a new scope or a
+call on the place's mark, with its prints = the cut's anchor), a file writer that merges those marks into
+`proposal_overrides.json` beside the hand-written entries (never dropping one), its write-through domain, and the
+button on each proposed cut. Until then a withdrawal is one entry in that file, added by Claude on his word.
