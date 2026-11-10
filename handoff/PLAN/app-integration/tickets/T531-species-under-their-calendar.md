@@ -37,3 +37,4 @@ Species go under a block by the source of the rule that governs them (DFO rule -
   words); `salmon.test.ts` legend words and the glance row's `source` updated. No assertion removed.
 - Shots (web, 390 px, light + dark): `shots/T531-built-vedder-{light,dark}.png`, `shots/T531-built-single-{light,dark}.png`.
 - Owner: phone look on 0.7.2.
+- Follow-up (main, 11-09): a DFO row with no DFO calendar (Glenn Creek) now sits under its own "Salmon (DFO)" heading and status ("Closed"), no bar or legend, after the B.C. block; the grouping test is strict across fixture waters. Versions 0.7.2, changelog entry added.

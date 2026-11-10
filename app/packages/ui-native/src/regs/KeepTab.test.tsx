@@ -12,6 +12,9 @@ import type { KeepActions } from "./LineText";
 import vedder1010 from "./fixtures/vedder_1010.json";
 import vedder615 from "./fixtures/vedder_615.json";
 import glenn501 from "./fixtures/glenn_501.json";
+import klwa1010 from "./fixtures/klwa_1010.json";
+import bc1501 from "./fixtures/bc1_501.json";
+import x35p1010 from "./fixtures/x35p_1010.json";
 
 afterEach(cleanup);
 
@@ -177,6 +180,32 @@ describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
     fireEvent.click(screen.getByText("Kokanee"));
     fireEvent.click(screen.getByTestId("keep-possession"));
     expect(sheets.length).toBe(2);
+  });
+
+  it("STRICT: across the fixture waters, every DFO row sits under the Salmon (DFO) heading — with a DFO calendar and without one (Glenn Creek)", () => {
+    const closed = { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false } as const;
+    for (const [fx, strip] of [[vedder1010, STRIP], [glenn501, null], [glenn501, STRIP], [klwa1010, null], [bc1501, null], [x35p1010, null]] as const) {
+      for (const sal of [salmon, { row: closed, card: () => <span>x</span> }] as const) {
+        const r = render(<KeepTab keep={keepOf(fx)} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={strip as never} glance={{ salmon: sal as never }} />);
+        const block = within(group(r)).getByTestId("salmon-block");
+        expect(within(block).getByTestId("salmon-strip-title").textContent).toBe("Salmon (DFO)");
+        expect(within(block).getAllByTestId("glance:salmon")).toHaveLength(1);
+        expect(group(r).querySelectorAll("[data-testid='glance:salmon']")).toHaveLength(1);          // and nowhere else
+        const bc = group(r).querySelector("[data-testid='keep-strip']")?.nextElementSibling;
+        if (bc) expect(within(bc as HTMLElement).queryByTestId("glance:salmon")).toBeNull();           // never under the B.C. block
+        if (!strip) expect(within(block).queryByTestId("salmon-strip-bar")).toBeNull();                // no calendar: no bar, no legend
+        cleanup();
+      }
+    }
+  });
+
+  it("no DFO calendar: the Salmon (DFO) block says its status ('Closed') under its heading, after the B.C. block", () => {
+    const closed = { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false } as const;
+    const r = render(<KeepTab keep={keepOf(glenn501)} dateLabel="Oct 10" palette={LIGHT} actions={actions}
+                              glance={{ salmon: { row: closed, card: () => <span>x</span> } }} />);
+    expect(screen.getByTestId("salmon-bare-st:closed").textContent).toBe("Closed");
+    const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='salmon-block']")].map((e) => e.getAttribute("data-testid"));
+    expect(ids).toEqual(["keep-strip", "salmon-block"]);
   });
 
   it("the legend is plain ink words with the first letter capital: '✓ Open', 'Fly fishing only'", () => {

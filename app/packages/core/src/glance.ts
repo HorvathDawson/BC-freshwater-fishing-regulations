@@ -75,3 +75,8 @@ export function speciesBlocks<T extends { readonly row: GlanceRowVM }>(rows: rea
   const dfo = rows.filter((x) => dfoBlock && x.row.source === "dfo");
   return { dfo, rest: rows.filter((x) => !dfo.includes(x)) };
 }
+
+/** (T531) The status a DFO block says when it has no year bar (a salmon row with no DFO calendar): the row's word, capital first; null: none. */
+export function dfoBlockStatus(row: GlanceRowVM): string | null {
+  return row.value ? row.value.charAt(0).toUpperCase() + row.value.slice(1) : null;
+}

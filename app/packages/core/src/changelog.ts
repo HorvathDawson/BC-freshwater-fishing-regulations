@@ -21,6 +21,12 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.2", date: "2026-11-09", notes: [
+      "Each calendar sits with its own fish: salmon under DFO, the rest under B.C. rules",
+      "Calendar legends are easier to read",
+    ],
+  },
+  {
     version: "0.7.1", date: "2026-11-09", notes: [
       "Share a river's flow from Conditions: the link opens a live page for that gauge",
     ],

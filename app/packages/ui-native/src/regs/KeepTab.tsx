@@ -16,8 +16,10 @@
  */
 import type { ReactNode } from "react";
 import { View } from "react-native";
-import { daylightOffsets, groupGlance, speciesBlocks, SALMON_WORDS, WORDS, type GlanceRowVM, type InSeasonBannerVM, type KeepVM, type SalmonStripVM } from "@app/core";
-import type { Palette } from "../theme";
+import { daylightOffsets, groupGlance, speciesBlocks, dfoBlockStatus, SALMON_WORDS, WORDS, type GlanceRowVM, type InSeasonBannerVM, type KeepVM, type SalmonStripVM } from "@app/core";
+import { GUTTER, type Palette } from "../theme";
+import { Text } from "../Text";
+import { TYPE } from "../type";
 import { ClosedBanner, CaveatBlock, TimedLines, InheritedLine, OtherFish, SpeciesRows, OutsideFoot, PossessionRow, WhereNot, type GlanceFold } from "./KeepBlocks";
 import { InSeasonBanners } from "./InSeasonBanner";
 import { GroupCard } from "./GroupCard";
@@ -45,7 +47,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
     }] : []),
   ];
   const home = !!(glance && keep.strip && keep.order.includes("strip"));   // a game-fish calendar to hang the B.C. species under
-  const salmonHome = !!(glance && salmonStrip && glance.salmon);           // a salmon calendar to hang the DFO row under
+  const salmonHome = !!(glance && glance.salmon);   // a DFO block (with or without a calendar) to hang the DFO row under
   const split = speciesBlocks(folds, salmonHome);
   const at = keep.order.findIndex((b) => b === "otherFish" || (typeof b === "object" && "group" in b));
   // (T293) the walkthrough's "what you can keep" points at the species table
@@ -72,12 +74,23 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
       <SpeciesRows rows={keep.otherFish ?? []} keys={keep.otherFishKey} palette={palette} actions={actions} images={images} folds={split.rest} />
     </CoachSpot>
   );
-  const salmonBar = salmonStrip && (
+  // (T531) a DFO row with no DFO calendar still sits under its own heading and status, just no bar or legend
+  const dfoRows = salmonHome && split.dfo.length > 0 && <SpeciesRows rows={[]} keys={[]} palette={palette} actions={actions} images={images} folds={split.dfo} />;
+  const bareStatus = glance?.salmon ? dfoBlockStatus(glance.salmon.row) : null;
+  const salmonBar = (salmonStrip || salmonHome) && (
     <View key="salmon-block" testID="salmon-block"
           style={keep.strip && glance ? { marginTop: 14, paddingTop: 4, borderTopWidth: 1.5, borderTopColor: palette.ink } : undefined}>
-      <SalmonYearStrip strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []}
-                       dateLabel={dateLabel} palette={palette} />
-      {salmonHome && split.dfo.length > 0 && <SpeciesRows rows={[]} keys={[]} palette={palette} actions={actions} images={images} folds={split.dfo} />}
+      {salmonStrip ? (
+        <SalmonYearStrip strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []}
+                         dateLabel={dateLabel} palette={palette} />
+      ) : (
+        <View testID="salmon-bare" style={{ paddingTop: 10, paddingHorizontal: GUTTER, paddingBottom: 2 }}>
+          <Text testID="salmon-strip-title" accessibilityRole="header" style={[TYPE.kicker, { color: palette.sub, marginBottom: 2 }]}>{SALMON_WORDS.barSalmon}</Text>
+          {bareStatus && <Text testID={`salmon-bare-st:${glance!.salmon!.row.tone}`}
+            style={[TYPE.answer, { color: glance!.salmon!.row.tone === "closed" ? palette.closed : glance!.salmon!.row.tone === "release" ? palette.restricted : palette.ink }]}>{bareStatus}</Text>}
+        </View>
+      )}
+      {dfoRows}
     </View>
   );
   return (
