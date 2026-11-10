@@ -44,15 +44,23 @@ def decisions(decided, stale: list | None = None) -> dict[str, tuple[str, str]]:
 
 
 def stale(decided) -> list[dict]:
-    """The name marks in force that decide nothing because their candidate is gone or changed: [{target, why}]."""
+    """The accepted names that are NOT written, each said on its item: a name mark whose candidate is gone or changed,
+    and an accepted name the atlas cannot apply (`NOT_APPLIED`) — [{target, why}]."""
     got: list[dict] = []
-    decisions(decided, got)
+    build(decided, got)
     return got
 
 
-def build(decided) -> list[dict]:
+#: T545 item 7: the atlas hangs a found name on BLUE LINES only (`atlas.registry.mined.add_mined_names` reads
+#: `target.blks`); a name accepted on a lake polygon or a registry item would be written and never applied
+NOT_APPLIED = ("accepted, but NOT written: the atlas applies a found name to blue lines only, and this one is on {what} "
+               "(`registry.mined.add_mined_names`) — it would never show")
+
+
+def build(decided, skipped: list | None = None) -> list[dict]:
+    """The entries to write. `skipped` collects every accepted name that is not written, as {target, why} (`stale`)."""
     doc = N.load()
-    marked = decisions(decided)
+    marked = decisions(decided, skipped)
     owner = N.owner_calls()
     entries = []
     for i in sorted(doc["by_id"]):
@@ -72,6 +80,11 @@ def build(decided) -> list[dict]:
             continue
         tgt = N.target_entry(c)
         if not tgt:
+            continue
+        if "blks" not in tgt:
+            if skipped is not None:
+                skipped.append({"target": i, "why": NOT_APPLIED.format(
+                    what="a lake polygon" if "wbks" in tgt else "a registry item")})
             continue
         entries.append({"target": tgt, "names": N.name_records(i, c, call_by=by)})
     return entries

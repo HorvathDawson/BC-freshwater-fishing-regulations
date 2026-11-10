@@ -261,6 +261,21 @@ def test_a_name_mark_gone_stale_says_so_and_its_dropped_name_is_named(wt):
     assert json.loads((tmp / "found_names.json").read_text())["entries"] == []
 
 
+def test_a_name_accepted_on_a_lake_is_refused_on_its_item_not_written_unapplied(wt):
+    """T545 item 7: the atlas reads `target.blks` only — a `wbks` entry would sit in the file and never show."""
+    c, tmp = wt["client"], wt["tmp"]
+    from pipeline.regs.review import names as N
+    lake = {**json.loads(json.dumps(NAMES[0])), "target": {"kind": "lake", "wbk": "77"}, "proposed": "Review Lake"}
+    (tmp / "cands.json").write_text(json.dumps({"candidates": NAMES + [lake]}))
+    N._load.cache_clear()
+    [lid] = [i for i, x in N.load()["by_id"].items() if x["proposed"] == "Review Lake"]
+    got = c.post("/api/marks", json={"scope": "name", "answers": {"P": "y"}, "reviewer": "test", "target": lid,
+                                     "call": "accept"}).json()["write_through"]
+    assert got["state"] == "refused" and "blue lines only" in got["why"] and "a lake polygon" in got["why"], got
+    assert got["outcomes"][f"name|{lid}|"]["state"] == "refused"
+    assert json.loads((tmp / "found_names.json").read_text())["entries"] == []
+
+
 def _dfo_mark() -> M.Mark:
     fix = [{"scope": "entry", "op": "downstream_of", "items": ["gnis:12227"],
             "points": [{"kind": "split", "split_id": "cowichan_river__cnr_trestle"}]}]
