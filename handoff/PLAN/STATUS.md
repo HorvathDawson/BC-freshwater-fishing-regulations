@@ -13,6 +13,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 late — owner: review app is priority 1; app gauge bugs first thing tomorrow
+- Running: ONE agent on the DFO checklist (T532: done tabs out, earlier marks count, no-extent places lead with the
+  proposal, a water's places listed and grouped, group confirm + "same place as"). Owner tests it next.
+- TOMORROW, HIGH, before any other ticket: T568 (gauge map jumps above / below the chart on Flow / Level) and T567's
+  open part (phone and web app show Fraser at Mission differently; card + row fixes are committed, not on the phone).
+  One emulator session, web and app side by side. Needs a build to reach the phone.
+- Done tonight: in-season 5 re-keyed rows carried as Claude proposals (32 of 32 matched; owner checks them).
+
 ## 2026-11-09 late night — owner's build 24 phone check recorded; HOLD until the review app look
 - 24 of 25 answers on the owner checks page. Closed on "fine": T351, T420, T448, T466, T482, T487, T488, T493, T499, T500,
   T501, T502, T506, T510, T511, T512, T517, T519, T520, T527, T530, T531. Q176: no casing.
