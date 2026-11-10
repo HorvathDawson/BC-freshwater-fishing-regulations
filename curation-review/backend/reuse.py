@@ -1452,27 +1452,11 @@ def parse_review_findings() -> dict[str, list[str]]:
 
 def pending_build() -> dict:
     """THE PENDING BUILD PANEL (PLAN §5): every entry and split awaiting its build, why, and what
-    to run — empty when the vintage on disk is the one on screen. Read by the queue's panel."""
-    from pipeline.regs.review import vintage as V
-    entries, reasons = [], set()
-    on = built()
-    for region, e in _all_entries():
-        st = entry_vintage(e, on)
-        if st["state"] != V.CURRENT:
-            entries.append({"entry_id": e["entry_id"], "region": region, "name": _ident(e)["name"],
-                            "reasons": st["reasons"], "splits": st["splits"]})
-            reasons.update(st["reasons"])
-    splits = []
-    for sid in sorted(_splits_context().split_index):
-        st = split_vintage(sid, on)
-        if st["state"] != V.CURRENT:
-            splits.append({"split_id": sid, "reasons": st["reasons"]})
-            reasons.update(st["reasons"])
-    # the ONE vintage every row above was decided on (a second `built()` could read a rebuild
-    # that landed mid-request and describe another vintage than the rows)
-    return {"built": on.summary(), "entries": entries, "splits": splits,
-            "splits_checked": "anchors" if on.anchors is not None else "ids",
-            "commands": V.rebuild_commands(reasons, rebuild_target())}
+    to run — empty when the vintage on disk is the one on screen. Read by the queue's panel.
+    THE DECISION is `pipeline.regs.review.pending.pending` (T541: `python -m pipeline.regs.review.pending`
+    prints the same with no server); this hands it the app's cached reads and ONE `built()`."""
+    from pipeline.regs.review import pending as P
+    return P.pending(_all_entries(), _splits_context(), built(), rebuild_target(), anchors_for=_anchors_now)
 
 
 def _live_counts(entry_id: str) -> dict[str, int | None]:

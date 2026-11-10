@@ -586,6 +586,13 @@ def dry_run(ctx: Ctx) -> int:
     print(f"[5/6] promote    LATEST {live} -> the candidate (after every check passes)")
     print(f"[6/6] staging    MIN_APP_VERSION={min_app or ''} {' '.join(upload_cmd('<r-id>'))}"
           + (f"  ({target} staged {r['staged_at']})" if r.get("staged_at") else ""))
+    # (T541) informational: what the review app's pending-build panel lists, read with no server — never a stop
+    try:
+        from pipeline.regs.review import pending as _pending
+        print(f"review           {_pending.summary_line(_pending.on_disk())}  "
+              "(python -m pipeline.regs.review.pending lists them)")
+    except Exception as e:  # noqa: BLE001 — shown, never swallowed: the dry run still prints the rest of the plan
+        print(f"review           COULD NOT READ the pending review build ({type(e).__name__}: {e})")
     print("\nproduction (human-only, after staging): CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>")
     return 0
 
