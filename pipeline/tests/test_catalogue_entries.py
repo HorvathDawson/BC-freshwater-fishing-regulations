@@ -309,6 +309,61 @@ def test_every_entry_names_a_row_the_synopsis_actually_prints():
                          + "\n  ".join(sorted(phantom)))
 
 
+#: Water rows whose stored text is a hand fix of an extraction defect (annual runbook step 2d), each pinned by the
+#: 12-hex sha256 of squash(stored) and of squash(extracted): either side moving fails, naming the row.
+HAND_FIXED_ROWS = {
+    "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4": (
+        "671d267300c2", "f2d08de4b4a4", "the extraction keeps a line-end hyphen: 'hatch- ery'; stored 'hatchery'"),
+    "r2:coquihalla_river@2-17": (
+        "ba2de3187846", "3353f3790e80", "the extraction loses the last words: 'Nov'; stored 'Nov 1-Mar 31'"),
+}
+
+
+@pytest.mark.needs_source
+def test_every_stored_row_text_is_the_extractions():
+    """T553 item 3. `regs_verbatim` is copied from the batch once, at ingest; after that the region files and the
+    extraction are independent, and every quote and number check compares against the STORED text — so a later hand or
+    app edit that changes a printed number, together with its rule, passed every gate. Here every water row's stored
+    text equals (squashed) its extraction row's `raw_regs`, and its `source_pages` that row's printed page; the two
+    known hand fixes are pinned both sides (`HAND_FIXED_ROWS`)."""
+    import hashlib
+    from pipeline.common.curated import GENERATED
+    from pipeline.regs.parsing.batch_exporter import _row_entry_id
+    from pipeline.regs.parsing.catalogue import squash
+    from pipeline.regs.parsing.rows import load_synopsis_rows
+
+    class _M:
+        def __init__(self, water): self.water = water
+
+    need(None, "source", GENERATED.regs.extraction / "synopsis_raw_data.json", ROWS_HINT)
+    rows = {_row_entry_id(r, _M(r["water"])): r for r in load_synopsis_rows()}
+
+    def h(t: str) -> str:
+        return hashlib.sha256(squash(t).encode("utf-8")).hexdigest()[:12]
+
+    bad: list[str] = []
+    n = 0
+    for p, e in _entries():
+        if (e.entry_id or "").startswith("z"):
+            continue
+        n += 1
+        r = rows.get(e.entry_id)
+        if r is None:
+            continue                          # test_every_entry_names_a_row_the_synopsis_actually_prints
+        if list(e.source_pages or []) != [r.get("page")]:
+            bad.append(f"{e.entry_id}: source_pages {e.source_pages} but the row is printed on p.{r.get('page')}")
+        fix = HAND_FIXED_ROWS.get(e.entry_id)
+        if fix:
+            if (h(e.regs_verbatim), h(r["raw_regs"])) != fix[:2]:
+                bad.append(f"{e.entry_id}: a hand-fixed row moved (stored {h(e.regs_verbatim)}, extracted "
+                           f"{h(r['raw_regs'])}; pinned {fix[0]}, {fix[1]}: {fix[2]})")
+        elif squash(e.regs_verbatim) != squash(r["raw_regs"]):
+            bad.append(f"{e.entry_id}: stored text is not the extraction's\n      stored:    "
+                       f"{e.regs_verbatim[:90]!r}\n      extracted: {r['raw_regs'][:90]!r}")
+    assert n > 1000, f"only {n} water rows"
+    assert not bad, f"{len(bad)} water row(s) whose stored text left the extraction:\n  " + "\n  ".join(bad)
+
+
 def test_a_quoted_prohibition_reads_as_one():
     """A QUOTE CAN BE TRUE AND INVERTED.
 
