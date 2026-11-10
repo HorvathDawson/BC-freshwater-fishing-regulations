@@ -223,3 +223,17 @@ test("after a save: the next not-done place on the same water, else the next wat
   assert.equal(checkStatus({ ...PC, check: "stale", differs: { saved: [{ op: "whole" }], now: [] } }),
     "The extent is no longer the one you saved: check it again.");
 });
+
+test("save for all: every wording that can take the extent is covered, the rest named; a taken-out wording is no member", async () => {
+  const { saveForAll, coveredWords } = await import("../src/checklist.ts");
+  const got = saveForAll("a", GROUP, true);
+  assert.deepEqual(got.group.targets, ["a", "b", "c"]);
+  assert.deepEqual(got.covered.map((m) => m.id), ["b", "c"]);
+  assert.deepEqual(got.left.map((x) => x.m.id), ["d"]);                   // d holds what an extent fix cannot say
+  assert.match(got.left[0].why, /within_area/);
+  assert.equal(coveredWords(got.covered), ", and the same extent given to 2 other wordings of this place: “text b”, “text c”");
+  assert.equal(coveredWords([]), "");
+  // the group is the server's list of members: one taken out (not_variant_of) is not in it, so never covered
+  assert.deepEqual(saveForAll("a", GROUP.filter((m) => m.id !== "b"), true).group.targets, ["a", "c"]);
+  assert.deepEqual(saveForAll("a", [GROUP[0]], true).group, { targets: ["a"], members: {} });
+});

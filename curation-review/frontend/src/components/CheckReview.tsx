@@ -7,7 +7,7 @@ import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import { HOW_IT_WORKS, LEAVE_DRAFT, nextAfterSave, placeState, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
-import { offerProposal } from "../dfoExtent";
+import { markBody, offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
 import { statusLine } from "../dfoExtent";
 import { extentParts, fixParts, partsText, piecesParts } from "../extentWords";
@@ -222,7 +222,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     : savedNote.what === "group" ? `Saved just now: ${savedNote.text ?? "your grouping decision"}`
     : `Saved: ${pendingFix.length ? partsText(piecesParts(pendingFix, (f) => fixParts(f, labelOf, nameOf)))
         : d0?.location.binding.extents.length ? partsText(piecesParts(d0.location.binding.extents, (x) => extentParts(x, labelOf, nameOf)))
-        : "your mark"}`;
+        : "your mark"}${savedNote.text ?? ""}`;
   const stateLine = state && (
     <div className={`ck-state ${state.tone}`} role="status" data-testid="ck-state">
       <b>{state.text}</b>{savedWords && <span data-testid="ck-saved-note"> · {savedWords}</span>}
@@ -322,7 +322,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                     initialDraft={editing.draft} nav={{ pos: at.pos, total: at.total }} saving={false}
                     embedded={{ onMap: setLayers, onFull: () => setEditing({ draft: editing.draft, full: true }) }}
                     onBack={() => setEditing(null)}
-                    onMarked={() => afterSave(cur.id, "extent")} />
+                    onMarked={(said) => afterSave(cur.id, "extent", said)} />
                 </div>
               </div>
             ) : cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur} top={stateLine}
@@ -443,7 +443,7 @@ const pinTo = (n: number | null) => window.dispatchEvent(new CustomEvent("ck-pin
 
 /** the rows and the one decision */
 function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
-  loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem" | "group", text?: string) => void; top?: React.ReactNode;
+  loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem" | "group" | "extent", text?: string) => void; top?: React.ReactNode;
   /** open the T525 editor: on the extent now (null), or on a draft — undefined when no fix can say the extent */
   onEdit?: (draft: InitialDraft | null) => void;
 }) {
@@ -560,6 +560,35 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
       setBusy(false);
     }
   }
+  /* A HALF-DONE GROUP (owner 2026-11-09: "saving one extent in the group didnt handle the reworded version"): this
+     wording has no extent and another wording of its group has one — one click gives it that extent. It is the
+     editor's own mark (`markBody`: an extent fix on this wording, the extent it was made on, T / R implied by his
+     saving the extent), the server's guards unchanged. */
+  const twin = d && me && !ext.length && !pc.held ? same_.find((p) => p.id !== me.id && p.extents.length > 0 && !p.apart) : undefined;
+  async function takeTwin() {
+    if (!twin || !d) return;
+    setErrors([]);
+    if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
+    setReviewer(reviewer.trim());
+    setBusy(true);
+    try {
+      const other = await api.dfoLocation(twin.id);
+      if (other.extent_now.cannot_change.length || !other.extent_now.pieces.length) {
+        setErrors([`Its extent cannot be given to this wording here: ${other.extent_now.cannot_change.join("; ") || "it has none"}`]);
+        return;
+      }
+      await api.postMark(markBody({ target: loaded.id, call: "change", answers: { T: "y", R: "y" }, problem: "",
+        note: `the same extent as ${twin.id} (the same place), given by the owner from the checklist · T and R not asked: implied yes by the owner saving this extent`,
+        reviewer: reviewer.trim(), seconds: Math.round((Date.now() - since.current) / 100) / 10,
+        fixes: other.extent_now.pieces, carried: [], now: d.extent_now }));
+      onSaved("extent");
+    } catch (e) {
+      const fe = (e as EntryRefused).fieldErrors;
+      setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
+    } finally {
+      setBusy(false);
+    }
+  }
   const wordsOf = (p: WaterPlace) => partsText(piecesParts(p.extents, (x) => extentParts(x, wLabel, wName)));
   async function useSameAs() {
     const o = options.find((x) => x.id === sameAs);
@@ -645,6 +674,17 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
                 title="saves a mark: this wording becomes the same place as the one picked (it rides that place's extent); undo by taking it out of the group"
                 onClick={() => { const o = addable.find((x) => x.id === addPick); if (o) void regroup(me, o, null); }}>Group them: same place (saves)</button>
             </div>
+          </div>
+        )}
+        {twin && onEdit && (
+          <div className="ck-lead" data-testid="ck-twin">
+            <b>Another wording of this place already has its extent.</b>
+            <div>“{(twin.text || "(the whole water)").slice(0, 110)}”: {wordsOf(twin)}</div>
+            <div className="ck-btns">
+              <button data-testid="ck-take-twin" disabled={busy} onClick={() => void takeTwin()}>
+                Give this wording the same extent as “{(twin.text || "that wording").slice(0, 40)}…” (saves)</button>
+            </div>
+            <div className="dim">One click, saved as your mark on this wording. Not the same place? Take it out of the group below.</div>
           </div>
         )}
         {needs && d && (

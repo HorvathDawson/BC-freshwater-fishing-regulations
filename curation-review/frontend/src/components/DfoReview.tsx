@@ -12,7 +12,7 @@ import { MapPanel, type EditPoint } from "./MapPanel";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
 import { extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
-import { groupSave } from "../checklist";
+import { coveredWords, groupSave, saveForAll } from "../checklist";
 import { OlderWordings } from "./OlderWordings";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
@@ -255,7 +255,8 @@ function Fold({ on, summary, open, children, testid }: { on: boolean; summary: s
 export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall = null, onBack, initialDraft = null, embedded = null }: {
   detail: DfoDetail; mode: Mode;
   nav: { pos: number; total: number; onNext?: () => void; onPrev?: () => void };
-  saving: boolean; onMarked: () => void;
+  /** `said`: what the save also did (the other wordings of the place it gave the extent to), for the save line */
+  saving: boolean; onMarked: (said?: string) => void;
   /** T532: the checklist's "change the extent" opens here with Change picked; `onBack` returns to the checklist */
   initialCall?: DfoCall | null; onBack?: () => void;
   /** T532: the draft the checklist opens the editor on ("Use this proposal", "Same place as…"); nothing is saved */
@@ -486,7 +487,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const held = heldBy({ call, answers: asked, problem, note, effect, cuts, cannotChange: now.cannot_change,
                         extents: detail.location.binding.extents.length, incomplete });
 
-  async function submit(defer = false) {
+  // r6 (inline): one save for EVERY wording of the place, or for this wording only
+  const forAll = embedded && detail.group ? saveForAll(id, detail.group.members, changes) : null;
+  async function submit(defer = false, all = false) {
     setErrors([]);
     if (!defer && held) { setErrors([`Not saved yet — ${held}.`]); return; }
     if (defer && !note.trim()) { setShowNote(true); setErrors(["A defer needs a note: say what is unclear."]); return; }
@@ -505,9 +508,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
       const body = markBody({ target: id, call: call ?? "unsure", answers: asked, problem,
                               note: embedded && !defer ? [note.trim(), IMPLIED].filter(Boolean).join(" · ") : note, reviewer: reviewer.trim(),
                               seconds: Math.round((Date.now() - since.current) / 100) / 10, fixes, carried, now,
-                              group, defer });
+                              group: embedded ? (all && forAll ? forAll.group : null) : group, defer });
       await api.postMark(body);
-      onMarked();
+      onMarked(all && forAll ? coveredWords(forAll.covered) : "");
     } catch (e) {
       const fe = (e as EntryRefused).fieldErrors;
       setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
@@ -863,11 +866,23 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
               </div>
             )}
             {held && call && <div className="warn-text" role="alert" data-testid="dfo-held">Save held: {held}.</div>}
+            {forAll && changes && (forAll.covered.length > 0 || forAll.left.length > 0) && (
+              <div className="dim" data-testid="dfo-save-all-words" style={{ fontSize: 12 }}>
+                {forAll.covered.length > 0 && <>Saving for all gives the same extent to: {forAll.covered.map((m) => `“${(m.text || "(the whole water)").slice(0, 70)}”${m.extent.extents.length && !m.same_extent ? " (REPLACES the extent it has now)" : ""}`).join(", ")}
+                  {" "}— and counts as your confirming these are the same place. </>}
+                {forAll.left.map(({ m, why }) => <span key={m.id} className="warn-text">Not covered: “{(m.text || "").slice(0, 60)}” ({why}). </span>)}
+              </div>)}
             <div className="verdict-bar" style={{ position: "static", margin: 0 }}>
               <input placeholder="your name" value={reviewer} onChange={(e) => setName(e.target.value)} aria-label="reviewer" />
-              <button className={`btn primary${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
+              {forAll && forAll.covered.length > 0 && changes && (
+                <button className="btn primary dfo-replace" disabled={busy || !!held} data-testid="dfo-save-all"
+                  title="one mark per wording, each through the write-through; saving for all is your confirming they are the same place"
+                  onClick={() => void submit(false, true)}>
+                  Save this extent for all {forAll.covered.length + 1} wordings of this place</button>)}
+              <button className={`btn ${forAll && forAll.covered.length > 0 && changes ? "small" : "primary"}${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
                 disabled={busy || !!held || (!!embedded && !changes)} data-testid="dfo-save" onClick={() => void submit()}>
-                {embedded && !busy ? (changes ? "Save this extent" : "Nothing changed yet (nothing to save)") : saveText}</button>
+                {embedded && !busy ? (changes ? (forAll && forAll.covered.length > 0 ? "Save for this wording only" : "Save this extent")
+                  : "Nothing changed yet (nothing to save)") : saveText}</button>
               {embedded && <button className="btn small" disabled={busy} onClick={onBack}>Discard my changes</button>}
               <button className="btn small" disabled={busy} data-testid="dfo-defer"
                 title="decides nothing, changes nothing; needs a note"

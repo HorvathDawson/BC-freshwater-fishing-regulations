@@ -306,3 +306,27 @@ when it saves".
 - A mark that takes a wording out or puts it in becomes that wording's mark in force (as the editor's attach always
   did): a wording that was done by an earlier save is then judged by the new mark (taken out: to check, it needs its
   own extent; put in: it rides the other place's extent and reads "Verified earlier").
+
+## Round 6 additions (owner 2026-11-09)
+- ONE EXTENT FOR EVERY WORDING OF THE PLACE ("saving one extent in the group didnt handle the reworded version too"):
+  the inline editor's save is "Save this extent for all N wordings of this place" (primary; the existing group save:
+  one mark per wording, each through the write-through; the words under it name the wordings, say when one's own
+  extent is REPLACED, and that saving for all counts as his confirming the grouping) or "Save for this wording
+  only". A wording that cannot take it is named with why; one taken out of the group is not a member. The save line
+  adds ", and the same extent given to 1 other wording of this place: …". A half-done group: the wording without an
+  extent leads with "Give this wording the same extent as “…” (saves)" — one click, the editor's own mark.
+- ONE SCROLL for the place panel (words, group block, rows, older wordings, buttons); no nested scrollers, nothing
+  sticky at the bottom (the inline save bar too); the state line sticks to the TOP; "taller list" is 45 %.
+- THE ALLCO FENCE CUT WITHDRAWN at its source: `data/generated/review/dfo-split-hunt.json` — the hunted cut
+  `allco_fence` is removed and its three Alouette locations name the curated cut
+  `alouette_river__alouette_boundary_signs` (owner: "we have boundary sign cut already for alco"). Regenerated with
+  `python -m pipeline.regs.dfo_salmon.suggest` into a scratch folder; ONLY its four Alouette rows were carried into
+  `dfo-suggestions.json` (the "2 signs" wording now proposes "downstream of Alouette boundary signs", no new cut; the
+  three wordings he has since bound drop out). A full regeneration would also change 16 other rows (places saved
+  since the file was written) — not done here; the two .md summaries are not regenerated.
+  STILL THERE: the fence point rides his earlier unsure mark on the "two signs" wording (marks.jsonl, left alone), so
+  `marks.proposals` still lists `alouette_river__allco_park_boundary_signs_allco_hatchery_fence` as a proposed cut
+  (it is in neither the curated cuts nor the built atlas). `proposal_overrides.json` can only set a confidence.
+  FOLLOW-UPS (no work now): (1) an owner "withdrawn" call in `proposal_overrides.json`, read by `marks.proposals` and
+  `proposals.build`, so a superseded mark's cut is never built; (2) a new-cut proposal within N m of a curated cut on
+  the same water flagged "an existing cut is here" (count not taken).

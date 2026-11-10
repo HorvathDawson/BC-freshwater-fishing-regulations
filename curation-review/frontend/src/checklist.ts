@@ -270,6 +270,24 @@ export function sameAsOptions(places: WaterPlace[], id: string): WaterPlace[] {
     .filter((p) => (seen.has(p.extent_key) ? false : (seen.add(p.extent_key), true)));
 }
 
+/** SAVE AN EXTENT FOR EVERY WORDING OF THE PLACE (owner 2026-11-09: "saving one extent in the group didnt handle the
+ *  reworded version too"): the group part of the save with every other wording that CAN take it, and the ones that
+ *  cannot, named with why. Saving for all is his confirming the grouping; a wording taken out of the group is not a
+ *  member, so it is never covered. */
+export function saveForAll(target: string, members: DfoGroupMember[], fix: boolean):
+    { group: GroupSave; covered: DfoGroupMember[]; left: { m: DfoGroupMember; why: string }[] } {
+  const all = tickAll(members, fix, false);
+  const others = members.filter((m) => !m.this);
+  return { group: groupSave(target, members, all, fix, false), covered: others.filter((m) => all.has(m.id)),
+           left: others.filter((m) => !all.has(m.id)).map((m) => ({ m, why: untickable(m, fix, false) })) };
+}
+/** the save line's part about the other wordings ("" when none was covered) */
+export function coveredWords(covered: { text: string }[]): string {
+  if (!covered.length) return "";
+  return `, and the same extent given to ${covered.length} other wording${covered.length > 1 ? "s" : ""} of this place: `
+    + covered.map((m) => `“${(m.text || "(the whole water)").slice(0, 70)}”`).join(", ");
+}
+
 /** "THESE N WORDINGS ARE THE SAME PLACE": every older wording that can be ticked, ticked (the fast way to the same
  *  ticks; one that cannot be ticked stays out and its reason stays on screen) */
 export function tickAll(members: DfoGroupMember[], fix: boolean, checklist: boolean): Set<string> {

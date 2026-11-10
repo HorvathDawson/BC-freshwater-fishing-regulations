@@ -121,6 +121,8 @@ def _drain_write_through():
 
 
 def _dfo_apply_outcome(target: str):
+    if not WRITE_THROUGH.enabled:          # a sandbox / second copy: nothing applies a save here, and that is said
+        return {"state": "off", "why": "the write-through is off on this server (a sandbox or second copy): nothing applies saves here"}
     return WRITE_THROUGH.outcomes.get(_wt.key("dfo", target))
 
 

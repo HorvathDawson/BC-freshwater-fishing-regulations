@@ -1277,3 +1277,16 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-claim { font-size: 12px; color: #5b21b6; }
 .ck-same-row .btn { margin-top: 4px; }
 .ck-wl-head { padding-right: 104px; }
+
+/* T532 r6 (owner: "i cant view the rewording part at bottom of right column"): ONE SCROLL for the place panel — the
+   words, the group block, the rows, the older wordings and the buttons scroll together; no nested fixed-height
+   scrollers, nothing sticky over the bottom, and room under the last row. The water list above keeps its own cap. */
+.ck-side { min-height: 0; overflow: hidden; }
+.ck-panel { min-height: 0; overflow-y: auto; display: block; padding-bottom: 28px; }
+.ck-panel .ck-rows { flex: none; overflow: visible; min-height: 0; }
+.ck-foot [data-testid="older-wordings"] { max-height: none; overflow: visible; }
+.ck-inline-scroll { flex: none; overflow: visible; min-height: 0; }
+.ck-inline .verdict-bar { position: static !important; }
+.ck-inline-head { position: static; }
+.ck-panel .ck-state { position: sticky; top: 0; z-index: 3; }
+.ck-wl.tall { max-height: 45%; }
