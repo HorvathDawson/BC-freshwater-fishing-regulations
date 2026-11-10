@@ -9617,9 +9617,18 @@
           {
             "op": "between",
             "splits": [
-              "morice_river__bulkley_confluence",
-              "morice_river__bulkley_confluence_u100m"
-            ]
+              "morice_river__bulkley_confluence_u100m",
+              "morice_river__bulkley_confluence"
+            ],
+            "item_id": "gnis:14918"
+          },
+          {
+            "op": "between",
+            "splits": [
+              "bulkley_river__morice_river_into_bulkley_river_u100m",
+              "bulkley_river__morice_river_into_bulkley_river_d1000m"
+            ],
+            "item_id": "gnis:2195"
           }
         ],
         "tributaries": true,
