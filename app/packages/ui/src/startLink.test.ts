@@ -13,11 +13,11 @@ describe("parseStartLink (T41: the web test deep link)", () => {
   });
 
   it("the whole link → the water route (through openWater), the day at local noon, the regs start, who, theme", () => {
-    const l = parseStartLink("?regs=gnis:3062&blk=356364584&m=3451&date=2026-10-10&tab=gear&sheet=pos:pos&age=u16&res=non_resident&theme=dark&scroll=900", NOW)!;
+    const l = parseStartLink("?regs=gnis:3062&blk=356364584&m=3451&date=2026-10-30&tab=gear&sheet=pos:pos&age=u16&res=non_resident&theme=dark&scroll=900", NOW)!;
     expect({ ...l, day: l.day?.toString() }).toEqual({
       // (T369) the water whole until the place is resolved in the release (`resolveStartLink`)
       route: reduce(HOME, openWater({ item: "gnis:3062" as ItemId, part: null, view: "regs" })),
-      day: new Date(2026, 9, 10, 12).toString(),
+      day: new Date(2026, 9, 30, 12).toString(),
       regs: { tab: "gear", sheet: "pos:pos", scroll: 900 },
       who: { age: "u16", residency: "non_resident" },
       theme: "dark",
@@ -58,6 +58,15 @@ describe("parseStartLink (T41: the web test deep link)", () => {
     expect([parseStartLink("?regs=gnis:1&date=2026-10-22", NOW)!.day,
             parseStartLink("?regs=gnis:1&age=u16", NOW)!.who, parseStartLink("?regs=gnis:1&res=non_resident_alien", NOW)!.who])
       .toEqual([null, { age: "u16", residency: "resident" }, { age: "adult", residency: "non_resident_alien" }]);
+  });
+
+  it("(T620 G12) a day already gone by opens as today, and the start says so; today and later are kept", () => {
+    const old = parseStartLink("?regs=gnis:1&date=2026-10-10", NOW)!;
+    expect([old.day, old.notice, startNoticeLine(old)]).toEqual([null, "day-past", "The day this link names has passed, so today is shown."]);
+    const browse = parseStartLink("?date=2026-10-21", NOW)!;
+    expect([browse.day, browse.notice]).toEqual([null, "day-past"]);
+    expect(parseStartLink("?regs=gnis:1&date=2026-10-22", NOW)!.notice).toBeNull();
+    expect(parseStartLink("?regs=gnis:1&date=2026-10-23", NOW)!.day).toEqual(new Date(2026, 9, 23, 12));
   });
 
   it("a URL-encoded sheet key is read whole", () => {

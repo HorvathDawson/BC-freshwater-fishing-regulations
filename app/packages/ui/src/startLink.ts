@@ -163,10 +163,12 @@ export const startNeedsRelease = (l: StartLink | null): boolean => !!l && (l.pla
 
 /** (T369) A link's place and the view it asked for (a place-only link's route is the map until resolved). */
 export interface LinkPlace extends StreamPlace { readonly view: View }
-export type StartNotice = "place-gone" | "place-unread";
+export type StartNotice = "place-gone" | "place-unread" | "day-past";
 export const START_NOTICE_WORDS: Readonly<Record<StartNotice, string>> = {
   "place-gone": "The place this link names is not on this version of the map, so the whole water is shown.",
   // (T369 D9) the place could not be READ (offline, a failed fetch): not the same claim as "not on this map"
+  // (T620 G12) a kept or shared day that has gone by: the web address keeps the day, the phone never did; a past day opens as today
+  "day-past": "The day this link names has passed, so today is shown.",
   "place-unread": "The place this link names could not be loaded (no connection?), so the whole water is shown. Reload to try again.",
 };
 /** (T369) The same, for a link to an unnamed reach (no water to show whole). */
@@ -175,6 +177,7 @@ export const START_NOTICE_UNREAD_REACH = "The place this link names could not be
 /** (T369) The line a start says, or null. */
 export function startNoticeLine(l: Pick<StartLink, "notice" | "route"> | null): string | null {
   if (!l?.notice) return null;
+  if (l.notice === "day-past") return START_NOTICE_WORDS["day-past"];
   if (waterFrame(l.route) === null)
     return l.notice === "place-gone" ? START_NOTICE_REACH_GONE : START_NOTICE_UNREAD_REACH;
   return START_NOTICE_WORDS[l.notice];
@@ -198,12 +201,15 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
         m: /^\d+$/.test(mS!) ? Number(mS) : bad("m", "a distance in metres") };
   const dateS = q.get("date");
   let day: Date | null = null;
+  let past = false;
   if (dateS !== null) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateS);
     const [y, mo, d] = m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
     const at = new Date(y, mo - 1, d, 12);
     if (!m || at.getMonth() !== mo - 1 || at.getDate() !== d) bad("date", "a YYYY-MM-DD day");
     day = mapDayOf({ month: mo, day: d }, y, now);
+    // (T620 G12) a day already gone by opens as today, and the start says so
+    if (day !== null && at < new Date(now.getFullYear(), now.getMonth(), now.getDate())) { day = null; past = true; }
   }
   const horizonS = q.get("horizon");
   const horizon: Horizon | null = horizonS === null ? null
@@ -215,12 +221,12 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
     const browseS = q.get("browse"), spot = q.get("spot");
     const tab = browseS === null ? HOME.tab
       : (BROWSE_TABS as readonly string[]).includes(browseS) ? (browseS as BrowseTab) : bad("browse", BROWSE_TABS.join("|"));
-    if (show === null && browseS === null && spot === null && day === null && horizon === null) return null;
+    if (show === null && browseS === null && spot === null && day === null && !past && horizon === null) return null;
     if (show !== null && !ITEM.test(show)) bad("show", "an item id");
     const browse = reduce(HOME, { type: "tab", tab });
     const route = spot !== null ? reduce(browse, { type: "openSpot", id: spot }) : browse;
     return { route, day, regs: { tab: "keep", sheet: null, scroll: 0 }, who: null, theme: null,
-             arrive: show as ItemId | null, place: null, notice: null, horizon };
+             arrive: show as ItemId | null, place: null, notice: past ? "day-past" : null, horizon };
   }
   if (item !== null && !ITEM.test(item)) bad("regs", "an item id");
 
@@ -261,6 +267,6 @@ export function parseStartLink(search: string, now: Date = bcNow()): StartLink |
   if (hereS !== null && !hm) bad("here", "a lat,lon point");
   const tap = hm ? { at: { lat: Number(hm[1]), lon: Number(hm[2]) } } : q.get("tap") === "1" ? { at: null } : null;
   const link: StartLink = { route, day, regs: { tab, sheet, scroll }, who, theme, arrive: item as ItemId | null, place,
-                            notice: null, horizon, tap };
+                            notice: past ? "day-past" : null, horizon, tap };
   return link;
 }
