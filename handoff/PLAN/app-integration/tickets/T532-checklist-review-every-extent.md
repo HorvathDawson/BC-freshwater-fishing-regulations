@@ -244,3 +244,19 @@ when it saves".
   2 changed, 0 not applied.
 - Tests: `test_review_checklist.py::test_the_owners_extent_save_is_a_review_…` (with the mutation cases),
   `::test_a_place_reads_by_the_owners_extent_save_…`, `frontend/tests/checklist.test.ts`.
+
+## Owner 2026-11-09, round 5 addition: read a same-place group together; refute a grouping
+"menu here is hard to see the same wording things at same time to verify also how would i refute same wording".
+- DONE (part 1): the water list has a "taller list" / "shorter list" button (62 % of the panel, remembered) and a
+  selected row scrolls its whole group into view; the panel shows "Same place, N wordings — read them together":
+  every wording of the shown place's group stacked, full text, each with live / no longer live, the dates DFO's page
+  carried it, its extent in words, why it is grouped, and a link to open it.
+- NOT DONE (part 2), needs its own change: "Not the same place: take this wording out of the group". The store has
+  no such decision. What exists: a `variant_of` mark ATTACHES a wording (`proposals` writes `duplicate_of` +
+  `duplicate_confirmed: true`), and `review.dfo.groups` already keeps a wording apart when its file says
+  `duplicate_confirmed: false` — but nothing writes that, and it only undoes a `duplicate_of` link. Needed:
+  (a) a mark field (e.g. `not_variant_of: <location>`) on the DFO scope, with its model rules and refusal words;
+  (b) `proposals` + the DFO write-through writing `duplicate_confirmed: false` (and reversing it: a later
+  `variant_of` mark already sets it true); (c) `review.dfo.groups` / `places` honouring it for wordings grouped by
+  the alike-wording matcher too, not only by `duplicate_of`; (d) `checks.same_place` reading it, so the identical-
+  extent grouping does not put the wording straight back; (e) the button, its "saved" line, tests.

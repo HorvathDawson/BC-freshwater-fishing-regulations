@@ -515,6 +515,12 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
   }, [options, me]);
   const wLabel = (c: string) => water?.cut_labels[c] ?? cutLabel(c);
   const wName = (i: string) => water?.item_names[i] ?? itemName(i);
+  // every wording the data groups with this place (`checks.same_place`), to read side by side
+  const same_ = me ? (water?.places ?? []).filter((p) => p.same === me.same) : [];
+  const datesOf = (id: string) => {
+    const ds = (d?.places ?? []).flatMap((pl) => pl.wordings).filter((w) => w.location_id === id).flatMap((w) => w.dates).sort();
+    return ds.length ? (ds[0] === ds[ds.length - 1] ? ds[0] : `${ds[0]} to ${ds[ds.length - 1]}`) : "";
+  };
   const wordsOf = (p: WaterPlace) => partsText(piecesParts(p.extents, (x) => extentParts(x, wLabel, wName)));
   async function useSameAs() {
     const o = options.find((x) => x.id === sameAs);
@@ -554,6 +560,23 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
           </div>)}
       </div>
       <div className="ck-rows" data-testid="ck-rows" onMouseLeave={() => pinTo(picked)}>
+        {same_.length > 1 && (
+          <details className="ck-same" open data-testid="ck-same-group">
+            <summary>These {same_.length} wordings are the same place — read them together</summary>
+            {same_.map((p) => (
+              <div key={p.id} className={`ck-same-row${p.id === loaded.id ? " this" : ""}`} data-testid="ck-same-wording">
+                <div>{p.text || "(the whole water)"}</div>
+                <div className="dim">
+                  {p.id === loaded.id ? "this one · " : ""}{p.live ? "on DFO's live page" : "no longer on the live page"}
+                  {datesOf(p.id) ? ` · seen ${datesOf(p.id)}` : ""}
+                  {" · extent: "}{p.extents.length ? wordsOf(p) : "none"}
+                  {p.why.length ? ` · grouped because: ${p.why.join("; ")}` : ""}
+                  {p.id !== loaded.id && <>{" · "}<a href={`#dfo/${encodeURIComponent(p.id)}`}>open</a></>}
+                </div>
+              </div>))}
+            <div className="dim">The grouping is a prior from the data, not a decision: a wording counts as checked only when you tick or save it.</div>
+          </details>
+        )}
         {needs && d && (
           <div className="ck-lead" data-testid="ck-lead">
             <b data-testid="ck-need">{needWords(d.need, d.row.water, ext.length)}</b>
@@ -670,11 +693,23 @@ function WaterList({ view, selected, onOpen, onHover, undrawn }: {
     try { window.localStorage.setItem("ck-water-list", o ? "0" : "1"); } catch { /* per-viewer only */ }
     return !o;
   });
+  // owner 2026-11-09: "hard to see the same wording things at same time" — the list can be made taller, and a
+  // selected row brings its WHOLE group into view
+  const [tall, setTall] = useState(() => {
+    try { return window.localStorage.getItem("ck-water-list-tall") === "1"; } catch { return false; }
+  });
+  const toggleTall = () => setTall((t) => {
+    try { window.localStorage.setItem("ck-water-list-tall", t ? "0" : "1"); } catch { /* per-viewer only */ }
+    return !t;
+  });
   useEffect(() => {
-    document.querySelector('.ck-wl [aria-current="true"]')?.scrollIntoView({ block: "nearest" });
-  }, [selected, open]);
+    const row = document.querySelector('.ck-wl [aria-current="true"]');
+    (row?.closest(".ck-wg") ?? row)?.scrollIntoView({ block: "nearest" });
+  }, [selected, open, tall]);
   return (
-    <div className="ck-wl" data-testid="ck-water-list" onMouseLeave={() => onHover(null)}>
+    <div className={`ck-wl${tall ? " tall" : ""}`} data-testid="ck-water-list" onMouseLeave={() => onHover(null)}>
+      {open && <button type="button" className="btn small ck-wl-tall" data-testid="ck-water-list-tall" onClick={toggleTall}
+        title="how much of the panel this list takes">{tall ? "shorter list" : "taller list"}</button>}
       <button type="button" className="ck-sec ck-wl-head" aria-expanded={open} onClick={toggle}>
         {open ? "▾" : "▸"} {view.water}: {view.places.length} place{view.places.length === 1 ? "" : "s"} and wordings
         {" · "}{done} done · {view.places.length - done} left</button>

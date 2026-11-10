@@ -254,7 +254,8 @@ export function waterGroups(places: WaterPlace[]): WaterGroup[] {
 /** a group's heading ("" for a lone place) */
 export function groupHeading(g: WaterGroup): string {
   if (g.places.length < 2) return "";
-  return g.places[0].source === "regs" ? `same extent, ${g.places.length} rules` : `same place, ${g.places.length} wordings`;
+  return g.places[0].source === "regs" ? `These ${g.places.length} rules have the same extent`
+    : `These ${g.places.length} wordings are the same place`;
 }
 
 /** "SAME PLACE AS…" (a place with no extent takes another's, in the editor): the DFO places on the water that HAVE an

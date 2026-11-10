@@ -159,7 +159,7 @@ test("the water's places: one chip each, the same place under one heading", () =
   const gs = waterGroups(places);
   assert.deepEqual(gs.map((g) => g.places.map((p) => p.id)), [["a", "a2", "c"], ["b"]]);
   assert.deepEqual(gs[0].why, ["an older wording of the place", "the identical extent"]);
-  assert.equal(groupHeading(gs[0]), "same place, 3 wordings");
+  assert.equal(groupHeading(gs[0]), "These 3 wordings are the same place");
   assert.equal(groupHeading(gs[1]), "");
 });
 

@@ -1258,3 +1258,19 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-key i.ring { width: 10px; height: 10px; border-radius: 50%; background: none; border: 3px solid #0d9488; }
 .ck-key i.approx { border-top: 4px dashed #0f766e; }
 .ck-key i.newcut { width: 10px; height: 10px; border-radius: 50%; background: #ea580c; }
+
+/* T532 r5: a taller water list on demand; the shown place's same-place group, stacked in the panel */
+.ck-wl { position: relative; }
+.ck-wl.tall { max-height: 62%; }
+.ck-wl-tall { position: absolute; right: 10px; top: 5px; z-index: 1; }
+.ck-same { margin: 6px 8px; padding: 8px 10px; border: 1px solid var(--ck-line); border-radius: 8px; font-size: 13px; }
+.ck-same > summary { cursor: pointer; font-weight: 600; }
+.ck-same-row { padding: 6px 0 6px 8px; border-left: 3px solid var(--ck-line); margin-top: 6px; }
+.ck-same-row.this { border-left-color: var(--ck-extent); }
+.ck-same-row .dim { font-size: 12px; }
+
+/* T532 r5: a same-place group is ONE CLOSED BOX — its header inside at the top, exactly its rows inside, clear space
+   around it (a selected ungrouped row above must not look attached) */
+.ck-wg { border: 1.5px solid #94a3b8; border-left-width: 1.5px; border-radius: 8px; background: #f8fafc; margin: 12px 4px; padding: 0 4px 4px; }
+.ck-wg-head { padding: 6px 8px 4px; border-bottom: 1px solid var(--ck-line); margin-bottom: 4px; }
+.ck-wg .ck-wp[aria-current="true"] { background: var(--ck-soft); }
