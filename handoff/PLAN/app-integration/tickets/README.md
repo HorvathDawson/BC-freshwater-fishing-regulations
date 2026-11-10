@@ -615,7 +615,13 @@ use that as the sole source of future work."
 | T568 | The gauge map moves when Level / Flow is tapped on the chart | IN REVIEW | 1c57e7c07 | map one place over the chart, one frame per water, a refusal keeps the map; owner confirms on the phone |
 | T569 | Report a problem from the screen you are on (Conditions has no way in) | OPEN | — | owner 2026-11-09 |
 | T570 | Indigenous land names show only when zoomed in a lot more | OPEN | — | owner 2026-11-10 |
-| T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | OPEN | T568, T567 | owner 2026-11-10: "should never happen … look for other things like that" |
+| T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | DONE | f1acba096 | owner 2026-11-10: "should never happen … look for other things like that" |
+| T581 | The gauge card, chart and alert editor all use the quantity asked | OPEN | — | T580 F1, F7 |
+| T582 | One day per water screen, and the same kept state on web and phone | OPEN | — | T580 F2, F3; owner: one day or two labelled |
+| T583 | One wording for a gauge's standing, everywhere | OPEN | — | T580 F4 |
+| T584 | Conditions reads the same whatever the way in (group strip, picks, part step) | OPEN | — | T580 F5, F6, F11 |
+| T585 | Web and phone answer from the same feed and release, and say which | OPEN | — | T580 F8, F12–F14; with T550 |
+| T586 | Small one-answer fixes: saved spot lead, silent gauge dot, two clocks | OPEN | — | T580 F9, F10 (owner), F15 |
 | T571 | Sheldens Creek: the "Spur 19 Bridge site" cut looks misplaced | IN REVIEW | — | 11-10: the data cannot name the Spur 19 crossing; a low-confidence alternative waits as a proposal;  owner's problem report 2026-11-09: "i think spur 19 is at completely the wrong spot?" |
 | T572 | Thompson River: three year-round closed areas inside one DFO place | IN REVIEW | — | 11-10: proposed as 4 open stretches, 5 new cuts; the Juniper upper signs are his choice;  owner's problem report 2026-11-09: "need to figure out how to represent all of these" |
 | T573 | A DFO row that names closed areas becomes two entries (the Thompson) | IN REVIEW | — | owner 2026-11-10; review side + derivation built as a proposal; the build side waits on his six cuts |

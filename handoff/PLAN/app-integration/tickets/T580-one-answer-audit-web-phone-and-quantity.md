@@ -1,6 +1,6 @@
 # T580 — Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead)
 
-Status: OPEN
+Status: DONE — f1acba096 (findings; fix tickets T581–T586)
 
 Source: owner 2026-11-10, on T568 / T567: "stuff like this should never happen and shows a divergence in code too so
 look for other things like that."
