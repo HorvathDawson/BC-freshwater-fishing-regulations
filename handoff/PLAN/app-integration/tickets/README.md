@@ -611,7 +611,7 @@ use that as the sole source of future work."
 | T564 | Public gauge page: the forecast is on it, and the chart is large and readable | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T565 | An in-season notice sits at the top of the Regulations page, not under salmon | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T566 | Switching between the maps causes issues sometimes (owner, Pixel 9, build 24) | OPEN | — | owner 2026-11-09 (owner checks page) |
-| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | OPEN | — | owner 2026-11-09 (owner checks page) |
+| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa | level-only gauge under Flow now says so; on the phone with the next build; owner confirms |
 
 ## Order for open tickets
 
