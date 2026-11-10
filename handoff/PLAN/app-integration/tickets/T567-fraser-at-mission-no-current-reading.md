@@ -25,3 +25,14 @@ Depends: —. Size: S. Owner: no.
   still never stands in for a flow. Test: `livePanel.test.ts` (Mission's feed row), `one-donor-state.test.ts`.
 - Left: the alert page's "No reading now" for such a station (goes with T563); the gauge page itself (T564).
 - Seen on the way, for T550: staging `obs.json` had 0 stations on the 03:35Z run (it lists only stations written that run).
+
+## Owner's phone picture 2026-11-09 21:08 (build 24) — second fix, and one thing still open
+- Seen: Conditions → gauge card "Fraser River at Mission", Flow picked: the figure read "1.548 m · Normal · 66th
+  percentile" (its LEVEL) over a m³/s chart with the CLEVER flow forecast and no reading line. The card's figure is the
+  station's own default quantity whatever the chart shows (`ConditionsPanel.tsx`, `vm.reading`).
+- Fixed: when the figure's quantity is not the chart's, the card says "Reports water level only today, not flow. Show
+  Level to see it." in the figure's place (the same words as the row and the dot). ui-native tests pass.
+- STILL OPEN: owner: "the webapp looks proper, this issue is only on the app … like it is showing different gauges by
+  default". The card code is shared, so the difference is what each holds (the phone's build vs the web deploy, its
+  kept feed / bundle, or which gauge leads). Not reproduced. Do with T568 on the emulator: same water, web and app side
+  by side; a conformance test that both pick the same lead gauge and quantity from one feed.

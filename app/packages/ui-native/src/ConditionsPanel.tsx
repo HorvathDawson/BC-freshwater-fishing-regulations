@@ -16,7 +16,7 @@ import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, type ChartSpan } from "@app/core";
+         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { changeChartModel, changeView, chartParameter, forecastDash, forecastDrawn, NO_MODEL_PICK, pickModel, realtimeOnly,
@@ -185,7 +185,16 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * could not answer (`vm.trace` is null otherwise). They used to stack under the donor
    * list as two more answer-shaped blocks; here they are the working under the answer.
    */
-  const readingRows = reading ? (
+  // (T567, owner's phone 2026-11-09) THE CARD'S FIGURE IS IN THE QUANTITY THE CHART SHOWS, OR IT IS NOT A FIGURE:
+  // Fraser at Mission under Flow headed a m³/s chart with "1.548 m · 66th percentile" (its level). A gauge that
+  // reports the other quantity only says so, in the words its row and its dot say.
+  const readingRows = reading && reading.quantity !== shown ? (
+        <View ref={readingRing} collapsable={false} style={{ gap: SPACE.s1 }}>
+          <Text testID="reading-other-quantity" style={{ ...TYPE.bodyStrong, color: palette.ink }}>
+            {OTHER_QUANTITY_WORDS[reading.quantity].reads}
+          </Text>
+        </View>
+  ) : reading ? (
         <View ref={readingRing} collapsable={false} style={{ gap: SPACE.s1 }}>
           {/* (T367) whose reading this is is the card's title, over it; when it was taken is the card's foot */}
           {/* (T367) THE FIGURE AS A STAT: large in the display face, its unit small beside it, the stage after a dot —
