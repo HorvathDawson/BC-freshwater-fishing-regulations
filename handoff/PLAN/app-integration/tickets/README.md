@@ -636,6 +636,7 @@ use that as the sole source of future work."
 | T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | OPEN | — | worker /crashes read 2026-11-10 |
 | T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | OPEN | — | worker /crashes 2026-11-10, kind 4219b587 |
 | T597 | Two feeds worker run failures 11-09/10 explained and guarded (gauges all-404 at 00:05 UTC; in-season format ahead of the worker) | OPEN | — | /status.json 2026-11-10; overlaps T550, T558 |
+| T598 | "Days in 10" replaces the percentile wherever the reader sees it | OPEN | — | owner 2026-11-10; after T583; shots for the short forms |
 
 ## Order for open tickets
 
