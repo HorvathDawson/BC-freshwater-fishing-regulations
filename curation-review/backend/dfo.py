@@ -385,6 +385,45 @@ def seen_extent(loc: dict) -> dict:
     return {"extents": list(b.get("extents") or []), "tributaries": b.get("tributaries")}
 
 
+def binds_same(a: dict, a_water: dict | None, b: dict, b_water: dict | None) -> bool:
+    """Do two places bind the same extent? Their curated pieces as a set and the tributary call each binds with."""
+    ea =list((a.get("binding") or {}).get("extents") or [])
+    eb = list((b.get("binding") or {}).get("extents") or [])
+    return same_extents(ea, eb) and tributaries_now(a, a_water) == tributaries_now(b, b_water)
+
+
+def fix_taking(src: dict, src_water: dict | None, member: dict, member_water: dict | None) -> tuple[list, list[str]]:
+    """THE EXTENT FIX THAT GIVES AN OLDER WORDING THE SHOWN PLACE'S EXTENT (owner 2026-11-09: "it should save extent to
+    all variants of location text"): the shown place's curated pieces (`proposals.fixes_of_extents`) and the tributary
+    call it binds with — its own flag, or, when the wording would bind another call, the shown place's effective one.
+    -> (fixes, why not): the shown place has no extent, holds a field a fix cannot say, or its call cannot be made."""
+    from pipeline.regs.review import proposals as P
+    b = src.get("binding") or {}
+    exts = list(b.get("extents") or [])
+    if not exts:
+        return [], ["the shown place has no extent to give it"]
+    call = b.get("tributaries")
+    want = tributaries_now(src, src_water)
+    after = call if call is not None else tributaries_now(member, member_water)
+    if after != want:
+        if want is None:
+            return [], ["its tributary call cannot be made the shown place's (that one inherits none)"]
+        call = want
+    return P.fixes_of_extents(exts, call)
+
+
+def wording_check(src: dict, src_water: dict | None, member: dict, member_water: dict | None) -> dict:
+    """AN OLDER WORDING BESIDE THE SHOWN PLACE (owner 2026-11-09): does it bind the same extent; the fields it holds
+    that no extent fix can say (R4: a save that changes its extent would drop them, so it is refused by name); and,
+    when it differs, why it cannot take the shown place's extent. Read only."""
+    from pipeline.regs.review import proposals as P
+    same = binds_same(src, src_water, member, member_water)
+    take = [] if same else fix_taking(src, src_water, member, member_water)[1]
+    return {"same_extent": same,
+            "cannot_change": P.unexpressed((member.get("binding") or {}).get("extents") or []),
+            "cannot_take": take}
+
+
 def _row(slug: str, loc: dict, water: dict | None, m, groups: dict | None = None,
          live_waters: set | None = None) -> dict:
     st = loc.get("source_text") or {}
@@ -639,10 +678,12 @@ def detail(location_id: str) -> dict | None:
              "text": (locs[x["id"]][1].get("source_text") or {}).get("specific_area") or "",
              "status": locs[x["id"]][1].get("status") or "active",
              "verify": _verify(states.get(x["id"]), locs[x["id"]][1], locs[x["id"]][2])["status"],
-             # T525: a member whose extent is not this place's is not ticked "same extent" by default, and a save
-             # carrying it is refused (`mark_for` checks every target against the extent the owner saw)
-             "same_extent": seen_extent(locs[x["id"]][1]) == seen_extent(loc),
-             "extent": seen_extent(locs[x["id"]][1])}
+             # owner 2026-11-09: an older wording is never assumed to match — each is listed with its own words and
+             # extent and starts UNTICKED; a ticked one takes the check, and this place's extent when it differs
+             # (`marks_for_group`); `cannot_change` / `cannot_take` say why one cannot be ticked
+             **wording_check(loc, water, locs[x["id"]][1], locs[x["id"]][2]),
+             "extent": seen_extent(locs[x["id"]][1]),
+             **({} if x["id"] == location_id else _member_check(x["id"], states.get(x["id"])))}
             for x in g["members"]]}
     view = {
         "row": _row(slug, loc, water, m, groups), "location": loc, "water": water, "group": group,
@@ -660,6 +701,14 @@ def detail(location_id: str) -> dict | None:
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
     }
     return reuse._json_safe({**view, "cut_labels": cut_labels(view), "item_names": item_names(view)})
+
+
+def _member_check(mid: str, m) -> dict:
+    """an older wording's own checklist digest (sent back with a group check, refused when it moved), whether a save of
+    its own still waits to land (`held`: a check would replace it) and its check state"""
+    import checks
+    got = checks.dfo_check(mid) or {}
+    return {"digest": got.get("digest"), "held": got.get("held"), "check": got.get("check")}
 
 
 def rekeyed(mark: dict) -> dict:
@@ -1088,22 +1137,71 @@ def mark_for(body: dict, *, date: str, pdf_sha256: str):
 
 
 def marks_for_group(body: dict, *, date: str, pdf_sha256: str) -> list:
-    """ONE EXTENT DECISION FOR A HISTORIC GROUP (owner 2026-10-28): the mark `mark_for` makes for
-    `target`, and the same answers / extent fix / new splits for every other id in `targets` — each
-    a member of target's group (`review.dfo.groups`), each with its own prints NOW and the group's
-    id in `group`. ValueError when a target is not in the group. -> marks, target's first."""
+    """ONE DECISION ON THE WORDINGS OF A PLACE (owner 2026-10-28; 2026-11-09: "it should save extent to all variants of
+    location text" — and "we cant blindly assume variants … they must match and that requires human check too"): the
+    mark `mark_for` makes for `target`, and one for every OTHER wording the owner ticked "same place" — each named in
+    `targets` AND listed in `members` with the extent the owner saw it hold (`extent_before`, R3 per member) and, on a
+    checklist, its own checklist digest (refused by the app when it moved). The server never adds a wording on its own.
+
+      the save carries an extent fix   every ticked wording takes it (it holds the new extent)
+      no fix, a wording binds the same  it takes the same answers / check
+      no fix, a wording DIFFERS         it takes the shown place's extent (`fix_taking`) plus the check — never a
+                                        "correct" stamped on a wording that holds another extent (a defer changes
+                                        nothing, so it carries none)
+    REFUSED (ValueError), nothing saved, naming the wording: a wording not in target's group, one not listed, one whose
+    extent would change while it holds a field no fix can say (R4), one that cannot take the shown extent. The checklist
+    a wording carries is the rows the owner checked, its digest the wording's own as it will bind. -> marks, target's
+    first."""
+    import checks
     target = str(body.get("target") or "")
-    want = [t for t in dict.fromkeys([target, *(body.get("targets") or [])])]
     g = _groups().get(target)
     if g is None:
         raise ValueError(f"{target} is in no historic group")
+    others = [t for t in dict.fromkeys(body.get("targets") or []) if t != target]
     members = {m["id"] for m in g["members"]}
-    stray = [t for t in want if t not in members]
+    stray = [t for t in others if t not in members]
     if stray:
         raise ValueError(f"not in {target}'s group: {', '.join(stray)}")
-    base = {k: v for k, v in body.items() if k != "targets"}
-    return [mark_for({**base, "target": t, "group": g["id"]}, date=date, pdf_sha256=pdf_sha256)[0]
-            for t in want]
+    listed = body.get("members") or {}
+    locs = _locations()
+    words = lambda t: f"“{(locs[t][1].get('source_text') or {}).get('specific_area') or t}”"  # noqa: E731
+    missing = [t for t in others if not isinstance(listed.get(t), dict) or "extent_before" not in listed[t]]
+    extra = [t for t in listed if t not in others]
+    if missing or extra:
+        raise ValueError("a save on older wordings names each one it writes, with the extent you saw it hold: "
+                         + "; ".join([f"{words(t)} is not listed" for t in missing if t in locs]
+                                     + [f"{t} is listed but not ticked" for t in extra])
+                         + " — reload the place, nothing was saved")
+    _s, tloc, twater = locs[target]
+    base = {k: v for k, v in body.items() if k not in ("targets", "members")}
+    fix = base.get("extent_fix")
+    out, refused = [], []
+    for t in others:
+        _s, loc, water = locs[t]
+        mb = {**base, "target": t, "group": g["id"], "extent_before": listed[t]["extent_before"]}
+        w = wording_check(tloc, twater, loc, water)
+        takes = bool(fix) or not w["same_extent"]
+        if fix:
+            if w["cannot_change"]:
+                refused.append(f"{words(t)} holds what an extent fix cannot say ({'; '.join(w['cannot_change'])})")
+                continue
+        elif not w["same_extent"] and base.get("verdict") != "deferred":
+            why = w["cannot_change"] + w["cannot_take"]
+            if why:
+                refused.append(f"{words(t)} cannot take this extent ({'; '.join(why)})")
+                continue
+            mb["extent_fix"] = [f.model_dump(mode="json") for f in fix_taking(tloc, twater, loc, water)[0]]
+        else:
+            takes = False
+        if base.get("checklist"):
+            mb["checklist"] = {**base["checklist"],
+                               "digest": checks.digest_as(loc, water, tloc if takes and not fix else None, twater)}
+        out.append(mb)
+    if refused:
+        raise ValueError("not saved — untick these older wordings and leave them for a hand edit: "
+                         + "; ".join(refused))
+    first = mark_for({**base, "target": target, "group": g["id"]}, date=date, pdf_sha256=pdf_sha256)[0]
+    return [first] + [mark_for(mb, date=date, pdf_sha256=pdf_sha256)[0] for mb in out]
 
 
 def real_ids(extra: tuple = (), *, tidal: bool = False, tidal_water: str | None = None) -> dict:

@@ -98,7 +98,12 @@ Rules to enforce in code:
   a strict apply refuses an overwrite if the file has moved since.
 - R4 A change to an extent with fields the editor cannot express is blocked with the reason, or those fields are
   carried over. They are never dropped silently.
-- R5 Group: a member whose extent differs starts unticked and shows its extent.
+- R5 Group (owner 2026-11-09, replaces "a member whose extent differs starts unticked"): EVERY older wording starts
+  unticked ("same place"), matching or not, listed with its own DFO words (what differs from the shown place's
+  marked) and its extent now in words. A ticked one takes the save; one whose extent differs takes the saved extent
+  too (never a "correct" on another extent). One that holds a field a fix cannot say (R4) or cannot take the extent
+  cannot be ticked and is left for the owner. The line under them names exactly which wordings the save writes; the
+  server refuses a wording that is not in `targets` AND listed in `members` with its own `extent_before`.
 - R6 Suggestion, "use this fix" and the two-cut helper fill the draft only under "Change it", and the effect line
   says REPLACES.
 - R7 A defer drops an untouched draft. The wording drops "T185", "proposals", "never in a file", "op" and "scope".

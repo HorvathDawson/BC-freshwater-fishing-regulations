@@ -19,8 +19,9 @@ of those items."
   undrawn parts, rest/siblings): water(s) · from (cut) · to (cut / mouth / source) · each extra piece · tributaries ·
   each exception (outside areas/items, closures named in the words) · area membership.
 - Each row is paired with the phrase in the source text that names it (cut labels/quotes, `extent_text`,
-  `unresolved_locators`, DFO `source_text`); state: ✓ built and matches, ? saved/proposed but its cut is not built, ✗ the
-  words say something the extent does not (an exception, a tributary call, a place with no cut).
+  `unresolved_locators`, DFO `source_text`); state: ✓ built and matches, ✗ everything else (owner 2026-11-09: "always
+  add ✗ when unsure — data must be rock solid"; there is no ?): a cut saved but not built ("not built yet; check again
+  after the rebuild"), the words say something the extent does not (an exception, a tributary call, a place with no cut).
 - Words that no row covers are their own row ("words not checked: …"), so nothing hides.
 - New DFO items (live queue) and changed wording arrive as unchecked places; a check is stale when its words or extent
   change (re-check, never silently kept).
@@ -115,3 +116,24 @@ places (rows and pins change, the map stays). Pinned by `test_the_queue_never_le
 - A ✗ is "look at this", not "wrong": e.g. tributaries walked with no word for them, a carve-out the words never
   state, a cut no word names (the rule's words are elsewhere in the row). Tick it by eye or report it.
 - A place whose own save has not landed is held (no check offered) until the write-through / rebuild lands it.
+
+## Older wordings + no "?" (owner 2026-11-09)
+- "it should save extent to all variants of location text" — and "we cant blindly assume variants … they must match and
+  that requires human check too". The checklist (and the T525 editor's save, R5) lists each older wording of the place
+  (`dfo._groups()`) with its own DFO words, what differs from the shown place's words marked (`checklist.wordDiff`), and
+  its extent now in words; each has a "same place" tick that starts UNTICKED (`components/OlderWordings.tsx`).
+- A ticked wording gets the check, and the shown place's extent when its own differs (`dfo.fix_taking`: the shown
+  pieces on existing cuts + the tributary call it binds with, with its own `extent_before`); its checklist is the rows the
+  owner checked, its digest its own as it will bind (`checks.digest_as`), refused per wording when it moved or while a
+  save of its own waits to land. A wording holding a field a fix cannot say (R4) or that cannot take the extent is not
+  tickable and is refused by name if sent. The line under them names exactly what the save writes ("Also saves on 2
+  older wordings: …; 1 takes this extent: …"). The server writes only wordings in `targets` AND listed in `members`
+  (`dfo.marks_for_group`).
+- Unticked wordings stay unchecked: the place they ride carries `older_unconfirmed` in the queue ("N older wordings not
+  confirmed" in the header) and stays under the "unchecked" filter until each is checked.
+- No ? state: a row is ✓ only when positively confirmed, every other row is ✗ (`checklist.STATES == (ok, bad)`; the "has
+  ?" filter is gone; `marks.CheckedRow` takes ok / bad).
+- Data (2026-11-09): 15 groups, 18 older wordings; 2 groups hold a wording whose extent differs (both can take it).
+- Tests: `test_review_dfo.py::test_a_save_on_older_wordings_writes_each_ticked_one_and_gives_a_differing_one_this_extent`,
+  `::test_an_older_wording_holding_what_a_fix_cannot_say_is_refused_by_name`, `::test_a_check_on_older_wordings_carries_each_ones_own_digest`,
+  `test_review_checklist.py::test_a_pending_or_unknown_cut_is_never_ok` (pending → ✗), `frontend/tests/checklist.test.ts`.

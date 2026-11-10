@@ -290,6 +290,10 @@ class MarkPayload(BaseModel):
     #: T532 (scope dfo or rule): the checklist the mark answers — `marks.Checklist` {digest, rows}; refused when its
     #: digest is not the place's now (the words or the extent moved since the owner looked)
     checklist: dict | None = None
+    #: owner 2026-11-09 (scope dfo, a group save): every OTHER wording in `targets`, listed with what the owner saw —
+    #: {id: {extent_before, digest?}} (its extent; on a checklist its own digest). A wording not listed is refused
+    #: (`dfo.marks_for_group`): the server never writes a wording nobody ticked
+    members: dict[str, dict] = {}
 
 
 #: EVERY SAVE THE SERVER REFUSES, on file (owner 2026-10-28: a refused save must be impossible to
@@ -384,6 +388,10 @@ def _post_mark(body: MarkPayload):
         data.pop("extent_before")
     elif body.extent_before is None:
         data.pop("extent_before")
+    if body.scope != "dfo":
+        if body.members:
+            raise HTTPException(422, [{"path": "members", "msg": "only a DFO save lists older wordings"}])
+        data.pop("members")
     if body.checklist is None:
         data.pop("checklist")
     else:
@@ -400,6 +408,11 @@ def _post_mark(body: MarkPayload):
             data.pop("call")
         if not body.targets:
             data.pop("targets")
+            if body.members:
+                raise HTTPException(422, [{"path": "members", "msg": "older wordings are listed only with the "
+                                           "targets they are saved on"}])
+        if not body.members:
+            data.pop("members")
     elif body.scope == "tidal":                     # T359: "the whole water is tidal" is a tidal call
         if body.targets:
             raise HTTPException(422, [{"path": "", "msg": "a tidal mark names one candidate"}])
@@ -446,8 +459,22 @@ def _refuse_stale_checklist(body: MarkPayload) -> None:
     moved since the owner looked, and never for a group (each member has its own rows)."""
     import checks
     if body.scope == "dfo":
-        if body.targets:
-            raise HTTPException(422, [{"path": "targets", "msg": "a checklist is saved on one place at a time"}])
+        # owner 2026-11-09: a check on the older wordings the owner ticked "same place" — each one's own digest NOW
+        # (its words or extent moved since: refused by name) and none whose own save still waits to land
+        import dfo
+        for t in dict.fromkeys(body.targets):
+            if t == body.target:
+                continue
+            got = checks.dfo_check(t)
+            if got is None:
+                raise HTTPException(404, f"dfo {t} not found")
+            words = (dfo._locations()[t][1].get("source_text") or {}).get("specific_area") or t
+            if got.get("held"):
+                raise HTTPException(422, [{"path": "targets", "msg": f"older wording “{words}”: {got['held']}"}])
+            if (body.members.get(t) or {}).get("digest") != got["digest"]:
+                raise HTTPException(422, [{"path": "targets", "msg": f"older wording “{words}”: its words or its "
+                                           "extent changed since you opened it: reload the place and check it again "
+                                           "— nothing was saved"}])
         now = checks.dfo_check(body.target)
     elif body.scope == "rule":
         now = checks.rule_check(body.target, body.rule_id or "")
@@ -466,7 +493,8 @@ def _written_through(got, body: MarkPayload):
     """The mark is in the store: run its domain's apply (T325 write-through; one per request, a batch included) and
     say what it did. Never raises — a refused apply keeps the mark and is said on the item."""
     try:
-        wt = WRITE_THROUGH.after_mark(body.scope, list(body.targets) or [body.target], body.rule_id)
+        wt = WRITE_THROUGH.after_mark(body.scope, list(dict.fromkeys(
+            ([body.target] if body.target else []) + list(body.targets))), body.rule_id)
     except Exception as ex:                                     # noqa: BLE001 — the mark is saved regardless
         import logging
         logging.getLogger("uvicorn.error").exception("write-through failed")

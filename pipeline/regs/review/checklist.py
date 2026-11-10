@@ -7,7 +7,7 @@
     rule_source(entry, rule)     a regulation's words (the row's name and ✱, the rule's place words)
     digest(...)                  what a check was made on: the words and the extent — a check whose digest differs from
                                  the place's now is STALE (re-check, never silently kept)
-    summary(rows)                {ok, unsure, bad} counts and the place's worst state
+    summary(rows)                {ok, bad} counts and the place's worst state
 
 One module for both sources (owner 2026-11-09: "ideally the same interface"): a DFO place and a regulation rule are
 the same `Extent` model, so the same rows. Pure: everything the build knows (which cuts are built, their labels and
@@ -15,9 +15,9 @@ points, the water names, the tributary call) is handed in through `Context` by t
 the builder's own modules (AGENTS 16 — this module resolves nothing, it pairs claims with words).
 
 A row's state is honest:
-    ok      built, and the words name it (or say nothing the extent contradicts)
-    unsure  it cannot be ✓ yet: saved / proposed but its cut is not built, or words no row checks
-    bad     the words say something the extent does not (an exception, a tributary call, a place with no cut), or the
+    ok      built, and the words name it (or say nothing the extent contradicts) — positively confirmed
+    bad     NOT positively confirmed (owner 2026-11-09: "always add ✗ when unsure"): saved / proposed but its cut is
+            not built ("not built yet; check again after the rebuild"), words no row checks, or the words say something the extent does not (an exception, a tributary call, a place with no cut), or the
             extent says something the words do not (tributaries walked with no word for it, a carve-out never named)
 """
 from __future__ import annotations
@@ -28,8 +28,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Iterable, Mapping, Optional, Sequence
 
-OK, UNSURE, BAD = "ok", "unsure", "bad"
-STATES = (OK, UNSURE, BAD)
+#: owner 2026-11-09: "always add ✗ when unsure — data must be rock solid": a row is ✓ only when positively confirmed,
+#: every other row is ✗ (there is no "?" state)
+OK, BAD = "ok", "bad"
+STATES = (OK, BAD)
 #: the row kinds, in the order a screen may explain them
 KINDS = ("water", "where", "from", "to", "also", "area", "tributaries", "except", "unchecked")
 
@@ -201,9 +203,9 @@ def _is_region(aid: str) -> bool:
 
 def _cut_state(sid: str, ctx: Context, landed: bool) -> tuple[str, str]:
     if sid in ctx.built:
-        return (OK, "") if landed else (UNSURE, "saved, not applied yet")
+        return (OK, "") if landed else (BAD, "saved, not applied yet; check again once it lands")
     if sid in ctx.pending:
-        return UNSURE, "saved, not drawn yet: the cut is not built"
+        return BAD, "not built yet; check again after the rebuild"
     return BAD, "no cut by that id in the atlas or the cuts file"
 
 
@@ -280,12 +282,13 @@ def _natural_end_row(op: str, items: list[str], clauses: list[_Clause], ctx: Con
         return _row("to", named_end.text, ours, BAD, "the words name an end; ours runs on with no cut there", anchor)
     if hit is not None:
         hit.used = True
-        return _row("to", hit.text, ours, OK if landed else UNSURE, "" if landed else "saved, not applied yet", anchor)
+        return _row("to", hit.text, ours, OK if landed else BAD, "" if landed else "saved, not applied yet; check again once it lands",
+                    anchor)
     if any(other.search(c.text) for c in clauses) and not any(want.search(c.text) for c in clauses):
         c = next(c for c in clauses if other.search(c.text))
         return _row("to", c.text, ours, BAD, f"the words run {'downstream' if up else 'upstream'}", anchor)
-    return _row("to", "", ours, OK if landed else UNSURE, "the words give no direction" if landed
-                else "saved, not applied yet", anchor)
+    return _row("to", "", ours, OK if landed else BAD, "the words give no direction" if landed
+                else "saved, not applied yet; check again once it lands", anchor)
 
 
 def _piece_rows(x: Mapping, n: int, own: list[str], clauses: list[_Clause], ctx: Context, landed: bool,
@@ -476,7 +479,7 @@ def rows(source: Source, extents: Sequence[Mapping], *, own_items: Sequence[str]
     named = _tokens(source.water).union(*(_tokens(_name(i, ctx)) for i in own)) | {"upstream", "downstream"}
     left = [c.text for c in clauses if not c.used and not c.toks <= named]
     if left:
-        out.append(_row("unchecked", " … ".join(left), "words not checked", UNSURE,
+        out.append(_row("unchecked", " … ".join(left), "words not checked", BAD,
                         "no row checks these words: read them"))
     for n, r in enumerate(out, 1):
         r["n"] = n
@@ -485,9 +488,9 @@ def rows(source: Source, extents: Sequence[Mapping], *, own_items: Sequence[str]
 
 
 def summary(rs: Sequence[Mapping]) -> dict:
-    """{ok, unsure, bad, worst}: the counts by state and the place's worst state"""
+    """{ok, bad, worst}: the counts by state and the place's worst state"""
     c = {s: sum(1 for r in rs if r["state"] == s) for s in STATES}
-    worst = BAD if c[BAD] else UNSURE if c[UNSURE] else OK
+    worst = BAD if c[BAD] else OK
     return {**c, "worst": worst}
 
 

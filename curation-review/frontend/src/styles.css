@@ -1159,18 +1159,17 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-row + .ck-row { border-top-color: var(--ck-line); border-top-left-radius: 0; border-top-right-radius: 0; }
 .ck-row:hover, .ck-row.on { background: var(--ck-soft); }
 .ck-row .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; }
-.ck-row.ok .n { background: var(--ck-ok); } .ck-row.bad .n { background: var(--ck-bad); } .ck-row.unsure .n { background: var(--ck-unk); }
+.ck-row.ok .n { background: var(--ck-ok); } .ck-row.bad .n { background: var(--ck-bad); }
 .ck-row .q { font-size: 14px; }
 .ck-row .q b { font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-right: 6px; }
 .ck-row .q q { quotes: "\201C" "\201D"; }
 .ck-row .ours { font-size: 13px; margin-top: 3px; color: var(--muted); }
 .ck-row .ours span { font-weight: 600; }
-.ck-row.ok .ours span { color: var(--ck-ok); } .ck-row.bad .ours span { color: var(--ck-bad); } .ck-row.unsure .ours span { color: var(--ck-unk); }
+.ck-row.ok .ours span { color: var(--ck-ok); } .ck-row.bad .ours span { color: var(--ck-bad); }
 .ck-row .tick { width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid var(--ck-line); background: var(--panel); display: grid; place-items: center; font-size: 15px; cursor: pointer; color: var(--muted); padding: 0; }
 .ck-row .tick:disabled { cursor: default; }
 .ck-row.ok .tick, .ck-row.ticked .tick { border-color: var(--ck-ok); color: var(--ck-ok); background: var(--ck-ok-bg); }
 .ck-row.bad:not(.ticked) .tick { border-color: var(--ck-bad); color: var(--ck-bad); background: var(--ck-bad-bg); }
-.ck-row.unsure:not(.ticked) .tick { border-color: var(--ck-unk); color: var(--ck-unk); background: var(--ck-unk-bg); }
 .ck-row.wrongpick { outline: 2px solid var(--ck-bad); outline-offset: -2px; }
 .ck-foot { border-top: 1px solid var(--ck-line); padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
 .ck-btns { display: flex; gap: 8px; }

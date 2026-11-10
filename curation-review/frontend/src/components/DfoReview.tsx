@@ -12,6 +12,8 @@ import { MapPanel, type EditPoint } from "./MapPanel";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
 import { extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
+import { groupSave } from "../checklist";
+import { OlderWordings } from "./OlderWordings";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
   addPiece, dropPiece, effectOf, heldBy, incompletePieces, markBody, newCutsOf, offerProposal, oneProposal, previewOf,
@@ -191,10 +193,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const [reviewer, setName] = useState(getReviewer);
   const [splits, setSplits] = useState<NewSplit[]>([]);
   const [checks, setChecks] = useState<Record<string, AnchorCheck>>({});
-  // owner 2026-10-28: the historic group's members to label with this decision; T525: only a member whose extent is
-  // this place's starts ticked (the server refuses a save on any other)
-  const [keep, setKeep] = useState<Record<string, boolean>>(
-    () => Object.fromEntries((detail.group?.members ?? []).map((m) => [m.id, m.same_extent])));
+  // owner 2026-10-28: the historic group's members to label with this decision; 2026-11-09: every older wording starts
+  // UNTICKED ("we cant blindly assume variants"); a ticked one takes this save, and the new extent
+  const [same, setSame] = useState<Set<string>>(() => new Set());
   // THE DRAFT: the extent now, as pieces (T524: the place binds their union) — a change starts from it, never from an
   // empty editor or an old mark
   const [fixes, setFixes] = useState<ExtentFix[]>(now.pieces);
@@ -338,7 +339,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                                     failed("the extent ops")); }, []);
   const incomplete = call === "change" && effect !== "keep"
     ? (opPoints ? incompletePieces(fixes, opPoints) : ["the extent ops are still loading"]) : [];
-  const groupTargets = (detail.group?.members ?? []).filter((m) => m.this || keep[m.id]).map((m) => m.id);
+  const changes = call === "change" && effect !== "keep";
+  const group = detail.group ? groupSave(id, detail.group.members, same, changes, false) : null;
   const held = heldBy({ call, answers, problem, note, effect, cuts, cannotChange: now.cannot_change,
                         extents: detail.location.binding.extents.length, incomplete });
 
@@ -360,7 +362,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
           && !shared.some((p) => p.id === n.ref))];
       const body = markBody({ target: id, call: call ?? "unsure", answers, problem, note, reviewer: reviewer.trim(),
                               seconds: Math.round((Date.now() - since.current) / 100) / 10, fixes, carried, now,
-                              targets: groupTargets, defer });
+                              group, defer });
       await api.postMark(body);
       onMarked();
     } catch (e) {
@@ -509,22 +511,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                 It cannot be changed here: {now.cannot_change.join("; ")}</div>}
             </div>
             {detail.group && (
-              <div className="ext-row" data-testid="dfo-group" style={{ display: "block" }}>
-                <div className="dim">Also saved on these older wordings of the same place (untick one that differs):</div>
-                <ul className="named-splits">
-                  {detail.group.members.filter((m) => !m.this).map((m) => (
-                    <li key={m.id}>
-                      <label className="check">
-                        <input type="checkbox" checked={!!keep[m.id]} data-testid="dfo-group-keep"
-                          onChange={(e) => setKeep((k) => ({ ...k, [m.id]: e.target.checked }))} />{" "}
-                        <a href={`#${DFO_HASH}${encodeURIComponent(m.id)}`}>{m.text || "(the whole water)"}</a>
-                      </label>
-                      {!m.same_extent && <span className="warn-text" data-testid="dfo-group-differs">
-                        {" "}· its extent differs: {m.extent.extents.length ? extentText(m.extent.extents) : "none"}</span>}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <OlderWordings members={detail.group.members} shownText={detail.verbatim.specific_area} same={same}
+                setSame={setSame} fix={changes} checklist={false} extentWords={(e) => extentText(e.extents)}
+                link={(m) => `#${DFO_HASH}${encodeURIComponent(m)}`} />
             )}
             <details className="dfo-more">
               <summary>more about this place</summary>

@@ -300,9 +300,14 @@ def test_a_mark_on_an_extent_that_moved_since_is_refused(monkeypatch):
                    date="2026-11-09", pdf_sha256=SHA)
     seen = B.seen_extent(here)
     assert seen == {"extents": ext, "tributaries": None}
-    with pytest.raises(ValueError, match=r"~2: its extent changed since you opened it"):
+    # an older wording is written only when listed with the extent the owner saw it hold (owner 2026-11-09) …
+    with pytest.raises(ValueError, match="is not listed"):
         B.marks_for_group({**body, "extent_before": seen, "targets": [LOC + "~2"]}, date="2026-11-09",
                           pdf_sha256=SHA)
+    # … and that extent must be its own now (R3 per wording)
+    with pytest.raises(ValueError, match=r"~2: its extent changed since you opened it"):
+        B.marks_for_group({**body, "extent_before": seen, "targets": [LOC + "~2"],
+                           "members": {LOC + "~2": {"extent_before": seen}}}, date="2026-11-09", pdf_sha256=SHA)
 
 
 def test_a_fix_is_compared_as_the_place_binds(monkeypatch):
@@ -383,3 +388,92 @@ def test_every_cut_a_place_names_reads_by_its_label(monkeypatch):
     assert got == {"bulkley_river__morice_river_into_bulkley_river_u100m":
                    "the Forks fishing boundary signs, 100 m up the upper Bulkley"}
     assert B.item_names({"pieces": [{"items": ["gnis:2195"]}], "text": "not a water"}) == {"gnis:2195": "Bulkley River"}
+
+
+def _group_world(monkeypatch, B, *, fourth=None):
+    """a place and its older wordings: ~2 binds the same extent, ~3 another one, ~4 (optional) as given"""
+    ext = [{"op": "between", "splits": ["test_river__a", "test_river__b"], "item_id": "gnis:1"}]
+    loc = lambda lid, exts, words: {"location_id": lid, "status": "active" if lid == LOC else "historic",  # noqa: E731
+                                    "source_text": {"specific_area": words}, "binding": {"extents": exts}}
+    locs = {LOC: ("1", loc(LOC, ext, "between the bridge and the falls"), None),
+            LOC + "~2": ("1", loc(LOC + "~2", list(ext), "between the bridge & the falls"), None),
+            LOC + "~3": ("1", loc(LOC + "~3", [{"op": "whole", "item_id": "gnis:1"}], "the whole river"), None)}
+    if fourth is not None:
+        locs[LOC + "~4"] = ("1", loc(LOC + "~4", fourth, "inside the park"), None)
+    monkeypatch.setattr(B, "_locations", lambda: locs)
+    monkeypatch.setattr(B, "_groups", lambda: {LOC: {"id": "g", "canonical": LOC,
+                                                     "members": [{"id": i} for i in locs]}})
+    monkeypatch.setattr(B.D, "prints", lambda *_a, **_k: {"text": "t", "records": [
+        {"key": "entry", "meaning": "m", "binding": "b"}]})
+    monkeypatch.setattr(B, "_dedupe_against_store", lambda s, **_k: (s, {}, []))
+    return ext, locs
+
+
+def test_a_save_on_older_wordings_writes_each_ticked_one_and_gives_a_differing_one_this_extent(monkeypatch):
+    """owner 2026-11-09: "it should save extent to all variants of location text" — and "we cant blindly assume
+    variants": the save writes ONLY the wordings ticked and listed (each with the extent the owner saw it hold); one
+    binding the same takes the check, one that DIFFERS takes the shown place's extent as a fix (on existing cuts, its own
+    `extent_before`) plus the check — never a "correct" stamped on another extent; a defer gives no extent."""
+    B = _backend(monkeypatch)
+    ext, locs = _group_world(monkeypatch, B)
+    seen = {i: B.seen_extent(l) for i, (_s, l, _w) in locs.items()}
+    body = {"scope": "dfo", "target": LOC, "verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y"},
+            "reviewer": "t", "extent_before": seen[LOC], "targets": [LOC, LOC + "~2", LOC + "~3"],
+            "members": {LOC + "~2": {"extent_before": seen[LOC + "~2"]},
+                        LOC + "~3": {"extent_before": seen[LOC + "~3"]}}}
+    w = B.wording_check(locs[LOC][1], None, locs[LOC + "~3"][1], None)
+    assert w == {"same_extent": False, "cannot_change": [], "cannot_take": []}
+    assert B.wording_check(locs[LOC][1], None, locs[LOC + "~2"][1], None)["same_extent"] is True
+    marks = B.marks_for_group(body, date="2026-11-09", pdf_sha256=SHA)
+    assert [m.target for m in marks] == [LOC, LOC + "~2", LOC + "~3"] and {m.group for m in marks} == {"g"}
+    assert [m.verdict for m in marks] == ["verified"] * 3
+    assert marks[0].extent_fix == [] and marks[1].extent_fix == []
+    fix = marks[2].extent_fix
+    assert len(fix) == 1 and fix[0].op == "between" and [p.split_id for p in fix[0].points] == ["test_river__a",
+                                                                                              "test_river__b"]
+    assert marks[2].extent_before.extents == [{"op": "whole", "item_id": "gnis:1"}]
+    # unticked wordings are not written: only the target
+    only = B.marks_for_group({**body, "targets": [LOC], "members": {}}, date="2026-11-09", pdf_sha256=SHA)
+    assert [m.target for m in only] == [LOC]
+    # a defer decides nothing: it carries no extent to a differing wording
+    d = B.marks_for_group({**body, "verdict": "deferred", "answers": {}, "note": "unclear"}, date="2026-11-09",
+                          pdf_sha256=SHA)
+    assert all(m.extent_fix == [] for m in d)
+    # a wording listed but not ticked is refused: the server never adds one on its own
+    with pytest.raises(ValueError, match="listed but not ticked"):
+        B.marks_for_group({**body, "targets": [LOC, LOC + "~2"]}, date="2026-11-09", pdf_sha256=SHA)
+
+
+def test_an_older_wording_holding_what_a_fix_cannot_say_is_refused_by_name(monkeypatch):
+    """R4 per wording: a ticked wording whose extent would change while it holds a field no extent fix can say (a
+    `within_area`) is refused by its words — nothing is saved, and it is left for a hand edit."""
+    B = _backend(monkeypatch)
+    held = [{"op": "within", "area_id": "area:drains_to:pfma_28", "within_area": "area:region:1"}]
+    _ext, locs = _group_world(monkeypatch, B, fourth=held)
+    seen = {i: B.seen_extent(l) for i, (_s, l, _w) in locs.items()}
+    assert B.wording_check(locs[LOC][1], None, locs[LOC + "~4"][1], None)["cannot_change"]
+    body = {"scope": "dfo", "target": LOC, "verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y"},
+            "reviewer": "t", "extent_before": seen[LOC], "targets": [LOC, LOC + "~3", LOC + "~4"],
+            "members": {t: {"extent_before": seen[t]} for t in (LOC + "~3", LOC + "~4")}}
+    with pytest.raises(ValueError, match="“inside the park” cannot take this extent .*within_area"):
+        B.marks_for_group(body, date="2026-11-09", pdf_sha256=SHA)
+
+
+def test_a_check_on_older_wordings_carries_each_ones_own_digest(monkeypatch):
+    """T532 + owner 2026-11-09: a checklist on ticked wordings records the rows the owner checked, with each wording's
+    OWN digest as it will bind — the same-extent one its digest now, the differing one its words over the shown extent
+    (so the check is in force once that extent lands)."""
+    B = _backend(monkeypatch)
+    import checks
+    ext, locs = _group_world(monkeypatch, B)
+    seen = {i: B.seen_extent(l) for i, (_s, l, _w) in locs.items()}
+    rows = [{"n": 1, "kind": "water", "state": "ok"}]
+    body = {"scope": "dfo", "target": LOC, "verdict": "verified", "answers": {"P": "y"}, "reviewer": "t",
+            "extent_before": seen[LOC], "checklist": {"digest": "a" * 16, "rows": rows},
+            "targets": [LOC, LOC + "~2", LOC + "~3"],
+            "members": {t: {"extent_before": seen[t]} for t in (LOC + "~2", LOC + "~3")}}
+    marks = B.marks_for_group(body, date="2026-11-09", pdf_sha256=SHA)
+    two, three = locs[LOC + "~2"][1], locs[LOC + "~3"][1]
+    assert marks[1].checklist.digest == checks.digest_as(two, None)
+    assert marks[2].checklist.digest == checks.digest_as(three, None, locs[LOC][1], None) != checks.digest_as(three, None)
+    assert [r.model_dump() for r in marks[2].checklist.rows] == [{**rows[0], "ticked": False, "wrong": False}]

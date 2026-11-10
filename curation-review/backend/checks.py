@@ -214,6 +214,19 @@ def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None) -> 
     return out
 
 
+def digest_as(loc: dict, water: dict | None, src: dict | None = None, src_water: dict | None = None) -> str:
+    """A DFO wording's checklist digest — as it binds now, or (`src`) once it holds `src`'s extent and the tributary
+    call `src` binds with (`dfo.fix_taking`: an older wording taking the shown place's extent). Its own words, its own
+    tributaries-only / carve-outs (no fix changes those)."""
+    import dfo
+    b = loc.get("binding") or {}
+    held = src if src is not None else loc
+    return C.digest(C.dfo_source(loc, water), list((held.get("binding") or {}).get("extents") or []),
+                    tributaries=dfo.tributaries_now(held, src_water if src is not None else water),
+                    tributaries_only=bool(b.get("tributaries_only")),
+                    tributary_excludes=list(b.get("tributary_excludes") or []))
+
+
 def dfo_check(location_id: str) -> dict | None:
     import dfo
     got = dfo._locations().get(location_id)
@@ -266,9 +279,10 @@ def rule_check(entry_id: str, rule_id: str) -> dict | None:
 # --------------------------------------------------------------------------- the queue, by water
 
 def _dfo_places() -> list[dict]:
-    """one row per DFO place (a historic rewording rides its place, as the DFO queue lists them)"""
+    """one row per DFO place (a historic rewording rides its place, as the DFO queue lists them; `older_unconfirmed`:
+    how many of its older wordings have no check in force)"""
     import dfo
-    states, locs, ctx = dfo._states(), dfo._locations(), context()
+    states, locs, ctx, groups = dfo._states(), dfo._locations(), context(), dfo._groups()
     out = []
     for r in dfo._rows():
         if r["lake_area"] or (r["status"] != "active" and not r["historic_only"]):
@@ -279,10 +293,17 @@ def _dfo_places() -> list[dict]:
         _s, loc, water = locs[r["id"]]
         got = dfo_rows(loc, water, states.get(r["id"]), ctx)
         items = list((water or {}).get("item_ids") or [])
+        # owner 2026-11-09: an older wording is checked only when the owner ticks it "same place" — one not checked
+        # (or whose check went stale) keeps its place in the queue, flagged on the place it rides
+        older = [m["id"] for m in ((groups.get(r["id"]) or {}).get("members") or [])
+                 if m["id"] != r["id"] and m["id"] in locs]
+        unconfirmed = sum(1 for o in older
+                          if dfo_rows(locs[o][1], locs[o][2], states.get(o), ctx)["check"] in ("unchecked", "stale"))
         out.append({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
                     "items": items,
                     "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
-                    "check": got["check"], "new": r["verify"] == "unmarked"})
+                    "check": got["check"], "new": r["verify"] == "unmarked",
+                    **({"older": len(older), "older_unconfirmed": unconfirmed} if older else {})})
     return out
 
 
@@ -365,12 +386,10 @@ def _matches(p: dict, want: str | None) -> bool:
     if want in CHECK_STATES:
         return p["check"] == want
     if want == "todo":
-        return p["check"] in ("unchecked", "stale")
+        return p["check"] in ("unchecked", "stale") or p.get("older_unconfirmed", 0) > 0
     if want == "bad":
         return p["summary"]["bad"] > 0
-    if want == "unsure":
-        return p["summary"]["unsure"] > 0
-    raise ValueError(f"filter is one of todo, bad, unsure, {', '.join(CHECK_STATES)}")
+    raise ValueError(f"filter is one of todo, bad, {', '.join(CHECK_STATES)}")
 
 
 def queue(source: str = "dfo", filter: str | None = None, q: str | None = None) -> list[dict]:
@@ -399,4 +418,5 @@ def progress(source: str = "dfo") -> dict:
     return {"total": len(rows), "done": done(rows), "by_check": dict(Counter(p["check"] for p in rows)),
             "by_worst": dict(Counter(p["summary"]["worst"] for p in rows)),
             "rows": dict(sum((Counter({s: p["summary"][s] for s in C.STATES}) for p in rows), Counter())),
+            "older_unconfirmed": sum(p.get("older_unconfirmed", 0) for p in rows),
             "waters": waters}

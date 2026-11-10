@@ -6,7 +6,7 @@
    is. Change starts FROM the curated extent (`DfoExtentNow.pieces`), and its effect — keep (nothing differs), replace
    or add a piece — is said before the save. Every mark names the extent it was made on (`extent_before`); the server
    refuses one made on an extent that has moved since. */
-import type { CheckAnswer, DfoExtentNow, DfoSaved, ExtentFix, FixPoint, MarkPost, NewSplit } from "./types";
+import type { CheckAnswer, DfoExtentNow, DfoSaved, ExtentFix, FixPoint, GroupSave, MarkPost, NewSplit } from "./types";
 import { OP_WORDS } from "./extentWords.ts";   // a runtime import: node runs this file too (tests/)
 
 export type DfoCall = "keep" | "change" | "unsure" | "wrong";
@@ -106,7 +106,7 @@ export function saveWords(call: DfoCall | null, effect: DfoEffect): string {
  *  mark names the extent it was made on (`extent_before`). A defer carries neither (it decides nothing). */
 export function markBody(a: { target: string; call: DfoCall; answers: Partial<Record<"T" | "R", CheckAnswer>>;
                               problem: string; note: string; reviewer: string; seconds: number; fixes: ExtentFix[];
-                              carried: NewSplit[]; now: DfoExtentNow; targets: string[]; defer?: boolean }): MarkPost {
+                              carried: NewSplit[]; now: DfoExtentNow; group?: GroupSave | null; defer?: boolean }): MarkPost {
   const change = a.call === "change" && !a.defer;
   const effect = change ? effectOf(a.now.pieces, a.fixes) : "keep";
   return {
@@ -116,7 +116,8 @@ export function markBody(a: { target: string; call: DfoCall; answers: Partial<Re
     ...(change && effect !== "keep" ? { extent_fix: a.fixes } : {}),
     ...(change && a.carried.length ? { new_splits: a.carried } : {}),
     ...(a.defer ? { verdict: "deferred" as const } : {}),
-    ...(a.targets.length > 1 ? { targets: a.targets } : {}),
+    // owner 2026-11-09: only the older wordings ticked "same place", each listed with the extent seen (`groupSave`)
+    ...(a.group && a.group.targets.length > 1 ? { targets: a.group.targets, members: a.group.members } : {}),
   };
 }
 

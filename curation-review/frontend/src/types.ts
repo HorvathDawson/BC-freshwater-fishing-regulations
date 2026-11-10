@@ -814,6 +814,8 @@ export interface MarkPost {
   new_splits?: NewSplit[];
   /** owner 2026-10-28: a DFO historic group — every member kept gets the same mark (one each) */
   targets?: string[];
+  /** owner 2026-11-09 (dfo group): each other wording in `targets`, with the extent (and digest) the owner saw */
+  members?: GroupSave["members"];
   /** T525 (dfo): the extent the mark was made on (`DfoExtentNow.seen`); the server refuses it when the file moved */
   extent_before?: DfoSeenExtent;
   /** owner 2026-11-02 (dfo): this wording is a variant of that location (T185 writes duplicate_of) */
@@ -826,7 +828,8 @@ export interface MarkPost {
 }
 
 /* ---------------------------------------------------------------- T532: the checklist */
-export type RowState = "ok" | "unsure" | "bad";
+/** owner 2026-11-09: "always add ✗ when unsure" — no "?" state */
+export type RowState = "ok" | "bad";
 export type RowKind = "water" | "where" | "from" | "to" | "also" | "area" | "tributaries" | "except" | "unchecked";
 /** one generated row (`review.checklist.rows`): a claim, the phrase that names it, what ours does, its state */
 export interface CheckRow {
@@ -839,7 +842,7 @@ export interface CheckedRow { n: number; kind: string; state: RowState; ticked?:
 export interface CheckedList { digest: string; rows: CheckedRow[] }
 /** one place's checklist (GET /api/checks/dfo/<id>, /api/checks/rule/<entry>/<rule>) */
 export interface PlaceCheck {
-  rows: CheckRow[]; digest: string; summary: { ok: number; unsure: number; bad: number; worst: RowState };
+  rows: CheckRow[]; digest: string; summary: { ok: number; bad: number; worst: RowState };
   check: CheckState;
   /** DFO: a save of the owner's still waits to land — a check now would replace it, so none is offered */
   held?: string;
@@ -852,10 +855,13 @@ export interface PlaceCheck {
 export interface CheckPlace {
   source: "dfo" | "regs"; id: string; water: string; water_key: string; region: string; text: string;
   summary: PlaceCheck["summary"]; check: CheckState; new?: boolean; entry_id?: string; rule_id?: string;
+  /** DFO: its older wordings, and how many have no check in force ("older wording not confirmed") */
+  older?: number; older_unconfirmed?: number;
 }
 export interface CheckProgress {
   total: number; done: number; by_check: Partial<Record<CheckState, number>>;
   by_worst: Partial<Record<RowState, number>>; rows: Partial<Record<RowState, number>>;
+  older_unconfirmed?: number;
   waters: Record<string, { water: string; total: number; done: number }>;
 }
 
@@ -1103,9 +1109,21 @@ export interface DfoRow {
 export interface DfoGroupMember {
   id: string; why: string | null; this: boolean; water: string; text: string; status: string;
   verify: VerifyStatus;
-  /** T525: its curated extent is this place's (else it starts unticked, and a save carrying it is refused) */
+  /** it binds this place's extent (pieces as a set, the tributary call it binds with) */
   same_extent: boolean;
   extent: DfoSeenExtent;
+  /** R4: fields it holds that no extent fix can say — it cannot be ticked when its extent would change */
+  cannot_change: string[];
+  /** why it cannot take this place's extent (only when it differs) */
+  cannot_take: string[];
+  /** an OTHER wording: its own checklist digest, a save of its own waiting to land, its check state */
+  digest?: string | null; held?: string | null; check?: CheckState | null;
+}
+/** owner 2026-11-09: a save on older wordings — every one the owner ticked "same place", each listed with what was
+ *  seen (the server refuses a wording that is not) */
+export interface GroupSave {
+  targets: string[];
+  members: Record<string, { extent_before: DfoSeenExtent; digest?: string }>;
 }
 export type SuggestConfidence = "high" | "medium" | "low" | "none";
 /** A SUGGESTED extent (`pipeline.regs.dfo_salmon.suggest`): never applied — "accept suggestion"

@@ -22,7 +22,7 @@ const now = (pieces: ExtentFix[]): DfoExtentNow => ({
   seen: { extents: [{ op: "between", splits: ["cowichan_river__cnr_trestle", "cowichan_river__white_triangle_boundary_sign_loc"],
                       item_id: "gnis:12227" }], tributaries: null } });
 const base = { target: "1:cowichan-river:from-66-mile-trestle-downstream-to", answers: { T: "y", R: "y" } as const,
-               problem: "", note: "", reviewer: "dawson", seconds: 3, carried: [], targets: [] };
+               problem: "", note: "", reviewer: "dawson", seconds: 3, carried: [] };
 
 test("the effect a change has on the extent now: keep, replace, add a piece", () => {
   assert.equal(effectOf([COWICHAN], [COWICHAN]), "keep");
@@ -81,8 +81,13 @@ test("a change carries its pieces only when it changes the extent", () => {
   assert.equal(deferred.extent_fix, undefined);
   assert.equal(deferred.verdict, "deferred");
   assert.deepEqual(deferred.answers, { T: "y", R: "y" });
-  const group = markBody({ ...base, call: "keep", fixes: [], now: now([COWICHAN]), targets: ["a", "b"] });
+  const seenB = { extents: [], tributaries: null };
+  const group = markBody({ ...base, call: "keep", fixes: [], now: now([COWICHAN]),
+                           group: { targets: ["a", "b"], members: { b: { extent_before: seenB } } } });
   assert.deepEqual(group.targets, ["a", "b"]);
+  assert.deepEqual(group.members, { b: { extent_before: seenB } });
+  assert.equal(markBody({ ...base, call: "keep", fixes: [], now: now([COWICHAN]),
+                          group: { targets: ["a"], members: {} } }).targets, undefined);
 });
 
 test("the save is held, in words, until it can be made", () => {

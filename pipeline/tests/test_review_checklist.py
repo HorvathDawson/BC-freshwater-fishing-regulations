@@ -123,12 +123,14 @@ def test_a_tributary_call_against_the_words_is_bad():
 
 
 def test_a_pending_or_unknown_cut_is_never_ok():
+    # owner 2026-11-09: "always add ✗ when unsure" — there is no ? state
+    assert C.STATES == (C.OK, C.BAD)
     pend = _rows("upstream of the new weir", [{"op": "upstream_of", "splits": ["a_river__new_weir"]}])
-    assert _states(pend)["from"] == C.UNSURE and "not built" in pend[1]["reason"]
+    assert _states(pend)["from"] == C.BAD and "not built yet; check again after the rebuild" in pend[1]["reason"]
     gone = _rows("upstream of the old dam", [{"op": "upstream_of", "splits": ["a_river__old_dam"]}])
     assert _states(gone)["from"] == C.BAD
     saved = _rows("upstream of the falls", [{"op": "upstream_of", "splits": ["a_river__falls"]}], landed=[False])
-    assert _states(saved)["from"] == C.UNSURE
+    assert _states(saved)["from"] == C.BAD
 
 
 def test_words_no_row_checks_are_their_own_row_and_a_named_end_with_no_cut_is_bad():
@@ -136,7 +138,7 @@ def test_words_no_row_checks_are_their_own_row_and_a_named_end_with_no_cut_is_ba
                [{"op": "downstream_of", "splits": ["a_river__mill_bridge"]}])
     assert _states(rs)["to"] == C.BAD
     left = [r for r in rs if r["kind"] == "unchecked"]
-    assert left and "gravel bar" in left[0]["quote"] and left[0]["state"] == C.UNSURE
+    assert left and "gravel bar" in left[0]["quote"] and left[0]["state"] == C.BAD
     whole = _rows("upstream of the falls", [{"op": "whole"}])
     assert _states(whole)["where"] == C.BAD                   # the words name a part, ours is the whole water
 

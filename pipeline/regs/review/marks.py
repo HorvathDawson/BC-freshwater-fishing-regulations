@@ -223,7 +223,7 @@ class CheckedRow(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     n: int = Field(..., ge=1)
     kind: str
-    state: Literal["ok", "unsure", "bad"]
+    state: Literal["ok", "bad"]           # owner 2026-11-09: no "?" — a row not positively confirmed is ✗
     ticked: bool = False
     wrong: bool = False
 
