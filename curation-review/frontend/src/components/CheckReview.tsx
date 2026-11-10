@@ -198,7 +198,7 @@ async function loadPlace(id: string, place: CheckPlace | null): Promise<Loaded> 
     let pending: GeoJSON.FeatureCollection | null = null;
     const saved = d.saved && d.saved.state !== "landed" && d.saved.state !== "deferred" ? savedFixesOf(d.mark) : null;
     if (saved?.length) {
-      const pv = await api.dfoExtentPreview(id, saved as ExtentFix[], false).catch(() => null);
+      const pv = await api.dfoExtentPreview(id, saved as ExtentFix[], false).catch((e) => { failed("the saved extent's preview")(e); return null; });
       if (pv?.resolvable) pending = (pv.geojson ?? null) as GeoJSON.FeatureCollection | null;
     }
     const p: CheckPlace = place ?? { source: "dfo", id, water: d.row.water, water_key: d.items.map((i) => i.id).sort().join("|"),

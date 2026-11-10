@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "curation-review" / "frontend" / "src"
 
 #: a handler that shows or passes the failure on
-HANDLES = re.compile(r"\breportFailure\(|^\s*failed\(|\bthrow\b|\bset(?:Error|Errors|IdsError|ViewError|Msg|Pv)\(")
+HANDLES = re.compile(r"\breportFailure\(|\bfailed\(|\bthrow\b|\bset(?:Error|Errors|IdsError|ViewError|Msg|Pv)\(")
 
 _BODY = "parsing a FAILED answer's body, which may not be JSON: the status is still thrown / returned with it"
 #: file (relative to src) -> (exact number of non-showing `.catch(` sites, why)
