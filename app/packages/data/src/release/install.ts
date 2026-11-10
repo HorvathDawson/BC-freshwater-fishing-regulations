@@ -315,11 +315,13 @@ export function install(m: Manifest, fs: ReleaseFs, dl: Download, base: string, 
  * still held. Queued, the later one finds the earlier one's verified files and keeps them (resume at file granularity).
  * Nothing nests: `beforeSwap` and the callers' pruning run outside it.
  */
-let queue: Promise<unknown> = Promise.resolve();
-function exclusively<T>(work: () => Promise<T>): Promise<T> {
-  const run = queue.then(work, work);
-  queue = run.catch(() => {});
-  return run;
+let queue: Promise<void> = Promise.resolve();
+async function exclusively<T>(work: () => Promise<T>): Promise<T> {
+  const before = queue;
+  let release!: () => void;
+  queue = new Promise<void>((r) => { release = r; });
+  await before;                       // `before` only ever resolves: its holder releases in `finally`
+  try { return await work(); } finally { release(); }
 }
 
 async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null,
