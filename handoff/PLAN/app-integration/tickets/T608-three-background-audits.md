@@ -32,3 +32,23 @@ Findings: `handoff/PLAN/app-integration/T608C-findings.md`.
 - Three findings files, each with a ranked list (severity, evidence, proposed fix, size); tickets filed from them.
 
 Depends: —. Size: M (read-only). Owner: reads the three summaries.
+
+## D — Bathymetry maps and stocked lakes: where things stand (added 2026-11-10)
+Owner: "look at the bathy map / digital bathymap and stocked lakes matching and tickets etc and see the state and what
+needs to be done, and how the feeds for stocked lakes would work to make sure they get as up to date as possible, also
+where to display the data (maybe a fourth tab in the regulation pane with more or something?). This is all audit stuff
+for now."
+1. State: every ticket, doc, memory note, script and data file about lake bathymetry (PDF sheets and any digital
+   depth data) and fish stocking; what is built, what is matched to waters (counts), what is half done, what is only
+   an idea. The check step today prints "stocking waterbody match: no roster" and "bathymetry sheet match: not built
+   (2,265 in the roster)".
+2. Sources: where B.C. publishes stocking records and bathymetry (formats, licence/terms, how often they change,
+   whether there is an API or dated files); the self-host rule (data only from our servers).
+3. Matching: how a stocked lake or a bathymetry sheet would be tied to our water ids (the gauge-match lesson: one
+   frozen, reviewed match file; everything added is a proposal); how many match cleanly today and how many need a look.
+4. Freshness: how a stocking feed could run on the worker (cadence, change detection, what the app shows as "as of",
+   staleness words), with the cost per run; bathymetry as release data or on-demand files (sizes).
+5. Display: options for where it goes (a fourth tab in the water pane, a section under Regulations, the map sheet,
+   a map layer of stocked lakes, the public water page), each with what it costs and what it crowds; one recommendation.
+6. A staged plan: the smallest first step that is useful to an angler.
+Findings: `handoff/PLAN/app-integration/T608D-findings.md`.
