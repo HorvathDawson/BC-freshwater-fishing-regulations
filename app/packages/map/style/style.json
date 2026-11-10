@@ -823,7 +823,7 @@
         "text-allow-overlap": false,
         "text-padding": 3
       },
-      "minzoom": 9,
+      "minzoom": 12,
       "filter": [
         "all",
         [

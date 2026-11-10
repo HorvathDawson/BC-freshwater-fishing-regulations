@@ -184,7 +184,7 @@
       "label": {
         "field": "name",
         "placement": "point",
-        "minzoom": 9,
+        "minzoom": 12,
         "priority": 10,
         "font": [
           "Noto Sans Regular"

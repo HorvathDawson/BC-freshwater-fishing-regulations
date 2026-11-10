@@ -1,6 +1,6 @@
 # T570 — Indigenous land names show only when zoomed in a lot more
 
-Status: OPEN
+Status: IN REVIEW
 
 Source: owner 2026-11-10: "indigenous land names shouldnt show until zoomed in a lot more."
 
@@ -27,3 +27,6 @@ Depends: —. Size: S. Owner: yes (pick the zoom).
 - Proposed: 12 (labels from the zoom where a reserve is a screen-sized shape; the edge is z11).
 - The one-line change, NOT committed: in `layers.source.json`, `indigenous_land` -> `label` -> `"minzoom": 9` becomes `"minzoom": 12`, then `pnpm style:build` (rewrites style.json, style.meta.json, style.sha256).
 - Shots in `../T570-shots/` (web; "after" is the layer's range set live to 12, the same as the built change): `z9.6-minzoom9-before` / `z9.6-minzoom12-after` (the owner's spot, 49.02 -121.85); `z11.5` and `z12.5` each at minzoom 9 and 12, centred on Soowahlie 14 (49.084 -121.957), as the owner's spot has no reserve in view above z11. After at 11.5: no name; at 12.5: names. Pick 11, 12 or 13 and it is a one-number change.
+
+## DECIDED 2026-11-10 (owner, on the shots: "the pictures all look good")
+minzoom 12, built into the style. Rides the next web deploy and APK. Owner confirms on the phone.
