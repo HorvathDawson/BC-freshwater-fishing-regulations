@@ -1071,6 +1071,9 @@ OP_TEXT = {
     "rest": "THE REST OF THE WATER: the record's water minus every section its `siblings` (rules "
             "of the same entry) bind — 'other parts'. A sibling that does not bind leaves the "
             "complement unknown, never the whole water",
+    "other_places": "ALL THE OTHER PLACES ON THIS WATER (T607): no water of its own — the union of what its "
+                    "`siblings` (the other placed places of the same water, a `rest` included) bind; never "
+                    "subtracted from a `rest`. A sibling that does not bind adds nothing",
     "steelhead_waters": "the book's steelhead waters (every steelhead row's own water and every "
                         "section its rules bind) minus what the `siblings` bind, limited by "
                         "`area_id` / `outside_area` / `outside_area_kind` / `feature_types` — "

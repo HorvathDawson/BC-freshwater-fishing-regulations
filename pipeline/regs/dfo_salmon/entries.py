@@ -1041,26 +1041,52 @@ def to_reach_input(loc: EntryLocation, rules: List[dict],
     # siblings are EVERY other location on the same water with a placed extent (not a rest itself, not
     # an unplaced one). A place placed later drops out of the rest without re-marking. An explicit list
     # on the extent (older marks) is ignored for DFO: the current placements decide.
-    rests = [e for e in loc.binding.extents if e.op == "rest"]
-    if rests:
-        placed = [x for lid, x in (siblings or {}).items()
-                  if lid != loc.location_id and x.water_id and x.water_id == loc.water_id
-                  and x.binding.extents and not any(e.op == "rest" for e in x.binding.extents)
-                  and not (x.is_variant and x.duplicate_of == loc.location_id)]
+    # "ALL THE OTHER PLACES ON THIS WATER" (T607, owner 2026-11-10: DFO's "all open portions of the Little Qualicum
+    # River", once saved as the whole river, emptied the rest — "this has to apply to all already matched items
+    # instead"). A place of this kind has NO stretch of its own: it binds the UNION of every other placed place on its
+    # water (a rest included), is NEVER subtracted from a rest, and is never one of another such place's siblings.
+    # Resolved at build time from the placements of the day, like a rest: a place placed later joins without re-marking;
+    # an unplaced one is simply not in the union.
+    # THE PLACE AS HANDED IN is what it is (a preview hands in an extent the file does not hold yet): among the
+    # siblings it stands as itself, so a rest resolved inside its union never subtracts the place's OLD extent
+    siblings = {**(siblings or {}), loc.location_id: loc}
+
+    def kind(x, op: str) -> bool:
+        return any(e.op == op for e in x.binding.extents)
+
+    def on_water(of) -> list:
+        return [x for lid, x in (siblings or {}).items()
+                if lid != of.location_id and x.water_id and x.water_id == of.water_id and x.binding.extents
+                and not kind(x, "other_places") and not (x.is_variant and x.duplicate_of == of.location_id)]
+
+    def rule_of(sib, rest_ids: Optional[list] = None) -> dict:
+        ex = [e.model_dump(mode="json") for e in sib.binding.extents]
+        if rest_ids is not None:
+            ex = [({**e, "siblings": rest_ids} if e.get("op") == "rest" else e) for e in ex]
+        return {"rule_id": sib.location_id, "extents": ex,
+                # explicit, never inherited: a sibling rides in ANOTHER place's entry, whose own flag is not its own
+                "includes_tributaries": (sib.binding.tributaries if sib.binding.tributaries is not None
+                                         else bool(water.tributaries if water else False)),
+                "tributaries_only": sib.binding.tributaries_only,
+                "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes]}
+
+    def rest_siblings(of) -> list:
+        return [x for x in on_water(of) if not kind(x, "rest")]
+
+    if kind(loc, "rest"):
+        placed = rest_siblings(loc)
         ids = [x.location_id for x in placed]
         for r in out:
             r["extents"] = [({**e, "siblings": ids} if e.get("op") == "rest" else e) for e in r["extents"]]
-        sib_rules = []
-        for sib in placed:
-            sid = sib.location_id
-            sib_rules.append({
-                "rule_id": sid,
-                "extents": [e.model_dump(mode="json") for e in sib.binding.extents],
-                "includes_tributaries": sib.binding.tributaries,
-                "tributaries_only": sib.binding.tributaries_only,
-                "tributary_excludes": [e.model_dump(mode="json") for e in sib.binding.tributary_excludes],
-            })
-        entry["rules"] = out + sib_rules
+        entry["rules"] = out + [{**rule_of(sib), "includes_tributaries": sib.binding.tributaries} for sib in placed]
+    elif kind(loc, "other_places"):
+        placed = on_water(loc)
+        ids = [x.location_id for x in placed]
+        for r in out:
+            r["extents"] = [({**e, "siblings": ids} if e.get("op") == "other_places" else e) for e in r["extents"]]
+        # a rest among them is resolved against ITS siblings (every other placed stretch), which ride along already
+        entry["rules"] = out + [rule_of(sib, [x.location_id for x in rest_siblings(sib)] if kind(sib, "rest") else None)
+                                for sib in placed]
     return entry, out
 
 

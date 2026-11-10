@@ -55,6 +55,13 @@ class Op(str, Enum):
     #: complement is a statement about other rules' reaches. A sibling that does not bind makes the
     #: complement UNKNOWN (`Reason.complement_unknown`) — never guessed as the whole water.
     REST = "rest"                   # the water minus the named siblings' sections   (0 splits)
+    #: ALL THE OTHER PLACES ON THIS WATER (T607, owner 2026-11-10, DFO "all open portions of the Little Qualicum
+    #: River": "this has to apply to all already matched items instead"). A wording with NO STRETCH OF ITS OWN: it
+    #: binds the UNION of what its named SIBLINGS bind — a rest among them included, each with its own tributary
+    #: walk — and nothing else. Resolved by `reach.build.build_reach` against the siblings, like `rest`. It is never
+    #: a sibling of a `rest` (it takes no water away) nor of another `other_places`. A sibling that does not bind
+    #: adds nothing; with none bound it is unresolved, never guessed as the whole water.
+    OTHER_PLACES = "other_places"   # the union of the named siblings' sections      (0 splits)
     #: THE BOOK'S STEELHEAD WATERS — a STEELHEAD ROW's own water (no tributaries) and every section
     #: any rule of it binds (a water row
     #: flagged `anadromous_rainbow`, with a rule naming steelhead, or printing the Steelhead Stamp
@@ -265,6 +272,18 @@ class Extent(BaseModel):
             if extra:
                 raise ValueError(f"op rest is the rest of the rule's water after its siblings — "
                                  f"it takes no {extra}")
+        elif self.op == Op.OTHER_PLACES:
+            # THE UNION OF NAMED SIBLINGS (T607): no water of its own — nothing that picks or cuts water. Like a
+            # DFO rest, a DFO place's list is filled at BUILD time from the placements of the day.
+            if not self.siblings and not (info.context or {}).get("rest_at_build"):
+                raise ValueError("op other_places needs `siblings` — the rule ids whose sections it is the union of")
+            if len(set(self.siblings)) != len(self.siblings):
+                raise ValueError(f"siblings has duplicates: {self.siblings}")
+            extra = [k for k in ("splits", "item_id", "item_ids", "area_id", "area_kind", "within_area", "outside_area",
+                                 "outside_areas", "outside_area_kind", "outside_items", "watershed")
+                     if getattr(self, k, None)]
+            if extra:
+                raise ValueError(f"op other_places has no water of its own — it takes no {extra}")
         elif self.op == Op.STEELHEAD_WATERS:
             # THE BOOK'S STEELHEAD WATERS, minus what the named siblings bind. Nothing that adds or
             # picks water: the set is the reach builder's, never shaped by hand. The limits are

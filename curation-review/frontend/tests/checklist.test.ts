@@ -362,3 +362,11 @@ test("T588: save-for-all says exactly which rows it writes, and which it does no
   assert.match(w.confirm, /NOT written:[\s\S]*above the falls[\s\S]*live wording/);
   assert.equal(saveForAllWords("x", [{ text: "y" }], []).label, "Save this extent on 2 rows: this wording and 1 older wording");
 });
+
+test("T607: a place on the check-again list reads as that, never as done", async () => {
+  const { placeState } = await import("../src/checklist.ts");
+  const st = placeState({ editing: false, check: "stale", hasExtent: true, recheck: { reason: "saved as the whole river" } });
+  assert.equal(st.tone, "wait");
+  assert.match(st.text, /^Check again: saved as the whole river\. Your earlier save stays in force for the build/);
+  assert.match(placeState({ editing: false, check: "stale", hasExtent: true }).text, /^Changed since/);
+});

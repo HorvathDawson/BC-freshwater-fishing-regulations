@@ -366,7 +366,27 @@ def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None, ver
         out.pop("earlier", None)
         if x.get("differs"):
             out["differs"] = x["differs"]
+    again = recheck_of("dfo", str(loc.get("location_id")), m)
+    if again is not None:
+        # T607 (owner 2026-11-10: "flag it so it doesn't look done anymore"): on the check-again list — NOT done until
+        # he saves again (any state, whatever it was), and it says why. Its mark stays in force for the build.
+        out["check"], out["recheck"] = "stale", again
+        out.pop("earlier", None)
+        out.pop("saved", None)
     return out
+
+
+_RECHECK = reuse._Memo()
+
+
+def recheck_of(scope: str, target: str, mark) -> dict | None:
+    """the check-again entry still asking about this place ({reason, by, date}), or None: listed in
+    `review/recheck.json` AND the mark in force is still the one it was listed on (`recheck.active`)"""
+    from pipeline.regs.review import recheck as RC
+    rows = _RECHECK.get((reuse._stamp((RC.path(),)),), RC.load)
+    if mark is None or not rows:
+        return None
+    return RC.active(rows, {(scope, target): mark}).get((scope, target))
 
 
 def digest_as(loc: dict, water: dict | None, src: dict | None = None, src_water: dict | None = None) -> str:
@@ -517,8 +537,9 @@ def _places() -> list[dict]:
     import dfo
     # (T532 r8) the key is by VALUE or by a held identity: `reuse.regions()` was a fresh list on every call, so this
     # memo never hit and every queue / progress / water read recomputed all 3,686 places (~0.5 s each)
-    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context(), reuse._dir_stamp(reuse.ENTRIES_DIR),
-                        tuple(apply_stamp())),
+    from pipeline.regs.review import recheck as RC
+    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH, RC.path())), dfo._rows(), context(),
+                        reuse._dir_stamp(reuse.ENTRIES_DIR), tuple(apply_stamp())),
                        lambda: by_water(one_water(_dfo_places() + _regs_places())))
 
 

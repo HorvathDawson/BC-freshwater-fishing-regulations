@@ -86,6 +86,8 @@ def extent_words(x: dict, matched: tuple, names: Names) -> str:
         return f"{pre}{'every ' + ' and '.join(kinds) + ' ' if kinds else 'all waters '}within {what}"
     if op == "rest":
         return "the rest of the water, after " + (", ".join(x.get("siblings") or []) or "?")
+    if op == "other_places":
+        return "all the other placed places on this water (no stretch of its own)"
     if op == "steelhead_waters":
         return "known steelhead waters"
     return str(op)

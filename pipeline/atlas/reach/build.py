@@ -473,6 +473,10 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     if rest is not None:
         return _build_rest(entry, rule, rest, registry, graph, covered=covered, clip=clip,
                            outside=outside, shared=shared, regional=regional, owned=owned)
+    others = _others_of(rule)
+    if others is not None:
+        return _build_others(entry, rule, others, registry, graph, covered=covered, clip=clip,
+                             outside=outside, shared=shared, regional=regional, owned=owned)
     region = region_limit(entry, registry, shared, graph=graph) if regional else None
 
     per: list[dict | None] = []
@@ -570,6 +574,52 @@ def _without_tidal(entry: dict, rule: dict, binding: RuleBinding, diags: list[Di
     return RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.bound, kept,
                        via_tributary=tuple(s for s in binding.via_tributary if s not in gone),
                        tributaries_pending=binding.tributaries_pending), diags
+
+
+def _others_of(rule: dict) -> dict | None:
+    """The rule's `other_places` extent (T607), or None."""
+    for x in rule.get("extents") or []:
+        if isinstance(x, dict) and x.get("op") == "other_places":
+            return x
+    return None
+
+
+def _build_others(entry: dict, rule: dict, others: dict, registry, graph, *, covered, clip,
+                  outside, shared, regional, owned=None) -> tuple[RuleBinding, list[Diagnostic]]:
+    """"ALL THE OTHER PLACES ON THIS WATER" (T607, owner 2026-11-10: a DFO "all open portions of …" wording "has to
+    apply to all already matched items instead"): the UNION of what the named siblings bind — each resolved by this
+    same function with its OWN extents, tributary walk and carve-outs (a `rest` among them resolves against its own
+    siblings). It has no water of its own: a sibling that does not bind adds NOTHING (and is counted in the
+    diagnostic); with no sibling bound the rule is unresolved — never the whole water. It adds no section a sibling
+    does not already hold, so it can open nothing that no other place speaks for."""
+    eid, rid = entry["entry_id"], rule["rule_id"]
+    rules = {r.get("rule_id"): r for r in entry.get("rules") or [] if isinstance(r, dict)}
+    sections: set[str] = set()
+    via: set[str] = set()
+    counts: dict[str, int] = {}
+    unbound: dict[str, str] = {}
+    for sid in others.get("siblings") or []:
+        sib = rules.get(sid)
+        if sib is None or sid == rid or _others_of(sib) is not None:
+            return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.complement_unknown,
+                               f"other_places sibling {sid!r} is not another placed rule of this entry"), []
+        b, _d = build_reach(entry, sib, registry, graph, covered=covered, clip=clip,
+                            outside=outside, shared=shared, regional=regional, owned=owned)
+        if b.outcome is not Outcome.bound:
+            unbound[sid] = b.reason.value if b.reason is not None else b.outcome.value
+            continue
+        sections |= set(b.sections)
+        via |= set(b.via_tributary)
+        counts[sid] = len(b.sections)
+    diags = [Diagnostic(eid, rid, "union", {
+        "siblings": counts, "unbound": unbound, "kept": len(sections),
+        "why": "all the other places on this water: the union of the sections its siblings bind; a sibling that "
+               "does not bind adds nothing"})]
+    if not sections:
+        return RuleBinding(eid, rid, Outcome.unresolved, (), Reason.no_sections,
+                           "no other place on this water binds a section — there is nothing for it to apply to"), diags
+    return RuleBinding(eid, rid, Outcome.bound, tuple(sorted(sections)),
+                       via_tributary=tuple(sorted(via & sections))), diags
 
 
 def _rest_of(rule: dict) -> dict | None:

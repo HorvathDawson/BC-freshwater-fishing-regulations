@@ -465,9 +465,9 @@ def extent_of(fix, split_of, rest_at_build: bool = False) -> tuple[Optional[dict
     every other placed extent on its water (`entries.to_reach_input`); a catalogue rule's are a hand edit."""
     problems: list[str] = []
     ex: dict = {"op": fix.op}
-    if fix.op == "rest":
+    if fix.op in ("rest", "other_places"):
         if not rest_at_build:
-            problems.append("op rest names its siblings (the entry's other rules): a hand edit")
+            problems.append(f"op {fix.op} names its siblings (the entry's other rules): a hand edit")
     sids = []
     for i, p in enumerate(fix.points):
         sid = split_of(i, p)

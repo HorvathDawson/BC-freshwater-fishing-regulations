@@ -10,6 +10,8 @@ export type CutLabel = (id: string) => string | null;
 export const OP_WORDS: Record<string, string> = {
   whole: "the whole water", upstream_of: "upstream of", downstream_of: "downstream of",
   between: "between", within: "within an area", rest: "the rest", steelhead_waters: "steelhead waters",
+  // T607: a wording with no stretch of its own ("all open portions of the river")
+  other_places: "all the other placed places on this water (no stretch of its own)",
 };
 
 /** one point of an extent fix in words — a cut by its name, a NEW one by its ref, a map point by its place */

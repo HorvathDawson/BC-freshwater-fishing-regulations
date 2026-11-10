@@ -355,6 +355,13 @@ def _piece_rows(x: Mapping, n: int, own: list[str], clauses: list[_Clause], ctx:
             c.used = True
         out.append(_row(first or "where", c.text if c else "", "the rest of the water, after its other places", OK,
                         "", _items_anchor(items or own, ctx)))
+    elif op == "other_places":
+        # T607: a wording with no stretch of its own ("all open portions of the river")
+        c = next((c for c in clauses if re.search(r"\b(all|open)\b.*\b(portions?|waters?|parts?)\b", c.text, re.I)), None)
+        if c is not None:
+            c.used = True
+        out.append(_row(first or "where", c.text if c else "", "all the other placed places on this water (no stretch of "
+                        "its own)", OK, "", _items_anchor(items or own, ctx)))
     elif op == "steelhead_waters":
         out.append(_row(first or "where", "", "the book's steelhead waters", OK, "", {}))
     else:

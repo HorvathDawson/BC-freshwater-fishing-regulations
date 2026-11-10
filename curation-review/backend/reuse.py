@@ -2402,7 +2402,7 @@ def extent_preview(entry_id: str, fix, limit: int = 6000) -> dict | None:
         return {"resolvable": False, "why": "a NEW point (" + ", ".join(p.kind for p in new)
                 + ") is not a split yet: it is resolved once T185 builds it — the fix is kept "
                 "in the mark as proposed", "n_sections": None}
-    if fix.op in ("rest", "steelhead_waters"):
+    if fix.op in ("rest", "steelhead_waters", "other_places"):
         return {"resolvable": False, "why": f"op {fix.op} resolves against its siblings / the "
                 "whole corpus, not on its own", "n_sections": None}
     ex: dict = {"op": fix.op, "splits": [p.split_id for p in fix.points]}

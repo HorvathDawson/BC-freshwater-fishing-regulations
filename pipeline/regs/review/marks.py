@@ -179,11 +179,13 @@ def refusal_words(msg: str, field: str | None = None) -> str:
 #: `within` names an area instead of points; `rest` and `steelhead_waters` take neither (their
 #: siblings are the entry's other rules — the proposal says which in the note).
 OP_POINTS: dict[str, int] = {"whole": 0, "upstream_of": 1, "downstream_of": 1, "between": 2,
-                             "within": 0, "rest": 0, "steelhead_waters": 0}
+                             "within": 0, "rest": 0, "steelhead_waters": 0, "other_places": 0}
 OP_WORDS: dict[str, str] = {"whole": "whole", "upstream_of": "upstream",
                             "downstream_of": "downstream", "between": "between",
                             "within": "within an area", "rest": "the rest of the water",
-                            "steelhead_waters": "steelhead waters"}
+                            "steelhead_waters": "steelhead waters",
+                            # T607: a wording with no stretch of its own ("all open portions of the river")
+                            "other_places": "all the other placed places on this water (no stretch of its own)"}
 #: T191: what a proposed split point is anchored to. `split`: a curated split (splits.json id);
 #: the others are a NEW point, by the anchor types the atlas resolves (`AnchorType`, T164):
 #: `confluence` (a named tributary's mouth), `lake_inlet` / `lake_outlet` (a lake's edge where the
@@ -287,6 +289,8 @@ def pieces_ok(fixes) -> None:
         raise ValueError("a DFO place's pieces are all on the place itself (scope entry)")
     if any(f.op == "rest" for f in fixes):
         raise ValueError("a rest is the remainder of the water: it is the place's only piece")
+    if any(f.op == "other_places" for f in fixes):
+        raise ValueError("“all the other places on this water” has no stretch of its own: it is the place's only piece")
     # a piece is its op, its cuts in order and the SET of waters it holds on (the order they were ticked in is no
     # difference) — as `dfo.fix_vs_current` compares an extent
     seen = [{**f.model_dump(mode="json", exclude={"tributaries"}), "items": sorted(f.items)} for f in fixes]

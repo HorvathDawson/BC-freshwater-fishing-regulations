@@ -1,0 +1,13 @@
+{
+ "_about": "CHECK AGAIN (T607): places the owner asked to look at again. A listed place is not done in the checklist until he saves it again; its mark stays in force for the build meanwhile. `mark` is the digest of the mark in force when it was listed (pipeline.regs.review.recheck.mark_digest): the entry is inert as soon as any other mark is in force for the place. Entries are added on the owner's word only.",
+ "recheck": [
+  {
+   "scope": "dfo",
+   "target": "1:little-qualicum-river:all-open-portions-of-the-little-qu",
+   "reason": "owner 2026-11-10: saved as the whole river; it should apply to the other placed places on this water",
+   "by": "owner",
+   "date": "2026-11-10",
+   "mark": "d8dba257205d"
+  }
+ ]
+}

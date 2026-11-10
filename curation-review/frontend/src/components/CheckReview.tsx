@@ -223,7 +223,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   draft.current = !!editing && !editing.full && !!layers?.dirty;
   const d0 = cur?.dfo;
   const state = cur ? placeState({ editing: !!editing, check: cur.check.check, checkedDate: cur.check.checked?.date,
-    earlierDate: cur.check.earlier?.date, hasExtent: !!d0?.location.binding.extents.length,
+    earlierDate: cur.check.earlier?.date, hasExtent: !!d0?.location.binding.extents.length, recheck: cur.check.recheck,
     confirmedAsIs: !!cur.check.earlier?.note.includes("confirmed as it is by the owner"),
     // his extent save by the checklist's own rule (`checks.saved_kind`); else a landed save of any other kind
     saved: cur.check.saved ?? (d0?.saved?.state === "landed" ? d0.saved : null) }) : null;

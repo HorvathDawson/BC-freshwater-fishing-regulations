@@ -397,8 +397,11 @@ export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; ch
                                 earlierDate?: string | null; saved?: { state: string; date: string } | null;
                                 /** the mark in force is his confirm-as-it-is from the inline editor (`CONFIRMED_AS_IS`) */
                                 confirmedAsIs?: boolean;
+                                /** T607: on the check-again list — said before anything else, never as done */
+                                recheck?: { reason: string } | null;
                                 hasExtent: boolean }): { tone: PlaceTone; text: string } {
   if (a.editing) return { tone: "draft", text: "You are previewing a draft: not saved" };
+  if (a.recheck) return { tone: "wait", text: `Check again: ${a.recheck.reason}. Your earlier save stays in force for the build until you save again` };
   // his own extent save (`pc.saved`): done while the place holds it; not applied is a fault, said in red
   if (a.check === "unapplied" && a.saved) return { tone: "bad", text: savedWords(a.saved) };
   if (a.check === "saved" && a.saved) return { tone: a.saved.state === "applying" ? "wait" : "confirmed", text: savedWords(a.saved) };

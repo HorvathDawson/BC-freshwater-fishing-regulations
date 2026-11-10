@@ -654,3 +654,18 @@ def test_taking_a_wording_out_of_its_group_and_adding_it_back_lands_both_ways(wt
     assert link() == {"duplicate_of": COWICHAN, "duplicate_confirmed": True}, "added back: the link returns"
     assert len(_git(wt["repo"], "log", "--format=%s").splitlines()) == commits + 2
     assert f.read_bytes() == start, "there and back leaves the file as it was"
+
+
+def test_a_place_saved_as_all_the_other_places_lands_as_that_kind(wt):
+    """T607: the new extent kind through the normal mark + write-through — the places file holds `other_places` (no
+    cut, no item: the build names its siblings)"""
+    mark = _dfo_mark().model_copy(update={"extent_fix": (M.ExtentFix.model_validate(
+        {"scope": "entry", "op": "other_places", "points": [], "items": []}),)})
+    r = _post_built(wt, mark)
+    assert r.status_code == 200, r.text
+    assert wt["WT"].wait_idle(30)
+    st = wt["client"].get("/api/review/write-through").json()
+    assert st["outcomes"][f"dfo|{COWICHAN}|"]["state"] == "saved", st["outcomes"]
+    loc = next(x for x in json.loads((wt["repo"] / "data/curated/dfo_salmon/region-1.json").read_text())["locations"]
+               if x["location_id"] == COWICHAN)
+    assert loc["binding"]["extents"] == [{"op": "other_places"}]

@@ -670,6 +670,34 @@
     ],
     "words": "upstream of the road crossing 130 m above the mouth (an alternative to the present cut, low confidence)"
    }
+  },
+  "1:little-qualicum-river:all-open-portions-of-the-little-qu": {
+   "why": "the words name no stretch of their own (“all open portions of …”): owner 2026-11-10, “this has to apply to all already matched items instead”. Proposed: it applies to all the other placed places on this water — the union of what they bind, never taken out of “the rest of the water”, and a place placed later joins by itself (your last save was the whole river, which emptied “all waters unless indicated below”)",
+   "status": "proposed",
+   "date": "2026-11-10",
+   "by": "claude, from the owner's words on T607",
+   "suggestion": {
+    "op": "other_places",
+    "points": [],
+    "items": [],
+    "tributaries": null,
+    "new_splits": [],
+    "words": "all the other placed places on this water (no stretch of its own)"
+   }
+  },
+  "1:qualicum-river:all-open-portions-of-the-qualicum": {
+   "why": "the words name no stretch of their own (“all open portions of …”): owner 2026-11-10, “this has to apply to all already matched items instead”. Proposed: it applies to all the other placed places on this water — the union of what they bind, never taken out of “the rest of the water”, and a place placed later joins by itself",
+   "status": "proposed",
+   "date": "2026-11-10",
+   "by": "claude, from the owner's words on T607",
+   "suggestion": {
+    "op": "other_places",
+    "points": [],
+    "items": [],
+    "tributaries": null,
+    "new_splits": [],
+    "words": "all the other placed places on this water (no stretch of its own)"
+   }
   }
  }
 }

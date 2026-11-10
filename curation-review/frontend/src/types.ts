@@ -881,6 +881,8 @@ export interface PlaceCheck {
   saved?: { state: "waits_cut" | "built" | "applying" | "not_applied"; date: string; cuts: string[]; why?: string } | null;
   /** `check: "stale"` after his save: the extent he saved and the extent the place has now */
   differs?: { saved: DfoExtent[]; now: DfoExtent[] } | null;
+  /** T607: on the owner's check-again list (`review/recheck.json`) — not done until he saves again; why, who, when */
+  recheck?: { reason: string; by: string; date: string } | null;
   /** a regulation rule: what it binds, as geometry (the builder's own reach, capped) */
   reach?: { n_sections: number | null; truncated: boolean; geojson: GeoJSON.FeatureCollection };
   source?: { entry_id: string; rule_id: string; name: string; verbatim: string; region: string; pages: number[] };
@@ -929,7 +931,7 @@ export interface CheckProgress {
 
 /** T191: the catalogue's extent ops (`marks.OP_POINTS`), by their own names */
 export type ExtentOp = "whole" | "upstream_of" | "downstream_of" | "between" | "within" | "rest"
-  | "steelhead_waters";
+  | "steelhead_waters" | "other_places";
 export type FixPointKind = "split" | "confluence" | "lake_inlet" | "lake_outlet" | "coord" | "new";
 export interface FixPoint {
   kind: FixPointKind;
@@ -956,6 +958,9 @@ export interface ItemHit { id: string; name: string; kind: string; mus: string[]
 /** One atlas area (`/api/areas/search`): the "within an area" op's pick list. */
 export interface AreaHit { id: string; name: string }
 export interface ExtentPreview {
+  /** T607 (op other_places): the places it applies to right now, and the water's places with no extent yet */
+  others?: { id: string; text: string; extent: string }[];
+  others_unplaced?: { id: string; text: string }[];
   resolvable: boolean;
   why: string | null;
   n_sections: number | null;

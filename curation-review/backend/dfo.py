@@ -1096,9 +1096,35 @@ def _reach_input(loc: dict, water: dict | None, extents: list[dict] | None = Non
     # a "rest" is the water minus every other PLACED extent on it, resolved now (`to_reach_input`)
     sibs = ({lid: E.EntryLocation.from_dict(l) for lid, (_s, l, _w) in _locations().items()
              if l.get("water_id") and l.get("water_id") == el.water_id}
-            if any(e.op == "rest" for e in el.binding.extents) else {})
+            if any(e.op in ("rest", "other_places") for e in el.binding.extents) else {})
     entry, rules = E.to_reach_input(el, [{}], wb, siblings=sibs)
     return entry, rules[0]
+
+
+def other_places_of(loc: dict) -> dict:
+    """T607 — WHICH PLACES "all the other placed places on this water" IS, RIGHT NOW: {others: [{id, text, extent}],
+    others_unplaced: [{id, text}]} — every other live-or-not place of the water that holds an extent (a place of the
+    same kind is never one), and those with none yet (they join by themselves once placed). `entries.to_reach_input`
+    is what binds; this only names them."""
+    mine, wid = loc.get("location_id"), loc.get("water_id")
+    placed, unplaced = [], []
+    for lid, (_s, l, _w) in _locations().items():
+        if lid == mine or not wid or l.get("water_id") != wid:
+            continue
+        ex = (l.get("binding") or {}).get("extents") or []
+        if any(e.get("op") == "other_places" for e in ex) or (l.get("duplicate_of") == mine):
+            continue
+        text = (l.get("source_text") or {}).get("specific_area") or "(the whole water)"
+        if ex:
+            placed.append({"id": lid, "text": text, "extent": ", ".join(M_OP_WORDS(e.get("op")) for e in ex)})
+        elif (l.get("status") or "active") == "active":
+            unplaced.append({"id": lid, "text": text})
+    return {"others": placed, "others_unplaced": unplaced}
+
+
+def M_OP_WORDS(op) -> str:
+    from pipeline.regs.review import marks as M
+    return M.OP_WORDS.get(str(op), str(op))
 
 
 def _walks_tributaries(entry: dict, rule: dict) -> bool:
@@ -1165,6 +1191,8 @@ def extent_preview(location_id: str, fix, limit: int = 6000, tributaries: bool =
     except Exception as e:  # noqa: BLE001 — the Extent model refuses a malformed one
         return {"resolvable": False, "n_sections": None, "why": f"not an extent: {e}"}
     out = _bind(entry, rule, limit, walks)
+    if any(f.op == "other_places" for f in fixes):
+        out.update(other_places_of(loc))
     dead = DS.dead_pieces(entry, rule, reuse._registry(), reuse._graph())
     # a place of ONE piece that binds nothing is dead too (seen on screen 2026-11-10: "binds 0 section(s) · unresolved"
     # with no reason — `dead_pieces` speaks only of a piece among several): it gets the same plain-words why
