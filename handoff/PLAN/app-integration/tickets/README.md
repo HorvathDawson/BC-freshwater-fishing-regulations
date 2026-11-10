@@ -626,7 +626,7 @@ use that as the sole source of future work."
 | T572 | Thompson River: three year-round closed areas inside one DFO place | IN REVIEW | — | 11-10: proposed as 4 open stretches, 5 new cuts; the Juniper upper signs are his choice;  owner's problem report 2026-11-09: "need to figure out how to represent all of these" |
 | T573 | A DFO row that names closed areas becomes two entries (the Thompson, Babine Lake) | IN REVIEW | e4f98d84e, c21037796 + 11-10 | owner 2026-11-10: entry B is saveable per area (confirm / move / place / report), mouths on the shore, older-only items kept ready; the build side waits on him |
 | T587 | Taking a wording out of its group and adding it back, through the real write-through path (a test) | DONE | 780c6e6e2 | T532 leftover a |
-| T588 | "Save for all wordings": what it should cover | OPEN — owner question | — | T532 leftover b; today: the older wordings only |
+| T588 | "Save for all wordings": what it should cover | DONE | 72e95c144 | T532 leftover b; today: the older wordings only |
 | T589 | A cut proposal can be withdrawn (the Allco fence) | IN REVIEW | 680c1d6eb | T532 leftover c; the Allco click is the owner's |
 | T590 | Cut pickers offer this water's cuts first, and the nearest existing cut | PARTIAL — search + nearest shown; one-click swap in the place editor and stored suggestions open | af76fda95 | T532 leftover d; owner 11-10: reuse an existing cut within 200 m (built for entry B in T573) |
 | T591 | A test that the checklist's places cache goes stale when it must | DONE | 4089f60cd | T532 leftover e; five inputs, one test |
