@@ -227,3 +227,20 @@ when it saves".
   water, the list chip "saved, waits build"), filter chip "waiting on a build N", state line "Saved by you (date):
   done — waiting only for the new cut to be built". The mark and its verdict are untouched. Once nothing waits, the
   ordinary rules judge the place again.
+
+## Owner 2026-11-09, round 5: "i dont want to have to review the items 2 times??"
+- THE RULE (`checks.saved_kind`, derived from the save itself — the mark in force carries an extent fix, no checklist,
+  not a defer, neither T nor R answered n — against the place now; no mark is rewritten):
+  - `saved` (DONE): "the place holds the extent he saved (fix == the curated extent), or the save waits only for its
+    new cut" — "Saved by you (date): done — built as saved" / "… waiting only for the new cut to be built". Whether
+    the save used a new cut or only existing ones. Never asked again; no "earlier mark was: not sure".
+  - `stale` (comes back as changed): "the marks' own staleness says the place moved since (its words, its rules, or —
+    after his save had landed — its extent is no longer the one he saved)". The status line says what he saved and
+    what the place holds now.
+  - `unapplied` (NOT done, never re-asked): "the extent is not the one he saved, every cut it names is built, and
+    nothing moved since the mark: the save never reached the place" — red state line and chip "saved, not applied",
+    its own filter chip when there is one, reported through `failed(...)`.
+- Real data 2026-11-09: DFO 92 of 287 done (saved 83: 82 built as saved, 1 waiting on its cut; verified earlier 9),
+  2 changed, 0 not applied.
+- Tests: `test_review_checklist.py::test_the_owners_extent_save_is_a_review_…` (with the mutation cases),
+  `::test_a_place_reads_by_the_owners_extent_save_…`, `frontend/tests/checklist.test.ts`.

@@ -182,8 +182,14 @@ test("the place's one state line is one of exactly six", async () => {
   assert.equal(placeState({ ...base, hasExtent: false }).text, "Nothing saved yet");
   assert.equal(placeState({ ...base, editing: true, check: "checked", checkedDate: "2026-11-09" }).text,
     "You are previewing a draft: not saved");
-  assert.equal(placeState({ ...base, saved: { state: "waits_cut", date: "2026-11-09" } }).text,
+  assert.equal(placeState({ ...base, check: "saved", saved: { state: "waits_cut", date: "2026-11-09" } }).text,
     "Saved by you (2026-11-09): done — waiting only for the new cut to be built");
+  assert.equal(placeState({ ...base, check: "saved", saved: { state: "built", date: "2026-11-09" } }).text,
+    "Saved by you (2026-11-09): done — built as saved");
+  const bad = placeState({ ...base, check: "unapplied", saved: { state: "not_applied", date: "2026-11-09" } });
+  assert.equal(bad.tone, "bad");
+  assert.match(bad.text, /NOT applied to the map data — nothing for you to re-check/);
+  assert.equal(placeState({ ...base, check: "stale" }).text, "Changed since it was saved or checked: check it again");
   assert.equal(placeState({ ...base, saved: { state: "landed", date: "2026-11-09" } }).text, "Saved and on the map");
   assert.equal(placeState({ ...base, saved: { state: "landed", date: "2026-11-09" }, hasExtent: false }).text, "Nothing saved yet");
   assert.equal(placeState({ ...base, check: "checked", checkedDate: "2026-11-09" }).text, "Confirmed by you (2026-11-09)");
@@ -211,4 +217,9 @@ test("after a save: the next not-done place on the same water, else the next wat
   assert.equal(checkStatus({ ...PC, check: "saved", saved, earlier: { date: "2026-11-09", status: "unsure", note: "x" } }),
     "Saved by you (2026-11-09): done — waiting only for the new cut to be built.");
   assert.equal(chipOf({ check: "saved", state: "needs_cut", extents: [], bad: 1 }), "saved, waits build");
+  assert.equal(chipOf({ check: "saved", state: "bound", extents: [{ op: "whole" }], bad: 1 }), "saved, built");
+  assert.equal(chipOf({ check: "unapplied", state: "bound", extents: [{ op: "whole" }], bad: 0 }), "saved, not applied");
+  assert.equal(isDone({ check: "unapplied" }), false);
+  assert.equal(checkStatus({ ...PC, check: "stale", differs: { saved: [{ op: "whole" }], now: [] } }),
+    "The extent is no longer the one you saved: check it again.");
 });

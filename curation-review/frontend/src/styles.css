@@ -1214,7 +1214,9 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-wp .t { min-width: 0; }
 .ck-wp .e { grid-column: 2; color: var(--muted); font-size: 12px; }
 .ck-chip { align-self: start; font-size: 10.5px; font-weight: 650; padding: 1px 6px; border-radius: 9px; white-space: nowrap; border: 1px solid var(--ck-line); color: var(--muted); }
-.ck-chip.done, .ck-chip.verified-earlier, .ck-chip.saved-waits-build { color: var(--ck-ok); background: var(--ck-ok-bg); border-color: transparent; }
+.ck-state.bad { background: var(--ck-bad-bg); color: var(--ck-bad); }
+.ck-chip.saved-not-applied { color: var(--ck-bad); background: var(--ck-bad-bg); border-color: transparent; }
+.ck-chip.done, .ck-chip.verified-earlier, .ck-chip.saved-waits-build, .ck-chip.saved-built { color: var(--ck-ok); background: var(--ck-ok-bg); border-color: transparent; }
 .ck-chip.needs-extent { color: #5b21b6; background: #ede9fe; border-color: transparent; }
 .ck-chip.has-, .ck-chip.reported-wrong { color: var(--ck-bad); background: var(--ck-bad-bg); border-color: transparent; }
 .ck-chip.changed { color: var(--ck-unk); background: var(--ck-unk-bg); border-color: transparent; }

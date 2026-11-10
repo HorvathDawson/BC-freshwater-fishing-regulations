@@ -859,7 +859,7 @@ export interface CheckRow {
             area_kind?: string | null };
 }
 /** `earlier` (owner 2026-11-09): a verified mark made before the checklist that still holds — done, never re-asked */
-export type CheckState = "unchecked" | "stale" | "checked" | "earlier" | "saved" | "wrong";
+export type CheckState = "unchecked" | "stale" | "checked" | "earlier" | "saved" | "unapplied" | "wrong";
 /** a mark in force that carries no checklist: its status by the marks' own staleness (verified / wrong / unsure /
  *  deferred / stale) */
 export interface EarlierMark { date: string; status: string; note: string }
@@ -874,7 +874,9 @@ export interface PlaceCheck {
   checked?: { date: string; verdict: string; note: string; rows: CheckedRow[] };
   earlier?: EarlierMark;
   /** `check: "saved"`: the owner's extent save in force, waiting for its new cut (waits_cut) or to be applied */
-  saved?: { state: "waits_cut" | "not_landed"; date: string; cuts: string[] } | null;
+  saved?: { state: "waits_cut" | "built" | "not_applied"; date: string; cuts: string[] } | null;
+  /** `check: "stale"` after his save: the extent he saved and the extent the place has now */
+  differs?: { saved: DfoExtent[]; now: DfoExtent[] } | null;
   /** a regulation rule: what it binds, as geometry (the builder's own reach, capped) */
   reach?: { n_sections: number | null; truncated: boolean; geojson: GeoJSON.FeatureCollection };
   source?: { entry_id: string; rule_id: string; name: string; verbatim: string; region: string; pages: number[] };

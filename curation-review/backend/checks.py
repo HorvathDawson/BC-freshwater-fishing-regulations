@@ -26,13 +26,14 @@ from pipeline.regs.review import checklist as C
 #: the most sections a regulation's reach draws (a zone table binds tens of thousands)
 REACH_LIMIT = 3000
 #: a place's check state, in the order the filters offer them
-CHECK_STATES = ("unchecked", "stale", "checked", "earlier", "saved", "wrong")
+CHECK_STATES = ("unchecked", "stale", "checked", "earlier", "saved", "unapplied", "wrong")
 #: the states that count as DONE (owner 2026-11-09: "the review app doesnt show how many I already did"): a check, a
 #: wrong check, and `earlier` — a verified mark made before the checklist that the marks' own staleness still holds
 #: `saved` (owner 2026-11-09: "if you save extent with a new cut it should show as complete … just needing cut added"):
-#: the owner's extent save is in force and waits only for its new cut to be built or the write-through to apply it
-#: (`dfo.saved_status` waits_cut / not_landed). The mark and its verdict are untouched; once the save lands the place
-#: is judged again by the rules above (a built extent that is not what was saved is no longer this state).
+#: THE OWNER'S OWN EXTENT SAVE IS A REVIEW (`saved_kind`; owner: "if you save extent you assume it is correct", "i
+#: dont want to have to review the items 2 times"): while the place holds the extent he saved — waiting for its new
+#: cut, or built as saved — it is done and never asked again. The mark and its verdict are untouched. `unapplied` (a
+#: save every cut of which is built but that never reached the place) is NOT done: shown, reported, never re-asked.
 DONE_STATES = ("checked", "earlier", "saved", "wrong")
 #: the DFO extent states (`dfo._row`) with nothing to check yet: the place leads with its fix, not with ✗ rows
 NEEDS_EXTENT = ("unbound", "needs_cut")
@@ -193,9 +194,38 @@ def _with_check(rs: list[dict], digest: str, mark, earlier: str | None = None) -
 
 # --------------------------------------------------------------------------- DFO
 
-def dfo_inputs(loc: dict, water: dict | None, m) -> dict:
+def saved_kind(mark, fvc_state: str | None, saved_state: str | None, verify: str | None) -> str | None:
+    """WHAT THE OWNER'S EXTENT SAVE MAKES OF THE PLACE, derived from the save itself — the mark in force carries an
+    extent fix (no checklist, not a defer, neither T nor R answered n) — against the place now (`dfo.fix_vs_current`,
+    `dfo.saved_status`) and the marks' own staleness (`verify`, `marks.status`):
+
+      saved      the place holds the extent he saved (fix == the curated extent: `same` / `applied`), or the save waits
+                 only for its new cut (`waits_cut`) — DONE, never asked again
+      stale      the marks' own staleness says the place moved since (its words, its rules, or — after his save had
+                 landed — its extent is no longer the one he saved): it comes back as changed
+      unapplied  the extent is not the one he saved, every cut it names is built, and nothing moved since the mark:
+                 the save never reached the place — a fault, shown and reported, not his to review again
+    None: no such save (the ordinary rules judge the place). Pure."""
+    if mark is None or not getattr(mark, "extent_fix", None) or getattr(mark, "checklist", None) is not None:
+        return None
+    if getattr(mark.verdict, "value", mark.verdict) == "deferred":
+        return None
+    answers = getattr(mark, "answers", None) or {}
+    if answers.get("T") == "n" or answers.get("R") == "n":
+        return None
+    if fvc_state in ("same", "applied"):
+        return "stale" if verify == "stale" else "saved"
+    if saved_state == "waits_cut":
+        return "saved"
+    if saved_state == "not_landed":
+        return "stale" if verify == "stale" else "unapplied"
+    return None
+
+
+def dfo_inputs(loc: dict, water: dict | None, m, verify: str | None = None) -> dict:
     """the place's extent as the rows read it: the curated pieces — or, while the owner's save waits for its cut or
-    the write-through (`dfo.saved_status`), the saved pieces, each marked landed or not"""
+    the write-through (`dfo.saved_status`), the saved pieces, each marked landed or not; and what his save makes of
+    the place (`kind`, `saved_kind`)"""
     import dfo
     b = loc.get("binding") or {}
     extents = list(b.get("extents") or [])
@@ -203,22 +233,40 @@ def dfo_inputs(loc: dict, water: dict | None, m) -> dict:
     landed = [True] * len(extents)
     fvc = dfo.fix_vs_current(m, loc, water) if m is not None and m.extent_fix else None
     st = dfo.saved_status(m, fvc) if fvc else None
-    if st and st["state"] in ("waits_cut", "not_landed"):
+    kind = saved_kind(m, fvc["state"] if fvc else None, st["state"] if st else None, verify)
+    # a save the place moved away from (`stale`) no longer holds the place: its rows are the extent NOW, to check again
+    waiting = bool(st and st["state"] in ("waits_cut", "not_landed") and kind != "stale")
+    if waiting:
         now = {dfo._extent_key(x) for x in extents}
         extents = list(fvc["fix"])
         landed = [dfo._extent_key(x) in now for x in extents]
         if fvc["tributaries"]["fix"] is not None:
             trib = fvc["tributaries"]["fix"]
     held = None
-    if st and st["state"] in ("waits_cut", "not_landed"):
+    if waiting:
         held = (f"your save of {st['date']} has not landed yet"
                 + (f" (it waits for the new cut{'s' if len(st.get('cuts') or []) > 1 else ''} to be built)"
                    if st["state"] == "waits_cut" else " (the write-through has not applied it)")
                 + ": a check now would replace it — check the place once it lands, or change it again")
     return {"extents": extents, "landed": landed, "tributaries": trib, "held": held,
-            "waits": ({"state": st["state"], "date": st["date"], "cuts": list(st.get("cuts") or [])} if held else None),
+            "kind": kind, "saved": _saved_view(kind, fvc, st, m),
+            "differs": ({"saved": fvc["fix"], "now": fvc["current"]}
+                        if kind == "stale" and fvc and fvc["state"] == "replaces" else None),
             "curated": list(b.get("extents") or []), "curated_tributaries": dfo.tributaries_now(loc, water),
             "only": bool(b.get("tributaries_only")), "excludes": list(b.get("tributary_excludes") or [])}
+
+
+def _saved_view(kind: str | None, fvc: dict | None, st: dict | None, m) -> dict | None:
+    """`saved`: waits_cut (a cut it names is not built yet) or built (built as saved); `unapplied`: not_applied"""
+    import dfo
+    if kind not in ("saved", "unapplied"):
+        return None
+    if kind == "unapplied":
+        return {"state": "not_applied", "date": m.date, "cuts": []}
+    if st and st["state"] == "waits_cut":
+        return {"state": "waits_cut", "date": m.date, "cuts": list(st.get("cuts") or [])}
+    unbuilt = sorted({s for e in (fvc or {}).get("fix") or [] for s in e.get("splits") or []} - set(dfo._built_cuts()))
+    return {"state": "waits_cut" if unbuilt else "built", "date": m.date, "cuts": unbuilt}
 
 
 def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None, verify: str | None = None) -> dict:
@@ -228,7 +276,7 @@ def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None, ver
         import dfo
         verify = dfo._verify(m, loc, water)["status"]
     src = C.dfo_source(loc, water)
-    x = dfo_inputs(loc, water, m)
+    x = dfo_inputs(loc, water, m, verify)
     rs = C.rows(src, x["extents"], own_items=(water or {}).get("item_ids") or [], ctx=ctx or context(),
                 tributaries=x["tributaries"], tributaries_only=x["only"], tributary_excludes=x["excludes"],
                 landed=x["landed"])
@@ -238,9 +286,16 @@ def dfo_rows(loc: dict, water: dict | None, m, ctx: C.Context | None = None, ver
     out = _with_check(rs, dg, m, verify)
     if x["held"]:
         out["held"] = x["held"]
-        # the owner's own extent save, waiting only to be built / applied: done, in a state of its own
-        out["check"], out["saved"] = "saved", x["waits"]
+    if x.get("kind") in ("saved", "unapplied"):
+        # the owner's own extent save: done while the place holds it (or waits only for its cut); `unapplied` is a
+        # fault of ours — neither is "your earlier mark was: not sure"
+        out["check"], out["saved"] = x["kind"], x["saved"]
         out.pop("earlier", None)
+    elif x.get("kind") == "stale":
+        out["check"] = "stale"
+        out.pop("earlier", None)
+        if x.get("differs"):
+            out["differs"] = x["differs"]
     return out
 
 

@@ -64,10 +64,12 @@ export function checkBody(target: { source: "dfo"; id: string; seen: unknown } |
 /** the one status line of the check in force: what was saved and when, or why it must be checked again */
 export function savedWords(s: { state: string; date: string }): string {
   return s.state === "waits_cut" ? `Saved by you (${s.date}): done — waiting only for the new cut to be built`
-    : `Saved by you (${s.date}): done — waiting only to be applied to the map data`;
+    : s.state === "built" ? `Saved by you (${s.date}): done — built as saved`
+    : `Saved by you (${s.date}) but NOT applied to the map data — nothing for you to re-check; reported as a fault`;
 }
 export function checkStatus(pc: PlaceCheck): string {
-  if (pc.check === "saved" && pc.saved) return `${savedWords(pc.saved)}.`;
+  if ((pc.check === "saved" || pc.check === "unapplied") && pc.saved) return `${savedWords(pc.saved)}.`;
+  if (pc.check === "stale" && pc.differs) return "The extent is no longer the one you saved: check it again.";
   if (pc.check === "stale") return "Its words or its extent changed since it was checked: check it again.";
   // owner 2026-11-09: earlier work counts — a verified mark made before the checklist that still holds is done
   if (pc.check === "earlier" && pc.earlier) return `Verified earlier (${pc.earlier.date}), before the checklist.`;
@@ -207,11 +209,12 @@ export function needWords(need: DfoRow["need"], water: string, extents: number):
 
 /* THE WATER'S PLACES, ALL IN SIGHT (owner 2026-11-09: "for a river show all historical boundaries too"). */
 
-export type PlaceChip = "saved, waits build" | "done" | "verified earlier" | "reported wrong" | "needs extent" | "changed" | "has ✗" | "to check";
+export type PlaceChip = "saved, waits build" | "saved, built" | "saved, not applied" | "done" | "verified earlier" | "reported wrong" | "needs extent" | "changed" | "has ✗" | "to check";
 /** the one state chip of a place in the water's list */
 export function chipOf(p: Pick<WaterPlace, "check" | "state" | "extents" | "bad">): PlaceChip {
   if (p.check === "checked") return "done";
-  if (p.check === "saved") return "saved, waits build";
+  if (p.check === "unapplied") return "saved, not applied";
+  if (p.check === "saved") return p.extents.length && p.state === "bound" ? "saved, built" : "saved, waits build";
   if (p.check === "earlier") return "verified earlier";
   if (p.check === "wrong") return "reported wrong";
   if (!p.extents.length || p.state === "unbound" || p.state === "needs_cut") return "needs extent";
@@ -273,13 +276,15 @@ export function tickAll(members: DfoGroupMember[], fix: boolean, checklist: bool
 
 /* THE ONE STATE LINE of a place (owner 2026-11-09: "need to know when it saves"): exactly one of six, colour-coded. A
    mark holds its date, not a time, so "Saved" says the date. */
-export type PlaceTone = "none" | "draft" | "wait" | "saved" | "confirmed";
+export type PlaceTone = "none" | "draft" | "wait" | "saved" | "confirmed" | "bad";
 export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; checkedDate?: string | null;
                                 earlierDate?: string | null; saved?: { state: string; date: string } | null;
                                 hasExtent: boolean }): { tone: PlaceTone; text: string } {
   if (a.editing) return { tone: "draft", text: "You are previewing a draft: not saved" };
-  if (a.saved && (a.saved.state === "waits_cut" || a.saved.state === "not_landed"))
-    return { tone: "confirmed", text: savedWords(a.saved) };
+  // his own extent save (`pc.saved`): done while the place holds it; not applied is a fault, said in red
+  if (a.check === "unapplied" && a.saved) return { tone: "bad", text: savedWords(a.saved) };
+  if (a.check === "saved" && a.saved) return { tone: "confirmed", text: savedWords(a.saved) };
+  if (a.check === "stale") return { tone: "wait", text: "Changed since it was saved or checked: check it again" };
   if (a.check === "checked" && a.checkedDate) return { tone: "confirmed", text: `Confirmed by you (${a.checkedDate})` };
   if (a.check === "earlier" && a.earlierDate) return { tone: "confirmed", text: `Verified earlier (${a.earlierDate})` };
   if (a.saved && a.saved.state === "landed" && a.hasExtent) return { tone: "saved", text: "Saved and on the map" };

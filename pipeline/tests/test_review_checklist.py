@@ -338,27 +338,57 @@ def test_the_row_for_words_no_row_checks_says_what_to_do_and_stays_bad():
     assert C.digest(src, []) == C.digest(dataclasses.replace(src, whose="anyone"), [])
 
 
-def test_an_extent_save_waiting_only_on_its_cut_is_done_in_a_state_of_its_own(monkeypatch):
-    """owner 2026-11-09: "if you save extent with a new cut it should show as complete … just needing cut added" — the
-    place is `saved` (done, its own filter), never "your earlier mark was: not sure"; the mark is not touched, and once
-    nothing waits any more the place is judged by the ordinary rules again (never silently done)"""
+def _fix_mark(verdict="unsure", answers=None, **kw):
+    """the owner's extent save: a mark with an extent fix and no checklist (P is ? while its cut is not built)"""
+    base = {k: v for k, v in _mark("verified", []).items() if k != "checklist"}
+    fix = {"scope": "entry", "op": "whole", "points": [], "items": [], "tributaries": None}
+    return M.Mark.model_validate({**base, "verdict": verdict, "answers": answers or {"T": "y", "R": "y", "P": "?"},
+                                  "note": "n", "extent_fix": [fix], **kw})
+
+
+def test_the_owners_extent_save_is_a_review_done_while_the_place_holds_it_and_back_only_when_it_moved(monkeypatch):
+    """owner 2026-11-09: "if you save extent you assume it is correct", "i dont want to have to review the items 2
+    times". The rule is derived from the save (mark + what it saved vs the place now), never by rewriting marks."""
     B = _backend(monkeypatch, "checks")
-    x = {"extents": [], "landed": [], "tributaries": None, "curated": [], "curated_tributaries": None, "only": False,
-         "excludes": [], "held": "your save of 2026-11-09 has not landed yet",
-         "waits": {"state": "waits_cut", "date": "2026-11-09", "cuts": ["a_river__the_bridge"]}}
-    monkeypatch.setattr(B, "dfo_inputs", lambda loc, water, m: x)
+    m = _fix_mark()
+    k = B.saved_kind
+    assert k(m, "replaces", "waits_cut", "unsure") == "saved"          # waits only for its new cut
+    assert k(m, "applied", "landed", "unsure") == "saved"              # built as saved: never asked a second time
+    assert k(_fix_mark("verified", {"T": "y", "R": "y", "P": "y"}), "same", "landed", "verified") == "saved"
+    # MUTATION: the place no longer holds what he saved, or its words / rules moved -> it comes back as changed
+    assert k(m, "replaces", "not_landed", "stale") == "stale"
+    assert k(m, "applied", "landed", "stale") == "stale"
+    # every cut built, nothing moved since the mark, yet the place does not hold it: never applied — a fault, not done
+    assert k(m, "replaces", "not_landed", "unsure") == "unapplied"
+    assert "unapplied" not in B.DONE_STATES and "saved" in B.DONE_STATES and "unapplied" in B.CHECK_STATES
+    # not his extent save: no fix, a checklist mark, a defer, or DFO's words / rules answered no
+    assert k(None, "applied", "landed", None) is None and k(_earlier_mark(), None, None, "verified") is None
+    wrong = _fix_mark("wrong", {"T": "n", "R": "y", "P": "?"}, problem="wrong water")
+    assert k(wrong, "applied", "landed", "wrong") is None
+
+
+def test_a_place_reads_by_the_owners_extent_save_never_as_an_earlier_unsure_mark(monkeypatch):
+    B = _backend(monkeypatch, "checks")
+    base = {"extents": [], "landed": [], "tributaries": None, "curated": [], "curated_tributaries": None, "only": False,
+            "excludes": [], "held": None, "kind": None, "saved": None, "differs": None}
+    x = dict(base)
+    monkeypatch.setattr(B, "dfo_inputs", lambda loc, water, m, verify=None: x)
     loc = {"source_text": {"waters": "A River", "specific_area": "below the bridge"}}
     ctx = C.Context(labels={}, items={}, built=frozenset(), pending=frozenset(), points={})
-    unsure = _earlier_mark("verified")           # any mark with no checklist: its old status would read "unsure"
-    got = B.dfo_rows(loc, None, unsure, ctx, "unsure")
-    assert got["check"] == "saved" and got["saved"]["state"] == "waits_cut" and "earlier" not in got
-    assert "saved" in B.DONE_STATES and "saved" in B.CHECK_STATES
+    m = _fix_mark()
+    x.update(kind="saved", saved={"state": "built", "date": "2026-11-09", "cuts": []})
+    got = B.dfo_rows(loc, None, m, ctx, "unsure")
+    assert got["check"] == "saved" and got["saved"]["state"] == "built" and "earlier" not in got
+    x.update(kind="unapplied", saved={"state": "not_applied", "date": "2026-11-09", "cuts": []})
+    got = B.dfo_rows(loc, None, m, ctx, "unsure")
+    assert got["check"] == "unapplied" and "earlier" not in got
+    x.update(kind="stale", saved=None, differs={"saved": [{"op": "whole"}], "now": []})
+    got = B.dfo_rows(loc, None, m, ctx, "stale")
+    assert got["check"] == "stale" and got["differs"]["saved"] == [{"op": "whole"}] and "earlier" not in got
+    x.update(base)                                   # no extent save: the ordinary rules, the earlier mark said
+    got = B.dfo_rows(loc, None, m, ctx, "unsure")
+    assert got["check"] == "unchecked" and got["earlier"]["status"] == "unsure"
     s = {"ok": 1, "bad": 0, "worst": "ok"}
-    p = B.progress_of([{"water_key": "a", "water": "A", "check": "saved", "summary": s},
-                       {"water_key": "a", "water": "A", "check": "unchecked", "summary": s}])
-    assert (p["done"], p["left"], p["waters"]["a"]["done"]) == (1, 1, 1)
-    assert B._matches({"check": "saved", "summary": s}, "saved") and not B._matches({"check": "saved", "summary": s}, "todo")
-    # nothing waits any more (it landed, or what was built is another extent): the ordinary rules judge it again
-    x.update(held=None, waits=None)
-    again = B.dfo_rows(loc, None, unsure, ctx, "unsure")
-    assert again["check"] == "unchecked" and again["earlier"]["status"] == "unsure"
+    p = B.progress_of([{"water_key": "a", "water": "A", "check": c, "summary": s} for c in ("saved", "unapplied", "unchecked")])
+    assert (p["done"], p["left"]) == (1, 2)
+    assert B._matches({"check": "unapplied", "summary": s}, "unapplied") and not B._matches({"check": "unapplied", "summary": s}, "todo")

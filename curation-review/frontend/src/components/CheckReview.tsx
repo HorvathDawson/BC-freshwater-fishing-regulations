@@ -33,7 +33,7 @@ import { InputsSyncLine } from "./InputsSyncLine";
 
 export type CheckSource = "dfo" | "regs" | "all";
 const FILTERS: [string, string][] = [["", "all"], ["todo", "to check"], ["needs", "needs extent"],
-  ["earlier", "verified earlier"], ["saved", "waiting on a build"], ["stale", "changed"], ["bad", "has ✗"]];
+  ["earlier", "verified earlier"], ["saved", "saved by you"], ["stale", "changed"], ["bad", "has ✗"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
 /** the rows about where the extent runs: a click on one (DFO) opens the inline editor */
 const EDIT_KINDS = ["where", "from", "to", "also", "tributaries"];
@@ -200,7 +200,9 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   draft.current = !!editing && !editing.full && !!layers?.dirty;
   const d0 = cur?.dfo;
   const state = cur ? placeState({ editing: !!editing, check: cur.check.check, checkedDate: cur.check.checked?.date,
-    earlierDate: cur.check.earlier?.date, saved: d0?.saved ?? null, hasExtent: !!d0?.location.binding.extents.length }) : null;
+    earlierDate: cur.check.earlier?.date, hasExtent: !!d0?.location.binding.extents.length,
+    // his extent save by the checklist's own rule (`checks.saved_kind`); else a landed save of any other kind
+    saved: cur.check.saved ?? (d0?.saved?.state === "landed" ? d0.saved : null) }) : null;
   const labelOf = (c: string) => d0?.cut_labels[c] ?? d0?.proposed.find((x) => x.id === c)?.name ?? null;
   const nameOf = (i: string) => d0?.item_names[i] ?? i;
   const pendingFix = d0?.saved && d0.saved.state !== "landed" && d0.saved.state !== "deferred" ? savedFixesOf(d0.mark) : [];
@@ -249,13 +251,14 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
           </span>
         )}
         <span className="ck-chips" role="tablist" aria-label="filter">
-          {FILTERS.map(([k, w]) => (
+          {[...FILTERS, ...((progress?.by_check.unapplied ?? 0) > 0 ? [["unapplied", "saved, not applied"] as [string, string]] : [])].map(([k, w]) => (
             <button key={k} role="tab" aria-selected={filter === k} data-testid={`ck-filter-${k || "all"}`}
               onClick={() => setFilter(k)}>{w}
               {progress && k === "todo" ? ` ${(progress.by_check.unchecked ?? 0) + (progress.by_check.stale ?? 0)}`
                 : progress && k === "needs" ? ` ${progress.needs ?? 0}`
                 : progress && k === "earlier" ? ` ${progress.by_check.earlier ?? 0}`
                 : progress && k === "saved" ? ` ${progress.by_check.saved ?? 0}`
+                : progress && k === "unapplied" ? ` ${progress.by_check.unapplied ?? 0}`
                 : progress && k === "stale" ? ` ${progress.by_check.stale ?? 0}`
                 : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}` : ""}
             </button>))}
@@ -490,7 +493,14 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
   const saved = d ? statusLine({ saved: d.saved, outcome, saving: false, stale: false,
     nowText: ext.length ? partsText(piecesParts(ext, (x) => extentParts(x, cutLabel, itemName))) : "",
     cutName: (c) => cutLabel(c) ?? c }) : null;
-  const status = busy ? "Saving…" : checkStatus(pc);
+  // a saved extent that never reached the place is a fault: shown above, and reported (no silent fallback)
+  useEffect(() => {
+    if (pc.check === "unapplied") failed("a saved extent that was not applied")(new Error(`${loaded.id}: saved ${pc.saved?.date ?? "?"}, every cut built, the place does not hold it`));
+  }, [pc.check, loaded.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const differs = pc.check === "stale" && pc.differs
+    ? ` You saved: ${partsText(piecesParts(pc.differs.saved, (x) => extentParts(x, cutLabel, itemName))) || "no extent"}. It is now: ${
+        partsText(piecesParts(pc.differs.now, (x) => extentParts(x, cutLabel, itemName))) || "no extent"}.` : "";
+  const status = busy ? "Saving…" : `${checkStatus(pc)}${differs}`;
   const extentNote = saved && d?.saved && d.saved.state !== "landed" ? saved.text : "";
 
   // A PLACE WITH NO EXTENT LEADS WITH THE FIX (owner 2026-11-09): what it needs, the one proposal, the way to set it.
@@ -607,8 +617,10 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
               <button className="alt" data-testid="ck-wrong" disabled={busy || !!pc.held} onClick={() => {
                 setWrongMode(true); setWrong(new Set(openRows(pc.rows, ticked).map((r) => r.n))); }}>Report a problem with it</button>
             </div>
-            <div className="hint" data-testid="ck-hint">{pc.check === "saved" ? <>Nothing to do here now: your saved extent is done and waits to be built.
-              After the rebuild it comes back only if what was built is not what you saved.{onChange && <> <button type="button"
+            <div className="hint" data-testid="ck-hint">{pc.check === "unapplied" ? <span className="warn-text">Nothing for you to re-check: your saved
+              extent was not applied to the map data. That is a fault on our side; it has been reported.</span>
+              : pc.check === "saved" ? <>Nothing to do here: you saved this extent, so it is done{pc.saved?.state === "waits_cut" ? " (it waits only for its new cut to be built)" : ""}.
+              It comes back only if the place stops holding what you saved.{onChange && <> <button type="button"
               className="link" data-testid="ck-change-held" onClick={onChange}>Edit the extent (draft, nothing saved)</button></>}</>
               : pc.held ? <>Held: {pc.held}.{onChange && <> <button type="button"
               className="link" data-testid="ck-change-held" onClick={onChange}>Change the extent…</button></>}</>
