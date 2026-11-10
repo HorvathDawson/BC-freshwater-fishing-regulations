@@ -2322,7 +2322,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "campbell_river__12th_avenue"
+            ],
+            "item_id": "gnis:7250"
+          }
+        ],
         "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
