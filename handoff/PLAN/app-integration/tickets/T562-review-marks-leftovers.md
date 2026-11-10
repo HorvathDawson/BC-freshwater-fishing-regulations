@@ -1,6 +1,6 @@
 # T562 — Review marks, what T545 and T541 left
 
-Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10): items 4, 5 and 7 done; 6 waits on the owner; 1, 2, 3 open (what each needs is written below).
+Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10): items 4, 5, 7 done; 6 closed (owner: not wanted); 1: older DFO marks audited and passed (owner), the guard for entry / rule marks open; 2, 3 open (outside the review lane).
 
 Source: the T545 and T541 lanes' reports, 2026-11-09.
 
@@ -63,3 +63,31 @@ lake or registry item), 4 (the `apply --check` list and a file save's dropped ro
   reads — outside the review-app lane's paths.
 - Item 3 NOT done: `add_mined_names` is `pipeline/atlas/registry/mined.py` (the atlas lane); the accept is still
   refused with a reason, which is the safe state.
+
+## Owner 2026-11-10, and the audit of the older DFO marks (item 1)
+- Item 6 CLOSED — owner 2026-11-10: not wanted; `NOT_LANDED_OK` stays in code.
+- Item 1, the older DFO marks — owner: "i think they should just be passed? you could do a quick audit for obvious
+  issues?" They stay as they are: no re-saving, treated as accepted.
+- THE AUDIT (read only; no mark and no curated file changed). Scope: DFO marks in force that carry an extent and were
+  made before a mark recorded the extent it replaced: 83 (the "89" was an older count; 114 DFO marks in force carry an
+  extent, 31 of them already record their before). Checked per mark, through the review server on today's files: the
+  place id still exists; its words are the words the mark was made on; the curated file holds what the mark says; its
+  extent resolves and binds (every piece, outcome "bound"); no two wordings of one place carry different extents; and
+  the length against any distance the words name.
+  | Result | Count |
+  |---|---|
+  | OK | 79 (73 landed and binding; 6 landed and waiting only for a new cut to be built) |
+  | Real finding | 1 |
+  | Flagged by the rough word checks, looked at, nothing wrong | 3 |
+  REAL: `1:little-qualicum-river:all-waters-unless-indicated-below` (verified 2026-11-03) — its extent is "the rest
+  of the water" (`op: rest`) and the file holds exactly that, but it binds NOTHING today (0 sections, outcome
+  "unresolved"). The other place that uses `rest` (Stamp River) binds. Not changed; it needs a look at why the Little
+  Qualicum's rest is empty (its other places may already cover the whole river, or the rest is not resolving).
+  LOOKED AT, FINE: Chapman Creek (4.67 km; the "100 m" and "550 m" in its words place the falls, they are not its
+  length); Little Qualicum "all open portions" and Morice Lake "including tributaries" (whole water, which is what
+  the words say). No place id was missing, no wording had changed, nothing was un-landed, no two wordings disagreed.
+  The per-mark rows are in the session scratchpad (`audit-older-dfo-marks.json`), not in the repo.
+- THE GUARD FOR NEW MARKS: a new DFO mark already records the extent it was made on and is refused when the file has
+  moved (T525, `extent_before`). What is still missing is the same for ENTRY and RULE marks (the book's side): the
+  save path (`reuse.post_mark`) and the proposal check — not small, not built; it stays here as the open part of
+  item 1, with (c) answered: older marks pass.
