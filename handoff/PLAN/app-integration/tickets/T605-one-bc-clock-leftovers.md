@@ -18,4 +18,7 @@ Source: T551's report 2026-11-10 (commits d3b7f080e, e1142f148, 7af7f39e4). T551
 ## Acceptance
 - No exception left in the clock gate; the app shows the new day within a minute of B.C. midnight and at once on return.
 
-Depends: T551. Size: S–M. Owner: item 5.
+Depends: T551. Size: S–M. Owner: no (item 5 decided).
+
+## DECIDED 2026-11-10 (owner: "use the dates instead")
+Item 5: the static hub pages print dates, never day-relative words. No daily rebuild.
