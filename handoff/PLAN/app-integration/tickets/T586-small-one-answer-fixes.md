@@ -7,7 +7,7 @@ Findings, with file:line, the state that shows each and the proposed fix: `hando
 
 ## Work
 - F9: a saved spot freezes the Flow lead whatever the angler was looking at (check against the Flow-leads rule: may be correct now).
-- F10 (owner): the browse map drops the dot of a station silent in the quantity, while the donor pin and row keep it and say why. Default: keep the dot, muted.
+- F10 (owner): the browse map drops the dot of a station silent in the quantity, while the donor pin and row keep it and say why. ANSWERED owner 2026-11-10: "it should be muted for the gauge": keep the dot, muted.
 - F15 (plausible): two clocks; goes with T551.
 
 Acceptance: each finding named above no longer reproduces, and the test or gate the findings file proposes for it is in.
