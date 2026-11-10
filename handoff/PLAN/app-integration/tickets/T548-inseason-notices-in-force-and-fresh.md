@@ -1,6 +1,6 @@
 # T548 — In-season notices: a notice still in force is shown, the feed has a stale rule, and the app says it reads it
 
-Status: OPEN.
+Status: IN REVIEW — 65df4ce38, 0bdb754e0, e2f235509, 3a90a1591 (items 1+9, 2+3, 4, 6 done; worker parts wait for the next feeds deploy; owner looks at the one-off vs yearly window rule, below)
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 4 of 17; highest severity 5 of 5.
 
@@ -87,3 +87,20 @@ Fix the items above in severity order, one commit per item where they are separa
 Fixtures from the 2026-11-08 capture: the recurring-window notice shows in year two, the seven one-off summer closures stay hidden after their window, an open-ended cell keeps its start date. Freshness table and More say the feed is read; a stale rule exists and is tested. One shared case file pins the Python and TS "in force" rule.
 
 Depends: —. Size: M. Owner: yes (Q178).
+
+## Done 2026-11-10 (65df4ce38, 0bdb754e0, e2f235509, 3a90a1591)
+- Items 1+9 (65df4ce38): an end is inferred from a printed window ONLY when the window opens on the row's `from` day
+  (a one-off: the seven "July 30 to September 15" closures). A window set on another day is a yearly season (Fraser R2
+  Aug 15–Dec 31 set Sept 16; Fraser R5 Jan 1–Dec 31; Heber Creek Nov 1–Aug 31 set Aug 27): in force until the page
+  drops it. PROPOSAL for the owner's look (the second opinion asked for one): this rule is a heuristic over today's 32
+  rows; every case is in `app/packages/core/src/inseason-span.parity.json`, read by both the TS and Python tests.
+- Items 2+3 (0bdb754e0): `STALE_AFTER.inseason = { by: "age", ms: DAY }` by the feed's `fetchedAt`; the Data block
+  has an "In-season changes" row ("2h ago"; "3d ago · Likely out of date"; "Not checked yet"); the water page's as-of
+  line says "in-season 25h ago, likely out of date"; "Not read" words and rule removed; worker texts corrected.
+- Item 4 (e2f235509): `InSeasonSource.offer` throws on an unreadable index, so the update service reports it and does
+  not mark it seen; `get()` reports a body that did not parse.
+- Item 6 (3a90a1591): `effectiveDates` keeps the side that reads and lends a yearless start the end's year; an
+  unreadable printed cell raises one `inseason-undated:` event; the in-season email says no-diff events (also T520's
+  duplicates, which rendered as an empty section) by their own title and text.
+- Item 8's Python ↔ TS format check already exists (`scripts/check-format-pairs.py`, in fast-fail).
+- Not done (proposed as new tickets): item 4's per-row reading, item 7, item 8's per-release links, item 10.
