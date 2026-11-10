@@ -48,7 +48,7 @@ describe("<SpotScreen>", () => {
                    at: "2026-08-30T09:00", backfilled: true },
       })} />);
     expect(getByTestId("spot-observed").textContent)
-      .toBe("08MH016 · observed 2026-08-30 09:00 · filled in afterwards");
+      .toBe("08MH016 · observed 2026-08-30 at 02:00 PT · filled in afterwards");
     expect(getByText("41.2")).toBeTruthy();
   });
 
@@ -58,7 +58,7 @@ describe("<SpotScreen>", () => {
         reading: { station: "08MH016", discharge: 41.2, level: null, percentile: null,
                    at: "2026-08-30T09:00", backfilled: false },
       })} />);
-    expect(getByTestId("spot-observed").textContent).toBe("08MH016 · observed 2026-08-30 09:00");
+    expect(getByTestId("spot-observed").textContent).toBe("08MH016 · observed 2026-08-30 at 02:00 PT");
   });
 
   it("offers a refresh only when something is actually stale", () => {
@@ -307,7 +307,7 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
     expect(d.wind && d.rain && d.pctile).toBe(true);
     // Two observation times: one for the gauge reading, one for the weather. Both are
     // separately dated on purpose — they come from different services at different hours.
-    expect(d.observed).toEqual(["08MH016 · observed 2026-08-30 09:00", "observed 2026-08-30 09:00"]);
+    expect(d.observed).toEqual(["08MH016 · observed 2026-08-30 at 02:00 PT", "observed 2026-08-30 at 02:00 PT"]);
   });
 });
 

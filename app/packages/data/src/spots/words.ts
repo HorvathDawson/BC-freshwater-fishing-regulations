@@ -4,7 +4,7 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
+import { CONDITIONS_WORDS, localDate, localDateTime, localStamp, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
          shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
@@ -331,11 +331,21 @@ export function weatherTrend(win: WeatherWindow): string | null {
   return `${bits.join(" · ")} — across the hour either side`;
 }
 
+/**
+ * (T620 G3) "observed 2026-08-30 at 09:00 PT": the instant in B.C.'s clock, named, like every other time the app shows.
+ * A reading's time is an instant (gauge: "…Z"); the weather source's hour is GMT with no zone written ("2026-08-30T16:00").
+ * A string with no zone is read as UTC, never cut up as if it were already the reader's wall clock.
+ */
+function observedAt(at: string | null): string {
+  const ms = at ? Date.parse(/(Z|[+-]\d\d:?\d\d)$/.test(at) ? at : `${at}Z`) : NaN;
+  return Number.isNaN(ms) ? "no observation time recorded" : `observed ${localStamp(ms)}`;
+}
+
 /** When a frozen value was observed, by whom, and whether it was filled in after the fact. */
 export function observedLine(at: string | null, backfilled?: boolean, station?: string | null): string {
   return [
     station ?? null,
-    at ? `observed ${at.replace("T", " ").slice(0, 16)}` : "no observation time recorded",
+    observedAt(at),
     backfilled ? "filled in afterwards" : null,
   ].filter(Boolean).join(" · ");
 }

@@ -37,8 +37,13 @@ describe("weatherTrend", () => {
 
 describe("observedLine", () => {
   it("says the station, the time and a backfill", () => {
-    expect(observedLine("2026-08-30T09:00", true, "08MH016"))
-      .toBe("08MH016 · observed 2026-08-30 09:00 · filled in afterwards");
+    expect(observedLine("2026-08-30T16:00", true, "08MH016"))
+      .toBe("08MH016 · observed 2026-08-30 at 09:00 PT · filled in afterwards");
+  });
+  it("(T620 G3) prints B.C. time, named: a GMT hour with no zone and an instant with Z are the same moment", () => {
+    expect(observedLine("2026-08-31T03:00")).toBe("observed 2026-08-30 at 20:00 PT");
+    expect(observedLine("2026-08-31T03:00:00Z")).toBe("observed 2026-08-30 at 20:00 PT");
+    expect(observedLine("2026-12-01T03:00:00Z")).toBe("observed 2026-11-30 at 20:00 PT");  // permanent daylight time, year-round
   });
   it("says when no time was recorded, and claims no backfill that did not happen", () => {
     expect(observedLine(null, false)).toBe("no observation time recorded");
