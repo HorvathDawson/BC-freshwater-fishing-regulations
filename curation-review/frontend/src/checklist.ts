@@ -225,6 +225,27 @@ export function chipOf(p: Pick<WaterPlace, "check" | "state" | "extents" | "bad"
 export const isDone = (p: { check: PlaceCheck["check"] }) =>
   p.check === "checked" || p.check === "earlier" || p.check === "saved" || p.check === "wrong";
 
+/** THE NEXT WATER WITH WORK LEFT, from anywhere (owner 2026-11-09: "is there a button to go to next river?"): the
+ *  first not-done place on another water, in list order after the shown place (wrapping); null when none is left */
+export function nextWaterWithWork(queue: CheckPlace[], id: string | null): CheckPlace | null {
+  const i = queue.findIndex((p) => p.id === id);
+  const key = i >= 0 ? queue[i].water_key : null;
+  const round = i >= 0 ? [...queue.slice(i + 1), ...queue.slice(0, i)] : queue;
+  return round.find((p) => p.water_key !== key && !isDone(p)) ?? null;
+}
+/** how many of a water's places are still not done */
+export function waterLeft(queue: CheckPlace[], waterKey: string | null): { total: number; left: number } {
+  const mine = queue.filter((p) => p.water_key === waterKey);
+  return { total: mine.length, left: mine.filter((p) => !isDone(p)).length };
+}
+
+/** ONE RULE FOR A GROUP'S OTHER WORDINGS (owner 2026-11-09: "i cant accept it ?"): each wording is done by ITS OWN
+ *  state (saved, verified earlier, checked) — a place done by his save never asks for ticks; the wordings that
+ *  still need him are named, each to be opened and settled on its own row */
+export function groupStillNeeds(members: DfoGroupMember[]): DfoGroupMember[] {
+  return members.filter((m) => !m.this && !(m.check && isDone({ check: m.check })));
+}
+
 /** AFTER A SAVE OR A CONFIRM, GO ON BY ITSELF (owner 2026-11-09: "it should go to next on that river if there is any
  *  left"): the next NOT-done place on the same water, in list order from the one saved (wrapping); when the water has
  *  none left, the first not-done place of the next water with work (`nextWater`), and the water's count. */

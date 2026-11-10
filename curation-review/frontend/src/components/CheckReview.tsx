@@ -5,7 +5,7 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { HOW_IT_WORKS, LEAVE_DRAFT, nextAfterSave, placeState, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+import { HOW_IT_WORKS, LEAVE_DRAFT, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
 import { markBody, offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
@@ -96,12 +96,9 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 
   // "Saved: …" after a save, kept until he moves on (`id`: the place it was saved on)
   const [savedNote, setSavedNote] = useState<{ id: string; what: "extent" | "confirm" | "problem" | "group"; text?: string } | null>(null);
-  // after a save / confirm: the water has none left — said, with the next water that has work
-  const [waterDone, setWaterDone] = useState<{ id: string; water: string; total: number; next: CheckPlace | null } | null>(null);
   const shown = useRef<string | null>(null);
   const draft = useRef(false);
   const open = useCallback((id: string) => {
-    setWaterDone(null);
     // leaving a place with an unsaved draft asks once
     if (draft.current && !window.confirm(LEAVE_DRAFT)) return;
     draft.current = false;
@@ -205,7 +202,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
     api.checksQueue(source, "", "").then((all) => {
       const t = nextAfterSave(all, id);
       if (t.next !== null) { const to = t.next; window.setTimeout(() => { if (shown.current === id && !draft.current) open(to); }, 1600); }
-      else if (t.total) setWaterDone({ id, water: t.water, total: t.total, next: t.nextWater });
+      // none left on this water: the permanent "all N places done" line (the list header, the done block) says so
     }).catch(failed("the next place after the save"));
   };
   draft.current = !!editing && !editing.full && !!layers?.dirty;
@@ -226,13 +223,18 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const stateLine = state && (
     <div className={`ck-state ${state.tone}`} role="status" data-testid="ck-state">
       <b>{state.text}</b>{savedWords && <span data-testid="ck-saved-note"> · {savedWords}</span>}
-      {waterDone && cur && waterDone.id === cur.id && (
-        <div data-testid="ck-water-done"><b>{waterDone.water}: all {waterDone.total} places done.</b>{" "}
-          {waterDone.next ? <button type="button" className="btn small" data-testid="ck-next-water"
-            onClick={() => open(waterDone.next!.id)}>Go to the next water with work left: {waterDone.next.water}</button>
-            : "Nothing is left in this list."}</div>)}
     </div>);
 
+  // from anywhere: the next water that still has work, and whether this water is finished
+  const nextWater = useMemo(() => nextWaterWithWork(list, rides ?? null), [list, rides]);
+  const here = useMemo(() => waterLeft(list, ridden?.water_key ?? null), [list, ridden]);
+  const waterDoneLine = ridden && here.total > 0 && here.left === 0 ? (
+    <div className="ck-water-done" data-testid="ck-water-done">
+      <b>{ridden.water}: all {here.total} places done.</b>{" "}
+      {nextWater ? <button type="button" className="btn small primary" data-testid="ck-next-water"
+        onClick={() => open(nextWater.id)}>Go to the next water with work left: {nextWater.water}</button>
+        : "Nothing is left in this list."}
+    </div>) : null;
   const header = (
     <header className="ck-head">
       <h1 data-testid="ck-title">{cur?.title ?? place?.water ?? "…"}<small>{cur?.sub ?? ""}</small></h1>
@@ -242,6 +244,9 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
         {place?.older_unconfirmed ? <span className="warn-text" data-testid="ck-older-unconfirmed"> · {place.older_unconfirmed}
           {" "}older wording{place.older_unconfirmed > 1 ? "s" : ""} not confirmed</span> : null}
       </span>
+      <button type="button" className="btn small" data-testid="ck-next-water-any" disabled={!nextWater}
+        title={nextWater ? `the first place still to do on ${nextWater.water}` : "no other water has work left in this list"}
+        onClick={() => nextWater && open(nextWater.id)}>Next water with work left →</button>
       <div className="ck-nav">
         <button aria-label="Previous place" disabled={!nav.current.prev} onClick={() => nav.current.prev && open(nav.current.prev)}>‹</button>
         <span data-testid="ck-pos">{at.pos || "–"} of {at.total}</span>
@@ -307,7 +312,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
           </div>
           <aside className="ck-side">
             {waterView && waterView.places.some((p) => p.id === selected) && (
-              <WaterList view={waterView} selected={selected} onOpen={open} onHover={setHover}
+              <WaterList view={waterView} selected={selected} onOpen={open} onHover={setHover} done={waterDoneLine}
                 undrawn={waterReach && waterReach.key === waterKey ? waterReach.fc.failed : []} />)}
             {cur && editing && cur.dfo ? (
               <div className="ck-panel" data-testid="ck-inline-editor">
@@ -325,7 +330,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
                     onMarked={(said) => afterSave(cur.id, "extent", said)} />
                 </div>
               </div>
-            ) : cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur} top={stateLine}
+            ) : cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur} top={stateLine} waterDone={waterDoneLine}
               water={waterView && waterView.places.some((p) => p.id === cur.id) ? waterView : null}
               onSaved={(what, text) => afterSave(cur.id, what, text)}
               onEdit={cur.dfo && !cur.dfo.extent_now.cannot_change.length ? (draft) => setEditing({ draft }) : undefined} />
@@ -442,7 +447,8 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
 const pinTo = (n: number | null) => window.dispatchEvent(new CustomEvent("ck-pin", { detail: n }));
 
 /** the rows and the one decision */
-function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
+function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
+  waterDone?: React.ReactNode;
   loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem" | "group" | "extent", text?: string) => void; top?: React.ReactNode;
   /** open the T525 editor: on the extent now (null), or on a draft — undefined when no fix can say the extent */
   onEdit?: (draft: InitialDraft | null) => void;
@@ -514,6 +520,10 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
     ? ` You saved: ${partsText(piecesParts(pc.differs.saved, (x) => extentParts(x, cutLabel, itemName))) || "no extent"}. It is now: ${
         partsText(piecesParts(pc.differs.now, (x) => extentParts(x, cutLabel, itemName))) || "no extent"}.` : "";
   const status = busy ? "Saving…" : `${checkStatus(pc)}${differs}`;
+  // DONE BY HIS OWN SAVE (owner: "i cant accept it ?"): nothing to tick or confirm is rendered — only the done line,
+  // Edit and Report a problem; the group's wordings that still need him are named (`groupStillNeeds`)
+  const doneBySave = pc.check === "saved" || pc.check === "unapplied";
+  const stillNeeds = doneBySave && d?.group ? groupStillNeeds(d.group.members) : [];
   const extentNote = saved && d?.saved && d.saved.state !== "landed" ? saved.text : "";
 
   // A PLACE WITH NO EXTENT LEADS WITH THE FIX (owner 2026-11-09): what it needs, the one proposal, the way to set it.
@@ -739,10 +749,25 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
         ))}
       </div>
       <div className="ck-foot">
-        {d?.group && !pc.held && <OlderWordings members={d.group.members} shownText={d.verbatim.specific_area}
+        {doneBySave && (
+          <div className="ck-done" data-testid="ck-done-block">
+            <b>{checkStatus(pc)}</b>
+            {stillNeeds.length > 0
+              ? <div className="warn-text" data-testid="ck-group-needs">{stillNeeds.length} other wording{stillNeeds.length > 1 ? "s" : ""} of this place still need{stillNeeds.length > 1 ? "" : "s"} you
+                  — open {stillNeeds.length > 1 ? "each" : "it"}: {stillNeeds.map((m, i) => <span key={m.id}>{i ? ", " : ""}<a href={`#dfo/${encodeURIComponent(m.id)}`}>“{(m.text || "(the whole water)").slice(0, 70)}”</a></span>)}</div>
+              : d?.group && d.group.members.length > 1 ? <div className="dim">Every other wording of this place is done too.</div> : null}
+            <div className="ck-btns">
+              {onChange && <button className="alt" data-testid="ck-done-edit" disabled={busy} onClick={onChange}>Edit the extent (draft, nothing saved)</button>}
+              <button className="alt" data-testid="ck-wrong" disabled={busy || !!pc.held} title={pc.held ? "its save has not landed yet: edit the extent instead" : undefined}
+                onClick={() => { setWrongMode(true); setWrong(new Set(openRows(pc.rows, ticked).map((r) => r.n))); }}>Report a problem with it</button>
+            </div>
+            {waterDone}
+          </div>
+        )}
+        {d?.group && !pc.held && !doneBySave && <OlderWordings members={d.group.members} shownText={d.verbatim.specific_area}
           same={same} setSame={setSame} fix={false} checklist={true} link={(m) => `#dfo/${encodeURIComponent(m)}`}
           extentWords={(e) => partsText(piecesParts(e.extents, (x) => extentParts(x, cutLabel, itemName)))} />}
-        {!wrongMode ? (
+        {doneBySave && !wrongMode ? null : !wrongMode ? (
           <>
             <div className="ck-btns">
               <button data-testid="ck-allok" className={needs ? "alt" : undefined} disabled={left > 0 || busy || !!pc.held}
@@ -776,7 +801,8 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
         {errors.length > 0 && <div className="errors" role="alert" data-testid="ck-errors" style={{ position: "static" }}>
           {errors.map((e, i) => <div key={i}>{e}</div>)}</div>}
         <div className="ck-status" role="status" data-testid="ck-status">
-          <b>{status}</b>{extentNote ? <> · {extentNote}</> : null}
+          {/* done by his save: the done block above already says it — only the extent's own note is left here */}
+          {doneBySave && !busy ? null : <b>{status}</b>}{extentNote ? <>{doneBySave && !busy ? "" : " · "}{extentNote}</> : null}
           {pc.checked?.note && pc.check !== "unchecked" ? <span className="dim"> · {pc.checked.note.slice(0, 160)}</span> : null}
         </div>
       </div>
@@ -788,8 +814,10 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
  *  grouped"): every place on the water — live, no longer live, older wordings, its regulation extents — with its words,
  *  its extent in a few words and one state chip; places the data calls the same place under one heading. Click = open;
  *  hover = its extent stronger on the map. */
-function WaterList({ view, selected, onOpen, onHover, undrawn }: {
+function WaterList({ view, selected, onOpen, onHover, undrawn, done: doneLine }: {
   view: WaterView; selected: string | null; onOpen: (id: string) => void; onHover: (id: string | null) => void;
+  /** the water is finished: said under the header, with the way to the next water */
+  done?: React.ReactNode;
   undrawn: { id: string; why: string }[];
 }) {
   const groups = useMemo(() => waterGroups(view.places), [view.places]);
@@ -823,6 +851,7 @@ function WaterList({ view, selected, onOpen, onHover, undrawn }: {
       <button type="button" className="ck-sec ck-wl-head" aria-expanded={open} onClick={toggle}>
         {open ? "▾" : "▸"} {view.water}: {view.places.length} place{view.places.length === 1 ? "" : "s"} and wordings
         {" · "}{done} done · {view.places.length - done} left</button>
+      {doneLine}
       {open && (
         <div className="ck-wl-rows">
           {groups.map((g) => (

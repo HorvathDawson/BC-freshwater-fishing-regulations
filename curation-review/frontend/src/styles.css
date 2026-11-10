@@ -1290,3 +1290,6 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-inline-head { position: static; }
 .ck-panel .ck-state { position: sticky; top: 0; z-index: 3; }
 .ck-wl.tall { max-height: 45%; }
+.ck-done { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.ck-water-done { padding: 6px 16px; font-size: 13px; background: var(--ck-ok-bg); color: var(--ck-ok); }
+.ck-done .ck-water-done { padding: 6px 8px; border-radius: 6px; }

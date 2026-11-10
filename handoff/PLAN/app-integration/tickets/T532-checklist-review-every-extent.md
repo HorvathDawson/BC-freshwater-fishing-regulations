@@ -330,3 +330,11 @@ when it saves".
   FOLLOW-UPS (no work now): (1) an owner "withdrawn" call in `proposal_overrides.json`, read by `marks.proposals` and
   `proposals.build`, so a superseded mark's cut is never built; (2) a new-cut proposal within N m of a curated cut on
   the same water flagged "an existing cut is here" (count not taken).
+- A PLACE DONE BY HIS SAVE ASKS NOTHING ("i cant accept it ?"): no tick list, no "Also saves on…", no Confirm button —
+  only the done line, "Edit the extent (draft, nothing saved)" and "Report a problem with it". ONE RULE for a group's
+  other wordings (`checklist.groupStillNeeds`): each wording is done by its own state (saved / verified earlier /
+  checked); the ones that still need him are named as links ("1 other wording of this place still needs you — open
+  it: …"), else "Every other wording of this place is done too."
+- THE NEXT WATER, always there ("is there a button to go to next river?"): "Next water with work left →" in the screen
+  header from anywhere (`checklist.nextWaterWithWork`); when the open water has none left, "<Water>: all N places
+  done." with "Go to the next water with work left: <Water>" under the water list's header and in the done block.

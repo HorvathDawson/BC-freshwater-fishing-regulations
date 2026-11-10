@@ -237,3 +237,21 @@ test("save for all: every wording that can take the extent is covered, the rest 
   assert.deepEqual(saveForAll("a", GROUP.filter((m) => m.id !== "b"), true).group.targets, ["a", "c"]);
   assert.deepEqual(saveForAll("a", [GROUP[0]], true).group, { targets: ["a"], members: {} });
 });
+
+test("the next water with work, from anywhere; a water's left count; a group's wordings that still need him", async () => {
+  const { nextWaterWithWork, waterLeft, groupStillNeeds } = await import("../src/checklist.ts");
+  const p = (id: string, water_key: string, check: CheckPlace["check"]): CheckPlace => ({ source: "dfo", id, water: water_key.toUpperCase(),
+    water_key, region: "2", text: id, summary: { ok: 1, bad: 0, worst: "ok" }, check });
+  const q = [p("a1", "a", "saved"), p("a2", "a", "earlier"), p("b1", "b", "checked"), p("c1", "c", "unchecked"), p("d1", "d", "stale")];
+  assert.equal(nextWaterWithWork(q, "a1")!.id, "c1");            // skips a finished water
+  assert.equal(nextWaterWithWork(q, "d1")!.id, "c1");            // wraps
+  assert.equal(nextWaterWithWork(q, "c1")!.id, "d1");            // never its own water
+  assert.equal(nextWaterWithWork(q.slice(0, 3), "a1"), null);
+  assert.deepEqual(waterLeft(q, "a"), { total: 2, left: 0 });
+  assert.deepEqual(waterLeft(q, "c"), { total: 1, left: 1 });
+  // one rule: a wording is done by its own state — a saved / verified-earlier / checked one needs nothing from him
+  const ms = [mem("a", { this: true, check: "saved" }), mem("b", { check: "saved" }), mem("c", { check: "earlier" }),
+              mem("d", { check: "unchecked" }), mem("e", { check: "stale" }), mem("f", { check: null })];
+  assert.deepEqual(groupStillNeeds(ms).map((m) => m.id), ["d", "e", "f"]);
+  assert.deepEqual(groupStillNeeds(ms.slice(0, 3)), []);
+});

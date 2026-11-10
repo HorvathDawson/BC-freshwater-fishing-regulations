@@ -42,6 +42,7 @@ export function OlderWordings({ members, shownText, same, setSame, fix, checklis
                 its extent now: {m.extent.extents.length ? extentWords(m.extent) : "none"}
                 {m.same_extent ? " (the same as this place's)" : <b className="warn-text"> — differs: a tick gives it this place's extent</b>}
                 {checklist && m.check === "earlier" ? " · verified earlier"
+                  : checklist && m.check === "saved" ? " · done: its own extent saved by you"
                   : checklist && m.check !== "checked" && m.check !== "wrong" ? " · older wording not confirmed" : ""}
               </div>
               {why && <div className="warn-text" style={{ fontSize: 12 }} data-testid="older-untickable">Cannot be ticked: {why}. Left for you.</div>}
