@@ -39,6 +39,7 @@ export * from "./day";
 export * from "./clock";
 export * from "./sun";
 export * from "./conditions";
+export * from "./dayLink";
 // (T377) one watershed group's standing per forecast day
 export * from "./basinDays";
 export * from "./gaugeSide";

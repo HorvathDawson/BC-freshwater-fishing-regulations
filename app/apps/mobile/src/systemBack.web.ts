@@ -5,7 +5,7 @@
  */
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
-import { historySync, reportFailure, routeSearch, waterFrame, type AddressState, type HistoryPort, type Route,
+import { addressKept, historySync, reportFailure, routeSearch, waterFrame, type AddressState, type HistoryPort, type Route,
          type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, type PlaceReads } from "@app/ui/place";
 import { slugKnown, slugOf } from "./waterSlugs";
@@ -113,7 +113,7 @@ export function routeUrl(r: Route): void {
 
 /** (T369 D10) The day and the Conditions horizon, kept in the address beside the route. */
 export function routeAddress(a: AddressState): void {
-  extra = a;
+  extra = addressKept(a);   // (T582) the day, not the horizon: the phone keeps neither across a cold start
   if (last !== null) queueMicrotask(() => void write());
 }
 

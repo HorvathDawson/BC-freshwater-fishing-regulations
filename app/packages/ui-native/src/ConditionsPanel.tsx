@@ -16,7 +16,7 @@ import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figure as figureText, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, waterReportWhere, dayLabel, type ChartSpan } from "@app/core";
+         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, waterReportWhere, dayLabel, regsDayLink, DAY_LABELS, bcNow, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
@@ -61,7 +61,7 @@ const W = CONDITIONS_WORDS;
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer, credits, horizon = 0, onHorizon, day = null, waterLine, waterBox, alertWater, reportAbout = null }: {
+                                  footer, credits, horizon = 0, onHorizon, day = null, regsDay, waterLine, waterBox, alertWater, reportAbout = null }: {
   source: WaterSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: PanelFeed;
@@ -86,6 +86,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   onHorizon?: (d: Horizon) => void;
   /** The day the answer is for; null is today. */
   day?: Date | null;
+  /**
+   * (T582) THE REGULATIONS DAY (the map's day; null is today), for a water's Conditions view: the panel names its own day,
+   * marks the regulations day on the chart when it is inside the forecast window, and says when it is past it. Absent (a
+   * sheet): no day line. It never moves the panel's own horizon.
+   */
+  regsDay?: Date | null;
   /** (T175) The water's own sections, kept at every zoom on the route map (`MapProps.waterLine`). */
   waterLine?: readonly SectionId[];
   /** (T175) The water's box, framed with the gauges when there is no tap (`DonorViewOptions.place`). */
@@ -145,6 +151,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // UNDER CHANGE THE CHART DRAWS THE CHANGE'S OWN LEAD MODEL, not the freshest run (T144 review, `changeChartModel`).
   // The station's change rides every series of the station, so the freshest one (the same request the default makes,
   // shared by `askOnce`) says which.
+  const link = regsDay === undefined ? null : regsDayLink(regsDay, bcNow());
   const anyRun = useSeries(source, station, span, param, undefined, charts);
   const drawn = changeChartModel(model, horizon,
                                  anyRun.state === "ready" ? anyRun.value?.change : null);
@@ -153,7 +160,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                                       parameter: picked ?? undefined } : null), [feed, picked]);
   const allRuns = anyRun.state === "ready" ? anyRun.value?.forecasts ?? [] : null;
   const drawsForecast = forecastDrawn(forecastOn, allRuns);
-  const chart = useChartView(source, station, span, param, drawn, chartW, charts, draft, drawsForecast, pickState.also, vm.ahead);
+  const chart = useChartView(source, station, span, param, drawn, chartW, charts, draft, drawsForecast, pickState.also,
+                            // (T582) the horizon's own day first; else the regulations day, when it is inside the window
+                            vm.ahead ?? (link?.kind === "inside" ? { at: link.at, label: link.mark } : null));
   const series = useSeries(source, station, span, param, drawn, charts);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
@@ -373,6 +382,14 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
      donors → the day strip (`footer`, T506) → the fold, last (Sources and notes: the credits, the disclaimer). */
   const body = (
     <>
+      {regsDay !== undefined && (
+        <View testID="conditions-day" style={{ gap: SPACE.s1 }}>
+          <Text testID="conditions-day-label" style={{ ...TYPE.metaBold, color: palette.ink }}>{DAY_LABELS.conditions(horizon, bcNow())}</Text>
+          {link && link.kind !== "today" && (
+            <Text testID="conditions-day-link" style={{ ...TYPE.meta, color: palette.sub }}>{link.line}</Text>
+          )}
+        </View>
+      )}
       <DonorPanel palette={palette} value={vm.panel} day={vm.day} at={tiles} theme={theme}
                   from={from} selected={station} onSelect={vm.select} horizon={horizon}
                   chain={vm.chain} standing={vm.route.standing}

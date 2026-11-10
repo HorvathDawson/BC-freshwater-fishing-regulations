@@ -52,6 +52,8 @@ export function WaterModeHost({ frame, nav, col, source, palette, loader, tiles,
                        from={frame.at}
                        feed={feed}
                        credits={credits} horizon={horizon}
+                       // (T582) the regulations day: Conditions names its own day and links to this one
+                       regsDay={mapDay}
                        onHorizon={pickDay} />
     // the water Map is a named water's (the reducer never puts an unnamed reach on it: `frameViews`)
     : frame.view === "map" && item !== null

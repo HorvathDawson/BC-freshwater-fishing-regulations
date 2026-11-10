@@ -35,6 +35,15 @@ const BROWSE_TABS: readonly BrowseTab[] = ["map", "conditions", "runs", "spots",
 
 /** (T369) What the address keeps beside the route: the Shell's one day (null: today) and the Conditions horizon. */
 export interface AddressState { day: Date | null; horizon: Horizon }
+/**
+ * (T582, T580 F3) WHAT THE ADDRESS KEEPS: the regulations day (it is a plan, and a link carries it), and NOT the Conditions
+ * horizon. The phone has no address, so a cold start there is on Now; the web used to restore the horizon from the address
+ * and lead with another gauge for the same water. One rule for both: Conditions reopens on today unless a link carries a
+ * day (`date`); a day inside the forecast window is then marked on its chart (`regsDayLink`). A SHARED link (`useShare`)
+ * still names the horizon it was sent from, and both platforms read it alike (`parseStartLink`). The in-memory hold of a
+ * recreated activity (`place.address`) keeps both, on both platforms.
+ */
+export const addressKept = (a: AddressState): AddressState => ({ day: a.day, horizon: 0 });
 const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 /** A point as the address writes it: 5 decimals (about a metre). */
 const pt = (p: LatLon) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;

@@ -37,7 +37,7 @@ import { BasinDays } from "./BasinDays";
 import { usePaneReady } from "./shell/paneReveal";
 
 export function WaterConditions({ source, item, tapSid, palette, tiles, theme, parameter, onParameter, from, feed,
-                                  credits, horizon, onHorizon, loader = null, part = null }: {
+                                  credits, horizon, onHorizon, regsDay, loader = null, part = null }: {
   source: WaterSource;
   /** (T53) the release, for an unnamed reach's name (the store's, as its Regulations page heads with); null: no name */
   loader?: ReleaseLoader | null;
@@ -60,6 +60,8 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   /** The forecast horizon, set from the panel's header (the same state as the Conditions map's chips). */
   horizon?: Horizon;
   onHorizon?: (d: Horizon) => void;
+  /** (T582) The regulations day (the map's; null: today): this view names its own day and links to it. */
+  regsDay?: Date | null;
 }) {
   // (T369) THE FRAME'S REACH AND POINT, read once from the release (`useFrameView`, the one reading of a frame)
   const store = useRegsStore(loader);
@@ -113,7 +115,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
           <ConditionsPanel source={source} section={section} palette={palette}
                            tiles={tiles} theme={theme} feed={feed}
                            parameter={parameter} onParameter={onParameter} from={here}
-                           credits={credits} horizon={horizon} onHorizon={onHorizon} waterLine={line} waterBox={box}
+                           credits={credits} horizon={horizon} onHorizon={onHorizon} regsDay={regsDay} waterLine={line} waterBox={box}
                            alertWater={name ? { item, name } : null}
                            reportAbout={{ water: item, place: name, part: part ?? null, partLabel: where.place?.full ?? null }}
                            footer={<BasinDays state={days} palette={palette} theme={theme ?? "light"} onPick={onHorizon}

@@ -18,7 +18,7 @@ import { useMemo, useRef, type ComponentProps } from "react";
 import { ScrollView, View, type ViewInstance } from "react-native";
 import { Text } from "../Text";
 import { Pressable } from "../Pressable";
-import { PART_FIT_MAX_ZOOM, WATER_MAP_WORDS } from "@app/core";
+import { PART_FIT_MAX_ZOOM, WATER_MAP_WORDS, DAY_LABELS, bcNow } from "@app/core";
 import type { ItemId, SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { inSeasonSections, useAsync, useBackLayer, useInSeasonCovers, useRegsStore, useReleaseLines, useSalmonKey, useWaterMap,
@@ -149,6 +149,8 @@ export function WaterMapView({ loader, item, part, tapSid, palette, map, onOpenW
         {vm ? (
           <>
             {vm.list && <PartsList list={vm.list} palette={palette} act={act} />}
+            {/* (T582) which day the map's rules are for: a tab switch never changes the day silently */}
+            <Text style={{ ...TYPE.metaBold, color: palette.ink }} testID="water-map-day">{DAY_LABELS.map(day, bcNow())}</Text>
             <Text style={{ ...TYPE.section, color: palette.faint }} testID="water-map-where">{vm.where}</Text>
             {/* (T214 item 4) two lines are kept for the name at every part: a name that wraps in one part and not in the
                 next must not move the steps when the reader steps between them (a longer name is cut; its full words are the label) */}
