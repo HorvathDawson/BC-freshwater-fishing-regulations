@@ -75,7 +75,10 @@ LEDGER = HOME / "ledger.json"
 #: the git paths a build reads: code + the curated tree (+ the scripts/deploy the release runs)
 COMMITTED = ("pipeline", "data/curated", "scripts", "deploy", "project_config.py", "config.yaml")
 #: the reach-run files the binding diff reads (`binding_diff.diff_runs`) + the report naming its digest
-BASELINE_FILES = ("report.json", "rule_section.jsonl.gz", "rule_unresolved.jsonl", "licensing_section.jsonl")
+BASELINE_FILES = ("report.json", "rule_section.jsonl.gz", "rule_unresolved.jsonl", "licensing_section.jsonl",
+                  # T546 item 8: DFO places, tidal / outside, the curator's diagnostics
+                  "dfo_salmon.jsonl.gz", "dfo_salmon_diagnostic.jsonl", "rule_diagnostic.jsonl", "tidal.jsonl",
+                  "outside_bc.jsonl")
 #: min free memory % for heavy.sh to start the build (memory `heavy-jobs-one-at-a-time`)
 HEAVY_MIN_FREE = 50
 STAGES = ("preflight", "baseline", "build", "checks", "promote", "staging")
@@ -483,7 +486,8 @@ def stage_checks(ctx: Ctx) -> str:
             js, txt = out_dir / "binding_diff.json", out_dir / "binding_diff.txt"
             js.write_text(json.dumps(rep, indent=1) + "\n", encoding="utf-8")
             txt.write_text(diff_summary(rep) + "\n", encoding="utf-8")
-            differs = rep["rules_changed"] or rep["unresolved_changed"] or rep["licensing_changed"]
+            from pipeline.atlas.reach.binding_diff import differs as _differs      # T546 item 8: + DFO, diagnostics
+            differs = _differs(rep)
             done = {"key": diff_key, "status": "differs" if differs else "same", "json": str(js),
                     "sha": file_sha(js), "content": diff_content_sha(js), "summary": str(txt)}
         r["binding_diff"] = done

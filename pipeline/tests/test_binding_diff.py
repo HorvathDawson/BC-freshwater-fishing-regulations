@@ -167,3 +167,58 @@ def test_a_gzip_file_out_of_order_or_beside_the_old_one_is_refused(tmp_path):
         IO.rule_section_file(tmp_path / "nowhere")
     with pytest.raises(ValueError, match="neither reach nor trib"):
         IO.write_rule_sections(p, [("e1", "r1", "a", "up")])
+
+
+# ---------------------------------------------------------------------------------------------
+# T546 item 8: DFO placements, tidal / outside, the curator's diagnostics — and what was not compared
+# ---------------------------------------------------------------------------------------------
+
+def _side(d, *, dfo=(), tidal=(), diags=(), dfo_diags=(), report=None):
+    import gzip
+    (d / "dfo_salmon.jsonl.gz").write_bytes(gzip.compress("".join(
+        json.dumps({"location_id": loc, "outcome": oc, "sections": list(secs)}) + "\n"
+        for loc, oc, secs in dfo).encode(), mtime=0))
+    (d / "tidal.jsonl").write_text("".join(json.dumps({"entry_id": o, "section_id": s}) + "\n" for s, o in tidal))
+    (d / "outside_bc.jsonl").write_text("")
+    (d / "rule_diagnostic.jsonl").write_text("".join(
+        json.dumps({"entry_id": e, "rule_id": r, "kind": k, "payload": json.dumps(p)}) + "\n" for e, r, k, p in diags))
+    (d / "dfo_salmon_diagnostic.jsonl").write_text("".join(
+        json.dumps({"location_id": loc, "kind": k, "payload": p}) + "\n" for loc, k, p in dfo_diags))
+    if report is not None:
+        (d / "report.json").write_text(json.dumps(report))
+    return d
+
+
+def test_a_moved_dfo_place_a_new_unplaced_piece_and_a_changed_pick_each_fail_the_diff(tmp_path, capsys):
+    """Mutation: drop `_side_diffs` (or `differs`' new keys) — a cut fix moving a DFO place, a new unclassified
+    piece or a changed ambiguous-cut pick passes the release check with identical rule bindings."""
+    a = _side(_run(tmp_path / "a", SAME), dfo=[("1:x:whole", "bound", ["s1", "s2"])], tidal=[("t1", "e9")],
+              diags=[("e1", "r1", "ambiguous_cut", {"split_id": "c", "extent": 0, "used": 10.0})])
+    b = _side(_run(tmp_path / "b", SAME), dfo=[("1:x:whole", "bound", ["s1", "s3"])], tidal=[("t1", "e9")],
+              diags=[("e1", "r1", "ambiguous_cut", {"split_id": "c", "extent": 0, "used": 99.0}),
+                     ("e2", "r1", "unclassified", {"pieces": ["p9"], "reasons": {"p9": "leaves_bc_unjoined"}})],
+              dfo_diags=[("1:x:whole", "unclassified", {"pieces": ["p1"], "reasons": {"p1": "straddles_the_cut"}})],
+              report={"unplaced": [{}, {}], "scope_unresolved": ["r5:toms_lake@6-1"], "override_id_gaps": [
+                  {"name": "OKANAGAN RIVER OXBOWS", "mu": ["8-1"], "unresolved": ["wsc:1"], "resolved": 41}]})
+    rep = BD.diff_runs(a, b)
+    assert rep["rules_changed"] == 0 and BD.differs(rep)
+    assert rep["dfo"]["1:x:whole"]["gained"] == 1 and rep["dfo"]["1:x:whole"]["lost"] == 1
+    assert rep["diagnostics"] == {
+        "e1::r1 ambiguous_cut c@0": {"before": "10.0", "after": "99.0"},
+        "e2::r1 unplaced p9": {"before": None, "after": "leaves_bc_unjoined"},
+        "dfo:1:x:whole unplaced p1": {"before": None, "after": "straddles_the_cut"}}
+    assert rep["not_compared"] == []
+    assert BD.main([str(a), str(b)]) == 1
+    out = capsys.readouterr().out
+    assert "1 DFO place(s) moved" in out and "standing: 2 piece(s) withheld" in out
+    assert "OKANAGAN RIVER OXBOWS 8-1: 1 id(s), 41 resolved" in out
+
+
+def test_a_side_table_a_run_lacks_is_listed_not_skipped(tmp_path, capsys):
+    a, b = _run(tmp_path / "a", SAME), _side(_run(tmp_path / "b", SAME), tidal=[("t1", "e9")])
+    rep = BD.diff_runs(a, b)
+    assert not BD.differs(rep)
+    assert set(rep["not_compared"]) == {"dfo_salmon.jsonl.gz", "tidal.jsonl", "outside_bc.jsonl",
+                                        "rule_diagnostic.jsonl", "dfo_salmon_diagnostic.jsonl"}
+    assert BD.main([str(a), str(b)]) == 0
+    assert "NOT COMPARED" in capsys.readouterr().out
