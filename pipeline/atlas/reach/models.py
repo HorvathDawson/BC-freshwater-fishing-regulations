@@ -37,6 +37,9 @@ class Reason(str, Enum):
     cuts_collapsed = "cuts_collapsed"                # between() whose cuts resolve to one measure
     parallel_branches = "parallel_branches"          # between() whose halves do not order
     empty_after_scope = "empty_after_scope"          # resolved, then the entry scope clipped it away
+    #: T546: the ENTRY's scope extents fail or place no section — every rule of the row is held here,
+    #: never unclipped (`build.A_FAILED_SCOPE_UNBINDS_THE_ROW`)
+    scope_unresolved = "scope_unresolved"
 
     # --- not geometry at all ---------------------------------------------------
     area_scope = "area_scope"                        # within(area)

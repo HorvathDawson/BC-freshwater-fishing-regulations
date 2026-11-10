@@ -266,8 +266,10 @@ def test_a_rows_scope_clips_every_rule_in_it(braided, monkeypatch):
     assert f"{MAIN}:0" in whole
 
 
-def test_an_unresolvable_scope_clips_nothing_rather_than_everything(braided, monkeypatch):
-    """Silently returning empty reaches for every rule would read as "this row regulates nothing"."""
+def test_an_unresolvable_scope_holds_every_rule_unresolved_and_says_so(braided, monkeypatch):
+    """T546 item 2 (`build.A_FAILED_SCOPE_UNBINDS_THE_ROW`): a row whose scope does not resolve binds
+    NOTHING, and says why — never the whole river (it used to clip nothing: one stretch's closure on all of
+    it). Empty reaches are not silent: the verdict carries `scope_unresolved`, as the run does."""
     from pipeline.common.models.registry import RegistryItem
 
     item = RegistryItem(id="gnis:1", name="Adams River", kind="stream",
@@ -280,7 +282,9 @@ def test_an_unresolvable_scope_clips_nothing_rather_than_everything(braided, mon
     # the covered item comes from `matched` against the stubbed registry — nothing else
 
     got = reuse.entry_reaches("gnis:1#x")
-    assert set(got["rules"]["r1"][0]["sections"]) == braided
+    assert got["rules"]["r1"][0]["sections"] == []
+    assert got["verdict"]["r1"]["reason"] == "scope_unresolved"
+    assert got["scope_unresolved"], "a scope that cannot resolve must be surfaced"
 
 
 def test_a_broken_scope_is_reported_not_swallowed(braided, monkeypatch):

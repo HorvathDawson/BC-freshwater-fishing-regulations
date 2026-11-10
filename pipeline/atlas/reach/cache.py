@@ -135,7 +135,10 @@ from typing import Callable
 #: 35: (T468, owner 2026-11-07) A LAKE ROW'S THROUGH-RIVER ABOVE THE LAKE IS ITS TRIBUTARY when the river
 #:     has no row of its own (`tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY`): Powell Lake's
 #:     closure takes the Powell River above the lake. Depends on OTHER entries (`rowed_waters`), as 14 does.
-POLICY_VERSION = "35"
+#: 36: (T546) A ROW WHOSE SCOPE DOES NOT RESOLVE BINDS NOTHING: a scope extent that fails, or a scope placing no
+#:     section, holds every rule of the row unresolved `scope_unresolved` (`build.A_FAILED_SCOPE_UNBINDS_THE_ROW`) —
+#:     it used to bind unclipped (the whole water) or narrowed to the parts that resolved.
+POLICY_VERSION = "36"
 
 
 def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:

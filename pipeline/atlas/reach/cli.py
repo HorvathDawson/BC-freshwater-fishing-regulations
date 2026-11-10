@@ -93,6 +93,15 @@ def main() -> int:
               "(unresolved `tidal`) — review each cut / rule:")
         for x in r.tidal_emptied:
             print(f"!!   {x['entry_id']} {x['rule_id']}  <- {', '.join(x['splits'])}")
+    if r.scope_unresolved:
+        # T546 item 2: a row whose scope does not resolve binds nothing — listed, and a row with rules fails the run
+        held = {}
+        for b in result.bindings:
+            if b.reason is not None and b.reason.value == "scope_unresolved":
+                held[b.entry_id] = held.get(b.entry_id, 0) + 1
+        print(f"  scope unresolved: {len(r.scope_unresolved)} entr{'y' if len(r.scope_unresolved) == 1 else 'ies'}")
+        for eid in r.scope_unresolved:
+            print(f"{'!!' if held.get(eid) else '  '}   {eid}  ({held.get(eid, 0)} rule(s) held unresolved)")
     for k, v in sorted(r.outcomes.items()):
         print(f"  {k:<12} {v:,}")
     for k, v in sorted(r.reasons.items(), key=lambda kv: -kv[1]):
@@ -132,8 +141,10 @@ def main() -> int:
         print(diff_runs(args.against, result).summary())
     # THE STRADDLE GATE (T67): after the tables are written, so what failed can be read — the run still
     # FAILS, naming every piece left straddling a cut the atlas should have swept.
-    from pipeline.atlas.reach.build import straddle_gate
+    from pipeline.atlas.reach.build import scope_gate, straddle_gate
     straddle_gate(result.diagnostics)
+    # T546 item 2: and on a row with rules whose scope does not resolve (its rules are held unresolved)
+    scope_gate(result.bindings)
     return 0
 
 

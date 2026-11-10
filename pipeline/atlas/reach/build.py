@@ -439,6 +439,12 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None,
     with the cut (`confluence_excludes`). `None` (a caller that did not compute it) knows of no
     row, so every joining water goes with the cut — the review app passes the same map.
     """
+    if clip is not None and not clip:
+        # T546 item 2: the row's scope did not resolve (`entry_scope`) — no rule of it binds
+        return RuleBinding(entry["entry_id"], rule.get("rule_id") or rule.get("id") or "",
+                           Outcome.unresolved, (), Reason.scope_unresolved,
+                           "the entry's scope extents do not resolve, or place no section — the row "
+                           "binds nothing until they do (never the whole water)"), []
     lim = tidal_limit(entry, tidal)
     if lim:
         binding, diags = build_reach(entry, rule, registry, graph, covered=covered, clip=clip,
@@ -1114,6 +1120,14 @@ def scope_resolutions(e: dict, covered: list[str], registry, graph) -> list[tupl
     return [(sc, _resolve.resolve_extent(registry, graph, covered, sc)) for sc in e.get("extents") or []]
 
 
+#: T546 item 2: A ROW WHOSE SCOPE DOES NOT RESOLVE BINDS NOTHING. When the entry states scope extents and
+#: any of them fails, or together they place no section, every rule of the row is unresolved
+#: `scope_unresolved` (`entry_scope` returns an EMPTY clip; `build_reach` reads it) — never unclipped,
+#: which spread one stretch's closure (or exemption) along the whole river, and never narrowed to the
+#: parts that resolved. Guarded by the reach cache's POLICY_VERSION (36).
+A_FAILED_SCOPE_UNBINDS_THE_ROW = True
+
+
 def entry_scope(e: dict, covered: list[str], registry, graph, *, resolved=None):
     """The stretch the ENTRY is about, or (None, []) when it is about the whole water.
 
@@ -1132,11 +1146,19 @@ def entry_scope(e: dict, covered: list[str], registry, graph, *, resolved=None):
     """
     out: set[str] = set()
     failed: list[dict] = []
-    for sc, got in (scope_resolutions(e, covered, registry, graph) if resolved is None else resolved):
+    pairs = scope_resolutions(e, covered, registry, graph) if resolved is None else resolved
+    for sc, got in pairs:
         if got is None:
             failed.append(sc)
             continue
         out |= set(got.get("sections") or ())
+    if not pairs:
+        return None, []
+    if A_FAILED_SCOPE_UNBINDS_THE_ROW and (failed or not out):
+        # T546 item 2: an EMPTY clip, never None — `build_reach` makes every rule of the row unresolved
+        # `scope_unresolved`. A scope resolving to no section is as broken as one that fails, and a part
+        # that failed would silently narrow the row to the parts that resolved.
+        return frozenset(), failed or [sc for sc, _ in pairs]
     return (out or None), failed
 
 
@@ -1246,6 +1268,24 @@ def _clip(got: dict, clip: set[str], area_scope: bool = False) -> dict:
         else:
             out["seed"] = [s for s in got["seed"] if s in clip]
     return out
+
+
+class ScopeGateError(RuntimeError):
+    """A row with rules whose scope does not resolve (`scope_gate`)."""
+
+
+def scope_gate(bindings) -> None:
+    """T546 item 2: raise `ScopeGateError` naming every entry whose rules are unresolved
+    `scope_unresolved` — a row with no rules (a pointer row) only stays listed in `report.scope_unresolved`."""
+    held: dict[str, int] = {}
+    for b in bindings:
+        if b.reason is Reason.scope_unresolved:
+            held[b.entry_id] = held.get(b.entry_id, 0) + 1
+    if held:
+        raise ScopeGateError(f"{len(held)} entr{'y' if len(held) == 1 else 'ies'} with rules have a scope that "
+                             "does not resolve (every rule held unresolved `scope_unresolved`) — fix the "
+                             "entry's scope extents:\n  "
+                             + "\n  ".join(f"{e}: {n} rule(s)" for e, n in sorted(held.items())))
 
 
 class StraddleGateError(RuntimeError):

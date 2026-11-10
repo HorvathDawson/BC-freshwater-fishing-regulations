@@ -44,3 +44,61 @@ def test_an_absorbed_id_is_not_counted_as_gone():
     out = merge_flowing_polygons(reg, g)
     assert "wbk:2" not in out
     assert gone_refs([_entry(matched=["wbk:2"])], out) == []
+
+
+# ------------------------------------------------------------------ item 2: a scope that fails unbinds the row
+
+def _scoped(*scope, rules=True):
+    return _entry(extents=list(scope), rules=[{"rule_id": "r1", "type": "closure", "extents": [{"op": "whole"}]}]
+                  if rules else [])
+
+
+def test_a_good_scope_still_clips():
+    g, reg = _river()
+    res = build_reaches([("1", _scoped({"op": "upstream_of", "splits": ["x_river__lake_1"]}))], reg, g)
+    b = res.bindings[0]
+    assert b.outcome.value == "bound" and "r0" not in b.sections and res.report.scope_unresolved == []
+
+
+@pytest.mark.parametrize("scope", [
+    [{"op": "upstream_of", "splits": ["no_such_cut"]}],                                          # fails
+    [{"op": "upstream_of", "splits": ["x_river__lake_1"]}, {"op": "upstream_of", "splits": ["no_such_cut"]}],
+], ids=["fails", "partly_fails"])
+def test_a_scope_that_fails_holds_every_rule_unresolved_and_stops_the_run(scope):
+    """Mutation: `A_FAILED_SCOPE_UNBINDS_THE_ROW = False` — the row binds the whole river (the closure of
+    one stretch spread along all of it) or narrows to the part that resolved, and the run passes."""
+    from pipeline.atlas.reach.build import ScopeGateError, scope_gate
+    g, reg = _river()
+    res = build_reaches([("1", _scoped(*scope))], reg, g)
+    b = res.bindings[0]
+    assert (b.outcome.value, b.reason.value, b.sections) == ("unresolved", "scope_unresolved", ())
+    assert res.report.scope_unresolved == ["r1:x_river@1-1"]
+    with pytest.raises(ScopeGateError, match=r"r1:x_river@1-1: 1 rule"):
+        scope_gate(res.bindings)
+
+
+def test_a_scope_placing_no_section_is_a_failed_scope():
+    from pipeline.atlas.reach.build import entry_scope
+    g, reg = _river()
+    from pipeline.tests.test_registry_flowing import _item
+    reg = {**reg, "gnis:7": _item("gnis:7", "Z Creek", "stream", [])}
+    clip, failed = entry_scope({"extents": [{"op": "whole", "item_id": "gnis:7"}]}, ["gnis:1"], reg, g)
+    assert clip == frozenset() and failed
+
+
+def test_a_pointer_row_with_a_failed_scope_is_listed_but_does_not_stop_the_run():
+    from pipeline.atlas.reach.build import scope_gate
+    g, reg = _river()
+    res = build_reaches([("1", _scoped({"op": "upstream_of", "splits": ["no_such_cut"]}, rules=False))], reg, g)
+    assert res.report.scope_unresolved == ["r1:x_river@1-1"]
+    scope_gate(res.bindings)                                     # no rule held: passes
+
+
+def test_the_review_app_path_gets_the_same_verdict_by_construction():
+    """`entry_reaches` passes `entry_scope`'s clip to `build_reach` (AGENTS 16): the empty clip is the verdict."""
+    from pipeline.atlas.reach.build import build_reach, entry_scope
+    g, reg = _river()
+    e = _scoped({"op": "upstream_of", "splits": ["no_such_cut"]})
+    clip, _ = entry_scope(e, ["gnis:1"], reg, g)
+    b, _ = build_reach(e, e["rules"][0], reg, g, covered=["gnis:1"], clip=clip)
+    assert b.reason.value == "scope_unresolved"
