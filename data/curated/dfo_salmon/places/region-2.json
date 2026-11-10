@@ -2387,7 +2387,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream",
+              "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road"
+            ],
+            "item_id": "gnis:7250"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
