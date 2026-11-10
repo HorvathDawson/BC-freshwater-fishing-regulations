@@ -606,7 +606,7 @@ use that as the sole source of future work."
 | T559 | Privacy: backups and rate-limit records are deleted when the privacy page says they are | OPEN | — | data pipeline review 2026-11-09 (verified); rank 15, severity 3, 2 findings |
 | T560 | One home for shared helpers: id slug, name key, live release reader, atomic write, cut tolerances | OPEN | — | data pipeline review 2026-11-09 (verified); rank 16, severity 2, 8 findings |
 | T561 | Static layers: real source dates, no-access overlap, OSM fetch checks; pipeline docs match the code | OPEN | — | data pipeline review 2026-11-09 (verified); rank 17, severity 2, 8 findings |
-| T562 | Review marks, what T545 and T541 left: changed-extent guard for older marks, found-name freeze, lake names, check list in the app | PARTIAL — items 5, 7 done 11-10 (and the on_disk name clash); 1–4, 6 open | — | T545 + T541 lane reports 2026-11-09 |
+| T562 | Review marks, what T545 and T541 left: changed-extent guard for older marks, found-name freeze, lake names, check list in the app | PARTIAL — items 4, 5, 7 done 11-10; 6 waits on the owner; 1–3 open (2, 3 are outside the review lane) | 0f6e7607c, aed6f6a25 | T545 + T541 lane reports 2026-11-09 |
 | T563 | A percentile alert follows each day's percentile, not the line of the day it was saved | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T564 | Public gauge page: the forecast is on it, and the chart is large and readable | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T565 | An in-season notice sits at the top of the Regulations page, not under salmon | OPEN | — | owner 2026-11-09 (owner checks page) |

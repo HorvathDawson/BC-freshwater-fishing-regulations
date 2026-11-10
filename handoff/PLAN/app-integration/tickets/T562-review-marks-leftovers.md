@@ -1,6 +1,6 @@
 # T562 — Review marks, what T545 and T541 left
 
-Status: PARTIAL — 2026-11-10: items 5 and 7 (three of its four parts) done; 1, 2, 3, 4, 6 open.
+Status: PARTIAL — 0f6e7607c, aed6f6a25 (2026-11-10): items 4, 5 and 7 done; 6 waits on the owner; 1, 2, 3 open (what each needs is written below).
 
 Source: the T545 and T541 lanes' reports, 2026-11-09.
 
@@ -44,3 +44,22 @@ Depends: —. Size: M. Owner: no.
 2 (found names: accepted ids in the calls file, `mine.py` under `pipeline/`, the digest pin), 3 (an accepted name on a
 lake or registry item), 4 (the `apply --check` list and a file save's dropped rows shown in the app), 6
 (`NOT_LANDED_OK` to a curated file, only if the owner wants to edit it).
+
+## Second pass, 2026-11-10 (aed6f6a25)
+- Item 4 DONE: `GET /api/review/not-landed` runs `apply.check` once per server process in the background (2.7 s,
+  measured) and the app's banner lists every mark in force that is not in its curated file (a mark that only waits
+  for a cut is listed apart, as information); a check that fails is said. A file-domain save's dropped rows and its
+  commit are shown in the same banner stack (they were in the API reply and the log only). Tests:
+  `test_curation_review_safety.py::test_the_landed_check_is_served_once…`, frontend `notLandedWords` /
+  `domainSaveWords`.
+- Item 6 NOT done by design: the ticket says "only if the owner wants to edit it" — an owner question, no code.
+- Item 1 NOT done (in this lane's paths, but large): needs (a) `Mark.extent_before` filled for entry / rule marks at
+  the save (`reuse.post_mark`, as `dfo.mark_for` does for DFO), (b) `proposals` holding a mark whose target's extent is
+  neither its before nor its after, (c) a backfill decision for the 89 older DFO marks that carry no before (they
+  cannot be reconstructed: either they stay re-asserted, as today, or the owner re-saves them), (d) a rename path.
+  (c) is an owner decision.
+- Item 2 NOT done: `mine.py` lives in `handoff/PLAN/curation-review/name-variants/` and is run by hand; moving it under
+  `pipeline/` and pinning the candidates digest changes the found-names header that `pipeline/atlas/registry/mined.py`
+  reads — outside the review-app lane's paths.
+- Item 3 NOT done: `add_mined_names` is `pipeline/atlas/registry/mined.py` (the atlas lane); the accept is still
+  refused with a reason, which is the safe state.
