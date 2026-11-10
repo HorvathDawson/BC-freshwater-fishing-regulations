@@ -13,6 +13,12 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-09 late — BUILD 24 (0.7.2) ON PLAY INTERNAL; review app: unsure = ✗, older wordings need a tick
+- versionCode 24 (2e8bedfb4), patched MapLibre (7bf3dc29), tester email sent. Adds T531 (each calendar with its own fish;
+  a DFO row with no calendar gets its own "Salmon (DFO)" block; legends full ink). Owner: phone look on 0.7.2.
+- Review app (45a1427c0): no "?" — a row not positively confirmed is ✗ (owner rule); older wordings listed with their own
+  text + diff + a "same place" tick (default unticked), only ticked ones are written; 15 groups / 18 older wordings.
+
 ## 2026-11-09 evening — BUILD 23 (0.7.1) ON PLAY INTERNAL
 - versionCode 23 (5f2cd806e), patched MapLibre verified (libmaplibre build id 7bf3dc29); tester email sent. Adds T530 (share
   a gauge from Conditions). Data: r-a178299f6005 (min app 0.7.0). Owner: the build-22 phone check applies to build 23,
