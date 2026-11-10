@@ -646,6 +646,7 @@ use that as the sole source of future work."
 | T604 | The chart's day marks are readable: no overlapping labels, today is obvious (two-days chart) | IN REVIEW — owner looks at the T604-shots and the phone; left: emulator shots | 90e41efc6 | owner 2026-11-10 on build 25, with a shot |
 | T605 | One B.C. clock: what T551 left (gauge page script, items 3/4/8, re-read on return to the app, static hub day words) | OPEN | — | T551 report 2026-11-10; owner: hub pages print dates or rebuild daily |
 | T606 | Atlas inputs: what T547 left (side-build proof, clash suffix numbering + lake names at the next rebuild, cache key, cut label edits) | OPEN | — | T547 report 2026-11-10 |
+| T608 | Three read-only audits before closed testing: rules vs the printed book and DFO feed; one logic in two shells; the feeds worker from the outside | OPEN | — | owner 2026-11-10; findings files T608A/B/C |
 
 ## Order for open tickets
 
