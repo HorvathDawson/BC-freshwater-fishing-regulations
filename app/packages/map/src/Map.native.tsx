@@ -59,7 +59,7 @@ import { colourProbe } from "./native/probe";
 import { panProbe } from "./native/panProbe";
 import { GoneViews } from "./native/goneView";
 import { MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
-         marksLayers, pinDotLayer, pinsData, shiftedLabels } from "./point-marks";
+         marksLayers, pinDotLayer, pinsData, shiftedLabels, titledPin, PIN_DOT } from "./point-marks";
 import { pngDataUri } from "./png";
 import { metricScale } from "./scale";
 import { GEOMETRY, SHOW_SCALE } from "./chrome";
@@ -535,6 +535,10 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   meNow.current = me;
   // (test bed only) the camera link puts this map where a scenario asks, at once (`native/camProbe.ts`)
   useEffect(() => camProbe.mount((c) => renderer.easeTo(c, { duration: 0 })), [renderer]);
+  const pinsNow = useRef(pins);
+  pinsNow.current = pins;
+  /** (T621, G19) a titled pin's words and where the press was, until the next press or pan */
+  const [callout, setCallout] = useState<{ title: string; x: number; y: number } | null>(null);
   const onRegionWillChange = useCallback((e: RegionEvent) => {
     const ne = e.nativeEvent;
     if (ne?.userInteraction && meNow.current?.following) meNow.current.onRelease?.();
@@ -646,6 +650,13 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
         .catch((e: unknown) => { report(e); return []; }) ?? []);   // (T368, Q2) the tap falls through; the host reports it
       if (hit !== null) { pressMarkNow.current?.(hit); return; }
     }
+    // (T621, G19) a titled pin says its words on a tap, as the web's popup does; any other tap puts them away
+    setCallout(null);
+    if (pinsNow.current?.some((p) => p.title) && rendered.current) {
+      const p = titledPin(await mapRef.current?.queryRenderedFeatures(tapBox(x, y), { layers: [PIN_DOT] })
+        .catch((e: unknown) => { report(e); return []; }) ?? [], pinsNow.current);
+      if (p) setCallout({ title: p.title, x, y });
+    }
     cb.current.onMapPoint?.(lat, lon);
     const press = cb.current.onPressFeature, obstacle = cb.current.onPressObstacle, tidal = cb.current.onPressTidal;
     const notFishing = cb.current.onPressNotFishing;
@@ -709,6 +720,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     probe?.settled();
     panProbe.settled();
     const ne = e.nativeEvent;          // before anything async, as with a press
+    if (ne?.userInteraction) setCallout(null);      // (T621, G19) a pan puts a pin's words away
     if (ne?.center && ne.zoom !== undefined) {
       const b = ne.bounds;
       cb.current.onMoved?.({ lon: ne.center[0], lat: ne.center[1], zoom: ne.zoom,
@@ -775,7 +787,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const marksKey = JSON.stringify(marks ?? []);
   const markJson = useMemo(() => marksData(marks, labelAt.key === marksKey ? labelAt.at : undefined), [marksKey, labelAt]);  // eslint-disable-line react-hooks/exhaustive-deps
   const markLook = useMemo(() => marksLayers(furniture, markBoxName), [furniture, markBoxName]);
-  const pinKey = `${marker ? `${marker.lon},${marker.lat}` : ""}|${(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")}`;
+  const pinKey = `${marker ? `${marker.lon},${marker.lat}` : ""}|${(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""},${p.title ?? ""}`).join("|")}`;
   const pinJson = useMemo(() => pinsData(marker, pins, furniture.accent), [pinKey, furniture.accent]);  // eslint-disable-line react-hooks/exhaustive-deps
   const pinLook = useMemo(() => pinDotLayer(furniture.card), [furniture.card]);
   // (T499, the pan probe's build) each GeoJSON source handed new data: a redraw with no camera move
@@ -869,6 +881,14 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
             <Pressable key={i} onPress={() => onPressMark?.(i)} accessibilityRole="button" aria-label={k.a11y}>
               <Text>{k.label ?? ""}</Text>
             </Pressable>))}
+        </View>) : null}
+      {callout ? (
+        // (T621, G19) the web's popup: the pin's words in a card above the press, never over a tap (it takes none)
+        <View pointerEvents="none" accessibilityLiveRegion="polite" testID="pin-callout"
+              style={{ position: "absolute", left: Math.max(8, callout.x - 90), top: Math.max(8, callout.y - 64), width: 180,
+                       paddingHorizontal: 8, paddingVertical: 5, backgroundColor: furniture.card,
+                       borderWidth: 1.5, borderColor: furniture.ink }}>
+          <Text style={{ color: furniture.ink, fontSize: 12, lineHeight: 15, fontFamily: "Archivo_600SemiBold" }}>{callout.title}</Text>
         </View>) : null}
       {/* (T424) THE CREDITS: the web's own component, bottom-right (Esri's "Powered by Esri" beside it while its imagery is
           drawn, T275); the scale bar is bottom-LEFT, so the two never meet */}

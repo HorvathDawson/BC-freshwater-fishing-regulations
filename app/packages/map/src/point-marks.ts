@@ -141,6 +141,20 @@ export function pinsData(marker: { lat: number; lon: number } | null | undefined
   return { type: "FeatureCollection", features };
 }
 
+/**
+ * (T621, G19) THE NAMED POINT A PRESS LANDED ON: the first feature of a query over the pins' layer that carries words,
+ * as the point in `pins` (its `i`; a phone sends it as a string). Both maps read a titled pin's words through this.
+ */
+export function titledPin(features: readonly { properties?: Record<string, unknown> | null }[],
+                          pins: readonly PinPoint[] | undefined): (PinPoint & { title: string }) | null {
+  for (const f of features) {
+    if (typeof f.properties?.title !== "string" || !f.properties.title) continue;
+    const p = pins?.[Number(f.properties.i)];
+    if (p?.title) return p as PinPoint & { title: string };
+  }
+  return null;
+}
+
 /** The phone's pins: the dots the view annotations drew — 16 px for the marker, 12 px for a pin, a 2 px card ring. */
 export function pinDotLayer(card: string) {
   return {

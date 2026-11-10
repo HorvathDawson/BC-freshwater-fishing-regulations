@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { colour } from "./chrome";
-import { markBoxImage, markHit, marksData, pinsData, shiftedLabels } from "./point-marks";
+import { markBoxImage, markHit, marksData, pinsData, shiftedLabels, titledPin } from "./point-marks";
 
 describe("T317 point marks", () => {
   it("the label box is a square card with an ink edge, only its middle stretching", () => {
@@ -26,5 +26,15 @@ describe("T317 point marks", () => {
     const fc = pinsData({ lat: 1, lon: 2 }, [{ lat: 3, lon: 4 }], accent);
     expect(fc.features.map((f) => (f as { properties: { kind: string; tone: string } }).properties))
       .toEqual([expect.objectContaining({ kind: "pin", tone: accent }), expect.objectContaining({ kind: "marker" })]);
+  });
+});
+
+describe("(T621, G19) the words of a titled pin", () => {
+  const pins = [{ lat: 1, lon: 2 }, { lat: 3, lon: 4, title: "Mouth" }];
+  it("is the pin its hit names, whether `i` is a number (web) or a string (phone); none without words", () => {
+    expect(titledPin([{ properties: { title: "Mouth", i: 1 } }], pins)?.title).toBe("Mouth");
+    expect(titledPin([{ properties: { title: "Mouth", i: "1" } }], pins)?.title).toBe("Mouth");
+    expect([titledPin([{ properties: { title: "", i: 0 } }], pins), titledPin([{ properties: { i: 0 } }], pins),
+            titledPin([], pins), titledPin([{ properties: { title: "x", i: 9 } }], pins)]).toEqual([null, null, null, null]);
   });
 });

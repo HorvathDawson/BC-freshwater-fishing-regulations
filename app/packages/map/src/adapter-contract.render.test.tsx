@@ -660,6 +660,19 @@ describe("the gesture policy reaches each renderer", () => {
 });
 
 describe("native only", () => {
+it("(T621, G19) a tap on a titled pin shows its words, as the web's popup does; another tap puts them away", async () => {
+  answer = (layers) => (layers.includes("t317-pins-dot") ? [{ properties: { title: "Upstream gauge", i: "0" } }] : []);
+  render(<NativeMap {...base({ data: undefined, highlight: undefined, onPressFeature: vi.fn(),
+                               pins: [{ lat: 49.1, lon: -122.3, title: "Upstream gauge" }] })} />);
+  await waitFor(() => expect(native.props).toBeTruthy());
+  await act(async () => { native.props!.onDidFinishRenderingMapFully?.(); });
+  PLATFORMS.native.tap(100, 200, -122.3, 49.1);
+  expect(await screen.findByText("Upstream gauge")).toBeTruthy();
+  answer = () => [];
+  PLATFORMS.native.tap(300, 500, -122.0, 49.0);
+  await waitFor(() => expect(screen.queryByText("Upstream gauge")).toBeNull());
+});
+
 it("no listener, no long press: the binding is handed no handler (its long press stays the SDK's no-op)", async () => {
   render(<NativeMap {...base({ data: undefined, highlight: undefined })} />);
   await waitFor(() => expect(native.props).toBeTruthy());

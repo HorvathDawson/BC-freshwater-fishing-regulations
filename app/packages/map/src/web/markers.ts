@@ -13,6 +13,7 @@ import { hereImage } from "../here-mark";
 import {
   MARK_BOX_IMAGE, MARK_LABEL, MARK_RING, MARK_SOURCE, PIN_ICON, PIN_SOURCE, markBox, markBoxImage, markHit, marksData,
   marksLayers, pinIconLayer, pinsData, shiftedLabels,
+  titledPin,
 } from "../point-marks";
 import { afterLoad } from "./ready";
 import type { WebMapRefs } from "./refs";
@@ -68,10 +69,8 @@ export function usePins({ map }: WebMapRefs, marker: MapProps["marker"], pins: M
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (!m.getLayer(PIN_ICON)) return;
       const { x, y } = e.point;
-      const f = m.queryRenderedFeatures([[x - 12, y - 12], [x + 12, y + 12]], { layers: [PIN_ICON] })
-        .find((g) => typeof g.properties?.title === "string" && g.properties.title);
-      const p = f ? pinsNow.current?.[Number(f.properties?.i)] : undefined;
-      if (p?.title) new maplibregl.Popup({ closeButton: false }).setLngLat([p.lon, p.lat]).setText(p.title).addTo(m);
+      const p = titledPin(m.queryRenderedFeatures([[x - 12, y - 12], [x + 12, y + 12]], { layers: [PIN_ICON] }), pinsNow.current);
+      if (p) new maplibregl.Popup({ closeButton: false }).setLngLat([p.lon, p.lat]).setText(p.title).addTo(m);
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };
