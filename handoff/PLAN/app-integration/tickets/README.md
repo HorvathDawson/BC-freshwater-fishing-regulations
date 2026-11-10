@@ -613,12 +613,12 @@ use that as the sole source of future work."
 | T566 | Switching between the maps causes issues sometimes (owner, Pixel 9, build 24) | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa, 1c57e7c07, 694479e25 | level-only gauge under Flow now says so; forecast day: figure labelled today's, day asked has its own line and chart mark; lead gauge flips with quantity on a forecast day = owner decision (A/B in ticket); owner confirms on the phone |
 | T568 | The gauge map moves when Level / Flow is tapped on the chart | IN REVIEW | 1c57e7c07, 694479e25 | map one place over the chart, one frame per water, a refusal keeps the map; owner confirms on the phone |
-| T569 | Report a problem from the screen you are on (Conditions has no way in) | OPEN | — | owner 2026-11-09 |
+| T569 | Report a problem from the screen you are on (Conditions has no way in) | IN REVIEW | 774befd64 | worker deploy needed for the new keys |
 | T570 | Indigenous land names show only when zoomed in a lot more | OPEN | — | owner 2026-11-10 |
 | T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | DONE | f1acba096 | owner 2026-11-10: "should never happen … look for other things like that" |
 | T581 | The gauge card, chart and alert editor all use the quantity asked | IN REVIEW | 5a2e4117b | T580 F1, F7 |
 | T582 | One day per water screen, and the same kept state on web and phone | OPEN | — | T580 F2, F3; owner: one day or two labelled |
-| T583 | One wording for a gauge's standing, everywhere | OPEN | — | T580 F4 |
+| T583 | One wording for a gauge's standing, everywhere | IN REVIEW | dad265255 | owner: estimate sentence |
 | T584 | Conditions reads the same whatever the way in (group strip, picks, part step) | IN REVIEW | 5a2e4117b | T580 F5, F6, F11 |
 | T585 | Web and phone answer from the same feed and release, and say which | OPEN | — | T580 F8, F12–F14; with T550 |
 | T586 | Small one-answer fixes: saved spot lead, silent gauge dot, two clocks | IN REVIEW | 5a2e4117b | T580 F9, F10 (owner), F15 |
