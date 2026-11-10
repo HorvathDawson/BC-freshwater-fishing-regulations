@@ -191,8 +191,8 @@ describe("the chart zooms and reads out", () => {
       return el.textContent!;
     });
     expect(line).not.toBe(CONDITIONS_WORDS.zoomHint.pointer);
-    // (T367) the row above the plot holds the read-out OR the hint: the read-out takes the hint's place
-    expect(screen.queryByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeNull();
+    // (T604) the hint stays, whole, on its own line: the read-out has the row above it to itself
+    expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();
     act(() => { fireGestureHandler(getByGestureTestId("chart-double-tap"), [{ x: 1, y: 1 }, { x: 1, y: 1 }]); });
     await waitFor(() => expect(screen.queryByText(/^\d{4}-\d\d-\d\d at \d\d:\d\d .+ · [\d.]+ m³\/s/)).toBeNull());
     expect(screen.getByText(CONDITIONS_WORDS.zoomHint.pointer)).toBeTruthy();

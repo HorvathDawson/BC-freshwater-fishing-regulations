@@ -15,7 +15,7 @@ describe("T582: the regulations day against the Conditions window", () => {
     expect(l.kind).toBe("inside");
     if (l.kind !== "inside") return;
     expect(l.name).toBe("Sat 14 Nov");
-    expect(l.mark).toBe("SAT 14 NOV");
+    expect(l.mark).toBe("Sat 14 Nov");
     expect(new Date(l.at).getDate()).toBe(14);
   });
   it("the last forecast day is inside, the next is past, with the one line", () => {

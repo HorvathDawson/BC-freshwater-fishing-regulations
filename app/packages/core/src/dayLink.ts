@@ -47,7 +47,7 @@ export function regsDayLink(regsDay: Date | null, now: Date): RegsDayLink {
   if (offset <= 0) return { kind: "today" };
   const name = dayWords(noon(now, offset));
   if (offset > FORECAST_WINDOW) return { kind: "past", offset, name, line: DAY_LINK_WORDS.past(name) };
-  return { kind: "inside", offset, name, at: noon(now, offset).getTime(), mark: name.toUpperCase(),
+  return { kind: "inside", offset, name, at: noon(now, offset).getTime(), mark: name,
            line: DAY_LINK_WORDS.inside(name) };
 }
 

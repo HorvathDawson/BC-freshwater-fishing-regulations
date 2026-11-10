@@ -97,3 +97,4 @@ export * from "./failure";
 export * from "./alerts";
 // (T234 v1.1) the app's changelog: one source, bundled; the incoming version's bullets travel in the version file
 export * from "./changelog";
+export * from "./chartMarks";

@@ -11,7 +11,8 @@
  * unusual one — a percentile envelope, a log axis, two year traces, forecast ribbons.
  * Generic chart APIs fight all four.
  */
-import { clampDomain, nearestIndex, type Band, type Domain } from "@app/core";
+import { clampDomain, layoutDayMarks, nearestIndex, type Band, type DayMarkIn, type DayMarkKind, type DayMarkOut,
+         type Domain } from "@app/core";
 
 export interface Box {
   width: number;
@@ -21,6 +22,9 @@ export interface Box {
   padTop: number;
   padBottom: number;
 }
+
+/** (T604) the day-mark labels' type size, which `layoutDayMarks` measures against and the chart draws at */
+export const MARK_FONT = 10;
 
 export const DEFAULT_BOX: Box = {
   width: 320, height: 190, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24,
@@ -83,10 +87,11 @@ export interface Hydrograph {
   /** x of today, for the rule that separates the record from the forecast. */
   todayX: number | null;
   /**
-   * (T567) THE DAY ASKED, on a forecast day: its rule on the plot, past today's, with its date as the label; null on Now
-   * and Change, or when the day is off the plot.
+   * (T604) THE DAY MARKS, each rule with its label already placed (`layoutDayMarks`, one layout for web and phone): today,
+   * the Conditions day asked (T567) and the regulations day (T582), those that are on the plot. Empty on Now/Change with
+   * no regulations day.
    */
-  day: { x: number; label: string } | null;
+  marks: readonly DayMarkOut[];
   /** Nested percentile bands, widest first, so they can be drawn in order. */
   envelopes: readonly Envelope[];
   /** The median trace. */
@@ -215,8 +220,8 @@ export interface BuildInput {
    * actually on screen.
    */
   ticks?: ((view: Domain) => readonly { t: number; label: string }[]) | null;
-  /** (T567) The forecast day asked: where it falls on the clock (epoch ms) and its words. */
-  day?: { at: number; label: string } | null;
+  /** (T567, T604) The days to mark besides today: where each falls on the clock (epoch ms), its words, and whose it is. */
+  days?: readonly { at: number; label: string; kind: "conditions" | "regs" }[];
 }
 
 /**
@@ -417,6 +422,19 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
              line: `M${[`${x0.toFixed(1)},${y0.toFixed(1)}`, ...a.pts.map((p) => `${xAt(p.t).toFixed(1)},${y(p.mid).toFixed(1)}`)].join("L")}` };
   });
 
+  // (T604) THE DAY MARKS and where their labels go: one layout (core `layoutDayMarks`) for web and phone
+  const todayAt = nowIndex >= 0 && nowIndex < vals.length && onPlot(x(nowIndex)) ? x(nowIndex) : null;
+  const wanted: DayMarkIn[] = [];
+  if (todayAt !== null) wanted.push({ x: todayAt, text: "Today", kind: "today" });
+  const dayAt = new Set<number>();
+  for (const d of stamps.length === vals.length ? input.days ?? [] : []) {
+    if (dayAt.has(d.at) || !onPlot(xAt(d.at))) continue;
+    dayAt.add(d.at);   // the same day twice (Conditions and regulations) is one mark, the Conditions one
+    wanted.push({ x: xAt(d.at), text: d.label, kind: d.kind as DayMarkKind });
+  }
+  const marks = layoutDayMarks({ plot: { x: padLeft, width: innerW }, top: padTop + MARK_FONT - 1, rowHeight: MARK_FONT + 2,
+                                 fontSize: MARK_FONT, marks: wanted });
+
   return {
     box,
     line: segments.join(""),
@@ -444,8 +462,7 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     // seasonal chart the record simply stops there and the rest of the frame is band —
     // without the rule a reader cannot tell where the measuring ended and the season's
     // shape took over.
-    day: input.day && stamps.length === vals.length && onPlot(xAt(input.day.at))
-      ? { x: xAt(input.day.at), label: input.day.label } : null,
+    marks,
     todayX: nowIndex >= 0 && nowIndex < vals.length && onPlot(x(nowIndex)) ? x(nowIndex) : null,
     forecast,
     alsoForecasts,

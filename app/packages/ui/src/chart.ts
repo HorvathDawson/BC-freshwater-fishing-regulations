@@ -147,6 +147,8 @@ function draftKey(station: StationId | null, span: ChartSpan, parameter: Paramet
   return `draft:${seriesKey(station, span, parameter, model)}`;
 }
 
+const NO_DAYS: readonly { at: number; label: string; kind: "conditions" | "regs" }[] = [];
+
 export function useChartView(source: WaterSource, station: StationId | null, span: ChartSpan,
                              parameter: Parameter | undefined, model: string | undefined,
                              width: number, enabled = true, draft: ChartDraft | null = null,
@@ -158,9 +160,11 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
                               * drawn alone. Ignored while no forecast is drawn.
                               */
                              also: readonly string[] = NO_MODELS,
-                             /** (T567) the forecast day asked: marked on the plot beside today's rule; null on Now */
-                             day: { at: number; label: string } | null = null): Async<ChartView | null> {
+                             /** (T567, T604) the days marked on the plot beside today's rule: the Conditions day asked and the
+                                 regulations day (either, both, or none; the same day twice is one mark) */
+                             days: readonly { at: number; label: string; kind: "conditions" | "regs" }[] = NO_DAYS): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
+  const daysKey = days.map((d) => `${d.kind}:${d.at}:${d.label}`).join("|");
   // (owner 2026-10-29) a feed the update service took redraws the chart in place: a refresh of the same series (its
   // window and read-out, keyed on `key`, are kept)
   const v = useFeedVersion("gauges");
@@ -247,7 +251,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
         : null,
       alsoForecasts: drawForecast ? alsoRuns : [],
       log: span === "year" && s.parameter === "discharge",
-      box, domain: st.domain, probe: st.probe, day: drawForecast ? day : null,
+      box, domain: st.domain, probe: st.probe, days: drawForecast ? days : NO_DAYS,
       ticks: (v) => chartTicks(v, span, tickCount(box.width)),
     });
     const p = shape.probe;
@@ -259,7 +263,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
                       pending: false, draft: both === early, asOf, ...actions } };
-  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, day?.at, day?.label]);
+  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, daysKey]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);

@@ -14,7 +14,7 @@
 import { useId, useMemo, useRef } from "react";
 import { withWebProps } from "./gestureWeb";
 import { CONDITIONS_WORDS, wheelFactor } from "@app/core";
-import { forecastDash, type ChartView, type Hydrograph as Shape } from "@app/ui";
+import { forecastDash, MARK_FONT, type ChartView, type Hydrograph as Shape } from "@app/ui";
 import { View, type ViewInstance } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -102,24 +102,24 @@ export function Hydrograph({ shape, palette, colour, label, unit,
         {/* TODAY, drawn whether or not a forecast follows it. On the seasonal chart the
             record simply stops here and the rest of the frame is band; without the rule a
             reader cannot tell where the measuring ended and the season's shape took over. */}
-        {shape.todayX !== null && (
-          <G>
-            <Line x1={shape.todayX} y1={box.padTop}
-                  x2={shape.todayX} y2={box.height - box.padBottom}
-                  stroke={palette.sub} strokeWidth={1} strokeDasharray="2,3" />
-            <SvgText x={shape.todayX + 3} y={box.padTop + 8}
-                     fontSize={TICK - 1} fill={palette.faint}>TODAY</SvgText>
-          </G>
-        )}
-        {/* (T567) THE DAY ASKED, on a forecast day: its own rule past today's, dated */}
-        {shape.day !== null && (
-          <G>
-            <Line x1={shape.day.x} y1={box.padTop} x2={shape.day.x} y2={box.height - box.padBottom}
-                  stroke={colour} strokeWidth={1.4} strokeDasharray="2,3" />
-            <SvgText x={shape.day.x - 3} y={box.padTop + 8} textAnchor="end"
-                     fontSize={TICK - 1} fill={palette.sub}>{shape.day.label}</SvgText>
-          </G>
-        )}
+        {/* (T604) THE DAY MARKS: today first and strongest (solid, ink, bold) where the reading line ends; the Conditions
+            day in the line's colour; the regulations day quiet. Where each label sits is core's `layoutDayMarks`
+            (placed in `buildHydrograph`, so web and phone agree and no two labels meet). */}
+        {shape.marks.map((m) => {
+          const today = m.kind === "today";
+          const stroke = today ? palette.ink : m.kind === "conditions" ? colour : palette.sub;
+          return (
+            <G key={`${m.kind}${m.x}`} testID={`chart-mark-${m.kind}`}>
+              <Line x1={m.x} y1={box.padTop} x2={m.x} y2={box.height - box.padBottom} stroke={stroke}
+                    strokeWidth={today ? 1.6 : m.kind === "conditions" ? 1.4 : 1}
+                    strokeDasharray={today ? undefined : "2,3"} />
+              {m.placed && (
+                <SvgText x={m.tx} y={m.ty} textAnchor={m.anchor} fontSize={MARK_FONT}
+                         fontFamily={today ? TYPE.metaBold.fontFamily : TYPE.meta.fontFamily} fill={today ? palette.ink : palette.sub}>{m.text}</SvgText>
+              )}
+            </G>
+          );
+        })}
         {shape.forecast && (
           <G>
             {shape.forecast.band !== "" && (
@@ -252,20 +252,26 @@ function ZoomBar({ palette, view, unit }: { palette: Palette; view: ChartActions
   const W = CONDITIONS_WORDS;
   const r = view.readout;
   const hint = useMemo(() => CONDITIONS_WORDS.zoomHint[chartPointer()], []);
+  // (T604, owner build 25) THE HINT IS SAID WHOLE, on its own line under the row: beside the buttons on a phone it ran to
+  // three lines at the top of the card and was cut at the scroll's edge under the pinned access band. The row keeps the
+  // unit, the read-out and the buttons on one line, so reading a value never moves the chart.
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, marginBottom: SPACE.s1 }}>
-      {unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub }}>{unit}</Text> : null}
-      <Text numberOfLines={1} accessibilityLiveRegion="polite"
-            style={{ ...(r ? TYPE.metaBold : TYPE.meta), flex: 1, color: r ? palette.ink : palette.faint }}>
-        {r ? r.line : hint}
-      </Text>
-      <View style={{ flexDirection: "row", gap: SPACE.s1 }} accessibilityRole="toolbar"
-            accessibilityLabel={W.zoom.group}>
-        <ZoomButton palette={palette} label={W.zoom.out} glyph="−" onPress={view.zoomed ? view.zoomOut : undefined} />
-        <ZoomButton palette={palette} label={W.zoom.in} glyph="+" onPress={view.zoomIn} />
-        <ZoomButton palette={palette} label={W.zoom.fit} glyph="⤢"
-                    onPress={view.zoomed || r ? view.fit : undefined} />
+    <View style={{ marginBottom: SPACE.s1, gap: SPACE.s1 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+        {unit ? <Text testID="chart-unit" style={{ ...TYPE.micro, fontSize: 11, color: palette.sub }}>{unit}</Text> : null}
+        <Text numberOfLines={1} accessibilityLiveRegion="polite" testID="chart-readout"
+              style={{ ...TYPE.metaBold, flex: 1, color: palette.ink }}>
+          {r ? r.line : ""}
+        </Text>
+        <View style={{ flexDirection: "row", gap: SPACE.s1 }} accessibilityRole="toolbar"
+              accessibilityLabel={W.zoom.group}>
+          <ZoomButton palette={palette} label={W.zoom.out} glyph="−" onPress={view.zoomed ? view.zoomOut : undefined} />
+          <ZoomButton palette={palette} label={W.zoom.in} glyph="+" onPress={view.zoomIn} />
+          <ZoomButton palette={palette} label={W.zoom.fit} glyph="⤢"
+                      onPress={view.zoomed || r ? view.fit : undefined} />
+        </View>
       </View>
+      <Text style={{ ...TYPE.meta, color: palette.faint }}>{hint}</Text>
     </View>
   );
 }

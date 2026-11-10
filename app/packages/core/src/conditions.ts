@@ -151,9 +151,9 @@ export function leadGapLine(dayName: string): string {
 /** (T567) The water reports level only today, so its lead gauge was chosen on level. */
 export const LEVEL_ONLY_LEAD = "No gauge here reports flow today, so the gauge shown is chosen on water level.";
 
-/** The chart's mark for the day asked: "WED 12 NOV". */
+/** The chart's mark for the day asked: "Wed 12 Nov" (T604: as the text line above the chart says it). */
 export function forecastDayMark(dayName: string): string {
-  return dayName.toUpperCase();
+  return dayName;
 }
 
 /**

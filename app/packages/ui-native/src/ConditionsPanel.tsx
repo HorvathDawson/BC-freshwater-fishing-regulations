@@ -161,8 +161,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const allRuns = anyRun.state === "ready" ? anyRun.value?.forecasts ?? [] : null;
   const drawsForecast = forecastDrawn(forecastOn, allRuns);
   const chart = useChartView(source, station, span, param, drawn, chartW, charts, draft, drawsForecast, pickState.also,
-                            // (T582) the horizon's own day first; else the regulations day, when it is inside the window
-                            vm.ahead ?? (link?.kind === "inside" ? { at: link.at, label: link.mark } : null));
+                            // (T582, T604) the horizon's own day AND the regulations day when it is inside the window: all drawn
+                            // (a chosen Conditions day does not hide the regulations day); the same day is one mark
+                            useMemo(() => [
+                              ...(vm.ahead ? [{ at: vm.ahead.at, label: vm.ahead.label, kind: "conditions" as const }] : []),
+                              ...(link?.kind === "inside" ? [{ at: link.at, label: link.mark, kind: "regs" as const }] : []),
+                            ], [vm.ahead, link?.kind === "inside" ? link.at : null, link?.kind === "inside" ? link.mark : null]));
   const series = useSeries(source, station, span, param, drawn, charts);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.

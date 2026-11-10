@@ -104,16 +104,18 @@ describe("the read-out", () => {
 describe("the forecast day asked (T567)", () => {
   const fat = Array.from({ length: 49 }, (_, i) => new Date(T0 + (N - 1 + i) * H).toISOString());
   const fc = { at: fat, mid: fat.map(() => 7), lo: fat.map(() => 5), hi: fat.map(() => 9) };
-  const day = { at: T0 + (N - 1 + 24) * H, label: "WED 21 OCT" };
+  const day = { at: T0 + (N - 1 + 24) * H, label: "Wed 21 Oct", kind: "regs" as const };
 
   it("keeps today in view and marks the day asked past it, beside the forecast", () => {
-    const h = buildHydrograph({ ...base, forecast: fc, day });
+    const h = buildHydrograph({ ...base, forecast: fc, days: [day] });
     // the whole frame is 72 h of record then 48 h of forecast: today at 72/120, the day asked at 96/120 of the plot
-    expect([h.todayX, h.day]).toEqual([expect.closeTo(40 + 550 * 72 / 120, 6), { x: expect.closeTo(40 + 550 * 96 / 120, 6), label: "WED 21 OCT" }]);
+    expect([h.todayX, h.marks.map((m) => [m.kind, m.text, m.x])]).toEqual([expect.closeTo(40 + 550 * 72 / 120, 6),
+      [["today", "Today", expect.closeTo(40 + 550 * 72 / 120, 6)], ["regs", "Wed 21 Oct", expect.closeTo(40 + 550 * 96 / 120, 6)]]]);
+    expect(h.marks.every((m) => m.placed)).toBe(true);
   });
 
   it("marks no day on Now, and none that is off the plot", () => {
-    expect(buildHydrograph({ ...base, forecast: fc }).day).toBeNull();
-    expect(buildHydrograph({ ...base, forecast: fc, day: { at: T0 + 400 * H, label: "X" } }).day).toBeNull();
+    expect(buildHydrograph({ ...base, forecast: fc }).marks.map((m) => m.kind)).toEqual(["today"]);
+    expect(buildHydrograph({ ...base, forecast: fc, days: [{ at: T0 + 400 * H, label: "X", kind: "regs" }] }).marks.map((m) => m.kind)).toEqual(["today"]);
   });
 });
