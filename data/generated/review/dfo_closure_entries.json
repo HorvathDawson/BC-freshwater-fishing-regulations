@@ -1,0 +1,94 @@
+{
+ "_about": "ENTRY B per DFO place that names closed areas inside its words (pipeline.regs.dfo_salmon.closures). PROPOSALS: derived, never applied — nothing in the places files or the feed reads this.",
+ "entries": {
+  "3:thompson-river:from-kamloops-lake-outlet-downstre#closed": {
+   "id": "3:thompson-river:from-kamloops-lake-outlet-downstre#closed",
+   "derived_from": "3:thompson-river:from-kamloops-lake-outlet-downstre",
+   "kind": "closure",
+   "water": "Thompson River",
+   "water_id": "3:thompson-river",
+   "region": "3",
+   "status": "dormant",
+   "title": "Thompson River: no fishing, year-round in 3 named areas",
+   "rule": {
+    "type": "retention_limit",
+    "species": [
+     "SA"
+    ],
+    "take": 0,
+    "may_target": false,
+    "verbatim": "No fishing, year-round",
+    "when": {
+     "dates": [
+      {
+       "from_month": 1,
+       "from_day": 1,
+       "to_month": 12,
+       "to_day": 31
+      }
+     ]
+    }
+   },
+   "areas": [
+    {
+     "name": "Deadman",
+     "words": "from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek."
+    },
+    {
+     "name": "Juniper",
+     "words": "from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W."
+    },
+    {
+     "name": "Ashcroft",
+     "words": "from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft."
+    }
+   ],
+   "source_words": "From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provincial Park, except:",
+   "said_by": "3:thompson-river:from-kamloops-lake-outlet-downstre~2"
+  },
+  "3:thompson-river:from-kamloops-lake-outlet-downstre~2#closed": {
+   "id": "3:thompson-river:from-kamloops-lake-outlet-downstre~2#closed",
+   "derived_from": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
+   "kind": "closure",
+   "water": "Thompson River",
+   "water_id": "3:thompson-river",
+   "region": "3",
+   "status": "active",
+   "title": "Thompson River: no fishing, year-round in 3 named areas",
+   "rule": {
+    "type": "retention_limit",
+    "species": [
+     "SA"
+    ],
+    "take": 0,
+    "may_target": false,
+    "verbatim": "No fishing, year-round",
+    "when": {
+     "dates": [
+      {
+       "from_month": 1,
+       "from_day": 1,
+       "to_month": 12,
+       "to_day": 31
+      }
+     ]
+    }
+   },
+   "areas": [
+    {
+     "name": "Deadman",
+     "words": "from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek."
+    },
+    {
+     "name": "Juniper",
+     "words": "from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W."
+    },
+    {
+     "name": "Ashcroft",
+     "words": "from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft."
+    }
+   ],
+   "source_words": "From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provincial Park Please note that no fishing is allowed in the following areas, year-round:"
+  }
+ }
+}

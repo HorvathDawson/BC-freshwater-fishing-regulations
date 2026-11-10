@@ -1302,6 +1302,8 @@ export interface DfoExtentNow {
   cannot_change: string[];
   /** the tributary call it binds with: its own, else its water's (the DFO title) */
   tributaries: boolean | null;
+  /** does the builder walk tributaries for this place as it stands (`dfo.walks_now`); null: cannot be asked */
+  walks_tributaries?: boolean | null;
   /** what the mark sends back as `extent_before` */
   seen: DfoSeenExtent;
 }
@@ -1310,6 +1312,17 @@ export interface DfoWording { fingerprint: string | null; text: string; dates: s
 export interface DfoPlace {
   id: string; this: boolean; members: string[]; text: string; status: string;
   verify?: string | null; state?: string | null; historic_only?: boolean | null; wordings: DfoWording[];
+}
+/** T573: the closed-areas entry of a DFO row: one rule ("No fishing, year-round") on named areas, each with DFO's own
+ *  words and — when a proposal places it — its two ends on the water and its length */
+export interface DfoClosureArea {
+  name: string; words: string; metres: number | null;
+  ends: { label: string; new: boolean; coord: [number, number] | null; measure: number | null; why?: string }[];
+}
+export interface DfoClosure {
+  error?: string;
+  id: string; derived_from: string; title: string; rule: { verbatim: string }; areas: DfoClosureArea[];
+  proposed: boolean; why?: string | null; new_cuts: string[]; said_by?: string;
 }
 export interface DfoFixProposal {
   why: string;
@@ -1363,6 +1376,8 @@ export interface DfoDetail {
   /** owner 2026-11-02: Claude's FIX PROPOSAL for this item, from the mark's note — never applied */
   fix_proposal?: DfoFixProposal | null;
   fix_vs_current?: FixVsCurrent | null;
+  /** T573: ENTRY B of this DFO row — the closure derived from its exclusion list, a proposal (`dfo.closure_view`) */
+  closure?: DfoClosure | null;
   /** T525 r3: what the place's last save did (`dfo.saved_status`), for the one status line */
   saved?: DfoSaved | null;
   extent_now: DfoExtentNow;

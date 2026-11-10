@@ -250,6 +250,18 @@ export function arrange(queue: CheckPlace[], o: { easiest: boolean; hideDone: bo
     .sort((a, b) => rank(a.p) - rank(b.p) || a.i - b.i).map((x) => x.p)), hidden };
 }
 
+/** ENTRY B ON THE MAP (T573): each closed area whose two ends are placed, as a pair to walk the river between */
+export function closedPairs(areas: { ends: { coord: [number, number] | null }[] }[]): [[number, number], [number, number]][] {
+  return areas.flatMap((a) => (a.ends.length === 2 && a.ends[0].coord && a.ends[1].coord
+    ? [[a.ends[0].coord, a.ends[1].coord] as [[number, number], [number, number]]] : []));
+}
+/** one closed area in a line: its name, its length, between which ends */
+export function closedLine(a: { name: string; metres: number | null; ends: { label: string; new: boolean }[] }): string {
+  const len = a.metres == null ? "" : a.metres >= 1000 ? ` · ${(a.metres / 1000).toFixed(1)} km` : ` · ${a.metres} m`;
+  const ends = a.ends.length === 2 ? `: ${a.ends.map((e) => `${e.new ? "NEW cut " : ""}${e.label}`).join(" → ")}` : ": not placed yet";
+  return `${a.name}${len}${ends}`;
+}
+
 /** THE NEXT WATER WITH WORK LEFT, from anywhere (owner 2026-11-09: "is there a button to go to next river?"): the
  *  first not-done place on another water, in list order after the shown place (wrapping); null when none is left */
 export function nextWaterWithWork(queue: CheckPlace[], id: string | null): CheckPlace | null {

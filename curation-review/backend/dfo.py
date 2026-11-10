@@ -342,7 +342,19 @@ def extent_now(loc: dict, water: dict | None) -> dict:
     b = loc.get("binding") or {}
     pieces, why = P.fixes_of_extents(b.get("extents") or [], b.get("tributaries"))
     return {"pieces": [f.model_dump(mode="json") for f in pieces], "cannot_change": why,
-            "tributaries": tributaries_now(loc, water), "seen": seen_extent(loc)}
+            "tributaries": tributaries_now(loc, water), "seen": seen_extent(loc),
+            # (T532 r10) what "tributaries as the place has them" MEANS here: does the builder walk them for this place
+            "walks_tributaries": walks_now(loc, water)}
+
+
+def walks_now(loc: dict, water: dict | None) -> bool | None:
+    """Does the builder walk tributaries for this place as it stands (`classify.wants_tributaries` on its own reach
+    input; a place with no extent is asked as the whole water)? None when the question cannot be asked."""
+    try:
+        b = loc.get("binding") or {}
+        return bool(_walks_tributaries(*_reach_input(loc, water, None if b.get("extents") else [{"op": "whole"}])))
+    except Exception:  # noqa: BLE001 — a place the reach input refuses has no answer here; the screen says "unknown"
+        return None
 
 
 def _strings(x) -> set[str]:
@@ -585,6 +597,12 @@ def _split_feature(sid: str, *, rules: list[str], to_verify: bool, item_id: str 
     props = {"split_id": sid, "label": label, "water": water,
              "name": f"{water}: {label}" if water else label, "rules": rules, "parts": [],
              "to_verify": to_verify, "grade": None, "item_id": on_item}
+    if b is not None and getattr(b, "wbk", None) and on_item:
+        # (T532 r10) a LAKE cut's map point is the lake itself; where the water's own line meets the lake (its inlet
+        # and outlet) is what a stretch is drawn from — the Thompson's first stretch starts at Kamloops Lake's outlet
+        ends = _lake_ends(str(b.wbk), on_item)
+        if ends:
+            props["ends"] = ends
     if geom is None:
         return {"unplaced": {**props, "why": "the served atlas has no point for it"}}
     return {"type": "Feature", "geometry": geom, "properties": props}
@@ -612,6 +630,30 @@ def _splits_fc(loc: dict, water: dict | None) -> dict:
         else:
             feats.append(f)
     return {"type": "FeatureCollection", "features": feats, "unplaced": unplaced}
+
+
+def _lake_ends(wbk: str, item_id: str) -> list[list[float]]:
+    """[lon, lat] of each end of the item's line sections that lies on the lake's outline (`LAKE_TOUCH_M`)"""
+    from shapely.geometry import Point, shape
+    from shapely.ops import transform
+    import pyproj
+    lake = reuse._features("lakes", [wbk], "split")
+    it = reuse._registry().get(item_id)
+    if not lake or it is None or not lake[0].get("geometry"):
+        return []
+    poly = transform(pyproj.Transformer.from_crs(4326, 3005, always_xy=True).transform, shape(lake[0]["geometry"]))
+    geoms, to_ll, out = reuse._geoms(), reuse._to_lonlat(), []
+    for s_ in it.section_ids:
+        g = geoms.get(s_)
+        if g is None or g.geom_type != "LineString":
+            continue
+        for c in (g.coords[0], g.coords[-1]):
+            if poly.boundary.distance(Point(c)) <= LAKE_TOUCH_M:
+                x, y = to_ll(c[0], c[1])
+                pt = [round(x, 6), round(y, 6)]
+                if pt not in out:
+                    out.append(pt)
+    return out
 
 
 def _hints(loc: dict, water: dict | None) -> list[dict]:
@@ -697,11 +739,64 @@ def detail(location_id: str) -> dict | None:
         "splits": _splits_fc(loc, water),
         "proposed": proposed_on(list((water or {}).get("item_ids") or [])), "hints": _hints(loc, water), "siblings": siblings,
         "suggestion": suggestion(location_id), "fix_proposal": fix_proposal(location_id),
+        "closure": closure_view(location_id),
         "fix_vs_current": (fvc := fix_vs_current(m, loc, water)), "saved": saved_status(m, fvc),
         "extent_now": extent_now(loc, water),
         "mark": ({**rekeyed(json.loads(m.model_dump_json())), **v} if m is not None else None),
     }
     return reuse._json_safe({**view, "cut_labels": cut_labels(view), "item_names": item_names(view)})
+
+
+#: ENTRY B PER PLACE (T573): the closure entries derived from the stored rows (`dfo_salmon.closures`), proposals only.
+#: `CURATION_DFO_CLOSURES` points it at a copy (tests).
+def _closures_path() -> Path:
+    if os.environ.get("CURATION_DFO_CLOSURES"):
+        return Path(os.environ["CURATION_DFO_CLOSURES"])
+    return Path(GENERATED.review) / "dfo_closure_entries.json"
+
+
+def closure_view(location_id: str) -> dict | None:
+    """THE CLOSED-AREAS ENTRY OF A PLACE (T573, owner 2026-11-10: "it should become 2 entries"): entry B derived from
+    this place's row, and — when a proposal places its areas (`dfo_fix_proposals.json` under `<id>#closed`) — each
+    area's two ends on the water, resolved by the server's own anchor check, with its length. Read only; a proposal:
+    nothing in the places files or the feed holds it. A file that cannot be read is said (`error`)."""
+    from pipeline.regs.review import marks as M
+    p = _closures_path()
+    if not p.exists():
+        return None
+    try:
+        entry = (json.loads(p.read_text(encoding="utf-8")).get("entries") or {}).get(location_id + "#closed")
+    except (OSError, ValueError) as ex:
+        return {"error": f"the closure entries file cannot be read: {ex}"}
+    if entry is None:
+        return None
+    prop = fix_proposal(location_id + "#closed") or {}
+    sg = prop.get("suggestion") or {}
+    new = {n["ref"]: n for n in sg.get("new_splits") or []}
+    bounds = reuse._boundary_index()
+
+    def end(pt: dict) -> dict:
+        sid = pt.get("split_id")
+        if pt.get("kind") == "split":
+            q = reuse._split_point(sid)
+            ll = reuse._to_lonlat()(q.x, q.y) if q is not None else None
+            return {"label": getattr(bounds.get(sid, (None, None))[1], "label", None) or sid, "new": False,
+                    "coord": [round(ll[0], 6), round(ll[1], 6)] if ll else None,
+                    "measure": (reuse._splits_meta().get(sid) or {}).get("route_measure")}
+        n = new.get(sid)
+        got = check_anchor(location_id, M.NewSplit.model_validate(n)) if n else {"ok": False, "why": "no such new cut"}
+        return {"label": (n or {}).get("name") or sid, "new": True, "coord": got.get("coord"),
+                "measure": got.get("measure"), **({} if got.get("ok") else {"why": got.get("why")})}
+    areas = []
+    pieces = sg.get("pieces") or []
+    for i, a in enumerate(entry.get("areas") or []):
+        piece = pieces[i] if i < len(pieces) else None
+        ends = [end(pt) for pt in (piece or {}).get("points") or []]
+        ms = [e.get("measure") for e in ends]
+        areas.append({**a, "ends": ends,
+                      "metres": round(abs(ms[0] - ms[1])) if len(ms) == 2 and None not in ms else None})
+    return reuse._json_safe({**entry, "areas": areas, "proposed": bool(pieces), "why": prop.get("why"),
+                             "new_cuts": [n.get("name") or n["ref"] for n in new.values()]})
 
 
 def _heading(loc: dict, water: dict | None) -> str:

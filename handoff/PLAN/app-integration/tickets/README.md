@@ -618,6 +618,7 @@ use that as the sole source of future work."
 | T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | OPEN | T568, T567 | owner 2026-11-10: "should never happen … look for other things like that" |
 | T571 | Sheldens Creek: the "Spur 19 Bridge site" cut looks misplaced | IN REVIEW | — | 11-10: the data cannot name the Spur 19 crossing; a low-confidence alternative waits as a proposal;  owner's problem report 2026-11-09: "i think spur 19 is at completely the wrong spot?" |
 | T572 | Thompson River: three year-round closed areas inside one DFO place | IN REVIEW | — | 11-10: proposed as 4 open stretches, 5 new cuts; the Juniper upper signs are his choice;  owner's problem report 2026-11-09: "need to figure out how to represent all of these" |
+| T573 | A DFO row that names closed areas becomes two entries (the Thompson) | IN REVIEW | — | owner 2026-11-10; review side + derivation built as a proposal; the build side waits on his six cuts |
 
 ## Order for open tickets
 

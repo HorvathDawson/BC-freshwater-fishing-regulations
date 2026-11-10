@@ -33,13 +33,27 @@ export function extentParts(e: DfoExtent, label: CutLabel, itemName: (id: string
 }
 /** an extent fix: the op, its points (a curated cut by label, a NEW one by its name), the waters it holds on, its
  *  tributary call */
-export function fixParts(f: ExtentFix, label: CutLabel, itemName: (id: string) => string): Part[] {
+export function fixParts(f: ExtentFix, label: CutLabel, itemName: (id: string) => string,
+                         placeWalks?: boolean | null): Part[] {
   const pts = joined(f.points.map((p) => (p.kind === "split" && p.split_id ? [cutPart(p.split_id, label)]
     : p.kind === "new" && p.split_id ? ["NEW cut ", cutPart(p.split_id, label)] : [pointWords(p, (x) => x)])), " and ");
   return [OP_WORDS[f.op] ?? f.op, ...(pts.length ? [" ", ...pts] : []), ...(f.area ? [` ${f.area}`] : []),
           ` · ${f.items.length ? `on ${f.items.map(itemName).join(", ")}` : "on the place's waters"}`,
-          ` · ${f.tributaries == null ? "tributaries as the place has them" : f.tributaries ? "with tributaries"
+          ` · ${f.tributaries == null ? tribsAsPlace(placeWalks) : f.tributaries ? "with tributaries"
             : "without tributaries"}`];
+}
+/** "no call on this piece": what the PLACE does, in plain words (T532 r10: "tributaries as the place has them" told
+ *  the owner nothing) — `placeWalks` is the builder's own answer for the place (`dfo.walks_now`) */
+export function tribsAsPlace(placeWalks?: boolean | null): string {
+  return placeWalks == null ? "tributaries as the place has them"
+    : placeWalks ? "tributaries ON (the place walks them: every tributary above this piece)" : "tributaries OFF (the place has no tributary call)";
+}
+/** A SAVE'S HEADLINE: it SETS an extent where there is none, ADDS a piece, or REPLACES the one there (T532 r10:
+ *  "REPLACES the extent now" beside "now: none" contradicted itself) */
+export function effectHead(effect: "keep" | "add" | "replace", extentsNow: number): string {
+  if (effect === "keep") return "Keeps the extent now.";
+  if (!extentsNow) return "SETS this place's extent (it has none now)";
+  return effect === "add" ? "ADDS a piece to the extent now" : "REPLACES the extent now";
 }
 /** several pieces, one after another ("piece 1: … + piece 2: …"); one piece reads as itself */
 export function piecesParts<T>(xs: T[], one: (x: T) => Part[]): Part[] {

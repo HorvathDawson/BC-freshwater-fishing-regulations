@@ -5,7 +5,7 @@ import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, Dfo
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
-import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
+import { HOW_IT_WORKS, LEAVE_DRAFT, arrange, closedLine, closedPairs, groupStillNeeds, nextAfterSave, nextWaterWithWork, placeState, waterLeft, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
 import { markBody, offerProposal } from "../dfoExtent";
 import { OlderWordings } from "./OlderWordings";
@@ -436,6 +436,7 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
     return () => window.removeEventListener("ck-pin", h);
   }, []);
   const pins = useMemo(() => pinsFc(loaded.check.rows, on), [loaded.check.rows, on]);
+  const closedNow = useMemo(() => closedPairs(loaded.dfo?.closure?.areas ?? []), [loaded.dfo]);
   // the view fits the FIRST place opened on this water; stepping its other places keeps it (the map stays)
   const first = useRef(loaded.id);
   // the cuts the rows name, labelled (never every cut on the water: the rows are what is checked)
@@ -451,12 +452,13 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
         {loaded.proposal && !edit && <span><i className="prop" />proposal (not applied)</span>}
         {edit && edit.editPoints.length > 0 && <span><i className="newcut" />new cut, not built</span>}
         {edit && <span><i className="draft" />your change (not saved)</span>}
+        {closedNow.length > 0 && <span><i className="closed" />closed year-round (entry B, a proposal)</span>}
         {edit?.approx && <span><i className="approx" />approximate: the exact stretch is drawn after the next rebuild</span>}
         {(edit ? edit.ring.length > 0 : !!loaded.proposal?.ring.length) && <span><i className="ring" />ringed: an existing cut it uses</span>}
         {faint && faint.features.length > 0 && <span><i className="faint" />this water's other extents</span>}</div>
       <MapPanel itemId={loaded.items[0]?.id ?? null} alsoItemIds={loaded.items.slice(1).map((i) => i.id)}
         suggested={edit ? null : loaded.proposal?.fc ?? null} fitSuggested={!loaded.reach?.features.length} faint={faint} faintOn={faintOn}
-        approx={edit?.approx ?? null} onApprox={edit?.onApprox}
+        approx={edit?.approx ?? null} onApprox={edit?.onApprox} closed={closedNow}
         ringSplits={edit ? edit.ring : loaded.proposal?.ring ?? []} ringColor={edit ? "#0d9488" : "#7c3aed"}
         saved={edit?.draft ?? null} fitSaved cutPreview={edit?.cutPreview ?? null} editPoints={edit?.editPoints ?? []}
         onMovePoint={edit?.onMovePoint} onPick={edit?.onPick ?? null}
@@ -719,6 +721,25 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top, waterDone }: {
                 Give this wording the same extent as “{(twin.text || "that wording").slice(0, 40)}…” (saves)</button>
             </div>
             <div className="dim">One click, saved as your mark on this wording. Not the same place? Take it out of the group below.</div>
+          </div>
+        )}
+        {d?.closure && (
+          <div className="ck-two" data-testid="ck-two-entries">
+            {d.closure.error ? <div className="warn-text">{d.closure.error}</div> : <>
+              <b>This DFO row is two entries (a proposal, nothing accepted):</b>
+              <div className="ck-entry a" data-testid="ck-entry-a"><span className="k">A · open water</span> DFO's rules for this place on the whole stretch its words name
+                {ext.length ? <> — now: {partsText(piecesParts(ext, (x) => extentParts(x, cutLabel, itemName)))}</> : loaded.proposal ? <> — proposed: {loaded.proposal.words}</> : null}.
+                This is the place you are on.</div>
+              <div className="ck-entry b" data-testid="ck-entry-b"><span className="k">B · closed areas</span> “{d.closure.rule.verbatim}” on {d.closure.areas.length} stretches, red on the map
+                {d.closure.proposed ? "" : " (not placed yet)"}:
+                <ol className="dfo-pieces">
+                  {d.closure.areas.map((a) => (
+                    <li key={a.name} data-testid="ck-closed-area"><b>{closedLine(a)}</b>
+                      <div className="dim">DFO: “{a.words}”</div></li>))}
+                </ol>
+                {d.closure.new_cuts.length > 0 && <div className="dim">{d.closure.new_cuts.length} of its cuts are new and not built.</div>}
+                <div className="dim">Entry B is derived from this row's words and is not a place in the data yet: it cannot be saved here until it is accepted into the DFO places (T573).</div>
+              </div></>}
           </div>
         )}
         {!needs && d && loaded.proposal && onEdit && !pc.held && !doneBySave && (

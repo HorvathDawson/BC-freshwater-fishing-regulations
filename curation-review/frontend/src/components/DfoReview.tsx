@@ -10,7 +10,7 @@ import type {
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { MapPanel, type EditPoint } from "./MapPanel";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
-import { extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
+import { effectHead, extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
 import { coveredWords, groupSave, saveForAll } from "../checklist";
 import { OlderWordings } from "./OlderWordings";
@@ -429,8 +429,19 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
         : pt.coord ?? null) as [number, number] | null;
     };
     // an approximate stretch is offered for EVERY piece that runs between two points whose places are known
+    // a LAKE cut's own point is the lake: the stretch is drawn from where the water meets it (`ends`: inlet, outlet),
+    // the end nearest the piece's other point
+    const lakeEnds = (pt: ExtentFix["points"][number]) => (pt.kind === "split"
+      ? ((detail.splits.features.find((x) => x.properties.split_id === pt.split_id)?.properties as { ends?: [number, number][] } | undefined)?.ends ?? null) : null);
+    const near = (ends: [number, number][], to: [number, number]) =>
+      ends.reduce((a, b) => (Math.hypot(a[0] - to[0], a[1] - to[1]) <= Math.hypot(b[0] - to[0], b[1] - to[1]) ? a : b));
     const pairs = fixes.flatMap((f) => {
       const two = f.op === "between" && f.points.length === 2 ? f.points.map(where) : [];
+      if (two.length === 2) {
+        const [e0, e1] = [lakeEnds(f.points[0]), lakeEnds(f.points[1])];
+        if (e0?.length && two[1]) two[0] = near(e0, two[1]);
+        if (e1?.length && two[0]) two[1] = near(e1, two[0]);
+      }
       return two.length === 2 && two[0] && two[1] ? [[two[0], two[1]] as [[number, number], [number, number]]] : [];
     });
     const mock = pairs.length ? pairs : null;
@@ -579,7 +590,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   const tribNow = now.tributaries == null ? "" : `${now.tributaries ? "with" : "without"} tributaries`;
   const extentText = (exs: DfoExtent[], testid?: string) =>
     <Words testid={testid} parts={piecesParts(exs, (e) => extentParts(e, cutLabel, itemNameOf))} />;
-  const fixPartsOf = (f: ExtentFix) => fixParts(f, cutLabel, itemNameOf);
+  const fixPartsOf = (f: ExtentFix) => fixParts(f, cutLabel, itemNameOf, now.walks_tributaries);
   // T525 r3: what the last save did, in one line (the write-through's outcome first, then `dfo.saved_status`)
   const pending = detail.saved && detail.saved.state !== "landed" && detail.saved.state !== "deferred"
     ? savedFixesOf(was) : null;
@@ -857,16 +868,21 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                   <strong data-testid="dfo-effect-head">{asKeep ? "Your draft is the extent now: nothing to change. Confirm it as it is below, or edit a point above."
                     : "Keeps the extent now."}</strong>
                 ) : (
-                  <><strong data-testid="dfo-effect-head">{effect === "add" ? "ADDS a piece to the extent now"
-                    : "REPLACES the extent now"}</strong>
+                  <><strong data-testid="dfo-effect-head">{effectHead(effect, ex.length)}</strong>
                     <div className="dfo-ov">
                       <span className="k now">now</span>
                       <span data-testid="dfo-effect-old" className={effect === "replace" ? "old" : undefined}>{ex.length ? extentText(ex) : "none"}</span>
                       <span className="k new">new</span>
-                      <Words testid="dfo-effect-new" parts={piecesParts(fixes, fixPartsOf)} />
+                      {/* r10: several pieces read as a numbered list, one per line, in the order they are listed */}
+                      {fixes.length > 1 ? (
+                        <ol className="dfo-pieces" data-testid="dfo-effect-new">
+                          {fixes.map((f, i) => <li key={i} data-testid="dfo-effect-piece"><Words parts={fixPartsOf(f)} /></li>)}
+                        </ol>
+                      ) : <Words testid="dfo-effect-new" parts={piecesParts(fixes, fixPartsOf)} />}
                     </div>
                     {draftCuts.length > 0 && <div data-testid="dfo-effect-waits">Takes effect after the next rebuild builds
-                      the new cut{draftCuts.length === 1 ? "" : "s"} {draftCuts.join(" and ")}.</div>}
+                      {draftCuts.length === 1 ? <> the new cut {draftCuts[0]}.</> : <> these {draftCuts.length} cuts, none built yet:
+                        <ul className="dfo-pieces">{draftCuts.map((c) => <li key={c} data-testid="dfo-effect-cut">{c}</li>)}</ul></>}</div>}
                     {incomplete.length > 0 && <div className="field-error" data-testid="dfo-incomplete">
                       Not ready to save: {incomplete.join("; ")}</div>}</>
                 )}

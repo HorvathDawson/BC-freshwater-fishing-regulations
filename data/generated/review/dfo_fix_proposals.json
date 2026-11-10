@@ -549,10 +549,10 @@
    "owner": true
   },
   "3:thompson-river:from-kamloops-lake-outlet-downstre": {
-   "why": "Owner's problem report 2026-11-09 (T572): \"need to figure out how to represent all of these\". DFO: the place runs from Kamloops Lake outlet down to the signs just below Gold Pan Provincial Park, and \"no fishing is allowed in the following areas, year-round\": Deadman, Juniper, Ashcroft. Represented with the pieces machinery: the place binds the FOUR OPEN STRETCHES between the three closed areas, so its rules never land inside a closed area — (1) Kamloops Lake outlet → the Deadman upper signs (1 km below the Hwy 1 bridge at Savona); (2) the CN rail bridge below Deadman Creek (existing cut) → the Juniper upper signs; (3) the Juniper lower signs (DFO's coordinate) → the Bonaparte's mouth; (4) the Hwy 97C bridge in Ashcroft → the signs just below Gold Pan (the cut your own save proposed). Five new cuts, each placed by the server's own anchor check on the Thompson. THE ONE CHOICE LEFT TO YOU: the Juniper upper signs — DFO gives two descriptions that disagree by 2.8 km (4 km above its coordinate, or 1.5 km below the park's downstream boundary); the proposal uses the first. The three closed areas themselves are not made places here: whether the app should SHOW them as closed year-round is a separate decision.",
+   "why": "Owner 2026-11-10 (T572 / T573): \"it is like it should become 2 entries?\" ENTRY A, the open water: DFO's rules for this place on the WHOLE stretch its words name — Kamloops Lake outlet down to the signs just below Gold Pan Provincial Park (92.1 km), one piece. The three year-round closed areas are ENTRY B (the closure derived from this same row), which is narrower and so wins on its own stretches. One cut is not built yet: the Gold Pan signs, the cut your own save proposed. This is the extent you already saved on the live wording; it replaces the earlier four-open-stretches proposal.",
    "status": "proposed",
    "date": "2026-11-10",
-   "by": "claude, from DFO's words, BC MoTI road structures and the BC parks polygon (T572)",
+   "by": "claude, from the owner's direction (two entries) and DFO's words",
    "suggestion": {
     "op": "between",
     "items": [
@@ -566,75 +566,10 @@
      },
      {
       "kind": "new",
-      "split_id": "thompson_deadman_upper_signs"
+      "split_id": "thompson_river__signs_just_below_goldpan_provincial_park"
      }
     ],
-    "new_splits": [
-     {
-      "ref": "thompson_deadman_upper_signs",
-      "anchor": "bridge",
-      "name": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
-      "on_item": "gnis:39492",
-      "coord": [
-       -120.87265,
-       50.75654
-      ],
-      "offset_m": -1000,
-      "confidence": "medium",
-      "quote": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
-      "note": "bridge point: BC MoTI road structure 'SAVONA' (Hwy 1) over the Thompson, 50.75654,-120.87265; the cut is 1,000 m down the river from it ('approximately' is DFO's word)"
-     },
-     {
-      "ref": "thompson_juniper_upper_signs",
-      "anchor": "sign",
-      "name": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
-      "on_item": "gnis:39492",
-      "coord": [
-       -121.13517,
-       50.78155
-      ],
-      "offset_m": 4000,
-      "confidence": "low",
-      "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
-      "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs. The other reading, 1.5 km below the park's downstream boundary, lands 2.8 km further down (the closed area would be 1.2 km long, not 'approximately 4 km'): the owner's call"
-     },
-     {
-      "ref": "thompson_juniper_lower_signs",
-      "anchor": "sign",
-      "name": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
-      "on_item": "gnis:39492",
-      "coord": [
-       -121.13517,
-       50.78155
-      ],
-      "confidence": "high",
-      "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
-      "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line"
-     },
-     {
-      "ref": "thompson_bonaparte_mouth",
-      "anchor": "confluence",
-      "name": "Bonaparte River",
-      "item_id": "gnis:38393",
-      "on_item": "gnis:39492",
-      "confidence": "high",
-      "quote": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River",
-      "note": "the Bonaparte's mouth on the Thompson (FWA)"
-     },
-     {
-      "ref": "thompson_ashcroft_hwy_97c_bridge",
-      "anchor": "bridge",
-      "name": "Hwy 97C bridge in Ashcroft",
-      "on_item": "gnis:39492",
-      "coord": [
-       -121.28188,
-       50.72701
-      ],
-      "confidence": "high",
-      "quote": "to Hwy 97C bridge in Ashcroft",
-      "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188"
-     }
-    ],
+    "new_splits": [],
     "pieces": [
      {
       "op": "between",
@@ -649,70 +584,19 @@
        },
        {
         "kind": "new",
-        "split_id": "thompson_deadman_upper_signs"
-       }
-      ]
-     },
-     {
-      "op": "between",
-      "items": [
-       "gnis:39492"
-      ],
-      "tributaries": null,
-      "points": [
-       {
-        "kind": "split",
-        "split_id": "thompson_river__cnr_bridge"
-       },
-       {
-        "kind": "new",
-        "split_id": "thompson_juniper_upper_signs"
-       }
-      ]
-     },
-     {
-      "op": "between",
-      "items": [
-       "gnis:39492"
-      ],
-      "tributaries": null,
-      "points": [
-       {
-        "kind": "new",
-        "split_id": "thompson_juniper_lower_signs"
-       },
-       {
-        "kind": "new",
-        "split_id": "thompson_bonaparte_mouth"
-       }
-      ]
-     },
-     {
-      "op": "between",
-      "items": [
-       "gnis:39492"
-      ],
-      "tributaries": null,
-      "points": [
-       {
-        "kind": "new",
-        "split_id": "thompson_ashcroft_hwy_97c_bridge"
-       },
-       {
-        "kind": "new",
         "split_id": "thompson_river__signs_just_below_goldpan_provincial_park"
        }
       ]
      }
     ],
-    "words": "4 open stretches between the 3 year-round closed areas (Deadman, Juniper, Ashcroft), from Kamloops Lake outlet to the signs below Gold Pan; 5 new cuts"
+    "words": "entry A: the whole stretch, Kamloops Lake outlet to the signs below Gold Pan (the closed areas are entry B)"
    }
   },
   "3:thompson-river:from-kamloops-lake-outlet-downstre~2": {
-   "why": "Owner's problem report 2026-11-09 (T572): \"need to figure out how to represent all of these\". DFO: the place runs from Kamloops Lake outlet down to the signs just below Gold Pan Provincial Park, and \"no fishing is allowed in the following areas, year-round\": Deadman, Juniper, Ashcroft. Represented with the pieces machinery: the place binds the FOUR OPEN STRETCHES between the three closed areas, so its rules never land inside a closed area — (1) Kamloops Lake outlet → the Deadman upper signs (1 km below the Hwy 1 bridge at Savona); (2) the CN rail bridge below Deadman Creek (existing cut) → the Juniper upper signs; (3) the Juniper lower signs (DFO's coordinate) → the Bonaparte's mouth; (4) the Hwy 97C bridge in Ashcroft → the signs just below Gold Pan (the cut your own save proposed). Five new cuts, each placed by the server's own anchor check on the Thompson. THE ONE CHOICE LEFT TO YOU: the Juniper upper signs — DFO gives two descriptions that disagree by 2.8 km (4 km above its coordinate, or 1.5 km below the park's downstream boundary); the proposal uses the first. The three closed areas themselves are not made places here: whether the app should SHOW them as closed year-round is a separate decision.",
+   "why": "Owner 2026-11-10 (T572 / T573): \"it is like it should become 2 entries?\" ENTRY A, the open water: DFO's rules for this place on the WHOLE stretch its words name — Kamloops Lake outlet down to the signs just below Gold Pan Provincial Park (92.1 km), one piece. The three year-round closed areas are ENTRY B (the closure derived from this same row), which is narrower and so wins on its own stretches. One cut is not built yet: the Gold Pan signs, the cut your own save proposed. This is the extent you already saved on the live wording; it replaces the earlier four-open-stretches proposal.",
    "status": "proposed",
    "date": "2026-11-10",
-   "by": "claude, from DFO's words, BC MoTI road structures and the BC parks polygon (T572)",
+   "by": "claude, from the owner's direction (two entries) and DFO's words",
    "suggestion": {
     "op": "between",
     "items": [
@@ -726,75 +610,10 @@
      },
      {
       "kind": "new",
-      "split_id": "thompson_deadman_upper_signs"
+      "split_id": "thompson_river__signs_just_below_goldpan_provincial_park"
      }
     ],
-    "new_splits": [
-     {
-      "ref": "thompson_deadman_upper_signs",
-      "anchor": "bridge",
-      "name": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
-      "on_item": "gnis:39492",
-      "coord": [
-       -120.87265,
-       50.75654
-      ],
-      "offset_m": -1000,
-      "confidence": "medium",
-      "quote": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
-      "note": "bridge point: BC MoTI road structure 'SAVONA' (Hwy 1) over the Thompson, 50.75654,-120.87265; the cut is 1,000 m down the river from it ('approximately' is DFO's word)"
-     },
-     {
-      "ref": "thompson_juniper_upper_signs",
-      "anchor": "sign",
-      "name": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
-      "on_item": "gnis:39492",
-      "coord": [
-       -121.13517,
-       50.78155
-      ],
-      "offset_m": 4000,
-      "confidence": "low",
-      "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
-      "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs. The other reading, 1.5 km below the park's downstream boundary, lands 2.8 km further down (the closed area would be 1.2 km long, not 'approximately 4 km'): the owner's call"
-     },
-     {
-      "ref": "thompson_juniper_lower_signs",
-      "anchor": "sign",
-      "name": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
-      "on_item": "gnis:39492",
-      "coord": [
-       -121.13517,
-       50.78155
-      ],
-      "confidence": "high",
-      "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
-      "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line"
-     },
-     {
-      "ref": "thompson_bonaparte_mouth",
-      "anchor": "confluence",
-      "name": "Bonaparte River",
-      "item_id": "gnis:38393",
-      "on_item": "gnis:39492",
-      "confidence": "high",
-      "quote": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River",
-      "note": "the Bonaparte's mouth on the Thompson (FWA)"
-     },
-     {
-      "ref": "thompson_ashcroft_hwy_97c_bridge",
-      "anchor": "bridge",
-      "name": "Hwy 97C bridge in Ashcroft",
-      "on_item": "gnis:39492",
-      "coord": [
-       -121.28188,
-       50.72701
-      ],
-      "confidence": "high",
-      "quote": "to Hwy 97C bridge in Ashcroft",
-      "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188"
-     }
-    ],
+    "new_splits": [],
     "pieces": [
      {
       "op": "between",
@@ -809,63 +628,12 @@
        },
        {
         "kind": "new",
-        "split_id": "thompson_deadman_upper_signs"
-       }
-      ]
-     },
-     {
-      "op": "between",
-      "items": [
-       "gnis:39492"
-      ],
-      "tributaries": null,
-      "points": [
-       {
-        "kind": "split",
-        "split_id": "thompson_river__cnr_bridge"
-       },
-       {
-        "kind": "new",
-        "split_id": "thompson_juniper_upper_signs"
-       }
-      ]
-     },
-     {
-      "op": "between",
-      "items": [
-       "gnis:39492"
-      ],
-      "tributaries": null,
-      "points": [
-       {
-        "kind": "new",
-        "split_id": "thompson_juniper_lower_signs"
-       },
-       {
-        "kind": "new",
-        "split_id": "thompson_bonaparte_mouth"
-       }
-      ]
-     },
-     {
-      "op": "between",
-      "items": [
-       "gnis:39492"
-      ],
-      "tributaries": null,
-      "points": [
-       {
-        "kind": "new",
-        "split_id": "thompson_ashcroft_hwy_97c_bridge"
-       },
-       {
-        "kind": "new",
         "split_id": "thompson_river__signs_just_below_goldpan_provincial_park"
        }
       ]
      }
     ],
-    "words": "4 open stretches between the 3 year-round closed areas (Deadman, Juniper, Ashcroft), from Kamloops Lake outlet to the signs below Gold Pan; 5 new cuts"
+    "words": "entry A: the whole stretch, Kamloops Lake outlet to the signs below Gold Pan (the closed areas are entry B)"
    }
   },
   "6:sheldens-creek:upstream-of-white-triangular-fishi": {
@@ -901,6 +669,292 @@
      }
     ],
     "words": "upstream of the road crossing 130 m above the mouth (an alternative to the present cut, low confidence)"
+   }
+  },
+  "3:thompson-river:from-kamloops-lake-outlet-downstre#closed": {
+   "why": "ENTRY B, the closed areas (T573): \"No fishing, year-round\" on three stretches of the Thompson, each with DFO's own words — Deadman (1 km below the Hwy 1 bridge at Savona → the CN rail bridge below Deadman Creek), Juniper (4 km of river ending at DFO's coordinate 50°46.893' N 121°08.110' W), Ashcroft (the Bonaparte's mouth → the Hwy 97C bridge). Five cuts are new (the CN rail bridge exists). THE ONE CHOICE LEFT TO YOU: the Juniper upper signs — DFO's two descriptions disagree by 2.8 km (4 km above its coordinate, used here; or 1.5 km below Juniper Beach Park's downstream boundary). Tributaries are off: a closed stretch of the main river does not close the creeks that enter it.",
+   "status": "proposed",
+   "date": "2026-11-10",
+   "by": "claude, from DFO's words, BC MoTI road structures and the BC parks polygon (T573)",
+   "suggestion": {
+    "op": "between",
+    "items": [
+     "gnis:39492"
+    ],
+    "tributaries": false,
+    "points": [
+     {
+      "kind": "new",
+      "split_id": "thompson_deadman_upper_signs"
+     },
+     {
+      "kind": "split",
+      "split_id": "thompson_river__cnr_bridge"
+     }
+    ],
+    "new_splits": [
+     {
+      "ref": "thompson_deadman_upper_signs",
+      "anchor": "bridge",
+      "name": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
+      "on_item": "gnis:39492",
+      "coord": [
+       -120.87265,
+       50.75654
+      ],
+      "offset_m": -1000,
+      "confidence": "medium",
+      "quote": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+      "note": "bridge point: BC MoTI road structure 'SAVONA' (Hwy 1) over the Thompson, 50.75654,-120.87265; the cut is 1,000 m down the river from it ('approximately' is DFO's word)"
+     },
+     {
+      "ref": "thompson_juniper_upper_signs",
+      "anchor": "sign",
+      "name": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
+      "on_item": "gnis:39492",
+      "coord": [
+       -121.13517,
+       50.78155
+      ],
+      "offset_m": 4000,
+      "confidence": "low",
+      "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+      "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs. The other reading, 1.5 km below the park's downstream boundary, lands 2.8 km further down (the closed area would be 1.2 km long, not 'approximately 4 km'): the owner's call"
+     },
+     {
+      "ref": "thompson_juniper_lower_signs",
+      "anchor": "sign",
+      "name": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
+      "on_item": "gnis:39492",
+      "coord": [
+       -121.13517,
+       50.78155
+      ],
+      "confidence": "high",
+      "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
+      "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line"
+     },
+     {
+      "ref": "thompson_bonaparte_mouth",
+      "anchor": "confluence",
+      "name": "Bonaparte River",
+      "item_id": "gnis:38393",
+      "on_item": "gnis:39492",
+      "confidence": "high",
+      "quote": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River",
+      "note": "the Bonaparte's mouth on the Thompson (FWA)"
+     },
+     {
+      "ref": "thompson_ashcroft_hwy_97c_bridge",
+      "anchor": "bridge",
+      "name": "Hwy 97C bridge in Ashcroft",
+      "on_item": "gnis:39492",
+      "coord": [
+       -121.28188,
+       50.72701
+      ],
+      "confidence": "high",
+      "quote": "to Hwy 97C bridge in Ashcroft",
+      "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188"
+     }
+    ],
+    "pieces": [
+     {
+      "op": "between",
+      "items": [
+       "gnis:39492"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "thompson_deadman_upper_signs"
+       },
+       {
+        "kind": "split",
+        "split_id": "thompson_river__cnr_bridge"
+       }
+      ]
+     },
+     {
+      "op": "between",
+      "items": [
+       "gnis:39492"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "thompson_juniper_upper_signs"
+       },
+       {
+        "kind": "new",
+        "split_id": "thompson_juniper_lower_signs"
+       }
+      ]
+     },
+     {
+      "op": "between",
+      "items": [
+       "gnis:39492"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "thompson_bonaparte_mouth"
+       },
+       {
+        "kind": "new",
+        "split_id": "thompson_ashcroft_hwy_97c_bridge"
+       }
+      ]
+     }
+    ],
+    "words": "entry B: no fishing, year-round, on three closed stretches (Deadman 3.6 km, Juniper 4.0 km, Ashcroft 2.3 km); 5 new cuts"
+   }
+  },
+  "3:thompson-river:from-kamloops-lake-outlet-downstre~2#closed": {
+   "why": "ENTRY B, the closed areas (T573): \"No fishing, year-round\" on three stretches of the Thompson, each with DFO's own words — Deadman (1 km below the Hwy 1 bridge at Savona → the CN rail bridge below Deadman Creek), Juniper (4 km of river ending at DFO's coordinate 50°46.893' N 121°08.110' W), Ashcroft (the Bonaparte's mouth → the Hwy 97C bridge). Five cuts are new (the CN rail bridge exists). THE ONE CHOICE LEFT TO YOU: the Juniper upper signs — DFO's two descriptions disagree by 2.8 km (4 km above its coordinate, used here; or 1.5 km below Juniper Beach Park's downstream boundary). Tributaries are off: a closed stretch of the main river does not close the creeks that enter it.",
+   "status": "proposed",
+   "date": "2026-11-10",
+   "by": "claude, from DFO's words, BC MoTI road structures and the BC parks polygon (T573)",
+   "suggestion": {
+    "op": "between",
+    "items": [
+     "gnis:39492"
+    ],
+    "tributaries": false,
+    "points": [
+     {
+      "kind": "new",
+      "split_id": "thompson_deadman_upper_signs"
+     },
+     {
+      "kind": "split",
+      "split_id": "thompson_river__cnr_bridge"
+     }
+    ],
+    "new_splits": [
+     {
+      "ref": "thompson_deadman_upper_signs",
+      "anchor": "bridge",
+      "name": "Deadman closed area, upper signs: 1 km downstream of the Hwy 1 bridge at Savona",
+      "on_item": "gnis:39492",
+      "coord": [
+       -120.87265,
+       50.75654
+      ],
+      "offset_m": -1000,
+      "confidence": "medium",
+      "quote": "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona",
+      "note": "bridge point: BC MoTI road structure 'SAVONA' (Hwy 1) over the Thompson, 50.75654,-120.87265; the cut is 1,000 m down the river from it ('approximately' is DFO's word)"
+     },
+     {
+      "ref": "thompson_juniper_upper_signs",
+      "anchor": "sign",
+      "name": "Juniper closed area, upper signs: 4 km upstream of its lower signs",
+      "on_item": "gnis:39492",
+      "coord": [
+       -121.13517,
+       50.78155
+      ],
+      "offset_m": 4000,
+      "confidence": "low",
+      "quote": "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+      "note": "placed 4,000 m up the river from DFO's own coordinate for the lower signs. The other reading, 1.5 km below the park's downstream boundary, lands 2.8 km further down (the closed area would be 1.2 km long, not 'approximately 4 km'): the owner's call"
+     },
+     {
+      "ref": "thompson_juniper_lower_signs",
+      "anchor": "sign",
+      "name": "Juniper closed area, lower signs (50°46.893' N 121°08.110' W)",
+      "on_item": "gnis:39492",
+      "coord": [
+       -121.13517,
+       50.78155
+      ],
+      "confidence": "high",
+      "quote": "the fishing boundary signs located at 50°46.893' N and 121°08.110' W",
+      "note": "DFO's own coordinate (50.78155, -121.13517), 111 m from the river's line"
+     },
+     {
+      "ref": "thompson_bonaparte_mouth",
+      "anchor": "confluence",
+      "name": "Bonaparte River",
+      "item_id": "gnis:38393",
+      "on_item": "gnis:39492",
+      "confidence": "high",
+      "quote": "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River",
+      "note": "the Bonaparte's mouth on the Thompson (FWA)"
+     },
+     {
+      "ref": "thompson_ashcroft_hwy_97c_bridge",
+      "anchor": "bridge",
+      "name": "Hwy 97C bridge in Ashcroft",
+      "on_item": "gnis:39492",
+      "coord": [
+       -121.28188,
+       50.72701
+      ],
+      "confidence": "high",
+      "quote": "to Hwy 97C bridge in Ashcroft",
+      "note": "BC MoTI road structure 'ASHCROFT' (Hwy 97C) over the Thompson, 50.72701,-121.28188"
+     }
+    ],
+    "pieces": [
+     {
+      "op": "between",
+      "items": [
+       "gnis:39492"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "thompson_deadman_upper_signs"
+       },
+       {
+        "kind": "split",
+        "split_id": "thompson_river__cnr_bridge"
+       }
+      ]
+     },
+     {
+      "op": "between",
+      "items": [
+       "gnis:39492"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "thompson_juniper_upper_signs"
+       },
+       {
+        "kind": "new",
+        "split_id": "thompson_juniper_lower_signs"
+       }
+      ]
+     },
+     {
+      "op": "between",
+      "items": [
+       "gnis:39492"
+      ],
+      "tributaries": false,
+      "points": [
+       {
+        "kind": "new",
+        "split_id": "thompson_bonaparte_mouth"
+       },
+       {
+        "kind": "new",
+        "split_id": "thompson_ashcroft_hwy_97c_bridge"
+       }
+      ]
+     }
+    ],
+    "words": "entry B: no fishing, year-round, on three closed stretches (Deadman 3.6 km, Juniper 4.0 km, Ashcroft 2.3 km); 5 new cuts"
    }
   }
  }

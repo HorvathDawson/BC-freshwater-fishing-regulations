@@ -1296,3 +1296,10 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-toggle { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .ck-wp { grid-template-columns: auto 1fr; }
 .ck-ease { grid-column: 1; grid-row: 2; align-self: start; font-size: 10.5px; color: #5b21b6; white-space: nowrap; padding: 0 6px; }
+.dfo-pieces { margin: 4px 0 4px 18px; padding: 0; }
+.dfo-pieces li { margin: 3px 0; }
+.ck-two { margin: 6px 8px 8px; padding: 10px 12px; border: 1.5px solid #94a3b8; border-radius: 8px; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+.ck-entry .k { font-weight: 650; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-right: 4px; }
+.ck-entry.a .k { color: var(--ck-extent); } .ck-entry.b .k { color: #b91c1c; }
+.ck-entry.b { border-left: 3px solid #b91c1c; padding-left: 8px; }
+.ck-key i.closed { background: none; border-top: 4px dashed #b91c1c; height: 0; }

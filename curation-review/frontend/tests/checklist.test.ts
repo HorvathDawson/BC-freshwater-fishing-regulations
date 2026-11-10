@@ -277,3 +277,14 @@ test("a confirm-as-it-is from the inline editor reads as confirmed by him, not a
   assert.equal(placeState({ editing: false, check: "earlier", earlierDate: "2026-11-10", confirmedAsIs: true, hasExtent: true }).text, "Confirmed by you (2026-11-10)");
   assert.equal(checkStatus({ ...PC, check: "earlier", earlier }), "Confirmed by you (2026-11-10): the extent as it is.");
 });
+
+test("entry B: a closed area reads in one line and draws only when both its ends are placed", async () => {
+  const { closedLine, closedPairs } = await import("../src/checklist.ts");
+  const dead = { name: "Deadman", metres: 3616, ends: [{ label: "upper signs", new: true, coord: [-120.88, 50.75] as [number, number] },
+                                                       { label: "CNR bridge", new: false, coord: [-120.92, 50.74] as [number, number] }] };
+  const none = { name: "Juniper", metres: null, ends: [] as { label: string; new: boolean; coord: [number, number] | null }[] };
+  assert.equal(closedLine(dead), "Deadman · 3.6 km: NEW cut upper signs → CNR bridge");
+  assert.equal(closedLine({ ...dead, metres: 420 }), "Deadman · 420 m: NEW cut upper signs → CNR bridge");
+  assert.equal(closedLine(none), "Juniper: not placed yet");
+  assert.deepEqual(closedPairs([dead, none, { ...dead, ends: [dead.ends[0], { ...dead.ends[1], coord: null }] }]), [[[-120.88, 50.75], [-120.92, 50.74]]]);
+});

@@ -86,6 +86,9 @@ interface Props {
    *  its length, or why it could not be drawn */
   approx?: [[number, number], [number, number]][] | null;
   onApprox?: (got: { km: number; why?: string } | { why: string } | null) => void;
+  /** T573: CLOSED STRETCHES (entry B of a DFO row: "no fishing, year-round") — walked in the app between each pair like
+   *  `approx`, drawn red; a proposal's picture, never the built reach */
+  closed?: [[number, number], [number, number]][] | null;
   /** T532 r3: existing cuts a proposal / draft uses — their own markers ringed (never a second point on top) */
   ringSplits?: string[];
   ringColor?: string;
@@ -195,7 +198,7 @@ export function MapPanel({
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
   satellite = false, editPoints = [], onMovePoint, cutPreview = null, pending = null, pins = null, onPin,
   fitPreview = true, minimal = false, faint = null, faintOn = null, fitSaved = false,
-  approx = null, onApprox, ringSplits = [], ringColor = "#0d9488",
+  approx = null, onApprox, ringSplits = [], ringColor = "#0d9488", closed = null,
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -328,6 +331,7 @@ export function MapPanel({
           pending: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           faint: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           approx: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          closed: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           pins: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
@@ -485,6 +489,9 @@ export function MapPanel({
           // T532 r3: an APPROXIMATE stretch walked in the app — the draft's colour, dotted (never the built one)
           { id: "approx-lines", type: "line", source: "approx",
             paint: { "line-color": "#0f766e", "line-width": 7, "line-opacity": 0.9, "line-dasharray": [1.2, 1] } },
+          // T573: the closed areas of a DFO row (entry B) — red, over the open stretch
+          { id: "closed-lines", type: "line", source: "closed",
+            paint: { "line-color": "#b91c1c", "line-width": 8, "line-opacity": 0.9, "line-dasharray": [0.8, 0.6] } },
           // T532: a saved extent not drawn yet — the extent's colour, dashed
           { id: "pending-lines", type: "line", source: "pending",
             filter: ["!=", ["geometry-type"], "Point"],
@@ -826,6 +833,16 @@ export function MapPanel({
       }
     });
   }, [approxKey, count]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const closedKey = closed ? closed.flat(2).join(",") : "";
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      const lines = (closed ?? []).map(([a, b]) => approxBetween(lastFc.current, a, b)).flatMap((g) => ("line" in g ? [g] : []));
+      (m.getSource("closed") as maplibregl.GeoJSONSource | undefined)?.setData({ type: "FeatureCollection",
+        features: lines.map((g) => ({ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: g.line } })) });
+    });
+  }, [closedKey, count]);  // eslint-disable-line react-hooks/exhaustive-deps
   const ringKey = ringSplits.join("|");
   useEffect(() => {
     const m = map.current;

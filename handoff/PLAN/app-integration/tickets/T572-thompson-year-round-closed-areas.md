@@ -39,3 +39,16 @@ below the park's downstream boundary are 2.8 km apart (the park runs 4 km along 
 above the coordinate — both numbers DFO's, and it matches 1.5 km below the park's upstream part.
 NOT DONE: the three closed areas are not places of their own, so the app does not SHOW them as closed year-round;
 whether it should (three closure places, or the synopsis' own rows) is a separate decision.
+
+## 2026-11-10 (later) — the owner's direction: two entries → T573
+"it is like it should become 2 entries?" The four-open-stretches proposal above is REPLACED: entry A is the whole
+stretch (one piece), entry B the three closed areas (T573). Corrections to the text above:
+- THE CUT COUNT: six cuts are not built — five new ones for the closed areas plus the Gold Pan signs the owner's own
+  save proposed. ("5 new cuts" above counted only ours; the panel rightly listed six.)
+- MEASURED ALONG THE RIVER (FWA measure, downstream): outlet → Deadman upper signs 1,507 m · DEADMAN closed 3,616 m ·
+  open 15,976 m · JUNIPER closed 4,000 m · open 12,333 m · ASHCROFT closed 2,342 m · open 52,290 m to the Gold Pan
+  signs. Every piece's two cuts are in river order and no open piece overlaps a closed area. Whole stretch 92,064 m.
+- "now: none" was TRUE for the wording he was on (`…downstre`, no longer live, no extent); the live wording
+  (`…downstre~2`) holds his save of the whole stretch, waiting for the Gold Pan cut. The headline now reads "SETS this
+  place's extent (it has none now)".
+- Tributaries: OFF for this place (no call on the place, none in DFO's heading; the builder does not walk them).

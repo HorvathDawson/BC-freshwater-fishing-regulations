@@ -407,3 +407,14 @@ when it saves".
 - A SAVE TOOK 8 s (16 s cold): every POST /api/marks recomputed `applied_keys`, which built every pending proposal and
   line-diffed whole files (`_splice`) only to parse the result. `materialize(splice=False)` for that validation:
   one save 16.3 s → 0.6 s in the same harness.
+
+## Round 10 (owner 2026-11-10, the Thompson panel: "this one still feels wrong too")
+- "REPLACES the extent now" beside "now: none": real. The headline is now SETS (none now) / ADDS / REPLACES
+  (`extentWords.effectHead`).
+- One run-on line: real. A draft of several pieces is a numbered list, one piece per line, in the order listed; the
+  cuts it waits on are a list.
+- "tributaries as the place has them": real. It now says ON or OFF from the builder's own answer for the place
+  (`dfo.walks_now`).
+- The first stretch not drawn: real. A lake cut's map point is the lake; the stretch is now drawn from where the
+  water's line meets the lake (`_lake_ends`: the Thompson leaves Kamloops Lake at measure 118,115).
+- The cut count, the order check and the metres: on T572. The closed areas: T573 (two entries).

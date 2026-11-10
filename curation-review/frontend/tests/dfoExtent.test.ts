@@ -222,3 +222,19 @@ test("inline, a draft that IS the extent now offers the confirm itself — never
   assert.equal(inlineAction({ changes: false, extents: 0 }).kind, "none");
   assert.match(CONFIRMED_AS_IS, /confirmed as it is by the owner/);
 });
+
+test("a save's headline never says REPLACES beside none; no-call tributaries say what the place does", async () => {
+  const { effectHead, tribsAsPlace, fixParts } = await import("../src/extentWords.ts");
+  assert.equal(effectHead("replace", 0), "SETS this place's extent (it has none now)");
+  assert.equal(effectHead("add", 0), "SETS this place's extent (it has none now)");
+  assert.equal(effectHead("replace", 1), "REPLACES the extent now");
+  assert.equal(effectHead("add", 1), "ADDS a piece to the extent now");
+  assert.equal(effectHead("keep", 1), "Keeps the extent now.");
+  assert.match(tribsAsPlace(false), /tributaries OFF/);
+  assert.match(tribsAsPlace(true), /tributaries ON/);
+  assert.equal(tribsAsPlace(null), "tributaries as the place has them");
+  const f = { scope: "entry", op: "whole", points: [], items: [], tributaries: null } as never;
+  const words = (w?: boolean | null) => fixParts(f, () => null, (i: string) => i, w).join("");
+  assert.match(words(false), /tributaries OFF \(the place has no tributary call\)/);
+  assert.match(words(undefined), /tributaries as the place has them/);
+});
