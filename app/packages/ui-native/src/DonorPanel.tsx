@@ -44,7 +44,7 @@ import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import type { MapProps, TileEndpoints } from "@app/map";
 import type { StationId } from "@app/data";
-import { useDonorView, type DonorRowVM, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
+import { useDonorView, useHeldHeight, type DonorRowVM, type GaugeSides, type Horizon, type HorizonChipVM, type PanelAnswer,
          type Quantity } from "@app/ui";
 import { DonorMap, routeMapHeight } from "./DonorMap";
 import { useGuideControl } from "./guideControls";
@@ -85,7 +85,7 @@ const placeMid = (b: readonly [number, number, number, number] | null | undefine
 
 export function DonorPanel({ palette, value, day, at, theme, from, selected, onSelect,
                              horizon = 0, onHorizon, chain: chainProp, standing,
-                             detail, chart, foot, after, quantity, sides, count, waterLine, place }: {
+                             detail, chart, foot, after, quantity, sides, count, waterLine, place, holdKey }: {
   palette: Palette; value: PanelAnswer;
   /**
    * The quantity the answer is in, when the caller knows it (the conditions sheet: the one the map paints). Only the
@@ -137,6 +137,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
   count?: string | null;
   /** (T175) The water's own sections: the route map keeps their line at every zoom, opening no further out than it. */
   waterLine?: readonly SectionKey[];
+  /** (T581) What the block over the map holds its height for: the water and the day, never the quantity. */
+  holdKey?: string;
   /** (T175) The water's box, framed with the gauges when no tap says where the reader is (`DonorViewOptions.place`). */
   place?: readonly [number, number, number, number] | null;
 }) {
@@ -160,6 +162,11 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
     if (w > 0 && w !== width) setWidth(w);
   };
   const wide = width >= WIDE_PANEL;
+  // (T581 follow-up) the block over the map holds its tallest height for this (water, day): the map's top does not move
+  // when the quantity changes the headline (`useHeldHeight`)
+  const top = useHeldHeight(holdKey ?? "");
+  const topProps = { style: { gap: SPACE.s4, minHeight: top.min },
+                     onLayout: (e: LayoutChangeEvent) => top.hold(e.nativeEvent.layout.height) } as const;
   const vm = useDonorView(value, { day, horizon, from: from ?? null,
                                    size: { width: mapWidth, height: mapH },
                                    selected: selected ?? null, pickable: !!onSelect,
@@ -202,6 +209,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
         {onHorizon && vm.horizons && (
           <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />
         )}
+        <View {...topProps}>
         <Block palette={palette} first>
           <Kicker palette={palette}>{vm.heading}</Kicker>
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.reason}</Text>
@@ -210,6 +218,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
           {detail}
         </Block>
+        </View>
         {mapBlock}
         {chart}
         {after}
@@ -275,6 +284,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
       {/* (T367, owner 2026-11-04: "the top level numbers could be displayed better") THE ESTIMATE TILE: one card — the
           heading, the answer with a dot in its colour on the map's ramp, where it sits on the record (the scale bar),
           then the sentence and the range as one quiet block. */}
+      <View {...topProps}>
       <Tile palette={palette} coach="cond:headline">
         {/* (T367) THE TILE'S TOP ROW: the heading, and the day it is for beside it (Now · Forecast ▾ · Change) — the
             control sat on its own above the tile; on a phone it wraps under the heading. ONE LINE, ALWAYS, for the
@@ -285,7 +295,8 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           <View style={{ minHeight: 36, justifyContent: "center" }}><Kicker palette={palette} oneLine>{vm.heading}</Kicker></View>
           {onHorizon && <HorizonHeader palette={palette} chips={vm.horizons} onPick={onHorizon} />}
         </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2 }}>
+        {/* the headline's place is TWO lines whatever it says: a quantity's answer that wraps to two must not move the map */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.s2, minHeight: 2 * (TYPE.name.lineHeight ?? 25) }}>
           {theme ? (
             <View testID="estimate-dot" style={{ width: 14, height: 14, borderRadius: round(14),
                                                  backgroundColor: rampAt(rampOf(theme, vm.scale.ramp), vm.scale.at) }} />
@@ -311,6 +322,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
       </Tile>
 
       {detail && <Block palette={palette}>{detail}</Block>}
+      </View>
       {mapBlock}
       {chart}
     </>

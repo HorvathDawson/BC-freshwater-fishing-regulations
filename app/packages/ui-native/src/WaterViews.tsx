@@ -20,7 +20,7 @@ import { WATER_SCREEN_WORDS } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
-import { useBasinDays, useFrameView, useMapEntries, useRegsStore, useUnnamedName, useWater, useWaterBasin, useWaterBox, useWaterLine,
+import { frameBasinAsk, useBasinDays, useFrameView, useMapEntries, useRegsStore, useUnnamedName, useWater, useWaterBasin, useWaterBox, useWaterLine,
          useWaterName, useWaterPlace } from "@app/ui";
 import type { ReleaseLoader } from "@app/data/release";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -87,7 +87,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
   const where = useWaterPlace(loader, source, item, section, entries?.names ?? null);
   // (T377) THE WATER'S OWN WATERSHED GROUP and its days — its tap, else its own point; never the map's centre. The
   // quantity is the panel's own (`ConditionsPanel`: the map's Flow or Level); a tap on a day is the panel's horizon pick.
-  const basin = useWaterBasin(source, { item, tapSid, at: from ?? null }, section !== null);
+  const basin = useWaterBasin(source, frameBasinAsk({ item, tapSid, at: from ?? null }, here), section !== null);
   const days = useBasinDays({ source, feed, basin, for: "water", quantity: parameter ?? "discharge",
                               horizon: horizon ?? 0, enabled: section !== null });
 

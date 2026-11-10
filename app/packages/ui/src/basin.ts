@@ -71,6 +71,15 @@ export async function waterBasin(source: WaterSource, w: WaterBasinAsk): Promise
   return basinAt(source, p);
 }
 
+/**
+ * (T584, T580 F5) THE ASK A FRAME MAKES: the frame's own point (`frameHere`: the tap's point on the tapped section, else
+ * the part's middle) when it has one, so a tap, a part step, a search, a deep link and a reload of one part ask the group
+ * of one place. The raw ask (the tap, else the water's middle) only where the frame has no point.
+ */
+export function frameBasinAsk(w: WaterBasinAsk, here: LatLon | null): WaterBasinAsk {
+  return here ? { item: w.item, tapSid: null, at: here } : w;
+}
+
 /** `waterBasin` as a hook: ready with the group (or null: its place is in none), or failed with what went wrong. */
 export function useWaterBasin(source: WaterSource, w: WaterBasinAsk, enabled = true): Async<Basin | null> {
   const key = `water-basin:${w.item ?? ""}:${w.tapSid ?? ""}:${w.at ? `${w.at.lon},${w.at.lat}` : ""}`;

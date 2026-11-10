@@ -9,8 +9,8 @@
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
 import { freezeTrace, leadUpDays, localDate, reported, reportFailure, type FrozenTrace, now as clockNow } from "@app/core";
-import type { answerFrom } from "../panel";
-import { sheetLead, speakerFor, speaks, type Speaker } from "../standing";
+import { answerFrom } from "../panel";
+import { leadOver, speakerFor, speaks, type Speaker } from "../standing";
 import type { ItemId, WaterSource, SectionId, StationId } from "../index";
 import type { DailyWeather, Spot, SpotReading, SpotWeather } from "./model";
 import { leadUpFor } from "./leadup";
@@ -75,9 +75,11 @@ export interface CaptureInput {
   id?: () => string;
 }
 
+type LeadRows = ReturnType<typeof answerFrom>["rows"];
+
 /** The estimate as the app had it, or null when there is no feed or no panel. */
 async function panelFor(source: WaterSource, section: SectionId | null, feed: CaptureInput["feed"],
-                        date: string): Promise<Pick<Spot, "panel" | "panelDay">> {
+                        date: string): Promise<Pick<Spot, "panel" | "panelDay"> & { levelRows?: LeadRows }> {
   if (!feed || !section) return { panel: null };
   try {
     const [panels, idx] = await Promise.all([source.panelsFor([section]),
@@ -87,7 +89,8 @@ async function panelFor(source: WaterSource, section: SectionId | null, feed: Ca
     if (!idx) return pendingPanel(members, date);
     // Only a real answer is worth freezing: "no panel" is not a fact about that day, it is
     // a fact about the app, and it would read as one on a spot opened a year later.
-    return { panel: members ? livePanel(members, idx) : null };
+    // (T586, T580 F9) the level answer's rows too, kept only to choose the lead the sheet chooses (`leadOver`); never frozen
+    return { panel: members ? livePanel(members, idx) : null, ...(members ? { levelRows: answerFrom(members, idx, "level").rows } : {}) };
   } catch (e) {
     // A spot must save. A missing estimate is a smaller loss than a lost record. (T368 Q7) Reported unless offline.
     reportFailure(e);
@@ -124,10 +127,12 @@ export async function captureSpot(raw: CaptureInput): Promise<Spot> {
     earlier ? panelOnTripDay(source, section, localDate(visitedAt), ports)
             : panelFor(source, section, input.feed, localDate(visitedAt)),
   ]);
-  const { panel, ...onDay } = panelled;     // `panelDay` only on an earlier trip day (Q161)
+  const { panel, levelRows, ...onDay } = panelled as typeof panelled & { levelRows?: LeadRows };     // `panelDay` only on an earlier trip day (Q161)
   // THE SHEET'S STATION (`sheetLead`): never the station `section_gauge` matched to the reach unless it speaks here, so
   // a saved spot cannot quote a gauge the sheet refused (T105 review).
-  const lead = sheetLead(speaker, panel?.rows ?? [], null);
+  // (T586, T580 F9) ONE LEAD per water and day, chosen in FLOW as the sheet chooses it (`leadOver`): what the angler was looking
+  // at (Flow or Level) never picks it, so the frozen flow estimate and the lead agree; the level ranking only where no gauge answers in flow.
+  const lead = leadOver(speaker, { discharge: panel?.rows ?? [], level: levelRows ?? [] }, null).lead;
   const [reading, trace, weather, leadUp] = await Promise.all([
     // an earlier trip day holds no live reading: its flow is that day's record (`dayFlow`, below)
     earlier ? Promise.resolve(lead ? { station: lead, discharge: null, level: null, percentile: null, at: null } : null)

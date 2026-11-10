@@ -20,7 +20,7 @@ import {
   percentileOk, PERCENTILE_PRESETS, type AlertDirection, type AlertQuantity, type AlertThreshold, type GaugeAlertRule,
 } from "@app/core";
 import type { WaterSource } from "@app/data";
-import { useAlertContext, useAlertRecord, useNotifications, type AlertRecord, type NotificationsVM } from "@app/ui";
+import { alertNowValue, useAlertContext, useAlertRecord, useNotifications, type AlertRecord, type NotificationsVM } from "@app/ui";
 import { Text } from "./Text";
 import { Button } from "./Button";
 import { Chip } from "./Chip";
@@ -203,7 +203,7 @@ export function AlertEditor({ palette, source, gauge, onSave, onCancel }: {
             <Text style={{ ...TYPE.bodyStrong, color: palette.sub }}>{CONDITIONS_WORDS.unit[quantity]}</Text>
           </View>
           <Text testID="alert-form-context" accessibilityLiveRegion="polite" style={{ ...TYPE.small, color: palette.sub }}>
-            {ctx.loading ? E.loading : alertContextLine(quantity, ctx.current?.value ?? null, ctx.normal)}
+            {ctx.loading ? E.loading : alertContextLine(quantity, alertNowValue(quantity, gauge, ctx.current?.value ?? null), ctx.normal)}
           </Text>
         </Field>
       )}

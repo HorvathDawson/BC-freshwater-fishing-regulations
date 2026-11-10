@@ -153,6 +153,16 @@ export function useAlertContext(source: WaterSource, station: string, quantity: 
 }
 
 /**
+ * (T581, T580 F7) THE EDITOR'S "NOW": the gauge card's own figure (`currentFigure`) where the editor is on the card's
+ * quantity and the card has one, so the card and the editor never print two readings; the 72 h series' last point
+ * otherwise (another quantity picked in the editor, or a card with no figure).
+ */
+export function alertNowValue(quantity: AlertQuantity, card: { quantity: AlertQuantity; current: number | null },
+                              series: number | null): number | null {
+  return quantity === card.quantity && card.current !== null ? card.current : series;
+}
+
+/**
  * (T527) THE GAUGE'S RECORD FOR A PERCENTILE ALERT: the per-day-of-year envelope the chart's YEAR view draws
  * (`Series.yearBand`, the release's climatology), through the same `useSeries` and answer store. `none`: the gauge has
  * no envelope in this quantity (the option is shown disabled with that reason, never a silent fallback); `failed`: the

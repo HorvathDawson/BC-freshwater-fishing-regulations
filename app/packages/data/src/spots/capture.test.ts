@@ -199,3 +199,32 @@ describe("spotLabel", () => {
     expect(c.title).toBe("");
   });
 });
+
+/*
+ * T586 (T580 F9) — A SAVED SPOT FREEZES THE LEAD THE SHEET CHOOSES: one lead per water and day, chosen in FLOW (`leadOver`),
+ * whatever quantity the angler was looking at. Where no gauge answers in flow it is the level ranking's, as the sheet's.
+ */
+describe("captureSpot's lead is the sheet's one lead (T586)", () => {
+  const mem = (station: string, areaKm2: number) =>
+    ({ station: station as never, role: "up" as const, areaKm2, years: { discharge: 40, level: 40 }, regulated: false, sameRiver: true });
+  const at = "2026-08-30T08:00:00Z";
+  const run = (members: ReturnType<typeof mem>[], stations: Record<string, unknown>) =>
+    captureSpot({ ...base, source: source({ gaugeNow: NOW_READS, panelsFor: async () => new Map([[1 as SectionId, { areaKm2: 50, members }]]) }),
+                  feed: { index: async () => ({ listed: members.map((m) => m.station), stations }) as never } });
+
+  it("a flow gauge leads even where a bigger level-only gauge exists", async () => {
+    const s = await run([mem("MISSION", 200), mem("HANSARD", 60)], {
+      MISSION: { percentile: 0.66, parameter: "level", level: 0.66, observedAt: at },
+      HANSARD: { percentile: 0.27, parameter: "discharge", discharge: 0.27, level: 0.3, observedAt: at },
+    });
+    expect(s.reading?.station).toBe("HANSARD");
+  });
+
+  it("a water with no flow gauge leads with the heaviest gauge that reports its level, not the first row", async () => {
+    const s = await run([mem("QUIETBIG", 300), mem("LEVELSMALL", 60)], {
+      QUIETBIG: { percentile: null, observedAt: "2026-08-01T08:00:00Z" },
+      LEVELSMALL: { percentile: 0.5, parameter: "level", level: 0.5, observedAt: at },
+    });
+    expect(s.reading?.station).toBe("LEVELSMALL");
+  });
+});

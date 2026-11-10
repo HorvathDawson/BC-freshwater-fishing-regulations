@@ -23,12 +23,12 @@ const chipOf = (d: number) => horizonDateChip(d as Horizon, bcNow());
 const openDays = () => fireEvent.click(screen.getByLabelText("Choose a forecast day"));
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
-import { clearPanelCache } from "@app/ui";
+import { clearPanelCache, resetChartPrefs } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
-beforeEach(clearPanelCache);
+beforeEach(() => { clearPanelCache(); resetChartPrefs(); });
 
 const SEC = 7 as SectionId;
 const DAY = new Date(2026, 8, 4, 12);

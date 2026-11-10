@@ -2,7 +2,7 @@
  * WHAT THE WATER IS DOING, finished for the conditions panel (`useConditionsView`): the speaker, the donor answer with
  * its routes, the route map's colouring, the lead gauge's reading or its quiet head, and the gauge switcher.
  */
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { speaks, leadOver, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
          type WaterSource, type SectionId, type StationId } from "@app/data";
 import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
@@ -37,6 +37,14 @@ export interface ReadingVM {
   /** (T367) the reading's percentile, 0–1, for the standing's dot in the map's colour; null without a record */
   percentile: number | null;
   age: string;
+}
+
+/**
+ * (T581, T580 F7) THE ONE CURRENT VALUE of the lead gauge in a quantity: what the card prints and what the alert editor
+ * prefills and says is "now". Null where the station did not report that quantity.
+ */
+export function currentFigure(reading: Pick<ReadingVM, "figures"> | null, quantity: Parameter): number | null {
+  return reading?.figures[quantity] ?? null;
 }
 
 /** A quiet donor at the head of the chart, in core's words. */
@@ -156,7 +164,11 @@ export function useConditionsView(
    * (`sheetLead`). The station `section_gauge` matched to this reach is never read for a reading: for 54,386 sections
    * with no panel it quoted a gauge the map left uncoloured, and a gauged lake (no `section_gauge` row) read nothing.
    */
-  const [picked, select] = useState<StationId | null>(null);
+  // (T584, T580 F6) THE GAUGE PICK IS THE SECTION'S: it is dropped when the section changes (a part step, a new water), so
+  // every way into a part leads with the same gauge; the reader's span and model are kept apart (`useChartPrefs`)
+  const [pick, setPick] = useState<{ section: SectionId | null; station: StationId } | null>(null);
+  const picked = pick && pick.section === section ? pick.station : null;
+  const select = useCallback((station: StationId) => setPick({ section, station }), [section]);
   // (owner 2026-11-10) ONE LEAD per water and day, chosen in FLOW whatever the chart shows (`leadOver`); level ranks it
   // only where no gauge answers in flow. The two asks are the same ones the rows come from (cached; one of them is `asked`).
   const flowAsk = usePanelAsk(source, feed, section, "discharge", horizon, lakes);

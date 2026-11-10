@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
 import { openRegsStore } from "@app/data/regs";
 import { openRegsFixture } from "@app/data/release/node";
+import { frameBasinAsk } from "./basin";
 import { carryRoute, entryAt } from "./carry";
 import { frameHere, frameSection, type FrameNav } from "./frameView";
 import { openWater } from "./openWater";
@@ -89,5 +90,25 @@ describe("(T369 D8, owner 2026-11-04) a new release with a water open: the same 
       { item: C, part: 0, tapSid: null, at: null, view: "map" }] });
     expect(reduce(r, a)).toEqual({ ...r, stack: (a as { stack: unknown }).stack });
     expect(reduce(r, { type: "carry", stack: [] })).toBe(HOME);
+  });
+});
+
+describe("(T584, T580 F5) one part, one watershed group whatever the way in", () => {
+  // the group is asked at the frame's own point: a tap on the part's middle, a part step (which clears the tap), a search, a
+  // deep link and a reload all name the same (section, here) and so the same ask
+  const middle = { lon: -122, lat: 49 };
+  const ask = (key: ReturnType<typeof f>, raw: { tapSid: SectionId | null; at: { lat: number; lon: number } | null }) =>
+    frameBasinAsk({ item: W, ...raw }, frameHere(key, key.part, NAV));
+  it("tap / step / search / deep link / reload of part 0 ask the same place", () => {
+    const tap = ask(f({ part: 0, tapSid: 2, at: { lat: middle.lat, lon: middle.lon } }), { tapSid: 2 as SectionId, at: { lat: 49, lon: -122 } });
+    const step = ask(f({ part: 0 }), { tapSid: null, at: null });
+    const search = ask(f({ part: 0 }), { tapSid: null, at: null });
+    const reload = ask(f({ part: 0 }), { tapSid: null, at: null });
+    expect([tap, step, search, reload]).toEqual(Array(4).fill({ item: W, tapSid: null, at: middle }));
+  });
+  it("a step is not asked at the water's middle: the raw ask would be, the frame's is the part's", () => {
+    const raw = { item: W, tapSid: null, at: null };
+    expect(frameBasinAsk(raw, frameHere(f({ part: 2 }), 2, NAV))).toEqual({ item: W, tapSid: null, at: { lon: -120.95, lat: 50.05 } });
+    expect(frameBasinAsk(raw, null)).toBe(raw);               // no point in the frame: the water's own point, as before
   });
 });

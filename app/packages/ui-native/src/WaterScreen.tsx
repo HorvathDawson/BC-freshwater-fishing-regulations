@@ -30,7 +30,7 @@ import { openProbe, type ItemId, type WaterSource, type SectionId } from "@app/d
 import type { ReleaseLoader } from "@app/data/release";
 import { InSeasonContext, mapDayOf, regsDay, useAccessNotices, useInSeasonBanners, useReleaseLines, useAnglerProfile, useDownstreamWater, useLayoutClass, useRegsPage, useRegsStore,
          useSalmonCard, useNet, usePageSubject,
-         useDaylight, useInSeasonPage, useMapEntries, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
+         useDaylight, useFrameView, useInSeasonPage, useMapEntries, useRegsTarget, useRegulations, useSunLine, useWater, type LatLon, type RegsStart } from "@app/ui";
 import { LoadingState, useDelayedShow } from "./LoadingState";
 import { ViewSwipe, WaterViewsContext } from "./ViewSwipe";
 import type { AdiposeImages, FishImages } from "./regs/types";
@@ -110,8 +110,12 @@ function WaterScreenBody({ source, item, palette, onBack, onRetry,
   const down = useDownstreamWater(source, item, section);
   // (T382) the chosen day's sunrise and sunset at the water (the tapped point, else the water's own)
   const sunDay = { y: d.calendarYear, m: d.day.month, d: d.day.day };
-  const sun = useSunLine(source, item, at, sunDay);
-  const daylight = useDaylight(source, item, at, sunDay);   // (T473) the hours a daylight-only closure leaves open
+  // (T584, T580 F5) the frame's own point (`useFrameView`: the tap, else the part's middle), so a step, a search and a reload
+  // of one part say the same sunrise as a tap on it; the water's own point only where the frame has none
+  const fv = useFrameView(store.value ?? null, { item, part, tapSid: section, at });
+  const sunAt = fv.value?.here ?? at;
+  const sun = useSunLine(source, item, sunAt, sunDay);
+  const daylight = useDaylight(source, item, sunAt, sunDay);   // (T473) the hours a daylight-only closure leaves open
   // (T517) the header and the Parts sheet name a part as the water's map does: the same group, the same live salmon
   const entries = useMapEntries(loader, store.value ?? null, item);
   const regs = useRegsPage(inputs.value ?? null, who, d.today, down.value?.name ?? null, entries?.names ?? null);

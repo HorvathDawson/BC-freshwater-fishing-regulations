@@ -12,6 +12,8 @@
  */
 export * from "./async";
 export * from "./answers";
+export * from "./chartPrefs";
+export * from "./heldHeight";
 export * from "./hooks";
 export * from "./panel";
 export * from "./hydrograph";

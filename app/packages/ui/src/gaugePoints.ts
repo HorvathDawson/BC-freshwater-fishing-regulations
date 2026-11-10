@@ -10,8 +10,9 @@
  * Stations with no reading today are DROPPED rather than drawn bare. A dot with no number
  * invites the reader to assume the map failed rather than that the station is quiet.
  */
-import { changeDotLabel, changeRatio, percentileLabel, readingIn, shownParameter, zoomForMagnitude } from "@app/core";
-import { reading, type GaugeFeed, type Horizon, type Parameter } from "@app/data";
+import { changeDotLabel, changeRatio, OTHER_QUANTITY_WORDS, percentileLabel, readingIn, shownParameter,
+         zoomForMagnitude } from "@app/core";
+import { otherOnly, reading, type GaugeFeed, type Horizon, type Parameter } from "@app/data";
 import { toRamp } from "./routeColour";
 
 export interface GaugePoint {
@@ -92,6 +93,23 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
      */
     const pct = quantity === "temperature" ? row.percentile ?? null
       : reading(row, quantity === "level" ? "level" : "discharge", horizon);
+    /*
+     * (T586, T580 F10, owner 2026-11-10: "it should be muted for the gauge") A STATION SILENT IN THE QUANTITY ASKED, THAT
+     * REPORTS THE OTHER TODAY, KEEPS ITS DOT, MUTED: grey, its label the words its row and pin use ("level only"). It
+     * was dropped, so Fraser at Mission had a pin and a row in the sheet and no dot on the browse map. Today only
+     * (`otherOnly`, the one reading the row and the pin take it from); a day no run reaches stays without a dot.
+     */
+    const muted = quantity !== "temperature" && pct === null
+      ? otherOnly(row, quantity === "level" ? "level" : "discharge", horizon) : undefined;
+    if (muted) {
+      features.push({
+        type: "Feature" as const,
+        geometry: { type: "Point" as const, coordinates: [p.lon, p.lat] },
+        properties: { station: p.station, name: p.name, label: OTHER_QUANTITY_WORDS[muted].map, ramp: null, muted: true,
+                      minz: zoomForMagnitude(p.mag ?? null) },
+      });
+      continue;
+    }
     if (quantity === "temperature" ? tC === null : pct === null) continue;
     // under Change the label is the station's own ratio (the coded number the colour rides is clamped)
     const label = quantity !== "temperature" && horizon === "change" && pct !== null

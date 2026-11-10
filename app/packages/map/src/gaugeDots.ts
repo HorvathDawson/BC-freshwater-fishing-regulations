@@ -95,7 +95,8 @@ function rampExpression(theme: string): unknown {
   // Change domain 200-300), so the dot reads the river's own stops at every horizon (T126).
   const out: unknown[] = ["interpolate", ["linear"], ["coalesce", ["get", "ramp"], -1]];
   for (const [at, ref] of stops) out.push(at, t[ref.token]);
-  return out;
+  // (T586) a station silent in the asked quantity is drawn MUTED, the ungauged grey: it has no standing to colour by
+  return ["case", ["==", ["get", "muted"], true], t["color.water.ungauged"], out];
 }
 
 /**

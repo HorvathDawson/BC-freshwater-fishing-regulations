@@ -11,7 +11,7 @@
  * finished from `useConditionsView` in @app/ui (rule 25, P12a); the chart's words are
  * core's (`conditions.ts`). What is left here is drawing, and the chart's own controls.
  */
-import { useContext, useMemo, useState, type ReactNode } from "react";
+import { useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
@@ -19,8 +19,8 @@ import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, CONDITIONS_WORDS, forecast
          forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { changeChartModel, changeView, chartParameter, forecastDash, forecastDrawn, NO_MODEL_PICK, pickModel, realtimeOnly,
-         type ModelPick, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
+import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
+         useChartPrefs, useChartView, useConditionsView, useForecastAttribution, useGaugeParameters,
          useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
@@ -43,6 +43,9 @@ import { hitProps } from "./regs/hit";
 import { NoneLine } from "./EmptyState";
 import { CoachScrollContext, useCoachScroller, useCoachTarget } from "./CoachMarks";
 import { useGuideControl } from "./guideControls";
+
+/** (T584) the body's wrapper: fills the frame as the bare body did; dimmed while the next part's speaker is looked up */
+const KEPT_STYLE = { flexGrow: 1, flexShrink: 1 } as const;
 
 /** The units, from core's one table. */
 export const UNIT: Readonly<Record<Parameter, string>> = CONDITIONS_WORDS.unit;
@@ -108,17 +111,19 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const params = useGaugeParameters(source, station);
   const available = params.state === "ready" ? params.value : [];
   const [own, setOwn] = useState<Parameter | null>(null);
-  const [span, setSpan] = useState<Span>("72h");
+  // (T584) the reader's span and model pick are kept for the session, so every way into a water reads them alike
+  const { span, setSpan, pick: pickState, setPick } = useChartPrefs();
   const picked = parameter ?? own;
   const pick = onParameter ?? setOwn;
   const param = chartParameter(picked, available);
   // The series is not asked until the station's quantities are known: asked earlier it is the station's "auto" series
   // and then the picked one a moment later — two loads, and the flicker between them.
   const known = params.state !== "loading";
-  const shown: Parameter = param ?? vm.reading?.quantity ?? "level";
+  // (T581, F1) the card is about the quantity ASKED, always; a station silent in it says so (`silent`), never draws the other
+  const { shown, silent, options } = cardQuantity(picked, available, known, vm.reading?.quantity);
+  const charts = known && !silent;
   // WHICH MODEL. Left alone the freshest run is chosen — a UI default, not a judgement.
   // (T377) and the other models drawn beside it, and the forecast switch, as one pick (`pickModel`)
-  const [pickState, setPick] = useState<ModelPick>(NO_MODEL_PICK);
   const model = pickState.model;
   // (T398) WHETHER A FORECAST IS DRAWN: the reader's switch, null until touched (`forecastDrawn` decides the default —
   // off where ELF is the only model, ELF being opt-in).
@@ -133,7 +138,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // UNDER CHANGE THE CHART DRAWS THE CHANGE'S OWN LEAD MODEL, not the freshest run (T144 review, `changeChartModel`).
   // The station's change rides every series of the station, so the freshest one (the same request the default makes,
   // shared by `askOnce`) says which.
-  const anyRun = useSeries(source, station, span, param, undefined, known);
+  const anyRun = useSeries(source, station, span, param, undefined, charts);
   const drawn = changeChartModel(model, horizon,
                                  anyRun.state === "ready" ? anyRun.value?.change : null);
   // (T256) on a poor line the chart draws the feed's observations and forecast first; the normal range joins them
@@ -141,8 +146,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                                       parameter: picked ?? undefined } : null), [feed, picked]);
   const allRuns = anyRun.state === "ready" ? anyRun.value?.forecasts ?? [] : null;
   const drawsForecast = forecastDrawn(forecastOn, allRuns);
-  const chart = useChartView(source, station, span, param, drawn, chartW, known, draft, drawsForecast, pickState.also, vm.ahead);
-  const series = useSeries(source, station, span, param, drawn, known);
+  const chart = useChartView(source, station, span, param, drawn, chartW, charts, draft, drawsForecast, pickState.also, vm.ahead);
+  const series = useSeries(source, station, span, param, drawn, charts);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
   usePrefetchGauges(source, vm.gauges.map((g) => g.station as StationId), span, picked, model ?? undefined);
@@ -162,7 +167,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   // (T456) the walkthrough: its Flow / Level and 72 h / Year steps see (and Show me sets) the chart's two toggles, and the
   // page scrolls a step's control into view
-  useGuideControl(available.length > 1 ? "cond:quantity" : null, shown, pick);
+  useGuideControl(options.length > 1 ? "cond:quantity" : null, shown, pick);
   useGuideControl("cond:span", span, setSpan);
   const coachScroll = useCoachScroller();
   const readingRing = useCoachTarget("cond:reading"), chartRing = useCoachTarget("cond:chart");
@@ -170,9 +175,13 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // (T508) DRAWN WHOLE: every first answer in (who speaks, the panel and its routes, the reading), and the chart's —
   // its quantities known, its record drawn (not loading, not the last chart dimmed while the next loads). What a pane
   // held over the browse map waits for (`shell/paneReveal.ts`), beside the route map's own draw (`MiniMap`).
-  usePaneReady(vm.settled && (station === null || (known && chart.state !== "loading" && !(chart.state === "ready" && chart.value?.pending))));
+  usePaneReady(vm.settled && (station === null || (known && (silent || (chart.state !== "loading" && !(chart.state === "ready" && chart.value?.pending))))));
 
-  if (vm.loading)
+  // (T584, T580 F11) A PART STEP KEEPS THE LAST BODY, DIMMED, while who speaks for the new part is looked up: this panel
+  // stays mounted across a step on one water, and its body (estimate, chart, day strip, scroll place) is not swapped for a
+  // spinner and back. The first look at a water, with no body yet, is the spinner.
+  const kept = useRef<ReactNode>(null);
+  if (vm.loading && kept.current === null)
     return (
       <LoadingState palette={palette} size={110} label={W.readingWater} style={{ paddingVertical: 48, alignItems: "center" }} />
     );
@@ -192,7 +201,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // (T567) the station reports the asked quantity too, but its standing was ranked in the other: the figure of the asked
   // one, with the standing said to be the other's — never the other quantity's figure under this chart
   const figure = reading ? reading.figures[shown] ?? reading.figure : 0;
-  const readingRows = reading && otherOnly ? (
+  // (T581) the station's quantities not yet known and the asked one not among the reading's: nothing is said yet, rather than
+  // a claim about the other quantity or its figure under this chart (the pane waits for `known` before it is shown)
+  const undecided = reading && !known && reading.figures[shown] == null;
+  const readingRows = undecided ? null : reading && otherOnly ? (
         <View ref={readingRing} collapsable={false} style={{ gap: SPACE.s1 }}>
           <Text testID="reading-other-quantity" style={{ ...TYPE.bodyStrong, color: palette.ink }}>
             {OTHER_QUANTITY_WORDS[reading.quantity].reads}
@@ -231,6 +243,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         <View style={{ gap: SPACE.s1 }}>
           <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{vm.quiet.reads}</Text>
         </View>
+  ) : station && !vm.settled ? (
+        // (T584) the reading's place is kept while it loads, so the chart does not jump down when it arrives
+        <Text testID="reading-pending" style={{ ...TYPE.bodyStrong, color: palette.faint }}>{W.readingWater}</Text>
   ) : null;
 
   /*
@@ -248,7 +263,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     </>
   ) : undefined;
 
-  const view = chart.state === "ready" ? chart.value : null;
+  const view = charts && chart.state === "ready" ? chart.value : null;
   /*
    * (T367, owner 2026-11-04: "all gauge info … should be built into graph look … right now it isnt very cohesive") THE
    * GAUGE CARD: one bordered card that reads top to bottom, the same for the lead gauge, a donor and a lake's own gauge —
@@ -267,7 +282,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   tools={<>
                     <ChartControls<Parameter> palette={palette} value={shown} testID="chart-quantity" coach="cond:quantity"
                                               label={W.controls.quantity} onPick={pick}
-                                              options={available.map((p) => [p, W.quantity[p]] as const)} />
+                                              options={options.map((p) => [p, W.quantity[p]] as const)} />
                     <ChartControls<Span> palette={palette} value={span} label={W.controls.span} testID="chart-span" coach="cond:span"
                                          onPick={setSpan}
                                          options={[["72h", W.spanShort["72h"], W.span["72h"]],
@@ -276,12 +291,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {readingRows}
       {vm.leadNote && <Text testID="lead-note" style={{ ...TYPE.meta, color: palette.sub }}>{vm.leadNote}</Text>}
       {change && <ChangeBlock palette={palette} change={change} colour={tint} />}
-      {chart.state === "loading" && (
+      {chart.state === "loading" && charts && (
         <LoadingState palette={palette} size={72} label={W.loadingRecord} style={{ alignItems: "center", paddingVertical: SPACE.s4 }} />
       )}
       {/* THE LAST CHART STAYS UP, DIMMED, while a gauge not yet in hand loads — never a spinner in its place. */}
       {/* (T367) under Change the Change chart above is the one chart: the flow chart under it said the same twice */}
-      {view && !change && (
+      {view && !change && charts && (
         <View ref={chartRing} collapsable={false} style={{ opacity: view.pending ? 0.45 : 1 }} aria-busy={view.pending}>
           <Hydrograph shape={view.shape} palette={palette} colour={tint}
                       unit={UNIT[shown]} view={view}
@@ -303,7 +318,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {view && !view.pending && view.draft && (
         <Text style={{ ...TYPE.meta, color: palette.faint }} accessibilityLiveRegion="polite">{W.envelopeLoading}</Text>
       )}
-      {chart.state === "ready" && !view && (
+      {chart.state === "ready" && !view && charts && (
         <Text style={{ ...TYPE.body, color: palette.sub }}>{noChartSentence(span)}</Text>
       )}
       {/* (T300) ONLY ELF: the one model drawn is the low-water one because no other has a forecast here — said, not hidden */}
@@ -331,7 +346,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
       {available.includes(shown) && (
         <AlertMe palette={palette} source={source}
                  target={{ station, stationName: title, quantity: shown, quantities: available,
-                           current: reading && reading.quantity === shown ? reading.figure : null,
+                           current: currentFigure(reading, shown),
                            water: alertWater ?? null }} />
       )}
     </View>
@@ -356,7 +371,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   chain={vm.chain} standing={vm.route.standing}
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
-                  foot={small} after={footer} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />
+                  foot={small} after={footer} holdKey={`${section ?? ""}:${String(horizon)}:${vm.day.toDateString()}`} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />
     </>
   );
 
@@ -369,13 +384,18 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const scrolled = <CoachScrollContext.Provider value={coachScroll.scroller}>{body}</CoachScrollContext.Provider>;
   const follow = { ref: coachScroll.ref, scrollEventThrottle: 16,
                    onScroll: (e: { nativeEvent: { contentOffset: { y: number } } }) => coachScroll.track(e.nativeEvent.contentOffset.y) };
-  return scroll
+  const page = scroll
     ? bodySwipe
       ? <ScrollView {...follow} contentContainerStyle={{ flexGrow: 1 }}>
           <ViewSwipe swipe={bodySwipe} testId="view-swipe-conditions" style={pad}>{scrolled}</ViewSwipe>
         </ScrollView>
       : <ScrollView {...follow} contentContainerStyle={pad}>{scrolled}</ScrollView>
     : <View style={{ gap: SPACE.s4 }}>{body}</View>;
+  // the wrapper is the same node whether the body is fresh or kept, so the scroll place survives the step
+  if (vm.loading)
+    return <View style={{ ...KEPT_STYLE, opacity: 0.45 }} pointerEvents="none" aria-busy testID="conditions-kept" accessibilityElementsHidden>{kept.current}</View>;
+  kept.current = page;
+  return <View style={KEPT_STYLE}>{page}</View>;
 }
 
 /** (T300) A shut-by-default line of detail: one toggle, its text when opened. */

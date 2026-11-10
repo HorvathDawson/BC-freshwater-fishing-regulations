@@ -14,12 +14,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { chartLabel, CONDITIONS_WORDS } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { makeFixtureSource } from "@app/data/fixture";
-import { clearAnswers, clearPanelCache } from "@app/ui";
+import { clearAnswers, clearPanelCache, resetChartPrefs } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
 import { LIGHT } from "./theme";
 
 afterEach(cleanup);
-beforeEach(() => { clearPanelCache(); clearAnswers(); });
+beforeEach(() => { clearPanelCache(); clearAnswers(); resetChartPrefs(); });
 
 const SEC = 7 as SectionId;
 const DAY = new Date(2026, 8, 4, 12);
