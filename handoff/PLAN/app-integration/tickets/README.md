@@ -614,6 +614,7 @@ use that as the sole source of future work."
 | T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa | level-only gauge under Flow now says so; on the phone with the next build; owner confirms |
 | T568 | The gauge map moves when Level / Flow is tapped on the chart | OPEN | — | owner 2026-11-09: "important to fix"; cause read in code, not reproduced |
 | T569 | Report a problem from the screen you are on (Conditions has no way in) | OPEN | — | owner 2026-11-09 |
+| T570 | Indigenous land names show only when zoomed in a lot more | OPEN | — | owner 2026-11-10 |
 
 ## Order for open tickets
 
