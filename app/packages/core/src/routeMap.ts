@@ -6,7 +6,7 @@
  * and fit back. The shares are `donorShare` — the panel's own words for the same number —
  * so the map and the rows under it cannot disagree about what a gauge contributed.
  */
-import { CONDITIONS_WORDS, donorShare, donorState, type DonorAsk, type DonorFacts, type DonorReading }
+import { CONDITIONS_WORDS, donorShare, donorState, OTHER_QUANTITY_WORDS, type DonorAsk, type DonorFacts, type DonorReading }
   from "./conditions";
 
 export const ROUTE_MAP_WORDS = {
@@ -49,6 +49,7 @@ export function donorMapLabel(r: MapFacts, o: DonorAsk = {}): string {
     case "flow-only": return ROUTE_MAP_WORDS.flowOnly;
     case "forecast-unranked": return ROUTE_MAP_WORDS.noRecord;
     case "no-forecast": return ROUTE_MAP_WORDS.noForecast;
+    case "other-quantity": return OTHER_QUANTITY_WORDS[s.has].map;
     case "unranked": return ROUTE_MAP_WORDS.unranked;
     case "quiet": return ROUTE_MAP_WORDS.quiet;
     default: { const never: never = s; return never; }

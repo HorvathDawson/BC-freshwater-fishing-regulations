@@ -85,6 +85,9 @@ describe("donorReason: why there is no estimate, per reason", () => {
                         + "their record. Show Flow to see it.",
     // A day the runs forecast at gauges with no record to rank it against (T157: 07FC008, 08FB012).
     "forecast-unranked": "The gauges here have a forecast this far ahead, but no record to compare it with.",
+    // Today, the gauges report the other quantity only (T567: Fraser at Mission reports a level, no flow).
+    "level-only": "The gauges here report water level only today, not flow. Show Level to see their reading.",
+    "flow-only": "The gauges here report flow only today, not water level. Show Flow to see their reading.",
   };
   it.each(Object.entries(WHY))("%s", (why, sentence) => {
     expect(donorReason(why as NoEstimate)).toBe(sentence);

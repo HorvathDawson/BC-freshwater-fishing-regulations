@@ -56,14 +56,15 @@ export function quietWord(states: readonly DonorState["kind"][], horizon: Horizo
   if (horizon === "change") return "with no forecast running";
   if (horizon) return "not counted this far ahead";
   // "reporting, not ranked" is not "not reporting": the word says both when one is among them
-  return states.includes("unranked") ? "not reporting or not ranked" : "not reporting";
+  // (T567) a gauge reporting the other quantity only is reporting too: not ranked in the one asked
+  return states.includes("unranked") || states.includes("other-quantity") ? "not reporting or not ranked" : "not reporting";
 }
 
 /** The positive of `quietWord`, for "No gauge on this water reporting". */
 function countedWord(states: readonly DonorState["kind"][], horizon: Horizon): string {
   if (horizon === "change") return "with a forecast running";
   if (horizon) return "counted this far ahead";
-  return states.includes("unranked") ? "ranked" : "reporting";
+  return states.includes("unranked") || states.includes("other-quantity") ? "ranked" : "reporting";
 }
 
 /** One group of a surface's items: those reporting shown, the rest under `fold`. */

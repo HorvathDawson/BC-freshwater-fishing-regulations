@@ -117,6 +117,10 @@ const FIXTURES: { state: string; r: DonorFacts; horizon: Horizon; word: string }
   { state: "no-forecast", r: row(), horizon: "change", word: "no forecast" },
   { state: "flow-only", r: row({ aheadWhy: "flow-only" }), horizon: 3, word: "flow forecast" },
   { state: "forecast-unranked", r: row({ aheadWhy: "no-record" }), horizon: 3, word: "no record to compare" },
+  // (T567) Fraser at Mission under Flow: a level today and no flow
+  { state: "other-quantity", r: row({ observedAt: "2026-10-20T20:35:00-08:00", otherOnly: "level" }), horizon: 0,
+    word: "level only" },
+  { state: "other-quantity", r: row({ otherOnly: "discharge" }), horizon: 0, word: "flow only" },
   { state: "unranked", r: row({ observedAt: "2026-10-20T20:35:00-08:00" }), horizon: 0, word: "reporting" },
   { state: "quiet", r: row(), horizon: 0, word: "not reporting" },
 ];
@@ -155,6 +159,12 @@ describe("one donor state: core's donorState decides, every label switches over 
         map: "no record to compare with", key: "08MH024 · no record to compare with", silent: true,
         label: "08MH024, upstream, 2.4× apart, no record to compare its forecast with, so it counts for nothing",
         same: true },
+      { kind: "other-quantity", line: "Reports water level only today, not flow. Show Level to see it.",
+        map: "level only", key: "08MH024 · level only", silent: false,
+        label: "08MH024, upstream, 2.4× apart, reports level only, no flow, so it counts for nothing", same: true },
+      { kind: "other-quantity", line: "Reports flow only today, not water level. Show Flow to see it.",
+        map: "flow only", key: "08MH024 · flow only", silent: false,
+        label: "08MH024, upstream, 2.4× apart, reports flow only, no level, so it counts for nothing", same: true },
       { kind: "unranked", line: "Reporting, but its reading cannot be ranked today.", map: "reporting, not ranked",
         key: "08MH024 · reporting, not ranked", silent: false,
         label: "08MH024, upstream, 2.4× apart, reporting but not ranked today, so it counts for nothing", same: true },
@@ -164,7 +174,8 @@ describe("one donor state: core's donorState decides, every label switches over 
     ]);
     // every state has a fixture
     expect([...new Set(got.map((g) => g.kind))].sort())
-      .toEqual(["flow-only", "forecast-unranked", "no-forecast", "not-realtime", "quiet", "reads", "unranked"]);
+      .toEqual(["flow-only", "forecast-unranked", "no-forecast", "not-realtime", "other-quantity", "quiet", "reads",
+                "unranked"]);
   });
 
   it("the decision itself, whole, and its order", () => {
@@ -186,9 +197,14 @@ describe("one donor state: core's donorState decides, every label switches over 
       donorState(row({ aheadWhy: "flow-only", realtime: false }), { ref: REF, horizon: 3 }),
       donorState(row({ aheadWhy: "no-record", percentile: 0.3 }), { ref: REF, horizon: 3 }),
       donorState(row({ aheadWhy: "no-record", observedAt: seen }), { ref: REF }),
+      // (T567) the other quantity only: today only, and never over a reading or the real-time list
+      donorState(row({ otherOnly: "level", observedAt: seen }), { ref: REF }),
+      donorState(row({ otherOnly: "level", observedAt: seen }), { ref: REF, horizon: 3 }),
+      donorState(row({ otherOnly: "level", realtime: false }), { ref: REF }),
+      donorState(row({ otherOnly: "level", percentile: 0.3 }), { ref: REF }),
     ].map((s) => s.kind)).toEqual(["reads", "reads", "not-realtime", "no-forecast", "unranked", "quiet", "quiet",
                                    "quiet", "quiet", "flow-only", "forecast-unranked", "not-realtime", "reads",
-                                   "unranked"]);
+                                   "unranked", "other-quantity", "no-forecast", "not-realtime", "reads"]);
     expect(donorState(row({ percentile: 0.4 }))).toEqual({ kind: "reads", percentile: 0.4 });
   });
 

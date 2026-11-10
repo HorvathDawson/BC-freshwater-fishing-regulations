@@ -101,11 +101,24 @@ describe("a panel whose members are all silent", () => {
     expect(answerFrom(PANEL, b).answer).toEqual(answerFrom(PANEL, feed({ B: flow(0.5) })).answer);
   });
 
-  it("never lets a level stand in for a flow: level-only reports leave Flow with no-record", () => {
-    const levels = feed({ A: { percentile: 0.3, parameter: "level", level: 0.3 } });
-    expect(answerFrom(PANEL, levels, "discharge").answer).toEqual({ ok: false, why: "no-record" });
-    const lv = answerFrom(PANEL, levels, "level").answer;
-    expect(lv.ok && Math.round(lv.value.percentile * 100)).toBe(30);
+  it("never lets a level stand in for a flow, and says the gauge reports level only (T567: Fraser at Mission)", () => {
+    // 08MH024's row on the 2026-11-10 staging feed: a ranked level, no flow
+    const mission = { percentile: 0.6106, parameter: "level" as const, level: 0.6106 };
+    const levels = feed({ A: mission });
+    const got = answerFrom(PANEL, levels, "discharge");
+    expect(got.answer).toEqual({ ok: false, why: "level-only" });
+    expect(got.rows.map((r) => [r.station, r.percentile, r.otherOnly ?? null]))
+      .toEqual([["A", null, "level"], ["B", null, null], ["C", null, null]]);
+    const lv = answerFrom(PANEL, levels, "level");
+    expect(lv.answer.ok && Math.round(lv.answer.value.percentile * 100)).toBe(61);
+    expect(lv.rows.some((r) => r.otherOnly)).toBe(false);
+    // the mirror: a flow-only gauge under Level; a day ahead is never this refusal
+    expect(answerFrom(PANEL, feed({ A: flow(0.3) }), "level").answer).toEqual({ ok: false, why: "flow-only" });
+    expect(answerFrom(PANEL, levels, "discharge", 3).answer).toEqual({ ok: false, why: "no-forecast" });
+    // a member that reads the asked quantity answers, and the level-only one beside it says why it does not count
+    const mixed = answerFrom(PANEL, feed({ A: mission, B: flow(0.5) }), "discharge");
+    expect(mixed.answer.ok).toBe(true);
+    expect(mixed.rows.find((r) => r.station === "A")?.otherOnly).toBe("level");
   });
 
   it("still says no-station where there is no panel at all", () => {

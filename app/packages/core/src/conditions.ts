@@ -248,6 +248,12 @@ const WHY: Record<NoEstimate, string> = {
   // with a fresh run and an expected Change but no HYDAT record, so no day ahead has a percentile. "No forecast …
   // reaches" was false: the forecast is there, and Change answers from it.
   "forecast-unranked": "The gauges here have a forecast this far ahead, but no record to compare it with.",
+  // TODAY, THE GAUGES REPORT THE OTHER QUANTITY ONLY (T567, owner 2026-11-09: "the fraser at mission gauge has no
+  // current readings (but the gauge page for it does)"). 08MH024 reports a level and no flow; under Flow the sheet said
+  // "no reading today that can be ranked", which reads as a dead gauge. A level never stands in for a flow (one
+  // quantity for the whole map); the words say which the gauge reports and where to see it.
+  "level-only": "The gauges here report water level only today, not flow. Show Level to see their reading.",
+  "flow-only": "The gauges here report flow only today, not water level. Show Flow to see their reading.",
 };
 
 /**
@@ -306,6 +312,12 @@ export interface DonorFacts {
    * station has no record to rank it against. Absent: no run reaches the day, or the question is not a day ahead.
    */
   aheadWhy?: AheadWhy;
+  /**
+   * TODAY, THE MEMBER REPORTS THE OTHER QUANTITY ONLY (T567, @app/data `otherOnly`): which one it has a reading of,
+   * when it has none of the quantity asked. Absent: it reads the asked quantity, it reads neither, or the question is
+   * a day ahead.
+   */
+  otherOnly?: "discharge" | "level";
 }
 
 /** See `DonorFacts.aheadWhy`. */
@@ -323,7 +335,7 @@ export function sizeApart(ratio: number): string {
 /* ------------------------------------------------------------ a donor's state ---- */
 
 /** What a donor row must carry for its state to be known. `DonorFacts` (and `DonorRow`) satisfy it. */
-export type DonorReading = Pick<DonorFacts, "percentile" | "realtime" | "observedAt" | "aheadWhy">;
+export type DonorReading = Pick<DonorFacts, "percentile" | "realtime" | "observedAt" | "aheadWhy" | "otherOnly">;
 
 /** The instant (`ref`) and horizon the answer is for. */
 export interface DonorAsk { ref?: number; horizon?: Horizon }
@@ -340,6 +352,8 @@ export interface DonorAsk { ref?: number; horizon?: Horizon }
  *                 ("a flow forecast this far ahead, but no level forecast ranked").
  *   forecast-unranked  a day ahead its runs forecast, with no record to rank it against (T157).
  *   no-forecast   a day ahead (or Change) and no forecast run reaches it — a missing FORECAST, not a quiet gauge.
+ *   other-quantity  today, a reading of the OTHER quantity only (`has`; T567: a level gauge asked for flow): it
+ *                 speaks, and its words say which quantity to show.
  *   unranked      today, a report within a day of `ref` that cannot be ranked against its record: it speaks.
  *   quiet         today, and nothing within a day: not reporting.
  *
@@ -352,6 +366,7 @@ export type DonorState =
   | { kind: "flow-only" }
   | { kind: "forecast-unranked" }
   | { kind: "no-forecast" }
+  | { kind: "other-quantity"; has: "discharge" | "level" }
   | { kind: "unranked" }
   | { kind: "quiet" };
 
@@ -362,10 +377,19 @@ export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
   if (r.realtime === false) return { kind: "not-realtime" };
   if (o.horizon) return r.aheadWhy === "flow-only" ? { kind: "flow-only" }
     : r.aheadWhy === "no-record" ? { kind: "forecast-unranked" } : { kind: "no-forecast" };
+  if (r.otherOnly) return { kind: "other-quantity", has: r.otherOnly };
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
   if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) < DAY) return { kind: "unranked" };
   return { kind: "quiet" };
 }
+
+/** (T567) A member that reports the other quantity only, said three ways: its row, its dot, a screen reader. */
+export const OTHER_QUANTITY_WORDS = {
+  level: { reads: "Reports water level only today, not flow. Show Level to see it.", map: "level only",
+           label: "reports level only, no flow" },
+  discharge: { reads: "Reports flow only today, not water level. Show Flow to see it.", map: "flow only",
+               label: "reports flow only, no level" },
+} as const;
 
 /** Does this donor count in the estimate — a reading at the horizon (`donorState`'s `reads`)? */
 export const donorCounted = (r: DonorReading): boolean => donorState(r).kind === "reads";
@@ -418,6 +442,7 @@ export function donorReads(r: DonorReading, o: DonorAsk = {}): string {
     case "no-forecast":
       return o.horizon === "change" ? "No forecast running for this gauge now."
         : "No forecast for this gauge that far ahead.";
+    case "other-quantity": return OTHER_QUANTITY_WORDS[s.has].reads;
     case "unranked": return "Reporting, but its reading cannot be ranked today.";
     case "quiet": return "Not reporting today.";
     default: return unreachable(s);
@@ -432,7 +457,7 @@ export function donorReads(r: DonorReading, o: DonorAsk = {}): string {
 export function donorSilent(r: DonorReading, o: DonorAsk = {}): boolean {
   const s = donorState(r, o);
   switch (s.kind) {
-    case "reads": case "unranked": return false;
+    case "reads": case "unranked": case "other-quantity": return false;
     case "not-realtime": case "flow-only": case "forecast-unranked": case "no-forecast": case "quiet": return true;
     default: return unreachable(s);
   }
@@ -536,6 +561,7 @@ export function donorRowLabel(r: DonorFacts, pickable: boolean, on: boolean,
       case "flow-only": return nothing("a flow forecast only, no level ranked");
       case "forecast-unranked": return nothing("no record to compare its forecast with");
       case "no-forecast": return nothing("no forecast for this gauge");
+      case "other-quantity": return nothing(OTHER_QUANTITY_WORDS[s.has].label);
       case "unranked": return nothing("reporting but not ranked today");
       case "quiet": return nothing("not reporting today");
       default: return unreachable(s);

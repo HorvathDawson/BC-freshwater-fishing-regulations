@@ -142,7 +142,9 @@ export type NoEstimate =
   | "own-gauge"         // a gauged lake: its own station reads it, so nothing is estimated (T105 review)
   | "no-forecast"       // a day ahead that no forecast run for these gauges reaches
   | "flow-forecast-only" // a day ahead under Level: the runs here forecast FLOW that day, no stage (T143)
-  | "forecast-unranked"; // a day ahead: the runs here forecast it, but no gauge has a record to rank it against (T157)
+  | "forecast-unranked" // a day ahead: the runs here forecast it, but no gauge has a record to rank it against (T157)
+  | "level-only"        // today under Flow: the gauges here report a level and no flow (T567: Fraser at Mission)
+  | "flow-only";        // today under Level: the gauges here report a flow and no level (T567)
 
 export type Answer = { ok: true; value: Estimate } | { ok: false; why: NoEstimate };
 

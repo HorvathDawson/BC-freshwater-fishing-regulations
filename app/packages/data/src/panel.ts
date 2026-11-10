@@ -64,6 +64,8 @@ export interface DonorRow {
   noData?: true;
   /** Why it has no percentile on the day ahead asked about (`aheadWhy`, T157); absent otherwise. */
   aheadWhy?: AheadWhy;
+  /** Today, the other quantity is the only one it reports (`otherOnly`, T567): which; absent otherwise. */
+  otherOnly?: Quantity;
   /**
    * `true` only, under Change: this member's expected change is the low-water model's alone (the feed's
    * `change.lowWater`, T144: ELF, no flood model reaches it), so the answer it counts in carries the caveat (T157).
@@ -265,6 +267,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     const row = index.stations[m.station];
     const own = row ? reading(row, chosen, horizon) : null;
     const why = aheadWhy(row, chosen, horizon);
+    const other = otherOnly(row, chosen, horizon);
     const back = own !== null && panel.areaKm2 ? stoodBack.has(at++) : false;
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
@@ -284,6 +287,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
                ...(row?.observedAt ? { observedAt: row.observedAt } : {}),
                ...(listed && !listed.has(m.station) ? { realtime: false as const } : {}),
                ...(why ? { aheadWhy: why } : {}),
+               ...(other ? { otherOnly: other } : {}),
                // (T157 review) only a member the answer counts: a reserve member that stood back is not part of "this change"
                ...(own !== null && !back && horizon === "change" && row?.change?.lowWater ? { lowWater: true as const } : {}) });
   }
@@ -364,10 +368,27 @@ export function throughLakeStations(routes: readonly PanelRoute[] | null): Reado
  *                        flow. Change is flow only (T52), so under Level it is no-forecast too.
  */
 export function silentWhy(panel: Panel, index: NonNullable<Index>, quantity: Quantity, horizon: Horizon):
-    "no-record" | "no-forecast" | "flow-forecast-only" | "forecast-unranked" {
-  if (!isAhead(horizon)) return "no-record";
+    "no-record" | "no-forecast" | "flow-forecast-only" | "forecast-unranked" | "level-only" | "flow-only" {
+  if (!isAhead(horizon)) {
+    // (T567) today, and a member reports the other quantity: the refusal names it instead of "no reading"
+    const has = new Set(panel.members.map((m) => otherOnly(index.stations[m.station], quantity, horizon)));
+    return has.has("level") ? "level-only" : has.has("discharge") ? "flow-only" : "no-record";
+  }
   const why = new Set(panel.members.map((m) => aheadWhy(index.stations[m.station], quantity, horizon)));
   return why.has("flow-only") ? "flow-forecast-only" : why.has("no-record") ? "forecast-unranked" : "no-forecast";
+}
+
+/**
+ * TODAY, A STATION THAT REPORTS THE OTHER QUANTITY ONLY (T567): asked Flow, it ranks a level and no flow (Fraser at
+ * Mission, 08MH024; 61 such stations), or the mirror under Level. The one reading of the feed for it — the panel's
+ * refusal (`silentWhy`) and the member's state (`DonorRow.otherOnly`, core `donorState`) both take it from here.
+ * Undefined: it reads the asked quantity, it reads neither, or the question is not today.
+ */
+export function otherOnly(row: NonNullable<Index>["stations"][string] | null | undefined, quantity: Quantity,
+                          horizon: Asked): Quantity | undefined {
+  if (!row || horizon !== 0 || reading(row, quantity, 0) !== null) return undefined;
+  const other: Quantity = quantity === "discharge" ? "level" : "discharge";
+  return reading(row, other, 0) !== null ? other : undefined;
 }
 
 /**
