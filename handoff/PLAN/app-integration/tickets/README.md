@@ -611,8 +611,8 @@ use that as the sole source of future work."
 | T564 | Public gauge page: the forecast is on it, and the chart is large and readable | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T565 | An in-season notice sits at the top of the Regulations page, not under salmon | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T566 | Switching between the maps causes issues sometimes (owner, Pixel 9, build 24) | OPEN | — | owner 2026-11-09 (owner checks page) |
-| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa, 1c57e7c07 | level-only gauge under Flow now says so; forecast day: figure labelled today's, day asked has its own line and chart mark; lead gauge flips with quantity on a forecast day = owner decision (A/B in ticket); owner confirms on the phone |
-| T568 | The gauge map moves when Level / Flow is tapped on the chart | IN REVIEW | 1c57e7c07 | map one place over the chart, one frame per water, a refusal keeps the map; owner confirms on the phone |
+| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa, 1c57e7c07, 694479e25 | level-only gauge under Flow now says so; forecast day: figure labelled today's, day asked has its own line and chart mark; lead gauge flips with quantity on a forecast day = owner decision (A/B in ticket); owner confirms on the phone |
+| T568 | The gauge map moves when Level / Flow is tapped on the chart | IN REVIEW | 1c57e7c07, 694479e25 | map one place over the chart, one frame per water, a refusal keeps the map; owner confirms on the phone |
 | T569 | Report a problem from the screen you are on (Conditions has no way in) | IN REVIEW | 774befd64 | worker deploy needed for the new keys |
 | T570 | Indigenous land names show only when zoomed in a lot more | IN REVIEW | 0fd94a0a9 | names start at zoom 12 (was 9), owner approved the shots 2026-11-10; phone check on the next APK |
 | T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | DONE | f1acba096 | owner 2026-11-10: "should never happen … look for other things like that" |
@@ -636,7 +636,7 @@ use that as the sole source of future work."
 | T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | OPEN | — | worker /crashes read 2026-11-10 |
 | T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | OPEN | — | worker /crashes 2026-11-10, kind 4219b587 |
 | T597 | Two feeds worker run failures 11-09/10 explained and guarded (gauges all-404 at 00:05 UTC; in-season format ahead of the worker) | OPEN | — | /status.json 2026-11-10; overlaps T550, T558 |
-| T598 | "Days in 10" replaces the percentile wherever the reader sees it | IN REVIEW | pending | built; owner looks at the short form ("8 in 10 days higher") in ../T598-shots/ |
+| T598 | "Days in 10" replaces the percentile wherever the reader sees it | IN REVIEW | eb4bf2168 | built; owner looks at the short form ("8 in 10 days higher") in ../T598-shots/ |
 
 ## Order for open tickets
 
