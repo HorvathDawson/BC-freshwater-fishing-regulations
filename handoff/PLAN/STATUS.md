@@ -13,6 +13,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 late afternoon — two days each labelled (T582, in review); land-name zoom shots ready (chat 11)
+- **Two days, each labelled (T582, in review):** Conditions says which day it shows ("Conditions: today") and names the
+  regulations day under it, marked on the chart, or "<day> is past the forecast". The water's Map tab says "Map: rules
+  for <day>". Web and phone both reopen Conditions on today; a shared link that names a day is still read.
+  Not done: with both days on the chart only the Conditions day's line is drawn. Phone not run.
+- **Indigenous land names (T570):** the names start at zoom 9 today; proposed 12. Shots sent; nothing changed until
+  the owner picks.
+- **Owner decided:** keep "Lower than 8 days in 10"; use that plain form in place of the percentile wherever a reader
+  sees it (T598, running next).
+- **Waits on the owner:** T570 zoom (12?).
+
 ## 2026-11-10 mid-afternoon — one wording for a standing, report from any water view, worker reports read (chat 11)
 - **One wording for how a gauge stands (T583, in review):** every place now says it the same way, e.g. "Below normal ·
   20th percentile". The headline word changed: "Low" is now "Below normal". The public gauge page uses the same words.
