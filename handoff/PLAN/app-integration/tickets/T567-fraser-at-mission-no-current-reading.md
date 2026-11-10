@@ -1,6 +1,6 @@
 # T567 — Fraser at Mission: the app shows no current readings, the gauge page does
 
-Status: IN REVIEW — fb042cdfa (code + tests; reaches the phone with the next build; owner to confirm there)
+Status: IN REVIEW — fb042cdfa, 1c57e7c07 (open parts a, c, d done; b (one lead gauge per water) waits for an owner decision, below; reaches the phone with the next build; owner confirms there)
 
 Source: Owner 2026-11-09: "the fraser at mission gauge has no current readings (but the gauge page for it does so there is an issue there?)".
 
@@ -68,3 +68,20 @@ Depends: —. Size: S. Owner: no.
 "forecast days still need to show current day on the chart i think to make it easy for user to know." So on a forecast
 day the chart keeps today in view: the readings up to now, a marked "today", then the forecast out to the day asked
 (marked too). Today's figure stays on the card, labelled as today's; the day asked gets its own forecast figure.
+
+## Open parts, 2026-11-10 (1c57e7c07)
+- (d) Web vs phone: REFUTED as a platform difference. One `ConditionsPanel` / `useConditionsView` on both; a fixture in the
+  owner's shape (`conformance/src/leadGauge.test.ts`) gives the same lead for the same (quantity, day). On Now both
+  quantities lead with Hansard (08KA004); on a forecast day Flow leads with Mission, Level with Hansard. The web was on Now.
+- (a) Forecast day: the figure is labelled "Today's reading"; the day asked has its own line ("Mon 7 Sep, forecast: Reads
+  …", core `forecastFigureLine`, the lead's own forecast row); the chart already kept the record and a TODAY rule, and now
+  draws the day asked as a second dated rule (`BuildInput.day` -> `Hydrograph.day`).
+- (c) The 9a9a247d1 guard covered the figure but told a station with BOTH quantities (Hansard) that it "reports flow only".
+  Now the card shows the station's value in the quantity the chart shows, with the standing "(ranked on flow)"; only a
+  station without that quantity gets the words.
+- (b) NOT DONE, owner decision: the lead flips with the quantity on a forecast day because each quantity's forecast
+  coverage differs (Mission has a CLEVER flow forecast and no ranked level forecast). Options: A) one lead per water and
+  day, chosen in the default quantity (flow); under Level the card keeps that gauge and says it has no level forecast that
+  day (its chart still shows its level record); B) keep a lead per quantity and say so on the card ("Level this day:
+  Hansard, Mission has no level forecast"). A matches "one lead per water"; B keeps a forecast figure on the card.
+- Tests: `conditions.render.test.tsx`, `ConditionsPanel.test.tsx`, `hydrograph.zoom.test.ts`, `leadGauge.test.ts`.

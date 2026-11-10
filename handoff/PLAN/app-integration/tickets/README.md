@@ -611,8 +611,8 @@ use that as the sole source of future work."
 | T564 | Public gauge page: the forecast is on it, and the chart is large and readable | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T565 | An in-season notice sits at the top of the Regulations page, not under salmon | OPEN | — | owner 2026-11-09 (owner checks page) |
 | T566 | Switching between the maps causes issues sometimes (owner, Pixel 9, build 24) | OPEN | — | owner 2026-11-09 (owner checks page) |
-| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa | level-only gauge under Flow now says so; on the phone with the next build; owner confirms |
-| T568 | The gauge map moves when Level / Flow is tapped on the chart | OPEN | — | owner 2026-11-09: "important to fix"; cause read in code, not reproduced |
+| T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa, 1c57e7c07 | level-only gauge under Flow now says so; forecast day: figure labelled today's, day asked has its own line and chart mark; lead gauge flips with quantity on a forecast day = owner decision (A/B in ticket); owner confirms on the phone |
+| T568 | The gauge map moves when Level / Flow is tapped on the chart | IN REVIEW | 1c57e7c07 | map one place over the chart, one frame per water, a refusal keeps the map; owner confirms on the phone |
 | T569 | Report a problem from the screen you are on (Conditions has no way in) | OPEN | — | owner 2026-11-09 |
 | T570 | Indigenous land names show only when zoomed in a lot more | OPEN | — | owner 2026-11-10 |
 | T573 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | OPEN | T568, T567 | owner 2026-11-10: "should never happen … look for other things like that" |

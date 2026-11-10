@@ -1,6 +1,6 @@
 # T568 — The gauge map moves when Level / Flow is tapped on the chart
 
-Status: OPEN.
+Status: IN REVIEW — 1c57e7c07 (map over the chart whatever the quantity; one frame per water; refusal keeps the map; reaches the phone with the next build; owner confirms there)
 
 Source: Owner 2026-11-09: "when you click level vs flow on chart the location of gauge map changes in an obnoxious way
 this is important to fix too".
@@ -30,3 +30,15 @@ is asked and whether or not the estimate answers; find what orders the blocks (t
 no map, and the Conditions sheet lays the chart and the map out by what it has). The camera point stays as a second check.
 Owner also: a forecast showed under Level for Mission in the phone app only, not the web app (picture to come): maybe a
 stale update on the phone. Look at it with this.
+
+## Done 2026-11-10 (1c57e7c07)
+- Cause: two things. (1) The block order: the route map sat UNDER the chart when the estimate answered, and a refusal
+  (Flow on a level-only water) drew no map at all, so the toggle moved or removed the whole map. (2) The camera fitted
+  only the members that speak in the asked quantity, so the frame (and the remount key) moved on the toggle.
+- Fix: `donorView` frames every located member that is silent only for the quantity or day asked (not `quiet` /
+  `not-realtime`), and a refusal now carries the map (`DonorVM.map`; pins are the members, each with its state). The map
+  is one block in `DonorPanel`, under the tile and over the chart, refusal or not. `DonorMap`'s two buttons gained
+  `hitProps` (a latent 44 px gap the a11y test found once the map showed on a refusal).
+- Tests: `panel.frame.test.ts` (camera, key, bbox equal for Flow and Level, today and +3; a refusal keeps the map),
+  `DonorPanel.map.test.tsx` (map before chart on an answer and on a refusal).
+- Not run on the emulator or the web build (no new APK may be built this session).
