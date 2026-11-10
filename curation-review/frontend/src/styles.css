@@ -1250,3 +1250,9 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-state.confirmed { background: var(--ck-ok-bg); color: var(--ck-ok); }
 .ck-how { padding: 4px 16px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--ck-line); }
 .ck-btns button { height: auto; min-height: 42px; padding: 6px 8px; line-height: 1.25; }
+
+.ck-key { flex-wrap: wrap; max-width: 70%; }
+.ck-key i.approx { background: none; border-top: 4px dotted #0d9488; height: 0; }
+.ck-key i.ring { width: 10px; height: 10px; border-radius: 50%; background: none; border: 3px solid #0d9488; }
+.ck-key i.approx { border-top: 4px dashed #0f766e; }
+.ck-key i.newcut { width: 10px; height: 10px; border-radius: 50%; background: #ea580c; }

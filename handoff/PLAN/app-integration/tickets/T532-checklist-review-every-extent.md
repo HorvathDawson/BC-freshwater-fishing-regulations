@@ -198,3 +198,18 @@ when it saves".
   against DFO's words · 2 Fix it if needed (preview, then save) · 3 Confirm it".
 - Not done: a draft that names a NEW cut is shown as its points only (the stretch draws after the rebuild builds the
   cut); a row click does not focus its piece; T and R are still two answers before the save.
+
+## Owner 2026-11-09, round 3 (inline editor)
+- "if you save extent you assume it is correct?" — the inline editor asks no T / R. A mark needs both answered
+  (`verdict_from_answers`), so they are sent as y and the note says so: "T and R not asked: implied yes by the owner
+  saving this extent from the checklist". The full editor page keeps its questions; "Report a problem with it" is how
+  the words or rules are called wrong.
+- "could we make this mock up a new section … even just a mock one made in app" — a draft of ONE piece `between` two
+  points that names a cut not built yet draws an APPROXIMATE stretch: the water's own lines on the map walked the
+  shortest way between the vertices nearest the two points (`approxStretch.approxBetween`, in the app, never saved),
+  dashed, labelled "approximate: the exact stretch is drawn after the next rebuild" in the key and the panel (with
+  its length), or the reason it could not be drawn. Not done for upstream_of / downstream_of with a new point: the
+  client's lines carry no flow direction to pick the end from.
+- "if proposal is on an existing cut then it should highlight that cut" — a proposal / draft point that is an existing
+  cut rings that cut's own marker (violet for the proposal, teal for the draft); only a new cut gets a marker ("new
+  cut, not built").

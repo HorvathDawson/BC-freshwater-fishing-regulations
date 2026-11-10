@@ -189,16 +189,19 @@ export function proposalOf(detail: DfoDetail) {
 }
 
 /** the proposal's points as labelled map points (`PROPOSAL 1: …`); `label` names a cut that has no label of its own */
-export function proposalPoints(detail: DfoDetail, s: DfoSuggestion | null, label: (sid: string) => string | null): GeoJSON.Feature[] {
+export function proposalPoints(detail: DfoDetail, s: DfoSuggestion | null, label: (sid: string) => string | null,
+                               newOnly = false): GeoJSON.Feature[] {
   const sg = s?.suggestion;
   if (!sg) return [];
   return sg.points.flatMap((p, i) => {
+    // r3 (`newOnly`): a point that IS an existing cut adds no marker — that cut's own marker is ringed instead
+    if (newOnly && p.kind === "split") return [];
     const meta = s?.points?.[i];
     const prop = p.kind === "new" ? detail.proposed.find((x) => x.id === p.split_id) : undefined;
     const fresh = p.kind === "new" ? (sg.new_splits ?? []).find((n) => n.ref === p.split_id) : undefined;
     const cut = p.kind === "split" && p.split_id ? detail.splits.features.find((x) => x.properties.split_id === p.split_id) : undefined;
     const at = meta?.coord ?? prop?.coord ?? fresh?.coord ?? cut?.geometry.coordinates ?? null;
-    return at ? [{ type: "Feature", properties: { label: `PROPOSAL ${i + 1}: ${meta?.label ?? label(p.split_id ?? "") ?? fresh?.name ?? ""}` },
+    return at ? [{ type: "Feature", properties: { label: `PROPOSAL ${i + 1}: ${newOnly && p.kind === "new" ? "new cut, not built — " : ""}${meta?.label ?? label(p.split_id ?? "") ?? fresh?.name ?? ""}` },
                    geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
   });
 }
@@ -219,6 +222,10 @@ export interface EditLayers {
   onMovePoint: (id: string, ll: [number, number]) => void;
   /** the draft differs from the extent now: leaving the place asks first */
   dirty: boolean;
+  /** r3: the existing cuts the draft uses (ringed on the map), and — when the draft cannot be resolved because a cut
+   *  is not built — the two points an approximate stretch is walked between */
+  ring: string[]; approx: [[number, number], [number, number]] | null;
+  onApprox: (got: { km: number } | { why: string } | null) => void;
 }
 export interface Embedded { onMap: (layers: EditLayers | null) => void; onFull: () => void }
 
@@ -392,17 +399,31 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // EMBEDDED: the draft is drawn LIVE on the checklist's map — its reach (the server's own preview) once every piece
   // is whole and names only cuts that exist, and its points labelled either way (a NEW cut has no reach until built)
   const [liveWhy, setLiveWhy] = useState("");
+  const [approx, setApprox] = useState<[[number, number], [number, number]] | null>(null);
+  const [approxGot, setApproxGot] = useState<{ km: number } | { why: string } | null>(null);
   useEffect(() => {
     if (!embedded || call !== "change" || !opPoints) return;
+    const where = (pt: ExtentFix["points"][number]): [number, number] | null => {
+      const sid = pt.split_id ?? "";
+      return (pt.kind === "split" ? splitAt(sid)
+        : pt.kind === "new" ? (splits.find((n) => n.ref === sid)?.coord ?? detail.proposed.find((x) => x.id === sid)?.coord ?? null)
+        : pt.coord ?? null) as [number, number] | null;
+    };
+    // an approximate stretch is offered for ONE piece between two points whose places are known
+    const two = fixes.length === 1 && fixes[0].op === "between" && fixes[0].points.length === 2
+      ? fixes[0].points.map(where) : [];
+    const mock = two.length === 2 && two[0] && two[1] ? [two[0], two[1]] as [[number, number], [number, number]] : null;
     const pts: GeoJSON.Feature[] = fixes.flatMap((f) => f.points.flatMap((pt, i) => {
       const sid = pt.split_id ?? "";
-      const at = pt.kind === "split" ? splitAt(sid)
-        : pt.kind === "new" ? (splits.find((n) => n.ref === sid)?.coord ?? detail.proposed.find((x) => x.id === sid)?.coord ?? null)
-        : pt.coord ?? null;
-      return at ? [{ type: "Feature", properties: { label: `${i + 1}: ${pt.kind === "new" ? "NEW " : ""}${cutLabel(sid) ?? pt.name ?? ""}` },
+      if (pt.kind === "split") return [];      // an existing cut: its own marker is ringed (`ring`), no second point
+      if (pt.kind === "new" && splits.some((n) => n.ref === sid)) return [];   // drawn once, as the orange NEW marker
+      const at = where(pt);
+      return at ? [{ type: "Feature", properties: { label: `${i + 1}: ${pt.kind === "new" ? "new cut, not built — " : ""}${cutLabel(sid) ?? pt.name ?? ""}` },
                      geometry: { type: "Point", coordinates: at } } as GeoJSON.Feature] : [];
     }));
-    const only = (why: string) => { setFixPreview({ type: "FeatureCollection", features: pts }); setLiveWhy(why); };
+    const only = (why: string, unbuilt = false) => {
+      setFixPreview({ type: "FeatureCollection", features: pts }); setLiveWhy(why); setApprox(unbuilt ? mock : null);
+    };
     if (!fixes.length) { only(""); return; }
     const inc = incompletePieces(fixes, opPoints);
     if (inc.length) { only(inc.join("; ")); return; }
@@ -411,10 +432,11 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
       api.dfoExtentPreview(id, fixes.length > 1 ? fixes : fixes[0], showTribs).then((r) => {
         if (!live) return;
         if (!r.resolvable) {
-          only(/NEW split/.test(r.why ?? "") ? "it uses a new cut that is not built yet — the stretch is drawn after the next rebuild"
-            : r.why ?? "it does not resolve");
+          const unbuilt = /NEW split/.test(r.why ?? "");
+          only(unbuilt ? "it uses a new cut that is not built yet" : r.why ?? "it does not resolve", unbuilt);
           return;
         }
+        setApprox(null);
         setFixPreview({ type: "FeatureCollection", features: [...((r.geojson?.features ?? []) as GeoJSON.Feature[]), ...pts] });
         setLiveWhy("");
       }).catch((e) => { if (live) only(`the preview failed: ${e}`); failed("the draft's preview")(e); });
@@ -424,11 +446,17 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   useEffect(() => {
     if (!embedded) return;
     embedded.onMap({ draft: call === "change" ? fixPreview : null, cutPreview: cutPv, named, editPoints, onPick: pick.cb,
-                     onMovePoint: (pid, ll) => void movePoint(pid, ll), dirty: changes });
-  }, [fixPreview, cutPv, named, editPoints, pick, call, changes]);  // eslint-disable-line react-hooks/exhaustive-deps
+                     onMovePoint: (pid, ll) => void movePoint(pid, ll), dirty: changes,
+                     ring: call === "change" ? fixes.flatMap((f) => f.points.filter((p) => p.kind === "split" && p.split_id).map((p) => p.split_id as string)) : [],
+                     approx: call === "change" ? approx : null, onApprox: setApproxGot });
+  }, [fixPreview, cutPv, named, editPoints, pick, call, changes, approx, fixes]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => embedded?.onMap(null), []);  // eslint-disable-line react-hooks/exhaustive-deps
   const group = detail.group ? groupSave(id, detail.group.members, same, changes, false) : null;
-  const held = heldBy({ call, answers, problem, note, effect, cuts, cannotChange: now.cannot_change,
+  // r3 (owner 2026-11-09: "if you save extent you assume it is correct?"): the inline editor asks no T / R — a mark
+  // needs both answered, so they go as y and the note says where the y came from
+  const asked: Partial<Record<"T" | "R", CheckAnswer>> = embedded ? { T: "y", R: "y" } : answers;
+  const IMPLIED = "T and R not asked: implied yes by the owner saving this extent from the checklist";
+  const held = heldBy({ call, answers: asked, problem, note, effect, cuts, cannotChange: now.cannot_change,
                         extents: detail.location.binding.extents.length, incomplete });
 
   async function submit(defer = false) {
@@ -447,7 +475,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
         // a point naming a split THIS location's earlier mark proposed
         ...savedNew.filter((n) => used.includes(n.ref) && !splits.some((x) => x.ref === n.ref)
           && !shared.some((p) => p.id === n.ref))];
-      const body = markBody({ target: id, call: call ?? "unsure", answers, problem, note, reviewer: reviewer.trim(),
+      const body = markBody({ target: id, call: call ?? "unsure", answers: asked, problem,
+                              note: embedded && !defer ? [note.trim(), IMPLIED].filter(Boolean).join(" · ") : note, reviewer: reviewer.trim(),
                               seconds: Math.round((Date.now() - since.current) / 100) / 10, fixes, carried, now,
                               group, defer });
       await api.postMark(body);
@@ -688,9 +717,9 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
 
           </Fold>
           <div className="checklist" data-testid="dfo-checklist">
-            <div className="dfo-step">{embedded ? "Your call" : "3 · Your call"} <span className="dim" style={{ textTransform: "none", letterSpacing: 0 }}>
+            <div className="dfo-step" style={embedded ? { display: "none" } : undefined}>{"3 · Your call"} <span className="dim" style={{ textTransform: "none", letterSpacing: 0 }}>
               keys: y n ? · Enter saves · j k move</span></div>
-            {(["T", "R"] as const).map((c) => (
+            {!embedded && (["T", "R"] as const).map((c) => (
               <div key={c} className="check-row">
                 <span className="check-q">{QUESTIONS[c]}</span>
                 <span className="check-a">
@@ -738,7 +767,10 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                   }} />
                 </Fold>
                 {embedded && liveWhy && <div className="dim" data-testid="ck-live-why" style={{ fontSize: 12 }}>
-                  Not drawn as a stretch yet (its points are on the map): {liveWhy}</div>}
+                  {approx && approxGot && "km" in approxGot
+                    ? <><b>Approximate</b> (dashed on the map, about {approxGot.km} km along the river): {liveWhy} — the exact stretch is drawn after the next rebuild.</>
+                    : <>Not drawn as a stretch yet (its points are on the map): {liveWhy}
+                      {approx && approxGot && "why" in approxGot ? ` — and no approximate stretch could be drawn: ${approxGot.why}` : ""}</>}</div>}
                 {moveErr && <div className="fix-row warn-text inline-notice" data-testid="dfo-move-refused">
                   <span style={{ flex: 1 }}>not moved: {moveErr}</span><CloseX onClick={() => setMoveErr("")} /></div>}
                 {(fixes.length ? fixes : [undefined]).map((pc, i) => (

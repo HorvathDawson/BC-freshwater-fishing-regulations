@@ -1,3 +1,4 @@
+import { approxBetween } from "../approxStretch";
 import { useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -80,6 +81,14 @@ interface Props {
    *  `places` is "\n<id>\n<id>\n" and `faintOn` (a place id) draws that place's stronger (a hover in the list) */
   faint?: GeoJSON.FeatureCollection | null;
   faintOn?: string | null;
+  /** T532 r3: AN APPROXIMATE STRETCH between two points, walked in the app along the water's own lines
+   *  (`approxBetween`) — for a draft whose cut is not built yet; dotted, never the built stretch. `onApprox` hears
+   *  its length, or why it could not be drawn */
+  approx?: [[number, number], [number, number]] | null;
+  onApprox?: (got: { km: number } | { why: string } | null) => void;
+  /** T532 r3: existing cuts a proposal / draft uses — their own markers ringed (never a second point on top) */
+  ringSplits?: string[];
+  ringColor?: string;
   /** T532: fit the view to the saved / draft extent the FIRST time it has something (the inline editor's draft) */
   fitSaved?: boolean;
   /** T532: the checklist's map — no status line, no reach picker, no legend (the page says the one colour) */
@@ -186,6 +195,7 @@ export function MapPanel({
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
   satellite = false, editPoints = [], onMovePoint, cutPreview = null, pending = null, pins = null, onPin,
   fitPreview = true, minimal = false, faint = null, faintOn = null, fitSaved = false,
+  approx = null, onApprox, ringSplits = [], ringColor = "#0d9488",
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -317,6 +327,7 @@ export function MapPanel({
           cutpreview: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           pending: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           faint: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          approx: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           pins: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
@@ -389,6 +400,11 @@ export function MapPanel({
                      "circle-stroke-color": "#fff", "circle-stroke-width": 2.5,
                      "circle-opacity": ["case", ["get", "_on"], 1, 0.3],
                      "circle-stroke-opacity": ["case", ["get", "_on"], 1, 0.3] } },
+          // T532 r3: the existing cuts a proposal / draft uses — ringed in its colour
+          { id: "named-ring", type: "circle", source: "named",
+            filter: ["==", ["get", "split_id"], "__none__"],
+            paint: { "circle-radius": 13, "circle-color": "rgba(0,0,0,0)",
+                     "circle-stroke-color": "#0d9488", "circle-stroke-width": 4 } },
           // the selected named point (Tidal: the alternate the owner switched to) — ringed
           { id: "named-selected", type: "circle", source: "named",
             filter: ["==", ["get", "split_id"], "__none__"],
@@ -466,6 +482,9 @@ export function MapPanel({
                       "text-anchor": "bottom", "text-font": ["Noto Sans Medium"],
                       "text-allow-overlap": true },
             paint: { "text-color": "#9d174d", "text-halo-color": "#fff", "text-halo-width": 2 } },
+          // T532 r3: an APPROXIMATE stretch walked in the app — the draft's colour, dotted (never the built one)
+          { id: "approx-lines", type: "line", source: "approx",
+            paint: { "line-color": "#0f766e", "line-width": 7, "line-opacity": 0.9, "line-dasharray": [1.2, 1] } },
           // T532: a saved extent not drawn yet — the extent's colour, dashed
           { id: "pending-lines", type: "line", source: "pending",
             filter: ["!=", ["geometry-type"], "Point"],
@@ -785,6 +804,34 @@ export function MapPanel({
         m.setFilter("faint-on", faintOn ? ["in", `\n${faintOn}\n`, ["get", "places"]] : ["==", ["get", "places"], "\u0000"]);
     });
   }, [faintOn]);
+  const onApproxRef = useRef(onApprox);
+  onApproxRef.current = onApprox;
+  const approxKey = approx ? approx.flat().join(",") : "";
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      const got = approx ? approxBetween(lastFc.current, approx[0], approx[1]) : null;
+      (m.getSource("approx") as maplibregl.GeoJSONSource | undefined)?.setData({ type: "FeatureCollection",
+        features: got && "line" in got ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: got.line } }] : [] });
+      onApproxRef.current?.(got && "line" in got ? { km: got.km } : got);
+      if (fitSaved && got && "line" in got) {          // the view takes in the whole approximate stretch
+        const b = new maplibregl.LngLatBounds();
+        got.line.forEach((c) => b.extend(c));
+        m.fitBounds(b, { padding: 90, maxZoom: 13, duration: 400 });
+      }
+    });
+  }, [approxKey, count]);  // eslint-disable-line react-hooks/exhaustive-deps
+  const ringKey = ringSplits.join("|");
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    whenReady(m, () => {
+      if (!m.getLayer("named-ring")) return;
+      m.setFilter("named-ring", ringSplits.length ? ["in", ["get", "split_id"], ["literal", ringSplits]] : ["==", ["get", "split_id"], "__none__"]);
+      m.setPaintProperty("named-ring", "circle-stroke-color", ringColor);
+    });
+  }, [ringKey, ringColor]);  // eslint-disable-line react-hooks/exhaustive-deps
   const previewRef = useRef(preview);
   previewRef.current = preview;
   const onPinRef = useRef(onPin);

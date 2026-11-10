@@ -50,6 +50,8 @@ interface Loaded {
   /** DFO: the place's ONE proposal (the editor's own, `proposalOf`), when it would change the extent now: in words,
    *  and on the map (its points, and its reach when every point is a cut that exists) — never applied here */
   proposal?: { words: string; confidence: string | null; caveat: string | null; from: "fix" | "suggestion";
+               /** the existing cuts it uses: ringed on the map, never a second point on top */
+               ring: string[];
                fc: GeoJSON.FeatureCollection } | null;
 }
 
@@ -319,7 +321,7 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
         ?? best.s.suggestion?.new_splits?.find((n) => n.ref === sid)?.name ?? null;
       const name = (i: string) => d.item_names[i] ?? d.items.find((x) => x.id === i)?.name ?? i;
       // its points are what the map flies to when the place has no extent of its own to fit (`fit`)
-      let feats: GeoJSON.Feature[] = proposalPoints(d, best.s, label).map((f) => ({ ...f, properties: { ...f.properties, fit: true } }));
+      let feats: GeoJSON.Feature[] = proposalPoints(d, best.s, label, true).map((f) => ({ ...f, properties: { ...f.properties, fit: true } }));
       const sg = best.s.suggestion!;
       if (proposalDraws(best.s)) {
         const pv = await api.dfoExtentPreview(id, { scope: "entry", op: sg.op, points: sg.points, items: sg.items,
@@ -327,6 +329,7 @@ async function loadPlace(id: string, place: CheckPlace | null, onWater: string |
         if (pv?.resolvable) feats = [...((pv.geojson?.features ?? []) as GeoJSON.Feature[]), ...feats];
       }
       proposal = { words: sg.words ?? partsText(piecesParts(fixes, (f) => fixParts(f, label, name))),
+                   ring: sg.points.filter((x) => x.kind === "split" && x.split_id).map((x) => x.split_id as string),
                    from: best.from, confidence: best.from === "suggestion" ? d.suggestion?.confidence ?? null : null,
                    caveat: best.from === "suggestion" ? d.suggestion?.caveat ?? null : null,
                    fc: { type: "FeatureCollection", features: feats } };
@@ -367,7 +370,7 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
   const first = useRef(loaded.id);
   // the cuts the rows name, labelled (never every cut on the water: the rows are what is checked)
   const named = useMemo(() => {
-    const want = new Set(loaded.check.rows.flatMap((r) => r.anchor.cuts ?? []));
+    const want = new Set([...loaded.check.rows.flatMap((r) => r.anchor.cuts ?? []), ...(loaded.proposal?.ring ?? [])]);
     const fc = loaded.named;
     return fc ? { ...fc, features: fc.features.filter((f) => want.has(f.properties.split_id)) } : null;
   }, [loaded]);
@@ -375,11 +378,16 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
     <>
       <div className="ck-key"><span><i />the extent now</span>
         {loaded.pending && <span><i className="dash" />saved, not drawn yet</span>}
-        {loaded.proposal && <span><i className="prop" />proposal (not applied)</span>}
+        {loaded.proposal && !edit && <span><i className="prop" />proposal (not applied)</span>}
+        {edit && edit.editPoints.length > 0 && <span><i className="newcut" />new cut, not built</span>}
         {edit && <span><i className="draft" />your change (not saved)</span>}
+        {edit?.approx && <span><i className="approx" />approximate: the exact stretch is drawn after the next rebuild</span>}
+        {(edit ? edit.ring.length > 0 : !!loaded.proposal?.ring.length) && <span><i className="ring" />ringed: an existing cut it uses</span>}
         {faint && faint.features.length > 0 && <span><i className="faint" />this water's other extents</span>}</div>
       <MapPanel itemId={loaded.items[0]?.id ?? null} alsoItemIds={loaded.items.slice(1).map((i) => i.id)}
-        suggested={loaded.proposal?.fc ?? null} fitSuggested={!loaded.reach?.features.length} faint={faint} faintOn={faintOn}
+        suggested={edit ? null : loaded.proposal?.fc ?? null} fitSuggested={!loaded.reach?.features.length} faint={faint} faintOn={faintOn}
+        approx={edit?.approx ?? null} onApprox={edit?.onApprox}
+        ringSplits={edit ? edit.ring : loaded.proposal?.ring ?? []} ringColor={edit ? "#0d9488" : "#7c3aed"}
         saved={edit?.draft ?? null} fitSaved cutPreview={edit?.cutPreview ?? null} editPoints={edit?.editPoints ?? []}
         onMovePoint={edit?.onMovePoint} onPick={edit?.onPick ?? null}
         namedSplits={edit ? edit.named : named} preview={loaded.reach} pending={loaded.pending} pins={pins} fitPreview={loaded.id === first.current} minimal
