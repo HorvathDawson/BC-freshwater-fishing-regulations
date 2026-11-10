@@ -3511,6 +3511,13 @@
               "gnis:8634",
               "gnis:3062"
             ]
+          },
+          {
+            "op": "downstream_of",
+            "splits": [
+              "sumas_river__barrow_town_pump_station"
+            ],
+            "item_id": "gnis:26216"
           }
         ],
         "tributaries": null,
