@@ -6683,7 +6683,7 @@
           {
             "op": "between",
             "splits": [
-              "morice_river__morice_lake",
+              "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream",
               "morice_river__gosnell_creek_into_morice_river"
             ]
           }
