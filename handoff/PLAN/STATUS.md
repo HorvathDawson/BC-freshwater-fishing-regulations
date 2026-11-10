@@ -25,7 +25,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - **Section E (607286e2a):** it was a hand-copied list (same 4 areas). Now computed on every load/save from B, C, D, F's own
   areas; same result, no binding moved. The removed "MU 6-12/6-13 minus itself" piece was a seed artefact: MU 6-12/6-13
   is Haida Gwaii = D, which E excludes whole, so nothing was meant there.
-- Emulator: offline 15/15 (flow fix e816e82f3). Feeds' Retry step accepted the app's own re-check; feeds + big-update rerunning.
+- **Emulator all green** on build-22 code + r-d14: install 4/4, offline 15/15, feeds 8/8, big-update 13/13 (three test fixes: the
+  © chip under an open search, a Retry race, the bell step predating T263; no app change needed).
 - Play listing graphics: committed (permission had propagated). Prod feeds worker: exists (domain not live yet, T495).
 - MapLibre: every non-production APK now builds with the patched SDK by default (a359c9b8f, owner rule).
 - PART_GROWN goldens check names the expected part (ca2ad90b4).

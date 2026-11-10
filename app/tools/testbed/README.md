@@ -36,8 +36,7 @@ app again: a fresh install is ~500 MB).
 Reports under `out/runs/` (gitignored, `index.html` + `report.md` each): `2026-11-09T22-54-43` install PASS 4/4 (first
 run downloaded and up in 84 s), offline 13/15 (the two flow steps "Check now offline" / "slow line"); after the flow fix
 (e816e82f3) `2026-11-09T23-09-33` offline PASS 15/15, feeds 7/8 (Retry step: the app had re-checked on its own, so no
-Retry button was left); with that step accepting the re-check (`scenarios/feeds.mjs`), `2026-11-09T23-57-09` feeds PASS 7/7. Not rerun since
-2026-10-29: big-update, spots, report. A step tagged with a ticket is a known app gap: it turns green when that ticket
+Retry button was left); with the Retry step race-tolerant `2026-11-10T00-09-58` feeds PASS 8/8; big-update 12/13 until its bell step opened the bell (T263's Data update row), then PASS 13/13 (next run). Not rerun since 2026-10-29: spots, report. A step tagged with a ticket is a known app gap: it turns green when that ticket
 lands.
 
 ## Run it locally
