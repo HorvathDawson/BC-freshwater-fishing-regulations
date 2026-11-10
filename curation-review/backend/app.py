@@ -120,6 +120,19 @@ def _drain_write_through():
                                                    "mark re-applies its domain")
 
 
+def _dfo_apply_outcome(target: str):
+    return WRITE_THROUGH.outcomes.get(_wt.key("dfo", target))
+
+
+def _apply_stamp() -> tuple:
+    return tuple(sorted((k, v.get("state")) for k, v in dict(WRITE_THROUGH.outcomes).items()))
+
+
+# the checklist reads a place between its mark and the background apply: it asks the write-through what it is doing
+import checks as _checks  # noqa: E402
+_checks.apply_outcome, _checks.apply_stamp = _dfo_apply_outcome, _apply_stamp
+
+
 @app.get("/api/review/write-through")
 def review_write_through(target: str | None = None):
     """What the write-through did: per domain (saving / done / refused, the files written, proposals waiting on a
@@ -327,6 +340,9 @@ class MarkPayload(BaseModel):
     #: owner 2026-11-02 (scope dfo): this wording is a variant of that DFO location — T185 writes its
     #: `duplicate_of` (confirmed). Its one check is T.
     variant_of: str | None = None
+    #: T532 (scope dfo): this wording is NOT the same place as that DFO location — taken out of its group
+    #: (`marks.Mark.not_variant_of`); undone by a later `variant_of`. Its one check is T.
+    not_variant_of: str | None = None
     #: T525 (scope dfo): the place's extent the owner was shown — its curated extents and its own tributary flag
     #: (`dfo.extent_now`'s `seen`); a DFO mark made on an extent that has moved since is refused (`dfo.mark_for`)
     extent_before: dict | None = None
@@ -424,6 +440,10 @@ def _post_mark(body: MarkPayload):
         data.pop("variant_of")
     elif not body.variant_of:
         data.pop("variant_of")
+    if body.scope != "dfo" and body.not_variant_of:
+        raise HTTPException(422, [{"path": "not_variant_of", "msg": "only a DFO wording is taken out of a group"}])
+    if not body.not_variant_of:
+        data.pop("not_variant_of")
     if body.scope != "dfo":
         if body.extent_before is not None:
             raise HTTPException(422, [{"path": "extent_before",

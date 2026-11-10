@@ -303,6 +303,10 @@ def group_why(hist: Mapping, cur: Mapping, cur_id: str) -> Optional[tuple[str, f
         return "DFO lists it as a rewording (duplicate_of)", 1.01
     if hist.get("duplicate_of") == cur_id:               # the owner contested the link: apart
         return None
+    # T532 (owner 2026-11-09): a wording taken out of its group (`duplicate_confirmed` false, the entry model's
+    # CONTESTED state) stands alone — alike words never group it again, with any place, from either side
+    if hist.get("duplicate_confirmed") is False or cur.get("duplicate_confirmed") is False:
+        return None
     (a, an, ag), (b, bn, bg) = _place_facts(_place_text(hist)), _place_facts(_place_text(cur))
     if an != bn or ag != bg or not (a | b):
         return None

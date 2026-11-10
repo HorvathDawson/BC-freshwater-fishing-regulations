@@ -172,6 +172,8 @@ def check_state(mark, digest: str, earlier: str | None = None) -> str:
     No second staleness rule: a mark `marks.status` calls stale is unchecked here."""
     if mark is None or mark.verdict not in ("verified", "wrong"):
         return "unchecked"
+    if getattr(mark, "not_variant_of", None):
+        return "unchecked"          # taken out of its group: it stands alone and needs its own extent — never done by that
     if getattr(mark, "checklist", None) is None:
         return "earlier" if mark.verdict == "verified" and earlier == "verified" else "unchecked"
     if mark.checklist.digest != digest:
@@ -187,14 +189,24 @@ def _with_check(rs: list[dict], digest: str, mark, earlier: str | None = None) -
         out["checked"] = {"date": mark.date, "verdict": mark.verdict, "note": mark.note,
                           "rows": [r.model_dump() for r in mark.checklist.rows]}
     elif mark is not None:
-        out["earlier"] = {"date": mark.date, "status": earlier or getattr(mark.verdict, "value", mark.verdict),
+        out["earlier"] = {"date": mark.date, "status": "taken out of its group: it stands alone and needs its own extent"
+                          if getattr(mark, "not_variant_of", None) else earlier or getattr(mark.verdict, "value", mark.verdict),
                           "note": mark.note}
     return out
 
 
 # --------------------------------------------------------------------------- DFO
 
-def saved_kind(mark, fvc_state: str | None, saved_state: str | None, verify: str | None) -> str | None:
+#: THE WRITE-THROUGH'S WORD ON A DFO PLACE'S LAST SAVE THIS SESSION ("saving" | "saved" | "refused" | "waiting", or
+#: None when it holds none): set by the app (`app.py`) — a save is applied in the BACKGROUND, seconds after the mark,
+#: and a place read in between must say "being applied", never "not applied" (the owner's Alouette save, 2026-11-09)
+apply_outcome = lambda target: None            # noqa: E731
+#: every outcome it holds, as a stamp: the places list is recomputed when one changes
+apply_stamp = lambda: ()                       # noqa: E731
+
+
+def saved_kind(mark, fvc_state: str | None, saved_state: str | None, verify: str | None,
+               outcome: dict | None = None) -> str | None:
     """WHAT THE OWNER'S EXTENT SAVE MAKES OF THE PLACE, derived from the save itself — the mark in force carries an
     extent fix (no checklist, not a defer, neither T nor R answered n) — against the place now (`dfo.fix_vs_current`,
     `dfo.saved_status`) and the marks' own staleness (`verify`, `marks.status`):
@@ -203,8 +215,10 @@ def saved_kind(mark, fvc_state: str | None, saved_state: str | None, verify: str
                  only for its new cut (`waits_cut`) — DONE, never asked again
       stale      the marks' own staleness says the place moved since (its words, its rules, or — after his save had
                  landed — its extent is no longer the one he saved): it comes back as changed
-      unapplied  the extent is not the one he saved, every cut it names is built, and nothing moved since the mark:
-                 the save never reached the place — a fault, shown and reported, not his to review again
+      applying   the extent is not yet the one he saved, every cut it names is built, and the write-through is
+                 still applying this save (`outcome` saving / waiting / just saved) — DONE, said as being applied
+      unapplied  the same, but the write-through REFUSED it, or holds no record of it (a save of an earlier
+                 session that never reached the place) — a fault, shown and reported, not his to review again
     None: no such save (the ordinary rules judge the place). Pure."""
     if mark is None or not getattr(mark, "extent_fix", None) or getattr(mark, "checklist", None) is not None:
         return None
@@ -218,7 +232,9 @@ def saved_kind(mark, fvc_state: str | None, saved_state: str | None, verify: str
     if saved_state == "waits_cut":
         return "saved"
     if saved_state == "not_landed":
-        return "stale" if verify == "stale" else "unapplied"
+        if verify == "stale":
+            return "stale"
+        return "applying" if (outcome or {}).get("state") in ("saving", "waiting", "saved") else "unapplied"
     return None
 
 
@@ -233,7 +249,8 @@ def dfo_inputs(loc: dict, water: dict | None, m, verify: str | None = None) -> d
     landed = [True] * len(extents)
     fvc = dfo.fix_vs_current(m, loc, water) if m is not None and m.extent_fix else None
     st = dfo.saved_status(m, fvc) if fvc else None
-    kind = saved_kind(m, fvc["state"] if fvc else None, st["state"] if st else None, verify)
+    outcome = apply_outcome(loc.get("location_id")) if st and st["state"] == "not_landed" else None
+    kind = saved_kind(m, fvc["state"] if fvc else None, st["state"] if st else None, verify, outcome)
     # a save the place moved away from (`stale`) no longer holds the place: its rows are the extent NOW, to check again
     waiting = bool(st and st["state"] in ("waits_cut", "not_landed") and kind != "stale")
     if waiting:
@@ -249,20 +266,24 @@ def dfo_inputs(loc: dict, water: dict | None, m, verify: str | None = None) -> d
                    if st["state"] == "waits_cut" else " (the write-through has not applied it)")
                 + ": a check now would replace it — check the place once it lands, or change it again")
     return {"extents": extents, "landed": landed, "tributaries": trib, "held": held,
-            "kind": kind, "saved": _saved_view(kind, fvc, st, m),
+            "kind": "saved" if kind == "applying" else kind, "saved": _saved_view(kind, fvc, st, m, outcome),
             "differs": ({"saved": fvc["fix"], "now": fvc["current"]}
                         if kind == "stale" and fvc and fvc["state"] == "replaces" else None),
             "curated": list(b.get("extents") or []), "curated_tributaries": dfo.tributaries_now(loc, water),
             "only": bool(b.get("tributaries_only")), "excludes": list(b.get("tributary_excludes") or [])}
 
 
-def _saved_view(kind: str | None, fvc: dict | None, st: dict | None, m) -> dict | None:
-    """`saved`: waits_cut (a cut it names is not built yet) or built (built as saved); `unapplied`: not_applied"""
+def _saved_view(kind: str | None, fvc: dict | None, st: dict | None, m, outcome: dict | None = None) -> dict | None:
+    """`saved`: waits_cut (a cut it names is not built yet), built (built as saved) or applying (the write-through is
+    at it); `unapplied`: not_applied, with the write-through's reason when it refused"""
     import dfo
-    if kind not in ("saved", "unapplied"):
+    if kind not in ("saved", "applying", "unapplied"):
         return None
+    if kind == "applying":
+        return {"state": "applying", "date": m.date, "cuts": []}
     if kind == "unapplied":
-        return {"state": "not_applied", "date": m.date, "cuts": []}
+        return {"state": "not_applied", "date": m.date, "cuts": [],
+                "why": (outcome or {}).get("why") or "the write-through holds no record of this save (an earlier session)"}
     if st and st["state"] == "waits_cut":
         return {"state": "waits_cut", "date": m.date, "cuts": list(st.get("cuts") or [])}
     unbuilt = sorted({s for e in (fvc or {}).get("fix") or [] for s in e.get("splits") or []} - set(dfo._built_cuts()))
@@ -441,7 +462,7 @@ _PLACES = reuse._Memo()
 
 def _places() -> list[dict]:
     import dfo
-    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context(), reuse.regions()),
+    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context(), reuse.regions(), tuple(apply_stamp())),
                        lambda: by_water(one_water(_dfo_places() + _regs_places())))
 
 
@@ -564,11 +585,14 @@ def same_place(places: list[dict]) -> dict[str, dict]:
                 why[x].append(word)
     by_extent: dict[tuple, str] = {}
     for p in places:
-        if p.get("older_of"):
-            join(p["id"], p["older_of"], "an older wording of the place")
+        if p.get("older_of") and not p.get("apart"):
+            join(p["id"], p["older_of"], "your decision: linked as the same place" if p.get("confirmed")
+                 else "our proposal: an older wording, its words alike")
         if p.get("duplicate_of"):
-            join(p["id"], p["duplicate_of"], "DFO lists it as a rewording")
-        if p.get("extent_key"):
+            # WHOSE CLAIM: `duplicate_confirmed` true is the owner's decision; unconfirmed is our matcher's proposal
+            join(p["id"], p["duplicate_of"], "your decision: linked as the same place" if p.get("confirmed")
+                 else "our proposal: matched as a rewording")
+        if p.get("extent_key") and not p.get("apart"):       # a wording he took out is never put back by its extent
             first = by_extent.setdefault((p["source"], p["extent_key"]), p["id"])
             join(p["id"], first, "the identical extent")
     return {i: {"same": find(i), "why": why[i]} for i in ids}
@@ -616,7 +640,13 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
                 "bad": got["summary"]["bad"], "state": r.get("state"), "extents": exts,
                 "tributaries": dfo.tributaries_now(loc, w),
                 "extent_key": _extent_key(exts, dfo.tributaries_now(loc, w), bool(b.get("tributaries_only"))),
-                "older_of": older_of, "duplicate_of": loc.get("duplicate_of"),
+                "older_of": older_of,
+                # the entry model's own link: confirmed true = the owner's decision, None = proposed by our matcher,
+                # false = CONTESTED (taken out: it stands alone)
+                "duplicate_of": loc.get("duplicate_of") if loc.get("duplicate_confirmed") is not False else None,
+                "confirmed": loc.get("duplicate_confirmed") is True, "apart": loc.get("duplicate_confirmed") is False,
+                # what a mark on it sends back as `extent_before` (T525 R3: refused when the file moved since)
+                "seen": dfo.seen_extent(loc),
                 # the last date DFO's page carried this wording (`review.dfo.location_wordings`)
                 "last_seen": max((d_ for w_ in D.location_wordings(loc) for d_ in w_.get("dates") or []), default=None),
                 "proposal": bool(r.get("suggested") or r.get("fix_proposed")),
@@ -636,7 +666,7 @@ def water(water_key: str, source: str = "dfo") -> dict | None:
             out.append({"source": "regs", "id": p["id"], "text": p["text"], "live": True, "check": p["check"],
                         "bad": p["summary"]["bad"], "state": None, "extents": exts, "tributaries": None,
                         "extent_key": f"{_extent_key(exts, None, bool(r.get('tributaries_only')))}", "older_of": None,
-                        "duplicate_of": None, "proposal": False, "name": p.get("place_water") or p["water"],
+                        "duplicate_of": None, "confirmed": False, "apart": False, "proposal": False, "name": p.get("place_water") or p["water"],
                         **({"earlier": p["earlier"]} if "earlier" in p else {})})
     same = same_place(out)
     out = [{**p, **same[p["id"]]} for p in out]

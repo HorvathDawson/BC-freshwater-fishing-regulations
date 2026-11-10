@@ -552,6 +552,29 @@ def _variant_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
             "notes": [], "split_id": None, "confidence": None}
 
 
+def _apart_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
+    """A DFO wording TAKEN OUT OF ITS GROUP (T532, owner 2026-11-09): the target's `duplicate_confirmed` false and its
+    `duplicate_of` cleared — the entry model's CONTESTED state (`EntryLocation.duplicate_confirmed`): it is bound on
+    its own (it no longer rides the other place's extent, so it needs one) and no grouping re-absorbs it
+    (`review.dfo.group_why`). A later `variant_of` mark puts it back."""
+    problems: list[str] = []
+    edits: list[dict] = []
+    found = _find_location(src, m.target)
+    if found is None:
+        problems.append(f"no DFO location {m.target}")
+    else:
+        path, loc = found
+        for fld, val in (("duplicate_of", None), ("duplicate_confirmed", False)):
+            before = loc.get(fld, _MISSING)
+            if before != val and not (val is None and before is _MISSING):
+                edits.append({"file": _rel(path), "kind": "dfo_loc", "location_id": m.target,
+                              "scope": "entry", "field": fld, "before": before, "after": val})
+    return {"id": pid + "-apart", "kind": "extent", "target": m.target, "scope": m.scope,
+            "rule_id": None, "title": f"{m.target}: not the same place as {m.not_variant_of} (stands alone)",
+            "marks": [who], "edits": edits, "depends_on": [], "problems": problems,
+            "notes": [], "split_id": None, "confidence": None}
+
+
 def _tidal_water_proposal(m, pid: str, who: dict, src: "Sources") -> dict:
     """T449 (owner 2026-11-06): A DFO PLACE WHOLLY IN TIDAL WATER — the owner's call on the proposal
     (`review.dfo.tidal_proposal`). "tidal water" sets the place's `tidal_water` (it binds nothing and is not missing);
@@ -610,7 +633,7 @@ def _provenance(m) -> dict:
 def _proposes(m) -> bool:
     return m.scope in ("entry", "rule", "dfo") and bool(
         m.extent_fix or m.tributaries or m.new_splits or m.lake_split_later
-        or getattr(m, "variant_of", None) or _dfo_tidal_call(m))
+        or getattr(m, "variant_of", None) or getattr(m, "not_variant_of", None) or _dfo_tidal_call(m))
 
 
 def _dfo_tidal_call(m) -> bool:
@@ -1021,6 +1044,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                         "split_id": None, "confidence": None})
         if m.scope == "dfo" and getattr(m, "variant_of", None):
             out.append(_variant_proposal(m, pid, who, src))
+        if m.scope == "dfo" and getattr(m, "not_variant_of", None):
+            ap = _apart_proposal(m, pid, who, src)
+            if ap["edits"] or ap["problems"]:
+                out.append(ap)
+            elif applied is not None and not (m.extent_fix or m.tributaries):
+                applied.add(m.key)                       # the place already says it: applied
         if _dfo_tidal_call(m):
             tp = _tidal_water_proposal(m, pid, who, src)
             if tp["edits"] or tp["problems"]:

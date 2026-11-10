@@ -65,6 +65,7 @@ export function checkBody(target: { source: "dfo"; id: string; seen: unknown } |
 export function savedWords(s: { state: string; date: string }): string {
   return s.state === "waits_cut" ? `Saved by you (${s.date}): done — waiting only for the new cut to be built`
     : s.state === "built" ? `Saved by you (${s.date}): done — built as saved`
+    : s.state === "applying" ? `Saved by you (${s.date}): done — being applied to the map data now`
     : `Saved by you (${s.date}) but NOT applied to the map data — nothing for you to re-check; reported as a fault`;
 }
 export function checkStatus(pc: PlaceCheck): string {
@@ -284,7 +285,7 @@ export function placeState(a: { editing: boolean; check: PlaceCheck["check"]; ch
   if (a.editing) return { tone: "draft", text: "You are previewing a draft: not saved" };
   // his own extent save (`pc.saved`): done while the place holds it; not applied is a fault, said in red
   if (a.check === "unapplied" && a.saved) return { tone: "bad", text: savedWords(a.saved) };
-  if (a.check === "saved" && a.saved) return { tone: "confirmed", text: savedWords(a.saved) };
+  if (a.check === "saved" && a.saved) return { tone: a.saved.state === "applying" ? "wait" : "confirmed", text: savedWords(a.saved) };
   if (a.check === "stale") return { tone: "wait", text: "Changed since it was saved or checked: check it again" };
   if (a.check === "checked" && a.checkedDate) return { tone: "confirmed", text: `Confirmed by you (${a.checkedDate})` };
   if (a.check === "earlier" && a.earlierDate) return { tone: "confirmed", text: `Verified earlier (${a.earlierDate})` };

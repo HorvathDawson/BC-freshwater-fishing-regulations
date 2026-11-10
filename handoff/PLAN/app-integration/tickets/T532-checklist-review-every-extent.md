@@ -276,3 +276,33 @@ when it saves".
   about this place" → attach), but it cannot be undone in the app until the refute decision exists, and the owner's
   rule is that a grouping he makes is reversible. Build both together: the mark field for "not the same place", the
   write-through for it, the group readers honouring it, then the two buttons on the group box.
+
+## Round 6 (owner 2026-11-09): the grouping is his decision; a save being applied is never "not applied"
+- BUG FIXED: his Alouette save (`…:above-216th-street-including-the-n`, two pieces) read "NOT applied … reported as a
+  fault" although commit 044533d84 applied it. Cause: the DFO write-through applies in the BACKGROUND seconds after
+  the mark; a place read in that window had fix != curated with every cut built, which round 5 called `unapplied`.
+  The comparison itself was right (two pieces, items [] vs no item_id, tributaries: pinned by
+  `test_the_owners_two_piece_alouette_save_reads_as_built_as_saved`). Now `checks.saved_kind` asks the write-through
+  (`apply_outcome`): saving / waiting / just saved → "Saved by you (date): done — being applied to the map data now";
+  `unapplied` only when it REFUSED the save (its reason shown) or holds no record of it (an earlier session's save).
+  The screen re-reads the place when the write-through's word changes. The false failure was only an on-screen
+  banner line and a console line in his browser (`failures.ts` keeps them in memory): nothing was stored; the line
+  is now cleared when the place stops being `unapplied`.
+- TAKE A WORDING OUT / PUT ONE IN (the change written above, built): mark field `not_variant_of` (DFO only, its one
+  check T, never with `variant_of`); its write-through (`proposals._apart_proposal`) sets the entry model's own
+  CONTESTED state — `duplicate_confirmed: false`, `duplicate_of` cleared — so the wording stands alone and needs its
+  own extent; `review.dfo.group_why` keeps a contested wording apart from either side; `checks.same_place` never puts
+  it back by an identical extent. Putting in is the existing `variant_of` mark (`duplicate_of` + confirmed true),
+  which also undoes a take-out; a take-out undoes an add. Both send `extent_before` (T525 R3 — the full editor's
+  older "attach" button does not, and is refused by the server since T525: not fixed here).
+- Buttons (the read-together block): per wording "Not the same place: take this wording out of the group (saves)";
+  "Add a wording to this group" (pick from the water's rows) → "Add it: same place (saves)"; on an ungrouped place
+  "Same place as…" → "Group them: same place (saves)"; a taken-out wording says "Your decision: … stands alone. Put
+  it back below to undo." The state line says "Saved just now: …" with how to undo.
+- WHOSE CLAIM, on every grouped row: "your decision: linked as the same place" (`duplicate_confirmed` true), "our
+  proposal: matched as a rewording" (an unconfirmed `duplicate_of`), "our proposal: an older wording, its words alike"
+  (`review.dfo.groups`), "the identical extent" (a fact). DFO itself publishes no rewording link: the earlier text
+  "DFO lists it as a rewording" was wrong and is gone from the checklist.
+- A mark that takes a wording out or puts it in becomes that wording's mark in force (as the editor's attach always
+  did): a wording that was done by an earlier save is then judged by the new mark (taken out: to check, it needs its
+  own extent; put in: it rides the other place's extent and reads "Verified earlier").

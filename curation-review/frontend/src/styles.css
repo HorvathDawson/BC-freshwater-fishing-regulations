@@ -1274,3 +1274,6 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-wg { border: 1.5px solid #94a3b8; border-left-width: 1.5px; border-radius: 8px; background: #f8fafc; margin: 12px 4px; padding: 0 4px 4px; }
 .ck-wg-head { padding: 6px 8px 4px; border-bottom: 1px solid var(--ck-line); margin-bottom: 4px; }
 .ck-wg .ck-wp[aria-current="true"] { background: var(--ck-soft); }
+.ck-claim { font-size: 12px; color: #5b21b6; }
+.ck-same-row .btn { margin-top: 4px; }
+.ck-wl-head { padding-right: 104px; }

@@ -491,6 +491,11 @@ class Mark(BaseModel):
     #: missed): T185 writes the target's `duplicate_of` (confirmed), so the wording rides that place's
     #: extent. A DFO mark only; its one check is T (the words name that place).
     variant_of: Optional[str] = None
+    #: T532 (owner 2026-11-09: "how would i refute same wording"): THIS WORDING IS NOT THE SAME PLACE as that DFO
+    #: location (the place it was grouped with): the write-through sets its `duplicate_confirmed` false and clears
+    #: its `duplicate_of` — the entry model's own CONTESTED state: it stands alone, needs its own extent, and no
+    #: grouping re-absorbs it. Undone by a later `variant_of` mark. A DFO mark only; its one check is T.
+    not_variant_of: Optional[str] = None
     #: T525: the extent this DFO mark was made on (`SeenExtent`); a mark from before T525 has none
     extent_before: Optional[SeenExtent] = None
     #: T532: the checklist this mark answers (a DFO place or a regulation rule): its one check is P, the place
@@ -518,6 +523,14 @@ class Mark(BaseModel):
             if self.variant_of == self.target:
                 raise ValueError("a wording is not a variant of itself")
             need = ("T",)
+        if self.not_variant_of is not None:
+            if self.scope != "dfo":
+                raise ValueError("only a DFO wording is taken out of a group")
+            if self.variant_of is not None:
+                raise ValueError("a mark attaches a wording or takes it out, not both")
+            if self.not_variant_of == self.target:
+                raise ValueError("a wording is not taken out of itself")
+            need = ("T",)
         if self.checklist is not None and self.verdict != CLEARED:
             # T532: a checklist checks the PLACE only — every row ✓ or ticked is P y; a row picked wrong is P n
             if self.scope not in ("dfo", "rule"):
@@ -539,7 +552,8 @@ class Mark(BaseModel):
                 raise ValueError("cleared needs a note saying why")
             if (self.answers or self.call is not None or self.problem or self.tributaries
                     or self.extent_fix or self.new_splits or self.lake_split_later
-                    or self.group is not None or self.variant_of is not None):
+                    or self.group is not None or self.variant_of is not None
+                    or self.not_variant_of is not None):
                 raise ValueError("a cleared mark carries no answers, call or proposal")
             return self
         extra = sorted(set(self.answers) - set(need))
@@ -602,7 +616,7 @@ class Mark(BaseModel):
             # nothing, so no extent, cut, variant or lake split rides it) or rejected ("not tidal")
             if self.call not in ("tidal water", "not tidal"):
                 raise ValueError("a DFO call is tidal water or not tidal")
-            if self.variant_of is not None:
+            if self.variant_of is not None or self.not_variant_of is not None:
                 raise ValueError("a variant mark makes no tidal call")
             if self.call == "tidal water":
                 if self.verdict != "verified":
@@ -696,7 +710,8 @@ class Mark(BaseModel):
 #: fields a line leaves out while they hold their default (T189 added them): a mark without them
 #: is the same line it was before they existed
 _OMIT_DEFAULT = {"tributaries": {}, "lake_split_later": False, "extent_fix": [],
-                 "new_splits": [], "call": None, "group": None, "variant_of": None, "extent_before": None,
+                 "new_splits": [], "call": None, "group": None, "variant_of": None, "not_variant_of": None,
+                 "extent_before": None,
                  "checklist": None}
 
 

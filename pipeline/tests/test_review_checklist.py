@@ -319,9 +319,14 @@ def test_the_waters_places_are_grouped_by_the_data_that_exists(monkeypatch):
                         p("f", duplicate_of="gone")])
     assert {i: g["same"] for i, g in got.items()} == {"a": "a", "a-old": "a", "e": "a", "b": "b", "d": "b", "c": "c",
                                                       "r": "r", "f": "f"}
-    assert got["a-old"]["why"] == ["an older wording of the place"]
-    assert got["e"]["why"] == ["the identical extent"] and got["d"]["why"] == ["DFO lists it as a rewording"]
-    assert got["c"]["why"] == [] and got["b"]["why"] == ["DFO lists it as a rewording"]
+    assert got["a-old"]["why"] == ["our proposal: an older wording, its words alike"]
+    assert got["e"]["why"] == ["the identical extent"] and got["d"]["why"] == ["our proposal: matched as a rewording"]
+    assert got["c"]["why"] == [] and got["b"]["why"] == ["our proposal: matched as a rewording"]
+    # WHOSE CLAIM: a confirmed link is the owner's decision; a wording he took out is never grouped again
+    got = B.same_place([p("a", extent_key="k1"), p("b", duplicate_of="a", confirmed=True),
+                        p("c", extent_key="k1", apart=True, older_of="a")])
+    assert got["b"] == {"same": "a", "why": ["your decision: linked as the same place"]}
+    assert got["c"] == {"same": "c", "why": []}
 
 
 def test_the_row_for_words_no_row_checks_says_what_to_do_and_stays_bad():
@@ -360,6 +365,14 @@ def test_the_owners_extent_save_is_a_review_done_while_the_place_holds_it_and_ba
     assert k(m, "applied", "landed", "stale") == "stale"
     # every cut built, nothing moved since the mark, yet the place does not hold it: never applied — a fault, not done
     assert k(m, "replaces", "not_landed", "unsure") == "unapplied"
+    # …but NEVER while the write-through is still at it (applied in the background, seconds after the mark): the
+    # owner's Alouette save of 2026-11-09 read "NOT applied" in that window, then landed (commit 044533d84)
+    for st in ("saving", "waiting", "saved"):
+        assert k(m, "replaces", "not_landed", "unsure", {"state": st}) == "applying"
+    assert k(m, "replaces", "not_landed", "unsure", {"state": "refused", "why": "x"}) == "unapplied"
+    v = B._saved_view("applying", None, {"state": "not_landed"}, m, {"state": "saving"})
+    assert v["state"] == "applying"
+    assert B._saved_view("unapplied", None, None, m, {"state": "refused", "why": "binding check"})["why"] == "binding check"
     assert "unapplied" not in B.DONE_STATES and "saved" in B.DONE_STATES and "unapplied" in B.CHECK_STATES
     # not his extent save: no fix, a checklist mark, a defer, or DFO's words / rules answered no
     assert k(None, "applied", "landed", None) is None and k(_earlier_mark(), None, None, "verified") is None
@@ -392,3 +405,71 @@ def test_a_place_reads_by_the_owners_extent_save_never_as_an_earlier_unsure_mark
     p = B.progress_of([{"water_key": "a", "water": "A", "check": c, "summary": s} for c in ("saved", "unapplied", "unchecked")])
     assert (p["done"], p["left"]) == (1, 2)
     assert B._matches({"check": "unapplied", "summary": s}, "unapplied") and not B._matches({"check": "unapplied", "summary": s}, "todo")
+
+
+def test_a_wording_is_taken_out_of_its_group_and_put_back_through_marks(tmp_path, monkeypatch):
+    """owner 2026-11-09: "how would i refute same wording" / "have a way to add items to it from list". Taking out is a
+    mark (`not_variant_of`) whose write-through sets the entry model's CONTESTED state; the group readers then keep it
+    apart from either side; a later `variant_of` mark puts it back. One check (T) each; never both in one mark."""
+    base = {k: v for k, v in _mark("verified", []).items() if k != "checklist"} | {"answers": {"T": "y"}}
+    out = M.Mark.model_validate({**base, "not_variant_of": "1:a:c"})
+    assert json.loads(M.line(out))["not_variant_of"] == "1:a:c"
+    # a take-out is never "verified earlier": the wording stands alone and still needs its extent
+    B = _backend(monkeypatch, "checks")
+    assert B.check_state(out, "x", "verified") == "unchecked"
+    assert B._with_check([], "x", out, "verified")["earlier"]["status"].startswith("taken out of its group")
+    assert "not_variant_of" not in json.loads(M.line(M.Mark.model_validate({**base, "variant_of": "1:a:c"})))
+    with pytest.raises(ValueError, match="not both"):
+        M.Mark.model_validate({**base, "not_variant_of": "1:a:c", "variant_of": "1:a:d"})
+    with pytest.raises(ValueError, match="taken out of itself"):
+        M.Mark.model_validate({**base, "not_variant_of": "1:a:b"})
+    with pytest.raises(ValueError, match="only a DFO wording"):
+        M.Mark.model_validate({**base, "scope": "entry", "answers": {"T": "y", "R": "y", "P": "y"}, "not_variant_of": "x"})
+    # the readers: alike words group a historic wording with the current one — until either is contested
+    cur = {"status": "active", "source_text": {"specific_area": "downstream of the old mill bridge"}}
+    old = {"status": "dormant", "source_text": {"specific_area": "downstream of the old mill bridge."}}
+    assert D.group_why(old, cur, "1:a:c") is not None
+    assert D.group_why({**old, "duplicate_confirmed": False}, cur, "1:a:c") is None
+    assert D.group_why(old, {**cur, "duplicate_confirmed": False}, "1:a:c") is None
+    # put back: the owner's confirmed link holds whatever the words
+    assert D.group_why({**old, "duplicate_of": "1:a:c", "duplicate_confirmed": True}, cur, "1:a:c")[1] > 1
+    # the write-through's edits: contested, link cleared; nothing to write when the place already says so
+    from pipeline.regs.review import proposals as P
+    f = tmp_path / "region1.json"
+    f.write_text("{}")
+    loc = {"location_id": "1:a:b", "duplicate_of": "1:a:c"}
+    orig = P._find_location
+    try:
+        P._find_location = lambda src, lid: (f, loc) if lid == "1:a:b" else None
+        P._rel, rel = (lambda p: str(p)), P._rel
+        got = P._apart_proposal(out, "p1", {}, None)
+        assert [(e["field"], e["after"]) for e in got["edits"]] == [("duplicate_of", None), ("duplicate_confirmed", False)]
+        loc.update(duplicate_of=None, duplicate_confirmed=False)
+        assert P._apart_proposal(out, "p1", {}, None)["edits"] == []
+    finally:
+        P._find_location, P._rel = orig, rel
+
+
+def test_the_owners_two_piece_alouette_save_reads_as_built_as_saved():
+    """THE EXACT SHAPE (marks.jsonl, 2:alouette-river-and-tributaries:above-216th-street-including-the-n): piece 1
+    upstream_of a cut on the place's waters (items []), piece 2 upstream_of another cut on gnis:39404, tributaries
+    true. Once the write-through wrote those two extents, fix == curated — whatever the piece order, an absent
+    item_id for "the place's waters", and a place-level tributary flag."""
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "curation-review" / "backend"))
+    try:
+        import dfo as BD
+    finally:
+        sys.path.pop(0)
+    from pipeline.regs.review import proposals as P
+    fixes = [M.ExtentFix(scope="entry", op="upstream_of", items=[], tributaries=True,
+                         points=[{"kind": "split", "split_id": "alouette_river__216_street_bridge"}]),
+             M.ExtentFix(scope="entry", op="upstream_of", items=["gnis:39404"], tributaries=True,
+                         points=[{"kind": "split", "split_id": "alouette_river__216th_street"}])]
+    mine = [P.extent_of(f, lambda i, p: p.split_id, rest_at_build=True)[0] for f in fixes]
+    curated = [{"op": "upstream_of", "splits": ["alouette_river__216th_street"], "item_id": "gnis:39404"},
+               {"op": "upstream_of", "splits": ["alouette_river__216_street_bridge"]}]
+    assert BD.same_extents(mine, curated)
+    assert not BD.same_extents(mine, curated[:1])                    # a piece missing is a difference
+    sys.modules.pop("dfo", None)

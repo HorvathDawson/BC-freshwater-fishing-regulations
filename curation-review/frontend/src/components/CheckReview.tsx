@@ -3,7 +3,7 @@ import { api, type EntryRefused } from "../api";
 import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, DfoDetail, EntryDetail, ExtentFix, Mode,
   PlaceCheck, WaterPlace, WaterReach, WaterView } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
-import { failed } from "../failures";
+import { cleared, failed } from "../failures";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import { HOW_IT_WORKS, LEAVE_DRAFT, nextAfterSave, placeState, checkBody, checkStatus, chipOf, groupHeading, groupSave, hintWords, isDone, needWords, needsExtent, openRows,
   pinsFc, progressWords, sameAsOptions, step, waterGroups, where } from "../checklist";
@@ -95,7 +95,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   useEffect(() => { loadQueue(); }, [loadQueue]);
 
   // "Saved: …" after a save, kept until he moves on (`id`: the place it was saved on)
-  const [savedNote, setSavedNote] = useState<{ id: string; what: "extent" | "confirm" | "problem" } | null>(null);
+  const [savedNote, setSavedNote] = useState<{ id: string; what: "extent" | "confirm" | "problem" | "group"; text?: string } | null>(null);
   // after a save / confirm: the water has none left — said, with the next water that has work
   const [waterDone, setWaterDone] = useState<{ id: string; water: string; total: number; next: CheckPlace | null } | null>(null);
   const shown = useRef<string | null>(null);
@@ -120,6 +120,17 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   }, [prefix]);
   // the editor (and the draft it was opened on) belongs to ONE place: any move to another place closes it
   useEffect(() => { setEditing(null); }, [selected]);
+  // a save is applied in the background: when the write-through's word on the shown place changes (saving → saved /
+  // refused), the place and the counts are read again — it never stays on "being applied"
+  const wtSeen = useRef<string | undefined>(undefined);
+  useEffect(() => onWriteThrough((s) => {
+    const st = selected ? s.outcomes[wtKey("dfo", selected)]?.state : undefined;
+    if (st !== wtSeen.current) {
+      const was = wtSeen.current;
+      wtSeen.current = st;
+      if (was !== undefined || st === "saved" || st === "refused") { loadQueue(); setVersion((v) => v + 1); }
+    }
+  }), [selected, loadQueue]);
   // the first place of the list when the URL names none
   useEffect(() => { if (!selected && queue?.length) open(queue[0].id); }, [queue, selected, open]);
 
@@ -185,12 +196,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   shown.current = selected;
   /** AFTER A SAVE OR A CONFIRM: reload, show "Saved: …" briefly, then go on to the next not-done place of the water
    *  (a problem report stays on the place) */
-  const afterSave = (id: string, what: "extent" | "confirm" | "problem") => {
-    setSavedNote({ id, what });
+  const afterSave = (id: string, what: "extent" | "confirm" | "problem" | "group", text?: string) => {
+    setSavedNote({ id, what, text });
     setEditing(null);
     loadQueue();
     setVersion((v) => v + 1);
-    if (what === "problem") return;
+    if (what === "problem" || what === "group") return;
     api.checksQueue(source, "", "").then((all) => {
       const t = nextAfterSave(all, id);
       if (t.next !== null) { const to = t.next; window.setTimeout(() => { if (shown.current === id && !draft.current) open(to); }, 1600); }
@@ -208,6 +219,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const pendingFix = d0?.saved && d0.saved.state !== "landed" && d0.saved.state !== "deferred" ? savedFixesOf(d0.mark) : [];
   const savedWords = !cur || !savedNote || savedNote.id !== cur.id ? "" : savedNote.what === "confirm" ? "Saved: your confirmation"
     : savedNote.what === "problem" ? "Saved: your problem report"
+    : savedNote.what === "group" ? `Saved just now: ${savedNote.text ?? "your grouping decision"}`
     : `Saved: ${pendingFix.length ? partsText(piecesParts(pendingFix, (f) => fixParts(f, labelOf, nameOf)))
         : d0?.location.binding.extents.length ? partsText(piecesParts(d0.location.binding.extents, (x) => extentParts(x, labelOf, nameOf)))
         : "your mark"}`;
@@ -315,7 +327,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
               </div>
             ) : cur ? <CheckPanel key={`${cur.id}|${cur.check.digest}`} loaded={cur} top={stateLine}
               water={waterView && waterView.places.some((p) => p.id === cur.id) ? waterView : null}
-              onSaved={(what) => afterSave(cur.id, what)}
+              onSaved={(what, text) => afterSave(cur.id, what, text)}
               onEdit={cur.dfo && !cur.dfo.extent_now.cannot_change.length ? (draft) => setEditing({ draft }) : undefined} />
               : <div className="empty-state">{queue && !list.length ? "Nothing matches." : "loading…"}</div>}
           </aside>
@@ -431,7 +443,7 @@ const pinTo = (n: number | null) => window.dispatchEvent(new CustomEvent("ck-pin
 
 /** the rows and the one decision */
 function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
-  loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem") => void; top?: React.ReactNode;
+  loaded: Loaded; water: WaterView | null; onSaved: (what: "confirm" | "problem" | "group", text?: string) => void; top?: React.ReactNode;
   /** open the T525 editor: on the extent now (null), or on a draft — undefined when no fix can say the extent */
   onEdit?: (draft: InitialDraft | null) => void;
 }) {
@@ -495,7 +507,8 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
     cutName: (c) => cutLabel(c) ?? c }) : null;
   // a saved extent that never reached the place is a fault: shown above, and reported (no silent fallback)
   useEffect(() => {
-    if (pc.check === "unapplied") failed("a saved extent that was not applied")(new Error(`${loaded.id}: saved ${pc.saved?.date ?? "?"}, every cut built, the place does not hold it`));
+    if (pc.check === "unapplied") failed("a saved extent that was not applied")(new Error(`${loaded.id}: saved ${pc.saved?.date ?? "?"}, every cut built, the place does not hold it — ${pc.saved?.why ?? "no reason given"}`));
+    else cleared("a saved extent that was not applied");       // it landed (or was only being applied): the line goes
   }, [pc.check, loaded.id]);  // eslint-disable-line react-hooks/exhaustive-deps
   const differs = pc.check === "stale" && pc.differs
     ? ` You saved: ${partsText(piecesParts(pc.differs.saved, (x) => extentParts(x, cutLabel, itemName))) || "no extent"}. It is now: ${
@@ -521,6 +534,32 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
     const ds = (d?.places ?? []).flatMap((pl) => pl.wordings).filter((w) => w.location_id === id).flatMap((w) => w.dates).sort();
     return ds.length ? (ds[0] === ds[ds.length - 1] ? ds[0] : `${ds[0]} to ${ds[ds.length - 1]}`) : "";
   };
+  /* THE GROUPING IS HIS DECISION (owner 2026-11-09: "how would i refute same wording", "have a way to add items to it
+     from list"): take a wording out (a `not_variant_of` mark) or put one in (a `variant_of` mark) — each a mark through
+     the one save path, each undone by the other. */
+  const short = (p: WaterPlace) => `“${(p.text || "(the whole water)").slice(0, 70)}”`;
+  const head = same_.find((p) => !p.older_of && !p.duplicate_of) ?? same_[0];
+  const [addPick, setAddPick] = useState("");
+  const addable = (water?.places ?? []).filter((p) => p.source === "dfo" && me && p.same !== me.same);
+  async function regroup(target: WaterPlace, to: WaterPlace | null, from: WaterPlace | null) {
+    setErrors([]);
+    if (!reviewer.trim()) { setErrors(["Type your name first: every mark names its reviewer."]); return; }
+    setReviewer(reviewer.trim());
+    setBusy(true);
+    try {
+      await api.postMark({ scope: "dfo", target: target.id, verdict: "verified", answers: { T: "y" }, reviewer: reviewer.trim(),
+        extent_before: target.seen,
+        ...(to ? { variant_of: to.id, note: `same place as ${to.id}: put in its group by the owner (checklist)` }
+          : { not_variant_of: from?.id ?? target.id, note: `not the same place as ${from?.id ?? "its group"}: taken out of the group by the owner (checklist)` }) });
+      onSaved("group", to ? `${short(target)} is now the same place as ${short(to)}. Undo: take it out of the group again.`
+        : `${short(target)} is out of the group and stands alone (it needs its own extent). Undo: put it back with "Same place as…".`);
+    } catch (e) {
+      const fe = (e as EntryRefused).fieldErrors;
+      setErrors([`Refused: ${fe ? fe.map((x) => x.msg).join("; ") : String(e)}`]);
+    } finally {
+      setBusy(false);
+    }
+  }
   const wordsOf = (p: WaterPlace) => partsText(piecesParts(p.extents, (x) => extentParts(x, wLabel, wName)));
   async function useSameAs() {
     const o = options.find((x) => x.id === sameAs);
@@ -570,12 +609,43 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
                   {p.id === loaded.id ? "this one · " : ""}{p.live ? "on DFO's live page" : "no longer on the live page"}
                   {datesOf(p.id) ? ` · seen ${datesOf(p.id)}` : ""}
                   {" · extent: "}{p.extents.length ? wordsOf(p) : "none"}
-                  {p.why.length ? ` · grouped because: ${p.why.join("; ")}` : ""}
                   {p.id !== loaded.id && <>{" · "}<a href={`#dfo/${encodeURIComponent(p.id)}`}>open</a></>}
                 </div>
+                <div className="ck-claim" data-testid="ck-claim">{p.why.length ? <>Whose claim: {p.why.join("; ")}</> : "The place the others are grouped with"}</div>
+                {head && p.id !== head.id && <button type="button" className="btn small" data-testid="ck-take-out" disabled={busy}
+                  title="saves a mark: this wording stands alone and needs its own extent; undo by putting it back"
+                  onClick={() => void regroup(p, null, head)}>Not the same place: take this wording out of the group (saves)</button>}
               </div>))}
+            {addable.length > 0 && head && (
+              <div className="ck-sameas" data-testid="ck-group-add">
+                <label>Add a wording to this group:{" "}
+                  <select value={addPick} aria-label="add a wording to this group" data-testid="ck-group-add-pick" onChange={(e) => setAddPick(e.target.value)}>
+                    <option value="">pick one of this water's wordings</option>
+                    {addable.map((o) => <option key={o.id} value={o.id}>{(o.text || "(the whole water)").slice(0, 70)}{o.live ? "" : " (older)"}</option>)}
+                  </select>
+                </label>
+                <button type="button" className="btn small" data-testid="ck-group-add-save" disabled={!addPick || busy}
+                  title="saves a mark: that wording becomes the same place as this group; undo by taking it out"
+                  onClick={() => { const o = addable.find((x) => x.id === addPick); if (o) void regroup(o, head, null); }}>Add it: same place (saves)</button>
+              </div>)}
             <div className="dim">The grouping is a prior from the data, not a decision: a wording counts as checked only when you tick or save it.</div>
           </details>
+        )}
+        {d && me && same_.length <= 1 && addable.length > 0 && (
+          <div className="ck-same" data-testid="ck-same-as-group">
+            {me.apart && <div className="dim" data-testid="ck-apart">Your decision: this wording was taken out of a group and stands alone. Put it back below to undo.</div>}
+            <div className="ck-sameas" style={{ borderTop: 0, paddingTop: 0 }}>
+              <label>Same place as…{" "}
+                <select value={addPick} aria-label="same place as (group)" data-testid="ck-same-as-pick" onChange={(e) => setAddPick(e.target.value)}>
+                  <option value="">another wording on this water</option>
+                  {addable.map((o) => <option key={o.id} value={o.id}>{(o.text || "(the whole water)").slice(0, 70)}{o.live ? "" : " (older)"}</option>)}
+                </select>
+              </label>
+              <button type="button" className="btn small" data-testid="ck-same-as-save" disabled={!addPick || busy}
+                title="saves a mark: this wording becomes the same place as the one picked (it rides that place's extent); undo by taking it out of the group"
+                onClick={() => { const o = addable.find((x) => x.id === addPick); if (o) void regroup(me, o, null); }}>Group them: same place (saves)</button>
+            </div>
+          </div>
         )}
         {needs && d && (
           <div className="ck-lead" data-testid="ck-lead">
@@ -641,7 +711,7 @@ function CheckPanel({ loaded, water, onSaved, onEdit, top }: {
                 setWrongMode(true); setWrong(new Set(openRows(pc.rows, ticked).map((r) => r.n))); }}>Report a problem with it</button>
             </div>
             <div className="hint" data-testid="ck-hint">{pc.check === "unapplied" ? <span className="warn-text">Nothing for you to re-check: your saved
-              extent was not applied to the map data. That is a fault on our side; it has been reported.</span>
+              extent was not applied to the map data ({pc.saved?.why ?? "no reason given"}). That is a fault on our side; it has been reported.</span>
               : pc.check === "saved" ? <>Nothing to do here: you saved this extent, so it is done{pc.saved?.state === "waits_cut" ? " (it waits only for its new cut to be built)" : ""}.
               It comes back only if the place stops holding what you saved.{onChange && <> <button type="button"
               className="link" data-testid="ck-change-held" onClick={onChange}>Edit the extent (draft, nothing saved)</button></>}</>

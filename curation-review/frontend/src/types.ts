@@ -841,6 +841,8 @@ export interface MarkPost {
   extent_before?: DfoSeenExtent;
   /** owner 2026-11-02 (dfo): this wording is a variant of that location (T185 writes duplicate_of) */
   variant_of?: string;
+  /** T532 (dfo): this wording is NOT the same place as that location — taken out of its group; a later `variant_of` undoes it */
+  not_variant_of?: string;
   /** T359 (tidal): "whole" — the whole water is tidal (Place y, no cut; the writer makes a `whole` row);
    *  T449 (dfo): "tidal water" accepts a place proposed as wholly tidal, "not tidal" rejects it */
   call?: "whole" | "tidal water" | "not tidal";
@@ -874,7 +876,7 @@ export interface PlaceCheck {
   checked?: { date: string; verdict: string; note: string; rows: CheckedRow[] };
   earlier?: EarlierMark;
   /** `check: "saved"`: the owner's extent save in force, waiting for its new cut (waits_cut) or to be applied */
-  saved?: { state: "waits_cut" | "built" | "not_applied"; date: string; cuts: string[] } | null;
+  saved?: { state: "waits_cut" | "built" | "applying" | "not_applied"; date: string; cuts: string[]; why?: string } | null;
   /** `check: "stale"` after his save: the extent he saved and the extent the place has now */
   differs?: { saved: DfoExtent[]; now: DfoExtent[] } | null;
   /** a regulation rule: what it binds, as geometry (the builder's own reach, capped) */
@@ -895,6 +897,10 @@ export interface WaterPlace {
   source: "dfo" | "regs"; id: string; text: string; live: boolean; check: CheckState; bad: number;
   state: DfoState | null; extents: DfoExtent[]; tributaries: boolean | null; extent_key: string;
   older_of: string | null; duplicate_of: string | null; proposal: boolean; earlier?: EarlierMark; name?: string;
+  /** DFO: its same-place link is the owner's decision (`confirmed`); he took it out of its group (`apart`) */
+  confirmed?: boolean; apart?: boolean;
+  /** DFO: the extent a mark on it is made on (`extent_before`) */
+  seen?: DfoSeenExtent;
   /** DFO: the last date its page carried this wording */
   last_seen?: string | null;
   /** the same-place group it sits in (the group's first id) and why (`checks.same_place`) */
