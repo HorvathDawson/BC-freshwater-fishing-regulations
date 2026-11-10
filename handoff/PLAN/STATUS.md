@@ -13,6 +13,14 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 evening — data layout decided (T599); agents now run in parallel (chat 11)
+- **Data layout (T599, decided):** no format switch (Zarr does not fit; our array data is tiny). Keep today's formats;
+  split data strictly into fetched, curated, built, released; one writer for curated data. App and web packages stay
+  packaged as today. Steps: T547 (first), T600, T601, T602. Each step must reproduce today's builds.
+- **Owner: work in parallel where files do not collide.** Running now, four agents: the emulator + staging + APK lane;
+  T546 (reach run drops nothing silently); T547 (atlas records its curated inputs); T553 (base rules pinned to print).
+  App and worker tickets (T551, T548, T595, T596) start when the APK lane is done, so a half-done change is not shipped.
+
 ## 2026-11-10 evening — plain "days in 10" wording (T598, in review); land names from zoom 12 (T570, in review)
 - **Plain wording in place of the percentile (T598):** the card reads "Below normal · lower than 8 days in 10 for the
   date". Small places (map dot label, chips) use a short form, "8 in 10 days higher". The far ends say "lower than
