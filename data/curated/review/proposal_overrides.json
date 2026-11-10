@@ -1,5 +1,5 @@
 {
- "_about": "Owner calls on PROPOSED splits that the marks store (append-only, never edited) cannot carry. Each override names the cut as a marks.NewSplit would (matched by marks.same_anchor) and sets its confidence; read by marks.proposals and proposals.build (T185, owner 2026-10-27).",
+ "_about": "Owner calls on PROPOSED splits that the marks store (append-only, never edited) cannot carry. Each override names the cut as a marks.NewSplit would (matched by marks.same_anchor) and sets its confidence; read by marks.proposals and proposals.build (T185, owner 2026-10-27). An override may also WITHDRAW a proposal (withdrawn: true, with why): not built, not offered, listed as withdrawn (T589).",
  "overrides": [
   {
    "match": {
@@ -90,6 +90,27 @@
    "by": "owner",
    "date": "2026-11-06",
    "note": "Little Qualicum 'from the falls…' mark 2026-11-02: 'make the provincial park split properly using the admin area… do not add the manual split' — re-anchored on the parks_bc boundary where the river leaves the park (name to confirm on the side rebuild) — ACCEPTED by the owner 2026-11-06 ('accept all cuts there'); was Claude's proposal from the owner's mark note"
+  },
+  {
+   "match": {
+    "ref": "alouette_river__allco_park_boundary_signs_allco_hatchery_fence",
+    "anchor": "sign",
+    "name": "Allco Park boundary signs (Allco hatchery fence)",
+    "on_item": "gnis:9630",
+    "coord": [
+     -122.533526,
+     49.246954
+    ],
+    "blk": "356356440",
+    "measure": 18295.8,
+    "side": "downstream",
+    "quote": "",
+    "note": "[split hunt medium] the line of fishing boundary signs in Allco Park, taken at the Allco hatchery fish fence at the park's upstream end. Sources: https://www.openstreetmap.org/way/1154159739 ; https://www.openstreetmap.org/way/1154159759 ; https://www.openstreetmap.org/way/1057532557. Allco Park runs along the river 49.2465–49.2414; the signs' spot is unpublished. The fence is the likeliest line; the other candidate is the park's downstream end ≈ 49.2423,-122.5347."
+   },
+   "withdrawn": true,
+   "by": "owner",
+   "date": "2026-11-10",
+   "note": "withdrawn by the owner 2026-11-10 (T589: asked \"withdraw the Allco fence cut?\" he answered \"yes\"; he had replaced it in his own save)"
   }
  ]
 }

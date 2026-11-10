@@ -630,5 +630,10 @@ def test_a_withdrawn_cut_proposal_is_not_built_and_is_listed_as_withdrawn():
     with pytest.raises(ValueError, match="no other call"):
         M.ConfidenceOverride.model_validate({"match": cut, "withdrawn": True, "confidence": "low", "by": "o",
                                              "date": "2026-11-10", "note": "x"})
-    # the curated file as it is today withdraws nothing (the Allco click is the owner's)
-    assert not any(o.withdrawn for o in M.load_overrides(CURATED.review.proposal_overrides))
+    # the curated file: the owner withdrew the Allco fence cut (2026-11-10, "yes") — it is out of the real proposals
+    # and on the withdrawn list; nothing else is withdrawn
+    ov = M.load_overrides(CURATED.review.proposal_overrides)
+    assert [o.match.ref for o in ov if o.withdrawn] == ["alouette_river__allco_park_boundary_signs_allco_hatchery_fence"]
+    real = M.proposal_groups(M.load(CURATED.review.marks))
+    allco = "alouette_river__allco_park_boundary_signs_allco_hatchery_fence"
+    assert allco not in [g["id"] for g in M.amend(real, ov)] and [g["id"] for g in M.withdrawn_groups(real, ov)] == [allco]
