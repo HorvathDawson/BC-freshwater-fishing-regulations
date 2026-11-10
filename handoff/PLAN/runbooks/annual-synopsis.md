@@ -15,7 +15,7 @@ Set once, in every shell (one work dir per book; never under `data/curated`):
 cd ~/dev/personal/BC-freshwater-fishing-regulations && export PYTHONPATH="$PWD"
 Y=2027-29                                            # the new book's years
 W=data/generated/scratch/synopsis-$Y                 # the work dir
-OLD=data/curated/regulations/entries/catalogue        # last year's book (read only until step 9)
+OLD=data/curated/regulations/synopsis               # last year's book (read only until step 9)
 ```
 
 ## 1. Fetch the PDF — Owner (or Claude)
@@ -206,7 +206,7 @@ git rm pipeline/regs/extraction/baseline/2025-27.json      # one book at a time 
 ```
 
 Then re-run `synopsis_diff /tmp/catalogue-before-$Y $OLD` — it must equal `$W/diff.txt`. Commit with
-`git commit -m "…" -- data/curated/regulations/entries/catalogue`. Removed rows go only on the owner's confirmation.
+`git commit -m "…" -- data/curated/regulations/synopsis`. Removed rows go only on the owner's confirmation.
 
 ## 10. Build and deliver — Claude
 

@@ -115,10 +115,10 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
            existing_regs: dict | None = None, only_ids: set[str] | None = None,
            review_hints: dict[str, list] | None = None) -> dict:
     """Export matchable rows into stable batches, ONE batch item per synopsis ROW (each row is its own
-    entry). Rows that share a registry item get a reach-qualified `entry_id` (`item_id#<reach-slug>`) so
-    they no longer collide and overwrite at ingest (the bug); single-row waterbodies keep
-    `entry_id == item_id`. Combining reach entries into one waterbody is a later aggregation step, so the
-    entries stay faithful to the synopsis format.
+    entry). Every item's `entry_id` is `_row_entry_id` — `r{region}:{name}@{MUs}`, from the row alone — so
+    rows that share a registry item (reach splits, a mainstem and its TRIBUTARIES row) never collide at
+    ingest. Combining reach entries into one waterbody is a later aggregation step, so the entries stay
+    faithful to the synopsis format.
 
     The batch layout is a PURE FUNCTION of (rows, registry): it must NOT depend on what has been ingested
     or a re-run would renumber batches and desync resume. `skip_existing` (opt-in) drops entries already
