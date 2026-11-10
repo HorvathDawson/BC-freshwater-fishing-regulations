@@ -614,7 +614,7 @@ use that as the sole source of future work."
 | T567 | Fraser at Mission: the app shows no current readings, the gauge page does | IN REVIEW | fb042cdfa, 1c57e7c07, 694479e25 | level-only gauge under Flow now says so; forecast day: figure labelled today's, day asked has its own line and chart mark; lead gauge flips with quantity on a forecast day = owner decision (A/B in ticket); owner confirms on the phone |
 | T568 | The gauge map moves when Level / Flow is tapped on the chart | IN REVIEW | 1c57e7c07, 694479e25 | map one place over the chart, one frame per water, a refusal keeps the map; owner confirms on the phone |
 | T569 | Report a problem from the screen you are on (Conditions has no way in) | IN REVIEW | 774befd64 | worker deploy needed for the new keys |
-| T570 | Indigenous land names show only when zoomed in a lot more | OPEN | — | shots ready, owner picks (layer indigenous_land__label, minzoom 9, proposed 12; ticket has the one-line change) |
+| T570 | Indigenous land names show only when zoomed in a lot more | IN REVIEW | 0fd94a0a9 | names start at zoom 12 (was 9), owner approved the shots 2026-11-10; phone check on the next APK |
 | T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | DONE | f1acba096 | owner 2026-11-10: "should never happen … look for other things like that" |
 | T581 | The gauge card, chart and alert editor all use the quantity asked | IN REVIEW | 5a2e4117b | T580 F1, F7 |
 | T582 | One day per water screen, and the same kept state on web and phone | IN REVIEW | 52eed5c80 | two days each labelled + soft link (Conditions marks the regs day or says it is past the forecast); address keeps day, not horizon; web shots; owner confirms on the phone |
