@@ -82,6 +82,11 @@ export interface Hydrograph {
   priorYears: readonly { year: number; d: string }[];
   /** x of today, for the rule that separates the record from the forecast. */
   todayX: number | null;
+  /**
+   * (T567) THE DAY ASKED, on a forecast day: its rule on the plot, past today's, with its date as the label; null on Now
+   * and Change, or when the day is off the plot.
+   */
+  day: { x: number; label: string } | null;
   /** Nested percentile bands, widest first, so they can be drawn in order. */
   envelopes: readonly Envelope[];
   /** The median trace. */
@@ -210,6 +215,8 @@ export interface BuildInput {
    * actually on screen.
    */
   ticks?: ((view: Domain) => readonly { t: number; label: string }[]) | null;
+  /** (T567) The forecast day asked: where it falls on the clock (epoch ms) and its words. */
+  day?: { at: number; label: string } | null;
 }
 
 /**
@@ -437,6 +444,8 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     // seasonal chart the record simply stops there and the rest of the frame is band —
     // without the rule a reader cannot tell where the measuring ended and the season's
     // shape took over.
+    day: input.day && stamps.length === vals.length && onPlot(xAt(input.day.at))
+      ? { x: xAt(input.day.at), label: input.day.label } : null,
     todayX: nowIndex >= 0 && nowIndex < vals.length && onPlot(x(nowIndex)) ? x(nowIndex) : null,
     forecast,
     alsoForecasts,

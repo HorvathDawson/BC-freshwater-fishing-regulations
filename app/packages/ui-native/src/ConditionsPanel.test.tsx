@@ -60,6 +60,44 @@ describe("the conditions panel", () => {
                             + "50 km²")).toBeTruthy();
   });
 
+  it("never puts one quantity's figure under the other's chart (T567)", async () => {
+    // a station that reports both, ranked in flow: under a LEVEL chart the figure is the level, its standing says it was ranked on flow
+    const both = sourceWith({ discharge: 197, level: 2.18, percentile: 0.27, standing: "below",
+                              at: "2026-09-04T06:00:00Z", parameter: "discharge" }, PANEL);
+    render(<ConditionsPanel source={both} section={SEC} palette={LIGHT} feed={feed} parameter="level"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("reading-figure")).toBeTruthy());
+    expect([screen.getByTestId("reading-figure").textContent, screen.queryByText("m")?.textContent])
+      .toEqual(["2.18", "m"]);
+    expect(screen.getByText(`${readingStandingLine(0.27, "below")} (ranked on flow)`)).toBeTruthy();
+    expect(screen.queryByText("m³/s")).toBeNull();
+    cleanup();
+    clearPanelCache();
+    // a station that reports level only, asked for flow: the words, no figure
+    const levelOnly = sourceWith({ discharge: null, level: 1.548, percentile: 0.66, standing: "normal",
+                                   at: "2026-09-04T06:00:00Z", parameter: "level" }, PANEL);
+    render(<ConditionsPanel source={levelOnly} section={SEC} palette={LIGHT} feed={feed} parameter="discharge"
+                            scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("reading-other-quantity")).toBeTruthy());
+    expect(screen.getByTestId("reading-other-quantity").textContent)
+      .toBe("Reports water level only today, not flow. Show Level to see it.");
+    expect(screen.queryByTestId("reading-figure")).toBeNull();
+  });
+
+  it("on a forecast day the card says its figure is today's and gives the day asked its own line (T567)", async () => {
+    const ahead = { index: async () => ({ stations: {
+      LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15,
+              ahead: { "3": { percentile: 0.4, discharge: 0.4 } } } } }) };
+    const source = sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15, standing: "below",
+                                at: "2026-09-04T06:00:00Z" }, PANEL);
+    render(<ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={ahead} parameter="discharge"
+                            horizon={3} scroll={false} day={new Date(2026, 8, 4, 12)} />);
+    await waitFor(() => expect(screen.getByTestId("reading-scope")).toBeTruthy());
+    expect([screen.getByTestId("reading-scope").textContent, screen.getByTestId("reading-figure").textContent,
+            screen.getByTestId("reading-forecast").textContent])
+      .toEqual(["Today's reading", "12.5", "Mon 7 Sep, forecast: Reads lower than 6 days in 10 at this time of year."]);
+  });
+
   it("refuses in words where no gauge may speak", async () => {
     render(<ConditionsPanel source={sourceWith(null, null)} section={SEC} palette={LIGHT}
                             feed={feed} scroll={false} />);

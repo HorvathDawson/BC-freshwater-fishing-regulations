@@ -16,7 +16,7 @@ import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, type ChartSpan } from "@app/core";
+         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { changeChartModel, changeView, chartParameter, forecastDash, forecastDrawn, NO_MODEL_PICK, pickModel, realtimeOnly,
@@ -141,7 +141,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                                       parameter: picked ?? undefined } : null), [feed, picked]);
   const allRuns = anyRun.state === "ready" ? anyRun.value?.forecasts ?? [] : null;
   const drawsForecast = forecastDrawn(forecastOn, allRuns);
-  const chart = useChartView(source, station, span, param, drawn, chartW, known, draft, drawsForecast, pickState.also);
+  const chart = useChartView(source, station, span, param, drawn, chartW, known, draft, drawsForecast, pickState.also, vm.ahead);
   const series = useSeries(source, station, span, param, drawn, known);
   // EVERY DONOR'S CHART, ASKED NOW (owner 2026-10-21: "get all the data when the page opens rather than one gauge at a
   // time when clicked"), so the gauge switch draws from what is already here.
@@ -188,22 +188,29 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   // (T567, owner's phone 2026-11-09) THE CARD'S FIGURE IS IN THE QUANTITY THE CHART SHOWS, OR IT IS NOT A FIGURE:
   // Fraser at Mission under Flow headed a m³/s chart with "1.548 m · 66th percentile" (its level). A gauge that
   // reports the other quantity only says so, in the words its row and its dot say.
-  const readingRows = reading && reading.quantity !== shown ? (
+  const otherOnly = reading && reading.quantity !== shown && reading.figures[shown] == null;
+  // (T567) the station reports the asked quantity too, but its standing was ranked in the other: the figure of the asked
+  // one, with the standing said to be the other's — never the other quantity's figure under this chart
+  const figure = reading ? reading.figures[shown] ?? reading.figure : 0;
+  const readingRows = reading && otherOnly ? (
         <View ref={readingRing} collapsable={false} style={{ gap: SPACE.s1 }}>
           <Text testID="reading-other-quantity" style={{ ...TYPE.bodyStrong, color: palette.ink }}>
             {OTHER_QUANTITY_WORDS[reading.quantity].reads}
           </Text>
+          {reading.forecast && <Text testID="reading-forecast" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.forecast}</Text>}
         </View>
   ) : reading ? (
         <View ref={readingRing} collapsable={false} style={{ gap: SPACE.s1 }}>
+          {/* (T567) on a forecast day this figure is TODAY'S, said so; the day asked has its own line below */}
+          {reading.scope && <Text testID="reading-scope" style={{ ...TYPE.metaBold, color: palette.sub }}>{reading.scope}</Text>}
           {/* (T367) whose reading this is is the card's title, over it; when it was taken is the card's foot */}
           {/* (T367) THE FIGURE AS A STAT: large in the display face, its unit small beside it, the stage after a dot —
               the monospace figure in the chart's teal read as code beside the rest of the card */}
           <View style={{ flexDirection: "row", alignItems: "baseline", columnGap: SPACE.s2, flexWrap: "wrap" }}>
-            <Text testID="reading-figure" style={{ ...TYPE.title, color: palette.ink }}>{reading.figure}</Text>
-            <Text style={{ ...TYPE.bodyStrong, color: palette.sub }}>{reading.unit}</Text>
+            <Text testID="reading-figure" style={{ ...TYPE.title, color: palette.ink }}>{figure}</Text>
+            <Text style={{ ...TYPE.bodyStrong, color: palette.sub }}>{UNIT[shown]}</Text>
             {/* BOTH NUMBERS WHERE THERE ARE BOTH. */}
-            {reading.stage && (
+            {reading.quantity === shown && reading.stage && (
               <Text style={{ ...TYPE.body, color: palette.sub }}>{`· ${reading.stage}`}</Text>
             )}
           </View>
@@ -212,8 +219,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
               <View testID="reading-dot" style={{ width: 10, height: 10, borderRadius: round(10),
                                                   backgroundColor: rampAt(flowRampStops(theme), reading.percentile) }} />
             ) : null}
-            <Text style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>{reading.standing}</Text>
+            <Text style={{ ...TYPE.bodyStrong, color: palette.ink, flexShrink: 1 }}>
+              {reading.quantity === shown ? reading.standing : standingRankedIn(reading.standing, reading.quantity)}
+            </Text>
           </View>
+          {reading.forecast && <Text testID="reading-forecast" style={{ ...TYPE.bodyStrong, color: palette.ink }}>{reading.forecast}</Text>}
         </View>
   ) : vm.quiet ? (
         // A QUIET DONOR AT THE HEAD OF THE CHART (review 2026-10-21): whose it is, that it is silent today and when it

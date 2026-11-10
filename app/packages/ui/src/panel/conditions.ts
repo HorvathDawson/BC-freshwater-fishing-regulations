@@ -5,7 +5,8 @@
 import { useMemo, useRef, useState } from "react";
 import { speaks, sheetLead, throughLakeStations, type DonorRow, type Horizon, type PanelAnswer, type Parameter, type Quantity,
          type WaterSource, type SectionId, type StationId } from "@app/data";
-import { CONDITIONS_WORDS, donorLastReport, donorReads, donorSilent, freshness, gaugeCountLine, noGaugeSentence,
+import { aheadDays, CONDITIONS_WORDS, donorLastReport, FORECAST_DAY_WORDS, forecastDayMark, forecastDayName,
+         forecastFigureLine, donorReads, donorSilent, freshness, gaugeCountLine, noGaugeSentence,
          readingAgeLine, readingHeading, readingIn, readingStandingLine, shownParameter, stageLine, stateAt,
          type GaugeTrace, type SectionKey, type Standing, bcNow, now } from "@app/core";
 import { useGaugeTrace, useStationReading } from "../hooks";
@@ -26,6 +27,12 @@ export interface ReadingVM {
   quantity: Parameter;
   /** The stage beside a discharge, where the station has both. */
   stage: string | null;
+  /** (T567) Every quantity the station reported, so the card can show the one the chart is about. */
+  figures: Readonly<Partial<Record<Parameter, number>>>;
+  /** (T567) On a forecast day, whose this figure is: "Today's reading" (the day asked has its own line, `forecast`); else null. */
+  scope: string | null;
+  /** (T567) On a forecast day, the lead gauge's forecast for the day asked, finished; null on Now / Change or without a row. */
+  forecast: string | null;
   standing: string;
   /** (T367) the reading's percentile, 0–1, for the standing's dot in the map's colour; null without a record */
   percentile: number | null;
@@ -92,6 +99,8 @@ export interface ConditionsVM {
   gauges: readonly GaugeChoiceVM[];
   /** (T168) The switcher grouped (`gaugeChoiceGroups`); null: draw `gauges` as one run. */
   gaugeGroups: readonly GaugeGroupVM<GaugeChoiceVM>[] | null;
+  /** (T568/T567) The forecast day asked, for the chart's mark beside today's: its clock instant and words; null on Now / Change. */
+  ahead: { at: number; label: string } | null;
   /** (T168) Each station's side, for the donor panel; null until read. */
   sides: GaugeSides;
   /** (T168) "2 gauges on this water · 5 estimating from other waters · 6 not reporting" (core `gaugeCountLine`). */
@@ -167,6 +176,11 @@ export function useConditionsView(
     ?? (speaker?.kind === "lake" && spoken.state === "ready" ? spoken.value.name : null)
     ?? lead ?? "";
 
+  const dayName = forecastDayName(today, horizon);
+  const leadRow = panel.rows.find((r) => r.station === lead);
+  const ahead = dayName
+    ? { at: new Date(today.getFullYear(), today.getMonth(), today.getDate() + aheadDays(horizon), 12).getTime(),
+        label: forecastDayMark(dayName) } : null;
   let reading: ReadingVM | null = null;
   // THE DECLARED QUANTITY (T106): the publisher's `parameter`, the one its percentile is about. 08ME030 reports both
   // and declares level; reading whichever value was present printed its discharge beside the level percentile.
@@ -180,6 +194,9 @@ export function useConditionsView(
       unit: CONDITIONS_WORDS.unit[shown],
       quantity: shown,
       stage: shown === "discharge" && c.level != null ? stageLine(c.level) : null,
+      figures: { ...(c.discharge != null ? { discharge: c.discharge } : {}), ...(c.level != null ? { level: c.level } : {}) },
+      scope: dayName ? FORECAST_DAY_WORDS.today : null,
+      forecast: dayName && leadRow ? forecastFigureLine(dayName, donorReads(leadRow, ask)) : null,
       standing: readingStandingLine(c.percentile, c.standing as Standing | null),
       percentile: c.percentile ?? null,
       age: readingAgeLine(freshness(c.fetchedAt, now()), c.observedAt),
@@ -213,6 +230,6 @@ export function useConditionsView(
       ? traced.value : null,
     gauges: gaugeChoices(panel.rows, lead, { ref: today.getTime(), horizon }),
     gaugeGroups: gaugeChoiceGroups(panel.rows, lead, ask, sides),
-    sides, count,
+    ahead, sides, count,
   };
 }

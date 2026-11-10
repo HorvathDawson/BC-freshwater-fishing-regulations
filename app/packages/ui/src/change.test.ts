@@ -309,7 +309,7 @@ describe("the donor panel under Change", () => {
       reason: "No forecast is running for the gauges here now. The River Forecast Centre's models are seasonal, so out "
         + "of season there is no expected change to show.",
       horizons: horizonChips("change", "discharge"),
-      silent: "No forecast running: A (last report not known) · B (last report not known)" });
+      silent: "No forecast running: A (last report not known) · B (last report not known)", map: null });
   });
 });
 

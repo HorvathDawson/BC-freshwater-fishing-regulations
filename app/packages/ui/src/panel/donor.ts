@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { type DonorRow, type Horizon, type PanelAnswer, type Quantity, type WaterSource, type SectionId,
          type StationId } from "@app/data";
-import { changeLowWaterNote, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorRelation, donorLastReport,
+import { changeLowWaterNote, donorState, CONDITIONS_WORDS, disagreeNote, donorBecause, donorCounted, donorFacts, donorRelation, donorLastReport,
          donorPinTitle, donorReads, donorReason, donorRowLabel, donorSilent, donorVotes, donorWeightLine,
          estimateHeadline, estimateRange, estimateSentence, gaugeChoiceLabel, HORIZON_LABELS, isAhead, metresApart,
          panelCamera, refusalIsAboutTheDay, regulatedNote, SAME_PLACE_M, shortRecordNote, silentLine, sizeApart, tidalNote,
@@ -115,6 +115,11 @@ export type DonorVM =
       horizons: readonly HorizonChipVM[] | null;
       /** Every member is silent (no-record, no-forecast): the line naming them. Null with no members. */
       silent: string | null;
+      /**
+       * (T568) THE MAP STAYS WHEN THE ESTIMATE DOES NOT ANSWER: every located member is a pin that says why it does not
+       * count (its state, in `donorMapLabel`'s words). Same frame (camera, key) the answering sheet has.
+       */
+      map: DonorMapVM | null;
     }
   | {
       ok: true;
@@ -202,13 +207,6 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    */
   const ref = o.day.getTime();
   const silent = silentLine(rows, { ref, horizon: o.horizon, ...(o.zone ? { zone: o.zone } : {}) });
-  if (!answer.ok)
-    return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why, o.horizon),
-             horizons: refusalIsAboutTheDay(answer.why) ? horizonChips(o.horizon, o.quantity) : null,
-             // T143: under a flow-only forecast the members are not without one — "No forecast this far ahead: …" under
-             // the reason that says the forecast is there, in flow, would contradict it
-             silent: answer.why === "flow-forecast-only" ? null : silent };
-  const e = answer.value;
   /*
    * A ROW'S TONE IS ITS INDEX IN THE PANEL'S WEIGHT ORDER, not its place among the rows shown. The gauge switch lists
    * every member by that index, so the switch's dot, the row and the pin are one colour; and silent members weigh 0
@@ -223,12 +221,29 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     r.route?.alongM != null && r.route.path.length > 0 ? r.route.alongM / 1000 : null;
   // where "here" is for a distance: the tap, else the middle of the water's box
   const here0 = o.from ?? (o.place ? { lat: (o.place[1] + o.place[3]) / 2, lon: (o.place[0] + o.place[2]) / 2 } : null);
-  const placed = shown.filter((r) => r.route?.lat != null && r.route?.lon != null);
+  const located = (r: DonorRow) => r.route?.lat != null && r.route?.lon != null;
+  /*
+   * THE FRAME'S MEMBERS: located, and silent only for the quantity or the day asked — not a gauge that is not reporting
+   * at all (`quiet`, `not-realtime`), which speaks in neither quantity and would only widen the frame.
+   */
+  const framed = rows.filter((r) => {
+    const k = donorState(r, { ref, horizon: o.horizon }).kind;
+    return located(r) && k !== "quiet" && k !== "not-realtime";
+  });
   // (T175) no tap: the water's own box stands for the place (both corners), so the water is in the frame
   const corners = !o.from && o.place
     ? [{ lat: o.place[1], lon: o.place[0] }, { lat: o.place[3], lon: o.place[2] }] : [];
-  const camera = panelCamera([...placed.map((r) => ({ lat: r.route!.lat, lon: r.route!.lon })), ...corners],
+  /*
+   * (T568) ONE FRAME PER WATER. The camera fits EVERY located member, whichever quantity is asked and whether or not
+   * the estimate answers: a member silent in one quantity used to leave the frame, so the Flow / Level toggle re-zoomed
+   * (and remounted) the map. The pins below are the members that speak (or, on a refusal, every located member, each
+   * saying why it does not count), but the frame is the same.
+   */
+  const camera = panelCamera([...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })), ...corners],
                              o.from, o.size);
+  // On a refusal no member speaks, yet the map stays: its pins are the members, each with its state.
+  const pinned = answer.ok ? shown : framed;
+  const placed = pinned.filter(located);
   // A gauge AT the tap absorbs "you are here" — two pins on one pixel read as one lost.
   const from = o.from;
   const atSpot = from
@@ -243,7 +258,7 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
    * (owner 2026-10-21: different icons), so both show: the dot at the pin's point. The
    * absorbing words stay on the gauge's own title — it IS the gauge you are standing at.
    */
-  const pts = [...placed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })),
+  const pts = [...framed.map((r) => ({ lat: r.route!.lat!, lon: r.route!.lon! })),
                ...(from ? [from] : corners)];
   const drawn = placed.filter((r) => (r.route?.path.length ?? 0) > 0);
   // (T168) on this water first: the key reads own gauges first, and their labels win a crowded map (`rank`)
@@ -274,8 +289,8 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
       ...keyOrder.map(keyOf),
     ],
     keyGroups: placedGroups?.map((g) => ({ ...g, shown: g.shown.map(keyOf), folded: g.folded.map(keyOf) })) ?? null,
-    unplaced: unplacedNote(shown.length - placed.length),
-    chain: [...new Set(shown.flatMap((r) => r.route?.path ?? []))],
+    unplaced: unplacedNote(pinned.length - placed.length),
+    chain: [...new Set(pinned.flatMap((r) => r.route?.path ?? []))],
     routes: drawn.flatMap((r): DonorRouteVM[] => {
       const to = { lat: r.route!.lat!, lon: r.route!.lon! }, path = r.route!.path, j = r.route!.join;
       const base = { row: toneOf(r), station: r.station };
@@ -295,6 +310,14 @@ export function donorView(value: PanelAnswer, o: DonorViewOptions): DonorVM {
     words: { fit: ROUTE_MAP_WORDS.fit, fitLabel: ROUTE_MAP_WORDS.fitLabel,
              larger: ROUTE_MAP_WORDS.larger, smaller: ROUTE_MAP_WORDS.smaller },
   } : null;
+
+  if (!answer.ok)
+    return { ok: false, heading: CONDITIONS_WORDS.noEstimate, reason: donorReason(answer.why, o.horizon),
+             horizons: refusalIsAboutTheDay(answer.why) ? horizonChips(o.horizon, o.quantity) : null,
+             // T143: under a flow-only forecast the members are not without one — "No forecast this far ahead: …" under
+             // the reason that says the forecast is there, in flow, would contradict it
+             silent: answer.why === "flow-forecast-only" ? null : silent, map };
+  const e = answer.value;
 
   function rowVM(r: DonorRow): DonorRowVM {
     const on = o.selected != null && r.station === o.selected;

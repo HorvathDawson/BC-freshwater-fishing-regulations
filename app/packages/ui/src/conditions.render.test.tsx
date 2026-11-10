@@ -40,7 +40,7 @@ describe("donorView", () => {
     const vm = donorView({ answer: { ok: false, why: "offline" }, rows: [], areaKm2: null,
                            routesReady: true }, opts);
     expect(vm).toEqual({ ok: false, heading: "NO ESTIMATE", reason: donorReason("offline"),
-                         horizons: null, silent: null });
+                         horizons: null, silent: null, map: null });
   });
 
   it("keeps the horizons on a refusal that is about the chosen day, so the reader can step back", () => {
@@ -53,7 +53,7 @@ describe("donorView", () => {
       reason: "No forecast for the gauges here reaches this far ahead.",
       horizons: HORIZONS.map((d) => ({ day: d, chip: horizonDateChip(d, bcNow()), label: horizonChipLabel(d, d === 10),
                                        on: d === 10, note: null, needs: null })),
-      silent: null,
+      silent: null, map: null,
     });
   });
 
@@ -262,6 +262,19 @@ describe("useConditionsView", () => {
     expect(vm.trace).toBeNull();          // the panel answered, so no single-station fallback
   });
 
+  it("on a forecast day the figure is labelled today's, the day asked has its own line and the chart its mark (T567)", async () => {
+    const ahead = { index: async () => ({ stations: {
+      LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15,
+              ahead: { "3": { percentile: 0.4, discharge: 0.4 } } } } }) };
+    const { result } = renderHook(() =>
+      useConditionsView(source, SEC, DAY, 3, { feed: ahead, quantity: "discharge" }));
+    await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
+    const r = result.current.reading!;
+    expect([r.figure, r.scope, r.forecast]).toEqual([12.5, "Today's reading", "Mon 7 Sep, forecast: Reads lower than 6 days in 10 at this time of year."]);
+    expect(r.figures).toEqual({ discharge: 12.5, level: 1.2 });
+    expect(result.current.ahead).toEqual({ at: new Date(2026, 8, 7, 12).getTime(), label: "MON 7 SEP" });
+  });
+
   it("reads no series for the reading: the chart asks for its own (P16, the unused fetch)", async () => {
     // `useConditions` and `useStationReading` each fetched the station's 72-hour series for a
     // `forecast` field nothing read — the chart has `useSeries`. A reading is a reading.
@@ -319,7 +332,7 @@ describe("useConditionsView", () => {
     expect([result.current.lead, shown, result.current.refuse, result.current.quiet, result.current.panel.answer])
       .toEqual(["LAKE", {
         heading: readingHeading("Lake at Outlet"), title: "Lake at Outlet", figure: 2.31, unit: "m",
-        quantity: "level", stage: null,
+        quantity: "level", stage: null, figures: { level: 2.31 }, scope: null, forecast: null,
         standing: readingStandingLine(0.6, "normal"), percentile: 0.6 }, false, null,
         // the donor panel says the lake is read at its own gauge — not answerFrom's "no gauge on this water"
         { ok: false, why: "own-gauge" }]);
@@ -366,6 +379,7 @@ describe("useConditionsView", () => {
       figure: 4.162, unit: "m", quantity: "level",
       stage: null,                                        // the stage line is said beside a discharge only
       standing: readingStandingLine(0.432, "normal"), percentile: 0.432,
+      figures: { discharge: 5.46, level: 4.162 }, scope: null, forecast: null,
     });
     // and declared discharge, the same two values: the discharge, with its stage beside it
     const src2 = { ...source, gaugeNow: async () => ({ fetchedAt: Date.now() - 5 * 60_000,

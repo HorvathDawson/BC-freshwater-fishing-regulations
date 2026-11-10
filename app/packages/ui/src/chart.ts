@@ -157,7 +157,9 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
                               * key (the answer store's, so the legend's entries and the prefetch share it), its trace
                               * drawn alone. Ignored while no forecast is drawn.
                               */
-                             also: readonly string[] = NO_MODELS): Async<ChartView | null> {
+                             also: readonly string[] = NO_MODELS,
+                             /** (T567) the forecast day asked: marked on the plot beside today's rule; null on Now */
+                             day: { at: number; label: string } | null = null): Async<ChartView | null> {
   const key = seriesKey(station, span, parameter, model);
   // (owner 2026-10-29) a feed the update service took redraws the chart in place: a refresh of the same series (its
   // window and read-out, keyed on `key`, are kept)
@@ -245,7 +247,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
         : null,
       alsoForecasts: drawForecast ? alsoRuns : [],
       log: span === "year" && s.parameter === "discharge",
-      box, domain: st.domain, probe: st.probe,
+      box, domain: st.domain, probe: st.probe, day: drawForecast ? day : null,
       ticks: (v) => chartTicks(v, span, tickCount(box.width)),
     });
     const p = shape.probe;
@@ -257,7 +259,7 @@ export function useChartView(source: WaterSource, station: StationId | null, spa
     return { state: "ready", error: null,
              value: { shape, readout, zoomed: !!(shape.view && shape.full && isZoomed(shape.view, shape.full)),
                       pending: false, draft: both === early, asOf, ...actions } };
-  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast]);
+  }, [series, s, early, asOf, span, box.width, box.height, st.domain, st.probe, actions, alsoRuns, drawForecast, day?.at, day?.label]);
 
   // The last chart drawn, for the frames between a switch and its answer.
   const last = useRef<ChartView | null>(null);

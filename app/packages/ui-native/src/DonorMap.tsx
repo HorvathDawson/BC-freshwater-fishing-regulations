@@ -24,6 +24,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
+import { hitProps } from "./regs/hit";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import type { SectionKey } from "@app/core";
 import type { MapProps, TileEndpoints, TraceProp } from "@app/map";
@@ -143,7 +144,7 @@ function MapButton({ palette, label, onPress, on, children }: {
   palette: Palette; label: string; onPress: () => void; on?: boolean; children: string;
 }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
+    <Pressable {...hitProps({ w: 90, h: 30 })} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
                aria-pressed={on}
                style={{ paddingVertical: SPACE.s1 + 2, paddingHorizontal: SPACE.s3,
                         borderRadius: palette.r.pill, borderWidth: 1,

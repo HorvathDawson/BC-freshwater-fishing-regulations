@@ -13,7 +13,7 @@ import { catchmentLabel, confidenceWord, inTen, ordinal, percentileOrdinal, plai
          seasonPhrase, standing, standingWord, type Standing } from "./flow";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
-import { weekdayAbbr } from "./flow";
+import { monthAbbr, weekdayAbbr } from "./flow";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byWeekdays } from "./staleness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
@@ -115,6 +115,42 @@ export function horizonDateChip(d: Horizon, now: Date): string {
   if (typeof d !== "number" || d === 0) return HORIZON_LABELS[d].chip;
   const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, 12);
   return `${weekdayAbbr(at.getDay())} ${at.getDate()}`;
+}
+
+/**
+ * (T567, owner 2026-11-09: "forecast days still need to show current day on the chart") ON A FORECAST DAY THE CARD HAS TWO
+ * FIGURES, each saying whose it is: the gauge's reading as of today, and the forecast for the day asked. The chart
+ * keeps today in view and marks both days.
+ */
+export const FORECAST_DAY_WORDS = {
+  /** over the card's measured figure on a forecast day: it is today's, not the day asked's */
+  today: "Today's reading",
+} as const;
+
+/** The day asked, by its date: "Wed 12 Nov" (the chip's day and month; local, as `horizonDateChip`). Null for Now and Change. */
+export function forecastDayName(now: Date, d: Horizon): string | null {
+  if (typeof d !== "number" || d === 0) return null;
+  const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, 12);
+  return `${weekdayAbbr(at.getDay())} ${at.getDate()} ${monthAbbr(at.getMonth())}`;
+}
+
+/** The lead gauge's own forecast for the day asked, under today's reading: "Wed 12 Nov, forecast: Reads …". */
+export function forecastFigureLine(dayName: string, reads: string): string {
+  return `${dayName}, forecast: ${reads}`;
+}
+
+/** The chart's mark for the day asked: "WED 12 NOV". */
+export function forecastDayMark(dayName: string): string {
+  return dayName.toUpperCase();
+}
+
+/**
+ * (T567) A READING IN THE QUANTITY THE CHART SHOWS, where the station reports it but its standing was ranked in the other:
+ * the percentile is about `declared`, so the line says which (never the standing of one quantity under the figure of
+ * the other, unlabelled).
+ */
+export function standingRankedIn(standing: string, declared: "discharge" | "level"): string {
+  return `${standing} (ranked on ${declared === "level" ? "water level" : "flow"})`;
 }
 
 /**

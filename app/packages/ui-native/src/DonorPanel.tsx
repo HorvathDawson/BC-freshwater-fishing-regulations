@@ -165,6 +165,33 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
                                    selected: selected ?? null, pickable: !!onSelect,
                                    ...(quantity ? { quantity } : {}), sides: sides ?? null, place: place ?? null });
 
+  /**
+   * A donor's colour — GREY WHEN IT IS QUIET. A station that is not reporting contributes nothing, and a live tone would
+   * say otherwise; grey is the map's own "nothing to say".
+   * BY THE ROW'S TONE INDEX (`r.row`, its place in the panel's weight order), which its pin, route and key carry too:
+   * silent members are not drawn, so a row's place in the list is not its index.
+   */
+  const quietAt = new Map(vm.ok ? [...vm.rows, ...(vm.groups ?? []).flatMap((g) => [...g.shown, ...g.folded])]
+    .map((r) => [r.row, r.quiet]) : []);
+  const toneOf = (i: number | null) => donorTone(palette, i, vm.ok ? i !== null && !!quietAt.get(i) : i !== null);
+  const map = vm.map;
+  /*
+   * (T568) THE ROUTE MAP HAS ONE PLACE IN THE SHEET: under the estimate tile (or the refusal), over the chart, whatever
+   * quantity is asked and whether or not the estimate answers. It used to sit under the chart when the estimate
+   * answered and not at all when it did not, so the Flow / Level toggle moved the whole map across the chart. It waits
+   * for the routes (`map` is null until they are in): a MapLibre map reads its opening camera once, on mount, and a map
+   * mounted early stays framed on the tap alone. Keyed on the camera for the same reason.
+   */
+  const mapBlock = at && theme && map ? (
+    <Block palette={palette}>
+      <View onLayout={onMapLayout} />
+      <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
+                height={mapH} larger={larger} onLarger={setLarger}
+                highlight={chainProp ?? map.chain} selected={selected ?? null} standing={standing}
+                waterLine={waterLine?.length ? { sections: waterLine, at: from ?? placeMid(place) } : undefined} />
+    </Block>
+  ) : <View onLayout={onMapLayout} />;
+
   if (!vm.ok) {
     // THE NO-ESTIMATE CASE IS THE SAME LAYOUT with fewer blocks: the kicker and the reason
     // stand where the headline stands, and everything else keeps its place. The header
@@ -183,22 +210,13 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
           {vm.silent ? <Silent palette={palette}>{vm.silent}</Silent> : null}
           {detail}
         </Block>
+        {mapBlock}
         {chart}
         {after}
         {foot && <Fold palette={palette}>{foot}</Fold>}
       </View>
     );
   }
-  /**
-   * A donor's colour — GREY WHEN IT IS QUIET. A station that is not reporting contributes
-   * nothing, and a live tone would say otherwise; grey is the map's own "nothing to say".
-   * BY THE ROW'S TONE INDEX (`r.row`, its place in the panel's weight order), which its pin, route and key carry too:
-   * silent members are not drawn, so a row's place in the list is not its index.
-   */
-  const quietAt = new Map([...vm.rows, ...(vm.groups ?? []).flatMap((g) => [...g.shown, ...g.folded])]
-    .map((r) => [r.row, r.quiet]));
-  const toneOf = (i: number | null) => donorTone(palette, i, i !== null && !!quietAt.get(i));
-  const map = vm.map;
   const because = vm.rows.filter((r) => r.because);
   /** One donor row; `i` 0 is the first of its list (no hairline above it). */
   const row = (r: DonorRowVM, i: number) => {
@@ -293,6 +311,7 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
       </Tile>
 
       {detail && <Block palette={palette}>{detail}</Block>}
+      {mapBlock}
       {chart}
     </>
   );
@@ -302,20 +321,6 @@ export function DonorPanel({ palette, value, day, at, theme, from, selected, onS
       <Block palette={palette} first={wide}>
         {/* (T168) THE COUNT LINE first: how many gauges stand on this water, how many estimate from others */}
         {count ? <CountLine palette={palette}>{count}</CountLine> : null}
-        <View onLayout={onMapLayout} />
-        {/* THE MAP WAITS FOR THE ROUTES (`map` is null until they are in): a MapLibre map
-            reads its opening camera once, on mount, and a map mounted early stays framed on
-            the tap alone. Keyed on the camera for the same reason. */}
-        {/* THE ROUTE MAP and its key — `DonorMap` (owner 2026-10-21: routes up and down
-            apart, the spot its own pin, each gauge's share on the map, zoom and fit). */}
-        {at && theme && map && (
-          <View style={{ marginBottom: SPACE.s2 }}>
-            <DonorMap vm={map} at={at} theme={theme} palette={palette} toneOf={toneOf}
-                      height={mapH} larger={larger} onLarger={setLarger}
-                      highlight={chainProp ?? map.chain} selected={selected ?? null} standing={standing}
-                      waterLine={waterLine?.length ? { sections: waterLine, at: from ?? placeMid(place) } : undefined} />
-          </View>
-        )}
 
         {vm.groups ? (
           <View accessibilityRole="list" accessibilityLabel={vm.listLabel}>

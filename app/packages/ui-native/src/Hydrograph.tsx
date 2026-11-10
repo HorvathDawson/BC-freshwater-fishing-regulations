@@ -111,6 +111,15 @@ export function Hydrograph({ shape, palette, colour, label, unit,
                      fontSize={TICK - 1} fill={palette.faint}>TODAY</SvgText>
           </G>
         )}
+        {/* (T567) THE DAY ASKED, on a forecast day: its own rule past today's, dated */}
+        {shape.day !== null && (
+          <G>
+            <Line x1={shape.day.x} y1={box.padTop} x2={shape.day.x} y2={box.height - box.padBottom}
+                  stroke={colour} strokeWidth={1.4} strokeDasharray="2,3" />
+            <SvgText x={shape.day.x - 3} y={box.padTop + 8} textAnchor="end"
+                     fontSize={TICK - 1} fill={palette.sub}>{shape.day.label}</SvgText>
+          </G>
+        )}
         {shape.forecast && (
           <G>
             {shape.forecast.band !== "" && (

@@ -127,6 +127,7 @@ describe("a silent panel member", () => {
       silent: "Not reporting: Lead Creek (last report not known) · Liard River at Upper Crossing (last 14 Oct, 09:00 PDT) · "
         + "Second Creek (last report not known) · Coal River (not a real-time gauge) · "
         + "Rankless Creek (last report not known) · Gone Creek (last report not known)",
+      map: null,
     });
   });
 
@@ -146,7 +147,7 @@ describe("a silent panel member", () => {
   it("a refusal with no members says no line at all", () => {
     expect(donorView(answerFrom(undefined, INDEX), opts())).toEqual({
       ok: false, heading: "NO ESTIMATE", reason: "No gauge on this water is close enough in size to speak for it.",
-      horizons: null, silent: null });
+      horizons: null, silent: null, map: null });
   });
 
   it("MUTATION PIN: a silent member drawn as a row would be caught — every row speaks, every silent one is named", () => {
