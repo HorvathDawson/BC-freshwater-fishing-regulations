@@ -615,7 +615,7 @@ use that as the sole source of future work."
 | T568 | The gauge map moves when Level / Flow is tapped on the chart | IN REVIEW | 1c57e7c07 | map one place over the chart, one frame per water, a refusal keeps the map; owner confirms on the phone |
 | T569 | Report a problem from the screen you are on (Conditions has no way in) | OPEN | — | owner 2026-11-09 |
 | T570 | Indigenous land names show only when zoomed in a lot more | OPEN | — | owner 2026-11-10 |
-| T573 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | OPEN | T568, T567 | owner 2026-11-10: "should never happen … look for other things like that" |
+| T580 | Audit: places where the same water can show differently (web vs phone, Flow vs Level, Now vs a day ahead) | OPEN | T568, T567 | owner 2026-11-10: "should never happen … look for other things like that" |
 | T571 | Sheldens Creek: the "Spur 19 Bridge site" cut looks misplaced | IN REVIEW | — | 11-10: the data cannot name the Spur 19 crossing; a low-confidence alternative waits as a proposal;  owner's problem report 2026-11-09: "i think spur 19 is at completely the wrong spot?" |
 | T572 | Thompson River: three year-round closed areas inside one DFO place | IN REVIEW | — | 11-10: proposed as 4 open stretches, 5 new cuts; the Juniper upper signs are his choice;  owner's problem report 2026-11-09: "need to figure out how to represent all of these" |
 

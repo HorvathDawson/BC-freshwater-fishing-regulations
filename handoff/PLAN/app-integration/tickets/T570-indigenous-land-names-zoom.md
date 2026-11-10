@@ -9,6 +9,8 @@ Source: owner 2026-11-10: "indigenous land names shouldnt show until zoomed in a
   said; taken as the app's map (phone and web), since the review app's map carries no such labels. Not yet read in code:
   the layer, its source and its current minzoom are the first thing to find.
 
+- Owner 2026-11-10: confirmed, it is the app's map (phone and web).
+
 ## Work
 1. Find the label layer and its current minzoom; raise it so the names appear only at a close zoom (propose the value
    with two shots, before and after, at the zooms either side of it). Web and app the same.

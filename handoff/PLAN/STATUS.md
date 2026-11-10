@@ -16,9 +16,9 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 ## 2026-11-10 — chat 11 started: the ticket list from NEXT-SESSION-after-chat10.md, one agent at a time
 - Running: ONE agent on T568 (gauge map keeps its place above the chart) + T567's open parts (forecast day keeps today
   in view, one lead gauge, figure matches the chart, web = phone test). No APK, no deploy.
-- Owner 11-10: "should never happen … look for other things like that" → T573, an audit of every place one water can
+- Owner 11-10: "should never happen … look for other things like that" → T580 (filed as T573; renumbered, chat 10 took T573), an audit of every place one water can
   show differently (web vs phone, Flow vs Level, Now vs a day ahead, block order by state). Runs right after T568.
-- Next in order: T573, T569, T570, then T546 → T553, T554–T561, T563–T566, T533–T544, one APK at the end.
+- Next in order: T580, T569, T570, then T546 → T553, T554–T561, T563–T566, T533–T544, one APK at the end.
 - The review app is chat 10's: this chat does not touch `curation-review/`, `pipeline/regs/review/`, the review data.
 
 ## 2026-11-09 late — owner: review app is priority 1; app gauge bugs first thing tomorrow
