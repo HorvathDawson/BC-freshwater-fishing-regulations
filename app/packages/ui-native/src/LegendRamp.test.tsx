@@ -53,11 +53,11 @@ describe("the Conditions legend", () => {
 
   it("the histogram: one tick per occupied fortieth, taller where more reaches stand, each named for a screen reader", () => {
     ramp(LIGHT, "light", [0.05, 0.06, 0.2, 0.55]);
-    const ticks = [...screen.getByTestId("legend-ramp").querySelectorAll("[aria-label$='percentile']")];
+    const ticks = [...screen.getByTestId("legend-ramp").querySelectorAll("[aria-label*='about ']")];
     expect(ticks.map((t) => [t.getAttribute("aria-label"), (t as HTMLElement).style.left,
                              ((t as HTMLElement).firstElementChild as HTMLElement).style.height]))
-      .toEqual([["2 reaches near the 6th percentile", "5%", "14px"], ["1 reach near the 21st percentile", "20%", "7px"],
-                ["1 reach near the 56th percentile", "55%", "7px"]]);
+      .toEqual([["2 reaches about 9 in 10 days higher", "5%", "14px"], ["1 reach about 8 in 10 days higher", "20%", "7px"],
+                ["1 reach about 6 in 10 days lower", "55%", "7px"]]);
   });
 
   it("its words are `sub` (the T40 contrast floor), never `faint`, in light and dark; the title is ink", () => {

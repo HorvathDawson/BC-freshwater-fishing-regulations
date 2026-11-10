@@ -11,7 +11,7 @@ import {
   percentileByDay, percentileOk, rearmMargin, readingDay, runLine, thresholdAt, NOTIFY_WORDS,
   type AlertReading, type AlertRuleState, type AlertThreshold, type GaugeAlertRule,
 } from "./alerts";
-import { percentileName } from "./standing";
+import { levelName } from "./standing";
 import { calendarDayOfYear } from "./day";
 import { ordinal, percentileInBand, valueAtPercentile, type Band } from "./flow";
 
@@ -170,10 +170,10 @@ describe("a percentile for the day: the line moves with the date (T527)", () => 
     };
   }
 
-  it("crossing above a rising season's 75th percentile, re-armed when the line moves up past the margin", () => {
+  it("crossing above a rising season's 8 in 10 days lower, re-armed when the line moves up past the margin", () => {
     const check = checker(rule({ threshold: p75() }));     // the line on day d is 0.6 d
     expect(check(day(311, 180))).toEqual([false, 186.6]);   // under the line: sets the side
-    expect(check(day(312, 188))).toEqual([true, 187.2]);    // crossed above that day's 75th percentile
+    expect(check(day(312, 188))).toEqual([true, 187.2]);    // crossed above that day's 8 in 10 days lower
     expect(check(day(313, 188))).toEqual([false, 187.8]);   // still above: not again
     expect(check(day(316, 188))).toEqual([false, 189.6]);   // under the line now, but inside the margin (185.81): not re-armed
     expect(check(day(317, 199))).toEqual([false, 190.2]);   // so this is no new crossing
@@ -283,14 +283,14 @@ describe("the words (whole strings, AGENTS 33)", () => {
   it("ordinals and percentile names", () => {
     expect([1, 2, 3, 4, 10, 11, 12, 13, 21, 22, 23, 25, 75, 90].map(ordinal))
       .toEqual(["1st", "2nd", "3rd", "4th", "10th", "11th", "12th", "13th", "21st", "22nd", "23rd", "25th", "75th", "90th"]);
-    expect([percentileName(50), percentileName(75), percentileName(10)]).toEqual(["the median", "the 75th percentile", "the 10th percentile"]);
+    expect([levelName(50), levelName(75), levelName(10)]).toEqual(["the median", "the level higher than 8 days in 10", "the level lower than 9 days in 10"]);
     expect(readingDay("2026-11-09T07:00:00-08:00")).toBe("Nov 9");
   });
 
   it("an alert's line and its list line", () => {
     expect(alertLine(rule())).toBe("Flow crosses above 50 m³/s");
     expect(alertLine(rule({ quantity: "level", direction: "below", threshold: value(1.25) }))).toBe("Level crosses below 1.25 m");
-    expect(alertLine(pct(75))).toBe("Flow crosses above the 75th percentile for the day");
+    expect(alertLine(pct(75))).toBe("Flow crosses above the level higher than 8 days in 10 for the day");
     expect(alertLine(pct(50, "below"))).toBe("Flow crosses below the median for the day");
     expect(alertListLine(rule(), { past: true, firedAt: Date.parse("2026-11-05T14:05:00-07:00") }))
       .toBe("Chilliwack River at Vedder Crossing · Flow crosses above 50 m³/s · last fired 2026-11-05 at 14:05 PT");
@@ -302,7 +302,7 @@ describe("the words (whole strings, AGENTS 33)", () => {
     const cow = { ...pct(75), stationName: "Cowichan R. at Lake Cowichan", water: { item: "w", name: "Cowichan River" } };
     expect(alertNotification(cow, { at: "2026-11-09T14:00:00-07:00", value: 41.2 })).toEqual({
       title: "Cowichan River: flow alert",
-      body: "Cowichan R. at Lake Cowichan crossed above the 75th percentile for Nov 9 — 41.2 m³/s at 14:00 PT.",
+      body: "Cowichan R. at Lake Cowichan crossed above the level higher than 8 days in 10 for Nov 9 — 41.2 m³/s at 14:00 PT.",
     });
     expect(alertNotification(rule({ direction: "below", threshold: value(12), water: null, quantity: "level" }),
                              { at: "2026-11-09T06:30:00-07:00", value: 11.94 })).toEqual({

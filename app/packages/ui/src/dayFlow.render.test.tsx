@@ -32,7 +32,7 @@ describe("dayFlowView", () => {
                                                percentile: 0.244, place: 0.244, source: "hydat", filledAt: SAVED } };
     expect(dayFlowView(s, "idle")).toEqual({
       heading: "Flow that day", status: null, action: null, error: null,
-      line: "19.6 m³/s, the 24th percentile for the date — filled in from the day's record (HYDAT daily mean, "
+      line: "19.6 m³/s, lower than 8 days in 10 for the date — filled in from the day's record (HYDAT daily mean, "
         + "15 Aug 2024).",
     });
   });

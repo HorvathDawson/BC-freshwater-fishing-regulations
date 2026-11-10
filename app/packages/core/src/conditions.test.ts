@@ -143,7 +143,7 @@ describe("donorBecause: the model's three factors in words", () => {
 
 describe("the donor row's other lines", () => {
   it("says what the gauge itself reads", () => {
-    expect(donorReads(row({ percentile: 0.2 }))).toBe("Reads below normal · 20th percentile.");
+    expect(donorReads(row({ percentile: 0.2 }))).toBe("Reads below normal · lower than 8 days in 10.");
     expect(donorReads(row({ percentile: null }))).toBe("Not reporting today.");
   });
 
@@ -187,24 +187,24 @@ describe("the estimate's headline, sentence and range", () => {
 
   it("says now and forecast, one gauge and several", () => {
     expect(estimateSentence(est(), 0))
-      .toBe("Lower than 8 days in 10 at this time of year — fairly confident, from 2 gauges "
+      .toBe("Lower than 9 days in 10 at this time of year — fairly confident, from 2 gauges "
             + "nearby.");
     expect(estimateSentence(est({ donors: 1, plusMinus: 22 }), 3))
-      .toBe("Lower than 8 days in 10 at this time of year — very roughly, forecast from one "
+      .toBe("Lower than 9 days in 10 at this time of year — very roughly, forecast from one "
             + "gauge nearby.");
   });
 
   it("gives the clamped range for the chosen day, plus the spot's catchment", () => {
     const day = new Date(2026, 8, 4, 12);            // 4 September, local
     expect(estimateRange(est(), day, 0, 50))
-      .toBe("3rd–27th percentile for early September · this spot drains 50 km²");
+      .toBe("Lower than 7 to 9 days in 10 for early September · this spot drains 50 km²");
     // The horizon moves the day the range is FOR: 4 Sep + 5 = 9 Sep, still early; the
     // day itself is the caller's, never the clock's.
     expect(estimateRange(est(), new Date(2026, 8, 8, 12), 5, null))
-      .toBe("3rd–27th percentile for mid September");
+      .toBe("Lower than 7 to 9 days in 10 for mid September");
     // Clamped to 1st–99th: the envelope stops short of the record's extremes.
     expect(estimateRange(est({ percentile: 0.02, plusMinus: 20 }), day, 0, null))
-      .toBe("1st–22nd percentile for early September");
+      .toBe("Lower than 8 to 9 days in 10 for early September");
   });
 });
 
@@ -289,9 +289,9 @@ describe("the gauge reading under the estimate", () => {
   });
 
   it("ranks it with core's band word, or says there is nothing to rank against", () => {
-    expect(standingLong(0.15, "below")).toBe("Below normal · 15th percentile for the date");
+    expect(standingLong(0.15, "below")).toBe("Below normal · lower than 9 days in 10 for the date");
     expect(standingLong(0.004, null))
-      .toBe("Much below normal · 0.4th percentile for the date");
+      .toBe("Much below normal · lower than almost every day on record for the date");
     expect(standingLong(null, "below"))
       .toBe("There is a reading here, but no record to compare it against.");
   });
@@ -387,7 +387,7 @@ describe("a quiet gauge: what it says and when it last spoke (owner 2026-10-21)"
     expect(donorReads(row({ percentile: null }), { ref: REF, horizon: 3 }))
       .toBe("No forecast for this gauge that far ahead.");
     expect(donorReads(row({ percentile: 0.2 }), { ref: REF, horizon: 3 }))
-      .toBe("Reads below normal · 20th percentile.");
+      .toBe("Reads below normal · lower than 8 days in 10.");
   });
   it("names the last report local and labelled, or says it is not known", () => {
     expect(donorLastReport("2026-10-18T20:30:00-08:00", VAN)).toBe("Last reported 2026-10-18 at 21:30 PDT.");
@@ -463,7 +463,7 @@ describe("silent panel members", () => {
       [true, "Not reporting today."],
       [false, "Reporting, but its reading cannot be ranked today."],
       [true, "Not a real-time gauge."],
-      [false, "Reads normal · 40th percentile."],
+      [false, "Reads normal · lower than 6 days in 10."],
     ]);
   });
 

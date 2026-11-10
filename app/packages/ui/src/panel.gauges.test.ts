@@ -37,7 +37,7 @@ describe("a quiet gauge says when it last reported", () => {
     const vm = view();
     if (!vm.ok) throw new Error("expected an estimate");
     expect(vm.rows.map((r) => [r.station, r.reads, r.lastReport])).toEqual([
-      ["LEAD", "Reads below normal · 20th percentile.", null],
+      ["LEAD", "Reads below normal · lower than 8 days in 10.", null],
       ["RANKLESS", "Reporting, but its reading cannot be ranked today.", "Last reported 2026-10-20 at 21:35 PDT."],
     ]);
     expect(vm.silent).toBe("Not reporting: STALE (last 17 Oct, 10:00 PDT) · GONE (last report not known)");
@@ -78,7 +78,7 @@ describe("a gauge ECCC does not list as real-time (index.json `listed`)", () => 
     const vm = at(LISTED);
     if (!vm.ok) throw new Error("expected an estimate");
     expect(vm.rows.map((r) => [r.station, r.reads, r.label])).toEqual([
-      ["LEAD", "Reads below normal · 20th percentile.",
+      ["LEAD", "Reads below normal · lower than 8 days in 10.",
        "LEAD, upstream, same size, 100 per cent of the answer"],
       ["RANKLESS", "Reporting, but its reading cannot be ranked today.",
        "RANKLESS, downstream, same size, reporting but not ranked today, so it counts for nothing"],
@@ -90,7 +90,7 @@ describe("a gauge ECCC does not list as real-time (index.json `listed`)", () => 
     const vm = at(INDEX);
     if (!vm.ok) throw new Error("expected an estimate");
     expect(vm.rows.map((r) => [r.station, r.reads])).toEqual([
-      ["LEAD", "Reads below normal · 20th percentile."],
+      ["LEAD", "Reads below normal · lower than 8 days in 10."],
       ["RANKLESS", "Reporting, but its reading cannot be ranked today."],
     ]);
     expect(vm.silent).toBe("Not reporting: STALE (last 17 Oct, 10:00 PDT) · GONE (last report not known)");

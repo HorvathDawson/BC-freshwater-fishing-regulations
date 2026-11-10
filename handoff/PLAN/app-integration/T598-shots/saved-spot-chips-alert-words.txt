@@ -1,0 +1,18 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+SAVED SPOT (phone only; Spots are not on the web) — the lead-up strip, chip then sentence:
+  chip "9+ in 10 days higher"   sentence "Sun Aug 23: 50 m³/s, lower than at least 9 days in 10 for the day"
+  chip "8 in 10 days higher"   sentence "Sun Aug 23: 50 m³/s, lower than 8 days in 10 for the day"
+  chip "7 in 10 days higher"   sentence "Sun Aug 23: 50 m³/s, lower than 7 days in 10 for the day"
+  chip "5 in 10 days higher"   sentence "Sun Aug 23: 50 m³/s, lower than 5 days in 10 for the day"
+  chip "7 in 10 days lower"   sentence "Sun Aug 23: 50 m³/s, higher than 7 days in 10 for the day"
+  chip "9+ in 10 days lower"   sentence "Sun Aug 23: 50 m³/s, higher than at least 9 days in 10 for the day"
+  chip "almost all days higher"   sentence "Sun Aug 23: 50 m³/s, lower than almost every day on record for the day"
+
+SPOT ROW / DRAFT LINE: 15.7 m³/s · lower than almost every day on record   |   19.6 m³/s, lower than 8 days in 10 for the date
+
+ALERT EDITOR:
+  line kinds: {"value":"A value","percentile":"A level for the day, against other years"}; field: Level for the day
+  presets: 9 in 10 days higher | 8 in 10 days higher | Median | 8 in 10 days lower | 9 in 10 days lower | Custom; custom box: Custom level, 10 to 90 (50 is the median)
+  refused: Type a whole number from 10 to 90: 10 is very low for the day, 90 very high.
+  rule line: Flow crosses above the level higher than 8 days in 10 for the day
+  rule line: Flow crosses below the level lower than 9 days in 10 for the day

@@ -28,10 +28,10 @@
  * Every word the notifications and their settings draw is here (AGENTS 33: tests pin the finished strings).
  */
 import { CONDITIONS_WORDS } from "./conditions";
-import { figure, percentileName, percentileSpan } from "./standing";
+import { figure, levelChip, levelName, levelSpan } from "./standing";
 import { bcClockTime } from "./clock";
 import { calendarDayOfYear, localStamp } from "./day";
-import { monthAbbr, ordinal, valueAtPercentile, type Band } from "./flow";
+import { monthAbbr, valueAtPercentile, type Band } from "./flow";
 
 export type AlertQuantity = "discharge" | "level";
 export type AlertDirection = "above" | "below";
@@ -322,25 +322,25 @@ export const NOTIFY_WORDS = {
     condition: "When it",
     directions: { above: "Crosses above", below: "Crosses below" } as Record<AlertDirection, string>,
     line: "Line",
-    lineKinds: { value: "A value", percentile: "A percentile for the day" },
+    lineKinds: { value: "A value", percentile: "A level for the day, against other years" },
     value: (q: AlertQuantity) => `Value in ${unitOf(q)}`,
-    percentile: "Percentile",
-    presets: (p: number) => (p === 50 ? "Median" : ordinal(p)),
+    percentile: "Level for the day",
+    presets: (p: number) => levelChip(p),
     custom: "Custom",
-    customLabel: `Percentile, ${PERCENTILE_MIN} to ${PERCENTILE_MAX}`,
+    customLabel: `Custom level, ${levelSpan(PERCENTILE_MIN, PERCENTILE_MAX)} (50 is the median)`,
     save: "Save alert",
     cancel: "Cancel",
     bad: "Type a number.",
-    badPct: `Type a whole number from ${PERCENTILE_MIN} to ${PERCENTILE_MAX}: the record holds ${percentileSpan(10, 90)}.`,
+    badPct: `Type a whole number from ${PERCENTILE_MIN} to ${PERCENTILE_MAX}: 10 is very low for the day, 90 very high.`,
     now: (q: AlertQuantity, v: number) => `Now ${figure(v)} ${unitOf(q)}`,
     nowUnknown: "No reading now",
     normal: (q: AlertQuantity, lo: number, hi: number) => `normal today ${figure(lo)}–${figure(hi)} ${unitOf(q)}`,
     normalUnknown: "no normal range for today",
     loading: "Reading the gauge…",
     /** why the percentile line cannot be picked (the chip is shown disabled, with this under it) */
-    noRecord: (q: AlertQuantity) => `This gauge has no historical record of its ${quantityWord(q)}, so it has no percentiles to alert on.`,
+    noRecord: (q: AlertQuantity) => `This gauge has no historical record of its ${quantityWord(q)}, so it has no usual levels to alert on.`,
     recordLoading: "Reading the gauge's record…",
-    recordFailed: (why: string) => `The gauge's record could not be read, so no percentile can be set: ${why}`,
+    recordFailed: (why: string) => `The gauge's record could not be read, so no level for the day can be set: ${why}`,
   },
   /** (T234) the gauge card's control */
   alertMe: {
@@ -381,10 +381,10 @@ export const NOTIFY_WORDS = {
   },
 } as const;
 
-/** The line in words: "30 m³/s" / "the 75th percentile for the day". */
+/** The line in words: "30 m³/s" / "the level higher than 8 days in 10 for the day". */
 function thresholdWords(r: Pick<GaugeAlertRule, "quantity" | "threshold">): string {
   return r.threshold.kind === "value" ? `${figure(r.threshold.value)} ${unitOf(r.quantity)}`
-    : `${percentileName(r.threshold.pct)} for the day`;
+    : `${levelName(r.threshold.pct)} for the day`;
 }
 
 /** An alert in words: "Flow crosses above 30 m³/s" / "Level crosses below the median for the day". */
@@ -436,14 +436,14 @@ export function alertContextLine(q: AlertQuantity, current: number | null, norma
 
 /**
  * The notification an alert raises — only what the gauge page shows: the gauge, the line it crossed, the reading and
- * when. "Chilliwack River: flow alert" / "Cowichan R. at Lake Cowichan crossed above the 75th percentile for Nov 9 —
+ * when. "Chilliwack River: flow alert" / "Cowichan R. at Lake Cowichan crossed above the level higher than 8 days in 10 for Nov 9 —
  * 41.2 m³/s at 14:05 PT."
  */
 export function alertNotification(r: GaugeAlertRule, reading: AlertReading): { title: string; body: string } {
   const where = r.water?.name ?? r.stationName;
   const u = unitOf(r.quantity);
   const line = r.threshold.kind === "value" ? `${figure(r.threshold.value)} ${u}`
-    : `${percentileName(r.threshold.pct)} for ${readingDay(reading.at)}`;
+    : `${levelName(r.threshold.pct)} for ${readingDay(reading.at)}`;
   return {
     title: `${where}: ${quantityWord(r.quantity)} alert`,
     body: `${r.stationName} crossed ${r.direction} ${line} — ${figure(reading.value)} ${u} at ${bcClockTime(Date.parse(reading.at))}.`,

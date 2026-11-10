@@ -4,7 +4,7 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, weekdayAbbr, figure, percentileSaid, placeChip, placeSaid, readingIn,
+import { CONDITIONS_WORDS, localDate, localDateTime, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
          shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
@@ -122,7 +122,7 @@ const valueOf = (d: DailyGauge, q: "discharge" | "level") => (q === "level" ? d.
 const placeOf = (d: DailyGauge, q: "discharge" | "level") => (q === "level" ? d.levelPlace : d.dischargePlace);
 
 /**
- * "63rd percentile", "≤10th percentile", "≥90th percentile", or nothing — the chip under a day's value. AT OR past the edge (T107): the ranking is the
+ * "6 in 10 days lower", "9+ in 10 days higher", "9+ in 10 days lower", or nothing — the chip under a day's value. AT OR past the edge (T107): the ranking is the
  * feed's `percentile_of`, which clamps a value ON p10 / p90 too, so "<p10" would be false for a dry creek at 0 on p10 0.
  */
 const chipOf = (p: DayPlace | null): string =>
@@ -138,7 +138,7 @@ export function leadUpGaugeCells(d: DailyGauge, q: "discharge" | "level"): { val
            place: v === null ? (stillToCome(d) ? "not yet" : "") : chipOf(placeOf(d, q)) };
 }
 
-/** The day said whole: "Sun Aug 23: 50.0 m³/s, the 63rd percentile for the day". */
+/** The day said whole: "Sun Aug 23: 50.0 m³/s, lower than 4 days in 10 for the day". */
 export function leadUpGaugeSentence(d: DailyGauge, q: "discharge" | "level"): string {
   const p = parts(d.date);
   const v = valueOf(d, q);
@@ -365,7 +365,7 @@ function tripDayGauge(spot: Spot): string {
   const df = spot.dayFlow;
   if (df?.state === "filled") {
     const pct = df.percentile;             // the day's own ranking (a spot record, not a donor's state)
-    return `${figure(df.discharge)} ${UNIT.discharge}${pct === null ? "" : ` · ${percentileSaid(pct)}`}`;
+    return `${figure(df.discharge)} ${UNIT.discharge}${pct === null ? "" : ` · ${daysInTen(pct)}`}`;
   }
   if (df?.state === "none") return "no flow that day";
   return spot.reading?.station || df ? "flow that day not read yet" : "no gauge";
@@ -381,7 +381,7 @@ export function spotRowLines(spot: Spot): [string, string] {
   const g = spot.reading, w = spot.weather, f = spotReadingFigure(g);
   const gauge = isBackdated(spot) && !readingIsTheDays(spot) ? tripDayGauge(spot)
     : g && f
-    ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${percentileSaid(g.percentile)}` : ""}`
+    ? `${f.figure} ${f.unit}${g.percentile != null ? ` · ${daysInTen(g.percentile)}` : ""}`
     : "no gauge";
   const weather = w?.tempC != null ? `${w.tempC}°C${w.backfilled ? " (filled in)" : ""}` : "no weather";
   return [`${localDate(spot.visitedAt ?? spot.createdAt)} · ${gauge} · ${weather}`,

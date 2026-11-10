@@ -599,7 +599,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
 
   const summary = await publish({ fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile, aware, reuse, meter: deps.meter });
   const runs = Object.values(fcast).reduce((n, v) => n + Object.keys(v).length, 0);
-  log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a percentile; ${runs} model runs across ${Object.keys(fcast).length} stations`);
+  log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a rank in the record; ${runs} model runs across ${Object.keys(fcast).length} stations`);
   for (const n of summary.maintenance) if (n.kind === "hydat") log(`  ⚠️  A NEWER HYDAT IS OUT: ${n.latest} (envelope is on ${n.current}, noticed ${n.since}). Refresh with: ${n.action}`);
   const notify = await sendDue(summary.maintenance as any, { url: deps.notifyUrl, fetch, state: priv, stateKey: "notified.json", log });
   return { ...summary, listSource: source, forecastRuns: runs, notify, forecastReused: reuse, ...(forecastFailed.length ? { forecastFailed } : {}) };

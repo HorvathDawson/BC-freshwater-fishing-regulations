@@ -87,21 +87,21 @@ describe("the donor panel", () => {
   it("shows a RANGE and never a bare percentile", () => {
     // ±11.7 points at the median even for a near-identical donor; one number would lie.
     draw({ value: answer() });
-    expect(screen.getByText("3rd–27th percentile for early September · this spot drains "
+    expect(screen.getByText("Lower than 7 to 9 days in 10 for early September · this spot drains "
                             + "50 km²")).toBeTruthy();
   });
 
   it("says the range for the CHOSEN day plus the horizon, not the clock's", () => {
     render(<DonorPanel palette={LIGHT} value={answer()} day={new Date(2026, 5, 18, 12)}
                        horizon={5} />);
-    expect(screen.getByText("3rd–27th percentile for late June · this spot drains 50 km²"))
+    expect(screen.getByText("Lower than 7 to 9 days in 10 for late June · this spot drains 50 km²"))
       .toBeTruthy();
   });
 
   it("names the season of the day it is given, counting a forecast from that day", () => {
     // A saved spot draws this panel months later; the season is the chosen day's, never today's.
     render(<DonorPanel palette={LIGHT} value={answer()} day={new Date(2026, 5, 9)} horizon={3} />);
-    expect(screen.getByText(/percentile for/).textContent).toBe("3rd–27th percentile for mid June · this spot drains 50 km²");
+    expect(screen.getByText(/days in 10 for/).textContent).toBe("Lower than 7 to 9 days in 10 for mid June · this spot drains 50 km²");
   });
 
   it("names every gauge that voted, with where it is and how far off in size", () => {
@@ -195,7 +195,7 @@ describe("the donor panel", () => {
   it("counts one gauge as one gauge", () => {
     // "1 gauges" is the kind of thing that survives review and then ships.
     draw({ value: { ...answer({ donors: 1 }), rows: [row("08MH001")] } });
-    expect(screen.getByText("Lower than 8 days in 10 at this time of year — fairly "
+    expect(screen.getByText("Lower than 9 days in 10 at this time of year — fairly "
                             + "confident, from one gauge nearby.")).toBeTruthy();
   });
 
@@ -225,7 +225,7 @@ describe("the donor panel", () => {
   it("leads with a sentence, not a percentile", () => {
     draw({ value: answer({ percentile: 0.15 }) });
     expect(screen.getByText("Below normal for the time of year")).toBeTruthy();
-    expect(screen.getByText("Lower than 8 days in 10 at this time of year — fairly "
+    expect(screen.getByText("Lower than 9 days in 10 at this time of year — fairly "
                             + "confident, from 2 gauges nearby.")).toBeTruthy();
   });
 
@@ -233,13 +233,13 @@ describe("the donor panel", () => {
     draw({ value: answer(), horizon: 3 });
     expect(screen.getByText("FORECAST · 3 DAYS AHEAD")).toBeTruthy();
     expect(screen.getByText("by then")).toBeTruthy();
-    expect(screen.getByText("Lower than 8 days in 10 at this time of year — fairly "
+    expect(screen.getByText("Lower than 9 days in 10 at this time of year — fairly "
                             + "confident, forecast from 2 gauges nearby.")).toBeTruthy();
   });
 
   it("sounds less certain when the interval is wide", () => {
     draw({ value: answer({ plusMinus: 22 }) });
-    expect(screen.getByText("Lower than 8 days in 10 at this time of year — very roughly, "
+    expect(screen.getByText("Lower than 9 days in 10 at this time of year — very roughly, "
                             + "from 2 gauges nearby.")).toBeTruthy();
   });
 
@@ -284,7 +284,7 @@ describe("the donor panel", () => {
 
   it("says what each gauge itself reads, in the same words as the headline", () => {
     draw({ value: { ...answer(), rows: [row("08MH001", { percentile: 0.2 })] } });
-    expect(screen.getByText("Reads below normal · 20th percentile."))
+    expect(screen.getByText("Reads below normal · lower than 8 days in 10."))
       .toBeTruthy();
   });
 

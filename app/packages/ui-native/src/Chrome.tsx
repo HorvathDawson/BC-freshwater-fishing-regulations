@@ -226,7 +226,7 @@ export function LegendRamp({ palette, stops, title, low, high, marks, mid, band 
   mid: string;
   /** the bracket's span, 0–1 (default: the middle half of past years, NORMAL); the Change legend's is "steady" */
   band?: readonly [number, number];
-  /** a mark's position for a screen reader (default: "near the 20th percentile") */
+  /** a mark's position for a screen reader (default: "about 8 in 10 days higher") */
   markWords?: (at: number) => string;
   /** the bar's screen-reader name (default: the percentile scale's) */
   describe?: string;

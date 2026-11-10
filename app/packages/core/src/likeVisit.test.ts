@@ -31,7 +31,7 @@ describe("likeDay — the tiers (T284, owner 2026-10-29)", () => {
 
   // Each factor moved ALONE by half its span: the score drops by exactly half that factor's weight.
   it.each([
-    ["flow", { flow: 0.67 }, 88, "very similar", "Flow: 42nd percentile then, 67th percentile now. 25 points higher: 50% alike, 25% of the score."],
+    ["flow", { flow: 0.67 }, 88, "very similar", "Flow: 6 in 10 days higher then, 7 in 10 days lower now. 25 points higher: 50% alike, 25% of the score."],
     ["rain", { rainMm: 9.5 }, 88, "very similar", "Rain in the 3 days before: 2 mm then, 9.5 mm forecast. 7.5 mm wetter: 50% alike, 25% of the score."],
     ["cloud", { cloudPct: 90 }, 93, "very similar", "Cloud: 40% then, 90% forecast. 50 points cloudier: 50% alike, 15% of the score."],
     ["pressure", { pressureHpa: 1002 }, 93, "very similar", "Pressure: 1012 hPa then, 1002 hPa forecast. 10 hPa lower: 50% alike, 15% of the score."],
@@ -90,7 +90,7 @@ describe("likeDay — flow with and without, said", () => {
     const f = d.factors[0]!;
     // weights re-normalised: 0.125 / (0.125 + 0.75) of the score, 25 points apart → 50 % alike
     expect([f.share, f.likeness, d.score, d.basis, d.note]).toEqual([0.125 / 0.875, 0.5, 93, "all", null]);
-    expect(f.line).toBe("Flow: 42nd percentile then, 17th percentile from today's reading. 25 points lower: 50% alike, 14% of the score.");
+    expect(f.line).toBe("Flow: 6 in 10 days higher then, 8 in 10 days higher from today's reading. 25 points lower: 50% alike, 14% of the score.");
     expect(d.caveat).toBe("No river forecast reaches this day, so its flow is today's reading carried forward: less certain.");
     // against a forecast day with the same flow: the carried one is pulled less by the same difference
     expect(d.score!).toBeGreaterThan(likeDay(THEN, same({ flow: 0.17, flowModel: "CLEVER" })).score!);
@@ -102,11 +102,11 @@ describe("likeDay — flow with and without, said", () => {
       88, "all", null,
       "ELF is a low-water model: it carries the river's recent fall forward and has no rain or snowmelt in it, so it "
         + "cannot see a rise coming.",
-      "Flow: 42nd percentile then, 17th percentile forecast by ELF. 25 points lower: 50% alike, 25% of the score."]);
+      "Flow: 6 in 10 days higher then, 8 in 10 days higher forecast by ELF. 25 points lower: 50% alike, 25% of the score."]);
     // a flood model's day says "forecast" and carries no caveat; nor does today's reading, whoever forecast it
     const c = likeDay(THEN, same({ flow: 0.17, flowModel: "CLEVER", flowLowWater: false }));
     expect([c.caveat, c.factors[0]!.line]).toEqual([null,
-      "Flow: 42nd percentile then, 17th percentile forecast. 25 points lower: 50% alike, 25% of the score."]);
+      "Flow: 6 in 10 days higher then, 8 in 10 days higher forecast. 25 points lower: 50% alike, 25% of the score."]);
     expect(likeDay(THEN, same({ flow: 0.17, flowModel: "ELF", flowLowWater: true }), { today: true }).caveat).toBeNull();
     // no flow that day: no caveat to carry, whatever model was named
     expect(likeDay(THEN, same({ flow: null, flowModel: "ELF", flowLowWater: true })).caveat).toBeNull();

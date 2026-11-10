@@ -250,7 +250,7 @@ describe("(T243) the audit catches what it is for", () => {
         <Text>Short</Text></Pressable>
       <View accessibilityLabel="Card"><Text>words a reader never hears</Text></View>
       <View accessibilityLabel="Synopsis: up to date"><Text>Synopsis</Text></View>
-      <View accessibilityLabel="3 gauges near the 10th percentile"><View /></View>
+      <View accessibilityLabel="3 gauges about 9 in 10 days higher"><View /></View>
       <View accessible accessibilityLabel="Synopsis: No date recorded. Unknown."><Text>Synopsis</Text></View>
       <View accessible role="group" accessibilityLabel="Basemap: 2026-03-05. Up to date."><Text>Basemap</Text></View>
     </View>);
@@ -262,7 +262,7 @@ describe("(T243) the audit catches what it is for", () => {
       'button "No box": no data-hitslop: give it hitProps(its box)',
       'switch "Short": reaches 30×30',
       '"Card" hides "words a reader never hears"',
-      '"3 gauges near the 10th percentile" is on a wordless div with no role: never said',
+      '"3 gauges about 9 in 10 days higher" is on a wordless div with no role: never said',
     ]);
   });
 });

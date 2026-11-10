@@ -12,8 +12,8 @@
  * Change chip is greyed "Flow only" and a tap moves to Flow (T130, `horizonChips` / `pickHorizon` in @app/ui).
  */
 import { CHANGE_POLICY } from "./gauge-policy.generated";
-import { monthAbbr, percentileOrdinal, standing, weekdayAbbr } from "./flow";
-import { percentileSaid, standingHeadline } from "./standing";
+import { monthAbbr, standing, weekdayAbbr } from "./flow";
+import { daysInTen, standingHeadline } from "./standing";
 import { normCdf, probit } from "./trust";
 
 export { CHANGE_POLICY };
@@ -233,7 +233,7 @@ export function changeReachNote(c: SourceChange, today: string): string | null {
  */
 function forTheDate(e: ChangeEnd): string {
   if (e.percentile === undefined) return "";
-  return ` (${percentileSaid(e.percentile)}, ${standingHeadline(standing(e.percentile)).toLowerCase()})`;
+  return ` (${daysInTen(e.percentile)}, ${standingHeadline(standing(e.percentile)).toLowerCase()})`;
 }
 
 /**
@@ -304,8 +304,8 @@ export function changeModelsNote(parts: readonly { model: string; change: RunCha
 
 /**
  * The section's expected change, in one sentence after the headline (`estimateSentence` under Change). `ends` (T380,
- * owner 2026-11-04): the section's percentile today and at the extreme, when both answer — "At its highest, from the
- * 5th percentile today to about the 95th (about 3× today's flow) — …". Today's is a reading, the extreme's a forecast
+ * owner 2026-11-04): the section's percentile today and at the extreme, when both answer — "At its highest, from
+ * lower than 9 days in 10 today to about higher than 9 days in 10 (about 3× today's flow) — …". Today's is a reading, the extreme's a forecast
  * ("about"); each for its own date, so a rise can end at a lower percentile in a season that climbs faster.
  */
 export function changeSentence(ratio: number, confidence: string, donors: number,
@@ -314,8 +314,8 @@ export function changeSentence(ratio: number, confidence: string, donors: number
   const what = changeKind(ratio) === "steady"
     ? "Staying near today's flow"
     : ends
-      ? `At its ${ratio >= 1 ? "highest" : "lowest"}, from the ${percentileSaid(ends.from)} today to about `
-        + `the ${percentileOrdinal(ends.to)} (${ratioWords(ratio)})`
+      ? `At its ${ratio >= 1 ? "highest" : "lowest"}, from ${daysInTen(ends.from)} today to about `
+        + `${daysInTen(ends.to)} (${ratioWords(ratio)})`
       : `At its ${ratio >= 1 ? "highest" : "lowest"}, ${ratioWords(ratio)}`;
   return `${what} — ${confidence}, forecast from ${gauges} nearby.`;
 }

@@ -18,7 +18,7 @@ describe("legendCount: the reaches the legend's histogram is of, in words", () =
 
 describe("legendTickLabel: one histogram tick, for a screen reader", () => {
   it("is the count of reaches and where they stand, whole", () => {
-    expect([legendTickLabel(2, "near the 6th percentile"), legendTickLabel(1, "near 4× today's flow")])
-      .toEqual(["2 reaches near the 6th percentile", "1 reach near 4× today's flow"]);
+    expect([legendTickLabel(2, "about 9 in 10 days higher"), legendTickLabel(1, "near 4× today's flow")])
+      .toEqual(["2 reaches about 9 in 10 days higher", "1 reach near 4× today's flow"]);
   });
 });

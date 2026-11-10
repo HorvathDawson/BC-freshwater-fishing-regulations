@@ -287,8 +287,8 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
       humidity: grab("Humidity visit"), temp: grab("Temp visit"),
       wind: !!r.queryByText("wind 8 km/h"), rain: !!r.queryByText("rain 2 mm"),
       // `percentileLabel`, shared with the map dot and the sheet — this read "p62"
-      // while the map read "62nd percentile" about the same station.
-      pctile: !!r.queryByText("Normal · 62nd percentile for the date"),
+      // while the map read "6 in 10 days lower" about the same station.
+      pctile: !!r.queryByText("Normal · higher than 6 days in 10 for the date"),
       observed: r.queryAllByTestId("spot-observed").map((e) => e.textContent),
     };
     cleanup();
@@ -380,7 +380,7 @@ describe("<SpotScreen> shows the estimate it recorded", () => {
     // August; labelling it with today's season would compare that day's river to the wrong weeks.
     const r = render(<SpotScreen spot={spot({ panel: frozen } as never)}
                                 palette={LIGHT} onBack={() => {}} />);
-    expect(r.getByText(/percentile for/).textContent).toBe("1st–24th percentile for late August · this spot drains 50 km²");
+    expect(r.getByText(/days in 10 for/).textContent).toBe("Lower than 8 to 9 days in 10 for late August · this spot drains 50 km²");
   });
 
   it("falls back to the bare reading for a spot saved before this existed", () => {
@@ -438,10 +438,10 @@ describe("<SpotScreen> the week before (S1)", () => {
   it("draws the station's daily means with their place, a gap as a dash, and the week's direction", () => {
     const { getByLabelText, getByTestId } = render(
       <SpotScreen palette={LIGHT} onBack={() => {}} spot={spot({ leadUp })} />);
-    expect(getByLabelText("Sun Aug 23: 50 m³/s, the 50th percentile for the day").textContent).toBe("Sun 235050th percentile");
+    expect(getByLabelText("Sun Aug 23: 50 m³/s, lower than 5 days in 10 for the day").textContent).toBe("Sun 23505 in 10 days higher");
     expect(getByLabelText("Tue Aug 25: no daily mean recorded").textContent).toBe("Tue 25—");
-    expect(getByLabelText("Sat Aug 29: 20 m³/s, at or below the 10th percentile for the day").textContent)
-      .toBe("Sat 2920≤10th percentile");
+    expect(getByLabelText("Sat Aug 29: 20 m³/s, lower than at least 9 days in 10 for the day").textContent)
+      .toBe("Sat 29209+ in 10 days higher");
     expect(getByTestId("leadup-unit").textContent).toBe("m³/s");
     expect(getByTestId("leadup-trend").textContent).toBe("Flow fell over the week: 50 → 20 m³/s");
     expect(getByTestId("leadup-gauge-meta").textContent).toBe("08MH001 · daily means");

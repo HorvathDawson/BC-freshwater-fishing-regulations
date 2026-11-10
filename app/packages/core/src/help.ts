@@ -193,7 +193,8 @@ const GUIDE_STEPS: readonly GuideStepWords[] = [
     + `will rise or fall. ${H[0].chip} goes back to today.`,
     { names: [HORIZON_PICK.forecast, H.change.chip, H[0].chip] }),
   step("gauge", "conditions", "show", ["cond:reading"], "The gauge's own reading",
-    "This is what the gauge measures now. The words under it say where that sits among past years on this date."),
+    "This is what the gauge measures now. The words under it say where that sits among past years on this date: \"lower than 8 days in 10\" means "
+    + "lower than 8 of every 10 days on record. Where space is short it reads \"8 in 10 days higher\", the same thing."),
   step("quantity", "conditions", "do", ["cond:quantity"], "Flow or level",
     `${C.quantity.discharge} is how much water goes by. ${C.quantity.level} is how high it stands at the gauge. `
     + `Tap ${C.quantity.level}.`, { names: [C.quantity.discharge, C.quantity.level] }),

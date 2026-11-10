@@ -54,23 +54,6 @@ export function ordinal(n: number): string {
 }
 
 /**
- * A percentile as a reader sees it: `p4th`, or `p0.4th` down in the tail.
- *
- * ONE DECIMAL BELOW ONE PER CENT, and that is not fussiness — British Columbia in September
- * is full of rivers between the 0th and the 1st percentile, and rounding them all to "p1st"
- * throws away the only distinction that matters down there. Above 1% a whole number is all
- * the underlying number supports.
- *
- * Takes 0–1, like every percentile in this app.
- */
-export function percentileOrdinal(p: number): string {
-  const pct = p * 100;
-  // Below one per cent keeps a decimal: rounding to "0th" would say the river has never
-  // been lower, which is a different and much stronger claim.
-  return ordinal(pct < 1 ? Number(pct.toFixed(1)) : Math.round(pct));
-}
-
-/**
  * A catchment, at a readable precision — "742 km²", or "3.4 km²" for a small one.
  *
  * TWO OF THESE DISAGREED. The donor panel kept a decimal below 10 km², because at that size

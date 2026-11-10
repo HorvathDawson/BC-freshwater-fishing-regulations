@@ -11,7 +11,7 @@
  */
 import { catchmentLabel, confidenceWord, 
          seasonPhrase, standing } from "./flow";
-import { figure, inTen, percentileNear, percentileRange, standingHeadline, standingReads } from "./standing";
+import { figure, inTen, daysNear, daysRange, standingHeadline, standingReads } from "./standing";
 import { interval, type Estimate, type NoEstimate } from "./trust";
 import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr } from "./flow";
@@ -195,7 +195,7 @@ export const FLOW_LEGEND = {
   title: { discharge: "Flow vs. past years, this date", level: "Water level vs. past years, this date" },
   low: "Low", mid: "Normal", high: "High",
   /** (T180) a histogram tick's place on the scale, aloud (a percentile, 0–1) */
-  near: (percentile: number) => percentileNear(percentile),
+  near: (percentile: number) => daysNear(percentile),
   /** (T180) the ramp bar's name aloud: the title, its two ends and the bracket's word */
   scale: (title: string, low: string, high: string, mid: string) =>
     `${title}: colours from ${low.toLowerCase()} to ${high.toLowerCase()}; ${mid.toLowerCase()} is the middle half of `
@@ -652,7 +652,7 @@ export function estimateSentence(e: Estimate, horizon: Horizon, changeEnds?: { f
 const DAY_MS = 86_400_000;
 
 /**
- * "3rd–27th percentile for early September · this spot drains 50 km²".
+ * "Lower than 7 to 9 days in 10 for early September · this spot drains 50 km²".
  *
  * `day` is the CHOSEN day — today on a live sheet, the visit on a saved spot — never the
  * clock read here; the horizon moves it forward to the day the forecast is for.
@@ -661,7 +661,7 @@ export function estimateRange(e: Estimate, day: Date, horizon: Horizon,
                               areaKm2: number | null): string {
   const [lo, hi] = interval(e);
   const base = horizon === "change" ? changeRange(lo / 100, hi / 100)
-    : `${percentileRange(lo, hi)} for ` + seasonPhrase(new Date(day.getTime() + aheadDays(horizon) * DAY_MS));
+    : `${daysRange(lo, hi)} for ` + seasonPhrase(new Date(day.getTime() + aheadDays(horizon) * DAY_MS));
   return areaKm2 != null ? `${base} · this spot drains ${catchmentLabel(areaKm2)}` : base;
 }
 

@@ -68,7 +68,7 @@ describe("donorView", () => {
     expect(vm.sentence).toBe(estimateSentence(e, 3));
     expect(vm.range).toBe(estimateRange(e, DAY, 3, 50));
     // The day, not the clock: the same inputs give the same range whenever this runs.
-    expect(vm.range).toBe("3rd–27th percentile for early September · this spot drains 50 km²");
+    expect(vm.range).toBe("Lower than 7 to 9 days in 10 for early September · this spot drains 50 km²");
   });
 
   it("has no suffix now, and offers every horizon with its own label", () => {
@@ -270,7 +270,7 @@ describe("useConditionsView", () => {
       useConditionsView(source, SEC, DAY, 3, { feed: ahead, quantity: "discharge" }));
     await waitFor(() => expect(result.current.reading?.heading).toBeDefined());
     const r = result.current.reading!;
-    expect([r.figure, r.scope, r.forecast]).toEqual([12.5, "Today's reading", "Mon 7 Sep, forecast: Reads normal · 40th percentile."]);
+    expect([r.figure, r.scope, r.forecast]).toEqual([12.5, "Today's reading", "Mon 7 Sep, forecast: Reads normal · lower than 6 days in 10."]);
     expect(r.figures).toEqual({ discharge: 12.5, level: 1.2 });
     expect(result.current.ahead).toEqual({ at: new Date(2026, 8, 7, 12).getTime(), label: "MON 7 SEP" });
   });

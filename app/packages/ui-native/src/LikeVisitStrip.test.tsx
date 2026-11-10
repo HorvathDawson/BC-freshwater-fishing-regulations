@@ -26,7 +26,7 @@ const VIEW: LikeVisitView = {
   days: [
     { date: "2026-10-22", top: "Today", sub: "22 Oct", score: "100%", read: "Very similar", basis: null, best: true, reasons: ["Flow: the same"],
       label: "Today, 22 Oct: 100%, very similar to your visit.",
-      why: ["Flow: 42nd percentile then, 42nd percentile now. The same: 100% alike, 45% of the score."] },
+      why: ["Flow: 6 in 10 days higher then, 6 in 10 days higher now. The same: 100% alike, 45% of the score."] },
     { date: "2026-10-24", top: "Sat", sub: "24 Oct", score: "61%", read: "Different", basis: "weather only", best: false, reasons: ["Air temperature: 6° cooler"],
       label: "Sat, 24 Oct: 61%, different from your visit, on the weather only.",
       why: ["No flow forecast for this day: scored on the weather only.", "Flow: no flow forecast for this day. Not scored."] },

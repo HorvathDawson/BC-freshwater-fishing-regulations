@@ -16,21 +16,21 @@ const idx = (stations: Record<string, { percentile: number | null }>) =>
 
 describe("gaugeLabel", () => {
   it("pairs the reading with where it sits against normal", () => {
-    expect(gaugeLabel({ discharge: 15.7, level: null }, 0.04)).toBe("15.7 m³/s · 4th percentile");
+    expect(gaugeLabel({ discharge: 15.7, level: null }, 0.04)).toBe("15.7 m³/s · almost all days higher");
   });
 
   it("uses metres for a station that measures stage, not m³/s", () => {
     // 237 BC stations never measure discharge. Labelling a level as m³/s would be a claim
     // about the whole river made from one cross-section.
     expect(gaugeLabel({ discharge: null, level: 1.48, parameter: "level" }, 0.5))
-      .toBe("1.48 m · 50th percentile");
+      .toBe("1.48 m · 5 in 10 days higher");
   });
 
   it("writes the percentile the way a person reads one", () => {
-    expect(gaugeLabel(undefined, 0.03)).toBe("3rd percentile");
-    expect(gaugeLabel(undefined, 0.02)).toBe("2nd percentile");
-    expect(gaugeLabel(undefined, 0.11)).toBe("11th percentile");
-    expect(gaugeLabel(undefined, 0.21)).toBe("21st percentile");
+    expect(gaugeLabel(undefined, 0.03)).toBe("almost all days higher");
+    expect(gaugeLabel(undefined, 0.02)).toBe("almost all days higher");
+    expect(gaugeLabel(undefined, 0.11)).toBe("9 in 10 days higher");
+    expect(gaugeLabel(undefined, 0.21)).toBe("8 in 10 days higher");
   });
 
   it("is null when there is nothing to say", () => {
@@ -42,7 +42,7 @@ describe("gaugeGeoJSON", () => {
   it("draws a station that is reading", () => {
     const g = JSON.parse(gaugeGeoJSON(pts, idx({ "08MH001": { percentile: 0.04 } }))!);
     expect(g.features).toHaveLength(1);
-    expect(g.features[0].properties.label).toBe("4th percentile");
+    expect(g.features[0].properties.label).toBe("almost all days higher");
     expect(g.features[0].geometry.coordinates).toEqual([-121.9, 49.1]);
   });
 
@@ -68,8 +68,8 @@ describe("gaugeGeoJSON", () => {
  * coloured for Friday. Whole feature properties at every horizon, read through `reading` (the panels' one reader).
  *
  * Mutations: pass `0` instead of `horizon` to `reading` in gaugeGeoJSON -> the +1/+3/+5/+10/Change cases fail (ramp 40,
- * label "40th percentile" everywhere); drop the horizon from `toRamp` -> Change's ramp is 69.15, not 269.15 (painted on the
- * percentile ramp); drop `changeDotLabel` -> Change's label is "69th percentile".
+ * label "6 in 10 days higher" everywhere); drop the horizon from `toRamp` -> Change's ramp is 69.15, not 269.15 (painted on the
+ * percentile ramp); drop `changeDotLabel` -> Change's label is "7 in 10 days lower".
  */
 describe("gaugeGeoJSON at a horizon", () => {
   const row = {
@@ -85,11 +85,11 @@ describe("gaugeGeoJSON at a horizon", () => {
   const dot = (label: string, ramp: number) => [{ station: "08MH001", name: "Chilliwack R", label, ramp, minz }];
 
   it("Now is the station's reading", () => {
-    expect([at(0), at(0, "level")]).toEqual([dot("40th percentile", 40), dot("70th percentile", 70)]);
+    expect([at(0), at(0, "level")]).toEqual([dot("6 in 10 days higher", 40), dot("7 in 10 days lower", 70)]);
   });
 
   it("a day ahead is that day's forecast percentile, in that quantity", () => {
-    expect([at(1), at(3), at(3, "level")]).toEqual([dot("50th percentile", 50), dot("90th percentile", 90), dot("20th percentile", 20)]);
+    expect([at(1), at(3), at(3, "level")]).toEqual([dot("5 in 10 days higher", 50), dot("9 in 10 days lower", 90), dot("8 in 10 days higher", 20)]);
   });
 
   it("a day no run reaches draws no dot — never today's", () => {
@@ -117,6 +117,6 @@ describe("gaugeGeoJSON at a horizon", () => {
       const g = gaugeGeoJSON([pts[0]!], { fetchedAt: "t", stations: { "08MH001": elf } } as never, "flow", h);
       return JSON.parse(g!).features[0].properties.label;
     };
-    expect([label("change"), label(0)]).toEqual(["0.9× today · low-water model", "40th percentile"]);
+    expect([label("change"), label(0)]).toEqual(["0.9× today · low-water model", "6 in 10 days higher"]);
   });
 });

@@ -139,7 +139,7 @@ describe("the Change block for the charted gauge", () => {
     const vm = changeView([{ model: "ELF", change: ELF }, { model: "COFFEE", change: null },
                            { model: "CLEVER", change: SPIKE }], TODAY, ATTRIBUTION, { width: 90, height: 40 });
     expect(vm.runs.map((r) => r.line)).toEqual([
-      "CLEVER: rises to about 25× today's flow on Mon (77th percentile, above normal for the time of year), back down by Tue.",
+      "CLEVER: rises to about 25× today's flow on Mon (higher than 8 days in 10, above normal for the time of year), back down by Tue.",
       "ELF: little change expected."]);
     expect([vm.none, vm.attribution, vm.models, vm.runs.length]).toEqual([null, ATTRIBUTION, null, 2]);
     // a feed from before T144: the chart is the first run's, alone (no station change to join models under)
@@ -170,7 +170,7 @@ describe("the Change block for the charted gauge", () => {
                            { model: "CLEVER", change: SPIKE }], TODAY, ATTRIBUTION, { width: 40, height: 40 }, JOINED);
     expect([vm.runs, vm.models, vm.caveat, vm.note, vm.none, vm.attribution]).toEqual([
       [{ model: "CLEVER and COFFEE together", part: false,
-         line: "Rises to about 30× today's flow on Sun (83rd percentile, above normal for the time of year), back down by Tue." }],
+         line: "Rises to about 30× today's flow on Sun (higher than 8 days in 10, above normal for the time of year), back down by Tue." }],
       "Models: CLEVER rises to 23× (Mon) · COFFEE rises to 44× (Sun)",
       null, "COFFEE runs to Mon; after that, CLEVER alone.", null, ATTRIBUTION]);
     // one chart: the station's line bold first, each model thin; 1× always a gridline; the peak marked
@@ -192,7 +192,7 @@ describe("the Change block for the charted gauge", () => {
                           { width: 40, height: 40 }, alone);
     expect([vm.runs.map((r) => [r.model, r.line, r.part]), vm.models, vm.chart?.series.map((x) => x.model),
             vm.chart?.mark?.label, vm.caveat, vm.note]).toEqual([
-      [["CLEVER", "CLEVER: rises to about 30× today's flow on Sun (83rd percentile, above normal for the time of year), back down by Tue.",
+      [["CLEVER", "CLEVER: rises to about 30× today's flow on Sun (higher than 8 days in 10, above normal for the time of year), back down by Tue.",
         false]], null, ["CLEVER"], "Peak Sun", null, null]);
   });
 
@@ -245,7 +245,7 @@ describe("the donor panel under Change", () => {
     expect(a.changeEnds.to).toBeLessThan(0.9);
     const vm = view(at);
     if (!vm.ok) throw new Error("expected an answer");
-    expect(vm.sentence).toMatch(/^At its highest, from the \d+(st|nd|rd|th) percentile today to about the \d+(st|nd|rd|th) \(about 2× today's flow\) — /);
+    expect(vm.sentence).toMatch(/^At its highest, from (?:lower|higher) than [^()]+ today to about (?:lower|higher) than [^()]+ \(about 2× today's flow\) — /);
     // MUTATION PIN: no member carrying its extreme's percentile → no ends; a Now question never carries them
     expect(answerFrom(PANEL, IDX, "discharge", "change").changeEnds).toBeUndefined();
     expect(answerFrom(PANEL, at, "discharge", 0).changeEnds).toBeUndefined();

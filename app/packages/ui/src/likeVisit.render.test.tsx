@@ -54,7 +54,7 @@ describe("likeVisitView", () => {
       ["2026-10-25", "100%", "Very similar", null, false, ALL],
       ["2026-10-26", "100%", "Very similar", CARRIED, false, ALL]]);
     expect(v.days![2]!.why[0]).toBe(
-      "Flow: 42nd percentile then, 42nd percentile from today's reading. The same: 100% alike, 14% of the score.");
+      "Flow: 6 in 10 days higher then, 6 in 10 days higher from today's reading. The same: 100% alike, 14% of the score.");
     expect(v.days![2]!.why.at(-1)).toBe(CARRIED);
   });
 
@@ -75,7 +75,7 @@ describe("likeVisitView", () => {
       ["2026-10-22", "100%", null], ["2026-10-23", "83%", null], ["2026-10-24", "100%", null],
       ["2026-10-25", "100%", null], ["2026-10-26", "88%", "low-water model"]]);
     expect(v.days![4]!.why).toEqual([
-      "Flow: 42nd percentile then, 17th percentile forecast by ELF. 25 points lower: 50% alike, 25% of the score.",
+      "Flow: 6 in 10 days higher then, 8 in 10 days higher forecast by ELF. 25 points lower: 50% alike, 25% of the score.",
       "Rain in the 3 days before: 3 mm then, 3 mm forecast. The same: 100% alike, 25% of the score.",
       "Cloud: 40% then, 40% forecast at 09:00. The same: 100% alike, 15% of the score.",
       "Pressure: 1014 hPa then, 1014 hPa forecast at 09:00. The same: 100% alike, 15% of the score.",
@@ -90,7 +90,7 @@ describe("likeVisitView", () => {
     // fetched yesterday: yesterday's reading and its +1 forecast, which is today's value
     const stale: LikeFetched = { ...FETCHED, flow: { "2026-10-21": 0.42, "2026-10-22": 0.42 }, flowNow: "2026-10-21" };
     expect(likeVisitView(spot, stale, true, NOW).days![0]!.why[0])
-      .toBe("Flow: 42nd percentile then, 42nd percentile forecast. The same: 100% alike, 25% of the score.");
+      .toBe("Flow: 6 in 10 days higher then, 6 in 10 days higher forecast. The same: 100% alike, 25% of the score.");
   });
 
   it("a visit with nothing recorded says so, and draws no days", () => {

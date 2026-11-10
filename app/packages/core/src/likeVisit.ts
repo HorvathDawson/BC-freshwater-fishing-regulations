@@ -25,7 +25,7 @@
  * SAYS so — the factor names the model and the day carries the low-water caveat (`CHANGE_LOW_WATER`, T144).
  */
 import { monthAbbr, weekdayAbbr } from "./flow";
-import { percentileSaid } from "./standing";
+import { daysShort } from "./standing";
 import { bcNow } from "./clock";
 import { shiftDay, wallIso } from "./day";
 import { agoWords } from "./freshness";
@@ -158,10 +158,10 @@ export const LIKE_WORDS = {
   labels: LABELS,
 } as const;
 
-/** One value in its unit: "42nd percentile", "14°C", "2.5 mm", "8 km/h", "40%". */
+/** One value in its unit: "6 in 10 days higher", "14°C", "2.5 mm", "8 km/h", "40%". */
 function said(key: LikeFactorKey, v: number): string {
   switch (key) {
-    case "flow": return percentileSaid(v);
+    case "flow": return daysShort(v);
     case "temp": return `${Math.round(v)}°C`;
     case "rain": return `${round1(v)} mm`;
     case "wind": return `${Math.round(v)} km/h`;

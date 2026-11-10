@@ -97,19 +97,19 @@ describe("the station's daily means", () => {
 
   it("draws each day as a value and its place in the envelope", () => {
     expect(week.map((d) => leadUpGaugeCells(d, "discharge"))).toEqual([
-      { value: "50", place: "63rd percentile" }, { value: "—", place: "" }, { value: "9.14", place: "≤10th percentile" },
-      { value: "120", place: "≥90th percentile" }, { value: "20", place: "25th percentile" }]);
+      { value: "50", place: "6 in 10 days lower" }, { value: "—", place: "" }, { value: "9.14", place: "9+ in 10 days higher" },
+      { value: "120", place: "9+ in 10 days lower" }, { value: "20", place: "8 in 10 days higher" }]);
     expect(leadUpGaugeCells(g("2026-08-23", null, null, 1.4231, 0.5), "level"))
-      .toEqual({ value: "1.42", place: "50th percentile" });
+      .toEqual({ value: "1.42", place: "5 in 10 days higher" });
   });
 
   it("says each day whole", () => {
     expect(week.map((d) => leadUpGaugeSentence(d, "discharge"))).toEqual([
-      "Sun Aug 23: 50 m³/s, the 63rd percentile for the day",
+      "Sun Aug 23: 50 m³/s, higher than 6 days in 10 for the day",
       "Mon Aug 24: no daily mean recorded",
-      "Tue Aug 25: 9.14 m³/s, at or below the 10th percentile for the day",
-      "Wed Aug 26: 120 m³/s, at or above the 90th percentile for the day",
-      "Thu Aug 27: 20 m³/s, the 25th percentile for the day",
+      "Tue Aug 25: 9.14 m³/s, lower than at least 9 days in 10 for the day",
+      "Wed Aug 26: 120 m³/s, higher than at least 9 days in 10 for the day",
+      "Thu Aug 27: 20 m³/s, lower than 8 days in 10 for the day",
     ]);
     expect(leadUpGaugeSentence(g("2026-08-23", 3.2, null), "discharge"))
       .toBe("Sun Aug 23: 3.2 m³/s, no record to compare it with");
@@ -120,8 +120,8 @@ describe("the station's daily means", () => {
     const onEdge = [g("2026-08-23", 0, placeInBand(0, [0, 0, 0, 0.4, 1.7])),
                     g("2026-08-24", 1.7, placeInBand(1.7, [0, 0, 0, 0.4, 1.7]))];
     expect(onEdge.map((d) => [leadUpGaugeSentence(d, "discharge"), leadUpGaugeCells(d, "discharge").place])).toEqual([
-      ["Sun Aug 23: 0 m³/s, at or below the 10th percentile for the day", "≤10th percentile"],
-      ["Mon Aug 24: 1.7 m³/s, at or above the 90th percentile for the day", "≥90th percentile"],
+      ["Sun Aug 23: 0 m³/s, lower than at least 9 days in 10 for the day", "9+ in 10 days higher"],
+      ["Mon Aug 24: 1.7 m³/s, higher than at least 9 days in 10 for the day", "9+ in 10 days lower"],
     ]);
   });
 

@@ -144,12 +144,12 @@ describe("data vs UI: every word and number on screen comes from the data or fro
       <Text accessibilityLabel="Open the map">Loading this water</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={on ? "Hide" : "Show"} />
       <Text>{\`Closed on \${day}\`}</Text>
-      <Text>{"72h"}</Text><Text>−1 h</Text><Text style={{ width: "100%" }}>3rd–49th percentile · drains 50 km²</Text></View>);
+      <Text>{"72h"}</Text><Text>−1 h</Text><Text style={{ width: "100%" }}>Lower than 5 to 9 days in 10 · drains 50 km²</Text></View>);
       switch (k) { case "classbox youth": return 1; }
       console.warn("[x] the id could not be stored"); throw new Error("a part's code is not in its chunk");`);
     expect(literals(planted)).toEqual([
-      ["copy", "Loading this water"], ["figure", "−1 h"], ["copy", "3rd–49th percentile · drains 50 km²"],
-      ["figure", "3rd–49th percentile · drains 50 km²"], ["copy", "Open the map"], ["copy", "Hide"], ["copy", "Show"],
+      ["copy", "Loading this water"], ["figure", "−1 h"], ["copy", "Lower than 5 to 9 days in 10 · drains 50 km²"],
+      ["figure", "Lower than 5 to 9 days in 10 · drains 50 km²"], ["copy", "Open the map"], ["copy", "Hide"], ["copy", "Show"],
       ["copy", "Closed on 〈〉"],
     ]);
     // a typed glyph is copy (the icon gate refuses the triangles besides); a key, a style word or an identifier is not

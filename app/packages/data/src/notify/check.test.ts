@@ -89,7 +89,7 @@ describe("the background check (T234)", () => {
     h.tick(15 * 60_000);
     v = 61.2;
     await runBackgroundCheck(h.deps);
-    expect(h.told.map((n) => n.body)).toEqual(["Cowichan R. at Lake Cowichan crossed above the 75th percentile for Nov 5 — 61.2 m³/s at 12:15 PT."]);
+    expect(h.told.map((n) => n.body)).toEqual(["Cowichan R. at Lake Cowichan crossed above the level higher than 8 days in 10 for Nov 5 — 61.2 m³/s at 12:15 PT."]);
   });
 
   it("a percentile alert on a day its line has none is not evaluated, nothing reported", async () => {

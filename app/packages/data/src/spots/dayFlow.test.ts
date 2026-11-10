@@ -166,7 +166,7 @@ describe("the visit day's flow on a spot", () => {
     expect(got.dayFlow).toEqual({ state: "filled", station: "08MH001", date: "2024-08-15", discharge: 19.6,
                                   percentile: percentileInBand(19.6, BAND), place: 0.244, source: "hydat",
                                   filledAt: got.dayFlow!.state === "filled" ? got.dayFlow!.filledAt : 0 });
-    expect(dayFlowLine(got.dayFlow)).toBe("19.6 m³/s, the 24th percentile for the date — filled in from the day's "
+    expect(dayFlowLine(got.dayFlow)).toBe("19.6 m³/s, lower than 8 days in 10 for the date — filled in from the day's "
       + "record (HYDAT daily mean, 15 Aug 2024).");
     // Q161: the refresh also refills the panel for the trip day (its member asked the same one read)
     expect([visitConditions(got).flow, needsRefresh(got), dayFlowAskable(got), h.asked])
@@ -194,7 +194,7 @@ describe("the visit day's flow on a spot", () => {
     const got = await fillDayFlow(s, { source: source(), hydat: hydat({ kind: "none" }) }, SAVED);
     expect(got.spot.dayFlow).toEqual({ state: "filled", station: "08MH001", date: "2026-10-20", discharge: 30,
                                        percentile: 0.375, place: 0.375, source: "feed", filledAt: SAVED });
-    expect(dayFlowLine(got.spot.dayFlow)).toBe("30 m³/s, the 38th percentile for the date — filled in from the day's "
+    expect(dayFlowLine(got.spot.dayFlow)).toBe("30 m³/s, lower than 6 days in 10 for the date — filled in from the day's "
       + "record (ECCC's daily mean, provisional, 20 Oct 2026).");
   });
 

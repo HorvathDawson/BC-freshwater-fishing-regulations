@@ -139,7 +139,7 @@ describe("More → Notifications (T234, T527)", () => {
     render(<NotifyRoot controls={c}><Page /></NotifyRoot>);
     await flush();
     const r1 = "Vedder Crossing · Flow crosses above 50 m³/s · last fired 2026-11-05 at 14:05 PT";
-    const r2 = "Lake Cowichan · Flow crosses above the 75th percentile for the day · not fired yet";
+    const r2 = "Lake Cowichan · Flow crosses above the level higher than 8 days in 10 for the day · not fired yet";
     expect(screen.getByTestId("notify-alert-r1").textContent).toContain(r1);
     expect(screen.getByTestId("notify-alert-r2").textContent).toContain(r2);
     // the alert's own switch never moves the master switch; off says so in its line
@@ -270,9 +270,9 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
     fireEvent.click(screen.getByTestId("alert-me-open"));
     await flush();
     fireEvent.click(screen.getByTestId("alert-form-line-percentile"));
-    // the 75th by default; the median preset
-    expect(screen.getByRole("radio", { name: "75th" }).getAttribute("aria-checked")).toBe("true");
-    expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above the 75th percentile "
+    // 8 in 10 days lower (the 75th) by default; the median preset
+    expect(screen.getByRole("radio", { name: "8 in 10 days lower" }).getAttribute("aria-checked")).toBe("true");
+    expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above the level higher than 8 days in 10 "
       + "for the day. The line moves with the date: 60 m³/s for Nov 9. It is ready again once the flow is back below the line.");
     fireEvent.click(screen.getByTestId("alert-form-p50"));
     expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above the median for the day. "
@@ -304,7 +304,7 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
     const chip = screen.getByTestId("alert-form-line-percentile");
     expect(chip.getAttribute("aria-disabled")).toBe("true");
     expect(screen.getByTestId("alert-form-no-percentile").textContent)
-      .toBe("This gauge has no historical record of its flow, so it has no percentiles to alert on.");
+      .toBe("This gauge has no historical record of its flow, so it has no usual levels to alert on.");
     fireEvent.click(chip);
     expect(screen.getByRole("radio", { name: NOTIFY_WORDS.editor.lineKinds.value }).getAttribute("aria-checked")).toBe("true");
     expect(screen.queryByTestId("alert-form-p75")).toBeNull();

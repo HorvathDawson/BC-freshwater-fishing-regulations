@@ -24,7 +24,7 @@ const backdated: Spot = { id: "s1", createdAt: SAVED, visitedAt: VISIT, updatedA
 const filled: Spot = { ...backdated, dayFlow: { state: "filled", station: "08MH001", date: "2024-08-15",
   discharge: 19.6, percentile: 0.244, place: 0.244, source: "hydat", filledAt: SAVED } };
 
-/** A one-gauge panel answered with that gauge at the 24th percentile — the shape a trip day's panel has. */
+/** A one-gauge panel answered with that gauge at the 8 in 10 days higher — the shape a trip day's panel has. */
 const TRIP_PANEL = answerFrom({ areaKm2: 1200, members: [{ station: "08MH001" as StationId, role: "up", areaKm2: 1230,
   years: { discharge: 60, level: 60 }, regulated: false, sameRiver: true, lead: 1 }] },
   { stations: { "08MH001": { percentile: 0.244, discharge: 0.244, parameter: "discharge" } } }, "discharge");
@@ -69,7 +69,7 @@ describe.each([["light", LIGHT], ["dark", DARK]] as [string, Palette][])("Flow t
     const { getByTestId } = render(
       <SpotScreen spot={{ ...filled, createdAt: SAVED }} palette={palette} mode="draft" onBack={() => {}}
                   dayFlow={{ view: dayFlowView(filled, "idle"), onAsk: null }} />);
-    expect(getByTestId("day-flow-line").textContent).toBe("19.6 m³/s, the 24th percentile for the date — filled in "
+    expect(getByTestId("day-flow-line").textContent).toBe("19.6 m³/s, lower than 8 days in 10 for the date — filled in "
       + "from the day's record (HYDAT daily mean, 15 Aug 2024).");
   });
 
@@ -78,7 +78,7 @@ describe.each([["light", LIGHT], ["dark", DARK]] as [string, Palette][])("Flow t
       <SpotScreen spot={filled} palette={palette} onBack={() => {}}
                   dayFlow={{ view: dayFlowView(filled, "idle"), onAsk: null }} />);
     const line = getByTestId("day-flow-line");
-    expect(line.textContent).toBe("19.6 m³/s, the 24th percentile for the date — filled in from the day's record "
+    expect(line.textContent).toBe("19.6 m³/s, lower than 8 days in 10 for the date — filled in from the day's record "
       + "(HYDAT daily mean, 15 Aug 2024).");
     expect(line.style.color).toBe(rgb(palette.ink));
     expect(queryByLabelText("Get the flow for that day")).toBeNull();

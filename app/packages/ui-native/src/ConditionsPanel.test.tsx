@@ -75,9 +75,9 @@ describe("the conditions panel", () => {
     expect(screen.getByText("m³/s")).toBeTruthy();
     expect(screen.getByText(`· ${stageLine(1.2)}`)).toBeTruthy();   // (T367) beside the figure, after a dot
     expect(screen.getByText(standingLong(0.15, "below"))).toBeTruthy();
-    expect(screen.getByText("Below normal · 15th percentile for the date")).toBeTruthy();
+    expect(screen.getByText("Below normal · lower than 9 days in 10 for the date")).toBeTruthy();
     // The donor panel above it is drawn for the CHOSEN day.
-    expect(screen.getByText("3rd–27th percentile for early September · this spot drains "
+    expect(screen.getByText("Lower than 7 to 9 days in 10 for early September · this spot drains "
                             + "50 km²")).toBeTruthy();
   });
 
@@ -116,7 +116,7 @@ describe("the conditions panel", () => {
     await waitFor(() => expect(screen.getByTestId("reading-scope")).toBeTruthy());
     expect([screen.getByTestId("reading-scope").textContent, screen.getByTestId("reading-figure").textContent,
             screen.getByTestId("reading-forecast").textContent])
-      .toEqual(["Today's reading", "12.5", "Mon 7 Sep, forecast: Reads normal · 40th percentile."]);
+      .toEqual(["Today's reading", "12.5", "Mon 7 Sep, forecast: Reads normal · lower than 6 days in 10."]);
   });
 
   it("refuses in words where no gauge may speak", async () => {
