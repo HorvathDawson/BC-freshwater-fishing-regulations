@@ -13,6 +13,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-10 mid-afternoon — one wording for a standing, report from any water view, worker reports read (chat 11)
+- **One wording for how a gauge stands (T583, in review):** every place now says it the same way, e.g. "Below normal ·
+  20th percentile". The headline word changed: "Low" is now "Below normal". The public gauge page uses the same words.
+- **Report a problem from Conditions and Map (T569, in review):** a link opens the form already filled with the water,
+  gauge, Flow/Level and span. The feeds worker must be deployed before the next app build (it refuses the new fields
+  until then). The review app's Reports tab does not show the four new fields yet (chat 10's app).
+- **Worker reports and errors all read (staging):** 11 problem reports, 40 error kinds, feed status. All covered by
+  tickets; four were new: satellite hidden by stream lines (T594, owner picks the look), error kinds that are not
+  defects (T595), a download that lost its part file on the owner's phone (T596), two worker run failures (T597).
+- **Not checked on screen:** the map dot label, the Send button without scrolling, anything on the emulator.
+- **Owner:** keep or retire the sentence "Lower than 8 days in 10"? Default: keep.
+- **Running:** one agent on T582 (two days, each labelled) with the T570 zoom shots.
+
 ## 2026-11-10 — review app: the closed areas (entry B) can be confirmed, moved and placed (T573)
 - 4089f60cd: each closed area of a DFO row is its own save. Confirm, move a circle (click the map, type the radius),
   change a stretch's two ends (an existing cut, or a click on the river), place one yourself, or report it. Saves go
