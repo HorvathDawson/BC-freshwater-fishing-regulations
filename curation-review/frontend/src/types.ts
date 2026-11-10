@@ -844,6 +844,8 @@ export interface PlaceCheck {
   /** DFO: a save of the owner's still waits to land — a check now would replace it, so none is offered */
   held?: string;
   checked?: { date: string; verdict: string; note: string; rows: CheckedRow[] };
+  /** a regulation rule: what it binds, as geometry (the builder's own reach, capped) */
+  reach?: { n_sections: number | null; truncated: boolean; geojson: GeoJSON.FeatureCollection };
   source?: { entry_id: string; rule_id: string; name: string; verbatim: string; region: string; pages: number[] };
 }
 /** one place in the checklist queue (GET /api/checks/queue): grouped by water */

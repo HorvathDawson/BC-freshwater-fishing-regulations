@@ -576,7 +576,7 @@ use that as the sole source of future work."
 | T529 | /changes compares a water's rules (text + where), not its parts: T517's re-cut made it 180 KB (budget 30 KB) and stopped the staging site redeploy — site down on 0.6.9 | IN REVIEW — site smoke + release --staging rerun (Claude) | 6dd5ff5e8 | owner 2026-11-09 "proper fix to the comparison, not a bigger limit" |
 | T530 | Share a gauge from the Conditions tab: one share control on each gauge with a page (T487 promised it), link = the gauge page, one slug function shared with the SEO build | IN REVIEW — phone look on the next APK (de39a5f) | — | owner 2026-11-09 "no button in the conditions tab to share … make sure it is cleanly done" |
 | T531 | Each calendar sits with its own species (salmon under DFO, the rest under B.C. rules); legend text full contrast | BLOCKED — owner OK, then mockup first | — | owner 2026-11-09 second-opinion ask (Vedder screenshot) |
-| T532 | Checklist review for every extent (DFO + regulations, one interface): rows generated from the extent + source words, ✓/?/✗, numbered pins, one decision; scales to new DFO items | IN PROGRESS | — | owner 2026-11-09 on the round-4 mockup "definitely better … same interface for the normal non dfo extents" |
+| T532 | Checklist review for every extent (DFO + regulations, one interface): rows generated from the extent + source words, ✓/?/✗, numbered pins, one decision; scales to new DFO items | IN REVIEW — owner looks | 75581bbe4, 4d266e1b2 | owner 2026-11-09 on the round-4 mockup "definitely better … same interface for the normal non dfo extents" |
 
 ## Order for open tickets
 

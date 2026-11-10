@@ -21,6 +21,8 @@ from collections.abc import Mapping
 import reuse
 from pipeline.regs.review import checklist as C
 
+#: the most sections a regulation's reach draws (a zone table binds tens of thousands)
+REACH_LIMIT = 3000
 #: a place's check state, in the order the filters offer them
 CHECK_STATES = ("unchecked", "stale", "checked", "wrong")
 
@@ -87,7 +89,36 @@ def _item_point(iid: str):
     return (round(x, 6), round(y, 6))
 
 
+def _end_point(end: str, items: list[str]):
+    """a water's natural end: its MOUTH (of several waters, the mouth farthest from the others' lines — where the run
+    leaves them) or its SOURCE (the line end farthest from that mouth)"""
+    import dfo
+    from shapely.geometry import Point
+    mouths = [(i, dfo._mouth(i)) for i in items]
+    mouths = [(i, m) for i, m in mouths if m is not None]
+    if not mouths:
+        return None
+    lines = {i: [g for _n, _nd, g in dfo._line_sections([i])] for i in items}
+
+    def off(i, m):
+        others = [g for j, gs in lines.items() if j != i for g in gs]
+        return min((g.distance(m) for g in others), default=0.0)
+    mouth = max(mouths, key=lambda im: off(*im))[1]
+    p = mouth
+    if end == "source":
+        ends = [Point(c) for gs in lines.values() for g in gs if g.geom_type == "LineString"
+                for c in (g.coords[0], g.coords[-1])]
+        if not ends:
+            return None
+        p = max(ends, key=lambda q: q.distance(mouth))
+    x, y = reuse._to_lonlat()(p.x, p.y)
+    return (round(x, 6), round(y, 6))
+
+
 def _point(k: str):
+    end, _, rest = k.partition(":")
+    if end in ("mouth", "source") and rest:
+        return _end_point(end, rest.split("|"))
     return _item_point(k) if ":" in k and not k.startswith("area:") else _cut_point(k)
 
 
@@ -221,6 +252,11 @@ def rule_check(entry_id: str, rule_id: str) -> dict | None:
     if r is None:
         return None
     out = rule_rows(e, r, _rule_marks().get((entry_id, rule_id)))
+    # what the rule binds, drawn in the extent's one colour: the builder's own reach (`rule_resolved_reach`)
+    got = reuse.rule_resolved_reach(entry_id, rule_id, limit=REACH_LIMIT)
+    ids = list(got.get("sections") or [])[:REACH_LIMIT]
+    out["reach"] = {"n_sections": got.get("n_total"), "truncated": len(got.get("sections") or []) > REACH_LIMIT,
+                    "geojson": {"type": "FeatureCollection", "features": reuse._sections_geojson(ids, "preview")}}
     out["source"] = {"entry_id": entry_id, "rule_id": rule_id, "name": e.get("display_name") or e.get("name"),
                      "verbatim": r.get("verbatim") or "", "region": e.get("region"),
                      "pages": [p for p in e.get("source_pages") or [] if isinstance(p, int)]}
@@ -244,6 +280,7 @@ def _dfo_places() -> list[dict]:
         got = dfo_rows(loc, water, states.get(r["id"]), ctx)
         items = list((water or {}).get("item_ids") or [])
         out.append({"source": "dfo", "id": r["id"], "water": r["water"], "water_key": _water_key(items, r["water"]),
+                    "items": items,
                     "region": r["region"], "text": r["text"] or "(the whole water)", "summary": got["summary"],
                     "check": got["check"], "new": r["verify"] == "unmarked"})
     return out
@@ -261,6 +298,7 @@ def _regs_places() -> list[dict]:
             name = e.get("display_name") or e.get("name") or e["entry_id"]
             out.append({"source": "regs", "id": f"{e['entry_id']}#{r.get('rule_id')}", "entry_id": e["entry_id"],
                         "rule_id": r.get("rule_id"), "water": name, "water_key": _water_key(items, name),
+                        "items": items,
                         "region": str(e.get("region") or region), "text": r.get("verbatim") or "",
                         "summary": got["summary"], "check": got["check"]})
     return out
@@ -278,7 +316,34 @@ _PLACES = reuse._Memo()
 def _places() -> list[dict]:
     import dfo
     return _PLACES.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context(), reuse.regions()),
-                       lambda: by_water(_dfo_places() + _regs_places()))
+                       lambda: by_water(one_water(_dfo_places() + _regs_places())))
+
+
+def one_water(places: list[dict]) -> list[dict]:
+    """ONE WATER ACROSS BOTH SOURCES: places sharing a registry water are one water (the DFO "Chilliwack/Vedder River
+    (including Sumas River)" and the book's "CHILLIWACK / VEDDER RIVERS" rows), keyed by the first place's key, named
+    by its DFO place when it has one. Places with no water keep their own key. Pure."""
+    parent: dict[str, str] = {}
+
+    def find(x: str) -> str:
+        while parent.setdefault(x, x) != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+    for p in places:
+        its = p.get("items") or []
+        for i in its[1:]:
+            parent[find(i)] = find(its[0])
+    key: dict[str, str] = {}
+    out = []
+    for p in places:
+        its = p.get("items") or []
+        root = find(its[0]) if its else p["water_key"]
+        out.append({**p, "water_key": key.setdefault(root, p["water_key"])})
+    name: dict[str, str] = {}
+    for p in sorted(out, key=lambda x: x["source"] != "dfo"):      # a DFO place names its water, else the first row
+        name.setdefault(p["water_key"], p["water"])
+    return [{**p, "water": name[p["water_key"]], "place_water": p["water"]} for p in out]
 
 
 def by_water(places: list[dict]) -> list[dict]:

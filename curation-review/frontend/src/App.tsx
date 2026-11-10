@@ -36,6 +36,9 @@ const inInseason = () => decodeURIComponent(window.location.hash.slice(1)).start
 /** T237: `#reports/<id>` opens the Reports tab (problem reports from the app) */
 const inReports = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(REPORTS_HASH);
 /** owner 2026-10-28: `#p1/` opens the P1 quick-confirm view (Entries sub-tab) */
+/** T532: `#checks/<entry#rule | dfo place>` opens the extents checklist (regulations and DFO, by water) */
+const CHECKS_HASH = "checks/";
+const inChecks = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(CHECKS_HASH);
 const inP1 = () => decodeURIComponent(window.location.hash.slice(1)).startsWith(P1_HASH);
 
 /** THE REVIEW TIERS (PLAN §3, `tiers.TIERS`) — entries only: a split point is checked by proxy on
@@ -60,6 +63,7 @@ export default function App() {
   const [inseason, setInseason] = useState(inInseason);
   const [reportsTab, setReportsTab] = useState(inReports);
   const [p1, setP1] = useState(inP1);
+  const [checks, setChecks] = useState(inChecks);
   const [regions, setRegions] = useState<RegionSummary[]>([]);
   // THE ONE QUEUE (T135, PLAN §3): every region, in the review order, by default
   const [region, setRegion] = useState(ALL_REGIONS);
@@ -148,7 +152,8 @@ export default function App() {
   useEffect(() => {
     const open = () => {
       const id = decodeURIComponent(window.location.hash.slice(1));
-      const only = (m: "sloughs" | "cascade" | "dfo" | "tidal" | "inseason" | "reports" | "p1" | "") => {
+      const only = (m: "sloughs" | "cascade" | "dfo" | "tidal" | "inseason" | "reports" | "p1" | "checks" | "") => {
+        setChecks(m === "checks");
         setReportsTab(m === "reports");
         setP1(m === "p1");
         setSloughs(m === "sloughs"); setCascade(m === "cascade");
@@ -158,6 +163,7 @@ export default function App() {
       if (id.startsWith(INSEASON_HASH)) { only("inseason"); return; }
       if (id.startsWith(REPORTS_HASH)) { only("reports"); return; }
       if (id.startsWith(P1_HASH)) { only("p1"); return; }
+      if (id.startsWith(CHECKS_HASH)) { only("checks"); return; }
       if (id.startsWith(CASCADE_HASH)) { only("cascade"); return; }
       if (id.startsWith(DFO_HASH)) { only("dfo"); return; }
       if (id.startsWith(TIDAL_HASH)) { only("tidal"); return; }
@@ -257,6 +263,10 @@ export default function App() {
   }
   if (reportsTab) {
     return <ReportsView />;
+  }
+  if (checks) {
+    return mode ? <CheckReview mode={mode} source="all" />
+      : <div className="app"><TopNav active="entries" sub="checks" /><div className="empty-state">loading…</div></div>;
   }
   if (p1) {
     return mode ? <P1Quick mode={mode} /> : <div className="app"><TopNav active="entries" sub="p1" /><div className="empty-state">loading…</div></div>;

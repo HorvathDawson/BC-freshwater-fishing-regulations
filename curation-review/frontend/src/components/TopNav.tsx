@@ -26,6 +26,8 @@ const TABS: Tab[] = [
 const SUBS: Partial<Record<TabId, { id: string; label: string; hash: string; title?: string; domain?: string }[]>> = {
   entries: [
     { id: "queue", label: "Queue", hash: "" },
+    { id: "checks", label: "Extents checklist", hash: "checks/",
+      title: "T532: every regulation extent (and the DFO places on the same water) as a checklist, water by water" },
     { id: "p1", label: "P1 quick confirm", hash: "p1/",
       title: "owner 2026-10-28: P1 closures where every check agrees — closure text + map + the second check, y to accept" },
   ],

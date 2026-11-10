@@ -54,6 +54,12 @@ _SYN = {"hwy": "highway", "rd": "road", "mt": "mount", "st": "street", "ave": "a
 #: clause boundaries: punctuation, and the words a new claim starts with
 _CUT = re.compile(r"[;:()\n]|\.(?=\s|$)|,(?=\s)|\s(?=(?:to|from|except|excluding|including|and that|and the portion|"
                   r"but not|other than)\b)", re.I)
+#: a phrase ending in a distance or a placing word: the next "from" / "to" names where it is measured from
+_LOCATED = re.compile(r"(\d+(?:\.\d+)?\s*(?:m|km|metres?|meters?|kilometres?|kilometers?)"
+                      r"(?:\s+(?:downstream|upstream|above|below|up|down))?|\b(?:located|situated|"
+                      r"approximately|approx\.?))\s*$", re.I)
+#: a direction word closing a phrase ("… and Slesse Creek downstream")
+_TRAILING_DIRECTION = re.compile(r"\s+(downstream|upstream)\s*[.,;]?\s*$", re.I)
 _EXCEPT = re.compile(r"\b(except|excluding|exclusive of|exception|other than|but not|not including)\b", re.I)
 _TRIB_YES = re.compile(r"(✱|incl\.?\s*tribs|\b(?:includ\w*|and|with|plus)\s+(?:all\s+|its\s+|their\s+)?tributar)", re.I)
 _TRIB_NO = re.compile(r"\b(?:not\s+includ\w*|exclud\w*|except|without|no)\s+(?:its\s+|their\s+|the\s+)?tributar", re.I)
@@ -124,11 +130,24 @@ class _Clause:
 
 
 def _clauses(text: str, place_only: bool) -> list[_Clause]:
+    """the source words cut into claims: at punctuation and where a new claim starts ("from", "to", "except" …) — but
+    never inside a locator ("100 m FROM the confluence", "1 km TO the bridge" is one place), and a direction that ends
+    a phrase ("… Slesse Creek downstream") is its own claim, the reach's other end"""
     parts, at = [], 0
     for m in _CUT.finditer(text or ""):
+        if m.group(0).startswith(" ") and _LOCATED.search(text[at:m.start()]):
+            continue
         parts.append(text[at:m.start()])
         at = m.start() if m.group(0).startswith(" ") else m.end()
     parts.append((text or "")[at:])
+    split: list[str] = []
+    for p in parts:
+        t = _TRAILING_DIRECTION.search(p)
+        if t and p[:t.start()].strip(" ,") and _tokens(p[:t.start()]):
+            split += [p[:t.start()], t.group(1)]
+        else:
+            split.append(p)
+    parts = split
     out: list[_Clause] = []
     for p in parts:
         p = p.strip(" ,;:-–\t")
@@ -193,10 +212,23 @@ def _cut_anchor(sid: str, ctx: Context) -> dict:
     return {"cuts": [sid], **({"coord": list(pt)} if pt else {})}
 
 
-def _items_anchor(items: Iterable[str], ctx: Context) -> dict:
+def _items_anchor(items: Iterable[str], ctx: Context, *, pin: bool = False) -> dict:
+    """the waters a row is about — highlighted, never pinned (a whole water has no one point), unless `pin`: a water
+    taken out is a place of its own"""
     items = list(items)
-    pt = next((ctx.points[i] for i in items if i in ctx.points), None)
+    pt = next((ctx.points[i] for i in items if i in ctx.points), None) if pin else None
     return {"items": items, **({"coord": list(pt)} if pt else {})}
+
+
+def end_key(end: str, items: Sequence[str]) -> str:
+    """the `Context.points` key of a water's natural end: `mouth:<items>` / `source:<items>` (the backend places it)"""
+    return f"{end}:{'|'.join(items)}"
+
+
+def _end_anchor(up: bool, items: list[str], ctx: Context) -> dict:
+    k = end_key("source" if up else "mouth", items)
+    pt = ctx.points.get(k) if k in ctx.points else None
+    return {"items": items, "end": "source" if up else "mouth", **({"coord": list(pt)} if pt else {})}
 
 
 def _cut_row(kind: str, sid: str, clauses: list[_Clause], ctx: Context, landed: bool, end: str) -> dict:
@@ -242,7 +274,7 @@ def _natural_end_row(op: str, items: list[str], clauses: list[_Clause], ctx: Con
         or next((c for c in clauses if want.search(c.text)), None)
     named_end = next((c for c in (near if at is not None else clauses) if re.match(r"to\b", c.text, re.I)
                       and _LOCATOR.search(c.text) and not c.used), None)
-    anchor = _items_anchor(items, ctx)
+    anchor = _end_anchor(up, items, ctx)
     if named_end is not None:
         named_end.used = True
         return _row("to", named_end.text, ours, BAD, "the words name an end; ours runs on with no cut there", anchor)
@@ -341,7 +373,7 @@ def _carve_rows(extents: Sequence[Mapping], excludes: Sequence[Mapping], clauses
     taken: list[tuple[str, set, dict]] = []
     for x in extents:
         for iid in x.get("outside_items") or []:
-            taken.append((f"{_name(iid, ctx)} taken out", _tokens(_name(iid, ctx)), _items_anchor([iid], ctx)))
+            taken.append((f"{_name(iid, ctx)} taken out", _tokens(_name(iid, ctx)), _items_anchor([iid], ctx, pin=True)))
         for aid in ([x["outside_area"]] if x.get("outside_area") else []) + list(x.get("outside_areas") or []):
             name = ctx.areas.get(aid) or aid.rsplit(":", 1)[-1].replace("_", " ")
             taken.append((f"{name} taken out", _tokens(name), {"areas": [aid]}))

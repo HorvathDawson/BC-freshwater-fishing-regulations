@@ -205,3 +205,39 @@ def test_a_check_is_stale_when_its_digest_is_not_the_places_now(monkeypatch):
     assert B.check_state(None, "x") == "unchecked"
     assert B.check_state(m, "0123456789abcdef") == "checked"
     assert B.check_state(m, "fedcba9876543210") == "stale"
+
+
+def test_a_locator_is_one_phrase_and_a_closing_direction_is_the_ends_own(monkeypatch):
+    """owner look 2026-11-09 (Chilliwack): "100 m from the confluence of … Slesse Creek" is the FROM cut's own place, and
+    the reach's other end is just "downstream"; the Sumas piece's end names signs with no cut (✗). Water and tributary
+    rows carry no pin; a cut and a natural end each sit at their own point."""
+    words = ("from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m from the "
+             "confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River "
+             "from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the "
+             "Fraser River.")
+    ctx = C.Context(labels={"chv__slesse": "fishing boundary signs 100 m below the Slesse Creek confluence",
+                            "sumas__barrow": "Barrow Town Pump Station"},
+                    items={"gnis:1": "Chilliwack River", "gnis:2": "Vedder River", "gnis:3": "Sumas River"},
+                    built=frozenset({"chv__slesse", "sumas__barrow"}),
+                    points={"chv__slesse": (1, 1), "sumas__barrow": (2, 2), "gnis:1": (9, 9),
+                            C.end_key("mouth", ["gnis:1", "gnis:2"]): (3, 3), C.end_key("mouth", ["gnis:3"]): (4, 4)})
+    rs = C.rows(C.Source(water="Chilliwack/Vedder River (including Sumas River)", place=words),
+                [{"op": "downstream_of", "splits": ["chv__slesse"], "item_ids": ["gnis:1", "gnis:2"]},
+                 {"op": "downstream_of", "splits": ["sumas__barrow"], "item_id": "gnis:3"}],
+                own_items=["gnis:1", "gnis:2", "gnis:3"], ctx=ctx)
+    by = [(r["kind"], r["quote"], r["state"], r["anchor"].get("coord")) for r in rs]
+    assert by[1][0] == "from" and by[1][1].endswith("100 m from the confluence of the Chilliwack River and Slesse Creek")
+    assert by[1][3] == [1, 1]
+    assert by[2] == ("to", "downstream", C.OK, [3, 3])
+    assert by[3][:2] == ("also", "from the Barrow Town Pump Station") and by[3][3] == [2, 2]
+    assert by[4] == ("to", "to fishing boundary signs near the confluence with the Fraser River", C.BAD, [4, 4])
+    assert "coord" not in rs[0]["anchor"] and all("coord" not in r["anchor"] for r in rs if r["kind"] == "tributaries")
+
+
+def test_one_water_joins_both_sources_on_a_shared_registry_water(monkeypatch):
+    B = _backend(monkeypatch, "checks")
+    got = B.one_water([{"source": "regs", "water": "CHILLIWACK RIVER", "water_key": "g1", "items": ["g1"]},
+                       {"source": "dfo", "water": "Chilliwack/Vedder", "water_key": "g1|g2", "items": ["g1", "g2"]},
+                       {"source": "regs", "water": "Zone A", "water_key": "name:zone a", "items": []}])
+    assert [p["water_key"] for p in got] == ["g1", "g1", "name:zone a"]
+    assert [p["water"] for p in got] == ["Chilliwack/Vedder", "Chilliwack/Vedder", "Zone A"]

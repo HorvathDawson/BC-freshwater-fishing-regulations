@@ -701,3 +701,26 @@ def test_a_checklist_is_saved_only_on_the_rows_the_place_has_now(env):
     assert next(p for p in q if p["id"] == target)["check"] == "checked"
     assert c.get("/api/checks/progress", params={"source": "dfo"}).json()["done"] >= 1
     assert _stamps(load_repo().base) == curated, "a checklist mark wrote under data/curated"
+
+
+def test_a_regulation_extent_is_checked_with_the_same_rows_and_a_rule_mark(env):
+    """T532 phase 3: a regulation rule opens in the same checklist (its rows, its reach drawn), the check is a rule mark
+    (P only) refused on a stale digest; the queue holds both sources, a water's places together."""
+    c = env["client"]
+    pc = c.get(f"/api/checks/rule/{ADAM}/adam_river.r1").json()
+    assert pc["rows"][0]["kind"] == "water" and pc["source"]["rule_id"] == "adam_river.r1"
+    assert pc["reach"]["geojson"]["type"] == "FeatureCollection"
+    rows = [{"n": r["n"], "kind": r["kind"], "state": r["state"], "ticked": r["state"] != "ok"} for r in pc["rows"]]
+    base = {"scope": "rule", "target": ADAM, "rule_id": "adam_river.r1", "reviewer": "tester", "answers": {"P": "y"},
+            "verdict": "verified"}
+    stale = c.post("/api/marks", json={**base, "checklist": {"digest": "0" * 16, "rows": rows}})
+    assert stale.status_code == 422 and "changed since you opened it" in stale.text
+    r = c.post("/api/marks", json={**base, "checklist": {"digest": pc["digest"], "rows": rows}})
+    if r.status_code == 200:
+        assert c.get(f"/api/checks/rule/{ADAM}/adam_river.r1").json()["check"] == "checked"
+    else:                                   # an entry awaiting its build takes only T and R (AGENTS 65)
+        assert r.status_code == 422 and "build" in r.text, r.text
+    q = c.get("/api/checks/queue", params={"source": "all"}).json()
+    assert {p["source"] for p in q} == {"dfo", "regs"}
+    keys = [p["water_key"] for p in q]
+    assert all(k not in keys[:i] or keys[i - 1] == k for i, k in enumerate(keys)), "the queue left a water and came back"

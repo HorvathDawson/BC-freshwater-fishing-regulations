@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, type EntryRefused } from "../api";
-import type { DfoProgress, CheckPlace, CheckProgress, CheckRow, DfoDetail, EntryDetail, ExtentFix, Mode,
+import type { DfoProgress, EntrySplits, CheckPlace, CheckProgress, CheckRow, DfoDetail, EntryDetail, ExtentFix, Mode,
   PlaceCheck } from "../types";
 import { getReviewer, isTyping, setReviewer } from "../review";
 import { failed } from "../failures";
@@ -24,7 +24,8 @@ import { InputsSyncLine } from "./InputsSyncLine";
    loaded while stepping through them, progress is said per water and overall. */
 
 export type CheckSource = "dfo" | "regs" | "all";
-const FILTERS: [string, string][] = [["", "all"], ["todo", "unchecked"], ["bad", "has ✗"], ["unsure", "has ?"]];
+const FILTERS: [string, string][] = [["", "all"], ["todo", "unchecked"], ["stale", "changed"], ["bad", "has ✗"],
+                                     ["unsure", "has ?"]];
 const KIND_WORDS: Record<string, string> = { unchecked: "words" };
 const hashOf = (source: CheckSource) => (source === "dfo" ? "dfo/" : "checks/");
 
@@ -34,6 +35,8 @@ interface Loaded {
   items: { id: string; name: string }[]; reach: GeoJSON.FeatureCollection | null; pending: GeoJSON.FeatureCollection | null;
   title: string; sub: string; words: string; pageUrl?: string | null;
   dfo?: DfoDetail; entry?: EntryDetail;
+  /** the cuts on the map, labelled (filtered to the ones the rows name) */
+  named: EntrySplits | null;
 }
 
 export function CheckReview({ mode, source: initial }: { mode: Mode; source: CheckSource }) {
@@ -51,7 +54,10 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   });
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [editing, setEditing] = useState(false);
+
   const [version, setVersion] = useState(0);
+  const [staleMarks, setStaleMarks] = useState(0);
+  useEffect(() => { api.marksHealth().then((h) => setStaleMarks(h.n_stale)).catch(failed("the marks health")); }, [version]);
 
   const loadQueue = useCallback(() => {
     api.checksQueue(source, filter, q).then(setQueue).catch((e) => setError(`the checklist queue: ${e}`));
@@ -140,6 +146,7 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
             <button key={k} role="tab" aria-selected={filter === k} data-testid={`ck-filter-${k || "all"}`}
               onClick={() => setFilter(k)}>{w}
               {progress && k === "todo" ? ` ${(progress.by_check.unchecked ?? 0) + (progress.by_check.stale ?? 0)}`
+                : progress && k === "stale" ? ` ${progress.by_check.stale ?? 0}`
                 : progress && k === "bad" ? ` ${progress.by_worst.bad ?? 0}` : progress && k === "unsure" ? ` ${progress.by_worst.unsure ?? 0}` : ""}
             </button>))}
         </span>
@@ -149,6 +156,9 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
         </select>
         <input type="search" placeholder="find a water or words…" value={q} aria-label="find" onChange={(e) => setQ(e.target.value)} />
         <span className="dim">{queue ? `${list.length} places on ${waters.length} waters` : "loading…"}</span>
+        {staleMarks > 0 && <span className="dim" data-testid="ck-stale-marks"
+          title="marks in force whose target moved since (every review tab): the queue lists them as changed">
+          · {staleMarks} mark{staleMarks === 1 ? "" : "s"} stale</span>}
       </div>
       {dfoProgress && <DfoVintageBanner notes={dfoProgress.vintage} />}
       <InputsSyncLine reason="write-through" />
@@ -191,19 +201,19 @@ async function loadPlace(id: string, place: CheckPlace | null): Promise<Loaded> 
     }
     const p: CheckPlace = place ?? { source: "dfo", id, water: d.row.water, water_key: d.items.map((i) => i.id).sort().join("|"),
       region: d.row.region, text: d.row.text, summary: check.summary, check: check.check };
-    return { id, place: p, check, dfo: d, items: d.items.map((i) => ({ id: i.id, name: i.name })),
+    return { id, place: p, check, dfo: d, named: d.splits, items: d.items.map((i) => ({ id: i.id, name: i.name })),
              reach: reach?.resolvable ? (reach.geojson as GeoJSON.FeatureCollection) : null, pending,
              title: d.verbatim.waters || d.row.water, sub: `DFO region ${d.row.region}${d.row.status !== "active" ? " · no longer on the live page" : ""}`,
              words: d.verbatim.specific_area || "(no area given: the whole water)", pageUrl: d.page_url };
   }
   const [entryId, ruleId] = id.split("#");
-  const [check, e] = await Promise.all([api.checkRule(entryId, ruleId), api.entry(entryId)]);
-  const rr = await api.ruleResolved(entryId, ruleId).catch((x) => { failed("the rule's reach")(x); return null; });
+  const [check, e, named] = await Promise.all([api.checkRule(entryId, ruleId), api.entry(entryId),
+    api.splits(entryId).catch((x) => { failed("the entry's cuts")(x); return null; })]);
   const items = [...(e.item ? [{ id: e.item.id, name: e.item.name }] : []), ...(e.also_items ?? []).map((a) => ({ id: a.id, name: a.name }))];
   const p: CheckPlace = place ?? { source: "regs", id, water: check.source?.name ?? entryId, water_key: items.map((i) => i.id).sort().join("|"),
     region: check.source?.region ?? "", text: check.source?.verbatim ?? "", summary: check.summary, check: check.check,
     entry_id: entryId, rule_id: ruleId };
-  return { id, place: p, check, entry: e, items, reach: (rr?.geojson ?? null) as unknown as GeoJSON.FeatureCollection | null,
+  return { id, place: p, check, entry: e, named, items, reach: check.reach?.geojson ?? null,
            pending: null, title: check.source?.name ?? entryId,
            sub: `region ${check.source?.region ?? "?"} · ${ruleId}${check.source?.pages.length ? ` · p.${check.source.pages.join(", ")}` : ""}`,
            words: check.source?.verbatim ?? "" };
@@ -223,7 +233,7 @@ function CheckMap({ loaded }: { loaded: Loaded }) {
   // the cuts the rows name, labelled (never every cut on the water: the rows are what is checked)
   const named = useMemo(() => {
     const want = new Set(loaded.check.rows.flatMap((r) => r.anchor.cuts ?? []));
-    const fc = loaded.dfo?.splits;
+    const fc = loaded.named;
     return fc ? { ...fc, features: fc.features.filter((f) => want.has(f.properties.split_id)) } : null;
   }, [loaded]);
   return (
@@ -231,7 +241,7 @@ function CheckMap({ loaded }: { loaded: Loaded }) {
       <div className="ck-key"><span><i />the extent now</span>
         {loaded.pending && <span><i className="dash" />saved, not drawn yet</span>}</div>
       <MapPanel itemId={loaded.items[0]?.id ?? null} alsoItemIds={loaded.items.slice(1).map((i) => i.id)}
-        namedSplits={named} preview={loaded.reach} pending={loaded.pending} pins={pins} fitPreview={loaded.id === first.current}
+        namedSplits={named} preview={loaded.reach} pending={loaded.pending} pins={pins} fitPreview={loaded.id === first.current} minimal
         onPin={(n) => window.dispatchEvent(new CustomEvent("ck-pin-pick", { detail: n }))} />
     </>
   );

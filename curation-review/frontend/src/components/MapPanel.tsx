@@ -76,6 +76,8 @@ interface Props {
   onPin?: (n: number) => void;
   /** false: a new preview does not move the view (the checklist keeps a water's map while stepping its places) */
   fitPreview?: boolean;
+  /** T532: the checklist's map — no status line, no reach picker, no legend (the page says the one colour) */
+  minimal?: boolean;
 }
 
 export interface EditPoint { id: string; coord: [number, number]; label: string; kind: "reference" | "cut" }
@@ -177,7 +179,7 @@ export function MapPanel({
   reaches = null, rules = [], reachOf = {}, entryId = null, namedSplits = null, showRule,
   preview = null, saved = null, suggested = null, fitSuggested = false, flyTo = null, onPick = null, selectZoom = 12, fitNamed = true,
   satellite = false, editPoints = [], onMovePoint, cutPreview = null, pending = null, pins = null, onPin,
-  fitPreview = true,
+  fitPreview = true, minimal = false,
 }: Props) {
   const [sat, setSat] = useState(satellite);
   const satRef = useRef(sat);
@@ -844,8 +846,8 @@ export function MapPanel({
   }, [sat]);
 
   return (
-    <div className="map-panel">
-      <div className="map-bar">
+    <div className={`map-panel${minimal ? " minimal" : ""}`}>
+      {!minimal && <div className="map-bar">
         {itemId == null ? "no matched item — no geometry"
           : count == null ? "loading…"
           : `${count} feature(s) · webapp basemap (bc.pmtiles)`}
@@ -855,11 +857,11 @@ export function MapPanel({
             {namedSplits.unplaced.length > 0 && `, ${namedSplits.unplaced.length} not placed`}
           </span>
         )}
-      </div>
+      </div>}
       <div className="map-tools">
         {/* One rule's reach at a time. Highlighting several at once would just paint the whole
             item green — the question a curator asks here is "what does THIS rule cover". */}
-        <label className="reach-pick" title="highlight the water one rule resolves to">
+        {!minimal && <label className="reach-pick" title="highlight the water one rule resolves to">
           <span>reach</span>
           <select
             value={shownReach ?? ""}
@@ -879,7 +881,7 @@ export function MapPanel({
               );
             })}
           </select>
-        </label>
+        </label>}
         {tribInfo && showTribs && (
           <span
             className={`badge${tribInfo.truncated ? " warn" : ""}`}
@@ -985,7 +987,7 @@ export function MapPanel({
         </div>
       )}
       <div ref={container} style={{ width: "100%", height: "100%" }} />
-      <div className="map-legend">
+      {!minimal && <div className="map-legend">
         {shownReach && <span><i style={{ background: "#22c55e", height: 6 }} /> reach</span>}
         <span><i style={{ background: NAMED_COLOR }} /> split a rule names (labelled)</span>
         <span><i style={{ background: NAMED_TO_VERIFY }} /> … still to verify</span>
@@ -993,7 +995,7 @@ export function MapPanel({
         <span><i style={{ background: "#d97706" }} /> curated · unused</span>
         <span><i style={{ background: "#dc2626" }} /> other split</span>
         <span><i style={{ background: CUT_COLOR, width: 7, height: 7 }} /> automatic cut (hover/tap)</span>
-      </div>
+      </div>}
     </div>
   );
 }

@@ -23,7 +23,15 @@ function Row({ r }: { r: MarkHealthRow }) {
 export function MarksHealthBanner() {
   const [h, setH] = useState<MarksHealth | null>(null);
   useEffect(() => { api.marksHealth().then(setH).catch(failed("the marks health")); }, []);
+  // T532: the checklist screens say the stale count in their own filter bar; an orphan stays loud everywhere
+  const [hash, setHash] = useState(() => window.location.hash);
+  useEffect(() => {
+    const on = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", on);
+    return () => window.removeEventListener("hashchange", on);
+  }, []);
   if (!h || (!h.n_orphans && !h.n_stale)) return null;
+  if (!h.n_orphans && /^#(dfo|checks)\//.test(hash)) return null;
   const bad = h.n_orphans > 0;
   const words = [bad ? `${h.n_orphans} orphaned (target gone — counted nowhere)` : "",
                  h.n_stale > 0 ? `${h.n_stale} stale (target moved — needs a re-check)` : ""].filter(Boolean).join(", ");

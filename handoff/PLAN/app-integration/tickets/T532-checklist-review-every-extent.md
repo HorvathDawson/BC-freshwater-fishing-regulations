@@ -1,6 +1,6 @@
 # T532 — Checklist review for every extent (DFO places and the regulations' own extents), one interface
 
-Status: IN PROGRESS
+Status: IN REVIEW — owner looks
 
 Owner 2026-11-09, on the round-4 mockup (shots: scratchpad t525-r4-*.png; copied to shots/T532-mockup-*.png): "definitely
 better. need to make it play nice with entire list + future items when dfo adds new ones. also should have similar quality
@@ -91,3 +91,27 @@ places (rows and pins change, the map stays). Pinned by `test_the_queue_never_le
   `-dfo-change.png`.
 - Tests: `test_curation_review_screen.py::test_a_checklist_is_saved_only_on_the_rows_the_place_has_now` (stale digest
   refused, open rows refused, held place refused, P-only mark kept, queue by water, nothing under data/curated).
+
+## Phase 3 — regulation extents, same screen (2026-11-09)
+- Entries → "Extents checklist" (`#checks/<entry>#<rule>` or a DFO place id): the same `CheckReview`, the same rows
+  (`checks.rule_rows`: the row's name with its ✱, `extent_text` / `unresolved_locators` / the verbatim's place phrases,
+  the builder's tributary call), the reach drawn in the one colour (`rule_resolved_reach`, capped at 3,000 sections),
+  the save a RULE mark (P only; awaiting-build entries are refused by the existing gate, in its own words).
+- Sources picker: both / regulations / DFO. ONE WATER ACROSS BOTH (`checks.one_water`): places sharing a registry
+  water are one water (the DFO Chilliwack/Vedder places and the book's Chilliwack rows together, DFO first); a zone
+  table with no water of its own is its own group.
+- Owner look on phase 2 folded in: a locator is one phrase ("100 m from the confluence of … Slesse Creek" stays with
+  FROM; a closing "downstream" is TO's own); the map's old chrome is off in the checklist (status line, reach picker,
+  6-entry legend; the stale-marks toast is a count in the filter bar, orphans stay loud); a pin sits at its own anchor
+  (a cut at its point, a natural end at the water's mouth / source), water and tributary rows have no pin.
+- Counts over the whole list (served atlas, 2026-11-09): DFO 287 places, rows ✓ 710 · ? 132 · ✗ 241 (places by worst:
+  ✗ 182, ? 24, ✓ 81); regulations 3,399 rules, rows ✓ 10,009 · ? 173 · ✗ 512 (✗ 391, ? 121, ✓ 2,887). All unchecked.
+- Shots: `shots/T532-regs-campbell-r5.png` (between two cuts, all ✓), `shots/T532-regs-campbell-r4.png` (tributaries
+  only, except the Quinsam; the Strathcona Dam cut no word names: ✗); the DFO shots re-taken with the fixes above.
+- Tests: `test_a_regulation_extent_is_checked_with_the_same_rows_and_a_rule_mark`,
+  `test_a_locator_is_one_phrase_and_a_closing_direction_is_the_ends_own`, `test_one_water_joins_both_sources_…`.
+
+## Owner decisions / notes
+- A ✗ is "look at this", not "wrong": e.g. tributaries walked with no word for them, a carve-out the words never
+  state, a cut no word names (the rule's words are elsewhere in the row). Tick it by eye or report it.
+- A place whose own save has not landed is held (no check offered) until the write-through / rebuild lands it.

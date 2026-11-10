@@ -1148,7 +1148,7 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
 .ck-main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) 480px; min-height: 0; }
 .ck-map { position: relative; min-height: 0; border-right: 1px solid var(--ck-line); display: flex; flex-direction: column; }
 .ck-map > div:last-child { flex: 1; min-height: 0; }
-.ck-key { position: absolute; left: 12px; top: 64px; z-index: 5; background: var(--panel); border: 1px solid var(--ck-line); border-radius: 6px; padding: 6px 10px; font-size: 12px; display: flex; gap: 14px; }
+.ck-key { position: absolute; left: 12px; bottom: 12px; z-index: 5; background: var(--panel); border: 1px solid var(--ck-line); border-radius: 6px; padding: 6px 10px; font-size: 12px; display: flex; gap: 14px; }
 .ck-key i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; background: #db2777; vertical-align: middle; margin-right: 6px; }
 .ck-key i.dash { background: none; border-top: 3px dashed #db2777; height: 0; }
 .ck-side { display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
@@ -1189,3 +1189,6 @@ code.cmd { font-size: 11px; padding: 1px 6px; border: 1px solid var(--warn-borde
   .ck-foot { position: sticky; bottom: 0; background: var(--panel); }
 }
 .ck-wrongbox .link, .ck-foot .link { align-self: flex-start; border: 0; background: none; color: var(--accent); padding: 0; font-size: 13px; cursor: pointer; text-decoration: underline; }
+/* T532: the checklist's map keeps only small tool icons */
+.map-panel.minimal .map-tools { padding: 4px 6px; gap: 4px; }
+.map-panel.minimal .map-tools button { font-size: 11px; padding: 2px 6px; }
