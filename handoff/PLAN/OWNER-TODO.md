@@ -21,7 +21,7 @@ with the default Claude uses until you answer). Newest first inside each section
   (casing) under each line — costs some map speed and changes the calm look. Default: no casing. Say "add casing" to
   try it. Shots: `tickets/shots/T470-wcag-*.png`.
 - **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
-  `CONFIRM_PROD=r-d14bdb180f55 python -m pipeline release --prod r-d14bdb180f55` (or the newer release by then).
+  `CONFIRM_PROD=r-a178299f6005 python -m pipeline release --prod r-a178299f6005` (or the newer release by then).
 - **Phone check with build 22 (Play internal), ~15 min — T401 edge pop-in, T448 pixel cap, crashes, then the build-22 tickets (2026-11-09).** Build 22 carries
   the lean MapLibre patch, the pixel cap at 2 and MapLibre's own prefetch (4). Use the **Map tab**, Regulations view.
   1. **T401, Fraser Valley z11 (around Chilliwack), then Coquitlam z13:** 3–4 quick flings one way, then back. Look at
