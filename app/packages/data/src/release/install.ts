@@ -302,9 +302,29 @@ export function installBytes(m: Manifest, held: Held | null): number {
  * right after the swap still knows what to prune). `raw` fetches the map assets (`assets.ts`: held to the manifest's
  * `files_sha256`, then each file to its sha); a manifest that names assets needs it.
  */
-export async function install(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null = null,
-                              onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo,
-                              beforeSwap?: () => Promise<void>, raw?: RawFetch): Promise<Held> {
+export function install(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null = null,
+                        onProgress: (p: Progress) => void = () => {}, toDisk?: DownloadTo,
+                        beforeSwap?: () => Promise<void>, raw?: RawFetch): Promise<Held> {
+  return exclusively(() => installNow(m, fs, dl, base, held, onProgress, toDisk, beforeSwap, raw));
+}
+
+/**
+ * (T596) ONE INSTALL OR PRUNE AT A TIME, per process. Every file is written to `<path>.part` and renamed, so two installs of
+ * one release (a resumed update beside a fresh one, a second boot) shared a `.part` and the first rename took it from the
+ * second: "NoSuchFileException … .sqlite.part". A prune deleting a release folder could equally take a `.part` an install
+ * still held. Queued, the later one finds the earlier one's verified files and keeps them (resume at file granularity).
+ * Nothing nests: `beforeSwap` and the callers' pruning run outside it.
+ */
+let queue: Promise<unknown> = Promise.resolve();
+function exclusively<T>(work: () => Promise<T>): Promise<T> {
+  const run = queue.then(work, work);
+  queue = run.catch(() => {});
+  return run;
+}
+
+async function installNow(m: Manifest, fs: ReleaseFs, dl: Download, base: string, held: Held | null,
+                          onProgress: (p: Progress) => void, toDisk: DownloadTo | undefined,
+                          beforeSwap: (() => Promise<void>) | undefined, raw: RawFetch | undefined): Promise<Held> {
   m = withoutSlices(m);                          // (T256) the answer slices are the web's: a phone holds the whole files
   const d = held ? diff(held, m) : { files: Object.keys(m.files).sort(), tiles: true, basemap: true, assets: true,
                                      synopsis: true };
@@ -415,8 +435,13 @@ export const synopsisPath = (sha256: string): string => `synopsis-${sha256.slice
  * the tile version folder they came in. `oldM`/`nowM` are the two sets' manifests (`oldM` null: unreadable — the tile
  * version folder is still found by its id).
  */
-export async function prune(fs: ReleaseFs, old: Held | null, oldM: Manifest | null, now: Held,
-                            nowM: Manifest): Promise<void> {
+export function prune(fs: ReleaseFs, old: Held | null, oldM: Manifest | null, now: Held,
+                      nowM: Manifest): Promise<void> {
+  return exclusively(() => pruneNow(fs, old, oldM, now, nowM));
+}
+
+async function pruneNow(fs: ReleaseFs, old: Held | null, oldM: Manifest | null, now: Held,
+                        nowM: Manifest): Promise<void> {
   if (!old) return;
   if (old.release && old.release !== now.release) await fs.remove(dirOf(old.release));
   else if (old.manifest && old.manifest !== now.manifest) await fs.remove(old.manifest);
