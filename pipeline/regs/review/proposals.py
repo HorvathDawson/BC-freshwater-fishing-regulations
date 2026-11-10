@@ -1043,7 +1043,13 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
                                   "--lake-splits`; no curated edit until lake splits are taken up"],
                         "split_id": None, "confidence": None})
         if m.scope == "dfo" and getattr(m, "variant_of", None):
-            out.append(_variant_proposal(m, pid, who, src))
+            vp = _variant_proposal(m, pid, who, src)
+            if vp["edits"] or vp["problems"]:
+                out.append(vp)
+            elif applied is not None and not (m.extent_fix or m.tributaries):
+                # the place file already says it (the write-through wrote the link): APPLIED — an edit-less proposal
+                # used to be re-offered and read "refused: not applicable: no edit" (owner's Serpentine link, 11-10)
+                applied.add(m.key)
         if m.scope == "dfo" and getattr(m, "not_variant_of", None):
             ap = _apart_proposal(m, pid, who, src)
             if ap["edits"] or ap["problems"]:

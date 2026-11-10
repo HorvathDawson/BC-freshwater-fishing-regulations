@@ -360,3 +360,7 @@ when it saves".
 - HIS PROBLEM REPORTS since 2026-11-09 (the marks store): Sheldens Creek → T571; Thompson River → T572. No report on
   the Morice reached the store: "Report a problem with it" is two steps and the save box was easy to miss — it is now
   scrolled into view and says "Step 2 of 2 — nothing is saved until 'Save the problem report'".
+- A SAME-PLACE LINK THE FILE ALREADY HOLDS IS APPLIED: his Serpentine "Same place as…" (11-10) was written by the
+  write-through (`duplicate_of` + confirmed true in region-2.json), but the proposal builder re-offered the now
+  edit-less proposal and `apply` / fast-fail read it "refused: not applicable: no edit" (1 NOT LANDED). An edit-less
+  variant proposal is now counted applied, as the take-out already was; fast-fail passes on the real store.
