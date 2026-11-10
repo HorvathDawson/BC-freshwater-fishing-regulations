@@ -950,8 +950,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "alouette_river__216_street_bridge"
+            ]
+          },
+          {
+            "op": "upstream_of",
+            "splits": [
+              "alouette_river__216th_street"
+            ],
+            "item_id": "gnis:39404"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
