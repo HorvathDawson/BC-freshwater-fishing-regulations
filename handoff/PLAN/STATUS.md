@@ -41,7 +41,8 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
   one water at a time. Whole list: DFO 287 places (182 with a ✗), regulations 3,399 rules (391 with a ✗); nothing checked yet.
 - Ledger close-out (0d16ad24e): 6 tickets DONE; every IN REVIEW ticket names its owner step. Docs checked against code.
 - T530 share a gauge from Conditions: built (de39a5f2…, 20fee8f08), the app uses the site's own has-a-page rule.
-- `release --staging --min-app-version 0.7.0`: rerunning from 4d266e1b2 (now pushed); in the build stage.
+- **Release r-a178299f6005 is LATEST and on staging** (`release --staging --min-app-version 0.7.0`, all 6 stages done in 26 min;
+  bindings same as r-d14; in-season re-resolved). Fast-fail all green on it.
 
 ## 2026-11-09 ~16:15 — BUILD 22 ON PLAY INTERNAL; chat 8 ends (restart page: NEXT-SESSION-after-chat8.md)
 - Build 22 = 0.7.0, versionCode 22 (3d807829d), uploaded to the internal track; tester email sent.
