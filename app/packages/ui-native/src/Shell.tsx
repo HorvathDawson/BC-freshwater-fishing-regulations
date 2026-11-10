@@ -621,7 +621,7 @@ export function Shell(p: ShellProps) {
                        // it consumes the search, so back lands on the map at the water (owner 2026-10-22 late)
                        onOpenWater={search.openSearched}
                        onClose={search.closeToField}
-                       statusIndex={col.statusIndex} total={counts?.waters}
+                       statusIndex={col.statusIndex} day={mapDay} total={counts?.waters}
                        recents={search.recents.list} onRecent={search.pickRecent} onClearRecents={search.recents.clear} />
         )}
       </>

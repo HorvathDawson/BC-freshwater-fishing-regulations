@@ -54,7 +54,7 @@ export const HALF_DROP = 0.45;
 /** The transition's length, ms (F2–F3 of the approved frames: the dim and the rise together). */
 export const SHEET_MS = 240;
 
-export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onClose, statusIndex, total, recents = [], onRecent, onClearRecents }: {
+export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWater, onClose, statusIndex, day = null, total, recents = [], onRecent, onClearRecents }: {
   /** Search is open (route `search`). Closed: the sheet slides (or fades) away and its rows go. */
   open: boolean;
   /**
@@ -74,6 +74,8 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   onOpenWater: (item: ItemId) => void;
   /** The day's status of each water (the index the map colours by); null: no row carries a status. */
   statusIndex: StatusIndex | null;
+  /** The day the map is on (the picked day), null = today: the rows' status dots answer for THE SAME day (T620 G1). */
+  day?: Date | null;
   /** How many named waters there are (the source's count), for the sheet's head; absent until read. */
   total?: number;
   /** (T247) recent searches (device-only) shown before two letters are typed, and what a tap or Clear does */
@@ -115,7 +117,7 @@ export function SearchSheet({ open, top, palette, session, pick, onAct, onOpenWa
   if (!shown) return null;
   const rows = open ? sheetRows(pick, session, recents) : [];
   const drop = Math.round(height * HALF_DROP);
-  const today = bcNow();
+  const today = day ?? bcNow();
   const act = (a: SearchAction) => onAct(a);
   return (
     <>
