@@ -7,7 +7,7 @@ import { createContext, useContext, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../Text";
 import Svg, { Defs, Line as SvgLine, Pattern, Rect } from "react-native-svg";
-import { WORDS, type SalmonDrawn, type SalmonStripVM, type StripVM } from "@app/core";
+import { WORDS, legendText, type SalmonDrawn, type SalmonStripVM, type StripVM } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, type Palette } from "../theme";
 import { useCoachTarget } from "../CoachMarks";
@@ -116,14 +116,14 @@ export function YearStrip({ strip, dateLabel, palette, title = null, hours = nul
       <View testID="strip-months" style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5 }}>
         {strip.months.map((m, i) => <Text key={i} style={[TYPE.month, { color: palette.sub }]}>{m}</Text>)}
       </View>
-      <View testID="strip-legend" style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 2, columnGap: 12, marginTop: 6 }}>
+      <View testID="strip-legend" style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 2, columnGap: 14, marginTop: 8 }}>
         {strip.legend.map((l) => (
           <View key={l.bit} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
             <Svg width={l.bit <= 1 ? 14 : 12} height={10}>
               <Patterns id={`lg${l.bit}`} palette={palette} />
               <RunRect x={0} w={l.bit <= 1 ? 14 : 12} bits={l.bit === 0 ? 0 : l.bit} palette={palette} id={`lg${l.bit}`} />
             </Svg>
-            <Text style={[TYPE.meta, { color: palette.sub }]}>{(l.mark ? `${l.mark} ` : "") + l.label}</Text>
+            <Text testID="strip-legend-item" style={[TYPE.legend, { color: palette.ink }]}>{legendText(l)}</Text>
           </View>
         ))}
       </View>
@@ -183,14 +183,14 @@ export function SalmonYearStrip({ strip, todayAt, months, dateLabel, palette }: 
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5 }}>
         {months.map((m, i) => <Text key={i} style={[TYPE.month, { color: palette.sub }]}>{m}</Text>)}
       </View>
-      <View testID="salmon-strip-legend" style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 2, columnGap: 12, marginTop: 6 }}>
+      <View testID="salmon-strip-legend" style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 2, columnGap: 14, marginTop: 8 }}>
         {strip.legend.map((l) => (
           <View key={l.drawn} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
             <Svg width={l.drawn === "release" ? 12 : 14} height={10}>
               <Patterns id={`slg${l.drawn}`} palette={palette} />
               <SalmonRect x={0} w={l.drawn === "release" ? 12 : 14} drawn={l.drawn} palette={palette} id={`slg${l.drawn}`} />
             </Svg>
-            <Text style={[TYPE.meta, { color: palette.sub }]}>{l.label}</Text>
+            <Text style={[TYPE.legend, { color: palette.ink }]}>{l.label}</Text>
           </View>
         ))}
       </View>

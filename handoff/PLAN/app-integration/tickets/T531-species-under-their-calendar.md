@@ -1,6 +1,6 @@
 # T531 — Each calendar sits with its own species (Regulations: What you can keep)
 
-Status: BLOCKED — owner looks at the mockup (owner 2026-11-09 asked for a second opinion; Claude agreed)
+Status: IN REVIEW — owner phone look on 0.7.2 (mockup approved 2026-11-09: "i like the new mockup more please add as new patch release")
 
 Owner 2026-11-09 (Vedder River screenshot): salmon should live under the "SALMON (DFO)" calendar and trout/char, kokanee,
 whitefish under the "GAME FISH (B.C. RULES)" calendar; "either way we want the text to be easier to have visible".
@@ -19,3 +19,21 @@ Self-contained HTML (light/dark, before/after, Vedder / one-block toggles; app t
 Shots: `shots/T531-vedder-light.png`, `T531-vedder-dark.png`, `T531-single-light.png`, `T531-single-dark.png`, and today's layout (redrawn
 from KeepBlocks/YearStrip, not a live app capture) `T531-before.png`, `T531-before-dark.png`. Limits and dates shown are illustrative.
 Species go under a block by the source of the rule that governs them (DFO rule -> Salmon block; B.C. synopsis rule -> Game fish), never a hand list.
+
+## Done (2026-11-09)
+- Core `glance.ts`: every folded row carries `source` (`dfo` for the Salmon card row, `bc` for a quota group); `speciesBlocks(rows, dfoBlock)`
+  puts a row under the block of its own source (a DFO row with no salmon calendar drawn stays with the rest). Other fish rows are
+  the synopsis' own, so B.C. by construction. No hand list of species anywhere. `legendText` (core strip) words a legend entry
+  ("✓ Open", "Fly fishing only", "✕ Closed"); the salmon bar legend is capitalised the same way (`SALMON_WORDS.barLegend`).
+- UI (`KeepTab`, `KeepBlocks` `SpeciesRows`, `YearStrip`, `type.ts` `TYPE.legend`): each block = heading, status, year bar and legend,
+  then its rows (folded groups + Other fish + status key under Game fish (B.C. rules); the Salmon row under Salmon (DFO)). The
+  "Species and limits" list is drawn only where no game-fish calendar is (tidal / outside B.C. / no strip). The legend is full
+  ink 14 px semibold. A one-block water also shows the "Game fish (B.C. rules)" heading (as the mockup does). Details expanders,
+  chevrons, stamps, the status key and the Possession row are unchanged.
+- Block order: as the app has it today (Game fish first, Salmon (DFO) second; the mockup's DFO-first was only to match the owner's
+  sketch). The in-season line and the caveat / inherited blocks stay after the blocks, where they were.
+- Tests: core `glance.test.ts` (source tags; a species only under its own source's block; no DFO calendar), `KeepTab.test.tsx`
+  (T531 block: Vedder order, a species only under its own block, one-block water, Details / rows / Possession still work, legend
+  words); `salmon.test.ts` legend words and the glance row's `source` updated. No assertion removed.
+- Shots (web, 390 px, light + dark): `shots/T531-built-vedder-{light,dark}.png`, `shots/T531-built-single-{light,dark}.png`.
+- Owner: phone look on 0.7.2.

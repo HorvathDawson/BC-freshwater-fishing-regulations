@@ -114,6 +114,11 @@ export function legendOf(inp: RegsInputs, runs: readonly { bits: number | null }
   }));
 }
 
+/** (T531) A legend entry as drawn: its mark and its label, the label's first letter capital ("✓ Open", "Fly fishing only"). */
+export function legendText(l: StripVM["legend"][number]): string {
+  return (l.mark ? `${l.mark} ` : "") + l.label.charAt(0).toUpperCase() + l.label.slice(1);
+}
+
 /** The fish a "Trout …" line speaks for (page v36 waterStrip0 TR, round UR5): a match key, never said. */
 export const TROUT_LINE_FISH: readonly string[] = Object.freeze(["RB", "CT", "GB"]);
 const trouty = (r: HydRow) => r.members.some((S) => TROUT_LINE_FISH.includes(S));

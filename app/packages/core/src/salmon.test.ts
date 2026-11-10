@@ -204,7 +204,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
     expect([c.year.bars[0]!.today, c.year.bars[0]!.todayWord]).toEqual(["varies", "differs along this part"]);
     const s = salmonStripOf(c, null)!;
     // drawn like the game-fish bar: a day the sections differ is the neutral "unknown" fill; the details say why
-    expect([s.status, s.mark + s.word, s.legend.map((l) => l.label)]).toEqual(["varies", "Varies", ["see Salmon below", "✕ closed"]]);
+    expect([s.status, s.mark + s.word, s.legend.map((l) => l.label)]).toEqual(["varies", "Varies", ["See Salmon below", "✕ Closed"]]);
   });
 
   it("(T372, the trout way) PARTIAL COVERAGE: ONE bar of the DRAWN answer; the undrawn place never turns a day to check DFO", () => {
@@ -221,7 +221,7 @@ describe("(T227) the salmon year at the top of the Keep tab", () => {
   it("no salmon here (DFO lists nothing): no bar — never an all-closed salmon bar; the glance row is a plain 'closed'", () => {
     const c = salmonCard(facts(), { sids: [7], item: "gnis:1" }, JUL20);
     expect([c.year.bars, salmonStripOf(c, null), c.closedOnly]).toEqual([[], null, true]);
-    expect(salmonGlance(c)).toEqual({ thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false });
+    expect(salmonGlance(c)).toEqual({ source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false });
     expect(salmonCard(facts(), { sids: [101], item: null }, JUL20).closedOnly).toBe(false);
   });
 

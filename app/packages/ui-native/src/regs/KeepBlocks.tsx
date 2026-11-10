@@ -281,17 +281,17 @@ function FoldRow({ f, palette, images, coach }: { f: GlanceFold; palette: Palett
   );
 }
 
-export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: {
+/**
+ * (T531) A block's species: its folded rows, then the Other fish rows and their status key — no heading, no rule of its own,
+ * so it sits under the calendar it belongs to (or, in `OtherFish`, under "Species and limits").
+ */
+export function SpeciesRows({ rows, keys, palette, actions, images, folds = [] }: {
   rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
-  /** (T221) the at-a-glance table's folded rows (Salmon, the quota groups), drawn first; then the table heads "Species and limits" */
   folds?: readonly GlanceFold[];
 }) {
   const tone = (t: OtherFishRowVM["tone"]) => (t === "release" ? palette.restricted : t === "closed" ? palette.closed : palette.ink);
   return (
-    <View testID="keep-otherfish" style={{ paddingTop: 18, paddingBottom: 4, marginTop: 14, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
-      <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8, paddingHorizontal: GUTTER }]}>
-        {folds.length ? GLANCE_WORDS.head : WORDS.OTHER_FISH}
-      </Text>
+    <View testID="species-rows">
       {folds.map((f) => <FoldRow key={f.key} f={f} palette={palette} images={images}
                                  coach={f.key === "salmon" ? "regs:salmon" : f === folds.find((x) => x.key.startsWith("group:")) ? "regs:trout" : undefined} />)}
       <View style={{ paddingHorizontal: GUTTER }}>
@@ -327,6 +327,21 @@ export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: 
         </View>
       )}
       </View>
+    </View>
+  );
+}
+
+export function OtherFish({ rows, keys, palette, actions, images, folds = [] }: {
+  rows: readonly OtherFishRowVM[]; keys: readonly OtherFishKeyVM[]; palette: Palette; actions: KeepActions; images?: FishImages;
+  /** (T221) the at-a-glance table's folded rows (Salmon, the quota groups), drawn first; then the table heads "Species and limits" */
+  folds?: readonly GlanceFold[];
+}) {
+  return (
+    <View testID="keep-otherfish" style={{ paddingTop: 18, paddingBottom: 4, marginTop: 14, borderTopWidth: 1.5, borderTopColor: palette.ink }}>
+      <Text accessibilityRole="header" style={[TYPE.sectionHead, { color: palette.ink, marginBottom: 8, paddingHorizontal: GUTTER }]}>
+        {folds.length ? GLANCE_WORDS.head : WORDS.OTHER_FISH}
+      </Text>
+      <SpeciesRows rows={rows} keys={keys} palette={palette} actions={actions} images={images} folds={folds} />
     </View>
   );
 }

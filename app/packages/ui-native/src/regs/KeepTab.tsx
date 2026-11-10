@@ -8,12 +8,17 @@
  *
  * (T227, owner 2026-10-28) `salmonStrip`: DFO's salmon year drawn right under the provincial year bar (the two named),
  * at the top of the tab. A tab with no rows for the table (a closed water) draws the table after the leading blocks.
+ *
+ * (T531, owner 2026-11-09) With the glance table, each calendar owns its species: heading, status, year bar and legend, then
+ * ITS rows — Game fish (B.C. rules) the quota groups and Other fish, Salmon (DFO) the Salmon row. Which block a row sits
+ * under is its rule source (core `speciesBlocks`), and the separate "Species and limits" list is drawn only where no
+ * game-fish calendar is (a water the strip does not govern).
  */
 import type { ReactNode } from "react";
 import { View } from "react-native";
-import { daylightOffsets, groupGlance, WORDS, type GlanceRowVM, type InSeasonBannerVM, type KeepVM, type SalmonStripVM } from "@app/core";
+import { daylightOffsets, groupGlance, speciesBlocks, SALMON_WORDS, WORDS, type GlanceRowVM, type InSeasonBannerVM, type KeepVM, type SalmonStripVM } from "@app/core";
 import type { Palette } from "../theme";
-import { ClosedBanner, CaveatBlock, TimedLines, InheritedLine, OtherFish, OutsideFoot, PossessionRow, WhereNot, type GlanceFold } from "./KeepBlocks";
+import { ClosedBanner, CaveatBlock, TimedLines, InheritedLine, OtherFish, SpeciesRows, OutsideFoot, PossessionRow, WhereNot, type GlanceFold } from "./KeepBlocks";
 import { InSeasonBanners } from "./InSeasonBanner";
 import { GroupCard } from "./GroupCard";
 import { PlainRow } from "./PlainRow";
@@ -39,12 +44,15 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
       body: () => <GroupCard g={keep.groups[b.group]!} palette={palette} actions={actions} images={images} />,
     }] : []),
   ];
+  const home = !!(glance && keep.strip && keep.order.includes("strip"));   // a game-fish calendar to hang the B.C. species under
+  const salmonHome = !!(glance && salmonStrip && glance.salmon);           // a salmon calendar to hang the DFO row under
+  const split = speciesBlocks(folds, salmonHome);
   const at = keep.order.findIndex((b) => b === "otherFish" || (typeof b === "object" && "group" in b));
   // (T293) the walkthrough's "what you can keep" points at the species table
   const table = (key: number) => (
     <CoachSpot key={key} k="regs:keep">
       <OtherFish rows={keep.otherFish ?? []} keys={keep.otherFishKey} palette={palette} actions={actions} images={images}
-                 folds={folds} />
+                 folds={home ? [] : split.rest} />
     </CoachSpot>
   );
   // no row for the table: it goes after the leading blocks (strip, inherited line, banner, caveats), never above the bar
@@ -58,19 +66,29 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   const off = timed ? [...timed.items, ...(timed.later ?? [])].map(daylightOffsets).find((o) => o !== null) ?? null : null;
   const range = off && daylight ? daylight(off.after, off.before) : null;
   const hours = range ? WORDS.DAYLIGHT_HOURS(range) : null;
+  // (T531) the species under their calendar: the B.C. rows under the game-fish bar, the DFO row under the salmon bar
+  const gameRows = home && (split.rest.length > 0 || (keep.otherFish ?? []).length > 0) && (
+    <CoachSpot key="game-species" k="regs:keep">
+      <SpeciesRows rows={keep.otherFish ?? []} keys={keep.otherFishKey} palette={palette} actions={actions} images={images} folds={split.rest} />
+    </CoachSpot>
+  );
   const salmonBar = salmonStrip && (
-    <SalmonYearStrip key="salmon-strip" strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []}
-                     dateLabel={dateLabel} palette={palette} />
+    <View key="salmon-block" testID="salmon-block"
+          style={keep.strip && glance ? { marginTop: 14, paddingTop: 4, borderTopWidth: 1.5, borderTopColor: palette.ink } : undefined}>
+      <SalmonYearStrip strip={salmonStrip} todayAt={keep.strip?.todayAt ?? 0} months={keep.strip?.months ?? []}
+                       dateLabel={dateLabel} palette={palette} />
+      {salmonHome && split.dfo.length > 0 && <SpeciesRows rows={[]} keys={[]} palette={palette} actions={actions} images={images} folds={split.dfo} />}
+    </View>
   );
   return (
     <View testID="keep-tab" style={{ paddingBottom: 24 }}>
       {!keep.strip && salmonBar}
       {keep.order.map((b, i) => {
-        const before = glance && at < 0 && folds.length > 0 && i === tableAt ? table(-1) : null;
+        const before = glance && !home && at < 0 && split.rest.length > 0 && i === tableAt ? table(-1) : null;
         const block = ((): ReactNode => {
-        if (glance && (b === "otherFish" || (typeof b === "object" && "group" in b))) return i === at ? table(i) : null;
-        if (b === "strip") return [<YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={salmonStrip ? salmonStrip.generalTitle : null} hours={hours} />,
-          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} />, salmonBar];
+        if (glance && (b === "otherFish" || (typeof b === "object" && "group" in b))) return i === at && !home ? table(i) : null;
+        if (b === "strip") return [<YearStrip key={i} strip={keep.strip!} dateLabel={dateLabel} palette={palette} title={salmonStrip ? salmonStrip.generalTitle : glance ? SALMON_WORDS.barGeneral : null} hours={hours} />,
+          timed && <TimedLines key="timed" caveat={timed} palette={palette} actions={actions} hoursSaid={!!hours} />, gameRows, salmonBar];
         if (b === "inherited") return <InheritedLine key={i} inherited={keep.inherited!} palette={palette} actions={actions} />;
         if (b === "banner") return <ClosedBanner key={i} banner={keep.banner!} palette={palette} actions={actions} />;
         if (b === "otherFish") return <OtherFish key={i} rows={keep.otherFish!} keys={keep.otherFishKey} palette={palette} actions={actions} images={images} />;
@@ -86,7 +104,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         return before || line ? [line, before, block] : block;
       })}
       {lead < 0 && inSeasonLine}
-      {glance && at < 0 && folds.length > 0 && tableAt >= keep.order.length && table(-1)}
+      {glance && !home && at < 0 && split.rest.length > 0 && tableAt >= keep.order.length && table(-1)}
     </View>
   );
 }

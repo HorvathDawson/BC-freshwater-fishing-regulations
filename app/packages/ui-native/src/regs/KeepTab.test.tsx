@@ -115,15 +115,75 @@ describe("(T227, owner 2026-10-28) the salmon bar at the top, and the glance row
   it("the WHOLE glance row opens its card; a row with nothing more is plain (no Details, not a button)", () => {
     const keep = keepOf(vedder1010);
     render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
-                    glance={{ salmon: { row: { thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } }} />);
+                    glance={{ salmon: { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } }} />);
     const row = screen.getByTestId("glance:salmon");
     fireEvent.click(row.querySelector("[role=button]")!.firstChild as Element);   // the picture, not the Details button
     expect(screen.getByTestId("glance-body:salmon").textContent).toBe("salmon card");
     cleanup();
     render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions}
-                    glance={{ salmon: { row: { thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false }, card: () => <span>x</span> } }} />);
+                    glance={{ salmon: { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: "closed", tone: "closed", fold: false }, card: () => <span>x</span> } }} />);
     const plain = screen.getByTestId("glance:salmon");
     expect([plain.querySelector("[role=button]"), plain.querySelector("[data-testid=glance-toggle]"), plain.textContent])
       .toEqual([null, null, "Salmonclosed"]);
+  });
+});
+
+describe("(T531, owner 2026-11-09) each calendar owns its species", () => {
+  const STRIP = { title: "Salmon (DFO)", status: "release", mark: "✓ ", word: "Release only", when: "today", soon: null,
+    generalTitle: "Game fish (B.C. rules)", legend: [{ drawn: "release", label: "Release only" }, { drawn: "closed", label: "✕ Closed" }],
+    runs: [{ drawn: "release", days: 300 }, { drawn: "closed", days: 65 }] } as const;
+  const actions: KeepActions = { onSheet() {}, onDay() {}, onTab() {}, onBook() {} };
+  const salmon = { row: { source: "dfo", thumb: "CO", name: SALMON_WORDS.title, value: null, tone: "keep" }, card: () => <span>salmon card</span> } as const;
+  const group = (r: ReturnType<typeof render>) => r.container.querySelector("[data-testid='keep-tab']") as HTMLElement;
+
+  it("Vedder: game fish (strip, its group and Other fish rows), then Salmon (bar, its Salmon row); no 'Species and limits' list", () => {
+    const keep = keepOf(vedder1010);
+    const r = render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
+    const ids = [...group(r).querySelectorAll("[data-testid='keep-strip'],[data-testid='glance:group:0'],[data-testid='keep-species'],[data-testid='species-rows'],[data-testid='salmon-block'],[data-testid='salmon-strip'],[data-testid='glance:salmon']")]
+      .map((e) => e.getAttribute("data-testid"));
+    expect(ids).toEqual(["keep-strip", "species-rows", "glance:group:0", "salmon-block", "salmon-strip", "species-rows", "glance:salmon"]);
+    expect(screen.queryByTestId("keep-otherfish")).toBeNull();
+    expect(screen.queryByText("Species and limits")).toBeNull();
+  });
+
+  it("a species appears only under its own source's block", () => {
+    const keep = keepOf(vedder1010);
+    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} salmonStrip={STRIP as never} glance={{ salmon }} />);
+    const dfo = screen.getByTestId("salmon-block"), strip = screen.getByTestId("keep-strip");
+    expect(within(dfo).getByTestId("glance:salmon")).toBeTruthy();                       // the DFO row: under the salmon block
+    expect(within(dfo).queryByTestId("glance:group:0")).toBeNull();                      // no B.C. group in it
+    expect(within(dfo).queryByText("Kokanee")).toBeNull();                               // no B.C. Other fish row in it
+    const bc = strip.nextElementSibling as HTMLElement | null;
+    if (!bc) throw new Error("no rows under the game-fish calendar");                                  // the rows right under the game-fish calendar
+    expect(within(bc).getByTestId("glance:group:0")).toBeTruthy();
+    expect(within(bc).getByText("Kokanee")).toBeTruthy();
+    expect(within(bc).queryByTestId("glance:salmon")).toBeNull();                        // and no salmon row among them
+    expect(screen.getAllByTestId("glance:salmon")).toHaveLength(1);
+  });
+
+  it("a water with only B.C. rules has one block: the game-fish heading, its rows, no salmon block", () => {
+    const r = render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={actions} glance={{ salmon: null }} />);
+    expect(screen.getByTestId("keep-strip-title").textContent).toBe("Game fish (B.C. rules)");
+    expect([screen.queryByTestId("salmon-block"), screen.queryByTestId("keep-otherfish")]).toEqual([null, null]);
+    expect(within(group(r)).getByText("Kokanee")).toBeTruthy();
+  });
+
+  it("Details, rows and the possession row still work from inside the blocks", () => {
+    const sheets: SheetKey[] = [];
+    render(<KeepTab keep={keepOf(vedder1010)} dateLabel="Oct 10" palette={LIGHT} actions={{ ...actions, onSheet: (k) => sheets.push(k) }}
+                    salmonStrip={STRIP as never} glance={{ salmon }} />);
+    fireEvent.click(within(screen.getByTestId("glance:salmon")).getByRole("button"));
+    expect(screen.getByTestId("glance-body:salmon").textContent).toBe("salmon card");
+    fireEvent.click(screen.getByText("Kokanee"));
+    fireEvent.click(screen.getByTestId("keep-possession"));
+    expect(sheets.length).toBe(2);
+  });
+
+  it("the legend is plain ink words with the first letter capital: '✓ Open', 'Fly fishing only'", () => {
+    const keep = keepOf(vedder1010);
+    render(<KeepTab keep={keep} dateLabel="Oct 10" palette={LIGHT} actions={actions} />);
+    expect(screen.getAllByTestId("strip-legend-item").map((e) => e.textContent)).toEqual(keep.strip!.legend.map((l) =>
+      (l.mark ? `${l.mark} ` : "") + l.label[0]!.toUpperCase() + l.label.slice(1)));
+    expect(screen.getAllByTestId("strip-legend-item")[0]!.textContent).toBe("✓ Open");
   });
 });

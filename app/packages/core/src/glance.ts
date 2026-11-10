@@ -18,8 +18,13 @@ export const GLANCE_WORDS = {
   hide: "Hide",
 } as const;
 
+/** (T531) the rule source a species row's answer comes from. */
+export type SpeciesSource = "dfo" | "bc";
+
 /** One folded row: the picture's code, the name, the status word true for the whole card (null: none) and its tone. */
 export interface GlanceRowVM {
+  /** (T531) whose rule answers this row: DFO's salmon feed, or the B.C. synopsis rules. It decides the calendar the row sits under. */
+  readonly source: SpeciesSource;
   readonly thumb: string | null;
   readonly name: string;
   readonly value: string | null;
@@ -43,7 +48,7 @@ function thumbOf(nodes: readonly TreeNodeVM[]): string | null {
 
 /** A quota group's folded row: its title and picture, no count (owner 2026-10-28: a group's number misleads). */
 export function groupGlance(g: GroupVM): GlanceRowVM {
-  return { thumb: thumbOf(g.tree ?? []), name: g.title, value: null, tone: "keep" };
+  return { source: "bc", thumb: thumbOf(g.tree ?? []), name: g.title, value: null, tone: "keep" };
 }
 
 /**
@@ -51,11 +56,22 @@ export function groupGlance(g: GroupVM): GlanceRowVM {
  * card has that status; else none. (T372, the trout way) an undrawn DFO place is the card's caveat, not its answer.
  */
 export function salmonGlance(card: SalmonCardVM): GlanceRowVM {
-  if (card.closedOnly) return { thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: false };
+  if (card.closedOnly) return { source: "dfo", thumb: "CO", name: card.title, value: SALMON_WORDS.status.closed.toLowerCase(), tone: "closed", fold: false };
   const all = card.rows.map((r) => r.status);
   const s = all.length && all.every((x) => x === all[0]) ? all[0]! : null;
-  if (s === null || s === "varies") return { thumb: "CO", name: card.title, value: null, tone: "keep" };
+  if (s === null || s === "varies") return { source: "dfo", thumb: "CO", name: card.title, value: null, tone: "keep" };
   const word = SALMON_WORDS.status[s];
-  return { thumb: "CO", name: card.title, value: s === "check" ? word.replace(/^Check/, "check") : word.toLowerCase(),
+  return { source: "dfo", thumb: "CO", name: card.title, value: s === "check" ? word.replace(/^Check/, "check") : word.toLowerCase(),
            tone: s === "closed" ? "closed" : s === "release" ? "release" : "keep" };
+}
+
+/**
+ * (T531, owner 2026-11-09) WHICH SPECIES SIT UNDER WHICH CALENDAR. Each row goes under the block of the rule source that
+ * answers it (`GlanceRowVM.source`): a DFO row under the Salmon (DFO) calendar, a B.C. row under the Game fish (B.C.
+ * rules) one — never a list kept by hand. `dfoBlock` false (no salmon calendar is drawn: DFO has no rules for the
+ * water) leaves a DFO row without a block of its own, so it stays with the rest. Order inside a block is the input's.
+ */
+export function speciesBlocks<T extends { readonly row: GlanceRowVM }>(rows: readonly T[], dfoBlock: boolean): { dfo: T[]; rest: T[] } {
+  const dfo = rows.filter((x) => dfoBlock && x.row.source === "dfo");
+  return { dfo, rest: rows.filter((x) => !dfo.includes(x)) };
 }

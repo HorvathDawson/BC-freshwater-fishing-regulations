@@ -450,7 +450,7 @@ export const SALMON_WORDS = {
   /** (T227, owner 2026-10-28) the season bars at the top of the Keep tab: the provincial bar's name beside the salmon one */
   barSalmon: "Salmon (DFO)",
   barGeneral: "Game fish (B.C. rules)",
-  barLegend: { open: "✓ open", release: "release only", unknown: "see Salmon below", closed: "✕ closed" },
+  barLegend: { open: "✓ Open", release: "Release only", unknown: "See Salmon below", closed: "✕ Closed" },
   /** (T227) the Gear tab's heads for DFO's gear conditions */
   gearDfoLead: "For salmon (DFO)",
   gearSalmonOnly: "Gear for salmon fishing: the B.C. gear rules below, and DFO's conditions",

@@ -96,6 +96,8 @@ export const TYPE = {
   value:        { fontFamily: FACE.textBold,  fontSize: 17, lineHeight: 22.95 },
   chip:         { fontFamily: FACE.textBold,  fontSize: 11.04, lineHeight: 17.66, letterSpacing: 0.4, textTransform: "uppercase" },
   /** Meta, --t4. `meta` = /1.42 (notes, legend, captions); the /1.3 forms for labels and short lines. */
+  /** (T531) a year bar's legend: full ink, larger than the meta text it was */
+  legend:      { fontFamily: FACE.textSemi,  fontSize: 14, lineHeight: 20 },
   meta:        { fontFamily: FACE.text,      fontSize: 12.48, lineHeight: 17.72 },
   metaSemi:    { fontFamily: FACE.textSemi,  fontSize: 12.48, lineHeight: 16.22 },
   metaBold:    { fontFamily: FACE.textBold,  fontSize: 12.48, lineHeight: 16.22 },
