@@ -3115,7 +3115,9 @@
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "same place as 2:serpentine-river:downstream-of-168th-street-at-both: put in its group by the owner (checklist) — owner confirmed same place 2026-11-10"
+        ],
         "spatial_caveat": false
       }
     },
