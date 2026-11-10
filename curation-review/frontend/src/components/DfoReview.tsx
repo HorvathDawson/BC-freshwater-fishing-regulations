@@ -1269,6 +1269,9 @@ function NewSplits({ id, items, hints, quote, op, shared, value, onChange, check
           <ConfChip c={n.confidence ?? defaultConfidence(n.anchor)} />
           {n.amends && <span className="chip-tag" title="replaces the proposed cut at that anchor">edit of {anchorWords(n.amends)}</span>}
           {checks[n.ref] && <span className="dim">→ {checks[n.ref].words}{checks[n.ref].blk ? ` · blk ${checks[n.ref].blk} @ ${checks[n.ref].measure?.toFixed(0)} m` : ""}</span>}
+          {checks[n.ref]?.nearest && <span className={checks[n.ref].nearest!.near ? "warn-text" : "dim"} data-testid={`dfo-split-nearest-${n.ref}`}>
+            {" "}· nearest existing cut: “{checks[n.ref].nearest!.label}”, {checks[n.ref].nearest!.metres.toLocaleString()} m away
+            {checks[n.ref].nearest!.near ? " — that close, use the existing cut instead of a new one (pick it as the point: “a split on this map” or “any curated split”)" : ""}</span>}
           {offsettable.includes(n.anchor)
             ? <OffsetInput value={n.offset_m ?? null} onSet={(v) => void onOffset(n.ref, v)} />
             : <span className="dim" title="the build cuts it where it is">no offset</span>}

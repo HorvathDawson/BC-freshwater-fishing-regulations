@@ -831,7 +831,7 @@ def piece_shape(location_id: str, g: dict, new: dict | None = None) -> dict:
                     **({} if q is not None else {"why": f"no cut {sid} in the curated splits"})}
         n = new.get(sid)
         chk = check_anchor(location_id, M.NewSplit.model_validate(n)) if n else {"ok": False, "why": "no such new cut"}
-        near = nearest_cut(chk.get("blk"), chk.get("measure")) if chk.get("ok") else None
+        near = chk.get("nearest") if chk.get("ok") else None          # `check_anchor` says it for every new cut
         return {"label": (n or {}).get("name") or "a new cut placed by hand", "new": True, "coord": chk.get("coord"),
                 "measure": chk.get("measure"), **({} if chk.get("ok") else {"why": chk.get("why")}),
                 **({"nearest": near} if near else {})}
@@ -1297,6 +1297,11 @@ def check_anchor(location_id: str, ns) -> dict:
             out["words"] += f", {abs(ns.offset_m):.0f} m {'above' if ns.offset_m > 0 else 'below'}"
             p = q
         out["coord"] = _lonlat(p)
+        # owner 2026-11-10 (T590): "if one is near one that already existed use the already existing one" — said on
+        # EVERY new cut, wherever it is placed: the nearest existing cut on the same line, and whether it is near
+        near = nearest_cut(out["blk"], out["measure"])
+        if near:
+            out["nearest"] = near
         return out
 
     if ns.anchor in ("bridge", "dam", "sign", "coord"):

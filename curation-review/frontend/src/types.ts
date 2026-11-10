@@ -949,7 +949,9 @@ export interface ExtentFix {
   area?: string | null;
 }
 export interface ExtentOpInfo { op: ExtentOp; points: number; words: string }
-export interface SplitHit { id: string; label: string; water: string; kind?: string | null }
+export interface SplitHit { id: string; label: string; water: string; kind?: string | null;
+  /** T590: a cut of the water the asker is on (listed first) */
+  own?: boolean }
 export interface ItemHit { id: string; name: string; kind: string; mus: string[] }
 /** One atlas area (`/api/areas/search`): the "within an area" op's pick list. */
 export interface AreaHit { id: string; name: string }
@@ -1061,6 +1063,8 @@ export interface AnchorCheck {
   on_item?: string;
   distance_m?: number;
   words?: string;
+  /** T590 (owner 2026-11-10): the existing cut nearest this new one on the same line; `near` = within 200 m — use it */
+  nearest?: { split_id: string; label: string; metres: number; near: boolean };
   item_id?: string;
   /** owner 2026-11-02: the REFERENCE the cut is offset from (the anchor itself, snapped) */
   ref?: { blk: string; measure: number; coord: [number, number] };
@@ -1369,7 +1373,7 @@ export interface DfoClosure {
   /** `reading`: the rule's words are the OWNER's reading of DFO's (`dfo_words`), said as such */
   rule: { verbatim: string; reading?: string; dfo_words?: string };
   proposed: boolean; row_live: boolean; new_cuts: string[]; said_by?: string;
-  water_id: string;
+  water_id: string; water?: string | null;
   /** the registry water the place is on (a new piece lies on it) */
   on_item: string | null;
   /** how close (m) a new cut may be to an existing one before the existing one is offered instead */

@@ -206,8 +206,9 @@ export const api = {
 
   // --- T191: the extent-fix editor (reads only; the fix rides the mark) ---
   extentOps: () => getJSON<{ ops: ExtentOpInfo[]; point_kinds: string[] }>("/api/extent-fix/ops"),
-  searchSplits: (q: string) =>
-    getJSON<SplitHit[]>(`/api/splits/search?q=${encodeURIComponent(q)}`),
+  /** `first` (T590): the names of the waters the asker is on — their cuts are listed before any other water's */
+  searchSplits: (q: string, first: string[] = []) =>
+    getJSON<SplitHit[]>(`/api/splits/search?q=${encodeURIComponent(q)}${first.map((w) => `&first=${encodeURIComponent(w)}`).join("")}`),
   searchAreas: (q: string) =>
     getJSON<AreaHit[]>(`/api/areas/search?q=${encodeURIComponent(q)}`),
   searchItems: (q: string, kind?: string) =>

@@ -573,3 +573,18 @@ def test_the_places_cache_goes_stale_on_each_thing_it_is_made_from_and_on_nothin
         assert len(built) == n + 1, f"a change of {part} must recompute the places"
         B._places()
         assert len(built) == n + 1, f"…and only once ({part})"
+
+
+def test_a_cut_search_lists_this_waters_cuts_before_any_other_waters(monkeypatch):
+    """T590: a wording that names a tributary listed the tributary's cuts above the place's own. The asker's waters
+    come first, each group in file order, and the limit is cut AFTER the ordering."""
+    R = _backend(monkeypatch, "reuse")
+    recs = {"t1": ("Deadman Creek", {"label": "bridge"}), "t2": ("Deadman Creek", {"label": "bridge two"}),
+            "m1": ("Thompson River", {"label": "CNR bridge"}), "m2": ("Thompson River", {"label": "rail bridge"})}
+    monkeypatch.setattr(R, "_split_records", lambda: recs)
+    assert [h["id"] for h in R.search_splits("bridge")] == ["t1", "t2", "m1", "m2"]                 # no water named: file order
+    got = R.search_splits("bridge", first=["thompson river "])
+    assert [(h["id"], h["own"]) for h in got] == [("m1", True), ("m2", True), ("t1", False), ("t2", False)]
+    assert [h["id"] for h in R.search_splits("bridge", limit=2, first=["Thompson River"])] == ["m1", "m2"], \
+        "the limit keeps the asker's own cuts, not the first two in the file"
+    assert R.search_splits("b") == []

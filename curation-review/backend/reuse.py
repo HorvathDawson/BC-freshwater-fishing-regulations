@@ -2350,20 +2350,23 @@ def _load_splits() -> dict:
 # READS ONLY. The reviewer's proposed extent lives in the mark (`marks.ExtentFix`); these find the
 # points it names and resolve it for a preview on an IN-MEMORY copy of the entry.
 
-def search_splits(q: str, limit: int = 30) -> list[dict]:
-    """Curated splits whose id, label or water contains `q` (case-folded): {id, label, water, kind}."""
+def search_splits(q: str, limit: int = 30, first: "list[str] | tuple[str, ...]" = ()) -> list[dict]:
+    """Curated splits whose id, label or water contains `q` (case-folded): {id, label, water, kind, own}. `first`
+    (T590): the names of the waters the asker is on — THEIR cuts come before any other water's (`own`: true), each
+    group in file order, and the limit is applied after the ordering (a wording that names a tributary no longer
+    lists the tributary's cuts above the place's own)."""
     want = q.strip().casefold()
     if len(want) < 2:
         return []
+    mine = {w.strip().casefold() for w in first if w and w.strip()}
     out = []
     for sid, (water, sp) in _split_records().items():
         hay = f"{sid} {sp.get('label') or ''} {water}".casefold()
         if want in hay:
             out.append({"id": sid, "label": sp.get("label") or sid, "water": water,
-                        "kind": (sp.get("anchor") or {}).get("type")})
-            if len(out) >= limit:
-                break
-    return out
+                        "kind": (sp.get("anchor") or {}).get("type"), "own": water.strip().casefold() in mine})
+    out.sort(key=lambda h: not h["own"])                 # stable: file order inside each group
+    return out[:limit]
 
 
 def search_items(q: str, kind: str | None = None, limit: int = 30) -> list[dict]:

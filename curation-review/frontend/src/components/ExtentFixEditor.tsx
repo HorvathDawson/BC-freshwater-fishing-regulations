@@ -162,7 +162,7 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
       {Array.from({ length: want }, (_, i) => (
         <PointPicker key={`${fix.op}-${i}`} n={i + 1} of={want} point={fix.points[i]} mapSplits={mapSplits}
           onPoint={(p) => setPoint(i, p)} picking={pickAt === i} onPickMap={() => pick(i)}
-          splitName={splitName} offered={offered} newSplits={newSplits}
+          splitName={splitName} offered={offered} newSplits={newSplits} first={waters.map((w) => w.name)}
           onLabel={(id, label) => setPickedCuts((m) => ({ ...m, [id]: label }))} />
       ))}
       <div className="fix-row">
@@ -222,7 +222,8 @@ export function ExtentFixEditor({ scope, entryId, currentOp, mapSplits, waters, 
 }
 
 function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, splitName, offered,
-                      newSplits, onLabel }: {
+                      newSplits, onLabel, first }: {
+  first: string[];
   n: number; of: number; point?: FixPoint; mapSplits: NamedRef[]; onPoint: (p: FixPoint) => void;
   picking: boolean; onPickMap: () => void; splitName: (id: string) => string;
   offered: typeof SOURCES; newSplits: NamedRef[];
@@ -253,7 +254,7 @@ function PointPicker({ n, of, point, mapSplits, onPoint, picking, onPickMap, spl
           {newSplits.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       )}
-      {src === "search" && <SplitSearch onPick={(h) => { onLabel(h.id, h.label); onPoint({ kind: "split", split_id: h.id }); }} />}
+      {src === "search" && <SplitSearch first={first} onPick={(h) => { onLabel(h.id, h.label); onPoint({ kind: "split", split_id: h.id }); }} />}
       {(src === "confluence" || src === "lake_inlet" || src === "lake_outlet") && (
         <ItemSearch kind={src === "confluence" ? "stream" : "lake"}
           placeholder={src === "confluence" ? "tributary name…" : "lake name…"}
@@ -285,8 +286,11 @@ function useSearch<T>(fn: (q: string) => Promise<T[]>) {
   return { q, setQ, hits, clear: () => { setQ(""); setHits([]); } };
 }
 
-export function SplitSearch({ onPick }: { onPick: (h: SplitHit) => void }) {
-  const s = useSearch(api.searchSplits);
+export function SplitSearch({ onPick, first = [] }: { onPick: (h: SplitHit) => void;
+  /** T590: the names of the waters this picker is on — their cuts are offered first */
+  first?: string[] }) {
+  const key = first.join("|");
+  const s = useSearch((q: string) => api.searchSplits(q, key ? key.split("|") : []));
   return (
     <span className="fix-search">
       <input placeholder="split name…" value={s.q} onChange={(e) => s.setQ(e.target.value)} />
@@ -294,7 +298,7 @@ export function SplitSearch({ onPick }: { onPick: (h: SplitHit) => void }) {
         <ul className="fix-hits">
           {s.hits.map((h) => (
             <li key={h.id} onClick={() => { onPick(h); s.clear(); }}>
-              {h.water}: {h.label} <span className="dim">{h.kind ?? ""} · {h.id}</span>
+              {h.own ? <b>{h.water}</b> : h.water}: {h.label} <span className="dim">{h.kind ?? ""} · {h.id}{h.own === false && first.length ? " · another water" : ""}</span>
             </li>
           ))}
         </ul>

@@ -21,7 +21,7 @@ import re
 from pathlib import Path
 from collections import Counter
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict
@@ -819,9 +819,10 @@ def extent_fix_ops():
 
 
 @app.get("/api/splits/search")
-def splits_search(q: str = "", limit: int = 30):
-    """Curated splits (splits.json) whose id, label or water contains `q`."""
-    return reuse.search_splits(q, limit=limit)
+def splits_search(q: str = "", limit: int = 30, first: list[str] = Query(default=[])):
+    """Curated splits (splits.json) whose id, label or water contains `q`; `first` (repeatable): the names of the
+    waters the asker is on, whose cuts are listed before any other water's (T590)."""
+    return reuse.search_splits(q, limit=limit, first=first)
 
 
 @app.get("/api/areas/search")

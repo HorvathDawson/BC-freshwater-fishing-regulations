@@ -206,7 +206,7 @@ export function ClosedAreas({ closure, locationId, reviewer, onSaved, onError }:
                   <b>{i === 0 ? "Upper end" : "Lower end"}:</b> {p ? (e ? `${e.new ? "NEW cut · " : ""}${e.label}` : p.split_id) : "not set"}
                   {e?.why ? <span className="warn-text"> — {e.why}</span> : null}
                   <div className="ck-area-btns">
-                    <span>an existing cut: <SplitSearch onPick={(h) => useCut(i, h.id)} /></span>
+                    <span>an existing cut: <SplitSearch first={closure.water ? [closure.water] : []} onPick={(h) => useCut(i, h.id)} /></span>
                     <button className={`btn small${pick === `end${i}` ? " primary" : ""}`} data-testid={`ck-area-pick-end${i}`}
                       onClick={() => setPick(pick === `end${i}` ? null : (`end${i}` as Pick))}>{pick === `end${i}` ? "Click the river now…" : "or click the map (a new cut)"}</button>
                   </div>

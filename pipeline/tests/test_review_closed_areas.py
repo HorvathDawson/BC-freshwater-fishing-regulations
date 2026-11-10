@@ -219,6 +219,13 @@ def test_a_stretch_end_placed_by_hand_is_resolved_on_the_water_and_stamped(wt): 
              "new_splits": [{"ref": "hand-1", "anchor": "coord", "on_item": a["piece"]["on_item"], "coord": at}]}
     pv = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/closed-area-preview", params={"piece": json.dumps(piece)}).json()
     assert pv["ok"] and pv["metres"] and pv["ends"][0]["new"] and pv["ends"][1]["new"] is False
+    # owner 2026-11-10 (T590): every new cut says its nearest existing cut on the same line, and whether it is near
+    near = pv["ends"][0]["nearest"]
+    assert near["split_id"] and near["metres"] > 200 and near["near"] is False, near
+    hit = client.get(f"/api/dfo/locations/{THOMPSON_ROW}/anchor", params={"split": json.dumps(
+        {"ref": "x", "anchor": "coord", "on_item": a["piece"]["on_item"], "coord": a["ends"][1]["coord"]})}).json()
+    assert hit["ok"] and hit["nearest"]["near"] is True and hit["nearest"]["metres"] <= 200, \
+        "a new cut clicked on an existing one (the CNR bridge) is told to use it"
     off = {**piece, "new_splits": [{**piece["new_splits"][0], "coord": [-120.0, 50.0]}]}
     assert client.get(f"/api/dfo/locations/{THOMPSON_ROW}/closed-area-preview", params={"piece": json.dumps(off)}).json()["ok"] is False
     r = client.post("/api/marks", json={"scope": "closed_area", "target": a["target"], "answers": {"P": "y"},

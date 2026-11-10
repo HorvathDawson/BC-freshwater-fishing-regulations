@@ -540,7 +540,7 @@ Serves `data/bc.pmtiles`, honouring HTTP Range requests (the pmtiles protocol ne
 | GET | `/api/sloughs/progress` |  |
 | GET | `/api/sloughs/queue` | THE SLOUGH QUEUE (`sloughs.queue`): `group` premark \| owner list \| owner \| default, `basis` |
 | GET | `/api/split-anchors` | T355: what a new split may be — the area layers (and the field each names its polygons by) and |
-| GET | `/api/splits/search` | Curated splits (splits.json) whose id, label or water contains `q`. |
+| GET | `/api/splits/search` | Curated splits (splits.json) whose id, label or water contains `q`; `first` (repeatable): the names of the |
 | GET | `/api/synopsis.pdf` | The synopsis PDF the entries were read from (the repo copy), for `#page=<pdf page>` links. |
 | GET | `/api/synopsis/page/{printed}.png` | The whole printed page, rendered — the region chapter a zone entry was transcribed from has |
 | GET | `/api/synopsis/pages` | printed page -> PDF page. `source_pages` are PRINTED numbers; the PDF index differs by 2-6. |
