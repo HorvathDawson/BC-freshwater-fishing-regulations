@@ -3102,9 +3102,9 @@
         "areas": []
       },
       "status": "dormant",
-      "duplicate_of": null,
+      "duplicate_of": "2:serpentine-river:downstream-of-168th-street-at-both",
       "duplicate_score": null,
-      "duplicate_confirmed": null,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
