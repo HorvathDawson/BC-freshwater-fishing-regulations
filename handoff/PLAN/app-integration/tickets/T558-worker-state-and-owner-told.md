@@ -67,3 +67,6 @@ Fix the items above in severity order, one commit per item where they are separa
 A failed or corrupt R2 read of status.json / notify state stops the write (test). An outside heartbeat (worker-started, no GitHub schedule) tells the owner when the worker or the backup stops. feeds.sh refuses a deploy with no email secret. A queued report the endpoint refuses is shown to the user as not sent.
 
 Depends: —. Size: M. Owner: no.
+
+## Added 2026-11-10 from the T608C audit
+See `handoff/PLAN/app-integration/T608C-findings.md`: W3 (failed read written back empty, six sites), W8 (cron-path log lines never printed; a failed status/outbox step leaves no record), W9 (purge failures unread), W13 (status/notify state written with no lock). Do these with this ticket.

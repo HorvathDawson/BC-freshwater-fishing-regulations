@@ -30,3 +30,6 @@ Fix the items above in severity order, one commit per item where they are separa
 A purged report or crash record is also gone from daily/monthly backups within the stated period (or the page states the real period, owner call). Rate-limit objects expire. The bucket lifecycle rules are read and recorded.
 
 Depends: —. Size: S. Owner: yes (Q179).
+
+## Added 2026-11-10 from the T608C audit
+See `handoff/PLAN/app-integration/T608C-findings.md`: W2 (backups keep reports about 400 days against the promised 180/30), W6 (rate-limit counter objects never deleted against "a day's counting"). Do these with this ticket.

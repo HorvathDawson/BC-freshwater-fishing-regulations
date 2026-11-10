@@ -646,7 +646,8 @@ use that as the sole source of future work."
 | T604 | The chart's day marks are readable: no overlapping labels, today is obvious (two-days chart) | IN REVIEW — owner looks at the T604-shots and the phone; left: emulator shots | 90e41efc6 | owner 2026-11-10 on build 25, with a shot |
 | T605 | One B.C. clock: what T551 left (gauge page script, items 3/4/8, re-read on return to the app, static hub day words) | OPEN | — | T551 report 2026-11-10; owner: hub pages print dates or rebuild daily |
 | T606 | Atlas inputs: what T547 left (side-build proof, clash suffix numbering + lake names at the next rebuild, cache key, cut label edits) | OPEN | — | T547 report 2026-11-10 |
-| T608 | Three read-only audits before closed testing: rules vs the printed book and DFO feed; one logic in two shells; the feeds worker from the outside | OPEN | — | owner 2026-11-10; findings files T608A/B/C |
+| T608 | Read-only audits before closed testing: A rules vs the printed book and DFO feed; B one logic in two shells; C the feeds worker from the outside; D bathymetry and stocked lakes | OPEN | — | owner 2026-11-10; C done ea9bda3cd (20 findings → T558, T559, T609); A, B, D running |
+| T609 | Feeds worker: fixes from the outside-in audit (rate limits on IPv6 /64 + daily total, in-season URL pinned, no rank without the envelope, token file ignored, list truncation, upstream caps) | OPEN | — | T608C findings W1, W4, W5, W7, W10–W20; with T558, T559 |
 
 ## Order for open tickets
 
