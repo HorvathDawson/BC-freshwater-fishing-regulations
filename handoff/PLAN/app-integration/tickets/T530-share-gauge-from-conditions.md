@@ -28,10 +28,10 @@ share control exists in the app (ConditionsPanel / GaugeTrace).
 - Tests: URL/slug parity with the SEO build, no button without a page, failure is shown + reported. `pnpm check` exits 0.
 
 ## Done (2026-11-09)
-- `@app/core` `gaugePage.ts`: `slugOf`, `gaugePath`, `gaugeUrl`, `gaugeHasPage` — the ONE slug/path rule; `tools/seo/gauges.ts` and `slug.ts` now import it.
-- `@app/ui` `useGaugeShare` (+ `useSendLink`, the one press shared with the water header's `useShare`): sheet / `navigator.share` / "Link copied"; failures said and `reportFailure`d; dismissed silent.
-- `ui-native` `GaugeShare` on the gauge card's title row (same icon + words style as the water header); the Shell hands the platform share down by `SharePortContext`. No button without a platform share, a water with a page, or a sourced gauge name.
-- Origin is `SITE_ORIGIN` (one public site for every build, T404), like the water share: no per-environment host to drift.
-- Tests: `ui/gaugeShare.test.ts`, `tools/seo/gauges.share.test.ts` (parity with the page list), `ui-native/GaugeShare.test.tsx`.
-- Shots (web, real staging data, Vedder/Chilliwack at Vedder Crossing): `shots/T530-phone-light.png`, `-phone-dark`, `-desktop-light`, `-desktop-dark`.
+- ONE rule for "which gauges have a page", read by the SEO build and the app: core `gaugePage.ts` (`slugOf`, `gaugePath`, `gaugeUrl`, `bestServes`, `servedItems`, `gaugePageStations`); data `release/gaugeRows.ts` (`readGaugeRows`, the gauge-serves read, one station or all) and `regs/pageable.ts` (`waterHasPage`, `regsPage`, `PAGE_ORDS_SQL`, `liveParts`, `regionsOfKeys`: the build's "a water has a page" rule). `tools/seo/gauges.ts` and `model.ts` now call them: no second copy, no approximation in the app.
+- `@app/ui`: `useGaugePageCheck(loader)` (asks the release the build's own rule for one station, cached, failures reported) and `useGaugeShare(port, target, hasPage)`; `useSendLink` is the one press shared with the water header's `useShare` (sheet / `navigator.share` else "Link copied"; failures said + `reportFailure`; dismissed silent).
+- `ui-native`: `GaugeShare` on the gauge card's title row; the Shell hands `{ port, hasGaugePage }` down by `SharePortContext`. No button until the site is known to have a page for the station.
+- Origin is `SITE_ORIGIN` (one public site for every build, T404), like the water share.
+- Tests: `tools/seo/gauges.share.test.ts` (parity over the fixture release: the stations the app offers = the build's gauge page list, paths equal), `ui/gaugeShare.test.ts` (no button without a page / name / share, failed check reported, press, copied, failure shown + reported), `ui-native/GaugeShare.test.tsx`.
+- Shots (web, real staging data, Chilliwack River at Vedder Crossing): `shots/T530-phone-light.png`, `-phone-dark`, `-desktop-light`, `-desktop-dark`.
 - Left for the phone: share sheet on the emulator/APK and the preview card on a staging link.

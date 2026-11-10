@@ -93,11 +93,11 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const vm = useConditionsView(source, section, day, horizon,
                                { feed, quantity: parameter ?? "discharge" });
   const station = vm.lead;
-  // (T530) Share on the card: the charted gauge's public page, offered only for a station behind a water with a page
+  // (T530) Share on the card: the charted gauge's public page, offered once the site is known to have one for the station
   // (a title that is only the station number is no name: the address is not made from it)
   const sourced = vm.reading?.title ?? vm.quiet?.title ?? vm.gauges.find((g) => g.station === station)?.name ?? null;
-  const gaugeShare = useGaugeShare(useContext(SharePortContext), {
-    station, name: sourced !== station ? sourced : null, waters: alertWater?.item ? 1 : 0 });
+  const ports = useContext(SharePortContext);
+  const gaugeShare = useGaugeShare(ports.port, { station, name: sourced !== station ? sourced : null }, ports.hasGaugePage);
   // THE VIEW SWIPE, on this body in a water's views (Regulations · Conditions · Map): the text, the estimate and the
   // reading take it; the maps and the chart are shielded (`MiniMap`, `Hydrograph`), their drags are theirs. The
   // detector sits INSIDE the ScrollView — a browser reads `touch-action` only up to the nearest scroll container.

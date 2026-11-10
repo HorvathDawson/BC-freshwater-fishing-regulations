@@ -26,27 +26,27 @@ const source = {
 } as unknown as WaterSource;
 
 const feed = { index: async () => ({ stations: { LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 } } }) };
-const mount = (port: SharePort | null, water: { item: string | null; name: string } | null) => render(
-  <SharePortContext.Provider value={port}>
-    <ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={new Date(2026, 8, 4, 12)} alertWater={water} />
+const mount = (port: SharePort | null, hasGaugePage: (() => Promise<boolean>) | null) => render(
+  <SharePortContext.Provider value={{ port, hasGaugePage }}>
+    <ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={feed} scroll={false} day={new Date(2026, 8, 4, 12)} />
   </SharePortContext.Provider>);
 
 describe("(T530) Share on the Conditions gauge card", () => {
-  it("drawn beside the gauge's title for a water with a page; a press sends the gauge page's address", async () => {
+  it("drawn beside the gauge's title for a station with a page; a press sends the gauge page's address", async () => {
     const send = vi.fn(async () => "copied" as const);
-    mount({ send }, { item: "gnis:1", name: "Lead Creek" });
+    mount({ send }, async () => true);
     await waitFor(() => expect(screen.getByTestId("gauge-share")).toBeTruthy());
     fireEvent.click(screen.getByLabelText(GAUGE_SHARE_WORDS.label));
     await waitFor(() => expect(screen.getByTestId("gauge-share-said").textContent).toBe(SHARE_WORDS.copied));
     expect(send).toHaveBeenCalledWith({ url: `${SITE_ORIGIN}/gauge/LEAD/lead-creek-near-town`, title: SHARE_WORDS.title });
   });
 
-  it("not drawn without a water with a page, or without a platform share", async () => {
-    mount({ send: async () => "sent" }, { item: null, name: "Lead Creek" });
+  it("not drawn for a station the site has no page for, or without a platform share", async () => {
+    mount({ send: async () => "sent" }, async () => false);
     await waitFor(() => expect(screen.getByTestId("gauge-title")).toBeTruthy());
     expect(screen.queryByTestId("gauge-share")).toBeNull();
     cleanup();
-    mount(null, { item: "gnis:1", name: "Lead Creek" });
+    mount(null, async () => true);
     await waitFor(() => expect(screen.getByTestId("gauge-title")).toBeTruthy());
     expect(screen.queryByTestId("gauge-share")).toBeNull();
   });

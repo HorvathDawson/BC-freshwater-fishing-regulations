@@ -17,42 +17,15 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import type { ReleaseLoader } from "@app/data/release";
 import { skyWord } from "../../packages/data/src/spots/words";
 import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/spots/weather";
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { gaugePath } from "@app/core";
+import { bestServes, gaugePath, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { readGaugeRows } from "@app/data/release";
 
-export type Trust = "own" | "lake" | "good" | "fair" | "weak";
-export interface GaugeRow { readonly station: string; readonly name: string; readonly item: string | null; readonly lat: number | null; readonly lon: number | null }
-export interface ServeRow { readonly station: string; readonly item: string; readonly trust: Trust }
-export interface GaugeRows { readonly gauges: readonly GaugeRow[]; readonly serves: readonly ServeRow[] }
-
-/** the release's gauges and the waters each serves; null when the release carries no conditions file (the regs fixture) */
-export async function readGaugeRows(loader: ReleaseLoader): Promise<GaugeRows | null> {
-  if (!loader.manifest.files.conditions) return null;
-  const cond = await loader.db("conditions"), core = await loader.db("core");
-  const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
-  const gauges = (await cond.all("SELECT station, name, item_id, lat, lon FROM gauge ORDER BY station")).map((r) => ({
-    station: String(r.station), name: String(r.name), item: r.item_id == null || r.item_id === "" ? null : String(r.item_id), lat: num(r.lat), lon: num(r.lon),
-  }));
-  const itemOfSid = new Map<number, string[]>();
-  for (const r of await core.all("SELECT s.sid AS sid, i.item_id AS item FROM item_section s JOIN item i ON i.ord = s.ord")) {
-    const l = itemOfSid.get(Number(r.sid));
-    if (l) l.push(String(r.item)); else itemOfSid.set(Number(r.sid), [String(r.item)]);
-  }
-  const serves: ServeRow[] = [];
-  for (const g of gauges) if (g.item) serves.push({ station: g.station, item: g.item, trust: "own" });
-  for (const r of await cond.all("SELECT item_id, station FROM lake_gauge")) serves.push({ station: String(r.station), item: String(r.item_id), trust: "lake" });
-  for (const r of await cond.all("SELECT sid, station, trust FROM section_gauge")) {
-    const t = String(r.trust) as Trust;
-    if (t !== "good" && t !== "fair" && t !== "weak") throw new Error(`seo: section_gauge trust "${String(r.trust)}" is not good/fair/weak`);
-    for (const item of itemOfSid.get(Number(r.sid)) ?? []) serves.push({ station: String(r.station), item, trust: t });
-  }
-  return { gauges, serves };
-}
+export { readGaugeRows, type GaugeRows };
 
 export interface WaterLink { readonly id: string; readonly name: string; readonly path: string }
 export interface GaugeModel {
@@ -63,22 +36,15 @@ export interface GaugeModel {
   readonly rough: readonly WaterLink[];
 }
 
-const RANK: Record<Trust, number> = { own: 0, lake: 1, good: 2, fair: 3, weak: 4 };
 export { gaugePath };
 
 export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink | null): GaugeModel[] {
-  const best = new Map<string, Map<string, Trust>>();
-  for (const s of rows.serves) {
-    const m = best.get(s.station) ?? new Map<string, Trust>();
-    const was = m.get(s.item);
-    if (was === undefined || RANK[s.trust] < RANK[was]) m.set(s.item, s.trust);
-    best.set(s.station, m);
-  }
+  const best = bestServes(rows);
   const out: GaugeModel[] = [];
   for (const g of rows.gauges) {
-    const links = [...(best.get(g.station) ?? [])].map(([item, t]) => ({ w: water(item), t })).filter((x): x is { w: WaterLink; t: Trust } => !!x.w);
+    const links = [...(best.get(g.station) ?? [])].map(([item, t]) => ({ w: water(item), t })).filter((x): x is { w: WaterLink; t: ServesTrust } => !!x.w);
     if (!links.length) continue;
-    links.sort((a, b) => RANK[a.t] - RANK[b.t] || a.w.name.localeCompare(b.w.name) || a.w.id.localeCompare(b.w.id));
+    links.sort((a, b) => TRUST_RANK[a.t] - TRUST_RANK[b.t] || a.w.name.localeCompare(b.w.name) || a.w.id.localeCompare(b.w.id));
     out.push({ station: g.station, name: g.name, path: gaugePath(g.station, g.name), lat: g.lat, lon: g.lon,
                close: links.filter((l) => l.t !== "weak").map((l) => l.w), rough: links.filter((l) => l.t === "weak").map((l) => l.w) });
   }

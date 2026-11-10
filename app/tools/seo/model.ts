@@ -7,8 +7,8 @@
  *
  * The angler is the adult resident, as the app defaults (the licence never changes open/closed).
  */
-import { buildRegsPage, MONTHS as CORE_MONTHS, WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type Weekday } from "@app/core";
-import { loadRegsInputs, type RegsStore } from "@app/data/regs";
+import { MONTHS as CORE_MONTHS, WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type Weekday } from "@app/core";
+import { liveParts, PAGE_ORDS_SQL, regionsOfKeys, regsPage, type RegsStore } from "@app/data/regs";
 
 export interface BookRef { readonly printed: number; readonly pdf: number | null }
 /** One sentence of the page: the presenter's words (no markup) and the synopsis pages it cites. */
@@ -54,8 +54,6 @@ export function buildDayOf(d: Date): BuildDay {
   return { day: { month: d.getMonth() + 1, day: d.getDate() }, weekday: WEEKDAYS[(d.getDay() + 6) % 7]!, year: d.getFullYear(),
            iso: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` };
 }
-
-const ADULT_RESIDENT = { age: "adult", residency: "resident" } as const;
 
 // ── the presenter's words, flattened ─────────────────────────────────────────────────────────────────────────────────
 const squash = (s: string) => s.replace(/\s+/g, " ").trim();
@@ -220,8 +218,7 @@ export function rollup(parts: readonly PartModel[]): { status: WaterStatus; answ
 /** Every water with a page: shown, in B.C., at least one part with a rule set (a key). Ordered by item ord. */
 export async function listWaterOrds(store: RegsStore): Promise<number[]> {
   const w = await store.water();
-  const rows = await w.all("SELECT i.item_ord AS ord FROM item i WHERE i.shown = 1 AND i.outside_bc = 0 " +
-    "AND EXISTS (SELECT 1 FROM part p WHERE p.item_ord = i.item_ord AND p.akey IS NOT NULL AND p.ord IS NOT NULL) ORDER BY i.item_ord");
+  const rows = await w.all(PAGE_ORDS_SQL);
   return rows.map((r) => Number(r.ord));
 }
 
@@ -277,12 +274,7 @@ const canon = (v: unknown): string => Array.isArray(v) ? `[${v.map(canon).join("
   : v && typeof v === "object" ? `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canon((v as Record<string, unknown>)[k])}`).join(",")}}`
   : JSON.stringify(v ?? null);
 
-async function regionsOf(store: RegsStore, akeys: readonly number[]): Promise<number[]> {
-  const w = await store.water();
-  const out = new Set<number>();
-  for (const a of akeys) for (const r of await w.all("SELECT region FROM akey_region WHERE akey = ?", a)) out.add(parseInt(String(r.region), 10));
-  return [...out].filter((n) => n >= 1 && n <= 8).sort((a, b) => a - b);
-}
+const regionsOf = regionsOfKeys;
 
 /** (T304) The region the app reads a water's page from: the first of the first keyed part's regions (`regionDb`'s order). */
 async function focusOf(store: RegsStore, akeys: readonly number[]): Promise<string | null> {
@@ -296,8 +288,7 @@ async function focusOf(store: RegsStore, akeys: readonly number[]): Promise<stri
 
 /** The app's page for one part on `on` (the angler defaults as the app's do). */
 export async function appPage(store: RegsStore, itemId: string, partIx: number, on: BuildDay, today: Day = on.day): Promise<RegsPage> {
-  const inp = await loadRegsInputs(store, { kind: "part", item: itemId, partIx }, on.day, on.weekday, on.year);
-  return buildRegsPage(inp, { today, who: ADULT_RESIDENT });
+  return regsPage(store, itemId, partIx, on, today);
 }
 
 /** The water's status on `on` alone (the weekend page asks it for the other days); null: no page. */
@@ -315,7 +306,7 @@ export async function statusOn(store: RegsStore, ord: number, on: BuildDay, toda
 /** The water at `ord`, as of `on`; null when it has no page (every part outside B.C. or without rules). */
 export async function waterModel(store: RegsStore, ord: number, on: BuildDay): Promise<WaterModel | null> {
   const [it, parts, nav] = await Promise.all([store.item(ord), store.parts(ord), store.navRows(ord)]);
-  const live = parts.filter((p) => p.akey !== null && p.facts !== null);
+  const live = liveParts(parts);
   if (!live.length) return null;
   const regions = await regionsOf(store, live.map((p) => p.akey!));
   const focus = await focusOf(store, live.map((p) => p.akey!));

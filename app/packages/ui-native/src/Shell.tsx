@@ -28,7 +28,7 @@ import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, 
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, View } from "react-native";
-import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useMenu, useDataFacts, useSync, useAppUpdate,
+import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
          BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
@@ -246,6 +246,8 @@ export function Shell(p: ShellProps) {
   useEffect(() => { tellAddress.current?.({ day: mapDay, horizon: col.pickedHorizon }); }, [mapDay, col.pickedHorizon]);
   /** (T385) the water header's Share: the same address (route + day + horizon) on the production site */
   const share = useShare(p.share ?? null, loader, route, { day: mapDay, horizon: col.pickedHorizon });
+  const hasGaugePage = useGaugePageCheck(loader);
+  const sharePorts = useMemo(() => ({ port: p.share ?? null, hasGaugePage }), [p.share, hasGaugePage]);
   // (T199, T261) the runs sheet's words, for the tapped section, the species chosen and the slider's pentad
   const runsVM = useMemo(() => {
     const f = col.runs.facts, sp = col.runs.chosen;
@@ -657,7 +659,7 @@ export function Shell(p: ShellProps) {
   return layered(withInSeason(coached(<>
     {/* a regulations tab's "Report a problem with this page" reads the menu from here (menu/ReportLink) */}
     <MenuContext.Provider value={menu}>
-    <SharePortContext.Provider value={p.share ?? null}>
+    <SharePortContext.Provider value={sharePorts}>
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <PairBanner col={col} palette={palette} />
       {/* (T254) a slow or missing line, said once over everything: "Slow connection — showing what we have" */}

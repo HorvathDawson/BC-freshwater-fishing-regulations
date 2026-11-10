@@ -12,8 +12,9 @@
  * failure: nothing said, nothing reported (T368). Any other failure is said under the control and reported.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GAUGE_SHARE_WORDS, SHARE_WORDS, gaugeHasPage, gaugeUrl, isEnvironment, reportFailure, shareUrl } from "@app/core";
-import type { ReleaseLoader } from "@app/data/release";
+import { GAUGE_SHARE_WORDS, bcNow, SHARE_WORDS, WEEKDAYS, gaugePageStations, gaugeUrl, isEnvironment, reportFailure, servedItems, shareUrl } from "@app/core";
+import { readGaugeRows, type ReleaseLoader } from "@app/data/release";
+import { waterHasPage, type PageDay } from "@app/data/regs";
 import { linkSearch, placeReads, type PlaceReads } from "./place";
 import { loadRegsStore } from "./regs";
 import type { Route } from "./route";
@@ -93,19 +94,59 @@ export function useSendLink(port: SharePort | null) {
   return { said, busy, send, clear };
 }
 
+/** Whether the site has a page for a station: asked once per station (`useGaugePageCheck`). */
+export type GaugePageCheck = (station: string) => Promise<boolean>;
+
 /**
- * (T530) SHARE A GAUGE: the Conditions gauge card's Share. The link is the gauge's public page
- * (`@app/core` `gaugeUrl`, the function the site's build names the page with). `target` is the charted station, its name as
- * sourced, and how many waters with a page it serves; a station with no page (or no name to make its address from) has no
- * control: null.
+ * (T530) WHETHER A STATION HAS A PAGE, asked of the release the app holds with the SAME rule the site's build lists pages by:
+ * the station's gauge-serves rows (`readGaugeRows`) and, for each water it serves, whether that water has a page
+ * (`waterHasPage`), through core's `gaugePageStations`. Asked once per station; null while the app has no release.
  */
-export function useGaugeShare(port: SharePort | null,
-                              target: { station: string | null; name: string | null; waters: number } | null): ShareControl | null {
+export function useGaugePageCheck(loader: ReleaseLoader | null): GaugePageCheck | null {
+  const cache = useRef(new Map<string, Promise<boolean>>());
+  useEffect(() => { cache.current = new Map(); }, [loader]);
+  return useCallback<GaugePageCheck>((station) => {
+    let p = cache.current.get(station);
+    if (!p) {
+      p = (async () => {
+        const rows = await readGaugeRows(loader!, station);
+        if (!rows) return false;
+        const store = await loadRegsStore(loader!), on = pageDay();
+        const pages = new Set<string>();
+        for (const item of servedItems(rows, station)) if (await waterHasPage(store, item, on)) { pages.add(item); break; }   // one is enough
+        return gaugePageStations(rows, (i) => pages.has(i)).has(station);
+      })().catch((e: unknown) => { cache.current.delete(station); throw e; });   // a failure is not remembered; the caller reports it
+      cache.current.set(station, p);
+    }
+    return p;
+  }, [loader]);
+}
+
+const pageDay = (): PageDay => {
+  const d = bcNow();
+  return { day: { month: d.getMonth() + 1, day: d.getDate() }, weekday: WEEKDAYS[(d.getDay() + 6) % 7]!, year: d.getFullYear() };
+};
+
+/**
+ * (T530) SHARE A GAUGE: the Conditions gauge card's Share. The link is the gauge's public page (`@app/core` `gaugeUrl`, the
+ * function the site's build names the page with). `target` is the charted station and its name as sourced; `hasPage` is
+ * `useGaugePageCheck`. No control until the station is known to have a page; a failed check is reported and shows none.
+ */
+export function useGaugeShare(port: SharePort | null, target: { station: string | null; name: string | null } | null,
+                              hasPage: GaugePageCheck | null): ShareControl | null {
   const { said, busy, send, clear } = useSendLink(port);
-  const url = target && target.station && target.name && gaugeHasPage(target.waters) ? gaugeUrl(target.station, target.name) : null;
-  useEffect(clear, [url, clear]);
-  const press = useCallback(() => { if (url) send(url); }, [url, send]);
-  return port && url ? { label: GAUGE_SHARE_WORDS.label, said, busy, press } : null;
+  const [page, setPage] = useState<string | null>(null);
+  const station = target?.station ?? null, name = target?.name ?? null;
+  useEffect(() => {
+    clear();
+    setPage(null);
+    if (!port || !hasPage || !station || !name) return;
+    let live = true;
+    hasPage(station).then((yes) => { if (live && yes) setPage(gaugeUrl(station, name)); }, reportFailure);
+    return () => { live = false; };
+  }, [port, hasPage, station, name, clear]);
+  const press = useCallback(() => { if (page) send(page); }, [page, send]);
+  return port && page ? { label: GAUGE_SHARE_WORDS.label, said, busy, press } : null;
 }
 
 export function useShare(port: SharePort | null, loader: ReleaseLoader | null, route: Route,
