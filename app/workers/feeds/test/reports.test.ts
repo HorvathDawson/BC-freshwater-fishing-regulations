@@ -195,7 +195,7 @@ describe("the test tag (T291)", () => {
     const all = await listReports(BUCKET, "2026-10-29", at("2026-10-29T21:00:00Z"), 500, true);
     expect(all).toHaveLength(1);
     expect(all[0]!.test).toBe(true);
-    expect(await purgeTestReports(BUCKET, at("2026-11-10T00:00:00Z"))).toBe(1);
+    expect((await purgeTestReports(BUCKET, at("2026-11-10T00:00:00Z"))).deleted).toBe(1);
     const P = new MemBucket();
     await handleReport(post(report({ test: true }), "198.51.100.7"), { BUCKET: P, REPORT_SALT: SALT, FEEDS_ENV: "production" }, at("2026-10-29T20:00:05Z"));
     expect([...P.m.keys()].some((k) => k.includes("reports-test"))).toBe(false);

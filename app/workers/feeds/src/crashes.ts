@@ -327,11 +327,12 @@ export function crashEvent(c: CrashKind, at: string): FeedEvent {
   };
 }
 
-/** The daily purge: delete every kind not seen for CRASH_RETENTION_DAYS. */
-export async function purgeCrashes(bucket: R2BucketLike, now: Date = new Date()): Promise<{ ok: boolean; deleted: number; failed: number }> {
+/** The daily purge: delete every kind not seen for CRASH_RETENTION_DAYS. (T558 W9) The result names a failure (`error`);
+ *  the worker keeps it beside the report purge's and tells it. */
+export async function purgeCrashes(bucket: R2BucketLike, now: Date = new Date()): Promise<{ ok: boolean; deleted: number; failed: number; error?: string }> {
   const cutoff = now.getTime() - CRASH_RETENTION_DAYS * 86_400_000;
   const testCutoff = now.getTime() - 7 * 86_400_000;
-  const res = { ok: true, deleted: 0, failed: 0 };
+  const res: { ok: boolean; deleted: number; failed: number; error?: string } = { ok: true, deleted: 0, failed: 0 };
   try {
     for (const k of [...await kindKeys(bucket, Infinity), ...await listKeys(bucket, TEST_CRASHES_PREFIX, Infinity)]) {
       const lim = k.startsWith(TEST_CRASHES_PREFIX) ? testCutoff : cutoff;
@@ -340,7 +341,7 @@ export async function purgeCrashes(bucket: R2BucketLike, now: Date = new Date())
       if (Number.isFinite(last) && last >= lim) continue;
       try { await bucket.delete(k); res.deleted++; } catch { res.failed++; }
     }
-  } catch { res.ok = false; }
-  if (res.failed) res.ok = false;
+  } catch (e) { res.ok = false; res.error = e instanceof Error ? e.message : String(e); }
+  if (res.failed) { res.ok = false; res.error ??= `${res.failed} error kind(s) could not be deleted`; }
   return res;
 }

@@ -369,14 +369,22 @@ export function reportEvent(r: StoredReport, at: string): FeedEvent {
   };
 }
 
-/** (T291) delete test reports received more than TEST_RETENTION_DAYS ago (by their day folder). */
-export async function purgeTestReports(bucket: R2BucketLike, now: Date = new Date()): Promise<number> {
-  if (!bucket.list) return 0;
+/** (T291) delete test reports received more than TEST_RETENTION_DAYS ago (by their day folder). (T558 W9) The result says
+ *  what could not be deleted; the worker keeps it beside the report purge's and tells a failure. */
+export async function purgeTestReports(bucket: R2BucketLike, now: Date = new Date()): Promise<PurgeResult> {
+  const at = now.toISOString();
+  if (!bucket.list) return { ok: false, at, deleted: 0, kept: 0, failed: 0, error: "bucket cannot list" };
   const cutoff = now.getTime() - TEST_RETENTION_DAYS * 86_400_000;
-  let n = 0;
-  for (const k of await listKeys(bucket, TEST_REPORTS_PREFIX, Infinity)) {
-    const day = k.slice(TEST_REPORTS_PREFIX.length).match(/^(\d{4}-\d{2}-\d{2})\//)?.[1];
-    if (day && Date.parse(day) + 86_400_000 < cutoff) { try { await bucket.delete(k); n++; } catch { /* next day */ } }
+  const res: PurgeResult = { ok: true, at, deleted: 0, kept: 0, failed: 0 };
+  try {
+    for (const k of await listKeys(bucket, TEST_REPORTS_PREFIX, Infinity)) {
+      const day = k.slice(TEST_REPORTS_PREFIX.length).match(/^(\d{4}-\d{2}-\d{2})\//)?.[1];
+      if (!(day && Date.parse(day) + 86_400_000 < cutoff)) { res.kept++; continue; }
+      try { await bucket.delete(k); res.deleted++; } catch { res.failed++; }
+    }
+    if (res.failed) { res.ok = false; res.error = `${res.failed} test report(s) could not be deleted`; }
+  } catch (e) {
+    res.ok = false; res.error = e instanceof Error ? e.message : String(e);
   }
-  return n;
+  return res;
 }

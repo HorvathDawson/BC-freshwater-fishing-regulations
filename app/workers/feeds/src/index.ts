@@ -461,12 +461,13 @@ async function backup(env: Env, now = new Date()) {
 /** (T271) the daily report purge (reports older than 180 days); the count is kept for /status, a failure rides the daily digest */
 async function purge(env: Env, now = new Date()) {
   const r = await purgeReports(env.BUCKET, now);
-  // (T291) test reports after 7 days, (T242) error kinds unseen for 90 days: a failure is logged, the next day's run tries again
-  try { await purgeTestReports(env.BUCKET, now); } catch (e) { console.error(JSON.stringify({ job: "purge-test-reports", error: String(e) })); }
-  try { await purgeCrashes(env.BUCKET, now); } catch (e) { console.error(JSON.stringify({ job: "purge-crashes", error: String(e) })); }
+  // (T291) test reports after 7 days, (T242) error kinds unseen for 90 days. (T558 W9) Both results are kept in
+  // report-retention.json and a failure is told, like the report purge's (the 90-day promise must not lapse unseen)
+  const testReports = await purgeTestReports(env.BUCKET, now);
+  const crashes = await purgeCrashes(env.BUCKET, now);
   // (T559) the per-address counters, once their day is over (privacy page: "for a day's counting")
   const limits = await purgeLimits(env.BUCKET, now);
-  const out = { ...r, ok: r.ok && limits.ok, limits };
+  const out = { ...r, ok: r.ok && limits.ok && crashes.ok && testReports.ok, limits, crashes, testReports };
   try {
     await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(out), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
   } catch (e) { console.error(JSON.stringify({ job: "purge-reports", statusError: String(e) })); }
@@ -474,10 +475,15 @@ async function purge(env: Env, now = new Date()) {
   const told = await tell("purge-reports", env, now, [
     ...(r.ok ? [] : [{ key: `report-purge:${day}`, kind: "health" as const, title: `Report purge ${day} failed`, urgent: false, at: r.at,
       text: `The daily deletion of problem reports older than ${RETENTION_DAYS} days failed (${r.deleted} deleted, ${r.failed} not): ${r.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
+    ...(crashes.ok ? [] : [{ key: `crash-purge:${day}`, kind: "health" as const, title: `Error-kind purge ${day} failed`, urgent: false, at: r.at,
+      text: `The daily deletion of app error kinds not seen for 90 days failed (${crashes.deleted} deleted, ${crashes.failed} not): ${crashes.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
+    ...(testReports.ok ? [] : [{ key: `test-report-purge:${day}`, kind: "health" as const, title: `Test-report purge ${day} failed`, urgent: false, at: r.at,
+      text: `The daily deletion of test reports older than 7 days failed (${testReports.deleted} deleted, ${testReports.failed} not): ${testReports.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
     ...(limits.ok ? [] : [{ key: `limits-purge:${day}`, kind: "health" as const, title: `Rate-limit counter purge ${day} failed`, urgent: false, at: r.at,
       text: `The daily deletion of yesterday's rate-limit counters (salted address hashes; the privacy page keeps them "for a day's counting") failed (${limits.deleted} deleted, ${limits.failed} not): ${limits.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
   ]);
-  console.log(JSON.stringify({ job: "purge-reports", ok: out.ok, deleted: r.deleted, kept: r.kept, failed: r.failed, limits: { deleted: limits.deleted, failed: limits.failed }, told }));
+  console.log(JSON.stringify({ job: "purge-reports", ok: out.ok, deleted: r.deleted, kept: r.kept, failed: r.failed, limits: { deleted: limits.deleted, failed: limits.failed },
+    crashes: { deleted: crashes.deleted, failed: crashes.failed }, testReports: { deleted: testReports.deleted, failed: testReports.failed }, told }));
   return out;
 }
 

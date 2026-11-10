@@ -76,3 +76,28 @@ describe("rate-limit counters (T559)", () => {
     expect(r.error).toMatch(/could not be deleted/);
   });
 });
+
+// T558 W9: the error-kind and test-report purges were read by nobody: a failure could let the 90-day promise lapse unseen.
+describe("every daily purge's result is kept and a failure is told (T558 W9)", () => {
+  it("a crash purge that cannot delete is in report-retention.json and in the owner's message", async () => {
+    const { default: worker } = await import("../src/index");
+    const b = new Mem();
+    b.m.set("private/crashes/1111111111111111.json", JSON.stringify({ last: ago(120).toISOString() }));
+    const del = b.delete.bind(b);
+    b.delete = async (k: string) => { if (k.startsWith("private/crashes/")) throw new Error("r2 down"); return del(k); };
+    const told: string[] = [];
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = (async (_u: string, i?: RequestInit) => (told.push(String(i?.body)), new Response("ok"))) as typeof fetch;
+    try {
+      const r = await worker.fetch(new Request("https://w/run/purge-reports", { method: "POST", headers: { Authorization: "Bearer t" } }),
+        { BUCKET: b, RUN_TOKEN: "t", FEED_NOTIFY_URL: "https://hook.example/x" } as never);
+      expect(r.status).toBe(500);
+      const st = JSON.parse(b.m.get("private/feeds/report-retention.json")!);
+      expect(st).toMatchObject({ ok: false, crashes: { ok: false, failed: 1 }, testReports: { ok: true }, limits: { ok: true } });
+      expect(st.crashes.error).toMatch(/could not be deleted/);
+    } finally { globalThis.fetch = origFetch; }
+    // the message is queued for the digest (not urgent): it is in the outbox
+    const outbox = JSON.parse(b.m.get("private/feeds/notify/state.json")!);
+    expect([...outbox.pending.map((e: { key: string }) => e.key), ...Object.keys(outbox.told)].some((k: string) => k.startsWith("crash-purge:"))).toBe(true);
+  });
+});
