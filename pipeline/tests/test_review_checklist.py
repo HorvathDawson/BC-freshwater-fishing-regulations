@@ -528,3 +528,16 @@ def test_a_dead_piece_says_why_in_plain_words_and_names_the_cut_to_pick(monkeypa
                    "runs between cuts on its own water. Pick the cut on Bulkley River instead — the nearest one there is "
                    "“Morice River → Bulkley River”."]
     assert "its cuts are there but no stretch lies between them" in BD.dead_why(fixes, [0], {"item_ids": ["m"]})[0]
+
+
+def test_a_cut_carried_across_braids_is_drawn_on_its_own_water(monkeypatch):
+    """owner 2026-11-10: "lamprey creek cut point shows up weird in morice review" — the resolved cuts file has one row
+    for the host and one per braid the cut is carried across (`concern`); the map must take the host's"""
+    R = _backend(monkeypatch, "reuse")
+    rows = [{"split_id": "a", "blk": "host", "route_measure": 54533.3},
+            {"split_id": "a", "blk": "braid", "route_measure": 446.2, "concern": "braid cut across a at 226 m from the host"},
+            {"split_id": "a", "blk": "trib", "route_measure": 2677.8, "concern": "tributary of a braid cut across a"},
+            {"split_id": "b", "blk": "in", "route_measure": 1.0}, {"split_id": "b", "blk": "out", "route_measure": 9.0},
+            {"split_id": "c", "blk": "only", "route_measure": 5.0, "concern": "picked up"}]
+    got = R.host_rows(rows)
+    assert got["a"]["blk"] == "host" and got["b"]["blk"] == "out" and got["c"]["blk"] == "only"

@@ -85,12 +85,18 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
 
   const [version, setVersion] = useState(0);
   const [staleMarks, setStaleMarks] = useState(0);
-  useEffect(() => { api.marksHealth().then((h) => setStaleMarks(h.n_stale)).catch(failed("the marks health")); }, [version]);
+  // (r8) read a few seconds AFTER a save, never beside it: it recomputes every mark (~1.6 s) and held up the reload
+  useEffect(() => {
+    const t = window.setTimeout(() => { api.marksHealth().then((h) => setStaleMarks(h.n_stale)).catch(failed("the marks health")); }, version ? 5000 : 0);
+    return () => window.clearTimeout(t);
+  }, [version]);
 
-  const loadQueue = useCallback(() => {
-    api.checksQueue(source, filter, q).then(setQueue).catch((e) => setError(`the checklist queue: ${e}`));
+  const loadQueue = useCallback((): Promise<CheckPlace[] | undefined> => {
+    const got = api.checksQueue(source, filter, q).then((rows) => { setQueue(rows); return rows; })
+      .catch((e): undefined => { setError(`the checklist queue: ${e}`); return undefined; });
     api.checksProgress(source).then(setProgress).catch((e) => setError(`the checklist progress: ${e}`));
     if (source !== "regs") api.dfoProgress().then(setDfoProgress).catch(failed("the DFO vintage check"));
+    return got;
   }, [source, filter, q]);
   useEffect(() => { loadQueue(); }, [loadQueue]);
 
@@ -202,10 +208,12 @@ export function CheckReview({ mode, source: initial }: { mode: Mode; source: Che
   const afterSave = (id: string, what: "extent" | "confirm" | "problem" | "group", text?: string) => {
     setSavedNote({ id, what, text });
     setEditing(null);
-    loadQueue();
+    const fresh = loadQueue();
     setVersion((v) => v + 1);
     if (what === "problem" || what === "group") return;
-    api.checksQueue(source, "", "").then((all) => {
+    // the whole list of this source: the one `loadQueue` just read when no filter is on, else its own read
+    (!filter && !q.trim() ? fresh : api.checksQueue(source, "", "")).then((all) => {
+      if (!all) return;
       const t = nextAfterSave(all, id);
       if (t.next !== null) { const to = t.next; window.setTimeout(() => { if (shown.current === id && !draft.current) open(to); }, 1600); }
       // none left on this water: the permanent "all N places done" line (the list header, the done block) says so
@@ -451,7 +459,7 @@ function CheckMap({ loaded, faint, faintOn, edit }: {
         ringSplits={edit ? edit.ring : loaded.proposal?.ring ?? []} ringColor={edit ? "#0d9488" : "#7c3aed"}
         saved={edit?.draft ?? null} fitSaved cutPreview={edit?.cutPreview ?? null} editPoints={edit?.editPoints ?? []}
         onMovePoint={edit?.onMovePoint} onPick={edit?.onPick ?? null}
-        namedSplits={edit ? edit.named : named} preview={loaded.reach} pending={loaded.pending} pins={pins} fitPreview={loaded.id === first.current} minimal
+        namedSplits={edit ? edit.named : named} preview={loaded.reach} pending={loaded.pending} pins={edit ? null : pins} fitPreview={loaded.id === first.current} minimal
         onPin={(n) => window.dispatchEvent(new CustomEvent("ck-pin-pick", { detail: n }))} />
     </>
   );

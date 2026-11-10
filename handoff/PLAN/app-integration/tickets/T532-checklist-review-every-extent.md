@@ -364,3 +364,26 @@ when it saves".
   write-through (`duplicate_of` + confirmed true in region-2.json), but the proposal builder re-offered the now
   edit-less proposal and `apply` / fast-fail read it "refused: not applicable: no edit" (1 NOT LANDED). An edit-less
   variant proposal is now counted applied, as the take-out already was; fast-fail passes on the real store.
+
+## Round 8 (owner 2026-11-10)
+- THE FORKS: the upper Bulkley's 100 m WAS in the proposal — measured on the built sections: Bulkley above the
+  confluence 100 m (`360873822:164908`), Bulkley below 1,000 m (`360873822:163908`), Morice 100 m (`360885316:0`). The
+  upper Bulkley is the same water in our data (Bulkley River, gnis:2195, the same blue line). The map drew it too
+  small: the fit stopped at zoom 13–14, where 100 m is under 20 px, and the row pins sat on top. Now a short extent
+  fills the checklist map (to zoom 16), a draft fits itself, and the extent-now pins are not drawn over a draft.
+- THE LAMPREY CREEK MARKER ("the spot is not on the river"): a drawing fault, not a data fault. The reach was bound
+  right (it ends exactly at Lamprey Creek's FWA mouth). The resolved-cuts file holds one row per line a cut is carried
+  across (the host, each braid, each tributary of a braid); the app kept the LAST row, so the marker sat on an unnamed
+  tributary of a braid — 2,693 m from the mouth and 1,910 m from the Morice. `reuse.host_rows` now keeps the host's
+  row: the marker is 0 m from the mouth. 29 cuts were drawn on a side line this way (13 points, 11 gauges, 4
+  confluences, 1 lake).
+- SPEED, measured in the backend (warm unless said):
+  queue + progress, each read: 0.55 s → 0.001 s (the places cache never hit: its key held a fresh list every call);
+  the queue after a save: 0.76 s → 0.30 s; the water list: 0.34 s → 0.06 s; marks health (1.6 s, recomputed after
+  every save) now read 5 s after a save instead of beside it; the queue is read once after a save, not twice;
+  opening a place (detail 0.07 s, rows 0.02 s, reach under 0.01 s) and the preview (under 0.01 s) were already fast.
+  Cold start is unchanged (about 26 s of registry, graph and geometry loads) but the checklist is now warmed with
+  the rest at startup: the first queue read 60 s after start took 6 ms.
+- Proposals of several pieces with new cuts draw an approximate stretch per piece (the Thompson: three of four; the
+  first starts at the Kamloops Lake cut, whose map point is the lake, so it is said and not drawn).
+- T571 / T572: proposals built, see those tickets.

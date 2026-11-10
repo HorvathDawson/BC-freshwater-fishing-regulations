@@ -138,7 +138,21 @@ def _splits_meta() -> dict[str, dict]:
     if not SPLITS_RESOLVED_PATH.exists():
         return {}
     rows = json.loads(SPLITS_RESOLVED_PATH.read_text(encoding="utf-8"))
-    return {r["split_id"]: r for r in rows}
+    return host_rows(rows)
+
+
+def host_rows(rows) -> dict[str, dict]:
+    """ONE ROW PER CUT: THE HOST'S. A cut that crosses braids has several resolved rows — the cut on its own water (the
+    host) and one per braid / tributary of a braid it is carried across, each of those marked `concern`. Keeping the
+    LAST row drew 29 cuts on a side line (owner 2026-11-10: the Lamprey Creek cut 2.7 km from its mouth, on an unnamed
+    stream 1.9 km off the Morice — the reach itself was bound right). The host row is the last one with no `concern`;
+    a cut whose every row carries one keeps its last row."""
+    out: dict[str, dict] = {}
+    for r in rows:
+        was = out.get(r["split_id"])
+        if was is None or not r.get("concern") or was.get("concern"):
+            out[r["split_id"]] = r
+    return out
 
 
 def _clean_val(v):

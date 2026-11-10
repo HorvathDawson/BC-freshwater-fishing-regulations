@@ -242,8 +242,8 @@ export interface EditLayers {
   dirty: boolean;
   /** r3: the existing cuts the draft uses (ringed on the map), and — when the draft cannot be resolved because a cut
    *  is not built — the two points an approximate stretch is walked between */
-  ring: string[]; approx: [[number, number], [number, number]] | null;
-  onApprox: (got: { km: number } | { why: string } | null) => void;
+  ring: string[]; approx: [[number, number], [number, number]][] | null;
+  onApprox: (got: { km: number; why?: string } | { why: string } | null) => void;
 }
 export interface Embedded { onMap: (layers: EditLayers | null) => void; onFull: () => void }
 
@@ -418,8 +418,8 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
   // EMBEDDED: the draft is drawn LIVE on the checklist's map — its reach (the server's own preview) once every piece
   // is whole and names only cuts that exist, and its points labelled either way (a NEW cut has no reach until built)
   const [liveWhy, setLiveWhy] = useState("");
-  const [approx, setApprox] = useState<[[number, number], [number, number]] | null>(null);
-  const [approxGot, setApproxGot] = useState<{ km: number } | { why: string } | null>(null);
+  const [approx, setApprox] = useState<[[number, number], [number, number]][] | null>(null);
+  const [approxGot, setApproxGot] = useState<{ km: number; why?: string } | { why: string } | null>(null);
   useEffect(() => {
     if (!embedded || call !== "change" || !opPoints) return;
     const where = (pt: ExtentFix["points"][number]): [number, number] | null => {
@@ -428,10 +428,12 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
         : pt.kind === "new" ? (checks[sid]?.coord ?? splits.find((n) => n.ref === sid)?.coord ?? detail.proposed.find((x) => x.id === sid)?.coord ?? null)
         : pt.coord ?? null) as [number, number] | null;
     };
-    // an approximate stretch is offered for ONE piece between two points whose places are known
-    const two = fixes.length === 1 && fixes[0].op === "between" && fixes[0].points.length === 2
-      ? fixes[0].points.map(where) : [];
-    const mock = two.length === 2 && two[0] && two[1] ? [two[0], two[1]] as [[number, number], [number, number]] : null;
+    // an approximate stretch is offered for EVERY piece that runs between two points whose places are known
+    const pairs = fixes.flatMap((f) => {
+      const two = f.op === "between" && f.points.length === 2 ? f.points.map(where) : [];
+      return two.length === 2 && two[0] && two[1] ? [[two[0], two[1]] as [[number, number], [number, number]]] : [];
+    });
+    const mock = pairs.length ? pairs : null;
     const pts: GeoJSON.Feature[] = fixes.flatMap((f) => f.points.flatMap((pt, i) => {
       const sid = pt.split_id ?? "";
       if (pt.kind === "split") return [];      // an existing cut: its own marker is ringed (`ring`), no second point
@@ -798,7 +800,7 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
                 </Fold>
                 {embedded && liveWhy && <div className="dim" data-testid="ck-live-why" style={{ fontSize: 12 }}>
                   {approx && approxGot && "km" in approxGot
-                    ? <><b>Approximate</b> (dashed on the map, about {approxGot.km < 1 ? `${Math.round(approxGot.km * 1000)} m` : `${approxGot.km.toFixed(1)} km`} along the river): {liveWhy} — the exact stretch is drawn after the next rebuild.</>
+                    ? <><b>Approximate</b> (dashed on the map, about {approxGot.km < 1 ? `${Math.round(approxGot.km * 1000)} m` : `${approxGot.km.toFixed(1)} km`} along the river): {liveWhy} — the exact stretch is drawn after the next rebuild.{approxGot.why ? ` (${approxGot.why})` : ""}</>
                     : <>Not drawn as a stretch yet (its points are on the map): {liveWhy}
                       {approx && approxGot && "why" in approxGot ? ` — and no approximate stretch could be drawn: ${approxGot.why}` : ""}</>}</div>}
                 {moveErr && <div className="fix-row warn-text inline-notice" data-testid="dfo-move-refused">

@@ -84,8 +84,8 @@ interface Props {
   /** T532 r3: AN APPROXIMATE STRETCH between two points, walked in the app along the water's own lines
    *  (`approxBetween`) — for a draft whose cut is not built yet; dotted, never the built stretch. `onApprox` hears
    *  its length, or why it could not be drawn */
-  approx?: [[number, number], [number, number]] | null;
-  onApprox?: (got: { km: number } | { why: string } | null) => void;
+  approx?: [[number, number], [number, number]][] | null;
+  onApprox?: (got: { km: number; why?: string } | { why: string } | null) => void;
   /** T532 r3: existing cuts a proposal / draft uses — their own markers ringed (never a second point on top) */
   ringSplits?: string[];
   ringColor?: string;
@@ -806,19 +806,23 @@ export function MapPanel({
   }, [faintOn]);
   const onApproxRef = useRef(onApprox);
   onApproxRef.current = onApprox;
-  const approxKey = approx ? approx.flat().join(",") : "";
+  const approxKey = approx ? approx.flat(2).join(",") : "";
   useEffect(() => {
     const m = map.current;
     if (!m) return;
     whenReady(m, () => {
-      const got = approx ? approxBetween(lastFc.current, approx[0], approx[1]) : null;
+      // one walk per piece (the Thompson: four open stretches); the length is their sum, a failure is said once
+      const all = (approx ?? []).map(([a, b]) => approxBetween(lastFc.current, a, b));
+      const lines = all.flatMap((g) => ("line" in g ? [g] : []));
+      const bad = all.find((g) => "why" in g) as { why: string } | undefined;
       (m.getSource("approx") as maplibregl.GeoJSONSource | undefined)?.setData({ type: "FeatureCollection",
-        features: got && "line" in got ? [{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: got.line } }] : [] });
-      onApproxRef.current?.(got && "line" in got ? { km: got.km } : got);
-      if (fitSaved && got && "line" in got) {          // the view takes in the whole approximate stretch
+        features: lines.map((g) => ({ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: g.line } })) });
+      onApproxRef.current?.(!approx?.length ? null : !lines.length && bad ? bad
+        : { km: lines.reduce((n, g) => n + g.km, 0), ...(bad ? { why: `${all.length - lines.length} piece(s) not drawn — ${bad.why}` } : {}) });
+      if (fitSaved && lines.length) {                  // the view takes in every approximate stretch
         const b = new maplibregl.LngLatBounds();
-        got.line.forEach((c) => b.extend(c));
-        m.fitBounds(b, { padding: 90, maxZoom: 13, duration: 400 });
+        lines.forEach((g) => g.line.forEach((c) => b.extend(c)));
+        m.fitBounds(b, { padding: 90, maxZoom: 16, duration: 400 });
       }
     });
   }, [approxKey, count]);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -862,14 +866,16 @@ export function MapPanel({
       const fc = saved ?? { type: "FeatureCollection", features: [] };
       src.setData(fc as GeoJSON.FeatureCollection);
       if (!saved) fittedSaved.current = false;
-      if (fitSaved && saved?.features.length && !fittedSaved.current) {
+      // (a draft with approximate stretches is fitted to THOSE, below: its own features are only its points)
+      if (fitSaved && saved?.features.length && !fittedSaved.current && !approx?.length) {
         const b = new maplibregl.LngLatBounds();
         const walk = (c: unknown): void => {
           if (Array.isArray(c) && typeof c[0] === "number") b.extend(c as [number, number]);
           else if (Array.isArray(c)) c.forEach(walk);
         };
         for (const f of saved.features) if (f.geometry && "coordinates" in f.geometry) walk(f.geometry.coordinates);
-        if (!b.isEmpty()) { fittedSaved.current = true; m.fitBounds(b, { padding: 90, maxZoom: 13, duration: 400 }); }
+        // close enough that a 100 m arm is plainly a line (the Forks: 100 m up each river was a few pixels at z13)
+        if (!b.isEmpty()) { fittedSaved.current = true; m.fitBounds(b, { padding: 90, maxZoom: 16, duration: 400 }); }
       }
     });
   }, [saved]);
@@ -918,7 +924,8 @@ export function MapPanel({
           const pv = previewRef.current;
           const lines = fitPreview && pv && pv.features.some((f) => f.geometry?.type !== "Point");
           const b = bounds(lines ? pv! : colored);
-          if (b) m.fitBounds(b, { padding: 40, maxZoom: 14, duration: 0 });
+          // (the checklist) a short extent fills the map: at z14 the Forks' 100 m arms were under 20 px
+          if (b) m.fitBounds(b, { padding: minimal ? 70 : 40, maxZoom: minimal ? 16 : 14, duration: 0 });
         }
       }
     };

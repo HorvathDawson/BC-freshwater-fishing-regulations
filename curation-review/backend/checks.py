@@ -335,7 +335,7 @@ def _saved_view(kind: str | None, fvc: dict | None, st: dict | None, m, outcome:
                 "why": (outcome or {}).get("why") or "the write-through holds no record of this save (an earlier session)"}
     if st and st["state"] == "waits_cut":
         return {"state": "waits_cut", "date": m.date, "cuts": list(st.get("cuts") or [])}
-    unbuilt = sorted({s for e in (fvc or {}).get("fix") or [] for s in e.get("splits") or []} - set(dfo._built_cuts()))
+    unbuilt = sorted({s for e in (fvc or {}).get("fix") or [] for s in e.get("splits") or []} - context().built)
     return {"state": "waits_cut" if unbuilt else "built", "date": m.date, "cuts": unbuilt}
 
 
@@ -515,7 +515,10 @@ _PLACES = reuse._Memo()
 
 def _places() -> list[dict]:
     import dfo
-    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context(), reuse.regions(), tuple(apply_stamp())),
+    # (T532 r8) the key is by VALUE or by a held identity: `reuse.regions()` was a fresh list on every call, so this
+    # memo never hit and every queue / progress / water read recomputed all 3,686 places (~0.5 s each)
+    return _PLACES.get((reuse._stamp((reuse.MARKS_PATH,)), dfo._rows(), context(), reuse._dir_stamp(reuse.ENTRIES_DIR),
+                        tuple(apply_stamp())),
                        lambda: by_water(one_water(_dfo_places() + _regs_places())))
 
 

@@ -168,6 +168,11 @@ def _warm_at_startup():
             import dfo                    # T366: typed rows older than the saved DFO page, said at startup
             for w in dfo.vintage():
                 logging.getLogger("uvicorn.error").warning("DFO VINTAGE: %s", w["text"])
+            try:                          # T532 r8: the checklist's places (graph + geometry + every row) before he opens it
+                import checks
+                checks._places()
+            except Exception:
+                logging.getLogger("curation").exception("warming the checklist failed")
         threading.Thread(target=_health, name="marks-health", daemon=True).start()
 
 
