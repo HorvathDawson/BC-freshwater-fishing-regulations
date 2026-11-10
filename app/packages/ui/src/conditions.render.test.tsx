@@ -272,7 +272,7 @@ describe("useConditionsView", () => {
     const r = result.current.reading!;
     expect([r.figure, r.scope, r.forecast]).toEqual([12.5, "Today's reading", "Mon 7 Sep, forecast: Reads normal · lower than 6 days in 10."]);
     expect(r.figures).toEqual({ discharge: 12.5, level: 1.2 });
-    expect(result.current.ahead).toEqual({ at: new Date(2026, 8, 7, 12).getTime(), label: "MON 7 SEP" });
+    expect(result.current.ahead).toEqual({ at: new Date(2026, 8, 7, 12).getTime(), label: "Mon 7 Sep" });
   });
 
   it("reads no series for the reading: the chart asks for its own (P16, the unused fetch)", async () => {

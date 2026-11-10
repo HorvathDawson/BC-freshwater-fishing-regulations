@@ -53,6 +53,7 @@ describe("<Hydrograph>", () => {
     // on top of it would hide the one mark on the chart that says which is which. Told
     // apart by the dash, which is what makes the today rule read as an annotation.
     const kinds = [...container.querySelectorAll("line, path")]
+      .filter((n) => !n.closest('[data-testid^="chart-mark-"]'))   // (T604) the day marks are drawn over the data, by design
       .filter((n) => n.tagName.toLowerCase() === "path"
                      || !n.getAttribute("stroke-dasharray"))
       .map((n) => n.tagName.toLowerCase());

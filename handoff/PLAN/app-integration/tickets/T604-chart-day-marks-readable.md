@@ -1,6 +1,6 @@
 # T604 — The chart's day marks are readable: no overlapping labels, today is obvious
 
-Status: OPEN
+Status: IN REVIEW — owner looks at the web shots in ../T604-shots/ (`*-after.png`), then on the phone; emulator not run | 90e41efc6
 
 Source: owner 2026-11-10 on build 25 (Fraser, CPR Bridge at Mission → Landstrom Bar, regulations day Wed 11 Nov):
 "The only issue is the chart for 2 days. It has overlapping text and not obvious what current day is." Shot:
@@ -29,3 +29,17 @@ Source: owner 2026-11-10 on build 25 (Fraser, CPR Bridge at Mission → Landstro
 - The owner's case (today + the next day) reads cleanly on the phone; a test fails if two mark labels' boxes intersect.
 
 Depends: T582. Size: S. Owner: looks at the shots.
+
+## Done (90e41efc6)
+- ONE layout, `core/src/chartMarks.ts` `layoutDayMarks`, called from `buildHydrograph` so the shape carries the placed
+  labels; the web and phone charts are the one `Hydrograph` component. Measured widths; first place that is inside the
+  plot, meets no placed label and covers no rule: right of its rule, left, then row 1, row 2. Today is placed first. Test
+  `chartMarks.test.ts` (fuzz over every pair of rule positions; fails when two boxes intersect).
+- Today: solid ink rule, bold "Today". Conditions day: line colour, dashed. Regulations day: quiet grey, dashed, "Wed 11 Nov"
+  (title case, as the text line above). Same day twice: one mark (Conditions'). Item 3: all three are drawn; with three
+  rules within ~25 px a label may cross a neighbouring rule, never another label.
+- Item 4: the scroller starts below the pinned band (measured: scroll top 214 px, band bottom 214 px), so nothing sits
+  "under" it; the owner's shot is a scroll position. What was wrong is the hint: on a phone it ran to three lines beside
+  the buttons and was cut. It is now said whole on its own line under the zoom row (the read-out keeps the row).
+- Shots (web, 412 px wide, dark): one day apart, same day, a week apart, past the window, a Conditions day + regs day,
+  adjacent days. Emulator not run. Left: a phone look.
