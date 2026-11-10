@@ -236,7 +236,8 @@ def test_a_dem_point_and_an_owner_row_say_so_in_the_follow_up(src):
     assert skipped == [
         {"target": NANAIMO, "why": f"a DEM point (1925.0 m above the mouth): {TL.DEM_QUESTION}"},
         {"target": COPPER, "why": "a follow-up (unsure): no tidal limit until a Place y mark — tidal.json already "
-                                  "holds the owner's own `whole` row (2026-10-29); re-mark to confirm it"}]
+                                  "holds the owner's own `whole` row (2026-10-29); re-mark to confirm it",
+         "followup": True}]        # T545: a follow-up decides nothing (the gate counts it); the DEM point WAITS
 
 
 def test_the_file_round_trips_and_refuses_what_it_cannot_mean(src):
