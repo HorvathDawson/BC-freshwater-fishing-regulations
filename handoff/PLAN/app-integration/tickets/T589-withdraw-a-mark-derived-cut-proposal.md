@@ -1,6 +1,6 @@
 # T589 — A cut proposal can be withdrawn (the Allco fence)
 
-Status: OPEN
+Status: IN REVIEW — 680c1d6eb, 2026-11-10: the withdraw call is built and tested (`marks.ConfidenceOverride.withdrawn`, `marks.withdrawn_groups`, the panel's "Withdrawn cut proposals" line). NOT done: withdrawing the Allco cut itself (the owner's call: one entry in `data/curated/review/proposal_overrides.json` with `withdrawn: true` and a note; there is no button for it yet). Not looked at in a browser (nothing is withdrawn today)
 
 Source: T532 round 6, leftover c.
 
