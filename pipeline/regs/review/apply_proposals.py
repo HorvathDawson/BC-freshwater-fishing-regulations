@@ -24,7 +24,8 @@ Before each lands:
 
 Refused per proposal (and said why): not applicable, a new split not applied, the side rebuild not
 made, a failed binding check, a file with uncommitted changes (a commit would sweep them in), a
-failed commit (the files are put back). Run the normal rebuild afterwards (`GET /api/build` lists
+failed commit (the files are put back), an id that two proposals share (T545: none of them lands). Every proposal
+asked for ends with an outcome; one left without is reported as not landed. Run the normal rebuild afterwards (`GET /api/build` lists
 it); each changed entry re-enters the review queue as a re-check (its fingerprint moved, T97).
 """
 from __future__ import annotations
@@ -36,6 +37,10 @@ from pathlib import Path
 from typing import Iterable, Mapping
 
 from pipeline.regs.review import proposals as P
+
+
+#: the proposal kinds that are a note, never an edit: nothing to land, no outcome owed
+NO_EDIT_KINDS = ("lake_split_later", "tidal_mouth", "tidal_followup")
 
 
 def _git(*args: str) -> subprocess.CompletedProcess:
@@ -91,7 +96,7 @@ def plan(props: list[dict], tried: set[str], landed_sids: set[str] = frozenset()
     by_id = {p["id"]: p for p in props}
     blocked = []
     for p in props:
-        if p["id"] in tried or p["kind"] in ("lake_split_later", "tidal_mouth", "tidal_followup"):
+        if p["id"] in tried or p["kind"] in NO_EDIT_KINDS:
             continue
         if not p["applicable"]:
             blocked.append((p["id"], "not applicable: " + "; ".join(p["problems"] or ["no edit"])))
@@ -144,6 +149,7 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
     tried: set[str] = set()
     landed_sids: set[str] = set()
     landed, rc, blocked = [], 0, []
+    unpicked: set[str] = set()                             # not asked for (--only / --scope): no outcome is owed
     while True:
         src = P.Sources.live(a.build)                      # the files as they are now
         props = P.build(decided, src)
@@ -151,7 +157,20 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
             want = set(a.only) | {p["id"] for p in props if a.scope and of_scopes(p, a.scope)}
             props_pick = [p for p in props if p["id"] in want or any(
                 p["id"] in q["depends_on"] for q in props if q["id"] in want)]
-            tried |= {p["id"] for p in props if p not in props_pick}
+            unpicked = {p["id"] for p in props if p not in props_pick}
+            tried |= unpicked
+        # T545: ONE ID, SEVERAL PROPOSALS — everything here is keyed by id, so all but the first would vanish unsaid
+        # (their marks read "saved"). None of them lands; each mark behind them is told why.
+        for pid, same in P.duplicate_ids(props).items():
+            if pid in tried:
+                continue
+            tried.add(pid)
+            why = (f"{len(same)} proposals share the id {pid} ("
+                   + "; ".join(sorted({str(q['target']) for q in same})) + "): none is applied — "
+                   "`proposals.mark_pid` must tell them apart")
+            print(f"!! {pid}: {why}")
+            events.append({"id": pid, "status": "refused", "marks": [m for q in same for m in _who(q)], "why": why})
+            rc = 1
         p, blocked = plan(props, tried, landed_sids, a.side_checked)
         if p is None:
             break
@@ -209,6 +228,22 @@ def run(argv: list[str] | None = None) -> tuple[int, list[dict]]:
         print(f"-- {pid}: {why}")
         events.append({"id": pid, "status": "refused" if why.startswith("not applicable") else "waiting",
                        "marks": _who(last.get(pid) or {}), "why": why})
+    # T545: EVERY PROPOSAL IS ACCOUNTED FOR — `props` is what the marks still ask of the files as they are NOW. One
+    # that was asked for and has no outcome, or that still stands after its commit, is said (never read as "saved").
+    said = {e["id"]: e for e in events}
+    for q in props:
+        if q["id"] in unpicked or q["kind"] in NO_EDIT_KINDS:
+            continue
+        e = said.get(q["id"])
+        if e is None:
+            why = "not landed: this proposal was neither applied nor reported (an apply_proposals fault)"
+        elif e["status"] == "applied" and q["applicable"]:
+            why = f"committed in {e.get('sha')}, but the file still differs from the mark: not landed"
+        else:
+            continue
+        print(f"!! {q['id']}: {why}")
+        events.append({"id": q["id"], "status": "refused", "marks": _who(q), "why": why})
+        rc = 1
     if landed:
         print(f"{len(landed)} commit(s). Next: the rebuild the review app lists (GET /api/build); "
               "a new split needs the atlas.")

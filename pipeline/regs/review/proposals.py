@@ -73,6 +73,32 @@ def _slug(s: str, n: int = 60) -> str:
     return _ids.slug(s, n)
 
 
+def _cut_slug(s: str, n: int) -> str:
+    """`_slug`, kept unique when the cut at `n` drops something: a slug that was truncated ends in a short hash of the
+    whole string (T545: two DFO location ids alike in their first 70 characters — `…boun`, `…boun~2`, `…boun~3` —
+    made ONE proposal id, and only one of their marks landed per apply). A slug that fits is unchanged, so every id
+    that was already its own stays the same."""
+    cut = _slug(s, n)
+    if cut == _slug(s, 10 ** 6):
+        return cut
+    return f"{cut}-{hashlib.sha256(str(s).encode()).hexdigest()[:8]}"
+
+
+def mark_pid(scope: str, target: str, rule_id: Optional[str] = None) -> str:
+    """THE ID of a mark's proposal: `mark-<scope>-<target>[-<rule>]`, one per (scope, target, rule) — see `_cut_slug`."""
+    return "mark-" + _slug(scope, 6) + "-" + _cut_slug(target, 70) + ("-" + _cut_slug(rule_id, 40) if rule_id else "")
+
+
+def duplicate_ids(props: Iterable[Mapping]) -> dict[str, list[Mapping]]:
+    """The proposal ids more than one proposal of `props` carries (T545) -> those proposals. An apply keys everything
+    by id, so two proposals under one id would land as one and the other would vanish unsaid: `apply_proposals`
+    refuses every one of them, by name."""
+    by: dict[str, list[Mapping]] = {}
+    for p in props:
+        by.setdefault(p["id"], []).append(p)
+    return {i: ps for i, ps in by.items() if len(ps) > 1}
+
+
 def _h(obj) -> str:
     return hashlib.sha256(json.dumps(obj, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
 
@@ -984,8 +1010,7 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
     # ---- one proposal per mark
     for m in inforce:
         who = _provenance(m)
-        pid = "mark-" + _slug(m.scope, 6) + "-" + _slug(m.target, 70) + (
-            "-" + _slug(m.rule_id, 40) if m.rule_id else "")
+        pid = mark_pid(m.scope, m.target, m.rule_id)
         if m.lake_split_later:
             out.append({"id": pid + "-lake-split", "kind": "lake_split_later", "target": m.target,
                         "scope": m.scope, "rule_id": m.rule_id,
@@ -1355,7 +1380,7 @@ def write(props: list[dict], out: Path, src: Sources, *, marks_path: Path) -> Pa
                 if any(_resolve_file(ed, src) == k for ed in p["edits"])}
             diff = "".join(unified(_rel(path), src.text(path), text)
                            for path, text in sorted(texts.items()))
-            name = f"{_slug(p['id'], 100)}.patch"
+            name = f"{_slug(p['id'], 200)}.patch"             # the whole id (T545: a cut one could clash)
             atomic_write(out / name, diff)
             row["patch"] = name
         else:

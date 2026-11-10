@@ -219,6 +219,90 @@ def test_a_dfo_mark_lands_in_its_dfo_file_in_the_background(wt):
     assert not st["saving"]
 
 
+# T545: two DFO places whose ids are alike in their first 70 slugged characters (`…boun`, `…boun~2`)
+LONG = "1:cowichan-river:" + "from-a-line-between-two-fishing-boundary-signs-downstream-to-the-mouth"[:53]
+LONG2 = LONG + "~2"
+_WANT = [{"op": "downstream_of", "splits": ["cowichan_river__cnr_trestle"], "item_id": "gnis:12227"}]
+
+
+def _twins(wt) -> Path:
+    """Two copies of the Cowichan place under ids that slug alike to 70 characters, committed in the temp repo."""
+    assert P._slug(LONG, 70) == P._slug(LONG2, 70) and len(P._slug(LONG, 999)) == 70
+    f = wt["repo"] / "data/curated/dfo_salmon/region-1.json"
+    doc = json.loads(f.read_text())
+    base = next(x for x in doc["locations"] if x["location_id"] == COWICHAN)
+    doc["locations"] += [{**base, "location_id": i} for i in (LONG, LONG2)]
+    f.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+    _git(wt["repo"], "commit", "-qm", "twins", "--", str(f))
+    return f
+
+
+def _extents(f: Path) -> dict:
+    return {x["location_id"]: x["binding"].get("extents") for x in json.loads(f.read_text())["locations"]
+            if x["location_id"] in (LONG, LONG2)}
+
+
+def _mark_twins(wt) -> dict:
+    for t in (LONG, LONG2):
+        assert _post_built(wt, _dfo_mark().model_copy(update={"target": t})).status_code == 200
+    assert wt["WT"].wait_idle(30)
+    return wt["client"].get("/api/review/write-through").json()
+
+
+def test_two_dfo_marks_alike_in_their_first_70_characters_both_land(wt):
+    f = _twins(wt)
+    assert P.mark_pid("dfo", LONG) != P.mark_pid("dfo", LONG2)
+    assert P.mark_pid("dfo", LONG) == "mark-dfo-" + P._slug(LONG, 70)          # an id that fitted is unchanged
+    st = _mark_twins(wt)
+    assert _extents(f) == {LONG: _WANT, LONG2: _WANT}
+    for t in (LONG, LONG2):
+        o = st["outcomes"][f"dfo|{t}|"]
+        assert o["state"] == "saved" and o.get("sha"), o
+    assert not st["attention"]
+    assert len(_git(wt["repo"], "log", "--format=%s").splitlines()) == 4        # base, twins, one commit per mark
+
+
+def _old_pid(scope, target, rule_id=None):
+    return "mark-" + P._slug(scope, 6) + "-" + P._slug(target, 70) + ("-" + P._slug(rule_id, 40) if rule_id else "")
+
+
+def test_proposals_under_one_id_are_all_refused_by_name(wt):
+    """The guard behind the id: were two proposals to share an id again, neither lands and BOTH marks say why."""
+    f = _twins(wt)
+    before = _extents(f)
+    wt["mp"].setattr(P, "mark_pid", _old_pid)
+    st = _mark_twins(wt)
+    assert _extents(f) == before
+    for t in (LONG, LONG2):
+        o = st["attention"][f"dfo|{t}|"]
+        assert o["state"] == "refused" and "share the id" in o["why"], o
+    assert st["domains"]["dfo"]["state"] == "refused"
+    log = [json.loads(x) for x in (wt["tmp"] / "write-through.jsonl").read_text().splitlines()]
+    assert "share the id" in log[-1]["refused"][0]["why"]
+
+
+def test_a_proposal_left_without_an_outcome_is_said_not_saved(wt):
+    """The last net: a proposal the apply never reached (here: the id clash, its guard off) reads NOT LANDED."""
+    f = _twins(wt)
+    wt["mp"].setattr(P, "mark_pid", _old_pid)
+    wt["mp"].setattr(P, "duplicate_ids", lambda props: {})
+    st = _mark_twins(wt)
+    got = _extents(f)
+    assert list(got.values()).count(_WANT) == 1, got            # one landed, its twin did not
+    bad = [o for o in st["attention"].values() if o["state"] == "refused"]
+    assert bad and all("still differs from the mark" in o["why"] for o in bad), st
+    assert st["domains"]["dfo"]["state"] == "refused"
+
+
+def test_a_proposal_the_apply_never_reached_is_said_not_saved(wt):
+    from pipeline.regs.review import apply_proposals as A
+    wt["mp"].setattr(A, "plan", lambda *a, **k: (None, []))
+    assert _post_built(wt, _dfo_mark()).status_code == 200
+    assert wt["WT"].wait_idle(30)
+    o = wt["client"].get("/api/review/write-through").json()["attention"][f"dfo|{COWICHAN}|"]
+    assert o["state"] == "refused" and "neither applied nor reported" in o["why"], o
+
+
 def test_an_entry_mark_lands_in_its_catalogue_file_in_the_background(wt):
     mark = M.Mark.model_validate({
         "scope": "entry", "target": HATZIC, "verdict": "verified", "answers": {"T": "y", "R": "y", "P": "y", "A": "y"},
