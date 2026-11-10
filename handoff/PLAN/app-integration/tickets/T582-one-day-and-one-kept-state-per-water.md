@@ -29,3 +29,7 @@ Two days, each labelled, with a soft link. The forecast is a short window; regul
 - F3: the address keeps the regulations day (`date`) but not the horizon (`addressKept`, used by `systemBack.web`), so a web reload and a phone cold start both open Conditions on today. A shared link still names a horizon and both platforms read it alike. (The README has no "kept state" table to add a row to.)
 - Tests: `core/src/dayLink.test.ts`, `ui-native/src/ConditionsDay.test.tsx` (the F2 gate: day named, inside = marked, past = the one line, horizon independent), `ui/src/keptDay.test.ts` (the F3 gate: address restores no horizon).
 - Not built: when both the horizon and the regulations day are on the chart, only the horizon's own rule is drawn (the regulations day is still named in the line).
+
+## Owner look pending (2026-11-10)
+Owner will try it on build 25: "we just want to make sure it isn't clunky and hard for a user to know what it means."
+Stays IN REVIEW until he says it reads clearly. If not: simplify the wording or drop to one line; ask him what confused.
