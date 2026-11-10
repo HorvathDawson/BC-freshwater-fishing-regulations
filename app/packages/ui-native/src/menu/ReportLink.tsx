@@ -15,7 +15,7 @@
  */
 import { useContext } from "react";
 import { Text } from "../Text";
-import { MENU_WORDS, regsReportWhere, type RegsPage } from "@app/core";
+import { MENU_WORDS, regsReportWhere, reportFailure, type RegsPage, type ReportWhere } from "@app/core";
 import { TYPE } from "../type";
 import { GUTTER, SPACE, type Palette } from "../theme";
 import { MIN_HIT } from "../regs/hit";
@@ -36,6 +36,34 @@ export function ReportLink({ page, palette }: {
       <Text style={{ ...TYPE.small, color: palette.accent }}>
         {MENU_WORDS.report.fromRegs}
       </Text>
+    </RegsPress>
+  );
+}
+
+/**
+ * (T569, owner 2026-11-09: "there is no report an issue button on the conditions tab") "Report a problem with this water"
+ * on a water's Conditions and Map views, the same quiet link as the Regulations page's. It opens the same form with `where`
+ * filled in (`waterReportWhere`: the water, the tab, and from Conditions the gauge, quantity and span), and `feed` — the
+ * gauge feed's version, which is read when it is pressed (the feed's index): if that read fails the failure is reported and
+ * the form opens without the line, never silently.
+ */
+export function WaterReportLink({ where, feed, palette, testID = "report-link-water" }: {
+  where: ReportWhere; palette: Palette; testID?: string;
+  feed?: () => Promise<string | null>;
+}) {
+  const menu = useContext(MenuContext);
+  if (!menu) return null;
+  const open = () => {
+    if (!feed) { menu.report(where); return; }
+    feed().then((f) => menu.report(f ? { ...where, feed: f } : where),
+                (e: unknown) => { reportFailure(e); menu.report(where); });
+  };
+  return (
+    <RegsPress testID={testID} onPress={open} accessibilityRole="link" accessibilityLabel={MENU_WORDS.report.fromWater}
+               box={{ w: MIN_HIT, h: 32 }}
+               style={{ alignSelf: "flex-start", marginTop: SPACE.s2, marginBottom: SPACE.s3, minHeight: 32,
+                        minWidth: MIN_HIT, justifyContent: "center" }}>
+      <Text style={{ ...TYPE.small, color: palette.accent }}>{MENU_WORDS.report.fromWater}</Text>
     </RegsPress>
   );
 }

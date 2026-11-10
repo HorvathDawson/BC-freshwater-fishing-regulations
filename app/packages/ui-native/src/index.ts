@@ -45,7 +45,7 @@ export { connectivity } from "./connectivity";
 export { MenuContext } from "./menu/MenuContext";
 export type { MenuInfo } from "./menu/MenuHost";
 export type { UpdatesLogControls, UpdateChannelKey } from "./menu/UpdatesLogPage";
-export { ReportLink } from "./menu/ReportLink";
+export { ReportLink, WaterReportLink } from "./menu/ReportLink";
 export * from "./theme";
 export { preloadParts } from "./part";
 export { openLinkShown } from "./openLink";

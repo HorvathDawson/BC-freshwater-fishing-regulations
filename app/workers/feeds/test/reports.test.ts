@@ -219,6 +219,21 @@ describe("report/2 (T352)", () => {
     expect(ev[0]!.text).toMatch(/Map: regulations · map · forecast 3 · zoom 9\.4 · centre 49\.123, -121\.957\n/);
     expect(ev[0]!.text).toMatch(/install 0123456789abcdef/);
   });
+  it("(T569) a report from a water's Conditions names the gauge, quantity, span and feed; report/1 does not take them", async () => {
+    const gauge = { station: "08MH001", quantity: "Flow", span: "Last 72 hours", feed: "2026-11-10T18:05:00.000Z" };
+    const v = validateReport(v2(gauge));
+    expect(v).toMatchObject({ ok: true });
+    if (v.ok) expect(v.report.context).toMatchObject(gauge);
+    for (const k of Object.keys(gauge)) {
+      expect(validateReport(report({ context: { [k]: "x" } }))).toEqual({ ok: false, error: `unknown context.${k}` });
+      expect(validateReport(v2({ [k]: 3 }))).toEqual({ ok: false, error: `bad context.${k}` });
+      expect(validateReport(v2({ [k]: "x".repeat(LIMITS.field + 1) }))).toEqual({ ok: false, error: `bad context.${k}` });
+    }
+    const BUCKET = new MemBucket();
+    await handleReport(post(v2(gauge)), { BUCKET, REPORT_SALT: SALT }, at("2026-11-03T10:00:00Z"));
+    const ev = await reportEvents(BUCKET, () => false, at("2026-11-03T11:00:00Z"), "x");
+    expect(ev[0]!.text).toMatch(/\nGauge: 08MH001 · Flow · Last 72 hours · feed 2026-11-10T18:05:00\.000Z\n/);
+  });
   it("each version takes only its own context keys, and checks the new ones", () => {
     expect(validateReport(report({ context: { zoom: 9 } }))).toEqual({ ok: false, error: "unknown context.zoom" });
     expect(validateReport(report({ context: { install: "0123456789abcdef" } }))).toEqual({ ok: false, error: "unknown context.install" });

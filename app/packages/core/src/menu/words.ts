@@ -159,6 +159,8 @@ export const MENU_WORDS = {
     subject: `${APP_NAME} problem report`,
     subjectAt: (where: string) => `${APP_NAME} problem report: ${where}`,
     fromRegs: "Report a problem with this page",
+    /** (T569) the same entry on a water's Conditions and Map views */
+    fromWater: "Report a problem with this water",
     /** (T237) About's link to the form */
     fromAbout: "Report a problem",
     /** (T237) the reason, the form's first choice (`REPORT_REASONS` order) */
@@ -216,6 +218,16 @@ export const MENU_WORDS = {
       section: (n: number) => `Section: ${n}`,
       mode: (m: string) => `Map colours: ${m}`,
       day: (d: string) => `Day: ${d}`,
+      /** (T569) a report asked from a water's Conditions: the gauge charted, the quantity and span picked, the feed's version */
+      station: (s: string) => `Gauge: ${s}`,
+      quantity: (q: string) => `Quantity: ${q}`,
+      span: (s: string) => `Chart span: ${s}`,
+      feed: (f: string) => `Gauge feed: ${f}`,
+      /** the screens a water's views name (the Regulations one is `regs`) */
+      conditions: "water · conditions",
+      map: "water · map",
+      /** the tab a report from these views names */
+      tabs: { conditions: "Conditions", map: "Map" },
       /** the screen a regulations tab's report names */
       regs: "water · regulations",
     },

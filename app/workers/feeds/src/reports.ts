@@ -44,10 +44,15 @@ const STR_FIELDS = ["screen", "tab", "place", "water", "partLabel", "day", "mode
 const INT_FIELDS = ["part", "section"] as const;
 /** (T352) report/2's context: the map's layer and forecast offset, zoom and centre, and the install id */
 const V2_STR_FIELDS = ["layer", "horizon"] as const;
+/**
+ * (T569) a report asked from a water's Conditions: the gauge charted (its station id), the quantity and span picked, and the
+ * gauge feed's version (its index's fetch stamp). Strings, report/2 only; no release or section id is added (AGENTS 5).
+ */
+const V2_GAUGE_FIELDS = ["station", "quantity", "span", "feed"] as const;
 const V2_NUM_FIELDS = { zoom: [0, 24], lat: [-90, 90], lon: [-180, 180] } as const;
 const INSTALL_RE = /^[0-9a-f]{16}$/;
 /** (T430) every context key a report/2 may carry; `app/tools/wire.test.ts` compares it with the app's `ReportContext` */
-export const REPORT_CONTEXT_KEYS: readonly string[] = [...STR_FIELDS, ...INT_FIELDS, ...V2_STR_FIELDS, ...Object.keys(V2_NUM_FIELDS), "install", "errors"];
+export const REPORT_CONTEXT_KEYS: readonly string[] = [...STR_FIELDS, ...INT_FIELDS, ...V2_STR_FIELDS, ...V2_GAUGE_FIELDS, ...Object.keys(V2_NUM_FIELDS), "install", "errors"];
 
 export interface StoredReport {
   format: (typeof REPORT_FORMATS)[number];
@@ -112,7 +117,7 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
     } else if ((INT_FIELDS as readonly string[]).includes(k)) {
       if (typeof v !== "number" || !Number.isInteger(v) || v < 0) return { ok: false, error: `bad context.${k}` };
       ctx[k] = v;
-    } else if (v2 && (V2_STR_FIELDS as readonly string[]).includes(k)) {
+    } else if (v2 && ((V2_STR_FIELDS as readonly string[]).includes(k) || (V2_GAUGE_FIELDS as readonly string[]).includes(k))) {
       if (typeof v !== "string" || v.length > LIMITS.field) return { ok: false, error: `bad context.${k}` };
       ctx[k] = v;
     } else if (v2 && k in V2_NUM_FIELDS) {
@@ -320,6 +325,8 @@ export function reportEvent(r: StoredReport, at: string): FeedEvent {
     text:
       `${r.text}\n\n` +
       `Where: ${where}${c.day ? ` · ${c.day}` : ""}${c.mode ? ` · map ${c.mode}` : ""}\n` +
+      // (T569) report/2, asked from a water's Conditions: the gauge charted, its quantity and span, the feed's version
+      (c.station ? `Gauge: ${[c.station, c.quantity, c.span, c.feed ? `feed ${c.feed}` : null].filter(Boolean).join(" · ")}\n` : "") +
       // (T352) report/2: the map as the reader had it
       (c.layer || c.zoom !== undefined || c.horizon !== undefined
         ? `Map: ${[c.layer, c.horizon !== undefined ? `forecast ${c.horizon}` : null,

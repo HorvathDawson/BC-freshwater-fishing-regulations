@@ -793,7 +793,7 @@ export function readingHeading(name: string): string {
 
 /** The stage, beside a discharge. */
 export function stageLine(level: number): string {
-  return `${level} ${CONDITIONS_WORDS.unit.level} stage`;
+  return `${figure(level)} ${CONDITIONS_WORDS.unit.level} stage`;
 }
 
 /** The refusal where no gauge may speak for the water. */

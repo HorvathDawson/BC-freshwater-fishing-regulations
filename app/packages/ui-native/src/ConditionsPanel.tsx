@@ -16,7 +16,7 @@ import { ScrollView, View, type LayoutChangeEvent } from "react-native";
 import { Text } from "./Text";
 import { Pressable } from "./Pressable";
 import { CHANGE_LEGEND, CHANGE_LOW_WATER, chartLabel, figure as figureText, CONDITIONS_WORDS, forecastChartLabel, forecastModelOption,
-         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, type ChartSpan } from "@app/core";
+         forecastRunLine, noChartSentence, OTHER_QUANTITY_WORDS, standingRankedIn, waterReportWhere, dayLabel, type ChartSpan } from "@app/core";
 import type { Parameter, WaterSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigure, forecastDash, forecastDrawn, pickModel, realtimeOnly,
@@ -24,6 +24,11 @@ import { cardQuantity, changeChartModel, changeView, chartParameter, currentFigu
          useGaugeShare, usePrefetchGauges, useSeries, type ChangeVM, type ShareControl, type GaugeChoiceVM, type GaugeGroupVM, type Horizon,
          type PanelFeed } from "@app/ui";
 import { GaugeGroups } from "./GaugeGroups";
+import { WaterReportLink } from "./menu/ReportLink";
+
+/** (T569) the gauge feed's version a report names: when the charted station's file was fetched (ISO), else nothing */
+const feedStamp = (o: { fetchedAt: number | null } | null): string | null =>
+  o?.fetchedAt != null ? new Date(o.fetchedAt).toISOString() : null;
 import { GaugeShare } from "./GaugeShare";
 import { SharePortContext } from "./SharePortContext";
 import { AlertMe } from "./AlertMe";
@@ -56,7 +61,7 @@ const W = CONDITIONS_WORDS;
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer, credits, horizon = 0, onHorizon, day = null, waterLine, waterBox, alertWater }: {
+                                  footer, credits, horizon = 0, onHorizon, day = null, waterLine, waterBox, alertWater, reportAbout = null }: {
   source: WaterSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: PanelFeed;
@@ -87,6 +92,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   waterBox?: readonly [number, number, number, number] | null;
   /** (T234) The water a gauge alert set here opens (its durable item, its name); absent: the alert names the gauge. */
   alertWater?: { item: string | null; name: string } | null;
+  /** (T569) A water's sheet: the facts its "Report a problem" link sends with the gauge, quantity and span (its item id, name, part). */
+  reportAbout?: { water: string | null; place: string | null; part: number | null; partLabel: string | null } | null;
 }) {
   /*
    * THE SAME QUANTITY THE MAP IS PAINTING. `parameter` is undefined only under
@@ -372,6 +379,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                   onHorizon={onHorizon} quantity={parameter ?? "discharge"}
                   detail={detail} chart={graph}
                   foot={small} after={footer} holdKey={`${section ?? ""}:${String(horizon)}:${vm.day.toDateString()}`} sides={vm.sides} count={vm.count} waterLine={waterLine} place={waterBox} />
+      {/* (T569) the way to report a problem from here, with the gauge charted, its quantity and span filled in */}
+      {reportAbout && (
+        <WaterReportLink where={waterReportWhere({ view: "conditions", ...reportAbout, day: dayLabel(vm.day), station,
+                                                   quantity: CONDITIONS_WORDS.quantity[shown], span: CONDITIONS_WORDS.span[span] })}
+                         feed={feed?.observations && station ? async () => feedStamp(await feed.observations!(station as StationId)) : undefined} palette={palette} />
+      )}
     </>
   );
 

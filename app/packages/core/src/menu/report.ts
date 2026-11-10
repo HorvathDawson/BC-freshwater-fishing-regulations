@@ -32,6 +32,11 @@ export interface ReportWhere {
   tab?: string | null;
   /** (T237) the map's regulations colouring: standard / salmon / run timing (`RegsLayer`) */
   mode?: string | null;
+  /** (T569) from a water's Conditions: the gauge charted (its station id), the quantity and span picked, the gauge feed's version */
+  station?: string | null;
+  quantity?: string | null;
+  span?: string | null;
+  feed?: string | null;
 }
 
 /** (T352) The map as the reader had it when they asked to report: its layer, forecast offset, zoom and centre. */
@@ -91,6 +96,24 @@ export function regsReportWhere(page: { readonly target: RegsTarget;
   };
 }
 
+/**
+ * (T569) Where a report asked from a water's Conditions or Map view was asked from: the water by its durable item id
+ * (never a section or dense id, AGENTS 5 — so `section` is cleared, the route's tap handle with it), the part as the page
+ * names it, the tab, the day, and from Conditions the gauge charted, the quantity and span picked and the gauge feed's
+ * version. Still listed in "Where you were", which the reader can switch off.
+ */
+export function waterReportWhere(a: {
+  view: "conditions" | "map"; water?: string | null; place?: string | null; part?: number | null; partLabel?: string | null;
+  day?: string | null; station?: string | null; quantity?: string | null; span?: string | null; feed?: string | null;
+}): ReportWhere {
+  const say = MENU_WORDS.report.where;
+  // only what is known is set: a null here would blank the route's own fact (its day) in the menu's merge
+  const known = Object.entries({ place: a.place, water: a.water, part: a.part, partLabel: a.partLabel, day: a.day,
+                                 station: a.station, quantity: a.quantity, span: a.span, feed: a.feed })
+    .filter(([, v]) => v !== null && v !== undefined);
+  return { screen: say[a.view], tab: say.tabs[a.view], section: null, ...Object.fromEntries(known) };
+}
+
 /** "Screen: water · regs" / "Water: Vedder River (item 356…)" / … — one line per thing the reader was looking at. */
 export function whereLines(w: ReportWhere): string[] {
   const say = MENU_WORDS.report.where;
@@ -104,6 +127,10 @@ export function whereLines(w: ReportWhere): string[] {
   if (w.section !== null && w.section !== undefined) out.push(say.section(w.section));
   if (w.mode) out.push(say.mode(MENU_WORDS.report.modes[w.mode as keyof typeof MENU_WORDS.report.modes] ?? w.mode));
   if (w.day) out.push(say.day(w.day));
+  if (w.station) out.push(say.station(w.station));
+  if (w.quantity) out.push(say.quantity(w.quantity));
+  if (w.span) out.push(say.span(w.span));
+  if (w.feed) out.push(say.feed(w.feed));
   return out;
 }
 
@@ -194,6 +221,8 @@ export interface ReportContext {
   /** the tapped section's handle: internal, only meaningful beside `release` and `tiles` */
   section?: number;
   day?: string; mode?: string;
+  /** (T569) with "Where you were", from a water's Conditions: the gauge charted, the quantity and span, the feed's version */
+  station?: string; quantity?: string; span?: string; feed?: string;
   /** (T352) with "Map view": the layer, the forecast offset ("0", a day, "change"), zoom (0.1) and centre (3 decimals) */
   layer?: string; horizon?: string; zoom?: number; lat?: number; lon?: number;
   /** (T352) with "Install id": the random id made once on this device */
@@ -242,6 +271,10 @@ export function reportPayload(i: { id: string; created: string; reason: ReportRe
     if (w.section !== null && w.section !== undefined) c.section = w.section;
     if (w.day) c.day = cut(w.day);
     if (w.mode) c.mode = cut(w.mode);
+    if (w.station) c.station = cut(w.station);
+    if (w.quantity) c.quantity = cut(w.quantity);
+    if (w.span) c.span = cut(w.span);
+    if (w.feed) c.feed = cut(w.feed);
   }
   if (on("app")) {
     if (d.appBuild) c.app = cut(d.appBuild);

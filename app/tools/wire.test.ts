@@ -59,7 +59,8 @@ describe("crash/2: the app's payload is one the worker takes", () => {
 const DIAG: Diagnostics = {
   appBuild: "0.6.0 (60)", env: "production", platform: "android 34", release: "r-5a5999c94588", tiles: "t-2026-11-01",
   where: { screen: "water · regs", water: "fwa:356308001", place: "Harrison River", section: 4, part: 1,
-           partLabel: "Mouth → Source", day: "Thu 5 Nov", tab: "rules", mode: "standard" },
+           partLabel: "Mouth → Source", day: "Thu 5 Nov", tab: "rules", mode: "standard",
+           station: "08MH001", quantity: "flow", span: "7 days", feed: "2026-11-10T18:05:00Z" },
   map: { layer: "regulations · satellite", horizon: 2, zoom: 9.43, lat: 49.12345, lon: -121.95432 },
   install: INSTALL,
   errors: ["boom", "bang"],
@@ -67,6 +68,7 @@ const DIAG: Diagnostics = {
 /** every key of the app's ReportContext — a new one here must be one the worker takes (`REPORT_CONTEXT_KEYS`) */
 const APP_CONTEXT_KEYS: Record<keyof Required<ReportContext>, true> = {
   screen: true, tab: true, place: true, water: true, part: true, partLabel: true, section: true, day: true, mode: true,
+  station: true, quantity: true, span: true, feed: true,
   layer: true, horizon: true, zoom: true, lat: true, lon: true, install: true, app: true, env: true, platform: true,
   release: true, tiles: true, errors: true,
 };

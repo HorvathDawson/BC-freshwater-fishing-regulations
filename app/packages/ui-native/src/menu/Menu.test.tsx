@@ -9,9 +9,9 @@
  * the Map tab is the route's tab rule: apps/mobile back.test.tsx.)
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Linking, Share, Text } from "react-native";
-import { FISH_CREDITS, MENU_WORDS, regsReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
+import { FISH_CREDITS, MENU_WORDS, regsReportWhere, waterReportWhere, type DataInput, type GlossaryTerm, type RegsPage } from "@app/core";
 import type { RegsLoader } from "@app/data/regs";
 import { BackLayerContext, ERROR_LOG, LayoutWidthContext, routeWhere, useBack, useMenu, useRoute, type Back, type BackLayers,
          type MenuControls } from "@app/ui";
@@ -20,7 +20,7 @@ import { GlossaryPage } from "./GlossaryPage";
 import { MenuContext } from "./MenuContext";
 import { MoreScreen } from "./MoreScreen";
 import { MenuHost, type MenuInfo } from "./MenuHost";
-import { ReportLink } from "./ReportLink";
+import { ReportLink, WaterReportLink } from "./ReportLink";
 import { RegsScreen } from "../regs/RegsScreen";
 import { createPinStore } from "../regs/pinStore";
 import vedder1010 from "../regs/fixtures/vedder_1010.json";
@@ -440,6 +440,35 @@ describe("the report link at the foot of the Regulations page", () => {
       screen: "water · regulations", tab: null, place: "Vedder River", water: "gnis:3062", part: 1,
       partLabel: "Vedder Crossing → Fraser River", section: null, day: "Today, Oct 21" }]]);
     expect(report.mock.calls[0]![0]).toEqual(regsReportWhere(page, null));
+  });
+
+  it("(T569) the water's Conditions link opens the same form with the gauge, quantity, span and the feed's version", async () => {
+    const report = vi.fn();
+    const menu = { report } as unknown as MenuControls;
+    const where = waterReportWhere({ view: "conditions", water: "gnis:3062", place: "Vedder River", day: "Nov 10", station: "08MH001",
+                                     quantity: "Flow", span: "Last 72 hours" });
+    render(<MenuContext.Provider value={menu}>
+             <WaterReportLink where={where} feed={async () => "2026-11-10T18:05:00.000Z"} palette={LIGHT} /></MenuContext.Provider>);
+    expect(text("report-link-water")).toBe("Report a problem with this water");
+    press("Report a problem with this water");
+    await waitFor(() => expect(report).toHaveBeenCalledTimes(1));
+    expect(report.mock.calls[0]![0]).toEqual({ ...where, feed: "2026-11-10T18:05:00.000Z" });
+  });
+
+  it("(T569) a feed that cannot be read is reported, and the form still opens without that line", async () => {
+    const report = vi.fn();
+    const menu = { report } as unknown as MenuControls;
+    const where = waterReportWhere({ view: "conditions", water: "gnis:3062", station: "08MH001" });
+    render(<MenuContext.Provider value={menu}>
+             <WaterReportLink where={where} feed={async () => { throw new Error("feed down"); }} palette={LIGHT} /></MenuContext.Provider>);
+    press("Report a problem with this water");
+    await waitFor(() => expect(report).toHaveBeenCalledTimes(1));
+    expect(report.mock.calls[0]![0]).toEqual(where);
+  });
+
+  it("(T569) draws nothing without the Shell's menu", () => {
+    render(<WaterReportLink where={waterReportWhere({ view: "map" })} palette={LIGHT} />);
+    expect(screen.queryByTestId("report-link-water")).toBeNull();
   });
 
   it("the report it opens shows those facts as 'Where you were' lines", () => {

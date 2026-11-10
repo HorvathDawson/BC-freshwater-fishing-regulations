@@ -12,7 +12,9 @@ import { CHANGE_LOW_WATER, changeSourceLine, CONDITIONS_WORDS, noGaugeSentence, 
          stageLine, TIDAL_NOTE, BACKWATER_NOTE } from "@app/core";
 import type { Panel, WaterSource, SectionId } from "@app/data";
 import { clearPanelCache } from "@app/ui";
+import type { MenuControls } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
+import { MenuContext } from "./menu/MenuContext";
 import { WaterViewsContext, type WaterViews } from "./ViewSwipe";
 import { LIGHT } from "./theme";
 
@@ -41,6 +43,25 @@ const feed = { index: async () => ({ stations: {
   LEAD: { percentile: 0.15, parameter: "discharge" as const, discharge: 0.15 } } }) };
 
 describe("the conditions panel", () => {
+  it("(T569) offers Report a problem, with the water, the gauge charted, its quantity and span and the feed's version filled in", async () => {
+    const source = sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15,
+                                standing: "below", at: "2026-09-04T06:00:00Z" }, PANEL);
+    const report = vi.fn();
+    const menu = { report } as unknown as MenuControls;
+    const seen = { ...feed, observations: async () => ({ fetchedAt: Date.UTC(2026, 8, 4, 6, 5) }) as never };
+    render(<MenuContext.Provider value={menu}>
+             <ConditionsPanel source={source} section={SEC} palette={LIGHT} feed={seen} scroll={false} day={new Date(2026, 8, 4, 12)}
+                              reportAbout={{ water: "gnis:3062", place: "Vedder River", part: 1, partLabel: "Vedder Crossing → Fraser River" }} />
+           </MenuContext.Provider>);
+    await waitFor(() => expect(screen.getByTestId("report-link-water")).toBeTruthy());
+    fireEvent.click(screen.getByTestId("report-link-water"));
+    await waitFor(() => expect(report).toHaveBeenCalledTimes(1));
+    expect(report.mock.calls[0]![0]).toEqual({
+      screen: "water · conditions", tab: "Conditions", section: null, water: "gnis:3062", place: "Vedder River", part: 1,
+      partLabel: "Vedder Crossing → Fraser River", day: "Sep 4", station: "LEAD", quantity: "Flow", span: "Last 72 hours",
+      feed: "2026-09-04T06:05:00.000Z" });
+  });
+
   it("draws the lead donor's reading as the view model finished it", async () => {
     const source = sourceWith({ discharge: 12.5, level: 1.2, percentile: 0.15,
                                 standing: "below", at: "2026-09-04T06:00:00Z" }, PANEL);

@@ -16,7 +16,8 @@
  *   Map         the water framed and lit on the map (`focusFor`, the search's framing); the parts and their steps
  *               are P15's. The canvas pans, so here the swipe listens on the header only.
  */
-import { WATER_SCREEN_WORDS } from "@app/core";
+import { View } from "react-native";
+import { WATER_SCREEN_WORDS, waterReportWhere } from "@app/core";
 import type { ItemId, Parameter, WaterSource, SectionId } from "@app/data";
 import type { Horizon, PanelFeed } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
@@ -30,7 +31,8 @@ import { Place } from "./regs/RegsHeader";
 import { LoadingState } from "./LoadingState";
 import { ErrorState } from "./ErrorState";
 import { type Palette } from "./theme";
-import { WaterFrame, WaterTitle } from "./WaterFrame";
+import { WaterFrame, WaterInset, WaterTitle } from "./WaterFrame";
+import { WaterReportLink } from "./menu/ReportLink";
 import { BasinDays } from "./BasinDays";
 import { usePaneReady } from "./shell/paneReveal";
 
@@ -113,6 +115,7 @@ export function WaterConditions({ source, item, tapSid, palette, tiles, theme, p
                            parameter={parameter} onParameter={onParameter} from={here}
                            credits={credits} horizon={horizon} onHorizon={onHorizon} waterLine={line} waterBox={box}
                            alertWater={name ? { item, name } : null}
+                           reportAbout={{ water: item, place: name, part: part ?? null, partLabel: where.place?.full ?? null }}
                            footer={<BasinDays state={days} palette={palette} theme={theme ?? "light"} onPick={onHorizon}
                                               layout="rows" testID="water-basin-days" />} />
         </>
@@ -133,7 +136,14 @@ export function WaterMap({ source, item, palette, children }: {
   return (
     <WaterFrame palette={palette} face="regulations" title={<WaterTitle name={name} palette={palette} source={nameSource} />} bleed>
       {/* (T342) the map and its chrome are never selectable text */}
-      <Selectable on={false}>{children}</Selectable>
+      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}><Selectable on={false}>{children}</Selectable></View>
+      {/* (T569) the report entry on the Map view too: a slim row under the canvas, at the column's gutter */}
+      <WaterInset column>
+        <WaterReportLink where={waterReportWhere({ view: "map", water: item, place: name })} palette={palette}
+                         testID="report-link-water-map" />
+      </WaterInset>
+      </View>
     </WaterFrame>
   );
 }

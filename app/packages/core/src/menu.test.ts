@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aboutEnvVM, aboutVM, contactVM, diagnosticRows, regsLapsed, regsLapsedNote, sourceFreshness, glossaryRows, glossarySections, markedRuns, editDistance, isoDayWords,
-  mailtoUrl, regsReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
+  mailtoUrl, regsReportWhere, waterReportWhere, reportMessage, reportPayload, emailProblem, REPORT_REASONS, sourcesVM, whereLines, type Diagnostics, type SourceDateKey, type SourcesInput,
 } from "./menu";
 import { FISH_CREDITS } from "./regs/fish.generated";
 import { IMAGERY_ATTRIBUTION } from "./imagery";
@@ -566,6 +566,29 @@ describe("report a problem, from a regulations tab", () => {
     expect(regsReportWhere({ target: { kind: "part", item: "356308001", partIx: 2 }, header }, "gear")).toEqual({
       screen: "water · regulations", tab: "Gear", place: "Vedder River", water: "356308001", part: 2,
       partLabel: "Vedder Crossing → Fraser River", section: null, day: "Today, Oct 21" });
+  });
+
+  it("(T569) a water's Conditions names the gauge, quantity, span and feed, and never a section id", () => {
+    const w = waterReportWhere({ view: "conditions", water: "356308001", place: "Vedder River", part: 2,
+                                 partLabel: "Vedder Crossing → Fraser River", day: "Nov 10", station: "08MH001",
+                                 quantity: "Flow", span: "Last 72 hours", feed: "2026-11-10T18:05:00.000Z" });
+    expect(w).toEqual({ screen: "water · conditions", tab: "Conditions", section: null, water: "356308001", place: "Vedder River",
+                        part: 2, partLabel: "Vedder Crossing → Fraser River", day: "Nov 10", station: "08MH001", quantity: "Flow",
+                        span: "Last 72 hours", feed: "2026-11-10T18:05:00.000Z" });
+    expect(whereLines(w)).toEqual([
+      "Screen: water · conditions", "Tab: Conditions", "Water: Vedder River (356308001)",
+      "Part: 2 (Vedder Crossing → Fraser River)", "Day: Nov 10", "Gauge: 08MH001", "Quantity: Flow",
+      "Chart span: Last 72 hours", "Gauge feed: 2026-11-10T18:05:00.000Z"]);
+    const p = reportPayload({ id: "fedcba9876543210", created: "2026-11-10T18:06:00.000Z", reason: "bug", what: "The chart is wrong.",
+                              email: "", diagnostics: { appBuild: "0.6.0 (60)", platform: "android 34", release: "r-1", tiles: null,
+                                                         where: w, errors: [] }, on: {} });
+    expect(p.context).toEqual({ screen: "water · conditions", tab: "Conditions", place: "Vedder River", water: "356308001", part: 2,
+      partLabel: "Vedder Crossing → Fraser River", day: "Nov 10", station: "08MH001", quantity: "Flow", span: "Last 72 hours",
+      feed: "2026-11-10T18:05:00.000Z", app: "0.6.0 (60)", platform: "android 34", release: "r-1" });
+    // switched off with "Where you were", none of it is sent
+    expect(reportPayload({ id: "fedcba9876543210", created: "2026-11-10T18:06:00.000Z", reason: "bug", what: "x", email: "",
+                           diagnostics: { appBuild: null, platform: null, release: null, tiles: null, where: w, errors: [] },
+                           on: { where: false } }).context).toEqual({});
   });
 
   it("names the section of an unnamed tap, and a tab the header does not list by its key", () => {
