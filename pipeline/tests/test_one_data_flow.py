@@ -408,6 +408,8 @@ def test_promote_drops_a_prev_only_when_the_current_build_shares_its_sid_space(t
         d.mkdir()
         write_handles(ids, d)
         (d / "registry.json").write_text("{}")
+        from pipeline.atlas.inputs import write_complete
+        write_complete(d, {})                   # T547 §4: the atlas build's finished marker
         return d
     full, prev, nxt = atlas("full", ["a:1"]), atlas("full.prev", ["a:1"]), atlas("full_next", ["a:1", "a:2"])
     old, new = digest_for(full), digest_for(nxt)
