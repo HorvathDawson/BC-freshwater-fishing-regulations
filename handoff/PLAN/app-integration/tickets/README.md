@@ -577,6 +577,18 @@ use that as the sole source of future work."
 | T530 | Share a gauge from the Conditions tab: one share control on each gauge with a page (T487 promised it), link = the gauge page, one slug function shared with the SEO build | IN REVIEW — phone look on the next APK (de39a5f) | — | owner 2026-11-09 "no button in the conditions tab to share … make sure it is cleanly done" |
 | T531 | Each calendar sits with its own species (salmon under DFO, the rest under B.C. rules); legend text full contrast | IN REVIEW — owner phone look on 0.7.2 | cb1e01549 | mockup approved 11-09; species placed by rule source (core `speciesBlocks`); shots T531-built-*.png |
 | T532 | Checklist review for every extent (DFO + regulations, one interface): rows generated from the extent + source words, ✓/?/✗, numbered pins, one decision; scales to new DFO items | IN REVIEW — owner looks | 75581bbe4, 4d266e1b2 | owner 2026-11-09 on the round-4 mockup "definitely better … same interface for the normal non dfo extents" |
+| T533 | Release and APK preflight read CI's result for HEAD and check everything since the last ship (FAST_FAIL_BASE) | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 1 |
+| T534 | The emulator tests a build it can name: commit stamp, stale-APK refusal, patched MapLibre by default | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 2 |
+| T535 | fast-fail runs every cheap gate (pnpm check, CI steps, review app), from every long-job entry point, cheapest first | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 3; after T533 |
+| T536 | heavy.sh: a stopped wrapper stops its job, a bad memory reading is safe, `--status` + heartbeat, duplicate refused | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 4 |
+| T537 | `release --staging`: in-season resolve before the promote, resume from the smoke, after-chores named, prod checks staging first | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 5 |
+| T538 | build-apk.sh: cheap checks before the lock, changelog required, Play notes from the changelog, MapLibre proof on both paths | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 6 |
+| T539 | Ledger guard checks IN REVIEW can close; restart page holds no state; docs guard (dead paths, rule ids); close T529 | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 7 |
+| T540 | Cut start-of-chat reading: closed ledger rows to DONE.md, STATUS archive, dead order list, questions shipped on default | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 8; after T539; Q177 |
+| T541 | Review app: run.sh proves its backend started; file domains commit; generated outputs stop dirtying the tree; pending-build command | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 9 |
+| T542 | Emulator suites wait on conditions; static check that every id and label a step uses exists | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 10; after T534 |
+| T543 | CI: constraints.txt on every install, timeouts, cancel superseded runs, app-ci paths cover the parity tests | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 11 |
+| T544 | Staging site deploy is one command; the site names the release it was built on and the smoke compares it | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 12 |
 
 ## Order for open tickets
 
@@ -645,6 +657,7 @@ and records them; T81 records them in decisions.md). Answer here or in decisions
 | Q174 | T404 | The prod data worker replaces v1's `bc-fishing-r2` in place (deploy/prod/data.wrangler.toml; it serves the v1 keys only until switch day)? | yes — check its name + route first; v1 keys deleted the same day (PRODUCTION.md step 11) | owner 2026-11-08 |
 | Q175 | T404 | Share links and the privacy page are `canifishthis.ca` in every environment (the staging site is noindex)? | yes | owner 2026-11-08: yes |
 | Q176 | T470 | WCAG 1.4.11 (3:1 on the ground): light and colour-blind own / base / missing lines are 1.8–2.0:1 on the light basemap, and recolouring cannot reach 3:1 without undoing T47 (closed vs own). Add a casing (a darker edge under each stream / lake outline, same hue), at a frame cost and a visible change? | no casing; the under-3:1 marks stay recorded in tools/map-contrast.test.ts | owner |
+| Q177 | T540 | Move AGENTS.md "Reading the regulations" (53 % of the file) into a file read only for regulation work? | no — AGENTS.md unchanged | owner |
 
 ### Answered (recently, for the record)
 - Q170 — owner 2026-11-07: B ("Ok let's try that but should add a note that we could tune the parameters on the threshold of magnitude of streams to zoom"); built in T470, the order × zoom fade is one block (`fadeByOrder`).
