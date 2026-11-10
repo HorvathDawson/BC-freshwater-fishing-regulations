@@ -648,8 +648,11 @@ use that as the sole source of future work."
 | T604 | The chart's day marks are readable: no overlapping labels, today is obvious (two-days chart) | IN REVIEW — owner looks at the T604-shots and the phone; left: emulator shots | 90e41efc6 | owner 2026-11-10 on build 25, with a shot |
 | T605 | One B.C. clock: what T551 left (gauge page script, items 3/4/8, re-read on return to the app, static hub day words) | OPEN | — | T551 report 2026-11-10; owner: hub pages print dates or rebuild daily |
 | T606 | Atlas inputs: what T547 left (side-build proof, clash suffix numbering + lake names at the next rebuild, cache key, cut label edits) | OPEN | — | T547 report 2026-11-10 |
-| T608 | Read-only audits before closed testing: A rules vs the printed book and DFO feed; B one logic in two shells; C the feeds worker from the outside; D bathymetry and stocked lakes | OPEN | — | owner 2026-11-10; C done ea9bda3cd (20 findings → T558, T559, T609); A, B, D running |
+| T608 | Read-only audits before closed testing: A rules vs the printed book and DFO feed; B one logic in two shells; C the feeds worker from the outside; D bathymetry and stocked lakes | OPEN | — | owner 2026-11-10; C done ea9bda3cd (20 findings → T558, T559, T609); B done 347b96a45 (28 findings → T610, T611, T612); A, D running |
 | T609 | Feeds worker: fixes from the outside-in audit (rate limits on IPv6 /64 + daily total, in-season URL pinned, no rank without the envelope, token file ignored, list truncation, upstream caps) | OPEN | — | T608C findings W1, W4, W5, W7, W10–W20; with T558, T559 |
+| T610 | One answer on every app screen (search rows follow the picked day, saved-spot times in B.C. time, alerts, Runs, start links) | OPEN | — | T608B findings G1, G3, G10–G14, G17, G20, G25 |
+| T611 | The map's web and native halves agree (every MapProps key honoured by both, or listed as by design) | OPEN | — | T608B findings G4, G5, G15, G19, G21 |
+| T612 | The public pages and share cards use the app's own words and day; with T605 | OPEN | — | T608B findings G2, G6–G9, G16, G18, G22–G24 |
 
 ## Order for open tickets
 
