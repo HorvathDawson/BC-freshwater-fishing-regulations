@@ -28,15 +28,15 @@ One agent at a time; batch related tickets into one agent when that saves credit
 Sonnet UI/mechanical, Haiku lookups). Heavy jobs through `scripts/heavy.sh`, one at a time. Each ticket file under
 `handoff/PLAN/app-integration/tickets/` is the brief; the README ledger there is the status of record.
 
-0. **Review app asks from the owner jump the queue** whenever he reports one (screenshots in chat). Fix, click it
-   through in a sandbox copy (ports 8799/5199, own `CURATED_ROOT`, write-through off), send him a shot, give him
-   `bash curation-review/run.sh`.
+0. **The review app is NOT this chat's work** (owner 2026-11-10: "review app will be this chat only", meaning chat 10).
+   Do not edit `curation-review/`, `pipeline/regs/review/` or `data/curated/review/`, and do not start a copy on ports
+   8787/5173 or 8799/5199. If the owner reports a review app fault here, point him to chat 10. Commit with explicit
+   paths; chat 10 commits to the same branch, so `git pull`-style surprises in `git log` are expected.
 1. **T568** (gauge map jumps above/below the chart on Flow/Level) **+ T567 open parts** (phone and web differ at Fraser
    at Mission; the forecast day chart keeps today in view): one emulator session.
 2. **T569** Report a problem from any screen.
 3. **T570** Indigenous land names only at a close zoom (owner picks the zoom from two shots; confirm it means the app map).
-4. The failing `test_review_queue` (duplicate `on_disk`), with **T562** (review marks leftovers) and what is left of
-   **T545** (PARTIAL).
+4. (Chat 10 keeps these, skip: the failing `test_review_queue`, **T562**, the rest of **T545**, T571, T572.)
 5. Data correctness, by rank: **T546** reach run drops nothing silently → **T547** atlas records its curated inputs →
    **T548** in-season notices in force and fresh → **T549** (L) DFO feed and release share one location set →
    **T550** (L) gauge readings age/datum/day → **T551** today rolls over on one BC clock → **T552** run timing and
@@ -57,7 +57,7 @@ Sonnet UI/mechanical, Haiku lookups). Heavy jobs through `scripts/heavy.sh`, one
 - Show the 19 old wordings on waters no longer live?
 - T531 (species under their calendar) still waits on his OK. Prod release waits on DFO labelling (owner-run).
 
-## Review app leftovers, not yet tickets (file them under T562 or new numbers before working them)
+## Review app leftovers (chat 10's, listed for the record only)
 - Take-out / add-back of a piece never ran through the real write-through.
 - "Save for all" covers only older wordings.
 - Allco fence cut needs a "withdrawn" option.
