@@ -306,6 +306,8 @@ test("entry B: a closed area reads in one line and draws only when both its ends
   assert.deepEqual(areaStatus({ ...circle, confirmed: true, mark: { verdict: "verified", date: "2026-11-10" } }), { words: "confirmed by you 2026-11-10", tone: "done" });
   assert.equal(areaStatus({ ...circle, confirmed: false, mark: { verdict: "wrong", date: "2026-11-10" } }).tone, "wrong");
   assert.equal(areaStatus({ ...circle, confirmed: false, mark: null }).words, "our proposal: not confirmed");
+  assert.equal(areaStatus({ ...circle, confirmed: false, mark: { verdict: "verified", date: "2026-11-10" } }).words,
+    "your confirm is saved (2026-11-10) but NOT in the closed-areas file yet");
   assert.equal(areaStatus({ ...circle, state: "unplaced", ring: undefined }).words, "not placed: place it yourself");
   assert.equal(areaStatus({ ...circle, state: "not live", held: "unplaced" }).words, "not placed: place it yourself");
   assert.equal(areaStatus({ ...circle, state: "not live", held: "placed" }).words, "our proposal: not confirmed");
@@ -347,4 +349,16 @@ test("T562: the landed check and a file save's dropped rows, in words", async ()
   assert.equal(notLandedWords({ state: "failed", why: "boom" })!.tone, "error");
   assert.deepEqual(domainSaveWords({ names: { state: "done", files: ["found_names.json"], sha: "0123456789abcdef", dropped: ["Review Creek"] }, dfo: { state: "done" } }),
     { dropped: ["names: Review Creek"], commits: ["names: found_names.json · commit 012345678"] });
+});
+
+test("T588: save-for-all says exactly which rows it writes, and which it does not", async () => {
+  const { saveForAllWords } = await import("../src/checklist.ts");
+  const w = saveForAllWords("from the bridge down", [{ text: "from the old bridge down", replaces: true }, { text: "" }], [{ text: "above the falls", why: "it is on another water" }]);
+  assert.equal(w.label, "Save this extent on 3 rows: this wording and 2 older wordings");
+  assert.deepEqual(w.rows, ["“from the bridge down” (this wording)", "“from the old bridge down” (an older wording: REPLACES the extent it has now)", "“(the whole water)” (an older wording)"]);
+  assert.equal(w.not[0], "“above the falls”: it is on another water");
+  assert.match(w.not[1], /live wording of the same place.*same extent as/);
+  assert.match(w.confirm, /^This writes 3 rows, one mark each:/);
+  assert.match(w.confirm, /NOT written:[\s\S]*above the falls[\s\S]*live wording/);
+  assert.equal(saveForAllWords("x", [{ text: "y" }], []).label, "Save this extent on 2 rows: this wording and 1 older wording");
 });

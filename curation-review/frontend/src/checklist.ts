@@ -278,6 +278,8 @@ export function closedCircles(areas: ClosedArea[]): GeoJSON.FeatureCollection {
 export function areaStatus(a: ClosedArea): { words: string; tone: "done" | "wrong" | "todo" } {
   if (a.confirmed) return { words: `confirmed by you${a.mark?.date ? ` ${a.mark.date}` : ""}`, tone: "done" };
   if (a.mark?.verdict === "wrong") return { words: `you said something's wrong${a.mark.date ? ` ${a.mark.date}` : ""}`, tone: "wrong" };
+  // his confirm is saved as a mark but the closed-areas file does not hold it (the write was refused, or is off)
+  if (a.mark?.verdict === "verified") return { words: `your confirm is saved${a.mark.date ? ` (${a.mark.date})` : ""} but NOT in the closed-areas file yet`, tone: "wrong" };
   const placed = a.state === "not live" ? a.held !== "unplaced" : a.state !== "unplaced";
   return { words: placed ? "our proposal: not confirmed" : "not placed: place it yourself", tone: "todo" };
 }
@@ -425,4 +427,19 @@ export function headline(state: string, saved: { what: string; words: string } |
   if (!saved || !saved.words) return { lead: state, rest: "" };
   if (saved.what === "area") return { lead: `Closed area saved: ${saved.words}`, rest: `this place's own extent: ${state}` };
   return { lead: state, rest: saved.words };
+}
+
+/** T588 (owner 2026-11-10, option 3): "SAVE FOR ALL" STAYS WHAT IT IS — this wording and the OLDER wordings of the place
+ *  that can take the extent — and says exactly which rows it writes: the button's label (the count), the line under
+ *  it and the confirmation (each wording, and what is NOT written: a wording that cannot take it, and any LIVE wording
+ *  of the same place, which has its own "same extent as…" button). */
+export function saveForAllWords(shown: string, covered: { text: string; replaces?: boolean }[], left: { text: string; why: string }[]):
+    { label: string; rows: string[]; not: string[]; confirm: string } {
+  const q = (t: string) => `“${(t || "(the whole water)").slice(0, 70)}”`;
+  const n = covered.length + 1;
+  const rows = [`${q(shown)} (this wording)`, ...covered.map((m) => `${q(m.text)} (an older wording${m.replaces ? ": REPLACES the extent it has now" : ""})`)];
+  const not = [...left.map((m) => `${q(m.text)}: ${m.why}`),
+    "any live wording of the same place: open it and use its own “same extent as…” button"];
+  return { label: `Save this extent on ${n} rows: this wording and ${covered.length} older wording${covered.length === 1 ? "" : "s"}`, rows, not,
+    confirm: `This writes ${n} rows, one mark each:\n${rows.map((r) => `  • ${r}`).join("\n")}\n\nNOT written:\n${not.map((r) => `  • ${r}`).join("\n")}\n\nSaving for all also counts as your confirming these are the same place.` };
 }

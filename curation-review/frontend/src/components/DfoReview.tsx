@@ -12,7 +12,7 @@ import { MapPanel, type EditPoint } from "./MapPanel";
 import { ExtentFixEditor, loadOps } from "./ExtentFixEditor";
 import { effectHead, extentParts, fixParts, partsText, piecesParts, type Part } from "../extentWords";
 import { failed } from "../failures";
-import { coveredWords, groupSave, saveForAll } from "../checklist";
+import { coveredWords, groupSave, saveForAll, saveForAllWords } from "../checklist";
 import { OlderWordings } from "./OlderWordings";
 import { current as writeThrough, keyOf as wtKey, subscribe as onWriteThrough } from "../curatedSave";
 import {
@@ -506,6 +506,10 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
 
   // r6 (inline): one save for EVERY wording of the place, or for this wording only
   const forAll = embedded && detail.group ? saveForAll(id, detail.group.members, changes) : null;
+  // T588: the button, the line under it and the confirmation name exactly the rows a save-for-all writes
+  const forAllWords = forAll ? saveForAllWords(detail.verbatim.specific_area,
+    forAll.covered.map((m) => ({ text: m.text, replaces: m.extent.extents.length > 0 && !m.same_extent })),
+    forAll.left.map(({ m, why }) => ({ text: m.text, why }))) : null;
   async function submit(defer = false, all = false) {
     setErrors([]);
     if (!defer && held) { setErrors([`Not saved yet — ${held}.`]); return; }
@@ -891,17 +895,17 @@ export function DfoLocation({ detail, mode, nav, saving, onMarked, initialCall =
             {held && call && <div className="warn-text" role="alert" data-testid="dfo-held">Save held: {held}.</div>}
             {forAll && changes && (forAll.covered.length > 0 || forAll.left.length > 0) && (
               <div className="dim" data-testid="dfo-save-all-words" style={{ fontSize: 12 }}>
-                {forAll.covered.length > 0 && <>Saving for all gives the same extent to: {forAll.covered.map((m) => `“${(m.text || "(the whole water)").slice(0, 70)}”${m.extent.extents.length && !m.same_extent ? " (REPLACES the extent it has now)" : ""}`).join(", ")}
+                {forAllWords && forAll.covered.length > 0 && <>Saving for all writes {forAllWords.rows.length} rows: {forAllWords.rows.join("; ")}
                   {" "}— and counts as your confirming these are the same place. </>}
-                {forAll.left.map(({ m, why }) => <span key={m.id} className="warn-text">Not covered: “{(m.text || "").slice(0, 60)}” ({why}). </span>)}
+                {forAllWords && <span className="warn-text" data-testid="dfo-save-all-not">Not written: {forAllWords.not.join("; ")}.</span>}
               </div>)}
             <div className="verdict-bar" style={{ position: "static", margin: 0 }}>
               <input placeholder="your name" value={reviewer} onChange={(e) => setName(e.target.value)} aria-label="reviewer" />
               {forAll && forAll.covered.length > 0 && changes && (
                 <button className="btn primary dfo-replace" disabled={busy || !!held} data-testid="dfo-save-all"
                   title="one mark per wording, each through the write-through; saving for all is your confirming they are the same place"
-                  onClick={() => void submit(false, true)}>
-                  Save this extent for all {forAll.covered.length + 1} wordings of this place</button>)}
+                  onClick={() => { if (forAllWords && window.confirm(forAllWords.confirm)) void submit(false, true); }}>
+                  {forAllWords?.label}</button>)}
               <button className={`btn ${forAll && forAll.covered.length > 0 && changes ? "small" : "primary"}${call === "change" && effect !== "keep" ? " dfo-replace" : ""}`}
                 disabled={busy || !!held || inline?.kind === "none"} data-testid="dfo-save" onClick={() => void submit()}>
                 {inline && !busy ? (inline.kind === "save" && forAll && forAll.covered.length > 0 && changes ? "Save for this wording only" : inline.label)
