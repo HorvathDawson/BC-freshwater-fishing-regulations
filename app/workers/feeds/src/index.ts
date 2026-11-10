@@ -32,7 +32,7 @@ import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
-import { CORS as REPORT_CORS, handleReport, listReports, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
+import { CORS as REPORT_CORS, handleReport, listReports, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv, DispatchEnv {
   BUCKET: R2BucketLike;
@@ -440,13 +440,21 @@ async function purge(env: Env, now = new Date()) {
   // (T291) test reports after 7 days, (T242) error kinds unseen for 90 days: a failure is logged, the next day's run tries again
   try { await purgeTestReports(env.BUCKET, now); } catch (e) { console.error(JSON.stringify({ job: "purge-test-reports", error: String(e) })); }
   try { await purgeCrashes(env.BUCKET, now); } catch (e) { console.error(JSON.stringify({ job: "purge-crashes", error: String(e) })); }
+  // (T559) the per-address counters, once their day is over (privacy page: "for a day's counting")
+  const limits = await purgeLimits(env.BUCKET, now);
+  const out = { ...r, ok: r.ok && limits.ok, limits };
   try {
-    await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(r), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
+    await env.BUCKET.put(RETENTION_STATUS_KEY, JSON.stringify(out), { httpMetadata: { contentType: "application/json", cacheControl: "no-store" } });
   } catch (e) { console.error(JSON.stringify({ job: "purge-reports", statusError: String(e) })); }
-  const told = r.ok ? null : await tell("purge-reports", env, now, [{ key: `report-purge:${r.at.slice(0, 10)}`, kind: "health", title: `Report purge ${r.at.slice(0, 10)} failed`, urgent: false, at: r.at,
-    text: `The daily deletion of problem reports older than ${RETENTION_DAYS} days failed (${r.deleted} deleted, ${r.failed} not): ${r.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]);
-  console.log(JSON.stringify({ job: "purge-reports", ok: r.ok, deleted: r.deleted, kept: r.kept, failed: r.failed, told }));
-  return r;
+  const day = r.at.slice(0, 10);
+  const told = await tell("purge-reports", env, now, [
+    ...(r.ok ? [] : [{ key: `report-purge:${day}`, kind: "health" as const, title: `Report purge ${day} failed`, urgent: false, at: r.at,
+      text: `The daily deletion of problem reports older than ${RETENTION_DAYS} days failed (${r.deleted} deleted, ${r.failed} not): ${r.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
+    ...(limits.ok ? [] : [{ key: `limits-purge:${day}`, kind: "health" as const, title: `Rate-limit counter purge ${day} failed`, urgent: false, at: r.at,
+      text: `The daily deletion of yesterday's rate-limit counters (salted address hashes; the privacy page keeps them "for a day's counting") failed (${limits.deleted} deleted, ${limits.failed} not): ${limits.error}\n\nRetry: POST /run/purge-reports on the feeds worker (Bearer RUN_TOKEN).` }]),
+  ]);
+  console.log(JSON.stringify({ job: "purge-reports", ok: out.ok, deleted: r.deleted, kept: r.kept, failed: r.failed, limits: { deleted: limits.deleted, failed: limits.failed }, told }));
+  return out;
 }
 
 /** (T178) where the last monthly model score is kept (GET /status shows it) */

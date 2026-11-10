@@ -241,7 +241,7 @@ export interface PurgeResult { ok: boolean; at: string; deleted: number; kept: n
 /**
  * (T271) The daily purge: delete every stored report received more than RETENTION_DAYS ago. Age is the stored `received`
  * timestamp (the day folder only narrows the listing; a report whose body cannot be read ages by its folder's day).
- * Rate-limit counters (limits/) hold only a salted IP hash and are not reports; they are left to their own day roll.
+ * Rate-limit counters (limits/) are not reports: `purgeLimits` deletes them.
  */
 export async function purgeReports(bucket: R2BucketLike, now: Date = new Date()): Promise<PurgeResult> {
   const at = now.toISOString();
@@ -264,6 +264,34 @@ export async function purgeReports(bucket: R2BucketLike, now: Date = new Date())
       try { await bucket.delete(k); res.deleted++; } catch { res.failed++; }
     }
     if (res.failed) { res.ok = false; res.error = `${res.failed} report(s) could not be deleted`; }
+  } catch (e) {
+    res.ok = false; res.error = e instanceof Error ? e.message : String(e);
+  }
+  return res;
+}
+
+/** (T559) the per-address counters of POST /report and POST /crash (a salted hash of the address, last time, day, count) */
+export const LIMIT_PREFIXES = [LIMITS_PREFIX, "private/crashes/limits/"] as const;
+
+/**
+ * (T559) Delete every rate-limit counter whose day is over (privacy page: the salted hash is kept "for a day's counting").
+ * Run daily (09:25 UTC): a counter lives at most until the next run after its UTC day ends. One that cannot be read goes.
+ */
+export async function purgeLimits(bucket: R2BucketLike, now: Date = new Date()): Promise<PurgeResult> {
+  const at = now.toISOString();
+  const today = at.slice(0, 10);
+  if (!bucket.list) return { ok: false, at, deleted: 0, kept: 0, failed: 0, error: "bucket cannot list" };
+  const res: PurgeResult = { ok: true, at, deleted: 0, kept: 0, failed: 0 };
+  try {
+    for (const prefix of LIMIT_PREFIXES) {
+      for (const k of await listKeys(bucket, prefix, Infinity)) {
+        let day: unknown = null;
+        try { const o = await bucket.get(k); day = o ? JSON.parse(await o.text()).day : null; } catch { /* unreadable: deleted */ }
+        if (day === today) { res.kept++; continue; }
+        try { await bucket.delete(k); res.deleted++; } catch { res.failed++; }
+      }
+    }
+    if (res.failed) { res.ok = false; res.error = `${res.failed} rate-limit counter(s) could not be deleted`; }
   } catch (e) {
     res.ok = false; res.error = e instanceof Error ? e.message : String(e);
   }

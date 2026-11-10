@@ -1,6 +1,6 @@
 // T271: reports are deleted 180 days after they are received — 181 days old goes, 179 stays; a delete failure is reported.
 import { describe, expect, it } from "vitest";
-import { purgeReports, RETENTION_DAYS } from "../src/reports";
+import { LIMIT_PREFIXES, purgeLimits, purgeReports, rateLimit, RETENTION_DAYS } from "../src/reports";
 import type { R2BucketLike } from "../src/io";
 
 class Mem implements R2BucketLike {
@@ -43,6 +43,36 @@ describe("report retention", () => {
     const b = new Mem(); add(b, "aaaaaaaaaaaaaaaa", 200); b.failDelete = true;
     const r = await purgeReports(b, NOW);
     expect(r).toMatchObject({ ok: false, deleted: 0, failed: 1 });
+    expect(r.error).toMatch(/could not be deleted/);
+  });
+});
+
+// T559: the privacy page keeps the salted address hash "for a day's counting": a counter goes once its UTC day is over.
+describe("rate-limit counters (T559)", () => {
+  it("are the ones POST /report and POST /crash write", async () => {
+    const b = new Mem();
+    await rateLimit({ BUCKET: b, REPORT_SALT: "s" }, "1.2.3.4", NOW);
+    await rateLimit({ BUCKET: b, REPORT_SALT: "s" }, "1.2.3.4", NOW, { prefix: LIMIT_PREFIXES[1], gapMs: 1000, perDay: 40, edge: false });
+    expect([...b.m.keys()].map((k) => k.slice(0, k.lastIndexOf("/") + 1)).sort()).toEqual([...LIMIT_PREFIXES].sort());
+  });
+  it("deletes yesterday's and unreadable counters, keeps today's, leaves reports alone", async () => {
+    const b = new Mem();
+    const today = NOW.toISOString().slice(0, 10), yday = ago(1).toISOString().slice(0, 10);
+    b.m.set(`${LIMIT_PREFIXES[0]}a.json`, JSON.stringify({ last: 1, day: yday, n: 3 }));
+    b.m.set(`${LIMIT_PREFIXES[0]}b.json`, JSON.stringify({ last: 1, day: today, n: 1 }));
+    b.m.set(`${LIMIT_PREFIXES[1]}c.json`, JSON.stringify({ last: 1, day: yday, n: 9 }));
+    b.m.set(`${LIMIT_PREFIXES[1]}d.json`, "broken");
+    add(b, "aaaaaaaaaaaaaaaa", 1);
+    const r = await purgeLimits(b, NOW);
+    expect(r).toMatchObject({ ok: true, deleted: 3, kept: 1, failed: 0 });
+    expect([...b.m.keys()].sort()).toEqual([`${LIMIT_PREFIXES[0]}b.json`, `private/reports/${yday}/aaaaaaaaaaaaaaaa.json`].sort());
+  });
+  it("says so when a counter cannot be deleted", async () => {
+    const b = new Mem();
+    b.m.set(`${LIMIT_PREFIXES[0]}a.json`, JSON.stringify({ day: "2020-01-01" }));
+    b.failDelete = true;
+    const r = await purgeLimits(b, NOW);
+    expect(r).toMatchObject({ ok: false, failed: 1 });
     expect(r.error).toMatch(/could not be deleted/);
   });
 });
