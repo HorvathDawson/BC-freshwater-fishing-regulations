@@ -629,8 +629,8 @@ use that as the sole source of future work."
 | T588 | "Save for all wordings": what it should cover | OPEN — owner question | — | T532 leftover b; today: the older wordings only |
 | T589 | A cut proposal can be withdrawn (the Allco fence) | OPEN | — | T532 leftover c; the Allco click is the owner's |
 | T590 | Cut pickers offer this water's cuts first, and the nearest existing cut | OPEN | — | T532 leftover d; owner 11-10: reuse an existing cut within 200 m (built for entry B in T573) |
-| T591 | A test that the checklist's places cache goes stale when it must | DONE | with T573's commit | T532 leftover e; five inputs, one test |
-| T592 | A saved place's map legend still lists "proposal (not applied)" | DONE | with T573's commit | T532 leftover f; our proposal leaves the map once the place holds his save |
+| T591 | A test that the checklist's places cache goes stale when it must | DONE | 4089f60cd | T532 leftover e; five inputs, one test |
+| T592 | A saved place's map legend still lists "proposal (not applied)" | DONE | 4089f60cd | T532 leftover f; our proposal leaves the map once the place holds his save |
 | T593 | Keep DFO's heading bytes verbatim in the scrape | OPEN — ticket only | — | T532 leftover h; lands with the next scrape the owner runs (T549's lane) |
 
 ## Order for open tickets

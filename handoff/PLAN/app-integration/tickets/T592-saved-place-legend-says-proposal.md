@@ -1,6 +1,6 @@
 # T592 — A saved place's map legend still lists "proposal (not applied)"
 
-Status: DONE 2026-11-10 — `checklist.showsProposal` (frontend test); not looked at in a browser on the Forks
+Status: DONE — 4089f60cd, 2026-11-10 — `checklist.showsProposal` (frontend test); not looked at in a browser on the Forks
 
 Source: T532 round 9 (the Forks), leftover f.
 
