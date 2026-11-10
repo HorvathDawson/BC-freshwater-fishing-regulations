@@ -13,12 +13,14 @@ import type { Ready } from "../types";
 
 export type TabId = "entries" | "dfo" | "tidal" | "sloughs" | "inseason" | "reports";
 
+/* owner 2026-11-09: the DONE queues are off the bar — Tidal (the top tab and the DFO sub-tab) and Entries → "P1 quick
+   confirm". Their views and routes stay: a deep link (`#tidal/`, `#p1/`) still opens, with no tab lit. */
+
 /** `domain`: the review domain the tab marks (T325: a closed one — it feeds nothing, ponds — shows "closed") */
 interface Tab { id: TabId; label: string; key: string; title: string; hash: string; domain?: string }
 const TABS: Tab[] = [
   { id: "entries", label: "Entries", key: "e", hash: "", title: "the synopsis entries queue" },
-  { id: "dfo", label: "DFO", key: "d", hash: "dfo/", domain: "dfo", title: "T164: every scraped DFO salmon extent (sub-tabs: Cascade, Tidal)" },
-  { id: "tidal", label: "Tidal", key: "t", hash: "tidal/", domain: "tidal", title: "T212: the proposed tidal boundary on every ocean-entering stream" },
+  { id: "dfo", label: "DFO", key: "d", hash: "dfo/", domain: "dfo", title: "T164: every scraped DFO salmon extent (sub-tab: Cascade)" },
   { id: "sloughs", label: "Sloughs", key: "s", hash: "sloughs/", domain: "sloughs", title: "T55: slough / canal pieces drawn as lakes (sub-tab: small ponds Q154)" },
   { id: "inseason", label: "In-season", key: "i", hash: "inseason/", title: "T230: the provincial in-season changes — where each applies" },
   { id: "reports", label: "Reports", key: "r", hash: "reports/", title: "T237: problem reports from the app — sync from staging, status kept here" },
@@ -30,13 +32,10 @@ const SUBS: Partial<Record<TabId, { id: string; label: string; hash: string; tit
     { id: "queue", label: "Queue", hash: "" },
     { id: "checks", label: "Extents checklist", hash: "checks/",
       title: "T532: every regulation extent (and the DFO places on the same water) as a checklist, water by water" },
-    { id: "p1", label: "P1 quick confirm", hash: "p1/",
-      title: "owner 2026-10-28: P1 closures where every check agrees — closure text + map + the second check, y to accept" },
   ],
   dfo: [
     { id: "extents", label: "Extents", hash: "dfo/" },
     { id: "cascade", label: "Cascade", hash: "cascade/skeena", title: "T229: which DFO places apply where (map)" },
-    { id: "tidal", label: "Tidal", hash: "tidal/", title: "T212: the tidal boundaries" },
   ],
   sloughs: [
     { id: "sloughs", label: "Sloughs", hash: "sloughs/" },
@@ -81,7 +80,6 @@ function refreshBadges() {
   read("/api/regions", (rs: { total: number; by_verify?: Record<string, number> }[]) =>
     setBadge("entries", frac(rs.reduce((n, r) => n + (r.by_verify?.verified ?? 0), 0), rs.reduce((n, r) => n + r.total, 0))));
   read("/api/dfo/progress", (p) => setBadge("dfo", frac(p.all?.done, p.all?.total)));
-  read("/api/tidal/progress", (p) => setBadge("tidal", frac(p.done, p.total)));
   read("/api/sloughs/progress", (p) => setBadge("sloughs", frac(p.done, p.total)));
   read("/api/inseason/queue", (q) => setBadge("inseason", frac(q.progress?.matched, q.progress?.total)));
   window.setTimeout(async () => { for (const job of jobs) await job(); }, 1000);
