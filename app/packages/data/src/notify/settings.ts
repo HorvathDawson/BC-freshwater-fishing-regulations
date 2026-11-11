@@ -17,7 +17,7 @@
  * `refused` with its words, shown on More → Notifications until the reader dismisses it, and reported. Nothing is dropped
  * quietly.
  */
-import { migrateAlertRule, reportOnce, type AlertRuleState, type GaugeAlertRule, type RefusedAlert } from "@app/core";
+import { migrateAlertRule, NOTIFY_WORDS, reportOnce, type AlertRuleState, type GaugeAlertRule, type RefusedAlert } from "@app/core";
 
 export interface BgRun {
   /** when it started (epoch ms, this device's clock) */
@@ -57,7 +57,17 @@ export const NOTIFY_DEFAULT: NotifyState = Object.freeze({
 /** How many background runs the log keeps. */
 export const RUNS_KEPT = 20;
 
-export interface NotifyText { read(): string | null; write(text: string): void }
+/**
+ * The settings file as whole text. (T554 item 2) `write` is atomic (a temp file moved over it, store.native.ts);
+ * `keepAside` copies a file that cannot be read beside it (`notify.json.corrupt-<ms>`) before anything overwrites it —
+ * a store without it refuses to overwrite an unreadable file (the reader's alerts are never lost unkept).
+ */
+export interface NotifyText { read(): string | null; write(text: string): void; keepAside?(text: string): void }
+
+/** (T554 item 2) What an unreadable file reads as: nothing on, and a note on More → Notifications that says so. */
+const UNREADABLE: NotifyState = Object.freeze({
+  ...NOTIFY_DEFAULT, refused: [{ line: NOTIFY_WORDS.refused.fileLine, why: NOTIFY_WORDS.refused.file }],
+});
 
 /** Is there anything for the background check to do? */
 export function notifyActive(s: Pick<NotifyState, "on" | "updateReady" | "appVersion" | "rules">): boolean {
@@ -68,13 +78,15 @@ const isRefused = (r: unknown): r is RefusedAlert =>
   !!r && typeof (r as RefusedAlert).line === "string" && typeof (r as RefusedAlert).why === "string";
 
 function parse(text: string | null): NotifyState {
-  if (!text) return NOTIFY_DEFAULT;
+  if (text === null) return NOTIFY_DEFAULT;        // never written
   let j: (Omit<Partial<NotifyState>, "v" | "rules" | "refused"> & { v?: number; rules?: unknown; refused?: unknown }) | null;
-  // unreadable: the defaults (nothing on), and said — the reader's alerts were lost, which is a defect
-  try { j = JSON.parse(text) as typeof j; } catch (e) { reportOnce("notify-settings", e); return NOTIFY_DEFAULT; }
+  // (T554 item 2) unreadable — empty (a torn write), not JSON, or no version this app knows: nothing on, SAID on the
+  // page and reported; `update` keeps the file aside before it writes over it
+  if (!text) { reportOnce("notify-settings-empty", new Error("notify.json is empty")); return UNREADABLE; }
+  try { j = JSON.parse(text) as typeof j; } catch (e) { reportOnce("notify-settings", e); return UNREADABLE; }
   if (!j || (j.v !== 1 && j.v !== 2 && j.v !== 3)) {
     reportOnce("notify-settings-version", new Error(`notify.json: unknown version ${String(j?.v)}`));
-    return NOTIFY_DEFAULT;
+    return UNREADABLE;
   }
   // every version alike: every alert through the one reader; what it cannot keep is refused, said and reported
   const raw = Array.isArray(j.rules) ? j.rules : [];
@@ -116,9 +128,15 @@ export function createNotifySettings(store: NotifyText): NotifySettings {
   return {
     read: () => parse(store.read()),
     update(fn) {
-      const cur = parse(store.read());
+      const text = store.read();
+      const cur = parse(text);
       const next = fn(cur);
       if (next === cur) return cur;
+      // (T554 item 2) an unreadable file is kept aside before it is written over (empty: nothing to keep)
+      if (cur === UNREADABLE && text) {
+        if (!store.keepAside) throw new Error("notify.json could not be read and this store cannot keep it aside; not overwritten");
+        store.keepAside(text);
+      }
       store.write(JSON.stringify(next));
       for (const l of [...listeners]) l();
       return next;

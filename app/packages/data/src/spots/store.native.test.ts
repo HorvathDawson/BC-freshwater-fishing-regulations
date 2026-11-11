@@ -37,3 +37,16 @@ describe("spots on a phone (T446): a save is on disk when it returns", () => {
     expect([...disk.keys()].filter((k) => k.endsWith("spots.spots"))).toHaveLength(1);
   });
 });
+
+describe("a small store on a phone (T554 item 2)", () => {
+  it("writes through a .part file moved over the old one; an unreadable notify.json is kept aside", async () => {
+    const { openNotifyStore } = await import("./store.native");
+    const s = openNotifyStore();
+    s.write("{\"v\":3}");
+    s.write("{\"v\":3,\"on\":true}");
+    expect(s.read()).toBe("{\"v\":3,\"on\":true}");
+    expect([...disk.keys()].filter((k) => k.includes("notify.json"))).toEqual(["doc/spots/notify.json"]);
+    s.keepAside("torn");
+    expect([...disk.entries()].filter(([k]) => k.includes("notify.json.corrupt-")).map(([, v]) => v)).toEqual(["torn"]);
+  });
+});

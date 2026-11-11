@@ -309,8 +309,9 @@ describe("the settings file (T234, T527)", () => {
     expect(notifyActive(st.read())).toBe(false);
   });
 
-  it("an unreadable file reads as the defaults", () => {
-    expect(createNotifySettings({ read: () => "{nope", write: () => {} }).read()).toEqual(NOTIFY_DEFAULT);
+  it("an unreadable file reads as the defaults, with a note that says so (T554 item 2: settings.test.ts)", () => {
+    expect(createNotifySettings({ read: () => "{nope", write: () => {} }).read())
+      .toEqual({ ...NOTIFY_DEFAULT, refused: [{ line: "Your saved alerts", why: "the alerts file could not be read; a copy was kept aside on this phone" }] });
   });
 });
 

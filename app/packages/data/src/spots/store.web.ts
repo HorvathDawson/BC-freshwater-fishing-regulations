@@ -134,8 +134,14 @@ export function openRunSpeciesStore(): { read(): string | null; write(text: stri
 }
 
 /** (T234) The notification settings, alert rules and background-check log (`@app/data` `NotifySettings`), as whole text. */
-export function openNotifyStore(): { read(): string | null; write(text: string): void } {
-  return keyStore("canifishthis.notify.v1");
+export function openNotifyStore(): { read(): string | null; write(text: string): void; keepAside(text: string): void } {
+  const KEY = "canifishthis.notify.v1";
+  // (T554 item 2) an unreadable value is copied to a key of its own before anything writes over it
+  return { ...keyStore(KEY), keepAside: (t) => {
+    const s = globalThis.localStorage;
+    if (!s) throw new Error("This browser is not letting the app store anything.");
+    s.setItem(`${KEY}.corrupt-${Date.now()}`, t);
+  } };
 }
 
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), one key of its own. */

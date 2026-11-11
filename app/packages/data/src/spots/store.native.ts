@@ -12,6 +12,7 @@
  * a crash, which is the entry someone just made.
  */
 import { Directory, File, Paths } from "expo-file-system";
+import { reportFailure } from "@app/core";
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
 import { openPhotos } from "./photoStore.native";
 
@@ -134,8 +135,13 @@ export function openRunSpeciesStore(): { read(): string | null; write(text: stri
 }
 
 /** (T234) The notification settings, alert rules and background-check log (`@app/data` `NotifySettings`), as whole text. */
-export function openNotifyStore(): { read(): string | null; write(text: string): void } {
-  return fileStore("notify.json");
+export function openNotifyStore(): { read(): string | null; write(text: string): void; keepAside(text: string): void } {
+  const dir = new Directory(Paths.document, "spots");
+  return {
+    ...fileStore("notify.json"),
+    // (T554 item 2) an unreadable notify.json is copied aside before anything writes over it
+    keepAside: (t) => { if (!dir.exists) dir.create({ intermediates: true }); new File(dir, `notify.json.corrupt-${Date.now()}`).writeSync(t); },
+  };
 }
 
 /** (T254) The Data setting for low-bandwidth mode ("auto" | "on" | "off"), a small file of its own. */
@@ -143,11 +149,26 @@ export function openDataModeStore(): { read(): string | null; write(text: string
   return fileStore("low-data.txt");
 }
 
+/**
+ * A small file of its own. (T554 item 2) THE WRITE IS ATOMIC: the text goes to `<name>.part`, which is then moved over
+ * the file (as the spots file's save, core.ts), so a write cut short leaves the old file whole, never a torn one. A read
+ * that fails is REPORTED (it once was swallowed into "nothing stored") and answers null.
+ */
 function fileStore(name: string): { read(): string | null; write(text: string): void } {
   const dir = new Directory(Paths.document, "spots");
   const file = () => new File(dir, name);
   return {
-    read: () => { try { const f = file(); return f.exists ? f.textSync() : null; } catch { return null; } },
-    write: (t) => { if (!dir.exists) dir.create({ intermediates: true }); file().writeSync(t); },
+    read: () => {
+      try { const f = file(); return f.exists ? f.textSync() : null; }
+      catch (e) { reportFailure(new Error(`${name} could not be read: ${e instanceof Error ? e.message : String(e)}`)); return null; }
+    },
+    write: (t) => {
+      if (!dir.exists) dir.create({ intermediates: true });
+      const part = new File(dir, `${name}.part`);
+      part.writeSync(t);
+      const to = file();
+      if (to.exists) to.delete();
+      part.moveSync(to);
+    },
   };
 }

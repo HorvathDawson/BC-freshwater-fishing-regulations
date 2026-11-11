@@ -408,6 +408,9 @@ export const NOTIFY_WORDS = {
     change: "a change within a day is no longer an alert kind",
     unreadable: "it could not be read",
     unreadableLine: "A saved alert",
+    /** (T554 item 2) the whole alerts file (notify.json) could not be read: kept aside, never overwritten unkept */
+    fileLine: "Your saved alerts",
+    file: "the alerts file could not be read; a copy was kept aside on this phone",
     item: (r: RefusedAlert) => `${r.line}: ${r.why}`,
     ok: "OK, remove this note",
   },
