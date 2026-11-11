@@ -671,6 +671,7 @@ use that as the sole source of future work."
 | T638 | Pipeline suite leftovers: export files regenerated, heavy.sh blind to compressed memory, stale bytecode, one clean chunked run | PARTIAL | fad79daf0, c85f497c0 | left (Claude): item 4, one chunked full run after T639 |
 | T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | DONE | 275cbd2f5 | owner let chat 11 fix it in chat 10's lane; guard in group_for + pinning test |
 | T660 | Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) | OPEN | — | owner 2026-11-11 on the T632 sheets; chat 11 ids continue T660–T679 |
+| T661 | Two tests red after the hardening lanes (precheck test's session.sh half; review-gate live-tree test); then install the parked heavy.sh gate | OPEN | — | from the scripts-hardening hand-back; item 2 waits on T637 |
 
 ## Order for open tickets
 
