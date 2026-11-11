@@ -17,6 +17,10 @@ numbers are a different thing and are left out.
 `unprinted(text, pages)` — the figures of `text` that none of `pages` prints. Pages that are TABLES
 (`TABLE_PAGES`: p.5's licence fees, where a label and its price sit in different columns) are checked for numbers and
 day numbers only; their word-number pairs are not readable in reading order.
+
+`fee_table()` — p.5's licence fee table read AS A TABLE (T628): each printed row with its label, the group heading
+it sits under and its three cells by the column each is printed under (resident / non-resident / non-resident
+alien), so a fee stored under the wrong column, or a changed fee, is seen. `unprinted` cannot see either on that page.
 """
 from __future__ import annotations
 
@@ -168,30 +172,131 @@ def page_text(printed: int, pdf_path: Optional[Path] = None) -> str:
     return _cached(p, printed)
 
 
+def _pdf_index(pdf, printed: int, p: Path) -> int:
+    """The PDF page (1-based) of the PRINTED page in the open `pdf`. The book's offset (PDF - 2 to printed 40, - 6
+    after) names the page; its own footer must agree. Reading the whole map (`pdf_page`, every footer: ~30 s) is only
+    for a book where it does not. An unnumbered page (the map, printed 41) takes the next numbered page's offset, as
+    `synopsis_pages` reads it."""
+    from pipeline.common.synopsis_pages import pdf_page, printed_page_number
+    guess = printed + (2 if printed <= 40 else 6)
+    own = printed_page_number(pdf.pages[guess - 1]) if 0 < guess <= len(pdf.pages) else -1
+    if own == printed or (own is None and guess < len(pdf.pages)
+                          and printed_page_number(pdf.pages[guess]) == printed + 1):
+        return guess
+    n = pdf_page(printed, p)
+    if not n:
+        raise ValueError(f"synopsis_print: {p} has no printed p.{printed}")
+    return n
+
+
 @lru_cache(maxsize=64)
 def _cached(p: Path, printed: int) -> str:
     import pdfplumber
-    from pipeline.common.synopsis_pages import pdf_page, printed_page_number
     with pdfplumber.open(str(p)) as pdf:
-        # The book's offset (PDF - 2 to printed 40, - 6 after) names the page; its own footer must agree. Reading the
-        # whole map (`pdf_page`, every footer: ~30 s) is only for a book where it does not.
-        # An unnumbered page (the map, printed 41) takes the next numbered page's offset, as `synopsis_pages` reads it.
-        guess = printed + (2 if printed <= 40 else 6)
-        own = printed_page_number(pdf.pages[guess - 1]) if 0 < guess <= len(pdf.pages) else -1
-        if own == printed or (own is None and guess < len(pdf.pages)
-                              and printed_page_number(pdf.pages[guess]) == printed + 1):
-            n = guess
-        else:
-            n = pdf_page(printed, p)
-            if not n:
-                raise ValueError(f"synopsis_print: {p} has no printed p.{printed}")
-        lines = page_lines(pdf.pages[n - 1])
+        lines = page_lines(pdf.pages[_pdf_index(pdf, printed, p) - 1])
     txt = ""
     for ln in lines:
         # a line-end hyphen joins with no space and stays: whether it split a word ("regula-tions") or ends a
         # compound ("first-come-first-serve") the page cannot say, so `quoted` compares with hyphens removed
         txt = txt + ln if re.search(r"[a-z]-$", txt) and re.match(r"[a-z]", ln) else f"{txt} {ln}"
     return txt.strip()
+
+
+#: The printed page of the licence fee table, and its column headings left to right -> the residency each prices.
+FEE_PAGE = 5
+FEE_COLUMNS = (("RESIDENT*", "resident"), ("NON-RESIDENT*", "non_resident"), ("NON-RESIDENT ALIEN*", "non_resident_alien"))
+#: The table's first heading cell, and the printed mark for "not available" in a cell.
+_FEE_HEAD, _NOT_SOLD = "LICENCE TYPE", "★"
+_FEE = re.compile(r"^\$(\d+\.\d{2})(/day)?(\*+)?$")
+
+
+@dataclass(frozen=True)
+class FeeRow:
+    """One printed row of the fee table. `group` is the heading above it ("Basic Licences"; "" before any). `fees` is
+    residency -> dollars for the cells that print a price; a ★ cell (not available) is absent. `per_day` holds the
+    residencies whose price is printed "/day"; `text` is the row as printed, label then cells left to right."""
+    group: str
+    label: str
+    fees: Tuple[Tuple[str, float], ...]
+    per_day: FrozenSet[str]
+    text: str
+
+
+def fee_table(pdf_path: Optional[Path] = None) -> List[FeeRow]:
+    """The licence fee table of printed p.5, row by row, top to bottom. Raises when the page does not hold the table as
+    this reader knows it (a heading missing, a cell that is neither a price nor ★, a cell under no column, a row with
+    other than three cells): a new book's layout is re-read by a person, never guessed at."""
+    from pipeline.common.synopsis_pages import default_pdf
+    p = Path(pdf_path or default_pdf()).resolve()
+    if not p.exists():
+        raise FileNotFoundError(f"synopsis_print: {p} not found (tracked in git: data/source/fishing_synopsis.pdf)")
+    return list(_fee_rows(p))
+
+
+@lru_cache(maxsize=4)
+def _fee_rows(p: Path) -> Tuple[FeeRow, ...]:
+    import pdfplumber
+    with pdfplumber.open(str(p)) as pdf:
+        page = _dedupe(pdf.pages[_pdf_index(pdf, FEE_PAGE, p) - 1])
+        words = [w for w in page.extract_words() if w["bottom"] < page.height * _FOOT]
+    words.sort(key=lambda w: (w["top"], w["x0"]))
+    lines: List[List[dict]] = []
+    for w in words:
+        if lines and abs(w["top"] - lines[-1][0]["top"]) < _SAME_LINE:
+            lines[-1].append(w)
+        else:
+            lines.append([w])
+    for ln in lines:
+        ln.sort(key=lambda w: w["x0"])
+    want = _FEE_HEAD + " " + " ".join(h for h, _ in FEE_COLUMNS)
+    at = next((i for i, ln in enumerate(lines) if " ".join(w["text"] for w in ln) == want), None)
+    if at is None:
+        raise ValueError(f"synopsis_print: printed p.{FEE_PAGE} has no fee table heading {want!r}")
+    head, centres, k = lines[at], [], len(_FEE_HEAD.split())
+    for title, residency in FEE_COLUMNS:           # each column is where its heading is printed
+        span = head[k:k + len(title.split())]
+        centres.append(((span[0]["x0"] + span[-1]["x1"]) / 2, residency))
+        k += len(title.split())
+    first_col = min(w["x0"] for w in head[len(_FEE_HEAD.split()):])
+    # the table is its ruled box: label lines start at the heading's left edge, and it ends at the first line that
+    # does not (the notes under it are set further left)
+    left = head[0]["x0"]
+    half = min(b[0] - a[0] for a, b in zip(centres, centres[1:])) / 2
+    rows: List[FeeRow] = []
+    group = ""
+    for ln in lines[at + 1:]:
+        if abs(ln[0]["x0"] - left) > 2:
+            break
+        label = [w for w in ln if w["x1"] < first_col - 2 and not _is_cell(w["text"])]
+        cells = [w for w in ln if w not in label]
+        name = " ".join(w["text"] for w in label)
+        if not cells:
+            group = name
+            continue
+        fees, per_day, taken = [], set(), []
+        for w in cells:
+            mid = (w["x0"] + w["x1"]) / 2
+            x, residency = min(centres, key=lambda c: abs(c[0] - mid))
+            m = _FEE.match(w["text"])
+            if abs(x - mid) > half or (w["text"] != _NOT_SOLD and not m):
+                raise ValueError(f"synopsis_print: fee table row {name!r}: {w['text']!r} at x={mid:.0f} is no cell "
+                                 f"this reader knows (a price or {_NOT_SOLD} under one of the three columns)")
+            taken.append(residency)
+            if m:
+                fees.append((residency, float(m.group(1))))
+                if m.group(2):
+                    per_day.add(residency)
+        if taken != [r for _, r in FEE_COLUMNS]:
+            raise ValueError(f"synopsis_print: fee table row {name!r} prints cells under {taken}, not one under each "
+                             f"of {[r for _, r in FEE_COLUMNS]}")
+        rows.append(FeeRow(group, name, tuple(fees), frozenset(per_day), " ".join(w["text"] for w in ln)))
+    if not rows:
+        raise ValueError(f"synopsis_print: printed p.{FEE_PAGE}: the fee table heading has no rows under it")
+    return tuple(rows)
+
+
+def _is_cell(text: str) -> bool:
+    return text == _NOT_SOLD or bool(_FEE.match(text))
 
 
 def _main(argv: Tuple[str, ...]) -> None:   # python -m pipeline.common.synopsis_print 13 — print a page as read

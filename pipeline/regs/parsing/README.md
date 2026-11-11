@@ -70,13 +70,20 @@ and left alone. To act on the report one entry at a time (T553), name it:
 (`repass --replace-edited` does it in the same run). Either way the curator's placement is carried onto the re-parse
 (`carry_curation`: the entry's extents / tributary scope / tidal / anadromous_rainbow / scope_note, and the placement
 fields of every rule or licensing record whose quote is unchanged), and each record that could not be carried is
-listed; `--no-carry` replaces whole.
+listed; `--no-carry` replaces whole. **An entry that carries an owner mark is never replaced by either flag** (T628):
+the run prints `REFUSED`, naming each mark in force on the entry or one of its rules, leaves the entry as it is and
+exits 1. There is no flag past it; a reviewed entry changes by a reviewed edit to the curated file.
 
 **The ledger is seeded, not grown from nothing.** Without `ingested.json` every entry is one the
 ledger never saw, so a repass would keep all of them. `run_parse.sh seed-ledger`
 (`ingest_catalogue --seed-ledger`) records every checked-in entry as it is on disk now — the
 checked-in corpus IS the curated truth — so a repass replaces an entry nobody has touched since and
 keeps one edited after the seed. It was seeded on 2026-09-23 (1,480 entries).
+
+The ledger's digest is `io.entry_digest` (T628: the one the reach run, the bundle and the review vintage hold), and the
+file names it (`{"digest": "io.entry_digest", "entries": {…}}`). The 2026-09-23 ledger predates that: none of its
+records can be compared, so ingest prints a `NOTE` and keeps every entry already on disk until the re-seed — which
+belongs to the annual run (runbook step 9), not before.
 
 ## Modules (building blocks — not the user entry point)
 

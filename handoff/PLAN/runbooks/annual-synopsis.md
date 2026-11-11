@@ -193,6 +193,12 @@ cp $W/extraction/synopsis_raw_data.json data/generated/regs/extraction/
 bash pipeline/regs/parsing/run_parse.sh seed-ledger                   # no credits
 ```
 
+The seed is also what moves the ingest ledger to `io.entry_digest` (T628): until it, a ledger from before reads as
+"never seen" and ingest keeps every entry on disk, saying so. Seed here and not earlier — it declares every edit made
+since the last seed to be ingest's own write. The fee table: `pipeline/tests/test_fee_table_in_print.py` reads the new
+book's p.5 as a table (`synopsis_print.fee_table`; it raises on a layout it does not know) and pins every stored fee
+to its column.
+
 Cut the new book's baseline for the extractor gate (T426; the accepted diffs reset to empty, since the new baseline
 holds them), and re-capture the fast tier's rows from the new book (pick hard rows again — one per region at least):
 

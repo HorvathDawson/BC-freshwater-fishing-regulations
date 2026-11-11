@@ -19,7 +19,8 @@
  *      predate the rule are on `NO_STEP_YET` (a list that only shrinks: a listed ticket that now complies fails until it
  *      is taken off, and a new ticket can never be added).
  *   7. (T539) the docs guard, `checkDocs`: STATUS.md starts with its title; every repo path a backticked token cites in
- *      START-HERE, the restart page and OWNER-TODO exists; the restart page holds no state (no release id, no build
+ *      START-HERE, the restart page and OWNER-TODO exists, and every path a runbook (handoff/PLAN/runbooks/*.md) cites,
+ *      in backticks or in a command block (T628); the restart page holds no state (no release id, no build
  *      number: those live only in the STATUS top entry); AGENTS rule ids are unique.
  *
  * `checkLedger` and `checkDocs` are pure (the test feeds it mutated copies); the CLI below reads the repo and git.
@@ -167,6 +168,12 @@ export function checkLedger({ tickets, readme, subjects, ownerTodo }) {
   return [...new Set(problems)].sort();
 }
 
+const RUNBOOKS_DIR = "handoff/PLAN/runbooks";
+/** Paths a runbook's own steps CREATE (so they do not exist until it is followed), per runbook. A listed path that
+ *  exists, or that its runbook no longer cites, fails: the list only holds what it must. */
+export const RUNBOOK_MAKES = {
+  "annual-synopsis.md": ["data/source/fishing_synopsis.2025-27.pdf"],   // step 1: `cp` keeps last year's book under this name
+};
 const CITED_ROOTS = /^(app|pipeline|data|deploy|scripts|handoff|curation-review|\.github)\//;
 const TOP_FILES = /^(AGENTS|CLAUDE)\.md$/;
 
@@ -182,6 +189,26 @@ export function citedPaths(text) {
   return [...out].sort();
 }
 
+/**
+ * The repo paths a RUNBOOK cites (T628): the backticked ones, and every path inside its fenced command blocks — a
+ * runbook's paths are mostly arguments of commands (`OLD=data/curated/...`, `cp ... deploy/x.sh`), which no backtick
+ * holds. A token with a variable, glob or placeholder is not a path.
+ */
+export function runbookPaths(text) {
+  const out = new Set();
+  const prose = [];
+  text.split(/^```.*$/m).forEach((part, i) => {
+    if (i % 2 === 0) { prose.push(part); return; }
+    for (const tok of part.split(/[\s"'=;,]+/)) {
+      if (/[*<>{}$|()\[\]`]/.test(tok)) continue;
+      const p = tok.replace(/[:#].*$/, "").replace(/[.]+$/, "");
+      if (CITED_ROOTS.test(p) || TOP_FILES.test(p)) out.add(p);
+    }
+  });
+  for (const p of citedPaths(prose.join("\n"))) out.add(p);
+  return [...out].sort();
+}
+
 /** AGENTS rule ids (`12.`, `20a.`, `A1.`, `W45.`) at the start of a line, with the lines they sit on. */
 export function ruleIds(agents) {
   const ids = [];
@@ -193,14 +220,27 @@ export function ruleIds(agents) {
  * Every way the handoff docs are wrong (T539), as a sorted list (empty = fine). Pure: `exists` / `isIgnored` answer for a
  * repo path (a git-ignored output such as app/dist/... is not required to exist).
  *
+ * `runbooks` (T628): every `handoff/PLAN/runbooks/*.md`, read with `runbookPaths` (its command blocks too).
+ *
  * @param {{ status: string, startHere: string, restartName: string, restart: string, ownerTodo: string, agents: string,
+ *           runbooks: { name: string, text: string }[],
  *           exists: (p: string) => boolean, isIgnored: (p: string) => boolean }} input
  */
-export function checkDocs({ status, startHere, restartName, restart, ownerTodo, agents, exists, isIgnored }) {
+export function checkDocs({ status, startHere, restartName, restart, ownerTodo, agents, runbooks, exists, isIgnored }) {
   const problems = [];
   if (!/^# /.test(status)) problems.push(`STATUS.md must start with its title ("# …"), not: ${status.split("\n")[0].slice(0, 60)}`);
   for (const [name, text] of [["START-HERE.md", startHere], [restartName || "the restart page", restart], ["OWNER-TODO.md", ownerTodo]])
     for (const p of citedPaths(text)) if (!exists(p) && !isIgnored(p)) problems.push(`${name} cites ${p}, which does not exist`);
+  if (!Array.isArray(runbooks) || !runbooks.length) problems.push(`no runbook was read (${RUNBOOKS_DIR}/*.md): the dead-path guard covers them (T628)`);
+  else {
+    for (const { name, text } of runbooks) {
+      const makes = RUNBOOK_MAKES[name] ?? [];
+      const cited = runbookPaths(text);
+      for (const p of cited) if (!exists(p) && !isIgnored(p) && !makes.includes(p)) problems.push(`${RUNBOOKS_DIR}/${name} cites ${p}, which does not exist`);
+      for (const p of makes) if (exists(p) || !cited.includes(p)) problems.push(`RUNBOOK_MAKES lists ${p} for ${name}, which ${exists(p) ? "now exists" : "the runbook no longer cites"}: take it off the list`);
+    }
+    for (const name of Object.keys(RUNBOOK_MAKES)) if (!runbooks.some((r) => r.name === name)) problems.push(`RUNBOOK_MAKES names ${name}, which is not a runbook`);
+  }
   if (!restartName) problems.push("START-HERE.md names no restart page (handoff/PLAN/NEXT-SESSION-*.md)");
   for (const m of restart.matchAll(/\br-[0-9a-f]{12}\b/g)) problems.push(`${restartName} holds state: release id ${m[0]} (it lives only in the STATUS top entry)`);
   for (const m of restart.matchAll(/\b[Bb]uild \d+\b/g)) problems.push(`${restartName} holds state: "${m[0]}" (the Play build lives only in the STATUS top entry)`);
@@ -247,7 +287,9 @@ export function readDocs(repoRoot) {
     if (got.status === 1) return false;
     throw new Error(`git check-ignore ${p}: status ${got.status}${got.error ? ` (${got.error.message})` : ""} ${got.stderr ?? ""}`.trim());
   };
-  return { status: readFileSync(join(plan, "STATUS.md"), "utf8"), startHere, restartName, restart,
+  const runbooks = readdirSync(join(repoRoot, RUNBOOKS_DIR)).filter((n) => n.endsWith(".md")).sort()
+    .map((name) => ({ name, text: readFileSync(join(repoRoot, RUNBOOKS_DIR, name), "utf8") }));
+  return { status: readFileSync(join(plan, "STATUS.md"), "utf8"), startHere, restartName, restart, runbooks,
            ownerTodo: readFileSync(join(plan, "OWNER-TODO.md"), "utf8"), agents: readFileSync(join(repoRoot, "AGENTS.md"), "utf8"),
            exists: (p) => existsSync(join(repoRoot, p)), isIgnored };
 }

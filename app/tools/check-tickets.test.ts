@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 // A plain .mjs gate (it runs under node as `pnpm tickets`), imported for its functions.
-import { NO_STEP_YET, checkDocs, checkLedger, citedPaths, idOfFile, ledgerRows, readDocs, readRepo, ruleIds, statusKeyword } from "./check-tickets.mjs";
+import { NO_STEP_YET, RUNBOOK_MAKES, checkDocs, checkLedger, citedPaths, idOfFile, ledgerRows, readDocs, readRepo, ruleIds, runbookPaths, statusKeyword } from "./check-tickets.mjs";
 
 type Input = { tickets: { name: string; text: string }[]; readme: string; subjects: string[]; ownerTodo: string };
 const repoRoot = new URL("../..", import.meta.url).pathname;
@@ -216,5 +216,35 @@ describe("T539 the docs guard", () => {
   it("fails on a repeated AGENTS rule id", () => {
     const out = checkDocs({ ...live(), agents: `${docs.agents}\n5. **a rule that reuses a number**\n` });
     expect(out.some((m: string) => /rule id 5 is used at lines \d+ and \d+/.test(m))).toBe(true);
+  });
+});
+
+describe("T628 the docs guard covers the runbooks", () => {
+  const docs = readDocs(repoRoot) as Parameters<typeof checkDocs>[0] & Record<string, any>;
+  const annual = () => docs.runbooks.find((r: { name: string }) => r.name === "annual-synopsis.md")!;
+  const withAnnual = (text: string) => ({ ...docs, runbooks: docs.runbooks.map((r: { name: string }) => (r.name === "annual-synopsis.md" ? { ...r, text } : r)) });
+  it("the real runbooks were read, command blocks included", () => {
+    expect(docs.runbooks.map((r: { name: string }) => r.name)).toContain("release.md");
+    expect(runbookPaths(annual().text)).toContain("data/curated/regulations/synopsis");   // only ever inside a ```bash block
+    expect(citedPaths(annual().text)).not.toContain("data/curated/regulations/synopsis");
+  });
+  it("fails on a dead path in a command block (the T553 case: a renamed curated folder) and in backticks", () => {
+    const block = checkDocs(withAnnual(`${annual().text}\n\`\`\`bash\nOLD=data/curated/regulations/entries/catalogue\ncp $W/book/region-*.json $OLD/\n\`\`\`\n`));
+    expect(block).toEqual(["handoff/PLAN/runbooks/annual-synopsis.md cites data/curated/regulations/entries/catalogue, which does not exist"]);
+    const tick = checkDocs(withAnnual(`${annual().text}\n see \`pipeline/tools/does-not-exist.py\``));
+    expect(tick).toEqual(["handoff/PLAN/runbooks/annual-synopsis.md cites pipeline/tools/does-not-exist.py, which does not exist"]);
+  });
+  it("a variable, glob or placeholder in a command is not a path", () => {
+    expect(runbookPaths("```bash\ncp $W/book/region-*.json data/release/<r-id>/x app/tools/check-tickets.mjs:12\n```")).toEqual(["app/tools/check-tickets.mjs"]);
+  });
+  it("fails when no runbook was read", () => {
+    expect(checkDocs({ ...docs, runbooks: [] }).some((m: string) => /no runbook was read/.test(m))).toBe(true);
+    const { runbooks: _none, ...without } = docs;
+    expect(checkDocs(without as typeof docs).some((m: string) => /no runbook was read/.test(m))).toBe(true);
+  });
+  it("a path the runbook creates is allowed only while it is absent and still cited", () => {
+    const made = RUNBOOK_MAKES["annual-synopsis.md"][0];
+    expect(checkDocs({ ...docs, exists: (p: string) => p === made || docs.exists(p) }).some((m: string) => m.includes(`${made} for annual-synopsis.md, which now exists`))).toBe(true);
+    expect(checkDocs(withAnnual(annual().text.split(made).join("x"))).some((m: string) => m.includes("the runbook no longer cites"))).toBe(true);
   });
 });

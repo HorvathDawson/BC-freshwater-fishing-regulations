@@ -30,17 +30,25 @@ And one guard, because a re-parse replaces an entry wholesale and there is no `l
   (`fingerprint.PLACEMENT_FIELDS`: extents, tributary scope and excludes, undrawn part, side …)
   are kept on the re-parsed entry, and every one that could not be carried is listed.
   `--no-carry` replaces whole.
+  AN ENTRY THAT CARRIES AN OWNER MARK IS NEVER REPLACED THIS WAY (T628): either flag refuses it, naming the mark
+  (`owner_marks`: the marks in force on the entry or one of its rules, any verdict). There is no flag past it — a
+  reviewed entry changes by a reviewed edit to the curated file.
 
   THE LEDGER IS SEEDED, NOT GROWN FROM NOTHING. With no `ingested.json` every entry is one "the
   ledger never saw", so the first repass would keep all of them. `--seed-ledger` records every
   entry as it is on disk NOW — declaring the checked-in corpus the curated truth — and from then
   on only an edit made after the seed is kept. `run_parse.sh seed-ledger` runs it (no credits).
+
+  THE LEDGER'S DIGEST IS `io.entry_digest` (T628), the one the reach run, the bundle and the review vintage hold for
+  an entry, and the file says so (`{"digest": "io.entry_digest", "entries": {...}}`). A ledger written before that (a
+  flat `entry_id -> sha256`) cannot be compared: its entries read as never seen — every one KEPT — and each run says
+  so until the re-seed, which belongs to the annual run (`handoff/PLAN/runbooks/annual-synopsis.md` step 9), not
+  before: seeding declares every edit made since the last seed to be ingest's own write.
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from collections import defaultdict
@@ -214,13 +222,39 @@ def default_ledger() -> Path:
     return io.default_work_dir() / "ingested.json"
 
 
+#: What a ledger written by this code says its digests are. A ledger that says nothing was written before T628.
+LEDGER_DIGEST = "io.entry_digest"
+
+
 def digest(entry: dict) -> str:
-    return hashlib.sha256(json.dumps(entry, sort_keys=True, ensure_ascii=False)
-                          .encode("utf-8")).hexdigest()
+    """The ledger's digest of one entry as stored: `io.entry_digest` — the same value the reach run, the bundle and
+    the review vintage hold for it (T628; it was a second, full-length SHA-256 over another serialisation)."""
+    return io.entry_digest(entry)
+
+
+def ledger_is_legacy(path: Path) -> bool:
+    """Whether `path` is a ledger from before `LEDGER_DIGEST` (a flat `entry_id -> sha256`). A missing file is not."""
+    if not Path(path).exists():
+        return False
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return not (isinstance(data, dict) and "digest" in data)
 
 
 def _read_ledger(path: Path) -> dict[str, str]:
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    """entry_id -> digest of the entry as ingest last wrote it. No file: no record. A legacy ledger: no record
+    either (its digests are another function's; `run` says so) — never a comparison of two different digests. A
+    ledger naming a digest this code does not write is refused."""
+    if not path.exists() or ledger_is_legacy(path):
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("digest") != LEDGER_DIGEST or not isinstance(data.get("entries"), dict):
+        raise ValueError(f"{path}: not an ingest ledger this code reads (digest {data.get('digest')!r}, "
+                         f"wants {LEDGER_DIGEST!r} and an `entries` map)")
+    return dict(data["entries"])
+
+
+def _write_ledger(path: Path, record: dict[str, str]) -> None:
+    io.atomic_write(path, json.dumps({"digest": LEDGER_DIGEST, "entries": record}, indent=1, sort_keys=True) + "\n")
 
 
 def seed_ledger(out_dir: Path, ledger: Path) -> int:
@@ -230,8 +264,26 @@ def seed_ledger(out_dir: Path, ledger: Path) -> int:
     seed is replaceable by a repass and one edited after it is KEPT. Replaces any ledger there is:
     seeding declares the checked-in corpus the truth. Returns the number of entries recorded."""
     record = {eid: digest(e) for eid, e in io.read_entries_dir(Path(out_dir)).items()}
-    io.atomic_write(ledger, json.dumps(record, indent=1, sort_keys=True) + "\n")
+    _write_ledger(ledger, record)
     return len(record)
+
+
+def owner_marks(entry_ids, marks_path: Path | None = None) -> dict[str, list[str]]:
+    """entry_id -> the owner marks IN FORCE on it (on the entry, or on one of its rules), each in words: what it is
+    on, its verdict, who made it and when. Read from the marks store (`CURATED.review.marks`; a missing store raises,
+    `marks.load`). A cleared mark is not in force (`marks.latest`); any other verdict is — a "wrong" mark is the
+    owner's finding on this copy as much as a "verified" one is the owner's sign-off."""
+    from pipeline.regs.review import marks as M
+    if marks_path is None:
+        from pipeline.common.curated import CURATED
+        marks_path = CURATED.review.marks
+    want = set(entry_ids)
+    out: dict[str, list[str]] = defaultdict(list)
+    for m in M.latest(M.load(Path(marks_path))).values():
+        if m.scope in ("entry", "rule") and m.target in want:
+            on = f"rule {m.rule_id}" if m.scope == "rule" else "the entry"
+            out[m.target].append(f"{m.verdict} on {on}, {m.reviewer} {m.date}")
+    return {k: sorted(v) for k, v in out.items()}
 
 
 #: The entry's own fields a curator sets that the parser never does (or that a curator corrects):
@@ -281,13 +333,20 @@ def carry_curation(on_disk: dict, new: CatalogueEntry) -> tuple[CatalogueEntry, 
 
 def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = False, *,
           ledger: Path, replace_edited: bool = False, replace_ids: frozenset = frozenset(),
-          carry: bool = True, report: list | None = None) -> tuple[dict[str, int], list[str]]:
+          carry: bool = True, report: list | None = None,
+          marked: dict[str, list[str]] | None = None,
+          refused: list | None = None) -> tuple[dict[str, int], list[str]]:
     """Merge into region files by the entry's own `region`, replacing an entry of the same id —
     unless the copy on disk is not the one ingest last wrote (see the module docstring).
 
     An edited entry is replaced only when `replace_edited` or its id is in `replace_ids`, and then
     with its curation carried (`carry_curation`) unless `carry` is False. `report` collects one
     line per such replace (what was carried, what could not be).
+
+    `marked` is `owner_marks` of the accepted entries: an edited entry in it is never replaced — it is left as it
+    is on disk, listed as kept, and one line naming its marks goes to `refused` (T628). THE CALLER READS THE STORE:
+    `run`, the one caller that replaces on the checked-in corpus, always passes it; `None` is a caller stating its
+    entries have no marks store (a test's own tree), never a default for the live one.
 
     Returns ({file name: entries written}, [entry ids KEPT because they were edited])."""
     record = _read_ledger(ledger)
@@ -305,6 +364,12 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
             on_disk = merged.get(e.entry_id)
             if on_disk is not None and record.get(e.entry_id) != digest(on_disk):
                 if not (replace_edited or e.entry_id in replace_ids):
+                    kept.append(e.entry_id)
+                    continue
+                if marked and marked.get(e.entry_id):
+                    if refused is not None:
+                        refused.append(f"{e.entry_id}: carries an owner mark ("
+                                       + "; ".join(marked[e.entry_id]) + ")")
                     kept.append(e.entry_id)
                     continue
                 if carry:
@@ -326,13 +391,14 @@ def write(accepted: dict[str, CatalogueEntry], out_dir: Path, dry_run: bool = Fa
                     record[e.entry_id] = digest(dump_entry(e))
         written[path.name] = n
     if not dry_run and any(written.values()):
-        io.atomic_write(ledger, json.dumps(record, indent=1, sort_keys=True) + "\n")
+        _write_ledger(ledger, record)
     return written, kept
 
 
 def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
         dry_run: bool = False, ledger: Path | None = None, replace_edited: bool = False,
-        rows_path: Path | None = None, replace_ids: frozenset = frozenset(), carry: bool = True) -> int:
+        rows_path: Path | None = None, replace_ids: frozenset = frozenset(), carry: bool = True,
+        marks_path: Path | None = None) -> int:
     drift = check_rows_digest(batch_paths, rows_path)
     if drift:
         print(f"FAIL {drift}\nnothing ingested")
@@ -357,11 +423,23 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
     for u in unknown:
         print(f"FAIL --replace-entry {u}: not an accepted entry of this run — nothing to replace it with")
     report: list[str] = []
+    refused: list[str] = []
+    ledger = ledger or default_ledger()
+    if ledger_is_legacy(ledger):
+        print(f"NOTE {ledger} was written before the ledger's digest became {LEDGER_DIGEST} (T628): none of its "
+              f"records can be compared, so every entry already on disk is KEPT. The re-seed belongs to the annual "
+              f"run (handoff/PLAN/runbooks/annual-synopsis.md step 9), not before.")
+    replacing = replace_edited or bool(replace_ids)
+    marked = owner_marks(accepted, marks_path) if replacing else None      # the store is read only for a replace
     written, kept = write(accepted, Path(out_dir), dry_run=dry_run,
-                          ledger=ledger or default_ledger(), replace_edited=replace_edited,
-                          replace_ids=frozenset(replace_ids), carry=carry, report=report)
+                          ledger=ledger, replace_edited=replace_edited,
+                          replace_ids=frozenset(replace_ids), carry=carry, report=report,
+                          marked=marked, refused=refused)
     for line in report:
         print(line)
+    for line in refused:
+        print(f"REFUSED {'--replace-entry' if line.split(': ')[0] in replace_ids else '--replace-edited'} {line} — "
+              f"not replaced; a reviewed entry changes by a reviewed edit, never by a re-parse")
     rejected = len(candidates) - len(accepted)
     print(f"\n{len(accepted)}/{len(candidates)} entries accepted"
           + (f", {rejected} rejected" if rejected else "")
@@ -376,7 +454,7 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
         for eid in kept:
             print(f"  {eid}")
         print("  Compare each with its response; re-run with --replace-entry <id> (one entry; its placement is "
-              "carried) or --replace-edited (all of them).")
+              "carried) or --replace-edited (all of them). An entry that carries an owner mark is refused by both.")
     return 1 if (rejected or kept or missing or dupes or unknown) else 0
 
 
@@ -399,9 +477,11 @@ def main() -> None:
                     help="what ingest last wrote, per entry (default: <work dir>/ingested.json)")
     ap.add_argument("--replace-edited", action="store_true",
                     help="replace EVERY entry whose curated copy differs from what ingest last wrote "
-                    "(placement carried unless --no-carry); read the KEPT report first")
+                    "(placement carried unless --no-carry); read the KEPT report first. An entry that "
+                    "carries an owner mark is refused, naming the mark")
     ap.add_argument("--replace-entry", action="append", default=[], metavar="ENTRY_ID",
-                    help="replace this one edited entry (repeatable); its curated placement is carried")
+                    help="replace this one edited entry (repeatable); its curated placement is carried. "
+                    "Refused, naming the mark, when the entry carries an owner mark")
     ap.add_argument("--no-carry", action="store_true",
                     help="with --replace-entry/--replace-edited: replace whole, carrying no curation")
     ap.add_argument("--seed-ledger", action="store_true",
