@@ -46,8 +46,11 @@ def test_a_variant_mark_proposes_the_entry_models_own_link(tmp_path):
     assert P._proposes(m)
     p = P._variant_proposal(m, "mark-dfo-y", {}, src)
     assert not p["problems"]
-    assert {(e["field"], e["after"]) for e in p["edits"]} == {("duplicate_of", "1:a:x"),
-                                                               ("duplicate_confirmed", True)}
+    assert {(e["field"], e["after"]) for e in p["edits"] if e["field"] != "notes"} == {
+        ("duplicate_of", "1:a:x"), ("duplicate_confirmed", True)}
+    # T610: the grouping writes why on the place (no note on the mark: that he confirmed it, when, which mark)
+    assert [e["after"] for e in p["edits"] if e["field"] == "notes"] == [[P.grouping_note(m)]]
+    assert P.grouping_note(m).startswith("owner confirmed same place, 2026-11-02, mark ")
     out = P.materialize([p], src)
     loc = next(x for x in json.loads(next(iter(out.values())))["locations"] if x["location_id"] == "1:a:y")
     assert loc["duplicate_of"] == "1:a:x" and loc["duplicate_confirmed"] is True
