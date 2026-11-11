@@ -29,13 +29,12 @@
 from __future__ import annotations
 
 import dataclasses
-import os
-from pathlib import Path
 
 import pytest
 
 from pipeline.atlas.graph.tributaries import code_runs, expand, tributaries_of_reach
 from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 L = NodeKind.lake
@@ -309,9 +308,8 @@ def test_t102_a_run_never_takes_the_walk_into_the_reachs_receiving_river():
 @pytest.fixture(scope="module")
 def real(request):
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
-    b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    b = under_test.path("atlas")
     need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     return read_artifact(str(b / "graph.pkl")), load_registry(str(b / "registry.json"))
 

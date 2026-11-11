@@ -17,8 +17,6 @@ WLR and Hawks Creek) and stops where it cannot climb.
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
 
 import pytest
 
@@ -28,6 +26,7 @@ from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.enums import BoundaryKind
 from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 from pipeline.common.models.sections import SectionBoundary
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 S, L = NodeKind.stream, NodeKind.lake
@@ -260,9 +259,8 @@ def test_the_named_lake_rule_can_be_switched_off(sumallo, monkeypatch):
 @pytest.fixture(scope="module")
 def real(request):
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
-    b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    b = under_test.path("atlas")
     need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     return read_artifact(str(b / "graph.pkl")), load_registry(str(b / "registry.json"))
 
@@ -346,9 +344,8 @@ def test_the_skeena_above_cedarvale_is_streams_without_the_mainstem(real, corpus
     # streams only — a polygon counts when it is a STREAM's own section: an owner-confirmed slough call folded into its
     # creek (T322; T306 2026-11-06: 7 of them, on Pinkut Creek, Station Creek, Darling Creek and the Telkwa River)
     import json
-    from pipeline.common.curated import REPO_ROOT
     calls = {f"lake:{w['wbk']}" for w in json.loads(
-        (REPO_ROOT / "data/curated/waters/slough_calls.json").read_text(encoding="utf-8"))["waters"]}
+        under_test.curated().waters.slough_calls.read_text(encoding="utf-8"))["waters"]}
     streams = {s for v in reg.values() if v.kind == "stream" for s in v.section_ids}
     polys = {s for s in got if g.nodes[s].kind != S}
     assert polys <= calls & streams, sorted(polys - (calls & streams))[:5]

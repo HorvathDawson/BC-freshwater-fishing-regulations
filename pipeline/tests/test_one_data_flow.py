@@ -18,15 +18,15 @@ The grep gates read the source; the parity tests (slow) read the built artifacts
 from __future__ import annotations
 
 import json
-import os
 import re
 import sqlite3
 from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED, REPO_ROOT
+from pipeline.common.curated import REPO_ROOT
 from pipeline.deliver.bundle.rules import CLOSURE_CONDITIONS, closure_grade
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT, REACH_HINT
 
 BUNDLE_DIR = REPO_ROOT / "pipeline" / "deliver" / "bundle"
@@ -431,13 +431,13 @@ def test_promote_refuses_an_unfinished_candidate(tmp_path):
 # --------------------------------------------------------------------------- parity (slow)
 
 def _built():
-    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
+    bundle = under_test.path("bundle")
     need(None, "bundle", bundle, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     meta = dict(db.execute("SELECT k, v FROM meta"))
     from pipeline.common.section_handles import build_of_bundle
     build = build_of_bundle(meta)
-    run = Path(os.environ.get("UI_EXPORT_REACHES") or GENERATED.reaches / meta["reach_run"])
+    run = under_test.reach_run_named(meta["reach_run"])         # the run THIS bundle names, not the atlas folder's name
     need(None, "atlas", build / "region_home.json", ATLAS_HINT)
     need(None, "reach_run", run / "tidal.jsonl", REACH_HINT)
     return db, build, run

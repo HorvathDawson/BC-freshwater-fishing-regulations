@@ -15,7 +15,6 @@ store the release is cut from (the page T53 opens); the sweep reproduces the com
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from pathlib import Path
 
@@ -169,26 +168,22 @@ def test_an_mu_group_rule_binds_its_members_and_a_straddler_is_marked_in():
 # ---- on the data -------------------------------------------------------------------------------------------------
 
 def _paths():
-    from pipeline.common.curated import CURATED, GENERATED
-    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
-    build = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
-    return bundle, build, Path(CURATED.waters.areas)
+    from pipeline.tests import under_test
+    return under_test.path("bundle"), under_test.path("atlas"), Path(under_test.curated().waters.areas)
 
 
 @pytest.mark.needs_bundle
 def test_every_unnamed_section_has_a_page():
     """T53's whole-map count = 0: every unnamed section of the bundle has a key in the store, the key has cells,
     and the store names it ("Unnamed stream · Region N") — the page the water screen opens."""
-    from pipeline.deliver.release.manifest import latest
     from pipeline.deliver.store.release import province_store
-    from pipeline.tests.conftest import release_root
+    from pipeline.tests import under_test
     bundle, _, _ = _paths()
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     unnamed = [sid for (sid,) in db.execute("SELECT sid FROM section_ruleset WHERE up IS NOT NULL ORDER BY sid")]
     # the regs store of the release paired with the bundle (the live one, or a side set's, UI_EXPORT_DIR; P20: no
     # regs.sqlite is kept)
-    rel = latest(release_root())
-    assert rel is not None, f"no release under {release_root()} — make one with: python -m pipeline.deliver all"
+    rel = under_test.release()                       # the candidate during a release (RELEASE_DIR), else LATEST; fails when none
     st = province_store(rel)
     assert st.meta["reach_digest"] == dict(db.execute("SELECT k, v FROM meta"))["reach_digest"]
     akeys = st.section_akeys()

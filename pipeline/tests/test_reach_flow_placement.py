@@ -180,22 +180,20 @@ def test_the_switch_matters(monkeypatch):
 
 
 # =========================================================================== the real atlas (slow)
-import os                                                                    # noqa: E402
-from pathlib import Path                                                     # noqa: E402
 
 import pytest                                                                # noqa: E402
 
+from pipeline.tests import under_test                                        # noqa: E402
 from pipeline.tests.conftest import need, ATLAS_HINT                         # noqa: E402
 
 
 @pytest.fixture(scope="module")
 def real(request):
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     from pipeline.regs.parsing import io as parse_io
     from pipeline.atlas.reach.models import iter_entries
-    b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    b = under_test.path("atlas")
     need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     g = read_artifact(str(b / "graph.pkl"))
     reg = load_registry(str(b / "registry.json"))

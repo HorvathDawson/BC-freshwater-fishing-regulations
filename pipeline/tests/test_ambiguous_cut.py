@@ -314,9 +314,8 @@ def test_the_policy_is_pinned_by_the_cache_version():
 
 # ------------------------------------------------------------------------------ real cases
 
-import os                                                                    # noqa: E402
-from pathlib import Path                                                     # noqa: E402
 
+from pipeline.tests import under_test                                        # noqa: E402
 from pipeline.tests.conftest import ATLAS_HINT, need                         # noqa: E402
 
 
@@ -324,10 +323,9 @@ from pipeline.tests.conftest import ATLAS_HINT, need                         # n
 def real(request):
     from pipeline.atlas.reach.models import iter_entries
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     from pipeline.regs.parsing import io as parse_io
-    b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    b = under_test.path("atlas")
     need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     g = read_artifact(str(b / "graph.pkl"))
     reg = load_registry(str(b / "registry.json"))
@@ -415,7 +413,7 @@ def test_skeena_river_2_starts_at_the_exchamsiks_mainstem_cut(real):
 def test_skeena_river_2_starts_at_the_exchamsiks_in_the_curated_data():
     """No atlas: the record's lower cut is the Exchamsiks confluence, and it carries no stand-in pick."""
     import json
-    path = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis/region-6.json"
+    path = under_test.curated().regulations.synopsis / "region-6.json"
     data = json.loads(path.read_text())
     rec = next(r for e in data["entries"] for r in e.get("licensing") or [] if r["id"] == SKEENA_2)
     assert rec["extents"][0]["splits"][0] == SKEENA_EXCHAMSIKS

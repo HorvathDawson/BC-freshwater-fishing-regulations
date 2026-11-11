@@ -20,6 +20,7 @@ import pytest
 pytest.importorskip("geopandas")
 
 from pipeline.atlas.splits.area_splits import _GPKG, mu_region_table  # noqa: E402
+from pipeline.tests import under_test  # noqa: E402
 from pipeline.tests.conftest import ATLAS_HINT, GPKG_HINT, need  # noqa: E402
 
 
@@ -70,12 +71,10 @@ def test_the_table_never_contradicts_the_region_polygons():
     """
     import pathlib
 
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
 
     need(None, "source", _GPKG, GPKG_HINT)
-    graph_path = need(None, "atlas", GENERATED.atlas.builds / GENERATED.atlas.default_build
-                      / "graph.pkl", ATLAS_HINT)
+    graph_path = need(None, "atlas", under_test.atlas() / "graph.pkl", ATLAS_HINT)
 
     tbl = mu_region_table()
     graph = read_artifact(str(graph_path))

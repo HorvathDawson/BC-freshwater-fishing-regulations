@@ -17,6 +17,7 @@ import pytest
 from pydantic import ValidationError
 
 from pipeline.common import curated as C
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 
@@ -187,8 +188,7 @@ class TestGeneratedTree:
         # It used to return `output/pipeline/graph/registry.json` — a directory that never
         # existed — and was the declared default of seven parser tools.
         from pipeline.atlas.registry import default_registry_path
-        from pipeline.common.curated import GENERATED
-        need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+        need(None, "atlas", under_test.atlas() / "registry.json", ATLAS_HINT)
         p = default_registry_path()
         assert p.name == "registry.json" and p.parent.is_dir()
 

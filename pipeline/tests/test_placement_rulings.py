@@ -12,8 +12,6 @@ Plus the corpus rows those fixes needed, and (slow) the real atlas.
 from __future__ import annotations
 
 import json
-import os
-from pathlib import Path
 
 import pytest
 
@@ -26,6 +24,7 @@ from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
 from pipeline.common.models.enums import BoundaryKind
 from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 from pipeline.common.models.sections import SectionBoundary
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 S, L = NodeKind.stream, NodeKind.lake
@@ -283,9 +282,8 @@ def test_every_glyph_row_walks(corpus):
 def real(request):
     from pipeline.atlas.reach import position
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
-    b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    b = under_test.path("atlas")
     need(request, "atlas", b / "graph.pkl", ATLAS_HINT)
     g = read_artifact(str(b / "graph.pkl"))
     position.attach(g, b)

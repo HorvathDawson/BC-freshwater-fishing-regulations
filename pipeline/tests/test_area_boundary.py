@@ -22,6 +22,7 @@ from pipeline.atlas.splits.border import mark_inside_area
 from pipeline.atlas.graph.graph import build_section_geometries, build_stream_graph
 from pipeline.common.models import AnchorType, SplitAnchor, SplitDef
 from pipeline.atlas.splits.sectionizer import split_graph_at
+from pipeline.tests import under_test
 
 PARK = box(0, 0, 100, 100)
 PARK_WSC = "100-025956"          # "Pitt River" trunk; descendants share the prefix
@@ -210,9 +211,7 @@ class TestCuratedClosureZones:
         """A closure zone that crosses no stream cuts nothing and the rule binds nowhere."""
         import json
         from shapely.geometry import shape, LineString
-        from pipeline.common.curated import CURATED
-
-        feats = json.loads(CURATED.waters.added_areas.read_text())["features"]
+        feats = json.loads(under_test.curated().waters.added_areas.read_text())["features"]
         assert len(feats) == 2
         for f in feats:
             ring = shape(f["geometry"])
@@ -236,13 +235,13 @@ class TestCuratedClosureZones:
         outranks. That is backwards for a closure. `within_area` limits what the extent already
         selects, so the rule stays a section rule about the river and the polygon only says
         where."""
-        import json, glob
+        import json
         from pipeline.deliver.bundle.rules import _specificity
 
         want = {"area:sign_zone:fraser_river_landstrom_bar_sign_zone",
                 "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"}
         seen = set()
-        for p in glob.glob("data/curated/regulations/synopsis/region-*.json"):
+        for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
             for e in json.load(open(p))["entries"]:
                 for r in e.get("rules", []):
                     for x in r.get("extents") or []:
@@ -250,7 +249,7 @@ class TestCuratedClosureZones:
                             seen.add(x["within_area"])
                             assert _specificity(r) == "section", (
                                 f"{r['rule_id']} became an area rule — it would be outranked")
-        for p in glob.glob("data/curated/dfo_salmon/places/region-*.json"):
+        for p in sorted(under_test.curated().dfo_salmon.places.glob("region-*.json")):
             for loc in json.load(open(p))["locations"]:
                 for x in (loc.get("binding") or {}).get("extents") or []:
                     if x.get("within_area") in want:
@@ -261,8 +260,7 @@ class TestCuratedClosureZones:
         """The ring replaces them. Leaving them behind means two cut-points sitting inside a
         polygon that already cuts there, and a rule that could bind either."""
         import json
-        from pipeline.common.curated import CURATED
-        d = json.loads(CURATED.waters.cuts.read_text())
+        d = json.loads(under_test.curated().waters.cuts.read_text())
         ids = {s["id"] for w in d["waterbodies"] for s in w["splits"]}
         for gone in ("fraser_river__landstrom_bar", "fraser_river__croft_island_southern_end",
                      "skeena_river__kispiox_sign_zone_lower", "skeena_river__kispiox_sign_zone_upper"):
@@ -340,8 +338,7 @@ class TestSmallAreasAndScopedCuts:
         """A ring with no `cuts` would silently fall back to blanket — which is exactly the bug
         it would be reintroducing."""
         import json
-        from pipeline.common.curated import CURATED
-        for f in json.loads(CURATED.waters.added_areas.read_text())["features"]:
+        for f in json.loads(under_test.curated().waters.added_areas.read_text())["features"]:
             assert f["properties"].get("cuts"), f"{f['properties']['id']} declares no `cuts`"
 
 
@@ -360,12 +357,10 @@ class TestOfferedIsNotApplied:
     def test_an_unnamed_pruned_stream_offers_a_cut_that_lands_nowhere(self):
         """blk 360244272 — an unnamed 1.7 km stream inside the Kispiox sign zone. It has a
         chain and no graph nodes, because the leaf prune removed it."""
-        from pathlib import Path
-        from pipeline.common.curated import GENERATED
         from pipeline.common.io.serialize import read_artifact
 
         from pipeline.tests.conftest import ATLAS_HINT, need
-        build = Path(GENERATED.build())
+        build = under_test.path("atlas")
         need(None, "atlas", build / "graph.pkl", ATLAS_HINT)
         g = read_artifact(build / "graph.pkl")
         live = {n.blk for n in g.nodes.values()}

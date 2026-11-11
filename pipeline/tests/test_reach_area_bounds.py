@@ -99,13 +99,11 @@ def test_both_fields_survive_the_model():
 # --------------------------------------------------------------------------------------
 
 import collections
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
 HG_MUS = {"6-12", "6-13"}
@@ -121,7 +119,7 @@ R1_BAIT, HG_BAIT = "z1:bait_ban_streams", "z1:hg_bait_ban_streams"
 
 def _region1_waters():
     # `UI_EXPORT_BUNDLE` points the corpus checks at a side bundle, as it does the export's.
-    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
+    bundle = under_test.path("bundle")
     need(None, "bundle", bundle, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' "

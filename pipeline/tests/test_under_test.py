@@ -101,3 +101,12 @@ def test_the_overrides_move_what_is_under_test(tmp_path, monkeypatch):
     assert under_test.path("atlas") == tmp_path / "side" and under_test.path("reach_run").name == "side"
     with pytest.raises(KeyError, match="no 'bundel'"):
         under_test.path("bundel")
+
+
+@pytest.mark.needs_reach_run
+def test_a_run_named_by_a_bundle_is_found_by_that_name_and_a_side_run_wins(tmp_path, monkeypatch, request):
+    monkeypatch.delenv("UI_EXPORT_REACHES", raising=False)
+    with pytest.raises(pytest.fail.Exception, match=r"missing reach_run: .*reaches/no_such_run_t667"):
+        under_test.reach_run_named("no_such_run_t667", request)        # by the NAME given, not the atlas's
+    monkeypatch.setenv("UI_EXPORT_REACHES", str(tmp_path))
+    assert under_test.reach_run_named("no_such_run_t667", request) == tmp_path

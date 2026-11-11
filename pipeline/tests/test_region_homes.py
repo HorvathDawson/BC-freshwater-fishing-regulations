@@ -13,7 +13,6 @@ Mutation: `regions.STRADDLERS_IN_EVERY_REGION = False` fails the extent tests be
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -24,9 +23,10 @@ import pytest
 from pipeline.atlas.reach import extent
 from pipeline.atlas.registry import regions
 from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT, predates
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 MARA = "wbk:329518146"
 SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
 
@@ -162,8 +162,7 @@ def test_only_straddlers_carry_two_regions_standing_tables(db):
 
 
 def _handles() -> dict[int, str]:
-    from pipeline.common.curated import GENERATED
-    b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    b = under_test.path("atlas")
     p = need(None, "atlas", b / "section_handles.txt", ATLAS_HINT)
     with p.open() as f:
         return {i: line.rstrip("\n") for i, line in enumerate(f, 1)}
@@ -385,9 +384,8 @@ def test_every_blanket_closure_in_the_corpus_says_its_kind():
     guess: z1 summer; z3, z4, z5, z7a, z8 and z6's Iskut/Fraser spring; z6's Skeena/Nass winter."""
     from pipeline.deliver.bundle import rules as rules_mod
     from pipeline.regs.parsing.catalogue import CatalogueEntry
-    from pipeline.common.curated import CURATED
     docs = [CatalogueEntry.model_validate(e)
-            for p in sorted(Path(CURATED.regulations.synopsis).glob("region-*.json"))
+            for p in sorted(Path(under_test.curated().regulations.synopsis).glob("region-*.json"))
             for e in json.loads(p.read_text(encoding="utf-8"))["entries"]]
     got = {(eid, r.rule_id): (r.closure_kind.value if r.closure_kind else None)
            for reg in rules_mod.blanket_closures(docs).values() for eid, r in reg}
@@ -445,9 +443,7 @@ def test_a_rows_water_is_bound_in_every_region_it_lies_in(db, item, entry, regs)
     Klinaklini, printed only in Region 5 (p.45), in Region 1 — its `within_area` clip removed)."""
     handles = _handles()
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import GENERATED
-    reg = load_registry(str(Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
-                            / "registry.json"))
+    reg = load_registry(str(under_test.path("atlas") / "registry.json"))
     sid_of = {h: i for i, h in handles.items()}
     for r in regs:
         others = set(reg[item].section_ids) & set(reg[f"area:region:{r}"].section_ids)
@@ -463,8 +459,7 @@ def test_a_rows_water_is_bound_in_every_region_it_lies_in(db, item, entry, regs)
 @pytest.fixture(scope="module")
 def atlas():
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import GENERATED
-    b = Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    b = under_test.path("atlas")
     need(None, "atlas", b / "registry.json", ATLAS_HINT)
     return b, load_registry(str(b / "registry.json"))
 

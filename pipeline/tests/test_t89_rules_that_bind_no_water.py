@@ -28,18 +28,17 @@ from __future__ import annotations
 
 import json
 import math
-import os
 import sqlite3
 from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
 from pipeline.regs.parsing.catalogue import CatalogueEntry
 from pipeline.regs.parsing.catalogue_parts.see import see_relation
-from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, need
+from pipeline.tests import under_test
+from pipeline.tests.conftest import ATLAS_HINT, need
 
-CAT = Path(CURATED.regulations.synopsis)
+CAT = Path(under_test.curated().regulations.synopsis)
 
 #: BY DESIGN — a rule that binds nowhere and is right to.
 BY_DESIGN = frozenset({
@@ -236,7 +235,7 @@ def test_the_awaiting_rows_are_still_unmatched_and_still_say_so():
 # Measured on the atlas: why each choice is the right water
 # ---------------------------------------------------------------------------------------------
 def _build() -> Path:
-    return Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    return under_test.path("atlas")
 
 
 @pytest.fixture(scope="module")
@@ -310,8 +309,7 @@ def test_no_awaiting_row_has_a_water_of_its_name_in_its_mu(registry, points):
 # ---------------------------------------------------------------------------------------------
 @pytest.mark.needs_bundle
 def test_only_the_allowed_rules_bind_no_water(request):
-    path = need(request, "bundle",
-                os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite", BUNDLE_HINT)
+    path = under_test.bundle(request)
     con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     try:
         found = set(con.execute("select entry_id, rule_id from rule where unresolved is not null"))

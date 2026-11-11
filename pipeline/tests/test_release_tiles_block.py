@@ -57,3 +57,15 @@ def test_tiles_of_another_sid_space_are_refused(tmp_path):
     _set(rel, f"{H}.ffac7c1eb56e")
     with pytest.raises(SystemExit, match="sid space"):
         tiles_block(rel, H, _meta(tmp_path, "0000000000000000.ffac7c1eb56e"))
+
+
+def test_a_tile_version_is_the_sid_space_plus_the_tile_build():
+    """Moved from test_tiles.py (T667): invented digests belong in a test that builds its own data."""
+    from pipeline.deliver.tiles import version as V
+    assert V.version_id("d768d6e135e62b99", "5f1c0a9e2b7d") == "d768d6e135e62b99.5f1c0a9e2b7d"
+    with pytest.raises(ValueError):
+        V.version_id("d768d6e1", "5f1c0a9e2b7d")
+    meta = {"name": "atlas", "vector_layers": [{"id": "stream"}]}
+    got = V.stamped_metadata(meta, "d768d6e135e62b99.5f1c0a9e2b7d", "d768d6e135e62b99", "8c77ba1cd2dc3929")
+    assert got == {**meta, "tile_version": "d768d6e135e62b99.5f1c0a9e2b7d", "section_handles": "d768d6e135e62b99",
+                   "labels_registry": "8c77ba1cd2dc3929"}

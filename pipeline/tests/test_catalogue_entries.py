@@ -11,11 +11,11 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
 from pipeline.regs.parsing.catalogue import CatalogueFile, RuleType, label
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ROWS_HINT
 
-DIR = CURATED.regulations.synopsis
+DIR = under_test.curated().regulations.synopsis
 
 
 def _files() -> list[Path]:
@@ -149,7 +149,7 @@ def _transcription_only(text: str) -> str:
 
 def _reference_corpus() -> str:
     """Every verbatim transcription, as one normalised blob — audit sections excluded."""
-    ref = CURATED.regulations.reference
+    ref = under_test.curated().regulations.reference
     if not ref.exists():
         return ""
     return _norm(" ".join(_transcription_only(p.read_text(encoding="utf-8"))
@@ -195,7 +195,7 @@ def test_a_rule_quotes_its_OWN_region_not_another():
     provincial source; regional rules may quote their own chapter or a provincial one, because a
     chapter legitimately restates provincial text.
     """
-    ref = CURATED.regulations.reference
+    ref = under_test.curated().regulations.reference
     assert ref.exists(), f"no reference transcriptions at {ref} (tracked in git)"
 
     strays: list[str] = []
@@ -217,7 +217,7 @@ _SHARED = ("provincial-regulations", "licensing", "definitions", "water-specific
 
 def _own_chapter(p: Path) -> str:
     """The transcriptions a zone file may quote: its own region's chapter and the provincial ones."""
-    ref = CURATED.regulations.reference
+    ref = under_test.curated().regulations.reference
     names = (f"region-{p.stem.replace('region-', '')}",) + _SHARED
     return _norm(" ".join(_transcription_only((ref / f"{n}.md").read_text(encoding="utf-8"))
                           for n in names if (ref / f"{n}.md").exists()))
@@ -297,8 +297,7 @@ def test_every_entry_names_a_row_the_synopsis_actually_prints():
     class _M:
         def __init__(self, water): self.water = water
 
-    from pipeline.common.curated import GENERATED
-    need(None, "source", GENERATED.regs.extraction / "synopsis_raw_data.json", ROWS_HINT)
+    need(None, "source", under_test.generated().regs.extraction / "synopsis_raw_data.json", ROWS_HINT)
     rows = list(load_synopsis_rows())
     assert rows, "the synopsis rows file holds no rows"
     real = {_row_entry_id(r, _M(r["water"])) for r in rows}
@@ -309,13 +308,17 @@ def test_every_entry_names_a_row_the_synopsis_actually_prints():
                          + "\n  ".join(sorted(phantom)))
 
 
-#: Water rows whose stored text is a hand fix of an extraction defect (annual runbook step 2d), each pinned by the
-#: 12-hex sha256 of squash(stored) and of squash(extracted): either side moving fails, naming the row.
+#: Water rows whose stored text is a hand fix of an extraction defect (annual runbook step 2d), each pinned by THE FIX
+#: ITSELF: (what the squashed extraction prints, exactly once; what the stored text says there; why). The stored text
+#: must be the extraction with that one replacement and nothing else, so either side moving alone fails, naming the row.
 HAND_FIXED_ROWS = {
     "r2:chilliwack_vedder_rivers_does_not_include_sumas_river_see_ma@2-4": (
-        "671d267300c2", "f2d08de4b4a4", "the extraction keeps a line-end hyphen: 'hatch- ery'; stored 'hatchery'"),
+        "and hatch- ery cutthroat catch and release", "and hatchery cutthroat catch and release",
+        "the extraction keeps a line-end hyphen: 'hatch- ery'; stored 'hatchery'"),
     "r2:coquihalla_river@2-17": (
-        "ba2de3187846", "3353f3790e80", "the extraction loses the last words: 'Nov'; stored 'Nov 1-Mar 31'"),
+        "downstream of the southern entrance to the lower most railway tunnel, nov",
+        "downstream of the southern entrance to the lower most railway tunnel, nov 1-mar 31",
+        "the extraction loses the last words: 'Nov'; stored 'Nov 1-Mar 31'"),
 }
 
 
@@ -325,9 +328,7 @@ def test_every_stored_row_text_is_the_extractions():
     extraction are independent, and every quote and number check compares against the STORED text — so a later hand or
     app edit that changes a printed number, together with its rule, passed every gate. Here every water row's stored
     text equals (squashed) its extraction row's `raw_regs`, and its `source_pages` that row's printed page; the two
-    known hand fixes are pinned both sides (`HAND_FIXED_ROWS`)."""
-    import hashlib
-    from pipeline.common.curated import GENERATED
+    known hand fixes are pinned by the fix itself (`HAND_FIXED_ROWS`)."""
     from pipeline.regs.parsing.batch_exporter import _row_entry_id
     from pipeline.regs.parsing.catalogue import squash
     from pipeline.regs.parsing.rows import load_synopsis_rows
@@ -335,11 +336,8 @@ def test_every_stored_row_text_is_the_extractions():
     class _M:
         def __init__(self, water): self.water = water
 
-    need(None, "source", GENERATED.regs.extraction / "synopsis_raw_data.json", ROWS_HINT)
+    need(None, "source", under_test.generated().regs.extraction / "synopsis_raw_data.json", ROWS_HINT)
     rows = {_row_entry_id(r, _M(r["water"])): r for r in load_synopsis_rows()}
-
-    def h(t: str) -> str:
-        return hashlib.sha256(squash(t).encode("utf-8")).hexdigest()[:12]
 
     bad: list[str] = []
     n = 0
@@ -354,9 +352,11 @@ def test_every_stored_row_text_is_the_extractions():
             bad.append(f"{e.entry_id}: source_pages {e.source_pages} but the row is printed on p.{r.get('page')}")
         fix = HAND_FIXED_ROWS.get(e.entry_id)
         if fix:
-            if (h(e.regs_verbatim), h(r["raw_regs"])) != fix[:2]:
-                bad.append(f"{e.entry_id}: a hand-fixed row moved (stored {h(e.regs_verbatim)}, extracted "
-                           f"{h(r['raw_regs'])}; pinned {fix[0]}, {fix[1]}: {fix[2]})")
+            printed, stored, why = fix
+            got, raw = squash(e.regs_verbatim), squash(r["raw_regs"])
+            if raw.count(printed) != 1 or raw.replace(printed, stored) != got or got == raw:
+                bad.append(f"{e.entry_id}: a hand-fixed row moved — the stored text is no longer the extraction with "
+                           f"{printed!r} -> {stored!r} ({why})\n      stored:    {got!r}\n      extracted: {raw!r}")
         elif squash(e.regs_verbatim) != squash(r["raw_regs"]):
             bad.append(f"{e.entry_id}: stored text is not the extraction's\n      stored:    "
                        f"{e.regs_verbatim[:90]!r}\n      extracted: {r['raw_regs'][:90]!r}")

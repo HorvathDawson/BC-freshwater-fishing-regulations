@@ -8,14 +8,14 @@ The grep gate is fast; everything else is `slow`. Each test names the mutation t
 from __future__ import annotations
 
 import json
-import os
 import re
 import sqlite3
 from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED, REPO_ROOT
+from pipeline.common.curated import REPO_ROOT
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT, TILES_HINT
 
 PIPELINE = REPO_ROOT / "pipeline"
@@ -50,7 +50,7 @@ def test_flows_is_decided_in_the_registry_only():
 # --------------------------------------------------------------------------- the built artifacts
 
 def _bundle() -> Path:
-    b = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
+    b = under_test.path("bundle")
     need(None, "bundle", b, BUNDLE_HINT)
     db = sqlite3.connect(f"file:{b}?mode=ro", uri=True)
     cols = {r[1] for r in db.execute("PRAGMA table_info(section_span)")}
@@ -98,7 +98,7 @@ def doc(db):
 
 
 def _tiles() -> Path:
-    d = Path(os.environ.get("UI_EXPORT_TILES") or GENERATED.tiles / "layers")
+    d = under_test.path("tile_layers")
     need(None, "tiles", d / "lake.geojsonl", TILES_HINT)
     return d
 
@@ -141,12 +141,12 @@ def _routeless(graph, nid: str) -> bool:
 def _slough_calls() -> set[str]:
     """The wbks of the owner's confirmed slough / canal calls (T322)."""
     return {str(w["wbk"]) for w in json.loads(
-        (REPO_ROOT / "data/curated/waters/slough_calls.json").read_text(encoding="utf-8"))["waters"]}
+        under_test.curated().waters.slough_calls.read_text(encoding="utf-8"))["waters"]}
 
 
 def _oxbow_wbks() -> set[str]:
     """The wbks the book's OKANAGAN RIVER OXBOWS override names (the owner's hand match, T637)."""
-    rows = [r for r in json.loads((REPO_ROOT / "data/curated/regulations/book_name_links.json").read_text(encoding="utf-8"))
+    rows = [r for r in json.loads(under_test.curated().regulations.book_name_links.read_text(encoding="utf-8"))
             if (r.get("criteria") or {}).get("name_verbatim") == "OKANAGAN RIVER OXBOWS"]
     assert len(rows) == 1, rows
     return {str(w) for w in rows[0]["waterbody_keys"]}

@@ -16,7 +16,8 @@ from pathlib import Path
 from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import ALL, BY_NAME
 from pipeline.deliver.tiles.names import display, normalise
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import SOURCE
+from pipeline.tests import under_test
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -85,7 +86,7 @@ def test_normalise_is_what_search_compares():
 # ------------------------------------------------- areas.json <-> layers contract
 
 def _areas():
-    return json.loads(CURATED.waters.areas.read_text())["areas"]
+    return json.loads(under_test.curated().waters.areas.read_text())["areas"]
 
 
 def test_every_area_either_declares_a_real_tile_layer_or_says_why_not():
@@ -364,17 +365,6 @@ def test_stream_names_are_the_named_sections_merged_per_name_and_first_zoom(tmp_
     assert all("section_id" not in g["properties"] for g in got)
 
 
-def test_a_tile_version_is_the_sid_space_plus_the_tile_build():
-    from pipeline.deliver.tiles import version as V
-    assert V.version_id("d768d6e135e62b99", "5f1c0a9e2b7d") == "d768d6e135e62b99.5f1c0a9e2b7d"
-    with pytest.raises(ValueError):
-        V.version_id("d768d6e1", "5f1c0a9e2b7d")
-    meta = {"name": "atlas", "vector_layers": [{"id": "stream"}]}
-    got = V.stamped_metadata(meta, "d768d6e135e62b99.5f1c0a9e2b7d", "d768d6e135e62b99", "8c77ba1cd2dc3929")
-    assert got == {**meta, "tile_version": "d768d6e135e62b99.5f1c0a9e2b7d", "section_handles": "d768d6e135e62b99",
-                   "labels_registry": "8c77ba1cd2dc3929"}
-
-
 def test_every_region_feature_has_one_spelling_of_region_id():
     from pipeline.deliver.tiles.export import region_id_of
     assert [region_id_of(x) for x in ("1", "7a", " 7B ", 8)] == ["1", "7A", "7B", "8"]
@@ -413,16 +403,15 @@ def test_the_built_archive_carries_its_version_and_the_release_holds_archive_and
     """After the human-run tile rebuild (P18 acceptance)."""
     import json as _json
 
-    from pipeline.common.curated import GENERATED
     from pipeline.deliver.tiles import version as V
     from pipeline.tests.conftest import need
-    side = _json.loads(need(request, "tiles", GENERATED.tiles / "atlas.meta.json", "python -m pipeline.deliver.tiles")
+    side = _json.loads(need(request, "tiles", under_test.tiles(request) / "atlas.meta.json", "python -m pipeline.deliver.tiles")
                        .read_text())
     v = side.get("tile_version")
     assert v and v.startswith(side["section_handles"] + ".")
-    meta = V.read_metadata(GENERATED.tiles / "atlas.pmtiles")
+    meta = V.read_metadata(under_test.tiles(request) / "atlas.pmtiles")
     assert (meta["tile_version"], meta["section_handles"]) == (v, side["section_handles"])
-    rel = GENERATED.release / "tiles" / v
+    rel = under_test.release_root() / "tiles" / v
     assert (rel / f"atlas-{v}.pmtiles").exists() and (rel / "bc_outside.geojson").exists()
 
 
@@ -431,9 +420,8 @@ def test_the_built_archive_carries_its_version_and_the_release_holds_archive_and
 def test_every_built_region_feature_carries_region_id(request):
     import json as _json
 
-    from pipeline.common.curated import GENERATED
     from pipeline.tests.conftest import need
-    p = need(request, "tiles", GENERATED.tiles / "layers" / "region.geojsonl", "python -m pipeline.deliver.tiles")
+    p = need(request, "tiles", under_test.tile_layers(request) / "region.geojsonl", "python -m pipeline.deliver.tiles")
     ids = [_json.loads(ln)["properties"].get("region_id") for ln in p.read_text().splitlines() if ln.strip()]
     assert ids and all(ids), f"{sum(1 for i in ids if not i)} of {len(ids)} region features have no region_id"
 

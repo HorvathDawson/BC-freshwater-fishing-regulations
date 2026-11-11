@@ -15,7 +15,7 @@ import pytest
 from pipeline.atlas.graph.blk_chains import FidRow
 from pipeline.atlas.graph.graph import _assign_owners, _lake_name_pairs
 from pipeline.atlas.waters.added_lakes import ingest
-from pipeline.common.curated import CURATED, GENERATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,7 +30,7 @@ def _fid(fid, down, up, geom, wbk="riverpoly"):
 def test_the_curated_file_is_loadable_and_every_id_is_negative():
     """Both synthetic ids must be negative: a positive one could collide with a real FWA key and
     silently re-home its fids, which is the one failure this whole package could cause."""
-    lakes = ingest.load(CURATED.waters.added_lakes)
+    lakes = ingest.load(under_test.curated().waters.added_lakes)
     assert lakes, "expected at least one curated lake"
     for lk in lakes:
         assert lk["wbk"].startswith("-"), lk["wbk"]
@@ -44,7 +44,7 @@ def test_the_curated_file_is_loadable_and_every_id_is_negative():
 def test_both_keys_are_derived_from_the_one_authored_id():
     """The file authors a single positive `id`. Both negative keys come from it, so they cannot
     drift apart — the failure that authoring them separately invites."""
-    for lk in ingest.load(CURATED.waters.added_lakes):
+    for lk in ingest.load(under_test.curated().waters.added_lakes):
         assert isinstance(lk["id"], int) and lk["id"] >= 1, lk["id"]
         assert lk["wbk"] == f"-{lk['id']}"
         assert lk["gnis_id"] == f"-{9_000_000 + lk['id']}"
@@ -55,7 +55,7 @@ def test_both_keys_are_derived_from_the_one_authored_id():
 def test_the_curated_file_authors_id_only():
     """Guarding the data, not just the loader: a leftover `wbk`/`gnis_id` in the file is the stale
     pair the derivation exists to rule out, so it must not be reintroduced by hand."""
-    fc = json.loads(CURATED.waters.added_lakes.read_text(encoding="utf-8"))
+    fc = json.loads(under_test.curated().waters.added_lakes.read_text(encoding="utf-8"))
     for f in fc["features"]:
         props = f["properties"]
         assert "id" in props, props
@@ -108,7 +108,7 @@ def test_the_polygon_cuts_the_stream_it_covers():
     import geopandas as gpd
     from shapely.geometry import LineString, shape
 
-    lakes = ingest.load(CURATED.waters.added_lakes)
+    lakes = ingest.load(under_test.curated().waters.added_lakes)
     poly = gpd.GeoSeries([shape(lakes[0]["geometry"])], crs=4326).to_crs(3005)[0]
     c = poly.centroid
 
@@ -119,7 +119,7 @@ def test_the_polygon_cuts_the_stream_it_covers():
         _fid("f2", 100, 200, line(-20, 20)), _fid("f3", 200, 300, line(800, 900))
     fids = [below, through, above]
     lake_kind, lake_names, polys = {}, {}, {}
-    rep = ingest.merge(fids, lake_kind, lake_names, polys, CURATED.waters.added_lakes)
+    rep = ingest.merge(fids, lake_kind, lake_names, polys, under_test.curated().waters.added_lakes)
 
     assert rep["claimed"] == {lakes[0]["wbk"]: ["f2"]}, "only the fid INSIDE is claimed"
     assert through.wbk == lakes[0]["wbk"] and below.wbk == "riverpoly" and above.wbk == "riverpoly"
@@ -156,7 +156,7 @@ def test_a_double_space_name_tuple_does_not_claim_the_names_inside_it():
     from pipeline.regs.matching.matcher import _norm, build_name_index
     from pipeline.atlas.registry import load_registry
 
-    reg = need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    reg = need(None, "atlas", under_test.atlas() / "registry.json", ATLAS_HINT)
     TRESTON = "wbk:329241963"
     idx = build_name_index(load_registry(reg))
     assert TRESTON in (idx.get(_norm("TRESTON LAKE  REDSAND LAKE")) or []), \
@@ -164,7 +164,7 @@ def test_a_double_space_name_tuple_does_not_claim_the_names_inside_it():
     assert TRESTON not in (idx.get(_norm("Redsand Lake")) or []), \
         "Treston must never answer to the bare name 'Redsand Lake'"
 
-    nv = json.loads((CURATED.waters.name_variants).read_text(encoding="utf-8"))
+    nv = json.loads(under_test.curated().waters.name_variants.read_text(encoding="utf-8"))
     by_wbk = {w: e for e in nv for w in (e.get("target") or {}).get("wbks", [])}
     redsand = by_wbk["-1"]["names"][0]
     assert redsand["name"] == "Redsand Lake" and redsand["display"] is True, \
@@ -202,7 +202,7 @@ def test_a_wsc_target_can_be_confined_to_streams():
 
 def test_every_dfo_wsc_name_variant_is_confined_to_streams():
     """Guarding the data, not just the mechanism: one un-confined entry silently renames a lake."""
-    nv = json.loads((CURATED.waters.name_variants).read_text(encoding="utf-8"))
+    nv = json.loads(under_test.curated().waters.name_variants.read_text(encoding="utf-8"))
     bad = [e["target"]["wscs"] for e in nv
            if (e.get("target") or {}).get("wscs")
            and any((n.get("source") or "") == "dfo" for n in e["names"])

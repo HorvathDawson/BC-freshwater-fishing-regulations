@@ -8,13 +8,13 @@ layers — no generated data needed.
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import access as A
+from pipeline.tests import under_test
 
 # a 1 x 1 degree square at the equator's scale is fine: the shares are ratios
 SQ = [[[-123.0, 49.0], [-122.0, 49.0], [-122.0, 50.0], [-123.0, 50.0], [-123.0, 49.0]]]
@@ -242,8 +242,7 @@ def test_the_named_watersheds_hold_their_rivers_and_lakes():
     333,471) and access is measured on the tiles' own sections, so the undrawn wetlands carry no rows — 3,603 rows over 50%
     (Camp Chilcoten 1,052 -> 743, Greater Victoria Water Supply Area 590 -> 492, the three watersheds -13); the no-access
     land fill still draws there."""
-    from pipeline.common.curated import GENERATED
-    bundle = os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite"
+    bundle = under_test.bundle()
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'section_access'").fetchone():
         pytest.fail("the bundle predates T54 (no section_access): python -m pipeline.deliver all")

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.common.curated import GENERATED, SOURCE
+from pipeline.common.curated import SOURCE
+from pipeline.tests import under_test
 from pipeline.tools import source_pins as P
 
 
 def test_a_generated_key_lives_under_data_generated_and_round_trips():
-    rb = GENERATED.regs.extraction / "row_boxes.json"
+    rb = under_test.generated().regs.extraction / "row_boxes.json"
     assert P.key_of(rb) == "generated/regs/extraction/row_boxes.json"
     assert P.local(P.key_of(rb)) == rb
     assert P.key_of(SOURCE / "hydat.sqlite3") == "hydat.sqlite3"

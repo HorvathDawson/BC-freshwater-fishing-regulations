@@ -23,18 +23,17 @@ atlas), each answered as the reader decides and tiered with its scope:
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers.display import PLACE_TEMPLATE, place_label, places_table
 from pipeline.deliver.bundle import derived
 from pipeline.deliver.bundle.derived import DerivedError
 from pipeline.tests.bundle_fixture import _Cov, section_sets
+from pipeline.tests import under_test
 from pipeline.tests.conftest import EXPORT_HINT, need, predates
 
 SCHEMA = Path(derived.__file__).with_name("schema.sql")
@@ -147,12 +146,11 @@ def test_a_fixture_without_places_writes_no_unnamed_part():
 # the built set: three real unnamed sections
 # --------------------------------------------------------------------------------------------
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
+BUNDLE = under_test.path("bundle")
 
 
 def _export_dir() -> Path:
-    from pipeline.deliver.export.contract import OUT
-    return Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent)
+    return under_test.path("export_dir")
 
 
 @pytest.fixture(scope="module")

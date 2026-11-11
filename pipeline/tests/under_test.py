@@ -133,6 +133,12 @@ def reach_run(request=None) -> Path:
     return _need(request, "reach_run")
 
 
+def reach_run_named(name: str, request=None) -> Path:
+    """The reach run a BUNDLE names (its `meta.reach_run`; `needs_reach_run`): a run is paired with its atlas by
+    digest, so its folder need not carry the build's name. `UI_EXPORT_REACHES` still wins (a side set's run)."""
+    return C.need(request, "reach_run", _env("UI_EXPORT_REACHES") or GENERATED.reaches / name, C.REACH_HINT)
+
+
 def tiles(request=None) -> Path:
     """The tiles directory under test (`needs_tiles`)."""
     return _need(request, "tiles")

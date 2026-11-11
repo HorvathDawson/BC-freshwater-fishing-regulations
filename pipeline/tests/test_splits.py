@@ -7,7 +7,8 @@ import pytest
 
 from pipeline.common.models import SplitDef
 from pipeline.atlas.splits.splits import load_split_defs
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import SOURCE
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 # The anchor/target forms the loader must accept, inline (was splits.example.json — removed).
@@ -158,8 +159,7 @@ def test_every_waterbody_block_targets_a_real_registry_item():
 
     from pipeline.atlas.registry import load_registry
 
-    from pipeline.common.curated import GENERATED
-    reg_path = need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    reg_path = need(None, "atlas", under_test.atlas() / "registry.json", ATLAS_HINT)
     from pipeline.regs.matching.matcher import build_id_index
 
     reg = load_registry(reg_path)
@@ -167,7 +167,7 @@ def test_every_waterbody_block_targets_a_real_registry_item():
     # is not itself an item key — `gnis:29662` is the Vedder Canal's gnis and resolves to
     # `wbk:329707189`. Checking membership in `reg` alone flags those as broken when they are fine.
     idx = build_id_index(reg)
-    body = json.loads(CURATED.waters.cuts.read_text())
+    body = json.loads(under_test.curated().waters.cuts.read_text())
 
     bad = []
     for wb in body.get("waterbodies", []):
@@ -226,7 +226,7 @@ def test_the_loader_refuses_a_label_that_names_no_place(tmp_path):
 def test_every_curated_label_names_a_place():
     """The corpus: every label in splits.json passes `label_problem` (22 did not before the audit)."""
     from pipeline.atlas.splits.splits import label_problem
-    body = json.loads(CURATED.waters.cuts.read_text(encoding="utf-8"))
+    body = json.loads(under_test.curated().waters.cuts.read_text(encoding="utf-8"))
     bad = [f"{s['id']}: {s.get('label')!r} {label_problem(s.get('label', ''))}"
            for wb in body["waterbodies"] for s in wb["splits"] if label_problem(s.get("label", ""))]
     assert not bad, "\n  ".join(["split label(s) that name no place:"] + bad)

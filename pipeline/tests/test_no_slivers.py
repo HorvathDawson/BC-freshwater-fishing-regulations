@@ -22,19 +22,18 @@ from functools import lru_cache
 from pathlib import Path
 
 import pytest
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT, BUNDLE_HINT, GPKG_HINT
 
 pytestmark = pytest.mark.slow
 
 
 def _atlas() -> Path:
-    from pipeline.common.curated import GENERATED
-    return Path(os.environ.get("ATLAS_BUILD") or GENERATED.build())
+    return under_test.path("atlas")
 
 
 def _bundle() -> Path:
-    from pipeline.common.curated import GENERATED
-    return Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
+    return under_test.path("bundle")
 
 
 @lru_cache(maxsize=1)

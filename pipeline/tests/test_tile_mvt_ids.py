@@ -214,9 +214,9 @@ def _features(data: bytes, layer: str):
 def test_the_built_archive_carries_section_id_as_the_stream_feature_id(request):
     """Lower Mainland tiles that hold streams: z8 (top of the low band), z9 (bottom of the high
     band) and z13 — so the id is proven on BOTH sides of the tile-join, and is in the tile ONCE."""
-    from pipeline.common.curated import GENERATED
+    from pipeline.tests import under_test
     from pipeline.tests.conftest import need
-    archive = need(request, "tiles", GENERATED.tiles / "atlas.pmtiles", "python -m pipeline.deliver.tiles --tiles-only")
+    archive = need(request, "tiles", under_test.tiles(request) / "atlas.pmtiles", "python -m pipeline.deliver.tiles --tiles-only")
     for z, x, y in ((8, 40, 87), (9, 81, 175), (13, 1311, 2807)):
         feats = list(_features(_tile(archive, z, x, y), "stream"))
         assert feats, f"no stream features in z{z}/{x}/{y}"
