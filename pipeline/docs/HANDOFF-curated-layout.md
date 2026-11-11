@@ -1,5 +1,11 @@
 # Handoff — implementing the curated-data restructure
 
+> **HISTORICAL (T561, 2026-11-10).** The restructure this plans was DONE; nothing below describes the tree as it is.
+> Paths have moved since: `waters/splits.json` / `pipeline/splits.json` is `data/curated/waters/cuts.json`
+> (`CURATED.waters.cuts`), `gauge_match.json` is `data/curated/gauges/matches.json`, and the review flow has no
+> `splits` domain. The live maps are `pipeline/docs/MAP.md` and `AGENTS.md` 35–41. Kept because AGENTS 37 cites its
+> §3.3 grep gate (a curated loader raises on a missing file), which still stands.
+
 **For the agent who executes `16-curated-data-layout.md`.** That document is the plan and the
 rationale; read it first. This one is the execution surface: the exact lines to change, the ones
 that only *look* like they need changing, and the order that keeps the tree runnable throughout.
