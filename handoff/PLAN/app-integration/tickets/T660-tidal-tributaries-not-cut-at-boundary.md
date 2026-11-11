@@ -130,3 +130,23 @@ rule newly unresolved `tidal`, no DFO place drowned (not verified: stop and look
   the shore and the crossing piece has no outlet; it stays freshwater (listed in `braid_sweep_shore.json`
   `edges_rehomed_by_geometry`). Expect about 161 in the reach run's "crossings into tidal water" row.
 
+
+## Verified on the build 27 reach run (2026-11-11, read-only; `full_next` vs live `reaches/full` of 11-09)
+The baseline predates T632, so the diff mixes T632, T185 curated DFO places, T623 and T637 with T660.
+- Crossings into tidal water: 161 (report `crossings into tidal water`), as predicted. The `tidal` table gains 185 =
+  161 crossings + 24 upper pieces of lines that were already tidal (12 `split`, 12 `water`) whose mouth got a shore cut.
+- No rule became unresolved (3,376 bound / 25 unresolved, as before), `tidal_emptied` is empty, and no DFO place was
+  drowned.
+- Every one of the 47,533 rule gains that is a new shore piece is the upper piece of a mouth the rule already bound. No
+  rule got longer from a shore cut. Per rule: -length of its tidal crossings, or 0 where the crossing stays fresh
+  (Bella Coola, Kitimat, Gold, Nitinat, Squamish, Kildala: +n -0, same metres).
+- Zone counts: zp +529 -161 = 508 shore pieces + 21 new Okanagan ids (T637), -161 crossings; z1 +140 -14; z2 +144
+  -105; z6 +152 -42; z5 +60 -0 (all fresh). z1 summer_stream_closure +32 -7: 7 crossings tidal, 25 fresh splits,
+  -1,072 m.
+- The only rules longer after are T637's (Oxbows rule 0 -> 31.2 km; 20 z8 rules +22.6 km from 21 new Okanagan ids).
+- Other losses, not caused by a shore cut being tidal: strathcona_park_waters.r1 loses fresh crossing 354153463:0 (33 m,
+  outside the park once cut); z7b species_quotas.r5 loses 103 sections (-307.7 km) on no shore-cut line (not T660;
+  probably T623 ea1c74d67, not checked).
+- DFO: 23 places / 411 sections tidal-subtracted = T632's 21 / 141 + 243 crossings (B03 14, B09 105, Region 6 a 42,
+  b and b(ii) 38, c 4, McLennan 1, Silverdale 1) + 27 pieces of already-tidal lines. The Kitsumkalum unplaced
+  pieces are pre-existing (T546/T632 runs; owner-accepted), not on a shore-cut line.
