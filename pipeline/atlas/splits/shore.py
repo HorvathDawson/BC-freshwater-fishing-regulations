@@ -66,11 +66,23 @@ def crossing_run(node, fid_index: Mapping[str, tuple], crossing_fids) -> tuple[l
     return run, top, False
 
 
+#: POLICY (T660, the length cap's precedent `length_splits.junction_cuts`): a shore a braid of the line's OWN water
+#: spans is never cut. Measured on the 2026-11-10 atlas: 97 of 629 shores, every one a side channel crossing back into
+#: its own river (Fraser, Kemano, Bella Coola, San Juan …), none of the 163 crossings that end in tidal water. Cutting
+#: there would make the braid sweep cut the river itself across its width (403 braid cuts, build 27's stop). The run
+#: stays whole and freshwater, listed `not_cut` — never widened to tidal. False is the mutation pin.
+A_SHORE_A_BRAID_SPANS_IS_NOT_CUT = True
+#: the `not_cut` reason a spanned shore carries
+SPANNED = "a braid of its own water spans the shore"
+
+
 def shore_cuts(graph: StreamGraph, fid_index: Mapping[str, tuple], crossing_fids, share_of: Callable[[list], float],
-               record: list | None = None) -> list[SplitPoint]:
+               record: list | None = None, spanned: Callable[[str, float], bool] | None = None) -> list[SplitPoint]:
     """One SplitPoint per blue line whose mouth piece starts with a crossing run in tidal water (`share_of(run fids)`
     at least `MIN_SHARE`) and continues above it: at the top of that run. Sorted by blk, so the same graph gives the
-    same list. `record` collects one row per crossing run at a mouth with a share above 0 — cut or not, and why."""
+    same list. `record` collects one row per crossing run at a mouth with a share above 0 — cut or not, and why.
+    `spanned(blk, m)` (the braid sweep's gate, `braid_sweep.spans_a_braid`): a shore it answers True for is not cut
+    (`A_SHORE_A_BRAID_SPANS_IS_NOT_CUT`)."""
     lowest: dict[str, str] = {}
     for nid in sorted(graph.nodes):
         n = graph.nodes[nid]
@@ -92,6 +104,8 @@ def shore_cuts(graph: StreamGraph, fid_index: Mapping[str, tuple], crossing_fids
         why = ("" if share >= MIN_SHARE and above and top - n.down_m >= SLIVER_M and n.up_m - top >= SLIVER_M else
                f"under {MIN_SHARE:.0%} in tidal water" if share < MIN_SHARE else
                "the whole line is the crossing" if not above else f"a piece under {SLIVER_M:g} m")
+        if not why and spanned is not None and A_SHORE_A_BRAID_SPANS_IS_NOT_CUT and spanned(blk, top):
+            why = SPANNED
         if record is not None:
             record.append({"section": n.node_id, "blk": blk, "name": n.display_name, "m": round(top, 2),
                            "crossing_m": round(top - n.down_m, 1), "share": round(share, 3),

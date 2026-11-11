@@ -115,3 +115,63 @@ def test_the_atlas_stage_cuts_records_and_sweeps(tmp_path, monkeypatch):
     assert [p.split_id for p in b.applied_splits] == ["shore:C:300"]
     rec = json.loads((tmp_path / S.RECORD).read_text())
     assert rec["cuts"] == 1 and [r["blk"] for r in rec["runs"]] == ["C", "E"]
+
+
+def _braided():
+    """A SIDE CHANNEL S of X River (its own water: same name and code) whose foot crosses tidal water to X at x = 500
+    (a crossing run, 0-300 m) and whose head rejoins X at x = 1500: a braid of S's own water spans S's shore."""
+    fids = [f for f in _fids() if f.blk == "X"] + [
+        _fid("S1", "S", "100", [(500, 0), (500, 300)], 0, 300, et=CROSS, name="X River"),
+        _fid("S2", "S", "100", [(500, 300), (1500, 300)], 300, 1300, name="X River"),
+        _fid("S3", "S", "100", [(1500, 300), (1500, 0)], 1300, 1600, name="X River"),
+    ]
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+    by_fid = {f.fid: f.geometry for f in fids}
+    return g, idx, {f.fid: f.geometry for f in fids if f.edge_type == CROSS}, by_fid, fids
+
+
+def _stage(g, idx, by_fid, fids, tmp_path, monkeypatch, sea=SEA):
+    import json
+    from types import SimpleNamespace
+    from shapely.ops import linemerge
+    from pipeline.atlas import build as B
+    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
+    monkeypatch.setattr(S, "read_tidal_polygon", lambda gpkg, bbox=None: sea)
+    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
+                        fid_index=idx, applied_splits=[], fids=fids, bbox=None, tick=lambda label: None)
+    B.cut_shores(b)
+    return b, json.loads((tmp_path / S.RECORD).read_text())
+
+
+def test_a_shore_a_braid_of_its_own_water_spans_is_listed_not_cut(tmp_path, monkeypatch):
+    """Build 27 stopped here (403 braid cuts, 97 shores): a side channel crossing back into its own river. The shore
+    is not cut, the run is listed with its reason, and the build goes on with nothing straddling."""
+    g, idx, cross, by_fid, fids = _braided()
+    b, rec = _stage(g, idx, by_fid, fids, tmp_path, monkeypatch)
+    assert b.applied_splits == [] and not any(nid.startswith("S:") and nid != "S:0" for nid in g.nodes)
+    assert [(r["blk"], r.get("not_cut")) for r in rec["runs"]] == [("S", S.SPANNED)] and rec["cuts"] == 0
+    assert (tmp_path / "braid_sweep_shore.json").exists()
+
+
+def test_mutation_cutting_a_braided_shore_stops_the_build(tmp_path, monkeypatch):
+    """Without the gate the sweep must cut X River across its width for S's shore: the stage refuses, and the
+    records are written before it does."""
+    import pytest
+    monkeypatch.setattr(S, "A_SHORE_A_BRAID_SPANS_IS_NOT_CUT", False)
+    g, idx, cross, by_fid, fids = _braided()
+    with pytest.raises(SystemExit, match="meet a braid"):
+        _stage(g, idx, by_fid, fids, tmp_path, monkeypatch)
+    assert (tmp_path / S.RECORD).exists() and (tmp_path / "braid_sweep_shore.json").exists()
+
+
+def test_a_plain_crossing_is_still_cut_beside_a_braided_one(tmp_path, monkeypatch):
+    g, idx, cross, by_fid, fids = _braided()
+    extra = [f for f in _fids() if f.blk == "C"]
+    fids = fids + extra
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+    by_fid = {f.fid: f.geometry for f in fids}
+    b, rec = _stage(g, idx, by_fid, fids, tmp_path, monkeypatch)
+    assert [p.split_id for p in b.applied_splits] == ["shore:C:300"]
+    assert {r["blk"]: r.get("not_cut") for r in rec["runs"]} == {"C": None, "S": S.SPANNED}

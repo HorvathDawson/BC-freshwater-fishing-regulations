@@ -1287,23 +1287,42 @@ def cut_shores(b: _Build) -> None:
     crossing = {f.fid: f.geometry for f in b.fids if f.edge_type == _et.WATER_CROSSING}
     poly = _shore.read_tidal_polygon(args.gpkg, bbox=getattr(b, "bbox", None))
     record: list = []
-    pts = [] if poly is None else _shore.shore_cuts(graph, fid_index, set(crossing),
-                                                    _shore.share_in(poly, crossing), record=record)
+    view = _bs.View(graph, geoms)
+    # A SHORE A BRAID OF ITS OWN WATER SPANS IS NOT CUT (the length cap's precedent): listed, never swept across
+    pts = [] if poly is None else _shore.shore_cuts(
+        graph, fid_index, set(crossing), _shore.share_in(poly, crossing), record=record,
+        spanned=lambda blk, m: _bs.spans_a_braid(view, blk, m))
     pts = place_points(graph, pts)
-    sweep = _bs.sweep(graph, geoms, pts, view=_bs.View(graph, geoms))
-    if sweep.points:
-        raise SystemExit(f"shore: {len(sweep.points)} shore cut(s) catch a braid ({sweep.counts()}) — a crossing "
-                         "run is one line; see the cuts in shore_cuts.json")
+    # THE SWEEP RUNS ON THE SHORE CUTS TOO (every split kind, one gate) and must find nothing to cut
+    sweep = _bs.sweep(graph, geoms, pts, view=view)
+    out = Path(args.out)
+    spanned = sum(1 for r in record if r.get("not_cut") == _shore.SPANNED)
+
+    def _write(moved=(), resid=()):
+        (out / _shore.RECORD).write_text(json.dumps(
+            {"_about": _shore.RECORD_ABOUT, "cuts": len(pts), "runs": record}, indent=1) + "\n", encoding="utf-8")
+        _bs.write_record(out / "braid_sweep_shore.json", sweep, list(moved), list(resid), stage="shore")
+
+    bad = _bs.length_cut_failures(sweep)
+    if bad:
+        _write()
+        raise SystemExit(f"shore: {len(bad)} shore cut(s) meet a braid the gate did not skip ({sweep.counts()}): "
+                         "see braid_sweep_shore.json and shore_cuts.json")
     before = len(graph.nodes)
+    moved, resid = [], []
     if pts:
         split_graph_at(graph, geoms, pts, fid_index, applied=applied_splits)
+        _bs.apply_rehomes(graph, sweep.rehomes)
+        moved = _bs.rehome_host_edges(graph, geoms, pts)
         resid = _bs.residual_straddles(graph, geoms, pts)
-        if resid:
-            raise SystemExit(f"shore: {len(resid)} network(s) straddle a shore cut after it was made")
-    (Path(args.out) / _shore.RECORD).write_text(json.dumps(
-        {"_about": _shore.RECORD_ABOUT, "cuts": len(pts), "runs": record}, indent=1) + "\n", encoding="utf-8")
+    _write(moved, resid)
+    if resid:
+        raise SystemExit(f"shore: {len(resid)} network(s) straddle a shore cut after it was made — see "
+                         "braid_sweep_shore.json")
     print(f"  shore cuts: {len(pts)} crossing(s) in tidal water cut at the shore -> {len(graph.nodes) - before} new "
-          f"section(s); {sum(1 for r in record if r.get('not_cut'))} run(s) touching it not cut ({_shore.RECORD})")
+          f"section(s); {sum(1 for r in record if r.get('not_cut'))} run(s) touching it not cut, {spanned} of them a "
+          f"braid of its own water spans ({_shore.RECORD}); sweep cases {sweep.counts()}, {len(moved)} edge(s) "
+          "re-homed, 0 network(s) straddle")
     b.tick("shore cuts")
 
 
