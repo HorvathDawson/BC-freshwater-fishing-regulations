@@ -73,7 +73,7 @@ step's output; nothing is promoted unless every step and the vintage check pass)
 | basemap | `deliver/tiles/basemap.py` (+ `basemap_roads.py`) | the OSM ground: clip, filter to what the style draws (T85, T202), cap at z13 with the z13 roads rebuilt from z14 so trail/FSR names survive (T202; zoom audit gates the build), release as `data/release/basemap/<id>/` + `tiles/basemap.meta.json` (T75); the release names it |
 | split binding | `tools/audit/audit_split_binding.py` | which curated splits a rule can bind to, and which no item carries (T67) |
 | tile sizes | `tools/audit/tile_sizes.py` | bytes per zoom and layer of a pmtiles archive (the S2 size table) |
-| PREPARED, NOT FED | `stocking/`, `bathymetry/`, `runtiming/` | kept on purpose (owner 2026-10-22); each README says what feeds it (the two `generate/audit.py` were deleted in T436, 971f40575: restore from git) |
+| PREPARED, NOT FED | `stocking/`, `bathymetry/`, `runtiming/` | kept on purpose (owner 2026-10-22); each README says what feeds it (the two `generate/audit.py` were deleted in T436, 971f40575: restore from git). T634 first pass: `bathymetry/` holds the chart -> lake proposer (`propose`), the owner-only `accept`, and the 2001 vector-file fetch / `.e00` reader / placing fit (`fetch_vectors`, `e00`, `place`; files kept outside git) |
 
 ## Shared ground
 

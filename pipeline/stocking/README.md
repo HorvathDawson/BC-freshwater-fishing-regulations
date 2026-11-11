@@ -27,3 +27,22 @@ first (it is FWA's own `WATERBODY_KEY_GROUP_CODE_50K`), names only as the fallba
    `stock_water`. The retired name-keyed `release` table is replaced by these.
 4. **The release:** lake values ride in `lakes/1` (`pipeline/deliver/lake_facts.py`), the one landing point —
    owner 2026-10-21, "lake modes prepared, not fed".
+
+## T634 first pass (2026-11-10): licence and the matcher
+
+- **Licence.** The B.C. Data Catalogue's stocking records are "Access Only", not Open Government Licence:
+  `provincial-fish-stocking-reports` (licence "Access Only", download audience "Public") and
+  `fish-information-data-query` (FIDQ, "Access Only"). GoFishBC's pages are "All Rights Reserved". Nothing is built
+  on stocking data until the owner decides (T634).
+- **`generate/match.py` is not sound under the owner's rules** and is not to be fed: it picks the nearest of several
+  lakes under one code by a point the feed does not give, counts a code hit with no name support as matched, falls back
+  to "same name within 2,000 m" with substring names ("Fish Lake" inside "Little Fish Lake"), and stores node ids;
+  `identifiers.py` falls back to names when the code column is missing. Retire both when the stocking feed work
+  starts. Reuse instead: `pipeline.deliver.lake_facts.bind`/`core` (code first, names only confirm, `wbk:` keys) with
+  the owner's stocking rules (code plus name with curated variants, never name alone, a first-time lake goes to the
+  owner), and the shape of `pipeline.bathymetry.propose` / `accept` (proposals file; one frozen file only the owner's
+  accept writes).
+- **The original v1 chain** (`git show a40989161^:archive/pipeline/recurring/anglerinfo/`): it checked the code against
+  the Province's 1:50K table, joined on the group code, and kept a hand-checked `wbid_overrides.json` (12 rows) — those
+  parts were sound; its name search ran BEFORE the code join and won by being nearest with no limit, which is the
+  failure the owner's rules forbid.

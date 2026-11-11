@@ -30,3 +30,87 @@ Source: the depth and stocking audit (T608 D, page https://claude.ai/artifact/7D
 
 Related: T200, T201, T218, T219 (postponed 2026-11-05; this ticket restarts the data half on the owner's word).
 Depends: none. Size: L.
+
+## First pass (2026-11-10, items 1–5; nothing shipped, app/ untouched)
+
+### 1. Licence, per B.C. Data Catalogue record (CKAN `package_show`, read 2026-11-10)
+| Record | URL | `license_title` | `download_audience` | OGL? |
+|---|---|---|---|---|
+| Bathymetric Maps - Open (the PDFs + reference table) | https://catalogue.data.gov.bc.ca/dataset/1427d389-cd21-4fe2-8ed9-282d9bdcb7e2 | "Open Government Licence - British Columbia" | "Public" | **yes** |
+| Bathymetric Maps (sheet layer `WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW`; the only place the vector zips are linked) | https://catalogue.data.gov.bc.ca/dataset/bathymetric-maps | "Access Only" | "Public" | **no** |
+| Bathymetric Maps of Surveyed Lakes (placed contours, 28 lakes) | https://catalogue.data.gov.bc.ca/dataset/bathymetric-maps-of-surveyed-lakes | "Access Only" | "Public" | **no** |
+| Lake Inventory Surveys (lake survey table) | https://catalogue.data.gov.bc.ca/dataset/lake-inventory-surveys | "Open Government Licence - British Columbia" | "Public" | **yes** |
+| Provincial Fish Stocking Reports | https://catalogue.data.gov.bc.ca/dataset/provincial-fish-stocking-reports | "Access Only" | "Public" | **no** |
+| Fish Information Data Query (FIDQ) | https://catalogue.data.gov.bc.ca/dataset/fish-information-data-query | "Access Only" | "NA" | **no** |
+| Bathymetric Lakes for the Cariboo Region | https://catalogue.data.gov.bc.ca/dataset/bathymetric-lakes-for-the-cariboo-region | "Access Only" | "Government" | **no** |
+
+The 2001 vector zips have no record of their own. The open record's lineage says the sheet layer "is not to be
+considered an Open Government Licence - British Columbia catalogue, as it also contains lakes that are not Province of
+BC ownership", and its words name only "PDF bathymetric map files". So: the audit page was right on the placed contours
+and stocking (Access Only); the owner's note is right for the chart PDFs and the lake survey table only. Per the
+owner's rule nothing is built ON the Access Only records: the vector work below is local measurement only (fetched to
+this Mac by the owner's decision, nothing published). The audit page (artifact 7Dn9FwZu3N1aMGxsCR4ea3) was NOT edited:
+this lane publishes nothing.
+
+### 2. Old matchers (git history read)
+- Current `pipeline/deliver/lake_facts.py` `bind`/`core`: code first, names confirm, `wbk:` keys — **sound, reused**.
+- Current `pipeline/stocking/generate/match.py` + `identifiers.py`: nearest-of-several by a point the feed lacks,
+  unconfirmed code hit = matched, "same name within 2,000 m" fallback with substring names, node ids — **unsound,
+  not reused; retire with the stocking work** (stocking README).
+- Deleted `pipeline/{bathymetry,stocking}/generate/audit.py` (971f40575): the two-name test (printed title vs gazetted
+  column) and the warning that names written by the old matchers are circular — **reasoning reused** in `propose`.
+- v1 chain `a40989161^:archive/pipeline/recurring/anglerinfo/` (the "group code" one): WDIC code check, group-code
+  join, hand-checked `wbid_overrides.json` (12 rows) sound; its name search ran first and won by nearest with no limit
+  — unsound. `687bdee26^:pipeline/matching/bathymetry_matcher.py` + `bathymetry_overrides.json` (19 hand rows): T1
+  (code, name breaks a tie) sound; overlap-only and watershed tiers not. The two override tables are not imported
+  (everything is a proposal); they can be shown beside the review.
+
+### 3. Vector files (outside git: `~/data-offgit/bc-bathymetry-vectors/`)
+- `python -m pipeline.bathymetry.fetch_vectors --out ~/data-offgit/bc-bathymetry-vectors`: sequential, 0.5 s apart,
+  resumable, stops on 403/429/5xx (none happened). 684 names tried (513 `VECTOR_FILE_URL` + per-sheet image names):
+  **510 zips exist, 187 MB**; 174 "File not found" (every second-or-later sheet name: a multi-sheet lake has ONE zip).
+  516 of the 517 flagged codes have a file; 3 flagged sheets have none (01206KETL, 00379BULL, 00456LFRA).
+- Reader `pipeline/bathymetry/e00.py`: 504 of 510 read; 6 are compressed E00 (`EXP 1`), not read yet (00153501,
+  00162001, 00185501, 00219001, 00219101, 00225301).
+- Units, only where the file says "DEPTHS IN …": metres 397, feet 4 (Bridge, Sheridan, Sproat, Lakelse), not stated 104
+  (68 of those print "N ft" figures in their statistics block: likely feet, to be ticked from the PDF).
+- Placing (`place.py`, rigid turn + shift, never a stretch) on the **318** one-sheet-one-lake codes (audit said 308;
+  here: one layer sheet, one zip not shared, one FWA lake under the code): fitted 291; no shoreline closed 22;
+  unreadable 5. IoU ≥ 0.95: 89, 0.90–0.95: 117, 0.80–0.90: 45, 0.60–0.80: 17, < 0.60: 23. Median shore distance
+  ≤ 10 m: 201, ≤ 25 m: 53, ≤ 50 m: 14, ≤ 100 m: 8, > 100 m: 15. Area sheet/lake within 0.9–1.1: 238 (true size holds).
+  **Strict fit (IoU ≥ 0.9, median ≤ 25 m, area 0.8–1.25): 202 of 318 (64 %)**; loose (IoU ≥ 0.8, area 0.8–1.25): 251.
+  The worst are shorelines that closed round the sheet frame (area ratio 15–128x), not bad turns. A mirror fit beat the
+  true fit 4 times. Every placing still needs the owner's tick beside the PDF.
+
+### 4. PDF compression (sample of 20, size-stratified; method in the scratch notes, nothing rewritten)
+- Method: pdfium renders the page, threshold at 160, one 1-bit CCITT G4 image per page at the page's own size
+  (pikepdf). Tried: lossless re-save (−4 %), 8-bit scans to 1-bit at native size (−75 % on those), whole page at
+  300 / 200 / 150 dpi.
+- **Proposed: 200 dpi 1-bit** for bilevel (2,316 files, 495 MB) and 8-bit gray (301 files, 226 MB) charts: sample sizes
+  11.1 MB -> 1.57 MB. 150 dpi starts to close the smallest soundings (Marie Lake "35.6": the 6 fills). Projected total
+  **768 MB -> about 244 MB** (150 dpi: about 191 MB). Colour scans (53, 42 MB) and vector-only PDFs (10) left as they
+  are; 5 broken files (88 bytes) untouched.
+- Caveat: the whole page becomes one image, so the typed disclaimer stops being selectable text (still visible).
+- Shots (original / 200 dpi / 150 dpi, same paper area at 300 dpi of paper): `T634-shots/1-cherry-lake-gray-scan.png`,
+  `2-marie-lake-smallest-sounding.png`, `3-alice-lake-soundings.png`, `4-jacko-lake-contour-labels.png`,
+  `5-draw-lake-gray-scan.png`.
+
+### 5. Chart -> lake proposals (`python -m pipeline.bathymetry.propose`, writes `data/generated/bathymetry/proposals.json`)
+2,294 chart ids + 44 sheets with no code. Name variants: `data/curated/waters/name_variants.json`
+(`CURATED.waters.name_variants`); a variant counts only when its source is not `bathymetry`/`stocking` (those were
+written by the v1 matchers from these rows). Word order ("Lake Maxwell") passes by its own test.
+| Rule | Ids | Audit |
+|---|---|---|
+| clean | **1,995** (equal 1,735, title contains the name 244, curated variant 12, word order 4); 31 of them bound the named lake and left unnamed ponds out (A2) | 1,944 |
+| two_named (owner picks) | 16 | A2 54 (all multi-lake codes) |
+| unnamed | 143 | A3 140 |
+| no_lake | 17 | A1 17 |
+| variant_circular (agrees only through a bathymetry/stocking-sourced variant) | 69 | in A7 |
+| gazetted_only | 8 | A7 86 (with the 69) |
+| name_disagrees | 2 | A4 12 |
+| position_or_size | 17 | A6 14 |
+| no_outline (open table only) | 27 | A6 27 |
+| not_in_app | 0 | A5 0 |
+Watershed code is evidence only (the audit gated on it; compared without hyphens it agrees on 1,994 of the 1,995 clean).
+49 ids (27 of them clean) are only in the Access Only sheet layer, flagged `in_open_table: false`: held for licence. Owner-only `python -m pipeline.bathymetry.accept` is the one writer of
+`data/curated/bathymetry/matches.json` (not created: nothing is accepted).
