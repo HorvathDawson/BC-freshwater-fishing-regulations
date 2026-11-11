@@ -218,6 +218,25 @@ def test_accept_never_rewrites_and_never_guesses():
         ("A", [], "not this lake"), ("B", ["wbk:2"], None)]
 
 
+def test_variant_circular_is_on_the_review_list_never_bulk_accepted(tmp_path, monkeypatch):
+    # the title agrees only through a variant the v1 matcher wrote: owner reviews it (2026-11-11)
+    polys = [_poly("A", 1, "Tranquille Lake", 0), _poly("B", 2, "Bobbs Lake", 0)]
+    variants = [{"target": {"wbks": [1]}, "names": [{"name": "TRUDA LAKE", "source": "bathymetry"}]}]
+    out = propose([_sheet("A", "TRUDA LAKE", 0, gaz="TRUDA LAKE"), _sheet("B", "BOBBS LAKE", 0)], polys, variants,
+                  {"wbk:1": {}, "wbk:2": {}})
+    got = {r["chart_id"]: r for r in out["proposals"]}
+    assert got["A"]["rule"] == "variant_circular" and got["A"]["verdict"] == "review"
+    assert out["review"]["variant_circular"] == ["A"] and out["counts_by_verdict"] == {"clean": 1, "review": 1}
+    assert got["A"]["evidence"]["position_size_ok"] is True        # shown beside it, decides nothing
+    p = tmp_path / "proposals.json"
+    p.write_text(__import__("json").dumps(out))
+    monkeypatch.setattr(acc, "proposals_path", lambda: p)
+    monkeypatch.setattr(acc, "frozen_path", lambda: tmp_path / "matches.json")
+    with pytest.raises(SystemExit, match="only \\['clean'\\]"):
+        acc.main(["--by", "owner", "--rule", "variant_circular"])
+    assert not (tmp_path / "matches.json").exists()
+
+
 def test_the_watershed_code_is_compared_without_hyphens_and_never_gates():
     p = LakePoly("lakes", "A", 1, ((5, "Bobbs Lake"), (None, None), (None, None)), 1e6, (0, 0, 1000, 1000),
                  "129360400000")
@@ -227,3 +246,46 @@ def test_the_watershed_code_is_compared_without_hyphens_and_never_gates():
     s.wsc = "999-000000-000"
     got = _run([s], [p])["A"]
     assert got["evidence"]["wsc_agrees"] is False and got["rule"] == "clean"
+
+
+# ---- compress (200 dpi 1-bit) ---------------------------------------------------------------------------------------
+
+def _pdf(path, pages):
+    """A vector PDF: each page (w, h, rotate) with a black bar, so a render has ink."""
+    import pikepdf
+    pdf = pikepdf.new()
+    for w, h, rot in pages:
+        pg = pikepdf.Dictionary(Type=pikepdf.Name.Page, MediaBox=[0, 0, w, h],
+                                Contents=pikepdf.Stream(pdf, b"0 g 10 10 50 8 re f"))
+        if rot:
+            pg["/Rotate"] = rot
+        pdf.pages.append(pikepdf.Page(pg))
+    pdf.save(path)
+
+
+def test_compress_keeps_pages_and_sizes_and_is_deterministic(tmp_path):
+    from pipeline.bathymetry import compress as cz
+    src = tmp_path / "SRC.pdf"
+    _pdf(src, [(612, 792, 0), (300, 200, 90)])
+    before = src.read_bytes()
+    row = cz.compress_one(src, tmp_path / "a" / "SRC.pdf")
+    cz.compress_one(src, tmp_path / "b" / "SRC.pdf")
+    assert src.read_bytes() == before
+    assert row["pages"] == 2 and row["kind"] == "vector"
+    assert cz.page_sizes(tmp_path / "a" / "SRC.pdf") == cz.page_sizes(src) == [(612.0, 792.0), (200.0, 300.0)]
+    assert (tmp_path / "a" / "SRC.pdf").read_bytes() == (tmp_path / "b" / "SRC.pdf").read_bytes()
+    import pypdfium2 as pdfium
+    img = pdfium.PdfDocument(str(tmp_path / "a" / "SRC.pdf"))[0].render(scale=1).to_pil().convert("L")
+    assert img.getpixel((30, 792 - 14)) < 50 and img.getpixel((300, 300)) > 200     # ink stays ink, paper stays paper
+
+
+def test_compress_reports_missing_and_broken_never_skips(tmp_path):
+    from pipeline.bathymetry import compress as cz
+    (tmp_path / "src").mkdir()
+    _pdf(tmp_path / "src" / "good.pdf", [(100, 100, 0)])
+    (tmp_path / "src" / "bad.pdf").write_bytes(b"<html>88 bytes of an error page</html>")
+    res = cz.run(["BAD.PDF", "GOOD.PDF", "GONE.PDF"], tmp_path / "src", tmp_path / "out", workers=1)
+    st = {r["name"]: r["status"] for r in res["charts"]}
+    assert st == {"BAD.PDF": "failed", "GOOD.PDF": "ok", "GONE.PDF": "missing"}
+    assert [r["name"] for r in res["summary"]["not_ok"]] == ["BAD.PDF", "GONE.PDF"]
+    assert res["summary"]["charts_out"] == 1 and not (tmp_path / "out" / "BAD.pdf").exists()

@@ -12,9 +12,10 @@ What it is: a survey sheet's waterbody identifier -> the lake it is a chart of. 
 | file | does | runs |
 |---|---|---|
 | `propose.py` | chart id -> lake PROPOSALS under the owner's rules (rules and buckets in its docstring); writes `GENERATED.base/bathymetry/proposals.json` | `scripts/heavy.sh … -- python -m pipeline.bathymetry.propose` (reads the gpkg, minutes) |
-| `accept.py` | the ONLY writer of the frozen file `data/curated/bathymetry/matches.json` (created by the first accept); never rewrites an accepted row, never guesses a lake | the owner: `python -m pipeline.bathymetry.accept --by … --ids …` |
+| `accept.py` | the ONLY writer of the frozen file `data/curated/bathymetry/matches.json` (created by the first accept); never rewrites an accepted row, never guesses a lake | the owner: `python -m pipeline.bathymetry.accept --by … --ids …` (`--rule` takes only `clean`; every review rule, `variant_circular` included, is one id at a time) |
 | `fetch_vectors.py` | fetches the 2001 vector depth zips (FIDQ, beside the PDFs) to a directory OUTSIDE git: sequential, resumable, stops on a refusal | `python -m pipeline.bathymetry.fetch_vectors --out ~/data-offgit/bc-bathymetry-vectors` |
 | `e00.py` | reader for those zips (ArcInfo export, uncompressed `EXP 0`): arcs + `CONTOUR`, soundings + `DEPTH`, META; units only where the file says "depths in …" | library |
+| `compress.py` | every chart PDF of the OGL open table -> 200 dpi 1-bit (CCITT G4, one image per page, page count and size kept and checked; owner 2026-11-11); output + `manifest.json` OUTSIDE git; source PDFs only read; deterministic; a missing/broken chart is a row and a non-zero exit | `scripts/heavy.sh pdf200 50 -- python -m pipeline.bathymetry.compress` (default out `~/data-offgit/bc-bathymetry-pdf-200dpi/`, 4 workers) |
 | `place.py` | the sheet's shore (FCODE GA2711…, inlet gaps closed) and a RIGID fit (turn + shift, never a stretch) onto our lake outline, with IoU, area ratio and shore distances | library |
 
 Tests: `pipeline/tests/test_bathymetry_t634.py` (synthetic inputs only; no Province file is in the repo).

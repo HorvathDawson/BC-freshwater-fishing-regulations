@@ -114,3 +114,42 @@ written by the v1 matchers from these rows). Word order ("Lake Maxwell") passes 
 Watershed code is evidence only (the audit gated on it; compared without hyphens it agrees on 1,994 of the 1,995 clean).
 49 ids (27 of them clean) are only in the Access Only sheet layer, flagged `in_open_table: false`: held for licence. Owner-only `python -m pipeline.bathymetry.accept` is the one writer of
 `data/curated/bathymetry/matches.json` (not created: nothing is accepted).
+
+## Second pass 2026-11-11 (owner answers A, B; nothing shipped, app/ untouched)
+
+### A. Chart PDFs at 200 dpi 1-bit (owner: "Yes, 200 dpi B&W")
+- `scripts/heavy.sh pdf200 50 -- python -m pipeline.bathymetry.compress` (`pipeline/bathymetry/compress.py`): pdfium
+  renders each page at 200 dpi grey, threshold 160, one CCITT G4 image per page on a page of the original's shown size;
+  4 workers; source only read; output + `manifest.json` in `~/data-offgit/bc-bathymetry-pdf-200dpi/` (outside git).
+  Every chart, any kind (bilevel, grey, colour, vector), goes the same way; the disclaimer is kept as image.
+- Open table: **2,599 charts in, 2,599 out, 0 failed. 748.1 MB -> 201.4 MB (-73 %)**; on disk 198 MB.
+  By original kind: bilevel 2,250 (484.0 -> 181.9 MB), grey 298 (223.5 -> 16.8), colour 50 (40.4 -> 2.5), vector 1
+  (0.1 -> 0.1). None grew. Every chart is one page.
+- Checked per chart after writing: page count and every page size equal the original's to 0.01 pt (2,599 of 2,599).
+  Deterministic: a second full run gave byte-identical files (2,598 compared; the 2,599th failed in run 1).
+  Source folder fingerprint (shasum of every PDF) identical before and after.
+- Failed / broken, flagged: the first run FAILED **00170001.PDF (Kamloops L.)**: a 96 x 69 in page is 268 M pixels at
+  200 dpi, over Pillow's decompression-bomb guard. The guard is now raised to a stated 600 M pixels (our own render,
+  never switched off); the rerun converted it (468 KB -> 428 KB). The **5 known broken files (88 bytes: 00352701,
+  00363201, 00353501, 00353201, 00353401)** are NOT in the open table (sheet-layer names only), so not in this set; the
+  tool reports any non-PDF as `failed` with a non-zero exit. "6 known broken" in the owner's note: only these 5 + the
+  Kamloops failure were seen.
+- Sounding check (crop of original | stored, 200 dpi of paper, each opened and read): `T634-shots/`
+  `pass2-1-friendly-lake-small-bilevel.png`, `pass2-2-kamloops-lake-largest-page-bilevel.png`,
+  `pass2-3-kidney-cottle-round-gray-worst-ratio.png` (99 % smaller), `pass2-4-canty-lake-largest-gray.png`,
+  `pass2-5-dina-lakes-colour-worst-ratio.png` (".11.7"), `pass2-6-daisy-lake-small-colour.png` (".4" ".9"). Every
+  sounding in the six crops reads the same in both.
+
+### B. variant_circular goes to the owner
+- The 69 already carried `verdict: review`; what was open was the bulk path (`accept --rule variant_circular` would
+  have taken them whole). Now: `propose` writes a `review` list (ids per rule) and `counts_by_verdict`;
+  `BULK_ACCEPTABLE = {clean}` and `accept --rule` refuses any other rule (one id at a time with `--ids`). Each row also
+  carries `position_size_ok` as evidence only (68 of the 69 pass position + size).
+- Regenerated `data/generated/bathymetry/proposals.json`: **clean 1,995; review 299** (two_named 16, unnamed 143,
+  no_lake 17, name_disagrees 2, gazetted_only 8, **variant_circular 69**, no_outline 27, position_or_size 17) **+ 44
+  sheets with no code = 343 on the review list**. No proposal changed rule or lake (2,294 compared with the first pass).
+  Nothing accepted; `data/curated/bathymetry/matches.json` not created.
+
+Not verified (second pass): only 6 charts were looked at by eye; the other 2,593 rely on the threshold the first pass
+set on 20 samples. Faint pencil soundings on a grey scan lighter than grey 160 would vanish; the worst-ratio grey and
+colour charts were the ones checked, not every faint one.

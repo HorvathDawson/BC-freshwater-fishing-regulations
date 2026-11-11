@@ -13,12 +13,15 @@ THE RULES, in the order tried; every chart id ends in exactly one:
   name_disagrees no name on the chart agrees with the lake (refused until the owner accepts)
   gazetted_only  only the gazetted column agrees; the printed title does not (the column was filled FROM the code)
   variant_circular the title agrees only through a curated variant whose source is `bathymetry` or `stocking`: those
-                 were written by the v1 matchers from these very rows, so they cannot confirm them
+                 were written by the v1 matchers from these very rows, so they cannot confirm them. NOT clean (owner
+                 2026-11-11): on the owner's review list with the rest, never in the bulk-acceptable set
   no_outline     no sheet outline to test position and size (open-table-only ids)
   position_or_size the outline's box centre is more than 100 m outside the lake's box, or its area is under half or
                  over double the lake's
   not_in_app     clean, but the lake is not an item of the release: HELD and listed, never dropped
   clean          one named lake, the title agrees, position and size agree
+VERDICTS: `clean` (the only rule `accept --rule` may take in bulk: BULK_ACCEPTABLE), `held` (not_in_app), `review`
+(every other rule: the owner's review list, `review` in the output, accepted one id at a time with `--ids`).
 A name never picks a lake: the CODE picks; names, position and size only confirm or refuse. A code that also covers
 unnamed ponds binds ONLY its named lake (owner 2026-11-11, A2); the ponds are listed in the evidence.
 
@@ -250,6 +253,7 @@ def propose_one(code: str, sheets: Sequence[SheetRow], layers: Mapping[str, Mapp
     if outlines:
         ps = position_size(unary_union(outlines), lake)
         ev.update(ps)
+        ev["position_size_ok"] = ps["centre_outside_m"] <= NEAR_M and AREA_MIN <= ps["area_ratio"] <= AREA_MAX
     if best is None:
         return _done(row, "gazetted_only" if gaz else "name_disagrees")
     if best[0] == "variant_circular":
@@ -265,6 +269,9 @@ def propose_one(code: str, sheets: Sequence[SheetRow], layers: Mapping[str, Mapp
 
 _RANK = {"equal": 0, "word_order": 1, "variant": 2, "contains": 3, "variant_circular": 4}
 VERDICT = {"clean": "clean", "not_in_app": "held"}
+BULK_ACCEPTABLE = frozenset({"clean"})
+REVIEW_RULES = ("two_named", "unnamed", "no_lake", "name_disagrees", "gazetted_only", "variant_circular",
+                "no_outline", "position_or_size")
 
 
 def _done(row: dict, rule: str) -> dict:
@@ -288,10 +295,18 @@ def propose(sheets: Sequence[SheetRow], polys: Iterable[LakePoly], variant_rows:
     rows = [propose_one(c, grouped[c], by_code.get(c, {}), var_wbk, var_gnis, app) for c in sorted(grouped)]
     counts = Counter(r["rule"] for r in rows)
     clean_by = Counter(r["evidence"].get("name_evidence") for r in rows if r["rule"] == "clean")
+    review: Dict[str, List[str]] = {k: [] for k in REVIEW_RULES}
+    for r in rows:
+        if r["verdict"] == "review":
+            review[r["rule"]].append(r["chart_id"])
+    review["no_code"] = [s["image"] for s in no_code]
     return {"_about": "Chart -> lake PROPOSALS (pipeline.bathymetry.propose, T634). Nothing here is accepted; only "
                       "`python -m pipeline.bathymetry.accept` writes the frozen match file, on the owner's word.",
             "rules": {"near_m": NEAR_M, "area": [AREA_MIN, AREA_MAX], "circular_variant_sources": sorted(CIRCULAR_SOURCES)},
-            "counts": dict(sorted(counts.items())), "clean_by_name_evidence": dict(sorted((str(k), v) for k, v in clean_by.items())),
+            "counts": dict(sorted(counts.items())),
+            "counts_by_verdict": dict(sorted(Counter(r["verdict"] for r in rows).items())),
+            "bulk_acceptable_rules": sorted(BULK_ACCEPTABLE), "review": review,
+            "clean_by_name_evidence": dict(sorted((str(k), v) for k, v in clean_by.items())),
             "no_code_sheets": no_code, "proposals": rows}
 
 
@@ -393,7 +408,8 @@ def main(argv=None) -> int:
     tmp = dest.with_suffix(".tmp")
     tmp.write_text(json.dumps(out, indent=1, sort_keys=True, ensure_ascii=False))
     os.replace(tmp, dest)
-    print(json.dumps({"counts": out["counts"], "clean_by_name_evidence": out["clean_by_name_evidence"],
+    print(json.dumps({"counts": out["counts"], "counts_by_verdict": out["counts_by_verdict"],
+                      "review": {k: len(v) for k, v in out["review"].items()}, "clean_by_name_evidence": out["clean_by_name_evidence"],
                       "no_code_sheets": len(out["no_code_sheets"])}, indent=1))
     print(f"wrote {dest}")
     return 0

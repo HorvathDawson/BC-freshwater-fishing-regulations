@@ -10,6 +10,8 @@ Reads `GENERATED.base/bathymetry/proposals.json` (pipeline.bathymetry.propose) a
   * an accepted row is NEVER rewritten: accepting an id that is already in the file refuses (the gauge lesson, a rerun
     once demoted 25 reviewed gauges); a deliberate change is `--replace`, which prints the old row first;
   * a refusal is a row too (`refused: <reason>`), so the same question is not asked every year;
+  * only a BULK_ACCEPTABLE rule (`clean`) may be taken whole with `--rule`; every review rule (variant_circular
+    included, owner 2026-11-11) is accepted one id at a time with `--ids`;
   * a proposal whose rule is not `clean` / `not_in_app` and has no single proposed lake needs `--wbk` naming the lake
     the owner chose (two named lakes, unnamed, no lake) — the program never guesses it.
 """
@@ -93,6 +95,10 @@ def main(argv=None) -> int:
     props = json.loads(proposals_path().read_text())["proposals"]
     ids = list(a.ids)
     if a.rule:
+        from pipeline.bathymetry.propose import BULK_ACCEPTABLE
+        if a.rule not in BULK_ACCEPTABLE:
+            raise SystemExit(f"--rule {a.rule}: only {sorted(BULK_ACCEPTABLE)} is accepted in bulk; "
+                             "the owner reviews the rest one id at a time (--ids)")
         ids += [p["chart_id"] for p in props if p["rule"] == a.rule
                 and (a.evidence is None or p["evidence"].get("name_evidence") == a.evidence)]
     if not ids:
