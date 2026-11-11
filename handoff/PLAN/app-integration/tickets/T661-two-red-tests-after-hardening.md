@@ -15,3 +15,8 @@ Source: scripts-hardening hand-back 2026-11-11. Both fail on the branch and stop
 3. Then install the parked heavy.sh gate (T535: `handoff/PLAN/app-integration/T535-heavy-gate/`) once fast-fail is green.
 
 Depends: T637, T534, T535. Size: S.
+
+**2026-11-11 morning (chat 11).** Item 2 and the gate install still wait: fast-fail and the review-gate test need the
+build 27 release as LATEST. Also fixed here: `test_stepcache::test_the_read_set_does_not_depend_on_whether_a_pyc_exists`
+failed only under the chunked runner's PYTHONPYCACHEPREFIX (8c6b539); `one-colour-pathway.test.ts` did not follow
+`check` -> `check:fast` (2577f4a). 13 pipeline tests stay red until the release is promoted (list in STATUS).

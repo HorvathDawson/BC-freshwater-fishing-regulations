@@ -8,6 +8,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 morning — build 27 is built and tested locally; the release waits on the owner (chat 11)
+
+- **State:** atlas `full` = build 27 (old in `full.prev`). Candidate release **r-303b4007a70a** (`data/release/CANDIDATE`); LATEST still r-a178299f6005. Tiles and bundle agree. Nothing pushed, nothing uploaded.
+- **Tests:** chunked full pipeline suite (`$TMPDIR/b27/suite2.log`): 13 red, all the same cause (they compare the new atlas with LATEST: `test_curation_review_inseason` x10, `test_curation_review_screen::test_re_resolve…`, `test_paint_sync::test_a_built_release…`, `test_unnamed_trib_sweep::test_every_unnamed_section_has_a_page`); expected green once the release is promoted, not yet proven. The 180 audit-fix bundle tests pass. `pnpm check`: one red test fixed (2577f4a), full check not rerun after.
+- **Fixed on the way (all committed):** export closure scan asked a size-free rainbow quota about steelhead (48e8ae875); base+deltas check gains the one printed "except <water>" exception, Peace kokanee (b5f1c5cf6, RULINGS Z1) — **owner to confirm**; quota-card check tried one order of fish only (71aab0a3f); pins moved by owner-approved changes (43a8bbc48, fd31cd845, 8c6b539); shore code read a node kind by hand (fd31cd845).
+- **To release (owner answers first):** (1) push `redesign/stream-sections` — the release refuses an unpushed HEAD, and CI then gives a real answer; (2) the 18 unlanded DFO review marks (new cuts on Nicomekl, Serpentine, Nakina, Thompson, Harrison, Nicomen): list them on `NOT_LANDED_OK` in chat 10's `pipeline/regs/review/apply.py` (release now) or land them with another atlas rebuild first. Then: `python -m pipeline release --staging --baseline data/generated/reaches/baseline-r-a178299f6005` (add `--no-ci-check "<reason>"` only if not waiting for CI; `--accept-diff` with the diff the lanes checked) → re-run the 13 → staging site → store screenshots (T319) → build 27 to Play internal with the T534/T542 emulator runs.
+- **Other owner questions:** T663 (Oxbows 0.45 km valley piece: accept or fix on the next rebuild); F12 Stellako "10 hatchery steelhead" line; store shot/title pick; Campbell F2/F9 cut proposals wait for ticks in the review app.
+- **Tell chat 10 to pull:** `proposals.py`, `split_suggest.py`, `curation-review/backend/inseason.py`, `entry-split-suggestions.json` changed.
+- **Next free ticket: T664.**
+
 ## 2026-11-11 overnight — build 27 atlas promoted; local build running; release waits on two owner answers (chat 11)
 
 - **Atlas:** rebuilt with the shore fix (7a9a796d0) and promoted locally (`full`; old one in `full.prev`). Oxbows match restamped (c7decd6, id lines only). Matcher passes.
