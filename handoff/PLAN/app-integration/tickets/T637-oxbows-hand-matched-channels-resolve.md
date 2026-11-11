@@ -327,3 +327,28 @@ Coordinator: a closure must not lose water as a side effect of (a).
   not the Quinsam's own water before or after, and `kind_of` falls back from the item's kind `stream` to the node's kind
   `stream`). So they stay bound. Read from the code and the run's diagnostics, not by a walk run.
 - Rebuild check: `whiteswan_lakes_inlet_outlet_streams.r1` and `quinsam_river.r3/r4` unchanged in the binding diff.
+
+## Build 27 verification (2026-11-11, read-only; atlas full_next, reach $TMPDIR/b27/reach_next vs live reaches/full)
+- `okanagan_river_oxbows.r1`: 40 → 89 (+49, −0). All 31 "Okanagan River Oxbows" items (22 whole channels, 4 whole child
+  codes, 5 cut lines) are bound section for section. The +49 are those items' sections plus `lake:329461947` (the
+  polygon the 459615 line threads, joined by the slough fold — as predicted); nothing else.
+- Cuts resolved at 685.03 / 1541.77 / 611.93 / 3231.68 / 1967.71 m. Above the cut, unbound: `356502967:685`
+  (685–2,453), `356559193:1541`/`:1938`/`:2264` (1,542–3,081), `356530115:611` (612–1,350), `356528832:3231`
+  (3,232–3,962). Below the cut, bound.
+- **Not predicted — 459615 above 1,516 m is not in the graph at all.** The leaf prune removes the unnamed head of
+  blk 356529638 (1,516–2,980 m) because reach-window names are applied AFTER the leaf prune (`atlas/build.py`: plain
+  variants before the prune, `_nv_reach` after). So the valley part 1,516–1,967 m (≈0.45 km) is not bound by the
+  oxbow rule, and the hillside above it carries no rule at all. That is how the live atlas already was (the same 5
+  sections, ending at 1,516 m), so nothing is lost against live; it falls short of "mouth to cut". Options: (i) accept;
+  (ii) the leaf prune protects the blks a reach-qualified variant names (`prune_leaves(..., protected=…)`, an atlas
+  code change and a rebuild): the valley piece then binds and the hillside stays as a nameless zone-rule piece;
+  (iii) nothing curated can fix it alone.
+- z8 zone rules +21, −0: all 21 are new section ids. 4 are the hillside pieces the cuts made
+  (`356502967:685`, `356559193:1541`, `356528832:3231`, `356530115:611`; the piece below keeps its old id); 2 are oxbow
+  line pieces the prune now keeps (`356533490:89`, `356567044:593`); 15 are unnamed child streams the prune now keeps
+  because the channels they drain into are named. None of the 21 is owned by any water item except the 2 oxbow pieces.
+- Whiteswan `whiteswan_lakes_inlet_outlet_streams.r1`: 2 → 2, identical. Quinsam `r3`/`r4`: 309 → 309, identical;
+  `white_river.r2`: 2,420 → 2,420.
+- Fix (a)'s side effects: exactly the predicted pieces left their items (Quinsam Diversion 2, Rainbow Creek 1,
+  Aliceville Creek 1; the Whiteswan inlet stayed, named). The 138 rules binding those pieces or the inlet bind them
+  identically before and after.
