@@ -711,6 +711,14 @@ def _local_day(at: str | None, fallback: date) -> date:
         return fallback
 
 
+def rank_when(day: date) -> datetime:
+    """(T550 item 5) The instant a reading is ranked at: noon UTC of the reading's OWN local date (`_local_day`), so
+    `band_for` reads that date's day of year — the day the app's chart band and a percentile alert take from the same
+    stamp (core `calendarDayOfYear`). Ranked on `now`'s UTC day, an evening reading (16:00-24:00 PST) was ranked on
+    tomorrow's band. Pinned with the app in app/tools/one-formula.test.ts."""
+    return datetime(day.year, day.month, day.day, 12, tzinfo=timezone.utc)
+
+
 def daily_means(text: str) -> dict[str, tuple[float | None, float | None]]:
     """`{YYYY-MM-DD: (level, discharge)}` — the mean of every reading on each day.
 
@@ -866,7 +874,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
                                                    r["level"], (clim or {}).get("ratingPadM")):
             have = {k: v for k, v in have.items() if k != "level"}
         param = shown_parameter(have, r["discharge"], r["level"])
-        band = band_for(have.get(param), now)
+        ranked_at = rank_when(today_of[r["station"]])
+        band = band_for(have.get(param), ranked_at)
         observed = r["level"] if param == "level" else r["discharge"]
         # BOTH PERCENTILES WHERE THERE ARE BOTH, each against its own envelope.
         #
@@ -886,7 +895,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         per = {}
         for q in ("discharge", "level"):
             v = r["level"] if q == "level" else r["discharge"]
-            b = band_for(have.get(q), now)
+            b = band_for(have.get(q), ranked_at)
             p_ = percentile_of(v, b)
             if p_ is not None:
                 per[q] = p_

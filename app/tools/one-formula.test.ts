@@ -20,7 +20,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { answering, bandAt, errorFor, leadShares, leaderOf, PENTADS, percentileInBand, weightFactors, type Band }
+import { answering, bandAt, calendarDayOfYear, errorFor, leadShares, leaderOf, PENTADS, percentileInBand, weightFactors, type Band }
   from "@app/core";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
@@ -261,6 +261,26 @@ print(json.dumps(out))
 `;
   return JSON.parse(execFileSync(PY, ["-c", script], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }));
 }
+
+// (T550 item 5) WHICH DAY is fed in, not only the formula: the publisher ranks a reading on its own local date
+// (`publish.rank_when` of `_local_day`), the app's chart band and alerts on `calendarDayOfYear` of the same stamp. An
+// evening reading (17:10 PST is 01:10 UTC tomorrow) was ranked on tomorrow's band by the feed.
+describe.skipIf(!has)("one day for a reading, publisher and app (T550)", () => {
+  const STAMPS = ["2026-11-09T17:10:00-08:00", "2026-11-09T23:55:00-08:00", "2026-11-10T00:05:00-08:00",
+                  "2024-02-29T20:00:00-08:00", "2026-12-31T23:00:00-08:00", "2026-01-01T00:30:00-08:00"];
+  it("ranks every stamp on the day of year the app reads it on", () => {
+    const script = `
+import json, sys
+from datetime import date
+sys.path.insert(0, ${JSON.stringify(ROOT)})
+from pipeline.gauges.feed.publish import _local_day, rank_when
+print(json.dumps([rank_when(_local_day(s, date(1970, 1, 1))).timetuple().tm_yday for s in ${JSON.stringify(STAMPS)}]))
+`;
+    const py = JSON.parse(execFileSync(PY, ["-c", script], { encoding: "utf8" }));
+    expect(py).toEqual(STAMPS.map(calendarDayOfYear));
+    expect(py[0]).toBe(313); // 08MF005's 17:10 PST Nov 9 reading: day 313, not the UTC day 314
+  });
+});
 
 describe.skipIf(!has)("one day's envelope, two languages (T107)", () => {
   const py = has ? envelopeFromPython() : {};

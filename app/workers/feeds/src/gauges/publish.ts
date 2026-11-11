@@ -974,7 +974,9 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       have = rest;
     }
     const param = shownParameter(have, r.discharge, r.level);
-    const band = bandFor(have[param], now);
+    // (T550 item 5) publish.rank_when: ranked on the reading's OWN local date (noon UTC of it), never now's UTC day
+    const rankedAt = dayMs(todayOf.get(st)!)! + 12 * HOUR;
+    const band = bandFor(have[param], rankedAt);
     const observed = param === "level" ? r.level : r.discharge;
     const t = temps.get(st);
     const tAt = t ? t[0] : null;
@@ -1000,7 +1002,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     const per: Record<string, any> = {};
     for (const q of ["discharge", "level"]) {
       const v = q === "level" ? r.level : r.discharge;
-      const p = percentileOf(v, bandFor(have[q], now));
+      const p = percentileOf(v, bandFor(have[q], rankedAt));
       if (p !== null) per[q] = p;
     }
     if (tC !== null) {
