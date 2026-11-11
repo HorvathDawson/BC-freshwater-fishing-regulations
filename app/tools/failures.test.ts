@@ -112,7 +112,7 @@ export const unhandled = (src: string, path = ""): Site[] =>
  *  console.error / warn: the run's log lines, `wrangler tail`), ANSWERED as an HTTP error (`json({ ok: false, … })`), or
  *  RECORDED in the job's result (an `error` field, `res.ok = false`, a `failed` count) — the run's status page and the
  *  owner's email carry those. */
-export const WORKER_HANDLES = /\blog\(|\bconsole\.(?:error|warn)\(|\bjson\(\{ ok: false|\berror\s*[=:]|\.ok = false|\.failed\+\+|\bfailed\.push\(|\bhold\(|\browHolds\.set\(|\bnotices\.push\(/;
+export const WORKER_HANDLES = /\blog\(|\blogErr\(|\bconsole\.(?:error|warn)\(|\bjson\(\{ ok: false|\berror\s*[=:]|\.ok = false|\.failed\+\+|\bfailed\.push\(|\bhold\(|\browHolds\.set\(|\bnotices\.push\(/;
 
 /** In the map package a failure goes to the map's own `report` / `fail` / `onError`, which is the host's `onError` —
  *  `mapError` (reported) unless a host passes its own (MapScreen defaults to it; pinned in the test). */
@@ -222,22 +222,21 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/ui/src/spots.ts": { n: 2, why: "T314: one spot's fill kept and asked again next refresh; the retry runner (write() shows and reports)" },
   "packages/ui/src/sync.ts": { n: 2, why: "stamps: the update service shows these failures (SyncErrorSheet) and reports them (failSource)" },
   // (T431) the feeds worker: a server job, so "handled" is WORKER_HANDLES (logged / answered / recorded); what is left is
+  "workers/feeds/src/backup.ts": { n: 1, why: "(T559) a personal record whose date cannot be read: a report is aged by its folder day, an error kind is never copied" },
   "workers/feeds/src/crashes.ts": { n: 4, why: W_TORN },
-  "workers/feeds/src/dfo/live.ts": { n: 5, why: `${W_STATE}; stableIndex compares the raw text when it is not JSON; page texts unread leave only the text-change notice out (the header parse failure has its own notice)` },
-  "workers/feeds/src/dispatch.ts": { n: 2, why: `${W_STATE}; GitHub's reply shown as its text when it is not JSON` },
-  "workers/feeds/src/events.ts": { n: 1, why: W_STATE },
+  "workers/feeds/src/dfo/live.ts": { n: 4, why: `${W_STATE}; stableIndex compares the raw text when it is not JSON; page texts unread leave only the text-change notice out (the header parse failure has its own notice)` },
+  "workers/feeds/src/dispatch.ts": { n: 1, why: "GitHub's reply shown as its text when it is not JSON (T558: the dispatch record's read throws)" },
   "workers/feeds/src/gauges/forecast.ts": { n: 1, why: W_ABSENT },
-  "workers/feeds/src/gauges/publish.ts": { n: 10, why: `${W_ABSENT}; ${W_STATE}; an unreadable forecast file is skipped as the Python skips it` },
+  "workers/feeds/src/gauges/publish.ts": { n: 9, why: `${W_ABSENT}; ${W_STATE}; an unreadable forecast file is skipped as the Python skips it` },
   "workers/feeds/src/gauges/score.ts": { n: 4, why: `${W_STATE}; ${W_TORN}` },
   "workers/feeds/src/gauges/skill.ts": { n: 2, why: `${W_STATE}; ${W_TORN}` },
   "workers/feeds/src/guard.ts": { n: 1, why: "the edge rate limiter failing opens (T249): the R2 per-IP gate still holds" },
   "workers/feeds/src/health.ts": { n: 3, why: "a URL that will not parse gets the unknown source's policy (the fetch itself then throws and is counted); freeing a retried connection" },
-  "workers/feeds/src/index.ts": { n: 6, why: `${W_STATE} (no-data stations); the status page shows a job status not yet written as none; a bad POST body is answered 400` },
-  "workers/feeds/src/inseason.ts": { n: 3, why: W_STATE },
+  "workers/feeds/src/index.ts": { n: 3, why: "a daily job's status file that cannot be read is served as { unreadable: why } (T609 W12); a bad POST body is answered 400" },
+  "workers/feeds/src/inseason.ts": { n: 2, why: W_STATE },
   "workers/feeds/src/io.ts": { n: 1, why: `${W_STATE} (the write manifest: unreadable → every file written again)` },
   "workers/feeds/src/notify.ts": { n: 1, why: `${W_STATE} (what was sent: unreadable → may be sent again, never lost)` },
   "workers/feeds/src/reports.ts": { n: 6, why: `${W_TORN}; ${W_STATE} (the per-IP gate); the edge limiter failing never blocks (the R2 gate holds); a test-report delete the next day's purge tries again` },
-  "workers/feeds/src/status.ts": { n: 1, why: W_STATE },
 };
 
 const sites = () => files().map((f) => [f, unhandled(read(f), f)] as const).filter(([, u]) => u.length);
