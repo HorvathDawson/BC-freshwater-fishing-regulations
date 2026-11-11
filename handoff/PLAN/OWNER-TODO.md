@@ -14,7 +14,7 @@ with the default Claude uses until you answer). Newest first inside each section
   on its older rewordings (they are dormant) — default: yes.
 - **Production release: later, after your DFO extent labelling (owner 2026-11-08).** The command when ready:
   `CONFIRM_PROD=r-a178299f6005 python -m pipeline release --prod r-a178299f6005` (or the newer release by then).
-- **Phone check with build 24: DONE 2026-11-09** (answers on the owner checks page,
+- **Phone check (current build): last done 2026-11-09 on build 24** (answers on the owner checks page,
   https://claude.ai/artifact/5LRBFFgvYeTRnygSBWvZbM). 20 tickets closed on "fine". Follow-ups filed: T563 (percentile
   alert follows each day), T564 (gauge page: forecast + readable chart), T565 (in-season notice at the top), T566 (map
   switching), T567 (Fraser at Mission reading); T401 pop-in kept, minor. **One question back to you: T498/T508 "a
@@ -37,7 +37,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - **Region hub cards (T406 part 2): answered 11-05 — keep both as they are** (the bar where it is; the map button opens
   the whole map, no region link).
 - **Changelog drafts: approved (owner 11-05, "I'm sure they are good")** — `draft` cleared on 0.1.0–0.5.0; 0.6.0 stays a
-  draft until its release. Still yours: production has no `app/android/play.json` yet (prod transition, T404).
+  draft until its release. Still yours: production has no Play config file (`play.json`) yet (prod transition, T404).
 - **Gauge alerts, stock-style (T527, owner 11-09; replaces the T234 v1.1 cadence readings):** crosses above / below a
   value or a percentile for the day, once per crossing, ready again once back across by 2 % of the line. The per-alert
   cadence and the ±% in 24 h kind are gone; a saved ±% alert is not kept and the page says so. To confirm, as built:
@@ -122,7 +122,7 @@ with the default Claude uses until you answer). Newest first inside each section
   "your note" (incl. 329097416 Cruickshank, the one whose verdict you cleared: "similar this can be on moat lake").
   811 are confirmed (folded by T322); still open: the 135 wide-marsh pre-marks and the rest of your list.
   The old slough page (artifact Es3Mokt7Fs2yNvm7JgQua8) is retired — do not mark there; its whole database (151 verdicts + 58 spot checks)
-  is saved in `handoff/PLAN/sloughs/marks-final-2026-10-28.json`; nothing else reads it.
+  was saved as marks-final-2026-10-28.json and has since moved out of the tree (T322; read it from git history); nothing else reads it.
 
 Cleared 2026-10-28 (already settled, stale-item sweep): Q114 pilot (you dropped it 10-25; you do the real review),
 T211 feed plan (built 10-27 with your corrections; only the cron + R2 sync below is left), Q145 (= that feed: 6-hourly

@@ -1,8 +1,3 @@
-- **T401 measured (emulator):** drag, fling, and fling close in (Hoy Creek) — 0 % of the new edge missing once the
-  camera rests (~0.65 s drag, ~1 s fling). Not reproduced; asked the owner for a screen recording of one pan.
-- **Test bed green on the 0.5.0 drift:** gestures (route map is above the gauge list), water-nav (the tap used the small
-  water map's probe; now the tallest map's) — T345's last path (close → reopen → Map) confirmed, no crash; T399's
-  highlight on the river (r1105d).
 # Where things stand
 
 **Start the review app yourself:** `bash curation-review/run.sh`, then open http://127.0.0.1:5173. It's local only and
@@ -1585,3 +1580,13 @@ This runs on a separate branch so the rebuild isn't disturbed.
 - **DFO wordings:** review the 85 in `data/curated/dfo_salmon/wording.json`. Mark each `accepted` or `rejected`, especially the 15 "notes" shown as DFO's words.
 - **Tidal:** 7 open marks plus Mamquam. After that, tidal becomes one file.
 - **Existing items:** see `handoff/PLAN/OWNER-TODO.md` (salmon extents to review, gestures hand-check).
+
+## Orphan lines (T539)
+
+Five lines that sat above this file's title, head of an older entry (T401 measure; test-bed gestures / water-nav), moved here whole.
+
+- **T401 measured (emulator):** drag, fling, and fling close in (Hoy Creek) — 0 % of the new edge missing once the
+  camera rests (~0.65 s drag, ~1 s fling). Not reproduced; asked the owner for a screen recording of one pan.
+- **Test bed green on the 0.5.0 drift:** gestures (route map is above the gauge list), water-nav (the tap used the small
+  water map's probe; now the tallest map's) — T345's last path (close → reopen → Map) confirmed, no crash; T399's
+  highlight on the river (r1105d).

@@ -16,20 +16,20 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
 
 ## ⛔ Absolute
 
-1. **Never run the LLM parser.** `pipeline/regs/parsing/run_parse.sh`,
+A1. **Never run the LLM parser.** `pipeline/regs/parsing/run_parse.sh`,
    `python -m pipeline.regs.parsing.dispatch`, anything that spawns `claude -p`. It spends the
    user's credits. Hand over the command; the human runs it. This holds even if the user
    says "run it" — that means *they* will.
-2. **Never write to `data/curated/regulations/synopsis/region-*.json` without backing
+A2. **Never write to `data/curated/regulations/synopsis/region-*.json` without backing
    them up first.** They hold in-progress curation that may not be committed. `cp` them to the scratchpad, make
    the change, then diff to prove only what you intended moved. A lock was lost in this
    repo once; do not be the second time.
-3. **Prefix shell commands with `rtk`.** Token-optimised proxy; passes through when it has
+A3. **Prefix shell commands with `rtk`.** Token-optimised proxy; passes through when it has
    no filter.
-4. **Run `graphify query "<question>"` before grepping the codebase.**
-5. **Kill only what you started** (its PID, its port). Never `pkill` / `killall` by pattern: one took down the owner's
+A4. **Run `graphify query "<question>"` before grepping the codebase.**
+A5. **Kill only what you started** (its PID, its port). Never `pkill` / `killall` by pattern: one took down the owner's
    tile server. Heavy jobs go through `scripts/heavy.sh`, one at a time.
-6. **Commit only your own paths: `git commit -- <paths>`.** Several agents share this checkout; `git add -A` or a bare
+A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents share this checkout; `git add -A` or a bare
    `git commit` takes another lane's half-done edits. Never commit `data/generated/review/pfma_basin_areas.json`,
    `data/generated/review/write-through.jsonl`, or store images.
 
@@ -140,7 +140,11 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     commit (≈ 75 s: `pnpm -C app check`, `pytest -m smoke` from `pipeline/tests/smoke.txt`); Tier 2 is
     `scripts/test-full.sh` via `scripts/heavy.sh`, once per phase or before a merge. **Heavy jobs** (atlas build, reach run,
     `pipeline.deliver`, tile builds, full pytest, the Android emulator) go through `scripts/heavy.sh <label> <min free %> --
-    <cmd>`: one at a time machine-wide, waits for free memory, kills the job if free memory falls under 6 %.
+    <cmd>`: one at a time per lane (two lanes: the default and `HEAVY_LOCK=~/.claude/heavy-job-2.lock`), waits for free
+    memory, kills the job if free memory falls under 6 % or its physical footprint passes the machine's RAM; stopping the
+    wrapper stops the job (T536). **`scripts/heavy.sh --status`** says what holds each lane (command, elapsed, free memory,
+    last log lines): ask it before deciding a quiet job died or starting it again — an identical label + command is refused
+    while one holds or waits (`--again` to mean it).
 19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
     no clocks in output. The reach builder's digest must be identical across runs.
 20. **`pipeline.atlas.reach.cache.POLICY_VERSION` must be bumped, with a changelog line, when `classify.py` changes an
@@ -321,7 +325,7 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
 43. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
 44. **Report honestly what you did not verify.** An unverified claim is worse than a known
     gap. Say "scaffolded, not run" when that is what happened.
-45. **Spend the owner's credits on the work, not on a long context (owner 2026-11-06).** Every turn re-reads the
+W45. **Spend the owner's credits on the work, not on a long context (owner 2026-11-06).** Every turn re-reads the
     whole conversation, so a long chat costs more per step and remembers worse.
     - **Start a new chat** at a natural break: after a release ships, after a lane merges, when the next item is
       unrelated to what is in context. Before it: STATUS.md top entry current, a short
@@ -335,7 +339,7 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
       context); keep the main chat for decisions, merges and the owner. Agents report briefly.
     - Avoid re-reading big files and logs: grep for the lines needed; tail logs; do not re-run full suites per
       iteration (once at the end).
-46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that trips one fixes the cause; it never
+W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that trips one fixes the cause; it never
     loosens, skips, or works around the guard.** Each was added after real damage or a hidden failure:
     - **No silent fallbacks, anywhere** (owner 2026-11-03): no `try/catch` that turns an error into an empty answer, no
       `or ROOT` / default-path fallback, no `|| []` over a failed read. A failure is shown AND reported
@@ -350,9 +354,15 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     - **Review app API**: the route table in `curation-review/API.md` is generated (`python curation-review/api_routes.py
       --write`); a route added or removed regenerates it in the same commit. No "splits" domain (lake splits are
       deferred).
-    - **Ticket ledger**: `node app/tools/check-tickets.mjs` must pass (in `pnpm check`): every ticket file has a Status
-      line and a ledger row that agree; DONE names its commit hashes (commit the code first, then the ledger). After a
-      cherry-pick, remap the hashes the tickets cite.
+    - **Ticket ledger** (T539): `node app/tools/check-tickets.mjs` must pass (in `pnpm check` and fast-fail). It checks that
+      every ticket file has a Status line and a ledger row whose leading keyword agrees; DONE names its commit hashes
+      (commit the code first, then the ledger); IN REVIEW / PARTIAL name their step as `owner: OWNER-TODO "<text that
+      exists in OWNER-TODO.md>"` or `left (Claude): …` (a ticket whose only step is Claude's is IN PROGRESS). The same
+      script is the docs guard: STATUS.md starts with its title, every repo path cited in START-HERE / the restart page /
+      OWNER-TODO exists, the restart page holds no release id or build number, and AGENTS rule ids are unique (the
+      lettered ones are `A` Absolute, `W` Working style; the Reading section's 45/46 are the numbers other files cite).
+      It does not compare the Status text with the row's text beyond the keyword. After a cherry-pick, remap the hashes
+      the tickets cite.
     - **Smoke coverage gate** (`pipeline/tests/smoke_pending.txt`): the list only shrinks; a new module gets a smoke
       test, not a line in the file. Golden parity is strict.
     - **No frozen prototype oracles**: `golden.json` and its tests were retired (T439); the regs oracles are
@@ -364,8 +374,10 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     - **Feeds worker**: its tests gate every deploy (`deploy/staging/feeds.sh`); `REPORT_SALT` is a required secret
       (no salt = 503, never an unsalted report). Crash/report enums match the app (wire parity test).
     - **Staging**: `deploy/staging/upload.sh` refuses commits not on GitHub, clears old releases only after the
-      pointer flips, and re-points the test channel (`test/`, T442). Production builds/uploads need
-      `CONFIRM_PROD=canifishthis.ca` and stay human-only.
+      pointer flips, and re-points the test channel (`test/`, T442). Production is human-only, in two
+      steps: `CONFIRM_PROD=<r-id> python -m pipeline release --prod <r-id>` (the release id, typed again at the prompt),
+      which then runs the deploy scripts with `CONFIRM_PROD=canifishthis.ca` (their own guard; production APK / iOS
+      builds need that form). An agent never sets either.
     - **Test bed**: a walk that matters includes a FRESH install (`install` first): today's walks passed on an app
       that already held data and hid a broken first run. `--no-r2` runs check `test/` is the live release and stop
       if not.
