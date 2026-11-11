@@ -1,6 +1,6 @@
 # T637 — Okanagan River Oxbows: the owner's hand-matched side channels must bind again
 
-Status: IN REVIEW — f4069759f, 216a7e60a; owner: OWNER-TODO "T637 oxbows: the hillside cuts need a registry change"; left (Claude): restamp matched, one rebuild with T623/T660, reach, promote
+Status: IN REVIEW — f4069759f, 216a7e60a, 070230ff5, 298e77cb4; owner: OWNER-TODO "T637: Whiteswan inlet"; left (Claude): restamp matched, one rebuild with T623/T660, reach + binding diff, promote
 
 Source: owner 2026-11-11, on T632 item 3: "what you mean they never had an item if they are unnamed side channels? i hand matched them?"
 
@@ -262,3 +262,51 @@ cut boundaries; the three hillside pieces STILL bound unless (a) is done first.
 **Seen, not acted on:** line 461418 (one of the two the owner kept whole as "into Osoyoos Lake") also climbs the west
 slope at its upper end — 0.73 km of m 3,048–3,962 lies beyond the same distance rule (visible top-left of
 `fix-cut-461418-565942.png`). 459615's upper end has 1.0 km beyond it too (m 1,792–2,980). Owner's call.
+
+## Fix (a) built + two more cuts (2026-11-11; 070230ff5, 298e77cb4) — still not built into an atlas
+Coordinator 2026-11-11: make (a) (the owner decided the outcome: hillside parts leave the oxbows; (b) would change the
+corpus). Owner also ticked "Cut both" for the upper ends of 461418 and 459615 ("lake ones okay").
+
+**The registry change** (`pipeline/atlas/registry/build.py`, `CURATED_NAME_ITEMS_KEEP_ONLY_NAMED`,
+`drop_nameless_from_curated_items`, run right after `split_distinct_names`): an item keyed `wsc:` / `blk:` (no gnis
+on its code, so it exists only because a curated name named some of its pieces) keeps only the pieces that carry a
+name (display name or any name tuple). Its nameless pieces go back to no item (zone rules only). `gnis:` items and
+lakes are untouched; a group with no named piece is left to the named-items filter as before.
+Tests (`test_registry.py`): named-below / nameless-above-the-cut; an uncut whole-line name keeps every piece; a
+gazetted river's nameless piece stays; mutation pin (constant False puts the hillside back). With the rule switched
+off in the file, the cut test FAILS (checked), the others pass.
+
+**What else it touches today** (dry computation on the live atlas `graph.pkl`: same grouping as `build_registry` —
+`item_id`, `drop_ditches`, `split_distinct_names` — no registry written): 4 items, 5 pieces leave.
+| item | pieces leaving | what they are | non-zone rules on them today |
+|---|---|---|---|
+| `wsc:920-627155-045026-744802` Quinsam Diversion (gauge name on blk 354089001) | 2 (blk 354141307, 3.2 km) | another unnamed FWA line of the same code | `quinsam_river.r3`, `.r4` (Quinsam River ✱ row, tributaries) — the walk is graph-based, so these most likely stay bound by the walk; NOT verified |
+| `wsc:300-625474-814939-312002` Whiteswan Lake outlet stream (reach 0–3,023.5 m) | 1 (`356560775:8623`, the INLET above the lake) | the curator's note says this piece "must not be called the outlet" | **`whiteswan_lakes_inlet_outlet_streams.r1` (No Fishing except below the falls) and `white_river.r2–r4`** — see below |
+| `wsc:900-076392` Rainbow Creek (Burnaby added stream) | 1 (FWA blk 360455980, 1.5 km) | a different creek 1.5–3.0 km away that shares the code | none (zone only) |
+| `wsc:900-059187` Aliceville Creek (Burnaby added stream) | 1 (FWA blk 360731231, 1.1 km) | a different creek 0.9–1.9 km away that shares the code | none (zone only) |
+
+**Doubt — Whiteswan inlet.** "Whiteswan Lake's inlet/outlet streams: No Fishing EXCEPT the outlet stream downstream of
+the falls" binds the item `wsc:…312002` upstream of the falls split. Today the inlet piece above the lake rides in that
+item only through the shared code, so the closure covers it by accident. Under (a) it leaves the item, and the No
+Fishing would no longer reach the inlet stream (a closure losing water). `white_river.r2–r4` reach it as a White River
+tributary and most likely keep it (graph walk; not verified). Fix options for the owner: name the inlet piece (a
+`name_variants` blk + reach entry for 8,623 m → end, e.g. "Whiteswan Lake inlet stream") and add it to the entry's
+`matched`, or accept the loss. The single rebuild's diff must be read for this rule.
+
+**The two new cuts (accepted; lake ends stay whole):**
+| line | blk | cut at | kept | dropped | map |
+|---|---|---|---|---|---|
+| 300-432687-461418 | 356528832 | 3,232 m | 0–3,232 m | 0.73 km (3,232–3,962) west slope | `T637-shots/fix-cut-461418.png` |
+| 300-432687-459615 | 356529638 | 1,967 m | 0–1,967 m | 1.01 km (1,967–2,980) east slope | `T637-shots/fix-cut-459615.png` |
+(459615's upper end climbs the EAST slope, not the west as said earlier.) Coords project onto their blks at the
+stated measures (≤ 0.2 m off). Five cuts in all now; `name_variants.json`: 26 codes named whole (22 channels + 4 child
+codes), 5 blk + reach windows (500162, 466472, 461418-565942, 461418, 459615).
+
+**What the single rebuild's binding diff should show** (vs a live-atlas reach run on the same corpus, after the
+`matched` restamp): `okanagan_river_oxbows.r1` binds the 22 whole channels, the 4 whole child codes, and the five cut
+lines only up to their cuts; the five hillside pieces (≈5.8 km: 1.77 + 1.54 + 0.74 + 0.73 + 1.01) are NOT bound by it
+and carry Region 8 zone rules (spring stream closure) instead; 5 new cut boundaries; the 20-odd unnamed child streams
+kept by the leaf prune carry zone rules only. Outside the oxbows: the 5 pieces above leave their items — expect
+`whiteswan_lakes_inlet_outlet_streams.r1` to lose `356560775:8623` unless the inlet is named first, and check
+`quinsam_river.r3/r4` and `white_river.r2–r4` keep their pieces.
+The command sequence above stands; (a) runs inside the atlas build, no extra step.
