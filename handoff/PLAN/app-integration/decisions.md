@@ -1715,3 +1715,15 @@ full `pipeline build --atlas --promote` (atlas, reach, tiles, deliver).
 ## OWNER 2026-10-29 — spot visit rating scale (T294)
 - (T294, owner 2026-10-29) A spot visit's rating is 1–5 stars (words Poor / Fair / OK / Good / Great; core `RATING`),
   stored as the whole number. A later scale change must map the stored numbers.
+
+## OWNER 2026-11-09 — Q180: PSF is the primary run-timing curve; DFO surveys are in addition (T552 item 3)
+- Owner: "dfo surveys are just in addition to psf curve. psf is primary." This REVERSES the 2026-10-24 "DFO where it is
+  better" rule, under which a section a NuSEDS survey was bound to dropped that species' PSF spawning runs.
+- As built (`pipeline/runtiming/feed/bind.py`): an observed section keeps every PSF spawning and passing run and gains
+  the DFO record beside it; the run files list PSF runs first, so the sheet shows the PSF curve first and the survey
+  after it. There is no age limit on a survey (the sheet states its years); the build report counts the bound DFO
+  records by last survey year (`dfo_bound_by_last_survey`) and the observed sections that also carry PSF spawning
+  (`observed_beside_psf_spawning`).
+- Measured on the live base (d5242c0c70509877, timing.json of 2026-10-28): 12,925 PSF spawning (section, run) pairs the
+  old rule dropped are kept — 4,418 sections, 988 named waters (846 unnamed sections). Bound DFO records by last survey:
+  288 before 1980, 545 in the 1980s, 1,282 in the 1990s, 892 in the 2000s, 1,571 from 2010.

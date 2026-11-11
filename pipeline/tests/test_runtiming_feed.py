@@ -292,3 +292,36 @@ def test_t552_a_collapsed_feed_is_refused_against_the_live_one(built, tmp_path, 
     served = {"index.json": json.dumps(index).encode(), **{f["url"]: files[n] for n, f in index["files"].items()}}
     monkeypatch.setattr(D, "_get", lambda url: served.get(url.rsplit("/", 1)[1]))
     assert D.main(["--new", str(d), "--live", "https://x/runtiming", "--out", str(out)]) == 0
+
+
+def test_t552_a_dfo_survey_is_beside_the_psf_curve_never_instead(tmp_path):
+    """(T552 item 3, owner Q180 2026-11-09: "psf is primary") a section a DFO record of the SAME slot is bound to keeps
+    its PSF spawning run, listed first; the report counts such sections and the bound records' survey age."""
+    timing, poly = make_inputs(tmp_path)
+    from pipeline.runtiming.timing import read_timing
+    t = read_timing(timing)
+    psf = [{"key": "psf:7", "source": "psf", "species": "Coho", "slot": "Coho", "name": "Big Coho", "label": None,
+            "curve": curve([9, 10]), "peak": "Oct 20", "window": ["Oct 1", "Nov 30"], "cuid": 7}]
+    old = {"key": "dfo:9:Coho:-", "source": "dfo", "species": "Coho", "slot": "Coho", "name": "Test Creek",
+           "label": None, "curve": curve([9]), "peak": "Oct 10", "window": ["Oct 1", "Oct 30"], "years": 5,
+           "first_year": 1940, "last_year": 1948, "wsc": "100-000001-000100", "lon": -122.0, "lat": 49.5,
+           "site_kind": "Stream"}
+    write_timing(timing, psf, [old], t.sources)
+    files, _index, report = B.build(timing, poly, make_base(tmp_path))
+    runs, paint = json.loads(files["runs"]), json.loads(files["paint"])
+    assert [r["id"] for r in runs["runs"]] == ["psf:7", "dfo:9:Coho:-"]
+    sids, s = [], 0
+    for d in paint["sid"]:
+        s += d
+        sids.append(s)
+    per = {sid: paint["profiles"][p]["r"] for sid, p in zip(sids, paint["p"])}
+    assert per[3] == [0 * 3 + 0, 1 * 3 + 2]           # PSF spawning first, the 1940s survey beside it
+    assert report["observed_beside_psf_spawning"] == 1
+    assert report["dfo_bound_by_last_survey"] == {"before 1980": 1, "1980-1989": 0, "1990-1999": 0, "2000-2009": 0,
+                                                  "2010 on": 0, "undated": 0}
+
+
+def test_t552_age_bands_count_every_record_once():
+    from pipeline.runtiming.feed.bind import age_bands
+    got = age_bands([1948, 1980, 1989, 1990, 2009, 2010, 2024, None])
+    assert got == {"before 1980": 1, "1980-1989": 2, "1990-1999": 1, "2000-2009": 1, "2010 on": 2, "undated": 1}

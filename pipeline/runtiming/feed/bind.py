@@ -12,9 +12,10 @@ rule measured there on the live atlas, 2026-10-24) onto the base's columns, so i
              (a polygon simplified across a divide) are dropped first as spill (`SPILL_*`).
   observed   DFO: the stream a NuSEDS survey site is on (its FWA watershed code), the sections of that code that carry
              the site's name — on a long water (over `LONG_WATER_KM`) only those within `NEAR_SITE_KM` of the site.
-             Where a section is observed for a slot, that slot's PSF spawning runs are dropped there (owner 2026-10-24:
-             DFO where it is better); its passing runs stay. Of several sites on one section, per slot and run label,
-             the nearest.
+             A DFO record is IN ADDITION to the PSF runs, never instead (owner 2026-11-09, Q180: "dfo surveys are just
+             in addition to psf curve. psf is primary"; T552 item 3, reversing the 2026-10-24 "DFO where it is better"
+             replace rule): an observed section keeps its PSF spawning and passing runs, and the files list PSF runs
+             first. Of several sites on one section, per slot and run label, the nearest.
 """
 from __future__ import annotations
 
@@ -201,6 +202,27 @@ def observed(dfo: Sequence[Tuple[int, TimedRun]], by_wsc: Mapping[str, Sequence[
     return {s: {k: v[1] for k, v in m.items()} for s, m in best.items()}
 
 
+#: the bands `age_bands` counts DFO records' last dated survey year in (T552 item 3: visible in every report)
+AGE_BANDS = (1980, 1990, 2000, 2010)
+
+
+def age_bands(last_years: Iterable[Optional[int]]) -> Dict[str, int]:
+    """{"before 1980": n, "1980-1989": n, ..., "2010 on": n, "undated": n}: every record counted once."""
+    out = {f"before {AGE_BANDS[0]}": 0, **{f"{a}-{b - 1}": 0 for a, b in zip(AGE_BANDS, AGE_BANDS[1:])},
+           f"{AGE_BANDS[-1]} on": 0, "undated": 0}
+    for y in last_years:
+        if y is None:
+            out["undated"] += 1
+        elif y < AGE_BANDS[0]:
+            out[f"before {AGE_BANDS[0]}"] += 1
+        elif y >= AGE_BANDS[-1]:
+            out[f"{AGE_BANDS[-1]} on"] += 1
+        else:
+            a = max(b for b in AGE_BANDS if b <= y)
+            out[f"{a}-{AGE_BANDS[AGE_BANDS.index(a) + 1] - 1}"] += 1
+    return out
+
+
 def bind(a: Atlas, psf: Sequence[TimedRun], dfo: Sequence[TimedRun], polygons: Mapping[int, object]):
     """(per section {(run index, relation)}, a report). Run indexes: psf first, then dfo, as given."""
     cu = in_polygons(((s, *a.point[s]) for s in a.sids), polygons)
@@ -232,13 +254,16 @@ def bind(a: Atlas, psf: Sequence[TimedRun], dfo: Sequence[TimedRun], polygons: M
     for ix, secs in passing.items():
         for s in secs:
             per[s].add((ix, PASSAGE))
-    for s, m in seen.items():
-        slots = {k[0] for k in m}
-        per[s] = {(i, rel) for i, rel in per[s] if not (rel == SPAWNING and runs[i].slot in slots)}
+    for s, m in seen.items():                       # beside PSF, never replacing it (Q180)
         per[s].update((i, OBSERVED) for i in m.values())
     per = {s: v for s, v in per.items() if v}
+    bound_dfo = sorted({i for m in seen.values() for i in m.values()})
     report = {"psf_runs_bound": len(spawn), "dfo_records_bound": len({i for m in seen.values() for i in m.values()}),
               "spawning_sections": len({s for v in spawn.values() for s in v}),
               "passage_sections": len({s for v in passing.values() for s in v}), "observed_sections": len(seen),
-              "sections": len(per)}
+              "sections": len(per),
+              # Q180: the observed sections that also carry a PSF spawning run (shown first, the DFO survey beside it)
+              "observed_beside_psf_spawning": sum(1 for s in seen if any(rel == SPAWNING for _, rel in per[s])),
+              # how old the bound surveys are (the sheet states the years; this makes it visible every build)
+              "dfo_bound_by_last_survey": age_bands(runs[i].last_year for i in bound_dfo)}
     return per, report

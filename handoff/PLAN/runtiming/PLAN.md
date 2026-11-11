@@ -12,8 +12,9 @@ that was then reverted; it is not in the repo.
 | PSF | dataset #90, 329 CU curves (of 463 CUs) | river entry | PSF's written permission (2026-10-24; the reply is not stored) | Pacific Salmon Foundation (Salmon Watersheds Program) |
 | DFO | NuSEDS, 4,944 stream × species × run records (≥3 dated survey years, the latest ≤25) | in the stream | Open Government Licence – Canada | Fisheries and Oceans Canada |
 
-Best source per species: on a stream DFO surveyed, DFO replaces that species' PSF *spawning* curve; passing PSF runs
-stay; steelhead (not in NuSEDS) and unsurveyed water take PSF. Credit on every surface that shows a timing (the
+~~Best source per species: on a stream DFO surveyed, DFO replaces that species' PSF *spawning* curve.~~ Reversed by the
+owner 2026-11-09 (Q180, T552): "dfo surveys are just in addition to psf curve. psf is primary" — a DFO survey is shown
+beside the PSF curve and never replaces it; steelhead (not in NuSEDS) and unsurveyed water take PSF alone. Credit on every surface that shows a timing (the
 sheet's foot) and a "Fish run timing" block on Sources and credits.
 
 ## 1. Binding (a delivery step, never a frozen index)

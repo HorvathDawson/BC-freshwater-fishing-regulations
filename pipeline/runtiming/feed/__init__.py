@@ -51,6 +51,7 @@ WHAT THE APP READS (`runtiming/`, every file but the index named by its content 
 
 THE RELATIONS (`bind.py`, measured on the 2026-10-24 prototype, handoff/PLAN/runtiming/PLAN.md): `spawning` (PSF: in
 the CU polygon, order >= 3 or a draining lake), `passage` (PSF: the flow walked down to the sea, never into another
-river's code), `observed` (DFO: the surveyed stream's own named sections; replaces that species' PSF spawning there).
+river's code), `observed` (DFO: the surveyed stream's own named sections; IN ADDITION to the PSF runs there, never
+replacing them — owner 2026-11-09, Q180: PSF is primary; T552).
 PSF dates are RIVER ENTRY: no travel time is invented; `km` says how far up the reader stands.
 """
