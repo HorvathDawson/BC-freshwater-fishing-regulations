@@ -130,8 +130,132 @@ def _quantile(xs: list[float], q: float) -> float:
     return xs[lo] + (xs[hi] - xs[lo]) * (i - lo)
 
 
+# ── (T550 item 2) LEVEL DATUM SHIFTS ───────────────────────────────────────────────────────────────────────────────
+#
+# A STAGE RECORD IS ONLY COMPARABLE TO ITSELF WHILE ITS DATUM HOLDS. HYDAT pools every DLY_LEVELS value a station ever
+# had, and a gauge that was re-surveyed, moved or re-zeroed steps: 08HD006 (Salmon River near Sayward) reads 3.3 m at
+# mid flows 2011-2015 and 6.9 m from 2016 (HYDAT 20261019; STN_DATUM_CONVERSION has no row for it), 08LB024 0.3 m to
+# 2017 and 1.9 m from 2018. Pooled, the envelope spans both datums and a live level ranks against a band that is half
+# another gauge. So the level record is cut at its LAST SHIFT and only the years since rank a level; a record left
+# shorter than MIN_RECORD_YEARS ranks none. `gauge_stats` says so (`level_since`, `level_shifts`).
+#
+# THE STEP TEST, per station, on one number a year: the median level on days whose flow is in the middle third of the
+# station's flow record (so a wet or a dry year cannot pass for a shift), or, with no flow, the year's median level.
+# The best split (least squared deviation from the two sides' means, each side >= 2 years) is a shift when the jump
+# between the sides' medians is at least SHIFT_MIN_M and SHIFT_SPREAD_X times the larger side's median absolute
+# deviation; each side is searched again (`level_shifts`), and the LAST shift starts the kept record.
+SHIFT_MIN_M = 0.5
+SHIFT_SPREAD_X = 5.0
+SHIFT_SIDE_YEARS = 2
+# a year needs this many mid-flow days (or level days, with no flow) to be a point of the test
+SHIFT_YEAR_DAYS = 20
+#
+# THE LIVE READING'S DATUM. A live level can be on yet another datum than the newest HYDAT year (08HD006 reads 2.34 m
+# at 118 m³/s on 2026-11-10, where its 2016-2024 record says ~6.9 m at that flow): no cut of the archive can rank it.
+# So the envelope carries the station's RATING over the kept years — at each flow decile knot, the 1st and 99th
+# percentile level seen between it and the next — and the publisher ranks no level whose (flow, level) pair is off it
+# by more than RATING_PAD_M (`publish.level_on_rating`). Stations with no flow record carry none (nothing to pair).
+RATING_KNOTS = 11
+RATING_PAD_M = 0.5
+RATING_MIN_PAIRS = 200
+
+
+def _daily(db, table: str, col: str, station: str) -> dict[date, float]:
+    """One station's daily values from one HYDAT table, by day."""
+    cols = ", ".join(f"{col}{d}" for d in range(1, 32))
+    out: dict[date, float] = {}
+    for row in db.execute(f"SELECT YEAR, MONTH, {cols} FROM {table} WHERE STATION_NUMBER = ?", [station]):
+        for d, v in enumerate(row[2:], start=1):
+            if v is None:
+                continue
+            try:
+                out[date(row[0], row[1], d)] = float(v)
+            except ValueError:
+                continue
+    return out
+
+
+def _median(xs: list[float]) -> float:
+    xs = sorted(xs)
+    return _quantile(xs, 0.5)
+
+
+def _mad(xs: list[float]) -> float:
+    m = _median(xs)
+    return _median([abs(x - m) for x in xs])
+
+
+def level_shifts(points: list[tuple[int, float]]) -> list[int]:
+    """The years a level record shifts datum at (each the first year AFTER a shift), oldest first. See SHIFT_MIN_M.
+
+    Binary segmentation: the split with the least squared deviation from its two sides' means is a shift when the jump
+    between the sides' medians is at least SHIFT_MIN_M and SHIFT_SPREAD_X times the larger side's median absolute
+    deviation (robust to a further shift inside a side); each side is then searched again.
+    """
+    pts = sorted(points)
+    if len(pts) < 2 * SHIFT_SIDE_YEARS:
+        return []
+    best: tuple[float, int] | None = None
+    for k in range(SHIFT_SIDE_YEARS, len(pts) - SHIFT_SIDE_YEARS + 1):
+        a, b = [v for _, v in pts[:k]], [v for _, v in pts[k:]]
+        ma, mb = sum(a) / len(a), sum(b) / len(b)
+        sse = sum((v - ma) ** 2 for v in a) + sum((v - mb) ** 2 for v in b)
+        if best is None or sse < best[0]:
+            best = (sse, k)
+    k = best[1]
+    a, b = [v for _, v in pts[:k]], [v for _, v in pts[k:]]
+    jump = abs(_median(b) - _median(a))
+    if jump < SHIFT_MIN_M or jump < SHIFT_SPREAD_X * max(_mad(a), _mad(b)):
+        return []
+    return level_shifts(pts[:k]) + [pts[k][0]] + level_shifts(pts[k:])
+
+
+def rating_of(pairs: list[tuple[float, float]]) -> list[list[float]] | None:
+    """[[flow knot, level p1, level p99], ...] over flow deciles; None under RATING_MIN_PAIRS pairs. See RATING_PAD_M."""
+    if len(pairs) < RATING_MIN_PAIRS:
+        return None
+    pairs = sorted(pairs)
+    qs = [q for q, _ in pairs]
+    knots = [_quantile(qs, i / (RATING_KNOTS - 1)) for i in range(RATING_KNOTS)]
+    out: list[list[float]] = []
+    for i in range(RATING_KNOTS - 1):
+        lo, hi = knots[i], knots[i + 1]
+        hs = sorted(h for q, h in pairs if lo <= q <= hi)
+        if not hs:
+            return None
+        out.append([_sig4(lo), _sig4(_quantile(hs, 0.01)), _sig4(_quantile(hs, 0.99))])
+    out.append([_sig4(knots[-1]), out[-1][1], out[-1][2]])
+    return out
+
+
+def level_record(db, station: str) -> dict:
+    """{since, shifts, rating}: the year the station's comparable level record starts (None: all of it), the shift years,
+    and the rating over the kept years (None: no flow to pair, or too few pairs)."""
+    lv = _daily(db, "DLY_LEVELS", "LEVEL", station)
+    if not lv:
+        return {"since": None, "shifts": [], "rating": None}
+    fl = _daily(db, "DLY_FLOWS", "FLOW", station)
+    by_year: dict[int, list[float]] = defaultdict(list)
+    if fl:
+        qs = sorted(fl.values())
+        lo, hi = qs[len(qs) // 3], qs[2 * len(qs) // 3]
+        for d, h in lv.items():
+            q = fl.get(d)
+            if q is not None and lo <= q <= hi:
+                by_year[d.year].append(h)
+    if not fl or sum(1 for v in by_year.values() if len(v) >= SHIFT_YEAR_DAYS) < 2 * SHIFT_SIDE_YEARS:
+        by_year = defaultdict(list)
+        for d, h in lv.items():
+            by_year[d.year].append(h)
+    points = [(y, _median(v)) for y, v in by_year.items() if len(v) >= SHIFT_YEAR_DAYS]
+    shifts = level_shifts(points)
+    since = shifts[-1] if shifts else None
+    pairs = [(fl[d], h) for d, h in lv.items() if d in fl and (since is None or d.year >= since)]
+    return {"since": since, "shifts": shifts, "rating": rating_of(pairs) if fl else None}
+
+
 def _read(db, table: str, col: str, where: str,
-          args: list) -> tuple[dict, dict, dict, dict]:
+          args: list, since: dict[str, int] | None = None) -> tuple[dict, dict, dict, dict]:
     """Pool one HYDAT daily table into pentads. Returns (pooled, years, days, recent).
 
     ``recent`` is the raw daily record for the last few complete years, keyed
@@ -151,6 +275,8 @@ def _read(db, table: str, col: str, where: str,
     for row in db.execute(f"SELECT STATION_NUMBER, YEAR, MONTH, {cols} FROM {table}{where}",
                           args):
         st, yr, mo = row[0], row[1], row[2]
+        if since and st in since and yr < since[st]:
+            continue              # before the station's last datum shift (T550): another gauge, in effect
         for d, v in enumerate(row[3:], start=1):
             if v is None:
                 continue
@@ -202,9 +328,14 @@ def build(hydat: Path, stations: list[str] | None = None,
         where = f" WHERE STATION_NUMBER IN ({','.join('?' * len(stations))})"
         args = list(stations)
 
+    # (T550) every level record's datum shifts and rating, BEFORE the level table is pooled: the pool keeps only the
+    # years since the last shift
+    level_ids = stations if stations else [r[0] for r in db.execute("SELECT DISTINCT STATION_NUMBER FROM DLY_LEVELS")]
+    records = {st: level_record(db, st) for st in sorted(set(level_ids))}
+    since = {st: r["since"] for st, r in records.items() if r["since"] is not None}
     series = {
         "discharge": _read(db, "DLY_FLOWS", "FLOW", where, args),
-        "level": _read(db, "DLY_LEVELS", "LEVEL", where, args),
+        "level": _read(db, "DLY_LEVELS", "LEVEL", where, args, since),
     }
     db.close()
 
@@ -235,6 +366,13 @@ def build(hydat: Path, stations: list[str] | None = None,
             stats.setdefault(st, {})[param] = {
                 "from_year": min(years[st]), "to_year": max(years[st]),
                 "years": len(years[st]), "days": days[st]}
+            if param == "level" and records.get(st, {}).get("shifts"):
+                stats[st][param].update(level_since=records[st]["since"], level_shifts=records[st]["shifts"])
+    # (T550) the stations whose level record shifted: listed for the owner (printed by `main`), every one of them,
+    # including those left with too short a record to rank a level at all
+    shifted = {st: {"since": r["since"], "shifts": r["shifts"],
+                    "ranked": "level" in envelope.get(st, {})} for st, r in records.items() if r["shifts"]}
+    ratings = {st: r["rating"] for st, r in records.items() if r["rating"] and "level" in envelope.get(st, {})}
 
     return {
         "release": release or "unknown",
@@ -247,6 +385,11 @@ def build(hydat: Path, stations: list[str] | None = None,
         # last summer was dry too, which a band cannot show however wide it is.
         "recentYears": recent_years,
         "recentYearCount": RECENT_YEARS,
+        # (T550) each level envelope's rating over its kept years: the publisher ranks no level whose live (flow, level)
+        # pair is off it (`publish.level_on_rating`) — the live gauge is then on another datum than the record
+        "ratings": ratings,
+        "ratingPadM": RATING_PAD_M,
+        "levelShifts": shifted,
     }
 
 
@@ -280,6 +423,13 @@ def main() -> None:
     if yrs:
         print(f"     record length: median {sorted(yrs)[len(yrs) // 2]} years, "
               f"shortest {min(yrs)}, longest {max(yrs)}")
+    shifted = out["levelShifts"]
+    if shifted:
+        print(f"  ⚠️  {len(shifted)} level record(s) shift datum; only the years since the last shift rank a level "
+              f"(owner review: the list is clim.json `levelShifts`):")
+        for st, r in sorted(shifted.items()):
+            print(f"     {st}  shifts {', '.join(map(str, r['shifts']))}  "
+                  + ("ranked from " + str(r["since"]) if r["ranked"] else "no level ranked (record since too short)"))
 
 
 if __name__ == "__main__":

@@ -52,6 +52,17 @@ interface Reading {
   recent: Row[];
 }
 
+/** publish.level_on_rating (T550 item 2): a live (flow, level) pair on the station's rating over its kept HYDAT years. */
+export function levelOnRating(rating: unknown, discharge: Num, level: Num, pad: unknown): boolean {
+  if (!Array.isArray(rating) || !rating.length || discharge === null || level === null) return true;
+  if (typeof pad !== "number") throw new Error("clim.json carries ratings but no ratingPadM: rebuild it (pipeline.gauges.feed.climatology)");
+  const r = rating as number[][];
+  let i = 0;
+  while (i < r.length - 2 && discharge > r[i + 1]![0]!) i++;
+  const lo = r[i]![1]!, hi = r[i]![2]!;
+  return lo - pad <= level && level <= hi + pad;
+}
+
 /**
  * publish.age_gate (T550): an entry whose reading is older than core's `READING_MAX_AGE_MS` when the feed is written is
  * not today's — no rank (`percentile` null, no per-quantity `discharge`/`level`), so no reader counts, weighs or colours
@@ -512,8 +523,9 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
         for (const st of ids) if (st in (o as object)) out[st] = (o as Record<string, unknown>)[st];
         return out;
       };
-      clim = { ...clim, stations: slim(clim.stations), recentYears: slim(clim.recentYears) };
+      clim = { ...clim, stations: slim(clim.stations), recentYears: slim(clim.recentYears), ratings: slim(clim.ratings) };
       delete clim!.stats;
+      delete clim!.levelShifts; // (T550) the owner's list, printed by the build: the feed reads only `ratings`
     }
   }
 
@@ -926,7 +938,12 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       if (c.newest && (!newest || c.newest > newest)) newest = c.newest;
       continue;
     }
-    const have: Record<string, any> = envelope[st] || {};
+    let have: Record<string, any> = envelope[st] || {};
+    // (T550 item 2) a live level off the record's rating is on another datum: no level ranked this run (publish.py)
+    if ("level" in have && !levelOnRating((clim || {}).ratings?.[st], r.discharge, r.level, (clim || {}).ratingPadM)) {
+      const { level: _lv, ...rest } = have;
+      have = rest;
+    }
     const param = shownParameter(have, r.discharge, r.level);
     const band = bandFor(have[param], now);
     const observed = param === "level" ? r.level : r.discharge;

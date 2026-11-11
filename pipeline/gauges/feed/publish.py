@@ -324,6 +324,25 @@ def reading_current(observed_at: object, now: datetime) -> bool:
     return (now - t).total_seconds() <= READING_MAX_AGE_HOURS * 3600
 
 
+def level_on_rating(rating: list | None, discharge: float | None, level: float | None, pad: float | None) -> bool:
+    """(T550 item 2) Is a live (flow, level) pair on the station's rating over its kept HYDAT years (`climatology.rating_of`)?
+
+    The bin is the flow-decile knot span the flow falls in (below the first: the first; above the last: the last); off
+    it by more than `pad` metres, the live gauge reads on another datum than the record (08HD006: 2.34 m at 118 m³/s
+    where its record reads 7.2-7.6 m; 07FD001: 95.2 m against ~1 m) and its level is not ranked. No rating, or no pair
+    to test (a level-only reading): nothing to say, the level ranks as before.
+    """
+    if not rating or discharge is None or level is None:
+        return True
+    if not isinstance(pad, (int, float)):
+        raise ValueError("clim.json carries ratings but no ratingPadM: rebuild it (pipeline.gauges.feed.climatology)")
+    i = 0
+    while i < len(rating) - 2 and discharge > rating[i + 1][0]:
+        i += 1
+    lo, hi = rating[i][1], rating[i][2]
+    return lo - pad <= level <= hi + pad
+
+
 def age_gate(entry: dict, now: datetime) -> dict:
     """An index entry whose reading is past `READING_MAX_AGE_HOURS`: no rank (`percentile` null, no `discharge`/`level`)."""
     if reading_current(entry.get("observedAt"), now):
@@ -833,6 +852,11 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         # is used where discharge cannot answer — 237 BC stations never measure it — and the
         # parameter travels with the number so nothing presents them as the same claim.
         have = envelope.get(r["station"]) or {}
+        # (T550 item 2) a live level off the record's rating is on another datum: no level is ranked for this station
+        # this run (today, ahead, or as its default), exactly as if it had no level envelope
+        if "level" in have and not level_on_rating((clim or {}).get("ratings", {}).get(r["station"]), r["discharge"],
+                                                   r["level"], (clim or {}).get("ratingPadM")):
+            have = {k: v for k, v in have.items() if k != "level"}
         param = shown_parameter(have, r["discharge"], r["level"])
         band = band_for(have.get(param), now)
         observed = r["level"] if param == "level" else r["discharge"]

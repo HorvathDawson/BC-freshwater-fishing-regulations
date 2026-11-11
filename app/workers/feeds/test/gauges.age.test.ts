@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { READING_MAX_AGE_MS } from "../../../packages/core/src/freshness";
 import { cardModel } from "../src/gauges/card/card";
-import { ageGate, runGauges } from "../src/gauges/publish";
+import { ageGate, levelOnRating, runGauges } from "../src/gauges/publish";
 import { dirStore, fixtureFetch, loadRecording } from "../parity/gauges/node";
 
 const FIX = join(__dirname, "fixtures/gauges");
@@ -77,5 +77,22 @@ describe("the share card", () => {
     const t = Date.parse(at);
     expect(cardModel("08HB022", "Nile Creek", f as any, t + HOUR).standing).not.toBeNull();
     expect(cardModel("08HB022", "Nile Creek", f as any, t + 37 * HOUR).standing).toBeNull();
+  });
+});
+
+// T550 item 2: a live level off the record's rating (another datum) is not ranked; the Python twin is
+// pipeline/tests/test_level_datum.py (same rating, same pairs).
+describe("levelOnRating", () => {
+  const rating = [[2.36, 6.296, 6.409], [6.16, 6.388, 6.561], [14.7, 6.533, 6.686], [23.1, 6.631, 6.783],
+    [32.04, 6.729, 6.896], [42.4, 6.816, 7.0], [54.46, 6.933, 7.143], [72.92, 7.053, 7.292],
+    [97.06, 7.231, 7.562], [141.4, 7.502, 9.435], [958.0, 7.502, 9.435]]; // 08HD006 since 2016
+  it("refuses 08HD006's live pair (2.338 m at 118 m³/s, staging 2026-11-10) and keeps one on the rating", () => {
+    expect(levelOnRating(rating, 118, 2.338, 0.5)).toBe(false);
+    expect(levelOnRating(rating, 118, 7.4, 0.5)).toBe(true);
+  });
+  it("has nothing to say with no pair or no rating, and refuses ratings without a pad", () => {
+    expect(levelOnRating(rating, null, 2.338, 0.5)).toBe(true);
+    expect(levelOnRating(undefined, 118, 2.338, undefined)).toBe(true);
+    expect(() => levelOnRating(rating, 118, 2.338, undefined)).toThrow(/ratingPadM/);
   });
 });
