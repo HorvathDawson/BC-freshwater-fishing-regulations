@@ -16,6 +16,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeRunner } from "./seo/runner.mjs";
+import { latestId } from "../conformance/src/latestRelease.mjs";
 
 const APP = fileURLToPath(new URL("..", import.meta.url));
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
@@ -63,7 +64,8 @@ function chromePath() {
 /** The newest release's map assets folder (fonts + sprites), as the tile server serves it. */
 function assetsDir() {
   const root = join(REPO, "data/release/");
-  const id = readFileSync(join(root, "LATEST"), "utf8").trim();
+  const id = latestId(root);
+  if (id === null) throw new Error(`no ${root}LATEST: run the release step`);
   const url = JSON.parse(readFileSync(join(root, id, "manifest.json"), "utf8")).tiles.assets.url;
   return join(root, url);
 }

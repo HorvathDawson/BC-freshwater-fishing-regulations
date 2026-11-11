@@ -15,11 +15,12 @@
  * The regulations half is the regs fixture release (`@app/data/release/node` `openRegsFixture`), cut from a live one.
  */
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 import { KNOWN_VERSIONS, SECTION_NAMES } from "@app/core";
+import { latest } from "./latestRelease.mjs";
 
 const REPO = resolve(__dirname, "../../..");
 
@@ -68,7 +69,7 @@ export function releaseFetch(base: string, dir: string, log: string[]): typeof f
 
 /**
  * THE LIVE RELEASE on this machine (`python -m pipeline.deliver release` → data/release/r-*, not in git): $RELEASE_DIR
- * (relative to the repo root, or absolute), else the newest release folder in this checkout, else — in a
+ * (relative to the repo root, or absolute), else the release this checkout's `data/release/LATEST` names, else — in a
  * `.claude/worktrees/<name>` checkout — the main checkout's (read only: its files are read, never written). null: none,
  * or one this app refuses by its section versions (`liveReleaseAt` says why).
  */
@@ -103,11 +104,9 @@ function findRelease(env: Readonly<Record<string, string | undefined>>): string 
     return existsSync(join(d, "manifest.json")) ? d : null;
   }
   for (const root of ROOTS()) {
-    const rel = join(root, "data/release");
-    if (!existsSync(rel)) continue;
-    const dirs = readdirSync(rel).filter((n) => /^r-/.test(n) && existsSync(join(rel, n, "manifest.json")))
-      .map((n) => join(rel, n)).sort((a, b) => statSync(join(b, "manifest.json")).mtimeMs - statSync(join(a, "manifest.json")).mtimeMs);
-    if (dirs.length) return dirs[0]!;
+    // (T601) the release `data/release/LATEST` names — never the newest by mtime
+    const dir = latest(join(root, "data/release"));
+    if (dir) return dir;
   }
   return null;
 }

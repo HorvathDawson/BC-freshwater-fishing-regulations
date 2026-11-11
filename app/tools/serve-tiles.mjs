@@ -11,9 +11,10 @@
  * them directly; nothing about the client changes, which is the point of the two-storage
  * design (the architecture artifact).
  */
-import { createReadStream, statSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import { createReadStream, statSync, existsSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
+import { latestId } from "../conformance/src/latestRelease.mjs";
 
 const repo = fileURLToPath(new URL("../..", import.meta.url));
 const ARCHIVES = {
@@ -80,12 +81,9 @@ function releaseFile(route) {
   const rel = decodeURIComponent(route.slice("/release/".length));
   if (rel.split("/").includes("..")) return undefined;
   if (rel === "manifest.json") {
-    // T72: `data/release/LATEST` (written by the release step) names the release; the newest mtime only without one
-    const pointer = `${RELEASE_ROOT}LATEST`;
-    const id = process.env.RELEASE ?? (existsSync(pointer) ? readFileSync(pointer, "utf8").trim() : existsSync(RELEASE_ROOT)
-      ? readdirSync(RELEASE_ROOT).filter((d) => d.startsWith("r-"))
-          .sort((a, b) => statSync(`${RELEASE_ROOT}${b}`).mtimeMs - statSync(`${RELEASE_ROOT}${a}`).mtimeMs)[0]
-      : undefined);
+    // T72/T601: `RELEASE=<id>` if asked, else the release `<root>/LATEST` names (written by the release step) — never the
+    // newest by mtime; no pointer means no manifest (404), not a guess
+    const id = process.env.RELEASE ?? latestId(RELEASE_ROOT) ?? undefined;
     return id ? `${RELEASE_ROOT}${id}/manifest.json` : undefined;
   }
   return `${RELEASE_ROOT}${rel}`;

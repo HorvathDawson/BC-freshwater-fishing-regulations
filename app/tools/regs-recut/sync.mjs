@@ -10,6 +10,7 @@
 // the message. Nothing else is frozen: golden.json, pins.json, tokens.json and inventory.json were retired in T439.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+import { latest as latestRelease } from '../../conformance/src/latestRelease.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../../..');
@@ -17,11 +18,10 @@ const APP = path.join(REPO, 'app');
 const run = (cmd, a, env = {}) =>
   execFileSync(cmd, a, { cwd: REPO, stdio: ['ignore', 'inherit', 'inherit'], env: { ...process.env, ...env } });
 const py = path.join(REPO, '.venv/bin/python');
-const latest = path.join(REPO, 'data/release/LATEST');
-if (!fs.existsSync(py) || !fs.existsSync(latest)) {
+const release = latestRelease(path.join(REPO, 'data/release'));   // (T601) the one latest(): LATEST names it, never an mtime
+if (!fs.existsSync(py) || release === null) {
   console.error('regs-recut: needs .venv and data/release/LATEST'); process.exit(1);
 }
-const release = path.join(REPO, 'data/release', fs.readFileSync(latest, 'utf8').trim());
 const step = (n, what) => console.log(`\nregs-recut ${n}/4: ${what} (${path.basename(release)})`);
 step(1, 'taps.json'); run(py, [path.join(HERE, 'taps.py')]);
 step(2, 'hydrate.json'); run('node', [path.join(HERE, 'hydrate.mjs')]);
