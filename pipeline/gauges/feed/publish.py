@@ -43,6 +43,7 @@ import csv
 import io
 import json
 import math
+import re
 import sys
 import time
 import urllib.error
@@ -317,6 +318,7 @@ FEED_FORMAT = "gauge-feed/1"
 # 37 h old on 2026-11-10, ranked as today's). The gauge alerts' gate is the same line. Emitted to the app as
 # `READING_MAX_AGE_HOURS` (`pipeline.tools.emit.gauge_policy`); the worker reads core's copy.
 READING_MAX_AGE_HOURS = 6
+_ZONED = re.compile(r"(Z|[+-]\d\d:?\d\d)$", re.I)     # the zone suffix core `readingCurrent` tests for, the same
 
 
 def reading_current(observed_at: object, now: datetime) -> bool:
@@ -325,13 +327,10 @@ def reading_current(observed_at: object, now: datetime) -> bool:
     Only a zoned stamp is judged (ECCC writes every one with its offset); a naive or unreadable one is not refused here,
     exactly as core `readingCurrent` does, so the two publishers and the app cannot judge one stamp two ways.
     """
-    if not isinstance(observed_at, str) or not observed_at:
+    if not isinstance(observed_at, str) or not _ZONED.search(observed_at.strip()):
         return True
-    try:
-        t = datetime.fromisoformat(observed_at.strip().replace("Z", "+00:00"))
-    except ValueError:
-        return True
-    if t.tzinfo is None:
+    t = _instant(observed_at)                  # the one reading of a stamp (forecast.instant); zoned, so as stated
+    if t is None:
         return True
     return (now - t).total_seconds() <= READING_MAX_AGE_HOURS * 3600
 
