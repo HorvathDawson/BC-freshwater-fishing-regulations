@@ -72921,7 +72921,9 @@
     "name": "Okanagan River Oxbows",
     "source": "regulation",
     "note": "T637 (owner 2026-11-11, option A): the owner's hand-matched side channels of the Okanagan River in MU 8-1 (the OKANAGAN RIVER OXBOWS override in book_name_links.json, first matched 2026-02-08). FWA leaves these lines unnamed, so without this name the registry made no item and the override's watershed codes named no water. Exact-wsc scope (child codes only where listed). kind=stream so the name cannot land on the lakes and wetlands these channels thread. Park Rill (300-432687-516449) is not one. Three lines are named only up to their accepted hillside cut, by the blk + reach entries that follow (500162, 466472, 461418-565942, 461418, 459615).",
-    "display": true
+    "display": true,
+    "one_water": true,
+    "one_water_note": "T664 (owner 2026-11-11: \"the oxbows should be combined as one item\"): every STREAM item named Okanagan River Oxbows is ONE registry item (registry.one_water); lake/wetland oxbow items stay apart."
    }
   ]
  },

@@ -1523,6 +1523,15 @@ def build_registry(b: _Build) -> None:
           f"{len(_missing)} newly loaded)")
     _mu_all = get_mu_polys(fwa)
     registry = add_mu_sets(registry, geoms, _mu_all, wbk_polys)
+    # T664: a water the curator named across several codes (`name_variants` record `one_water: true`, the Okanagan
+    # River Oxbows) is ONE item; absorbed ids go to the survivor's `aliases`. After the MUs (each member's own count).
+    from pipeline.atlas.registry.one_water import merge_one_waters, one_water_names
+    _owrep: dict = {}
+    registry = merge_one_waters(registry, one_water_names(_nv_all), _owrep)
+    for _nm, _r in _owrep.items():
+        print(f"  one water (T664) {_nm}: {len(_r['absorbed'])} item(s) into {_r['survivor']}, "
+              f"{_r['sections']} section(s); kept apart (still water): {len(_r['kept_apart'])}")
+    (out / "one_water_report.json").write_text(json.dumps(_owrep, indent=1) + "\n", encoding="utf-8")
     # Each region item carries the MUs lying in it, so a Region 7 row's MUs name its ZONE
     # (`reach.outside.entry_regions`): `@7-30+7-37+7-38` is 7A, `@7-31+7-36` is 7B.
     from pipeline.atlas.registry.build import add_region_units

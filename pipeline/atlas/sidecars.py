@@ -42,7 +42,7 @@ from pipeline.common.curated import CURATED, GENERATED
 from pipeline.atlas.splits.splits import dump_resolved, order_resolved
 
 SIDECARS = ("region_home.json", "registry.json", "item_points.json", "merge_report.json", "slough_fold_report.json",
-            "splits.resolved.json")
+            "one_water_report.json", "splits.resolved.json")
 
 
 def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> list[dict]:
@@ -138,6 +138,12 @@ def write_sidecars(build: Path, out: Path | None = None, *, log=print) -> Path:
     from pipeline.atlas.registry import outside_area_items
     from pipeline.atlas.splits.area_splits import load_area_split_defs
     registry = outside_area_items(registry, load_area_split_defs())
+    # T664: one water across codes — the same pass the atlas build runs (after its MUs, which this registry has)
+    from pipeline.atlas.graph.names import load_name_variants
+    from pipeline.atlas.registry.one_water import merge_one_waters, one_water_names
+    owrep: dict = {}
+    registry = merge_one_waters(registry, one_water_names(load_name_variants(CURATED.waters.name_variants)), owrep)
+    (dest / "one_water_report.json").write_text(json.dumps(owrep, indent=1) + "\n", encoding="utf-8")
     write_registry(registry, dest / "registry.json")
     log(f"  registry.json: {n_parts} lake part(s) carry part_of; their lakes own no section")
     pins_path = build / "item_points.json"

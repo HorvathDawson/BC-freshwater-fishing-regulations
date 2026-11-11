@@ -1,0 +1,234 @@
+diff --git a/data/curated/waters/cuts.json b/data/curated/waters/cuts.json
+index 7b3efa684..26d172f3c 100644
+--- a/data/curated/waters/cuts.json
++++ b/data/curated/waters/cuts.json
+@@ -3577,6 +3577,27 @@
+       -122.869379,
+       49.057862
+      ]
++    },
++    {
++     "id": "nicomekl_river__23_m_below_the_nicomekl_flood_dam_d23m",
++     "label": "23 m below the Nicomekl flood dam",
++     "kind": "point",
++     "anchor": {
++      "type": "point",
++      "coord": [
++       -122.82521,
++       49.06944
++      ],
++      "is_lonlat": true,
++      "offset_m": 23.0,
++      "offset_dir": "downstream"
++     },
++     "note": "",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 2:nicomekl-river:within-23-m-downstream-of-the-floo",
++     "_coord": [
++      -122.825207,
++      49.069451
++     ]
+     }
+    ]
+   },
+@@ -3747,6 +3768,27 @@
+       -122.81892,
+       49.08678
+      ]
++    },
++    {
++     "id": "serpentine_river__23_m_below_the_serpentine_flood_dam_d23m",
++     "label": "23 m below the Serpentine flood dam",
++     "kind": "point",
++     "anchor": {
++      "type": "point",
++      "coord": [
++       -122.81892,
++       49.08678
++      ],
++      "is_lonlat": true,
++      "offset_m": 23.0,
++      "offset_dir": "downstream"
++     },
++     "note": "",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 2:serpentine-river:within-23-m-downstream-of-the-floo",
++     "_coord": [
++      -122.81892,
++      49.08677
++     ]
+     }
+    ]
+   },
+@@ -4577,6 +4619,46 @@
+       -121.29808,
+       50.48643
+      ]
++    },
++    {
++     "id": "thompson_river__signs_just_below_goldpan_provincial_park",
++     "label": "signs just below Goldpan Provincial Park",
++     "kind": "point",
++     "anchor": {
++      "type": "point",
++      "coord": [
++       -121.392281,
++       50.344684
++      ],
++      "is_lonlat": true
++     },
++     "note": "",
++     "confidence": "medium",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 3:thompson-river:from-kamloops-lake-outlet-downstre~2, 3:thompson-river:from-the-white-triangle-fishing-bo",
++     "_coord": [
++      -121.392281,
++      50.344684
++     ]
++    },
++    {
++     "id": "thompson_river__easterly_border_of_the_skihist_ecological_reserve_along_the",
++     "label": "easterly border of the Skihist Ecological reserve along the Thompson River locat",
++     "kind": "point",
++     "anchor": {
++      "type": "point",
++      "coord": [
++       -121.515205,
++       50.25673
++      ],
++      "is_lonlat": true
++     },
++     "note": "",
++     "confidence": "medium",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 3:thompson-river:from-the-white-triangle-fishing-bo — \"the easterly border of the Skihist Ecological reserve along the Thompson River located at 50°15'23.0\"N 121°30'55.0\"W\"",
++     "_coord": [
++      -121.515205,
++      50.25673
++     ]
+     }
+    ]
+   },
+@@ -10629,6 +10711,126 @@
+      ]
+     }
+    ]
++  },
++  {
++   "name": "NAKINA RIVER",
++   "applies_to": {
++    "gnis_id": "16492"
++   },
++   "splits": [
++    {
++     "id": "nakina_river__sloko_river_u300m",
++     "label": "Sloko River confluence",
++     "kind": "confluence",
++     "anchor": {
++      "type": "confluence",
++      "tributary_wsc": "700-999247-113728",
++      "_name": "Sloko River",
++      "offset_m": 300.0,
++      "offset_dir": "upstream"
++     },
++     "note": "",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 6:nakina-river:that-portion-of-the-nakina-river-f",
++     "_coord": [
++      -133.154313,
++      59.006004
++     ]
++    },
++    {
++     "id": "nakina_river__sloko_river_u1300m",
++     "label": "Sloko River confluence",
++     "kind": "confluence",
++     "anchor": {
++      "type": "confluence",
++      "tributary_wsc": "700-999247-113728",
++      "_name": "Sloko River",
++      "offset_m": 1300.0,
++      "offset_dir": "upstream"
++     },
++     "note": "",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 6:nakina-river:that-portion-of-the-nakina-river-f",
++     "_coord": [
++      -133.154313,
++      59.006004
++     ]
++    }
++   ]
++  },
++  {
++   "name": "HARRISON RIVER",
++   "applies_to": {
++    "gnis_id": "15333"
++   },
++   "splits": [
++    {
++     "id": "harrison_river__hwy_7_bridge_over_the_harrison",
++     "label": "Hwy 7 bridge over the Harrison",
++     "kind": "point",
++     "anchor": {
++      "type": "point",
++      "coord": [
++       -121.94761,
++       49.247643
++      ],
++      "is_lonlat": true
++     },
++     "note": "",
++     "confidence": "medium",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 2:harrison-river:from-the-highway-7-bridge-downstre, 2:harrison-river:from-the-outlet-of-harrison-lake-d",
++     "_coord": [
++      -121.94761,
++      49.247643
++     ]
++    }
++   ]
++  },
++  {
++   "name": "NICOMEN SLOUGH",
++   "applies_to": {
++    "gnis_id": "21105"
++   },
++   "splits": [
++    {
++     "id": "nicomen_slough__siddle_creek",
++     "label": "Siddle Creek",
++     "kind": "point",
++     "anchor": {
++      "type": "point",
++      "coord": [
++       -122.011261,
++       49.209543
++      ],
++      "is_lonlat": true
++     },
++     "note": "",
++     "confidence": "medium",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell",
++     "_coord": [
++      -122.011261,
++      49.209543
++     ]
++    },
++    {
++     "id": "nicomen_slough__hwy_7_nicomen_slough_bridge_at_dewdney",
++     "label": "Hwy 7 Nicomen Slough Bridge at Dewdney",
++     "kind": "point",
++     "anchor": {
++      "type": "point",
++      "coord": [
++       -122.193194,
++       49.16313
++      ],
++      "is_lonlat": true
++     },
++     "note": "",
++     "confidence": "medium",
++     "_note": "[T185 proposal 2026-11-11] proposed in review marks on 2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn",
++     "_coord": [
++      -122.193194,
++      49.16313
++     ]
++    }
++   ]
+   }
+  ]
+ }

@@ -1,0 +1,171 @@
+diff --git a/data/curated/dfo_salmon/places/region-2.json b/data/curated/dfo_salmon/places/region-2.json
+index 770e4cfff..3f58bcfcb 100644
+--- a/data/curated/dfo_salmon/places/region-2.json
++++ b/data/curated/dfo_salmon/places/region-2.json
+@@ -1905,7 +1905,16 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "between",
++            "splits": [
++              "harrison_river__harrison_lake",
++              "harrison_river__hwy_7_bridge_over_the_harrison"
++            ],
++            "item_id": "gnis:15333"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+@@ -1957,7 +1966,15 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "downstream_of",
++            "splits": [
++              "harrison_river__hwy_7_bridge_over_the_harrison"
++            ],
++            "item_id": "gnis:15333"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+@@ -2648,7 +2665,15 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "downstream_of",
++            "splits": [
++              "nicomen_slough__siddle_creek"
++            ],
++            "item_id": "gnis:21105"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+@@ -2700,7 +2725,15 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "downstream_of",
++            "splits": [
++              "nicomen_slough__hwy_7_nicomen_slough_bridge_at_dewdney"
++            ],
++            "item_id": "gnis:21105"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+@@ -4219,7 +4252,16 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "between",
++            "splits": [
++              "nicomekl_river__dyke_gates",
++              "nicomekl_river__23_m_below_the_nicomekl_flood_dam_d23m"
++            ],
++            "item_id": "gnis:21100"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+@@ -4268,7 +4310,16 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "between",
++            "splits": [
++              "serpentine_river__dyke_gates",
++              "serpentine_river__23_m_below_the_serpentine_flood_dam_d23m"
++            ],
++            "item_id": "gnis:24978"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+diff --git a/data/curated/dfo_salmon/places/region-3.json b/data/curated/dfo_salmon/places/region-3.json
+index 49880a10b..59a9cee98 100644
+--- a/data/curated/dfo_salmon/places/region-3.json
++++ b/data/curated/dfo_salmon/places/region-3.json
+@@ -526,7 +526,16 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "between",
++            "splits": [
++              "thompson_river__signs_just_below_goldpan_provincial_park",
++              "thompson_river__easterly_border_of_the_skihist_ecological_reserve_along_the"
++            ],
++            "item_id": "gnis:39492"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+@@ -650,7 +659,16 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "between",
++            "splits": [
++              "thompson_river__kamloops_lake",
++              "thompson_river__signs_just_below_goldpan_provincial_park"
++            ],
++            "item_id": "gnis:39492"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
+diff --git a/data/curated/dfo_salmon/places/region-6.json b/data/curated/dfo_salmon/places/region-6.json
+index 0ca98539b..81de4b0ca 100644
+--- a/data/curated/dfo_salmon/places/region-6.json
++++ b/data/curated/dfo_salmon/places/region-6.json
+@@ -10117,7 +10117,16 @@
+       "reviewed_at": "",
+       "review_note": "",
+       "binding": {
+-        "extents": [],
++        "extents": [
++          {
++            "op": "between",
++            "splits": [
++              "nakina_river__sloko_river_u300m",
++              "nakina_river__sloko_river_u1300m"
++            ],
++            "item_id": "gnis:16492"
++          }
++        ],
+         "tributaries": null,
+         "tributaries_only": false,
+         "tributary_excludes": [],
