@@ -580,7 +580,7 @@ use that as the sole source of future work."
 | T533 | Release and APK preflight read CI's result for HEAD and check everything since the last ship (FAST_FAIL_BASE) | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 1 |
 | T534 | The emulator tests a build it can name: commit stamp, stale-APK refusal, patched MapLibre by default | IN PROGRESS | 4b6f79411 | one emulator run proves the stamp (command in the ticket) |
 | T535 | fast-fail runs every cheap gate (pnpm check, CI steps, review app), from every long-job entry point, cheapest first | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 3; after T533 |
-| T536 | heavy.sh: a stopped wrapper stops its job, a bad memory reading is safe, `--status` + heartbeat, duplicate refused | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 4 |
+| T536 | heavy.sh: a stopped wrapper stops its job, a bad memory reading is safe, `--status` + heartbeat, duplicate refused | DONE | fad79daf0 | workflow review 2026-11-09; shell test scripts/tests/heavy.test.sh |
 | T537 | `release --staging`: in-season resolve before the promote, resume from the smoke, after-chores named, prod checks staging first | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 5 |
 | T538 | build-apk.sh: cheap checks before the lock, changelog required, Play notes from the changelog, MapLibre proof on both paths | OPEN | — | workflow review 2026-11-09 (owner-led; verified against the code); rank 6 |
 | T539 | Ledger guard checks IN REVIEW can close; restart page holds no state; docs guard (dead paths, rule ids); close T529 | PARTIAL | 7323ce649 | drain NO_STEP_YET (62 ids); restart page owner sections |
