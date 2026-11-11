@@ -125,7 +125,12 @@ def _layer(path: Path) -> dict[int, tuple[str | None, int]]:
 @pytest.fixture(scope="module")
 def tiles():
     d = _tiles()
-    return {name: _layer(d / f"{name}.geojsonl") for name in ("stream", "lake", "wetland")}
+    out = {name: _layer(d / f"{name}.geojsonl") for name in ("stream", "lake", "wetland")}
+    # T166 (owner 2026-10-28): a piece below a tidal boundary is OFF the map, stream or polygon, and the tile export
+    # names every one in `undrawn.json` (layer `tidal`). Such a piece is drawn nowhere ON PURPOSE — never in a layer.
+    out["tidal"] = set(json.loads((d / "undrawn.json").read_text(encoding="utf-8")).get("tidal") or ())
+    assert not out["tidal"] & (set(out["stream"]) | set(out["lake"]) | set(out["wetland"])), "a tidal piece is drawn"
+    return out
 
 
 def _routeless(graph, nid: str) -> bool:
@@ -175,7 +180,8 @@ def test_one_water_kind(db, registry, graph, handles, doc, tiles):
         if not (kind == reach == export) or (tile is not None and tile != kind):
             bad.append((sid, item, kind, reach, export, tile))
     assert bad == [], bad[:20]
-    polys = {s for s, (i, k) in owner.items() if k == "stream" and node_of[s].startswith("lake:")}
+    polys = {s for s, (i, k) in owner.items() if k == "stream" and node_of[s].startswith("lake:")
+             and s not in tiles["tidal"]}                  # T166: a tidal piece is off the map (Williamson Slough's)
     assert polys <= set(tiles["lake"]) | set(tiles["wetland"])
     # every LAKE node of a stream has a route (a wetland node has none: nothing to draw as a line), except a polygon
     # no line touches: an owner-confirmed ISOLATED slough call (T322, owner 10-30: the Okanagan River Oxbows are
@@ -334,8 +340,13 @@ def test_tile_stream_polygon_draws_with_its_river(db, handles, graph, tiles):
             continue                                   # a wetland node has no route to draw
         if _routeless(graph, nid):
             continue                                   # nor has a polygon no line touches (T322 isolated oxbows)
+        if sid in tiles["tidal"]:
+            continue                                   # nor a piece below a tidal boundary (T166: off the map)
         assert sid in tiles["stream"], (item, nid)
-        z = tiles["stream"][sid][1]
+        # T493 (2026-11-08, `fill_zooms`): a stream's own polygon counts as drawn from its POLYGON's zoom ("its route
+        # need not be"), and the fill lowers the stem pieces beside it to that — so the water shows from the earlier
+        # of its route and its polygon
+        z = min(tiles["stream"][sid][1], tiles["lake"].get(sid, (None, 99))[1])
         nbrs = [graph.edges[e].to_node for e in graph.down_adj.get(nid, ())] + \
                [graph.edges[e].from_node for e in graph.up_adj.get(nid, ())]
         zs = [tiles["stream"][handles[n]][1] for n in nbrs
