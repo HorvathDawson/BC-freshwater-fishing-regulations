@@ -182,3 +182,18 @@ def test_upload_puts_the_pointer_coupled_group_last_and_a_failed_test_reset_stop
     assert code.count("deploy/staging/sync-inputs.sh") == 1
     reset = next(ln for ln in code.splitlines() if "test-updates.mjs reset" in ln)
     assert "exit 1" in reset and "WARNING" not in reset
+
+
+def test_build_apk_checks_before_the_lock_and_commits_the_bump_after_the_artifact():
+    """(T538) the precheck (changelog, keystores, Play, wrangler, token, readelf, AAR, app.json, uncommitted app/) runs
+    before `exec scripts/heavy.sh`; Play notes come from the changelog, never commit subjects; the versionCode bump is
+    committed only after the AAB's MapLibre check; one build-id check serves both paths."""
+    sh = (ROOT / "deploy/staging/build-apk.sh").read_text()
+    code = "\n".join(ln for ln in sh.splitlines() if not ln.lstrip().startswith("#"))
+    lock = code.index('exec scripts/heavy.sh build-apk')
+    for probe in ("scripts/check-changelog.mjs", "upload_certificate.pem", "--max-version-code", "whoami",
+                  "$TOKF", "llvm-readelf", "git status --porcelain --untracked-files=all -- app/"):
+        assert code.index(probe) < lock, probe
+    assert "--format=%s" not in code                                   # no commit subjects as notes
+    assert code.index('mln_check "$AAB"') < code.index("commit_bump\n") < code.index("play-upload.py\" --aab")
+    assert 'mln_check "$AAB"' in code and 'mln_check "$APKF"' in code and code.count("mln_check() {") == 1

@@ -71,6 +71,10 @@ heavy_test() {
 }
 step "heavy.sh shell test (heavy.sh changed)" heavy_test
 
+# caught (T538, 2026-11-10): build-apk.sh only warned on an app version with no changelog entry and published empty
+# notes ("No notes were published"); 0.1 s (also in pnpm check:fast)
+step "app version has its changelog entry (newest)" node scripts/check-changelog.mjs
+
 # (T535) CI's cheap steps, each read from .github/workflows/pipeline-ci.yml by its name and run as written there, so
 # the list has one home (< 1 s each, measured 2026-11-10). caught: these failed only on CI after the push.
 ci_step() {   # ci_step <step name>: run that pipeline-ci.yml step's `run` in a per-run temp file (`python` = the venv's)
