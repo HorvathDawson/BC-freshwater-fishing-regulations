@@ -54,8 +54,11 @@ def test_the_live_tree_prints_pipeline_build_and_after_a_split_the_whole_atlas_c
     assert V.rebuild_commands([V.Waiting.reach_entry]) == V.rebuild_commands(
         [V.Waiting.reach_entry], live) == [
         "scripts/heavy.sh build 30 -- python -m pipeline build --no-tiles"]
-    b = Path(GENERATED.build()).relative_to(REPO_ROOT)
-    r = Path(GENERATED.reaches / GENERATED.build().name).relative_to(REPO_ROOT)
+    def shown(q):               # repo-relative under the repo, else absolute (fast-fail hides the builds outside it)
+        q = Path(q)
+        return q.relative_to(REPO_ROOT) if q.is_relative_to(REPO_ROOT) else q
+    b = shown(GENERATED.build())
+    r = shown(GENERATED.reaches / GENERATED.build().name)
     assert V.rebuild_commands([V.Waiting.split_unbuilt], live) == [
         "scripts/heavy.sh atlas 30 -- python -m pipeline build --atlas",
         f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {b}_next --out {r}_next",
