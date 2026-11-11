@@ -44,3 +44,25 @@ repo basemap (`data/source/basemap.pmtiles`, layer `roads`, kind `rail`). Measur
   on the upstream (east) side of the Kitsumkalum cut.
 - Not established: where along the mainstem each channel joins (the graph's junction measures were not re-read here; the
   unplaced-piece note gives m 119,499 and m 125,470-127,295 for 099).
+
+## Set B: the 21 tidal places (B01..B21, sheet-1..4)
+
+- Source: `T632-tidal-examples.json` (place order = file order = B number). Red = sections the subtraction removed
+  (reach546 minus reach632, every one listed in the run's `tidal.jsonl`); blue = the place's sections after the
+  subtraction; grey = other atlas water; cyan shade = the `tidal_water` tile layer; yellow = the tidal limit.
+- The yellow point is the upstream end of the removed section on the limit's own stream (atlas lines run mouth to source),
+  labelled with the split's label from `splits.resolved.json`. Pieces too short to see (13 to 46 m: B11, B12, B13, B14)
+  are ringed in red.
+- Overviews: B03 (All Region 1 waters, 11 limits, 800 x 1100) and B09 (Region 2 waters into Areas 28 and 29, 28 limits,
+  800 x 1400 with a Lower Mainland zoom). Numbers on the map match the list under it; the list gives the water, the metres
+  removed and the limit. In B09, ten limits are whole waters with no limit point (`water:gnis:...`: channels and sloughs
+  of the Fraser delta, e.g. Annacis Channel 9,077 m, Morey Channel 8,598 m); their number sits on the water itself.
+  The largest single removal is the Fraser River below the CPR Bridge at Mission, 138,190 m (B09 no. 22).
+- B03 no. 9 is Nitinat Lake (lake:329504244), removed whole; it counts 0 m because a lake section counts 0.
+- B15 (All Region 6) and B18 (section C) have several limits each; they are shown as one small panel per limit in one image.
+- Sheets: 6 per sheet, 2 columns, each tile 760 px wide, titled "n. place" and "metres before -> after (difference)".
+- The many parallel straight lines across the Skeena estuary (blue in B15 to B17, grey in B20/B21) and in the Nass/Chambers panels are
+  atlas lines as they are in `geometries.pkl` (checked by plotting the raw geometry), not a drawing error.
+- Not established: the yellow point is the atlas's cut, not checked against the sign or bridge on the imagery; the
+  `tidal_water` shade is the tile layer, which is not what the reach run uses to decide tidal water (it uses the limits).
+- The old 01..21 png files named in the brief were not in this folder or in git, so nothing was deleted.
