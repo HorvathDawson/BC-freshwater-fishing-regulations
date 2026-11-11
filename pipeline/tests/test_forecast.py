@@ -61,3 +61,56 @@ class TestModels:
         # Required verbatim wherever a forecast appears. Not ours to reword.
         assert "BC River Forecast Centre" in F.ATTRIBUTION
         assert "at their own risk" in F.ATTRIBUTION
+
+
+class TestABrokenAnswerIsAFailure:
+    """(T552 item 4) ArcGIS answers HTTP 200 with {"error": ...}: read as zero rows it dropped the model's runs as if out
+    of season, with nothing recorded. It (and a changed layer) is now a failed model; an honest empty layer is not."""
+
+    @staticmethod
+    def serve(monkeypatch, *bodies):
+        import io
+        import json as _json
+        queue = list(bodies)
+
+        class Resp(io.BytesIO):
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        monkeypatch.setattr(F.urllib.request, "urlopen", lambda req, timeout=None: Resp(_json.dumps(queue.pop(0)).encode()))
+
+    def row(self, **kw):
+        return {"attributes": {"Station_ID": "08MH001", "Issued_at": "2026-10-28T09:00:00",
+                               "Forecast_maximum_in_5_days": "12.5", **kw}}
+
+    def test_an_error_body_is_a_failed_model_not_out_of_season(self, monkeypatch):
+        self.serve(monkeypatch, {"error": {"code": 500, "message": "Unable to perform query"}})
+        failed: list = []
+        assert F.fetch(["CLEVER"], failed=failed) == {} and failed == ["CLEVER"]
+
+    def test_a_missing_features_list_or_a_non_object_is_a_failure(self, monkeypatch):
+        for body in ({"fields": []}, {"features": None}, ["not", "an", "object"]):
+            self.serve(monkeypatch, body)
+            failed: list = []
+            F.fetch(["COFFEE"], failed=failed)
+            assert failed == ["COFFEE"], body
+
+    def test_a_renamed_station_or_issue_column_is_a_failure(self, monkeypatch):
+        self.serve(monkeypatch, {"features": [{"attributes": {"StationID": "08MH001", "Issued_at": "x"}}]})
+        failed: list = []
+        F.fetch(["COFFEE"], failed=failed)
+        assert failed == ["COFFEE"]
+
+    def test_an_honest_empty_layer_is_out_of_season_not_failed(self, monkeypatch):
+        self.serve(monkeypatch, {"features": []})
+        failed: list = []
+        assert F.fetch(["ELF"], failed=failed) == {} and failed == []
+
+    def test_a_good_answer_still_reads(self, monkeypatch):
+        self.serve(monkeypatch, {"features": [self.row()]})
+        failed: list = []
+        got = F.fetch(["COFFEE"], failed=failed)
+        assert failed == [] and got["08MH001"]["COFFEE"]["max"] == 12.5

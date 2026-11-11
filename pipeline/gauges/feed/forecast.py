@@ -199,8 +199,15 @@ def _issued(v) -> str | None:
     return m.group(0).replace(" ", "T") if m else text
 
 
-def _query(service: str, timeout: float = 30.0) -> list[dict]:
-    """Every row of one FeatureServer layer, paged."""
+def _query(service: str, timeout: float = 30.0, need: tuple[str, ...] = ()) -> list[dict]:
+    """Every row of one FeatureServer layer, paged.
+
+    (T552 item 4) A BROKEN ANSWER RAISES; it is never read as "the model is out of season". ArcGIS commonly answers HTTP
+    200 with `{"error": {...}}` and no `features`: read as zero rows, that dropped every run of the model with no failure
+    recorded. So an `error` key, a body that is not an object, a `features` that is not a list, or a first row lacking a
+    column in `need` (the station id and issue-time columns: a renamed column would skip every row) raise, and the model
+    is counted failed (`fetch`'s `failed`). An honest empty layer — `features: []`, no error — is still out of season.
+    """
     url = f"{_ARCGIS}/{service}/FeatureServer/0/query"
     out: list[dict] = []
     offset, page = 0, 1000
@@ -212,14 +219,26 @@ def _query(service: str, timeout: float = 30.0) -> list[dict]:
         req = urllib.request.Request(f"{url}?{q}", headers={"User-Agent": _UA})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             data = json.loads(r.read().decode("utf-8", "replace"))
-        feats = data.get("features", [])
+        if not isinstance(data, dict):
+            raise RuntimeError(f"{service}: the answer is not an object")
+        if "error" in data:
+            e = data["error"] if isinstance(data["error"], dict) else {"message": data["error"]}
+            raise RuntimeError(f"{service}: ArcGIS error {e.get('code', '')} {e.get('message', '')}".rstrip())
+        feats = data.get("features")
+        if not isinstance(feats, list):
+            raise RuntimeError(f"{service}: the answer has no features list")
+        if feats and offset == 0:
+            first = feats[0].get("attributes") if isinstance(feats[0], dict) else None
+            missing = [c for c in need if not isinstance(first, dict) or c not in first]
+            if missing:
+                raise RuntimeError(f"{service}: the rows lack {', '.join(missing)} — has the layer changed?")
         out.extend(f.get("attributes", {}) for f in feats)
         if len(feats) < page or not data.get("exceededTransferLimit"):
             return out
         offset += page
 
 
-def fetch(models: list[str] | None = None) -> dict[str, dict[str, dict]]:
+def fetch(models: list[str] | None = None, failed: list[str] | None = None) -> dict[str, dict[str, dict]]:
     """`{station: {model: forecast}}` — EVERY model running for that station.
 
     ALL OF THEM, not the freshest. The first version kept one run per station, broken by
@@ -230,16 +249,19 @@ def fetch(models: list[str] | None = None) -> dict[str, dict[str, dict]]:
     questions: CLEVER asks how HIGH over ten days, ELF asks how LOW over thirty. Publishing
     both and letting the reader choose is the only version that is not sometimes wrong.
 
-    A model that fails is SKIPPED with a note, not raised. This runs inside a 30-minute cron
+    A model that fails is SKIPPED with a note, not raised, and its name is appended to `failed` (the worker's
+    `fetchSummary` twin) so a caller can tell a failure from a model out of season. This runs inside a 30-minute cron
     beside the observations; losing a seasonal forecast must not cost the map its readings.
     """
     out: dict[str, dict[str, dict]] = {}
     for name in (models or list(MODELS)):
         cfg = MODELS[name]
         try:
-            rows = _query(cfg["service"])
+            rows = _query(cfg["service"], need=("Station_ID", cfg["issued"]))
         except Exception as exc:                      # noqa: BLE001 — see docstring
             print(f"  {name}: unavailable ({exc})", file=sys.stderr)
+            if failed is not None:
+                failed.append(name)
             continue
         kept = 0
         for a in rows:
