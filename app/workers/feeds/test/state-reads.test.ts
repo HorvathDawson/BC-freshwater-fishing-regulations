@@ -83,8 +83,18 @@ describe("a stored state that cannot be read (T558 W3)", () => {
 
   it("gauges: the last index unreadable fails the run (stations are never dropped instead of carried)", async () => {
     const FIX = join(__dirname, "fixtures/gauges");
-    const feed = { get: async (k: string) => { if (k === "index.json") throw new Error("R2 GET 500"); return null; }, put: async () => {} };
+    const feed = { get: async (k: string) => { if (k === "index.json") throw new Error("R2 GET 500"); return k === "clim.json" ? "{}" : null; }, put: async () => {} };
     await expect(runGauges({ fetch: async () => new Response("", { status: 404 }), feed, priv: new MemStore(), now: new Date("2026-11-10T12:00:00Z"),
       roster: JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8")), sleep: async () => {}, limit: 2 })).rejects.toThrow(/R2 GET 500/);
   });
+});
+
+// T609 W5: a missing clim.json published every gauge unranked and recorded the run ok
+it("gauges: no clim.json fails the run before anything is written (T609 W5)", async () => {
+  const FIX = join(__dirname, "fixtures/gauges");
+  const puts: string[] = [];
+  const feed = { get: async () => null, put: async (k: string) => { puts.push(k); } };
+  await expect(runGauges({ fetch: async () => new Response("", { status: 404 }), feed, priv: new MemStore(), now: new Date("2026-11-10T12:00:00Z"),
+    roster: JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8")), sleep: async () => {}, limit: 2 })).rejects.toThrow(/clim\.json is missing/);
+  expect(puts).toEqual([]);
 });

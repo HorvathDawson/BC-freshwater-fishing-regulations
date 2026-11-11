@@ -483,8 +483,11 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
 
   let clim: Record<string, any> | null = null;
   const climText = await feed.get("clim.json");
-  if (climText) {
-    clim = JSON.parse(climText);
+  // (T609 W5) no envelope = no gauge ranked ("how high for the date"), yet the run used to be recorded ok: now it FAILS
+  // before anything is written (the last good index and its ranks stand; the status and digest say why)
+  if (climText === null) throw new Error("feeds/live/clim.json is missing: no station could be ranked; nothing written, the last good index stands. Restore it: Actions → \"feeds — HYDAT → climatology → R2\" (upload: true)");
+  {
+    try { clim = JSON.parse(climText); } catch (e) { throw new Error(`feeds/live/clim.json does not parse (${String(e)}); nothing written`); }
     // KEEP ONLY THE ASKED STATIONS' envelopes and recent years (438 of 1,958: ~21 MB parsed -> ~5 MB); `stats` is not
     // read by the feed at all (P20). The Worker has 128 MB.
     if (clim && typeof clim === "object" && !Array.isArray(clim)) {
