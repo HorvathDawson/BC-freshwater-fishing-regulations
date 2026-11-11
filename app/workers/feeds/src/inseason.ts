@@ -37,6 +37,11 @@ export interface Snapshot {
 const norm = (s: string) => s.replace(/ /g, " ").replace(/\s+/g, " ").trim();
 const hasClass = (t: Tag, c: string) => (t.get("class") ?? "").split(/\s+/).includes(c);
 
+/** (T609 W4) the panels the in-season page has: "Provincial level information" and "Region N - …" (7A / 7B too) */
+const SECTION_RE = /^(Provincial\b|Region \d{1,2}[AB]?\b)/;
+/** (T609 W4) the words every in-season table's header row carries */
+const HEADER_WORDS = ["water", "change", "effective"];
+
 /** scraper.scrape_in_season_changes: every accordion panel with a table → its rows. Throws when the page has no
  *  accordion (a block page, a redesign): never an empty answer. */
 export function parseInSeason(html: string): Row[] {
@@ -50,7 +55,13 @@ export function parseInSeason(html: string): Row[] {
     if (!section) continue;
     const table = panel.find("table");
     if (!table) continue;
-    for (const tr of table.findAll("tr").slice(1)) {
+    // (T609 W4) only THE in-season tables: a known section name and the three header words; any other page of the same
+    // build (a redirect, a redesign) fails the run as `parse` instead of publishing its tables as regulation changes
+    if (!SECTION_RE.test(section)) throw new Error(`in-season: a table under an unknown section "${section.slice(0, 80)}" (not Provincial / Region N)`);
+    const trs = table.findAll("tr");
+    const head = (trs[0] ? [...trs[0].findAll("th"), ...trs[0].findAll("td")] : []).map((c) => norm(c.getText(" ", true)).toLowerCase()).join(" | ");
+    if (!HEADER_WORDS.every((w) => head.includes(w))) throw new Error(`in-season: the table under "${section.slice(0, 60)}" has no water / change / effective header (got "${head.slice(0, 120)}")`);
+    for (const tr of trs.slice(1)) {
       const cells = tr.findAll("td");
       if (cells.length < 3) continue;
       const [water, change, effective] = cells.slice(0, 3).map((c) => norm(c.getText(" ", true)));
@@ -147,7 +158,10 @@ export async function runInSeason(deps: {
   const now = deps.now ?? new Date();
   let html = deps.html;
   if (html === undefined) {
-    const r = await deps.fetch(SOURCE_URL, { headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml", "Accept-Language": "en-CA,en;q=0.9" } });
+    // (T609 W4) never a redirect: the page answered from another address is not the in-season page
+    const r = await deps.fetch(SOURCE_URL, { redirect: "manual", headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml", "Accept-Language": "en-CA,en;q=0.9" } });
+    if ((r.status >= 300 && r.status < 400) || r.redirected || (r.url && r.url !== SOURCE_URL))
+      throw new SourceError("parse", `in-season: ${SOURCE_URL} redirected${r.headers.get("location") ? ` to ${r.headers.get("location")}` : r.url ? ` to ${r.url}` : ""}; nothing written`, "inseason-page");
     if (!r.ok) throw new SourceError(classOfStatus(r.status) ?? "http_4xx", `in-season: HTTP ${r.status} from ${SOURCE_URL}`, "inseason-page");
     html = await r.text();
   }

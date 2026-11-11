@@ -369,3 +369,19 @@ describe("no channel (T558 item 3)", () => {
     }
   });
 });
+
+// T609 W4: a redirect to another gov.bc.ca page of the same build would have been published as regulation changes
+describe("only the in-season page is read (T609 W4)", () => {
+  const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
+  it("a table without the water / change / effective header, or under an unknown section, fails the parse", () => {
+    expect(parseInSeason(page)).toHaveLength(32);
+    expect(() => parseInSeason(page.replace(/Effective date/g, "Price"))).toThrow(/no water \/ change \/ effective header/);
+    expect(() => parseInSeason(page.replace("Region 3 - Thompson", "Hunting news"))).toThrow(/unknown section "Hunting news/);
+  });
+  it("a redirected answer fails the run as parse, nothing written", async () => {
+    const priv = new MemStore();
+    const redirected = async () => new Response(null, { status: 301, headers: { location: "https://www2.gov.bc.ca/other" } });
+    await expect(runInSeason({ fetch: redirected, priv })).rejects.toMatchObject({ cls: "parse", message: expect.stringMatching(/redirected to https:\/\/www2\.gov\.bc\.ca\/other/) });
+    expect(priv.m.size).toBe(0);
+  });
+});
