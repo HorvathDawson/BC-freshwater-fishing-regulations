@@ -8,6 +8,19 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 evening — build 27 is out: staging and Play internal (chat 11, last entry)
+
+- **Out:** release r-303b4007a70a on staging (smoke 19 pass); staging site redeployed; app 0.7.5 (code 27, patched
+  MapLibre) on Play internal. Owner phone check pending. Store screenshots sent to the owner.
+- **Fixed on the way:** fixtures re-cut from the new release; the parity reference follows the Peace kokanee ruling;
+  slow-tier pins (Oxbows checks now read the book links); review app source panel no longer covers the answer
+  buttons on a short window; the site build's 59 GB memory spike (share cards).
+- **Filed:** T666 one release path; T667 tests that grow with the app (audit done); T668 DFO places across two
+  regions (audit). T665 design written. Decisions batched in OWNER-TODO.
+- **Owner:** chat 11 may edit chat 10's area. A new chat does the hardening and closed-testing run:
+  `NEXT-SESSION-after-chat11.md`.
+- **Next free ticket: T669.**
+
 ## 2026-11-11 afternoon (later) — build 27 release is live locally; staging upload waits on GitHub (chat 11)
 
 - **Release r-303b4007a70a:** built, checked and promoted; LATEST = r-303b4007a70a (was r-a178299f6005).
