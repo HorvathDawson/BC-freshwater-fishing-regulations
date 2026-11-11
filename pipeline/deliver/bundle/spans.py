@@ -75,7 +75,7 @@ PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:", "
 REGION_AREA = re.compile(r"^area:([1-8]|7A|7B)$")
 #: Split families the atlas mints itself (`sectionizer.minted_id`, by id: an alias carries no source): positions, not
 #: names. One standing at a run's end gives way to an authored alias at the same place.
-_AUTO = ("gauge__", "area:", "border:", "length:")
+_AUTO = ("gauge__", "area:", "border:", "length:", "shore:")
 
 
 def _is_auto(split_id: str) -> bool:

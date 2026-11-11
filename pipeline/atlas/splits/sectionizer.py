@@ -72,8 +72,8 @@ _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
 # ------------------------------------------------------------------------------------------------
 
 #: Families the pipeline mints. Authorship is the point's `source`, set where each family is minted
-#: (`anchors._emit`, `border`, `area_splits`, `clean_cut`, `length_splits`) — never parsed from an id.
-AUTO_SOURCES = frozenset({"gauge", "area", "border", "length"})
+#: (`anchors._emit`, `border`, `area_splits`, `clean_cut`, `length_splits`, `shore`) — never parsed from an id.
+AUTO_SOURCES = frozenset({"gauge", "area", "border", "length", "shore"})
 
 #: A minted boundary (or auto point) this close to an authored point joins it, at the authored measure;
 #: a lake edge or natural end this close is a conflict — the piece between would be a sliver
@@ -95,12 +95,12 @@ PROPOSAL_M = 25.0
 FOLD_SNAP_M = 1.0
 #: An auto family's merge distance is its own positional uncertainty. A GAUGE is a published station
 #: coordinate projected onto its channel (`gauges.consume.cuts.PROXIMITY_M`, 400 m — the value the old
-#: pickup read, one-sidedly, as its radius); area, border and length cuts are exact geometry, so they
+#: pickup read, one-sidedly, as its radius); area, border, length and shore cuts are exact geometry, so they
 #: join only what IS the same point (`SAME_PLACE_M`, float identity — the 2026-10-06 ruling).
 MERGE_M = {"gauge": 400.0, "length": _tol.SAME_PLACE_M, "area": _tol.SAME_PLACE_M,
-           "border": _tol.SAME_PLACE_M}
+           "border": _tol.SAME_PLACE_M, "shore": _tol.SAME_PLACE_M}
 #: Which auto id names a place no authored name stands at.
-_AUTO_RANK = {"border": 0, "area": 1, "gauge": 2, "length": 3}
+_AUTO_RANK = {"border": 0, "area": 1, "gauge": 2, "length": 3, "shore": 4}
 
 
 def is_authored(source: str) -> bool:

@@ -672,6 +672,7 @@ use that as the sole source of future work."
 | T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | DONE | 275cbd2f5 | owner let chat 11 fix it in chat 10's lane; guard in group_for + pinning test |
 | T660 | Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) | PARTIAL | 12358ece6 | rule: a creek's FWA water crossing (1450) into tidal water is tidal; reach + tiles committed (no change on the current atlas); atlas shore cut pending as T660-pending/shore-cuts.patch (simulated: 629 cuts, 163 crossings / 120.7 km tidal, Skeena -84.3 km); left (Claude): after T637, apply the patch, rebuild the atlas, rerun the reach, binding diff; owner list T660-owner-list.json |
 | T661 | Two tests red after the hardening lanes (precheck test's session.sh half; review-gate live-tree test); then install the parked heavy.sh gate | OPEN | — | from the scripts-hardening hand-back; item 2 waits on T637 |
+| T662 | Stream lines still drawn over tidal water after the shore rule (creeks on tidal flats, 191 freshwater receivers, 32 uncut runs) | OPEN | — | owner 2026-11-11: later pass, after closed testing starts |
 
 ## Order for open tickets
 

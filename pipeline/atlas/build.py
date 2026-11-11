@@ -919,6 +919,7 @@ def sectionize(b: _Build) -> None:
     cut_braids(b)
     cut_areas(b)
     cut_length(b)
+    cut_shores(b)
     alias_tidal_mouths(b)
     mark_membership(b)
 
@@ -1269,6 +1270,41 @@ def cut_length(b: _Build) -> None:
                 print(f"    {len(_still)} section(s) still over the cap "
                       f"({_oob} outside BC, where there are no tributaries to cut at)")
         _tick("length cap splits")
+
+
+def cut_shores(b: _Build) -> None:
+    """T660 SHORE CUTS, after the length cap: a creek FWA draws on across tidal water to its river's line is cut where
+    its own line begins (`splits.shore`), so the crossing is a section of its own and the reach run can take it as
+    tidal. Placed and swept like the length cuts (every split kind, one gate), and recorded in `shore_cuts.json`.
+
+    Reads: args, bbox, graph, geoms, fids, fid_index, applied_splits. Writes: nothing new (graph, applied_splits in
+    place)."""
+    args, graph, geoms, fid_index, applied_splits = b.args, b.graph, b.geoms, b.fid_index, b.applied_splits
+    from pipeline.atlas.splits import braid_sweep as _bs
+    from pipeline.atlas.splits import shore as _shore
+    from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
+    from pipeline.common import fwa_edge_types as _et
+    crossing = {f.fid: f.geometry for f in b.fids if f.edge_type == _et.WATER_CROSSING}
+    poly = _shore.read_tidal_polygon(args.gpkg, bbox=getattr(b, "bbox", None))
+    record: list = []
+    pts = [] if poly is None else _shore.shore_cuts(graph, fid_index, set(crossing),
+                                                    _shore.share_in(poly, crossing), record=record)
+    pts = place_points(graph, pts)
+    sweep = _bs.sweep(graph, geoms, pts, view=_bs.View(graph, geoms))
+    if sweep.points:
+        raise SystemExit(f"shore: {len(sweep.points)} shore cut(s) catch a braid ({sweep.counts()}) — a crossing "
+                         "run is one line; see the cuts in shore_cuts.json")
+    before = len(graph.nodes)
+    if pts:
+        split_graph_at(graph, geoms, pts, fid_index, applied=applied_splits)
+        resid = _bs.residual_straddles(graph, geoms, pts)
+        if resid:
+            raise SystemExit(f"shore: {len(resid)} network(s) straddle a shore cut after it was made")
+    (Path(args.out) / _shore.RECORD).write_text(json.dumps(
+        {"_about": _shore.RECORD_ABOUT, "cuts": len(pts), "runs": record}, indent=1) + "\n", encoding="utf-8")
+    print(f"  shore cuts: {len(pts)} crossing(s) in tidal water cut at the shore -> {len(graph.nodes) - before} new "
+          f"section(s); {sum(1 for r in record if r.get('not_cut'))} run(s) touching it not cut ({_shore.RECORD})")
+    b.tick("shore cuts")
 
 
 def mark_membership(b: _Build) -> None:

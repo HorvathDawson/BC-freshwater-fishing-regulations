@@ -77,6 +77,8 @@ def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> l
             r["source"] = "area"
         elif sid.startswith("length:"):
             r["source"] = "length"
+        elif sid.startswith("shore:"):          # T660
+            r["source"] = "shore"
         elif sid.startswith("border:"):
             r["source"] = "border"
         elif strict:

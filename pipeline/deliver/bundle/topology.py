@@ -647,10 +647,10 @@ def gauge_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[int,
     cut by its km from the mouth, `part._named_token`)."""
     from shapely.ops import nearest_points
     kinds = dict(db.execute("SELECT split_id, kind FROM split"))
-    # a cut with a name of its own: never a gauge, never a length cut (`length:…`: its name is a generated description
+    # a cut with a name of its own: never a gauge, never a length or shore cut (`length:…`, T660 `shore:…`: its name is a generated description
     # of an unnamed side channel's junction, "side channel above Iltasyuko River", not a named feature)
     named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
-                 if n and kinds.get(k) != "gauge" and not k.startswith("length:")}
+                 if n and kinds.get(k) != "gauge" and not k.startswith(("length:", "shore:"))}
     item_id = dict(db.execute("SELECT ord, item_id FROM item"))
     owner = {x: o for (o, _p), ss in sids.items() for x in ss}
     ends: Dict[Tuple[int, str], List[int]] = defaultdict(list)       # (water, token) -> the sections ending there
@@ -767,7 +767,7 @@ def crossing_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[i
     from shapely.ops import nearest_points, unary_union
     kinds = dict(db.execute("SELECT split_id, kind FROM split"))
     named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
-                 if n and kinds.get(k) != "gauge" and not k.startswith("length:")}
+                 if n and kinds.get(k) != "gauge" and not k.startswith(("length:", "shore:"))}
     item_id = dict(db.execute("SELECT ord, item_id FROM item"))
     to3005 = Transformer.from_crs(4326, 3005, always_xy=True)
     towns = [(Point(*to3005.transform(lon, lat)), name) for name, lon, lat in db.execute(
