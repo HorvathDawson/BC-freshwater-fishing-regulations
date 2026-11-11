@@ -668,6 +668,8 @@ use that as the sole source of future work."
 | T635 | Find where the fishways and government fish facilities are (the 23 m and 100 m no-fishing buffers) | POSTPONED | — | owner 2026-11-11: benched, data not good enough; findings kept (2e92f9f0b); CABD is CC BY-SA, commercial allowed |
 | T636 | Conditions map: a "level only" gauge is shown by its ring colour, not a text tag | IN REVIEW — aca09a946 (ring built, proposal A); the owner picks the ring from T636-shots | aca09a946 | owner 2026-11-11; no label on the map, ring 2.5 px, one legend line; shots current/A/B/C on map + satellite |
 | T637 | Okanagan River Oxbows: the owner's hand-matched side channels (26 watershed codes of unnamed lines) must bind again; builds stop on them since T632 | OPEN | — | owner 2026-11-11: do not delete the hand matches; Park Rill code is a proposal |
+| T638 | Pipeline suite leftovers: export files regenerated, heavy.sh blind to compressed memory, stale bytecode, one clean chunked run | OPEN | — | suite trace 2026-11-11: one process grows to 111 GB and the kernel kills it; 5 of 7 failures fixed (304feae, 8822df2, 68fca13, 553fe40) |
+| T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | OPEN | — | chat 10 lane; found by the suite trace; fails test_curation_review_split_preview |
 
 ## Order for open tickets
 
