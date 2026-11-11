@@ -658,6 +658,8 @@ use that as the sole source of future work."
 | T625 | A shared link opens the installed app (Android App Links: assetlinks.json + intent filter) | OPEN | — | owner 2026-11-10; needs the app signing fingerprint from Play Console; no need to wait for closed testing |
 | T626 | Deferred: one view of "open to fish" and "fish in the stream" together | POSTPONED | — | owner 2026-11-10: not a now item |
 | T627 | Digest email: an easy-to-read summary of reports and errors (words kept, trimmed) | OPEN | — | owner 2026-11-10 on T609 |
+| T628 | Base rules pinned to print: fee table reader, replace refuses marked entries, entry_digest ledger, runbook path guard | OPEN | — | T553 follow-ups |
+| T629 | Owner: four places where our text differs from the printed book (no value changes) | OPEN | — | T553 report; owner answers |
 
 ## Order for open tickets
 
