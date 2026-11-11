@@ -1,6 +1,6 @@
 # T662 — Stream lines still drawn over tidal water after the shore rule
 
-Status: OPEN
+Status: DROPPED (owner 2026-11-11: the removal of streams wholly inside the tidal polygon, T660 lane, covers enough of it; the 191 freshwater receivers and 32 uncut runs are accepted as they are).
 
 Source: T660 hand-back; owner 2026-11-11: "Leave for a later pass". After closed testing starts.
 
