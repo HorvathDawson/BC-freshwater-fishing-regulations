@@ -25,14 +25,21 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence
 
 
-def frozen_path() -> Path:
+#: the proposal sets this command accepts from: (proposals file, frozen file). `contours` and `stocking` are built on
+#: "Access Only" records (owner says OGL, unconfirmed: T634); their rows carry the licence flag through.
+SETS = {"charts": ("bathymetry/proposals.json", "bathymetry/matches.json"),
+        "contours": ("bathymetry/contour_proposals.json", "bathymetry/contour_matches.json"),
+        "stocking": ("stocking/proposals.json", "stocking/matches.json")}
+
+
+def frozen_path(which: str = "charts") -> Path:
     from pipeline.common.curated import CURATED
-    return Path(CURATED.base) / "bathymetry" / "matches.json"
+    return Path(CURATED.base) / SETS[which][1]
 
 
-def proposals_path() -> Path:
+def proposals_path(which: str = "charts") -> Path:
     from pipeline.common.curated import GENERATED
-    return GENERATED.base / "bathymetry" / "proposals.json"
+    return GENERATED.base / SETS[which][0]
 
 
 def load_frozen(path: Path) -> dict:
@@ -70,6 +77,8 @@ def accept(frozen: dict, proposals: Sequence[dict], ids: Sequence[str], *, by: s
         row = {"chart_id": cid, "wbks": wbks, "gnis_id": p.get("gnis_id") if not wbk else None,
                "titles": p["titles"], "rule": p["rule"], "evidence": p["evidence"],
                "accepted_by": by, "accepted_on": today}
+        if p.get("licence"):
+            row["licence"] = p["licence"]
         if refuse:
             row["refused"] = refuse
         if cid in have:
@@ -85,6 +94,7 @@ def accept(frozen: dict, proposals: Sequence[dict], ids: Sequence[str], *, by: s
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="accept chart -> lake proposals into the frozen file (owner only)")
     ap.add_argument("--by", required=True)
+    ap.add_argument("--set", default="charts", choices=sorted(SETS), help="which proposals: charts | contours | stocking")
     ap.add_argument("--ids", nargs="*", default=[])
     ap.add_argument("--rule", help="accept every proposal with this rule …")
     ap.add_argument("--evidence", help="… and this name evidence (equal, word_order, variant, contains)")
@@ -92,7 +102,7 @@ def main(argv=None) -> int:
     ap.add_argument("--wbk", help="the lake the owner chose (wbk:<key>), for a proposal that names none")
     ap.add_argument("--replace", action="store_true")
     a = ap.parse_args(argv)
-    props = json.loads(proposals_path().read_text())["proposals"]
+    props = json.loads(proposals_path(a.set).read_text())["proposals"]
     ids = list(a.ids)
     if a.rule:
         from pipeline.bathymetry.propose import BULK_ACCEPTABLE
@@ -103,7 +113,7 @@ def main(argv=None) -> int:
                 and (a.evidence is None or p["evidence"].get("name_evidence") == a.evidence)]
     if not ids:
         raise SystemExit("nothing named: --ids or --rule")
-    path = frozen_path()
+    path = frozen_path(a.set)
     frozen = load_frozen(path)
     for line in accept(frozen, props, ids, by=a.by, today=dt.date.today().isoformat(), refuse=a.refuse,
                        wbk=a.wbk, replace=a.replace):

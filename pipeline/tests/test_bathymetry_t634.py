@@ -70,7 +70,9 @@ def test_e00_reads_arcs_contours_and_meta():
 
 def test_e00_refuses_what_it_cannot_read():
     with pytest.raises(e00.E00Error, match="not an uncompressed"):
-        e00.read_coverage("EXP  1 /X/TEST.E00\nEOS", "c.e00")
+        e00.read_coverage("EXP  2 /X/TEST.E00\nEOS", "c.e00")
+    with pytest.raises(e00.E00Error, match="unknown code"):          # compressed, with a code e00compr never wrote
+        e00.read_coverage("EXP  1 /X/TEST.E00\nARC  2~{~}EOS~}", "c.e00")
     text = _lines_e00().replace("EOS", "")
     with pytest.raises(e00.E00Error):
         e00.read_coverage(text.replace("EOI", ""), "t.e00")
@@ -230,8 +232,8 @@ def test_variant_circular_is_on_the_review_list_never_bulk_accepted(tmp_path, mo
     assert got["A"]["evidence"]["position_size_ok"] is True        # shown beside it, decides nothing
     p = tmp_path / "proposals.json"
     p.write_text(__import__("json").dumps(out))
-    monkeypatch.setattr(acc, "proposals_path", lambda: p)
-    monkeypatch.setattr(acc, "frozen_path", lambda: tmp_path / "matches.json")
+    monkeypatch.setattr(acc, "proposals_path", lambda which="charts": p)
+    monkeypatch.setattr(acc, "frozen_path", lambda which="charts": tmp_path / "matches.json")
     with pytest.raises(SystemExit, match="only \\['clean'\\]"):
         acc.main(["--by", "owner", "--rule", "variant_circular"])
     assert not (tmp_path / "matches.json").exists()
@@ -289,3 +291,40 @@ def test_compress_reports_missing_and_broken_never_skips(tmp_path):
     assert st == {"BAD.PDF": "failed", "GOOD.PDF": "ok", "GONE.PDF": "missing"}
     assert [r["name"] for r in res["summary"]["not_ok"]] == ["BAD.PDF", "GONE.PDF"]
     assert res["summary"]["charts_out"] == 1 and not (tmp_path / "out" / "BAD.pdf").exists()
+
+
+# ---- third pass: compressed E00, contours, stocking ------------------------------------------------------------------
+
+def test_decompress_follows_e00compr():
+    raw = ("EXP  1 /X/T.E00\nARC  2~}~ )1~ &~!2-~}GA~!<,!!~DF~!!!!! ~1!!!!!~}117KB~!/:\"+~-~@S!!!\"~} ~1RCa=\" ~1,m,u$~}"
+           "EOS~}")
+    assert e00.decompress(raw) == ("EXP  0 /X/T.E00\nARC  2\n         1      1712\nGA27110000DF00000000 0.0000000E+00\n"
+                                   "117KB14250110-5.0000000E-01\n 4.9346428E+01 1.1761184E+03\nEOS\n")
+    with pytest.raises(e00.E00Error):
+        e00.decompress("EXP  0 /X\n")
+
+
+def test_contour_and_stocking_names_never_match_a_name_inside_a_name():
+    from pipeline.bathymetry.contours import name_agrees
+    assert name_agrees("FISH LAKE", ["Little Fish Lake"], []) is None
+    assert name_agrees("LAKE MAXWELL", ["Maxwell Lake"], []) == "word_order"
+    assert name_agrees("TRUDA L.", ["Tranquille Lake"], [("Truda Lake", "stocking")]) == "variant_circular"
+
+
+def test_stocking_code_picks_name_confirms_never_name_alone():
+    from pipeline.stocking.propose import propose as sp, waterbodies
+    recs = [{"wbody_id": "1", "waterbody_identifier": "00001AAAA", "gazetted_name": "BOBBS LAKE", "aliases": "",
+             "release_date": "2020-05-01", "species_name": "Rainbow Trout"},
+            {"wbody_id": "2", "waterbody_identifier": "00002BBBB", "gazetted_name": "FISH LAKE", "aliases": "",
+             "release_date": "2021-05-01", "species_name": "Rainbow Trout"},
+            {"wbody_id": "3", "waterbody_identifier": "00003CCCC", "gazetted_name": "TROUT LAKE", "aliases": ""},
+            {"wbody_id": "4", "waterbody_identifier": "", "gazetted_name": "TROUT LAKE", "aliases": ""}]
+    lakes = {"00001AAAA": [{"wbk": 1, "names": ["Bobbs Lake"], "gnis_id": 7}],
+             "00002BBBB": [{"wbk": 2, "names": ["Little Fish Lake"], "gnis_id": 8}]}
+    # a "Trout Lake" exists elsewhere (wbk 9) but no code puts it under 3 or 4: it is never offered
+    out = sp(waterbodies(recs), lakes, {}, {}, {"wbk:1": {}, "wbk:2": {}, "wbk:9": {}}, set())
+    got = {r["fidq_id"]: r for r in out["proposals"]}
+    assert got["1"]["rule"] == "clean" and got["1"]["wbks"] == ["wbk:1"] and got["1"]["first_time"]
+    assert got["2"]["rule"] == "name_disagrees"
+    assert got["3"]["rule"] == "no_lake" and got["4"]["rule"] == "no_code"
+    assert all(r["licence"].startswith("owner says OGL") for r in out["proposals"])

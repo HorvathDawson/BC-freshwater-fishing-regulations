@@ -46,3 +46,9 @@ first (it is FWA's own `WATERBODY_KEY_GROUP_CODE_50K`), names only as the fallba
   the Province's 1:50K table, joined on the group code, and kept a hand-checked `wbid_overrides.json` (12 rows) — those
   parts were sound; its name search ran BEFORE the code join and won by being nearest with no limit, which is the
   failure the owner's rules forbid.
+
+## T634 third pass (2026-11-11): built on the owner's word (licence link owed)
+
+- `fetch_fidq.py` (PROTOTYPE): FIDQ bulk Preview per watershed group, lakes only, to `~/data-offgit/bc-stocking-fidq/`.
+- `propose.py` (PROTOTYPE): code picks, name confirms, `wbk:` stored -> `GENERATED.base/stocking/proposals.json`; accept with `python -m pipeline.bathymetry.accept --set stocking`.
+- Every file and row carries the licence flag; confirm before any production publish. `generate/` is still the old unsound matcher: retire it when the feed is built (T634 "Path to ship").

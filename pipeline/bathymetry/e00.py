@@ -21,6 +21,14 @@ THE FORMAT (the parts read here; precision 2 = single, 3 = double):
     together and wrapped at 80 characters. Text widths by type: 10 date 8, 20 char = size, 30 fixed = size, 40 float 14,
     50 int 6 (size 2) or 11 (size 4), 60 float 14 (size 4) or 24 (size 8). Ends at `EOI`.
 Anything the reader does not understand RAISES naming the line: a half-read chart is worse than none.
+
+COMPRESSED exports ("EXP  1", 6 zips, T634 third pass) are decompressed first (`decompress`): following e00compr's
+`e00read.c` (1.0.1): physical line breaks dropped; `~}` a line break, `~ ` + c (ord(c) - 32) spaces, `~~` / `~-` a
+literal; `~` + h (n = ord(h) - 33) a number (decimal point after n % 15 digits, `E+`/`E-` before the last two when
+(n // 15) % 3 is 1/2, last digit dropped when n // 45 is 1), each following char two digits (ord - 33; 92 + the next
+char's for 92..99), ending at a space or `~`; a `~` right after a number only ended it, so the char after it is
+literal. Checked against GDAL's AVCE00 driver, which
+parses the decompressed text (and refuses the compressed one).
 """
 from __future__ import annotations
 
@@ -196,8 +204,72 @@ def _read_info(L: _Lines) -> Dict[str, Table]:
         tables[name] = Table(name, items, rows)
 
 
+def decompress(text: str, name: str = "e00") -> str:
+    """A compressed export ("EXP  1") -> the uncompressed text ("EXP  0"), as e00compr's `e00read.c` 1.0.1 does it.
+    Raises on a sequence it cannot read."""
+    lines = text.split("\n")
+    head = lines[0].rstrip("\r")
+    if not head.startswith("EXP  1"):
+        raise E00Error(f"{name}: not a compressed E00 (first line {head[:20]!r})")
+    body = "".join(l.rstrip("\r") for l in lines[1:])
+    out: List[str] = ["EXP  0" + head[6:].rstrip() + "\n"]
+    i, n, after_number = 0, len(body), False
+    while i < n:
+        c = body[i]
+        i += 1
+        if c != "~":
+            out.append(c)
+            after_number = False
+            continue
+        if i >= n:
+            raise E00Error(f"{name}: a lone ~ at the end")
+        c = body[i]
+        i += 1
+        if c == " ":
+            out.append(" " * (ord(body[i]) - 32))
+            i += 1
+            after_number = False
+        elif c == "}":
+            out.append("\n")
+            after_number = False
+        elif after_number:                  # the ~ only ended the number before it: c is a plain character
+            out.append(c)
+            after_number = False
+        elif c in "~-":
+            out.append(c)
+        elif "!" <= c <= "z":
+            h = ord(c) - 33
+            dec, odd, expk = h % 15, h // 45, (h // 15) % 3
+            buf: List[str] = []
+            k = 0
+            while i < n and body[i] not in " ~":
+                v = ord(body[i]) - 33
+                i += 1
+                if v == 92 and i < n:
+                    v += ord(body[i]) - 33
+                    i += 1
+                if not 0 <= v <= 99:
+                    raise E00Error(f"{name}: digit pair {v} at {i}")
+                for d in (v // 10, v % 10):
+                    buf.append(str(d))
+                    k += 1
+                    if k == dec:
+                        buf.append(".")
+            after_number = i < n
+            if odd:
+                buf.pop()
+            if expk:
+                buf[-2:-2] = list("E+" if expk == 1 else "E-")
+            out.append("".join(buf))
+        else:
+            raise E00Error(f"{name}: unknown code ~{c!r} at {i}")
+    return "".join(out)
+
+
 def read_coverage(text: str, name: str = "e00") -> Coverage:
-    """One `.e00` file's text -> its arcs, labels and INFO tables."""
+    """One `.e00` file's text -> its arcs, labels and INFO tables (a compressed export is decompressed first)."""
+    if text.startswith("EXP  1"):
+        text = decompress(text, name)
     L = _Lines(text, name)
     first = L.next()
     if not first.startswith("EXP  0"):
@@ -268,7 +340,7 @@ def units_stated(texts: Sequence[str]) -> Optional[str]:
 def read_zip_all(path) -> List[Sheet]:
     """A FIDQ vector zip -> one Sheet per line coverage (a zip may hold two lakes). The lines coverage is the one with
     an AAT; its soundings are the coverage named the same plus `p` (`donner.e00` + `donnerp.e00`) whose PAT has DEPTH.
-    A compressed export (`EXP  1`) raises: this reader does not decompress."""
+    A compressed export (`EXP  1`) is decompressed (`decompress`)."""
     import zipfile
     with zipfile.ZipFile(path) as z:
         covs = [read_coverage(z.read(n).decode("latin-1"), n) for n in sorted(z.namelist())

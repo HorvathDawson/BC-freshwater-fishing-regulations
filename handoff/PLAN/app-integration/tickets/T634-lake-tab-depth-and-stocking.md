@@ -28,6 +28,15 @@ Source: the depth and stocking audit (T608 D, page https://claude.ai/artifact/7D
 5. Proposals file for chart matches per the rules above (everything a proposal; one frozen match file; nothing pre-accepted).
 6. Then: the Lake tab (app), after the owner sees the first pass.
 
+**Not part of the closed-testing goal (T495)** (owner 2026-11-11): the lake work (charts + stocking) ships in a LATER
+release; passes 2-3 are research to see the path.
+
+**Owner decision 2026-11-11 (third pass): build now on the three "Access Only" records** (Provincial Fish Stocking
+Reports; the placed contours, 28 lakes; the sheet layer + the 510 vector zips): "i want you to do the work for them and
+then I will find the website later for it". The owner OWES the licence link. Every artefact built from these three
+carries `licence: "owner says OGL, catalogue says Access Only, unconfirmed"`. **Confirm the licence before any
+production publish.**
+
 Related: T200, T201, T218, T219 (postponed 2026-11-05; this ticket restarts the data half on the owner's word).
 Depends: none. Size: L.
 
@@ -153,3 +162,77 @@ Watershed code is evidence only (the audit gated on it; compared without hyphens
 Not verified (second pass): only 6 charts were looked at by eye; the other 2,593 rely on the threshold the first pass
 set on 20 samples. Faint pencil soundings on a grey scan lighter than grey 160 would vanish; the worst-ratio grey and
 colour charts were the ones checked, not every faint one.
+
+## Third pass 2026-11-11 (owner: build on the Access Only records now; research only, nothing accepted, nothing published, app/ untouched)
+
+### C. Licence flag; hold lifted
+- Decision recorded above. `licence: "owner says OGL, catalogue says Access Only, unconfirmed"` is on: every chart
+  proposal that draws on the sheet layer (2,265 of 2,294), every contour and stocking proposal and file, every vector
+  placing row, the fetched FIDQ group files; `accept` copies it onto any accepted row.
+- The `in_open_table: false` hold is lifted: the 49 layer-only ids take the normal rules (clean 27, unnamed 17,
+  position_or_size 2, two_named 2, gazetted_only 1). Regenerated proposals: clean 1,995, review 299; no id moved.
+
+### D. Stocking (FIDQ, `~/data-offgit/bc-stocking-fidq/`, 36 MB)
+- `python -m pipeline.stocking.fetch_fidq` (prototype; the v1 chain's bulk Preview, sequential, 1 s apart, resumable,
+  stops on 403/429/5xx): 250 watershed groups, lakes only; **64,991 release rows, 2,318 FIDQ waterbodies**. States:
+  ok 140, ok_chunked 1 (date chunks under the 4,000 cap), **no_block 109** (Preview returned no data block: the v1
+  notes say these groups have no stocked lakes; counted and listed in `fetch.json`, not verified one by one).
+- `python -m pipeline.stocking.propose` -> `data/generated/stocking/proposals.json`. Code picks, name confirms (FIDQ
+  gazetted name or alias vs the lake's gazetted names: equal / word order / independent curated variant); no name-alone,
+  no 2,000 m fallback, no name-inside-name; stores `wbk:`. **clean 1,751** (equal 1,746, variant 5; 1,751 distinct
+  lakes, none claimed twice), **unnamed 521** (code on unnamed lakes only: FIDQ names them by alias, e.g. "LAKE #2085"),
+  no_lake 32, two_named 9, name_disagrees 4, variant_circular 1. All 2,318 are `first_time` (no frozen file yet).
+  Stocked since 2020: 773 waterbodies (clean 625, unnamed 137, other 11).
+- Accept: `python -m pipeline.bathymetry.accept --set stocking` (the one writer of `data/curated/stocking/matches.json`;
+  `--rule clean` in bulk, the rest one id at a time). `pipeline/stocking/generate/match.py` + `identifiers.py` (the
+  unsound old matcher) are still in the tree: retire them when the feed is built.
+
+### E. Placed contours (`~/data-offgit/bc-bathymetry-contours/contours.geojson`, one public WFS request, 2.5 MB)
+- 137 contour polygons, **28 lakes**. The layer carries the FWA waterbody key, the 50K code and the gazetted name.
+  `python -m pipeline.bathymetry.contours` -> `data/generated/bathymetry/contour_proposals.json`: **clean 25**,
+  outline_disagrees 3 (IoU of the 0 m polygon vs the FWA lake: Frog Lakes 00631FROG 0.72, Tacheeda Lakes 0.63,
+  Yellowhead Lake 0.71); all 28 agree on code and name. Accept: `accept --set contours`.
+- Depth fields per lake: `LAKE_MAX_DEPTH_M` and `LAKE_MEAN_DEPTH_M` (all 28 filled), surface area, volume, littoral area,
+  elevation, survey date, map scale; contour depths per lake (10 m steps mostly; some 2/3/5 m); a `99999` polygon is the
+  "deepest area", not a depth.
+
+### F. Vector depth files: placed as far as the program goes
+- `e00.decompress` (a port of e00compr's `e00read.c`; checked against GDAL's AVCE00 driver on 3 files: same arcs and
+  contour values) reads the **6 compressed zips**: all 6 now read (00153501's "p" file is a copy of its lines file, so
+  it has no soundings; marked `duplicate_coverage`, as is one in 00153701).
+- `scripts/heavy.sh place 50 -- python -m pipeline.bathymetry.place_more` -> `~/data-offgit/bc-bathymetry-vectors/
+  placing_all.json`: every one of the **510 zips** (512 coverages), candidates = the lakes `propose` put under the
+  zip's code(s) (the named lake; each named lake of a two_named code; each unnamed lake), rigid fit, shore gap 300 m then
+  1,000 m. **strict 298** (IoU >= 0.9, median <= 25 m, area 0.8-1.25), **loose 117**, **poor 83**, no_shore 6,
+  no_candidate 6 (no FWA lake under the code: 00095CAMB, 00402GATA, 00426SANJ, 01446MAHD, 01267FIRE, 00099LARL),
+  duplicate 2. Distinct lakes: 297 strict, 413 strict or loose, 496 fitted at all. The first pass's 291 fits came out
+  identical (202 strict / 49 loose / 40 poor); newly fitted 207 zips: strict 96, loose 68, poor 43. The 1,000 m gap
+  closed 29 more shores (10 strict). Mirror beats the true fit 13 times. Poor: 61 at a sane area ratio (shore shapes
+  differ), 17 over 2x (sheet lake much bigger than the code's lake, e.g. Upper Frog 128x), 5 under 0.5x.
+- Units (the file's own "depths in ..." words only): **metres 396, feet 4** (00015001, 00095501, 00215801, 00282501),
+  **not stated 110**.
+- Shots (FWA outline blue, placed sheet shore red, contours grey; each opened and looked at): `T634-shots/`
+  `pass3-1-mahood-strict-new.png` (IoU 0.977), `pass3-2-wee-sandy-strict-compressed-e00.png` (0.926, a decompressed
+  file), `pass3-3-bruce-strict-wide-gap.png` (0.942, shore closed only at 1,000 m), `pass3-4-stafford-borderline-
+  loose.png` (0.8999: the north arm sits beside the outline), `pass3-5-dina1-poor.png` (0.576: sheet and FWA shores
+  differ in shape), `pass3-6-upper-frog-failed-wrong-size.png` (0.006: the sheet's long lake is 128x the small lake the
+  code names; wrong lake under the code or a multi-lake sheet).
+
+Not verified (third pass): the 109 FIDQ `no_block` groups were not checked one by one (a real failure would look the
+same); FIDQ streams were not fetched (lakes only); the stocking `unnamed` 521 were not looked at; contour proposals were
+not drawn; only 6 of 498 placings were looked at; the not-stated units were not ticked against the PDFs; FIDQ alias
+lists split on commas only (some use ";").
+
+### Path to ship (later release; not T495)
+1. **Licence** (owner, S): the link or written word for the three Access Only records; until then nothing derived
+   from them is published.
+2. **Chart PDFs** (S): the 2,599 200-dpi files (201 MB) to R2 `bathymetry/` (staging by Claude, prod by the owner).
+3. **Owner review of chart matches** (owner hours; a small review page would make it M): bulk-accept clean 1,995,
+   then the 343-row review list (69 variant_circular, 143 unnamed, 44 no-code, …) by id.
+4. **Stocking** (M): owner bulk-accepts clean 1,751, reviews 567; retire `stocking/generate/`; a weekly fetch run by
+   the feeds worker or by hand (no GitHub cron), first_time lakes to the owner.
+5. **Bundle + lakes/1** (M): writers for the waiting `chart`, `stock_water`, `stock_code` tables; max/mean depth from
+   the 25 contour lakes and the chart statistics.
+6. **Lake tab in the app** (item 6, L): PDF viewer for scan-only lakes, stocking history, depth facts.
+7. **Placed vector depths on the map** (L, optional, after 6): owner ticks the 415 strict+loose placings beside the
+   PDFs and the 110 unstated units, then a tile layer of placed contours; the 83 poor + 12 failed stay PDF-only.

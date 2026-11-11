@@ -16,6 +16,8 @@ What it is: a survey sheet's waterbody identifier -> the lake it is a chart of. 
 | `fetch_vectors.py` | fetches the 2001 vector depth zips (FIDQ, beside the PDFs) to a directory OUTSIDE git: sequential, resumable, stops on a refusal | `python -m pipeline.bathymetry.fetch_vectors --out ~/data-offgit/bc-bathymetry-vectors` |
 | `e00.py` | reader for those zips (ArcInfo export, uncompressed `EXP 0`): arcs + `CONTOUR`, soundings + `DEPTH`, META; units only where the file says "depths in …" | library |
 | `compress.py` | every chart PDF of the OGL open table -> 200 dpi 1-bit (CCITT G4, one image per page, page count and size kept and checked; owner 2026-11-11); output + `manifest.json` OUTSIDE git; source PDFs only read; deterministic; a missing/broken chart is a row and a non-zero exit | `scripts/heavy.sh pdf200 50 -- python -m pipeline.bathymetry.compress` (default out `~/data-offgit/bc-bathymetry-pdf-200dpi/`, 4 workers) |
+| `contours.py` | PROTOTYPE (T634 third pass): the placed-contour layer (28 lakes, Access Only) fetched outside git, proposals per lake (key proposes; code, name, 0 m outline confirm) to `GENERATED.base/bathymetry/contour_proposals.json` | `python -m pipeline.bathymetry.contours [--fetch]` |
+| `place_more.py` | PROTOTYPE: every vector zip placed by program (candidates from `propose`), graded strict/loose/poor, units per file; `~/data-offgit/bc-bathymetry-vectors/placing_all.json` | `scripts/heavy.sh place 50 -- python -m pipeline.bathymetry.place_more` |
 | `place.py` | the sheet's shore (FCODE GA2711…, inlet gaps closed) and a RIGID fit (turn + shift, never a stretch) onto our lake outline, with IoU, area ratio and shore distances | library |
 
 Tests: `pipeline/tests/test_bathymetry_t634.py` (synthetic inputs only; no Province file is in the repo).
@@ -31,6 +33,8 @@ chart not made from the code. Curated name variants (`CURATED.waters.name_varian
 Only the open table (`Bathymetric Maps - Open`, the PDFs) is Open Government Licence. The sheet layer, the placed
 contours (28 lakes) and the Cariboo line work are "Access Only". The vector zips have no record of their own: they are
 linked only from the Access Only sheet layer. Nothing derived from an Access Only record ships until the owner decides.
+
+**Owner 2026-11-11 (third pass):** build on the Access Only records now; the owner owes the licence link. Every artefact built from them carries `licence: "owner says OGL, catalogue says Access Only, unconfirmed"`; confirm before any production publish. `accept --set charts|contours|stocking` writes the three frozen files.
 
 ## What it needs before it is fed
 

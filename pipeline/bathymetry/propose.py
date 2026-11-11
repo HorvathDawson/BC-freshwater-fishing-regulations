@@ -56,6 +56,10 @@ from pipeline.deliver.lake_facts import core
 NEAR_M = 100.0
 AREA_MIN, AREA_MAX = 0.5, 2.0
 CIRCULAR_SOURCES = frozenset({"bathymetry", "stocking"})
+#: (T634 third pass, owner 2026-11-11: build now, licence link owed by the owner) every row that draws on the sheet
+#: layer (its outline, title or code) carries this flag; confirm before any production publish. The first pass's
+#: `in_open_table: false` HOLD is lifted: those ids take the normal rules.
+LICENCE_FLAG = "owner says OGL, catalogue says Access Only, unconfirmed"
 _LEADING = re.compile(r"^(lake|l)\s+")
 
 
@@ -201,6 +205,8 @@ def propose_one(code: str, sheets: Sequence[SheetRow], layers: Mapping[str, Mapp
                        "in_sheet_layer": s.in_layer, "vectorized": s.vectorized} for s in
                       sorted(sheets, key=lambda s: (s.sheet_no or 0, s.image))],
            "in_open_table": any(s.in_open for s in sheets), "wbks": [], "evidence": {}}
+    if any(s.in_layer for s in sheets):
+        row["licence"] = LICENCE_FLAG
     ev = row["evidence"]
     lakes = dict(layers.get("lakes", {}))
     if not lakes:
