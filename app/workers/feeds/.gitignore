@@ -2,7 +2,7 @@
 fixtures-full/
 .wrangler/
 
-# the staging RUN_TOKEN (wrangler secret), kept locally only
-.run-token
-# (T404) the production RUN_TOKEN (deploy/prod/feeds.sh, build-apk.sh --production), kept locally only
-.run-token.prod
+# the staging RUN_TOKEN (wrangler secret), kept locally only; (T404) .run-token.prod the production one; (T609 W7) every
+# other .run-token* too (.run-token.prev: the old token during a rotation) and wrangler's local secrets
+.run-token*
+.dev.vars*

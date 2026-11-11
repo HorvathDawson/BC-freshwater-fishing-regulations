@@ -76,3 +76,15 @@ describe("wrangler.prod.toml is wrangler.toml with production's names (T404)", (
     expect(ids(P).filter((i) => ids(S).includes(i))).toEqual([]);
   });
 });
+
+// T609 W7: no run-token file is ever committable (the rotation's old token once sat in an un-ignored .run-token.prev)
+describe("token files are git-ignored (T609 W7)", () => {
+  it("every .run-token* and .dev.vars is ignored; the rotate script writes no .prev", async () => {
+    const { execFileSync } = await import("node:child_process");
+    const dir = new URL("..", import.meta.url).pathname;
+    for (const f of [".run-token", ".run-token.prod", ".run-token.prev", ".run-token.anything", ".dev.vars"])
+      expect(execFileSync("git", ["check-ignore", f], { cwd: dir, encoding: "utf8" }).trim()).toBe(f);
+    const sh = readFileSync(new URL("../../../../deploy/staging/rotate-run-token.sh", import.meta.url), "utf8");
+    expect(sh).not.toMatch(/>\s*"\$F\.prev"/);
+  });
+});

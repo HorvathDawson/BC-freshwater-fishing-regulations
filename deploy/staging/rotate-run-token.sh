@@ -6,7 +6,7 @@
 # 3. app/workers/feeds/.run-token (git-ignored, mode 600) gets the new value — the one place local tools read it
 #    (curation-review/backend/reports.py for GET /reports, and the owner's curl for POST /run/*)
 # 4. VERIFY on the live worker: the new token is accepted (POST /notify/preview → 200: reads state, sends nothing) and
-#    the old one is refused (403). Exit 1 if either fails — the old token is kept in .run-token.prev until it passes.
+#    the old one is refused (403). Exit 1 if either fails.
 # Nothing else holds the token (no GitHub secret, no other worker). Production: the same steps with its own worker
 # name, by the owner (T240).
 set -euo pipefail
@@ -17,7 +17,10 @@ F=app/workers/feeds/.run-token
 OLD=$(tr -d '\n' < "$F" 2>/dev/null || true)
 NEW=$(openssl rand -hex 24)
 umask 077
-[[ -n "$OLD" ]] && printf '%s\n' "$OLD" > "$F.prev"
+# (T609 W7) the old token is held in $OLD only: no .run-token.prev file is written any more (it was not git-ignored and
+# outlived a failed run). .run-token holds the live value either way (the new one is written only after the upload
+# succeeded). A .prev left by an older version of this script is removed.
+rm -f "$F.prev"
 printf '%s' "$NEW" | npx --prefix app wrangler secret put RUN_TOKEN -c app/workers/feeds/wrangler.toml --name "$WORKER" 2>&1 \
   | grep -v "npm warn" | tail -2
 printf '%s\n' "$NEW" > "$F"
@@ -28,7 +31,7 @@ for i in 1 2 3 4 5 6; do
   c=$(code "$NEW"); if [[ "$c" == 200 ]]; then ok=1; break; fi
   echo "new token: HTTP $c (try $i), waiting"; sleep 8
 done
-[[ -n "$ok" ]] || { echo "FAIL: the new token is not accepted (HTTP $c); old token kept in $F.prev"; exit 1; }
+[[ -n "$ok" ]] || { echo "FAIL: the new token is not accepted (HTTP $c)"; exit 1; }
 echo "new token accepted (HTTP 200)"
 if [[ -n "$OLD" ]]; then
   c=$(code "$OLD")
