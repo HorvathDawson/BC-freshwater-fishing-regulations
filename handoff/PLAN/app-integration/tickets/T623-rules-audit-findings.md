@@ -151,3 +151,14 @@ the banner)."
 4. **The app, per notice:** hash in the bundle = parsed, so the card speaks it and no banner shows (or a slim "in-season notice" source tag on the rule). Not in the bundle (new or changed) = the banner, as today, with its range. Withdrawn (in the bundle, gone from the feed) = a banner "this in-season closure has ended; the card catches up at the next update", and the card's rule is suppressed by id. The app composes nothing; the worker ships `{id, hash, state}` and core picks banner vs card.
 5. **Gates.** A notice parsed into the bundle whose hash differs from the feed's shows the banner (never both silently). A test pins the three states. `check_corpus` covers the new file. Count to measure first: the 5 window notices (Similkameen, Okanagan, Salmon R3, Bessette, Granby).
 6. **Steps (future ticket, owner to file):** schema + entry file; parser prompt for notices; reader authority + RULINGS; bundle hash record; worker `{id, hash}`; app three-state; fast-fail item.
+
+## Verification against the build 27 reach run (2026-11-11, read-only)
+The new reach tables were compared with the live run, filtered to T623's rules.
+- **F6:** `z7b:daily_quotas` species_quotas.r5 went from 207,669 to 207,566 sections (-103, +0). All 103 are Peace River (`gnis:14619`) sections, which is every Peace section the release bound (104 sections; one was never bound). That is right: `outside_items` takes the whole river out ("except Peace River", p.64).
+  - The ANSWER changes on part 9 only (1 section): kokanee 10 instead of release.
+  - On the other 102 the release was already silenced. A Peace row's own "Kokanee daily quota = 10" beat it, or it stood under a closure. This was simulated on the live bundle by removing r5 from every Peace rule set; it has not yet been seen on a bundle.
+- **F5 (Nechako 18, Bowron 11, Willow 5), F8 (2), F12 (713):** no reach change, as expected. The rows bind the same sections (Nechako r1 92, Bowron r1 97, Willow r1 59, Fraser r7 r2 114). The no-carry flag, the extra `exempts` target and the size-free-rainbow rule all act when the bundle is built (`bundle.rules.lifts`, the reader). Proof after the build, on the new bundle (the needs_bundle tests are red on today's bundle):
+  - `test_lift_decisions.py -k f5`
+  - `test_displacement_rulings.py -k f8`
+  - `test_competition.py -k f12`
+  - `test_rulings_pinned.py -k "f6 or t623"`
