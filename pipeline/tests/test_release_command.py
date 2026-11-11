@@ -102,7 +102,7 @@ def test_the_stages_run_in_order_and_ship_the_candidate(world, capsys):
     marks = [out.index(f"[{i}/6] {s} ok") for i, s in enumerate(R.STAGES, 1)]
     assert marks == sorted(marks)
     assert [c for c, _ in world["calls"]] == ["build", "upload"]
-    assert world["calls"][1][1] == {"MIN_APP_VERSION": "0.5.0"}       # the live release's stamp carries
+    assert world["calls"][1][1] == {"MIN_APP_VERSION": "0.5.0", "FAST_FAIL_DONE": "abc123"}   # the live stamp carries
     assert _latest(world) == NEW and not (world["root"] / "CANDIDATE").exists()
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
     assert rec["checks"]["binding_diff"] == "same" and rec["staged_at"] and rec["commit"] == "abc123"
@@ -209,7 +209,7 @@ def test_a_rerun_after_the_promote_keeps_the_first_runs_min_app(world, capsys):
     world["fail"] = set()
     assert _staging() == 0, capsys.readouterr().err
     ups = [env for c, env in world["calls"] if c == "upload"]
-    assert ups == [{"MIN_APP_VERSION": "0.5.0"}, {"MIN_APP_VERSION": "0.5.0"}]
+    assert [u["MIN_APP_VERSION"] for u in ups] == ["0.5.0", "0.5.0"]
 
 
 def test_a_rerun_with_no_checks_recorded_falls_back_to_the_release_before_the_promote(world):
@@ -226,6 +226,52 @@ def test_fast_fail_runs_first_and_stops_the_release(world, capsys):
     err = capsys.readouterr().err
     assert "STOPPED at preflight" in err and "fast-fail.sh failed" in err
     assert world["calls"] == [] and _latest(world) == LIVE and world["fast_fails"] == 1
+
+
+def test_fast_fail_runs_after_the_instant_checks(world, capsys):
+    """T535: a dirty tree, an unpushed HEAD or an old site stop in a second, before the minute-or-two fast-fail."""
+    for k, v in (("dirty", ["pipeline/build.py"]), ("pushed", False), ("site_problems", ["site 0.6.9 < 0.7.0"])):
+        old = world[k] if k in world else []
+        world[k] = v
+        assert _staging() == 1
+        world[k] = old
+    assert world["fast_fails"] == 0 and world["calls"] == []
+
+
+def test_a_rerun_skips_fast_fail_passed_for_this_head_and_tells_heavy(world, capsys):
+    """T535: fast-fail ran again on every resume; now the ledger records the HEAD it passed for, and the build's
+    heavy.sh is told (FAST_FAIL_DONE) so it does not run it a second time."""
+    world["fail"] = {"upload"}
+    assert _staging() == 1 and world["fast_fails"] == 1
+    assert world["calls"][0] == ("build", {"FAST_FAIL_DONE": "abc123"})
+    world["fail"] = set()
+    assert _staging() == 0
+    assert world["fast_fails"] == 1 and "fast-fail passed for abc123" in capsys.readouterr().out
+    assert json.loads(R.LEDGER.read_text())["fast_fail"]["head"] == "abc123"
+    R.git_head = lambda: "def456"                             # a new commit: it runs again
+    try:
+        assert _staging() == 0 and world["fast_fails"] == 2
+    finally:
+        R.git_head = lambda: "abc123"
+
+
+def test_no_fast_fail_reaches_heavy_with_its_reason(world):
+    assert _staging(no_fast_fail="tsc is down for the T999 refactor") == 0
+    assert world["calls"][0] == ("build", {"HEAVY_NO_FAST_FAIL": "release --no-fast-fail: tsc is down for the T999 refactor"})
+
+
+def test_the_dry_run_runs_the_site_gate_and_the_app_gate(world, capsys):
+    """T535: the dry run omitted the site gate the real preflight stops on."""
+    world["site_problems"] = ["the staging site is app 0.6.9, older than 0.7.0"]
+    world["extra"] = {"salmon": {"url": "x", "format": "salmon/4"}}   # in the candidate the build's dry run names
+    assert R.main(["--staging", "--dry-run", "--min-app-version", "0.7.0"]) == 0
+    out = capsys.readouterr().out
+    assert "WOULD STOP: the staging site is app 0.6.9" in out and world["site_min_apps"] == ["0.7.0"]
+    assert f"app-version gate on {LIVE} (min app 0.7.0): ok" in out
+    world["site_problems"] = []
+    assert R.main(["--staging", "--dry-run", "--min-app-version", "0.4.0"]) == 0
+    out = capsys.readouterr().out
+    assert "ok: site serves app 9.9.9" in out and f"app-version gate on {NEW} (min app 0.4.0): WOULD STOP: salmon/4" in out
 
 
 def test_no_fast_fail_needs_a_reason_and_prints_it(world, capsys):

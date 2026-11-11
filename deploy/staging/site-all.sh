@@ -34,6 +34,8 @@ fi
 
 # 2. export -------------------------------------------------------------------------------------------------------------
 scripts/heavy.sh site-export 50 -- pnpm -C app/apps/mobile export:web:staging
+# (T535) that heavy.sh ran fast-fail for this HEAD (or HEAVY_NO_FAST_FAIL says why not): the SEO step's need not again
+FAST_FAIL_DONE=${FAST_FAIL_DONE:-$(git rev-parse HEAD)}; export FAST_FAIL_DONE
 
 # 3. SEO pages ----------------------------------------------------------------------------------------------------------
 if [[ $RELINK == 1 ]]; then

@@ -18,11 +18,15 @@ on:
   push:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
             "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/*.generated.*"]
+            "app/packages/core/src/*.generated.*",
+            # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
+            "curation-review/**", "scripts/**"]
   pull_request:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
             "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
-            "app/packages/core/src/*.generated.*"]
+            "app/packages/core/src/*.generated.*",
+            # (T535) the review app's backend tests and the path gate's own dirs live here; fast-fail runs both too
+            "curation-review/**", "scripts/**"]
   workflow_dispatch:
 
 concurrency:

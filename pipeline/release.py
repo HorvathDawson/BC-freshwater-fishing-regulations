@@ -8,8 +8,10 @@
 THE STAGES, in order; the run stops at the first failure with a plain message, and a rerun of the same command picks up
 where it stopped (every stage below is skipped when it is already done for this release):
 
-  1 preflight  `scripts/fast-fail.sh` first (T483, AGENTS 20a: the cheap checks, a minute or two; `--no-fast-fail
-               REASON` skips it and prints the reason); code and data/curated committed (the review log marks.jsonl
+  1 preflight  the instant checks first, then `scripts/fast-fail.sh` LAST (T483/T535, AGENTS 20a: the cheap checks, a
+               minute or two; `--no-fast-fail REASON` skips it and prints the reason; a rerun skips it when it passed
+               for this HEAD, ledger `fast_fail`; the build's heavy.sh is told so, FAST_FAIL_DONE). The instant ones:
+               code and data/curated committed (the review log marks.jsonl
                and closed.json may be dirty: no stage reads them, `build.NOT_BUILD_INPUTS`); the atlas is not behind
                a curated input it was built from (T547, `atlas.inputs.behind`: a cut, name, area, added water, tidal
                limit or slough call edited after the atlas build is named, and the run stops unless
@@ -326,6 +328,7 @@ class Ctx:
     min_app: str | None = None
     jobs: int = 2
     reupload: bool = False
+    heavy_env: dict = field(default_factory=dict)   # (T535) tells heavy.sh fast-fail ran: FAST_FAIL_DONE / HEAVY_NO_FAST_FAIL
     led: dict = field(default_factory=dict)
     rid: str | None = None          # the candidate, once the build named it
     live: str | None = None         # LATEST when the run started
@@ -340,14 +343,7 @@ def baseline_dir(live: str) -> Path:
 
 
 def stage_preflight(ctx: Ctx) -> str:
-    if ctx.no_fast_fail is not None:
-        print(f"    fast-fail SKIPPED (--no-fast-fail): {ctx.no_fast_fail}", flush=True)
-    else:
-        rc = run_fast_fail()
-        if rc:
-            raise Stop("preflight", f"scripts/fast-fail.sh failed (rc={rc})",
-                       "read its output above (the last check printed is the one that failed), fix it, rerun; "
-                       "--no-fast-fail REASON skips it and prints the reason")
+    # (T535) the instant checks first; the minute-or-two fast-fail last (`preflight_fast_fail`)
     dirty = git_dirty()
     if dirty:
         raise Stop("preflight", f"{len(dirty)} uncommitted path(s) the build reads: " + ", ".join(dirty[:8])
@@ -396,7 +392,32 @@ def stage_preflight(ctx: Ctx) -> str:
     bad, said = site_problems(min_app)
     if bad:
         raise Stop("preflight", "; ".join(bad), "redeploy the staging site (the commands above), then rerun")
-    return f"clean at {git_head()[:12]}; live release {ctx.live}; {said}"
+    return f"clean at {git_head()[:12]}; live release {ctx.live}; {said}; {preflight_fast_fail(ctx)}"
+
+
+def preflight_fast_fail(ctx: Ctx) -> str:
+    """(T535) fast-fail, after the instant checks. A rerun skips it when it passed for this HEAD (the tree is clean: the
+    dirty check above stopped otherwise); the build's heavy.sh is told it ran (FAST_FAIL_DONE) or why not."""
+    head = git_head()
+    if ctx.no_fast_fail is not None:
+        print(f"    fast-fail SKIPPED (--no-fast-fail): {ctx.no_fast_fail}", flush=True)
+        ctx.heavy_env = {"HEAVY_NO_FAST_FAIL": f"release --no-fast-fail: {ctx.no_fast_fail}"}
+        return "fast-fail skipped (--no-fast-fail)"
+    done = ctx.led.get("fast_fail") or {}
+    if done.get("head") == head:
+        msg = f"fast-fail passed for {head[:12]} at {done.get('at')}: not rerun"
+        print(f"    {msg}", flush=True)
+    else:
+        rc = run_fast_fail()
+        if rc:
+            raise Stop("preflight", f"scripts/fast-fail.sh failed (rc={rc})",
+                       "read its output above (the last check printed is the one that failed), fix it, rerun; "
+                       "--no-fast-fail REASON skips it and prints the reason")
+        ctx.led["fast_fail"] = {"head": head, "at": now()}
+        save_ledger(ctx.led)
+        msg = "fast-fail passed"
+    ctx.heavy_env = {"FAST_FAIL_DONE": head}
+    return msg
 
 
 def keep_baseline(live: str, reach: Path | None = None) -> tuple[bool, str]:
@@ -442,7 +463,7 @@ def stage_baseline(ctx: Ctx) -> str:
 
 
 def stage_build(ctx: Ctx) -> str:
-    rc = run_cmd(build_cmd(jobs=ctx.jobs))
+    rc = run_cmd(build_cmd(jobs=ctx.jobs), env=ctx.heavy_env or None)
     if rc:
         raise Stop("build", f"`pipeline build` failed (rc={rc})",
                    "read the build output above (`python -m pipeline build --status` lists each stage and its log), "
@@ -539,7 +560,7 @@ def stage_staging(ctx: Ctx) -> str:
     if r.get("fingerprint") != fingerprint(rid):
         raise Stop("staging", f"{rid} changed on disk after its checks (the fingerprint moved)",
                    "do not ship it: rebuild (`python -m pipeline build --force deliver --hold-latest`) and rerun")
-    env = {"MIN_APP_VERSION": ctx.min_app} if ctx.min_app else {}
+    env = {**ctx.heavy_env, **({"MIN_APP_VERSION": ctx.min_app} if ctx.min_app else {})}
     rc = run_cmd(upload_cmd(rid), env=env)
     if rc:
         raise Stop("staging", f"deploy/staging/upload.sh {rid} failed (rc={rc})",
@@ -598,8 +619,11 @@ def dry_run(ctx: Ctx) -> int:
     live, cand = read_pointer("LATEST"), read_pointer("CANDIDATE")
     print("release --staging, DRY RUN (nothing is built, promoted or uploaded)\n")
     dirty = git_dirty()
+    ff = led.get("fast_fail") or {}
     print("[1/6] preflight  " + (f"fast-fail SKIPPED: {ctx.no_fast_fail}" if ctx.no_fast_fail is not None
-                                   else "bash scripts/fast-fail.sh (not run in a dry run)"))
+                                   else f"fast-fail passed for HEAD at {ff.get('at')}: a rerun skips it"
+                                   if ff.get("head") == git_head() else
+                                   "bash scripts/fast-fail.sh, last (not run in a dry run)"))
     print("             " + ("ok: code + data/curated committed" if not dirty else
                              f"WOULD STOP: {len(dirty)} uncommitted path(s): {', '.join(dirty[:8])}")
           + f"  (HEAD {git_head()[:12]}; marks.jsonl / closed.json may be dirty)")
@@ -623,6 +647,18 @@ def dry_run(ctx: Ctx) -> int:
     except (subprocess.CalledProcessError, RuntimeError) as e:
         pushed = f"WOULD STOP ({e}): cannot tell whether HEAD is on"
     print(f"             {pushed} {GH_REMOTE}/{GH_BRANCH}")
+    # (T535) the gates the real preflight and checks stop on: the staging site and the app version
+    target = cand or live
+    min_app = ctx.min_app or resume_min_app(led, target, live)
+    try:
+        bad, said = site_problems(min_app)
+        print("             " + (f"WOULD STOP: {'; '.join(bad)}" if bad else f"ok: {said}"))
+    except Exception as e:  # noqa: BLE001 — shown: an unreadable site is a stop in the real run (site_gate)
+        print(f"             WOULD STOP: the staging site gate could not run ({type(e).__name__}: {e})")
+    if target:
+        probs = app_gate_problems(target, min_app)
+        print(f"             app-version gate on {target} (min app {min_app or 'any'}): "
+              + (f"WOULD STOP: {'; '.join(probs)}" if probs else "ok"))
     lock = Path(os.environ.get("HEAVY_LOCK", Path.home() / ".claude/heavy-job.lock")) / "owner"
     held = lock.read_text().splitlines()[0] if lock.exists() else None   # line 1 `<pid> <label> <date>` (T536)
     print(f"             heavy-job lock: {'held by ' + held + '  (scripts/heavy.sh --status)' if held else 'free'}")
@@ -639,8 +675,6 @@ def dry_run(ctx: Ctx) -> int:
     if rc:
         print(f"             (the build's dry run returned rc={rc})")
     print(f"             CANDIDATE now: {cand or '(none)'} — the build names its release there; LATEST stays {live}")
-    target = cand or live
-    min_app = ctx.min_app or resume_min_app(led, target, live)
     r = led.get("releases", {}).get(target or "", {})
     print(f"[4/6] checks     manifest sanity; app gate (min app {min_app or 'any'}"
           + ("" if ctx.min_app else ", from the ledger, else the live release's stamp") + "); binding diff "

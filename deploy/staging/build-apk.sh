@@ -96,9 +96,11 @@ for a in "$@"; do
   esac
 done
 if [[ -z ${BUILD_APK_INNER:-} ]]; then
-  if [[ -n $NOFF ]]; then echo "build-apk: fast-fail SKIPPED (--no-fast-fail): $NOFF"
+  # (T535) heavy.sh runs fast-fail before every heavy job: told it ran here (FAST_FAIL_DONE) or why it was skipped
+  if [[ -n $NOFF ]]; then echo "build-apk: fast-fail SKIPPED (--no-fast-fail): $NOFF"; export HEAVY_NO_FAST_FAIL="build-apk --no-fast-fail: $NOFF"
   elif [[ -n $DRY ]]; then echo "[dry-run] scripts/fast-fail.sh"
   else scripts/fast-fail.sh || { echo "build-apk: scripts/fast-fail.sh failed (above) — nothing was built" >&2; exit 1; }
+    FAST_FAIL_DONE=$(git rev-parse HEAD); export FAST_FAIL_DONE
   fi
 fi
 if [[ -z ${BUILD_APK_INNER:-} && -z $DRY ]]; then
