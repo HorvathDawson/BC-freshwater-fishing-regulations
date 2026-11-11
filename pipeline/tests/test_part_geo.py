@@ -400,7 +400,11 @@ def test_keep_named_reads_the_1_based_handle_and_the_lake_polygons(tmp_path):
 #: leaves its river at no named place, so neither side has an end the other shares. Pinned as a KNOWN COUNT on the
 #: side build (2026-11-08, r-… T517 fix lane); a change moves this number and must say why. The assert in
 #: `topology.mark_words` (a mark's words are the parts' end words) is not weakened: it holds wherever two main stems meet.
-UNLABELLED_MARKS = 107                 # 112 before two parts meeting across a lake were said by the lake (5)
+UNLABELLED_MARKS = 106                 # 112 before two parts meeting across a lake were said by the lake (5)
+#                                        107 -> 106 build 27 (2026-11-11): T637 fix (a) 070230ff5 takes the nameless
+#                                        blue line 354141307 out of Quinsam Diversion (a curation-named water keeps only
+#                                        its named pieces; listed in that commit's dry count), so its side-channel part
+#                                        and the one mark between its two parts are gone (4 sections / 2 parts -> 2 / 1)
 
 
 @pytest.mark.needs_bundle

@@ -525,12 +525,14 @@ def test_spans_a_braid_is_the_gate():
 def test_cut_braids_is_the_phase_between_the_curated_cuts_and_the_areas(monkeypatch):
     from pipeline.atlas import build as AB
     order = []
-    for ph in ("cut_border", "cut_curated", "cut_braids", "cut_areas", "cut_length", "mark_membership"):
+    # T660 (owner 2026-11-11): the shore cuts are the last cut, after the length cap, before the tidal mouths' aliases
+    phases = ("cut_border", "cut_curated", "cut_braids", "cut_areas", "cut_length", "cut_shores", "mark_membership")
+    for ph in phases:
         monkeypatch.setattr(AB, ph, lambda b, ph=ph: order.append(ph))
     monkeypatch.setattr("pipeline.atlas.splits.sliver_gate.short_pieces", lambda g: set())
     b = type("B", (), {"graph": None, "fids": []})()
     AB.sectionize(b)
-    assert order == ["cut_border", "cut_curated", "cut_braids", "cut_areas", "cut_length", "mark_membership"]
+    assert order == list(phases)
 
 
 def test_cut_braids_applies_the_sweep_judged_on_the_uncut_graph(tmp_path):

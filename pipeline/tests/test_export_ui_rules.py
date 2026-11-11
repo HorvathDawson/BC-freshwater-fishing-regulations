@@ -245,16 +245,19 @@ def test_tidal_water_is_marked_carries_only_its_note_and_stops_province_wide_lic
     there (`province_except`: `tidal`)."""
     rows = dict(db.execute("SELECT sid, entry_id FROM tidal"))
     assert rows, "the bundle lists no tidal section (Nitinat Lake)"
-    # the row marked tidal, (T166) the piece below each tidal boundary, owner `split:<id>`, and (T212) a whole
-    # tidal water, owner `water:<item_id>`
-    assert {e for e in rows.values() if not e.startswith(("split:", "water:"))} == {"r1:nitinat_lake@1-3"}
+    # the row marked tidal, (T166) the piece below each tidal boundary, owner `split:<id>`, (T212) a whole tidal
+    # water, owner `water:<item_id>`, and (T660, owner 2026-11-11) a creek's crossing into either, owner
+    # `crossing:<section>` — the last three are `outside.is_cut_owner`, the one test of "off-map tidal water"
+    from pipeline.atlas.reach.outside import is_cut_owner
+    assert {e for e in rows.values() if not is_cut_owner(e)} == {"r1:nitinat_lake@1-3"}
+    assert any(e.startswith("crossing:") for e in rows.values())      # T660 is in this bundle
     want = dict(db.execute("SELECT i.item_id, COUNT(*) FROM item i JOIN item_section s "
                            "ON s.ord = i.ord JOIN tidal t ON t.sid = s.sid GROUP BY 1"))
     for item, w in doc["waters"].items():
         got = w.get("tidal")
         assert (got or {}).get("sections", 0) == want.get(item, 0), item
         if got:
-            assert got["entry"] in ("r1:nitinat_lake@1-3",) or got["entry"].startswith(("split:", "water:"))
+            assert got["entry"] in ("r1:nitinat_lake@1-3",) or is_cut_owner(got["entry"])
             assert "Tidal Waters" in got["guide"]
     assert "wbk:329504244" in want
     foreign = db.execute("SELECT COUNT(*) FROM tidal t JOIN section_ruleset sr ON sr.sid = t.sid "

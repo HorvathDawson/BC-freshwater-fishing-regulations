@@ -388,9 +388,10 @@ def crossing_pieces(graph) -> frozenset[str]:
     cut). A cut piece's `edge_types` are its parent's, so the shore cut, not the edge types, says where a cut
     crossing ends."""
     from pipeline.common import fwa_edge_types as _et
-    from pipeline.common.models import NodeKind
     shore: dict[str, float] = {}
-    streams = [(nid, n) for nid, n in graph.nodes.items() if n.kind == NodeKind.stream]
+    # pieces of a blue line (a lake or polygon node has no `blk`): the question is the line, not the water's kind, so
+    # no node kind is read (T121: the water kind is `water_kind.kind_of`'s alone)
+    streams = [(nid, n) for nid, n in graph.nodes.items() if n.blk]
     for _, n in streams:
         for b in (n.lower_bound, n.upper_bound):
             if b is None or b.route_measure is None:
