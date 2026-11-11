@@ -654,7 +654,7 @@ use that as the sole source of future work."
 | T621 | The map's web and native halves agree (every MapProps key honoured by both, or listed as by design) | IN REVIEW | d59ea56 (G4), 1ed2bf7 (G19), 9f3052f (G15), 7d3f88a (gate); G5 + G21 not done (need a device) | T608B findings G4, G5, G15, G19, G21 |
 | T622 | The public pages and share cards use the app's own words and day; with T605 | IN REVIEW | 1aed37981 | T608B findings G2, G6–G9, G16, G18, G22–G24; G16 not done (the app's start link names no gauge: T620) |
 | T623 | Rules as shown vs the sources: 21 findings from the 48-water audit (5 certain, 16 need the owner's reading; Campbell River, Shuswap/Quesnel part-lake closures, Nechako) | OPEN | — | T608A findings ef14f3b83; DFO placement list waits on labelling |
-| T624 | Runs keeps its own day and names it; a shared water link is the water's own page (right preview) | OPEN | — | owner 2026-11-10 on T620's G10 and G17 |
+| T624 | Runs keeps its own day and names it; a shared water link is the water's own page (right preview) | IN REVIEW | a938841a0 | owner 2026-11-10 on T620's G10 and G17 |
 | T625 | A shared link opens the installed app (Android App Links: assetlinks.json + intent filter) | OPEN | — | owner 2026-11-10; needs the app signing fingerprint from Play Console; no need to wait for closed testing |
 | T626 | Deferred: one view of "open to fish" and "fish in the stream" together | POSTPONED | — | owner 2026-11-10: not a now item |
 | T627 | Digest email: an easy-to-read summary of reports and errors (words kept, trimmed) | OPEN | — | owner 2026-11-10 on T609 |

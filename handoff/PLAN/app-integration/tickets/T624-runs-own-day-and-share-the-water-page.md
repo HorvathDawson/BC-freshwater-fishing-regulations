@@ -1,6 +1,6 @@
 # T624 — Runs keeps its own day; a shared water link is the water's own page
 
-Status: OPEN
+Status: IN REVIEW (a938841a0)
 
 Source: owner 2026-11-10, answering T620's two open choices (T608B findings G10 and G17).
 
