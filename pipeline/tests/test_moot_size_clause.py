@@ -14,13 +14,13 @@ back, so the step is what hides it. `UI_EXPORT_BUNDLE` points the suite at a sid
 """
 from __future__ import annotations
 
-import os
 import sqlite3
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.test_competition import _tiny as _tiny_one
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 
@@ -31,7 +31,7 @@ def _tiny(tmp_path, rules):
     d.mkdir()
     return _tiny_one(d, rules)
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
+BUNDLE = under_test.path("bundle")
 Z3 = "z3:daily_quotas::trout_char_quota"
 R4B = f"{Z3}.r4b"                                           # Region 3 "none under 60 cm"
 BONAPARTE, ELEVEN_MILE, PEACE = "wbk:329054723", "gnis:8623", "gnis:14619"

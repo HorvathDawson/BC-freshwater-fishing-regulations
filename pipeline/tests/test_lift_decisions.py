@@ -15,18 +15,17 @@ run against an old side build (`predates`).
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from collections import defaultdict
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle import rules as rules_mod
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT, predates as _predates
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 
 STEIN = "r3:stein_river@3-16"
 NAHATLATCH = "r3:nahatlatch_river@3-15"

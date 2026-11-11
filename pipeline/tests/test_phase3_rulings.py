@@ -7,17 +7,16 @@ Against `UI_EXPORT_BUNDLE` (else the live bundle); skips on a bundle from before
 corpus (the Stein lift)."""
 from __future__ import annotations
 
-import os
 import sqlite3
 from collections import defaultdict
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.fixture(scope="module")

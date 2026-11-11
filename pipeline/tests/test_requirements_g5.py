@@ -11,16 +11,15 @@ Reads a bundle (`UI_EXPORT_BUNDLE`, else the live one).
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
+BUNDLE = under_test.path("bundle")
 JUL_1 = (7, 1)
 
 KHARTOUM_LAKE = "wbk:329197063"               # a book-known steelhead lake by its own row (AGENTS 54)

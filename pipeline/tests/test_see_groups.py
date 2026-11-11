@@ -26,6 +26,7 @@ import pytest
 from pipeline.deliver.answers import gear as G
 from pipeline.deliver.bundle import rules as RULES
 from pipeline.deliver.bundle.place_names import row_name
+from pipeline.tests import under_test
 from pipeline.tests.conftest import BUNDLE_HINT, need, predates
 
 
@@ -215,7 +216,7 @@ def test_mutation_a_twin_counted_as_a_group(corpus, monkeypatch):
 def db(request):
     from pipeline.deliver.bundle import read as _R
     import os
-    p = os.environ.get("UI_EXPORT_BUNDLE") or _R.BUNDLE
+    p = under_test.path("bundle")
     need(request, "bundle", p, BUNDLE_HINT)
     con = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
     if not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'see_pointer'").fetchone():

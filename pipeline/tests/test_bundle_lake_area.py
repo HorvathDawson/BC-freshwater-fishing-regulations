@@ -5,20 +5,18 @@ the column (`predates`). The unit half builds the column from a two-lake fixture
 from __future__ import annotations
 
 import json
-import os
 import pickle
 import sqlite3
-from pathlib import Path
 
 import pytest
 from shapely.geometry import box
 
 import importlib
 B = importlib.import_module("pipeline.deliver.bundle.build")
-from pipeline.deliver.bundle.read import BUNDLE as SHIPPED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import BUNDLE_HINT, need, predates
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or SHIPPED)
+BUNDLE = under_test.path("bundle")
 
 
 class _Cov:

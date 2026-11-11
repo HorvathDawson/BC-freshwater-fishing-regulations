@@ -12,7 +12,6 @@ the shipped one) and recompute from its rows, never from the export's own code.
 from __future__ import annotations
 
 import copy
-import os
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
@@ -23,9 +22,10 @@ from pipeline.tests.bundle_fixture import finish, section_sets
 
 from pipeline.deliver.bundle.build import SCHEMA, touching_pairs
 from pipeline.deliver.export import checks as export_checks, contract as export_contract, read as export_read
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 # ---------------------------------------------------------------------------------------------

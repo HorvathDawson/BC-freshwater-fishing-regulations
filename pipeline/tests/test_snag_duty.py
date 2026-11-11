@@ -14,23 +14,21 @@ built answers file that it decides no quota anywhere and is in force on every no
 from __future__ import annotations
 
 import json
-import os
 from functools import lru_cache
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.answers import display as X
 from pipeline.deliver.answers import gear as GR
-from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle import rules as RU
 from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing import io
+from pipeline.tests import under_test
 from pipeline.tests.conftest import EXPORT_HINT, need
 from pipeline.tests.test_competition import _rules_of, _tiny
 
-CAT = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis"
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+CAT = under_test.curated().regulations.synopsis
+EXPORT_DIR = under_test.path("export_dir")
 SNAG = "zp:prohibited_methods::prohibited_methods.r3"
 WORDS = "Any fish snagged — even by accident — must be released."
 

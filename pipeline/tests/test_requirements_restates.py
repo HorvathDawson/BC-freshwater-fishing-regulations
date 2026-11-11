@@ -5,7 +5,6 @@ Against the shipped bundle (`UI_EXPORT_BUNDLE`, else the live one): the reader r
 reader-side, so any bundle carrying the Dean's and Shuswap's records answers them."""
 from __future__ import annotations
 
-import os
 import sqlite3
 from pathlib import Path
 
@@ -13,9 +12,10 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.export import closures as export_closures
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
+BUNDLE = under_test.path("bundle")
 DEAN_I = "r5:dean_river@5-9"
 SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
 

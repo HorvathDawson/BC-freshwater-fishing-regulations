@@ -32,10 +32,8 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import sqlite3
 from collections import defaultdict
-from pathlib import Path
 
 import pytest
 
@@ -44,9 +42,10 @@ from pipeline.deliver.export import (
     contract as export_contract, guide_words as export_guide_words, model as export_model,
     steelhead as export_steelhead
 )
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 #: The regions whose own tables name steelhead, from the book's regional pages: 1 (p.13 "All
 #: wild steelhead", "2 hatchery steelhead over 50 cm"), 2 (p.21, the same), 3 (p.28 "ALL

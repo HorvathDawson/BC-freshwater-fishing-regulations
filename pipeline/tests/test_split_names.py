@@ -16,9 +16,7 @@ Each corpus check has a mutation twin: `name_problems` must go red on a broken f
 from __future__ import annotations
 
 import copy
-import os
 from collections import defaultdict
-from pathlib import Path
 
 import pytest
 
@@ -27,9 +25,10 @@ from pipeline.deliver.bundle.place_names import display_case, is_shouting
 from pipeline.deliver.export import (
     checks as export_checks, contract as export_contract, model as export_model
 )
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 # ---------------------------------------------------------------------------------------------

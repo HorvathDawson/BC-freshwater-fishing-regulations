@@ -18,6 +18,7 @@ import textwrap
 import pytest
 
 import pipeline.gauges.consume.panels as bp
+from pipeline.tests import under_test
 from pipeline.gauges.consume.panels import build, own_distances
 from pipeline.deliver.bundle import continuation as C
 from pipeline.tests.test_build_panels import MODEL, E, N, g
@@ -202,7 +203,7 @@ def _bundle():
     from pathlib import Path
 
     from pipeline.deliver.bundle import read as R
-    return Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
+    return under_test.path("bundle")
 
 
 VEDDER_LEADS = {

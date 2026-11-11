@@ -16,15 +16,15 @@ shipped one).
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
+BUNDLE = under_test.path("bundle")
 UPPER = "r4:kootenay_river_upstream_of_koocanusa_reservoir@4-2+4-21+4-22+4-24+4-25+4-35"
 LOWER_ARM = "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7"
 KOOCANUSA = "kootenay_river__kootenay_koocanusa"
@@ -33,7 +33,7 @@ KOOTENAY_BLK = "356570348"
 
 def _entries():
     from pathlib import Path
-    path = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis/region-4.json"
+    path = under_test.curated().regulations.synopsis / "region-4.json"
     return {e["entry_id"]: e for e in json.loads(path.read_text())["entries"]}
 
 

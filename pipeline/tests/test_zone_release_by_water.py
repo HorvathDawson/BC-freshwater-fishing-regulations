@@ -13,16 +13,15 @@ The bundle is `UI_EXPORT_BUNDLE`, else the shipped one. Mutation: `released_on_w
 """
 from __future__ import annotations
 
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 Z3, Z4 = "z3:daily_quotas", "z4:daily_quotas"
 Z4W = "z4:trout_char_winter_release"
 ANDERSON, ANDREEN, CAHILTY = "gnis:10017", "gnis:10035", "wbk:-6"     # R3 creek, R4 creek, R3 lake

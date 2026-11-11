@@ -6,18 +6,16 @@ What each catches: a second owner, or the whole river gone tidal ("one cut"); a 
 above freshwater (the order); the mouth default made a cut (the Cowichan)."""
 from __future__ import annotations
 
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
-from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import BUNDLE_HINT, need
 
 pytestmark = pytest.mark.needs_bundle
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 
 CUTS = {"gnis:39325": "split:fraser_river__the_cpr_bridge_at_mission",   # Fraser, the CPR bridge at Mission
         "gnis:25671": "split:squamish_river__tidal_boundary",

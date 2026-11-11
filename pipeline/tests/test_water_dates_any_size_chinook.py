@@ -18,19 +18,18 @@ and confirms these tests fail (see the round's report).
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle import rules as RM
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
-CAT = Path("data/curated/regulations/synopsis")
+BUNDLE = str(under_test.path("bundle"))
+CAT = under_test.curated().regulations.synopsis
 
 
 def _tiny(tmp_path, rules: list) -> str:

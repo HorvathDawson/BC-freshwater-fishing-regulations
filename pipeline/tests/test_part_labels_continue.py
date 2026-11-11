@@ -28,13 +28,12 @@ Mutations each test catches (run by hand, T108; the `test_water_continue.py` twi
 """
 from __future__ import annotations
 
-import os
 import sqlite3
-from pathlib import Path
 from types import SimpleNamespace as NS
 
 import pytest
 
+from pipeline.tests import under_test
 from pipeline.deliver.answers import display as D
 from pipeline.deliver.bundle import continuation as C
 from pipeline.deliver.bundle import spans as SP
@@ -237,7 +236,7 @@ def test_lower_ends_on_the_built_export(request):
     from pipeline.deliver.bundle import read as R
     from pipeline.tests.conftest import need, EXPORT_HINT
     from pipeline.deliver.export.codec import expand
-    d = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+    d = under_test.path("export_dir")
     need(request, "bundle", d / "ui-rules-export.json", EXPORT_HINT)
     data, guide = C.load_export(d)
     X = expand(data, guide)

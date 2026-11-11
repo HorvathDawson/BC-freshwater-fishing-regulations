@@ -8,12 +8,11 @@ live one before promotion): the Vedder / Chilliwack and the Cowichan against the
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
+from pipeline.tests import under_test
 from pipeline.deliver.bundle import topology as T
 
 
@@ -247,7 +246,7 @@ def test_the_water_map_export_reads_the_same_rules():
 def _bundle(request) -> sqlite3.Connection:
     from pipeline.deliver.bundle import read as R
     from pipeline.tests.conftest import need, BUNDLE_HINT
-    p = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
+    p = need(request, "bundle", under_test.path("bundle"), BUNDLE_HINT)
     db = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'part_geo'").fetchone():
         pytest.fail(f"{p} predates P09 (no part_geo): build a side bundle with `python -m pipeline.deliver bundle "

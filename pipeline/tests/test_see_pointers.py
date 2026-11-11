@@ -14,17 +14,16 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import sqlite3
 
 import pytest
 
 from pipeline.regs.parsing.catalogue import CatalogueEntry, See, see_relation
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
-from pipeline.deliver.bundle import read as _R
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or _R.BUNDLE
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.fixture(scope="module")

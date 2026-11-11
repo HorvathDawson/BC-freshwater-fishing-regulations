@@ -8,7 +8,6 @@ carry a MUTATION: the policy flag switched off (or the field put back) must turn
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from pathlib import Path
 
@@ -16,11 +15,12 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 ROOT = Path(__file__).resolve().parents[2]
-CAT = ROOT / "data/curated/regulations/synopsis"
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
+CAT = under_test.curated().regulations.synopsis
+BUNDLE = under_test.path("bundle")
 
 
 def _entries(region: str) -> dict:

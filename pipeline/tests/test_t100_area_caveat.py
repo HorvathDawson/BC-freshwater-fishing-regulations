@@ -29,7 +29,7 @@ from collections import Counter
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.deliver.answers.common import BOOK_TITLE
 from pipeline.deliver.answers.display import applies_here, book_pages
 from pipeline.deliver.export.read import ROW_MAP_DOES_NOT_DRAW, book_map, not_yet_mapped, undrawn_map_problems
@@ -41,7 +41,7 @@ def _corpus():
     """(entry, its book facts as the bundle ships them, rule) for every rule of the corpus. The
     bundle's `entry.full_name` is the row's `name`, `entry.verbatim` (the export's `printed`) its
     `regs_verbatim`, `entry.pages` its `source_pages` (`bundle/rules/tables.py` entry rows)."""
-    for f in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in json.loads(f.read_text(encoding="utf-8"))["entries"]:
             book = {"full_name": e.get("name"), "printed": e.get("regs_verbatim"),
                     "pages": e.get("source_pages")}
@@ -115,7 +115,7 @@ def test_the_widened_rules_are_counted():
     # between its two canyon cuts (131, 83 before)
     # T222 (r-0fa7927b16e5): the Stave's r1/r2 bind the Ruskin and Northrop channels, drawn now (85, 56 -> 83, 55)
     assert (sum(per.values()), len(per)) == (83, 55)
-    lic = sorted(e["entry_id"] for f in sorted(CURATED.regulations.synopsis.glob("region-*.json"))
+    lic = sorted(e["entry_id"] for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                  for e in json.loads(f.read_text(encoding="utf-8"))["entries"]
                  for x in e.get("licensing") or [] if str(x.get("undrawn_part") or "").strip())
     assert lic == ["z4:creston_valley_permit"]
@@ -253,7 +253,7 @@ def doc(request) -> dict:
     from pipeline.deliver.export import (
         checks as export_checks, contract as export_contract, model as export_model
     )
-    bundle = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+    bundle = under_test.path("bundle")
     need(request, "bundle", bundle, BUNDLE_HINT)
     return export_model.build(bundle)
 

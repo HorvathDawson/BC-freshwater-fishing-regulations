@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import pytest
 
+from pipeline.tests import under_test
 from pipeline.deliver.bundle import continuation as C
 
 
@@ -426,7 +427,7 @@ def test_the_chilliwack_continues_as_the_vedder_in_the_bundle(request):
     from pathlib import Path
     from pipeline.deliver.bundle import read as R
     from pipeline.tests.conftest import BUNDLE_HINT, need
-    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
+    bundle = need(request, "bundle", under_test.path("bundle"), BUNDLE_HINT)
     b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     if not b.execute("SELECT 1 FROM sqlite_master WHERE name = 'water_continue'").fetchone():
         pytest.fail(f"{bundle} predates water_continue in the bundle — rebuild it: python -m pipeline.deliver bundle")
@@ -489,7 +490,7 @@ def test_every_continuation_is_a_continues_end_and_every_continues_end_a_continu
     from pathlib import Path
     from pipeline.deliver.bundle import read as R
     from pipeline.tests.conftest import BUNDLE_HINT, need
-    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
+    bundle = need(request, "bundle", under_test.path("bundle"), BUNDLE_HINT)
     b = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     item = dict(b.execute("SELECT ord, item_id FROM item"))
     links = {(a, p, item[n]) for a, p, n, _q in b.execute("SELECT ord, part, next_ord, next_part FROM water_continue")}

@@ -17,17 +17,16 @@ from this corpus (`UI_EXPORT_BUNDLE`); they skip on one that predates it.
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.test_competition import _tiny
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 
 
 def _dates(fm, fd, tm, td):
@@ -112,7 +111,7 @@ def test_no_catalogue_rule_carries_a_take_no_band_uses():
     """The 39 size rules N-5 found (and 3 clauses of the same shape) are migrated; the model now
     refuses the shape, so the corpus loading is the proof."""
     from pipeline.regs.parsing.catalogue import CatalogueFile
-    cat = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis"
+    cat = under_test.curated().regulations.synopsis
     bad = []
     for p in sorted(cat.glob("region-*.json")):
         doc = json.loads(p.read_text(encoding="utf-8"))

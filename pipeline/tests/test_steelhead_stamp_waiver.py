@@ -17,17 +17,16 @@ Reads a bundle (`UI_EXPORT_BUNDLE`, else the live one).
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.export import contract as export_contract, files as export_files
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 CHILKO_ROW = "r5:chilko_river@5-5"
 CHILKO = f"{CHILKO_ROW}#chilko_river"
@@ -188,7 +187,7 @@ def test_the_lift_needs_both_the_consent_and_an_outright_waiver(db, copy_db):
 def test_the_export_says_where_and_when_the_stamp_is_not_required(request):
     """The export's designation carries `stamp_waiver`: outright, the requirements it lifts, and
     the sentence naming the reach and the dates per the row; the guide explains it."""
-    out = need(request, "bundle", os.environ.get("UI_EXPORT_JSON") or export_contract.OUT, EXPORT_HINT)
+    out = under_test.export(request)
     # the shipped pair (data + `ui-rules-guide.json` beside it), decoded (`codec`)
     doc = export_files.load(out)
     w = doc["licensing"][CHILKO]["stamp_waiver"]

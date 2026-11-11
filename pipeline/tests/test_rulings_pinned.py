@@ -30,7 +30,6 @@ from __future__ import annotations
 
 import datetime
 import json
-import os
 import sqlite3
 from pathlib import Path
 
@@ -38,13 +37,14 @@ import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle.rules import closure_grade
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
 from pipeline.tools.audit import base_deltas as T
 
 pytestmark = pytest.mark.needs_bundle
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(BUNDLE).parent.parent / "regs")
+BUNDLE = str(under_test.path("bundle"))
+EXPORT_DIR = under_test.path("export_dir")
 
 
 @pytest.fixture(scope="module")

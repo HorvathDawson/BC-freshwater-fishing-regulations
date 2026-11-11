@@ -19,18 +19,17 @@ group word, `statement` keeping the CHAR exception, `beats` without the dated-re
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.bundle import rules as RM
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 
 R6_BOX = ("Trout/char: 5, but not more than • 1 over 50 cm (quota includes hatchery steelhead) • 3 "
           "Dolly Varden/bull trout and/or lake trout combined • 1 trout from streams July 1-Oct 31 "
@@ -109,7 +108,7 @@ def test_the_row_decides_the_scope_both_ways():
 def _corpus() -> dict:
     from pipeline.common.curated import CURATED
     out = {}
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in C.CatalogueFile.model_validate(json.loads(p.read_text())).entries:
             out[e.entry_id] = e
     return out

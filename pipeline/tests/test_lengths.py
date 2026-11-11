@@ -4,16 +4,16 @@ The old `over_cm`/`under_cm`/`band` trio is gone from the model and refused on l
 pin is the corpus: each trap the migration had to get past, on the rule it was found on, read
 the way a consumer reads it — first matching range wins.
 """
-import os
 
 import pytest
 
 from pipeline.regs.parsing.catalogue import CatalogueRule, LengthBand
 from pipeline.deliver.bundle import read as corpus
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 #: `UI_EXPORT_BUNDLE` points the corpus checks at a side bundle, as it does the export's.
-_BUNDLE = str(os.environ.get("UI_EXPORT_BUNDLE") or corpus.BUNDLE)
+_BUNDLE = str(under_test.path("bundle"))
 
 
 def rules():
@@ -100,7 +100,7 @@ def test_a_size_on_a_licence_names_the_fish_and_sets_no_number():
     import json
     from pipeline.common.curated import CURATED
     from pipeline.regs.parsing.catalogue import CatalogueFile, Requirement
-    path = CURATED.regulations.synopsis / "region-3.json"
+    path = under_test.curated().regulations.synopsis / "region-3.json"
     cf = CatalogueFile.model_validate(json.loads(path.read_text(encoding="utf-8")))
     e = next(e for e in cf.entries if e.entry_id.startswith("r3:shuswap_lake"))
     assert not [r for r in e.rules if r.lengths and r.take is None and "Stamp" in r.verbatim]

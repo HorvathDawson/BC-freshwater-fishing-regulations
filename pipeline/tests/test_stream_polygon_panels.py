@@ -23,6 +23,7 @@ from pathlib import Path
 import pytest
 
 import pipeline.gauges.consume.panels as bp
+from pipeline.tests import under_test
 from pipeline.gauges.consume.panels import build, stream_polygons
 from pipeline.tests.test_build_panels import MODEL, E, N, g
 
@@ -214,7 +215,7 @@ def _bundle() -> Path:
     import os
 
     from pipeline.deliver.bundle import read as R
-    return Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
+    return under_test.path("bundle")
 
 
 def _stem(db, item_id):

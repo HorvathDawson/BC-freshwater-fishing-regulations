@@ -9,14 +9,13 @@ marked slow.
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.catalogue import CatalogueRule, label, label_parts
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
 
@@ -395,7 +394,7 @@ def test_gear_and_bait_hold_in_streams_not_from_them(corpus):
 
 
 # ============================================================================ placement (bundle)
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or "data/generated/bundle/bundle.sqlite")
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.fixture(scope="module")

@@ -11,13 +11,12 @@ extents by either route that names no place.
 """
 from __future__ import annotations
 
-import os
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as corpus
 from pipeline.deliver.bundle.read import Authority, Scope, source_of
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
 REGION_5 = [{"op": "within", "area_id": "area:region:5"}]
@@ -82,7 +81,7 @@ def test_a_water_entry_is_water_whatever_it_carries():
 # Against a bundle: corpus.rules() hands source_of what it needs, and the unplaced zone rules
 # land in their region's table.
 # ---------------------------------------------------------------------------------------
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or corpus.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.fixture(scope="module")
