@@ -18,12 +18,13 @@ NORMAL case and never an error. Where two models both speak for a station, the o
 more recent issue time wins — they disagree at the shoulders of their seasons, and the
 fresher run is the one the Centre stands behind.
 
-ONE REQUEST PER MODEL, NOT ONE PER STATION. The Centre publishes a per-station CSV as well,
-and v1 fetched all of them; that is ~450 requests every half hour against a provincial
-endpoint for data that the summary layer already carries. The summary gives the forecast
-minimum, average and maximum over the model's horizon, which is what a person actually reads
-("it will fall to about 8 m3/s over the next month"). Three requests is polite; four hundred
-and fifty is a habit that gets an open dataset closed.
+THE SUMMARY IS ONE REQUEST PER MODEL; THE SERIES ARE FETCHED ONLY WHEN A RUN MOVES. Each model's
+summary layer (`fetch`) gives the forecast minimum, average and maximum over its horizon. The
+per-station CSV (`series`) is fetched too — a chart needs the run, not one number — but only for a
+station whose issue time moved since the last publish (`with_series` carries a still-current run's
+series across), and never more than `SERIES_REQUEST_CAP` in one pass (T552 item 8: this paragraph
+used to say the CSVs were not fetched at all). v1 fetched every CSV every half hour (~450 requests
+against a provincial endpoint); the steady state here asks for none.
 
 ATTRIBUTION IS NOT OPTIONAL. `ATTRIBUTION` below is the exact string the Province requires,
 confirmed with the River Forecast Centre, and it must be displayed verbatim wherever a
