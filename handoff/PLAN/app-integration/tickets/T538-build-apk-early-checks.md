@@ -1,6 +1,6 @@
 # T538 — build-apk.sh: cheap checks before the lock, changelog required, MapLibre proof on both paths
 
-Status: OPEN.
+Status: IN PROGRESS — fcbcda2ba (built; prechecks, stock-APK refusal and changelog shown); left (Claude): one real build-apk.sh --play run (bump commit after the checks, play.json + email), and the expected build id beside the patch in app/tools/maplibre-patch (tools lane).
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 6.
 
@@ -37,3 +37,32 @@ Source: workflow review 2026-11-09 (verified against the code). Rank 6.
   failing case shown before the lock is taken.
 
 Depends: —. Size: M. Owner: no.
+
+## Built (2026-11-10, fcbcda2ba)
+1. `scripts/check-changelog.mjs` (0.09 s): app.json `expo.version` has an entry with ≥ 1 bullet and it is the newest.
+   In fast-fail (early step) and `pnpm check:fast` (`changelog`). build-apk.sh refuses without it (`--no-notes=<reason>`);
+   `--play` refuses the version Play builds already read (staging `play.json`; `--same-version=<reason>`).
+2. Play release notes and both emails = this version's changelog bullets (+ the MapLibre build id line in the email);
+   the header no longer says "git log"; `--format=%s` is gone.
+3. The precheck runs before the lock (outer process, before CI / fast-fail / `exec heavy.sh`), lists every failure, then
+   stops: changelog, Play version, upload keystore + its storeFile + certificate (or the debug keystore), Play service
+   account + one `--max-version-code` call, wrangler login (by its words: `whoami` exits 0 when logged out), run token,
+   llvm-readelf, the patched AAR's build id, app.json clean (`--play`), uncommitted app/ paths listed (`--uncommitted=
+   <reason>`). `--precheck` runs only that.
+4. One `mln_check` for both paths: the sideload APK is now proved too; the id is on the staging page, in play.json
+   (`maplibre`) and the emails. `--check-maplibre=<apk|aab>` runs that proof alone.
+5. `--play --publish-only` redoes play.json + the email from `app/dist/aab/play.json` (now written before the Play
+   upload); it refuses a local file older than the published build. A failed play.json put after the upload names it.
+6. versionCode bumped in the build worktree; committed (app.json only) after the AAB's signature + MapLibre checks.
+
+Proof: `node scripts/check-changelog.mjs --version 9.9.9` → rc 1 in 0.09 s (and 0.7.3 → "not the newest").
+`--check-maplibre` on an APK zip of the stock 13.6.1 .so → refused (aab47813… ≠ 7bf3dc29…), rc 1; the patched one → ok.
+`--precheck` (real tree): sideload FAIL 3 uncommitted app/ paths; `--play` also FAIL "0.7.4 is the one Play builds already
+read". In a scratch worktree with a fake HOME and no NDK: upload signing, Play service account, run token, debug
+keystore, readelf, AAR build id, wrangler login each FAIL — all before the lock. `--dry-run` / `--play --no-upload
+--dry-run` print the new order (bump in the worktree, commit after the checks, changelog notes). `--play --publish-only
+--dry-run` refused the local build-25 play.json (published 26). `test_staging_scripts_fail_safe.py` pins the order.
+
+Not verified / left: a real `build-apk.sh` and `--play` run (bump-after-checks, the APK id check on a real APK, the
+publish-only put + email); "expected id recorded beside the patch" (app/tools/maplibre-patch/, the tools lane — the
+expected id is still read from the AAR itself).
