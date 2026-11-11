@@ -1,6 +1,6 @@
 # T554 — Gauge alerts say when their gauge is silent; alert rules stored safely; one writer for the HYDAT envelope
 
-Status: OPEN.
+Status: PARTIAL — items 1, 2, 4 built (975be7b2e, c6f79171f, 408f20d94, ebbe8d9b7, 2f09829fe); item 3 is T563 (3b3e6a1c2: lines re-derived from the record held); left (Claude): item 5 (re-dispatch / re-tell a HYDAT workflow that failed after its 204)
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 10 of 17; highest severity 3 of 5.
 
@@ -47,3 +47,17 @@ Fix the items above in severity order, one commit per item where they are separa
 An alert on a gauge with no report for the limit tells the user once (and a 304 "unchanged" is not "missing"). notify.json gets the spots file's atomic write + backup. A percentile alert records its HYDAT vintage and re-derives on a new one. A release upload cannot put an older clim.json back; a failed HYDAT workflow is retried or re-told.
 
 Depends: —. Size: M. Owner: no.
+
+## Done 2026-11-11
+- 1 (975be7b2e, c6f79171f): `recent` ends on the newest reading in both publishers (parity holds). An alert keeps
+  `skipped` + `skippedSince`; its row (core `alertListLine`) adds "gauge not reporting since <last reading>"; the run line
+  counts "N alert(s') gauge(s) not reporting"; after 24 h silent (`ALERT_SILENT_TELL_MS`) one notification says the alert
+  cannot be checked; all cleared when it reports. A 304 station is not "missing": obs.json keeps its last rows (ecd2de06a).
+- 2 (408f20d94): every small phone store writes `<name>.part` then moves it over; a failed read is reported. An
+  unreadable notify.json (empty, not JSON, unknown version) reads as nothing on WITH a note on More → Notifications
+  ("Your saved alerts: the alerts file could not be read; a copy was kept aside on this phone"), is reported, and is
+  copied to `notify.json.corrupt-<ms>` before the first write over it (a store that cannot keep it aside refuses to write).
+- 4 (2f09829fe): `pipeline.gauges.feed.clim_guard` before the clim.json copy in deploy/staging/upload.sh and
+  deploy/prod/upload.sh: put (none on R2, or older/same HYDAT), skip and say (R2 newer, or a release that is no HYDAT day),
+  stop (cannot compare). The worker's hydat event key is `hydat:<latest>:<current>`, so a regression is told again.
+  Left: an older clim.json on the SAME HYDAT can still replace a newer rebuild (no build stamp in clim.json).

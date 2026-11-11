@@ -1,6 +1,6 @@
 # T597 — Two feeds worker run failures on 2026-11-09/10 are explained and guarded
 
-Status: OPEN — items 1 and 3 built (5c7b9719d, ecd2de06a); item 2 (upload refuses a newer format) not done
+Status: PARTIAL — items 1-3 built (5c7b9719d, ecd2de06a, 7834e740e); left (Claude): deploy the staging feeds worker BEFORE the next deploy/staging/sync-inputs.sh (until then it refuses the wording and in-season matches: the live worker lists no formats), then a week of /status for item 1; the prod sync-inputs.sh twin when the prod worker is live
 
 Source: staging `/status.json` read 2026-11-10 19:37 UTC. All three feeds are OK now; these are their last errors.
 
@@ -34,3 +34,11 @@ Depends: T550, T558 (overlap). Size: S–M. Owner: no.
    (a week of status with no day-turn failure) needs the deploy and a week.
 3. ecd2de06a: obs.json keeps the last rows of stations not rewritten (0-station obs.json on an all-304 run). The
    `feeds/live/08MF0xx.json` 404 did not reproduce: 08MF005/040/062/065/068 answer 200 (23:35Z run).
+
+## Done 2026-11-11
+2. 7834e740e: the worker serves `inputs` on /status.json (also on its 503): R2 key → the formats it reads
+   (`private/feeds/dfo/wording.json` dfo-wording/2, `feeds/inseason/matches.json` inseason-links/3; status.ts
+   INPUT_FORMATS). deploy/staging/sync-inputs.sh refuses an input naming a format the deployed worker does not list, or any
+   formatted input when the worker cannot say (unreachable / deployed before this), with a plain `FAILED <key>: …` line;
+   the other inputs still go up and the script exits 1. DFO entry files and the roster carry no format and are not checked.
+   deploy/prod/sync-inputs.sh is unchanged (the prod worker is not live; it would refuse every formatted input).

@@ -1,6 +1,6 @@
 # T557 — One gauge publisher (the worker); the gauge feed carries a format version the app checks
 
-Status: OPEN — items 1, 3, 4 built (8779d6298, 31ee818a0); item 2 partly: the policy constants are not generated yet.
+Status: DONE — 8779d6298, 31ee818a0, a6bf038be (item 2: worker constants generated), 52878ceb6 (contract on worker output), 2ebfe0787 (format-less file refused).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 13 of 17; highest severity 3 of 5.
 
@@ -53,3 +53,15 @@ Depends: —. Size: M. Owner: no.
   gaugeFeedRefusal: another format / wrong shape / an index with no fetchedAt is refused, reported, and held data
   answers. A file with NO format is still read (every feed before this deploy). LEFT: refuse a format-less file once
   the staging and production workers both write the tag; feed-contract.test.ts on the worker's own output.
+
+## Done 2026-11-11
+- Item 2 (a6bf038be): `pipeline.tools.emit.gauge_policy` also writes app/workers/feeds/src/gauges/policy.generated.ts from
+  change.py / skill.py (FLOOD_WEIGHTS, RISE_RATIO, FALL_RATIO, BIG_POINTS, SPIKE_BACK, STALE_GRACE_HOURS, DAY_COVER,
+  CHANGE_SCALE, CODE_FLOOR, model names, LEADS, LOW/HIGH, MIN_PAIRS, MIN_ISSUE_DAYS); change.ts / score.ts re-export; the
+  `--check` (pnpm check `gauge-policy`) covers both files; test_gauge_policy pins that neither TS file types them again.
+- Contract (52878ceb6): app/tools/gauge-feed-contract.ts is the one check (format, fetchedAt, no section id, nothing the
+  bundle owns, only keys the app reads, percentiles), run on the fixture (tools/feed-contract.test.ts) and on the worker's
+  own output (workers/feeds/test/gauges.contract.test.ts). The fixture was stale (index `forecast` arrays, a station
+  `forecast` key): fixed and tagged. Staging's live feed (index, obs, 429 station files, 2026-11-11 22:35Z) passes it.
+- Format-less refused (2ebfe0787): staging writes gauge-feed/1 on every file (all 429 read); production serves no gauge
+  feed yet (data domain 404), so its first deploy is this code. A phone's kept copy still answers offline.

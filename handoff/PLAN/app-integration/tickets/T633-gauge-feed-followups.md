@@ -1,6 +1,6 @@
 # T633 — Gauge feed: follow-ups from T550, T557 and T585
 
-Status: OPEN
+Status: PARTIAL — items 1, 2, 3, 5 built (a6bf038be, 2ebfe0787, 52878ceb6, 9995fcf13); left (Claude): item 4 (card `rankedAt` / kept words, "as of" line: the ui-native + T555 boot lane), item 6 (web offline week), items 7-8 (worker reuse key, eccc-daily window), item 9 (next bundle build)
 
 Source: gauges lane report 2026-11-11.
 
@@ -62,3 +62,13 @@ Depends: T550, T557, T585. Size: M.
    that window, or skip the refill then.
 9. The 8 level-only stations the datum cut removed from clim (under 3 years left; none live): 7 have a row in matches.json.
    Check the next bundle build handles them, and say so in the release notes.
+
+## Done 2026-11-11
+- 1 (a6bf038be, with T557 item 2): the worker's policy constants are generated from change.py / skill.py.
+- 2 (2ebfe0787): a gauge feed file with no format is refused (reported; held data answers). Staging writes the tag on all
+  429 station files + index + obs (read 2026-11-11); production serves no gauge feed yet.
+- 3 (52878ceb6): the contract test runs on the worker's own output (workers/feeds/test/gauges.contract.test.ts).
+- 5 (9995fcf13): `hydatNotice` carries the feed's own HYDAT (`feed`); when it is not the release's, the HYDAT line on the
+  Data sources page / More reads "Gauge ranks use another HYDAT" (stale). An index naming none keeps the old rule.
+  Wording is a default (owner may reword; no answer needed to ship).
+- Owner questions: both already answered 2026-11-11 (6 h stays; HYDAT workflow run on staging).
