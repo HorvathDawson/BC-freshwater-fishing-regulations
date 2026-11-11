@@ -8,6 +8,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 overnight — build 27 atlas promoted; local build running; release waits on two owner answers (chat 11)
+
+- **Atlas:** rebuilt with the shore fix (7a9a796d0) and promoted locally (`full`; old one in `full.prev`). Oxbows match restamped (c7decd6, id lines only). Matcher passes.
+- **Reach diff, checked by each lane (notes in T637, T660, T623):** 238 rules bind different sections, 0 newly unresolved. Shore rule: 532 cuts (97 side channels that cross back into their own river stay whole, listed in `shore_cuts.json`), 161 crossings tidal as predicted, no rule covers more water. Oxbows: +49 sections, hillside unbound, Whiteswan and Quinsam identical. Peace: 103 sections leave the kokanee release rule (the whole river, as the book says; answer changes on 1). Nechako/Bowron/Willow/Fraser/Stellako fixes act at the bundle step: prove with `test_lift_decisions -k f5`, `test_displacement_rulings -k f8`, `test_competition -k f12`, `test_rulings_pinned -k "f6 or t623"` after the build.
+- **One gap, filed T663:** Oxbows line 459615 loses 0.45 km of valley below its cut to the leaf prune (same on the old atlas).
+- **Running:** `scripts/heavy.sh b27-build` = `python -m pipeline build --hold-latest` (log `$TMPDIR/b27/build.log`). Baseline reach tables for the release kept in `data/generated/reaches/baseline-r-a178299f6005` (pass `--baseline`).
+- **`release --staging` stops at preflight on two things, both for the owner:** (1) HEAD must be on origin; I told the owner I would not push overnight. (2) 18 DFO review marks are not landed (they wait on new cuts: Nicomekl, Serpentine, Nakina, Thompson, Harrison, Nicomen); either they go on `NOT_LANDED_OK` in chat 10's `apply.py` or they land with another atlas rebuild.
+- **So not done overnight:** staging release, staging site, store screenshots on new data, build 27 upload.
+- **Next free ticket: T664.**
+
 ## 2026-11-11 small hours — all four lanes reported; one atlas rebuild running for build 27 (chat 11)
 
 - **Running:** `scripts/heavy.sh b27-atlas` → `data/generated/atlas/full_next` (log in `$TMPDIR/b27/atlas.log`, region backup in `$TMPDIR/b27/backup/`). In it: Oxbows name + 5 hillside cuts + registry fix (a nameless piece leaves a code-keyed item) + Whiteswan inlet name (T637); shore cuts (T660).
