@@ -596,7 +596,7 @@ use that as the sole source of future work."
 | T549 | DFO salmon: feed and release agree on the location set; a place the app cannot show is said, never dropped | OPEN | — | data pipeline review 2026-11-09 (verified); rank 5, severity 4, 11 findings |
 | T550 | Gauges: a reading's age gates its rank, level percentiles survive datum shifts, one day for the percentile | IN REVIEW — proof: next staging worker deploy (items 1, 3-5) + a clim.json rebuild (item 2); a week of status for the 00:05 case | 722535c83, 8f8e589c0, 61a97ca16, 7e08a527f, 5c7b9719d, 0b94e262c, 06052992c | data pipeline review 2026-11-09 (verified); rank 6, severity 4, 6 findings |
 | T551 | "Today" rolls over at midnight B.C. time everywhere, from one clock; site pages do not print a stale day | IN REVIEW | d3b7f080e, e1142f148, 7af7f39e4 | data pipeline review 2026-11-09 (verified); rank 7, severity 4, 8 findings; items 1, 2, 5, 6, 7 done; 3, 4, 8 and the gauge page script open |
-| T552 | Run timing and forecasts: floor checks, error bodies read as errors, a new NuSEDS really rebuilds, age rule for old surveys | OPEN | — | data pipeline review 2026-11-09 (verified); rank 8, severity 4, 8 findings |
+| T552 | Run timing and forecasts: floor checks, error bodies read as errors, a new NuSEDS really rebuilds, age rule for old surveys | PARTIAL | 3cfe44e53, 0c0fc849b, f25fbedff, 1e71ff652, d52149c30, 305117089, 09553ef9d | data pipeline review 2026-11-09 (verified); rank 8, severity 4, 8 findings; done 1, 2, 3, 6, 8 (not staleness.ts), pipeline half of 4, source half of 5, run-timing half of 7; left: worker forecast.ts/publish.ts (4), update-service refresh + Runs hook re-ask (5), review/tidal name keys (7), staleness.ts wording (8) |
 | T553 | Base rules pinned to the printed book: zone/provincial quota numbers, row text equals the extraction, missing rows noticed | IN REVIEW — owner answers the 10 print questions (test_base_rules_in_print.DISAGREE) | 377fe1adc, 7f146ad9d, 85ff69e70, e028ad100, 7db6e4b1b, 34986a8f9, 698aeabb7, 63624a50a | data pipeline review 2026-11-09 (verified); rank 9, severity 4, 7 findings |
 | T554 | Gauge alerts say when their gauge is silent; alert rules stored safely; one writer for the HYDAT envelope | OPEN | — | data pipeline review 2026-11-09 (verified); rank 10, severity 3, 5 findings |
 | T555 | Update service: a refused release never reads "Updated"; one byte count; every format bump is gated; saved ids follow aliases | OPEN | — | data pipeline review 2026-11-09 (verified); rank 11, severity 3, 5 findings; DONE 2026-11-10: items 1 (9312354), 3 (ed637de), 5 reader half (ab6c897); NOT DONE: item 2 (feeds keyed by release), item 4 (pipeline app_gate), item 5 callers + release check |
@@ -661,6 +661,8 @@ use that as the sole source of future work."
 | T628 | Base rules pinned to print: fee table reader, replace refuses marked entries, entry_digest ledger, runbook path guard | OPEN | — | T553 follow-ups |
 | T629 | Owner: four places where our text differs from the printed book (no value changes) | OPEN | — | T553 report; owner answers |
 | T630 | One hydrograph presenter for the app and the public gauge page | OPEN | — | T564 leftover |
+| T631 | Reach run follow-ups: binding diff on DFO-only changes, check flag for unplaced pieces, id dry-run before promote | OPEN | — | T546 follow-ups |
+| T632 | Owner: four decisions from the reach run (tidal subtraction, unplaced-piece gate, expected-unresolved note, 6 matched disagreements) | OPEN | — | T546 items 4–5; owner answers |
 
 ## Order for open tickets
 
