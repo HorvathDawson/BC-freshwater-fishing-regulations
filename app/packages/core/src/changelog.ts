@@ -25,7 +25,7 @@ export const CHANGELOG: readonly ChangelogEntry[] = [
       "Runs keeps its own day and says which day it shows",
       "Sharing a water sends a link to that water's own page",
       "A current notice for a water shows at the top of its Regulations page",
-      "Gauge alerts follow the day: set them by days in 10, and a gauge that has not reported for six hours shows quiet with its last report time",
+      "Gauge alerts follow the day: set them against past years for that date, and a gauge that has not reported for six hours shows quiet with its last report time",
       "The update row says plainly when a new release was refused or is ready",
     ],
   },
