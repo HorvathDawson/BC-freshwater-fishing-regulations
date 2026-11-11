@@ -32,7 +32,7 @@ import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
-import { capEvents, CORS as REPORT_CORS, handleReport, listReports, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
+import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv, DispatchEnv {
   BUCKET: R2BucketLike;
@@ -634,7 +634,8 @@ export default {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const since = url.searchParams.get("since") ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(since)) return new Response("since must be YYYY-MM-DD", { status: 400 });
-      return Response.json({ reports: await listReports(env.BUCKET, since, new Date(), 500, url.searchParams.get("test") === "1") }, { headers: { "Cache-Control": "no-store" } });
+      // (T609 W10) `truncated` / `skipped`: a cut or partly unreadable list says so
+      return Response.json(await listReportsCounted(env.BUCKET, since, new Date(), 500, url.searchParams.get("test") === "1"), { headers: { "Cache-Control": "no-store" } });
     }
     if (req.method === "GET" && (url.pathname === "/status" || url.pathname === "/status.json")) {
       const now = new Date();

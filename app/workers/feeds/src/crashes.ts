@@ -268,13 +268,17 @@ export async function listCrashes(bucket: R2BucketLike, since: string, max = 500
 
 export async function listCrashesCounted(bucket: R2BucketLike, since: string, max = 500, withTest = false, withBackground = false,
                                          classes: readonly CrashClass[] = ["defect"]):
-    Promise<{ crashes: CrashKind[]; counts: Record<CrashClass, number> }> {
+    Promise<{ crashes: CrashKind[]; counts: Record<CrashClass, number>; truncated: boolean; skipped: number }> {
   const out: CrashKind[] = [];
   const counts: Record<CrashClass, number> = { defect: 0, network: 0, expected: 0 };
-  const keys = [...await kindKeys(bucket, max), ...(withTest ? await listKeys(bucket, TEST_CRASHES_PREFIX, max) : [])];
+  // (T609 W10) one past `max` is listed, so `truncated` says whether the list stopped
+  const all = await kindKeys(bucket, max + 1), tests = withTest ? await listKeys(bucket, TEST_CRASHES_PREFIX, max + 1) : [];
+  const truncated = all.length > max || tests.length > max;
+  const keys = [...all.slice(0, max), ...tests.slice(0, max)];
+  let skipped = 0;
   for (const k of keys) {
     const o = await bucket.get(k);
-    if (!o) continue;
+    if (!o) { skipped++; continue; }
     try {
       const c = JSON.parse(await o.text()) as CrashKind;
       if (c.background && !withBackground) continue;      // (T352) not a crash: out of the counts unless asked for
@@ -282,9 +286,9 @@ export async function listCrashesCounted(bucket: R2BucketLike, since: string, ma
       const cls = classifyCrash(c.sample);
       counts[cls]++;
       if (classes.includes(cls)) out.push({ ...c, class: cls, ...(k.startsWith(TEST_CRASHES_PREFIX) ? { test: true as const } : {}) });
-    } catch { /* skipped */ }
+    } catch { skipped++; }
   }
-  return { crashes: out.sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0)), counts };
+  return { crashes: out.sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0)), counts, truncated, skipped };
 }
 
 /** One digest line per DEFECT kind the outbox has not told — (T558 item 6) whenever it was first seen, so a kind stored

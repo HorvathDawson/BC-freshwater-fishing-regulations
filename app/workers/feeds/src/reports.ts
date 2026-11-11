@@ -371,7 +371,15 @@ export async function purgeLimits(bucket: R2BucketLike, now: Date = new Date()):
 
 /** GET /reports (authed): every report received on or after `since` (YYYY-MM-DD), newest first, at most `max`. */
 export async function listReports(bucket: R2BucketLike, since: string, now: Date = new Date(), max = 500, withTest = false): Promise<StoredReport[]> {
+  return (await listReportsCounted(bucket, since, now, max, withTest)).reports;
+}
+
+/** (T609 W10) the list and whether it is whole: `truncated` (stopped at `max`, or `since` is past the 366-day reach) and
+ *  `skipped` (objects that could not be read), so the review app can say a cut list is cut */
+export async function listReportsCounted(bucket: R2BucketLike, since: string, now: Date = new Date(), max = 500, withTest = false):
+    Promise<{ reports: StoredReport[]; truncated: boolean; skipped: number }> {
   const today = now.toISOString().slice(0, 10);
+  const want = Math.round((Date.parse(today) - Date.parse(since)) / 86_400_000) + 1;
   const n = Math.min(366, Math.max(1, Math.round((Date.parse(today) - Date.parse(since)) / 86_400_000) + 1));
   const keys: string[] = [];
   for (const d of days(now, Number.isFinite(n) ? n : 30)) {
@@ -380,16 +388,18 @@ export async function listReports(bucket: R2BucketLike, since: string, now: Date
     if (keys.length >= max) break;
   }
   const out: StoredReport[] = [];
+  let skipped = 0;
   for (const k of keys.slice(0, max)) {
     const o = await bucket.get(k);
-    if (!o) continue;
+    if (!o) { skipped++; continue; }
     try {
       const rep = JSON.parse(await o.text()) as StoredReport;
       if (k.startsWith(TEST_REPORTS_PREFIX)) rep.test = true;
       out.push(rep);
-    } catch { /* a broken object is skipped */ }
+    } catch { skipped++; }
   }
-  return out.sort((a, b) => (a.received < b.received ? 1 : a.received > b.received ? -1 : 0));
+  return { reports: out.sort((a, b) => (a.received < b.received ? 1 : a.received > b.received ? -1 : 0)),
+           truncated: keys.length > max || (Number.isFinite(want) && want > 366), skipped };
 }
 
 /** (T558 item 6) at most this many report lines are raised per run; the rest wait for the next run (none is dropped) */

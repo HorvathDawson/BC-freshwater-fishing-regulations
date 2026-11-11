@@ -301,3 +301,17 @@ describe("limits that hold (T609 W1)", () => {
     expect(m!.keys).toHaveLength(MAX_LINES_PER_KIND + 7);
   });
 });
+
+// T609 W10: GET /reports stopped at 500 / 366 days and skipped unreadable objects without saying so
+it("(T609 W10) a cut or partly unreadable list says so", async () => {
+  const { listReportsCounted } = await import("../src/reports");
+  const BUCKET = new MemBucket();
+  for (const id of ["aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbb", "cccccccccccccccc"])
+    BUCKET.m.set(`private/reports/2026-10-28/${id}.json`, JSON.stringify({ id, received: "2026-10-28T10:00:00Z" }));
+  BUCKET.m.set("private/reports/2026-10-28/dddddddddddddddd.json", "{broken");
+  const all = await listReportsCounted(BUCKET, "2026-10-01", at("2026-10-29T00:00:00Z"));
+  expect([all.reports.length, all.truncated, all.skipped]).toEqual([3, false, 1]);
+  const cut = await listReportsCounted(BUCKET, "2026-10-01", at("2026-10-29T00:00:00Z"), 2);
+  expect([cut.reports.length, cut.truncated]).toEqual([2, true]);
+  expect((await listReportsCounted(BUCKET, "2024-01-01", at("2026-10-29T00:00:00Z"))).truncated).toBe(true);
+});
