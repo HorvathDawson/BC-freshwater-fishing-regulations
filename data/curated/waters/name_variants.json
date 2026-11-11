@@ -72865,5 +72865,46 @@
     "note": "Owner 2026-10-25 (decisions.md 'T179 split proposals'): this FWA lakes-layer polygon (GB15300000, no GNIS name, MU 4-15) is the Caribou Creek / Burton (Trout) Creek confluence wetland-slough and carries BOTH creeks' regulations. A slough name makes it flow (registry.flowing rule 5: a stream item of its own, wbk:329262655 — a name of either creek would fold it into that one creek), and caribou_creek.r1 and burton_creek.r1 each name it in an extent. The Hwy 6 bridge split is anchored on its outlet."
    }
   ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "300-432687-459615",
+    "300-432687-461418",
+    "300-432687-463105",
+    "300-432687-466472",
+    "300-432687-469486",
+    "300-432687-476281",
+    "300-432687-476812",
+    "300-432687-478730",
+    "300-432687-480401",
+    "300-432687-482026",
+    "300-432687-483280",
+    "300-432687-485563",
+    "300-432687-487483",
+    "300-432687-494632",
+    "300-432687-499499",
+    "300-432687-500162",
+    "300-432687-503666",
+    "300-432687-505976",
+    "300-432687-517221",
+    "300-432687-518583",
+    "300-432687-521786",
+    "300-432687-555555",
+    "300-432687-558447",
+    "300-432687-560023",
+    "300-432687-564690",
+    "300-432687-565796"
+   ],
+   "kind": "stream"
+  },
+  "names": [
+   {
+    "name": "Okanagan River Oxbows",
+    "source": "regulation",
+    "note": "T637 (owner 2026-11-11, option A): the owner's hand-matched side channels of the Okanagan River in MU 8-1 (the OKANAGAN RIVER OXBOWS override in book_name_links.json, first matched 2026-02-08). FWA leaves all 26 lines unnamed, so without this name the registry made no item and the override's watershed codes named no water. Exact-wsc scope: the 26 channel lines only, none of their child codes. kind=stream so the name cannot land on the lakes and wetlands these channels thread. Park Rill (300-432687-516449) is not one: it keeps its own item. Off-valley parts (east-slope reaches of 500162 and 466472) are bound whole for now; the proposed cut is in the T637 ticket.",
+    "display": true
+   }
+  ]
  }
 ]
