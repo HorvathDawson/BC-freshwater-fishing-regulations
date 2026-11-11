@@ -669,7 +669,7 @@ use that as the sole source of future work."
 | T636 | Conditions map: a "level only" gauge is shown by its ring colour, not a text tag | IN REVIEW — aca09a946 (ring A built); owner picked A 2026-11-11; owner phone check on the next build | aca09a946 | owner 2026-11-11; no label on the map, ring 2.5 px, one legend line; shots current/A/B/C on map + satellite |
 | T637 | Okanagan River Oxbows: the owner's hand-matched side channels (26 watershed codes of unnamed lines) must bind again; builds stop on them since T632 | OPEN | — | owner 2026-11-11: do not delete the hand matches; Park Rill code is a proposal |
 | T638 | Pipeline suite leftovers: export files regenerated, heavy.sh blind to compressed memory, stale bytecode, one clean chunked run | PARTIAL | fad79daf0, c85f497c0 | left (Claude): item 4, one chunked full run after T639 |
-| T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | OPEN | — | chat 10 lane; found by the suite trace; fails test_curation_review_split_preview |
+| T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | DONE | 275cbd2f5 | owner let chat 11 fix it in chat 10's lane; guard in group_for + pinning test |
 | T660 | Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) | OPEN | — | owner 2026-11-11 on the T632 sheets; chat 11 ids continue T660–T679 |
 
 ## Order for open tickets
