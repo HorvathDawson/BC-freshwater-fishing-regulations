@@ -69,9 +69,53 @@ export function meteredStore<S extends Store & { delete?(key: string): Promise<v
   } as S;
 }
 
+/**
+ * (T558 W13) A store that can write ONLY IF an object is unchanged since it was read: two jobs that read, change and write
+ * the same state object (status.json, notify/state.json) at once no longer lose one's change (last writer wins).
+ */
+export interface VersionedStore extends Store {
+  /** the text and its version tag (R2 etag), or null when the object does not exist */
+  getVersioned(key: string): Promise<{ text: string; etag: string } | null>;
+  /** write while the object is still at `etag`; false = another writer got there first. `etag` null = the object did not
+   *  exist when read: written unconditionally (R2 has no "only if absent" here; only the very first write could race) */
+  putIfUnchanged(key: string, body: string, etag: string | null, opts?: PutOptions): Promise<boolean>;
+}
+export const isVersioned = (s: Store): s is VersionedStore =>
+  typeof (s as Partial<VersionedStore>).getVersioned === "function" && typeof (s as Partial<VersionedStore>).putIfUnchanged === "function";
+
+/**
+ * (T558 W13) Write `next` over `key` read at `etag`; on a conflict re-read and `merge` this run's change onto what the other
+ * writer left, once. A second conflict THROWS (the caller says so); a store that cannot version writes plainly (node runs).
+ */
+export async function writeMerged<T>(store: Store, key: string, next: T, etag: string | null,
+                                     merge: (fresh: T | null) => T, opts?: PutOptions): Promise<void> {
+  if (!isVersioned(store)) { await store.put(key, JSON.stringify(next), opts); return; }
+  if (await store.putIfUnchanged(key, JSON.stringify(next), etag, opts)) return;
+  const fresh = await store.getVersioned(key);
+  let parsed: T | null = null;
+  if (fresh) {
+    try { parsed = JSON.parse(fresh.text) as T; } catch (e) { throw new Error(`${key} changed under this run and does not parse (${String(e)})`); }
+  }
+  if (await store.putIfUnchanged(key, JSON.stringify(merge(parsed)), fresh?.etag ?? null, opts)) return;
+  throw new Error(`${key} was changed by another job twice while this run wrote it; this run's change is not saved`);
+}
+
 /** A Store over an R2 bucket under `prefix` (e.g. "feeds/live/"). Worker-only: `R2Bucket` is the runtime binding. */
-export function r2Store(bucket: R2BucketLike, prefix: string): Store & { delete(key: string): Promise<void> } {
+export function r2Store(bucket: R2BucketLike, prefix: string): VersionedStore & { delete(key: string): Promise<void> } {
   return {
+    async getVersioned(key) {
+      const o = await bucket.get(prefix + key);
+      if (!o) return null;
+      if (!o.etag) throw new Error(`${prefix + key}: the bucket gave no etag`);
+      return { text: await o.text(), etag: o.etag };
+    },
+    async putIfUnchanged(key, body, etag, opts) {
+      const r = await bucket.put(prefix + key, body, {
+        httpMetadata: { contentType: opts?.contentType ?? "application/json", cacheControl: opts?.cacheControl },
+        ...(etag ? { onlyIf: { etagMatches: etag } } : {}),
+      });
+      return r !== null;   // R2 answers null when the condition failed
+    },
     async delete(key) {
       await bucket.delete(prefix + key);
     },
@@ -89,8 +133,9 @@ export function r2Store(bucket: R2BucketLike, prefix: string): Store & { delete(
 
 /** The slice of the R2 binding used here (keeps @cloudflare/workers-types out of the build). */
 export interface R2BucketLike {
-  get(key: string): Promise<{ text(): Promise<string> } | null>;
-  put(key: string, body: string, opts?: { httpMetadata?: { contentType?: string; cacheControl?: string } }): Promise<unknown>;
+  get(key: string): Promise<{ text(): Promise<string>; etag?: string } | null>;
+  /** (T558) with `onlyIf`, R2 answers null when the condition failed */
+  put(key: string, body: string, opts?: { httpMetadata?: { contentType?: string; cacheControl?: string }; onlyIf?: { etagMatches: string } }): Promise<unknown>;
   delete(key: string): Promise<void>;
   /** (T237) listing a prefix (the reports); optional so the feed jobs' stores need not provide it */
   list?(o: { prefix: string; cursor?: string; limit?: number }): Promise<{ objects: { key: string }[]; truncated: boolean; cursor?: string }>;

@@ -15,13 +15,13 @@
 // R2 layout (one bucket): published  feeds/live/  feeds/dfo/  feeds/inseason/   (the data worker serves these)
 //                         private    private/feeds/{gauges,dfo,inseason,notify}/, private/feeds/status.json,
 //                                    private/reports/<day>/<id>.json (T237: POST /report, GET /reports; src/reports.ts)
-import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, type Meter, type R2BucketLike } from "./io";
+import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, writeMerged, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
 import { compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { parseApk, sampleDfoEvents } from "./email";
-import { readStatus, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
+import { checkStatus, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
 import { pageUrl } from "./dfo/fetch";
 import { limited, routeClass, bearerOk, type RateLimiter } from "./guard";
@@ -377,8 +377,9 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   const priv = r2Store(env.BUCKET, STATUS_PREFIX);
   let notify: unknown = null;
   let st: Awaited<ReturnType<typeof readStatus>> | null = null;
+  let stEtag: string | null = null;
   try {
-    st = await readStatus(priv);
+    ({ st, etag: stEtag } = await readStatusAt(priv));
   } catch (e) {
     logErr(`status: not read, so not written (${String((e as Error)?.message ?? e)})`);
   }
@@ -387,8 +388,9 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     if (r.ok === 0 && r.fail > 0 && !held.some((h) => h.where === `source ${n}`))
       held.push({ where: `source ${n}`, why: `nothing usable this run (${fmtErrors(r.errors)}); last good data kept` });
   let alerts: Alert[] = [];
+  const runRecord = { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources };
   if (st) {
-    alerts = record(st, job, { at, ok: error === null, wallMs, cpuMs: null, counts, held, error, meter: { ...m }, sources: health.sources }, new Date());
+    alerts = record(st, job, runRecord, new Date());
     const down = recordHealth(st, job, health, at);
     events.push(...healthEvents(alerts, at), ...sourceDownEvents(job, down, st, at));
   }
@@ -405,9 +407,16 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   }
   if (st) {
     // an alert counts as announced only once the outbox has it (sent, or queued and retried)
-    if (queued) for (const a of alerts) st.feeds[a.job]!.announced = a.to;
+    const announce = (s: NonNullable<typeof st>) => { if (queued) for (const a of alerts) if (s.feeds[a.job]) s.feeds[a.job]!.announced = a.to; return s; };
+    announce(st);
     try {
-      await priv.put(STATUS_KEY, JSON.stringify(st), { contentType: "application/json", cacheControl: "no-store" });
+      // (T558 W13) only over the status read; if another job wrote it meanwhile, this run is recorded on top of that
+      await writeMerged(priv, STATUS_KEY, st, stEtag, (fresh) => {
+        const f = checkStatus(fresh);
+        record(f, job, runRecord, new Date());
+        recordHealth(f, job, health, at);
+        return announce(f);
+      }, { contentType: "application/json", cacheControl: "no-store" });
     } catch (e) {
       logErr(`status: not written (${String((e as Error)?.message ?? e)})`);
     }

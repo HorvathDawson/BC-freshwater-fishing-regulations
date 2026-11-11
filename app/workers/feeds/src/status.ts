@@ -1,7 +1,7 @@
 // T225 follow-up (owner 2026-10-28): the feeds' status — written by every run to R2 private/feeds/status.json, served
 // (no auth, small) as GET /status (HTML) and GET /status.json, and the alert hook: FEED_NOTIFY_URL is told ONCE per
 // state change of a feed (ok → degraded / failing / stale and back), never once per run.
-import { readStored, type Fetch, type Meter, type Store } from "./io";
+import { isVersioned, readStored, type Fetch, type Meter, type Store } from "./io";
 import { body as notifyBody } from "./notify";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
 
@@ -80,10 +80,21 @@ export function stateOf(f: Pick<FeedStatus, "lastRun" | "lastSuccess" | "cadence
 /** The status. Absent: a fresh one. (T558) A failed read or another format THROWS (readStored): written back fresh it
  *  would erase every other feed's last success, failures, announced state and 7-day health. */
 export async function readStatus(priv: Store): Promise<Status> {
-  const s = await readStored<Status>(priv, STATUS_KEY);
+  return checkStatus(await readStored<Status>(priv, STATUS_KEY));
+}
+export function checkStatus(s: Status | null): Status {
   if (s === null) return { format: "feeds-status/1", updated: new Date(0).toISOString(), feeds: {} };
   if (s && s.format === "feeds-status/1" && s.feeds && typeof s.feeds === "object") return s;
   throw new Error(`${STATUS_KEY} is not feeds-status/1; fix or delete it`);
+}
+/** (T558 W13) the status and its version tag (null: absent, or a store that cannot version) */
+export async function readStatusAt(priv: Store): Promise<{ st: Status; etag: string | null }> {
+  if (!isVersioned(priv)) return { st: await readStatus(priv), etag: null };
+  const v = await priv.getVersioned(STATUS_KEY);
+  if (!v) return { st: checkStatus(null), etag: null };
+  let s: Status;
+  try { s = JSON.parse(v.text); } catch (e) { throw new Error(`${STATUS_KEY} is stored but does not parse (${String(e)}); fix or delete it`); }
+  return { st: checkStatus(s), etag: v.etag };
 }
 
 /** Recompute every feed's state at `now` (staleness moves with the clock, not only with runs). */

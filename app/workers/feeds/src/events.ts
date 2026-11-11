@@ -18,7 +18,7 @@
 //
 // State (private): notify/state.json — {told: {key: at}, pending: [...], lastDigest}. A key is forgotten after a year.
 import { body as webhookBody } from "./notify";
-import { readStored, type Fetch, type Store } from "./io";
+import { isVersioned, readStored, writeMerged, type Fetch, type Store } from "./io";
 import { apkSection, render, sectionFor, type ApkInfo, type RenderCtx } from "./email";
 
 export type EventKind = "hydat" | "roster" | "inseason" | "dfo" | "health" | "report" | "crash" | "skill" | "runtiming" | "card";
@@ -81,10 +81,38 @@ const KIND_TITLE: Record<EventKind, string> = {
 /** The outbox. Absent: a fresh one. (T558) A failed read or a body of the wrong shape THROWS (readStored): written back
  *  empty it would erase every told key and the queued digest. */
 export async function readState(store: Store): Promise<NotifyState> {
-  const s = await readStored<NotifyState>(store, NOTIFY_STATE);
+  return checkState(await readStored<NotifyState>(store, NOTIFY_STATE));
+}
+function checkState(s: NotifyState | null): NotifyState {
   if (s === null) return { told: {}, pending: [], lastDigest: null };
   if (s && typeof s.told === "object" && s.told !== null && Array.isArray(s.pending)) return s;
   throw new Error(`${NOTIFY_STATE} is not an outbox (no told / pending); fix or delete it`);
+}
+/** (T558 W13) the outbox and its version tag, so the write can refuse to overwrite another job's change */
+async function readStateAt(store: Store): Promise<{ st: NotifyState; etag: string | null }> {
+  if (!isVersioned(store)) return { st: await readState(store), etag: null };
+  const v = await store.getVersioned(NOTIFY_STATE);
+  if (!v) return { st: checkState(null), etag: null };
+  let s: NotifyState;
+  try { s = JSON.parse(v.text); } catch (e) { throw new Error(`${NOTIFY_STATE} is stored but does not parse (${String(e)}); fix or delete it`); }
+  return { st: checkState(s), etag: v.etag };
+}
+
+/**
+ * (T558 W13) This run's change to the outbox (`orig` → `mine`) laid over what another job wrote meanwhile (`base`): keys
+ * told now are told; keys forgotten now are forgotten; events this run took out of the queue leave it, the ones it queued
+ * join it (unless told); the newer digest time stands.
+ */
+export function mergeState(base: NotifyState, orig: NotifyState, mine: NotifyState): NotifyState {
+  const out: NotifyState = { told: { ...base.told }, pending: [...base.pending], lastDigest: base.lastDigest };
+  for (const [k, at] of Object.entries(mine.told)) if (orig.told[k] !== at) out.told[k] = at;
+  for (const k of Object.keys(orig.told)) if (!(k in mine.told)) delete out.told[k];
+  const had = new Set(orig.pending.map((e) => e.key));
+  const keep = new Set(mine.pending.map((e) => e.key));
+  out.pending = out.pending.filter((e) => !(had.has(e.key) && !keep.has(e.key)) && !out.told[e.key]);
+  for (const e of mine.pending) if (!had.has(e.key) && !out.told[e.key] && !out.pending.some((p) => p.key === e.key)) out.pending.push(e);
+  if (mine.lastDigest && (!out.lastDigest || mine.lastDigest > out.lastDigest)) out.lastDigest = mine.lastDigest;
+  return out;
 }
 
 const ORDER: EventKind[] = ["dfo", "inseason", "health", "report", "crash", "hydat", "runtiming", "roster", "skill"];
@@ -156,13 +184,14 @@ export interface NotifyResult {
   dryRun: boolean;
 }
 
-/** Dedupe, queue or send, record. Never throws (a failed send is retried next run). */
+/** Dedupe, queue or send, record. A failed send is retried next run; (T558) an outbox that cannot be read or written throws. */
 export async function deliver(
   events: FeedEvent[],
   o: { store: Store; config: NotifyConfig; fetch: Fetch; now: Date; dryRun?: boolean; log?: (s: string) => void; flushDigest?: boolean },
 ): Promise<NotifyResult> {
   const log = o.log ?? (() => {});
-  const st = await readState(o.store);
+  const { st, etag } = await readStateAt(o.store);
+  const orig: NotifyState = JSON.parse(JSON.stringify(st));
   const nowIso = o.now.toISOString();
   for (const [k, at] of Object.entries(st.told)) if (o.now.getTime() - Date.parse(at) > FORGET_MS) delete st.told[k];
   const queuedKeys = new Set(st.pending.map((e) => e.key));
@@ -220,10 +249,12 @@ export async function deliver(
       }
     }
   }
+  // (T558 W13) written only over the state read (etag), else this run's change is merged onto the other job's; (W8) a
+  // write that fails THROWS: the caller prints it (messages sent but not recorded may be sent again: never lost)
   try {
-    await o.store.put(NOTIFY_STATE, JSON.stringify(st), { contentType: "application/json" });
+    await writeMerged(o.store, NOTIFY_STATE, st, etag, (fresh) => mergeState(checkState(fresh), orig, st), { contentType: "application/json" });
   } catch (e) {
-    log(`notify: state not written (${String(e)}); messages may repeat`);
+    throw new Error(`notify: the outbox was not written (${e instanceof Error ? e.message : String(e)}); messages may repeat`);
   }
   return res;
 }
