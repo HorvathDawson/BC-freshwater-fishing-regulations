@@ -16,10 +16,11 @@ import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { namedRelease } from "../conformance/src/fixtureRelease";
 import { fileFor, RELEASE_QUERIES, type PackName } from "../packages/data/src/release/queries";
 
 const ROOT = resolve(__dirname, "../..");
-const REL = process.env.RELEASE_DIR ? resolve(ROOT, process.env.RELEASE_DIR) : null;
+const REL = namedRelease();   // (T667) the release this Tier 2 run named ($RELEASE_DIR), through the one helper
 const BUNDLE = process.env.BUNDLE ? resolve(ROOT, process.env.BUNDLE) : null;
 const live = REL !== null && BUNDLE !== null;
 

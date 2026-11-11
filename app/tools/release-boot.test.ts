@@ -23,7 +23,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { gunzipSync } from "node:zlib";
 import { fetchVerified, sha256Hex, type ItemId, type Manifest } from "@app/data";
@@ -32,7 +32,7 @@ import { assetsDigest, bootRelease, heldPath, POINTER, releaseTiles, type Releas
 import { releaseCache } from "../packages/data/src/release/drivers/cache.web";
 import { releaseSource } from "../packages/data/src/release/drivers/source.web";
 import { releaseStatus, statusOf } from "../packages/ui/src/release";
-import { fixtureRelease, nodeOpener, releaseFetch, type FixtureRelease } from "../conformance/src/fixtureRelease";
+import { fixtureRelease, namedRelease, nodeOpener, releaseFetch, type FixtureRelease } from "../conformance/src/fixtureRelease";
 
 const BASE = "https://r2.test/release/";
 // (T404) the environment's map assets folder is required: the map never falls back to another environment's host
@@ -661,7 +661,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
   });
 });
 
-const LIVE = process.env.RELEASE_DIR ? resolve(__dirname, "../..", process.env.RELEASE_DIR) : null;
+const LIVE = namedRelease();   // (T667) the release this Tier 2 run named ($RELEASE_DIR), through the one helper
 describe.skipIf(!LIVE || !existsSync(LIVE!))("the Vedder on the live release (Tier 2: RELEASE_DIR)", () => {
   it("the live manifest's assets digest is the one the app computes over the folder's assets.json", () => {
     const m = JSON.parse(readFileSync(join(LIVE!, "manifest.json"), "utf8")) as Manifest;

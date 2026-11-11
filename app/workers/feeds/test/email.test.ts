@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { compose, type FeedEvent } from "../src/events";
 import { sampleDfoEvents, wrap, type RenderCtx } from "../src/email";
 import { gaugeEvents, healthEvents } from "../src/index";
+import { repoData } from "../../../conformance/src/repoData";
 
 const ctx: RenderCtx = { env: "staging", worker: "bc-fishing-feeds-staging", statusUrl: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status" };
 const at = "2026-10-28T12:00:00Z";
@@ -28,7 +29,7 @@ const inseason: FeedEvent = {
   },
 };
 const hydat = gaugeEvents([{ kind: "hydat", since: "2026-10-28T09:00:00Z", current: "20250115", latest: "20261015", action: "scripts/update-hydat.sh" }], at);
-const roster = gaugeEvents([{ kind: "roster", since: at, current: "data/source/bc_hydrometric_stations.json", latest: "+07FA008 +08DA013 -08NM050", action: "rm data/source/bc_hydrometric_stations.json && (cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations)" }], at);
+const roster = gaugeEvents([{ kind: "roster", since: at, current: repoData("source/bc_hydrometric_stations.json"), latest: "+07FA008 +08DA013 -08NM050", action: "rm data/source/bc_hydrometric_stations.json && (cd data && PYTHONPATH=.. ../.venv/bin/python fetch_data.py --layers hydrometric_stations)" }], at);
 const health = healthEvents([{ job: "gauges", from: "ok", to: "failing", text: "Gauge feed FAILED 2 run(s) in a row: Error: no station answered (asked 438)" }], at);
 const report: FeedEvent = { key: "report:0123456789abcdef", kind: "report", title: "Wrong rule: Elk River — the closure dates are a year out", text: "The closure dates are a year out.\n\nWhere: Elk River · map regs", at };
 

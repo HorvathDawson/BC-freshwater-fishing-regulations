@@ -10,6 +10,7 @@ import { dfoEvents } from "../src/index";
 import { runDfo } from "../src/dfo";
 import { clauses, rowWords, template, unknown } from "../src/dfo/wording";
 import { toRules } from "../src/dfo/typed";
+import { repoData } from "../../../conformance/src/repoData";
 import { MemStore, privStore, REPO } from "./dfo.scenario";
 import { REG as REGISTRY } from "./wording.fixture";
 
@@ -81,7 +82,7 @@ describe("new wording in the Worker", () => {
     expect(m!.subject).toContain("1 new wording in a limits cell");
     const flat = m!.text.replace(/\s+/g, " ");
     expect(flat).toContain(`New wording: "${NEW}."`);
-    expect(flat).toContain("data/curated/dfo_salmon/wording.json");
+    expect(flat).toContain(repoData("curated/dfo_salmon/wording.json"));
     expect(flat).toContain(`"${template(NEW)}"`);
 
     expect(got.sent.sent).toContain(`dfo-wording:${template(NEW)}`);

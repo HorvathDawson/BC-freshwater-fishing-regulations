@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { compose, deliver, mime, NOTIFY_STATE, readState, type FeedEvent, type NotifyConfig } from "../src/events";
 import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
 import { buildFeed, diff, effectiveDates, undatedEvent, matchedWaters, parseChange, parseInSeason, regionOf, rowId, runInSeason, type InSeasonFeed } from "../src/inseason";
+import { repoData } from "../../../conformance/src/repoData";
 import { MemStore } from "./dfo.scenario";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
@@ -185,7 +186,7 @@ describe("what each job tells", () => {
     const [h, r] = gaugeEvents(
       [
         { kind: "hydat", since: "2026-10-28T00:00:00Z", current: "20250115", latest: "20261015", action: "scripts/update-hydat.sh" },
-        { kind: "roster", since: "x", current: "data/source/bc_hydrometric_stations.json", latest: "+2/-1", action: "python -m …" },
+        { kind: "roster", since: "x", current: repoData("source/bc_hydrometric_stations.json"), latest: "+2/-1", action: "python -m …" },
       ],
       "t",
     );

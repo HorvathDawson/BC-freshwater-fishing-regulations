@@ -13,6 +13,9 @@
  *                            which the release command sets to its CANDIDATE — else the release LATEST names
  *   the regs fixture release `openRegsFixture()` / `openRegsFixtureWithLines()` / `regsFixtureDir()` /
  *                            `regsFixtureLines()` (`@app/data/release/node`), re-cut by `tools/regs-recut/sync.mjs`
+ *   a committed data file    `repoData("curated/waters/cuts.json")` (`conformance/src/repoData.ts`, node-side tests only): the
+ *                            path `data/curated/…`, checked to exist — the name carries no `data/` prefix, so it is no
+ *                            `path` read; a typed "data/curated/…" string still is one
  *   names, not numbers       `sectionNames(loader)` (same module): `.stream(key, metre)`, `.lake(item, part)`,
  *                            `.part(item, lo, hi)` / `.partAt(item, key, metre)` (a part by its ends / by a place)
  *

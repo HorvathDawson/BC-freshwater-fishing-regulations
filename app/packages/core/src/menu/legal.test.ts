@@ -86,10 +86,7 @@ describe("Sources and licences (T235)", () => {
   it("(owner 2026-10-28) links the ODbL files on GitHub, and credits OpenStreetMap for the no-access land", () => {
     const osm = licencesVM().rows.find((r) => r.k === "osm")!;
     expect(osm.files).toBe(ODBL_FILES);
-    const paths = ODBL_FILES.map((f) => f.url.slice(REPO_BLOB.length + 1));
-    for (const p of ["data/LICENSE-ODbL.md", "data/source/bc_places.json", "data/curated/waters/found_names.json",
-      "data/curated/waters/added_lakes.geojson", "data/curated/waters/added_streams.json",
-      "data/source/municipal/osm_streams.geojson", "data/curated/waters/cuts.json"]) expect(paths).toContain(p);
+    // (T667) WHICH repo files the list links is checked in tools/legal-files.test.ts (core reads no repo file)
     expect(REPO_BLOB).toMatch(/^https:\/\/github\.com\/HorvathDawson\/BC-freshwater-fishing-regulations\/blob\//);
     const land = licencesVM().rows.find((r) => r.k === "osmland")!;
     expect([land.licence, land.wording]).toEqual(["odbl", "© OpenStreetMap contributors"]);

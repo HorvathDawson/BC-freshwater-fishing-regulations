@@ -277,7 +277,7 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
            "(owner 2026-10-22 late)", () => {
     const DUE = { kind: "hydat", since: "2026-10-22T21:00:00Z", current: "20260717", latest: "20261020",
                   action: "scripts/update-hydat.sh" };
-    const ROSTER = { kind: "roster", since: "2026-10-22T21:00:00Z", current: "data/source/bc_hydrometric_stations.json",
+    const ROSTER = { kind: "roster", since: "2026-10-22T21:00:00Z", current: "bc_hydrometric_stations.json",   // only its KIND matters here (core reads no repo files)
                      latest: "+08NM139", action: "rm …" };
     const CHECKED = { release: "20260717", latest: "20260717", stale: false };
 

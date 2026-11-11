@@ -89,6 +89,9 @@ describe("the fixture, through the store", () => { it("b", () => { read(store, V
     expect(hits(inFixture(`const names = sectionNames(l);\nconst h = await names.stream(354088147, 0);\n` +
       `const p = await names.part("gnis:2936", "skeena_river__tidal_boundary", "skeena_river__exchamsiks_river_into_skeena_river");\n` +
       `mount("gnis:2936", p, l); await mount("conditions", h as SectionId, l);`))).toEqual([]);
+    // a committed data file by name (`repoData`, conformance/src/repoData.ts) is no path read; the typed path still is
+    expect(hits(`const p = repoData("curated/waters/cuts.json"); expect(text).toContain(repoData("source/bc_places.json"));`)).toEqual([]);
+    expect(kinds(`expect(text).toContain("data/curated/waters/cuts.json");`)).toEqual(["path"]);
     expect(realReleaseIds("r-303b4007a70a r-000000000001")).toEqual(["r-303b4007a70a"]);
     expect([isDigest("d5242c0c9f1e77aa"), isDigest("fedcba9876543210"), isDigest("aaaaaaaaaaaaaaaa")]).toEqual([true, false, false]);
   });

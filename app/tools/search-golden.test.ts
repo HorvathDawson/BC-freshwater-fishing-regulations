@@ -14,13 +14,14 @@ import { gunzipSync } from "node:zlib";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { areaPhrase, buildSearchIndex, describeBy, queryIndex, type IndexWater, type NearPlace, type SearchIndexData } from "@app/core";
+import { namedRelease } from "../conformance/src/fixtureRelease";
 import { CROSS } from "../packages/data/src/release/queries";
 
 const ROOT = resolve(__dirname, "../..");
 function corePath(): string | null {
   if (process.env.SEARCH_CORE) return resolve(ROOT, process.env.SEARCH_CORE);
-  if (!process.env.RELEASE_DIR) return null;
-  const dir = resolve(ROOT, process.env.RELEASE_DIR);
+  const dir = namedRelease();   // (T667) the release this Tier 2 run named ($RELEASE_DIR), through the one helper
+  if (!dir) return null;
   const m = JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8"));
   const p = join(mkdtempSync(join(tmpdir(), "search-golden-")), "core.sqlite");
   writeFileSync(p, gunzipSync(readFileSync(join(dir, "..", m.files.core.url))));
