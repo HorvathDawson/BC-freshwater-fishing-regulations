@@ -6,9 +6,10 @@ with the depth-chart feature. Do not delete it as dead code — tidy it.
 What it is: a survey sheet's waterbody identifier -> the lake it is a chart of. The join is an exact key (FWA's
 `WATERBODY_KEY_GROUP_CODE_50K`) confirmed by the gazette name, never by a name variant (see `__init__.py`).
 
-| file | does | state |
-|---|---|---|
-| `generate/audit.py` | do the two sheet sources agree, and does the 50K key land on a water whose name agrees | written; run by hand, wrote `data/generated/bathymetry/audit.json` |
+No code is left in `generate/` (only `__init__.py`). `generate/audit.py` (do the two sheet sources agree, and does the
+50K key land on a water whose name agrees) went with T436's dead-code sweep (971f40575); its last output,
+`data/generated/bathymetry/audit.json`, is still on this Mac with no generator. Restore the audit when the depth-chart
+work starts: `git show 971f40575^:pipeline/bathymetry/generate/audit.py`.
 
 ## What it needs before it is fed
 

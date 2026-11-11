@@ -55,3 +55,13 @@ def test_no_gauge_doc_names_the_retired_paths_or_the_old_feed():
     assert not hits, f"stale gauge paths or feed description in {sorted(hits)}"
     assert not (ROOT / "pipeline/atlas/gauges").exists()
 
+
+def test_prepared_feed_readmes_name_only_files_that_exist():
+    """Item 7: the stocking and bathymetry READMEs listed `generate/audit.py` as written; T436 deleted both. Every
+    `generate/<file>.py` a README's file table lists exists."""
+    import re
+    for pkg in ("stocking", "bathymetry"):
+        doc = (ROOT / "pipeline" / pkg / "README.md").read_text(encoding="utf-8")
+        rows = re.findall(r"^\| `(generate/\w+\.py)` \|", doc, re.M)
+        missing = [r for r in rows if not (ROOT / "pipeline" / pkg / r).exists()]
+        assert not missing, f"pipeline/{pkg}/README.md lists {missing}, which do not exist"

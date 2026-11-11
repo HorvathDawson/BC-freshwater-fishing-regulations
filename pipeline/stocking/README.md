@@ -11,7 +11,9 @@ first (it is FWA's own `WATERBODY_KEY_GROUP_CODE_50K`), names only as the fallba
 |---|---|---|
 | `generate/identifiers.py` | group code -> the lake nodes carrying it (a list: one code can cover several waters) | written; no caller outside `match.py` |
 | `generate/match.py` | which registry item each stocked waterbody is (identifier, then name + location) | written; pinned by `pipeline/tests/test_stocking_match.py` on synthetic rows |
-| `generate/audit.py` | does the 50K identifier point at the right water (shared with bathymetry) | written; run by hand |
+
+**Deleted:** `generate/audit.py` (does the 50K identifier point at the right water) went with T436's dead-code sweep
+(971f40575). Restore it when the feed work starts: `git show 971f40575^:pipeline/stocking/generate/audit.py`.
 
 ## What it needs before it is fed
 
