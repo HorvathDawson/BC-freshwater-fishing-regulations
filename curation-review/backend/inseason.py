@@ -329,7 +329,9 @@ def save_match(rid: str, extents, effective: dict | None, note: str, by: str = "
                 raise Refused(f"the matches are resolved on {doc.release}, the shipped release is {rel.name}: "
                               "re-resolve them first (Re-resolve on the In-season tab), then commit")
             try:
-                waters, words = R.resolve_match(_atlas(), rel, M.Match(extents=exts), M.split_labels())
+                # (T623 F7, F20) the row's region: a notice covers only fresh water of its own region
+                waters, words = R.resolve_match(_atlas(), rel, M.Match(region=str(rows[rid].get("region") or ""),
+                                                                       extents=exts), M.split_labels())
             except R.Unresolved as ex:
                 raise Refused(f"the extent binds no section on {rel.name}: {ex}")
             eff = None

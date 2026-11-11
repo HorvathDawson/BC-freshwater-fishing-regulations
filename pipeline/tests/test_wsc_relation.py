@@ -80,6 +80,8 @@ _CODE = re.compile(r"(?i)wsc|watershed_code|\bcode\b|basin_code|\bcodes\b")
 ALLOWED = {
     # a registry ref id ("wsc:100-1"), not a code
     ("pipeline/regs/dfo_salmon/splitwork.py", 'x.startswith("wsc:")'),
+    # T637: registry item ids keyed by code or blue line ("wsc:…" / "blk:…"), the id's prefix, not a code
+    ("pipeline/atlas/registry/build.py", 'iid.startswith(("wsc:", "blk:"))'),
     # registry ref ids ("wsc:100-1"), split to get the code that is then handed to `wsc`
     ("pipeline/regs/dfo_salmon/suggest.py", 'r.startswith("wsc:")'),
     # a name source's prefix ("municipal:<city>") and a precheck message, not codes
