@@ -119,7 +119,7 @@ def write(db: sqlite3.Connection, build_dir: Path, data_dir: Path, registry_item
 
     stations = load_stations(stations_path)
 
-    # THE FROZEN MATCH — `pipeline/gauge_match.json`, the same file the build read to cut
+    # THE FROZEN MATCH — `data/curated/gauges/matches.json`, the same file the build read to cut
     # rivers at their gauges. Nothing is matched here: the file says where each station is
     # and which water it is on, and `nodes_for` projects that coordinate onto THIS graph,
     # taking the section that begins at the gauge and runs upstream. Node ids move when the

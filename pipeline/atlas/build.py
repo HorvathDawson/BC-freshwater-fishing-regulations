@@ -840,7 +840,7 @@ def gauge_cuts(b: _Build) -> None:
         # but a shorter reach — a gauge is the boundary between two measurements.
         #
         # They are `gauge` point anchors scoped by WSC, derived here from
-        # `pipeline/gauge_match.json` — the one frozen record of where BC's gauges are,
+        # `data/curated/gauges/matches.json` — the one frozen record of where BC's gauges are,
         # written by `match` (raw) then `promote` (the curated file, T94) and read
         # by this and by `pipeline.deliver.bundle`. `pipeline/gauges/consume/cuts.py` draws the flow.
         #

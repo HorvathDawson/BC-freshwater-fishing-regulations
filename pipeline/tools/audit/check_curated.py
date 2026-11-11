@@ -17,7 +17,7 @@ With no atlas registry on the machine (CI) the registry checks are skipped and t
 
 THE PROBLEM THIS SOLVES. Three artifacts in this repo are GENERATED but COMMITTED: a slow,
 expensive pass produces them, a human reviews them, and from then on everything downstream
-just reads the file. `pipeline/gauge_match.json` is the built one; stocking and bathymetry
+just reads the file. The gauge match (`data/curated/gauges/matches.json`) is the built one; stocking and bathymetry
 want the same shape.
 
 That is the right design — matching a station to a river needs 2.8 GB of pickled geometry
@@ -118,7 +118,7 @@ class Artifact:
 
 #: Every artifact that is generated once, reviewed by a human, and then only read.
 #:
-#: `gauge_match.json` is live. The other two are DECLARED BUT NOT BUILT — they are named here
+#: the gauge match (`CURATED.gauges.matches`) is live. The other two are DECLARED BUT NOT BUILT — they are named here
 #: on purpose, so the day somebody wires the FIDQ or bathymetry fetch the freshness gate is
 #: already waiting for them rather than being remembered afterwards. A missing file reports
 #: as `not built` and never fails CI.

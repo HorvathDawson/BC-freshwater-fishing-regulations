@@ -6,16 +6,17 @@ it, so one section runs between Hope and Lillooet and claims a single reading fo
 The answer is not a better ranking but a shorter reach — a gauge is the boundary between two
 measurements, so the river should change section there.
 
-THIS FILE IS A PURE FUNCTION over `pipeline/gauge_match.json` and nothing else. No graph, no
+THIS FILE IS A PURE FUNCTION over the frozen match (`data/curated/gauges/matches.json`, `CURATED.gauges.matches`) and
+nothing else. No graph, no
 geometry, no second matching pass: everything it needs — the coordinate and the watershed
 code — is in the frozen match, which is the single place a station is ever located.
 
-    data/bc_hydrometric_stations.json        fetched, the roster
+    data/source/bc_hydrometric_stations.json fetched, the roster
       │
       │  python -m pipeline.gauges.generate.match --build <a completed build>  (raw, generated)
       │  python -m pipeline.gauges.generate.promote --only <station ...>       (T94)
       ▼
-    pipeline/gauge_match.json                frozen: station -> coord + wsc (or wbk)
+    data/curated/gauges/matches.json         frozen: station -> coord + wsc (or wbk)
       │                        │
       │  pipeline.atlas.build        │  pipeline.deliver.bundle
       ▼                        ▼

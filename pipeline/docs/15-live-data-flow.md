@@ -14,19 +14,21 @@ It fetches by id and writes `id → data`.
 
 ### Producers
 
+(Rewritten 2026-11-10, T561, from the worker and the build as they are. Cadences: `app/workers/feeds/wrangler.toml`.)
+
 | Producer | Runs | Reads | Writes |
 |---|---|---|---|
-| `data/fetch_data.py --layers hydrometric_stations` | per build | ECCC OGC API + today's transmitting roster | `data/source/bc_hydrometric_stations.json` |
-| `pipeline.gauges.generate.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `data/generated/gauges/match.json` (every station, with provenance; raw) |
-| `pipeline.gauges.generate.promote --only <station…>` | by hand, per reviewed station | the raw match + the curated review | `data/curated/gauges/{matches,candidates}.json`; a full promote lists demotions and refuses them without `--accept-demotions` (T94) |
-| `pipeline.gauges.consume.shed` | per build | `graph.pkl` + the match | `section_gauge`, `lake_gauge`, `section_down` |
-| hydro job — HYDAT tier | **yearly**, gated on the release listing date | the 266 MB HYDAT release | `gauge/clim.json` — 325 KB, all stations |
-| hydro job — reading tier | **30 min** | ECCC readings, BCRFC CLEVER | `gauge/index.json`, `gauge/{station}.json` |
+| `data/fetch_data.py --layers hydrometric_stations` | by hand, when the feed's `roster` notice asks (`index.json` `maintenance`) | ECCC OGC API + ECCC's real-time list | `data/source/bc_hydrometric_stations.json` |
+| `pipeline.gauges.generate.match` | **a few times a year, by hand** (`pipeline/gauges/__init__.py`): it needs a completed atlas | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `data/generated/gauges/match.json` (every station, with provenance; raw) |
+| `pipeline.gauges.generate.promote --only <station…>` | by hand, per reviewed station | the raw match + the curated review | `data/curated/gauges/matches.json` + the queue `data/generated/gauges/candidates.json`; a full promote lists demotions and refuses them without `--accept-demotions` (T94) |
+| `pipeline.gauges.consume.shed` | every bundle build | `graph.pkl` + the frozen matches | `section_gauge`, `lake_gauge`, `section_down` |
+| `pipeline.gauges.feed.climatology` — the `clim` build stage | when HYDAT publishes a release (the feed's `hydat` notice): `scripts/update-hydat.sh`, or the manual workflow `feeds-hydat.yml` | the HYDAT release (~1.3 GB sqlite) | `clim.json` — **8.9 MB, 1,959 stations** (2026-10 release): pentad envelopes p10–p90, recent years, stats, ratings. Uploaded to R2 `feeds/live/clim.json`; the bundle snapshots it as `gauge_clim` / `gauge_stats` |
+| `pipeline.gauges.feed.hydat_daily --index` | with the climatology | the HYDAT release | `hydat_daily/<station>.json` → R2 `feeds/hydat/<station>.json`: the stored daily means a past day's flow is read from (`dayFlow.ts`) |
+| the feeds Worker, `runGauges` (`app/workers/feeds/src/gauges/publish.ts`) | **every 30 min** 13–05 UTC, **hourly** 06–12 UTC; never 00:05 | ECCC readings, BCRFC CLEVER/COFFEE forecasts, `clim.json` | `feeds/live/index.json`, `feeds/live/<station>.json`, `feeds/live/obs.json` |
 
-**Both feed artifacts are on the 30-minute clock.** Only the envelope is yearly, and it is
-not a feed — it ships in the bundle. The per-station file needs no HYDAT at all: last year
-coarse, this year coarse, 72 h fine and the forecast all come straight from ECCC and BCRFC,
-exactly as v1 did it.
+The Worker is the one gauge publisher. `pipeline/gauges/feed/publish.py` is its parity spec and the local dev feed only
+(AGENTS 64). Inside each gauge run it also asks HYDAT's listing (**once a day**, change-aware — not every run) and
+ECCC's real-time list, and writes what is due into `index.json` `maintenance` (`hydat`, `roster`).
 
 ### Where the percentile comes from
 
@@ -34,24 +36,28 @@ A percentile is *today's discharge* placed inside *the envelope for today's day 
 inputs, and only one producer has both:
 
 ```
-HYDAT (yearly, 266 MB) ──> gauge/clim.json  (325 KB, ALL stations)
-                                  ├──> 30-min cron reads it ──> percentile ──> gauge/index.json
-                                  └──> bundle build snapshots it ──> gauge_clim
+HYDAT (per release, ~1.3 GB) ──> clim.json  (8.9 MB, 1,959 stations)
+                                  ├──> R2 feeds/live/clim.json ──> the Worker's gauge run ──> percentile ──> index.json
+                                  └──> bundle build snapshots it ──> gauge_clim, gauge_stats
 
-ECCC (30 min) ──> gauge/{station}.json   (no envelope needed at all)
+ECCC (30 min) ──> <station>.json + obs.json   (no envelope needed)
 ```
 
-**The cron never opens the bundle**, and this is the constraint that decides the shape. An R2
-worker and a GitHub Actions runner both have small memory budgets, and the bundle is 63 MB.
-So the envelope is published as **its own artifact**, one file for every station.
+**The Worker never opens the bundle**, and this is the constraint that decides the shape. A Worker has 128 MB and the
+bundle is far larger, so the envelope is published as **its own artifact**, one file for every station.
 
-**It fits, and by a wide margin.** The envelope was measured at **325 KB** for all ~450
-stations: pentad-sampled rather than daily, p10–p90 rather than p0–p100 (the extremes do not
-interpolate — 82% error — and a record maximum is one storm, not a function of day-of-year).
-A cron holding 325 KB plus 450 readings fits anywhere.
+**It is held by trimming, not by being small.** `clim.json` parses to ~21 MB; the run keeps only the stations it asks
+(~440 of 1,959) and drops `stats` (`publish.ts`, the `slim` step), ~5 MB. Pentad-sampled rather than daily, p10–p90
+rather than p0–p100 (the extremes do not interpolate — 82% error — and a record maximum is one storm, not a function of
+day-of-year).
 
-ONE FILE, NOT ONE PER STATION. The 30-minute job needs every station at once to write the
-index; per-station envelopes would be 450 fetches to produce one 35 KB file.
+ONE FILE, NOT ONE PER STATION. The gauge run needs every station at once to write the index; per-station envelopes
+would be ~440 fetches to produce one index.
+
+**A station that does not answer** keeps its last good index entry marked `stale` (with `staleSince`) while its
+observation is under 3 days old (`CARRY_MAX_MS`), then drops out; its station file is untouched. **`obs.json`** holds
+every station written this run with its rows of the last 6 hours (`OBS_WINDOW_MS`, T315): a phone keeps each station's
+last week from it, so a gauge never opened still draws a measured line offline.
 
 **Why the percentile is precomputed rather than left to the client.** On web the bundle is
 range-read over HTTP, so a map that needed the envelope to pick a colour would block its
@@ -89,10 +95,12 @@ bundle
   gauge_clim    pentad envelope p10..p90
   gauge_stats   from_year, to_year, years, days, parameter
 
-feed
-  gauge/index.json      30 min   {station: {percentile, observedAt, forecast:[d1,d2,d3]}}
-  gauge/{station}.json  30 min   now + 72h fine + this year daily + last year daily
-                                 + BCRFC forecast runs.  NO envelope, no HYDAT.
+feed (R2 feeds/)
+  live/index.json      30 min   {station: {percentile, observedAt, forecast, stale?, staleSince?}}, listed, maintenance
+  live/<station>.json  30 min   now + recent fine rows + this year / last year daily + BCRFC forecast runs. NO envelope
+  live/obs.json        30 min   every station written this run, its last 6 h of rows (T315)
+  live/clim.json       per HYDAT release   the envelope the run ranks against (an INPUT, written by the climatology)
+  hydat/<station>.json per HYDAT release   the stored daily means (dayFlow.ts)
 ```
 
 **No liveness column anywhere in the bundle.** Not `realtime`, not `active`. A station is

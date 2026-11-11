@@ -1,9 +1,10 @@
 """The hand review of gauge matches — what a person decided, beside what the machine did.
 
-    pipeline/gauge_review.json     authored by a human (via the review page)
-    pipeline/gauge_match.json      written by the matcher, which READS the file above
+    data/curated/gauges/match_calls.json   authored by a human (via the review page; `CURATED.gauges.match_calls`)
+    data/generated/gauges/match.json       written by the matcher, which READS the file above; promoted station by
+                                           station into data/curated/gauges/matches.json (T94)
 
-WHY A SEPARATE FILE FROM THE MATCH. `gauge_match.json` is regenerated wholesale every time
+WHY A SEPARATE FILE FROM THE MATCH. The raw match is regenerated wholesale every time
 the matcher runs; anything written into it is destroyed by the next run. A review has to
 survive that — it is the expensive half. So the review is an INPUT to matching, and the
 match is output. One direction, and the review is never rewritten by a program.

@@ -1058,9 +1058,9 @@ CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL, l
 -- hydrograph, and it lets a spot saved last October still say where that day sat -- offline,
 -- with no feed, forever.
 --
--- Both copies come from ONE producer. The hydro job owns the HYDAT extract; it publishes
--- the envelope as a feed artifact, uses it to compute the percentiles it puts in the index,
--- and the build snapshots it into here. The cron never reads the bundle -- the arrows only
+-- Both copies come from ONE producer, `pipeline.gauges.feed.climatology` (the `clim` build stage, per HYDAT
+-- release): its clim.json goes to R2 (feeds/live/clim.json), where the feeds Worker ranks every reading against it
+-- for the index, and the build snapshots it into here. The Worker never reads the bundle -- the arrows only
 -- point one way, which is what keeps the two from drifting.
 -- Keyed by PARAMETER as well as station: 440 BC stations publish both a discharge and a
 -- level envelope, and they answer different questions. "Is the river low" and "is the river

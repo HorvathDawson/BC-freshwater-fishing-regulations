@@ -9,9 +9,10 @@ daily record, and this is the only thing that reads it.
 TWO DECISIONS THAT ARE SCHEMA, NOT TUNING — both measured, both from the data contract §5:
 
   · PENTAD, NOT DAILY. Percentile-versus-day curves are smooth, so sampling every 5 days
-    costs 0.44% mean error and takes the envelope from 4.5 MB to about 325 KB. That size is
-    what lets the 30-minute feed job hold it in memory on a worker instead of reaching for
-    a 63 MB bundle.
+    costs 0.44% mean error and keeps one day in five. (The envelope was ~325 KB for ~450
+    stations; with every BC station, recent years and ratings, clim.json is 8.9 MB for 1,959
+    (2026-10). The feeds Worker keeps only the stations it asks, ~5 MB parsed — it never
+    reaches for the bundle.)
 
   · p10–p90 ONLY. p0 and p100 do NOT interpolate — 82% error, and every worst case was the
     record maximum. A record maximum is one storm, not a function of day-of-year. The

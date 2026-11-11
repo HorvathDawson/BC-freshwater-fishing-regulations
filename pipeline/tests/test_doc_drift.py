@@ -44,3 +44,14 @@ def test_reach_builder_doc_lists_the_modules_and_reasons_that_exist():
     assert listed == have, f"doc lists {sorted(listed - have)} that do not exist; misses {sorted(have - listed)}"
     block = doc.split("## Reason vocabulary", 1)[1].split("```")[1]
     assert set(block.split()) == {r.value for r in Reason}
+
+
+def test_no_gauge_doc_names_the_retired_paths_or_the_old_feed():
+    """Item 6: the frozen match is `data/curated/gauges/matches.json` (never `pipeline/gauge_match.json`), the roster
+    is under `data/source/`, and the live-data doc describes the feeds Worker, not a Python "hydro job" holding a
+    325 KB envelope (clim.json is 8.9 MB for 1,959 stations)."""
+    hits = _grep(r"pipeline/gauge_match\.json|[^/]data/bc_hydrometric_stations\.json|hydro job|about 325 KB",
+                 "pipeline", ":!pipeline/tests")
+    assert not hits, f"stale gauge paths or feed description in {sorted(hits)}"
+    assert not (ROOT / "pipeline/atlas/gauges").exists()
+
