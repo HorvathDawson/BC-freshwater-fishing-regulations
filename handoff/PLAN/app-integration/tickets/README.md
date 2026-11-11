@@ -667,6 +667,7 @@ use that as the sole source of future work."
 | T634 | Lake tab: depth charts and stocking, to the owner's decisions (OGL, vector files, name variants, PDF compression) | OPEN | — | owner 2026-11-11; restarts the data half of T200/T201/T218. First pass items 1–5 d55900aba (licence: placed contours, sheet layer, stocking Access Only); item 6 (app) waits for the owner |
 | T635 | Find where the fishways and government fish facilities are (the 23 m and 100 m no-fishing buffers) | POSTPONED | — | owner 2026-11-11: benched, data not good enough; findings kept (2e92f9f0b); CABD is CC BY-SA, commercial allowed |
 | T636 | Conditions map: a "level only" gauge is shown by its ring colour, not a text tag | OPEN | — | owner 2026-11-11; legend line; owner picks the ring colour from shots |
+| T637 | Okanagan River Oxbows: the owner's hand-matched side channels (26 watershed codes of unnamed lines) must bind again; builds stop on them since T632 | OPEN | — | owner 2026-11-11: do not delete the hand matches; Park Rill code is a proposal |
 
 ## Order for open tickets
 
