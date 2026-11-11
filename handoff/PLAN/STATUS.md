@@ -13,6 +13,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 evening — reach decisions and lake first pass landed; builds stop on Oxbows (chat 11)
+
+- **T632 landed, IN REVIEW** (8fdcb79d4, aeaf36731): tidal water leaves every DFO place (21 places, 141 sections, no rule moved); any unplaced piece and any dead override id stop the reach run; fast-fail runs the matcher check.
+- **Builds stop on purpose** (reach run and fast-fail) until: the owner accepts or places 5 unplaced pieces (`data/curated/waters/unplaced_piece_calls.json`, proposals), and Okanagan River Oxbows binds again (T637).
+- **T637 (new):** the owner hand-matched the Oxbows side channels; the 27 codes match nothing today, 5 codes + 1 feature id are missing from the override, no oxbow name variant exists. Do NOT delete the matches. Park Rill's code may be dropped (owner). Investigation agent running.
+- **T636 (new):** a "level only" gauge is shown by a ring colour, not a text tag (owner). With the map agent, after T594/T566.
+- **T634 first pass landed** (d55900aba): licence per record (PDFs and lake survey table are OGL; sheet layer, placed contours, stocking are "Access Only" in the catalogue), 510 vector zips fetched outside git, reader, placing 202 of 318 strict, PDF 200 dpi proposal (768 MB -> about 244 MB), 1,995 clean chart->lake proposals. Four owner questions wait (licence, 69 circular-variant ids, PDF setting, old override tables).
+- **Maps owed to the owner:** the first T632 sheets were blank ("no geometry"); an agent redraws the 5 unplaced pieces first, then the 21 tidal places (`T632-shots/`). Look at every image before sending.
+- **Running:** pipeline suite trace, map agent (T594 look C, T566, then T636), T632 maps, T637 investigation.
+- **Next free ticket: T638.**
+
 ## 2026-11-11 later — owner back: every decision answered; build 26 on Play internal (chat 11)
 
 - **Shipped to staging / Play internal:** feeds worker (version ac1e704b), staging site by `deploy/staging/site-all.sh` (smoke 18
