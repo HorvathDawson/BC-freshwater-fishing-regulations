@@ -1,0 +1,1005 @@
+{
+ "_about": "T632 (owner 2026-11-11: 'always subtract tidal water from a DFO place, unless there is a stated reason not to'). One row per DFO place whose sections changed when the reach run's tidal sections were subtracted: before = reach rerun 2026-11-10 without the subtraction (T546 code), after = with it; same atlas (data/generated/atlas/full). `removed` groups the sections taken out by the tidal limit that made them tidal; metres = route-measure length (to_m - from_m; a lake section counts 0). No images: the tidal pieces are not in the tile layers (off the freshwater map), so drawing them needs the atlas's geometries.pkl (a heavy job), not run.",
+ "places": [
+  {
+   "location_id": "1:campbell-river:downstream-of-the-confluence-with",
+   "region": "1",
+   "place": "Campbell River: downstream of the confluence with the Quinsam River",
+   "sections_before": 8,
+   "sections_after": 3,
+   "metres_before": 4936,
+   "metres_after": 2569,
+   "removed": [
+    {
+     "tidal_limit": "split:campbell_river__cement_block_boundary_sign",
+     "sections": 5,
+     "metres": 2367,
+     "waters": [
+      "Campbell River (gnis:39532)"
+     ],
+     "section_ids": [
+      "354088732:0",
+      "354088733:0",
+      "354088733:306",
+      "354088733:413",
+      "354154635:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "1:chemainus-river:whole",
+   "region": "1",
+   "place": "Chemainus River: Chemainus River",
+   "sections_before": 24,
+   "sections_after": 8,
+   "metres_before": 69165,
+   "metres_after": 60547,
+   "removed": [
+    {
+     "tidal_limit": "split:chemainus_river__tidal_boundary",
+     "sections": 16,
+     "metres": 8618,
+     "waters": [
+      "Chemainus River (gnis:39267)"
+     ],
+     "section_ids": [
+      "354087643:0",
+      "354087938:0",
+      "354087939:0",
+      "354087940:0",
+      "354087941:0",
+      "354087942:0",
+      "354087943:0",
+      "354087944:0",
+      "354087945:0",
+      "354087946:0",
+      "354087947:0",
+      "354087948:0",
+      "... 4 more"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "1:default:region",
+   "region": "1",
+   "place": "All Region 1 waters (DFO: Haida Gwaii is Region 6): All Region 1 waters (DFO: Haida Gwaii is Region 6)",
+   "sections_before": 107945,
+   "sections_after": 107909,
+   "metres_before": 87430994,
+   "metres_after": 87402475,
+   "removed": [
+    {
+     "tidal_limit": "r1:nitinat_lake@1-3",
+     "sections": 1,
+     "metres": 0,
+     "waters": [
+      "(no named water)"
+     ],
+     "section_ids": [
+      "lake:329504244"
+     ]
+    },
+    {
+     "tidal_limit": "split:campbell_river__cement_block_boundary_sign",
+     "sections": 5,
+     "metres": 2367,
+     "waters": [
+      "Campbell River (gnis:39532)"
+     ],
+     "section_ids": [
+      "354088732:0",
+      "354088733:0",
+      "354088733:306",
+      "354088733:413",
+      "354154635:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:chemainus_river__tidal_boundary",
+     "sections": 16,
+     "metres": 8618,
+     "waters": [
+      "Chemainus River (gnis:39267)"
+     ],
+     "section_ids": [
+      "354087643:0",
+      "354087938:0",
+      "354087939:0",
+      "354087940:0",
+      "354087941:0",
+      "354087942:0",
+      "354087943:0",
+      "354087944:0",
+      "354087945:0",
+      "354087946:0",
+      "354087947:0",
+      "354087948:0",
+      "... 4 more"
+     ]
+    },
+    {
+     "tidal_limit": "split:nanaimo_river__cedar_road_bridge",
+     "sections": 5,
+     "metres": 5901,
+     "waters": [
+      "Nanaimo River (gnis:16505)"
+     ],
+     "section_ids": [
+      "354087624:0",
+      "354087625:0",
+      "354088472:0",
+      "354088899:0",
+      "354154938:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:nimpkish_river__tidal_boundary",
+     "sections": 2,
+     "metres": 1998,
+     "waters": [
+      "Nimpkish River (gnis:21141)"
+     ],
+     "section_ids": [
+      "354088321:0",
+      "354154936:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:nitinat_river__head_of_nitinat_lake_tidal_bound",
+     "sections": 2,
+     "metres": 1732,
+     "waters": [
+      "Nitinat River (gnis:23318)"
+     ],
+     "section_ids": [
+      "354087883:0",
+      "354155007:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:qualicum_river__hwy_19a_bridge",
+     "sections": 1,
+     "metres": 108,
+     "waters": [
+      "Qualicum River (gnis:27804)"
+     ],
+     "section_ids": [
+      "354152785:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:salmon_river__tidal_boundary",
+     "sections": 1,
+     "metres": 1755,
+     "waters": [
+      "Salmon River (gnis:2628)"
+     ],
+     "section_ids": [
+      "354152994:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:somass_river__tidal_boundary_at_papermill_dam",
+     "sections": 1,
+     "metres": 5520,
+     "waters": [
+      "Somass River (gnis:25707)"
+     ],
+     "section_ids": [
+      "354135941:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:sooke_river__tidal_boundary",
+     "sections": 1,
+     "metres": 361,
+     "waters": [
+      "Sooke River (gnis:25725)"
+     ],
+     "section_ids": [
+      "354153927:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:toquart_river__tidal_boundary_dfo_subarea_23_10",
+     "sections": 1,
+     "metres": 159,
+     "waters": [
+      "Toquaht River (gnis:2915)"
+     ],
+     "section_ids": [
+      "354153024:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "1:nitinat-river:downstream-of-parker-creek-except",
+   "region": "1",
+   "place": "Nitinat River: downstream of Parker Creek, except in the areas and times described below.",
+   "sections_before": 10,
+   "sections_after": 8,
+   "metres_before": 20262,
+   "metres_after": 18530,
+   "removed": [
+    {
+     "tidal_limit": "split:nitinat_river__head_of_nitinat_lake_tidal_bound",
+     "sections": 2,
+     "metres": 1732,
+     "waters": [
+      "Nitinat River (gnis:23318)"
+     ],
+     "section_ids": [
+      "354087883:0",
+      "354155007:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "1:somass-river-tributaries:whole",
+   "region": "1",
+   "place": "Somass River tributaries: Somass River tributaries",
+   "sections_before": 6,
+   "sections_after": 5,
+   "metres_before": 9512,
+   "metres_after": 3992,
+   "removed": [
+    {
+     "tidal_limit": "split:somass_river__tidal_boundary_at_papermill_dam",
+     "sections": 1,
+     "metres": 5520,
+     "waters": [
+      "Somass River (gnis:25707)"
+     ],
+     "section_ids": [
+      "354135941:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "1:somass-river:except-in-those-areas-and-times-li",
+   "region": "1",
+   "place": "Somass River: Except in those areas and times listed below",
+   "sections_before": 6,
+   "sections_after": 5,
+   "metres_before": 9512,
+   "metres_after": 3992,
+   "removed": [
+    {
+     "tidal_limit": "split:somass_river__tidal_boundary_at_papermill_dam",
+     "sections": 1,
+     "metres": 5520,
+     "waters": [
+      "Somass River (gnis:25707)"
+     ],
+     "section_ids": [
+      "354135941:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "1:somass-river:whole",
+   "region": "1",
+   "place": "Somass River: Somass River",
+   "sections_before": 6,
+   "sections_after": 5,
+   "metres_before": 9512,
+   "metres_after": 3992,
+   "removed": [
+    {
+     "tidal_limit": "split:somass_river__tidal_boundary_at_papermill_dam",
+     "sections": 1,
+     "metres": 5520,
+     "waters": [
+      "Somass River (gnis:25707)"
+     ],
+     "section_ids": [
+      "354135941:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "2:coquitlam-river:whole",
+   "region": "2",
+   "place": "Coquitlam River: Coquitlam River",
+   "sections_before": 14,
+   "sections_after": 13,
+   "metres_before": 34536,
+   "metres_after": 34224,
+   "removed": [
+    {
+     "tidal_limit": "split:coquitlam_river__mary_hill_bypass_bridge",
+     "sections": 1,
+     "metres": 312,
+     "waters": [
+      "Coquitlam River (gnis:19986)"
+     ],
+     "section_ids": [
+      "356364584:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "2:default:areas-28-29",
+   "region": "2",
+   "place": "Region 2 waters flowing into Areas 28 and 29: Region 2 waters flowing into Areas 28 and 29",
+   "sections_before": 38075,
+   "sections_after": 38015,
+   "metres_before": 39217203,
+   "metres_after": 39014409,
+   "removed": [
+    {
+     "tidal_limit": "split:brunette_river__burlington_northern_railway_brid",
+     "sections": 1,
+     "metres": 2859,
+     "waters": [
+      "Brunette River (gnis:10070)"
+     ],
+     "section_ids": [
+      "356294414:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:campbell_river__burlington_northern_railway_brid",
+     "sections": 1,
+     "metres": 15,
+     "waters": [
+      "Campbell River (gnis:7250)"
+     ],
+     "section_ids": [
+      "356331018:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:capilano_river__cn_railway_bridge_tidal_boundary",
+     "sections": 1,
+     "metres": 36,
+     "waters": [
+      "Capilano River (gnis:5922)"
+     ],
+     "section_ids": [
+      "360875983:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:chapman_creek__tidal_boundary",
+     "sections": 1,
+     "metres": 180,
+     "waters": [
+      "Chapman Creek (gnis:12936)"
+     ],
+     "section_ids": [
+      "360857589:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:coquitlam_river__mary_hill_bypass_bridge",
+     "sections": 1,
+     "metres": 312,
+     "waters": [
+      "Coquitlam River (gnis:19986)"
+     ],
+     "section_ids": [
+      "356364584:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:fraser_river__the_cpr_bridge_at_mission",
+     "sections": 20,
+     "metres": 138190,
+     "waters": [
+      "Fraser River (gnis:39325)"
+     ],
+     "section_ids": [
+      "355991966:0",
+      "355991971:0",
+      "355991973:0",
+      "355991977:0",
+      "355992231:0",
+      "355992231:918",
+      "355992232:0",
+      "355992232:1558",
+      "355992232:1750",
+      "355992234:0",
+      "355993810:0",
+      "355994266:0",
+      "... 8 more"
+     ]
+    },
+    {
+     "tidal_limit": "split:kanaka_creek__cpr_bridge_tidal_boundary",
+     "sections": 1,
+     "metres": 1522,
+     "waters": [
+      "Kanaka Creek (gnis:11318)"
+     ],
+     "section_ids": [
+      "356352191:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:nathan__cn_railway_bridge_tidal_boundary",
+     "sections": 1,
+     "metres": 332,
+     "waters": [
+      "Nathan Creek (gnis:7892)"
+     ],
+     "section_ids": [
+      "356350005:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:nicomekl_river__burlington_northern_railway_brid",
+     "sections": 1,
+     "metres": 46,
+     "waters": [
+      "Nicomekl River (gnis:21100)"
+     ],
+     "section_ids": [
+      "356353722:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:noons_creek__railway_bridge",
+     "sections": 1,
+     "metres": 58,
+     "waters": [
+      "Noons Creek (gnis:23366)"
+     ],
+     "section_ids": [
+      "360880849:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:pitt_river__cpr_bridge",
+     "sections": 1,
+     "metres": 3342,
+     "waters": [
+      "Pitt River (gnis:7551)"
+     ],
+     "section_ids": [
+      "356360869:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:seymour_river__cn_railway_bridge_tidal_boundary",
+     "sections": 1,
+     "metres": 211,
+     "waters": [
+      "Seymour River (gnis:6105)"
+     ],
+     "section_ids": [
+      "360886339:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:squamish_river__tidal_boundary",
+     "sections": 1,
+     "metres": 13,
+     "waters": [
+      "Squamish River (gnis:25671)"
+     ],
+     "section_ids": [
+      "360886594:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:stave_river__cpr_bridge_tidal_boundary",
+     "sections": 1,
+     "metres": 384,
+     "waters": [
+      "Stave River (gnis:14589)"
+     ],
+     "section_ids": [
+      "356362384:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:west_creek__cn_railway_bridge_tidal_boundary",
+     "sections": 1,
+     "metres": 620,
+     "waters": [
+      "West Creek (gnis:26057)"
+     ],
+     "section_ids": [
+      "356294262:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:whonnock_creek__cp_rail_line_tidal_boundary",
+     "sections": 1,
+     "metres": 310,
+     "waters": [
+      "Whonnock Creek (gnis:5366)"
+     ],
+     "section_ids": [
+      "356250271:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:york_creek__cp_rail_line_tidal_boundary",
+     "sections": 3,
+     "metres": 323,
+     "waters": [
+      "York Creek (gnis:30427)"
+     ],
+     "section_ids": [
+      "356083018:0",
+      "356083018:359",
+      "lake:329292895"
+     ]
+    },
+    {
+     "tidal_limit": "split:yorkson_creek__tidal_boundary",
+     "sections": 1,
+     "metres": 354,
+     "waters": [
+      "Yorkson Creek (gnis:30435)"
+     ],
+     "section_ids": [
+      "356250588:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:10494",
+     "sections": 2,
+     "metres": 9077,
+     "waters": [
+      "Annacis Channel (gnis:10494)"
+     ],
+     "section_ids": [
+      "355994264:0",
+      "355994265:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:11566",
+     "sections": 2,
+     "metres": 5398,
+     "waters": [
+      "Bedford Channel (gnis:11566)"
+     ],
+     "section_ids": [
+      "355994855:0",
+      "355994855:3566"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:14010",
+     "sections": 1,
+     "metres": 1674,
+     "waters": [
+      "Gilmour Slough (gnis:14010)"
+     ],
+     "section_ids": [
+      "355997605:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:14905",
+     "sections": 5,
+     "metres": 8598,
+     "waters": [
+      "Morey Channel (gnis:14905)"
+     ],
+     "section_ids": [
+      "355994867:0",
+      "355994868:0",
+      "355994870:0",
+      "355994873:0",
+      "355994874:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:17368",
+     "sections": 1,
+     "metres": 3935,
+     "waters": [
+      "Enterprise Channel (gnis:17368)"
+     ],
+     "section_ids": [
+      "355991837:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:17805",
+     "sections": 2,
+     "metres": 3886,
+     "waters": [
+      "Cannery Channel (gnis:17805)"
+     ],
+     "section_ids": [
+      "355994324:0",
+      "355994324:656"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:21224",
+     "sections": 1,
+     "metres": 3092,
+     "waters": [
+      "Sapperton Channel (gnis:21224)"
+     ],
+     "section_ids": [
+      "355996434:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:22631",
+     "sections": 1,
+     "metres": 7417,
+     "waters": [
+      "Parsons Channel (gnis:22631)"
+     ],
+     "section_ids": [
+      "355992068:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:25152",
+     "sections": 1,
+     "metres": 4676,
+     "waters": [
+      "Tilbury Slough (gnis:25152)"
+     ],
+     "section_ids": [
+      "355994616:0"
+     ]
+    },
+    {
+     "tidal_limit": "water:gnis:8341",
+     "sections": 5,
+     "metres": 5934,
+     "waters": [
+      "Williamson Slough (gnis:8341)"
+     ],
+     "section_ids": [
+      "355991968:0",
+      "355991970:0",
+      "355991970:594",
+      "355991975:0",
+      "lake:329292341"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "2:kanaka-creek:downstream-of-the-112th-street-bri",
+   "region": "2",
+   "place": "Kanaka Creek: downstream of the 112th Street bridge.",
+   "sections_before": 2,
+   "sections_after": 1,
+   "metres_before": 7196,
+   "metres_after": 5674,
+   "removed": [
+    {
+     "tidal_limit": "split:kanaka_creek__cpr_bridge_tidal_boundary",
+     "sections": 1,
+     "metres": 1522,
+     "waters": [
+      "Kanaka Creek (gnis:11318)"
+     ],
+     "section_ids": [
+      "356352191:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "2:little-campbell-river:downstream-of-12th-avenue-includin",
+   "region": "2",
+   "place": "Little Campbell River: downstream of 12th Avenue, including tributaries to that part.",
+   "sections_before": 30,
+   "sections_after": 29,
+   "metres_before": 24440,
+   "metres_after": 24425,
+   "removed": [
+    {
+     "tidal_limit": "split:campbell_river__burlington_northern_railway_brid",
+     "sections": 1,
+     "metres": 15,
+     "waters": [
+      "Campbell River (gnis:7250)"
+     ],
+     "section_ids": [
+      "356331018:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "2:nicomekl-river:downstream-of-208th-street",
+   "region": "2",
+   "place": "Nicomekl River: downstream of 208th Street",
+   "sections_before": 5,
+   "sections_after": 4,
+   "metres_before": 25104,
+   "metres_after": 25058,
+   "removed": [
+    {
+     "tidal_limit": "split:nicomekl_river__burlington_northern_railway_brid",
+     "sections": 1,
+     "metres": 46,
+     "waters": [
+      "Nicomekl River (gnis:21100)"
+     ],
+     "section_ids": [
+      "356353722:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "2:squamish-river-including-powerhous:downstream-of-the-powerline-crossi",
+   "region": "2",
+   "place": "Squamish River (including Powerhouse Channel): downstream of the powerline crossing at 9 mile (approximately 1.5 km upstream of the confluence with the Cheakamus River)",
+   "sections_before": 27,
+   "sections_after": 26,
+   "metres_before": 29941,
+   "metres_after": 29928,
+   "removed": [
+    {
+     "tidal_limit": "split:squamish_river__tidal_boundary",
+     "sections": 1,
+     "metres": 13,
+     "waters": [
+      "Squamish River (gnis:25671)"
+     ],
+     "section_ids": [
+      "360886594:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "2:squamish-river-including-powerhous:whole",
+   "region": "2",
+   "place": "Squamish River (including Powerhouse Channel): Squamish River (including Powerhouse Channel)",
+   "sections_before": 123,
+   "sections_after": 122,
+   "metres_before": 179812,
+   "metres_after": 179799,
+   "removed": [
+    {
+     "tidal_limit": "split:squamish_river__tidal_boundary",
+     "sections": 1,
+     "metres": 13,
+     "waters": [
+      "Squamish River (gnis:25671)"
+     ],
+     "section_ids": [
+      "360886594:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "6:a:region",
+   "region": "6",
+   "place": "All Region 6 waters",
+   "sections_before": 612945,
+   "sections_after": 612940,
+   "metres_before": 432458362,
+   "metres_after": 432440243,
+   "removed": [
+    {
+     "tidal_limit": "split:chambers_creek__tidal_boundary_dfo_subarea_3_18",
+     "sections": 1,
+     "metres": 2598,
+     "waters": [
+      "Chambers Creek (gnis:3971)"
+     ],
+     "section_ids": [
+      "360880075:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:ksi_gingolx__kincolith_river_bridge",
+     "sections": 1,
+     "metres": 1562,
+     "waters": [
+      "Ksi Gingolx (gnis:7071)"
+     ],
+     "section_ids": [
+      "360877679:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:nass_river__tidal_boundary_dfo_subarea_3_12",
+     "sections": 1,
+     "metres": 1805,
+     "waters": [
+      "Nass River (gnis:3206)"
+     ],
+     "section_ids": [
+      "360885942:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:skeena_river__tidal_boundary",
+     "sections": 1,
+     "metres": 6404,
+     "waters": [
+      "Skeena River (gnis:2936)"
+     ],
+     "section_ids": [
+      "360887278:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge",
+     "sections": 1,
+     "metres": 5750,
+     "waters": [
+      "Tlell River (gnis:35583)"
+     ],
+     "section_ids": [
+      "360872960:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "6:b(ii):section",
+   "region": "6",
+   "place": "All waters in section \"B(ii)\" - Skeena River Watershed downstream of the CNR Railway Bridge at Terrace, unless otherwise stated below.",
+   "sections_before": 15650,
+   "sections_after": 15649,
+   "metres_before": 15122245,
+   "metres_after": 15115841,
+   "removed": [
+    {
+     "tidal_limit": "split:skeena_river__tidal_boundary",
+     "sections": 1,
+     "metres": 6404,
+     "waters": [
+      "Skeena River (gnis:2936)"
+     ],
+     "section_ids": [
+      "360887278:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "6:b:section",
+   "region": "6",
+   "place": "All waters in section \"B\" – Skeena River Watershed",
+   "sections_before": 87261,
+   "sections_after": 87260,
+   "metres_before": 89112812,
+   "metres_after": 89106408,
+   "removed": [
+    {
+     "tidal_limit": "split:skeena_river__tidal_boundary",
+     "sections": 1,
+     "metres": 6404,
+     "waters": [
+      "Skeena River (gnis:2936)"
+     ],
+     "section_ids": [
+      "360887278:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "6:c:section",
+   "region": "6",
+   "place": "All waters in section \"C\" - Nass River Watershed unless otherwise stated below",
+   "sections_before": 40933,
+   "sections_after": 40930,
+   "metres_before": 38966904,
+   "metres_after": 38960939,
+   "removed": [
+    {
+     "tidal_limit": "split:chambers_creek__tidal_boundary_dfo_subarea_3_18",
+     "sections": 1,
+     "metres": 2598,
+     "waters": [
+      "Chambers Creek (gnis:3971)"
+     ],
+     "section_ids": [
+      "360880075:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:ksi_gingolx__kincolith_river_bridge",
+     "sections": 1,
+     "metres": 1562,
+     "waters": [
+      "Ksi Gingolx (gnis:7071)"
+     ],
+     "section_ids": [
+      "360877679:0"
+     ]
+    },
+    {
+     "tidal_limit": "split:nass_river__tidal_boundary_dfo_subarea_3_12",
+     "sections": 1,
+     "metres": 1805,
+     "waters": [
+      "Nass River (gnis:3206)"
+     ],
+     "section_ids": [
+      "360885942:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "6:d:section",
+   "region": "6",
+   "place": "All waters in section \"D\" - Queen Charlotte Islands Watersheds unless otherwise stated below.",
+   "sections_before": 25776,
+   "sections_after": 25775,
+   "metres_before": 19110254,
+   "metres_after": 19104504,
+   "removed": [
+    {
+     "tidal_limit": "split:tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge",
+     "sections": 1,
+     "metres": 5750,
+     "waters": [
+      "Tlell River (gnis:35583)"
+     ],
+     "section_ids": [
+      "360872960:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "6:skeena-river:mainstem-waters-downstream-of-cnr",
+   "region": "6",
+   "place": "Skeena River: mainstem waters downstream of CNR Railway Bridge at Terrace.",
+   "sections_before": 124,
+   "sections_after": 123,
+   "metres_before": 355224,
+   "metres_after": 348820,
+   "removed": [
+    {
+     "tidal_limit": "split:skeena_river__tidal_boundary",
+     "sections": 1,
+     "metres": 6404,
+     "waters": [
+      "Skeena River (gnis:2936)"
+     ],
+     "section_ids": [
+      "360887278:0"
+     ]
+    }
+   ]
+  },
+  {
+   "location_id": "6:skeena-river:mainstem-waters-only",
+   "region": "6",
+   "place": "Skeena River: mainstem waters only.",
+   "sections_before": 217,
+   "sections_after": 216,
+   "metres_before": 890263,
+   "metres_after": 883859,
+   "removed": [
+    {
+     "tidal_limit": "split:skeena_river__tidal_boundary",
+     "sections": 1,
+     "metres": 6404,
+     "waters": [
+      "Skeena River (gnis:2936)"
+     ],
+     "section_ids": [
+      "360887278:0"
+     ]
+    }
+   ]
+  }
+ ],
+ "other_changes": []
+}
