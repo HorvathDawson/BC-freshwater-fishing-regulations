@@ -25,3 +25,24 @@ placement/coverage, waiting on the owner's labelling: not part of this ticket.
 - Every F row is fixed with a pinned test, or answered "as shown is right" by the owner with his words recorded.
 
 Depends: T553 (base rules pinned), T546 (reach run). Size: L. Owner: yes (16 readings).
+
+## Owner readings 2026-11-11 (12 of 16; F2, F9, F16, F21 wait for map shots)
+- **F1 Campbell River:** the river straddles the unit boundary for a stretch. Only the stretch that straddles a unit in
+  1-1 to 1-6 takes the Jul 15-Aug 31 summer closure; the rest (unit 1-10 only) does not. Show which parts straddle, on a map.
+- **F4 part-of-lake closures (Shuswap, Quesnel, every lake like them):** a clear warning on the card for all such lakes now.
+  Splitting the lakes properly is far future.
+- **F5 Nechako inside Region 6:** closed Apr 1-Jun 30. The "Exempt from spring closure" on the Region 7 row lifts Region 7's only.
+- **F7 Fraser steelhead notice (Region 3):** the banner stops at the Region 3 boundary.
+- **F8 Fraser, Regions 5/7:** upstream of the Cottonwood River the exemption LIFTS the bait ban, Region 5's too ("typically I
+  would say it holds but this is explicit"). Needs a cut at the Cottonwood confluence; below it Region 5's ban holds.
+- **F10 Babine above the Fort Babine Bridge:** not fly only. As shown is right.
+- **F11 in-season closures:** parse in-season notices the same way as normal regulations, so a closure changes the card.
+  That needs a rebuild; between a new notice and the rebuild that carries it parsed, a good banner shows so it is not lost
+  (an unparsed notice is the banner). Design ticket needed; the parser run is the owner's.
+- **F12 Stellako:** release all rainbow. General rule: a rainbow rule with no size constraint applies to both steelhead and
+  ordinary rainbow, since it did not specify.
+- **F17 Lakelse Lake:** no bait ban. By the book's definitions page, tributaries are streams.
+- **F18 Babine salmon:** sockeye only. The notice itself says "closed to recreational fishing for Sockeye Salmon". As shown is right.
+- **F19 Stellako top stretch:** nothing to add. The river already carries "No Fishing Nov 15-May 14; Class II water when
+  open"; the book's pointer is a note for people looking at the lake.
+- **F20 Fraser tidal stretch:** a freshwater notice starts at Mission, not on the tidal stretch.
