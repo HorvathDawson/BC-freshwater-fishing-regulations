@@ -13,6 +13,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
+# T638 item 3: gating runs never trust old bytecode (matcher.py edited twice in one second at the same size kept its
+# old .pyc): one fresh PYTHONPYCACHEPREFIX per run, shared by its processes, removed at exit
+PYTHONPYCACHEPREFIX=$(mktemp -d "${TMPDIR:-/tmp}/pycache.XXXXXX"); export PYTHONPYCACHEPREFIX
+trap 'rm -rf "$PYTHONPYCACHEPREFIX"' EXIT
 t0=$SECONDS
 step() { local s=$SECONDS; echo "── $1"; shift; "$@"; echo "   ($((SECONDS - s)) s)"; }
 

@@ -6,8 +6,9 @@
 #   scripts/heavy.sh test-full 40 -- ./scripts/test-full.sh
 #
 #   1. REGS_STORE_REQUIRED=1 pnpm -C app check              every app gate + vitest, the parity strict (≈ 17 s)
-#   2. pytest (the fast suite, `-m "not slow"`)             ≈ 8.5 min serial (2026-10-20: 3572 passed)
-#   3. pytest -m slow                                       264 tests: determinism and full-build guards (AGENTS 18)
+#   2. pytest (the fast suite, `-m "not slow"`)             in chunks, one process each (scripts/pytest-chunked.sh, T638:
+#                                                           one process grows to ~111 GB and the kernel kills it)
+#   3. pytest -m slow                                       the same, chunked: determinism and full-build guards (AGENTS 18)
 #   4. card gate on the shipped answers                     problems: 0 (rule 9)
 #   5. the generated-file --checks                          python -m pipeline.tools.emit --check (all four)
 #
@@ -18,6 +19,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
+# T638 item 3: gating runs never trust old bytecode (matcher.py edited twice in one second at the same size kept its
+# old .pyc): one fresh PYTHONPYCACHEPREFIX per run, shared by its processes, removed at exit
+PYTHONPYCACHEPREFIX=$(mktemp -d "${TMPDIR:-/tmp}/pycache.XXXXXX"); export PYTHONPYCACHEPREFIX
+trap 'rm -rf "$PYTHONPYCACHEPREFIX"' EXIT
 t0=$SECONDS; failed=()
 step() { local name=$1 s=$SECONDS; shift; echo "── $name"; if "$@"; then echo "   ok ($((SECONDS - s)) s)"; else
   echo "   FAILED ($((SECONDS - s)) s)"; failed+=("$name"); fi; }
@@ -26,8 +31,8 @@ step() { local name=$1 s=$SECONDS; shift; echo "── $name"; if "$@"; then ech
 # passes green on zero cases whenever the release on disk is not the one taps.json was cut from (after every release,
 # until sync.mjs re-cuts the goldens); the failure names `node app/tools/regs-recut/sync.mjs`.
 step "app check (strict parity)" env REGS_STORE_REQUIRED=1 pnpm -C app check
-step "pytest fast" "$PY" -m pytest -q
-step "pytest slow" "$PY" -m pytest -q -m slow
+step "pytest fast (chunked)" bash scripts/pytest-chunked.sh
+step "pytest slow (chunked)" bash scripts/pytest-chunked.sh -- -m slow
 step "card gate" "$PY" -m pipeline.deliver.answers.card_check
 # the release (P08): parity of every single-file read against the bundle, the query plans and the perf budgets
 # THE release on disk: `release.manifest.latest`, the one answer every reader asks (T133)
