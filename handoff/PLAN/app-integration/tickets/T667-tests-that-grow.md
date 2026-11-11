@@ -40,3 +40,13 @@ Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-t
   guard goes in when the ~230 files are clean; until then it runs in report mode only).
 - D5: the release commits renumber-only fixture diffs by itself and stops only when an answer changed.
 - D6: the smoke set is derived by rule, not hand-listed.
+
+## Progress 2026-11-11 (foundation for the migration; ebb22b638, 3a0f624fe, e3c59c320)
+- Scanners in REPORT mode: `app/tools/check-test-anchors.mjs` (`pnpm anchors`, in `check:fast`) and
+  `pipeline/tests/anchors.py` (`python -m pipeline.tests.anchors`; `test_test_anchors.py` in the smoke set). Failing mode
+  (`--strict` / `TEST_ANCHORS_STRICT=1`) exists and is not wired (D4: when the list is empty).
+- Helpers: `sectionNames` `.part` / `.partAt` (a part by its ends / by a place); `pipeline/tests/under_test.py` (the one
+  way a pipeline test reaches live data; sections by blue line + metre); the release under test is `RELEASE_DIR`
+  (the candidate) else LATEST in both suites (`liveRelease` / `namedRelease`, `under_test.release`).
+- The list and the batches: `app-integration/T667-offenders.md` (158 files in 7 disjoint batches, a recipe and a worked
+  example each).

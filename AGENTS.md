@@ -371,6 +371,14 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
       them all in one step (T441: taps, hydrate, the fixture release, `dev/section-lines.json`, VM fixtures); no test
       types a raw section id — name it by stream key + start metre (or a lake by water + part) through `sectionNames`
       (`@app/data/release/node`), so a renumbering is no test edit and a moved section fails by name.
+    - **Test anchors (T667, owner 2026-11-11 D4)**: a test stands on data it builds, a frozen fixture, or THE DATA UNDER
+      TEST through the one helper — the app's `liveRelease()` / `namedRelease()` / `openRegsFixture*` / `sectionNames`
+      (`.stream`, `.lake`, `.part` by its ends, `.partAt`), the pipeline's `pipeline/tests/under_test.py` (never
+      `GENERATED` / `CURATED` / a `data/…` path / an override variable / `LATEST` in a test file; sections by blue line
+      + metre through `under_test.sections`). `RELEASE_DIR` names the release under test in both suites (the release
+      command's candidate), else LATEST. The scanners (`app/tools/check-test-anchors.mjs`, `pipeline/tests/anchors.py`;
+      the rule is each one's header) REPORT today and fail on every offender once
+      `handoff/PLAN/app-integration/T667-offenders.md` is empty — no baseline; never reword a hit past the scanner.
     - **Feeds worker**: its tests gate every deploy (`deploy/staging/feeds.sh`); `REPORT_SALT` is a required secret
       (no salt = 503, never an unsalted report). Crash/report enums match the app (wire parity test).
     - **Staging**: `deploy/staging/upload.sh` refuses commits not on GitHub, clears old releases only after the
