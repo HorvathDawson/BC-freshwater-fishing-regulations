@@ -301,8 +301,10 @@ def _tidal() -> dict[str, str]:
     (T166 phase 1), so a rule reviewed here kept water below a tidal cut that ships without it."""
     from pipeline.atlas.reach.outside import tidal_owner
     out = dict(tidal_owner([e for _, e in _all_entries()], _registry(), strict=False))
+    from pipeline.atlas.splits.shore import INSIDE, RECORD
     from pipeline.atlas.splits.tidal import RESOLVED
-    for s, o in _tidal_pieces_for(_stamp((Path(_BUILD) / RESOLVED,))).items():
+    for s, o in _tidal_pieces_for(_stamp((Path(_BUILD) / RESOLVED, Path(_BUILD) / RECORD,
+                                          Path(_BUILD) / INSIDE))).items():
         out.setdefault(s, o)
     return out
 
@@ -315,6 +317,11 @@ def _tidal_pieces_for(_key: tuple) -> dict[str, str]:
     from pipeline.atlas.reach.outside import tidal_cut_owner, tidal_splits, tidal_waters, tidal_whole_owner
     out = dict(tidal_cut_owner(_registry(), _graph(), tidal_splits(_BUILD), strict=False))
     for s, o in tidal_whole_owner(_registry(), tidal_waters(_BUILD), strict=False).items():
+        out.setdefault(s, o)
+    # T665: the lines wholly in tidal water the atlas lists
+    from pipeline.atlas.reach.outside import inside_lines, tidal_inside_owner
+    inside = inside_lines(_BUILD)
+    for s, o in (tidal_inside_owner(_graph(), inside, strict=False) if inside else {}).items():
         out.setdefault(s, o)
     return out
 

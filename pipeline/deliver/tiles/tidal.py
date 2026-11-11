@@ -38,12 +38,13 @@ def tidal_pieces(build_dir: Path, graph=None, registry=None, whole=None) -> froz
     """The section (node) ids below this atlas's tidal splits, plus every section of a whole tidal water
     (T212; both from the atlas's tidal sidecar, T326), plus every water crossing ending in them (T660,
     `tidal_crossing_owner`) — the reach run's own set. Empty when there is neither."""
-    from pipeline.atlas.reach.outside import (tidal_crossing_owner, tidal_cut_owner, tidal_splits, tidal_waters,
-                                              tidal_whole_owner)
+    from pipeline.atlas.reach.outside import (inside_lines, tidal_inside_owner, tidal_crossing_owner, tidal_cut_owner,
+                                              tidal_splits, tidal_waters, tidal_whole_owner)
     ids = tidal_splits(build_dir)
     if whole is None:                      # T212: whole waters the owner calls tidal, off the map too
         whole = tidal_waters(build_dir)
-    if not ids and not whole:
+    inside = inside_lines(build_dir)       # T665: lines wholly in tidal water
+    if not ids and not whole and not inside:
         return frozenset()
     if registry is None:
         from pipeline.atlas.registry import load_registry
@@ -54,6 +55,7 @@ def tidal_pieces(build_dir: Path, graph=None, registry=None, whole=None) -> froz
         graph = read_artifact(str(Path(build_dir) / "graph.pkl"))
     if ids:
         out |= set(tidal_cut_owner(registry, graph, ids))
+    out |= set(tidal_inside_owner(graph, inside))
     out |= set(tidal_crossing_owner(graph, out))
     return frozenset(out)
 

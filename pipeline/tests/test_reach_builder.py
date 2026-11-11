@@ -390,6 +390,7 @@ def test_policy_version_is_bumped_when_classify_changes():
         "a_lake_rows_unrowed_through_river_is_a_tributary":
             tributaries.A_LAKE_ROWS_UNROWED_THROUGH_RIVER_IS_A_TRIBUTARY,
         "a_failed_scope_unbinds_the_row": reach_build.A_FAILED_SCOPE_UNBINDS_THE_ROW,
+        "a_line_the_atlas_lists_inside_is_tidal": outside.A_LINE_THE_ATLAS_LISTS_INSIDE_IS_TIDAL,
     })
     expected.update({"confluence_cut_excludes_the_joining_water": True,
                      "confluence_water_without_a_row_goes_with_the_cut": True,
@@ -408,8 +409,9 @@ def test_policy_version_is_bumped_when_classify_changes():
                      "unnamed_lakes_on_the_river_are_the_river": True,
                      "a_steelhead_rivers_widening_is_anadromous": True,
                      "a_lake_rows_unrowed_through_river_is_a_tributary": True,
-                     "a_failed_scope_unbinds_the_row": True})
-    assert cache.POLICY_VERSION == "36", "update this pin with the version it was taken at"
+                     "a_failed_scope_unbinds_the_row": True,
+                     "a_line_the_atlas_lists_inside_is_tidal": True})
+    assert cache.POLICY_VERSION == "37", "update this pin with the version it was taken at"
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")

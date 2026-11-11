@@ -311,6 +311,9 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                       tidal=_sha(tidal_splits(build_dir)),
                       # (T212) the whole waters the owner calls tidal
                       tidal_waters=_sha(tidal_waters(build_dir)),
+                      # (T665) the lines wholly in tidal water the atlas lists (absent on an older atlas, so its
+                      # key is unchanged and nothing reruns for it)
+                      **_inside_key(build_dir),
                       # (T632) the run refuses a dead override id and an unplaced piece the owner did not accept:
                       # editing either file must rerun it, or a build would pass on the old answer
                       overrides=hashlib.sha256(Path(CURATED.regulations.book_name_links).read_bytes()).hexdigest()[:16],
@@ -321,6 +324,14 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                         code=stage_code("deliver", m)),
         "tiles": tiles_key(build_dir),
     }
+
+
+def _inside_key(build_dir: Path) -> dict:
+    """(T665) `{"inside_tidal": digest}` of the atlas's lines wholly in tidal water, or {} when it lists none (an atlas
+    cut before the polygon rule), so an older atlas's stage keys stay what they were."""
+    from pipeline.atlas.reach.outside import inside_lines
+    got = inside_lines(build_dir)
+    return {"inside_tidal": _sha(got)} if got else {}
 
 
 def tiles_key(build_dir: Path) -> dict:
@@ -337,6 +348,8 @@ def tiles_key(build_dir: Path) -> dict:
             "tidal": _sha(tidal_splits(build_dir)),
             # T212: whole tidal waters come off the map too
             "tidal_waters": _sha(tidal_waters(build_dir)),
+            # T665: lines wholly in tidal water come off the map too (absent on an older atlas)
+            **_inside_key(build_dir),
             "areas": hashlib.sha256(areas.read_bytes()).hexdigest()[:16], "code": code_digest(CODE["tiles"]),
             "obstacles": stamp(ob) if ob.exists() else None}
 

@@ -44,3 +44,22 @@ Depends: T660. Size: L.
 - D5: Brae Slough (wholly tidal) is DROPPED from search, like the unnamed tidal lines (overrides the design's default).
   It is an owner-found name: the found-name row is kept on file and reported, not deleted.
 - D6: the three creeks whose mouth is outside the polygon: no change.
+
+## Owner answers 2026-11-11 on the dry run (`app-integration/T665-dryrun.md`, maps `T665-dryrun-map.html`)
+- Cuts that leave nothing tidal: DROPPED. A creek is cut only where the piece below the cut goes tidal
+  (`shore.A_CUT_THAT_MAKES_NOTHING_TIDAL_IS_NOT_MADE`).
+- D4 WITHDRAWN ("just do the 33 cuts and then remove tidal part"): the 33 mouth-tick creeks are cut at the polygon exit
+  like every other creek and the part inside goes tidal. Applied to the 59 further `mouth`-row creeks too (coordinator's
+  reading, listed separately in the dry-run doc for the owner to object). Their `mouth` rows are superseded: proposed as
+  `app-integration/T665-tidal-limits-mouth-rows.patch`, NOT applied (reviewed data).
+- The eight main rivers with no limit of their own that would go tidal (Bella Coola, Mamin, Apple ×3, Kshwan, Sarita,
+  Bedwell): HELD until the owner ticks each (`shore.HELD_FOR_OWNER`; map `T665-main-rivers-map.html`).
+- Kept as a default the owner may reverse: a water with its own `split`/`whole` limit is never cut by the polygon
+  (`shore.THE_OWNERS_LIMIT_GOVERNS_ITS_OWN_WATER`).
+- Reference for waters with no listed limit — DFO's glossary, "tidal boundary"
+  (https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/definitions-eng.html): unless otherwise specified, the tidal boundary is a
+  straight line drawn between the two most seaward points of land on either side of the mouth of a river or stream; a
+  fishery officer may also mark one with a triangular sign; other specified boundaries are on the Pacific Fishery
+  Management Area maps. The owner worries the polygon over-cuts where it runs up an estuary (the Pitt case): every cut
+  whose polygon exit lies more than 100 m up a narrow channel is HELD too (second group on the main-rivers page), no
+  change to the rule yet.

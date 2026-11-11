@@ -126,5 +126,9 @@ from __future__ import annotations
 #: 36: (T546) A ROW WHOSE SCOPE DOES NOT RESOLVE BINDS NOTHING: a scope extent that fails, or a scope placing no
 #:     section, holds every rule of the row unresolved `scope_unresolved` (`build.A_FAILED_SCOPE_UNBINDS_THE_ROW`) —
 #:     it used to bind unclipped (the whole water) or narrowed to the parts that resolved.
-POLICY_VERSION = "36"
+#: 37: (T665, owner 2026-11-11) A LINE THE ATLAS LISTS AS TIDAL WHOLE IS TIDAL WATER (`outside.A_LINE_THE_ATLAS_LISTS_INSIDE_
+#:     IS_TIDAL`, owner `inside:<blk>`, from `inside_tidal.json`): 215 lines wholly inside the DFO tidal polygon leave
+#:     every binding after the walk; the shore cut moves to the polygon exit (`atlas.splits.shore`), so the crossings
+#:     below it change. No classify.py outcome changed; the bump marks the binding diff.
+POLICY_VERSION = "37"
 

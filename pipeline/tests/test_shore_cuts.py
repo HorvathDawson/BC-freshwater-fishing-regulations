@@ -1,12 +1,18 @@
-"""T660: THE SHORE CUT — a creek FWA draws on across tidal water to its river's line is cut where its own line begins.
+"""T665 (rewriting T660): THE SHORE CUT AT THE TIDAL POLYGON — a creek joining tidal water is cut where its line leaves
+the DFO tidal polygon, only where the piece below goes tidal; a line wholly inside the polygon is tidal water whole.
 
-Synthetic FWA lines (a river X, creeks C and D drawn across the water with `fwa_edge_types.WATER_CROSSING`), built into a
-graph by the real builder, cut by the real sectionizer, then read by the reach run's `crossing_pieces`: the atlas makes
-the piece, the reach recognises it by the cut. No data.
+Synthetic FWA lines built into a graph by the real builder, cut by the real sectionizer through the real atlas stage,
+then read by the reach run's `tidal_water` / `tidal_crossing_owner`: the atlas makes the pieces, the reach decides
+tidal. No data.
 """
 from __future__ import annotations
 
+import json
+from types import SimpleNamespace
+
+import pytest
 from shapely.geometry import LineString, box
+from shapely.ops import linemerge
 
 from pipeline.atlas.graph import cutting
 from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
@@ -14,272 +20,214 @@ from pipeline.atlas.graph.graph import build_stream_graph
 from pipeline.atlas.splits import shore as S
 from pipeline.atlas.splits.sectionizer import AUTO_SOURCES, minted_id, place_points, split_graph_at
 from pipeline.common import fwa_edge_types as ET
+from pipeline.common.models import AnchorType, SplitPoint
 
 CROSS, LAND = ET.WATER_CROSSING, ET.SINGLE_LINE
-#: the tidal water: south of y = 300, around C's mouth and E's (D's mouth, at x = 1500, is not in it)
-SEA = box(-1000, -1000, 1000, 300).union(box(2000, -1000, 3000, 300))
+#: the tidal water: south of y = 300, around C's mouth and E (D's mouth, at x = 1500, and Z's are not in it)
+SEA = box(-200, -1000, 1000, 300).union(box(2000, -1000, 3000, 300))
 
 
-def _fid(fid, blk, wsc, coords, down_m, up_m, et=LAND, name=""):
+def _fid(fid, blk, wsc, coords, down_m, up_m, et=LAND, name="", gnis=""):
     geom = LineString(coords)
     dn, un = cutting.blk_endpoints(geom)
-    return FidRow(fid=fid, blk=blk, wsc=wsc, edge_type=et, wbk="", gnis_id="9" if name else "", gnis_name=name,
-                  stream_order=1, stream_magnitude=1, down_m=down_m, up_m=up_m, geometry=geom, down_node=dn, up_node=un)
+    return FidRow(fid=fid, blk=blk, wsc=wsc, edge_type=et, wbk="", gnis_id=gnis or ("9" if name else ""),
+                  gnis_name=name, stream_order=1, stream_magnitude=1, down_m=down_m, up_m=up_m, geometry=geom,
+                  down_node=dn, up_node=un)
 
 
 def _fids():
-    """River X along y = 0. Creek C joins at x = 500: crossed from y = 0 to the shore at y = 300 (two crossing lines),
-    then 700 m of its own line on land. Creek D joins at x = 1500 the same way but its crossing lies on LAND (an inland
-    river polygon: the polygon misses it). Creek E is a crossing and nothing else."""
+    """River X along y = 0 (into Z at x = 0). Creek C joins X at x = 500 and leaves the polygon at y = 300; D joins at
+    x = 1500 on land; E (x = 2500, 0..200) lies wholly in the sea."""
     return [
-        _fid("X1", "X", "100", [(0, 0), (500, 0)], 0, 500, name="X River"),
-        _fid("X2", "X", "100", [(500, 0), (1500, 0)], 500, 1500, name="X River"),
-        _fid("X3", "X", "100", [(1500, 0), (2500, 0)], 1500, 2500, name="X River"),
-        _fid("C1", "C", "100-1", [(500, 0), (500, 150)], 0, 150, et=CROSS),
-        _fid("C2", "C", "100-1", [(500, 150), (500, 300)], 150, 300, et=CROSS),
-        _fid("C3", "C", "100-1", [(500, 300), (500, 1000)], 300, 1000, name="C Creek"),
-        _fid("D1", "D", "100-5", [(1500, 0), (1500, 600)], 0, 600, et=CROSS),
-        _fid("D2", "D", "100-5", [(1500, 600), (1500, 900)], 600, 900),
-        _fid("E1", "E", "100-7", [(2500, 0), (2500, 200)], 0, 200, et=CROSS),
+        _fid("Z1", "Z", "50", [(-500, 0), (0, 0)], 0, 500, name="Z Inlet", gnis="7"),
+        _fid("X1", "X", "50-100", [(0, 0), (500, 0)], 0, 500, name="X River", gnis="8"),
+        _fid("X2", "X", "50-100", [(500, 0), (1500, 0)], 500, 1500, name="X River", gnis="8"),
+        _fid("X3", "X", "50-100", [(1500, 0), (2500, 0)], 1500, 2500, name="X River", gnis="8"),
+        _fid("C1", "C", "50-100-1", [(500, 0), (500, 150)], 0, 150, et=CROSS),
+        _fid("C2", "C", "50-100-1", [(500, 150), (500, 300)], 150, 300, et=CROSS),
+        _fid("C3", "C", "50-100-1", [(500, 300), (500, 1000)], 300, 1000, name="C Creek", gnis="9"),
+        _fid("D1", "D", "50-100-5", [(1500, 0), (1500, 600)], 0, 600, et=CROSS),
+        _fid("D2", "D", "50-100-5", [(1500, 600), (1500, 900)], 600, 900),
+        _fid("E1", "E", "50-100-7", [(2500, 0), (2500, 200)], 0, 200, et=CROSS),
     ]
 
 
-def _graph():
-    fids = _fids()
+F_CREEK = _fid("F1", "F", "50-100-7-1", [(2500, 200), (2500, 800)], 0, 600, name="F Creek", gnis="11")
+
+
+def _built(extra=()):
+    fids = _fids() + list(extra)
     g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    by_fid = {f.fid: f.geometry for f in fids}
+    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
     idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
-    cross = {f.fid: f.geometry for f in fids if f.edge_type == CROSS}
-    return g, idx, cross, {f.fid: f.geometry for f in fids}
+    return g, geoms, idx, fids
 
 
-def test_a_crossing_in_tidal_water_is_cut_at_the_top_of_its_run():
-    g, idx, cross, _ = _graph()
-    rec: list = []
-    pts = S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross), record=rec)
-    assert [(p.split_id, p.blk, p.route_measure, p.source, p.label) for p in pts] == \
-        [("shore:C:300", "C", 300, "shore", "shore")]
-    # D's crossing lies on land (0 % in the polygon): no cut, no record; E is a crossing through and through
-    assert [(r["blk"], r.get("not_cut")) for r in rec] == [("C", None), ("E", "the whole line is the crossing")]
-
-
-def test_a_run_mostly_on_land_is_recorded_and_not_cut():
-    g, idx, cross, _ = _graph()
-    half = box(-1000, -1000, 3000, 200)            # C's crossing: 200 of 300 m in, D's: 200 of 600 m in
-    rec: list = []
-    pts = S.shore_cuts(g, idx, set(cross), S.share_in(half, cross), record=rec)
-    assert [p.blk for p in pts] == ["C"]
-    assert {r["blk"]: r.get("not_cut") for r in rec}["D"] == "under 50% in tidal water"
-
-
-def test_the_cut_piece_is_what_the_reach_reads_as_the_crossing():
-    """Atlas -> reach: after the real sectionizer cuts, `reach.outside.crossing_pieces` holds the crossing (by the
-    shore cut: a cut piece keeps its parent's mixed edge types) and the creek above it is not one."""
-    from pipeline.atlas.reach.outside import crossing_pieces
-    g, idx, cross, geoms = _graph()
-    pts = place_points(g, S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross)))
-    split_graph_at(g, {}, pts, idx)
-    c = {nid for nid, n in g.nodes.items() if n.blk == "C"}
-    assert c == {"C:0", "C:300"}
-    assert g.nodes["C:0"].upper_bound.boundary_id == "split:shore:C:300"
-    got = crossing_pieces(g)
-    assert "C:0" in got and "C:300" not in got and not any(n.startswith("D:") for n in got)
+def _run(sea=SEA, tidal=("X:0",), existing=None, extra=(), limited=(), held=None):
+    g, geoms, _, _ = _built(extra)
+    inside = S.polygon_inside(S.graph_lines(g, geoms), sea)
+    pts, whole, rows = S.polygon_rule(g, inside, set(tidal), existing, frozenset(limited), held or {})
+    return pts, whole, {r["blk"]: r for r in rows}, inside
 
 
 def test_the_shore_family_is_minted():
     assert "shore" in AUTO_SOURCES and minted_id("shore:C:300") and minted_id("split:shore:C:300")
 
 
-def test_a_sliver_is_not_cut():
-    g, idx, cross, _ = _graph()
-    idx = dict(idx, C3=(300, 303, 1, 1))                 # 3 m of C's own line above its crossing
-    n = g.nodes["C:0"]
-    g.nodes["C:0"] = type(n)(**{**n.__dict__, "up_m": 303.0})
-    rec: list = []
-    assert S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross), record=rec) == []
-    assert rec[0]["not_cut"] == "a piece under 5 m"
-
-
-def test_the_atlas_stage_cuts_records_and_sweeps(tmp_path, monkeypatch):
-    """`build.cut_shores` end to end on the synthetic lines: one cut, the record written, the sweep finds no braid."""
-    import json
-    from types import SimpleNamespace
-    from shapely.ops import linemerge
-    from pipeline.atlas import build as B
-    g, idx, cross, by_fid = _graph()
-    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
-    monkeypatch.setattr(S, "read_tidal_polygon", lambda gpkg, bbox=None: SEA)
-    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
-                        fid_index=idx, applied_splits=[], fids=_fids(), bbox=None, tick=lambda label: None)
-    B.cut_shores(b)
-    assert {nid for nid in g.nodes if nid.startswith("C:")} == {"C:0", "C:300"}
-    assert [p.split_id for p in b.applied_splits] == ["shore:C:300"]
-    rec = json.loads((tmp_path / S.RECORD).read_text())
-    assert rec["cuts"] == 1 and [r["blk"] for r in rec["runs"]] == ["C", "E"]
-
-
-def _braided():
-    """A SIDE CHANNEL S of X River (its own water: same name and code) whose foot crosses tidal water to X at x = 500
-    (a crossing run, 0-300 m) and whose head rejoins X at x = 1500: a braid of S's own water spans S's shore."""
-    fids = [f for f in _fids() if f.blk == "X"] + [
-        _fid("S1", "S", "100", [(500, 0), (500, 300)], 0, 300, et=CROSS, name="X River"),
-        _fid("S2", "S", "100", [(500, 300), (1500, 300)], 300, 1300, name="X River"),
-        _fid("S3", "S", "100", [(1500, 300), (1500, 0)], 1300, 1600, name="X River"),
-    ]
-    g = build_stream_graph(build_blk_chains(fids, {}), fids)
-    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
-    by_fid = {f.fid: f.geometry for f in fids}
-    return g, idx, {f.fid: f.geometry for f in fids if f.edge_type == CROSS}, by_fid, fids
-
-
-def _stage(g, idx, by_fid, fids, tmp_path, monkeypatch, sea=SEA):
-    import json
-    from types import SimpleNamespace
-    from shapely.ops import linemerge
-    from pipeline.atlas import build as B
-    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
-    monkeypatch.setattr(S, "read_tidal_polygon", lambda gpkg, bbox=None: sea)
-    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
-                        fid_index=idx, applied_splits=[], fids=fids, bbox=None, tick=lambda label: None)
-    B.cut_shores(b)
-    return b, json.loads((tmp_path / S.RECORD).read_text())
-
-
-def test_a_shore_a_braid_of_its_own_water_spans_is_listed_not_cut(tmp_path, monkeypatch):
-    """Build 27 stopped here (403 braid cuts, 97 shores): a side channel crossing back into its own river. The shore
-    is not cut, the run is listed with its reason, and the build goes on with nothing straddling."""
-    g, idx, cross, by_fid, fids = _braided()
-    b, rec = _stage(g, idx, by_fid, fids, tmp_path, monkeypatch)
-    assert b.applied_splits == [] and not any(nid.startswith("S:") and nid != "S:0" for nid in g.nodes)
-    assert [(r["blk"], r.get("not_cut")) for r in rec["runs"]] == [("S", S.SPANNED)] and rec["cuts"] == 0
-    assert (tmp_path / "braid_sweep_shore.json").exists()
-
-
-def test_mutation_cutting_a_braided_shore_stops_the_build(tmp_path, monkeypatch):
-    """Without the gate the sweep must cut X River across its width for S's shore: the stage refuses, and the
-    records are written before it does."""
-    import pytest
-    monkeypatch.setattr(S, "A_SHORE_A_BRAID_SPANS_IS_NOT_CUT", False)
-    g, idx, cross, by_fid, fids = _braided()
-    with pytest.raises(SystemExit, match="meet a braid"):
-        _stage(g, idx, by_fid, fids, tmp_path, monkeypatch)
-    assert (tmp_path / S.RECORD).exists() and (tmp_path / "braid_sweep_shore.json").exists()
-
-
-def test_a_plain_crossing_is_still_cut_beside_a_braided_one(tmp_path, monkeypatch):
-    g, idx, cross, by_fid, fids = _braided()
-    extra = [f for f in _fids() if f.blk == "C"]
-    fids = fids + extra
-    g = build_stream_graph(build_blk_chains(fids, {}), fids)
-    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
-    by_fid = {f.fid: f.geometry for f in fids}
-    b, rec = _stage(g, idx, by_fid, fids, tmp_path, monkeypatch)
-    assert [p.split_id for p in b.applied_splits] == ["shore:C:300"]
-    assert {r["blk"]: r.get("not_cut") for r in rec["runs"]} == {"C": None, "S": S.SPANNED}
-
-
-# ------------------------------------------------------------------------------------------------
-# T665: THE POLYGON RULE (`shore.polygon_rule`) — not wired into the build yet; the dry run reads it on the live atlas.
-# ------------------------------------------------------------------------------------------------
-
-def _poly_run(sea=SEA, tidal=("X:0",), mouth_rows=(), existing=None, extra=(), limited=()):
-    from shapely.ops import linemerge
-    fids = _fids() + list(extra)
-    g = build_stream_graph(build_blk_chains(fids, {}), fids)
-    by_fid = {f.fid: f.geometry for f in fids}
-    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
-    inside = S.polygon_inside(S.graph_lines(g, geoms), sea)
-    pts, rule_a, rows = S.polygon_rule(g, inside, set(tidal), frozenset(mouth_rows), existing, frozenset(limited))
-    return pts, rule_a, {r["blk"]: r for r in rows}, inside
-
-
-def test_t665_a_creek_into_tidal_water_is_cut_exactly_where_it_leaves_the_polygon():
-    pts, rule_a, rows, inside = _poly_run()
+def test_a_creek_into_tidal_water_is_cut_exactly_where_it_leaves_the_polygon():
+    pts, whole, rows, inside = _run()
     assert [(p.split_id, p.route_measure, p.source, p.label) for p in pts] == [("shore:C:300", 300.0, "shore", "shore")]
     assert rows["C"]["cut_m"] == 300.0 and rows["C"]["joins"] == "curated" and rows["C"]["below_cut_tidal"]
-    # E lies wholly inside the polygon: rule A, not a cut; D never meets the polygon
-    assert [r["blk"] for r in rule_a] == ["E"] and "E" not in rows and "D" not in inside
+    # E lies wholly inside the polygon: tidal whole, not a cut; D never meets the polygon
+    assert [(w["blk"], w["why"]) for w in whole] == [("E", "inside")] and "E" not in rows and "D" not in inside
 
 
-def test_t665_a_creek_into_fresh_water_is_not_cut():
-    pts, _, rows, _ = _poly_run(tidal=())
+def test_a_creek_into_fresh_water_is_not_cut():
+    pts, _, rows, _ = _run(tidal=())
     assert pts == [] and rows["C"]["not_cut"] == S.FRESH_RECEIVER
 
 
-def test_t665_a_dip_under_5_m_is_inside_and_a_6_m_one_is_not():
-    from shapely.geometry import box as _box
-    dip4 = SEA.difference(_box(2400, 100, 2600, 104))         # E leaves the polygon for 4 m
-    _, rule_a, _, _ = _poly_run(sea=dip4)
-    assert [r["blk"] for r in rule_a] == ["E"]
-    dip6 = SEA.difference(_box(2400, 100, 2600, 106))         # 6 m out: not wholly inside, but bridged to its top
-    _, rule_a, rows, _ = _poly_run(sea=dip6)
-    assert rule_a == [] and rows["E"]["not_cut"] == S.EXIT_AT_TOP
+def test_a_cut_whose_piece_below_stays_fresh_is_not_made(monkeypatch):
+    """C's water reaches tidal Z through X, but X (whose own limit governs it) is fresh: owner 2026-11-11, "drop them"."""
+    pts, _, rows, _ = _run(tidal=("Z:0",), limited={"X"})
+    assert pts == [] and rows["C"]["not_cut"] == S.FRESH_BELOW and rows["C"]["below_cut_tidal"] is False
+    monkeypatch.setattr(S, "A_CUT_THAT_MAKES_NOTHING_TIDAL_IS_NOT_MADE", False)
+    assert [p.blk for p in _run(tidal=("Z:0",), limited={"X"})[0]] == ["C"]
 
 
-def test_t665_a_line_that_comes_back_more_than_25_m_later_is_cut_at_its_first_exit():
-    from shapely.geometry import box as _box
-    pts, _, rows, _ = _poly_run(sea=SEA.union(_box(400, 600, 600, 800)))     # C: in 0-300, out 300-600, in 600-800
+def test_a_dip_under_5_m_is_inside_and_a_6_m_one_is_not():
+    _, whole, _, _ = _run(sea=SEA.difference(box(2400, 100, 2600, 104)))     # E leaves the polygon for 4 m
+    assert [w["blk"] for w in whole] == ["E"]
+    _, whole, rows, _ = _run(sea=SEA.difference(box(2400, 100, 2600, 106)))  # 6 m out: bridged to its top instead
+    assert [(w["blk"], w["why"]) for w in whole] == [("E", "exit_at_top")] and rows["E"]["not_cut"] == S.EXIT_AT_TOP
+
+
+def test_a_line_that_comes_back_more_than_25_m_later_is_cut_at_its_first_exit():
+    pts, _, rows, _ = _run(sea=SEA.union(box(400, 600, 600, 800)))           # C: in 0-300, out 300-600, in 600-800
     assert [p.route_measure for p in pts] == [300.0] and rows["C"]["reenters"] is True
-    pts, _, rows, _ = _poly_run(sea=SEA.union(_box(400, 320, 600, 800)))     # out only 300-320: bridged
+    pts, _, rows, _ = _run(sea=SEA.union(box(400, 320, 600, 800)))           # out only 300-320: bridged
     assert [p.route_measure for p in pts] == [800.0] and rows["C"]["reenters"] is False
 
 
-def test_t665_an_owner_mouth_row_keeps_the_limit_at_the_line_end():
-    pts, _, rows, _ = _poly_run(mouth_rows={"C"})
-    assert pts == [] and rows["C"]["not_cut"] == S.OWNER_MOUTH and rows["C"]["inside_m"] == 300.0
-
-
-def test_t665_an_exit_within_5_m_of_a_standing_boundary_is_that_boundary():
-    pts, _, rows, _ = _poly_run(existing={"C": [303.0]})
+def test_an_exit_within_5_m_of_a_standing_boundary_is_that_boundary():
+    pts, _, rows, _ = _run(existing={"C": [303.0]})
     assert [p.route_measure for p in pts] == [303.0] and rows["C"]["onto_existing"] is True
 
 
-def test_t665_a_mouth_outside_the_polygon_is_listed_not_cut():
-    from shapely.geometry import box as _box
-    pts, _, rows, _ = _poly_run(sea=_box(1400, 300, 1600, 500))              # D: inside 300-500 only
+def test_a_mouth_outside_the_polygon_is_listed_not_cut():
+    pts, _, rows, _ = _run(sea=box(1400, 300, 1600, 500))                    # D: inside 300-500 only
     assert pts == [] and rows["D"]["not_cut"] == S.MOUTH_OUTSIDE
 
 
-def test_t665_a_creek_into_a_line_wholly_inside_is_cut_and_tidal_below():
-    """D2: F flows into E (wholly inside: rule A) and leaves the polygon 100 m up; nothing else is tidal."""
-    f = _fid("F1", "F", "100-7-1", [(2500, 200), (2500, 800)], 0, 600, name="F Creek")
-    pts, rule_a, rows, _ = _poly_run(tidal=(), extra=[f])
-    assert [r["blk"] for r in rule_a] == ["E"]
+def test_a_creek_into_a_line_wholly_inside_is_cut_and_tidal_below():
+    """D2: F flows into E (wholly inside) and leaves the polygon 100 m up; nothing else is tidal."""
+    pts, whole, rows, _ = _run(tidal=(), extra=[F_CREEK])
+    assert [w["blk"] for w in whole] == ["E"]
     assert [(p.blk, p.route_measure) for p in pts] == [("F", 100.0)]
     assert rows["F"]["joins"] == "inside line" and rows["F"]["below_cut_tidal"] is True
 
 
-def test_t665_a_line_with_its_own_curated_limit_is_never_cut_by_the_polygon():
-    """The Pitt and the Nitinat: a river whose owner limit stands lower would go tidal far above it."""
-    pts, _, rows, _ = _poly_run(limited={"C"})
+def test_a_line_with_its_own_curated_limit_and_a_held_river_are_never_cut():
+    """The Pitt and the Nitinat: a river whose owner limit stands lower would go tidal far above it. A held river
+    waits for the owner's tick."""
+    pts, _, rows, _ = _run(limited={"C"})
     assert pts == [] and rows["C"]["not_cut"] == S.OWNER_LIMIT
+    pts, _, rows, _ = _run(held={"C": "C Creek"})
+    assert pts == [] and rows["C"]["not_cut"] == S.HELD
 
 
-def test_t665_owner_limited_follows_the_water_not_the_line():
-    from types import SimpleNamespace
+def test_the_held_lists_are_the_owners():
+    assert "360218493" in S.HELD_FOR_OWNER and len(S.HELD_FOR_OWNER) == 8 and len(S.HELD_UP_THE_CHANNEL) == 53
+    assert not set(S.HELD_FOR_OWNER) & set(S.HELD_UP_THE_CHANNEL)
+
+
+def test_the_build_holds_both_lists_by_default(monkeypatch):
+    g, geoms, _, _ = _built()
+    inside = S.polygon_inside(S.graph_lines(g, geoms), SEA)
+    monkeypatch.setattr(S, "HELD_UP_THE_CHANNEL", {"C": "C Creek (300 m up the channel)"})
+    pts, _, rows = S.polygon_rule(g, inside, {"X:0"})
+    assert pts == [] and {r["blk"]: r.get("not_cut") for r in rows}["C"] == S.HELD
+
+
+def test_owner_limited_follows_the_water_not_the_line():
     from pipeline.common.models import NodeKind
-    n = lambda blk, g: SimpleNamespace(kind=NodeKind.stream, blk=blk, gnis_id=g)
-    graph = SimpleNamespace(nodes={"A:0": n("A", "1"), "B:0": n("B", "1"), "C:0": n("C", "2"), "D:0": n("D", "2"),
-                                   "E:0": n("E", "")})
-    lim, mouth = S.owner_limited(graph, {"E:0"}, [{"blk": "A", "limit": "split"}, {"blk": "C", "limit": "mouth"}])
-    assert lim == {"A", "B", "E"} and mouth == {"C", "D"}
+    n = lambda blk, g: SimpleNamespace(kind=NodeKind.stream, blk=blk, gnis_id=g)  # noqa: E731
+    graph = SimpleNamespace(nodes={"A:0": n("A", "1"), "B:0": n("B", "1"), "C:0": n("C", "2"), "E:0": n("E", "")})
+    assert S.owner_limited(graph, {"E:0"}, [{"blk": "A", "limit": "split"}, {"blk": "C", "limit": "mouth"}]) == \
+        {"A", "B", "E"}
 
 
-def test_t665_mutation_each_policy_flag_moves_the_answer(monkeypatch):
+def test_atlas_tidal_is_the_water_below_the_limit():
+    from pipeline.atlas.splits.tidal import Limit
+    g, geoms, idx, _ = _built()
+    sp = SplitPoint(split_id="x_tidal", blk="X", route_measure=1000.0, fid="", label="tidal boundary",
+                    anchor_type=AnchorType.point, source="curated")
+    split_graph_at(g, geoms, place_points(g, [sp]), idx)
+    got = S.atlas_tidal(g, [Limit(blk="X", limit="split", split="x_tidal")], {})
+    assert got == {"X:0"}
+    with pytest.raises(SystemExit, match="not a boundary"):
+        S.atlas_tidal(g, [Limit(blk="X", limit="split", split="elsewhere")], {})
+
+
+def test_mutation_each_policy_flag_moves_the_answer(monkeypatch):
     monkeypatch.setattr(S, "A_LINE_WHOLLY_INSIDE_THE_POLYGON_IS_TIDAL", False)
-    assert _poly_run()[1] == []
+    assert not [w for w in _run()[1] if w["why"] == "inside"]
     monkeypatch.undo()
     monkeypatch.setattr(S, "A_CREEK_INTO_TIDAL_WATER_IS_CUT_AT_ITS_POLYGON_EXIT", False)
-    assert _poly_run()[0] == []
-    monkeypatch.undo()
-    monkeypatch.setattr(S, "AN_OWNER_MOUTH_ROW_KEEPS_THE_LINE_END", False)
-    assert [p.blk for p in _poly_run(mouth_rows={"C"})[0]] == ["C"]
+    assert _run()[0] == []
     monkeypatch.undo()
     monkeypatch.setattr(S, "THE_OWNERS_LIMIT_GOVERNS_ITS_OWN_WATER", False)
-    assert [p.blk for p in _poly_run(limited={"C"})[0]] == ["C"]
+    assert [p.blk for p in _run(limited={"C"})[0]] == ["C"]
 
 
-def test_t665_standing_boundaries_skip_the_old_shore_cuts():
-    g, idx, cross, _ = _graph()
-    pts = place_points(g, S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross)))
-    split_graph_at(g, {}, pts, idx)
+def test_standing_boundaries_skip_shore_cuts():
+    g, geoms, idx, _ = _built()
+    sp = SplitPoint(split_id="shore:C:300", blk="C", route_measure=300.0, fid="", label="shore",
+                    anchor_type=AnchorType.point, source="shore")
+    split_graph_at(g, geoms, place_points(g, [sp]), idx)
     assert "C" not in S.standing_boundaries(g)
+
+
+def _stage(tmp_path, monkeypatch, extra=(F_CREEK,), sea=SEA):
+    from pipeline.atlas import build as B
+    g, geoms, idx, fids = _built(extra)
+    monkeypatch.setattr(S, "read_tidal_polygon", lambda gpkg, bbox=None: sea)
+    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
+                        fid_index=idx, applied_splits=[], fids=fids, chains=build_blk_chains(fids, {}), bbox=None,
+                        tidal_limits=[], tidal_ids={}, tick=lambda label: None)
+    B.cut_shores(b)
+    return b
+
+
+def test_the_atlas_stage_cuts_records_and_lists_the_inside_lines(tmp_path, monkeypatch):
+    """`build.cut_shores` end to end on real `BlkChain`s: F is cut at its exit, E listed tidal whole, C (into fresh X:
+    no tidal limit here) not cut; the record names the rule, and the reach reads the sidecar back."""
+    b = _stage(tmp_path, monkeypatch)
+    assert [p.split_id for p in b.applied_splits] == ["shore:F:100"]
+    assert {nid for nid in b.graph.nodes if nid.startswith("F:")} == {"F:0", "F:100"}
+    rec = json.loads((tmp_path / S.RECORD).read_text())
+    assert rec["rule"] == S.RULE and rec["cuts"] == 1
+    assert {r["blk"]: r.get("not_cut") for r in rec["runs"]} == {"C": S.FRESH_RECEIVER, "F": None, "X": S.FRESH_RECEIVER}
+    assert S.read_inside(tmp_path) == ("E",)
+
+
+def test_atlas_to_reach_the_inside_line_and_the_piece_below_the_cut_are_tidal(tmp_path, monkeypatch):
+    from pipeline.atlas.reach import outside as O
+    b = _stage(tmp_path, monkeypatch)
+    own = O.tidal_inside_owner(b.graph, S.read_inside(tmp_path))
+    assert own == {"E:0": "inside:E"} and O.is_cut_owner("inside:E")
+    crossing = O.tidal_crossing_owner(b.graph, set(own))
+    assert set(crossing) == {"F:0"}                        # the piece below F's polygon exit, never F:100
+    got = O.tidal_water([], {}, b.graph, inside_lines=S.read_inside(tmp_path))
+    assert got == {"E:0": "inside:E", "F:0": "crossing:F:0"}
+    monkeypatch.setattr(O, "A_LINE_THE_ATLAS_LISTS_INSIDE_IS_TIDAL", False)
+    assert O.tidal_water([], {}, b.graph, inside_lines=S.read_inside(tmp_path)) == {}
+
+
+def test_read_inside_refuses_a_polygon_atlas_without_its_sidecar(tmp_path):
+    (tmp_path / S.RECORD).write_text(json.dumps({"rule": S.RULE, "runs": []}))
+    with pytest.raises(SystemExit, match="has no inside_tidal.json"):
+        S.read_inside(tmp_path)
+    (tmp_path / S.RECORD).write_text(json.dumps({"runs": []}))          # a T660 atlas: none by construction
+    assert S.read_inside(tmp_path) == ()

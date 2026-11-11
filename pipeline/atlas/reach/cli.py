@@ -71,13 +71,15 @@ def main() -> int:
     from pipeline.atlas.reach.steelhead import load_list
     # THE TIDAL BOUNDARIES THIS ATLAS CUT (T166, `outside.tidal_splits`): the piece below each is
     # tidal water, out of every binding after the walk.
-    from pipeline.atlas.reach.outside import tidal_splits, tidal_waters
+    from pipeline.atlas.reach.outside import inside_lines, tidal_splits, tidal_waters
     tidal_ids = tidal_splits(build)
     # T212 (owner 2026-10-29): whole waters that are tidal (the sidecar's `whole` rows, T326)
     tidal_whole = tidal_waters(build)
     result = build_reaches(entries, registry, graph, build=build.name,
                            handles=digest_for(build), steelhead_list=load_list(),
-                           tidal_splits=tidal_ids, tidal_waters=tidal_whole)
+                           tidal_splits=tidal_ids, tidal_waters=tidal_whole,
+                           # T665: the lines wholly in tidal water the atlas lists (`inside_tidal.json`)
+                           inside_lines=inside_lines(build))
     r = result.report
     # T546 item 7: the curated override ids this registry lacks — the matcher's `unresolved_ids` had no reader,
     # so a partly resolved override bound the ids that resolved and dropped the rest unseen
