@@ -13,3 +13,8 @@ Source: T553 report 2026-11-11. None of these changes a rule value. Each needs t
 - The owner answers each; the text is changed to match and the T553 pins updated.
 
 Depends: T553. Size: S. Owner: four answers.
+
+## Owner answers 2026-11-11
+3. Keep the WILD/FWID paragraph; find and name its source, and mark it as not from the book.
+4. Move our own notes out of the transcription half.
+Items 1 and 2 wait: the owner needs the book's words beside ours (with the T623 readings page).
