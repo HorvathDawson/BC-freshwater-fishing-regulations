@@ -8,6 +8,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 small hours — all four lanes reported; one atlas rebuild running for build 27 (chat 11)
+
+- **Running:** `scripts/heavy.sh b27-atlas` → `data/generated/atlas/full_next` (log in `$TMPDIR/b27/atlas.log`, region backup in `$TMPDIR/b27/backup/`). In it: Oxbows name + 5 hillside cuts + registry fix (a nameless piece leaves a code-keyed item) + Whiteswan inlet name (T637); shore cuts (T660).
+- **Next, in order:** `backfill_matched --registry …/full_next/registry.json --restamp r8:okanagan_river_oxbows@8-1` (id lines only) → matcher with `--registry` → reach run + binding diff → promote → `pipeline build` → staging release + site → store screenshots (T319) to the owner → build 27 (patched MapLibre) to Play internal with the T534/T542 emulator runs → owner phone check. Full sequence in the T637 ticket.
+- **Check the diff against:** oxbows r1 binds 22 channels + 4 child codes whole and 5 lines to their cuts; ~5.8 km hillside unbound from it; Whiteswan r1 and quinsam r3/r4 unchanged; ~629 shore cuts, ~163 crossings tidal, no rule newly unresolved tidal, no DFO place left empty (T660); Nechako 18 + Bowron 11 + Willow 5 sections closed in spring, Peace 1 section kokanee 10, Fraser above Cottonwood 2 sections (T623).
+- **Owner ticks tonight:** 5 oxbow hillside cuts; 5 drains restored; Oliver pond left out; shore rule in build 27; left-over blue later (T662); F1 as shown; F5 also Bowron/Willow; F6 keep; F20 tidal out; chat 11 may fix T639 and apply both T623 review-app patches.
+- **Done:** T639 (275cbd2f5); T536, T533; T623 patches applied (ea1c74d67, 2e68ff4c9, 5684b0689); T660 patch (cb41409bb). Filed T661 (two red tests + install the parked heavy.sh gate after fast-fail is green), T662.
+- **Decision coming for the owner:** the new CI check stops a release/APK while the newest GitHub CI run is red; it is red on the commit pushed 11-09 and nothing since is pushed. Push the branch and wait, or `--no-ci-check "<reason>"`.
+- **Open:** review-app suggestions not regenerated (Campbell cut proposals, chat 10's file); F12 Stellako steelhead line not yet asked; T537/T538 need the real staging release and Play run; T638 item 4 chunked full suite run; F3/F13 handed to the DFO feed chat (note in the T623 ticket).
+
 ## 2026-11-11 late night — "everything in the next build"; five lanes running (chat 11)
 
 - **Owner:** everything on the next-release list goes in build 27: Oxbows (T637), the audit fixes (T623), tidal streams at the boundary (T660), hardening (T533–T542, T600–T602, T638), store screenshots (T319, reopened). GPU colouring (T492) benched. Lake work (T634) is research for a later release; owner builds on the "Access Only" records now and owes the licence link. Owner runs `/code-review ultra` later with a free run.
