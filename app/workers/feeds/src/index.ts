@@ -30,6 +30,7 @@ import { crashEvents, handleCrash, listCrashesCounted, parseClasses, purgeCrashe
 import { cardEvents, runCards, type CardBucket, type CardRun } from "./gauges/card/card";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
+import { STATION_LIST } from "./gauges/liveness";
 import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
@@ -211,6 +212,19 @@ export async function noDataStations(
   return { listedNoData: out, events };
 }
 
+/** (T550 item 4) minutes after 00:00 UTC within which a whole-run 404 is ECCC's day turn */
+export const DAY_TURN_MIN = 30;
+/**
+ * (T550 item 4) Is this gauge run ECCC's day turn: within DAY_TURN_MIN of 00:00 UTC, nothing answered, every asked station
+ * and the station list a 404. Anything else (a 5xx, a timeout, a partial answer, another hour) stays a failure.
+ */
+export function dayTurn(at: Date, answered: number, failed: readonly string[], classOf: (st: string) => string | undefined,
+                        listClass: string | undefined): boolean {
+  const min = at.getUTCHours() * 60 + at.getUTCMinutes();
+  return min < DAY_TURN_MIN && answered === 0 && failed.length > 0 && listClass === "http_404"
+    && failed.every((st) => classOf(st) === "http_404");
+}
+
 const HOURLY = (st: string) => `https://dd.weather.gc.ca/today/hydrometric/csv/BC/hourly/BC_${st}_hourly_hydrometric.csv`;
 /** share of asked stations that may fail before the gauge feed counts as degraded */
 export const GAUGE_DEGRADED_SHARE = 0.1;
@@ -292,9 +306,19 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       } catch (e) {
         logErr(`reports: not read (${String(e)})`);
       }
+      // (T550 item 4, T597 item 1) ECCC'S DAY TURN: at 00:05 UTC the whole /today/ directory answers 404 (the station
+      // list and every hourly file; staging 2026-11-10 and 2026-11-11 00:05, ~6 of 7 nights by the 7-day 404 count).
+      // Such a run is the source's turnover, not 428 failures: they are forgiven, the last good index stands, and the run
+      // is degraded with one line. The schedule no longer asks at 00:05 (wrangler.toml); this covers a late cron.
+      const turn = dayTurn(started, s.answered, s.failed ?? [], (st) => health.failedUrls.get(HOURLY(st)), health.failedUrls.get(STATION_LIST));
+      if (turn) {
+        for (const st of s.failed ?? []) health.forgive("eccc-hourly", "http_404", HOURLY(st));
+        health.forgive("eccc-station-list", "http_404", STATION_LIST);
+        held.push({ where: "source day turn", why: `ECCC's today/ directory answered 404 for all ${s.asked} stations at ${at.slice(11, 16)} UTC (its day turn); last good index kept` });
+      }
       // owner 2026-10-29: a station the breaker skipped was never asked: not a failure, its last good entry is carried
       const skipped = (s.failed ?? []).filter((st) => health.failedUrls.get(HOURLY(st)) === "circuit");
-      const failed = (s.failed ?? []).filter((st) => !nd.listedNoData.has(st) && health.failedUrls.get(HOURLY(st)) !== "circuit");
+      const failed = turn ? [] : (s.failed ?? []).filter((st) => !nd.listedNoData.has(st) && health.failedUrls.get(HOURLY(st)) !== "circuit");
       counts.skippedByBreaker = skipped.length;
       counts.failed = failed.length;
       counts.listedNoData = nd.listedNoData.size;
@@ -315,7 +339,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         held.push({ where: "readings", why: `${s.oldReadings} of ${s.asked} stations' last reading is older than ${READING_MAX_AGE_HOURS} h: not ranked` });
       if (s.forecastFailed?.length) held.push({ where: "forecast", why: `${s.forecastFailed.join(", ")} summary unavailable; last good runs carried` });
       if (s.listShrunk) held.push({ where: "station list", why: `ECCC listed ${s.listShrunk.now} BC stations, the last index ${s.listShrunk.was}: not believed, the roster's realtime stations asked` });
-      if (s.answered === 0) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
+      if (s.answered === 0 && !turn) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
       if (s.rankDrop) throw new Error(`${s.rankDrop.lost} of ${s.rankDrop.had} stations ranked last run lost their rank with a current reading (clim.json broken or for another roster); index.json kept (last good)`);
     } else if (job === "dfo") {
       const s = await runDfo({

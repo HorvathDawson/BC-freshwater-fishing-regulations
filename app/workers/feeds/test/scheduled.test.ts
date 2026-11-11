@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import worker, { cronJob } from "../src/index";
+import worker, { cronJob, dayTurn } from "../src/index";
 import { FEED_HEARTBEAT_MS } from "../src/inseason";
 import { INDEX_HEARTBEAT_MS } from "../src/dfo/live";
 import { cadenceMin } from "../src/status";
@@ -32,7 +32,8 @@ describe("scheduled(): which job each cron starts", () => {
   it("every cron in wrangler.toml maps to its job, and every scheduled job has a cron", () => {
     const got = Object.fromEntries(CRONS.map((c) => [c, cronJob(c)]));
     expect(got).toEqual({
-      "5,35 0-5,13-23 * * *": "gauges",
+      "35 0 * * *": "gauges",
+      "5,35 1-5,13-23 * * *": "gauges",
       "5 6-12 * * *": "gauges",
       "15 */6 * 6-10 *": "dfo",
       "15 14 * 1-5,11-12 *": "dfo",
@@ -90,5 +91,35 @@ describe("scheduled() → the weekly run-timing check (T412)", () => {
     expect(err.mock.calls.map((c) => String(c[0]))).toContain(JSON.stringify({ job: "runtiming", notifyFailed: 1 }));
     const state = JSON.parse(BUCKET.m.get("private/feeds/notify/state.json")!);
     expect(state.pending.map((e: { key: string }) => e.key)).toEqual([expect.stringMatching(/^runtiming-failed:/)]);
+  });
+});
+
+// (T550 item 4, T597 item 1) ECCC's /today/ directory answers 404 for every file at its UTC day turn (staging 2026-11-10
+// and 2026-11-11 at 00:05): the gauge cron never asks at 00:05, and a whole-run 404 just after midnight is the turn.
+describe("the gauge schedule and ECCC's day turn", () => {
+  it("no gauge cron fires at 00:05 UTC; 00:35 still does", () => {
+    const fires = (c: string, h: number, m: number) => {
+      const [min, hr] = c.split(" ");
+      const inField = (f: string, v: number) => f === "*" || f.split(",").some((p) => {
+        const [a, b] = p.split("-").map(Number);
+        return b === undefined ? a === v : a! <= v && v <= b;
+      });
+      return inField(min!, m) && inField(hr!, h);
+    };
+    const gauge = CRONS.filter((c) => cronJob(c) === "gauges");
+    expect(gauge.some((c) => fires(c, 0, 5))).toBe(false);
+    expect(gauge.some((c) => fires(c, 0, 35))).toBe(true);
+    expect(gauge.some((c) => fires(c, 1, 5))).toBe(true);
+  });
+
+  it("a whole-run 404 within DAY_TURN_MIN of 00:00 UTC is the turn; anything else is a failure", () => {
+    const all404 = () => "http_404";
+    const at = (iso: string) => new Date(iso);
+    expect(dayTurn(at("2026-11-11T00:05:23Z"), 0, ["A", "B"], all404, "http_404")).toBe(true);
+    expect(dayTurn(at("2026-11-11T00:35:00Z"), 0, ["A", "B"], all404, "http_404")).toBe(false);
+    expect(dayTurn(at("2026-11-11T13:05:00Z"), 0, ["A", "B"], all404, "http_404")).toBe(false);
+    expect(dayTurn(at("2026-11-11T00:05:00Z"), 1, ["A"], all404, "http_404")).toBe(false);
+    expect(dayTurn(at("2026-11-11T00:05:00Z"), 0, ["A", "B"], (s) => (s === "A" ? "http_5xx" : "http_404"), "http_404")).toBe(false);
+    expect(dayTurn(at("2026-11-11T00:05:00Z"), 0, ["A", "B"], all404, undefined)).toBe(false);
   });
 });
