@@ -73,7 +73,7 @@ describe("the phone: the installed set", () => {
     ({ checking: false, manual: null, feeds: [], release, allowMetered, mobileData: allowMetered ? "always" : "ask",
        mobileDataAnswered: allowMetered });
   const status = { id: "release" as const, checkedAt: null, updatedAt: null, error: null, failedAt: null, offline: false,
-                   failures: 0, target: "r-2", targetDate: null };
+                   failures: 0, target: "r-2", targetDate: null, refused: null };
 
   it("every region on the phone, no actions; storage is the whole set; the Wi-Fi switch is the mobile-data setting inverted", async () => {
     const set: boolean[] = [];
