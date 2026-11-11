@@ -111,3 +111,28 @@ describe("the Worker's /status routes", () => {
     expect((await readStatus(new MemStore())).feeds).toEqual({});
   });
 });
+
+// T609 W12: the open status routes served 5-frame stacks and internal file names, and sent no protective headers
+describe("what anyone may read on /status (T609 W12)", () => {
+  it("errors are first lines; nosniff / no framing / CSP; 405s say Allow; an unreadable side file says so", async () => {
+    const m = new Map<string, string>();
+    const st: Status = { format: "feeds-status/1", updated: "", feeds: {} };
+    record(st, "gauges", run(new Date().toISOString(), false, { error: "Error: boom\n    at run (src/index.ts:12:3)\n    at x" }), new Date());
+    m.set("private/feeds/status.json", JSON.stringify(st));
+    m.set("private/feeds/backup.json", JSON.stringify({ at: new Date().toISOString(), ok: false, error: "Error: R2\n    at runBackup (backup.ts:9)", copied: 0, bytes: 0, skipped: [] }));
+    m.set("private/feeds/skill.json", "{junk");
+    const BUCKET = { get: async (k: string) => (m.has(k) ? { text: async () => m.get(k)! } : null), put: async () => {}, delete: async () => {} };
+    const r = await worker.fetch(new Request("https://w/status.json"), { BUCKET } as never);
+    expect(r.headers.get("x-content-type-options")).toBe("nosniff");
+    const j = await r.json() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    expect(j.feeds.gauges.lastError.error).toBe("Error: boom");
+    expect(j.backup.error).toBe("Error: R2");
+    expect(j.skill.unreadable).toMatch(/skill\.json is stored but does not parse/);
+    const h = await worker.fetch(new Request("https://w/status"), { BUCKET } as never);
+    expect(h.headers.get("x-frame-options")).toBe("DENY");
+    expect(h.headers.get("content-security-policy")).toMatch(/default-src 'none'/);
+    expect(await h.text()).not.toContain("src/index.ts:12");
+    const g = await worker.fetch(new Request("https://w/report"), { BUCKET } as never);
+    expect([g.status, g.headers.get("allow")]).toEqual([405, "POST, OPTIONS"]);
+  });
+});

@@ -228,6 +228,7 @@ function dailyHtml(d: { backup: any; purge: any }, now: Date): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const row = (name: string, j: any, what: (j: any) => string) => {
     if (!j) return `<tr><td>${name}</td><td class="never">never run</td><td></td></tr>`;
+    if (j.unreadable) return `<tr><td>${name}</td><td class="failing">unreadable</td><td><small>${esc(j.unreadable)}</small></td></tr>`;
     const late = now.getTime() - Date.parse(j.at) > 36 * 3600_000;
     return `<tr><td>${name}</td><td class="${late ? "stale" : j.ok ? "ok" : "failing"}">${late ? "late" : j.ok ? "ok" : "failed"}</td>` +
       `<td>${esc(j.at)} <small>(${ago(j.at, now)})</small><br><small>${esc(what(j))}${j.error ? ` · ${esc(String(j.error).slice(0, 200))}` : ""}</small></td></tr>`;

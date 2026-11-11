@@ -441,6 +441,23 @@ export function dfoHeld(regions: Record<string, any>): Held[] {
   return out;
 }
 
+/** (T609 W12) the open status routes: no sniffing, no framing */
+const SAFE_HEADERS = { "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY" };
+const firstLine = (s: string) => s.split("\n")[0]!.slice(0, 300);
+/** (T609 W12) /status and /status.json are open to anyone: an error is served as its first line (no stack frames, no
+ *  internal file names); the full text stays in R2, the run's answer to the token holder and the owner's email */
+export function publicStatus(st: Awaited<ReturnType<typeof readStatus>>): void {
+  for (const f of Object.values(st.feeds)) {
+    if (!f) continue;
+    if (f.lastError) f.lastError = { ...f.lastError, error: firstLine(f.lastError.error) };
+    if (f.lastRun?.error) f.lastRun = { ...f.lastRun, error: firstLine(f.lastRun.error) };
+  }
+}
+function publicErrors<T extends Record<string, unknown> | null>(j: T): T {
+  if (j && typeof j.error === "string") return { ...j, error: firstLine(j.error) };
+  return j;
+}
+
 // (T249) constant-time compare (src/guard.ts)
 const authed = (req: Request, env: Env) => bearerOk(req, env.RUN_TOKEN);
 
@@ -595,13 +612,13 @@ export default {
     // (T237) problem reports from the app: public POST (validated, rate-limited, stored private), authed GET for review
     if (url.pathname === "/report") {
       if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: REPORT_CORS });
-      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: REPORT_CORS });
+      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: { ...REPORT_CORS, Allow: "POST, OPTIONS" } });
       return handleReport(req, env);
     }
     // (T242) app error reports: public POST (validated, rate-limited, folded into one object per error kind), authed GET
     if (url.pathname === "/crash") {
       if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: REPORT_CORS });
-      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: REPORT_CORS });
+      if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405, headers: { ...REPORT_CORS, Allow: "POST, OPTIONS" } });
       return handleCrash(req, env);
     }
     if (url.pathname === "/crashes" && req.method === "GET") {
@@ -633,16 +650,20 @@ export default {
           : new Response(error, { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
       }
       // (T246) the last backup run beside the feeds (null: none yet)
-      const bk = await (async () => { try { return JSON.parse((await env.BUCKET.get(BACKUP_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
+      // (T609 W12) a daily job's file that cannot be read says so, never "not run yet"; served errors are first lines only
+      const side = async (key: string) => { try { return publicErrors(await readStored<Record<string, unknown>>(r2Store(env.BUCKET, ""), key)); } catch (e) { return { unreadable: firstLine(String((e as Error)?.message ?? e)) }; } };
+      const bk = await side(BACKUP_STATUS_KEY);
       // (T271) the last report purge: when, and how many reports it deleted
-      const rt = await (async () => { try { return JSON.parse((await env.BUCKET.get(RETENTION_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
+      const rt = await side(RETENTION_STATUS_KEY);
       // (T178) the last monthly model score
-      const sk = await (async () => { try { return JSON.parse((await env.BUCKET.get(SKILL_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
+      const sk = await side(SKILL_STATUS_KEY);
+      publicStatus(st);
       // (T558) how owner messages go out: "log" means nobody is told
       const nc = notifyConfig(env);
       const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk }, { headers: { "Cache-Control": "no-store" } });
-      return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk }, { headers: { "Cache-Control": "no-store", ...SAFE_HEADERS } });
+      return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...SAFE_HEADERS,
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
