@@ -1,8 +1,8 @@
 # Next session: after chat 11 (written 2026-11-11)
 
 ## Where things are
-- **Build 27 is out.** Release r-303b4007a70a is LATEST and on staging (data and site). App 0.7.5 (code 27, commit
-  d14387b99, patched MapLibre) is on Play internal. The owner's phone check is pending.
+- **The latest build is out** on staging and Play internal; the STATUS top entry names the release and the app
+  version. The owner's phone check is pending.
 - Branch `redesign/stream-sections`, everything pushed. Next free ticket: **T669**.
 - The owner lifted the fence around chat 10's area (review app, `pipeline/regs/review`, `pipeline/regs/dfo_salmon`,
   review data): edit and commit there. Marks are still committed as-is and never edited; do not disturb the review
@@ -10,7 +10,7 @@
   and theirs: look before touching.
 
 ## The agreed order (owner 2026-11-11)
-1. Owner phone check of build 27 (answers in the checks artifact; fix what it finds).
+1. Owner phone check of that build (answers in the checks artifact; fix what it finds).
 2. **This chat's job:** hardening and leftovers + closed-testing items (T495) + the next atlas rebuild, all aimed at
    the closed-testing build. Parallel agents when files do not collide. Fable is allowed for high-impact work.
 3. Owner runs `/code-review ultra`. 4. Fix its comments. 5. One more build + short phone check, then closed testing.
