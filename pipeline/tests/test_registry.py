@@ -467,3 +467,17 @@ def test_mutation_curated_items_keep_nameless_pieces_puts_the_hillside_back(monk
     from pipeline.atlas.registry import build as B
     monkeypatch.setattr(B, "CURATED_NAME_ITEMS_KEEP_ONLY_NAMED", False)
     assert set(_cut_channel()["wsc:300-500162"].section_ids) == {"v1", "h1"}
+
+
+def test_a_second_curated_name_on_a_curated_name_item_stays_in_it():
+    """T637, Whiteswan: the inlet above the lake, named on its own, stays in the outlet's wsc item (a gnis-less item
+    never splits a differently named piece out), so the row that matched the outlet item still binds the inlet."""
+    g = StreamGraph()
+    out = (NameTuple("Whiteswan Lake outlet stream", NameSource.override),)
+    inl = (NameTuple("Whiteswan Lake inlet stream", NameSource.regulation),)
+    g.nodes["o1"] = _node("o1", blk="W", wsc="300-312002", name="Whiteswan Lake outlet stream", tuples=out)
+    g.nodes["o2"] = _node("o2", blk="W", wsc="300-312002", name="Whiteswan Lake outlet stream", tuples=out)
+    g.nodes["i1"] = _node("i1", blk="W", wsc="300-312002", name="Whiteswan Lake inlet stream", tuples=inl)
+    reg = build_registry(g)
+    assert set(reg["wsc:300-312002"].section_ids) == {"o1", "o2", "i1"}
+    assert reg["wsc:300-312002"].name == "Whiteswan Lake outlet stream"

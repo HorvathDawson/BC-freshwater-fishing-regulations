@@ -72071,6 +72071,24 @@
  },
  {
   "target": {
+   "blks": [
+    "356560775"
+   ]
+  },
+  "reach": {
+   "from_m": 8623.0
+  },
+  "names": [
+   {
+    "name": "Whiteswan Lake inlet stream",
+    "source": "regulation",
+    "display": true,
+    "note": "T637 (coordinator 2026-11-11, for the owner's review): the unnamed inlet stream ABOVE Whiteswan Lake — blue line 356560775 from 8,623 m (the lake edge, section 356560775:8623) up, the same blue line as the outlet stream, which the outlet name deliberately stops at the lake (3,023.5 m). The book row is \"Whiteswan Lake's inlet/outlet streams\". Until T637's registry rule (a nameless piece leaves a curated-name item) it rode in the outlet item through the shared code, so 'No Fishing EXCEPT the outlet stream downstream of the falls' covered it; this name keeps it covered. It stays in the outlet's item wsc:300-625474-814939-312002 (a gnis-less item never splits a differently named piece out, `split_distinct_names`), so the entry's `matched` needs no change."
+   }
+  ]
+ },
+ {
+  "target": {
    "wscs": [
     "910-999299"
    ],

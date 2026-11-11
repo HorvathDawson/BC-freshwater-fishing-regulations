@@ -1,6 +1,6 @@
 # T637 — Okanagan River Oxbows: the owner's hand-matched side channels must bind again
 
-Status: IN REVIEW — f4069759f, 216a7e60a, 070230ff5, 298e77cb4; owner: OWNER-TODO "T637: Whiteswan inlet"; left (Claude): restamp matched, one rebuild with T623/T660, reach + binding diff, promote
+Status: IN REVIEW — f4069759f, 216a7e60a, 070230ff5, 298e77cb4; owner: OWNER-TODO "T637: Whiteswan inlet named so its closure stays; say if the name or the piece is wrong"; left (Claude): restamp matched (oxbows), one rebuild with T623/T660, reach + binding diff, promote
 
 Source: owner 2026-11-11, on T632 item 3: "what you mean they never had an item if they are unnamed side channels? i hand matched them?"
 
@@ -310,3 +310,20 @@ kept by the leaf prune carry zone rules only. Outside the oxbows: the 5 pieces a
 `whiteswan_lakes_inlet_outlet_streams.r1` to lose `356560775:8623` unless the inlet is named first, and check
 `quinsam_river.r3/r4` and `white_river.r2–r4` keep their pieces.
 The command sequence above stands; (a) runs inside the atlas build, no extra step.
+
+## Whiteswan inlet kept under its closure; Quinsam checked (2026-11-11)
+Coordinator: a closure must not lose water as a side effect of (a).
+- `name_variants.json`: blk 356560775 from 8,623 m (the lake edge; the section `356560775:8623`) up is named
+  "Whiteswan Lake inlet stream" (source regulation, display; the book row is "inlet/outlet streams"). Named, it is no
+  longer a nameless piece, so (a) keeps it, and it STAYS in the outlet's item `wsc:300-625474-814939-312002`: a gnis-less
+  item never splits a differently named piece out (`split_distinct_names` moves only when the item has a gnis). So
+  `r4:whiteswan_lake_s_inlet_outlet_streams@4-24` `matched` needs NO change (no region file written) and
+  `whiteswan_lakes_inlet_outlet_streams.r1` should bind exactly what it binds today. Pinned:
+  `test_a_second_curated_name_on_a_curated_name_item_stays_in_it`. Side effect: the outlet item now also answers to
+  "Whiteswan Lake inlet stream" as a variant, and the inlet section is labelled with its own name.
+- Quinsam Diversion's 2 pieces (blk 354141307): `quinsam_river.r3/r4` bind them only through the tributary walk (the
+  entry's `matched` is `gnis:27883` alone; the run's diagnostic: walk added 294 of 309 sections). The walk is a function
+  of the graph, the entry's own water and `kind_of`; (a) changes none of them for these pieces (same nodes and edges,
+  not the Quinsam's own water before or after, and `kind_of` falls back from the item's kind `stream` to the node's kind
+  `stream`). So they stay bound. Read from the code and the run's diagnostics, not by a walk run.
+- Rebuild check: `whiteswan_lakes_inlet_outlet_streams.r1` and `quinsam_river.r3/r4` unchanged in the binding diff.

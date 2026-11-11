@@ -6,7 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
-- **T637: Whiteswan inlet (2026-11-11).** The fix that takes the oxbow hillsides out of the oxbow rule also takes the unnamed INLET stream above Whiteswan Lake out of the "Whiteswan Lake outlet stream" water: it was in it only because FWA gives both the same code. So "Whiteswan Lake's inlet/outlet streams: No Fishing EXCEPT below the falls" would stop covering the inlet stream. Name the inlet piece too (a curated name, e.g. "Whiteswan Lake inlet stream", so the row keeps it), or let it go (zone rules only)? Nothing changed yet; the coordinator decides whether the one rebuild waits for this.
+- **T637: Whiteswan inlet named so its closure stays; say if the name or the piece is wrong** (2026-11-11). Blue line 356560775 above Whiteswan Lake (from 8,623 m up) is now "Whiteswan Lake inlet stream", so "No Fishing EXCEPT below the falls" keeps covering it after the oxbow fix. Ticket T637.
 - **Review app: the checklist is ready (T532, 2026-11-09).** Restart it (`bash curation-review/run.sh`). DFO tab = DFO
   places; Entries → "Extents checklist" = regulation extents (both together per water: 3,686 places on 1,374 waters).
   One water at a time; each row ✓/?/✗ with its map pin; "All correct" or "Something's wrong" (→ change the extent).
