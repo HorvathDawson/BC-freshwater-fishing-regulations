@@ -1,6 +1,6 @@
 # T620 — One answer on every app screen (search, spots, alerts, Runs, start links)
 
-Status: IN REVIEW
+Status: IN REVIEW (adc3499db … e4fa8e00b; G17 owner choice, G27 not real, G28 elsewhere)
 
 Source: T608 part B (owner 2026-11-10: "audit the app web vs native more"),
 `handoff/PLAN/app-integration/T608B-findings.md`: 28 findings G1–G28, each with file:line of both copies, the state
@@ -20,8 +20,3 @@ water and day).
 - Each finding taken here no longer reproduces and has a test, or is closed with a reason; the gate named above is in.
 
 Depends: —. Size: M. Owner: looks at the shots.
-
-## Result (2026-11-10)
-Done: G1, G3, G10 (Runs seeded from the map's day), G11, G12 (past day opens as today with one line), G13, G14, G20, G25, G26.
-Not done: G17 (owner choice: app links vs fix the comment), G27 (reader sentences in screens, none wrong today), G28 (small,
-mostly map/seo paths). Gate: `app/tools/one-answer.test.ts`. Shot: `T620-shots/g12-past-day-notice.png`.
