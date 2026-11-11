@@ -104,3 +104,7 @@ Depends: —. Size: M. Owner: yes (Q178).
   duplicates, which rendered as an empty section) by their own title and text.
 - Item 8's Python ↔ TS format check already exists (`scripts/check-format-pairs.py`, in fast-fail).
 - Not done (proposed as new tickets): item 4's per-row reading, item 7, item 8's per-release links, item 10.
+
+## Owner 2026-11-11: the window rule
+A notice stops showing when the Province drops it. Never invent an end date: a notice shows inside its printed window each
+year until the row leaves the Province's page or a curated end is set.

@@ -18,3 +18,9 @@ Depends: T553. Size: S. Owner: four answers.
 3. Keep the WILD/FWID paragraph; find and name its source, and mark it as not from the book.
 4. Move our own notes out of the transcription half.
 Items 1 and 2 wait: the owner needs the book's words beside ours (with the T623 readings page).
+
+## Owner answers 2026-11-11 (items 1 and 2)
+1. Region 7B possession wording: ours is fine. Keep; the print check keeps its allowance.
+2. p.9 bullets: leave as is. We keep only the 23 m and 100 m bullets because the other three are on the map and shown.
+   Owner: "unless you can find a way to get all the fishways and government fish facility locations: I couldn't find them
+   but that would be sick". See T635.

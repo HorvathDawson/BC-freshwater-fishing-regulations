@@ -18,3 +18,7 @@ belong in the digest email or only a count.
 - The owner reads one staging digest on his phone and says it is clear.
 
 Depends: T609. Size: S. Owner: one look.
+
+## Owner 2026-11-11: the look
+Summary then short blocks: one line of counts, the feeds line, each report as a short block with trimmed words, new errors
+one per line, repeats as a count. Build it.

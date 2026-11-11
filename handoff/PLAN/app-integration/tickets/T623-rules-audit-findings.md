@@ -46,3 +46,12 @@ Depends: T553 (base rules pinned), T546 (reach run). Size: L. Owner: yes (16 rea
 - **F19 Stellako top stretch:** nothing to add. The river already carries "No Fishing Nov 15-May 14; Class II water when
   open"; the book's pointer is a note for people looking at the lake.
 - **F20 Fraser tidal stretch:** a freshwater notice starts at Mission, not on the tidal stretch.
+
+## Owner readings 2026-11-11, the four map ones (maps in handoff/PLAN/app-integration/T623-shots/)
+- **F2 Campbell at Elk Falls:** the no-fishing water is Elk Falls down to the John Hart generating station (1.86 km below the
+  falls). Fly only starts at the station and runs down to the power line near the Quinsam. Above the falls: the river's ordinary rules.
+- **F9 Campbell power line:** the cut goes to the cleared power-line strip about 320 m above the Quinsam mouth (today it sits
+  1,332 m up, beside the station).
+- **F16 Little Qualicum:** Upper Waterfall, as today. The book says only "the falls in Little Qualicum Falls Provincial Park".
+- **F21 Peace at Clayhurst reserve:** closed, as today (the reserve covers the north half of the channel).
+All 16 readings are now answered. The cuts for F2/F9 (and F8's Cottonwood cut) are proposals for the owner's tick in the review app.
