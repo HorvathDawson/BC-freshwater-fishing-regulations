@@ -9,6 +9,14 @@
   app copy the owner is labelling in (ports 8787/5173). `data/generated/review/dfo-suggestions.json` is uncommitted
   and theirs: look before touching.
 
+## The owner's list is a page
+- Owner To-Do: https://claude.ai/artifact/Fm5KqHqutxRJsk8UymFo6F (database collection `todo`). Read it at the start (ticks and notes are the owner's answers);
+  add a row for every new owner item (ArtifactData `set`, fields: title, detail, group, ticket, order, added, done:false).
+  Groups in use: "Check on your phone", "Look and pick", "Decide", "Review", "Run or provide". Phone-check answers
+  stay in the older checks page linked from the first row.
+- Chat 11's emulator test-bed run on the latest build had not reported when this was written: rerun it if STATUS
+  holds no result.
+
 ## The agreed order (owner 2026-11-11)
 1. Owner phone check of that build (answers in the checks artifact; fix what it finds).
 2. **This chat's job:** hardening and leftovers + closed-testing items (T495) + the next atlas rebuild, all aimed at
