@@ -11,7 +11,6 @@ holding a kind, is no longer bounded by such a cross-reference and needs no spec
 from __future__ import annotations
 
 import inspect
-import os
 import re
 from pathlib import Path
 
@@ -22,11 +21,11 @@ from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import rows as RW
-from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 PERRY = "gnis:14741"
 ST_MARY_TRIBS = "r4:st_mary_river@4-20::st_mary_river.r2"
 

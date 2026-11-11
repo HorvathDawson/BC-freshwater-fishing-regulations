@@ -72,7 +72,6 @@ of the tally, as before the ruling) and when it lets one more past (r5's 2 + 1).
 from __future__ import annotations
 
 import copy
-import os
 from pathlib import Path
 
 import pytest
@@ -84,9 +83,10 @@ from pipeline.deliver.answers import encode as E
 from pipeline.deliver.bundle import read as R
 from pipeline.deliver.verdicts import build as VB
 from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = str(under_test.path("bundle"))     # a str: the reader's rules cache the mutation patches is keyed by it
+EXPORT_DIR = under_test.path("export_dir")
 
 KITIMAT = "gnis:3225"
 ROW = "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3"

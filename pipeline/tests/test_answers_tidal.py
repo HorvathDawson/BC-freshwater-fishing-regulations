@@ -10,7 +10,6 @@ said "angling: not allowed here" for every method and every licence profile said
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -18,13 +17,12 @@ import pytest
 from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
-from pipeline.deliver.bundle import read as R
 from pipeline.deliver.export import guide_words as export_guide_words
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
-                  or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 NITINAT, CHILLIWACK = "wbk:329504244", "gnis:8634"
 
 

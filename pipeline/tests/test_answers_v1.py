@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import random
 from pathlib import Path
 
@@ -34,10 +33,10 @@ from pipeline.deliver.answers import rows as RW
 from pipeline.deliver.answers import stamps as ST
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
-                  or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 
 CHILLIWACK, KITIMAT, PEACE = "gnis:8634", "gnis:3225", "gnis:14619"
 # the Peace below the Site C dam (its 7B lake-trout part), by what it covers: Site C dam down to 5 km below the

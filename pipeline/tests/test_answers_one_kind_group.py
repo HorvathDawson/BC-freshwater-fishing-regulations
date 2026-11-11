@@ -15,7 +15,6 @@ another rule's (Duncan River's Dolly Varden inside Region 4's 5), and a total li
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
@@ -25,11 +24,11 @@ from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import rows as RW
-from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 
 KLMB, ANGELO, TRANQUILLE, DUNCAN_TRIB = "wbk:-20", "gnis:10053", "wbk:329563842", "gnis:12861"
 BOW_LAKE = "wbk:329343476"                     # Region 7: its own brook trout quota

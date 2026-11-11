@@ -19,7 +19,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -31,12 +30,11 @@ from pipeline.deliver.answers import display as D
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import model as M
 from pipeline.deliver.answers import rows as RW
-from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
-                  or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 
 VEDDER = "gnis:3062"
 DUNCAN = "gnis:22255"                 # Region 4: its own ✱ row lifts DV and rainbow out of the 2

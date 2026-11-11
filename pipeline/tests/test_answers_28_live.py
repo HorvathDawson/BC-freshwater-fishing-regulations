@@ -7,7 +7,6 @@ The no-data twins of these tests (CI's no-data tier) are `test_answers_28_card.p
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
@@ -17,11 +16,11 @@ from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import card_check as CC
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
-from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 
 VEDDER, DUNCAN, LARDEAU_CREEK = "gnis:3062", "gnis:22255", "gnis:16357"
 KOOTENAY_MAIN = "wbk:-20"

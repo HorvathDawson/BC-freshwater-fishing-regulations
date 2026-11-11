@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -30,12 +29,11 @@ from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
 from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import rows as RW
-from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, part_at, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR")
-                  or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 
 ANDERSON, CHILLIWACK_L, KITIMAT, VEDDER = "gnis:10030", "wbk:329083341", "gnis:3225", "gnis:3062"
 TESLIN, THOMPSON, MAYER, TRANQUILLE = "wbk:328961703", "gnis:39492", "wbk:329163196", "wbk:329563842"

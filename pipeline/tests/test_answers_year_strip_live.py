@@ -8,18 +8,17 @@ The no-data twin is `test_answers_year_strip.py`.
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.answers import answers as A
 from pipeline.deliver.answers import common as C
-from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 GOLDEN = Path(__file__).resolve().parents[2] / "app" / "fixtures" / "golden"
 HYDRATE = json.loads((GOLDEN / "hydrate.json").read_text())
 TAPS = json.loads((GOLDEN / "taps.json").read_text())
