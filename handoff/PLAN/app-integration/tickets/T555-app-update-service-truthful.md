@@ -1,6 +1,6 @@
 # T555 — Update service: a refused release never reads "Updated"; one byte count; every format bump is gated; saved ids follow aliases
 
-Status: OPEN.
+Status: OPEN (partly done 2026-11-10: items 1 and 3 done, 5 reader half done (9312354, ed637de, ab6c897); items 2 and 4 are pipeline-side, 5 callers and the release check remain).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 11 of 17; highest severity 3 of 5.
 
