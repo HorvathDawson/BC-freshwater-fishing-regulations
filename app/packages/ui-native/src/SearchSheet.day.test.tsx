@@ -1,19 +1,16 @@
 /**
  * (T620 G1) A search row's status dot answers for the day the MAP is on, not for today: pick Saturday on the date
- * pill and the row, the line it lights and the water page say the same thing. Real status index (the pipeline's
- * fixture): gnis:1 is closed on 2025-03-30 and has its own regulations from 2025-03-31.
+ * pill and the row, the line it lights and the water page say the same thing. 
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-import { decodeStatusIndex } from "@app/core";
 import { SearchSheet } from "./SearchSheet";
 import { LIGHT } from "./theme";
-import { FIXTURE } from "../../core/src/statusIndex.fixture";
 
 afterEach(cleanup);
 
-const INDEX = decodeStatusIndex(Uint8Array.from(atob(FIXTURE.bytes), (c) => c.charCodeAt(0)), FIXTURE.handles,
-                                FIXTURE.reach_digest);
+// the day decides: the 30th is closed, any other day the water has its own regulations (the real index is gated in tools/one-answer.test.ts)
+const INDEX = { waterCodeOn: (_i: string, on: Date) => (on.getDate() === 30 ? "closed" : "own") } as never;
 const HIT = { item: "gnis:1", name: "Test Creek", kind: "stream", matchedAs: null, pieces: 1, size: null, areaHa: null,
               near: null } as never;
 const SESSION = {
