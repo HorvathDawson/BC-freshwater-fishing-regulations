@@ -547,7 +547,9 @@ def test_the_op_only_decides_the_REACH_the_trib_rule_is_the_same(real):
     from pipeline.atlas.reach import extent as R
     g, reg = real
     iid = "gnis:12227"                                   # Cowichan River
-    cut = next(b.id for b in reg[iid].boundaries if b.kind == "split")
+    # a cut ON the river, not at its mouth: T660's shore cut (build 27, `shore:354087914:29`, now the first split
+    # listed) leaves only the 29 m FWA crossing into the estuary below it, which nothing joins — no two halves to compare
+    cut = next(b.id for b in reg[iid].boundaries if b.kind == "split" and not b.id.startswith("shore:"))
 
     def tribs(ex):
         got = R.resolve_extent(reg, g, [iid], ex)

@@ -144,6 +144,14 @@ def _slough_calls() -> set[str]:
         (REPO_ROOT / "data/curated/waters/slough_calls.json").read_text(encoding="utf-8"))["waters"]}
 
 
+def _oxbow_wbks() -> set[str]:
+    """The wbks the book's OKANAGAN RIVER OXBOWS override names (the owner's hand match, T637)."""
+    rows = [r for r in json.loads((REPO_ROOT / "data/curated/regulations/book_name_links.json").read_text(encoding="utf-8"))
+            if (r.get("criteria") or {}).get("name_verbatim") == "OKANAGAN RIVER OXBOWS"]
+    assert len(rows) == 1, rows
+    return {str(w) for w in rows[0]["waterbody_keys"]}
+
+
 def _owner(db) -> dict[int, tuple[str, str]]:
     """{sid: (item_id, kind)} from the bundle."""
     return {s: (i, k) for i, k, s in db.execute(
@@ -218,16 +226,27 @@ def test_flowing_polygons_belong_to_their_water(registry):
     for name in ("Bear Creek Reservoir", "River Lakes"):
         assert {v.kind for v in water.values() if v.name == name} == {"lake"}, name
     # T322 (owner 2026-10-30): an OKANAGAN RIVER OXBOWS polygon the owner confirmed as a slough call is a stream in
-    # place ("general streams, cut off or not"); one not confirmed keeps its kind (2026-11-06: 32 stream, 8 not)
+    # place ("general streams, cut off or not"); one not confirmed keeps its kind (2026-11-06: 32 stream, 8 not).
+    # Checked PER POLYGON of the book's override (40 wbks), wherever it now lives: since T637 (build 27) the slough
+    # fold joins 18 of them to the named oxbow LINE items threading them (aliases there), and T664 will make all of
+    # them one water — so no item count is pinned here; every polygon must sit in an oxbows water of the right kind.
     calls = _slough_calls()
+    book = _oxbow_wbks()
+    owner = {s.split(":", 1)[1]: k for k, v in water.items() for s in v.section_ids if s.startswith("lake:")}
+    bad = [(w, owner.get(w)) for w in sorted(book)
+           if owner.get(w) is None or registry[owner[w]].name.upper() != "OKANAGAN RIVER OXBOWS"
+           or (registry[owner[w]].kind == "stream") != (w in calls)]
+    assert bad == [], bad
     oxbows = [v for v in water.values() if "OXBOWS" in v.name.upper()]
-    for v in oxbows:
+    for v in oxbows:                                         # an oxbows water holding NO polygon is a line (T637)
         wbks = {s.split(":", 1)[1] for s in v.section_ids if s.startswith("lake:")}
-        assert (v.kind == "stream") == bool(wbks and wbks <= calls), (v.name, v.section_ids, v.kind)
-    assert sum(v.kind == "stream" for v in oxbows) == 32 and len(oxbows) == 40
+        assert wbks <= book and (wbks or v.kind == "stream"), (v.name, v.section_ids, v.kind)
     # 117 since the owner named polygon wbk 329505890 "Cayoosh Creek" (2026-10-25, name_variants.json),
-    # so the fold joins it to gnis:37767 (was 116)
-    assert sum(len(v.aliases) for v in water.values()) == 117
+    # so the fold joins it to gnis:37767 (was 116). Oxbow polygons folded into an oxbows line (T637: 18 on build 27)
+    # are counted apart: each must alias an oxbows water, and the rest stays pinned.
+    folded = {a: k for k, v in water.items() for a in v.aliases if a.split(":", 1)[1] in book}
+    assert all(registry[k].name.upper() == "OKANAGAN RIVER OXBOWS" for k in folded.values()), folded
+    assert sum(len(v.aliases) for v in water.values()) - len(folded) == 117
     assert "wbk:329505890" in registry["gnis:37767"].aliases
 
 
@@ -314,7 +333,13 @@ def test_absorbed_id_resolves_once(db, doc):
     """No bundle row names an absorbed id; `item_alias` holds every one; the export's `absorbed`
     lists them on the water; the folded polygon's rows reach the river's `entries`."""
     aliases = dict(db.execute("SELECT alias, item_id FROM item_alias"))
-    assert len(aliases) == 117          # + wbk:329505890 -> Cayoosh Creek (owner 2026-10-25)
+    # 117 + wbk:329505890 -> Cayoosh Creek (owner 2026-10-25), not counting the oxbow polygons the slough fold joins to
+    # an oxbows line (T637, 18 on build 27; T664 makes them one water) — each of those must name an oxbows item
+    book = _oxbow_wbks()
+    names = dict(db.execute("SELECT item_id, name FROM item"))
+    folded = {a: i for a, i in aliases.items() if a.split(":", 1)[1] in book}
+    assert all(names[i].upper() == "OKANAGAN RIVER OXBOWS" for i in folded.values()), folded
+    assert len(aliases) - len(folded) == 117
     assert aliases["wbk:329148363"] == "gnis:7836" and aliases["wbk:329707189"] == "gnis:3062"
     for (matched,) in db.execute("SELECT matched FROM entry"):
         assert not set(json.loads(matched)) & set(aliases)
