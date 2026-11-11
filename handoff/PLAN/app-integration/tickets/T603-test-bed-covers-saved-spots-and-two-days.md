@@ -32,3 +32,11 @@ Depends: T582, T598. Size: S–M. Owner: no.
 5. A staging APK running on an emulator reports as `test` (app-side emulator detection sets the test tag), so emulator
    installs of the owner build stop filing real error kinds.
 6. Class the kind `SecurityException: Unsupported path /data/local/tmp/…` (an emulator-only path) as `expected`.
+
+## Added 2026-11-10 (T621: the map changes that need a device)
+7. Check on the emulator: the + / − zoom buttons on a bare phone map (G15), the card a titled pin opens (G19), and
+   that a tap where two waters overlap picks the nearest (G4).
+8. T621 leftovers, each needs a device first: G5 (the route overlay reads atlas tiles through a web-only range fetch;
+   the phone needs a native tile reader, so the route trace is web-only today and listed as an open gap in
+   `map-props-gate.test.ts`); G21 (the web's `within` mask on the phone: confirm the patched native MapLibre accepts
+   a `within` filter before shipping it, since an unsupported filter fails the whole style; about 0.7 MB per style swap).
