@@ -196,6 +196,28 @@ export async function capEvents(bucket: R2BucketLike, now: Date, at: string): Pr
 /** (T609 W1) at most this many NEW error kinds stored a day (a repeat of a known kind adds no object) */
 export const CRASH_KINDS_PER_DAY_TOTAL = 500;
 
+/**
+ * (T609 W11) The body as text, read with a BYTE cap: null when it is longer than `max` bytes (UTF-8), however it was
+ * sent (no Content-Length, or a false one). The old check counted characters after reading everything.
+ */
+export async function readCapped(req: Request, max: number): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const parts: Uint8Array[] = [];
+  let n = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    n += value.byteLength;
+    if (n > max) { await reader.cancel().catch(() => {}); return null; }
+    parts.push(value);
+  }
+  const all = new Uint8Array(n);
+  let o = 0;
+  for (const p of parts) { all.set(p, o); o += p.byteLength; }
+  return new TextDecoder("utf-8", { fatal: true }).decode(all);
+}
+
 export async function sha256hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -245,13 +267,13 @@ export async function handleReport(req: Request, env: ReportEnv, now: Date = new
   if (unset) return unset;
   const len = Number(req.headers.get("Content-Length") ?? NaN);
   if (Number.isFinite(len) && len > LIMITS.bytes) return json({ ok: false, error: "report too large" }, 413);
-  let raw: string;
+  let raw: string | null;
   try {
-    raw = await req.text();
+    raw = await readCapped(req, LIMITS.bytes);
   } catch {
     return json({ ok: false, error: "unreadable body" }, 400);
   }
-  if (raw.length > LIMITS.bytes) return json({ ok: false, error: "report too large" }, 413);
+  if (raw === null) return json({ ok: false, error: "report too large" }, 413);
   let body: unknown;
   try {
     body = JSON.parse(raw);

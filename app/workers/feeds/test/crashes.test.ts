@@ -297,3 +297,21 @@ describe("the day's total of new error kinds (T609 W1)", () => {
     expect((await handleCrash(post(crash(), "198.51.100.8"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:06Z"))).status).toBe(201);
   });
 });
+
+// T609 W11: the size check counted characters after reading everything; an app value 'constructor' stored junk
+describe("bodies and names (T609 W11)", () => {
+  it("a body over the byte cap is 413 even with no Content-Length and few characters", async () => {
+    const big = JSON.stringify({ ...crash(), pad: "€".repeat(3000) });   // < 8192 characters, > 8192 bytes
+    expect(big.length).toBeLessThan(8192);
+    const req = new Request("https://w/crash", { method: "POST", body: new Blob([big]).stream(), duplex: "half", headers: { "CF-Connecting-IP": "203.0.113.5" } } as RequestInit);
+    expect(req.headers.get("content-length")).toBeNull();
+    expect((await handleCrash(req, { BUCKET: new MemBucket(), REPORT_SALT: SALT }, at("2026-10-29T20:00:00Z"))).status).toBe(413);
+  });
+  it("app versions 'constructor' and '__proto__' count like any other", async () => {
+    const BUCKET = new MemBucket();
+    await handleCrash(post(crash({ app: "constructor" })), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:00Z"));
+    await handleCrash(post(crash({ app: "__proto__" }), "198.51.100.1"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:02Z"));
+    const k = [...BUCKET.m.entries()].find(([key]) => /crashes\/[0-9a-f]{16}\.json$/.test(key))!;
+    expect(Object.entries(JSON.parse(k[1]).versions)).toEqual([["constructor", 1], ["__proto__", 1]]);
+  });
+});

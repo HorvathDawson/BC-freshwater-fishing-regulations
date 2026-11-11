@@ -25,7 +25,7 @@
 //   purge               kinds not seen for CRASH_RETENTION_DAYS are deleted (privacy page: "90 days after the last time").
 import type { FeedEvent } from "./events";
 import type { R2BucketLike } from "./io";
-import { CORS, CRASH_KINDS_PER_DAY_TOTAL, dailyTotal, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
+import { CORS, CRASH_KINDS_PER_DAY_TOTAL, dailyTotal, readCapped, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
 
 export const CRASHES_PREFIX = "private/crashes/";
 /** (T559) the per-address counters: `purgeLimits` (reports.ts) deletes them once their day is over */
@@ -191,9 +191,9 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   if (unset) return unset;
   const len = Number(req.headers.get("Content-Length") ?? NaN);
   if (Number.isFinite(len) && len > CRASH_LIMITS.bytes) return json({ ok: false, error: "too large" }, 413);
-  let raw: string;
-  try { raw = await req.text(); } catch { return json({ ok: false, error: "unreadable body" }, 400); }
-  if (raw.length > CRASH_LIMITS.bytes) return json({ ok: false, error: "too large" }, 413);
+  let raw: string | null;
+  try { raw = await readCapped(req, CRASH_LIMITS.bytes); } catch { return json({ ok: false, error: "unreadable body" }, 400); }
+  if (raw === null) return json({ ok: false, error: "too large" }, 413);
   let body: unknown;
   try { body = JSON.parse(raw); } catch { return json({ ok: false, error: "not JSON" }, 400); }
   const v = validateCrash(body);
@@ -230,7 +230,10 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   }
   kind.last = at;
   kind.count++;
-  if (kind.versions[v.crash.app] !== undefined || Object.keys(kind.versions).length < 20) kind.versions[v.crash.app] = (kind.versions[v.crash.app] ?? 0) + 1;
+  // (T609 W11) own keys only: an app value of "constructor" / "__proto__" never reads a prototype member
+  const seen = Object.hasOwn(kind.versions, v.crash.app);
+  if (seen || Object.keys(kind.versions).length < 20)
+    Object.defineProperty(kind.versions, v.crash.app, { value: (seen ? kind.versions[v.crash.app]! : 0) + 1, enumerable: true, writable: true, configurable: true });
   if (v.crash.format === "crash/2") {
     const ins = kind.installs ?? [];
     if (!ins.includes(v.crash.install) && ins.length < KIND_INSTALLS) ins.push(v.crash.install);
