@@ -1,6 +1,6 @@
 # T549 — DFO salmon: feed and release agree on the location set; a place the app cannot show is said, never dropped
 
-Status: OPEN.
+Status: PARTIAL — pipeline halves built in 8a0c44572: items 1–3 the release states every curated place it does not show (`salmon` payload `off`: {id: why}) and `python -m pipeline.regs.dfo_salmon.live check-release` diffs the feed's `locs` against the release (exit 1 on a feed place the release neither shows nor states; today's release: the 2 tidal Nanaimo places, `said` after the next deliver); item 9 `live queue` with nothing unplaced here exits 1 naming the file. left (Claude): app — show a feed place the release does not show (`off` / unknown id) as a T521 row, read `holds` (5), one answer for a missing chain (11); worker — dormant-place notice (4), readJson T357 port (8), heartbeat / stale margin (7, 10), the email's `live run && live queue` (9), `proposed` wording unknown in both readers (6, Python + TS together for parity); the contract text in pack.generated.ts names neither `off` nor `s`
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 5 of 17; highest severity 4 of 5.
 
