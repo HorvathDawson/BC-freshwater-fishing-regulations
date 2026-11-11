@@ -42,7 +42,7 @@ describe("useSync: HYDAT's notice rides the feed-index read", () => {
       got.push(out.s!.hydatNotice);
       cleanup();
     }
-    expect(got).toEqual(["due", { current: "2026-07-17" }, null, null]);
+    expect(got).toEqual(["due", { current: "2026-07-17", feed: "2026-07-17" }, null, null]);
   });
 
   it("a tap re-reads it: the notice clears once the publisher has caught up", async () => {
@@ -57,7 +57,7 @@ describe("useSync: HYDAT's notice rides the feed-index read", () => {
     act(() => out.s!.refresh());
     // a tap shows "checking" for at least SYNC_MIN_CHECK_MS (600 ms)
     await act(async () => { await new Promise((r) => setTimeout(r, 700)); });
-    expect([before, out.s!.hydatNotice, out.s!.newRelease]).toEqual(["due", { current: "2026-10-20" }, null]);
+    expect([before, out.s!.hydatNotice, out.s!.newRelease]).toEqual(["due", { current: "2026-10-20", feed: "2026-10-20" }, null]);
   });
 });
 

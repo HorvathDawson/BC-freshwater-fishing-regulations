@@ -36,6 +36,11 @@ export const FRESHNESS_WORDS = {
    * not "Out of date" (the records in use are still right; the new release adds a year) — what is known, no more
    */
   newerRelease: "Newer release out",
+  /**
+   * (T633 item 5) the feed ranks its readings on another HYDAT than the release's chart bands (`hydatNotice` `feed`):
+   * a dot's colour and the chart it opens are read against two envelopes until the release or the feed catches up
+   */
+  otherHydat: "Gauge ranks use another HYDAT",
 } as const;
 
 /**
@@ -108,7 +113,8 @@ function byRelease(k: SourceDateKey, s: SourcesInput): FreshnessVM {
  *             against the table's line; never checked or not recorded, unknown
  *   notice    hydat: the feed's notice — due "Newer release out"; clear, up to date whatever the age ONLY when the
  *             release's `sources.hydat.date` is the feed's newest HYDAT, "Newer release out" when the release is
- *             older (the app's data has not caught up); no word or no release date, the age line as above
+ *             older (the app's data has not caught up); the feed ranking on another HYDAT than the release's
+ *             (`feed`, T633 item 5): "Gauge ranks use another HYDAT"; no word or no release date, the age line as above
  *   release   synopsis / tiles (`byRelease`)
  *   live      weather / imagery
  */
@@ -131,6 +137,7 @@ export function sourceFreshness(k: SourceDateKey, s: SourcesInput): FreshnessVM 
       // days), and an older one has not caught up yet. No release date (or a newer one): the age line
       const own = isoDayWords(s.sources?.hydat?.date) === null ? null : s.sources!.hydat!.date!;
       if (n !== null && own !== null) {
+        if (n.feed !== undefined && n.feed !== own) return badge("stale", FRESHNESS_WORDS.otherHydat);
         if (own === n.current) return badge("fresh");
         if (own < n.current) return badge("stale", FRESHNESS_WORDS.newerRelease);
       }

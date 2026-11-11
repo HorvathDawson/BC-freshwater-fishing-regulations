@@ -144,12 +144,15 @@ export function byWeekdays(issuedMs: number | null, now: number): "fresh" | "sta
  *                        ISO day). Not yet the APP: its bundle (gauge_clim, gauge_stats, section_panel) moves to a new
  *                        HYDAT only with the next data release, so the HYDAT line is current only when the release's
  *                        `sources.hydat.date` is that same day (menu/freshness.ts `sourceFreshness`)
+ *                        `feed`: (T633 item 5) the HYDAT the feed's own ranks are measured against (`hydat.release`);
+ *                        when it is not the release's, the dot's rank and the chart's bands come from two envelopes
+ *                        and the HYDAT line says so (menu/freshness.ts)
  *   null                 no word: no index, an index from before notices, or a run that could not check — the age
  *                        line decides
  *
  * Structural, so core reads the index without importing @app/data's types.
  */
-export type HydatNotice = "due" | { readonly current: string };
+export type HydatNotice = "due" | { readonly current: string; readonly feed?: string };
 
 export interface MaintenanceIndex {
   readonly hydat?: { readonly release: string | null; readonly latest: string | null; readonly stale?: boolean } | null;
@@ -166,5 +169,6 @@ export function hydatNotice(index: MaintenanceIndex | null | undefined): HydatNo
   if (!index || !Array.isArray(index.maintenance)) return null;
   if (index.maintenance.some((n) => n?.kind === "hydat")) return "due";
   const latest = hydatDay(index.hydat?.latest);
-  return index.hydat?.release && latest ? { current: latest } : null;
+  const feed = hydatDay(index.hydat?.release);
+  return index.hydat?.release && latest ? { current: latest, ...(feed ? { feed } : {}) } : null;
 }

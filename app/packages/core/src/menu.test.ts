@@ -300,8 +300,8 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
         // a `latest` that is no day: no word
         hydatNotice({ maintenance: [], hydat: { release: "20260717", latest: "July", stale: false } }),
         hydatNotice({ maintenance: [] }),
-      ]).toEqual([null, null, null, "due", "due", { current: "2026-07-17" }, { current: "2026-07-17" }, null, null,
-                  null, null]);
+      ]).toEqual([null, null, null, "due", "due", { current: "2026-07-17", feed: "2026-07-17" },
+                  { current: "2026-07-17", feed: "2026-07-17" }, null, null, null, null]);
     });
 
     it("current ONLY when the feed is clear AND the app's release carries that same HYDAT; clear but the release " +
@@ -352,6 +352,24 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
         "Jul 17, 2026 | HYDAT: Jul 17, 2026. Up to date.",
         "Jul 17, 2026 · Newer release out | HYDAT: Jul 17, 2026. Newer release out.",
         "Jul 17, 2026 | HYDAT: Jul 17, 2026. Up to date.",
+      ]);
+    });
+
+    it("(T633 item 5) the feed ranking on another HYDAT than the release's chart bands is said, whichever is newer",
+       () => {
+      const hy = (date: string, n: HydatNotice) =>
+        sourceFreshness("hydat", { sources: { hydat: { date } }, validUntil: null, tiles: null, feedFetchedAt: null, now,
+                                   hydatNotice: n });
+      expect([
+        hy("2026-07-17", { current: "2026-10-20", feed: "2026-10-20" }),   // the feed re-ranked, the release has not shipped
+        hy("2026-10-20", { current: "2026-10-20", feed: "2026-07-17" }),   // the release is newer than the feed's clim.json
+        hy("2026-10-20", { current: "2026-10-20", feed: "2026-10-20" }),   // one HYDAT: up to date
+        hy("2026-07-17", { current: "2026-10-20" }),                       // an index naming no release: as before
+      ]).toEqual([
+        { kind: "stale", label: "Gauge ranks use another HYDAT" },
+        { kind: "stale", label: "Gauge ranks use another HYDAT" },
+        { kind: "fresh", label: "Up to date" },
+        { kind: "stale", label: "Newer release out" },
       ]);
     });
 
