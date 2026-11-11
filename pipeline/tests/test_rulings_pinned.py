@@ -164,6 +164,24 @@ def test_z1_no_section_is_carved_out_of_its_base(db):
         [f"Region 4 MUs {key[1]} lake: 1 section (sid -1) carries ['{stray[0]}::{stray[1]}'] that its {n - 1} peers do not"]
 
 
+def test_z1_a_printed_except_water_in_a_table_is_the_one_named_exception(db):
+    """T623 F6, p.64 "Kokanee: 10 (none from streams, except Peace River)": Zone B's stream release names the Peace in
+    its own extent (`outside_items`), so the Peace's sections count as carrying it (`base_deltas.printed_exceptions`)
+    and are no carve-out. The only base lines so excepted are the ones whose extent names the water. MUTATION: the
+    same release without its `outside_items` — every Peace group reports it missing, by name."""
+    rules = R._rules_of(BUNDLE)
+    r5 = ("z7b:daily_quotas", "species_quotas.r5")
+    keys = T.printed_exceptions(db, rules)
+    assert set().union(*keys.values()) == {r5}
+    peace = set(_sections(db, "gnis:14619"))
+    assert peace and not (peace & _bound_to(db, *r5))
+    bare = {**rules, r5: {**rules[r5], "extents": [{k: v for k, v in x.items() if k != "outside_items"}
+                                                   for x in rules[r5]["extents"]]}}
+    got = T.peer_problems(T.base_sets(db, bare))
+    assert got and all("lacks ['z7b:daily_quotas::species_quotas.r5']" in p or "carries" in p for p in got)
+    assert T.peer_problems(T.base_sets(db, rules)) == []
+
+
 def _a_base_only_lake(db, region: str) -> int:
     return T.sample(db, per=1, regions=[region], strata=["base_only"])[(region, "base_only")][0]
 

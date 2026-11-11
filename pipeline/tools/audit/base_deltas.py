@@ -28,6 +28,10 @@ THE CHECK, per section, day and fish — both sides are the REFERENCE READER's a
   * NO CARVE-OUT, over EVERY section (`base_sets`, `peer_problems`): sections sharing a region place, a
     management-unit set, a water kind and tidal-ness carry ONE base. The attribution above cannot see a
     base line that binds neither answer; this sees it rule by rule wherever the section's peers carry it.
+    ONE NAMED EXCEPTION (`printed_exceptions`): a base line whose own extent names a water OUTSIDE it
+    (`outside_items`, the book's printed "except <water>" in the table itself: Zone B's "Kokanee: 10 (none
+    from streams, except Peace River)", p.64, T623 F6) counts as carried on that water's sections. The
+    carve-out is printed and stated on the rule, never silent; any other missing line is still one.
 
 `sample` draws the stratified sample the test reads (per region: water-row bound by its own place,
 reached by the walk, area-row bound, base only — streams and lakes). T57's vitest
@@ -172,16 +176,46 @@ def base_sets(db: sqlite3.Connection, rules: dict) -> BaseGroups:
         if is_base(rules[(e, r)]):
             s.add((e, r))
     base = {k: frozenset(v) for k, v in acc.items()}
+    excepted = printed_exceptions(db, rules)
     out: BaseGroups = {}
-    for regions, codes, kind, tidal, set_id, n, sid in db.execute(
+    for regions, codes, kind, tidal, set_id, back, n, sid in db.execute(
             "SELECT p.regions, coalesce(m.codes, '-'), k.kind, s.sid IN (SELECT sid FROM tidal), s.set_id, "
-            "count(*), min(s.sid) FROM section_ruleset s JOIN region_place p ON p.place = s.place "
-            "JOIN rule_key k ON k.key_ix = s.key_ix LEFT JOIN mu_set m ON m.mus = s.mus GROUP BY 1, 2, 3, 4, 5"):
+            "e.rules, count(*), min(s.sid) FROM section_ruleset s JOIN region_place p ON p.place = s.place "
+            "JOIN rule_key k ON k.key_ix = s.key_ix LEFT JOIN mu_set m ON m.mus = s.mus "
+            "LEFT JOIN temp.t623_excepted e ON e.sid = s.sid GROUP BY 1, 2, 3, 4, 5, 6"):
         g = out.setdefault((regions, codes, kind or "-", int(tidal)), {})
-        b = base.get(set_id, frozenset())
+        b = base.get(set_id, frozenset()) | (excepted[back] if back else frozenset())
         m, low = g.get(b, (0, sid))
         g[b] = (m + n, min(low, sid))
     return out
+
+
+def printed_exceptions(db: sqlite3.Connection, rules: dict) -> Dict[str, FrozenSet[Tuple[str, str]]]:
+    """The base lines a section counts as carrying though they do not bind it: a base rule whose own
+    extent names the section's water in `outside_items` (the table's printed "except <water>"). Fills the
+    connection's temp table `t623_excepted` (sid, rules key) and returns {rules key: the lines}."""
+    by_item: Dict[str, set] = {}
+    for k, x in sorted(rules.items()):
+        if not is_base(x):
+            continue
+        for ext in x.get("extents") or []:
+            for item in (ext.get("outside_items") or []) if isinstance(ext, dict) else []:
+                by_item.setdefault(item, set()).add(k)
+    per_sid: Dict[int, set] = {}
+    for item, ks in sorted(by_item.items()):
+        for (sid,) in db.execute("SELECT x.sid FROM item i JOIN item_section x ON x.ord = i.ord WHERE i.item_id = ?",
+                                 (item,)):
+            per_sid.setdefault(sid, set()).update(ks)
+    db.execute("DROP TABLE IF EXISTS temp.t623_excepted")
+    db.execute("CREATE TEMP TABLE t623_excepted (sid INTEGER PRIMARY KEY, rules TEXT)")
+    keys: Dict[str, FrozenSet[Tuple[str, str]]] = {}
+    rows = []
+    for sid, ks in sorted(per_sid.items()):
+        key = "|".join(sorted(f"{e}::{r}" for e, r in ks))
+        keys[key] = frozenset(ks)
+        rows.append((sid, key))
+    db.executemany("INSERT INTO temp.t623_excepted VALUES (?, ?)", rows)
+    return keys
 
 
 def peer_problems(groups: BaseGroups) -> List[str]:

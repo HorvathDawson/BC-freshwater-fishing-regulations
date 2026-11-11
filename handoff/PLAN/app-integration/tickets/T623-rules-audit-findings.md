@@ -169,3 +169,9 @@ The new reach tables were compared with the live run, filtered to T623's rules.
 - Fix: `closures.scan_fish` asks such a rule about the rainbow only. A rule that names steelhead, or a group holding it, is still asked about ST. No known-list or curated change.
 - Test: `test_competition.py::test_f12_the_closure_scan_asks_a_size_free_rainbow_quota_about_the_rainbow_not_the_steelhead` (mutation-checked: without the exclusion it fails).
 - Rerun: deliver (the build's deliver stage).
+
+**Z1 invariant on the build 27 bundle (2026-11-11), fixed in the audit.** `test_z1_*` reported 8 Peace groups. 7 groups lacked `z7b:daily_quotas` species_quotas.r5 (the F6 `outside_items`). One unnamed stream, sid 554921, was reported as "carrying" it only because its 2 peers in MUs 7-31,7-35 are Peace sections.
+- Option (a) was rejected. It would keep r5 on the Peace and add a Peace-scoped "Kokanee 10" line. That is a new rule record (and a reach rerun), and a z7b line scoped to one water is not base, so the peer check would still see a difference.
+- Option (b) was taken. `base_deltas.printed_exceptions` counts a table line whose own extent names a water OUTSIDE it as carried on that water's sections. It is the book's printed "except <water>" (p.64). Today it is the only base rule with `outside_items`.
+- Tests: `test_rulings_pinned.py::test_z1_a_printed_except_water_in_a_table_is_the_one_named_exception`. Mutation: the same release without `outside_items` reports the Peace groups. The code mutation turns both Z1 tests red. RULINGS Z1 names the exception.
+- Nothing to rerun but the tests.
