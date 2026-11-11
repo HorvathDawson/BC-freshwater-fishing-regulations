@@ -53,6 +53,15 @@ step "no conflict markers" conflict_markers
 # caught: ticket rows without files / files without Status lines surfacing only in `pnpm check` after the work (T84, T437)
 step "ticket ledger" node app/tools/check-tickets.mjs
 
+# caught (T536, 2026-11-10): heavy.sh freed its lock while a stopped wrapper's job ran on, and read an empty memory
+# reading as 0 % free (killing a healthy job). Its shell test (fake jobs, stubbed memory_pressure, scratch lanes, ~10 s)
+# runs when heavy.sh or the test changes
+heavy_test() {
+  grep -qE '^scripts/(heavy\.sh|tests/heavy\.test\.sh)$' <<<"$CHANGED" || { echo "   (heavy.sh unchanged)"; return 0; }
+  bash scripts/tests/heavy.test.sh
+}
+step "heavy.sh shell test (heavy.sh changed)" heavy_test
+
 # caught 2026-11-07: three test files merged with no smoke.txt id (test_dfo_tidal_water, test_lake_through_river,
 # test_tile_smooth), found only by the Tier 1 run after the merges; the guard is T432's test_smoke_coverage (< 1 s)
 step "smoke.txt covers every pipeline test file" "$PY" -m pytest -q -p no:cacheprovider pipeline/tests/test_smoke_coverage.py

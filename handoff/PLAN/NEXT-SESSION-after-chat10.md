@@ -25,9 +25,9 @@ this page on 2026-11-10 so a new chat works through them. That is the go for the
 
 ## The list, in order
 One agent at a time; batch related tickets into one agent when that saves credits. Model by task (Opus data/pipeline,
-Sonnet UI/mechanical, Haiku lookups). Heavy jobs through `scripts/heavy.sh`, one at a time; a quiet job is not a dead one: `scripts/heavy.sh --status`
-(holder, command, elapsed, log tail) before restarting anything. Each ticket file under
-`handoff/PLAN/app-integration/tickets/` is the brief; the README ledger there is the status of record.
+Sonnet UI/mechanical, Haiku lookups). Heavy jobs through `scripts/heavy.sh`, one at a time; a quiet job is not a dead
+one: ask `scripts/heavy.sh --status` (holder, command, elapsed, log tail) before restarting anything. Each ticket file
+under `handoff/PLAN/app-integration/tickets/` is the brief; the README ledger there is the status of record.
 
 0. **The review app is NOT this chat's work** (owner 2026-11-10: "review app will be this chat only", meaning chat 10).
    Do not edit `curation-review/`, `pipeline/regs/review/` or `data/curated/review/`, and do not start a copy on ports

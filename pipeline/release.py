@@ -624,7 +624,8 @@ def dry_run(ctx: Ctx) -> int:
         pushed = f"WOULD STOP ({e}): cannot tell whether HEAD is on"
     print(f"             {pushed} {GH_REMOTE}/{GH_BRANCH}")
     lock = Path(os.environ.get("HEAVY_LOCK", Path.home() / ".claude/heavy-job.lock")) / "owner"
-    print(f"             heavy-job lock: {'held by ' + lock.read_text().strip() if lock.exists() else 'free'}")
+    held = lock.read_text().splitlines()[0] if lock.exists() else None   # line 1 `<pid> <label> <date>` (T536)
+    print(f"             heavy-job lock: {'held by ' + held + '  (scripts/heavy.sh --status)' if held else 'free'}")
     live_digest = (manifest_of(live).get("bundle") or {}).get("reach_digest") if live else None
     kept = reach_digest_of(baseline_dir(live)) == live_digest if live else False
     on_disk = reach_digest_of(reach_dir())

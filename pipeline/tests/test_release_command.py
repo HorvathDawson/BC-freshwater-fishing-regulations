@@ -469,9 +469,10 @@ def test_heavy_runs_a_scripts_precheck_before_it_takes_the_lock(tmp_path):
     for the heavy lock; heavy.sh now runs a `heavy-precheck: yes` script's checks first, unlocked."""
     import os
     import subprocess
-    lock = tmp_path / "lock"
+    lock = tmp_path / "heavy-job.lock"   # T536: only the two lane names exist; HEAVY_LANES_DIR keeps it off ~/.claude
     env = {k: v for k, v in os.environ.items() if k not in ("TESTBED_APK_TAG", "HEAVY_HELD", "HEAVY_PRECHECK")}
-    env.update(HEAVY_LOCK=str(lock), HEAVY_PAUSE=str(tmp_path / "no-pause"), MLN_LOCAL_MAVEN=str(tmp_path / "m2"))
+    env.update(HEAVY_LOCK=str(lock), HEAVY_LANES_DIR=str(tmp_path), HEAVY_PAUSE=str(tmp_path / "no-pause"),
+               MLN_LOCAL_MAVEN=str(tmp_path / "m2"))
     r = subprocess.run(["bash", "scripts/heavy.sh", "testbed", "30", "--", "bash", "app/tools/testbed/session.sh",
                         "--build", "--", "true"], cwd=R.REPO_ROOT, env=env, capture_output=True, text=True, timeout=60)
     assert r.returncode == 1, r.stdout + r.stderr
