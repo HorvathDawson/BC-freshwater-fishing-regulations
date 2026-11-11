@@ -12,10 +12,13 @@ name: feeds — run timing (PSF + DFO) → R2 runtiming/
 #   3. fetch: the Pacific Salmon Explorer's run-timing page + the CU polygon tiles (PSF), NuSEDS (DFO, OGL – Canada)
 #   4. parse (pipeline.runtiming.parse) → timing.json + cu_polygons.geojson, in the runner only
 #   5. build (pipeline.runtiming.feed.build) → runtiming/{runs,paint,waters}-<sha12>.json.gz + index.json, checked
-#   6. diff against the live runtiming/ (pipeline.runtiming.feed.diff): runs added / dropped / changed, in the summary
+#   6. diff against the live runtiming/ (pipeline.runtiming.feed.diff): runs added / dropped / changed, in the summary;
+#      (T552 item 1) THE FLOOR: PSF runs, DFO runs or painted sections falling > 10% against the live feed FAIL the run
+#      (an upstream column or page change), unless `allow_shrink` gives the owner's reason
 #   7. (upload: true, and only on a real change) the files, then index.json LAST (pipeline.runtiming.feed.publish)
 # (T485, owner 2026-11-07) THE LAST GOOD SOURCES ARE KEPT, PRIVATELY: a fresh fetch (`refresh`, or no copy yet) is
-# stored at private/runtiming/src/sources.tar.gz with its fetch date (never public: the PSF pages may not be re-hosted,
+# stored at private/runtiming/src/sources.tar.gz with its fetch date — (T552 item 1) only AFTER parse, build and the
+# floor pass, so a broken download never becomes the copy later runs build from — (never public: the PSF pages may not be re-hosted,
 # T162); every other run builds from that copy and makes NO outside request, so an open.canada.ca outage cannot block a
 # release. The summary names the copy's date; a copy older than MAX_SRC_DAYS fails the run. The run's artifact is the
 # REPORT only (counts, sizes), never the data.
@@ -55,6 +58,10 @@ on:
         description: "Fetch the sources afresh (PSF + NuSEDS) and keep them; false = build from the kept copy"
         type: boolean
         default: false
+      allow_shrink:
+        description: "(T552) the owner's reason to let a > 10% fall in runs or painted sections through; empty = refuse it"
+        type: string
+        default: ""
   # (T412/T413) REGISTRATION ONLY: GitHub can dispatch a workflow that is not on the default branch (main stays
   # untouched) only once it has run there; a push of THIS file registers it. The job below is skipped for a push.
   push:
@@ -74,6 +81,7 @@ jobs:
       UPLOAD: ${{ inputs.upload }}
       TILES_IN: ${{ inputs.tiles }}
       REFRESH: ${{ inputs.refresh }}
+      ALLOW_SHRINK: ${{ inputs.allow_shrink }}
       MAX_SRC_DAYS: "400"
       AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -137,8 +145,8 @@ jobs:
             python -m pipeline.runtiming.fetch.nuseds --out "$W/src/dfo"
             date -u +%F > "$W/src/FETCHED"
             tar -czf "$W/sources.tar.gz" -C "$W" src
-            aws s3 cp "$W/sources.tar.gz" "$KEPT" --endpoint-url "$R2_ENDPOINT" --only-show-errors
-            echo "sources: kept at private/runtiming/src/sources.tar.gz ($(du -h "$W/sources.tar.gz" | cut -f1))" | tee -a "$GITHUB_STEP_SUMMARY"
+            # kept only after parse, build and the floor pass (the step after the diff), never before
+            echo "FRESH=true" >> "$GITHUB_ENV"
           fi
 
       - name: 4/7 parse
@@ -156,9 +164,23 @@ jobs:
 
       - name: 6/7 diff against the live run timing
         run: |
-          python -m pipeline.runtiming.feed.diff --new "$W/out/runtiming" --live "$DATA/runtiming" --out "$W/out/diff.json"
-          echo "CHANGED=$(python -c 'import json; print(str(json.load(open("'"$W"'/out/diff.json"))["changed"]).lower())')" >> "$GITHUB_ENV"
+          set -o pipefail
+          # exit 1 when the new feed fell past the floor (the report is written first and shown either way)
+          RC=0
+          python -m pipeline.runtiming.feed.diff --new "$W/out/runtiming" --live "$DATA/runtiming" --out "$W/out/diff.json" \
+            --allow-shrink "$ALLOW_SHRINK" || RC=$?
           { echo '### diff against the live run timing'; echo '```json'; cat "$W/out/diff.json"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$RC" -ne 0 ]; then
+            echo "::error::the new run timing fell past the floor against the live feed (see the summary): nothing kept, nothing uploaded"
+            exit "$RC"
+          fi
+          echo "CHANGED=$(python -c 'import json; print(str(json.load(open("'"$W"'/out/diff.json"))["changed"]).lower())')" >> "$GITHUB_ENV"
+
+      - name: keep the fresh sources (only a fresh fetch that parsed, built and passed the floor — T485, T552)
+        if: env.FRESH == 'true'
+        run: |
+          aws s3 cp "$W/sources.tar.gz" "s3://$BUCKET/private/runtiming/src/sources.tar.gz" --endpoint-url "$R2_ENDPOINT" --only-show-errors
+          echo "sources: kept at private/runtiming/src/sources.tar.gz ($(du -h "$W/sources.tar.gz" | cut -f1))" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: 7/7 upload to R2 (files, then index.json last) — only a real change
         if: env.UPLOAD == 'true' && env.CHANGED == 'true'

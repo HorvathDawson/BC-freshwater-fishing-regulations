@@ -155,3 +155,20 @@ def test_counts_round_trip_and_never_ride_a_psf_run(tmp_path):
     psf = {**dfo, "key": "psf:1", "source": "psf"}
     with pytest.raises(ValueError, match="only DFO"):
         write_timing(tmp_path / "u.json", [psf], [], {})
+
+
+def test_t552_a_renamed_upstream_column_is_refused_not_parsed_to_nothing(tmp_path):
+    """(T552 item 1) DictReader + row.get would read every row of a renamed column as empty and skip it: an empty feed
+    with no error. The header is checked first."""
+    P.require_columns(P.NUSEDS_COLUMNS, P.NUSEDS_COLUMNS, "nuseds.csv")          # all there: no error
+    renamed = [("SPECIES_NAME" if c == "SPECIES" else c) for c in P.NUSEDS_COLUMNS]
+    with pytest.raises(SystemExit, match="lacks the column.*SPECIES"):
+        P.require_columns(renamed, P.NUSEDS_COLUMNS, "nuseds.csv")
+    with pytest.raises(SystemExit, match="lacks the column"):
+        P.require_columns(None, P.NUSEDS_COLUMNS, "nuseds.csv")                 # an empty file has no header
+    sites = tmp_path / "census_sites.csv"
+    sites.write_text("GFE_ID,LONGITUDE,Y_LAT,GFE_TYPE\n1,-122.0,49.0,Stream\n", encoding="latin-1")
+    with pytest.raises(SystemExit, match="X_LONGT"):
+        P.read_sites(sites)
+    sites.write_text("GFE_ID,X_LONGT,Y_LAT,GFE_TYPE\n1,-122.0,49.0,Stream\n", encoding="latin-1")
+    assert P.read_sites(sites) == {"1": (-122.0, 49.0, "Stream")}

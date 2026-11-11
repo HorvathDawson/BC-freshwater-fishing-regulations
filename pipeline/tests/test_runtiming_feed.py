@@ -258,3 +258,37 @@ def test_t412_the_diff_says_a_real_change_only(built):
     d = diff(index, runs, live, moved)
     assert d["changed"] is True and d["why"] == "runs" and d["runs"]["changed"] == 1
     assert diff(index, runs, {**index, "tile_version": "older"}, runs)["why"] == "tiles"
+
+
+def test_t552_a_collapsed_feed_is_refused_against_the_live_one(built, tmp_path, monkeypatch, capsys):
+    """(T552 item 1) build's checks are internal only, so an upstream change that parses to a collapsed feed passed.
+    The diff now compares PSF runs, DFO runs and painted sections with the live feed and exits 1 on a fall past the
+    floor, unless the owner's reason is given."""
+    from pipeline.runtiming.feed import diff as D
+    live = {"psf_runs": 100, "dfo_runs": 4944, "painted_sections": 50000}
+    assert D.floor(dict(live), live) == [] and D.floor({**live, "dfo_runs": 4500}, live) == []      # 9%: within
+    fell = D.floor({**live, "dfo_runs": 0}, live)
+    assert fell == ["dfo_runs: 4944 live -> 0 new (100% fewer)"]
+    assert D.floor({"psf_runs": 0, "dfo_runs": 0, "painted_sections": 0}, None) == []          # nothing live yet
+
+    docs, index, report, files = built
+    d = B.write(tmp_path / "new", files, index, report)
+    big_runs = {"runs": [{"id": f"dfo:{i}:Coho:-", "src": "dfo"} for i in range(50)]
+                + [{"id": f"psf:{i}", "src": "psf"} for i in range(5)]}
+    big_paint = {"sid": [1] * 40}
+    live_index = {**index, "files": {**index["files"], "runs": {**index["files"]["runs"], "sha256": "old"}}}
+    served = {"index.json": json.dumps(live_index).encode(), index["files"]["runs"]["url"]: json.dumps(big_runs).encode(),
+              index["files"]["paint"]["url"]: json.dumps(big_paint).encode()}
+    monkeypatch.setattr(D, "_get", lambda url: served.get(url.rsplit("/", 1)[1]))
+    out = tmp_path / "diff.json"
+    assert D.main(["--new", str(d), "--live", "https://x/runtiming", "--out", str(out)]) == 1
+    rep = json.loads(out.read_text())                                       # the report is written before the refusal
+    assert rep["floor"]["allowed"] is None and len(rep["floor"]["fell"]) == 3
+    assert "REFUSED" in capsys.readouterr().out
+    assert D.main(["--new", str(d), "--live", "https://x/runtiming", "--out", str(out),
+                   "--allow-shrink", "owner: NuSEDS retired the old sites"]) == 0
+    assert json.loads(out.read_text())["floor"]["allowed"] == "owner: NuSEDS retired the old sites"
+    # the same feed live: no fall, exit 0
+    served = {"index.json": json.dumps(index).encode(), **{f["url"]: files[n] for n, f in index["files"].items()}}
+    monkeypatch.setattr(D, "_get", lambda url: served.get(url.rsplit("/", 1)[1]))
+    assert D.main(["--new", str(d), "--live", "https://x/runtiming", "--out", str(out)]) == 0

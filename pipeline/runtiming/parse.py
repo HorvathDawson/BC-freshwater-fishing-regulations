@@ -52,6 +52,22 @@ _MON = {m.upper(): i + 1 for i, m in enumerate(SPEC.MONTHS)}
 #: NuSEDS RUN_TYPE -> the label a reader is told; the numeric codes state no run and are kept apart, unlabelled
 RUN_LABELS = {"FALL": "fall", "SUMMER": "summer", "SPRING": "spring", "LATE": "late", "EARLY SUMMER": "early summer",
               "EARLY STUART": "Early Stuart"}
+#: (T552 item 1) the NuSEDS columns `dfo_records` reads. A renamed one would make every row read as empty and be
+#: skipped with no error (an empty feed), so the file's header is checked against this list first and refused
+NUSEDS_COLUMNS = ("GFE_ID", "SPECIES", "FWA_WATERSHED_CDE", "ANALYSIS_YR", "RUN_TYPE", "WATERBODY",
+                  "STREAM_ARRIVAL_DT_FROM", "START_SPAWN_DT_FROM", "PEAK_SPAWN_DT_FROM", "PEAK_SPAWN_DT_TO",
+                  "END_SPAWN_DT_FROM", "END_SPAWN_DT_TO", COUNT_FIELD, ADULT_FIELD)
+#: the census-site columns `read_sites` reads (same reason)
+SITES_COLUMNS = ("GFE_ID", "X_LONGT", "Y_LAT", "GFE_TYPE")
+
+
+def require_columns(header, need: Iterable[str], what: str) -> None:
+    """Refuse a table whose header lacks a column the parse reads (T552 item 1): an upstream rename must fail the run,
+    never parse to nothing."""
+    missing = [c for c in need if c not in set(header or ())]
+    if missing:
+        raise SystemExit(f"parse: {what} lacks the column(s) {', '.join(missing)} — has the upstream format changed? "
+                         f"(header: {', '.join(header or ()) or 'none'})")
 
 
 # ---- days --------------------------------------------------------------------------------------------------------
@@ -231,7 +247,9 @@ def read_sites(path: Path) -> Dict[str, Tuple[float, float, str]]:
     """{GFE_ID: (lon, lat, DFO's site type)} from the census-site list (one row per site and species)."""
     out = {}
     with open(path, newline="", encoding="latin-1") as f:
-        for r in csv.DictReader(f):
+        rd = csv.DictReader(f)
+        require_columns(rd.fieldnames, SITES_COLUMNS, str(path))
+        for r in rd:
             try:
                 out[r["GFE_ID"].strip()] = (round(float(r["X_LONGT"]), 5), round(float(r["Y_LAT"]), 5),
                                             (r.get("GFE_TYPE") or "").strip())
@@ -294,8 +312,14 @@ def main(src: Path, out: Path, polygons: Optional[Path], review: Optional[Path])
     for need in ("nuseds.csv", "census_sites.csv", "fetched.json"):
         if not (dfo_dir / need).is_file():
             raise SystemExit(f"parse: no {dfo_dir / need} — fetch it: python -m pipeline.runtiming.fetch.nuseds")
+    sites = read_sites(dfo_dir / "census_sites.csv")
     with open(dfo_dir / "nuseds.csv", newline="", encoding="latin-1") as f:
-        dfo, rep = dfo_records(csv.DictReader(f), read_sites(dfo_dir / "census_sites.csv"))
+        rd = csv.DictReader(f)
+        require_columns(rd.fieldnames, NUSEDS_COLUMNS, str(dfo_dir / "nuseds.csv"))
+        dfo, rep = dfo_records(rd, sites)
+    if not psf or not dfo or not sites:
+        raise SystemExit(f"parse: {len(psf)} PSF runs, {len(dfo)} DFO records, {len(sites)} census sites — an empty "
+                         f"source is a broken fetch, never a timing")
     psf_fetch = json.loads((src / "fetched.json").read_text())
     dfo_fetch = json.loads((dfo_dir / "fetched.json").read_text())
     up = psf_fetch["upstream_dataset"]
