@@ -13,6 +13,17 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 night — owner answered the batch; Oxbows fix and chart PDFs running (chat 11)
+
+- **Unplaced pieces:** the owner accepted all 5 as left out (Noons, Seymour, three Skeena side channels); rows moved to `accepted` (646924e28).
+- **Tidal sheets:** all 21 good. Owner's remark: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) → T660.
+- **Oxbows (T637):** cause found (7f63f433a): since August the registry keeps only named water, and no oxbow name variant was ever written. Owner: fix by a name variant; lines into Osoyoos Lake stay; the two hillside lines get cut (proposal + map); the 5 codes + 1 line lost in a March refactor come back as a proposal + map; Park Rill dropped. Fix agent running (atlas rebuild, reach run, binding diff). **Builds stay stopped until it lands.**
+- **Ring (T636):** owner picked A (dark ring, built). **Satellite (T594):** look C built at 1.5 px full strength (the fainter 0.9 needs 2 px; shots near identical, kept as built). **Switch lag (T566):** key now follows the map; all three wait for a phone check on the next build.
+- **Lake (T634):** owner: 200 dpi black-and-white for every chart PDF; the 69 variant-only matches go to review. Agent running. **Licence still open:** owner says stocking / placed contours / sheet layer are OGL; the catalogue API read live on 2026-11-11 says `license_title: "Access Only"` for all three. Asked the owner for the page they see. Nothing built on them.
+- **Pipeline suite:** one process grows to 111 GB and the kernel kills it; run in 6 chunks: 7,067 pass, 7 fail, 5 fixed. Export files regenerated (test passes). Left: T638 (heavy.sh blind spot, chunked runner), T639 (chat 10: review `build()` rebuilds a withdrawn cut).
+- **Known red:** `pnpm check` fails `one-standing-words` on `packages/core/src/changelog.ts` (0.7.4 entry).
+- **Next free ticket: T661** (chat 11 continues T660–T679).
+
 ## 2026-11-11 evening — reach decisions and lake first pass landed; builds stop on Oxbows (chat 11)
 
 - **T632 landed, IN REVIEW** (8fdcb79d4, aeaf36731): tidal water leaves every DFO place (21 places, 141 sections, no rule moved); any unplaced piece and any dead override id stop the reach run; fast-fail runs the matcher check.
