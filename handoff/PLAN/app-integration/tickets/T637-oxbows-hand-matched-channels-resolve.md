@@ -1,6 +1,6 @@
 # T637 — Okanagan River Oxbows: the owner's hand-matched side channels must bind again
 
-Status: IN REVIEW — f4069759f; owner: OWNER-TODO "T637 oxbows"; left (Claude): promote full_next + rebuild (reach, deliver, tiles) and the release diff
+Status: IN REVIEW — f4069759f, 216a7e60a; owner: OWNER-TODO "T637 oxbows: the hillside cuts need a registry change"; left (Claude): restamp matched, one rebuild with T623/T660, reach, promote
 
 Source: owner 2026-11-11, on T632 item 3: "what you mean they never had an item if they are unnamed side channels? i hand matched them?"
 
@@ -196,3 +196,69 @@ for the codes, so `scripts/fast-fail.sh` (its matcher step) and a live reach run
 - The cut points are a distance rule, not a field check; the owner's map look decides them.
 - Full pytest not run; ran test_name_variants, test_names, test_matcher, test_backfill_matched, test_check_curated,
   test_slough_fold, test_registry_flowing, test_reach_drops_nothing (157 passed).
+
+## Owner ticks 2026-11-11 — applied to curated files (216a7e60a), NOT built
+Owner: (1) both east-slope cuts ACCEPTED; (2) restore the five child codes, "but one will need a hill cut"
+(461418-565942) — that cut accepted in advance ("i accept your cut for new hillside"); (3) the lfid / pond near Oliver:
+LEAVE OUT. Coordinator: no atlas rebuild, reach run or promote here (one rebuild later with T623/T660).
+
+**Applied**
+- `cuts.json`: three point cuts, one waterbody group per line (`applies_to: {blk}`), ids
+  `okanagan_river_oxbows__500162_foot_of_east_slope`, `…__466472_foot_of_east_slope`,
+  `…__461418_565942_foot_of_west_slope`. Same rule for all three (last point within 400 m of the mainstem or 150 m of an
+  oxbow polygon); each coord projects onto its blk at the stated measure (checked against the gpkg, ≤ 0.2 m off):
+  | line | blk | cut at | kept | dropped | map |
+  |---|---|---|---|---|---|
+  | 300-432687-500162 | 356502967 | 685 m | 0–685 m | 1.77 km (685–2,452) | `T637-shots/fix-cut-500162.png` |
+  | 300-432687-466472 | 356559193 | 1,542 m | 0–1,542 m | 1.54 km (1,542–3,080) | `T637-shots/fix-cut-466472.png` |
+  | 300-432687-461418-565942 | 356530115 | 612 m | 0–612 m | 0.74 km (612–1,350) | `T637-shots/fix-cut-461418-565942.png` |
+- `name_variants.json`: the wsc entry loses 500162 and 466472 and gains the four uncut child codes
+  (461418-400917, 463105-427876, 466472-328926, 476281-770576); three `{"blks": [blk]}` + `"reach": {"from_m": 0,
+  "to_m": <cut>}` entries name the three cut lines from the mouth to the cut.
+- `book_name_links.json`: the five child codes back in the override (31 codes, 40 wbks); the note now reads
+  "Includes 31 watershed codes, 40 waterbody keys, and 0 linear feature IDs." (counts only).
+- lfid 707367498 (blk 356440949) and its pond wbk 329461526: left out by the owner; nothing added.
+- `check_curated --waters`: 0 errors (the 4 "not in the current atlas registry" warnings are the new targets).
+  `load_split_defs` reads the three cuts.
+
+**STOP — the cuts will not take the hillside out of the oxbow rule (proved from the code, not built).** A cut + a
+reach-window name ends the LABEL at the cut, but the registry still holds the hillside piece in the line's item:
+- `registry/build.py` `item_id`: a stream node with no gnis is keyed `wsc:<its code>`; the hillside piece and the named
+  valley piece share the code, so both land in the same group (`build_registry`, "group nodes by item_id").
+- `split_distinct_names` moves only a node with a display name of its own (`movable` needs `n.display_name`); the
+  hillside piece has none (no gnis, no gazetted sibling of its code, and `follow_connections` skips curated blks).
+- `build_registry` keeps every node of the group in `section_ids`; nothing drops a nameless node from a named item.
+- The leaf prune does not remove it either: it sits 1 hop above named water (`min_hops` 3).
+So after the rebuild the oxbow row (a spring-closure exemption) still binds the three hillside reaches (≈4.05 km). The
+curated part is in and harmless; the binding effect needs one of:
+  a. a registry change: a `wsc:`/`blk:`-keyed item (no gnis) keeps only the nodes that carry a name; its nameless
+     nodes go back to no item, as before T637 (zone rules only). Needs a full rebuild + binding diff across all wsc items.
+  b. the oxbow rule's extents bounded by the three cuts — a corpus change to a rule, not Claude's to make.
+Option A was implemented as decided; per the brief I stopped here instead of switching mechanisms.
+
+**Matched restamp waits for the rebuild.** The entry's `matched` (restamped in f4069759f against the first side
+registry) does not hold the five child items; it must be restamped against the NEW registry or they will not bind.
+
+**Single rebuild → reach → promote (for the coordinator, once T623/T660 are in):**
+```
+cp data/curated/regulations/synopsis/region-*.json <scratch>/backup/          # AGENTS ⛔2
+.venv/bin/python -m pipeline.tools.audit.check_curated --waters
+scripts/heavy.sh atlas 50 -- .venv/bin/python -m pipeline.atlas.build --full --out data/generated/atlas/full_next
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched \
+    --registry data/generated/atlas/full_next/registry.json --dry-run          # oxbow: matcher-only = the new items
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched \
+    --registry data/generated/atlas/full_next/registry.json --restamp r8:okanagan_river_oxbows@8-1
+git diff data/curated/regulations/synopsis/region-8.json                       # id lines only
+.venv/bin/python -m pipeline.regs.matching.matcher --registry data/generated/atlas/full_next/registry.json
+scripts/heavy.sh reach 50 -- .venv/bin/python -m pipeline.atlas.reach.cli --build data/generated/atlas/full_next \
+    --out <scratch>/reach_next --against <a reach run on the live atlas with the same corpus>
+.venv/bin/python -m pipeline.atlas.promote data/generated/atlas/full_next --dry-run   # parity
+.venv/bin/python -m pipeline.atlas.promote data/generated/atlas/full_next
+scripts/heavy.sh build 50 -- .venv/bin/python -m pipeline build                # reach + deliver + tiles
+```
+Expect in the diff: the 5 child items (`wsc:300-432687-461418-400917`, …) bound by `okanagan_river_oxbows.r1`; 3 new
+cut boundaries; the three hillside pieces STILL bound unless (a) is done first.
+
+**Seen, not acted on:** line 461418 (one of the two the owner kept whole as "into Osoyoos Lake") also climbs the west
+slope at its upper end — 0.73 km of m 3,048–3,962 lies beyond the same distance rule (visible top-left of
+`fix-cut-461418-565942.png`). 459615's upper end has 1.0 km beyond it too (m 1,792–2,980). Owner's call.
