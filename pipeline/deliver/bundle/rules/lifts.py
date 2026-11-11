@@ -574,7 +574,9 @@ def _exempts(entry_id: str, r, zones: dict[str, list[str]], rules_of: dict[str, 
         # The row's water in another region: the same blanket closure there (`regions` — the
         # regions the row's own water lies in; see `_equivalent_closures`).
         have = {(e, rid) for e, rid in named} | {(y["entry_id"], y["rule_id"]) for y in out}
-        for e, rid in named:
+        # ...unless the owner said this exemption lifts its own region's closure only (`own_region_only`,
+        # RULINGS L22: the Nechako's Region 7 "Exempt from spring closure" never lifts Region 6's)
+        for e, rid in ([] if x.own_region_only else named):
             for ee, z in _equivalent_closures(e, rules_of[e][rid], regions, blankets or {},
                                               f"{r.verbatim} {x.note or ''}"):
                 if (ee, z.rule_id) in have or ee == entry_id:

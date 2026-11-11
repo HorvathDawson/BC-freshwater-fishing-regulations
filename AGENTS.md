@@ -587,7 +587,8 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     WHERE THE WATER HAS NO ENTRY OF ITS OWN in that region (`own_entry_regions`; a row whose
     every rule is `tributaries_only` is not one): the Fraser (rows in 3, 5, 7) and the Canim
     never carry; West Road's mainstem pieces in Region 6 / Zone 7A keep its lift (only tributary
-    rows there) and NO lift reaches a West Road tributary in any region. A ✱ ROW'S PRINTED EXEMPTION
+    rows there) and NO lift reaches a West Road tributary in any region. An exemption marked `own_region_only` (owner
+    2026-11-11, RULINGS L22: the Nechako's Region 7 "Exempt from spring closure") never carries. A ✱ ROW'S PRINTED EXEMPTION
     WALKS TO ITS TRIBUTARIES (owner ruling D4, 2026-10-12, RULINGS T13, superseding Q3 of 2026-10-07):
     the row's ✱ carries its lifts like its closures, quotas and gear — no lift-only rule of a ✱ row
     carries `includes_tributaries: false` (Nitinat, Quinsam, Duncan, Lardeau, Dutch, Hevenor, Fulton,
@@ -619,7 +620,8 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     inside it for the origins it releases (RU-5); a full closure displaces the keepers it beats by
     the ladder whatever their key (RU-7); two regions' identical statements show once (RU-8);
     "ST" where no steelhead rule applies (`section_steelhead_rules`) is answered as "RB" over
-    every length (RU-6; the status index asks the same). MOOT SIZE CLAUSE (user ruling 2026-10-05,
+    every length (RU-6; the status index asks the same). A RAINBOW RULE WITH NO SIZE BAND speaks for "ST" too, without naming it
+    (owner 2026-11-11, RULINGS S12, `read.size_free_rainbow`: the Stellako's "Rainbow trout catch and release"). MOOT SIZE CLAUSE (user ruling 2026-10-05,
     step 5b): a zone-side size-only clause ("none under 60 cm") is NOT SHOWN under ANY outright
     release or closure in force for the fish — water, zone (with or without a water kind) or
     superior — that releases every origin it keeps over its lengths (Bonaparte Lake Nov 1 lake

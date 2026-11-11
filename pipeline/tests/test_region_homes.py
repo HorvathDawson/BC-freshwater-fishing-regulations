@@ -309,6 +309,39 @@ def test_a_spring_exemption_lifts_the_other_regions_spring_closure_never_its_win
     assert [e for e, _ in got] == ["z6:iskut_fraser_closure"]
 
 
+def _nechako_lifter(own_region_only: bool):
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    return CatalogueRule.model_validate({
+        "rule_id": "nechako_river.r1", "type": "retention_limit", "verbatim": "Exempt from spring closure.",
+        "species": ["ALL_GAME_FISH"], "extents": [{"op": "whole"}],
+        "exempts": [{"default_id": "spring_stream_closure",
+                     **({"own_region_only": True} if own_region_only else {})}]})
+
+
+def test_f5_an_own_region_only_exemption_lifts_its_own_regions_closure_and_never_carries():
+    """owner 2026-11-11 (T623 F5, RULINGS L22): "Nechako inside Region 6: closed Apr 1-Jun 30. The 'Exempt from spring
+    closure' on the Region 7 row lifts Region 7's only." p.49: "No fishing: in any stream ... in the Fraser River
+    watershed in Region 6, Apr 1-June 30"; p.60: the Nechako's row (Region 7) "Exempt from spring closure". With
+    `own_region_only` the row's lift resolves to Zone 7A's spring closure and NOT to Region 6's (no `equivalent`).
+    MUTATION PIN: without the flag the same row carries (G3) to Region 6's spring closure, as today."""
+    from pipeline.deliver.bundle import rules as rules_mod
+    _z5, blankets = _kinded_blankets()
+    z7 = next(z for e, z in blankets["7a"] if e == "z7a:spring_stream_closure")
+    spring6 = next(z for e, z in blankets["6"] if e == "z6:iskut_fraser_closure")
+    rules_of = {"z7a:spring_stream_closure": {z7.rule_id: z7},
+                "z6:iskut_fraser_closure": {spring6.rule_id: spring6}}
+    zones = {"spring_stream_closure": ["z7a:spring_stream_closure"]}
+
+    def lifts(flag):
+        got = rules_mod._exempts("r7:nechako_river@7-12", _nechako_lifter(flag), zones, rules_of,
+                                 regions={"6", "7a"}, blankets=blankets)
+        return {(x["entry_id"], x["rule_id"], bool(x.get("equivalent"))) for x in json.loads(got or "[]")}
+
+    assert lifts(True) == {("z7a:spring_stream_closure", "spring_stream_closure.r1", False)}
+    assert lifts(False) == {("z7a:spring_stream_closure", "spring_stream_closure.r1", False),
+                            ("z6:iskut_fraser_closure", "iskut_fraser_closure.r2", True)}
+
+
 def test_a_lift_of_a_closure_of_unknown_kind_is_refused_or_falls_back_never_guessed():
     """A lift of known kind meeting a closure of NO known kind stops the build — the dates would
     have to guess. A contradiction (the row says spring, names a winter closure) and a row naming

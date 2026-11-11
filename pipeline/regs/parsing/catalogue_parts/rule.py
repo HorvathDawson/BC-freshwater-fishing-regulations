@@ -53,12 +53,19 @@ class Exempts(BaseModel):
                     is unique only within its entry (AGENTS 8), so the entry is named, not guessed.
 
     The bundle resolves each to exact ids and refuses one that names nothing
-    (`pipeline.deliver.bundle.rules._exempts`)."""
+    (`pipeline.deliver.bundle.rules._exempts`).
+
+    `own_region_only` (owner 2026-11-11, T623 F5, RULINGS L22): the exemption lifts the closure of
+    the row's OWN region only — it never carries (G3, `_equivalent_closures`) to the same kind of
+    closure in another region the water lies in. The Nechako's "Exempt from spring closure" is printed
+    on the Region 7 row (p.60) and lifts Zone 7A's spring closure; inside Region 6 the river stays
+    closed Apr 1-June 30 (p.49). Set only where the owner has said so for that row."""
     model_config = ConfigDict(frozen=True, extra="forbid")
     default_id: Optional[str] = Field(default=None, pattern=r"^[a-z0-9_]+$")
     target: Optional[str] = Field(default=None, pattern=r"^[a-z0-9_]+\.r\d+[a-z]?$")
     entry_id: Optional[str] = None
     note: str = ""
+    own_region_only: bool = False
 
     @model_validator(mode="after")
     def _one_of(self) -> "Exempts":
