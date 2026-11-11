@@ -9,9 +9,9 @@
 import { createHash } from "node:crypto";
 import type { RegsStore } from "@app/data/regs";
 import { slugShard, SLUG_SHARDS } from "@app/ui";
-import { aboutBody, privacyBody, CSS, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, type Release, type Site } from "./html";
+import { aboutBody, privacyBody, CSS, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, clip, descriptionOf, esc, headOf, NOT_LEGAL, notFoundBody, regionLabel, shell, titleOf, waterRegion, type Release, type Site } from "./html";
 import { aboutLd, checkJsonLd, pageLd, waterLd } from "./jsonld";
-import { appPage, buildDayOf, listWaterOrds, managementUnits, nearestTowns, rulesKey, statusOn, waterModel, type BuildDay, type WaterModel, type WaterStatus } from "./model";
+import { appPage, listWaterOrds, managementUnits, nearestTowns, rulesKey, waterModel, type BuildDay, type WaterModel } from "./model";
 import { TOPICS, topicLines, type TopicKey } from "./topics";
 import { assignSlugs, type SlugMap, type Steps } from "./slug";
 import { verifyAgainstApp } from "./verify";
@@ -20,7 +20,7 @@ import { pageSize, type PageSize } from "./budget";
 import { clientScript, gaugeBody, gaugeDescription, gaugeModels, gaugesIndexBody, gaugeTitle, siteGaugeCardSvg, stationsFile, type GaugeModel, type GaugeRows } from "./gauges";
 
 export interface PageRec {
-  readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "weekend" | "calendar" | "changes" | "about" | "privacy" | "gauge" | "gauges";
+  readonly path: string; readonly kind: "water" | "region" | "letter" | "topic" | "changes" | "about" | "privacy" | "gauge" | "gauges";
   /** the page; "" for a water page the build wrote out itself (T279: compressed, by a render thread; 19,000 panes are not held) */
   readonly html: string; readonly hash: string;
   readonly title: string; readonly description: string; readonly size: PageSize;
@@ -77,21 +77,14 @@ const sha = (s: string, n = 16) => createHash("sha256").update(s).digest("hex").
 /** (T529) a water's rules key as the snapshot keeps it */
 export const rulesSha = (key: string): string => sha(key);
 const outFile = (path: string) => `${path.slice(1)}/index.html`;
-const WORD: Record<WaterStatus, string> = { open: "open today", closed: "closed today", mixed: "parts differ", tidal: "tidal water", outside: "outside BC", unknown: "check the page" };
-const dayOfDate = (d: Date): BuildDay => buildDayOf(d);
-
-/** the days of "this weekend" from `on`: Mon-Fri the coming Sat+Sun, Sat today+Sun, Sun today */
-export function weekendDays(on: BuildDay): BuildDay[] {
-  const d = new Date(`${on.iso}T12:00:00`), dow = d.getDay();            // 0 Sun .. 6 Sat
-  const first = new Date(d);
-  if (dow >= 1 && dow <= 5) first.setDate(d.getDate() + (6 - dow));
-  const days = [first];
-  if (first.getDay() === 6) { const sun = new Date(first); sun.setDate(first.getDate() + 1); days.push(sun); }
-  return days.map(dayOfDate);
-}
-
-/** a weekend list longer than this shows its first entries (page weight; the hub lists every water) */
-const WEEKEND_CAP = 250;
+/**
+ * (T605, owner 2026-11-10) THE LIST PAGES CARRY NAMES AND LINKS, never an open / closed word: the site is built once a
+ * release, so a day-relative word is right only on the day it was built. The app (the map, a water's page) works out open
+ * and closed for the day itself. The pages that were all about "today" (what is open this weekend, waters
+ * opening and closing soon) are gone: hosting.ts `REMOVED_PAGES` 301s their addresses to the region page, and they are in no sitemap.
+ */
+/** the live app's map: it opens on the current day (a link carries no `date`) and works out open / closed itself */
+export const mapLink = (site: Site): string => `${site.origin}/`;
 
 /** A-Z buckets of a region's waters ("0" = a name that does not start with a letter), in letter order */
 function groupByLetter(ws: readonly WaterModel[]): Map<string, WaterModel[]> {
@@ -103,14 +96,16 @@ function groupByLetter(ws: readonly WaterModel[]): Map<string, WaterModel[]> {
 /** stable under a changed date: the "as of" times are what a rebuild on another day moves */
 const stable = (html: string) => html.replace(/<time [^>]*>[^<]*<\/time>/g, "<time/>");
 
+/** (T622 G2) what a water's share picture says under its name: nothing that depends on the day it was drawn */
+export const SHARE_LINE = "Season, what you can keep, gear and limits";
 function shareSvg(m: WaterModel, site: Site): string {
   const words = m.name.split(" "), lines: string[] = [""];
   for (const w of words) { if ((lines.at(-1) + " " + w).trim().length > 26 && lines.at(-1)) lines.push(w); else lines[lines.length - 1] = (lines.at(-1) + " " + w).trim(); }
   const t = lines.slice(0, 3).map((l, i) => `<text x="64" y="${190 + i * 84}" font-size="72" font-weight="700">${esc(l)}</text>`).join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SHARE_W}" height="${SHARE_H}" viewBox="0 0 ${SHARE_W} ${SHARE_H}" font-family="${SHARE_FONT}">` +
     `<rect width="${SHARE_W}" height="${SHARE_H}" fill="${SHARE_GROUND}"/><g fill="${SHARE_INK}">${t}` +
-    `<text x="64" y="470" font-size="40">${esc(clip(m.answer, 70))}</text>` +
-    `<text x="64" y="560" font-size="34" opacity=".85">${esc(site.name)} · ${esc(regionLabel(m.region))} · ${esc(site.origin.replace("https://", ""))}</text></g></svg>`;
+    `<text x="64" y="470" font-size="40">${esc(SHARE_LINE)}</text>` +
+    `<text x="64" y="560" font-size="34" opacity=".85">${esc(site.name)} · ${esc(waterRegion(m))} · ${esc(site.origin.replace("https://", ""))}</text></g></svg>`;
 }
 
 export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
@@ -151,6 +146,8 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   };
   const shellOf = (path: string, title: string, description: string, body: string, ld: string, image?: string) =>
     shell({ title, description, path, body: body + regionFooter(), jsonld: ld, cssHref, ...(image ? { image } : {}) }, site);
+  /** the build date is shown (the JSON-LD `dateModified` must be on the page); it is a date, never "today" */
+  const built = () => `Rules from release ${esc(release.id)}, built <time datetime="${asOf}">${asOf}</time>.`;
   const regionFooter = () => regions.length
     ? `<nav class="small" aria-label="Regions"><p>Browse by region: ${regions.map((r) => `<a href="${regionPath(r)}">${esc(regionLabel(r))}</a>`).join(" · ")}</p></nav>` : "";
 
@@ -168,13 +165,13 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   for (const m of models) {
     nameCount.set(m.name, (nameCount.get(m.name) ?? 0) + 1);
   }
-  const qualOf = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : regionLabel(x.region)) : "");
+  const qualOf = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : waterRegion(x)) : "");
   for (const m of models) { const k = `${m.name}|${qualOf(m)}`; const l = sameQual.get(k); if (l) l.push(m); else sameQual.set(k, [m]); }
   for (const m of models) {
     const path = waterPath(m);
     // two waters with one name keep distinct titles: where they are (nearest town, else the region), then "no. k" if that repeats
     const town = towns.get(m.id) ?? null;
-    const qual0 = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : regionLabel(x.region)) : "");
+    const qual0 = (x: WaterModel) => ((nameCount.get(x.name) ?? 0) > 1 ? (towns.get(x.id) ? `near ${towns.get(x.id)}` : waterRegion(x)) : "");
     const twins = [...(sameQual.get(`${m.name}|${qual0(m)}`) ?? [])].sort((x, y) => x.id.localeCompare(y.id));
     const qual = qual0(m) && twins.length > 1 ? `${qual0(m)}, no. ${twins.indexOf(m) + 1}` : qual0(m);
     const title = titleOf(m.name, site, qual), description = descriptionOf(m, `${m.name}${/no\. \d+$/.exec(qual)?.[0] ? ` ${/no\. \d+$/.exec(qual)![0]}` : ""}`, town);
@@ -202,72 +199,35 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
   const TOPIC_CAP = 600;
 
   // ── region hubs (T195) ─────────────────────────────────────────────────────────────────────────────────────────────
-  const days = weekendDays(on);
   for (const r of regions) {
     const ws = inRegion(r), path = regionPath(r), name = regionLabel(r);
-    const list = (xs: readonly WaterModel[], word?: (m: WaterModel) => string, cap = Infinity) =>
-      (xs.length > cap ? `<p class="small">The first ${cap} of ${xs.length}, by name; every water is on <a href="${path}">the ${esc(name)} page</a>.</p>` : "") +
-      `<ul class="cols">${xs.slice(0, cap).map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a>${word ? ` <span class="tag">${esc(word(m))}</span>` : ""}</li>`).join("")}</ul>`;
+    const list = (xs: readonly WaterModel[]) => `<ul class="cols">${xs.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a></li>`).join("")}</ul>`;
     const letters = ws.length > (o.hubSplitAt ?? 400) ? groupByLetter(ws) : null;
     const title = clip(`${name} fishing regulations (BC) — ${site.name}`, 60);
     const body = `<nav class="crumbs"><a href="/">Home</a> › ${esc(name)}</nav><h1>${esc(name)} fishing regulations</h1>` +
       `<p>${ws.length} waters in ${esc(name)} with the full rules in plain words, from release ${esc(release.id)}.</p>` +
-      // (owner 2026-11-05, a proposal) the map, from every hub: the app opens on its map (it takes no region or bbox in a link yet)
-      `<div class="card"><p>For a more visual experience, open the map: every water coloured by today's rules.</p>` +
-      `<a class="app" href="${esc(site.origin)}/">Open the map</a></div>` +
-      `<ul><li><a href="${path}/open-this-weekend">What is open this weekend in ${esc(name)}</a></li>` +
-      `<li><a href="${path}/season-changes">Waters opening and closing soon in ${esc(name)}</a></li>` +
+      // (owner 2026-11-10, T605) the live map, opening on the current day: the app says open or closed (it takes no region or bbox in a link yet)
+      `<div class="card"><p>To see which waters are open, open the map. It opens on the current day and colours every water for it.</p>` +
+      `<a class="app" href="${esc(mapLink(site))}">Open the map for ${esc(name)}</a></div>` +
+      `<ul>` +
       TOPICS.filter((t) => topicWaters(r, t.key).length).map((t) => `<li><a href="${path}/${t.key}">${esc(t.hub)} in ${esc(name)}</a> (${topicWaters(r, t.key).length})</li>`).join("") + `</ul>` +
       yearCardHtml(name, regionYear(ws)) +
       (letters ? `<h2>Waters in ${esc(name)} by first letter</h2><ul class="cols">${[...letters].map(([l, xs]) => `<li><a href="${path}/waters-${l.toLowerCase()}">${l === "0" ? "Other" : l} (${xs.length})</a></li>`).join("")}</ul>`
-        : `<h2>All waters in ${esc(name)}</h2>${list(ws, (m) => WORD[m.status])}`) +
-      `<div class="legal"><p>Open or closed is as of <time datetime="${asOf}">${asOf}</time>. This is not a legal document. Check the official synopsis before you fish.</p></div>`;
-    const description = clip(`Full BC freshwater fishing regulations for ${ws.length} waters in ${name}: what is open today and what you can keep, in plain words.`);
+        : `<h2>All waters in ${esc(name)}</h2>${list(ws)}`) +
+      `<div class="legal"><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+    const description = clip(`Full BC freshwater fishing regulations for ${ws.length} waters in ${name}: what you can keep and when each water is open, in plain words.`);
     unique(titles, title, path); unique(descriptions, description, path);
     add("region", path, shellOf(path, title, description, body, pageLd(site, path, title, asOf, [["Home", "/"], [name, path]])));
     for (const [l, xs] of letters ?? []) {
       const lp = `${path}/waters-${l.toLowerCase()}`, lname = l === "0" ? "other names" : `names starting with ${l}`;
       const lt = clip(`${name} waters, ${l === "0" ? "other" : l} — ${site.name}`, 60);
-      const ld = clip(`${xs.length} waters in ${name} with ${lname}: what is open today and the full rules for each, in plain words.`);
+      const ld = clip(`${xs.length} waters in ${name} with ${lname}: the full rules for each, in plain words.`);
       const lb = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › ${l === "0" ? "Other" : l}</nav><h1>${esc(name)} waters: ${esc(lname)}</h1>` +
-        `<p>${xs.length} waters, from release ${esc(release.id)}.</p>${list(xs, (m) => WORD[m.status])}` +
-        `<div class="legal"><p>Open or closed is as of <time datetime="${asOf}">${asOf}</time>. This is not a legal document. Check the official synopsis before you fish.</p></div>`;
+        `<p>${xs.length} waters, from release ${esc(release.id)}.</p>${list(xs)}` +
+        `<div class="legal"><p>${built()} This is not a legal document. Check the official synopsis before you fish.</p></div>`;
       unique(titles, lt, lp); unique(descriptions, ld, lp);
       add("letter", lp, shellOf(lp, lt, ld, lb, pageLd(site, lp, lt, asOf, [["Home", "/"], [name, path], [l === "0" ? "Other" : l, lp]])));
     }
-
-    // open this weekend: today's status is the model's; the other days come from the app's presenter for that day
-    const status = new Map<string, WaterStatus[]>();
-    for (const m of ws) {
-      const row: WaterStatus[] = [];
-      for (const d of days) row.push(d.iso === on.iso ? m.status : (await statusOn(store, m.ord, d, on.day)) ?? "unknown");
-      status.set(m.id, row);
-    }
-    const all = (m: WaterModel, s: WaterStatus) => status.get(m.id)!.every((x) => x === s);
-    const openAll = ws.filter((m) => all(m, "open")), closedAll = ws.filter((m) => all(m, "closed"));
-    const rest = ws.filter((m) => !openAll.includes(m) && !closedAll.includes(m));
-    const wk = days.map((d) => d.iso).join(" and ");
-    const wpath = `${path}/open-this-weekend`, wtitle = clip(`${name}: what is open this weekend — ${site.name}`, 60);
-    const wbody = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › This weekend</nav>` +
-      `<h1>${esc(name)}: what is open this weekend</h1><p class="asof">Weekend of ${days.map((d) => `<time datetime="${d.iso}">${d.iso}</time>`).join(" and ")}, as of <time datetime="${asOf}">${asOf}</time>, from release ${esc(release.id)}.</p>` +
-      `<h2>Open all weekend (${openAll.length})</h2>${list(openAll, undefined, WEEKEND_CAP)}<h2>Closed all weekend (${closedAll.length})</h2>${list(closedAll, undefined, WEEKEND_CAP)}` +
-      `<h2>Different parts or days (${rest.length})</h2>${list(rest, (m) => status.get(m.id)!.map((s) => WORD[s]).join(", then "), WEEKEND_CAP)}` +
-      `<div class="legal"><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
-    const wdesc = clip(`${name} on ${wk}: ${openAll.length} waters open all weekend, ${closedAll.length} closed, ${rest.length} that differ by part or day.`);
-    unique(titles, wtitle, wpath); unique(descriptions, wdesc, wpath);
-    add("weekend", wpath, shellOf(wpath, wtitle, wdesc, wbody, pageLd(site, wpath, wtitle, asOf, [["Home", "/"], [name, path], ["This weekend", wpath]])));
-
-    // opening and closing dates in the next 60 days (the strip's year runs)
-    const turns = ws.flatMap((m) => m.parts.flatMap((p) => p.turns.map((t) => ({ m, p, t })))).sort((a, b) => a.t.inDays - b.t.inDays || a.m.name.localeCompare(b.m.name));
-    const cpath = `${path}/season-changes`, ctitle = clip(`${name}: waters opening and closing — ${site.name}`, 60);
-    const cbody = `<nav class="crumbs"><a href="/">Home</a> › <a href="${path}">${esc(name)}</a> › Opening and closing</nav>` +
-      `<h1>${esc(name)}: waters opening and closing</h1><p class="asof">The next 60 days from <time datetime="${asOf}">${asOf}</time>, from release ${esc(release.id)}.</p>` +
-      (turns.length ? `<ul>${turns.map(({ m, p, t }) => `<li><strong>${esc(t.on)}</strong> ${t.to === "open" ? "opens" : "closes"}: <a href="${waterPath(m)}">${esc(m.name)}</a>${m.parts.length > 1 ? ` (${esc(p.label)})` : ""}</li>`).join("")}</ul>`
-        : `<p>No water in ${esc(name)} opens or closes in the next 60 days.</p>`) +
-      `<div class="legal"><p>This is not a legal document. Check the official synopsis before you fish.</p></div>`;
-    const cdesc = clip(`${turns.length} openings and closings in ${name} over the next 60 days, by date, each linking to the water's full rules.`);
-    unique(titles, ctitle, cpath); unique(descriptions, cdesc, cpath);
-    add("calendar", cpath, shellOf(cpath, ctitle, cdesc, cbody, pageLd(site, cpath, ctitle, asOf, [["Home", "/"], [name, path], ["Opening and closing", cpath]])));
   }
 
   for (const t of TOPICS) {
@@ -275,23 +235,23 @@ export async function buildSite(o: BuildOpts): Promise<SiteBuild> {
     if (!rows.length) continue;
     const ipath = `/topic/${t.key}`, ititle = clip(`${t.hub} in B.C. — ${site.name}`, 60);
     const total = rows.reduce((n, [, w]) => n + w.length, 0);
-    const idesc = clip(`${t.hub} for ${total} B.C. freshwater waters, by region: the rule in plain words for each, from the provincial synopsis.`);
+    const idesc = clip(`${t.hub} for ${total} B.C. freshwater waters, by region, each linking to the rule in plain words from the provincial synopsis.`);
     const ibody = `<nav class="crumbs"><a href="/">Home</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in B.C.</h1>` +
-      `<p>${total} waters have a rule on this, listed by region. Each water page has the full rule. As of <time datetime="${asOf}">${asOf}</time>.</p>` +
+      `<p>${total} waters have a rule on this, listed by region. Each water page has the full rule.</p>` +
       `<ul>${rows.map(([r, w]) => `<li><a href="${regionPath(r)}/${t.key}">${esc(regionLabel(r))}</a> (${w.length})</li>`).join("")}</ul>` +
-      `<div class="legal"><p>${esc(NOT_LEGAL)}</p></div>`;
+      `<div class="legal"><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
     unique(titles, ititle, ipath); unique(descriptions, idesc, ipath);
     add("topic", ipath, shellOf(ipath, ititle, idesc, ibody, pageLd(site, ipath, ititle, asOf, [["Home", "/"], [t.hub, ipath]])));
     for (const [r, ws] of rows) {
       const p = `${regionPath(r)}/${t.key}`, nm = regionLabel(r);
       const title = clip(`${t.hub} in ${nm}, B.C. — ${site.name}`, 60);
-      const desc = clip(`${t.hub} in ${nm}: ${ws.length} waters with a rule on this, each with the rule in plain words. As of ${asOf}.`);
+      const desc = clip(`${t.hub} in ${nm}: ${ws.length} waters with a rule on this, each linking to the rule in plain words.`);
       const ls = ws.slice(0, TOPIC_CAP);
       const body = `<nav class="crumbs"><a href="/">Home</a> › <a href="${regionPath(r)}">${esc(nm)}</a> › ${esc(t.hub)}</nav><h1>${esc(t.hub)} in ${esc(nm)}, B.C.</h1>` +
-        `<p>${ws.length} waters in ${esc(nm)}${ws.length > ls.length ? `; the first ${ls.length} by name are listed, every water is on <a href="${regionPath(r)}">the ${esc(nm)} page</a>` : ""}. Each line is the water page's own wording.</p>` +
-        `<ul class="topic">${ls.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a> <span class="tag">${esc(WORD[m.status])}</span><br>${esc(waterTopics.get(m.id)!.get(t.key)![0]!)}</li>`).join("")}</ul>` +
+        `<p>${ws.length} waters in ${esc(nm)}${ws.length > ls.length ? `; the first ${ls.length} by name are listed, every water is on <a href="${regionPath(r)}">the ${esc(nm)} page</a>` : ""}. Each water page has the rule in full.</p>` +
+        `<ul class="cols">${ls.map((m) => `<li><a href="${waterPath(m)}">${esc(m.name)}</a> </li>`).join("")}</ul>` +
         `<p><a href="${ipath}">${esc(t.hub)} in all regions</a></p>` +
-        `<div class="legal"><p>${esc(NOT_LEGAL)}</p></div>`;
+        `<div class="legal"><p>${built()} ${esc(NOT_LEGAL)}</p></div>`;
       unique(titles, title, p); unique(descriptions, desc, p);
       add("topic", p, shellOf(p, title, desc, body, pageLd(site, p, title, asOf, [["Home", "/"], [nm, regionPath(r)], [t.hub, p]])));
     }

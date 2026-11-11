@@ -23,7 +23,7 @@ APP = HERE.parents[2]
 FONTS = APP / "node_modules/@expo-google-fonts/archivo"
 OUT = HERE.parent / "src/gauges/card/glyphs.generated.ts"
 
-TEXT = "".join(chr(c) for c in range(32, 127)) + "³°·–—‘’“”…→éÉèàâçôîïüñ"
+TEXT = "".join(chr(c) for c in range(32, 127)) + "³°·–—‘’“”…→×éÉèàâçôîïüñ"
 DIGITS = "0123456789.,-–m³/s %"
 # face key -> (weight file, pixel size, the characters drawn)
 FACES = {

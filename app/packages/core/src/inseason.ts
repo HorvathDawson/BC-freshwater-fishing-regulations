@@ -324,7 +324,8 @@ export interface InSeasonNoticeRow {
   readonly url: string;
 }
 
-const regionWords = (r: string) => (/^\d[AB]?$/i.test(r) ? `Region ${r.toUpperCase()}` : r === "provincial" ? "Provincial" : r);
+/** "7a" -> "Region 7A": a region code as every surface names it (T622: the public site's water pages read it too) */
+export const regionWords = (r: string) => (/^\d[AB]?$/i.test(r) ? `Region ${r.toUpperCase()}` : r === "provincial" ? "Provincial" : r);
 
 export function inSeasonNoticeRows(unmatched: readonly InSeasonChange[]): InSeasonNoticeRow[] {
   return unmatched.map((c) => ({ id: c.id, where: `${regionWords(c.region)} · ${c.water}`,

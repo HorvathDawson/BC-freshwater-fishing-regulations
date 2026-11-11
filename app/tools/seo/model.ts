@@ -7,7 +7,7 @@
  *
  * The angler is the adult resident, as the app defaults (the licence never changes open/closed).
  */
-import { MONTHS as CORE_MONTHS, WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type Weekday } from "@app/core";
+import { WEEKDAYS, type BannerVM, type Day, type Line, type RegsPage, type TreeNodeVM, type Weekday } from "@app/core";
 import { liveParts, PAGE_ORDS_SQL, regionsOfKeys, regsPage, type RegsStore } from "@app/data/regs";
 
 export interface BookRef { readonly printed: number; readonly pdf: number | null }
@@ -19,10 +19,7 @@ export interface Item {
 }
 export interface Section { readonly title: string; readonly items: readonly Item[] }
 export type Status = RegsPage["status"];
-/** a day within the next two months on which the water opens or closes (read from the strip's year runs) */
-export interface Turn { readonly inDays: number; readonly on: string; readonly to: "open" | "closed" }
 export interface PartModel {
-  readonly turns: readonly Turn[];
   /** (T406 part 2) the strip's book year as closed/open runs (null: a day with no frame, or tidal), or null: no strip.
    *  Read by the region hubs' year bar; not in the water's content hash. */
   readonly year: readonly { readonly closed: boolean | null; readonly days: number }[] | null;
@@ -160,26 +157,6 @@ const TODAY_WORDS: Record<Status, string> = {
   unknown: "We could not tell whether this water is open today. Check the synopsis.",
 };
 
-/** the calendar spec's month names, short (AGENTS dataflow gate 4: a calendar table is spelled once) */
-const MONTHS = CORE_MONTHS.map((m) => m.slice(0, 3));
-/** the book calendar's 365 days (a non-leap year), day index -> "Nov 1" */
-const bookDay = (i: number): string => { const d = new Date(Date.UTC(2001, 0, 1 + ((i % 365) + 365) % 365)); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`; };
-
-/** Where the water turns open <-> closed in the next `within` days, read from the strip's year runs (bit 1 = closed). */
-function turnsOf(page: RegsPage, within: number): Turn[] {
-  const s = page.keep.strip;
-  if (!s) return [];
-  const closed: boolean[] = [];
-  for (const r of s.runs) for (let i = 0; i < r.days; i++) closed.push(((r.bits ?? 0) & 1) === 1);
-  if (closed.length < 365) return [];
-  const at = Math.round(s.todayAt * 365), out: Turn[] = [];
-  for (let n = 1; n <= within; n++) {
-    const was = closed[(at + n - 1) % closed.length], now = closed[(at + n) % closed.length];
-    if (was !== now) out.push({ inDays: n, on: bookDay(at + n), to: now ? "closed" : "open" });
-  }
-  return out;
-}
-
 /** (T406 part 2) The strip's year runs folded to closed / open (bit 1 = closed; null stays null); null: no strip. */
 function yearOf(page: RegsPage): PartModel["year"] {
   const s = page.keep.strip;
@@ -200,7 +177,7 @@ export function partModel(page: RegsPage): PartModel {
   return {
     partIx: page.target.kind === "part" ? page.target.partIx : 0, label: page.header.place?.full ?? page.header.name,
     status: page.status, today: banner?.big[0] ?? banner?.paras[0] ?? (strip || TODAY_WORDS[page.status]),
-    sections: sectionsOf(bare), turns: turnsOf(page, 60), year: yearOf(page),
+    sections: sectionsOf(bare), year: yearOf(page),
   };
 }
 
@@ -289,18 +266,6 @@ async function focusOf(store: RegsStore, akeys: readonly number[]): Promise<stri
 /** The app's page for one part on `on` (the angler defaults as the app's do). */
 export async function appPage(store: RegsStore, itemId: string, partIx: number, on: BuildDay, today: Day = on.day): Promise<RegsPage> {
   return regsPage(store, itemId, partIx, on, today);
-}
-
-/** The water's status on `on` alone (the weekend page asks it for the other days); null: no page. */
-export async function statusOn(store: RegsStore, ord: number, on: BuildDay, today: Day): Promise<WaterStatus | null> {
-  const [it, parts] = await Promise.all([store.item(ord), store.parts(ord)]);
-  const ss: Status[] = [];
-  for (const p of parts) {
-    if (p.akey === null || p.facts === null) continue;
-    const s = (await appPage(store, it.id, p.partIx, on, today)).status;
-    if (s !== "outside") ss.push(s);
-  }
-  return ss.length ? (new Set(ss).size === 1 ? ss[0]! : "mixed") : null;
 }
 
 /** The water at `ord`, as of `on`; null when it has no page (every part outside B.C. or without rules). */

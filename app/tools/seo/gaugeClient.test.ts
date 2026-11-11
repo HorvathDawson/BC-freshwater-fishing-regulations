@@ -4,38 +4,50 @@
  * its failure reports held to the feeds worker's own crash validator (wire parity).
  */
 import { describe, expect, it } from "vitest";
-import { figure } from "@app/core";
-import { clientScript } from "./gauges";
+import { bcDayWords, bcIsoDayWords, bcStampWords, CONDITIONS_WORDS, figure, freshness, readingAgeWords } from "@app/core";
 import { validateCrash } from "../../workers/feeds/src/crashes";
-import { ago, chartSvg, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
+import { chartSvg, crashReport, forecastHtml, gaugePage, isEnvironment, readingHtml, weatherHtml, type Facts } from "./gaugeClient";
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
 const NOW = Date.parse("2026-11-08T12:00:00Z");
 const facts = (o: Partial<Facts> = {}): Facts => ({
   format: "gauge-card/1", station: "08MH001", name: "Chilliwack River at Vedder Crossing", drawnAt: "2026-11-08T11:35:00Z",
-  parameter: "discharge", unit: "m³/s", reading: 22.2, value: "22.2 m³/s", standing: "Very low for the time of year",
-  at: "2026-11-08T11:00:00Z", atText: "Nov 8, 3:00 a.m. PST", staleAfterMs: 2 * 3600_000,
+  parameter: "discharge", unit: "m³/s", reading: 22.2, value: "22.2 m³/s", standing: "Much below normal · lower than almost every day on record for the date",
+  at: "2026-11-08T11:00:00Z", atText: "2026-11-08 at 04:00 PT", staleAfterMs: 2 * 3600_000,
+  fetchedAt: "2026-11-08T11:50:00Z", runOld: CONDITIONS_WORDS.runOld, change: "rises to 1.8× (Tue)",
   week: [[NOW - 6 * 86_400_000, 20], [NOW - 3600_000, 22.2]],
-  forecast: { model: "CLEVER", issuedAt: "2026-11-07T18:32:00Z", issued: "Nov 7, 10:32 a.m. PST", dueBy: NOW + 86_400_000,
+  forecast: { model: "CLEVER", issuedAt: "2026-11-07T18:32:00Z", issued: "2026-11-07 at 11:32 PT", dueBy: NOW + 86_400_000,
               points: [[NOW, 23], [NOW + 5 * 86_400_000, 60]], attribution: "Forecast data provided by the BC River Forecast Centre" },
   forecastOld: null, ...o,
 });
 
 describe("T487 the gauge page's live half", () => {
-  it("a fresh reading: value, standing, time; a stale one says so in words; no reading is said, never blank", () => {
-    expect(text(readingHtml(facts(), NOW))).toMatch(/22\.2 m³\/s flow Very low for the time of year Measured Nov 8, 3:00 a\.m\. PST \(60 minutes ago\)/);
-    expect(readingHtml(facts(), NOW)).not.toContain("Out of date");
-    expect(text(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW))).toMatch(/Out of date: no new reading for 21 hours/);
+  it("a fresh reading: value, standing, and the APP'S age line; a copy past its time says so in the app's words; no reading is said, never blank", () => {
+    const fresh = text(readingHtml(facts(), NOW));
+    expect(fresh).toMatch(/22\.2 m³\/s flow Much below normal · lower than almost every day on record for the date This gauge's own reading · observed 2026-11-08 at 04:00 PT · checked 10 min ago/);
+    expect(readingHtml(facts(), NOW)).not.toContain("class=\"warn\"");
+    // (G7) the reading itself is old but OUR copy is not: the app's rule says nothing is wrong
+    expect(readingHtml(facts({ at: "2026-11-07T15:00:00Z" }), NOW)).not.toContain("class=\"warn\"");
+    // our copy is 3 hours old: the app's words, "may be out of date"
+    const old = readingHtml(facts({ fetchedAt: "2026-11-08T09:00:00Z" }), NOW);
+    expect(text(old)).toMatch(/observed 2026-11-08 at 04:00 PT · last checked 3h ago, may be out of date/);
+    expect(old).toContain('class="warn"');
+    expect(text(readingHtml(facts({ fetchedAt: null }), NOW))).toMatch(/age unknown/);
+    // the line IS core's, whatever the facts
+    const f = facts({ fetchedAt: "2026-11-06T12:00:00Z" });
+    expect(text(readingHtml(f, NOW))).toContain(readingAgeWords(freshness(Date.parse(f.fetchedAt!), NOW, f.staleAfterMs), f.atText));
+    expect(text(readingHtml(f, NOW))).toContain("last checked 2d ago");   // G22: the app's "2d ago" / "1h ago", not "75 minutes ago"
     expect(text(readingHtml(facts({ value: null, reading: null, at: null, atText: null }), NOW))).toMatch(/No current reading The live feed has no reading for this gauge/);
-    expect(ago(25 * 3600_000)).toBe("25 hours ago");
+    expect(readingHtml(facts(), NOW)).not.toMatch(/percentile/i);
   });
 
   it("the forecast: drawn and named; past its working-day line, out of date; none, said", () => {
-    expect(text(forecastHtml(facts(), NOW))).toMatch(/Dashed: the CLEVER flow forecast, issued Nov 7/);
-    expect(text(forecastHtml(facts(), NOW + 2 * 86_400_000))).toMatch(/out of date/);
+    expect(text(forecastHtml(facts(), NOW))).toMatch(/Dashed: the CLEVER flow forecast, issued 2026-11-07/);
+    expect(text(forecastHtml(facts(), NOW))).toContain("Expected change: rises to 1.8× (Tue).");
+    expect(text(forecastHtml(facts(), NOW + 2 * 86_400_000))).toMatch(/likely out of date/);
     expect(text(forecastHtml(facts({ forecast: null }), NOW)).trim()).toBe("No flow forecast for this gauge.");
-    expect(text(forecastHtml(facts({ forecast: null, forecastOld: { model: "ELF", issued: "Oct 30" } }), NOW))).toMatch(/latest ELF run \(issued Oct 30\) is out of date/);
+    expect(text(forecastHtml(facts({ forecast: null, forecastOld: { model: "ELF", issued: "Oct 30" } }), NOW))).toMatch(/latest ELF run \(issued Oct 30\) is likely out of date/);
     const svg = chartSvg(facts(), NOW)!;
     expect(svg).toContain('class="obs"');
     expect(svg).toContain('class="fc"');
@@ -48,6 +60,11 @@ describe("T487 the gauge page's live half", () => {
       daily: { time: ["2026-11-08"], weather_code: [3], temperature_2m_max: [8], temperature_2m_min: [2], precipitation_sum: [3.2], wind_speed_10m_max: [20] } },
       { "61": "Rain", "3": "Cloud" }, "Weather from Open-Meteo.com (CC BY 4.0)", NOW);
     expect(text(html)).toMatch(/6°C Rain .*Cloud 8° \/ 2° 3\.2 mm 20 km\/h.*Weather from Open-Meteo\.com \(CC BY 4\.0\), fetched/);
+    // (T605 item 1) the days and the time are core's B.C. words, not the browser's zone
+    expect(text(html)).toContain(`${bcIsoDayWords("2026-11-08")} Cloud`);
+    expect(text(html)).toContain(`fetched ${bcStampWords(NOW)}.`);
+    expect(text(html)).toContain("as of 2026-11-08 04:00 PT");
+    expect(bcDayWords(NOW)).toBe("Nov 8");
     expect(() => weatherHtml({}, {}, "x", NOW)).toThrow(/no current or daily/);
   });
 
@@ -93,8 +110,7 @@ describe("T487 the gauge page's live half", () => {
     expect(off.sent).toEqual([]);
   });
 
-  it("the shipped script carries core's figure, written from the function itself", () => {
-    expect(clientScript()).toContain(`const figure=${figure.toString()};`);
-    expect(clientScript()).not.toMatch(/^import /m);
+  it("the shipped script's core functions are written from core's own source, and run (see gauges.test.ts for the parity)", () => {
+    expect(figure(0.123)).toBe("0.12");
   });
 });

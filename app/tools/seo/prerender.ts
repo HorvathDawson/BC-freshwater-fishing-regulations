@@ -152,11 +152,11 @@ export const SETTLE_MAX_MS = 5000;
  * when the app's pane is COMPLETE (T405): it shows every part (data-testid) the prerendered pane shows (the access strip,
  * the salmon row… arrive after its first frame) and has held still for SETTLE_FRAMES frames; or, when a part differs from
  * the build's (a live feed), once it has held still for QUIET_MS; or at the reader's first click / key (the app is up:
- * they get it at once); or after SETTLE_MAX_MS, said in the console. A start on another view (`?view=conditions|map`) has
- * no prerendered twin: it goes at once. So does it when the app has moved off the page.
+ * they get it at once); or after SETTLE_MAX_MS, said in the console. A start on another view (`?view=conditions|map`), or on a part or a
+ * day the build did not draw (`?blk=&m=`, `?ix=`, `?date=`), has no prerendered twin: it goes at once. So does it when the app has moved off the page.
  */
 export const HANDOFF = `<script type="module">` +
-  `const p=document.getElementById("prerender"),r=document.getElementById("root"),v=new URLSearchParams(location.search).get("view"),w=location.pathname;` +
+  `const p=document.getElementById("prerender"),r=document.getElementById("root"),q=new URLSearchParams(location.search),v=q.get("view"),w=location.pathname;` +
   // the drawn one of an id (a prerendered pane holds every layout's; only the window's is drawn)
   `const d=(e,i)=>[...e.querySelectorAll('[data-testid="'+i+'"]')].find(x=>x.offsetParent!==null);` +
   `const ids=e=>new Set([...e.querySelectorAll("[data-testid]")].filter(x=>x.offsetParent!==null).map(x=>x.getAttribute("data-testid")));` +
@@ -170,7 +170,8 @@ export const HANDOFF = `<script type="module">` +
   `const o=new MutationObserver(()=>{if(t0>=0)return;if(d(r,"regs-header")||location.pathname!==w){t0=performance.now();requestAnimationFrame(f)}});` +
   // a click on a prerendered link (‹, ×, "Rule book p.N") is left to the link
   `const now=e=>{if(!(e.target.closest&&e.target.closest("a"))&&k())go()};p.addEventListener("click",now,true);addEventListener("keydown",now,true);` +
-  `if(v&&v!=="regs")p.remove();else o.observe(r,{childList:true,subtree:true})` +
+  // (T622 G6) a start on another view, or on a part / day the build did not draw (`blk` + `m` a place, `ix` a part, `date` a day), has no prerendered twin
+  `if((v&&v!=="regs")||["blk","m","ix","date"].some(k=>q.has(k)))p.remove();else o.observe(r,{childList:true,subtree:true})` +
   `</script>`;
 
 

@@ -171,9 +171,9 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   files.set(paneHref.slice(1), paneCss);
   files.set("_headers", headersFile());
   withFavicon(files);
-  files.set("_redirects", redirectsFile(build.removed));
+  files.set("_redirects", redirectsFile(build.removed, build.regions));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);
-  files.set("host-worker.js", hostWorker(config, build.removed));
+  files.set("host-worker.js", hostWorker(config, build.removed, build.regions));
   let legacy: LegacyBuilt | null = null;
   if (a.crosswalk) {
     const pathOfItem = new Map(build.models.map((m) => [m.id, `/water/${build.slugMap.waters[m.id]!.slug}`]));

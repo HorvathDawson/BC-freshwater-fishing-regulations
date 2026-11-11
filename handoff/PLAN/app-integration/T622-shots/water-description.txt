@@ -1,0 +1,4 @@
+== before
+<meta name="description" content="Vedder River fishing regulations, B.C. (Region 2): Open to fishing today, with limits. 2 hatchery trout/char a day from streams."
+== after
+<meta name="description" content="Vedder River fishing regulations, B.C. (Region 2): the season, what you can keep, gear and limits, in plain words."

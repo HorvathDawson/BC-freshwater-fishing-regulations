@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { bestServes, figure, gaugePath, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { bestServes, gaugePath, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -53,14 +53,47 @@ export function gaugeModels(rows: GaugeRows, water: (item: string) => WaterLink 
 
 // ── the live half ────────────────────────────────────────────────────────────────────────────────────────────────────
 const HERE = dirname(fileURLToPath(import.meta.url));
-/** gaugeClient.ts as one plain script (TypeScript's own transpile: the file has no imports), calling itself on load */
+/**
+ * (T622, T605 item 1) THE CORE FUNCTIONS THE PAGE SCRIPT USES, written into it from their own source. The page ships as one
+ * plain script that cannot import, so this takes each named top-level declaration of a core file (a function or a const),
+ * transpiles it and puts it in the script: the page cannot round a figure, say a B.C. day or time, or age a reading
+ * differently from the app, and none is typed twice. Every name a function here calls must be listed (a missing one is a
+ * ReferenceError in the browser: `gauges.test.ts` runs the script and compares its output to core's).
+ */
+const CORE = join(HERE, "../../packages/core/src");
+export const CORE_INLINE: readonly (readonly [file: string, names: readonly string[]])[] = [
+  ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours"]],
+  ["flow.ts", ["MONTHS", "monthAbbr", "WEEKDAY_NAMES", "weekdayAbbr"]],
+  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcStampWords", "bcIsoDayWords"]],
+  ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords"]],
+  ["standing.ts", ["figure"]],
+];
+const plain = (ts_: string): string =>
+  ts.transpileModule(ts_, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText
+    .replace(/^export /gm, "");
+function inlineCore(file: string, names: readonly string[]): string {
+  const path = join(CORE, file), src = readFileSync(path, "utf8");
+  const sf = ts.createSourceFile(path, src, ts.ScriptTarget.ES2020, true);
+  const found = new Set<string>(), out: string[] = [];
+  for (const st of sf.statements) {
+    const declared = ts.isFunctionDeclaration(st) && st.name ? [st.name.text]
+      : ts.isVariableStatement(st) ? st.declarationList.declarations.flatMap((d) => (ts.isIdentifier(d.name) ? [d.name.text] : [])) : [];
+    if (!declared.some((n) => names.includes(n))) continue;
+    for (const n of declared) found.add(n);
+    out.push(src.slice(st.getStart(sf), st.end));
+  }
+  const missing = names.filter((n) => !found.has(n));
+  if (missing.length) throw new Error(`seo: core/${file} has no top-level ${missing.join(", ")} to write into the gauge page's script`);
+  return plain(out.join("\n"));
+}
+/** gaugeClient.ts as one plain script (TypeScript's own transpile), core's functions written in from their source, calling itself on load */
 export function clientScript(): string {
   const src = readFileSync(join(HERE, "gaugeClient.ts"), "utf8");
-  const js = ts.transpileModule(src, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, removeComments: true } }).outputText
-    .replace(/^export /gm, "").replace(/^import \{ figure \} from "@app\/core";\n/m, "");
-  if (/^\s*import\b/m.test(js)) throw new Error("seo: gaugeClient.ts must not import anything but core's figure (it ships as one plain script)");
-  // (T583) THE FIGURE IS CORE'S, written into the script from the function itself: the page cannot round differently
-  return `(function(){"use strict";\nconst figure=${figure.toString()};\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
+  const js = plain(src).replace(/^import \{[^}]*\} from "@app\/core";\n/m, "");
+  if (/^\s*import\b/m.test(js)) throw new Error("seo: gaugeClient.ts must not import anything but core (it ships as one plain script)");
+  const core = CORE_INLINE.map(([f, names]) => inlineCore(f, names)).join("\n");
+  // the feed's age line is judged by the stale time the facts file names; `freshness`' default is that same table's value
+  return `(function(){"use strict";\nconst STALE_AFTER_MS=${STALE_AFTER_MS};\n${core}\n${js}\ngaugePage(document,Date.now,window.fetch.bind(window)).catch(function(e){console.error(e)});\n})();\n`;
 }
 
 /** the production hosts the page names; deploy/staging/site.sh points a staging copy at staging's */

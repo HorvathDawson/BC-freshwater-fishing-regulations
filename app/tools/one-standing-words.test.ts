@@ -107,8 +107,8 @@ describe("one speaker of a standing (T583)", () => {
   it("only standing.ts speaks the old forms", () => expect(hits(OLD_SPEAKERS)).toEqual([]));
   it("only standing.ts spells a percentile as p20th", () => expect(hits(OLD_FORMAT)).toEqual([]));
   it("only standing.ts composes a percentile phrase", () => expect(hits(PHRASE)).toEqual([]));
-  it("only core owns a figure formatter (the shipped page's copy is written from it)", () =>
-    expect(hits(OWN_FIGURE).filter((p) => p !== "tools/seo/gauges.ts")).toEqual([]));
+  it("only core owns a figure formatter (the shipped page's copy is written from it, `clientScript`)", () =>
+    expect(hits(OWN_FIGURE)).toEqual([]));
   it.each(SPELLINGS)("the pattern %s fails on the spelling it replaced", (re, spelling) => {
     expect(re.test(spelling)).toBe(true);
   });

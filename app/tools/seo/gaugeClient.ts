@@ -4,17 +4,19 @@
  * It reads two things and draws them:
  *   - the gauge's facts, `<data>/feeds/cards/<station>.json`: what the feeds worker drew the share card from in its gauge
  *     run (app/workers/feeds/src/gauges/card/card.ts `cardFacts`) — the reading, its standing words, its time, the last
- *     7 days and the forecast run with its working-day line. Every word was chosen there (core); this file only lays it
- *     out and judges staleness at the reader's own time from the instants given.
+ *     7 days and the forecast run with its working-day line. The words were chosen there (core); this file lays them out
+ *     and says the reading's age line the app's way, at the reader's own time, from the instants given.
  *   - the weather at the gauge, from Open-Meteo (the one outside source the app uses for weather), at the URL the build
  *     wrote (rounded to ~1 km, data/spots/weather.ts `weatherPlace`).
  * A file that cannot be read is SHOWN as such where its section is AND reported (the app's crash endpoint, crash/2,
  * route "conditions") — unless it is the reader's own line (offline): shown, not reported (core failure.ts rule).
  *
- * NO IMPORTS: the build (gauges.ts `clientScript`) transpiles this file to one plain script; everything it needs from
- * the app's packages (words, the weather URL, attributions) arrives in the page's config.
+ * ONE IMPORT, from core: the build (gauges.ts `clientScript`) transpiles this file to one plain script and writes the
+ * core functions it names (and the ones they call) into it from their own source, so the page cannot round, stamp or age
+ * a value differently from the app (T622; `gauges.test.ts` holds the names and the output to core's). Everything else it
+ * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
-import { figure } from "@app/core";
+import { BC_TIME_LABEL, bcDayWords, bcIsoDayWords, bcStampWords, figure, freshness, readingAgeWords } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -35,22 +37,18 @@ export interface Facts {
   format: string; station: string; name: string; drawnAt: string;
   parameter: "discharge" | "level" | null; unit: string | null; reading: number | null; value: string | null; standing: string | null;
   at: string | null; atText: string | null; staleAfterMs: number;
+  /** when the feed wrote our copy (ISO), or null: the age the reading's line is judged by (the app's rule) */
+  fetchedAt: string | null;
+  /** core's words for a forecast run past its line ("likely out of date") */
+  runOld: string;
+  /** the station's expected change, in core's short words ("rises to 4× (Wed)"), or null */
+  change: string | null;
   week: [number, number][];
   forecast: { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string } | null;
   forecastOld: { model: string; issued: string } | null;
 }
 
 const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
-/** "21 hours ago" — coarse, as a reader says it */
-export function ago(ms: number): string {
-  const m = Math.max(0, Math.round(ms / 60_000));
-  if (m < 2) return "just now";
-  if (m < 90) return `${m} minutes ago`;
-  const h = Math.round(m / 60);
-  if (h < 36) return `${h} hours ago`;
-  return `${Math.round(h / 24)} days ago`;
-}
 
 /** the reading block: the value, its standing, its time; a stale reading said in so many words */
 export function readingHtml(f: Facts, now: number): string {
@@ -59,14 +57,13 @@ export function readingHtml(f: Facts, now: number): string {
       `<p class="warn">${f.atText ? `This gauge last reported ${esc(f.atText)}.` : "The live feed has no reading for this gauge."} ` +
       "It may be down, seasonal, or late reporting.</p>";
   }
-  const at = f.at ? Date.parse(f.at) : NaN;
-  const stale = !Number.isFinite(at) || now - at > f.staleAfterMs;
+  // (T622 G7, G8, G22, G24) THE APP'S LINE: the reading's time as the app says it, and how old OUR copy is, judged by core's
+  // `freshness` (the age of the feed's copy, not of the reading) -- "This gauge's own reading · observed … · checked 10 min ago"
+  const copy = freshness(f.fetchedAt ? Date.parse(f.fetchedAt) : null, now, f.staleAfterMs);
   const what = f.parameter === "level" ? "water level" : "flow";
   return `<p class="reading"><b>${esc(f.value)}</b> ${what}</p>` +
     (f.standing ? `<p class="standing">${esc(f.standing)}</p>` : "") +
-    `<p class="asof">Measured ${esc(f.atText ?? "at an unknown time")}${Number.isFinite(at) ? ` (${ago(now - at)})` : ""}</p>` +
-    (stale ? `<p class="warn">Out of date: no new reading for ${Number.isFinite(at) ? ago(now - at).replace(" ago", "") : "an unknown time"}. ` +
-             "The gauge may be down or late reporting; the reading above is its last.</p>" : "");
+    `<p class="${copy.state === "live" ? "asof" : "warn"}">${esc(readingAgeWords(copy, f.atText))}</p>`;
 }
 
 /** the forecast line under the chart */
@@ -74,16 +71,18 @@ export function forecastHtml(f: Facts, now: number): string {
   if (f.forecast) {
     const old = now > f.forecast.dueBy;
     return `<p class="small">Dashed: the ${esc(f.forecast.model)} flow forecast, issued ${esc(f.forecast.issued)}` +
-      (old ? ` — <b>out of date</b> (no newer run since)` : "") + `.</p>`;
+      (old ? ` — <b>${esc(f.runOld)}</b> (no newer run since)` : "") + `.</p>` +
+      (f.change ? `<p class="small">Expected change: ${esc(f.change)}.</p>` : "");
   }
-  if (f.forecastOld) return `<p class="small">No current flow forecast: the latest ${esc(f.forecastOld.model)} run (issued ${esc(f.forecastOld.issued)}) is out of date, so it is not drawn.</p>`;
+  if (f.forecastOld) return `<p class="small">No current flow forecast: the latest ${esc(f.forecastOld.model)} run (issued ${esc(f.forecastOld.issued)}) is ${esc(f.runOld)}, so it is not drawn.</p>`;
   return `<p class="small">No flow forecast for this gauge.</p>`;
 }
 
-// `figure` is core's (standing.ts, T583): clientScript() writes its source into the shipped script, so it is not typed twice
+// `figure`, the B.C. day and stamp words and the age line are core's: clientScript() writes their source into the shipped
+// script, so none is typed twice
 
 const DAY = 86_400_000;
-const dayLabel = (t: number) => new Date(t).toLocaleDateString("en-CA", { month: "short", day: "numeric", timeZone: "America/Vancouver" });
+const dayLabel = (t: number) => bcDayWords(t);
 
 /** the last 7 days (and the forecast's dashes) as an SVG; null when there is nothing to draw */
 export function chartSvg(f: Facts, now: number): string | null {
@@ -129,14 +128,13 @@ export function weatherHtml(m: Meteo, sky: Readonly<Record<string, string>>, att
   const n = (v: number | undefined, unit: string, digits = 0) => (typeof v === "number" && Number.isFinite(v) ? `${v.toFixed(digits)}${unit}` : "—");
   const word = (code: number | undefined) => (typeof code === "number" ? sky[String(code)] ?? "—" : "—");
   const now = c ? `<p class="reading"><b>${n(c.temperature_2m, "°C")}</b> ${esc(word(c.weather_code))}</p>` +
-    `<p class="small">Wind ${n(c.wind_speed_10m, " km/h")} · precipitation ${n(c.precipitation, " mm", 1)}${c.time ? ` · as of ${esc(c.time.replace("T", " "))} Pacific` : ""}</p>` : "";
+    `<p class="small">Wind ${n(c.wind_speed_10m, " km/h")} · precipitation ${n(c.precipitation, " mm", 1)}${c.time ? ` · as of ${esc(c.time.replace("T", " "))} ${BC_TIME_LABEL}` : ""}</p>` : "";
   const rows = (d?.time ?? []).map((day, i) => {
-    const wd = new Date(`${day}T12:00:00-08:00`).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric", timeZone: "America/Vancouver" });
-    return `<tr><th scope="row">${esc(wd)}</th><td>${esc(word(d!.weather_code?.[i]))}</td><td>${n(d!.temperature_2m_max?.[i], "°")} / ${n(d!.temperature_2m_min?.[i], "°")}</td>` +
+    return `<tr><th scope="row">${esc(bcIsoDayWords(day))}</th><td>${esc(word(d!.weather_code?.[i]))}</td><td>${n(d!.temperature_2m_max?.[i], "°")} / ${n(d!.temperature_2m_min?.[i], "°")}</td>` +
       `<td>${n(d!.precipitation_sum?.[i], " mm", 1)}</td><td>${n(d!.wind_speed_10m_max?.[i], " km/h")}</td></tr>`;
   }).join("");
   return now + (rows ? `<table class="wx"><thead><tr><th>Day</th><th>Sky</th><th>High / low</th><th>Rain</th><th>Wind</th></tr></thead><tbody>${rows}</tbody></table>` : "") +
-    `<p class="small">${esc(attribution)}, fetched ${esc(new Date(fetchedAt).toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit", timeZone: "America/Vancouver", timeZoneName: "short" }))}.</p>`;
+    `<p class="small">${esc(attribution)}, fetched ${esc(bcStampWords(fetchedAt))}.</p>`;
 }
 
 /** the reader's own line (offline, dropped): shown, never reported — core failure.ts `isEnvironment`, the same words */
@@ -188,8 +186,8 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
     put("gauge-now", readingHtml(f, t));
     const svg = chartSvg(f, t);
     put("gauge-chart", (svg ?? `<p class="small">No readings in the last 7 days.</p>`) + forecastHtml(f, t) +
-      `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional. ` +
-      `Read by our feed ${esc(ago(t - Date.parse(f.drawnAt)))}.${f.forecast ? ` ${esc(f.forecast.attribution)}` : ""}</p>`);
+      `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional.` +
+      `${f.forecast ? ` ${esc(f.forecast.attribution)}` : ""}</p>`);
   }).catch((e) => { failed("gauge-now", "The latest reading", e); put("gauge-chart", ""); });
   const weather = cfg.weather === null
     ? Promise.resolve(put("gauge-weather", `<p class="small">This gauge has no position on file, so no weather is shown.</p>`))

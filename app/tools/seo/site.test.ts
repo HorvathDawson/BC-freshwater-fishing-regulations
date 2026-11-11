@@ -19,7 +19,7 @@ import { TODAY } from "./fixture";
 import { headersFile, hostWorker, HSTS, redirectFor, redirectsFile } from "./hosting";
 import { checkJsonLd } from "./jsonld";
 import { buildDayOf } from "./model";
-import { weekendDays } from "./site";
+import { SHARE_LINE } from "./site";
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = join(APP, "dist/seo-test");
@@ -184,7 +184,7 @@ describe("T194 sitemap, robots, canonicals, structured data", () => {
     const slugMap = { version: 1 as const, waters: { ...built.build.slugMap.waters, "gnis:99999999": { slug: "long-gone-creek", region: 3 } } };
     const again = await buildAll({ loader: openRegsFixture(), on: TODAY, slugMap });
     expect(again.build.removed).toEqual([{ id: "gnis:99999999", slug: "long-gone-creek", region: 3 }]);
-    expect(again.files.get("_redirects")).toBe("/water/long-gone-creek /region/3 301\n");
+    expect(again.files.get("_redirects")!.split("\n")[0]).toBe("/water/long-gone-creek /region/3 301");   // then the removed list pages
     expect(again.build.pages.map((p) => p.path)).toEqual(built.build.pages.map((p) => p.path));
   }, 120_000);
 });
@@ -227,18 +227,61 @@ describe("T195 hubs and dated pages", () => {
     for (const r of regionPages) expect(built.build.pages.find((p) => p.kind === "about")!.html).toContain(`href="${r.path}"`);
   });
 
-  it("the weekend and opening/closing pages state their release and dates, and link the waters they name", () => {
-    const wk = built.build.pages.filter((p) => p.kind === "weekend"), cal = built.build.pages.filter((p) => p.kind === "calendar");
-    expect(wk.length).toBe(built.build.pages.filter((p) => p.kind === "region").length);
-    for (const p of [...wk, ...cal]) {
-      expect(text(p.html)).toContain(built.build.snapshot.release);
-      expect(p.html).toMatch(/<time datetime="2026-\d\d-\d\d">/);
+  it("(T605, owner 2026-11-10) the list pages carry names and links, never an open / closed word; the weekend and opening/closing pages are gone", () => {
+    const lists = built.build.pages.filter((p) => p.kind === "region" || p.kind === "letter" || p.kind === "topic");
+    expect(lists.length).toBeGreaterThan(10);
+    // a status word on a list: the old per-water tags, or the page's own "today" / "this weekend" / "as of"
+    const DAY_WORDS = /\b(open today|closed today|today|tomorrow|yesterday|this weekend|parts differ|tidal water|check the page|outside BC)\b|Open or closed is as of/i;
+    for (const p of lists) {
+      expect(text(p.html), p.path).not.toMatch(DAY_WORDS);
+      expect(p.html, p.path).not.toContain('class="tag"');
+      expect(p.description, p.path).not.toMatch(DAY_WORDS);
     }
-    expect(text(wk[0]!.html)).toMatch(/Weekend of 2026-10-31 and 2026-11-01/);
-    expect(weekendDays(buildDayOf(new Date(2026, 10, 1, 12))).map((d) => d.iso)).toEqual(["2026-11-01"]);
-    expect(weekendDays(buildDayOf(new Date(2026, 9, 31, 12))).map((d) => d.iso)).toEqual(["2026-10-31", "2026-11-01"]);
-    expect(cal.some((p) => /<li><strong>[A-Z][a-z]{2} \d+<\/strong> (opens|closes): <a href="\/water\//.test(p.html))).toBe(true);
+    // the removed page types are in no page, no link, no sitemap
+    for (const p of built.build.pages) {
+      expect(["weekend", "calendar"], p.path).not.toContain(p.kind);
+      expect(p.path, p.path).not.toMatch(/\/(open-this-weekend|season-changes)$/);
+      expect(p.html, p.path).not.toMatch(/open-this-weekend|season-changes/);
+    }
+    expect(built.files.get("sitemap-1.xml")!).not.toMatch(/open-this-weekend|season-changes/);
+    // their addresses 301 to the region page: the static `_redirects`, and the host worker answers as redirectFor does
+    const regions = built.build.regions;
+    expect(regions.length).toBeGreaterThan(2);
+    const rd = built.files.get("_redirects")!;
+    for (const r of regions) for (const pg of ["open-this-weekend", "season-changes"]) expect(rd, `${r} ${pg}`).toContain(`/region/${r}/${pg} /region/${r} 301\n`);
+    expect(redirectFor(`https://canifishthis.ca/region/${regions[0]}/season-changes`, site, [], regions)).toEqual({ status: 301, to: `https://canifishthis.ca/region/${regions[0]}` });
+    expect(redirectFor(`https://canifishthis.ca/region/${regions[0]}`, site, [], regions)).toBeNull();
+    // every region page links to the live app's map, which opens on the current day: no `date` in the link
+    for (const r of built.build.pages.filter((p) => p.kind === "region")) {
+      const href = /<a class="app" href="([^"]+)">Open the map for/.exec(r.html)?.[1];
+      expect(href, r.path).toBe(`${site.origin}/`);
+      expect(href, r.path).not.toMatch(/date=/);
+      expect(text(r.html), r.path).toMatch(/built 2026-10-27/);
+    }
   });
+
+  it("(T622 G2) a water's description and share picture carry no day-relative word: the build day's answer is not published", async () => {
+    const DAY_WORDS = /\b(open|closed)\b.*\btoday\b|\btoday\b|\bnow\b|\bthis weekend\b/i;
+    for (const p of waters()) {
+      expect(p.description, p.path).not.toMatch(DAY_WORDS);
+      expect(p.description, p.path).not.toMatch(/\b(Open|Closed) to fishing/);
+      expect(/<meta property="og:description" content="([^"]*)">/.exec(p.html)![1], p.path).toBe(p.description);
+    }
+    // the share picture's text is built from the same model, built on any day
+    for (const [name, svg] of [...built.build.files].filter(([n]) => /^share\/.+\.svg$/.test(n) && n !== "share/gauge.svg")) {
+      expect(text(svg), name).not.toMatch(DAY_WORDS);
+      expect(text(svg), name).toContain(SHARE_LINE);
+    }
+    // and a build on a closed day and on an open day publish the same description
+    const later = await buildAll({ loader: openRegsFixture(), on: buildDayOf(new Date(2026, 6, 15, 12)) });
+    const was = new Map(waters().map((p) => [p.path, p.description]));
+    expect(later.build.pages.filter((p) => p.kind === "water").every((p) => was.get(p.path) === p.description)).toBe(true);
+    // (T622 G23) the region in it is the water's own code, as the app names it ("Region 7A")
+    for (const m of built.build.models.filter((x) => x.focus && /[ab]$/.test(x.focus))) {
+      const p = waters().find((w) => w.path === `/water/${built.build.slugMap.waters[m.id]!.slug}`)!;
+      expect(p.description, m.id).toContain(`Region ${m.focus!.toUpperCase()}`);
+    }
+  }, 120_000);
 
   it("the changes page appears only against a previous release, and lists changed (rules), new and removed waters", async () => {
     expect(built.build.pages.some((p) => p.kind === "changes")).toBe(false);

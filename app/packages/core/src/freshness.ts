@@ -39,8 +39,9 @@ export const AGO_WORDS = {
 } as const;
 
 /** An age in milliseconds, in words: minutes under an hour (the feed is published every 30), hours under two days, then
- *  days, because "72h ago" is arithmetic the reader should not have to do. Not a finite age: "unknown age". */
-function ageWords(ms: number): string {
+ *  days, because "72h ago" is arithmetic the reader should not have to do. Not a finite age: "unknown age".
+ *  Exported so the public gauge page's script is written from it (`tools/seo/gauges.ts` `clientScript`). */
+export function ageWords(ms: number): string {
   if (!Number.isFinite(ms)) return AGO_WORDS.unknown;
   const min = Math.floor(Math.max(0, ms) / 60_000);
   if (min < 1) return AGO_WORDS.now;
@@ -55,17 +56,36 @@ export function agoWords(iso: string, now: number): string {
   return ageWords(now - Date.parse(iso));
 }
 
+/** What a reading's age line says of a copy that is past its time (T622: the card and the public page say it too). */
+export const MAY_BE_OLD = "may be out of date";
+/** The line's lead. */
+export const READING_LEAD = "This gauge's own reading";
+
+/**
+ * The pieces of a gauge reading's age line after its lead (P02; T622: ONE line for the app, the share card and the public
+ * gauge page): "observed <stamp>" when the reading's time is known, then how old our copy is. `observed` is the reading's
+ * time already said (`localStamp`); null leaves it out. An unknown age says so; it is never shown as live.
+ */
+export function readingAgeParts(f: Freshness, observed: string | null): string[] {
+  const parts: string[] = [];
+  if (observed !== null) parts.push(`observed ${observed}`);
+  parts.push(f.state === "unknown" ? "age unknown"
+    : f.state === "live" ? `checked ${ageWords(f.ageMs)}`
+    : `last checked ${ageWords(f.ageMs)}, ${MAY_BE_OLD}`);
+  return parts;
+}
+
+/** The whole line from a stamp already said: "This gauge's own reading · observed … · checked 7h ago". */
+export function readingAgeWords(f: Freshness, observed: string | null): string {
+  return [READING_LEAD, ...readingAgeParts(f, observed)].join(" · ");
+}
+
 /**
  * The line under a gauge reading (P02): when it was observed, and how old our copy is. An unknown age says so; it
  * is never shown as live. `observedAt` is the reading's own ISO time, left out when missing or malformed.
  */
 export function readingAgeLine(f: Freshness, observedAt: string | null, zone?: string): string {
-  const parts = ["This gauge's own reading"];
   const t = observedAt ? Date.parse(observedAt) : NaN;
   // LOCAL AND LABELLED (P16): the reader's clock, with its zone named — see `localStamp`.
-  if (Number.isFinite(t)) parts.push(`observed ${localStamp(t, zone)}`);
-  parts.push(f.state === "unknown" ? "age unknown"
-    : f.state === "live" ? `checked ${ageWords(f.ageMs)}`
-    : `last checked ${ageWords(f.ageMs)}, may be out of date`);
-  return parts.join(" · ");
+  return readingAgeWords(f, Number.isFinite(t) ? localStamp(t, zone) : null);
 }

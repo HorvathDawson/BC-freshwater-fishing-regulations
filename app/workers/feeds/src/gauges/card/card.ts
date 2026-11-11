@@ -8,16 +8,20 @@
 //                  page names them); unreachable → no card is drawn this run, and the run says so (an event)
 //   when           a card is redrawn only when what it shows can have changed: its reading's time, standing and
 //                  parameter in index.json, the forecast issue, the reading going stale, or a new day (the 7-day window)
-//   what           the gauge's name, the reading (flow or level) with its standing for the time of year and its time,
-//                  the forecast in words ("Rising to 31 m³/s by Wed", from the series the chart draws), and a chart of
+//   what           the gauge's name, the reading (flow or level) with its standing for the date and its time (every word
+//                  is core's: standing.ts, freshness.ts, change.ts, T622), the forecast in core's words for the
+//                  station's expected change ("rises to 4× (Wed)"; the publisher's `change`), and a chart of
 //                  the last 7 days (with the forecast run's dashes when one is current) over the NORMAL RANGE for each
 //                  day: the climatology's median and 25th–75th (darker) / 10th–90th percentile band, the very envelope
 //                  that words the standing (T511). No open / closed status: the card is conditions only.
 //   climatology    feeds/live/clim.json, read ONCE per run (and only when a card is to be drawn), kept for the listed
 //                  stations; a run without it draws cards without the band and says so (an event).
-import { bcDayWords, bcStampWords, bcWeekdayAbbr, localDate } from "../../../../../packages/core/src/day";
+import { changeShort, type SourceChange } from "../../../../../packages/core/src/change";
+import { CONDITIONS_WORDS } from "../../../../../packages/core/src/conditions";
+import { localDate, localStamp } from "../../../../../packages/core/src/day";
 import { standing } from "../../../../../packages/core/src/flow";
-import { figure, standingHeadline } from "../../../../../packages/core/src/standing";
+import { freshness, MAY_BE_OLD } from "../../../../../packages/core/src/freshness";
+import { figure, standingLong } from "../../../../../packages/core/src/standing";
 import { byWeekdays, forecastDueBy, STALE_AFTER } from "../../../../../packages/core/src/staleness";
 import { ATTRIBUTION } from "../forecast";
 import { bandFor, PCTILES } from "../publish";
@@ -44,11 +48,14 @@ interface Series { at?: string[]; mid?: (number | null)[] }
 /** the slice of a published station file (feeds/live/<station>.json, app/packages/data feed/http.ts StationFile) a card reads */
 export interface CardStation {
   station: string;
+  /** when the feed wrote this file: the age of OUR copy, which is what the app judges a reading's staleness by (T622 G7) */
+  fetchedAt?: string | null;
   now?: { discharge: number | null; level: number | null; at: string | null; percentile: number | null; parameter?: "discharge" | "level" } | null;
   recent?: Row[];
   daily?: Row[];
   forecasts?: Record<string, { model?: string; issuedAt?: string; series?: Series | null }> | null;
-  change?: { models?: string[] } | null;
+  /** the station's expected change (the publisher's `change_source`): the forecast is worded from it, by core (T622 G9) */
+  change?: SourceChange | null;
 }
 
 export interface CardModel {
@@ -63,9 +70,12 @@ export interface CardModel {
   /** "22.2 m³/s" */
   value: string | null;
   standing: string | null;
-  /** the reading's instant (epoch ms) and its time, Pacific ("Nov 7, 2:20 p.m. PST") */
+  /** the reading's instant (epoch ms) and its time as the app says it (core `localStamp`: "2026-11-07 at 14:20 PT") */
   atMs: number | null;
   at: string | null;
+  /** (T622 G7) when the feed last wrote the station's file (ISO), or null: the age of our copy */
+  fetchedAt: string | null;
+  /** past core's `freshness` of OUR copy (the app's rule), or its age unknown, or no reading at all */
   stale: boolean;
   /** [epoch ms, value], the last 7 days */
   week: [number, number][];
@@ -73,8 +83,8 @@ export interface CardModel {
   forecast: { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][] } | null;
   /** a run exists but is past its working-day line (T347): said, not drawn */
   forecastOld: { model: string; issued: string } | null;
-  /** the drawn forecast in words (T511), from the series the chart draws; null = no current forecast */
-  outlook: Outlook | null;
+  /** the drawn forecast in core's words for the station's expected change ("rises to 4× (Wed)", "little change"); null = no change published */
+  change: string | null;
   /** the climatology's normal range over the chart's window, a point a day: [epoch ms, p10, p25, p50, p75, p90]; null = none for this gauge */
   normal: [number, number, number, number, number, number][] | null;
 }
@@ -82,77 +92,7 @@ export interface CardModel {
 /** a station's climatology envelope (clim.json `stations[<station>]`): 73 pentads x PCTILES a parameter */
 export type Bands = Record<string, Record<string, Array<number | null>> | undefined>;
 
-export interface Outlook {
-  /** steady | rising / falling (a sustained move) | spike / dip (a brief one that returns) | receding (falling after a recent peak) */
-  kind: "steady" | "rising" | "falling" | "spike" | "dip" | "receding";
-  /** the figure said: the extreme the forecast reaches (the mean for steady) */
-  value: number;
-  /** when the extreme is (epoch ms); null for steady */
-  at: number | null;
-  /** where the run ends, said for a spike / dip ("then back near 12") */
-  end: number | null;
-  /** "Brief rise to 49 m³/s on Nov 3, then back to 12" */
-  text: string;
-}
-
-/** the forecast moves the reading by at least this much (of the reading) before the card says anything but steady */
-export const STEADY_WITHIN = 0.1;
-/** a rise or dip that has come back to within this share of its own height by the run's end is "brief" (it did not last) */
-export const RETURNS_WITHIN = 0.25;
-/** … and it is brief only if it stood above (below) its own half-height for no more than this long */
-export const BRIEF_MS = 2 * DAY;
-/** a reading this far under the past week's peak is on the way down from it (receding) */
-export const PEAK_BEFORE = 1.3;
-/** "Wed" within six days, "Nov 14" beyond (a weekday alone would be ambiguous in a 10-day run); "today" the same Pacific day */
-export function byWhen(t: number, now: number): string {
-  if (dayOf(t) === dayOf(now)) return "today";
-  return t - now < 6 * DAY ? bcWeekdayAbbr(t) : bcDayWords(t);
-}
-/** two significant figures: "49.3" -> "49", "172" -> "170", "2.43" -> "2.4" (a card does not claim more) */
-export const about = (v: number): string => String(Number(v.toPrecision(2)));
-
-/**
- * THE FORECAST IN WORDS, from the points the chart draws (the same series: nothing re-derived from another source), by its SHAPE:
- *   steady     every point within STEADY_WITHIN of the reading: "Steady around 100 m³/s"
- *   spike/dip  the larger move came back (the run ends within RETURNS_WITHIN of the reading) and stood past its half-height
- *              for BRIEF_MS or less: "Brief rise to 49 m³/s on Nov 3, then back to 12"
- *   rising     a rise that lasts: "Rising to 30 m³/s by Wed" (", then easing to 22" when it comes part-way back)
- *   falling    a fall that lasts: "Falling to 41 m³/s by Fri"; with `weekMax` (the past week's peak) well above the reading,
- *              "Dropping after a recent peak, to 41 m³/s by Fri"
- * A longer excursion that returns says "Rise to 49 m³/s around Nov 3, then back to 12".
- */
-export function outlookOf(v0: number, points: readonly (readonly [number, number])[], unit: string, now: number, weekMax?: number | null): Outlook | null {
-  if (!points.length || !Number.isFinite(v0)) return null;
-  let hi = points[0]!, lo = points[0]!, sum = 0;
-  for (const p of points) { if (p[1] > hi[1]) hi = p; if (p[1] < lo[1]) lo = p; sum += p[1]; }
-  const end = points[points.length - 1]![1];
-  const base = Math.max(Math.abs(v0), 1e-9);
-  const up = (hi[1] - v0) / base, down = (v0 - lo[1]) / base;
-  const u = (v: number) => `${about(v)} ${unit}`;
-  if (up < STEADY_WITHIN && down < STEADY_WITHIN) {
-    const value = sum / points.length;
-    return { kind: "steady", value, at: null, end: null, text: `Steady around ${u(value)}` };
-  }
-  const rise = up >= down, ext = rise ? hi : lo, h = Math.abs(ext[1] - v0);
-  // how long the run stood past its own half-height
-  const half = v0 + (ext[1] - v0) / 2, past = points.filter((p) => (rise ? p[1] >= half : p[1] <= half));
-  const width = past[past.length - 1]![0] - past[0]![0];
-  const returned = Math.abs(end - v0) <= RETURNS_WITHIN * h || (rise ? end < v0 : end > v0);
-  const when = byWhen(ext[0], now);
-  if (returned) {
-    const brief = width <= BRIEF_MS;
-    return rise
-      ? { kind: "spike", value: ext[1], at: ext[0], end, text: `${brief ? "Brief rise to" : "Rise to"} ${u(ext[1])} ${brief ? "on" : "around"} ${when}, then back to ${about(end)}` }
-      : { kind: "dip", value: ext[1], at: ext[0], end, text: `${brief ? "Brief dip to" : "Dip to"} ${u(ext[1])} ${brief ? "on" : "around"} ${when}, then back to ${about(end)}` };
-  }
-  if (rise) {
-    const easing = (hi[1] - end) > 0.4 * (hi[1] - v0);
-    return { kind: "rising", value: hi[1], at: hi[0], end: easing ? end : null, text: `Rising to ${u(hi[1])} by ${when}${easing ? `, then easing to ${about(end)}` : ""}` };
-  }
-  if (weekMax != null && weekMax >= PEAK_BEFORE * v0)
-    return { kind: "receding", value: lo[1], at: lo[0], end: null, text: `Dropping after a recent peak, to ${u(lo[1])} by ${when}` };
-  return { kind: "falling", value: lo[1], at: lo[0], end: null, text: `Falling to ${u(lo[1])} by ${when}` };
-}
+/** "Wed" within six days, "Nov 14" beyond is gone with the series-reading words: the forecast is worded by core's `changeShort` (T622 G9) */
 
 /** the normal range a day from `t0` to `t1` from the climatology (the same `bandFor` that words the standing); null when none */
 export function normalRange(bands: Record<string, Array<number | null>> | undefined | null, t0: number, t1: number): CardModel["normal"] {
@@ -168,8 +108,8 @@ export function normalRange(bands: Record<string, Array<number | null>> | undefi
 
 export { figure };
 
-/** (T551) B.C.'s clock from core -- the app's own, not the runtime's tz data */
-export const pacific = bcStampWords;
+/** (T551, T622 G24) B.C.'s clock from core -- the app's own, not the runtime's tz data -- said as the app says it */
+export const pacific = localStamp;
 const dayOf = localDate;
 
 /** what a card shows, from the station's file (null: the feed has no file for it) */
@@ -179,6 +119,7 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
   const col = parameter === "level" ? 1 : 2;
   const v = parameter ? (parameter === "level" ? nowRow?.level : nowRow?.discharge) ?? null : null;
   const t = nowRow?.at ? Date.parse(nowRow.at) : NaN;
+  const copyAt = f?.fetchedAt ? Date.parse(f.fetchedAt) : null;
   const week: [number, number][] = [];
   if (parameter) {
     const recent = (f?.recent ?? []).map((r) => [Date.parse(r[0]), r[col]] as const).filter((r): r is readonly [number, number] => Number.isFinite(r[0]) && typeof r[1] === "number");
@@ -217,12 +158,14 @@ export function cardModel(station: string, name: string, f: CardStation | null, 
     unit,
     reading: v,
     value: v === null ? null : `${figure(v)} ${parameter === "level" ? "m" : "m³/s"}`,
-    standing: v === null ? null : standingHeadline(standing(nowRow?.percentile ?? null)),
+    // the app's own line for a reading's standing (G28: the same words for "no record" too)
+    standing: v === null ? null : standingLong(nowRow?.percentile ?? null, nowRow?.percentile == null ? null : standing(nowRow.percentile)),
     atMs: Number.isFinite(t) ? t : null,
     at: Number.isFinite(t) ? pacific(t) : null,
-    stale: !Number.isFinite(t) || now - t > STALE_AFTER.feed.ms,
+    fetchedAt: copyAt === null ? null : new Date(copyAt).toISOString(),
+    stale: !Number.isFinite(t) || freshness(copyAt, now).state !== "live",
     week, forecast, forecastOld,
-    outlook: forecast && v !== null && unit ? outlookOf(v, forecast.points, unit, now, week.length ? Math.max(...week.map((w) => w[1])) : null) : null,
+    change: forecast && f?.change ? changeShort(f.change, localDate(now)) : null,
     normal: parameter && clim ? normalRange(clim[parameter], now - WEEK, Math.max(now, last)) : null,
   };
 }
@@ -262,7 +205,8 @@ export async function drawCard(m: CardModel): Promise<{ png: Uint8Array; missing
     const st = wrap("body", m.standing ?? "", colW, 2);
     for (const [i, l] of st.entries()) await text(cv, "body", l, L, y + i * 42, ink);
     y += st.length * 42 + 8;
-    const when = wrap("small", m.stale ? `No new reading since ${m.at ?? "an unknown time"}` : `Measured ${m.at}`, colW, 2);
+    // the reading's own time, and (core's words) that it may be out of date when OUR copy is past its time; no age that would be wrong by the time the picture is seen
+    const when = wrap("small", `Observed ${m.at}${m.stale ? ` · ${MAY_BE_OLD}` : ""}`, colW, 2);
     for (const [i, l] of when.entries()) await text(cv, "small", l, L, y + i * 34, soft);
   } else {
     await text(cv, "title", "No current reading", L, top + 110, ink);
@@ -322,27 +266,29 @@ export async function drawCard(m: CardModel): Promise<{ png: Uint8Array; missing
   await text(cv, "body", "7 days ago", cx0, below, ink);
   const right = m.forecast ? "Forecast" : "Now";
   await text(cv, "body", right, cx1 - measure("body", right), below, ink);
-  // the forecast in one line across the card's foot (its words are outlookOf's); none / out of date said plainly
-  const fw = m.outlook ? `Forecast: ${m.outlook.text.charAt(0).toLowerCase()}${m.outlook.text.slice(1)}` : m.forecastOld ? "Forecast out of date" : "No forecast";
-  if (m.value) await text(cv, "body", fit("body", fw, R - L), L, CARD_H - 24, m.outlook ? ink : soft);
+  // the forecast in one line across the card's foot (its words are core's `changeShort` of the publisher's change); none / out of date said plainly
+  const fw = m.change ? `Forecast: ${m.change}` : m.forecast ? "Forecast: the dashed line" : m.forecastOld ? `Forecast ${CONDITIONS_WORDS.runOld}` : "No forecast";
+  if (m.value) await text(cv, "body", fit("body", fw, R - L), L, CARD_H - 24, m.forecast ? ink : soft);
   return { png: await png(cv), missing: [...cv.missing] };
 }
 
 /**
  * WHAT THE GAUGE PAGE SHOWS (`feeds/cards/<station>.json`, written with the PNG): the card's facts in full, so the page
- * reads one small file and says exactly what the card says — every word chosen here, from core (flow.ts standing words,
- * staleness.ts lines), never again in the page. The page judges staleness at its own time from the instants given.
+ * reads one small file and says exactly what the card says — the words chosen here, from core (standing.ts, change.ts), and
+ * the page's age line written in the browser from core's own functions (freshness.ts, inlined by tools/seo `clientScript`)
+ * out of the instants given: when the reading was taken and when the feed wrote our copy.
  */
 export const FACTS_FORMAT = "gauge-card/1";
 export function cardFacts(m: CardModel, drawnAt: Date): Record<string, unknown> {
   return {
     format: FACTS_FORMAT, station: m.station, name: m.name, drawnAt: drawnAt.toISOString(),
     parameter: m.parameter, unit: m.unit, reading: m.reading, value: m.value, standing: m.standing,
-    at: m.atMs === null ? null : new Date(m.atMs).toISOString(), atText: m.at, staleAfterMs: STALE_AFTER.feed.ms,
+    at: m.atMs === null ? null : new Date(m.atMs).toISOString(), atText: m.at, fetchedAt: m.fetchedAt, staleAfterMs: STALE_AFTER.feed.ms,
+    runOld: CONDITIONS_WORDS.runOld, mayBeOld: MAY_BE_OLD,
     week: m.week.map(([t, v]) => [t, v]),
     forecast: m.forecast && { ...m.forecast, attribution: ATTRIBUTION },
     forecastOld: m.forecastOld,
-    outlook: m.outlook,
+    change: m.change,
     normal: m.normal,
   };
 }
@@ -374,9 +320,10 @@ export interface CardRun {
 }
 
 /** the pre-draw key: what the card shows can only have changed when this has */
-export function cardSig(name: string, e: IndexEntry | undefined, forecastIssuedAt: string | null, now: number): string {
+export function cardSig(name: string, e: IndexEntry | undefined, forecastIssuedAt: string | null, now: number, indexAt: string | null = null): string {
+  // (T622 G7) stale by the app's rule: OUR copy's age (the index's `fetchedAt`, written with the station files), not the reading's
   const t = e?.observedAt ? Date.parse(e.observedAt) : NaN;
-  const stale = !Number.isFinite(t) || now - t > STALE_AFTER.feed.ms;
+  const stale = !Number.isFinite(t) || freshness(indexAt ? Date.parse(indexAt) : null, now).state !== "live";
   return JSON.stringify([CARD_REV, name, e?.observedAt ?? null, e?.percentile ?? null, e?.parameter ?? null, forecastIssuedAt, stale, dayOf(now)]);
 }
 
@@ -398,7 +345,7 @@ export async function runCards(o: { fetch: Fetch; feed: Store; bucket: CardBucke
   }
   const indexText = await o.feed.get("index.json");
   if (indexText === null) { res.error = "feeds/live/index.json is missing"; return done(); }
-  const index = JSON.parse(indexText) as { forecastIssuedAt?: string | null; stations?: Record<string, IndexEntry> };
+  const index = JSON.parse(indexText) as { fetchedAt?: string | null; forecastIssuedAt?: string | null; stations?: Record<string, IndexEntry> };
   let state: State = {};
   const st = await o.bucket.get(CARD_STATE);
   if (st) state = JSON.parse(await st.text()) as State;
@@ -420,7 +367,7 @@ export async function runCards(o: { fetch: Fetch; feed: Store; bucket: CardBucke
     }
   })();
   await pool(stations, 6, async ({ station, name }) => {
-    const sig = cardSig(name, index.stations?.[station], index.forecastIssuedAt ?? null, now);
+    const sig = cardSig(name, index.stations?.[station], index.forecastIssuedAt ?? null, now, index.fetchedAt ?? null);
     if (state[station]?.s === sig) { res.unchanged++; return; }
     try {
       const bands = (await climate())?.get(station) ?? null;

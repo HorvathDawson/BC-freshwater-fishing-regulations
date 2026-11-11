@@ -6,8 +6,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PNG } from "pngjs";
-import { figure as coreFigure, standing, standingHeadline } from "../../../packages/core/src/index";
-import { about, byWhen, CARD_GROUND, CARD_H, CARD_INK, CARD_W, CARD_STATE, cardEvents, cardFacts, cardModel, cardSig, drawCard, figure, niceTicks, normalRange, outlookOf, runCards,
+import { changeShort, CONDITIONS_WORDS, figure as coreFigure, localStamp, standing, standingLong, type SourceChange } from "../../../packages/core/src/index";
+import { CARD_GROUND, CARD_H, CARD_INK, CARD_W, CARD_STATE, cardEvents, cardFacts, cardModel, cardSig, drawCard, figure, niceTicks, normalRange, runCards,
          type CardBucket, type CardStation } from "../src/gauges/card/card";
 import { FACES, FONT_SHA256 } from "../src/gauges/card/glyphs.generated";
 import { bandFor, percentileOf } from "../src/gauges/publish";
@@ -19,13 +19,18 @@ const meta = JSON.parse(readFileSync(join(HERE, "../../../packages/map/style/sty
 const NOW = Date.parse("2026-11-08T12:00:00Z");
 const H = 3600_000;
 const iso = (t: number) => new Date(t).toISOString();
+/** the publisher's change for the fixture: a rise to 1.8x by Tuesday (NOW is Sunday 8 Nov) */
+const RISE: SourceChange = { models: ["CLEVER"], lowWater: false, reach: { CLEVER: "2026-11-17" }, dir: "rise", base: 20,
+  peak: { day: "2026-11-10", ratio: 1.8, value: 40, back: null }, trough: { day: "2026-11-08", ratio: 1, value: 22, back: null },
+  days: [["2026-11-08", 22, 22], ["2026-11-10", 40, 40]] };
 const station = (o: Partial<CardStation> = {}): CardStation => ({
   station: "08MH001",
+  fetchedAt: iso(NOW - 10 * 60_000),
   now: { discharge: 22.2, level: 1.647, at: iso(NOW - H), percentile: 0.05, parameter: "discharge" },
   recent: Array.from({ length: 60 }, (_, i) => [iso(NOW - (60 - i) * H), 1.6, 20 + i / 30] as [string, number, number]),
   daily: Array.from({ length: 10 }, (_, i) => [new Date(NOW - (10 - i) * 86_400_000).toISOString().slice(0, 10), 1.5, 18 + i] as [string, number, number]),
   forecasts: { CLEVER: { model: "CLEVER", issuedAt: "2026-11-08T02:30:00", series: { at: [iso(NOW), iso(NOW + 48 * H)], mid: [23, 40] } } },
-  change: { models: ["CLEVER", "COFFEE"] },
+  change: RISE,
   ...o,
 });
 
@@ -57,11 +62,29 @@ describe("the card's letters and colours are the app's", () => {
     const t = (meta as { themes: Record<string, Record<string, string>> }).themes.light!;
     expect([CARD_GROUND, CARD_INK]).toEqual([t["color.ui.accent"], t["color.ui.on-accent"]]);
   });
-  it("figures are core's figure; standing words are core's, whole (T583)", () => {
+  it("figures are core's figure; standing words are core's, whole: the app's own line, in days in 10 (T583, T622)", () => {
     expect(figure).toBe(coreFigure);
     for (const v of [0, 0.123, 4.567, 22.24, 99.95, 100.4, 1060.4, -3.2]) expect(figure(v)).toBe(coreFigure(v));
-    expect(cardModel("08MH001", "X", station(), NOW).standing).toBe(standingHeadline(standing(0.05)));
-    expect(cardModel("08MH001", "X", station(), NOW).standing).toBe("Much below normal for the time of year");
+    const st = cardModel("08MH001", "X", station(), NOW).standing;
+    expect(st).toBe(standingLong(0.05, standing(0.05)));
+    expect(st).toBe("Much below normal · lower than almost every day on record for the date");
+    expect(cardModel("08MH001", "X", station({ now: { discharge: 22.2, level: null, at: iso(NOW - H), percentile: 0.2, parameter: "discharge" } }), NOW).standing)
+      .toBe(standingLong(0.2, standing(0.2)));
+    expect(standingLong(0.2, standing(0.2))).toMatch(/ · lower than 8 days in 10 for the date$/);
+    expect(st).not.toMatch(/percentile/i);
+    // G28: no record to rank by is the app's sentence, not a second wording
+    expect(cardModel("08MH001", "X", station({ now: { discharge: 22.2, level: null, at: iso(NOW - H), percentile: null, parameter: "discharge" } }), NOW).standing)
+      .toBe(standingLong(null));
+  });
+  it("a reading's time is said the app's way (G24), and a copy past its time is judged by the app's rule (G7)", () => {
+    expect(cardModel("08MH001", "X", station(), NOW).at).toBe(localStamp(NOW - H));
+    expect(cardModel("08MH001", "X", station(), NOW).at).toBe("2026-11-08 at 04:00 PT");
+    // the reading is 5 hours old but our copy was written 10 minutes ago: not stale (the app prints "checked 10 min ago", no warning)
+    const old = { discharge: 22.2, level: 1.6, at: iso(NOW - 5 * H), percentile: 0.5, parameter: "discharge" as const };
+    expect(cardModel("x", "X", station({ now: old }), NOW).stale).toBe(false);
+    // our copy 3 hours old, or no age at all: stale / unknown, both marked
+    expect(cardModel("x", "X", station({ fetchedAt: iso(NOW - 3 * H) }), NOW).stale).toBe(true);
+    expect(cardModel("x", "X", station({ fetchedAt: null }), NOW).stale).toBe(true);
   });
   it("a long name wraps to two lines and is cut with an ellipsis, each within the width", () => {
     const l = wrap("title", "Nowhere Creek near Somewhere With A Very Long Name That Never Ends At All", 1072, 2);
@@ -78,8 +101,8 @@ describe("what a card shows (cardModel)", () => {
     expect(m.week.length).toBeGreaterThan(60);
     expect(m.week.every(([t]) => t >= NOW - 7 * 86_400_000 && t <= NOW)).toBe(true);
   });
-  it("a stale reading is marked stale; a level gauge reads in metres with no flow forecast", () => {
-    expect(cardModel("x", "X", station({ now: { discharge: 22.2, level: 1.6, at: iso(NOW - 5 * H), percentile: 0.5 } }), NOW).stale).toBe(true);
+  it("a stale copy is marked stale; a level gauge reads in metres with no flow forecast", () => {
+    expect(cardModel("x", "X", station({ fetchedAt: iso(NOW - 5 * H) }), NOW).stale).toBe(true);
     const lv = cardModel("x", "X", station({ now: { discharge: null, level: 1.647, at: iso(NOW - H), percentile: 0.5, parameter: "level" } }), NOW);
     expect([lv.value, lv.forecast]).toEqual(["1.65 m", null]);
   });
@@ -91,7 +114,9 @@ describe("what a card shows (cardModel)", () => {
   });
   it("the facts file carries every word and the instants the page judges staleness by", () => {
     const f = cardFacts(cardModel("08MH001", "N", station(), NOW), new Date(NOW));
-    expect(f).toMatchObject({ format: "gauge-card/1", value: "22.2 m³/s", staleAfterMs: 2 * H, at: new Date(NOW - H).toISOString() });
+    expect(f).toMatchObject({ format: "gauge-card/1", value: "22.2 m³/s", staleAfterMs: 2 * H, at: new Date(NOW - H).toISOString(),
+      atText: localStamp(NOW - H), fetchedAt: new Date(NOW - 10 * 60_000).toISOString(), runOld: CONDITIONS_WORDS.runOld, change: changeShort(RISE, "2026-11-08") });
+    expect(f).not.toHaveProperty("outlook");
     expect((f.forecast as { dueBy: number }).dueBy).toBeGreaterThan(NOW);
   });
 });
@@ -102,71 +127,28 @@ const DAYMS = 86_400_000;
 const flat = (scale = 1): Record<string, number[]> => Object.fromEntries(Array.from({ length: 73 }, (_, i) => [String(i), [10, 20, 30, 40, 50].map((v) => v * scale)]));
 const rising = (day: number, ...mid: number[]): [number, number][] => mid.map((v, i) => [NOW + (day + i) * DAYMS, v]);
 
-describe("the forecast in words (outlookOf)", () => {
-  it("rising: the peak and the day it falls on, in the gauge's unit", () => {
-    const o = outlookOf(24.6, rising(0, 24, 27, 31.04, 29), "m³/s", NOW)!;
-    expect([o.kind, o.value, o.text]).toEqual(["rising", 31.04, `Rising to 31 m³/s by ${byWhen(NOW + 2 * DAYMS, NOW)}`]);   // 2 significant figures
-    expect(o.text).toMatch(/^Rising to 31 m³\/s by (Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/);
-  });
-  it("falling: the low and its day", () => {
-    const o = outlookOf(80, rising(0, 78, 60, 41.2, 45), "m³/s", NOW)!;
-    expect([o.kind, o.value, o.text.startsWith("Falling to 41 m³/s by ")]).toEqual(["falling", 41.2, true]);
-  });
-  it("steady: every point within 10 % of the reading is 'steady around' the forecast's mean", () => {
-    const o = outlookOf(100, rising(0, 96, 104, 99, 101), "m³/s", NOW)!;
-    expect([o.kind, o.at, o.text]).toEqual(["steady", null, "Steady around 100 m³/s"]);
-  });
-  it("the larger move says it when the run goes up and back down", () => {
-    expect(outlookOf(100, rising(0, 130, 100, 40), "m³/s", NOW)!.kind).toBe("falling");
-    expect(outlookOf(100, rising(0, 160, 130, 125), "m³/s", NOW)!.kind).toBe("rising");
-  });
-  // the Vedder card (owner 2026-11-08): a one-day spike that falls back to the old level is not "rising to 49"
-  const hourly = (f: (h: number) => number, hours = 240): [number, number][] => Array.from({ length: hours }, (_, h) => [NOW + h * H, f(h)]);
-  it("a brief spike that falls back: said as brief, with where it ends", () => {
-    const o = outlookOf(14.7, hourly((h) => (h >= 150 && h <= 168 ? 12 + 37 * Math.sin(((h - 150) / 18) * Math.PI) : 12.3)), "m³/s", NOW)!;
-    expect(o.kind).toBe("spike");
-    expect(o.text).toBe(`Brief rise to 49 m³/s on ${byWhen(o.at!, NOW)}, then back to 12`);
-    expect(o.text.length).toBeLessThan(60);   // one line at card size
-  });
-  it("a long excursion that returns is not 'brief'", () => {
-    const o = outlookOf(10, hourly((h) => (h >= 24 && h <= 150 ? 30 : 10)), "m³/s", NOW)!;
-    expect([o.kind, o.text.startsWith("Rise to 30 m³/s around "), o.text.endsWith(", then back to 10")]).toEqual(["spike", true, true]);
-  });
-  it("a brief dip that comes back, and a fall that stays", () => {
-    const d = outlookOf(50, hourly((h) => (h >= 60 && h <= 70 ? 20 : 50)), "m³/s", NOW)!;
-    expect([d.kind, d.text.startsWith("Brief dip to 20 m³/s on "), d.text.endsWith(", then back to 50")]).toEqual(["dip", true, true]);
-    const f = outlookOf(50, hourly((h) => Math.max(20, 50 - h / 4)), "m³/s", NOW)!;
-    expect([f.kind, f.text.startsWith("Falling to 20 m³/s by ")]).toEqual(["falling", true]);
-  });
-  it("a rise that part-way eases, and a fall after a recent peak", () => {
-    const e = outlookOf(10, hourly((h) => (h < 72 ? 10 + h / 3 : 34 - (h - 72) / 12)), "m³/s", NOW)!;
-    expect([e.kind, /^Rising to 34 m³\/s by .+, then easing to \d+$/.test(e.text)]).toEqual(["rising", true]);
-    const r = outlookOf(60, rising(0, 55, 45, 41.2), "m³/s", NOW, 95)!;
-    expect([r.kind, r.text.startsWith("Dropping after a recent peak, to 41 m³/s by ")]).toEqual(["receding", true]);
-    expect(outlookOf(60, rising(0, 55, 45, 41.2), "m³/s", NOW, 62)!.kind).toBe("falling");
-  });
-  it("two significant figures, whatever the size", () => {
-    expect([49.3, 172, 1060, 2.43, 0.0432, 12.8, 100].map(about)).toEqual(["49", "170", "1100", "2.4", "0.043", "13", "100"]);
-  });
-  it("no points: no words (the card says 'No forecast' itself)", () => {
-    expect(outlookOf(10, [], "m³/s", NOW)).toBeNull();
-  });
-  it("a day inside six reads as a weekday, beyond as a date, the same Pacific day as today", () => {
-    expect(byWhen(NOW + 3 * H, NOW)).toBe("today");
-    expect(byWhen(NOW + 2 * DAYMS, NOW)).toMatch(/^[A-Z][a-z]{2}$/);
-    expect(byWhen(NOW + 9 * DAYMS, NOW)).toBe("Nov 17");
-  });
-  it("cardModel: the words come from the same series the chart draws; a level gauge or no run says nothing", () => {
+describe("the forecast in words: core's, from the publisher's change (T622 G9)", () => {
+  it("the card says what core's changeShort says of the station's change, so the app and the card agree on steady / rise / fall", () => {
     const m = cardModel("08MH001", "X", station(), NOW);
-    expect(m.outlook?.kind).toBe("rising");
-    expect(m.outlook?.value).toBe(Math.max(...m.forecast!.points.map((p) => p[1])));
-    expect(cardModel("x", "X", station({ forecasts: null }), NOW).outlook).toBeNull();
-    expect(cardModel("x", "X", station({ now: { discharge: null, level: 1.6, at: iso(NOW - H), percentile: 0.5, parameter: "level" } }), NOW).outlook).toBeNull();
-    expect(cardModel("x", "X", station({ forecasts: { CLEVER: { issuedAt: "2026-11-02T10:00:00", series: { at: [iso(NOW)], mid: [3] } } } }), NOW).outlook).toBeNull();
+    expect(m.change).toBe("rises to 1.8× (Tue)");
+    expect(m.change).toBe(changeShort(RISE, "2026-11-08"));
+    const steady = { ...RISE, dir: "steady" as const };
+    expect(cardModel("08MH001", "X", station({ change: steady }), NOW).change).toBe("little change");
+    const fall = { ...RISE, dir: "fall" as const, trough: { day: "2026-11-11", ratio: 0.6, value: 13, back: null } };
+    expect(cardModel("08MH001", "X", station({ change: fall }), NOW).change).toBe("falls to 0.6× (Wed)");
+  });
+  it("a +15 % forecast is the app's 'little change', not the card's own 'rising' (the finding's case)", () => {
+    // the publisher says steady for a ratio inside core's STEADY_RATIO (1.25); the card repeats it
+    expect(cardModel("x", "X", station({ change: { ...RISE, dir: "steady", peak: { ...RISE.peak, ratio: 1.15 } } }), NOW).change).toBe("little change");
+  });
+  it("no change published, a level gauge, no run, or a run past its line: nothing is claimed", () => {
+    expect(cardModel("x", "X", station({ change: null }), NOW).change).toBeNull();
+    expect(cardModel("x", "X", station({ forecasts: null }), NOW).change).toBeNull();
+    expect(cardModel("x", "X", station({ now: { discharge: null, level: 1.6, at: iso(NOW - H), percentile: 0.5, parameter: "level" } }), NOW).change).toBeNull();
+    expect(cardModel("x", "X", station({ forecasts: { CLEVER: { issuedAt: "2026-11-02T10:00:00", series: { at: [iso(NOW)], mid: [3] } } } }), NOW).change).toBeNull();
   });
   it("it never says open or closed (T487)", () => {
-    for (const o of [outlookOf(10, rising(0, 30), "m³/s", NOW)!, outlookOf(10, rising(0, 1), "m³/s", NOW)!, outlookOf(10, rising(0, 10), "m³/s", NOW)!])
-      expect(o.text).not.toMatch(/open|clos/i);
+    for (const c of [RISE, { ...RISE, dir: "steady" as const }, { ...RISE, dir: "fall" as const }]) expect(changeShort(c, "2026-11-08")).not.toMatch(/open|clos/i);
   });
 });
 

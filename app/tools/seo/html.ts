@@ -4,7 +4,7 @@
  * critical part inlined, system fonts. (T269) A WATER'S page is not drawn here: it is the app's own regs pane, prerendered
  * (pane.tsx, prerender.ts); this file gives it only its head (`headOf`).
  */
-import { SYNOPSIS_PDF } from "@app/core";
+import { regionWords, SYNOPSIS_PDF } from "@app/core";
 import meta from "../../packages/map/style/style.meta.json" with { type: "json" };
 import type { WaterModel } from "./model";
 
@@ -18,7 +18,10 @@ export const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 export const NOT_LEGAL = "This is not a legal document. Check the official BC Freshwater Fishing Regulations Synopsis before you fish.";
+/** a region HUB covers every code of its number ("Region 7" holds 7A and 7B) */
 export const regionLabel = (n: number): string => `Region ${n}`;
+/** (T622 G23) a WATER's region as the app names it: its own code, "Region 7A", not the hub's "Region 7" */
+export const waterRegion = (m: Pick<WaterModel, "focus" | "region">): string => (m.focus ? regionWords(m.focus) : regionLabel(m.region));
 
 /** Every colour the pages use is a token of the app's one palette (packages/map/style), read from the generated themes. */
 const T = (theme: "light" | "dark", token: string): string => {
@@ -86,11 +89,13 @@ export function clip(s: string, max = 155): string {
   return `${t.slice(0, max - 1).replace(/\s+\S*$/, "").replace(/[,;:\s]+$/, "")}…`;
 }
 
-/** The meta description of a water page: its answer and its first rule. */
+/**
+ * The meta description of a water page. (T622 G2) NO DAY-RELATIVE WORD: it is written once a release, so "Closed to fishing
+ * today" was the build day's answer for weeks. The page itself, and the app, say open or closed for the day the reader is on.
+ */
 export function descriptionOf(m: WaterModel, label: string = m.name, town: string | null = null): string {
-  const first = m.parts[0]?.sections.find((s) => s.title === "What you can keep")?.items.find((i) => !i.head)?.text;
-  const where = town ? `near ${town}, ${regionLabel(m.region)}` : regionLabel(m.region);
-  return clip(`${label} fishing regulations, B.C. (${where}): ${m.answer}${first ? ` ${first}.` : ""}`);
+  const where = town ? `near ${town}, ${waterRegion(m)}` : waterRegion(m);
+  return clip(`${label} fishing regulations, B.C. (${where}): the season, what you can keep, gear and limits, in plain words.`);
 }
 
 export function aboutBody(site: Site, asOf: string): string {

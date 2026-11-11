@@ -58,8 +58,8 @@ const FRAME_READ = /\bperformance\s*(\?\.)?\s*\.?\s*now\s*(\?\.)?\s*\(/g;
  */
 const SECOND_CLOCK = /\.\s*(getHours|getMinutes|getTimezoneOffset)\s*\(|\btimeZone\s*:/g;
 const CLOCK_HOMES = new Set([CLOCK, "packages/core/src/day.ts"]);
-/** Known second clocks, as many as listed (fix, then delete the line). The gauge page's script ships as one plain script that may import only core's `figure`, so the B.C. words must be inlined by `clientScript` first. */
-const KNOWN_SECOND_CLOCKS: Record<string, number> = { "tools/seo/gaugeClient.ts": 3 };
+/** Known second clocks, as many as listed (fix, then delete the line). None left: the gauge page's script says its B.C. days and times with core's functions, written into it by `clientScript` (T622, T605 item 1). */
+const KNOWN_SECOND_CLOCKS: Record<string, number> = {};
 function secondClocks(src: string): number { return (code(src).match(SECOND_CLOCK) ?? []).length; }
 
 function clockReads(src: string): number { return (code(src).match(CLOCK_READ) ?? []).length; }

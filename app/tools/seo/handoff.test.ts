@@ -96,6 +96,17 @@ describe("T405: the prerendered pane goes when the app's pane is complete and st
     page(pane("keep-tab"), "?view=conditions");
     expect(gone()).toBe(true);
   });
+
+  it("(T622 G6) nor has a start on a part, a place or a day the build did not draw; a bare or unrelated query keeps it", () => {
+    for (const q of ["?date=2026-11-14", "?blk=360823421&m=1200", "?ix=2", "?view=regs&date=2026-12-01"]) {
+      page(pane("keep-tab"), q);
+      expect(gone(), q).toBe(true);
+    }
+    for (const q of ["", "?theme=dark", "?view=regs"]) {
+      page(pane("keep-tab"), q);
+      expect(gone(), q).toBe(false);
+    }
+  });
 });
 
 describe("T405: the app's script is asked for after the pane's first paint", () => {
