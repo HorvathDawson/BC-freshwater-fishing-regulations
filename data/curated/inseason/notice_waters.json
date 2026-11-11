@@ -1,7 +1,7 @@
 {
   "$comment": "notice_waters.json (was matches.json; T324). T226 AUTHORED: provincial in-season notices (feeds/inseason/index.json `rows[].id`) -> the waters they apply to. Written by the review app's In-season tab (POST /api/inseason/matches) or by hand; read through pipeline.regs.inseason.matches (validates: unknown splits, ops, ids refused). INFORMATIONAL ONLY: a match puts a banner on the water in the app, it never changes an answer. `history` is append-only, one note per edit.",
   "format": "inseason-matches/2",
-  "release": "r-a178299f6005",
+  "release": "r-303b4007a70a",
   "words": {
     "alexander_creek__easternmost_hwy_3": "easternmost Hwy 3",
     "border:356537100:0": "BC boundary",
@@ -73,7 +73,7 @@
           ]
         }
       },
-      "stamp": "bc1578e11035ebb9"
+      "stamp": "f98c43bdb625fb7f"
     },
     "is-03e14f544b83": {
       "region": "1",
@@ -105,7 +105,7 @@
           "all": true
         }
       },
-      "stamp": "a0b4dd106247f25a"
+      "stamp": "0735d74c5f628033"
     },
     "is-06e7bf41d7fc": {
       "region": "3",
@@ -316,7 +316,7 @@
           "all": true
         }
       },
-      "stamp": "199b3f3a64122a2c"
+      "stamp": "3c8f0b4182cca538"
     },
     "is-0762f7371d1a": {
       "region": "4",
@@ -344,7 +344,7 @@
           "all": true
         }
       },
-      "stamp": "9cb0ba273b168c96"
+      "stamp": "23d6fb1c46449de7"
     },
     "is-14c1a6f972a3": {
       "region": "3",
@@ -401,7 +401,7 @@
           ]
         }
       },
-      "stamp": "282430f459d64710"
+      "stamp": "b34b8cf28aec504c"
     },
     "is-164f9965bfbd": {
       "region": "4",
@@ -438,7 +438,7 @@
           "all": true
         }
       },
-      "stamp": "c50daef579358559"
+      "stamp": "86f3c9ff31c4bbec"
     },
     "is-1cf72da5a533": {
       "region": "4",
@@ -466,7 +466,7 @@
           ]
         }
       },
-      "stamp": "9436558662d1adaf"
+      "stamp": "8a29601e91a130f1"
     },
     "is-20205c2b98c9": {
       "region": "4",
@@ -514,7 +514,7 @@
           ]
         }
       },
-      "stamp": "ce2d0da017a86def"
+      "stamp": "b1d2f669bba1289d"
     },
     "is-2fa458fef3c3": {
       "region": "8",
@@ -546,7 +546,7 @@
           "all": true
         }
       },
-      "stamp": "31b32613cca95682"
+      "stamp": "35352501df4ef837"
     },
     "is-4169515839dc": {
       "region": "2",
@@ -613,7 +613,7 @@
           "all": true
         }
       },
-      "stamp": "fdaa96fc0a905839"
+      "stamp": "b473863076e7ed3c"
     },
     "is-472d822b755f": {
       "region": "4",
@@ -664,7 +664,7 @@
           ]
         }
       },
-      "stamp": "85ccf9ca0e0a728d"
+      "stamp": "37132a945bf4f323"
     },
     "is-498820589328": {
       "region": "5",
@@ -698,7 +698,7 @@
           ]
         }
       },
-      "stamp": "0faaf65a7955d976"
+      "stamp": "b5821d8fcbab964a"
     },
     "is-4eaad82900f8": {
       "region": "4",
@@ -732,7 +732,7 @@
           ]
         }
       },
-      "stamp": "af181c87af6cc25a"
+      "stamp": "81b3a6d1a25fe188"
     },
     "is-50ac6c61eb00": {
       "region": "4",
@@ -769,7 +769,7 @@
           "all": true
         }
       },
-      "stamp": "4383f8b766e77c3d"
+      "stamp": "8c93906c6e663c76"
     },
     "is-546bc1e74bbc": {
       "region": "4",
@@ -790,7 +790,7 @@
           "all": true
         }
       },
-      "stamp": "9cb0ba273b168c96"
+      "stamp": "23d6fb1c46449de7"
     },
     "is-689cae172c40": {
       "region": "1",
@@ -822,7 +822,7 @@
           "all": true
         }
       },
-      "stamp": "4cadacc99467486c"
+      "stamp": "0ad2f4db384c5879"
     },
     "is-695fd31ebf80": {
       "region": "4",
@@ -872,7 +872,7 @@
           ]
         }
       },
-      "stamp": "af181c87af6cc25a"
+      "stamp": "81b3a6d1a25fe188"
     },
     "is-69d2a07100fc": {
       "region": "8",
@@ -1076,7 +1076,7 @@
           "all": true
         }
       },
-      "stamp": "e7b1cb33dc36a612"
+      "stamp": "375d826d9e2d69db"
     },
     "is-6a32433916ac": {
       "region": "8",
@@ -1932,7 +1932,7 @@
           "all": true
         }
       },
-      "stamp": "ba694f1bfa675593"
+      "stamp": "caa34a0d405eab8c"
     },
     "is-6db43a66acf9": {
       "region": "7B",
@@ -1974,7 +1974,7 @@
           ]
         }
       },
-      "stamp": "69fc642ab85d3ed8"
+      "stamp": "bdf9ec5399ca11bd"
     },
     "is-74fcb31b2d0b": {
       "region": "1",
@@ -2017,7 +2017,7 @@
           "all": true
         }
       },
-      "stamp": "a0b4dd106247f25a"
+      "stamp": "0735d74c5f628033"
     },
     "is-7826b2108311": {
       "region": "2",
@@ -2073,7 +2073,7 @@
           ]
         }
       },
-      "stamp": "c5059028382782b4"
+      "stamp": "9a210d95c2f974ba"
     },
     "is-79fcd6f4a6bc": {
       "region": "8",
@@ -2263,7 +2263,7 @@
           "all": true
         }
       },
-      "stamp": "e7b1cb33dc36a612"
+      "stamp": "375d826d9e2d69db"
     },
     "is-8cd37f6e5bf9": {
       "region": "2",
@@ -2324,7 +2324,7 @@
           ]
         }
       },
-      "stamp": "403a5c88dd46fb24"
+      "stamp": "4b9da465be8eaef2"
     },
     "is-9e042d16dbe9": {
       "region": "4",
@@ -2370,7 +2370,7 @@
           ]
         }
       },
-      "stamp": "81ffa413be28fe72"
+      "stamp": "342bd13cee658aea"
     },
     "is-a8dcfeb1e3c6": {
       "region": "2",
@@ -2492,7 +2492,7 @@
           ]
         }
       },
-      "stamp": "2ed9297358198970"
+      "stamp": "8f002ed23b78ea19"
     },
     "is-a9ddfd332aa7": {
       "region": "4",
@@ -2534,7 +2534,7 @@
           ]
         }
       },
-      "stamp": "5ff493e2a42c64f9"
+      "stamp": "55369740452485ac"
     },
     "is-b7a6816f8679": {
       "region": "4",
@@ -2582,7 +2582,7 @@
           ]
         }
       },
-      "stamp": "6848a7bd5337bc34"
+      "stamp": "24a450371be9f712"
     },
     "is-bb5426c61ff3": {
       "region": "8",
@@ -2630,22 +2630,12 @@
         },
         {
           "op": "whole",
-          "item_id": "wbk:329462114",
+          "item_id": "wsc:300-432687-518583",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329462438",
-          "splits": []
-        },
-        {
-          "op": "whole",
-          "item_id": "wbk:329462220",
-          "splits": []
-        },
-        {
-          "op": "whole",
-          "item_id": "wbk:329461070",
+          "item_id": "wsc:300-432687-517221",
           "splits": []
         },
         {
@@ -2685,12 +2675,7 @@
         },
         {
           "op": "whole",
-          "item_id": "wbk:329461584",
-          "splits": []
-        },
-        {
-          "op": "whole",
-          "item_id": "wbk:329462319",
+          "item_id": "wsc:300-432687-503666",
           "splits": []
         },
         {
@@ -2705,12 +2690,12 @@
         },
         {
           "op": "whole",
-          "item_id": "wbk:329462395",
+          "item_id": "wsc:300-432687-499499",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329460748",
+          "item_id": "wsc:300-432687-500162",
           "splits": []
         },
         {
@@ -2735,7 +2720,7 @@
         },
         {
           "op": "whole",
-          "item_id": "wbk:328985783",
+          "item_id": "wsc:300-432687-463105",
           "splits": []
         },
         {
@@ -2745,70 +2730,142 @@
         },
         {
           "op": "whole",
-          "item_id": "wbk:329461388",
+          "item_id": "wsc:300-432687-459615",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329460329",
+          "item_id": "wsc:300-432687-478730",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329460050",
+          "item_id": "wsc:300-432687-485563",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329460670",
+          "item_id": "wsc:300-432687-487483",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329462470",
+          "item_id": "wsc:300-432687-494632",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329461983",
+          "item_id": "wsc:300-432687-461418",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329462424",
+          "item_id": "wsc:300-432687-466472",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329462306",
+          "item_id": "wsc:300-432687-469486",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "wbk:329462043",
+          "item_id": "wsc:300-432687-476281",
           "splits": []
         },
         {
           "op": "whole",
-          "item_id": "gnis:22618",
+          "item_id": "wsc:300-432687-476812",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-480401",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-482026",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-483280",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-505976",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-521786",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-558447",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-555555",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-560023",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-564690",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-565796",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-461418-400917",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-463105-427876",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-461418-565942",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-466472-328926",
+          "splits": []
+        },
+        {
+          "op": "whole",
+          "item_id": "wsc:300-432687-476281-770576",
           "splits": []
         }
       ],
-      "note": "Claude 2026-10-29 at owner's request — check: the curated override names the oxbows: 41 waters, all whole",
+      "note": "Claude 2026-11-11 (T637 follow-through): same waters as the book entry r8:okanagan_river_oxbows@8-1 `matched` (53 items, all whole) — 18 oxbow polygons became part of the named channel items, Park Rill is out (owner 2026-11-11). Was: Claude 2026-10-29 at owner's request — check: the curated override names the oxbows: 41 waters, all whole",
       "by": "claude",
-      "at": "2026-10-29T08:27:28Z",
+      "at": "2026-11-11T21:30:00Z",
       "source": "claude",
       "evidence": {
         "water": "Okanagan River Oxbows",
         "notes": [
-          "the curated override names the oxbows: 41 waters, all whole"
+          "same waters as the book entry r8:okanagan_river_oxbows@8-1: 53 items, all whole"
         ]
       },
       "confidence": "high",
       "waters": {
-        "gnis:22618": {
-          "all": true
-        },
         "wbk:328944522": {
           "all": true
         },
@@ -2819,9 +2876,6 @@
           "all": true
         },
         "wbk:328957729": {
-          "all": true
-        },
-        "wbk:328985783": {
           "all": true
         },
         "wbk:328985785": {
@@ -2839,40 +2893,19 @@
         "wbk:329459234": {
           "all": true
         },
-        "wbk:329460050": {
-          "all": true
-        },
         "wbk:329460279": {
           "all": true
         },
         "wbk:329460316": {
           "all": true
         },
-        "wbk:329460329": {
-          "all": true
-        },
         "wbk:329460457": {
-          "all": true
-        },
-        "wbk:329460670": {
-          "all": true
-        },
-        "wbk:329460748": {
-          "all": true
-        },
-        "wbk:329461070": {
           "all": true
         },
         "wbk:329461320": {
           "all": true
         },
-        "wbk:329461388": {
-          "all": true
-        },
         "wbk:329461445": {
-          "all": true
-        },
-        "wbk:329461584": {
           "all": true
         },
         "wbk:329461800": {
@@ -2884,31 +2917,10 @@
         "wbk:329461918": {
           "all": true
         },
-        "wbk:329461983": {
-          "all": true
-        },
-        "wbk:329462043": {
-          "all": true
-        },
         "wbk:329462064": {
           "all": true
         },
-        "wbk:329462114": {
-          "all": true
-        },
         "wbk:329462179": {
-          "all": true
-        },
-        "wbk:329462220": {
-          "all": true
-        },
-        "wbk:329462306": {
-          "all": true
-        },
-        "wbk:329462319": {
-          "all": true
-        },
-        "wbk:329462395": {
           "all": true
         },
         "wbk:329462406": {
@@ -2917,20 +2929,104 @@
         "wbk:329462410": {
           "all": true
         },
-        "wbk:329462424": {
-          "all": true
-        },
-        "wbk:329462438": {
-          "all": true
-        },
         "wbk:329462452": {
           "all": true
         },
-        "wbk:329462470": {
+        "wsc:300-432687-459615": {
+          "all": true
+        },
+        "wsc:300-432687-461418": {
+          "all": true
+        },
+        "wsc:300-432687-461418-400917": {
+          "all": true
+        },
+        "wsc:300-432687-461418-565942": {
+          "all": true
+        },
+        "wsc:300-432687-463105": {
+          "all": true
+        },
+        "wsc:300-432687-463105-427876": {
+          "all": true
+        },
+        "wsc:300-432687-466472": {
+          "all": true
+        },
+        "wsc:300-432687-466472-328926": {
+          "all": true
+        },
+        "wsc:300-432687-469486": {
+          "all": true
+        },
+        "wsc:300-432687-476281": {
+          "all": true
+        },
+        "wsc:300-432687-476281-770576": {
+          "all": true
+        },
+        "wsc:300-432687-476812": {
+          "all": true
+        },
+        "wsc:300-432687-478730": {
+          "all": true
+        },
+        "wsc:300-432687-480401": {
+          "all": true
+        },
+        "wsc:300-432687-482026": {
+          "all": true
+        },
+        "wsc:300-432687-483280": {
+          "all": true
+        },
+        "wsc:300-432687-485563": {
+          "all": true
+        },
+        "wsc:300-432687-487483": {
+          "all": true
+        },
+        "wsc:300-432687-494632": {
+          "all": true
+        },
+        "wsc:300-432687-499499": {
+          "all": true
+        },
+        "wsc:300-432687-500162": {
+          "all": true
+        },
+        "wsc:300-432687-503666": {
+          "all": true
+        },
+        "wsc:300-432687-505976": {
+          "all": true
+        },
+        "wsc:300-432687-517221": {
+          "all": true
+        },
+        "wsc:300-432687-518583": {
+          "all": true
+        },
+        "wsc:300-432687-521786": {
+          "all": true
+        },
+        "wsc:300-432687-555555": {
+          "all": true
+        },
+        "wsc:300-432687-558447": {
+          "all": true
+        },
+        "wsc:300-432687-560023": {
+          "all": true
+        },
+        "wsc:300-432687-564690": {
+          "all": true
+        },
+        "wsc:300-432687-565796": {
           "all": true
         }
       },
-      "stamp": "9d9dd411b523d41b"
+      "stamp": "942f651375108c88"
     },
     "is-c77bf6cd7da6": {
       "region": "2",
@@ -2959,7 +3055,7 @@
           "all": true
         }
       },
-      "stamp": "7ab6e8eb74796913"
+      "stamp": "40e58e6eb8c9f62f"
     },
     "is-c7dd217d00e3": {
       "region": "4",
@@ -2994,7 +3090,7 @@
           "all": true
         }
       },
-      "stamp": "17f8503e681174aa"
+      "stamp": "def199a7a0735c6e"
     },
     "is-cd23c37ead11": {
       "region": "4",
@@ -3029,7 +3125,7 @@
           "all": true
         }
       },
-      "stamp": "00e6324b3869df53"
+      "stamp": "928e740344e33ea9"
     },
     "is-d55f2ace6f8e": {
       "region": "4",
@@ -3064,7 +3160,7 @@
           ]
         }
       },
-      "stamp": "9436558662d1adaf"
+      "stamp": "8a29601e91a130f1"
     },
     "is-e03c3754d0af": {
       "region": "8",
@@ -3096,7 +3192,7 @@
           "all": true
         }
       },
-      "stamp": "ef167e3089f884d2"
+      "stamp": "80ff27e1bcd6495c"
     },
     "is-ed799087db95": {
       "region": "4",
@@ -3131,7 +3227,7 @@
           "all": true
         }
       },
-      "stamp": "e68dd7e0cce9b487"
+      "stamp": "69252b412d6b372a"
     },
     "is-f1670924c755": {
       "region": "4",
@@ -3166,7 +3262,7 @@
           "all": true
         }
       },
-      "stamp": "1c3af963442b1bcc"
+      "stamp": "926d228af5b0813b"
     },
     "is-f528732e7d5b": {
       "region": "8",
@@ -3271,7 +3367,7 @@
           "all": true
         }
       },
-      "stamp": "e6409480c0d2e86f"
+      "stamp": "bcf97a481322e5ac"
     },
     "is-f9e5db230277": {
       "region": "4",
@@ -3300,7 +3396,7 @@
           ]
         }
       },
-      "stamp": "bc1578e11035ebb9"
+      "stamp": "f98c43bdb625fb7f"
     }
   },
   "history": [
