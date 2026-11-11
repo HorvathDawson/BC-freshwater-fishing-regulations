@@ -364,17 +364,98 @@ def section_regions_of(registry, sid_of: Mapping[str, int], areas: Iterable[str]
 STRICT = ("closed", "release", "check", "open")
 
 
+def _caps(v: Mapping) -> Optional[List[dict]]:
+    """An opening's limits as the freshwater reader's rules (`bundle.read` shape): its daily count, and each size tier
+    as its own cap — "none over X cm" (take 0 over X), "only k over X cm" (take k over X) — so two regions' openings
+    are compared by the SAME primitives a two-region freshwater section is (`ladder.stricter`, `statement`). None where
+    the number cannot be read (`u`), or the tree holds a kind (hatchery / wild), a monthly or a pooled limit."""
+    tree = v.get("tree")
+    if v.get("u") or not tree or tree.get("tier") != "count" or not isinstance(tree.get("n"), int):
+        return None
+    sp = list(tree.get("species") or [])
+    out = [{"type": "retention_limit", "take": tree["n"], "species": sp}]
+    for c in tree.get("children") or ():
+        if c.get("node") != "tier" or c.get("tier") != "size" or c.get("period") or not isinstance(c.get("over_cm"), int):
+            return None
+        band = {"min_cm": c["over_cm"], **({"take": 0} if c["n"] == 0 else {})}
+        out.append({"type": "retention_limit", "take": c["n"], "species": sp, "lengths": [band]})
+    return out
+
+
+def _both_bind(a: List[dict], b: List[dict]) -> List[dict]:
+    """RULINGS Z4 as the freshwater reader reads it (`read.effective_rules` step 6): of two caps saying the same thing
+    (`rules.statement`) the stricter (`ladder.stricter`; equal: the first region's) — every other cap binds beside it."""
+    from pipeline.deliver.bundle.read.ladder import stricter
+    from pipeline.deliver.bundle.rules.predicates import statement
+    out = {statement(x): x for x in a}
+    for y in b:
+        k = statement(y)
+        if k not in out or stricter(y, out[k]):
+            out[k] = y
+    return list(out.values())
+
+
+def stricter_opening(a: dict, b: dict) -> dict:
+    """(owner 2026-11-11, RULINGS Z4a: "straddles should always take the most strict rules from both regions") two
+    regions' openings of one species and day, read as the freshwater reader reads two regions' quotas (`_both_bind`):
+    where the caps that bind are one region's own, that region's opening; where they mix (a lower count from one, a
+    size cap from the other), or a number cannot be read, BOTH regions' words with no number (`u`) — the app then
+    shows DFO's words, and no limit is dropped."""
+    if a == b:
+        return a
+    ca, cb = _caps(a), _caps(b)
+    if ca is not None and cb is not None:
+        bind = _both_bind(ca, cb)
+        key = lambda xs: sorted(json.dumps(x, sort_keys=True) for x in xs)       # noqa: E731
+        if key(bind) == key(ca):
+            return a
+        if key(bind) == key(cb):
+            return b
+    out = {"s": "open", "t": "; ".join(dict.fromkeys(x for x in (a.get("t"), b.get("t")) if x)), "u": 1}
+    n = ", ".join(sorted({x for v in (a, b) for x in str(v.get("n") or "").split(", ") if x}))
+    if n:
+        out["n"] = n
+    return out
+
+
 def strictest(answers: Sequence[Optional[dict]]) -> dict:
     """The most strict of each region's answer for one species and day (regions by number); a region saying nothing
-    that day is closed to it (`NOT_LISTED`: closed unless DFO opens it). A tie — two openings — goes to the first
-    region: the two daily limits are NOT compared (the feed's verdicts carry no number to compare by; T668 follow-up).
-    The live feed composes the same (`regs.dfo_salmon.live.compose`)."""
+    that day is closed to it (`NOT_LISTED`: closed unless DFO opens it). Two openings: the stricter limit
+    (`stricter_opening`). The live feed composes the same (`regs.dfo_salmon.live.compose`)."""
     best = None
     for v in answers:
         v = v or NOT_LISTED
         if best is None or STRICT.index(v["s"]) < STRICT.index(best["s"]):
             best = v
+        elif v["s"] == best["s"] == "open":
+            best = stricter_opening(best, v)
     return best
+
+
+def _within(a: Mapping, b: Mapping) -> bool:
+    """Hours `a` lie inside hours `b` (same sun anchors, a starts no earlier and ends no later)."""
+    sa, ea, sb, eb = a.get("start") or {}, a.get("end") or {}, b.get("start") or {}, b.get("end") or {}
+    if sa.get("solar") != sb.get("solar") or ea.get("solar") != eb.get("solar") or not sa.get("solar") \
+            or not ea.get("solar"):
+        return False
+    return sa.get("offset_min", 0) >= sb.get("offset_min", 0) and ea.get("offset_min", 0) <= eb.get("offset_min", 0)
+
+
+def tighter_hours(by_region: Mapping[str, Optional[Mapping]]) -> List[str]:
+    """(RULINGS Z4a) of a straddler's regions' salmon fishing hours (`header_answers` `hours`, None: the page prints
+    none, so no limit), the regions whose line shows: the tightest — one whose hours lie inside every other's — else
+    every region that prints hours (not comparable: both shown, never one dropped). [] where none prints any."""
+    have = {r: h["hours"] for r, h in by_region.items() if h and h.get("hours")}
+    for r, h in sorted(have.items()):
+        if all(_within(h, o) for o in have.values()):
+            return [r]
+    return sorted(have)
+
+
+def both_gear(lines: Sequence[Sequence[str]]) -> Tuple[str, ...]:
+    """(owner 2026-11-11) a straddler's gear and method lines: every region's, in region order, a line said once —
+    two regions' lines are DFO's words and are not ranked, so none is dropped."""
+    return tuple(dict.fromkeys(x for ls in lines for x in ls))
 
 
 # ── the build ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -418,8 +499,8 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
     chain (`speaks`): the days DFO speaks for it (1: some species has a verdict other than "not opened"), the trout
     caveat's "in force today" — the card lists it first on those days. (T668) `groups` (a chain on a section in two
     regions, its places of each region as indices into `chain`): each group cascades on its own and the most strict
-    answer per fish speaks (`strictest`); the gear lines are the first group's with any that day (as the live feed
-    composes them, `live.compose`; listing both regions' lines is a T668 follow-up)."""
+    answer per fish speaks (`strictest`, two openings by their limits); the gear lines are every group's
+    (`both_gear`) — as the live feed composes them (`live.compose`)."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
@@ -427,7 +508,7 @@ def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: 
     for md in DAYS:
         if subs:
             vs = [strictest([verdict_on(c, sp, md) for c in subs]) for sp in SPECIES]
-            g = next((x for x in (gear_on(c, md) for c in subs) if x), ())
+            g = both_gear([gear_on(c, md) for c in subs])
         else:
             vs = [verdict_on(chain, sp, md) for sp in SPECIES]
             g = gear_on(chain, md)
@@ -661,6 +742,12 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         for u in unmapped:
             mine[u["r"]].update(u["items"])
         scopes = {slug: {k: [i for i in v if i in mine[slug]] for k, v in sc.items()} for slug, sc in scopes.items()}
+    # (owner 2026-11-11, RULINGS Z4a) a two-region chain's salmon fishing hours: the tighter region's line (`h`, the
+    # region slugs whose header hours line shows), both where neither is tighter
+    for c in chains:
+        if c.get("s"):
+            c["h"] = tighter_hours({sl: (regions.get(sl) or {}).get("hours")
+                                    for sl in sorted({locs[c["l"][g[0]]][0] for g in c["s"]})})
     off = places_off(locs, placed, chains)
     for lid, why in off.items():
         print(f"     salmon: {lid} is in no chain — {why}")

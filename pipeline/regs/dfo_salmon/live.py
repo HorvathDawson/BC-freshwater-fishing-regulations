@@ -109,7 +109,9 @@ def _at(runs: Sequence[int], day: int) -> int:
 
 
 def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[dict], undrawn: Sequence[str] = (),
-            speaks: bool = False, groups: Optional[Sequence[Sequence[int]]] = None) -> dict:
+            speaks: bool = False, groups: Optional[Sequence[Sequence[int]]] = None,
+            intern: Optional[Callable[[dict], int]] = None, gears: Optional[Sequence[Sequence[str]]] = None,
+            gear_intern: Optional[Callable[[list], int]] = None) -> dict:
     """A release chain's year from the feed: per species and day the FIRST location (narrowest first, the chain's own
     order) with an answer, else `NOT_LISTED` (index 0); gear the first with any; the map status from the five. The
     reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules.
@@ -117,25 +119,47 @@ def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[di
     whether the header closure `c` holds for them too. `speaks`: an undrawn place's own chain carries `n`, the days DFO
     speaks for it (`deliver.salmon.speaks_runs`). (T668) `groups`: the chain's `s` — on a section in two regions each
     region's places (indices into `lids`) answer apart and the most strict per fish speaks (`deliver.salmon.strictest`;
-    a group with no answer is `NOT_LISTED`); the gear lines are the first group's with any that day, as the release's
-    (`deliver.salmon.chain_calendar`; listing both regions' lines is a T668 follow-up)."""
+    a group with no answer is `NOT_LISTED`; two openings by their limits, which may be a NEW verdict — both regions'
+    words, no number — added through `intern`, which appends to `verdicts`); the gear lines are every group's (`deliver.salmon.both_gear`, a new
+    list added through `gear_intern`, `gears` the feed's). A merge with no interner to add it to STOPS (never a guess)."""
     subs = [[locs[lids[i]] for i in g if lids[i] in locs] for g in groups] if groups else \
         [[locs[l] for l in lids if l in locs]]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
-    first = lambda xs: next((v for v in xs if v >= 0), 0)            # noqa: E731
+    first = lambda xs, none=0: next((v for v in xs if v >= 0), none)            # noqa: E731
+
+    def one(ixs: List[int]) -> int:
+        if len(ixs) == 1:
+            return ixs[0]
+        got = S.strictest([verdicts[i] for i in ixs])
+        hit = next((i for i in ixs if verdicts[i] is got), None)
+        if hit is not None:
+            return hit
+        if intern is None:
+            raise S.SalmonError("live.compose: two regions' openings need a merged verdict and no `intern` was given")
+        ix = intern(got)
+        if not 0 <= ix < len(verdicts) or verdicts[ix] != got:
+            raise S.SalmonError("live.compose: `intern` must add to `verdicts` (the same list)")
+        return ix
+
+    def gear_of(gs: List[int]) -> int:
+        have = [g for g in gs if g >= 0]
+        if len(have) <= 1:
+            return have[0] if have else -1
+        if gears is None or gear_intern is None:
+            raise S.SalmonError("live.compose: two regions' gear lines need `gears` and `gear_intern`")
+        merged = list(S.both_gear([gears[g] for g in have]))
+        same = next((g for g in have if list(gears[g]) == merged), None)
+        return same if same is not None else gear_intern(merged)
+
     for day in range(len(S.DAYS)):
         vs = []
         for k in range(len(S.SPECIES)):
-            ixs = [first(_at(c["sp"][k], day) for c in cals) for cals in subs]
-            ix = ixs[0]
-            for j in ixs[1:]:
-                if S.STRICT.index(verdicts[j]["s"]) < S.STRICT.index(verdicts[ix]["s"]):
-                    ix = j
+            ix = one([first(_at(c["sp"][k], day) for c in cals) for cals in subs])
             per_sp[k].append(ix)
             vs.append(verdicts[ix])
-        gear.append(next((g for cals in subs for g in (_at(c["g"], day) for c in cals) if g >= 0), -1))
+        gear.append(gear_of([first((_at(c["g"], day) for c in cals), -1) for cals in subs]))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
     sp = [S.runs_of(x) for x in per_sp]
     # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`
