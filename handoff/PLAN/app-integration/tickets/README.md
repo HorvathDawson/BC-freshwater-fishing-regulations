@@ -662,7 +662,7 @@ use that as the sole source of future work."
 | T629 | Owner: four places where our text differs from the printed book (no value changes) | OPEN | — | T553 report; owner answers |
 | T630 | One hydrograph presenter for the app and the public gauge page | OPEN | — | T564 leftover |
 | T631 | Reach run follow-ups: binding diff on DFO-only changes, check flag for unplaced pieces, id dry-run before promote | OPEN | — | T546 follow-ups |
-| T632 | Owner: four decisions from the reach run (tidal subtraction, unplaced-piece gate, expected-unresolved note, 6 matched disagreements) | IN REVIEW | 8fdcb79d4 | done to the owner's answers; reach run + fast-fail fail by design until the owner accepts 5 pieces and applies the Oxbows diff |
+| T632 | Owner: four decisions from the reach run (tidal subtraction, unplaced-piece gate, expected-unresolved note, 6 matched disagreements) | IN REVIEW | 8fdcb79d4 | done to the owner's answers; owner 2026-11-11: 5 unplaced pieces accepted (left out), tidal sheets good (follow-up T660); builds still stop on Oxbows (T637) |
 | T633 | Gauge feed follow-ups: generated policy constants, refuse untagged feed, contract test on worker output, card wording, HYDAT mismatch warning | OPEN | — | T550/T557/T585 leftovers; two owner questions |
 | T634 | Lake tab: depth charts and stocking, to the owner's decisions (OGL, vector files, name variants, PDF compression) | OPEN | — | owner 2026-11-11; restarts the data half of T200/T201/T218. First pass items 1–5 d55900aba (licence: placed contours, sheet layer, stocking Access Only); item 6 (app) waits for the owner |
 | T635 | Find where the fishways and government fish facilities are (the 23 m and 100 m no-fishing buffers) | POSTPONED | — | owner 2026-11-11: benched, data not good enough; findings kept (2e92f9f0b); CABD is CC BY-SA, commercial allowed |
@@ -670,6 +670,7 @@ use that as the sole source of future work."
 | T637 | Okanagan River Oxbows: the owner's hand-matched side channels (26 watershed codes of unnamed lines) must bind again; builds stop on them since T632 | OPEN | — | owner 2026-11-11: do not delete the hand matches; Park Rill code is a proposal |
 | T638 | Pipeline suite leftovers: export files regenerated, heavy.sh blind to compressed memory, stale bytecode, one clean chunked run | OPEN | — | suite trace 2026-11-11: one process grows to 111 GB and the kernel kills it; 5 of 7 failures fixed (304feae, 8822df2, 68fca13, 553fe40) |
 | T639 | Review proposals: `build()` rebuilds a cut the owner's mark withdrew (Alouette / Allco) | OPEN | — | chat 10 lane; found by the suite trace; fails test_curation_review_split_preview |
+| T660 | Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) | OPEN | — | owner 2026-11-11 on the T632 sheets; chat 11 ids continue T660–T679 |
 
 ## Order for open tickets
 
