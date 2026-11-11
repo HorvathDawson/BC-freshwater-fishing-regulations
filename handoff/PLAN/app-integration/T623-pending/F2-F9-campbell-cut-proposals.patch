@@ -1,0 +1,61 @@
+--- a/pipeline/regs/review/split_suggest.py	2026-11-11 00:26:24
++++ b/pipeline/regs/review/split_suggest.py	2026-11-11 00:26:24
+@@ -80,9 +80,12 @@
+     RESEARCH[("r1:campbell_river@1-10", _rid)] = {
+         "suggestion": _sugg("between", [{"kind": "split", "split_id": _other}, {"kind": "new", "split_id": "sg1"}],
+                             ["gnis:39532"], [_JH_TAIL], _op_words),
+-        "confidence": "medium",
++        "confidence": "high",
+         "reason": "the power station is BELOW Elk Falls (OSM generator at 5644 m, falls at 7479 m), not at the "
+-                  "dam face (8504 m): the rule's no-fishing canyon runs from the falls DOWN to the tailrace",
++                  "dam face (8504 m): the rule's no-fishing canyon runs from the falls DOWN to the tailrace. "
++                  "Owner reading 2026-11-11 (T623 F2): 'the no-fishing water is Elk Falls down to the John Hart "
++                  "generating station (1.86 km below the falls)' (measured: 7479 - 5644 = 1835 m). Waiting on "
++                  "the owner's tick of this cut",
+         "evidence": _JH_EVID,
+         "preverify": _pv("disagree", "OSM power plant/generator snapped to the FWA line",
+                          "curated point at the dam face", 8504 - 5644, TOL_POINT,
+@@ -90,20 +93,31 @@
+                          "Elk Falls"),
+         "pick": {"builder": 8504.0, "proposed": 5644.0, "agrees": False},
+     }
++_QUINSAM_LINE = {"ref": "sg2", "anchor": "coord", "name": "power line ~320 m above the Quinsam mouth",
++                 "coord": [-125.298018, 50.038902], "on_item": "gnis:39532", "blk": "354154635",
++                 "measure": 4519.0, "quote": "power line crossing approximately 200 m upstream of Quinsam River "
++                 "confluence", "confidence": "medium"}
+ RESEARCH[("r1:campbell_river@1-10", "campbell_river.r5")] = {
+-    "suggestion": _sugg("between", [{"kind": "new", "split_id": "sg1"},
+-                                    {"kind": "split", "split_id": "campbell_river__power_line_200m_up_of_quinsam"}],
+-                        ["gnis:39532"], [_JH_TAIL], "from the station tailrace down to the power line"),
+-    "confidence": "low",
+-    "reason": "with the station at the tailrace (5644 m) the curated power-line split (5534 m) is only 110 m "
+-              "below it, and OSM has no power line 200 m above the Quinsam (its mouth is at 4200 m): the "
+-              "power-line split needs the owner's eye too",
++    "suggestion": _sugg("between", [{"kind": "new", "split_id": "sg1"}, {"kind": "new", "split_id": "sg2"}],
++                        ["gnis:39532"], [_JH_TAIL, _QUINSAM_LINE],
++                        "from the station tailrace down to the power line ~320 m above the Quinsam"),
++    "confidence": "high",
++    "reason": "owner readings 2026-11-11 (T623 F2, F9): 'Fly only starts at the station and runs down to the power "
++              "line near the Quinsam'; 'the cut goes to the cleared power-line strip about 320 m above the Quinsam "
++              "mouth (today it sits 1,332 m up, beside the station)'. The new point replaces the curated "
++              "campbell_river__power_line_200m_up_of_quinsam (5534 m) as this rule's lower end. Waiting on the "
++              "owner's tick of both cuts",
+     "evidence": _JH_EVID + [f"{OVERPASS}: the only power lines crossing the Campbell are 1L104 at 5437 m and "
+-                            "1L103 at 5584 m (both at the switchyard); Quinsam mouth snaps to 4200 m"],
+-    "preverify": _pv("disagree", "OSM power-line crossings vs the book's '200 m upstream of Quinsam'",
+-                     "curated power-line split at 5534 m", 5534 - 4400, TOL_POINT,
+-                     "the book's power line (~4400 m) and the curated one (5534 m) are 1.1 km apart"),
+-    "pick": {"builder": 8504.0, "proposed": 5644.0, "agrees": False},
++                            "1L103 at 5584 m (both at the switchyard); Quinsam mouth snaps to 4200 m",
++                            "handoff/PLAN/app-integration/T623-shots/F9-campbell-quinsam-powerline.png: a cleared "
++                            "strip meets the river about 320 m up from the Quinsam mouth (imagery reading); "
++                            "Quinsam mouth on blk 354154635 at 4199 m (FWA streams layer), +320 m = 4519 m, "
++                            "interpolated on the same line"],
++    "preverify": _pv("disagree", "the owner's imagery reading vs the curated power-line split",
++                     "curated power-line split at 5534 m", 5534 - 4519, TOL_POINT,
++                     "the curated split sits beside the station; the owner places the line 320 m above the "
++                     "Quinsam"),
++    "pick": {"builder": 5534.0, "proposed": 4519.0, "agrees": False},
+ }
+ RESEARCH[("r4:caribou_creek@4-15", "caribou_creek.r1")] = {
+     "confidence": "high",
