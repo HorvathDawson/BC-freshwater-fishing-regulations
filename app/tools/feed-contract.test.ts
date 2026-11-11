@@ -10,6 +10,11 @@
  * `section: "356363467:4738"`. Section ids survive a rebuild only 94% of the time
  * (AGENTS rule 5), so a feed keyed on one is silently wrong for 6% of reaches the moment
  * the tiles are rebuilt — and nothing anywhere would report it.
+ *
+ * (T557 item 3 / T633 item 3) The checks themselves — format, fetchedAt, no section id, nothing the bundle owns, only
+ * keys the app reads, percentiles where a colour is picked — are ONE function, `gaugeFeedContract`
+ * (./gauge-feed-contract.ts), run here on the fixture and in workers/feeds/test/gauges.contract.test.ts on the worker's
+ * own output. The fixture once kept an index `forecast` array the publisher never wrote, and nothing said so.
  */
 import { describe, expect, it } from "vitest";
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -19,6 +24,7 @@ import { gunzipSync } from "node:zlib";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import { HORIZONS } from "@app/core";
+import { gaugeFeedContract } from "./gauge-feed-contract";
 import { FIXTURE_RELEASE_ROOT, FIXTURE_RELEASES } from "../conformance/src/fixtureRelease";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
@@ -26,86 +32,20 @@ const FEEDS = here("../packages/data/dev/feeds/gauge");
 const read = (f: string) => JSON.parse(readFileSync(`${FEEDS}/${f}`, "utf8"));
 const files = readdirSync(FEEDS).filter((f) => f.endsWith(".json"));
 
-/** Every string anywhere in a JSON tree, keys included. */
-function strings(v: unknown, out: string[] = []): string[] {
-  if (typeof v === "string") out.push(v);
-  else if (Array.isArray(v)) for (const x of v) strings(x, out);
-  else if (v && typeof v === "object")
-    for (const [k, x] of Object.entries(v)) { out.push(k); strings(x, out); }
-  return out;
-}
-
 describe("the feed / bundle contract", () => {
   it("has feeds to check at all", () => {
     expect(files.length).toBeGreaterThan(1);
   });
 
-  it("never puts a section id in a feed", () => {
-    // "{blk}:{measure}" — the shape section ids take. They must not leave the bundle.
-    const looksLikeSection = /^\d{6,}:\d+$/;
-    for (const f of files)
-      for (const s of strings(read(f)))
-        expect(looksLikeSection.test(s), `${f} carries a section id: ${s}`).toBe(false);
+  it("the fixture feed keeps the gauge feed contract (the one the worker's output is held to)", () => {
+    expect(gaugeFeedContract(Object.fromEntries(files.map((f) => [f, read(f)])))).toEqual([]);
   });
 
-  it("never re-ships station identity the bundle already holds", () => {
-    // Each of these was in v1's index and is now a column of `gauge`.
-    const owned = ["name", "at", "areaKm2", "area_km2", "river", "section", "lon", "lat",
-                   "mag", "active"];
+  it("carries every forecast horizon we draw (a real feed leaves out a day no run reaches)", () => {
     const idx = read("index.json");
-    for (const station of Object.values(idx.stations as Record<string, object>))
-      for (const k of Object.keys(station))
-        expect(owned, `the index re-ships '${k}', which the bundle owns`).not.toContain(k);
-  });
-
-  it("keeps the forecast to percentiles, which is what colours a dot", () => {
-    // Discharges would force every client to hold the envelope to colour anything, and
-    // then two clients could disagree about the same river. The publisher decides once.
-    const idx = read("index.json");
-    for (const s of Object.values(idx.stations as Record<string, { forecast: unknown }>)) {
-      if (s.forecast === null) continue;
-      expect(Array.isArray(s.forecast)).toBe(true);
-      for (const v of s.forecast as unknown[])
-        expect(v === null || (typeof v === "number" && v >= 0 && v <= 1)).toBe(true);
-    }
-  });
-
-  it("keeps the index to what actually colours a dot", () => {
-    // Its whole job is 450 stations without 450 fetches. Anything past the value that
-    // picks the colour and the time that says whether to trust it belongs in the file a
-    // tap fetches.
-    const idx = read("index.json");
-    for (const station of Object.values(idx.stations as Record<string, object>))
-      // `forecast` earns its place: it is three more numbers that colour the same dots on
-      // a 1/2/3-day view, which is the index's whole job. `ahead` earns it for the same
-      // reason and is the WATER's version of it: one percentile per horizon per quantity,
-      // which is what paints the whole province for +1 / +3 / +5 days. Anything past that
-      // is sheet data and belongs in the file a tap fetches.
-      expect(Object.keys(station).sort())
-        // `change` (T52): the expected change over ten days — one coded number that colours the map under the Change
-        // chip, like `ahead`'s per day, and the few words of what it is; each run's detail stays in the station file
-        .toEqual(["ahead", "change", "forecast", "observedAt", "percentile"]);
-  });
-
-  it("keeps the forecast horizons to percentiles, and only the ones we draw", () => {
-    // Same rule as `forecast` above: the index carries what picks a colour and nothing
-    // else. A discharge here would be a number the map cannot use and every client would
-    // then have to rank for itself, against an envelope it does not have.
-    const idx = read("index.json");
-    for (const s of Object.values(idx.stations as Record<string, { ahead?: unknown }>)) {
-      if (s.ahead === undefined) continue;
-      const ahead = s.ahead as Record<string, Record<string, unknown>>;
-      // Mirrors HORIZONS in pipeline/gauges/feed/publish.py (core's, less 0). The fixture
-      // carries every one; a real feed leaves out a day no run reaches (often "10").
-      expect(Object.keys(ahead).sort((a, b) => Number(a) - Number(b)))
-        .toEqual(HORIZONS.filter((d) => d > 0).map(String));
-      for (const at of Object.values(ahead))
-        for (const [k, v] of Object.entries(at)) {
-          expect(["discharge", "level", "model"]).toContain(k);
-          if (k !== "model")
-            expect(typeof v === "number" && v >= 0 && v <= 1).toBe(true);
-        }
-    }
+    for (const s of Object.values(idx.stations as Record<string, { ahead?: Record<string, unknown> }>))
+      if (s.ahead !== undefined)
+        expect(Object.keys(s.ahead).sort((a, b) => Number(a) - Number(b))).toEqual(HORIZONS.filter((d) => d > 0).map(String));
   });
 
   it("is fetchable by station id and nothing else", () => {
@@ -122,9 +62,5 @@ describe("the feed / bundle contract", () => {
     db.close();
     for (const f of files.filter((x) => x !== "index.json"))
       expect(known, `${f} is not a station in the fixture release`).toContain(f.replace(".json", ""));
-  });
-
-  it("stamps every feed with when it was fetched, because staleness is the risk", () => {
-    for (const f of files) expect(read(f).fetchedAt, `${f} has no fetchedAt`).toBeTruthy();
   });
 });
