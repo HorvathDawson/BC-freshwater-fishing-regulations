@@ -25,7 +25,7 @@
 //   purge               kinds not seen for CRASH_RETENTION_DAYS are deleted (privacy page: "90 days after the last time").
 import type { FeedEvent } from "./events";
 import type { R2BucketLike } from "./io";
-import { CORS, CRASH_KINDS_PER_DAY_TOTAL, dailyTotal, readCapped, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
+import { CORS, CRASH_KINDS_PER_DAY_TOTAL, dailyTotal, readCapped, TEST_PER_DAY_TOTAL, TEST_TOTAL_PREFIX, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
 
 export const CRASHES_PREFIX = "private/crashes/";
 /** (T559) the per-address counters: `purgeLimits` (reports.ts) deletes them once their day is over */
@@ -223,9 +223,11 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   try { o = await env.BUCKET.get(key); } catch { return json({ ok: false, error: "could not read" }, 503); }
   let known = false;
   if (o) { try { kind = JSON.parse(await o.text()); known = true; } catch { /* a broken object is replaced */ } }
-  if (!known && !isTest) {
+  if (!known) {
     let full: string | null;
-    try { full = await dailyTotal(env.BUCKET, LIMITS_PREFIX, now, CRASH_KINDS_PER_DAY_TOTAL); } catch { return json({ ok: false, error: "could not count" }, 503); }
+    // (T609 W19) a test kind counts against the test store's own total
+    try { full = isTest ? await dailyTotal(env.BUCKET, TEST_TOTAL_PREFIX(LIMITS_PREFIX), now, TEST_PER_DAY_TOTAL)
+                        : await dailyTotal(env.BUCKET, LIMITS_PREFIX, now, CRASH_KINDS_PER_DAY_TOTAL); } catch { return json({ ok: false, error: "could not count" }, 503); }
     if (full) return json({ ok: false, error: "too many new error kinds today" }, 429);
   }
   kind.last = at;

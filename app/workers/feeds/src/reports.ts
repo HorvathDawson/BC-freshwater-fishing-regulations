@@ -193,6 +193,11 @@ export async function capEvents(bucket: R2BucketLike, now: Date, at: string): Pr
   }
   return out;
 }
+/** (T609 W19) the staging test store (anyone can tag `test: true` there): at most this many test reports, and new test
+ *  error kinds, a day — its own total, so a tool's flood never eats the real one and the test store stays bounded */
+export const TEST_PER_DAY_TOTAL = 200;
+export const TEST_TOTAL_PREFIX = (limitsPrefix: string) => `${limitsPrefix}test-`;
+
 /** (T609 W1) at most this many NEW error kinds stored a day (a repeat of a known kind adds no object) */
 export const CRASH_KINDS_PER_DAY_TOTAL = 500;
 
@@ -296,7 +301,9 @@ export async function handleReport(req: Request, env: ReportEnv, now: Date = new
   let refused: string | null;
   try {
     // (T609 W1) per address (IPv6 by its /64), then the day's total from everyone (a test report is not counted)
-    refused = await rateLimit(env, ip, now) ?? (isTest ? null : await dailyTotal(env.BUCKET, LIMITS_PREFIX, now, REPORTS_PER_DAY_TOTAL));
+    refused = await rateLimit(env, ip, now) ?? (isTest
+      ? await dailyTotal(env.BUCKET, TEST_TOTAL_PREFIX(LIMITS_PREFIX), now, TEST_PER_DAY_TOTAL)    // (T609 W19)
+      : await dailyTotal(env.BUCKET, LIMITS_PREFIX, now, REPORTS_PER_DAY_TOTAL));
   } catch (e) {
     console.error(JSON.stringify({ job: "reports", limitError: String(e) }));
     return json({ ok: false, error: "the report service could not count this report; it is kept and sent again later" }, 503);

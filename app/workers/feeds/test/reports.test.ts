@@ -315,3 +315,14 @@ it("(T609 W10) a cut or partly unreadable list says so", async () => {
   expect([cut.reports.length, cut.truncated]).toEqual([2, true]);
   expect((await listReportsCounted(BUCKET, "2024-01-01", at("2026-10-29T00:00:00Z"))).truncated).toBe(true);
 });
+
+// T609 W19: on staging anyone may tag `test: true`; the test store had no bound
+it("(T609 W19) the staging test store has its own daily total; the real one is untouched", async () => {
+  const { TEST_PER_DAY_TOTAL, TEST_TOTAL_PREFIX, totalKey } = await import("../src/reports");
+  const BUCKET = new MemBucket();
+  BUCKET.m.set(totalKey(TEST_TOTAL_PREFIX("private/reports/limits/"), "2026-10-28"), JSON.stringify({ day: "2026-10-28", n: TEST_PER_DAY_TOTAL }));
+  const r = await handleReport(post(report({ test: true })), { BUCKET, REPORT_SALT: SALT, FEEDS_ENV: "staging" }, at("2026-10-28T20:00:00Z"));
+  expect(r.status).toBe(429);
+  expect(BUCKET.m.has("private/reports/limits/_total-2026-10-28.json")).toBe(false);
+  expect([...BUCKET.m.keys()].some((k) => k.startsWith("private/reports-test/"))).toBe(false);
+});
