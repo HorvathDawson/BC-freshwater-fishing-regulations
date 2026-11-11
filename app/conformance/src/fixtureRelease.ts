@@ -68,10 +68,13 @@ export function releaseFetch(base: string, dir: string, log: string[]): typeof f
 }
 
 /**
- * THE LIVE RELEASE on this machine (`python -m pipeline.deliver release` → data/release/r-*, not in git): $RELEASE_DIR
- * (relative to the repo root, or absolute), else the release this checkout's `data/release/LATEST` names, else — in a
- * `.claude/worktrees/<name>` checkout — the main checkout's (read only: its files are read, never written). null: none,
- * or one this app refuses by its section versions (`liveReleaseAt` says why).
+ * THE RELEASE UNDER TEST (T667 / T666: the app suite's ONE answer to "which release is this run about"; the pipeline
+ * suite's twin is `pipeline/tests/under_test.py` `release`, same variable). $RELEASE_DIR (relative to the repo root, or
+ * absolute) — the release command sets it to its CANDIDATE while the checks run, so nothing compares with LATEST before
+ * promote — else the release this checkout's `data/release/LATEST` names (`python -m pipeline.deliver release` →
+ * data/release/r-*, not in git), else — in a `.claude/worktrees/<name>` checkout — the main checkout's (read only: its
+ * files are read, never written). null: none, or one this app refuses by its section versions (`liveReleaseAt` says
+ * why). No test reads `data/release`, `LATEST` or `process.env.RELEASE_DIR` itself (`tools/check-test-anchors.mjs`).
  */
 export function liveRelease(): string | null {
   return liveReleaseAt().dir;
@@ -87,7 +90,14 @@ export function liveRelease(): string | null {
 export function liveReleaseAt(env: Readonly<Record<string, string | undefined>> = process.env):
   { dir: string; reason: null } | { dir: null; reason: string } {
   const dir = findRelease(env);
-  if (!dir) return { dir: null, reason: "no release on this machine (data/release/r-*)" };
+  if (!dir) {
+    // (T667) a release NAMED and not there is said as that, and on a machine meant to prove parity it is a failure:
+    // the release command names its candidate, and a candidate that is missing must never read as "nothing to test"
+    const reason = env.RELEASE_DIR ? `RELEASE_DIR=${env.RELEASE_DIR} names no release (no manifest.json there)`
+      : "no release on this machine (data/release/r-*)";
+    if (env.RELEASE_DIR && env.REGS_STORE_REQUIRED && env.REGS_STORE_REQUIRED !== "0") throw new Error(`REGS_STORE_REQUIRED is set: ${reason}`);
+    return { dir: null, reason };
+  }
   const said = (JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as
     { regulations?: { versions?: Record<string, number> } }).regulations?.versions ?? {};
   const off = SECTION_NAMES.filter((n) => said[n] !== KNOWN_VERSIONS[n])
@@ -96,6 +106,18 @@ export function liveReleaseAt(env: Readonly<Record<string, string | undefined>> 
   const reason = `release ${dir} is ${off.join(", ")}: rebuild it (deliver all), then re-cut the goldens (sync.mjs)`;
   if (env.REGS_STORE_REQUIRED && env.REGS_STORE_REQUIRED !== "0") throw new Error(`REGS_STORE_REQUIRED is set: ${reason}`);
   return { dir: null, reason };
+}
+
+/**
+ * (T667) THE RELEASE A TIER 2 RUN NAMED: $RELEASE_DIR's folder, or null when the variable is unset — for a suite that
+ * runs only when asked (`scripts/test-full.sh`, the release command) and is skipped by name otherwise; it never falls
+ * back to LATEST. A value naming no release throws: a run that asked for a release and got none is not a skip.
+ */
+export function namedRelease(env: Readonly<Record<string, string | undefined>> = process.env): string | null {
+  if (!env.RELEASE_DIR) return null;
+  const d = resolve(REPO, env.RELEASE_DIR);
+  if (!existsSync(join(d, "manifest.json"))) throw new Error(`RELEASE_DIR=${env.RELEASE_DIR}: no release there (${d}/manifest.json)`);
+  return d;
 }
 
 function findRelease(env: Readonly<Record<string, string | undefined>>): string | null {

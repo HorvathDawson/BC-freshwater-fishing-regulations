@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { buildModel, FISH, makePlace, plain, plainRowOf, plainRowSeams, settle, type DecidedStoryVM, type PlainRowVM } from "@app/core";
 import { loadRegsInputs, openRegsStore, type RegsStore } from "@app/data/regs";
-import { openRegsFixture } from "@app/data/release/node";
+import { openRegsFixture, sectionNames } from "@app/data/release/node";
 import { liveRelease, openReleaseDir } from "../fixtureRelease";
 
 async function rowsOf(st: RegsStore, item: string, partIx: number, month: number, day: number): Promise<PlainRowVM[]> {
@@ -28,7 +28,9 @@ describe("T216 on the fixture release", () => {
   // (T278, regs fixture on r-62e2f3a8c81e) the Fraser's tidal cut at the CPR Bridge at Mission took its old part 3: the Regions 3 and 5 part is 13 now (was 14)
   // (T517, regs fixture r-fc17c4373686) part_ix is river order: "Region 5 boundary → Region 3 boundary" is part 14
   it("the Fraser, part 14 (Regions 3 and 5), Oct 10: both regions' bases, the river's own closure decides, each region's limit overridden by it", async () => {
-    const rows = await rowsOf(await openRegsStore(openRegsFixture()), "gnis:39325", 14, 10, 10);
+    // (T667) the part by its ENDS, never its number (it was 14, 13, 14 over three releases): Region 5's line up to Region 3's
+    const part = await sectionNames(openRegsFixture()).part("gnis:39325", "region_line:5", "region_line:3");
+    const rows = await rowsOf(await openRegsStore(openRegsFixture()), "gnis:39325", part, 10, 10);
     const tc = storyOf(rows, /^Brook trout/);
     expect(tc.notes).toEqual(["This stretch is in Region 3 and Region 5, so both regions’ rules apply here."]);
     expect(heads(tc)).toEqual(["All of B.C.: the province’s base rules", "Region 3: the region’s base rules", "Region 5: the region’s base rules",
@@ -51,7 +53,9 @@ describe("T216 on the fixture release", () => {
   });
 
   it("a sub-cap: the Bella Coola, part 1, May 1 — the region's 5 lowered to 2 in streams, smaller caps inside it, the river's own row decides", async () => {
-    const s = storyOf(await rowsOf(await openRegsStore(openRegsFixture()), "gnis:11611", 1, 5, 1), /^Trout and char/);
+    const part = await sectionNames(openRegsFixture()).part("gnis:11611", "mouth",
+      "atnarko_bella_coola_rivers_includes_tributaries_exce__talchako_river_into_bella_coola_river");
+    const s = storyOf(await rowsOf(await openRegsStore(openRegsFixture()), "gnis:11611", part, 5, 1), /^Trout and char/);
     expect(heads(s)).toEqual(["All of B.C.: the province’s base rules", "Region 5: the region’s base rules", "Bella Coola River: this water’s own rules"]);
     expect(steps(s, /^Region 5/).slice(0, 4).map((x) => x.split(" | ").slice(1).join(" | "))).toEqual([
       "Also applies | The overall daily limit: these fish count toward it.",

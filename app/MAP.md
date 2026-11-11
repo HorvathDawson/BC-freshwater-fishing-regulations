@@ -74,6 +74,11 @@ tickets → changelog (app.json's version has the newest changelog entry, `scrip
 `REGS_STORE_REQUIRED=1` makes the live-release suites fail instead of skip when no release is on disk, or when the release
 is not the one `taps.json` was cut from; `scripts/test-full.sh` (Tier 2) runs its app step with it set (T432), and a plain
 `pnpm check` does not. `tools/no-silent-skips.test.ts` counts every app skip site against its allowlist. `tools/vintage-pins.test.ts` refuses an id literal a new release would move.
+`pnpm anchors` (`tools/check-test-anchors.mjs`, T667; in `check:fast`) REPORTS the test files that type a section / part
+number, a release id or a digest in a release-following test, or read `data/…` / `RELEASE_DIR` past the helpers
+(`liveRelease`, `namedRelease`, `openRegsFixture*`, `sectionNames`); `--strict` / `TEST_ANCHORS_STRICT=1` fails, and goes
+into `check:fast` when `handoff/PLAN/app-integration/T667-offenders.md` is empty. The pipeline twin is
+`python -m pipeline.tests.anchors` (helper: `pipeline/tests/under_test.py`).
 **Failures (T368):** every caught failure is thrown on or reported through core's `failure.ts` (`reportFailure`, `reported`,
 `offlineAs`, `reportOnce`; the environment — offline, a refused permission — is never reported), shown in the one face
 (`ui-native` `ErrorState`); `useAsync` reports every hook's failure; links leave through `ui-native` `openLink`.

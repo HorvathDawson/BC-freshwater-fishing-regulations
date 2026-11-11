@@ -13,7 +13,7 @@ import { KNOWN_VERSIONS, REGS_FORMATS } from "@app/core";
 import type { Db, Manifest } from "@app/data";
 import type { RegsLoader } from "@app/data/regs";
 import { regsFixtureDir } from "@app/data/release/node";
-import { liveReleaseAt, openReleaseDir } from "../fixtureRelease";
+import { liveReleaseAt, namedRelease, openReleaseDir } from "../fixtureRelease";
 import { answersVerdict, chooseSource, fixtureVerdict, openPaired, paritySkip, parityMode, resolveSource, taps } from "./golden";
 
 const dir = mkdtempSync(join(tmpdir(), "regs-pairing-"));
@@ -167,8 +167,23 @@ describe("liveReleaseAt: a release built for another port is a skip with its rea
       `REGS_STORE_REQUIRED is set: release ${d} is rows 29 (this app reads 33): rebuild it (deliver all), then re-cut the goldens (sync.mjs)`);
   });
 
-  it("no release: the reason says so", () => {
-    expect(liveReleaseAt({ RELEASE_DIR: join(dir, "nowhere") })).toEqual({ dir: null, reason: "no release on this machine (data/release/r-*)" });
+  it("(T667) a release NAMED and not there: the reason names it, and a machine meant to prove parity fails", () => {
+    const gone = join(dir, "nowhere");
+    expect(liveReleaseAt({ RELEASE_DIR: gone })).toEqual({ dir: null, reason: `RELEASE_DIR=${gone} names no release (no manifest.json there)` });
+    expect(() => liveReleaseAt({ RELEASE_DIR: gone, REGS_STORE_REQUIRED: "1" })).toThrow(
+      `REGS_STORE_REQUIRED is set: RELEASE_DIR=${gone} names no release (no manifest.json there)`);
+  });
+
+  it("(T667) the release under test is the one RELEASE_DIR names (the release command's candidate), whatever LATEST says", () => {
+    const candidate = release("r-candidate", { ...sections });
+    writeFileSync(join(dir, "LATEST"), "r-now\n");                    // a pointer beside it changes nothing
+    expect(liveReleaseAt({ RELEASE_DIR: candidate }).dir).toBe(candidate);
+    expect(namedRelease({ RELEASE_DIR: candidate })).toBe(candidate);
+  });
+
+  it("(T667) a Tier 2 suite's named release: null when not asked, never LATEST; a name with no release throws", () => {
+    expect(namedRelease({})).toBeNull();
+    expect(() => namedRelease({ RELEASE_DIR: join(dir, "nowhere") })).toThrow(/RELEASE_DIR=.*nowhere: no release there/);
   });
 });
 

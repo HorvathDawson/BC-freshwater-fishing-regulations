@@ -172,7 +172,10 @@ export function openRegsFixtureWithLines(rows: readonly LineRow[] = regsFixtureL
  * notice). A stream section is named by its stream key and where it STARTS (`stream`: the release's own `lines` file);
  * a lake's section, which has no line, by its water and part (`lake`: the part's one section that is no stream line).
  * Each throws naming what it was asked for when the release has no such section — a re-cut that MOVES a section's start
- * or part is a real change and fails there, loudly; only the renumbering is absorbed.
+ * or part is a real change and fails there, loudly; only the renumbering is absorbed. (T667) A part is named the same
+ * way: by its two ends (`part`) or by a place on it (`partAt`), so `lake(item, await names.part(item, lo, hi))` types
+ * no number at all. `sectionNames.test.ts` pins both halves by mutation; `tools/check-test-anchors.mjs` finds the tests
+ * that still type a number.
  */
 export interface SectionNames {
   /** the stream section of stream key `blk` that starts at metre `from` */
@@ -181,6 +184,17 @@ export interface SectionNames {
   streams(at: readonly (readonly [number, number])[]): Promise<number[]>;
   /** the one non-stream section of water `item`'s part `part` (a lake's) */
   lake(item: string, part: number): Promise<number>;
+  /**
+   * (T667) A PART BY ITS ENDS, never by its number (`part_ix` is river order: one more cut below renumbers every part
+   * above it): the part of water `item` that runs from end `lo` up to end `hi` — the part's own end tokens (`part.lo_s` /
+   * `hi_s`: "mouth", "source", "lake_outlet", a boundary's token, `area:…`, `continues:…`).
+   */
+  part(item: string, lo: string, hi: string): Promise<number>;
+  /**
+   * (T667) A part BY A PLACE ON IT, for a part with no end tokens (a side channel, a tidal reach): the part of water
+   * `item` whose lines (`part_line`) hold stream key `blk` at metre `m`.
+   */
+  partAt(item: string, blk: number, m: number): Promise<number>;
 }
 
 /** `loader`'s section names; it must carry a `lines` file for `stream` (`openRegsFixtureWithLines`, a live release). */
@@ -205,6 +219,25 @@ export function sectionNames(loader: ReleaseLoader): SectionNames {
       if (own.length !== 1)
         throw new Error(`section names: ${item} part ${part} has ${own.length} non-stream sections, not 1`);
       return own[0]!;
+    },
+    async part(item, lo, hi) {
+      const water = await loader.db("water");
+      const rows = await water.all(
+        "SELECT p.part_ix FROM part p JOIN item i ON i.item_ord = p.item_ord JOIN str s ON s.id = i.item_id " +
+        "JOIN str lo ON lo.id = p.lo_s JOIN str hi ON hi.id = p.hi_s WHERE s.text = ? AND lo.text = ? AND hi.text = ?",
+        item, lo, hi);
+      if (rows.length !== 1)
+        throw new Error(`section names: ${item} has ${rows.length} parts from ${lo} to ${hi}, not 1, in release ${loader.manifest.data_release}`);
+      return Number(rows[0]!.part_ix);
+    },
+    async partAt(item, blk, m) {
+      const water = await loader.db("water");
+      const rows = await water.all(
+        "SELECT DISTINCT pl.part_ix FROM part_line pl JOIN item i ON i.item_ord = pl.ord JOIN str s ON s.id = i.item_id " +
+        "WHERE s.text = ? AND pl.blk = ? AND pl.m0 <= ? AND ? < pl.m1", item, blk, m, m);
+      if (rows.length !== 1)
+        throw new Error(`section names: ${item} has ${rows.length} parts at ${blk}:${m}, not 1, in release ${loader.manifest.data_release}`);
+      return Number(rows[0]!.part_ix);
     },
   };
 }

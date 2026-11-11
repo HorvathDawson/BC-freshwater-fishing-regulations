@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "check": "pnpm run check:fast && pnpm run test",
-    "check:fast": "pnpm run tickets && pnpm run changelog && pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run splash && pnpm run gauge-policy && pnpm run calendar && pnpm run fish && pnpm run answers && pnpm run pack && pnpm run deps && pnpm run knip && pnpm run typecheck && pnpm run typecheck:seo && pnpm run promises",
+    "check:fast": "pnpm run tickets && pnpm run anchors && pnpm run changelog && pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run colours && pnpm run spinner && pnpm run splash && pnpm run gauge-policy && pnpm run calendar && pnpm run fish && pnpm run answers && pnpm run pack && pnpm run deps && pnpm run knip && pnpm run typecheck && pnpm run typecheck:seo && pnpm run promises",
     "dev:web": "pnpm --filter @app/mobile run web",
     "dev:android": "pnpm --filter @app/mobile run android",
     "dev:ios": "pnpm --filter @app/mobile run ios",
@@ -22,6 +22,7 @@
     "deps": "node tools/check-deps.mjs",
     "knip": "knip --no-progress",
     "tickets": "node tools/check-tickets.mjs",
+    "anchors": "node tools/check-test-anchors.mjs",
     "changelog": "node ../scripts/check-changelog.mjs",
     "platform": "node tools/check-platform.mjs",
     "spinner": "node tools/build-spinner.mjs && git diff --exit-code packages/ui-native/src/fish-sprite.generated.ts tools/fish-sprite/fish-sprite.png tools/fish-sprite/fish-sprite.html",

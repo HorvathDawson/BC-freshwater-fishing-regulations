@@ -13,14 +13,14 @@ import { describe, expect, it } from "vitest";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { extentOf } from "@app/core";
 import { parseManifest, verify, type ItemId } from "@app/data";
 import { openSqlite } from "@app/data/sql/node";
 import { makeReleaseSource, releaseLoader } from "@app/data/release";
+import { namedRelease } from "../conformance/src/fixtureRelease";
 
-const ROOT = resolve(__dirname, "../..");
-const REL = process.env.RELEASE_DIR ? resolve(ROOT, process.env.RELEASE_DIR) : null;
+const REL = namedRelease();   // (T667) the release this Tier 2 run named ($RELEASE_DIR), through the one helper
 const TIER2 = process.env.TIER2 === "1";
 
 describe.skipIf(!REL && !TIER2)("Tier 2: every water in the live release is placeable", () => {

@@ -52,7 +52,7 @@ vi.mock("./WaterScreen", async (importOriginal) => {
     <><real.WaterScreen {...p} /><Text testID="regs-on">{`regs on ${p.item} part ${p.part}`}</Text></> };
 });
 const { Shell } = await import("./Shell");
-const { openRegsFixture } = await import("@app/data/release/node");
+const { openRegsFixture, openRegsFixtureWithLines, sectionNames } = await import("@app/data/release/node");
 
 afterEach(cleanup);
 beforeAll(() => {
@@ -204,8 +204,16 @@ describe("one water screen, whichever map you tapped", () => {
     ]);
   });
 
+});
+
+// (T667) its own block: the tests above run on the fixture SOURCE (their sections are invented), this one on the regs
+// fixture release (its sections are named, never numbered)
+describe("one water screen, on the regs fixture release", () => {
   it("(T53) on the regs fixture release: an unnamed reach is titled with the store's name on both its views", async () => {
-    await mount("conditions", 578 as SectionId, openRegsFixture());   // (build 27, r-303b4007a70a) 578 again (taps.json unnamed, akey 2125); (T289, r-ce76b4ed3624) was 576, before it 578; (T222, r-445850b69ae1) was 638: handles +1; (T278, r-62e2f3a8c81e) 354088147:0 is 578
+    // (T667) the unnamed reach by NAME — stream key 354088147 from its mouth — never by its handle (578, 576, 638, …:
+    // it moved with four of the last five builds); a build that moves the section fails here saying so
+    const unnamed = await sectionNames(openRegsFixtureWithLines()).stream(354088147, 0);
+    await mount("conditions", unnamed as SectionId, openRegsFixture());
     await tapMap();
     const title = () => screen.queryAllByTestId("water-title").map((t) => t.textContent).join(" | ");
     await until(() => panel() !== "no panel" && title() !== "");
@@ -254,7 +262,9 @@ describe("the water's Map view and the rest of the water screen agree (P15 follo
      "late: a river that changes its name is ONE system), so to and fro never stacks and ONE back from the Chilliwack " +
      "is the Map tab", async () => {
     // (T517) the Vedder is two parts (a salmon-cut run, apart while no salmon is read); the Chilliwack meets its upper one
-    await onMap("gnis:3062", 1);
+    const upper = await sectionNames(openRegsFixtureWithLines()).part("gnis:3062",
+      "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream", "chilliwack_vedder_rivers__vedder_crossing_bridge");
+    await onMap("gnis:3062", upper);
     const seen = [where()];
     fireEvent.click(screen.getByRole("button", { name: "Upstream into Chilliwack River" }));
     await until(() => where().startsWith("Part 1 of 5 · Chilliwack River"));
