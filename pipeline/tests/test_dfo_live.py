@@ -394,3 +394,12 @@ def test_a_last_feed_in_an_older_format_stops_the_run():
     assert LV._same_format({"format": LV.FORMAT, "regions": {}})["format"] == LV.FORMAT
     with pytest.raises(RuntimeError, match="dfo-feed/1"):
         LV._same_format({"format": "dfo-feed/1", "regions": {}})
+
+
+def test_queue_with_nothing_unplaced_here_fails_and_says_where_it_read(tmp_path, capsys):
+    """T549 item 9: the worker's email says "First: live queue", but queue reads THIS machine's unplaced.json — nothing
+    there exits 1 naming the file and the `live run` that fills it, never a calm "none"."""
+    (tmp_path / "unplaced.json").write_text("[]", encoding="utf-8")
+    assert L.main(["queue", "--regions", "6", "--out", str(tmp_path)]) == 1
+    err = capsys.readouterr().err
+    assert str(tmp_path / "unplaced.json") in err and "live run --regions 6" in err

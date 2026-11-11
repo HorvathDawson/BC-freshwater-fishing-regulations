@@ -233,3 +233,20 @@ def test_t228_side_channels_carry_only_on_a_water_the_place_covers_whole():
     part = [{"location_id": "p", "mapped": True, "sections": ["h1", "h2"]}]
     assert carry_side_channels(whole, set(), sid_of, ord_of, [3, 4, 5], touch)[0]["sections"] == ["h1", "h2", "h6", "h3", "h4"]
     assert carry_side_channels(part, set(), sid_of, ord_of, [3, 4, 5], touch)[0] is part[0]
+
+
+def test_a_place_the_release_does_not_show_is_said_and_the_feed_is_checked_against_it():
+    """T549: every curated place is in a chain or in `off` with why (tidal, not placed by the reach run) — never dropped
+    silently; `feed_vs_release` names a feed place the release neither shows nor states. MUTATION: build without `off`
+    and the tidal and unplaced places are `feed_only`."""
+    files, feeds, placed, sid_of = _fixture()
+    files["6"].locations += [_loc("6:tidal", 3, ["ft"], "Kispiox River", "6:kispiox-river", tidal_water=True),
+                             _loc("6:late", 3, ["fl"])]
+    placed = placed + [{"location_id": "6:tidal", "mapped": False, "sections": []}]
+    payload, _ = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11]}, section_regions=None)
+    assert payload["off"] == {"6:late": S.OFF_UNPLACED, "6:tidal": S.OFF_TIDAL}
+    feed = {"locs": {"6:a": {}, "6:kispiox": {}, "6:tidal": {}, "6:late": {}, "6:new": {}}}
+    got = S.feed_vs_release(payload, feed)
+    assert got["feed_only"] == ["6:new"] and got["said"] == ["6:late", "6:tidal"]
+    assert "6:b(i)" in got["release_only"]
+    assert S.feed_vs_release({**payload, "off": {}}, feed)["feed_only"] == ["6:late", "6:new", "6:tidal"]

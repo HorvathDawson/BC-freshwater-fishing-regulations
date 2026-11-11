@@ -597,9 +597,26 @@ def queue(out: Path, regions: Optional[Sequence[str]] = None, *, cache_dir: Path
     return slugs
 
 
+def check_release(out: Path, release: Optional[Path] = None) -> int:
+    """(T549) the feed and the release agree on the location set: every place the feed (`<out>/index.json`) has rules
+    for is one the release shows, or one it states it does not (`off`). 1 when a feed place is neither — its rules reach
+    no angler (a place curated after the release: the next deliver carries it)."""
+    rel = Path(release) if release else Path(GENERATED.release) / (Path(GENERATED.release) / "LATEST").read_text().strip()
+    ix = Path(out) / "index.json"
+    if not ix.exists():
+        raise SystemExit(f"live check-release: no feed {ix} — write it: python -m pipeline.regs.dfo_salmon.live run")
+    got = S.feed_vs_release(S.read_release(rel), json.loads(ix.read_text(encoding="utf-8")))
+    print(f"feed {ix} vs release {rel.name}: {len(got['feed_only'])} feed place(s) the release does not know, "
+          f"{len(got['said'])} it states it does not show, {len(got['release_only'])} release place(s) not in the feed")
+    for lid in got["feed_only"]:
+        print(f"  NOT IN THE RELEASE: {lid}")
+    return 1 if got["feed_only"] else 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", nargs="?", default="run", choices=["run", "queue"])
+    ap.add_argument("command", nargs="?", default="run", choices=["run", "queue", "check-release"])
+    ap.add_argument("--release", type=Path, help="check-release: the release dir (default: the live one, LATEST)")
     ap.add_argument("--regions", nargs="+", choices=F.ALL_SLUGS)
     ap.add_argument("--out", type=Path, default=OUT_DIR)
     ap.add_argument("--cache-dir", type=Path, default=F.DEFAULT_CACHE)
@@ -610,10 +627,21 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
+    if args.command == "check-release":
+        return check_release(args.out, args.release)
+
     if args.command == "queue":
         done = queue(args.out, args.regions, cache_dir=args.cache_dir)
-        print(f"seeded and grouped regions {done or 'none (nothing unplaced)'}; review them in DFO mode, then "
-              "commit the entry files")
+        if not done:
+            # (T549 item 9) the owner's email says "First: live queue", but the WORKER's unplaced.json is on R2, never
+            # here: a calm "nothing" exit hid that the place it emailed about was not seeded
+            print(f"live queue: nothing unplaced in {Path(args.out) / 'unplaced.json'} for regions "
+                  f"{args.regions or 'any'} — this reads THIS machine's feed, not the worker's. Run the region here "
+                  "first so its unplaced places land in it, then queue again:\n"
+                  f"    python -m pipeline.regs.dfo_salmon.live run --regions {' '.join(args.regions or ['<n>'])}",
+                  file=sys.stderr)
+            return 1
+        print(f"seeded and grouped regions {done}; review them in DFO mode, then commit the entry files")
         return 0
 
     from pipeline.regs.dfo_salmon import feed as FD

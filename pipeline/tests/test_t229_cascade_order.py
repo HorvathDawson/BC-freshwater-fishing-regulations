@@ -48,3 +48,22 @@ def test_eulachon_is_not_a_salmon_closure_but_its_own_line():
     # "All | No fishing for salmon" is still every salmon
     [s] = T.to_rules({"species": "All", "dates": "Jan 1 to Jun 15", "limits_gear": "No fishing for salmon"}, "x", 1)
     assert s.species == ["SA"] and s.take == 0
+
+
+def test_an_other_places_place_sorts_after_the_one_sibling_it_rides_on():
+    """T611: "all the other places" with ONE placed sibling covers the same sections — the size ties. With the smaller
+    id it sorted first and opened coho the sibling closes; it now sorts after, and the closure answers. MUTATION: drop
+    the `rides` key part of `chain_order` and the order (and the verdict) flips back."""
+    from types import SimpleNamespace
+    from pipeline.regs.parsing.entry_models import Extent
+    other = SimpleNamespace(location_id="x:a-open", binding=SimpleNamespace(
+        extents=[Extent(op="other_places", siblings=["x:z-shut"])]))
+    named = SimpleNamespace(location_id="x:z-shut", binding=SimpleNamespace(extents=[Extent(op="whole")]))
+    rides = S.rides_on_others([other, named])
+    assert rides == {"x:a-open"}
+    prec, size = {"x:a-open": 3, "x:z-shut": 3}, {"x:a-open": 4, "x:z-shut": 4}
+    chain = sorted(prec, key=S.chain_order(prec, size, rides))
+    assert chain == ["x:z-shut", "x:a-open"]
+    rules = {"x:a-open": [_rule("open", ["CO"], 4)], "x:z-shut": [_rule("shut", ["CO"], 0, may_target=False)]}
+    assert S.verdict_on([rules[l] for l in chain], "CO", JUL_20)["s"] == "closed"
+    assert sorted(prec, key=S.chain_order(prec, size)) == ["x:a-open", "x:z-shut"]      # without it: the id decides

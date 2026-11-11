@@ -258,13 +258,25 @@ def extent_sizes(placed: Iterable[dict]) -> Dict[str, int]:
     return {r["location_id"]: len(r.get("sections") or ()) for r in placed if r.get("mapped")}
 
 
-def chain_order(precedence: Mapping[str, int], size: Mapping[str, int]) -> Callable[[str], tuple]:
+def chain_order(precedence: Mapping[str, int], size: Mapping[str, int],
+                rides: Iterable[str] = ()) -> Callable[[str], tuple]:
     """THE SORT KEY OF A CHAIN, NARROWEST FIRST (T229, owner 2026-10-28): the tier (precedence: a water 3, a tidal-area
     default 2, a section default or closure 1, the region default 0, a T349 page default -1), then WITHIN A TIER THE MORE SPECIFIC PLACE — the
     one covering fewer sections (a mouth closure before the reach around it, a reach before its whole river) — then the
     location id. It was the id alone within a tier, so "Skeena mainstem downstream of the CNR bridge" (123 sections)
-    sorted before its Kitsumkalum-mouth closure (4) and opened coho, pink and sockeye the closure shuts Jul 1-Aug 31."""
-    return lambda lid: (-precedence.get(lid, 0), size.get(lid, 1 << 30), lid)
+    sorted before its Kitsumkalum-mouth closure (4) and opened coho, pink and sockeye the closure shuts Jul 1-Aug 31.
+    (T611) `rides`: the "all the other places" places (`op: other_places`, T607) — after the places they ride on, between
+    the size and the id: with ONE placed sibling the two cover the same sections, and the id alone let the other-places
+    place answer first and open what its sibling closes."""
+    rides = frozenset(rides)
+    return lambda lid: (-precedence.get(lid, 0), size.get(lid, 1 << 30), int(lid in rides), lid)
+
+
+def rides_on_others(locs: Iterable) -> frozenset:
+    """(T611) the location ids whose extent is `other_places` — the union of their siblings' sections."""
+    return frozenset(l.location_id for l in locs
+                     if any(getattr(e.op, "value", e.op) == "other_places"
+                            for e in (getattr(getattr(l, "binding", None), "extents", None) or ())))
 
 
 # ── the regions a section lies in (T668) ─────────────────────────────────────────────────────────────────────────────
@@ -537,7 +549,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
 
     placed = list(placed)
     prec, size = {lid: locs[lid][1].precedence for lid in locs}, extent_sizes(placed)
-    order = chain_order(prec, size)
+    rides = rides_on_others(v[1] for v in locs.values())
+    order = chain_order(prec, size, rides)
 
     def plan_at(sid: int, lids: Iterable[str]) -> Tuple[Callable[[str], tuple], bool]:
         """(T668 D2) the chain order on THIS section and whether it is a two-region chain. On a section in one region,
@@ -551,7 +564,7 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             return order, False
         (n,) = nums
         return (lambda lid: (-prec.get(lid, 0), 0 if locs[lid][1].region_number == n else 1,
-                             size.get(lid, 1 << 30), lid)), False
+                             size.get(lid, 1 << 30), int(lid in rides), lid)), False
 
     # (T668 D3) a region-wide place binds exactly the members of its region (the one membership) — a straddler both
     clip = {lid: region_clip(locs[lid][1]) for lid in locs} if section_regions is not None else {}
@@ -648,10 +661,50 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
         for u in unmapped:
             mine[u["r"]].update(u["items"])
         scopes = {slug: {k: [i for i in v if i in mine[slug]] for k, v in sc.items()} for slug, sc in scopes.items()}
+    off = places_off(locs, placed, chains)
+    for lid, why in off.items():
+        print(f"     salmon: {lid} is in no chain — {why}")
     payload = {"format": FORMAT, "credit": CREDIT, "default": UNLISTED_CHAIN, "regions": regions, "verdicts": verdicts.items,
                "gears": gears.items, "chains": chains, "unmapped": unmapped, "scopes": scopes,
-               **({"x": dict(sorted(words_of.items()))} if words_of else {})}
+               **({"x": dict(sorted(words_of.items()))} if words_of else {}), **({"off": off} if off else {})}
     return payload, sections
+
+
+#: (T549) why a curated DFO place is in no chain of the release — said in the file (`off`), never dropped
+OFF_TIDAL = "tidal water: off the freshwater map (T449)"
+OFF_UNPLACED = "not placed by the reach run (a place curated after it: re-run the reach step)"
+OFF_NO_SECTION = "binds no section of its region (T668)"
+
+
+def places_off(locs: Mapping[str, tuple], placed: Sequence[dict], chains: Sequence[dict]) -> Dict[str, str]:
+    """(T549) every curated place no chain names (`l` or `u`), with why — so the release states its whole location set
+    and the feed can be checked against it (`feed_vs_release`)."""
+    shown = {l for c in chains for l in (*c["l"], *(c.get("u") or ()))}
+    rows = {r["location_id"]: r for r in placed}
+    out: Dict[str, str] = {}
+    for lid in sorted(locs):
+        if lid in shown:
+            continue
+        row = rows.get(lid)
+        out[lid] = OFF_UNPLACED if row is None else OFF_TIDAL if locs[lid][1].tidal_water and not row.get("mapped") \
+            else OFF_NO_SECTION
+    return out
+
+
+def location_set(payload: Mapping) -> frozenset:
+    """Every DFO place the release can show: in a chain's `l` or `u` (an undrawn place's own chain is one of them)."""
+    return frozenset(l for c in payload["chains"] for l in (*c["l"], *(c.get("u") or ())))
+
+
+def feed_vs_release(payload: Mapping, feed: Mapping) -> Dict[str, List[str]]:
+    """(T549) the live feed's places (`feed["locs"]`) against the release's: `feed_only` — the feed has rules for a place
+    the release neither shows nor states (`off`): its rules reach no angler and nobody is told; `said` — feed places
+    the release states it does not show (`off`, e.g. tidal); `release_only` — release places the feed does not carry
+    (dormant, or a region the feed holds)."""
+    have, feed_ids = location_set(payload), set(feed.get("locs") or {})
+    off = set(payload.get("off") or {})
+    return {"feed_only": sorted(feed_ids - have - off), "said": sorted((feed_ids - have) & off),
+            "release_only": sorted(have - feed_ids)}
 
 
 def _in_window(day: int, on: Sequence[Sequence[int]]) -> bool:
@@ -888,6 +941,21 @@ def decode_shard(b: bytes) -> Tuple[str, str, List[Tuple[int, int]]]:
     if i != len(b):
         raise SalmonError(f"salmon: {len(b) - i} trailing bytes")
     return b[5:13].hex(), region, secs
+
+
+def read_release(release_dir: Path) -> dict:
+    """The salmon head's payload of a shipped release (`<release>/manifest.json` names its file). Raises naming the
+    file when the release has none."""
+    import gzip
+    release_dir = Path(release_dir)
+    man = release_dir / "manifest.json"
+    if not man.exists():
+        raise SalmonError(f"salmon: no {man}")
+    f = (json.loads(man.read_text(encoding="utf-8")).get("files") or {}).get("salmon")
+    if not f:
+        raise SalmonError(f"salmon: {man} names no salmon file")
+    blob = (release_dir.parent / f["url"]).read_bytes()
+    return decode_head(gzip.decompress(blob) if f["url"].endswith(".gz") else blob)[1]
 
 
 def decode_files(files: Mapping[str, bytes]) -> Tuple[str, dict, List[Tuple[int, int]]]:
