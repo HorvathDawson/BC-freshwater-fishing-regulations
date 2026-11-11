@@ -197,3 +197,39 @@ def test_build_apk_checks_before_the_lock_and_commits_the_bump_after_the_artifac
     assert "--format=%s" not in code                                   # no commit subjects as notes
     assert code.index('mln_check "$AAB"') < code.index("commit_bump\n") < code.index("play-upload.py\" --aab")
     assert 'mln_check "$AAB"' in code and 'mln_check "$APKF"' in code and code.count("mln_check() {") == 1
+
+
+def _formatted(tree: Path, fmt: str, served: str | None) -> subprocess.CompletedProcess:
+    """(T597 item 2) the staged matches name `fmt`; the worker's /status.json serves `served` (None: unreachable)."""
+    old = """'{"notices": {"a": 1, "b": 2}}'"""
+    assert old in PY_STUB
+    _exe(tree / ".venv/bin/python", PY_STUB.replace(old, f"""'{{"format": "{fmt}", "notices": {{"a": 1}}}}'"""))
+    _exe(tree / "bin/curl", "#!/usr/bin/env bash\nexit 7\n" if served is None else
+         f"#!/usr/bin/env bash\necho '{served}'\n")
+    return _sync(tree, 0)
+
+
+def test_sync_inputs_refuses_a_format_the_deployed_worker_does_not_read(sync_tree):
+    """(T597 item 2, 2026-11-09: matches.json went to inseason-links/3 before the worker that reads it): refused with a
+    plain message and not put; the input with no format still goes up."""
+    r = _formatted(sync_tree, "inseason-links/3", '{"inputs": {"feeds/inseason/matches.json": ["inseason-links/2"]}}')
+    assert r.returncode != 0 and "inputs in sync" not in r.stdout
+    assert ("FAILED feeds/inseason/matches.json: inseason-links/3, but the deployed worker reads inseason-links/2: "
+            "not put") in r.stderr
+    log = (sync_tree / "rclone.log").read_text().splitlines()
+    assert len(log) == 1 and "dfo/a.json" in log[0]
+
+
+def test_sync_inputs_puts_a_format_the_deployed_worker_reads(sync_tree):
+    r = _formatted(sync_tree, "inseason-links/3", '{"inputs": {"feeds/inseason/matches.json": ["inseason-links/3"]}}')
+    assert r.returncode == 0, r.stderr
+    assert len((sync_tree / "rclone.log").read_text().splitlines()) == 2
+
+
+def test_sync_inputs_refuses_a_format_when_the_worker_cannot_be_asked(sync_tree):
+    for served in (None, '{"feeds": {}}'):            # unreachable; a worker from before the list
+        r = _formatted(sync_tree, "inseason-links/3", served)
+        assert r.returncode != 0
+        assert "does not say which input formats the worker reads" in r.stderr
+        assert "matches.json" not in (sync_tree / "rclone.log").read_text()
+        (sync_tree / "rclone.log").unlink()

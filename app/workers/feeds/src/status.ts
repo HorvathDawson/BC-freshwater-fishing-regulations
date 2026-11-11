@@ -4,6 +4,8 @@
 import { isVersioned, readStored, type Fetch, type Meter, type Store } from "./io";
 import { body as notifyBody } from "./notify";
 import { fmtErrors, foldHealth, summarize, type FeedHealth, type RunHealth, type SourceRun } from "./health";
+import { FORMAT as WORDING_FORMAT } from "./dfo/wording";
+import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
 
 export type Job = "gauges" | "dfo" | "inseason";
 export type FeedState = "ok" | "degraded" | "failing" | "stale" | "never";
@@ -54,6 +56,17 @@ export interface Status {
   updated: string;
   feeds: Partial<Record<Job, FeedStatus>>;
 }
+
+/**
+ * (T597 item 2) THE INPUT FORMATS THIS WORKER READS, by R2 key: served on /status.json as `inputs`, so an upload of a
+ * curated input (deploy/staging/sync-inputs.sh, deploy/prod/sync-inputs.sh) refuses a format the deployed worker does not list instead of putting a file
+ * the live worker cannot read (2026-11-09: matches.json went to inseason-links/3 before the worker that reads it). The DFO
+ * entry files and the roster carry no format; they are not listed and not checked.
+ */
+export const INPUT_FORMATS: Readonly<Record<string, readonly string[]>> = {
+  "private/feeds/dfo/wording.json": [WORDING_FORMAT],
+  "feeds/inseason/matches.json": [INSEASON_LINKS_FORMAT],
+};
 
 export const STATUS_KEY = "status.json";
 /** a feed is stale when its last success is older than this many cadences */

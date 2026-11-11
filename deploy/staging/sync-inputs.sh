@@ -12,7 +12,9 @@
 #   3. REFUSALS, PER INPUT: `sync_inputs` stages each input on its own (the in-season links through
 #      `pipeline.regs.inseason.publish`, which refuses an unresolved / stale / off-release match); a refused input is
 #      named (`FAILED <name>: …`) and the others still go up; the script then exits 1
-#   4. PUT what differs
+#   4. FORMATS (T597 item 2): an input naming a format the deployed worker does not list on /status.json `inputs` is
+#      refused (`FAILED <key>: …`), never put; the others still go up
+#   5. PUT what differs
 # THE LIST IS NOT HERE (T331): `python -m pipeline.deliver.sync_inputs` stages every input at <dir>/<R2 key> and prints
 # `<key>\t<cache-control|->`; both uploaders put exactly that, so they cannot drift (dfo entries, wording, roster,
 # in-season matches today — see that module's docstring).
@@ -49,6 +51,31 @@ fi
 rc=0
 "$PY" -m pipeline.deliver.sync_inputs --out "$T/out" > "$T/manifest.tsv" 2> "$T/stage.err" || rc=$?
 cat "$T/stage.err" >&2
+# (T597 item 2) an input in a format the DEPLOYED worker does not list is refused, never put: the worker serves the
+# formats it reads on /status.json `inputs` (src/status.ts INPUT_FORMATS). A worker that cannot be asked (unreachable,
+# or one from before the list) refuses every input that names a format; an input with no format is not checked.
+FEEDS_URL=${FEEDS_URL:-https://bc-fishing-feeds-staging.horvath-dawson.workers.dev}
+ACCEPT=; asked=0
+refuse() { echo "FAILED $1" | tee -a "$T/stage.err" >&2; rc=1; }
+: > "$T/put.tsv"
+while IFS=$'\t' read -r key cache; do
+  fmt=$(jq -r 'if type == "object" then (.format // "") else "" end' "$T/out/$key" 2>/dev/null || true)
+  if [[ -n "$fmt" ]]; then
+    if [[ $asked == 0 ]]; then
+      asked=1
+      ACCEPT=$(curl -sS --max-time 20 "$FEEDS_URL/status.json" 2>/dev/null | jq -c '.inputs // empty' 2>/dev/null || true)
+    fi
+    if [[ -z "$ACCEPT" ]]; then
+      refuse "$key: $FEEDS_URL/status.json does not say which input formats the worker reads (unreachable, or deployed before T597): $fmt not put. Deploy the worker (deploy/staging/feeds.sh), then sync again"
+      continue
+    fi
+    if ! jq -e --arg k "$key" --arg f "$fmt" '(.[$k] // []) | index($f) != null' <<<"$ACCEPT" >/dev/null; then
+      refuse "$key: $fmt, but the deployed worker reads $(jq -r --arg k "$key" '(.[$k] // ["no file at this key"]) | join(", ")' <<<"$ACCEPT"): not put. Deploy the worker that reads $fmt first (deploy/staging/feeds.sh), then sync again"
+      continue
+    fi
+  fi
+  printf '%s\t%s\n' "$key" "$cache" >> "$T/put.tsv"
+done < "$T/manifest.tsv"
 JSON=(--s3-no-check-bucket --checksum --header-upload "Content-Type: application/json" ${DRY[@]+"${DRY[@]}"})
 n=0
 while IFS=$'\t' read -r key cache; do
@@ -58,7 +85,7 @@ while IFS=$'\t' read -r key cache; do
     || { cat "$T/log" >&2; echo "sync-inputs: $key failed — nothing after it was sent" >&2; exit 1; }
   grep -E "Copied|Skipped|ERROR" "$T/log" || true
   n=$((n + 1))
-done < "$T/manifest.tsv"
+done < "$T/put.tsv"
 ins=$([ -f "$T/out/feeds/inseason/matches.json" ] && jq '.notices|length' "$T/out/feeds/inseason/matches.json" || echo "NOT STAGED")
 if [[ $rc != 0 ]]; then
   echo "sync-inputs: $n object(s) put; these inputs were NOT:" >&2; grep '^FAILED ' "$T/stage.err" >&2 || true

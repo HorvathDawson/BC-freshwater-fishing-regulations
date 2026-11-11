@@ -110,6 +110,17 @@ describe("the Worker's /status routes", () => {
     expect((await worker.fetch(new Request("https://w/run/dfo", { method: "POST" }), env)).status).toBe(403);
     expect((await readStatus(new MemStore())).feeds).toEqual({});
   });
+
+  it("(T597 item 2) serves the input formats it reads, the upload's check — on a 503 too", async () => {
+    const want = { "private/feeds/dfo/wording.json": ["dfo-wording/2"], "feeds/inseason/matches.json": ["inseason-links/3"] };
+    const b = bucket();
+    b.m.set("private/feeds/status.json", JSON.stringify({ format: "feeds-status/1", updated: "", feeds: {} }));
+    expect((await (await worker.fetch(new Request("https://w/status.json"), { BUCKET: b, RUN_TOKEN: "t" })).json()).inputs)
+      .toEqual(want);
+    b.m.set("private/feeds/status.json", JSON.stringify({ format: "other" }));
+    const bad = await worker.fetch(new Request("https://w/status.json"), { BUCKET: b, RUN_TOKEN: "t" });
+    expect([bad.status, (await bad.json()).inputs]).toEqual([503, want]);
+  });
 });
 
 // T609 W12: the open status routes served 5-frame stacks and internal file names, and sent no protective headers
