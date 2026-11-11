@@ -31,8 +31,6 @@ ALLOWLIST: dict[str, tuple[int, str]] = {
         1, "opt-in: ATLAS_BUILD_TWIN names a second build to compare for determinism"),
     "pipeline/tests/test_dfo_suggest.py": (
         1, "optional tool: node + the frontend's typescript (source pins still run without them)"),
-    "pipeline/tests/test_export_codec.py": (
-        1, "opt-in: UI_EXPORT_BUNDLE points at a side bundle, whose export is not the shipped one"),
 }
 
 _SKIP_CALLS = {"skip", "importorskip", "xfail", "skipTest"}

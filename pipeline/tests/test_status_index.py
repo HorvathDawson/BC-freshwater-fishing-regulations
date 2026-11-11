@@ -32,13 +32,12 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED
 from pipeline.deliver import calendar as CAL
 from pipeline.deliver import status_index as SI
-from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 
 
 # --------------------------------------------------------------------------- fast: the format
@@ -139,11 +138,7 @@ def test_a_closure_must_be_unconditional_and_speak():
 @pytest.fixture(scope="module")
 def built(request):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    given = os.environ.get("STATUS_INDEX")
-    if given:
-        return SI.Index(Path(given).read_bytes())
-    return SI.Index(SI.encode(SI.compute(BUNDLE, os.environ.get("UI_EXPORT_VERDICTS"),
-                                         log=lambda *_: None)))
+    return SI.Index(SI.encode(SI.compute(BUNDLE, str(under_test.path("verdicts")), log=lambda *_: None)))
 
 
 def _pairs(ix: SI.Index, n: int = 6000, seed: int = 20261001) -> list:
@@ -246,11 +241,8 @@ def test_the_shipped_index_is_the_one_the_parity_tests_check(built):
 
     With `STATUS_INDEX` set, the parity tests checked THAT file, so it is the one the shipped bytes
     must equal. A missing shipped index fails naming the make-command (no silent skip)."""
-    shipped = need(None, "bundle", Path(BUNDLE).with_name("status_index.bin"),
-                   "python -m pipeline.deliver.status_index (deliver writes it beside the bundle)")
-    given = os.environ.get("STATUS_INDEX")
-    checked = (Path(given).read_bytes() if given else
-               SI.encode(SI.compute(BUNDLE, os.environ.get("UI_EXPORT_VERDICTS"), log=lambda *_: None)))
+    shipped = under_test.status_index()
+    checked = SI.encode(SI.compute(BUNDLE, str(under_test.path("verdicts")), log=lambda *_: None))
     assert shipped.read_bytes() == checked, "status_index.bin is stale: rebuild deliver"
 
 
@@ -289,7 +281,7 @@ def test_the_vintage_is_the_bundles_and_the_tiles(built):
     finally:
         db.close()
     assert built.handles == want
-    sidecar = GENERATED.tiles / "atlas.meta.json"
+    sidecar = under_test.path("tiles") / "atlas.meta.json"
     if sidecar.exists():
         assert json.loads(sidecar.read_text())["section_handles"] == built.handles
 
@@ -316,7 +308,7 @@ def test_the_parity_check_catches_one_flipped_stored_verdict(built, tmp_path):
     """Mutation (DATAFLOW G1): the index is a projection of the verdicts, so a stored verdict
     flipped — one closed reading read as open — must turn the reader parity red."""
     import shutil
-    src = Path(os.environ.get("UI_EXPORT_VERDICTS") or Path(BUNDLE).with_name("verdicts.sqlite"))
+    src = under_test.path("verdicts")
     pairs = _pairs(built, n=400, seed=7)
     sid, on = next((s, o) for s, o in pairs if built.code(s, o) == SI.CLOSED)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
