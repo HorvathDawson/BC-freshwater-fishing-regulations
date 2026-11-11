@@ -1,0 +1,89 @@
+{
+  "_about": "T561: the day each fetched layer's SOURCE is from (not the day it was written into the GeoPackage). Written by data/fetch_data.py per layer as it fetches; read by pipeline.deliver.release.manifest sources_block; copied into data/source/pins.json by pipeline.tools.source_pins pin.",
+  "layers": {
+    "aboriginal_lands": {
+      "date": "2026-07-15",
+      "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+    },
+    "bathymetry_polygons": {
+      "date": "2026-07-15",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "forest_service_roads": {
+      "date": "2026-07-20",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "historic_sites": {
+      "date": "2026-07-15",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "lakes": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+    },
+    "land_access": {
+      "date": "2026-07-22",
+      "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+    },
+    "land_parcels_crown": {
+      "date": "2026-07-22",
+      "basis": "ParcelMap BC bulk download, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "land_parcels_private": {
+      "date": "2026-07-15",
+      "basis": "ParcelMap BC bulk download, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "manmade": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+    },
+    "osm_admin_boundaries": {
+      "date": "2026-07-15",
+      "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+    },
+    "parks_bc": {
+      "date": "2026-07-15",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "parks_nat": {
+      "date": "2026-07-15",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "pfma_areas": {
+      "date": "2026-09-15",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "streams": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_STREAM_NETWORKS_SP.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+    },
+    "water_access_points": {
+      "date": "2026-07-20",
+      "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+    },
+    "waterfalls": {
+      "date": "2026-07-20",
+      "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+    },
+    "watershed_groups": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-09-04)"
+    },
+    "watersheds": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+    },
+    "wetlands": {
+      "date": "2024-03-26",
+      "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+    },
+    "wma": {
+      "date": "2026-07-15",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    },
+    "wmu": {
+      "date": "2026-07-15",
+      "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+    }
+  }
+}

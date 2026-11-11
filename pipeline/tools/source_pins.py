@@ -6,7 +6,8 @@ bucket by content, so a fresh clone builds from the same bytes this Mac did.
     python -m pipeline.tools.source_pins pin PATH [...]   # hash + upload a data/source file and record it (rclone)
 
 The manifest is `data/source/pins.json` (in git): per file its size, sha256, the URL it is fetched from, and where its
-bytes first came from. A pinned key is `source/<sha256[:16]>/<name>` — a new version is a new key, so a pin never
+bytes first came from; a GeoPackage the fetch dated (`<stem>.source.json`, `pipeline.common.source_dates`) also carries
+`layer_dates`, the day each layer's source is from. A pinned key is `source/<sha256[:16]>/<name>` — a new version is a new key, so a pin never
 changes under a release that was built from it. `data/fetch_data.py` stays the way to REFRESH from upstream (its live
 layers drift); pin the result again when a build should move to it.
 """
@@ -19,6 +20,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from pipeline.common import source_dates
 from pipeline.common.curated import ROOT, SOURCE
 
 MANIFEST = SOURCE / "pins.json"
@@ -113,6 +115,10 @@ def pin(paths: list[str], upstream: str | None) -> int:
         old = man["files"].get(rel, {})
         man["files"][rel] = {"bytes": p.stat().st_size, "sha256": digest, "url": f"{BASE_URL}/{key}",
                              "upstream": upstream or old.get("upstream", "")}
+        layers = source_dates.read(p)
+        if layers is not None:
+            # T561: the day each layer's SOURCE is from, as the fetch recorded it beside the file
+            man["files"][rel]["layer_dates"] = layers
     man["files"] = dict(sorted(man["files"].items()))
     MANIFEST.write_text(json.dumps(man, indent=2) + "\n", encoding="utf-8")
     return 0

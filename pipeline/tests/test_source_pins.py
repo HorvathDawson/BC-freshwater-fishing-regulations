@@ -24,3 +24,21 @@ def test_the_release_inputs_a_fresh_clone_lacked_are_pinned():
     for k in ("basemap.pmtiles", "generated/regs/extraction/row_boxes.json",
               "generated/regs/extraction/synopsis_raw_data.json", "bc_fisheries_data.gpkg", "hydat.sqlite3"):
         assert k in files and len(files[k]["sha256"]) == 64 and files[k]["url"].startswith("https://")
+
+
+def test_pin_copies_the_fetchs_layer_dates_into_the_manifest(tmp_path, monkeypatch):
+    # T561: the per-layer source days the fetch wrote beside a GeoPackage travel with its pin
+    import json
+
+    from pipeline.common import source_dates
+    src = tmp_path / "source"
+    src.mkdir()
+    g = src / "bc_fisheries_data.gpkg"
+    g.write_bytes(b"gpkg")
+    source_dates.record(g, "streams", "2024-03-26", "FWA publication")
+    monkeypatch.setattr(P, "SOURCE", src)
+    monkeypatch.setattr(P, "MANIFEST", src / "pins.json")
+    monkeypatch.setattr(P.subprocess, "run", lambda *a, **k: None)
+    assert P.pin([str(g)], "upstream") == 0
+    pinned = json.loads((src / "pins.json").read_text())["files"]["bc_fisheries_data.gpkg"]
+    assert pinned["layer_dates"] == {"streams": {"date": "2024-03-26", "basis": "FWA publication"}}

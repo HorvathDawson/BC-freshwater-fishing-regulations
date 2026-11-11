@@ -21,9 +21,10 @@ null: the app then keeps the tiles it holds when their handles match.
 from __future__ import annotations
 
 import re
-import sqlite3
 from pathlib import Path
 from typing import Dict, List, Optional
+
+from pipeline.common import source_dates
 
 FORMAT = "app-manifest/2"
 
@@ -117,18 +118,6 @@ def _day(text: Optional[str]) -> Optional[str]:
     return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
 
 
-def _gpkg_day(gpkg: Path, table: str) -> Optional[str]:
-    """The day a GeoPackage layer was last written (`gpkg_contents.last_change`, stamped by the fetch)."""
-    if not gpkg.exists():
-        return None
-    con = sqlite3.connect(f"file:{gpkg}?mode=ro", uri=True)
-    try:
-        row = con.execute("SELECT last_change FROM gpkg_contents WHERE table_name = ?", (table,)).fetchone()
-    finally:
-        con.close()
-    return _day(row[0]) if row else None
-
-
 def _pmtiles_osm_day(archive: Path) -> Optional[str]:
     """The OpenStreetMap data a Protomaps build was cut from (`planetiler:osm:osmosisreplicationtime` in the archive's
     metadata — PMTiles v3: the header names the metadata's offset, length and compression). Reads the header and the
@@ -171,7 +160,9 @@ def sources_block(data_dir, *, synopsis_title: str, dfo_rules) -> dict:
 
       synopsis   the printed edition (its title; the repo PDF carries no date of its own)
       dfo        the newest "Date modified" on the DFO region salmon pages the federal rules were parsed from
-      fwa        the day the FWA streams layer was fetched (`bc_fisheries_data.gpkg`): the atlas every water is drawn from
+      fwa        the FWA publication the streams layer is from (`bc_fisheries_data.source.json`, written by the fetch:
+                 `pipeline.common.source_dates`) — never the day the layer was written into the GeoPackage
+                 (`gpkg_contents.last_change`, T561: it showed a 2024 FWA as 2026 and hid the app's stale notice)
       basemap    the OpenStreetMap replication the Protomaps basemap was cut from (`bc.pmtiles` metadata)
       hydat      the HYDAT release the gauges' record years (the climatology) were built from (`hydat.release`)
     """
@@ -179,7 +170,7 @@ def sources_block(data_dir, *, synopsis_title: str, dfo_rules) -> dict:
     hydat = d / "hydat.release"
     return {"synopsis": {"title": synopsis_title, "date": None},
             "dfo": {"date": _dfo_day(Path(dfo_rules))},
-            "fwa": {"date": _gpkg_day(d / "bc_fisheries_data.gpkg", "streams")},
+            "fwa": {"date": source_dates.day(d / "bc_fisheries_data.gpkg", "streams")},
             "basemap": {"date": _pmtiles_osm_day(d / "bc.pmtiles")},
             "hydat": {"date": _day(hydat.read_text()) if hydat.exists() else None}}
 

@@ -17,7 +17,93 @@
       "bytes": 10219569152,
       "sha256": "9b35a8a7f394e6c86e97f37c1a077cfae79b14460d7c97039bc5f8a8b35d49f2",
       "url": "https://build.canifishthis.ca/source/9b35a8a7f394e6c8/bc_fisheries_data.gpkg",
-      "upstream": "data/fetch_data.py: FWA (2024-03-26, nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public) + live WFS/Overpass layers as fetched on this Mac (they drift: T416)"
+      "upstream": "data/fetch_data.py: FWA (2024-03-26, nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public) + live WFS/Overpass layers as fetched on this Mac (they drift: T416); per-layer source days in layer_dates (bc_fisheries_data.source.json, T561)",
+      "layer_dates": {
+        "aboriginal_lands": {
+          "date": "2026-07-15",
+          "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+        },
+        "bathymetry_polygons": {
+          "date": "2026-07-15",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "forest_service_roads": {
+          "date": "2026-07-20",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "historic_sites": {
+          "date": "2026-07-15",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "lakes": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+        },
+        "land_access": {
+          "date": "2026-07-22",
+          "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+        },
+        "land_parcels_crown": {
+          "date": "2026-07-22",
+          "basis": "ParcelMap BC bulk download, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "land_parcels_private": {
+          "date": "2026-07-15",
+          "basis": "ParcelMap BC bulk download, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "manmade": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+        },
+        "osm_admin_boundaries": {
+          "date": "2026-07-15",
+          "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+        },
+        "parks_bc": {
+          "date": "2026-07-15",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "parks_nat": {
+          "date": "2026-07-15",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "pfma_areas": {
+          "date": "2026-09-15",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "streams": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_STREAM_NETWORKS_SP.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+        },
+        "water_access_points": {
+          "date": "2026-07-20",
+          "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+        },
+        "waterfalls": {
+          "date": "2026-07-20",
+          "basis": "OpenStreetMap via Overpass, the fetch day (the answer's osm3s base was not kept then; recorded 2026-11-10 from gpkg last_change)"
+        },
+        "watershed_groups": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-09-04)"
+        },
+        "watersheds": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+        },
+        "wetlands": {
+          "date": "2024-03-26",
+          "basis": "FWA publication: nrs.objectstore.gov.bc.ca/itqlyp/FWA_Public/FWA_BC.zip x-amz-meta-s3b-last-modified 2024-03-26 (probed 2026-11-10; the layer was written locally 2026-07-15)"
+        },
+        "wma": {
+          "date": "2026-07-15",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        },
+        "wmu": {
+          "date": "2026-07-15",
+          "basis": "live DataBC WFS, the fetch day (recorded 2026-11-10 from gpkg last_change)"
+        }
+      }
     },
     "fish_obstacles/fish_obstacles.gpkg": {
       "bytes": 32698368,

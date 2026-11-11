@@ -21,6 +21,7 @@ from shapely.geometry import Point, Polygon, LineString
 from shapely.ops import polygonize, linemerge
 from tqdm import tqdm
 
+from pipeline.common import source_dates
 from project_config import get_config
 
 logger = logging.getLogger(__name__)
@@ -119,6 +120,63 @@ def _overpass_query(query: str, what: str, timeout: int = 240, retries: int = 3)
                 continue
             break
     raise RuntimeError(f"Overpass fetch failed for {what}: {last_exc}") from last_exc
+
+
+def _osm_base_day(raw: dict) -> str:
+    """The OpenStreetMap data an Overpass answer was cut from (`osm3s.timestamp_osm_base`), as YYYY-MM-DD: the day a
+    layer built from it is FROM (T561), not the day it was fetched. An answer that states none raises."""
+    ts = (raw.get("osm3s") or {}).get("timestamp_osm_base")
+    if not ts:
+        raise RuntimeError("Overpass answer states no osm3s.timestamp_osm_base: its data cannot be dated")
+    return str(ts)[:10]
+
+
+def _http_day(url: str, header: str) -> str:
+    """The day a downloadable source states for itself in one response header (a HEAD request), as YYYY-MM-DD.
+
+    The FWA zips on the government object store carry their 2024 publication in ``x-amz-meta-s3b-last-modified``
+    (``20240326T172119Z``) while ``Last-Modified`` is the 2026 re-upload, so the caller names the header that dates the
+    data; a response without it raises rather than dating the layer by another clock (T561)."""
+    import email.utils
+
+    req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": _DOWNLOAD_USER_AGENT})
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        value = resp.headers.get(header)
+    if not value:
+        raise RuntimeError(f"{url} states no {header}: its data cannot be dated")
+    m = re.match(r"^(\d{4})(\d{2})(\d{2})T", value)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    return email.utils.parsedate_to_datetime(value).date().isoformat()
+
+
+#: the header that dates each downloadable source's data (see _http_day)
+_FWA_DAY_HEADER = "x-amz-meta-s3b-last-modified"
+_PARCEL_DAY_HEADER = "Last-Modified"
+
+
+def record_layer_day(cfg: dict, name: str, gpkg_out: Path, osm_day: "str | None" = None) -> None:
+    """T561: write the fetched layer's SOURCE day into the sidecar beside its GeoPackage
+    (`pipeline.common.source_dates`; the release dates the FWA from it, never from `gpkg_contents.last_change`).
+    Types that write no GeoPackage layer, or whose source states no day (our R2 copy of the tidal boundary), record
+    nothing."""
+    import datetime
+
+    t = cfg["type"]
+    today = datetime.date.today().isoformat()
+    if t == "WFS":
+        source_dates.record(gpkg_out, name, today, f"live DataBC WFS {cfg['source']}, the fetch day")
+    elif t == "WFS_FILE":
+        source_dates.record(gpkg_out.parent / cfg["dest"], cfg["layer"], today,
+                            f"live DataBC WFS {cfg['source']}, the fetch day")
+    elif t == "PARCEL_FABRIC":
+        source_dates.record(gpkg_out, f"{name}_crown", _http_day(cfg["url"], _PARCEL_DAY_HEADER),
+                            f"ParcelMap BC bulk download {cfg['url']} {_PARCEL_DAY_HEADER}")
+    elif t in ("FWA_GDB", "FWA_STREAMS"):
+        source_dates.record(gpkg_out, name, _http_day(cfg["ftp"], _FWA_DAY_HEADER),
+                            f"FWA publication: {cfg['ftp']} {_FWA_DAY_HEADER}")
+    elif t.startswith("OVERPASS_"):
+        source_dates.record(gpkg_out, name, osm_day, "OpenStreetMap via Overpass, osm3s.timestamp_osm_base")
 
 
 # ==========================================
@@ -229,7 +287,7 @@ def fetch_parcel_fabric(
           f"(from {len(parcels_gdf):,} source parcels)")
 
 
-def fetch_overpass_aboriginal_lands(short_name: str, gpkg_path: Path) -> None:
+def fetch_overpass_aboriginal_lands(short_name: str, gpkg_path: Path) -> str:
     """Fetch all boundary=aboriginal_lands polygons in BC from the Overpass API.
 
     Queries for relations tagged ``boundary=aboriginal_lands`` within the
@@ -461,6 +519,7 @@ out skel qt;
 
     gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
     print(f"  ✅ '{short_name}' written ({len(gdf)} aboriginal lands polygons)")
+    return _osm_base_day(raw)
 
 
 _RESTRICTIVE_ACCESS_VALUES = {
@@ -490,7 +549,7 @@ _CLOSED_ACCESS_VALUES = {"no", "private"}
 _NAMED_RESTRICTED_AREAS = ["Malcolm Knapp Research Forest"]
 
 
-def fetch_overpass_land_access(short_name: str, gpkg_path: Path) -> None:
+def fetch_overpass_land_access(short_name: str, gpkg_path: Path) -> str:
     """Fetch BC land polygons with restrictive access from OSM via Overpass.
 
     Captures land the public cannot freely enter: restricted protected
@@ -705,9 +764,10 @@ out skel qt;
 
     gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
     print(f"  ✅ '{short_name}' written ({len(gdf)} land-access polygons)")
+    return _osm_base_day(raw)
 
 
-def fetch_overpass_water_access(short_name: str, gpkg_path: Path) -> None:
+def fetch_overpass_water_access(short_name: str, gpkg_path: Path) -> str:
     """Fetch OSM physical water-access points across BC via Overpass.
 
     Combines every point-of-interest tag relevant to "can I get to the
@@ -837,9 +897,10 @@ out skel qt;
 
     gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
     print(f"  ✅ '{short_name}' written ({len(gdf)} water access feature(s))")
+    return _osm_base_day(raw)
 
 
-def fetch_overpass_waterfalls(short_name: str, gpkg_path: Path) -> None:
+def fetch_overpass_waterfalls(short_name: str, gpkg_path: Path) -> str:
     """Fetch OSM waterfall points/ways across BC via Overpass.
 
     ``waterway=waterfall`` marks a waterfall on a stream — almost always a
@@ -914,6 +975,7 @@ out skel qt;
 
     gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
     print(f"  ✅ '{short_name}' written ({len(gdf)} waterfall feature(s))")
+    return _osm_base_day(raw)
 
 
 def ensure_ftp_extracted(ftp_url, temp_dir):
@@ -1888,6 +1950,7 @@ def main():
     for name, cfg in tqdm(
         to_fetch.items(), total=len(to_fetch), desc="Datasets", unit="layer"
     ):
+        osm_day = None
         try:
             if cfg["type"] == "WFS":
                 fetch_wfs_paginated(name, cfg["source"], gpkg_out, temp_dir)
@@ -1916,13 +1979,13 @@ def main():
                     poly_layer=cfg.get("poly_layer", "bathymetry_polygons"),
                 )
             elif cfg["type"] == "OVERPASS_ABORIGINAL":
-                fetch_overpass_aboriginal_lands(name, gpkg_out)
+                osm_day = fetch_overpass_aboriginal_lands(name, gpkg_out)
             elif cfg["type"] == "OVERPASS_LAND_ACCESS":
-                fetch_overpass_land_access(name, gpkg_out)
+                osm_day = fetch_overpass_land_access(name, gpkg_out)
             elif cfg["type"] == "OVERPASS_WATER_ACCESS":
-                fetch_overpass_water_access(name, gpkg_out)
+                osm_day = fetch_overpass_water_access(name, gpkg_out)
             elif cfg["type"] == "OVERPASS_WATERFALLS":
-                fetch_overpass_waterfalls(name, gpkg_out)
+                osm_day = fetch_overpass_waterfalls(name, gpkg_out)
             elif cfg["type"] == "OSM_PLACES":
                 fetch_osm_places(name, gpkg_out.parent / cfg["dest"])
             elif cfg["type"] == "HYDRO_STATIONS":
@@ -1931,6 +1994,7 @@ def main():
                 fetch_hydat(name, gpkg_out.parent / cfg["dest"])
             elif cfg["type"] == "BATHY_SHEETS":
                 fetch_bathymetry_sheets(name, gpkg_out.parent / cfg["dest"])
+            record_layer_day(cfg, name, gpkg_out, osm_day)
         except Exception as e:
             # One layer's failure never stops the others, but the run fails at the end (T416: it used to exit 0).
             print(f"❌ Error on {name}: {e}")
