@@ -59,7 +59,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
                       onError, onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker,
                       style,
                       gauges, onVisible, pins, bare, fit, basemap, trace, onImageryError,
-                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, focus, near, onDrawn }: MapProps) {
+                      zoomControls, status, standing, lakes, salmon, method, runs, marks, onPressMark, spots, me, insetTop = 0, insetBottom = 0, onRegion, onOpenLink, focus, near, onDrawn, lookKey, onLookDrawn }: MapProps) {
   const refs = useWebMapRefs(onError);
   // (T243) the camera's own glides jump while the OS asks for reduced motion (`motion.ts`)
   useEffect(() => {
@@ -79,7 +79,7 @@ function SeenMap({ at, theme, view, modes, groups, hide, show, initial, data, on
 
   useMapInstance(refs, { at, theme, modes, gauges, initial, bare, zoomControls, onError, onImageryError });
   useLabelsInBC(refs.map, outsideData);
-  useLook(refs, { view, theme, modes, groups, hide, show, basemap, focus });
+  useLook(refs, { view, theme, modes, groups, hide, show, basemap, focus }, { lookKey, onLookDrawn });
   usePushedData(refs, data);
   useMoved(refs, onMoved);
   useLongPress(refs, onLongPress, at);

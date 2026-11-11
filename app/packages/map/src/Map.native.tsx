@@ -52,6 +52,7 @@ import { mapChrome } from "./chrome";
 import { zoomStep } from "./zoom-step";
 import { nativeMapGestures } from "./gestures";
 import { areaLayer, nativeStyle } from "./native-style";
+import { NativeLookTracker } from "./look-drawn";
 import { litKey, spreadSections, TAP_GROUPS, tapBox, VISIBLE_LAYERS, visibleSections } from "./sections";
 import { withoutEngineKeys } from "./colouring";
 import { nativeImages } from "./images";
@@ -106,7 +107,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
                       onMoved, onMapPoint, onLongPress, onOpenLab, highlight, inSeason, water, waterLine, selection = "outline", marker, style, gauges,
                       onVisible, pins, bare, fit, status, standing, lakes, salmon, method, runs, focus, near,
                       basemap, marks, onPressMark, spots, me, onImageryError: _noTileErrors,
-                      onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace: _noTrace, onOpenLink, onDrawn }: MapProps) {
+                      onRegion: _noPrefetch, insetBottom = 0, insetTop = 0, zoomControls, trace: _noTrace, onOpenLink, onDrawn, lookKey, onLookDrawn }: MapProps) {
   // `onRegion` is accepted and never called: it feeds the WEB's prefetch, and a phone holds the release installed.
   // `onImageryError` is accepted and never called: the binding has no per-tile error event. A phone learns the imagery
   // is unreachable from `useImageryReach`'s probe instead (satellite is online-only, owner 2026-10-21).
@@ -246,6 +247,27 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // (T420) a lab build's switches (`lab.ts`): today's style, the same object, unless one is flipped
   const lab = useLab();
   const shown = useMemo(() => labStyle(look.style, lab), [look, lab]);
+  /*
+   * (T566) THE CALLER'S LOOK, SAID WHEN DRAWN (`MapProps.lookKey`, `look-drawn.ts`): a key handed with a new style waits
+   * for that style to load and then for a full frame — the frame the binding's held picture lifts at (T451) — so the
+   * caller's key changes with the picture, never half a second before it. `lookWaiting` listens to full frames only while
+   * a key waits.
+   */
+  const looks = useRef(new NativeLookTracker());
+  const shownWas = useRef<unknown>(null);
+  const lookSaid = useRef(onLookDrawn);
+  lookSaid.current = onLookDrawn;
+  const [lookWaiting, setLookWaiting] = useState(false);
+  const sayLook = useCallback((key: string | null) => {
+    if (key !== null) lookSaid.current?.(key);
+    setLookWaiting(looks.current.waiting());
+  }, []);
+  useEffect(() => {
+    if (lookKey === undefined) return;
+    const changed = shownWas.current !== shown;
+    shownWas.current = shown;
+    sayLook(looks.current.handed(lookKey, changed));
+  }, [shown, lookKey, sayLook]);
   // (T451, the pan probe's build) each style handed to the binding, and what changed since the last one
   const lookWas = useRef<Record<string, string> | null>(null);
   useEffect(() => {
@@ -397,6 +419,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   const wantWhole = !!onDrawn && wholeSaid.current !== wholeKey;
   const lastFull = useRef(false);
   const onRendered = useCallback(() => {
+    if (looks.current.waiting()) sayLook(looks.current.fullFrame());
     panProbe.src("idle");               // (T499) a full render (MapLibre's "map idle")
     rendered.current = true;
     setDrawn(true);
@@ -405,7 +428,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
     void refine.current?.().catch(report);
     void keepCopy.current?.().catch(report);
     void copyDraw.current().catch(report);
-  }, [reportVisible, report]);
+  }, [reportVisible, report, sayLook]);
 
   /*
    * (T175) THE WATER'S OWN LINE, KEPT — as on the web (`Map.web.tsx`, `water-copy.ts`). Keyed on the water's ids and
@@ -757,6 +780,7 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
   // a new style dropped every feature-state (`forget`: send them all again) and may draw other features
   const onStyle = useCallback(() => {
     panProbe.styleLoaded();
+    looks.current.styleLoaded();
     renderer.forget();
     colouringSwapped();
     copy.current.forgetStates();
@@ -831,8 +855,9 @@ export function Map({ at, theme, view, modes, groups, hide, show, initial, data,
           ? (() => { lastFull.current = false; probe?.frame(); if (PAN_PROBE) panProbe.frame(false); }) as never : undefined}
         // (T420/T401, test bed only) a frame with every tile in: the pan probe's "streams drawn"; (T508) and while someone
         // waits for this map to be drawn whole, each such frame is asked whether it is the whole one
-        onDidFinishRenderingFrameFully={PAN_PROBE || wantWhole
-          ? (() => { lastFull.current = true; if (PAN_PROBE) panProbe.frame(true); whole.current(); }) as never : undefined}
+        onDidFinishRenderingFrameFully={PAN_PROBE || wantWhole || lookWaiting
+          ? (() => { lastFull.current = true; if (PAN_PROBE) panProbe.frame(true); if (PAN_PROBE || wantWhole) whole.current();
+                     if (looks.current.waiting()) sayLook(looks.current.fullFrame()); }) as never : undefined}
         onDidFinishLoadingStyle={onStyle}
         onDidFinishRenderingMapFully={onRendered}
         // an empty map and a map whose tiles failed look the same: say so

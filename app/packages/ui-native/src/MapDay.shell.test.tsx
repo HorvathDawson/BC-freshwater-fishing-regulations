@@ -22,17 +22,23 @@ import { HOME, type PairingInput, type StatusSource, type SystemBack } from "@ap
 import { LIGHT } from "./theme";
 
 const TAP = { sid: 0 };
-vi.mock("./MapScreen", () => ({
+vi.mock("./MapScreen", async () => {
+  // (T566) a map says the look it was handed is drawn (MapProps.onLookDrawn): the key under it follows that word
+  const { useEffect } = await import("react");
+  const Drawn = ({ k, on }: { k?: string; on?: (k: string) => void }) => { useEffect(() => { if (k !== undefined) on?.(k); }, [k, on]); return null; };
+  return {
   // (T213) the corner (the map's day strip) (day strip and Standard / Salmon) are drawn as the map would
-  MapScreen: (p: { status?: { day: Date } | null; onPressFeature?: (l: string, id: number) => void;
+  MapScreen: (p: { lookKey?: string; onLookDrawn?: (k: string) => void; status?: { day: Date } | null; onPressFeature?: (l: string, id: number) => void;
                    corner?: ReactNode }) =>
     <View>
+      <Drawn k={p.lookKey} on={p.onLookDrawn} />
       {p.corner}
       <Text testID="map-status">{p.status ? p.status.day.toDateString() : "no status"}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="tap the map"
                  onPress={() => { void p.onPressFeature?.("streams", TAP.sid); }}><Text>map</Text></Pressable>
     </View>,
-}));
+  };
+});
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
 const { openRegsFixture } = await import("@app/data/release/node");
@@ -99,6 +105,8 @@ describe("the one day, from the map's calendar and the page's pill", () => {
                status={STATUS} pairing={PAIRING} loader={openRegsFixture()} />
       </GestureHandlerRootView>);
     await waitFor(() => expect(screen.getByTestId("map-status").textContent).toBe("Wed Oct 21 2026"));
+    // (T566) the key follows the map: it shows once the map has said the coloured look is drawn (the stub says so at once)
+    await waitFor(() => expect(screen.queryAllByText(/^Closed$/).length).toBeGreaterThan(0));
     const seen: string[] = [look()];
 
     press("Map coloured for today. Choose a day");

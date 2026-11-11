@@ -8,7 +8,7 @@ import { Platform, View } from "react-native";
 import { openProbe, type SectionId } from "@app/data";
 import type { ReleaseLoader } from "@app/data/release";
 import { mapPointTap, routeWhere, spotsMenu, tapOpensWater, type Locate, type MyLocation, type MapRail, type MenuControls, type RegsPrefetch,
-         mapError, InSeasonContext, type SpotPhotos, type SyncState } from "@app/ui";
+         mapError, InSeasonContext, type HeldLookStore, type SpotPhotos, type SyncState } from "@app/ui";
 import type { Spot } from "@app/data/spots";
 import type { Camera, MapSpots, TileEndpoints } from "@app/map";
 import { hiddenLayers, shownLayers } from "@app/map/colours";
@@ -35,7 +35,8 @@ const NONE_PINS: readonly never[] = [];
 export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, onTheme, tiles, camera, insetTop, insetBottom,
                              spots, spotsShown, spotLayer, spotsError, onRefreshSpots, refreshing, locate, me = null,
                              photos, loader, syncState, dfoCheckedAt = null, sync = null, onSync, menu, menuInfo, mapDay, onSaveSpot, onLayers, onRegion,
-                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null }: {
+                             offline = null, onDay, onOpenDay, dayRange, onObstacle, onTidal, onNotFishing, onRuns, fishImages, regsPrefetch = null,
+                             lookKey, look }: {
   nav: ShellNav; col: MapColouring; search: ShellSearch; rail: MapRail; palette: Palette; theme: string;
   themeName: ThemeName; onTheme: (t: ThemeName) => void; tiles: TileEndpoints; camera: MutableRefObject<Camera>;
   insetTop: number; insetBottom: number; spots: readonly Spot[]; spotsShown: boolean; spotLayer: MapSpots | undefined;
@@ -74,6 +75,8 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
   regsPrefetch?: RegsPrefetch | null;
   /** (T253) The regions the web's background prefetch holds for an unnamed-stream tap (More → Data); null: none runs. */
   offline?: { ready: readonly string[]; total: number } | null;
+  /** (T566) the colouring asked of the map (`MapProps.lookKey`) and the key held until the map says it drew it */
+  lookKey?: string; look?: HeldLookStore<unknown>;
 }) {
   const { route, go, browse, tab, back, opener } = nav;
   const { flowParam, mm, layers, imagery, cond, gauges, lakeFeed, salmonFeed, methodFeed, mapStatus, noteVisible, setZoomedOut,
@@ -135,7 +138,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
     : undefined;
 
   const railExtra = regsDrawn && col.salmonOffered
-    ? <RegsLayerToggle col={col} palette={palette} fishImages={fishImages} /> : undefined;
+    ? <RegsLayerToggle col={col} palette={palette} fishImages={fishImages} look={look} /> : undefined;
 
   return tab === "spots"
     // (T48) THE SPOTS TAB: the list, open one, Show it on the map, add one — the long press on the maps stays
@@ -169,7 +172,7 @@ export function BrowseHost({ nav, col, search, rail, palette, theme, themeName, 
                     onPick={(k) => (k === "report" ? menu.report(routeWhere(route, mapDay ? dayLabel(mapDay) : null))
                                     : menu.show(k))} />
       : tab === "map" || tab === "conditions" || tab === "runs"
-        ? <MapScreen at={tiles} palette={palette} theme={theme} me={me} railExtra={railExtra}
+        ? <MapScreen at={tiles} palette={palette} theme={theme} me={me} railExtra={railExtra} lookKey={lookKey} onLookDrawn={look?.drawn}
                      camera={camera.current}
                      // (T48) the top bar over the map: the corner's chips, the rail and the web map's controls go under it
                      insetTop={insetTop} insetBottom={insetBottom}

@@ -21,15 +21,19 @@ import type { FishImages } from "../regs/types";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import type { MapColouring } from "./useMapColouring";
+import { usePainting, type HeldLookStore } from "@app/ui";
 
 /** the rail's button size (MapRail `SIZE`) */
 const SIZE = 44;
 const HIT = hitProps({ w: SIZE, h: SIZE });
 
-export function RegsLayerToggle({ col, palette, fishImages }: {
+export function RegsLayerToggle({ col, palette, fishImages, look }: {
   col: Pick<MapColouring, "regsLayer" | "setRegsLayer"> & Partial<Pick<MapColouring, "salmonLoading" | "salmonOffered">>;
   palette: Palette; fishImages?: FishImages;
+  /** (T566) the key held until the map draws the chosen colouring (`HeldLookStore`): meanwhile the chosen one is busy */
+  look?: HeldLookStore<unknown>;
 }) {
+  const painting = usePainting(look);
   const W = SALMON_WORDS.toggle;
   const target = useCoachTarget("modes");
   // (T261) Run timing is no choice here any more: it has its own tab, Runs
@@ -40,7 +44,7 @@ export function RegsLayerToggle({ col, palette, fishImages }: {
                    overflow: "hidden", ...palette.lift }}>
       {keys.map((k, i) => {
         const on = col.regsLayer === k;
-        const busy = k === "salmon" && col.salmonLoading === true;
+        const busy = (k === "salmon" && col.salmonLoading === true) || (on && painting);
         const art = fishImages?.[W.art[k]]?.[0]?.thumb;
         return (
           <Pressable key={k} testID={`regs-paint-${k}`} onPress={() => col.setRegsLayer(k)} accessibilityRole="radio"

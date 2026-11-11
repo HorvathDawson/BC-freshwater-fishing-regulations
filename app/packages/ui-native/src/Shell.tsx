@@ -29,7 +29,7 @@ import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -48,6 +48,7 @@ import { SharePortContext } from "./SharePortContext";
 import { MenuContext } from "./menu/MenuContext";
 import { BrowseHost } from "./shell/BrowseHost";
 import { MapLegend, PairBanner, RunsKey, RunsLegend } from "./shell/MapLegend";
+import { HeldKey } from "./shell/HeldKey";
 import { NetBanner } from "./NetBanner";
 import { ShellSheets } from "./shell/ShellSheets";
 import { useSpotEdit } from "./shell/useSpotEdit";
@@ -240,6 +241,15 @@ export function Shell(p: ShellProps) {
                                 salmonOnDemand: !!(p.prefetch && loader),
                                 runTiming: p.runTiming ?? null, runSpeciesStore: p.runSpeciesStore ?? null,
                                 initialHorizon: p.initialHorizon ?? 0 });
+  /*
+   * (T566) THE KEY FOLLOWS THE MAP (`useHeldUntilDrawn`): a Trout / Salmon / Runs press re-lays out every tile on screen,
+   * and the map draws the previous colouring until it has (`MapProps.onLookDrawn`). So the key under the map — and which
+   * tab's key it is — stays on the colouring the map last said it drew, and moves with the map; meanwhile the pressed
+   * button says it is busy (`painting`).
+   */
+  const lookStore = useMemo(() => new HeldLookStore<{ col: typeof col; tab: typeof tab }>(), []);
+  const lookKey = JSON.stringify(col.mm.modes);
+  lookStore.ask({ col, tab }, lookKey);
   // (T369 D10) the day and the Conditions horizon are the address's (and a recreated activity's): told on each change
   const tellAddress = useRef(p.onAddress);
   tellAddress.current = p.onAddress;
@@ -588,16 +598,19 @@ export function Shell(p: ShellProps) {
                   onSaveSpot={onSaveSpot} onLayers={() => setLayersOpen(true)} onRegion={onRegion}
                   offline={background.scheduler ? background.status : null}
                   onObstacle={setObstacle} onTidal={() => setTidalOpen(true)} onNotFishing={setNotFishing} onRuns={(sid, at) => { setRunsAt(sid); setRunsPoint(at); }}
-                  fishImages={p.fishImages} />
+                  fishImages={p.fishImages}
+                  lookKey={lookKey} look={lookStore as HeldLookStore<unknown>} />
     : null;
 
   /** (T48) The top bar — the search field, the sync icon and the bell — is the maps': on Map, Conditions and (T261)
    *  Runs while browsing, so the bell is where it always is on every map. */
   const topBar = route.mode === "browse" && (tab === "map" || tab === "conditions" || tab === "runs") && !rail.picking;
   // the legend is the map's caption: while search's sheet is over the map it captions nothing in view
-  const showLegend = route.mode === "browse" && !searching
-    && (tab === "conditions"
-        || (tab === "map" && (col.layers.water.drawn !== "regulations" || col.statusOk)));
+  // (T566) for the tab and colouring the key is held at — and only while a map tab is in front (no map: no key)
+  const mapTabShown = tab === "map" || tab === "conditions" || tab === "runs";
+  const showLegendFor = (t: typeof tab, c: typeof col) => route.mode === "browse" && !searching && mapTabShown
+    && (t === "conditions"
+        || (t === "map" && (c.layers.water.drawn !== "regulations" || c.statusOk)));
 
   const chromeLive = {
     top: (
@@ -628,12 +641,16 @@ export function Shell(p: ShellProps) {
     ),
     foot: (
       <>
-          {showLegend && (
-            <MapLegend col={col} conditions={tab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
+          {/* (T566) the key the map is drawn in (`look`): a tab or colouring the map has not drawn yet keeps the last one */}
+          <HeldKey store={lookStore}>{({ col: keyCol, tab: keyTab }) => <>
+          {showLegendFor(keyTab, keyCol) && (
+            <MapLegend col={keyCol} conditions={keyTab === "conditions"} palette={palette} theme={theme} mapDay={mapDay} />
           )}
           {/* (T261) the Runs tab's foot: the date slider, the key, the run-size scale and the credit */}
-          {route.mode === "browse" && tab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
-          {route.mode === "browse" && tab === "runs" && !searching && <RunsLegend col={col} palette={palette} theme={theme} fishImages={p.fishImages} />}
+          {/* (T566) held like the key above: leaving Runs, the run key stays until the map has drawn the Map tab's colours */}
+          {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsKey theme={theme} palette={palette} bottom={footH} />}
+          {route.mode === "browse" && mapTabShown && keyTab === "runs" && !searching && <RunsLegend col={keyCol} palette={palette} theme={theme} fishImages={p.fishImages} />}
+          </>}</HeldKey>
       </>
     ),
     tabs: bottomBarShown(route) ? <TabBar active={tab} palette={palette} onChange={nav.toTab} /> : null,

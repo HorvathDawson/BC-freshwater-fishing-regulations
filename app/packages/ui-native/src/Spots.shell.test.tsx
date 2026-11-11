@@ -21,18 +21,23 @@ import { HOME, type BrowseTab, type LayerStore, type Route } from "@app/ui";
 import type { MapSpots } from "@app/map";
 import { LIGHT } from "./theme";
 
-type Stub = { onLayers?: () => void; spots?: MapSpots; layersChanged?: number;
+type Stub = { lookKey?: string; onLookDrawn?: (k: string) => void; onLayers?: () => void; spots?: MapSpots; layersChanged?: number;
               marker?: { lat: number; lon: number } | null; onMapPoint?: (lat: number, lon: number) => void };
 /**
  * (T131) The map draws what the real renderers draw for `spots`: the marks `spotMarkers` gives (at z14 here, every spot
  * its own), each a named button, its press the map's `pressSpot` — so a tap here is the tap a reader makes.
  */
 vi.mock("./MapScreen", async () => {
+  // (T566) a map says the look it was handed is drawn (MapProps.onLookDrawn): the key under it follows that word
+  const { useEffect } = await import("react");
+  const Drawn = ({ k, on }: { k?: string; on?: (k: string) => void }) => { useEffect(() => { if (k !== undefined) on?.(k); }, [k, on]); return null; };
+
   const { spotMarkers } = await import("@app/core");
   const { pressSpot } = await import("@app/map");
   return {
     MapScreen: (p: Stub) => (
       <View>
+      <Drawn k={p.lookKey} on={p.onLookDrawn} />
         {p.onLayers && <Pressable accessibilityRole="button" accessibilityLabel="Choose layers"
                                   onPress={p.onLayers}><Text>layers</Text></Pressable>}
         <Text testID="map-pins">

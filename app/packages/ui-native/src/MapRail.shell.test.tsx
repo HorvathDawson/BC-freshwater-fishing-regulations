@@ -30,14 +30,19 @@ function pinOf(p: { marker?: { lat: number; lon: number } | null; spots?: MapSpo
 
 /** The section the stub's "tap a water" lands on: a reach of the Chilliwack (set in `beforeAll`). */
 const TAP = { sid: 0 };
-type Stub = { onLongPress?: (lat: number, lon: number) => void; onLayers?: () => void;
+type Stub = { lookKey?: string; onLookDrawn?: (k: string) => void; onLongPress?: (lat: number, lon: number) => void; onLayers?: () => void;
               onMapPoint?: (lat: number, lon: number) => void;
               onPressFeature?: (layer: string, id: number, lat?: number, lon?: number) => void;
               marker?: { lat: number; lon: number } | null; fit?: { key: string } | null; spots?: MapSpots;
               camera: { lat: number; lon: number; zoom: number } };
-vi.mock("./MapScreen", () => ({
+vi.mock("./MapScreen", async () => {
+  // (T566) a map says the look it was handed is drawn (MapProps.onLookDrawn): the key under it follows that word
+  const { useEffect } = await import("react");
+  const Drawn = ({ k, on }: { k?: string; on?: (k: string) => void }) => { useEffect(() => { if (k !== undefined) on?.(k); }, [k, on]); return null; };
+  return {
   MapScreen: (p: Stub) =>
     <View>
+      <Drawn k={p.lookKey} on={p.onLookDrawn} />
       <Pressable accessibilityRole="button" accessibilityLabel="hold the map"
                  onPress={() => p.onLongPress?.(49.0974, -121.9675)}><Text>hold</Text></Pressable>
       {/* both renderers report a tap as the place, then the feature under it (Map.native onPress; Map.web clicks) */}
@@ -49,7 +54,8 @@ vi.mock("./MapScreen", () => ({
       <Text testID="map-state">{`pin ${pinOf(p)} · fit ${p.fit?.key ?? "none"}` +
                                 ` · camera ${p.camera.lat},${p.camera.lon},${p.camera.zoom}`}</Text>
     </View>,
-}));
+  };
+});
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
 

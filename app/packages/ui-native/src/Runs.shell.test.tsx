@@ -18,17 +18,23 @@ import { makeFixtureSource } from "@app/data/fixture";
 import { HOME, type PairingInput, type StatusSource } from "@app/ui";
 import { LIGHT } from "./theme";
 
-vi.mock("./MapScreen", () => ({
-  MapScreen: (p: { runs?: { slots: readonly number[]; pentad: number } | null; modes?: { stream: string; basin: string };
+vi.mock("./MapScreen", async () => {
+  // (T566) a map says the look it was handed is drawn (MapProps.onLookDrawn): the key under it follows that word
+  const { useEffect } = await import("react");
+  const Drawn = ({ k, on }: { k?: string; on?: (k: string) => void }) => { useEffect(() => { if (k !== undefined) on?.(k); }, [k, on]); return null; };
+  return {
+  MapScreen: (p: { lookKey?: string; onLookDrawn?: (k: string) => void; runs?: { slots: readonly number[]; pentad: number } | null; modes?: { stream: string; basin: string };
                    onPressFeature?: (l: string, id: number) => void; corner?: ReactNode }) =>
     <View>
+      <Drawn k={p.lookKey} on={p.onLookDrawn} />
       {p.corner}
       <Text testID="map-runs">{p.runs ? `${p.runs.slots.join(",")}:${p.runs.pentad}` : "no runs"}</Text>
       <Text testID="map-modes">{`${p.modes?.stream} ${p.modes?.basin}`}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel="tap the map"
                  onPress={() => { void p.onPressFeature?.("streams", 15); }}><Text>map</Text></Pressable>
     </View>,
-}));
+  };
+});
 vi.mock("./FishSpinner", () => ({ FishSpinner: () => null }));
 const { Shell } = await import("./Shell");
 
@@ -109,6 +115,8 @@ describe("(T261) the Runs tab", () => {
 
     act(() => { fireEvent.click(screen.getByRole("tab", { name: "Runs" })); });
     await waitFor(() => expect(screen.getByTestId("map-runs").textContent).toBe("6:58"));
+    // (T566) the Runs key follows the map's word that the runs look is drawn (the stub says so at once)
+    await waitFor(() => expect(screen.getByTestId("run-species")).toBeTruthy());
     // (T397) no ancestor of the species row is a zero-height box: Android hands a native drag (the row's sideways
     // scroll) only to a view inside its parent's bounds
     for (let e: HTMLElement | null = screen.getByTestId("run-species"); e; e = e.parentElement) expect(e.style.height).not.toBe("0px");

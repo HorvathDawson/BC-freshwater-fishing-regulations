@@ -258,6 +258,18 @@ export interface MapProps {
    */
   onDrawn?: () => void;
   /**
+   * (T566) THE CALLER'S NAME FOR THE LOOK it hands the map (its colouring: the Map tab's Trout / Salmon, the Runs tab), and
+   * `onLookDrawn(lookKey)` once the map has DRAWN that look whole. A colouring change re-lays out every tile on screen
+   * (a data-driven paint change: GL JS reloads the atlas; MapLibre Native is handed a new style), and until each tile's new
+   * layout lands the renderer draws it from its OLD bucket, in the previous colouring (the phone holds its old picture over
+   * the swap, T451). So a key that names the new colouring before then names colours the map is not showing: the owner's
+   * "layers stay wrong for half a second" under the new legend. The caller holds its key on the colouring the map last
+   * said it drew (`@app/ui` `useHeldUntilDrawn`). Web: the first frame after the look was applied with every atlas tile
+   * laid out; phone: the first full frame after the new style loaded (when the held picture lifts).
+   */
+  lookKey?: string;
+  onLookDrawn?: (lookKey: string) => void;
+  /**
    * A raw tapped coordinate, whether or not it hit a feature.
    *
    * Separate from `onPressFeature` because they answer different questions: picking a

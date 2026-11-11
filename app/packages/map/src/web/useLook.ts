@@ -5,6 +5,7 @@
 import { useEffect, useRef } from "react";
 import { withoutEngineKeys } from "../colouring";
 import { applyLook } from "../look";
+import { webLookWatch } from "../look-drawn";
 import type { MapProps } from "../map-props";
 import { tracePaint } from "../trace-overlay";
 import { layerHandle } from "./handles";
@@ -13,7 +14,15 @@ import type { WebMapRefs } from "./refs";
 
 type Look = Pick<MapProps, "view" | "theme" | "modes" | "groups" | "hide" | "show" | "basemap" | "focus">;
 
-export function useLook(refs: WebMapRefs, { view, theme, modes, groups, hide, show, basemap, focus }: Look) {
+export function useLook(refs: WebMapRefs, { view, theme, modes, groups, hide, show, basemap, focus }: Look,
+                        drawn: Pick<MapProps, "lookKey" | "onLookDrawn"> = {}) {
+  /*
+   * (T566) THE CALLER'S LOOK, SAID WHEN DRAWN (`MapProps.lookKey`, `look-drawn.ts`): armed after the look's paint is set,
+   * said at the first frame with every atlas tile laid out for it. Keyed with the look, so a new key arms a new watch.
+   */
+  const said = useRef(drawn.onLookDrawn);
+  said.current = drawn.onLookDrawn;
+  const callerKey = drawn.lookKey;
   const { map, renderer, adapter, pill, lookError } = refs;
   /**
    * THE LOOK, KEYED ON THE LOOK ALONE: its CONTENT, not its props' identities. A caller hands fresh-but-equal objects on
@@ -47,11 +56,17 @@ export function useLook(refs: WebMapRefs, { view, theme, modes, groups, hide, sh
           for (const [prop, value] of Object.entries(paint))
             m.setPaintProperty(id, prop as never, value as never);
     };
+    let unwatch = () => {};
+    const applied = () => {
+      apply();
+      if (callerKey !== undefined) unwatch = webLookWatch(m, () => said.current?.(callerKey));
+    };
     // `afterLoad`, not `isStyleLoaded() ? apply() : once("load", apply)`: mid tile burst (a zoom out to the basin
     // field) `isStyleLoaded()` is false on a map that loaded long ago and `load` never fires again (N2 review web walk)
-    return afterLoad(m, apply);
+    const unload = afterLoad(m, applied);
+    return () => { unload(); unwatch(); };
     // NOT keyed on `onError`: callers pass an inline arrow (see `lookError`, refs.ts).
-  }, [lookKey]);
+  }, [lookKey, callerKey]);
 }
 
 /*
