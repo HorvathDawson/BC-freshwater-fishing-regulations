@@ -150,3 +150,50 @@ exactly.
   the verdict index cannot. It was not added: it changes the app golden and both compose paths. Follow-up.
 - Not verified: the app and the feed worker on a device, and gear on a straddler where both regions print gear (only
   the first group's lines are shown).
+
+## Z4a: straddlers take the strictest of both regions (2026-11-11, commit dfb4ea7c1)
+
+Owner: "Straddles should always take the most strict rules from both regions" (recorded as RULINGS Z4a, next to Z4).
+This closes the two open points above.
+- **Two openings are compared.** Each opening's limits become the freshwater reader's caps: the daily count, plus each
+  size tier ("none over X", "only k over X"). They are then combined with the freshwater functions (see below).
+  - If the caps that bind are all one region's, that region's opening shows.
+  - If they mix (a lower count from one region and a size cap from the other), or a number cannot be read (pooled,
+    hatchery/wild, or `u`), both regions' words show with no number (`u`). Nothing is dropped.
+- **Gear:** every region's lines show, each line once (`both_gear`).
+- **Hours:** the new chain key `h` lists the region slug(s) whose daylight line shows: the tighter one, or both if
+  they are not comparable (`tighter_hours`).
+- `live.compose` does the same. A merged verdict or gear list must be added through `intern` / `gear_intern`;
+  without one, compose raises.
+
+**Re-measured on the 197 straddlers, in memory, against fixes 1–3:**
+- 19 sections (12,749 species-days) now show both regions' words with no number. Examples: R5B's pooled "4 coho in
+  MUs 5-6 to 5-11" against R6's "4, only 1 over 50 cm"; "only 1 over 50 cm" against "only 1 over 65 cm".
+- No answer went looser, and no map colour changed.
+- No straddler carries gear in both regions today.
+- `h` names one region on 6 chains (3, 3, 3, 3, 8, 2). 11 chains have no hours line.
+
+### Freshwater (Z4 / T183) vs salmon straddlers, side by side
+
+| kind | freshwater (`read.effective_rules` step 6, `ladder.stricter`, `rows.groups._peer_totals`) | salmon (`deliver.salmon`) | difference |
+|---|---|---|---|
+| membership | `regions.region_sections` / `region_members` (> `SLIVER_M`) | the same function (`section_regions_of`) | none |
+| closure | a full closure (`closure_grade == "full"`) beats any quota of the other region | per fish and day, closed beats release, check and open (`STRICT`) | salmon ranks verdicts, not rules. DFO's "closed" is a verdict built from the cascade's rules |
+| release | an outright release beats a quota that keeps only the released origins | release beats open | salmon has no origin split; hatchery/wild openings fall back to both regions' words |
+| count | of two quotas with the same `statement`, the lower wins if it holds every fish the other holds; otherwise both bind | the same functions (`ladder.stricter`, `rules.statement`) over the caps | none for a plain count. A pooled count (aggregate tier) is not turned into a cap, so both regions' words show |
+| size | each size cap is its own statement, and both bind (`TWO_TABLES_SIZE_CAPS_BOTH_BIND`) | each size tier is its own cap; equal statements take the stricter, different ones both bind | none in the rule. The card differs: freshwater shows the combined group with numbers, salmon shows both regions' words without a number |
+| a region with nothing to say | that region adds no rule; the other region's rule stands | that region is closed for the fish that day (`NOT_LISTED`, owner 2026-10-27: closed unless DFO opens it) | **differs, on purpose:** the DFO page lists openings |
+| dates | per day: the ladder runs on the day asked | per day: 366 verdicts | none |
+| gear / method | never displaced by another region's rule; both apply | both regions' lines, each once | none |
+| hours | the times in each rule's `when`; both apply | the header daylight line: the tighter one, or both (`h`); a rule's own hours stay in its words | the header hours exist only on the salmon side. Neither side compares two rules' hour windows |
+| display | the card's combined group and a `scope.both` badge naming both regions | chain `r`, plus `s` (groups) and `h` | the card's naming of the answering region is fix 4 (the app lane) |
+
+**Unified:** the count and size comparison now runs on the freshwater code (`ladder.stricter`, `rules.statement`,
+`_leaves`), and membership was already shared.
+
+**Not unified (T669):** salmon compares verdicts and the freshwater side compares rules. The feed (worker and app)
+only carries verdicts, so the salmon side cannot hand rules to `effective_rules`. Converting a verdict's tree into
+caps (`_caps`) is the bridge.
+
+**Freshwater unchanged:** no freshwater file was edited. `test_t183_two_regions_card.py`, `test_one_region_membership.py`
+and `test_region_homes.py` all pass unedited (67 passed).
