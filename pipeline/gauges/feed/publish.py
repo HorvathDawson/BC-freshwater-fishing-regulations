@@ -306,6 +306,10 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 # EVERY DAY (owner 2026-11-03, T375): the map's day chips name each day, so each is ranked — +2, +4 and +6 to +9 too.
 HORIZONS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
+# (T557) THE FEED'S FORMAT, first in index.json and every station file (the worker writes obs.json too). The app refuses
+# another (core `GAUGE_FEED_FORMAT`, `gaugeFeedRefusal`); scripts/check-format-pairs.py holds the two to one value.
+FEED_FORMAT = "gauge-feed/1"
+
 # (T550) A READING OLDER THAN THIS, when the feed is written, IS NOT TODAY'S and is never ranked: its `percentile` is null
 # and its per-quantity ranks are dropped, so no reader counts, weighs or colours it (`age_gate`). Its `observedAt` stays,
 # so the app says when the gauge last reported. ECCC publishes hourly, about an hour behind; the worker carries a station
@@ -973,6 +977,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             beyond_window[st] = day_runs(old)
 
         (out / f"{r['station']}.json").write_text(json.dumps({
+            "format": FEED_FORMAT,
             "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
             "station": r["station"],
             "now": {"discharge": r["discharge"], "level": r["level"], "at": r["at"],
@@ -1025,6 +1030,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
     maintenance = maintenance_notices(release=release, latest=latest_release, drift=drift,
                                       previous=before, at=fetched_at, roster=roster)
     (out / "index.json").write_text(json.dumps({
+        "format": FEED_FORMAT,
         "fetchedAt": fetched_at,
         # (T68) the newest forecast run's issue time, feed-wide, for the More tab's Forecasts line; null: no run held
         "forecastIssuedAt": newest_forecast_issue(forecast),

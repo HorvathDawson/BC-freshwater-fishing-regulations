@@ -13,6 +13,8 @@ import { dictRows, pool, pyFloat, pyRound, pyRoundInt, pySum, csvRows, truthy, u
 import { appendRuns, type DeletableStore } from "./skill";
 import { addDays, centreWall, DAY_MS, dayMs, dayOf, HOUR, hours, instant, wallIso, yday } from "./time";
 import { readingCurrent } from "../../../../packages/core/src/freshness";
+import { GAUGE_FEED_FORMAT } from "../../../../packages/core/src/gaugeFeed";
+import { FORECAST_DAYS } from "../../../../packages/core/src/gauge-policy.generated";
 
 const BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC";
 const UA = "BC-FishRegs-Hydro/1.0";
@@ -27,7 +29,8 @@ const TEMP_TRIES = 4;
 const TEMP_BACKOFF_S = 5.0;
 const SENTINEL = 99_000.0;
 export const PCTILES = [10, 25, 50, 75, 90]; // climatology.PCTILES
-export const HORIZONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; // publish.HORIZONS: every day (T375)
+/** publish.HORIZONS: every day (T375), from core's copy generated from publish.py (T557: never typed a second time) */
+export const HORIZONS: readonly number[] = FORECAST_DAYS;
 export const FORECAST_TOLERANCE_H = 18.0;
 export const TEMP_SAMPLES_PER_PENTAD = 400;
 export const ARCHIVE_DAYS = 29;
@@ -1041,6 +1044,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     const stChange = reuseF ? prevFile!.change : changed[1];
     const FC = "\u0000forecasts\u0000";
     let text = JSON.stringify({
+      format: GAUGE_FEED_FORMAT,
       fetchedAt,
       station: st,
       now: { discharge: r.discharge, level: r.level, at: r.at, percentile: index[st].percentile, parameter: param },
@@ -1119,6 +1123,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   const staleRelease = Boolean(a.latest && release && a.latest !== release);
   const maintenance = maintenanceNotices({ release, latest: a.latest, drift: a.drift, previous: before, at: fetchedAt, roster: a.roster });
   if (!indexKept) await feed.put("index.json", JSON.stringify({
+    format: GAUGE_FEED_FORMAT,
     fetchedAt,
     // T225 follow-up: written ONCE. Python's dict literal names it twice and the second (T52: the newest issue among the
     // runs with a `change` block) silently replaced the first; the app's Forecasts line (T68) means the newest run
@@ -1130,7 +1135,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     stations: index,
     ...(a.listed !== null ? { listed: [...a.listed].sort() } : {}),
   }), JSON_CT);
-  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
+  if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
 
   return {
     asked: a.ids.length, answered: got.length, release, stale: staleRelease, latest: a.latest, maintenance,

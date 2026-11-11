@@ -67,6 +67,7 @@ export * from "./updateLog";
 export * from "./imagery";
 export * from "./staleness";
 export * from "./freshness";
+export * from "./gaugeFeed";
 export * from "./likeVisit";
 export * from "./weatherFigure";
 export * from "./grouped";

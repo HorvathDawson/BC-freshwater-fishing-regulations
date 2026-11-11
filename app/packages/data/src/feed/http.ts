@@ -19,7 +19,8 @@
 // `standing` comes from core rather than being restated here. A second copy of the
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
-import { reportFailure, shownParameter, standing, type SourceChange, now as clockNow } from "@app/core";
+import { gaugeFeedRefusal, reportFailure, shownParameter, standing, type GaugeFeedFile, type SourceChange, now as clockNow }
+  from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 import type { AheadDays, StationChange } from "../panel";
 import { fetchJsonResilient } from "../net/fetch";
@@ -43,6 +44,8 @@ interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
 export const FEED_TTL_MS = 5 * 60_000;
 
 interface IndexFile {
+  /** (T557) `gauge-feed/1` (core GAUGE_FEED_FORMAT); absent on a file from before the tag */
+  format?: string;
   fetchedAt: string;
   /** Which HYDAT release every percentile in this file was measured against. */
   hydat?: { release: string | null; latest: string | null; stale: boolean };
@@ -67,6 +70,13 @@ interface IndexFile {
   stations: Record<string, {
     percentile: number | null;
     observedAt: string | null;
+    /**
+     * (T550) the station was not answered this run: its last good entry is carried (`staleSince`: the first run that
+     * carried it) while its reading is younger than the worker's carry limit. The publisher writes an entry whose
+     * reading is past core's age line unranked (`readingCurrent`), so a carried rank is a current reading's.
+     */
+    stale?: boolean;
+    staleSince?: string;
     /**
      * WHETHER any forecast run is held for the station (publish.py: `any(run.get("series") …)`), the series itself
      * being in the station's own file. A boolean — this was typed as an array the publisher has never written; nothing
@@ -264,8 +274,8 @@ export async function fetchObs(base: string, fetchImpl: typeof fetch = fetch,
   const url = `${base.replace(/\/+$/, "")}/obs.json`;
   const got = await fetchJsonResilient<ObsFile>(url, { fetchImpl, attempts: 1, limits, cache: "no-store" });
   if (!got.ok) throw new Error(`${url}: HTTP ${got.status}`);
-  if (!got.value || typeof got.value.stations !== "object" || got.value.stations === null)
-    throw new Error(`${url}: not the feed's observations (no stations)`);
+  const why = gaugeFeedRefusal(got.value, "obs");    // (T557)
+  if (why) throw new Error(`${url}: ${why}`);
   return got.value;
 }
 
@@ -285,6 +295,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
   /** (T254) the last good copy of each file this session read: what a dead line answers with (a refresh keeps it) */
   const good = new Map<string, unknown>();
 
+  /** (T557) which gauge feed file a path is, for its format check */
+  const kindOf = (path: string): GaugeFeedFile => (path === "index.json" ? "index" : path === "obs.json" ? "obs" : "station");
   /** (T315) a station file's name → its station; the index and obs files are not one */
   const stationOf = (path: string): string | null =>
     path === "index.json" || path === "obs.json" || !path.endsWith(".json") ? null : path.slice(0, -5);
@@ -316,6 +328,13 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
           const got = await fetchJsonResilient<T>(url, { fetchImpl, attempts: 2, limits: opts.limits ?? FEED_LIMITS,
                                                           ...(held(url) ? { cache: "no-store" as const } : {}) });
           if (!got.ok) return null;          // 404 = this station is not transmitting
+          // (T557) a file in another format, or not the shape asked for, is refused and REPORTED, never cached or kept:
+          // what this session or the phone already holds answers instead, with its own age
+          const why = gaugeFeedRefusal(got.value, kindOf(path));
+          if (why) {
+            reportFailure(new Error(`${url}: ${why}`));
+            return fallback<T>(path, url);
+          }
           cache.set(url, { at: clockNow(), value: got.value });
           good.set(url, got.value);
           const st = stationOf(path);
@@ -360,8 +379,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
 
     offer(index) {
       const i = index as Partial<IndexFile> | null;
-      if (!i || typeof i !== "object" || typeof i.stations !== "object" || i.stations === null)
-        throw new Error("not a gauge feed index (no stations)");
+      const why = gaugeFeedRefusal(i, "index");      // (T557) the same check a read makes
+      if (why) throw new Error(why);
       cache.clear();
       cache.set(`${trimmed}/index.json`, { at: clockNow(), value: i });
       try { opts.history?.noteIndex(i); } catch { /* a cache */ }

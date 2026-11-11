@@ -121,7 +121,7 @@ describe("httpFeed", () => {
     const dead = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
     expect(await httpFeed("http://x", dead).live()).toBeNull();
 
-    const empty = { fetchedAt: "t", stations: {} };
+    const empty = { fetchedAt: "2026-09-01T12:00:00Z", stations: {} };   // (T557) an index carries its time
     expect(await httpFeed("http://x", server({ "index.json": empty })).live())
       .toEqual(new Set());
   });

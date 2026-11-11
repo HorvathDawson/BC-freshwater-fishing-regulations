@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { READING_MAX_AGE_MS } from "../../../packages/core/src/freshness";
+import { GAUGE_FEED_FORMAT, gaugeFeedRefusal } from "../../../packages/core/src/gaugeFeed";
 import { cardModel } from "../src/gauges/card/card";
 import { ageGate, levelOnRating, runGauges } from "../src/gauges/publish";
 import { STATION_LIST } from "../src/gauges/liveness";
@@ -136,5 +137,28 @@ describe("run health guards (change-aware runs)", () => {
     expect(s.listSource).toBe("roster");
     expect(s.asked).toBeGreaterThan(1);
     expect(JSON.parse(after!).listed).toBeUndefined();
+  });
+});
+
+// T557 items 3-4: every gauge feed file the worker writes names its format first (core GAUGE_FEED_FORMAT), and each
+// passes the app's own check (`gaugeFeedRefusal`).
+describe("the gauge feed's format", () => {
+  it("index.json, obs.json and every station file carry it first and read in the app", async () => {
+    const rec = loadRecording(FIX);
+    const dir = mkdtempSync(join(tmpdir(), "gauges-format-"));
+    cpSync(join(FIX, "seed"), dir, { recursive: true });
+    const feed = dirStore(join(dir, "feed"));
+    await runGauges({ fetch: fixtureFetch(rec).fetch, feed, priv: dirStore(join(dir, "priv")), now: new Date(rec.now),
+                      sleep: async () => {}, roster: JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8")) });
+    const idx = JSON.parse((await feed.get("index.json"))!);
+    const obs = JSON.parse((await feed.get("obs.json"))!);
+    expect(Object.keys(idx)[0]).toBe("format");
+    expect([idx.format, obs.format]).toEqual([GAUGE_FEED_FORMAT, GAUGE_FEED_FORMAT]);
+    expect([gaugeFeedRefusal(idx, "index"), gaugeFeedRefusal(obs, "obs")]).toEqual([null, null]);
+    for (const st of Object.keys(idx.stations)) {
+      const f = JSON.parse((await feed.get(`${st}.json`))!);
+      expect(Object.keys(f)[0], st).toBe("format");
+      expect(gaugeFeedRefusal(f, "station"), st).toBeNull();
+    }
   });
 });

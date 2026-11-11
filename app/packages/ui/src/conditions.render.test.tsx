@@ -93,7 +93,7 @@ describe("donorView", () => {
   it("gives each row its finished lines and its bar", () => {
     // 08MH024 reported in the small hours of the chosen day with nothing to rank — quiet, but it speaks, so a row.
     // 08MH099 is silent and is not a row (owner 2026-10-22); the line names it instead.
-    const early = new Date(2026, 8, 4, 2).toISOString();
+    const early = new Date(2026, 8, 4, 8).toISOString();
     const v = value({ rows: [row("08MH001", { regulated: true }),
                              row("08MH024", { percentile: null, weight: 0, observedAt: early }),
                              row("08MH099", { percentile: null, weight: 0 })] });
@@ -175,7 +175,7 @@ describe("donorView", () => {
       station: station as never, name: null, lat, lon: -121.5, role, path: path as never });
     const v = value({ rows: [
       row("08MH001", { route: route("08MH001", 49.2, "up", ["s", "a"]) }),
-      row("08MH024", { weight: 0.4, role: "down", percentile: null, observedAt: new Date(2026, 8, 4, 2).toISOString(),
+      row("08MH024", { weight: 0.4, role: "down", percentile: null, observedAt: new Date(2026, 8, 4, 8).toISOString(),
                        route: route("08MH024", 49.0, "down", ["s", "b", "c"]) }),
       // Placed but with no walkable chain: a dot, no line, no key line for its role.
       row("08MF005", { weight: 0, route: { ...route("08MF005", 49.1, "up", []) } }),
