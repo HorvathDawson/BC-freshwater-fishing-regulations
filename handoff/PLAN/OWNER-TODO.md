@@ -93,6 +93,14 @@ with the default Claude uses until you answer). Newest first inside each section
 - D6. Three creeks whose mouth is outside the polygon (Tlell 2, Chemainus 1). Default: no change.
 - Note: "removed" is done as "marked tidal, not drawn as fresh water"; the lines stay in the network so no id or hand match breaks.
 
+**Tests that grow with the app (T667), full text in `handoff/PLAN/app-integration/T667-audit.md`. Defaults are used unless you say otherwise.**
+- D1. The old "page v36" reference the app's answers are compared with: keep amending by hand, or retire it suite by suite? Default: retire, after an inventory shows nothing is lost.
+- D2. May screen-logic tests run on about a dozen invented waters built by the real pipeline, instead of the Vedder and Skeena? Default: yes; about ten real-water walks stay.
+- D3. Live counts in tests (117 aliases, 1,515 queue rows): drop as tests and print them in the release diff? Default: yes.
+- D4. The guard against new offenders: shrinking list of today's offenders, or fail on all now? Default: shrinking list.
+- D5. May the release commit "renumber only" fixture diffs by itself and stop only when an answer changed? Default: yes.
+- D6. Derive the smoke test set instead of listing it by hand (the set may differ slightly)? Default: yes.
+
 **Other**
 - Clean-checkout test run inside fast-fail (T535): add it? Default: not added.
 
