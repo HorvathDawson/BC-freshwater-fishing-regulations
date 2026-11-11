@@ -14,12 +14,15 @@
 #                         and fails on a failed listing or fetch; the script still asks the listing itself and
 #                         STOPS unless data/source now holds the newest release.
 #   2. the envelope       clim.json, from that HYDAT, into the served feed directory
-#   3. republish the feed with the new envelope: every percentile re-measured; the notice clears here (current == latest)
-#   4. the bundle         `pipeline build` reruns its clim stage (keyed on the HYDAT stamp: the same envelope again)
+#      (T557: no step republishes the feed here. The feeds worker is the ONE gauge publisher: it re-ranks every station
+#      on its next run once this clim.json is on R2 (the "feeds — HYDAT → climatology → R2" workflow uploads it), and the
+#      hydat notice clears there. pipeline/gauges/feed/publish.py is the worker's spec — the parity test's oracle and
+#      the local dev feed (scripts/dev-build.sh) — never a feed anyone is served.)
+#   3. the bundle         `pipeline build` reruns its clim stage (keyed on the HYDAT stamp: the same envelope again)
 #                         and the deliver stage (its key holds the hydat stamp and clim's hash):
 #                         gauge_clim / gauge_stats / section_panel, and a new release whose manifest dates HYDAT.
 #                         Heavy, so through scripts/heavy.sh: one heavy job at a time, with the memory guard.
-#   5. the upload         the new release to R2 through the release publisher (`pipeline.deliver.release.publish`: tiles,
+#   4. the upload         the new release to R2 through the release publisher (`pipeline.deliver.release.publish`: tiles,
 #                         data files, manifest LAST). Without --upload it prints the plan (spends nothing, sends
 #                         nothing) and the exact command; with --upload it sends, and stops first if an R2_* variable
 #                         is unset. Until the release is uploaded no installed app reads the new HYDAT.
@@ -49,7 +52,7 @@ r2_ready() {
 }
 if [ "$UPLOAD" = 1 ]; then r2_ready; fi
 
-echo "-- 1/5 HYDAT --------------------------------------------"
+echo "-- 1/4 HYDAT --------------------------------------------"
 (cd data && PYTHONPATH=.. ../$PY fetch_data.py --layers hydat)
 latest=$($PY -c 'import sys; sys.path.insert(0, "data"); from fetch_data import hydat_latest_release as f; print(f() or "")' || true)
 have=$(cat data/source/hydat.release 2>/dev/null || true)
@@ -62,16 +65,13 @@ if [ "$have" != "$latest" ]; then
 fi
 echo "   now on HYDAT $have"
 
-echo "-- 2/5 envelope -----------------------------------------"
+echo "-- 2/4 envelope -----------------------------------------"
 $PY -m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out "$FEED/clim.json"
 
-echo "-- 3/5 feed (republished with the new envelope) ----------"
-$PY -m pipeline.gauges.feed.publish --out "$FEED" --clim "$FEED/clim.json"
-
-echo "-- 4/5 bundle + release (heavy) -------------------------"
+echo "-- 3/4 bundle + release (heavy) -------------------------"
 scripts/heavy.sh build 40 -- $PY -m pipeline build
 
-echo "-- 5/5 upload to R2 -------------------------------------"
+echo "-- 4/4 upload to R2 -------------------------------------"
 # the release `pipeline build` just wrote: THE release on disk (`release.manifest.latest`, the publisher's own
 # default and the one answer every reader asks — T133), named here
 REL=$($PY -c 'from pipeline.deliver.release.manifest import latest; print(latest("data/release") or "")')
@@ -90,7 +90,7 @@ fi
 echo ""
 echo "-- done -------------------------------------------------"
 echo "  HYDAT $(cat data/source/hydat.release): fetched, envelope rebuilt ($FEED/clim.json),"
-echo "  feed republished ($FEED/index.json: the hydat notice is gone when current == latest),"
+echo "  the feeds worker re-ranks on its next run once clim.json is on R2 (its hydat notice clears there),"
 echo "  bundle and release rebuilt by \`pipeline build\`; release $sent"
 if [ "$UPLOAD" != 1 ]; then
   echo "       $PY -m pipeline.deliver.release.publish --release $REL --yes"

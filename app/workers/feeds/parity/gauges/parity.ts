@@ -65,8 +65,7 @@ if (isMain && process.argv[2]) {
  *     copy is removed;
  *   - the runs archive is append-only: priv/runs/<m>/<d>/<t>.jsonl parts (+ day objects) and runs/state.json; month file
  *     + days + parts concatenated in key order must equal Python's rewritten month file;
- *   - index.json `forecastIssuedAt` is written once, the newest run feed-wide (T68); Python's second key (T52: the newest
- *     among runs with a change block) overwrote it — ts must be the same or newer. */
+ *   (index.json `forecastIssuedAt` was one until T557 removed Python's second key: it is compared as is.) */
 export function normalizeIntended(py: Map<string, string>, ts: Map<string, string>): string[] {
   const notes: string[] = [];
   const th = ts.get("priv/temp_history.json");
@@ -94,17 +93,7 @@ export function normalizeIntended(py: Map<string, string>, ts: Map<string, strin
     ts.delete(k);
   }
   if (pieces.length) notes.push(`runs: ${pieces.length} append-only object(s) folded into the month file`);
-  const pi = py.get("index.json");
-  const ti = ts.get("index.json");
-  if (pi && ti) {
-    const p = JSON.parse(pi);
-    const t = JSON.parse(ti);
-    if (p.forecastIssuedAt !== t.forecastIssuedAt) {
-      if (p.forecastIssuedAt && !(t.forecastIssuedAt >= p.forecastIssuedAt)) throw new Error(`forecastIssuedAt older than Python's: ${t.forecastIssuedAt} < ${p.forecastIssuedAt}`);
-      notes.push(`forecastIssuedAt: py ${p.forecastIssuedAt} (T52's) → ts ${t.forecastIssuedAt} (T68's)`);
-      p.forecastIssuedAt = t.forecastIssuedAt;
-      py.set("index.json", JSON.stringify(p));
-    }
-  }
+  // (T557) index.json `forecastIssuedAt` is no longer an intended difference: the Python spec writes it once too (its
+  // second key, T52's, is gone), so it is compared like every other field.
   return notes;
 }

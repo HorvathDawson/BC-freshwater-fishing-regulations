@@ -1,5 +1,13 @@
 """The gauge feed publisher: ECCC readings in, `id -> data` out.
 
+THE SPEC, NOT A PUBLISHER ANYONE IS SERVED (T557, 2026-11-10). The ONE gauge publisher is the feeds worker
+(app/workers/feeds/src/gauges/publish.ts), which writes R2 `feeds/live/` every 30 minutes. This module is what the
+worker is held to: `app/workers/feeds/test/gauges.parity.test.ts` runs both on one recording and requires the same
+JSON (the worker's own robustness — carry, change-aware, obs.json, run guards — is declared there), and it builds the
+LOCAL dev feed (`scripts/dev-build.sh`). No owner command and no workflow runs it against a served feed:
+`scripts/update-hydat.sh` rebuilds clim.json only. A behaviour change goes into BOTH, in one commit, with the parity
+test green.
+
     python -m pipeline.gauges.feed.publish --out app/packages/data/dev/feeds/gauge
 
 WHAT MAKES THIS A FEED. It knows station ids and nothing else. No atlas, no graph, no
@@ -1019,7 +1027,9 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         # reads them from the feed that carries the forecast rather than from a copy typed into the app. With the issue
         # time of the newest run behind an expected change (PST wall clock, as the Centre stamps it). Both absent when no
         # run answered.
-        **({"forecastAttribution": FORECAST_ATTRIBUTION, "forecastIssuedAt": newest} if newest else {}),
+        # (T557) `forecastIssuedAt` is written ONCE, above (the newest run feed-wide, T68): this used to name it again
+        # (the newest run behind an expected change) and the second key silently won
+        **({"forecastAttribution": FORECAST_ATTRIBUTION} if newest else {}),
         "stations": index,
         # WHICH STATIONS ECCC CALLS REAL-TIME this run. Absent from `stations` still means
         # nothing to show; this says why. Listed and absent: a live gauge silent this run.

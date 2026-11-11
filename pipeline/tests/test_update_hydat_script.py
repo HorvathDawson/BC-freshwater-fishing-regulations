@@ -86,10 +86,9 @@ def test_a_new_hydat_reruns_every_consumer_in_order_on_the_served_feed(tree):
         "/data|fetch_data.py --layers hydat",
         "|-c <latest>",
         f"|-m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out {SERVED}/clim.json",
-        f"|-m pipeline.gauges.feed.publish --out {SERVED} --clim {SERVED}/clim.json",
         "heavy|build 40 -- .venv/bin/python -m pipeline build",
         "|-c <release>",
-        # (T68) step 5 without --upload: the publisher's PLAN of the newest release; nothing is sent
+        # (T68) step 4 without --upload: the publisher's PLAN of the newest release; nothing is sent
         "|-m pipeline.deliver.release.publish --release data/release/r-new",
     ]
     assert "  .venv/bin/python -m pipeline.deliver.release.publish --release data/release/r-new --yes" in r.stdout
@@ -101,7 +100,14 @@ def test_another_feed_dir_is_not_honoured(tree):
     r = _run(tree, lands="20261020", listed="20261020", FEED="app/packages/data/dev/feeds")
     assert r.returncode == 0, r.stderr
     assert not any("app/packages/data/dev/feeds" in ln for ln in _log(tree))
-    assert f"|-m pipeline.gauges.feed.publish --out {SERVED} --clim {SERVED}/clim.json" in _log(tree)
+    assert f"|-m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out {SERVED}/clim.json" in _log(tree)
+
+
+def test_no_second_gauge_publisher_runs(tree):
+    # (T557) the feeds worker is the one publisher: the owner's HYDAT command rebuilds the envelope, never the feed
+    r = _run(tree, lands="20261020", listed="20261020")
+    assert r.returncode == 0, r.stderr
+    assert not any("pipeline.gauges.feed.publish" in ln for ln in _log(tree))
 
 
 def test_a_fetch_that_did_not_land_the_newest_stops_before_any_rebuild(tree):

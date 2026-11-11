@@ -135,13 +135,14 @@ def test_the_hydat_action_is_a_script_that_exists():
     text = script.read_text()
     assert text.startswith("#!/usr/bin/env bash")
     assert "set -euo pipefail" in text
-    # the order is the point: fetch, envelope, republish with it, then the bundle through heavy.sh
-    steps = ["fetch_data.py --layers hydat", "pipeline.gauges.feed.climatology",
-             "pipeline.gauges.feed.publish", "scripts/heavy.sh"]
+    # the order is the point: fetch, envelope, then the bundle through heavy.sh; (T557) no second gauge publisher —
+    # the feeds worker re-ranks once clim.json is on R2
+    steps = ["fetch_data.py --layers hydat", "pipeline.gauges.feed.climatology", "scripts/heavy.sh"]
     body = text[text.index("set -euo pipefail"):]             # the commands, not the header's description of them
     at = [body.index(s) for s in steps]
     assert at == sorted(at)
-    assert '--clim "$FEED/clim.json"' in body
+    assert "pipeline.gauges.feed.publish" not in body
+    assert '--out "$FEED/clim.json"' in body
     assert "scripts/heavy.sh build 40 -- $PY -m pipeline build" in body
 
 

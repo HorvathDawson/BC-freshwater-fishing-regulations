@@ -1,7 +1,7 @@
 """T274: HYDAT's DAILY MEANS per published station, as static files the app reads from OUR data host.
 
     python -m pipeline.gauges.feed.hydat_daily --hydat data/source/hydat.sqlite3 \
-        --feeds data/generated/gauges/feeds --out data/generated/gauges/hydat_daily
+        --index <served feeds/live/index.json> --out data/generated/gauges/hydat_daily
 
 The app used to ask ECCC's GeoMet API from the device for a past day's flow (`dayFlow.ts`). Owner 2026-10-29: "we should
 have it stored". HYDAT changes once a release (quarterly), so this is a build step beside the climatology, uploaded to
@@ -26,11 +26,6 @@ from pipeline.gauges.feed.climatology import _sig4
 
 FORMAT = "hydat-daily/1"
 WINDOW_YEARS = 30
-SKIP = {"index", "clim", "temp_history"}
-
-
-def feed_stations(feeds: Path) -> list[str]:
-    return sorted(p.stem for p in feeds.glob("*.json") if p.stem not in SKIP and not p.stem.startswith("feed"))
 
 
 def index_stations(index: Path) -> list[str]:
@@ -69,13 +64,14 @@ def build(hydat: Path, stations: list[str], release: str) -> dict[str, dict]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--hydat", type=Path, default=Path("data/source/hydat.sqlite3"))
-    ap.add_argument("--feeds", type=Path, default=Path("data/generated/gauges/feeds"))
-    ap.add_argument("--index", type=Path, default=None,
-                    help="take the stations from this feed index.json instead of --feeds (T301: the GitHub workflow)")
+    # (T557) the stations come from a SERVED feed's index.json, always: the local feed directory was a weeks-old dev copy
+    # (386 files on 2026-11-09; the live 08KB006 had none), and defaulting to it built a stale station set silently
+    ap.add_argument("--index", type=Path, required=True,
+                    help="the feed index.json whose stations to write (the workflow fetches staging feeds/live/index.json)")
     ap.add_argument("--out", type=Path, default=Path("data/generated/gauges/hydat_daily"))
     a = ap.parse_args()
     release = (a.hydat.parent / "hydat.release").read_text().strip()
-    files = build(a.hydat, index_stations(a.index) if a.index else feed_stations(a.feeds), release)
+    files = build(a.hydat, index_stations(a.index), release)
     a.out.mkdir(parents=True, exist_ok=True)
     for old in a.out.glob("*.json"):
         if old.stem not in files:

@@ -36,3 +36,14 @@ def test_index_stations_are_the_feed_index_keys(tmp_path):
     p = tmp_path / "index.json"
     p.write_text(json.dumps({"fetchedAt": "x", "hydat": {}, "stations": {"08MH024": {}, "07EA004": {}}}))
     assert h.index_stations(p) == ["07EA004", "08MH024"]
+
+
+def test_the_station_set_must_come_from_a_served_index(monkeypatch):
+    # (T557) no default to the local dev feed directory (a weeks-old copy built a stale station set silently)
+    import sys
+
+    import pytest
+    monkeypatch.setattr(sys, "argv", ["hydat_daily", "--hydat", "x.sqlite3"])
+    with pytest.raises(SystemExit) as e:
+        h.main()
+    assert e.value.code == 2
