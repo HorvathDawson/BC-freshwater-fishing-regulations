@@ -109,8 +109,16 @@ export function parseHourly(station: string, text: string): Reading | null {
   if (last === null) return null;
   return {
     station, at: last[0], level: last[1], discharge: last[2],
-    recent: series.filter((_, i) => i % 6 === 0).map(([t, lv, q]) => [t, lv, q]),
+    recent: thinned(series, last),
   };
+}
+
+/** publish._thinned (T554 item 1): every sixth row from the head, then the newest row with a number when thinning skipped
+ *  it — obs.json and an alert's check then read the reading the card shows, not one up to 25 min (or a gap) older. */
+function thinned(series: Row[], last: Row): Row[] {
+  const out: Row[] = series.filter((_, i) => i % 6 === 0).map(([t, lv, q]) => [t, lv, q]);
+  if (!out.length || cmpStr(out[out.length - 1]![0], last[0]) < 0) out.push([last[0], last[1], last[2]]);
+  return out;
 }
 
 const cmpStr = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);

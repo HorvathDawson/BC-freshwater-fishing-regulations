@@ -156,8 +156,18 @@ def _parse_hourly(station: str, text: str) -> dict | None:
         "discharge": last[2],
         # 5-minute native resolution is denser than anything can be drawn. Thin to the
         # half-hour, which is what v1 settled on after shipping raw 5-minute by accident.
-        "recent": [[t, lv, q] for i, (t, lv, q) in enumerate(series) if i % 6 == 0],
+        # (T554 item 1) ... and END on the newest reading: thinning from the head left the newest row up to 25 min (and
+        # past a gap, hours) behind `at`, so obs.json and an alert's check read an older value than the card shows.
+        "recent": _thinned(series, last),
     }
+
+
+def _thinned(series: list, last: tuple) -> list:
+    """Every sixth row from the head, then the newest row carrying a number when thinning skipped it."""
+    out = [[t, lv, q] for i, (t, lv, q) in enumerate(series) if i % 6 == 0]
+    if not out or out[-1][0] < last[0]:
+        out.append(list(last))
+    return out
 
 
 # WHO IS TRANSMITTING TODAY, from ECCC itself — the same file `data/fetch_data.py` reads to
