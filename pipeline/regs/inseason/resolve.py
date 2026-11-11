@@ -21,6 +21,15 @@ on the release the file then names (`release`, default `data/release/LATEST`; re
 and each match is STAMPED (`matches.stamp`: a hash of its extents, the release and its waters) so publish refuses a
 hand edit that was not re-resolved.
 
+(T623 F7, F20) A NOTICE COVERS ONLY FRESH WATER OF ITS OWN REGION (`fresh_in_region`). The extents say the place in
+the notice's words ("upstream of Hells Gate", "downstream of the Spuzzum Creek confluence"), but the notice is issued
+for one region, and the book bounds the same rule at that region's line (p.30: "from Hells Gate upstream to the Region 3
+boundary"); owner 2026-11-11: "the banner stops at the Region 3 boundary" (F7) and "a freshwater notice starts at
+Mission, not on the tidal stretch" (F20). So the covered sections are those the release places in the match's
+`region` (the store's `section_place`); a section it places in no region — tidal water, outside B.C. — or keys as
+tidal is never covered. A water the clip cut short says its ends where its covered main line now ends (`stem_ends`),
+not by the notice's own places. A match naming no region is refused.
+
 No part index, label or section id (AGENTS 5): a range survives a renumbering of parts (T517). A lake or wetland is
 whole or not at all (it has no line). Each range set is proved on the spot: read back by the device's rule over the
 release's own `lines` file it must give exactly the resolved sections, or the match is refused.
@@ -42,7 +51,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Optional
 
 from pipeline.regs.inseason import matches as M
 
@@ -90,6 +99,9 @@ class Release:
     kind_of: dict[str, str]                        # item_id -> kind
     members: dict[int, frozenset[int]]             # ord -> its sections (part_section; part_ix never read)
     starts: dict[int, tuple[int, int]]             # stream handle -> (blk, from_m), the release's `lines`
+    #: (T623) handle -> the regions the release places it in (lower case, the store's `section_place`); a handle
+    #: absent is in NO region: tidal water, outside B.C., or a key the book calls tidal (`read_release`)
+    regions: dict[int, frozenset[str]]
 
     def item_sections(self, item: str) -> frozenset[int]:
         o = self.ord_of.get(item)
@@ -122,8 +134,47 @@ def read_release(rel: Path) -> Release:
                     starts[h] = (blk, lo)
         for c in (core, water, ln):
             c.close()
-    return Release(release_name(rel), str(meta.get("section_handles") or ""), ord_of, kind_of,
-                   {o: frozenset(s) for o, s in mem.items()}, starts)
+    handles = str(meta.get("section_handles") or "")
+    return Release(release_name(rel), handles, ord_of, kind_of, {o: frozenset(s) for o, s in mem.items()}, starts,
+                   fresh_regions(rel, handles))
+
+
+def fresh_regions(rel: Path, handles: str) -> dict[int, frozenset[str]]:
+    """(T623) handle -> the regions the release places that section in, for FRESH WATER only: the store's
+    `section_place` (the region set a card says "In Region 3" by). A section with no place (tidal water, outside
+    B.C.: the store keys neither) or whose key the book calls tidal (`akey.tidal`) is left out — in no region."""
+    from pipeline.deliver.store.release import province_store
+    st = province_store(rel)
+    try:
+        if str(st.meta.get("section_handles") or "") != handles:
+            raise SystemExit(f"inseason.resolve: release {rel.name}'s store names section handles "
+                             f"{st.meta.get('section_handles')}, its core {handles}")
+        place = {int(p): frozenset(str(r).lower() for r in json.loads(rs))
+                 for p, rs in st.con.execute("SELECT place, regions FROM place")}
+        tidal = {int(a) for (a,) in st.con.execute("SELECT akey FROM akey WHERE tidal = 1")}
+        akey = st.section_akeys()
+        return {h: place[p] for h, p in sorted(st.section_places().items()) if akey.get(h) not in tidal}
+    finally:
+        st.close()
+
+
+#: the feed's region of a province-wide notice (`app/workers/feeds/src/inseason.ts`: "1" … "8", "7A", "7B", "provincial")
+PROVINCIAL = "provincial"
+
+
+def region_code(region: str) -> str:
+    """A notice's region as the release writes it ("7B" -> "7b", "Region 3" -> "3")."""
+    return re.sub(r"^region\s*", "", str(region or "").strip().lower())
+
+
+def fresh_in_region(secs: Iterable[int], region: str, regions: Mapping[int, frozenset[str]]) -> set[int]:
+    """(T623 F7, F20) THE SECTIONS A NOTICE OF `region` MAY COVER: those the release places in that region. A section
+    on the line (in two regions) is in both; tidal water and water outside B.C. are in none (module doc). A
+    `provincial` notice (the feed's province-wide heading) covers fresh water of every region."""
+    r = region_code(region)
+    if r == PROVINCIAL:
+        return {h for h in secs if regions.get(h)}
+    return {h for h in secs if r in regions.get(h, ())}
 
 
 def covered_by_runs(runs: Iterable[Iterable[int]], sections: Iterable[int], starts: Mapping[int, tuple[int, int]]
@@ -167,10 +218,23 @@ _KIND_ORDER = {"split": 0, "lake": 1, "region": 2, "mu": 3, "trib": 4, "mouth": 
 _SIGNS = re.compile(r"^(?:the )?(?:fishing )?(?:boundary )?signs? (?:at |near )?", re.I)
 
 
+def region_line(token: str) -> str:
+    """(T623 F7) a REGION's own boundary (the atlas's area cut `area:3`) as the release names it: `region_line:3` —
+    one token for every water it crosses (the release's parts end at it, `bundle.spans.REGION_AREA`); an `area:3`
+    end would be said "3", and its atlas label names a neighbour ("Region 3 – Region 5 boundary") that differs per
+    water while the file's words are one per token."""
+    from pipeline.deliver.bundle.spans import REGION_AREA
+    m = REGION_AREA.match(token)
+    return f"region_line:{m.group(1)}" if m else token
+
+
 def interim_words(token: str, label: str) -> str:
     """(INTERIM, until T517 ships a token -> words table in the release) the words a run-end TOKEN is said by: the
     place's own name (a split's curated label, an atlas point's label), cleaned of the confluence arrow and sign-post
     words. A NAME, never a sentence: the sentence ("From A to B") is core's (`inSeasonWhere`, AGENTS 33)."""
+    m = re.fullmatch(r"region_line:(\w+)", token)
+    if m:
+        return f"Region {m.group(1)} boundary"         # the release's words (`display.ends`), one per region
     t = label.strip()
     m = re.fullmatch(r"(.+?)\s*→\s*.+", t)
     if m:
@@ -178,11 +242,14 @@ def interim_words(token: str, label: str) -> str:
     return _SIGNS.sub("", t) or t
 
 
-def stem_ends(atlas: "Atlas", item: str, hit: set[int]) -> tuple[list[tuple[str, str]], dict[str, str], list]:
+def stem_ends(atlas: "Atlas", item: str, hit: set[int], cut_at=None
+              ) -> tuple[list[tuple[str, str]], dict[str, str], list]:
     """GEOMETRY: the covered stretches of `item`'s MAIN LINE as end-token pairs, mouth upward — each the place standing
     at that end (a split, a lake inlet / outlet, a region / MU crossing, a named confluence) or `mouth` / `source` at
     the line's own ends — each token's label, and the stretches' measures [(lo_m, hi_m)]. For a water the notice reaches
-    only by its tributary walk (it names no place on it). Raises Unresolved when a stretch ends where nothing stands."""
+    only by its tributary walk (it names no place on it), or one its region cut short. `cut_at(handle)` (T623): the
+    token an end takes because of the stem piece just past it (the region's own line when that piece lies in another
+    region), or None to say the place standing there. Raises Unresolved when a stretch ends where nothing stands."""
     from pipeline.regs.inseason import points as P
     stem, nodes = P._stem_nodes(atlas.reg, atlas.g, item)
     if not nodes:
@@ -198,7 +265,11 @@ def stem_ends(atlas: "Atlas", item: str, hit: set[int]) -> tuple[list[tuple[str,
         if not near:
             raise Unresolved(f"{atlas.reg[item].name or item}: a covered stretch ends at {m:.0f} m on its main line, "
                              "where no named place stands")
-        return near[0][1]
+        return region_line(near[0][1])
+
+    def past(k: int) -> Optional[str]:
+        """the token the stem piece just past a covered end gives that end (`cut_at`), if any"""
+        return cut_at(atlas.handle.get(nodes[k].node_id)) if cut_at and 0 <= k < len(nodes) else None
 
     out: list[tuple[str, str]] = []
     spans: list = []
@@ -211,7 +282,8 @@ def stem_ends(atlas: "Atlas", item: str, hit: set[int]) -> tuple[list[tuple[str,
         while j + 1 < len(nodes) and cov[j + 1]:
             j += 1
         spans.append((nodes[i].down_m, nodes[j].up_m))
-        out.append((at(nodes[i].down_m, MOUTH, nodes[0].down_m), at(nodes[j].up_m, SOURCE, nodes[-1].up_m)))
+        out.append((past(i - 1) or at(nodes[i].down_m, MOUTH, nodes[0].down_m),
+                    past(j + 1) or at(nodes[j].up_m, SOURCE, nodes[-1].up_m)))
         i = j + 1
     return out, label, spans
 
@@ -319,13 +391,27 @@ def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]
     if rel.handles != atlas.digest:
         raise Unresolved(f"release {rel.name} was not built from this atlas (section handles {rel.handles} != "
                          f"{atlas.digest}): resolve on the release built from it")
-    secs: set[int] = set()
+    if not region_code(m.region):
+        raise Unresolved("the match names no region: a notice covers only its own region's water")
+    named_secs: set[int] = set()
     for e in m.extents:
         try:
             got = P.resolve(atlas.reg, atlas.g, e.model_dump(exclude_none=True))
         except P.Unresolved as ex:
             raise Unresolved(f"{e.op} {e.item_id}: {ex}")
-        secs |= {atlas.handle[s] for s in got["sections"] if s in atlas.handle}
+        named_secs |= {atlas.handle[s] for s in got["sections"] if s in atlas.handle}
+    secs = fresh_in_region(named_secs, m.region, rel.regions)
+    if named_secs and not secs:
+        raise Unresolved(f"covers no fresh water of Region {m.region} in {rel.name} (its {len(named_secs)} "
+                         "section(s) are all in another region, tidal, or outside B.C.)")
+    line = f"region_line:{region_code(m.region).upper()}"
+
+    def cut_at(h) -> Optional[str]:
+        # a stretch the clip stopped where the notice still named the water, in fresh water of another region: it
+        # ends at its region's own line (F7: "the banner stops at the Region 3 boundary"). Past it tidal water or
+        # B.C.'s border (no region): the place standing there says it (F20: the CPR Bridge at Mission)
+        return line if h in named_secs and h not in secs and rel.regions.get(h) else None
+
     out: dict[str, M.Water] = {}
     words: dict[str, str] = {}
     for item in sorted(rel.ord_of):
@@ -333,6 +419,7 @@ def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]
         hit = members & secs
         if not hit:
             continue
+        clipped = hit != members & named_secs
         if hit == members:
             out[item] = M.Water(all=True)
             continue
@@ -354,7 +441,10 @@ def resolve_match(atlas: Atlas, rel: Release, m: M.Match, splits: dict[str, str]
             raise Unresolved(f"{item}: its ranges read back {len(back)} sections on {rel.name}, not the {len(hit)} "
                              "resolved")
         named = [e for e in m.extents if e.item_id == item]
-        ends, label = extent_ends(atlas, item, named, hit) if named else stem_ends(atlas, item, hit)[:2]
+        # cut short by its region / the tidal limit: the notice's own places no longer bound it, its covered main
+        # line does (Hells Gate "upstream" now ends at the Region 3 line)
+        ends, label = (extent_ends(atlas, item, named, hit) if named and not clipped
+                       else stem_ends(atlas, item, hit, cut_at)[:2])
         for pair in ends:
             for t in pair:
                 if t not in (MOUTH, SOURCE):
