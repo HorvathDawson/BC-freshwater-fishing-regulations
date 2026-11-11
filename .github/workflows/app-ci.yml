@@ -3,14 +3,24 @@ name: app
 on:
   push:
     paths: ["app/**", ".github/workflows/app-ci.yml", "pipeline/deliver/bundle/schema.sql",
-            "pipeline/deliver/bundle/indexes.sql"]
+            "pipeline/deliver/bundle/indexes.sql",
+            # (T543) the worker parity tests import these through Python; requirements/constraints build the venv
+            "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "constraints.txt"]
   pull_request:
     paths: ["app/**", ".github/workflows/app-ci.yml", "pipeline/deliver/bundle/schema.sql",
-            "pipeline/deliver/bundle/indexes.sql"]
+            "pipeline/deliver/bundle/indexes.sql",
+            # (T543) the worker parity tests import these through Python; requirements/constraints build the venv
+            "pipeline/regs/dfo_salmon/**", "pipeline/gauges/**", "requirements.txt", "constraints.txt"]
+
+# (T543) a newer push to the same ref supersedes the run in flight
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: app
@@ -19,7 +29,8 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: pnpm/action-setup@v4
-        with: { version: 9 }
+        # (T543) the version is app/package.json "packageManager", the one place it is written
+        with: { package_json_file: app/package.json }
       - uses: actions/setup-node@v4
         # app/.nvmrc = the Mac's Node: the generated-file gates (spinner PNG deflate) are byte-exact only on the same Node
         with: { node-version-file: app/.nvmrc, cache: pnpm, cache-dependency-path: app/pnpm-lock.yaml }
@@ -29,10 +40,10 @@ jobs:
       # `pnpm check` runs the generated-file --checks (gauge policy, calendar, answers model) with the repo's
       # `.venv/bin/python`, exactly as on a laptop. They need no data, only the pipeline's code (P03).
       - uses: actions/setup-python@v5
-        with: { python-version: "3.13", cache: pip }
+        with: { python-version: "3.13", cache: pip, cache-dependency-path: "requirements.txt\nconstraints.txt" }
       - name: Python venv for the generated-file checks
         working-directory: .
-        run: python -m venv .venv && .venv/bin/pip install -r requirements.txt
+        run: python -m venv .venv && .venv/bin/pip install -r requirements.txt -c constraints.txt
 
       # THE SAME GATE AS A LAPTOP (P03): boundaries → platform → style → colours → spinner → fixture → gauge-policy →
       # calendar → answers → deps → typecheck → test. One command, so CI cannot drift from `pnpm check` by

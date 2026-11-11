@@ -98,7 +98,7 @@ jobs:
         with: { python-version: "3.13" }
       # only what fetch / parse / build import (pipeline.common.curated: pyyaml + pydantic; the polygons: shapely +
       # mapbox-vector-tile), not the whole pipeline's requirements.txt
-      - run: pip install pyyaml pydantic shapely mapbox-vector-tile orjson
+      - run: pip install -c constraints.txt pyyaml pydantic shapely mapbox-vector-tile orjson
 
       - name: 1/7 which atlas (the tiles input, else release/manifest.json)
         run: |

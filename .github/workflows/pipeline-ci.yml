@@ -17,11 +17,11 @@ name: pipeline
 on:
   push:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
-            "requirements.txt", ".github/workflows/pipeline-ci.yml",
+            "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
             "app/packages/core/src/*.generated.*"]
   pull_request:
     paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
-            "requirements.txt", ".github/workflows/pipeline-ci.yml",
+            "requirements.txt", "constraints.txt", ".github/workflows/pipeline-ci.yml",
             "app/packages/core/src/*.generated.*"]
   workflow_dispatch:
 
@@ -32,15 +32,17 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       # FULL history: the review-proposal tests rebuild their fixtures with `git show <commit>:<path>` from the commit
       # the owner's marks were made against (test_review_proposals.py `MARKED_AT`); a shallow clone has no such commit.
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
-        with: { python-version: "3.13", cache: pip }
+        with: { python-version: "3.13", cache: pip, cache-dependency-path: "requirements.txt\nconstraints.txt" }
 
-      - run: pip install -r requirements.txt
+      # (T416/T543) the pinned versions the release was built with; the freeze is printed so a drift shows in the run
+      - run: pip install -r requirements.txt -c constraints.txt && pip freeze
 
       # The basemap zoom-cap audit's tests (test_basemap_zoom_audit.py) build a tiny fixture archive and run the
       # build's own path over it: tippecanoe, tile-join and tippecanoe-decode (Ubuntu's tippecanoe package) and the
