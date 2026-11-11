@@ -1,6 +1,6 @@
 # T637 — Okanagan River Oxbows: the owner's hand-matched side channels must bind again
 
-Status: OPEN
+Status: IN REVIEW — f4069759f; owner: OWNER-TODO "T637 oxbows"; left (Claude): promote full_next + rebuild (reach, deliver, tiles) and the release diff
 
 Source: owner 2026-11-11, on T632 item 3: "what you mean they never had an item if they are unnamed side channels? i hand matched them?"
 
@@ -119,3 +119,80 @@ the Okanagan mainstem. They run from Osoyoos Lake (49.07) north to below Vaseux 
   same commit calls them dead. I did not rebuild that registry to settle which is right.
 - Whether option A's names change any binding outside the oxbows. Needs the rebuild and the diff.
 - Whether the book means the off-floodplain reaches to be oxbow water; that is an owner look at the maps.
+
+## Built 2026-11-11 (f4069759f) — owner decisions 1–4
+Owner 2026-11-11: fix = option A; drop Park Rill's code; Osoyoos lines whole, east-slope lines cut as a proposal;
+the 6 March pieces as a proposal.
+
+**What changed**
+- `data/curated/waters/name_variants.json`: one entry, target `{"wscs": [the 26 trimmed codes], "kind": "stream"}`, name
+  "Okanagan River Oxbows", source `regulation`, `display: true`. No registry code change.
+- `data/curated/regulations/book_name_links.json`: `300-432687-516449` (Park Rill) out of the override. No other hand
+  match removed. The note's "32 … 1 linear feature ID" count is left as it was (now 26 codes / 40 wbks / 0 lfid).
+- `data/curated/regulations/synopsis/region-8.json`: `r8:okanagan_river_oxbows@8-1` `matched` restamped
+  (`backfill_matched --restamp`, side registry). Needed: the reach binds the entry's `matched`, not the override, so the
+  name alone bound only the lines that swallowed a polygon (first run: +31). Ids only; no rule or value changed
+  (region files backed up first, diff = id lines only).
+
+**Measured (side atlas `data/generated/atlas/full_next`, reach run in the scratchpad)**
+- Registry: 26 new stream items `wsc:300-432687-…` named "Okanagan River Oxbows", 65 sections (47 stream, 18 polygon).
+  The slough fold (T322, `slough_calls.json`) now JOINS 18 of the 40 oxbow polygons to the named line threading them
+  (they were "unnamed line" items before): `wbk:328985783, 329460050, 329460329, 329460670, 329460748, 329461070,
+  329461388, 329461584, 329461983, 329462043, 329462114, 329462220, 329462306, 329462319, 329462395, 329462424,
+  329462438, 329462470` are now aliases of the line items. The other 22 polygons keep their own
+  "OKANAGAN RIVER OXBOWS" items. One more polygon the line 459615 threads, `lake:329461947` (not one of the 40), joined
+  the 459615 item the same way and is now bound by the oxbow rule.
+- The name lands on no lake: no lake/wetland item was renamed or gained a variant (registry diff: 26 added, 18 removed
+  as above, 6 changed — all area items).
+- The graph keeps 24 sections it pruned before (`section_handles` 1,958,282 → 1,958,306, none lost): 4 on the oxbow
+  lines themselves, 20 on unnamed child lines draining into them (the leaf prune keeps a line that reaches named water).
+  Boundaries 27,422 → 27,427.
+- Oxbow rule `okanagan_river_oxbows.r1` (exempts from the spring stream closure): 40 → 88 sections (+48, −0); all 65
+  sections of the 26 items bound. Park Rill (gnis:22618) was not bound before (the entry's `matched` never held it)
+  and is not now.
+- Binding diff outside the oxbows (3,376 rules): 89 rules +24 and 1 rule +1 (`zp:superior_closures.r3`, Hayne's
+  Lease ecological reserve) — exactly the 24 new sections, nothing removed, no other change: Region 8 zone rules,
+  provincial rules, the parks/WMA/IR areas holding them. DFO: `8:default:region` gains the same new sections. Licensing,
+  steelhead presence, tidal, outside-BC, unresolved and extents tables are byte-identical.
+- Reach run on `full_next`: passes (rc 0, digest d27eaf60cac16a60; dead-override check empty; the 2 unplaced pieces
+  are the accepted ones). `python -m pipeline.regs.matching.matcher --registry …/full_next/registry.json` passes. The
+  default (live registry) run still fails until the atlas is promoted.
+
+**What the binding means (owner, read once).** The oxbow row is an EXEMPTION from the spring stream closure, so the 48
+added sections are now open in spring: all 26 lines, whole, from Osoyoos Lake (49.07) to below Vaseux Lake, including
+the two east-slope reaches below. The book's words are "isolated oxbows adjacent to Okanagan River downstream of the
+McIntyre Dam and upstream of Vaseux Lake"; the hand match runs well south of McIntyre Dam. That is the owner's match,
+kept as is; flagged only.
+
+**PROPOSAL A — cut the east-slope parts (owner ticks from the maps).** No curated file has a proposed-vs-accepted
+split for name variants or cuts, so both lines are bound WHOLE now. Proposed cut points (last point within 400 m of
+the mainstem or 150 m of an oxbow polygon):
+- `300-432687-500162`: blk 356502967 at 685 m (49.15650, −119.54386); keep 0–685 m, drop 685–2,452 m (1.77 km).
+  Map `T637-shots/fix-cut-500162.png`.
+- `300-432687-466472`: blk 356559193 at 1,542 m (49.09022, −119.52724); keep 0–1,542 m, drop 1,542–3,080 m (1.54 km).
+  Map `T637-shots/fix-cut-466472.png`.
+- On a tick: two cuts in `cuts.json` at those measures, and the variant's target for those two codes becomes
+  `{"blks": [...], "reach": {"from_m": 0, "to_m": <cut>}}` (a `reach` window needs a `blks` target and a cut at its
+  bound); then atlas rebuild + reach + diff. 459615 and 461418 (into Osoyoos Lake) stay whole, as decided.
+
+**PROPOSAL B — the 6 pieces commented out 2026-03-05 (not live).** The only way is live-or-absent, so they stay
+absent. Maps: `T637-shots/fix-restore-south.png` (5 child codes), `T637-shots/fix-restore-lfid.png` (the lfid).
+Exact diff on a tick:
+- `book_name_links.json` OKANAGAN RIVER OXBOWS `fwa_watershed_codes` += the full 21-group codes of
+  `300-432687-461418-400917`, `300-432687-463105-427876`, `300-432687-461418-565942`, `300-432687-466472-328926`,
+  `300-432687-476281-770576`; and `name_variants.json` oxbow entry `wscs` += the same 5 trimmed codes; then
+  `backfill_matched --restamp r8:okanagan_river_oxbows@8-1`, atlas rebuild, reach, diff.
+- lfid 707367498 (blk 356440949, 153 m, edge 1400, code 999-…, inside unnamed lake wbk 329461526 near Oliver): the graph
+  has NO section on that blk, so no name or override can bind it. Restoring it would mean `waterbody_keys` +=
+  `329461526` (the lake that holds it) — a different water from the line; owner's call.
+
+**What promote needs (not done; no release, tiles or staging touched).** `python -m pipeline.atlas.promote
+data/generated/atlas/full_next` (parity report: DIFFERS = exactly the items above), then `pipeline build` (reach +
+deliver; tiles for the new labels/sections), then the release binding diff. Until then the live registry has no item
+for the codes, so `scripts/fast-fail.sh` (its matcher step) and a live reach run still stop on the oxbows.
+
+**Not verified**
+- No bundle, verdicts, answers, export or tiles were built on `full_next`; the app's view of the oxbows is unseen.
+- The cut points are a distance rule, not a field check; the owner's map look decides them.
+- Full pytest not run; ran test_name_variants, test_names, test_matcher, test_backfill_matched, test_check_curated,
+  test_slough_fold, test_registry_flowing, test_reach_drops_nothing (157 passed).

@@ -6,6 +6,7 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ## Decisions that block work (nothing ships until you answer)
 
+- **T637 oxbows: two ticks from maps (2026-11-11).** The 26 channel lines now carry "Okanagan River Oxbows" and bind (on a side atlas, not promoted). (1) Cut the east-slope parts of 500162 and 466472 at the proposed points? `handoff/PLAN/app-integration/T637-shots/fix-cut-500162.png`, `fix-cut-466472.png` — bound whole until you tick. (2) Restore the 5 child codes (and the lfid, which can only come back as its lake wbk 329461526) cut out 2026-03-05? `fix-restore-south.png`, `fix-restore-lfid.png` — absent until you tick. Note: the row exempts from the spring closure, and the hand match runs south of McIntyre Dam to Osoyoos Lake; the book says "downstream of the McIntyre Dam and upstream of Vaseux Lake".
 - **Review app: the checklist is ready (T532, 2026-11-09).** Restart it (`bash curation-review/run.sh`). DFO tab = DFO
   places; Entries → "Extents checklist" = regulation extents (both together per water: 3,686 places on 1,374 waters).
   One water at a time; each row ✓/?/✗ with its map pin; "All correct" or "Something's wrong" (→ change the extent).
