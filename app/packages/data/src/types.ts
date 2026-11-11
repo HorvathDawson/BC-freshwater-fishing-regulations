@@ -93,6 +93,12 @@ export interface Reading {
    * file written before it did. Read through core's `shownParameter`, never inferred from which value is present.
    */
   parameter: Parameter | null;
+  /**
+   * (T585 F8) Present only when the station file's reading is NOT the one the index ranked (the two are different
+   * publisher runs): the index row's `observedAt` (null: it names none). `percentile` is then null — the rank the rows
+   * and the map show belongs to that other reading — and the card says both times.
+   */
+  rankedAt?: string | null;
 }
 
 export interface GaugeLink {

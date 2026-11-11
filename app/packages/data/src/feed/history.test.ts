@@ -113,3 +113,29 @@ describe("(T315) httpFeed with the kept week", () => {
     expect(h.file("08NM050")!.recent!.length).toBe(4);
   });
 });
+
+// (T585 F14) Offline, the kept "now" carries the kept index's rank when it is the reading that index ranked, and no
+// standing (with `rankedAt`, the reading the rank belongs to) when a newer kept row is the reading now.
+describe("(T585 F14) the kept reading's rank", () => {
+  const at = "2026-10-30T20:30:00Z";
+  const kept = () => {
+    const h = gaugeHistory(null, { now: () => NOW });
+    const rows = rowsFrom("2026-10-30T19:00:00Z", 4);       // last row 20:30
+    h.noteFile("08MH001", FILE("2026-10-30T20:35:00Z", rows));
+    return h;
+  };
+  it("is the kept index's rank for the reading it ranked", async () => {
+    const h = kept();
+    h.noteIndex({ format: "gauge-feed/1", fetchedAt: "2026-10-30T20:35:00Z",
+                  stations: { "08MH001": { percentile: 0.62, observedAt: at } } });
+    const r = (await httpFeed("http://x/g", dead, { history: h, online: () => false }).now("08MH001" as StationId))!;
+    expect([r.kept, r.value.percentile, r.value.rankedAt]).toEqual([true, 0.62, undefined]);
+  });
+  it("is none, naming the ranked reading, when a newer kept row is the reading now", async () => {
+    const h = kept();
+    h.noteIndex({ format: "gauge-feed/1", fetchedAt: "2026-10-30T20:05:00Z",
+                  stations: { "08MH001": { percentile: 0.62, observedAt: "2026-10-30T20:00:00Z" } } });
+    const r = (await httpFeed("http://x/g", dead, { history: h, online: () => false }).now("08MH001" as StationId))!;
+    expect([r.value.percentile, r.value.rankedAt, r.value.at]).toEqual([null, "2026-10-30T20:00:00Z", at]);
+  });
+});

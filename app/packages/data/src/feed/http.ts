@@ -418,17 +418,28 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch,
     },
 
     async now(station) {
-      if (!(await this.published(station))) return null;
+      // `published`'s test, on the one index read the rank below takes too
+      const idx = await load<IndexFile>("index.json");
+      if (idx && !(station in idx.stations)) return null;
       const f = await load<StationFile>(`${station}.json`);
       if (!f?.now || (f.now.discharge === null && f.now.level === null)) return null;
+      // (T585 F8) ONE RANK FOR ONE READING. The rows, dots, map and estimate rank a station from the INDEX (held by the
+      // update service); this file is read on a 5-minute TTL and can be another publisher run's. So the rank is the
+      // index row's, and only for the reading that row names (same `at`): a file a run ahead or behind gives its figure
+      // with NO rank, and `rankedAt` names the reading the index ranked, for the card to say both times. No index
+      // read (offline, failed): the file's own rank, as before.
+      const row = idx?.stations[station];
+      const same = !row || row.observedAt === f.now.at;
+      const percentile = row ? (same ? row.percentile : null) : f.now.percentile;
       return {
         fetchedAt: stamp(f.fetchedAt),
         ...(f.kept ? { kept: true as const } : {}),
         value: {
           discharge: f.now.discharge, level: f.now.level,
-          at: f.now.at ?? "", percentile: f.now.percentile,
-          standing: standing(f.now.percentile),
+          at: f.now.at ?? "", percentile,
+          standing: standing(percentile),
           parameter: f.now.parameter ?? null,
+          ...(same ? {} : { rankedAt: row!.observedAt ?? null }),
         },
       };
     },

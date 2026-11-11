@@ -65,3 +65,19 @@ describe("the http feed", () => {
       .rejects.toThrow(/gauge-feed\/2/);
   });
 });
+
+// (T585 F8) the card's rank is the index's, for the reading the index ranked
+describe("now(): one rank for one reading", () => {
+  const at = "2026-09-01T11:30:00Z";
+  it("takes the index row's rank when the station file is the same reading", async () => {
+    const idx = { ...INDEX, stations: { "08MH001": { percentile: 0.5, observedAt: at } } };
+    const r = (await httpFeed("http://x/g", server({ "index.json": idx, "08MH001.json": STATION })).now(S))!;
+    expect([r.value.percentile, r.value.rankedAt]).toEqual([0.5, undefined]);
+  });
+  it("gives a station file a run ahead of the index its figure and no rank, naming the reading the index ranked", async () => {
+    const idx = { ...INDEX, stations: { "08MH001": { percentile: 0.5, observedAt: "2026-09-01T10:30:00Z" } } };
+    const r = (await httpFeed("http://x/g", server({ "index.json": idx, "08MH001.json": STATION })).now(S))!;
+    expect(r.value.discharge).toBe(15.7);
+    expect([r.value.percentile, r.value.rankedAt]).toEqual([null, "2026-09-01T10:30:00Z"]);
+  });
+});
