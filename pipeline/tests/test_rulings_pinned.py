@@ -606,6 +606,51 @@ def test_e14_hays_creek_culvert_is_essentially_the_mouth_and_the_split_exists(db
     assert _e14(db, set(_sections(db, HAYS)))["free"] == []
 
 
+# ===================================================== T623: "as shown is right" (owner readings 2026-11-11)
+BABINE_ROW = "r6:babine_river@6-8"
+
+
+def test_t623_f10_babine_above_the_fort_babine_bridge_is_not_fly_only(db):
+    """p.50 "Fly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish
+    counting fence". Owner 2026-11-11 (F10): "not fly only. As shown is right" — "includes Rainbow Alley" does not
+    pull in the water above the bridge. The river's own sections that "Rainbow Alley" (r3) binds and the fly-only
+    clause (r4) does not exist, and none of them is fly only."""
+    alley, fly = _bound_to(db, BABINE_ROW, "babine_river.r3"), _bound_to(db, BABINE_ROW, "babine_river.r4")
+    own = set(_sections(db, "gnis:17687"))
+    above = (alley - fly) & own
+    assert above and fly & own
+    assert not (above & fly)
+
+
+def test_t623_f16_little_qualicum_closure_starts_at_the_upper_waterfall(db):
+    """p.17 (the row's source page) "No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence,
+    Dec 1-May 31". Owner 2026-11-11 (F16): "Upper Waterfall, as today" — the book says only "the falls in Little
+    Qualicum Falls Provincial Park". The rule the bundle ships runs between those two cuts."""
+    rule = R._rules_of(BUNDLE)[("r1:little_qualicum_river@1-6", "little_qualicum_river.r3")]
+    assert rule["extents"] == [{"op": "between", "splits": ["little_qualicum_river__upper_waterfall",
+                                                             "little_qualicum_river__hatchery_fence"]}]
+    assert _bound_to(db, "r1:little_qualicum_river@1-6", "little_qualicum_river.r3")
+
+
+def test_t623_f17_lakelse_lake_has_no_skeena_bait_ban(db):
+    """p.49 "Bait ban: In the Skeena River, including tributaries". Owner 2026-11-11 (F17): "no bait ban. By the
+    book's definitions page, tributaries are streams" (p.80). The ban binds no section of Lakelse Lake; it binds
+    streams only."""
+    ban = _bound_to(db, "z6:skeena_nass_bait_ban", "skeena_nass_bait_ban.r1")
+    lake = set(_sections(db, "wbk:329310750"))
+    assert lake and ban and not (lake & ban)
+
+
+def test_t623_f21_peace_inside_clayhurst_reserve_is_closed_all_year(db):
+    """p.9 "Fishing is prohibited in Ecological Reserves in B.C.". Owner 2026-11-11 (F21): "closed, as today (the
+    reserve covers the north half of the channel)". Every Peace River section the reserve closure binds is closed
+    all year."""
+    peace = set(_sections(db, "gnis:14619"))
+    inside = sorted(_bound_to(db, "zp:superior_closures", "superior_closures.r3") & peace)
+    assert inside
+    assert _closed_ranges(db, inside[0], "RB") == [("01-01", "12-31")]
+
+
 # ============================================================================================ C3
 TROUT_NOTE = ("Trout includes char (Dolly Varden/bull trout, lake trout, brook trout) unless the line "
               "excludes them or char have their own line about the same thing.")
