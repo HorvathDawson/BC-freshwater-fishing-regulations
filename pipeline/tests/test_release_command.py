@@ -40,7 +40,8 @@ def world(tmp_path: Path, monkeypatch):
          "pushed": True, "fast_fail_rc": 0, "fast_fails": 0, "new_stamp": "0.5.0"}
 
     def run_cmd(cmd, env=None):
-        name = "build" if "build" in cmd else "upload" if any("upload.sh" in c for c in cmd) else \
+        name = "inseason" if "pipeline.regs.inseason.resolve" in cmd else "build" if "build" in cmd else \
+            "upload" if any("upload.sh" in c for c in cmd) else "smoke" if any("smoke-staging" in c for c in cmd) else \
             "publish" if any("publish" in c for c in cmd) else " ".join(cmd)
         w["calls"].append((name, env))
         if name in w["fail"]:
@@ -94,6 +95,14 @@ def world(tmp_path: Path, monkeypatch):
         w["site_min_apps"].append(min_app)
         return list(w.get("site_problems", [])), "site serves app 9.9.9"
     monkeypatch.setattr(R, "site_problems", site)
+    # (T537) the in-season resolve's file, its commit, and what staging serves (network)
+    w["inseason_dirty"] = False
+    monkeypatch.setattr(R, "inseason_dirty", lambda: w["inseason_dirty"])
+    w["commits_made"] = []
+    monkeypatch.setattr(R, "commit_inseason", lambda rid: w["commits_made"].append(rid) or "c0mmit" + "0" * 34)
+    w["staging_serves"] = NEW
+    monkeypatch.setattr(R, "staging_release", lambda: w["staging_serves"])
+    monkeypatch.setattr(R, "after_chores", lambda rid: f"after the release: chores for {rid}")
     return w
 
 
@@ -110,8 +119,8 @@ def test_the_stages_run_in_order_and_ship_the_candidate(world, capsys):
     out = capsys.readouterr().out
     marks = [out.index(f"[{i}/6] {s} ok") for i, s in enumerate(R.STAGES, 1)]
     assert marks == sorted(marks)
-    assert [c for c, _ in world["calls"]] == ["build", "upload"]
-    assert world["calls"][1][1] == {"MIN_APP_VERSION": "0.5.0", "FAST_FAIL_DONE": "abc123"}   # the live stamp carries
+    assert [c for c, _ in world["calls"]] == ["build", "inseason", "upload", "smoke"]
+    assert world["calls"][2][1] == {"MIN_APP_VERSION": "0.5.0", "FAST_FAIL_DONE": "abc123", "SMOKE": "0"}   # live stamp
     assert _latest(world) == NEW and not (world["root"] / "CANDIDATE").exists()
     rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
     assert rec["checks"]["binding_diff"] == "same" and rec["staged_at"] and rec["commit"] == "abc123"
@@ -198,7 +207,7 @@ def test_a_rerun_resumes_where_it_stopped(world, capsys):
     assert _latest(world) == NEW                              # checks passed and promoted before the upload failed
     world["fail"] = set()
     assert _staging() == 0
-    assert [c for c, _ in world["calls"]] == ["build", "upload", "build", "upload"]
+    assert [c for c, _ in world["calls"]] == ["build", "inseason", "upload", "build", "upload", "smoke"]
     assert world["diffs"] == 1                                # checked once; the rerun read the ledger
     assert _staging() == 0                                    # done: the upload is not repeated
     assert [c for c, _ in world["calls"]][-1] == "build"
@@ -463,6 +472,71 @@ def test_prod_runs_the_prod_upload_for_a_human(staged, monkeypatch):
     # (T404) the one production upload, deploy/prod/upload.sh, given its own confirmation only after release --prod's
     assert staged["calls"] == [("upload", {"CONFIRM_PROD": "canifishthis.ca"})]
     assert R.prod_cmd(NEW) == ["bash", "deploy/prod/upload.sh", NEW]
+
+
+def test_prod_refuses_when_staging_serves_another_release(staged, monkeypatch, capsys):
+    """T537: deploy/prod/upload.sh promotes what staging serves; a later release --staging replaced it silently."""
+    monkeypatch.setenv("CONFIRM_PROD", NEW)
+    staged["staging_serves"] = "r-other0000000"
+    assert R.prod(NEW, ask=lambda _: NEW) == 1
+    assert "staging serves r-other0000000, not r-new000000000" in capsys.readouterr().err and staged["calls"] == []
+    assert R.main(["--prod", NEW, "--dry-run"]) == 0
+    assert "WOULD STOP: staging serves r-other0000000" in capsys.readouterr().out
+
+    def unreadable():
+        raise OSError("offline")
+    monkeypatch.setattr(R, "staging_release", unreadable)
+    assert R.prod(NEW, ask=lambda _: NEW) == 1 and "cannot read what staging serves" in capsys.readouterr().err
+
+
+def test_a_failed_inseason_resolve_stops_before_the_promote(world, capsys):
+    """T537: the resolve ran mid-upload, after LATEST moved; a failed match now stops at the checks."""
+    world["fail"] = {"inseason"}
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert "STOPPED at checks" in err and "do not all resolve" in err and "LATEST was not moved" in err
+    assert _latest(world) == LIVE and "upload" not in [c for c, _ in world["calls"]]
+
+
+def test_a_rewritten_inseason_file_is_committed_alone_and_the_run_stops_for_the_push(world, capsys):
+    world["inseason_dirty"] = True
+    assert _staging() == 1
+    err = capsys.readouterr().err
+    assert world["commits_made"] == [NEW] and "committed (c0mmit" in err and "git push origin" in err
+    assert _latest(world) == LIVE
+    world["inseason_dirty"] = False
+    assert _staging() == 0                                     # resolved for NEW: not run again
+    assert [c for c, _ in world["calls"]].count("inseason") == 1
+
+
+def test_a_smoke_failure_reruns_only_the_smoke_and_the_chores_are_named(world, capsys):
+    world["fail"] = {"smoke"}
+    assert _staging() == 1
+    io = capsys.readouterr()
+    assert "STOPPED at staging" in io.err and "only the smoke runs again" in io.err
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["uploaded_at"] and "staged_at" not in rec
+    world["fail"] = set()
+    world["calls"].clear()
+    assert _staging() == 0
+    assert [c for c, _ in world["calls"]] == ["build", "smoke"]                  # no second upload
+    out = capsys.readouterr().out
+    assert "only the smoke runs" in out and f"after the release: chores for {NEW}" in out
+    rec = json.loads(R.LEDGER.read_text())["releases"][NEW]
+    assert rec["smoked_at"] == rec["staged_at"]
+
+
+def test_replacing_a_release_handed_for_prod_is_said(world, capsys):
+    R.save_ledger({"releases": {LIVE: {"staged_at": "2026-11-09T17:57:16", "commit": "x"}}})
+    assert _staging() == 0
+    assert f"this replaces {LIVE} on staging" in capsys.readouterr().out
+    assert json.loads(R.LEDGER.read_text())["releases"][LIVE]["replaced_by"] == NEW
+
+
+def test_after_chores_name_the_exact_commands():
+    text = R.after_chores("r-x")
+    assert "goldens:" in text and "CONFIRM_PROD=r-x python -m pipeline release --prod r-x" in text
+    assert "deploy/staging/site-all.sh" in text and "deploy/staging/feeds.sh" in text
 
 
 # ----------------------------------------------------------------------------------------------- the pieces it uses

@@ -35,11 +35,18 @@ where it stopped (every stage below is skipped when it is already done for this 
                upload runs), and the reach BINDING DIFF against the live release (`atlas.reach.binding_diff`). A diff
                that is not empty STOPS the run: the summary is printed and written beside its json; a reviewer reads it
                and reruns with `--accept-diff <that json>` (its content must be the one written, so a stale accept never
-               passes a new diff; content = the changes and counts, not the before/after path strings).
+               passes a new diff; content = the changes and counts, not the before/after path strings). (T537) Then
+               the IN-SEASON MATCHES are resolved on the candidate (`regs.inseason.resolve`, through heavy.sh) BEFORE
+               the promote: a match that does not resolve stops here, LATEST untouched; a changed
+               `data/curated/inseason/notice_waters.json` is committed (that path only) and the run stops for the
+               push. The upload's sync-inputs.sh only verifies them.
   5 promote    LATEST := the candidate (CANDIDATE removed). Only here does the live release pointer move, so a failed
                check leaves LATEST untouched.
   6 staging    `deploy/staging/upload.sh <r-id>` (staging bucket only; MIN_APP_VERSION from --min-app-version, else the
-               previous release's stamp — printed in the plan). On a RERUN (T484) the default is the min app this
+               previous release's stamp — printed in the plan), with its smoke test run on its own after it (T537:
+               ledger `uploaded_at` and `smoked_at`; a rerun after a smoke-only failure runs only the smoke). It says
+               when it replaces a staged release the owner was handed a production command for. The success message
+               lists the after-chores with their exact commands (goldens re-cut, site, feeds worker). On a RERUN (T484) the default is the min app this
                release's checks passed with (ledger `checks.min_app_version`), else the stamp of the release LATEST
                named before this one was promoted (ledger `live_before`) — never the new release's own stamp, which
                LATEST names once the promote is done.
@@ -48,7 +55,9 @@ WHERE THINGS MOVE BEFORE THE CHECKS: the build writes the live working outputs (
 run-timing feed) as `pipeline build` always has — the review app reads them — and only the release POINTER waits. A
 release whose checks failed is on disk under data/release/<r-id>/ and named by CANDIDATE; nothing ships it.
 
-PROD (`--prod <r-id>`) builds nothing and checks nothing new: it re-uploads the SAME release folder that passed this
+PROD (`--prod <r-id>`) builds nothing and checks nothing new but one thing (T537): staging must still serve that
+release (its live `release/manifest.json`, read first, also in the dry run — `deploy/prod/upload.sh` promotes what
+staging serves); otherwise: it re-uploads the SAME release folder that passed this
 command's checks and reached staging (the ledger says so, and its content fingerprint must be unchanged), through
 `deploy/prod/upload.sh <r-id>` (T404: it promotes what staging serves — the same manifest bytes — and keeps the previous
 pointer for deploy/prod/rollback.sh; handoff/PLAN/release/PRODUCTION.md). It runs ONLY for a human:
@@ -175,6 +184,44 @@ def ci_status(skip: str | None = None) -> tuple[int, str]:
     got = subprocess.run([sys.executable, "scripts/ci_status.py", *(["--skip", skip] if skip is not None else [])],
                          cwd=REPO_ROOT, capture_output=True, text=True)
     return got.returncode, (got.stdout + got.stderr).strip()
+
+
+#: (T537) the in-season matches, resolved on the candidate before the promote
+INSEASON = Path(CURATED.inseason.notice_waters)
+#: where staging serves the release pointer the prod upload promotes (`deploy/prod/upload.sh`)
+STAGING_MANIFEST_URL = "https://data-staging.canifishthis.ca/release/manifest.json"
+
+
+def inseason_cmd(rid: str) -> list[str]:
+    return ["bash", "scripts/heavy.sh", "inseason-resolve", "30", "--", sys.executable, "-m",
+            "pipeline.regs.inseason.resolve", "--release", str(release_root() / rid)]
+
+
+def smoke_cmd() -> list[str]:
+    return ["node", "app/tools/smoke-staging.mjs", "--shots", "app/dist/smoke-staging"]
+
+
+def inseason_dirty() -> bool:
+    """Is the in-season matches file changed in the working tree (the resolve wrote it)?"""
+    return subprocess.run(["git", "diff", "--quiet", "--", str(INSEASON)], cwd=REPO_ROOT).returncode == 1
+
+
+def commit_inseason(rid: str) -> str:
+    """Commit the in-season matches file ALONE (explicit path); the new HEAD."""
+    subprocess.run(["git", "commit", "-q", "-m", f"inseason: matches resolved on {rid} (pipeline release --staging, "
+                    "T537)\n\nCo-Authored-By: Claude <noreply@anthropic.com>", "--", str(INSEASON)], cwd=REPO_ROOT,
+                   check=True)
+    return git_head()
+
+
+def staging_release() -> str | None:
+    """The release staging serves now (its live pointer's `data_release`). Raises when it cannot be read: a prod
+    promote never goes ahead on an unread staging."""
+    import urllib.request
+    req = urllib.request.Request(STAGING_MANIFEST_URL, headers={"User-Agent": "bc-fishing-release",
+                                                                "Cache-Control": "no-cache"})   # the default UA is 403
+    with urllib.request.urlopen(req, timeout=30) as f:   # noqa: S310 — a fixed https URL
+        return json.loads(f.read().decode("utf-8")).get("data_release")
 
 
 def run_cmd(cmd: list[str], env: dict | None = None) -> int:
@@ -566,11 +613,35 @@ def stage_checks(ctx: Ctx) -> str:
             raise Stop("checks", f"the rule bindings differ from the live release {ctx.live}{why}",
                        f"read {done['summary']} (full: {done['json']}); if every change is intended, rerun with\n"
                        f"    --accept-diff {done['json']}\n  otherwise fix the cause, commit, and rerun")
+    inseason = stage_inseason(ctx, rid, r)
     r["checks"] = {"manifest": "ok", "app_gate": "ok", "min_app_version": ctx.min_app,
-                   "binding_diff": done["status"], "at": now()}
+                   "binding_diff": done["status"], "inseason": inseason, "at": now()}
     r["fingerprint"] = fingerprint(rid)
     save_ledger(ctx.led)
-    return f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}"
+    return (f"manifest ok, app gate ok (min app {ctx.min_app or 'manifest stamp'}), bindings {done['status']}, "
+            f"in-season {inseason}")
+
+
+def stage_inseason(ctx: Ctx, rid: str, r: dict) -> str:
+    """(T537) resolve the in-season matches on the candidate BEFORE the promote (was: mid-upload, after LATEST moved,
+    and the rewritten file then dirtied the next preflight). Done once per release (ledger `inseason`)."""
+    if (r.get("inseason") or {}).get("release") == rid:
+        return f"resolved on {rid} ({r['inseason'].get('at')})"
+    rc = run_cmd(inseason_cmd(rid), env=ctx.heavy_env or None)
+    if rc:
+        raise Stop("checks", f"the in-season matches do not all resolve on {rid} (rc={rc}); LATEST was not moved",
+                   "re-match the unresolved notices in the review app's In-season tab (the output above names them), "
+                   "commit data/curated/inseason/notice_waters.json, then rerun")
+    if inseason_dirty():
+        head = commit_inseason(rid)
+        r["inseason"] = {"release": rid, "at": now(), "commit": head}
+        save_ledger(ctx.led)
+        raise Stop("checks", f"the in-season matches were re-resolved on {rid} and committed ({head[:12]}, "
+                   f"{rel(INSEASON)} only)",
+                   f"git push {GH_REMOTE} HEAD:{GH_BRANCH} (the upload's workflow runs GitHub's copy), then rerun")
+    r["inseason"] = {"release": rid, "at": now()}
+    save_ledger(ctx.led)
+    return f"resolved on {rid}"
 
 
 def stage_promote(ctx: Ctx) -> str:
@@ -589,6 +660,13 @@ def stage_promote(ctx: Ctx) -> str:
     return f"LATEST = {rid}" + (f" (was {ctx.live})" if ctx.live != rid else "")
 
 
+def handed_for_prod(led: dict, rid: str) -> list[str]:
+    """(T537) the releases on staging the owner was handed a production command for (staged, never published) that
+    this upload replaces: their `release --prod` will refuse once staging serves another release."""
+    return sorted(k for k, v in (led.get("releases") or {}).items()
+                  if k != rid and v.get("staged_at") and not v.get("prod_at") and not v.get("replaced_by"))
+
+
 def stage_staging(ctx: Ctx) -> str:
     rid, r = ctx.rid, rec(ctx, ctx.rid)
     if r.get("staged_at") and not ctx.reupload:
@@ -596,16 +674,54 @@ def stage_staging(ctx: Ctx) -> str:
     if r.get("fingerprint") != fingerprint(rid):
         raise Stop("staging", f"{rid} changed on disk after its checks (the fingerprint moved)",
                    "do not ship it: rebuild (`python -m pipeline build --force deliver --hold-latest`) and rerun")
+    if r.get("uploaded_at") and not ctx.reupload:
+        print(f"    uploaded at {r['uploaded_at']}; the smoke test failed after it: only the smoke runs", flush=True)
+        return smoke(ctx, rid, r)
+    for old in handed_for_prod(ctx.led, rid):
+        print(f"    NOTE: this replaces {old} on staging, staged {ctx.led['releases'][old]['staged_at']} and never "
+              f"published — the production command handed for it (release --prod {old}) will refuse once {rid} is "
+              "up", flush=True)
     env = {**ctx.heavy_env, **({"MIN_APP_VERSION": ctx.min_app} if ctx.min_app else {}),
-           **({"CI_CHECK_SKIP": f"release --no-ci-check: {ctx.no_ci_check}"} if ctx.no_ci_check is not None else {})}
+           **({"CI_CHECK_SKIP": f"release --no-ci-check: {ctx.no_ci_check}"} if ctx.no_ci_check is not None else {}),
+           "SMOKE": "0"}                   # (T537) the smoke runs on its own below, so a smoke failure reruns only it
     rc = run_cmd(upload_cmd(rid), env=env)
     if rc:
         raise Stop("staging", f"deploy/staging/upload.sh {rid} failed (rc={rc})",
-                   "read its output above (rclone remote `r2:`, the run-timing feed, the smoke test); fix it and rerun "
+                   "read its output above (rclone remote `r2:`, the run-timing feed); fix it and rerun "
                    "— the build, checks and promote are done and are skipped")
-    r["staged_at"] = now()                   # the upload stamped the manifest; the fingerprint ignores the stamps
+    r["uploaded_at"] = now()                 # the upload stamped the manifest; the fingerprint ignores the stamps
+    for old in handed_for_prod(ctx.led, rid):
+        ctx.led["releases"][old]["replaced_by"] = rid
     save_ledger(ctx.led)
-    return f"{rid} uploaded to staging"
+    return smoke(ctx, rid, r)
+
+
+def smoke(ctx: Ctx, rid: str, r: dict) -> str:
+    rc = run_cmd(smoke_cmd())
+    if rc:
+        raise Stop("staging", f"the staging smoke test failed (rc={rc}) after {rid} was uploaded",
+                   "read its FAIL lines and screenshots above; fix the cause and rerun — only the smoke runs again "
+                   "(--reupload sends the release again)")
+    r["smoked_at"] = r["staged_at"] = now()
+    save_ledger(ctx.led)
+    return f"{rid} uploaded to staging, smoke passed"
+
+
+def after_chores(rid: str) -> str:
+    """(T537) what is left after a release, as the exact commands (the goldens re-cut turns every lane's fast-fail red
+    until it is done)."""
+    goldens = subprocess.run([sys.executable, "scripts/check-goldens-paired.py"], cwd=REPO_ROOT, capture_output=True,
+                             text=True)
+    lines = ["after the release:"]
+    lines.append("  goldens: " + ("cut from LATEST already" if goldens.returncode == 0 else
+                                  "RE-CUT NEEDED (fast-fail is red in every lane until then):\n"
+                                  "      node app/tools/regs-recut/sync.mjs && git diff --stat app/fixtures app/packages "
+                                  "&& git commit -- <the re-cut files>"))
+    lines.append("  site:    the staging site serves an app at least the release's min app (checked in preflight); "
+                 "after app changes: deploy/staging/site-all.sh")
+    lines.append("  feeds:   the feeds worker goes with the app (memory feeds-worker-deploy-allowed): deploy/staging/feeds.sh")
+    lines.append(f"  prod (the owner's): CONFIRM_PROD={rid} python -m pipeline release --prod {rid}")
+    return "\n".join(lines)
 
 
 RUNNERS = {"preflight": stage_preflight, "baseline": stage_baseline, "build": stage_build, "checks": stage_checks,
@@ -645,8 +761,7 @@ def staging(ctx: Ctx) -> int:
             return 1
         print(f"[{i}/{len(STAGES)}] {s} ok ({round(time.time() - t)}s): {msg}", flush=True)
     secs = round(time.time() - t0)
-    print(f"\nrelease: {ctx.rid} is LATEST and on staging ({secs // 60}m{secs % 60:02d}s). Production is the owner's:\n"
-          f"    CONFIRM_PROD={ctx.rid} python -m pipeline release --prod {ctx.rid}")
+    print(f"\nrelease: {ctx.rid} is LATEST and on staging ({secs // 60}m{secs % 60:02d}s).\n{after_chores(ctx.rid)}")
     return 0
 
 
@@ -770,6 +885,16 @@ def prod(rid: str, ask=input) -> int:
         print(f"release --prod: {rid} changed on disk since its checks (fingerprint {fp}, checked {r.get('fingerprint')}) "
               "— not the artifact that was checked; refused", file=sys.stderr)
         return 1
+    try:
+        on_staging = staging_release()
+    except (OSError, ValueError) as e:
+        print(f"release --prod: cannot read what staging serves ({STAGING_MANIFEST_URL}: {e}); refused",
+              file=sys.stderr)
+        return 1
+    if on_staging != rid:
+        print(f"release --prod: staging serves {on_staging}, not {rid} — deploy/prod/upload.sh promotes what staging "
+              f"serves; refused (a later release --staging replaced it)", file=sys.stderr)
+        return 1
     agent = agent_env()
     why = ([f"an agent environment ({agent})"] if agent else []) \
         + ([f"CONFIRM_PROD is not {rid}"] if os.environ.get("CONFIRM_PROD") != rid else []) \
@@ -816,7 +941,12 @@ def main(argv: list[str] | None = None) -> int:
     if a.prod:
         if a.dry_run:
             r = load_ledger().get("releases", {}).get(a.prod, {})
-            print(prod_instructions(a.prod, r))
+            try:
+                on = staging_release()
+                said = "ok" if on == a.prod else f"WOULD STOP: staging serves {on}, not {a.prod}"
+            except (OSError, ValueError) as e:
+                said = f"WOULD STOP: cannot read {STAGING_MANIFEST_URL} ({e})"
+            print(f"staging serves: {said}\n{prod_instructions(a.prod, r)}")
             return 0
         return prod(a.prod)
     if a.no_fast_fail is not None and not a.no_fast_fail.strip():

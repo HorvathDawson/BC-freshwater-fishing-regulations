@@ -5,9 +5,10 @@
 # app runs it after saving any input it stages (curation-review/backend/inputs_sync.py). Production: deploy/prod/
 # sync-inputs.sh, the owner's CONFIRM_PROD step. Never touches git.
 #   1. ONE AT A TIME: a lock shared by every caller (by hand, upload.sh, the review app), waited for
-#   2. RESOLVE: matches naming another release than LATEST are re-resolved (the atlas, heavy.sh) — by hand only; from
-#      the review app (SYNC_INPUTS_FROM_REVIEW=1) that is REFUSED: re-resolve in the review app, then commit (the file
-#      is written only through its writes.commit)
+#   2. VERIFY (T537): matches naming another release than LATEST are REFUSED, never re-resolved here (it ran mid-upload,
+#      after the promote, and left the curated file dirty): `pipeline release --staging` resolves them on the candidate
+#      before its promote; by hand, the command is printed; from the review app (SYNC_INPUTS_FROM_REVIEW=1) re-resolve
+#      there, then commit (the file is written only through its writes.commit)
 #   3. REFUSALS, PER INPUT: `sync_inputs` stages each input on its own (the in-season links through
 #      `pipeline.regs.inseason.publish`, which refuses an unresolved / stale / off-release match); a refused input is
 #      named (`FAILED <name>: …`) and the others still go up; the script then exits 1
@@ -40,9 +41,10 @@ if [[ "$(jq -r .release data/curated/inseason/notice_waters.json)" != "$LATEST" 
     echo "FAILED inseason-matches: resolved on $(jq -r .release data/curated/inseason/notice_waters.json), LATEST is $LATEST — re-resolve in the review app, then commit" >&2
     exit 1
   fi
-  scripts/heavy.sh inseason-resolve 30 -- "$PY" -m pipeline.regs.inseason.resolve --release "data/release/$LATEST" \
-    || { echo "sync-inputs: the in-season matches do not all resolve on $LATEST — re-match them (review app)" >&2; exit 1; }
-  echo "sync-inputs: in-season matches re-resolved on $LATEST — commit data/curated/inseason/notice_waters.json" >&2
+  echo "FAILED inseason-matches: resolved on $(jq -r .release data/curated/inseason/notice_waters.json), LATEST is $LATEST — nothing was put. Re-resolve:" >&2
+  echo "  scripts/heavy.sh inseason-resolve 30 -- $PY -m pipeline.regs.inseason.resolve --release data/release/$LATEST" >&2
+  echo "  git commit -m 'inseason: matches resolved on $LATEST' -- data/curated/inseason/notice_waters.json" >&2
+  exit 1
 fi
 rc=0
 "$PY" -m pipeline.deliver.sync_inputs --out "$T/out" > "$T/manifest.tsv" 2> "$T/stage.err" || rc=$?

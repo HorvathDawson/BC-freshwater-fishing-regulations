@@ -89,8 +89,6 @@ fi
 rclone copy data/generated/regs/dfo_salmon/feed "$D/feeds/dfo" --s3-no-check-bucket --include "*.json" --ignore-existing \
   --exclude "feed.notified.json" \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
-# (T520) sync-inputs.sh re-resolves the in-season matches on LATEST first when they name another release
-deploy/staging/sync-inputs.sh
 for w in app/node_modules/sql.js/dist/sql-wasm-browser.wasm app/node_modules/sql.js/dist/sql-wasm.wasm; do
   cp_ "$w" "$(basename "$w")" --header-upload "Content-Type: application/wasm" --header-upload "Cache-Control: public, max-age=86400"
 done
@@ -104,6 +102,10 @@ if [[ -n "$RT_RUN" ]]; then
 fi
 RT_LIVE=$(rclone cat "$D/runtiming/index.json" --s3-no-check-bucket | python3 -c "import json,sys;print(json.load(sys.stdin)['tile_version'])")
 [[ "$RT_LIVE" == "$TILES" ]] || { echo "upload: runtiming/index.json names $RT_LIVE, the release's tiles are $TILES — pointer NOT written"; exit 1; }
+# (T537) THE POINTER-COUPLED GROUP goes up LAST, in order: run timing (above, the workflow done) → the worker's inputs
+# and the in-season links (sync-inputs.sh; it only VERIFIES the matches name this release — `pipeline release` resolved
+# them before its promote) → the pointer. A failure anywhere before leaves the old pointer, inputs and links live together.
+deploy/staging/sync-inputs.sh
 # (T251) the publish day (kept once set) and, with MIN_APP_VERSION=x.y.z, the oldest app that may apply it: stamped
 # into the manifest here, never by the build; neither moves a file, the tiles or the release id (nothing re-uploaded)
 .venv/bin/python -m pipeline.deliver.release.stamp "$M" ${MIN_APP_VERSION+--min-app-version "$MIN_APP_VERSION"}
@@ -117,7 +119,8 @@ rclone delete "$D" --s3-no-check-bucket --exclude "feeds/**" --exclude "private/
   --exclude "release/$SYN" --exclude "map-assets/v1/**" --exclude "/*.wasm"
 # (T442) test/ is spared, but its manifest names the release just cleared: pointed at this one, or a test-channel
 # build's fresh install 404s on every file ("The map data could not be loaded"; walk-063)
-node deploy/staging/test-updates.mjs reset >/dev/null || echo "upload: WARNING test/ was not reset (node deploy/staging/test-updates.mjs reset)"
+# (T537) a failed reset STOPS (it was a WARNING: a fresh test-channel install then 404s — no silent fallbacks)
+node deploy/staging/test-updates.mjs reset >/dev/null || { echo "upload: test/ was NOT reset — run: node deploy/staging/test-updates.mjs reset" >&2; exit 1; }
 echo "uploaded $REL to $D"; rclone size "$D"
 # (T241) the smoke test against the live staging site + this bucket; SMOKE=0 skips it
 if [[ "${SMOKE:-1}" != 0 ]]; then node app/tools/smoke-staging.mjs --shots "${SMOKE_SHOTS:-app/dist/smoke-staging}"; fi

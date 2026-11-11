@@ -77,13 +77,15 @@ def test_sync_inputs_stops_on_a_failed_copy(sync_tree):
     assert len((sync_tree / "rclone.log").read_text().splitlines()) == 1     # nothing after the failed one
 
 
-def test_sync_inputs_refuses_matches_that_will_not_resolve(sync_tree):
-    """(T520) matches on another release are re-resolved first; a failed resolve puts nothing."""
+def test_sync_inputs_only_verifies_matches_on_another_release(sync_tree):
+    """(T537) matches on another release than LATEST are refused with the resolve + commit commands; nothing is put
+    and nothing is re-resolved here (`pipeline release` resolves them on the candidate before its promote)."""
     (sync_tree / "data/release/LATEST").write_text("r-2\n")
-    _exe(sync_tree / "scripts/heavy.sh", "#!/usr/bin/env bash\nexit 1\n")
+    _exe(sync_tree / "scripts/heavy.sh", f'#!/usr/bin/env bash\necho ran >> "{sync_tree}/heavy.log"\n')
     r = _sync(sync_tree, 0)
-    assert r.returncode != 0 and "do not all resolve on r-2" in r.stderr
-    assert not (sync_tree / "rclone.log").exists()
+    assert r.returncode != 0 and "LATEST is r-2 — nothing was put" in r.stderr
+    assert "pipeline.regs.inseason.resolve --release data/release/r-2" in r.stderr and "git commit" in r.stderr
+    assert not (sync_tree / "rclone.log").exists() and not (sync_tree / "heavy.log").exists()
 
 
 def test_sync_inputs_from_the_review_app_never_rewrites_the_matches(sync_tree):
@@ -169,3 +171,14 @@ def test_testflight_production_needs_confirm_prod():
                        capture_output=True, text=True, timeout=30)
     assert r.returncode == 2
     assert "set CONFIRM_PROD=canifishthis.ca" in r.stderr
+
+
+def test_upload_puts_the_pointer_coupled_group_last_and_a_failed_test_reset_stops():
+    """(T537) run timing done -> inputs (sync-inputs.sh) -> the pointer, as one last group; the test/ reset was a WARNING."""
+    up = (ROOT / "deploy/staging/upload.sh").read_text()
+    code = "\n".join(ln for ln in up.splitlines() if not ln.lstrip().startswith("#"))
+    assert code.index('gh run watch "$RT_RUN"') < code.index("deploy/staging/sync-inputs.sh") \
+        < code.index("cp_ \"$M\" release/manifest.json")
+    assert code.count("deploy/staging/sync-inputs.sh") == 1
+    reset = next(ln for ln in code.splitlines() if "test-updates.mjs reset" in ln)
+    assert "exit 1" in reset and "WARNING" not in reset
