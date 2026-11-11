@@ -34,4 +34,16 @@ describe("T208 in-part fold names its areas", () => {
     expect(it_.textContent).toContain(TAG + ":");
     expect(it_.textContent).toContain("See map 1 · ");
   });
+  it("(T620 G20) the fold follows the day, not the way the day was reached; a reader's own toggle stands", () => {
+    const { rerender } = render(<CaveatBlock caveat={block(true)} palette={LIGHT} actions={NOOP} />);
+    expect(screen.queryByTestId("keep-caveat-area")).not.toBeNull();
+    // stepped to a day outside the area's dates: folded, as if that day had been opened directly
+    rerender(<CaveatBlock caveat={block(false)} palette={LIGHT} actions={NOOP} />);
+    expect(screen.queryByTestId("keep-caveat-area")).toBeNull();
+    rerender(<CaveatBlock caveat={block(true)} palette={LIGHT} actions={NOOP} />);
+    expect(screen.queryByTestId("keep-caveat-area")).not.toBeNull();
+    fireEvent.click(screen.getByTestId("caveat-fold"));      // the reader folds it: that stays
+    rerender(<CaveatBlock caveat={block(false)} palette={LIGHT} actions={NOOP} />);
+    expect(screen.queryByTestId("keep-caveat-area")).toBeNull();
+  });
 });

@@ -3,7 +3,7 @@
  * block, "Where you can’t fish", the Possession row, the Other fish list, the outside-B.C. foot. tokens.md §5. No logic:
  * each draws its VM slice.
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Image, View } from "react-native";
 import { Text } from "../Text";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -92,8 +92,11 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
   inset?: boolean }) {
   const gutter = inset ? GUTTER : 0;
   // page v36 details.inpart: folded, hot or not — except (T208) when a rule of a named area is in force on the day
-  const [open, setOpen] = useState(!!caveat.areaNow);
-  useEffect(() => { if (caveat.areaNow) setOpen(true); }, [caveat.areaNow]);   // a day picked into the area's dates opens it too
+  // (T620 G20) the fold is DERIVED from the day (open while an area rule is in force) unless the reader toggled it, so the
+  // same day shows the same fold however it was reached (a step from inside the area's dates, or the day opened directly)
+  const [choice, setChoice] = useState<boolean | null>(null);
+  const open = choice ?? !!caveat.areaNow;
+  const setOpen = (v: boolean) => setChoice(v);
   const item = (x: CaveatVM["items"][number], i: number) => {
     const words = (
       <>

@@ -16,7 +16,7 @@
  */
 import type { ReactNode } from "react";
 import { View } from "react-native";
-import { daylightOffsets, groupGlance, speciesBlocks, dfoBlockStatus, SALMON_WORDS, WORDS, type GlanceRowVM, type InSeasonBannerVM, type KeepVM, type SalmonStripVM } from "@app/core";
+import { daylightOffsets, groupGlance, speciesBlocks, dfoBlockStatus, SALMON_WORDS, WORDS, type CaveatVM, type GlanceRowVM, type InSeasonBannerVM, type KeepVM, type SalmonStripVM } from "@app/core";
 import { GUTTER, type Palette } from "../theme";
 import { Text } from "../Text";
 import { TYPE } from "../type";
@@ -109,7 +109,7 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         if (b === "whereNot") return <WhereNot key={i} whereNot={keep.whereNot!} palette={palette} actions={actions} />;
         if (b === "outside") return <OutsideFoot key={i} text={keep.outside!} palette={palette} />;
         if ("caveat" in b && i === timedAt && timed) return null;
-        if ("caveat" in b) return <CaveatBlock key={i} caveat={keep.caveats[b.caveat]!} palette={palette} actions={actions} />;
+        if ("caveat" in b) return <CaveatBlock key={caveatKey(keep.caveats[b.caveat]!, i)} caveat={keep.caveats[b.caveat]!} palette={palette} actions={actions} />;
         if ("group" in b) return <GroupCard key={i} g={keep.groups[b.group]!} palette={palette} actions={actions} images={images} />;
         return <PlainRow key={i} row={keep.plainRows[b.plain]!} palette={palette} actions={actions} images={images} />;
         })();
@@ -121,3 +121,6 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
     </View>
   );
 }
+
+/** (T620 G20) A caveat block's identity, so a part step shows each part's own fold and not the last part's. */
+const caveatKey = (c: CaveatVM, i: number) => `${i}:${c.kind}:${c.title}:${c.items.map((x) => x.rule ?? "").join(",")}`;
