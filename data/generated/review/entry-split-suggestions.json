@@ -2,23 +2,22 @@
  "_about": "MISSING-SPLIT SUGGESTIONS FOR CATALOGUE ENTRIES (owner 2026-10-27, curation-review cleanup) — the entry- side twin of `pipeline.regs.dfo_salmon.suggest`: for every rule the pre-checks say cannot be placed, or that binds through an ambiguous cut, propose WHERE (an existing split or a new one) with a confidence, the evidence and an independent second check. Never applied: the review app shows each item; the owner's mark is the only write. Nothing here writes splits.json, the catalogue or the marks store. Regenerate: .venv/bin/python -m pipeline.regs.review.split_suggest",
  "generated": "2026-10-27",
  "counts": {
-  "items": 204,
-  "entries": 117,
+  "items": 202,
+  "entries": 116,
   "by_kind_confidence": {
-   "ambiguous_cut:high": 92,
-   "ambiguous_cut:medium": 3,
-   "ambiguous_cut:low": 1,
-   "undrawn_part:none": 57,
+   "ambiguous_cut:high": 95,
+   "undrawn_part:none": 55,
    "unplaced:none": 2,
    "unresolved_locator:none": 21,
    "unresolved:high": 2,
    "unresolved:none": 23,
+   "ambiguous_cut:medium": 1,
    "undrawn_part:medium": 2,
    "unresolved_locator:high": 1
   },
   "pre_verified": 96,
   "disagree": 4,
-  "duplicates": 64,
+  "duplicates": 62,
   "with_suggestion": 101,
   "ambiguous_pick_disagrees": 5
  },
@@ -46,7 +45,7 @@
     "reason": "ash_river__dickson_lake matched both lake ends (12,420 / 14,995 m); builder took 14,995 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward ash_river__elsie_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -85,7 +84,7 @@
     "reason": "ash_river__elsie_lake matched both lake ends (26,178 / 32,771 m); builder took 26,178 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward ash_river__dickson_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -124,7 +123,7 @@
     "reason": "ash_river__dickson_lake matched both lake ends (12,420 / 14,995 m); builder took 12,420 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward ash_river__lanternman_falls_200_m_downstream)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -182,8 +181,8 @@
      ],
      "words": "between Elk Falls and the station"
     },
-    "confidence": "medium",
-    "reason": "the power station is BELOW Elk Falls (OSM generator at 5644 m, falls at 7479 m), not at the dam face (8504 m): the rule's no-fishing canyon runs from the falls DOWN to the tailrace",
+    "confidence": "high",
+    "reason": "the power station is BELOW Elk Falls (OSM generator at 5644 m, falls at 7479 m), not at the dam face (8504 m): the rule's no-fishing canyon runs from the falls DOWN to the tailrace. Owner reading 2026-11-11 (T623 F2): 'the no-fishing water is Elk Falls down to the John Hart generating station (1.86 km below the falls)' (measured: 7479 - 5644 = 1835 m). Waiting on the owner's tick of this cut",
     "evidence": [
      "https://overpass-api.de/api/interpreter (OSM, queried 2026-10-27): node 13523318514 power=generator (hydro) at 50.04401,-125.31113 -> Campbell River measure 5644 m (52 m off the line); node 10208287925 'John Hart Generating Station' (underground) -> 6334 m",
      "curated campbell_river__elk_falls at 7479 m; curated campbell_river__john_hart_dam_power_station at 8504 m = the dam face (owner's own note: 'is just at outlet of lake i think'; its auto-proposal said 'decide dam-face vs tailrace')",
@@ -218,8 +217,8 @@
        "split_id": "sg1"
       },
       {
-       "kind": "split",
-       "split_id": "campbell_river__power_line_200m_up_of_quinsam"
+       "kind": "new",
+       "split_id": "sg2"
       }
      ],
      "items": [
@@ -240,31 +239,46 @@
        "measure": 5644.0,
        "quote": "John Hart Dam Power Station",
        "confidence": "medium"
+      },
+      {
+       "ref": "sg2",
+       "anchor": "coord",
+       "name": "power line ~320 m above the Quinsam mouth",
+       "coord": [
+        -125.298018,
+        50.038902
+       ],
+       "on_item": "gnis:39532",
+       "blk": "354154635",
+       "measure": 4519.0,
+       "quote": "power line crossing approximately 200 m upstream of Quinsam River confluence",
+       "confidence": "medium"
       }
      ],
-     "words": "from the station tailrace down to the power line"
+     "words": "from the station tailrace down to the power line ~320 m above the Quinsam"
     },
-    "confidence": "low",
-    "reason": "with the station at the tailrace (5644 m) the curated power-line split (5534 m) is only 110 m below it, and OSM has no power line 200 m above the Quinsam (its mouth is at 4200 m): the power-line split needs the owner's eye too",
+    "confidence": "high",
+    "reason": "owner readings 2026-11-11 (T623 F2, F9): 'Fly only starts at the station and runs down to the power line near the Quinsam'; 'the cut goes to the cleared power-line strip about 320 m above the Quinsam mouth (today it sits 1,332 m up, beside the station)'. The new point replaces the curated campbell_river__power_line_200m_up_of_quinsam (5534 m) as this rule's lower end. Waiting on the owner's tick of both cuts",
     "evidence": [
      "https://overpass-api.de/api/interpreter (OSM, queried 2026-10-27): node 13523318514 power=generator (hydro) at 50.04401,-125.31113 -> Campbell River measure 5644 m (52 m off the line); node 10208287925 'John Hart Generating Station' (underground) -> 6334 m",
      "curated campbell_river__elk_falls at 7479 m; curated campbell_river__john_hart_dam_power_station at 8504 m = the dam face (owner's own note: 'is just at outlet of lake i think'; its auto-proposal said 'decide dam-face vs tailrace')",
      "https://www.renewableenergyworld.com/hydro-power/dams-civil-structures/a-global-power-energy-elite-project-canadas-first-p3-hydropower-project/ (1.8 km underground conveyance from the dam to the powerhouse)",
      "https://www.bchydro.com/community/recreation_areas/vancouver-island/john-hart.html",
-     "https://overpass-api.de/api/interpreter (OSM, queried 2026-10-27): the only power lines crossing the Campbell are 1L104 at 5437 m and 1L103 at 5584 m (both at the switchyard); Quinsam mouth snaps to 4200 m"
+     "https://overpass-api.de/api/interpreter (OSM, queried 2026-10-27): the only power lines crossing the Campbell are 1L104 at 5437 m and 1L103 at 5584 m (both at the switchyard); Quinsam mouth snaps to 4200 m",
+     "handoff/PLAN/app-integration/T623-shots/F9-campbell-quinsam-powerline.png: a cleared strip meets the river about 320 m up from the Quinsam mouth (imagery reading); Quinsam mouth on blk 354154635 at 4199 m (FWA streams layer), +320 m = 4519 m, interpolated on the same line"
     ],
     "preverify": {
      "status": "disagree",
-     "method": "OSM power-line crossings vs the book's '200 m upstream of Quinsam'",
+     "method": "the owner's imagery reading vs the curated power-line split",
      "first": "curated power-line split at 5534 m",
-     "delta_m": 1134.0,
+     "delta_m": 1015.0,
      "tolerance_m": 150.0,
-     "why": "the book's power line (~4400 m) and the curated one (5534 m) are 1.1 km apart"
+     "why": "the curated split sits beside the station; the owner places the line 320 m above the Quinsam"
     },
     "duplicate_of": null,
     "pick": {
-     "builder": 8504.0,
-     "proposed": 5644.0,
+     "builder": 5534.0,
+     "proposed": 4519.0,
      "agrees": false
     }
    },
@@ -307,8 +321,8 @@
      ],
      "words": "between Elk Falls and the station"
     },
-    "confidence": "medium",
-    "reason": "the power station is BELOW Elk Falls (OSM generator at 5644 m, falls at 7479 m), not at the dam face (8504 m): the rule's no-fishing canyon runs from the falls DOWN to the tailrace",
+    "confidence": "high",
+    "reason": "the power station is BELOW Elk Falls (OSM generator at 5644 m, falls at 7479 m), not at the dam face (8504 m): the rule's no-fishing canyon runs from the falls DOWN to the tailrace. Owner reading 2026-11-11 (T623 F2): 'the no-fishing water is Elk Falls down to the John Hart generating station (1.86 km below the falls)' (measured: 7479 - 5644 = 1835 m). Waiting on the owner's tick of this cut",
     "evidence": [
      "https://overpass-api.de/api/interpreter (OSM, queried 2026-10-27): node 13523318514 power=generator (hydro) at 50.04401,-125.31113 -> Campbell River measure 5644 m (52 m off the line); node 10208287925 'John Hart Generating Station' (underground) -> 6334 m",
      "curated campbell_river__elk_falls at 7479 m; curated campbell_river__john_hart_dam_power_station at 8504 m = the dam face (owner's own note: 'is just at outlet of lake i think'; its auto-proposal said 'decide dam-face vs tailrace')",
@@ -354,7 +368,7 @@
     "reason": "copper_creek__skidegate_lake matched both lake ends (13,092 / 23,851 m); builder took 13,092 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward copper_creek__south_bay_main_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -425,45 +439,6 @@
     "id": "r1:john_hart_lake_s_tributaries@1-10#john_hart_lake_s_tributaries.r2#1",
     "rule_id": "john_hart_lake_s_tributaries.r2",
     "kind": "ambiguous_cut",
-    "phrase": "Ladore Dam",
-    "suggestion": {
-     "op": "(as authored)",
-     "points": [
-      {
-       "kind": "split",
-       "split_id": "campbell_river__ladore_dam"
-      }
-     ],
-     "items": [],
-     "tributaries": null,
-     "new_splits": [],
-     "words": "campbell_river__ladore_dam at 17,860 m"
-    },
-    "confidence": "high",
-    "reason": "campbell_river__ladore_dam matched both lake ends (17,860 / 33,338 m); builder took 17,860 m; agrees",
-    "evidence": [
-     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward campbell_river__john_hart_lake)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"329069968\", \"edge\": \"outlet\"}"
-    ],
-    "preverify": {
-     "status": "pre-verified",
-     "method": "rule words / anchor edge + the other endpoint lies outside the lake's span: only one end can bound the reach",
-     "first": "the builder's E16 pick",
-     "delta_m": 0.0,
-     "tolerance_m": 1.0,
-     "why": "the rule's words put the cut at the lake's outlet end; the curated anchor is the lake's outlet; the rule's other end lies below the lake"
-    },
-    "duplicate_of": null,
-    "pick": {
-     "builder": 17859.57,
-     "proposed": 17859.57,
-     "agrees": true
-    }
-   },
-   {
-    "id": "r1:john_hart_lake_s_tributaries@1-10#john_hart_lake_s_tributaries.r2#2",
-    "rule_id": "john_hart_lake_s_tributaries.r2",
-    "kind": "ambiguous_cut",
     "phrase": "john hart lake",
     "suggestion": {
      "op": "(as authored)",
@@ -482,7 +457,7 @@
     "reason": "campbell_river__john_hart_lake matched both lake ends (8,504 / 14,946 m); builder took 14,946 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward campbell_river__ladore_dam)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -496,6 +471,45 @@
     "pick": {
      "builder": 14945.93,
      "proposed": 14945.93,
+     "agrees": true
+    }
+   },
+   {
+    "id": "r1:john_hart_lake_s_tributaries@1-10#john_hart_lake_s_tributaries.r2#2",
+    "rule_id": "john_hart_lake_s_tributaries.r2",
+    "kind": "ambiguous_cut",
+    "phrase": "Ladore Dam",
+    "suggestion": {
+     "op": "(as authored)",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "campbell_river__ladore_dam"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "campbell_river__ladore_dam at 17,860 m"
+    },
+    "confidence": "high",
+    "reason": "campbell_river__ladore_dam matched both lake ends (17,860 / 33,338 m); builder took 17,860 m; agrees",
+    "evidence": [
+     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward campbell_river__john_hart_lake)",
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"329069968\", \"edge\": \"outlet\"}"
+    ],
+    "preverify": {
+     "status": "pre-verified",
+     "method": "rule words / anchor edge + the other endpoint lies outside the lake's span: only one end can bound the reach",
+     "first": "the builder's E16 pick",
+     "delta_m": 0.0,
+     "tolerance_m": 1.0,
+     "why": "the rule's words put the cut at the lake's outlet end; the curated anchor is the lake's outlet; the rule's other end lies below the lake"
+    },
+    "duplicate_of": null,
+    "pick": {
+     "builder": 17859.57,
+     "proposed": 17859.57,
      "agrees": true
     }
    }
@@ -523,7 +537,7 @@
     "reason": "bonanza_river__ida_lake matched both lake ends (219 / 3,574 m); builder took 219 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -564,7 +578,7 @@
     "reason": "campbell_river__campbell_lake matched both lake ends (17,860 / 33,338 m); builder took 33,338 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward campbell_river__strathcona_dam)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -587,45 +601,6 @@
     "id": "r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13#marble_link_river_only_between_victoria_and_alice_lakes.r1#1",
     "rule_id": "marble_link_river_only_between_victoria_and_alice_lakes.r1",
     "kind": "ambiguous_cut",
-    "phrase": "victoria lake",
-    "suggestion": {
-     "op": "(as authored)",
-     "points": [
-      {
-       "kind": "split",
-       "split_id": "marble_river__victoria_lake"
-      }
-     ],
-     "items": [],
-     "tributaries": null,
-     "new_splits": [],
-     "words": "marble_river__victoria_lake at 20,368 m"
-    },
-    "confidence": "high",
-    "reason": "marble_river__victoria_lake matched both lake ends (20,368 / 35,991 m); builder took 20,368 m; agrees",
-    "evidence": [
-     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward marble_river__alice_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
-    ],
-    "preverify": {
-     "status": "pre-verified",
-     "method": "the other endpoint lies outside the lake's span: only one end can bound the reach",
-     "first": "the builder's E16 pick",
-     "delta_m": 0.0,
-     "tolerance_m": 1.0,
-     "why": "the rule's other end lies below the lake"
-    },
-    "duplicate_of": null,
-    "pick": {
-     "builder": 20367.73,
-     "proposed": 20367.73,
-     "agrees": true
-    }
-   },
-   {
-    "id": "r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13#marble_link_river_only_between_victoria_and_alice_lakes.r1#2",
-    "rule_id": "marble_link_river_only_between_victoria_and_alice_lakes.r1",
-    "kind": "ambiguous_cut",
     "phrase": "alice lake",
     "suggestion": {
      "op": "(as authored)",
@@ -644,7 +619,7 @@
     "reason": "marble_river__alice_lake matched both lake ends (7,726 / 18,506 m); builder took 18,506 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward marble_river__victoria_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -658,6 +633,45 @@
     "pick": {
      "builder": 18505.92,
      "proposed": 18505.92,
+     "agrees": true
+    }
+   },
+   {
+    "id": "r1:marble_link_river_only_between_victoria_and_alice_lakes@1-13#marble_link_river_only_between_victoria_and_alice_lakes.r1#2",
+    "rule_id": "marble_link_river_only_between_victoria_and_alice_lakes.r1",
+    "kind": "ambiguous_cut",
+    "phrase": "victoria lake",
+    "suggestion": {
+     "op": "(as authored)",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "marble_river__victoria_lake"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "marble_river__victoria_lake at 20,368 m"
+    },
+    "confidence": "high",
+    "reason": "marble_river__victoria_lake matched both lake ends (20,368 / 35,991 m); builder took 20,368 m; agrees",
+    "evidence": [
+     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward marble_river__alice_lake)",
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
+    ],
+    "preverify": {
+     "status": "pre-verified",
+     "method": "the other endpoint lies outside the lake's span: only one end can bound the reach",
+     "first": "the builder's E16 pick",
+     "delta_m": 0.0,
+     "tolerance_m": 1.0,
+     "why": "the rule's other end lies below the lake"
+    },
+    "duplicate_of": null,
+    "pick": {
+     "builder": 20367.73,
+     "proposed": 20367.73,
      "agrees": true
     }
    }
@@ -685,7 +699,7 @@
     "reason": "mohun_creek__morton_lake matched both lake ends (13,250 / 14,176 m); builder took 13,250 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mohun_creek__menzies_bay_logging_mainline_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -726,7 +740,7 @@
     "reason": "nahmint_river__nahmint_lake matched both lake ends (12,928 / 22,177 m); builder took 22,177 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -767,7 +781,7 @@
     "reason": "nanaimo_river__nanaimo_lakes_2 matched both lake ends (38,369 / 41,818 m); builder took 41,818 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -808,7 +822,7 @@
     "reason": "nitinat_river__nitinat_lake matched both lake ends (1,489 / 23,307 m); builder took 23,307 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -849,7 +863,7 @@
     "reason": "puntledge_river__comox_lake matched both lake ends (14,782 / 29,963 m); builder took 14,782 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -888,7 +902,7 @@
     "reason": "puntledge_river__comox_lake matched both lake ends (14,782 / 29,963 m); builder took 14,782 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -927,7 +941,7 @@
     "reason": "puntledge_river__comox_lake matched both lake ends (14,782 / 29,963 m); builder took 14,782 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward puntledge_river__bc_hydro_diversion_dam)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1014,7 +1028,7 @@
     "reason": "chehalis_river__chehalis_lake matched both lake ends (20,899 / 29,820 m); builder took 20,899 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1103,7 +1117,7 @@
     "reason": "harrison_river__harrison_lake matched both lake ends (20,178 / 84,129 m); builder took 20,178 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1142,7 +1156,7 @@
     "reason": "harrison_river__harrison_lake matched both lake ends (20,178 / 84,129 m); builder took 20,178 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1181,7 +1195,7 @@
     "reason": "harrison_river__harrison_lake matched both lake ends (20,178 / 84,129 m); builder took 20,178 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1226,12 +1240,12 @@
     "id": "r2:noons_creek@2-8#noons_creek.r1#1",
     "rule_id": "noons_creek.r1",
     "kind": "unplaced",
-    "phrase": "2 piece(s) — flows_to_the_sea_unjoined",
+    "phrase": "1 piece(s) — flows_to_the_sea_unjoined",
     "suggestion": null,
     "confidence": "none",
     "reason": "pieces that flow to the sea unjoined: the tidal boundary decides them — see the Tidal tab's tidal:360880849",
     "evidence": [
-     "precheck unplaced_pieces: the reach run left pieces of this rule's water unplaced (reported, never guessed): 2 piece(s) — flows_to_the_sea_unjoined"
+     "precheck unplaced_pieces: the reach run left pieces of this rule's water unplaced (reported, never guessed): 1 piece(s) — flows_to_the_sea_unjoined"
     ],
     "preverify": {
      "status": "unchecked",
@@ -1314,7 +1328,7 @@
     "reason": "pitt_river__pitt_lake matched both lake ends (20,784 / 46,556 m); builder took 46,556 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1353,7 +1367,7 @@
     "reason": "pitt_river__pitt_lake matched both lake ends (20,784 / 46,556 m); builder took 20,784 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward pitt_river__cpr_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1512,7 +1526,7 @@
     "reason": "seymour_river__seymour_lake matched both lake ends (19,055 / 25,947 m); builder took 19,055 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1553,7 +1567,7 @@
     "reason": "silverhope_creek__silver_lake matched both lake ends (9,164 / 10,517 m); builder took 10,517 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1592,7 +1606,7 @@
     "reason": "silverhope_creek__silver_lake matched both lake ends (9,164 / 10,517 m); builder took 10,517 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1631,7 +1645,7 @@
     "reason": "silverhope_creek__silver_lake matched both lake ends (9,164 / 10,517 m); builder took 10,517 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1670,7 +1684,7 @@
     "reason": "silverhope_creek__silver_lake matched both lake ends (9,164 / 10,517 m); builder took 9,164 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward silverhope__bailey_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1686,52 +1700,6 @@
      "proposed": 9163.63,
      "agrees": true
     }
-   }
-  ],
-  "r2:stave_river@2-8": [
-   {
-    "id": "r2:stave_river@2-8#stave_river.r1#1",
-    "rule_id": "stave_river.r1",
-    "kind": "undrawn_part",
-    "phrase": "Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing",
-    "suggestion": null,
-    "confidence": "none",
-    "reason": "a spawning channel FWA does not draw: it needs an added stream (data/curated/waters/added_streams.json), not a split",
-    "evidence": [
-     "the parser's note on the rule"
-    ],
-    "preverify": {
-     "status": "unchecked",
-     "method": "",
-     "first": "",
-     "delta_m": null,
-     "tolerance_m": null,
-     "why": "no proposal to check"
-    },
-    "duplicate_of": "dfo:2:stave-river:that-portion-of-the-stave-river-kn",
-    "pick": null
-   },
-   {
-    "id": "r2:stave_river@2-8#stave_river.r2#2",
-    "rule_id": "stave_river.r2",
-    "kind": "undrawn_part",
-    "phrase": "Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its tributaries containg the fishway",
-    "suggestion": null,
-    "confidence": "none",
-    "reason": "a spawning channel FWA does not draw: it needs an added stream (data/curated/waters/added_streams.json), not a split",
-    "evidence": [
-     "the parser's note on the rule"
-    ],
-    "preverify": {
-     "status": "unchecked",
-     "method": "",
-     "first": "",
-     "delta_m": null,
-     "tolerance_m": null,
-     "why": "no proposal to check"
-    },
-    "duplicate_of": "dfo:2:stave-river:in-that-portion-of-the-stave-river",
-    "pick": null
    }
   ],
   "r3:adams_lake@3-37": [
@@ -1781,7 +1749,7 @@
     "reason": "big_bar_creek__big_bar_lake matched both lake ends (39,216 / 43,406 m); builder took 39,216 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1822,7 +1790,7 @@
     "reason": "bonaparte_river__bonaparte_lake matched both lake ends (161,445 / 179,209 m); builder took 161,445 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1863,7 +1831,7 @@
     "reason": "bridge_river__carpenter_lake matched both lake ends (40,220 / 91,749 m); builder took 40,220 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward bridge_river__yalakom_river_into_bridge_river)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1902,7 +1870,7 @@
     "reason": "bridge_river__downton_lake matched both lake ends (94,822 / 119,931 m); builder took 119,931 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1943,7 +1911,7 @@
     "reason": "deadman_river__mowich_lake matched both lake ends (46,327 / 47,572 m); builder took 46,327 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -1984,7 +1952,7 @@
     "reason": "eagle_river__griffin_lake matched both lake ends (69,467 / 71,476 m); builder took 69,467 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2025,7 +1993,7 @@
     "reason": "gauge__08LG041 matched both lake ends (34,173 / 38,699 m); builder took 34,173 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2336,7 +2304,7 @@
     "reason": "nahatlatch_river__frances_lake matched both lake ends (12,774 / 13,750 m); builder took 12,774 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward nahatlatch_river__signs_at_logging_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2375,7 +2343,7 @@
     "reason": "nahatlatch_river__nahatlatch_lake matched both lake ends (18,038 / 21,836 m); builder took 18,038 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2416,7 +2384,7 @@
     "reason": "nicola_river__nicola_lake matched both lake ends (100,558 / 116,549 m); builder took 116,549 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2455,7 +2423,7 @@
     "reason": "nicola_river__nicola_lake matched both lake ends (100,558 / 116,549 m); builder took 100,558 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2494,7 +2462,7 @@
     "reason": "nicola_river__nicola_lake matched both lake ends (100,558 / 116,549 m); builder took 100,558 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2533,7 +2501,7 @@
     "reason": "nicola_river__nicola_lake matched both lake ends (100,558 / 116,549 m); builder took 100,558 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2572,7 +2540,7 @@
     "reason": "nicola_river__nicola_lake matched both lake ends (100,558 / 116,549 m); builder took 100,558 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2613,7 +2581,7 @@
     "reason": "paul_creek__paul_lake matched both lake ends (16,736 / 22,531 m); builder took 16,736 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2652,7 +2620,7 @@
     "reason": "paul_creek__paul_lake matched both lake ends (16,736 / 22,531 m); builder took 16,736 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2691,7 +2659,7 @@
     "reason": "paul_creek__paul_lake matched both lake ends (16,736 / 22,531 m); builder took 16,736 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2756,7 +2724,7 @@
     "reason": "seton_river__seton_lake matched both lake ends (4,354 / 27,267 m); builder took 4,354 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -2795,7 +2763,7 @@
     "reason": "seton_river__seton_lake matched both lake ends (4,354 / 27,267 m); builder took 4,354 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3040,7 +3008,7 @@
     "reason": "bull_river__aberfeldie_dam matched both lake ends (11,574 / 12,614 m); builder took 11,574 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward bull_river__tie_mill_dam)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"point\", \"coord\": [-115.35084, 49.49944], \"is_lonlat\": true}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"point\", \"coord\": [-115.35084, 49.49944], \"is_lonlat\": true}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3170,7 +3138,7 @@
     "reason": "duncan_river__duncan_lake matched both lake ends (9,905 / 55,000 m); builder took 55,000 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3211,7 +3179,7 @@
     "reason": "duncan_river__duncan_lake matched both lake ends (9,905 / 55,000 m); builder took 9,905 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3250,7 +3218,7 @@
     "reason": "duncan_river__duncan_lake matched both lake ends (9,905 / 55,000 m); builder took 9,905 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3289,7 +3257,7 @@
     "reason": "duncan_river__duncan_lake matched both lake ends (9,905 / 55,000 m); builder took 9,905 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3328,7 +3296,7 @@
     "reason": "duncan_river__duncan_lake matched both lake ends (9,905 / 55,000 m); builder took 9,905 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3367,7 +3335,7 @@
     "reason": "duncan_river__duncan_lake matched both lake ends (9,905 / 55,000 m); builder took 9,905 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3406,7 +3374,7 @@
     "reason": "duncan_river__duncan_lake matched both lake ends (9,905 / 55,000 m); builder took 9,905 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward duncan_river__lardeau_river_into_duncan_river)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3447,7 +3415,7 @@
     "reason": "forsyth_creek__connor_lakes matched both lake ends (16,407 / 19,505 m); builder took 16,407 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward forsyth_creek__connor_lake_3000_m_downstream)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3622,7 +3590,7 @@
     "reason": "kootenay_river__kootenay_koocanusa matched both lake ends (431,808 / 490,242 m); builder took 490,242 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3661,7 +3629,7 @@
     "reason": "kootenay_river__kootenay_koocanusa matched both lake ends (431,808 / 490,242 m); builder took 490,242 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3700,7 +3668,7 @@
     "reason": "kootenay_river__kootenay_koocanusa matched both lake ends (431,808 / 490,242 m); builder took 490,242 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward kootenay_river__white_river_into_kootenay_river)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3739,7 +3707,7 @@
     "reason": "kootenay_river__kootenay_koocanusa matched both lake ends (431,808 / 490,242 m); builder took 490,242 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward kootenay_river__white_river_into_kootenay_river)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3778,7 +3746,7 @@
     "reason": "kootenay_river__kootenay_koocanusa matched both lake ends (431,808 / 490,242 m); builder took 490,242 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward kootenay_river__white_river_into_kootenay_river)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -3817,7 +3785,7 @@
     "reason": "kootenay_river__kootenay_koocanusa matched both lake ends (431,808 / 490,242 m); builder took 490,242 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward kootenay_river__white_river_into_kootenay_river)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"328961702\", \"edge\": \"inlet\"}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4042,7 +4010,7 @@
     "reason": "whatshan_river__whatshan_lake matched both lake ends (7,600 / 29,642 m); builder took 29,642 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4083,7 +4051,7 @@
     "reason": "south_atnarko_river__tenas_lake matched both lake ends (630 / 2,380 m); builder took 630 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4172,7 +4140,7 @@
     "reason": "chimney_creek__brunson_lake matched both lake ends (20,054 / 21,174 m); builder took 20,054 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4213,7 +4181,7 @@
     "reason": "dean_river__anahim_lake matched both lake ends (209,900 / 219,702 m); builder took 209,900 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward dean_river__iltasyuko_river_into_dean_river)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4482,7 +4450,7 @@
     "reason": "mckinley_creek__mckinley_lake matched both lake ends (8,090 / 14,905 m); builder took 8,090 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4547,7 +4515,7 @@
     "reason": "mitchell_river__mitchell_lake matched both lake ends (50,980 / 67,438 m); builder took 50,980 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mitchell_river__100_m_below_mitchell_lake_weir)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4586,7 +4554,7 @@
     "reason": "mitchell_river__mitchell_lake matched both lake ends (50,980 / 67,438 m); builder took 50,980 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mitchell_river__cameron_creek_into_mitchell_river)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4948,7 +4916,7 @@
     "reason": "babine_river__nilkitkwa_lake matched both lake ends (99,051 / 108,816 m); builder took 99,051 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward babine_river__nilkitkwa_river_into_babine_river)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -4987,7 +4955,7 @@
     "reason": "babine_river__nilkitkwa_lake matched both lake ends (99,051 / 108,816 m); builder took 108,816 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward babine_river__babine_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5082,45 +5050,6 @@
     "id": "r6:iskut_river@6-21#iskut_river.r2#1",
     "rule_id": "iskut_river.r2",
     "kind": "ambiguous_cut",
-    "phrase": "natadesleen lake",
-    "suggestion": {
-     "op": "(as authored)",
-     "points": [
-      {
-       "kind": "split",
-       "split_id": "iskut_river__natadesleen_lake"
-      }
-     ],
-     "items": [],
-     "tributaries": null,
-     "new_splits": [],
-     "words": "iskut_river__natadesleen_lake at 191,657 m"
-    },
-    "confidence": "high",
-    "reason": "iskut_river__natadesleen_lake matched both lake ends (190,161 / 191,657 m); builder took 191,657 m; agrees",
-    "evidence": [
-     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward iskut_river__kinaskan_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
-    ],
-    "preverify": {
-     "status": "pre-verified",
-     "method": "the other endpoint lies outside the lake's span: only one end can bound the reach",
-     "first": "the builder's E16 pick",
-     "delta_m": 0.0,
-     "tolerance_m": 1.0,
-     "why": "the rule's other end lies above the lake"
-    },
-    "duplicate_of": null,
-    "pick": {
-     "builder": 191656.82,
-     "proposed": 191656.82,
-     "agrees": true
-    }
-   },
-   {
-    "id": "r6:iskut_river@6-21#iskut_river.r2#2",
-    "rule_id": "iskut_river.r2",
-    "kind": "ambiguous_cut",
     "phrase": "kinaskan lake",
     "suggestion": {
      "op": "(as authored)",
@@ -5139,7 +5068,7 @@
     "reason": "iskut_river__kinaskan_lake matched both lake ends (197,466 / 218,198 m); builder took 197,466 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward iskut_river__natadesleen_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5153,6 +5082,45 @@
     "pick": {
      "builder": 197465.99,
      "proposed": 197465.99,
+     "agrees": true
+    }
+   },
+   {
+    "id": "r6:iskut_river@6-21#iskut_river.r2#2",
+    "rule_id": "iskut_river.r2",
+    "kind": "ambiguous_cut",
+    "phrase": "natadesleen lake",
+    "suggestion": {
+     "op": "(as authored)",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "iskut_river__natadesleen_lake"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "iskut_river__natadesleen_lake at 191,657 m"
+    },
+    "confidence": "high",
+    "reason": "iskut_river__natadesleen_lake matched both lake ends (190,161 / 191,657 m); builder took 191,657 m; agrees",
+    "evidence": [
+     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward iskut_river__kinaskan_lake)",
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
+    ],
+    "preverify": {
+     "status": "pre-verified",
+     "method": "the other endpoint lies outside the lake's span: only one end can bound the reach",
+     "first": "the builder's E16 pick",
+     "delta_m": 0.0,
+     "tolerance_m": 1.0,
+     "why": "the rule's other end lies above the lake"
+    },
+    "duplicate_of": null,
+    "pick": {
+     "builder": 191656.82,
+     "proposed": 191656.82,
      "agrees": true
     }
    }
@@ -5180,7 +5148,7 @@
     "reason": "kitsumkalum_river__kitsumkalum_lake matched both lake ends (36,526 / 47,159 m); builder took 36,526 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward kitsumkalum__glacier_creek_into_kitsumkalum_river)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5245,7 +5213,7 @@
     "reason": "babine_river__nilkitkwa_lake matched both lake ends (99,051 / 108,816 m); builder took 108,816 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward babine_river__babine_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5402,7 +5370,7 @@
     "reason": "tatsatua_creek__tatsamenie_lake matched both lake ends (28,265 / 46,741 m); builder took 28,265 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5443,7 +5411,7 @@
     "reason": "zymoetz_river__mcdonell_lake matched both lake ends (113,098 / 117,931 m); builder took 113,098 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward zymoetz__mcdonell_lake_3000_m_downstream)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5578,6 +5546,45 @@
     "id": "r7:mcleod_river@7-24#mcleod_river.r1#1",
     "rule_id": "mcleod_river.r1",
     "kind": "ambiguous_cut",
+    "phrase": "carp lake",
+    "suggestion": {
+     "op": "(as authored)",
+     "points": [
+      {
+       "kind": "split",
+       "split_id": "mcleod_river__carp_lake"
+      }
+     ],
+     "items": [],
+     "tributaries": null,
+     "new_splits": [],
+     "words": "mcleod_river__carp_lake at 40,652 m"
+    },
+    "confidence": "high",
+    "reason": "mcleod_river__carp_lake matched both lake ends (40,652 / 49,796 m); builder took 40,652 m; agrees",
+    "evidence": [
+     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mcleod_river__war_lake)",
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
+    ],
+    "preverify": {
+     "status": "pre-verified",
+     "method": "the other endpoint lies outside the lake's span: only one end can bound the reach",
+     "first": "the builder's E16 pick",
+     "delta_m": 0.0,
+     "tolerance_m": 1.0,
+     "why": "the rule's other end lies below the lake"
+    },
+    "duplicate_of": null,
+    "pick": {
+     "builder": 40652.04,
+     "proposed": 40652.04,
+     "agrees": true
+    }
+   },
+   {
+    "id": "r7:mcleod_river@7-24#mcleod_river.r1#2",
+    "rule_id": "mcleod_river.r1",
+    "kind": "ambiguous_cut",
     "phrase": "war lake",
     "suggestion": {
      "op": "(as authored)",
@@ -5596,7 +5603,7 @@
     "reason": "mcleod_river__war_lake matched both lake ends (29,457 / 32,580 m); builder took 32,580 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mcleod_river__carp_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5614,7 +5621,7 @@
     }
    },
    {
-    "id": "r7:mcleod_river@7-24#mcleod_river.r1#2",
+    "id": "r7:mcleod_river@7-24#mcleod_river.r1#3",
     "rule_id": "mcleod_river.r1",
     "kind": "ambiguous_cut",
     "phrase": "war lake",
@@ -5635,7 +5642,7 @@
     "reason": "mcleod_river__war_lake matched both lake ends (29,457 / 32,580 m); builder took 29,457 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mcleod_river__war_falls)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5649,45 +5656,6 @@
     "pick": {
      "builder": 29457.42,
      "proposed": 29457.42,
-     "agrees": true
-    }
-   },
-   {
-    "id": "r7:mcleod_river@7-24#mcleod_river.r1#3",
-    "rule_id": "mcleod_river.r1",
-    "kind": "ambiguous_cut",
-    "phrase": "carp lake",
-    "suggestion": {
-     "op": "(as authored)",
-     "points": [
-      {
-       "kind": "split",
-       "split_id": "mcleod_river__carp_lake"
-      }
-     ],
-     "items": [],
-     "tributaries": null,
-     "new_splits": [],
-     "words": "mcleod_river__carp_lake at 40,652 m"
-    },
-    "confidence": "high",
-    "reason": "mcleod_river__carp_lake matched both lake ends (40,652 / 49,796 m); builder took 40,652 m; agrees",
-    "evidence": [
-     "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mcleod_river__war_lake)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
-    ],
-    "preverify": {
-     "status": "pre-verified",
-     "method": "the other endpoint lies outside the lake's span: only one end can bound the reach",
-     "first": "the builder's E16 pick",
-     "delta_m": 0.0,
-     "tolerance_m": 1.0,
-     "why": "the rule's other end lies below the lake"
-    },
-    "duplicate_of": null,
-    "pick": {
-     "builder": 40652.04,
-     "proposed": 40652.04,
      "agrees": true
     }
    }
@@ -5715,7 +5683,7 @@
     "reason": "moberly_river__moberly_lake matched both lake ends (122,301 / 135,698 m); builder took 122,301 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5754,7 +5722,7 @@
     "reason": "moberly_river__moberly_lake matched both lake ends (122,301 / 135,698 m); builder took 122,301 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -5865,7 +5833,7 @@
     "reason": "peace_river__peace_canyon_dam matched both lake ends (1,684,324 / 1,706,110 m); builder took 1,684,324 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward peace_river__hwy_29_bridge)",
-     "data/curated/waters/splits.json anchor: {\"type\": \"lake\", \"wbk\": \"329657308\", \"edge\": \"outlet\"}"
+     "data/curated/waters/cuts.json anchor: {\"type\": \"lake\", \"wbk\": \"329657308\", \"edge\": \"outlet\"}"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6118,7 +6086,7 @@
     "reason": "shuswap_river__mara_lake matched both lake ends (5,294 / 18,442 m); builder took 18,442 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward shuswap_river__mara_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6157,7 +6125,7 @@
     "reason": "shuswap_river__sugar_lake matched both lake ends (168,637 / 181,220 m); builder took 168,637 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward shuswap_river__mara_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6196,7 +6164,7 @@
     "reason": "shuswap_river__sugar_lake matched both lake ends (168,637 / 181,220 m); builder took 181,220 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6235,7 +6203,7 @@
     "reason": "shuswap_river__sugar_lake matched both lake ends (168,637 / 181,220 m); builder took 181,220 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward source)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6346,7 +6314,7 @@
     "reason": "stave_river__hayward_lake matched both lake ends (3,491 / 8,704 m); builder took 3,491 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6483,7 +6451,7 @@
     "reason": "pitt_river__pitt_lake matched both lake ends (20,784 / 46,556 m); builder took 20,784 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward pitt_river__cpr_bridge)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6522,7 +6490,7 @@
     "reason": "harrison_river__harrison_lake matched both lake ends (20,178 / 84,129 m); builder took 20,178 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
@@ -6563,7 +6531,7 @@
     "reason": "paul_creek__paul_lake matched both lake ends (16,736 / 22,531 m); builder took 16,736 m; agrees",
     "evidence": [
      "data/generated/reaches/full/rule_diagnostic.jsonl: ambiguous_cut payload (candidates, used, toward mouth)",
-     "data/curated/waters/splits.json anchor: generated lake split (no curated anchor)"
+     "data/curated/waters/cuts.json anchor: generated lake split (no curated anchor)"
     ],
     "preverify": {
      "status": "pre-verified",
