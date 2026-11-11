@@ -8,6 +8,16 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 afternoon — CI green; tidal plan agreed for the next rebuild (chat 11)
+
+- **Build 27:** app CI and pipeline CI are both green (the app red was one docs-guard test that only failed on a fresh
+  clone; fixed bd6e2f1c2). Next: `python -m pipeline release --staging --baseline data/generated/reaches/baseline-r-a178299f6005`,
+  then the chain in the entry below.
+- **Tidal, next rebuild (T665, owner agreed, design first):** every creek joining tidal water is cut where it leaves the
+  tidal polygon; all 206 lines wholly inside the polygon are removed, the 103 named ones too. Stream lines over tidal
+  shading (T662) dropped. Serpentine needs no change.
+- **Owed to the owner:** a clearer explanation of Chambers Creek (no change proposed).
+
 ## 2026-11-11 midday — owner answered; branch pushed; release waits only on CI (chat 11)
 
 - **Owner answers:** push allowed (pushed to 11a37ead7); build 27 releases without the nine DFO marks that need new cuts (on `NOT_LANDED_OK`, 1b879ae6e); Peace "except <water>" exception fine; Oxbows 0.45 km gap accepted (T663 dropped); Oxbows must be ONE item (T664); a stream wholly inside the tidal polygon is removed, named ones listed for the owner first; Serpentine's tidal boundary (BNSF bridge) lies below the mapped mouth so it must become the mouth, "others might be same issue".

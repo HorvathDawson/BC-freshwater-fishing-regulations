@@ -675,6 +675,7 @@ use that as the sole source of future work."
 | T662 | Stream lines still drawn over tidal water after the shore rule (creeks on tidal flats, 191 freshwater receivers, 32 uncut runs) | DROPPED | — | owner 2026-11-11: dropped; removing streams wholly inside the tidal polygon (T660 lane, next rebuild) covers enough of it |
 | T663 | Oxbows line 459615: valley piece below the cut is pruned (0.45 km not bound by the oxbow rule) | DROPPED | — | from the T637 build 27 check; same on the old atlas; owner picks accept or prune fix (next atlas rebuild); owner 2026-11-11: "probably fine", accepted as is |
 | T664 | Okanagan River Oxbows: one water, not 31 items (search and map list every channel) | OPEN | — | owner 2026-11-11; next atlas rebuild, with the nine waiting DFO cuts |
+| T665 | Tidal: cut every creek where it leaves the tidal polygon; remove the 206 lines wholly inside it (named too) | OPEN | — | owner 2026-11-11 on T660 A–J; design first; next atlas rebuild, after build 27 |
 
 ## Order for open tickets
 
