@@ -1,6 +1,6 @@
 # T561 — Static layers: real source dates, no-access overlap, OSM fetch checks; pipeline docs match the code
 
-Status: OPEN.
+Status: PARTIAL — pipeline side of all 8 items committed (9b5edac88, 36d196b7f, 56a9d60ef, 6326e3264, 3488e571d, df0b0d0d7, 41ecaabb5, 247112b44); left: the app/review-lane parts listed under "Done / left".
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 17 of 17; highest severity 2 of 5.
 
@@ -68,3 +68,13 @@ Fix the items above in severity order, one commit per item where they are separa
 The app shows the FWA vintage, not the local file date; access layers carry a date. Overlapping no-access polygons are unioned before the share is summed. fetch_data fails on an Overpass remark or an empty answer. The listed stale docs and comments are corrected or marked historical.
 
 Depends: —. Size: S. Owner: no.
+
+## Done / left (2026-11-10)
+1. 9b5edac88 — fetch_data records each layer's SOURCE day in `bc_fisheries_data.source.json` (`pipeline.common.source_dates`; FWA from the object store's s3b-last-modified, probed: 2024-03-26); `sources_block` dates the FWA from it, never `last_change`; `source_pins pin` copies it (`layer_dates`). A release built now states fwa 2024-03-26, past the app's 730-day rule. LEFT: an `access` source key — `SOURCE_KEYS` feeds `pack.generated.ts` and the app's freshness list (app lane); the access-layer days are already in the sidecar.
+2. 36d196b7f — `section_no_access` (union share, ≤1000) is what `mostly_inside` reads; `write` refuses a bundle where the summed per-area rule (app, paint_sync) and the union disagree. Live tiles: 7 summed >1000, union max 1000, 0 disagree. LEFT: the app (`core/access.ts`) and the release format still sum per-area rows — ship the union share to the app.
+3. 56a9d60ef — Overpass remark / no elements = OverpassPartial (retried, then fails); empty results fail; the named area is pinned by OSM way 1166294466 (was labelled a relation); missing BC boundary and a failed roster fail; row counts recorded and `source_pins pin` refuses a >10% drop without `--accept-drop`.
+4. 6326e3264 — promote.py, build.py, vintage.py reworded. LEFT: `pipeline/regs/review/gate.py:13` (review lane; pending in test_doc_drift).
+5. 3488e571d — ReachCache/entry_key deleted; cache.py is the POLICY_VERSION changelog; REACH-BUILDER.md rewritten from the code; AGENTS 20 updated.
+6. df0b0d0d7 — 15-live-data-flow.md gauges section, cuts.py/review.py/build.py/bundle_tables.py/check_curated.py paths, schema.sql + climatology.py wording; empty pipeline/atlas/gauges removed. LEFT: `app/packages/core/src/staleness.ts:66` ("every run"; app lane).
+7. 41ecaabb5 — both READMEs and MAP.md say audit.py was deleted in T436 and how to restore it.
+8. 247112b44 — HANDOFF-curated-layout.md marked historical. LEFT (review lane): apply.py/export.py/write_through.py/apply_proposals.py docstrings, data/curated/review/README.md marks.jsonl rule + its test.
