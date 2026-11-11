@@ -17,7 +17,24 @@ import {
 
 let st: RegsStore;
 let sec: SectionNames;
-beforeAll(async () => { const loader = openRegsFixtureWithLines(); st = await openRegsStore(loader); sec = sectionNames(loader); });
+// (T667) parts are named by their ENDS, never typed as numbers (`part_ix` is river order: one more cut renumbers the ones
+// above it): the Chilliwack's five parts in river order, and the three Skeena parts the tests name
+const CH_ENDS = [["continues:gnis:3062", "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream"],
+  ["chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream", "chilliwack_vedder_rivers__tamihi_rapids_bridge"],
+  ["chilliwack_vedder_rivers__tamihi_rapids_bridge", "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek"],
+  ["chilliwack_vedder_rivers__boundary_signs_below_slesse_creek", "area:CHILLIWACK RIVER ECOLOGICAL RESERVE"],
+  ["area:CHILLIWACK RIVER ECOLOGICAL RESERVE", "source"]] as const;
+const SKEENA_HOST_CHANNEL = 360216952;   // the Exchamsiks host channel's FWA stream key (a key is a name; its part number is not)
+let CH: number[];
+let SK_TIDAL_UP: number, SK_EXCHAMSIKS_UP: number, SK_SIDE: number;
+beforeAll(async () => {
+  const loader = openRegsFixtureWithLines(); st = await openRegsStore(loader); sec = sectionNames(loader);
+  CH = await Promise.all(CH_ENDS.map(([lo, hi]) => sec.part("gnis:8634", lo, hi)));
+  SK_TIDAL_UP = await sec.part("gnis:2936", "skeena_river__tidal_boundary", "skeena_river__exchamsiks_river_into_skeena_river");
+  SK_EXCHAMSIKS_UP = await sec.part("gnis:2936", "skeena_river__exchamsiks_river_into_skeena_river",
+    "skeena_river__zymagotitz_river_into_skeena_river");
+  SK_SIDE = await sec.partAt("gnis:2936", SKEENA_HOST_CHANNEL, 1017);   // the Exchamsiks host channel above the cut: a part with no ends
+});
 
 const run = (g: WaterGroup, s: WaterMapState, ...as: WaterMapAction[]) => as.reduce((x, a) => waterMapStep(g, x, a), s);
 const view = (g: WaterGroup, s: WaterMapState) => waterMapView(g, s)!;
@@ -84,9 +101,9 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
     // (T517) a mark says the same words as the ends of the parts it joins
     expect(view(g, s).pop).toEqual({
       title: "100 m below the Slesse Creek confluence", close: "Close",
-      upLabel: "Upstream", up: [{ ix: 3, item: "gnis:8634", partIx: 3, note: "Chilliwack River",
+      upLabel: "Upstream", up: [{ ix: 3, item: "gnis:8634", partIx: CH[3], note: "Chilliwack River",
         name: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary" }],
-      downLabel: "Downstream", down: { ix: 2, item: "gnis:8634", partIx: 2, note: "Chilliwack River",
+      downLabel: "Downstream", down: { ix: 2, item: "gnis:8634", partIx: CH[2], note: "Chilliwack River",
         name: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence" } });
     expect(view(g, s).marks.map((m) => [m.ix, m.on, m.label !== null]))
       .toEqual([[0, false, true], [1, false, false], [2, true, true], [3, false, false]]);
@@ -121,10 +138,10 @@ describe("the Chilliwack: ▼ / ▲ through its five parts, the ends disabled, t
 
   it("Show regulations for this part names the part's item and part_ix", async () => {
     const g = await loadWaterGroup(st, "gnis:8634");
-    expect(view(g, waterMapStart(3)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:8634", partIx: 3 });
+    expect(view(g, waterMapStart(3)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:8634", partIx: CH[3] });
     // where the map's index is not the part's (the Skeena: its tidal part 0 is no entry), the part's own part_ix
     const sk = await loadWaterGroup(st, "gnis:2936");
-    expect(view(sk, waterMapStart(2)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:2936", partIx: 3 });
+    expect(view(sk, waterMapStart(2)).regs).toEqual({ label: "Show regulations for this part", item: "gnis:2936", partIx: SK_EXCHAMSIKS_UP });
   });
 });
 
@@ -136,16 +153,16 @@ describe("(T150) the parts of this water, listed under the map — the header's 
         { ix: 0, item: "gnis:8634", partIx: 0, note: "", here: false,
           name: "Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge)",
           aria: "Vedder Crossing Bridge → Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge), part 1 of 5 · Chilliwack River" },
-        { ix: 1, item: "gnis:8634", partIx: 1, note: "", here: true,
+        { ix: 1, item: "gnis:8634", partIx: CH[1], note: "", here: true,
           name: "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) → Tamihi Rapids Bridge",
           aria: "Orange triangular boundary signs (200 m upstream of Vedder Crossing bridge) → Tamihi Rapids Bridge, part 2 of 5 · Chilliwack River" },
-        { ix: 2, item: "gnis:8634", partIx: 2, note: "", here: false,
+        { ix: 2, item: "gnis:8634", partIx: CH[2], note: "", here: false,
           name: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence",
           aria: "Tamihi Rapids Bridge → 100 m below the Slesse Creek confluence, part 3 of 5 · Chilliwack River" },
-        { ix: 3, item: "gnis:8634", partIx: 3, note: "", here: false,
+        { ix: 3, item: "gnis:8634", partIx: CH[3], note: "", here: false,
           name: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary",
           aria: "100 m below the Slesse Creek confluence → Chilliwack River Ecological Reserve boundary, part 4 of 5 · Chilliwack River" },
-        { ix: 4, item: "gnis:8634", partIx: 4, note: "", here: false,
+        { ix: 4, item: "gnis:8634", partIx: CH[4], note: "", here: false,
           name: "Chilliwack River Ecological Reserve boundary → Source",
           aria: "Chilliwack River Ecological Reserve boundary → Source, part 5 of 5 · Chilliwack River" }] });
     const open = run(g, waterMapStart(1), { type: "list" });
@@ -193,8 +210,8 @@ describe("a fork upstream: the Skeena's Ecological Reserve", () => {
     const open = run(g, reserve, { type: "up" });
     expect(open).toEqual({ ...reserve, choosing: "up" });
     expect(view(g, open).chooser).toEqual({ title: "Which way upstream?", close: "Close", options: [
-      { ix: 1, item: "gnis:2936", partIx: 2, name: "Tidal boundary → Exchamsiks River confluence", note: "Skeena River" },
-      { ix: 16, item: "gnis:2936", partIx: 17, name: "Skeena River", note: "Skeena River" }] });
+      { ix: 1, item: "gnis:2936", partIx: SK_TIDAL_UP, name: "Tidal boundary → Exchamsiks River confluence", note: "Skeena River" },
+      { ix: 16, item: "gnis:2936", partIx: SK_SIDE, name: "Skeena River", note: "Skeena River" }] });
     expect(run(g, open, { type: "choose", to: 1 })).toEqual(waterMapStart(1));
     expect(run(g, open, { type: "choose", to: 16 })).toEqual(waterMapStart(16));
     // not one of the ways up: nothing

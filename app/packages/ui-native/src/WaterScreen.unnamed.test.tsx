@@ -26,13 +26,17 @@ afterEach(cleanup);
 const DAY = new Date(2026, 9, 10, 12);   // Sat Oct 10
 const HARRIS = "Harris Creek";
 /** (T441) the tapped reach, named by what it IS — stream 354088147 from 0 m — never by id (a re-cut renumbers it).
- *  The fixture source, with flow pointers for the tapped reach: it → 9001 (unnamed) → 9002 (a named water). */
-const TRIB = await sectionNames(openRegsFixtureWithLines()).stream(354088147, 0);
+ *  The fixture source, with flow pointers for the tapped reach: it → HOP (unnamed) → END (a named water). */
+const NAMES = sectionNames(openRegsFixtureWithLines());
+const TRIB = await NAMES.stream(354088147, 0);
+// (T667) the two sections downstream of it are the fixture's own, by name: an unnamed hop (Kootenay Lake's Upper West Arm,
+// a lake section) and the named water the trace ends in (its Lower West Arm)
+const HOP = await NAMES.lake("wbk:-21", 0), END = await NAMES.lake("wbk:-22", 0);
 function sourceFlowing(): WaterSource {
   const base = makeFixtureSource();
   return { ...base,
-    traceToGauge: async (from: SectionId) => (from === TRIB ? [TRIB, 9001, 9002] as SectionId[] : [from]),
-    waterFor: async (s: SectionId) => (s === 9002 ? { item: "gnis:9" as ItemId, name: HARRIS, kind: "stream" } : base.waterFor(s)),
+    traceToGauge: async (from: SectionId) => (from === TRIB ? [TRIB, HOP, END] as SectionId[] : [from]),
+    waterFor: async (s: SectionId) => (s === END ? { item: "gnis:9" as ItemId, name: HARRIS, kind: "stream" } : base.waterFor(s)),
   };
 }
 

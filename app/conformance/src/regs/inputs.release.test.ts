@@ -8,8 +8,10 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { partNameOf, type DisplayFrame, type RegsInputs } from "@app/core";
+import { sectionNames } from "@app/data/release/node";
 import { loadRegsInputs, RegsInputsError, targetFor, type RegsStore } from "@app/data/regs";
-import { baseUnnamedStream, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
+import { openReleaseDir } from "../fixtureRelease";
+import { absentHandle, baseUnnamedStream, inputsOf, paritySkip, regsStore, releasePairing, requestOf, taps } from "./golden";
 
 const T = taps();
 const ids = Object.keys(T.states);
@@ -41,6 +43,7 @@ const displayIds = (inp: RegsInputs): Map<DisplayFrame, number> =>
 describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path ?? at.reason})`, () => {
   let st: RegsStore;
   beforeAll(async () => { st = (await regsStore())!; });
+  const names = () => sectionNames(openReleaseDir(at.path!));
 
   it("1. vedder_515: the item, key, segment, cell, the year and the rules through the part's via", async () => {
     const inp = await load(st, "gnis:3062", 0, 5, 15, "Friday");
@@ -79,8 +82,11 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
   // PART_MOVED)
   // (T517) part_ix is river order: x15p7 ("Within Landstrom Bar sign zone") is part 2
   it("4. x15p7_1010 (an hours window: outside it) and x31p_1010 (tidal)", async () => {
-    expect(requestOf("x15p7_1010").target).toEqual({ kind: "part", item: "gnis:39325", partIx: 2 });
-    const x15 = await load(st, "gnis:39325", 2, 10, 10, "Saturday");
+    // (T667) the part by its ENDS (the Landstrom Bar sign zone), never its number
+    const landstrom = await names().part("gnis:39325", "area:Fraser River — Landstrom Bar sign zone@km156.4",
+      "area:Fraser River — Landstrom Bar sign zone@km156.5");
+    expect(requestOf("x15p7_1010").target).toEqual({ kind: "part", item: "gnis:39325", partIx: landstrom });
+    const x15 = await load(st, "gnis:39325", landstrom, 10, 10, "Saturday");
     expect([x15.s, x15.cell!.display]).toEqual([4, cellOf("x15p7_1010").display]);
     const x31 = await load(st, "wbk:329504244", 0, 10, 10, "Saturday");
     expect([x31.key!.tidal, x31.frames!.display.status]).toEqual([true, "tidal"]);
@@ -132,7 +138,7 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
       .toEqual([null, 0, u.akey, "stream", { label: u.name.split(" · ")[1], name: u.name }, null]);
     expect(u.name).toMatch(/^Unnamed stream · Regions? \d/);
     expect(inp.frames).not.toBeNull();
-    const out = await loadRegsInputs(st, { kind: "section", handle: 2_000_000_000 }, { month: 10, day: 10 }, "Saturday", 2026);
+    const out = await loadRegsInputs(st, { kind: "section", handle: await absentHandle(st) }, { month: 10, day: 10 }, "Saturday", 2026);
     expect([out.key, out.place, out.item, out.frames]).toEqual([null, null, null, null]);
     for (const u of T.unnamed) {
       const v = await loadRegsInputs(st, { kind: "section", handle: u.handle }, { month: 10, day: 10 }, "Saturday", 2026);
@@ -143,14 +149,19 @@ describe.skipIf(pairing.skip)(`T09 loadRegsInputs on the live release (${at.path
   it("9. targetFor: no section → the first part with a key; a section of the Cowichan's part 1 → part 1", async () => {
     expect(await targetFor(st, "gnis:3062", null)).toEqual({ kind: "part", item: "gnis:3062", partIx: 0 });
     const cow = T.states.cow1_1010!;
-    const sids = await (await st.water()).all("SELECT sid FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", cow.item_ord, 1);
+    // (T667) the Cowichan's part by its ends (the CNR trestle's upstream neighbour), never its number
+    const cnr = await names().part(cow.item, "cowichan_river__white_triangle_boundary_sign_loc", "cowichan_river__cnr_trestle");
+    const sids = await (await st.water()).all("SELECT sid FROM part_section WHERE ord = ? AND part_ix = ? ORDER BY sid", cow.item_ord, cnr);
     expect(sids.length).toBeGreaterThan(0);
-    for (const r of sids) expect(await targetFor(st, cow.item, Number(r.sid))).toEqual({ kind: "part", item: cow.item, partIx: 1 });
+    for (const r of sids) expect(await targetFor(st, cow.item, Number(r.sid))).toEqual({ kind: "part", item: cow.item, partIx: cnr });
   });
 
   it("10. refusals: an unknown water, a part the water does not have", async () => {
     await expect(load(st, "nope", 0, 10, 10, "Saturday")).rejects.toThrow(/no water/);
-    await expect(load(st, "gnis:3062", 99, 10, 10, "Saturday")).rejects.toBeInstanceOf(RegsInputsError);
+    // (T667) a part the water does not have: one past its last, read from the release
+    const last = await (await st.water()).all("SELECT MAX(p.part_ix) AS m FROM part p JOIN item i ON i.item_ord = p.item_ord " +
+      "JOIN str s ON s.id = i.item_id WHERE s.text = ?", "gnis:3062");
+    await expect(load(st, "gnis:3062", Number(last[0]!.m) + 1, 10, 10, "Saturday")).rejects.toBeInstanceOf(RegsInputsError);
   });
 
   it("11. timing: all 134 golden taps, warm, in ≤ 3 s (node)", async () => {

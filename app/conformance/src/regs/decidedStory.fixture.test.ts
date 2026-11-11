@@ -107,7 +107,9 @@ describe.skipIf(!LIVE)(`T216 on the live release (${LIVE ?? "absent"})`, () => {
 
   it("a closed water: Chimney Creek above Brunson Lake, May 15 — the spring closure decides; the region's limits lose to it", async () => {
     // (T517) part_ix is river order: "Brunson Lake → Source" is part 1 ("Mouth → Brunson Lake outlet" is 0)
-    const s = storyOf(await rowsOf(await openRegsStore(openReleaseDir(LIVE!)), "gnis:39269", 1, 5, 15), /^Brook trout/);
+    // (T667) the part by its ENDS: Brunson Lake's inlet up to the source
+    const part = await sectionNames(openReleaseDir(LIVE!)).part("gnis:39269", "lake_inlet:wbk:329370951", "source");
+    const s = storyOf(await rowsOf(await openRegsStore(openReleaseDir(LIVE!)), "gnis:39269", part, 5, 15), /^Brook trout/);
     expect(steps(s, /^Fraser and Thompson/)).toEqual(["No fishing in streams, Apr 1-Jun 30: Fraser and Thompson watersheds in Region 5, "
       + "except the Fraser mainstem Rule book p.42 ↗ | Decides it | A closure decides it: a closure beats any limit that would let you keep fish."]);
     expect(steps(s, /^Region 5/)).toContain("Keep up to 5 burbot a day. Rule book p.42 ↗ | Overridden | "

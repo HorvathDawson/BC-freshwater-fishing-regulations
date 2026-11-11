@@ -239,6 +239,15 @@ export async function baseUnnamedStream(st: RegsStore): Promise<TapsFile["unname
   throw new Error("taps.json samples no unnamed stream answered by its region's base alone — regenerate taps.py's sample");
 }
 
+/** (T667) A section handle the release does not have — "outside B.C.": the first handle of the 4096-handle block after the
+ *  last one the release names (a part's section, or taps.json's unnamed sample). Derived from `st`, never typed: a
+ *  literal such as 2_000_000_000 is one build's idea of "past the end". */
+export async function absentHandle(st: RegsStore): Promise<number> {
+  const rows = await (await st.water()).all("SELECT MAX(sid) AS m FROM part_section");
+  const top = Math.max(Number(rows[0]?.m ?? 0), ...tapsOnce().unnamed.map((u) => u.handle));
+  return (Math.floor(top / 4096) + 1) * 4096;
+}
+
 // ── T12: cases ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
 export const ADULT_RESIDENT: Who = { age: "adult", residency: "resident" };

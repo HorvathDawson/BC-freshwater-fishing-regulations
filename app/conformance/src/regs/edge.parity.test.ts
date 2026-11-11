@@ -14,7 +14,7 @@
 import { describe, expect, it } from "vitest";
 import { buildRegsPage, edgeKind, plain, segmentIndex, tapDay, type CaveatVM, type RegsPage } from "@app/core";
 import { loadRegsInputs } from "@app/data/regs";
-import { ADULT_RESIDENT, baseUnnamedStream, inputsOf, parityGate, parityStore, requestOf, taps } from "./golden";
+import { absentHandle, ADULT_RESIDENT, baseUnnamedStream, inputsOf, parityGate, parityStore, requestOf, taps } from "./golden";
 
 const T = taps();
 const gate = await parityGate();
@@ -88,7 +88,7 @@ describe.skipIf(gate.skip)("T42 edge states on the live release", () => {
 
   it("outside B.C. on the release: a handle with no key draws the foot line alone and no other tab", async () => {
     const st = (await parityStore())!;
-    const inp = await loadRegsInputs(st, { kind: "section", handle: 2_000_000_000 }, { month: 10, day: 10 }, "Saturday", 2026);
+    const inp = await loadRegsInputs(st, { kind: "section", handle: await absentHandle(st) }, { month: 10, day: 10 }, "Saturday", 2026);
     const p = buildRegsPage(inp, { today: { month: 10, day: 10 }, who: ADULT_RESIDENT });
     expect([edgeKind(inp), p.status, p.keep.order, p.keep.outside, p.gear, p.methods, p.licence]).toEqual(
       ["outside", "outside", ["outside"], "This part of the water is outside B.C.: no B.C. rules apply.", null, null, null]);

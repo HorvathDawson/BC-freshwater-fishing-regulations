@@ -17,7 +17,7 @@ import { makeFixtureSource } from "@app/data/fixture";
 import type { ItemId, WaterSource, SectionId } from "@app/data";
 import type { Spot } from "@app/data/spots";
 import type { ReleaseLoader } from "@app/data/release";
-import { openRegsFixture } from "@app/data/release/node";
+import { openRegsFixture, openRegsFixtureWithLines, sectionNames } from "@app/data/release/node";
 import { HOME, type RegsStart, type Route, type SystemBack } from "@app/ui";
 
 /** Android's BackHandler, as Android drives it: listeners newest first; a press none handles goes to Android. */
@@ -109,8 +109,14 @@ async function mount(initialRoute: Route, system: SystemBack = nativeBack, loade
  * fixture release holds the lake), and one section the test answers by hand: `held.release()` lets its lookup finish.
  */
 const KLWA: Record<string, string> = { "wbk:-21": "Kootenay Lake — Upper West Arm", "wbk:-22": "Kootenay Lake — Lower West Arm" };
-const KLWA_SID = 990_022 as SectionId, SLOW_SID = 990_001 as SectionId;
-function withLake() {
+// (T667) the two handles are the fixture release's own lake sections, found by name (never typed): the lake's Lower West
+// Arm, and the Upper one standing in for "a section whose lookup the test holds"
+async function lakeSids() {
+  const names = sectionNames(openRegsFixtureWithLines());
+  return { klwa: await names.lake("wbk:-22", 0) as SectionId, slow: await names.lake("wbk:-21", 0) as SectionId };
+}
+async function withLake() {
+  const { klwa: KLWA_SID, slow: SLOW_SID } = await lakeSids();
   const base = makeFixtureSource();
   let release = () => {};
   const held = new Promise<void>((ok) => { release = ok; });
@@ -120,7 +126,7 @@ function withLake() {
       : s === SLOW_SID ? (await held, JEPERSON) : base.itemForSection(s)),
     water: async (i) => (KLWA[i] ? { item: i, name: KLWA[i]!, kind: "lake", sections: [] } : base.water(i)),
   };
-  return { source, release: async () => { await act(async () => { release(); await held; }); } };
+  return { source, klwa: KLWA_SID, slow: SLOW_SID, release: async () => { await act(async () => { release(); await held; }); } };
 }
 
 /**
@@ -401,14 +407,14 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
 
   it("(T58) a split lake is held once: from a river opened over Kootenay Lake's Upper West Arm, a tap on its Lower West Arm " +
      "goes back to the lake (not a second frame), so ONE back is the map", async () => {
-    const lake = withLake();
+    const lake = await withLake();
     const frame = { part: null, tapSid: null, at: null };
     await mount({ mode: "water", from: HOME, stack: [{ ...frame, item: "wbk:-21" as ItemId, view: "regs" },
                                                      { ...frame, item: CHILLIWACK, view: "map" }] },
                 nativeBack, openRegsFixture(), { source: lake.source });
     await onWaterMap();
     const seen = [where()];
-    TAP.sid = KLWA_SID;
+    TAP.sid = lake.klwa;
     await click("tap the map");
     await until(() => screen.queryByText(KLWA["wbk:-22"]!) !== null && paneShown());
     expect([...seen, ...backs(2)]).toEqual([
@@ -438,11 +444,11 @@ describe("Android's back, surface by surface (HANDOFF-ui 'Back, everywhere')", (
   }, 60_000);
 
   it("(T58) a slow tap on a water's map: back pressed before its lookup finishes — the late answer opens nothing", async () => {
-    const lake = withLake();
+    const lake = await withLake();
     await mount({ mode: "water", from: HOME, stack: [{ item: CHILLIWACK, part: null, tapSid: null, at: null, view: "map" }] },
                 nativeBack, openRegsFixture(), { source: lake.source });
     await onWaterMap();
-    TAP.sid = SLOW_SID;
+    TAP.sid = lake.slow;
     await click("tap the map");
     const seen = backs(1);
     await lake.release();

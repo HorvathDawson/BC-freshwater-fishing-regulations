@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import type { ItemId, SectionId } from "@app/data";
 import { openRegsStore } from "@app/data/regs";
-import { openRegsFixture } from "@app/data/release/node";
+import { openRegsFixture, openRegsFixtureWithLines, regsFixtureLines, sectionNames } from "@app/data/release/node";
 import { frameBasinAsk } from "./basin";
 import { carryRoute, entryAt } from "./carry";
 import { frameHere, frameSection, type FrameNav } from "./frameView";
@@ -77,16 +77,27 @@ describe("(T369 D8, owner 2026-11-04) a new release with a water open: the same 
       .toEqual([{ part: 0 }, { part: 2 }, { part: 2 }]);
   });
 
+});
+
+// (T667) its own block: the test above runs on invented geometry (NAV); this one on the regs fixture release, whose
+// sections and parts are named, never numbered
+describe("(T369 D8, owner 2026-11-04) a new release with a water open: carried into the same release", () => {
   it("carried into the same release, every named frame stays on its part (its tap dropped); an unnamed reach is left", async () => {
     const st = await openRegsStore(openRegsFixture());
+    const names = sectionNames(openRegsFixtureWithLines());
     const C = "gnis:19986" as ItemId;
+    // the Coquitlam's part from the Lougheed Highway bridge up to the watershed area, and a section on it (the Coquitlam's
+    // stream key from 7028 m); the unnamed reach is the fixture's own, never a typed handle
+    const upper = await names.part(C, "coquitlam_river__lougheed_highway_bridge", "area:Coquitlam Watershed [13480215]");
+    const onUpper = await names.stream(356364584, 7028) as SectionId;
+    const unnamed = regsFixtureLines().unnamed as SectionId;
     const r: WaterRoute = { mode: "water", from: HOME, stack: [
-      { item: C, part: 2, tapSid: 316504 as SectionId, at: null, view: "conditions" },
+      { item: C, part: upper, tapSid: onUpper, at: null, view: "conditions" },
       { item: C, part: 0, tapSid: null, at: null, view: "map" },
-      { item: null, part: null, tapSid: 99 as SectionId, at: null, view: "regs" }] };
+      { item: null, part: null, tapSid: unnamed, at: null, view: "regs" }] };
     const a = await carryRoute(r, st, st);
     expect(a).toEqual({ type: "carry", stack: [
-      { item: C, part: 2, tapSid: null, at: null, view: "conditions" },
+      { item: C, part: upper, tapSid: null, at: null, view: "conditions" },
       { item: C, part: 0, tapSid: null, at: null, view: "map" }] });
     expect(reduce(r, a)).toEqual({ ...r, stack: (a as { stack: unknown }).stack });
     expect(reduce(r, { type: "carry", stack: [] })).toBe(HOME);

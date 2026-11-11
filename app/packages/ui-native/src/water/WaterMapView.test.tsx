@@ -30,6 +30,16 @@ const loader = openRegsFixture();
 const sections = sectionNames(openRegsFixtureWithLines());
 // (T517) the Chilliwack's mouth part (part_ix 0: the 200 m below the DFO salmon chain's cut above the Vedder Crossing
 // bridge) lights its one section; the rest of the river is every other part's (the same part's `highlight` and `water`)
+// (T667) the parts the tests mount, NAMED by their ends (`part_ix` is river order: one more cut renumbers every part above it)
+const PARTS = {
+  chwUpper: ["gnis:8634", "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_upstream", "chilliwack_vedder_rivers__tamihi_rapids_bridge"],
+  coqMouth: ["gnis:19986", "coquitlam_river__mary_hill_bypass_bridge", "coquitlam_river__lougheed_highway_bridge"],
+  skeenaReserve: ["gnis:2936", "area:SKEENA RIVER ECOLOGICAL RESERVE@km63.5",
+    "area:SKEENA RIVER ECOLOGICAL RESERVE@near:skeena_river__exchamsiks_river_into_skeena_river"],
+  vedderUpper: ["gnis:3062", "chilliwack_vedder_rivers__vedder_crossing_bridge_200_m_downstream", "chilliwack_vedder_rivers__vedder_crossing_bridge"],
+  zymoetzLake: ["gnis:3137", "zymoetz__mcdonell_lake_3000_m_downstream", "lake_outlet:wbk:329682393"],
+} as const;
+const partOf = (k: keyof typeof PARTS) => { const [item, lo, hi] = PARTS[k]; return sections.part(item, lo, hi); };
 const CHW0_LIT = [[380887781, 0]] as const;
 const CHW0_WATER = [[355993454, 0], [355993455, 0], [355993456, 0], [355998527, 0], [355999283, 0], [355999620, 0],
                     [356000264, 0], [380887781, 200], [380887817, 0],
@@ -73,7 +83,7 @@ const lit = () => ({ highlight: [...(seen.props?.highlight ?? [])], water: [...(
 
 describe("<WaterMapView> (T150 / T151)", () => {
   it("T151: the map is told to mark the part by DIMMING the rest (cue \"dim\"), never the browse map's outline", async () => {
-    mount("gnis:8634", 1);
+    mount("gnis:8634", await partOf("chwUpper"));
     await ready();
     expect([seen.props?.selection, lit().highlight.length > 0, lit().water.length > 0]).toEqual(["dim", true, true]);
   });
@@ -147,7 +157,7 @@ describe("<WaterMapView>", () => {
   }, 30_000);
 
   it("(T345) a mouth on TIDAL water: 'Flows into the tidal Fraser River' is plain words, no link, nothing opened", async () => {
-    const calls = mount("gnis:19986", 1);   // (T517) its mouth part is part_ix 1 (river order; no part 0 on the map)
+    const calls = mount("gnis:19986", await partOf("coqMouth"));   // (T517) its mouth part is part_ix 1 (river order; no part 0 on the map)
     await ready();
     const exit = screen.getByTestId("water-map-exit");
     expect([exit.textContent, screen.queryByRole("link", { name: /Flows into/ }), exit.closest("[role=link], [role=button]")])
@@ -227,7 +237,7 @@ describe("<WaterMapView>", () => {
   // Reserve is part 1 (named by its two crossings of the Reserve's boundary), the mainstem round it part 2 (from the tidal
   // boundary: it joins the stem below and above the Reserve), the channel (no ends: said as its water) part 17
   it("a fork upstream: ▲ on the Skeena's Ecological Reserve opens the chooser, the main stem first", async () => {
-    mount("gnis:2936", 1);
+    mount("gnis:2936", await partOf("skeenaReserve"));
     await ready();
     expect(screen.getByTestId("water-map-name").textContent).toBe(
       "Skeena River Ecological Reserve boundary (km 63.5) → Skeena River Ecological Reserve boundary near the Exchamsiks River confluence");
@@ -311,7 +321,7 @@ describe("<WaterMapView>", () => {
     await ready();
     expect(bar()).toBe("Part 1 of 2 · Vedder River | Mouth → Cable car crossing (200 m downstream of Vedder Crossing bridge) | Lowest part (off) | Upstream | Flows into Sumas River ›");
     cleanup();
-    const calls = mount("gnis:3062", 1);
+    const calls = mount("gnis:3062", await partOf("vedderUpper"));
     await ready();
     expect(bar()).toBe("Part 2 of 2 · Vedder River | Cable car crossing (200 m downstream of Vedder Crossing bridge) → Vedder Crossing Bridge | Downstream | Upstream into Chilliwack River");
     // the words wrap (two lines at most, then cut with an ellipsis) inside the half-width button at 390 px
@@ -329,7 +339,7 @@ describe("<WaterMapView>", () => {
   }, 30_000);
 
   it("(T517) ▲ from the Zymoetz's lake part steps onto the source part, a part of its own named by its own ends", async () => {
-    const calls = mount("gnis:3137", 4);
+    const calls = mount("gnis:3137", await partOf("zymoetzLake"));
     await ready();
     expect(screen.getByTestId("water-map-name").textContent).toBe("McDonell Lake (3000 m downstream) → McDonell Lake outlet");
     fireEvent.click(screen.getByRole("button", { name: "Upstream" }));
