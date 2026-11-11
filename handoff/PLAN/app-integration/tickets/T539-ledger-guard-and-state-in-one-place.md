@@ -1,6 +1,6 @@
 # T539 — Ledger guard checks that IN REVIEW can close; state lives in one place
 
-Status: OPEN.
+Status: PARTIAL — 7323ce649; left (Claude): drain NO_STEP_YET (62 older IN REVIEW / PARTIAL rows) and move the restart page's owner-waiting sections to OWNER-TODO (see "Built" below).
 
 Source: workflow review 2026-11-09 (verified against the files). Rank 7.
 
@@ -33,3 +33,10 @@ Source: workflow review 2026-11-09 (verified against the files). Rank 7.
 - Ledger passes with every IN REVIEW ticket naming a step that exists.
 
 Depends: —. Size: M. Owner: no.
+
+## Built (2026-11-10, 7323ce649)
+- `app/tools/check-tickets.mjs` (runs in `pnpm check` and fast-fail's "ticket ledger"): an IN REVIEW or PARTIAL Status line must name its step as `owner: OWNER-TODO "<text>"` (the text must exist in OWNER-TODO.md) or `left (Claude): …`; IN REVIEW whose only step is Claude's is flagged "that is IN PROGRESS". The 62 rows that predate the rule are on `NO_STEP_YET` (a list that only shrinks: a listed id that now complies, or is no longer in review, fails until it is taken off; a new ticket cannot be added). T529 was already DONE (smoke 18/18, r-a178299f6005).
+- Docs guard, same script (`checkDocs`): STATUS.md starts with its title; every repo path cited in backticks in START-HERE, the restart page and OWNER-TODO exists (git-ignored outputs may be absent); the restart page holds no release id or build number; AGENTS rule ids are unique.
+- Doc fixes the guard forced: the 5 stray lines above STATUS.md's title moved whole under "Orphan lines (T539)" at the end; the restart page's State bullet now points to the STATUS top entry (release id and Play build removed); OWNER-TODO: two dead paths reworded, phone-check item renamed "Phone check (current build)"; AGENTS: Absolute rules are A1-A6, Working-style 45/46 are W45/W46 (other files cite 5/6/45/46 for the data-model and Reading rules, so those keep their numbers); the ticket-ledger bullet and the CONFIRM_PROD line corrected.
+- Proof: `app/tools/check-tickets.test.ts` (28 tests: IN REVIEW/PARTIAL with no step, a gone OWNER-TODO text, Claude-only IN REVIEW, a stale or new NO_STEP_YET id, STATUS stray lines, a dead path in each of the three docs, restart-page state, a repeated rule id) and `node app/tools/check-tickets.mjs` against the live ledger and docs: passes.
+- Left (Claude): (1) drain `NO_STEP_YET` (62 ids: re-word each Status line with its step, or close it); (2) the restart page still lists "Waiting on the owner" and "Review app leftovers" sections, which are state (owner items belong in OWNER-TODO); the guard checks only release ids and build numbers there; (3) the 19 ticket files citing "Phone check with build 22" are not edited (the guard does not read them); (4) `scripts/fast-fail.sh` already runs the guard; no change needed there.
