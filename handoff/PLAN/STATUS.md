@@ -8,6 +8,24 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 afternoon (later) — build 27 release is live locally; staging upload waits on GitHub (chat 11)
+
+- **Release r-303b4007a70a:** built, checked and promoted; LATEST = r-303b4007a70a (was r-a178299f6005).
+- **Three fixes on the way (pushed, HEAD d2dc3e5):** two tests failed only under fast-fail's no-build plugin (a8a1fbc,
+  9f81817); the Oxbows in-season notice now names the same 53 waters as the book entry, Park Rill out (d2dc3e5).
+- **Staging upload blocked:** GitHub refuses to start the run-timing workflow ("startup failure", three tries, GitHub's
+  page says "An unexpected error has occurred"; the workflow file is valid, a pipeline CI run on the same commit is
+  stuck "in progress" with every step done). The release pointer on staging is NOT written. Retry:
+  `python -m pipeline release --staging` (finished steps are skipped).
+- **Running:** full chunked pipeline suite against the new LATEST (`$TMPDIR/b27/testfull.log`); T665 design agent
+  (design only, `handoff/PLAN/app-integration/T665-design.md`).
+- **Then:** T661 item 3 (install the heavy.sh gate), staging site, store screenshots (T319) + Stellako card, build 27
+  (patched MapLibre) to Play internal, owner phone check.
+- **Agreed order after build 27 (owner):** hardening and leftovers + closed-testing items (T495) + T625 + next atlas
+  rebuild (T664, T665, nine DFO cuts) → owner runs `/code-review ultra` → fixes → build + phone check → closed testing.
+  Decisions are collected in OWNER-TODO.md and worked through at the end.
+- **Next free ticket: T666.**
+
 ## 2026-11-11 afternoon — CI green; tidal plan agreed for the next rebuild (chat 11)
 
 - **Build 27:** app CI and pipeline CI are both green (the app red was one docs-guard test that only failed on a fresh
