@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   ALERT_STALE_MS, alertContextLine, alertLine, alertListLine, alertNotification, alertSummary, evaluateAlert,
   evaluateAlerts, findGauges, hasRecord, migrateAlertRule, newestReading, normalRangeOf, parseAlertValue,
-  percentileByDay, percentileOk, rearmMargin, readingDay, runLine, thresholdAt, NOTIFY_WORDS,
+  percentileByDay, percentileOk, rearmMargin, refreshAlertLines, readingDay, runLine, thresholdAt, NOTIFY_WORDS,
   type AlertReading, type AlertRuleState, type AlertThreshold, type GaugeAlertRule,
 } from "./alerts";
 import { levelName } from "./standing";
@@ -204,6 +204,49 @@ describe("a percentile for the day: the line moves with the date (T527)", () => 
   });
 });
 
+describe("the line follows each day and the record in hand (T563)", () => {
+  // a record whose p75 on day d is d (so Nov 4 = 308, Dec 31 = 365), and a newer record that is 10 higher every day
+  const older = yearOf((d) => [d, d, d, d, d] as unknown as Band);
+  const newer = yearOf((d) => [d + 10, d + 10, d + 10, d + 10, d + 10] as unknown as Band);
+  const saved = (): GaugeAlertRule => rule({ threshold: { kind: "percentile", pct: 75, byDay: percentileByDay(older, 75) } });
+  const NOV4 = "2026-11-04T12:00:00-08:00", DEC31 = "2026-12-31T12:00:00-08:00";
+
+  it("saved on Nov 4 at p75, it fires on Dec 31 when the reading crosses Dec 31's line, not when it crosses Nov 4's", () => {
+    const r = saved();
+    const state = { past: false, at: "2026-12-30T12:00:00-08:00", value: 300 };
+    const t = Date.parse(DEC31) + 60_000;
+    const nov4Line = thresholdAt(r.threshold, NOV4);
+    expect(nov4Line).toBe(308);
+    const crossNov4 = evaluateAlert(r, state, { at: DEC31, value: 320 }, t);     // past Nov 4's 308, under Dec 31's 365
+    expect(crossNov4).toMatchObject({ due: false, line: 365 });
+    expect(evaluateAlert(r, state, { at: DEC31, value: 370 }, t)).toMatchObject({ due: true, line: 365 });
+  });
+
+  it("a newer record applies by itself: the lines are worked out again from it, the percentile kept", () => {
+    const out = refreshAlertLines([saved()], () => newer);
+    expect(out.changed).toBe(true);
+    const t = out.rules[0]!.threshold;
+    expect(t).toMatchObject({ kind: "percentile", pct: 75 });
+    expect(thresholdAt(t, DEC31)).toBe(375);
+    expect(thresholdAt(t, NOV4)).toBe(318);
+  });
+
+  it("the same record changes nothing (the same rules back, no write)", () => {
+    const rules = [saved()];
+    const out = refreshAlertLines(rules, () => older);
+    expect(out).toEqual({ rules, changed: false, unread: [] });
+    expect(out.rules).toBe(rules);
+  });
+
+  it("a record that cannot be read keeps the old line and says which alert; a value alert is never touched", () => {
+    const v = rule({ id: "v" });
+    const out = refreshAlertLines([saved(), v], () => null);
+    expect(out.changed).toBe(false);
+    expect(out.unread).toEqual(["r1"]);
+    expect(out.rules[0]).toEqual(saved());
+  });
+});
+
 describe("every alert, one check", () => {
   it("fires each crossed alert with the reading and the line; stamps when it fired; skips an alert switched off", () => {
     const a = rule();
@@ -321,10 +364,10 @@ describe("the words (whole strings, AGENTS 33)", () => {
     expect(alertSummary(v, { value: 40, at: iso(0) })).toBe(alertSummary(v));
     const p = { ...pct(50, "below"), stationName: "Vedder Crossing" };
     expect(alertSummary(p, { value: 50, at: "2026-11-09T07:00:00-08:00" })).toBe("You get one notification each time the flow "
-      + "at Vedder Crossing crosses below the median for the day. The line moves with the date: 40 m³/s for Nov 9. "
+      + "at Vedder Crossing crosses below the median for the day. The line is worked out for each day from the gauge's record, so it moves with the date: 40 m³/s for Nov 9. "
       + "It is ready again once the flow is back above the line.");
     expect(alertSummary(p)).toBe("You get one notification each time the flow at Vedder Crossing crosses below the median "
-      + "for the day. The line moves with the date. It is ready again once the flow is back above the line.");
+      + "for the day. The line is worked out for each day from the gauge's record, so it moves with the date. It is ready again once the flow is back above the line.");
   });
 
   it("the editor's context line and the normal range", () => {

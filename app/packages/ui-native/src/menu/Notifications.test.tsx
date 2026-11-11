@@ -294,10 +294,10 @@ describe("Alert me on a gauge's card, and the editor (T527)", () => {
     // 8 in 10 days lower (the 75th) by default; the median preset
     expect(screen.getByRole("radio", { name: "8 in 10 days lower" }).getAttribute("aria-checked")).toBe("true");
     expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above the level higher than 8 days in 10 "
-      + "for the day. The line moves with the date: 60 m³/s for Nov 9. It is ready again once the flow is back below the line.");
+      + "for the day. The line is worked out for each day from the gauge's record, so it moves with the date: 60 m³/s for Nov 9. It is ready again once the flow is back below the line.");
     fireEvent.click(screen.getByTestId("alert-form-p50"));
     expect(line()).toBe("You get one notification each time the flow at Vedder Crossing crosses above the median for the day. "
-      + "The line moves with the date: 40 m³/s for Nov 9. It is ready again once the flow is back below the line. It is above "
+      + "The line is worked out for each day from the gauge's record, so it moves with the date: 40 m³/s for Nov 9. It is ready again once the flow is back below the line. It is above "
       + "that now (42.5 m³/s), so the first notification comes after it crosses back and then above again.");
     // custom: out of the record's range is refused and said
     fireEvent.click(screen.getByTestId("alert-form-p-custom"));

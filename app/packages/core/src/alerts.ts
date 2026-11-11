@@ -9,9 +9,9 @@
  *                    a percentile   of the gauge's own record FOR THE DAY ("passes the median / the 75th percentile"):
  *                                   the same per-day-of-year envelope the gauge chart draws (the release's climatology,
  *                                   `bandAt` per day, `valueAtPercentile` on its knots), so the line moves with the
- *                                   date. Kept on the alert as one value per day of the year (`percentileByDay`, taken
- *                                   from the chart's year series when it is saved): the background check runs headless,
- *                                   with no release open. Only p10..p90: the envelope holds nothing past its outer knots.
+ *                                   date. Kept on the alert as one value per day of the year (`percentileByDay`, worked out
+ *                                   from the chart's year series and WORKED OUT AGAIN whenever the app has the record:
+ *                                   `refreshAlertLines`, T563): the background check runs headless, with no release open. Only p10..p90: the envelope holds nothing past its outer knots.
  *                  EDGE-TRIGGERED: it fires ONCE when the reading goes from its side of the line to past it, is quiet
  *                  while it stays past, and RE-ARMS only once the reading is back across by a small margin
  *                  (`REARM_FRACTION` of the line, at least `REARM_MIN`), so a reading wobbling on the line does not ring.
@@ -110,6 +110,31 @@ export interface AlertEvaluation {
  */
 export function percentileByDay(yearBand: readonly (Band | null)[], pct: number): (number | null)[] {
   return Array.from({ length: DAYS_IN_LINE }, (_, i) => valueAtPercentile(yearBand[i] ?? null, pct / 100));
+}
+
+/**
+ * (T563) THE LINE FOLLOWS THE RECORD THE PHONE HOLDS NOW. A percentile alert is its percentile; `byDay` is only the
+ * line worked out from the gauge's record (headless, the check has no release open), so it is worked out AGAIN whenever
+ * the app has the record in hand: a new HYDAT vintage applies by itself. `bandOf` gives the station's year envelope in
+ * the alert's quantity, or null when it cannot be read (the old line then stays and the alert is counted in `unread`:
+ * a line from the last record is better than none, and the caller says so). A value alert is never touched.
+ */
+export function refreshAlertLines(rules: readonly GaugeAlertRule[],
+                                  bandOf: (station: string, quantity: AlertQuantity) => readonly (Band | null)[] | null):
+  { readonly rules: readonly GaugeAlertRule[]; readonly changed: boolean; readonly unread: readonly string[] } {
+  let changed = false;
+  const unread: string[] = [];
+  const next = rules.map((r) => {
+    const t = r.threshold;
+    if (t.kind !== "percentile") return r;
+    const band = bandOf(r.station, r.quantity);
+    if (!hasRecord(band)) { unread.push(r.id); return r; }
+    const byDay = percentileByDay(band!, t.pct);
+    if (byDay.every((v, i) => v === t.byDay[i])) return r;
+    changed = true;
+    return { ...r, threshold: { ...t, byDay } };
+  });
+  return { rules: changed ? next : rules, changed, unread };
 }
 
 /** Does this year envelope hold any day at all (else no percentile alert can be set on it)? */
@@ -414,8 +439,8 @@ export function alertSummary(r: Pick<GaugeAlertRule, "quantity" | "direction" | 
   const line = now ? thresholdAt(r.threshold, now.at) : null;
   if (r.threshold.kind === "percentile")
     parts.push(line !== null && now
-      ? `The line moves with the date: ${figure(line)} ${u} for ${readingDay(now.at)}.`
-      : "The line moves with the date.");
+      ? `The line is worked out for each day from the gauge's record, so it moves with the date: ${figure(line)} ${u} for ${readingDay(now.at)}.`
+      : "The line is worked out for each day from the gauge's record, so it moves with the date.");
   parts.push(`It is ready again once the ${q} is back ${r.direction === "above" ? "below" : "above"} the line.`);
   if (now && line !== null && isPast(r.direction, now.value, line))
     parts.push(`It is ${r.direction} that now (${figure(now.value)} ${u}), so the first notification comes after it crosses back and then ${r.direction} again.`);

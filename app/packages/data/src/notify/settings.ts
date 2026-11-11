@@ -162,3 +162,16 @@ export const noteHeld = (release: string) => (s: NotifyState): NotifyState =>
   (s.held === release ? s : { ...s, held: release });
 
 export const noteRun = (r: BgRun) => (s: NotifyState): NotifyState => ({ ...s, runs: [...s.runs, r].slice(-RUNS_KEPT) });
+
+/** (T563) The percentile alerts' lines worked out again from the record the phone holds now (one write, only when one moved). */
+export const setRuleLines = (rules: readonly GaugeAlertRule[]) => (s: NotifyState): NotifyState => {
+  const by = new Map(rules.map((r) => [r.id, r] as const));
+  let changed = false;
+  const next = s.rules.map((r) => {
+    const n = by.get(r.id);
+    if (!n || n.threshold === r.threshold || r.threshold.kind !== "percentile") return r;
+    changed = true;
+    return { ...r, threshold: n.threshold };
+  });
+  return changed ? { ...s, rules: next } : s;
+};

@@ -9,11 +9,11 @@
  * allowing it later in the phone's settings is all it takes. A refusal is the environment's: never reported.
  */
 import { createElement, useCallback, useContext, useEffect, useMemo, useState, createContext, type ReactNode } from "react";
-import { findGauges, hasRecord, now as coreNow, normalRangeOf, reportFailure, type AlertNow, type AlertQuantity, type Band,
+import { findGauges, hasRecord, now as coreNow, normalRangeOf, refreshAlertLines, reportFailure, reportOnce, type AlertNow, type AlertQuantity, type Band,
          type GaugeAlertRule } from "@app/core";
 import {
   dismissRefused, notifyActive, putRule as put, removeRule as drop, setAppVersionNotice, setNotifyOn, setRuleOn as ruleOn,
-  setUpdateReady as setReady, type NotifySettings, type NotifyState, type StationId, type WaterSource,
+  setRuleLines, setUpdateReady as setReady, type NotifySettings, type NotifyState, type StationId, type WaterSource,
 } from "@app/data";
 import { useSeries } from "./hooks/gauge";
 import { useAsync, type Async } from "./async";
@@ -210,4 +210,43 @@ export function useAlertGauges(source: WaterSource, q: string): Async<readonly A
     if (all.state !== "ready") return all;
     return { state: "ready", value: t.length >= 2 ? findGauges(all.value, t, 8) : [], error: null };
   }, [all, t]);
+}
+
+/**
+ * (T563) THE PERCENTILE ALERTS' LINES FOLLOW THE RECORD IN HAND. A percentile alert is its percentile; its per-day line
+ * (what the headless check reads) is worked out again from each gauge's year envelope whenever the app opens on a
+ * release, so a new HYDAT applies by itself and no alert keeps a line from a record the phone no longer holds. A record
+ * that cannot be read leaves that alert's old line and is reported (never silent). Draws nothing.
+ */
+export function useFreshAlertLines(source: WaterSource, controls: NotifyControls | null): void {
+  useEffect(() => {
+    if (!controls) return;
+    let live = true;
+    (async () => {
+      const wanted = controls.settings.read().rules.filter((r) => r.threshold.kind === "percentile");
+      if (!wanted.length) return;
+      const bands = new Map<string, readonly (Band | null)[] | null>();
+      for (const r of wanted) {
+        const k = `${r.station}|${r.quantity}`;
+        if (bands.has(k)) continue;
+        try {
+          const s = (await source.gaugeSeries(r.station as StationId, "year", r.quantity))?.value ?? null;
+          bands.set(k, s && s.parameter === r.quantity ? s.yearBand ?? null : null);
+        } catch (e) { reportFailure(e); bands.set(k, null); }
+      }
+      if (!live) return;
+      // the rules as they are NOW (one added or removed while the records were read)
+      const cur = controls.settings.read().rules;
+      const out = refreshAlertLines(cur, (st, q) => bands.get(`${st}|${q}`) ?? null);
+      if (out.unread.length) reportOnce("alert-lines-unread", new Error(`alert lines: no record read for ${out.unread.length} level-for-the-day alert(s); their last line stays`));
+      if (out.changed) controls.settings.update(setRuleLines(out.rules));
+    })().catch(reportFailure);
+    return () => { live = false; };
+  }, [source, controls]);
+}
+
+/** Mount once under the app's `NotifyRoot` with the release's source: draws nothing. */
+export function AlertLinesRefresh({ source, controls }: { source: WaterSource; controls: NotifyControls | null }): null {
+  useFreshAlertLines(source, controls);
+  return null;
 }
