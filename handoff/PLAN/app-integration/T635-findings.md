@@ -1,3 +1,5 @@
+> Correction 2026-11-11 (owner, from the CABD site terms): CABD is CC BY-SA with commercial use allowed, not CC BY-NC-SA as this page says below. Benched by the owner the same day.
+
 # T635 findings: where are the fishways and government fish facilities?
 
 Research only, 2026-11-10. Nothing was added to the repo except this page. Every number below was **fetched** unless it is

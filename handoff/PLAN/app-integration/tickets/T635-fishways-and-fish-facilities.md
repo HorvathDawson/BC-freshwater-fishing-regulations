@@ -1,6 +1,6 @@
 # T635 — Find where the fishways and government fish facilities are (the 23 m and 100 m no-fishing buffers)
 
-Status: OPEN
+Status: POSTPONED
 
 Source: owner 2026-11-11. Book p.9: no fishing "within 23 m downstream of the lower entrance to any fishway, canal, obstacle
 or leap" and "within a 100 m radius of any government facility operated for counting, passing or rearing fish (e.g.,
@@ -19,3 +19,11 @@ for location data and found none.
 - The owner has a page with the sources, counts, licences and a recommendation. Nothing enters a release without his yes.
 
 Depends: none. Size: M (research first).
+
+## Owner 2026-11-11: benched
+"Let's bench this idea... we don't have good enough data for now and I don't have bandwidth to find fences." Findings kept in
+`handoff/PLAN/app-integration/T635-findings.md` (commit 2e92f9f0b).
+Correction to the findings, from the owner's paste of the CABD site terms: the Canadian Aquatic Barriers Database grants
+"personal or commercial uses ... under a Creative Commons license (the specific license is CC BY-SA)". So it is NOT
+non-commercial: it can be shipped with attribution, and anything built on it must carry the same licence (share-alike). Check
+what share-alike means for our own layer before using it.
