@@ -663,6 +663,7 @@ use that as the sole source of future work."
 | T630 | One hydrograph presenter for the app and the public gauge page | OPEN | — | T564 leftover |
 | T631 | Reach run follow-ups: binding diff on DFO-only changes, check flag for unplaced pieces, id dry-run before promote | OPEN | — | T546 follow-ups |
 | T632 | Owner: four decisions from the reach run (tidal subtraction, unplaced-piece gate, expected-unresolved note, 6 matched disagreements) | OPEN | — | T546 items 4–5; owner answers |
+| T633 | Gauge feed follow-ups: generated policy constants, refuse untagged feed, contract test on worker output, card wording, HYDAT mismatch warning | OPEN | — | T550/T557/T585 leftovers; two owner questions |
 
 ## Order for open tickets
 
