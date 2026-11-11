@@ -17,3 +17,7 @@ Source: gauges lane report 2026-11-11.
 - Run the HYDAT workflow so the datum-shift cut reaches clim.json (45 stations in HYDAT, 21 live), then read the shift list.
 
 Depends: T550, T557, T585. Size: M.
+
+## Owner answers 2026-11-11
+- 6 hours stays as the cutoff.
+- Run the HYDAT workflow on staging, then send the datum-shift station list to read.

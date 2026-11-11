@@ -13,3 +13,6 @@ Source: Owner 2026-11-09 (owner checks page, T512): "it is okay but not perfect.
 The emulator scenario runs clean; owner says fine on the next build.
 
 Depends: —. Size: M. Owner: no.
+
+## Owner answer 2026-11-11
+It is the Trout / Salmon / Runs buttons on the main map: a blank or grey map, lag, and layers "stay wrong for half a second or so". Reproduce in the emulator (20 switches, record frames), then fix.

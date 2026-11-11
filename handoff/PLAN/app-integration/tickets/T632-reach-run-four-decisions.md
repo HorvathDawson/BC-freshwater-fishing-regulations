@@ -13,3 +13,9 @@ Source: T546 report 2026-11-11.
 - The owner answers each; T546 items 4 and 5 are finished to match.
 
 Depends: T546. Size: S. Owner: four answers.
+
+## Owner answers 2026-11-11
+1. Tidal: always subtract, unless there is a stated reason not to for a place. Send the 18 examples for a quick double check.
+2. Unplaced pieces: stop the build unless accepted (per-piece accept list).
+3. Dead overrides: no "expected" note. A check makes it impossible to build with one (fast-fail should run it), then fix Okanagan River Oxbows: it matched before; find why it stopped (owner's guess: lake became a stream polygon).
+4. Matched disagreements: the curator's saved match wins; send the six with both versions for a tick.

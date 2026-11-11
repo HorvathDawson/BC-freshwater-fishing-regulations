@@ -78,3 +78,6 @@ Depends: —. Size: S. Owner: no.
 6. df0b0d0d7 — 15-live-data-flow.md gauges section, cuts.py/review.py/build.py/bundle_tables.py/check_curated.py paths, schema.sql + climatology.py wording; empty pipeline/atlas/gauges removed. LEFT: `app/packages/core/src/staleness.ts:66` ("every run"; app lane).
 7. 41ecaabb5 — both READMEs and MAP.md say audit.py was deleted in T436 and how to restore it.
 8. 247112b44 — HANDOFF-curated-layout.md marked historical. LEFT (review lane): apply.py/export.py/write_through.py/apply_proposals.py docstrings, data/curated/review/README.md marks.jsonl rule + its test.
+
+## Owner answer 2026-11-11
+The union no-access figure goes to the app with the next release format change, not on its own. The build check stays meanwhile.

@@ -79,3 +79,6 @@ Pinned values the pick moves (none run yet; this is a read of the tests):
 Recommendation: **C**. It clears the water exactly where the owner looks for pools (z13+), keeps today's strong colour at province
 zoom where B's hairlines lose the answer, keeps both banks coloured and the closed stripe, and is one casing mechanism over every
 stream layer plus a fill fade, with no new layers. Take D only if the owner wants a single thin line at close zoom.
+
+## Owner pick 2026-11-11
+Look C (two thin edges), as long as it does not block small streams; try lower opacity when zoomed in too. Measure tap target and the colour-blind gate before it ships; send before/after shots with the question.
