@@ -21,7 +21,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
-    version: "0.7.5", date: "2026-11-11", draft: true, notes: [
+    version: "0.7.5", date: "2026-11-11", notes: [
       "A water with a closure on a part the map does not draw carries a clear warning on its card",
       "A rule the book prints for parts of a water keeps those words in its title",
       "Over satellite, a stream opens into two thin edges when you zoom in, so the water shows through",

@@ -33,3 +33,14 @@ Measured in `T660-tidal-tributaries-not-cut-at-boundary.md` ("Owner follow-up 20
 - Chambers Creek (360880075): the owner did not follow the explanation; explain again with the map, no change proposed.
 
 Depends: T660. Size: L.
+
+## Owner decisions 2026-11-11 (on `app-integration/T665-design.md` D1–D6)
+- D1: drop the 371 shore cuts into freshwater rivers.
+- D2: a creek flowing into a removed inside line is cut at its polygon exit too (dry run gives count and map first).
+- D3: a line that leaves and re-enters is cut at the FIRST real exit (gaps under 25 m bridged).
+- D4: **the 33 creeks with the owner's "limit is the mouth" tick keep the limit at the END of the mapped line** ("line end
+  keeps it consistent"): no polygon-edge cut on them. The dry run writes the 33 with the distance between line end and
+  polygon edge and a map, linked from OWNER-TODO for a later double check. This overrides the design's default.
+- D5: Brae Slough (wholly tidal) is DROPPED from search, like the unnamed tidal lines (overrides the design's default).
+  It is an owner-found name: the found-name row is kept on file and reported, not deleted.
+- D6: the three creeks whose mouth is outside the polygon: no change.

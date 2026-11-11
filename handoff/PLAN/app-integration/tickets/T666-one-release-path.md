@@ -35,3 +35,6 @@ Each stop was a thing that depends on the live release but is refreshed by hand,
 - A rehearsal (`--dry-run`) on the current tree predicts every stop the real run would make.
 
 Depends: T535, T601. Size: L. Part of the closed-testing run (high impact: Fable allowed).
+
+## Owner decision 2026-11-11
+- The fresh-copy (clean checkout) test run happens once in the RELEASE pre-check, not in every quick check (T535 offer).

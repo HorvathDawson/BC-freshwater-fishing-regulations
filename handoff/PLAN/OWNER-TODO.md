@@ -84,29 +84,13 @@ with the default Claude uses until you answer). Newest first inside each section
 
 ### Batch for the end of the closed-testing run (owner 2026-11-11: decide together at the end)
 
-**Tidal design (T665), full text in `handoff/PLAN/app-integration/T665-design.md`. Defaults are used unless you say otherwise.**
-- D1. Drop the 371 shore cuts into freshwater rivers (they make nothing tidal)? Default: drop.
-- D2. A creek flowing into a removed inside line is also cut at its polygon exit? Default: yes; count and map come from the dry run first.
-- D3. Three lines leave the polygon and come back in. Default: cut at the first real exit (gaps under 25 m bridged); "highest exit" would make about 3.5 km of on-land creek tidal on one of them.
-- D4. 33 creeks have your own mouth row. Default: rows untouched; the "tidal boundary" name moves to the new cut; listed in the report.
-- D5. Brae Slough (a name you found) becomes wholly tidal. Default: keep the name and search entry, answered as tidal water.
-- D6. Three creeks whose mouth is outside the polygon (Tlell 2, Chemainus 1). Default: no change.
-- Note: "removed" is done as "marked tidal, not drawn as fresh water"; the lines stay in the network so no id or hand match breaks.
+Answered 2026-11-11 (recorded in T665, T667, T666): the six tidal decisions, the six tests decisions, the fresh-copy test run.
 
-**Tests that grow with the app (T667), full text in `handoff/PLAN/app-integration/T667-audit.md`. Defaults are used unless you say otherwise.**
-- D1. The old "page v36" reference the app's answers are compared with: keep amending by hand, or retire it suite by suite? Default: retire, after an inventory shows nothing is lost.
-- D2. May screen-logic tests run on about a dozen invented waters built by the real pipeline, instead of the Vedder and Skeena? Default: yes; about ten real-water walks stay.
-- D3. Live counts in tests (117 aliases, 1,515 queue rows): drop as tests and print them in the release diff? Default: yes.
-- D4. The guard against new offenders: shrinking list of today's offenders, or fail on all now? Default: shrinking list.
-- D5. May the release commit "renumber only" fixture diffs by itself and stop only when an answer changed? Default: yes.
-- D6. Derive the smoke test set instead of listing it by hand (the set may differ slightly)? Default: yes.
-
-**Other**
-- Phone check of build 27 (0.7.5 on Play internal).
-- "What's new" for 0.7.5: five bullets drafted by Claude (`app/packages/core/src/changelog.ts`, marked draft); reword or clear.
+Still open:
+- Phone check of the latest Play internal build (0.7.5).
+- Tidal: look over the 33 creeks where the limit stays at the end of the mapped line although the line runs into the tidal polygon (your call 2026-11-11, for consistency). The dry run of T665 writes the list with distances and a map; it will be linked here.
+- Stellako River (F12): the card shows a "10 hatchery steelhead" line. Is that line right for this water? Not a blocker. The card image is owed.
 - Store screenshots (sent 2026-11-11): pick the order and titles (`app/tools/store-shots.json`).
-- Stellako River (F12): the card shows a "10 hatchery steelhead" line. Is that line right for this water? Not a blocker for build 27 (owner 2026-11-11). The card image will be sent with the end batch (it needs the staging site on build 27).
-- Clean-checkout test run inside fast-fail (T535): add it? Default: not added.
 
 ## Reviews
 - **Tidal follow-ups (T359, 2026-11-03):** review app → Tidal → Follow-ups (8). Decide: does a DEM point you

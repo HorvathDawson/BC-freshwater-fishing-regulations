@@ -18,10 +18,12 @@
   go through the batch with the owner at the end. Interrupt only when a wrong default would be costly.
 
 ## Work list for step 2 (tickets hold the detail)
+- **FIRST TASK (owner): T667 — migrate every test that pins raw section numbers or reads live data outside the
+  helpers (~230 files), then turn the guard on for all of them (no shrinking list).** Owner answers are in T667.
 - **Release and tests (do first, they make everything after cheaper):** T666 one release path; T667 tests that grow
   with the app (audit + design done: `app-integration/T667-audit.md`; slices 1–3 first).
 - **Next atlas rebuild, one build:** T664 Oxbows as one water; T665 tidal (design done:
-  `app-integration/T665-design.md`, six defaults in OWNER-TODO; starts with an in-memory dry run); the nine DFO marks
+  `app-integration/T665-design.md`, owner answered D1–D6 in the ticket: note D4 line end wins on 33 creeks, D5 Brae Slough dropped from search; starts with an in-memory dry run); the nine DFO marks
   that need new cuts (on `NOT_LANDED_OK`).
 - **Closed testing (T495) and links:** T625 items 2–4 (fingerprint is in the ticket); T514; T240 checklist.
 - **Hardening:** T549, T554, T555, T556, T557, T560, T585, T593, T597, T600, T601, T602, T603, T605, T606, T608,

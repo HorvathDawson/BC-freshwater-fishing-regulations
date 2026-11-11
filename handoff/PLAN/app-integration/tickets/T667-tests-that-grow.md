@@ -31,3 +31,12 @@ updates needed every time."
 - An approved rule change needs one edit at the source and a reviewed diff, not per-test amendments.
 
 Depends: T666. Size: L. Fable for audit and design (owner). Part of the closed-testing run.
+
+## Owner decisions 2026-11-11 (on `app-integration/T667-audit.md` D1–D6)
+- D1: retire the page v36 reference suite by suite, after the inventory shows nothing is lost.
+- D2: yes, logic tests run on a small invented release built by the real pipeline; about ten real-water walks stay.
+- D3: live counts stop being tests and are printed in the release diff.
+- D4: **the guard fails on ALL offenders, no shrinking list; migrating them is the FIRST task of the next chat** (so the
+  guard goes in when the ~230 files are clean; until then it runs in report mode only).
+- D5: the release commits renumber-only fixture diffs by itself and stops only when an answer changed.
+- D6: the smoke set is derived by rule, not hand-listed.
