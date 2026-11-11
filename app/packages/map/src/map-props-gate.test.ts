@@ -5,10 +5,13 @@
  * "Honours" is read from the source: the key is taken out of the props AND used in the body (not renamed to an
  * underscore name, the way a phone accepts `onRegion` and never calls it).
  */
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import propsSrc from "./map-props.ts?raw";
+import webSrc from "./Map.web.tsx?raw";
+import nativeSrc from "./Map.native.tsx?raw";
 
-const src = (f: string) => readFileSync(new URL(f, import.meta.url), "utf8");
+const SOURCES: Record<string, string> = { "./map-props.ts": propsSrc, "./Map.web.tsx": webSrc, "./Map.native.tsx": nativeSrc };
+const src = (f: string) => SOURCES[f]!;
 
 /** The keys of `interface MapProps`, at its top level. */
 function propKeys(): string[] {

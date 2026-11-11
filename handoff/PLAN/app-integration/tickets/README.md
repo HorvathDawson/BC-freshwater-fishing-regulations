@@ -651,7 +651,7 @@ use that as the sole source of future work."
 | T608 | Read-only audits before closed testing: A rules vs the printed book and DFO feed; B one logic in two shells; C the feeds worker from the outside; D bathymetry and stocked lakes | OPEN | — | owner 2026-11-10; C done ea9bda3cd (20 findings → T558, T559, T609); B done 347b96a45 (28 findings → T620, T621, T622); A, D running |
 | T609 | Feeds worker: fixes from the outside-in audit (rate limits on IPv6 /64 + daily total, in-season URL pinned, no rank without the envelope, token file ignored, list truncation, upstream caps) | OPEN | — | T608C findings W1, W4, W5, W7, W10–W20; with T558, T559 |
 | T620 | One answer on every app screen (search rows follow the picked day, saved-spot times in B.C. time, alerts, Runs, start links) | OPEN | — | T608B findings G1, G3, G10–G14, G17, G20, G25 |
-| T621 | The map's web and native halves agree (every MapProps key honoured by both, or listed as by design) | OPEN | — | T608B findings G4, G5, G15, G19, G21 |
+| T621 | The map's web and native halves agree (every MapProps key honoured by both, or listed as by design) | IN REVIEW | d59ea56 (G4), 1ed2bf7 (G19), 9f3052f (G15), 7d3f88a (gate); G5 + G21 not done (need a device) | T608B findings G4, G5, G15, G19, G21 |
 | T622 | The public pages and share cards use the app's own words and day; with T605 | OPEN | — | T608B findings G2, G6–G9, G16, G18, G22–G24 |
 
 ## Order for open tickets
