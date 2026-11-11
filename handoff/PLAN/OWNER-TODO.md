@@ -102,6 +102,7 @@ with the default Claude uses until you answer). Newest first inside each section
 - D6. Derive the smoke test set instead of listing it by hand (the set may differ slightly)? Default: yes.
 
 **Other**
+- Stellako River (F12): the card shows a "10 hatchery steelhead" line. Is that line right for this water? Not a blocker for build 27 (owner 2026-11-11). The card image will be sent with the end batch (it needs the staging site on build 27).
 - Clean-checkout test run inside fast-fail (T535): add it? Default: not added.
 
 ## Reviews
