@@ -141,9 +141,9 @@ Deep context: `pipeline/docs/REACH-BUILDER.md`. The historical plans (`13-build-
     <cmd>`: one at a time machine-wide, waits for free memory, kills the job if free memory falls under 6 %.
 19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
     no clocks in output. The reach builder's digest must be identical across runs.
-20. **`pipeline.atlas.reach.cache.POLICY_VERSION` must be bumped when `classify.py` changes an
-    outcome.** A test fails if it goes stale — a cache serving confidently wrong answers is
-    worse than no cache.
+20. **`pipeline.atlas.reach.cache.POLICY_VERSION` must be bumped, with a changelog line, when `classify.py` changes an
+    outcome.** A test fails if it goes stale. It is the reach policy's changelog; the per-entry cache that module once
+    held was never used and was deleted (T561).
 20a. **Fast-fail first, and it grows (owner 2026-11-07, T483).** Before any long job (build, release, APK, emulator,
     full suite), run `scripts/fast-fail.sh`: the cheap checks that stop a doomed job in a minute or two (each item
     is listed there with a "caught:" comment: conflict markers, ticket ledger, smoke.txt covering every pipeline test

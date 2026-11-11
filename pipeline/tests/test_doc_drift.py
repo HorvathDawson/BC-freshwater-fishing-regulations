@@ -1,4 +1,4 @@
-"""DOC DRIFT (T561 items 4, 6, 7): claims in pipeline comments and docs that the code proved false, held so they do
+"""DOC DRIFT (T561 items 4, 5, 6, 7): claims in pipeline comments and docs that the code proved false, held so they do
 not come back. Each is a grep over the source, seconds, no data."""
 from __future__ import annotations
 
@@ -28,3 +28,19 @@ def test_no_comment_says_the_atlas_build_is_not_deterministic():
     assert hits == NOT_DETERMINISTIC_PENDING, (
         f"stale 'not deterministic' claims: {sorted(hits - NOT_DETERMINISTIC_PENDING)}; "
         f"fixed (drop from the pending list): {sorted(NOT_DETERMINISTIC_PENDING - hits)}")
+
+
+def test_reach_builder_doc_lists_the_modules_and_reasons_that_exist():
+    """Item 5: REACH-BUILDER.md opened '**Not built.**', listed a cache as load-bearing and a reason set of its own.
+    Its Parts tree is the package's modules, its reason block is `models.Reason`, both exactly."""
+    import re
+
+    from pipeline.atlas.reach.models import Reason
+    doc = (ROOT / "pipeline/docs/REACH-BUILDER.md").read_text(encoding="utf-8")
+    assert "Not built" not in doc
+    parts = doc.split("## Parts", 1)[1].split("```")[1]
+    listed = set(re.findall(r"^\s+(\w+\.py)\b", parts, re.M))
+    have = {p.name for p in (ROOT / "pipeline/atlas/reach").glob("*.py") if p.name != "__init__.py"}
+    assert listed == have, f"doc lists {sorted(listed - have)} that do not exist; misses {sorted(have - listed)}"
+    block = doc.split("## Reason vocabulary", 1)[1].split("```")[1]
+    assert set(block.split()) == {r.value for r in Reason}

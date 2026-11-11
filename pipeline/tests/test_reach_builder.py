@@ -303,70 +303,12 @@ def test_diff_notices_an_outcome_flip_not_just_section_churn(tmp_path):
     assert "cut_not_found" in rep.changes[0].after
 
 
-# --------------------------------------------------------------------------- #
-# Cache: the key must cover everything that can change an answer
-# --------------------------------------------------------------------------- #
-
-def _entry(**over):
-    e = {"entry_id": "e1", "matched": ["i1"],
-         "rules": [{"rule_id": "r1", "type": "retention_limit",
-                    "extents": [{"op": "whole", "splits": []}]}]}
-    e.update(over)
-    return e
-
-
-def test_cache_key_changes_when_the_extent_changes():
-    from pipeline.atlas.reach.cache import entry_key
-    a = _entry()
-    b = _entry(rules=[{"rule_id": "r1", "type": "retention_limit",
-                       "extents": [{"op": "upstream_of", "splits": ["x"]}]}])
-    assert entry_key(a, "full") != entry_key(b, "full")
-
-
-def test_cache_key_changes_with_the_BUILD():
-    """Section ids churn ~6% per rebuild, so the same entry resolves differently."""
-    from pipeline.atlas.reach.cache import entry_key
-    assert entry_key(_entry(), "full") != entry_key(_entry(), "full_new")
-
-
-def test_cache_key_changes_with_the_CLASSIFIER_POLICY():
-    """A straddler-policy change alters outcomes without touching entry or build."""
-    from pipeline.atlas.reach.cache import entry_key
-    assert entry_key(_entry(), "full", "1") != entry_key(_entry(), "full", "2")
-
-
-def test_cache_key_changes_with_matched_and_tributary_flags():
-    from pipeline.atlas.reach.cache import entry_key
-    base = entry_key(_entry(), "full")
-    assert entry_key(_entry(matched=["i2"]), "full") != base
-    assert entry_key(_entry(includes_tributaries=True), "full") != base
-    assert entry_key(_entry(extents=[{"op": "upstream_of", "splits": ["x"]}]), "full") != base
-
-
-def test_cache_key_IGNORES_curation_metadata():
-    """A review note or the printed text changes on a curator's save; keying on it would evict for
-    answers that did not move."""
-    from pipeline.atlas.reach.cache import entry_key
-    assert entry_key(_entry(review_reason="x", regs_verbatim="a"), "full") \
-        == entry_key(_entry(review_reason="y", regs_verbatim="b"), "full")
-
-
-def test_cache_serves_a_hit_and_recomputes_after_invalidate():
-    from pipeline.atlas.reach.cache import ReachCache
-    c = ReachCache("full")
-    calls = {"n": 0}
-
-    def compute():
-        calls["n"] += 1
-        return ([], [])
-
-    e = _entry()
-    c.get_or_compute(e, compute)
-    c.get_or_compute(e, compute)
-    assert calls["n"] == 1 and c.hits == 1 and c.misses == 1
-    c.invalidate(e)
-    c.get_or_compute(e, compute)
-    assert calls["n"] == 2
+def test_the_unused_reach_cache_is_gone():
+    """T561: `ReachCache` / `entry_key` had no caller and could not see the corpus-wide inputs an answer depends on
+    (`rowed_waters`, policy 14 and 35); only the policy version and its changelog stay."""
+    from pipeline.atlas.reach import cache
+    assert not hasattr(cache, "ReachCache") and not hasattr(cache, "entry_key")
+    assert int(cache.POLICY_VERSION) >= 36
 
 
 def test_tributaries_only_with_no_tributaries_is_unresolved_not_an_empty_bind():
@@ -399,8 +341,8 @@ def test_without_an_expander_a_tributary_rule_is_flagged_INCOMPLETE():
 
 
 def test_policy_version_is_bumped_when_classify_changes():
-    """A stale POLICY_VERSION serves confidently wrong cached answers. This pins the
-    classifier's observable policy so the constant cannot silently fall behind."""
+    """POLICY_VERSION is the classifier's changelog (other code cites "POLICY_VERSION n"). This pins the classifier's
+    observable policy so a changed outcome cannot land without its line."""
     from pipeline.atlas.reach import cache, classify
     policy = {
         "straddlers_included_for": sorted(classify.STRADDLERS_INCLUDED_FOR),

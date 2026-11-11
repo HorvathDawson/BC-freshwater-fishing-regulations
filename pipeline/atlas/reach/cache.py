@@ -1,30 +1,18 @@
-"""Per-entry result cache, so confirming ONE entry does not re-resolve all 1,392.
+"""THE REACH POLICY CHANGELOG: `POLICY_VERSION` and, above it, one line per outcome change of the reach classifier.
 
-Why it matters beyond speed: it is what lets the review app call this builder on every
-request instead of keeping its own resolution path. Two implementations of "what does this
-rule cover" is how the app a human signed off on drifts from the bundle that ships — and
-the divergence would be invisible until a user hit a wrong reach.
+This module held a per-entry result cache (`ReachCache`, `entry_key`). Nothing ever called it, and by its own notes it
+was unsafe to adopt: from policy 14 on an answer depends on OTHER entries (`outside.rowed_waters`), which a per-entry
+key cannot see, and the key also missed `undrawn_part`, `standing`, licensing records and tidal splits. It was deleted
+(T561, 2026-11-10); a full reach run resolves the corpus in about 0.1 s, so there is nothing to cache.
 
-**The key must cover everything that can change the answer**, which is more than the entry:
-
-* the entry itself      — its extents, matched items, tributary flags
-* the BUILD             — section ids churn ~6% per rebuild, so the same entry resolves
-                          differently against a different graph
-* the classifier policy — a change to straddler handling or the reason table changes
-                          outcomes without touching either of the above
-
-Miss any one and the cache serves a confidently wrong answer, which is worse than no
-cache at all. `policy_version` must be bumped when `classify.py`'s behaviour changes;
-there is a test that fails if the constant is stale.
+What stays is the version and its changelog: other code and tests cite "POLICY_VERSION n" for when a rule landed, and
+`test_reach_builder.test_policy_version_is_bumped_when_classify_changes` pins the classifier's observable policy to it,
+so a change to an outcome is written down here. Bump it, with a line, whenever `classify.py` changes an OUTCOME.
 """
 
 from __future__ import annotations
 
-import hashlib
-import json
-from typing import Callable
-
-#: Bump whenever `classify.py` changes an OUTCOME. Guarded by a test.
+#: Bump whenever `classify.py` changes an OUTCOME (the changelog below). Guarded by a test.
 #: 6: the tributary walk lets a lake into a walk through its MAIN outlet even when the lake's
 #:    aggregate order runs ahead of the outlet's (Dester Lake / Meldrum Creek) —
 #:    `graph.tributaries._is_main_outlet`. It changes which sections a walk reaches.
@@ -140,85 +128,3 @@ from typing import Callable
 #:     it used to bind unclipped (the whole water) or narrowed to the parts that resolved.
 POLICY_VERSION = "36"
 
-
-def entry_key(entry: dict, build_id: str, policy_version: str = POLICY_VERSION) -> str:
-    """Content hash of everything that can change this entry's resolution."""
-    payload = {
-        "build": build_id,
-        "policy": policy_version,
-        "entry": _resolution_inputs(entry),
-    }
-    return hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
-    ).hexdigest()[:20]
-
-
-def _resolution_inputs(entry: dict) -> dict:
-    """Only the fields resolution actually reads.
-
-    Deliberately NOT the whole entry: its text, labels and review notes change when a
-    curator saves, and keying on them would evict the cache on every keystroke without any
-    answer having changed. The entry's `extents` ARE in it: a cache that cannot see the clip
-    would serve a reach from before it was applied.
-    """
-    return {
-        "entry_id": entry.get("entry_id"),
-        "matched": list(entry.get("matched") or ()),
-        "extents": entry.get("extents") or [],
-        "includes_tributaries": entry.get("includes_tributaries"),
-        "tidal": bool(entry.get("tidal")),
-        "rules": [
-            {
-                "rule_id": r.get("rule_id"),
-                "type": r.get("type"),
-                # The words decide whether a confluence cut's joining water is taken in
-                # ("including Macleod Creek", `build.confluence_excludes`).
-                "verbatim": r.get("verbatim"),
-                "extent_text": r.get("extent_text"),
-                "extents": r.get("extents") or [],
-                "includes_tributaries": r.get("includes_tributaries"),
-                "tributaries_only": r.get("tributaries_only"),
-                "tributary_excludes": r.get("tributary_excludes") or [],
-                "unresolved_locators": list(r.get("unresolved_locators") or ()),
-            }
-            for r in (entry.get("rules") or [])
-        ],
-    }
-
-
-class ReachCache:
-    """In-memory cache keyed by `entry_key`. Process-local and intentionally simple.
-
-    Not persisted: a full pass is ~0.1 s, so the only case worth optimising is a live
-    review session, which is one process. A disk cache would add an invalidation problem
-    for no measured benefit.
-    """
-
-    def __init__(self, build_id: str, policy_version: str = POLICY_VERSION) -> None:
-        self.build_id = build_id
-        self.policy_version = policy_version
-        self._store: dict[str, tuple] = {}
-        self.hits = 0
-        self.misses = 0
-
-    def get_or_compute(self, entry: dict, compute: Callable[[], tuple]) -> tuple:
-        """`compute()` must return ``(bindings, diagnostics)`` for this entry alone."""
-        key = entry_key(entry, self.build_id, self.policy_version)
-        cached = self._store.get(key)
-        if cached is not None:
-            self.hits += 1
-            return cached
-        self.misses += 1
-        value = compute()
-        self._store[key] = value
-        return value
-
-    def invalidate(self, entry: dict) -> None:
-        self._store.pop(entry_key(entry, self.build_id, self.policy_version), None)
-
-    def clear(self) -> None:
-        self._store.clear()
-
-    @property
-    def size(self) -> int:
-        return len(self._store)
