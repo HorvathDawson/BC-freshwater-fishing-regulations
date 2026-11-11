@@ -24,9 +24,10 @@
  * `snapshot()` is a new object on every change (for `useSyncExternalStore`); `subscribe` is told after each.
  */
 import { errorClassOf, mobileDataFrom, releaseAllowed, reportFailure, type AppVersion, type MobileDataSetting, type UpdateEvent } from "@app/core";
-import { diff, parseManifest, type Held, type Manifest, type StageOutcome } from "../manifest";
+import { parseManifest, type Held, type Manifest, type StageOutcome } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
+import { installBytes, pointerFor, sameSet } from "../release/install";
 import { checkObject, type Seen } from "./check";
 
 export type FeedId = "gauges" | "dfo" | "inseason";
@@ -51,7 +52,8 @@ export interface ReleaseSpec {
    * this device refused, one already in use, or one this app does not read is never reported as ready.
    */
   stage(m: Manifest, onProgress: (bytes: number, of: number) => void): Promise<StageOutcome>;
-  /** The bytes this device would fetch for `m` (default: the changed files plus any moved tiles, mask or basemap). */
+  /** The bytes this device would fetch for `m` (default: `installBytes`, the install's own count — changed files, tiles, mask,
+   *  basemap AND the rule book; T555: one function for the mobile-data gate and the first install's). */
   need?(m: Manifest, held: Held): number;
 }
 
@@ -236,21 +238,13 @@ export function manifestDate(m: Manifest): string | null {
   return days.length ? days[days.length - 1]! : null;
 }
 
-/** Is `m` a different set than the one held: its data release, tiles, basemap or map assets moved? */
+/**
+ * Is `m` a different set than the one held? (T555) ONE definition, the install's own (`sameSet` over `pointerFor`): the data
+ * release, every file's sha, the tiles, basemap, map assets and the rule book. Boot's `stage` asks the same question, so the
+ * service never calls a set new that boot would call "in use" (or the other way round).
+ */
 export function releaseMoved(held: Held, m: Manifest): boolean {
-  return m.data_release !== (held.release ?? null)
-    || (m.tiles.current?.id ?? null) !== (held.tiles ?? null)
-    || (m.basemap?.id ?? null) !== (held.basemap ?? null)
-    || (m.tiles.assets?.id ?? null) !== (held.assets ?? null);
-}
-
-/** The bytes `m` needs beside `held`: its changed files and whichever of tiles, mask and basemap moved. */
-export function releaseNeed(m: Manifest, held: Held): number {
-  const d = diff(held, m);
-  let n = d.files.reduce((s, k) => s + (m.files[k]?.bytes ?? 0), 0);
-  if (d.tiles) n += (m.tiles.current?.bytes ?? 0) + (m.tiles.mask?.bytes ?? 0);
-  if (d.basemap) n += m.basemap?.bytes ?? 0;
-  return n;
+  return !sameSet(pointerFor(m), held);
 }
 
 const said = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -427,7 +421,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     if (!spec || !pending || !release || staging || release.phase === "ready") return;
     const held = spec.held();
     if (!held) return;
-    const need = spec.need ? spec.need(pending, held) : releaseNeed(pending, held);
+    const need = spec.need ? spec.need(pending, held) : installBytes(pending, held);
     if (need > P.bigBytes && metered() && !allowMetered) {
       if (release.phase !== "waiting-wifi" || release.target !== pending.data_release) {
         release = { ...release, phase: "waiting-wifi", target: pending.data_release, targetDate: manifestDate(pending),

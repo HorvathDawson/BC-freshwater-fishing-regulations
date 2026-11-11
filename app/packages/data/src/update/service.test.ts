@@ -14,7 +14,8 @@ import type { Held, Manifest } from "../manifest";
 import { MANIFEST_FORMAT } from "../pack.generated";
 import { checkObject } from "./check";
 import type { StageOutcome } from "../manifest";
-import { createUpdateService, phoneNetwork, releaseMoved, releaseNeed, type FeedSpec, type UpdateStore } from "./service";
+import { createUpdateService, phoneNetwork, releaseMoved, type FeedSpec, type UpdateStore } from "./service";
+import { installBytes } from "../release/install";
 import { createNet } from "../net";
 
 const enc = (s: string) => new TextEncoder().encode(s);
@@ -249,15 +250,38 @@ const heldOf = (m: Manifest): Held => ({ release: m.data_release, tiles: m.tiles
   assets: null, files: Object.fromEntries(Object.entries(m.files).map(([k, v]) => [k, v.sha256])) });
 
 describe("the release", () => {
-  it("moved / need: the data release or the tiles moving is new; the bytes are what changed", () => {
+  it("moved / need: ONE definition of a changed set and of its bytes (the install's), for every kind of change", () => {
     const m1 = manifest("r1", { tiles: "v1" });
     expect(releaseMoved(heldOf(m1), m1)).toBe(false);
     const m2 = manifest("r2", { files: { core: [100, "c2"], paint: [10, "p1"] }, tiles: "v1" });
     expect(releaseMoved(heldOf(m1), m2)).toBe(true);
-    expect(releaseNeed(m2, heldOf(m1))).toBe(100);
+    expect(installBytes(m2, heldOf(m1))).toBe(100);
     const m3 = manifest("r1", { tiles: "v2", tileBytes: 5000 });
     expect(releaseMoved(heldOf(m1), m3)).toBe(true);
-    expect(releaseNeed(m3, heldOf(m1))).toBe(5000);
+    expect(installBytes(m3, heldOf(m1))).toBe(5000);
+    // a rule-book-only change (the live manifest's synopsis is 11.7 MB): moved, and its bytes COUNT toward the gate
+    const book = { ...m1, synopsis: { url: "synopsis/s2.pdf", bytes: 11_722_042, sha256: "s2" } } as Manifest;
+    expect(releaseMoved(heldOf(m1), book)).toBe(true);
+    expect(installBytes(book, heldOf(m1))).toBe(11_722_042);
+    // a map-assets-only change: moved; assets are fetched by their own path (not part of the file/big-file count)
+    const assets = { ...m1, tiles: { ...m1.tiles, assets: { id: "a2", url: "x", bytes: 1, sha256: "a" } } } as Manifest;
+    expect(releaseMoved(heldOf(m1), assets)).toBe(true);
+    // a changed file with the same release id (a rebuilt file): moved
+    const sameId = manifest("r1", { files: { core: [100, "c9"], paint: [10, "p1"] }, tiles: "v1" });
+    expect(releaseMoved(heldOf(m1), sameId)).toBe(true);
+  });
+
+  it("the mobile-data gate counts the rule book: 10 MB of data files plus a new synopsis is over the 20 MB wait", async () => {
+    const m1 = manifest("r1");
+    const m2 = { ...manifest("r2", { files: { core: [10_000_000, "c2"], paint: [10, "p1"] } }),
+                 synopsis: { url: "synopsis/s2.pdf", bytes: 11_722_042, sha256: "s2" } } as Manifest;
+    const o = origin({ [M]: JSON.stringify(m2) });
+    const staged: string[] = [];
+    const s = createUpdateService({ feeds: [], fetch: o.fetch, network: { online: () => true, metered: () => true },
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.data_release); return OK; } } });
+    await s.check(); await flush();
+    expect(staged).toEqual([]);
+    expect(s.snapshot().release).toMatchObject({ phase: "waiting-wifi", target: "r2", progress: { bytes: 0, of: 21_722_042 } });
   });
 
   it("a newer release is STAGED beside the set in use, then ready; applied puts it in use", async () => {
