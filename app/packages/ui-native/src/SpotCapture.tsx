@@ -23,7 +23,7 @@
 
  */
 import { ErrorState } from "./ErrorState";
-import { SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
+import { latLon, SPOT_CAPTURE_AT, SPOT_CAPTURE_WORDS as CW, VISIT_QUICK_DAYS, type LatLon, type SectionKey, type VisitSteps } from "@app/core";
 import { useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./Text";
@@ -206,7 +206,7 @@ function SpotCaptureFlow(props: SpotCaptureProps) {
                ? (preset ? SPOT_CAPTURE_AT.detail : CW.pickWaterDetail)
                : CW.tapPoint(water?.name ?? null)}
              chose={step === "water" ? water?.name ?? null
-                                     : point && `${point.lat.toFixed(4)}, ${point.lon.toFixed(4)}`}
+                                     : point && latLon(point)}
              // Cancel leaves the whole capture: asks first when the draft holds what the reader put in
              onCancel={leave}
              // the pin is already down when the spot was started at a point: on to when you were there

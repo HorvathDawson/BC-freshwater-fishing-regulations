@@ -1,7 +1,7 @@
 /** (T310) Pick the spot's parking on the map: tap the point, then "Use this point". */
 import { View } from "react-native";
 import { Text } from "../Text";
-import { SPOT_WORDS as W, SPOT_CAPTURE_WORDS as CW } from "@app/core";
+import { latLon, SPOT_WORDS as W, SPOT_CAPTURE_WORDS as CW } from "@app/core";
 import type { Camera, TileEndpoints } from "@app/map";
 import { useBackLayer } from "@app/ui";
 import { MapScreen } from "../MapScreen";
@@ -23,7 +23,7 @@ export function ParkingPick({ palette, tiles, theme, camera, point, onPoint, onU
           <Text style={{ ...TYPE.name, fontSize: 17, color: palette.ink }}>{W.pickParking}</Text>
           <Text style={{ ...TYPE.small, color: palette.sub }}>{W.pickParkingDetail}</Text>
           {point && <Text style={{ ...TYPE.bodyStrong, fontSize: 13.5, color: palette.accent, marginTop: 3 }}>
-            {`${point.lat.toFixed(5)}, ${point.lon.toFixed(5)}`}</Text>}
+            {latLon(point)}</Text>}
         </View>
         <View style={{ flexDirection: "row", gap: 10 }}>
           <Button palette={palette} label={CW.cancel} onPress={onCancel} kind="ghost" />

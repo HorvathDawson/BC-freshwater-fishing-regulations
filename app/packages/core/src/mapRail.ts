@@ -4,6 +4,8 @@
  * raises. One copy, so every surface says the same.
  */
 
+import { latLon } from "./grouped";
+
 /** The rail's buttons: what each is called aloud (an icon alone is a guess, so the name is always said). */
 export const MAP_RAIL = {
   /** The rail itself, as a group. */
@@ -62,7 +64,7 @@ export const SPOTS_MENU = {
 export const SPOT_DROP = {
   title: "New spot",
   /** Where the pin is, said as numbers: the one thing every spot keeps. */
-  where: (lat: number, lon: number) => `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+  where: (lat: number, lon: number) => latLon({ lat, lon }),
   detail: "Next you pick the water it is on, then when you were there.",
   go: "Continue",
   cancel: "Cancel",

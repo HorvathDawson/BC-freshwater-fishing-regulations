@@ -1,7 +1,7 @@
 /** (T310) THE SPOT'S PARKING: where it is (coordinates), Directions (view), and set / pick / remove (edit). */
 import { View } from "react-native";
 import { Text } from "../Text";
-import { SPOT_WORDS as W } from "@app/core";
+import { latLon, SPOT_WORDS as W } from "@app/core";
 import { TYPE } from "../type";
 import type { Palette } from "../theme";
 import { Button } from "../Button";
@@ -15,7 +15,7 @@ export function ParkingBlock({ palette, parking, editable, notice, onHere, onPic
     <Block palette={palette} title={W.parking}>
       <View testID="spot-parking" style={{ gap: 10 }}>
         <Text selectable style={{ ...TYPE.body, color: parking ? palette.ink : palette.faint }}>
-          {parking ? `${parking.lat.toFixed(5)}, ${parking.lon.toFixed(5)}` : W.noParking}
+          {parking ? latLon(parking) : W.noParking}
         </Text>
         {notice && <Text style={{ ...TYPE.small, color: palette.sub }}>{notice}</Text>}
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>

@@ -8,3 +8,11 @@ export function grouped(n: number): string {
   const g = whole!.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return `${n < 0 ? "−" : ""}${g}${frac ? "." + frac : ""}`;
 }
+
+/**
+ * (T620 G26) A point as the reader sees it: "49.0974, -121.9675", four decimals (about 11 m) wherever a point is
+ * printed — a spot's page, its parking line, its list row. (A link's address keeps more; it is not read.)
+ */
+export function latLon(p: { lat: number; lon: number }): string {
+  return `${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}`;
+}

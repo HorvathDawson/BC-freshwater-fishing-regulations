@@ -4,7 +4,7 @@
  * They were composed inside `SpotScreen` and `SpotsScreen`, where a test could only match a fragment it had itself
  * supplied (AGENTS 33). Here each one is a whole string a test pins, and the screens draw it.
  */
-import { CONDITIONS_WORDS, localDate, localDateTime, localStamp, weatherFigure, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
+import { CONDITIONS_WORDS, localDate, localDateTime, localStamp, latLon, weatherFigure, monthAbbr, weekdayAbbr, figure, daysInTen, placeChip, placeSaid, readingIn,
          shownParameter, type DeclaresQuantity, type ShownQuantity } from "@app/core";
 import type { DailyGauge, DailyWeather, DayPlace, Spot, SpotReading, WeatherWindow } from "./model";
 import { OPEN_METEO_ATTRIBUTION } from "./weather";
@@ -352,7 +352,7 @@ export function observedLine(at: string | null, backfilled?: boolean, station?: 
 
 /** "2026-08-30 at 09:00 · 49.0974, -121.9675" — the visit, in the reader's own time, and the place. */
 export function spotHeadline(spot: Pick<Spot, "visitedAt" | "createdAt" | "lat" | "lon">): string {
-  return `${localDateTime(spot.visitedAt ?? spot.createdAt)} · ${spot.lat.toFixed(4)}, ${spot.lon.toFixed(4)}`;
+  return `${localDateTime(spot.visitedAt ?? spot.createdAt)} · ${latLon(spot)}`;
 }
 
 /**
@@ -395,5 +395,5 @@ export function spotRowLines(spot: Spot): [string, string] {
     : "no gauge";
   const weather = w?.tempC != null ? `${weatherFigure("temp", w.tempC)}${w.backfilled ? " (filled in)" : ""}` : "no weather";
   return [`${localDate(spot.visitedAt ?? spot.createdAt)} · ${gauge} · ${weather}`,
-          `${spot.lat.toFixed(4)}, ${spot.lon.toFixed(4)}`];
+          `${latLon(spot)}`];
 }

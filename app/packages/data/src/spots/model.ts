@@ -14,7 +14,7 @@
  * notes, so export/import is a requirement, not a nicety. A spot binds to `item_id` (durable across a rebuild,
  * 99.88%), never a `section_id` (94%).
  */
-import type { FrozenTrace, ShownQuantity } from "@app/core";
+import { latLon, type FrozenTrace, type ShownQuantity } from "@app/core";
 import type { PanelAnswer } from "../panel";
 import type { ItemId, Panel } from "../index";
 
@@ -322,7 +322,7 @@ export interface SpotStore {
 export function spotLabel(spot: Pick<Spot, "title" | "waterName" | "lat" | "lon">): string {
   if (spot.title.trim() !== "") return spot.title.trim();
   if (spot.waterName) return spot.waterName;
-  return `${spot.lat.toFixed(4)}, ${spot.lon.toFixed(4)}`;
+  return latLon(spot);
 }
 
 /** True when the spot has no name of its own — the prompt to add one is worth showing. */
