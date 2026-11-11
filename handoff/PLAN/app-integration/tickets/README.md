@@ -635,7 +635,7 @@ use that as the sole source of future work."
 | T607 | Little Qualicum "all waters unless indicated below" binds nothing: a whole-water sibling empties the rest | IN REVIEW — waits on the owner's re-save, then a reach rerun | — | T562 audit 11-10; cause found by reading; rule change (DFO lane) or the owner's own save, then a reach rerun |
 | T610 | A "same place" grouping writes why on the place (the Serpentine link had no note) | IN REVIEW | — | found 11-10 with T607; the apply writes the note; Serpentine landed by the app's own apply; Thompson's older wording left (its grouping mark is not in force) |
 | T611 | Salmon chain: a place of the "other places" kind sorts after the places it rides on | OPEN | — | T607's one-sibling tie; the deliver lane; the review app warns meanwhile |
-| T594 | Satellite view is not hidden by the stream lines | OPEN | — | owner report 2026-11-10 (worker report 442a0ecc); owner picks the look |
+| T594 | Satellite view is not hidden by the stream lines | OPEN | — | owner report 2026-11-10 (worker report 442a0ecc); shots ready, owner picks (T594-shots/, ticket section "Looks for the owner to pick") |
 | T595 | Error reports that are not defects stop arriving as errors (no Play service, test bed untagged, network, old app) | IN REVIEW | b1f252e7c 5af74464c 40d8abb75 | worker /crashes read 2026-11-10 |
 | T596 | A release download fails with "NoSuchFileException … .sqlite.part" (owner phone, 0.7.0) | IN REVIEW | 845734782 | worker /crashes 2026-11-10, kind 4219b587 |
 | T597 | Two feeds worker run failures 11-09/10 explained and guarded (gauges all-404 at 00:05 UTC; in-season format ahead of the worker) | OPEN | — | /status.json 2026-11-10; overlaps T550, T558 |
