@@ -85,6 +85,21 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     return () => (p ??= get(q).then((r) => !!r, (e) => { p = null; throw e; }));
   };
   const hasItemNear = has(CROSS.HAS_ITEM_NEAR), hasLakeSection = has(CROSS.HAS_LAKE_SECTION);
+  const hasItemAlias = has(CROSS.HAS_ITEM_ALIAS);
+  /**
+   * (T555) THE ONE RESOLVER of a saved item id: the id itself when core holds it, else what `item_alias` says it became
+   * (an id a later build absorbed), else null. Every by-id entry point goes through here, so a saved spot, alert or recent
+   * search follows an absorbed water. A core cut before `item_alias` has no aliases.
+   */
+  const currentItem = async (id: string, held: (id: string) => Promise<Row | undefined | null>): Promise<[string, Row] | null> => {
+    const own = await held(id);
+    if (own) return [id, own];
+    if (!(await hasItemAlias())) return null;
+    const a = await get(CROSS.ITEM_CURRENT, id);
+    const now = a ? str(a.item_id) : null;
+    const row = now === null ? null : await held(now);
+    return now !== null && row ? [now, row] : null;
+  };
   const hasNameSource = has(CROSS.HAS_NAME_SOURCE), hasItemArea = has(CROSS.HAS_ITEM_AREA);
   /** (T224) the `name_source` rows of these waters; none from a core cut before the table. */
   const nameSourcesOf = async (items: readonly string[]): Promise<Row[]> =>
@@ -298,8 +313,10 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
     },
 
     async water(id): Promise<Water | null> {
-      const item = await get(R.ITEM!, id);
-      if (!item) return null;
+      const found = await currentItem(id, (i) => get(R.ITEM!, i));
+      if (!found) return null;
+      const item = found[1];
+      id = found[0] as ItemId;
       const src = (await nameSourcesOf([str(item.item_id)])).find((r) => str(r.name) === str(item.name));
       return { item: str(item.item_id) as ItemId, name: str(item.name), kind: str(item.kind),
                sections: await sectionsOf(id), nameSource: src ? str(src.label) : null };
@@ -541,7 +558,8 @@ export function makeReleaseSource(loader: ReleaseLoader, opts: SourceOptions = {
      */
     async regulationKeys(item) {
       if (!loader.manifest.files.water) return [];
-      const o = await get(CROSS.ITEM_ORD, item);
+      const found = await currentItem(item, (i) => get(CROSS.ITEM_ORD, i));
+      const o = found?.[1];
       if (!o) return [];
       const akeys = (await all(CROSS.AKEYS_FOR_ORD, Number(o.ord))).map((r) => Number(r.akey));
       for (const akey of akeys) await loader.regionDb(akey);

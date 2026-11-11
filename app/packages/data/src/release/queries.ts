@@ -113,6 +113,10 @@ export const CROSS = {
     `SELECT sid, station FROM lake_section WHERE sid IN (${ids(n)})` }),
   ALL_LAKE_SECTIONS: { file: "conditions", sql: "SELECT sid, station FROM lake_section" },
   /** (T247) core: whether this release carries `item_area` (a core cut before it has no regions or units to search by). */
+  /** (T555) core: the id an absorbed (old) item id names now — `item_alias` ships in every release (what an old id names now,
+   *  for a saved link: a spot, an alert, a recent search). */
+  HAS_ITEM_ALIAS: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'item_alias'" },
+  ITEM_CURRENT: { file: "core", sql: "SELECT item_id FROM item_alias WHERE alias = ?" },
   HAS_ITEM_AREA: { file: "core", sql: "SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'item_area'" },
   /** (T247) core, whole: what the in-memory search index is built from (`WaterSource.searchIndex`), each read once. */
   INDEX_ITEMS: { file: "core", sql:
