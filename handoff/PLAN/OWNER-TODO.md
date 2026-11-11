@@ -82,6 +82,20 @@ with the default Claude uses until you answer). Newest first inside each section
   6. Monthly: handoff/PLAN/seo/MEASURE.md (no analytics script — Search Console, Bing, Cloudflare traffic).
   7. Outreach (T197): after prod is live, fill the brackets in handoff/PLAN/seo/outreach/*.md and send each by hand; log in tracker.csv.
 
+### Batch for the end of the closed-testing run (owner 2026-11-11: decide together at the end)
+
+**Tidal design (T665), full text in `handoff/PLAN/app-integration/T665-design.md`. Defaults are used unless you say otherwise.**
+- D1. Drop the 371 shore cuts into freshwater rivers (they make nothing tidal)? Default: drop.
+- D2. A creek flowing into a removed inside line is also cut at its polygon exit? Default: yes; count and map come from the dry run first.
+- D3. Three lines leave the polygon and come back in. Default: cut at the first real exit (gaps under 25 m bridged); "highest exit" would make about 3.5 km of on-land creek tidal on one of them.
+- D4. 33 creeks have your own mouth row. Default: rows untouched; the "tidal boundary" name moves to the new cut; listed in the report.
+- D5. Brae Slough (a name you found) becomes wholly tidal. Default: keep the name and search entry, answered as tidal water.
+- D6. Three creeks whose mouth is outside the polygon (Tlell 2, Chemainus 1). Default: no change.
+- Note: "removed" is done as "marked tidal, not drawn as fresh water"; the lines stay in the network so no id or hand match breaks.
+
+**Other**
+- Clean-checkout test run inside fast-fail (T535): add it? Default: not added.
+
 ## Reviews
 - **Tidal follow-ups (T359, 2026-11-03):** review app → Tidal → Follow-ups (8). Decide: does a DEM point you
   confirmed become a cut (Caycuse 1,925 m, Dempster 550 m)? Re-mark Annacis/Cannery/Morey/Parsons "whole water";
