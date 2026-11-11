@@ -175,3 +175,10 @@ The new reach tables were compared with the live run, filtered to T623's rules.
 - Option (b) was taken. `base_deltas.printed_exceptions` counts a table line whose own extent names a water OUTSIDE it as carried on that water's sections. It is the book's printed "except <water>" (p.64). Today it is the only base rule with `outside_items`.
 - Tests: `test_rulings_pinned.py::test_z1_a_printed_except_water_in_a_table_is_the_one_named_exception`. Mutation: the same release without `outside_items` reports the Peace groups. The code mutation turns both Z1 tests red. RULINGS Z1 names the exception.
 - Nothing to rerun but the tests.
+
+**Suite triage on the build 27 bundle (2026-11-11).**
+- 6 answers tests were F12 effects. The card gate is fixed (71aab0a3f: a size group's "do not count" is proved over SOME n kept, mutation-tested). 4 wording/tree pins now say "cutthroat trout, rainbow trout or steelhead" per RULINGS S12.
+- 2 pins follow owner answers (43a8bbc48): the Nechako carries no Region 6 lift (L22), and Peace part 9 keeps 10 kokanee (F6).
+- Not T623:
+  - The 11 curation-review in-season/screen failures: the promoted build 27 atlas against a LATEST release cut from the old atlas (handles d5242c0c70509877 vs 105218b34c4adf1b). They should clear when the build 27 release is LATEST.
+  - `test_review_screen` 453→458 splits: T637's cuts.
