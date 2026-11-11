@@ -4,8 +4,10 @@
  * without sending rejects with AbortError: that is the reader's choice, "dismissed", never a failure.
  */
 import type { SharePort } from "@app/ui";
+import { slugOf } from "./waterSlugs";
 
 export const share: SharePort | null = typeof navigator === "undefined" ? null : {
+  slugOf,
   send: async ({ url, title }) => {
     if (typeof navigator.share === "function") {
       try {

@@ -5,7 +5,7 @@
  */
 import type { ReleaseLoader } from "@app/data/release";
 import type { RegsStore } from "@app/data/regs";
-import { addressKept, historySync, reportFailure, routeSearch, waterFrame, type AddressState, type HistoryPort, type Route,
+import { addressKept, historySync, reportFailure, routeSearch, waterFrame, waterPageAddress, type AddressState, type HistoryPort, type Route,
          type SystemBack } from "@app/ui";
 import { linkSearch, placeReads, type PlaceReads } from "@app/ui/place";
 import { slugKnown, slugOf } from "./waterSlugs";
@@ -91,11 +91,9 @@ function put(asked: Route, q: string): void {
   const slug = item ? slugKnown(item) : null;
   let path = "/", next = q;
   if (slug) {
-    const p = new URLSearchParams(q);
-    p.delete("regs");
-    const rest = p.toString().replace(/%3A/gi, ":").replace(/%2C/gi, ",");
-    path = `/water/${slug}`;
-    next = rest ? `?${rest}` : "";
+    const addr = waterPageAddress(q, slug), at = addr.indexOf("?");
+    path = at < 0 ? addr : addr.slice(0, at);
+    next = at < 0 ? "" : addr.slice(at);
   } else if (item) {
     void slugOf(item).then((s) => { if (s && last === asked) void write(); });
   }

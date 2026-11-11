@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { HOME, reduce, waterFrame } from "./route";
 import { openWater } from "./openWater";
 import { holdsMapStatus, pageRegion, parseStartLink, routeSearch, slugShard, slugShardPath, SLUG_SHARDS, START_NOTICE_REACH_GONE,
@@ -144,5 +144,22 @@ describe("(T304) pageRegion: the region a water's page names (cift:region)", () 
     expect(() => pageRegion(undefined)).toThrow("names no region");
     for (const bad of ["", "7", "7A", " 2", "9", "2,5"])
       expect(() => pageRegion(bad)).toThrow(`start link: this water's page names region "${bad}", not a region`);
+  });
+});
+
+describe("(T624) a water page's address, and the slug reader both Shares use", () => {
+  it("waterPageAddress drops regs and keeps the rest, as the address bar writes it", async () => {
+    const { waterPageAddress } = await import("./startLink");
+    expect(waterPageAddress("?regs=gnis:1&view=conditions&date=2030-07-01&horizon=3", "x-river")).toBe("/water/x-river?view=conditions&date=2030-07-01&horizon=3");
+    expect(waterPageAddress("?regs=gnis:1", "x-river")).toBe("/water/x-river");
+  });
+  it("slugReader reads the shard from its origin once; a water not in the shard is null", async () => {
+    const { slugReader, slugShardPath } = await import("./startLink");
+    const fetcher = vi.fn(async (_u: string) => new Response(JSON.stringify({ "gnis:1": "x-river" })));
+    const r = slugReader("https://site.test", fetcher);
+    expect(await r.of("gnis:1")).toBe("x-river");
+    expect(r.known("gnis:1")).toBe("x-river");
+    expect(await r.of("gnis:2")).toBeNull();
+    expect(fetcher.mock.calls[0]![0]).toBe(`https://site.test${slugShardPath("gnis:1")}`);
   });
 });

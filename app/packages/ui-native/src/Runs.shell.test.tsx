@@ -145,11 +145,11 @@ describe("(T261) the Runs tab", () => {
       "Map Conditions Runs* Spots More",
       `top true,${topOnMap[1]}`,                                  // the bell is where it is on the Map tab
       "runs runs",
-      "Oct 18–22 (today)",
+      "Runs: Oct 18–22 (today)",
       'kept ["Steelhead","Coho"]',
       "Steelhead and coho runs",
-      "Oct 13–17",
-      "Oct 18–22 (today)",
+      "Runs: Oct 13–17",
+      "Runs: Oct 18–22 (today)",
       "1 | 1 run of another species here",
       "CohoIn the water Oct 18–22Chilliwack River · Seen in this stream (DFO spawner surveys)|months|"
         + "DFO surveys: 12 years, 2001–2024Total spawners2020–2022Latest count 2,900 (2022)Adult spawners2021–2022Latest count 800 (2022)",

@@ -10,6 +10,7 @@
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { monthAbbr, weekdayAbbr } from "./flow";
 import type { Horizon } from "./conditions";
+import { pentadLabel } from "./runTiming";
 
 /** The last day of the forecast window (days from today). */
 export const FORECAST_WINDOW: number = Math.max(...FORECAST_DAYS);
@@ -60,6 +61,12 @@ export const DAY_LABELS = {
   /** Regulations and the water's Map: the regulations day. */
   regulations: (regsDay: Date | null, now: Date): string =>
     regsDay === null || daysFromToday(regsDay, now) <= 0 ? "Regulations: today" : `Regulations: ${dayWords(regsDay)}`,
+  /**
+   * (T624, owner 2026-11-10: "Runs is its own thing") Runs: the five days its slider holds (a pentad), and "(today)" when
+   * they hold B.C.'s today. Runs' day is its own: the map's day never moves it and it never moves the map's.
+   */
+  runs: (pentad: number, today: number): string =>
+    `Runs: ${pentadLabel(pentad)}${pentad === today ? " (today)" : ""}`,
   map: (regsDay: Date | null, now: Date): string =>
     regsDay === null || daysFromToday(regsDay, now) <= 0 ? "Map: today's rules" : `Map: rules for ${dayWords(regsDay)}`,
 } as const;

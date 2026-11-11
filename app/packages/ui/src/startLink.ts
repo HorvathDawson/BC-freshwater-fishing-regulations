@@ -15,7 +15,7 @@
  * the session's profile (D8), the sheet a `SheetKey` the page opens like any press would. A bad value throws, naming it,
  * so a typo in a test never opens some other page silently.
  */
-import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow } from "@app/core";
+import { HORIZONS, parseSheetKey, type Horizon, type SheetKey, type Tab, type Who, bcNow, reportFailure } from "@app/core";
 import type { ItemId } from "@app/data";
 import { openWater } from "./openWater";
 import type { StreamPlace } from "@app/data/regs/place";
@@ -142,6 +142,57 @@ export function slugShard(item: string): number {
 export const slugShardPath = (item: string): string => `/water-slugs/${slugShard(item)}.json`;
 /** The path of the water page `/water/<slug>`; a water's start link otherwise. */
 export const WATER_PATH = /^\/water\/([a-z0-9-]+)\/?$/;
+
+/**
+ * (T624) A WATER PAGE'S ADDRESS from a start link's query: `/water/<slug>` with the route's other keys (part, view, day,
+ * horizon) as its query. `regs` is dropped (the page names its water itself). The ONE function the web's address bar
+ * and the Share link both call, so a link and the bar never disagree.
+ */
+export function waterPageAddress(query: string, slug: string): string {
+  const p = new URLSearchParams(query);
+  p.delete("regs");
+  const rest = p.toString().replace(/%3A/gi, ":").replace(/%2C/gi, ",");
+  return `/water/${slug}${rest ? `?${rest}` : ""}`;
+}
+
+/** Reads a water's slug (null: the water has no page, or the site cannot say). */
+export interface SlugReader {
+  /** a slug already known, synchronously */
+  known(item: string): string | null;
+  /** record what a page itself said */
+  seen(item: string, slug: string): void;
+  of(item: string): Promise<string | null>;
+}
+
+/**
+ * (T624) THE SLUG READER, once for the web and the phone: the shard of the SEO build's slug map that holds the water
+ * (`slugShardPath`), fetched from `origin` ("" on the web: its own site; the production site on the phone) and kept. A
+ * site with no shards (a development server, a 404) answers null; a fetch that fails is reported and answers null.
+ */
+export function slugReader(origin: string, fetcher: (url: string) => Promise<Response> = (u) => fetch(u)): SlugReader {
+  const shards = new Map<string, Promise<Readonly<Record<string, string>> | null>>();
+  const known = new Map<string, string>();
+  return {
+    known: (item) => known.get(item) ?? null,
+    seen: (item, slug) => { known.set(item, slug); },
+    of(item) {
+      const hit = known.get(item);
+      if (hit) return Promise.resolve(hit);
+      const path = slugShardPath(item);
+      let p = shards.get(path);
+      if (!p) {
+        p = fetcher(origin + path).then((r) => (r.ok ? r.json() as Promise<Record<string, string>> : null))
+          .catch((e: unknown) => { shards.delete(path); reportFailure(e); return null; });
+        shards.set(path, p);
+      }
+      return p.then((m) => {
+        const slug = m?.[item] ?? null;
+        if (slug) known.set(item, slug);
+        return slug;
+      });
+    },
+  };
+}
 
 /**
  * (T304) THE REGION A WATER'S PAGE NAMES (`<meta name="cift:region">`, written by the SEO build beside `cift:item`): the

@@ -59,9 +59,7 @@ export const RUNS_PLAY_MS = 650;
  * version ("<handles>.<build>"), `paired` the release / tiles pair proven. `store` keeps the species chosen.
  */
 export function useRunTiming(i: { source: RunTimingSource | null | undefined; wanted: boolean; paired: boolean;
-                                  tiles: string | null; store?: RunSpeciesStore | null; now?: Date;
-                                  /** (T620 G10) the day the map is on (null: today). Runs OPENS on its pentad and follows it when it moves. */
-                                  mapDay?: Date | null }): RunTimingVM {
+                                  tiles: string | null; store?: RunSpeciesStore | null; now?: Date }): RunTimingVM {
   const [asked, setAsked] = useState(false);
   if (i.wanted && i.source && !asked) setAsked(true);
   const got = useAsync(() => i.source!.latest(), "runtiming", asked && !!i.source);
@@ -94,17 +92,10 @@ export function useRunTiming(i: { source: RunTimingSource | null | undefined; wa
   const day = i.now ?? bcNow();
   const today = pentadOf(day);
   const year = day.getFullYear();
-  const mapPentad = i.mapDay ? pentadOf(i.mapDay) : today;
-  const [pentad, setPentadRaw] = useState(mapPentad);
+  // (T624, owner 2026-11-10: "Runs is its own thing") RUNS' DAY IS ITS OWN: it opens on today's pentad, the map's day
+  // never moves it and it never moves the map's; the caption names it (`DAY_LABELS.runs`, from the one B.C. clock).
+  const [pentad, setPentadRaw] = useState(today);
   const [playing, setPlaying] = useState(false);
-  // the map's day moving (the date pill, a start link) moves the slider with it; scrubbing the slider is Runs' own
-  const lastMap = useRef(mapPentad);
-  useEffect(() => {
-    if (lastMap.current === mapPentad) return;
-    lastMap.current = mapPentad;
-    setPlaying(false);
-    setPentadRaw(mapPentad);
-  }, [mapPentad]);
   const setPentad = useCallback((p: number) => {
     setPlaying(false);
     setPentadRaw(Math.max(0, Math.min(72, Math.round(p))));

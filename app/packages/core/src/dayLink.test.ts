@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { pentadLabel, pentadOf } from "./runTiming";
 import { DAY_LABELS, FORECAST_WINDOW, regsDayLink } from "./dayLink";
 
 // Tue 10 Nov 2026
@@ -29,5 +30,8 @@ describe("T582: the regulations day against the Conditions window", () => {
     expect(DAY_LABELS.conditions(3, NOW)).toBe("Conditions: Fri 13 Nov");
     expect(DAY_LABELS.regulations(plus(20), NOW)).toBe("Regulations: Mon 30 Nov");
     expect(DAY_LABELS.map(null, NOW)).toBe("Map: today's rules");
+    // Runs names its own pentad, and "(today)" only when it holds B.C.'s today (T624)
+    expect(DAY_LABELS.runs(pentadOf(NOW), pentadOf(NOW))).toBe(`Runs: ${pentadLabel(pentadOf(NOW))} (today)`);
+    expect(DAY_LABELS.runs(pentadOf(NOW) + 3, pentadOf(NOW))).toBe(`Runs: ${pentadLabel(pentadOf(NOW) + 3)}`);
   });
 });

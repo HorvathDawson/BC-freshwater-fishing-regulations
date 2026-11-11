@@ -8,7 +8,7 @@
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { decodeStatusIndex, localStamp, statusOfCode, waterStatusOn } from "@app/core";
+import { DAY_LABELS, decodeStatusIndex, localStamp, pentadLabel, pentadOf, statusOfCode, waterStatusOn } from "@app/core";
 import { statusFeed, rowStatus } from "@app/ui";
 import { observedLine } from "@app/data/spots";
 import { FIXTURE } from "../packages/core/src/statusIndex.fixture";
@@ -47,5 +47,22 @@ describe("one water, one day, one status on every surface", () => {
     expect(row).not.toMatch(/bcNow\(|new Date\(/);
     const search = readFileSync(new URL("../packages/ui/src/search.ts", import.meta.url), "utf8");
     expect(search).toMatch(/export function rowStatus\(item: ItemId, index: StatusIndex \| null,\s*on: Date\)/);
+  });
+});
+
+describe("Runs has its own day, named from the one B.C. clock (T624)", () => {
+  const src = (rel: string) => readFileSync(new URL(rel, import.meta.url), "utf8");
+  it("the map's day never reaches Runs' slider, and Runs' caption is core's label", () => {
+    const timing = src("../packages/ui/src/runTiming.ts");
+    expect(timing).not.toMatch(/mapDay/);
+    expect(timing).toMatch(/useState\(today\)/);
+    const colouring = src("../packages/ui-native/src/shell/useMapColouring.ts");
+    expect(/useRunTiming\(\{[^}]*\bmapDay\b/s.test(colouring)).toBe(false);
+    expect(src("../packages/ui-native/src/RunsControls.tsx")).toMatch(/DAY_LABELS\.runs\(pentad, today\)/);
+  });
+  it("it says which day it shows, and 'today' only for B.C.'s today", () => {
+    const now = day("2026-11-10"), later = day("2026-12-02");
+    expect(DAY_LABELS.runs(pentadOf(now), pentadOf(now))).toBe(`Runs: ${pentadLabel(pentadOf(now))} (today)`);
+    expect(DAY_LABELS.runs(pentadOf(later), pentadOf(now))).toBe(`Runs: ${pentadLabel(pentadOf(later))}`);
   });
 });

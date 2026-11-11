@@ -5,7 +5,7 @@
  * through the year, and wears the season at a glance behind its track (the share of watershed groups with these runs
  * in the water, `RunTimingFacts.season`). Every word is core's (`RUN_WORDS`); every colour a palette or map token.
  */
-import { FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, pentadLabel, seasonPeak, sliderKey, type RunSpecies } from "@app/core";
+import { DAY_LABELS, FISH, MONTH_PENTADS, RUN_SPECIES_CODE, RUN_WORDS, pentadLabel, seasonPeak, sliderKey, type RunSpecies } from "@app/core";
 import { runStateColour } from "@app/map/colours";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Image, PanResponder, ScrollView, View } from "react-native";
@@ -204,7 +204,7 @@ export function RunDayCaption({ pentad, today, title, onToday, palette }: {
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
       <View style={{ flex: 1 }}>
         <Text testID="run-day" style={{ ...TYPE.bodyStrong, fontSize: 17, color: palette.ink }}>
-          {RUN_WORDS.slider.value(pentad, pentad === today)}
+          {DAY_LABELS.runs(pentad, today)}
         </Text>
         {title && (
           <Text testID="runs-legend-title" numberOfLines={1} style={{ ...TYPE.small, fontSize: LEGEND_TEXT, color: palette.sub }}>

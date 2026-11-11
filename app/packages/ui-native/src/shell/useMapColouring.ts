@@ -175,7 +175,7 @@ export function useMapColouring({ source, feed, status, pairing, tiles, layerSto
    */
   const runsOffered = !!runTiming;
   const runs = useRunTiming({ source: runTiming, wanted: mapTab === "runs", paired, tiles: vintage.tiles,
-                              store: runSpeciesStore, mapDay });
+                              store: runSpeciesStore });
   const runsShown = mapTab === "runs" && runs.feed !== null;
   const regsShown: RegsLayer = regsLayer === "salmon" && salmonOffered && salmon.feed !== null ? "salmon" : "standard";
   const salmonLoading = regsLayer === "salmon" && salmonOffered && salmon.loading;

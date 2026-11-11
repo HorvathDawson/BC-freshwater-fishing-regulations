@@ -107,3 +107,45 @@ describe("(T385) a press", () => {
     expect(renderHook(() => useShare(null, null, WATER, { day: null, horizon: 0 })).result.current).toBeNull();
   });
 });
+
+describe("(T624) a water with a page is shared as that page; one without says so", () => {
+  const WATER: Route = reduce(HOME, openWater({ item: RIVER, part: null, view: "conditions" }));
+  const DAY = new Date(2030, 6, 1, 12);
+  it("shareLink: the water page with the query the page reads (no regs), else the app's start link", async () => {
+    expect(await shareLink(null, WATER, { day: DAY, horizon: 3 }, undefined, NOW, "chilliwack-river"))
+      .toBe(`${SITE_ORIGIN}/water/chilliwack-river?view=conditions&date=2030-07-01&horizon=3`);
+    expect(await shareLink(null, WATER, { day: DAY, horizon: 3 }, undefined, NOW, null))
+      .toBe(`${SITE_ORIGIN}/?regs=${RIVER}&view=conditions&date=2030-07-01&horizon=3`);
+    expect(await shareLink(null, reduce(HOME, openWater({ item: RIVER, part: null, view: "regs" })), null, undefined, NOW, "chilliwack-river"))
+      .toBe(`${SITE_ORIGIN}/water/chilliwack-river`);
+  });
+  it("the press sends the page when the platform knows the slug", async () => {
+    const send = vi.fn(async () => "sent" as const);
+    const port: SharePort = { send, slugOf: async () => "chilliwack-river" };
+    const { result } = renderHook(() => useShare(port, null, WATER, { day: null, horizon: 0 }));
+    await act(async () => { await Promise.resolve(); result.current!.press(); });
+    await waitFor(() => expect(send).toHaveBeenCalled());
+    expect(send).toHaveBeenCalledWith({ url: `${SITE_ORIGIN}/water/chilliwack-river?view=conditions`, title: SHARE_WORDS.title });
+    expect(result.current!.said).toBeNull();
+  });
+  it("a water with no page: the app's link, and it says so (beside Link copied; alone when the sheet took it)", async () => {
+    for (const [how, said] of [["copied", `${SHARE_WORDS.copied}. ${SHARE_WORDS.noPage}`], ["sent", SHARE_WORDS.noPage]] as const) {
+      const send = vi.fn(async () => how);
+      const port: SharePort = { send, slugOf: async () => null };
+      const { result } = renderHook(() => useShare(port, null, WATER, { day: null, horizon: 0 }));
+      await act(async () => { await Promise.resolve(); result.current!.press(); });
+      await waitFor(() => expect(result.current!.said).toBe(said));
+      expect(send).toHaveBeenCalledWith({ url: `${SITE_ORIGIN}/?regs=${RIVER}&view=conditions`, title: SHARE_WORDS.title });
+    }
+  });
+  it("a slug ask that fails is reported, and the app's link is shared with the same words", async () => {
+    const sink = vi.fn(), undo = setFailureSink(sink), boom = new Error("slug shard: offline");
+    const send = vi.fn(async () => "copied" as const);
+    const port: SharePort = { send, slugOf: async () => { throw boom; } };
+    const { result } = renderHook(() => useShare(port, null, WATER, { day: null, horizon: 0 }));
+    await act(async () => { await Promise.resolve(); result.current!.press(); });
+    await waitFor(() => expect(result.current!.said).toBe(`${SHARE_WORDS.copied}. ${SHARE_WORDS.noPage}`));
+    expect(sink).toHaveBeenCalledWith(boom);
+    undo();
+  });
+});

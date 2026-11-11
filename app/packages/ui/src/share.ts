@@ -12,9 +12,10 @@
  * failure: nothing said, nothing reported (T368). Any other failure is said under the control and reported.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GAUGE_SHARE_WORDS, bcNow, SHARE_WORDS, WEEKDAYS, gaugePageStations, gaugeUrl, isEnvironment, reportFailure, servedItems, shareUrl } from "@app/core";
+import { GAUGE_SHARE_WORDS, bcNow, SHARE_WORDS, WEEKDAYS, gaugePageStations, gaugeUrl, isEnvironment, reportFailure, servedItems, shareUrl, shareWaterUrl } from "@app/core";
 import { readGaugeRows, type ReleaseLoader } from "@app/data/release";
 import { waterHasPage, type PageDay } from "@app/data/regs";
+import { waterPageAddress } from "./startLink";
 import { linkSearch, placeReads, type PlaceReads } from "./place";
 import { loadRegsStore } from "./regs";
 import type { Route } from "./route";
@@ -27,6 +28,8 @@ export type ShareOutcome = "sent" | "copied" | "dismissed";
 export interface SharePort {
   /** Send the link: resolves how it went (a dismissed sheet resolves "dismissed"); rejects only on a real failure. */
   send(link: { url: string; title: string }): Promise<ShareOutcome>;
+  /** (T624) a water's slug (its page is `/water/<slug>`); null: no page. Absent: this platform cannot say, so the app's link is shared. */
+  slugOf?(item: string): Promise<string | null>;
 }
 
 export interface ShareControl {
@@ -43,13 +46,15 @@ const SAID_MS = 2500;
 /**
  * The shared link for a route: the reload address on the production site. `places`: the release's reads a place is made
  * from (null: the address without one). Null when the route has no water in front, or nothing to address it by (an
- * unnamed reach with no place).
+ * unnamed reach with no place). (T624) `slug`: the water's page slug when it has one: the link is then that page
+ * (`/water/<slug>?…`, whose preview is the water's own card); null: the app's start link.
  */
 export async function shareLink(places: PlaceReads | null, r: Route, extra: AddressState | null,
-                                onMissing?: (e: Error) => void, now?: Date): Promise<string | null> {
+                                onMissing?: (e: Error) => void, now?: Date, slug: string | null = null): Promise<string | null> {
   if (waterFrame(r) === null) return null;
   const search = await linkSearch(places, r, "", onMissing, extra, now);
-  return search ? shareUrl(search) : null;
+  if (!search) return null;
+  return slug ? shareWaterUrl(waterPageAddress(search, slug)) : shareUrl(search);
 }
 
 /** The release's place reads, once its regs store is open (the store the pages already share, `loadRegsStore`). */
@@ -69,18 +74,22 @@ export function useSendLink(port: SharePort | null) {
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
   useEffect(() => {
-    if (said !== SHARE_WORDS.copied) return;
+    if (said === null || said === SHARE_WORDS.failed) return;   // a failure stays until the next press; the rest fades
     const t = setTimeout(() => { if (alive.current) setSaid(null); }, SAID_MS);
     return () => clearTimeout(t);
   }, [said]);
   const clear = useCallback(() => setSaid(null), []);
-  const send = useCallback((link: string | null | Promise<string | null>) => {
+  const send = useCallback((link: string | null | Promise<string | null>, note: () => string | null = () => null) => {
     if (!port || busy) return;
     setSaid(null);
     const go = (url: string | null): Promise<void> => {
       if (url === null) { setSaid(SHARE_WORDS.none); return Promise.resolve(); }
       return port.send({ url, title: SHARE_WORDS.title }).then((how) => {
-        if (alive.current && how === "copied") setSaid(SHARE_WORDS.copied);
+        if (!alive.current || how === "dismissed") return;
+        // (T624) a fallback link says it is one: beside "Link copied", or alone when the sheet took it
+        const n = note();
+        if (how === "copied") setSaid(n ? `${SHARE_WORDS.copied}. ${n}` : SHARE_WORDS.copied);
+        else if (n) setSaid(n);
       });
     };
     setBusy(true);
@@ -156,14 +165,23 @@ export function useShare(port: SharePort | null, loader: ReleaseLoader | null, r
   /** the link for what is on screen now, made ahead (a promise: a press before it lands waits for it) */
   const link = useRef<Promise<string | null> | null>(null);
   const ready = useRef<string | null | undefined>(undefined);
+  const noPage = useRef(false);
   const day = extra.day?.getTime() ?? null;
   useEffect(() => {
     clear();
     ready.current = undefined;
     if (!port || !water) { link.current = null; return; }
     // a place the release cannot give is reported (as the address bar does) and the link made without it
-    const p = placesOf(loader).catch((e: unknown) => { reportFailure(e); return null; })
-      .then((places) => shareLink(places, route, extra, reportFailure));
+    // (T624) a water with a page is shared as that page; its slug is asked ahead too (a failed ask is reported by the reader)
+    const item = waterFrame(route)?.item ?? null;
+    const slug = item !== null && port.slugOf ? port.slugOf(item).catch((e: unknown) => { reportFailure(e); return null; })
+      : Promise.resolve(null);
+    noPage.current = false;
+    const p = Promise.all([placesOf(loader).catch((e: unknown) => { reportFailure(e); return null; }), slug])
+      .then(([places, s]) => {
+        noPage.current = item !== null && !!port.slugOf && s === null;   // a named water the site has no page for: the map's link, said
+        return shareLink(places, route, extra, reportFailure, undefined, s);
+      });
     link.current = p;
     p.then((u) => { if (link.current === p) ready.current = u; }, reportFailure);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the route and the address, by value
@@ -172,7 +190,7 @@ export function useShare(port: SharePort | null, loader: ReleaseLoader | null, r
   const press = useCallback(() => {
     if (!port || !link.current) return;
     // made already: sent inside the tap; else once it lands
-    send(ready.current !== undefined ? ready.current : link.current);
+    send(ready.current !== undefined ? ready.current : link.current, () => (noPage.current ? SHARE_WORDS.noPage : null));
   }, [port, send]);
 
   return port && water ? { label: SHARE_WORDS.label, said, busy, press } : null;
