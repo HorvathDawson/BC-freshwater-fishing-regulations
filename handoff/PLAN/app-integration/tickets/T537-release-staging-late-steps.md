@@ -1,6 +1,6 @@
 # T537 — `release --staging`: resolve in-season before the promote, resume from the smoke, name the after-chores
 
-Status: OPEN.
+Status: IN PROGRESS — b3b950e5e (built + unit-proved); left (Claude): one real `python -m pipeline release --staging` ending with a clean tree and green fast-fail, and the pointer-free smoke group in app/tools/smoke-staging.mjs (tools lane) — see Built.
 
 Source: workflow review 2026-11-09 (verified against the code). Rank 5.
 
@@ -39,3 +39,32 @@ Source: workflow review 2026-11-09 (verified against the code). Rank 5.
   success message lists the chores. One real `release --staging` ends with a clean tree and green fast-fail.
 
 Depends: T485 (run timing). Size: M. Owner: no.
+
+## Built (2026-11-10, b3b950e5e)
+1. Stage 4 (checks) resolves the in-season matches on the CANDIDATE (`regs.inseason.resolve --release <candidate>`
+   through heavy.sh, told fast-fail already ran), before the promote; ledger `inseason` (once per release). A failed match
+   stops at checks, LATEST untouched. A rewritten `notice_waters.json` is committed alone (explicit path) and the run
+   stops naming the push. `sync-inputs.sh` only verifies: matches on another release than LATEST are refused, nothing
+   put, the resolve + commit commands printed (never re-resolves, from any caller).
+2. The release runs `upload.sh` with SMOKE=0, records `uploaded_at`, then runs the smoke itself and records
+   `smoked_at` (= `staged_at`). A rerun after a smoke-only failure runs only the smoke. `upload.sh`: a failed test/
+   reset STOPS (was a WARNING).
+3. The success message lists the after-chores with exact commands (`after_chores`): goldens (checked by
+   `scripts/check-goldens-paired.py`; "RE-CUT NEEDED" + the sync.mjs / commit lines), site, feeds worker, prod.
+4. `upload.sh`: run timing (workflow done) → `sync-inputs.sh` → the pointer, as one last group.
+5. `release --prod` and `--prod --dry-run` read staging's live `release/manifest.json` first and refuse unless it serves
+   that release (unreadable = refused). `release --staging` prints when it replaces a staged release never published
+   and marks it `replaced_by` in the ledger.
+
+Proof: `test_release_command.py` (+6: failed resolve stops before the promote; rewritten file committed alone, stop for
+the push, not resolved again; smoke-only rerun = no second upload, chores printed; replacing a prod-handed release is
+said; prod refused when staging serves another / is unreadable, dry run says WOULD STOP; after-chores name the commands)
+and the stage order now `build, inseason, upload, smoke`. `test_staging_scripts_fail_safe.py` (sync-inputs only verifies;
+upload order and the reset stop pinned). Real: `release --prod r-a178299f6005 --dry-run` → "staging serves: ok" (the
+manifest needs a User-Agent: python's default gets 403); `after_chores` on this tree → "goldens: cut from LATEST already".
+
+Not verified / left: the acceptance's one real `release --staging` (clean tree + green fast-fail at the end) — not run
+(no releases in this lane). The pointer-free smoke parts BEFORE any upload need a group in `app/tools/smoke-staging.mjs`
+(`--only` has http / browser / desktop; http mixes pointer-free and pointer checks) — app/tools is another lane's. The
+goldens re-cut is named, not run, by the release. On a resume after the in-season commit, `pipeline build` reruns
+deliver (notice_waters.json is a deliver input), so the candidate may be rebuilt once.
