@@ -103,11 +103,20 @@ def fetch() -> int:
     return 1 if failed else 0
 
 
-def pin(paths: list[str], upstream: str | None) -> int:
+def pin(paths: list[str], upstream: str | None, accept_drop: bool = False) -> int:
     man = load() if MANIFEST.exists() else {"files": {}}
     for raw in paths:
         p = Path(raw).resolve()
         rel = key_of(p)
+        layers = source_dates.read(p)
+        old_layers = man["files"].get(rel, {}).get("layer_dates")
+        for name, rec in sorted((layers or {}).items()):
+            was = ((old_layers or {}).get(name) or {}).get("rows")
+            print(f"    {name:<28} {rec.get('rows', '?')!s:>10} rows  (previous pin: {'?' if was is None else was})")
+        drops = source_dates.row_drops(old_layers, layers)
+        if drops and not accept_drop:
+            raise SystemExit(f"pins: {rel} lost rows against the previous pin (T561):\n  " + "\n  ".join(drops)
+                             + "\nlook at the fetch; pass --accept-drop only when the source really shrank")
         digest = sha256(p)
         key = f"source/{digest[:16]}/{p.name}"
         print(f"  ↑ {rel} -> {BUCKET}/{key}")
@@ -115,7 +124,6 @@ def pin(paths: list[str], upstream: str | None) -> int:
         old = man["files"].get(rel, {})
         man["files"][rel] = {"bytes": p.stat().st_size, "sha256": digest, "url": f"{BASE_URL}/{key}",
                              "upstream": upstream or old.get("upstream", "")}
-        layers = source_dates.read(p)
         if layers is not None:
             # T561: the day each layer's SOURCE is from, as the fetch recorded it beside the file
             man["files"][rel]["layer_dates"] = layers
@@ -132,9 +140,11 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("pin")
     p.add_argument("paths", nargs="+")
     p.add_argument("--upstream", help="where these bytes first came from (kept from the old pin when omitted)")
+    p.add_argument("--accept-drop", action="store_true",
+                   help="pin although a layer lost more than 10%% of its rows against the previous pin (T561)")
     a = ap.parse_args(argv)
     if a.cmd == "pin":
-        return pin(a.paths, a.upstream)
+        return pin(a.paths, a.upstream, a.accept_drop)
     return fetch() if a.cmd == "fetch" else check()
 
 

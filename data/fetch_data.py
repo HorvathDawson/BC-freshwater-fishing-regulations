@@ -83,6 +83,28 @@ def _download_quiet(url, dest_path, timeout=60):
 _OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
 
+class OverpassPartial(RuntimeError):
+    """(T561) Overpass answered HTTP 200 but not in full: a `remark` (a runtime error — timeout, out of memory — after
+    which `elements` holds only what was read so far) or no `elements` at all. Retried like a 503; never written."""
+
+
+def _overpass_answer(raw: dict, what: str) -> dict:
+    """The answer, or OverpassPartial: Overpass reports a query that ran out of time or memory IN the 200 body (`remark`),
+    with the elements read so far — a layer built from it silently loses whatever was not reached."""
+    if not isinstance(raw, dict) or not isinstance(raw.get("elements"), list):
+        raise OverpassPartial(f"Overpass answer for {what} has no `elements` list")
+    if raw.get("remark"):
+        raise OverpassPartial(f"Overpass answer for {what} is partial: remark {raw['remark']!r}")
+    return raw
+
+
+def _require_rows(n: int, what: str) -> None:
+    """(T561) An empty result is a failed fetch, never "nothing there": printing a warning and returning left the old
+    layer in the gpkg and exited 0."""
+    if n == 0:
+        raise RuntimeError(f"{what}: the source returned nothing — refusing to call that a fetch")
+
+
 def _overpass_query(query: str, what: str, timeout: int = 240, retries: int = 3) -> dict:
     """POST an Overpass QL query, retrying transient server errors.
 
@@ -102,7 +124,7 @@ def _overpass_query(query: str, what: str, timeout: int = 240, retries: int = 3)
         )
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return json.loads(resp.read().decode("utf-8"))
+                return _overpass_answer(json.loads(resp.read().decode("utf-8")), what)
         except Exception as e:  # noqa: BLE001
             last_exc = e
             # HTTPError is a URLError subclass, so it must be checked first —
@@ -111,7 +133,7 @@ def _overpass_query(query: str, what: str, timeout: int = 240, retries: int = 3)
             if isinstance(e, urllib.error.HTTPError):
                 transient = e.code in (429, 502, 503, 504)
             else:
-                transient = isinstance(e, (urllib.error.URLError, TimeoutError))
+                transient = isinstance(e, (urllib.error.URLError, TimeoutError, OverpassPartial))
             if attempt < retries and transient:
                 wait = 10 * attempt
                 print(f"  ⚠️  Overpass request failed ({e}); retrying in {wait}s "
@@ -155,6 +177,13 @@ _FWA_DAY_HEADER = "x-amz-meta-s3b-last-modified"
 _PARCEL_DAY_HEADER = "Last-Modified"
 
 
+def _layer_rows(gpkg: Path, layer: str) -> int:
+    """A GeoPackage layer's feature count (its metadata: no full read)."""
+    import pyogrio
+
+    return int(pyogrio.read_info(gpkg, layer=layer)["features"])
+
+
 def record_layer_day(cfg: dict, name: str, gpkg_out: Path, osm_day: "str | None" = None) -> None:
     """T561: write the fetched layer's SOURCE day into the sidecar beside its GeoPackage
     (`pipeline.common.source_dates`; the release dates the FWA from it, never from `gpkg_contents.last_change`).
@@ -164,19 +193,21 @@ def record_layer_day(cfg: dict, name: str, gpkg_out: Path, osm_day: "str | None"
 
     t = cfg["type"]
     today = datetime.date.today().isoformat()
+
+    def rec(gpkg: Path, layer: str, day, basis: str) -> None:
+        # T561 item 3: the layer's row count as fetched, which `source_pins pin` holds against the previous pin
+        source_dates.record(gpkg, layer, day, basis, rows=_layer_rows(gpkg, layer))
     if t == "WFS":
-        source_dates.record(gpkg_out, name, today, f"live DataBC WFS {cfg['source']}, the fetch day")
+        rec(gpkg_out, name, today, f"live DataBC WFS {cfg['source']}, the fetch day")
     elif t == "WFS_FILE":
-        source_dates.record(gpkg_out.parent / cfg["dest"], cfg["layer"], today,
-                            f"live DataBC WFS {cfg['source']}, the fetch day")
+        rec(gpkg_out.parent / cfg["dest"], cfg["layer"], today, f"live DataBC WFS {cfg['source']}, the fetch day")
     elif t == "PARCEL_FABRIC":
-        source_dates.record(gpkg_out, f"{name}_crown", _http_day(cfg["url"], _PARCEL_DAY_HEADER),
-                            f"ParcelMap BC bulk download {cfg['url']} {_PARCEL_DAY_HEADER}")
+        rec(gpkg_out, f"{name}_crown", _http_day(cfg["url"], _PARCEL_DAY_HEADER),
+            f"ParcelMap BC bulk download {cfg['url']} {_PARCEL_DAY_HEADER}")
     elif t in ("FWA_GDB", "FWA_STREAMS"):
-        source_dates.record(gpkg_out, name, _http_day(cfg["ftp"], _FWA_DAY_HEADER),
-                            f"FWA publication: {cfg['ftp']} {_FWA_DAY_HEADER}")
+        rec(gpkg_out, name, _http_day(cfg["ftp"], _FWA_DAY_HEADER), f"FWA publication: {cfg['ftp']} {_FWA_DAY_HEADER}")
     elif t.startswith("OVERPASS_"):
-        source_dates.record(gpkg_out, name, osm_day, "OpenStreetMap via Overpass, osm3s.timestamp_osm_base")
+        rec(gpkg_out, name, osm_day, "OpenStreetMap via Overpass, osm3s.timestamp_osm_base")
 
 
 # ==========================================
@@ -273,9 +304,7 @@ def fetch_parcel_fabric(
         gdb_path, layer=gdb_layer, engine="pyogrio",
         where=f"PARCEL_CLASS NOT IN ({noise_list})",
     )
-    if parcels_gdf.empty:
-        print(f"  ⚠️  '{short_name}_crown': no parcels found.")
-        return
+    _require_rows(len(parcels_gdf), f"'{short_name}_crown' parcels")
     if parcels_gdf.crs and parcels_gdf.crs.to_epsg() != 3005:
         parcels_gdf = parcels_gdf.to_crs(epsg=3005)
 
@@ -505,9 +534,7 @@ out skel qt;
             continue
         records.append(_tags_to_record(way_el["id"], tags, geom))
 
-    if not records:
-        print("  ⚠️  No aboriginal lands polygons found.")
-        return
+    _require_rows(len(records), "aboriginal lands polygons")
 
     gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3005)
@@ -546,7 +573,26 @@ _CLOSED_ACCESS_VALUES = {"no", "private"}
 # old, now-retired `osm_admin_boundaries` dataset used. Folded in here so
 # `land_access` is the single source of truth for this kind of restriction,
 # rather than a separate always-one-hardcoded-query dataset.
-_NAMED_RESTRICTED_AREAS = ["Malcolm Knapp Research Forest"]
+#
+# PINNED BY OSM ELEMENT (T561), not geocoded by name: a name search takes its first hit, and a failure was only a
+# warning, so the area could drop out of the layer with the run still green. (name, OSM type, OSM id); a lookup that
+# finds nothing fails the layer. 1166294466 is a WAY (it was written as a "relation" before, checked 2026-11-10).
+_NAMED_RESTRICTED_AREAS = [("UBC Malcolm Knapp Research Forest", "way", 1166294466)]
+
+
+def _named_area_record(name: str, osm_type: str, osm_id: int, to_record) -> dict:
+    """One hand-listed restricted area, looked up BY ITS OSM ELEMENT (Nominatim by id, through osmnx); an element that
+    is gone, or is not a polygon, raises naming it (T561)."""
+    named_gdf = ox.geocoder.geocode_to_gdf(f"{osm_type[0].upper()}{osm_id}", by_osmid=True)
+    if named_gdf.empty:
+        raise RuntimeError(f"named restricted area {name!r} ({osm_type} {osm_id}) not found in OSM")
+    if named_gdf.crs and named_gdf.crs.to_epsg() != 4326:
+        named_gdf = named_gdf.to_crs(epsg=4326)
+    row = named_gdf.iloc[0]
+    if row.geometry is None or row.geometry.geom_type not in ("Polygon", "MultiPolygon"):
+        raise RuntimeError(f"named restricted area {name!r} ({osm_type} {osm_id}) is not a polygon in OSM")
+    tags = {"name": row.get("name") or name, "access": "permit"}
+    return to_record(osm_id, tags, row.geometry, osm_type)
 
 
 def fetch_overpass_land_access(short_name: str, gpkg_path: Path) -> str:
@@ -732,28 +778,12 @@ out skel qt;
     # Exempt from the noise filter above: this is a small, hand-curated
     # list, not raw crowd-sourced tagging, so being on it already means
     # it's a real restriction regardless of what tags it carries.
-    for name in _NAMED_RESTRICTED_AREAS:
-        print(f"  -> Geocoding named restricted area: {name}")
-        try:
-            named_gdf = ox.geocoder.geocode_to_gdf(name)
-        except Exception as e:
-            logger.warning("Named-area geocode failed for '%s': %s", name, e)
-            continue
-        if named_gdf.empty:
-            print(f"     ⚠️ No results for {name}")
-            continue
-        if named_gdf.crs and named_gdf.crs.to_epsg() != 4326:
-            named_gdf = named_gdf.to_crs(epsg=4326)
-        row = named_gdf.iloc[0]
-        tags = {"name": row.get("name") or name, "access": "permit"}
-        records.append(
-            _tags_to_record(row.get("osm_id"), tags, row.geometry, "relation")
-        )
+    for name, osm_type, osm_id in _NAMED_RESTRICTED_AREAS:
+        print(f"  -> Looking up named restricted area: {name} ({osm_type} {osm_id})")
+        records.append(_named_area_record(name, osm_type, osm_id, _tags_to_record))
         print(f"     ✅ Added {name}")
 
-    if not records:
-        print("  ⚠️  No land-access polygons found.")
-        return
+    _require_rows(len(records), "land-access polygons")
 
     gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3005)
@@ -884,9 +914,7 @@ out skel qt;
         print(f"  Dropped {dropped_private:,} private-access water access points "
               f"(access=private/no or mooring=private/no)")
 
-    if not records:
-        print("  ⚠️  No water access features found.")
-        return
+    _require_rows(len(records), "water access features")
 
     gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3005)
@@ -962,9 +990,7 @@ out skel qt;
             _tags_to_record(way_el["id"], way_el.get("tags", {}), LineString(coords), "way")
         )
 
-    if not records:
-        print("  ⚠️  No waterfalls found.")
-        return
+    _require_rows(len(records), "waterfalls")
 
     gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3005)
@@ -1380,8 +1406,12 @@ def fetch_hydrometric_stations(short_name: str, dest_path: Path) -> None:
             text = fh.read().decode("utf-8-sig", errors="replace")
         speaking = listed_stations(text) or set()
         print(f"  … {len(speaking)} BC stations transmitting today")
-    except Exception as e:                                   # the API half still stands
-        print(f"  ⚠️  real-time roster unavailable ({e}); no station marked live")
+    except Exception as e:
+        # T561: this file is never refetched once written, so a roster that failed would mark every station not live
+        # for good; fail the layer instead (rerun with --layers hydrometric_stations)
+        raise RuntimeError(f"{short_name}: the real-time roster is unavailable ({e}); nothing written") from e
+    if not speaking:
+        raise RuntimeError(f"{short_name}: the real-time roster lists no BC station; nothing written")
 
     out: list[dict] = []
     offset, limit = 0, 500
@@ -1548,7 +1578,7 @@ def fetch_osm_places(short_name: str, dest_path: Path) -> None:
         print(f"  clipped to British Columbia: {before:,} -> {len(places):,} "
               f"({before - len(places):,} outside the province dropped)")
     else:
-        print(f"  ⚠️  {boundary.name} not found — gazetteer NOT clipped to BC")
+        raise RuntimeError(f"{boundary} not found — refusing to write a gazetteer NOT clipped to BC (T561)")
     # A regression guard, not a style preference: the first version of this returned 1,624
     # and looked like it had worked. If a query change silently narrows the result, the
     # number is the only thing that shows it.

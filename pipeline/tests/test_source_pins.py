@@ -42,3 +42,36 @@ def test_pin_copies_the_fetchs_layer_dates_into_the_manifest(tmp_path, monkeypat
     assert P.pin([str(g)], "upstream") == 0
     pinned = json.loads((src / "pins.json").read_text())["files"]["bc_fisheries_data.gpkg"]
     assert pinned["layer_dates"] == {"streams": {"date": "2024-03-26", "basis": "FWA publication"}}
+
+
+def test_a_layer_that_lost_rows_is_refused_at_pin_unless_accepted(tmp_path, monkeypatch, capsys):
+    # T561 item 3: a partial fetch shows as a shrunken layer; pin holds the counts against the previous pin
+    import json
+
+    from pipeline.common import source_dates
+    src = tmp_path / "source"
+    src.mkdir()
+    g = src / "bc_fisheries_data.gpkg"
+    g.write_bytes(b"gpkg")
+    monkeypatch.setattr(P, "SOURCE", src)
+    monkeypatch.setattr(P, "MANIFEST", src / "pins.json")
+    monkeypatch.setattr(P.subprocess, "run", lambda *a, **k: None)
+    source_dates.record(g, "land_access", "2026-07-22", "osm", rows=136)
+    source_dates.record(g, "waterfalls", "2026-07-20", "osm", rows=2411)
+    assert P.pin([str(g)], "up") == 0
+    source_dates.record(g, "land_access", "2026-11-10", "osm", rows=60)       # 56 % fewer
+    source_dates.record(g, "waterfalls", "2026-11-10", "osm", rows=2300)      # 5 % fewer: fine
+    with pytest.raises(SystemExit, match=r"land_access: 136 -> 60 rows \(56% fewer\)"):
+        P.pin([str(g)], None)
+    assert json.loads((src / "pins.json").read_text())["files"]["bc_fisheries_data.gpkg"]["layer_dates"][
+        "land_access"]["rows"] == 136                                           # the old pin stands
+    assert P.pin([str(g)], None, accept_drop=True) == 0
+    assert "land_access" in capsys.readouterr().out                             # the counts are printed
+
+
+def test_row_drops_names_a_layer_that_is_gone():
+    from pipeline.common.source_dates import row_drops
+    assert row_drops({"a": {"rows": 10}, "b": {"rows": 5}}, {"a": {"rows": 10}}) == [
+        "b: 5 rows at the previous pin, none recorded now"]
+    assert row_drops(None, {"a": {"rows": 1}}) == []
+    assert row_drops({"a": {"date": "2024-03-26"}}, {}) == []                  # no previous count: nothing to hold
