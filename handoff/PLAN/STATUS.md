@@ -8,6 +8,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 midday — owner answered; branch pushed; release waits only on CI (chat 11)
+
+- **Owner answers:** push allowed (pushed to 11a37ead7); build 27 releases without the nine DFO marks that need new cuts (on `NOT_LANDED_OK`, 1b879ae6e); Peace "except <water>" exception fine; Oxbows 0.45 km gap accepted (T663 dropped); Oxbows must be ONE item (T664); a stream wholly inside the tidal polygon is removed, named ones listed for the owner first; Serpentine's tidal boundary (BNSF bridge) lies below the mapped mouth so it must become the mouth, "others might be same issue".
+- **Next rebuild (not build 27), owner agreed:** T664 Oxbows merge + the nine DFO cuts + wholly-tidal streams (+ whatever the Serpentine/mouth audit proposes).
+- **Running:** pipeline CI on 11a37ead7 (first run on 1b879ae6e failed one test that reads marks.jsonl; the owner's marks are now committed as-is). T660 agent (af493ea82f24eab4d): questions A–G (one cut per stream at the highest crossing; Serpentine; other limits below a mouth; wholly-tidal streams count + named list + maps), measure and propose only.
+- **When CI is green:** `python -m pipeline release --staging --baseline data/generated/reaches/baseline-r-a178299f6005` (it will ask for `--accept-diff`; the diff was checked by the three lanes). Candidate r-303b4007a70a is built; marks.jsonl changed since, so deliver may rerun. Then: re-run the 13 LATEST-dependent tests, fast-fail, T661 item 2 + heavy gate install, staging site, store screenshots (T319) + Stellako card to the owner, build 27 (patched MapLibre) to Play internal with T534/T542 emulator runs.
+- **If CI is red again:** read the run; fix, or `--no-ci-check "<reason>"` only with a reason that covers the failure.
+- **Next free ticket: T665.**
+
 ## 2026-11-11 morning — build 27 is built and tested locally; the release waits on the owner (chat 11)
 
 - **State:** atlas `full` = build 27 (old in `full.prev`). Candidate release **r-303b4007a70a** (`data/release/CANDIDATE`); LATEST still r-a178299f6005. Tiles and bundle agree. Nothing pushed, nothing uploaded.
