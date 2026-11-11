@@ -16,12 +16,11 @@
  */
 import type { ReactNode } from "react";
 import { View } from "react-native";
-import { daylightOffsets, groupGlance, speciesBlocks, dfoBlockStatus, SALMON_WORDS, WORDS, type CaveatVM, type GlanceRowVM, type InSeasonBannerVM, type KeepVM, type SalmonStripVM } from "@app/core";
+import { daylightOffsets, groupGlance, speciesBlocks, dfoBlockStatus, SALMON_WORDS, WORDS, type CaveatVM, type GlanceRowVM, type KeepVM, type SalmonStripVM } from "@app/core";
 import { GUTTER, type Palette } from "../theme";
 import { Text } from "../Text";
 import { TYPE } from "../type";
 import { ClosedBanner, CaveatBlock, TimedLines, InheritedLine, OtherFish, SpeciesRows, OutsideFoot, PossessionRow, WhereNot, type GlanceFold } from "./KeepBlocks";
-import { InSeasonBanners } from "./InSeasonBanner";
 import { GroupCard } from "./GroupCard";
 import { PlainRow } from "./PlainRow";
 import { SalmonYearStrip, YearStrip } from "./YearStrip";
@@ -29,12 +28,9 @@ import { CoachSpot } from "../CoachMarks";
 import type { KeepActions } from "./LineText";
 import type { FishImages } from "./types";
 
-export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, inSeason = [], daylight = null }: {
+export function KeepTab({ keep, dateLabel, palette, actions, images, glance = null, salmonStrip = null, daylight = null }: {
   keep: KeepVM; dateLabel: string; palette: Palette; actions: KeepActions; images?: FishImages;
   salmonStrip?: SalmonStripVM | null;
-  /** (T472) the in-season changes on the page's day: one collapsed line just above the species table (after the status, the
-   *  year bar and the leading notes), the full notices under it on a press */
-  inSeason?: readonly InSeasonBannerVM[];
   /** (T473) the open hours of a daylight-only closure on the day at the water, from the rule's own offsets; null: no point */
   daylight?: ((after: number, before: number) => string | null) | null;
   glance?: { salmon: { row: GlanceRowVM; card: () => ReactNode } | null } | null;
@@ -63,7 +59,6 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
   // (T318) the timed closures are lines under the game-fish bar (which they apply to), not a boxed note further down
   const timedAt = keep.order.findIndex((b) => typeof b === "object" && "caveat" in b && keep.caveats[b.caveat]?.kind === "timed");
   const timed = timedAt >= 0 && keep.strip && keep.order.includes("strip") ? keep.caveats[(keep.order[timedAt] as { caveat: number }).caveat]! : null;
-  const inSeasonLine = <InSeasonBanners key="inseason" banners={inSeason} palette={palette} />;
   // (T473) a daylight-only closure said as the day's real hours with the status; its rule words stay as a small line
   const off = timed ? [...timed.items, ...(timed.later ?? [])].map(daylightOffsets).find((o) => o !== null) ?? null : null;
   const range = off && daylight ? daylight(off.after, off.before) : null;
@@ -113,10 +108,8 @@ export function KeepTab({ keep, dateLabel, palette, actions, images, glance = nu
         if ("group" in b) return <GroupCard key={i} g={keep.groups[b.group]!} palette={palette} actions={actions} images={images} />;
         return <PlainRow key={i} row={keep.plainRows[b.plain]!} palette={palette} actions={actions} images={images} />;
         })();
-        const line = i === lead ? inSeasonLine : null;
-        return before || line ? [line, before, block] : block;
+        return before ? [before, block] : block;
       })}
-      {lead < 0 && inSeasonLine}
       {glance && !home && at < 0 && split.rest.length > 0 && tableAt >= keep.order.length && table(-1)}
     </View>
   );

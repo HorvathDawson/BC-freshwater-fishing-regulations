@@ -7,7 +7,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Text } from "react-native";
-import type { RegsPage } from "@app/core";
+import { inSeasonBanner, type RegsPage } from "@app/core";
 import { LIGHT } from "../theme";
 import { WaterFrame } from "../WaterFrame";
 import { forgetRegsScroll, recallRegsScroll, regsScrollKey } from "./scrollMemory";
@@ -45,6 +45,22 @@ describe("<RegsScreen>", () => {
     const { container } = mount();
     const scrolls = [...container.querySelectorAll<HTMLElement>("*")].filter((e) => /auto|scroll/.test(getComputedStyle(e).overflowY));
     expect(scrolls).toEqual([scrollEl()]);
+  });
+
+  it("(T565) an in-season notice is the first thing on the page: above the salmon card and every calendar and species block, below only a lapsed edition's line", () => {
+    const change = { id: "is-a", region: "8", water: "Fraser River", from: "2026-10-15", to: "2026-11-30",
+                     text: "No fishing for sturgeon.", source: "https://www2.gov.bc.ca/x", waters: null, onRelease: true, linksRelease: null, words: {} };
+    const order = () => [...screen.getByTestId("regs-content").children].map((e) => e.getAttribute("data-testid"));
+    mount({ inSeason: [inSeasonBanner(change, { where: null })], salmon: <Text testID="salmon-card">salmon card</Text>, lapsed: "Out of date." });
+    expect(order().slice(0, 4)).toEqual(["regs-lapsed", "inseason-banners", "salmon-card", "keep-tab"]);
+    cleanup();
+    mount({ inSeason: [inSeasonBanner(change, { where: null })] });
+    expect(order().slice(0, 2)).toEqual(["inseason-banners", "keep-tab"]);
+    // inside the Keep tab there is no notice any more: it is not drawn twice, and not under the year bar
+    expect(screen.getByTestId("keep-tab").querySelector("[data-testid=inseason-banners]")).toBeNull();
+    cleanup();
+    mount({ inSeason: [] });
+    expect(screen.queryByTestId("inseason-banners")).toBeNull();
   });
 
   it("a lapsed edition: core's sentence leads the page, above Keep; in force (or no stamp) it is not drawn", () => {

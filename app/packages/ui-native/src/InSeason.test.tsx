@@ -168,21 +168,11 @@ describe("T234 v1.1: what's new in the incoming version, under the bell's App up
   });
 });
 
-describe("the in-season line on the Keep tab (T472)", () => {
-  it("sits after the year bar and before the species table, collapsed", async () => {
+describe("the in-season line on the page (T472, T565)", () => {
+  it("is first on the Regulations page, collapsed, and not inside the Keep tab (order: RegsScreen.test)", async () => {
     const { KeepTab } = await import("./regs/KeepTab");
     const vedder = (await import("./regs/fixtures/vedder_1010.json")).default as unknown as { keep: import("@app/core").KeepVM };
-    render(<KeepTab keep={vedder.keep} dateLabel="Oct 10" palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never}
-                    inSeason={[inSeasonBanner(change, { where: null })]} />);
-    const tab = screen.getByTestId("keep-tab");
-    const line = screen.getByTestId("inseason-banners");
-    const kids = [...tab.children];
-    const at = kids.findIndex((k) => k.contains(line));
-    expect(at).toBeGreaterThanOrEqual(0);
-    expect(screen.queryByTestId("inseason-banner")).toBeNull();
-    const before = kids.slice(0, at).map((k) => k.textContent).join("");
-    const after = kids.slice(at + 1).map((k) => k.textContent).join("");
-    expect(before.length + after.length).toBeGreaterThan(0);
-    expect(tab.querySelectorAll('[data-testid="inseason-banners"]')).toHaveLength(1);
+    render(<KeepTab keep={vedder.keep} dateLabel="Oct 10" palette={LIGHT} actions={{ onSheet() {}, onDay() {}, onBook() {} } as never} />);
+    expect(screen.queryByTestId("inseason-banners")).toBeNull();
   });
 });

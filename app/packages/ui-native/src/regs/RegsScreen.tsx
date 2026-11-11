@@ -39,6 +39,7 @@ import { SheetHost } from "./SheetHost";
 import { recallRegsScroll, rememberRegsScroll } from "./scrollMemory";
 import type { LayoutClass, RegsStart } from "@app/ui";
 import { AnchorContext, StickyContext, useAnchors } from "./useAnchors";
+import { InSeasonBanners } from "./InSeasonBanner";
 import type { AdiposeImages, FishImages } from "./types";
 import { CoachScrollContext, useCoachScroller } from "../CoachMarks";
 
@@ -246,13 +247,16 @@ export function RegsScreen({ page, palette, images, adipose, actions, onDate, on
           <LineText line={waterBook} style={TYPE.metaBold} color={palette.accent} palette={palette} actions={keepActions} />
         </WaterInset>
       )}
+      {/* (T565, owner 2026-11-09) an in-season change is B.C. Fish and Wildlife's notice for the WATER, not a salmon or a
+          species thing: first on the page, above the salmon card and every calendar and species block (T472: collapsed to one line) */}
+      <InSeasonBanners banners={inSeason} palette={palette} />
       {/* (T395) the vessel restrictions are no longer here: their own section under Methods (`MethodsTab` boats) */}
       {/* (T387 review) the glance folds the card into its table only when it has the card's row: a card still coming, or
           failed, is drawn here in its place (its pending / failed face) — never a silent gap */}
       {(!glance || !glance.salmon) && (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon)}
       <AnchorContext.Provider value={sink}>
         <StickyContext.Provider value={sticky}>
-          <KeepTab keep={page.keep} inSeason={inSeason} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
+          <KeepTab keep={page.keep} daylight={daylight} dateLabel={page.header.date} palette={palette} actions={keepActions} images={images} salmonStrip={salmonStrip}
                    glance={glance ? { salmon: glance.salmon && salmon
                      ? { row: glance.salmon, card: () => (typeof salmon === "function" ? salmon({ actions: keepActions, images }) : salmon) }
                      : null } : null} />
