@@ -175,3 +175,111 @@ def test_a_plain_crossing_is_still_cut_beside_a_braided_one(tmp_path, monkeypatc
     b, rec = _stage(g, idx, by_fid, fids, tmp_path, monkeypatch)
     assert [p.split_id for p in b.applied_splits] == ["shore:C:300"]
     assert {r["blk"]: r.get("not_cut") for r in rec["runs"]} == {"C": None, "S": S.SPANNED}
+
+
+# ------------------------------------------------------------------------------------------------
+# T665: THE POLYGON RULE (`shore.polygon_rule`) — not wired into the build yet; the dry run reads it on the live atlas.
+# ------------------------------------------------------------------------------------------------
+
+def _poly_run(sea=SEA, tidal=("X:0",), mouth_rows=(), existing=None, extra=(), limited=()):
+    from shapely.ops import linemerge
+    fids = _fids() + list(extra)
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    by_fid = {f.fid: f.geometry for f in fids}
+    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
+    inside = S.polygon_inside(S.graph_lines(g, geoms), sea)
+    pts, rule_a, rows = S.polygon_rule(g, inside, set(tidal), frozenset(mouth_rows), existing, frozenset(limited))
+    return pts, rule_a, {r["blk"]: r for r in rows}, inside
+
+
+def test_t665_a_creek_into_tidal_water_is_cut_exactly_where_it_leaves_the_polygon():
+    pts, rule_a, rows, inside = _poly_run()
+    assert [(p.split_id, p.route_measure, p.source, p.label) for p in pts] == [("shore:C:300", 300.0, "shore", "shore")]
+    assert rows["C"]["cut_m"] == 300.0 and rows["C"]["joins"] == "curated" and rows["C"]["below_cut_tidal"]
+    # E lies wholly inside the polygon: rule A, not a cut; D never meets the polygon
+    assert [r["blk"] for r in rule_a] == ["E"] and "E" not in rows and "D" not in inside
+
+
+def test_t665_a_creek_into_fresh_water_is_not_cut():
+    pts, _, rows, _ = _poly_run(tidal=())
+    assert pts == [] and rows["C"]["not_cut"] == S.FRESH_RECEIVER
+
+
+def test_t665_a_dip_under_5_m_is_inside_and_a_6_m_one_is_not():
+    from shapely.geometry import box as _box
+    dip4 = SEA.difference(_box(2400, 100, 2600, 104))         # E leaves the polygon for 4 m
+    _, rule_a, _, _ = _poly_run(sea=dip4)
+    assert [r["blk"] for r in rule_a] == ["E"]
+    dip6 = SEA.difference(_box(2400, 100, 2600, 106))         # 6 m out: not wholly inside, but bridged to its top
+    _, rule_a, rows, _ = _poly_run(sea=dip6)
+    assert rule_a == [] and rows["E"]["not_cut"] == S.EXIT_AT_TOP
+
+
+def test_t665_a_line_that_comes_back_more_than_25_m_later_is_cut_at_its_first_exit():
+    from shapely.geometry import box as _box
+    pts, _, rows, _ = _poly_run(sea=SEA.union(_box(400, 600, 600, 800)))     # C: in 0-300, out 300-600, in 600-800
+    assert [p.route_measure for p in pts] == [300.0] and rows["C"]["reenters"] is True
+    pts, _, rows, _ = _poly_run(sea=SEA.union(_box(400, 320, 600, 800)))     # out only 300-320: bridged
+    assert [p.route_measure for p in pts] == [800.0] and rows["C"]["reenters"] is False
+
+
+def test_t665_an_owner_mouth_row_keeps_the_limit_at_the_line_end():
+    pts, _, rows, _ = _poly_run(mouth_rows={"C"})
+    assert pts == [] and rows["C"]["not_cut"] == S.OWNER_MOUTH and rows["C"]["inside_m"] == 300.0
+
+
+def test_t665_an_exit_within_5_m_of_a_standing_boundary_is_that_boundary():
+    pts, _, rows, _ = _poly_run(existing={"C": [303.0]})
+    assert [p.route_measure for p in pts] == [303.0] and rows["C"]["onto_existing"] is True
+
+
+def test_t665_a_mouth_outside_the_polygon_is_listed_not_cut():
+    from shapely.geometry import box as _box
+    pts, _, rows, _ = _poly_run(sea=_box(1400, 300, 1600, 500))              # D: inside 300-500 only
+    assert pts == [] and rows["D"]["not_cut"] == S.MOUTH_OUTSIDE
+
+
+def test_t665_a_creek_into_a_line_wholly_inside_is_cut_and_tidal_below():
+    """D2: F flows into E (wholly inside: rule A) and leaves the polygon 100 m up; nothing else is tidal."""
+    f = _fid("F1", "F", "100-7-1", [(2500, 200), (2500, 800)], 0, 600, name="F Creek")
+    pts, rule_a, rows, _ = _poly_run(tidal=(), extra=[f])
+    assert [r["blk"] for r in rule_a] == ["E"]
+    assert [(p.blk, p.route_measure) for p in pts] == [("F", 100.0)]
+    assert rows["F"]["joins"] == "inside line" and rows["F"]["below_cut_tidal"] is True
+
+
+def test_t665_a_line_with_its_own_curated_limit_is_never_cut_by_the_polygon():
+    """The Pitt and the Nitinat: a river whose owner limit stands lower would go tidal far above it."""
+    pts, _, rows, _ = _poly_run(limited={"C"})
+    assert pts == [] and rows["C"]["not_cut"] == S.OWNER_LIMIT
+
+
+def test_t665_owner_limited_follows_the_water_not_the_line():
+    from types import SimpleNamespace
+    from pipeline.common.models import NodeKind
+    n = lambda blk, g: SimpleNamespace(kind=NodeKind.stream, blk=blk, gnis_id=g)
+    graph = SimpleNamespace(nodes={"A:0": n("A", "1"), "B:0": n("B", "1"), "C:0": n("C", "2"), "D:0": n("D", "2"),
+                                   "E:0": n("E", "")})
+    lim, mouth = S.owner_limited(graph, {"E:0"}, [{"blk": "A", "limit": "split"}, {"blk": "C", "limit": "mouth"}])
+    assert lim == {"A", "B", "E"} and mouth == {"C", "D"}
+
+
+def test_t665_mutation_each_policy_flag_moves_the_answer(monkeypatch):
+    monkeypatch.setattr(S, "A_LINE_WHOLLY_INSIDE_THE_POLYGON_IS_TIDAL", False)
+    assert _poly_run()[1] == []
+    monkeypatch.undo()
+    monkeypatch.setattr(S, "A_CREEK_INTO_TIDAL_WATER_IS_CUT_AT_ITS_POLYGON_EXIT", False)
+    assert _poly_run()[0] == []
+    monkeypatch.undo()
+    monkeypatch.setattr(S, "AN_OWNER_MOUTH_ROW_KEEPS_THE_LINE_END", False)
+    assert [p.blk for p in _poly_run(mouth_rows={"C"})[0]] == ["C"]
+    monkeypatch.undo()
+    monkeypatch.setattr(S, "THE_OWNERS_LIMIT_GOVERNS_ITS_OWN_WATER", False)
+    assert [p.blk for p in _poly_run(limited={"C"})[0]] == ["C"]
+
+
+def test_t665_standing_boundaries_skip_the_old_shore_cuts():
+    g, idx, cross, _ = _graph()
+    pts = place_points(g, S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross)))
+    split_graph_at(g, {}, pts, idx)
+    assert "C" not in S.standing_boundaries(g)
