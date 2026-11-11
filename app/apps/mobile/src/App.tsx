@@ -239,7 +239,11 @@ export default function App() {
   // (T254) low-bandwidth mode: the More → Data setting (kept on the device), the platform's word, the meter → one mode
   const dataModeStore = useMemo(() => openDataModeStore(), []);
   // T199: the run timing (its own feed, `runtiming/` on the data origin) — read the first time Run timing is chosen
-  const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore()), []);
+  // (T552 item 6) the section handles of the tiles this device draws: a capture bound to them is never overwritten by
+  // a run-timing set published for another atlas (set from the booted release below)
+  const drawnHandles = useRef<string | null>(null);
+  const runTiming = useMemo(() => httpRunTiming(`${ENDPOINTS.base}/runtiming`, openRunTimingStore(), undefined,
+                                                { handles: () => drawnHandles.current }), []);
 
   // THE RELEASE: manifest → (native: install / update) → paint, then the Shell. (T231) The phone's background install
   // is the update service's (`deferUpdate`: it holds a large set for Wi-Fi); `generation` re-boots onto a staged update.
@@ -460,6 +464,7 @@ export default function App() {
     return { source: b.source, status: releaseStatus(b.loader), ...m, tiles: { ...m.tiles, imagery: IMAGERY_TILES },
              loader: b.loader };
   }, [boot]);
+  useEffect(() => { drawnHandles.current = data?.pairing.manifest.tiles.current?.id?.split(".")[0] ?? null; }, [data]);
 
   // (T369) THE START LINK, resolved in the release now open (web-only: `./startLink` `resolveStart`: a place → the section of the
   // stream that spans it → its water and part HERE; a water of one part named alone → that part) before the Shell

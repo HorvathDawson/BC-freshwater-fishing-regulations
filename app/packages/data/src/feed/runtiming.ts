@@ -7,6 +7,15 @@
  * KEPT: every whole set this device reads is written to `store` (the files are a few MB: the web keeps them in the
  * Cache API, a phone in a file); offline, or when a fetch fails, the last capture answers. An index whose files are
  * the capture's is answered from the capture without fetching them again. Every answer resolves, never rejects.
+ *
+ * (T552 item 5) ASKED AGAIN, like the other feeds: once per `ttlMs` (`RUN_TIMING_TTL_MS`, the salmon feed's hour), and
+ * a null answer (the first ask offline with no capture) is never held — the next `latest()` asks again, so a Runs tab
+ * opened once with no signal fills when the signal is back, and a new release's run timing is read without a restart.
+ *
+ * (T552 item 6) THE DEVICE'S OWN ATLAS WINS. `runtiming/index.json` is one key bound to ONE atlas (the newest release's,
+ * published before its pointer flips). Given `handles` (the section handles of the tiles this device draws), a capture
+ * bound to them is never overwritten by an index bound to another atlas: it answers, said as the capture, until the
+ * device takes that release. With no capture of its own atlas the new set is read as before (the tab says "out of date").
  */
 import { reportFailure, checkRunTiming, parseRunTimingIndex, RunTimingFacts, type RunTimingIndex } from "@app/core";
 import { fetchVerified } from "../fetchVerified";
@@ -24,13 +33,17 @@ export interface RunTimingSource {
   latest(): Promise<RunTimingData | null>;
 }
 
+const RUN_TIMING_TTL_MS = 60 * 60_000;
+
 interface Captured { index: unknown; runs: unknown; paint: unknown }
 
 const decoder = new TextDecoder();
 
-export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: typeof fetch = fetch): RunTimingSource {
+export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: typeof fetch = fetch,
+                              opts: { ttlMs?: number; now?: () => number; handles?: () => string | null } = {}): RunTimingSource {
   const root = base.replace(/\/$/, "");
-  let held: Promise<RunTimingData | null> | null = null;
+  const ttl = opts.ttlMs ?? RUN_TIMING_TTL_MS, now = opts.now ?? Date.now;
+  let held: { at: number; p: Promise<RunTimingData | null> } | null = null;
   const facts = (c: Captured): RunTimingFacts | null => {
     const index = parseRunTimingIndex(c.index);
     if (!index) return null;
@@ -57,6 +70,11 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
       if (r.ok) { rawIndex = JSON.parse(await r.text()); index = parseRunTimingIndex(rawIndex); }
     } catch (e) { reportFailure(e); /* offline: the capture answers (T368: anything else is reported too) */ }
     if (!index) return was ? { facts: was.facts, from: "capture" } : null;
+    // (T552 item 6) a capture of the device's own atlas is kept over a set bound to another
+    const mine = opts.handles?.() ?? null;
+    if (mine !== null && was && was.facts.handles === mine && index.section_handles !== mine) {
+      return { facts: was.facts, from: "capture" };
+    }
     const same = was && JSON.stringify(parseRunTimingIndex(was.raw.index)?.files) === JSON.stringify(index.files);
     if (same) return { facts: was.facts, from: "live" };
     try {
@@ -74,8 +92,14 @@ export function httpRunTiming(base: string, store?: RunTimingStore, fetchImpl: t
   };
   return {
     latest() {
-      held ??= get();
-      return held;
+      if (!held || now() - held.at > ttl) {
+        const p = get();
+        const h = { at: now(), p };
+        held = h;
+        // (T552 item 5) a null answer is never held: the next ask tries again
+        void p.then((v) => { if (v === null && held === h) held = null; });
+      }
+      return held.p;
     },
   };
 }
