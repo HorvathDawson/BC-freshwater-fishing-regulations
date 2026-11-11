@@ -157,7 +157,7 @@ describe("the Data block: always on More, compact — every source, one row each
     expect([
       sum(base),
       sum({ ...base, tilesPaired: false }),
-      sum({ ...base, tilesPaired: false, dfoCheckedAt: new Date(now - 30 * H).toISOString() }),
+      sum({ ...base, tilesPaired: false, dfoCheckedAt: new Date(now - 31 * H).toISOString() }),
       sum({ ...base, newRelease: "r-new" }),
     ]).toEqual([
       "stale: Regulations out of date",
@@ -230,7 +230,7 @@ describe("the Data block: always on More, compact — every source, one row each
       sum({ ...LIVE, tilesPaired: false }),
       sum(LIVE),
       // DFO past its cadence: a row like any other, so it counts (there is no second list to send the reader to)
-      sum({ ...fresh, dfoCheckedAt: new Date(NOW - 30 * H).toISOString() }),
+      sum({ ...fresh, dfoCheckedAt: new Date(NOW - 31 * H).toISOString() }),
       sum({ ...fresh, validUntil: null }),
       sum({ ...fresh, sources: { ...fresh.sources, fwa: undefined } }),
       sum(fresh),
@@ -244,7 +244,7 @@ describe("the Data block: always on More, compact — every source, one row each
       "fresh: All up to date",
     ]);
     // the summary's count is the number of stale dots drawn, whatever the mix
-    const odd: DataInput = { ...LIVE, tilesPaired: false, dfoCheckedAt: new Date(NOW - 30 * H).toISOString() };
+    const odd: DataInput = { ...LIVE, tilesPaired: false, dfoCheckedAt: new Date(NOW - 31 * H).toISOString() };
     expect([sum(odd), dataVM(odd).rows.filter((r) => r.badge.kind === "stale").length])
       .toEqual(["stale: 3 likely out of date", 3]);
     expect([dataVM({ ...LIVE, newRelease: "r-new" }).newRelease, dataVM(LIVE).newRelease])

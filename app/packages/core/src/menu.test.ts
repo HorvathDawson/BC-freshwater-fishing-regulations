@@ -217,10 +217,11 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
      "in days, the regulations and the map by their release", () => {
     expect(STALE_AFTER).toEqual({
       feed: { by: "age", ms: 2 * H }, feedCheck: { by: "age", ms: 30 * 60_000 }, forecast: { by: "weekdays" },
-      dfo: { by: "age", ms: D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
+      // (T549 items 7, 10) checked once a day off season: the day's cadence plus 6 h (at exactly a day it flickered daily)
+      dfo: { by: "age", ms: 30 * H }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
       hydat: { by: "notice", ms: 548 * D },
       synopsis: { by: "release" }, tiles: { by: "release" },
-      inseason: { by: "age", ms: D }, reading: { by: "age", ms: 6 * H }, weather: { by: "live" }, imagery: { by: "live" },
+      inseason: { by: "age", ms: 30 * H }, reading: { by: "age", ms: 6 * H }, weather: { by: "live" }, imagery: { by: "live" },
     });
   });
 
@@ -257,13 +258,14 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       "basemap Up to date", "basemap Likely out of date", "hydat Up to date", "hydat Likely out of date"]);
   });
 
-  it("(T526) DFO salmon: stale when not CHECKED for more than a day — by the feed's checked time, never its content's " +
-     "date; no checked time is unknown", () => {
+  it("(T526, T549) DFO salmon: stale when not CHECKED for more than a day and 6 h (a daily check with margin) — by the " +
+     "feed's checked time, never its content's date; no checked time is unknown", () => {
     const iso = (ago: number) => new Date(now - ago).toISOString();
     const dfo = (s: Partial<SourcesInput>) => at("dfo", s, now);
     // the release says DFO's content is 30 days old: that is not staleness
     const old = { sources: { dfo: { date: new Date(now - 30 * D).toISOString().slice(0, 10) } } };
-    expect([dfo({ dfoCheckedAt: iso(23 * H) }), dfo({ dfoCheckedAt: iso(24 * H) }), dfo({ dfoCheckedAt: iso(25 * H) }),
+    // 24 h 20 min: yesterday's daily check, read just before today's lands — fresh (it flickered stale every day)
+    expect([dfo({ dfoCheckedAt: iso(24 * H + 20 * 60_000) }), dfo({ dfoCheckedAt: iso(30 * H) }), dfo({ dfoCheckedAt: iso(31 * H) }),
             dfo({ ...old, dfoCheckedAt: iso(H) }), dfo({ ...old }), dfo({ ...old, dfoCheckedAt: null }),
             dfo({ dfoCheckedAt: "not a time" })]).toEqual([
       "dfo Up to date", "dfo Up to date", "dfo Likely out of date", "dfo Up to date", "dfo Unknown", "dfo Unknown",
@@ -412,8 +414,8 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
     const iso = (ago: number) => new Date(now - ago).toISOString();
     expect([at("tiles", { tilesPaired: true }, now), at("tiles", { tilesPaired: false }, now),
             at("tiles", { tilesPaired: null }, now), at("tiles", { tilesPaired: true, newRelease: "r-new" }, now),
-            at("inseason", {}, now), at("inseason", { inseasonFetchedAt: iso(24 * H) }, now),
-            at("inseason", { inseasonFetchedAt: iso(25 * H) }, now), at("weather", {}, now), at("imagery", {}, now)])
+            at("inseason", {}, now), at("inseason", { inseasonFetchedAt: iso(30 * H) }, now),
+            at("inseason", { inseasonFetchedAt: iso(31 * H) }, now), at("weather", {}, now), at("imagery", {}, now)])
       .toEqual(["tiles Up to date", "tiles Likely out of date", "tiles Unknown", "tiles Likely out of date",
                 "inseason Unknown", "inseason Up to date", "inseason Likely out of date", "weather Live", "imagery Live"]);
   });

@@ -42,7 +42,10 @@ import { feedMap, readBaseline, rowChanges, rowsNotice, ROWS_KEY, type RowChange
 export const FORMAT = "dfo-feed/3";
 const SPECIES_N = [...SPECIES];
 export const FAIL_NOTIFY = 2;
-const QUEUE_ACTION = (slug: string) => `python -m pipeline.regs.dfo_salmon.live queue --regions ${slug}`;
+/** (T549 item 9) `live queue` reads the MAC's unplaced.json, never the worker's on R2: the Mac reads DFO's page first
+ *  (`live run`), then queues what it holds. `queue` alone seeded nothing when the Mac had not run since the page changed. */
+export const QUEUE_ACTION = (slugs: string) =>
+  `python -m pipeline.regs.dfo_salmon.live run --regions ${slugs} && python -m pipeline.regs.dfo_salmon.live queue --regions ${slugs}`;
 
 /** How the curated entry files reach the run: the file's JSON text per region, null when there is none. */
 export type EntrySource = (slug: string) => Promise<string | null>;
@@ -81,21 +84,9 @@ export interface DfoDeps {
 
 /** Bump when a code change alters what a region's page types to: unchanged pages are re-typed once after a deploy. */
 export const DFO_REV = "2026-11-09.1"; // T521: an unplaced row carries its water's app items (`items`); T332 quota trees
-/** published index.json is rewritten at least this often even when nothing changed (the app's "checked" age); (T486) under
- *  the daily cron, or a run just inside 24 h skips and the index ages to 48 h */
-export const INDEX_HEARTBEAT_MS = 20 * 3600_000;
-
-/** Index.json minus what changes on every run (`at`, each region's `checked`): what "changed" means for a write. */
-export function stableIndex(body: string): string {
-  try {
-    const j = JSON.parse(body);
-    delete j.at;
-    for (const r of Object.values<Json>(j.regions ?? {})) delete r.checked;
-    return JSON.stringify(j);
-  } catch {
-    return body;
-  }
-}
+// (T549 items 7, 10) index.json is written by EVERY run that gets to the end, so its `at` is when DFO was last CHECKED.
+// It was skipped while unchanged and under a 20 h heartbeat: in season (a run every 6 h) `at` moved once a day and sat
+// exactly on the app's stale line, so the card said "checked 24 h ago" 6 h after a check. One small put a run.
 
 /** A location held at its last answers this run (robust mode): published in the region's `holds`. */
 export interface RowHold {
@@ -106,6 +97,19 @@ export interface RowHold {
   kept: "carried" | "check";
 }
 export const ROW_HELD_VERDICT = { s: "check", t: "DFO's row for this place could not be read this run — check DFO" };
+/** (T549 item 4) A curated place DFO REWORDED: its row no longer matches (held unplaced, the owner told), and the place
+ *  it most likely was would leave the feed, so the WIDER rule of its chain would answer. It reads `check` instead,
+ *  listed in the region's `holds`, until the owner confirms the rebind or the row goes. */
+export const REWORDED_VERDICT = { s: "check", t: "DFO reworded this place and the new wording is not confirmed yet — check DFO" };
+/** (T549 item 4) A curated place that LEFT DFO's page with no reworded row to explain it: published in the region's
+ *  `gone` (the wider rule answers — right when DFO removed the row, wrong when the page was misread), the owner told once. */
+export interface Gone {
+  location_id: string;
+  water: string;
+  place: string;
+  /** the first 12 of the page sha it was first missing from */
+  page: string;
+}
 
 export interface DfoResult {
   index: Record<string, unknown>;
@@ -264,6 +268,17 @@ export interface Notice {
   data?: NoticeData;
 }
 
+/** (T549 item 4) the owner notice for a place that left the page (`Gone`); keyed by place + the page it left on */
+export function goneNotice(slug: string, g: Gone): Notice {
+  const what = "is no longer on DFO's page: its rule left the feed and the wider rule of its water answers";
+  return {
+    key: `dfo-gone:${slug}:${g.location_id}:${g.page}`,
+    text: `DFO Region ${slug}: ${g.location_id} (${g.water}: ${repr(g.place)}) ${what}. Read DFO's page: if the row is still printed, the page was misread`,
+    data: { region: slug, kind: "gone", water: g.water || undefined, place: g.place || g.location_id,
+            affects: `${g.location_id} ${what}; if DFO still prints the row, the page was misread` },
+  };
+}
+
 export function unplacedNotice(u: Json): Notice {
   const slug = u.region;
   const n = u.rules.length;
@@ -319,14 +334,8 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
   const aware = deps.changeAware ?? robust;
   const at = deps.now ?? nowStamp();
   const writes = aware ? await loadManifest(deps.priv, "writes.json") : {};
-  const feedStore: Store = aware
-    ? skipSameStore(deps.feed, writes, {
-        now: Date.parse(at),
-        stable: (k, b) => (k === "index.json" ? stableIndex(b) : b),
-        maxAgeMs: (k) => (k === "index.json" ? INDEX_HEARTBEAT_MS : undefined),
-        meter: deps.meter,
-      })
-    : deps.feed;
+  // unplaced.json is written only when it changed; index.json every run (its `at` is the check time: T549 items 7, 10)
+  const feedStore: Store = aware ? skipSameStore(deps.feed, writes, { now: Date.parse(at), meter: deps.meter }) : deps.feed;
   // T321: the wording registry is a runtime input (priv `wording.json`), read once per run. T324: its ONLY copy —
   // missing / invalid THROWS before anything is written, so the job fails and is reported and the last good feed stands
   const wordingText = await deps.priv.get("wording.json");
@@ -405,8 +414,12 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
       texts: was.texts || [],
     };
     setBucket(reg);
-    if (robust) reg.holds = was.holds || [];
+    if (robust) {
+      reg.holds = was.holds || [];
+      reg.gone = was.gone || [];
+    }
     regionOut[slug] = reg;
+    const tellGone = () => { for (const g of (reg.gone || []) as Gone[]) notices.push(goneNotice(slug, g)); };
     const hold = (why: string, k: string) => {
       reg.held = why;
       Object.assign(locs, carry(prev, slug, verdicts, gears));
@@ -456,6 +469,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
           unplaced.push(u);
           notices.push(unplacedNotice(u)); // re-offered: a send that failed is retried (notified.json dedupes)
         }
+        tellGone(); // re-offered likewise (the outbox tells a key once)
         skipped.push(slug);
         if (deps.meter) deps.meter.sourcesUnchanged += 1;
         continue;
@@ -519,7 +533,30 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
           data: { region: slug, kind: "row-held", place: lid, affects: `its row did not read (${h.why.split("\n")[0]}); ${how === "carried" ? "its last answers stand" : "it reads 'check DFO'"}` },
         });
       }
-      reg.holds = kept;
+      // (T549 item 4) A PLACE THAT LEFT THE PAGE. `reconcile` calls an active curated place no row matched `dormant`
+      // and nothing read it: the place left `locs` and the wider rule of its chain answered, with nobody told.
+      //   reworded  the top candidate of a `drift` row (held unplaced, its own urgent notice): reads `check`, in `holds`
+      //   gone      no row explains it: listed in the region's `gone` and told once — only a place the last feed
+      //             published (or already listed), so a place that was never live says nothing
+      const reworded = new Map<string, string>();
+      for (const o of rep.outcomes)
+        if (o.status === "drift" && o.candidates.length && !reworded.has(o.candidates[0]!.location_id)) reworded.set(o.candidates[0]!.location_id, o.fingerprint);
+      const wasGone = new Map(((was.gone || []) as Gone[]).map((g) => [g.location_id, g] as const));
+      const prevLocs = (prev.locs || {}) as Record<string, Json>;
+      const gone: Gone[] = [];
+      for (const o of rep.outcomes) {
+        if (o.status !== "dormant" || !o.location_id) continue;
+        const lid = o.location_id;
+        if (reworded.has(lid)) {
+          const v = verdicts.add(REWORDED_VERDICT);
+          locs[lid] = { r: slug, sp: SPECIES_N.map(() => [0, v]), g: [0, -1] };
+          kept.push({ location_id: lid, fingerprint: reworded.get(lid)!, why: "DFO reworded this place; the new wording is held unplaced until it is confirmed", kept: "check" });
+        } else if (wasGone.has(lid)) gone.push(wasGone.get(lid)!);
+        else if (prevLocs[lid]?.r === slug) gone.push({ location_id: lid, water: o.water, place: o.specific_area, page: sha.slice(0, 12) });
+      }
+      reg.holds = kept.sort((x, y) => cmpStr(x.location_id, y.location_id));
+      reg.gone = gone.sort((x, y) => cmpStr(x.location_id, y.location_id));
+      tellGone();
     }
     if (moved.size) {
       Object.assign(locs, carry(prev, slug, verdicts, gears, moved));
@@ -551,7 +588,7 @@ export async function runDfo(deps: DfoDeps): Promise<DfoResult> {
     .map((u, i) => ({ u, i }))
     .sort((a, b) => cmpTuple([a.u.region, a.u.fingerprint], [b.u.region, b.u.fingerprint]) || a.i - b.i)
     .map((x) => x.u);
-  await feedStore.put("index.json", feedText(index), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
+  await deps.feed.put("index.json", feedText(index), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
   await feedStore.put("unplaced.json", feedText(unplacedSorted), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
   if (aware) {
     // a region not run this time keeps its last inputs; one held / failed this run has none (re-typed next run)

@@ -222,7 +222,7 @@ export const FINE: Record<string, { n: number; why: string }> = {
   // (T431) the feeds worker: a server job, so "handled" is WORKER_HANDLES (logged / answered / recorded); what is left is
   "workers/feeds/src/backup.ts": { n: 1, why: "(T559) a personal record whose date cannot be read: a report is aged by its folder day, an error kind is never copied" },
   "workers/feeds/src/crashes.ts": { n: 4, why: W_TORN },
-  "workers/feeds/src/dfo/live.ts": { n: 4, why: `${W_STATE}; stableIndex compares the raw text when it is not JSON; page texts unread leave only the text-change notice out (the header parse failure has its own notice)` },
+  "workers/feeds/src/dfo/live.ts": { n: 3, why: `${W_STATE}; page texts unread leave only the text-change notice out (the header parse failure has its own notice)` },
   "workers/feeds/src/dispatch.ts": { n: 1, why: "GitHub's reply shown as its text when it is not JSON (T558: the dispatch record's read throws)" },
   "workers/feeds/src/gauges/forecast.ts": { n: 1, why: W_ABSENT },
   "workers/feeds/src/gauges/publish.ts": { n: 9, why: `${W_ABSENT}; ${W_STATE}; an unreadable forecast file is skipped as the Python skips it` },

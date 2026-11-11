@@ -127,7 +127,8 @@ describe("one bad row holds only its location", () => {
 });
 
 // Owner 2026-10-28: be smart about change — an unchanged page + entry file is not re-typed (its answers carried), and
-// a feed object whose content did not change is not rewritten (index.json: a 24 h heartbeat keeps "checked" fresh).
+// unplaced.json is not rewritten while its content is the same. index.json is written by every run (T549 items 7, 10:
+// its `at` is the check time the app's "Checked with DFO" and stale line read).
 describe("change-aware DFO runs", () => {
   const slugs = ["4", "6", "8"];
   const entries = async (slug: string) => readFileSync(join(FIX, `entries/region-${slug}.json`), "utf-8");
@@ -135,7 +136,7 @@ describe("change-aware DFO runs", () => {
     runDfo({ fetch: async () => new Response(""), feed, priv, entries, now, regions: slugs, fetcher: async (s) => [pages[s]!, null], ...extra });
   const pages = Object.fromEntries(slugs.map((s) => [s, page(s)]));
 
-  it("unchanged pages: typing skipped, answers identical to a full run, feed writes skipped until the heartbeat", async () => {
+  it("unchanged pages: typing skipped, answers identical to a full run; index.json still written (its `at` is this check)", async () => {
     const { newMeter } = await import("../src/io");
     const feed = new MemStore();
     const priv = privStore();
@@ -147,19 +148,43 @@ describe("change-aware DFO runs", () => {
     const second = await run(watched, priv, "2026-10-28T18:00:00Z", pages, { meter: m });
     expect(second.skipped).toEqual(slugs);
     expect(m.sourcesUnchanged).toBe(3);
-    expect(puts).toEqual([]); // neither index.json nor unplaced.json rewritten
-    expect(m.writesSkipped).toBe(2);
+    expect(puts).toEqual(["index.json"]); // unplaced.json unchanged: not rewritten
+    expect(m.writesSkipped).toBe(1);
+    expect(JSON.parse(feed.m.get("index.json")!).at).toBe("2026-10-28T18:00:00Z");
     // the carried answers ARE the full run's answers
     const full = await run(new MemStore(), privStore(), "2026-10-28T18:00:00Z", pages, { changeAware: false });
     const { feedText } = await import("../src/dfo/pyjson");
-    const { stableIndex } = await import("../src/dfo/live");
-    const strip = (x: unknown) => stableIndex(feedText(x)).replace(/"changed":"[^"]*"/g, "");
+    // what a run stamps (`at`, each region's `checked` / `changed`) aside
+    const strip = (x: unknown) => {
+      const j = JSON.parse(feedText(x));
+      delete j.at;
+      for (const r of Object.values<any>(j.regions ?? {})) { delete r.checked; delete r.changed; }
+      return JSON.stringify(j);
+    };
     expect(strip(second.index)).toBe(strip(full.index));
     expect(JSON.parse(first).locs).toEqual((second.index as any).locs);
-    // a day later the heartbeat rewrites index.json (unplaced.json still unchanged)
-    puts.length = 0;
-    await run(watched, priv, "2026-10-29T19:00:00Z", pages);
-    expect(puts).toEqual(["index.json"]);
+  });
+
+  // T549 items 7, 10: with the 20 h heartbeat the in-season runs at +6, +12 and +18 h skipped the write, `at` moved once
+  // a day and sat exactly on the app's stale line
+  it("N unchanged runs at each cron cadence never leave `at` older than the app's stale line", async () => {
+    const { STALE_AFTER } = await import("../../../packages/core/src/staleness");
+    for (const cadenceH of [6, 24]) {
+      const feed = new MemStore();
+      const priv = privStore();
+      const t0 = Date.parse("2026-10-28T00:15:00Z");
+      for (let n = 0; n < 6; n++) {
+        const now = t0 + n * cadenceH * 3600_000;
+        if (n) {
+          // just before this run publishes, the feed a phone holds is the last run's: one cadence old (+ a slow run)
+          const age = now + 10 * 60_000 - Date.parse(JSON.parse(feed.m.get("index.json")!).at);
+          expect(age).toBeLessThan(STALE_AFTER.dfo.ms);
+        }
+        const got = await run(feed, priv, new Date(now).toISOString().replace(".000Z", "Z"), pages);
+        if (n) expect(got.skipped).toEqual(slugs);
+        expect(Date.parse(JSON.parse(feed.m.get("index.json")!).at)).toBe(now);
+      }
+    }
   });
 
   it("a changed page re-types only its region", async () => {
@@ -240,4 +265,80 @@ describe("an unplaced row names its water's app items (T521)", () => {
       expect(u).toMatchObject({ region: "8", kind: "new", items: ["wbk:329663955"] });
       expect(u.rows.length).toBeGreaterThan(0);
     });
+});
+
+// T549 item 4: a curated place no row of the page matches any more left `locs` in silence, so the WIDER rule of its chain
+// answered on the map and nobody was told. Reworded (a drift row names it as its likely place): it reads `check`.
+// Gone (no row explains it): listed in the region's `gone`, the owner told once per page it left on.
+describe("a curated place that leaves DFO's page (T549 item 4)", () => {
+  const MABEL = "8:mabel-lake:northerly-of-a-line-drawn-from-a-w";
+  // the entry file without its recorded page structure: Region 8's table is 3 waters, so one dropped row is a third of
+  // it and trips the STRUCTURAL hold (the whole region held, its own notice) — a bigger region loses a row without it
+  const entries = async () => JSON.stringify({ ...JSON.parse(readFileSync(join(FIX, "entries/region-8.json"), "utf-8")), structure: {} });
+  const run = (feed: MemStore, priv: MemStore, now: string, html: string) =>
+    runDfo({ fetch: async () => new Response(""), feed, priv, entries, now, regions: ["8"], fetcher: async () => [html, null] });
+  const reworded = page("8").replace("approximately 1&nbsp;km from Wap Creek", "approximately 2&nbsp;km from Wap Creek");
+  const dropped = page("8").replace(/<tr>\s*<td>Mabel Lake<\/td>[\s\S]*?<\/tr>/, "");
+  const verdictsOf = (ix: any, lid: string) => [...new Set((ix.locs[lid].sp as number[][]).flatMap((runs) => runs.filter((x, k) => k % 2 === 1 && x >= 0)))].map((v) => ix.verdicts[v]);
+
+  it("the fixtures do what the test says: one page rewords the Mabel Lake place, the other drops its row", () => {
+    expect(reworded).not.toBe(page("8"));
+    expect(dropped).not.toContain("<td>Mabel Lake</td>");
+    expect(dropped.length).toBeLessThan(page("8").length - 200);
+  });
+
+  it("reworded: the place stays in the feed as `check` (never the wider rule), is in `holds`, and its row is held unplaced", async () => {
+    const feed = new MemStore();
+    const priv = privStore();
+    const first = await run(feed, priv, "2026-10-28T12:00:00Z", page("8"));
+    expect(verdictsOf(first.index, MABEL).some((v: any) => v.s === "check")).toBe(false);
+    const got = await run(feed, priv, "2026-10-28T18:00:00Z", reworded);
+    const ix = got.index as any;
+    expect(ix.regions["8"].held).toBeNull();
+    expect(verdictsOf(ix, MABEL)).toEqual([{ s: "check", t: "DFO reworded this place and the new wording is not confirmed yet — check DFO" }]);
+    expect(ix.regions["8"].holds).toEqual([expect.objectContaining({ location_id: MABEL, kept: "check", why: "DFO reworded this place; the new wording is held unplaced until it is confirmed" })]);
+    expect(ix.regions["8"].gone).toEqual([]);
+    expect(got.unplaced).toEqual([expect.objectContaining({ kind: "drift", water: "Mabel Lake", candidates: [expect.objectContaining({ location_id: MABEL })] })]);
+    expect(got.notices.filter((n) => n.key.startsWith("dfo-drift:"))).toHaveLength(1);
+    expect(got.notices.filter((n) => n.key.startsWith("dfo-gone:"))).toEqual([]);
+    // the same page next run (typing skipped): the place still reads check and is still listed
+    const again = await run(feed, priv, "2026-10-29T00:00:00Z", reworded);
+    expect(again.skipped).toEqual(["8"]);
+    expect(verdictsOf(again.index, MABEL).every((v: any) => v.s === "check")).toBe(true);
+    expect((again.index as any).regions["8"].holds).toHaveLength(1);
+    // the published feed is what the app's parser accepts as holds (location_id + kept)
+    expect(JSON.parse(feed.m.get("index.json")!).regions["8"].holds[0]).toMatchObject({ location_id: MABEL, kept: "check" });
+  });
+
+  it("gone: the place leaves `locs`, is listed in the region's `gone`, and the owner is told once (re-offered while it lasts)", async () => {
+    const feed = new MemStore();
+    const priv = privStore();
+    await run(feed, priv, "2026-10-28T12:00:00Z", page("8"));
+    const got = await run(feed, priv, "2026-10-28T18:00:00Z", dropped);
+    const ix = got.index as any;
+    expect(ix.regions["8"].held).toBeNull();
+    expect(MABEL in ix.locs).toBe(false);
+    expect(ix.regions["8"].gone).toEqual([{ location_id: MABEL, water: "Mabel Lake", place: expect.stringMatching(/^Northerly of a line/), page: expect.stringMatching(/^[0-9a-f]{12}$/) }]);
+    const told = got.notices.filter((n) => n.key.startsWith("dfo-gone:"));
+    expect(told).toHaveLength(1);
+    expect(told[0]!.key).toBe(`dfo-gone:8:${MABEL}:${ix.regions["8"].gone[0].page}`);
+    expect(told[0]!.urgent).not.toBe(false);
+    expect(told[0]!.text).toMatch(new RegExp(`^DFO Region 8: ${MABEL} \\(Mabel Lake: '.*'\\) is no longer on DFO's page: its rule left the feed and the wider rule of its water answers\\. Read DFO's page: if the row is still printed, the page was misread$`));
+    expect(told[0]!.data).toMatchObject({ region: "8", kind: "gone", water: "Mabel Lake" });
+    // the same page next run (typing skipped): the same key is offered again, so a send that failed is retried
+    const again = await run(feed, priv, "2026-10-29T00:00:00Z", dropped);
+    expect(again.skipped).toEqual(["8"]);
+    expect(again.notices.filter((n) => n.key.startsWith("dfo-gone:")).map((n) => n.key)).toEqual([told[0]!.key]);
+    // the row is back: the place is published again and no longer listed
+    const back = await run(feed, priv, "2026-10-30T00:00:00Z", page("8"));
+    expect(MABEL in (back.index as any).locs).toBe(true);
+    expect((back.index as any).regions["8"].gone).toEqual([]);
+    expect(back.notices.filter((n) => n.key.startsWith("dfo-gone:"))).toEqual([]);
+  });
+
+  it("a place the last feed never published says nothing (a first run, an entry curated before its row)", async () => {
+    const got = await run(new MemStore(), privStore(), "2026-10-28T12:00:00Z", dropped);
+    expect((got.index as any).regions["8"].gone).toEqual([]);
+    expect(got.notices.filter((n) => n.key.startsWith("dfo-gone:"))).toEqual([]);
+  });
 });

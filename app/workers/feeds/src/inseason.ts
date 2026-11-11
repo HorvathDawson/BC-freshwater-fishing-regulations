@@ -2,8 +2,8 @@
 // ran every 6 h (archive/pipeline/recurring/in_season/scraper.py; it opened a GitHub issue for unmatched waters). Here:
 // read the page's accordion (Provincial + Regions 1–8: Water | In-season correction/change | Effective date), compare
 // with the last snapshot (private), and tell the owner what was ADDED, CHANGED or REMOVED — the diff, by email.
-// (T230) The rows are also published as the app's feed (`feeds/inseason/index.json`), rewritten at least every
-// `FEED_HEARTBEAT_MS` so the app can tell a stopped worker from a quiet page (T548, `STALE_AFTER.inseason`); a row is
+// (T230) The rows are also published as the app's feed (`feeds/inseason/index.json`), rewritten by every run that read
+// the page so the app can tell a stopped worker from a quiet page (T548, T549 item 7, `STALE_AFTER.inseason`); a row is
 // placed on its waters by the curated links (`matches.json`), and one with no link is listed app-wide.
 //
 // The page sits behind Akamai: Python needed a Chrome TLS fingerprint from GitHub's runners. A Worker sends a browser
@@ -12,7 +12,7 @@
 // Private: inseason/latest.json (the snapshot), inseason/history/<stamp>.json (each changed snapshot).
 import { classOfStatus, SourceError } from "./health";
 import type { Fetch, Meter, Store } from "./io";
-import { contentHash, loadManifest, readStored, skipSameStore } from "./io";
+import { contentHash, readStored } from "./io";
 import type { FeedEvent } from "./events";
 import { parseHtml, Str, Tag } from "./dfo/html";
 import { INSEASON_LINKS_FORMAT } from "../../../packages/core/src/inseason";
@@ -242,9 +242,6 @@ export async function runInSeason(deps: {
   return { feed, rows: rows.length, sections, changed: true, first: false, diff: d, events: [...dupEvents, ...events], ...held };
 }
 
-/** (T486) rewritten at least this often though unchanged: UNDER the daily cron (14:45 UTC Nov–May), so each daily run
- *  writes — at 24 h a run 23.3 h after the last write skipped, and the file aged to 48 h (the smoke's stale in-season) */
-export const FEED_HEARTBEAT_MS = 20 * 3600_000;
 async function publishFeed(
   deps: { feed?: Store; priv: Store; meter?: Meter; log?: (s: string) => void },
   rows: Row[],
@@ -267,15 +264,9 @@ async function publishFeed(
   const linksText = await deps.feed!.get("matches.json");
   if (linksText === null && prev) throw new SourceError("parse", "in-season: feeds/inseason/matches.json is missing (the curated links); nothing written. Sync it: deploy/staging/sync-inputs.sh", "inseason-links");
   const doc = buildFeed(rows, prev, now.toISOString(), sha, pageChanged || !prev, matchedWaters(linksText));
-  const writes = await loadManifest(deps.priv, "writes.json");
-  const out = skipSameStore(deps.feed!, writes, {
-    now: now.getTime(),
-    stable: (_k, b) => b.replace(/"fetchedAt":"[^"]*"/, ""),
-    maxAgeMs: () => FEED_HEARTBEAT_MS,
-    meter: deps.meter,
-  });
-  await out.put("index.json", JSON.stringify(doc), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
-  if (out.changed) await deps.priv.put("writes.json", JSON.stringify(writes));
+  // (T549 item 7) written by EVERY run that read the page, so `fetchedAt` is when the Province's page was last CHECKED
+  // (it was skipped while unchanged, under a 20 h heartbeat: the app's age line sat on the daily write). One small put a run.
+  await deps.feed!.put("index.json", JSON.stringify(doc), { contentType: "application/json", cacheControl: "public, max-age=300, stale-while-revalidate=3600" });
   const n = (s: string) => doc.rows.filter((r) => r.status === s).length;
   return { rows: doc.rows.length, unmatched: doc.matching.unmatched, new: n("new"), changed: n("changed"), removed: doc.removed.length };
 }

@@ -30,6 +30,11 @@ export type StaleRule =
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;
+/**
+ * (T549 items 7, 10) The stale line of a feed the worker checks ONCE A DAY off season (DFO salmon, the in-season
+ * notices; wrangler.toml crons): the 24 h cadence plus 6 h. The worker's scheduled test holds it over the slowest cron.
+ */
+const DAILY_FEED_STALE_MS = 30 * HOUR;
 
 export const STALE_AFTER = {
   /**
@@ -60,10 +65,12 @@ export const STALE_AFTER = {
   /**
    * (T526, owner 2026-11-09: "older then a day … older just means it wasnt checked because it doesnt change that
    * frequently but we need to check it often") DFO's salmon feed, by WHEN THE FEEDS WORKER LAST CHECKED DFO's pages — the
-   * feed's `at` (rewritten at least every 20 h even when nothing changed, `INDEX_HEARTBEAT_MS`) — never by when DFO's
-   * content last changed. Not checked for more than a day: likely out of date. No checked time: unknown, and reported.
+   * feed's `at` (written by every run, T549 items 7 and 10) — never by when DFO's content last changed. The worker
+   * checks at least once a day (every 6 h Jun–Oct), so the line is `DAILY_FEED_STALE_MS`: one day's check plus margin
+   * for a late run and a held copy. At exactly 24 h it flickered "likely out of date" every day at the daily write.
+   * Not checked for longer: likely out of date. No checked time: unknown, and reported.
    */
-  dfo: { by: "age", ms: DAY },
+  dfo: { by: "age", ms: DAILY_FEED_STALE_MS },
   /** The Freshwater Atlas changes slowly; a copy two years old has likely missed a revision. */
   fwa: { by: "age", ms: 730 * DAY },
   /** The basemap's roads and towns (OpenStreetMap via Protomaps), rebuilt yearly. */
@@ -79,11 +86,11 @@ export const STALE_AFTER = {
   tiles: { by: "release" },
   /**
    * (T548) B.C. Fish and Wildlife's in-season changes (the Province's page, read by the feeds worker since T225 and by
-   * the app since T230), by the feed's own `fetchedAt` — rewritten at least every 20 h even when the page did not
-   * change (`FEED_HEARTBEAT_MS`, app/workers/feeds/src/inseason.ts), as DFO's is (T526). Not rewritten for more than a
-   * day: the worker is blocked or failing, and the notices shown are likely out of date. No time: unknown.
+   * the app since T230), by the feed's own `fetchedAt` — written by every run that read the page, changed or not
+   * (app/workers/feeds/src/inseason.ts), as DFO's is (T526, T549 item 7). Not rewritten for longer than
+   * `DAILY_FEED_STALE_MS`: the worker is blocked or failing, and the notices shown are likely out of date. No time: unknown.
    */
-  inseason: { by: "age", ms: DAY },
+  inseason: { by: "age", ms: DAILY_FEED_STALE_MS },
   /** Weather: fetched with each saved spot. */
   weather: { by: "live" },
   /** Satellite imagery: fetched while online. */

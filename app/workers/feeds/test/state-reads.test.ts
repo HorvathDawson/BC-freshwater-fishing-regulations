@@ -81,6 +81,20 @@ describe("a stored state that cannot be read (T558 W3)", () => {
     expect(puts).toEqual([]);
   });
 
+  // T549 item 8 (the T357 port; T558 built the read): the two files the run carries from — a body that does not parse
+  // is not "no last feed" either (every carried place, the failure count and each unplaced row's first_seen would reset)
+  for (const k of ["index.json", "unplaced.json"])
+    it(`DFO: a stored ${k} that does not parse fails the run naming it, nothing published`, async () => {
+      const feed = new MemStore();
+      feed.m.set(k, '{"regions": {"8": ');                                   // a torn write
+      const puts: string[] = [];
+      const watched = { get: feed.get.bind(feed), put: async (key: string, b: string) => { puts.push(key); await feed.put(key, b); } };
+      await expect(runDfo({ fetch: async () => new Response("ok"), notifyUrl: null, feed: watched, priv: privStore(), now: "2026-11-10T12:00:00Z",
+        regions: ["8"], entries: async () => "[]", fetcher: async () => ["<html></html>", null] }))
+        .rejects.toThrow(new RegExp(`${k.replace(".", "\\.")} is stored but does not parse`));
+      expect(puts).toEqual([]);
+    });
+
   it("gauges: the last index unreadable fails the run (stations are never dropped instead of carried)", async () => {
     const FIX = join(__dirname, "fixtures/gauges");
     const feed = { get: async (k: string) => { if (k === "index.json") throw new Error("R2 GET 500"); return k === "clim.json" ? "{}" : null; }, put: async () => {} };

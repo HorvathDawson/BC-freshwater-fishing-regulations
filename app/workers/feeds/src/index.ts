@@ -18,6 +18,7 @@
 import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId, writeMerged, type Meter, type R2BucketLike } from "./io";
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
+import { QUEUE_ACTION } from "./dfo/live";
 import { runInSeason } from "./inseason";
 import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { parseApk, sampleDfoEvents } from "./email";
@@ -128,10 +129,11 @@ export function dfoEvents(notices: { key: string; text: string; urgent?: boolean
       title: n.text.split(";")[0]!.slice(0, 200),
       // (T366, live.py) a rule-row change on a known place is the DIGEST (`urgent: false`); every other DFO notice urgent
       urgent: n.urgent !== false,
-      // (T321) a new wording is not a place to review: its own text says what to do; (T366) nor is a row change
-      text: n.key.startsWith("dfo-wording:") || n.key.startsWith("dfo-rows") ? n.text :
+      // (T321) a new wording is not a place to review: its own text says what to do; (T366) nor is a row change; (T549
+      // item 4) nor a place that left the page. (T549 item 9) the command reads DFO's page on the Mac first, then queues
+      text: n.key.startsWith("dfo-wording:") || n.key.startsWith("dfo-rows") || n.key.startsWith("dfo-gone:") ? n.text :
         `${n.text}\n\n` +
-        (m ? `First: python -m pipeline.regs.dfo_salmon.live queue --regions ${m[1]}\n` : "") +
+        (m ? `First: ${QUEUE_ACTION(m[1]!)}\n` : "") +
         `Then: Review app → DFO → Extents: ${lid ?? placeOf(n.text) ?? "the new rows"}`,
       at,
       // the email template renders `data` (region · water · the place in full · what it affects); the text above is the

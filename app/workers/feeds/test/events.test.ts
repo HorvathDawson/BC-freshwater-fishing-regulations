@@ -195,7 +195,8 @@ describe("what each job tells", () => {
     expect(h!.text).toMatch(/feeds — HYDAT → climatology → R2/);
     expect(r).toMatchObject({ key: "roster:+2/-1", kind: "roster" });
     const [d] = dfoEvents([{ key: "dfo-new:6:abc", text: "DFO Region 6: new location on Skeena River: 'x' — 2 rules held unplaced. Place it in DFO review after: …" }], "t");
-    expect(d!.text).toContain("First: python -m pipeline.regs.dfo_salmon.live queue --regions 6");
+    // (T549 item 9) the Mac reads DFO's page first: `queue` alone reads the Mac's own unplaced.json, never the worker's
+    expect(d!.text).toContain("First: python -m pipeline.regs.dfo_salmon.live run --regions 6 && python -m pipeline.regs.dfo_salmon.live queue --regions 6\n");
     expect(d!.text).toContain("Then: Review app → DFO → Extents: Skeena River — x");
     expect(d!.text).not.toMatch(/https?:/);
     expect(healthEvents([{ job: "dfo", from: "ok", to: "stale", text: "DFO salmon feed is STALE" }], "t")[0]!.key).toBe("health:dfo:ok>stale:t");
@@ -250,11 +251,14 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     expect(doc.rows.find((x) => x.change.startsWith("Rescind"))!.parsed!.kinds).toEqual(["rescind"]);
     expect(doc.rows.find((x) => x.change.startsWith("Clarification"))!.parsed!.kinds).toEqual(["clarification", "licence"]);
     expect(doc.rows.find((x) => x.change === "No fishing July 30 to September 15.")!.parsed).toEqual({ kinds: ["closure"], window: { from_month: 7, from_day: 30, to_month: 9, to_day: 15 } });
-    // an unchanged page: the feed object is not rewritten (only the 24 h heartbeat)
+    // (T549 item 7) an unchanged page: the feed is still written, so `fetchedAt` is this check; the rows stand as they were
     const puts: string[] = [];
     const watched = Object.assign(Object.create(feed), { put: async (k: string, b: string) => (puts.push(k), feed.put(k, b)) });
     await runInSeason({ fetch: okFetch, priv, feed: watched, html: page, now: T("2026-10-28T18:00:00Z") });
-    expect(puts).toEqual([]);
+    expect(puts).toEqual(["index.json"]);
+    const again: InSeasonFeed = JSON.parse(feed.m.get("index.json")!);
+    expect(again.fetchedAt).toBe("2026-10-28T18:00:00.000Z");
+    expect({ ...again, fetchedAt: doc.fetchedAt }).toEqual(doc);
     // a changed page: statuses, previous text, removed rows; ids survive the rewording
     const edited = page.replace("July 4, 2025 to August 31, 2025", "July 4, 2025 to September 15, 2025").replace(/<tr>(?:(?!<\/tr>)[\s\S])*?Peace Canyon Dam[\s\S]*?<\/tr>/, "");
     await runInSeason({ fetch: okFetch, priv, feed: watched, html: edited, now: T("2026-10-29T00:00:00Z") });

@@ -111,6 +111,25 @@ describe("the registry as a runtime input (priv wording.json) — T324: the ONLY
     expect(wordingKeys(got)).toContain(`dfo-wording:${t}`);
   });
 
+  // T549 item 6: `wording build` adds a newly printed clause as `proposed` with a guessed meaning, and the file syncs to
+  // R2 on any review save. Read as known, that cleared the guard before the owner had read the clause.
+  it("a PROPOSED entry is unknown: the row is new wording (no number) and the owner is told, until it is accepted", async () => {
+    const cell = `4 per day, only 2 over 50 cm, ${NEW}`;
+    const t = template(NEW);
+    const as = (status: "proposed" | "accepted" | "rejected") =>
+      new Map([...REGISTRY, [t, { template: t, kind: "note" as const, reads: [], status }]]);
+    expect(unknown(cell, as("accepted"))).toEqual([]);
+    expect(unknown(cell, as("proposed"))).toEqual([NEW]);
+    expect(unknown(cell, as("rejected"))).toEqual([NEW]);
+    expect(rowWords({ species: "Coho", dates: "", limits_gear: cell }, as("proposed"))).toMatchObject({ k: "new", new: [NEW] });
+    expect(toRules({ species: "Coho", dates: "Sep 1 to Oct 31", limits_gear: cell }, "x", 0, true, as("proposed"))[0]!.review_reason).toBe(`new wording: '${NEW}'`);
+    const priv = new MemStore();
+    const d = curated();
+    d.entries.push({ template: t, kind: "structure", reads: ["test"], status: "proposed" });
+    priv.m.set("wording.json", JSON.stringify(d));
+    expect(wordingKeys(await run(priv))).toEqual([`dfo-wording:${t}`]);
+  });
+
   it("a missing R2 copy FAILS the job before anything is written (no compiled-in fallback)", async () => {
     const feed = new MemStore();
     await expect(run(new MemStore(), undefined, feed)).rejects.toThrow(/wording registry missing/);

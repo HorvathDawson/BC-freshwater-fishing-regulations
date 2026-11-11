@@ -3,7 +3,8 @@
 import { describe, expect, it } from "vitest";
 import { compose, type FeedEvent } from "../src/events";
 import { sampleDfoEvents, wrap, type RenderCtx } from "../src/email";
-import { gaugeEvents, healthEvents } from "../src/index";
+import { dfoEvents, gaugeEvents, healthEvents } from "../src/index";
+import { goneNotice } from "../src/dfo/live";
 import { repoData } from "../../../conformance/src/repoData";
 
 const ctx: RenderCtx = { env: "staging", worker: "bc-fishing-feeds-staging", statusUrl: "https://bc-fishing-feeds-staging.horvath-dawson.workers.dev/status" };
@@ -48,6 +49,29 @@ describe("the email template", () => {
     checkWidth(m!.text);
     expect(m!.text).toMatchSnapshot("dfo.txt");
     expect(m!.html).toMatchSnapshot("dfo.html");
+  });
+
+  // T549 item 9: `live queue` reads the Mac's own unplaced.json, never the worker's — the Mac reads the page first; and
+  // the CLI's `--regions` is a space-separated list (the comma-joined "1,6" the email printed was refused by argparse)
+  it("DFO: the one command reads DFO's page on the Mac, then queues; several regions are space-separated", () => {
+    const two = sampleDfoEvents().map((e, i) => (i ? { ...e, key: `${e.key}:6`, data: { ...e.data, region: "6" } } : e));
+    const [m] = compose(two, false, ctx);
+    const cmd = "python -m pipeline.regs.dfo_salmon.live run --regions 1 6 && python -m pipeline.regs.dfo_salmon.live queue --regions 1 6";
+    expect(m!.text.split("\n").filter((l) => l.includes("dfo_salmon.live")).map((l) => l.trim())).toEqual([cmd]);
+    expect(count(m!.html!, htmlEsc(cmd))).toBe(1);
+  });
+
+  // T549 item 4: a curated place that left DFO's page (no reworded row explains it): its own heading part and step
+  it("DFO: a place gone from the page is named with what it means and what to do; no queue command", () => {
+    const n = goneNotice("8", { location_id: "8:mabel-lake:northerly-of-a-line", water: "Mabel Lake", place: "Northerly of a line drawn from a white triangular sign", page: "0123456789ab" });
+    const [m] = compose(dfoEvents([n], at), false, ctx);
+    expect(m!.subject).toBe("[staging] DFO: 1 place gone from DFO's page (Region 8)");
+    const flat = m!.text.replace(/\n\s+/g, " ");
+    expect(flat).toContain("Mabel Lake");
+    expect(flat).toContain("8:mabel-lake:northerly-of-a-line is no longer on DFO's page: its rule left the feed and the wider rule of its water answers; if DFO still prints the row, the page was misread");
+    expect(flat).toContain("Read DFO's page for Region 8: each place above left it, so its rule left the feed and the wider rule of its water answers in the app. If DFO removed the row, nothing to do (mark the place dormant in DFO review). If the row is still printed, the page was misread: tell Claude.");
+    expect(m!.text).not.toContain("queue --regions");
+    checkWidth(m!.text);
   });
 
   it("in-season: added / changed (before → after) / removed, per region", () => {

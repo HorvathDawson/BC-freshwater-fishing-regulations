@@ -6,6 +6,7 @@ import { dispatchSteps } from "./dispatch";
 import { BUTTON as RUNTIMING_BUTTON } from "./runtiming";
 import type { FeedEvent } from "./events";
 import type { RowChange } from "./dfo/rows";
+import { QUEUE_ACTION } from "./dfo/live";
 
 export interface Item {
   /** the water / station / feed, bold */
@@ -61,6 +62,8 @@ export function dfoSection(events: FeedEvent[]): Section {
   const regions = sortRegions(ds.map((d) => d.region));
   const toPlace = ds.filter((d) => PLACE_KINDS.has(d.kind));
   const held = ds.filter((d) => ["held", "row-held", "fetch", "moved"].includes(d.kind));
+  // (T549 item 4) curated places that left DFO's page with no reworded row: the wider rule answers now
+  const gone = ds.filter((d) => d.kind === "gone");
   const header = ds.filter((d) => d.kind === "header" || d.kind === "header-name");
   // (T320) the page's general text changed: the feed reads no rule out of it — a human reviews old vs new
   const texts = ds.filter((d) => d.kind === "text");
@@ -73,6 +76,7 @@ export function dfoSection(events: FeedEvent[]): Section {
   const parts: string[] = [];
   if (toPlace.length) parts.push(`${plural(toPlace.length, "new place")} to place`);
   if (held.length) parts.push(`${plural(held.length, "item")} held`);
+  if (gone.length) parts.push(`${plural(gone.length, "place")} gone from DFO's page`);
   if (header.length) parts.push(`${plural(header.length, "header note")}`);
   if (texts.length) parts.push(`header text changed in ${plural(texts.length, "region")}`);
   if (wording.length) parts.push(`${plural(wording.length, "new wording", "new wordings")} in a limits cell`);
@@ -107,7 +111,9 @@ export function dfoSection(events: FeedEvent[]): Section {
   }));
   const steps: Step[] = [];
   if (toPlace.length || header.some((d) => d.kind === "header-name")) {
-    steps.push({ text: "Queue the new rows for review:", code: `python -m pipeline.regs.dfo_salmon.live queue --regions ${sortRegions(toPlace.concat(header).map((d) => d.region)).join(",")}` });
+    // (T549 item 9) `queue` reads the Mac's own unplaced.json: the page is read there first. Regions space-separated (the
+    // CLI's `--regions` takes a list; a comma-joined "1,6" was refused)
+    steps.push({ text: "Read DFO's page on the Mac, then queue the new rows for review:", code: QUEUE_ACTION(sortRegions(toPlace.concat(header).map((d) => d.region)).join(" ")) });
     const names = new Map<string, number>();
     for (const d of [...toPlace, ...header.filter((h) => h.kind === "header-name")]) names.set(d.water ?? "(unnamed)", (names.get(d.water ?? "(unnamed)") ?? 0) + 1);
     steps.push({ text: `Review app → DFO → Extents: ${[...names].map(([n, k]) => (k > 1 ? `${n} (${k} places)` : n)).join("; ")}` });
@@ -116,12 +122,14 @@ export function dfoSection(events: FeedEvent[]): Section {
     steps.push({ text: `Review the header / general text of DFO's page for ${listRegions(sortRegions(texts.map((d) => d.region)))} (was / now above): the feed shows the new words but reads no rule from them — if it opens, closes or changes a limit, change the region's rules by hand (pipeline/regs/dfo_salmon/header.py, quota.py).` });
   if (wording.length)
     steps.push({
-      text: `Read DFO's words for each new wording above (DFO's page for ${listRegions(sortRegions(wording.map((d) => d.region)))}) — it may change a limit. Then add one entry per template to data/curated/dfo_salmon/wording.json: kind "structure" (teach pipeline/regs/dfo_salmon/typed.py and the Worker's src/dfo/typed.ts to read it first), "note" (the card shows the row in DFO's words) or "provenance"; add a line for it to pipeline/tests/test_dfo_wording.py; redeploy the feeds worker. Until then the row shows DFO's words and no number. Templates: ${[...new Set(wording.map((d) => d.template ?? ""))].map((t) => `"${t}"`).join(", ")}`,
+      text: `Read DFO's words for each new wording above (DFO's page for ${listRegions(sortRegions(wording.map((d) => d.region)))}) — it may change a limit. Then add one entry per template to data/curated/dfo_salmon/wording.json: kind "structure" (teach pipeline/regs/dfo_salmon/typed.py and the Worker's src/dfo/typed.ts to read it first), "note" (the card shows the row in DFO's words) or "provenance", status "accepted" (a "proposed" entry stays unknown: T549); add a line for it to pipeline/tests/test_dfo_wording.py; redeploy the feeds worker. Until then the row shows DFO's words and no number. Templates: ${[...new Set(wording.map((d) => d.template ?? ""))].map((t) => `"${t}"`).join(", ")}`,
     });
   if (rows.length)
     steps.push({ text: `Rule rows (${listRegions(sortRegions(rows.map((d) => d.region)))}): nothing to re-review — the places stand and the feed already publishes the new rows. Skim each "Now" row and how it was read; if one was misread, fix the reading (pipeline/regs/dfo_salmon/typed.py and the Worker's src/dfo/typed.ts). The same list, locally:`, code: `python -m pipeline.regs.dfo_salmon.live run --regions ${sortRegions(rows.map((d) => d.region)).join(" ")} --dry-run` });
   if (unread.length)
     steps.push({ text: `Read DFO's page for ${listRegions(sortRegions(unread.map((d) => d.region)))} by hand: the row digest could not compare it with the last page (its baseline did not read; it is rewritten, so the next page compares again).` });
+  if (gone.length)
+    steps.push({ text: `Read DFO's page for ${listRegions(sortRegions(gone.map((d) => d.region)))}: each place above left it, so its rule left the feed and the wider rule of its water answers in the app. If DFO removed the row, nothing to do (mark the place dormant in DFO review). If the row is still printed, the page was misread: tell Claude.` });
   if (held.length) steps.push({ text: "Held items keep their last answers in the app; check the feed status, then the DFO page if a fetch keeps failing." });
   return {
     heading: `DFO salmon: ${parts.join(", ")} — ${listRegions(regions)}`,

@@ -48,8 +48,14 @@ def _open_verdict(rules: list) -> dict:
 def test_every_saved_page_reads_with_zero_unknown_clauses():
     pages = W.saved_pages()
     assert sum(1 for p, _ in pages if p.parent == FIX) == 12               # the tracked fixtures, 5 (an index stub) left out
-    bad = [(name, r.limits_gear, W.unknown(r.limits_gear)) for name, r in W.saved_rows(pages) if W.unknown(r.limits_gear)]
+    # (T549 item 6) a clause is unknown until the owner ACCEPTS its entry: the only unknown clauses of the saved pages
+    # are the ones whose entry is still a proposal (never a clause with no entry at all)
+    reg = W.registry()
+    proposed = {t for t, e in reg.items() if e["status"] == "proposed"}
+    bad = [(name, r.limits_gear, c) for name, r in W.saved_rows(pages) for c in W.unknown(r.limits_gear)
+           if W.template(c) not in proposed]
     assert bad == []
+    assert {W.template(c) for _, r in W.saved_rows(pages) for c in W.unknown(r.limits_gear)} <= proposed
 
 
 def test_the_registry_is_one_entry_per_template_each_with_a_meaning():
@@ -82,6 +88,37 @@ def test_a_rejected_entry_is_unknown():
     assert W.unknown("4 per day, bait ban", reg) == []
     reg["bait ban"]["status"] = "rejected"
     assert W.unknown("4 per day, bait ban", reg) == ["bait ban"]
+
+
+def test_a_proposed_entry_is_unknown_until_the_owner_accepts_it():
+    """T549 item 6: `build` adds every clause DFO newly prints as `proposed`, its meaning GUESSED by regex. Read as
+    known, running the builder cleared the "new wording: no number + urgent email" guard before anyone read the clause."""
+    reg = {t: dict(e) for t, e in W.registry().items()}
+    assert reg["bait ban"]["status"] == "accepted" and W.unknown("4 per day, bait ban", reg) == []
+    reg["bait ban"]["status"] = "proposed"
+    assert W.unknown("4 per day, bait ban", reg) == ["bait ban"]
+    assert W.reason("4 per day, bait ban", reg) == "new wording: 'bait ban'"
+    assert W.notes("4 per day, bait ban", reg) == []
+    # the one entry the owner has not ticked (T332) is unknown today, in the file both readers load
+    cell = "4 per day, only 1 over 65 cm. No fishing for chinook from a point 100 m above Fort Babine bridge to Nichyeskwa Creek."
+    assert W.unknown(cell) == ["No fishing for chinook from a point 100 m above Fort Babine bridge to Nichyeskwa Creek."]
+
+
+def test_a_template_the_builder_adds_does_not_clear_the_guard(tmp_path):
+    """T549 item 6, end to end: a page prints a clause the registry never held; `build` adds it as a proposal; the cell
+    is STILL new wording when read with the rebuilt registry."""
+    reg = tmp_path / "wording.json"
+    doc = json.loads(W.REGISTRY.read_text(encoding="utf-8"))
+    gone = next(e for e in doc["entries"] if e["status"] == "accepted" and e["template"] == "bait ban")
+    doc["entries"] = [e for e in doc["entries"] if e is not gone]
+    W.write(doc, reg)
+    before = W.registry(reg)
+    assert "bait ban" not in before and W.unknown("4 per day, bait ban", before) == ["bait ban"]
+    built = W.build(reg)                                                      # every saved page: "bait ban" is printed on them
+    added = next(e for e in built["entries"] if e["template"] == "bait ban")
+    assert added["status"] == "proposed"
+    W.write(built, reg)
+    assert W.unknown("4 per day, bait ban", W.registry(reg)) == ["bait ban"]
 
 
 # ── T332: the split tidied, every entry checked ───────────────────────────────────────────────────────────────────

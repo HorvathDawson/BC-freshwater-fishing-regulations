@@ -19,7 +19,9 @@ Each registry entry: `{template, kind, reads, status, rows, pages, example, cell
               note        the card shows the row in DFO's words (`reads` may still name what is read from it)
               provenance  the in-season notice number (FN) or its dash; no meaning of its own
     status    proposed | accepted | rejected. EVERYTHING SEEDED IS A PROPOSAL (owner 2026-10-29): the owner reviews each
-              entry; a proposed entry is read (it is what DFO printed on a saved page), a rejected one is unknown.
+              entry. ONLY AN ACCEPTED ENTRY IS KNOWN (T549 item 6): a proposed one — what the builder guessed a clause
+              reads as — is unknown like a rejected one, so `build` after DFO prints new wording never clears the
+              "new wording" guard before the owner has read the clause.
 
 An UNKNOWN clause makes the row unparsed: its rules carry `review_reason` "new wording: '…'" (`typed.to_rules`), the
 verdict `q.u` (no number), the card shows the row in DFO's words ("DFO changed the wording here — read their text"), and
@@ -30,7 +32,9 @@ cache's raw pages and history) and writes the registry — existing entries keep
 refresh); a template not yet in it is added as `proposed`, its kind guessed from what `typed` reads (a guess the owner
 reviews). `check` lists the unknown clauses of the saved pages and exits 1 when there are any. No network, no model.
 
-The Worker reads the same file (`app/workers/feeds/src/dfo/wording.ts`, bundled at build); a parity test holds the two.
+The Worker reads the same file (`app/workers/feeds/src/dfo/wording.ts`): the copy `pipeline.deliver.sync_inputs` puts
+on R2 (private/feeds/dfo/wording.json), its only copy (T324: missing or invalid FAILS the DFO job). A parity test holds
+the two readers (app/workers/feeds/test/dfo.wording.test.ts).
 """
 from __future__ import annotations
 
@@ -47,7 +51,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 from pipeline.common.curated import CURATED, REPO_ROOT
 
 #: T332: /2 — the clause split changed (no section-title / species-list / "Single," / dash scraps), so a /1 registry's
-#: templates are not this split's: each reader refuses the other's format and falls back to its own compiled-in copy
+#: templates are not this split's: each reader REFUSES a registry of another format (T324: there is no compiled-in copy)
 FORMAT = "dfo-wording/2"
 REGISTRY = CURATED.dfo_salmon.wording            # T331: declared in config.yaml (`curated.dfo_salmon.wording`)
 #: a typed rule's `review_reason` for a row with a clause the registry does not know
@@ -120,8 +124,9 @@ def registry(path: Optional[Path] = None) -> Dict[str, dict]:
 
 
 def _known(t: str, reg: Dict[str, dict]) -> Optional[dict]:
+    """(T549 item 6) known = the owner ACCEPTED it. A `proposed` entry is the builder's guess: it must not clear the guard."""
     e = reg.get(t)
-    return e if e and e.get("status") != "rejected" else None
+    return e if e and e.get("status") == "accepted" else None
 
 
 def unknown(cell: str, reg: Optional[Dict[str, dict]] = None) -> List[str]:

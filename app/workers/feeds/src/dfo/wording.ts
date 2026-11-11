@@ -86,9 +86,11 @@ export function readRegistry(text: string | null): Registry {
   }
 }
 
+/** (T549 item 6, wording._known) known = the owner ACCEPTED it: a `proposed` entry is the builder's guess at what a clause
+ *  reads as, and reading it would clear the "new wording" guard before anyone had read the clause */
 const known = (t: string, reg: Registry): WordingEntry | null => {
   const e = reg.get(t);
-  return e && e.status !== "rejected" ? e : null;
+  return e && e.status === "accepted" ? e : null;
 };
 
 /** wording.unknown: the clauses DFO has not used before, as printed, once each */
