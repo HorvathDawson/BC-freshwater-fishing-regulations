@@ -172,7 +172,8 @@ def test_the_corpus_tiers_match_plan_section_3():
     # 445 -> 452: 7 DFO owner-mark splits applied (T185 apply 9567f95b6..9a3f0e91b, 2026-11-06): Little Qualicum
     # Falls park boundary, Quatse hatchery weir +-100 m (2), Stamp lagoon inlet + outlet, Stamp powerline, Sheldens spur 19
     # 452 -> 453: Sumas River Barrow Town Pump Station (owner's Chilliwack/Vedder marks, T185 apply 9aaa6251c, 2026-11-09)
-    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (453, 0, 0)  # 422 -> 445: the 23 tidal boundary splits applied (T185/T212 2026-10-28); 420 -> 422: Quinsam confluence on the Campbell (high) + Sandy Pool sign on the Cowichan (medium) (T185 owner marks 2026-10-27); 416 -> 420: Chapman 2, Deena 1, Mamin 1 (owner 2026-10-27, low); 410 -> 416: T207 White River 2, Fulton 2, Cranberry 2 (owner 2026-10-26); was 150 / 118 L before the owner decision, 2026-10-26
+    # 453 -> 458: the five Okanagan River Oxbows hillside cuts (T637, owner 2026-11-11 "Cut both" + "i accept your cut")
+    assert (len(splits), len(held), Counter(T.split_grade(s) for s in held)["L"]) == (458, 0, 0)  # 422 -> 445: the 23 tidal boundary splits applied (T185/T212 2026-10-28); 420 -> 422: Quinsam confluence on the Campbell (high) + Sandy Pool sign on the Cowichan (medium) (T185 owner marks 2026-10-27); 416 -> 420: Chapman 2, Deena 1, Mamin 1 (owner 2026-10-27, low); 410 -> 416: T207 White River 2, Fulton 2, Cranberry 2 (owner 2026-10-26); was 150 / 118 L before the owner decision, 2026-10-26
 
 
 def _py_sources():

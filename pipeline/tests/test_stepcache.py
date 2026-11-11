@@ -380,8 +380,11 @@ def test_a_traced_stage_keys_on_the_files_it_imported(scratch):
 
 def _trace_import(world, tag, script):
     tr = world / f"tr-{tag}"
+    # T661: the chunked runner exports PYTHONPYCACHEPREFIX, which sends every .pyc away from the module; the cold/warm
+    # pair below needs the .pyc beside it, so the child runs without the prefix.
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPYCACHEPREFIX"}
     subprocess.run([PY, "-c", script], check=True, cwd=REPO_ROOT,
-                   env={**os.environ, "PIPELINE_TRACE": str(tr), "PYTHONPATH": f"{REPO_ROOT}{os.pathsep}{world}"})
+                   env={**env, "PIPELINE_TRACE": str(tr), "PYTHONPATH": f"{REPO_ROOT}{os.pathsep}{world}"})
     return SC.Trace(tr)
 
 
