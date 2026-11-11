@@ -19,3 +19,17 @@ Source: T547's report 2026-11-10 (commits 9c701a58b … 4acd5d0f1). T547's ticke
 - Item 1's diff is in the ticket; items 2–4 done or each closed with a reason.
 
 Depends: T547. Size: M (one heavy build). Owner: no.
+
+## Item 1 result, 2026-11-10 (side build with the new code, all stages, 85 min, rc 0)
+Side release r-7445e205856e against live r-a178299f6005 (built 2026-11-09 17:56), 56 manifest entries:
+- **34 identical by hash**: every geo, regs, lines, core, access, climate and tiles entry. Tiles and bundle vintage
+  agree with live (section handles d5242c0c70509877, reach digest 1a11ea11a5b3fb3e).
+- **11 salmon files differ**: expected, not T547. The DFO salmon inputs moved after the live release was cut (nine
+  commits on 2026-11-10 by the review-app chat: T573 closed areas as a second entry, T607, T562, plus the owner's
+  marks). Not traced row by row.
+- **11 water files differ in one metadata row only** (`store_digest`, `export_subset_sha256`); every table (item,
+  part, part_section, part_line, part_mark, water_exit, xpart, picker, str) is identical (checked on water-8; the
+  other ten have the same byte size as live). The digest covers the export, which the salmon change moves.
+- Note: the reach step logged "NOT keyed — pipeline/atlas/reach/build.py changed while it ran" (T546 was editing it);
+  the reach digest still equals live.
+Conclusion: T547's change does not alter what is built. Item 1 done; items 2–4 stay open.
