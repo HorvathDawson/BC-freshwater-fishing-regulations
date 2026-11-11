@@ -93,9 +93,19 @@ Answered 2026-11-11 (recorded in T665, T667, T666): the six tidal decisions, the
 
 Still open:
 - T668 salmon places from two regions on one stretch (audit `app-integration/T668-audit.md`, 493 sections): built on the defaults D1 an undrawn place stays in its own region, D2 on a section in one region that region wins a tie, D3 a region-wide place binds every section in its region, D4 the card names the region, D5 D1 first. Owner 2026-11-11: a stretch that straddles a boundary is genuinely in both regions, so a straddler keeps both regions' places and the stricter answer per fish speaks (as the freshwater rule, RULINGS Z4). Say if any is wrong.
-- Phone check of the latest Play internal build (0.7.5): the checks are rows on the Owner To-Do page (written 2026-11-11). The Stellako "10 hatchery steelhead" line no longer shows on staging; it is one of those checks now.
-- Tidal: look over the 33 creeks where the limit stays at the end of the mapped line although the line runs into the tidal polygon (your call 2026-11-11, for consistency). The dry run of T665 writes the list with distances and a map; it will be linked here.
-- Stellako River (F12): the card shows a "10 hatchery steelhead" line. Is that line right for this water? Not a blocker. The card image is owed.
+- Phone check of the latest Play internal build (0.7.5), the same rows as the Owner To-Do page (written 2026-11-11):
+  1. Cold start, then open a water: close the app fully, open it, search a water you opened before, open it; the regulations show (the step the test bed missed; it passed 7 of 7 on the emulator rerun since).
+  2. Satellite: zoomed in, a stream opens into two thin edges (T594); too faint or too heavy?
+  3. Trout / Salmon / Runs: the key under the map follows the map, no stuck switch (T566).
+  4. Gauges: a gauge reporting only the other of flow and level is a ringed grey dot, no text tag (T636).
+  5. Okanagan River Oxbows near Oliver: side channels carry the Oxbows entry; the two hillside lines above the cuts do not (T637).
+  6. Skeena or Nass estuary: a creek is cut at the tidal boundary; below reads tidal, above freshwater (T660).
+  7. Readings (T623): Nechako inside Region 6, Bowron and Willow inside Region 5 closed Apr 1-Jun 30; Peace kokanee 10.
+  8. A card warns of a closure on a part the map does not draw; the rule title keeps the book's words for the part.
+  9. A water's page opening in one piece (T498/T508, "Not right" on build 24, no note): which tab, and what appears late?
+  10. Stellako River (F12): the "10 hatchery steelhead" line was not found on staging with the new release (Regulations tab and its sheets; Salmon view not checked), so no card image exists; tick if you do not see it.
+- Next Play build (not 0.7.5): a shared `/water/...` link opens the installed app on that water; without the app, the website (T625; only a Play install can verify).
+- Tidal (T665), answered 2026-11-11 on the dry-run map (`app-integration/T665-dryrun-map.html`, sent in chat): cuts that leave nothing tidal are dropped; the 33 creeks are cut where they leave the tidal polygon and the tidal part taken out ("line end wins" withdrawn); Claude applies the same to 59 more creeks of that kind, say if wrong. Default to confirm: a water with its own tidal limit is never cut by the polygon. Still yours: eight main rivers (Bella Coola, Mamin, Apple x3, Kshwan, Sarita, Bedwell) held out until you look at their map page (being drawn).
 - Store screenshots (sent 2026-11-11): pick the order and titles (`app/tools/store-shots.json`).
 
 ## Reviews
