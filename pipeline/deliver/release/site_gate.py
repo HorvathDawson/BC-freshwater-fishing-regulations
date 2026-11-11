@@ -30,11 +30,9 @@ VERSION_RE = re.compile(r'resolveAppVersion\)?\(\{version:"(\d+\.\d+\.\d+[^"]*)"
 
 
 def redeploy_steps(rid: str | None) -> str:
-    rel = f"data/release/{rid}" if rid else "data/release/<r-id>"
-    return ("redeploy the staging site first, then upload again:\n"
-            "    pnpm -C app/apps/mobile export:web:staging\n"
-            f"    node app/tools/build-seo.mjs --release-dir {rel} --app app/dist/web-staging --threads 4\n"
-            "    deploy/staging/site.sh")
+    del rid     # (T544) the one command builds on LATEST, which is the release about to be uploaded
+    return ("redeploy the staging site first (export, SEO pages on LATEST, deploy, smoke), then upload again:\n"
+            "    deploy/staging/site-all.sh")
 
 
 def fetch_text(url: str, timeout: float = 30) -> str:

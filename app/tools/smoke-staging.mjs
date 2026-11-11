@@ -91,6 +91,17 @@ async function http() {
     must(head === '%PDF-', `${syn} does not start with %PDF- (${JSON.stringify(head)})`);
     return `${manifest.data_release}, ${manifest.synopsis.url}`;
   });
+  // (T544) the site names the release it was built on (deploy/staging/site.sh writes /site-release.json). A different
+  // release is a warning while the min app version is the same, a failure when it moved (the site's app could refuse
+  // the data). Both ids are printed. Production's site has no stamp (deploy/prod/site.sh): there the check is skipped.
+  if (!PROD) await check('site release matches the manifest release', async () => {
+    const st = await json(`${SITE}/site-release.json`);
+    must(st.release, `${SITE}/site-release.json names no release`);
+    const said = `site ${st.release} (min app ${st.minAppVersion ?? 'none'}), manifest ${manifest.data_release} (min app ${manifest.minAppVersion ?? 'none'})`;
+    if (st.release === manifest.data_release) return said;
+    must((st.minAppVersion ?? null) === (manifest.minAppVersion ?? null), `the site is on another release and the min app version moved: ${said}`);
+    return { warn: `the site is on another release, same min app version: ${said}` };
+  });
   await check('run-timing index matches the release tiles', async () => {
     const rt = await json(`${DATA}/runtiming/index.json`);
     const tiles = manifest?.tiles?.current?.id;

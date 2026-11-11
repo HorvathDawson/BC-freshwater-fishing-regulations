@@ -446,8 +446,7 @@ def test_the_site_gate_refuses_a_site_older_than_the_release_and_names_the_redep
     m = {"data_release": "r-x", "minAppVersion": "0.7.0", "files": {"salmon": {"format": "salmon/4"}}}
     bad, _ = SG.check(m, None, site="https://s", fetch=_site(IDX, JS), rid="r-x")
     assert len(bad) == 1 and "0.6.9, older than 0.7.0" in bad[0]
-    for step in ("export:web:staging", "build-seo.mjs --release-dir data/release/r-x", "deploy/staging/site.sh"):
-        assert step in bad[0]
+    assert "deploy/staging/site-all.sh" in bad[0]       # (T544) one command, not three typed from memory
     assert SG.check(m, None, site="https://s", fetch=_site(IDX, JS.replace("0.6.9", "0.7.0")))[0] == []
     assert SG.check(m, "0.6.0", site="https://s", fetch=_site(IDX, JS))[0] == []    # MIN_APP_VERSION wins
     # unstamped: the formats' own needs still hold (salmon/4 needs 0.5.0)

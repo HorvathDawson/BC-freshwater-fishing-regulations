@@ -2,6 +2,7 @@
 # STAGING ONLY: merge app/dist/web-staging (`pnpm -C app/apps/mobile export:web:staging`: EXPO_PUBLIC_APP_ENV=staging, T232) and
 # app/dist/seo (build-seo.mjs on the same release, `--app app/dist/web-staging`: T269) into app/dist/staging-site, make it
 # unindexable, deploy.
+#   deploy/staging/site-all.sh [--relink] [--dry-run]   THE ONE COMMAND (T544): checks, export, SEO build, this script
 #   deploy/staging/site.sh [--dry-run]        (T241: the staging smoke test runs after a real deploy; SMOKE=0 skips it)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -37,6 +38,24 @@ else
   echo "site.sh: $S has no gauge pages (built before T487): rebuild with build-seo" >&2; exit 1
 fi
 cp "$S/_worker.js" "$K/worker.js"
+# (T544) THE SITE NAMES THE RELEASE IT WAS BUILT ON: /site-release.json = the SEO build's release (snapshot.json) and that
+# release's min app version. The staging smoke compares it with staging's manifest. A build on anything but LATEST is
+# refused (SITE_RELEASE_ANY=<reason> allows it, printing the reason): the site goes up on the release about to be uploaded.
+node -e '
+const fs = require("fs"), [S, O, LATEST_F, ANY] = process.argv.slice(1);
+const rel = JSON.parse(fs.readFileSync(S + "/snapshot.json", "utf8")).release;
+if (!rel) { console.error("site.sh: " + S + "/snapshot.json names no release"); process.exit(1); }
+const latest = fs.readFileSync(LATEST_F, "utf8").trim();
+if (rel !== latest) {
+  if (!ANY) { console.error("site.sh: " + S + " was built on " + rel + ", but LATEST is " + latest + ": rebuild the SEO pages (deploy/staging/site-all.sh), or SITE_RELEASE_ANY=<reason>"); process.exit(1); }
+  console.log("site.sh: SITE_RELEASE_ANY: built on " + rel + ", LATEST is " + latest + " - " + ANY);
+}
+const mf = "data/release/" + rel + "/manifest.json";
+if (!fs.existsSync(mf)) { console.error("site.sh: " + mf + " is missing: the site cannot name its release\x27s min app version"); process.exit(1); }
+const min = JSON.parse(fs.readFileSync(mf, "utf8")).minAppVersion ?? null;
+fs.writeFileSync(O + "/site-release.json", JSON.stringify({ release: rel, minAppVersion: min }) + "\n");
+console.log("site-release.json: " + rel + " (min app " + min + ")");
+' "$S" "$O" data/release/LATEST "${SITE_RELEASE_ANY:-}"
 # staging must never be indexed: robots disallows everything, every response says noindex
 printf 'User-agent: *\nDisallow: /\n# STAGING (staging.canifishthis.ca): not for indexing. Production robots.txt is built by tools/seo.\n' > "$O/robots.txt"
 printf '\n/*\n  X-Robots-Tag: noindex, nofollow\n' >> "$O/_headers"
