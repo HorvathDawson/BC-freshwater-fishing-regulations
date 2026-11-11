@@ -1201,6 +1201,11 @@ CREATE TABLE section_access (sid      INTEGER NOT NULL,
 -- copied into `part_section.m` by the derived step.
 CREATE TABLE section_length (sid INTEGER PRIMARY KEY,
                              m   INTEGER NOT NULL CHECK (m >= 0)) WITHOUT ROWID;
+-- (T561) the share of each section inside the UNION of the no-access polygons (they nest: summing the per-area rows
+-- counted an overlap twice and read up to 2000 permille). What `access.mostly_inside` (the fourth colour, the part
+-- grouping) decides from; `section_access` keeps the per-area rows for naming.
+CREATE TABLE section_no_access (sid      INTEGER PRIMARY KEY,
+                                permille INTEGER NOT NULL CHECK (permille BETWEEN 1 AND 1000)) WITHOUT ROWID;
 
 -- THE BOOK'S OWN WORDS the glossary quotes (plan 2.14, audit F29): the p.80 definitions, the p.4 legend and each
 -- region's title, copied from the curated transcription (`CURATED.regulations.reference`) by

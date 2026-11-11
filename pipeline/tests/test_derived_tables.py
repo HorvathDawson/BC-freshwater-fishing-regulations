@@ -166,7 +166,7 @@ def test_the_stored_parts_are_the_old_grouping_on_the_built_bundle():
 
 def test_no_access_land_is_a_hard_break_between_parts():
     """T226 (owner 2026-10-28, the Coquitlam): sections with the same rules, one MOSTLY inside no-access land (> 500
-    permille, summed over its no-access areas) and one outside, are two parts; a graze (<= 500) or a gentler tier
+    permille, summed over its no-access areas) and one outside, are two parts (T561: the share inside their union, `section_no_access`); a graze (<= 500) or a gentler tier
     (permit, reserve, private) does not split. The part outside comes first (the last order key: only a split water's indexes move)."""
     db = _db()
     db.executemany("INSERT INTO item_section (ord, sid) VALUES (?,?)", [(1, 4), (1, 5), (1, 6)])
@@ -175,6 +175,8 @@ def test_no_access_land_is_a_hard_break_between_parts():
                     (2, "permit", "c", "Forest")])
     db.executemany("INSERT INTO section_access (sid, area, permille) VALUES (?,?,?)",
                    [(1, 0, 1000), (2, 0, 300), (2, 1, 300), (4, 0, 500), (5, 2, 1000), (6, 0, 100)])
+    # (T561) "mostly" is read from the share inside the no-access polygons' UNION (access.write measures it)
+    db.executemany("INSERT INTO section_no_access (sid, permille) VALUES (?,?)", [(1, 1000), (2, 600), (4, 500), (6, 100)])
     section_sets(db, {1: 7, 2: 7, 3: 9, 4: 7, 5: 7, 6: 7})
     finish(db)
     rows = db.execute("SELECT ord, part_ix, set_id, no_access, sections, rep_sid FROM part ORDER BY ord, part_ix").fetchall()

@@ -140,13 +140,66 @@ def test_write_fills_the_tables(tmp_path):
         (1, 0, 1000), (2, 0, 500), (3, 0, 250), (4, 3, 1000), (4, 4, 1000), (7, 0, 500)]
     # (T387) the named sections' lengths only (5 and 6 are not named): written, whole metres
     assert [s for (s,) in db.execute("SELECT sid FROM section_length ORDER BY sid")] == [1, 2, 3, 4, 7]
+    # (T561) the share inside the no-access union: one no-access polygon here, so the same as its rows
+    assert db.execute("SELECT sid, permille FROM section_no_access ORDER BY sid").fetchall() == [
+        (1, 1000), (2, 500), (3, 250), (7, 500)]
+    assert A.mostly_inside(db) == {1}
+
+
+def _nested(tmp: Path, *, x0: float = -129.9, x1: float = -129.6) -> Path:
+    """Two no-access polygons far from the others, one nested in the other (OSM's "Slesse Creek Demolition Training
+    Areas" inside "Slesse RTA"): the outer x -130..-129, the inner x `x0`..`x1`; section 8 runs x -129.85..-129.65 (wholly
+    inside both by default), section 9 x -129.5..-128.5 (half inside the outer)."""
+    tiles = _layers(tmp)
+    lay = tiles / "layers"
+
+    def sq(a, b):
+        return [[[a, 55.1], [b, 55.1], [b, 55.9], [a, 55.9], [a, 55.1]]]
+    with (lay / "no_access.geojsonl").open("a") as fh:
+        for aid, ring in (("Slesse RTA [2]", [[[-130.0, 55.0], [-129.0, 55.0], [-129.0, 56.0], [-130.0, 56.0],
+                                                 [-130.0, 55.0]]]), ("Inner [1]", sq(x0, x1))):
+            fh.write(json.dumps(_feat("Polygon", ring, {"area_id": aid, "name": aid, "kind": "closed"}, "no_access"))
+                     + "\n")
+    with (lay / "stream.geojsonl").open("a") as fh:
+        for sid, (a, b) in ((8, (-129.85, -129.65)), (9, (-129.5, -128.5))):
+            fh.write(json.dumps(_feat("LineString", [[a, 55.5], [b, 55.5]], {"section_id": sid, "ord": 1}, "stream"))
+                     + "\n")
+    return tiles
+
+
+def test_nested_no_access_polygons_count_once(tmp_path):
+    """T561: a section inside two nested no-access polygons is named in both (a row each, 1000 permille), but its share
+    of no-access land is 1000, never 2000 — the union is measured, not the sum."""
+    tiles = _nested(tmp_path)
+    db = _db()
+    A.write(db, tiles, handles="abcd")
+    named = db.execute("SELECT a.name, s.permille FROM section_access s JOIN access_area a ON a.ix = s.area "
+                       "WHERE s.sid = 8 ORDER BY a.name").fetchall()
+    assert named == [("Inner", 1000), ("Slesse RTA", 1000)]
+    assert db.execute("SELECT permille FROM section_no_access WHERE sid = 8").fetchone() == (1000,)
+    assert db.execute("SELECT permille FROM section_no_access WHERE sid = 9").fetchone() == (500,)
+    assert db.execute("SELECT MAX(permille) FROM section_no_access").fetchone()[0] <= 1000
+
+
+def test_a_section_the_sum_and_the_union_colour_differently_is_refused(tmp_path):
+    """T561: two overlapping no-access polygons each holding 300 permille of a section (the same 300) sum to 600 —
+    the app's summed rule would paint it, the union (300) would not. Until the app reads the union, write refuses."""
+    areas = [A.Area("no_access", "a", "A"), A.Area("no_access", "b", "B"), A.Area("permit", "c", "C")]
+    rows = [(1, 0, 300), (1, 1, 300), (2, 0, 1000), (2, 1, 1000), (3, 2, 900)]
+    assert A.summed_rule_disagrees(areas, rows, [(1, 300), (2, 1000)]) == [1]
+    assert A.summed_rule_disagrees(areas, rows, [(1, 600), (2, 1000)]) == []
+    # end to end: the inner polygon over x -129.4..-129.0 — section 9 is half inside the outer and 400 permille inside
+    # both: summed 900, union 500 (not "mostly")
+    tiles = _nested(tmp_path, x0=-129.4, x1=-129.0)
+    with pytest.raises(SystemExit, match=r"1 section\(s\) are mostly inside.*\[9\]"):
+        A.write(_db(), tiles, handles="abcd")
 
 
 def test_section_lengths_along_the_water(tmp_path):
     """T387: a line's length (its longitudes scaled by the cosine of its latitude), a section drawn as two features summed,
     and a section drawn only as a polygon by half its perimeter — metres, at `METRES_PER_DEGREE`."""
     import math
-    _, _, lengths = A.measure(_layers(tmp_path) / "layers")
+    _, _, lengths, _ = A.measure(_layers(tmp_path) / "layers")
     k = math.cos(math.radians(49.5))
     m = A.METRES_PER_DEGREE
     assert A.METRES_PER_DEGREE == 111_320.0

@@ -8,6 +8,15 @@ they are made from, once, in the bundle:
     access_area     ix, tier, area_id, name — every polygon a section touches, named for a reader
     section_access  sid, area, permille     — how much of the section lies inside it (1..1000)
     section_length  sid, m                  — (T387) each named section's length along the water, metres
+    section_no_access sid, permille         — (T561) how much of the section lies inside the UNION of the no-access
+                                              polygons: what "mostly inside" is decided from
+
+THE UNION, NOT THE SUM (T561). The no-access polygons overlap (OSM nests them: "Slesse Creek Demolition Training Areas"
+inside "Slesse RTA", 19 overlapping pairs): `section_access` keeps one row per area so the page can NAME each, but a
+section's share of no-access land is measured once against their union (`section_no_access`), so it never reads over
+1000 permille and an overlap never counts twice. `mostly_inside` reads it. The app (and `paint_sync`, which reads the
+shipped rows as the app does) still SUMS the per-area rows: `write` refuses a bundle where the two rules would colour a
+section differently, naming it, until the app reads the union too.
 
 SECTION LENGTH (T387, owner 2026-11-04: "in the one section not all clicks are equal"): the app's Regulations page is a
 PART's, so a part's access is its sections' pooled — each area with the share of the whole part it covers, the sections
@@ -62,6 +71,8 @@ CREATE TABLE section_access (sid      INTEGER NOT NULL,
                              PRIMARY KEY (sid, area)) WITHOUT ROWID;
 CREATE TABLE section_length (sid INTEGER PRIMARY KEY,
                              m   INTEGER NOT NULL CHECK (m >= 0)) WITHOUT ROWID;
+CREATE TABLE section_no_access (sid      INTEGER PRIMARY KEY,
+                                permille INTEGER NOT NULL CHECK (permille BETWEEN 1 AND 1000)) WITHOUT ROWID;
 """
 
 #: (T387) Metres in one degree of latitude (a degree of longitude scaled by the cosine of its latitude is the same).
@@ -189,20 +200,49 @@ def _sections(layers: Path, batch: int) -> Iterator[Tuple[List[int], list]]:
 
 def compute(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tuple[int, int, int]]]:
     """(areas, rows): every (sid, area index, permille) with at least one permille of the section inside."""
-    areas, rows, _ = measure(layers, batch=batch)
+    areas, rows, _, _ = measure(layers, batch=batch)
     return areas, rows
 
 
-def measure(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tuple[int, int, int]], Dict[int, int]]:
-    """(areas, rows, lengths): `compute`'s two, and (T387) every section's length along the water in whole metres (a
-    line's length; a section drawn only as polygons, half its perimeter — module docstring)."""
+def _no_access_union(areas: Sequence[Area], parts, part_area):
+    """(T561) The no-access tier's polygons as ONE cover: their union, exploded into disjoint parts."""
+    import numpy as np
+    import shapely
+
+    na = np.array([areas[i].tier == "no_access" for i in part_area], dtype=bool)
+    if not na.any():
+        return np.array([], dtype=object)
+    return np.array(shapely.get_parts(shapely.union_all(parts[na])), dtype=object)
+
+
+def _permille(acc: List[float], total: List[float]):
+    """A section's share inside, in permille (by length for a section with any line, else by area), or None."""
+    line, poly, _ = total
+    if line > 0:
+        share = acc[0] / line
+    elif poly > 0:
+        share = acc[1] / poly
+    else:
+        return None
+    pm = int(round(min(1.0, share) * 1000))
+    return pm if pm >= 1 else None
+
+
+def measure(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tuple[int, int, int]], Dict[int, int],
+                                                           List[Tuple[int, int]]]:
+    """(areas, rows, lengths, no_access): `compute`'s two, (T387) every section's length along the water in whole metres
+    (a line's length; a section drawn only as polygons, half its perimeter — module docstring), and (T561) every
+    (sid, permille) of the section inside the UNION of the no-access polygons."""
     import numpy as np
     import shapely
     from shapely.strtree import STRtree
 
     areas, parts, part_area = load_areas(layers)
     tree = STRtree(parts)
+    union = _no_access_union(areas, parts, part_area)
+    utree = STRtree(union) if len(union) else None
     inside: Dict[Tuple[int, int], List[float]] = {}     # (sid, area) -> [line length in, polygon area in]
+    inside_u: Dict[int, List[float]] = {}               # sid -> the same, inside the no-access union
     totals: Dict[int, List[float]] = {}                 # sid -> [line length, polygon area, polygon perimeter], summed
 
     for sids, geoms in _sections(layers, batch):
@@ -219,36 +259,32 @@ def measure(layers: Path, *, batch: int = 20_000) -> Tuple[List[Area], List[Tupl
             elif dim[k] == 2:
                 t[1] += float(area[k])
                 t[2] += float(length[k])                 # a polygon's length is its perimeter
-        src, dst = tree.query(g, predicate="intersects")
-        if not len(src):
-            continue
-        cut = shapely.intersection(g[src], parts[dst])
-        cl, ca = _scaled_length(cut, cosl[src]), shapely.area(cut)
-        for j in range(len(src)):
-            k = int(src[j])
-            sid = sids[k]
-            key = (sid, int(part_area[dst[j]]))
-            acc = inside.setdefault(key, [0.0, 0.0])
-            if dim[k] == 1:
-                acc[0] += float(cl[j])
-            else:
-                acc[1] += float(ca[j])
+        for t, polys, acc_of in ((tree, parts, lambda sid, d: inside.setdefault((sid, int(part_area[d])), [0.0, 0.0])),
+                                 (utree, union, lambda sid, d: inside_u.setdefault(sid, [0.0, 0.0]))):
+            if t is None:
+                continue
+            src, dst = t.query(g, predicate="intersects")
+            if not len(src):
+                continue
+            cut = shapely.intersection(g[src], polys[dst])
+            cl, ca = _scaled_length(cut, cosl[src]), shapely.area(cut)
+            for j in range(len(src)):
+                k = int(src[j])
+                acc = acc_of(sids[k], dst[j])
+                if dim[k] == 1:
+                    acc[0] += float(cl[j])
+                else:
+                    acc[1] += float(ca[j])
     rows: List[Tuple[int, int, int]] = []
-    for (sid, a), (li, pi) in inside.items():
-        line, poly, _ = totals[sid]
-        if line > 0:
-            share = li / line
-        elif poly > 0:
-            share = pi / poly
-        else:
-            continue
-        pm = int(round(min(1.0, share) * 1000))
-        if pm >= 1:
+    for (sid, a), acc in inside.items():
+        pm = _permille(acc, totals[sid])
+        if pm is not None:
             rows.append((sid, a, pm))
     rows.sort()
+    no_access = sorted((sid, pm) for sid, acc in inside_u.items() if (pm := _permille(acc, totals[sid])) is not None)
     lengths = {sid: int(round((line if line > 0 else per / 2) * METRES_PER_DEGREE))
                for sid, (line, _, per) in totals.items()}
-    return areas, rows, lengths
+    return areas, rows, lengths, no_access
 
 
 def write(db: sqlite3.Connection, tiles: Path, *, handles: str, cov=None) -> int:
@@ -262,31 +298,50 @@ def write(db: sqlite3.Connection, tiles: Path, *, handles: str, cov=None) -> int
     if theirs != handles:
         raise SystemExit(f"access: the tiles at {tiles} carry section handles {theirs}, not the bundle's {handles} — "
                          "they were cut from another atlas; rebuild the tiles, or build the bundle from theirs")
-    areas, rows, lengths = measure(tiles / "layers")
+    areas, rows, lengths, no_access = measure(tiles / "layers")
+    split = summed_rule_disagrees(areas, rows, no_access)
+    if split:
+        raise SystemExit(f"access: {len(split)} section(s) are mostly inside no-access land by the summed per-area rows "
+                         f"(the app's rule, paint_sync's) but not by the union of the polygons (or the reverse): "
+                         f"{split[:10]} — the app must read the union share (T561) before this bundle can ship")
     named = sorted({s for (s,) in db.execute("SELECT sid FROM item_section")})
     db.executemany("INSERT INTO access_area (ix, tier, area_id, name) VALUES (?,?,?,?)",
                    [(i, a.tier, a.area_id, a.name) for i, a in enumerate(areas)])
     db.executemany("INSERT INTO section_access (sid, area, permille) VALUES (?,?,?)", rows)
     db.executemany("INSERT INTO section_length (sid, m) VALUES (?,?)", [(s, lengths[s]) for s in named if s in lengths])
+    db.executemany("INSERT INTO section_no_access (sid, permille) VALUES (?,?)", no_access)
     if cov is not None:
         cov.filled("access_area", len(areas))
         cov.filled("section_access", len(rows))
         cov.filled("section_length", sum(1 for s in named if s in lengths))
+        cov.filled("section_no_access", len(no_access))
     return len(rows)
 
 
-#: MOSTLY INSIDE, in permille: the app's `MOSTLY_INSIDE` (0.5, @app/core `access.ts`) — a section whose no-access areas,
-#: summed, cover MORE than half of it is drawn in the fourth colour. `pipeline/tests/test_section_access.py` pins the two.
+#: MOSTLY INSIDE, in permille: the app's `MOSTLY_INSIDE` (0.5, @app/core `access.ts`) — a section whose no-access land
+#: covers MORE than half of it is drawn in the fourth colour. `pipeline/tests/test_section_access.py` pins the two.
 MOSTLY_INSIDE_PERMILLE = 500
 
 
+def summed_rule_disagrees(areas: Sequence[Area], rows: Iterable[Tuple[int, int, int]],
+                          no_access: Iterable[Tuple[int, int]]) -> List[int]:
+    """(T561) The sections the SUMMED per-area no-access rows (the app's rule today) and the UNION share decide
+    differently about "mostly inside" — the ones an overlap of no-access polygons would mis-colour. Sorted sids."""
+    summed: Dict[int, int] = {}
+    for sid, a, pm in rows:
+        if areas[a].tier == "no_access":
+            summed[sid] = summed.get(sid, 0) + pm
+    union = dict(no_access)
+    return sorted(s for s in set(summed) | set(union)
+                  if (summed.get(s, 0) > MOSTLY_INSIDE_PERMILLE) != (union.get(s, 0) > MOSTLY_INSIDE_PERMILLE))
+
+
 def mostly_inside(db: sqlite3.Connection) -> set:
-    """The sections MOSTLY inside no-access land (the app's fourth colour), read from `section_access`. The part
-    grouping reads this (T226): a section inside never shares a part with one outside. Empty for a bundle with no
-    access rows (a hand-built fixture)."""
-    return {s for (s,) in db.execute(
-        "SELECT sa.sid FROM section_access sa JOIN access_area a ON a.ix = sa.area WHERE a.tier = 'no_access' "
-        "GROUP BY sa.sid HAVING SUM(sa.permille) > ?", (MOSTLY_INSIDE_PERMILLE,))}
+    """The sections MOSTLY inside no-access land (the app's fourth colour), read from `section_no_access` — the share
+    inside the UNION of the no-access polygons, so nested polygons never count twice (T561). The part grouping reads
+    this (T226): a section inside never shares a part with one outside. Empty for a bundle with no access rows (a
+    hand-built fixture)."""
+    return {s for (s,) in db.execute("SELECT sid FROM section_no_access WHERE permille > ?", (MOSTLY_INSIDE_PERMILLE,))}
 
 
 def summary(areas: Sequence[Area], rows: Iterable[Tuple[int, int, int]]) -> dict:
