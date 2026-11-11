@@ -18,3 +18,7 @@ Source: owner 2026-11-11, on T632 item 3: "what you mean they never had an item 
 5. Binding diff before and after; map of the 40 polygons and the channel lines for the owner.
 
 Depends: T632. Size: M. Model: Opus. Owner: one tick (Park Rill code), one look at the map.
+
+## Owner 2026-11-11 (later)
+- "they should have name variants too of the oxbow name?": the owner expects the side channels to carry a curated name variant with the oxbow name. Measured: `data/curated/waters/name_variants.json` has no oxbow variant today (its one hit is "OXBOW LAKE", another water). Work item 6: search git history of the name-variant files (and any older variant store) for oxbow variants on these lines; report when and why they left. If they existed, restoring them is likely the fix (a variant names the line, so it gets an item) and goes to the owner as a proposal.
+- Park Rill's code: the owner says it can be dropped from this override. Item 4 needs no further tick; drop it with the fix.
