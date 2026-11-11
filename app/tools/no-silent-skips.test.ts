@@ -67,7 +67,7 @@ const ALLOW: Record<string, { n: number; why: string }> = {
   "tools/every-part-reachable.test.ts": { n: 1, why: LIVE },
   "tools/stretch-names.test.ts": { n: 1, why: LIVE },
   "tools/handover.test.ts": { n: 1, why: PY },
-  "tools/one-formula.test.ts": { n: 3, why: PY },
+  "tools/one-formula.test.ts": { n: 4, why: PY },
   "tools/one-part-one-page.test.ts": { n: 1, why: LIVE },
   "tools/overzoom.test.ts": { n: 1, why: `${TIER2} (TILES_DIR)` },
   "tools/regs-fixture.test.ts": { n: 1, why: `${LIVE}: the fixture rebuilt from it, byte for byte` },

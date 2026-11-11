@@ -116,7 +116,7 @@ describe("the donor panel", () => {
     const v = answer();
     // Reporting the evening before the chosen day: it speaks, so it stays a row.
     draw({ value: { ...v, rows: [row("08MH001", { percentile: null,
-                                                   observedAt: new Date(2026, 8, 4, 2).toISOString() })] } });
+                                                   observedAt: new Date(2026, 8, 4, 8).toISOString() })] } });
     expect(screen.getByText("not counted today")).toBeTruthy();
     expect(screen.getByText("Reporting, but its reading cannot be ranked today.")).toBeTruthy();
   });
@@ -266,7 +266,7 @@ describe("the donor panel", () => {
   it("says a gauge is quiet in the key, never that it contributed nothing", () => {
     const v = answer();
     draw({ value: { ...v, rows: [row("08MH001", { percentile: null, weight: 0,
-                                                   observedAt: new Date(2026, 8, 4, 2).toISOString() })] } });
+                                                   observedAt: new Date(2026, 8, 4, 8).toISOString() })] } });
     expect(screen.getByText("not counted today")).toBeTruthy();
     expect(screen.queryByText("0% of this estimate")).toBeNull();
   });

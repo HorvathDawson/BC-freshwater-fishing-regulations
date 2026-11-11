@@ -220,7 +220,7 @@ describe("freshness: each source against its own cadence (owner 2026-10-22)", ()
       dfo: { by: "age", ms: D }, fwa: { by: "age", ms: 730 * D }, basemap: { by: "age", ms: 365 * D },
       hydat: { by: "notice", ms: 548 * D },
       synopsis: { by: "release" }, tiles: { by: "release" },
-      inseason: { by: "age", ms: D }, weather: { by: "live" }, imagery: { by: "live" },
+      inseason: { by: "age", ms: D }, reading: { by: "age", ms: 6 * H }, weather: { by: "live" }, imagery: { by: "live" },
     });
   });
 
