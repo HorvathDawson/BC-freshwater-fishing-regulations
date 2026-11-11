@@ -254,4 +254,4 @@ def test_the_rows_scope_is_resolved_once(monkeypatch):
     assert len(calls) == 2                       # once per extent, not again per reader
     src = inspect.getsource(B.build_reaches)
     assert "entry_scope(e, covered, registry, graph, resolved=scoped)" in src
-    assert "scope_unclassified(e, covered, registry, graph, clip, resolved=scoped)" in src
+    assert "scope_unclassified(e, covered, registry, graph, clip, resolved=scoped" in src   # T546: + `why=`
