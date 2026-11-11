@@ -12,20 +12,19 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import shutil
 import sqlite3
 from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED
 from pipeline.deliver.store.build import (FAMILIES, SECTIONS, bundle_problems, build, load_inputs,
                                           write_store)
 from pipeline.deliver.store.common import (BLOCK, CODECS, StoreError, answers_file_bytes, dumps,
                                            export_subset, pack, store_digest, train_zdict, unpack)
 from pipeline.deliver.store.decode import Store
-from pipeline.tests.conftest import BUNDLE_HINT, EXPORT_HINT, need
+from pipeline.tests import under_test
+from pipeline.tests.conftest import BUNDLE_HINT, need
 
 # --------------------------------------------------------------------------------------------
 # synthetic: no data
@@ -420,18 +419,13 @@ def test_the_stores_shipped_weights_are_the_release_cut(synthetic):
 # the live set
 # --------------------------------------------------------------------------------------------
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
-
-
-def _export_dir() -> Path:
-    from pipeline.deliver.export.contract import OUT
-    return Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent)
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.fixture(scope="module")
 def live(request, live_store_of):
     need(request, "bundle", BUNDLE, BUNDLE_HINT)
-    exp = need(request, "bundle", _export_dir() / "ui-rules-answers.json", EXPORT_HINT).parent
+    exp = under_test.answers(request).parent
     # the deliver step's store, built once per session and shared with test_release (conftest `live_store_of`)
     out = live_store_of(exp, BUNDLE)
     raw, A, E, G = load_inputs(exp / "ui-rules-answers.json", exp)

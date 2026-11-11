@@ -10,9 +10,7 @@
 """
 from __future__ import annotations
 
-import os
 import random
-from pathlib import Path
 
 import pytest
 
@@ -52,7 +50,7 @@ def test_a_keys_year_follows_its_segments_and_moments():
 def test_method_1_round_trips():
     fly = tuple([M.FLY] * 100 + [M.NONE] * 66 + [M.BAIT] * 200)
     bait = (M.BAIT,) * 366
-    m = {"handles": "b6b5000e171023c9", "profiles": [bait, fly],
+    m = {"handles": "0123456789abcdef", "profiles": [bait, fly],
          "sections": {3: 0, 4: 0, 5: 1, 900_000: 0, 900_001: 1}}
     ix = M.Index(M.encode(m))
     assert ix.handles == m["handles"] and ix.sections == m["sections"] and ix.profiles == m["profiles"]
@@ -63,16 +61,11 @@ def test_method_1_round_trips():
 
 @pytest.mark.needs_bundle
 def test_live_no_gear_class_on_a_closed_day(request, live_store_of):
-    from pipeline.common.curated import GENERATED
     from pipeline.deliver import status_index as SI
-    from pipeline.deliver.bundle import read as R
-    from pipeline.deliver.export.contract import OUT as EXPORT
-    from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
-    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
-    si = SI.Index(need(request, "bundle", Path(os.environ.get("STATUS_INDEX") or GENERATED.bundle / "status_index.bin"),
-                       BUNDLE_HINT).read_bytes())
-    exp = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or EXPORT.parent) / "ui-rules-answers.json",
-               EXPORT_HINT).parent
+    from pipeline.tests import under_test
+    bundle = under_test.bundle(request)
+    si = SI.Index(under_test.status_index(request).read_bytes())
+    exp = under_test.answers(request).parent
     m = M.compute(live_store_of(exp, bundle))
     assert m["handles"] == si.handles
     ix = M.Index(M.encode(m))

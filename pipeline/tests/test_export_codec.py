@@ -18,7 +18,6 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -29,9 +28,10 @@ from pipeline.deliver.export import (
     checks as export_checks, contract as export_contract, files as export_files, model as export_model,
     read as export_read
 )
-from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
+from pipeline.tests.conftest import need, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 def _words_key(s: dict) -> str:
@@ -444,19 +444,17 @@ def test_the_files_on_disk_are_the_bundles_pair(doc):
     """The canonical files are DERIVED from the shipped bundle and must be its pair, byte for
     byte (`python -m pipeline.deliver export` rewrites them). Skipped only where there is nothing
     to compare (the suite pointed at a side bundle); no export written, or a stale pair, fails."""
-    if BUNDLE != export_contract.BUNDLE:
-        pytest.skip("the suite points at a side bundle; the shipped export is another bundle's")
-    need(None, "bundle", export_contract.OUT, EXPORT_HINT)
-    g = export_files.guide_path(export_contract.OUT)
-    assert g.is_file(), f"{export_contract.OUT} has no {g.name} beside it"
-    shipped = json.loads(export_contract.OUT.read_text(encoding="utf-8"))
+    shipped_at = under_test.export()                  # the pair under test (ANSWERS_EXPORT_DIR names a side one)
+    g = export_files.guide_path(shipped_at)
+    assert g.is_file(), f"{shipped_at} has no {g.name} beside it"
+    shipped = json.loads(shipped_at.read_text(encoding="utf-8"))
     assert shipped["about"].get("bundle") == doc["about"]["bundle"], \
         "the shipped export is another bundle's — rerun `python -m pipeline.deliver export`"
     data, guide = export_files.encode(doc)
-    assert export_contract.OUT.read_text(encoding="utf-8") == K.dumps(data)
+    assert shipped_at.read_text(encoding="utf-8") == K.dumps(data)
     assert g.read_text(encoding="utf-8") == K.dumps(guide)
-    assert export_files.load(export_contract.OUT) == doc
-    assert _decode_from_the_dictionary(json.loads(export_contract.OUT.read_text(encoding="utf-8")),
+    assert export_files.load(shipped_at) == doc
+    assert _decode_from_the_dictionary(json.loads(shipped_at.read_text(encoding="utf-8")),
                                        json.loads(g.read_text(encoding="utf-8"))) == doc
 
 

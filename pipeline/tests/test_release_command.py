@@ -541,11 +541,12 @@ def test_after_chores_name_the_exact_commands():
 
 # ----------------------------------------------------------------------------------------------- the pieces it uses
 
-def test_the_build_holds_latest_when_asked(monkeypatch):
+def test_the_build_holds_latest_when_asked(monkeypatch, tmp_path):
+    atlas = tmp_path / "atlas" / "full"                       # the build dir is only named in the commands
     monkeypatch.setattr(B, "HOLD_LATEST", True)
-    assert B.commands(Path("data/generated/atlas/full"))["deliver"][-1] == "--hold-latest"
+    assert B.commands(atlas)["deliver"][-1] == "--hold-latest"
     monkeypatch.setattr(B, "HOLD_LATEST", False)
-    assert "--hold-latest" not in B.commands(Path("data/generated/atlas/full"))["deliver"]
+    assert "--hold-latest" not in B.commands(atlas)["deliver"]
     assert R.build_cmd()[:5] == ["bash", "scripts/heavy.sh", "release", str(R.HEAVY_MIN_FREE), "--"]
     assert "--hold-latest" in R.build_cmd()
 

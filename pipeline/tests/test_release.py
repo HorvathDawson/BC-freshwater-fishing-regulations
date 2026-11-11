@@ -67,8 +67,8 @@ def test_paint_and_flow_area_round_trip():
     # (T54, paint/3) the no-access rows only, their areas renumbered; the gentler tiers are the `access` file's
     assert d["access"] == {"areas": [("no_access", "Coquitlam Watershed"), ("no_access", "Seymour Watershed")],
                            "rows": [(3, 0, 1000), (4, 0, 400), (4, 1, 300), (300, 1, 1000)]}
-    a = P.decode_access(P.encode_access(db, handles="147b20dce7d8576c"))
-    assert a == {"handles": "147b20dce7d8576c",
+    a = P.decode_access(P.encode_access(db, handles="0123456789abcdef"))
+    assert a == {"handles": "0123456789abcdef",
                  "areas": [("permit", "UBC Malcolm Knapp Research Forest"), ("reserve", "Capilano 5"), ("private", "")],
                  "rows": [(4, 2, 1000), (5, 1, 200), (5, 2, 12), (301, 0, 999)]}
     with pytest.raises(ValueError, match="not an access/1 file"):
@@ -108,8 +108,8 @@ def test_the_release_reads_nothing_past_the_bundle():
 
 def test_the_manifest_names_the_sid_space_not_a_tile_build():
     from pipeline.deliver.release.manifest import manifest
-    m = manifest("r-x", {}, "d768d6e135e62b99")
-    assert m["format"] == "app-manifest/2" and m["tiles"]["compatible"] == ["d768d6e135e62b99.*"]
+    m = manifest("r-x", {}, "fedcba9876543210")
+    assert m["format"] == "app-manifest/2" and m["tiles"]["compatible"] == ["fedcba9876543210.*"]
     assert m["tiles"]["current"] is None
 
 
@@ -117,17 +117,12 @@ def test_the_manifest_names_the_sid_space_not_a_tile_build():
 
 @pytest.fixture(scope="module")
 def rel(request, tmp_path_factory, live_store_of):
-    from pipeline.common.curated import GENERATED
-    from pipeline.deliver.bundle import read as R
-    from pipeline.tests.conftest import need, BUNDLE_HINT, EXPORT_HINT
-    from pipeline.deliver.export.contract import OUT as EXPORT
-    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
+    from pipeline.tests import under_test
+    bundle = under_test.bundle(request)
     # the status index and the answers + export pair are the bundle's own set: a side bundle (UI_EXPORT_BUNDLE) is
     # paired with its side STATUS_INDEX / ANSWERS_EXPORT_DIR, never the live ones (their section_handles differ)
-    si = need(request, "bundle", Path(os.environ.get("STATUS_INDEX") or GENERATED.bundle / "status_index.bin"),
-              BUNDLE_HINT)
-    exp = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or EXPORT.parent) / "ui-rules-answers.json",
-               EXPORT_HINT).parent
+    si = under_test.status_index(request)
+    exp = under_test.answers(request).parent
     if not sqlite3.connect(f"file:{bundle}?mode=ro", uri=True).execute(
             "SELECT 1 FROM sqlite_master WHERE name = 'part_geo'").fetchone():
         pytest.fail(f"{bundle} predates P09: point UI_EXPORT_BUNDLE at a bundle with part_geo")

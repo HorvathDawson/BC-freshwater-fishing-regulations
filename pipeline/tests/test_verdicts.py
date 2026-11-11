@@ -8,7 +8,6 @@ The bundle is `UI_EXPORT_BUNDLE` (a bundle with the P2 tables); the full verdict
 `UI_EXPORT_VERDICTS` (default: beside the bundle)."""
 from __future__ import annotations
 
-import os
 import random
 import shutil
 import sqlite3
@@ -16,17 +15,17 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED
 from pipeline.deliver import types as T
 from pipeline.deliver.bundle import read
 from pipeline.deliver.calendar import month_day
 from pipeline.deliver.verdicts import build as VB
 from pipeline.deliver.verdicts.check import check
 from pipeline.deliver.verdicts.store import VerdictStore, VerdictsError
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite")
-VERDICTS = Path(os.environ.get("UI_EXPORT_VERDICTS") or BUNDLE.with_name("verdicts.sqlite"))
+BUNDLE = under_test.path("bundle")
+VERDICTS = under_test.path("verdicts")
 
 
 def _bundle():
