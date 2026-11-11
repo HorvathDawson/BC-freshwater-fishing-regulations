@@ -678,7 +678,7 @@ use that as the sole source of future work."
 | T665 | Tidal: cut every creek where it leaves the tidal polygon; remove the 206 lines wholly inside it (named too) | OPEN | — | owner 2026-11-11 on T660 A–J; design first; next atlas rebuild, after build 27 |
 | T666 | One release path: everything cut from the live release is refreshed by the release itself; preflight lists every failure at once | OPEN | — | owner 2026-11-11 after build 27 took six runs; closed-testing run |
 | T667 | Tests that grow with the app: fewer hand updates per release and per feature (audit and design first, Fable) | OPEN | — | owner 2026-11-11; closed-testing run; with T666 |
-| T668 | Audit: a DFO place covering one river stretch in more than one region (Fraser, Regions 2 and 3) | PARTIAL | — | owner 2026-11-11; audit in T668-audit.md: 27 chains / 493 sections (Fraser A 238, tie B 91, tier C 118, undrawn D 46; status flips on 87); left (Claude): one fix ticket per class once the owner answers D1–D5 |
+| T668 | Audit: a DFO place covering one river stretch in more than one region (Fraser, Regions 2 and 3) | PARTIAL | 20afd21e6 | owner 2026-11-11; audit in T668-audit.md; fixes 1–3 built (D1 + owner's straddler answer to D2/D3): 432 of 493 sections change, 197 straddlers keep both regions (strictest per fish), 84 status flips toward closed; shows after the next deliver; left (Claude): app half (caveat from `u`, feed honours `s`), fix 4 field, fix 5; owner: OWNER-TODO "T668 salmon places from two regions on one stretch" |
 
 ## Order for open tickets
 

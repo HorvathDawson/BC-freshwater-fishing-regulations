@@ -1,6 +1,6 @@
 # T668 — Audit: a DFO place that covers one river stretch in more than one region (Fraser, Regions 2 and 3)
 
-Status: PARTIAL — audit done (`handoff/PLAN/app-integration/T668-audit.md`: 27 chains / 493 sections; Fraser R2/R3 places undrawn and spread over the whole mainstem); left (Claude): one fix ticket per class once the owner answers D1–D5
+Status: PARTIAL — audit done; fixes 1–3 built in 20afd21e6 on D1 + the owner's straddler answer to D2/D3 (2026-11-11: "some streams genuinely have 2 regions" — a straddler keeps both regions' places, strictest per fish); measured in T668-audit.md "Fixes 1–3 as built" (432 of 493 sections change, 197 straddlers keep both, 84 status flips toward closed); shows after the next deliver; left (Claude): the app half (salmonCard caveat from chains' `u`, withSalmonFeed honours `s`), fix 4 needs an answering-place field, fix 5 hygiene; owner: OWNER-TODO "T668 salmon places from two regions on one stretch"
 
 Source: owner 2026-11-11: "look into how DFO places that match to multiple regions, same river section, like Fraser
 2/3, is handled. To audit it."

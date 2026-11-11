@@ -87,9 +87,66 @@ No defect found here. The UI was not opened.
 
 - **D1** Undrawn place outside its own region (A, D): scope it to its region (fix 1)? *Default: yes.*
 - **D2** Two regions, same tier, one section (B): the section's own region wins (fix 2), or the stricter verdict wins?
-  *Default: the section's own region.*
+  *Default: the section's own region.* **Owner, 2026-11-11: "Some streams genuinely have 2 regions like the parts of
+  the Fraser that straddle boundaries."** The freshwater straddler rule (AGENTS 59 / T183, RULINGS Z4) applies: on a
+  section in one region that region's place wins a tie; on a genuine straddler both regions' places hold and the most
+  strict answer per fish speaks.
 - **D3** Region 6 area places on straddling sections (C, 63 sections where chinook/coho flip): clip by the majority of
-  the section's length (fix 3)? *Default: yes; named waters keep winning.*
+  the section's length (fix 3)? *Default: yes; named waters keep winning.* **Owner, 2026-11-11 (same answer):** not
+  by majority. A region-wide place binds every section that is a member of its region (`regions.region_sections`); a
+  straddler gets both regions' region-wide places, strictest per fish. Named waters keep binding across the line.
 - **D4** The card names the answering region when a page spans two (fix 4)? *Default: yes.*
 - **D5** Draw the 10 Fraser places now (review app) rather than wait for fix 1? *Default: fix 1 first (cheap), drawing
   in the next DFO review pass.*
+
+## Fixes 1–3 as built (2026-11-11, commit 20afd21e6)
+
+`pipeline/deliver/salmon.py` (`SectionRegions`, `region_clip`, `strictest`; `build(..., section_regions=)`), with the
+bundle passing the atlas's regions. A section's regions come from the one membership (`regions.section_regions`). A DFO
+page's region is its number, so 5A and 5B are both Region 5, and DFO's 7 is the atlas's 7A + 7B.
+- **Fix 1 (D1).** An undrawn place rides only those sections of its water that are members of its own region. A
+  straddler counts in both.
+- **Fix 2 (D2, owner's answer).** On a one-region section, that region's place comes first within a tier; size still
+  breaks a tie within one region. On a genuine straddler carrying places from two regions, each region's places cascade
+  separately. The chain's new `s` lists the groups as indices into `l`, and the most strict answer per fish speaks
+  (closed > release > check > open). A region with nothing to say counts as closed (`NOT_LISTED`). Two openings go to
+  the lower region number: the two daily limits are not compared. Gear lines come from the first group that has any.
+  `live.compose` composes the same way (pinned by a test).
+- **Fix 3 (D3, owner's answer).** A region-wide place (every extent a `within`, one of them clipped to a region) binds
+  only sections that are members of its region, or of an unclipped area it also names (6 A's Haida Gwaii MUs).
+- Tests: `pipeline/tests/test_t668_salmon_regions.py` (9 tests). Five mutations were run, one per rule plus the
+  strictness rank, and each fails 1–3 of the tests.
+
+**Measured on the live release, in memory (no build).** Inputs: the bundle's tables, reach run `full`, atlas `full` and
+today's curated places and feed. The pre-fix rebuild reproduces `r-303b4007a70a`'s salmon payload and section map
+exactly.
+
+| | sections |
+|---|---|
+| audit's cross-region sections | 493 |
+| changed (chain `l`/`u`/`r`/`s`) | 432 |
+| genuine straddlers (two region numbers), all kept with both regions (`s`) | 197 (17 two-region chains) |
+| a species' status flips on some day | 84 (all toward closed: 140 ×48, 282 ×14, 284 ×19, 254 ×2, 299 ×1) |
+| map colour flips on some day | 65 (284's coho flips but the map was already closed) |
+| unchanged | 61: Dean (173, 45: 5A/5B are one region number), Sustut / Skeena B(i) named waters (257/258, 15), one 254 section in Region 5 only |
+| outside the audit's classes | 2 (Swift and Taku sections in no region, outside B.C.: an undrawn R6 place is dropped; no status change) |
+
+- Class A (Fraser R2/R3, chains 69/72/80/82/95 + 135/136): 238 sections. `u` and `r` now keep only the section's own
+  region's undrawn places; rows are unchanged, as the audit expected. At Prince George (chain 69) the chain now has no
+  `u` and `r` = [7].
+- Class B/C straddlers now take the stricter answer. The flips are R6 E's chinook/coho openings under the 7 / 5A default
+  (140, 282, 299), 5B's opening against the R1 default (254), and R6 E's coho against 5B (284).
+- Chains: 456 → 449. Sections in the file: 1,949,844 → 1,949,842.
+
+**Shows only after the next deliver** (bundle → release). The app half is still open:
+- **Fix 1 on the card:** `salmonCard` still adds every item-level `unmapped` place of the water (the Fraser mainstem item
+  spans every region) to the caveat and `regionsUsed`. It must take only the places named in the page's chains' `u`.
+  Until then Prince George still lists Mission.
+- **Fix 2/3 with the live feed:** `withSalmonFeed` must honour the chain's `s` the way `live.compose` does. Until it
+  does, a live feed re-composes the 197 straddlers first-answer, which is the old behaviour. The release-only answer is
+  already right. The format stays `salmon/4`, because the app ignores the extra key. Bump it only if a mis-read with
+  the feed is not acceptable.
+- **Fix 4 (name the region):** this needs a field. Each species-day must say which place (or group) answered, because
+  the verdict index cannot. It was not added: it changes the app golden and both compose paths. Follow-up.
+- Not verified: the app and the feed worker on a device, and gear on a straddler where both regions print gear (only
+  the first group's lines are shown).
