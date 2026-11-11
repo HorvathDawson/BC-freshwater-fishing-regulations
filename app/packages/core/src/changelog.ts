@@ -21,6 +21,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.4", date: "2026-11-11", notes: [
+      "Runs keeps its own day and says which day it shows",
+      "Sharing a water sends a link to that water's own page",
+      "A current notice for a water shows at the top of its Regulations page",
+      "Gauge alerts follow the day: set them by days in 10, and a gauge that has not reported for six hours shows quiet with its last report time",
+      "The update row says plainly when a new release was refused or is ready",
+    ],
+  },
+  {
     version: "0.7.3", date: "2026-11-10", notes: [
       "Gauge standings read in plain words, counted in days out of 10, wherever you see them",
       "Flow leads: one gauge per river and day is chosen in flow, and Level never switches it; a gauge that reports only level says so",
