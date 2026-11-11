@@ -11,7 +11,7 @@ import json
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.regs.review import precheck as P
 from pipeline.regs.review import tiers as T
 from pipeline.regs.review.scope_words import Names, rule_scope
@@ -62,7 +62,7 @@ def test_the_screen_words_it_as_a_note():
 
 
 def test_hatzic_has_no_severity_a_finding_from_its_speed_limits():
-    entries = json.loads((CURATED.regulations.synopsis / "region-2.json").read_text())["entries"]
+    entries = json.loads((under_test.curated().regulations.synopsis / "region-2.json").read_text())["entries"]
     e = next(x for x in entries if x["entry_id"] == "r2:hatzic_lake_and_slough@2-8")
     found = P.prechecks(e, binds=True)
     on = [f for f in found if f["rule_id"] in ("hatzic_lake_and_slough.r2", "hatzic_lake_and_slough.r3")]
@@ -74,13 +74,13 @@ def test_hatzic_has_no_severity_a_finding_from_its_speed_limits():
 def test_cranberry_canyon_binds_between_its_two_cuts():
     """Owner 2026-10-26: the falls (top of the canyon, medium) and the DEM estimate of its downstream end (low)
     are curated cuts, and r1 binds between them — no undrawn part, no "owner to locate" finding left."""
-    entries = json.loads((CURATED.regulations.synopsis / "region-6.json").read_text())["entries"]
+    entries = json.loads((under_test.curated().regulations.synopsis / "region-6.json").read_text())["entries"]
     e = next(x for x in entries if x["entry_id"] == "r6:cranberry_river@6-15")
     r1 = next(r for r in e["rules"] if r["rule_id"] == "cranberry_river.r1")
     assert r1["extents"] == [{"op": "between", "splits": ["cranberry_river__falls_top_of_canyon",
                                                           "cranberry_river__canyon_bottom_estimate"]}]
     assert not r1.get("undrawn_part")
     assert not [f for f in P.prechecks(e, binds=True) if f["rule_id"] == "cranberry_river.r1" and f["code"] == "undrawn_part"]
-    splits = {s["id"]: s for wb in json.loads(CURATED.waters.cuts.read_text())["waterbodies"] for s in wb["splits"]}
+    splits = {s["id"]: s for wb in json.loads(under_test.curated().waters.cuts.read_text())["waterbodies"] for s in wb["splits"]}
     assert (splits["cranberry_river__falls_top_of_canyon"]["confidence"],
             splits["cranberry_river__canyon_bottom_estimate"]["confidence"]) == ("medium", "low")

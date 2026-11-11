@@ -10,7 +10,8 @@ import json
 import pytest
 from pyproj import Transformer
 from shapely.geometry import Point
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import SOURCE
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, GPKG_HINT
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
@@ -42,8 +43,8 @@ def test_bella_coola_splits_resolve_near_curated_coords():
     from pipeline.atlas.graph.blk_chains import load_stream_fids, build_blk_chains
     from pipeline.atlas.build import get_lake_wbk_kind
 
-    defs = {d.id: d for d in load_split_defs(str(CURATED.waters.cuts))}
-    j = json.loads(CURATED.waters.cuts.read_text())
+    defs = {d.id: d for d in load_split_defs(str(under_test.curated().waters.cuts))}
+    j = json.loads(under_test.curated().waters.cuts.read_text())
     coords = {s["id"]: s.get("_coord") for wb in j["waterbodies"] for s in wb["splits"]}
     for sid in _EXPECT:
         assert sid in defs, f"{sid} missing from splits.json"

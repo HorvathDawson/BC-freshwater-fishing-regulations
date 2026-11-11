@@ -15,7 +15,7 @@ import pytest
 
 from pipeline.atlas.registry import add_boundary_confidence, load_registry, write_registry
 from pipeline.atlas.splits.splits import anchor_digest, load_split_defs, write_resolved
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.common.models.enums import AnchorType
 from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 from pipeline.common.models.splits import SplitDef, SplitPoint, confidence_words
@@ -33,7 +33,7 @@ def test_the_model_defaults_to_high_and_refuses_anything_else():
 
 
 def test_the_curated_white_river_pool_cuts_are_low_and_load():
-    defs = {d.id: d for d in load_split_defs(str(CURATED.waters.cuts))}
+    defs = {d.id: d for d in load_split_defs(str(under_test.curated().waters.cuts))}
     for sid in ("white_river__100_m_below_salmon_viewing_platform", "white_river__100_m_above_salmon_viewing_platform"):
         assert defs[sid].confidence == "low"
         assert defs[sid].anchor.offset_m == 100

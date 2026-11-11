@@ -14,12 +14,12 @@ import json
 import re
 from pathlib import Path
 
-
 from pipeline.common import entry_id as EID
 from pipeline.common.entry_id import EntryId
+from pipeline.tests import under_test
 
 ROOT = Path(__file__).resolve().parents[2]
-CATALOGUE = ROOT / "data/curated/regulations/synopsis"
+CATALOGUE = under_test.curated().regulations.synopsis
 
 
 def _corpus_ids() -> list[str]:

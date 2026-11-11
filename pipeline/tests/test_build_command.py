@@ -83,21 +83,21 @@ def test_the_curated_digest_sees_every_curated_file():
 
 def test_the_deliver_key_reads_only_what_deliver_can_read(monkeypatch):
     """T331: a review-only or undeclared curated file never reruns deliver; every declared deliver input is hashed."""
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     opened = []
     real = Path.read_bytes
     monkeypatch.setattr(Path, "read_bytes", lambda self: (opened.append(Path(self)), real(self))[1])
     B.curated_digest()
     got = set(opened)
-    for p in (CURATED.waters.slough_page_calls, CURATED.review.proposal_overrides,
-              CURATED.waters.found_name_calls, CURATED.waters.unmapped_waters,
-              CURATED.base / "README.md"):
+    for p in (under_test.curated().waters.slough_page_calls, under_test.curated().review.proposal_overrides,
+              under_test.curated().waters.found_name_calls, under_test.curated().waters.unmapped_waters,
+              under_test.curated().base / "README.md"):
         assert Path(p) not in got, p
-    for p in (CURATED.waters.cuts, CURATED.waters.found_names, CURATED.gauges.matches, CURATED.dfo_salmon.wording,
-              CURATED.runtiming.run_calls, CURATED.inseason.notice_waters):
+    for p in (under_test.curated().waters.cuts, under_test.curated().waters.found_names, under_test.curated().gauges.matches, under_test.curated().dfo_salmon.wording,
+              under_test.curated().runtiming.run_calls, under_test.curated().inseason.notice_waters):
         assert Path(p) in got, p
-    assert any(CURATED.regulations.synopsis in p.parents for p in got)
-    assert all(CURATED.base in p.parents for p in got)
+    assert any(under_test.curated().regulations.synopsis in p.parents for p in got)
+    assert all(under_test.curated().base in p.parents for p in got)
 
 
 # ------------------------------------------------------------------ N7: the deliver key covers every input
@@ -258,8 +258,9 @@ def test_the_plan_says_which_input_moved(world):
 
 def test_a_side_run_writes_nothing_live(monkeypatch, tmp_path):
     """--side DIR: every stage's command and output names DIR; the live homes and LATEST are not in them."""
+    from pipeline.tests import under_test
     monkeypatch.setattr(B, "SIDE", tmp_path / "side")
-    build = Path("data/generated/atlas/full")
+    build = under_test.generated().build()
     cmds = B.commands(build)
     outs = B.outputs(build)
     for s in B.STAGES:
@@ -273,10 +274,10 @@ def test_a_side_run_writes_nothing_live(monkeypatch, tmp_path):
 def test_the_marks_are_in_no_stage_key(monkeypatch):
     """T266: the review log (and its closed list) feed the apply paths, never a stage — not even through `base`, the
     whole curated tree: the digest never opens them."""
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     nb = B.not_build_inputs()
-    assert Path(CURATED.review.marks) in nb and Path(CURATED.review.closed) in nb
-    assert not hasattr(CURATED, "decided")                 # T408: no decided-data dir
+    assert Path(under_test.curated().review.marks) in nb and Path(under_test.curated().review.closed) in nb
+    assert not hasattr(under_test.curated(), "decided")                 # T408: no decided-data dir
     opened = []
     real = Path.read_bytes
     monkeypatch.setattr(Path, "read_bytes", lambda self: (opened.append(self), real(self))[1])

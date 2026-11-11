@@ -111,12 +111,12 @@ def test_every_source_is_a_real_NameSource():
     Hand-curated is `override`; the automatic import is `lake_survey`.
     """
     import json
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     from pipeline.common.models import NameSource
 
     valid = {s.value for s in NameSource}
     bad = []
-    for entry in json.loads(CURATED.waters.name_variants.read_text()):
+    for entry in json.loads(under_test.curated().waters.name_variants.read_text()):
         for name in entry.get("names", []):
             if name.get("source") not in valid:
                 bad.append(f"{entry.get('target')} {name.get('name')!r} "
@@ -141,10 +141,10 @@ def test_a_human_review_is_dated_and_never_half_written():
     is the thing this whole pair exists to prevent.
     """
     import json, re
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
 
     bad = []
-    for entry in json.loads(CURATED.waters.name_variants.read_text()):
+    for entry in json.loads(under_test.curated().waters.name_variants.read_text()):
         for name in entry.get("names", []):
             by, at = name.get("reviewed_by"), name.get("reviewed_at")
             if by is None and at is None:

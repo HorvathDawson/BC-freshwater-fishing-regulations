@@ -20,6 +20,7 @@ import pytest
 from pipeline import build as B
 from pipeline.common import stepcache as SC
 from pipeline.common.curated import REPO_ROOT
+from pipeline.tests import under_test
 
 PY = sys.executable
 
@@ -341,7 +342,7 @@ def test_step_declared_keys_c_level_inputs_and_the_reach_pick(scratch, monkeypat
     every, bundle = D.step_declared(atlas)
     assert rel(src / "boundary.geojson") in every and rel(atlas / "area_catalog.gpkg") in every
     marks = rel(Path(B.CURATED.review.marks))
-    assert marks not in bundle and any(k.startswith("data/curated/") for k in bundle)
+    assert marks not in bundle and any(k.startswith(rel(under_test.curated().base) + "/") for k in bundle)
     pick = sorted(k for k in bundle if k.startswith("reach-pick:"))
     assert pick == [f"reach-pick:{rel(reaches / r / 'report.json')}" for r in ("full", "full_prev")]
     # the bundle picks the NEWEST run by mtime: a touch changes the pick, so it must change the key

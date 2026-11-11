@@ -351,8 +351,8 @@ def test_a_cut_1_to_5_m_outside_a_folded_polygon_edge_stops_the_build(_no_pfma):
 
 def test_the_curated_cayoosh_falls_is_the_polygon_edge():
     """The curated edit (owner 2026-10-25): the point is the FWA edge the build names above."""
-    from pathlib import Path
-    path = Path(__file__).resolve().parents[2] / "data/curated/waters/cuts.json"
+    from pipeline.tests import under_test
+    path = under_test.curated().waters.cuts
     rows = json.loads(path.read_text())["waterbodies"]
     pt = [s for w in rows for s in w.get("splits", []) if s["id"] == "cayoosh_creek__cayoosh_falls"]
     assert [s["anchor"]["coord"] for s in pt] == [EDGE_LONLAT]

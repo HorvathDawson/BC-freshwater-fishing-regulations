@@ -14,7 +14,8 @@ from pipeline.atlas.graph import cutting
 from pipeline.atlas.splits.anchors import resolve_split_defs
 from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
 from pipeline.common.models import AnchorType, SplitAnchor, SplitDef
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import SOURCE
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, GPKG_HINT
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
@@ -287,7 +288,7 @@ def test_real_splits_json_resolves_on_bella_coola_extract():
     from pipeline.atlas.splits.splits import load_split_defs
 
     fwa = FWADataAccessor(_DATA)
-    defs = load_split_defs(str(CURATED.waters.cuts))
+    defs = load_split_defs(str(under_test.curated().waters.cuts))
     bbox = bbox_from_gnis(fwa, ["Atnarko River", "Hunlen Creek", "Burnt Bridge Creek", "Young Creek"])
     chains = build_blk_chains(load_stream_fids(_DATA, bbox=bbox), get_lake_wbk_kind(fwa, bbox))
     pts = resolve_split_defs(defs, chains)

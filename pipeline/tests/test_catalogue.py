@@ -197,9 +197,9 @@ def test_f15_every_corpus_rule_printed_on_parts_keeps_it_on_its_line():
     place of its own carries the words on its line (30 rules on 26 waters, 2026-11-10)."""
     import json
     import re
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     seen = 0
-    for f in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         blob = json.loads(f.read_text(encoding="utf-8"))
         for e in blob["entries"] if isinstance(blob, dict) else blob:
             for x in e.get("rules") or []:
@@ -541,7 +541,8 @@ def test_the_two_wider_than_game_rules_say_so():
 
     want = {("zp:crayfish_trapping", "crayfish_trapping.r2"),
             ("zp:prohibited_methods", "prohibited_methods.r3")}
-    root = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis"
+    from pipeline.tests import under_test
+    root = under_test.curated().regulations.synopsis
     seen = set()
     for f in root.glob("*.json"):
         for entry in json.loads(f.read_text()).get("entries") or []:
@@ -814,10 +815,10 @@ def test_a_label_never_starts_with_a_list_marker():
     verbatim — see `test_no_verbatim_starts_with_a_list_marker`). Pinned over every rule."""
     import json
     import re
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     from pipeline.regs.parsing.catalogue import CatalogueFile
     bad = []
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
             sib = {r.rule_id: r for r in e.rules}
             for r in e.rules:
@@ -840,11 +841,11 @@ def test_no_verbatim_is_cut_at_an_abbreviation():
     "i.e."; a verbatim must be the book's whole sentence."""
     import json
     import re
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     from pipeline.regs.parsing.catalogue import CatalogueFile
     cut = re.compile(r"(\((e|i)\.|\b(e\.g|i\.e)\.)\s*$")
     bad = []
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
             for r in e.rules:
                 if cut.search(r.verbatim):
@@ -859,8 +860,8 @@ def test_no_verbatim_is_cut_at_an_abbreviation():
 def test_no_verbatim_carries_a_known_extraction_garble():
     """The extractor interleaved a wrapped line into "Folpye fnishing" (Fly fishing + open)."""
     import json
-    from pipeline.common.curated import CURATED
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    from pipeline.tests import under_test
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         assert "Folpye" not in p.read_text(), p.name
 
 
@@ -939,10 +940,10 @@ def test_no_verbatim_starts_with_a_list_marker():
 
     import pytest
 
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     from pipeline.regs.parsing.catalogue import LIST_MARKER, CatalogueEntry, CatalogueFile
 
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
             quoted = [r.verbatim for r in e.rules] + [x.verbatim for x in e.licensing] + \
                 [x.verbatim for x in e.see]
@@ -1022,10 +1023,10 @@ def test_no_row_releases_the_char_it_gives_its_own_limit():
     the curated rows (the output), and MUTATED: the Chilliwack row without its `species_except`
     fails the check."""
     import json
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
     bad, chilliwack = [], None
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in CatalogueFile.model_validate(json.loads(p.read_text())).entries:
             bad += _row_cancels_its_own_char_limit(e)
             if e.entry_id == "r2:chilliwack_lake@2-4":

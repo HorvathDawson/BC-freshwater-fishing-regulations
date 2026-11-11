@@ -20,7 +20,7 @@ import pytest
 
 from pipeline.atlas.reach.build import build_reach
 from pipeline.atlas.reach.models import Outcome, Reason
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.regs.dfo_salmon import entries as E
 from pipeline.regs.parsing.entry_models import Extent
 from pipeline.regs.review import marks as M
@@ -81,7 +81,7 @@ STRETCHES = {LQ + "from-the-falls-in-little-qualicum", LQ + "from-the-hatchery-f
 
 
 def _lq(open_extents=None) -> dict:
-    doc = json.loads((Path(CURATED.dfo_salmon.places) / "region-1.json").read_text(encoding="utf-8"))
+    doc = json.loads((Path(under_test.curated().dfo_salmon.places) / "region-1.json").read_text(encoding="utf-8"))
     locs = {}
     for l in doc["locations"]:
         if l["location_id"].startswith(LQ) and (l.get("binding") or {}).get("extents"):
@@ -164,7 +164,7 @@ def test_a_listed_place_asks_until_any_newer_mark_is_in_force(tmp_path):
 def test_the_curated_list_names_the_little_qualicum_place_on_its_mark_in_force():
     from pipeline.regs.review import recheck as R
     rows = R.load()
-    inforce = {(m.scope, m.target): m for m in M.latest(M.load(CURATED.review.marks)).values()}
+    inforce = {(m.scope, m.target): m for m in M.latest(M.load(under_test.curated().review.marks)).values()}
     assert [(r["scope"], r["target"]) for r in rows] == [("dfo", OPEN_ID)]
     live = R.active(rows, inforce)
     # asking while his 2026-11-03 save is the mark in force; inert (and this line then reads {}) once he re-saves

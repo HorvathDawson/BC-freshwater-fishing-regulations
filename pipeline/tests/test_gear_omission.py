@@ -266,9 +266,9 @@ def test_the_post_model_gate_reports_each_miss_on_its_rule():
 # --------------------------------------------------------------------------- #
 
 def _corpus() -> list[CatalogueEntry]:
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     out = []
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in json.loads(p.read_text())["entries"]:
             out.append(CatalogueEntry.model_validate(e))
     return out

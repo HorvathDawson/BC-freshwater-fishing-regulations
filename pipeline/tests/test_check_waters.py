@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.tools.audit import check_curated as C
 
 FILES = ("name_variants", "areas", "added_areas", "added_lakes", "added_streams", "continuations", "unmapped_waters")
@@ -21,7 +21,7 @@ def waters(tmp_path):
     """A stand-in `CURATED.waters`: copies of the real files the test may break, plus the other declared keys."""
     ns = {}
     for name in FILES:
-        src = getattr(CURATED.waters, name)
+        src = getattr(under_test.curated().waters, name)
         dst = tmp_path / src.name
         shutil.copyfile(src, dst)
         ns[name] = dst

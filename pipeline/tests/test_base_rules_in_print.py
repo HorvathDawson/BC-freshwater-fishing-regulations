@@ -19,7 +19,7 @@ import json
 import re
 from pathlib import Path
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.common.synopsis_print import figures, unprinted
 
 #: The pages each transcription transcribes (PRINTED). region-5's pelican alert is on the map page (41).
@@ -68,7 +68,7 @@ DISAGREE = {
 
 
 def _zone_entries():
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in json.loads(p.read_text(encoding="utf-8"))["entries"]:
             if e["entry_id"].startswith("z"):
                 yield e
@@ -93,7 +93,7 @@ def _found_zone() -> dict:
 
 
 def _found_reference() -> dict:
-    ref = CURATED.regulations.reference
+    ref = under_test.curated().regulations.reference
     out = {}
     for name, pages in REFERENCE_PAGES.items():
         for f in unprinted(_printed_part((ref / f"{name}.md").read_text(encoding="utf-8")), pages):

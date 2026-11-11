@@ -307,8 +307,8 @@ def test_no_catalogue_rule_names_a_split_parent():
     """The corpus itself: every record that meant a part now names the part."""
     import json
     from pipeline.atlas.waters.added_lakes.split_parents import refs_to_parents, split_parents
-    from pipeline.common.curated import CURATED
-    entries = [e for p in sorted(CURATED.regulations.synopsis.glob("region-*.json"))
+    from pipeline.tests import under_test
+    entries = [e for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                for e in json.loads(p.read_text())["entries"]]
     assert refs_to_parents(entries, split_parents()) == []
 
@@ -447,8 +447,8 @@ def test_a_lift_outside_what_it_lifts_is_still_refused(lift, target, mine, their
 
 def _curated_entries():
     import json
-    from pipeline.common.curated import CURATED
-    return [e for p in sorted(CURATED.regulations.synopsis.glob("region-*.json"))
+    from pipeline.tests import under_test
+    return [e for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
             for e in json.loads(p.read_text())["entries"]]
 
 

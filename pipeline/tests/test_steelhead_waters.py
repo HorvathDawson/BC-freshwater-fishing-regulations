@@ -377,8 +377,8 @@ def test_a_list_entry_is_refused_by_shape(bad):
 
 
 def test_the_curated_file_loads_and_is_documented():
-    from pipeline.common.curated import CURATED
-    path = CURATED.waters.steelhead_waters
+    from pipeline.tests import under_test
+    path = under_test.curated().waters.steelhead_waters
     doc = json.loads(path.read_text(encoding="utf-8"))
     said = " ".join(doc["$comment"])
     assert "item_id" in said and "region" in said and "binds NO rule" in said

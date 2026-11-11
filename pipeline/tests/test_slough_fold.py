@@ -197,10 +197,10 @@ def test_load_round_trips_and_refuses_a_missing_file(tmp_path):
 
 def test_the_committed_file_is_apply_of_the_marks():
     """`--check`: data/curated/waters/slough_calls.json == apply(the slough marks' decisions, in memory)."""
-    from pipeline.common.curated import CURATED
+    from pipeline.tests import under_test
     from pipeline.regs.review import export as E
     rows, _ = SC.build(E.load())
-    assert CURATED.waters.slough_calls.read_text(encoding="utf-8") == SC.document(rows)
+    assert under_test.curated().waters.slough_calls.read_text(encoding="utf-8") == SC.document(rows)
     assert len(rows) == 811
 
 

@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.licence import entries, odbl
+from pipeline.tests import under_test
 
 ROOT = Path(__file__).resolve().parents[2]
 NOTICE = (ROOT / "data/LICENSE-ODbL.md").read_text(encoding="utf-8")
@@ -17,6 +18,7 @@ LICENSED = ["data/source/bc_places.json", "data/source/municipal/osm_streams.geo
             "data/curated/waters/added_streams.json", "data/curated/waters/added_lakes.geojson",
             "data/curated/waters/found_names.json", "data/curated/waters/cuts.json",
             "data/generated/review/tidal/tidal-osm-landmarks.json"]
+PLACES, _OSM_STREAMS, _ADDED_STREAMS, ADDED_LAKES, FOUND_NAMES, CUTS, _TIDAL = LICENSED
 
 
 def _doc(rel: str):
@@ -46,9 +48,9 @@ def _at_head(rel: str):
 
 def test_mined_names_loader_reads_the_same_entries():
     from pipeline.atlas.graph.names import load_name_variants
-    got = load_name_variants(ROOT / "data/curated/waters/found_names.json")
+    got = load_name_variants(under_test.curated().waters.found_names)
     assert got and all("target" in e and "names" in e for e in got)
-    head = _at_head("data/curated/waters/found_names.json")
+    head = _at_head(FOUND_NAMES)
     if head is not None:
         assert got == entries(head, "entries")
     # every OSM name the record covers is a `source: "osm"` record
@@ -57,13 +59,13 @@ def test_mined_names_loader_reads_the_same_entries():
 
 def test_name_variants_bare_list_still_loads():
     from pipeline.atlas.graph.names import load_name_variants
-    assert isinstance(load_name_variants(ROOT / "data/curated/waters/name_variants.json"), list)
+    assert isinstance(load_name_variants(under_test.curated().waters.name_variants), list)
 
 
 def test_places_readers_skip_the_record(tmp_path):
-    places = entries(_doc("data/source/bc_places.json"), "places")
+    places = entries(_doc(PLACES), "places")
     assert len(places) > 2000 and all("name" in p and "lat" in p for p in places)
-    head = _at_head("data/source/bc_places.json")
+    head = _at_head(PLACES)
     if head is not None:
         assert places == entries(head, "places")
     import sqlite3
@@ -82,16 +84,16 @@ def test_places_readers_skip_the_record(tmp_path):
 
 def test_splits_record_names_real_splits_and_loaders_ignore_it():
     from pipeline.atlas.splits.splits import load_split_defs, split_index
-    doc = _doc("data/curated/waters/cuts.json")
+    doc = _doc(CUTS)
     idx = split_index(doc)
     assert doc["_licence"]["ids"] and set(doc["_licence"]["ids"]) <= set(idx)
-    assert len(load_split_defs(str(ROOT / "data/curated/waters/cuts.json"))) == len(idx)
+    assert len(load_split_defs(str(under_test.curated().waters.cuts))) == len(idx)
 
 
 def test_added_lakes_and_streams_loaders_ignore_the_record():
     from pipeline.atlas.waters.added_lakes.ingest import load
     from pipeline.atlas.waters.added_streams.build_dataset import load_build
-    lakes = load(ROOT / "data/curated/waters/added_lakes.geojson")
-    assert len(lakes) == len(_doc("data/curated/waters/added_lakes.geojson")["features"])
-    streams = load_build(ROOT / "data/curated/waters/added_streams.json")
+    lakes = load(under_test.curated().waters.added_lakes)
+    assert len(lakes) == len(_doc(ADDED_LAKES)["features"])
+    streams = load_build(under_test.curated().waters.added_streams)
     assert [s["blk"] for s in streams if s["source"] == "osm"] == ["-2300000000"]

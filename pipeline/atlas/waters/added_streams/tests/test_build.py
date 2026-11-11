@@ -569,7 +569,7 @@ def test_still_creek_ends_at_burnaby_lake():
     """Owner 2026-10-29: the stream below Burnaby Lake is the Brunette River, never Still Creek. The frozen artifact
     mints no 'Still Creek' (the FWA line, gnis 15431, wins) and lays the name on no other FWA blue line."""
     import json
-    from pipeline.common.curated import CURATED
-    data = json.loads(CURATED.waters.added_streams.read_text(encoding="utf-8"))
+    from pipeline.tests import under_test
+    data = json.loads(under_test.curated().waters.added_streams.read_text(encoding="utf-8"))
     assert not [s for s in data["streams"] if s["name"] == "Still Creek"]
     assert {str(v["target_blk"]) for v in data["name_variants"] if v["name"] == "Still Creek"} <= {"356328804"}
