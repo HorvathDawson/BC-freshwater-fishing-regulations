@@ -100,7 +100,9 @@ export const clearData = () => sh(`pm clear ${APP_ID}`);
 export const background = () => sh('input keyevent KEYCODE_HOME');
 export const installed = () => /package:/.test(sh(`pm path ${APP_ID}`));
 export function install(apk) { adb(['install', '-r', apk], { timeout: 300_000 }); }
-export const pidOf = () => sh(`pidof ${APP_ID}`).trim() || null;
+// `pidof` exits 1 when no process has the name: that is the answer "not running" (null), not a failed command
+// (the T542 wait for a stopped app threw exactly when it should have passed)
+export const pidOf = () => sh(`pidof ${APP_ID} || true`).trim() || null;
 /** (T262) the app's heap now, KB (`dumpsys meminfo`): Java, native and total PSS; null when it is not running. */
 export function heap() {
   try {

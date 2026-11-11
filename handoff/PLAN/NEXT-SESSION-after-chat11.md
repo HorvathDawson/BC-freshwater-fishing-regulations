@@ -14,8 +14,10 @@
   add a row for every new owner item (ArtifactData `set`, fields: title, detail, group, ticket, order, added, done:false).
   Groups in use: "Check on your phone", "Look and pick", "Decide", "Review", "Run or provide". Phone-check answers
   stay in the older checks page linked from the first row.
-- Chat 11's emulator test-bed run on the latest build had not reported when this was written: rerun it if STATUS
-  holds no result.
+- Chat 11's emulator test-bed run on the latest build: install, feeds, big-update, offline, gestures passed;
+  water-nav passed 6 of 7 and its last step (cold start, the water again) failed on a test-bed bug, not the app
+  (`pidOf` threw when the app was stopped; fixed in `app/tools/testbed/lib/device.mjs`, not yet rerun). Rerun
+  `water-nav` once to cover that step.
 
 ## The agreed order (owner 2026-11-11)
 1. Owner phone check of that build (answers in the checks artifact; fix what it finds).
