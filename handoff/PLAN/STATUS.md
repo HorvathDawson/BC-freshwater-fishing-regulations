@@ -13,6 +13,21 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 — while the owner is away: six lanes landed, three still running (chat 11)
+
+- **In review:** base rules pinned to the printed book (T553); Runs keeps its own day, share links open the water's own
+  page (T624); CI tidy-up (T543); one-command staging site deploy `deploy/staging/site-all.sh` (T544); percentile alerts
+  follow each day (T563); public gauge page chart and forecast (T564); in-season notice at the top of Regulations (T565).
+- **Partly done, open:** update service (T555: items 2, 4 and the rest of 5 remain).
+- **Still running:** gauges (T550, T585, T557), run timing (T552), static layers and docs (T561).
+- **Then, without asking:** staging feeds worker deploy, full app and pipeline suites with every failure traced, emulator
+  run (T603), staging site deploy, build 26 to Play internal.
+- **New tickets:** T628 (T553 follow-ups), T629 (owner: four print-vs-data questions), T630 (one hydrograph presenter).
+- **Waiting for the owner:** satellite look C or D (T594, shots sent); what goes wrong on map switching (T566); the four
+  questions in T629; the 16 rule readings (T623); app-signing fingerprint (T625); depth and stocking page decisions;
+  a tile server left on port 39217 by an agent (`kill 65337`).
+- **Not deployed, not in an APK:** everything since build 25.
+
 ## 2026-11-10 late — review app: withdraw a cut, this water's cuts first, the landed check on screen
 - 680c1d6eb (T589): a cut proposal can be withdrawn (one entry in `proposal_overrides.json`, with why): not built, not
   offered, listed as withdrawn on its water. The Allco fence itself is not withdrawn: your call.
