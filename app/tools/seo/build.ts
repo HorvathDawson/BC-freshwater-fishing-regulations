@@ -34,7 +34,7 @@ import { FACES_REQUIRED, fontFaceCss, paneCss as paneCss_, PaneRenderer, type Pa
 import { PanePool } from "./panePool";
 import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
-import { sharePng } from "./share";
+import { drawSharePngs } from "./share";
 import { withFavicon } from "./favicon";
 import { headersFile, hostRules, hostWorker, redirectsFile } from "./hosting";
 import type { Site } from "./html";
@@ -159,12 +159,14 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   } finally { await pool?.close(); }
   const files = new Map(build.files);
   // (T406) each water's card drawn as the PNG its head names; its SVG source is not shipped
-  const binary = new Map<string, Uint8Array>();
+  const binary = new Map<string, Uint8Array>(), toDraw: [string, string][] = [];
   for (const [name, svg] of build.files) {
     if (!/^share\/[^/]+\.svg$/.test(name)) continue;
     files.delete(name);
-    if (!a.bare) binary.set(name.replace(/\.svg$/, ".png"), sharePng(svg));
+    if (!a.bare) toDraw.push([name.replace(/\.svg$/, ".png"), svg]);
   }
+  // drawn with a turn between cards (share.ts: a synchronous loop held every card's native pixmap, 59 GB)
+  await drawSharePngs(toDraw, (name, png) => binary.set(name, png));
   for (const [name, bytes] of web?.files ?? []) binary.set(name, bytes);
   const paneCss = paneCss_(fonts.css, parts);
   const unmerged = parts.flatMap((p) => p.unmerged);
