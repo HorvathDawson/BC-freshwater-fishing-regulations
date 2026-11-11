@@ -59,6 +59,8 @@
     // by open.d.ts), which knip does not follow; the variants and their .d.ts are checked by tsc against each other.
     "packages/*/src/**/*.{native,web}.{ts,tsx}": ["exports", "types"],
     "packages/*/src/**/*.d.ts": ["exports", "types"],
+    // (T601) the node tools' shared latest() is plain .mjs, typed for the conformance suites by this declaration
+    "conformance/src/*.d.mts": ["exports", "types"],
     // The platform half is imported whole (`import * as platform`) and handed to boot, which knip cannot follow.
     "packages/data/src/release/drivers/platform.ts": ["exports", "types"],
     // GENERATED from Python (pipeline.tools.emit.*, pipeline.deliver.answers.model): the whole vocabulary ships, so a
