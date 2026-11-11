@@ -360,3 +360,25 @@ def test_f5_the_nechako_inside_region_6_keeps_region_6s_spring_closure(db):
         shut = _closures(sid, (5, 1), "RB")
         assert Z6_FRASER in shut and Z7A_SPRING not in shut, sid
         assert _closures(sid, (7, 15), "RB") == set(), sid
+
+
+# ---- T623 F5 class (owner 2026-11-11, RULINGS L22): Bowron and Willow inside Region 5 ----------------------------
+@pytest.mark.needs_bundle
+@pytest.mark.parametrize("eid,rid", [("r7:bowron_river@7-7", "bowron_river.r1"),
+                                     ("r7:willow_river@7-9", "willow_river.r1")])
+def test_f5_bowron_and_willow_inside_region_5_keep_region_5s_spring_closure(db, eid, rid):
+    """Owner, asked whether the Nechako's reading holds for the Bowron and the Willow: "Yes, same rule". Each Region 7
+    row prints "Exempt from spring closure"; it lifts Region 7's (Zone 7A's) only and carries to no other region (no
+    `equivalent`). Every section the row binds that Region 5's spring stream closure also binds is closed on May 1 by
+    Region 5's closure, with Zone 7A's lifted, and open on Jul 15."""
+    assert _equivalents(db, eid, rid) == set()
+    sids = [s for (s,) in db.execute(
+        "select distinct sr.sid from ruleset a join ruleset b on b.set_id = a.set_id "
+        "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? and a.rule_id = ? "
+        "and b.entry_id = 'z5:spring_stream_closure' and b.rule_id = 'spring_stream_closure.r1' order by sr.sid",
+        (eid, rid))]
+    assert sids, f"no {eid} section under Region 5's spring stream closure"
+    for sid in sids:
+        shut = _closures(sid, (5, 1), "RB")
+        assert Z5_SPRING in shut and Z7A_SPRING not in shut, sid
+        assert _closures(sid, (7, 15), "RB") == set(), sid

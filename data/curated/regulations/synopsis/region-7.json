@@ -823,7 +823,8 @@
           ],
           "exempts": [
             {
-              "default_id": "spring_stream_closure"
+              "default_id": "spring_stream_closure",
+              "own_region_only": true
             }
           ]
         },
@@ -11106,7 +11107,8 @@
           ],
           "exempts": [
             {
-              "default_id": "spring_stream_closure"
+              "default_id": "spring_stream_closure",
+              "own_region_only": true
             }
           ]
         },

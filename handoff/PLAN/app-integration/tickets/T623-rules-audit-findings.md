@@ -1,6 +1,6 @@
 # T623 — Rules as shown vs the sources: 21 findings from the 48-water audit
 
-Status: PARTIAL — left (Claude): apply the T623-pending patches after the T637/T660 atlas rebuild (F7-F20-review-save-region first, now), then reach + deliver; feeds-chat hand-over F3/F13; owner: tick the F2/F9 cuts, answer the F5/F6/F7 class questions
+Status: PARTIAL — left (Claude): after the T637/T660 atlas rebuild, reach + deliver (F5 incl. Bowron/Willow, F6, F8, F12, F14, F15 then show; the F5 bundle tests are red until then); feeds-chat hand-over F3/F13; owner: tick the F2/F9 cuts in the review app
 
 Source: T608 part A, `handoff/PLAN/app-integration/T608A-findings.md` (commit ef14f3b83): 48 waters, 34 clean, no wrong
 value in any regional table; 21 findings F1–F21 (5 high, 7 medium, 9 low), each with the rule as shown, the source
@@ -69,7 +69,7 @@ In-season saves without it). Then, after the atlas rebuild: F5, F6, F8 (back up 
 | F2 | Proposal awaiting tick: sg1 = John Hart generating station at 5644 m (1835 m below Elk Falls, 7479 m). No fishing from the falls down to there | patch `F2-F9-campbell-cut-proposals.patch` (split_suggest RESEARCH r1/r7, confidence high, the owner's words quoted) | after tick | tick → cuts.json → atlas → reach → deliver |
 | F3 | Handed over (feeds chat), see below | — | 3 locations | worker deploy + DFO_REV bump; bundle for the release fallback |
 | F4 | Fixed: a "Part of this lake is closed today / closes at times" block first on the Keep tab, with the rule's words, dates and part (core `caveats.partClosedOf`, ui-native `CaveatBlock`, the same on web and native) | 682c884f4, `caveats.test.ts` (T623 F4), `keep.test.ts` | 38 waters (37 lakes + Little River), 43 rules | next app build |
-| F5 | Code fixed: `Exempts.own_region_only` (no carry under G3). Corpus flag pending. RULINGS L22 | c577f682b, `test_region_homes.py::test_f5_*`; patch `F5-nechako-own-region-only.patch` (+ `test_lift_decisions.py::test_f5_*`) | 18 sections (Nechako part 5) closed Apr 1-Jun 30 | patch → reach → deliver |
+| F5 | Code fixed: `Exempts.own_region_only` (no carry under G3). Corpus flag pending. RULINGS L22 | c577f682b, `test_region_homes.py::test_f5_*`; patch `F5-nechako-own-region-only.patch` (+ `test_lift_decisions.py::test_f5_*`) | 18 sections (Nechako part 5) + Bowron 11 + Willow 5 (Region 5) closed Apr 1-Jun 30 | reach → deliver |
 | F6 | Certain. Pending: z7b kokanee stream release `outside_items: [gnis:14619]` | patch `F6-peace-outside-zone-b-kokanee-stream-release.patch` (+ `test_rulings_pinned.py::test_f6_*`, RULINGS Z2 note) | 1 section (Peace part 9): keep 10 | patch → reach → deliver |
 | F7 | Fixed: a notice covers only fresh water of its own region (`inseason/resolve.py`). Stored ranges pending | a0f8adb49, `test_inseason_publish.py::test_f7_*`; patch `F7-F20-notice-waters.patch` | 3 notices: is-14c1a6f972a3 183→28 sections, is-06e7bf41d7fc 113→109, is-6a32433916ac 561→512 | patch or re-resolve → inseason publish |
 | F8 | Cut already built (Fraser 673.61 km). Pending: r7 fraser r2 also lifts `r5:fraser_river@5-2` r3. RULINGS L23 | patch `F8-fraser-cottonwood-lifts-region-5-bait-ban.patch` (+ `test_displacement_rulings.py::test_f8_*`) | 2 sections (part 18) | patch → reach → deliver |
@@ -87,12 +87,14 @@ In-season saves without it). Then, after the atlas rebuild: F5, F6, F8 (back up 
 | F20 | Fixed with F7: a freshwater notice never covers tidal water | a0f8adb49, `test_f20_*`; same patch | 2 notices: is-8cd37f6e5bf9 54→34, is-a8dcfeb1e3c6 61→40 | as F7 |
 | F21 | As shown is right | 3884405fd `test_t623_f21_*` | 0 | — |
 
-**Owner questions left:**
-- (F5 class) The same G3 carry still lifts Bowron (Region 7 → Region 5, 11 sections) and Willow (Region 7 → Region 5, 5 sections). Does "lifts Region 7's only" apply there too?
-- (F6) RULINGS Z2 said the exclusion "is not encoded". The patch encodes it for the Peace. Is that OK?
-- (F20) Notice is-a8dcfeb1e3c6 (his own 10-29 match) drops 10 tidal sloughs/channels. Is that right?
-- (F1) Does "only the stretch that straddles" mean as shown? Or the north (1-10) half of the river open, as a `side` split (ruling 49)? That would be a new decision.
-- (F12) The provincial twin `zp:steelhead.r1b` ("10 hatchery steelhead per licence year") still shows beside "release all" on Stellako part 0, because the twins rank as water rules. Leave it?
+**Owner answers 2026-11-11** (to the close-out's questions):
+- F1: "Yes, as shown."
+- F5 class, Bowron and Willow: "Yes, same rule". Both Region 7 rows' "Exempt from spring closure" carry `own_region_only` (region-7.json, flag lines only). Their Region 5 sections close Apr 1-Jun 30 under Region 5's spring stream closure: Bowron 11 sections, Willow 5. RULINGS L22 extended; `test_lift_decisions.py::test_f5_bowron_and_willow_*` (needs the next reach + deliver).
+- F6: "Keep it" (the Peace exclusion stays encoded).
+- F20: "Right, tidal is out."
+- F12 (Stellako part 0 still shows the provincial "10 hatchery steelhead" line): not asked yet; left as is.
+
+The pending patches were applied in ea1c74d67 and 2e68ff4c9 (the owner allowed both review-app patches).
 
 **Not verified:** no reach run or deliver, so F5/F6/F8/F12/F14/F15 were measured with the reader on the live bundle, not on a build. The F4 look was not seen on a device. Not run: `test_export_codec.py` and `test_export_ui_rules.py`. Failing before T623 (still red): `test_t183` copper/mutation (fixed by F12's flag), `test_answers_r14_wording::test_3_*`, `test_answers_r18_tree::test_t203_*`, and `app/tools/one-colour-pathway.test.ts`.
 
