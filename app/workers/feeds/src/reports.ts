@@ -204,8 +204,11 @@ export async function handleReport(req: Request, env: ReportEnv, now: Date = new
   const isTest = v.report.test === true && env.FEEDS_ENV === "staging";
   if (!isTest) delete (v.report as { test?: true }).test;
   const key = isTest ? `${TEST_REPORTS_PREFIX}${day}/${v.report.id}.json` : reportKey(day, v.report.id);
-  // the app's outbox re-sending after a lost answer: already stored, the same answer, nothing counted
-  if (await env.BUCKET.get(key)) return json({ ok: true, id: v.report.id }, 200);
+  // the app's outbox re-sending after a lost answer: already stored, the same answer, nothing counted. (T558 item 4) A
+  // retry that crosses UTC midnight finds it in yesterday's folder: stored once, not twice
+  const yday = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
+  const yKey = isTest ? `${TEST_REPORTS_PREFIX}${yday}/${v.report.id}.json` : reportKey(yday, v.report.id);
+  if (await env.BUCKET.get(key) || await env.BUCKET.get(yKey)) return json({ ok: true, id: v.report.id }, 200);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
   const refused = await rateLimit(env, ip, now);
   if (refused) return json({ ok: false, error: refused }, 429);

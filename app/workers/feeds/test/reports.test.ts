@@ -101,6 +101,14 @@ describe("POST /report (T237)", () => {
     expect([...BUCKET.m.keys()].filter((k) => !k.includes("limits/"))).toHaveLength(1);
   });
 
+  it("(T558 item 4) a retry that crosses UTC midnight is stored once, not twice", async () => {
+    const BUCKET = new MemBucket();
+    await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T23:59:50Z"));
+    const again = await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T00:00:30Z"));
+    expect(again.status).toBe(200);
+    expect([...BUCKET.m.keys()].filter((k) => !k.includes("limits/"))).toEqual(["private/reports/2026-10-28/0123456789abcdef.json"]);
+  });
+
   it("refuses malformed and oversized reports and stores nothing", async () => {
     const BUCKET = new MemBucket();
     const now = at("2026-10-28T20:00:00Z");
