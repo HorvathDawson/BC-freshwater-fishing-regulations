@@ -16,7 +16,7 @@ const ICON = { pass: 'PASS', fail: 'FAIL', skip: 'SKIP', warn: 'WARN' };
 
 export function writeReport(dir, run) {
   fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(run, null, 1));
-  const md = [`# Test bed run ${run.id}`, '', `${run.device} · APK ${run.apk} · channel ${run.channel}`, '',
+  const md = [`# Test bed run ${run.id}`, '', `Build: ${run.build ?? 'not recorded'}`, '', `${run.device} · APK ${run.apk} · channel ${run.channel}`, '',
     '| scenario | result | steps | time |', '|---|---|---|---|',
     ...run.scenarios.map((s) => `| ${s.id} — ${s.title} | ${ICON[s.result] ?? s.result} | ${s.steps.filter((x) => x.result === 'pass').length}/${s.steps.length} | ${Math.round(s.ms / 1000)} s |`),
     '', ...run.scenarios.flatMap((s) => [`## ${s.id} — ${s.title}: ${ICON[s.result] ?? s.result}`, '',
@@ -35,6 +35,7 @@ table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--li
 .step{border:1px solid var(--line);border-radius:8px;padding:8px}.step img{width:100%;border-radius:4px}
 .sub{color:var(--sub);font-size:12px}pre{white-space:pre-wrap;font-size:11px;color:var(--sub);max-height:140px;overflow:auto}
 </style></head><body><h1>Test bed run ${esc(run.id)}</h1>
+<p><b>Build:</b> ${esc(run.build ?? 'not recorded')}</p>
 <p class="sub">${esc(run.device)} · APK ${esc(run.apk)} · channel ${esc(run.channel)} · started ${esc(run.started)}</p>
 <table><tr><th>scenario</th><th>result</th><th>steps</th><th>time</th></tr>
 ${run.scenarios.map((s) => `<tr><td><a href="#${esc(s.id)}">${esc(s.id)}</a> — ${esc(s.title)}</td><td class="r-${s.result}">${ICON[s.result] ?? esc(s.result)}</td><td>${s.steps.filter((x) => x.result === 'pass').length}/${s.steps.length}</td><td>${Math.round(s.ms / 1000)} s</td></tr>`).join('')}

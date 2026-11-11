@@ -8,6 +8,10 @@
 #   --max-min N    the command's wall-clock cap (default 45): past it the command is stopped and the session ends
 #   --local        (T354/T360) build/run an APK reading THIS machine's data server (`pnpm tiles`, :39217, as 10.0.2.2:
 #                  the emulator's own name for this machine)
+#   --allow-stale "<reason>"  (T534) use a kept APK although its stamp says another commit than HEAD, a dirty tree, or no stamp:
+#                  the reason is printed. Without it such an APK is refused BEFORE the heavy lock.
+#   --stock-maplibre="<reason>"  (T534) build/use the STOCK MapLibre SDK (own APK name, `-stock`). The default is the patched
+#                  (T420 lean AAR, cache/maplibre/fslean-m2), as every shipped non-production APK (owner 2026-11-09).
 #   --opengl       (T360) build with MapLibre's OpenGL variant instead of Vulkan (app.json changed for the build only)
 #                  instead of staging: for a release that is promoted locally but not uploaded (SALMON_NEEDS)
 #   --crash-stub   (T242) the APK's crash reports go to http://localhost:39256/crash on the phone, `adb reverse`d to this
@@ -23,28 +27,47 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../.." && pwd)
 OUT="$HERE/out"; mkdir -p "$OUT"
 AVD=${TESTBED_AVD:-n1_pixel}
-BUILD=0; MAX_MIN=45; CMD=(); ENV=staging; VARIANT=; STUB=; STUB_PORT=${TESTBED_STUB_PORT:-39256}
+BUILD=0; MAX_MIN=45; CMD=(); ENV=staging; VARIANT=; STUB=; ALLOW_STALE=; STOCK_MLN=; STUB_PORT=${TESTBED_STUB_PORT:-39256}
 while (( $# )); do
   case $1 in
     --build) BUILD=1 ;;
     --crash-stub) STUB=1 ;;
     --local) ENV=local ;;
     --opengl) VARIANT=opengl ;;
+    --allow-stale) ALLOW_STALE=${2:-}; shift; [[ -n ${ALLOW_STALE// /} ]] || { echo "session.sh: --allow-stale needs a reason" >&2; exit 2; } ;;
+    --stock-maplibre) echo 'session.sh: --stock-maplibre needs a reason: --stock-maplibre="<why the stock SDK>"' >&2; exit 2 ;;
+    --stock-maplibre=*) STOCK_MLN=${1#--stock-maplibre=}; [[ -n ${STOCK_MLN// /} ]] || { echo "session.sh: --stock-maplibre= needs a reason" >&2; exit 2; } ;;
     --max-min) MAX_MIN=$2; shift ;;
     --) shift; CMD=("$@"); break ;;
     *) echo "session.sh: unknown $1" >&2; exit 2 ;;
   esac; shift
 done
-APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}${STUB:+-stub}${TESTBED_APK_TAG:+-$TESTBED_APK_TAG}.apk"   # (T420) TESTBED_APK_TAG: an experiment build beside the others
+APK="$OUT/app-testbed$([[ $ENV == local ]] && echo -local)${VARIANT:+-$VARIANT}${STUB:+-stub}${STOCK_MLN:+-stock}${TESTBED_APK_TAG:+-$TESTBED_APK_TAG}.apk"   # (T420) TESTBED_APK_TAG: an experiment build beside the others
 export JAVA_HOME=${JAVA_HOME:-"/Applications/Android Studio.app/Contents/jbr/Contents/Home"}
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 export PATH="$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$HOME/.maestro/maestro/bin:$PATH"
 log() { echo "[testbed $(date +%T)] $*"; }
-# (T420) MLN_LOCAL_MAVEN builds against the locally patched MapLibre (app/tools/maplibre-patch/README.md): its APK must
-# carry its own name (never replace the stock one), and the patched SDK is the Vulkan variant only
-if [[ -n ${MLN_LOCAL_MAVEN:-} ]]; then
-  [[ -n ${TESTBED_APK_TAG:-} ]] || { log "MLN_LOCAL_MAVEN needs TESTBED_APK_TAG (e.g. fsdelta) so the stock APK is kept"; exit 1; }
-  [[ -z $VARIANT ]] || { log "MLN_LOCAL_MAVEN is the Vulkan SDK: drop --$VARIANT"; exit 1; }
+# (T534, owner 2026-11-09) EVERY test-bed APK carries the patched MapLibre (T420 lean AAR) unless --stock-maplibre="<reason>":
+# the same default as deploy/staging/build-apk.sh, so "emulator green" describes the library that ships. An explicit
+# MLN_LOCAL_MAVEN other than the default (an experiment repo) keeps its own APK name via TESTBED_APK_TAG.
+MLN_DEFAULT="$ROOT/cache/maplibre/fslean-m2"
+MLN_AAR=
+if [[ -n $STOCK_MLN ]]; then
+  [[ -z ${MLN_LOCAL_MAVEN:-} ]] || { log "--stock-maplibre with MLN_LOCAL_MAVEN set: pick one"; exit 1; }
+  log "STOCK MapLibre (--stock-maplibre): $STOCK_MLN"
+else
+  export MLN_LOCAL_MAVEN=${MLN_LOCAL_MAVEN:-$MLN_DEFAULT}
+  if [[ $MLN_LOCAL_MAVEN != "$MLN_DEFAULT" ]]; then
+    [[ -n ${TESTBED_APK_TAG:-} ]] || { log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN is not the default lean repo: it needs TESTBED_APK_TAG (e.g. fsdelta) so the default APK is kept"; exit 1; }
+  fi
+  [[ -z $VARIANT ]] || { log "the patched MapLibre is the Vulkan SDK: drop --$VARIANT, or say why with --stock-maplibre=\"<reason>\""; exit 1; }
+  MLN_AAR=$(find "$MLN_LOCAL_MAVEN" -name 'android-sdk-vulkan-*.aar' 2>/dev/null)
+  [[ -n $MLN_AAR && $(echo "$MLN_AAR" | wc -l) -eq 1 ]] || {
+    log "MLN_LOCAL_MAVEN=$MLN_LOCAL_MAVEN must hold exactly one android-sdk-vulkan AAR (found: ${MLN_AAR:-none}); app/tools/maplibre-patch/build.sh makes it"; exit 1; }
+fi
+# (T534) a KEPT APK must be the build of HEAD (clean tree) — checked here, before the heavy lock waits
+if (( ! BUILD )) && [[ -f $APK ]]; then
+  node "$HERE/lib/build-stamp.mjs" check "$APK" ${ALLOW_STALE:+--allow-stale "$ALLOW_STALE"} || exit 1
 fi
 # heavy-precheck: yes — scripts/heavy.sh runs this far with HEAVY_PRECHECK=1 BEFORE it waits for the lock, so a bad flag
 # or env (above) fails at once (T483; caught 2026-11-09: MLN_LOCAL_MAVEN without TESTBED_APK_TAG failed after the wait)
@@ -97,10 +120,23 @@ if (( BUILD )) || [[ ! -f $APK ]]; then
   if [[ $ENV == local ]]; then export EXPO_PUBLIC_DATA_BASE=http://10.0.2.2:39217; CHANNEL=; fi
   source "$ROOT/app/tools/testbed/lib/test-tag.sh"   # (T595) every test-bed build is tagged `test`
   t0=$(date +%s)
+  # (T534) the build names its commit in the app (EXPO_PUBLIC_GIT_SHA, as build-apk.sh) and in a sidecar stamp below
+  export EXPO_PUBLIC_GIT_SHA=$(git -C "$ROOT" rev-parse HEAD)
   ( cd android && EXPO_PUBLIC_APP_ENV=$ENV EXPO_PUBLIC_ENV_SWITCH=1 EXPO_PUBLIC_UPDATE_CHANNEL=$CHANNEL EXPO_PUBLIC_PAN_PROBE=${TESTBED_PROBE:-1} EXPO_PUBLIC_MAP_LAB=1 \
       ./gradlew app:assembleRelease --max-workers=4 -PreactNativeArchitectures=arm64-v8a -x lint ) >"$OUT/gradle.log" 2>&1 \
     || { log "gradle failed (out/gradle.log)"; tail -30 "$OUT/gradle.log"; exit 1; }
   cp android/app/build/outputs/apk/release/app-release.apk "$APK"
+  # (T534) the libmaplibre.so the APK carries: the patched AAR's build id when patched (a Gradle cache or a missed prebuild
+  # picking the stock SDK is refused), recorded either way in <apk>.stamp.json with the commit and the tree's dirtiness
+  READELF=$(ls -d "$ANDROID_HOME"/ndk/*/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf 2>/dev/null | tail -1)
+  [[ -n $READELF ]] || { log "no llvm-readelf under $ANDROID_HOME/ndk: cannot name the MapLibre build id"; exit 1; }
+  mln_id() { local d; d=$(mktemp -d); unzip -q -o "$1" "$2" -d "$d"; "$READELF" -n "$d/$2" | awk '/Build ID/ {print $3}'; rm -rf "$d"; }
+  MLN_GOT=$(mln_id "$APK" lib/arm64-v8a/libmaplibre.so)
+  if [[ -n $MLN_AAR ]]; then
+    MLN_WANT=$(mln_id "$MLN_AAR" jni/arm64-v8a/libmaplibre.so)
+    [[ -n $MLN_WANT && $MLN_GOT == "$MLN_WANT" ]] || { rm -f "$APK"; log "the APK's libmaplibre.so is build id '$MLN_GOT', not the patched AAR's '$MLN_WANT'; refusing (APK removed)"; exit 1; }
+  fi
+  node "$HERE/lib/build-stamp.mjs" write "$APK" "${MLN_AAR:+patched}${STOCK_MLN:+stock}" "$MLN_GOT" "$STOCK_MLN" || { rm -f "$APK"; exit 1; }
   (cd android && ./gradlew --stop >/dev/null 2>&1); rm -f "$OUT/gradle-used"
   log "APK built in $(( $(date +%s) - t0 )) s: $APK ($(du -h "$APK" | cut -f1))"
   cd "$ROOT"
@@ -136,7 +172,7 @@ fi
 (( ${#CMD[@]} )) || { log "no command: built/booted/installed only"; exit 0; }
 log "running (cap ${MAX_MIN} min): ${CMD[*]}"
 set -m
-TESTBED_SERIAL=$SERIAL TESTBED_ENV=$ENV "${CMD[@]}" &
+TESTBED_SERIAL=$SERIAL TESTBED_ENV=$ENV TESTBED_APK_FILE="$APK" "${CMD[@]}" &
 job=$!
 end=$(( $(date +%s) + MAX_MIN * 60 ))
 while kill -0 $job 2>/dev/null; do

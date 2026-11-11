@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as device from './lib/device.mjs';
+import { stampLine, readStamp } from './lib/build-stamp.mjs';
 import { checkChannel } from './lib/channel.mjs';
 import { flow } from './lib/maestro.mjs';
 import { writeReport } from './lib/report.mjs';
@@ -39,7 +40,11 @@ const run = {
   id: stamp, started: new Date().toISOString(), device: `${device.serial()} · ${device.sh('getprop ro.product.model').trim()} · Android ${device.sh('getprop ro.build.version.release').trim()}`,
   apk: process.env.TESTBED_ENV === 'local' ? 'app/tools/testbed/out/app-testbed-local.apk (release, LOCAL data :39217, env switch on)' : 'app/tools/testbed/out/app-testbed.apk (release, staging, channel test, env switch on)', channel: 'test (staging test/)',
   sync: SYNC, scenarios: [],
+  // (T534) the build under test, from the sidecar session.sh wrote beside the APK: commit, dirty tree, MapLibre build id
+  build: process.env.TESTBED_APK_FILE ? stampLine(readStamp(process.env.TESTBED_APK_FILE))
+    : 'UNKNOWN build: run through session.sh (TESTBED_APK_FILE unset), so no commit or MapLibre id is recorded',
 };
+console.log(`[testbed] build under test: ${run.build}`);
 // (batches) a run into a folder that already holds a report adds its scenarios to it: one report for several heavy jobs
 try {
   const prev = JSON.parse(fs.readFileSync(path.join(dir, 'report.json'), 'utf8'));

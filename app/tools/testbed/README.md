@@ -39,6 +39,18 @@ run downloaded and up in 84 s), offline 13/15 (the two flow steps "Check now off
 Retry button was left); with the Retry step race-tolerant `2026-11-10T00-09-58` feeds PASS 8/8; big-update 12/13 until its bell step opened the bell (T263's Data update row), then PASS 13/13 (next run). Not rerun since 2026-10-29: spots, report. A step tagged with a ticket is a known app gap: it turns green when that ticket
 lands.
 
+## The build under test is named (T534)
+
+`session.sh` writes `out/<apk>.stamp.json` beside every APK it builds: commit, whether `app/` was dirty, and the
+`libmaplibre.so` build id (read from the APK; checked against the patched AAR's when patched). A kept APK is refused
+**before the heavy lock** if its commit is not HEAD, its tree was dirty, or it has no stamp, unless
+`--allow-stale "<reason>"` (printed). The default build carries the patched MapLibre (T420 lean AAR in
+`cache/maplibre/fslean-m2`, as `deploy/staging/build-apk.sh`); `--stock-maplibre="<reason>"` builds the stock SDK under
+its own name (`app-testbed-stock.apk`). `run.mjs` prints the stamp at the top of the console and of `report.md` /
+`index.html` ("Build: commit … · libmaplibre build id … (patched, T420 lean)"): quote that line in the STATUS entry.
+Existing APKs built before T534 have no stamp: rebuild with `--build`. The build still reads the live checkout (the
+stamp says if it was dirty); a clean-worktree build like `build-apk.sh` is not done here.
+
 ## Run it locally
 
 One-time: Android SDK + AVD `n1_pixel` (T50/T172), Android Studio's JBR, `rclone` remote `r2:` (staging), Maestro:
