@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef } from "react";
 import {
   NEAR_KM, SEARCH_BAR, SEARCH_FIND, duplicateNames, extentOf, searchKey, rankNear, seeLine, townBox, waterCaption, waterStatusOn,
   watersNear,
-  type AreaAsk, type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus, bcNow } from "@app/core";
+  type AreaAsk, type Bbox, type Extent, type LatLon, type StatusIndex, type WaterStatus } from "@app/core";
 import type { ItemId, NameHit, NearHit, PlaceHit, PointerHit, WaterSource, SectionId } from "@app/data";
 import { useAsync, type Async } from "./async";
 import { useSearch, warmSearchIndex, type SearchResults } from "./hooks";
@@ -371,11 +371,11 @@ const EMPTY_RESULTS: SearchResults = { waters: [], places: [], pointers: [] };
 
 /**
  * THE STATUS A RESULT ROW WEARS — a water in the search results or in the list of water near a
- * town, on `on` (today, by default). The same answer the map colours its line by: the status
+ * town, on `on` — ALWAYS passed, the day the map is on (T620 G1: a default of today is how a row once disagreed with its line). The same answer the map colours its line by: the status
  * index, read through `waterStatusOn` in @app/core. Null when there is no index (not loaded, or
  * refused for another atlas) — the row then draws no status at all, never a guessed one.
  */
 export function rowStatus(item: ItemId, index: StatusIndex | null,
-                          on: Date = bcNow()): WaterStatus | null {
+                          on: Date): WaterStatus | null {
   return waterStatusOn(index, item, on);
 }
