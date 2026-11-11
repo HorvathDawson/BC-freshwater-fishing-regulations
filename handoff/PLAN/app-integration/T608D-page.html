@@ -1,0 +1,317 @@
+<title>Lake Depth and Stocking</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; each feature gets a "sounding" strip (a scaled bar of counts) before its detail tables. */
+:root{
+  --bg:#f3f6f8; --surface:#ffffff; --ink:#14222b; --muted:#566872; --line:#d3dde3;
+  --deep:#0f4c6b; --shoal:#7fb7c9; --shallow:#cfe5ec; --hold:#b9c2c7;
+  --ok:#1f7a53; --warn:#a05a00; --stop:#a8322d;
+  --ok-bg:#e2f2ea; --warn-bg:#f8ecd6; --stop-bg:#f7e1df; --idle-bg:#e8edf0;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0d171d; --surface:#14222b; --ink:#e4edf1; --muted:#9bb0ba; --line:#2a3d48;
+  --deep:#6cc0de; --shoal:#3d8aa5; --shallow:#234c5c; --hold:#44555e;
+  --ok:#6fd0a3; --warn:#e9b25c; --stop:#f0908a;
+  --ok-bg:#153527; --warn-bg:#3a2c10; --stop-bg:#3d1c1a; --idle-bg:#1d2d36; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0d171d; --surface:#14222b; --ink:#e4edf1; --muted:#9bb0ba; --line:#2a3d48;
+  --deep:#6cc0de; --shoal:#3d8aa5; --shallow:#234c5c; --hold:#44555e;
+  --ok:#6fd0a3; --warn:#e9b25c; --stop:#f0908a;
+  --ok-bg:#153527; --warn-bg:#3a2c10; --stop-bg:#3d1c1a; --idle-bg:#1d2d36; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:24px;font-weight:700;padding-bottom:8px;border-bottom:2px solid var(--deep)}
+h3{font-size:17px;font-weight:600;margin-top:6px}
+p{margin:0;max-width:68ch}
+.lede{font-size:18px;color:var(--muted);max-width:62ch}
+.meta{font-family:var(--mono);font-size:13px;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:14px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.big{font-family:var(--mono);font-size:30px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--deep);line-height:1.1}
+.label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:68ch}
+.scroll{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;white-space:nowrap}
+.built{background:var(--ok-bg);color:var(--ok)} .half{background:var(--warn-bg);color:var(--warn)}
+.idea{background:var(--idle-bg);color:var(--muted)} .blocked{background:var(--stop-bg);color:var(--stop)}
+/* sounding strip */
+.strip{display:flex;height:34px;border:1px solid var(--line);background:var(--surface)}
+.strip span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px}
+.note{border-left:4px solid var(--warn);background:var(--warn-bg);padding:12px 14px}
+.note.stop{border-color:var(--stop);background:var(--stop-bg)}
+.note.idle{border-color:var(--shoal);background:var(--idle-bg)}
+ol.decide{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;max-width:68ch}
+code{font-family:var(--mono);font-size:.92em}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <div class="meta">Audit T608 D and its follow-up · read-only · 10 Nov 2026 · live release r-a178299f6005</div>
+    <h1>Lake depth charts and stocked lakes</h1>
+    <p class="lede">Two features parked for later. This page shows how big each one is, what already exists, what blocks it, and the order it would be built in. Nothing here has been built or changed.</p>
+  </header>
+
+  <section>
+    <h2>The scale, side by side</h2>
+    <div class="two">
+      <div class="card">
+        <div class="label">Depth charts</div>
+        <div class="big">2,240 lakes</div>
+        <p>could show a chart today. All 2,685 chart PDFs are already on disk (768 MB). Nothing shows them yet.</p>
+        <p><span class="pill built">open licence</span> <span class="pill half">no reviewed match file</span></p>
+        <p>Digital depth lines: 0 today, up to 508 lakes without tracing.</p>
+        <p class="meta">3 tickets to a first result: M + S + M</p>
+      </div>
+      <div class="card">
+        <div class="label">Stocked lakes</div>
+        <div class="big">0 lakes</div>
+        <p>matched today, because no stocking records are fetched. The matcher is written but tested on made-up rows only. The real count is unknown.</p>
+        <p><span class="pill blocked">needs permission</span> <span class="pill half">matcher half built</span></p>
+        <p class="meta">3 tickets after permission: M + M + M</p>
+      </div>
+    </div>
+    <div class="note stop"><strong>The biggest gap is permission, not code.</strong> B.C.'s catalogue marks the stocking records, the traced depth contours and the sheet outline layer "Access Only" (reproduction not permitted). GoFishBC requires written consent. Only the scanned chart PDFs are under the open licence. An earlier ticket (T218) recorded the contour licence as settled; the catalogue says otherwise today.</div>
+    <p>The app side is ready for both and fed by neither: the Stocked and Depth map colourings, the lake data slot in the release, and the lake-info calls all exist, empty and greyed out.</p>
+  </section>
+
+  <section>
+    <h2>Depth charts</h2>
+    <h3>Chart to lake: the matching rules, in the order they are tried</h3>
+    <p>2,294 chart ids today (one id is one lake code with all its sheets). "Clean" means proposed with a tick already suggested, so you can accept those in bulk. Nothing enters the frozen match file until you accept it.</p>
+    <div class="strip" role="img" aria-label="1,944 clean, 350 need your look">
+      <span style="width:84.7%;background:var(--deep)"></span>
+      <span style="width:15.3%;background:var(--shoal)"></span>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--deep)"></i>1,944 clean</span>
+      <span><i style="background:var(--shoal)"></i>350 ids go to you, plus 44 sheets with no lake code</span>
+    </div>
+    <div class="scroll"><table>
+      <tr><th>Rule</th><th>When it applies</th><th>Result</th><th>Ids</th><th>Example</th></tr>
+      <tr><td class="n">A0</td><td>The sheet has no lake code</td><td>Review by eye. Never matched by name alone.</td><td class="n">44 sheets</td><td>"Dinosaur Lake" (3 sheets), "Cobble Hill Quarry"</td></tr>
+      <tr><td class="n">A1</td><td>The code is on no lake in our lakes layer</td><td>Review. If the reservoir or wetland layer has the code, that water is offered.</td><td class="n">17</td><td>Goose Lake is a reservoir in our data. Lower Arrow Lake, McIvor Lake: code found nowhere.</td></tr>
+      <tr><td class="n">A2</td><td>The code is on several waterbodies</td><td>Review. You pick which ones the chart covers.</td><td class="n">54</td><td>One code covers Dester Lake (102 ha) and two unnamed ponds a kilometre away. Another covers two lakes both named Twin Lake.</td></tr>
+      <tr><td class="n">A3</td><td>The lake has no official name</td><td>Review.</td><td class="n">140</td><td>"Rose Lake" lands on an unnamed 32 ha lake. Our own name for it may have come from this chart, so agreeing with it proves nothing.</td></tr>
+      <tr><td class="n">A4</td><td>No name on the chart agrees with the lake</td><td>Review with the evidence shown. Refused until you accept.</td><td class="n">12</td><td>Chart "Cripple Lake" on Nendatoo Lake (position and size agree: a rename?). "Toquart Lake" on Toquaht Lake (spelling).</td></tr>
+      <tr><td class="n">A6</td><td>Position, size or watershed check fails, or there is no outline to test</td><td>Review.</td><td class="n">41</td><td>Takla Lake: the sheet outline is 24,629 ha, our piece is 2,660 ha, 28 km apart (our lake is in pieces).</td></tr>
+      <tr><td class="n">A7</td><td>Only the Province's name column agrees; the title printed on the chart does not</td><td>Review.</td><td class="n">86</td><td>Title "Truda Lake", lake Tranquille Lake. Many are word order only: "Maxwell Lake" against "Lake Maxwell".</td></tr>
+      <tr><td class="n">A8</td><td>One code, one named lake in the app, the printed title agrees, and position, size and watershed agree</td><td><span class="pill built">Clean</span></td><td class="n">1,944</td><td>Bobbs Lake: title "Bobb's Lake", 106.9 ha against 106.6 ha, 0 m apart.</td></tr>
+    </table></div>
+
+    <h3>The exact tests</h3>
+    <ul>
+      <li><strong>Name:</strong> lower case, punctuation dropped, "(formerly)" dropped, one closing word of lake / lakes / L. / pond / ponds / reservoir dropped. Then the two must be equal, or the lake's name must appear as whole words inside a longer chart title. Of the 1,944 clean ids, 1,706 are equal and 238 are a name inside a longer title.</li>
+      <li><strong>Position:</strong> the centre of the sheet's outline may be at most 100 m outside the lake's bounding box.</li>
+      <li><strong>Size:</strong> the sheet outline's area must be between half and double the lake's area.</li>
+      <li><strong>Watershed:</strong> the two watershed codes must be the same.</li>
+      <li>The limits are loose on purpose and catch only the odd ones: 2,086 of 2,095 name-verified ids sit at 0 m, and 1,970 are within 0.8 to 1.25 times the area.</li>
+    </ul>
+    <div class="note"><strong>Why the printed title matters.</strong> The Province filled in its "gazetted name" column and its sheet outline from the lake code. So those two cannot prove the code is right; they only repeat it. The title printed on the chart is the one thing that was not made from the code, which is why a match that agrees only on the name column (rule A7) goes to you.</div>
+
+    <h3>Other cases</h3>
+    <div class="scroll"><table>
+      <tr><th>Case</th><th>Rule</th><th>Today</th></tr>
+      <tr><td>Several charts for one lake</td><td>All kept, in sheet order, each with its own title and year.</td><td class="n">383 ids</td></tr>
+      <tr><td>One chart file covering several lakes</td><td>Attached to each lake it names, shown with its full title.</td><td class="n">122 files</td></tr>
+      <tr><td>Lakes that share a name</td><td>A name never picks a lake. Only the code does. ("Jennings" is used by 72 B.C. lakes, "Twin" by 31.)</td><td class="n">0 by name</td></tr>
+      <tr><td>Lake split into parts in the app</td><td>The chart attaches to the whole lake; every part shows it.</td><td class="n">0</td></tr>
+      <tr><td>Renamed lake</td><td>Shows up under A4 or A7. You accept; the chart keeps its printed title.</td><td class="n">98</td></tr>
+      <tr><td>Chart only in the Access Only layer</td><td>Held for the licence, not for matching.</td><td class="n">49</td></tr>
+      <tr><td>Broken PDF</td><td>Matched as usual, flagged "file missing". Not hidden.</td><td class="n">6</td></tr>
+    </table></div>
+    <p><strong>Checked against an outside answer:</strong> the Province's own placed-contour layer names the waterbody for its lakes. For the 25 that are in our sheet list, these rules pick the same one 25 of 25.</p>
+
+    <h3>What the current code does that breaks your rules</h3>
+    <ul>
+      <li>A code whose lakes are all unnamed is bound to every one of them with no review. Proposed: a proposal you accept (A3).</li>
+      <li>Unnamed ponds under a named lake's code ride along. Proposed: a proposal you accept (A2).</li>
+      <li>The stocking matcher falls back to "same name within 2,000 m", and counts one name inside another as a match ("Fish Lake" inside "Little Fish Lake"). Proposed: remove it. It is a silent fallback.</li>
+      <li>A code hit with no name support is still marked matched. Proposed: refused until you accept.</li>
+      <li>The stocking matcher stores a build-output id. Proposed: store the lake's durable id.</li>
+    </ul>
+
+    <h3>How the frozen match file works</h3>
+    <ul>
+      <li>One file per feature. Each row holds the source id, our lake id, the rule that proposed it, the evidence (names, metres, areas), and who accepted it and when.</li>
+      <li>The program writes proposals to a separate file. Only your accept moves a row into the frozen file.</li>
+      <li>The build and the app read the frozen file and never match anything themselves. An id not in the file shows nothing and goes on the proposal list.</li>
+      <li>A re-run never rewrites accepted rows. It only reports new ids, ids that vanished, and accepted rows whose evidence changed.</li>
+      <li>Refusals are rows too ("not a public lake"), so the same question is not asked every year.</li>
+    </ul>
+
+    <h3>How the rules could be wrong, and the spot check for each</h3>
+    <div class="scroll"><table>
+      <tr><th>Risk</th><th>Check</th></tr>
+      <tr><td>The code is stale and the chart is of another lake with the same name nearby</td><td>Open the PDF beside the lake outline: do the shapes match?</td></tr>
+      <tr><td>"Name inside title" accepts too much ("Wilson" in "Little Wilson")</td><td>Look at every pair that shares a file.</td></tr>
+      <tr><td>The size limit is too loose and a pond is accepted as a lake</td><td>Sample the outer size bands.</td></tr>
+      <tr><td>The title was typed from the code's lake name, not read off the chart</td><td>Read the title on the PDF itself.</td></tr>
+      <tr><td>A reservoir changed shape since the survey</td><td>Look at the largest lakes and all reservoirs.</td></tr>
+    </table></div>
+    <p><strong>Sample plan, about 160 looks</strong> (a few seconds each with the PDF beside the outline): 60 from the 1,706 with an equal title, 40 from the 238 with a name inside a longer title, 30 from the outer size bands, 20 with a name used by six or more lakes, the 10 largest lakes and every reservoir. Every review row is looked at one by one. If 160 clean looks show none wrong, the clean set is very likely under 2% wrong. One wrong: stop, tighten the rule, re-run, sample again.</p>
+
+    <h3>Digital depth maps: why 697 against 28</h3>
+    <p>They are two different things, made about 20 years apart.</p>
+    <div class="two">
+      <div class="card">
+        <div class="label">Vector files, 2001</div>
+        <div class="big">495 lakes</div>
+        <p>For 697 sheets the Province made a file of depth lines with depth values, plus sounding points. They are public today on the same address as the PDFs: 22 of 23 probed exist. Our fetch kept the flag and dropped the link, so we never had them.</p>
+        <p>True size in metres, but not placed on the map: each lake has to be slid and turned onto our outline, then ticked by you. Far less work than tracing a scan.</p>
+        <p><span class="pill half">licence not stated</span></p>
+      </div>
+      <div class="card">
+        <div class="label">Placed contours, newer</div>
+        <div class="big">28 lakes</div>
+        <p>137 depth slices already placed on the map, with max depth, mean depth and volume. 27 were made from the scanned PDF, 1 (Wahleach Lake) from a 2012 sonar survey. 15 of the 28 also have a 2001 vector file.</p>
+        <p><span class="pill blocked">Access Only</span></p>
+      </div>
+    </div>
+    <div class="scroll"><table>
+      <tr><th>Step</th><th>Digital maps, running total</th><th>What it needs</th></tr>
+      <tr><td>Today</td><td class="n">0</td><td>Nothing is fetched or shown.</td></tr>
+      <tr><td>1. Placed contours</td><td class="n">28</td><td>The Province says yes.</td></tr>
+      <tr><td><strong>2. Vector files</strong></td><td class="n"><strong>508</strong></td><td>The Province confirms the vector files fall under the open licence, or grants use. Then a reader for the old file format (small), placing each lake, and your ticks. 308 are one sheet for one lake and should mostly fit by program; the other 187 are placed by hand, about 30 hours.</td></tr>
+      <tr><td>3. Trace scans for lakes with their own rules</td><td class="n">931</td><td>The tracing tool, then about 105 hours of checking.</td></tr>
+      <tr><td>4. Trace every scan</td><td class="n">2,240</td><td>About 325 more hours. Not recommended.</td></tr>
+      <tr><td>Side step: scans placed as a picture over the map</td><td class="n">about 1,100 more</td><td>No permission needed. A picture, not depth lines: it cannot colour the map or answer "how deep here".</td></tr>
+    </table></div>
+    <p><strong>508 is the largest number reachable without tracing.</strong> It needs one yes from the Province and no new source. 1,732 lakes are scan only.</p>
+    <p>Other sources checked: the Province's lake survey table (max and mean depth for 5,318 surveys, open licence, feeds the Depth colouring but has no shapes); Cariboo depth lines (Access Only, by request); federal charts for about 10 big lakes (paid, licensed); Okanagan Basin Water Board's 2021 lidar for 7 lakes (data not found, would need asking); commercial charts (not usable).</p>
+    <p class="meta">Not confirmed: the vector files' licence; that all 684 files exist; whether depths are feet or metres in each file; how well automatic placing works on them.</p>
+
+    <h3>Delivery</h3>
+    <ul>
+      <li>The PDFs are too big for the release (768 MB; median 215 KB, largest 5.4 MB). They stay on our storage and download when the angler taps, with the size shown first, then stay on the phone.</li>
+      <li>The list of charts (about 2,700 rows) goes in the release. Estimated 40 to 60 KB, not measured.</li>
+      <li>The open chart table last changed in 2023. The worker checks its date once a week and emails you if it moves.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Stocked lakes</h2>
+    <div class="scroll"><table>
+      <tr><th>Piece</th><th>State</th><th>Detail</th></tr>
+      <tr><td>Stocking fetch</td><td><span class="pill blocked">removed</span></td><td>Deleted 21 Oct 2026 for lack of an open licence. The old run held 71,072 rows, about 18 MB.</td></tr>
+      <tr><td>Stocking list</td><td><span class="pill idea">missing</span></td><td>No roster on disk, so nothing can be matched.</td></tr>
+      <tr><td>Matcher</td><td><span class="pill half">half</span></td><td>Written and tested on made-up rows only.</td></tr>
+      <tr><td>Reviewed match file</td><td><span class="pill idea">idea</span></td><td>Not started.</td></tr>
+      <tr><td>Release slot, app calls, map colouring</td><td><span class="pill built">built, empty</span></td><td>Switch themselves on when a release carries values.</td></tr>
+    </table></div>
+    <p>Stocking rows carry the same lake code as the charts. On the chart rows that join hit 97.6% (2,674 of 2,741). Expect the same shape for stocking: most clean, plus a few hundred hatchery ponds and private waters to look at or mark "not a public lake".</p>
+
+    <h3>Stocking row to lake: the matching rules</h3>
+    <div class="scroll"><table>
+      <tr><th>Rule</th><th>When it applies</th><th>Result</th></tr>
+      <tr><td class="n">B0</td><td>The id is not a lake code (hatchery ponds, GoFishBC's own ids)</td><td>Review once. You mark it "not a public lake" and it stays marked.</td></tr>
+      <tr><td class="n">B1</td><td>The code is on no lake</td><td>Review.</td></tr>
+      <tr><td class="n">B2</td><td>The code is on several waterbodies</td><td>Review. No nearest-one pick, because the rows carry no position. Buntzen Lake and McCombe Lake share one code.</td></tr>
+      <tr><td class="n">B3</td><td>The lake has no official name</td><td>Review.</td></tr>
+      <tr><td class="n">B4</td><td>The name on the row disagrees with the lake</td><td>Refused until you accept.</td></tr>
+      <tr><td class="n">B5</td><td>One code, one named lake, the row's name agrees</td><td><span class="pill built">Clean</span> (about 9 in 10, judged from the chart rows)</td></tr>
+      <tr><td class="n">B6</td><td>The lake is not listed in the app</td><td>Held and listed.</td></tr>
+      <tr><td class="n">B7</td><td>Several codes for one lake</td><td>All their rows attach to that lake.</td></tr>
+      <tr><td></td><td>Name-only match</td><td><strong>Never</strong>, not even as a fallback.</td></tr>
+    </table></div>
+    <p>Stocking matching is weaker than chart matching in two ways. There is no printed title, so the row's name may itself come from the code. And there is no outline, so there is no position or size test. The proposal is to spot-check clean rows harder (100 at random, every lake whose name is used six or more times, and the top 50 lakes by fish released), and to send a lake stocked for the first time to you once.</p>
+    <p class="meta">No real stocking rows were counted: GoFishBC refused one small request on 10 Nov 2026 (HTTP 403), and it was not retried.</p>
+
+    <h3>How the feed would stay fresh</h3>
+    <ul>
+      <li><strong>Once:</strong> fetch the whole history, run the matcher, you review, the match file is frozen. The release carries each lake's last stocked day (under 10 KB) so the map works offline.</li>
+      <li><strong>Daily, on the worker:</strong> one request for the last 45 days. New rows are added and placed on their lake through the frozen match file.</li>
+      <li><strong>A lake the match file does not know:</strong> not shown. It goes on a proposal list and you get an email. Never guessed, never dropped quietly.</li>
+      <li><strong>A failed fetch:</strong> a failed run on the status page. Never an empty list.</li>
+      <li><strong>Words in the app:</strong> "Last stocked 6 Nov 2026: 1,500 rainbow trout (catchable)", then "Stocking records as of 10 Nov 2026." After 3 days without a check: "Stocking records may be out of date." A lake with no record says "No stocking record", never "not stocked".</li>
+      <li><strong>Cost:</strong> one outside request and one or two small writes a day. No added money on the current plan.</li>
+    </ul>
+    <p>The GoFishBC data endpoint still answers: one request for 25 Oct to 10 Nov 2026 returned 29 rows, each with date, town, lake code, lake name, species, strain, stage, size and count.</p>
+  </section>
+
+  <section>
+    <h2>Sources and licences</h2>
+    <div class="scroll"><table>
+      <tr><th>What</th><th>Format</th><th>Changes</th><th>Licence</th></tr>
+      <tr><td>Bathymetric Maps, Open (table and PDF links)</td><td>CSV, one row per sheet</td><td>As needed; last 23 Aug 2023</td><td><span class="pill built">Open Government Licence BC</span></td></tr>
+      <tr><td>Bathymetric Maps (sheet outlines)</td><td>Map service</td><td>Daily service</td><td><span class="pill blocked">Access Only</span></td></tr>
+      <tr><td>Bathymetric Maps of Surveyed Lakes (traced contours)</td><td>Map service, polygons</td><td>As needed</td><td><span class="pill blocked">Access Only</span></td></tr>
+      <tr><td>Provincial Fish Stocking Reports</td><td>Custom download only</td><td>Daily; 1900 to present</td><td><span class="pill blocked">Access Only</span></td></tr>
+      <tr><td>GoFishBC stocking report</td><td>JSON by date range</td><td>Every couple of days in spring and fall (not confirmed on their page)</td><td><span class="pill blocked">Written consent</span></td></tr>
+    </table></div>
+    <p>Under the rule that data comes only from our own servers: the chart PDFs can be copied and served with the credit line and "not for navigation". Traced contours and stocking cannot, without permission. A link out to GoFishBC is the only stocking option allowed today.</p>
+  </section>
+
+  <section>
+    <h2>Where it would show</h2>
+    <div class="scroll"><table>
+      <tr><th>Option</th><th>Size</th><th>Trade-off</th></tr>
+      <tr><td><strong>A. A fourth "Lake" tab on the water pane</strong></td><td class="n">M</td><td>Shown only on lakes with data. Room for the chart now, stocking later. Regulations stay rules only.</td></tr>
+      <tr><td>B. A section under Regulations</td><td class="n">S</td><td>An angler may read stocking as a rule. Works against "no wrong regs".</td></tr>
+      <tr><td>C. In the water's Map tab</td><td class="n">S</td><td>Hard to find; a PDF is not a map layer.</td></tr>
+      <tr><td><strong>D. Map colouring: Stocked / Depth</strong></td><td class="n">S</td><td>Already built. Answers "which lakes near me", not "what about this lake".</td></tr>
+      <tr><td>E. Public water page</td><td class="n">S</td><td>Good for search; same permission limits. Comes after.</td></tr>
+    </table></div>
+    <p><strong>Recommended: A plus D.</strong> A "Lake" tab for the one lake, and the existing colourings for finding lakes on the map. Rivers and lakes with no data keep three tabs.</p>
+  </section>
+
+  <section>
+    <h2>The order it would be built in</h2>
+    <div class="scroll"><table>
+      <tr><th>Step</th><th>What</th><th>Size</th><th>Waits on</th><th>Who</th></tr>
+      <tr><td class="n">D1</td><td>Ask permission: GoFishBC for stocking; the Province for the stocking view, traced contours and sheet layer</td><td class="n">S</td><td>nothing</td><td>You</td></tr>
+      <tr><td class="n">D2</td><td>Chart matcher and the one reviewed match file: about 2,122 clean, about 230 to review</td><td class="n">M</td><td>nothing</td><td>Claude, then your review</td></tr>
+      <tr><td class="n">D3</td><td>Charts on our storage; chart list in the release; weekly source check</td><td class="n">S</td><td>D2</td><td>Claude</td></tr>
+      <tr><td class="n">D4</td><td>"Lake" tab with a Depth chart card; Depth map colouring on</td><td class="n">M</td><td>D3</td><td>Claude, your look</td></tr>
+      <tr><td class="n">D5</td><td>Stocking: fetch history, matcher, reviewed match file</td><td class="n">M</td><td>D1 granted</td><td>Claude, then your review</td></tr>
+      <tr><td class="n">D6</td><td>Stocking feed on the worker</td><td class="n">M</td><td>D5</td><td>Claude</td></tr>
+      <tr><td class="n">D7</td><td>Stocking card in the "Lake" tab; Stocked colouring on</td><td class="n">M</td><td>D6</td><td>Claude, your look</td></tr>
+      <tr><td class="n">D8</td><td>Traced contours for the 28 lakes</td><td class="n">S</td><td>D1 granted, D4</td><td>Claude</td></tr>
+      <tr><td class="n">D9</td><td>Trace contours from scans for the top lakes</td><td class="n">L</td><td>D8</td><td>Stays parked</td></tr>
+    </table></div>
+    <p><strong>Smallest useful result:</strong> D2, D3, D4. An angler opens a lake and sees its depth chart, served from our own storage. None of it waits on permission. D1 is two emails from you and unblocks everything else.</p>
+  </section>
+
+  <section>
+    <h2>Decisions waiting for you</h2>
+    <ol class="decide">
+      <li>Send the permission requests? Without them stocking and placed contours stay off. Add the question that unlocks 508 digital maps: do the vector files served beside the open PDFs fall under the open licence?</li>
+      <li>While waiting: fetch the 684 vector files (about 200 MB) to this Mac, outside git, to build and test the reader and the placing? Nothing would be published.</li>
+      <li>A fourth "Lake" tab, or a section under Regulations?</li>
+      <li>While stocking permission is pending: a plain link out to GoFishBC on a lake, or nothing?</li>
+      <li>The 49 lakes whose chart is only in the Access Only layer: hold them back, or ask for them in the same request?</li>
+      <li>For scan-only lakes (about 1,100): a placed picture over the map, or only true depth lines?</li>
+      <li>Rule A7 (86 ids): keep strict so you tick "Maxwell Lake = Lake Maxwell" by hand, or let word order pass as clean?</li>
+      <li>Rule A2: small unnamed ponds under a named lake's code: always ask, or bind only the named lake?</li>
+      <li>Are the limits right: 100 m, and half to double the area?</li>
+      <li>Stocking, with no position to test: is "code plus name, never name alone, first-time lakes always reviewed" enough?</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Not checked</h2>
+    <ul>
+      <li>Whether the 5 broken PDFs and the 1 missing one exist under another file name.</li>
+      <li>The 28 lakes / 137 shapes and the tracing fit numbers are taken from tickets, not re-run.</li>
+      <li>The chart list's size in a release and stocking row counts in spring are estimates.</li>
+      <li>Stocking match counts on real rows. No bulk data was downloaded.</li>
+      <li>The exact update days of either stocking source, and whether either body would grant permission.</li>
+      <li>How much of a chart review screen already exists in the review app.</li>
+      <li>How the phone's PDF viewer behaves on iOS with a second kind of file.</li>
+    </ul>
+  </section>
+</div>

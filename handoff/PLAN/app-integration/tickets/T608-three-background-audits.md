@@ -52,3 +52,9 @@ for now."
    a map layer of stocked lakes, the public water page), each with what it costs and what it crowds; one recommendation.
 6. A staged plan: the smallest first step that is useful to an angler.
 Findings: `handoff/PLAN/app-integration/T608D-findings.md`.
+
+## D: parked by the owner 2026-11-10 ("we can handle them later… I just wanted to look at the scale")
+Findings `T608D-findings.md` (1b1cfd8a9) and `T608D-followup.md` (07e20df52: why 697 vs 28; matching rules A0-A8, B0-B7).
+Owner page: https://claude.ai/artifact/7Dn9FwZu3N1aMGxsCR4ea3 (source kept as `handoff/PLAN/app-integration/T608D-page.html`;
+update that artifact with `url`, do not make a new one). Ten owner decisions are listed on the page. No tickets filed
+for D1-D9 until he takes it up.
