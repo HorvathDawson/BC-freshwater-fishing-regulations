@@ -72869,8 +72869,6 @@
  {
   "target": {
    "wscs": [
-    "300-432687-459615",
-    "300-432687-461418",
     "300-432687-463105",
     "300-432687-469486",
     "300-432687-476281",
@@ -72904,7 +72902,7 @@
    {
     "name": "Okanagan River Oxbows",
     "source": "regulation",
-    "note": "T637 (owner 2026-11-11, option A): the owner's hand-matched side channels of the Okanagan River in MU 8-1 (the OKANAGAN RIVER OXBOWS override in book_name_links.json, first matched 2026-02-08). FWA leaves these lines unnamed, so without this name the registry made no item and the override's watershed codes named no water. Exact-wsc scope (child codes only where listed). kind=stream so the name cannot land on the lakes and wetlands these channels thread. Park Rill (300-432687-516449) is not one. Three lines are named only up to their accepted hillside cut, by the blk + reach entries that follow (500162, 466472, 461418-565942).",
+    "note": "T637 (owner 2026-11-11, option A): the owner's hand-matched side channels of the Okanagan River in MU 8-1 (the OKANAGAN RIVER OXBOWS override in book_name_links.json, first matched 2026-02-08). FWA leaves these lines unnamed, so without this name the registry made no item and the override's watershed codes named no water. Exact-wsc scope (child codes only where listed). kind=stream so the name cannot land on the lakes and wetlands these channels thread. Park Rill (300-432687-516449) is not one. Three lines are named only up to their accepted hillside cut, by the blk + reach entries that follow (500162, 466472, 461418-565942, 461418, 459615).",
     "display": true
    }
   ]
@@ -72964,6 +72962,44 @@
   "reach": {
    "from_m": 0,
    "to_m": 612
+  }
+ },
+ {
+  "target": {
+   "blks": [
+    "356528832"
+   ]
+  },
+  "names": [
+   {
+    "name": "Okanagan River Oxbows",
+    "source": "regulation",
+    "note": "T637 (owner 2026-11-11): channel 300-432687-461418 (blk 356528832) of the Okanagan River Oxbows, named from its mouth (the Osoyoos Lake end, kept whole) to the accepted hillside cut at 3232 m (cuts.json, foot of the west slope); the line above climbs the west slope and is not oxbow water. Map T637-shots/fix-cut-461418.png.",
+    "display": true
+   }
+  ],
+  "reach": {
+   "from_m": 0,
+   "to_m": 3232
+  }
+ },
+ {
+  "target": {
+   "blks": [
+    "356529638"
+   ]
+  },
+  "names": [
+   {
+    "name": "Okanagan River Oxbows",
+    "source": "regulation",
+    "note": "T637 (owner 2026-11-11): channel 300-432687-459615 (blk 356529638) of the Okanagan River Oxbows, named from its mouth (the Osoyoos Lake end, kept whole) to the accepted hillside cut at 1967 m (cuts.json, foot of the east slope); the line above climbs the east slope and is not oxbow water. Map T637-shots/fix-cut-459615.png.",
+    "display": true
+   }
+  ],
+  "reach": {
+   "from_m": 0,
+   "to_m": 1967
   }
  }
 ]
