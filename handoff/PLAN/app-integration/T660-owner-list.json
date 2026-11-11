@@ -1,0 +1,1839 @@
+{
+ "_about": "T660 owner list (proposals only; nothing here is applied). Measured 2026-11-11 by simulating the pending shore cuts (T660-pending/shore-cuts.patch) on the live atlas (data/generated/atlas/full) with the T632 reach run's tidal water. `fresh_receivers`: rivers whose water the DFO tidal polygon covers but whose curated tidal limit keeps it freshwater at that point (limit `mouth`, no row, or the crossing joins above a `split` limit) - the creeks crossing them are cut at their shore but the crossing STAYS freshwater. An owner call per river: move its limit (tidal_limits.json) or keep it. `runs_not_cut`: crossings at a mouth touching the polygon that the atlas leaves whole, and why. `layer_covers_land`: places seen on the maps where the polygon covers land (no change proposed).",
+ "summary": {
+  "shore_cuts": 629,
+  "crossings_made_tidal": 163,
+  "crossings_made_tidal_m": 120719,
+  "crossings_left_freshwater": 436,
+  "crossings_left_freshwater_m": 79325,
+  "receiving_waters": 191,
+  "runs_not_cut": 32
+ },
+ "fresh_receivers": [
+  {
+   "receiving_blk": "360885942",
+   "name": "Nass River",
+   "its_tidal_limit": "split:nass_river__tidal_boundary_dfo_subarea_3_12",
+   "its_line_in_tidal_polygon_m": 1822,
+   "crossings": 6,
+   "crossing_m": 45043
+  },
+  {
+   "receiving_blk": "360868849",
+   "name": "Bear River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 6030,
+   "crossings": 19,
+   "crossing_m": 3025
+  },
+  {
+   "receiving_blk": "360858825",
+   "name": "Kwatna River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 3125,
+   "crossings": 11,
+   "crossing_m": 2471
+  },
+  {
+   "receiving_blk": "360882263",
+   "name": "Ksi X'anmas",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1641,
+   "crossings": 6,
+   "crossing_m": 1973
+  },
+  {
+   "receiving_blk": "360866973",
+   "name": "Kildala River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 847,
+   "crossings": 5,
+   "crossing_m": 1877
+  },
+  {
+   "receiving_blk": "360883346",
+   "name": "Toba River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2753,
+   "crossings": 4,
+   "crossing_m": 1336
+  },
+  {
+   "receiving_blk": "360886594",
+   "name": "Squamish River",
+   "its_tidal_limit": "split:squamish_river__tidal_boundary",
+   "its_line_in_tidal_polygon_m": 3432,
+   "crossings": 5,
+   "crossing_m": 1330
+  },
+  {
+   "receiving_blk": "360226459",
+   "name": "Kwatna River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 758,
+   "crossings": 4,
+   "crossing_m": 924
+  },
+  {
+   "receiving_blk": "360886968",
+   "name": "Quaal River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 4010,
+   "crossings": 12,
+   "crossing_m": 828
+  },
+  {
+   "receiving_blk": "360885559",
+   "name": "Kemano River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 5204,
+   "crossings": 6,
+   "crossing_m": 797
+  },
+  {
+   "receiving_blk": "360885951",
+   "name": "Kitlope River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 4412,
+   "crossings": 6,
+   "crossing_m": 786
+  },
+  {
+   "receiving_blk": "360800398",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 3882,
+   "crossings": 4,
+   "crossing_m": 735
+  },
+  {
+   "receiving_blk": "360871265",
+   "name": "Pa-aat River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 3072,
+   "crossings": 10,
+   "crossing_m": 725
+  },
+  {
+   "receiving_blk": "354154346",
+   "name": "San Josef River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1775,
+   "crossings": 3,
+   "crossing_m": 720
+  },
+  {
+   "receiving_blk": "360874718",
+   "name": "Kingcome River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 4656,
+   "crossings": 8,
+   "crossing_m": 663
+  },
+  {
+   "receiving_blk": "360860569",
+   "name": "Kshwan River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1570,
+   "crossings": 2,
+   "crossing_m": 622
+  },
+  {
+   "receiving_blk": "354154864",
+   "name": "Gordon River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1106,
+   "crossings": 3,
+   "crossing_m": 604
+  },
+  {
+   "receiving_blk": "360884977",
+   "name": "Koeye River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1053,
+   "crossings": 2,
+   "crossing_m": 484
+  },
+  {
+   "receiving_blk": "360887414",
+   "name": "Kimsquit River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 974,
+   "crossings": 3,
+   "crossing_m": 479
+  },
+  {
+   "receiving_blk": "354151763",
+   "name": "Zeballos River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 336,
+   "crossings": 2,
+   "crossing_m": 419
+  },
+  {
+   "receiving_blk": "354155007",
+   "name": "Nitinat River",
+   "its_tidal_limit": "split:nitinat_river__head_of_nitinat_lake_tidal_bound",
+   "its_line_in_tidal_polygon_m": 4438,
+   "crossings": 5,
+   "crossing_m": 416
+  },
+  {
+   "receiving_blk": "360885824",
+   "name": "Kitimat River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 5040,
+   "crossings": 4,
+   "crossing_m": 412
+  },
+  {
+   "receiving_blk": "360222049",
+   "name": "Kemano River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 2364,
+   "crossings": 5,
+   "crossing_m": 412
+  },
+  {
+   "receiving_blk": "354154894",
+   "name": "Tsitika River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1513,
+   "crossings": 2,
+   "crossing_m": 407
+  },
+  {
+   "receiving_blk": "356570104",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 402
+  },
+  {
+   "receiving_blk": "360885253",
+   "name": "Bella Coola River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2025,
+   "crossings": 4,
+   "crossing_m": 401
+  },
+  {
+   "receiving_blk": "354154936",
+   "name": "Nimpkish River",
+   "its_tidal_limit": "split:nimpkish_river__tidal_boundary",
+   "its_line_in_tidal_polygon_m": 5688,
+   "crossings": 8,
+   "crossing_m": 394
+  },
+  {
+   "receiving_blk": "360885068",
+   "name": "Kakweiken River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 944,
+   "crossings": 3,
+   "crossing_m": 389
+  },
+  {
+   "receiving_blk": "360877178",
+   "name": "Franklin River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 650,
+   "crossings": 2,
+   "crossing_m": 358
+  },
+  {
+   "receiving_blk": "356286798",
+   "name": "Gundersen Slough",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1489,
+   "crossings": 4,
+   "crossing_m": 281
+  },
+  {
+   "receiving_blk": "360886654",
+   "name": "Southgate River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 3563,
+   "crossings": 4,
+   "crossing_m": 281
+  },
+  {
+   "receiving_blk": "360218496",
+   "name": "Bella Coola River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1470,
+   "crossings": 4,
+   "crossing_m": 238
+  },
+  {
+   "receiving_blk": "360879684",
+   "name": "Clyak River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1636,
+   "crossings": 5,
+   "crossing_m": 228
+  },
+  {
+   "receiving_blk": "360243518",
+   "name": "Kitimat River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 561,
+   "crossings": 1,
+   "crossing_m": 223
+  },
+  {
+   "receiving_blk": "360883956",
+   "name": "Kowesas River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 992,
+   "crossings": 5,
+   "crossing_m": 210
+  },
+  {
+   "receiving_blk": "354154308",
+   "name": "Gold River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 4075,
+   "crossings": 6,
+   "crossing_m": 198
+  },
+  {
+   "receiving_blk": "360857925",
+   "name": "Nootum River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1964,
+   "crossings": 3,
+   "crossing_m": 198
+  },
+  {
+   "receiving_blk": "360885627",
+   "name": "Doc Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2891,
+   "crossings": 9,
+   "crossing_m": 169
+  },
+  {
+   "receiving_blk": "360880637",
+   "name": "Tsaytis River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1306,
+   "crossings": 1,
+   "crossing_m": 146
+  },
+  {
+   "receiving_blk": "360886896",
+   "name": "Klinaklini River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1601,
+   "crossings": 1,
+   "crossing_m": 145
+  },
+  {
+   "receiving_blk": "360862885",
+   "name": "Seymour River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1491,
+   "crossings": 2,
+   "crossing_m": 145
+  },
+  {
+   "receiving_blk": "360227034",
+   "name": "Kitlope River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1101,
+   "crossings": 2,
+   "crossing_m": 141
+  },
+  {
+   "receiving_blk": "354153794",
+   "name": "Tzouhalem Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2266,
+   "crossings": 2,
+   "crossing_m": 140
+  },
+  {
+   "receiving_blk": "360884528",
+   "name": "Noeick River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 401,
+   "crossings": 1,
+   "crossing_m": 139
+  },
+  {
+   "receiving_blk": "360885346",
+   "name": "Sim River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 253,
+   "crossings": 2,
+   "crossing_m": 133
+  },
+  {
+   "receiving_blk": "360885716",
+   "name": "Wannock River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1619,
+   "crossings": 2,
+   "crossing_m": 128
+  },
+  {
+   "receiving_blk": "360870007",
+   "name": "Toon River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 461,
+   "crossings": 2,
+   "crossing_m": 125
+  },
+  {
+   "receiving_blk": "354150572",
+   "name": "Cayeghle Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1641,
+   "crossings": 4,
+   "crossing_m": 124
+  },
+  {
+   "receiving_blk": "(no outlet)",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 4,
+   "crossing_m": 120
+  },
+  {
+   "receiving_blk": "356570348",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 117
+  },
+  {
+   "receiving_blk": "360227661",
+   "name": "Kshwan River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 658,
+   "crossings": 1,
+   "crossing_m": 116
+  },
+  {
+   "receiving_blk": "360883402",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1670,
+   "crossings": 4,
+   "crossing_m": 110
+  },
+  {
+   "receiving_blk": "360853126",
+   "name": "Otard Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 445,
+   "crossings": 1,
+   "crossing_m": 110
+  },
+  {
+   "receiving_blk": "354088365",
+   "name": "Moyeha River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1507,
+   "crossings": 1,
+   "crossing_m": 108
+  },
+  {
+   "receiving_blk": "360239974",
+   "name": "Bear River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 300,
+   "crossings": 1,
+   "crossing_m": 105
+  },
+  {
+   "receiving_blk": "354154594",
+   "name": "Strandby River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 892,
+   "crossings": 3,
+   "crossing_m": 97
+  },
+  {
+   "receiving_blk": "354153429",
+   "name": "Mahatta Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 924,
+   "crossings": 2,
+   "crossing_m": 96
+  },
+  {
+   "receiving_blk": "360878779",
+   "name": "Khutze River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1068,
+   "crossings": 2,
+   "crossing_m": 96
+  },
+  {
+   "receiving_blk": "360871314",
+   "name": "Kainet Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 857,
+   "crossings": 2,
+   "crossing_m": 95
+  },
+  {
+   "receiving_blk": "354153558",
+   "name": "Klanawa River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1208,
+   "crossings": 3,
+   "crossing_m": 94
+  },
+  {
+   "receiving_blk": "354155177",
+   "name": "Nahmint River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1312,
+   "crossings": 3,
+   "crossing_m": 89
+  },
+  {
+   "receiving_blk": "360689266",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 756,
+   "crossings": 2,
+   "crossing_m": 89
+  },
+  {
+   "receiving_blk": "360878507",
+   "name": "Wakeman River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2911,
+   "crossings": 2,
+   "crossing_m": 87
+  },
+  {
+   "receiving_blk": "354154217",
+   "name": "Moyeha River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1495,
+   "crossings": 2,
+   "crossing_m": 86
+  },
+  {
+   "receiving_blk": "354154813",
+   "name": "Tofino Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 699,
+   "crossings": 1,
+   "crossing_m": 85
+  },
+  {
+   "receiving_blk": "360882568",
+   "name": "Orford River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1038,
+   "crossings": 2,
+   "crossing_m": 85
+  },
+  {
+   "receiving_blk": "360852130",
+   "name": "Kitkiata Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1077,
+   "crossings": 4,
+   "crossing_m": 82
+  },
+  {
+   "receiving_blk": "360849352",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1171,
+   "crossings": 1,
+   "crossing_m": 82
+  },
+  {
+   "receiving_blk": "360875983",
+   "name": "Capilano River",
+   "its_tidal_limit": "split:capilano_river__cn_railway_bridge_tidal_boundary",
+   "its_line_in_tidal_polygon_m": 1049,
+   "crossings": 2,
+   "crossing_m": 81
+  },
+  {
+   "receiving_blk": "356352298",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 80
+  },
+  {
+   "receiving_blk": "360214183",
+   "name": "Kingcome River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 2882,
+   "crossings": 3,
+   "crossing_m": 79
+  },
+  {
+   "receiving_blk": "360877679",
+   "name": "Ksi Gingolx",
+   "its_tidal_limit": "split:ksi_gingolx__kincolith_river_bridge",
+   "its_line_in_tidal_polygon_m": 2051,
+   "crossings": 2,
+   "crossing_m": 79
+  },
+  {
+   "receiving_blk": "354147290",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 303,
+   "crossings": 1,
+   "crossing_m": 78
+  },
+  {
+   "receiving_blk": "360218495",
+   "name": "Bella Coola River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 579,
+   "crossings": 4,
+   "crossing_m": 78
+  },
+  {
+   "receiving_blk": "360225715",
+   "name": "Kshwan River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 519,
+   "crossings": 2,
+   "crossing_m": 77
+  },
+  {
+   "receiving_blk": "360225353",
+   "name": "Southgate River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1123,
+   "crossings": 2,
+   "crossing_m": 76
+  },
+  {
+   "receiving_blk": "360887002",
+   "name": "Indian River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 462,
+   "crossings": 4,
+   "crossing_m": 75
+  },
+  {
+   "receiving_blk": "354154064",
+   "name": "Sucwoa River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 627,
+   "crossings": 3,
+   "crossing_m": 74
+  },
+  {
+   "receiving_blk": "360874508",
+   "name": "Ain River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1408,
+   "crossings": 1,
+   "crossing_m": 73
+  },
+  {
+   "receiving_blk": "354147035",
+   "name": "Cheewhat River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 3844,
+   "crossings": 5,
+   "crossing_m": 71
+  },
+  {
+   "receiving_blk": "360776500",
+   "name": "Oona River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 922,
+   "crossings": 2,
+   "crossing_m": 69
+  },
+  {
+   "receiving_blk": "360854323",
+   "name": "Brem River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1448,
+   "crossings": 3,
+   "crossing_m": 69
+  },
+  {
+   "receiving_blk": "360886888",
+   "name": "Kilbella River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1050,
+   "crossings": 1,
+   "crossing_m": 68
+  },
+  {
+   "receiving_blk": "360639090",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1230,
+   "crossings": 3,
+   "crossing_m": 67
+  },
+  {
+   "receiving_blk": "360870027",
+   "name": "Tom Browne Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 952,
+   "crossings": 2,
+   "crossing_m": 66
+  },
+  {
+   "receiving_blk": "360215422",
+   "name": "Kemano River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1582,
+   "crossings": 2,
+   "crossing_m": 66
+  },
+  {
+   "receiving_blk": "354154527",
+   "name": "Kashutl River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 466,
+   "crossings": 2,
+   "crossing_m": 64
+  },
+  {
+   "receiving_blk": "360884532",
+   "name": "Apple River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1371,
+   "crossings": 2,
+   "crossing_m": 63
+  },
+  {
+   "receiving_blk": "354088012",
+   "name": "Sarita River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 959,
+   "crossings": 3,
+   "crossing_m": 61
+  },
+  {
+   "receiving_blk": "354150648",
+   "name": "Koprino River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1230,
+   "crossings": 4,
+   "crossing_m": 61
+  },
+  {
+   "receiving_blk": "360815167",
+   "name": "Billy Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 760,
+   "crossings": 2,
+   "crossing_m": 61
+  },
+  {
+   "receiving_blk": "360879896",
+   "name": "Sangan River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 378,
+   "crossings": 1,
+   "crossing_m": 61
+  },
+  {
+   "receiving_blk": "354135696",
+   "name": "Browns Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1598,
+   "crossings": 1,
+   "crossing_m": 60
+  },
+  {
+   "receiving_blk": "354154451",
+   "name": "Nahwitti River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 918,
+   "crossings": 1,
+   "crossing_m": 59
+  },
+  {
+   "receiving_blk": "360224212",
+   "name": "Kitlope River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 863,
+   "crossings": 1,
+   "crossing_m": 59
+  },
+  {
+   "receiving_blk": "359564900",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 2,
+   "crossing_m": 58
+  },
+  {
+   "receiving_blk": "356570552",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 57
+  },
+  {
+   "receiving_blk": "lake",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 2,
+   "crossing_m": 56
+  },
+  {
+   "receiving_blk": "360882964",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 487,
+   "crossings": 2,
+   "crossing_m": 56
+  },
+  {
+   "receiving_blk": "360884170",
+   "name": "Mussel River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 635,
+   "crossings": 2,
+   "crossing_m": 54
+  },
+  {
+   "receiving_blk": "354153782",
+   "name": "Megin River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 505,
+   "crossings": 2,
+   "crossing_m": 53
+  },
+  {
+   "receiving_blk": "360767895",
+   "name": "Logger's Lane Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 472,
+   "crossings": 1,
+   "crossing_m": 52
+  },
+  {
+   "receiving_blk": "354152702",
+   "name": "Kapoose Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1321,
+   "crossings": 1,
+   "crossing_m": 50
+  },
+  {
+   "receiving_blk": "360875560",
+   "name": "Wathl Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 928,
+   "crossings": 2,
+   "crossing_m": 50
+  },
+  {
+   "receiving_blk": "360215418",
+   "name": "Kemano River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 481,
+   "crossings": 1,
+   "crossing_m": 49
+  },
+  {
+   "receiving_blk": "360233886",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 335,
+   "crossings": 2,
+   "crossing_m": 47
+  },
+  {
+   "receiving_blk": "354149315",
+   "name": "(unnamed)",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 46
+  },
+  {
+   "receiving_blk": "360226879",
+   "name": "Chuckwalla River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 2008,
+   "crossings": 2,
+   "crossing_m": 45
+  },
+  {
+   "receiving_blk": "360214185",
+   "name": "Kingcome River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 2747,
+   "crossings": 2,
+   "crossing_m": 45
+  },
+  {
+   "receiving_blk": "354150316",
+   "name": "Macjack River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 485,
+   "crossings": 1,
+   "crossing_m": 44
+  },
+  {
+   "receiving_blk": "354155136",
+   "name": "Sarita River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1786,
+   "crossings": 1,
+   "crossing_m": 44
+  },
+  {
+   "receiving_blk": "360225521",
+   "name": "Kimsquit River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 819,
+   "crossings": 2,
+   "crossing_m": 44
+  },
+  {
+   "receiving_blk": "360838702",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1037,
+   "crossings": 1,
+   "crossing_m": 44
+  },
+  {
+   "receiving_blk": "360855436",
+   "name": "Quatlena River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 397,
+   "crossings": 1,
+   "crossing_m": 43
+  },
+  {
+   "receiving_blk": "360875065",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 982,
+   "crossings": 2,
+   "crossing_m": 43
+  },
+  {
+   "receiving_blk": "360855445",
+   "name": "Paril River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 176,
+   "crossings": 1,
+   "crossing_m": 43
+  },
+  {
+   "receiving_blk": "360865282",
+   "name": "Gilttoyees Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 383,
+   "crossings": 1,
+   "crossing_m": 43
+  },
+  {
+   "receiving_blk": "360844638",
+   "name": "Lockhart Gordon Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1352,
+   "crossings": 2,
+   "crossing_m": 42
+  },
+  {
+   "receiving_blk": "354152039",
+   "name": "Bulson Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 656,
+   "crossings": 1,
+   "crossing_m": 41
+  },
+  {
+   "receiving_blk": "360242728",
+   "name": "Toba River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 552,
+   "crossings": 2,
+   "crossing_m": 41
+  },
+  {
+   "receiving_blk": "360233191",
+   "name": "Quaal River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 396,
+   "crossings": 1,
+   "crossing_m": 40
+  },
+  {
+   "receiving_blk": "354149300",
+   "name": "Rasmus Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 306,
+   "crossings": 2,
+   "crossing_m": 39
+  },
+  {
+   "receiving_blk": "354151091",
+   "name": "Caycuse River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 2241,
+   "crossings": 2,
+   "crossing_m": 36
+  },
+  {
+   "receiving_blk": "360882846",
+   "name": "Fulmore River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 14,
+   "crossings": 1,
+   "crossing_m": 36
+  },
+  {
+   "receiving_blk": "354154226",
+   "name": "Tahsish River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2642,
+   "crossings": 1,
+   "crossing_m": 35
+  },
+  {
+   "receiving_blk": "354087703",
+   "name": "San Juan River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 695,
+   "crossings": 1,
+   "crossing_m": 34
+  },
+  {
+   "receiving_blk": "354148655",
+   "name": "Keith River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2182,
+   "crossings": 1,
+   "crossing_m": 34
+  },
+  {
+   "receiving_blk": "354087713",
+   "name": "Tsitika River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1391,
+   "crossings": 1,
+   "crossing_m": 33
+  },
+  {
+   "receiving_blk": "360812872",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 547,
+   "crossings": 2,
+   "crossing_m": 32
+  },
+  {
+   "receiving_blk": "354154428",
+   "name": "Tranquil Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1926,
+   "crossings": 2,
+   "crossing_m": 31
+  },
+  {
+   "receiving_blk": "354087928",
+   "name": "Bulson Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 326,
+   "crossings": 2,
+   "crossing_m": 31
+  },
+  {
+   "receiving_blk": "354137949",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 470,
+   "crossings": 2,
+   "crossing_m": 31
+  },
+  {
+   "receiving_blk": "360215572",
+   "name": "Klinaklini River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 723,
+   "crossings": 1,
+   "crossing_m": 30
+  },
+  {
+   "receiving_blk": "360874836",
+   "name": "Canoona River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1543,
+   "crossings": 1,
+   "crossing_m": 30
+  },
+  {
+   "receiving_blk": "360858676",
+   "name": "Gudal Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 341,
+   "crossings": 1,
+   "crossing_m": 29
+  },
+  {
+   "receiving_blk": "360873432",
+   "name": "Mamin River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 2607,
+   "crossings": 2,
+   "crossing_m": 28
+  },
+  {
+   "receiving_blk": "360232663",
+   "name": "Pa-aat River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 407,
+   "crossings": 1,
+   "crossing_m": 28
+  },
+  {
+   "receiving_blk": "354140932",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 346,
+   "crossings": 2,
+   "crossing_m": 27
+  },
+  {
+   "receiving_blk": "360885965",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 451,
+   "crossings": 1,
+   "crossing_m": 27
+  },
+  {
+   "receiving_blk": "360877469",
+   "name": "Kiltuish River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 513,
+   "crossings": 1,
+   "crossing_m": 27
+  },
+  {
+   "receiving_blk": "360872925",
+   "name": "Stafford River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 546,
+   "crossings": 1,
+   "crossing_m": 27
+  },
+  {
+   "receiving_blk": "354150904",
+   "name": "Tsowwin River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 574,
+   "crossings": 1,
+   "crossing_m": 26
+  },
+  {
+   "receiving_blk": "354154544",
+   "name": "Kennedy River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1889,
+   "crossings": 1,
+   "crossing_m": 25
+  },
+  {
+   "receiving_blk": "360229557",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 458,
+   "crossings": 1,
+   "crossing_m": 25
+  },
+  {
+   "receiving_blk": "360235038",
+   "name": "Stagoo Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 409,
+   "crossings": 1,
+   "crossing_m": 25
+  },
+  {
+   "receiving_blk": "354150919",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 826,
+   "crossings": 2,
+   "crossing_m": 24
+  },
+  {
+   "receiving_blk": "360233885",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 887,
+   "crossings": 1,
+   "crossing_m": 23
+  },
+  {
+   "receiving_blk": "354088412",
+   "name": "Nimpkish River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 390,
+   "crossings": 1,
+   "crossing_m": 22
+  },
+  {
+   "receiving_blk": "360243798",
+   "name": "Khutze River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 577,
+   "crossings": 1,
+   "crossing_m": 22
+  },
+  {
+   "receiving_blk": "354154459",
+   "name": "Tsulquate River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 367,
+   "crossings": 1,
+   "crossing_m": 21
+  },
+  {
+   "receiving_blk": "360772162",
+   "name": "Cohoe Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 553,
+   "crossings": 2,
+   "crossing_m": 20
+  },
+  {
+   "receiving_blk": "356568960",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 19
+  },
+  {
+   "receiving_blk": "360877620",
+   "name": "Stagoo Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 399,
+   "crossings": 1,
+   "crossing_m": 19
+  },
+  {
+   "receiving_blk": "354087619",
+   "name": "Tzouhalem Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 298,
+   "crossings": 1,
+   "crossing_m": 18
+  },
+  {
+   "receiving_blk": "354088492",
+   "name": "Tzouhalem Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 106,
+   "crossings": 1,
+   "crossing_m": 18
+  },
+  {
+   "receiving_blk": "360223583",
+   "name": "Kowesas River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 785,
+   "crossings": 1,
+   "crossing_m": 18
+  },
+  {
+   "receiving_blk": "360847713",
+   "name": "Grand Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 82,
+   "crossings": 1,
+   "crossing_m": 18
+  },
+  {
+   "receiving_blk": "360882199",
+   "name": "Cape Ball River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 849,
+   "crossings": 1,
+   "crossing_m": 18
+  },
+  {
+   "receiving_blk": "360221844",
+   "name": "Mussel River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 142,
+   "crossings": 1,
+   "crossing_m": 18
+  },
+  {
+   "receiving_blk": "360824989",
+   "name": "Evader Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 820,
+   "crossings": 1,
+   "crossing_m": 18
+  },
+  {
+   "receiving_blk": "354151218",
+   "name": "Cous Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 540,
+   "crossings": 1,
+   "crossing_m": 17
+  },
+  {
+   "receiving_blk": "354153050",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 467,
+   "crossings": 1,
+   "crossing_m": 17
+  },
+  {
+   "receiving_blk": "354148814",
+   "name": "Power River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 670,
+   "crossings": 1,
+   "crossing_m": 17
+  },
+  {
+   "receiving_blk": "356351273",
+   "name": "(unnamed)",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 17
+  },
+  {
+   "receiving_blk": "360240745",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 247,
+   "crossings": 1,
+   "crossing_m": 17
+  },
+  {
+   "receiving_blk": "360245462",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 558,
+   "crossings": 1,
+   "crossing_m": 17
+  },
+  {
+   "receiving_blk": "354087807",
+   "name": "Zeballos River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 474,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "354155031",
+   "name": "Marble River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 377,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "354149782",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 616,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "360222774",
+   "name": "Mamin River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 880,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "360845761",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 280,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "360880075",
+   "name": "Chambers Creek",
+   "its_tidal_limit": "split:chambers_creek__tidal_boundary_dfo_subarea_3_18",
+   "its_line_in_tidal_polygon_m": 6077,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "360218212",
+   "name": "Wathl Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 291,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "360230985",
+   "name": "Kitimat River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 534,
+   "crossings": 1,
+   "crossing_m": 16
+  },
+  {
+   "receiving_blk": "360222159",
+   "name": "Kitkiata Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 366,
+   "crossings": 1,
+   "crossing_m": 15
+  },
+  {
+   "receiving_blk": "354151875",
+   "name": "Jordan River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 1735,
+   "crossings": 1,
+   "crossing_m": 14
+  },
+  {
+   "receiving_blk": "354150419",
+   "name": "Quatse River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 167,
+   "crossings": 1,
+   "crossing_m": 14
+  },
+  {
+   "receiving_blk": "360218497",
+   "name": "Bella Coola River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 961,
+   "crossings": 1,
+   "crossing_m": 13
+  },
+  {
+   "receiving_blk": "360884883",
+   "name": "Skedans Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 413,
+   "crossings": 1,
+   "crossing_m": 13
+  },
+  {
+   "receiving_blk": "360859820",
+   "name": "Stakawus Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 241,
+   "crossings": 1,
+   "crossing_m": 13
+  },
+  {
+   "receiving_blk": "360883324",
+   "name": "Marmot River",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 700,
+   "crossings": 1,
+   "crossing_m": 13
+  },
+  {
+   "receiving_blk": "360229887",
+   "name": "Apple River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 648,
+   "crossings": 1,
+   "crossing_m": 13
+  },
+  {
+   "receiving_blk": "356310070",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 0,
+   "crossings": 1,
+   "crossing_m": 13
+  },
+  {
+   "receiving_blk": "354153922",
+   "name": "Boyden Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 406,
+   "crossings": 1,
+   "crossing_m": 11
+  },
+  {
+   "receiving_blk": "360227991",
+   "name": "Kitkiata Creek",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 193,
+   "crossings": 1,
+   "crossing_m": 11
+  },
+  {
+   "receiving_blk": "360874781",
+   "name": "McClinton Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 504,
+   "crossings": 1,
+   "crossing_m": 11
+  },
+  {
+   "receiving_blk": "360856917",
+   "name": "Mace Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 196,
+   "crossings": 1,
+   "crossing_m": 11
+  },
+  {
+   "receiving_blk": "354133599",
+   "name": "Bonsall Creek",
+   "its_tidal_limit": "mouth",
+   "its_line_in_tidal_polygon_m": 461,
+   "crossings": 1,
+   "crossing_m": 10
+  },
+  {
+   "receiving_blk": "354149851",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 743,
+   "crossings": 1,
+   "crossing_m": 8
+  },
+  {
+   "receiving_blk": "356265269",
+   "name": "(unnamed)",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 1237,
+   "crossings": 1,
+   "crossing_m": 8
+  },
+  {
+   "receiving_blk": "354087702",
+   "name": "San Juan River",
+   "its_tidal_limit": "none (no row)",
+   "its_line_in_tidal_polygon_m": 447,
+   "crossings": 1,
+   "crossing_m": 7
+  }
+ ],
+ "runs_not_cut": [
+  {
+   "section": "354088057:0",
+   "blk": "354088057",
+   "name": "Koksilah River",
+   "m": 26.48,
+   "crossing_m": 26.5,
+   "share": 0.333,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "354088658:0",
+   "blk": "354088658",
+   "name": "Nimpkish River",
+   "m": 75.57,
+   "crossing_m": 75.6,
+   "share": 0.125,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "354102478:0",
+   "blk": "354102478",
+   "name": "",
+   "m": 22.33,
+   "crossing_m": 22.3,
+   "share": 0.333,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "354122529:0",
+   "blk": "354122529",
+   "name": "",
+   "m": 39.02,
+   "crossing_m": 39.0,
+   "share": 1.0,
+   "not_cut": "a piece under 5 m"
+  },
+  {
+   "section": "354124221:0",
+   "blk": "354124221",
+   "name": "",
+   "m": 233.59,
+   "crossing_m": 233.6,
+   "share": 1.0,
+   "not_cut": "the whole line is the crossing"
+  },
+  {
+   "section": "354137223:0",
+   "blk": "354137223",
+   "name": "",
+   "m": 37.35,
+   "crossing_m": 37.4,
+   "share": 0.25,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "354140656:0",
+   "blk": "354140656",
+   "name": "",
+   "m": 108.83,
+   "crossing_m": 108.8,
+   "share": 0.818,
+   "not_cut": "the whole line is the crossing"
+  },
+  {
+   "section": "354146752:0",
+   "blk": "354146752",
+   "name": "",
+   "m": 36.31,
+   "crossing_m": 36.3,
+   "share": 1.0,
+   "not_cut": "the whole line is the crossing"
+  },
+  {
+   "section": "354154913:0",
+   "blk": "354154913",
+   "name": "",
+   "m": 84.28,
+   "crossing_m": 84.3,
+   "share": 0.444,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "356070273:0",
+   "blk": "356070273",
+   "name": "",
+   "m": 586.21,
+   "crossing_m": 586.2,
+   "share": 0.322,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "356242813:0",
+   "blk": "356242813",
+   "name": "",
+   "m": 1203.68,
+   "crossing_m": 1203.7,
+   "share": 1.0,
+   "not_cut": "the whole line is the crossing"
+  },
+  {
+   "section": "360213475:0",
+   "blk": "360213475",
+   "name": "Kemano River",
+   "m": 76.81,
+   "crossing_m": 76.8,
+   "share": 0.25,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360215418:0",
+   "blk": "360215418",
+   "name": "Kemano River",
+   "m": 83.85,
+   "crossing_m": 83.9,
+   "share": 0.111,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360234058:0",
+   "blk": "360234058",
+   "name": "Bear River",
+   "m": 135.28,
+   "crossing_m": 135.3,
+   "share": 0.286,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360438242:0",
+   "blk": "360438242",
+   "name": "",
+   "m": 26.8,
+   "crossing_m": 26.8,
+   "share": 0.333,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360456772:0",
+   "blk": "360456772",
+   "name": "",
+   "m": 75.46,
+   "crossing_m": 75.5,
+   "share": 0.25,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360466479:0",
+   "blk": "360466479",
+   "name": "",
+   "m": 6561.81,
+   "crossing_m": 6561.8,
+   "share": 0.385,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360497932:0",
+   "blk": "360497932",
+   "name": "",
+   "m": 3564.56,
+   "crossing_m": 3564.6,
+   "share": 0.381,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360591445:0",
+   "blk": "360591445",
+   "name": "",
+   "m": 4.88,
+   "crossing_m": 4.9,
+   "share": 1.0,
+   "not_cut": "a piece under 5 m"
+  },
+  {
+   "section": "360649604:0",
+   "blk": "360649604",
+   "name": "",
+   "m": 43.94,
+   "crossing_m": 43.9,
+   "share": 0.4,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360692695:0",
+   "blk": "360692695",
+   "name": "",
+   "m": 6896.86,
+   "crossing_m": 6896.9,
+   "share": 0.494,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360693030:0",
+   "blk": "360693030",
+   "name": "",
+   "m": 6824.42,
+   "crossing_m": 6824.4,
+   "share": 0.457,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360693421:0",
+   "blk": "360693421",
+   "name": "",
+   "m": 60.64,
+   "crossing_m": 60.6,
+   "share": 0.286,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360702343:0",
+   "blk": "360702343",
+   "name": "",
+   "m": 67.93,
+   "crossing_m": 67.9,
+   "share": 0.286,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360771205:0",
+   "blk": "360771205",
+   "name": "",
+   "m": 52.86,
+   "crossing_m": 52.9,
+   "share": 0.333,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360786183:0",
+   "blk": "360786183",
+   "name": "",
+   "m": 164.21,
+   "crossing_m": 164.2,
+   "share": 0.294,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360808924:0",
+   "blk": "360808924",
+   "name": "",
+   "m": 179.74,
+   "crossing_m": 179.7,
+   "share": 0.222,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360842479:0",
+   "blk": "360842479",
+   "name": "",
+   "m": 51.57,
+   "crossing_m": 51.6,
+   "share": 0.167,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360870562:0",
+   "blk": "360870562",
+   "name": "",
+   "m": 49.04,
+   "crossing_m": 49.0,
+   "share": 0.4,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360878868:0",
+   "blk": "360878868",
+   "name": "x̱enichen stulu",
+   "m": 28.22,
+   "crossing_m": 28.2,
+   "share": 0.333,
+   "not_cut": "under 50% in tidal water"
+  },
+  {
+   "section": "360880075:0",
+   "blk": "360880075",
+   "name": "Chambers Creek",
+   "m": 8153.2,
+   "crossing_m": 8153.2,
+   "share": 0.686,
+   "not_cut": "the whole line is the crossing"
+  },
+  {
+   "section": "360883438:0",
+   "blk": "360883438",
+   "name": "Chuckwalla River",
+   "m": 70.37,
+   "crossing_m": 70.4,
+   "share": 0.25,
+   "not_cut": "under 50% in tidal water"
+  }
+ ],
+ "layer_covers_land": [
+  {
+   "where": "Barnston Island, Fraser River (Surrey)",
+   "seen": "T660-shots/fraser-close.png",
+   "note": "the tidal polygon covers the island; its ditch lines are kept freshwater (their own lines, not crossings)"
+  }
+ ]
+}

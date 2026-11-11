@@ -1,0 +1,430 @@
+diff --git a/pipeline/atlas/build.py b/pipeline/atlas/build.py
+index 8959cd3cd..46acd0ea8 100644
+--- a/pipeline/atlas/build.py
++++ b/pipeline/atlas/build.py
+@@ -919,6 +919,7 @@ def sectionize(b: _Build) -> None:
+     cut_braids(b)
+     cut_areas(b)
+     cut_length(b)
++    cut_shores(b)
+     alias_tidal_mouths(b)
+     mark_membership(b)
+ 
+@@ -1271,6 +1272,41 @@ def cut_length(b: _Build) -> None:
+         _tick("length cap splits")
+ 
+ 
++def cut_shores(b: _Build) -> None:
++    """T660 SHORE CUTS, after the length cap: a creek FWA draws on across tidal water to its river's line is cut where
++    its own line begins (`splits.shore`), so the crossing is a section of its own and the reach run can take it as
++    tidal. Placed and swept like the length cuts (every split kind, one gate), and recorded in `shore_cuts.json`.
++
++    Reads: args, bbox, graph, geoms, fids, fid_index, applied_splits. Writes: nothing new (graph, applied_splits in
++    place)."""
++    args, graph, geoms, fid_index, applied_splits = b.args, b.graph, b.geoms, b.fid_index, b.applied_splits
++    from pipeline.atlas.splits import braid_sweep as _bs
++    from pipeline.atlas.splits import shore as _shore
++    from pipeline.atlas.splits.sectionizer import place_points, split_graph_at
++    from pipeline.common import fwa_edge_types as _et
++    crossing = {f.fid: f.geometry for f in b.fids if f.edge_type == _et.WATER_CROSSING}
++    poly = _shore.read_tidal_polygon(args.gpkg, bbox=getattr(b, "bbox", None))
++    record: list = []
++    pts = [] if poly is None else _shore.shore_cuts(graph, fid_index, set(crossing),
++                                                    _shore.share_in(poly, crossing), record=record)
++    pts = place_points(graph, pts)
++    sweep = _bs.sweep(graph, geoms, pts, view=_bs.View(graph, geoms))
++    if sweep.points:
++        raise SystemExit(f"shore: {len(sweep.points)} shore cut(s) catch a braid ({sweep.counts()}) — a crossing "
++                         "run is one line; see the cuts in shore_cuts.json")
++    before = len(graph.nodes)
++    if pts:
++        split_graph_at(graph, geoms, pts, fid_index, applied=applied_splits)
++        resid = _bs.residual_straddles(graph, geoms, pts)
++        if resid:
++            raise SystemExit(f"shore: {len(resid)} network(s) straddle a shore cut after it was made")
++    (Path(args.out) / _shore.RECORD).write_text(json.dumps(
++        {"_about": _shore.RECORD_ABOUT, "cuts": len(pts), "runs": record}, indent=1) + "\n", encoding="utf-8")
++    print(f"  shore cuts: {len(pts)} crossing(s) in tidal water cut at the shore -> {len(graph.nodes) - before} new "
++          f"section(s); {sum(1 for r in record if r.get('not_cut'))} run(s) touching it not cut ({_shore.RECORD})")
++    b.tick("shore cuts")
++
++
+ def mark_membership(b: _Build) -> None:
+     """MEMBERSHIP + GATES: area membership, the sliver gate (asserts only), the close-pair report,
+     management units, then the reach-qualified name variants (they wait for the cuts).
+diff --git a/pipeline/atlas/sidecars.py b/pipeline/atlas/sidecars.py
+index c8c23c369..a7876d7b6 100644
+--- a/pipeline/atlas/sidecars.py
++++ b/pipeline/atlas/sidecars.py
+@@ -77,6 +77,8 @@ def enrich_resolved(rows: list[dict], curated_defs, *, strict: bool = True) -> l
+             r["source"] = "area"
+         elif sid.startswith("length:"):
+             r["source"] = "length"
++        elif sid.startswith("shore:"):          # T660
++            r["source"] = "shore"
+         elif sid.startswith("border:"):
+             r["source"] = "border"
+         elif strict:
+diff --git a/pipeline/atlas/splits/sectionizer.py b/pipeline/atlas/splits/sectionizer.py
+index 93d4c6e98..19a2f6d3a 100644
+--- a/pipeline/atlas/splits/sectionizer.py
++++ b/pipeline/atlas/splits/sectionizer.py
+@@ -72,8 +72,8 @@ _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
+ # ------------------------------------------------------------------------------------------------
+ 
+ #: Families the pipeline mints. Authorship is the point's `source`, set where each family is minted
+-#: (`anchors._emit`, `border`, `area_splits`, `clean_cut`, `length_splits`) — never parsed from an id.
+-AUTO_SOURCES = frozenset({"gauge", "area", "border", "length"})
++#: (`anchors._emit`, `border`, `area_splits`, `clean_cut`, `length_splits`, `shore`) — never parsed from an id.
++AUTO_SOURCES = frozenset({"gauge", "area", "border", "length", "shore"})
+ 
+ #: A minted boundary (or auto point) this close to an authored point joins it, at the authored measure;
+ #: a lake edge or natural end this close is a conflict — the piece between would be a sliver
+@@ -95,12 +95,12 @@ PROPOSAL_M = 25.0
+ FOLD_SNAP_M = 1.0
+ #: An auto family's merge distance is its own positional uncertainty. A GAUGE is a published station
+ #: coordinate projected onto its channel (`gauges.consume.cuts.PROXIMITY_M`, 400 m — the value the old
+-#: pickup read, one-sidedly, as its radius); area, border and length cuts are exact geometry, so they
++#: pickup read, one-sidedly, as its radius); area, border, length and shore cuts are exact geometry, so they
+ #: join only what IS the same point (`SAME_PLACE_M`, float identity — the 2026-10-06 ruling).
+ MERGE_M = {"gauge": 400.0, "length": _tol.SAME_PLACE_M, "area": _tol.SAME_PLACE_M,
+-           "border": _tol.SAME_PLACE_M}
++           "border": _tol.SAME_PLACE_M, "shore": _tol.SAME_PLACE_M}
+ #: Which auto id names a place no authored name stands at.
+-_AUTO_RANK = {"border": 0, "area": 1, "gauge": 2, "length": 3}
++_AUTO_RANK = {"border": 0, "area": 1, "gauge": 2, "length": 3, "shore": 4}
+ 
+ 
+ def is_authored(source: str) -> bool:
+diff --git a/pipeline/atlas/splits/shore.py b/pipeline/atlas/splits/shore.py
+new file mode 100644
+index 000000000..01395cddd
+--- /dev/null
++++ b/pipeline/atlas/splits/shore.py
+@@ -0,0 +1,139 @@
++"""T660 (owner 2026-11-11): THE SHORE CUT — a stream's line ends where it leaves the water it enters.
++
++FWA draws a creek on from its shore straight across a double-line river or an estuary to the receiving main flow; those
++lines carry their own edge type (`fwa_edge_types.WATER_CROSSING`). Below the Skeena's tidal limit 38 creeks crossed the
++estuary that way, so the creek's lowest section ran from its first confluence on land out over the tidal water to the
++river's line, and every rule binding the creek coloured the estuary (the owner, on the T632 tidal sheets: "collapsed
++to the boundary").
++
++THE CUT. On every blue line whose MOUTH (its lowest stream piece) begins with a run of crossing lines lying IN TIDAL
++WATER — at least `MIN_SHARE` of the run's length inside the DFO tidal-waters polygon (`tidal_boundary` in the build
++gpkg, the polygon the generic tidal method reads: `tools.audit.tidal_candidates`, the map's `tidal_water`), sampled
++every `SAMPLE_M` — and continues above it with any other line, the atlas cuts at the top of that run: the FWA segment
++boundary where the creek's own line begins, an exact measure (no snapping). The piece below is the crossing; the piece
++above is the creek. A crossing that is the whole line is not cut (nothing is above it). A run whose either piece would
++be shorter than `SLIVER_M` is not cut. Inland, the same lines cross double-line rivers and lakes (329,452 of them,
++53,877 km; 476 km in the polygon): they are never cut here.
++
++THE ATLAS DOES NOT DECIDE TIDAL WATER HERE. It only gives a crossing in tidal water a section of its own. Whether that
++section is tidal is the reach run's question (`reach.outside.tidal_crossing_owner`): exactly when it ends in tidal
++water off the map. A creek crossing a river the owner's limit keeps freshwater to its mouth (the Bear, the Kemano) is
++cut the same way and stays freshwater; `shore_cuts.json` lists every cut and every run not cut, with its share, for the
++owner. The cut's id is `shore:<blk>:<int measure>` (minted, like `length:`), its source `shore`, its label `LABEL`
++("shore": true whether the water it enters is tidal or not).
++"""
++from __future__ import annotations
++
++from typing import Callable, Mapping
++
++from pipeline.common import fwa_edge_types as _et
++from pipeline.common.models import AnchorType, NodeKind, SplitPoint, StreamGraph
++from pipeline.common.tolerances import SLIVER_M
++
++#: the cut family (`SplitPoint.source`, `sectionizer.AUTO_SOURCES`) and its id prefix
++SOURCE = "shore"
++#: two FWA segments whose measures differ by less than this are one boundary (float slop between segment rows)
++_JOIN_M = 0.01
++#: a crossing run is IN tidal water when at least this share of its length lies in the polygon. MEASURED 2026-11-11 at
++#: the mouths: 158 runs ending in the run's tidal water at >= 50 % (120.2 km), 3 under it (0.7 km)
++MIN_SHARE = 0.5
++#: the polygon is sampled along each line every this many metres
++SAMPLE_M = 10.0
++#: the atlas sidecar listing every crossing run at a mouth that touches tidal water: cut, or why not
++RECORD = "shore_cuts.json"
++#: every shore cut's label: where the creek's own line meets the water it enters (tidal or not: the reach decides)
++LABEL = "shore"
++RECORD_ABOUT = ("T660: every creek mouth whose FWA water-crossing run touches the DFO tidal polygon. A row without "
++                "`not_cut` was cut at `m` (the top of the crossing); the reach run takes the piece below as tidal only "
++                "when it ends in tidal water. Written by the atlas build (`atlas.splits.shore`); read by people.")
++
++
++def crossing_run(node, fid_index: Mapping[str, tuple], crossing_fids) -> tuple[list[str], float, bool] | None:
++    """The run of water-crossing lines at the foot of `node`: (its fids, the measure of its top, is anything above
++    it). None when the node does not start with one. `fid_index` is fid -> (down_m, up_m, ...); `crossing_fids` the
++    fids whose edge type is `fwa_edge_types.WATER_CROSSING`."""
++    segs = sorted(((fid_index[f][0], fid_index[f][1], f) for f in node.member_fids if f in fid_index),
++                  key=lambda r: (r[0], r[1], r[2]))
++    if not segs or segs[0][2] not in crossing_fids or abs(segs[0][0] - node.down_m) > _JOIN_M:
++        return None
++    run, top = [segs[0][2]], segs[0][1]
++    for lo, hi, f in segs[1:]:
++        if f in crossing_fids and abs(lo - top) <= _JOIN_M:
++            run.append(f)
++            top = hi
++            continue
++        return run, top, True
++    return run, top, False
++
++
++def shore_cuts(graph: StreamGraph, fid_index: Mapping[str, tuple], crossing_fids, share_of: Callable[[list], float],
++               record: list | None = None) -> list[SplitPoint]:
++    """One SplitPoint per blue line whose mouth piece starts with a crossing run in tidal water (`share_of(run fids)`
++    at least `MIN_SHARE`) and continues above it: at the top of that run. Sorted by blk, so the same graph gives the
++    same list. `record` collects one row per crossing run at a mouth with a share above 0 — cut or not, and why."""
++    lowest: dict[str, str] = {}
++    for nid in sorted(graph.nodes):
++        n = graph.nodes[nid]
++        if n.kind != NodeKind.stream or not n.blk:
++            continue
++        cur = lowest.get(n.blk)
++        if cur is None or n.down_m < graph.nodes[cur].down_m:
++            lowest[n.blk] = nid
++    out: list[SplitPoint] = []
++    for blk in sorted(lowest):
++        n = graph.nodes[lowest[blk]]
++        got = crossing_run(n, fid_index, crossing_fids)
++        if got is None:
++            continue
++        run, top, above = got
++        share = float(share_of(run))
++        if share <= 0.0:
++            continue
++        why = ("" if share >= MIN_SHARE and above and top - n.down_m >= SLIVER_M and n.up_m - top >= SLIVER_M else
++               f"under {MIN_SHARE:.0%} in tidal water" if share < MIN_SHARE else
++               "the whole line is the crossing" if not above else f"a piece under {SLIVER_M:g} m")
++        if record is not None:
++            record.append({"section": n.node_id, "blk": blk, "name": n.display_name, "m": round(top, 2),
++                           "crossing_m": round(top - n.down_m, 1), "share": round(share, 3),
++                           **({"not_cut": why} if why else {})})
++        if why:
++            continue
++        out.append(SplitPoint(split_id=f"{SOURCE}:{blk}:{int(top)}", blk=blk, route_measure=top, fid="",
++                              label=LABEL, anchor_type=AnchorType.point, source=SOURCE))
++    return out
++
++
++def share_in(polygon, geometries: Mapping[str, object]) -> Callable[[list], float]:
++    """`share_of` for `shore_cuts`: the share of a run's length inside `polygon` (prepared once), from points every
++    `SAMPLE_M` along each line, both ends included — deterministic, and fast on a coast-long polygon an exact
++    intersection is not."""
++    import numpy as np
++    import shapely
++    shapely.prepare(polygon)
++
++    def share(fids: list) -> float:
++        tot = inside = 0.0
++        for f in fids:
++            g = geometries.get(f)
++            if g is None or g.is_empty:
++                continue
++            g = shapely.force_2d(g)
++            n = max(2, int(g.length // SAMPLE_M) + 1)
++            pts = shapely.line_interpolate_point(g, np.linspace(0.0, g.length, n))
++            hit = shapely.contains_xy(polygon, shapely.get_x(pts), shapely.get_y(pts))
++            tot += g.length
++            inside += g.length * float(hit.mean())
++        return inside / tot if tot else 0.0
++    return share
++
++
++def read_tidal_polygon(gpkg: str, bbox=None):
++    """The DFO tidal-waters polygon (`tidal_boundary`, EPSG:3005), one geometry. A gpkg without it is refused (AGENTS
++    37): a build that cut no shore would look healthy."""
++    import pyogrio
++    import shapely
++    df = pyogrio.read_dataframe(gpkg, layer="tidal_boundary", bbox=bbox)
++    geoms = [g for g in df.geometry if g is not None and not g.is_empty]
++    if not geoms and bbox is None:
++        raise SystemExit(f"shore: {gpkg} layer tidal_boundary holds no polygon")
++    return shapely.union_all(geoms) if geoms else None
+diff --git a/pipeline/deliver/bundle/spans.py b/pipeline/deliver/bundle/spans.py
+index 54b74d38c..9b5bae764 100644
+--- a/pipeline/deliver/bundle/spans.py
++++ b/pipeline/deliver/bundle/spans.py
+@@ -75,7 +75,7 @@ PREFIXED_ENDS = ("lake_inlet:", "lake_outlet:", "confluence:", "region_line:", "
+ REGION_AREA = re.compile(r"^area:([1-8]|7A|7B)$")
+ #: Split families the atlas mints itself (`sectionizer.minted_id`, by id: an alias carries no source): positions, not
+ #: names. One standing at a run's end gives way to an authored alias at the same place.
+-_AUTO = ("gauge__", "area:", "border:", "length:")
++_AUTO = ("gauge__", "area:", "border:", "length:", "shore:")
+ 
+ 
+ def _is_auto(split_id: str) -> bool:
+diff --git a/pipeline/deliver/bundle/topology.py b/pipeline/deliver/bundle/topology.py
+index 3163247b5..bef97f759 100644
+--- a/pipeline/deliver/bundle/topology.py
++++ b/pipeline/deliver/bundle/topology.py
+@@ -647,10 +647,10 @@ def gauge_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[int,
+     cut by its km from the mouth, `part._named_token`)."""
+     from shapely.ops import nearest_points
+     kinds = dict(db.execute("SELECT split_id, kind FROM split"))
+-    # a cut with a name of its own: never a gauge, never a length cut (`length:…`: its name is a generated description
++    # a cut with a name of its own: never a gauge, never a length or shore cut (`length:…`, T660 `shore:…`: its name is a generated description
+     # of an unnamed side channel's junction, "side channel above Iltasyuko River", not a named feature)
+     named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
+-                 if n and kinds.get(k) != "gauge" and not k.startswith("length:")}
++                 if n and kinds.get(k) != "gauge" and not k.startswith(("length:", "shore:"))}
+     item_id = dict(db.execute("SELECT ord, item_id FROM item"))
+     owner = {x: o for (o, _p), ss in sids.items() for x in ss}
+     ends: Dict[Tuple[int, str], List[int]] = defaultdict(list)       # (water, token) -> the sections ending there
+@@ -767,7 +767,7 @@ def crossing_near(db: sqlite3.Connection, geo: Dict[int, Geometry], span: Dict[i
+     from shapely.ops import nearest_points, unary_union
+     kinds = dict(db.execute("SELECT split_id, kind FROM split"))
+     named_cut = {k for k, n in db.execute("SELECT split_id, name FROM split")
+-                 if n and kinds.get(k) != "gauge" and not k.startswith("length:")}
++                 if n and kinds.get(k) != "gauge" and not k.startswith(("length:", "shore:"))}
+     item_id = dict(db.execute("SELECT ord, item_id FROM item"))
+     to3005 = Transformer.from_crs(4326, 3005, always_xy=True)
+     towns = [(Point(*to3005.transform(lon, lat)), name) for name, lon, lat in db.execute(
+diff --git a/pipeline/docs/MAP.md b/pipeline/docs/MAP.md
+index d8e383f09..ababc160d 100644
+--- a/pipeline/docs/MAP.md
++++ b/pipeline/docs/MAP.md
+@@ -30,7 +30,7 @@ against the live release) → LATEST → `deploy/staging/upload.sh`. Its ledger
+ 
+ | stage | code | reads | writes (`GENERATED.*`, `pipeline/common/curated.py`) |
+ |---|---|---|---|
+-| **atlas** | `atlas/build.py`; `atlas/graph/` (network, prune, tributaries, windows), `atlas/splits/` (sectionizer, anchors, area cuts, border, sliver gate), `atlas/registry/` (named waters, flowing-polygon fold, regions), `atlas/waters/` (added lakes/streams), `atlas/sidecars.py`, `atlas/promote.py`, `atlas/inputs.py` (T547: the digest of every curated input, in `graph.pkl.meta.json`; `pipeline release` refuses an atlas behind one) | FWA gpkg, `CURATED.splits`, names, areas | `data/generated/atlas/<build>/`: graph, `registry.json`, `section_handles.txt`, sidecars |
++| **atlas** | `atlas/build.py`; `atlas/graph/` (network, prune, tributaries, windows), `atlas/splits/` (sectionizer, anchors, area cuts, border, sliver gate, shore cuts: T660 a creek drawn across tidal water is cut at its shore, `shore_cuts.json`), `atlas/registry/` (named waters, flowing-polygon fold, regions), `atlas/waters/` (added lakes/streams), `atlas/sidecars.py`, `atlas/promote.py`, `atlas/inputs.py` (T547: the digest of every curated input, in `graph.pkl.meta.json`; `pipeline release` refuses an atlas behind one) | FWA gpkg, `CURATED.splits`, names, areas | `data/generated/atlas/<build>/`: graph, `registry.json`, `section_handles.txt`, sidecars |
+ | **clim** | `gauges/feed/climatology.py` | HYDAT | `clim.json` (the gauge envelope) |
+ | **reach** | `atlas/reach/` (`cli.py`, `build.py`, `classify.py`, `extent.py`, `licensing.py`, `steelhead.py`, `cache.py`) | atlas, the catalogue corpus (`data/curated/regulations/synopsis/`) | `data/generated/reaches/<run>/`: per-rule bindings, `report.json`, diagnostics |
+ | **tiles** | `deliver/tiles/` (`tippe.py`, `layers.py`, `names.py`, `basemap.py`) | atlas | `data/generated/tiles/`: `atlas.pmtiles` (z4–13, T85), `atlas.meta.json`, `layers/` + `layers/undrawn.json` (the sections left out on purpose, T64; the bundle's `bundle/undrawn.py` proves none was needed), never the basemap |
+diff --git a/pipeline/tests/smoke.txt b/pipeline/tests/smoke.txt
+index 8ac3eb42b..02a36f8a9 100644
+--- a/pipeline/tests/smoke.txt
++++ b/pipeline/tests/smoke.txt
+@@ -192,6 +192,7 @@ pipeline/tests/test_rule_dates.py::test_a_clause_inside_a_dated_siblings_sentenc
+ pipeline/tests/test_rules_round.py::test_clean_verbatim_reads_like_the_book
+ pipeline/tests/test_section_handles.py::test_a_handle_survives_nothing_and_that_is_the_point
+ pipeline/tests/test_sectionizer.py::test_a_boundary_crossed_three_times_names_its_first_and_last
++pipeline/tests/test_shore_cuts.py::test_the_shore_family_is_minted
+ pipeline/tests/test_see_pointers.py::test_a_dangling_pointer_stops_the_build
+ pipeline/tests/test_shared_logic.py::test_normalise_folds_a_possessive
+ pipeline/tests/test_smoke_coverage.py::test_every_test_file_is_smoke_listed_data_only_or_pending
+diff --git a/pipeline/tests/test_shore_cuts.py b/pipeline/tests/test_shore_cuts.py
+new file mode 100644
+index 000000000..16957a345
+--- /dev/null
++++ b/pipeline/tests/test_shore_cuts.py
+@@ -0,0 +1,117 @@
++"""T660: THE SHORE CUT — a creek FWA draws on across tidal water to its river's line is cut where its own line begins.
++
++Synthetic FWA lines (a river X, creeks C and D drawn across the water with `fwa_edge_types.WATER_CROSSING`), built into a
++graph by the real builder, cut by the real sectionizer, then read by the reach run's `crossing_pieces`: the atlas makes
++the piece, the reach recognises it by the cut. No data.
++"""
++from __future__ import annotations
++
++from shapely.geometry import LineString, box
++
++from pipeline.atlas.graph import cutting
++from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
++from pipeline.atlas.graph.graph import build_stream_graph
++from pipeline.atlas.splits import shore as S
++from pipeline.atlas.splits.sectionizer import AUTO_SOURCES, minted_id, place_points, split_graph_at
++from pipeline.common import fwa_edge_types as ET
++
++CROSS, LAND = ET.WATER_CROSSING, ET.SINGLE_LINE
++#: the tidal water: south of y = 300, around C's mouth and E's (D's mouth, at x = 1500, is not in it)
++SEA = box(-1000, -1000, 1000, 300).union(box(2000, -1000, 3000, 300))
++
++
++def _fid(fid, blk, wsc, coords, down_m, up_m, et=LAND, name=""):
++    geom = LineString(coords)
++    dn, un = cutting.blk_endpoints(geom)
++    return FidRow(fid=fid, blk=blk, wsc=wsc, edge_type=et, wbk="", gnis_id="9" if name else "", gnis_name=name,
++                  stream_order=1, stream_magnitude=1, down_m=down_m, up_m=up_m, geometry=geom, down_node=dn, up_node=un)
++
++
++def _fids():
++    """River X along y = 0. Creek C joins at x = 500: crossed from y = 0 to the shore at y = 300 (two crossing lines),
++    then 700 m of its own line on land. Creek D joins at x = 1500 the same way but its crossing lies on LAND (an inland
++    river polygon: the polygon misses it). Creek E is a crossing and nothing else."""
++    return [
++        _fid("X1", "X", "100", [(0, 0), (500, 0)], 0, 500, name="X River"),
++        _fid("X2", "X", "100", [(500, 0), (1500, 0)], 500, 1500, name="X River"),
++        _fid("X3", "X", "100", [(1500, 0), (2500, 0)], 1500, 2500, name="X River"),
++        _fid("C1", "C", "100-1", [(500, 0), (500, 150)], 0, 150, et=CROSS),
++        _fid("C2", "C", "100-1", [(500, 150), (500, 300)], 150, 300, et=CROSS),
++        _fid("C3", "C", "100-1", [(500, 300), (500, 1000)], 300, 1000, name="C Creek"),
++        _fid("D1", "D", "100-5", [(1500, 0), (1500, 600)], 0, 600, et=CROSS),
++        _fid("D2", "D", "100-5", [(1500, 600), (1500, 900)], 600, 900),
++        _fid("E1", "E", "100-7", [(2500, 0), (2500, 200)], 0, 200, et=CROSS),
++    ]
++
++
++def _graph():
++    fids = _fids()
++    g = build_stream_graph(build_blk_chains(fids, {}), fids)
++    idx = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
++    cross = {f.fid: f.geometry for f in fids if f.edge_type == CROSS}
++    return g, idx, cross, {f.fid: f.geometry for f in fids}
++
++
++def test_a_crossing_in_tidal_water_is_cut_at_the_top_of_its_run():
++    g, idx, cross, _ = _graph()
++    rec: list = []
++    pts = S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross), record=rec)
++    assert [(p.split_id, p.blk, p.route_measure, p.source, p.label) for p in pts] == \
++        [("shore:C:300", "C", 300, "shore", "shore")]
++    # D's crossing lies on land (0 % in the polygon): no cut, no record; E is a crossing through and through
++    assert [(r["blk"], r.get("not_cut")) for r in rec] == [("C", None), ("E", "the whole line is the crossing")]
++
++
++def test_a_run_mostly_on_land_is_recorded_and_not_cut():
++    g, idx, cross, _ = _graph()
++    half = box(-1000, -1000, 3000, 200)            # C's crossing: 200 of 300 m in, D's: 200 of 600 m in
++    rec: list = []
++    pts = S.shore_cuts(g, idx, set(cross), S.share_in(half, cross), record=rec)
++    assert [p.blk for p in pts] == ["C"]
++    assert {r["blk"]: r.get("not_cut") for r in rec}["D"] == "under 50% in tidal water"
++
++
++def test_the_cut_piece_is_what_the_reach_reads_as_the_crossing():
++    """Atlas -> reach: after the real sectionizer cuts, `reach.outside.crossing_pieces` holds the crossing (by the
++    shore cut: a cut piece keeps its parent's mixed edge types) and the creek above it is not one."""
++    from pipeline.atlas.reach.outside import crossing_pieces
++    g, idx, cross, geoms = _graph()
++    pts = place_points(g, S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross)))
++    split_graph_at(g, {}, pts, idx)
++    c = {nid for nid, n in g.nodes.items() if n.blk == "C"}
++    assert c == {"C:0", "C:300"}
++    assert g.nodes["C:0"].upper_bound.boundary_id == "split:shore:C:300"
++    got = crossing_pieces(g)
++    assert "C:0" in got and "C:300" not in got and not any(n.startswith("D:") for n in got)
++
++
++def test_the_shore_family_is_minted():
++    assert "shore" in AUTO_SOURCES and minted_id("shore:C:300") and minted_id("split:shore:C:300")
++
++
++def test_a_sliver_is_not_cut():
++    g, idx, cross, _ = _graph()
++    idx = dict(idx, C3=(300, 303, 1, 1))                 # 3 m of C's own line above its crossing
++    n = g.nodes["C:0"]
++    g.nodes["C:0"] = type(n)(**{**n.__dict__, "up_m": 303.0})
++    rec: list = []
++    assert S.shore_cuts(g, idx, set(cross), S.share_in(SEA, cross), record=rec) == []
++    assert rec[0]["not_cut"] == "a piece under 5 m"
++
++
++def test_the_atlas_stage_cuts_records_and_sweeps(tmp_path, monkeypatch):
++    """`build.cut_shores` end to end on the synthetic lines: one cut, the record written, the sweep finds no braid."""
++    import json
++    from types import SimpleNamespace
++    from shapely.ops import linemerge
++    from pipeline.atlas import build as B
++    g, idx, cross, by_fid = _graph()
++    geoms = {nid: linemerge([by_fid[f] for f in n.member_fids]) for nid, n in g.nodes.items()}
++    monkeypatch.setattr(S, "read_tidal_polygon", lambda gpkg, bbox=None: SEA)
++    b = SimpleNamespace(args=SimpleNamespace(gpkg="unused.gpkg", out=str(tmp_path)), graph=g, geoms=geoms,
++                        fid_index=idx, applied_splits=[], fids=_fids(), bbox=None, tick=lambda label: None)
++    B.cut_shores(b)
++    assert {nid for nid in g.nodes if nid.startswith("C:")} == {"C:0", "C:300"}
++    assert [p.split_id for p in b.applied_splits] == ["shore:C:300"]
++    rec = json.loads((tmp_path / S.RECORD).read_text())
++    assert rec["cuts"] == 1 and [r["blk"] for r in rec["runs"]] == ["C", "E"]
