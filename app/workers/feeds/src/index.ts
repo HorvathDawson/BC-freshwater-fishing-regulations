@@ -32,7 +32,7 @@ import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
 import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
-import { CORS as REPORT_CORS, handleReport, listReports, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
+import { capEvents, CORS as REPORT_CORS, handleReport, listReports, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
 
 export interface Env extends ReportEnv, DispatchEnv {
   BUCKET: R2BucketLike;
@@ -375,6 +375,8 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
   // (T558 item 2) the gauge run (the most frequent) also watches the daily jobs
   if (job === "gauges") {
     try { events.push(...await lateJobEvents(env.BUCKET, started, at)); } catch (e) { logErr(`daily jobs: not checked (${String((e as Error)?.message ?? e)})`); }
+    // (T609 W1) a day whose report / new-error-kind total was reached
+    try { events.push(...await capEvents(env.BUCKET, started, at)); } catch (e) { logErr(`report caps: not checked (${String((e as Error)?.message ?? e)})`); }
   }
   // (T558) the status (private/feeds/status.json) and the outbox. The status is written whatever the outbox does; a step
   // that fails is printed and kept in the result (`stepErrors`), never only in a log no cron prints

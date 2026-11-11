@@ -285,3 +285,15 @@ describe("(T595) a class on each kind: defect / network / expected", () => {
     expect(await crashEvents(BUCKET, (k) => k === other.key, at("2026-11-09T21:00:00Z"), "x")).toHaveLength(1);
   });
 });
+
+// T609 W1: no overall cap — a flood of new kinds was stored without limit
+describe("the day's total of new error kinds (T609 W1)", () => {
+  it("past the cap a NEW kind is refused (429); a repeat of a known kind still counts", async () => {
+    const { CRASH_KINDS_PER_DAY_TOTAL, totalKey } = await import("../src/reports");
+    const BUCKET = new MemBucket();
+    expect((await handleCrash(post(crash()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:00Z"))).status).toBe(201);
+    BUCKET.m.set(totalKey("private/crashes/limits/", "2026-10-29"), JSON.stringify({ day: "2026-10-29", n: CRASH_KINDS_PER_DAY_TOTAL }));
+    expect((await handleCrash(post(crash({ message: "another" }), "198.51.100.7"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:05Z"))).status).toBe(429);
+    expect((await handleCrash(post(crash(), "198.51.100.8"), { BUCKET, REPORT_SALT: SALT }, at("2026-10-29T20:00:06Z"))).status).toBe(201);
+  });
+});

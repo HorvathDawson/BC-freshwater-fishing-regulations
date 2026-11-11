@@ -48,7 +48,8 @@ describe("POST /report (T237)", () => {
     expect(await r.json()).toEqual({ ok: true, id: "0123456789abcdef" });
     expect(r.headers.get("Access-Control-Allow-Origin")).toBe("*");
     const keys = [...BUCKET.m.keys()].sort();
-    expect(keys[1]).toMatch(/^private\/reports\/limits\/[0-9a-f]{32}\.json$/);
+    expect(keys[2]).toMatch(/^private\/reports\/limits\/[0-9a-f]{32}\.json$/);
+    expect(keys[1]).toBe("private/reports/limits/_total-2026-10-28.json");   // (T609 W1) the day's total
     expect(keys[0]).toBe("private/reports/2026-10-28/0123456789abcdef.json");
     const stored = BUCKET.m.get(keys[0]!)!;
     expect(JSON.parse(stored)).toEqual({ ...report(), received: "2026-10-28T20:00:05.000Z" });
@@ -253,5 +254,50 @@ describe("report/2 (T352)", () => {
     expect(validateReport(v2({ lon: -200 }))).toEqual({ ok: false, error: "bad context.lon" });
     expect(validateReport(v2({ install: "me@example.org" }))).toEqual({ ok: false, error: "bad context.install" });
     expect(validateReport(v2({ layer: "x".repeat(LIMITS.field + 1) }))).toEqual({ ok: false, error: "bad context.layer" });
+  });
+});
+
+// T609 W1: one IPv6 line owns 2^64 addresses — every limit was walked around by changing the low 64 bits; no daily total
+describe("limits that hold (T609 W1)", () => {
+  it("ipKey: IPv6 by its /64 in every spelling; IPv4 and v4-mapped as the IPv4", async () => {
+    const { ipKey } = await import("../src/reports");
+    expect(ipKey("203.0.113.9")).toBe("203.0.113.9");
+    expect(ipKey("::ffff:203.0.113.9")).toBe("203.0.113.9");
+    const a = ipKey("2001:db8:1:2:aaaa:bbbb:cccc:dddd");
+    expect(a).toBe("2001:db8:1:2::/64");
+    expect(ipKey("2001:0db8:0001:0002::1")).toBe(a);
+    expect(ipKey("2001:DB8:1:2:ffff::")).toBe(a);
+    expect(ipKey("2001:db8::1")).toBe("2001:db8:0:0::/64");
+    expect(ipKey("2001:db8:1:3::1")).not.toBe(a);
+  });
+  it("a new address in the same /64 is the same caller", async () => {
+    const BUCKET = new MemBucket();
+    const send = (ip: string, t: string) => handleReport(new Request("https://w/report", { method: "POST", body: JSON.stringify(report({ id: Math.random().toString(16).slice(2, 10).padEnd(16, "0") })), headers: { "CF-Connecting-IP": ip } }), { BUCKET, REPORT_SALT: SALT }, at(t));
+    expect((await send("2001:db8:1:2::1", "2026-10-28T20:00:00Z")).status).toBe(201);
+    expect((await send("2001:db8:1:2::2", "2026-10-28T20:00:03Z")).status).toBe(429);   // inside the 10 s gap
+  });
+  it("the day's total from everyone: past it a 429, the total is marked, and the gauge run tells the owner once", async () => {
+    const { capEvents, REPORTS_PER_DAY_TOTAL, totalKey } = await import("../src/reports");
+    const BUCKET = new MemBucket();
+    BUCKET.m.set(totalKey("private/reports/limits/", "2026-10-28"), JSON.stringify({ day: "2026-10-28", n: REPORTS_PER_DAY_TOTAL }));
+    const r = await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:00Z"));
+    expect(r.status).toBe(429);
+    expect([...BUCKET.m.keys()].some((k) => k.startsWith("private/reports/2026"))).toBe(false);
+    const ev = await capEvents(BUCKET, at("2026-10-28T21:00:00Z"), "x");
+    expect(ev.map((e) => [e.key, e.urgent])).toEqual([["cap:private/reports/limits/:2026-10-28", true]]);
+  });
+  it("a counter that cannot be read is a 503 (the app keeps the report), never a fresh count", async () => {
+    const BUCKET = new MemBucket();
+    const get = BUCKET.get.bind(BUCKET);
+    BUCKET.get = async (k: string) => { if (k.includes("/limits/")) throw new Error("R2 down"); return get(k); };
+    const r = await handleReport(post(report()), { BUCKET, REPORT_SALT: SALT }, at("2026-10-28T20:00:00Z"));
+    expect(r.status).toBe(503);
+  });
+  it("the digest says 'and N more' past MAX_LINES_PER_KIND", async () => {
+    const { MAX_LINES_PER_KIND } = await import("../src/email");
+    const evs = Array.from({ length: MAX_LINES_PER_KIND + 7 }, (_, i) => ({ key: `report:${i}`, kind: "report" as const, title: `r${i}`, text: "t", at: "x" }));
+    const [m] = compose(evs, true);
+    expect(m!.text).toContain("…and 7 more: Review app → Reports (Sync).");
+    expect(m!.keys).toHaveLength(MAX_LINES_PER_KIND + 7);
   });
 });

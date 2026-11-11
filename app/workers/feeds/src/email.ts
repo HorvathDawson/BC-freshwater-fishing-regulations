@@ -191,6 +191,13 @@ export function inSeasonSection(events: FeedEvent[], source: string): Section {
 const JOB_NAME: Record<string, string> = { gauges: "Gauge feed", dfo: "DFO salmon feed", inseason: "In-season check" };
 /** an event without `data`: its title as the name (before any " — " snippet), its text once */
 const generic = (e: FeedEvent): Item => ({ name: e.title.split(" — ")[0], text: e.text });
+/** (T609 W1) at most this many report / error lines in one message; the rest are counted ("and N more"), never dropped
+ *  unseen: a flood must not make the email too big to send and hold back every other line */
+export const MAX_LINES_PER_KIND = 50;
+const capped = (events: FeedEvent[], where: string): Item[] =>
+  events.length <= MAX_LINES_PER_KIND
+    ? events.map(generic)
+    : [...events.slice(0, MAX_LINES_PER_KIND).map(generic), { text: `…and ${events.length - MAX_LINES_PER_KIND} more: ${where}.` }];
 
 export function healthSection(events: FeedEvent[], statusUrl: string | null, worker: string | null = null): Section {
   const bad = events.filter((e) => !e.fine);
@@ -311,7 +318,7 @@ export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): S
       return {
         heading: `Problem reports from the app: ${events.length}`,
         subject: `${plural(events.length, "problem report")} from the app`,
-        blocks: [{ items: events.map(generic) }],
+        blocks: [{ items: capped(events, "Review app → Reports (Sync)") }],
         steps: [{ text: "Review app → Reports (Sync), then fix or dismiss each." }],
         why: "Someone used Report a problem in the app.",
       };
@@ -319,7 +326,7 @@ export function sectionFor(kind: string, events: FeedEvent[], ctx: RenderCtx): S
       return {
         heading: `New app errors: ${events.length}`,
         subject: `${plural(events.length, "new app error")}`,
-        blocks: [{ items: events.map(generic) }],
+        blocks: [{ items: capped(events, "GET /crashes (Bearer RUN_TOKEN)") }],
         steps: [{ text: "Read them all with GET /crashes (Bearer RUN_TOKEN), fix or ignore each." }],
         why: "The app reported an error kind it had not reported before (Send crash reports, More → Data).",
       };

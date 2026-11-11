@@ -136,6 +136,66 @@ export function validateReport(raw: unknown): { ok: true; report: Omit<StoredRep
   return { ok: true, report: { format: r.format as StoredReport["format"], id: r.id, created: r.created, reason: r.reason as StoredReport["reason"], text: r.text.trim(), email, contact, context: ctx, ...(r.test === true ? { test: true as const } : {}) } };
 }
 
+/**
+ * (T609 W1) The address a limit is keyed on. IPv4 as is; IPv6 by its /64 (one home line owns 2^64 addresses, so a key per
+ * full address let one caller look like a new one on every request); an IPv4-mapped IPv6 as its IPv4.
+ */
+export function ipKey(ip: string): string {
+  const s = ip.trim().toLowerCase();
+  if (!s.includes(":")) return s;
+  const mapped = /^(?:0*:)*:?ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(s) ?? /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(s);
+  if (mapped) return mapped[1]!;
+  const [head, tail] = s.split("::", 2) as [string, string | undefined];
+  const h = head ? head.split(":") : [];
+  const t = tail === undefined ? [] : tail ? tail.split(":") : [];
+  const groups = tail === undefined ? h : [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill("0"), ...t];
+  return `${groups.slice(0, 4).map((g) => (parseInt(g || "0", 16) || 0).toString(16)).join(":")}::/64`;
+}
+
+/** (T609 W1) at most this many reports stored a day, from everyone: past it a 429 and one message to the owner */
+export const REPORTS_PER_DAY_TOTAL = 300;
+/** the day's total for one endpoint: in its limits/ folder, so `purgeLimits` deletes it once the day is over */
+export const totalKey = (limitsPrefix: string, day: string) => `${limitsPrefix}_total-${day}.json`;
+
+/**
+ * (T609 W1) Count one more against the day's total; null = allowed, else the refusal. A total that cannot be read is a
+ * 503 (THROWS): never "nothing counted yet". Read-then-write: parallel requests may pass a few over the cap.
+ */
+export async function dailyTotal(bucket: R2BucketLike, limitsPrefix: string, now: Date, cap: number): Promise<string | null> {
+  const day = now.toISOString().slice(0, 10);
+  const key = totalKey(limitsPrefix, day);
+  const o = await bucket.get(key);
+  const t = o ? JSON.parse(await o.text()) as { day: string; n: number; capped?: string } : { day, n: 0 };
+  if (t.n >= cap) {
+    if (!t.capped) await bucket.put(key, JSON.stringify({ ...t, capped: now.toISOString() }), { httpMetadata: { contentType: "application/json" } });
+    return "the report service is full for today; your report is kept and sent again later";
+  }
+  await bucket.put(key, JSON.stringify({ ...t, day, n: t.n + 1 }), { httpMetadata: { contentType: "application/json" } });
+  return null;
+}
+
+/** (T609 W1) one urgent message per endpoint and day whose total was reached: someone is flooding it */
+export async function capEvents(bucket: R2BucketLike, now: Date, at: string): Promise<FeedEvent[]> {
+  const out: FeedEvent[] = [];
+  const days2 = [0, 1].map((i) => new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10));
+  for (const [what, prefix, cap] of [["problem reports", LIMIT_PREFIXES[0], REPORTS_PER_DAY_TOTAL], ["new error kinds", LIMIT_PREFIXES[1], CRASH_KINDS_PER_DAY_TOTAL]] as const) {
+    for (const day of days2) {
+      const o = await bucket.get(totalKey(prefix, day));
+      if (!o) continue;
+      const t = JSON.parse(await o.text()) as { n: number; capped?: string };
+      if (!t.capped) continue;
+      out.push({ key: `cap:${prefix}:${day}`, kind: "health", urgent: true, at,
+        title: `${day}: the day's limit of ${cap} ${what} was reached at ${t.capped}`,
+        text: `POST /${what === "problem reports" ? "report" : "crash"} refused everything past ${cap} ${what} on ${day} (UTC), from ${t.capped}: someone is ` +
+          `probably flooding it. The app keeps a refused report and sends it again later; nothing real is lost unless it lasts.\n\n` +
+          `Look: GET /${what === "problem reports" ? "reports" : "crashes"}?since=${day} (Bearer RUN_TOKEN) and wrangler tail on the feeds worker.` });
+    }
+  }
+  return out;
+}
+/** (T609 W1) at most this many NEW error kinds stored a day (a repeat of a known kind adds no object) */
+export const CRASH_KINDS_PER_DAY_TOTAL = 500;
+
 export async function sha256hex(s: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -158,17 +218,18 @@ export async function rateLimit(env: ReportEnv, ip: string, now: Date,
   const prefix = o.prefix ?? LIMITS_PREFIX, gapMs = o.gapMs ?? MIN_GAP_MS, perDay = o.perDay ?? PER_DAY;
   if (env.REPORT_LIMITER && o.edge !== false) {
     try {
-      if (!(await env.REPORT_LIMITER.limit({ key: `report:${ip}` })).success) return "too many reports; try again in a minute";
+      if (!(await env.REPORT_LIMITER.limit({ key: `report:${ipKey(ip)}` })).success) return "too many reports; try again in a minute";
     } catch { /* the binding failing never blocks a report: the R2 gate still holds */ }
   }
   if (!env.REPORT_SALT) throw new Error("REPORT_SALT is not set");
-  const key = `${prefix}${(await sha256hex(`${env.REPORT_SALT}:${ip}`)).slice(0, 32)}.json`;
+  const key = `${prefix}${(await sha256hex(`${env.REPORT_SALT}:${ipKey(ip)}`)).slice(0, 32)}.json`;
   const day = now.toISOString().slice(0, 10);
   let st: { last: number; day: string; n: number } = { last: 0, day, n: 0 };
-  try {
-    const o = await env.BUCKET.get(key);
-    if (o) st = JSON.parse(await o.text());
-  } catch { /* fresh */ }
+  // (T609 W1) a counter that cannot be read THROWS (the caller answers 503; the app keeps the report): never "fresh"
+  const cur = await env.BUCKET.get(key);
+  if (cur) {
+    try { st = JSON.parse(await cur.text()); } catch (e) { console.error(JSON.stringify({ job: "reports", limitCounterJunk: key, error: String(e) })); }   // our own object: rewritten below
+  }
   if (st.day !== day) st = { last: st.last, day, n: 0 };
   if (now.getTime() - st.last < gapMs) return "too many reports; try again in a minute";
   if (st.n >= perDay) return "too many reports today";
@@ -210,7 +271,14 @@ export async function handleReport(req: Request, env: ReportEnv, now: Date = new
   const yKey = isTest ? `${TEST_REPORTS_PREFIX}${yday}/${v.report.id}.json` : reportKey(yday, v.report.id);
   if (await env.BUCKET.get(key) || await env.BUCKET.get(yKey)) return json({ ok: true, id: v.report.id }, 200);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
-  const refused = await rateLimit(env, ip, now);
+  let refused: string | null;
+  try {
+    // (T609 W1) per address (IPv6 by its /64), then the day's total from everyone (a test report is not counted)
+    refused = await rateLimit(env, ip, now) ?? (isTest ? null : await dailyTotal(env.BUCKET, LIMITS_PREFIX, now, REPORTS_PER_DAY_TOTAL));
+  } catch (e) {
+    console.error(JSON.stringify({ job: "reports", limitError: String(e) }));
+    return json({ ok: false, error: "the report service could not count this report; it is kept and sent again later" }, 503);
+  }
   if (refused) return json({ ok: false, error: refused }, 429);
   const stored: StoredReport = { ...v.report, received: now.toISOString() };
   try {

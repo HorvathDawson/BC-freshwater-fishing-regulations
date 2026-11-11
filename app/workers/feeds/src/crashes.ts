@@ -25,7 +25,7 @@
 //   purge               kinds not seen for CRASH_RETENTION_DAYS are deleted (privacy page: "90 days after the last time").
 import type { FeedEvent } from "./events";
 import type { R2BucketLike } from "./io";
-import { CORS, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
+import { CORS, CRASH_KINDS_PER_DAY_TOTAL, dailyTotal, LIMIT_PREFIXES, listKeys, noSalt, rateLimit, sha256hex, type ReportEnv } from "./reports";
 
 export const CRASHES_PREFIX = "private/crashes/";
 /** (T559) the per-address counters: `purgeLimits` (reports.ts) deletes them once their day is over */
@@ -201,7 +201,13 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   // (T352) a developer's own build is not a tester: answered (so it does not retry) and not stored, wherever it was sent
   if (v.crash.env === "local") return json({ ok: true, stored: false }, 202);
   const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
-  const refused = await rateLimit(env, ip, now, { prefix: LIMITS_PREFIX, gapMs: CRASH_GAP_MS, perDay: CRASH_PER_DAY, edge: false });
+  let refused: string | null;
+  try {
+    refused = await rateLimit(env, ip, now, { prefix: LIMITS_PREFIX, gapMs: CRASH_GAP_MS, perDay: CRASH_PER_DAY, edge: false });
+  } catch (e) {
+    console.error(JSON.stringify({ job: "crashes", limitError: String(e) }));
+    return json({ ok: false, error: "could not count" }, 503);
+  }
   if (refused) return json({ ok: false, error: refused }, 429);
   const hash = await crashHash(v.crash);
   const isTest = v.crash.test === true && env.FEEDS_ENV === "staging";   // honoured on staging only
@@ -211,10 +217,17 @@ export async function handleCrash(req: Request, env: ReportEnv, now: Date = new 
   const background = isBackgroundKill(v.crash);
   let kind: CrashKind = { format: "crash-kind/1", hash, first: at, last: at, count: 0, versions: {}, sample,
                           ...(background ? { background: true as const } : {}) };
-  try {
-    const o = await env.BUCKET.get(key);
-    if (o) kind = JSON.parse(await o.text());
-  } catch { /* a broken object is replaced */ }
+  // (T609 W1) a read that fails is a 503, never "a new kind" (it would reset the count); a kind that does not parse is
+  // replaced. A NEW kind counts against the day's total from everyone (a test kind does not)
+  let o: Awaited<ReturnType<typeof env.BUCKET.get>>;
+  try { o = await env.BUCKET.get(key); } catch { return json({ ok: false, error: "could not read" }, 503); }
+  let known = false;
+  if (o) { try { kind = JSON.parse(await o.text()); known = true; } catch { /* a broken object is replaced */ } }
+  if (!known && !isTest) {
+    let full: string | null;
+    try { full = await dailyTotal(env.BUCKET, LIMITS_PREFIX, now, CRASH_KINDS_PER_DAY_TOTAL); } catch { return json({ ok: false, error: "could not count" }, 503); }
+    if (full) return json({ ok: false, error: "too many new error kinds today" }, 429);
+  }
   kind.last = at;
   kind.count++;
   if (kind.versions[v.crash.app] !== undefined || Object.keys(kind.versions).length < 20) kind.versions[v.crash.app] = (kind.versions[v.crash.app] ?? 0) + 1;

@@ -10,6 +10,8 @@
 // count is not promised). A binding that is absent (tests, `wrangler dev` without it) or that throws lets the request
 // through: the limiter must never take the feeds down.
 
+import { ipKey } from "./reports";
+
 export interface RateLimiter {
   limit(o: { key: string }): Promise<{ success: boolean }>;
 }
@@ -26,7 +28,7 @@ export async function limited(rl: RateLimiter | undefined, req: Request, cls: Ro
   if (!rl) return null;
   const ip = req.headers.get("CF-Connecting-IP") ?? req.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ?? "unknown";
   try {
-    const { success } = await rl.limit({ key: `${cls}:${ip}` });
+    const { success } = await rl.limit({ key: `${cls}:${ipKey(ip)}` });   // (T609 W1) IPv6 by its /64
     if (success) return null;
   } catch {
     return null; // fail open
