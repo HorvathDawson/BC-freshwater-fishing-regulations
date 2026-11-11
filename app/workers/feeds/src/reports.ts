@@ -8,8 +8,8 @@
 //                       The same id re-sent the same day (the app's outbox retrying after a lost answer) is stored once.
 //   GET /reports        (Bearer RUN_TOKEN) every stored report since `?since=YYYY-MM-DD` (default: 30 days), newest
 //                       first — what the review app's Reports tab syncs.
-//   the digest          `reportEvents` (called by the gauge run, every 30 min): reports received today or yesterday that
-//                       the outbox has not told yet → one digest line each. The reporter's email is never in it.
+//   the digest          `reportEvents` (called by the gauge run, every 30 min): every stored report the outbox has not
+//                       told yet (T558: no date window) → one digest line each. The reporter's email is never in it.
 //
 // RATE LIMIT (T249): one report per IP per 10 s and 30 per IP per day — keyed by a salted SHA-256 of the IP
 // (private/reports/limits/<hash>.json; the IP itself is never stored), plus the REPORT_LIMITER rate-limit binding
@@ -321,23 +321,32 @@ export async function listReports(bucket: R2BucketLike, since: string, now: Date
   return out.sort((a, b) => (a.received < b.received ? 1 : a.received > b.received ? -1 : 0));
 }
 
-/** One digest line per report received today or yesterday that the outbox has not told (`told`). Never the email. */
-export async function reportEvents(bucket: R2BucketLike, known: (key: string) => boolean, now: Date, at: string): Promise<FeedEvent[]> {
+/** (T558 item 6) at most this many report lines are raised per run; the rest wait for the next run (none is dropped) */
+export const REPORT_EVENTS_PER_RUN = 100;
+
+/**
+ * One digest line per stored report the outbox has not told (`known`), newest day first. Never the email. (T558 item 6)
+ * No date window: a report stored while the gauge run was failing is told when it runs again, not lost after two days
+ * (the outbox key `report:<id>` dedupes; reports live 180 days, the outbox remembers 366).
+ */
+export async function reportEvents(bucket: R2BucketLike, known: (key: string) => boolean, _now: Date, at: string): Promise<FeedEvent[]> {
   const events: FeedEvent[] = [];
-  for (const d of days(now, 2)) {
-    for (const k of await listKeys(bucket, `${REPORTS_PREFIX}${d}/`, 200)) {
-      const id = /\/([0-9a-f]{16})\.json$/.exec(k)?.[1];
-      if (!id || known(`report:${id}`)) continue;
-      const o = await bucket.get(k);
-      if (!o) continue;
-      let r: StoredReport;
-      try {
-        r = JSON.parse(await o.text());
-      } catch {
-        continue;
-      }
-      events.push(reportEvent(r, at));
+  const keys = (await listKeys(bucket, REPORTS_PREFIX, Infinity))
+    .filter((k) => /^\d{4}-\d{2}-\d{2}\/[0-9a-f]{16}\.json$/.test(k.slice(REPORTS_PREFIX.length)))
+    .sort().reverse();
+  for (const k of keys) {
+    if (events.length >= REPORT_EVENTS_PER_RUN) break;
+    const id = /\/([0-9a-f]{16})\.json$/.exec(k)?.[1];
+    if (!id || known(`report:${id}`)) continue;
+    const o = await bucket.get(k);
+    if (!o) continue;
+    let r: StoredReport;
+    try {
+      r = JSON.parse(await o.text());
+    } catch {
+      continue;
     }
+    events.push(reportEvent(r, at));
   }
   return events;
 }

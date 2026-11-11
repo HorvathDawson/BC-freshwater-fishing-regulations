@@ -177,9 +177,11 @@ describe("the owner's digest (T237: a report is a digest line, never urgent)", (
     expect(all).not.toMatch(/angler@example\.org/);
     expect(compose(ev, true)[0]!.text).toMatch(/Problem reports from the app/);
     expect(await reportEvents(BUCKET, (k) => k === "report:0123456789abcdef", at("2026-10-28T20:30:00Z"), "x")).toEqual([]);
-    // yesterday's still counts, the day before does not
+    // yesterday's still counts
     expect(await reportEvents(BUCKET, () => false, at("2026-10-29T10:00:00Z"), "x")).toHaveLength(1);
-    expect(await reportEvents(BUCKET, () => false, at("2026-10-30T10:00:00Z"), "x")).toHaveLength(0);
+    // (T558 item 6) no date window: a report the outbox never told is told days later (a failing gauge run lost them)
+    expect(await reportEvents(BUCKET, () => false, at("2026-11-30T10:00:00Z"), "x")).toHaveLength(1);
+    expect(await reportEvents(BUCKET, (k) => k === "report:0123456789abcdef", at("2026-11-30T10:00:00Z"), "x")).toEqual([]);
   });
 });
 

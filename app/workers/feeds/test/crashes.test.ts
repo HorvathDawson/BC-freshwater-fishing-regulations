@@ -104,7 +104,8 @@ describe("POST /crash (T242)", () => {
     expect(ev[0]!.kind).toBe("crash");
     expect(ev[0]!.text).not.toMatch(/203\.0\.113/);
     expect(await crashEvents(BUCKET, (k) => k === ev[0]!.key, at("2026-10-29T21:00:00Z"), "x")).toEqual([]);
-    expect(await crashEvents(BUCKET, () => false, at("2026-11-05T21:00:00Z"), "x")).toEqual([]);   // not new any more
+    // (T558 item 6) a defect the outbox never told is told whenever the run comes back, not only within two days
+    expect((await crashEvents(BUCKET, () => false, at("2026-11-05T21:00:00Z"), "x")).map((e) => e.key)).toEqual([ev[0]!.key]);
     const msgs = compose(ev, true);
     expect(msgs.length).toBeGreaterThan(0);
     expect(msgs[0]!.text).toMatch(/New app errors/);

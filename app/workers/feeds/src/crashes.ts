@@ -19,8 +19,8 @@
 //                       an old app meeting a newer release, a phone with no Play service) — and the list is the DEFECTS
 //                       unless `?class=all` (or `?class=network,expected`). Nothing is dropped: the others are stored,
 //                       counted (`counts`) and reachable.
-//   the digest          `crashEvents` (the gauge run): a kind whose `first` is today or yesterday and that the outbox has not
-//                       told → one digest line (not urgent). A repeat of a known kind is never told again. (T352) A
+//   the digest          `crashEvents` (the gauge run): a defect kind the outbox has not told (T558: whenever first seen)
+//                       → one digest line (not urgent). A repeat of a known kind is never told again. (T352) A
 //                       background OS kill is never told: it is not a crash.
 //   purge               kinds not seen for CRASH_RETENTION_DAYS are deleted (privacy page: "90 days after the last time").
 import type { FeedEvent } from "./events";
@@ -274,7 +274,9 @@ export async function listCrashesCounted(bucket: R2BucketLike, since: string, ma
   return { crashes: out.sort((a, b) => (a.last < b.last ? 1 : a.last > b.last ? -1 : 0)), counts };
 }
 
-/** One digest line per NEW error kind (first seen today or yesterday) the outbox has not told. */
+/** One digest line per DEFECT kind the outbox has not told — (T558 item 6) whenever it was first seen, so a kind stored
+ *  while the gauge run was failing is told when it runs again; the other classes are one count line for the kinds first
+ *  seen today or yesterday. */
 export async function crashEvents(bucket: R2BucketLike, known: (key: string) => boolean, now: Date, at: string): Promise<FeedEvent[]> {
   const recent = new Set([0, 1].map((i) => new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10)));
   const events: FeedEvent[] = [];
@@ -287,11 +289,10 @@ export async function crashEvents(bucket: R2BucketLike, known: (key: string) => 
     let c: CrashKind;
     try { c = JSON.parse(await o.text()); } catch { continue; }
     if (c.background) continue;                             // (T352) a background OS kill is not a crash: never told
-    if (!recent.has(c.first.slice(0, 10))) continue;
     // (T595) only a defect is a line of its own; the others are counted in ONE line below, never dropped
     const cls = classifyCrash(c.sample);
     if (cls === "defect") events.push(crashEvent(c, at));
-    else others[cls] = (others[cls] ?? 0) + 1;
+    else if (recent.has(c.first.slice(0, 10))) others[cls] = (others[cls] ?? 0) + 1;
   }
   const n = Object.values(others).reduce((a, b) => a + b, 0);
   const key = `crash-other:${now.toISOString().slice(0, 10)}`;
