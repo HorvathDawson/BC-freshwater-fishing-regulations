@@ -314,7 +314,9 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       if (s.oldReadings > GAUGE_DEGRADED_SHARE * s.asked)
         held.push({ where: "readings", why: `${s.oldReadings} of ${s.asked} stations' last reading is older than ${READING_MAX_AGE_HOURS} h: not ranked` });
       if (s.forecastFailed?.length) held.push({ where: "forecast", why: `${s.forecastFailed.join(", ")} summary unavailable; last good runs carried` });
+      if (s.listShrunk) held.push({ where: "station list", why: `ECCC listed ${s.listShrunk.now} BC stations, the last index ${s.listShrunk.was}: not believed, the roster's realtime stations asked` });
       if (s.answered === 0) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
+      if (s.rankDrop) throw new Error(`${s.rankDrop.lost} of ${s.rankDrop.had} stations ranked last run lost their rank with a current reading (clim.json broken or for another roster); index.json kept (last good)`);
     } else if (job === "dfo") {
       const s = await runDfo({
         fetch: fetch_,

@@ -466,6 +466,11 @@ export interface GaugeSummary {
   forecastFailed?: string[];
   /** no station answered: index.json was NOT rewritten (the last good one stands) */
   indexKept?: boolean;
+  /** (T550 item 3) ECCC's list shrank past LIST_SHRINK_SHARE against the last index: the roster was asked instead */
+  listShrunk?: { was: number; now: number };
+  /** (T550 item 3) stations with a current reading that were ranked last run and are not now, past RANK_DROP_SHARE:
+   *  index.json was NOT rewritten (the climatology is missing a station set or broken; the last good ranks stand) */
+  rankDrop?: { lost: number; had: number };
 }
 
 const JSON_CT = { contentType: "application/json" };
@@ -480,6 +485,11 @@ export const TEMP_HISTORY = "temp_history.json";
  * a few runs still join its week up. A station not written this run (ECCC said 304) has no new rows to give.
  */
 export const OBS_FILE = "obs.json";
+/** (T550 item 3) ECCC's list may shrink by this share of the last index's `listed` before it is not believed */
+export const LIST_SHRINK_SHARE = 0.2;
+/** (T550 item 3) the share of last run's ranked stations (reading still current) that may lose their rank before the
+ *  run fails and keeps the last index */
+export const RANK_DROP_SHARE = 0.5;
 export const OBS_WINDOW_MS = 6 * 3_600_000;
 
 /** `python -m pipeline.gauges.feed.publish` as one call: list, HYDAT check, forecasts, publish, archive, notify. */
@@ -505,6 +515,24 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
   if (source === "roster") log(`  ⚠️  ECCC real-time station list unavailable; asking the roster's ${ids.length} realtime stations`);
   if (drift && (drift.joined.length || drift.left.length))
     log(`  ⚠️  ROSTER DRIFT: ECCC now lists ${drift.joined.length} station(s) the roster calls silent (${drift.joined.join(", ")}) and no longer lists ${drift.left.length} it calls live (${drift.left.join(", ")}).`);
+  // (T550 item 3) A SHRUNKEN ECCC LIST is not believed: more than LIST_SHRINK_SHARE fewer stations than the last index
+  // listed (a truncated hydrometric_StationList.csv gave a 40-station run, recorded ok) → the roster's realtime stations
+  // are asked, no drift is announced from the broken list, and the index carries no `listed` (unknown, never "nobody").
+  // Change-aware runs only (the Python spec has no previous index to compare).
+  let listShrunk: { was: number; now: number } | null = null;
+  let drift_ = drift;
+  let listed_ = listed;
+  if ((deps.changeAware ?? true) && listed && roster) {
+    const prevIdx = await readStored<{ listed?: unknown }>(feed, "index.json");
+    const was = Array.isArray(prevIdx?.listed) ? prevIdx!.listed.length : 0;
+    if (was && listed.size < (1 - LIST_SHRINK_SHARE) * was) {
+      listShrunk = { was, now: listed.size };
+      [ids, source] = stationsToAsk(roster, null);
+      drift_ = null;
+      listed_ = null;
+      log(`  ⚠️  ECCC's real-time list has ${listed.size} BC stations, the last index listed ${was}: not believed; asking the roster's ${ids.length}`);
+    }
+  }
   if (deps.limit) ids = ids.slice(0, deps.limit);
 
   let clim: Record<string, any> | null = null;
@@ -627,12 +655,13 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
     }
   }
 
-  const summary = await publish({ partial: !!deps.limit, fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile, aware, reuse, meter: deps.meter });
+  const summary = await publish({ partial: !!deps.limit, fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed: listed_, drift: drift_, roster: rosterName, log, sleep, stationFile, aware, reuse, meter: deps.meter });
   const runs = Object.values(fcast).reduce((n, v) => n + Object.keys(v).length, 0);
   log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a rank in the record; ${runs} model runs across ${Object.keys(fcast).length} stations`);
   for (const n of summary.maintenance) if (n.kind === "hydat") log(`  ⚠️  A NEWER HYDAT IS OUT: ${n.latest} (envelope is on ${n.current}, noticed ${n.since}). Refresh with: ${n.action}`);
   const notify = await sendDue(summary.maintenance as any, { url: deps.notifyUrl, fetch, state: priv, stateKey: "notified.json", log });
-  return { ...summary, listSource: source, forecastRuns: runs, notify, forecastReused: reuse, ...(forecastFailed.length ? { forecastFailed } : {}) };
+  return { ...summary, listSource: source, forecastRuns: runs, notify, forecastReused: reuse, ...(forecastFailed.length ? { forecastFailed } : {}),
+           ...(listShrunk ? { listShrunk } : {}) };
 }
 
 // ── forecast reuse ───────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1061,7 +1090,20 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     }
     if (failed.length) log(`  ⚠️  ${failed.length} station(s) not answered; ${carried} kept their last good entry (stale)`);
   }
-  const indexKept = (a.aware && got.length === 0) || !!a.partial;
+  // (T550 item 3) RANKS LOST, NOT READINGS: a station whose reading is current, ranked last run and unranked now. Past
+  // RANK_DROP_SHARE the envelope this run read is broken or missing stations (a clim.json for another roster), and
+  // the last good index stands — an old reading's lost rank (the age gate) is not counted here
+  let had = 0, lost = 0;
+  if (a.aware)
+    for (const [st, e] of Object.entries(index)) {
+      const p = prevStations[st];
+      if (!p || p.percentile === null || p.percentile === undefined || !readingCurrent(e.observedAt, now)) continue;
+      had++;
+      if (e.percentile === null) lost++;
+    }
+  const rankDrop = a.aware && had >= 20 && lost > RANK_DROP_SHARE * had ? { lost, had } : null;
+  if (rankDrop) log(`  ⚠️  ${lost} of ${had} stations ranked last run lost their rank with a current reading: index.json kept`);
+  const indexKept = (a.aware && got.length === 0) || !!a.partial || rankDrop !== null;
   if (a.aware && !indexKept) await priv.put(STATION_CACHE, JSON.stringify(nextCache));
 
   let archived: Record<string, any>;
@@ -1096,5 +1138,6 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     runArchive: archived,
     gapsBeyondWindow: beyondWindow,
     ...(a.aware ? { failed, carried, indexKept } : {}),
+    ...(rankDrop ? { rankDrop } : {}),
   };
 }

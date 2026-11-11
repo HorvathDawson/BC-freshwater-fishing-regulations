@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { READING_MAX_AGE_MS } from "../../../packages/core/src/freshness";
 import { cardModel } from "../src/gauges/card/card";
 import { ageGate, levelOnRating, runGauges } from "../src/gauges/publish";
+import { STATION_LIST } from "../src/gauges/liveness";
 import { dirStore, fixtureFetch, loadRecording } from "../parity/gauges/node";
 
 const FIX = join(__dirname, "fixtures/gauges");
@@ -94,5 +95,46 @@ describe("levelOnRating", () => {
     expect(levelOnRating(rating, null, 2.338, 0.5)).toBe(true);
     expect(levelOnRating(undefined, 118, 2.338, undefined)).toBe(true);
     expect(() => levelOnRating(rating, 118, 2.338, undefined)).toThrow(/ratingPadM/);
+  });
+});
+
+// T550 item 3: a run with a broken climatology or a shrunken ECCC list is not a healthy run.
+describe("run health guards (change-aware runs)", () => {
+  async function twoRuns(second: { clim?: (c: any) => any; list?: (t: string) => string }) {
+    const rec = loadRecording(FIX);
+    const dir = mkdtempSync(join(tmpdir(), "gauges-health-"));
+    cpSync(join(FIX, "seed"), dir, { recursive: true });
+    const feed = dirStore(join(dir, "feed"));
+    const priv = dirStore(join(dir, "priv"));
+    const roster = JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8"));
+    const base = fixtureFetch(rec).fetch;
+    const run = (fetch = base) => runGauges({ fetch, feed, priv, now: new Date(rec.now), sleep: async () => {}, roster, noForecast: true });
+    const first = await run();
+    const before = await feed.get("index.json");
+    if (second.clim) await feed.put("clim.json", JSON.stringify(second.clim(JSON.parse((await feed.get("clim.json"))!))));
+    const fetch2: typeof base = second.list
+      ? async (u, i) => (u === STATION_LIST ? new Response(second.list!(await (await base(u, i)).text()), { status: 200 }) : base(u, i))
+      : base;
+    const s = await run(fetch2);
+    return { first, s, before, after: await feed.get("index.json") };
+  }
+
+  it("ranks lost with current readings (a clim.json with no envelopes) fail the run and keep the last index", async () => {
+    const { first, s, before, after } = await twoRuns({ clim: (c) => ({ ...c, stations: {} }) });
+    expect(first.withPercentile).toBeGreaterThan(5);
+    expect(s.rankDrop!.had).toBeGreaterThanOrEqual(20);
+    expect(s.rankDrop!.lost).toBe(s.rankDrop!.had);
+    expect(s.indexKept).toBe(true);
+    expect(after).toBe(before);
+  });
+
+  it("a station list that shrank by more than a fifth is not believed: the roster is asked, no `listed` written", async () => {
+    const { first, s, after } = await twoRuns({ list: (t) => t.split("\n").filter((l, i) => i === 0 || !/,BC,/.test(l) || /^07EA004,/.test(l)).join("\n") });
+    expect(first.listSource).toBe("eccc");
+    expect(s.listShrunk?.now).toBe(1);
+    expect(s.listShrunk!.was).toBeGreaterThan(5);
+    expect(s.listSource).toBe("roster");
+    expect(s.asked).toBeGreaterThan(1);
+    expect(JSON.parse(after!).listed).toBeUndefined();
   });
 });
