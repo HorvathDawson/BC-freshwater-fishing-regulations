@@ -28,6 +28,11 @@ SINGLE_LINE = "1000"
 #: the artificial connector: a canal, and the walk's barrier
 CONNECTOR = "2300"
 
+#: THE LINE A STREAM IS DRAWN WITH ACROSS THE WATER IT ENTERS (T660): FWA carries a creek on from its shore straight
+#: across a double-line river, a lake or an estuary to the receiving main flow. MEASURED 2026-11-11: 329,452 such lines,
+#: 53,877 km, nearly all inland; 476 km lie in the DFO tidal polygon (the Skeena estuary's creeks among them).
+WATER_CROSSING = "1450"
+
 MAIN_FLOW = frozenset({"1000", "1050", "1200", "1250"})
 SIDE_CHANNEL = frozenset({"1100", "1350"})
 #: the secondary-flow side channel (the Ruskin channels; an owner-named added side channel carries it too)
@@ -55,6 +60,14 @@ def is_side_channel(x: Iterable[str] | object) -> bool:
 def is_barrier(x: Iterable[str] | object) -> bool:
     """Does the node (or edge-type set) carry an artificial connector (a canal)?"""
     return CONNECTOR in _types(x)
+
+
+def is_water_crossing_only(x: Iterable[str] | object) -> bool:
+    """Is EVERY line of the node (or edge-type set) a water crossing (`WATER_CROSSING`, T660)? Such a piece is no
+    stream's own bed: it is the line FWA draws across the water the stream enters. A piece with no edge types at all
+    (an added stream) is not one."""
+    t = _types(x)
+    return bool(t) and t <= {WATER_CROSSING}
 
 
 def is_manmade_secondary_only(x: Iterable[str] | object) -> bool:

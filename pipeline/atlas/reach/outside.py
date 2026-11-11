@@ -36,6 +36,7 @@ import re
 
 from pipeline.atlas.registry import regions as _regions
 from pipeline.common import entry_id as EID
+from pipeline.common.tolerances import AT_CUT_M as _AT_CUT_M   # a piece ending this close to the shore cut ends AT it
 
 #: POLICY (user ruling 2026-09-25, 9144c975): a WATER row (its water printed by no other region)
 #: is not held to any region — neither its reach nor its tributary walk (`region_limit`).
@@ -335,7 +336,8 @@ def tidal_water(entries, registry, graph=None, split_ids=(), *, strict: bool = T
     """`{section: owner}` — ALL THE TIDAL WATER the reach run takes out of every binding: the waters
     of the rows marked `tidal` (owner: the row's entry id, `tidal_owner`), then the piece below every
     tidal split (owner `split:<id>`, `tidal_cut_owner`), then every whole tidal water (owner
-    `water:<item_id>`, `tidal_whole_owner`). A row's claim stands where both hold. The
+    `water:<item_id>`, `tidal_whole_owner`), then the water crossings that end in those two (owner
+    `crossing:<section>`, `tidal_crossing_owner`, T660). A row's claim stands where both hold. The
     run writes it as `tidal.jsonl`; the bundle's `tidal` table is read from that file."""
     out = dict(tidal_owner(entries, registry, strict=strict))
     if split_ids:
@@ -345,10 +347,90 @@ def tidal_water(entries, registry, graph=None, split_ids=(), *, strict: bool = T
     if whole_waters:
         for s, o in tidal_whole_owner(registry, whole_waters, strict=strict, report=report).items():
             out.setdefault(s, o)
+    if graph is not None and out:
+        # off-the-map tidal water only (a cut's piece, a whole water): the tiles take the same set
+        # (`tiles.tidal.tidal_pieces`), so the bundle's proof that the map leaves exactly these off holds
+        crossing = tidal_crossing_owner(graph, {s for s, o in out.items() if is_cut_owner(o)})
+        for s, o in crossing.items():
+            out.setdefault(s, o)
+        if report is not None and crossing:
+            report.append({"split": CROSSING_REPORT, "items": [], "sections": len(crossing),
+                           "unplaced": [], "ambiguous_cut": []})
+    return out
+
+
+# ------------------------------------------------------------------------------------------------
+# T660 (owner 2026-11-11): A STREAM ENTERING TIDAL WATER ENDS AT ITS OWN SHORE.
+# ------------------------------------------------------------------------------------------------
+
+#: THE LINE A STREAM IS DRAWN WITH ACROSS THE TIDAL WATER IT ENTERS IS TIDAL WATER. FWA carries a creek on from its
+#: shore straight across a double-line river or estuary to the receiving main flow (`fwa_edge_types.WATER_CROSSING`).
+#: Below the Skeena's tidal limit 38 creeks crossed the removed estuary that way: 84.8 km drawn and bound as freshwater
+#: over tidal water (owner, T632 sheets: "collapsed to the boundary"). The atlas gives each crossing a section of its
+#: own (`atlas.splits.shore`: a cut at the top of the crossing, where the creek leaves the water); the reach takes it
+#: as tidal exactly when it ENDS IN TIDAL WATER OFF THE MAP — a tidal piece, a whole tidal water, or another crossing
+#: that does (a fixpoint). A row marked tidal (Nitinat Lake) stays drawn, so it is no outlet here. A crossing into
+#: FRESH water (a river the owner's limit keeps freshwater to its mouth: the Bear, the Kemano) stays freshwater, and
+#: a crossing with no outlet is not decided here either: both are owner calls, listed, never guessed. The creek above
+#: its shore keeps its own water and stays its river's tributary (taken out AFTER the walk, as every tidal piece).
+A_CROSSING_INTO_TIDAL_WATER_IS_TIDAL = True
+#: the `report.tidal_cuts` row that counts them
+CROSSING_REPORT = "crossings into tidal water"
+_CROSSING = "crossing:"
+#: the shore cut's boundary id (`atlas.splits.shore.SOURCE`, minted `shore:<blk>:<measure>`), as a section bound carries it
+SHORE_PREFIX = "split:shore:"
+
+
+def crossing_pieces(graph) -> frozenset[str]:
+    """THE WATER CROSSINGS this atlas holds: every stream piece on a blue line at or below its SHORE CUT (a boundary
+    whose id or alias is a `shore:` split, `atlas.splits.shore`), and every stream piece whose every FWA line is a
+    crossing (`fwa_edge_types.is_water_crossing_only`: a crossing that is its own line, so the atlas had nothing to
+    cut). A cut piece's `edge_types` are its parent's, so the shore cut, not the edge types, says where a cut
+    crossing ends."""
+    from pipeline.common import fwa_edge_types as _et
+    from pipeline.common.models import NodeKind
+    shore: dict[str, float] = {}
+    streams = [(nid, n) for nid, n in graph.nodes.items() if n.kind == NodeKind.stream]
+    for _, n in streams:
+        for b in (n.lower_bound, n.upper_bound):
+            if b is None or b.route_measure is None:
+                continue
+            if any(str(x).startswith(SHORE_PREFIX) for x in (b.boundary_id, *b.aliases)):
+                shore[n.blk] = max(shore.get(n.blk, float("-inf")), float(b.route_measure))
+    out = set()
+    for nid, n in streams:
+        top = shore.get(n.blk)
+        if (top is not None and n.up_m <= top + _AT_CUT_M) or _et.is_water_crossing_only(n):
+            out.add(nid)
+    return frozenset(out)
+
+
+def tidal_crossing_owner(graph, tidal) -> dict[str, str]:
+    """`{section: "crossing:<section>"}` — every water crossing (`crossing_pieces`) not already in `tidal` whose every
+    outlet is in `tidal` (the off-the-map tidal sections) or is another such crossing. Deterministic: a fixpoint over
+    the sorted candidates. A crossing with no outlet, or one into fresh water, stays as it is."""
+    cand = sorted(s for s in crossing_pieces(graph) if s not in tidal)
+    out: dict[str, str] = {}
+    grew = True
+    while grew:
+        grew = False
+        for nid in cand:
+            if nid in out:
+                continue
+            downs = [graph.edges[i].to_node for i in graph.down_adj.get(nid, ())]
+            if downs and all(d in tidal or d in out for d in downs):
+                out[nid] = _CROSSING + nid
+                grew = True
     return out
 
 
 def is_cut_owner(owner: str) -> bool:
     """Is a `tidal` owner curated tidal water OFF THE MAP — the piece below a tidal split
-    (`split:<id>`) or a whole tidal water (`water:<item_id>`, T212) — not a row marked tidal?"""
-    return str(owner or "").startswith(("split:", "water:"))
+    (`split:<id>`), a whole tidal water (`water:<item_id>`, T212) or a water crossing ending in either
+    (`crossing:<section>`, T660) — not a row marked tidal?"""
+    return str(owner or "").startswith(("split:", "water:", _CROSSING))
+
+
+def is_crossing_owner(owner: str) -> bool:
+    """Is a `tidal` owner a water crossing ending in tidal water (`crossing:<section>`, T660)?"""
+    return str(owner or "").startswith(_CROSSING)

@@ -36,8 +36,10 @@ NAME = "Tidal water"
 
 def tidal_pieces(build_dir: Path, graph=None, registry=None, whole=None) -> frozenset[str]:
     """The section (node) ids below this atlas's tidal splits, plus every section of a whole tidal water
-    (T212; both from the atlas's tidal sidecar, T326) — the reach run's own set. Empty when there is neither."""
-    from pipeline.atlas.reach.outside import tidal_cut_owner, tidal_splits, tidal_waters, tidal_whole_owner
+    (T212; both from the atlas's tidal sidecar, T326), plus every water crossing ending in them (T660,
+    `tidal_crossing_owner`) — the reach run's own set. Empty when there is neither."""
+    from pipeline.atlas.reach.outside import (tidal_crossing_owner, tidal_cut_owner, tidal_splits, tidal_waters,
+                                              tidal_whole_owner)
     ids = tidal_splits(build_dir)
     if whole is None:                      # T212: whole waters the owner calls tidal, off the map too
         whole = tidal_waters(build_dir)
@@ -47,11 +49,12 @@ def tidal_pieces(build_dir: Path, graph=None, registry=None, whole=None) -> froz
         from pipeline.atlas.registry import load_registry
         registry = load_registry(str(Path(build_dir) / "registry.json"))
     out = set(tidal_whole_owner(registry, whole))
+    if graph is None:
+        from pipeline.common.io.serialize import read_artifact
+        graph = read_artifact(str(Path(build_dir) / "graph.pkl"))
     if ids:
-        if graph is None:
-            from pipeline.common.io.serialize import read_artifact
-            graph = read_artifact(str(Path(build_dir) / "graph.pkl"))
         out |= set(tidal_cut_owner(registry, graph, ids))
+    out |= set(tidal_crossing_owner(graph, out))
     return frozenset(out)
 
 

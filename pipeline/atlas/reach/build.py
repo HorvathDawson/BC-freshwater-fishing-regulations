@@ -30,7 +30,7 @@ from pipeline.atlas.reach.steelhead import Presence as _SteelheadPresence
 from pipeline.atlas.reach import steelhead as _steelhead
 from pipeline.common.fishing_water import not_fishing_sections
 from pipeline.atlas.reach.outside import (
-    outside_bc, region_limit, rowed_waters, shared_waters, tidal_water, is_cut_owner,
+    outside_bc, region_limit, rowed_waters, shared_waters, tidal_water, is_cut_owner, is_crossing_owner,
 )
 from pipeline.regs.parsing.catalogue import Designation
 from pipeline.atlas.reach.licensing import (
@@ -288,12 +288,13 @@ def build_reaches(entries, registry, graph, *, build: str = "", handles: str = "
     # A RULE THE TIDAL BOUNDARIES LEFT WITH NO WATER (T166): unresolved `tidal`, and LISTED with the
     # cut(s) that took it — kitimat_river.r1 lies wholly below the proposed Kitimat cut. A reader of
     # the run (the binding diff, the review) sees each one; none vanishes.
-    lost_to = {(d.entry_id, d.rule_id): d.payload.get("splits") or [] for d in diagnostics
-               if d.kind == "tidal" and d.payload.get("splits")}
+    lost_to = {(d.entry_id, d.rule_id): d.payload for d in diagnostics
+               if d.kind == "tidal" and (d.payload.get("splits") or d.payload.get("crossings"))}
     report.tidal_emptied = [
-        {"entry_id": b.entry_id, "rule_id": b.rule_id, "splits": lost_to[(b.entry_id, b.rule_id)]}
+        {"entry_id": b.entry_id, "rule_id": b.rule_id, "splits": p.get("splits") or [],
+         **({"crossings": p["crossings"]} if p.get("crossings") else {})}         # T660
         for b in sorted(bindings, key=lambda b: (b.entry_id, b.rule_id))
-        if b.reason == Reason.tidal and (b.entry_id, b.rule_id) in lost_to]
+        if b.reason == Reason.tidal and (p := lost_to.get((b.entry_id, b.rule_id))) is not None]
     report.tributaries_pending = sum(1 for b in bindings if b.tributaries_pending)
     for b in bindings:
         report.outcomes[b.outcome.value] = report.outcomes.get(b.outcome.value, 0) + 1
@@ -560,12 +561,15 @@ def _without_tidal(entry: dict, rule: dict, binding: RuleBinding, diags: list[Di
     kept = tuple(s for s in binding.sections if s in left)
     # T166: which tidal boundaries took water from it (`outside.tidal_cut_owner`), when the caller
     # passed the owners — a row marked tidal is no cut and is not named here
-    cuts = sorted({(o[len("split:"):] if o.startswith("split:") else o) for s in gone
-                   for o in (str(tidal.get(s, "")) if isinstance(tidal, Mapping) else "",)
-                   if is_cut_owner(o)})
+    owners = [str(tidal.get(s, "")) if isinstance(tidal, Mapping) else "" for s in sorted(gone)]
+    cuts = sorted({(o[len("split:"):] if o.startswith("split:") else o) for o in owners
+                   if is_cut_owner(o) and not is_crossing_owner(o)})
+    # T660: the water crossings ending in tidal water are counted, never listed as cuts (one per creek)
+    crossings = sum(1 for o in owners if is_crossing_owner(o))
     diags = diags + [Diagnostic(entry["entry_id"], rule["rule_id"], "tidal", {
         "removed": len(gone), "kept": len(kept),
         **({"splits": cuts} if cuts else {}),
+        **({"crossings": crossings} if crossings else {}),
         "why": "tidal water: the federal tidal regulations apply, no provincial rule does"})]
     if not kept:
         return RuleBinding(entry["entry_id"], rule["rule_id"], Outcome.unresolved, (),
