@@ -13,6 +13,26 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 later — owner back: every decision answered; build 26 on Play internal (chat 11)
+
+- **Shipped to staging / Play internal:** feeds worker (version ac1e704b), staging site by `deploy/staging/site-all.sh` (smoke 18
+  pass, 1 warn), clim.json with the datum-shift cut (staging only), build 26 = 0.7.4 on Play internal (patched MapLibre).
+- **App check:** clean. **Pipeline full suite:** killed twice at ~70%; an agent is finding the cause and tracing every failure.
+- **Owner answered (all recorded on the tickets):** satellite look C with lower opacity zoomed in (T594); 6 h reading cutoff;
+  map switching lag is the Trout / Salmon / Runs buttons (T566); T632's four; lake depth and stocking decisions (T634: both
+  OGL, fourth "Lake" tab, PDF only, compress PDFs, reuse curated name variants and the old group-code matcher); all 16 rule
+  readings (T623) and T629; in-season notices show until the Province drops them (T548); digest look (T627); the Play
+  app-signing fingerprint (T625).
+- **Agents running at the time of writing:** pipeline suite trace; T632 reach decisions; T634 first pass; T594 + T566 (the only
+  agent in app/); T635 fishway and facility research.
+- **Queued, start when their files are free:** T623 fixes from the readings (pipeline, after T632 and the suite agent; new cuts
+  for Elk Falls, the Quinsam power line and the Cottonwood are PROPOSALS for the owner's tick); in-season notices parsed like
+  regulations with a banner until rebuilt (F11: needs a design ticket; parser runs are the owner's); T625 app links and T627
+  digest (after the map agent; T627 is worker code); the rest of the emulator list (T603); T633 worker fixes; T555 items 2, 4, 5.
+- **Known failure:** phone share gives the old map link until the PRODUCTION site is deployed (owner's), because slugs are
+  read from production.
+- **New tickets this session:** T628–T635. Next free number: T636.
+
 ## 2026-11-11 — while the owner is away: six lanes landed, three still running (chat 11)
 
 - **In review:** base rules pinned to the printed book (T553); Runs keeps its own day, share links open the water's own
