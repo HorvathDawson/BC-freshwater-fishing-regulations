@@ -10494,6 +10494,87 @@
      ]
     }
    ]
+  },
+  {
+   "name": "OKANAGAN RIVER OXBOWS (channel 300-432687-500162)",
+   "applies_to": {
+    "blk": "356502967"
+   },
+   "splits": [
+    {
+     "id": "okanagan_river_oxbows__500162_foot_of_east_slope",
+     "label": "foot of the east slope (Okanagan River Oxbows channel)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -119.54386,
+       49.1565
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "T637 (owner 2026-11-11, accepted): hillside cut on an Okanagan River Oxbows channel line — the last point within 400 m of the Okanagan mainstem or 150 m of an oxbow polygon; above it the line climbs the east slope and is not oxbow water. Map: handoff/PLAN/app-integration/T637-shots/fix-cut-500162.png. Coord on the FWA line at route measure 685 m.",
+     "_coord": [
+      -119.54386,
+      49.1565
+     ]
+    }
+   ]
+  },
+  {
+   "name": "OKANAGAN RIVER OXBOWS (channel 300-432687-466472)",
+   "applies_to": {
+    "blk": "356559193"
+   },
+   "splits": [
+    {
+     "id": "okanagan_river_oxbows__466472_foot_of_east_slope",
+     "label": "foot of the east slope (Okanagan River Oxbows channel)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -119.52724,
+       49.09022
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "T637 (owner 2026-11-11, accepted): hillside cut on an Okanagan River Oxbows channel line — the last point within 400 m of the Okanagan mainstem or 150 m of an oxbow polygon; above it the line climbs the east slope and is not oxbow water. Map: handoff/PLAN/app-integration/T637-shots/fix-cut-466472.png. Coord on the FWA line at route measure 1542 m.",
+     "_coord": [
+      -119.52724,
+      49.09022
+     ]
+    }
+   ]
+  },
+  {
+   "name": "OKANAGAN RIVER OXBOWS (channel 300-432687-461418-565942)",
+   "applies_to": {
+    "blk": "356530115"
+   },
+   "splits": [
+    {
+     "id": "okanagan_river_oxbows__461418_565942_foot_of_west_slope",
+     "label": "foot of the west slope (Okanagan River Oxbows channel)",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -119.54322,
+       49.08245
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "T637 (owner 2026-11-11, accepted): hillside cut on an Okanagan River Oxbows channel line — the last point within 400 m of the Okanagan mainstem or 150 m of an oxbow polygon; above it the line climbs the west slope and is not oxbow water. Map: handoff/PLAN/app-integration/T637-shots/fix-cut-461418-565942.png. Coord on the FWA line at route measure 612 m.",
+     "_coord": [
+      -119.54322,
+      49.08245
+     ]
+    }
+   ]
   }
  ]
 }
