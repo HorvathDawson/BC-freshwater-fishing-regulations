@@ -6,11 +6,11 @@
  * LEGEND ONLY WHEN SOMETHING IS COLOURED BY A VALUE: the day's status (once the index is in), or the lakes' Stocked
  * colouring. Plain water needs no key. Whether it is shown is the Shell's call; what it says is here.
  */
-import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, TEMP_LEGEND, unprovenLine,
+import { CHANGE_LEGEND, changeMarkWords, FLOW_LEGEND, OTHER_QUANTITY_WORDS, TEMP_LEGEND, unprovenLine,
          WATER_STATUS_LINE, WATER_STATUSES, waterLegend, salmonLegend, GEAR_LEGEND,
          RUN_WORDS, salmonCheckedLine, slotsFor, MAP_KEY, closedKey, waterKeyWords, OBSTACLE_ICON_KINDS }
   from "@app/core";
-import { closedCueColour, gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
+import { closedCueColour, gaugeOnlyColours, gearEdgeColour, notFishingColours, runStateColour, salmonStatusColour } from "@app/map/colours";
 import { Icon, ObstacleIcon } from "../icons";
 import { hitProps } from "../regs/hit";
 import { useMemo, useState } from "react";
@@ -65,6 +65,16 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                  striped={r.status === "closed" ? closedCueColour(theme) : undefined}
                  label={MAP_KEY.salmon[r.status]} {...tap(r.status)} />
   ));
+  /*
+   * (T636, owner 2026-11-11) THE RING, NAMED ONCE: a gauge reporting only the other quantity today is a grey dot with a
+   * ring on the map (no words beside it); this line says what the ring means, for the quantity shown. Only while the
+   * gauge dots are drawn.
+   */
+  const ring = gaugeOnlyColours(theme);
+  const onlyRing = layers.effective.layers.gauges === true && flowParam !== "temperature" ? (
+    <LegendCount palette={palette} colour={ring.fill} ring={ring.ring}
+                 label={OTHER_QUANTITY_WORDS[flowParam === "level" ? "discharge" : "level"].key} />
+  ) : null;
   const strip = (
     <LegendStrip palette={palette} full={onConditions} wrap={!onConditions}>
       {/* NO QUANTITY SWITCH HERE (owner 2026-10-22): Flow · Level · Temperature is the Layers sheet's Show, one
@@ -102,12 +112,16 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
                         band={CHANGE_LEGEND.steady} markWords={changeMarkWords}
                         describe={CHANGE_LEGEND.describe}
                         stops={changeRampStops(theme)} marks={visibleMarks} />
+            {onlyRing}
           </>
         ) : (
-          <LegendRamp palette={palette}
-                      title={FLOW_LEGEND.title[flowParam === "level" ? "level" : "discharge"]}
-                      low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high}
-                      stops={flowRampStops(theme)} marks={visibleMarks} />
+          <>
+            <LegendRamp palette={palette}
+                        title={FLOW_LEGEND.title[flowParam === "level" ? "level" : "discharge"]}
+                        low={FLOW_LEGEND.low} mid={FLOW_LEGEND.mid} high={FLOW_LEGEND.high}
+                        stops={flowRampStops(theme)} marks={visibleMarks} />
+            {onlyRing}
+          </>
         )
       ) : layers.water.drawn !== "regulations" ? (
         // ONE COLOURING FOR ALL WATER: the measure's key, ending with what draws neutral and why

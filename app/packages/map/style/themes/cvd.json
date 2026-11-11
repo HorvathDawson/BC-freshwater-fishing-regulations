@@ -77,6 +77,7 @@
     "color.change.steady": "#6D8171",
     "color.change.rise1": "#D179B2",
     "color.change.rise2": "#A43A83",
+    "color.gauge.only": "@color.gauge.dot",
     "color.gauge.dot": "#0A1116",
     "color.temp.warm": "#BC7864",
     "color.water.ungauged": "#D5D5D5",

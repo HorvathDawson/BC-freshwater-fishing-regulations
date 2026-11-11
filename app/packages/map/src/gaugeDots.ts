@@ -118,6 +118,9 @@ export function gaugeSource(raw: string) {
            attribution: "Hydrometric data: Environment and Climate Change Canada" };
 }
 
+/** (T636) the ring round a dot that reports only the other quantity, px (the coloured dots' paper stroke is 2) */
+export const GAUGE_ONLY_RING_PX = 2.5;
+
 /** The dot and its number, over the gauges source, on the paper (`paper`: the halo and the dot's stroke). */
 export function gaugeLayers(theme: string, modes: Record<string, string>, paper: string) {
   return [
@@ -157,8 +160,9 @@ export function gaugeLayers(theme: string, modes: Record<string, string>, paper:
         "circle-radius": 5,
         "circle-color": modes.gauges === "temperature"
           ? tempExpression(theme) : rampExpression(theme),
-        "circle-stroke-width": 2,
-        "circle-stroke-color": paper,
+        // (T636) a station reporting only the other quantity (`muted`, grey fill) is told apart by its RING, never by words
+        "circle-stroke-width": ["case", ["==", ["get", "muted"], true], GAUGE_ONLY_RING_PX, 2],
+        "circle-stroke-color": ["case", ["==", ["get", "muted"], true], resolveTheme(theme)["color.gauge.only"] as string, paper],
       } },
     { id: "gauge-label", type: "symbol" as const, source: "gauges",
       /**
@@ -169,7 +173,9 @@ export function gaugeLayers(theme: string, modes: Record<string, string>, paper:
        * to mean something, and never below z8 whatever the river's size, so the Fraser
        * does not label itself from orbit.
        */
+      // (T636) a muted dot has no words on the map (its ring says it): no label, no empty pill
       filter: ["all",
+               ["has", "label"],
                [">=", ["zoom"], 8],
                ["<=", ["+", ["get", "minz"], 4], ["zoom"]]],
       layout: {

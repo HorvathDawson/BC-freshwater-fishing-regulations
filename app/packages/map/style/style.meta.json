@@ -3012,6 +3012,7 @@
       "color.change.steady": "#6D8171",
       "color.change.rise1": "#D179B2",
       "color.change.rise2": "#A43A83",
+      "color.gauge.only": "#0A1116",
       "color.gauge.dot": "#0A1116",
       "color.temp.warm": "#BC7864",
       "color.water.ungauged": "#D5D5D5",
@@ -3190,6 +3191,7 @@
       "color.change.steady": "#7B6354",
       "color.change.rise1": "#208F92",
       "color.change.rise2": "#21C9CE",
+      "color.gauge.only": "#F4F8F5",
       "color.gauge.dot": "#F4F8F5",
       "color.temp.warm": "#FC9C28",
       "color.water.ungauged": "#39434B",
@@ -3368,6 +3370,7 @@
       "color.change.steady": "#7C9081",
       "color.change.rise1": "#D080C8",
       "color.change.rise2": "#A850F8",
+      "color.gauge.only": "#0A1116",
       "color.gauge.dot": "#0A1116",
       "color.temp.warm": "#E86C48",
       "color.water.ungauged": "#D5D5D5",
@@ -3791,6 +3794,11 @@
     "color.gauge.dot": {
       "type": "color",
       "themeable": true
+    },
+    "color.gauge.only": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "(T636, owner 2026-11-11: 'the level only tag in the conditions map is a lot it should be a border color or something instead') THE RING of a gauge dot that reports only the OTHER quantity today (grey fill, `muted`): no words on the map, one legend line. A proposal; the owner picks from T636-shots. Held off the flow and change ramps and over satellite by tools/gauge-ring-cvd.test.ts."
     },
     "color.temp.warm": {
       "type": "color",

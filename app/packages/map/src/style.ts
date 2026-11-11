@@ -340,6 +340,14 @@ export function closedCueColour(theme: string): string {
   return hex;
 }
 
+/** (T636) A gauge dot that reports only the other quantity, in one theme: its grey fill and its ring — the legend's swatch. */
+export function gaugeOnlyColours(theme: string): { fill: string; ring: string } {
+  const t = resolveTheme(theme);
+  const fill = t["color.water.ungauged"], ring = t["color.gauge.only"];
+  if (typeof fill !== "string" || typeof ring !== "string") throw new Error(`theme "${theme}" has no gauge-only ring`);
+  return { fill, ring };
+}
+
 /** (T248) The fill and edge the map paints tidal water with in one theme — the Help page's swatch for it. */
 export function tidalColours(theme: string): { fill: string; edge: string } {
   const t = resolveTheme(theme);

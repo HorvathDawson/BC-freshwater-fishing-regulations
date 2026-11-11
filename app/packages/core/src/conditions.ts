@@ -435,9 +435,9 @@ export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
 /** (T567) A member that reports the other quantity only, said three ways: its row, its dot, a screen reader. */
 export const OTHER_QUANTITY_WORDS = {
   level: { reads: "Reports water level only today, not flow. Show Level to see it.", map: "level only",
-           label: "reports level only, no flow" },
+           label: "reports level only, no flow", key: "Gauge reports level only" },
   discharge: { reads: "Reports flow only today, not water level. Show Flow to see it.", map: "flow only",
-               label: "reports flow only, no level" },
+               label: "reports flow only, no level", key: "Gauge reports flow only" },
 } as const;
 
 /** Does this donor count in the estimate — a reading at the horizon (`donorState`'s `reads`)? */
