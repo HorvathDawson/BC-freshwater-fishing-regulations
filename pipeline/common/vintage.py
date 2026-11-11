@@ -137,9 +137,9 @@ def promoted_atlas(build_dir: Path, tiles_dir: Path, bundle: Path) -> str | None
     `build_dir`, or None when nothing shipped was cut from it.
 
     A PROMOTED ATLAS IS IMMUTABLE. Every derivative — the reach run, the bundle, the status index,
-    the export, the tiles — is keyed by the atlas's `section_handles.txt` digest, and the atlas
-    build is not deterministic (memory `atlas-build-not-deterministic`): rebuilding INTO the
-    directory a shipped bundle or tile set names rewrites the handle table under them. Afterwards
+    the export, the tiles — is keyed by the atlas's `section_handles.txt` digest, so rebuilding
+    INTO the directory a shipped bundle or tile set names — from newer inputs (the build is
+    deterministic for the same ones: T65 / N12, 2026-11-04) — rewrites the handle table under them. Afterwards
     the tiles and the bundle still agree with each other, and both silently disagree with the atlas
     on disk, until the next bundle build finds no reach run for it — hours later, as the only
     symptom. So a build refuses such an `--out` (`pipeline.atlas.build --force` overrides), and the

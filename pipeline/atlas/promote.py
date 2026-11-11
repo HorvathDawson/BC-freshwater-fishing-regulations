@@ -4,8 +4,10 @@
     python -m pipeline.atlas.promote data/generated/atlas/full_next --dry-run  # parity report only
 
 A PROMOTED ATLAS IS IMMUTABLE (`pipeline.common.vintage.promoted_atlas`): the bundle, the status
-index, the export and the tiles all key sections by its `section_handles.txt` digest, and the atlas
-build is not deterministic, so nothing may build INTO the promoted directory. A new atlas is built
+index, the export and the tiles all key sections by its `section_handles.txt` digest, so nothing may build
+INTO the promoted directory: a build from NEWER inputs there rewrites the handle table under every shipped
+derivative. (The build itself is deterministic for the same inputs — T65 / N12, 2026-11-04: two builds differ only
+in timings, `build_ts` and pickled set order; the immutability rests on the digest, not on that.) A new atlas is built
 beside it (`<name>_next`) and takes its place here, by rename — after `pipeline.tools.audit.build_parity`
 has said what changed between the two registries. The previous atlas is kept as `<name>.prev` until
 the next promotion, so the derivatives that still carry its digest can be rebuilt or compared.

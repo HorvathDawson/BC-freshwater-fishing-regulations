@@ -30,9 +30,10 @@ each logging to `build-logs/<run>/<stage>.log` beside the manifest; `--jobs 1` i
 the console. A stage is UP TO DATE when its key — a digest of everything it reads:
 the atlas's handles and registry, the corpus, the curated tree, the source stamps, its own code —
 equals the key of its last successful run in the manifest and its outputs exist. Any stage that
-runs makes every later stage run. The atlas is never rebuilt to check it (it is not
-deterministic, memory `atlas-build-not-deterministic`): only `--atlas` builds one, and only
-`--promote` makes it the atlas everything else reads.
+runs makes every later stage run. The atlas is never rebuilt to check it (it is deterministic for the same
+inputs — T65 / N12 — but a rebuild takes hours and a promoted atlas is immutable: every derivative is keyed
+by its handle digest): only `--atlas` builds one, and only `--promote` makes it the atlas everything else
+reads.
 
 THE GAUGE ENVELOPE IS A STAGE (N9, plan 2.11): `clim` makes `clim.json` from HYDAT
 (`pipeline.gauges.feed.climatology`), keyed on the HYDAT stamp, the roster and its own code. The deliver
