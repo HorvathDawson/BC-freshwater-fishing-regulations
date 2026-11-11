@@ -827,9 +827,14 @@ def _step3_lifts(s: _Ask) -> None:
             continue
         for x in every[k].get("exempts") or []:
             t = (x["entry_id"], x["rule_id"])
-            # the lift's fish, read as a rule's species ("ALL_FIN_FISH" is every fin fish)
+            # the lift's fish, read as a rule's species ("ALL_FIN_FISH" is every fin fish); a
+            # rainbow lift answers for a steelhead only where neither it nor its lifter prints a
+            # size (`facts.A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD`: Kitimat's hatchery
+            # rainbow "(none over 50 cm)" lifts nothing for a steelhead)
             if t not in live or ("species" in x
-                                 and not speaks_for({"species": x["species"]}, fish)):
+                                 and not speaks_for({"species": x["species"],
+                                                     "lengths": x.get("lengths")
+                                                     or s.orig[k].get("lengths")}, fish)):
                 continue
             # A lift for some anglers (a target, a means) or some fish (an origin, a size — which
             # the angler learns only once it is caught) leaves the rule standing, partly lifted.

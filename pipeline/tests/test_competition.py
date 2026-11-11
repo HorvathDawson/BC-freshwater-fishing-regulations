@@ -1614,8 +1614,10 @@ def test_two_quotas_with_different_seasons_compete_only_where_both_hold(tmp_path
 def test_a_steelhead_is_a_rainbow_where_no_steelhead_rule_applies(tmp_path):
     """RU-6 (user ruling 2026-10-03): asked about "ST" where the provincial steelhead set does
     not reach (the Okanagan River), the answer is the rainbow's — the river's "Rainbow trout
-    catch and release" — over every length. Where the rules apply, "ST" is asked as asked and
-    the rainbow release says nothing of it."""
+    catch and release" — over every length. Where the rules apply, "ST" is asked as asked; since
+    the owner's 2026-11-11 ruling (T623 F12, RULINGS S12) a rainbow rule with no size constraint
+    speaks for a steelhead too, so the river's release still answers (the zone's quotas are silent),
+    and only a SIZED rainbow rule says nothing of a steelhead there."""
     path = _tiny(tmp_path, [
         {"entry": "r9:w", "rule": "w.r5", "species": ["RB"], "take": 0, "may_target": 1,
          "_rank": 0},
@@ -1626,9 +1628,14 @@ def test_a_steelhead_is_a_rainbow_where_no_steelhead_rule_applies(tmp_path):
     no_rules = R.effective_rules_bound(bound, False, (7, 1), "ST", path, steelhead_rules_here=False)
     assert {x["rule"] for x in no_rules if x["state"] == "speaks"} == {"w.r5"}
     rules = R.effective_rules_bound(bound, False, (7, 1), "ST", path, steelhead_rules_here=True)
+    assert {x["rule"] for x in rules if x["state"] == "speaks"} == {"w.r5"}
+    sized = [("z9:q", "q.r1", "reach"), ("z9:q", "q.r2", "reach"), ("r9:w", "w.r6", "reach")]
+    R._RULES_BY_PATH[path][("r9:w", "w.r6")] = dict(R._RULES_BY_PATH[path][("r9:w", "w.r5")], rule="w.r6",
+                                                     lengths=[{"max_cm": 50}])
+    rules = R.effective_rules_bound(sized, False, (7, 1), "ST", path, steelhead_rules_here=True)
     assert {x["rule"] for x in rules if x["state"] == "speaks"} == {"q.r1", "q.r2"}
     # a hand-made bundle has no `section_steelhead_rules` view: the fish is answered as asked
-    assert _rules_of(path, (7, 1), "ST") == {"q.r1", "q.r2"}
+    assert _rules_of(path, (7, 1), "ST") == {"w.r5"}
     # a REAL bundle (it has a `rule` table) without the view is refused, never answered as
     # asked (review F7)
     con = sqlite3.connect(path)
@@ -1764,3 +1771,88 @@ def test_ahbau_lake_prints_region_5s_5_per_day_once(db):
     got = _speaks(sid, (7, 1), "RB")
     assert "z5:daily_quotas::trout_char_quota.r1" in got
     assert "z7a:daily_quotas::trout_char_quota.r1" not in got
+
+
+# --------------------------------------------------------------------------- F12 (T623): a size-free rainbow rule
+#: The Stellako (Zone 7A row 7-12 and Region 6 row 6-4), pp.53 and 61: "Rainbow trout catch and release".
+STELLAKO = "gnis:7836"
+
+
+def test_f12_a_size_free_rainbow_rule_speaks_for_steelhead_and_does_not_name_it():
+    """owner 2026-11-11 (T623 F12, RULINGS S12): "a rainbow rule with no size constraint applies to both steelhead
+    and ordinary rainbow, since it did not specify." It SPEAKS for "ST"; it does not NAME it. A rainbow rule with a
+    size band says which rainbow it means and stays a rainbow rule."""
+    assert R.speaks_for({"species": ["RB"], "take": 0}, "ST")
+    assert R.speaks_for({"species": ["RB", "CT"], "take": 0}, "ST")
+    assert not R.speaks_for({"species": ["RB"], "lengths": [{"min_cm": 50, "take": 0}]}, "ST")
+    assert not R.speaks_for({"species": ["RB"], "lengths": [{"max_cm": 50}]}, "ST")
+    assert not R.speaks_for({"species": ["CT"]}, "ST")
+    assert not R.names_fish({"species": ["RB"]}, "ST")
+    assert not R.speaks_for({"species": ["ST"]}, "RB")           # one way only: a steelhead rule is not a rainbow rule
+
+
+def _f12(tmp_path, extra=()):
+    return _tiny(tmp_path, [
+        {"entry": "r6:stellako", "rule": "stellako.r3", "species": ["RB"], "take": 0, "may_target": 1, "_rank": 0},
+        {"entry": "z6:q", "rule": "q.r1", "species": ["TROUT_CHAR"], "take": 5, "_rank": 3},
+        {"entry": "z6:q", "rule": "q.r2", "species": ["TROUT_CHAR"], "take": 1, "_rank": 3,
+         "lengths": [{"max_cm": 50}, {"min_cm": 50, "take": 1}], "within": "q.r1"},
+        *extra])
+
+
+def test_f12_the_stellakos_rainbow_release_releases_its_steelhead(tmp_path, monkeypatch):
+    """p.53 / p.61, Stellako River: "Rainbow trout catch and release". A steelhead is a rainbow (p.80), so the water's
+    release answers for it and the zone's "Trout/char: 5" and "1 over 50 cm" are silent for a steelhead as for a
+    rainbow. MUTATION PIN: with the flag off the release says nothing about a steelhead and Region 6's quotas speak
+    (the audit's part 0 "1 hatchery rainbow trout over 50 cm", parts 1-4 "ST=keep:1")."""
+    from pipeline.deliver.bundle.read import facts
+    path = _f12(tmp_path)
+    speaks = lambda f: {x["rule"] for x in R.effective_rules(1, (7, 15), f, path)  # noqa: E731
+                        if x["state"] == "speaks"}
+    assert speaks("RB") == {"stellako.r3"}
+    assert speaks("ST") == {"stellako.r3"}
+    monkeypatch.setattr(facts, "A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD", False)
+    assert speaks("ST") == {"q.r1", "q.r2"}
+
+
+def test_f12_a_rule_printed_for_steelhead_still_beats_the_rainbow_rule_by_naming(tmp_path):
+    """Only where the row does not specify: a row printing its own steelhead release beside a size-free "Rainbow
+    trout daily quota = 5" answers for the steelhead by naming it (a release naming the fish displaces by naming, Q27);
+    the rainbow quota gives way for a steelhead and still answers for a rainbow."""
+    path = _tiny(tmp_path, [
+        {"entry": "r6:w", "rule": "w.rb", "species": ["RB"], "take": 5, "_rank": 0},
+        {"entry": "r6:w", "rule": "w.st", "species": ["ST"], "take": 0, "may_target": 1, "_rank": 0}])
+    got = {x["rule"]: x["state"] for x in R.effective_rules(1, (7, 15), "ST", path, trace=True)}
+    assert got == {"w.st": "speaks", "w.rb": "displaced"}
+    assert [x["rule"] for x in R.effective_rules(1, (7, 15), "RB", path)] == ["w.rb"]
+
+
+def test_f12_a_sized_rainbow_lift_lifts_nothing_for_a_steelhead(tmp_path):
+    """Kitimat r4 "Hatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5" lifts Region 6's stream rules for
+    rainbow; it prints a size, so it is a rainbow rule and lifts nothing for a steelhead (the lift's own `species`
+    carries no size — the lifter's does)."""
+    path = _tiny(tmp_path, [
+        {"entry": "z6:q", "rule": "q.r4", "species": ["TROUT_CHAR"], "take": 1, "_rank": 3,
+         "dimension": "daily@water=stream"},
+        {"entry": "r6:w", "rule": "w.r4", "species": ["RB"], "take": 5, "_rank": 0,
+         "lengths": [{"max_cm": 50}], "exempts": [{"entry_id": "z6:q", "rule_id": "q.r4", "species": ["RB"]}]}])
+    assert "q.r4" not in {x["rule"] for x in R.effective_rules(1, (7, 15), "RB", path)}
+    assert "q.r4" in {x["rule"] for x in R.effective_rules(1, (7, 15), "ST", path)}
+
+
+@pytest.mark.needs_bundle
+def test_f12_every_stellako_part_releases_its_steelhead_on_the_live_bundle(db):
+    """The live bundle: on every part of the Stellako where steelhead rules apply, a steelhead on Jul 15 answers to the
+    river's "Rainbow trout catch and release" (pp.53, 61) and to no zone or provincial keeping count of the daily
+    dimension (the audit's F12: part 0 "1 hatchery rainbow trout over 50 cm", parts 1-4 "ST=keep:1")."""
+    from pipeline.deliver.bundle.rules import keeps
+    parts = db.execute("select p.part_ix, p.rep_sid from part p join item i on i.ord = p.ord "
+                       "where i.item_id = ? and p.steelhead_rules = 1 order by p.part_ix", (STELLAKO,)).fetchall()
+    assert len(parts) >= 5, parts
+    for ix, sid in parts:
+        got = [x for x in R.effective_rules(sid, (7, 15), "ST", BUNDLE) if x["state"] == "speaks"]
+        assert any(x["entry"].split(":")[1].startswith("stellako_river") and x["species"] == ["RB"]
+                   and x["take"] == 0 for x in got), ix
+        kept = [f"{x['entry']}::{x['rule']}" for x in got if x["type"] == "retention_limit"
+                and str(x["dimension"]).startswith("daily") and keeps(x) and not x.get("origin")]
+        assert kept == [], (ix, kept)

@@ -26,7 +26,9 @@ Fish = Tuple[str, str, float, str]            # (species, origin, length cm, pla
 
 
 def _covers(r, S: str) -> bool:
-    return S in r.species and S not in r.except_
+    # a size-free rainbow rule holds a steelhead too (T623 F12, RULINGS S12: `read.size_free_rainbow`, the
+    # reader's `speaks_for`)
+    return S not in r.except_ and (S in r.species or (S == "ST" and read.size_free_rainbow(r.x)))
 
 
 def bands_of(r) -> List[Tuple[float, float, Optional[float]]]:

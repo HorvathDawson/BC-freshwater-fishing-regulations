@@ -22,7 +22,8 @@ from pipeline.deliver.bundle.read.source import (
 from pipeline.deliver.bundle.read.facts import (
     _day, IN_FORCE, _days_of, in_force, speaks_for, names_fish, not_yet_mapped, _steelhead_min_cm,
     steelhead_rules, home_region, steelhead_water, STEELHEAD_CODES, steelhead_presence,
-    as_rainbow, _spoken_lengths, covers, released_on_water, _base_dimension,
+    as_rainbow, _spoken_lengths, covers, released_on_water, _base_dimension, size_free_rainbow,
+    A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD,
 )
 from pipeline.deliver.bundle.read.ladder import (
     _RULES_BY_PATH, MOOT_SIZE_CLAUSE_HIDDEN, WATER_CLOSURE_DOMINANT, OWN_ROW_BEATS_INHERITED,

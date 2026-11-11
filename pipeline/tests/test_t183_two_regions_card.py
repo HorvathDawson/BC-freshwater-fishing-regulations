@@ -171,7 +171,12 @@ def test_mutation_a_narrower_cap_displacing_the_wider_keeps_3(monkeypatch):
 
 def test_mutation_each_size_cap_alone_offers_a_second_steelhead(monkeypatch):
     from pipeline.deliver.answers import card
+    from pipeline.deliver.bundle.read import facts
     monkeypatch.setattr(card, "TWO_TABLES_SIZE_CAPS_BOTH_BIND", False)
+    # Since T623 F12 (RULINGS S12) the Similkameen's "Rainbow and cutthroat trout catch and release", which its walk
+    # carries to Copper Creek, releases the steelhead too, so no steelhead may be kept there at all; the size-cap pin
+    # reads the piece with a steelhead keepable (the ruling off), the shape this mutation needs.
+    monkeypatch.setattr(facts, "A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD", False)
     out, P = _card("copper_2_8")
     assert any("hatchery steelhead" in p or "do not count" in p for p in CC.check_card(P, out))
 

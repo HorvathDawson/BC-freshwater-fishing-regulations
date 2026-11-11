@@ -74,7 +74,9 @@ def speaks_for(rule: dict, fish: str) -> bool:
     the other open subjects (`PROTECTED_SPECIES`, `SALMON`) hold no game fish and so speak for
     none — but `SALMON` speaks for a salmon the book names (`catalogue.SALMON_FISH`: chinook);
     otherwise the fish must be in the expansion of `species` and not of `species_except`. A
-    bait or tackle rule for a TARGET speaks only when the fish asked about is that target."""
+    bait or tackle rule for a TARGET speaks only when the fish asked about is that target. A
+    rainbow rule with no size band speaks for steelhead too
+    (`A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD`)."""
     from pipeline.regs.parsing.catalogue import SALMON_FISH, expand_species
     tgt = rule.get("when_targeting") or []
     if tgt and fish not in expand_species(list(tgt)):
@@ -90,7 +92,29 @@ def speaks_for(rule: dict, fish: str) -> bool:
         return fish != "CRA"
     if fish in SALMON_FISH and SALMON_FISH[fish] in sp:
         return True
+    if fish == "ST" and size_free_rainbow(rule):
+        return True
     return fish in expand_species(sp)
+
+
+def size_free_rainbow(rule: dict) -> bool:
+    """A rule naming rainbow trout (alone or in a list) with no size band — it holds for a steelhead
+    too (`A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD`). The one predicate: the reader's
+    `speaks_for` and the answers' basket engine (`answers.engine._covers`) both ask it."""
+    from pipeline.regs.parsing.catalogue import expand_species
+    return bool(A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD and not rule.get("lengths")
+                and "RB" in expand_species(list(rule.get("species") or [])))
+
+
+#: A RAINBOW RULE WITH NO SIZE CONSTRAINT SPEAKS FOR STEELHEAD TOO (owner 2026-11-11, T623 F12,
+#: RULINGS S12: "a rainbow rule with no size constraint applies to both steelhead and ordinary
+#: rainbow, since it did not specify"). A steelhead is a rainbow trout (p.80); a rule naming rainbow
+#: with no `lengths` ("Rainbow trout catch and release", the Stellako, pp.53, 61) holds for every
+#: rainbow, the anadromous ones included. It SPEAKS for "ST" but does not NAME it (`names_fish`): a
+#: rule printed for steelhead still beats it by naming (Kitimat's "hatchery steelhead 2" over its
+#: "hatchery rainbow 5" for a steelhead). A rainbow rule WITH a size band ("over 50 cm") says which
+#: rainbow it means and stays a rainbow rule.
+A_SIZE_FREE_RAINBOW_RULE_SPEAKS_FOR_STEELHEAD = True
 
 
 def names_fish(rule: dict, fish: str) -> bool:
