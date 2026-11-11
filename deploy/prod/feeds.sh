@@ -26,6 +26,9 @@ fi
 # REPORT_SALT is required (no salt = every report and crash answered 503); the placeholder script set it
 npx --prefix app wrangler secret list -c "$C" | grep -q 'REPORT_SALT' || {
   echo "REPORT_SALT is not set on $NAME: CONFIRM_PROD=$NAME deploy/prod/feeds-placeholder.sh (or wrangler secret put REPORT_SALT -c $C)" >&2; exit 1; }
+# (T558) NOTIFY_EMAIL_TO is required: without it production keeps every owner message unsent (src/events.ts send)
+npx --prefix app wrangler secret list -c "$C" | grep -q 'NOTIFY_EMAIL_TO' || {
+  echo "NOTIFY_EMAIL_TO is not set on $NAME: npx --prefix app wrangler secret put NOTIFY_EMAIL_TO -c $C" >&2; exit 1; }
 # (T559) the backups keep the privacy page's dates only while the backup bucket's daily/ copies expire within 30 days
 # (app/workers/feeds/src/backup.ts DAILY_KEEP_DAYS; personal records are never copied to monthly/)
 BK=$(sed -n 's/^BACKUP_BUCKET_NAME = "\(.*\)"/\1/p' "$C")

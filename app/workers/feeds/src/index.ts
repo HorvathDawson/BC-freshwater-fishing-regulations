@@ -19,7 +19,7 @@ import { meteredFetch, meteredStore, newMeter, r2Store, readStored, setDeployId,
 import { runGauges } from "./gauges";
 import { runDfo } from "./dfo";
 import { runInSeason } from "./inseason";
-import { compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
+import { channelOf, compose, deliver, readState, sendApk, sendTest, type FeedEvent, type NotifyConfig } from "./events";
 import { parseApk, sampleDfoEvents } from "./email";
 import { checkStatus, readStatus, readStatusAt, record, recordHealth, refresh, servedStatus, statusHtml, STATUS_KEY, type Alert, type Held, type Job } from "./status";
 import { classOfError, fmtErrors, resilientFetch, RunHealth, SourceError, summarize } from "./health";
@@ -609,8 +609,11 @@ export default {
       const rt = await (async () => { try { return JSON.parse((await env.BUCKET.get(RETENTION_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
       // (T178) the last monthly model score
       const sk = await (async () => { try { return JSON.parse((await env.BUCKET.get(SKILL_STATUS_KEY).then((o) => o?.text())) ?? "null"); } catch { return null; } })();
-      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), backup: bk, reportRetention: rt, skill: sk }, { headers: { "Cache-Control": "no-store" } });
-      return new Response(statusHtml(st, now, sk), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+      // (T558) how owner messages go out: "log" means nobody is told
+      const nc = notifyConfig(env);
+      const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
+      if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk }, { headers: { "Cache-Control": "no-store" } });
+      return new Response(statusHtml(st, now, sk, notifyInfo), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
@@ -635,7 +638,7 @@ export default {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
       const s = await readState(r2Store(env.BUCKET, STATUS_PREFIX));
       const c = notifyConfig(env);
-      return Response.json({ channel: c.emailTo && c.emailFrom && c.sendEmail ? "email" : c.webhook ? "webhook" : "log", digest: !!c.digest, pending: s.pending.length, told: Object.keys(s.told).length, lastDigest: s.lastDigest, messages: compose(s.pending, true, c.ctx) });
+      return Response.json({ channel: channelOf(c), digest: !!c.digest, pending: s.pending.length, told: Object.keys(s.told).length, lastDigest: s.lastDigest, messages: compose(s.pending, true, c.ctx) });
     }
     if (url.pathname === "/run/purge-reports" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });

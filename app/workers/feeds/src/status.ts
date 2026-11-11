@@ -236,7 +236,7 @@ function skillHtml(sk: any, now: Date): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function statusHtml(s: Status, now: Date, skill: any = null): string {
+export function statusHtml(s: Status, now: Date, skill: any = null, notify: { channel: string; digest: boolean } | null = null): string {
   const rows = (["gauges", "dfo", "inseason"] as Job[]).map((j) => {
     const f = s.feeds[j];
     if (!f) return `<tr><td>${j}</td><td class="never">never run</td><td colspan="6"></td></tr>`;
@@ -263,6 +263,7 @@ table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--li
 small{color:var(--mut)}.ok{color:#2a7}.degraded{color:#c80}.failing,.stale{color:#d33;font-weight:600}.never{color:var(--mut)}
 ul{margin:0;padding-left:16px}.wrap{overflow-x:auto}
 </style></head><body><h1>Feeds status</h1><p><small>${esc(now.toISOString())} · updated ${esc(s.updated)} · <a href="/status.json">status.json</a></small></p>
+${notify ? `<p>Owner messages: <b class="${notify.channel === "log" ? "failing" : "ok"}">${esc(notify.channel)}</b>${notify.channel === "log" ? " — nobody is told (NOTIFY_EMAIL_TO / EMAIL binding missing)" : ""}${notify.digest ? " <small>(daily digest)</small>" : ""}</p>` : ""}
 <div class="wrap"><table><tr><th>feed</th><th>state</th><th>last run</th><th>last success</th><th>counts</th><th>held</th><th>last error</th></tr>
 ${rows.join("\n")}</table></div>
 <h2>Sources</h2><p><small>per upstream request (after retries): success rate and failures by class; "down" = runs in a row with nothing usable</small></p>

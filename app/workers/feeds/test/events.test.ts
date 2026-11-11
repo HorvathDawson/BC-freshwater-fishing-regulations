@@ -338,3 +338,34 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     expect(f.rows[0]!.status).toBe("unchanged"); // the first feed has no "new"
   });
 });
+
+// T558 item 3: with no email secret every owner message was logged and recorded as told; deploys did not check for it
+describe("no channel (T558 item 3)", () => {
+  it("production keeps a message it cannot send; staging may log it; /status.json says which channel", async () => {
+    const { channelOf } = await import("../src/events");
+    const ev: FeedEvent = { key: "dfo-new:1", kind: "dfo", title: "t", text: "x", at: "2026-11-10T00:00:00Z" };
+    const prod = new MemStore();
+    const r = await deliver([ev], { store: prod, config: { ctx: { env: "production", statusUrl: null } }, fetch: okFetch, now: T("2026-11-10T01:00:00Z") });
+    expect(r.failed).toBe(1);
+    expect((await readState(prod)).pending.map((e) => e.key)).toEqual(["dfo-new:1"]);
+    expect((await readState(prod)).told["dfo-new:1"]).toBeUndefined();
+    const stg = new MemStore();
+    await deliver([ev], { store: stg, config: { ctx: { env: "staging", statusUrl: null } }, fetch: okFetch, now: T("2026-11-10T01:00:00Z") });
+    expect((await readState(stg)).told["dfo-new:1"]).toBeDefined();
+    expect(channelOf({})).toBe("log");
+    expect(channelOf({ webhook: "https://h" })).toBe("webhook");
+    const { default: worker } = await import("../src/index");
+    const bucket = { get: async () => null, put: async () => {}, delete: async () => {} };
+    const j = await (await worker.fetch(new Request("https://w/status.json"), { BUCKET: bucket, FEEDS_ENV: "production" } as never)).json() as { notify: unknown };
+    expect(j.notify).toEqual({ channel: "log", digest: false });
+    const h = await (await worker.fetch(new Request("https://w/status"), { BUCKET: bucket } as never)).text();
+    expect(h).toContain("nobody is told");
+  });
+  it("both deploy scripts refuse a worker without NOTIFY_EMAIL_TO", () => {
+    for (const env of ["staging", "prod"]) {
+      const sh = readFileSync(join(__dirname, `../../../../deploy/${env}/feeds.sh`), "utf-8");
+      expect(sh).toMatch(/secret list[^\n]*\|\s*grep -q 'NOTIFY_EMAIL_TO'/);
+      expect(sh.indexOf("NOTIFY_EMAIL_TO")).toBeLessThan(sh.lastIndexOf("wrangler deploy -c"));
+    }
+  });
+});

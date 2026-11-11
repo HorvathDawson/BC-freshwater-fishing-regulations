@@ -16,6 +16,12 @@ if ! npx --prefix app wrangler secret list -c app/workers/feeds/wrangler.toml 2>
   echo "  openssl rand -hex 32 | npx --prefix app wrangler secret put REPORT_SALT -c app/workers/feeds/wrangler.toml" >&2
   exit 1
 fi
+# (T558) NOTIFY_EMAIL_TO is a required secret too: without it every owner message is only logged (src/events.ts send)
+if ! npx --prefix app wrangler secret list -c app/workers/feeds/wrangler.toml | grep -q 'NOTIFY_EMAIL_TO'; then
+  echo "NOTIFY_EMAIL_TO is not set on the staging feeds worker: nobody would be told of a failing feed. Set it once:" >&2
+  echo "  npx --prefix app wrangler secret put NOTIFY_EMAIL_TO -c app/workers/feeds/wrangler.toml" >&2
+  exit 1
+fi
 C=app/workers/feeds/wrangler.toml
 # (T559) the backups keep the privacy page's dates only while the backup bucket's daily/ copies expire within 30 days
 # (app/workers/feeds/src/backup.ts DAILY_KEEP_DAYS; personal records are never copied to monthly/)

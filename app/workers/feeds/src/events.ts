@@ -58,6 +58,10 @@ export interface NotifyConfig {
   /** sends one RFC 5322 message through the EMAIL binding (index.ts wires cloudflare:email) */
   sendEmail?: (from: string, to: string, raw: string) => Promise<void>;
 }
+/** (T558) how owner messages go out: email (address, sender and binding all set), else the webhook, else only the log */
+export function channelOf(c: NotifyConfig): "email" | "webhook" | "log" {
+  return c.emailTo && c.emailFrom && c.sendEmail ? "email" : c.webhook ? "webhook" : "log";
+}
 export interface NotifyState {
   told: Record<string, string>;
   pending: FeedEvent[];
@@ -302,6 +306,12 @@ async function send(m: Message, c: NotifyConfig, fetch: Fetch, now: Date, log: (
     }
   }
   if (c.emailTo && c.emailFrom && c.sendEmail) return null; // email configured but failed, no fallback: retry
+  // (T558) production with no channel (NOTIFY_EMAIL_TO unset, no EMAIL binding): the message is KEPT to send, never
+  // recorded as told; GET /status.json says `notify.channel: "log"`. Staging may still run log-only.
+  if (c.ctx?.env === "production") {
+    log(`notify: NO CHANNEL on production (NOTIFY_EMAIL_TO / EMAIL binding missing): kept to send: ${m.subject}`);
+    return null;
+  }
   log(`notify (no channel configured): ${m.subject}`);
   return "log";
 }
