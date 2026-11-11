@@ -1,6 +1,6 @@
 # T660 — Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary
 
-Status: PARTIAL — 12358ece6; left (Claude): after T637 lands, apply `T660-pending/shore-cuts.patch`, rebuild the atlas, rerun the reach and diff the bindings (commands below)
+Status: PARTIAL — 12358ece6, cb41409bb, 7a9a796d0; left (Claude): reach rerun on full_next, binding diff, restamp/promote (the coordinator's build-27 chain)
 
 Source: owner 2026-11-11 on the T632 tidal sheets (3 and 4 good, but): "it is weird how all the streams that go into
 the removed mainstem dont also get collapsed to the boundary (2 furthers points of land or what every the tidal
@@ -108,3 +108,25 @@ rule newly unresolved `tidal`, no DFO place drowned (not verified: stop and look
 - Owner: the 191 `fresh_receivers` (move a river's tidal limit, or keep it); add the rule to RULINGS.md once accepted.
 - A `mouth` row's "tidal boundary" alias still sits at the FWA mouth (mid-estuary), not on the shore cut.
 - The 25 runs under 50 % in the polygon, the 5 whole-line crossings and the 2 slivers stay as they are.
+
+## Build 27 (2026-11-11): the shore stage stopped, fixed, rebuilt
+- The patch (cb41409bb) stopped the full atlas build at `cut_shores`: the braid sweep wanted 403 braid cuts. Reproduced
+  in memory on the live graph with the same numbers (not a T637 effect; the simulation had skipped the sweep). Cause:
+  97 shores are SIDE CHANNELS crossing back into their own river (Fraser, Kemano, Bella Coola, San Juan, Zeballos …), so
+  the river is a braid of the shore's own water; the sweep would cut the river across its width. None of them is one of
+  the crossings that end in tidal water.
+- Fix (7a9a796d0, the length cap's precedent): `shore_cuts` asks `braid_sweep.spans_a_braid`; a spanned shore is not cut
+  and is listed `not_cut: "a braid of its own water spans the shore"` (stays whole and freshwater, never widened). The
+  sweep must then find nothing to cut (`length_cut_failures`), junction re-homes are applied, residual straddles stop
+  the build, and `shore_cuts.json` + `braid_sweep_shore.json` are written before any refusal. Pinned in
+  `test_shore_cuts.py` (a braided side channel; mutation: the stage refuses).
+- Full rebuild (`b27-atlas`, 28 min, rc 0, COMPLETE.json): `shore cuts: 532 … -> 532 new section(s); 129 run(s)
+  touching it not cut, 97 of them a braid of its own water spans; sweep cases {refused: another water 24, refused: one
+  side 4, rehomed: junction <10 m 2}, 4 edge(s) re-homed, 0 network(s) straddle`; sliver gate clean.
+- Against the simulation: 629 -> 532 cuts (the 97 spanned shores); not cut 32 -> 129 (same 32 + 97). Tidal crossings,
+  computed in memory with the same stage on the live graph: 163 -> 161 (120.7 -> 120.0 km). The two lost
+  (`356235964:0`, `356341234:0`, Fraser delta, 706 m) are the braid sweep's geometry re-home (`rehome_host_edges`):
+  FWA's confluence point with the Fraser channel lies at the creek's shore, so the outlet edge moved to the creek above
+  the shore and the crossing piece has no outlet; it stays freshwater (listed in `braid_sweep_shore.json`
+  `edges_rehomed_by_geometry`). Expect about 161 in the reach run's "crossings into tidal water" row.
+
