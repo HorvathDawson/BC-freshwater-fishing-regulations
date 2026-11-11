@@ -336,3 +336,27 @@ def test_duck_lakes_creeks_are_closed_to_bass_on_may_20_and_the_lake_is_catch_an
     assert lake is not None and lake not in creeks
     assert _closures(lake, (5, 20), "SMB") == set()
     assert f"{DUCK}::duck_lake.r3" in _speaks(lake, (5, 20), "SMB")
+
+
+# ---- T623 F5 (owner 2026-11-11, RULINGS L22): the Nechako inside Region 6 is closed in spring ------------------
+NECHAKO = "r7:nechako_river@7-12"
+
+
+@pytest.mark.needs_bundle
+def test_f5_the_nechako_inside_region_6_keeps_region_6s_spring_closure(db):
+    """Owner: "Nechako inside Region 6: closed Apr 1-Jun 30. The 'Exempt from spring closure' on the Region 7 row lifts
+    Region 7's only." p.49: "No fishing: in any stream ... in the Fraser River watershed in Region 6, Apr 1-June 30";
+    p.60: the Nechako (Region 7) "Exempt from spring closure". The row's lift carries to no other region (no
+    `equivalent`), so every Nechako section bound by Region 6's Fraser-watershed closure (part 5, "From Region 6
+    boundary up to the Knewstubb Lake outlet") is closed on May 1, and Zone 7A's spring closure stays lifted there."""
+    assert _equivalents(db, NECHAKO, "nechako_river.r1") == set()
+    sids = [s for (s,) in db.execute(
+        "select distinct sr.sid from ruleset a join ruleset b on b.set_id = a.set_id "
+        "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? and a.rule_id = 'nechako_river.r1' "
+        "and b.entry_id = 'z6:iskut_fraser_closure' and b.rule_id = 'iskut_fraser_closure.r2' order by sr.sid",
+        (NECHAKO,))]
+    assert sids, "no Nechako section under Region 6's Fraser-watershed spring closure"
+    for sid in sids:
+        shut = _closures(sid, (5, 1), "RB")
+        assert Z6_FRASER in shut and Z7A_SPRING not in shut, sid
+        assert _closures(sid, (7, 15), "RB") == set(), sid

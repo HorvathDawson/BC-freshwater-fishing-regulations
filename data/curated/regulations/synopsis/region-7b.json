@@ -542,6 +542,9 @@
        "area_id": "area:region:7b",
        "feature_types": [
         "stream"
+       ],
+       "outside_items": [
+        "gnis:14619"
        ]
       }
      ]

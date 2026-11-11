@@ -3738,6 +3738,10 @@
           "exempts": [
             {
               "default_id": "bait_ban_streams"
+            },
+            {
+              "target": "fraser_river.r3",
+              "entry_id": "r5:fraser_river@5-2"
             }
           ]
         }
@@ -7471,7 +7475,8 @@
           ],
           "exempts": [
             {
-              "default_id": "spring_stream_closure"
+              "default_id": "spring_stream_closure",
+              "own_region_only": true
             }
           ]
         },

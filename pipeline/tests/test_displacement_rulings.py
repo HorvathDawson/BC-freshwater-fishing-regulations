@@ -442,3 +442,37 @@ def test_region_1_rows_with_a_dated_bait_ban_are_its_exceptions(db, eid, rid, of
                       if x["state"] == "speaks" and x["type"] == "bait_restriction"}
     assert zone not in bait(off)
     assert f"{eid}::{rid}" in bait(on)
+
+
+# ---- T623 F8 (owner 2026-11-11, RULINGS L23): the Fraser upstream of the Cottonwood River ---------------------------
+FRASER5, FRASER7 = "r5:fraser_river@5-2", "r7:fraser_river@7-9"
+
+
+def _bait_says(sid, on) -> dict:
+    return {f"{x['entry']}::{x['rule']}": x["state"] for x in R.effective_rules(sid, on, "RB", BUNDLE, trace=True)
+            if x["type"] == "bait_restriction"}
+
+
+@pytest.mark.needs_bundle
+def test_f8_upstream_of_the_cottonwood_the_exemption_lifts_region_5s_bait_ban_too(db):
+    """Owner: "Fraser, Regions 5/7: upstream of the Cottonwood River the exemption LIFTS the bait ban, Region 5's too
+    ('typically I would say it holds but this is explicit'). Needs a cut at the Cottonwood confluence; below it Region
+    5's ban holds." p.59 (Region 7, Fraser): "also EXEMPT from bait ban upstream of Cottonwood River"; p.45 (Region 5,
+    Fraser): "bait ban Sept 15-July 15". The cut is `fraser_river__cottonwood_river_into_fraser_river`. On Oct 1 the
+    Region 5 ban is lifted on every section above the confluence that both rows bind (part 18, "Where Region 5 and
+    Region 7 meet") and speaks on the Region 5 stretch just below it."""
+    above = [s for (s,) in db.execute(
+        "select distinct sr.sid from ruleset a join ruleset b on b.set_id = a.set_id "
+        "join section_ruleset sr on sr.set_id = a.set_id where a.entry_id = ? and a.rule_id = 'fraser_river.r2' "
+        "and b.entry_id = ? and b.rule_id = 'fraser_river.r3' order by sr.sid", (FRASER7, FRASER5))]
+    assert above, "no Fraser section above the Cottonwood bound by both rows"
+    for sid in above:
+        got = _bait_says(sid, (10, 1))
+        assert got[f"{FRASER5}::fraser_river.r3"] == "lifted", (sid, got)
+        assert got[f"{FRASER7}::fraser_river.r2"] == "speaks", (sid, got)
+    below = db.execute(
+        "select min(sr.sid) from ruleset a join section_ruleset sr on sr.set_id = a.set_id "
+        "where a.entry_id = ? and a.rule_id = 'fraser_river.r3' and a.set_id not in "
+        "(select set_id from ruleset where entry_id = ? and rule_id = 'fraser_river.r2')", (FRASER5, FRASER7)).fetchone()[0]
+    assert below is not None
+    assert _bait_says(below, (10, 1))[f"{FRASER5}::fraser_river.r3"] == "speaks"

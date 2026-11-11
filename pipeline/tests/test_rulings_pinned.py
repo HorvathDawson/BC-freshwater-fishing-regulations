@@ -670,3 +670,17 @@ def test_c3_the_shipped_guide_says_trout_includes_char(request):
     assert _notes(guide) == {"species.trout_note": TROUT_NOTE, "gotchas.trout_includes_char.note": TROUT_NOTE}
     guide["species"]["trout_note"] = "Trout: rainbow, steelhead, cutthroat, brown."
     assert _notes(guide)["species.trout_note"] != TROUT_NOTE
+
+
+def test_f6_the_peace_river_is_outside_zone_bs_kokanee_stream_release(db):
+    """T623 F6 (certain, the book): p.64 "Kokanee: 10 (none from streams, except Peace River)". The stream release
+    `z7b:daily_quotas` species_quotas.r5 takes the Peace River out (`outside_items`), so no Peace section carries it and
+    Zone B's "Kokanee: 10" speaks on the stretch no Peace row covers (part 9, "From Dinosaur Lake up to the Williston
+    Lake outlet"; it showed "release KO"). A Peace tributary is a stream like any other: still released."""
+    peace = set(_sections(db, "gnis:14619"))
+    assert peace and not (peace & _bound_to(db, "z7b:daily_quotas", "species_quotas.r5"))
+    sid = db.execute("select p.rep_sid from part p join item i on i.ord = p.ord where i.item_id = 'gnis:14619' "
+                     "and p.part_ix = 9").fetchone()[0]
+    got = {f"{x['entry']}::{x['rule']}" for x in R.effective_rules(sid, (7, 1), "KO", BUNDLE) if x["state"] == "speaks"}
+    assert "z7b:daily_quotas::species_quotas.r4" in got, got
+    assert _bound_to(db, "z7b:daily_quotas", "species_quotas.r5"), "the release still binds Zone B's other streams"
