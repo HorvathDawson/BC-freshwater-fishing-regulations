@@ -162,3 +162,24 @@ describe("the gauge feed's format", () => {
     }
   });
 });
+
+// T597 item 3: a run where every station CSV is unchanged (304) wrote an obs.json with 0 stations (staging 03:35Z).
+describe("obs.json on an unchanged run", () => {
+  it("keeps the last obs.json's rows of the stations not rewritten, inside the window", async () => {
+    const rec = loadRecording(FIX);
+    const dir = mkdtempSync(join(tmpdir(), "gauges-obs-"));
+    cpSync(join(FIX, "seed"), dir, { recursive: true });
+    const feed = dirStore(join(dir, "feed"));
+    const priv = dirStore(join(dir, "priv"));
+    const roster = JSON.parse(readFileSync(join(FIX, "roster.json"), "utf-8"));
+    const base = fixtureFetch(rec).fetch;
+    const run = (fetch = base) => runGauges({ fetch, feed, priv, now: new Date(rec.now), sleep: async () => {}, roster, noForecast: true });
+    await run();
+    const first = JSON.parse((await feed.get("obs.json"))!);
+    expect(Object.keys(first.stations).length).toBeGreaterThan(5);
+    const s = await run(async (u, i) => (u.includes("/hourly/") ? new Response(null, { status: 304 }) : base(u, i)));
+    expect(s.answered).toBeGreaterThan(5);
+    const second = JSON.parse((await feed.get("obs.json"))!);
+    expect(second.stations).toEqual(first.stations);
+  });
+});

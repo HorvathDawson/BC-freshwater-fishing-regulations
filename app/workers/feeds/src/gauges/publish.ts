@@ -1135,6 +1135,17 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     stations: index,
     ...(a.listed !== null ? { listed: [...a.listed].sort() } : {}),
   }), JSON_CT);
+  // (T597 item 3) A STATION NOT REWRITTEN THIS RUN (its CSV answered 304, or it was carried) keeps the rows the last
+  // obs.json gave it that are still inside the window: a run where every CSV was unchanged wrote an obs.json with 0
+  // stations (staging 2026-11-10 03:35Z), and a phone that missed the run before lost those rows
+  if (a.aware && !indexKept) {
+    const prevObs = await readStored<{ stations?: Record<string, unknown> }>(feed, OBS_FILE);
+    for (const [st, rows] of Object.entries(prevObs?.stations ?? {})) {
+      if (obs[st] || !(st in index) || !Array.isArray(rows)) continue;
+      const keep = rows.filter((row: any) => Array.isArray(row) && now - Date.parse(row[0]) <= OBS_WINDOW_MS);
+      if (keep.length) obs[st] = keep;
+    }
+  }
   if (!indexKept) await feed.put(OBS_FILE, JSON.stringify({ format: GAUGE_FEED_FORMAT, fetchedAt, windowHours: OBS_WINDOW_MS / 3_600_000, stations: obs }), JSON_CT);
 
   return {
