@@ -75,15 +75,16 @@ describe("MapLibre will accept what we hand it", () => {
  */
 describe("MapLibre Native will accept what we hand it", () => {
   for (const theme of Object.keys(STYLE_META.themes)) {
-    it(`validates in the ${theme} theme, in every colour mode, with basin values`, () => {
+    // (T594) on both grounds: over satellite the stream lines open (`line-gap-width`) and the lake fills fade
+    it(`validates in the ${theme} theme, in every colour mode, with basin values, on the map and on satellite`, () => {
       const problems: string[] = [];
-      for (const modes of modeMatrix()) {
+      for (const modes of modeMatrix()) for (const basemap of ["map", "satellite"] as const) {
         const { style } = nativeStyle({
-          at: AT, theme, view: "plain", modes, basemap: "map", gauges: AT.gauges,
+          at: AT, theme, view: "plain", modes, basemap, gauges: AT.gauges,
           areaData: { basin: { "B-1": { standing: 30 }, "7": { standing: -100 } } },
         });
         for (const e of validateStyleMin(style as never))
-          problems.push(`${JSON.stringify(modes)}: ${e.message}`);
+          problems.push(`${JSON.stringify(modes)} ${basemap}: ${e.message}`);
       }
       expect(problems, problems.slice(0, 6).join("\n")).toEqual([]);
     });

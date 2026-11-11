@@ -18,6 +18,7 @@ import {
 } from "../style";
 import { CLOSED_CUE_LAYER, closedCuePaint, casingPaint, focusTheOthers, hideTheOthers, copyFillPaint, copyLinePaint, GEAR_LAYERS, gearPaint, NOACCESS_LAYER, noaccessPaint, NOBASELINE_LAYER, nobaselineOpacity, RUNS_PASS_LAYER, runsPassPaint,
          paintFor, ringPaint, SELECTION_CASING, SELECTION_RINGS, type SelectionCue } from "../paint";
+import { openedPaint, waterOnImagery } from "../on-imagery";
 
 export type { ChannelValues } from "../style";
 
@@ -201,12 +202,28 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
   const runBasinsHeld = new Set<string>();
   /** (T459) a water's Map view: every other water grey (`setFocus`) */
   let focused = false;
+  /**
+   * (T594) THE GROUND these layers are painted for: over satellite the stream lines open into two edges and the lake
+   * fills go light (`on-imagery.ts`); the drawn map is painted exactly as before. `opened`: the stream layers have been
+   * given a gap on this map, so the drawn map must take it back (a fresh map never had one: its paint is untouched).
+   */
+  let ground: "map" | "satellite" = "map";
+  let opened = false;
   const quiet = (o: Record<string, unknown>) => (focused ? hideTheOthers(o) : o);
+  /** A layer drawn with the stream's width (`stream` its solid width), for this ground. */
+  const onGround = (p: Record<string, unknown>, stream: unknown, tokens: Tokens, fade = true,
+                    openAs?: unknown): Record<string, unknown> =>
+    ground === "satellite" ? openedPaint(p, stream, tokens, fade, openAs ?? p["line-width"])
+      : opened ? { ...p, "line-gap-width": 0 } : p;
   const paint = (h: MapHandle, layerId: string, mode: string, tokens: Tokens) => {
     modeOf[layerId] = mode;
     const own = paintFor(layerId, mode, tokens, values);
     const out = focused ? focusTheOthers(layerId, own, tokens) : own;
-    for (const [prop, value] of Object.entries(out)) h.setPaint(layerId, prop, value);
+    // the stream's solid width: what every mark drawn with it is sized from, on either ground
+    const w = out["line-width"];
+    const drawn = layerId === "stream" ? onGround(out, w, tokens)
+      : ground === "satellite" ? waterOnImagery(layerId, out, tokens) : out;
+    for (const [prop, value] of Object.entries(drawn)) h.setPaint(layerId, prop, value);
     // the stream's dash reads the stream's own mode (a runtime layer: absent from a style that has none, harmless)
     if (layerId === "stream") {
       h.setPaint(NOBASELINE_LAYER, "line-opacity", quiet({ "line-opacity": nobaselineOpacity(mode) })["line-opacity"]);
@@ -215,27 +232,30 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       for (const [prop, value] of Object.entries(quiet(noaccessPaint(mode, tokens, values)))) h.setPaint(NOACCESS_LAYER, prop, value);
       // (T213) the gear edges: the stream's mode, its width, the status and method days
       for (const mark of GEAR_LEGEND)
-        for (const [prop, value] of Object.entries(quiet(gearPaint("stream", mode, mark, tokens, values, out["line-width"]))))
+        for (const [prop, value] of Object.entries(onGround(quiet(gearPaint("stream", mode, mark, tokens, values, w)), w, tokens)))
           h.setPaint(GEAR_LAYERS.stream[mark], prop, value);
       // (T199) a passing run's dash: the stream's mode and width
-      for (const [prop, value] of Object.entries(quiet(runsPassPaint(mode, tokens, out["line-width"]))))
+      for (const [prop, value] of Object.entries(onGround(quiet(runsPassPaint(mode, tokens, w)), w, tokens)))
         h.setPaint(RUNS_PASS_LAYER, prop, value);
-      // (T377) closed's stripe: the stream's mode, its day and width
-      for (const [prop, value] of Object.entries(quiet(closedCuePaint(mode, tokens, values, out["line-width"]))))
+      // (T377) closed's stripe: the stream's mode, its day and width — over imagery, the paper dash breaks the edges
+      // themselves (drawn at the stream's own width, opened), never a stripe over the clear middle
+      const cue = quiet(closedCuePaint(mode, tokens, values, w));
+      for (const [prop, value] of Object.entries(onGround(cue, w, tokens, true, w)))
         h.setPaint(CLOSED_CUE_LAYER, prop, value);
-      // the selection's outline goes with the stream: its width is the stream's, its colour the theme's
-      for (const [prop, value] of Object.entries(casingPaint(out["line-width"], tokens)))
+      // the selection's outline goes with the stream: its width is the stream's, its colour the theme's (full strength)
+      for (const [prop, value] of Object.entries(onGround(casingPaint(w, tokens), w, tokens, false)))
         h.setPaint(SELECTION_CASING, prop, value);
       for (const ring of Object.values(SELECTION_RINGS))
         for (const [prop, value] of Object.entries(ringPaint(tokens))) h.setPaint(ring, prop, value);
       // (T175) THE WATER COPY'S LINE takes the stream's own paint in the same call — the one colouring pathway
       const copy = copyLinePaint(out, tokens);
-      for (const [prop, value] of Object.entries(copy)) h.setPaint(COPY_LINE, prop, value);
-      for (const [prop, value] of Object.entries(casingPaint(copy["line-width"], tokens))) h.setPaint(COPY_CASING, prop, value);
+      for (const [prop, value] of Object.entries(onGround(copy, copy["line-width"], tokens))) h.setPaint(COPY_LINE, prop, value);
+      for (const [prop, value] of Object.entries(onGround(casingPaint(copy["line-width"], tokens), copy["line-width"], tokens, false)))
+        h.setPaint(COPY_CASING, prop, value);
     }
     // (T175) and a copied lake the lake's
     if (layerId === "lake") {
-      for (const [prop, value] of Object.entries(copyFillPaint(out))) h.setPaint(COPY_FILL, prop, value);
+      for (const [prop, value] of Object.entries(copyFillPaint(drawn))) h.setPaint(COPY_FILL, prop, value);
       // (T213) and its gear rings
       for (const mark of GEAR_LEGEND)
         for (const [prop, value] of Object.entries(quiet(gearPaint("lake", mode, mark, tokens, values))))
@@ -383,6 +403,16 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
         if (gid === IMAGERY_GROUP) h.setVisibility(layerId, kind === "satellite");
       if (themeName === undefined) return;
       const tokens = resolveTheme(themeName, overrides);
+      /*
+       * (T594) THE WATER FOLLOWS THE GROUND TOO: over imagery the stream lines open and the lake fills go light, so a
+       * ground change repaints every layer this map painted, in the mode it was last set to (`paint` reads `ground`). The
+       * labels below are painted after, as before.
+       */
+      if (kind !== ground) {
+        ground = kind;
+        if (kind === "satellite") opened = true;
+        for (const [id, mode] of Object.entries(modeOf)) if (!OWN_LABELS.includes(id)) paint(h, id, mode, tokens);
+      }
       for (const id of OWN_LABELS) {
         if (kind === "satellite")
           for (const [prop, value] of Object.entries(ownLabelOnImagery(id, tokens))) h.setPaint(id, prop, value);

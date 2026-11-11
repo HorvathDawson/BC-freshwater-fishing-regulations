@@ -80,6 +80,20 @@ const SATELLITE = de(["~28290d", "~353b1a", "~1c1a0b", "~61512c", "~2A333B", "~e
 const LAKE_GROUND: Record<Theme, string> = de({ light: "~82cdd9", dark: "~31353f", cvd: "~82cdd9" });
 /** Mean coverage of a thin status line's pixels; a boundary is wider (3 / 1.2 px), so it covers more. */
 const LINE = 0.6, EDGE = 0.8;
+/**
+ * (T594, owner 2026-11-11: look C) OVER SATELLITE, ZOOMED IN, A STREAM IS TWO THIN EDGES (`width.imagery.edge` px at
+ * `opacity.imagery.edge`, src/on-imagery.ts) round clear water. An edge's pixels are covered `e / (e + 1)` on average (a
+ * line e px wide spreads over about e + 1 pixels across, antialiased: 1.5 px is the 0.6 of `LINE`), times its opacity.
+ * Held to the SAME floors as the old satellite line (`${k}Sat`), over the imagery grounds plus the two the owner names:
+ * dark forest (Liumchen Creek's canopy, z16) and the Fraser's brown silty water (z15), sampled from the T594 shots.
+ * The lake-fill rows (`${k}Lake`, `opacity.lake`) are the DRAWN map's: over satellite a lake's fill fades to
+ * `opacity.imagery.fill` of itself close in, and its status is carried by its outline, a line (drawn 1.8x there).
+ */
+const IMAGERY_EDGE_GROUNDS = de([...SATELLITE, "~0a1b11", "~a7a385"]);
+const edgeCoverage = (t: Record<string, unknown>) => {
+  const e = t["width.imagery.edge"] as number, o = t["opacity.imagery.edge"] as number;
+  return (e / (e + 1)) * o;
+};
 
 /**
  * THE FLOORS, per theme: what palette D reaches, rounded down to 0.5.
@@ -217,6 +231,11 @@ function failures(th: Theme, t: Record<string, unknown>): string[] {
     hold(`${name(a, b)} as tokens`, worst(colour(a), colour(b)), f[`${k}Token`]!);
     hold(`${name(a, b)} as thin lines`, drawn(colour(a), colour(b), GROUND[th], LINE, LINE), f[`${k}Line`]!);
     hold(`${name(a, b)} over satellite`, drawn(colour(a), colour(b), SATELLITE, LINE, LINE), f[`${k}Sat`]!);
+    // only the stream line's own colours open into edges: the no-access dots and the permit hatch are drawn as before
+    if (k === "owner" || k === "water") {
+      const c = edgeCoverage(t);
+      hold(`${name(a, b)} as edges over satellite`, drawn(colour(a), colour(b), IMAGERY_EDGE_GROUNDS, c, c), f[`${k}Sat`]!);
+    }
     if (lake) hold(`${name(a, b)} as lake fills`, drawn(colour(a), colour(b), [LAKE_GROUND[th]], lakeA, lakeA), f[`${k}Lake`]!);
   };
   asDrawn("closed", "own", "owner", true);
@@ -321,6 +340,15 @@ describe("status colours, as drawn (T47)", () => {
     const dark = failures("dark", resolveTheme("dark", warmWasRestricted(TODAY.dark)));
     expect(dark).toContain(de("dark: closed ~FC4164 vs own ~F0E442 as thin lines 19.6 < 21 (deutan (vienot) on ~221e1e)"));
     expect(dark).toContain(de("dark: cool ~48b07a vs critical ~FC4164 as gauge dots 7.8 < 15 (deutan (machado))"));
+  });
+
+  // (T594) the edges over satellite: the owner's "lower opacity zoomed in" at 0.7, or today's 1.4 px look-C edge, fail
+  it("fails satellite edges fainter or thinner than the gate holds (mutation pin)", () => {
+    const edges = (e: number, o: number) => failures("light",
+      { ...resolveTheme("light"), "width.imagery.edge": e, "opacity.imagery.edge": o } as Record<string, unknown>);
+    expect(edges(1.5, 0.7)).toContain(de("light: closed ~8F0006 vs own ~D08404 as edges over satellite 13.5 < 17.5 (tritan (vienot) on ~e6e8ea)"));
+    expect(edges(1.4, 1)).toContain(de("light: closed ~8F0006 vs own ~D08404 as edges over satellite 17.2 < 17.5 (tritan (machado) on ~1c1a0b)"));
+    expect(edges(2, 0.9)).toEqual([]);
   });
 
   it("fails candidate B, which fixed the boundaries but left restricted and open beside closed (mutation pin)", () => {

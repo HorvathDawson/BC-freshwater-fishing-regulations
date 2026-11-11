@@ -2949,6 +2949,9 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.imagery.edge": 1.5,
+      "opacity.imagery.edge": 1,
+      "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
       "color.water.context": "#D5D5D5",
       "opacity.water.context": 0.55,
@@ -3120,6 +3123,9 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.imagery.edge": 1.5,
+      "opacity.imagery.edge": 1,
+      "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
       "color.water.context": "#39434B",
       "opacity.water.context": 0.55,
@@ -3299,6 +3305,9 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "width.stream.water": 2.4,
+      "width.imagery.edge": 1.5,
+      "opacity.imagery.edge": 1,
+      "opacity.imagery.fill": 0.2,
       "opacity.water.others": 0.25,
       "color.water.context": "#D5D5D5",
       "opacity.water.context": 0.55,
@@ -3563,6 +3572,21 @@
     "width.stream.water": {
       "type": "number",
       "themeable": false
+    },
+    "width.imagery.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T594, owner 2026-11-11: look C) OVER SATELLITE IMAGERY, zoomed in, a stream line opens into two edges of this width (px) with the water clear between (`line-gap-width`, src/on-imagery.ts). Set by the colour-blind gate (tools/status-colours-distinct.test.ts, the imagery edge row): an edge must carry the status as well as the old satellite line did over dark forest and brown water."
+    },
+    "opacity.imagery.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T594, owner: 'try lower opacity when zoomed in too') the edges' opacity from z15 in, over satellite imagery (full strength to z13, eased between). Held by the same colour-blind gate as `width.imagery.edge`."
+    },
+    "opacity.imagery.fill": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "(T594) a lake's, a river polygon's and a flowing wetland's fill over satellite imagery from z13 in, as a share of its plain-map opacity: light, so the water shows; the status is carried by the lake's outline, drawn heavier there."
     },
     "opacity.water.others": {
       "type": "number",
