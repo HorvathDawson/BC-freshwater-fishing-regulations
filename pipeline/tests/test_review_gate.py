@@ -23,12 +23,13 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED, REPO_ROOT
+from pipeline.common.curated import REPO_ROOT
 from pipeline.regs.review import gate as G
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import parity as P
 from pipeline.regs.review import tiers as T
 from pipeline.regs.review import vintage as V
+from pipeline.tests import under_test
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
@@ -57,8 +58,8 @@ def test_the_live_tree_prints_pipeline_build_and_after_a_split_the_whole_atlas_c
     def shown(q):               # repo-relative under the repo, else absolute (fast-fail hides the builds outside it)
         q = Path(q)
         return q.relative_to(REPO_ROOT) if q.is_relative_to(REPO_ROOT) else q
-    b = shown(GENERATED.build())
-    r = shown(GENERATED.reaches / GENERATED.build().name)
+    b = shown(under_test.path("atlas"))
+    r = shown(under_test.path("reach_run"))
     assert V.rebuild_commands([V.Waiting.split_unbuilt], live) == [
         "scripts/heavy.sh atlas 30 -- python -m pipeline build --atlas",
         f"scripts/heavy.sh reach 30 -- python -m pipeline.atlas.reach.cli --build {b}_next --out {r}_next",

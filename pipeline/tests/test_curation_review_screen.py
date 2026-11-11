@@ -25,7 +25,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED, load_repo
+from pipeline.common.curated import load_repo
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
@@ -45,8 +46,8 @@ pytestmark = [pytest.mark.needs_atlas, pytest.mark.needs_source]
 
 @pytest.fixture(scope="module")
 def env(request, tmp_path_factory):
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
-    raw = need(request, "source", GENERATED.regs.extraction / "synopsis_raw_data.json",
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
+    raw = need(request, "source", under_test.generated().regs.extraction / "synopsis_raw_data.json",
                EXTRACTION_HINT)
     root = tmp_path_factory.mktemp("screen")
     # the sidecar, made by the helper itself for page 16 (Adam River's page)
@@ -60,7 +61,7 @@ def env(request, tmp_path_factory):
                                    "raw_data_sha256": hashlib.sha256(raw.read_bytes()).hexdigest()}))
     mp = pytest.MonkeyPatch()
     curated_root(mp, root / "curated")                        # T422: the whole curated tree is a temp copy
-    cat = Path(CURATED.regulations.synopsis)
+    cat = Path(under_test.curated().regulations.synopsis)
     for k, v in {"CURATION_BACKUP_DIR": root / "backups", "CURATION_ROW_BOXES": sidecar}.items():
         mp.setenv(k, str(v))
     mp.syspath_prepend(str(BACKEND))
@@ -297,7 +298,7 @@ def test_re_resolve_writes_only_the_matches_file_and_never_changes_a_match(env):
     up-to-date file is not rewritten at all. Nothing under the real data/curated changes."""
     c = env["client"]
     curated = _stamps(load_repo().base)
-    nw = Path(CURATED.inseason.notice_waters)
+    nw = Path(under_test.curated().inseason.notice_waters)
     key = str(nw.relative_to(env["root"]))
     matched = _what_was_matched(json.loads(nw.read_text(encoding="utf-8")))
     assert matched, "the sandbox copy holds no in-season match: nothing to re-resolve"
@@ -358,8 +359,7 @@ def undecided_nanaimo(env):
     """T491: the Nanaimo place as it was before the owner decided it (2026-11-06: their mark wrote `tidal_water` onto the
     live place) — the flag taken off in THIS module's sandbox copy only, put back after, so the test never depends on what
     the live curated data has decided."""
-    from pipeline.common.curated import CURATED
-    f = Path(CURATED.dfo_salmon.places) / "region-1.json"
+    f = Path(under_test.curated().dfo_salmon.places) / "region-1.json"
     was = f.read_text(encoding="utf-8")
 
     def strip(x):
@@ -459,7 +459,7 @@ def test_a_dfo_suggestion_is_served_read_only_and_its_new_splits_land(env):
     queue says one waits; every NEW split a suggestion proposes passes the server's own anchor
     check on the real atlas (so accepting it and saving is not refused); reading writes nothing."""
     c = env["client"]
-    doc = json.loads((REPO / "data/generated/review/dfo-suggestions.json").read_text())
+    doc = json.loads((under_test.generated().review / "dfo-suggestions.json").read_text())
     curated = _stamps(load_repo().base)
     # a "between" suggestion with new splits; campbell, then nanaimo (the earlier pins) were placed by the owner
     lid = "1:puntledge-river:from-the-weir-at-the-lower-hatcher"

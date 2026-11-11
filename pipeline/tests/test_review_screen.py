@@ -18,8 +18,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
 from pipeline.regs.parsing.catalogue import clean_verbatim, squash
+from pipeline.tests import under_test
 from pipeline.regs.review import coverage as COV
 from pipeline.regs.review import tiers as T
 
@@ -28,7 +28,7 @@ REPO = Path(__file__).resolve().parents[2]
 
 def _corpus() -> list[dict]:
     out = []
-    for p in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         out += json.loads(p.read_text(encoding="utf-8"))["entries"]
     return out
 
@@ -165,7 +165,7 @@ def test_the_corpus_tiers_match_plan_section_3():
     # Stave r1/r2 T222 2026-10-28) no longer carry the undrawn-closure risk
     for tier, plan in {"P1": 220, "P2": 267, "P3": 99, "P4": 747, "sweep": 59}.items():
         assert abs(got[tier] - plan) <= 3, (tier, got[tier], plan)
-    splits = [s for wb in json.loads(CURATED.waters.cuts.read_text())["waterbodies"]
+    splits = [s for wb in json.loads(under_test.curated().waters.cuts.read_text())["waterbodies"]
               for s in wb["splits"]]
     held = [s for s in splits if T.split_needs_verify(s)]
     # (T179 close pairs, 53f3819e) the Moyie U.S. border became a `border` anchor: one held split left grade L

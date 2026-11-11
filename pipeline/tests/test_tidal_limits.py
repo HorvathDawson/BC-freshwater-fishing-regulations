@@ -26,6 +26,7 @@ from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
 from pipeline.regs.review import tidal as T
 from pipeline.tools import tidal_limits as TL
+from pipeline.tests import under_test
 
 NANAIMO, TLELL, COPPER, BEAR, CAPILANO = ("tidal:354154938", "tidal:360872960", "tidal:360881072",
                                           "tidal:360868849", "tidal:360875983")
@@ -341,13 +342,13 @@ def test_the_atlas_build_never_hands_a_mouth_row_to_the_cutter():
 # ------------------------------------------------------------------------------------------- retired
 
 def test_the_old_tidal_records_are_gone_and_unread():
-    from pipeline.common.curated import CURATED, REPO_ROOT
-    assert not (REPO_ROOT / "data/curated/waters/tidal_waters.json").exists()
-    assert Path(CURATED.waters.tidal).name == "tidal_limits.json" and not hasattr(CURATED.waters, "tidal_waters")
-    assert '"tidal"' not in Path(CURATED.waters.cuts).read_text()
+    from pipeline.common.curated import REPO_ROOT
+    assert not (under_test.curated().base / "waters" / "tidal_waters.json").exists()
+    assert Path(under_test.curated().waters.tidal).name == "tidal_limits.json" and not hasattr(under_test.curated().waters, "tidal_waters")
+    assert '"tidal"' not in Path(under_test.curated().waters.cuts).read_text()
     src = "\n".join(p.read_text() for p in (REPO_ROOT / "pipeline").rglob("*.py") if "tests" not in p.parts)
     src += "\n".join(p.read_text() for p in (REPO_ROOT / "curation-review/backend").glob("*.py"))
-    for gone in ("tidal_waters.json", "owner-decisions.json", "TIDAL_DECISIONS =", "CURATED.waters.tidal_waters"):
+    for gone in ("tidal_waters.json", "owner-decisions.json", "TIDAL_DECISIONS =", "under_test.curated().waters.tidal_waters"):
         assert gone not in src, gone
     rows = TA.load()
     assert {r.limit for r in rows} <= set(TA.LIMITS)

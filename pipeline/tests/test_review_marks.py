@@ -27,8 +27,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
 from pipeline.regs.parsing import io
+from pipeline.tests import under_test
 from pipeline.regs.parsing.catalogue import CatalogueEntry
 from pipeline.regs.review import carry, carry_marks
 from pipeline.regs.review import fingerprint as F
@@ -433,9 +433,9 @@ def test_the_renumber_check_is_pinned_by_mutation(monkeypatch):
 def test_renumbering_every_rule_of_the_real_corpus_stales_no_mark():
     """Every entry of the catalogue, its rules numbered backwards and every reference rewritten:
     no entry mark and no rule mark goes stale."""
-    entries = io.read_entries_dir(CURATED.regulations.synopsis)
-    ctx = F.Context(splits=json.loads(CURATED.waters.cuts.read_text(encoding="utf-8")),
-                    overrides=tuple(json.loads(CURATED.regulations.book_name_links.read_text(
+    entries = io.read_entries_dir(under_test.curated().regulations.synopsis)
+    ctx = F.Context(splits=json.loads(under_test.curated().waters.cuts.read_text(encoding="utf-8")),
+                    overrides=tuple(json.loads(under_test.curated().regulations.book_name_links.read_text(
                         encoding="utf-8"))))
     stale = check_renumber(entries, ctx)
     assert stale == {}, f"{len(stale)} marks stale after a renumber: {list(stale.items())[:5]}"
@@ -516,9 +516,9 @@ def _shuffled(d: dict, rnd: random.Random) -> dict:
 
 
 def test_a_noop_normalisation_of_the_whole_corpus_stales_no_mark(tmp_path):
-    src = CURATED.regulations.synopsis
-    ctx = F.Context(splits=json.loads(CURATED.waters.cuts.read_text(encoding="utf-8")),
-                    overrides=tuple(json.loads(CURATED.regulations.book_name_links.read_text(
+    src = under_test.curated().regulations.synopsis
+    ctx = F.Context(splits=json.loads(under_test.curated().waters.cuts.read_text(encoding="utf-8")),
+                    overrides=tuple(json.loads(under_test.curated().regulations.book_name_links.read_text(
                         encoding="utf-8"))))
     before = io.read_entries_dir(src)
     ms = [mark(e, ctx) for e in before.values()]
@@ -685,7 +685,7 @@ def test_a_mark_is_refused_on_an_entry_that_fails_the_gate():
 
 
 def test_the_checked_in_store_loads():
-    assert isinstance(M.load(CURATED.review.marks), list)
+    assert isinstance(M.load(under_test.curated().review.marks), list)
 
 
 # --------------------------------------------------------------------------------------------
@@ -733,11 +733,9 @@ def test_the_app_has_no_verification_endpoint_left():
 
 @pytest.mark.needs_bundle
 def test_the_real_bundle_reads_every_rule_and_twice_the_same():
-    from pipeline.deliver.bundle import read as R
-    from pipeline.tests.conftest import BUNDLE_HINT, need
-    need(None, "bundle", R.BUNDLE, BUNDLE_HINT)
-    a, b = F.BundleFacts.read(R.BUNDLE), F.BundleFacts.read(R.BUNDLE)
-    db = sqlite3.connect(f"file:{R.BUNDLE}?mode=ro", uri=True)
+    bundle = under_test.bundle()
+    a, b = F.BundleFacts.read(bundle), F.BundleFacts.read(bundle)
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     n = db.execute("SELECT COUNT(*) FROM rule").fetchone()[0]
     db.close()
     assert len(a.rule_answer) == n

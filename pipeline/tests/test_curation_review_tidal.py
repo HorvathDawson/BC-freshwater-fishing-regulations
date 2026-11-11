@@ -13,12 +13,14 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
+#: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
+LIVE_CURATED = under_test.curated().base
 BACKEND = REPO / "curation-review" / "backend"
-CANDIDATES = REPO / "data/generated/review/tidal/tidal-candidates.json"
+CANDIDATES = under_test.generated().review / "tidal" / "tidal-candidates.json"
 #: Pitt River: the synopsis p.21 box's CPR Bridge, the polygon and a tidal gauge all agree
 PITT = "tidal:356360869"
 
@@ -36,7 +38,7 @@ def _digest(d: Path) -> str:
 
 @pytest.fixture(scope="module")
 def env(request, tmp_path_factory):
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     tmp = tmp_path_factory.mktemp("tidal")
     rows = [r for r in json.loads(CANDIDATES.read_text())["candidates"] if r["id"] == PITT]
     assert rows, f"{PITT} is not in {CANDIDATES}"
@@ -53,13 +55,13 @@ def env(request, tmp_path_factory):
     T._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(CURATED.review.marks)}
+    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(under_test.curated().review.marks)}
     mp.undo()
 
 
 def test_the_queue_and_a_candidate_are_served_read_only(env):
     c = env["client"]
-    curated = _digest(REPO / "data/curated")
+    curated = _digest(LIVE_CURATED)
     q = c.get("/api/tidal/queue").json()
     assert [r["id"] for r in q] == [PITT] and q[0]["verify"] == "unmarked"
     assert c.get("/api/tidal/queue", params={"confidence": "nope"}).status_code == 422
@@ -76,12 +78,12 @@ def test_the_queue_and_a_candidate_are_served_read_only(env):
     assert [r["id"] for r in c.get("/api/tidal/queue", params={"triage": "owner-edited"}).json()] == [PITT]
     assert c.get("/api/tidal/queue", params={"triage": "nope"}).status_code == 422
     assert c.get("/api/tidal/progress").json()["by_triage"]["owner-edited"] == 1
-    assert _digest(REPO / "data/curated") == curated
+    assert _digest(LIVE_CURATED) == curated
 
 
 def test_accepting_records_one_mark_and_no_curated_write(env):
     c = env["client"]
-    curated = _digest(REPO / "data/curated")
+    curated = _digest(LIVE_CURATED)
     cand = c.get(f"/api/tidal/candidates/{PITT}").json()["candidate"]
     body = {"scope": "tidal", "target": PITT, "answers": {"P": "y"}, "reviewer": "test", "note": "",
             "new_splits": [{"ref": f"tidal-{cand['blk']}", "anchor": "coord", "name": cand["proposed"]["split_name"],
@@ -100,4 +102,4 @@ def test_accepting_records_one_mark_and_no_curated_write(env):
     q = c.get("/api/tidal/queue").json()
     assert q[0]["verify"] == "verified"
     assert c.get("/api/tidal/candidates/" + PITT).json()["mark"]["status"] == "verified"
-    assert _digest(REPO / "data/curated") == curated
+    assert _digest(LIVE_CURATED) == curated

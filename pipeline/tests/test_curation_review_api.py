@@ -22,8 +22,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
 from pipeline.regs.parsing import catalogue as C
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
@@ -35,11 +35,11 @@ pytestmark = pytest.mark.needs_atlas
 
 @pytest.fixture(scope="module")
 def env(request, tmp_path_factory):
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     mp = pytest.MonkeyPatch()
     # the whole curated tree is a temp copy (the reviewer's marks go to its empty store, never the real one)
     curated_root(mp, tmp_path_factory.mktemp("curated"))
-    tmp = Path(CURATED.regulations.synopsis)
+    tmp = Path(under_test.curated().regulations.synopsis)
     # a mark backs the store up first (`writes.py`) — into a temp dir, never data/generated
     mp.setenv("CURATION_BACKUP_DIR", str(tmp_path_factory.mktemp("backups")))
     mp.syspath_prepend(str(BACKEND))
@@ -388,7 +388,7 @@ def test_the_app_spells_cut_points_as_the_parse_menu_does(env):
     from pipeline.atlas.registry import load_registry
     from pipeline.regs.parsing.validate_catalogue import registry_cut_points
     reuse = env["reuse"]
-    pipe = dict(registry_cut_points(load_registry(str(GENERATED.registry())))("gnis:39532"))
+    pipe = dict(registry_cut_points(load_registry(str(under_test.generated().registry())))("gnis:39532"))
     app = dict(reuse._cut_points("gnis:39532"))
     assert {k: app[k] for k in pipe} == pipe
     assert "lake:329069968" in pipe["campbell_river__ladore_dam"]
@@ -477,8 +477,7 @@ def test_a_lake_s_point_is_inside_it(env):
 # --------------------------------------------------------------------------- #
 
 def _the_bundle():
-    from pipeline.deliver.bundle import read as R
-    need(None, "bundle", R.BUNDLE, BUNDLE_HINT)
+    under_test.bundle()
 
 
 DEAN = "r5:dean_river@5-9"

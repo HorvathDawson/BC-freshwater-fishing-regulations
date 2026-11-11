@@ -29,9 +29,9 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
 from pipeline.regs.parsing import io
 from pipeline.regs.review import vintage as V
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
@@ -45,11 +45,11 @@ pytestmark = pytest.mark.needs_atlas
 
 @pytest.fixture(scope="module")
 def app_env(request, tmp_path_factory):
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     tmp = tmp_path_factory.mktemp("vintage")
     # the served atlas as the vintage reads it: the real registry and handles, and the split
     # record a build of the temp splits.json would write
-    real = GENERATED.build()
+    real = under_test.atlas()
     atlas = tmp / "atlas"
     atlas.mkdir()
     for name in ("registry.json", "section_handles.txt"):
@@ -57,7 +57,7 @@ def app_env(request, tmp_path_factory):
     shutil.copy2(real / "splits.resolved.json", atlas / "splits.resolved.json")
     mp = pytest.MonkeyPatch()
     curated_root(mp, tmp / "curated")                         # T422: the whole curated tree is a temp copy
-    cat, splits = Path(CURATED.regulations.synopsis), Path(CURATED.waters.cuts)
+    cat, splits = Path(under_test.curated().regulations.synopsis), Path(under_test.curated().waters.cuts)
     for k, v in {"CURATION_BACKUP_DIR": tmp / "backups",
                  "CURATION_REACH_DIR": tmp / "reach", "CURATION_RELEASE_ROOT": tmp / "release",
                  "CURATION_TILES": tmp / "tiles"}.items():

@@ -9,10 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
+#: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
+LIVE_CURATED = under_test.curated().base
 BACKEND = REPO / "curation-review" / "backend"
 
 
@@ -40,13 +42,13 @@ def env(tmp_path_factory):
     Q._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(CURATED.review.marks)}
+    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(under_test.curated().review.marks)}
     mp.undo()
 
 
 def test_prediction_is_not_a_mark_and_calls_are_tallied(env):
     c = env["client"]
-    curated = sorted((p, p.stat().st_mtime) for p in (REPO / "data/curated").rglob("*") if p.is_file())
+    curated = sorted((p, p.stat().st_mtime) for p in LIVE_CURATED.rglob("*") if p.is_file())
     q = c.get("/api/q154/queue").json()
     assert [r["id"] for r in q] == ["lake:1", "lake:2", "lake:3"] and all(r["verify"] == "unmarked" for r in q)
     assert [r["id"] for r in c.get("/api/q154/queue", params={"set": "sample"}).json()] == ["lake:3"]
@@ -71,4 +73,4 @@ def test_prediction_is_not_a_mark_and_calls_are_tallied(env):
     assert (t["done"], t["called"], t["agree"], t["missed_pool"], t["caught_but_lake"]) == (3, 2, 1, 1, 0)
     assert t["by_prediction"] == {"caught": {"pool": 1, "unsure": 1}, "not caught": {"pool": 1}}
     assert [r["id"] for r in c.get("/api/q154/queue", params={"verify": "todo"}).json()] == []
-    assert sorted((p, p.stat().st_mtime) for p in (REPO / "data/curated").rglob("*") if p.is_file()) == curated
+    assert sorted((p, p.stat().st_mtime) for p in LIVE_CURATED.rglob("*") if p.is_file()) == curated

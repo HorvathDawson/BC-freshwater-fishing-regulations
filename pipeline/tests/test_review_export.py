@@ -1,6 +1,6 @@
 """T266 / T408: what the marks decide, computed in memory (no decided-data files) — what the apply paths read.
 
-  no files    there is no data/curated/decided/ and no `CURATED.decided` (owner 2026-11-05: dropped)
+  no files    there is no data/curated/decided/ and no `under_test.curated().decided` (owner 2026-11-05: dropped)
   load        load(marks) is decide(marks) with a CLOSED domain's marks left out (in `latest` order) + the shared cuts
   cleared     a CLEARED key decides nothing, and its proposed cuts are taken back with it
   conflict    two tidal decisions cutting one water at different points are refused
@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.common.curated import CURATED
 from pipeline.regs.review import export as E
 from pipeline.regs.review import marks as M
+from pipeline.tests import under_test
 
 PDF = "0" * 64
 
@@ -33,12 +33,12 @@ def _cleared(m, date="2026-10-29"):
 def test_there_is_no_decided_data_directory():
     from pipeline.common.curated import REPO_ROOT
     assert not (REPO_ROOT / "data" / "curated" / "decided").exists()
-    assert not hasattr(CURATED, "decided")
+    assert not hasattr(under_test.curated(), "decided")
 
 
 def test_load_is_what_the_marks_decide_less_the_closed_domains():
     from pipeline.regs.review import closed as C
-    want = E.decide(M.load(CURATED.review.marks))
+    want = E.decide(M.load(under_test.curated().review.marks))
     got = E.load()
     shut = C.scopes()                     # T325: a CLOSED domain (ponds, T329) is left out
     open_ = [m for m in want.inforce if m.scope not in shut]
@@ -47,7 +47,7 @@ def test_load_is_what_the_marks_decide_less_the_closed_domains():
     assert [(g["id"], g["split"], g["members"], g["marks"]) for g in got.groups] == \
         [(g["id"], g["split"], g["members"], g["marks"]) for g in want.groups]
     assert got.shared() == M.proposals(  # the shared cuts, as the marks module makes them from the history
-        list(_early(want)) + M.load(CURATED.review.marks))
+        list(_early(want)) + M.load(under_test.curated().review.marks))
 
 
 def _early(d):

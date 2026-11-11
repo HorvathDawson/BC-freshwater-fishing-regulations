@@ -21,8 +21,9 @@ from pipeline.regs.dfo_salmon.parse import (
     _expand_grid,
     parse_region,
 )
-from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 from pipeline.regs.dfo_salmon.typed import decode
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT, DFO_CACHE_HINT
 
 #: the scraped DFO feed (data/generated/regs/dfo_salmon/{rules,typed}) — fetched, not in git
@@ -1979,7 +1980,7 @@ def test_not_found_does_not_fall_through_to_a_wrong_name_match():
     from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
     from pipeline.atlas.registry.io import load_registry
 
-    reg = load_registry(need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT))
+    reg = load_registry(need(None, "atlas", under_test.atlas() / "registry.json", ATLAS_HINT))
     ni, ii = build_name_index(reg), build_id_index(reg)
     ovx = build_override_index(load_overrides(DEFAULT_OVERRIDES))
 
@@ -1997,7 +1998,7 @@ def test_a_renamed_water_links_instead_of_being_refused():
     from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
     from pipeline.atlas.registry.io import load_registry
 
-    reg = load_registry(need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT))
+    reg = load_registry(need(None, "atlas", under_test.atlas() / "registry.json", ATLAS_HINT))
     ni, ii = build_name_index(reg), build_id_index(reg)
     ovx = build_override_index(load_overrides(DEFAULT_OVERRIDES))
     for name, region, item in [("ISHKHEENICKH RIVER", "REGION 6", "gnis:4069"),
@@ -2025,7 +2026,7 @@ def test_a_dfo_answer_never_reaches_a_provincial_row():
 
     from pipeline.regs.matching.matcher import load_overrides
 
-    path = CURATED.regulations.book_name_links
+    path = under_test.curated().regulations.book_name_links
     prov, dfo = load_overrides(path), load_overrides(path, source="dfo")
     tagged = [e for e in dfo if (e.get("source") or "") == "dfo"]
     assert tagged, "expected DFO-tagged overrides"
@@ -2106,7 +2107,7 @@ def test_a_dfo_tagged_override_is_invisible_to_the_provincial_matcher():
 
     from pipeline.regs.matching.matcher import load_overrides
 
-    p = CURATED.regulations.book_name_links
+    p = under_test.curated().regulations.book_name_links
     prov, dfo = load_overrides(p), load_overrides(p, source="dfo")
     tagged = [e for e in dfo if (e.get("source") or "") == "dfo"]
     assert tagged, "expected DFO-tagged overrides"
@@ -2135,7 +2136,7 @@ def test_a_dfo_name_variant_never_relabels_a_gazetted_water():
 
     from pipeline.common.models.enums import NameSource
 
-    nv = json.loads((CURATED.waters.name_variants)
+    nv = json.loads((under_test.curated().waters.name_variants)
                     .read_text(encoding="utf-8"))
     by_wsc = {w: e for e in nv for w in (e.get("target") or {}).get("wscs", [])}
 
@@ -2276,7 +2277,7 @@ def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
     from pipeline.regs.dfo_salmon.typed import row_text, to_rules
     from pipeline.regs.parsing.catalogue import squash
 
-    rules_dir = need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules", DFO_FEED_HINT)
+    rules_dir = need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "rules", DFO_FEED_HINT)
     rows = made = 0
     for path in sorted(rules_dir.glob("region-*.json")):
         for i, rec in enumerate(json.loads(path.read_text(encoding="utf-8"))["rules"]):
@@ -2298,7 +2299,7 @@ def test_the_feed_revalidates_from_disk():
     """What is on disk is what the catalogue model accepts — not merely what we wrote."""
     from pipeline.regs.parsing.catalogue import CatalogueRule
 
-    feed_dir = need(None, "source", Path(GENERATED.regs.dfo_salmon) / "typed", DFO_FEED_HINT)
+    feed_dir = need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "typed", DFO_FEED_HINT)
     total = 0
     for path in sorted(feed_dir.glob("region-*.json")):
         for loc in json.loads(path.read_text(encoding="utf-8"))["locators"]:
@@ -2321,7 +2322,7 @@ def test_the_feed_takes_no_curated_input():
     assert "CURATED" not in body, "the feed must not read curated data to be written"
 
     from pipeline.regs.dfo_salmon.feed import build
-    scraped = json.loads(need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules" / "region-1.json",
+    scraped = json.loads(need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "rules" / "region-1.json",
                               DFO_FEED_HINT).read_text(encoding="utf-8"))
     assert build(scraped)["locators"], "the feed builds from the scrape alone"
 
@@ -2333,7 +2334,7 @@ def test_no_scraped_rule_lands_on_a_locator_nobody_curated():
     bound nowhere."""
     from pipeline.regs.dfo_salmon.feed import resolve
 
-    need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules", DFO_FEED_HINT)
+    need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "rules", DFO_FEED_HINT)
     for slug in ("1", "6"):
         rep = resolve(slug)
         assert not rep["unbound"], \
@@ -2393,7 +2394,7 @@ def test_a_row_that_says_per_day_always_yields_a_quota():
     publishing a water with no limit."""
     from pipeline.regs.dfo_salmon.typed import decode
 
-    rules_dir = Path(GENERATED.regs.dfo_salmon) / "rules"
+    rules_dir = Path(under_test.generated().regs.dfo_salmon) / "rules"
     missed = []
     for path in sorted(rules_dir.glob("region-*.json")):
         for rec in json.loads(path.read_text(encoding="utf-8"))["rules"]:
@@ -2407,7 +2408,7 @@ def test_a_row_that_states_a_size_always_binds_it():
     """Same tripwire for the size sub-limit wordings, of which DFO uses at least six."""
     from pipeline.regs.dfo_salmon.typed import to_rules
 
-    rules_dir = Path(GENERATED.regs.dfo_salmon) / "rules"
+    rules_dir = Path(under_test.generated().regs.dfo_salmon) / "rules"
     missed = []
     for path in sorted(rules_dir.glob("region-*.json")):
         for i, rec in enumerate(json.loads(path.read_text(encoding="utf-8"))["rules"]):
@@ -2426,7 +2427,7 @@ def test_the_feed_is_deterministic():
     run would look like a change and the review queue would be noise."""
     from pipeline.regs.dfo_salmon.feed import build
 
-    scraped = json.loads(need(None, "source", Path(GENERATED.regs.dfo_salmon) / "rules" / "region-6.json",
+    scraped = json.loads(need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "rules" / "region-6.json",
                               DFO_FEED_HINT).read_text(encoding="utf-8"))
     assert json.dumps(build(scraped), sort_keys=True) == json.dumps(build(scraped), sort_keys=True)
 
@@ -2446,7 +2447,7 @@ def test_the_skeena_cascade_resolves_through_the_join():
     from pipeline.regs.parsing.catalogue import CatalogueRule
 
     ef = E.load("6")
-    feed = json.loads(need(None, "source", Path(GENERATED.regs.dfo_salmon) / "typed" / "region-6.json",
+    feed = json.loads(need(None, "source", Path(under_test.generated().regs.dfo_salmon) / "typed" / "region-6.json",
                            DFO_FEED_HINT).read_text(encoding="utf-8"))
     by_fp = {l["fingerprint"]: l for l in feed["locators"]}
 
@@ -2581,7 +2582,7 @@ def test_the_queue_hides_no_unbound_locator():
     from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
     from pipeline.regs.dfo_salmon.splitwork import _registry, waters
 
-    need(None, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(None, "atlas", under_test.atlas() / "registry.json", ATLAS_HINT)
     queued = {r["loc"] for w in waters(_registry()) for r in w["locators"]}
     missing = []
     for slug in [s for s in ALL_SLUGS if not PAGES[s].is_stub]:
@@ -2611,12 +2612,11 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
     The second half is the property that makes the section E residual safe: two adjacent basins
     must not share water, or subtracting one would remove water belonging to the other.
     """
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     from pipeline.atlas.reach.build import build_reach
     from pipeline.regs.dfo_salmon.splitwork import _registry
 
-    graph_path = need(None, "atlas", Path(GENERATED.build()) / "graph.pkl", ATLAS_HINT)
+    graph_path = need(None, "atlas", under_test.atlas() / "graph.pkl", ATLAS_HINT)
     reg = _registry()
     g = read_artifact(graph_path)
 
@@ -2633,7 +2633,7 @@ def test_a_watershed_walk_passes_through_its_lakes_but_collects_streams():
 
     # (T374) a polygon the owner CALLED a stream (T322 slough review: a slough / channel, folded into the one stream
     # through it, `registry.flowing.fold_confirmed_sloughs`) is part of that stream, not a lake: the walk collects it
-    calls = json.loads((Path(__file__).resolve().parents[2] / "data/curated/waters/slough_calls.json").read_text())
+    calls = json.loads((under_test.curated().waters.slough_calls).read_text())
     streams = {f"lake:{w['wbk']}" for w in calls["waters"] if w.get("call") == "stream"}
     lakes = {s for s in skeena - item - streams
              if str(getattr(g.nodes.get(s), "kind", "")).endswith("lake")}
@@ -2685,11 +2685,10 @@ def test_the_region_6_cascade_tiles_its_region():
     """
     from pipeline.atlas.registry import load_registry
     from pipeline.atlas.reach.build import build_reach
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     from pipeline.regs.dfo_salmon import entries as E
 
-    build = Path(GENERATED.build())
+    build = under_test.atlas()
     need(None, "atlas", build / "graph.pkl", ATLAS_HINT)
     reg = load_registry(build / "registry.json")
     g = read_artifact(build / "graph.pkl")

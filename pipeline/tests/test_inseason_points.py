@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.common.curated import GENERATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 PITT, KASLO, KEEN, FRASER, GRANBY = "gnis:7551", "gnis:11345", "gnis:11410", "gnis:39325", "gnis:18775"
@@ -12,11 +12,11 @@ PITT, KASLO, KEEN, FRASER, GRANBY = "gnis:7551", "gnis:11345", "gnis:11410", "gn
 
 @pytest.fixture(scope="module")
 def atlas(request):
-    need(request, "atlas", GENERATED.build() / "graph.pkl", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "graph.pkl", ATLAS_HINT)
     from pipeline.atlas.reach import position
     from pipeline.atlas.registry import load_registry, regions
     from pipeline.common.io.serialize import read_artifact
-    b = GENERATED.build()
+    b = under_test.atlas()
     reg = load_registry(str(b / "registry.json"))
     g = read_artifact(str(b / "graph.pkl"))
     regions.attach_from(b, g, reg)

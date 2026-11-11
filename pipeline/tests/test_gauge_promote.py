@@ -34,6 +34,7 @@ import pytest
 
 from pipeline.gauges.generate import promote as P
 from pipeline.gauges.matches import StationMatch
+from pipeline.tests import under_test
 
 
 def _m(sid: str, name: str, dist: float) -> StationMatch:
@@ -201,9 +202,8 @@ def test_write_match_refuses_both_curated_files(tmp_path, monkeypatch):
     spelled through `..` so a string compare would miss them."""
     import inspect
 
-    from pipeline.common.curated import CURATED, GENERATED
     from pipeline.gauges import matches as M
-    assert M.PROMOTE_FILES == (M.MATCH_FILE, GENERATED.gauges.candidates)
+    assert M.PROMOTE_FILES == (M.MATCH_FILE, under_test.generated().gauges.candidates)
     assert inspect.signature(M.write_match).parameters["path"].default is inspect.Parameter.empty
     (tmp_path / "curated").mkdir()
     fakes = tuple(tmp_path / "curated" / p.name for p in M.PROMOTE_FILES)

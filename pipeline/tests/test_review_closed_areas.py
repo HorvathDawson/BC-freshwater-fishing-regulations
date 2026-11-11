@@ -18,13 +18,13 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
 from pipeline.regs.dfo_salmon import closures as K
 from pipeline.regs.review import apply as AP
 from pipeline.regs.review import closed_areas as CA
 from pipeline.regs.review import export as E
 from pipeline.regs.review import marks as M
 from pipeline.tests.test_review_write_through import wt  # noqa: F401  (the app over a sandbox, write-through on)
+from pipeline.tests import under_test
 
 SHA = "0" * 64
 BABINE = "6:babine-lake"
@@ -125,11 +125,11 @@ def test_the_writer_writes_its_own_file_and_nothing_else(tmp_path):
     assert E.DOMAINS["closed_areas"] == ("closed_area",) and "closed_areas" in AP.WRITERS
     out = AP.WRITERS["closed_areas"](_decided(tmp_path, [_mark(CIRCLE)]))
     assert list(out) == [CA.path()] and CA.path().name == "closed_areas.json"
-    assert CA.path().parent == Path(CURATED.dfo_salmon.places).parent
+    assert CA.path().parent == Path(under_test.curated().dfo_salmon.places).parent
     # the file is born with his first confirm: nothing confirmed and no file = nothing to write (the landed check
     # must not read a missing file as "marks not landed")
     assert not CA.path().exists() and AP.WRITERS["closed_areas"](_decided(tmp_path, [])) == {}
-    assert not CA.path().is_relative_to(Path(CURATED.dfo_salmon.places)), "never inside the places files"
+    assert not CA.path().is_relative_to(Path(under_test.curated().dfo_salmon.places)), "never inside the places files"
 
 
 # --------------------------------------------------------------------------- the app (sandbox, write-through on)
@@ -146,7 +146,7 @@ def _area(client, row, pick):
 
 @pytest.mark.needs_atlas
 def test_confirming_a_circle_writes_the_file_in_the_request_and_no_places_file(wt):  # noqa: F811
-    client, places = wt["client"], Path(CURATED.dfo_salmon.places)
+    client, places = wt["client"], Path(under_test.curated().dfo_salmon.places)
     before = _tree(places)
     a = _area(client, ROW, lambda a: a["kind"] == "circle" and a["state"] == "placed")
     assert a["confirmed"] is False and a["mark"] is None and a["piece"]["kind"] == "circle"

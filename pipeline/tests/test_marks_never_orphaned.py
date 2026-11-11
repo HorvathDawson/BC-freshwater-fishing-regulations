@@ -22,6 +22,7 @@ import pytest
 from pipeline.regs.review import dfo as D
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import proposals as P
+from pipeline.tests import under_test
 
 SHA = "0" * 64
 LOC = "1:test-river:between-the-signs"
@@ -139,12 +140,11 @@ def test_no_owner_mark_is_orphaned_or_dropped_live():
     Whether a mark's fix LANDED (`applied_keys`) reads the build's registry: a DFO mark whose proposal
     cuts at a named river (the Campbell's "Quinsam River") is only recognised as landed against it — needs_atlas,
     not a data defect. Without a build `applied_keys` refuses (T421), never "binding moved"."""
-    from pipeline.common.curated import CURATED, GENERATED
     from pipeline.tests.conftest import ATLAS_HINT, need
-    path = Path(CURATED.review.marks)
+    path = Path(under_test.curated().review.marks)
     assert path.exists(), f"no marks store at {path} — it is curated, in git"
     marks = [m for m in M.load(path) if m.scope in CHEAP_SCOPES]
-    src = P.Sources.live(build=need(None, "atlas", GENERATED.build(), ATLAS_HINT))
+    src = P.Sources.live(build=need(None, "atlas", under_test.atlas(), ATLAS_HINT))
     need(None, "atlas", src.build / "registry.json", ATLAS_HINT)
     h = M.health(marks, entries={}, ctx=None, applied=P.applied_keys(M.load(path), src))
     dropped = h["orphans"] + [r for r in h["stale_rows"] if r["scope"] == "dfo"]
@@ -236,8 +236,7 @@ def test_applied_keys_names_a_missing_build_instead_of_calling_marks_moved(tmp_p
     """(T421) The live marks hold new points anchored by the registry (the Campbell's "Quinsam River"). With no build,
     `applied_keys` used to fall back to the stamped point, call every such mark "binding moved" and say nothing; now it
     refuses, naming the registry it could not read. Curated marks only (in git): no build needed to prove it."""
-    from pipeline.common.curated import CURATED
-    marks = M.load(Path(CURATED.review.marks))
+    marks = M.load(Path(under_test.curated().review.marks))
     with pytest.raises(FileNotFoundError, match="registry"):
         P.applied_keys(marks, P.Sources.live(build=tmp_path / "no-build"))
 

@@ -9,17 +9,17 @@ from collections import Counter
 import pytest
 
 from pipeline.atlas.reach.classify import wants_tributaries
-from pipeline.common.curated import CURATED
 from pipeline.regs.review import checklist as C
 from pipeline.regs.review import dfo as D
 from pipeline.regs.review import marks as M
+from pipeline.tests import under_test
 
 SHA = "0" * 64
 
 
 def _curated_ctx() -> C.Context:
     """the curated cuts as built (no atlas in CI): every authored cut, by its label"""
-    cuts = json.loads(CURATED.waters.cuts.read_text())["waterbodies"]
+    cuts = json.loads(under_test.curated().waters.cuts.read_text())["waterbodies"]
     labels = {s["id"]: s.get("label") or "" for w in cuts for s in w.get("splits") or []}
     return C.Context(labels=labels, built=frozenset(labels))
 
@@ -42,7 +42,7 @@ def _check(rs: list[dict]) -> None:
 def test_every_curated_dfo_place_has_rows_and_every_phrase_is_covered():
     ctx, by = _curated_ctx(), Counter()
     n = 0
-    for _lid, (_s, loc, water) in D.locations(CURATED.dfo_salmon.places).items():
+    for _lid, (_s, loc, water) in D.locations(under_test.curated().dfo_salmon.places).items():
         if not loc.get("water_id"):
             continue
         n += 1
@@ -61,7 +61,7 @@ def test_every_curated_dfo_place_has_rows_and_every_phrase_is_covered():
 
 def test_every_regulation_rule_with_extents_has_rows_and_every_phrase_is_covered():
     ctx, by, n = _curated_ctx(), Counter(), 0
-    for f in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+    for f in sorted(under_test.curated().regulations.synopsis.glob("region-*.json")):
         for e in json.loads(f.read_text())["entries"]:
             for r in e.get("rules") or []:
                 if not r.get("extents"):

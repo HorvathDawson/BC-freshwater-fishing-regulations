@@ -13,6 +13,7 @@ import pytest
 from pipeline.regs.review import dfo as D
 from pipeline.regs.review import marks as M
 from pipeline.regs.review import tickets as T
+from pipeline.tests import under_test
 
 SHA = "0" * 64
 LOC = "1:test-river:below-the-bridge"
@@ -232,10 +233,9 @@ def test_every_curated_extent_opens_in_the_editor_or_says_why():
     as exactly that extent again (`extent_of`), its tributary flag as it is (none stays inherited); one holding a field
     an extent fix has no word for opens on nothing and says which field, so no change can drop it."""
     from pathlib import Path
-    from pipeline.common.curated import CURATED
     from pipeline.regs.review import proposals as P
     opened = refused = 0
-    for f in sorted(Path(CURATED.dfo_salmon.places).glob("region-*.json")):
+    for f in sorted(Path(under_test.curated().dfo_salmon.places).glob("region-*.json")):
         for loc in json.loads(f.read_text(encoding="utf-8"))["locations"]:
             b = loc.get("binding") or {}
             exs = b.get("extents") or []

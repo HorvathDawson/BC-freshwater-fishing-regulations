@@ -11,10 +11,12 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import curated_root
 
 REPO = Path(__file__).resolve().parents[2]
+#: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
+LIVE_CURATED = under_test.curated().base
 BACKEND = REPO / "curation-review" / "backend"
 
 
@@ -74,7 +76,7 @@ def env(tmp_path_factory):
     S._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(CURATED.review.marks)}
+    yield {"client": TestClient(app_mod.app), "dir": tmp, "marks": Path(under_test.curated().review.marks)}
     mp.undo()
 
 
@@ -100,7 +102,7 @@ def test_premarks_are_proposals_in_review_order(env):
 
 def test_one_call_and_accept_all_visible_are_marks(env):
     c = env["client"]
-    curated = _digest(REPO / "data/curated")
+    curated = _digest(LIVE_CURATED)
     base = {"scope": "slough", "answers": {"P": "y"}, "reviewer": "test"}
     # a verified slough mark needs its call; a call on another scope is refused
     assert c.post("/api/marks", json={**base, "target": "4"}).status_code == 422
@@ -116,7 +118,7 @@ def test_one_call_and_accept_all_visible_are_marks(env):
     q = {r["id"]: r for r in c.get("/api/sloughs/queue").json()}
     assert q["1"]["verify"] == "verified" and q["1"]["call"] == "stream" and q["4"]["call"] == "not stream"
     assert [r["id"] for r in c.get("/api/sloughs/queue", params={"verify": "todo", "group": "premark"}).json()] == []
-    assert _digest(REPO / "data/curated") == curated
+    assert _digest(LIVE_CURATED) == curated
 
 
 def test_clear_and_undo_batch(env):

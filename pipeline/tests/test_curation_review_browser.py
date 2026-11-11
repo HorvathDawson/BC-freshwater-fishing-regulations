@@ -26,7 +26,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED, ROOT_ENV, load_repo
+from pipeline.common.curated import ROOT_ENV, load_repo
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, need, sandbox_tree
 
 REPO = Path(__file__).resolve().parents[2]
@@ -61,7 +62,7 @@ def _wait(url: str, seconds: float) -> None:
 
 @pytest.fixture(scope="module")
 def site(request, tmp_path_factory):
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     vite = FRONTEND / "node_modules" / ".bin" / "vite"
     if not vite.exists():
         pytest.fail(f"missing {vite} — run `npm install` in {FRONTEND}", pytrace=False)

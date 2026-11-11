@@ -19,12 +19,12 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
 from pipeline.regs.review import precheck as P
 from pipeline.regs.review import tickets as TK
 from pipeline.regs.review import tiers as T
 from pipeline.regs.review.marks import Mark
 from pipeline.regs.review.runfacts import RunFacts
+from pipeline.tests import under_test
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -235,12 +235,12 @@ def test_the_run_prechecks_and_a_curated_pick(run):
 
 
 def _registry_ids():
-    reg = json.loads((GENERATED.build() / "registry.json").read_text(encoding="utf-8"))
+    reg = json.loads((under_test.atlas() / "registry.json").read_text(encoding="utf-8"))
     return {i["id"] for i in reg["items"]}
 
 
 def _reach_dir() -> Path:
-    return Path(os.environ.get("UI_EXPORT_REACHES") or GENERATED.reaches / GENERATED.build().name)
+    return under_test.path("reach_run")
 
 
 @pytest.mark.needs_atlas
@@ -254,11 +254,11 @@ def test_the_prechecks_measured_over_the_corpus(request):
     "on parts" the book never identifies is a note (`unidentified_part`, 39), not `undrawn_part`
     (133 -> 94, counted on the curated corpus 2026-10-26)."""
     from pipeline.tests.conftest import ATLAS_HINT, REACH_HINT, need
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     need(request, "reach_run", _reach_dir() / "report.json", REACH_HINT)
     run = RunFacts.read(_reach_dir())
-    entries = P._corpus(CURATED.regulations.synopsis)
-    splits = json.loads(CURATED.waters.cuts.read_text(encoding="utf-8"))
+    entries = P._corpus(under_test.curated().regulations.synopsis)
+    splits = json.loads(under_test.curated().waters.cuts.read_text(encoding="utf-8"))
     got = P.corpus_findings(entries, registry_ids=_registry_ids(), run=run, splits=splits)
     from collections import Counter
     n = Counter(f["code"] for fs in got.values() for f in fs)
@@ -291,10 +291,10 @@ def test_the_tiers_with_the_run_match_plan_section_3(request):
     from pipeline.atlas.reach.covered import covered_ids
     from pipeline.deliver.bundle.rules import closure_grade
     from pipeline.tests.conftest import ATLAS_HINT, REACH_HINT, need
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     need(request, "reach_run", _reach_dir() / "report.json", REACH_HINT)
     run, ids = RunFacts.read(_reach_dir()), _registry_ids()
-    entries = P._corpus(CURATED.regulations.synopsis)
+    entries = P._corpus(under_test.curated().regulations.synopsis)
     got = Counter(T.entry_tier(e, binds=bool(covered_ids(e, ids)), run=run) for e in entries)
     # Z 132 -> 122: the zone daily-quota merge (6335f73d) into zN:daily_quotas
     # T207: an unidentified "on parts" is no risk — 3 closures P1 -> P2, 13 entries P3 -> P4

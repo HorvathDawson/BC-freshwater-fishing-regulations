@@ -10,12 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED, GENERATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
 BACKEND = REPO / "curation-review" / "backend"
-CANDIDATES = REPO / "data/generated/review/tidal/tidal-candidates.json"
+CANDIDATES = under_test.generated().review / "tidal" / "tidal-candidates.json"
 NELSON = "tidal:356013125"
 
 pytestmark = pytest.mark.needs_atlas
@@ -23,7 +23,7 @@ pytestmark = pytest.mark.needs_atlas
 
 @pytest.fixture(scope="module")
 def env(request, tmp_path_factory):
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     tmp = tmp_path_factory.mktemp("tidal_unreg")
     rows = [r for r in json.loads(CANDIDATES.read_text())["candidates"] if r["id"] == NELSON]
     assert rows and rows[0]["items"] == [], f"{NELSON} is in {CANDIDATES} with no registry item"
@@ -39,8 +39,8 @@ def env(request, tmp_path_factory):
     T._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp, "row": rows[0], "marks": Path(CURATED.review.marks),
-           "splits": Path(CURATED.waters.cuts)}
+    yield {"client": TestClient(app_mod.app), "dir": tmp, "row": rows[0], "marks": Path(under_test.curated().review.marks),
+           "splits": Path(under_test.curated().waters.cuts)}
     mp.undo()
     T._load.cache_clear()
 

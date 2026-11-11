@@ -31,6 +31,7 @@ from types import SimpleNamespace
 import pytest
 
 from pipeline.regs.parsing import validate_catalogue as V
+from pipeline.tests import under_test
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -254,12 +255,11 @@ def test_the_corpus_passes_the_gate_with_its_build(request):
     the full validator gives. Measured 2026-10-23 on 1,525 entries."""
     import json
     from pipeline.atlas.registry import load_registry
-    from pipeline.common.curated import CURATED, GENERATED
     from pipeline.tests.conftest import ATLAS_HINT, need
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
-    reg = load_registry(str(GENERATED.registry()))
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
+    reg = load_registry(str(under_test.generated().registry()))
     cut_points = V.registry_cut_points(reg)
-    entries = [e for p in sorted(CURATED.regulations.synopsis.glob("region-*.json"))
+    entries = [e for p in sorted(under_test.curated().regulations.synopsis.glob("region-*.json"))
                for e in json.loads(p.read_text())["entries"]]
     refused = {}
     for e in entries:

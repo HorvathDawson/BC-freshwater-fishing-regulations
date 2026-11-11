@@ -11,9 +11,10 @@ import numpy as np
 from shapely.geometry import Polygon
 
 from pipeline.tools.audit import tidal_triage as TT
+from pipeline.tests import under_test
 
 REPO = Path(__file__).resolve().parents[2]
-TIDAL = REPO / "data/generated/review/tidal"     # T330: machine output
+TIDAL = under_test.generated().review / "tidal"     # T330: machine output
 
 
 def _ring(n=1000, r=5000.0, x0=1_000_000.0, y0=500_000.0):

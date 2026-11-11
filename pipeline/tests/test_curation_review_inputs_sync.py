@@ -11,6 +11,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "curation-review" / "backend"))
 
 import inputs_sync as IS  # noqa: E402
+from pipeline.tests import under_test
 
 
 def _sync(tmp_path, script: str) -> IS.InputsSync:
@@ -47,10 +48,9 @@ def test_off_says_so_and_runs_nothing(tmp_path):
 
 
 def test_which_files_are_inputs():
-    from pipeline.common.curated import CURATED
-    assert IS.touches([CURATED.inseason.notice_waters], REPO)
-    assert IS.touches([Path(CURATED.dfo_salmon.places) / "region-2.json"], REPO)
-    assert not IS.touches([REPO / "data/curated/waters/cuts.json"], REPO)
+    assert IS.touches([under_test.curated().inseason.notice_waters], REPO)
+    assert IS.touches([Path(under_test.curated().dfo_salmon.places) / "region-2.json"], REPO)
+    assert not IS.touches([under_test.curated().waters.cuts], REPO)
 
 
 def test_the_default_command_is_the_staging_script():

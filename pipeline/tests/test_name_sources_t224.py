@@ -11,12 +11,14 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import CURATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import curated_root
 from pipeline.common.models import NameRecord, NameSource, NameTuple, RegistryItem
 from pipeline.common.name_sources import LABELS, CITY_LABELS, is_official, label_of
 
 REPO = Path(__file__).resolve().parents[2]
+#: the LIVE curated tree, taken at import (before any test points CURATED_ROOT at a sandbox): the tests below prove it is not written
+LIVE_CURATED = under_test.curated().base
 BACKEND = REPO / "curation-review" / "backend"
 
 
@@ -101,12 +103,12 @@ def test_added_streams_names_carry_their_city_and_excluded_fwa_is_official():
 def test_curated_variants_are_labelled_with_their_real_source():
     """The audit's fixes hold: no Burnaby-map name or FWA gazetted name is a bare `alias`; every added-streams
     variant names its city; no curated entry targets an FWA line the added streams removed."""
-    nv = json.loads((REPO / "data/curated/waters/name_variants.json").read_text())
+    nv = json.loads((under_test.curated().waters.name_variants).read_text())
     for e in nv:
         for n in e["names"]:
             note = n.get("note") or ""
             assert not (n["source"] == "alias" and ("City of Burnaby" in note or "FWA gazetted name" in note)), n
-    added = json.loads((REPO / "data/curated/waters/added_streams.json").read_text())
+    added = json.loads((under_test.curated().waters.added_streams).read_text())
     # every variant names its city, or (T222) OpenStreetMap for a stream taken from OSM (osm_streams.geojson)
     assert all(v.get("source") in CITY_LABELS or v.get("source") == "osm" for v in added["name_variants"])
     dead = {"356101591", "356116640", "356311092", "356206901", "356216839", "356093488", "356189846"}
@@ -173,7 +175,7 @@ def env(tmp_path, monkeypatch):
     N._load.cache_clear()
     import app as app_mod                                     # noqa: E402
     from fastapi.testclient import TestClient
-    yield {"client": TestClient(app_mod.app), "dir": tmp_path, "N": N, "marks": Path(CURATED.review.marks)}
+    yield {"client": TestClient(app_mod.app), "dir": tmp_path, "N": N, "marks": Path(under_test.curated().review.marks)}
     for mod in ("app", "reuse", "variants", "writes", "review"):
         sys.modules.pop(mod, None)
 
@@ -189,7 +191,7 @@ def _digest(d: Path) -> str:
 
 def test_a_name_mark_is_one_commit_and_decides_acceptance(env):
     c = env["client"]
-    curated = _digest(REPO / "data/curated")
+    curated = _digest(LIVE_CURATED)
     base = {"scope": "name", "answers": {"P": "y"}, "reviewer": "test"}
     assert c.post("/api/marks", json={**base, "target": "blk:2~review-creek"}).status_code == 422   # no call
     assert c.post("/api/marks", json={**base, "target": "blk:2~review-creek", "call": "maybe"}).status_code == 422
@@ -201,7 +203,7 @@ def test_a_name_mark_is_one_commit_and_decides_acceptance(env):
     lines = [json.loads(x) for x in env["marks"].read_text().splitlines()]
     assert [(m["target"], m["call"]) for m in lines] == [
         ("blk:2~review-creek", "accept"), ("blk:1~auto-creek", "accept"), ("blk:1~auto-creek", "reject")]
-    assert _digest(REPO / "data/curated") == curated
+    assert _digest(LIVE_CURATED) == curated
     # the tool: auto + owner + accepted marks − rejected marks; every name with its real source
     from pipeline.tools.mined_names import build
     got = build(env["marks"])

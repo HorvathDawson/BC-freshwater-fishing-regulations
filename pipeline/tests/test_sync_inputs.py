@@ -9,8 +9,9 @@ import json
 
 from pathlib import Path
 
-from pipeline.common.curated import CURATED, REPO_ROOT
+from pipeline.common.curated import REPO_ROOT
 from pipeline.deliver import sync_inputs as S
+from pipeline.tests import under_test
 
 MAC = REPO_ROOT / "deploy/staging/sync-inputs.sh"
 PROD = REPO_ROOT / "deploy/prod/sync-inputs.sh"
@@ -34,9 +35,9 @@ def test_the_list_holds_the_wording_registry(tmp_path):
     got = S.stage(tmp_path, ("dfo-entries", "wording", "roster"))
     keys = [k for k, _ in got]
     assert "private/feeds/dfo/wording.json" in keys
-    assert (tmp_path / "private/feeds/dfo/wording.json").read_bytes() == CURATED.dfo_salmon.wording.read_bytes()
+    assert (tmp_path / "private/feeds/dfo/wording.json").read_bytes() == under_test.curated().dfo_salmon.wording.read_bytes()
     assert sum(k.startswith("private/feeds/dfo/entries/region-") for k in keys) == len(
-        list(CURATED.dfo_salmon.places.glob("region-*.json")))
+        list(under_test.curated().dfo_salmon.places.glob("region-*.json")))
     roster = json.loads((tmp_path / "private/feeds/gauges/roster.json").read_text())
     assert roster and set(roster[0]) == {"station", "realtime"}
     assert all(c is None for _, c in got)                 # only the public in-season links carry a cache header

@@ -11,6 +11,7 @@ import pytest
 
 from project_config import get_config
 from pipeline.atlas.splits import pfma_drainage as pd_
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, GPKG_HINT, ATLAS_HINT
 
 
@@ -171,12 +172,11 @@ def test_the_prefix_agrees_with_the_tributary_walk():
     84,617 of 84,624 — 99.99%. The handful that differ are tidal channels at the mouth, where the
     Skeena meets the coastal system.
     """
-    from pipeline.common.curated import GENERATED
     from pipeline.common.io.serialize import read_artifact
     from pipeline.atlas.reach.build import build_reach
     from pipeline.regs.dfo_salmon.splitwork import _registry
 
-    graph_path = need(None, "atlas", Path(GENERATED.build()) / "graph.pkl", ATLAS_HINT)
+    graph_path = need(None, "atlas", under_test.atlas() / "graph.pkl", ATLAS_HINT)
     reg, g = _registry(), read_artifact(graph_path)
 
     entry = {"entry_id": "t", "matched": [], "includes_tributaries": True}

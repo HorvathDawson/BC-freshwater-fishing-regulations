@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from pipeline.common.curated import load_repo
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, BUNDLE_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
@@ -51,10 +52,9 @@ def env(tmp_path_factory):
 
 def _a_section(reports) -> tuple[int, str]:
     """A section handle the served bundle files under a named water, and that water."""
-    from pipeline.deliver.bundle import read as R
-    need(None, "bundle", R.BUNDLE, BUNDLE_HINT)
+    bundle = under_test.bundle()
     assert reports._vintage() is not None, f"the served build {reports.reuse._BUILD} has no section handles — {ATLAS_HINT}"
-    db = sqlite3.connect(f"file:{R.BUNDLE}?mode=ro", uri=True)
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     try:
         got = dict(db.execute("SELECT k, v FROM meta WHERE k = 'section_handles'")).get("section_handles")
         assert got == reports._vintage(), f"the bundle ({got}) is another vintage than the served build ({reports._vintage()})"
