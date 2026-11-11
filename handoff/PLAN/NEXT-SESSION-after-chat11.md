@@ -12,8 +12,10 @@
 ## The owner's list is a page
 - Owner To-Do: https://claude.ai/artifact/Fm5KqHqutxRJsk8UymFo6F (database collection `todo`). Read it at the start (ticks and notes are the owner's answers);
   add a row for every new owner item (ArtifactData `set`, fields: title, detail, group, ticket, order, added, done:false).
-  Groups in use: "Check on your phone", "Look and pick", "Decide", "Review", "Run or provide". Phone-check answers
-  stay in the older checks page linked from the first row.
+  Groups in use: "Check on your phone", "Look and pick", "Decide", "Review", "Run or provide". **First thing (owner 2026-11-11): the older
+  phone checks page (claude.ai/artifact/5LRBFFgvYeTRnygSBWvZbM) is OUT OF DATE. Write the phone checks for the
+  latest build (what changed since the previous Play build, plus the cold-start water step the test bed missed) as
+  rows in the Owner To-Do page, group "Check on your phone"; do not send the owner to the old page.**
 - Chat 11's emulator test-bed run on the latest build: install, feeds, big-update, offline, gestures passed;
   water-nav passed 6 of 7 and its last step (cold start, the water again) failed on a test-bed bug, not the app
   (`pidOf` threw when the app was stopped; fixed in `app/tools/testbed/lib/device.mjs`, not yet rerun). Rerun
