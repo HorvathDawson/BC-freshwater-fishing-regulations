@@ -51,8 +51,9 @@ import math
 import re
 from typing import Dict, List, Optional, Sequence, Tuple
 
+from pipeline.common import entry_id as EID
 from pipeline.deliver.answers import common
-from pipeline.deliver.answers.rows.groups import two_tables
+from pipeline.deliver.answers.rows.groups import tables_words, two_tables
 
 #: OWNER 2026-10-24 (T183 follow-ups): on a piece in two regions BOTH regions' size caps bind; a kind one leaves
 #: out that the other's holds is not "not counting" (`_say_caps`). False = each cap read alone (the mutation pin:
@@ -782,6 +783,10 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
 
     # -- lifts out of the share, and the total under it ------------------------------------------
     region = (P.by_key[share["r"]].x.get("entry_name") if share else None) or "the region"
+    # T623 F14 (RULINGS Z4): a straddler's card speaks of both regions' tables in one voice — the total, the share,
+    # the ⓘ, the kept-elsewhere line (`groups.tables_words`); a share a water's own row sets keeps its own name
+    both = tables_words(grp)
+    share_both = both if share is not None and EID.is_zone(share["r"].split("::", 1)[0]) else None
     # ROUND10 W1: ONE line per lifting entry (the Duncan's rainbow and Dolly Varden rules are one row),
     # each kind with its number, highest first; `each` keeps every rule's kinds, number and `by`
     lifts: List[dict] = []
@@ -797,7 +802,8 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
             {"kinds": list(L["members"]), "n": n, "by": L["by"],
              "fish": _lift_words(P, L["by"], L["members"])})
         states.append({"r": L["by"], "line": "lift"})
-    limit = f"{region}’s {_js(share['take'])}-from-{share['water']}s limit" if share is not None else ""
+    limit = (f"the {_js(share['take'])}-from-{share['water']}s limit across {share_both}" if share_both else
+             f"{region}’s {_js(share['take'])}-from-{share['water']}s limit") if share is not None else ""
     for each in each_of.values():
         each.sort(key=lambda e: -(INF if e["n"] is None else e["n"]))     # stable: highest first
         where, whose = _whose(P, P.by_key[each[0]["by"]])
@@ -821,15 +827,16 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
     if not unlimited and (share is not None or (head["n"] is not None and head["n"] < total)):
         wk = share["water"] if share is not None else ("stream" if P.kind == "stream" else "lake")
         other = "lakes" if wk == "stream" else "streams"
-        scope = T.x.get("entry_name") or "the region"
+        scope = both or T.x.get("entry_name") or "the region"
         total_line = f"No more than {_js(total)} {what} a day per angler across {scope}, {other} included."   # UR1 A
         states.append({"r": grp["pool"], "line": "total"})
 
     # -- buckets and kind rows -------------------------------------------------------------------
     share_b = None
     if share is not None:
-        share_b = {"title": f"Up to {_js(share['take'])} a day between them — all {region} "
-                            f"{share['water']}s combined",
+        share_b = {"title": f"Up to {_js(share['take'])} a day between them — "
+                            + (f"all {share['water']}s in {share_both} combined" if share_both
+                               else f"all {region} {share['water']}s combined"),
                    "cap": share["take"], "by": share["r"], "why": "share", "kinds": []}
     # one bucket per lifting entry (Duncan: its rainbow and its Dolly Varden rules are one row)
     lift_bucket: Dict[str, dict] = {}
@@ -1034,7 +1041,7 @@ def card_of(P, model: dict, grp: dict, rows_out: List[dict], home: int) -> dict:
         kinds + [S for x in not_kept for S in x["species"]]))))
     table = {**sysm["table"], "steelhead_cm": sysm["steelhead_cm"]}
     if share is not None and not unlimited and share["take"] < total:
-        info = share_info(P, model, share, T, total, head, what, T.x.get("entry_name") or "the region", kinds,
+        info = share_info(P, model, share, T, total, head, what, both or T.x.get("entry_name") or "the region", kinds,
                           plain=not lifts and all(where_of[S] is share_b for S in kinds))
         if info is not None:
             head["info"] = info

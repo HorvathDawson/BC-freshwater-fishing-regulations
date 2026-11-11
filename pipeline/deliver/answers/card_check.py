@@ -268,8 +268,9 @@ def check_tree(P, g: dict) -> List[str]:
     if not tree:
         return [f"{where}: no tree"]
     E = Engine(P, g["pool"])
+    from pipeline.deliver.answers.rows.groups import tables_words
     names = [P.by_key[r].x.get("entry_name") for r in {g["pool"], *(s["r"] for s in g["subcaps"])}
-             if r in P.by_key]
+             if r in P.by_key] + [tables_words(g)]                     # T623 F14: "Regions 3 and 5" states no number
     seen: List[str] = []
 
     def kinds_under(t: dict) -> List[str]:
@@ -672,7 +673,8 @@ def _check_headline(P, E: Engine, g: dict, head: dict, where: str, kinds: Sequen
         if sub is None or sub["water"] is None:
             probs.append(f"{where}: the headline's ⓘ cites {info['by']}, which is no share of this total")
         allowed = {float(v) for v in (head.get("n"), _claim(g["total"]), sub and sub["take"]) if v is not None}
-        names = [P.by_key[k].x.get("entry_name") for k in (g["pool"], info["by"]) if k in P.by_key]
+        from pipeline.deliver.answers.rows.groups import tables_words
+        names = [P.by_key[k].x.get("entry_name") for k in (g["pool"], info["by"]) if k in P.by_key] + [tables_words(g)]
         for key in ("title", "says"):
             bad = [x for x in _numbers(info[key], names) if x not in allowed]
             if bad:

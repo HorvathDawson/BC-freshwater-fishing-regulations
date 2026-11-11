@@ -291,14 +291,16 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
     same examples with the basket each starts from and the number it states (`_line`, RULINGS P9: the
     card folds them into `group.worked`, its one list)."""
     n, pool, nw = row["daily"], row["pool"], row["narrow"]
-    s = _scope_name(sc, pool)
+    both = tables_words(grp)                     # T623 F14: a straddler's card names both regions, once
+    s = _scope_name(sc, pool) if both is None or sc["of"] not in ("region", "area") else both
     lines: List[dict] = []
     if sc["share"] and nw is not None and all(_covers(nw, S) for S in row["members"]):
         wk = nw.f["water"]
         other = "lake" if wk == "stream" else "stream"
         mine = next((x for x in (grp or {}).get("subcaps", []) if x["r"] == nw.key), None)
         tot = "unlimited" if T.f.get("unlimited") else T.f.get("take")
-        says = f"Your own limit, counted across every {s} {wk} you fish today."   # RULINGS P44
+        says = (f"Your own limit, counted across every {wk} in {s} you fish today." if both and s == both
+                else f"Your own limit, counted across every {s} {wk} you fish today.")   # RULINGS P44
         # RULINGS Q23b: the stream tally counts every trout/char kept from ANY
         # stream today; a kind THIS water lifts may still go past it here, to its own quota and the
         # total — after n kept on another stream, up to min(its own, total - n) more of it here
@@ -370,7 +372,12 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
                     f"toward {that}.")
         if sc["apart"]:
             says += " These fish are counted apart from the region’s total: they don’t use it up."
-        if T is not pool:
+        if T is not pool and both is not None:
+            # T623 F14: the total of two regions' tables (the stricter of each), said across both
+            says += (f" They also count toward the {_js(T.f.get('take'))} {written_name_of(T)} a day across "
+                     f"{both}." if not T.f.get("unlimited") else
+                     f" They also count toward the {written_name_of(T)} across {both}, which has no daily limit.")
+        elif T is not pool:
             whose = T.x.get("entry_name") if badge_of(T) != "water" else None
             whose = "B.C.’s" if badge_of(T) == "bc" else f"{whose}’s" if whose else "the"
             says += (f" They also count toward {whose} {_js(T.f.get('take'))} {written_name_of(T)} a "
@@ -386,12 +393,24 @@ def elsewhere_of(P: "Part", model: dict, row: dict, sc: dict, T: R,
     return {"says": says, "ask": [[x["q"], x["a"]] for x in lines], "lines": lines}
 
 
+def _table_regions(grp: Optional[dict]) -> set:
+    """The regions whose zone tables this group draws its total and caps from."""
+    if not grp:
+        return set()
+    return {EID.zone_region(k.split("::", 1)[0]) for k in [grp["pool"], *(s["r"] for s in grp["subcaps"])]} - {None}
+
+
 def two_tables(grp: Optional[dict]) -> bool:
     """Does this group draw its caps from TWO regions' tables (a straddling piece, `_peer_totals`)?"""
-    if not grp:
-        return False
-    regions = {EID.zone_region(k.split("::", 1)[0]) for k in [grp["pool"], *(s["r"] for s in grp["subcaps"])]}
-    return len(regions - {None}) > 1
+    return len(_table_regions(grp)) > 1
+
+
+def tables_words(grp: Optional[dict]) -> Optional[str]:
+    """T623 F14 (RULINGS Z4): WHOSE TABLES a straddling piece's group is counted across, said once for the whole card —
+    "Regions 3 and 5" — so the total, the share, the ⓘ and the kept-elsewhere line never name one region each (the
+    Fraser's part 14 read "across Region 3" beside "all Region 5 streams combined"). None off a straddler: each sentence
+    keeps its rule's own entry name ("Region 3", "Zone A")."""
+    return EID.region_words(_table_regions(grp)) if two_tables(grp) else None
 
 
 def over_elsewhere(P: "Part", model: dict, row: dict, grp: Optional[dict]) -> List[dict]:

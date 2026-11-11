@@ -281,7 +281,9 @@ def tree_of(P, model: dict, c: Ctx) -> Tuple[List[dict], dict]:
     T = P.by_key[grp["pool"]]
     total = grp["total"]
     zone = badge_of(T) in ("region", "bc")
-    scope = T.x.get("entry_name") or ("B.C." if badge_of(T) == "bc" else "the region")
+    from pipeline.deliver.answers.rows.groups import tables_words
+    # T623 F14: a straddler's total is counted across both regions' tables — said so, once
+    scope = tables_words(grp) or T.x.get("entry_name") or ("B.C." if badge_of(T) == "bc" else "the region")
     wk = c.share["water"] if c.share is not None else ("stream" if P.kind == "stream" else "lake")
     other = "lakes" if wk == "stream" else "streams"
     head_n = c.head.get("n")

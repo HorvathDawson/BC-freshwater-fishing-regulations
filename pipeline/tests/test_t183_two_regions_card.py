@@ -184,3 +184,65 @@ def test_every_shape_draws_on_both_tables(shape):
     row, g = _trout(out)
     assert two_tables(g)
     assert row["scope"]["of"] != "region" or row["scope"]["both"].startswith("Regions ")
+
+
+# ------------------------------------------------------------------------------------------- T623 F14: one voice
+
+def _voice(shape):
+    out, P = _card(shape)
+    row, g = _trout(out)
+    info = g["headline"].get("info") or {}
+    tiers = [x["says"] for x, _p in walk(g["tree"]) if x.get("node") == "tier" and x["tier"] == "total"]
+    return {"total_line": g.get("total_line"), "header": (g.get("header") or {}).get("says"), "tier": tiers,
+            "info": (info.get("title"), info.get("says")), "share": [b["title"] for b in g["buckets"] if b["why"] == "share"],
+            "elsewhere": (row.get("elsewhere") or {}).get("says"), "gate": CC.check_card(P, out)}
+
+
+def test_f14_the_fraser_in_regions_3_and_5_speaks_of_both_regions_once():
+    """T623 F14 (RULINGS Z4): the Fraser's part 14 card read "No more than 5 trout and char … across Region 3" beside
+    "all Region 5 streams combined" — two regions' words on one card. Every sentence of the group now names both."""
+    v = _voice("fraser_3_5")
+    assert v["total_line"] == "No more than 5 trout and char a day per angler across Regions 3 and 5, lakes included."
+    assert v["header"] == "5 a day per angler across Regions 3 and 5, lakes included"
+    assert v["tier"] == ["5 a day per angler across Regions 3 and 5, lakes included"]
+    assert v["info"] == ("Your 2 from streams and the 5 across Regions 3 and 5",
+                         "The 2 from streams are part of your 5 trout and char a day across Regions 3 and 5, lakes "
+                         "included. Every one you keep that day, at any stream or lake, counts toward the 5; no more "
+                         "than 2 of them may come from streams.")
+    assert v["share"] == ["Up to 2 a day between them — all streams in Regions 3 and 5 combined"]
+    assert v["elsewhere"] == ("Your own limit, counted across every water in Regions 3 and 5 you fish today, lakes and "
+                              "streams alike.")
+    assert v["gate"] == []
+
+
+def test_f14_the_nechako_shape_in_regions_6_and_7a_never_says_zone_a_beside_region_6():
+    """The Nechako's part 5 (Regions 6 and 7A, the Big Bend shape): "across Region 6" beside "all Zone A streams
+    combined" is now one voice, and the share's fish under it are every fish it caps (the count tier names brown,
+    cutthroat, rainbow trout and steelhead beside the brook/lake trout row)."""
+    v = _voice("big_bend_6_7a")
+    assert v["total_line"] == "No more than 5 trout and char a day per angler across Regions 6 and 7A, lakes included."
+    assert v["share"] == ["Up to 2 a day between them — all streams in Regions 6 and 7A combined"]
+    assert v["elsewhere"] == ("Your own limit, counted across every water in Regions 6 and 7A you fish today, lakes and "
+                              "streams alike.")
+    out, _P = _card("big_bend_6_7a")
+    _row, g = _trout(out)
+    named = sorted({S for x, _p in walk(g["tree"]) if x.get("node") == "kind" for S in x["species"]})
+    assert named == sorted(g["kinds"])
+    assert v["gate"] == []
+
+
+def test_f14_a_stream_share_and_a_water_total_say_both_regions_too():
+    """Copper Creek (Regions 2 and 8): the stream tally; the West Road (5 and 6, its own row's 1): the total it counts
+    toward."""
+    assert _voice("copper_2_8")["elsewhere"] == "Your own limit, counted across every stream in Regions 2 and 8 you fish today."
+    assert _voice("west_road_5_6")["elsewhere"] == (
+        "This river’s rule: 1 a day here. Trout and char other than steelhead or Dolly Varden/bull trout you kept anywhere "
+        "else today count toward that 1. They also count toward the 5 trout and char a day across Regions 5 and 6.")
+
+
+def test_f14_one_region_cards_keep_their_rules_own_names():
+    from pipeline.deliver.answers.rows.groups import tables_words
+    assert tables_words({"pool": "z3:daily_quotas::trout_char_quota.r1",
+                         "subcaps": [{"r": "z3:daily_quotas::trout_char_quota.r2"}]}) is None
+    assert tables_words({"pool": "z3:daily_quotas::trout_char_quota.r1",
+                         "subcaps": [{"r": "z5:daily_quotas::trout_char_quota.r3"}]}) == "Regions 3 and 5"
