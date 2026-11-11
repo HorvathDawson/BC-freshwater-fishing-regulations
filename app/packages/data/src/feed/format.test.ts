@@ -25,19 +25,21 @@ const server = (files: Record<string, unknown>) => (async (url: string) => {
 }) as unknown as typeof fetch;
 
 describe("gaugeFeedRefusal", () => {
-  it("reads this format, and a file from before the tag", () => {
+  it("reads this format", () => {
     expect(gaugeFeedRefusal(INDEX, "index")).toBeNull();
-    expect(gaugeFeedRefusal({ ...INDEX, format: undefined }, "index")).toBeNull();
     expect(gaugeFeedRefusal(STATION, "station")).toBeNull();
     expect(gaugeFeedRefusal({ format: GAUGE_FEED_FORMAT, stations: {} }, "obs")).toBeNull();
   });
-  it("refuses another format, a file that is not the shape, and an index with no time", () => {
+  it("refuses another format, NO format (T633 item 2: the transition is over), a file that is not the shape, an index with no time", () => {
+    for (const what of ["index", "station", "obs"] as const)
+      expect(gaugeFeedRefusal({ ...INDEX, ...STATION, format: undefined }, what))
+        .toBe(`the gauge feed's ${what} file names no format; this app reads gauge-feed/1`);
     expect(gaugeFeedRefusal({ ...INDEX, format: "gauge-feed/2" }, "index"))
       .toBe('the gauge feed\'s index file is "gauge-feed/2"; this app reads gauge-feed/1');
     expect(gaugeFeedRefusal([], "index")).toBe("the gauge feed's index file is not a JSON object");
     expect(gaugeFeedRefusal({ format: GAUGE_FEED_FORMAT }, "obs")).toBe("the gauge feed's obs file has no stations");
-    expect(gaugeFeedRefusal({ stations: {} }, "index")).toBe("the gauge feed's index has no fetchedAt");
-    expect(gaugeFeedRefusal({ now: {} }, "station")).toBe("the gauge feed's station file names no station");
+    expect(gaugeFeedRefusal({ format: GAUGE_FEED_FORMAT, stations: {} }, "index")).toBe("the gauge feed's index has no fetchedAt");
+    expect(gaugeFeedRefusal({ format: GAUGE_FEED_FORMAT, now: {} }, "station")).toBe("the gauge feed's station file names no station");
   });
 });
 

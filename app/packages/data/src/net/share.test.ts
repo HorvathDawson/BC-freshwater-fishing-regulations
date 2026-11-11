@@ -4,7 +4,7 @@ import { shareFetch } from "./share";
 import { httpFeed } from "../feed/http";
 import type { StationId } from "../index";
 
-const INDEX = { fetchedAt: "2026-11-10T12:00:00Z", stations: { "08MF005": {} } };   // (T557) an index carries its time
+const INDEX = { format: "gauge-feed/1", fetchedAt: "2026-11-10T12:00:00Z", stations: { "08MF005": {} } };   // (T557) an index names its format and carries its time
 /** a fetch whose answers wait for `go()`, counting what reached the "network" */
 function gated() {
   let go!: () => void;

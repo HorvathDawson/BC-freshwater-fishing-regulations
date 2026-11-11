@@ -44,7 +44,7 @@ interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
 export const FEED_TTL_MS = 5 * 60_000;
 
 interface IndexFile {
-  /** (T557) `gauge-feed/1` (core GAUGE_FEED_FORMAT); absent on a file from before the tag */
+  /** (T557) `gauge-feed/1` (core GAUGE_FEED_FORMAT); a read refuses any other or none. A kept copy from before may lack it. */
   format?: string;
   fetchedAt: string;
   /** Which HYDAT release every percentile in this file was measured against. */
@@ -120,6 +120,8 @@ interface IndexFile {
 }
 
 export interface StationFile {
+  /** (T557) `gauge-feed/1` (core GAUGE_FEED_FORMAT); a read refuses any other or none. A kept copy from before may lack it. */
+  format?: string;
   fetchedAt: string;
   /** (T315) This answer is the phone's kept copy (`./history`), not a read of the network. Never in a published file. */
   kept?: true;

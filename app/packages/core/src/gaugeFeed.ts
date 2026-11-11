@@ -8,8 +8,10 @@
  * reads a file through `gaugeFeedRefusal`: another format, or a file that is not the shape asked for, is refused and
  * reported, and what the app already holds answers instead (@app/data feed/http.ts).
  *
- * A FILE WITH NO `format` is the shape before the tag (gauge-feed/1 only added it): read, until every publisher writes
- * the tag — a staging and a production worker deploy. Then the transition ends (proposed with T557's report).
+ * A FILE WITH NO `format` is refused too (T557 / T633 item 2, 2026-11-11): the transition is over. Staging's worker writes
+ * the tag on all 429 station files, index.json and obs.json (read 2026-11-11 22:35Z); production serves no gauge feed yet
+ * (its data domain answers 404) and its first deploy is this code. A phone's kept copy from before the tag still answers
+ * offline (`history`, never re-read through this check).
  */
 export const GAUGE_FEED_FORMAT = "gauge-feed/1";
 
@@ -19,7 +21,8 @@ export type GaugeFeedFile = "index" | "station" | "obs";
 export function gaugeFeedRefusal(doc: unknown, what: GaugeFeedFile): string | null {
   if (!doc || typeof doc !== "object" || Array.isArray(doc)) return `the gauge feed's ${what} file is not a JSON object`;
   const d = doc as Record<string, unknown>;
-  if (d.format !== undefined && d.format !== GAUGE_FEED_FORMAT)
+  if (d.format === undefined) return `the gauge feed's ${what} file names no format; this app reads ${GAUGE_FEED_FORMAT}`;
+  if (d.format !== GAUGE_FEED_FORMAT)
     return `the gauge feed's ${what} file is ${JSON.stringify(d.format)}; this app reads ${GAUGE_FEED_FORMAT}`;
   if (what === "station") {
     if (typeof d.station !== "string") return "the gauge feed's station file names no station";

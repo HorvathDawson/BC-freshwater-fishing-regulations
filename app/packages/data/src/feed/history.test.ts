@@ -4,6 +4,7 @@
  * Mutations: `fallback` answering `good` alone fails "a new launch, offline"; dropping `noteObs` fails "never opened".
  */
 import { describe, expect, it } from "vitest";
+import { GAUGE_FEED_FORMAT } from "@app/core";
 import { FILES, KEEP_MS, gaugeHistory, withDays } from "./history";
 import { httpFeed, type StationFile } from "./http";
 import { seriesOf } from "../sql/shared";
@@ -22,7 +23,9 @@ const FILE = (fetchedAt: string, recent: [string, number | null, number | null][
 const server = (files: Record<string, unknown>) =>
   (async (url: string) => {
     const key = url.split("/").pop()!;
-    return key in files ? { ok: true, json: async () => files[key] } : { ok: false, status: 404, json: async () => ({}) };
+    // (T557) every file the publisher writes names its format first
+    return key in files ? { ok: true, json: async () => ({ format: GAUGE_FEED_FORMAT, ...(files[key] as object) }) }
+      : { ok: false, status: 404, json: async () => ({}) };
   }) as unknown as typeof fetch;
 const dead = (async () => { throw new TypeError("Network request failed"); }) as unknown as typeof fetch;
 

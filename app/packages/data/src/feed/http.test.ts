@@ -6,18 +6,23 @@
  * bank turns into an error screen where "we could not check" is the truth.
  */
 import { describe, expect, it } from "vitest";
+import { GAUGE_FEED_FORMAT } from "@app/core";
 import { httpFeed, lastReportAt } from "./http";
 import { draftSeriesOf, seriesOf } from "../sql/shared";
 import type { StationId } from "../index";
 
 const S = "08MH001" as StationId;
 
+/** (T557) every file the publisher writes names its format first; a test file that names none is given it here */
+const tagged = (v: unknown) =>
+  v && typeof v === "object" && !Array.isArray(v) && !("format" in v) ? { format: GAUGE_FEED_FORMAT, ...v } : v;
+
 const server = (files: Record<string, unknown>, spy?: (u: string) => void) =>
   (async (url: string) => {
     spy?.(url);
     const key = url.split("/").pop()!;
     return key in files
-      ? { ok: true, json: async () => files[key] }
+      ? { ok: true, json: async () => tagged(files[key]) }
       : { ok: false, status: 404, json: async () => ({}) };
   }) as unknown as typeof fetch;
 
@@ -282,7 +287,7 @@ describe("when a quiet gauge last reported (owner 2026-10-21)", () => {
 // (T254) a dead line: the feed's request is cut (never hangs), and the last good copy this session read is what it says
 describe("httpFeed on a bad line (T254)", () => {
   it("a dead request is cut and tried once more; then the last good copy stands, its own age saying how old", async () => {
-    const index = { fetchedAt: "2026-10-29T06:00:00Z", stations: { "08MH001": { percentile: 0.5, observedAt: "2026-10-29T05:00:00Z" } } };
+    const index = { format: GAUGE_FEED_FORMAT, fetchedAt: "2026-10-29T06:00:00Z", stations: { "08MH001": { percentile: 0.5, observedAt: "2026-10-29T05:00:00Z" } } };
     let up = true, asked = 0;
     const fetchImpl = (async (_url: string, init?: RequestInit) => {
       asked++;
