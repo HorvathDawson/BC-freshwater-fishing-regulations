@@ -128,7 +128,9 @@ class TestTheTreeIsImmutable:
 
 @pytest.fixture(scope="module")
 def gen():
-    return C.load_generated()
+    # Read fresh from config.yaml, past the cache: fast-fail's `ci_no_build` plugin moves the cached tree's
+    # build paths out of the repo on purpose, and these tests pin what the config says.
+    return C.load_generated.__wrapped__()
 
 
 class TestGeneratedTree:
