@@ -53,3 +53,12 @@ Depends: T550, T557, T585. Size: M.
   Proposed fix (not deployed): between 00:00 and 03:00 UTC read the previous day's dated folder
   (`https://dd.weather.gc.ca/<YYYYMMDD>/WXO-DD/hydrometric/csv/BC/daily/`, answers 200) or skip the refill in that
   window. Same rollover as T550 item 4 (hourly), which only forgives the first 30 minutes.
+
+## Added 2026-11-11 (from the staging clim rebuild)
+7. Worker: the per-station reuse key (`ctxOf`, publish.ts) names clim by release, not content, so a clim rebuilt on the same
+   HYDAT is not re-ranked for an unchanged station until the UTC day turns. Add a hash of the station's envelope and rating.
+8. Worker: `eccc-daily` asks for today's daily file between 00:00 and about 02:30 UTC, before ECCC writes it, and counts the
+   404 as a failure (8 per run, every day since 11-04; this is the "degraded" on /status). Read yesterday's dated folder in
+   that window, or skip the refill then.
+9. The 8 level-only stations the datum cut removed from clim (under 3 years left; none live): 7 have a row in matches.json.
+   Check the next bundle build handles them, and say so in the release notes.
