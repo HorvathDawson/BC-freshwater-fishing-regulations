@@ -21,6 +21,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.5", date: "2026-11-11", draft: true, notes: [
+      "A water with a closure on a part the map does not draw carries a clear warning on its card",
+      "A rule the book prints for parts of a water keeps those words in its title",
+      "Over satellite, a stream opens into two thin edges when you zoom in, so the water shows through",
+      "The key under the map always matches the map's colours when you switch Trout, Salmon or Runs",
+      "A gauge that reports only the other of flow and level shows as a ringed grey dot on the map",
+    ],
+  },
+  {
     version: "0.7.4", date: "2026-11-11", notes: [
       "Runs keeps its own day and says which day it shows",
       "Sharing a water sends a link to that water's own page",
