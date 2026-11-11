@@ -660,6 +660,7 @@ use that as the sole source of future work."
 | T627 | Digest email: an easy-to-read summary of reports and errors (words kept, trimmed) | OPEN | — | owner 2026-11-10 on T609 |
 | T628 | Base rules pinned to print: fee table reader, replace refuses marked entries, entry_digest ledger, runbook path guard | OPEN | — | T553 follow-ups |
 | T629 | Owner: four places where our text differs from the printed book (no value changes) | OPEN | — | T553 report; owner answers |
+| T630 | One hydrograph presenter for the app and the public gauge page | OPEN | — | T564 leftover |
 
 ## Order for open tickets
 
