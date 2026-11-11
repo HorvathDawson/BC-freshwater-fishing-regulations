@@ -24,6 +24,30 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 - Not looked at in a browser this round (memory was under the 50% gate while the other chat's heavy jobs ran): the
   new banner, the withdrawn line, the dead-piece message. Waits on the owner: T588, T562 items 1 (older marks) and 6.
 
+## 2026-11-11 early — owner away for a few hours; what runs and what waits (chat 11)
+- **Landed since the last entry (all in review, none deployed, none in an APK):** T558 partial / T559 / T609 partial
+  (worker: privacy matches the page, limits, failed reads, 304 tests); T620 (search rows follow the picked day and
+  nine more, gate `one-answer.test.ts`); T621 (map halves: tap pick, pin card, zoom buttons; device checks in T603);
+  T622 + most of T605 (public pages: names and links, weekend and opening/closing pages removed with redirects);
+  T547's same-outputs proof (T606 item 1: 34 of 56 release files identical, the rest explained by today's DFO inputs).
+- **Audits:** A rules vs sources → T623 (21 findings, 16 need the owner's reading; nothing changed). D depth charts and
+  stocking: parked; page https://claude.ai/artifact/7Dn9FwZu3N1aMGxsCR4ea3 (source `T608D-page.html`), ten decisions.
+- **Owner decided:** Runs keeps its own day (T624); share the water's own page (T624); app links do not need closed
+  testing (T625, needs the app-signing fingerprint from Play Console); "open + fish in stream" view deferred (T626).
+- **Running (7 agents):** T546, T553 (pipeline); T624 (Runs day, share address); T550 + T585 + T557 (gauges);
+  T563–T566 (owner-look app tickets); T594 (satellite looks, shots only); T555 (update service).
+- **Next, without asking:** full app + pipeline suites with every failure traced (last app run: 7,198 pass; only the
+  T553 ledger row and one search-bar test that passes alone); emulator run T603; staging SITE deploy; build 26 to
+  Play internal. Then T549, T552, T554, T556, T560, T561, T597, T600–T602, T606 items 2–4, process T533–T544.
+- **Held for the owner (do not do):** the staging WORKER deploy: its first backup deletes the old monthly copies of
+  reports (cannot be undone) and it needs `NOTIFY_EMAIL_TO` set on both workers; production backup expiry unread.
+- **Questions for the owner on return:** OK to deploy the worker (deletion above)? Keep report words in digest emails?
+  T582 two-days wording clear on the phone? T594 look (shots coming); T623's 16 readings; the app-signing fingerprint;
+  the ten decisions on the depth/stocking page; T548 end-date rule (recommended: infer only when the window opens on
+  the notice's effective day).
+- **Known hazard:** agents' ledger commits can cross; rows are fixed by targeted row edits in both the blob and the
+  working file (a whole-file overwrite of the working ledger is refused by the permission system).
+
 ## 2026-11-10 late night — audits read, fixes running in parallel (chat 11)
 - **In review since build 25:** T548 (in-season notices), T551 (one B.C. clock; leftovers T605), T595 + T596 (error
   kinds classed; download race fixed), T604 (chart day marks readable; web only), T547 (atlas records its curated
