@@ -1,6 +1,6 @@
 # T601 — Every reader knows a build is finished and which version it reads
 
-Status: OPEN
+Status: OPEN — item 3's format tag built in T557 (31ee818a0); items 1, 2, 4 and "each feed names its release" left
 
 Source: T599 findings step 3 (§1 "where a reader guesses a path or a vintage", §5); owner accepted 2026-11-10.
 
@@ -22,3 +22,8 @@ bundle, tiles and release as the reference. After it, one full build must give t
 hashes (or a diff where every difference is explained and expected, e.g. the new input digests in a meta file), same
 tiles, same app and web packages. The build, release and staging commands the owner uses keep working unchanged, or
 the change is listed in the ticket and in AGENTS.md. A step that cannot show this is not done.
+
+## Done 2026-11-10 (in T557 / T585)
+- Item 3: the gauge feed carries `gauge-feed/1` (31ee818a0). It names its HYDAT (`hydat.release`, as before); it names no
+  data release (stations are keyed by id and the feed is release-independent) — the app-side comparison of its HYDAT
+  with the release's is listed in T585's Left.

@@ -1,6 +1,6 @@
 # T597 — Two feeds worker run failures on 2026-11-09/10 are explained and guarded
 
-Status: OPEN
+Status: OPEN — items 1 and 3 built (5c7b9719d, ecd2de06a); item 2 (upload refuses a newer format) not done
 
 Source: staging `/status.json` read 2026-11-10 19:37 UTC. All three feeds are OK now; these are their last errors.
 
@@ -27,3 +27,10 @@ Source: staging `/status.json` read 2026-11-10 19:37 UTC. All three feeds are OK
 - Uploading a newer-format input before its worker fails at upload with a plain message.
 
 Depends: T550, T558 (overlap). Size: S–M. Owner: no.
+
+## Done 2026-11-10
+1. 5c7b9719d (with T550 item 4): 00:05 UTC whole-run 404 confirmed on two nights (11-10, 11-11) and ≈ 6 of 7 by the 7-day
+   count; the gauge crons skip 00:05; a late run meeting the turn is one degraded line, not 428 failures. Acceptance
+   (a week of status with no day-turn failure) needs the deploy and a week.
+3. ecd2de06a: obs.json keeps the last rows of stations not rewritten (0-station obs.json on an all-304 run). The
+   `feeds/live/08MF0xx.json` 404 did not reproduce: 08MF005/040/062/065/068 answer 200 (23:35Z run).

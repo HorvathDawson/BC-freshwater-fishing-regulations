@@ -1,6 +1,6 @@
 # T550 — Gauges: a reading's age gates its rank, level percentiles survive datum shifts, one day for the percentile
 
-Status: OPEN.
+Status: IN REVIEW — all six items built; proof: the next staging worker deploy (items 1, 3, 4, 5) and a clim.json rebuild (item 2).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 6 of 17; highest severity 4 of 5.
 
@@ -56,3 +56,24 @@ Fix the items above in severity order, one commit per item where they are separa
 A reading older than the limit is not ranked or counted and the map says so (test with a 3-day-old reading). 08HD006 level no longer ranks at the bottom (step detector, listed stations). Feed and app give one percentile for an evening reading. A run with no climatology or an all-404 ECCC answer is not healthy; the 00:05 UTC case is measured for a week first.
 
 Depends: —. Size: L. Owner: no.
+
+## Done 2026-11-10
+1. 722535c83, 8f8e589c0: one age rule, READING_MAX_AGE_HOURS = 6 (publish.py → core STALE_AFTER.reading, readingCurrent;
+   ALERT_STALE_MS pinned equal). Both publishers write an entry whose reading is past it unranked (fresh, 304-unchanged
+   and carried alike); donorState's "unranked" window is the same line (was a day); the share card shows no standing;
+   the run counts `oldReadings`, degraded past 10% (held: readings). Test: a run 3 days after the recording ranks none.
+2. 61a97ca16: climatology cuts each level record at its last datum shift (binary segmentation on mid-flow yearly
+   medians; jump >= 0.5 m and 5x the sides' MAD). HYDAT 20261019: 45 shifted, 21 live (08HD006 from 2016, 08LB024 from
+   2018; clim.json `levelShifts`, printed for the owner). clim.json also carries each level's rating; both publishers
+   rank no level whose live (flow, level) pair is off it by > 0.5 m — the second cause the reviewer suspected: on the
+   2026-11-10 staging feed 5 of 349 pairs (08HD006 2.34 m at 118 m³/s vs 7.2-7.6 m; 07FD001 95.2 m vs ~1 m; 08EF001,
+   08KH019, 08MH153 — the last explained). Takes effect when clim.json is rebuilt (the HYDAT workflow), and in the
+   app's chart bands at the next release built from it.
+3. 7e08a527f: ranks lost with current readings past half → the run fails, last index kept; ECCC list > 20% shorter than
+   the last index's `listed` → not believed, roster asked, no `listed`, degraded (held: station list).
+4. 5c7b9719d (with T597 item 1): measured — 2026-11-10 and 2026-11-11 00:05 UTC both whole-run 404 (list + 428); the
+   7-day hourly 404 count 2,596 ≈ 6 x 428. The crons (staging + prod twin) drop 00:05 (00:35 stays); a run that still
+   meets it within 30 min of 00:00 UTC forgives the 404s and is degraded with one line. Not yet a week of status AFTER.
+5. 0b94e262c: both publishers rank on the reading's own local date (publish.rank_when); one-formula.test feeds stamps.
+6. 06052992c: TRUST_STATUS is a closed set (read_match raises on another word); promote writes status = its trust;
+   check_curated notes the 22 contradicting rows (rewritten by the next promote; matches.json untouched).

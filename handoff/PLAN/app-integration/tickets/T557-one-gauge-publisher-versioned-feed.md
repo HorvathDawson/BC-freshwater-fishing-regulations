@@ -1,6 +1,6 @@
 # T557 — One gauge publisher (the worker); the gauge feed carries a format version the app checks
 
-Status: OPEN.
+Status: OPEN — items 1, 3, 4 built (8779d6298, 31ee818a0); item 2 partly: the policy constants are not generated yet.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 13 of 17; highest severity 3 of 5.
 
@@ -41,3 +41,15 @@ Fix the items above in severity order, one commit per item where they are separa
 update-hydat.sh no longer runs a second publisher (or it is a test-only spec, named so). The gauge index and station files carry a format tag; the app refuses an unknown one loudly (reportFailure) and keeps its held data.
 
 Depends: —. Size: M. Owner: no.
+
+## Done 2026-11-10
+- Item 1 (8779d6298): update-hydat.sh rebuilds clim.json only (no step 3); publish.py says it is the worker's parity spec
+  and the local dev feed; hydat_daily requires --index. AGENTS rule 64 says so.
+- Item 2 (8779d6298, part): Python's duplicate `forecastIssuedAt` key is gone (parity compares it as is). The worker's
+  HORIZONS is core's generated FORECAST_DAYS (31ee818a0). LEFT: FLOOD_WEIGHTS / RISE_RATIO / STALE_GRACE_HOURS /
+  DAY_COVER / MIN_PAIRS are still hand-copied in change.ts / score.ts (proposed: emit them with gauge_policy).
+- Items 3-4 (31ee818a0): `gauge-feed/1` first in index.json, obs.json and every station file (worker imports core
+  GAUGE_FEED_FORMAT; publish.py FEED_FORMAT; check-format-pairs.py). The app reads every gauge feed file through core
+  gaugeFeedRefusal: another format / wrong shape / an index with no fetchedAt is refused, reported, and held data
+  answers. A file with NO format is still read (every feed before this deploy). LEFT: refuse a format-less file once
+  the staging and production workers both write the tag; feed-contract.test.ts on the worker's own output.
