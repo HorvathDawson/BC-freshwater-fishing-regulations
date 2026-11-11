@@ -223,7 +223,7 @@ def test_3_4_size_and_count_tiers_and_notes_say_up_to():
                          "Up to 1 Dolly Varden/bull trout or lake trout combined"]
     g, _o, _P = _g(F.COUNT)
     count = next(t for t, _p in walk(g["tree"]) if t["node"] == "tier" and t["tier"] == "count")
-    assert count["says"] == "Up to 1 cutthroat or rainbow trout combined"
+    assert count["says"] == "Up to 1 cutthroat trout, rainbow trout or steelhead combined"       # T623 F12, RULINGS S12
     rb = next(k for k, _p in walk(g["tree"]) if k["node"] == "kind" and k["species"] == ["RB"])
     assert (rb["says"], rb["size_rule"]) == ("Up to 1 hatchery rainbow trout", "must be 30–50 cm (12–20 in); "
                                                                                "release any shorter")   # T503

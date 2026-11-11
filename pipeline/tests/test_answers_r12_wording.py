@@ -86,12 +86,13 @@ def test_w3_a_kinds_own_cap_on_its_bucket():
 
 
 def test_w3_a_count_cap_over_two_kind_rows():
-    """ROUND14 3 (owner): the count over two of the bucket's kind rows is a NESTED GROUP now, not a note."""
+    """ROUND14 3 (owner): the count over two of the bucket's kind rows is a NESTED GROUP now, not a note. "only one may
+    be a trout (cutthroat or rainbow)" names rainbow with no size, so it holds steelhead too (T623 F12, RULINGS S12, owner 2026-11-11: a rainbow rule with no size band holds steelhead too)."""
     row, _o, _P = _card(F.COUNT)
     assert _notes(row["group"]) == [(None, "Cutthroat trout, brown trout, Dolly Varden/bull trout, lake trout or brook trout: only 1 over 50 cm between them")]
     (sub,) = row["group"]["buckets"][0]["groups"]
     assert (sub["says"], sub["n"], [k["species"] for k in sub["kinds"]]) == (
-        "Cutthroat trout or rainbow trout: 1 between them", 1, [["CT"], ["RB"]])
+        "Cutthroat trout, rainbow trout or steelhead: 1 between them", 1, [["CT"], ["RB"], ["ST"]])
 
 
 def test_w3_nested_caps_in_order_on_one_note():
@@ -176,3 +177,19 @@ def test_w5_gear_sentences_have_no_em_dash():
     assert cowichan == ("Fly fishing only: 1 line with a single barbless hook, no trebles (one fly). No float or strike indicator, no sinker or "
                         "split shot, no lure, spinner or other attracting device.")
     assert not any("—" in s for s in (vedder, okanagan, kootenay, cowichan))
+
+
+def test_t623_f12_the_size_group_gate_asks_some_n_not_the_first_n():
+    """Count Creek on Oct 10: Region 2's "1 over 50 cm (2 hatchery steelhead allowed)" says steelhead do not count
+    (RULINGS Q16), and "only one may be a trout (cutthroat or rainbow)" now holds steelhead too (S12). After a
+    cutthroat over 50 cm no steelhead may be kept (the count cap's doing); after a brown trout one may. The gate asks
+    whether SOME 1 of the group's kinds over 50 cm leaves a steelhead keepable: it passes. MUTATION: the group says a
+    kind it counts (cutthroat) does not count — no base of 1 leaves a cutthroat over 50 cm keepable: refused."""
+    row, out, P = _card(F.COUNT)
+    (sz,) = row["group"]["buckets"][0]["sizes"]
+    assert (sz["not_counting"], sz["n"], sz["over_cm"]) == (["ST"], 1, 50)
+    assert CC.check_card(P, out) == []
+    bad = copy.deepcopy(out)
+    next(r for r in bad["rows"] if r.get("group") is not None and r["group"]["pool"] == row["group"]["pool"]) \
+        ["group"]["buckets"][0]["sizes"][0]["not_counting"] = ["CT"]
+    assert any("do not count" in p for p in CC.check_card(P, bad))

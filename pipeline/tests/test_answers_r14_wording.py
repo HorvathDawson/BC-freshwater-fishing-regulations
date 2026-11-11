@@ -40,10 +40,13 @@ def test_3_a_count_over_some_of_a_buckets_kinds_is_a_nested_group():
     (b,) = [b for b in g["buckets"] if b["by"] == F.BELLA_R5]
     assert [n["says"] for n in b["notes"] if n["over_cm"] == 0] == []          # no count note
     (sub,) = b["groups"]
-    assert (sub["says"], sub["n"], sub["by"]) == ("Cutthroat trout or rainbow trout: 1 between them", 1, F.BELLA_R6)
+    # the cap names rainbow with no size, so it holds steelhead too (T623 F12, RULINGS S12, owner 2026-11-11: a rainbow rule with no size band holds steelhead too)
+    assert (sub["says"], sub["n"], sub["by"]) == ("Cutthroat trout, rainbow trout or steelhead: 1 between them", 1,
+                                                  F.BELLA_R6)
     assert [(k["name"], k["detail"], k["n"]) for k in sub["kinds"]] == [("Cutthroat trout", "hatchery, 30–33 cm", 1),
-                                                                         ("Rainbow trout", "hatchery, 30–50 cm", 1)]
-    assert not {S for k in b["kinds"] for S in k["species"]} & {"CT", "RB"}
+                                                                         ("Rainbow trout", "hatchery, 30–50 cm", 1),
+                                                                         ("Steelhead", "hatchery rainbow trout over 50 cm", 1)]
+    assert not {S for k in b["kinds"] for S in k["species"]} & {"CT", "RB", "ST"}
 
 
 def test_3_the_rivers_own_two_is_its_own_bucket_not_the_regions_share():

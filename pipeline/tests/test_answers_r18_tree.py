@@ -139,13 +139,17 @@ def test_t203_a_size_cap_splits_the_count_tier_it_crosses():
     leaves it and says the count on its line. The tier still names every fish it counts."""
     g, _o, P = _tree(F.COUNT)
     (total,) = g["tree"]
-    size, rb = total["children"]
+    # T623 F12 (RULINGS S12): "only one may be a trout (cutthroat or rainbow)" holds steelhead too, so the steelhead
+    # leaves the count tier with the rainbow and says the count on its own line
+    size, rb, st = total["children"]
     assert (size["tier"], size["n"], size["over_cm"]) == ("size", 1, 50)
     count = size["children"][-1]
-    assert (count["tier"], count["says"]) == ("count", "Up to 1 cutthroat or rainbow trout combined")
+    assert (count["tier"], count["says"]) == ("count", "Up to 1 cutthroat trout, rainbow trout or steelhead combined")
     assert [k["species"] for k in count["children"]] == [["CT"]]
     assert rb["species"] == ["RB"] and rb["sizes"]["cm"] == [[30, 50]]
-    assert [a["says"] for a in rb["also_counts"]] == ["no more than 1 counting any cutthroat trout you keep"]
+    assert [a["says"] for a in rb["also_counts"]] == ["no more than 1 counting any steelhead or cutthroat trout you keep"]
+    assert st["species"] == ["ST"]
+    assert [a["says"] for a in st["also_counts"]] == ["no more than 1 counting any rainbow or cutthroat trout you keep"]
     assert not [a for k in _walk(g["tree"]) if k["node"] == "kind" for a in k["also_counts"] if a["over_cm"]]
     assert CC.check_tree(P, g) == []
 

@@ -149,12 +149,21 @@ def check_group(P, g: dict) -> List[str]:
                            for f in E.fish([S]) if f[2] > cm):
                         probs.append(f"{where}: size group {sz['says']!r} binds {S} over {cm} cm but does not name it")
             if sz["not_counting"]:
-                base = []
-                for f in over:
-                    while len(base) < sz["n"] and E.can_keep(base, f):
-                        base.append(f)
+                # "do not count toward the n": SOME n of its kinds over the size leave one of them keepable.
+                # Each kind is tried first in turn: another cap a kept fish shares with a not-counting kind
+                # (T623 F12: "only one may be a trout (cutthroat or rainbow)" holds steelhead too) may block
+                # after one kind and not after another, and that is not the size group's doing.
                 aside = [f for f in E.fish(sz["not_counting"]) if f[2] > cm]
-                if len(base) < sz["n"] or not aside or E.most(aside, base, cap=1) < 1:
+                ok_aside = False
+                for first in over:
+                    base = []
+                    for f in [first] + [g for g in over if g is not first]:
+                        while len(base) < sz["n"] and E.can_keep(base, f):
+                            base.append(f)
+                    if len(base) == sz["n"] and aside and E.most(aside, base, cap=1) >= 1:
+                        ok_aside = True
+                        break
+                if not ok_aside:
                     probs.append(f"{where}: size group {sz['says']!r} says {sz['not_counting']} do not count, "
                                  f"but none may be kept after its {sz['n']}")
     # ROUND13 S: a fish the card says nobody may keep here (closed or released) — none may be kept
