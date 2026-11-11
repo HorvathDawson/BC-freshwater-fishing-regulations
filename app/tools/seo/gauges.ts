@@ -64,7 +64,10 @@ const CORE = join(HERE, "../../packages/core/src");
 export const CORE_INLINE: readonly (readonly [file: string, names: readonly string[]])[] = [
   ["clock.ts", ["BC_PERMANENT_FROM", "BC_TIME_LABEL", "bcOffsetHours"]],
   ["flow.ts", ["MONTHS", "monthAbbr", "WEEKDAY_NAMES", "weekdayAbbr"]],
-  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcStampWords", "bcIsoDayWords"]],
+  ["day.ts", ["pad2", "HOUR_MS", "bcWall", "fromBcWall", "bcMidnight", "bcFields", "bcDayWords", "bcWeekdayAbbr", "bcStampWords", "bcIsoDayWords"]],
+  ["chartTicks.ts", ["niceTicks"]],
+  ["chartMarks.ts", ["RULE_GAP", "LABEL_GAP", "IMPORTANCE", "MARK_ROWS", "markTextWidth", "meets", "layoutDayMarks"]],
+  ["alerts.ts", ["normalRangeOf"]],
   ["freshness.ts", ["AGO_WORDS", "ageWords", "freshness", "MAY_BE_OLD", "READING_LEAD", "readingAgeParts", "readingAgeWords"]],
   ["standing.ts", ["figure"]],
 ];

@@ -6,7 +6,8 @@
  */
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
-import { ageWords, bcDayWords, bcIsoDayWords, bcStampWords, BC_TIME_LABEL, figure, freshness, readingAgeWords, STALE_AFTER_MS } from "@app/core";
+import { ageWords, bcDayWords, bcIsoDayWords, bcStampWords, bcWeekdayAbbr, BC_TIME_LABEL, figure, freshness, layoutDayMarks, niceTicks, normalRangeOf,
+         readingAgeWords, STALE_AFTER_MS } from "@app/core";
 import { CORE_INLINE, clientScript } from "./gauges";
 
 /** the script with its self-start replaced by an export of what it carries (the rest is the shipped text, unchanged) */
@@ -14,7 +15,7 @@ function carried(): Record<string, (...a: never[]) => unknown> & { BC_TIME_LABEL
   const src = clientScript();
   const start = /^gaugePage\(document,Date\.now,window\.fetch\.bind\(window\)\)\.catch\([^\n]*\n/m;
   expect(src, "the script calls gaugePage once, at the end").toMatch(start);
-  const names = ["figure", "bcDayWords", "bcIsoDayWords", "bcStampWords", "BC_TIME_LABEL", "freshness", "readingAgeWords", "ageWords"];
+  const names = ["figure", "bcDayWords", "bcIsoDayWords", "bcStampWords", "BC_TIME_LABEL", "freshness", "readingAgeWords", "ageWords", "bcWeekdayAbbr", "niceTicks", "layoutDayMarks", "normalRangeOf"];
   const ctx: Record<string, unknown> = { document: {}, window: { fetch: () => { throw new Error("no network in this test"); } }, console };
   runInNewContext(src.replace(start, `globalThis.__carried={${names.join(",")}};\n`), ctx);
   return ctx.__carried as never;
@@ -48,6 +49,15 @@ describe("the gauge page's script is core's, written in (T622)", () => {
     }
     for (const d of ["2026-03-08", "2026-11-01", "2026-12-31", "2027-02-28"]) expect(c.bcIsoDayWords(d), d).toBe(bcIsoDayWords(d));
     expect(c.BC_TIME_LABEL).toBe(BC_TIME_LABEL);
+  });
+  it("picks the chart's ticks, weekday marks, today's label and the usual range exactly as the app's chart does (T564)", () => {
+    for (const [lo, hi, n] of [[0, 51, 4], [0.4, 3.9, 5], [18.2, 63, 4], [0, 1260, 5], [-1, 1, 4]] as const)
+      expect(c.niceTicks(lo, hi, n), `${lo}..${hi}`).toEqual(niceTicks(lo, hi, n));
+    for (const t of INSTANTS) expect(c.bcWeekdayAbbr(t), String(t)).toBe(bcWeekdayAbbr(t));
+    const mark = { plot: { x: 48, width: 320 }, top: 14, rowHeight: 16, fontSize: 13, marks: [{ x: 200, text: "Today", kind: "today" as const }] };
+    expect(c.layoutDayMarks(mark)).toEqual(layoutDayMarks(mark));
+    expect(c.normalRangeOf([10, 20, 30, 40, 50] as never)).toEqual(normalRangeOf([10, 20, 30, 40, 50]));
+    expect(c.normalRangeOf(null as never)).toBeNull();
   });
   it("words an age and the reading's line exactly as core does: seconds to days, every edge", () => {
     const NOW = T("2026-11-09T18:00:00Z");

@@ -55,6 +55,21 @@ describe("T487 the gauge page's live half", () => {
     expect(chartSvg(facts({ week: [], forecast: null }), NOW)).toBeNull();
   });
 
+  it("(T564) the chart is drawn at the width it is shown at, tall on a phone, with a mark for today and the usual range behind the line", () => {
+    const f = facts({ normal: [[NOW - 7 * 86_400_000, 10, 20, 30, 40, 50], [NOW + 5 * 86_400_000, 10, 20, 30, 40, 50]] });
+    const phone = chartSvg(f, NOW, 380)!, wide = chartSvg(f, NOW, 900)!;
+    expect(phone).toMatch(/viewBox="0 0 380 323" width="380" height="323"/);     // 1 drawing unit = 1 px: 13 px text stays 13 px
+    expect(wide).toMatch(/viewBox="0 0 900 405"/);
+    for (const svg of [phone, wide]) {
+      expect(svg).toContain('class="today"');
+      expect(svg).toContain('class="bandn"');
+      expect(svg).toContain('class="bandw"');
+      expect(text(svg)).toMatch(/Today/);
+    }
+    expect(text(phone)).toMatch(/Sun.*Mon|Mon.*Tue/);                          // weekday marks
+    expect(chartSvg(facts({ normal: null }), NOW, 380)).not.toContain("bandn");
+  });
+
   it("the weather table uses the app's sky words; an empty answer throws (shown + reported by the caller)", () => {
     const html = weatherHtml({ current: { temperature_2m: 6.4, weather_code: 61, wind_speed_10m: 12, precipitation: 0.4, time: "2026-11-08T04:00" },
       daily: { time: ["2026-11-08"], weather_code: [3], temperature_2m_max: [8], temperature_2m_min: [2], precipitation_sum: [3.2], wind_speed_10m_max: [20] } },

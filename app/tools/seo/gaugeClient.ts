@@ -16,7 +16,8 @@
  * a value differently from the app (T622; `gauges.test.ts` holds the names and the output to core's). Everything else it
  * needs (the weather URL, attributions, the sky words) arrives in the page's config.
  */
-import { BC_TIME_LABEL, bcDayWords, bcIsoDayWords, bcStampWords, figure, freshness, readingAgeWords } from "@app/core";
+import { BC_TIME_LABEL, bcDayWords, bcIsoDayWords, bcMidnight, bcStampWords, bcWeekdayAbbr, figure, freshness, layoutDayMarks, niceTicks,
+         normalRangeOf, readingAgeWords } from "@app/core";
 
 export interface GaugeConfig {
   readonly station: string;
@@ -44,6 +45,8 @@ export interface Facts {
   /** the station's expected change, in core's short words ("rises to 4× (Wed)"), or null */
   change: string | null;
   week: [number, number][];
+  /** the climatology's normal range a day over the chart's window: [epoch ms, p10, p25, p50, p75, p90]; null: none for this gauge */
+  normal?: [number, number, number, number, number, number][] | null;
   forecast: { model: string; issuedAt: string; issued: string; dueBy: number; points: [number, number][]; attribution: string } | null;
   forecastOld: { model: string; issued: string } | null;
 }
@@ -82,11 +85,23 @@ export function forecastHtml(f: Facts, now: number): string {
 // script, so none is typed twice
 
 const DAY = 86_400_000;
-const dayLabel = (t: number) => bcDayWords(t);
 
-/** the last 7 days (and the forecast's dashes) as an SVG; null when there is nothing to draw */
-export function chartSvg(f: Facts, now: number): string | null {
-  const W = 640, H = 220, L = 52, R = 12, T = 12, B = 30;
+/** the usual range on a day from the facts' normal rows (the row nearest `t`, within a day); null: none */
+export function usualAt(f: Facts, t: number): { lo: number; hi: number } | null {
+  let best: [number, number, number, number, number, number] | null = null;
+  for (const r of f.normal ?? []) if (Math.abs(r[0] - t) <= DAY && (!best || Math.abs(r[0] - t) < Math.abs(best[0] - t))) best = r;
+  return best ? normalRangeOf([best[1], best[2], best[3], best[4], best[5]]) : null;
+}
+
+/**
+ * (T564) THE CHART IS THE MAIN THING ON THE PAGE: drawn at the width it is shown at (so a phone's 13 px text is 13 px, not a
+ * 640-wide drawing shrunk to 60 %), tall on a phone, with round-figure ticks (core `niceTicks`), a mark for every day, the
+ * usual range for the date behind the line (dark: the middle half of past years, light: 8 in 10) and TODAY as the strong mark
+ * (core `layoutDayMarks`, T604). The last 7 days and the forecast's dashes; null when there is nothing to draw.
+ */
+export function chartSvg(f: Facts, now: number, width = 640): string | null {
+  const W = Math.round(Math.min(900, Math.max(280, width))), H = W < 520 ? Math.round(W * 0.85) : Math.round(W * 0.45);
+  const L = 48, R = 12, T = 30, B = 30, FS = 13;
   const obs = f.week, fc = f.forecast?.points ?? [];
   if (obs.length + fc.length < 2) return null;
   const t0 = now - 7 * DAY, t1 = Math.max(now, fc.length ? fc[fc.length - 1]![0] : now);
@@ -94,25 +109,66 @@ export function chartSvg(f: Facts, now: number): string | null {
   let lo = Math.min(...vals), hi = Math.max(...vals);
   if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
   const pad = (hi - lo) * 0.1; lo = Math.max(f.parameter === "discharge" ? 0 : -Infinity, lo - pad); hi += pad;
-  const x = (t: number) => (L + ((t - t0) / (t1 - t0 || 1)) * (W - L - R)).toFixed(1);
-  const y = (v: number) => (T + (1 - (v - lo) / (hi - lo)) * (H - T - B)).toFixed(1);
-  const path = (ps: readonly [number, number][]) => ps.map((p, i) => `${i ? "L" : "M"}${x(p[0])} ${y(p[1])}`).join("");
+  const x = (t: number) => (L + ((t - t0) / (t1 - t0 || 1)) * (W - L - R));
+  const y = (v: number) => (T + (1 - (v - lo) / (hi - lo)) * (H - T - B));
+  const n = (v: number) => v.toFixed(1);
+  const path = (ps: readonly [number, number][]) => ps.map((p, i) => `${i ? "L" : "M"}${n(x(p[0]))} ${n(y(p[1]))}`).join("");
   const last = obs[obs.length - 1];
+  // the usual range, clipped to the plot: the part of the window the facts hold
+  const rows = (f.normal ?? []).filter((r) => r[0] >= t0 - DAY && r[0] <= t1 + DAY);
+  const band = (a: number, b: number) => rows.length < 2 ? "" :
+    `<path d="${rows.map((r, i) => `${i ? "L" : "M"}${n(x(r[0]))} ${n(y(r[b]!))}`).join("")}${[...rows].reverse().map((r) => `L${n(x(r[0]))} ${n(y(r[a]!))}`).join("")}Z" class="${a === 1 ? "bandw" : "bandn"}"/>`;
+  const ticks = niceTicks(lo, hi, H < 300 ? 4 : 5);
+  // a mark for every B.C. day (a weekday), thinned so two words never meet
+  const days: number[] = [];
+  for (let d = bcMidnight(new Date(t0 + DAY).toISOString().slice(0, 10)); d <= t1; d += DAY) if (d >= t0) days.push(d);
+  const every = Math.max(1, Math.ceil((days.length * 36) / (W - L - R)));
+  const marks = layoutDayMarks({ plot: { x: L, width: W - L - R }, top: 14, rowHeight: FS + 3, fontSize: FS,
+                                 marks: [{ x: x(now), text: "Today", kind: "today" }] })[0]!;
   const parts = [
+    `<clipPath id="plot"><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}"/></clipPath>`,
+    ...ticks.map((v) => `<line x1="${L}" y1="${n(y(v))}" x2="${W - R}" y2="${n(y(v))}" class="grid"/><text x="${L - 6}" y="${n(y(v) + 4)}" class="tick" text-anchor="end">${figure(v)}</text>`),
+    `<g clip-path="url(#plot)">${band(1, 5)}${band(2, 4)}</g>`,
+    ...days.map((d, i) => `<line x1="${n(x(d))}" y1="${H - B}" x2="${n(x(d))}" y2="${H - B + 4}" class="axis"/>` +
+      (i % every === 0 ? `<text x="${n(x(d))}" y="${H - 8}" class="tick" text-anchor="middle">${esc(bcWeekdayAbbr(d + 12 * 3600_000))}</text>` : "")),
     `<line x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}" class="axis"/>`,
-    `<text x="${L - 6}" y="${y(hi)}" class="tick" text-anchor="end" dominant-baseline="hanging">${figure(hi)}</text>`,
-    `<text x="${L - 6}" y="${y(lo)}" class="tick" text-anchor="end">${figure(lo)}</text>`,
-    `<text x="${L + 6}" y="${y(hi)}" class="tick" dominant-baseline="hanging">${esc(f.unit ?? "")}</text>`,
-    obs.length >= 2 ? `<path d="${path(obs)}L${x(last![0])} ${H - B}L${x(obs[0]![0])} ${H - B}Z" class="area"/>` : "",
+    obs.length >= 2 ? `<path d="${path(obs)}L${n(x(last![0]))} ${H - B}L${n(x(obs[0]![0]))} ${H - B}Z" class="area"/>` : "",
     obs.length >= 2 ? `<path d="${path(obs)}" class="obs"/>` : "",
     fc.length ? `<path d="${path(last ? [last, ...fc] : fc)}" class="fc"/>` : "",
-    last ? `<circle cx="${x(last[0])}" cy="${y(last[1])}" r="4" class="dot"/>` : "",
-    fc.length ? `<line x1="${x(now)}" y1="${T}" x2="${x(now)}" y2="${H - B}" class="now"/>` : "",
-    `<text x="${L}" y="${H - 8}" class="tick">${esc(dayLabel(t0))}</text>`,
-    `<text x="${x(now)}" y="${H - 8}" class="tick" text-anchor="${fc.length ? "middle" : "end"}">now</text>`,
-    fc.length ? `<text x="${W - R}" y="${H - 8}" class="tick" text-anchor="end">${esc(dayLabel(t1))}</text>` : "",
+    `<line x1="${n(x(now))}" y1="${T - 6}" x2="${n(x(now))}" y2="${H - B}" class="now"/>`,
+    last ? `<circle cx="${n(x(last[0]))}" cy="${n(y(last[1]))}" r="5" class="dot"/>` : "",
+    marks.placed ? `<text x="${n(marks.tx)}" y="${n(marks.ty)}" class="today" text-anchor="${marks.anchor}">Today</text>` : "",
   ];
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(`${f.parameter === "level" ? "Water level" : "Flow"} over the last 7 days${fc.length ? " and the forecast" : ""}`)}">${parts.join("")}</svg>`;
+  const what = f.parameter === "level" ? "Water level" : "Flow";
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(`${what} over the last 7 days${fc.length ? " and the forecast" : ""}, in ${f.unit ?? ""}`)}">${parts.join("")}</svg>`;
+}
+
+/** what the lines and shades of the chart are, as cards under it (a chart with no key is a guess) */
+export function chartKeyHtml(f: Facts): string {
+  const item = (cls: string, words: string) => `<li><svg width="26" height="12" viewBox="0 0 26 12" aria-hidden="true"><${cls}</svg> ${esc(words)}</li>`;
+  const usual = (f.normal?.length ?? 0) >= 2;
+  return `<ul class="key"><li class="k-head">${esc(f.parameter === "level" ? "Water level" : "Flow")}, ${esc(f.unit ?? "")}</li>` +
+    item('line x1="0" y1="6" x2="26" y2="6" class="obs"/>', "measured") +
+    (f.forecast ? item('line x1="0" y1="6" x2="26" y2="6" class="fc"/>', "forecast") : "") +
+    (usual ? item('rect x="0" y="1" width="26" height="10" class="bandn"/>', "usual range for the date: half of past years") +
+             item('rect x="0" y="1" width="26" height="10" class="bandw"/>', "8 years in 10") : "") + `</ul>`;
+}
+
+/** the forecast, a day at a time: the expected figure and the usual range for that day (the same rows the chart shades) */
+export function forecastDaysHtml(f: Facts, now: number): string {
+  if (!f.forecast || f.week.length + f.forecast.points.length < 2) return "";
+  if (now > f.forecast.dueBy) return "";
+  const seen = new Set<string>();
+  const rows: string[] = [];
+  for (const [t, v] of f.forecast.points) {
+    const label = bcDayWords(t, true);
+    if (t < now - 12 * 3600_000 || seen.has(label)) continue;
+    seen.add(label);
+    const u = usualAt(f, t);
+    rows.push(`<tr><th scope="row">${esc(label)}</th><td>${esc(figure(v))} ${esc(f.unit ?? "")}</td><td>${u ? `${esc(figure(u.lo))}–${esc(figure(u.hi))}` : "—"}</td></tr>`);
+  }
+  if (!rows.length) return "";
+  return `<table class="wx fd"><caption>The forecast, day by day</caption><thead><tr><th>Day</th><th>Expected</th><th>Usual for the date</th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
 }
 
 interface Meteo {
@@ -184,10 +240,23 @@ export async function gaugePage(doc: Document, now: () => number, fetchImpl: typ
     if (f.format !== "gauge-card/1") throw new Error(`${cfg.facts}: format ${String(f.format)}, not gauge-card/1`);
     const t = now();
     put("gauge-now", readingHtml(f, t));
-    const svg = chartSvg(f, t);
-    put("gauge-chart", (svg ?? `<p class="small">No readings in the last 7 days.</p>`) + forecastHtml(f, t) +
+    const box = doc.getElementById("gauge-chart");
+    const draw = () => {
+      const svg = chartSvg(f, now(), box?.clientWidth || 640);
+      return svg ? svg + chartKeyHtml(f) : `<p class="small">No readings in the last 7 days.</p>`;
+    };
+    put("gauge-chart", draw() + forecastDaysHtml(f, t) + forecastHtml(f, t) +
       `<p class="small">Readings: Water Survey of Canada real-time data (Environment and Climate Change Canada), provisional.` +
       `${f.forecast ? ` ${esc(f.forecast.attribution)}` : ""}</p>`);
+    // the chart is drawn at the width it is shown at: a turned phone draws it again
+    let drawnAt = box?.clientWidth ?? 0;
+    doc.defaultView?.addEventListener("resize", () => {
+      const w = box?.clientWidth ?? 0;
+      if (!box || Math.abs(w - drawnAt) < 24) return;
+      drawnAt = w;
+      const first = box.querySelector("svg");
+      if (first) first.outerHTML = chartSvg(f, now(), w) ?? "";
+    });
   }).catch((e) => { failed("gauge-now", "The latest reading", e); put("gauge-chart", ""); });
   const weather = cfg.weather === null
     ? Promise.resolve(put("gauge-weather", `<p class="small">This gauge has no position on file, so no weather is shown.</p>`))

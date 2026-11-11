@@ -11,7 +11,7 @@
  * unusual one — a percentile envelope, a log axis, two year traces, forecast ribbons.
  * Generic chart APIs fight all four.
  */
-import { clampDomain, layoutDayMarks, nearestIndex, type Band, type DayMarkIn, type DayMarkKind, type DayMarkOut,
+import { clampDomain, layoutDayMarks, nearestIndex, niceTicks, type Band, type DayMarkIn, type DayMarkKind, type DayMarkOut,
          type Domain } from "@app/core";
 
 export interface Box {
@@ -25,6 +25,9 @@ export interface Box {
 
 /** (T604) the day-mark labels' type size, which `layoutDayMarks` measures against and the chart draws at */
 export const MARK_FONT = 10;
+
+/** (T564) round-figure ticks are core's now (the gauge page draws its chart with the same function); kept exported here */
+export { niceTicks };
 
 export const DEFAULT_BOX: Box = {
   width: 320, height: 190, padLeft: 40, padRight: 10, padTop: 12, padBottom: 24,
@@ -137,23 +140,6 @@ const fmt = (v: number): string =>
     : v >= 100 ? String(Math.round(v))
       : v >= 10 ? String(Math.round(v * 10) / 10)
         : String(Math.round(v * 100) / 100);
-
-/** Ticks a person reads: 1, 2, 5 x 10^n. Linear. */
-export function niceTicks(lo: number, hi: number, count: number): number[] {
-  const span = hi - lo;
-  if (span <= 0 || !Number.isFinite(span)) return [lo];
-  let step = 10 ** Math.floor(Math.log10(span / count));
-  // A little overshoot beats a nearly empty axis: without it a span of 51 asking for 4
-  // ticks jumps from 5 to 2, and two gridlines is not a scale a person can read against.
-  for (const m of [1, 2, 2.5, 5, 10]) {
-    if (span / (step * m) <= count * 1.3) { step *= m; break; }
-  }
-  const out: number[] = [];
-  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) {
-    out.push(Number(v.toFixed(6)));
-  }
-  return out;
-}
 
 /** Log ticks: every 1, 2, 5 within the decades the data spans. */
 export function logTicks(lo: number, hi: number): number[] {
