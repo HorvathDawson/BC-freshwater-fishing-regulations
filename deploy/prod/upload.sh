@@ -45,6 +45,7 @@ say "promote $REL to $D (staging serves the same manifest)"
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket ${DRY[@]+"${DRY[@]}"} "${@:3}"; }
 cpr() { rclone copy "$1" "$2" --s3-no-check-bucket ${DRY[@]+"${DRY[@]}"} "${@:3}"; }
+CLIM_PY=python3; [ -x .venv/bin/python ] && CLIM_PY=.venv/bin/python
 TILES=$(q "m['tiles']['current']['id']"); ASSETS=$(q "m['tiles']['assets']['url']")
 BM=$(q "m['basemap']['url']"); SYN=$(q "m['synopsis']['url']")
 
@@ -73,7 +74,11 @@ say "feed seeds, clim.json, HYDAT day means, DFO seeds"
 cpr data/generated/gauges/feeds "$D/feeds/live" --transfers 32 --include "*.json" --exclude clim.json \
   --exclude temp_history.json --ignore-existing \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
-cp_ data/generated/gauges/feeds/clim.json feeds/live/clim.json --checksum \
+# (T554 item 4) never an older HYDAT's envelope back over a newer one (the HYDAT workflow may have written it while the
+# Mac had not run scripts/update-hydat.sh): pipeline.gauges.feed.clim_guard says put (0) or skip (3, said)
+CG=0; "$CLIM_PY" -m pipeline.gauges.feed.clim_guard --local data/generated/gauges/feeds/clim.json --remote "$D/feeds/live/clim.json" || CG=$?
+[[ $CG == 0 || $CG == 3 ]] || { echo "upload: clim.json could not be compared with R2's (above); stopped" >&2; exit 1; }
+[[ $CG == 0 ]] && cp_ data/generated/gauges/feeds/clim.json feeds/live/clim.json --checksum \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
 [[ -d data/generated/gauges/hydat_daily ]] || { echo "upload (prod): no data/generated/gauges/hydat_daily (scripts/update-hydat.sh)" >&2; exit 1; }
 cpr data/generated/gauges/hydat_daily "$D/feeds/hydat" --transfers 32 --include "*.json" \

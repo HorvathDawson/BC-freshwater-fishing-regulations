@@ -189,7 +189,8 @@ describe("what each job tells", () => {
       ],
       "t",
     );
-    expect(h).toMatchObject({ key: "hydat:20261015", kind: "hydat", title: "New HYDAT 20261015 — run the HYDAT action" });
+    // (T554 item 4) the envelope in use is in the key: an older clim.json put back is a new event, told again
+    expect(h).toMatchObject({ key: "hydat:20261015:20250115", kind: "hydat", title: "New HYDAT 20261015 — run the HYDAT action" });
     expect(h!.text).toMatch(/feeds — HYDAT → climatology → R2/);
     expect(r).toMatchObject({ key: "roster:+2/-1", kind: "roster" });
     const [d] = dfoEvents([{ key: "dfo-new:6:abc", text: "DFO Region 6: new location on Skeena River: 'x' — 2 rules held unplaced. Place it in DFO review after: …" }], "t");

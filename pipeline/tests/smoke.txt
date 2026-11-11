@@ -308,6 +308,7 @@ pipeline/tests/test_gauge_matches_record.py::test_an_atlas_without_the_record_is
 pipeline/tests/test_gauge_promote.py::test_only_a_station_the_fresh_match_lacks_is_an_error
 pipeline/tests/test_gear_omission.py::test_dropping_the_field_a_phrase_needs_is_named[['barbless']]
 pipeline/tests/test_hydat_daily.py::test_index_stations_are_the_feed_index_keys
+pipeline/tests/test_clim_guard.py::test_decide_puts_newer_or_same_and_skips_older_or_unknown
 pipeline/tests/test_inseason_points.py::test_place_ids_validate_by_shape
 pipeline/tests/test_licence_records.py::test_entries_unwraps_a_licensed_list_and_passes_a_bare_one
 pipeline/tests/test_live_panels.py::test_the_reserve_depth_is_the_measured_one

@@ -93,7 +93,8 @@ export function gaugeEvents(maintenance: any[], at: string): FeedEvent[] {
   return maintenance.map((n) =>
     n.kind === "hydat"
       ? {
-          key: `hydat:${n.latest}`,
+          // (T554 item 4) the envelope in use is in the key: an older clim.json put back over a newer one is told again
+          key: `hydat:${n.latest}:${n.current}`,
           kind: "hydat" as const,
           title: `New HYDAT ${n.latest} — run the HYDAT action`,
           text:

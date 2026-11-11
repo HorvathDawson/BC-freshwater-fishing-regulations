@@ -25,6 +25,7 @@ MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release
 .venv/bin/python scripts/ci_status.py
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket "${@:3}"; }
+CLIM_PY=python3; [ -x .venv/bin/python ] && CLIM_PY=.venv/bin/python
 TILES=$(q "m['tiles']['current']['id']")
 # (T412) RUN TIMING HAS ONE PUBLISHER, feeds-runtiming.yml. This release ships the BINDING BASE of its map (`pipeline
 # deliver` stages it in data/generated/runtiming/feed/release/); it goes to private/, then the workflow is started for
@@ -79,7 +80,11 @@ SYN=$(q "m['synopsis']['url']"); cp_ "$R/$SYN" "release/$SYN" --header-upload "$
 rclone copy data/generated/gauges/feeds "$D/feeds/live" --s3-no-check-bucket --transfers 32 --include "*.json" \
   --exclude clim.json --exclude temp_history.json --ignore-existing \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
-rclone copyto data/generated/gauges/feeds/clim.json "$D/feeds/live/clim.json" --s3-no-check-bucket --checksum \
+# (T554 item 4) never an older HYDAT's envelope back over a newer one (the HYDAT workflow may have written it while the
+# Mac had not run scripts/update-hydat.sh): pipeline.gauges.feed.clim_guard says put (0) or skip (3, said)
+CG=0; "$CLIM_PY" -m pipeline.gauges.feed.clim_guard --local data/generated/gauges/feeds/clim.json --remote "$D/feeds/live/clim.json" || CG=$?
+[[ $CG == 0 || $CG == 3 ]] || { echo "upload: clim.json could not be compared with R2's (above); stopped" >&2; exit 1; }
+[[ $CG == 0 ]] && rclone copyto data/generated/gauges/feeds/clim.json "$D/feeds/live/clim.json" --s3-no-check-bucket --checksum \
   --header-upload "Cache-Control: public, max-age=300" --header-upload "Content-Type: application/json"
 # (T274) HYDAT daily means per station (pipeline.gauges.feed.hydat_daily; static between HYDAT releases): what dayFlow.ts reads
 if [[ -d data/generated/gauges/hydat_daily ]]; then
