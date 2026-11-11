@@ -7,6 +7,8 @@
  *   gauges    only when an alert is on: the feed-wide newest rows (`obs.json`), each alert against its gauge's newest
  *             reading through `@app/core` `evaluateAlerts` (T527: once per crossing of a value or of a percentile's line
  *             for the reading's day, re-armed past a small margin; stale, missing or a day with no line = nothing).
+ *             (T554 item 1) a skip is kept on the alert with since-when (its row says "gauge not reporting since …"),
+ *             the run line counts the silent ones, and a gauge silent for ALERT_SILENT_TELL_MS is told once.
  *   release   only when "new data ready" is on: the manifest's data release against the one in use (noted by the app
  *             on every open); a release this app is too old to apply is not announced (the app-update prompt says
  *             that, T390). Once per release (`toldRelease`).
@@ -20,7 +22,7 @@
  * cannot be raised is reported, and the rule's state is not advanced, so the next run raises it.
  */
 import {
-  alertNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, newestReading, NOTIFY_WORDS,
+  alertNotification, alertSilentNotification, APP_VERSION_NOTE, appVersionToTell, evaluateAlerts, isEnvironment, newestReading, NOTIFY_WORDS,
   releaseAllowed, reportFailure, UPDATE_READY_NOTE, type AppVersion,
 } from "@app/core";
 import type { Manifest } from "../manifest";
@@ -75,6 +77,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
     else failed.push(said(e));
   };
   let fired = 0;
+  let silent = 0;
   let told = false;
 
   const live = s0.on ? s0.rules.filter((r) => r.on) : [];
@@ -97,6 +100,18 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
           if (prev) states[f.rule.id] = prev; else delete states[f.rule.id];
         }
       }
+      // (T554 item 1) a gauge silent for a day: told once; not raised, it is told on the next run
+      for (const r of e.silent) {
+        try {
+          await d.notify({ channel: "gauges", ...alertSilentNotification(r, states[r.id]!),
+                           data: { kind: "gauge", rule: r.id, station: r.station, item: r.water?.item ?? null } });
+        } catch (err) {
+          reportFailure(err);
+          failed.push(said(err));
+          states[r.id] = { ...states[r.id]!, silentTold: null };
+        }
+      }
+      silent = e.skipped.filter((k) => k === "missing" || k === "stale").length;
       // only the alerts still there (one deleted while the check ran stays deleted)
       d.settings.update((s) => ({ ...s, ruleState: { ...s.ruleState,
         ...Object.fromEntries(Object.entries(states).filter(([id]) => s.rules.some((r) => r.id === id))) } }));
@@ -133,6 +148,7 @@ export async function runBackgroundCheck(d: CheckDeps): Promise<BgResult> {
   const W = NOTIFY_WORDS.run;
   if (!s0.on || (!live.length && !s0.updateReady && !s0.appVersion)) parts.push(W.noRules);
   if (fired) parts.push(W.fired(fired));
+  if (silent) parts.push(W.silent(silent));
   if (told) parts.push(W.updateReady);
   if (toldApp) parts.push(W.appVersion);
   if (offline) parts.push(W.offline);

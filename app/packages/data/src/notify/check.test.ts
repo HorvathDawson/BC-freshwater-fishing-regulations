@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { percentileByDay, setFailureSink, type Band, type GaugeAlertRule } from "@app/core";
+import {
+  ALERT_SILENT_TELL_MS, alertLine, alertListLine, localStamp, percentileByDay, setFailureSink, type Band, type GaugeAlertRule,
+} from "@app/core";
 import type { Manifest } from "../manifest";
 import type { ObsFile } from "../feed/history";
 import { runBackgroundCheck, updateReadyFor, type CheckDeps, type Notice } from "./check";
@@ -100,7 +102,8 @@ describe("the background check (T234)", () => {
       const p: GaugeAlertRule = { ...rule, threshold: { kind: "percentile", pct: 50, byDay: percentileByDay(yearBand, 50) } };
       const h = harness({ on: true, rules: [p], ruleState: { r1: { past: false, at: "x", value: 1 } } }, { obs: async () => obs(99) });
       await runBackgroundCheck(h.deps);
-      expect([h.told, sink.mock.calls, h.settings.read().ruleState.r1]).toEqual([[], [], { past: false, at: "x", value: 1 }]);
+      expect([h.told, sink.mock.calls, h.settings.read().ruleState.r1]).toEqual([[], [],
+        { past: false, at: "x", value: 1, skipped: "no-record", skippedSince: T0 }]);
     } finally { undo(); }
   });
 
@@ -308,5 +311,36 @@ describe("the settings file (T234, T527)", () => {
 
   it("an unreadable file reads as the defaults", () => {
     expect(createNotifySettings({ read: () => "{nope", write: () => {} }).read()).toEqual(NOTIFY_DEFAULT);
+  });
+});
+
+// (T554 item 1) an alert on a gauge that stopped reporting said nothing: the skip was computed and dropped.
+describe("an alert whose gauge is silent (T554 item 1)", () => {
+  it("keeps why and since when, says so on its row and in the run line, tells once after a day, and clears", async () => {
+    let rows: ObsFile = obs(40);
+    const h = harness({ on: true, rules: [rule] }, { obs: async () => rows });
+    await runBackgroundCheck(h.deps);                                    // a reading: evaluated
+    rows = { ...obs(40), stations: {} };                                 // the gauge goes quiet
+    h.tick(60 * 60_000);
+    const quiet = await runBackgroundCheck(h.deps);
+    const since = T0 + 60 * 60_000;
+    expect(h.settings.read().ruleState.r1).toMatchObject({ skipped: "missing", skippedSince: since });
+    expect(quiet.line).toBe("1 alert's gauge not reporting");
+    expect(alertListLine(rule, h.settings.read().ruleState.r1))
+      .toBe(`${rule.stationName} · ${alertLine(rule)} · not fired yet · gauge not reporting since ${localStamp(T0)}`);
+    h.tick(ALERT_SILENT_TELL_MS - 1);
+    await runBackgroundCheck(h.deps);
+    expect(h.told).toEqual([]);                                          // a day not yet up
+    h.tick(1);
+    await runBackgroundCheck(h.deps);
+    h.tick(15 * 60_000);
+    await runBackgroundCheck(h.deps);
+    expect(h.told.map((n) => n.body)).toEqual([                          // once
+      `${rule.stationName} has not reported since ${localStamp(T0)}, so this alert cannot be checked. It is checked again as soon as the gauge reports.`]);
+    rows = obs(41, (h.deps.now() - T0) / 60_000);                        // it reports again
+    await runBackgroundCheck(h.deps);
+    const st = h.settings.read().ruleState.r1!;
+    expect([st.skipped, st.skippedSince, st.silentTold]).toEqual([null, null, null]);
+    expect(alertListLine(rule, st)).not.toContain("not reporting");
   });
 });

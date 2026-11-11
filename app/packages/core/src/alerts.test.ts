@@ -80,14 +80,16 @@ describe("crossing a value (T527: edge-triggered, like a price alert)", () => {
 
   it("missing data changes nothing and fires nothing", () => {
     expect(walk(rule(), [40, null, null, 55])).toEqual([false, false, false, true]);
-    expect(evaluateAlert(rule(), { past: false }, null, T0)).toEqual({ state: { past: false }, due: false, line: null, skipped: "missing" });
+    expect(evaluateAlert(rule(), { past: false }, null, T0))
+      .toEqual({ state: { past: false, skipped: "missing", skippedSince: T0 }, due: false, line: null, skipped: "missing" });
     expect(evaluateAlert(rule(), { past: false }, { at: iso(0), value: NaN }, T0).skipped).toBe("missing");
   });
 
   it("a stale reading is not evaluated: nothing due, the state kept; just inside the limit is", () => {
     const st = { past: false, at: iso(-15), value: 40 };
     const late = evaluateAlert(rule(), st, { at: iso(0), value: 99 }, T0 + ALERT_STALE_MS + 60_000);
-    expect(late).toEqual({ state: st, due: false, line: null, skipped: "stale" });
+    expect(late).toEqual({ state: { ...st, skipped: "stale", skippedSince: T0 + ALERT_STALE_MS + 60_000 }, due: false,
+                           line: null, skipped: "stale" });
     expect(evaluateAlert(rule(), st, { at: iso(0), value: 99 }, T0 + ALERT_STALE_MS).due).toBe(true);
     expect(evaluateAlert(rule(), st, { at: "not a time", value: 99 }, T0).skipped).toBe("stale");
   });
@@ -195,7 +197,8 @@ describe("a percentile for the day: the line moves with the date (T527)", () => 
     const r = rule({ threshold: { kind: "percentile", pct: 50, byDay: percentileByDay(gappy, 50) } });
     const st = { past: false, at: "2026-11-08T12:00:00-08:00", value: 30 };
     const e = evaluateAlert(r, st, { at: "2026-11-09T12:00:00-08:00", value: 99 }, Date.parse("2026-11-09T12:10:00-08:00"));
-    expect(e).toEqual({ state: st, due: false, line: null, skipped: "no-record" });
+    expect(e).toEqual({ state: { ...st, skipped: "no-record", skippedSince: Date.parse("2026-11-09T12:10:00-08:00") },
+                        due: false, line: null, skipped: "no-record" });
   });
 
   it("presets and custom: whole numbers 10..90 only", () => {

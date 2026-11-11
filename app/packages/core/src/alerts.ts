@@ -72,11 +72,22 @@ export interface AlertRuleState {
   readonly value?: number | null;
   /** when it last fired (epoch ms) */
   readonly firedAt?: number | null;
+  /**
+   * (T554 item 1) why the last check could not evaluate it (missing / stale / no-record), and since when it has not been
+   * evaluated (epoch ms, the first check of the run of skips); cleared by the next evaluation. Shown on the alert's row
+   * (`alertListLine`) and in the run log; a gauge silent for ALERT_SILENT_TELL_MS is told once (`silentTold`).
+   */
+  readonly skipped?: AlertSkip | null;
+  readonly skippedSince?: number | null;
+  /** (T554 item 1) when the reader was told this alert's gauge is silent (epoch ms); cleared when it reports again */
+  readonly silentTold?: number | null;
 }
 
 const HOUR = 3_600_000;
 /** A gauge reading older than this is not evaluated (ECCC publishes hourly, about an hour behind). */
 export const ALERT_STALE_MS = 6 * HOUR;
+/** (T554 item 1) An alert whose gauge has given no usable reading for this long is told once: it cannot be checked. */
+export const ALERT_SILENT_TELL_MS = 24 * HOUR;
 /** Back across the line by this fraction of the line before it can fire again (the hysteresis). */
 export const REARM_FRACTION = 0.02;
 /** ...and never by less than this, in the quantity's units (a line at 0 still needs a step back). */
@@ -167,12 +178,18 @@ type Rule = Pick<GaugeAlertRule, "direction" | "threshold" | "quantity">;
  */
 export function evaluateAlert(rule: Rule, state: AlertRuleState | null, reading: AlertReading | null,
                               nowMs: number): AlertEvaluation {
-  const prev: AlertRuleState = state ?? { past: null };
-  if (!reading || !Number.isFinite(reading.value)) return { state: prev, due: false, line: null, skipped: "missing" };
+  const held: AlertRuleState = state ?? { past: null };
+  // (T554 item 1) a skip is kept with since-when (the first of a run of skips); an evaluation clears it
+  const skip = (why: AlertSkip): AlertEvaluation => ({
+    state: { ...held, skipped: why, skippedSince: held.skipped ? (held.skippedSince ?? nowMs) : nowMs },
+    due: false, line: null, skipped: why });
+  const prev: AlertRuleState = held.skipped || held.skippedSince || held.silentTold
+    ? { ...held, skipped: null, skippedSince: null, silentTold: null } : held;
+  if (!reading || !Number.isFinite(reading.value)) return skip("missing");
   const t = Date.parse(reading.at);
-  if (!Number.isFinite(t) || nowMs - t > ALERT_STALE_MS) return { state: prev, due: false, line: null, skipped: "stale" };
+  if (!Number.isFinite(t) || nowMs - t > ALERT_STALE_MS) return skip("stale");
   const line = thresholdAt(rule.threshold, reading.at);
-  if (line === null) return { state: prev, due: false, line: null, skipped: "no-record" };
+  if (line === null) return skip("no-record");
   if (prev.at === reading.at && prev.past !== null) return { state: prev, due: false, line, skipped: null };
   const m = reading.value;
   const seen = { at: reading.at, value: m };
@@ -192,6 +209,8 @@ export interface AlertsResult {
   /** the alerts to tell now, in the alerts' order, with the reading and the line it crossed */
   readonly fire: readonly AlertFire[];
   readonly skipped: readonly AlertSkip[];
+  /** (T554 item 1) the alerts whose gauge has given no usable reading for ALERT_SILENT_TELL_MS, to tell once now */
+  readonly silent: readonly GaugeAlertRule[];
 }
 
 /** EVERY ALERT, ONE CHECK: each switched-on alert against its gauge's newest reading. An alert switched off is skipped. */
@@ -200,6 +219,7 @@ export function evaluateAlerts(rules: readonly GaugeAlertRule[], states: Readonl
   const out: Record<string, AlertRuleState> = {};
   const fire: AlertFire[] = [];
   const skipped: AlertSkip[] = [];
+  const silent: GaugeAlertRule[] = [];
   for (const r of rules) {
     if (!r.on) continue;
     const reading = readingOf(r);
@@ -207,8 +227,13 @@ export function evaluateAlerts(rules: readonly GaugeAlertRule[], states: Readonl
     if (e.skipped) skipped.push(e.skipped);
     out[r.id] = e.due ? { ...e.state, firedAt: nowMs } : e.state;
     if (e.due) fire.push({ rule: r, reading: reading!, line: e.line! });
+    const s = e.state;
+    if (silentGauge(s) && !s.silentTold && nowMs - s.skippedSince! >= ALERT_SILENT_TELL_MS) {
+      out[r.id] = { ...s, silentTold: nowMs };
+      silent.push(r);
+    }
   }
-  return { states: out, fire, skipped };
+  return { states: out, fire, skipped, silent };
 }
 
 type Row = readonly [string, number | null, number | null];
@@ -327,6 +352,8 @@ export const NOTIFY_WORDS = {
     switchAloud: (line: string) => `Alert on: ${line}`,
     lastFired: (ms: number) => `last fired ${localStamp(ms)}`,
     notFired: "not fired yet",
+    /** (T554 item 1) the alert's gauge gave no usable reading at the last check */
+    silent: (ms: number) => `gauge not reporting since ${localStamp(ms)}`,
     off: "off",
   },
   /** "Add an alert" on More → Notifications: step 1, the gauge */
@@ -399,6 +426,8 @@ export const NOTIFY_WORDS = {
     offline: "offline",
     failed: (why: string) => `failed: ${why}`,
     fired: (n: number) => (n === 1 ? "1 alert" : `${n} alerts`),
+    /** (T554 item 1) alerts not checked this run because their gauge gave no usable reading */
+    silent: (n: number) => (n === 1 ? "1 alert's gauge not reporting" : `${n} alerts' gauges not reporting`),
     quiet: "nothing to tell",
     updateReady: "new data ready",
     appVersion: "new app version",
@@ -417,10 +446,34 @@ export function alertLine(r: Pick<GaugeAlertRule, "quantity" | "direction" | "th
   return `${CONDITIONS_WORDS.quantity[r.quantity]} crosses ${r.direction} ${thresholdWords(r)}`;
 }
 
-/** The list's one line: "Vedder Crossing · Flow crosses above 30 m³/s · last fired 2026-11-05 at 14:05 PT". */
+/** (T554 item 1) The gauge gave no usable reading (none, or too old) at the last check: the alert could not be checked.
+ *  A day with no line (`no-record`) is not silence: the gauge is reporting, the record has no line that day. */
+export const silentGauge = (s: AlertRuleState | null | undefined): boolean =>
+  !!s && (s.skipped === "missing" || s.skipped === "stale") && typeof s.skippedSince === "number";
+
+/** Since when a silent alert's gauge has not reported: its last evaluated reading's time, else the first silent check. */
+function silentFrom(s: AlertRuleState): number {
+  const at = s.at ? Date.parse(s.at) : NaN;
+  return Number.isFinite(at) ? at : s.skippedSince!;
+}
+
+/** The list's one line: "Vedder Crossing · Flow crosses above 30 m³/s · last fired 2026-11-05 at 14:05 PT", and
+ *  (T554 item 1) "· gauge not reporting since …" while its gauge is silent. */
 export function alertListLine(r: GaugeAlertRule, s: AlertRuleState | null | undefined): string {
   const W = NOTIFY_WORDS.alerts;
-  return [r.stationName, alertLine(r), !r.on ? W.off : s?.firedAt ? W.lastFired(s.firedAt) : W.notFired].join(" · ");
+  const parts = [r.stationName, alertLine(r), !r.on ? W.off : s?.firedAt ? W.lastFired(s.firedAt) : W.notFired];
+  if (r.on && silentGauge(s)) parts.push(W.silent(silentFrom(s!)));
+  return parts.join(" · ");
+}
+
+/** (T554 item 1) The one notification when an alert's gauge has been silent for ALERT_SILENT_TELL_MS. */
+export function alertSilentNotification(r: GaugeAlertRule, s: AlertRuleState): { title: string; body: string } {
+  const where = r.water?.name ?? r.stationName;
+  return {
+    title: `${where}: ${quantityWord(r.quantity)} alert`,
+    body: `${r.stationName} has not reported since ${localStamp(silentFrom(s))}, so this alert cannot be checked. ` +
+      "It is checked again as soon as the gauge reports.",
+  };
 }
 
 /** What the editor knows of the gauge now: its reading (and when), to say where it stands against the line. */
