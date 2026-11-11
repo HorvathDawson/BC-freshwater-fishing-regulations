@@ -262,8 +262,11 @@ async function publishFeed(
   }
   // (T520) the true matched / unmatched counts: the curated links beside this file. Unreadable links are a FAILED run
   // (shown on the status page), never a feed claiming every row unmatched
-  const doc = buildFeed(rows, prev, now.toISOString(), sha, pageChanged || !prev,
-                        matchedWaters(await deps.feed!.get("matches.json")));
+  // (T609 W14) a MISSING links file once a feed has been published is a failed run too: published, every notice would
+  // read "not on the map yet" and none on its water
+  const linksText = await deps.feed!.get("matches.json");
+  if (linksText === null && prev) throw new SourceError("parse", "in-season: feeds/inseason/matches.json is missing (the curated links); nothing written. Sync it: deploy/staging/sync-inputs.sh", "inseason-links");
+  const doc = buildFeed(rows, prev, now.toISOString(), sha, pageChanged || !prev, matchedWaters(linksText));
   const writes = await loadManifest(deps.priv, "writes.json");
   const out = skipSameStore(deps.feed!, writes, {
     now: now.getTime(),

@@ -236,10 +236,12 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
   it("every row publishes, unmatched rows flagged; ids stable; dates and confident fields parsed", async () => {
     const priv = new MemStore();
     const feed = new MemStore();
+    // (T609 W14) the links file is there (none bound): once a feed is published a missing one fails the run
+    feed.m.set("matches.json", JSON.stringify({ format: INSEASON_LINKS_FORMAT, release: "r-1", notices: {} }));
     const r = await runInSeason({ fetch: okFetch, priv, feed, html: page, now: T("2026-10-28T12:00:00Z") });
     expect(r.feed).toMatchObject({ rows: 32, unmatched: 32, new: 0, changed: 0, removed: 0 });
     const doc: InSeasonFeed = JSON.parse(feed.m.get("index.json")!);
-    expect(doc).toMatchObject({ format: "inseason-feed/1", matching: { method: null, matched: 0, unmatched: 32 } });
+    expect(doc).toMatchObject({ format: "inseason-feed/1", matching: { matched: 0, unmatched: 32 } });
     expect(new Set(doc.rows.map((x) => x.id)).size).toBe(32); // Heber Creek's two rows get two ids
     const cow = doc.rows[0]!;
     expect(cow).toMatchObject({ region: "1", water: "Cowichan River", waters: [], matched: false, from: "2025-07-04", to: "2025-08-31", change: "No fishing", parsed: { kinds: ["closure"] }, status: "unchanged" });
@@ -314,6 +316,7 @@ describe("the published in-season feed (feeds/inseason/index.json, inseason-feed
     const r = await runInSeason({ fetch: okFetch, priv, feed, html: doubled, now: T("2026-10-28T12:00:00Z") });
     expect(r.feed).toMatchObject({ rows: 32 });
     expect(r.events.filter((e) => e.key.startsWith("inseason-duplicate:"))).toHaveLength(1);
+    feed.m.set("matches.json", JSON.stringify({ format: INSEASON_LINKS_FORMAT, release: "r-1", notices: {} }));   // (T609 W14)
     const again = await runInSeason({ fetch: okFetch, priv, feed, html: doubled, now: T("2026-10-28T18:00:00Z") });
     // the same duplicate keeps its key: the notifier sends it once
     expect(again.events.map((e) => e.key)).toEqual(r.events.filter((e) => e.key.startsWith("inseason-duplicate:")).map((e) => e.key));
@@ -384,4 +387,15 @@ describe("only the in-season page is read (T609 W4)", () => {
     await expect(runInSeason({ fetch: redirected, priv })).rejects.toMatchObject({ cls: "parse", message: expect.stringMatching(/redirected to https:\/\/www2\.gov\.bc\.ca\/other/) });
     expect(priv.m.size).toBe(0);
   });
+});
+
+// T609 W14: a missing matches.json published every row unmatched and recorded the run ok
+it("(T609 W14) once a feed is published, a missing matches.json fails the run and writes nothing", async () => {
+  const page = readFileSync(join(__dirname, "fixtures/inseason/page-2026-10-28.html"), "utf-8");
+  const feed = new MemStore();
+  feed.m.set("index.json", JSON.stringify({ format: "inseason-feed/1" }));
+  const before = feed.m.get("index.json");
+  await expect(runInSeason({ fetch: okFetch, priv: new MemStore(), feed, html: page, now: T("2026-10-28T12:00:00Z") }))
+    .rejects.toMatchObject({ cls: "parse", message: expect.stringMatching(/matches\.json is missing/) });
+  expect(feed.m.get("index.json")).toBe(before);
 });

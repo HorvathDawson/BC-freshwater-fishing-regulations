@@ -44,6 +44,7 @@ describe("a run's steps (T558 W8)", () => {
     expect(b.m.has("private/feeds/inseason/latest.json")).toBe(false);       // the diff is computed again next run
     // the outbox back: the snapshot moves on, nothing to say
     b.failGet.clear();
+    b.m.set("feeds/inseason/matches.json", JSON.stringify({ format: "inseason-links/3", release: "r-1", notices: {} }));   // (T609 W14)
     const again = await runInseason(b);
     expect(again.stepErrors).toEqual([]);
     expect(b.m.has("private/feeds/inseason/latest.json")).toBe(true);
