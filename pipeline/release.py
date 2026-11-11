@@ -18,7 +18,9 @@ where it stopped (every stage below is skipped when it is already done for this 
                `--ship-stale-atlas REASON`); every review mark in
                force landed in its curated file (T545, `review.apply --check`; not skipped by --no-fast-fail); HEAD pushed to
                origin/redesign/stream-sections (T484: the staging upload starts a GitHub workflow that runs GitHub's
-               copy — found only at stage 6 on 2026-11-07); the live staging SITE is at least the min app the release
+               copy — found only at stage 6 on 2026-11-07); CI (`app-ci`, `pipeline-ci`) not red on HEAD, nor on the
+               newest finished run when HEAD has none (T533, `scripts/ci_status.py`; running / no run = a warning;
+               `--no-ci-check REASON`); fast-fail's "changed" base is the commit LATEST was built from (T533, ledger); the live staging SITE is at least the min app the release
                goes up with (`deliver.release.site_gate`; 2026-11-09 the smoke test found a 0.6.9 site under a 0.7.0
                release only after the upload); the HEAD commit is recorded with the release.
   2 baseline   a copy of the reach run the LIVE release (LATEST) was cut from, kept before the build can overwrite it,
@@ -156,9 +158,23 @@ def git_pushed() -> bool:
     return rc == 0
 
 
-def run_fast_fail() -> int:
-    """`scripts/fast-fail.sh` (T483) on the console; its return code."""
-    return run_cmd(["bash", "scripts/fast-fail.sh"])
+def run_fast_fail(base: str | None = None) -> int:
+    """`scripts/fast-fail.sh` (T483) on the console; its return code. (T533) `base` = FAST_FAIL_BASE: what it checks as
+    changed is everything since that commit (the one LATEST was built from), not only the unpushed commits."""
+    return run_cmd(["bash", "scripts/fast-fail.sh"], env={"FAST_FAIL_BASE": base} if base else None)
+
+
+def git_has_commit(rev: str) -> bool:
+    return subprocess.run(["git", "cat-file", "-e", f"{rev}^{{commit}}"], cwd=REPO_ROOT,
+                          capture_output=True).returncode == 0
+
+
+def ci_status(skip: str | None = None) -> tuple[int, str]:
+    """(T533) `scripts/ci_status.py`: is CI red on HEAD (or on the newest finished run when HEAD has none)? (rc, what it
+    printed): 0 ok / warnings, 1 red, 2 cannot tell."""
+    got = subprocess.run([sys.executable, "scripts/ci_status.py", *(["--skip", skip] if skip is not None else [])],
+                         cwd=REPO_ROOT, capture_output=True, text=True)
+    return got.returncode, (got.stdout + got.stderr).strip()
 
 
 def run_cmd(cmd: list[str], env: dict | None = None) -> int:
@@ -324,6 +340,7 @@ class Ctx:
     accept_diff: Path | None = None
     no_fast_fail: str | None = None  # why scripts/fast-fail.sh is skipped (printed); None runs it
     stale_atlas: str | None = None   # (T547) why an atlas behind its curated inputs ships anyway (printed); None stops
+    no_ci_check: str | None = None   # (T533) why CI's result is not asked (printed); None asks
     baseline: Path | None = None
     min_app: str | None = None
     jobs: int = 2
@@ -381,6 +398,12 @@ def stage_preflight(ctx: Ctx) -> str:
                    "a GitHub workflow that runs GitHub's copy)",
                    f"git push {GH_REMOTE} HEAD:{GH_BRANCH} (after `build-apk.sh --play`, that pushes its app.json "
                    "commit), then rerun")
+    rc, said = ci_status(ctx.no_ci_check)
+    print("    " + said.replace("\n", "\n    "), flush=True)
+    if rc:
+        raise Stop("preflight", "CI is red on HEAD (or its newest finished run)" if rc == 1 else "could not read CI (gh)",
+                   "read the run named above and fix it (push the fix, let CI finish), then rerun; "
+                   "--no-ci-check REASON goes on and prints the reason")
     ctx.live = read_pointer("LATEST")
     if ctx.live is None:
         raise Stop("preflight", f"no {release_root() / 'LATEST'}: there is no live release to diff against",
@@ -393,6 +416,19 @@ def stage_preflight(ctx: Ctx) -> str:
     if bad:
         raise Stop("preflight", "; ".join(bad), "redeploy the staging site (the commands above), then rerun")
     return f"clean at {git_head()[:12]}; live release {ctx.live}; {said}; {preflight_fast_fail(ctx)}"
+
+
+def fast_fail_base(ctx: Ctx) -> str | None:
+    """(T533) the commit the live release (LATEST) was built from (ledger `commit`), so fast-fail's changed-file checks
+    cover everything since the last ship — with HEAD pushed, "not on origin" is nothing. None (said) when not recorded."""
+    base = ((ctx.led.get("releases") or {}).get(ctx.live or "") or {}).get("commit")
+    if base and git_has_commit(base):
+        print(f"    fast-fail base: {base[:12]}, the commit {ctx.live} was built from", flush=True)
+        return base
+    print(f"    fast-fail base: no commit recorded for {ctx.live} in {rel(LEDGER)}"
+          + (f" ({base[:12]} is not in this clone)" if base else "") + ": its default (unpushed commits) — NOT since "
+          "the last ship", flush=True)
+    return None
 
 
 def preflight_fast_fail(ctx: Ctx) -> str:
@@ -408,7 +444,7 @@ def preflight_fast_fail(ctx: Ctx) -> str:
         msg = f"fast-fail passed for {head[:12]} at {done.get('at')}: not rerun"
         print(f"    {msg}", flush=True)
     else:
-        rc = run_fast_fail()
+        rc = run_fast_fail(fast_fail_base(ctx))
         if rc:
             raise Stop("preflight", f"scripts/fast-fail.sh failed (rc={rc})",
                        "read its output above (the last check printed is the one that failed), fix it, rerun; "
@@ -560,7 +596,8 @@ def stage_staging(ctx: Ctx) -> str:
     if r.get("fingerprint") != fingerprint(rid):
         raise Stop("staging", f"{rid} changed on disk after its checks (the fingerprint moved)",
                    "do not ship it: rebuild (`python -m pipeline build --force deliver --hold-latest`) and rerun")
-    env = {**ctx.heavy_env, **({"MIN_APP_VERSION": ctx.min_app} if ctx.min_app else {})}
+    env = {**ctx.heavy_env, **({"MIN_APP_VERSION": ctx.min_app} if ctx.min_app else {}),
+           **({"CI_CHECK_SKIP": f"release --no-ci-check: {ctx.no_ci_check}"} if ctx.no_ci_check is not None else {})}
     rc = run_cmd(upload_cmd(rid), env=env)
     if rc:
         raise Stop("staging", f"deploy/staging/upload.sh {rid} failed (rc={rc})",
@@ -647,6 +684,10 @@ def dry_run(ctx: Ctx) -> int:
     except (subprocess.CalledProcessError, RuntimeError) as e:
         pushed = f"WOULD STOP ({e}): cannot tell whether HEAD is on"
     print(f"             {pushed} {GH_REMOTE}/{GH_BRANCH}")
+    rc, said = ci_status(ctx.no_ci_check)
+    print("             " + ("" if rc == 0 else "WOULD STOP: ") + said.replace("\n", "\n             "))
+    base = ((led.get("releases") or {}).get(live or "") or {}).get("commit")
+    print(f"             fast-fail base: {base[:12] + ', the commit ' + str(live) + ' was built from' if base else 'none recorded for ' + str(live) + ' (its default)'}")
     # (T535) the gates the real preflight and checks stop on: the staging site and the app version
     target = cand or live
     min_app = ctx.min_app or resume_min_app(led, target, live)
@@ -765,6 +806,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="the oldest app allowed to apply the release (default: the live release's stamp)")
     ap.add_argument("--no-fast-fail", default=None, metavar="REASON",
                     help="skip scripts/fast-fail.sh (T483); the reason is required and printed")
+    ap.add_argument("--no-ci-check", default=None, metavar="REASON",
+                    help="(T533) do not ask GitHub whether CI is green on HEAD; the reason is required and printed")
     ap.add_argument("--ship-stale-atlas", default=None, metavar="REASON",
                     help="(T547) go on with an atlas behind its curated inputs; the reason is required and printed")
     ap.add_argument("--jobs", type=int, default=2, help="the build's --jobs (default 2, at most 4)")
@@ -778,10 +821,13 @@ def main(argv: list[str] | None = None) -> int:
         return prod(a.prod)
     if a.no_fast_fail is not None and not a.no_fast_fail.strip():
         ap.error('--no-fast-fail needs a reason, which is printed: --no-fast-fail "<why the cheap checks are skipped>"')
+    if a.no_ci_check is not None and not a.no_ci_check.strip():
+        ap.error('--no-ci-check needs a reason, which is printed: --no-ci-check "<why CI is not asked>"')
     if a.ship_stale_atlas is not None and not a.ship_stale_atlas.strip():
         ap.error('--ship-stale-atlas needs a reason, which is printed: --ship-stale-atlas "<why the old atlas ships>"')
     ctx = Ctx(accept_diff=a.accept_diff, baseline=a.baseline, min_app=a.min_app_version, jobs=a.jobs,
-              reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas)
+              reupload=a.reupload, no_fast_fail=a.no_fast_fail, stale_atlas=a.ship_stale_atlas,
+              no_ci_check=a.no_ci_check)
     return dry_run(ctx) if a.dry_run else staging(ctx)
 
 

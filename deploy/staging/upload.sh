@@ -20,6 +20,9 @@ MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release
 # 0.6.9, so the smoke test failed only AFTER the upload) the live site must be at least the oldest app this release lets
 # apply it — checked before anything is sent; it names the site redeploy. SITE_CHECK_SKIP=<reason> skips it (printed).
 MIN_APP_VERSION=${MIN_APP_VERSION-} .venv/bin/python -m pipeline.deliver.release.site_gate "$M"
+# (T533) CI on HEAD (app-ci, pipeline-ci) is not red, nor its newest finished run when HEAD has none: before anything is
+# sent. CI_CHECK_SKIP=<reason> skips it (printed; `pipeline release --no-ci-check` passes its reason).
+.venv/bin/python scripts/ci_status.py
 IMM="Cache-Control: public, max-age=31536000, immutable"
 cp_() { rclone copyto "$1" "$D/$2" --s3-no-check-bucket "${@:3}"; }
 TILES=$(q "m['tiles']['current']['id']")

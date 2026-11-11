@@ -51,6 +51,8 @@ fi
 # changed / added paths since BASE (working tree included), plus untracked files; deleted paths are left out
 CHANGED=$( { git diff --name-only --diff-filter=ACMR "$BASE"; git ls-files --others --exclude-standard; } | sort -u)
 echo "fast-fail: base $(git rev-parse --short "$BASE"), $(grep -c . <<<"$CHANGED" || true) changed path(s)"
+# (T533) say what "changed" is, so a run against a release / APK base shows what it checks
+if [[ -n $CHANGED ]]; then head -12 <<<"$CHANGED" | sed 's/^/   changed: /'; (( $(grep -c . <<<"$CHANGED") > 12 )) && echo "   changed: …"; fi
 
 # caught: merge/cherry-pick resolvers leaving conflict markers in files that then built (memory merge-resolver-markers)
 conflict_markers() {
@@ -111,6 +113,7 @@ py_compiles() {
   local files=() f
   while IFS= read -r f; do [[ $f == *.py && -f $f ]] && files+=("$f"); done <<<"$CHANGED"
   (( ${#files[@]} )) || { echo "   (no Python changed)"; return 0; }
+  echo "   compiling ${#files[@]} changed Python file(s)"
   "$PY" - "${files[@]}" <<'EOF'
 import sys
 bad = 0
@@ -162,11 +165,22 @@ assert len(s) == 1, "Tests step not found"
 m = re.search(r"-m \"([^\"]+)\"", s[0]["run"])
 assert m, "no -m in the Tests step"
 print(m.group(1))') || { echo "fast-fail: cannot read the marker expression from pipeline-ci.yml's Tests step" >&2; exit 1; }
+# (T533) a changed pipeline SOURCE file (not a test) can break any test. With FAST_FAIL_BASE (release preflight and
+# build-apk.sh pass the commit the last shipped thing was built from) the whole no-data tier then runs, as CI's "Tests"
+# step does, in chunks (scripts/pytest-chunked.sh: one process for the suite grows to ~111 GB) — minutes, once per ship.
+# On the default base (the unpushed commits, every lane's everyday run) only the changed test files run, and it says so.
 as_ci() {
-  local tests
+  local tests src
+  src=$(grep -E '^pipeline/.*\.py$' <<<"$CHANGED" | grep -vE '(^|/)(test_[^/]*|conftest)\.py$' | grep -vE '^pipeline/tests/' || true)
+  if [[ -n $src && -n ${FAST_FAIL_BASE:-} ]]; then
+    echo "   $(grep -c . <<<"$src") pipeline source file(s) changed ($(head -3 <<<"$src" | paste -sd' ' -)…): the whole no-data tier, as CI"
+    bash scripts/pytest-chunked.sh -- -p pipeline.tests.ci_no_build -m "$CI_MARKERS"
+    return
+  fi
+  [[ -n $src ]] && echo "   $(grep -c . <<<"$src") pipeline source file(s) changed: the whole no-data tier runs only with a ship base (FAST_FAIL_BASE); here the changed tests"
   tests=$(grep -E '^pipeline/tests/(.*/)?test_[^/]*\.py$' <<<"$CHANGED" | while IFS= read -r f; do [[ -f $f ]] && echo "$f"; done || true)
   [[ -n $tests ]] || { echo "   (no pipeline test file changed)"; return 0; }
-  echo "   as CI: $(grep -c . <<<"$tests") test file(s)"
+  echo "   as CI: $(grep -c . <<<"$tests") test file(s): $(paste -sd' ' - <<<"$tests" | cut -c1-300)"
   # exit 5 = every test in them deselected (all data-tier): nothing CI runs, nothing to fail
   "$PY" -m pytest -q -p no:cacheprovider -p pipeline.tests.ci_no_build -m "$CI_MARKERS" $tests || [[ $? == 5 ]]
 }

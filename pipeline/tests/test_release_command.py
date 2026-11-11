@@ -64,11 +64,20 @@ def world(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(R, "git_head", lambda: "abc123")
     monkeypatch.setattr(R, "run_cmd", run_cmd)
 
-    def fast_fail():
+    def fast_fail(base=None):
         w["fast_fails"] += 1
+        w["fast_fail_base"] = base
         return w["fast_fail_rc"]
 
     monkeypatch.setattr(R, "run_fast_fail", fast_fail)
+    w["ci"] = (0, "ci-status: ok    app-ci.yml: green on abc123")
+    w["ci_skips"] = []
+
+    def ci(skip=None):
+        w["ci_skips"].append(skip)
+        return w["ci"]
+    monkeypatch.setattr(R, "ci_status", ci)
+    monkeypatch.setattr(R, "git_has_commit", lambda rev: rev in w.get("commits", ()))
     monkeypatch.setattr(R, "git_pushed", lambda: w["pushed"])
     w["landed"] = (True, "review marks: every mark in force has landed")
     monkeypatch.setattr(R, "marks_landed", lambda: w["landed"])
@@ -253,6 +262,37 @@ def test_a_rerun_skips_fast_fail_passed_for_this_head_and_tells_heavy(world, cap
         assert _staging() == 0 and world["fast_fails"] == 2
     finally:
         R.git_head = lambda: "abc123"
+
+
+def test_red_ci_stops_at_preflight_and_the_escape_prints_its_reason(world, capsys):
+    """T533: CI was red from 10-29 to 11-09 and no release asked GitHub."""
+    world["ci"] = (1, "ci-status: STOP  pipeline-ci.yml: RED on abc123 (failure): https://github.com/x/runs/7")
+    assert _staging() == 1
+    io = capsys.readouterr()
+    assert "STOPPED at preflight" in io.err and "CI is red" in io.err and "runs/7" in io.out
+    assert world["calls"] == [] and world["fast_fails"] == 0
+    world["ci"] = (2, "ci-status: STOP  app-ci.yml: CANNOT TELL — gh: not logged in")
+    assert _staging() == 1 and "could not read CI" in capsys.readouterr().err
+    world["ci"] = (0, "ci-status: SKIPPED (not asked): CI down for T999")
+    with pytest.raises(SystemExit):
+        _staging(no_ci_check=" ")
+    assert _staging(no_ci_check="CI down for T999") == 0
+    assert world["ci_skips"][-1] == "CI down for T999"
+    assert [env for c, env in world["calls"] if c == "upload"][0]["CI_CHECK_SKIP"] == "release --no-ci-check: CI down for T999"
+
+
+def test_fast_fail_checks_everything_since_the_commit_latest_was_built_from(world, capsys):
+    """T533: with HEAD pushed, fast-fail's "changed" (not on origin) was nothing; the base is now LATEST's commit."""
+    R.save_ledger({"releases": {LIVE: {"commit": "c0ffee"}}})
+    world["commits"] = {"c0ffee"}
+    assert _staging() == 0 and world["fast_fail_base"] == "c0ffee"
+    assert "fast-fail base: c0ffee, the commit r-live00000000 was built from" in capsys.readouterr().out
+
+
+def test_no_recorded_base_is_said_not_hidden(world, capsys):
+    R.save_ledger({"releases": {LIVE: {"commit": "gone99"}}})          # recorded, but not in this clone
+    assert _staging() == 0 and world["fast_fail_base"] is None
+    assert "fast-fail base: no commit recorded for r-live00000000" in capsys.readouterr().out
 
 
 def test_no_fast_fail_reaches_heavy_with_its_reason(world):
