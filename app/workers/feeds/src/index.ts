@@ -30,6 +30,7 @@ import { crashEvents, handleCrash, listCrashesCounted, parseClasses, purgeCrashe
 import { cardEvents, runCards, type CardBucket, type CardRun } from "./gauges/card/card";
 import { runSkill, skillText, type SkillReport } from "./gauges/score";
 import { FLOOD_WEIGHTS } from "./gauges/change";
+import { READING_MAX_AGE_HOURS } from "../../../packages/core/src/gauge-policy.generated";
 import { checkToken, dispatchOnce, type DispatchEnv } from "./dispatch";
 import { checkRunTiming } from "./runtiming";
 import { capEvents, CORS as REPORT_CORS, handleReport, listReportsCounted, purgeLimits, purgeReports, purgeTestReports, reportEvents, RETENTION_DAYS, RETENTION_STATUS_KEY, type ReportEnv } from "./reports";
@@ -254,7 +255,7 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
         log,
       });
       summary = { asked: s.asked, answered: s.answered, withPercentile: s.withPercentile, maintenance: s.maintenance, runArchive: s.runArchive, forecastReused: s.forecastReused };
-      counts = { stations: s.answered, asked: s.asked, withPercentile: s.withPercentile, forecastRuns: s.forecastRuns, unchanged: m.sourcesUnchanged, forecastReused: s.forecastReused ? 1 : 0 };
+      counts = { stations: s.answered, asked: s.asked, withPercentile: s.withPercentile, oldReadings: s.oldReadings, forecastRuns: s.forecastRuns, unchanged: m.sourcesUnchanged, forecastReused: s.forecastReused ? 1 : 0 };
       const gev = gaugeEvents(s.maintenance as any[], at);
       // (T413) a new HYDAT starts the HYDAT workflow itself when the owner's token is set; the email says what happened
       for (const e of gev) {
@@ -308,6 +309,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
       }
       if (failed.length > GAUGE_DEGRADED_SHARE * s.asked)
         held.push({ where: "stations", why: `${failed.length} of ${s.asked} failed this run; ${s.carried ?? 0} kept their last good entry (stale)` });
+      // (T550) THE READING-AGE WATCHDOG: entries whose last reading is past READING_MAX_AGE_MS are written unranked; past a
+      // share of the asked stations the feed is degraded (T513: 162 frozen CSVs counted as successes and nothing said so)
+      if (s.oldReadings > GAUGE_DEGRADED_SHARE * s.asked)
+        held.push({ where: "readings", why: `${s.oldReadings} of ${s.asked} stations' last reading is older than ${READING_MAX_AGE_HOURS} h: not ranked` });
       if (s.forecastFailed?.length) held.push({ where: "forecast", why: `${s.forecastFailed.join(", ")} summary unavailable; last good runs carried` });
       if (s.answered === 0) throw new Error(`no station answered (asked ${s.asked}); index.json ${s.indexKept ? "kept (last good)" : "rewritten"}`);
     } else if (job === "dfo") {

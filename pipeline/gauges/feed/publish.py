@@ -298,6 +298,41 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
 # EVERY DAY (owner 2026-11-03, T375): the map's day chips name each day, so each is ranked — +2, +4 and +6 to +9 too.
 HORIZONS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 
+# (T550) A READING OLDER THAN THIS, when the feed is written, IS NOT TODAY'S and is never ranked: its `percentile` is null
+# and its per-quantity ranks are dropped, so no reader counts, weighs or colours it (`age_gate`). Its `observedAt` stays,
+# so the app says when the gauge last reported. ECCC publishes hourly, about an hour behind; the worker carries a station
+# that stopped answering for days (`stale`), and a CSV that stops moving answers 304 with its last row for days (08HB022,
+# 37 h old on 2026-11-10, ranked as today's). The gauge alerts' gate is the same line. Emitted to the app as
+# `READING_MAX_AGE_HOURS` (`pipeline.tools.emit.gauge_policy`); the worker reads core's copy.
+READING_MAX_AGE_HOURS = 6
+
+
+def reading_current(observed_at: object, now: datetime) -> bool:
+    """Is a reading stamped `observed_at` still today's at `now` (`READING_MAX_AGE_HOURS`)? THE ONE AGE RULE.
+
+    Only a zoned stamp is judged (ECCC writes every one with its offset); a naive or unreadable one is not refused here,
+    exactly as core `readingCurrent` does, so the two publishers and the app cannot judge one stamp two ways.
+    """
+    if not isinstance(observed_at, str) or not observed_at:
+        return True
+    try:
+        t = datetime.fromisoformat(observed_at.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    if t.tzinfo is None:
+        return True
+    return (now - t).total_seconds() <= READING_MAX_AGE_HOURS * 3600
+
+
+def age_gate(entry: dict, now: datetime) -> dict:
+    """An index entry whose reading is past `READING_MAX_AGE_HOURS`: no rank (`percentile` null, no `discharge`/`level`)."""
+    if reading_current(entry.get("observedAt"), now):
+        return entry
+    out = {**entry, "percentile": None}
+    out.pop("discharge", None)
+    out.pop("level", None)
+    return out
+
 # How far from the requested instant a model step may sit and still answer for it. CLEVER
 # steps hourly and ELF daily, so a day-grained model needs most of a day of slack; more than
 # this and the value is about a different day.
@@ -881,6 +916,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # T144: the models behind it are `change.change_source`'s (CLEVER + COFFEE, else ELF marked low-water).
             **({"change": changed[2]} if changed[2] else {}),
         }
+        index[r["station"]] = age_gate(index[r["station"]], now)
         # This year's daily record: whatever the file already held, plus every day the
         # 2-hour window can see, plus the archive where the record had a hole. The archive
         # wins inside its window: its day is the mean of every reading, while a day cut off

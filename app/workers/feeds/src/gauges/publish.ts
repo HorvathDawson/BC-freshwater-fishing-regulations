@@ -12,6 +12,7 @@ import { listedStations, rosterDrift, STATION_LIST, stationsToAsk, type RosterRo
 import { dictRows, pool, pyFloat, pyRound, pyRoundInt, pySum, csvRows, truthy, urlencode } from "./py";
 import { appendRuns, type DeletableStore } from "./skill";
 import { addDays, centreWall, DAY_MS, dayMs, dayOf, HOUR, hours, instant, wallIso, yday } from "./time";
+import { readingCurrent } from "../../../../packages/core/src/freshness";
 
 const BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC";
 const UA = "BC-FishRegs-Hydro/1.0";
@@ -49,6 +50,18 @@ interface Reading {
   level: Num;
   discharge: Num;
   recent: Row[];
+}
+
+/**
+ * publish.age_gate (T550): an entry whose reading is older than core's `READING_MAX_AGE_MS` when the feed is written is
+ * not today's — no rank (`percentile` null, no per-quantity `discharge`/`level`), so no reader counts, weighs or colours
+ * it; its `observedAt` stays for the "last reported" line. Every entry the index writes passes here: fresh, unchanged
+ * (a CSV that answers 304 keeps its last row for days) and carried (`stale`).
+ */
+export function ageGate<T extends Record<string, any>>(entry: T, now: number): T {
+  if (readingCurrent(entry.observedAt, now)) return entry;
+  const { discharge: _d, level: _l, ...rest } = entry;
+  return { ...rest, percentile: null } as unknown as T;
 }
 
 const num = (v: string | null | undefined): Num => (v === null || v === undefined || v === "" ? null : pyFloat(v));
@@ -424,6 +437,8 @@ export interface GaugeSummary {
   latest: string | null;
   maintenance: Notice[];
   withPercentile: number;
+  /** (T550) index entries whose reading is older than `READING_MAX_AGE_MS`: written unranked (`ageGate`) */
+  oldReadings: number;
   archive: { asked: number; filled: number };
   runArchive: Record<string, any>;
   gapsBeyondWindow: Record<string, string[][]>;
@@ -905,7 +920,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       tC0 === null ? [null, null, null, null] : [tC0, t0![0], temperatureBand(tC0), percentileOf(tC0, (tEnv[st] || {})[String(pent)])];
     if (unchanged.has(st)) {
       const c = cache!.st[st]!;
-      index[st] = composeEntry(c.base, ...tempParts());
+      index[st] = ageGate(composeEntry(c.base, ...tempParts()), now);
       nextCache.st[st] = c;
       if (c.beyond) beyondWindow[st] = c.beyond;
       if (c.newest && (!newest || c.newest > newest)) newest = c.newest;
@@ -961,6 +976,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       ...(days ? { aheadDays: days } : {}),
       ...(idxChange ? { change: idxChange } : {}),
     };
+    index[st] = ageGate(index[st], now);
     const seen: Means = new Map(seenBy.get(st)!);
     for (const [k, v] of backfill.get(st) || []) seen.set(k, v);
     const day = todayOf.get(st)!;
@@ -1022,7 +1038,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
       const p = prevStations[st];
       const obs = p && typeof p.observedAt === "string" ? Date.parse(/(Z|[+-]\d\d:?\d\d)$/i.test(p.observedAt) ? p.observedAt : p.observedAt + "Z") : NaN;
       if (!p || !(now - obs < CARRY_MAX_MS)) continue;
-      index[st] = { ...p, stale: true, staleSince: p.staleSince ?? fetchedAt };
+      index[st] = ageGate({ ...p, stale: true, staleSince: p.staleSince ?? fetchedAt }, now);
       if (cache?.st[st]) nextCache.st[st] = cache.st[st]!;
       carried++;
     }
@@ -1058,6 +1074,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
   return {
     asked: a.ids.length, answered: got.length, release, stale: staleRelease, latest: a.latest, maintenance,
     withPercentile: Object.values(index).filter((v) => v.percentile !== null).length,
+    oldReadings: Object.values(index).filter((v) => !readingCurrent(v.observedAt, now)).length,
     archive: { asked: gappy.length, filled },
     runArchive: archived,
     gapsBeyondWindow: beyondWindow,

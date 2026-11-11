@@ -17,6 +17,7 @@ import { isIsoDay, localStamp, shortDay, shortStamp } from "./day";
 import { monthAbbr, weekdayAbbr } from "./flow";
 import { FORECAST_DAYS } from "./gauge-policy.generated";
 import { byWeekdays } from "./staleness";
+import { READING_MAX_AGE_MS } from "./freshness";
 import { CHANGE_EXPLAINER, CHANGE_MARK, CHANGE_POLICY, changeHeadline, changeRange, changeRatio, changeReads,
          changeSentence } from "./change";
 import { now as clockNow } from "./clock";
@@ -402,8 +403,8 @@ export interface DonorAsk { ref?: number; horizon?: Horizon }
  *   no-forecast   a day ahead (or Change) and no forecast run reaches it — a missing FORECAST, not a quiet gauge.
  *   other-quantity  today, a reading of the OTHER quantity only (`has`; T567: a level gauge asked for flow): it
  *                 speaks, and its words say which quantity to show.
- *   unranked      today, a report within a day of `ref` that cannot be ranked against its record: it speaks.
- *   quiet         today, and nothing within a day: not reporting.
+ *   unranked      today, a report within `READING_MAX_AGE_MS` of `ref` that cannot be ranked against its record.
+ *   quiet         today, and nothing that recent: not reporting (T550: an older reading is never ranked — data `reading`).
  *
  * The order is the ruling: a reading wins; "not real-time" is true at every horizon; a horizon's missing forecast
  * comes before anything about today's reports.
@@ -418,16 +419,16 @@ export type DonorState =
   | { kind: "unranked" }
   | { kind: "quiet" };
 
-const DAY = 86_400_000;
-
 export function donorState(r: DonorReading, o: DonorAsk = {}): DonorState {
   if (r.percentile !== null) return { kind: "reads", percentile: r.percentile };
   if (r.realtime === false) return { kind: "not-realtime" };
   if (o.horizon) return r.aheadWhy === "flow-only" ? { kind: "flow-only" }
     : r.aheadWhy === "no-record" ? { kind: "forecast-unranked" } : { kind: "no-forecast" };
   if (r.otherOnly) return { kind: "other-quantity", has: r.otherOnly };
+  // (T550) "a report that cannot be ranked" only while it is still today's reading (`READING_MAX_AGE_MS`, the one age
+  // rule); older, the gauge is quiet and says when it last reported — the same line that keeps an old reading unranked
   const t = r.observedAt ? Date.parse(r.observedAt) : NaN;
-  if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) < DAY) return { kind: "unranked" };
+  if (o.ref !== undefined && Number.isFinite(t) && Math.abs(o.ref - t) <= READING_MAX_AGE_MS) return { kind: "unranked" };
   return { kind: "quiet" };
 }
 

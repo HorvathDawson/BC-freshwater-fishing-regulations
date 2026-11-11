@@ -58,7 +58,7 @@ from pipeline.gauges.consume.panel import MIN_TOTAL_WEIGHT, THROUGH_LAKE_FACTOR
 from pipeline.gauges.consume.shed import DIST_STEP, GAUGE_RELS, TRUST_BANDS
 from pipeline.gauges.feed import change as _change
 from pipeline.gauges.feed.climatology import PCTILES
-from pipeline.gauges.feed.publish import HORIZONS, _TEMP_BANDS
+from pipeline.gauges.feed.publish import HORIZONS, READING_MAX_AGE_HOURS, _TEMP_BANDS
 from pipeline.gauges.feed.record import MIN_RECORD_YEARS, QUANTITIES
 from pipeline.common.curated import REPO_ROOT
 
@@ -189,6 +189,10 @@ export const MIN_TOTAL_WEIGHT = {_num(MIN_TOTAL_WEIGHT)};
 
 /** The days ahead the publisher ranks a forecast for (now, 0, is the app's own). */
 export const FORECAST_DAYS = [{days}] as const;
+
+/** (T550) A gauge reading older than this many hours when its feed is written is not today's and is never ranked
+ *  (READING_MAX_AGE_HOURS in pipeline/gauges/feed/publish.py; core `readingCurrent`, the worker's `ageGate`). */
+export const READING_MAX_AGE_HOURS = {_num(READING_MAX_AGE_HOURS)};
 
 // (T347) The Forecast Centre issues on working days only. `bc_holidays` in pipeline/gauges/feed/change.py, for
 // HOLIDAY_YEARS: a run is current until the next working day's issue plus `CHANGE_POLICY.staleGraceHours`.

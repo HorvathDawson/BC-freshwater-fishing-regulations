@@ -87,6 +87,10 @@ export const MIN_TOTAL_WEIGHT = 0.05;
 /** The days ahead the publisher ranks a forecast for (now, 0, is the app's own). */
 export const FORECAST_DAYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
+/** (T550) A gauge reading older than this many hours when its feed is written is not today's and is never ranked
+ *  (READING_MAX_AGE_HOURS in pipeline/gauges/feed/publish.py; core `readingCurrent`, the worker's `ageGate`). */
+export const READING_MAX_AGE_HOURS = 6;
+
 // (T347) The Forecast Centre issues on working days only. `bc_holidays` in pipeline/gauges/feed/change.py, for
 // HOLIDAY_YEARS: a run is current until the next working day's issue plus `CHANGE_POLICY.staleGraceHours`.
 

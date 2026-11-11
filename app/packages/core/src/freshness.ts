@@ -18,6 +18,26 @@ export type Freshness =
  *  the publisher writes every 30 minutes, so two hours is four missed runs. */
 export const STALE_AFTER_MS = STALE_AFTER.feed.ms;
 
+/** (T550) A gauge reading older than this, at the time its feed was written, is not today's reading (`STALE_AFTER.reading`). */
+export const READING_MAX_AGE_MS = STALE_AFTER.reading.ms;
+
+/**
+ * (T550) IS THIS GAUGE READING TODAY'S — THE ONE AGE RULE for a station's own reading: its `observedAt` no older than
+ * `READING_MAX_AGE_MS` before `ref`, the instant its feed was written (the index's `fetchedAt`, epoch ms). Every rank,
+ * count, weight and map colour of today asks this (@app/data `reading`, `donorState`; the worker's share card).
+ * A reading the rule cannot judge — no stamp, a naive stamp, one that is not a time, or no feed time — is NOT refused: the
+ * worker writes both on every entry, and the app's index reader refuses an index without `fetchedAt` (T557 format check).
+ */
+export function readingCurrent(observedAt: string | null | undefined, ref: number | null | undefined): boolean {
+  if (!observedAt || ref === null || ref === undefined || !Number.isFinite(ref)) return true;
+  // only a ZONED stamp is judged (ECCC writes every one with its offset): a naive one would be read on the device's
+  // clock here and the Centre's in Python — the publisher's `reading_current` leaves it unjudged too
+  if (!/(Z|[+-]\d\d:?\d\d)$/i.test(observedAt.trim())) return true;
+  const t = Date.parse(observedAt);
+  if (!Number.isFinite(t)) return true;
+  return ref - t <= READING_MAX_AGE_MS;
+}
+
 /** Classify a cached value's age. `unknown` is NOT the same as "nothing to report". */
 export function freshness(
   fetchedAt: number | null,

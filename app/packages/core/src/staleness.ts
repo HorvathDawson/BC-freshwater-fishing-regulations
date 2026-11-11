@@ -18,7 +18,7 @@
  *                 (`forecastDueBy`), so Friday's run holds the weekend and a holiday Monday
  *   by "live"     fetched on demand: it has no age to hold
  */
-import { CHANGE_POLICY, FORECAST_HOLIDAYS } from "./gauge-policy.generated";
+import { CHANGE_POLICY, FORECAST_HOLIDAYS, READING_MAX_AGE_HOURS } from "./gauge-policy.generated";
 
 export type StaleRule =
   | { readonly by: "age"; readonly ms: number }
@@ -37,6 +37,14 @@ export const STALE_AFTER = {
    * hourly real-time CSVs: 2 h is four missed runs (two missed ECCC hours). Also a reading's own line (P02).
    */
   feed: { by: "age", ms: 2 * HOUR },
+  /**
+   * (T550) ONE GAUGE'S OWN READING, by its `observedAt` against the time the feed was written (the index's `fetchedAt`).
+   * ECCC publishes hourly, about an hour behind; a station that stops answering is carried by the worker for days
+   * (`stale`). Older than this, the reading is not today's: it is not ranked, counted, coloured or drawn as a standing
+   * (`readingCurrent`, freshness.ts) — the gauge says when it last reported instead. The gauge alerts' gate is the same
+   * line (`ALERT_STALE_MS`, pinned equal in freshness.test.ts). The hours are the publisher's (`READING_MAX_AGE_HOURS`).
+   */
+  reading: { by: "age", ms: READING_MAX_AGE_HOURS * HOUR },
   /**
    * THIS DEVICE's last reach of the gauge feed — the sync dot. The publisher's own 30-minute tick: older than one tick,
    * a tap can fetch something newer. (Open, the app re-checks every 5 minutes, so this is reached in the background or
