@@ -480,6 +480,15 @@ def main() -> int:
         if verdict == "STALE":
             stale.append(art)
 
+    # (T550 item 6) the gauge match's trust words are a closed set (read_match raises on another) and its stored status
+    # should agree with them; a disagreement is reported (read_match goes by trust), and the next promote writes it right
+    from pipeline.gauges.matches import read_match, trust_disagreements
+    read_match(_C.gauges.matches)
+    off = trust_disagreements(_C.gauges.matches)
+    if off:
+        print(f"  note  gauge match: {len(off)} row(s) store a status their trust contradicts ({', '.join(off[:5])}"
+              f"{' …' if len(off) > 5 else ''}); read by trust, rewritten agreeing by the next promote")
+
     if stale:
         print("\nRegenerate, review the diff, and commit:")
         for art in stale:

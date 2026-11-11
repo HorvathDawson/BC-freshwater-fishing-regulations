@@ -121,6 +121,21 @@ def write_match(matches: list[StationMatch], path: Path) -> Path:
     return path
 
 
+#: (T550 item 6) every `trust` word a promoted row may carry, and the status it reads as. Closed: anything else raises.
+TRUST_STATUS: dict[str, str] = {"auto": "matched", "reviewed": "matched", "bound": "matched",
+                                "wrong": "unresolved", "none": "no_match", "candidate": "unresolved"}
+
+
+def trust_disagreements(path: Path | None = None) -> list[str]:
+    """(T550 item 6) Stations whose stored `status` disagrees with their `trust` (the reader goes by `trust`; any other
+    reader keying on `status` would place a gauge a person marked wrong). `promote` writes them agreeing."""
+    path = path or MATCH_FILE
+    blob = json.loads(path.read_text(encoding="utf-8")).get("stations", [])
+    rows = list(blob.values()) if isinstance(blob, dict) else blob
+    return sorted(str(r.get("station")) for r in rows
+                  if r.get("trust") in TRUST_STATUS and "status" in r and r["status"] != TRUST_STATUS[r["trust"]])
+
+
 def read_match(path: Path | None = None) -> list[StationMatch]:
     """The frozen match. A missing file is an ERROR (P2, no missing-file fallbacks): read as empty,
     it built a bundle with no gauge tables that looked healthy.
@@ -156,11 +171,14 @@ def read_match(path: Path | None = None) -> list[StationMatch]:
                 extra += v[1:]
         r["also"] = tuple(r.get("also") or ()) + tuple(extra)
         # A promoted row records a decision as `trust`; the reader keeps the status
-        # vocabulary the rest of the pipeline speaks.
+        # vocabulary the rest of the pipeline speaks. (T550 item 6) A CLOSED vocabulary: a hand edit's typo or a new
+        # word ("rejected", "Wrong") used to read as "matched" and place the station.
         trust = r.get("trust")
         if trust:
-            r["status"] = {"wrong": "unresolved", "none": "no_match",
-                           "candidate": "unresolved"}.get(trust, "matched")
+            if trust not in TRUST_STATUS:
+                raise ValueError(f"{path}: station {r.get('station')!r} has trust {trust!r}, not one of "
+                                 f"{sorted(TRUST_STATUS)} — fix the row (a trust word places or refuses a gauge)")
+            r["status"] = TRUST_STATUS[trust]
         out.append(StationMatch(**{k: v for k, v in r.items() if k in known}))
     return out
 

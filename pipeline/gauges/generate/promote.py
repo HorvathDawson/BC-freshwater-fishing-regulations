@@ -57,6 +57,7 @@ from pathlib import Path
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.gauges import review as _review
 from pipeline.gauges.liveness import speaks_now
+from pipeline.gauges.matches import TRUST_STATUS
 from pipeline.gauges.generate.match import (
     AREA_TOLERANCE_DECADES, KM2_PER_MAGNITUDE, _contains_word, waterbody_name,
 )
@@ -140,18 +141,19 @@ def build(matches, stations, types, mags, rev=None) -> tuple[list[dict], list[di
                **({"matched_name": m.matched_name} if m.matched_name else {}),
                "evidence": ev}
         if d is not None and d.verdict in ("bound", "bind"):
-            row |= {"trust": "bound", "wbk": list(d.wbk), "wsc": list(d.wsc), "note": d.note}
+            row |= {"trust": "bound", "status": TRUST_STATUS["bound"], "wbk": list(d.wbk), "wsc": list(d.wsc), "note": d.note}
         elif d is not None and d.verdict == "confirmed":
-            row |= {"trust": "reviewed", "note": d.note, "reviewed": d.reviewed}
+            row |= {"trust": "reviewed", "status": TRUST_STATUS["reviewed"], "note": d.note, "reviewed": d.reviewed}
         elif d is not None and d.verdict == "wrong":
-            row |= {"trust": "wrong", "wbk": [], "wsc": [], "note": d.note}
+            # (T550 item 6) the stored status agrees with the decision (`matches.TRUST_STATUS`)
+            row |= {"trust": "wrong", "status": TRUST_STATUS["wrong"], "wbk": [], "wsc": [], "note": d.note}
         elif d is not None and d.verdict == "none":
-            row |= {"trust": "none", "wbk": [], "wsc": [], "note": d.note}
+            row |= {"trust": "none", "status": TRUST_STATUS["none"], "wbk": [], "wsc": [], "note": d.note}
         elif m.status != "matched":
             candidates.append(row | {"trust": "candidate", "why": m.reason or m.status})
             continue
         elif promotable(ev):
-            row |= {"trust": "auto"}
+            row |= {"trust": "auto", "status": TRUST_STATUS["auto"]}
         else:
             why = [k for k in ("name_agrees", "area_agrees", "kind_agrees") if ev[k] is False]
             candidates.append(row | {"trust": "candidate", "why": ", ".join(why) or "unmatched"})
