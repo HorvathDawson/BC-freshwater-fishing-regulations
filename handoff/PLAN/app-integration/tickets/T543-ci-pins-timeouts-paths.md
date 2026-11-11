@@ -1,6 +1,6 @@
 # T543 — CI: pinned Python installs, timeouts, cancel superseded runs, path filters match what the jobs read
 
-Status: OPEN.
+Status: IN REVIEW (70d7f91f0). All four items done; proof: pipeline/tests/test_workflow_pins.py (YAML parse + invariants). Not proven: the workflows themselves (nothing pushed, so none has run; the "both green on one push" and the CI `pip freeze` acceptance wait for a push).
 
 Source: workflow review 2026-11-09 (verified against the workflows). Rank 11. No GitHub `schedule:` trigger was found
 (owner rule holds).
