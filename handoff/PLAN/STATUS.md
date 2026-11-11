@@ -8,6 +8,15 @@ Plain summary for the owner, updated as work lands. Newest at the top. Ticket nu
 
 ---
 
+## 2026-11-11 late night — "everything in the next build"; five lanes running (chat 11)
+
+- **Owner:** everything on the next-release list goes in build 27: Oxbows (T637), the audit fixes (T623), tidal streams at the boundary (T660), hardening (T533–T542, T600–T602, T638), store screenshots (T319, reopened). GPU colouring (T492) benched. Lake work (T634) is research for a later release; owner builds on the "Access Only" records now and owes the licence link. Owner runs `/code-review ultra` later with a free run.
+- **Running:** T637 Oxbows fix (default heavy lock: atlas rebuild, reach run, binding diff, two proposal maps); scripts hardening (T536, T638 items 2–3, T535, T533, T537, T538); T623 audit fixes (code + tests now; changes to atlas-recorded curated files wait as patches in `T623-pending/`); T660 measure + rule (patches in `T660-pending/` if files collide).
+- **Done since last entry:** T634 passes 2–3 (b8e65f2f0, a1d7da363); T534, T542 (IN PROGRESS: one emulator run each), T539 (PARTIAL: 62 older rows on a shrink-only list); changelog wording check fixed (dc4e3e932). The ledger guard now needs an IN REVIEW / PARTIAL status to name its step.
+- **After T637 lands, in order:** apply pending T623/T660 patches → one reach run + binding diff → staging release + site → store screenshots to the owner → build 27 (patched MapLibre) to Play internal, with the T534/T542 emulator runs → owner phone check. Then T600–T602 and T540.
+- **Open question to the owner:** T639 (review `build()` rebuilds a withdrawn cut) is in chat 10's `pipeline/regs/review/`: may chat 11 make that one fix, or does chat 10?
+- **Next free ticket: T661.**
+
 ## 2026-11-11 night — owner answered the batch; Oxbows fix and chart PDFs running (chat 11)
 
 - **Unplaced pieces:** the owner accepted all 5 as left out (Noons, Seymour, three Skeena side channels); rows moved to `accepted` (646924e28).
