@@ -386,13 +386,13 @@ def test_a_seeded_ledger_lets_a_repass_replace_an_unedited_entry_and_keeps_an_ed
 def test_a_batch_row_with_no_response_and_a_twice_answered_index_are_named():
     """T553 item 2. A row the model never returned was no candidate, so no FAIL line and exit 0; two rows with one
     index silently kept the later. `coverage` names both; `run` prints them as FAIL and exits 1."""
-    from pipeline.regs.parsing.ingest_catalogue import coverage
+    from pipeline.regs.parsing.ingest_catalogue import response_coverage
     batch = {"#0": {"entry_id": "a"}, "a": {"entry_id": "a"}, "#1": {"entry_id": "b"}, "b": {"entry_id": "b"},
              "#2": {"entry_id": "c"}, "c": {"entry_id": "c"}}
-    missing, dupes = coverage(batch, [{"_batch_index": 0}, {"_batch_index": 2}, {"_batch_index": 2}])
+    missing, dupes = response_coverage(batch, [{"_batch_index": 0}, {"_batch_index": 2}, {"_batch_index": 2}])
     assert missing == ["#1 b"]
     assert dupes == ["#2 c"]
-    assert coverage(batch, [{"_batch_index": i} for i in range(3)]) == ([], [])
+    assert response_coverage(batch, [{"_batch_index": i} for i in range(3)]) == ([], [])
 
 
 def test_rows_digest_is_read_and_drift_refuses_the_ingest(tmp_path):

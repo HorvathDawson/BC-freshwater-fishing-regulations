@@ -93,7 +93,7 @@ def check_rows_digest(batch_paths: list[str], rows_path: Path | None = None) -> 
     return None
 
 
-def coverage(batch: dict[str, dict], candidates: list[dict]) -> tuple[list[str], list[str]]:
+def response_coverage(batch: dict[str, dict], candidates: list[dict]) -> tuple[list[str], list[str]]:
     """([batch item with NO response row], [index answered more than once]), each as `#index entry_id`.
 
     A rejected candidate prints a FAIL line; a row the model never returned printed nothing and counted nowhere, so in
@@ -341,7 +341,7 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
     candidates: list[dict] = []
     for p in response_paths:
         candidates += response_rows(p)
-    missing, dupes = coverage(batch, candidates)
+    missing, dupes = response_coverage(batch, candidates)
     if dupes:       # which of two answers is the model's? neither is written
         twice = {d.split()[0][1:] for d in dupes}
         candidates = [c for c in candidates if str(c.get("_batch_index")) not in twice]

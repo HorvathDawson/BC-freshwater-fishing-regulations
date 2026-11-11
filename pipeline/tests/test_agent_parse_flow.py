@@ -66,7 +66,11 @@ def test_export_then_ingest_writes_the_entry(tmp_path, monkeypatch):
     response.parent.mkdir()
     response.write_text(json.dumps([_candidate_entry(item["index"])]))
     out = tmp_path / "catalogue"
-    assert run([str(batch)], [str(response)], str(out), ledger=tmp_path / "ingested.json") == 0
+    rows = tmp_path / "synopsis_raw_data.json"          # the extraction the export read (rows_digest, T553)
+    rows.write_text(json.dumps([{"context": {}, "rows": _rows()}]))
+    # exit 1: the batch's Nonexistent Creek row was never answered — a FAIL line now (T553), not silence;
+    # the answered entry is still written
+    assert run([str(batch)], [str(response)], str(out), ledger=tmp_path / "ingested.json", rows_path=rows) == 1
     written = json.loads((out / "region-5.json").read_text())["entries"]
     assert [e["entry_id"] for e in written] == ["r5:atnarko_river@5-4"]
     assert written[0]["regs_verbatim"] == item["raw_regs"]
