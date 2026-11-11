@@ -1,6 +1,6 @@
 # T552 — Run timing and forecasts: floor checks, error bodies read as errors, a new NuSEDS really rebuilds, age rule for old surveys
 
-Status: OPEN.
+Status: PARTIAL (3cfe44e53, 0c0fc849b, f25fbedff, 1e71ff652, d52149c30, 305117089, 09553ef9d). Done: items 1, 2, 3, 6, 8 (but core staleness.ts), the pipeline half of 4, the source half of 5, the run-timing half of 7. Left (not ticketed; owning lanes busy): item 4 worker half (gauges/forecast.ts query, publish.ts zero-row carry + state save), item 5 update-service `refresh` wiring and the Runs hook re-asking, item 7 review/tidal name keys, item 8 staleness.ts:42 wording.
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 8 of 17; highest severity 4 of 5.
 
@@ -73,3 +73,12 @@ Fix the items above in severity order, one commit per item where they are separa
 A collapsed or empty upstream table fails the run-timing build and keeps the kept copy. An ArcGIS 200-with-error body is a recorded failure, not "out of season". The worker trigger for a new NuSEDS runs with refresh. Run timing refetches when the release changes. Old-survey age rule applied with the count of waters changed.
 
 Depends: —. Size: M. Owner: yes (Q180).
+
+## As built (2026-11-10)
+1. `3cfe44e53` — `parse` refuses a NuSEDS / census-site header missing a column it reads (`NUSEDS_COLUMNS`, `SITES_COLUMNS`) and an empty source; `feed.diff` exits 1 when PSF runs, DFO runs or painted sections fall > 10% against the live feed (`--allow-shrink REASON`, workflow input `allow_shrink`); the workflow keeps a fresh fetch only after parse, build and the floor pass.
+2. `0c0fc849b` — the worker dispatches `{upload, refresh: "true", expect_dfo: <latest>}` (`runTimingInputs`); the button text says refresh; `parse --expect-dfo` fails a run whose NuSEDS is older than the one it was started for. Takes effect on the next feeds-worker deploy.
+3. `f25fbedff` — Q180: DFO is beside PSF, never instead (`bind.py`); recorded in decisions.md. Live base: 12,925 PSF spawning pairs kept on 4,418 sections (988 named waters). Report: `observed_beside_psf_spawning`, `dfo_bound_by_last_survey` (288 before 1980 … 1,571 from 2010).
+4. `1e71ff652` — Python: `_query` raises on an ArcGIS `error` body, a non-object, a non-list `features`, or a first row without Station_ID / the issue column; `fetch(failed=)`. Worker half NOT done (gauges lane).
+5+6. `d52149c30` — `httpRunTiming` re-asks hourly and never holds a null; with `handles` (wired in App.tsx from the booted manifest) a capture of the device's own atlas is not overwritten by an index bound to another. Not done: the update service's `refresh` and the Runs hook (`ui/src/runTiming.ts`, asks once per mount) re-asking.
+7. `305117089` — run-timing `name_key` = `names.key` (suffix dropped), bases re-keyed on read; live base: 4 more DFO records bind (Barriere / East Barriere), none lost; report `dfo_records_unbound` + examples. Not done: review `marks._norm`, `dfo_auto._norm`, `review/names.key`, the two tidal audit keys.
+8. `09553ef9d` — README (kept copy, refresh, floor, expect_dfo; the tracked PSF pages stated as they are) and forecast.py's series paragraph. Not done: `core/src/staleness.ts:42`. Owner: whether to untrack the three PSF pages under data/source/runtiming.
