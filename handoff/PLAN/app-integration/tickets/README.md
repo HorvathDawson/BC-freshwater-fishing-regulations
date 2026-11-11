@@ -657,6 +657,7 @@ use that as the sole source of future work."
 | T624 | Runs keeps its own day and names it; a shared water link is the water's own page (right preview) | OPEN | — | owner 2026-11-10 on T620's G10 and G17 |
 | T625 | A shared link opens the installed app (Android App Links: assetlinks.json + intent filter) | OPEN | — | owner 2026-11-10; needs the app signing fingerprint from Play Console; no need to wait for closed testing |
 | T626 | Deferred: one view of "open to fish" and "fish in the stream" together | POSTPONED | — | owner 2026-11-10: not a now item |
+| T627 | Digest email: an easy-to-read summary of reports and errors (words kept, trimmed) | OPEN | — | owner 2026-11-10 on T609 |
 
 ## Order for open tickets
 
