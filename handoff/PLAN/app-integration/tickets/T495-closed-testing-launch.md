@@ -32,12 +32,14 @@ resumes as soon as closed testing starts (Play first, iOS right after).
    setting, prod runbook), T240 (launch checklist: map assets, HYDAT, report purge, SEO build, privacy page), T198/T409
    (.com → .ca 301, HSTS, Search Console), T86 (prod hosting), the prod feeds worker (placeholder exists). Dry-run every
    prod script against staging first; nothing prod runs without `CONFIRM_PROD` (human).
-5. **Store:** T244 (listing, privacy labels), T371 (promote the gated build to closed testing), T390 (in-app update
+5. **Store:** T244 (listing, privacy labels), T319 (store screenshots; owner 2026-11-11), T371 (promote the gated build to closed testing), T390 (in-app update
    prompt, so testers get fixes), T514 (share page "Open in the app" → the store listing). Then iOS: T88 (TestFlight).
 6. **Salmon:** T164 lands whenever the owner's review is done; a release after it (T461, T453 ride along).
 
-Not for this goal (stay POSTPONED): T200 T201 T218 T219 T223 T234 T281 T319 T389 T447 T487 T492, and T261/T310 beyond
+Not for this goal (stay POSTPONED): T200 T201 T218 T219 T223 T234 T281 T389 T447 T487 T492, and T261/T310 beyond
 what ships.
+
+Also in this goal (owner 2026-11-11): build and tooling hardening T533–T542, T600–T602, T638.
 
 ## Done when
 The four gates pass, production serves the new site, app and feeds, and the gated build is on Play closed testing.
