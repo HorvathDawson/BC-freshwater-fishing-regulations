@@ -32,6 +32,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -415,3 +416,45 @@ def match_rows(rows: list[dict], registry: dict[str, RegistryItem],
     id_index = build_id_index(registry)
     ov_index = build_override_index(overrides)
     return [match_row(i, r, registry, name_index, id_index, ov_index) for i, r in enumerate(rows)]
+
+
+def dead_override_ids(registry: dict[str, RegistryItem], path: str | Path | None = None) -> list[dict]:
+    """T632 (owner 2026-11-11: "a check makes it impossible to build with one"): `override_id_gaps` over EVERY curated
+    override — the provincial ones and the DFO-tagged ones (`source: "dfo"`) — of `book_name_links.json`. Empty =
+    clean. There is no "expected to match nothing" note: an id that names no water is fixed in the file."""
+    from pipeline.common.curated import CURATED
+    p = Path(path) if path is not None else Path(CURATED.regulations.book_name_links)
+    if not p.exists():
+        raise SystemExit(f"{p} is missing — the curated book name links cannot be checked")
+    return override_id_gaps(load_overrides(p, source="dfo"), registry)
+
+
+def dead_override_lines(gaps: list[dict]) -> list[str]:
+    """One line per override with a dead id, for a refusal."""
+    return [f"{g['name']} {'/'.join(g['mu']) or '-'}: {len(g['unresolved'])} id(s) name no water "
+            f"({g['resolved']} resolve): {', '.join(g['unresolved'][:4])}{' …' if len(g['unresolved']) > 4 else ''}"
+            for g in gaps]
+
+
+def main(argv: list[str] | None = None) -> int:
+    """`python -m pipeline.regs.matching.matcher [--registry PATH]`: exit 1 when a curated override id names no
+    water of the registry (`dead_override_ids`). `scripts/fast-fail.sh` runs it; the reach run refuses the same."""
+    import argparse
+    from pipeline.atlas.registry import load_registry
+    from pipeline.common.curated import GENERATED
+    ap = argparse.ArgumentParser(description=main.__doc__)
+    ap.add_argument("--registry", help="registry.json (default: the live atlas build's)")
+    args = ap.parse_args(argv)
+    reg_path = Path(args.registry) if args.registry else GENERATED.registry()
+    gaps = dead_override_ids(load_registry(str(reg_path)))
+    if gaps:
+        print(f"book_name_links.json: {len(gaps)} override(s) hold an id that names no water of {reg_path} — fix "
+              "the override (T632: no build runs with one):\n  " + "\n  ".join(dead_override_lines(gaps)),
+              file=sys.stderr)
+        return 1
+    print(f"book_name_links.json: every override id names a water of {reg_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

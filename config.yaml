@@ -145,6 +145,8 @@ curated:
     # The worklist for minting MORE added lakes. Zero code readers BY DESIGN (the minting is a hand process) beyond
     # the fast check (`check_curated --waters`). Do not delete it in a dead-file sweep.
     unmapped_waters: "data/curated/waters/unmapped_waters.json"
+    # T632 (owner 2026-11-11): the unplaced reach pieces the owner accepted; any other one stops the reach run
+    unplaced_piece_calls: "data/curated/waters/unplaced_piece_calls.json"
 
   # --- DFO salmon: the places DFO's rules bind to, and the limits wording (T321) ----
   dfo_salmon:
@@ -154,6 +156,8 @@ curated:
     # AUTHORED (templates reviewed by hand): `pipeline.regs.dfo_salmon.wording`; synced to the feeds worker
     # (private/feeds/dfo/wording.json, `pipeline.deliver.sync_inputs`) — the worker's ONLY copy
     wording: "data/curated/dfo_salmon/wording.json"
+    # AUTHORED (T632, owner 2026-11-11): the DFO places that keep their tidal water, each with a stated reason
+    tidal_calls: "data/curated/dfo_salmon/tidal_calls.json"
 
   # --- regulations: the synopsis corpus and the book ---------------------------------
   regulations:

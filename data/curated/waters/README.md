@@ -19,6 +19,7 @@ the map only after the next atlas build (`pipeline build --atlas --promote`).
 | `slough_page_calls.json` | frozen | the retired slough page (2026-10-28) | review app (old notes) |
 | `steelhead_waters.json` | accepted | `python -m pipeline.regs.steelhead.accept --write` | reach run |
 | `unmapped_waters.json` | authored | hand (worklist for added lakes) | `check_curated --waters` only |
+| `unplaced_piece_calls.json` | authored | the owner (`accepted`); Claude adds `proposed` rows, read by nothing | reach run (`build.unplaced_gate`, T632: any other unplaced piece stops it) |
 
 Hand-edited files are checked by `python -m pipeline.tools.audit.check_curated --waters` (the build's first step).
 Config keys: `CURATED.waters.<file stem>`, except `tidal` (tidal_limits.json) and `areas` (area_closures.json), which

@@ -194,3 +194,176 @@ def test_an_override_id_no_registry_item_carries_is_listed():
           {"criteria": {"name_verbatim": "GONE", "mus": []}, "skip": True, "gnis_ids": ["404"]}]
     assert override_id_gaps(ov, reg) == [{"name": "X OXBOWS", "mu": ["8-1"],
                                           "unresolved": ["wsc:300-432687-461418"], "resolved": 1}]
+
+
+# ------------------------------------------------------------------ T632 1: tidal water leaves every DFO place
+
+def _dfo_places(monkeypatch, *ids):
+    """DFO places on the synthetic X River (`whole` of gnis:1: r0..r3), resolved by the REAL `build_reach`."""
+    from types import SimpleNamespace
+    from pipeline.atlas.reach import dfo_salmon as D
+    from pipeline.regs.dfo_salmon import entries as E
+    locs = [SimpleNamespace(location_id=i, binding=SimpleNamespace(resolved=True), is_variant=False,
+                            duplicate_of=None, water_id=None, tidal_water=False) for i in ids]
+    ef = SimpleNamespace(locations=locs, waters=[], water=lambda w: None)
+    monkeypatch.setattr(D, "_slugs", lambda: ["1"])
+    monkeypatch.setattr(E, "load", lambda *a, **k: ef)
+    monkeypatch.setattr(E, "to_reach_input", lambda *a, **k: (
+        {"entry_id": "?", "name": "X RIVER", "region": "1", "matched": ["gnis:1"]},
+        [{"rule_id": "p", "type": "closure", "extents": [{"op": "whole"}]}]))
+    return D
+
+
+def test_a_dfo_place_loses_the_runs_tidal_water(monkeypatch):
+    """Mutation: drop `tidal=lim` from `resolve_all`'s `build_reach` call (the T546 state) — r0, below the tidal
+    boundary, stays in the place and the map paints a DFO salmon chain on tidal water."""
+    g, reg = _river()
+    D = _dfo_places(monkeypatch, "1:x:whole")
+    assert D.resolve_all(reg, g, outside=frozenset())[0]["sections"] == ["r0", "r1", "r2", "r3"]   # no map: all
+    diags: list = []
+    rows = D.resolve_all(reg, g, outside=frozenset(), diagnostics=diags, tidal={"r0": "split:x_river__tidal"})
+    assert rows[0]["sections"] == ["r1", "r2", "r3"] and rows[0]["mapped"]
+    assert [(d["kind"], d["payload"]["removed"]) for d in diags if d["kind"] == "tidal"] == [("tidal", 1)]
+
+
+def test_a_place_with_a_stated_reason_keeps_its_tidal_water(monkeypatch):
+    """Mutation: ignore `keep_tidal` — the place the owner exempted loses its tidal water like the rest."""
+    g, reg = _river()
+    D = _dfo_places(monkeypatch, "1:x:whole", "1:x:other")
+    rows = D.resolve_all(reg, g, outside=frozenset(), tidal={"r0": "split:x"},
+                         keep_tidal={"1:x:whole": "DFO's own text runs to the river mouth"})
+    by = {r["location_id"]: r["sections"] for r in rows}
+    assert by == {"1:x:whole": ["r0", "r1", "r2", "r3"], "1:x:other": ["r1", "r2", "r3"]}
+
+
+def test_a_place_the_subtraction_empties_or_a_keep_row_naming_no_place_stops_the_run(monkeypatch):
+    """Mutation: drop the `drowned` (or `stale`) refusal — a place wholly in tidal water reads 'not yet mapped' on the
+    card, and a keep row for a renamed place silently does nothing."""
+    g, reg = _river()
+    D = _dfo_places(monkeypatch, "1:x:whole")
+    with pytest.raises(ValueError, match=r"wholly in tidal water.*\n.*1:x:whole"):
+        D.resolve_all(reg, g, outside=frozenset(), tidal={s: "split:x" for s in ("r0", "r1", "r2", "r3")})
+    with pytest.raises(ValueError, match=r"name no DFO place.*\n  1:x:gone"):
+        D.resolve_all(reg, g, outside=frozenset(), tidal={"r0": "split:x"}, keep_tidal={"1:x:gone": "why"})
+
+
+def test_tidal_calls_refuse_a_row_without_a_reason(tmp_path):
+    import json
+    from pipeline.atlas.reach.dfo_salmon import load_tidal_calls
+    p = tmp_path / "tidal_calls.json"
+    p.write_text(json.dumps({"keep_tidal": {"1:x:whole": {"reason": "the place is the estuary run"}}}))
+    assert load_tidal_calls(p) == {"1:x:whole": "the place is the estuary run"}
+    p.write_text(json.dumps({"keep_tidal": {"1:x:whole": {"reason": " "}}}))
+    with pytest.raises(ValueError, match="no stated `reason`"):
+        load_tidal_calls(p)
+    assert load_tidal_calls() == {}            # the curated file: no place keeps its tidal water (T632, 2026-11-10)
+
+
+# ------------------------------------------------------------------ T632 2: an unplaced piece stops the run
+
+_NOONS = {"entry_id": "r2:noons_creek@2-8", "rule_id": "noons_creek.r1", "piece": "-2200000392:0",
+          "reason": "flows_to_the_sea_unjoined", "kind": "unclassified"}
+_SKEENA = {"entry_id": "6:skeena-river:near-kitsumkalum", "rule_id": "", "piece": "360220099:0",
+           "reason": "straddles_the_cut", "kind": "dfo"}
+
+
+def _calls(tmp_path, accepted=(), proposed=()):
+    import json
+    p = tmp_path / "unplaced_piece_calls.json"
+    p.write_text(json.dumps({"_about": "test", "accepted": list(accepted), "proposed": list(proposed)}))
+    return p
+
+
+def test_every_unplaced_piece_stops_the_run_unless_accepted(tmp_path):
+    """Mutation: gate only STRADDLE_GATE_REASONS (the T546 state) — Noons Creek's closure piece, which flows to the
+    sea unjoined, passes the run withheld; or gate only the provincial pieces — the DFO Skeena pieces pass."""
+    from pipeline.atlas.reach.build import UnplacedGateError, load_unplaced_calls, unplaced_gate
+    with pytest.raises(UnplacedGateError, match=r"2 unplaced piece\(s\) not accepted") as e:
+        unplaced_gate([_NOONS, _SKEENA], load_unplaced_calls(_calls(tmp_path)))
+    assert "-2200000392:0 (flows_to_the_sea_unjoined)" in str(e.value) and "360220099:0" in str(e.value)
+    ok = [{**x, "accepted_by": "owner", "accepted_on": "2026-11-11"} for x in (_NOONS, _SKEENA)]
+    unplaced_gate([_NOONS, _SKEENA], load_unplaced_calls(_calls(tmp_path, accepted=ok)))       # passes
+
+
+def test_a_proposal_is_not_an_acceptance(tmp_path):
+    """Mutation: `load_unplaced_calls` reads `proposed` too — Claude's own proposals would pass the gate."""
+    from pipeline.atlas.reach.build import UnplacedGateError, load_unplaced_calls, unplaced_gate
+    calls = load_unplaced_calls(_calls(tmp_path, proposed=[_NOONS]))
+    assert calls == []
+    with pytest.raises(UnplacedGateError, match="noons_creek"):
+        unplaced_gate([_NOONS], calls)
+
+
+def test_a_stale_acceptance_stops_the_run_and_a_moved_piece_is_a_new_piece(tmp_path):
+    """Mutation: key the acceptance on the piece alone — a piece now withheld for ANOTHER reason passes unseen."""
+    from pipeline.atlas.reach.build import UnplacedGateError, load_unplaced_calls, unplaced_gate
+    acc = load_unplaced_calls(_calls(tmp_path, accepted=[{**_NOONS, "accepted_by": "o", "accepted_on": "d"}]))
+    with pytest.raises(UnplacedGateError, match="STALE acceptance r2:noons_creek@2-8"):
+        unplaced_gate([], acc)
+    with pytest.raises(UnplacedGateError, match="meets_the_line_at_the_cut"):
+        unplaced_gate([{**_NOONS, "reason": "meets_the_line_at_the_cut"}], acc)
+
+
+def test_an_acceptance_needs_who_and_when_and_never_takes_a_provincial_straddler(tmp_path):
+    from pipeline.atlas.reach.build import load_unplaced_calls
+    with pytest.raises(ValueError, match="lacks"):
+        load_unplaced_calls(_calls(tmp_path, accepted=[_NOONS]))
+    straddler = {**_NOONS, "reason": "straddles_the_cut", "accepted_by": "o", "accepted_on": "d"}
+    with pytest.raises(ValueError, match="never accepted"):
+        load_unplaced_calls(_calls(tmp_path, accepted=[straddler]))
+    load_unplaced_calls(_calls(tmp_path, accepted=[{**_SKEENA, "accepted_by": "o", "accepted_on": "d"}]))
+
+
+def test_a_dfo_places_withheld_pieces_feed_the_gate():
+    """Mutation: `dfo_salmon.unplaced` skips `straddles_the_cut` or keeps an included piece."""
+    from pipeline.atlas.reach.dfo_salmon import unplaced
+    diags = [{"location_id": "6:s:x", "region": "6", "kind": "unclassified",
+              "payload": {"included": False, "pieces": ["b:0", "a:0"], "reasons": {"a:0": "straddles_the_cut"}}},
+             {"location_id": "6:s:y", "region": "6", "kind": "unclassified",
+              "payload": {"included": True, "pieces": ["c:0"], "reasons": {}}},
+             {"location_id": "6:s:x", "region": "6", "kind": "ambiguous_cut", "payload": {"pieces": ["d:0"]}}]
+    assert [(x["entry_id"], x["piece"], x["reason"], x["rule_id"]) for x in unplaced(diags)] == [
+        ("6:s:x", "a:0", "straddles_the_cut", ""), ("6:s:x", "b:0", "unknown", "")]
+
+
+def test_the_curated_accept_list_holds_no_acceptance_claude_made():
+    """Everything Claude adds is a proposal (owner 2026-10-29): an `accepted` row names its owner, never Claude."""
+    from pipeline.atlas.reach.build import load_unplaced_calls
+    assert all("claude" not in r["accepted_by"].lower() for r in load_unplaced_calls())
+
+
+# ------------------------------------------------------------------ T632 3: a dead override id stops the build
+
+def test_a_dead_override_id_is_found_in_every_override_the_dfo_ones_too(tmp_path):
+    """Mutation: `load_overrides(p)` without `source="dfo"` in `dead_override_ids` — a DFO-tagged override with a
+    dead id passes the check."""
+    import json
+    from pipeline.regs.matching.matcher import dead_override_ids, dead_override_lines
+    from pipeline.tests.test_registry_flowing import _item
+    reg = {"gnis:1": _item("gnis:1", "X River", "stream", ["r0"], refs=("gnis:1",))}
+    p = tmp_path / "links.json"
+    p.write_text(json.dumps([{"criteria": {"name_verbatim": "X RIVER", "mus": []}, "gnis_ids": ["1"]},
+                             {"source": "dfo", "criteria": {"name_verbatim": "Y", "mus": ["6-1"]},
+                              "gnis_ids": ["404"]}]))
+    gaps = dead_override_ids(reg, p)
+    assert gaps == [{"name": "Y", "mu": ["6-1"], "unresolved": ["gnis:404"], "resolved": 0}]
+    assert dead_override_lines(gaps) == ["Y 6-1: 1 id(s) name no water (0 resolve): gnis:404"]
+
+
+def test_the_override_check_exits_non_zero_and_fast_fail_runs_it(monkeypatch, tmp_path, capsys):
+    """Mutation: `main` returns 0 on a gap, or the fast-fail step is removed."""
+    import json
+    from pathlib import Path
+    import pipeline.atlas.registry as R
+    from pipeline.regs.matching import matcher as M
+    from pipeline.tests.test_registry_flowing import _item
+    reg = {"gnis:1": _item("gnis:1", "X River", "stream", ["r0"], refs=("gnis:1",))}
+    monkeypatch.setattr(R, "load_registry", lambda path: reg)
+    p = tmp_path / "links.json"
+    p.write_text(json.dumps([{"criteria": {"name_verbatim": "X RIVER", "mus": []}, "gnis_ids": ["1", "404"]}]))
+    monkeypatch.setattr(M, "dead_override_ids", lambda r, path=None, _f=M.dead_override_ids: _f(r, p))
+    assert M.main(["--registry", "unused"]) == 1 and "X RIVER -: 1 id(s)" in capsys.readouterr().err
+    p.write_text(json.dumps([{"criteria": {"name_verbatim": "X RIVER", "mus": []}, "gnis_ids": ["1"]}]))
+    assert M.main(["--registry", "unused"]) == 0
+    ff = (Path(__file__).resolve().parents[2] / "scripts" / "fast-fail.sh").read_text()
+    assert '"$PY" -m pipeline.regs.matching.matcher' in ff

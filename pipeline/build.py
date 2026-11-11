@@ -311,6 +311,10 @@ def keys(build_dir: Path, missing_ok: bool = False) -> dict[str, dict]:
                       tidal=_sha(tidal_splits(build_dir)),
                       # (T212) the whole waters the owner calls tidal
                       tidal_waters=_sha(tidal_waters(build_dir)),
+                      # (T632) the run refuses a dead override id and an unplaced piece the owner did not accept:
+                      # editing either file must rerun it, or a build would pass on the old answer
+                      overrides=hashlib.sha256(Path(CURATED.regulations.book_name_links).read_bytes()).hexdigest()[:16],
+                      unplaced=hashlib.sha256(Path(CURATED.waters.unplaced_piece_calls).read_bytes()).hexdigest()[:16],
                       code=stage_code("reach", m)),
         "deliver": dict(atlas, corpus=corpus, curated=curated_digest(),
                         sources=deliver_sources(missing_ok),

@@ -81,9 +81,9 @@ def main() -> int:
     r = result.report
     # T546 item 7: the curated override ids this registry lacks — the matcher's `unresolved_ids` had no reader,
     # so a partly resolved override bound the ids that resolved and dropped the rest unseen
-    from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
-    from pipeline.regs.matching.matcher import load_overrides, override_id_gaps
-    r.override_id_gaps = override_id_gaps(load_overrides(DEFAULT_OVERRIDES), registry)
+    # T632: every override, the DFO-tagged ones too — and any one of them stops the run (below, after the tables)
+    from pipeline.regs.matching.matcher import dead_override_ids, dead_override_lines
+    r.override_id_gaps = dead_override_ids(registry)
     print(f"{r.n_entries:,} entries · {r.n_rules:,} rules · {r.seconds}s")
     for x in r.override_id_gaps:
         print(f"{'!!' if x['resolved'] else '  '} override {x['name']} {'/'.join(x['mu'])}: {len(x['unresolved'])} "
@@ -154,7 +154,12 @@ def main() -> int:
         # (T211) THE DFO SALMON LOCATIONS, placed by the same `build_reach` — beside the tables, outside the rules' digest
         from pipeline.atlas.reach import dfo_salmon
         dfo_diags: list = []
-        rows = dfo_salmon.resolve_all(registry, graph, outside=result.outside or None, diagnostics=dfo_diags)
+        # T632 (owner 2026-11-11): the run's tidal water comes out of every DFO place but those with a stated reason
+        rows = dfo_salmon.resolve_all(registry, graph, outside=result.outside or None, diagnostics=dfo_diags,
+                                      tidal=result.tidal, keep_tidal=dfo_salmon.load_tidal_calls())
+        cut = sum(d["payload"].get("removed", 0) for d in dfo_diags if d["kind"] == "tidal")
+        print(f"  dfo tidal    {sum(1 for d in dfo_diags if d['kind'] == 'tidal'):,} place(s) lost {cut:,} tidal "
+              "section(s) (T632)")
         d = dfo_salmon.write(Path(args.out), rows)
         n = dfo_salmon.write_diagnostics(Path(args.out), dfo_diags)
         print(f"  dfo salmon   {sum(r['mapped'] for r in rows):,} of {len(rows):,} locations placed (digest {d}), "
@@ -170,10 +175,29 @@ def main() -> int:
         print(diff_runs(args.against, result).summary())
     # THE STRADDLE GATE (T67): after the tables are written, so what failed can be read — the run still
     # FAILS, naming every piece left straddling a cut the atlas should have swept.
-    from pipeline.atlas.reach.build import scope_gate, straddle_gate
-    straddle_gate(result.diagnostics)
+    # Every gate is asked, and the run fails naming ALL that refused — one refusal must not hide the next (T632).
+    from pipeline.atlas.reach.build import load_unplaced_calls, scope_gate, straddle_gate, unplaced_gate
+    failed: list[str] = []
+
+    def gate(fn, *a):
+        try:
+            fn(*a)
+        except (RuntimeError, SystemExit) as e:
+            failed.append(f"{type(e).__name__}: {e}")
+
+    gate(straddle_gate, result.diagnostics)
     # T546 item 2: and on a row with rules whose scope does not resolve (its rules are held unresolved)
-    scope_gate(result.bindings)
+    gate(scope_gate, result.bindings)
+    # T632 (owner 2026-11-11): EVERY unplaced piece — any reason, a rule's or a DFO place's — stops the run unless the
+    # owner accepted it (`unplaced_piece_calls.json` `accepted`); the DFO places are placed only with --out
+    gate(unplaced_gate, list(r.unplaced) + (dfo_salmon.unplaced(dfo_diags) if args.out else []),
+         load_unplaced_calls())
+    # T632: and on a curated override id that names no water (no "expected" note: the override is fixed)
+    if r.override_id_gaps:
+        failed.append(f"DeadOverrideIds: {len(r.override_id_gaps)} book_name_links override(s) hold an id that names "
+                      "no water — fix the override (T632):\n  " + "\n  ".join(dead_override_lines(r.override_id_gaps)))
+    if failed:
+        raise SystemExit("reach run REFUSED (the tables above are written, for reading):\n" + "\n".join(failed))
     return 0
 
 

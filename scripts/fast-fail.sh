@@ -132,6 +132,11 @@ step "/changes within budget (LATEST vs kept snapshot)" changes_budget
 # in its curated file, or is on the dated allow-list (`pipeline/regs/review/apply.py` NOT_LANDED_OK)
 step "review marks have landed in their curated files" "$PY" -m pipeline.regs.review.apply --check --waiting-ok
 
+# caught (2026-11-10, T546/T632): OKANAGAN RIVER OXBOWS pinned 26 wsc ids no registry item carries; the row bound the
+# rest with nothing said. Owner 2026-11-11: no build runs with a dead override id (the reach run refuses it too).
+# Reads the live atlas's registry.json (~2 s); a missing build raises naming the command that makes it
+step "every curated override id names a water" "$PY" -m pipeline.regs.matching.matcher
+
 # caught 2026-11-07: app/tools/pin-study.mjs held hex colours; the colour gate flagged it only after the build (T481)
 step "colours" node app/tools/check-colours.mjs
 

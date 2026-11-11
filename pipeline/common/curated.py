@@ -131,6 +131,10 @@ class Waters(BaseModel):
     #: The worklist for minting more added lakes (was `ungazetted.json`). No build reader BY DESIGN; the minting is a
     #: hand process. Checked by `check_curated --waters`; declared so a dead-file sweep cannot delete it.
     unmapped_waters: FilePath
+    #: AUTHORED (T632, owner 2026-11-11): the pieces the reach could not place that the owner ACCEPTED staying
+    #: unplaced, one row per (entry or DFO place, rule, piece, reason). Any other unplaced piece stops the reach run
+    #: (`pipeline.atlas.reach.build.unplaced_gate`); `proposed` rows are not accepted and stop it too.
+    unplaced_piece_calls: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -144,6 +148,9 @@ class DfoSalmon(BaseModel):
 
     places: DirectoryPath
     wording: FilePath
+    #: AUTHORED (T632, owner 2026-11-11): the DFO places that KEEP their tidal water, each with its stated reason;
+    #: every other place has the run's tidal sections subtracted (`pipeline.atlas.reach.dfo_salmon.load_tidal_calls`).
+    tidal_calls: FilePath
 
     _abs = field_validator("*", mode="before")(_absolute)
 

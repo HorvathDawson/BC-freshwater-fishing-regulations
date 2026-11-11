@@ -1,0 +1,4 @@
+{
+  "_about": "T632 (owner 2026-11-11): tidal water is subtracted from every DFO place the reach run places, unless the place is listed here with a stated reason. One row per place: {\"<location_id>\": {\"reason\": \"why this place keeps its tidal water\", \"by\": \"owner\", \"on\": \"YYYY-MM-DD\"}}. Authored by hand (owner); read by pipeline.atlas.reach.dfo_salmon.load_tidal_calls (reach run). A row with no reason, or naming no place, stops the run. A place the subtraction would leave with no water stops the run until it is marked tidal water (T449) or listed here.",
+  "keep_tidal": {}
+}

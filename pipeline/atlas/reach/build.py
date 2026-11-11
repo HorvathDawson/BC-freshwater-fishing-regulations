@@ -1378,6 +1378,60 @@ class StraddleGateError(RuntimeError):
 STRADDLE_GATE_REASONS = frozenset({"straddles_the_cut", "joins_a_straddling_braid"})
 
 
+class UnplacedGateError(RuntimeError):
+    """A piece the reach could not place that the owner has not accepted (`unplaced_gate`)."""
+
+
+#: THE KEY OF AN UNPLACED PIECE, as `unplaced_piece_calls.json` names it: who withheld it (an entry id, or a DFO
+#: location id), the rule ("" for an entry's scope or a DFO place), the piece, and the reach's typed reason. A piece
+#: that moves, or is withheld for another reason, is a new piece: the owner looks again.
+UNPLACED_KEY = ("entry_id", "rule_id", "piece", "reason")
+
+
+def load_unplaced_calls(path=None) -> list[dict]:
+    """T632: THE UNPLACED PIECES THE OWNER ACCEPTED — the `accepted` rows of `unplaced_piece_calls.json`
+    (`CURATED.waters.unplaced_piece_calls`; a missing file raises). `proposed` rows are NOT read: a proposal is not an
+    acceptance (memory: everything added is a proposal). A row missing a key, or accepting a provincial piece that
+    straddles a cut (the straddle gate, T67: fixed in the atlas, never accepted), is refused."""
+    import json
+    from pathlib import Path
+    from pipeline.common.curated import CURATED
+    p = Path(path) if path is not None else Path(CURATED.waters.unplaced_piece_calls)
+    data = json.loads(p.read_text(encoding="utf-8"))
+    rows = data.get("accepted")
+    if not isinstance(rows, list):
+        raise ValueError(f"{p}: `accepted` must be a list")
+    for r in rows:
+        missing = [k for k in UNPLACED_KEY + ("accepted_by", "accepted_on") if not isinstance(r.get(k), str)]
+        if missing:
+            raise ValueError(f"{p}: accepted row {r} lacks {missing}")
+        if r.get("kind") != "dfo" and r["reason"] in STRADDLE_GATE_REASONS:
+            raise ValueError(f"{p}: {r['entry_id']}/{r['rule_id']} {r['piece']}: a provincial piece that straddles a "
+                             "cut is never accepted — the atlas's braid sweep must cut it (T67, straddle gate)")
+    return rows
+
+
+def unplaced_gate(pieces, accepted) -> None:
+    """T632 (owner 2026-11-11: "stop the build unless accepted"): raise `UnplacedGateError` naming every unplaced
+    piece — a provincial rule's or entry scope's (`unplaced_pieces`) or a DFO place's (`dfo_salmon.unplaced`), ANY
+    reason — that no `accepted` row names, and every accepted row that names no piece of this run (stale: the piece
+    moved, was placed, or its reason changed — the owner looks again; an acceptance never carries over unseen)."""
+    def key(x):
+        return tuple(x.get(k) or "" for k in UNPLACED_KEY)
+    ok = {key(r) for r in accepted}
+    have = {key(x) for x in pieces}
+    bad = [x for x in pieces if key(x) not in ok]
+    stale = sorted(ok - have)
+    if bad or stale:
+        lines = [f"{x['entry_id']}/{x['rule_id'] or '-'}: {x['piece']} ({x['reason']})" for x in bad]
+        lines += [f"STALE acceptance {e}/{r or '-'}: {p} ({why}) — no such piece in this run; remove the row"
+                  for e, r, p, why in stale]
+        raise UnplacedGateError(
+            f"{len(bad)} unplaced piece(s) not accepted, {len(stale)} stale acceptance(s) — place the piece (a cut, an "
+            "extent) or have the owner accept it in data/curated/waters/unplaced_piece_calls.json `accepted`:\n  "
+            + "\n  ".join(lines))
+
+
 def straddle_gate(diagnostics) -> None:
     """Raise `StraddleGateError` naming every (entry, rule, piece) the reach left straddling a cut."""
     bad = []
