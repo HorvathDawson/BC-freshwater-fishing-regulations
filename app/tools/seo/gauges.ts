@@ -22,7 +22,7 @@ import { OPEN_METEO_ATTRIBUTION, weatherPlace } from "../../packages/data/src/sp
 import { crashUrlFor, ORIGINS, REPORT_URLS } from "../../apps/mobile/src/env";
 import { clip, esc, SHARE_FONT, SHARE_GROUND, SHARE_H, SHARE_INK, SHARE_W, type Site } from "./html";
 import type { GaugeConfig } from "./gaugeClient";
-import { bestServes, gaugePath, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
+import { bestServes, gaugePath, OPEN_IN_APP_URL, STALE_AFTER_MS, TRUST_RANK, type GaugeRows, type ServesTrust } from "@app/core";
 import { readGaugeRows } from "@app/data/release";
 
 export { readGaugeRows, type GaugeRows };
@@ -134,6 +134,16 @@ export function gaugeDescription(g: GaugeModel): string {
     `${w ? `, for ${w}` : ""}. Free, from Water Survey of Canada data.`);
 }
 
+/**
+ * (T514) the page's "Open in the app": greyed "coming soon" while the Play listing is not public (`OPEN_IN_APP_URL` null), the
+ * listing's link once it is. The one config value is `@app/core` share.ts; a phone with the app opens the app (T625).
+ */
+export function openInAppControl(listing: string | null = OPEN_IN_APP_URL): string {
+  return listing === null
+    ? `<span class="app soon" aria-disabled="true">Open in the app · coming soon</span>`
+    : `<a class="app" href="${esc(listing)}">Open in the app</a>`;
+}
+
 /** the page body: everything that does not move between feed runs; the live sections are filled by gaugeClient.ts */
 export function gaugeBody(g: GaugeModel, release: string, clientHref: string, asOf: string): string {
   const first = g.close[0] ?? g.rough[0]!;
@@ -154,7 +164,7 @@ export function gaugeBody(g: GaugeModel, release: string, clientHref: string, as
     `<div class="card"><p>See this gauge with the map, alerts and every other gauge in the app.</p>` +
     // (owner 2026-11-08) the website now; the phone app greyed until its store listing is public (T514)
     `<div class="opens"><a class="app" href="${esc(`${first.path}?view=conditions`)}">Open on the website</a>` +
-    `<span class="app soon" aria-disabled="true">Open in the app · coming soon</span></div></div></div>` +
+    `${openInAppControl()}</div></div></div>` +
     `<script type="application/json" id="gauge-config">${cfg}</script><script src="${esc(clientHref)}" defer></script>`;
 }
 

@@ -1,6 +1,6 @@
 # T625 — A shared link opens the installed app (Android App Links)
 
-Status: OPEN
+Status: PARTIAL — code built 2026-11-11 (items 2–3): site build writes `/.well-known/assetlinks.json`, app.json intent filter (`autoVerify`) for canifishthis.ca + staging.canifishthis.ca, the phone reads a tapped link (`appLink.native.ts` → `resolveAppLink` → the Shell's open request); left (Claude): after the next site deploy and APK, item 4 on the emulator (`adb shell pm get-app-links ca.canifishthis.app` says verified; a tapped link opens that water) and a phone check from Play.
 
 Source: owner 2026-11-10: "but we can't set up app link until we are in closed testing stage? unless you know how."
 It does not need closed testing. It needs two things that exist already on internal testing.
@@ -38,3 +38,17 @@ Play app signing key, SHA-256 (public), copied by the owner from Play Console (T
 Protected with Play → Play Store protection → Play app signing):
 `A0:73:C5:A9:63:D3:20:2E:9D:18:FA:95:A8:11:AD:51:1F:6F:C4:BB:74:CF:84:27:71:23:EC:7E:24:BF:A8:DC`
 Work item 1 is done; items 2–4 can start.
+
+## Built 2026-11-11 (items 2–3)
+- `@app/core` share.ts owns `APP_LINK_HOSTS`, `APP_PACKAGE`, `PLAY_SIGNING_SHA256`; `tools/seo/hosting.ts` `assetLinksFile()` is
+  written by the site build to `.well-known/assetlinks.json` (the same text on staging and production; `_headers` pins
+  `Content-Type: application/json`); `tools/seo/appLinks.test.ts` pins file, headers and the app.json filter against each other.
+- app.json `android.intentFilters`: https, `/water/` prefix and `/` exactly, on both hosts, `autoVerify: true`.
+- Link reading: `@app/ui` `appLink.ts` (`parseAppLink`, `resolveAppLink`): `/water/<slug>` takes its item from the page's own
+  `cift:item` (the web start link's authority; no second slug table), `/?regs=<item>` carries it, view from `?view=`. The phone
+  opens it through the Shell's `openRequest` (the notification tap's path) on that view. Web/native split by file
+  (`apps/mobile/src/appLink.{web,native}.ts`).
+- Not read yet (reported, never guessed): place links (`blk`+`m`), `show`, `browse`, `spot`; the part, day and horizon of a
+  link are not applied on the phone (the water opens whole). A follow-up if the owner wants them.
+- Needs the next site deploy (the file) AND the next APK (the filter + reader). Staging-built APKs are side-loaded, signed
+  with the upload key, so Android will not verify them; only a Play install verifies.

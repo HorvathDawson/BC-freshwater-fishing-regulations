@@ -11,6 +11,7 @@
  * (Cloudflare Redirect Rules / a Worker / the registrar's forwarding) and mirrored by `redirectFor`, the pure function the
  * test (and a `curl -I` check after deploy) holds the edge to. Owner steps (registrar/DNS, accounts) stay in OWNER-TODO.
  */
+import { APP_PACKAGE, PLAY_SIGNING_SHA256 } from "@app/core";
 import type { Site } from "./html";
 
 /** one year; `preload` is left out on purpose (a preload-list submission is hard to undo: the owner's call) */
@@ -58,6 +59,19 @@ export function hostRules(site: Site, alsoHosts: readonly string[]): object {
   };
 }
 
+/**
+ * (T625) `/.well-known/assetlinks.json`: the Digital Asset Links statement that lets Android open the installed app on this
+ * site's `/water/…` links (the app's intent filter, `apps/mobile/app.json`, is `autoVerify`). It names the app's package and
+ * the SHA-256 of the key Play signs an install with (`@app/core` `PLAY_SIGNING_SHA256`). Staging and production are the same
+ * build, so both serve this same text from their own host: Android fetches it from each host the filter names.
+ */
+export function assetLinksFile(): string {
+  return `${JSON.stringify([{
+    relation: ["delegate_permission/common.handle_all_urls"],
+    target: { namespace: "android_app", package_name: APP_PACKAGE, sha256_cert_fingerprints: [PLAY_SIGNING_SHA256] },
+  }], null, 2)}\n`;
+}
+
 const HTML_CACHE = "Cache-Control: public, max-age=300, must-revalidate";
 
 /** `_headers` (Cloudflare Pages / Netlify syntax). Specific groups, so a rule never merges with a broader one. */
@@ -68,6 +82,7 @@ export function headersFile(): string {
     block("/*", ...all),
     block("/assets/*", "Cache-Control: public, max-age=31536000, immutable"),
     block("/share/*", "Cache-Control: public, max-age=86400"),
+    block("/.well-known/assetlinks.json", "Content-Type: application/json", "Cache-Control: public, max-age=3600"),
     ...["/water/*", "/region/*", "/gauge/*", "/gauges", "/about", "/privacy", "/changes", "/sitemap.xml", "/sitemap-*.xml", "/robots.txt"].map((p) => block(p, HTML_CACHE)),
   ].join("\n");
 }

@@ -91,7 +91,7 @@ export interface ShellProps {
    * (T234) Open a water's Conditions now — a notification's tap (a gauge alert): `item` its durable id, null an unnamed
    * reach's alert (the Conditions map); `n` counts taps, so the same water asked again opens again.
    */
-  openRequest?: { item: string | null; n: number } | null;
+  openRequest?: { item: string | null; n: number; view?: "regs" | "conditions" | "map" } | null;
   /** (T234 v1.1) a new-app-version notification was tapped (a count): the bell opens on its "App update", checked now */
   openUpdate?: number;
   /** (T50) every route the Shell moves to, for an app that must put the reader back after Android recreates the

@@ -36,7 +36,7 @@ import type { WaterModel } from "./model";
 import { appDocument } from "./prerender";
 import { drawSharePngs } from "./share";
 import { withFavicon } from "./favicon";
-import { headersFile, hostRules, hostWorker, redirectsFile } from "./hosting";
+import { assetLinksFile, headersFile, hostRules, hostWorker, redirectsFile } from "./hosting";
 import type { Site } from "./html";
 import { legacyRedirects, legacyWorker, type Crosswalk, type LegacyBuilt } from "./legacy";
 import { buildDayOf, type BuildDay } from "./model";
@@ -172,6 +172,7 @@ export async function buildAll(a: BuildArgs): Promise<Built> {
   const unmerged = parts.flatMap((p) => p.unmerged);
   files.set(paneHref.slice(1), paneCss);
   files.set("_headers", headersFile());
+  files.set(".well-known/assetlinks.json", assetLinksFile());
   withFavicon(files);
   files.set("_redirects", redirectsFile(build.removed, build.regions));
   files.set("redirects.json", `${JSON.stringify(hostRules(config, config.alsoHosts), null, 1)}\n`);

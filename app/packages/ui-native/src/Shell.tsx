@@ -409,7 +409,7 @@ export function Shell(p: ShellProps) {
     if (!openReq || openReq.n <= openedTap.n) return;
     openedTap.n = openReq.n;
     if (searching) go({ type: "search", open: false });
-    if (openReq.item) nav.opener.item(openReq.item as ItemId, "conditions");
+    if (openReq.item) nav.opener.item(openReq.item as ItemId, openReq.view ?? "conditions");
     else { go({ type: "close" }); nav.toTab("conditions"); }
   }, [openReq?.n]);   // eslint-disable-line react-hooks/exhaustive-deps -- once per tap
   // (T234 v1.1) A NEW-APP-VERSION TAP: the bell opens on its "App update" (with what's new), the version asked now

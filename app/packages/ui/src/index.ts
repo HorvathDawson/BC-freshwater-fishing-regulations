@@ -78,4 +78,5 @@ export * from "./crashReport";
 // (T234) phone-only notifications: the settings, the permission asked when something is turned on, the schedule
 export * from "./notify";
 export * from "./startLink";
+export * from "./appLink";
 export * from "./myLocation";

@@ -36,6 +36,7 @@ import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, release
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
+import { onAppLink } from "./appLink";
 import { PHOTO_SOURCES, pickPhoto } from "./pickPhoto";
 import { routeAddress, routeLinks, routeUrl, systemBack } from "./systemBack";
 import { locate } from "./locate";
@@ -309,13 +310,15 @@ export default function App() {
     try { notifications.settings.update(noteHeld(heldRelease)); } catch (e) { reportFailure(e); }
   }, [heldRelease]);
   // (T234) a notification's tap: a gauge alert opens its water's Conditions (the one that started the app too)
-  const [openRequest, setOpenRequest] = useState<{ item: string | null; n: number } | null>(null);
+  const [openRequest, setOpenRequest] = useState<{ item: string | null; n: number; view?: "regs" | "conditions" | "map" } | null>(null);
   // (T234 v1.1) a new-app-version tap: the bell opens on its App update, the version asked now
   const [openUpdate, setOpenUpdate] = useState(0);
   useEffect(() => onTap((d) => {
     if (d.kind === "gauge") setOpenRequest((r) => ({ item: d.item, n: (r?.n ?? 0) + 1 }));
     if (d.kind === "app") setOpenUpdate((n) => n + 1);
   }), []);
+  // (T625) a tapped share link (Android App Links) opens its water through the same request, on the view the link names
+  useEffect(() => onAppLink(({ item, view }) => setOpenRequest((r) => ({ item, view, n: (r?.n ?? 0) + 1 }))), []);
 
   /*
    * (T231) THE UPDATE SERVICE (owner 2026-10-28: "check the data origin for new updates and download them"): the three

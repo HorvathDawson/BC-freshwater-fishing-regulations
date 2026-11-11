@@ -131,6 +131,19 @@
     "android": {
       "package": "ca.canifishthis.app",
       "versionCode": 27,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            { "scheme": "https", "host": "canifishthis.ca", "pathPrefix": "/water/" },
+            { "scheme": "https", "host": "canifishthis.ca", "path": "/" },
+            { "scheme": "https", "host": "staging.canifishthis.ca", "pathPrefix": "/water/" },
+            { "scheme": "https", "host": "staging.canifishthis.ca", "path": "/" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "adaptiveIcon": { "foregroundImage": "./assets/icon/adaptive-foreground.png", "monochromeImage": "./assets/icon/adaptive-monochrome.png" }
     },
     "web": {
