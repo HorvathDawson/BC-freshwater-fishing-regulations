@@ -58,6 +58,10 @@ on:
         description: "Fetch the sources afresh (PSF + NuSEDS) and keep them; false = build from the kept copy"
         type: boolean
         default: false
+      expect_dfo:
+        description: "(T552) the NuSEDS date (YYYYMMDD) this run must reach (the feeds worker's new-NuSEDS run); empty = none"
+        type: string
+        default: ""
       allow_shrink:
         description: "(T552) the owner's reason to let a > 10% fall in runs or painted sections through; empty = refuse it"
         type: string
@@ -82,6 +86,7 @@ jobs:
       TILES_IN: ${{ inputs.tiles }}
       REFRESH: ${{ inputs.refresh }}
       ALLOW_SHRINK: ${{ inputs.allow_shrink }}
+      EXPECT_DFO: ${{ inputs.expect_dfo }}
       MAX_SRC_DAYS: "400"
       AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -150,7 +155,10 @@ jobs:
           fi
 
       - name: 4/7 parse
-        run: python -m pipeline.runtiming.parse --src "$W/src" --out "$W/timing.json" --polygons "$W/cu_polygons.geojson"
+        run: |
+          # (T552 item 2) --expect-dfo: a run started for a new NuSEDS fails when its sources still are not that version
+          python -m pipeline.runtiming.parse --src "$W/src" --out "$W/timing.json" --polygons "$W/cu_polygons.geojson" \
+            --expect-dfo "$EXPECT_DFO"
 
       - name: 5/7 build (bind + paint index + checks)
         run: |

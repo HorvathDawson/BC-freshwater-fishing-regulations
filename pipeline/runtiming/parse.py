@@ -304,7 +304,16 @@ def write_polygons(tiles: Path, out: Path) -> int:
     return len(pieces)
 
 
-def main(src: Path, out: Path, polygons: Optional[Path], review: Optional[Path]) -> None:
+def expect_dfo(updated: str, want: str) -> None:
+    """(T552 item 2) Refuse sources older than the NuSEDS `want` (YYYYMMDD) a run was started for: the run that should
+    have refreshed them did not, and it would otherwise rebuild the old file and publish nothing, green. '' = no
+    expectation."""
+    if want and not (updated or "") >= want:
+        raise SystemExit(f"parse: the NuSEDS read is {updated or 'undated'}, but this run was started for {want} — the "
+                         f"sources were not refreshed (run the workflow with refresh: true)")
+
+
+def main(src: Path, out: Path, polygons: Optional[Path], review: Optional[Path], want_dfo: str = "") -> None:
     from pipeline.runtiming.generate.extract import runs_from_page
     runs = runs_from_page(src, review)
     psf = psf_records(runs)
@@ -330,6 +339,7 @@ def main(src: Path, out: Path, polygons: Optional[Path], review: Optional[Path])
                 "licence": "Open Government Licence – Canada", "file": dfo_fetch["files"]["nuseds"]["name"],
                 "updated": dfo_fetch["files"]["nuseds"]["date"], "fetched": dfo_fetch["fetched_at"], **rep},
     }
+    expect_dfo(sources["dfo"]["updated"], want_dfo)
     write_timing(out, psf, dfo, sources)
     print(f"parse: {len(psf)} PSF runs, {len(dfo)} DFO stream records ({rep}) -> {out}")
     if polygons is not None:
@@ -344,5 +354,7 @@ if __name__ == "__main__":
     ap.add_argument("--out", type=Path, default=SOURCE / "runtiming" / "timing.json")
     ap.add_argument("--polygons", type=Path, default=GENERATED.runtiming / "cu_polygons.geojson")
     ap.add_argument("--no-polygons", action="store_true", help="leave the CU polygons as they are")
+    ap.add_argument("--expect-dfo", default="", metavar="YYYYMMDD",
+                    help="(T552) refuse NuSEDS older than this (the version a run was started for)")
     a = ap.parse_args()
-    main(a.src, a.out, None if a.no_polygons else a.polygons, CURATED.runtiming.run_calls)
+    main(a.src, a.out, None if a.no_polygons else a.polygons, CURATED.runtiming.run_calls, a.expect_dfo)

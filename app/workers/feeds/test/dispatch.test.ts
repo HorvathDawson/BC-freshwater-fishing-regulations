@@ -98,6 +98,16 @@ describe("(T412) the weekly run-timing source check", async () => {
   it("without a token: the button", async () => {
     const e = await checkRunTiming({}, record(["All Areas NuSEDS_20270101.zip"]), bucket("20260601"), mem(), T0);
     expect(e!.text).toContain("GitHub → Actions");
+    expect(e!.text).toContain("with upload: true and refresh: true.");
+  });
+  it("(T552 item 2) the run refreshes its sources and names the NuSEDS it must reach", async () => {
+    const bodies: unknown[] = [];
+    const f = async (url: string, init?: RequestInit) => {
+      if (init?.method === "POST") bodies.push(JSON.parse(String(init.body)));
+      return record(["All Areas NuSEDS_20270101.zip"])(url);
+    };
+    await checkRunTiming({ GITHUB_DISPATCH_TOKEN: "t" }, f, bucket("20260601"), mem(), T0);
+    expect(bodies).toEqual([{ ref: "redesign/stream-sections", inputs: { upload: "true", refresh: "true", expect_dfo: "20270101" } }]);
   });
 });
 

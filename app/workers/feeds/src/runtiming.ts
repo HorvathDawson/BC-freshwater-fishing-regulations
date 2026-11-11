@@ -8,7 +8,14 @@ import type { FeedEvent } from "./events";
 import type { Store } from "./io";
 
 export const NUSEDS_API = "https://open.canada.ca/data/api/action/package_show?id=c48669a3-045b-400d-b730-48aafe8c5ee6";
-export const BUTTON = 'GitHub → Actions → "feeds — run timing (PSF + DFO) → R2 runtiming/", with upload: true.';
+// T552 item 2: since T485 the workflow builds from its KEPT copy of the sources unless `refresh` is set, so a run started
+// for a new NuSEDS must refresh, or it rebuilds the old one and publishes nothing; `expect_dfo` makes the run fail when
+// the fresh fetch still is not that version.
+export const BUTTON = 'GitHub → Actions → "feeds — run timing (PSF + DFO) → R2 runtiming/", with upload: true and refresh: true.';
+
+/** The workflow inputs for a run started because NuSEDS `latest` is out (T552 item 2). */
+export const runTimingInputs = (latest: string): Record<string, string> =>
+  ({ upload: "true", refresh: "true", expect_dfo: latest });
 
 type Fetch = (url: string, init?: RequestInit) => Promise<Response>;
 
@@ -29,7 +36,7 @@ export async function checkRunTiming(env: DispatchEnv, fetch_: Fetch, bucket: { 
   const o = await bucket.get("runtiming/index.json");
   const current: string | null = o ? (JSON.parse(await o.text())?.sources?.dfo?.updated ?? null) : null;
   if (current && latest <= current) return null;
-  const dispatch: Dispatch = await dispatchOnce(env, fetch_, dispatchStore, "feeds-runtiming.yml", latest, { upload: "true" }, now);
+  const dispatch: Dispatch = await dispatchOnce(env, fetch_, dispatchStore, "feeds-runtiming.yml", latest, runTimingInputs(latest), now);
   const at = now.toISOString();
   return {
     key: `runtiming:${latest}`,

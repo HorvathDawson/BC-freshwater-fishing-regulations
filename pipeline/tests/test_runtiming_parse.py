@@ -172,3 +172,15 @@ def test_t552_a_renamed_upstream_column_is_refused_not_parsed_to_nothing(tmp_pat
         P.read_sites(sites)
     sites.write_text("GFE_ID,X_LONGT,Y_LAT,GFE_TYPE\n1,-122.0,49.0,Stream\n", encoding="latin-1")
     assert P.read_sites(sites) == {"1": (-122.0, 49.0, "Stream")}
+
+
+def test_t552_a_run_started_for_a_new_nuseds_fails_on_the_old_one():
+    """(T552 item 2) the worker's run names the NuSEDS it was started for; sources older than it (the kept copy, not a
+    refresh) refuse the run instead of rebuilding the old file and publishing nothing, green."""
+    P.expect_dfo("20260601", "")                    # no expectation (a release or button run)
+    P.expect_dfo("20270101", "20270101")
+    P.expect_dfo("20270301", "20270101")            # newer still is fine
+    with pytest.raises(SystemExit, match="started for 20270101.*refresh: true"):
+        P.expect_dfo("20260601", "20270101")
+    with pytest.raises(SystemExit, match="undated"):
+        P.expect_dfo(None, "20270101")
