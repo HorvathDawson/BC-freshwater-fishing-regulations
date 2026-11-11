@@ -92,7 +92,8 @@ with the default Claude uses until you answer). Newest first inside each section
 Answered 2026-11-11 (recorded in T665, T667, T666): the six tidal decisions, the six tests decisions, the fresh-copy test run.
 
 Still open:
-- Phone check of the latest Play internal build (0.7.5).
+- T668 salmon places from two regions on one stretch (audit `app-integration/T668-audit.md`, 493 sections): built on the defaults D1 an undrawn place stays in its own region, D2 the section's own region wins a tie, D3 a region-wide place binds a section only if most of it is in that region, D4 the card names the region, D5 D1 first. Say if any is wrong.
+- Phone check of the latest Play internal build (0.7.5): the checks are rows on the Owner To-Do page (written 2026-11-11). The Stellako "10 hatchery steelhead" line no longer shows on staging; it is one of those checks now.
 - Tidal: look over the 33 creeks where the limit stays at the end of the mapped line although the line runs into the tidal polygon (your call 2026-11-11, for consistency). The dry run of T665 writes the list with distances and a map; it will be linked here.
 - Stellako River (F12): the card shows a "10 hatchery steelhead" line. Is that line right for this water? Not a blocker. The card image is owed.
 - Store screenshots (sent 2026-11-11): pick the order and titles (`app/tools/store-shots.json`).
