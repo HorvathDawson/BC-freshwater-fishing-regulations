@@ -184,6 +184,19 @@ def test_confidence_set_in_the_mark_or_by_an_owner_override(src):
         "n2": "high", "n1": "high"}
 
 
+def test_a_withdrawn_cut_is_not_rebuilt_from_the_mark_that_still_names_it(src):
+    """T639: `marks.amend` drops a withdrawn cut from the shared rows; `build` used to make it again from the mark's
+    own proposal (the `group_for` fallback), so a taken-back cut landed as a `new_split`. The marks store is never
+    edited, so the mark keeps naming it — the override alone must keep it out."""
+    marks = owner_marks()
+    assert "split-n1" in _by_id(P.build(marks, src))
+    src.overrides = (M.ConfidenceOverride.model_validate({
+        "match": {"ref": "o", "anchor": "coord", "on_item": "gnis:12227",
+                  "coord": [-123.835990, 48.757158]},
+        "withdrawn": True, "by": "owner", "date": "2026-11-10", "note": "taken back"}),)
+    assert "split-n1" not in _by_id(P.build(marks, src))
+
+
 def test_sandy_pool_is_medium_by_the_owners_override():
     """decisions.md 2026-10-27: Sandy Pool = medium — recorded in the override file, since the
     marks store is never edited."""

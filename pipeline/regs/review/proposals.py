@@ -966,7 +966,12 @@ def build(decided, src: Sources, *, applied: Optional[set] = None) -> list[dict]
         g["members"].append(n)
         return g
 
-    def group_for(n, who: dict) -> dict:
+    def group_for(n, who: dict) -> Optional[dict]:
+        # T639: a cut the owner TOOK BACK (a `withdrawn` override, T589) is not built — `marks.amend` left it out
+        # of `shared`, and this must not make it again from the mark that still names it. A fix that points at it
+        # finds no split and says so (`split_of` -> None), never a quiet rebuild.
+        if any(o.withdrawn and o.matches([n]) for o in src.overrides):
+            return None
         # the shared row(s) this proposal is a member of — an owner override may have moved it or
         # made it a reference with one cut per offset (`marks.amend`): every one is a cut
         shs = [p for p in shared if any(M.same_anchor(n, q) for q in p.get("members") or [p["split"]])]
