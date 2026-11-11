@@ -193,7 +193,7 @@ def test_the_release_resolves_the_newest_pages_waters_too():
     files, feeds, placed, sid_of = _fixture()
     files["6"].waters = [SimpleNamespace(name="Kispiox River", aliases=[], item_ids=["gnis:4674"])]
     payload, _ = S.build(files, feeds, placed, sid_of, headers={"6": []},
-                         scope_headers={"6": H.parse_header(HEADER, "6")}, upstream=lambda i: [])
+                         scope_headers={"6": H.parse_header(HEADER, "6")}, upstream=lambda i: [], section_regions=None)
     assert payload["regions"]["6"]["notes"] == []
     assert payload["scopes"]["6"]["kispiox river"] == ["gnis:4674"]
 

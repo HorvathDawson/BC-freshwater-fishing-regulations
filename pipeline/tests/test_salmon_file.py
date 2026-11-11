@@ -89,7 +89,7 @@ def _fixture():
 
 
 def test_build_chains_narrowest_first_with_the_unlisted_chain_first():
-    payload, sections = S.build(*_fixture())
+    payload, sections = S.build(*_fixture(), section_regions=None)
     chains = payload["chains"]
     assert chains[0]["l"] == [] and chains[0]["m"] == [0, S.MAP_CODES.index("closed")]
     assert payload["default"] == S.UNLISTED_CHAIN == 0
@@ -111,7 +111,7 @@ def test_a_place_accepted_as_tidal_water_is_not_an_undrawn_part_of_its_water():
     "not yet mapped" on the card and no section of its water carries it as an undrawn part."""
     files, feeds, placed, sid_of = _fixture()
     files["6"].locations[3].tidal_water = True                  # 6:resort
-    payload, sections = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11, 14]})
+    payload, sections = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11, 14]}, section_regions=None)
     assert payload["unmapped"] == []
     assert not any(c.get("u") for c in payload["chains"]) and 14 not in dict(sections)
 
@@ -120,10 +120,10 @@ def test_a_water_with_an_undrawn_place_carries_it_but_paints_its_drawn_answer():
     """PARTIAL COVERAGE: the resort (no extent, rules on the page) is on the Kispiox, so every section of the Kispiox —
     placed (11) or in no location (14) — carries it (`u`) for the card's caveat. (T372, owner 2026-11-04: the trout way)
     the map paints the DRAWN answer, never `check` for the undrawn place."""
-    payload, sections = S.build(*_fixture(), {"gnis:4674": [11, 14]})
+    payload, sections = S.build(*_fixture(), {"gnis:4674": [11, 14]}, section_regions=None)
     chains, by_sid = payload["chains"], dict(sections)
     check = [0, S.MAP_CODES.index("check")]
-    p0, s0 = S.build(*_fixture())
+    p0, s0 = S.build(*_fixture(), section_regions=None)
     assert (chains[by_sid[11]]["l"], chains[by_sid[11]]["u"]) == (["6:b(i)", "6:a"], ["6:resort"])
     assert chains[by_sid[11]]["m"] == p0["chains"][dict(s0)[11]]["m"] != check      # as if the resort were not there
     assert (chains[by_sid[14]]["l"], chains[by_sid[14]]["u"]) == ([], ["6:resort"]) and chains[by_sid[14]]["m"] != check
@@ -142,7 +142,7 @@ def test_a_water_with_an_undrawn_place_carries_it_but_paints_its_drawn_answer():
     # a DORMANT undrawn place (no rules today) marks nothing: the feed paints it the day DFO lists it again
     files, feeds, placed, sid_of = _fixture()
     feeds["6"]["locators"] = [l for l in feeds["6"]["locators"] if l["fingerprint"] != "fr"]
-    p2, s2 = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11]})
+    p2, s2 = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11]}, section_regions=None)
     assert p2["chains"][dict(s2)[11]]["u"] == ["6:resort"] and p2["chains"][dict(s2)[11]]["m"] != check
 
 
@@ -155,7 +155,7 @@ def test_a_header_closure_is_in_the_file_on_its_verdicts_and_chains():
     (the note ids) — then its map says closed even with an undrawn place on its water, when that place is closed too.
     `live.compose` writes the same chain `c` from a feed."""
     from pipeline.regs.dfo_salmon import live as L
-    payload, sections = S.build(*_fixture(), {"gnis:4674": [11]}, {"6": [CLOSED_6]})
+    payload, sections = S.build(*_fixture(), {"gnis:4674": [11]}, {"6": [CLOSED_6]}, section_regions=None)
     chains, by_sid = payload["chains"], dict(sections)
     (closed,) = [v for v in payload["verdicts"] if v.get("c")]
     assert (closed["s"], closed["c"], closed["t"]) == ("closed", "6:closed:abc", CLOSED_6["t"])
@@ -167,7 +167,7 @@ def test_a_header_closure_is_in_the_file_on_its_verdicts_and_chains():
     assert "c" not in chains[0]                                                  # the unlisted water: not opened
     assert {r["sizes"] == [] and r["shared"] == [] for r in payload["regions"].values()} == {True}
     # an open page: no `c` anywhere
-    p0, _ = S.build(*_fixture())
+    p0, _ = S.build(*_fixture(), section_regions=None)
     assert not any(v.get("c") for v in p0["verdicts"]) and not any(c.get("c") for c in p0["chains"])
     # the feed's composition says the same
     v, g = S._Interner(), S._Interner()
@@ -187,13 +187,13 @@ def test_a_placed_section_the_handle_table_does_not_know_stops_the_build():
     files, feeds, placed, sid_of = _fixture()
     del sid_of["s3"]
     with pytest.raises(S.SalmonError, match="not in the handle table"):
-        S.build(files, feeds, placed, sid_of)
+        S.build(files, feeds, placed, sid_of, section_regions=None)
 
 
 def test_salmon_2_splits_per_bundle_region_and_round_trips():
     """(owner 2026-10-28) the head (payload) + one slice of runs per bundle region: a section in two regions is in both,
     one in none is in `x`; every region has its slice (empty ones too), and the slices put back are the sections."""
-    payload, sections = S.build(*_fixture())
+    payload, sections = S.build(*_fixture(), section_regions=None)
     regions = {10: ["6"], 11: ["5", "6"], 12: []}
     files = S.encode_files(payload, sections, "147b20dce7d8576c", lambda sid: regions.get(sid, ()))
     from pipeline.deliver.release.shards import REGIONS

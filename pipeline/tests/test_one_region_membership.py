@@ -115,7 +115,7 @@ OWNER = {ROOT / "atlas" / "registry" / "regions.py"}
 #: (`deliver.bundle.build._water_places`, which looped `in_region` over the region items itself until
 #: the adversarial review).
 SCANNED = sorted([*(ROOT / "atlas" / "reach").glob("*.py"), ROOT / "common" / "entry_id.py",
-                  ROOT / "deliver" / "bundle" / "build.py"])
+                  ROOT / "deliver" / "bundle" / "build.py", ROOT / "deliver" / "salmon.py"])
 
 
 def _docstrings(tree) -> set[int]:

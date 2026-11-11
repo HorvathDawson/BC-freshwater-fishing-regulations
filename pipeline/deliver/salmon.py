@@ -13,6 +13,11 @@ section A opens coho on the Kispiox while B(i) closes it and the water reopens a
 (`test_the_skeena_cascade_resolves_through_the_join`) — so per species and day the FIRST location of the chain with a
 rule for that species on that day answers, never a wider one.
 
+A DFO PLACE ANSWERS FOR ITS OWN REGION (T668, `SectionRegions`): an undrawn place rides only its own region's sections;
+a region-wide place binds only its region's members; on a section in TWO regions (the one membership) both regions'
+places hold — the chain's `s` names each region's places (indices into `l`), each cascades apart, and the MOST STRICT
+answer per fish speaks (`strictest`; the live feed composes the same, `live.compose`).
+
 PER CHAIN, FOR EVERY DAY OF THE YEAR (366: Feb 29 included; DFO's dates carry no year), precomputed here:
   * a VERDICT per species (chinook, coho, sockeye, pink, chum): `open` (a limit above zero), `release` (fish, keep
     none), `closed` (no fishing), `check` (DFO printed a season nobody can read, "to be determined") — or none: no rule
@@ -262,6 +267,104 @@ def chain_order(precedence: Mapping[str, int], size: Mapping[str, int]) -> Calla
     return lambda lid: (-precedence.get(lid, 0), size.get(lid, 1 << 30), lid)
 
 
+# ── the regions a section lies in (T668) ─────────────────────────────────────────────────────────────────────────────
+#
+# A DFO PLACE ANSWERS FOR ITS OWN REGION (T668: D1 default; D2/D3 the owner's answer 2026-11-11, "some streams genuinely
+# have 2 regions like the parts of the Fraser that straddle boundaries" — the freshwater straddler rule, AGENTS 59 /
+# T183, RULINGS Z4). DFO prints one page per region, and a place from one page was answering on another region's water:
+#   D1  an UNDRAWN place (no extent) rides only its water's sections that are members of its own region (the Fraser's
+#       Region 2 places were on every Fraser section up to Prince George); a straddler is a member of both;
+#   D2  on a section in ONE region, a tie of tier between two regions' places goes to that region's place (size still
+#       breaks a tie within one region). On a GENUINE STRADDLER (a member of two regions) neither is dropped: each
+#       region's places cascade on their own (narrowest first) and THE MOST STRICT ANSWER PER FISH speaks
+#       (`strictest`; the chain's `s` names the groups);
+#   D3  a REGION-WIDE place (every extent an area `within`, one clipped to a region) binds exactly the sections that are
+#       members of its region (or of an unclipped area it also names) — a straddler takes both regions' region-wide
+#       places, strictest per fish. Named waters (Sustut, Skeena B(i)) keep binding across the line: DFO names them.
+# A section's regions are THE ONE MEMBERSHIP (`registry.regions.section_regions`); a DFO page's region is its number
+# (5A and 5B are both Region 5, DFO's 7 is the atlas's 7A + 7B).
+
+def region_number(key: str) -> int:
+    """`"7a"` -> 7: the number of an atlas region key (the DFO page's `region_number`)."""
+    m = re.match(r"\d+", str(key))
+    if not m:
+        raise SalmonError(f"salmon: {key!r} is not a region key")
+    return int(m.group())
+
+
+class SectionRegions:
+    """Each section's regions (atlas keys, `{sid: frozenset}`, the one membership) and the sections of the non-region
+    areas a region-wide place also names (`areas`, `{area_id: frozenset(sid)}`)."""
+
+    def __init__(self, member: Mapping[int, frozenset], areas: Optional[Mapping[str, frozenset]] = None):
+        self.member = member
+        self.areas = dict(areas or {})
+
+    def keys(self, sid: int) -> frozenset:
+        return self.member.get(sid, frozenset())
+
+    def numbers(self, sid: int) -> frozenset:
+        return frozenset(region_number(k) for k in self.keys(sid))
+
+    def area(self, area_id: str) -> frozenset:
+        if area_id not in self.areas:
+            raise SalmonError(f"salmon: no sections loaded for area {area_id} (a region-wide DFO place names it)")
+        return self.areas[area_id]
+
+
+def region_clip(loc) -> Optional[Tuple[frozenset, Tuple[str, ...]]]:
+    """A REGION-WIDE place (D3): every extent a `within`, at least one clipped to a region (`area_id` or `within_area` a
+    region item) -> (the region keys it is clipped to, the other areas it names unclipped — Region 6 A's Haida Gwaii MU
+    group). None for any other place: a named water, a basin, an MU group, an undrawn place."""
+    from pipeline.atlas.registry import regions as RG
+    exts = list(getattr(getattr(loc, "binding", None), "extents", None) or [])
+    if not exts or any(getattr(e.op, "value", e.op) != "within" for e in exts):
+        return None
+    clipped, other = set(), []
+    for e in exts:
+        hit = [a for a in (e.area_id, e.within_area) if a and a.startswith(RG.REGION_PREFIX)]
+        if hit:
+            clipped.update(a[len(RG.REGION_PREFIX):] for a in hit)
+        elif e.area_id:
+            other.append(e.area_id)
+    return (frozenset(clipped), tuple(sorted(set(other)))) if clipped else None
+
+
+def section_regions_of(registry, sid_of: Mapping[str, int], areas: Iterable[str] = ()) -> SectionRegions:
+    """`SectionRegions` of this atlas, by handle -> sid: the one membership (`regions.section_regions`) and the sections
+    of `areas` (registry items). A registry with no region item STOPS the build: every DFO place would answer
+    everywhere."""
+    from pipeline.atlas.registry import regions as RG
+    by = RG.section_regions(registry)
+    if not by:
+        raise SalmonError("salmon: the registry has no region items — DFO places cannot be held to their regions")
+    member = {sid_of[h]: r for h, r in by.items() if h in sid_of}
+    got = {}
+    for a in sorted(set(areas)):
+        if a not in registry:
+            raise SalmonError(f"salmon: a region-wide DFO place names area {a}, which the registry does not hold")
+        got[a] = frozenset(sid_of[h] for h in registry[a].section_ids if h in sid_of)
+    return SectionRegions(member, got)
+
+
+#: (T668 D2/D3, RULINGS Z4) how strict a verdict is, most strict first: no fishing, catch and release, a season DFO
+#: printed that nobody can read, open
+STRICT = ("closed", "release", "check", "open")
+
+
+def strictest(answers: Sequence[Optional[dict]]) -> dict:
+    """The most strict of each region's answer for one species and day (regions by number); a region saying nothing
+    that day is closed to it (`NOT_LISTED`: closed unless DFO opens it). A tie — two openings — goes to the first
+    region: the two daily limits are NOT compared (the feed's verdicts carry no number to compare by; T668 follow-up).
+    The live feed composes the same (`regs.dfo_salmon.live.compose`)."""
+    best = None
+    for v in answers:
+        v = v or NOT_LISTED
+        if best is None or STRICT.index(v["s"]) < STRICT.index(best["s"]):
+            best = v
+    return best
+
+
 # ── the build ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 class _Interner:
@@ -293,22 +396,31 @@ def closed_by_header(sp_runs: Sequence[Sequence[int]], verdicts: Sequence[dict])
 
 
 def chain_calendar(chain: Sequence[Sequence[dict]], verdicts: _Interner, gears: _Interner,
-                   undrawn_closed: bool = True, speaks: bool = False) -> dict:
+                   undrawn_closed: bool = True, speaks: bool = False,
+                   groups: Optional[Sequence[Sequence[int]]] = None) -> dict:
     """One chain's year: per species runs of a verdict index (`NOT_LISTED` where nothing opens it), the gear runs (-1:
     no gear line), the map-status runs. (T372, owner 2026-11-04: the trout way) a DFO place on the water not drawn yet
     never paints the map — it is the card's caveat, as an undrawn trout rule is (`status_index`: it never colours a
     section). (T356) `c`: the header notes that close the chain every day (`closed_by_header`) — set only where its
     undrawn places, if any, are closed by their header too (`undrawn_closed`). (T372) `n`, on an undrawn place's own
     chain (`speaks`): the days DFO speaks for it (1: some species has a verdict other than "not opened"), the trout
-    caveat's "in force today" — the card lists it first on those days."""
+    caveat's "in force today" — the card lists it first on those days. (T668) `groups` (a chain on a section in two
+    regions, its places of each region as indices into `chain`): each group cascades on its own and the most strict
+    answer per fish speaks (`strictest`); the gear lines are the first group's with any that day (as the live feed
+    composes them, `live.compose`; listing both regions' lines is a T668 follow-up)."""
     per_sp: List[List[int]] = [[] for _ in SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
+    subs = [[chain[i] for i in g] for g in groups] if groups else None
     for md in DAYS:
-        vs = [verdict_on(chain, sp, md) for sp in SPECIES]
+        if subs:
+            vs = [strictest([verdict_on(c, sp, md) for c in subs]) for sp in SPECIES]
+            g = next((x for x in (gear_on(c, md) for c in subs) if x), ())
+        else:
+            vs = [verdict_on(chain, sp, md) for sp in SPECIES]
+            g = gear_on(chain, md)
         for k, v in enumerate(vs):
             per_sp[k].append(verdicts(v or NOT_LISTED))
-        g = gear_on(chain, md)
         gear.append(gears(list(g)) if g else -1)
         mapc.append(MAP_CODES.index(map_status(vs)))
     sp = [runs_of(x) for x in per_sp]
@@ -368,9 +480,14 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
           sid_of: Mapping[str, int], item_sections: Optional[Mapping[str, Iterable[int]]] = None,
           headers: Optional[Mapping[str, Sequence[dict]]] = None,
           scope_headers: Optional[Mapping[str, Sequence[dict]]] = None,
-          upstream: Optional[Callable[[Sequence[str]], Iterable[str]]] = None) -> Tuple[dict, List[Tuple[int, int]]]:
+          upstream: Optional[Callable[[Sequence[str]], Iterable[str]]] = None, *,
+          section_regions: Optional[SectionRegions]) -> Tuple[dict, List[Tuple[int, int]]]:
     """(payload, [(sid, chain)] sorted by sid). `entry_files`: slug → `entries.EntryFile`; `feeds`: slug → the typed
     feed (`typed/region-<slug>.json`); `placed`: the reach run's rows; `sid_of`: section id → handle.
+
+    `section_regions` (T668, D1-D3 above): each section's regions (`section_regions_of`) — required, so no caller can
+    forget it; the bundle always passes the atlas's. `None` is said only by a unit fixture with no regions at all, and
+    then no place is held to a region.
 
     A location joins the feed by any of its fingerprints; one with no rules on the page today (dormant) still sits in
     its chains and says nothing (the live feed fills it in when DFO lists it again). A placed section the handle table does not know stops the build: the reach run and
@@ -419,7 +536,32 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             locs[loc.location_id] = (slug, loc, ef)
 
     placed = list(placed)
-    order = chain_order({lid: locs[lid][1].precedence for lid in locs}, extent_sizes(placed))
+    prec, size = {lid: locs[lid][1].precedence for lid in locs}, extent_sizes(placed)
+    order = chain_order(prec, size)
+
+    def plan_at(sid: int, lids: Iterable[str]) -> Tuple[Callable[[str], tuple], bool]:
+        """(T668 D2) the chain order on THIS section and whether it is a two-region chain. On a section in one region,
+        within a tier that region's place first, then `chain_order`'s size and id. On a GENUINE STRADDLER (a member of
+        two regions) carrying places of more than one region: `chain_order`, and each region's places cascade apart,
+        the most strict answer per fish speaking (`chain_calendar` `groups`). A section in no region: `chain_order`."""
+        nums = section_regions.numbers(sid) if section_regions is not None else frozenset()
+        if len(nums) > 1:
+            return order, len({locs[l][1].region_number for l in lids}) > 1
+        if not nums:
+            return order, False
+        (n,) = nums
+        return (lambda lid: (-prec.get(lid, 0), 0 if locs[lid][1].region_number == n else 1,
+                             size.get(lid, 1 << 30), lid)), False
+
+    # (T668 D3) a region-wide place binds exactly the members of its region (the one membership) — a straddler both
+    clip = {lid: region_clip(locs[lid][1]) for lid in locs} if section_regions is not None else {}
+
+    def binds(lid: str, sid: int) -> bool:
+        c = clip.get(lid)
+        if c is None:
+            return True
+        return bool(c[0] & section_regions.keys(sid)) or any(sid in section_regions.area(a) for a in c[1])
+
     covering: Dict[int, List[str]] = defaultdict(list)
     unmapped_locs: List[str] = []
     missing: List[str] = []
@@ -438,7 +580,8 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
             if sid is None:
                 missing.append(s)
                 continue
-            covering[sid].append(lid)
+            if binds(lid, sid):
+                covering[sid].append(lid)
     if missing:
         raise SalmonError(f"salmon: {len(missing):,} placed sections are not in the handle table (e.g. {missing[:3]}) "
                           "— the reach run and this atlas are not the same build")
@@ -447,31 +590,41 @@ def build(entry_files: Mapping[str, object], feeds: Mapping[str, dict], placed: 
     verdicts(NOT_LISTED)                                     # verdicts[0]
     # chain 0: THE UNLISTED WATER — no DFO location, every species closed every day (owner 2026-10-27)
     chains: List[dict] = [{"r": [], "w": "", "l": [], **chain_calendar([], verdicts, gears)}]
-    chain_ix: Dict[Tuple[Tuple[str, ...], Tuple[str, ...]], int] = {((), ()): UNLISTED_CHAIN}
+    chain_ix: Dict[tuple, int] = {((), (), ()): UNLISTED_CHAIN}
 
-    def chain_for(lids: Sequence[str], u: Iterable[str] = (), speaks: bool = False) -> int:
-        key = tuple(sorted(set(lids), key=order))
+    def chain_for(lids: Sequence[str], u: Iterable[str] = (), speaks: bool = False, at=order,
+                  grouped: bool = False) -> int:
+        key = tuple(sorted(set(lids), key=at))
         uk = tuple(sorted(set(u)))
-        if (key, uk) not in chain_ix:
-            chain_ix[(key, uk)] = len(chains)
+        # (T668) a two-region chain: `s`, each region's places (indices into `l`, by region number) — they cascade
+        # apart and the most strict answer per fish speaks
+        groups = tuple(tuple(i for i, l in enumerate(key) if locs[l][1].region_number == n)
+                       for n in sorted({locs[l][1].region_number for l in key})) if grouped else ()
+        if (key, uk, groups) not in chain_ix:
+            chain_ix[(key, uk, groups)] = len(chains)
             first = locs[(key or uk)[0]][1]
             chains.append({"r": sorted({locs[l][0] for l in key + uk}), "w": _label(first) if key else first.water,
                            "l": list(key), **({"u": list(uk)} if uk else {}),
+                           **({"s": [list(g) for g in groups]} if groups else {}),
                            **chain_calendar([rules_of[l] for l in key], verdicts, gears,
                                             undrawn_closed=all(all(r.get("header_note") for r in rules_of[l])
-                                                               for l in uk), speaks=speaks)})
-        return chain_ix[(key, uk)]
+                                                               for l in uk), speaks=speaks, groups=groups or None)})
+        return chain_ix[(key, uk, groups)]
 
-    # the DFO places not drawn yet, by the items of their water, onto those items' sections
+    # the DFO places not drawn yet, by the items of their water, onto those items' sections — (T668 D1) the sections in
+    # the place's own region only (the Fraser's Region 2 places stop at Region 2's line)
     undrawn_on: Dict[int, set] = defaultdict(set)
     for lid in unmapped_locs:
         slug, loc, ef = locs[lid]
         water = ef.water(loc.water_id) if loc.water_id else None
         for it in (water.item_ids if water else ()):
             for sid in (item_sections or {}).get(it, ()):
-                undrawn_on[sid].add(lid)
-    sections = sorted((sid, chain_for(covering.get(sid, ()), undrawn_on.get(sid, ())))
-                      for sid in set(covering) | set(undrawn_on))
+                if section_regions is None or loc.region_number in section_regions.numbers(sid):
+                    undrawn_on[sid].add(lid)
+    sections = []
+    for sid in sorted(set(covering) | set(undrawn_on)):
+        at, grouped = plan_at(sid, covering.get(sid, ()))
+        sections.append((sid, chain_for(covering.get(sid, ()), undrawn_on.get(sid, ()), at=at, grouped=grouped)))
     unmapped = []
     for lid in sorted(unmapped_locs):
         slug, loc, ef = locs[lid]

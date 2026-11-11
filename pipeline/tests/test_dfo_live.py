@@ -152,7 +152,7 @@ def golden() -> dict:
     files["6"].waters = [SimpleNamespace(name="Kispiox River", aliases=[], item_ids=["gnis:4674"])]
     payload, sections = S.build(files, feeds, placed, sid_of, {"gnis:4674": [11, 14]},
                                 headers={"6": H.parse_header(HEADER, "6")},
-                                upstream=lambda items: ["gnis:9"] if "gnis:4674" in items else [])
+                                upstream=lambda items: ["gnis:9"] if "gnis:4674" in items else [], section_regions=None)
     feed_notes = H.parse_header(HEADER.replace("is 4. Individual", "is 2. Individual"), "6")
     moved = [dict(WATER[0], when={"dates": [{"from_month": 8, "from_day": 1, "to_month": 9, "to_day": 15}]})] + WATER[1:]
     locs, verdicts, gears = _cals({"6:a": REGION, "6:b(i)": BAND, "6:kispiox": moved, "6:resort": BAND})

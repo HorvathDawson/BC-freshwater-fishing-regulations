@@ -109,24 +109,33 @@ def _at(runs: Sequence[int], day: int) -> int:
 
 
 def compose(lids: Sequence[str], locs: Mapping[str, dict], verdicts: Sequence[dict], undrawn: Sequence[str] = (),
-            speaks: bool = False) -> dict:
+            speaks: bool = False, groups: Optional[Sequence[Sequence[int]]] = None) -> dict:
     """A release chain's year from the feed: per species and day the FIRST location (narrowest first, the chain's own
     order) with an answer, else `NOT_LISTED` (index 0); gear the first with any; the map status from the five. The
     reference the app's `withSalmonFeed` is held to — equal to `deliver.salmon.chain_calendar` over the same rules.
     `undrawn`: the chain's `u` (DFO places on its water not drawn yet) — never the map's (T372, the trout way), only
     whether the header closure `c` holds for them too. `speaks`: an undrawn place's own chain carries `n`, the days DFO
-    speaks for it (`deliver.salmon.speaks_runs`)."""
-    cals = [locs[l] for l in lids if l in locs]
+    speaks for it (`deliver.salmon.speaks_runs`). (T668) `groups`: the chain's `s` — on a section in two regions each
+    region's places (indices into `lids`) answer apart and the most strict per fish speaks (`deliver.salmon.strictest`;
+    a group with no answer is `NOT_LISTED`); the gear lines are the first group's with any that day, as the release's
+    (`deliver.salmon.chain_calendar`; listing both regions' lines is a T668 follow-up)."""
+    subs = [[locs[lids[i]] for i in g if lids[i] in locs] for g in groups] if groups else \
+        [[locs[l] for l in lids if l in locs]]
     per_sp: List[List[int]] = [[] for _ in S.SPECIES]
     gear: List[int] = []
     mapc: List[int] = []
+    first = lambda xs: next((v for v in xs if v >= 0), 0)            # noqa: E731
     for day in range(len(S.DAYS)):
         vs = []
         for k in range(len(S.SPECIES)):
-            ix = next((v for v in (_at(c["sp"][k], day) for c in cals) if v >= 0), 0)
+            ixs = [first(_at(c["sp"][k], day) for c in cals) for cals in subs]
+            ix = ixs[0]
+            for j in ixs[1:]:
+                if S.STRICT.index(verdicts[j]["s"]) < S.STRICT.index(verdicts[ix]["s"]):
+                    ix = j
             per_sp[k].append(ix)
             vs.append(verdicts[ix])
-        gear.append(next((g for g in (_at(c["g"], day) for c in cals) if g >= 0), -1))
+        gear.append(next((g for cals in subs for g in (_at(c["g"], day) for c in cals) if g >= 0), -1))
         mapc.append(S.MAP_CODES.index(S.map_status(vs)))
     sp = [S.runs_of(x) for x in per_sp]
     # T356: closed by the region header every day — and so is every undrawn place the feed lists — `c`

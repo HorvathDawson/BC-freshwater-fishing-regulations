@@ -681,8 +681,15 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
         # read once here from the reach run's placements, the curated locations and the typed feed (`pipeline.deliver.salmon`)
         if _reaches is not None:
             from pipeline.deliver import salmon as _salmon
-            _files, _feeds, _placed = _salmon.load_inputs(
-                _reaches, _load_registry(str(Path(build_dir) / "registry.json")))
+            _salmon_reg = _load_registry(str(Path(build_dir) / "registry.json"))
+            _files, _feeds, _placed = _salmon.load_inputs(_reaches, _salmon_reg)
+            # (T668) each section's regions (the one membership), so a DFO place answers for its own region and a
+            # straddler takes both regions' places, the most strict per fish (`salmon.SectionRegions`)
+            _sregions = _salmon.section_regions_of(
+                _salmon_reg, _read_handles(build_dir)[1],
+                {_a for _ef in _files.values() for _loc in _ef.locations
+                 for _a in (_salmon.region_clip(_loc) or ((), ()))[1]})
+            del _salmon_reg
             # each water's sections (an absorbed id read as the water it names now): a DFO place not drawn yet marks its
             # whole water "check DFO" (partial coverage, owner 2026-10-28)
             _item_secs: dict = {}
@@ -723,7 +730,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None,
             del _ord_of_sid, _touch
             _payload, _salmon_secs = _salmon.build(_files, _feeds, _placed, _read_handles(build_dir)[1], _item_secs,
                                                    headers=_salmon.load_headers(_feeds),
-                                                   scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream)
+                                                   scope_headers=_salmon.load_current_headers(_feeds), upstream=_upstream,
+                                                   section_regions=_sregions)
+            del _sregions
             _salmon.write_bundle(db, _payload, _salmon_secs)
             cov.filled("salmon_section", len(_salmon_secs))
             # (T228) each DFO place's own words, for a salmon cut no split names; its chains' places, narrowest first
