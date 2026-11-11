@@ -79,3 +79,19 @@ def test_the_knots_the_panel_floor_and_the_forecast_days_are_the_pipelines():
     src = inspect.getsource(publish.percentile_of)
     assert "PCTILES" in src and "0.25" not in src
     assert publish.percentile_of(30, [10, 20, 30, 40, 50]) == 0.5
+
+
+def test_the_workers_model_policy_is_generated_from_change_and_skill():
+    """T557 item 2: the feeds worker's FLOOD_WEIGHTS / RISE_RATIO / STALE_GRACE_HOURS / DAY_COVER / MIN_PAIRS ... are
+    change.py's and skill.py's, written by the emitter; the worker's change.ts / score.ts declare none of them."""
+    from pipeline.gauges.feed import change, skill
+    assert E.WORKER_OUT.read_text(encoding="utf-8") == E.render_worker(), "run: python -m pipeline.tools.emit.gauge_policy"
+    w = E.render_worker()
+    assert "export const FLOOD_WEIGHTS: Readonly<Record<string, number>> = { CLEVER: 1, COFFEE: 1 };" in w
+    assert change.FLOOD_WEIGHTS == {"CLEVER": 1.0, "COFFEE": 1.0}
+    assert f"export const MIN_PAIRS = {skill.MIN_PAIRS};" in w and f"export const DAY_COVER = {change.DAY_COVER};" in w
+    gauges = E.WORKER_OUT.parent
+    for name in ("change.ts", "score.ts"):
+        src = (gauges / name).read_text(encoding="utf-8")
+        for const in ("FLOOD_WEIGHTS", "RISE_RATIO", "STALE_GRACE_HOURS", "DAY_COVER", "MIN_PAIRS", "LEADS"):
+            assert f"export const {const} =" not in src, f"{name} types {const} again"

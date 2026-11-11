@@ -1,7 +1,7 @@
 // T178 port of the SCORING half of pipeline/gauges/feed/skill.py (`band`, `cases`, `_stats`, `score`, `verdict`,
 // `feed_observed`, `clim_ranks`): the worker scores CLEVER vs COFFEE on the run archive skill.ts appends, once a month,
-// and REPORTS the verdict (status + the outbox). It never applies it: FLOOD_WEIGHTS (src/gauges/change.ts and Python's
-// change.py) move only in a reviewed change (owner 2026-11-04) — a weight that moved on its own would change every
+// and REPORTS the verdict (status + the outbox). It never applies it: FLOOD_WEIGHTS (Python's change.py, generated into
+// src/gauges/policy.generated.ts) move only in a reviewed change (owner 2026-11-04) — a weight that moved on its own would change every
 // forecast without anyone seeing why.
 //
 // THE WINDOW (the one difference from the CLI, which scores the whole archive): ONE archive month, the one that just
@@ -17,11 +17,9 @@ import type { RunsState } from "./skill";
 import { RUNS_STATE } from "./skill";
 import { addDays, centreWall, dayMs, dayOf, HOUR, instant } from "./time";
 
-export const LEADS = [1, 2, 3, 4, 5, 10];
-export const LOW = 0.25;
-export const HIGH = 0.75;
-export const MIN_PAIRS = 200;
-export const MIN_ISSUE_DAYS = 20;
+// (T557 item 2) skill.py's constants, generated (pipeline.tools.emit.gauge_policy), never typed here.
+import { HIGH, LEADS, LOW, MIN_ISSUE_DAYS, MIN_PAIRS } from "./policy.generated";
+export { HIGH, LEADS, LOW, MIN_ISSUE_DAYS, MIN_PAIRS };
 
 export type Rec = Record<string, any>;
 export interface Case {
@@ -274,7 +272,7 @@ export function skillText(s: SkillReport): string {
   lines.push("", `The feed ships CLEVER ${s.current.CLEVER}, COFFEE ${s.current.COFFEE}.`);
   lines.push(
     s.differs
-      ? "A lead's verdict differs from the shipped weights. Nothing changes by itself: to apply, edit FLOOD_WEIGHTS in app/workers/feeds/src/gauges/change.ts and pipeline/gauges/feed/change.py together (T178), with this table in decisions.md, then deploy the worker."
+      ? "A lead's verdict differs from the shipped weights. Nothing changes by itself: to apply, edit FLOOD_WEIGHTS in pipeline/gauges/feed/change.py and run python -m pipeline.tools.emit.gauge_policy (T178, T557), with this table in decisions.md, then deploy the worker."
       : "Every verdict matches the shipped weights: nothing to do.",
   );
   lines.push("", "The full table: GET /status.json (skill).");

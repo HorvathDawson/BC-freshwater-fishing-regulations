@@ -5,21 +5,13 @@ import { erf, pyRound, pySum } from "./py";
 import { addDays, centreWall, DAY_MS, dayMs, dayOf, HOUR, hours, instant } from "./time";
 import type { Run, Runs } from "./forecast";
 
-export const CHANGE_DAYS = 10;
-export const RISE_RATIO = 2.0;
-export const FALL_RATIO = 0.5;
-export const BIG_POINTS = 0.25;
-export const SPIKE_BACK = 0.5;
-/** (T347) change.STALE_GRACE_HOURS: a run is current to the next working day's issue plus this */
-export const STALE_GRACE_HOURS = 12.0;
-export const FLOOD_MODELS = ["CLEVER", "COFFEE"] as const;
-export const FLOOD_WEIGHTS: Record<string, number> = { CLEVER: 1.0, COFFEE: 1.0 };
-export const LOW_WATER_MODEL = "ELF";
-export const CHANGE_SCALE = 2.0;
-export const CODE_FLOOR = 0.005;
-export const PEAK_MODELS = ["COFFEE"];
-export const AHEAD_DAYS = CHANGE_DAYS;
-export const DAY_COVER = 0.75;
+// (T557 item 2) The policy constants are change.py's, generated (pipeline.tools.emit.gauge_policy), never typed here.
+import {
+  AHEAD_DAYS, BIG_POINTS, CHANGE_DAYS, CHANGE_SCALE, CODE_FLOOR, DAY_COVER, FALL_RATIO, FLOOD_MODELS, FLOOD_WEIGHTS, LOW_WATER_MODEL, PEAK_MODELS, RISE_RATIO, SPIKE_BACK, STALE_GRACE_HOURS,
+} from "./policy.generated";
+export {
+  AHEAD_DAYS, BIG_POINTS, CHANGE_DAYS, CHANGE_SCALE, CODE_FLOOR, DAY_COVER, FALL_RATIO, FLOOD_MODELS, FLOOD_WEIGHTS, LOW_WATER_MODEL, PEAK_MODELS, RISE_RATIO, SPIKE_BACK, STALE_GRACE_HOURS,
+};
 
 /** `rank(flow, day)`: that day's percentile for a flow, or null. */
 export type Rank = (v: number, day: string) => number | null;
