@@ -222,6 +222,23 @@ const ago = (iso: string | null, now: Date) => {
   return m < 90 ? `${m} min ago` : m < 2880 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`;
 };
 
+/** (T558 item 2) the daily backup and purge: when they last ran and how it went (late past 36 h) */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function dailyHtml(d: { backup: any; purge: any }, now: Date): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const row = (name: string, j: any, what: (j: any) => string) => {
+    if (!j) return `<tr><td>${name}</td><td class="never">never run</td><td></td></tr>`;
+    const late = now.getTime() - Date.parse(j.at) > 36 * 3600_000;
+    return `<tr><td>${name}</td><td class="${late ? "stale" : j.ok ? "ok" : "failing"}">${late ? "late" : j.ok ? "ok" : "failed"}</td>` +
+      `<td>${esc(j.at)} <small>(${ago(j.at, now)})</small><br><small>${esc(what(j))}${j.error ? ` · ${esc(String(j.error).slice(0, 200))}` : ""}</small></td></tr>`;
+  };
+  return `<h2>Daily jobs</h2><div class="wrap"><table><tr><th>job</th><th>state</th><th>last run</th></tr>` +
+    row("backup", d.backup, (j) => `${j.copied} copied, ${j.bytes} bytes, ${j.pruned ?? 0} pruned, ${j.skipped?.length ?? 0} skipped`) +
+    row("purge", d.purge, (j) => `reports ${j.deleted} deleted / ${j.kept} kept` +
+      (j.crashes ? ` · error kinds ${j.crashes.deleted} deleted` : "") + (j.limits ? ` · counters ${j.limits.deleted} deleted` : "")) +
+    `</table></div>`;
+}
+
 /** (T178) the last monthly model score (private/feeds/skill.json): per lead day, the verdict and its reason */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function skillHtml(sk: any, now: Date): string {
@@ -236,7 +253,8 @@ function skillHtml(sk: any, now: Date): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function statusHtml(s: Status, now: Date, skill: any = null, notify: { channel: string; digest: boolean } | null = null): string {
+export function statusHtml(s: Status, now: Date, skill: any = null, notify: { channel: string; digest: boolean } | null = null,
+                           daily: { backup: any; purge: any } | null = null): string {
   const rows = (["gauges", "dfo", "inseason"] as Job[]).map((j) => {
     const f = s.feeds[j];
     if (!f) return `<tr><td>${j}</td><td class="never">never run</td><td colspan="6"></td></tr>`;
@@ -269,7 +287,7 @@ ${rows.join("\n")}</table></div>
 <h2>Sources</h2><p><small>per upstream request (after retries): success rate and failures by class; "down" = runs in a row with nothing usable</small></p>
 <div class="wrap"><table><tr><th>feed</th><th>source</th><th>this run</th><th>24 h</th><th>7 d</th><th>down</th><th>last ok</th><th>last error</th></tr>
 ${sourceRows(s, now)}</table></div>
-${partsHtml(s, now)}${skillHtml(skill, now)}</body></html>`;
+${daily ? dailyHtml(daily, now) : ""}${partsHtml(s, now)}${skillHtml(skill, now)}</body></html>`;
 }
 
 const pct = (r: number | null) => (r === null ? "–" : `${(r * 100).toFixed(1)}%`);

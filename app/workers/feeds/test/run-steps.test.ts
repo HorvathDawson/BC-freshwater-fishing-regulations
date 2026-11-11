@@ -119,3 +119,26 @@ describe("state written only over what was read (T558 W13)", () => {
     expect(Object.keys(after.feeds).sort()).toEqual(["dfo", "inseason"]);
   });
 });
+
+// T558 item 2: nothing noticed when the daily crons stopped (backup.json said "ok" forever)
+describe("the daily jobs are watched (T558 item 2)", () => {
+  it("a backup or purge older than 36 h is one urgent message per last run; the status page shows both", async () => {
+    const { lateJobEvents, DAILY_JOB_LATE_MS } = await import("../src/index");
+    const b = new MemBucket();
+    const now = new Date("2026-11-10T12:00:00Z");
+    expect(await lateJobEvents(b, now, now.toISOString())).toEqual([]);                 // never run: nothing to say
+    b.m.set("private/feeds/backup.json", JSON.stringify({ at: "2026-11-09T09:25:00Z", ok: true, copied: 3, bytes: 9, skipped: [] }));
+    b.m.set("private/feeds/report-retention.json", JSON.stringify({ at: new Date(now.getTime() - DAILY_JOB_LATE_MS - 1).toISOString(), ok: true, deleted: 0, kept: 1 }));
+    const ev = await lateJobEvents(b, now, now.toISOString());
+    expect(ev.map((e) => [e.key.split(":").slice(0, 2).join(":"), e.urgent])).toEqual([["late:report purge", true]]);
+    // the page reads the real clock: a backup an hour ago, a purge two days ago
+    b.m.set("private/feeds/backup.json", JSON.stringify({ at: new Date(Date.now() - 3600_000).toISOString(), ok: true, copied: 3, bytes: 9, skipped: [] }));
+    b.m.set("private/feeds/report-retention.json", JSON.stringify({ at: new Date(Date.now() - 48 * 3600_000).toISOString(), ok: true, deleted: 0, kept: 1 }));
+    const h = await (await worker.fetch(new Request("https://w/status"), { BUCKET: b } as never)).text();
+    expect(h).toContain("<h2>Daily jobs</h2>");
+    expect(h).toMatch(/purge<\/td><td class="stale">late/);
+    expect(h).toMatch(/backup<\/td><td class="ok">ok/);
+    b.failGet.add("private/feeds/backup.json");
+    await expect(lateJobEvents(b, now, now.toISOString())).rejects.toThrow(/R2 GET/);
+  });
+});

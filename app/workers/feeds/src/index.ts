@@ -372,6 +372,10 @@ async function run(job: Job, env: Env, opts: { regions?: string[]; limit?: numbe
     else summary = { ...summary, errorClass: classOfError(e) };
   }
   const wallMs = Date.now() - t0;
+  // (T558 item 2) the gauge run (the most frequent) also watches the daily jobs
+  if (job === "gauges") {
+    try { events.push(...await lateJobEvents(env.BUCKET, started, at)); } catch (e) { logErr(`daily jobs: not checked (${String((e as Error)?.message ?? e)})`); }
+  }
   // (T558) the status (private/feeds/status.json) and the outbox. The status is written whatever the outbox does; a step
   // that fails is printed and kept in the result (`stepErrors`), never only in a log no cron prints
   const priv = r2Store(env.BUCKET, STATUS_PREFIX);
@@ -455,6 +459,29 @@ async function tell(job: string, env: Env, now: Date, events: FeedEvent[]): Prom
     console.error(JSON.stringify({ job, notifyError: error }));
     return { failed: events.length, error };
   }
+}
+
+/** (T558) the daily backup and purge run at 09:25 UTC: a last run older than this is told (urgent), once per last run */
+export const DAILY_JOB_LATE_MS = 36 * 3600_000;
+/**
+ * (T558 item 2) Nothing noticed when the daily crons stopped: backup.json said "ok" forever. The gauge run (every 30-60
+ * min) reads each daily job's last result; one older than DAILY_JOB_LATE_MS is one urgent health message. A job that
+ * has never run (a new deployment) says nothing here; the status page shows "never".
+ */
+export async function lateJobEvents(bucket: R2BucketLike, now: Date, at: string): Promise<FeedEvent[]> {
+  const out: FeedEvent[] = [];
+  for (const [name, key, retry] of [["backup", BACKUP_STATUS_KEY, "/run/backup"], ["report purge", RETENTION_STATUS_KEY, "/run/purge-reports"]] as const) {
+    const j = await readStored<{ at?: string }>(r2Store(bucket, ""), key);
+    const last = Date.parse(j?.at ?? "");
+    if (!j || !Number.isFinite(last) || now.getTime() - last <= DAILY_JOB_LATE_MS) continue;
+    out.push({
+      key: `late:${name}:${j.at}`, kind: "health", urgent: true, at,
+      title: `The daily ${name} has not run since ${j.at}`,
+      text: `The daily ${name} (cron "25 9 * * *", 09:25 UTC) last ran ${j.at}, more than ${DAILY_JOB_LATE_MS / 3600_000} h ago: its cron has stopped or every run fails before it records.\n\n` +
+        `Look: wrangler tail on the feeds worker; run it by hand: POST ${retry} (Bearer RUN_TOKEN).`,
+    });
+  }
+  return out;
 }
 
 /** (T246) the daily backup; a failure is told at once (urgent health event) */
@@ -613,7 +640,7 @@ export default {
       const nc = notifyConfig(env);
       const notifyInfo = { channel: channelOf(nc), digest: !!nc.digest };
       if (url.pathname === "/status.json") return Response.json({ ...servedStatus(st, now), notify: notifyInfo, backup: bk, reportRetention: rt, skill: sk }, { headers: { "Cache-Control": "no-store" } });
-      return new Response(statusHtml(st, now, sk, notifyInfo), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+      return new Response(statusHtml(st, now, sk, notifyInfo, { backup: bk, purge: rt }), { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/notify/test" && req.method === "POST") {
       if (!authed(req, env)) return new Response("Forbidden", { status: 403 });
