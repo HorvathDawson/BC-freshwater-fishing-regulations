@@ -9,6 +9,7 @@
  *
  * The phone writes a real file (`store.native.ts`). Nothing above this line can tell.
  */
+import { now } from "@app/core";
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
 import { openPhotos } from "./photoStore.web";
 
@@ -140,7 +141,7 @@ export function openNotifyStore(): { read(): string | null; write(text: string):
   return { ...keyStore(KEY), keepAside: (t) => {
     const s = globalThis.localStorage;
     if (!s) throw new Error("This browser is not letting the app store anything.");
-    s.setItem(`${KEY}.corrupt-${Date.now()}`, t);
+    s.setItem(`${KEY}.corrupt-${now()}`, t);
   } };
 }
 

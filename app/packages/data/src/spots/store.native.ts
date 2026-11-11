@@ -12,7 +12,7 @@
  * a crash, which is the entry someone just made.
  */
 import { Directory, File, Paths } from "expo-file-system";
-import { reportFailure } from "@app/core";
+import { now, reportFailure } from "@app/core";
 import { openSpotsWith, type SpotsFs, type SpotsStore } from "./core";
 import { openPhotos } from "./photoStore.native";
 
@@ -140,7 +140,7 @@ export function openNotifyStore(): { read(): string | null; write(text: string):
   return {
     ...fileStore("notify.json"),
     // (T554 item 2) an unreadable notify.json is copied aside before anything writes over it
-    keepAside: (t) => { if (!dir.exists) dir.create({ intermediates: true }); new File(dir, `notify.json.corrupt-${Date.now()}`).writeSync(t); },
+    keepAside: (t) => { if (!dir.exists) dir.create({ intermediates: true }); new File(dir, `notify.json.corrupt-${now()}`).writeSync(t); },
   };
 }
 

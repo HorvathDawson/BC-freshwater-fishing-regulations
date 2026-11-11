@@ -176,7 +176,6 @@ export const FINE: Record<string, { n: number; why: string }> = {
   "packages/data/src/spots/queue.ts": { n: 2, why: "the queue's tail: the caller holds `run`" },
   "packages/data/src/spots/runTimingStore.native.ts": { n: 1, why: CACHE },
   "packages/data/src/spots/runTimingStore.web.ts": { n: 1, why: CACHE },
-  "packages/data/src/spots/store.native.ts": { n: 1, why: PREF },
   "packages/data/src/spots/store.web.ts": { n: 1, why: PREF },
   "packages/data/src/update/check.ts": { n: 2, why: "a value, not a swallow: `{kind: failed}` goes to failSource (shown on the sync badge; reported unless offline)" },
   "packages/data/src/update/log.ts": { n: 2, why: "the Updates log's own storage" },
