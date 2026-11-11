@@ -664,7 +664,7 @@ use that as the sole source of future work."
 | T631 | Reach run follow-ups: binding diff on DFO-only changes, check flag for unplaced pieces, id dry-run before promote | OPEN | — | T546 follow-ups |
 | T632 | Owner: four decisions from the reach run (tidal subtraction, unplaced-piece gate, expected-unresolved note, 6 matched disagreements) | OPEN | — | T546 items 4–5; owner answers |
 | T633 | Gauge feed follow-ups: generated policy constants, refuse untagged feed, contract test on worker output, card wording, HYDAT mismatch warning | OPEN | — | T550/T557/T585 leftovers; two owner questions |
-| T634 | Lake tab: depth charts and stocking, to the owner's decisions (OGL, vector files, name variants, PDF compression) | OPEN | — | owner 2026-11-11; restarts the data half of T200/T201/T218 |
+| T634 | Lake tab: depth charts and stocking, to the owner's decisions (OGL, vector files, name variants, PDF compression) | OPEN | — | owner 2026-11-11; restarts the data half of T200/T201/T218. First pass items 1–5 d55900aba (licence: placed contours, sheet layer, stocking Access Only); item 6 (app) waits for the owner |
 
 ## Order for open tickets
 
