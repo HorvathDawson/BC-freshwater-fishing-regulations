@@ -29,7 +29,7 @@
  * at that zoom (linear between their stops, as the renderer interpolates), with `let` so a width is written once.
  */
 import { rampAt } from "./paint";
-import type { Tokens } from "./style";
+import { MAP_STYLE, STYLE_META, type Tokens } from "./style";
 
 type Ramp = readonly (readonly [number, number])[];
 
@@ -46,8 +46,12 @@ const edgeFade = (k: number): Ramp => [[13, 1], [15, k]];
 const fillFade = (k: number): Ramp => [[11, 1], [13, k]];
 const IMAGERY_LAKE_EDGE: Ramp = [[11, 1], [13, 1.8]];
 
-/** The fill layers that fade over imagery, and the lake outline drawn heavier. */
-const IMAGERY_FILLS: readonly string[] = ["lake", "lake_flowing", "wetland_flowing"];
+/**
+ * The fill layers that fade over imagery — every per-section water fill but the still wetland (hatched, light already) —
+ * and the lake outline drawn heavier.
+ */
+const IMAGERY_FILLS: readonly string[] = STYLE_META.highlightable.map((h) => h.id)
+  .filter((id) => id !== "wetland" && MAP_STYLE.layers.some((l) => l.id === id && (l as { type?: string }).type === "fill"));
 const IMAGERY_LAKE_OUTLINE = "lake__edge";
 
 type Stops = [number, unknown][];

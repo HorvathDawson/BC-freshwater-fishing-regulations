@@ -11,7 +11,7 @@ import { Pressable } from "./Pressable";
 import { hitProps } from "./regs/hit";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { LEGEND_TEXT, TYPE } from "./type";
-import type { Palette } from "./theme";
+import { round, type Palette } from "./theme";
 
 /**
  * The strip between the map and the tabs.
@@ -160,7 +160,7 @@ export function LegendCount({ palette, colour, n, label, line, dotted, striped, 
                              borderStyle: edge }} />
         : line && dotted ? <DottedSwatch colour={colour} width={lineW} thick={4} />
         : line && striped ? <StripedSwatch colour={colour} stripe={striped} width={lineW} />
-        : ring ? <View testID="legend-ring" style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: colour,
+        : ring ? <View testID="legend-ring" style={{ width: 12, height: 12, borderRadius: round(12), backgroundColor: colour,
                                                      borderWidth: 2.5, borderColor: ring }} /> : <View style={line
         ? { width: lineW, height: 4, backgroundColor: colour }
         : { width: 12, height: 12, borderRadius: palette.r.chip, backgroundColor: colour,

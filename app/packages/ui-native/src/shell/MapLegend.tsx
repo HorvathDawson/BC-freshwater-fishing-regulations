@@ -71,7 +71,7 @@ export function MapLegend({ col, conditions, palette, theme, mapDay }: {
    * gauge dots are drawn.
    */
   const ring = gaugeOnlyColours(theme);
-  const onlyRing = layers.effective.layers.gauges === true && flowParam !== "temperature" ? (
+  const onlyRing = conditions && layers.effective.layers.gauges === true && flowParam !== "temperature" ? (
     <LegendCount palette={palette} colour={ring.fill} ring={ring.ring}
                  label={OTHER_QUANTITY_WORDS[flowParam === "level" ? "discharge" : "level"].key} />
   ) : null;

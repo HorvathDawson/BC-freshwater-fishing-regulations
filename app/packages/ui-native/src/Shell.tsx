@@ -29,7 +29,7 @@ import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
-         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, HeldLookStore, type RegsStart } from "@app/ui";
+         BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
 import { visitSpot } from "@app/data/spots";
 import { connectivity } from "./connectivity";
@@ -247,7 +247,7 @@ export function Shell(p: ShellProps) {
    * tab's key it is — stays on the colouring the map last said it drew, and moves with the map; meanwhile the pressed
    * button says it is busy (`painting`).
    */
-  const lookStore = useMemo(() => new HeldLookStore<{ col: typeof col; tab: typeof tab }>(), []);
+  const lookStore = useHeldLookStore<{ col: typeof col; tab: typeof tab }>();
   const lookKey = JSON.stringify(col.mm.modes);
   lookStore.ask({ col, tab }, lookKey);
   // (T369 D10) the day and the Conditions horizon are the address's (and a recreated activity's): told on each change

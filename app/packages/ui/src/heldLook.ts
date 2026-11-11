@@ -10,7 +10,7 @@
  * screen ASKS on each render (`ask`), the map's word (`drawn`) notifies ONLY the subscribers (`useHeldLook`: the key and
  * the button) — the emulator showed a whole-screen re-render on the map's word putting the key ~100 ms behind the map.
  */
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 export interface HeldLook<T> {
   /** the look the caller asks for now */
@@ -69,6 +69,11 @@ const NOT_PAINTING = () => false;
 export function usePainting(store?: HeldLookStore<unknown>): boolean {
   return useSyncExternalStore(store?.subscribe ?? NO_SUBSCRIBE,
     store ? () => { const s = store.get(); return s.drawn !== s.want; } : NOT_PAINTING);
+}
+
+/** One store for the life of a screen (the screen asks it each render). */
+export function useHeldLookStore<T>(): HeldLookStore<T> {
+  return useMemo(() => new HeldLookStore<T>(), []);
 }
 
 /** The value the key shows, and whether the map is still painting the asked-for look. */

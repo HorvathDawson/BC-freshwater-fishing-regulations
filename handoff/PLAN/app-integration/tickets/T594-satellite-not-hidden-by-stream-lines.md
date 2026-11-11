@@ -1,6 +1,6 @@
 # T594 — Satellite view is not hidden by the stream lines
 
-Status: OPEN
+Status: IN REVIEW — dcfbf8f29 (look C built, web + phone from the one style source); the owner looks at the shots and picks the opacity
 
 Source: owner problem report 2026-11-10 07:31 UTC (worker report 442a0ecc, build 24, z9.6 near Chilliwack): "we need to
 figure out a way to have better satellite where it isn't blocked by the streams lines." (The same report's other half,
@@ -82,3 +82,43 @@ stream layer plus a fill fade, with no new layers. Take D only if the owner want
 
 ## Owner pick 2026-11-11
 Look C (two thin edges), as long as it does not block small streams; try lower opacity when zoomed in too. Measure tap target and the colour-blind gate before it ships; send before/after shots with the question.
+
+## Built 2026-11-11 (dcfbf8f29): look C, satellite only
+What a reader sees over satellite (the street map is painted exactly as before; `tools/imagery-casing.test.ts` proves it):
+- **z10 and out**: unchanged, today's solid line and lake fill.
+- **z11-z14**: the line opens: at z12 half open, from z14 two 1.5 px edges in the status colour with the water clear
+  between (`line-gap-width`). The Fraser at z15-16 is two orange edges with its gravel bars and water visible between.
+- **Small streams** (the owner's condition): the clear middle is never narrower than a creek's own width close in
+  (`IMAGERY_GAP_FLOOR`: 2 px at z13, 3 at z14, 5 at z15, 8 at z16, ~12 m of ground), so a creek a few pixels wide sits
+  BETWEEN the edges, never under one; the band is wider than today's line there instead of narrower. Chosen over a
+  centre hairline because a hairline sits ON the creek.
+- **Marks**: the gear edges and the selection outline sit just outside the coloured edges (as wide as before each side),
+  a passing run's dash and closed's paper dash break the edges themselves (closed still reads as broken, nothing over
+  the water). The no-access dots are thin already and unchanged.
+- **Lakes / river polygons / flowing wetlands**: fill fades to 0.2 of itself by z13; the lake outline (which carries the
+  status) 1.8x as heavy there.
+- **Opacity**: the edges are full strength today (`opacity.imagery.edge` = 1). Lower opacity close in FAILS the
+  colour-blind gate at a thin edge (below); 0.9 passes only with 2 px edges.
+
+Measured:
+- **Tap**: MapLibre hit-tests a line with a gap over its whole band (gap + both edges), and the band is never narrower
+  than today's line at any zoom, order or selection state (`imagery-casing.test.ts`, evaluated with MapLibre's own
+  evaluator). In the running web build: a point query at the line's centre (the clear middle) hits the stream at every
+  sampled midpoint (Fraser z10 103/103, z13 55/55; creek z14 30/30, z16 8/8; the streams in the Cultus Lake view z13 33/33), the same as today;
+  the 24 px tap box hits the same counts. The phone uses the same query geometry (`queryRenderedFeatures`), not run on
+  the emulator.
+- **Colour-blind gate** (`tools/status-colours-distinct.test.ts`, new row "as edges over satellite": coverage
+  e/(e+1) x opacity, held to the old satellite line's floors, over the imagery grounds plus dark forest #0a1b11 and the
+  Fraser's brown water #a7a385 sampled from the shots): the ticket's 1.4 px edge FAILED (closed/own 17.2 < 17.5 light and
+  cvd, closed/base 33.8 < 35); raised to **1.5 px at full opacity: passes**. 0.7 opacity fails at any width up to 4 px
+  (1.5 px: closed/own 13.5 < 17.5); 0.9 passes at 2 px. Mutation pins: 1.4 px and 0.7 fail.
+- Native: `line-gap-width` (data-driven since Android SDK 5.0) and `let`/`var`/`max`/`case` (6.0) are supported by
+  MapLibre Native 13.6.1; the phone's style (`nativeStyle`, satellite) passes the style-spec validator in every mode.
+
+Shots (web, 390 px, satellite, today's Trout colouring) in `handoff/PLAN/app-integration/T594-shots/final/`:
+`today-` vs `new-` `z10-fraser`, `z13-fraser`, `z15-fraser`, `z16-fraser`, `z14-creek`, `z16-creek` (Liumchen Creek),
+`z13-lake`, `z15-lake` (Cultus); opacity at z15: `opacity-z15-fraser-o1.0-edge1.5.jpg` (built),
+`opacity-z15-fraser-o0.9-edge2.jpg` (passes the gate), `opacity-z15-fraser-o0.7-edge1.5-fails-cvd.jpg` (fails it).
+Owner question: keep 1.5 px at full strength, or 2 px at 0.9? (0.7 would need the colour-blind floors lowered.)
+Not checked: the look on the phone itself (emulator or Pixel); a creek under heavy canopy is not visible in the imagery
+either way.
