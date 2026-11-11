@@ -1,6 +1,6 @@
 # T564 — Public gauge page: the forecast is on it, and the chart is large and readable
 
-Status: OPEN.
+Status: IN REVIEW — c6e9a39ed.
 
 Source: Owner 2026-11-09 (owner checks page, T487 + T530): "it shares but forecast data isnt on the gauge link. and the chart is very small and hard to read etc. utility is the most important part."
 

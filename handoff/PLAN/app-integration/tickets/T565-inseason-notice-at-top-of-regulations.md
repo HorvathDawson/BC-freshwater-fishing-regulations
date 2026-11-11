@@ -1,6 +1,6 @@
 # T565 — An in-season notice sits at the top of the Regulations page, not under salmon
 
-Status: OPEN.
+Status: IN REVIEW — dbbe3121b.
 
 Source: Owner 2026-11-09 (owner checks page, T520): "in season change is showing like it is under salmon but it should be at top. in season notice is not a salmon thing it is a general river thing."
 
