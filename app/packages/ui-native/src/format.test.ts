@@ -8,6 +8,18 @@
 import { describe, expect, it } from "vitest";
 import { ago, count, plural } from "./format";
 
+describe("(T620 G25) counts do not follow the device's language", () => {
+  it("groups with commas whatever the locale says", () => {
+    const was = Number.prototype.toLocaleString;
+    Number.prototype.toLocaleString = function () { return String(this).replace(/\B(?=(\d{3})+(?!\d))/g, "\u202f"); };   // a French-Canadian phone
+    try {
+      expect(count(60648, "reaches")).toBe("60,648 reaches");
+      expect(plural(1234, "stretch", "stretches")).toBe("1,234 stretches");
+      expect([count(999, "x"), count(1000, "x"), count(1234567, "x")]).toEqual(["999 x", "1,000 x", "1,234,567 x"]);
+    } finally { Number.prototype.toLocaleString = was; }
+  });
+});
+
 describe("count", () => {
   it("groups digits, the way every other figure in the app does", () => {
     expect(count(19699, "named waters")).toBe("19,699 named waters");

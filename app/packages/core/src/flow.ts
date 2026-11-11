@@ -65,7 +65,7 @@ export function ordinal(n: number): string {
  */
 export function catchmentLabel(km2: number | null | undefined): string {
   if (km2 == null || !Number.isFinite(km2) || km2 <= 0) return "—";
-  return km2 < 10 ? `${km2.toFixed(1)} km²` : `${Math.round(km2).toLocaleString()} km²`;
+  return km2 < 10 ? `${km2.toFixed(1)} km²` : `${grouped(Math.round(km2))} km²`;
 }
 
 /**
@@ -236,6 +236,7 @@ export { TRUST_FLOOR, type GaugeRel, type GaugeTrust } from "./gauge-policy.gene
 
 import type { GaugeTrust as Trust } from "./gauge-policy.generated";
 import { PERCENTILE_KNOTS } from "./gauge-policy.generated";
+import { grouped } from "./grouped";
 
 /**
  * What a band is called, in the two places the app says it.

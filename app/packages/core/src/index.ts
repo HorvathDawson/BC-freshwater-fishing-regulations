@@ -69,6 +69,7 @@ export * from "./staleness";
 export * from "./freshness";
 export * from "./likeVisit";
 export * from "./weatherFigure";
+export * from "./grouped";
 export * from "./spotVisits";
 export * from "./gestures";
 export * from "./waterViews";

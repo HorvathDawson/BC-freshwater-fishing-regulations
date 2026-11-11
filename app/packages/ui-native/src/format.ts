@@ -11,16 +11,16 @@
  * are none" are different claims, and only one of them is safe to show.
  */
 
-import { agoWords, now as clockNow } from "@app/core";
+import { agoWords, grouped, now as clockNow } from "@app/core";
 
 /** `count(60648, "reaches")` -> "60,648 reaches". Undefined in, undefined out. */
 export function count(n: number | null | undefined, word: string): string | undefined {
-  return n === null || n === undefined ? undefined : `${n.toLocaleString()} ${word}`;
+  return n === null || n === undefined ? undefined : `${grouped(n)} ${word}`;
 }
 
 /** `plural(1, "stretch", "stretches")` -> "1 stretch". */
 export function plural(n: number, one: string, many: string): string {
-  return `${n.toLocaleString()} ${n === 1 ? one : many}`;
+  return `${grouped(n)} ${n === 1 ? one : many}`;
 }
 
 /**
