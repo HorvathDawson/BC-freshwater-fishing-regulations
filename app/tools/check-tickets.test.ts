@@ -205,7 +205,8 @@ describe("T539 the docs guard", () => {
     }
   });
   it("a git-ignored output path may be absent; a glob or placeholder is not a path", () => {
-    const base = { ...live(), restart: "`app/dist/gone` `app/tools/*.mjs` `data/release/<r-id>`", isIgnored: (p: string) => p.startsWith("app/dist/") };
+    const base = { ...live(), restart: "`app/dist/gone` `app/tools/*.mjs` `data/release/<r-id>`", isIgnored: (p: string) => p.startsWith("app/dist/") || docs.isIgnored(p) };   // the other live docs keep the real answer: a
+    // fresh clone (CI) has no CLAUDE.md and no gauge feeds folder, both git-ignored
     expect(checkDocs(base)).toEqual([]);
   });
   it("fails on state in the restart page (release id, build number)", () => {
