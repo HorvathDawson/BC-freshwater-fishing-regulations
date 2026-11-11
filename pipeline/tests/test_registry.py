@@ -426,3 +426,44 @@ def test_mutation_ditches_kept_puts_the_ditch_back_in_the_river(monkeypatch):
     from pipeline.atlas.registry import build as B
     monkeypatch.setattr(B, "DITCHES_LEAVE_RIVER_ITEMS", False)
     assert "d1" in _with_ditch()["gnis:1"].section_ids
+
+
+# ---------------------------------------------------------------- owner 2026-11-11 (T637): a curated name ends at its cut
+
+
+def _cut_channel():
+    """An unnamed FWA line (no gnis anywhere on its code) named by a curated reach window up to an accepted cut: the
+    valley piece below the cut carries the name, the hillside piece above it carries none. A second code is named
+    whole (a plain wsc entry, every piece named)."""
+    g = StreamGraph()
+    cut = SectionBoundary("split:oxbow__foot_of_east_slope", BoundaryKind.split, 685.0, "foot of the east slope")
+    ox = (NameTuple("Okanagan River Oxbows", NameSource.regulation),)
+    g.nodes["v1"] = _node("v1", blk="B", wsc="300-500162", name="Okanagan River Oxbows", tuples=ox, hi=cut)
+    g.nodes["h1"] = _node("h1", blk="B", wsc="300-500162", lo=cut)          # above the cut: no name
+    g.nodes["w1"] = _node("w1", blk="C", wsc="300-469486", name="Okanagan River Oxbows", tuples=ox)
+    g.nodes["w2"] = _node("w2", blk="C", wsc="300-469486", name="Okanagan River Oxbows", tuples=ox)
+    # a gazetted river's nameless piece is NOT touched (only wsc:/blk: items are curated-name items)
+    tx = (NameTuple("River X", NameSource.gazette, gnis_id="1"),)
+    g.nodes["m1"] = _node("m1", blk="M", wsc="100", gnis="1", name="River X", tuples=tx)
+    g.nodes["m2"] = _node("m2", blk="M2", wsc="100")
+    return build_registry(g)
+
+
+def test_a_curated_name_ending_at_a_cut_leaves_the_nameless_hillside_out_of_the_item():
+    reg = _cut_channel()
+    assert set(reg["wsc:300-500162"].section_ids) == {"v1"}
+    assert not any("h1" in it.section_ids for it in reg.values() if it.kind != "area")
+
+
+def test_a_whole_line_name_keeps_every_piece():
+    assert set(_cut_channel()["wsc:300-469486"].section_ids) == {"w1", "w2"}
+
+
+def test_a_gazetted_rivers_nameless_piece_stays_in_its_item():
+    assert set(_cut_channel()["gnis:1"].section_ids) == {"m1", "m2"}
+
+
+def test_mutation_curated_items_keep_nameless_pieces_puts_the_hillside_back(monkeypatch):
+    from pipeline.atlas.registry import build as B
+    monkeypatch.setattr(B, "CURATED_NAME_ITEMS_KEEP_ONLY_NAMED", False)
+    assert set(_cut_channel()["wsc:300-500162"].section_ids) == {"v1", "h1"}

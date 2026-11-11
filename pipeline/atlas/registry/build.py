@@ -175,6 +175,35 @@ def drop_ditches(groups: dict[str, list]) -> dict[str, list]:
     return out
 
 
+#: POLICY (owner 2026-11-11, T637): A WATER NAMED ONLY BY CURATION IS ONLY ITS NAMED PIECES. An item keyed `wsc:` or
+#: `blk:` has no gnis anywhere on its code, so it exists only because a curated name (`name_variants.json`) named some
+#: of its pieces. Its NAMELESS pieces (no display name, no name tuple) joined it only by sharing the watershed code — the
+#: hillside above an accepted cut whose reach-window name ends at the cut (the Okanagan River Oxbows channels 500162,
+#: 466472, 461418-565942): the oxbow row's spring-closure exemption reached them through the code. They go back to no
+#: item (zone rules only), as before the name existed. A `gnis:` item (a gazetted river and its braids) and a lake are
+#: untouched. False is the mutation pin.
+CURATED_NAME_ITEMS_KEEP_ONLY_NAMED = True
+
+
+def _carries_a_name(n: StreamNode) -> bool:
+    return bool(n.display_name) or bool(n.name_tuples)
+
+
+def drop_nameless_from_curated_items(groups: dict[str, list]) -> dict[str, list]:
+    """`groups` with every nameless piece taken out of a `wsc:` / `blk:` stream item that has a named piece
+    (`CURATED_NAME_ITEMS_KEEP_ONLY_NAMED`). A group with no named piece at all is left as it is: the named-items
+    filter in `build_registry` (or an override pin) decides it, exactly as before."""
+    out: dict[str, list] = {}
+    for iid, nodes in groups.items():
+        if iid.startswith(("wsc:", "blk:")) and nodes and nodes[0].kind not in WATERBODY_KINDS:
+            keep = [n for n in nodes if _carries_a_name(n)]
+            if keep:
+                out[iid] = keep
+                continue
+        out[iid] = nodes
+    return out
+
+
 STILL_RE = re.compile(r"\b(lake|lakes|pond|reservoir|lagoon)\b", re.I)
 
 
@@ -314,6 +343,8 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
         if DITCHES_LEAVE_RIVER_ITEMS:
             groups = drop_ditches(groups)
         groups = split_distinct_names(groups)      # a NAMED side channel is its own water, not a reach
+        if CURATED_NAME_ITEMS_KEEP_ONLY_NAMED:
+            groups = drop_nameless_from_curated_items(groups)   # T637: a curated name ends at its cut
 
     registry: dict[str, RegistryItem] = {}
     _t_items = time.perf_counter()
