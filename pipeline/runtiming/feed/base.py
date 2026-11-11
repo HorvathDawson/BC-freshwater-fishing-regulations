@@ -36,6 +36,8 @@ import tempfile
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Sequence, Tuple
 
+from pipeline.common.names import key as the_name_key
+
 FORMAT = "runtiming-base/1"
 MIN_ORDER = 3
 LAYERS = ("stream", "lake")
@@ -44,9 +46,12 @@ KEY = "private/runtiming/base/{handles}.json.gz"
 
 
 def name_key(name: Optional[str]) -> str:
-    """A water's name for comparison: lower case, one space; a DFO stretch's suffix dropped ("BABINE RIVER - SECTION 4"
-    is the Babine River). The base stores these keys; `bind.observed` compares a DFO site's name by the same rule."""
-    return " ".join((name or "").split(" - ")[0].lower().replace("'", "").split())
+    """A water's name for comparison: THE pipeline name key (`pipeline.common.names.key`: accents folded, apostrophes
+    deleted, punctuation a space — T552 item 7, so "Pend-d'Oreille River" and "PEND D'OREILLE RIVER" are one name), with
+    a DFO stretch's suffix dropped first ("BABINE RIVER - SECTION 4" is the Babine River). The base stores these keys;
+    `bind.atlas_of` re-keys them (a base written by the older rule reads the same) and `bind.observed` keys a DFO site's
+    name by this rule."""
+    return the_name_key((name or "").split(" - ")[0])
 
 
 # ---- geometry, cheaply ---------------------------------------------------------------------------------------------

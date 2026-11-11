@@ -325,3 +325,31 @@ def test_t552_age_bands_count_every_record_once():
     from pipeline.runtiming.feed.bind import age_bands
     got = age_bands([1948, 1980, 1989, 1990, 2009, 2010, 2024, None])
     assert got == {"before 1980": 1, "1980-1989": 2, "1990-1999": 1, "2000-2009": 1, "2010 on": 2, "undated": 1}
+
+
+def test_t552_run_timing_names_compare_by_the_one_pipeline_name_key(tmp_path):
+    """(T552 item 7) the run-timing name rule was its own (hyphens, periods and accents kept): FWA's "Barrière River"
+    never met NuSEDS's "BARRIERE RIVER", and 4 DFO records (22 section pairs on the live atlas) bound nothing. It is now
+    `names.key` with the stretch suffix dropped; a base written by the older rule is re-keyed when read."""
+    from pipeline.common import names
+    from pipeline.runtiming.feed.bind import atlas_of
+    assert BASE.name_key("BARRIERE RIVER - SECTION 2") == BASE.name_key("Barrière River") == names.key("Barriere River")
+    assert BASE.name_key("PEND D'OREILLE RIVER") == BASE.name_key("Pend-d'Oreille River") == "pend doreille river"
+    assert BASE.name_key(None) == ""
+    # a base stored before this change kept "pend-doreille river" / "barrière river": read, they are today's keys
+    old = json.loads(gzip.decompress(make_base(tmp_path).read_bytes()))
+    old["strings"]["nm"] = ["pend-doreille river" if n == "big river" else "barrière river" if n == "test creek" else n
+                            for n in old["strings"]["nm"]]
+    a = atlas_of(old)
+    assert a.names[1] == frozenset({"pend doreille river"}) and a.names[3] == frozenset({"barriere river"})
+
+
+def test_t552_the_report_names_dfo_records_that_bind_nothing(built, tmp_path):
+    """(T552 item 7) a DFO record that binds no section is counted and named in the report, never just absent."""
+    timing, poly = make_inputs(tmp_path)
+    doc = json.loads(timing.read_text())
+    lost = {**doc["dfo"][0], "key": "dfo:77:Coho:-", "name": "Nowhere Creek", "wsc": "300-000001"}
+    write_timing(timing, doc["psf"], doc["dfo"] + [lost], doc["sources"])
+    _files, _index, report = B.build(timing, poly, make_base(tmp_path))
+    assert report["dfo_records_unbound"] == 1 and report["dfo_unbound_examples"] == ["dfo:77:Coho:- Nowhere Creek"]
+    assert built[2]["dfo_records_unbound"] == 0

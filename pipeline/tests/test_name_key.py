@@ -140,6 +140,8 @@ CALLERS = {
     "pipeline/atlas/waters/added_streams/build_dataset.py": "from pipeline.common.names import compact_key",
     "pipeline/atlas/waters/added_streams/validate.py": "from pipeline.common.names import compact_key",
     "pipeline/atlas/waters/added_streams/dem.py": "from pipeline.common.names import compact_key",
+    # T552 item 7: run timing's site-to-section name match
+    "pipeline/runtiming/feed/base.py": "from pipeline.common.names import key as the_name_key",
 }
 
 

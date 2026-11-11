@@ -69,7 +69,9 @@ def atlas_of(base: dict) -> Atlas:
         wsc={x: st["wsc"][i] for x, i in zip(sids, c["wsc"])}, blk=dict(zip(sids, c["blk"])),
         m0=dict(zip(sids, c["m0"])), m1=dict(zip(sids, c["m1"])),
         wbk={x: st["wbk"][i] for x, i in zip(sids, c["wbk"])},
-        names={x: frozenset(nm[i] for i in ns) for x, ns in zip(sids, c["nm"])},
+        # re-keyed: a base written before T552 item 7 stored the older key ("pend-doreille river"); the key of a key is
+        # the key, so either vintage compares by today's rule
+        names={x: frozenset(name_key(nm[i]) for i in ns) for x, ns in zip(sids, c["nm"])},
         down={x: list(d) for x, d in zip(sids, c["dn"]) if d},
         item={x: st["it"][i] for x, i in zip(sids, c["it"]) if i >= 0},
         point={x: (a / 1e5, b / 1e5) for x, a, b in zip(sids, c["x"], c["y"])},
@@ -258,10 +260,15 @@ def bind(a: Atlas, psf: Sequence[TimedRun], dfo: Sequence[TimedRun], polygons: M
         per[s].update((i, OBSERVED) for i in m.values())
     per = {s: v for s, v in per.items() if v}
     bound_dfo = sorted({i for m in seen.values() for i in m.values()})
+    bound_set = set(bound_dfo)
+    unbound = [r for j, r in enumerate(dfo) if len(psf) + j not in bound_set]
     report = {"psf_runs_bound": len(spawn), "dfo_records_bound": len({i for m in seen.values() for i in m.values()}),
               "spawning_sections": len({s for v in spawn.values() for s in v}),
               "passage_sections": len({s for v in passing.values() for s in v}), "observed_sections": len(seen),
               "sections": len(per),
+              # T552 item 7: the DFO records that bound no section (a name or code the atlas does not carry), named
+              "dfo_records_unbound": len(unbound),
+              "dfo_unbound_examples": sorted(f"{r.key} {r.name}" for r in unbound)[:25],
               # Q180: the observed sections that also carry a PSF spawning run (shown first, the DFO survey beside it)
               "observed_beside_psf_spawning": sum(1 for s in seen if any(rel == SPAWNING for _, rel in per[s])),
               # how old the bound surveys are (the sheet states the years; this makes it visible every build)
