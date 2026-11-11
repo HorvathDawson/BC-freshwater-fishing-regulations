@@ -678,7 +678,7 @@ use that as the sole source of future work."
 | T665 | Tidal: cut every creek where it leaves the tidal polygon; remove the 206 lines wholly inside it (named too) | OPEN | — | owner 2026-11-11 on T660 A–J; design first; next atlas rebuild, after build 27 |
 | T666 | One release path: everything cut from the live release is refreshed by the release itself; preflight lists every failure at once | OPEN | — | owner 2026-11-11 after build 27 took six runs; closed-testing run |
 | T667 | Tests that grow with the app: fewer hand updates per release and per feature (audit and design first, Fable) | OPEN | — | owner 2026-11-11; closed-testing run; with T666 |
-| T668 | Audit: a DFO place covering one river stretch in more than one region (Fraser, Regions 2 and 3) | OPEN | — | owner 2026-11-11; read-only audit first; next chat |
+| T668 | Audit: a DFO place covering one river stretch in more than one region (Fraser, Regions 2 and 3) | PARTIAL | — | owner 2026-11-11; audit in T668-audit.md: 27 chains / 493 sections (Fraser A 238, tie B 91, tier C 118, undrawn D 46; status flips on 87); left (Claude): one fix ticket per class once the owner answers D1–D5 |
 
 ## Order for open tickets
 

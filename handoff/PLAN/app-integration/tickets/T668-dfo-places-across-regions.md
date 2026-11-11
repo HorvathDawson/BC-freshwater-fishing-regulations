@@ -1,6 +1,6 @@
 # T668 — Audit: a DFO place that covers one river stretch in more than one region (Fraser, Regions 2 and 3)
 
-Status: OPEN
+Status: PARTIAL — audit done (`handoff/PLAN/app-integration/T668-audit.md`: 27 chains / 493 sections; Fraser R2/R3 places undrawn and spread over the whole mainstem); left (Claude): one fix ticket per class once the owner answers D1–D5
 
 Source: owner 2026-11-11: "look into how DFO places that match to multiple regions, same river section, like Fraser
 2/3, is handled. To audit it."
