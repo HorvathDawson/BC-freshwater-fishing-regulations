@@ -1,6 +1,6 @@
 # T663 — Oxbows line 459615: the valley piece below the cut is pruned (0.45 km not bound)
 
-Status: OPEN
+Status: DROPPED — owner 2026-11-11: "The oxbows missing the one is probably fine" (accepted as is)
 
 Source: T637 build 27 verification (c88d63d26). Same on the atlas before build 27; nothing lost against live.
 

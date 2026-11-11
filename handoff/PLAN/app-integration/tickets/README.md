@@ -673,7 +673,8 @@ use that as the sole source of future work."
 | T660 | Tidal: streams entering a removed tidal mainstem are not cut at the tidal boundary (Skeena, Nass estuaries) | PARTIAL | 12358ece6, cb41409bb, 7a9a796d0 | rule: a creek's FWA water crossing (1450) into tidal water is tidal; build 27 atlas built (full_next): 532 shore cuts, 97 braid-spanned shores listed not cut, 0 straddles; ~161 crossings / 120.0 km expected tidal; left (Claude): reach rerun, binding diff, restamp/promote (build-27 chain); owner list T660-owner-list.json |
 | T661 | Two tests red after the hardening lanes (precheck test's session.sh half; review-gate live-tree test); then install the parked heavy.sh gate | OPEN | — | from the scripts-hardening hand-back; item 2 waits on T637 |
 | T662 | Stream lines still drawn over tidal water after the shore rule (creeks on tidal flats, 191 freshwater receivers, 32 uncut runs) | OPEN | — | owner 2026-11-11: later pass, after closed testing starts |
-| T663 | Oxbows line 459615: valley piece below the cut is pruned (0.45 km not bound by the oxbow rule) | OPEN | — | from the T637 build 27 check; same on the old atlas; owner picks accept or prune fix (next atlas rebuild) |
+| T663 | Oxbows line 459615: valley piece below the cut is pruned (0.45 km not bound by the oxbow rule) | DROPPED | — | from the T637 build 27 check; same on the old atlas; owner picks accept or prune fix (next atlas rebuild); owner 2026-11-11: "probably fine", accepted as is |
+| T664 | Okanagan River Oxbows: one water, not 31 items (search and map list every channel) | OPEN | — | owner 2026-11-11; next atlas rebuild, with the nine waiting DFO cuts |
 
 ## Order for open tickets
 
