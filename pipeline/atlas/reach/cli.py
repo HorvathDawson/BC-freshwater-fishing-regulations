@@ -179,19 +179,19 @@ def main() -> int:
     from pipeline.atlas.reach.build import load_unplaced_calls, scope_gate, straddle_gate, unplaced_gate
     failed: list[str] = []
 
-    def gate(fn, *a):
+    def ask(fn, *a):          # not `gate`: that name is the catalogue's one acceptance gate (test_one_acceptance_gate)
         try:
             fn(*a)
         except (RuntimeError, SystemExit) as e:
             failed.append(f"{type(e).__name__}: {e}")
 
-    gate(straddle_gate, result.diagnostics)
+    ask(straddle_gate, result.diagnostics)
     # T546 item 2: and on a row with rules whose scope does not resolve (its rules are held unresolved)
-    gate(scope_gate, result.bindings)
+    ask(scope_gate, result.bindings)
     # T632 (owner 2026-11-11): EVERY unplaced piece — any reason, a rule's or a DFO place's — stops the run unless the
     # owner accepted it (`unplaced_piece_calls.json` `accepted`); the DFO places are placed only with --out
-    gate(unplaced_gate, list(r.unplaced) + (dfo_salmon.unplaced(dfo_diags) if args.out else []),
-         load_unplaced_calls())
+    ask(unplaced_gate, list(r.unplaced) + (dfo_salmon.unplaced(dfo_diags) if args.out else []),
+        load_unplaced_calls())
     # T632: and on a curated override id that names no water (no "expected" note: the override is fixed)
     if r.override_id_gaps:
         failed.append(f"DeadOverrideIds: {len(r.override_id_gaps)} book_name_links override(s) hold an id that names "
