@@ -11,9 +11,7 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
@@ -26,8 +24,9 @@ from pipeline.deliver.export import (
     guide_words as export_guide_words, model as export_model, read as export_read
 )
 from pipeline.tests.conftest import need, BUNDLE_HINT
+from pipeline.tests import under_test
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.fixture(scope="module")

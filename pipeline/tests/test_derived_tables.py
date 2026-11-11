@@ -5,15 +5,14 @@ state; the slow test holds the built bundle's parts to the grouping the export u
 from __future__ import annotations
 
 import importlib
-import os
 import sqlite3
 
 import pytest
 
-from pipeline.common.curated import GENERATED
 from pipeline.deliver.bundle import derived
 from pipeline.tests.bundle_fixture import finish, section_sets
-from pipeline.tests.conftest import need, predates, BUNDLE_HINT
+from pipeline.tests import under_test
+from pipeline.tests.conftest import predates
 
 SCHEMA = importlib.import_module("pipeline.deliver.bundle.build").SCHEMA
 
@@ -137,8 +136,7 @@ _OLD_PART_SQL = (
 @pytest.mark.slow
 @pytest.mark.needs_bundle
 def test_the_stored_parts_are_the_old_grouping_on_the_built_bundle():
-    bundle = need(None, "bundle", os.environ.get("UI_EXPORT_BUNDLE") or GENERATED.bundle / "bundle.sqlite",
-                  BUNDLE_HINT)
+    bundle = under_test.bundle()
     db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
     db.execute("PRAGMA temp_store = MEMORY")
     if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'part'").fetchone():

@@ -13,17 +13,16 @@ Every case's `expect` is the reference reader's (`read.effective_rules`); each t
 """
 from __future__ import annotations
 
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as RD
 from pipeline.deliver.export import contract as export_contract, model as export_model
 from pipeline.tests.conftest import need, BUNDLE_HINT
+from pipeline.tests import under_test
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 Z3 = "z3:daily_quotas::trout_char_quota"
 #: mechanism -> (water item_id, date, fish, ids that speak, ids that must be absent)

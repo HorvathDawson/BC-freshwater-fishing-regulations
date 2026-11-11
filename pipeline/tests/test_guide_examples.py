@@ -10,8 +10,6 @@ is refused. `UI_EXPORT_BUNDLE` points the suite at a side bundle.
 from __future__ import annotations
 
 import copy
-import os
-from pathlib import Path
 
 import pytest
 
@@ -21,8 +19,9 @@ from pipeline.deliver.export import (
 )
 from pipeline.deliver.export import examples as G
 from pipeline.tests.conftest import need, BUNDLE_HINT
+from pipeline.tests import under_test
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.fixture(scope="module")

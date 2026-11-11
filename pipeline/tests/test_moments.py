@@ -16,18 +16,17 @@ instruction (review B17).
 from __future__ import annotations
 
 import json
-import os
 import re
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver import calendar as CAL
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.conftest import need, predates, BUNDLE_HINT, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
 
 LWA = "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7::kootenay_lake_lower_west_arm"
 LWA_ITEM = "wbk:-22"

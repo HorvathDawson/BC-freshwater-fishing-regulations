@@ -13,7 +13,6 @@ mutation:
 """
 from __future__ import annotations
 
-import os
 import sqlite3
 from collections import defaultdict
 
@@ -22,8 +21,9 @@ import pytest
 from pipeline.deliver.bundle import read as R
 from pipeline.tests.test_competition import _tiny as _tiny_one
 from pipeline.tests.conftest import need, BUNDLE_HINT
+from pipeline.tests import under_test
 
-BUNDLE = os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE
+BUNDLE = str(under_test.path("bundle"))
 
 DENETIAH = "r7:denetiah_creek@7-52::denetiah_creek.r1"            # "No fishing, Jul 1-15"
 LIARD = "r7:liard_river_watershed_see_map_on_page_63@7-53::liard_river_watershed"

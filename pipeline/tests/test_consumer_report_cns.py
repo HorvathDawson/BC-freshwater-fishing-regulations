@@ -16,9 +16,7 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
@@ -28,8 +26,9 @@ from pipeline.regs.parsing import catalogue as C
 from pipeline.regs.parsing.io import read_all_entries
 from pipeline.deliver.export import contract as export_contract, model as export_model, read as export_read
 from pipeline.tests.conftest import need, BUNDLE_HINT
+from pipeline.tests import under_test
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or export_contract.BUNDLE)
+BUNDLE = under_test.path("bundle")
 SHUSWAP = "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26"
 KOOTENAY_MAIN = "wbk:-20"
 DUCK_LAKE = "wbk:329246292"

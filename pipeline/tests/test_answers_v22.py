@@ -8,10 +8,8 @@ and each ruling is pinned by a mutation where one exists.
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from functools import lru_cache
-from pathlib import Path
 
 import pytest
 
@@ -19,13 +17,13 @@ from pipeline.deliver.answers import encode as E
 from pipeline.deliver.answers import glossary as G
 from pipeline.deliver.bundle.glossary_source import rows_from_book
 from pipeline.deliver.answers.common import AnswersError, load_export
-from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
 from pipeline.tests.conftest import need, part_at, EXPORT_HINT
+from pipeline.tests import under_test
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
-CAT = Path(__file__).resolve().parents[2] / "data/curated/regulations/synopsis"
+BUNDLE = under_test.path("bundle")
+EXPORT_DIR = under_test.path("export_dir")
+CAT = under_test.curated().regulations.synopsis
 
 BABINE, SKEENA, VEDDER, TESLIN = "gnis:17687", "gnis:2936", "gnis:3062", "wbk:328961703"
 CHILLIWACK = "gnis:8634"            # the Vedder above Vedder Crossing
