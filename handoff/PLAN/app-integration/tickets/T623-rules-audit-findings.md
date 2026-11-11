@@ -162,3 +162,10 @@ The new reach tables were compared with the live run, filtered to T623's rules.
   - `test_displacement_rulings.py -k f8`
   - `test_competition.py -k f12`
   - `test_rulings_pinned.py -k "f6 or t623"`
+
+**Build 27 deliver refusal (2026-11-11), fixed.** The export's closure scan (`export/closures._closure_scan`) refused "Rainbow trout daily quota = 2" (Adams River upstream of Adams Lake r1, ruleset 268; File Creek r1, ruleset 403) as "silenced under a blanket closure" for ST on Jan 1.
+- Cause: F12 (89206b670). A size-free rainbow quota now speaks for steelhead, so the scan asked it about ST. There the provincial steelhead rules beat it by naming (the ladder), not Region 3's spring stream closure. On the live bundle the rows passed only because ST was never asked.
+- The answers are right per the book: the closure holds for both fish, and steelhead takes the steelhead rules (p.80: a steelhead is a rainbow; the steelhead rules name it).
+- Fix: `closures.scan_fish` asks such a rule about the rainbow only. A rule that names steelhead, or a group holding it, is still asked about ST. No known-list or curated change.
+- Test: `test_competition.py::test_f12_the_closure_scan_asks_a_size_free_rainbow_quota_about_the_rainbow_not_the_steelhead` (mutation-checked: without the exclusion it fails).
+- Rerun: deliver (the build's deliver stage).

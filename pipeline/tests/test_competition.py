@@ -1791,6 +1791,23 @@ def test_f12_a_size_free_rainbow_rule_speaks_for_steelhead_and_does_not_name_it(
     assert not R.speaks_for({"species": ["ST"]}, "RB")           # one way only: a steelhead rule is not a rainbow rule
 
 
+def test_f12_the_closure_scan_asks_a_size_free_rainbow_quota_about_the_rainbow_not_the_steelhead():
+    """Build 27's export refused "Rainbow trout daily quota = 2" (Adams River upstream of Adams Lake r1, File Creek r1)
+    as "silenced under a blanket closure" for ST on Jan 1: under F12 it speaks for a steelhead, where the provincial
+    steelhead rules beat it by NAMING (ladder), not Region 3's spring stream closure. The scan asks such a rule about
+    the rainbow only; a rule that names steelhead is still asked about it. MUTATION: the unfiltered list (what the scan
+    asked before the fix) holds ST, so the exclusion is doing the work."""
+    from pipeline.deliver.export.closures import scan_fish
+    asked = {"RB", "ST", "CT", "DV"}
+    quota = {"type": "retention_limit", "species": ["RB"], "take": 2}
+    assert R.speaks_for(quota, "ST")
+    assert scan_fish(quota, asked) == ["RB"]
+    assert [f for f in ("RB", "ST") if R.speaks_for(quota, f)] == ["RB", "ST"]       # the mutation: unfiltered
+    assert scan_fish({**quota, "species": ["RB", "ST"]}, asked) == ["RB", "ST"]
+    assert scan_fish({**quota, "species": ["ST"]}, asked) == ["ST"]
+    assert "ST" in scan_fish({**quota, "species": ["TROUT_CHAR"]}, asked)            # a group holding steelhead
+
+
 def _f12(tmp_path, extra=()):
     return _tiny(tmp_path, [
         {"entry": "r6:stellako", "rule": "stellako.r3", "species": ["RB"], "take": 0, "may_target": 1, "_rank": 0},

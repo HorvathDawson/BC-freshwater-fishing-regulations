@@ -218,6 +218,27 @@ QUOTA_UNDER_CLOSURE_KNOWN: dict[tuple[str, str], str] = {
 _SCAN: dict = {}
 
 
+def scan_fish(x: dict, asked) -> list:
+    """The fish the closure scan asks a water row's rule about, among those asked on the key: its
+    named fish in the order it names them, then every other game fish (a rule naming none, or an
+    open subject such as ALL_FIN_FISH, speaks for every game fish — `read.speaks_for`).
+
+    LEFT OUT: a steelhead the rule speaks for only because it is a size-free rainbow rule
+    (`read.size_free_rainbow`, T623 F12, RULINGS S12). Such a rule speaks for "ST" but does not NAME
+    it, so wherever steelhead rules apply a rule printed for steelhead beats it by naming (the
+    ladder), never the zone closure; and where none apply "ST" is answered as "RB" (RU-6). Its
+    question — does a zone closure hide a missed exemption for this quota? — is the rainbow's, which
+    the scan asks. Asked as "ST" it reported the steelhead rules' win as a quota silenced by the
+    closure (build 27: Adams River upstream of Adams Lake r1, File Creek r1, "Rainbow trout daily
+    quota = 2" under Region 3's spring stream closure)."""
+    from pipeline.deliver.bundle import read as RD
+    from pipeline.regs.parsing.catalogue import expand_species
+    named = expand_species(list(x.get("species") or []))
+    order = list(dict.fromkeys(named + list(C.GAME_FISH)))
+    widened = RD.size_free_rainbow(x) and "ST" not in named and not RD.names_fish(x, "ST")
+    return [f for f in order if f in asked and RD.speaks_for(x, f) and not (f == "ST" and widened)]
+
+
 def _closure_scan(bundle: Path) -> dict:
     """ONE SCAN FOR BOTH CHECKS: every water-row (`r…`) retention rule that is a dated outright
     release or a keeping quota, on EVERY RULE KEY of each rule set it binds (DATAFLOW M8, decision
@@ -232,7 +253,6 @@ def _closure_scan(bundle: Path) -> dict:
     finding: the row closes its own water, no zone closure hides an exemption there."""
     from pipeline.deliver.bundle import read as RD
     from pipeline.deliver.bundle.rules import closure_grade, release_origins, keeps
-    from pipeline.regs.parsing.catalogue import expand_species
     key = str(Path(bundle).resolve())
     if key in _SCAN:
         return _SCAN[key]
@@ -252,12 +272,7 @@ def _closure_scan(bundle: Path) -> dict:
     def starts(x: dict) -> set:
         return {(d["from_month"], d["from_day"]) for d in (x.get("when") or {}).get("dates") or []}
 
-    def fish_of(x: dict, asked) -> list:
-        """The fish a rule speaks for, among those asked on the key: its named fish in the
-        order it names them, then every other game fish (a rule naming none, or an open subject
-        such as ALL_FIN_FISH, speaks for every game fish — `read.speaks_for`)."""
-        order = list(dict.fromkeys(expand_species(list(x.get("species") or [])) + list(C.GAME_FISH)))
-        return [f for f in order if f in asked and RD.speaks_for(x, f)]
+    fish_of = scan_fish
 
     out: dict = {"release": [], "quota": []}
     seen: set = set()
