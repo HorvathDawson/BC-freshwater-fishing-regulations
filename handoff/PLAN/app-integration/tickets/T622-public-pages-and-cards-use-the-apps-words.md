@@ -1,6 +1,6 @@
 # T622 — The public pages and share cards use the app's own words and day
 
-Status: OPEN
+Status: IN REVIEW 1aed37981 (G2, G6-G9, G18, G22-G24, G28 done; G16 not done: the app's start link names no gauge)
 
 Source: T608 part B (owner 2026-11-10: "audit the app web vs native more"),
 `handoff/PLAN/app-integration/T608B-findings.md`: 28 findings G1–G28, each with file:line of both copies, the state

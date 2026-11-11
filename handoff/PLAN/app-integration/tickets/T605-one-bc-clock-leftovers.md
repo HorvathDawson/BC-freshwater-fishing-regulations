@@ -1,6 +1,6 @@
 # T605 — One B.C. clock: what T551 left
 
-Status: OPEN
+Status: OPEN (item 1, 2 and the decided list-page sections done 1aed37981; items 3 and 4 left)
 
 Source: T551's report 2026-11-10 (commits d3b7f080e, e1142f148, 7af7f39e4). T551's ticket file numbers the items.
 
