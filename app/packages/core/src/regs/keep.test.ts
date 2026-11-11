@@ -36,6 +36,11 @@ describe("keepOrder: page v36 renderCard + prototype buildKeep draw order", () =
       .toEqual(["strip", { caveat: 0 }, { caveat: 1 }, { caveat: 2 }, { group: 0 }, "whereNot"]);
   });
 
+  it("(T623 F4) the part-closed warning leads the tab, above the strip; the other caveats keep their place", () => {
+    expect(keepOrder({ ...none, strip: true, banner: true, caveats: [{ kind: "partclosed" }, { kind: "inpart" }], rows: [{ group: 0 }] }))
+      .toEqual([{ caveat: 0 }, "strip", "banner", { caveat: 1 }, { group: 0 }]);
+  });
+
   it("nothing at all draws nothing", () => {
     expect(keepOrder(none)).toEqual([]);
   });

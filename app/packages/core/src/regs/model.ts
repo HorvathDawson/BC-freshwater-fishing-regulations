@@ -228,7 +228,7 @@ export interface DecidedStepVM {
   readonly rule: RuleKey;
 }
 export interface CaveatVM {                                           // page v36 inPartHtml / sideHtml / anglerClosures / timedHtml / uncertainHtml (T15b)
-  readonly kind: "inpart" | "side" | "angler" | "timed"; readonly hot: boolean;
+  readonly kind: "partclosed" | "inpart" | "side" | "angler" | "timed"; readonly hot: boolean;
   readonly title: string; readonly calm: string | null;
   readonly items: readonly CaveatItemVM[]; readonly later: readonly CaveatItemVM[] | null;
   /** (T208, inpart) the distinct area tags of its items ("Outlet area only (see map 1)"), drawn on the folded head; `areaNow`:

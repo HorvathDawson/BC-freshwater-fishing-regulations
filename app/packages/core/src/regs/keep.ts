@@ -16,7 +16,7 @@
  * in order).
  */
 import type { CardModel } from "./card";
-import { caveatsOf } from "./caveats";
+import { caveatsOf, partClosedOf } from "./caveats";
 import type { FishManifest } from "./fish.generated";
 import { drawnRows, groupHeadOf, headCtx, originOf, rowTitle, scopeOf } from "./grouphead";
 import type { RegsInputs } from "./inputs";
@@ -82,10 +82,12 @@ export function keepOrder(has: {
   readonly otherFish: boolean; readonly possession: boolean; readonly whereNot: boolean;
 }): KeepBlock[] {
   const order: KeepBlock[] = [];
+  // (T623 F4) the part-closed warning leads the tab, above the year strip
+  has.caveats.forEach((c, i) => { if (c.kind === "partclosed") order.push({ caveat: i }); });
   if (has.strip) order.push("strip");
   if (has.inherited) order.push("inherited");
   if (has.banner) order.push("banner");
-  has.caveats.forEach((_, i) => order.push({ caveat: i }));
+  has.caveats.forEach((c, i) => { if (c.kind !== "partclosed") order.push({ caveat: i }); });
   order.push(...has.rows);
   if (has.otherFish) order.push("otherFish");
   if (has.possession) order.push("possession");
@@ -99,7 +101,8 @@ export function keepOrder(has: {
  * - tidal (a tidal key or display frame): the tidal banner alone (edge.ts `tidalKeep`; golden x31p_1010 `["div.banner"]`);
  * - an unnamed section is built like any water (edge.ts `edgeKind` "unnamed": only the header differs);
  * - otherwise every block its presenter draws, in `keepOrder`; a drawn row is a group when its stored group has a
- *   headline, else a plain row. A closed day (the stored display status) draws no caveats, rows, Other fish or Possession.
+ *   headline, else a plain row. A closed day (the stored display status) draws no caveats, rows, Other fish or Possession —
+ *   (T623 F4) the part-closed warning leads the tab on every open day.
  */
 export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const edge = edgeKind(inp);                                       // (T42) the two edges with no card
@@ -111,7 +114,10 @@ export function keepOf(inp: RegsInputs, env: KeepEnv): KeepVM {
   const inherited = inheritedOf(inp);
   const banner = bannerOf(inp, settled, strip);
   const open = !!settled.status && settled.status.status !== "closed";
-  const caveats = open ? caveatsOf(inp, settled, (j) => settleAt(inp, env.place, j, settled.day)) : [];
+  // (T623 F4) a closure of an undrawn part is warned of above the strip, on every open day
+  const partClosed = partClosedOf(settled, inp, env.today);
+  const caveats = [...(partClosed ? [partClosed] : []),
+                   ...(open ? caveatsOf(inp, settled, (j) => settleAt(inp, env.place, j, settled.day)) : [])];
 
   const groups: GroupVM[] = [], plainRows: PlainRowVM[] = [], rows: KeepRowBlock[] = [];
   if (open) {

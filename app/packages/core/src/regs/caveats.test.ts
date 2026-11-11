@@ -7,9 +7,10 @@ import { describe, expect, it } from "vitest";
 import type { Moment } from "../answers.generated";
 import type { HydRes } from "./card";
 import {
-  anglerOf, answerTxt, caveatsOf, daysTxt, inPartOf, KEEP_FAMS, momentTxt, sideOf, timedOf,
+  anglerOf, answerTxt, caveatsOf, daysTxt, inPartOf, KEEP_FAMS, momentTxt, partClosedOf, sideOf, timedOf,
 } from "./caveats";
 import type { DisplayFrame, ExportRule, RegsInputs, RuleFacts, RuleIndex, RuleView, RowsValue } from "./inputs";
+import type { CaveatVM } from "./model";
 import type { Verdict } from "./ladder";
 import { plain } from "./line";
 import { noRule, ruleView } from "./rules";
@@ -51,6 +52,47 @@ describe("time words (page v36 daysTxt, momentTxt, answerTxt)", () => {
     const r = (status: string, daily: number | null) => ({ status, daily }) as unknown as HydRes;
     expect([answerTxt(r("keep", 5)), answerTxt(r("nolimit", Infinity)), answerTxt(r("release", null)), answerTxt(r("closed", null)), answerTxt(null)])
       .toEqual(["5 a day", "no limit", "release", "closed", "no rule"]);
+  });
+});
+
+describe("(T623 F4) partClosedOf: a closure of a part of the water the map can't draw", () => {
+  // the Shuswap's p.32 closures (the real rows' words): Salmon Arm Bay Sep 1–Dec 31, the map B area Mar 15–May 14
+  const bay = view(11, 522, { label: "No fishing, Sep 1-Dec 31 — in part: Salmon Arm Bay", parts: { what: "No fishing" } },
+    { undrawn_part: "Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point",
+      when: { dates: [{ from_month: 9, from_day: 1, to_month: 12, to_day: 31 }] } }, { book: [] });
+  const albas = view(12, 522, { label: "No fishing, Mar 15-May 14 — in part: entire area north of Albas (map B)", parts: { what: "No fishing" } },
+    { undrawn_part: "entire area north of Albas (map B)", when: { dates: [{ from_month: 3, from_day: 15, to_month: 5, to_day: 14 }] } }, { book: [] });
+  const release = view(13, 3351, { label: "Rainbow trout and Char — release all", parts: { what: "Rainbow trout and Char — release all" } },
+    { undrawn_part: "the bay (map A)" }, { book: [] });
+  const lake = { item: { kind: "lake" } } as unknown as RegsInputs;
+  const NOV10 = { month: 11, day: 10 };
+  const lines = (c: CaveatVM | null) => c && [c.kind, c.title, c.calm, c.hot, ...c.items.map((i) => `${plain(i.what)} | ${i.where}`),
+    c.later?.map((i) => `${plain(i.what)} | ${i.where}`) ?? null];
+  it("in force on the day: 'Part of this lake is closed today', that closure first, the others under Other dates", () => {
+    const s = settled({ day: NOV10, inpart: [{ rule: albas, now: false }, { rule: bay, now: true }, { rule: release, now: true }] });
+    expect(lines(partClosedOf(s, lake, NOV10))).toEqual(["partclosed", "Part of this lake is closed today",
+      "The map can’t draw that part yet, so this page shows the rest of the lake.", true,
+      "No fishing · Sep 1–Dec 31 | Where: Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point",
+      ["No fishing · Mar 15–May 14 | Where: Entire area north of Albas (map B in the regulations)"]]);
+    // another day than today says the day
+    expect(partClosedOf(s, lake, { month: 11, day: 11 })!.title).toBe("Part of this lake is closed on Nov 10");
+  });
+  it("not in force on the day: a standing warning, every closure listed with its dates", () => {
+    const s = settled({ day: { month: 7, day: 1 }, inpart: [{ rule: albas, now: false }, { rule: bay, now: false }] });
+    expect(lines(partClosedOf(s, { item: { kind: "stream" } } as unknown as RegsInputs, { month: 7, day: 1 }))).toEqual(["partclosed",
+      "Part of this river closes at times", "The map can’t draw that part yet, so this page shows the rest of the river.", false,
+      "No fishing · Mar 15–May 14 | Where: Entire area north of Albas (map B in the regulations)",
+      "No fishing · Sep 1–Dec 31 | Where: Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point", null]);
+  });
+  it("no closure of a part (a release only), a closed day, tidal water: no warning", () => {
+    expect(partClosedOf(settled({ inpart: [{ rule: release, now: true }] }), lake, NOV10)).toBeNull();
+    for (const status of ["closed", "tidal"])
+      expect(partClosedOf(settled({ inpart: [{ rule: bay, now: true }], status: { status } as unknown as DisplayFrame }), lake, NOV10)).toBeNull();
+  });
+  it("the in-part block no longer repeats a closure the warning says; it keeps the release", () => {
+    const s = settled({ inpart: [{ rule: bay, now: true }, { rule: release, now: true }] });
+    expect(inPartOf(s, lake, KEEP_FAMS)!.items.map((i) => plain(i.what))).toEqual(["Rainbow trout and Char — release all"]);
+    expect(inPartOf(settled({ inpart: [{ rule: bay, now: true }] }), lake, KEEP_FAMS)).toBeNull();
   });
 });
 

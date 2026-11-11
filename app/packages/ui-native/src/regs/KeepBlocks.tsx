@@ -151,10 +151,13 @@ export function CaveatBlock({ caveat, palette, actions, inset = true }: { caveat
       {open && body}
     </View>
   );
+  // (T623 F4) the part-closed warning: the closed colour and a body-weight heading, so it reads as a warning, not a note
+  const warn = caveat.kind === "partclosed";
   return (
     <View testID="keep-caveat" style={{ marginTop: 8, marginHorizontal: gutter, paddingTop: 6, paddingBottom: 6, paddingLeft: 10,
-                                        borderLeftWidth: 3, borderLeftColor: palette.restricted }}>
-      <Text testID={`kicker:${caveat.kind}`} accessibilityRole="header" style={[TYPE.metaBold, { color: palette.sub, marginBottom: 2 }]}>{head}</Text>
+                                        borderLeftWidth: 3, borderLeftColor: warn ? palette.closed : palette.restricted }}>
+      <Text testID={`kicker:${caveat.kind}`} accessibilityRole="header"
+            style={[warn ? TYPE.regsBodyBold : TYPE.metaBold, { color: warn ? palette.closed : palette.sub, marginBottom: 2 }]}>{head}</Text>
       {body}
     </View>
   );

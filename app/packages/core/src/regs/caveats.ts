@@ -19,14 +19,16 @@
 import type { Moment } from "../answers.generated";
 import { WEEKDAYS } from "../calendar.generated";
 import { mainRes, rowsAt, type HydRes } from "./card";
-import { describe } from "./describe";
+import { closedGate, describe } from "./describe";
 import type { RegsInputs, RuleView } from "./inputs";
 import { text, type Line } from "./line";
-import type { CaveatItemVM, CaveatVM } from "./model";
+import type { CaveatItemVM, CaveatVM, Day } from "./model";
 import { cap, clean, gameFish, spName, type SpeciesBook } from "./names";
 import { makePlace } from "./place";
 import type { Settled } from "./settle";
 import { daySegments, tapDay } from "./tap";
+import { fmtDay } from "./strip";
+import { sameDay } from "../day";
 import { timeCond, winTxt } from "./time";
 import { ruleBook } from "./book";
 import { WD3, WORDS, pageWaterNoun } from "./words";
@@ -107,21 +109,49 @@ export function inPartBlock(u: readonly InPartEntry[], noun: string): CaveatVM |
   };
 }
 
-/** page v36 inPartHtml for the trout card: the stored undrawn-part rules (`settled.inpart`) of `fams` as entries. */
+/** One undrawn-part rule as a caveat line: its words and dates ("No fishing · Sep 1–Dec 31"), where ("Where: Salmon Arm
+ *  Bay, …"), and (T208) the area the book maps it in. */
+function inPartItem(r: RuleView, inp: RegsInputs): CaveatItemVM {
+  const p = cap(r.part ?? "").replace(/\(map ([A-Z])\)/, WORDS.MAP_IN_REGS);
+  const where = /various|do not identify|buoys and signs/i.test(p) ? WORDS.WHERE_SIGNS : WORDS.WHERE(p);
+  const words: Line = [text(clean(parts(r).what || r.export.label).replace(/ — in part:.*$/, "")),
+    ...(r.wins.length ? [text(" · " + winTxt(r.wins).slice(2))] : [])];
+  const area = areaOf(r, inp);
+  return area ? { ...item(words, where, r), area } : item(words, where, r);
+}
+
+/** page v36 inPartHtml for the trout card: the stored undrawn-part rules (`settled.inpart`) of `fams` as entries. (T623 F4)
+ *  A CLOSURE of an undrawn part is the part-closed warning's (`partClosedOf`), never said twice. */
 export function inPartOf(s: Settled, inp: RegsInputs, fams: readonly string[]): CaveatVM | null {
   const boat = (r: RuleView) => family(r) === "vessel";
-  const where = (r: RuleView) => {
-    const p = cap(r.part ?? "").replace(/\(map ([A-Z])\)/, WORDS.MAP_IN_REGS);
-    return /various|do not identify|buoys and signs/i.test(p) ? WORDS.WHERE_SIGNS : WORDS.WHERE(p);
+  return inPartBlock(s.inpart.filter((x) => fams.includes(family(x.rule)) && !closedGate(x.rule))
+    .map((x) => ({ item: inPartItem(x.rule, inp), now: x.now, boat: boat(x.rule) })), pageWaterNoun(inp));
+}
+
+/**
+ * (T623 F4, owner 2026-11-11: "part-of-lake closures (Shuswap, Quesnel, every lake like them): a clear warning on the card
+ * for all such lakes now") THE PART-CLOSED WARNING: every closure the pipeline holds on an undrawn part of this water
+ * (the stored `not_yet_mapped` verdicts over the key's year, `settled.inpart`, that are closure gates — the answers' own
+ * `facts.closure`), drawn at the top of the Keep tab on EVERY open day: a standing warning, its title saying whether one
+ * is in force on the day shown (the stored verdict `now`), each closure's words, dates and part as the book prints them —
+ * in force first, the rest under "Other dates". A closed day says nothing more (its banner closes the whole water), nor
+ * does tidal water. Null when the water has none. Decides nothing: the rules, the part words, the day's status and
+ * verdict are the pipeline's.
+ */
+export function partClosedOf(s: Settled, inp: RegsInputs, today: Day): CaveatVM | null {
+  const st = s.status?.status;
+  if (!st || st === "closed" || st === "tidal") return null;
+  const shut = s.inpart.filter((x) => closedGate(x.rule));
+  if (!shut.length) return null;
+  const noun = pageWaterNoun(inp), now = shut.filter((x) => x.now), later = shut.filter((x) => !x.now);
+  const when = sameDay(s.day, today) ? WORDS.TODAY_LC : WORDS.ON_DAY(fmtDay(s.day));
+  return {
+    kind: "partclosed", hot: now.length > 0,
+    title: now.length ? WORDS.PART_CLOSED_NOW(noun, when) : WORDS.PART_CLOSED_LATER(noun),
+    calm: WORDS.PART_CLOSED_CALM(noun),
+    items: (now.length ? now : later).map((x) => inPartItem(x.rule, inp)),
+    later: now.length && later.length ? later.map((x) => inPartItem(x.rule, inp)) : null,
   };
-  const li = (r: RuleView): CaveatItemVM => {
-    const words: Line = [text(clean(parts(r).what || r.export.label).replace(/ — in part:.*$/, "")),
-      ...(r.wins.length ? [text(" · " + winTxt(r.wins).slice(2))] : [])];
-    const area = areaOf(r, inp);
-    return area ? { ...item(words, where(r), r), area } : item(words, where(r), r);
-  };
-  return inPartBlock(s.inpart.filter((x) => fams.includes(family(x.rule)))
-    .map((x) => ({ item: li(x.rule), now: x.now, boat: boat(x.rule) })), pageWaterNoun(inp));
 }
 
 /** page v36 sideHtml: rules that hold on one side of the channel only. */

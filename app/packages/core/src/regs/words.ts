@@ -110,6 +110,10 @@ export const WORDS = Object.freeze({
   ROW_STREAM: "Stream", ROW_LAKE: "Lake", ROW_WETLAND: "Wetland",
   CALM_LATER: "Not in force today. The map can’t draw these places yet, so check where you are.",
   WHERE: (p: string) => "Where: " + p,
+  // (T623 F4, owner 2026-11-11) a closure of a part of the water the map does not draw: a warning on every day, at the top
+  PART_CLOSED_NOW: (noun: string, when: string) => `Part of this ${noun} is closed ${when}`,
+  PART_CLOSED_LATER: (noun: string) => `Part of this ${noun} closes at times`,
+  PART_CLOSED_CALM: (noun: string) => `The map can’t draw that part yet, so this page shows the rest of the ${noun}.`,
   WHERE_SIGNS: "Where: some spots, marked by buoys and signs. Look for signs.",
   // (T208) a rule held on an area of the water the book maps: "Outlet area only (see map 1): …", the map's link after it
   // the map named ("see map 1"), the book's map unnamed ("see the map"), or no map at all (an outlet the book only words): none
