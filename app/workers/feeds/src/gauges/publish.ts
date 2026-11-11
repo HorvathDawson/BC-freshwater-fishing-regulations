@@ -600,7 +600,7 @@ export async function runGauges(deps: GaugeDeps): Promise<GaugeSummary> {
     }
   }
 
-  const summary = await publish({ fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile, aware, reuse, meter: deps.meter });
+  const summary = await publish({ partial: !!deps.limit, fetch, feed, priv, ids, clim, forecast: fcast, latest, now, listed, drift, roster: rosterName, log, sleep, stationFile, aware, reuse, meter: deps.meter });
   const runs = Object.values(fcast).reduce((n, v) => n + Object.keys(v).length, 0);
   log(`  ✅ ${summary.answered}/${summary.asked} answered, ${summary.withPercentile} with a rank in the record; ${runs} model runs across ${Object.keys(fcast).length} stations`);
   for (const n of summary.maintenance) if (n.kind === "hydat") log(`  ⚠️  A NEWER HYDAT IS OUT: ${n.latest} (envelope is on ${n.current}, noticed ${n.since}). Refresh with: ${n.action}`);
@@ -653,6 +653,8 @@ function stripSeries(f: Summary): Summary {
 const fsigOf = (runs: Runs | undefined) => JSON.stringify(Object.keys(runs || {}).sort().map((m) => [m, runs![m]!.issuedAt ?? null]));
 
 interface PublishArgs {
+  /** (T609 W15) a hand run on a few stations (`?limit=`): their files are written, the feed-wide index / obs never */
+  partial?: boolean;
   fetch: Fetch;
   feed: Store;
   priv: DeletableStore;
@@ -1026,7 +1028,7 @@ async function publish(a: PublishArgs): Promise<Omit<GaugeSummary, "listSource" 
     }
     if (failed.length) log(`  ⚠️  ${failed.length} station(s) not answered; ${carried} kept their last good entry (stale)`);
   }
-  const indexKept = a.aware && got.length === 0;
+  const indexKept = (a.aware && got.length === 0) || !!a.partial;
   if (a.aware && !indexKept) await priv.put(STATION_CACHE, JSON.stringify(nextCache));
 
   let archived: Record<string, any>;

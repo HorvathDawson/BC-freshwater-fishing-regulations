@@ -234,3 +234,14 @@ describe("HYDAT listing: asked once a day", () => {
     void c;
   });
 });
+
+// T609 W15: `POST /run/gauges?limit=5` rewrote the public index with 5 stations until the next cron
+it("(T609 W15) a limited run writes its stations' files but never the feed-wide index or obs", async () => {
+  const dir = seeded();
+  const before = readFileSync(join(dir, "feed/index.json"), "utf-8");
+  const { puts, s } = await runOn(dir, fixtureFetch(loadRecording(FIX)).fetch, { limit: 2 });
+  expect(s.asked).toBe(2);
+  expect(puts).not.toContain("index.json");
+  expect(puts).not.toContain(OBS_FILE);
+  expect(readFileSync(join(dir, "feed/index.json"), "utf-8")).toBe(before);
+});
