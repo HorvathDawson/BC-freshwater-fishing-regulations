@@ -50,7 +50,7 @@ describe("(T369 D5/D10/D11) the address keeps what defines the view, and gives i
   it("browse: the tab, an open spot, the day when not today, the Conditions horizon — each back from its address", () => {
     const runs = reduce(HOME, { type: "tab", tab: "runs" });
     const spot = reduce(reduce(HOME, { type: "tab", tab: "spots" }), { type: "openSpot", id: "s-1" });
-    const day = new Date(2026, 6, 1, 12);
+    const day = new Date(2030, 6, 1, 12);
     const out = [back(runs, { day: null, horizon: 0 }), back(spot, { day, horizon: 3 }),
                  back(HOME, { day: null, horizon: "change" })];
     expect(out.map((l) => l && { route: l.route, day: l.day?.toDateString() ?? null, horizon: l.horizon })).toEqual([

@@ -10,7 +10,7 @@ import { appKeyOf, GONE, IDS, PROTO_TODAY, REF, stateOf, urlsOf, WALK_STATES } f
 import golden from "../../fixtures/golden/states.json";
 
 const G = golden as unknown as { meta: { ref: string }; states: Record<string, { sheets?: string[] }> };
-const NOW = new Date(2026, 9, 22, 9);
+const NOW = new Date(2026, 0, 2, 9);   // before every golden day: a day already gone by opens as today (T620 G12)
 
 describe("regs-web states", () => {
   it("vedder_1010 → the prototype hash and the app's start link (item from taps.json), at the goldens' ref", () => {

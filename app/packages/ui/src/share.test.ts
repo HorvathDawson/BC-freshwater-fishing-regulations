@@ -36,9 +36,9 @@ afterEach(() => { vi.restoreAllMocks(); });
 describe("(T385) the shared link is the reload address, and parses back to the same frame", () => {
   it("a named water's Conditions view on another day, at a horizon: the same frame, day and horizon", async () => {
     const r = reduce(HOME, openWater({ item: RIVER, part: null, view: "conditions" }));
-    const day = new Date(2026, 6, 1, 12);
+    const day = new Date(2030, 6, 1, 12);
     const url = (await shareLink(null, r, { day, horizon: 3 }, undefined, NOW))!;
-    expect(url).toBe(`${SITE_ORIGIN}/?regs=${RIVER}&view=conditions&date=2026-07-01&horizon=3`);
+    expect(url).toBe(`${SITE_ORIGIN}/?regs=${RIVER}&view=conditions&date=2030-07-01&horizon=3`);
     const back = parseStartLink(searchOf(url), NOW)!;
     expect([waterFrame(back.route), back.day?.toDateString(), back.horizon]).toEqual([waterFrame(r), day.toDateString(), 3]);
   });
