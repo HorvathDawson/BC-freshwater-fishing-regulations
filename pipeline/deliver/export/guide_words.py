@@ -669,6 +669,9 @@ PART_TEXT = {
             "the verbatim instead, marked as the book's text",
     "size": "the length bound: 'none under 30 cm' (a bound — write it in parentheses) or 'over "
             "50 cm' (a size class — attach it: 'release all over 50 cm')",
+    "on_parts": "'on parts' / 'on part', the book's own words, where the rule holds on parts of its water the book "
+                "never names: it is held on the WHOLE water (owner 2026-10-26) and colours it, so show these words "
+                "with the rule wherever it is shown — never as a whole-water rule (T623 F15)",
     "conditions": "which fish or which fishing: 'wild only', 'from streams', 'when fishing for "
                   "salmon', 'while set lining', 'in possession'",
     "when": "dates, weekdays, hours, and any season nobody could read ('as printed: …' — "

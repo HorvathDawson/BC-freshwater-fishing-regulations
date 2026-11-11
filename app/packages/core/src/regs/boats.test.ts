@@ -29,6 +29,23 @@ describe("boats line", () => {
     expect(texts([vessel(0, { aspect: "speed", max_kmh: 8, undrawn_part: "on parts" }), vessel(1, { aspect: "speed", max_kmh: 50, undrawn_part: "on parts" })]))
       .toEqual(["Speed limits 8–50 km/h on parts"]);
   });
+  it("(T623 F15) a rule printed 'on parts' that names none keeps the words on its chip (Elk Lake R1 p.15, Chilko 'on part')", () => {
+    const onParts = (rix: number, fields: Record<string, unknown>, words: string) =>
+      ruleView(rix, { entry_id: `w:r${rix}`, rule_id: "r1", type: "vessel_rule", family: "vessel", label: "L", verbatim: "",
+        fields, parts: { what: "W", on_parts: words }, prov: { rank: 0 } } as ExportRule,
+        { kind: "vessel", title: "", book: [], applies: "" } as RuleFacts, BOOK, "reach");
+    expect(texts([onParts(0, { aspect: "propulsion", level: "none" }, "on parts"),
+                  onParts(1, { aspect: "propulsion", level: "unpowered" }, "on parts"),
+                  onParts(2, { aspect: "propulsion", level: "power_capped", max_power_kw: 7.5 }, "on parts"),
+                  onParts(3, { aspect: "towing" }, "on parts")]))
+      .toEqual(["No vessels on parts", "No powered boats on parts", "Engine limit 7.5 kW (10 hp) on parts", "No towing on parts"]);
+    expect(texts([onParts(0, { aspect: "speed", max_kmh: 5 }, "on part")])).toEqual(["Speed limit 5 km/h on part"]);
+    // two speeds already say "on parts": never twice (Hatzic)
+    expect(texts([onParts(0, { aspect: "speed", max_kmh: 8 }, "on parts"), onParts(1, { aspect: "speed", max_kmh: 50 }, "on parts")]))
+      .toEqual(["Speed limits 8–50 km/h on parts"]);
+    // one rule of a kind without the words: the chip cannot say all of them hold on parts
+    expect(texts([onParts(0, { aspect: "towing" }, "on parts"), vessel(1, { aspect: "towing" })])).toEqual(["No towing"]);
+  });
   it("a speed rule without a number says only that; one chip per kind in the fixed order, linked to the first rule", () => {
     const c = chips([vessel(0, { aspect: "towing" }), vessel(1, { aspect: "speed" }), vessel(2, { aspect: "propulsion", level: "unpowered" })]);
     expect(c.map((x) => [x.kind, x.text, x.rule])).toEqual([["unpowered", "No powered boats", "w:r2::r1"], ["speed", "Speed restriction", "w:r1::r1"], ["towing", "No towing", "w:r0::r1"]]);

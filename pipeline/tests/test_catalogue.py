@@ -10,7 +10,7 @@ import pytest
 
 from pipeline.regs.parsing.catalogue import (
     CatalogueRule, Method, Obligation, Period, PropulsionLevel,
-    RuleType, VesselAspect, WaterKind, complement, label, parse_date_range,
+    RuleType, VesselAspect, WaterKind, complement, label, label_parts, parse_date_range,
 )
 
 
@@ -156,6 +156,60 @@ def test_hp_is_a_lookup_not_a_computation():
     r = _r(type=RuleType.vessel_rule, aspect=VesselAspect.propulsion,
            level=PropulsionLevel.power_capped, max_power_kw=7.5)
     assert label(r) == "Engine power restriction 7.5 kW (10 hp)"
+
+
+# ------------------------------------------------------------- T623 F15: "on parts" stays on the line
+
+def _vessel(verbatim, **kw):
+    kw.setdefault("aspect", VesselAspect.propulsion)
+    return _r(type=RuleType.vessel_rule, verbatim=verbatim, **kw)
+
+
+def test_f15_on_parts_stays_on_the_title_of_a_rule_held_on_the_whole_water():
+    """T623 F15. p.15 (Elk Lake, Cowichan Lake) and p.18 (Stamp River) print each boat rule "on parts"; owner
+    2026-10-26 holds such a rule on the WHOLE water (`drop_on_parts`), and its title lost the words: "No vessels",
+    "Engine power restriction 7.5 kW (10 hp)", "Speed restriction (8 km/h)" read as whole-water rules."""
+    assert label(_vessel("no vessels on parts", level=PropulsionLevel.none)) == "No vessels on parts"
+    assert label(_vessel("Engine power restriction 7.5 kW (10 hp), on parts", level=PropulsionLevel.power_capped,
+                         max_power_kw=7.5)) == "Engine power restriction 7.5 kW (10 hp) on parts"
+    assert label(_vessel("Speed restriction on parts (8 km/h)", aspect=VesselAspect.speed, max_kmh=8)) \
+        == "Speed restriction (8 km/h) on parts"
+    # the Chilko River's "on part" keeps the book's own number
+    assert label(_vessel("speed restriction (5 km/h) on part", aspect=VesselAspect.speed, max_kmh=5)) \
+        == "Speed restriction (5 km/h) on part"
+    # the shipped title is the label (display `title`: a boat rule has no generated form of its own)
+    from pipeline.deliver.answers.display.rule import title
+    assert title({"type": "vessel_rule", "label": "No vessels on parts", "verbatim": "no vessels on parts"}) \
+        == "No vessels on parts"
+
+
+def test_f15_a_named_place_or_an_undrawn_part_says_where_itself():
+    """Only the unnamed "on parts": a rule with its own place words or an undrawn part already says where."""
+    named = _vessel("No powered boats on parts of the river below the falls", level=PropulsionLevel.unpowered,
+                    extent_text="below the falls")
+    assert label_parts(named).get("on_parts") is None
+    plain = _vessel("no powered boats", level=PropulsionLevel.unpowered)
+    assert label(plain) == "No powered boats" and "on_parts" not in label_parts(plain)
+
+
+def test_f15_every_corpus_rule_printed_on_parts_keeps_it_on_its_line():
+    """THE CLASS, not the four: every rule of the corpus whose sentence says "on part(s)" with no part named and no
+    place of its own carries the words on its line (30 rules on 26 waters, 2026-11-10)."""
+    import json
+    import re
+    from pipeline.common.curated import CURATED
+    seen = 0
+    for f in sorted(CURATED.regulations.synopsis.glob("region-*.json")):
+        blob = json.loads(f.read_text(encoding="utf-8"))
+        for e in blob["entries"] if isinstance(blob, dict) else blob:
+            for x in e.get("rules") or []:
+                if not re.search(r"\bon parts?\b", x.get("verbatim") or "", re.I) \
+                        or x.get("undrawn_part") or x.get("extent_text"):
+                    continue
+                seen += 1
+                got = label(CatalogueRule.model_validate(x))
+                assert re.search(r" on parts?\b", got), (e["entry_id"], x["rule_id"], got)
+    assert seen >= 30
 
 
 def test_excepting_windows_are_inverted_rather_than_flagged():

@@ -565,6 +565,9 @@ def _lift_covers_fish(fish: str, names: list) -> bool:
 #:               when the rule has no structured content (an advisory, a hazard, a bare exemption):
 #:               the reader then shows the verbatim, labelled as the book's text.
 #:   size        the length bound — "none under 30 cm", "over 50 cm" (a class released or counted)
+#:   on_parts    "on parts" / "on part", as the book prints it, where the rule holds on parts of its water
+#:               the book never names (`on_parts_words`): held on the whole water (owner 2026-10-26,
+#:               `drop_on_parts`), so its line must never read as whole-water (T623 F15)
 #:   conditions  which fish or which fishing — "wild only", "from streams", "when fishing for
 #:               salmon", "while set lining", "in possession" (a clause's clock)
 #:   when        dates, weekdays, hours, an unread season — "Sep 1-Dec 31, on Saturdays"
@@ -581,8 +584,23 @@ def _lift_covers_fish(fish: str, names: list) -> bool:
 #: the model has no field for a reason — `reason` was retired because it held a citation here, an
 #: explanation there and a hidden condition elsewhere — and a part is generated from fields only.
 #: A reason therefore reaches a reader through the verbatim shown underneath, never paraphrased.
-LABEL_PARTS = ("what", "size", "conditions", "when", "where", "side", "in_part", "lifts", "duty",
-               "suspended", "notice")
+LABEL_PARTS = ("what", "size", "on_parts", "conditions", "when", "where", "side", "in_part", "lifts",
+               "duty", "suspended", "notice")
+
+#: T623 F15: THE BOOK'S "ON PARTS" WITH NO PART NAMED, in a rule's own sentence — "Speed restriction on parts
+#: (8 km/h)", "no vessels on parts", "speed restriction (5 km/h) on part". Owner 2026-10-26: such a rule holds on
+#: the WHOLE water for now (`drop_on_parts` took the undrawn part away), and its title lost the qualifier: Cowichan
+#: Lake, Stamp River, Elk Lake read "No vessels", "Engine power restriction 7.5 kW (10 hp)" as if whole-water.
+_ON_PARTS = re.compile(r"\bon (?P<n>parts?)\b", re.I)
+
+
+def on_parts_words(r: CatalogueRule) -> str:
+    """"on parts" / "on part" (the book's own word) for a rule whose sentence says it holds on parts of its water
+    and names none — no undrawn part, no place phrase of its own (those say where already); else ""."""
+    if r.undrawn_part or r.extent_text:
+        return ""
+    m = _ON_PARTS.search(r.verbatim or "")
+    return f"on {m.group('n').lower()}" if m else ""
 
 
 def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None,
@@ -602,6 +620,7 @@ def label_parts(r: CatalogueRule, siblings: Optional[dict] = None, place_of=None
     p: dict = {"when": _when_words(r), "where": _where(r, place_of),
                "side": _side_words(r),
                "in_part": part_words(r.undrawn_part),
+               "on_parts": on_parts_words(r),
                "lifts": _lifts(r, siblings, entries),
                "suspended": _suspended(r, siblings, place_of),
                "notice": f"fishery notice {r.notice}" if r.notice else ""}
@@ -765,6 +784,8 @@ def compose(parts: dict, verbatim: str = "") -> str:
         out = strip_list_marker(re.sub(r"\s+", " ", _EMPHASIS.sub("", verbatim or "")).strip())
         return out + (" — " + parts["lifts"] if parts.get("lifts") else "")
     out = head
+    if parts.get("on_parts"):
+        out += " " + parts["on_parts"]          # T623 F15: "No vessels on parts", as the book prints it
     for k in ("conditions", "when"):
         if parts.get(k):
             out += ", " + parts[k]

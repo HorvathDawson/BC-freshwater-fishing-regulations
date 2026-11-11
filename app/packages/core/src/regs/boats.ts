@@ -60,7 +60,11 @@ export function boatChips(ga: GearAnswer, inp: Pick<RegsInputs, "rules">): reado
     const cond = (r: RuleView) => [r.tcond, winTxt(r.wins).slice(2)].filter(Boolean).join(", ");
     const when = rs.every(cond) ? [...new Set(rs.map(cond))].join("; ") : "";
     const part = rs.every((r) => r.part) && !t.endsWith(BOATS.ON_PARTS);
-    return { kind: k, text: t + (part ? BOATS.IN_PART : "") + (when ? ` · ${when}` : ""), rule: rs[0]!.key };
+    // (T623 F15) a rule the book prints "on parts" and never says which is held on the whole water (owner 2026-10-26):
+    // its chip keeps the book's words (the pipeline's label part `on_parts`), never reading as whole-water
+    const on = !part && !t.endsWith(BOATS.ON_PARTS) && rs.every((r) => !!r.export.parts?.on_parts)
+      ? ` ${rs[0]!.export.parts!.on_parts}` : "";
+    return { kind: k, text: t + (part ? BOATS.IN_PART : on) + (when ? ` · ${when}` : ""), rule: rs[0]!.key };
   });
 }
 
