@@ -43,7 +43,9 @@ describe("one colouring pathway (T60)", () => {
 
   it("`pnpm check` runs the literal gate and the suites", () => {
     const pkg = JSON.parse(readFileSync(join(APP, "package.json"), "utf8")) as { scripts: Record<string, string> };
-    const steps = pkg.scripts.check!.split("&&").map((s) => s.trim().replace(/^pnpm run /, ""));
+    // `check` = `check:fast && test` (T536): a step that is itself a chain of scripts counts as its steps
+    const split = (cmd: string) => cmd.split("&&").map((s) => s.trim().replace(/^pnpm run /, ""));
+    const steps = split(pkg.scripts.check!).flatMap((s) => (s === "check:fast" ? split(pkg.scripts[s]!) : [s]));
     expect(steps).toContain("colours");
     expect(steps).toContain("test");
     expect(pkg.scripts.colours).toBe("node tools/check-colours.mjs");
