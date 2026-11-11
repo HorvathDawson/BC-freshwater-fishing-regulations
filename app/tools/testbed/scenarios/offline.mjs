@@ -34,7 +34,7 @@ export const offline = {
       ctx.flow('tap-text', { TEXT: 'Rule book p\\.[0-9]+ ↗.*' });
       let words = [];
       for (let i = 0; i < 30; i++) {
-        await ctx.device.sleep(1000);
+        await ctx.device.sleep(1000);   // poll interval
         words = ctx.device.screenText();
         if (words.some((w) => /^Page \d+ of \d+$|Couldn.t (show|load)/.test(w))) break;
       }
@@ -45,7 +45,7 @@ export const offline = {
       const page = words.find((w) => /^Page \d+ of \d+$/.test(w));
       if (!page) throw new Error(`the in-app viewer did not open (saw: ${words.slice(0, 8).join(' | ')})`);
       ctx.device.sh('input keyevent KEYCODE_BACK');
-      await ctx.device.sleep(1500);
+      await ctx.until(() => !ctx.device.screenText().some((w) => /^Page \d+ of \d+$/.test(w)), { ms: 8000, what: 'the viewer closed', soft: true });
       if (ctx.device.screenText().some((w) => /^Page \d+ of \d+$/.test(w))) throw new Error('back did not close the viewer');
       return `opened in the app: ${page}`;
     });
@@ -54,8 +54,8 @@ export const offline = {
       ctx.flow('search', { Q: 'Cultus' });
       ctx.device.logcatClear();
       ctx.flow('tap-text', { TEXT: 'Village · every named water around it' });
-      await ctx.device.sleep(4000);
-      const w = ctx.device.screenText();
+      await ctx.until(() => ctx.device.screenText().some((x) => /NAMED WATERS|named waters|Could not read what is near this town/i.test(x)), { ms: 20_000, what: 'the waters-near list', soft: true });
+      const w = ctx.device.screenText();   // soft wait: the checks below say what is there
       if (w.some((x) => /Could not read what is near this town/.test(x))) {
         const js = ctx.device.logcatJs().split('\n').filter((l) => /near|sqlite|Error|error/i.test(l)).slice(-4).join(' / ');
         ctx.finding(`offline, a town's "waters near" fails: "Could not read what is near this town." (Cultus Lake village)${js ? ` — JS: ${js.slice(0, 300)}` : ''}`);
@@ -71,8 +71,9 @@ export const offline = {
     });
     await ctx.step('Conditions offline: last captured readings or "not available offline", never a spinner', async () => {
       ctx.flow('tap-text', { TEXT: 'Conditions' });
-      await ctx.device.sleep(4000);
-      const words = ctx.device.screenText();
+      const readings = () => ctx.device.screenText().find((w) => !OFFLINE_BANNER.test(w) && /offline|not available|Last|ago|m³\/s|No reading|gauge|station/i.test(w));
+      await ctx.until(readings, { ms: 20_000, what: 'a word about the readings', soft: true });
+      const words = ctx.device.screenText();   // soft wait: the check below reports an empty answer
       const said = words.find((w) => !OFFLINE_BANNER.test(w) && /offline|not available|Last|ago|m³\/s|No reading|gauge|station/i.test(w));
       if (!said) throw new Error(`nothing said about the readings offline (saw: ${words.slice(0, 10).join(' | ')})`);
       return said;
@@ -81,7 +82,7 @@ export const offline = {
       await toMap(ctx);
       await ctx.device.net('wifi');
       const end = Date.now() + 30_000;
-      while (Date.now() < end && ctx.device.screenText().some((w) => OFFLINE_BANNER.test(w))) await ctx.device.sleep(1500);
+      while (Date.now() < end && ctx.device.screenText().some((w) => OFFLINE_BANNER.test(w))) await ctx.device.sleep(1500);   // poll interval
       if (ctx.device.screenText().some((w) => OFFLINE_BANNER.test(w))) throw new Error('the offline banner stayed');
       openLog(ctx);
       const row = await ctx.waitText(/Gauges, (unchanged|changed)/, 30_000);
@@ -91,8 +92,8 @@ export const offline = {
       await toMap(ctx);
       ctx.flow('search', { Q: 'Cultus' });
       ctx.flow('tap-text', { TEXT: 'Village · every named water around it' });
-      await ctx.device.sleep(4000);
-      const w = ctx.device.screenText();
+      await ctx.until(() => ctx.device.screenText().some((x) => /NAMED WATERS|named waters|Could not read what is near this town/i.test(x)), { ms: 20_000, what: 'the waters-near list', soft: true });
+      const w = ctx.device.screenText();   // soft wait: the checks below say what is there
       if (w.some((x) => /Could not read what is near this town/.test(x))) throw new Error('Could not read what is near this town (online too)');
       return w.find((x) => /NAMED WATERS|named waters/i.test(x)) ?? 'listed';
     });
@@ -101,25 +102,25 @@ export const offline = {
       await ctx.device.net('offline');
       await ctx.waitText(OFFLINE_BANNER, 20_000);
       ctx.flow('tab', { TAB: 'Conditions' });
-      await ctx.device.sleep(3000);
+      await ctx.settle({ ms: 3000 });
       // (T257) a tab's first visit shows its tour (a Modal over the tab bar): skipped as a reader would
-      if (ctx.device.screenText().some((w) => /^Skip$/.test(w))) { ctx.flow('tap-text', { TEXT: 'Skip' }); await ctx.device.sleep(1000); }
+      if (ctx.device.screenText().some((w) => /^Skip$/.test(w))) { ctx.flow('tap-text', { TEXT: 'Skip' }); await ctx.settle({ ms: 1000 }); }
       ctx.flow('tab', { TAB: 'Spots' });
-      await ctx.device.sleep(1500);
-      if (ctx.device.screenText().some((w) => /^Skip$/.test(w))) { ctx.flow('tap-text', { TEXT: 'Skip' }); await ctx.device.sleep(1000); }
-      await ctx.device.sleep(1500);
+      await ctx.settle({ ms: 1500 });
+      if (ctx.device.screenText().some((w) => /^Skip$/.test(w))) { ctx.flow('tap-text', { TEXT: 'Skip' }); await ctx.settle({ ms: 1000 }); }
+      await ctx.settle({ ms: 1500 });
       ctx.flow('tab', { TAB: 'Map' });
       const bad = ctx.device.screenText().find((w) => /could not be loaded|Something went wrong/i.test(w));
       if (bad) throw new Error(bad);
     });
     await ctx.step('online-only part offline: satellite imagery says so', async () => {
       await toMap(ctx);
-      await ctx.device.sleep(1500);
+      await ctx.settle({ ms: 1500 });
       ctx.flow('layers-satellite');                                         // on (or off, if a run left it on)
       let w = ctx.device.screenText();
       if (!w.some((x) => /NEEDS A CONNECTION|Satellite needs a connection/.test(x))) {
         ctx.flow('tap-text', { TEXT: 'Satellite' });                       // it was on: now on again
-        await ctx.device.sleep(1500);
+        await ctx.until(() => ctx.device.screenText().some((x) => /NEEDS A CONNECTION|Satellite needs a connection/.test(x)), { ms: 8000, what: 'the satellite note', soft: true });
         w = ctx.device.screenText();
       }
       const said = w.find((x) => /NEEDS A CONNECTION|Satellite needs a connection/.test(x));
@@ -131,8 +132,8 @@ export const offline = {
     await ctx.step('Check now offline: "offline", nothing requested', async () => {
       openLog(ctx);
       ctx.flow('updates-log-action', { ACTION: 'check' });
-      await ctx.device.sleep(3000);
-      const st = logStatus(ctx);
+      await ctx.until(() => /failed \(offline\)/.test(logStatus(ctx)), { ms: 20_000, what: 'the offline answer on the log page', soft: true });
+      const st = logStatus(ctx);   // soft wait: this check reports the status it saw
       if (!/failed \(offline\)/.test(st)) throw new Error(`status offline: ${st}`);
       return st.replace(/\n/g, ' · ');
     });
@@ -142,14 +143,15 @@ export const offline = {
       ctx.flow('updates-log-action', { ACTION: 'force' });
       await toMap(ctx);
       ctx.flow('search', { Q: 'Chilliwack' });
-      await ctx.device.sleep(2000);
+      await ctx.until(() => ctx.device.screenText().some((w) => /Slow connection|still loading|Loading|Downloading|checking/i.test(w)), { ms: 2000, every: 400, what: 'a slow-line word', soft: true });
       const words = ctx.device.screenText();
       const said = words.find((w) => /Slow connection|still loading|Loading|Downloading|checking/i.test(w));
       return said ? `said: ${said}` : 'nothing said within 2 s (the installed set answers before the line matters)';
     });
     await ctx.step('back to a full line: no error left on screen', async () => {
       ctx.device.link('full', 'none');
-      await ctx.device.sleep(15_000);
+      // DELIBERATE fixed wait: nothing on screen says the throttled (EDGE/GPRS) request started by 'force' has ended
+      await ctx.timer(15_000, 'lets the throttled in-flight check from the slow-line step finish or time out before a cold start');
       await coldStart(ctx);
       const l = ctx.device.screenText().find((w) => /^Refresh data: could not update/.test(w));
       if (l) throw new Error(l);

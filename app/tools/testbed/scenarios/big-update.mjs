@@ -2,7 +2,7 @@
 // On mobile data it waits for Wi-Fi (sync button, More, the bell); on Wi-Fi it downloads (progress), is staged beside
 // the set in use and applied at the next pause ("Updated to …"). Then the release gate: a release that needs a newer
 // app is refused with "Update the app"; a corrupt release fails its checksum and the data in use is kept.
-import { appUp, checkNow, logStatus, openLog, syncLabel, toMap, coldStart } from './common.mjs';
+import { appUp, checkNow, logStatus, openLog, syncLabel, toBackground, toMap, coldStart } from './common.mjs';
 
 export const bigUpdate = {
   id: 'big-update',
@@ -22,8 +22,8 @@ export const bigUpdate = {
     await ctx.step('Check now → "waiting for Wi-Fi" (nothing downloaded)', async () => {
       openLog(ctx);
       await checkNow(ctx, /Release, changed|Release, unchanged/);
-      await ctx.device.sleep(3000);
-      const st = logStatus(ctx);
+      await ctx.until(() => /waiting-wifi/.test(logStatus(ctx)), { ms: 20_000, what: 'the release phase waiting-wifi', soft: true });
+      const st = logStatus(ctx);   // soft wait: this check reports the phase it saw
       if (!/waiting-wifi/.test(st)) throw new Error(`release phase: ${st}`);
       return st.split('\n').find((l) => /Release/.test(l));
     });
@@ -57,8 +57,7 @@ export const bigUpdate = {
     });
     await ctx.step('next pause (background → foreground) → applied; the new release in use', async () => {
       await toMap(ctx);
-      ctx.device.background();
-      await ctx.device.sleep(3000);
+      await toBackground(ctx);
       ctx.device.launch();
       const toast = await ctx.waitText(/^Updated to |^Data updated$/, 20_000).catch(() => null);
       openLog(ctx);
@@ -92,7 +91,7 @@ export const bigUpdate = {
       await checkNow(ctx, /Release, changed/);
       await ctx.waitText(/Release, staged/, 15 * 60_000);
       await toMap(ctx);
-      ctx.device.background(); await ctx.device.sleep(3000); ctx.device.launch();
+      await toBackground(ctx); ctx.device.launch();
       openLog(ctx);
       await ctx.waitText(/Release, applied/, 30_000);
       return logStatus(ctx).replace(/\n/g, ' · ');

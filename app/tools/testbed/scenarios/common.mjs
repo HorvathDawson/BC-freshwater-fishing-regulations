@@ -29,6 +29,12 @@ export async function appUp(ctx, { launch = true, ms = 120_000 } = {}) {
   if (bad) throw new Error(`the app says: ${bad}`);
 }
 
+/** The app put in the background (Home) and gone from the screen: its tab bar is no longer there. */
+export async function toBackground(ctx) {
+  ctx.device.background();
+  await ctx.until(() => !ctx.device.screenText().some((w) => w === 'More' || w === 'MORE'), { ms: 10_000, what: 'the app leaving the screen' });
+}
+
 /** Cold start: force-stop, then launch. */
 export async function coldStart(ctx, opts) {
   ctx.device.stop();

@@ -8,7 +8,7 @@
 //   node app/tools/testbed/run.mjs water-nav        (NAV_Q / NAV_LINE pick another water)
 import fs from 'node:fs';
 import path from 'node:path';
-import { coldStart, toMap } from './common.mjs';
+import { appUp, coldStart, toMap } from './common.mjs';
 import { settledTarget } from './regs-open.mjs';
 
 const Q = process.env.NAV_Q ?? 'Coquitlam River';
@@ -30,7 +30,7 @@ export const waterNav = {
         ?? /(?:text|content-desc)="([^"]*)"[^>]*resource-id="water-map-name"/.exec(x)?.[1] ?? '?';
     };
     const shot = async (what) => {
-      await ctx.device.sleep(2500);                            // the camera's fly and the highlight settle
+      await ctx.settle({ ms: 2500, frame: true });             // the camera's fly and the highlight settle
       const label = name();
       ctx.device.screenshot(path.join(ctx.dir, `T345-${String(++n).padStart(2, '0')}-${what}.png`));
       return `${n} ${what}: ${label}`;
@@ -48,7 +48,7 @@ export const waterNav = {
       for (let i = 0; i < 3; i++) {
         ctx.device.sh('uiautomator dump /sdcard/tb-nav.xml >/dev/null 2>&1');
         if (!ctx.device.sh('cat /sdcard/tb-nav.xml').includes('resource-id="water-close"')) break;
-        ctx.flow('tap-id', { ID: 'water-close' }); await ctx.device.sleep(1500);
+        ctx.flow('tap-id', { ID: 'water-close' }); await ctx.until(() => !ctx.hasId('water-close'), { ms: 6000, what: 'the water closed', soft: true });
       }
       await toMap(ctx);
       ctx.device.logcatClear();
@@ -57,8 +57,8 @@ export const waterNav = {
       // (T340) both ways open the water from its result; a TAP then goes Back to the map, which comes back framed on it
       // (useShellSearch `arrive`) — closing search instead restores the camera from before search (T48)
       ctx.flow('open-result', { LINE: ROW });
-      await ctx.device.sleep(3500);
-      if (VIA !== 'open') { ctx.device.sh('input keyevent 4'); await ctx.device.sleep(3000); }
+      await ctx.until(() => ctx.hasId('water-view-regs'), { ms: 15_000, what: 'the water screen (water-view-regs)', soft: true });
+      if (VIA !== 'open') { ctx.device.sh('input keyevent 4'); await ctx.settle({ ms: 3000, frame: true }); }
       if (VIA !== 'open') {
         const at = await settledTarget(ctx);
         if (!at) throw new Error('the app named no tap target for the water (no [target] line)');
@@ -67,7 +67,7 @@ export const waterNav = {
         // (0.5.0 drift) beside the tap: the section the probe hit there (a confluence tap
         // opened the unnamed tributary)
         const hits = [...ctx.device.logcatJs().matchAll(/\[target\] (\{.*\})/g)].map((m) => m[1]);
-        await ctx.device.sleep(2500);
+        await ctx.settle({ ms: 2500, frame: true });
         console.log(`  opened: ${[...ctx.device.logcatJs().matchAll(/\[(?:open|tap)\] (\{.{0,260})/g)].map((m) => m[1]).join(', ') || '?'}`);
         console.log(`  tap ${at.x},${at.y} px; ${hits.length} probe line(s), the last (tapped) ${hits.at(-1) ?? '?'}; first ${hits[0] ?? '?'}`);
       }
@@ -80,7 +80,7 @@ export const waterNav = {
         const x = ctx.device.sh('cat /sdcard/tb-nav.xml');
         words = ctx.device.screenText();
         if (x.includes('resource-id="water-view-regs"') && words.some((w) => TITLE.test(w))) break;
-        await ctx.device.sleep(1500);
+        await ctx.device.sleep(1500);   // poll interval
       }
       if (!words.some((w) => TITLE.test(w)) || !ctx.device.sh('cat /sdcard/tb-nav.xml').includes('water-view-regs'))
         throw new Error(`the tap did not open ${Q} (rows: ${rows.join(' / ')}; saw: ${words.slice(0, 10).join(' | ')})`);
@@ -97,16 +97,16 @@ export const waterNav = {
     });
     await ctx.step('"Show all N parts" → the lowest (owner: a sliver lit)', async () => {
       ctx.flow('tap-id', { ID: 'water-map-parts-toggle' });
-      await ctx.device.sleep(1000);
+      await ctx.until(() => ctx.device.screenText().some((w) => /^Mary/.test(w)), { ms: 6000, what: 'the parts list (Mary…)', soft: true });
       ctx.flow('tap-text', { TEXT: 'Mary.*' });
       return shot('pick-lowest');
     });
     await ctx.step('closed, the water opened again the same way, Map (owner: the app crashed)', async () => {
-      ctx.device.sh('input keyevent 4'); await ctx.device.sleep(1000);
-      ctx.device.sh('input keyevent 4'); await ctx.device.sleep(1500);
+      ctx.device.sh('input keyevent 4'); await ctx.settle({ ms: 1000 });
+      ctx.device.sh('input keyevent 4'); await ctx.settle({ ms: 1500 });
       let r;
       try { r = await tapIn(); } catch (e) { if (!ctx.device.pidOf()) throw died(e.message); throw e; }
-      await ctx.device.sleep(4000);
+      await ctx.timer(4000, 'a crash after opening the Map view arrives a beat late: watch before asserting the app is alive');
       if (!ctx.device.pidOf()) throw died(`opening the Map view again (${r})`);
       return r;
     });
@@ -118,10 +118,11 @@ export const waterNav = {
       return log.join(' · ');
     });
     await ctx.step('a cold start, the water again (owner: "permanently broken")', async () => {
-      ctx.device.stop(); await ctx.device.sleep(1500); ctx.device.launch(); await ctx.device.sleep(8000);
+      ctx.device.stop(); await ctx.until(() => !ctx.device.pidOf(), { ms: 10_000, what: 'the stopped app gone' });
+      await appUp(ctx, { ms: 60_000 });
       let r;
       try { r = await tapIn(); } catch (e) { if (!ctx.device.pidOf()) throw died(e.message); throw e; }
-      await ctx.device.sleep(4000);
+      await ctx.timer(4000, 'a crash on the Map view after a cold start arrives a beat late: watch before asserting the app is alive');
       if (!ctx.device.pidOf()) throw died(`on the Map view after a cold start (${r})`);
       return r;
     });

@@ -20,7 +20,7 @@ export function writeReport(dir, run) {
     '| scenario | result | steps | time |', '|---|---|---|---|',
     ...run.scenarios.map((s) => `| ${s.id} — ${s.title} | ${ICON[s.result] ?? s.result} | ${s.steps.filter((x) => x.result === 'pass').length}/${s.steps.length} | ${Math.round(s.ms / 1000)} s |`),
     '', ...run.scenarios.flatMap((s) => [`## ${s.id} — ${s.title}: ${ICON[s.result] ?? s.result}`, '',
-      ...s.steps.map((x, i) => `${i + 1}. ${ICON[x.result]} ${x.title}${x.note ? ` — ${x.note}` : ''}${x.error ? ` — **${x.error}**` : ''}${x.shot ? ` ([shot](${x.shot}))` : ''}`),
+      ...s.steps.map((x, i) => `${i + 1}. ${ICON[x.result]} ${x.title}${x.note ? ` — ${x.note}` : ''}${x.error ? ` — **${x.error}**` : ''}${x.shot ? ` ([shot](${x.shot}))` : ''}${x.where ? `\n   - ${x.where}` : ''}`),
       ...(s.findings?.length ? ['', 'Findings:', ...s.findings.map((f) => `- ${f}`)] : []), ''])].join('\n');
   fs.writeFileSync(path.join(dir, 'report.md'), md);
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -43,7 +43,7 @@ ${run.scenarios.map((s) => `<tr><td><a href="#${esc(s.id)}">${esc(s.id)}</a> —
 ${run.scenarios.map((s) => `<h2 id="${esc(s.id)}">${esc(s.id)} — ${esc(s.title)} <span class="r-${s.result}">${ICON[s.result] ?? ''}</span></h2>
 ${s.findings?.length ? `<ul>${s.findings.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
 <div class="steps">${s.steps.map((x, i) => `<div class="step"><div><b class="r-${x.result}">${ICON[x.result]}</b> ${i + 1}. ${esc(x.title)}</div>
-${x.note ? `<div class="sub">${esc(x.note)}</div>` : ''}${x.error ? `<div class="r-fail">${esc(x.error)}</div>` : ''}
+${x.note ? `<div class="sub">${esc(x.note)}</div>` : ''}${x.error ? `<div class="r-fail">${esc(x.error)}</div>` : ''}${x.where ? `<div class="sub">${esc(x.where)}</div>` : ''}
 ${x.shot ? `<a href="${esc(x.shot)}"><img loading="lazy" src="${esc(x.shot)}" alt="${esc(x.title)}"></a>` : ''}
 ${x.said ? `<pre>${esc(x.said)}</pre>` : ''}</div>`).join('')}</div>`).join('')}
 </body></html>`;

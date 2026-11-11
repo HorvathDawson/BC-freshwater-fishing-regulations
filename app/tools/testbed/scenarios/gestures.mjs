@@ -67,7 +67,7 @@ async function drive(ctx, label, size, ts) {
   const a = shot('a');
   // one finger, mostly sideways with some vertical travel (a vertical drag is what a page scroll would take)
   ctx.device.sh(`input swipe ${cx - Math.round(box.w * 0.25)} ${cy + Math.round(box.h * 0.15)} ${cx + Math.round(box.w * 0.25)} ${cy - Math.round(box.h * 0.15)} 500`);
-  await ctx.device.sleep(1800);
+  await ctx.settle({ ms: 1800, frame: true });
   const b = shot('pan');
   const after = smallMap(ctx, size);
   const panMoved = changed(a, b, inner), boxMoved = after ? Math.abs(after.y - box.y) : -1;
@@ -83,7 +83,7 @@ async function drive(ctx, label, size, ts) {
       if (fail) throw new Error(`${fail} — ${out.join(' · ')}`);
       return out.join(' · ');
     }
-    await ctx.device.sleep(2000);
+    await ctx.settle({ ms: 2000, frame: true });
     const c = shot('pinch');
     const pinchMoved = changed(b, c, inner), box2 = smallMap(ctx, size);
     out.push(`pinch: map ${(pinchMoved * 100).toFixed(0)} % changed, box moved ${box2 ? Math.abs(box2.y - box.y) : -1} px`);
@@ -107,10 +107,9 @@ export const gestures = {
       ts = touchscreen(ctx);
       ctx.flow('search', { Q: WATER });
       ctx.flow('open-result', { LINE: WATER });
-      await ctx.device.sleep(4000);
       // the water's own view strip by id (its words "Map" / "Conditions" are the tab bar's too)
-      ctx.device.sh('uiautomator dump /sdcard/tb-g.xml >/dev/null 2>&1');
-      if (!ctx.device.sh('cat /sdcard/tb-g.xml').includes('resource-id="water-view-map"')) {
+      await ctx.until(() => ctx.hasId('water-view-map'), { ms: 20_000, what: 'the water view strip (water-view-map)', soft: true });
+      if (!ctx.hasId('water-view-map')) {
         const w = ctx.device.screenText();
         throw new Error(`no water views (saw: ${w.slice(0, 10).join(' | ').slice(0, 300)})`);
       }
@@ -118,18 +117,18 @@ export const gestures = {
     });
     await ctx.step('the water Map view: pan + pinch', async () => {
       ctx.flow('tap-id', { ID: 'water-view-map' });
-      await ctx.device.sleep(5000);
+      await ctx.settle({ ms: 5000, frame: true });
       // the water's own map is the big one here; judge the topmost map box below the header
       return drive(ctx, 'mapview', size, ts);
     });
     await ctx.step('the Conditions route map: pan + pinch', async () => {
       ctx.flow('tap-id', { ID: 'water-view-conditions' });
-      await ctx.device.sleep(8000);                                           // the routes in before the map mounts
+      await ctx.settle({ ms: 8000, frame: true });                            // the routes in before the map mounts
       // (0.5.0) the route map sits above the gauge list (DonorPanel `gaugeSide`), below the fold of a tall page: scroll
       // down in small steps until a map box is on screen (not inside "Sources and notes", as first thought)
       for (let i = 0; i < 6 && !smallMap(ctx, size); i++) {
         ctx.device.sh(`input swipe ${size.w >> 1} ${Math.round(size.h * 0.75)} ${size.w >> 1} ${Math.round(size.h * 0.5)} 500`);
-        await ctx.device.sleep(2500);
+        await ctx.settle({ ms: 2500, frame: true });
       }
       return drive(ctx, 'route', size, ts);
     });

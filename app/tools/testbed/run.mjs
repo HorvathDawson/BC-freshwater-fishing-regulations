@@ -15,6 +15,8 @@ import * as device from './lib/device.mjs';
 import { stampLine, readStamp } from './lib/build-stamp.mjs';
 import { checkChannel } from './lib/channel.mjs';
 import { flow } from './lib/maestro.mjs';
+import { makeWaits } from './lib/waits.mjs';
+import { blame, blameLine, scenarioFile } from './lib/blame.mjs';
 import { writeReport } from './lib/report.mjs';
 import { SCENARIOS } from './scenarios/index.mjs';
 import { adapterFor } from './sync/adapter.mjs';
@@ -85,11 +87,13 @@ function makeCtx(sc) {
   const rec = { id: sc.id, title: sc.title, result: 'pass', steps: [], findings: [], ms: 0 };
   run.scenarios.push(rec);
   const ctx = {
-    device, updates, sync: null, rec, dir,
+    device, updates, sync: null, rec, dir, calls: [],
+    ...makeWaits(device),   // (T542) until / settle / timer / hasId: waits that end on a condition
     /** (T442) test/ = the live release before a fresh install: reset, or with --no-r2 checked read only (throws if not) */
     resetChannel: () => (NO_R2 ? checkChannel() : updates('reset')),
     /** A UI flow; throws its Maestro words when it fails (the step then fails). */
     flow(name, env) {
+      ctx.calls.push({ name, env });   // (T542) what a failed step names in its report
       let r = flow(name, env, { logDir: path.join(dir, 'maestro', sc.id) });
       // one more try after a beat: a sheet still settling or a toast over a tab is not the app's failure
       if (!r.ok && !/^(updates-log-action|spot-name-save|report-send|spot-add-photo)$/.test(name)) {
@@ -116,7 +120,7 @@ function makeCtx(sc) {
     async step(title, fn, { stop = false, shot = true } = {}) {
       const t0 = Date.now();
       const s = { title, result: 'pass', ms: 0 };
-      ctx.lastSaid = null;
+      ctx.lastSaid = null; ctx.calls.length = 0;
       try { const note = await fn(); if (typeof note === 'string') s.note = note; }
       catch (e) {
         s.result = e.skip ? 'skip' : 'fail'; s.error = e.message;
@@ -128,6 +132,8 @@ function makeCtx(sc) {
       if (crash) { s.result = 'fail'; s.error = `${s.error ? `${s.error}; ` : ''}APP CRASHED: ${crash}`; rec.result = 'fail';
                    rec.findings.push(`crash in "${title}": ${crash}`); }
       if (ctx.lastSaid && s.result === 'fail') s.said = ctx.lastSaid;
+      // (T542) where to look: the scenario's last commit and the app files holding the ids / labels the step used
+      if (s.result === 'fail') { try { s.where = blameLine(blame({ scenarioPath: scenarioFile(sc.id), calls: ctx.calls })); } catch (e) { s.where = `(no blame: ${e.message})`; } }
       if (shot) {
         try {
           const name = `${String(++shotN).padStart(3, '0')}-${sc.id}-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}.png`;

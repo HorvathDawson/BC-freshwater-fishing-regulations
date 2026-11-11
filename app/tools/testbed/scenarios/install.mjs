@@ -18,7 +18,7 @@ export const install = {
       try { ctx.device.adb(['logcat', '-G', '16M']); ctx.device.logcatClear(); } catch { /* none yet */ }
       await ctx.device.net('wifi'); ctx.device.link('full', 'none');
       ctx.device.launch();
-      await ctx.device.sleep(4000);
+      await ctx.until(() => ctx.device.pidOf(), { ms: 15_000, what: 'the app process after launch' });
     });
     await ctx.step('first-run download, then the map (no crash)', async () => {
       const t0 = Date.now();
@@ -50,20 +50,20 @@ export const install = {
         if (killMb && !killed) {
           const got = Number((/([\d,.]+) of [\d,.]+ MB downloaded/.exec(w.join(' '))?.[1] ?? '0').replace(/,/g, ''));
           if (got >= killMb) {
-            killed = `${got} MB`; ctx.device.stop(); await ctx.device.sleep(2000); ctx.device.launch(); continue;
+            killed = `${got} MB`; ctx.device.stop(); await ctx.until(() => !ctx.device.pidOf(), { ms: 10_000, what: 'the killed app gone' }); ctx.device.launch(); continue;
           }
-          await ctx.device.sleep(500);
+          await ctx.device.sleep(500);   // poll interval
           continue;
         }
         if (!ctx.device.pidOf()) { relaunched++; ctx.device.launch(); }
         const h = ctx.device.heap();
         if (h) for (const k of Object.keys(peak)) peak[k] = Math.max(peak[k], h[k] || 0);
-        await ctx.device.sleep(1000);
+        await ctx.device.sleep(1000);   // poll interval
       }
       const upAt = Date.now();
       const took = Math.round((upAt - t0) / 1000);
       // (T272) the app's own timings (logcat): the download, verify and set-up lines, kept beside the report
-      await ctx.device.sleep(5000);   // (T287) the map's first seconds are part of the finish
+      await ctx.timer(5000, '(T287) the map\'s first seconds are part of the finish being measured: the stalls are read from the log after them');
       let timeline = '', finish = '';
       try {
         const all = ctx.device.logcatJs().split('\n');
@@ -90,8 +90,8 @@ export const install = {
     }, { stop: true });
     await ctx.step('Updates log: every source checked on start', async () => {
       openLog(ctx);
-      await ctx.device.sleep(3000);
-      const st = logStatus(ctx);
+      await ctx.until(() => /Gauges: ok/.test(logStatus(ctx)) && /Release: ok/.test(logStatus(ctx)), { ms: 30_000, what: 'both sources ok on the log page', soft: true });
+      const st = logStatus(ctx);   // soft wait: this check reports what the page says
       if (!/Gauges: ok/.test(st) || !/Release: ok/.test(st)) throw new Error(`status: ${st || 'not read'}`);
       return st.replace(/\n/g, ' · ');
     });

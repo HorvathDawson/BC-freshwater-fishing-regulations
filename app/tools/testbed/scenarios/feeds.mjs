@@ -1,7 +1,7 @@
 // (T255) 1. NEW FEEDS IN R2: a feed index changes on the test channel → the app sees it (on a foreground return by
 // itself, and on Check now), downloads it, and the Updates log + the sync button say so; a feed that 404s is a failure
 // the sync button badges and the bell lists, and clears when it is back.
-import { appUp, checkNow, logStatus, openLog, syncLabel, toMap, coldStart } from './common.mjs';
+import { appUp, checkNow, logStatus, openLog, syncLabel, toBackground, toMap, coldStart } from './common.mjs';
 
 export const feeds = {
   id: 'feeds',
@@ -21,8 +21,9 @@ export const feeds = {
     });
     await ctx.step('gauges bumped in R2 → detected on return to the foreground (no tap)', async () => {
       ctx.updates('feed-bump', 'gauges');
-      ctx.device.background();
-      await ctx.device.sleep(65_000);                      // past foregroundAfterMs.feeds (60 s)
+      await toBackground(ctx);
+      // DELIBERATE fixed wait: the app must stay away longer than foregroundAfterMs.feeds (60 s) for a return to re-check the feeds
+      await ctx.timer(65_000, 'past foregroundAfterMs.feeds (60 s): a shorter absence does not re-check on return');
       ctx.device.launch();
       const row = await ctx.waitText(/Gauges, changed, 200/, 60_000);
       if (/manual/.test(row)) throw new Error(`the change came from a manual check: ${row}`);
@@ -43,7 +44,7 @@ export const feeds = {
     await ctx.step('DFO index removed (404) → sync error badge + bell', async () => {
       ctx.updates('feed-404', 'dfo');
       ctx.flow('tap-sync');
-      await ctx.device.sleep(4000);
+      await ctx.until(() => ctx.device.screenText().some((w) => /^Refresh data: could not update/.test(w)), { ms: 20_000, what: 'the sync error state', soft: true });
       const words = ctx.device.screenText();
       const label = words.find((w) => /^Refresh data: could not update/.test(w));
       const bell = words.find((w) => /update failed/.test(w));
@@ -66,8 +67,8 @@ export const feeds = {
         try { ctx.flow('tap-text', { TEXT: 'Retry' }); }
         catch (e) { if (ctx.device.screenText().some((w) => /^Retry$/.test(w))) throw e; retry = false; }
       }
-      await ctx.device.sleep(5000);
       await toMap(ctx);
+      await ctx.until(() => { const x = syncLabel(ctx); return x && !/could not update/.test(x); }, { ms: 20_000, what: 'the sync error cleared', soft: true });
       const l = syncLabel(ctx);
       if (!l || /could not update/.test(l)) throw new Error(`still failed: ${l}`);
       return `${l} · ${retry ? 'cleared by Retry' : 'cleared by the app\'s own re-check before Retry'}`;
