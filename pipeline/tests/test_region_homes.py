@@ -400,14 +400,16 @@ def test_every_blanket_closure_in_the_corpus_says_its_kind():
 
 @pytest.mark.needs_bundle
 def test_the_nechako_and_west_road_lift_region_6s_spring_closure_not_its_winter_one(db):
-    """In the bundle: the rows' printed spring exemptions name Region 6's Fraser-watershed spring
-    closure as `equivalent`, and no Skeena/Nass winter closure — which by dates they did."""
-    for eid, rid in (("r7:nechako_river@7-12", "nechako_river.r1"),
-                     ("r5:west_road_blackwater_river@5-12+5-13", "west_road_blackwater_river.r6")):
+    """In the bundle: the West Road row's printed spring exemption names Region 6's Fraser-watershed spring
+    closure as `equivalent`, and no Skeena/Nass winter closure — which by dates it did. The Nechako's names
+    neither: owner 2026-11-11 (T623 F5, RULINGS L22) "The 'Exempt from spring closure' on the Region 7 row lifts
+    Region 7's only" (`own_region_only`), so it carries to no Region 6 closure at all."""
+    for eid, rid, carries in (("r7:nechako_river@7-12", "nechako_river.r1", False),
+                              ("r5:west_road_blackwater_river@5-12+5-13", "west_road_blackwater_river.r6", True)):
         (ex,) = db.execute("select exempts from rule where entry_id = ? and rule_id = ?",
                            (eid, rid)).fetchone()
         lifted = {(x["entry_id"], x["rule_id"]) for x in json.loads(ex) if "equivalent" in x}
-        assert ("z6:iskut_fraser_closure", "iskut_fraser_closure.r2") in lifted
+        assert (("z6:iskut_fraser_closure", "iskut_fraser_closure.r2") in lifted) is carries, eid
         assert not any(e == "z6:skeena_nass_winter_closure" for e, _ in lifted), eid
 
 

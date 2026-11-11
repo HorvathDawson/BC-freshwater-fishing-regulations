@@ -55,6 +55,10 @@ def test_every_rows_stored_year_is_page_v36s_day_status(built, sid):
         want = [_nov_jun_released(runs) if i == KITIMAT_RULED[sid] else runs for i, runs in enumerate(want)]
     if sid in OVERLAP_RETIRED:
         want = [runs for i, runs in enumerate(want) if i != OVERLAP_RETIRED[sid]]
+    if sid in PEACE_KOKANEE_KEPT:
+        i = PEACE_KOKANEE_KEPT[sid]
+        assert want[i] == [["release", 365]] and oracle["model"]["rows"][i]["members"] == ["KO"]
+        want = [[["keep", 365]] if j == i else runs for j, runs in enumerate(want)]
     assert [r["year"] for r in frame["rows"]] == want
 
 
@@ -66,6 +70,10 @@ KITIMAT_RULED = {"x14p0_1010": 2, "x14p1_1010": 2, "x14p2_1010": 2}
 #: (lois_lake.r3) is retired as implied by "rainbow trout/hatchery steelhead = 6 in the aggregate" (r4). The page's own
 #: rainbow row (index 1, pool r3) folds into the aggregate's row; every other row must still equal the page.
 OVERLAP_RETIRED = {"x25p_1010": 1}
+#: T623 F6 (the book, p.64 "Kokanee: 10 (none from streams, except Peace River)"; owner 2026-11-11 "Keep it"): Zone B's
+#: stream release no longer binds the Peace, so part 9 (Dinosaur Lake up to the Williston Lake outlet, no Peace row of
+#: its own) keeps 10 kokanee all year where page v38 released them. The ONE row that differs (index: the kokanee row).
+PEACE_KOKANEE_KEPT = {"x22p6_1010": 1}
 NOV1, JUN30 = 305, 181          # book day-of-year (365-day year; Feb 29 is not a book day)
 
 
