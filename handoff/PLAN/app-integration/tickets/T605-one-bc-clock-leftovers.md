@@ -36,3 +36,13 @@ info for this page".
   checks (no orphan water, duplicate titles, page budget) still pass. The "rule changes" page was not discussed: keep
   it, with dates, and say so in the report.
 - No daily rebuild.
+
+## Left after T622 + T605's pass (2026-11-10, commit 1aed37981)
+Done: item 1 (gauge page script on the B.C. clock; the clock gate has no exceptions), item 2 as decided, item 5 (list
+pages carry names and links; weekend and opening/closing pages removed with 301s; rule-changes page kept with dates).
+Still open:
+- Item 3 (the app re-reads "today" on return to the foreground) and item 4 (`useMapColouring` midnight test).
+- The region page's map link opens the app on the current day but does NOT focus the region: the app's start link
+  takes no region or bounds. Add a region (or bounds) key to the start link, parsed once in shared code for web and
+  phone, and use it from the region pages (owner asked for "the live map for that region").
+- T622 G16: the start link has no gauge key, so the public gauge page cannot open the app on that gauge. Same change.
