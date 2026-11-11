@@ -349,7 +349,7 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
 
       // the next update staged in that session: v2 has been drawn since, so v1 goes first, then v3 is installed
       const staged = await applied.stage(applied.latest!);
-      expect(staged).toMatchObject({ tiles: v3 });
+      expect(staged).toMatchObject({ kind: "staged", held: { tiles: v3 } });
       expect(tileFiles(fs, v1)).toEqual([]);
       expect(tileFiles(fs, v2)).toHaveLength(2);
 
@@ -518,6 +518,9 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       expect(after.rolledBack).toBeNull();
       expect(await after.update).toBeNull();
       expect(log).toEqual([`${BASE}manifest.json`]);
+      // (T555) staging the refused release is a NAMED outcome (never a bare "nothing"); the set in use is "in-use"
+      expect(await after.stage(m2)).toEqual({ kind: "refused", release: m2.data_release });
+      expect(await after.stage(after.manifest)).toEqual({ kind: "in-use" });
     });
 
   /** r1 installed, then r2 installed by an update (not yet used): the state a launch that opens r2 starts from. */
@@ -647,7 +650,8 @@ describe("native: always offline, updated by diff, swapped at the next launch", 
       const second = await boot(fs, at(bad));
       expect(second.held).toEqual(first.held);
       await expect(second.update).rejects.toThrow("salmon is salmon/3");
-      await expect(second.stage(m2)).rejects.toThrow("is not one this app reads");
+      // (T555) an outcome, not a throw: the update service names it (an old app meeting a release it cannot read)
+      await expect(second.stage(m2)).resolves.toMatchObject({ kind: "unreadable", reason: expect.stringContaining("is not one this app reads") });
     });
 
   it("a first run with no network says so, rather than opening nothing", async () => {

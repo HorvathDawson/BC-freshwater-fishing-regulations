@@ -31,6 +31,20 @@ export interface Held {
   manifest?: string;
 }
 
+/**
+ * (T555) WHAT STAGING A RELEASE CAME TO — every outcome is a named state, so the update service never calls "nothing was
+ * installed" ready. `staged`: installed (or warmed) beside the set in use. `waiting`: a set is already installed for the next
+ * boot (this session's, or the one a rollback will retry). `in-use`: the target is the set already in use. `refused`: this
+ * device proved the release defective and went back to the set it had. `unreadable`: this app does not read the release's
+ * formats (an old app meeting a newer release: the app asks to be updated, it is not an error).
+ */
+export type StageOutcome =
+  | { kind: "staged"; held: Held }
+  | { kind: "waiting" }
+  | { kind: "in-use" }
+  | { kind: "refused"; release: string | null }
+  | { kind: "unreadable"; reason: string };
+
 export class ManifestError extends Error {}
 
 export function parseManifest(json: unknown): Manifest {

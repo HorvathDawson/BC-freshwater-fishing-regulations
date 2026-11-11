@@ -32,7 +32,7 @@ import { fillDayFlow, onVisit, visitIdOf, storedHydat, openLayerStore, openLikeS
          type DayFlowAnswer, type Spot } from "@app/data/spots";
 import { Button, connectivity, ErrorState, LoadingState, SayingLine, setSynopsisNet, setSynopsisSource, Shell, StageBar, THEMES, UpdateToast, type ThemeName,
          platformLine, type ShellProps, type UpdatesLogControls } from "@app/ui-native";
-import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
+import { LayoutWidthContext, liveFetch, NetRoot, useNet, useNetActivity, releaseMapInput, releaseStatus, setAnglerProfile, teeConsoleErrors, createCrashReporter, createCrashSetting, CrashSettingRoot, NotifyRoot, AlertLinesRefresh, installCrashHandlers, installId, reportPastExits, crashWhere, useRefreshOnReconnect, useReleaseBoot, useSpots, type MapTiles,
          loadRegsStore, reportFailure, startNeedsRelease, startNoticeLine,
          type AddressState, type PairingInput, type Route, type SpotPhotos, type StartLink, type StatusSource,
          useAppUpdate } from "@app/ui";
@@ -344,7 +344,7 @@ export default function App() {
       stage: async (m, on) => {
         const b = bootedRef.current;
         if (!b) throw new Error(UPDATE_WORDS.sheet.notOpen);
-        await b.stage(m, (p) => on(p.bytes, p.of));
+        return b.stage(m, (p) => on(p.bytes, p.of));
       },
     },
     store: openUpdateStore(),
@@ -392,6 +392,13 @@ export default function App() {
     if (boot.applyError) return;
     const a = applying.current;
     applying.current = null;
+    // (T555) the boot went back to the set it had (the release was refused or is being retried): nothing was applied —
+    // the banner (`rolledBackLine`) says so; the service names the refused release and never toasts "Updated to …"
+    const back = boot.booted.rolledBack;
+    if (back) {
+      updates.notApplied(back.refused ?? "unknown", back.reason);
+      return;
+    }
     // (T287) the test bed's stall log reads the swap off this line
     if ((globalThis as { __openProbe?: boolean }).__openProbe)
       console.log(`[swap] the new set committed, ${a ? clockNow() - a.at : "?"} ms after apply`);
@@ -606,6 +613,7 @@ export default function App() {
             {rolledBackLine(rolledBack)}
           </Text>
         )}
+        <AlertLinesRefresh source={data.source} controls={notifications} />
         <Shell source={data.source} palette={palette} loader={data.loader} menuInfo={menuInfo}
                // (T231) the sync icon reads the update service; a ready update is applied at the Shell's safe moment
                updates={updates} onSafeToApply={apply}

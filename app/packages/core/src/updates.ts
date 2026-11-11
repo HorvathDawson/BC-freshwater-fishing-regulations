@@ -43,6 +43,8 @@ export const UPDATE_WORDS = {
     ready: "An update is ready; it is used at the next pause",
     /** (T251) the release states a minAppVersion newer than this app: the data in use is kept */
     appTooOld: "Update the app to get new regulations",
+    /** (T555) a release this device proved defective and went back from: the data in use is kept, and it is not "updated" */
+    refused: "A new data release could not be used on this device; the app keeps the data it has",
     failed: (n: number) => (n === 1 ? "1 source could not be updated" : `${n} sources could not be updated`),
   },
   sheet: {
@@ -107,6 +109,8 @@ export interface UpdateSourceInput {
 export interface UpdateReleaseInput {
   readonly phase: "current" | "waiting-wifi" | "downloading" | "ready" | "app-too-old";
   readonly progress: { readonly bytes: number; readonly of: number } | null;
+  /** (T555) the release this device refused (named state), or none */
+  readonly refused?: string | null;
 }
 
 const ago = (ms: number, now: number) => agoWords(new Date(ms).toISOString(), now);
@@ -168,6 +172,7 @@ export function updateSourcesVM(i: { sources: readonly UpdateSourceInput[]; rele
     : r?.phase === "waiting-wifi" ? R.waitingWifi
     : r?.phase === "ready" ? R.ready
     : r?.phase === "app-too-old" ? R.appTooOld
+    : r?.refused ? R.refused
     : failed > 0 ? R.failed(failed)
     : checked.length ? R.checked(ago(Math.max(...checked), i.now)) : R.notChecked;
   return { title: R.title, line, label: `${R.title}: ${line}.`, sources };

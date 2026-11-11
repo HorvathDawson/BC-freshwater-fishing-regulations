@@ -35,7 +35,7 @@ export type UpdateEventKind =
   | "resumed";
 
 export type UpdateErrorClass = "offline" | "http-404" | "http-4xx" | "http-5xx" | "sha-mismatch" | "size-mismatch"
-  | "parse" | "apply" | "other";
+  | "parse" | "apply" | "refused" | "other";
 
 /** (T253) `prefetch`: the background prefetch of the files an unnamed-stream tap reads */
 export type UpdateLogSource = UpdateSourceKey | "app" | "prefetch";

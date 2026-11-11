@@ -54,6 +54,9 @@ describe("the sources' words", () => {
                              now: NOW }).line).toBe("Downloading an update, 25%");
     expect(updateSourcesVM({ sources: [src("gauges", { error: "HTTP 500" })], release: null, now: NOW }).line)
       .toBe("1 source could not be updated");
+    // (T555) a refused release is a named state of the row, not "checked just now"
+    expect(updateSourcesVM({ sources: [src("gauges")], release: { phase: "current", progress: null, refused: "r-2" }, now: NOW }).line)
+      .toBe("A new data release could not be used on this device; the app keeps the data it has");
   });
 
   it("the failure sheet: what failed, when it last succeeded, Retry", () => {

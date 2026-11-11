@@ -24,7 +24,7 @@
  * `snapshot()` is a new object on every change (for `useSyncExternalStore`); `subscribe` is told after each.
  */
 import { errorClassOf, mobileDataFrom, releaseAllowed, reportFailure, type AppVersion, type MobileDataSetting, type UpdateEvent } from "@app/core";
-import { diff, parseManifest, type Held, type Manifest } from "../manifest";
+import { diff, parseManifest, type Held, type Manifest, type StageOutcome } from "../manifest";
 // Hermes has no TextDecoder (regs/blob.ts)
 import { utf8 } from "../regs/blob";
 import { checkObject, type Seen } from "./check";
@@ -45,8 +45,12 @@ export interface ReleaseSpec {
   manifestUrl: string;
   /** The set in use, or null (not booted yet: no release check). */
   held(): Held | null;
-  /** Download and verify what `m` needs, beside the set in use; resolve when it can be applied. Throws on failure. */
-  stage(m: Manifest, onProgress: (bytes: number, of: number) => void): Promise<void>;
+  /**
+   * Download and verify what `m` needs, beside the set in use. Throws on failure; otherwise says what it came to
+   * (`StageOutcome`, T555): only `staged` and `waiting` (already installed for the next boot) are "ready" — a release
+   * this device refused, one already in use, or one this app does not read is never reported as ready.
+   */
+  stage(m: Manifest, onProgress: (bytes: number, of: number) => void): Promise<StageOutcome>;
   /** The bytes this device would fetch for `m` (default: the changed files plus any moved tiles, mask or basemap). */
   need?(m: Manifest, held: Held): number;
 }
@@ -165,6 +169,9 @@ export interface ReleaseStatus extends SourceStatus {
   readonly target: string | null;
   /** The newest source date the pending manifest states (ISO day), for "Updated to <date>"; null: none stated. */
   readonly targetDate: string | null;
+  /** (T555) The release this device REFUSED (it proved defective here: bytes that fail their sha, a format or a decode
+   *  failure) and went back to the set it had — a named state, kept until another release is staged; null: none. */
+  readonly refused: string | null;
   readonly progress: { readonly bytes: number; readonly of: number } | null;
   /** (T251) `app-too-old`: the app version the release asks for */
   readonly needsApp?: string | null;
@@ -195,6 +202,11 @@ export interface UpdateService {
   seedRelease(m: Manifest): void;
   /** The pending release was put in use (the app re-booted onto it). (T251) `from`, `ms`: for the Updates log. */
   applied(release: string, info?: { from?: string | null; ms?: number }): void;
+  /**
+   * (T555) The apply's boot went back to the set it had (`Booted.rolledBack`): the release is NOT in use. The service stays
+   * "current" and names the refused release; no "applied", no "Updated to" (boot already reported the rollback).
+   */
+  notApplied(refused: string, why: string): void;
   /** (T251) Forget every validator (ETag, sha) and the manifest last read: the next check downloads each object whole. */
   forget(): void;
   /** Large release downloads over a metered connection: on is the setting's "always", off its "wifi". */
@@ -276,7 +288,7 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   const relAt = kept.at.release;
   let release: ReleaseStatus | null = o.release
     ? { ...blank("release"), checkedAt: relAt?.checkedAt ?? null, updatedAt: relAt?.updatedAt ?? null, phase: "current",
-        target: null, targetDate: null, progress: null }
+        target: null, targetDate: null, refused: null, progress: null }
     : null;
   let checking = false;
   let manual: UpdateSnapshot["manual"] = null;
@@ -299,6 +311,8 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
   let relSeen: Seen | null = null;
   let pending: Manifest | null = null;
   let staging: Promise<void> | null = null;
+  /** releases already reported as refused (a refusal is reported once, not at every check) */
+  const refusedSeen = new Set<string>();
 
   const okFeed = (id: FeedId, changed: boolean) => {
     const t = now(), was = feeds.get(id)!;
@@ -358,10 +372,27 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
     staging = spec.stage(m, (bytes, of) => {
       if (release?.phase === "downloading") { release = { ...release, progress: { bytes, of } }; publish(); }
     }).then(
-      () => {
-        emit({ source: "release", kind: "staged", bytes: release!.progress?.of ?? 0, ms: now() - t0, before: from,
-               after: m.data_release });
-        release = { ...release!, phase: "ready", progress: null, error: null, failedAt: null, offline: false, failures: 0 };
+      (out) => {
+        const bytes = release!.progress?.of ?? 0, ms = now() - t0;
+        if (out.kind === "staged" || out.kind === "waiting") {
+          emit({ source: "release", kind: "staged", bytes, ms, before: from, after: m.data_release,
+                 ...(out.kind === "waiting" ? { note: "already installed" } : {}) });
+          release = { ...release!, phase: "ready", refused: null, progress: null, error: null, failedAt: null, offline: false,
+                      failures: 0 };
+        } else if (out.kind === "in-use") {
+          // nothing to install: the target is the set in use. Not ready, not updated.
+          pending = null;
+          emit({ source: "release", kind: "unchanged", bytes, ms, before: from, after: m.data_release, note: "in use" });
+          release = { ...release!, phase: "current", target: null, targetDate: null, progress: null };
+        } else if (out.kind === "refused") {
+          settleRefused(out.release ?? m.data_release, "this device refused it earlier");
+        } else {
+          // this app does not read the release's formats: the same named state as a release asking for a newer app
+          pending = null;
+          emit({ source: "release", kind: "app-too-old", bytes, ms, before: from, after: m.data_release, note: out.reason });
+          release = { ...release!, phase: "app-too-old", target: m.data_release, targetDate: manifestDate(m), progress: null,
+                      needsApp: m.minAppVersion ?? null };
+        }
       },
       (e: unknown) => {
         emit({ source: "release", kind: "failed", bytes: release!.progress?.bytes ?? 0, ms: now() - t0, error: said(e),
@@ -372,6 +403,22 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
         reschedule();
       },
     ).finally(() => { staging = null; publish(); });
+  }
+
+  /**
+   * (T555) A release this device refused: the service stays on what is in use, says so (`refused`), and reports it once.
+   * Nothing is pending, so no later check stages it again.
+   */
+  function settleRefused(id: string, why: string, alreadyReported = false): void {
+    if (!release) return;
+    pending = null;
+    if (!refusedSeen.has(id)) {
+      refusedSeen.add(id);
+      emit({ source: "release", kind: "failed", after: id, error: `release ${id} was refused on this device`, note: why,
+             errorClass: "refused" });
+      if (!alreadyReported) reportFailure(new Error(`update: release ${id} was refused on this device (${why})`));
+    }
+    release = { ...release, phase: "current", target: null, targetDate: null, progress: null, refused: id };
   }
 
   /** Stage the pending manifest if the network lets it (a big download on a metered connection waits). */
@@ -593,6 +640,13 @@ export function createUpdateService(o: UpdateOptions): UpdateService {
       publish();
       // what is in use moved: the manifest is read again whole at the next check, against the new set
       relSeen = null;
+    },
+    notApplied(refused, why) {
+      if (!release) return;
+      // boot reported the rollback itself (`reportFailure`) and the app shows its banner: this is the service's state
+      settleRefused(refused, why, true);
+      relSeen = null;
+      publish();
     },
     forget() {
       kept.seen = {};

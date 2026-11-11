@@ -50,7 +50,7 @@ const manifestOf = async (dir: string) => JSON.parse(await (await releaseFetch(B
 /** The release spec App.tsx builds over a booted set. */
 const releaseSpec = (b: () => Awaited<ReturnType<typeof bootRelease>>) => ({
   manifestUrl: M, held: () => b().held,
-  stage: async (m: Manifest, on: (bytes: number, of: number) => void) => { await b().stage(m, (p) => on(p.bytes, p.of)); },
+  stage: (m: Manifest, on: (bytes: number, of: number) => void) => b().stage(m, (p) => on(p.bytes, p.of)),
 });
 const settle = async (s: ReturnType<typeof createUpdateService>) => {
   for (let i = 0; i < 50 && ["downloading"].includes(s.snapshot().release!.phase); i++) await new Promise((r) => setTimeout(r, 5));
@@ -140,6 +140,35 @@ describe("phone: staged by the service, applied by the next boot", () => {
     expect(s.snapshot().release).toMatchObject({ phase: "current", target: null });
     expect(s.snapshot().release!.error).toMatch(/bytes|sha256/);
     expect(fs.files.get(POINTER)).toEqual(pointer);
+    s.stop();
+  });
+});
+
+describe("(T555) a refused release over the real boot", () => {
+  it("the damaged set that was rolled back is refused: the service says so, is never 'ready', and a re-boot has nothing to toast", async () => {
+    const r1 = fixtureRelease("plain"), r2 = fixtureRelease("lakeGauged");
+    const fs = memFs();
+    const boot = (f: typeof fetch, deferUpdate = false) => bootRelease({ manifestUrl: M, releaseBase: BASE, wasmBase: "",
+      platform: phone(fs), fetch: f, manifestTimeoutMs: 1000, deferUpdate });
+    const first = await boot(releaseFetch(BASE, r1.dir, []));
+    const next = (await (await boot(releaseFetch(BASE, r2.dir, []))).update)!;
+    const m2 = await manifestOf(r2.dir);
+    fs.files.set(heldPath(next, m2.files.paint!.url), new Uint8Array([1, 2, 3]));     // damaged on disk after the install
+    const back = await boot(offline);
+    expect(back.rolledBack).toMatchObject({ refused: m2.data_release, retry: false });
+    // the next launch, the origin still serving r2: the service is handed r2 and must not call it ready
+    const f2 = releaseFetch(BASE, r2.dir, []);
+    const b = await boot(f2, true);
+    const s = createUpdateService({ feeds: [], fetch: f2, release: releaseSpec(() => b) });
+    s.seedRelease(b.latest!);
+    s.start();
+    await settle(s);
+    await new Promise((r) => setTimeout(r, 10));
+    expect(s.snapshot().release).toMatchObject({ phase: "current", target: null, refused: m2.data_release });
+    await s.check({ manual: true });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(s.snapshot().release).toMatchObject({ phase: "current", refused: m2.data_release });
+    expect(JSON.parse(new TextDecoder().decode(fs.files.get(POINTER)!)).release).toBe(first.held.release);
     s.stop();
   });
 });

@@ -24,7 +24,7 @@
 import { PaintError, releaseAllowed, reportFailure, StatusIndexError, UPDATE_WORDS, type AppVersion, type Paint, now as clockNow } from "@app/core";
 import { VerifyError } from "../fetchVerified";
 import { fetchResilient, NetError, type Net } from "../net";
-import { compatible, loadManifest, ManifestError, parseManifest, readsRelease, type Held, type Manifest } from "../manifest";
+import { compatible, loadManifest, ManifestError, parseManifest, readsRelease, type Held, type Manifest, type StageOutcome } from "../manifest";
 import { sha256Hex } from "../sha256";
 import type { WaterSource } from "../index";
 import type { SourceOptions } from "./source";
@@ -150,9 +150,10 @@ export interface Booted {
    * set is installed and the pointer swapped (`install`; the set in use stays on disk and open until the next boot, which
    * opens the new one and prunes the old); on the web the changed files this session has opened are fetched into the
    * release cache (immutable urls), so the boot that applies it reads them from there. Resolves when the next boot can
-   * use it (null: nothing to fetch — the same set, one refused, or one already installed and waiting to be applied).
+   * use it, as an outcome (`StageOutcome`: staged, already waiting, already in use, refused, or a format this app does not
+   * read) — never a bare "nothing", which the update service would take for ready (T555).
    */
-  stage(m: Manifest, onProgress?: (p: Progress) => void): Promise<Held | null>;
+  stage(m: Manifest, onProgress?: (p: Progress) => void): Promise<StageOutcome>;
   /** (T231) The manifest this launch read from the server (the web's is `manifest`), or null (offline): the update
    *  service's first check (`seedRelease`), so a launch asks for the manifest once. */
   latest: Manifest | null;
@@ -245,10 +246,10 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
     }
     const held: Held = { tiles: m.tiles.current?.id ?? null, basemap: m.basemap?.id ?? null,
                          assets: m.tiles.assets?.id ?? null, release: m.data_release, files: {} };
-    const stage = async (next: Manifest, onProgress?: (p: Progress) => void): Promise<Held | null> => {
-      if (sameSet(pointerFor(next), pointerFor(m))) return null;
+    const stage = async (next: Manifest, onProgress?: (p: Progress) => void): Promise<StageOutcome> => {
+      if (sameSet(pointerFor(next), pointerFor(m))) return { kind: "in-use" };
       const r = readsRelease(next, "web");
-      if (!r.ok) throw new ReleaseError(r.reason);
+      if (!r.ok) return { kind: "unreadable", reason: r.reason };
       // the files this session has opened that the new release changed: warmed in the release cache, verified
       const names = loader.opened().filter((n) => next.files[n] && next.files[n]!.sha256 !== m.files[n]?.sha256);
       const ahead = releaseLoader(next, o.platform.releaseSource(next, { base: o.releaseBase, cache, held: null, fetch: f, net: o.net ?? null }),
@@ -260,7 +261,7 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
         bytes += next.files[n]!.bytes;
         onProgress?.({ done: ++done, total: names.length, file: n, bytes, of });
       }
-      return pointerFor(next);
+      return { kind: "staged", held: pointerFor(next) };
     };
     return { manifest: m, held, loader, paint, source: makeReleaseSource(loader, { feed: o.feed }),
              locate: (path) => `${o.releaseBase}${path}`, update: Promise.resolve(null), rolledBack: null, stage,
@@ -414,17 +415,19 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
   const refused = await readHeld(dev.fs, REFUSED);
   /** (T231) The set installed for the next boot by this session (one at a time: a newer one waits for that boot). */
   let staged: Held | null = null;
-  let staging: Promise<Held | null> | null = null;
+  let staging: Promise<Held> | null = null;
   // an update whenever ANY part of the set moved — data files, tiles, mask, basemap, assets — unless it was refused, or
   // is the set this launch rolled back from and will retry (already installed, still the pointer's)
-  const stage = (next: Manifest, onProgress: (p: Progress) => void = () => {}): Promise<Held | null> => {
-    if (staging) return staging;
+  const stage = async (next: Manifest, onProgress: (p: Progress) => void = () => {}): Promise<StageOutcome> => {
+    if (staging) return { kind: "staged", held: await staging };
     const target = pointerFor(next);
-    if (staged || sameSet(target, now) || (refused && sameSet(target, refused))
-        || (retrying && sameSet(target, retrying.h))) return Promise.resolve(null);
-    // (T403) a set this app cannot read is never installed: refused, and the reason is the update's failure
+    if (sameSet(target, now)) return { kind: "in-use" };
+    if (refused && sameSet(target, refused)) return { kind: "refused", release: refused.release ?? null };
+    // already installed: the set being retried (the pointer names it), or one this session staged (one at a time)
+    if (staged || (retrying && sameSet(target, retrying.h))) return { kind: "waiting" };
+    // (T403) a set this app cannot read is never installed: a named state (the app is to be updated), not a failure
     const r = readsRelease(next, "phone");
-    if (!r.ok) return Promise.reject(new ReleaseError(r.reason));
+    if (!r.ok) return { kind: "unreadable", reason: r.reason };
     staging = (async () => {
       // a newer set replaces the one being retried: what of it the held set does not name goes first
       if (retrying) { await prune(dev.fs, retrying.h, retrying.m, now, set.m); retrying = null; }
@@ -436,9 +439,14 @@ export async function bootRelease(o: BootOptions): Promise<Booted> {
       return h;
     })();
     staging.then(() => { staging = null; }, () => { staging = null; });
-    return staging;
+    return { kind: "staged", held: await staging };
   };
-  const update = latest && !o.deferUpdate && allowed(latest) ? stage(latest) : Promise.resolve(null);
+  /** the launch's own update: the set installed for the next launch; an unreadable release is its failure, as before */
+  const heldOf = (r: StageOutcome): Held | null => {
+    if (r.kind === "unreadable") throw new ReleaseError(r.reason);
+    return r.kind === "staged" ? r.held : null;
+  };
+  const update = latest && !o.deferUpdate && allowed(latest) ? stage(latest).then(heldOf) : Promise.resolve(null);
   update.catch(() => {});        // a failed update leaves the held set in force (install never swapped)
 
   const loader = withLiveSalmon(set.loader, o.salmonFeed);

@@ -6,13 +6,14 @@
  * schedule (interval, backoff, foreground, back online) and what is kept across launches.
  */
 import { describe, expect, it } from "vitest";
-import { resolveAppVersion, type UpdateEvent } from "@app/core";
+import { resolveAppVersion, setFailureSink, type UpdateEvent } from "@app/core";
 import { createUpdateLog, versionedFetch } from "./log";
 import { sha256Hex } from "../sha256";
 import { VerifyError } from "../fetchVerified";
 import type { Held, Manifest } from "../manifest";
 import { MANIFEST_FORMAT } from "../pack.generated";
 import { checkObject } from "./check";
+import type { StageOutcome } from "../manifest";
 import { createUpdateService, phoneNetwork, releaseMoved, releaseNeed, type FeedSpec, type UpdateStore } from "./service";
 import { createNet } from "../net";
 
@@ -243,6 +244,7 @@ function manifest(release: string, o: { files?: Record<string, [number, string]>
     ...(o.date ? { sources: { dfo: { date: o.date }, fwa: { date: "2026-01-01" } } } : {}),
   } as Manifest;
 }
+const OK: StageOutcome = { kind: "staged", held: { tiles: null, basemap: null, files: {} } };
 const heldOf = (m: Manifest): Held => ({ release: m.data_release, tiles: m.tiles.current?.id ?? null, basemap: null,
   assets: null, files: Object.fromEntries(Object.entries(m.files).map(([k, v]) => [k, v.sha256])) });
 
@@ -265,7 +267,7 @@ describe("the release", () => {
     const staged: string[] = [];
     const s = createUpdateService({ feeds: [], fetch: o.fetch, release: {
       manifestUrl: M, held: () => held,
-      stage: async (m, on) => { on(50, 100); staged.push(m.data_release); on(100, 100); },
+      stage: async (m, on) => { on(50, 100); staged.push(m.data_release); on(100, 100); return OK; },
     } });
     await s.check();
     expect(s.snapshot().release).toMatchObject({ phase: "current", target: null, error: null });
@@ -292,7 +294,7 @@ describe("the release", () => {
     let bad = true, tries = 0;
     const s = createUpdateService({ feeds: [], fetch: o.fetch, release: {
       manifestUrl: M, held: () => heldOf(m1),
-      stage: async () => { tries++; if (bad) throw new VerifyError("core: sha256 0123…, the manifest says c2…"); },
+      stage: async () => { tries++; if (bad) throw new VerifyError("core: sha256 0123…, the manifest says c2…"); return OK; },
     } });
     await s.check();
     await flush();
@@ -315,7 +317,7 @@ describe("the release", () => {
     const store = memStore();
     const s = createUpdateService({ feeds: [], fetch: o.fetch, store,
       network: { online: () => true, metered: () => metered, subscribe: (on) => { subs.push(on); return () => {}; } },
-      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.tiles.current!.id!); } } });
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.tiles.current!.id!); return OK; } } });
     s.start();
     await flush(); await flush();
     expect(s.snapshot().release).toMatchObject({ phase: "waiting-wifi", target: "r1", progress: { of: 500_000_000 } });
@@ -332,7 +334,7 @@ describe("the release", () => {
     // and without the setting, Wi-Fi coming back lets it through
     const s2 = createUpdateService({ feeds: [], fetch: o.fetch,
       network: { online: () => true, metered: () => metered, subscribe: (on) => { subs.push(on); return () => {}; } },
-      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(`s2 ${m.tiles.current!.id!}`); } } });
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(`s2 ${m.tiles.current!.id!}`); return OK; } } });
     s2.start();
     await flush(); await flush();
     expect(s2.snapshot().release!.phase).toBe("waiting-wifi");
@@ -369,7 +371,7 @@ describe("the release", () => {
     net.setMode({ low: true, why: "cellular", offline: false });
     const staged: string[] = [];
     const s = createUpdateService({ feeds: [], fetch: o.fetch, network: phoneNetwork(conn, net),
-      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.tiles.current!.id!); } } });
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.tiles.current!.id!); return OK; } } });
     s.start();
     await flush(); await flush();
     expect(s.snapshot().release!.phase).toBe("waiting-wifi");
@@ -388,7 +390,7 @@ describe("the release", () => {
     const o = origin({ [M]: JSON.stringify(m1) });
     const c = clock();
     const s = createUpdateService({ feeds: [], fetch: o.fetch, now: c.now, timers: c.timers,
-                                    release: { manifestUrl: M, held: () => heldOf(m1), stage: async () => {} } });
+                                    release: { manifestUrl: M, held: () => heldOf(m1), stage: async () => OK } });
     s.seedRelease(m1);
     s.start();
     await flush();
@@ -403,7 +405,7 @@ describe("the release", () => {
   it("an unreadable manifest is an error, not an update", async () => {
     const o = origin({ [M]: "{\"format\":\"nope\"}" });
     const s = createUpdateService({ feeds: [], fetch: o.fetch,
-                                    release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async () => {} } });
+                                    release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async () => OK } });
     await s.check({ manual: true });
     expect(s.snapshot().release!.error).toContain("format");
     expect(s.snapshot().manual).toMatchObject({ ok: false });
@@ -443,7 +445,7 @@ describe("(T251) every check is an event", () => {
     let bad = true;
     const s = createUpdateService({ feeds: [], fetch: o.fetch, onEvent: (e) => ev.push(e), release: {
       manifestUrl: M, held: () => heldOf(m1),
-      stage: async (_m, on) => { on(100, 100); if (bad) throw new VerifyError("core: sha256 0123…, the manifest says c2…"); },
+      stage: async (_m, on) => { on(100, 100); if (bad) throw new VerifyError("core: sha256 0123…, the manifest says c2…"); return OK; },
     } });
     await s.check(); await flush();
     bad = false;
@@ -478,7 +480,7 @@ describe("(T251) the release gate: minAppVersion", () => {
     const o = origin({ [M]: JSON.stringify(gated("0.3.0")) });
     const staged: string[] = [], ev: UpdateEvent[] = [];
     const s = createUpdateService({ feeds: [], fetch: o.fetch, appVersion: v("0.2.9"), onEvent: (e) => ev.push(e),
-      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.data_release); } } });
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async (m) => { staged.push(m.data_release); return OK; } } });
     await s.check(); await flush();
     expect(staged).toEqual([]);
     expect(s.snapshot().release).toMatchObject({ phase: "app-too-old", target: "r2", needsApp: "0.3.0" });
@@ -495,7 +497,7 @@ describe("(T251) the release gate: minAppVersion", () => {
       const o = origin({ [M]: JSON.stringify(gated("0.3.0")) });
       const staged: string[] = [];
       const s = createUpdateService({ feeds: [], fetch: o.fetch, appVersion,
-        release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async (m) => { staged.push(m.data_release); } } });
+        release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async (m) => { staged.push(m.data_release); return OK; } } });
       await s.check(); await flush();
       expect(staged).toEqual(["r2"]);
     }
@@ -503,7 +505,7 @@ describe("(T251) the release gate: minAppVersion", () => {
 
   it("the boot's own manifest (seedRelease) is gated too", () => {
     const s = createUpdateService({ feeds: [], appVersion: v("0.1.0"),
-      release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async () => {} } });
+      release: { manifestUrl: M, held: () => heldOf(manifest("r1")), stage: async () => OK } });
     s.seedRelease(gated("0.2.0"));
     expect(s.snapshot().release).toMatchObject({ phase: "app-too-old", target: "r2" });
   });
@@ -527,5 +529,73 @@ describe("(T251) the log's ring buffer and the versioned fetch", () => {
                              { "X-App-Version": "0.1.0+3.abcdef1" });
     await checkObject(G, { etag: '"e"', sha256: null }, f);
     expect([seen[0]!.get("X-App-Version"), seen[0]!.get("If-None-Match")]).toEqual(["0.1.0+3.abcdef1", '"e"']);
+  });
+});
+
+describe("(T555) what staging came to: only an installed set is ready", () => {
+  const setup = (out: () => StageOutcome, ev: UpdateEvent[] = []) => {
+    const m1 = manifest("r1"), m2 = manifest("r2", { files: { core: [100, "c2"], paint: [10, "p1"] }, date: "2026-10-27" });
+    const o = origin({ [M]: JSON.stringify(m2) });
+    let tries = 0;
+    const s = createUpdateService({ feeds: [], fetch: o.fetch, onEvent: (e) => ev.push(e),
+      release: { manifestUrl: M, held: () => heldOf(m1), stage: async () => { tries++; return out(); } } });
+    return { s, o, m2, tries: () => tries };
+  };
+
+  it("a REFUSED release is not ready: the service stays current, names it, reports it once, and never stages it again", async () => {
+    const reports: string[] = [];
+    const undo = setFailureSink((e) => reports.push(String((e as Error).message)));
+    try {
+      const { s, o, tries } = setup(() => ({ kind: "refused", release: "r2" }));
+      await s.check(); await flush();
+      expect(s.snapshot().release).toMatchObject({ phase: "current", target: null, refused: "r2", error: null });
+      expect(reports).toHaveLength(1);
+      expect(reports[0]).toMatch(/r2 was refused/);
+      // later checks (and a manifest that changed again) keep the state and report nothing more
+      await s.check(); await flush();
+      o.files.set(M, JSON.stringify(manifest("r2", { files: { core: [100, "c2"], paint: [10, "p1"] }, date: "2026-10-28" })));
+      await s.check(); await flush();
+      expect(s.snapshot().release).toMatchObject({ phase: "current", refused: "r2" });
+      expect(reports).toHaveLength(1);
+      expect(tries()).toBe(2);        // the changed manifest asked once more; the unchanged check did not
+    } finally { undo(); }
+  });
+
+  it("a set already in use is current, not ready and not updated", async () => {
+    const ev: UpdateEvent[] = [];
+    const { s } = setup(() => ({ kind: "in-use" }), ev);
+    await s.check(); await flush();
+    expect(s.snapshot().release).toMatchObject({ phase: "current", target: null, refused: null });
+    expect(ev.at(-1)).toMatchObject({ kind: "unchanged", note: "in use" });
+  });
+
+  it("a set already installed for the next boot (waiting, or the one a rollback retries) is ready", async () => {
+    const { s } = setup(() => ({ kind: "waiting" }));
+    await s.check(); await flush();
+    expect(s.snapshot().release).toMatchObject({ phase: "ready", target: "r2" });
+  });
+
+  it("a release this app does not read is the old-app state, not an error, and is not reported", async () => {
+    const reports: unknown[] = [];
+    const undo = setFailureSink((e) => reports.push(e));
+    try {
+      const { s } = setup(() => ({ kind: "unreadable", reason: "release r2 is not one this app reads: salmon is salmon/5, not salmon/4" }));
+      await s.check(); await flush();
+      expect(s.snapshot().release).toMatchObject({ phase: "app-too-old", target: "r2", error: null });
+      expect(reports).toEqual([]);
+    } finally { undo(); }
+  });
+
+  it("an apply whose boot went back (rolledBack) is not 'applied': refused is named, and the next check does not stage it as new", async () => {
+    const ev: UpdateEvent[] = [];
+    const { s, tries } = setup(() => ({ kind: "waiting" }), ev);
+    await s.check(); await flush();
+    expect(s.snapshot().release!.phase).toBe("ready");
+    const undo = setFailureSink(() => {});
+    try { s.notApplied("r2", "paint would not decode"); } finally { undo(); }
+    expect(s.snapshot().release).toMatchObject({ phase: "current", target: null, refused: "r2" });
+    expect(s.snapshot().release!.updatedAt).toBeNull();
+    expect(ev.some((e) => e.kind === "applied")).toBe(false);
+    expect(tries()).toBe(1);
   });
 });
