@@ -10,7 +10,6 @@ The pure tests need no data; the data tests read the live set (`ANSWERS_EXPORT_D
 from __future__ import annotations
 
 import json
-import os
 import re
 from functools import lru_cache
 from pathlib import Path
@@ -21,10 +20,9 @@ from pipeline.deliver.answers import display as X
 from pipeline.deliver.answers import licence as L
 from pipeline.deliver.answers import model as M
 from pipeline.deliver.answers.common import lc, lc_names, load_export, sp_name
-from pipeline.deliver.bundle import read as R
-from pipeline.tests.conftest import EXPORT_HINT, need
+from pipeline.tests import under_test
 
-EXPORT_DIR = Path(os.environ.get("ANSWERS_EXPORT_DIR") or Path(R.BUNDLE).parent.parent / "regs")
+EXPORT_DIR = under_test.path("export_dir")
 ANSWERS = Path(__file__).resolve().parents[1] / "deliver" / "answers"
 PARK = "zp:superior_closures::superior_closures.r1"
 RESERVES = "zp:national_park_reserves::national_park_reserves.r1"
@@ -188,8 +186,8 @@ def test_the_item_model_holds_ranges_to_a_cross_reference_of_several_fish():
 @lru_cache(maxsize=1)
 def _files():
     from pipeline.deliver.export.codec import expand
-    need(None, "bundle", EXPORT_DIR / "ui-rules-export.json", EXPORT_HINT)
-    need(None, "bundle", EXPORT_DIR / "ui-rules-answers.json", EXPORT_HINT)
+    under_test.export()
+    under_test.answers()
     data, guide = load_export(EXPORT_DIR)
     wire = json.loads((EXPORT_DIR / "ui-rules-answers.json").read_text())
     return data, expand(data, guide), wire

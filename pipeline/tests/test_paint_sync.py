@@ -124,15 +124,10 @@ def test_a_lake_on_the_course_named_or_not_is_adjacency():
 def test_a_built_release_passes_both_checks_on_its_shipped_files(request):
     """Review finding 9: `check` (and `name_check.check_release`) on a BUILT release's shipped files — the side set's
     or the live one (UI_EXPORT_DIR / the release root), against its own bundle."""
-    import os
-    from pathlib import Path
     from pipeline.deliver.answers.display.name_check import check_release
     from pipeline.deliver.release.paint_sync import check
-    from pipeline.deliver.release.manifest import latest
-    from pipeline.tests.conftest import need, release_root, BUNDLE_HINT
-    from pipeline.deliver.bundle import read as R
-    bundle = need(request, "bundle", Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE), BUNDLE_HINT)
-    rel = latest(release_root())
-    assert rel is not None
+    from pipeline.tests import under_test
+    bundle = under_test.bundle(request)
+    rel = under_test.release(request)                 # the candidate during a release (RELEASE_DIR), else LATEST
     check(rel, bundle)
     check_release(rel)

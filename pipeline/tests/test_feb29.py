@@ -7,15 +7,13 @@ is untouched.
 """
 from __future__ import annotations
 
-import os
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
 from pipeline.regs.parsing import catalogue as C
-from pipeline.tests.conftest import need, BUNDLE_HINT
+from pipeline.tests import under_test
 
 FEB29 = C._day_index(2, 29)
 
@@ -54,12 +52,12 @@ def test_complement_of_a_range_to_feb_28_starts_mar_1():
     assert [(d.from_month, d.from_day, d.to_month, d.to_day) for d in got] == [(3, 1, 12, 31)]
 
 
-BUNDLE = Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE)
+BUNDLE = under_test.path("bundle")
 
 
 @pytest.mark.needs_bundle
 def test_the_nicola_below_the_lake_is_catch_and_release_on_feb_29(request):
-    need(request, "bundle", BUNDLE, BUNDLE_HINT)
+    under_test.bundle(request)
     db = sqlite3.connect(f"file:{BUNDLE}?mode=ro", uri=True)
     try:
         sid = db.execute("SELECT MIN(s.sid) FROM section_ruleset s JOIN ruleset r ON "
@@ -103,14 +101,9 @@ def test_feb_29_reads_feb_28_on_its_own_weekday():
 def test_no_stored_year_reads_differently_on_day_60(request):
     """The data invariant that keeps a day-60 reader honest: no answers segment starts at day 60, and every status
     profile holds the same code on day 60 as on day 59."""
-    from pipeline.common.curated import GENERATED
     from pipeline.deliver import status_index as SI
-    from pipeline.deliver.export.contract import OUT
-    from pipeline.tests.conftest import EXPORT_HINT
-    answers = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent) / "ui-rules-answers.json",
-                   EXPORT_HINT)
-    index = need(request, "bundle", Path(os.environ.get("STATUS_INDEX") or GENERATED.bundle / "status_index.bin"),
-                 BUNDLE_HINT)
+    answers = under_test.answers(request)
+    index = under_test.status_index(request)
     wire = _json.loads(answers.read_bytes())
     assert not [i for i, seg in enumerate(wire["segments"]) if 60 in seg]
     ix = SI.Index(index.read_bytes())
@@ -123,10 +116,7 @@ def test_the_zymoetz_on_friday_2036_02_29_reads_feb_28_and_the_friday_rule(reque
     tap reads Feb 28's day on a Friday, so the rule speaks; on Feb 28's own Thursday it does not, and a Thursday Feb 29
     reads exactly Feb 28."""
     from pipeline.deliver.answers import common as AC, encode as E
-    from pipeline.deliver.export.contract import OUT
-    from pipeline.tests.conftest import EXPORT_HINT
-    exp = need(request, "bundle", Path(os.environ.get("ANSWERS_EXPORT_DIR") or OUT.parent) / "ui-rules-answers.json",
-               EXPORT_HINT).parent
+    exp = under_test.answers(request).parent
     wire = _json.loads((exp / "ui-rules-answers.json").read_bytes())
     data, _guide = AC.load_export(exp)
     wd = SPEC.weekday_of(2036, 2, 29)
