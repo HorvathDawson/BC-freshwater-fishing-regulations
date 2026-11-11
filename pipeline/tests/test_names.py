@@ -237,8 +237,8 @@ def lower_fraser(request):
     lake_kind = b.get_lake_wbk_kind(fwa, bbox)
     fids = load_stream_fids(b._DEFAULT_GPKG, bbox=bbox)
     from pipeline.atlas.graph.prune import nv_blks
-    from pipeline.common.curated import CURATED
-    curated = nv_blks(load_name_variants(CURATED.waters.name_variants))     # as the build passes them
+    from pipeline.tests import under_test
+    curated = nv_blks(load_name_variants(under_test.curated().waters.name_variants))     # as the build passes them
     return {c.blk: c for c in resolve_names(build_blk_chains(fids, lake_kind), fids, curated_blks=curated)}
 
 

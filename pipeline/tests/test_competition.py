@@ -15,16 +15,16 @@ species ignored, dates ignored, families competing, closures displaceable) and f
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from pathlib import Path
 
 import pytest
 
 from pipeline.deliver.bundle import read as R
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, BUNDLE_HINT, predates
 
-BUNDLE = str(Path(os.environ.get("UI_EXPORT_BUNDLE") or R.BUNDLE))
+BUNDLE = str(under_test.path("bundle"))
 DAILY = ("retention_limit", "daily")
 
 KAKWA, CECILIA = "r7:kakwa_lake@7-19", "r7:cecilia_lake@7-19"

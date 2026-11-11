@@ -32,7 +32,7 @@ from pipeline.common.models import (
 from pipeline.atlas.graph.tributaries import (
     _breaks_strahler, _mouths_at_lower_bound, expand, tributaries_of_reach,
 )
-from pipeline.common.curated import GENERATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import need, ATLAS_HINT
 
 
@@ -456,7 +456,7 @@ def real(request):
     import sys
     from pathlib import Path
     root = Path(__file__).resolve().parents[2]
-    need(request, "atlas", GENERATED.build() / "graph.pkl", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "graph.pkl", ATLAS_HINT)
     sys.path.insert(0, str(root / "curation-review/backend"))
     import reuse
     return reuse._graph(), reuse._registry()

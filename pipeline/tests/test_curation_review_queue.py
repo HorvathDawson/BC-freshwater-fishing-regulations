@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.common.curated import GENERATED
+from pipeline.tests import under_test
 from pipeline.tests.conftest import ATLAS_HINT, curated_root, need
 
 REPO = Path(__file__).resolve().parents[2]
@@ -30,7 +30,7 @@ pytestmark = [pytest.mark.needs_atlas, pytest.mark.needs_source]
 
 @pytest.fixture(scope="module")
 def env(request, tmp_path_factory):
-    need(request, "atlas", GENERATED.build() / "registry.json", ATLAS_HINT)
+    need(request, "atlas", under_test.atlas(request) / "registry.json", ATLAS_HINT)
     root = tmp_path_factory.mktemp("queue")
     run = root / "run"
     run.mkdir()
