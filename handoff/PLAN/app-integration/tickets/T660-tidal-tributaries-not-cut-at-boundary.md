@@ -150,3 +150,57 @@ The baseline predates T632, so the diff mixes T632, T185 curated DFO places, T62
 - DFO: 23 places / 411 sections tidal-subtracted = T632's 21 / 141 + 243 crossings (B03 14, B09 105, Region 6 a 42,
   b and b(ii) 38, c 4, McLennan 1, Silverdale 1) + 27 pieces of already-tidal lines. The Kitsumkalum unplaced
   pieces are pre-existing (T546/T632 runs; owner-accepted), not on a shore-cut line.
+
+## Owner follow-up 2026-11-11 (A–J), measured on the live atlas (build 27); proposals only
+Data: `T660-owner-followup.json`; named list to tick: `T660-inside-named.json`. Owner rulings recorded: T662 dropped; blue
+over tidal shading is fine where there is no reason to remove it; the 191 freshwater receivers are as wanted; H below.
+- **A. Once, at the highest point?** Once: yes (532 cuts on 532 lines). Highest point: no. The cut is at the top of the
+  mouth's run of crossing lines. Of the 161 lines whose crossing is tidal, 64 keep their own line inside the polygon more
+  than 25 m above the cut (15.7 km, blue over tidal: Gundersen Slough 1.3 km, Nunns Creek 1.2 km, Rogers Creek 1.1 km).
+  3 re-enter after leaving. 376 crossing runs higher up a line lie in the polygon (30.6 km), 15 of them on cut lines.
+- **B. Serpentine.** BNSF passes 646 m seaward of the FWA mouth without crossing the line. The limit has been `mouth` since
+  2026-10-29 (the owner's own mark: "railway is more towards sea then mouth"). The atlas aliases
+  `serpentine_river__tidal_boundary` at the natural mouth: nothing tidal, nothing dropped. No change needed.
+- **C. Others below the mouth.** Two more, both already `mouth`: Cowichan (the boundary is a line across Cowichan Bay) and
+  Copper Creek (only a rule's words). All 33 `split` limits stand on their own line above the mouth (14 m to 76.5 km).
+- **D. Side creeks of a mouth-limit river.** Creeks reaching the sea beside it have no tidal receiver: unchanged. Creeks
+  crossing that river stay freshwater (as wanted).
+- **E. Lines wholly inside the polygon** (every 10 m sample of every section inside; already-tidal lines excluded): 206
+  lines, 66.4 km. Unnamed: 103 / 21.1 km. Named: 103 / 45.3 km, mostly SIDE CHANNELS of named rivers whose limit is
+  `mouth` (Bella Coola 12, Tzouhalem 6, Sarita 6, Tom Browne 5 …). Near misses (95 % or more inside, at least one sample
+  outside): 15 lines / 15.3 km (9 named), the farthest outside sample 41 m from the edge.
+- **F. Effect of removing the 206:** no rule left with no water, no DFO place emptied, no gauge, curated split or tidal
+  row on them. 26 named lines carry a water rule by name (Bella Coola 9 rules, Kitimat 5).
+- **G. Where.** In the atlas build, beside the shore cut: the atlas reads the polygon; the reach does not. It writes
+  `inside_tidal.json` (blk, sections, metres, named). `reach.outside` adds owner `inside:<blk>` to the off-map tidal
+  set; the tiles take the same set. A named line goes only with an owner `remove: true` in a curated calls file. Tests:
+  wholly inside vs one point outside; a named line without a call stays; mutation pin. It rides the next atlas rebuild.
+- **H. Owner ruling: no 50 % skip.** "Cutting the pieces that go into the tidal portion of the downstream river should
+  always happen." 177 creeks join water that the curated limits make tidal. Two candidate cut points:
+  1. Where the line leaves the polygon going up from its mouth. On the 161 existing tidal cuts: 55 within 25 m of the
+     crossing top, 101 higher (+14.0 km tidal), 5 lower (-0.2 km). It also cuts 12 creeks that have no crossing run (11
+     Fraser-delta streams 35–200 m, plus Steveston 356242813).
+  2. The top of the crossing run (today). It misses those 12 and the creeks' own lines on tidal flats.
+  Cleaner: (1), the polygon exit. One cut per line, at the highest point of the stretch inside the polygon that is
+  contiguous from the mouth (the owner's A). It makes "blue line over tidal water" disappear for the creeks that matter.
+  Cost: it depends on the polygon (Barnston Island) and is a geometric point, not an FWA segment boundary.
+  - Of the 25 skipped "under 50 %" runs, only 1 joins tidal water (356070273, into the Fraser below Mission; polygon
+    exit 10 m, crossing top 586 m). The other 24 join freshwater (Bear, Kemano, the Nass above its limit …): no change.
+  - None of the 97 braid-spanned shores joins tidal water: untouched.
+  - The 371 cuts whose receiver is freshwater make nothing tidal: drop them under this rule (fewer sections, no binding
+    change). 3 creeks into tidal water have their mouth outside the polygon (Tlell 2, Chemainus 1): no cut either way.
+- **I. Whole-line crossings.**
+  - Chambers Creek 360880075: FWA draws its lower 8.2 km with crossing lines. The 2,598 m below its curated limit are
+    already tidal (T632); the rest is freshwater by that limit, so there is nothing to do.
+  - The three unnamed ones are NOT caught by E: they are lines of 1.2–2.5 km, partly outside the polygon.
+    - 354124221 and 354146752 join the Tahsish, which is freshwater: no change.
+    - 356242813 (Steveston, 1,249 m, 98.5 % inside, mouth piece 1410/1450) joins the tidal Fraser and stays blue. Rule
+      H(1) cuts it at 1,233 m.
+- **J. Slivers.**
+  - 354122529 (39 m mouth piece) and 354140656 (109 m): the sliver is the land piece above the crossing, under 5 m.
+  - 360591445: the sliver is the 4.9 m crossing itself.
+  - All three are unnamed and join freshwater (Tahsish, Pa-aat), so dropping the sliver changes no binding. None is caught by E.
+- **Maps** (`T660-shots/`): `chambers-creek-crossing.png`, `nass-long-crossings.png`, `steveston-whole-crossing.png`,
+  `inside-named-01..09.png`.
+  - The four long unnamed Nass lines (360692695, 360693030, 360466479, 360497932; 3.6–6.9 km) are FWA crossing lines across
+    the wide Nass. They join it above its tidal limit, so they stay freshwater (the Nass panel's parallel lines).

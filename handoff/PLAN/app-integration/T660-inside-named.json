@@ -1,0 +1,2939 @@
+{
+ "_about": "T660/T662 item E (owner 2026-11-11): NAMED blue lines lying wholly inside the DFO tidal-waters polygon on the live atlas (every 10 m sample of every section inside; lines already wholly tidal excluded). The proposed rule takes every such line off the freshwater map; unnamed ones go without asking, these wait for the owner. Set `remove` to true or false per row. Maps: T660-shots/inside-named-01..09.png (alphabetical, same order). Nothing is applied. Most rows are side channels of a named river whose curated tidal limit is `mouth` (the river stays freshwater to its mouth): removing them makes the channel tidal while the main channel beside it stays freshwater.",
+ "count": 103,
+ "km": 45.3,
+ "lines": [
+  {
+   "remove": null,
+   "water": "Anderson Creek",
+   "blk": "360232491",
+   "items": [
+    "gnis:7591"
+   ],
+   "length_m": 108,
+   "near": "Madeira Park (3 km)",
+   "lonlat": [
+    -123.98386,
+    49.63968
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 92,
+   "dfo_places": [
+    "2:default:areas-13-15-16"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360232491:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Apple River",
+   "blk": "360231832",
+   "items": [
+    "gnis:10567"
+   ],
+   "length_m": 356,
+   "near": "Heydon Bay (19 km)",
+   "lonlat": [
+    -125.41303,
+    50.71708
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360231832:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Apple River",
+   "blk": "360229891",
+   "items": [
+    "gnis:10567"
+   ],
+   "length_m": 353,
+   "near": "Heydon Bay (20 km)",
+   "lonlat": [
+    -125.40576,
+    50.71683
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360229891:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Apple River",
+   "blk": "360229890",
+   "items": [
+    "gnis:10567"
+   ],
+   "length_m": 183,
+   "near": "Heydon Bay (20 km)",
+   "lonlat": [
+    -125.40765,
+    50.71658
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360229890:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bear River",
+   "blk": "360219120",
+   "items": [
+    "gnis:4943"
+   ],
+   "length_m": 503,
+   "near": "Stewart (2 km)",
+   "lonlat": [
+    -129.97358,
+    55.95588
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360219120:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bear River",
+   "blk": "360238946",
+   "items": [
+    "gnis:4943"
+   ],
+   "length_m": 225,
+   "near": "Stewart (2 km)",
+   "lonlat": [
+    -129.97347,
+    55.9523
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360238946:0",
+    "360238946:8"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bedwell River",
+   "blk": "354088442",
+   "items": [
+    "gnis:11575"
+   ],
+   "length_m": 399,
+   "near": "Ahousaht First Nation - Oinimitis 14 (1 km)",
+   "lonlat": [
+    -125.77275,
+    49.36297
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088442:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bedwell River",
+   "blk": "354088443",
+   "items": [
+    "gnis:11575"
+   ],
+   "length_m": 221,
+   "near": "Ahousaht First Nation - Oinimitis 14 (1 km)",
+   "lonlat": [
+    -125.77338,
+    49.36369
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088443:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360218496",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 1470,
+   "near": "Bella Coola (1 km)",
+   "lonlat": [
+    -126.77218,
+    52.37723
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360218496:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360218497",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 961,
+   "near": "Bella Coola (1 km)",
+   "lonlat": [
+    -126.77143,
+    52.38133
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360218497:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360218494",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 900,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.77553,
+    52.38165
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360218494:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360218495",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 579,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.77832,
+    52.37937
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360218495:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360218498",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 421,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.7777,
+    52.37773
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360218498:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360221089",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 417,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.77491,
+    52.38525
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360221089:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360231479",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 398,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.77576,
+    52.38767
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360231479:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360218499",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 312,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.77862,
+    52.38092
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360218499:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360221088",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 186,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.77407,
+    52.3863
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360221088:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360221091",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 147,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.777,
+    52.38466
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360221091:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360221090",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 120,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.7743,
+    52.38585
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360221090:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bella Coola River",
+   "blk": "360231480",
+   "items": [
+    "gnis:11611"
+   ],
+   "length_m": 113,
+   "near": "Bella Coola (2 km)",
+   "lonlat": [
+    -126.77737,
+    52.38755
+   ],
+   "water_rules_binding": [
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r10",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r11",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r13",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r3",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r4",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r5",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r6",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r7",
+    "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r8"
+   ],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:bella-coola-river-not-including-at:whole",
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360231480:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bonsall Creek",
+   "blk": "354088030",
+   "items": [
+    "gnis:38884"
+   ],
+   "length_m": 110,
+   "near": "Pinson's Corner (1 km)",
+   "lonlat": [
+    -123.66733,
+    48.88616
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088030:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Brae Slough",
+   "blk": "356232808",
+   "items": [
+    "blk:356232808"
+   ],
+   "length_m": 1501,
+   "near": "Fort Langley (1 km)",
+   "lonlat": [
+    -122.57826,
+    49.17942
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 92,
+   "dfo_places": [
+    "2:default:areas-28-29"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [
+    "crossing"
+   ],
+   "sections": [
+    "356232808:0",
+    "356232808:293"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Brem River",
+   "blk": "360230804",
+   "items": [
+    "gnis:9238"
+   ],
+   "length_m": 230,
+   "near": "Brem River (0 km)",
+   "lonlat": [
+    -124.66559,
+    50.43682
+   ],
+   "water_rules_binding": [
+    "r2:brem_river@2-13::brem_river.r4"
+   ],
+   "zone_rules_binding": 92,
+   "dfo_places": [
+    "2:default:areas-13-15-16"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360230804:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Brittain River",
+   "blk": "360227345",
+   "items": [
+    "gnis:9657"
+   ],
+   "length_m": 145,
+   "near": "Marlborough Heights (10 km)",
+   "lonlat": [
+    -124.01063,
+    49.99763
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 92,
+   "dfo_places": [
+    "2:default:areas-13-15-16"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227345:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Bulson Creek",
+   "blk": "354087928",
+   "items": [
+    "gnis:10591"
+   ],
+   "length_m": 326,
+   "near": "Ahousaht First Nation - Quortsowe 13 (0 km)",
+   "lonlat": [
+    -125.72579,
+    49.26369
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087928:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Caycuse River",
+   "blk": "354088977",
+   "items": [
+    "gnis:11710"
+   ],
+   "length_m": 295,
+   "near": "Malachan (1 km)",
+   "lonlat": [
+    -124.66627,
+    48.80113
+   ],
+   "water_rules_binding": [
+    "r1:caycuse_river@1-3::caycuse_river.r1"
+   ],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088977:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Cayeghle Creek",
+   "blk": "354088760",
+   "items": [
+    "gnis:30524"
+   ],
+   "length_m": 675,
+   "near": "Port Alice (10 km)",
+   "lonlat": [
+    -127.43575,
+    50.33967
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088760:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Cayeghle Creek",
+   "blk": "354087755",
+   "items": [
+    "gnis:30524"
+   ],
+   "length_m": 550,
+   "near": "Port Alice (11 km)",
+   "lonlat": [
+    -127.43919,
+    50.33627
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087755:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Cayeghle Creek",
+   "blk": "354088761",
+   "items": [
+    "gnis:30524"
+   ],
+   "length_m": 249,
+   "near": "Port Alice (10 km)",
+   "lonlat": [
+    -127.4379,
+    50.33891
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088761:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Cowichan River",
+   "blk": "354087621",
+   "items": [
+    "gnis:12227"
+   ],
+   "length_m": 274,
+   "near": "Lhumlhumuluts’ / Clemclemluts (1 km)",
+   "lonlat": [
+    -123.63773,
+    48.75573
+   ],
+   "water_rules_binding": [
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r1",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r2",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r6",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r8",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r9"
+   ],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:cowichan-river:from-the-white-triangle-boundary-s",
+    "1:cowichan-river:whole",
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087621:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Cowichan River",
+   "blk": "354088549",
+   "items": [
+    "gnis:12227"
+   ],
+   "length_m": 243,
+   "near": "Lhumlhumuluts’ / Clemclemluts (1 km)",
+   "lonlat": [
+    -123.63848,
+    48.75623
+   ],
+   "water_rules_binding": [
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r1",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r2",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r6",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r8",
+    "r1:cowichan_river_see_map_below@1-4::cowichan_river.r9"
+   ],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:cowichan-river:from-the-white-triangle-boundary-s",
+    "1:cowichan-river:whole",
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088549:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Franklin River",
+   "blk": "354088093",
+   "items": [
+    "gnis:2292"
+   ],
+   "length_m": 412,
+   "near": "Hupacasath First Nation - Chuchakacook No. 4 (3 km)",
+   "lonlat": [
+    -124.81339,
+    49.10187
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088093:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Franklin River",
+   "blk": "354088094",
+   "items": [
+    "gnis:2292"
+   ],
+   "length_m": 137,
+   "near": "Hupacasath First Nation - Chuchakacook No. 4 (3 km)",
+   "lonlat": [
+    -124.81427,
+    49.10326
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088094:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Gold River",
+   "blk": "354088092",
+   "items": [
+    "gnis:17593"
+   ],
+   "length_m": 551,
+   "near": "Gold River (12 km)",
+   "lonlat": [
+    -126.11303,
+    49.6856
+   ],
+   "water_rules_binding": [
+    "r1:gold_river@1-9::gold_river.r2",
+    "r1:gold_river@1-9::gold_river.r4"
+   ],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088092:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kainet Creek",
+   "blk": "360219049",
+   "items": [
+    "gnis:11283"
+   ],
+   "length_m": 294,
+   "near": "Ocean Falls (47 km)",
+   "lonlat": [
+    -127.8797,
+    52.758
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360219049:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kainet Creek",
+   "blk": "360227727",
+   "items": [
+    "gnis:11283"
+   ],
+   "length_m": 266,
+   "near": "Ocean Falls (47 km)",
+   "lonlat": [
+    -127.87672,
+    52.75754
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227727:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kemano River",
+   "blk": "360222049",
+   "items": [
+    "gnis:2238"
+   ],
+   "length_m": 2364,
+   "near": "Kemano Beach (1 km)",
+   "lonlat": [
+    -128.12062,
+    53.48902
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section",
+    "6:kemano-river:whole"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360222049:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Khutze River",
+   "blk": "360243798",
+   "items": [
+    "gnis:36313"
+   ],
+   "length_m": 577,
+   "near": "Butedale (21 km)",
+   "lonlat": [
+    -128.40707,
+    53.08481
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360243798:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Khutze River",
+   "blk": "360233582",
+   "items": [
+    "gnis:36313"
+   ],
+   "length_m": 478,
+   "near": "Butedale (21 km)",
+   "lonlat": [
+    -128.41159,
+    53.0827
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360233582:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Khutze River",
+   "blk": "360233583",
+   "items": [
+    "gnis:36313"
+   ],
+   "length_m": 363,
+   "near": "Butedale (21 km)",
+   "lonlat": [
+    -128.41425,
+    53.08375
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360233583:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Khutze River",
+   "blk": "360233584",
+   "items": [
+    "gnis:36313"
+   ],
+   "length_m": 268,
+   "near": "Butedale (20 km)",
+   "lonlat": [
+    -128.41674,
+    53.08354
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360233584:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kimsquit River",
+   "blk": "360225521",
+   "items": [
+    "gnis:12611"
+   ],
+   "length_m": 819,
+   "near": "Tallheo (57 km)",
+   "lonlat": [
+    -127.08017,
+    52.88675
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360225521:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kingcome River",
+   "blk": "360214183",
+   "items": [
+    "gnis:30705"
+   ],
+   "length_m": 2882,
+   "near": "Kingcome Inlet (2 km)",
+   "lonlat": [
+    -126.18011,
+    50.94368
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360214183:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kingcome River",
+   "blk": "360214188",
+   "items": [
+    "gnis:30705"
+   ],
+   "length_m": 1042,
+   "near": "Kingcome Inlet (2 km)",
+   "lonlat": [
+    -126.1807,
+    50.93673
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360214188:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kitimat River",
+   "blk": "360243518",
+   "items": [
+    "gnis:3225"
+   ],
+   "length_m": 561,
+   "near": "Old Village (2 km)",
+   "lonlat": [
+    -128.65632,
+    54.01533
+   ],
+   "water_rules_binding": [
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r3",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r4",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r5",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r7",
+    "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3::kitimat_river.r8"
+   ],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section",
+    "6:kitimat-river:whole"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360243518:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kitkiata Creek",
+   "blk": "360222159",
+   "items": [
+    "gnis:3675"
+   ],
+   "length_m": 366,
+   "near": "Réserve indienne Kumowdah 3 (21 km)",
+   "lonlat": [
+    -129.26948,
+    53.64222
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360222159:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kitkiata Creek",
+   "blk": "360227992",
+   "items": [
+    "gnis:3675"
+   ],
+   "length_m": 262,
+   "near": "Réserve indienne Kumowdah 3 (21 km)",
+   "lonlat": [
+    -129.27265,
+    53.64518
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227992:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kitkiata Creek",
+   "blk": "360227991",
+   "items": [
+    "gnis:3675"
+   ],
+   "length_m": 193,
+   "near": "Réserve indienne Kumowdah 3 (21 km)",
+   "lonlat": [
+    -129.27148,
+    53.64361
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227991:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kitkiata Creek",
+   "blk": "360227990",
+   "items": [
+    "gnis:3675"
+   ],
+   "length_m": 168,
+   "near": "Réserve indienne Kumowdah 3 (21 km)",
+   "lonlat": [
+    -129.2729,
+    53.64638
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227990:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kitlope River",
+   "blk": "360227034",
+   "items": [
+    "gnis:12681"
+   ],
+   "length_m": 1101,
+   "near": "Kemano Beach (33 km)",
+   "lonlat": [
+    -127.86452,
+    53.23044
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section",
+    "6:kitlope-river:whole"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227034:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kokish River",
+   "blk": "354087920",
+   "items": [
+    "gnis:30726"
+   ],
+   "length_m": 289,
+   "near": "Beaver Cove (1 km)",
+   "lonlat": [
+    -126.87034,
+    50.53077
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087920:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Koksilah River",
+   "blk": "354088058",
+   "items": [
+    "gnis:14076"
+   ],
+   "length_m": 210,
+   "near": "Cowichan Bay (1 km)",
+   "lonlat": [
+    -123.64452,
+    48.74742
+   ],
+   "water_rules_binding": [
+    "r1:koksilah_river@1-4::koksilah_river.r1"
+   ],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088058:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kowesas River",
+   "blk": "360223581",
+   "items": [
+    "gnis:3702"
+   ],
+   "length_m": 1276,
+   "near": "Kemano Beach (16 km)",
+   "lonlat": [
+    -128.12258,
+    53.3332
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360223581:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kowesas River",
+   "blk": "360223582",
+   "items": [
+    "gnis:3702"
+   ],
+   "length_m": 396,
+   "near": "Kemano Beach (16 km)",
+   "lonlat": [
+    -128.11712,
+    53.33536
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360223582:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kshwan River",
+   "blk": "360225715",
+   "items": [
+    "gnis:3924"
+   ],
+   "length_m": 519,
+   "near": "Anyox (24 km)",
+   "lonlat": [
+    -129.80643,
+    55.63513
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360225715:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Ksi X'anmas",
+   "blk": "360243665",
+   "items": [
+    "gnis:3815"
+   ],
+   "length_m": 787,
+   "near": "Nass Harbour (22 km)",
+   "lonlat": [
+    -130.13735,
+    54.77584
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360243665:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Kwatna River",
+   "blk": "360226459",
+   "items": [
+    "gnis:14163"
+   ],
+   "length_m": 758,
+   "near": "Ocean Falls (35 km)",
+   "lonlat": [
+    -127.37931,
+    52.10319
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360226459:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Lockhart Gordon Creek",
+   "blk": "360223101",
+   "items": [
+    "gnis:6727"
+   ],
+   "length_m": 531,
+   "near": "Nalos Landing (8 km)",
+   "lonlat": [
+    -127.24754,
+    51.40705
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360223101:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Lockhart Gordon Creek",
+   "blk": "360223100",
+   "items": [
+    "gnis:6727"
+   ],
+   "length_m": 100,
+   "near": "Nalos Landing (8 km)",
+   "lonlat": [
+    -127.25009,
+    51.4072
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360223100:0",
+    "360223100:102",
+    "360223100:23"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Mamin River",
+   "blk": "360222774",
+   "items": [
+    "gnis:34252"
+   ],
+   "length_m": 880,
+   "near": "Juskatla (1 km)",
+   "lonlat": [
+    -132.30689,
+    53.62487
+   ],
+   "water_rules_binding": [
+    "r1:mamin_river@6-13::mamin_river.r4"
+   ],
+   "zone_rules_binding": 83,
+   "dfo_places": [
+    "6:a:region",
+    "6:d:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360222774:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Mamin River",
+   "blk": "360222776",
+   "items": [
+    "gnis:34252"
+   ],
+   "length_m": 82,
+   "near": "Juskatla (1 km)",
+   "lonlat": [
+    -132.30802,
+    53.62285
+   ],
+   "water_rules_binding": [
+    "r1:mamin_river@6-13::mamin_river.r4"
+   ],
+   "zone_rules_binding": 83,
+   "dfo_places": [
+    "6:a:region",
+    "6:d:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360222776:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Marmot River",
+   "blk": "360243809",
+   "items": [
+    "gnis:3872"
+   ],
+   "length_m": 407,
+   "near": "Stewart (7 km)",
+   "lonlat": [
+    -130.01332,
+    55.87641
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360243809:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Moyeha River",
+   "blk": "354088814",
+   "items": [
+    "gnis:15776"
+   ],
+   "length_m": 415,
+   "near": "Ahousaht First Nation - Moyehai 23 (0 km)",
+   "lonlat": [
+    -125.91448,
+    49.41891
+   ],
+   "water_rules_binding": [
+    "r1:strathcona_park_waters@1-9::strathcona_park_waters.r1"
+   ],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088814:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Moyeha River",
+   "blk": "360887656",
+   "items": [
+    "gnis:15776"
+   ],
+   "length_m": 390,
+   "near": "Ahousaht First Nation - Moyehai 23 (1 km)",
+   "lonlat": [
+    -125.91063,
+    49.42002
+   ],
+   "water_rules_binding": [
+    "r1:strathcona_park_waters@1-9::strathcona_park_waters.r1"
+   ],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360887656:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Mussel River",
+   "blk": "360241570",
+   "items": [
+    "gnis:34412"
+   ],
+   "length_m": 174,
+   "near": "Klemtu (49 km)",
+   "lonlat": [
+    -128.02969,
+    52.92066
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360241570:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Nieumiamus Creek",
+   "blk": "360243759",
+   "items": [
+    "gnis:6063"
+   ],
+   "length_m": 122,
+   "near": "Tallheo (0 km)",
+   "lonlat": [
+    -126.83534,
+    52.38925
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360243759:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Nimpkish River",
+   "blk": "354088412",
+   "items": [
+    "gnis:21141"
+   ],
+   "length_m": 390,
+   "near": "Alert Bay (6 km)",
+   "lonlat": [
+    -127.00438,
+    50.55641
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088412:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Oona River",
+   "blk": "360238061",
+   "items": [
+    "gnis:34660"
+   ],
+   "length_m": 254,
+   "near": "Oona River (1 km)",
+   "lonlat": [
+    -130.26282,
+    53.95178
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-5~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360238061:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Pa-aat River",
+   "blk": "360232663",
+   "items": [
+    "gnis:6790"
+   ],
+   "length_m": 407,
+   "near": "Oona River (23 km)",
+   "lonlat": [
+    -130.00986,
+    53.80078
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-5~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360232663:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Quaal River",
+   "blk": "360233191",
+   "items": [
+    "gnis:4622"
+   ],
+   "length_m": 396,
+   "near": "Réserve indienne Kumowdah 3 (19 km)",
+   "lonlat": [
+    -129.32181,
+    53.6476
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360233191:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Quaal River",
+   "blk": "360242778",
+   "items": [
+    "gnis:4622"
+   ],
+   "length_m": 394,
+   "near": "Réserve indienne Kumowdah 3 (20 km)",
+   "lonlat": [
+    -129.30628,
+    53.64796
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360242778:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "San Juan River",
+   "blk": "354087702",
+   "items": [
+    "gnis:21201"
+   ],
+   "length_m": 447,
+   "near": "Port Renfrew (4 km)",
+   "lonlat": [
+    -124.39869,
+    48.58094
+   ],
+   "water_rules_binding": [
+    "r1:san_juan_river@1-3::san_juan_river.r2"
+   ],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087702:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sarita River",
+   "blk": "354088014",
+   "items": [
+    "gnis:21238"
+   ],
+   "length_m": 1126,
+   "near": "Cowishulth (8 km)",
+   "lonlat": [
+    -125.00733,
+    48.89979
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088014:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sarita River",
+   "blk": "354088012",
+   "items": [
+    "gnis:21238"
+   ],
+   "length_m": 959,
+   "near": "Cowishulth (8 km)",
+   "lonlat": [
+    -125.0075,
+    48.90178
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088012:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sarita River",
+   "blk": "354088556",
+   "items": [
+    "gnis:21238"
+   ],
+   "length_m": 231,
+   "near": "Cowishulth (9 km)",
+   "lonlat": [
+    -125.0146,
+    48.89838
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088556:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sarita River",
+   "blk": "354088013",
+   "items": [
+    "gnis:21238"
+   ],
+   "length_m": 197,
+   "near": "Cowishulth (8 km)",
+   "lonlat": [
+    -125.01078,
+    48.89994
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088013:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sarita River",
+   "blk": "354088011",
+   "items": [
+    "gnis:21238"
+   ],
+   "length_m": 97,
+   "near": "Cowishulth (8 km)",
+   "lonlat": [
+    -125.00887,
+    48.90259
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088011:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sarita River",
+   "blk": "354088015",
+   "items": [
+    "gnis:21238"
+   ],
+   "length_m": 73,
+   "near": "Cowishulth (8 km)",
+   "lonlat": [
+    -125.00985,
+    48.90223
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088015:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Scribner Creek",
+   "blk": "360239859",
+   "items": [
+    "gnis:24266"
+   ],
+   "length_m": 232,
+   "near": "Shearwater (8 km)",
+   "lonlat": [
+    -127.98358,
+    52.18405
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 88,
+   "dfo_places": [
+    "5b:region:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360239859:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Stagoo Creek",
+   "blk": "360235038",
+   "items": [
+    "gnis:3182"
+   ],
+   "length_m": 409,
+   "near": "Anyox (16 km)",
+   "lonlat": [
+    -129.74275,
+    55.28461
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360235038:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sydney River",
+   "blk": "354089012",
+   "items": [
+    "gnis:23096"
+   ],
+   "length_m": 501,
+   "near": "Ahousaht First Nation - Kishnacous 29 (0 km)",
+   "lonlat": [
+    -126.30176,
+    49.51744
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354089012:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sydney River",
+   "blk": "354088614",
+   "items": [
+    "gnis:23096"
+   ],
+   "length_m": 399,
+   "near": "Ahousaht First Nation - Kishnacous 29 (0 km)",
+   "lonlat": [
+    -126.29891,
+    49.51651
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088614:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sydney River",
+   "blk": "354088615",
+   "items": [
+    "gnis:23096"
+   ],
+   "length_m": 101,
+   "near": "Ahousaht First Nation - Kishnacous 29 (0 km)",
+   "lonlat": [
+    -126.29938,
+    49.5158
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088615:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Sydney River",
+   "blk": "354088568",
+   "items": [
+    "gnis:23096"
+   ],
+   "length_m": 22,
+   "near": "Ahousaht First Nation - Kishnacous 29 (0 km)",
+   "lonlat": [
+    -126.29507,
+    49.51503
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088568:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Theodosia River",
+   "blk": "360247236",
+   "items": [
+    "gnis:21687"
+   ],
+   "length_m": 335,
+   "near": "Bliss Landing (13 km)",
+   "lonlat": [
+    -124.65229,
+    50.08121
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 92,
+   "dfo_places": [
+    "2:default:areas-13-15-16"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360247236:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Toba River",
+   "blk": "360242728",
+   "items": [
+    "gnis:25929"
+   ],
+   "length_m": 552,
+   "near": "Brem River (23 km)",
+   "lonlat": [
+    -124.35573,
+    50.48916
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 92,
+   "dfo_places": [
+    "2:default:areas-13-15-16"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360242728:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tom Browne Creek",
+   "blk": "360227388",
+   "items": [
+    "gnis:8561"
+   ],
+   "length_m": 479,
+   "near": "Glendale Cove (2 km)",
+   "lonlat": [
+    -125.73252,
+    50.66039
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227388:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tom Browne Creek",
+   "blk": "360227387",
+   "items": [
+    "gnis:8561"
+   ],
+   "length_m": 317,
+   "near": "Glendale Cove (2 km)",
+   "lonlat": [
+    -125.72948,
+    50.65922
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227387:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tom Browne Creek",
+   "blk": "360227389",
+   "items": [
+    "gnis:8561"
+   ],
+   "length_m": 214,
+   "near": "Glendale Cove (2 km)",
+   "lonlat": [
+    -125.7327,
+    50.66193
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360227389:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tom Browne Creek",
+   "blk": "360241995",
+   "items": [
+    "gnis:8561"
+   ],
+   "length_m": 199,
+   "near": "Glendale Cove (2 km)",
+   "lonlat": [
+    -125.73021,
+    50.66127
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360241995:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tom Browne Creek",
+   "blk": "360224636",
+   "items": [
+    "gnis:8561"
+   ],
+   "length_m": 186,
+   "near": "Glendale Cove (2 km)",
+   "lonlat": [
+    -125.72963,
+    50.66103
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360224636:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tranquil Creek",
+   "blk": "354088196",
+   "items": [
+    "gnis:27598"
+   ],
+   "length_m": 575,
+   "near": "Ahousaht First Nation - Quortsowe 13 (7 km)",
+   "lonlat": [
+    -125.67067,
+    49.21272
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088196:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tranquil Creek",
+   "blk": "354088197",
+   "items": [
+    "gnis:27598"
+   ],
+   "length_m": 144,
+   "near": "Ahousaht First Nation - Quortsowe 13 (7 km)",
+   "lonlat": [
+    -125.67011,
+    49.21174
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088197:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Trent River",
+   "blk": "354089036",
+   "items": [
+    "gnis:27647"
+   ],
+   "length_m": 205,
+   "near": "Royston (1 km)",
+   "lonlat": [
+    -124.93133,
+    49.64374
+   ],
+   "water_rules_binding": [
+    "r1:trent_river@1-6::trent_river.r1"
+   ],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354089036:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tsowwin River",
+   "blk": "354088951",
+   "items": [
+    "gnis:29271"
+   ],
+   "length_m": 211,
+   "near": "Ceepeecee (11 km)",
+   "lonlat": [
+    -126.63679,
+    49.77744
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088951:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tzouhalem Creek",
+   "blk": "354088647",
+   "items": [
+    "gnis:32261"
+   ],
+   "length_m": 486,
+   "near": "Xinupsum / Khenipsen (0 km)",
+   "lonlat": [
+    -123.63236,
+    48.76354
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088647:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tzouhalem Creek",
+   "blk": "354087619",
+   "items": [
+    "gnis:32261"
+   ],
+   "length_m": 298,
+   "near": "Xinupsum / Khenipsen (0 km)",
+   "lonlat": [
+    -123.62968,
+    48.76501
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087619:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tzouhalem Creek",
+   "blk": "354087618",
+   "items": [
+    "gnis:32261"
+   ],
+   "length_m": 220,
+   "near": "Xinupsum / Khenipsen (0 km)",
+   "lonlat": [
+    -123.63036,
+    48.76532
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087618:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tzouhalem Creek",
+   "blk": "354088493",
+   "items": [
+    "gnis:32261"
+   ],
+   "length_m": 182,
+   "near": "Xinupsum / Khenipsen (0 km)",
+   "lonlat": [
+    -123.63088,
+    48.76262
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088493:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tzouhalem Creek",
+   "blk": "354087620",
+   "items": [
+    "gnis:32261"
+   ],
+   "length_m": 138,
+   "near": "Xinupsum / Khenipsen (0 km)",
+   "lonlat": [
+    -123.62939,
+    48.76429
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087620:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Tzouhalem Creek",
+   "blk": "354088492",
+   "items": [
+    "gnis:32261"
+   ],
+   "length_m": 106,
+   "near": "Xinupsum / Khenipsen (1 km)",
+   "lonlat": [
+    -123.6312,
+    48.76196
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 90,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354088492:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Wathl Creek",
+   "blk": "360218212",
+   "items": [
+    "gnis:3759"
+   ],
+   "length_m": 291,
+   "near": "Kitamaat (0 km)",
+   "lonlat": [
+    -128.64984,
+    53.9789
+   ],
+   "water_rules_binding": [],
+   "zone_rules_binding": 100,
+   "dfo_places": [
+    "6:a:region",
+    "6:e:area:areas-3-4-5-6~2",
+    "6:e:area:areas-6~2",
+    "6:e:section"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "360218212:0"
+   ]
+  },
+  {
+   "remove": null,
+   "water": "Zeballos River",
+   "blk": "354087806",
+   "items": [
+    "gnis:30471"
+   ],
+   "length_m": 151,
+   "near": "Zeballos (0 km)",
+   "lonlat": [
+    -126.85199,
+    49.98452
+   ],
+   "water_rules_binding": [
+    "r1:zeballos_river@1-12::zeballos_river.r1"
+   ],
+   "zone_rules_binding": 89,
+   "dfo_places": [
+    "1:default:region"
+   ],
+   "tidal_limit_row": null,
+   "gauges": [],
+   "curated_splits": [],
+   "partly_tidal_now": [],
+   "sections": [
+    "354087806:0"
+   ]
+  }
+ ]
+}

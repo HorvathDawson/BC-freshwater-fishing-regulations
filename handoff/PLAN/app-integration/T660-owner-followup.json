@@ -1,0 +1,3447 @@
+{
+ "_about": "T660 owner follow-up 2026-11-11, items A-J: measurements on the live atlas (build 27, data/generated/atlas/full) and its reach run. Proposals only; nothing applied.",
+ "A_once_highest": {
+  "cut_lines": 532,
+  "cuts": 532,
+  "rule": "one cut per line, at the top of the MOUTH run of FWA crossing lines (1450), not at the highest point inside the polygon",
+  "tidal_crossing_lines": 161,
+  "own_line_in_polygon_above_cut_gt25m": 64,
+  "own_line_in_polygon_above_cut_km": 15.7,
+  "reenter_after_leaving": 3,
+  "second_crossing_runs_in_polygon": 376,
+  "second_runs_on_cut_lines": 15,
+  "examples": [
+   {
+    "blk": "356337576",
+    "name": "",
+    "cut_m": 123.75,
+    "first_exit_m": 144,
+    "highest_in_polygon_m": 6332,
+    "in_polygon_above_cut_m": 2639
+   },
+   {
+    "blk": "356286798",
+    "name": "Gundersen Slough",
+    "cut_m": 220.54,
+    "first_exit_m": 1492,
+    "highest_in_polygon_m": 1482,
+    "in_polygon_above_cut_m": 1265
+   },
+   {
+    "blk": "354149928",
+    "name": "Nunns Creek",
+    "cut_m": 221.59,
+    "first_exit_m": 1434,
+    "highest_in_polygon_m": 1424,
+    "in_polygon_above_cut_m": 1209
+   },
+   {
+    "blk": "356232808",
+    "name": "",
+    "cut_m": 293.73,
+    "first_exit_m": null,
+    "highest_in_polygon_m": 1501,
+    "in_polygon_above_cut_m": 1208
+   },
+   {
+    "blk": "354154568",
+    "name": "Rogers Creek",
+    "cut_m": 62.81,
+    "first_exit_m": 1183,
+    "highest_in_polygon_m": 1173,
+    "in_polygon_above_cut_m": 1120
+   },
+   {
+    "blk": "356285962",
+    "name": "Cohilukthan Slough",
+    "cut_m": 27.48,
+    "first_exit_m": 888,
+    "highest_in_polygon_m": 878,
+    "in_polygon_above_cut_m": 858
+   },
+   {
+    "blk": "356035877",
+    "name": "",
+    "cut_m": 210.25,
+    "first_exit_m": null,
+    "highest_in_polygon_m": 962,
+    "in_polygon_above_cut_m": 752
+   },
+   {
+    "blk": "356165637",
+    "name": "",
+    "cut_m": 234.98,
+    "first_exit_m": null,
+    "highest_in_polygon_m": 885,
+    "in_polygon_above_cut_m": 650
+   }
+  ]
+ },
+ "B_serpentine": {
+  "blk": "356351273",
+  "printed": "Burlington Northern Railway Bridge (synopsis p.21; DFO Area 29)",
+  "bnsf_vs_mouth": "OSM BNSF line passes 646 m SEAWARD of the FWA mouth without crossing the line (tidal-candidates)",
+  "curated": "tidal_limits.json limit `mouth` (decided 2026-10-29, owner mark 5e364da6379e: 'railway is more towards sea then mouth')",
+  "atlas": "alias serpentine_river__tidal_boundary at the line's natural mouth (measure 0); nothing tidal, nothing cut",
+  "proposed": "no change: it already is the mouth"
+ },
+ "C_below_mouth": [
+  {
+   "water": "Serpentine River",
+   "blk": "356351273",
+   "printed": "Burlington Northern Railway Bridge",
+   "below_mouth_m": 646,
+   "today": "limit mouth (alias at mouth)",
+   "proposed": "no change"
+  },
+  {
+   "water": "Cowichan River",
+   "blk": "354155148",
+   "printed": "line across Cowichan Bay, Hecate Boat Ramp to Green Point",
+   "below_mouth_m": "in the bay (seaward of the mouth)",
+   "today": "limit mouth (alias at mouth)",
+   "proposed": "no change"
+  },
+  {
+   "water": "Copper Creek",
+   "blk": "360881072",
+   "printed": "'second bridge 6 km upstream of tidal boundary' (a rule's words, not a tidal limit)",
+   "below_mouth_m": 0,
+   "today": "limit mouth",
+   "proposed": "no change"
+  }
+ ],
+ "C_note": "All 33 curated `split` tidal limits stand on their own line above the mouth (14 m Squamish to 76.5 km Fraser); none dropped, none below the mouth. No rule naming a tidal split is unresolved.",
+ "D_side_creeks": "A shore cut needs a receiver that is tidal under curated limits to make anything tidal; a creek entering the sea beside a mouth-limit river has no receiver piece (it ends at the coast) and is not cut or changed; a creek crossing the mouth-limit river itself stays freshwater (191 such rivers, owner: as wanted).",
+ "E_wholly_inside": {
+  "test": "every point sampled every 10 m along every section of the blue line lies inside the DFO polygon (no edge tolerance); lines already wholly tidal excluded",
+  "lines": 206,
+  "km": 66.4,
+  "named": 103,
+  "named_km": 45.3,
+  "unnamed": 103,
+  "unnamed_km": 21.1,
+  "near_miss_ge95": [
+   {
+    "blk": "354088365",
+    "name": "Moyeha River",
+    "length_m": 1538,
+    "share_inside": 0.9805,
+    "outside_max_m_from_edge": 2.0
+   },
+   {
+    "blk": "356242813",
+    "name": "",
+    "length_m": 1249,
+    "share_inside": 0.9846,
+    "outside_max_m_from_edge": 19.0
+   },
+   {
+    "blk": "356355111",
+    "name": "Ewen Slough",
+    "length_m": 1247,
+    "share_inside": 0.9787,
+    "outside_max_m_from_edge": 22.7
+   },
+   {
+    "blk": "360214185",
+    "name": "Kingcome River",
+    "length_m": 2818,
+    "share_inside": 0.9752,
+    "outside_max_m_from_edge": 9.0
+   },
+   {
+    "blk": "360225353",
+    "name": "Southgate River",
+    "length_m": 1166,
+    "share_inside": 0.9658,
+    "outside_max_m_from_edge": 3.0
+   },
+   {
+    "blk": "360229315",
+    "name": "Wakeman River",
+    "length_m": 900,
+    "share_inside": 0.9556,
+    "outside_max_m_from_edge": 11.3
+   },
+   {
+    "blk": "360229889",
+    "name": "Apple River",
+    "length_m": 540,
+    "share_inside": 0.9636,
+    "outside_max_m_from_edge": 3.8
+   },
+   {
+    "blk": "360235205",
+    "name": "",
+    "length_m": 309,
+    "share_inside": 0.9757,
+    "outside_max_m_from_edge": 1.9
+   },
+   {
+    "blk": "360237369",
+    "name": "Kiltuish River",
+    "length_m": 495,
+    "share_inside": 0.96,
+    "outside_max_m_from_edge": 9.9
+   },
+   {
+    "blk": "360237724",
+    "name": "Nooseseck River",
+    "length_m": 474,
+    "share_inside": 0.9583,
+    "outside_max_m_from_edge": 9.1
+   },
+   {
+    "blk": "360240195",
+    "name": "Ksi Gingolx",
+    "length_m": 365,
+    "share_inside": 0.973,
+    "outside_max_m_from_edge": 4.6
+   },
+   {
+    "blk": "360515044",
+    "name": "",
+    "length_m": 222,
+    "share_inside": 0.9565,
+    "outside_max_m_from_edge": 0.6
+   },
+   {
+    "blk": "360716439",
+    "name": "",
+    "length_m": 635,
+    "share_inside": 0.9533,
+    "outside_max_m_from_edge": 3.5
+   },
+   {
+    "blk": "360827351",
+    "name": "",
+    "length_m": 2260,
+    "share_inside": 0.9825,
+    "outside_max_m_from_edge": 41.3
+   },
+   {
+    "blk": "360879326",
+    "name": "",
+    "length_m": 1119,
+    "share_inside": 0.9734,
+    "outside_max_m_from_edge": 17.3
+   }
+  ],
+  "named_list": "T660-inside-named.json",
+  "already_wholly_tidal": 40
+ },
+ "F_effects": {
+  "rules_left_with_no_water": [],
+  "dfo_places_emptied": [],
+  "gauges_on_them": [],
+  "curated_splits_on_them": [],
+  "tidal_limit_rows_on_them": [],
+  "named_with_a_water_rule": 26
+ },
+ "G_where": "reach step, beside tidal_crossing_owner: the atlas already holds the lines; but the reach reads no polygon, so the atlas must record the set: a sidecar inside_tidal.json (blk, sections, length, named, owner call) written by the atlas build from the same polygon read as the shore cut, read by reach.outside (owner `inside:<blk>`) and by the tiles' tidal_pieces; named lines only with an owner `remove: true` in a curated calls file. Rides the next atlas rebuild.",
+ "H_cut_point": {
+  "creeks_joining_curated_tidal_water": 177,
+  "existing_tidal_cuts": 161,
+  "polygon_exit_within_25m_of_crossing_top": 55,
+  "rows": [
+   {
+    "blk": "360874166",
+    "name": "MacMillan Creek",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 8129,
+    "crossing_top_m": 2527.59,
+    "not_cut": null,
+    "cut_now_m": 2527.59,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2557.6,
+    "inside_m": 2553
+   },
+   {
+    "blk": "360885692",
+    "name": "Boneyard Creek",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 7310,
+    "crossing_top_m": 2523.1,
+    "not_cut": null,
+    "cut_now_m": 2523.1,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2508.1,
+    "inside_m": 2503
+   },
+   {
+    "blk": "360493786",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2881,
+    "crossing_top_m": 2042.2,
+    "not_cut": null,
+    "cut_now_m": 2042.2,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2042.2,
+    "inside_m": 2037
+   },
+   {
+    "blk": "360864443",
+    "name": "Kildala Creek",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 13437,
+    "crossing_top_m": 2823.2,
+    "not_cut": null,
+    "cut_now_m": 2823.2,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2843.2,
+    "inside_m": 2838
+   },
+   {
+    "blk": "360833600",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 7440,
+    "crossing_top_m": 2878.38,
+    "not_cut": null,
+    "cut_now_m": 2878.38,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2908.4,
+    "inside_m": 2903
+   },
+   {
+    "blk": "360784311",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 5557,
+    "crossing_top_m": 2027.28,
+    "not_cut": null,
+    "cut_now_m": 2027.28,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1982.2,
+    "inside_m": 1977
+   },
+   {
+    "blk": "360432759",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2479,
+    "crossing_top_m": 1591.27,
+    "not_cut": null,
+    "cut_now_m": 1591.27,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1606.3,
+    "inside_m": 1601
+   },
+   {
+    "blk": "360786731",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3708,
+    "crossing_top_m": 2077.58,
+    "not_cut": null,
+    "cut_now_m": 2077.58,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2022.5,
+    "inside_m": 2018
+   },
+   {
+    "blk": "360728827",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3477,
+    "crossing_top_m": 2790.89,
+    "not_cut": null,
+    "cut_now_m": 2790.89,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2810.9,
+    "inside_m": 2806
+   },
+   {
+    "blk": "360767842",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 4123,
+    "crossing_top_m": 1917.7,
+    "not_cut": null,
+    "cut_now_m": 1917.7,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1942.7,
+    "inside_m": 1938
+   },
+   {
+    "blk": "360551866",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2220,
+    "crossing_top_m": 1625.15,
+    "not_cut": null,
+    "cut_now_m": 1625.15,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1620.1,
+    "inside_m": 1615
+   },
+   {
+    "blk": "360764607",
+    "name": "Carlisle Creek",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 4983,
+    "crossing_top_m": 3202.06,
+    "not_cut": null,
+    "cut_now_m": 3202.06,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 3217.1,
+    "inside_m": 3212
+   },
+   {
+    "blk": "360792721",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3883,
+    "crossing_top_m": 1887.52,
+    "not_cut": null,
+    "cut_now_m": 1887.52,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1927.5,
+    "inside_m": 1923
+   },
+   {
+    "blk": "360786206",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2866,
+    "crossing_top_m": 2312.79,
+    "not_cut": null,
+    "cut_now_m": 2312.79,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2363.1,
+    "inside_m": 2358
+   },
+   {
+    "blk": "360675708",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2416,
+    "crossing_top_m": 1894.75,
+    "not_cut": null,
+    "cut_now_m": 1894.75,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1934.9,
+    "inside_m": 1930
+   },
+   {
+    "blk": "360372373",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 4350,
+    "crossing_top_m": 2603.44,
+    "not_cut": null,
+    "cut_now_m": 2603.44,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2613.5,
+    "inside_m": 2608
+   },
+   {
+    "blk": "360674652",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3123,
+    "crossing_top_m": 2174.29,
+    "not_cut": null,
+    "cut_now_m": 2174.29,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2174.3,
+    "inside_m": 2169
+   },
+   {
+    "blk": "360710636",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3833,
+    "crossing_top_m": 2873.33,
+    "not_cut": null,
+    "cut_now_m": 2873.33,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2898.5,
+    "inside_m": 2893
+   },
+   {
+    "blk": "360821667",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 4396,
+    "crossing_top_m": 2399.06,
+    "not_cut": null,
+    "cut_now_m": 2399.06,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2419.1,
+    "inside_m": 2414
+   },
+   {
+    "blk": "360827351",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2260,
+    "crossing_top_m": 2170.88,
+    "not_cut": null,
+    "cut_now_m": 2170.88,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2223.3,
+    "inside_m": 2218
+   },
+   {
+    "blk": "360334277",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 4883,
+    "crossing_top_m": 2521.39,
+    "not_cut": null,
+    "cut_now_m": 2521.39,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2536.4,
+    "inside_m": 2531
+   },
+   {
+    "blk": "360531912",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3383,
+    "crossing_top_m": 2418.76,
+    "not_cut": null,
+    "cut_now_m": 2418.76,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2428.8,
+    "inside_m": 2424
+   },
+   {
+    "blk": "360703909",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3106,
+    "crossing_top_m": 1873.56,
+    "not_cut": null,
+    "cut_now_m": 1873.56,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1923.9,
+    "inside_m": 1919
+   },
+   {
+    "blk": "360846017",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2759,
+    "crossing_top_m": 1426.57,
+    "not_cut": null,
+    "cut_now_m": 1426.57,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1446.6,
+    "inside_m": 1442
+   },
+   {
+    "blk": "360489260",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2885,
+    "crossing_top_m": 1851.85,
+    "not_cut": null,
+    "cut_now_m": 1851.85,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1876.9,
+    "inside_m": 1872
+   },
+   {
+    "blk": "360368655",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3300,
+    "crossing_top_m": 2440.97,
+    "not_cut": null,
+    "cut_now_m": 2440.97,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2461.1,
+    "inside_m": 2456
+   },
+   {
+    "blk": "360733740",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2724,
+    "crossing_top_m": 1967.56,
+    "not_cut": null,
+    "cut_now_m": 1967.56,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1967.6,
+    "inside_m": 1963
+   },
+   {
+    "blk": "360420750",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2909,
+    "crossing_top_m": 2255.85,
+    "not_cut": null,
+    "cut_now_m": 2255.85,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2260.9,
+    "inside_m": 2256
+   },
+   {
+    "blk": "360567741",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2808,
+    "crossing_top_m": 2140.59,
+    "not_cut": null,
+    "cut_now_m": 2140.59,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2080.6,
+    "inside_m": 2076
+   },
+   {
+    "blk": "360767899",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3326,
+    "crossing_top_m": 2464.83,
+    "not_cut": null,
+    "cut_now_m": 2464.83,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2489.9,
+    "inside_m": 2485
+   },
+   {
+    "blk": "360778111",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3053,
+    "crossing_top_m": 2369.77,
+    "not_cut": null,
+    "cut_now_m": 2369.77,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2384.8,
+    "inside_m": 2380
+   },
+   {
+    "blk": "360723615",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2783,
+    "crossing_top_m": 1950.14,
+    "not_cut": null,
+    "cut_now_m": 1950.14,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1955.2,
+    "inside_m": 1950
+   },
+   {
+    "blk": "360537046",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2116,
+    "crossing_top_m": 1597.9,
+    "not_cut": null,
+    "cut_now_m": 1597.9,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1638.1,
+    "inside_m": 1633
+   },
+   {
+    "blk": "360620441",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3100,
+    "crossing_top_m": 2543.57,
+    "not_cut": null,
+    "cut_now_m": 2543.57,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2568.6,
+    "inside_m": 2564
+   },
+   {
+    "blk": "360509471",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3114,
+    "crossing_top_m": 1886.02,
+    "not_cut": null,
+    "cut_now_m": 1886.02,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1891.0,
+    "inside_m": 1886
+   },
+   {
+    "blk": "360704654",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2801,
+    "crossing_top_m": 2153.43,
+    "not_cut": null,
+    "cut_now_m": 2153.43,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2183.6,
+    "inside_m": 2179
+   },
+   {
+    "blk": "360834120",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 3456,
+    "crossing_top_m": 2317.97,
+    "not_cut": null,
+    "cut_now_m": 2317.97,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2323.0,
+    "inside_m": 2318
+   },
+   {
+    "blk": "360822241",
+    "name": "",
+    "receiver": "split:skeena_river__tidal_boundary",
+    "line_m": 2730,
+    "crossing_top_m": 1817.73,
+    "not_cut": null,
+    "cut_now_m": 1817.73,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1847.8,
+    "inside_m": 1843
+   },
+   {
+    "blk": "354149928",
+    "name": "Nunns Creek",
+    "receiver": "split:campbell_river__cement_block_boundary_sign",
+    "line_m": 3798,
+    "crossing_top_m": 221.59,
+    "not_cut": null,
+    "cut_now_m": 221.59,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1427.1,
+    "inside_m": 1422
+   },
+   {
+    "blk": "354100939",
+    "name": "",
+    "receiver": "split:campbell_river__cement_block_boundary_sign",
+    "line_m": 992,
+    "crossing_top_m": 588.33,
+    "not_cut": null,
+    "cut_now_m": 588.33,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 861.1,
+    "inside_m": 856
+   },
+   {
+    "blk": "360754170",
+    "name": "",
+    "receiver": "split:tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge",
+    "line_m": 539,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": false,
+    "polygon_exit_m": null,
+    "inside_m": 0
+   },
+   {
+    "blk": "360872159",
+    "name": "Geikie Creek",
+    "receiver": "split:tlell_river__tidal_sign_1_5_km_above_hwy_16_bridge",
+    "line_m": 6298,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": false,
+    "polygon_exit_m": null,
+    "inside_m": 0
+   },
+   {
+    "blk": "354130563",
+    "name": "McCoy Creek",
+    "receiver": "split:somass_river__tidal_boundary_at_papermill_dam",
+    "line_m": 2864,
+    "crossing_top_m": 42.36,
+    "not_cut": null,
+    "cut_now_m": 42.36,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 322.7,
+    "inside_m": 318
+   },
+   {
+    "blk": "354145435",
+    "name": "Kitsucksus Creek",
+    "receiver": "split:somass_river__tidal_boundary_at_papermill_dam",
+    "line_m": 15010,
+    "crossing_top_m": 174.13,
+    "not_cut": null,
+    "cut_now_m": 174.13,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 404.2,
+    "inside_m": 399
+   },
+   {
+    "blk": "354147179",
+    "name": "",
+    "receiver": "split:somass_river__tidal_boundary_at_papermill_dam",
+    "line_m": 540,
+    "crossing_top_m": 134.2,
+    "not_cut": null,
+    "cut_now_m": 134.2,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 539.6,
+    "inside_m": 540
+   },
+   {
+    "blk": "354154568",
+    "name": "Rogers Creek",
+    "receiver": "split:somass_river__tidal_boundary_at_papermill_dam",
+    "line_m": 20017,
+    "crossing_top_m": 62.81,
+    "not_cut": null,
+    "cut_now_m": 62.81,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1183.0,
+    "inside_m": 1178
+   },
+   {
+    "blk": "354144844",
+    "name": "",
+    "receiver": "split:somass_river__tidal_boundary_at_papermill_dam",
+    "line_m": 181,
+    "crossing_top_m": 150.78,
+    "not_cut": null,
+    "cut_now_m": 150.78,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 174.7,
+    "inside_m": 169
+   },
+   {
+    "blk": "356249719",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 932,
+    "crossing_top_m": 429.26,
+    "not_cut": null,
+    "cut_now_m": 429.26,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 705.5,
+    "inside_m": 701
+   },
+   {
+    "blk": "356358833",
+    "name": "Salmon River",
+    "receiver": "water:gnis:11566",
+    "line_m": 34196,
+    "crossing_top_m": 64.27,
+    "not_cut": null,
+    "cut_now_m": 64.27,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 99.3,
+    "inside_m": 94
+   },
+   {
+    "blk": "356271398",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2012,
+    "crossing_top_m": 206.09,
+    "not_cut": null,
+    "cut_now_m": 206.09,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 246.1,
+    "inside_m": 241
+   },
+   {
+    "blk": "356248171",
+    "name": "McDonald Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 6984,
+    "crossing_top_m": 713.86,
+    "not_cut": null,
+    "cut_now_m": 713.86,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 763.9,
+    "inside_m": 759
+   },
+   {
+    "blk": "356346138",
+    "name": "Silverdale Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 11302,
+    "crossing_top_m": 232.06,
+    "not_cut": null,
+    "cut_now_m": 232.06,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 277.1,
+    "inside_m": 272
+   },
+   {
+    "blk": "356170069",
+    "name": "Cougar Canyon Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 7013,
+    "crossing_top_m": 316.07,
+    "not_cut": null,
+    "cut_now_m": 316.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 341.1,
+    "inside_m": 336
+   },
+   {
+    "blk": "356307769",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1369,
+    "crossing_top_m": 110.1,
+    "not_cut": null,
+    "cut_now_m": 110.1,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 130.2,
+    "inside_m": 125
+   },
+   {
+    "blk": "356232808",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1501,
+    "crossing_top_m": 293.73,
+    "not_cut": null,
+    "cut_now_m": 293.73,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1501.4,
+    "inside_m": 1501
+   },
+   {
+    "blk": "356349946",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 221,
+    "crossing_top_m": 168.07,
+    "not_cut": null,
+    "cut_now_m": 168.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 199.6,
+    "inside_m": 194
+   },
+   {
+    "blk": "356190029",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 805,
+    "crossing_top_m": 196.65,
+    "not_cut": null,
+    "cut_now_m": 196.65,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 216.8,
+    "inside_m": 212
+   },
+   {
+    "blk": "356321196",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 5979,
+    "crossing_top_m": 427.59,
+    "not_cut": null,
+    "cut_now_m": 427.59,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 532.6,
+    "inside_m": 528
+   },
+   {
+    "blk": "356327002",
+    "name": "Tones Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1927,
+    "crossing_top_m": 141.2,
+    "not_cut": null,
+    "cut_now_m": 141.2,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 171.2,
+    "inside_m": 166
+   },
+   {
+    "blk": "356353055",
+    "name": "Kaymar Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 3393,
+    "crossing_top_m": 121.83,
+    "not_cut": null,
+    "cut_now_m": 121.83,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 141.8,
+    "inside_m": 137
+   },
+   {
+    "blk": "356292757",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2030,
+    "crossing_top_m": 39.72,
+    "not_cut": null,
+    "cut_now_m": 39.72,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 64.7,
+    "inside_m": 60
+   },
+   {
+    "blk": "356056948",
+    "name": "",
+    "receiver": "water:gnis:14905",
+    "line_m": 873,
+    "crossing_top_m": 147.98,
+    "not_cut": null,
+    "cut_now_m": 147.98,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 173.0,
+    "inside_m": 168
+   },
+   {
+    "blk": "356346058",
+    "name": "London Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2598,
+    "crossing_top_m": 574.99,
+    "not_cut": null,
+    "cut_now_m": 574.99,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 605.0,
+    "inside_m": 600
+   },
+   {
+    "blk": "355994876",
+    "name": "Byrne Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2206,
+    "crossing_top_m": 149.42,
+    "not_cut": null,
+    "cut_now_m": 149.42,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 164.4,
+    "inside_m": 159
+   },
+   {
+    "blk": "356264990",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2873,
+    "crossing_top_m": 219.45,
+    "not_cut": null,
+    "cut_now_m": 219.45,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 244.5,
+    "inside_m": 239
+   },
+   {
+    "blk": "356337576",
+    "name": "",
+    "receiver": "water:gnis:17805",
+    "line_m": 6332,
+    "crossing_top_m": 123.75,
+    "not_cut": null,
+    "cut_now_m": 123.75,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 138.8,
+    "inside_m": 2715
+   },
+   {
+    "blk": "356256060",
+    "name": "",
+    "receiver": "water:gnis:10494",
+    "line_m": 397,
+    "crossing_top_m": 92.32,
+    "not_cut": null,
+    "cut_now_m": 92.32,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 112.3,
+    "inside_m": 107
+   },
+   {
+    "blk": "356339436",
+    "name": "Katzie Slough",
+    "receiver": "split:pitt_river__cpr_bridge",
+    "line_m": 9972,
+    "crossing_top_m": 295.53,
+    "not_cut": null,
+    "cut_now_m": 295.53,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 410.6,
+    "inside_m": 406
+   },
+   {
+    "blk": "356123500",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 3863,
+    "crossing_top_m": 328.1,
+    "not_cut": null,
+    "cut_now_m": 328.1,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 358.1,
+    "inside_m": 353
+   },
+   {
+    "blk": "356321844",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2707,
+    "crossing_top_m": 261.05,
+    "not_cut": null,
+    "cut_now_m": 261.05,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 256.0,
+    "inside_m": 251
+   },
+   {
+    "blk": "356223093",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1030,
+    "crossing_top_m": 219.86,
+    "not_cut": null,
+    "cut_now_m": 219.86,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 259.9,
+    "inside_m": 255
+   },
+   {
+    "blk": "356195562",
+    "name": "McLennan Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 9917,
+    "crossing_top_m": 155.43,
+    "not_cut": null,
+    "cut_now_m": 155.43,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 300.5,
+    "inside_m": 295
+   },
+   {
+    "blk": "356217367",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1966,
+    "crossing_top_m": 390.79,
+    "not_cut": null,
+    "cut_now_m": 390.79,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 370.8,
+    "inside_m": 366
+   },
+   {
+    "blk": "356323547",
+    "name": "Hanna Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 3684,
+    "crossing_top_m": 326.58,
+    "not_cut": null,
+    "cut_now_m": 326.58,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 361.6,
+    "inside_m": 357
+   },
+   {
+    "blk": "356346715",
+    "name": "Tillicum Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 5149,
+    "crossing_top_m": 119.84,
+    "not_cut": null,
+    "cut_now_m": 119.84,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 149.9,
+    "inside_m": 145
+   },
+   {
+    "blk": "356137919",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1393,
+    "crossing_top_m": 276.98,
+    "not_cut": null,
+    "cut_now_m": 276.98,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 302.0,
+    "inside_m": 297
+   },
+   {
+    "blk": "356308888",
+    "name": "",
+    "receiver": "water:gnis:22631",
+    "line_m": 1282,
+    "crossing_top_m": 331.77,
+    "not_cut": null,
+    "cut_now_m": 331.77,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 351.9,
+    "inside_m": 347
+   },
+   {
+    "blk": "356258738",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2545,
+    "crossing_top_m": 294.23,
+    "not_cut": null,
+    "cut_now_m": 294.23,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 384.3,
+    "inside_m": 379
+   },
+   {
+    "blk": "356285962",
+    "name": "Cohilukthan Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 4998,
+    "crossing_top_m": 27.48,
+    "not_cut": null,
+    "cut_now_m": 27.48,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 887.6,
+    "inside_m": 883
+   },
+   {
+    "blk": "356286798",
+    "name": "Gundersen Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2182,
+    "crossing_top_m": 220.54,
+    "not_cut": null,
+    "cut_now_m": 220.54,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1491.7,
+    "inside_m": 1487
+   },
+   {
+    "blk": "356255005",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2927,
+    "crossing_top_m": 288.22,
+    "not_cut": null,
+    "cut_now_m": 288.22,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 318.3,
+    "inside_m": 313
+   },
+   {
+    "blk": "356189396",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2052,
+    "crossing_top_m": 249.1,
+    "not_cut": null,
+    "cut_now_m": 249.1,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 349.3,
+    "inside_m": 344
+   },
+   {
+    "blk": "356131503",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2714,
+    "crossing_top_m": 250.65,
+    "not_cut": null,
+    "cut_now_m": 250.65,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 290.7,
+    "inside_m": 286
+   },
+   {
+    "blk": "356210636",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1717,
+    "crossing_top_m": 216.8,
+    "not_cut": null,
+    "cut_now_m": 216.8,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 296.8,
+    "inside_m": 292
+   },
+   {
+    "blk": "356290564",
+    "name": "",
+    "receiver": "water:gnis:22631",
+    "line_m": 3553,
+    "crossing_top_m": 124.43,
+    "not_cut": null,
+    "cut_now_m": 124.43,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 154.5,
+    "inside_m": 149
+   },
+   {
+    "blk": "356322171",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1177,
+    "crossing_top_m": 389.05,
+    "not_cut": null,
+    "cut_now_m": 389.05,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 439.3,
+    "inside_m": 434
+   },
+   {
+    "blk": "356327802",
+    "name": "",
+    "receiver": "water:gnis:22631",
+    "line_m": 1398,
+    "crossing_top_m": 153.73,
+    "not_cut": null,
+    "cut_now_m": 153.73,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 188.9,
+    "inside_m": 184
+   },
+   {
+    "blk": "356013125",
+    "name": "Nelson Creek",
+    "receiver": "split:brunette_river__burlington_northern_railway_brid",
+    "line_m": 3207,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 40.0,
+    "inside_m": 35
+   },
+   {
+    "blk": "356193088",
+    "name": "Sussex Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1810,
+    "crossing_top_m": 145.76,
+    "not_cut": null,
+    "cut_now_m": 145.76,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 160.8,
+    "inside_m": 156
+   },
+   {
+    "blk": "356310437",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 4661,
+    "crossing_top_m": 234.07,
+    "not_cut": null,
+    "cut_now_m": 234.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 284.1,
+    "inside_m": 279
+   },
+   {
+    "blk": "356107048",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1999,
+    "crossing_top_m": 79.06,
+    "not_cut": null,
+    "cut_now_m": 79.06,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 94.1,
+    "inside_m": 89
+   },
+   {
+    "blk": "356328905",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1289,
+    "crossing_top_m": 364.98,
+    "not_cut": null,
+    "cut_now_m": 364.98,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 395.0,
+    "inside_m": 390
+   },
+   {
+    "blk": "356274648",
+    "name": "Barker Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2329,
+    "crossing_top_m": 209.2,
+    "not_cut": null,
+    "cut_now_m": 209.2,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 279.3,
+    "inside_m": 274
+   },
+   {
+    "blk": "356196051",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1107,
+    "crossing_top_m": 230.07,
+    "not_cut": null,
+    "cut_now_m": 230.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 240.1,
+    "inside_m": 235
+   },
+   {
+    "blk": "356287051",
+    "name": "",
+    "receiver": "water:gnis:22631",
+    "line_m": 1042,
+    "crossing_top_m": 153.91,
+    "not_cut": null,
+    "cut_now_m": 153.91,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 184.0,
+    "inside_m": 179
+   },
+   {
+    "blk": "356230481",
+    "name": "Palmateer Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 3580,
+    "crossing_top_m": 523.41,
+    "not_cut": null,
+    "cut_now_m": 523.41,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 593.4,
+    "inside_m": 588
+   },
+   {
+    "blk": "356203016",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 611,
+    "crossing_top_m": 335.96,
+    "not_cut": null,
+    "cut_now_m": 335.96,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 366.0,
+    "inside_m": 361
+   },
+   {
+    "blk": "356150276",
+    "name": "Como Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 5233,
+    "crossing_top_m": 177.83,
+    "not_cut": null,
+    "cut_now_m": 177.83,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 227.8,
+    "inside_m": 223
+   },
+   {
+    "blk": "356191438",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 638,
+    "crossing_top_m": 231.43,
+    "not_cut": null,
+    "cut_now_m": 231.43,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 266.6,
+    "inside_m": 262
+   },
+   {
+    "blk": "356302566",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 7020,
+    "crossing_top_m": 323.73,
+    "not_cut": null,
+    "cut_now_m": 323.73,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 338.7,
+    "inside_m": 334
+   },
+   {
+    "blk": "356341732",
+    "name": "Windebank Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 4172,
+    "crossing_top_m": 349.07,
+    "not_cut": null,
+    "cut_now_m": 349.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 374.1,
+    "inside_m": 369
+   },
+   {
+    "blk": "356323602",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 455,
+    "crossing_top_m": 256.99,
+    "not_cut": null,
+    "cut_now_m": 256.99,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 287.5,
+    "inside_m": 282
+   },
+   {
+    "blk": "356035877",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 962,
+    "crossing_top_m": 210.25,
+    "not_cut": null,
+    "cut_now_m": 210.25,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 961.9,
+    "inside_m": 962
+   },
+   {
+    "blk": "356324166",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2038,
+    "crossing_top_m": 192.82,
+    "not_cut": null,
+    "cut_now_m": 192.82,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 202.8,
+    "inside_m": 198
+   },
+   {
+    "blk": "356331920",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2574,
+    "crossing_top_m": 229.67,
+    "not_cut": null,
+    "cut_now_m": 229.67,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 259.7,
+    "inside_m": 255
+   },
+   {
+    "blk": "356358883",
+    "name": "Deas Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 8318,
+    "crossing_top_m": 2907.43,
+    "not_cut": null,
+    "cut_now_m": 2907.43,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 2937.4,
+    "inside_m": 2932
+   },
+   {
+    "blk": "356260446",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 4811,
+    "crossing_top_m": 117.36,
+    "not_cut": null,
+    "cut_now_m": 117.36,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 132.4,
+    "inside_m": 127
+   },
+   {
+    "blk": "356085631",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 863,
+    "crossing_top_m": 266.94,
+    "not_cut": null,
+    "cut_now_m": 266.94,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 327.1,
+    "inside_m": 322
+   },
+   {
+    "blk": "356198768",
+    "name": "Glen-Lyon Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1409,
+    "crossing_top_m": 132.0,
+    "not_cut": null,
+    "cut_now_m": 132.0,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 142.0,
+    "inside_m": 137
+   },
+   {
+    "blk": "356268746",
+    "name": "Power House Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 5220,
+    "crossing_top_m": 174.86,
+    "not_cut": null,
+    "cut_now_m": 174.86,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 169.7,
+    "inside_m": 165
+   },
+   {
+    "blk": "356331176",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1233,
+    "crossing_top_m": 336.42,
+    "not_cut": null,
+    "cut_now_m": 336.42,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 351.5,
+    "inside_m": 346
+   },
+   {
+    "blk": "356133616",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 338,
+    "crossing_top_m": 132.71,
+    "not_cut": null,
+    "cut_now_m": 132.71,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 338.1,
+    "inside_m": 338
+   },
+   {
+    "blk": "356242813",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1249,
+    "crossing_top_m": 1203.68,
+    "not_cut": "the whole line is the crossing",
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1233.4,
+    "inside_m": 1228
+   },
+   {
+    "blk": "356155450",
+    "name": "",
+    "receiver": "water:gnis:10494",
+    "line_m": 1983,
+    "crossing_top_m": 133.07,
+    "not_cut": null,
+    "cut_now_m": 133.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 173.2,
+    "inside_m": 168
+   },
+   {
+    "blk": "356174958",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1402,
+    "crossing_top_m": 173.3,
+    "not_cut": null,
+    "cut_now_m": 173.3,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 198.4,
+    "inside_m": 193
+   },
+   {
+    "blk": "356179037",
+    "name": "Benson Canal",
+    "receiver": "water:gnis:17368",
+    "line_m": 4051,
+    "crossing_top_m": 98.0,
+    "not_cut": null,
+    "cut_now_m": 98.0,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 138.0,
+    "inside_m": 133
+   },
+   {
+    "blk": "356266130",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1091,
+    "crossing_top_m": 296.0,
+    "not_cut": null,
+    "cut_now_m": 296.0,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 316.1,
+    "inside_m": 311
+   },
+   {
+    "blk": "356227245",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2016,
+    "crossing_top_m": 227.95,
+    "not_cut": null,
+    "cut_now_m": 227.95,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 318.1,
+    "inside_m": 313
+   },
+   {
+    "blk": "356342868",
+    "name": "",
+    "receiver": "water:gnis:10494",
+    "line_m": 1016,
+    "crossing_top_m": 88.19,
+    "not_cut": null,
+    "cut_now_m": 88.19,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 118.3,
+    "inside_m": 113
+   },
+   {
+    "blk": "356228998",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 906,
+    "crossing_top_m": 551.03,
+    "not_cut": null,
+    "cut_now_m": 551.03,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 571.3,
+    "inside_m": 566
+   },
+   {
+    "blk": "356287835",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2448,
+    "crossing_top_m": 338.91,
+    "not_cut": null,
+    "cut_now_m": 338.91,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 358.9,
+    "inside_m": 354
+   },
+   {
+    "blk": "356312488",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 525,
+    "crossing_top_m": 165.32,
+    "not_cut": null,
+    "cut_now_m": 165.32,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 175.4,
+    "inside_m": 170
+   },
+   {
+    "blk": "356114863",
+    "name": "",
+    "receiver": "water:gnis:22631",
+    "line_m": 915,
+    "crossing_top_m": 147.34,
+    "not_cut": null,
+    "cut_now_m": 147.34,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 172.4,
+    "inside_m": 167
+   },
+   {
+    "blk": "356152742",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 769,
+    "crossing_top_m": 124.86,
+    "not_cut": null,
+    "cut_now_m": 124.86,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 245.7,
+    "inside_m": 266
+   },
+   {
+    "blk": "356303771",
+    "name": "Woodward Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 3374,
+    "crossing_top_m": 409.26,
+    "not_cut": null,
+    "cut_now_m": 409.26,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 429.3,
+    "inside_m": 424
+   },
+   {
+    "blk": "356212061",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 459,
+    "crossing_top_m": 84.57,
+    "not_cut": null,
+    "cut_now_m": 84.57,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 109.9,
+    "inside_m": 105
+   },
+   {
+    "blk": "356326465",
+    "name": "Crescent Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 4545,
+    "crossing_top_m": 17.14,
+    "not_cut": null,
+    "cut_now_m": 17.14,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 27.2,
+    "inside_m": 22
+   },
+   {
+    "blk": "356165637",
+    "name": "",
+    "receiver": "water:gnis:8341",
+    "line_m": 885,
+    "crossing_top_m": 234.98,
+    "not_cut": null,
+    "cut_now_m": 234.98,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 885.4,
+    "inside_m": 885
+   },
+   {
+    "blk": "356165068",
+    "name": "Tamboline Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2373,
+    "crossing_top_m": 678.45,
+    "not_cut": null,
+    "cut_now_m": 678.45,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 703.5,
+    "inside_m": 699
+   },
+   {
+    "blk": "356070273",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1091,
+    "crossing_top_m": 586.21,
+    "not_cut": "under 50% in tidal water",
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 10.0,
+    "inside_m": 200
+   },
+   {
+    "blk": "356220193",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1388,
+    "crossing_top_m": 277.51,
+    "not_cut": null,
+    "cut_now_m": 277.51,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 297.5,
+    "inside_m": 293
+   },
+   {
+    "blk": "356237969",
+    "name": "Chester Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 5428,
+    "crossing_top_m": 228.88,
+    "not_cut": null,
+    "cut_now_m": 228.88,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 764.3,
+    "inside_m": 759
+   },
+   {
+    "blk": "356119629",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1457,
+    "crossing_top_m": 227.75,
+    "not_cut": null,
+    "cut_now_m": 227.75,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 267.9,
+    "inside_m": 263
+   },
+   {
+    "blk": "356223839",
+    "name": "",
+    "receiver": "split:pitt_river__cpr_bridge",
+    "line_m": 1975,
+    "crossing_top_m": 235.66,
+    "not_cut": null,
+    "cut_now_m": 235.66,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 210.6,
+    "inside_m": 206
+   },
+   {
+    "blk": "356355111",
+    "name": "Ewen Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1247,
+    "crossing_top_m": 1202.71,
+    "not_cut": null,
+    "cut_now_m": 1202.71,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1224.9,
+    "inside_m": 1219
+   },
+   {
+    "blk": "356232974",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1526,
+    "crossing_top_m": 213.65,
+    "not_cut": null,
+    "cut_now_m": 213.65,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 348.9,
+    "inside_m": 344
+   },
+   {
+    "blk": "356330529",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 861,
+    "crossing_top_m": 362.07,
+    "not_cut": null,
+    "cut_now_m": 362.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 483.0,
+    "inside_m": 478
+   },
+   {
+    "blk": "356304006",
+    "name": "",
+    "receiver": "water:gnis:8341",
+    "line_m": 991,
+    "crossing_top_m": 83.45,
+    "not_cut": null,
+    "cut_now_m": 83.45,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 143.6,
+    "inside_m": 139
+   },
+   {
+    "blk": "356045296",
+    "name": "",
+    "receiver": "split:brunette_river__burlington_northern_railway_brid",
+    "line_m": 1296,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 35.0,
+    "inside_m": 30
+   },
+   {
+    "blk": "356154623",
+    "name": "",
+    "receiver": "split:kanaka_creek__cpr_bridge_tidal_boundary",
+    "line_m": 231,
+    "crossing_top_m": 19.12,
+    "not_cut": null,
+    "cut_now_m": 19.12,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 49.4,
+    "inside_m": 44
+   },
+   {
+    "blk": "356214484",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1114,
+    "crossing_top_m": 517.07,
+    "not_cut": null,
+    "cut_now_m": 517.07,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 572.2,
+    "inside_m": 567
+   },
+   {
+    "blk": "356044656",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 898,
+    "crossing_top_m": 134.05,
+    "not_cut": null,
+    "cut_now_m": 134.05,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 144.1,
+    "inside_m": 139
+   },
+   {
+    "blk": "356293957",
+    "name": "",
+    "receiver": "water:gnis:14905",
+    "line_m": 1862,
+    "crossing_top_m": 160.82,
+    "not_cut": null,
+    "cut_now_m": 160.82,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 160.8,
+    "inside_m": 156
+   },
+   {
+    "blk": "356282748",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1836,
+    "crossing_top_m": 377.06,
+    "not_cut": null,
+    "cut_now_m": 377.06,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 412.2,
+    "inside_m": 407
+   },
+   {
+    "blk": "356228936",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 2543,
+    "crossing_top_m": 539.74,
+    "not_cut": null,
+    "cut_now_m": 539.74,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 569.8,
+    "inside_m": 565
+   },
+   {
+    "blk": "356179538",
+    "name": "",
+    "receiver": "water:gnis:10494",
+    "line_m": 714,
+    "crossing_top_m": 170.3,
+    "not_cut": null,
+    "cut_now_m": 170.3,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 215.6,
+    "inside_m": 211
+   },
+   {
+    "blk": "356187464",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 586,
+    "crossing_top_m": 239.21,
+    "not_cut": null,
+    "cut_now_m": 239.21,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 269.4,
+    "inside_m": 264
+   },
+   {
+    "blk": "356164168",
+    "name": "Baker Creek",
+    "receiver": "split:pitt_river__cpr_bridge",
+    "line_m": 1166,
+    "crossing_top_m": 309.24,
+    "not_cut": null,
+    "cut_now_m": 309.24,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 334.3,
+    "inside_m": 329
+   },
+   {
+    "blk": "356322890",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1467,
+    "crossing_top_m": 343.51,
+    "not_cut": null,
+    "cut_now_m": 343.51,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 368.6,
+    "inside_m": 364
+   },
+   {
+    "blk": "356041846",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 447,
+    "crossing_top_m": 161.08,
+    "not_cut": null,
+    "cut_now_m": 161.08,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 176.1,
+    "inside_m": 171
+   },
+   {
+    "blk": "356138851",
+    "name": "",
+    "receiver": "split:pitt_river__cpr_bridge",
+    "line_m": 1431,
+    "crossing_top_m": 274.83,
+    "not_cut": null,
+    "cut_now_m": 274.83,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 324.9,
+    "inside_m": 320
+   },
+   {
+    "blk": "356278379",
+    "name": "Sturgeon Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 562,
+    "crossing_top_m": 113.52,
+    "not_cut": null,
+    "cut_now_m": 113.52,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 133.7,
+    "inside_m": 129
+   },
+   {
+    "blk": "356300582",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1633,
+    "crossing_top_m": 137.37,
+    "not_cut": null,
+    "cut_now_m": 137.37,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 167.4,
+    "inside_m": 162
+   },
+   {
+    "blk": "356061844",
+    "name": "",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 677,
+    "crossing_top_m": 169.13,
+    "not_cut": null,
+    "cut_now_m": 169.13,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 204.3,
+    "inside_m": 199
+   },
+   {
+    "blk": "356216824",
+    "name": "",
+    "receiver": "water:gnis:21224",
+    "line_m": 1262,
+    "crossing_top_m": 161.11,
+    "not_cut": null,
+    "cut_now_m": 161.11,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 206.2,
+    "inside_m": 201
+   },
+   {
+    "blk": "356310903",
+    "name": "Matsqui Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 4161,
+    "crossing_top_m": 320.3,
+    "not_cut": null,
+    "cut_now_m": 320.3,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 422.3,
+    "inside_m": 417
+   },
+   {
+    "blk": "360649407",
+    "name": "",
+    "receiver": "split:nass_river__tidal_boundary_dfo_subarea_3_12",
+    "line_m": 2590,
+    "crossing_top_m": 1629.81,
+    "not_cut": null,
+    "cut_now_m": 1629.81,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1644.9,
+    "inside_m": 1640
+   },
+   {
+    "blk": "360767360",
+    "name": "",
+    "receiver": "split:nass_river__tidal_boundary_dfo_subarea_3_12",
+    "line_m": 2303,
+    "crossing_top_m": 1771.52,
+    "not_cut": null,
+    "cut_now_m": 1771.52,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1816.7,
+    "inside_m": 1812
+   },
+   {
+    "blk": "360683185",
+    "name": "",
+    "receiver": "split:nass_river__tidal_boundary_dfo_subarea_3_12",
+    "line_m": 3269,
+    "crossing_top_m": 1738.36,
+    "not_cut": null,
+    "cut_now_m": 1738.36,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 1773.4,
+    "inside_m": 1768
+   },
+   {
+    "blk": "360324949",
+    "name": "",
+    "receiver": "split:ksi_gingolx__kincolith_river_bridge",
+    "line_m": 656,
+    "crossing_top_m": 72.31,
+    "not_cut": null,
+    "cut_now_m": 72.31,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 46.5,
+    "inside_m": 41
+   },
+   {
+    "blk": "354105314",
+    "name": "",
+    "receiver": "split:nitinat_river__head_of_nitinat_lake_tidal_bound",
+    "line_m": 789,
+    "crossing_top_m": 34.29,
+    "not_cut": null,
+    "cut_now_m": 34.29,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 59.3,
+    "inside_m": 54
+   },
+   {
+    "blk": "354146575",
+    "name": "",
+    "receiver": "split:nitinat_river__head_of_nitinat_lake_tidal_bound",
+    "line_m": 1453,
+    "crossing_top_m": 113.98,
+    "not_cut": null,
+    "cut_now_m": 113.98,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 149.3,
+    "inside_m": 144
+   },
+   {
+    "blk": "354120779",
+    "name": "",
+    "receiver": "split:nitinat_river__head_of_nitinat_lake_tidal_bound",
+    "line_m": 980,
+    "crossing_top_m": 54.66,
+    "not_cut": null,
+    "cut_now_m": 54.66,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 94.7,
+    "inside_m": 90
+   },
+   {
+    "blk": "354135384",
+    "name": "",
+    "receiver": "split:nanaimo_river__cedar_road_bridge",
+    "line_m": 1287,
+    "crossing_top_m": 32.85,
+    "not_cut": null,
+    "cut_now_m": 32.85,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 253.6,
+    "inside_m": 249
+   },
+   {
+    "blk": "354148021",
+    "name": "",
+    "receiver": "split:chemainus_river__tidal_boundary",
+    "line_m": 1451,
+    "crossing_top_m": 26.56,
+    "not_cut": null,
+    "cut_now_m": 26.56,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 673.5,
+    "inside_m": 668
+   },
+   {
+    "blk": "354148871",
+    "name": "",
+    "receiver": "split:chemainus_river__tidal_boundary",
+    "line_m": 2317,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": false,
+    "polygon_exit_m": null,
+    "inside_m": 0
+   },
+   {
+    "blk": "354146627",
+    "name": "",
+    "receiver": "split:salmon_river__tidal_boundary",
+    "line_m": 6195,
+    "crossing_top_m": 44.75,
+    "not_cut": null,
+    "cut_now_m": 44.75,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 33.6,
+    "inside_m": 28
+   },
+   {
+    "blk": "354123340",
+    "name": "",
+    "receiver": "split:nimpkish_river__tidal_boundary",
+    "line_m": 1051,
+    "crossing_top_m": 26.43,
+    "not_cut": null,
+    "cut_now_m": 26.43,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 66.6,
+    "inside_m": 62
+   },
+   {
+    "blk": "-2000000373",
+    "name": "Swing Bridge Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 569,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 110.7,
+    "inside_m": 106
+   },
+   {
+    "blk": "-2000000302",
+    "name": "Sanctuary Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 753,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 115.5,
+    "inside_m": 110
+   },
+   {
+    "blk": "-2000000299",
+    "name": "Salmon Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 428,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 110.9,
+    "inside_m": 106
+   },
+   {
+    "blk": "-2000000296",
+    "name": "Salmon Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 163,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 112.0,
+    "inside_m": 107
+   },
+   {
+    "blk": "-2000000295",
+    "name": "Salmon Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 336,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 115.4,
+    "inside_m": 110
+   },
+   {
+    "blk": "-2000000292",
+    "name": "Salmon Slough",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 403,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 111.0,
+    "inside_m": 106
+   },
+   {
+    "blk": "-2000000239",
+    "name": "Jr 1-1",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 495,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 136.3,
+    "inside_m": 131
+   },
+   {
+    "blk": "-2000000218",
+    "name": "Fraser River Trib. 1",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 239,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 152.9,
+    "inside_m": 148
+   },
+   {
+    "blk": "-2000000122",
+    "name": "Boundary Creek",
+    "receiver": "split:fraser_river__the_cpr_bridge_at_mission",
+    "line_m": 1482,
+    "crossing_top_m": null,
+    "not_cut": null,
+    "cut_now_m": null,
+    "mouth_in_polygon": true,
+    "polygon_exit_m": 200.3,
+    "inside_m": 195
+   }
+  ],
+  "polygon_exit_higher_gt25m": 101,
+  "km_more_tidal_if_polygon_exit": 14.0,
+  "polygon_exit_lower_gt25m": 5,
+  "km_less_tidal_if_polygon_exit": 0.2,
+  "skipped_under_50pct_joining_tidal": [
+   "356070273"
+  ],
+  "skipped_braid_spanned_joining_tidal": 0,
+  "freshwater_cuts_with_no_tidal_receiver": 371,
+  "new_cuts_only_by_polygon_exit": [
+   "356242813",
+   "-2000000122",
+   "-2000000218",
+   "-2000000239",
+   "-2000000302",
+   "-2000000295",
+   "-2000000296",
+   "-2000000292",
+   "-2000000299",
+   "-2000000373",
+   "356013125",
+   "356045296"
+  ],
+  "no_cut_either_way_mouth_outside_polygon": [
+   "360754170",
+   "360872159",
+   "354148871"
+  ]
+ },
+ "IJ_not_cut": [
+  {
+   "blk": "354088057",
+   "name": "Koksilah River",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.333,
+   "crossing_m": 26.5,
+   "node_len_m": 214,
+   "line_len_m": 214,
+   "edge_types": [
+    "1350",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 0,
+    "inside_m": 5
+   },
+   "receivers": [
+    {
+     "node": "354088055:0",
+     "name": "Koksilah River",
+     "at_m": 445,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Lhumlhumuluts’ / Clemclemluts (1 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354088658",
+   "name": "Nimpkish River",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.125,
+   "crossing_m": 75.6,
+   "node_len_m": 274,
+   "line_len_m": 274,
+   "edge_types": [
+    "1350",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 274,
+    "inside_m": 25
+   },
+   "receivers": [
+    {
+     "node": "354154936:1244",
+     "name": "Nimpkish River",
+     "at_m": 1281,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Alert Bay (6 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354102478",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.333,
+   "crossing_m": 22.3,
+   "node_len_m": 568,
+   "line_len_m": 568,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 5,
+    "inside_m": 10
+   },
+   "receivers": [
+    {
+     "node": "354088365:0",
+     "name": "Moyeha River",
+     "at_m": 1136,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Ahousaht First Nation - Moyehai 23 (2 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354122529",
+   "name": "",
+   "not_cut": "a piece under 5 m",
+   "share": 1.0,
+   "crossing_m": 39.0,
+   "node_len_m": 39,
+   "line_len_m": 1527,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 39,
+    "inside_m": 39
+   },
+   "receivers": [
+    {
+     "node": "354154226:0",
+     "name": "Tahsish River",
+     "at_m": 1137,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Fair Harbour (9 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354124221",
+   "name": "",
+   "not_cut": "the whole line is the crossing",
+   "share": 1.0,
+   "crossing_m": 233.6,
+   "node_len_m": 234,
+   "line_len_m": 1521,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 234,
+    "inside_m": 234
+   },
+   "receivers": [
+    {
+     "node": "354154226:0",
+     "name": "Tahsish River",
+     "at_m": 332,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Fair Harbour (9 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354137223",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.25,
+   "crossing_m": 37.4,
+   "node_len_m": 1846,
+   "line_len_m": 5503,
+   "edge_types": [
+    "1000",
+    "1050",
+    "1200",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 30,
+    "inside_to_m": 120,
+    "inside_m": 95
+   },
+   "receivers": [
+    {
+     "node": "354153558:0",
+     "name": "Klanawa River",
+     "at_m": 294,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Whyac - waayaa (8 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354140656",
+   "name": "",
+   "not_cut": "a piece under 5 m",
+   "share": 0.818,
+   "crossing_m": 108.8,
+   "node_len_m": 109,
+   "line_len_m": 1523,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 93,
+    "inside_m": 94
+   },
+   "receivers": [
+    {
+     "node": "354154226:0",
+     "name": "Tahsish River",
+     "at_m": 985,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Fair Harbour (9 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354146752",
+   "name": "",
+   "not_cut": "the whole line is the crossing",
+   "share": 1.0,
+   "crossing_m": 36.3,
+   "node_len_m": 36,
+   "line_len_m": 2494,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 36,
+    "inside_m": 36
+   },
+   "receivers": [
+    {
+     "node": "354154226:0",
+     "name": "Tahsish River",
+     "at_m": 1747,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Fair Harbour (10 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "354154913",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.444,
+   "crossing_m": 84.3,
+   "node_len_m": 4535,
+   "line_len_m": 4535,
+   "edge_types": [
+    "1000",
+    "1050",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 35,
+    "inside_m": 40
+   },
+   "receivers": [
+    {
+     "node": "354154451:0",
+     "name": "Nahwitti River",
+     "at_m": 141,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Bull Harbour (10 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "356070273",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.322,
+   "crossing_m": 586.2,
+   "node_len_m": 1091,
+   "line_len_m": 1091,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 615,
+    "inside_m": 214
+   },
+   "receivers": [
+    {
+     "node": "355991973:0",
+     "name": "Fraser River",
+     "at_m": 5316,
+     "tidal_now": "split:fraser_river__the_cpr_bridge_at_mission",
+     "tidal_curated_limits": "split:fraser_river__the_cpr_bridge_at_mission"
+    }
+   ],
+   "near": "Johnny's Corner (2 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "356242813",
+   "name": "",
+   "not_cut": "the whole line is the crossing",
+   "share": 1.0,
+   "crossing_m": 1203.7,
+   "node_len_m": 1095,
+   "line_len_m": 1249,
+   "edge_types": [
+    "1410",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 1095,
+    "inside_m": 1095
+   },
+   "receivers": [
+    {
+     "node": "355991971:0",
+     "name": "Fraser River",
+     "at_m": 600,
+     "tidal_now": "split:fraser_river__the_cpr_bridge_at_mission",
+     "tidal_curated_limits": "split:fraser_river__the_cpr_bridge_at_mission"
+    }
+   ],
+   "near": "Steveston Village (3 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360213475",
+   "name": "Kemano River",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.25,
+   "crossing_m": 76.8,
+   "node_len_m": 1132,
+   "line_len_m": 1132,
+   "edge_types": [
+    "1350",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 1132,
+    "inside_m": 244
+   },
+   "receivers": [
+    {
+     "node": "360213474:0",
+     "name": "Kemano River",
+     "at_m": 409,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360885559:0",
+     "name": "Kemano River",
+     "at_m": 4587,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Kemano Beach (5 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360215418",
+   "name": "Kemano River",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.111,
+   "crossing_m": 83.9,
+   "node_len_m": 562,
+   "line_len_m": 562,
+   "edge_types": [
+    "1350",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 80,
+    "inside_to_m": 562,
+    "inside_m": 482
+   },
+   "receivers": [
+    {
+     "node": "360885559:0",
+     "name": "Kemano River",
+     "at_m": 6599,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Kemano Beach (6 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360234058",
+   "name": "Bear River",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.286,
+   "crossing_m": 135.3,
+   "node_len_m": 1957,
+   "line_len_m": 1957,
+   "edge_types": [
+    "1100",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 1957,
+    "inside_m": 135
+   },
+   "receivers": [
+    {
+     "node": "360868849:0",
+     "name": "Bear River",
+     "at_m": 4640,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Stewart (3 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360438242",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.333,
+   "crossing_m": 26.8,
+   "node_len_m": 1714,
+   "line_len_m": 1714,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 5,
+    "inside_m": 10
+   },
+   "receivers": [
+    {
+     "node": "360846187:0",
+     "name": "Klekane River",
+     "at_m": 94,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Butedale (9 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360456772",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.25,
+   "crossing_m": 75.5,
+   "node_len_m": 1158,
+   "line_len_m": 1158,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 10,
+    "inside_m": 15
+   },
+   "receivers": [
+    {
+     "node": "360885559:0",
+     "name": "Kemano River",
+     "at_m": 4413,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Kemano Beach (4 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360466479",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.385,
+   "crossing_m": 6561.8,
+   "node_len_m": 7251,
+   "line_len_m": 7251,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 4041,
+    "inside_to_m": 6576,
+    "inside_m": 2539
+   },
+   "receivers": [
+    {
+     "node": "360885942:1805",
+     "name": "Nass River",
+     "at_m": 3112,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Nass Harbour (2 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360497932",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.381,
+   "crossing_m": 3564.6,
+   "node_len_m": 4217,
+   "line_len_m": 4217,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 2206,
+    "inside_to_m": 3572,
+    "inside_m": 1369
+   },
+   "receivers": [
+    {
+     "node": "360885942:1805",
+     "name": "Nass River",
+     "at_m": 2298,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Nass Harbour (3 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360591445",
+   "name": "",
+   "not_cut": "a piece under 5 m",
+   "share": 1.0,
+   "crossing_m": 4.9,
+   "node_len_m": 737,
+   "line_len_m": 737,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 5,
+    "inside_m": 10
+   },
+   "receivers": [
+    {
+     "node": "360871265:0",
+     "name": "Pa-aat River",
+     "at_m": 2816,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Oona River (24 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360649604",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.4,
+   "crossing_m": 43.9,
+   "node_len_m": 2136,
+   "line_len_m": 2136,
+   "edge_types": [
+    "1000",
+    "1050",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 10,
+    "inside_m": 15
+   },
+   "receivers": [
+    {
+     "node": "360886654:0",
+     "name": "Southgate River",
+     "at_m": 3517,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Murderers Bar (44 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360692695",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.494,
+   "crossing_m": 6896.9,
+   "node_len_m": 7462,
+   "line_len_m": 7462,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 3496,
+    "inside_to_m": 6917,
+    "inside_m": 3424
+   },
+   "receivers": [
+    {
+     "node": "360885942:1805",
+     "name": "Nass River",
+     "at_m": 2854,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Nass Harbour (2 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360693030",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.457,
+   "crossing_m": 6824.4,
+   "node_len_m": 7792,
+   "line_len_m": 7792,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 3706,
+    "inside_to_m": 6832,
+    "inside_m": 3129
+   },
+   "receivers": [
+    {
+     "node": "360885942:1805",
+     "name": "Nass River",
+     "at_m": 3011,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Nass Harbour (2 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360693421",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.286,
+   "crossing_m": 60.6,
+   "node_len_m": 2671,
+   "line_len_m": 2671,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 10,
+    "inside_m": 15
+   },
+   "receivers": [
+    {
+     "node": "360885965:0",
+     "name": "",
+     "at_m": 348,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Klemtu (26 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360702343",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.286,
+   "crossing_m": 67.9,
+   "node_len_m": 1359,
+   "line_len_m": 1359,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 15,
+    "inside_m": 20
+   },
+   "receivers": [
+    {
+     "node": "360886968:0",
+     "name": "Quaal River",
+     "at_m": 3345,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Réserve indienne Kumowdah 3 (17 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360771205",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.333,
+   "crossing_m": 52.9,
+   "node_len_m": 688,
+   "line_len_m": 688,
+   "edge_types": [
+    "1000",
+    "1050",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 10,
+    "inside_m": 15
+   },
+   "receivers": [
+    {
+     "node": "360886968:0",
+     "name": "Quaal River",
+     "at_m": 3845,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Réserve indienne Kumowdah 3 (18 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360786183",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.294,
+   "crossing_m": 164.2,
+   "node_len_m": 1126,
+   "line_len_m": 1126,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 45,
+    "inside_m": 50
+   },
+   "receivers": [
+    {
+     "node": "360868206:0",
+     "name": "Georgie River",
+     "at_m": 53,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Stewart (27 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360808924",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.222,
+   "crossing_m": 179.7,
+   "node_len_m": 7284,
+   "line_len_m": 7284,
+   "edge_types": [
+    "1000",
+    "1050",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 30,
+    "inside_m": 35
+   },
+   "receivers": [
+    {
+     "node": "360878507:0",
+     "name": "Wakeman River",
+     "at_m": 2447,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Kingcome Inlet (22 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360842479",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.167,
+   "crossing_m": 51.6,
+   "node_len_m": 3635,
+   "line_len_m": 3635,
+   "edge_types": [
+    "1000",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 5,
+    "inside_m": 10
+   },
+   "receivers": [
+    {
+     "node": "360886654:0",
+     "name": "Southgate River",
+     "at_m": 3760,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Murderers Bar (42 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360870562",
+   "name": "",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.4,
+   "crossing_m": 49.0,
+   "node_len_m": 1252,
+   "line_len_m": 4986,
+   "edge_types": [
+    "1000",
+    "1050",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 0,
+    "inside_to_m": 761,
+    "inside_m": 579
+   },
+   "receivers": [
+    {
+     "node": "360885559:0",
+     "name": "Kemano River",
+     "at_m": 1796,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Kemano Beach (2 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360878868",
+   "name": "x̱enichen stulu",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.333,
+   "crossing_m": 28.2,
+   "node_len_m": 21479,
+   "line_len_m": 21869,
+   "edge_types": [
+    "1000",
+    "1250",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 20,
+    "inside_to_m": 80,
+    "inside_m": 65
+   },
+   "receivers": [
+    {
+     "node": "360216037:0",
+     "name": "x̱enichen stulu",
+     "at_m": 423,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360220720:0",
+     "name": "x̱enichen stulu",
+     "at_m": 396,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360877786:0",
+     "name": "Skwawka River",
+     "at_m": 995,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Malibu (13 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360880075",
+   "name": "Chambers Creek",
+   "not_cut": "the whole line is the crossing",
+   "share": 0.686,
+   "crossing_m": 8153.2,
+   "node_len_m": 2598,
+   "line_len_m": 32629,
+   "edge_types": [
+    "1000",
+    "1250",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 2558,
+    "inside_to_m": 2598,
+    "inside_m": 45
+   },
+   "receivers": [
+    {
+     "node": "360885942:1805",
+     "name": "Nass River",
+     "at_m": 2504,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Ging̱olx (3 km)",
+   "in_E_strict": false
+  },
+  {
+   "blk": "360883438",
+   "name": "Chuckwalla River",
+   "not_cut": "under 50% in tidal water",
+   "share": 0.25,
+   "crossing_m": 70.4,
+   "node_len_m": 13333,
+   "line_len_m": 46879,
+   "edge_types": [
+    "1000",
+    "1250",
+    "1450"
+   ],
+   "polygon": {
+    "inside_from_m": 55,
+    "inside_to_m": 715,
+    "inside_m": 665
+   },
+   "receivers": [
+    {
+     "node": "360216057:0",
+     "name": "Chuckwalla River",
+     "at_m": 277,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360886888:0",
+     "name": "Kilbella River",
+     "at_m": 1351,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360217383:0",
+     "name": "Chuckwalla River",
+     "at_m": 3147,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360218590:0",
+     "name": "Chuckwalla River",
+     "at_m": 122,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360223172:0",
+     "name": "Chuckwalla River",
+     "at_m": 1784,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360226879:0",
+     "name": "Chuckwalla River",
+     "at_m": 2370,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360229245:0",
+     "name": "Chuckwalla River",
+     "at_m": 377,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360229246:0",
+     "name": "Chuckwalla River",
+     "at_m": 311,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360230667:0",
+     "name": "Chuckwalla River",
+     "at_m": 391,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360230668:929",
+     "name": "Chuckwalla River",
+     "at_m": 1634,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360230669:0",
+     "name": "Chuckwalla River",
+     "at_m": 493,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360241418:0",
+     "name": "Chuckwalla River",
+     "at_m": 717,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    },
+    {
+     "node": "360886888:0",
+     "name": "Kilbella River",
+     "at_m": 1105,
+     "tidal_now": null,
+     "tidal_curated_limits": null
+    }
+   ],
+   "near": "Kilbella Bay (7 km)",
+   "in_E_strict": false
+  }
+ ]
+}
