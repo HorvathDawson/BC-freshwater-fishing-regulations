@@ -1,6 +1,6 @@
 # T559 — Privacy: backups and rate-limit records are deleted when the privacy page says they are
 
-Status: OPEN.
+Status: IN REVIEW — cfcdf7e07 (W2 backups: personal records daily-only within the page's dates, never monthly; prune + POST /run/forget-report; deploys check daily/ ≤ 30 d), fb5f387a3 (W6 counters purged daily); proof: next staging deploy + a backup run (backup.json `pruned`, `personalHeldBack`). Owner: read the PRODUCTION backup bucket's lifecycle (staging read 2026-11-10: daily 30 d, monthly 400 d); decide whether the digest email may carry a report's words (the mailbox is not purged).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 15 of 17; highest severity 3 of 5.
 

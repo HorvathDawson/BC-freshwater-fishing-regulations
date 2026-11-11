@@ -1,6 +1,6 @@
 # T558 — Feeds worker: a failed state read is not written back empty; the owner hears when crons, backup or email stop; queued reports are not lost
 
-Status: OPEN.
+Status: PARTIAL — afbdaf2d2 (W3 reads), 924221934 (W8 + item 5), dd7032d6c (W9), 026ca775b (W13 etag), 069d61d45 (item 3 channel), e777f33e8 (item 2 daily jobs watched), cb1ac2397 (item 6 no window), 306056ce9 (item 4 worker half). Left: item 2's outside heartbeat (a second worker), item 4's app outbox (refused queued report shown, send() honest), item 7 (review app, chat 10), item 8 (report/3 locator).
 
 Source: data pipeline review 2026-11-09 (owner-led; 14 areas + a gap check, every finding re-read against the code and release data by a second reviewer). Rank 14 of 17; highest severity 3 of 5.
 
