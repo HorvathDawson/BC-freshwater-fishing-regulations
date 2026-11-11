@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { describe as group, expect, it } from "vitest";
 import { describe, isClosedOn, makePlace, settle, displayStatusOn, type RuleView, type Settled } from "@app/core";
 import { inputsOf, oracleRix, parityStore, paritySkip, releasePairing, taps } from "./golden";
-import { flipsOver, HYDRATE, onPartsDropped, oracleLive, partDrawn, renamedOrder } from "./oracles";
+import { flipsOver, HYDRATE, onPartsDropped, oracleLive, oracleRixOf, partDrawn, PEACE_KOKANEE, renamedOrder } from "./oracles";
 
 interface OracleSettle {
   status: string | null; broad: number[]; speaks: number[]; beside: number[]; shown: number[]; inpart: [number, boolean][];
@@ -52,6 +52,22 @@ function amended(id: string, o: OracleSettle): OracleSettle {
   // before the first rule numbered after it (the list is not wholly sorted: its standing rules come last)
   const l = o[a.list], at = l.findIndex((x) => x > rix);
   return { ...o, [a.list]: at < 0 ? [...l, rix] : [...l.slice(0, at), rix, ...l.slice(at)] };
+}
+/** (T623 F6, oracles.ts PEACE_KOKANEE) page v36's lists for a Peace River state without Zone B's kokanee stream release:
+ *  its `lifted` pair dropped, and where it stood in a list the table's "Kokanee: 10" stands. Oracle numbering. */
+const PK = { out: oracleRixOf(PEACE_KOKANEE.out), base: oracleRixOf(PEACE_KOKANEE.base) };
+function peaceKokanee(id: string, o: OracleSettle): OracleSettle {
+  if (T.states[id]?.item !== PEACE_KOKANEE.item) return o;
+  const lists = ["broad", "speaks", "beside", "shown", "timed", "side", "standing", "anglerclosed"] as const;
+  const named = lists.some((k) => o[k].includes(PK.out)) || o.lifted.some(([a]) => a === PK.out) || o.inpart.some(([r]) => r === PK.out);
+  if (!named) throw new Error(`PEACE_KOKANEE ${id}: the oracle no longer names ${PEACE_KOKANEE.out} — it was re-cut; drop the amendment`);
+  const out = { ...o, lifted: o.lifted.filter(([a]) => a !== PK.out), inpart: o.inpart.filter(([r]) => r !== PK.out) };
+  for (const k of lists) {
+    if (!o[k].includes(PK.out)) continue;
+    if (o[k].includes(PK.base)) throw new Error(`PEACE_KOKANEE ${id}: ${k} already holds ${PEACE_KOKANEE.base}`);
+    out[k] = o[k].map((r) => (r === PK.out ? PK.base : r));
+  }
+  return out;
 }
 const STORED = (await (await parityStore())?.rules()) ?? [];
 /** (T206) did the zone daily-quota rename swap two store rules' order (oracles.ts `flipsOver`)? */
@@ -112,7 +128,7 @@ group.skipIf(pairing.skip)(`T07 settle on the live release (${at.path ?? at.reas
     const { c } = await settled(id);
     expect(c.s).toBe(H.states[id]!.s);
     const got = project(c);
-    expect(got).toEqual(reordered(got, amended(id, mapSettle(H.states[id]!.settle))));
+    expect(got).toEqual(reordered(got, amended(id, mapSettle(peaceKokanee(id, H.states[id]!.settle)))));
   });
 
   it.each(ids)("%s: makePlace — every candidate's via and rank is page v36's", async (id) => {

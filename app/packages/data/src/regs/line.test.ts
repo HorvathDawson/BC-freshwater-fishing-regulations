@@ -18,7 +18,7 @@ describe("section_line (T369)", () => {
     expect([...b.blk]).toEqual(lines.map((l) => l.blk));     // a stream key below −2^31 survives (float64)
     expect([slotAt(b, COQ, 0), slotAt(b, COQ, 311), slotAt(b, COQ, 312), slotAt(b, COQ, 6589), slotAt(b, COQ, 6590),
             slotAt(b, COQ + 1, 39), slotAt(b, 1, 0)]).toEqual([1, 1, 2, 2, -1, 3, -1]);
-    // (T369) the atlas's handles (d5242c0c…, r-d14bdb180f55: one higher) and the Coquitlam's metres: they move with a new ATLAS, not a new release
+    // (T369) the atlas's handles (d5242c0c…, r-303b4007a70a, build 27: the Coquitlam is cut at 101 m too) and the Coquitlam's metres: they move with a new ATLAS, not a new release
     expect(lineMid(lines[2]!)).toEqual({ blk: COQ, m: 3451 });
   });
 
@@ -26,22 +26,22 @@ describe("section_line (T369)", () => {
     const st = openLineReads(openRegsFixtureWithLines());
     const { unnamed } = regsFixtureLines();
     expect(await st.hasLines()).toBe(true);
-    // (T369) the atlas's handles (d5242c0c…, r-d14bdb180f55: one higher) and the Coquitlam's metres: they move with a new ATLAS, not a new release
-    expect(await st.sectionLine(316511)).toEqual({ blk: COQ, from: 312, to: 6590 });
-    // (T369) the atlas's handles (d5242c0c…, r-d14bdb180f55: one higher) and the Coquitlam's metres: they move with a new ATLAS, not a new release
+    // (T369) the atlas's handles (d5242c0c…, r-303b4007a70a, build 27: the Coquitlam is cut at 101 m too) and the Coquitlam's metres: they move with a new ATLAS, not a new release
+    expect(await st.sectionLine(316756)).toEqual({ blk: COQ, from: 312, to: 6590 });
+    // (T369) the atlas's handles (d5242c0c…, r-303b4007a70a, build 27: the Coquitlam is cut at 101 m too) and the Coquitlam's metres: they move with a new ATLAS, not a new release
     expect(await Promise.all([st.sectionAt(COQ, 3451), st.sectionAt(COQ, 0), st.sectionAt(COQ, 6600),
                               st.sectionAt(COQ, 20_000), st.sectionAt(COQ - 7, 0)]))
-      // (T369) the atlas's handles (d5242c0c…, r-d14bdb180f55: one higher) and the Coquitlam's metres: they move with a new ATLAS, not a new release
-      .toEqual([316511, 316510, 316512, null, null]);
+      // (T369) the atlas's handles (d5242c0c…, r-303b4007a70a, build 27: the Coquitlam is cut at 101 m too) and the Coquitlam's metres: they move with a new ATLAS, not a new release
+      .toEqual([316756, 316754, 316757, null, null]);
     const u = (await st.sectionLine(unnamed))!;
     expect(await st.sectionAt(u.blk, lineMid(u).m)).toBe(unnamed);
     // a lake's handle has no line
-    expect(await st.sectionLine(1236918)).toBeNull();
+    expect(await st.sectionLine(1237471)).toBeNull();
   }, 30_000);
 
   it("a release cut before the lines file: no lines, no place — never an error", async () => {
     const st = openLineReads(openRegsFixture());
-    // (T369) the atlas's handles (d5242c0c…, r-d14bdb180f55: one higher) and the Coquitlam's metres: they move with a new ATLAS, not a new release
-    expect([await st.hasLines(), await st.sectionLine(316511), await st.sectionAt(COQ, 3451)]).toEqual([false, null, null]);
+    // (T369) the atlas's handles (d5242c0c…, r-303b4007a70a, build 27: the Coquitlam is cut at 101 m too) and the Coquitlam's metres: they move with a new ATLAS, not a new release
+    expect([await st.hasLines(), await st.sectionLine(316756), await st.sectionAt(COQ, 3451)]).toEqual([false, null, null]);
   }, 30_000);
 });

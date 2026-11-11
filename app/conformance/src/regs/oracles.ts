@@ -108,6 +108,19 @@ export const onPartsDropped = (oracle: number): boolean => ORACLE_ON_PARTS_DROPP
 const ORACLE_PART_DRAWN: readonly string[] = ["r4:columbia_river@4-15+4-26+4-34+4-38+4-8::columbia_river.r11"];
 export const partDrawn = (oracle: number): boolean => ORACLE_PART_DRAWN.includes(pageRid().get(oracle) ?? "");
 
+/**
+ * (T623 F6, ea1c74d67; owner 2026-11-11 "Keep it"; RULINGS Z2, Z1's one named exception b5f1c5cf6) p.64 prints Region 7B's
+ * kokanee as "Kokanee: 10 (none from streams, except Peace River)". The stream release (`out`) now carries
+ * `outside_items: [gnis:14619]`, so it binds no Peace River section; page v36 predates that and still has it there.
+ * On a Peace state the oracle is amended (settle.parity, card.parity), and each amendment throws once the oracle no longer
+ * names `out` on that state (a re-cut):
+ * - where a Peace row's own kokanee quota lifted it (x22p0/p1/p3), the `lifted` pair is gone: nothing is there to lift;
+ * - where nothing lifted it (x22p6, the Peace above its rows: Dinosaur Lake up to the Williston outlet), the table's
+ *   "Kokanee: 10" (`base`) answers in its place: keep `daily` a day, all year (T623's table: "Peace part 9: keep 10").
+ */
+export const PEACE_KOKANEE = { item: "gnis:14619", out: "z7b:daily_quotas::species_quotas.r5",
+  base: "z7b:daily_quotas::species_quotas.r4", daily: 10 } as const;
+
 /** `oracleRix` over any rule set keyed by rix (a store's `rules()`, a RuleSource's `stored`). */
 export function oracleRixOver(rules: Keyed): (oracle: number) => number {
   const byKey = new Map<string, number>();

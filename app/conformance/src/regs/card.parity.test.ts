@@ -12,8 +12,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildModel, makePlace, settle, type CardModel, type HydRes, type RegsPlace } from "@app/core";
-import { inputsOf, isGone, oracleRix, parityStore, paritySkip, releasePairing } from "./golden";
-import { flipsOver, HYDRATE, LOIS_FOLD, oracleLive, oracleRixOf, renamedOrder } from "./oracles";
+import { inputsOf, isGone, oracleRix, parityStore, paritySkip, releasePairing, taps } from "./golden";
+import { flipsOver, HYDRATE, LOIS_FOLD, oracleLive, oracleRixOf, PEACE_KOKANEE, renamedOrder } from "./oracles";
 
 type Res = { status: string; daily: number | string | null; win: number; narrow: number | null } | null;
 interface OracleModel {
@@ -46,8 +46,27 @@ function loisFolded(id: string, o: OracleModel): OracleModel {
   return { ...o, rows: o.rows.filter((_, i) => i !== at).map((r) => (r.pool === LOIS.into ? { ...r, members: [...gone.members, ...r.members] } : r)),
     R: Object.fromEntries(Object.entries(o.R).map(([k, v]) => [k, { H: win(v.H), W: win(v.W) }])) };
 }
+/** (T623 F6, oracles.ts PEACE_KOKANEE) on a Peace River state where page v36's kokanee answer was Zone B's stream release
+ *  (x22p6), the table's "Kokanee: 10" answers: the row and both answers are a keep under that quota — the shape page v36
+ *  gives a quota's row (x22p0's own kokanee row) — and its year strip is keep all year. Identity elsewhere. */
+const PK = { out: oracleRixOf(PEACE_KOKANEE.out), base: oracleRixOf(PEACE_KOKANEE.base) };
+const PEACE_ITEM = taps().states as Readonly<Record<string, { readonly item: string } | undefined>>;
+const peaceRow = (id: string, o: OracleModel) =>
+  (PEACE_ITEM[id]?.item === PEACE_KOKANEE.item ? o.rows.findIndex((r) => r.kind === "release" && r.win === PK.out) : -1);
+function peaceKokanee(id: string, o: OracleModel): OracleModel {
+  const at = peaceRow(id, o);
+  if (at < 0) return o;
+  const win = (h: Res): Res => (h && h.win === PK.out ? { status: "keep", daily: PEACE_KOKANEE.daily, win: PK.base, narrow: null } : h);
+  return { ...o, rows: o.rows.map((r, i) => (i === at ? { ...r, kind: "keep", pool: PK.base, win: null, daily: PEACE_KOKANEE.daily, narrow: null } : r)),
+    R: Object.fromEntries(Object.entries(o.R).map(([k, v]) => [k, { H: win(v.H), W: win(v.W) }])) };
+}
+/** the same on `dayStatus`: that row's strip is keep on all 365 book days */
+const peaceStrip = (id: string, o: OracleModel, page: [string, number][][]): [string, number][][] => {
+  const at = peaceRow(id, o);
+  return at < 0 ? page : page.map((runs, i) => (i === at ? [["keep", 365]] : runs));
+};
 const mapModel = (id: string, raw: OracleModel): OracleModel => {
-  const o = loisFolded(id, raw);
+  const o = peaceKokanee(id, loisFolded(id, raw));
   return {
     ...o, broad: o.broad.filter(oracleLive).map(R), rows: o.rows.map((r) => ({ ...r, pool: Rn(r.pool), win: Rn(r.win), narrow: Rn(r.narrow) })),
     R: Object.fromEntries(Object.entries(o.R).map(([k, v]) => [k, { H: mapRes(v.H), W: mapRes(v.W) }])),
@@ -100,7 +119,7 @@ describe.skipIf(pairing.skip)(`T08 card model on the live release (${at.path ?? 
   it.each(ids)("6. %s: every row's STORED year strip (rows[].year) equals page v36's dayStatus runs (365 book days)", async (id) => {
     const { m } = await model(id);
     const at = loisRow(id, H.states[id]!.model);   // (T206, LOIS_FOLD) the folded row has no strip of its own
-    expect(m.rows.map((r) => r.year)).toEqual(rulingApplied(id, H.states[id]!.dayStatus).filter((_, i) => i !== at));
+    expect(m.rows.map((r) => r.year)).toEqual(peaceStrip(id, H.states[id]!.model, rulingApplied(id, H.states[id]!.dayStatus)).filter((_, i) => i !== at));
     for (const r of m.rows) expect(r.year.reduce((a, [, n]) => a + n, 0)).toBe(365);
   });
 
