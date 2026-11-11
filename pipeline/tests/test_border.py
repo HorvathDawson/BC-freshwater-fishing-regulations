@@ -250,3 +250,33 @@ def test_the_fast_prefilter_finds_the_same_cuts():
     want = BD.border_split_points(ref_chains, outline)
     assert [(p.blk, p.route_measure, p.split_id) for p in got] == \
         [(p.blk, p.route_measure, p.split_id) for p in want]
+
+
+# --- T623 F1: a river drawn ON a management-unit-group line (the Campbell, Region 1) ----------------
+
+def test_p13_a_river_drawn_on_the_mu_group_line_straddles_it_and_takes_the_summer_closure():
+    """PRINTED p.13 (Region 1): "No Fishing in any stream in Management Units 1-1 to 1-6 from July
+    15-Aug 31". The owner (2026-11-11, T623 F1): "Only the stretch that straddles a unit in 1-1 to 1-6
+    takes the Jul 15-Aug 31 summer closure; the rest (unit 1-10 only) does not."
+
+    The Campbell's centre line IS the 1-6 / 1-10 line from 0.95 km to 49.5 km (measured on the wmu
+    layer: within 1 mm; FWA and the unit line differ only by float noise, crossing back and forth). So
+    a piece drawn on the line straddles and is in the group; a channel wholly on the 1-10 side (the
+    331 m channel below Ladore Dam, the app's part 6) is not; a piece wholly in 1-6 is."""
+    from shapely.geometry import Polygon
+
+    group = "area:mu_group:management_units_1_1_to_1_6"
+    xs = range(0, 1001, 50)
+    edge = [(x, 50.0) for x in xs]
+    mu_1_6 = Polygon([(0, 0), (1000, 0)] + edge[::-1])          # south of the line: unit 1-6
+    on_line = [(x, 50.0 + (0.0005 if i % 2 else -0.0005)) for i, x in enumerate(xs)]   # float noise
+    fids = [_fid("R1", "R", "500", on_line, 0, 1000),                                   # the river
+            _fid("C1", "C", "600", [(300, 80), (600, 80)], 0, 300),                     # 1-10 only
+            _fid("S1", "S", "700", [(300, 20), (600, 20)], 0, 300)]                     # 1-6 only
+    chains = build_blk_chains(fids, {})
+    graph = build_stream_graph(chains, fids, {}, {})
+    geoms = build_section_geometries(chains, fids, {})
+    mark_inside_areas(graph, geoms, {group: mu_1_6})
+    assert group in graph.nodes["R:0"].in_areas            # straddles the 1-6 line: closed Jul 15-Aug 31
+    assert group not in graph.nodes["C:0"].in_areas        # unit 1-10 only: not closed
+    assert group in graph.nodes["S:0"].in_areas

@@ -29,3 +29,12 @@ read out of the staging app (the staging map could not be driven to these spots 
 - Measured: 2.70 km of the centreline lies inside the reserve of a 3.0 km stretch from its first to last point inside; the remaining 0.30 km is outside by at most 13 m (the line wiggles across the boundary).
 - On the imagery the reserve covers the north bank and about half the channel; its south-east edge follows the river's middle, so the centreline is on or just inside that edge.
 - Not established: the river's surface polygon is not a repo layer, so the share of water area inside the reserve is not computed; the centreline is not the bank.
+
+## F1-campbell-units.png
+- Drawn from the source gpkg `wmu` layer (units 1-6, 1-9, 1-10) and the FWA stream line of the Campbell (blk 354154635), sampled
+  every 2 m, over Esri World Imagery; part numbers are the live bundle's `part.part_ix` for gnis:39532.
+- Measured: from route km 0.95 to km 49.5 (mouth to inside Upper Campbell Lake) the river's centre line IS the 1-6 / 1-10 unit
+  line, within 1 mm (the unit line was drawn on the river). Every river part there straddles: parts 1-5 (km 1.63-8.50),
+  7 (14.95-17.86), 8-10 (33.34-36.03). Below km 0.95 the line is in 1-6 only (up to 355 m inside), all in tidal part 0.
+  Above km 49.5 it is in 1-9 (part 11). The only 1-10-only piece is part 6, the 331 m channel below Ladore Dam (0 m in 1-6).
+- Bundle today: the summer closure binds parts 1-5 and 7-10, not 0 (tidal), 6 or 11.
