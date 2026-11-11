@@ -238,7 +238,15 @@ export function readDocs(repoRoot) {
   const restartName = startHere.match(/handoff\/PLAN\/(NEXT-SESSION-[\w.-]+\.md)/)?.[1] ?? "";
   const restart = restartName && existsSync(join(plan, restartName)) ? readFileSync(join(plan, restartName), "utf8") : "";
   if (restartName && !restart) throw new Error(`START-HERE.md names ${restartName}, which does not exist`);
-  const isIgnored = (p) => spawnSync("git", ["-C", repoRoot, "check-ignore", "-q", p]).status === 0;
+  // git answers 0 (ignored) or 1 (not); anything else is git itself failing, said aloud so a runner that cannot ask
+  // does not read as "every ignored path is a dead path". GIT_* from a caller's environment must not point git elsewhere.
+  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")));
+  const isIgnored = (p) => {
+    const got = spawnSync("git", ["-C", repoRoot, "check-ignore", "-q", p], { env, encoding: "utf8" });
+    if (got.status === 0) return true;
+    if (got.status === 1) return false;
+    throw new Error(`git check-ignore ${p}: status ${got.status}${got.error ? ` (${got.error.message})` : ""} ${got.stderr ?? ""}`.trim());
+  };
   return { status: readFileSync(join(plan, "STATUS.md"), "utf8"), startHere, restartName, restart,
            ownerTodo: readFileSync(join(plan, "OWNER-TODO.md"), "utf8"), agents: readFileSync(join(repoRoot, "AGENTS.md"), "utf8"),
            exists: (p) => existsSync(join(repoRoot, p)), isIgnored };
