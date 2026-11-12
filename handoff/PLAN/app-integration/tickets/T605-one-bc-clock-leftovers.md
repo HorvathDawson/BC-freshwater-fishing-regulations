@@ -1,6 +1,6 @@
 # T605 — One B.C. clock: what T551 left
 
-Status: OPEN (item 1, 2 and the decided list-page sections done 1aed37981; items 3 and 4 left)
+Status: PARTIAL — items 1, 2, 5 (1aed37981) and 3, 4 built; left (Claude): the start link's region (or bounds) key and its gauge key (T622 G16), see the end
 
 Source: T551's report 2026-11-10 (commits d3b7f080e, e1142f148, 7af7f39e4). T551's ticket file numbers the items.
 
@@ -46,3 +46,26 @@ Still open:
   takes no region or bounds. Add a region (or bounds) key to the start link, parsed once in shared code for web and
   phone, and use it from the region pages (owner asked for "the live map for that region").
 - T622 G16: the start link has no gauge key, so the public gauge page cannot open the app on that gauge. Same change.
+
+## Built 2026-11-11 (items 3 and 4)
+- **Item 3** (the app re-reads "today" on return to the foreground): `@app/ui` `appBecameActive()` is the shared word; every
+  `useBcToday` re-reads the clock at once on it and re-arms its midnight timer. The shell says it: `ui-native`
+  `shell/useResumed` (react-native's AppState; on the web react-native-web answers it from the page's visibility), which
+  is also the count the app-update check already used (one listener in the Shell, not two). The app has ONE shell
+  (`apps/mobile` + `ui-native` Shell, web and phone), so there is one place, not one per platform.
+- **Item 4**: `ui-native/src/shell/useMapColouring.test.tsx`. With no day picked the status the map is handed moves to
+  the new day at B.C. midnight with no tap (the same feed object until then); hidden overnight and shown again, it is on
+  the new day before any timer runs; a picked day never moves. Both mutation-checked (a clock frozen at mount fails the
+  midnight step; the shell not telling the clock fails the return step). `ui/src/today.render.test.tsx` pins the hook.
+- Acceptance: no exception left in the clock gate (`tools/clock.test.ts`, 9 pass); new day within a minute of midnight
+  (the heartbeat, as before) and at once on return (new). Not seen on a device: the phone's AppState is react-native's
+  own and is not driven by a test here.
+
+## Still open
+- The region page's map link does not focus the region (the start link takes no region or bounds key), and the start
+  link has no gauge key (T622 G16). Not built in this pass. One change for both, in shared code: `parseStartLink`
+  (web) and `parseAppLink` (phone; it refuses unread keys today) read the key, the Shell frames the map through the
+  arrival path `?show=` uses (`useShellSearch.landOn`), and `tools/seo` writes it on the region pages (it has each
+  water's `mid`, so a region's box can be built there) and the gauge page. The gauge key needs a ruling first: the app
+  has no gauge-only screen; the gauge page's "Open on the website" link already opens its first water's Conditions,
+  where Flow picks the lead gauge.

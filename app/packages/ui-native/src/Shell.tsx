@@ -27,7 +27,7 @@
 import { GUIDE_WATER, WATER_SCREEN_WORDS, bellLabel, releaseNoticeVM, dayRange, placeholderFor, runSheet, stepDay, syncVM, type NotFishingKind, bcNow, now as clockNow, reportFailure } from "@app/core";
 import type { ItemId } from "@app/data";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AppState, Platform, View } from "react-native";
+import { Platform, View } from "react-native";
 import { bottomBarShown, spotPins, useDayFlow, useLikeVisit, useMapRail, useMyLocation, useOpenAtMe, opensAtMe, useShare, useGaugePageCheck, useMenu, useDataFacts, useSync, useAppUpdate,
          BackLayerContext, InSeasonContext, useIdleOnce, useInSeason, useInSeasonNotice, useDfoNotice, useDfoCheckedAt, useReleasePrefetch, useBackgroundPrefetch, useNet, useNetQuiet, useRegsPrefetch, holdsMapStatus, openWater, useHeldLookStore, type HeldLookStore, type RegsStart } from "@app/ui";
 import type { Camera, MapSpots } from "@app/map";
@@ -58,6 +58,7 @@ import { holdsView } from "./shell/holdViews";
 import type { ShellProps } from "./shell/props";
 import { HOME, useMapColouring } from "./shell/useMapColouring";
 import { useShellNav } from "./shell/useShellNav";
+import { useResumed } from "./shell/useResumed";
 import { useEscapeBack } from "./escapeBack";
 import { useShellSearch } from "./shell/useShellSearch";
 import { FirstRunNotice, useFirstRun } from "./FirstRunNotice";
@@ -324,12 +325,8 @@ export function Shell(p: ShellProps) {
    * "New data needs the latest app"), with one Update button — Play's in-app update, the App Store page, or the staging
    * APK page (`p.appUpdater`). Checked on every opening and every return to the app, never offline.
    */
-  const [resumed, setResumed] = useState(0);
-  useEffect(() => {
-    let was = AppState.currentState;
-    const sub = AppState.addEventListener("change", (st) => { if (st === "active" && was !== "active") setResumed((n) => n + 1); was = st; });
-    return () => sub.remove();
-  }, []);
+  // (T605 item 3) the same return also tells the shared clock: every "today" is re-read at once (`useResumed`)
+  const resumed = useResumed();
   const appUpdate = useAppUpdate(p.appUpdater ?? null, p.appUpdateStore ?? null,
                                  { offline: netState.mode.offline, tooOld: syncState.updates?.release?.phase === "app-too-old",
                                    ask: p.openUpdate ?? 0, resume: resumed });
