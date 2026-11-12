@@ -107,6 +107,12 @@ silent_skips() {
 }
 step "no silent skips (a pipeline test file changed)" silent_skips
 
+# caught (T667, 2026-11-11): 158 test files read the live tree past the helper or typed one build's section number,
+# part number or digest, so every rebuild and release meant hand edits to tests and 13 were red from build to promote.
+# A test file off its anchor fails here with what to write instead (< 2 s, every test file, no baseline; the app half
+# is `pnpm anchors` in check:fast below)
+step "test anchors (pipeline: no test file off its anchor)" "$PY" -m pipeline.tests.anchors
+
 # caught (2026-11-09, CI run 42723032360): `REPO_ROOT / "data" / "release"` (T517 name_check) failed CI's "No hardcoded
 # curated or source paths" gate after the push; that gate is a grep (< 1 s), run here from the workflow itself
 # (T535: through ci_step, a per-run mktemp file; the one fixed temp path let two lanes run each other's half-written copy)
