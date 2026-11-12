@@ -60,6 +60,7 @@ ATLAS_INPUTS: dict[str, str] = {
 #: T678 inputs of the coast cut, recorded once a coast-cut atlas is promoted (`ATLAS_INPUTS` gains them then, with
 #: `--backfill`): added before, every shipped atlas would read as behind and stop every release preflight.
 T678_INPUTS_AT_PROMOTION: dict[str, str] = {
+    "curated:waters.tidal_split_authority": "cut_shores (`splits.coast.load_authority`: which splits are DFO-written)",
     "curated:waters.shore_held": "cut_shores (`splits.coast_held.load`: the owner's lines, today's result kept)",
     "source:fwa_coast": "cut_shores (`splits.coast.CoastGeometry`: FWA river polygons + land mass)",
 }
@@ -69,6 +70,9 @@ NOT_ATLAS_INPUTS: dict[str, str] = {
     "curated:gauges.matches": "guarded by its own record, `gauge_matches.json` (cut-set digest, T159): a row that is "
                               "no cut does not change the graph (`gauges.matches.check_record`)",
     "curated:gauges.match_calls": "read only for the printed trust mix of the gauge cuts; shapes nothing",
+    "curated:waters.tidal_split_authority": "T678: recorded from the promotion of the first coast-cut atlas "
+                                            "(`T678_INPUTS_AT_PROMOTION`); the build lists its non-DFO splits in "
+                                            "`coast_owner.json`",
     "curated:waters.shore_held": "T678: recorded from the promotion of the first coast-cut atlas "
                                  "(`T678_INPUTS_AT_PROMOTION`); the build writes it whole into `coast_owner.json`",
 }

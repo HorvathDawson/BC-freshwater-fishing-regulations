@@ -170,12 +170,14 @@ def test_a_creek_into_a_creek_cut_below_its_crossing_follows():
 
 
 def test_authority_of_a_split_row():
-    def lim(limit, **extra):
-        return SimpleNamespace(limit=limit, extra=extra)
-    assert C.authority(lim("split", source="dfo")) == "dfo"
-    assert C.authority(lim("split", source="owner")) == "none"
-    assert C.authority(lim("split")) == "unclassified"
-    assert C.authority(lim("whole")) == "dfo" and C.authority(lim("mouth")) == "none"
+    def lim(limit, split=""):
+        return SimpleNamespace(limit=limit, split=split)
+    table = {"a": True, "b": False}
+    assert C.authority(lim("split", "a"), table) == "dfo"
+    assert C.authority(lim("split", "b"), table) == "none"
+    assert C.authority(lim("split", "c"), table) == "unclassified"
+    assert C.authority(lim("whole"), table) == "dfo" and C.authority(lim("mouth"), table) == "none"
+    assert [r.split for r in C.rank1([lim("split", "a"), lim("split", "b"), lim("split", "c")], table)] == ["a", "c"]
 
 
 def test_geometric_crossing_fails_when_the_line_ends_away_from_tidal_water():

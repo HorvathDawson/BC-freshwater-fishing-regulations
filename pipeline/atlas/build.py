@@ -1295,7 +1295,8 @@ def cut_shores(b: _Build) -> None:
     from pipeline.common.curated import CURATED
     from pipeline.common.models import NodeKind
     bbox = getattr(b, "bbox", None)
-    limits = _coast.rank1(getattr(b, "tidal_limits", None) or ())
+    b.split_authority = _coast.load_authority()
+    limits = _coast.rank1(getattr(b, "tidal_limits", None) or (), b.split_authority)
     # THE TIDAL WATER RANK 1 MAKES (a DFO-written split's piece, the owner's whole waters), as the reach's own
     # functions read it on the registry's waters made here once; `build_registry` proves the written registry
     # covers the same water (`coast.coverage`) and stops on a difference.
@@ -1346,7 +1347,7 @@ def cut_shores(b: _Build) -> None:
     # THE OWNER'S LINES: every held line, with where it is and what each method says (the held-rivers page reads it)
     owner_rows = [{**{k: v for k, v in held[bk].items()}, "blk": bk} for bk in sorted(held)]
     (out / _coast.OWNER_RECORD).write_text(json.dumps({"_about": _coast.OWNER_ABOUT, "lines": owner_rows,
-                                                       "unclassified_splits": _coast.unclassified(b.tidal_limits),
+                                                       "splits_without_authority": _coast.unclassified(b.tidal_limits, b.split_authority),
                                                        "held_now_governed": now_governed},
                                                       indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     missing = _coast.missing_held(owner, held)
@@ -1658,7 +1659,8 @@ def build_registry(b: _Build) -> None:
     if getattr(b, "shore_tidal", None) is not None:
         _owners = _coast.tidal_owners(graph, registry, list(getattr(b, "tidal_limits", None) or ()),
                                       getattr(b, "tidal_ids", None) or {}, getattr(b, "coast_whole", {}),
-                                      getattr(b, "coast_ok_cuts", {}), strict=bbox is None)
+                                      getattr(b, "coast_ok_cuts", {}), table=getattr(b, "split_authority", {}),
+                                      strict=bbox is None)
         _rank1 = {s for s, o in _owners.items() if o.startswith(("split:", "water:"))}
         _cov = _coast.coverage(graph, _rank1)
         if _cov != b.shore_tidal_cover:

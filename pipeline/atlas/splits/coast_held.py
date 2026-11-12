@@ -97,7 +97,7 @@ def main(argv=None) -> None:
     registry = load_registry(atlas / "registry.json")
     print(f"atlas loaded {time.time() - t0:.0f}s", flush=True)
     limits = _tidal.load()
-    rank1 = [r for r in limits if r.limit in ("split", "cut", "whole") and C.authority(r) != "none"]
+    rank1 = C.rank1(limits, C.load_authority())
     id_of = {r["blk"]: r["split_id"] for r in _tidal.read_resolved(atlas) if r.get("limit") == "cut"}
     tidal = _shore.reach_tidal(registry, graph, rank1, id_of)
     governed = _shore.owner_limited(graph, tidal, rank1)

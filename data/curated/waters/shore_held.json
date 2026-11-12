@@ -657,6 +657,21 @@
    }
   },
   {
+   "blk": "354100939",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 588.33,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.255676,
+    50.044044
+   ],
+   "methods": {
+    "edge1450_m": 588.329692937512,
+    "geometric_m": null
+   }
+  },
+  {
    "blk": "354101341",
    "name": "",
    "keep": "cut",
@@ -668,6 +683,36 @@
    ],
    "methods": {
     "edge1450_m": 7.0350162081907195,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354105314",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 56.31,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.852496,
+    48.672716
+   ],
+   "methods": {
+    "edge1450_m": 34.286359011554396,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "354120779",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 94.55,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.854158,
+    48.679656
+   ],
+   "methods": {
+    "edge1450_m": 54.6592984733429,
     "geometric_m": null
    }
   },
@@ -776,6 +821,21 @@
    }
   },
   {
+   "blk": "354146575",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 147.43,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -124.852569,
+    48.676488
+   ],
+   "methods": {
+    "edge1450_m": 113.983276828365,
+    "geometric_m": null
+   }
+  },
+  {
    "blk": "354147179",
    "name": "",
    "keep": "whole",
@@ -790,6 +850,21 @@
    }
   },
   {
+   "blk": "354148021",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 26.56,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -123.682297,
+    48.894823
+   ],
+   "methods": {
+    "edge1450_m": 26.559677430487998,
+    "geometric_m": null
+   }
+  },
+  {
    "blk": "354149178",
    "name": "",
    "keep": "whole",
@@ -801,6 +876,21 @@
    "methods": {
     "edge1450_m": 43.9732737680879,
     "geometric_m": 0.0
+   }
+  },
+  {
+   "blk": "354149928",
+   "name": "Nunns Creek",
+   "keep": "cut",
+   "cut_m": 221.59,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -125.255192,
+    50.044401
+   ],
+   "methods": {
+    "edge1450_m": 221.586454569785,
+    "geometric_m": null
    }
   },
   {
@@ -2219,6 +2309,21 @@
    }
   },
   {
+   "blk": "360649407",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 1643.22,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.971782,
+    54.985081
+   ],
+   "methods": {
+    "edge1450_m": 1629.8065329165,
+    "geometric_m": null
+   }
+  },
+  {
    "blk": "360661248",
    "name": "",
    "keep": "cut",
@@ -2274,6 +2379,21 @@
    ],
    "methods": {
     "edge1450_m": 223.240657555566,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360683185",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 1770.54,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.95585,
+    54.980445
+   ],
+   "methods": {
+    "edge1450_m": 1738.3611857794601,
     "geometric_m": null
    }
   },
@@ -2378,6 +2498,21 @@
    ],
    "methods": {
     "edge1450_m": 159.72475524128,
+    "geometric_m": null
+   }
+  },
+  {
+   "blk": "360767360",
+   "name": "",
+   "keep": "cut",
+   "cut_m": 1813.62,
+   "why": "an estuary drawn as an FWA river polygon: the polygon reading and the coast reading disagree (the coast cut says: fresh)",
+   "at": [
+    -129.960823,
+    54.982017
+   ],
+   "methods": {
+    "edge1450_m": 1771.52046962292,
     "geometric_m": null
    }
   },
