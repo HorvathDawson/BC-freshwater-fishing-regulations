@@ -21,6 +21,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: readonly ChangelogEntry[] = [
   {
+    version: "0.7.6", date: "2026-11-12", draft: true, notes: [
+      "The Keep and Gear tabs show what the current data release holds for a water",
+      "A tidal part of a water says it is tidal water, never outside B.C.",
+      "The salmon card draws the period limits of each bucket",
+      "A gauge card names which reading was ranked and when, and the data release it comes from",
+      "Every day shown is re-read at once when you come back to the app",
+    ],
+  },
+  {
     version: "0.7.5", date: "2026-11-11", notes: [
       "A water with a closure on a part the map does not draw carries a clear warning on its card",
       "A rule the book prints for parts of a water keeps those words in its title",
