@@ -157,8 +157,7 @@ A6. **Commit only your own paths: `git commit -- <paths>`.** Several agents shar
     2026-11-09: format pairs Python ↔ app/worker, goldens cut from LATEST, no-silent-skips on a changed test file).
     Run it while a build waits, too. `python -m pipeline release --staging` (preflight, with the branch-pushed check)
     and `deploy/staging/build-apk.sh` run it first; the escape (`--no-fast-fail REASON` / `--no-fast-fail=REASON`)
-    prints its reason. `FAST_FAIL_ALL=1` goes on past a failed step and ends with the list of every one (T666: the
-    release preflight runs it so). Checks that need a release or an out-dir sit where those are known (release preflight;
+    prints its reason. Checks that need a release or an out-dir sit where those are known (release preflight;
     `pipeline.deliver all --out-dir` refuses a scratch release root without the released tiles / basemap).
     **Whenever a failure shows up late — after a long job, at review, on the device — that a cheap check could
     have caught, add that check to `scripts/fast-fail.sh` in the same change as the fix**, with a one-line comment
@@ -367,9 +366,8 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     - **Smoke coverage gate** (`pipeline/tests/smoke_pending.txt`): the list only shrinks; a new module gets a smoke
       test, not a line in the file. Golden parity is strict.
     - **No frozen prototype oracles**: `golden.json` and its tests were retired (T439); the regs oracles are
-      release-backed (`app/fixtures/golden/taps.json`, re-cut by `node app/tools/regs-recut/sync.mjs`). The release
-      re-cuts EVERY release-backed fixture itself, on its candidate, before the promote (T666); when LATEST moved any
-      other way, re-cut them before an app build: `node app/tools/regs-recut/sync.mjs` does
+      release-backed (`app/fixtures/golden/taps.json`, re-cut by `node app/tools/regs-recut/sync.mjs`). After a release
+      is promoted, re-cut EVERY release-backed fixture before an app build: `node app/tools/regs-recut/sync.mjs` does
       them all in one step (T441: taps, hydrate, the fixture release, `dev/section-lines.json`, VM fixtures); no test
       types a raw section id — name it by stream key + start metre (or a lake by water + part) through `sectionNames`
       (`@app/data/release/node`), so a renumbering is no test edit and a moved section fails by name.
@@ -789,15 +787,8 @@ W46. **The guards the 2026-11 audits put in (T429–T442) stay in. A change that
     **T408 (2026-11-05): ONE RELEASE COMMAND**, `python -m pipeline release --staging` (`pipeline/release.py`): preflight
     (code + curated committed) → keep the live release's reach run → `pipeline build --hold-latest` through heavy.sh (the
     release waits in `data/release/CANDIDATE`) → checks (manifest, `release.app_gate` — the one upload.sh runs — and the
-    binding diff vs the live release; a diff STOPS until `--accept-diff <its json>`) → follows → LATEST → staging upload; resumable,
-    ledger `data/generated/release/ledger.json`. **T666 (2026-11-11): ONE RELEASE PATH.** What is cut from the live release
-    is refreshed BY the release, on the candidate, before the promote (stage `follows`; the one table is
-    `pipeline/release_follows.py`: in-season matches, the app's fixtures re-cut — a renumber-only change is committed with
-    the release id, a changed golden page stops for `--accept-fixtures` — and the tests that ask for the release under test,
-    found by rule, run with `RELEASE_DIR` = the candidate). A new thing that follows the release is a row there, never a
-    hand step in a runbook. Preflight runs EVERY check and lists every failure (`release.PREFLIGHT`, which `--dry-run`, the
-    rehearsal, reads too); fast-fail's pass is keyed on the tree's content; the command remembers its flags (never an
-    escape); the release pushes only with `--push`, and only its own commits. `--prod <r-id>` re-uploads that same checked release and refuses an agent:
+    binding diff vs the live release; a diff STOPS until `--accept-diff <its json>`) → LATEST → staging upload; resumable,
+    ledger `data/generated/release/ledger.json`. `--prod <r-id>` re-uploads that same checked release and refuses an agent:
     agents never run it. Runbook `handoff/PLAN/runbooks/release.md`.
     **T547 (2026-11-10): THE ATLAS RECORDS ITS CURATED INPUTS** (`pipeline/atlas/inputs.py`): the build writes one digest
     per input it reads (cuts by anchor, tidal limits, name variants, found names, added lakes/streams/areas, area
