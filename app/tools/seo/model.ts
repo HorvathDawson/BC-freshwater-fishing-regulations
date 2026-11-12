@@ -105,7 +105,7 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
   if (k.inherited) put(k.inherited.label, k.inherited.lines.map((l) => item(l.says)));
   for (const c of k.caveats) {
     // (T208) a rule held on one area of the water reads "Outlet area only (see map 1): …", then the map's own line ("See map A ·") with its book page
-    put(c.title, [item(c.calm), ...c.items.flatMap((i) => [item(i.area ? `${i.area.tag}:` : null), item(i.what, i.book), item(i.where), item(i.fish), item(i.area?.map)]),
+    put(c.title, [item(c.calm), ...c.items.flatMap((i) => [item(i.area ? `${i.area.tag}:` : null), item(i.what, i.book), item(i.where), item(i.fish), ...(i.detail ?? []).map((d) => item(d)), item(i.area?.map)]),
                   ...(c.later ?? []).flatMap((i) => [item(i.area ? `${i.area.tag}:` : null), item(i.what, i.book), item(i.where), item(i.area?.map)])]);
   }
   const keep: (Item | null)[] = [];
@@ -121,10 +121,17 @@ function sectionsOf(page: Omit<RegsPage, "sheet">): Section[] {
   }
   put("What you can keep", keep);
   if (k.otherFish?.length) {
-    put("Other fish", k.otherFish.flatMap((o) => [item([o.name, o.value, o.week, o.sizeHint].filter(Boolean).join(" · ")), ...o.stamps.map((s) => item(s))]));
+    // (T670 K2 / T672) a row's fish its number does not hold for ("Release every mountain whitefish.") go under the row,
+    // as the app draws them: without the line the row reads "Whitefish · 15 a day" for a fish that must go back
+    put("Other fish", [...k.otherFish.flatMap((o) => [item([o.name, o.value, o.week, o.sizeHint].filter(Boolean).join(" · ")),
+                                                      ...o.back.map((b) => item(b.says)), ...o.stamps.map((s) => item(s))]),
+                       ...k.otherFishKey.map((x) => item(x.says))]);
   }
-  put("Possession", [k.possession ? item(`${k.possession.label}: ${k.possession.value}`) : null, item(k.possession?.says)]);
+  // (T670 K1) `says` is the whole sentence: the lead, then every `also` line (a water's own possession limits)
+  put("Possession", [k.possession ? item([k.possession.label, k.possession.value].filter(Boolean).join(": ")) : null, item(k.possession?.says)]);
   if (k.whereNot) put(k.whereNot.heading, [item(k.whereNot.scope), ...k.whereNot.items.map((w) => item(w.text))]);
+  // (T670 G1) the page's boats line ("No angling (from a boat)"), drawn under the header whatever the tab
+  put("Boats", (page.boats ?? []).map((b) => item(b.text)));
   const g = page.gear;
   if (g) {
     put("Gear", [item(g.closed), ...g.closedMore.map((t) => item(t)), item(g.day, null, false, true), item(g.mode?.value),

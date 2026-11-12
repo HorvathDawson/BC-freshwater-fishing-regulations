@@ -80,7 +80,8 @@ function checkPart(part: PartModel, page: RegsPage, say: (m: string) => void): v
     say(`${at}: status ${part.status} against the app's header dot ${dot}`);
   const lines = new Set<string>(), leaves = new Set<string>();
   const { sheet: _s, ...bare } = page;
-  harvest({ keep: bare.keep, gear: bare.gear, methods: bare.methods, licence: bare.licence?.blocks, header: bare.header }, lines, leaves);
+  // (T672) the boats line under the header is the page's too (`page.boats`: its chips' words, T670 G1)
+  harvest({ keep: bare.keep, gear: bare.gear, methods: bare.methods, licence: bare.licence?.blocks, header: bare.header, boats: bare.boats ?? [] }, lines, leaves);
   // the licence blocks are strings: only the water-specific ones are on the page, but all are leaves the page may use
   const texts = part.sections.flatMap((s) => s.items.map((i) => i.text));
   const has = (w: string) => texts.some((t) => t.includes(w));
