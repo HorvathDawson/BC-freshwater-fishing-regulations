@@ -417,6 +417,29 @@ describe("(T320, T332) the salmon bucket and each species' numbers — the game-
     expect(t.species.filter((r) => r.code !== "CO").map((r) => r.quota ?? null)).toEqual([null, null, null, null]);
   });
 
+  it("(T671 D3) the bucket's period limits are lines under the total, each while a species it names may be kept", () => {
+    // DFO's header: "The total annual limit for chinook salmon over 50 cm is 10 …" / Region 8's monthly 4 — the release
+    // holds them as the bucket tree's child tiers; no card drew them
+    const annual = (sp: string) => ({ ...size(10, 50, `The total annual limit for ${sp} salmon over 50 cm is 10 fish from all fresh waters combined.`, "annual"), id: `a${sp}`, species: [sp === "coho" ? "CO" : "CH"] });
+    const monthly = { ...size(4, 50, "There is a monthly limit of 4 coho over 50 cm in Region 8.", "monthly"), id: "m", species: ["CO"] };
+    const any = { ...size(2, 80, "Only 2 salmon over 80 cm a year.", "annual"), id: "x" };
+    const tree = { ...BUCKET.tree, children: [monthly, annual("chinook"), annual("coho"), any] };
+    const P = PAYLOAD as never as { verdicts: object[]; regions: Record<string, object> };
+    const f = decodeSalmon(encode({ ...PAYLOAD, regions: { ...P.regions, "6": { ...P.regions["6"]!, bucket: { ...BUCKET, tree } } } }), HANDLES, SHARDS);
+    const t = salmonTable(salmonCard(f, { sids: [101], item: null }, JUL20));
+    expect(t.species.filter((r) => r.status === "open").map((r) => r.code)).toEqual(["CO"]);   // coho may be kept; chinook may not
+    expect(t.bucket!.line).toBe("Up to 4 salmon a day in total · 8 in possession");
+    const plain = (x: string) => x.replace(/\u00a0/g, " ");                    // the presenter ties a number to its noun
+    expect(t.bucket!.tiers!.map((x) => plain(x.line))).toEqual([
+      "There is a monthly limit of 4 coho over 50 cm in Region 8.",
+      "The total annual limit for coho salmon over 50 cm is 10 fish from all fresh waters combined.",
+      "Only 2 salmon over 80 cm a year."]);
+    expect(t.bucket!.tiers![0]!.runs).toEqual(tierWords(monthly as never));
+    expect(salmonTableTexts(t).map(plain)).toContain("The total annual limit for coho salmon over 50 cm is 10 fish from all fresh waters combined.");
+    // no child tier: no `tiers` key (the card as it was)
+    expect("tiers" in salmonTable(salmonCard(withQuota({}), { sids: [101], item: null }, JUL20)).bucket!).toBe(false);
+  });
+
   it("THE TROUT PRESENTER draws it: each tier by tierWords (its number big), the line's words the store's", () => {
     const q = { tree: count(4, "4 a day", [size(2, 50, "only 2 over 50 cm")]) };
     const r = co(q);

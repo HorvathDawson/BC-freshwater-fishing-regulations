@@ -127,6 +127,11 @@ function Table({ card, palette, actions, images }: { card: SalmonCardVM; palette
           {/* (T332) the bucket is the quota tree's total tier: drawn by the trout presenter (core tierWords) */}
           <LineText testID="salmon-bucket-line" line={t.bucket.runs ?? [{ t: "text", s: t.bucket.line }]} style={TYPE.regsBodySemi}
                     color={palette.ink} palette={palette} actions={actions ?? NO_ACTIONS} num={TYPE.regsBodyBold} />
+          {/* (T671 D3) the bucket's period limits (the chinook annual 10 over 50 cm, Region 8's monthly 4), DFO's words */}
+          {(t.bucket.tiers ?? []).map((x) => (
+            <LineText key={x.line} testID="salmon-bucket-tier" line={x.runs} style={TYPE.metaSemi}
+                      color={palette.ink} palette={palette} actions={actions ?? NO_ACTIONS} num={TYPE.metaBold} />
+          ))}
         </View>
       )}
       {(t.waterBuckets ?? []).map((w) => (

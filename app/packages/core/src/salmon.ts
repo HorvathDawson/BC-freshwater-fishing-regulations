@@ -784,7 +784,8 @@ export function salmonCard(f: SalmonFacts, page: { sids: readonly number[]; item
   const hn = salmonNotes(P, regionsUsed, page.item, day);
   const placed = new Set<string>();
   const buckets = [...new Map(regionsUsed.flatMap((r) => (P.regions[r]?.bucket ? [P.regions[r]!.bucket!] : []))
-    .map((b) => [JSON.stringify([b.tree.n, b.possession ?? null]), b])).values()];
+    // (T671 D3) one bucket only where the regions print the SAME tree: Region 8's adds a monthly chinook limit
+    .map((b) => [JSON.stringify([b.tree, b.possession ?? null]), b])).values()];
   // (T343) a note the pipeline folded is said by its structure, not as words: a sizes note where a sizes line says its
   // species (`sized`), a bucket note where the one bucket is; an aggregate, a closure or a dropped note never; (T482) a
   // daylight note where its region ships the hours (the card's `hours` line), never where it does not
@@ -1181,7 +1182,10 @@ export interface SalmonTableRowVM {
 }
 /** (T320) The bucket line over the species rows: "Up to 4 salmon a day in total · 8 in possession", DFO's words;
  *  (T332) `runs` the line as the trout presenter draws the bucket's total tier. */
-export interface SalmonBucketVM { readonly line: string; readonly words: readonly string[]; readonly runs?: Line }
+export interface SalmonBucketVM { readonly line: string; readonly words: readonly string[]; readonly runs?: Line;
+  /** (T671 D3) the bucket's other limits, one line each, in DFO's words (the tree's child tiers: the chinook annual
+   *  limit of 10 over 50 cm, Region 8's monthly 4) — those whose species may be kept today */
+  readonly tiers?: readonly { readonly line: string; readonly runs: Line }[] }
 /** DFO's own words for a group of species, said ONCE (a row grouping species alike), under the table. */
 export interface SalmonSaysVM { readonly label: string | null; readonly lines: readonly string[] }
 export interface SalmonTableVM {
@@ -1233,7 +1237,13 @@ const bucketOf = (b: SalmonBucket | null | undefined, rows: readonly SalmonRowVM
   if (!b || !rows.some((r) => r.status === "open")) return null;
   const runs: Line = [...tierWords(b.tree),
                       ...(b.possession ? [text(SALMON_WORDS.quota.sep + SALMON_WORDS.quota.possession(b.possession))] : [])];
-  return { line: lineText(runs), runs, words: [b.t, ...(b.tp ? [b.tp] : [])] };
+  // (T671 D3) the tree's child tiers (period limits) were drawn nowhere: each is a line under the total while a species
+  // it names may be kept today (one naming none: whenever the bucket shows). The words are the store's (`says`).
+  const kept = new Set<string>(rows.filter((r) => r.status === "open").flatMap((r) => r.species));
+  const tiers = b.tree.children.filter((c): c is TreeTier => c.node === "tier")
+    .filter((c) => !c.species?.length || c.species.some((x) => kept.has(x)))
+    .map((c) => { const r = tierWords(c); return { line: lineText(r), runs: r }; });
+  return { line: lineText(runs), runs, words: [b.t, ...(b.tp ? [b.tp] : [])], ...(tiers.length ? { tiers } : {}) };
 };
 const tableSays = (rows: readonly SalmonRowVM[], allClosed: boolean): SalmonSaysVM[] =>
   rows.map((r) => ({ label: allClosed || rows.length === 1 ? null : r.label, lines: [...r.notes.filter((n) => !r.repeats?.includes(n)), ...(r.species.length > 1 && r.sizes && !r.sizesBy ? [r.sizes] : []), ...(r.speciesNotes ?? [])] }))
@@ -1267,5 +1277,5 @@ export function salmonTableTexts(t: SalmonTableVM, gear: readonly string[] = [])
   const species = (rs: readonly SalmonTableRowVM[]) => rs.flatMap((r) => [...(r.limit ? [r.limit] : []), ...(r.quota ? [r.quota] : []),
                                                                            ...(r.window ? [r.window] : [])]);
   const says = (xs: readonly SalmonSaysVM[]) => xs.flatMap((x) => x.lines);
-  return [...(t.bucket ? [t.bucket.line] : []), ...(t.waterBuckets ?? []).map((w) => w.line), ...species(t.species), ...says(t.says), ...gear];
+  return [...(t.bucket ? [t.bucket.line, ...(t.bucket.tiers ?? []).map((x) => x.line)] : []), ...(t.waterBuckets ?? []).map((w) => w.line), ...species(t.species), ...says(t.says), ...gear];
 }
