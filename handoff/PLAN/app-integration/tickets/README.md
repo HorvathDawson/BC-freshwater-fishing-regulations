@@ -194,6 +194,7 @@ reads both files; a ticket closed here moves there once its lane is finished wit
 | T681 | The gauge-reporting key (T636 ring line) on the map, not in the bottom bar | DONE | d84c664e1 | owner 2026-11-12; overrides T367 for this line only; other legends stay in the bar |
 | T682 | Move two gauges to the new river line (08NK016, 08MH028); the other nine and the 17 lake-outlet gauges keep today's placement | OPEN | — | owner 2026-11-12 (T678 row `gauges-11-other-line`); promote reviewed rows surgically in matches.json, never regenerate |
 | T683 | Nakina River: half-width DFO rule binds the whole channel between the signs, card carries DFO's centre-line-to-north-bank words | OPEN | — | owner 2026-11-12 (row `nakina-half-width`); RULINGS E19 |
+| T684 | Drop the build-27 cuts on five held lines with nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076) | OPEN | — | owner 2026-11-12 (T678 C, row `held-five-build27-cut`); RULINGS E20 |
 
 ## Order for open tickets
 

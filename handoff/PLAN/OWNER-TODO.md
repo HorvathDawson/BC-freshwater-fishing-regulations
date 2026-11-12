@@ -120,7 +120,7 @@ Staging: release r-483b295de57c is live on https://staging.canifishthis.ca (site
 Open, your call (tidal, T678 / T679):
 - Held-rivers page https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q : wait, do not label yet. It will be rebuilt around the lines the new mouth method leaves open.
 - 46 estuaries are drawn as river where the mouth methods disagree: look and pick per estuary (T678).
-- Five held lines keep a build-27 cut with nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076): decide (T678 C).
+- ANSWERED 2026-11-12 (T678 C, Owner To-Do row `held-five-build27-cut`): five held lines with a build-27 cut and nothing tidal below (354087703, 354154029, 356341234, 360445710, 360861076): "Drop the cuts". Ticket T684. RULINGS E20.
 - Fraser sloughs and 7 unnamed lines: decide one by one; the Fraser channels rule does not cover sloughs (T678).
 
 Still open:
@@ -130,25 +130,14 @@ Still open:
 - T664 Okanagan River Oxbows as one water (code 25471b393; lands with the next atlas build; detail `app-integration/T664-pending/README.md`): the 45 stream pieces become one water. Default taken: the 8 oxbow polygons that the source data classes as lake or wetland stay separate, so search will show 1 + 8 results, not 1. Folding them in would turn them into streams, which takes lake rules off them and puts stream rules on (including the spring stream closure the oxbow row exempts). ANSWERED 2026-11-11: fold them in. "They should have been converted to stream polygons like Nicomen Slough so it all becomes one. They aren't lakes, they are considered streams." Going into the next build; search shows one result.
 - Nine DFO cuts from your marks (proposal patches in `app-integration/T664-pending/`, applied in the next build): Nakina River, DFO's wording is "from the centre line to the northern bank" between the two signs; a cut cannot take half the width of a river, so the rule will bind the whole channel between the signs (stricter than DFO on the south half). Default taken: whole channel. Owner 2026-11-11: will look later. ANSWERED 2026-11-12 (Owner To-Do row `nakina-half-width`): "Whole channel + note": the rule binds the whole stretch between the signs and the card says in DFO's words that it applies from the centre line to the northern bank only. Ticket T683. RULINGS E19.
 - ANSWERED 2026-11-12 (T670 G7, Owner To-Do row `t670-g7-classified-terms`): the 26 classified-water licence terms of p.7: "Show on each water": each classified water's Licence tab lists the p.7 terms that apply to it, in the book's words. Ticket T670. RULINGS Li13.
-- T628 item 5, closed (d0c00bc9f), FYI: a plain re-parse can no longer replace an entry carrying your review mark; ingest refuses and names the entry and mark, no override. 37 of 1,515 entries carry a mark today.
+- CLOSED 2026-11-12 (owner: "Close it"; row `t628-marked-entry-guard`): T628 item 5, a plain re-parse can no longer replace an entry carrying your review mark.
 - Next rebuild side build, measured (results: `handoff/PLAN/app-integration/next-rebuild-results.md`; no unexplained difference). Items for you, all left at today's behaviour unless said:
   - Tidal held lines are now 93, not 61: 32 new. Cohilukthan Slough (880 m) and Deas Slough (225 m) are over 100 m up the channel; Kainet Creek has a braid across its exit; 29 more the precise rule would make tidal that the dry-run pages showed "not cut" (Kwatna 3,125 m, Quaal 2,357, Bella Coola 1,320, Kitimat 1,251, Khutze 1,068, Kemano 813, San Juan 695 and others). All 93 keep build 27's sections and cuts. Ticking the 29 brings 31 more creek cuts and 24 braid cases. Map cards for all 93, the 32 new first: https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q
   - Four creeks are newly cut at the tide line (built): FWA lines 354135384, 356070273 (a 6 m piece), Crescent Slough 356326465, 356349946. Look when the staging map is up.
   - Brem River group (5 lines) showed as cut on the dry-run map and is NOT cut: the Brem ends at the sea with nothing mapped below it.
   - parse-missing: NOT needed, closed. Checked without parsing (5b5caecd3 lane): 1,393 entries, 0 missing, no reference to a lost water id; entry ids come from the synopsis row, not the water.
 - Tidal map pages (same links as the tidal line above): held rivers, one card each https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q ; every cut on the map https://claude.ai/artifact/3Jbd8SjT64Tj9HXvPgPBDc
-- Phone check of the latest Play internal build (0.7.5), the same rows as the Owner To-Do page (written 2026-11-11):
-  1. Cold start, then open a water: close the app fully, open it, search a water you opened before, open it; the regulations show (the step the test bed missed; it passed 7 of 7 on the emulator rerun since).
-  2. Satellite: zoomed in, a stream opens into two thin edges (T594); too faint or too heavy?
-  3. Trout / Salmon / Runs: the key under the map follows the map, no stuck switch (T566).
-  4. Gauges: a gauge reporting only the other of flow and level is a ringed grey dot, no text tag (T636).
-  5. Okanagan River Oxbows near Oliver: side channels carry the Oxbows entry; the two hillside lines above the cuts do not (T637).
-  6. Skeena or Nass estuary: a creek is cut at the tidal boundary; below reads tidal, above freshwater (T660).
-  7. Readings (T623): Nechako inside Region 6, Bowron and Willow inside Region 5 closed Apr 1-Jun 30; Peace kokanee 10.
-  8. A card warns of a closure on a part the map does not draw; the rule title keeps the book's words for the part.
-  9. A water's page opening in one piece (T498/T508, "Not right" on build 24, no note): which tab, and what appears late?
-  10. Stellako River (F12): the "10 hatchery steelhead" line was not found on staging with the new release (Regulations tab and its sheets; Salmon view not checked), so no card image exists; tick if you do not see it.
-- Next Play build (not 0.7.5): a shared `/water/...` link opens the installed app on that water; without the app, the website (T625; only a Play install can verify).
+- Phone check of the next build: Claude brings one fresh list (folds in the 0.7.5 checks: cold start, gauge ring, key switch, oxbows, page opens whole, part warning, three rule readings, satellite edges, tidal shore, Stellako steelhead line, plus T681 legend card and the T625 shared link). Owner 2026-11-12: "One fresh list for the new build", gone through in chat with pictures.
 - Tidal (T665), answered 2026-11-11 on the dry-run map (`app-integration/T665-dryrun-map.html`, sent in chat): cuts that leave nothing tidal are dropped; the 33 creeks are cut where they leave the tidal polygon and the tidal part taken out ("line end wins" withdrawn); Claude applies the same to 59 more creeks of that kind, say if wrong. Default to confirm: a water with its own tidal limit is never cut by the polygon. Still yours: eight main rivers (Bella Coola, Mamin, Apple x3, Kshwan, Sarita, Bedwell) held out until you look at their map page.
 - Tidal (T665) rerun with those answers (commit 227c53b08, `app-integration/T665-dryrun.md`): 201 shore cuts (127.4 km tidal below them), 215 lines wholly inside removed (67.7 km). 61 lines HELD until you look, untouched in the next build: the 8 main rivers plus 53 where the polygon runs over ~100 m up a narrow channel (the Pitt-style over-cut). Held rivers, one card each: https://claude.ai/artifact/3v6g4Ggx8WJZg4Jvxras9q — all cuts on the map: https://claude.ai/artifact/3Jbd8SjT64Tj9HXvPgPBDc. For each held one: cut at the polygon edge, cut at the mouth (DFO default, straight line between the two most seaward points of land), or leave. Of the 33 mouth creeks: 19 cut, 11 held, 3 not cut. Also proposed, not applied: 24 mouth rows for the tidal limits file (`T665-tidal-limits-mouth-rows.patch`).
 - Store screenshots (sent 2026-11-11): pick the order and titles (`app/tools/store-shots.json`).
@@ -194,7 +183,6 @@ Still open:
 - **Q4 / T55 + T149 — slough and canal candidates: review app, Sloughs tab only** (:5183, `#sloughs/`). All 2,424
   candidates with their pre-marks; your 150 review-page verdicts show as "page: …" and your 8 free-text notes as
   "your note" (incl. 329097416 Cruickshank, the one whose verdict you cleared: "similar this can be on moat lake").
-  811 are confirmed (folded by T322); still open: the 135 wide-marsh pre-marks and the rest of your list.
   The old slough page (artifact Es3Mokt7Fs2yNvm7JgQua8) is retired — do not mark there; its whole database (151 verdicts + 58 spot checks)
   was saved as marks-final-2026-10-28.json and has since moved out of the tree (T322; read it from git history); nothing else reads it.
 
@@ -226,7 +214,6 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
   Q2 / Q139 / Q47 no-access and tidal notes on Conditions.
 - **"Today" is the phone's day, not BC's (T368 Q6, 2026-11-04):** your answer assumed the app counts days in BC time; it
   counts them in the PHONE's zone (`localDate`): an Alberta phone at 00:30 MT is already on the next day while BC is at
-  23:30. Default: unchanged (device day). Switch "today" to America/Vancouver? (a behaviour change)
 - **Vessel rules (T209):** the 10 close-wording undrawn parts kept ("various locations", "swimming areas") in
   on-parts.md: whole water too, or leave as notes? (`max_power_kw` 7.5 is stored on the 162 electric-only rules, 10-28.)
 - **Salmon (T164), refreshed 11-05:** 179 DFO places still need an extent; each has a fresh proposal (52 on existing
@@ -318,20 +305,14 @@ decisions.md "CLAUDE 2026-10-23 — owner-question triage" (read and reverse any
 - **Sign-off walk** at the end (T87) before app/design is deleted.
 
 - **iOS (T88, T364, T365; 2026-11-05)** — **BENCHED (owner 11-06) until the DFO extents are labelled and Play closed testing has started; then pay the $99 (pick individual vs organization first) and run TestFlight, not the free 7-day route.** the real iPhone run (T364) is AFTER the launch-and-hygiene chat (owner 11-05). Claude built and tested everything the simulator can show (T313).
-  1. Join the Apple Developer Program ($99/yr). Then put two files in `~/.canifishthis/`: `ios-team-id` (the Team ID,
      Membership details) and `asc-api-key.json` `{"key_id","issuer_id","key_path"}` for an App Store Connect API key
      (Users and Access → Integrations → Team key, role App Manager; keep the .p8 outside the repo).
-  2. App Store Connect → My Apps → + New App: iOS, bundle id `ca.canifishthis.app`, the name, English (Canada), any SKU.
-  3. The name (DECIDED 2026-11-06): "Can I Fish This?" in App Store Connect; the home-screen label stays "Can I Fish?".
-  4. Run `deploy/staging/build-ios-testflight.sh` (staging data, for you + testers; `--dry-run` first lists what is
      missing). It uploads to TestFlight; install TestFlight on the iPhone and accept the build.
-  5. **Real iPhone run (T364)** on that build: the location prompt on the first "My location" tap; the first offline
      download on Wi-Fi and on cellular (the foreground download, b8e33ca80); the left-edge swipe back from a water's page
      (simulator: a slow drag goes back, a fast mid-height one sometimes does not — say which works for your thumb); the
      gauge pill's padding; the walkthrough to its end, incl. step 17 over the Layers sheet (T336) with VoiceOver on;
      More → Data "Send crash reports" stays on. Memory: Settings → General → iPhone Storage is not it — just say if the
      app is ever closed by itself while you pan or open Conditions (a crash report then reaches the staging store, T362).
-  6. App Store Connect forms (T365): App Privacy from `app-integration/store/privacy-labels-draft.md` (confirm the install
      id as Device ID, not linked); age rating; category; support URL; screenshots (6.9" + 6.5"); review notes. Export
      compliance: answer "standard encryption only" (the build already says so). The review build is
      `--production` and needs production hosting (T86) live.
