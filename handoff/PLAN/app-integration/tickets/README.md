@@ -506,7 +506,7 @@ use that as the sole source of future work."
 | T459 | Stepping ▲/▼ along a water: grey out the other waters (receiving water kept, owner picks) | DONE | 77c985859 | owner picks the downstream option from out/t459 shots |
 | T460 | Fraser: ▲ from Williams Lake River confluence offers 2 parts (a side channel skips part 15) | DONE 2026-11-06 | 96f7b5919, 92a25d8ee | rules right (950c2a3); 8 waters' steps change, side-channel forks kept; phone check 0.6.8 |
 | T461 | Tidal-water polygon: simplify per zoom, quieter edge (measure first) | PARTIAL | f3038a2 | look done; simplification with next release build |
-| T462 | Audit (multi-agent): every screen shows the regulations the release holds and the synopsis says | OPEN | — | owner 2026-11-06 |
+| T462 | Audit (multi-agent): every screen shows the regulations the release holds and the synopsis says | DONE 2026-11-11 | 85ba2e821 | T462-audit.md: 30 findings (8 wrong shown, 9 missing, 10 misleading, 3 cosmetic); statuses and numbers clean, the gaps are rules no screen draws; findings not yet ticketed |
 | T463 | Deep code review of the branch before production (owner runs /code-review ultra; Claude triages) | OPEN | — | owner 2026-11-06 |
 | T464 | Bulkley River: 6 of 12 parts unreachable by ▲/▼ (found by the T460 count; true before it) | DONE 2026-11-06 | 1470734, 723f43116 | only the Bulkley changes; release test every part reachable |
 | T465 | Water map: boundary labels with different words overlap zoomed out (Fraser top, z5.5) | OPEN | — | 2026-11-06 |

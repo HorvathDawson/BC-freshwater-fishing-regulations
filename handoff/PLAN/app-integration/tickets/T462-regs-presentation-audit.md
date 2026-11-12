@@ -1,6 +1,6 @@
 # T462 — Audit: does every screen show the regulations the release holds, and the synopsis says?
 
-Status: OPEN (owner 2026-11-06, chat 5). Run as a multi-agent workflow (the owner opts in with "use a workflow").
+Status: DONE 2026-11-11 — 85ba2e821 (the audit: `handoff/PLAN/app-integration/T462-audit.md`, 30 findings, read-only; no tickets filed yet: the owner decides which findings become work).
 
 Owner: "maybe ultra is good for doing some final audits on the code base and how the regulation data is presented."
 
