@@ -223,7 +223,7 @@ describe("one water screen, on the regs fixture release", () => {
     // the Regulations view's name row carries its date pill too: the heading is the name
     expect([cond, within(screen.getByTestId("regs-header")).getByRole("heading").textContent,
             screen.getByTestId("regs-on").textContent]).toEqual([
-      ["Unnamed stream · Region 1", "panel for 578 at 49.1"], "Unnamed stream · Region 1", "regs on null part null"]);
+      ["Unnamed stream · Region 1", `panel for ${unnamed} at 49.1`], "Unnamed stream · Region 1", "regs on null part null"]);
   }, 40_000);
 });
 
